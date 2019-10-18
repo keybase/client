@@ -899,6 +899,71 @@ func (l LoginUI) PromptPassphraseRecovery(ctx context.Context, arg keybase1.Prom
 	return l.parent.PromptYesNo(PromptDescriptorPassphraseRecovery, msg, libkb.PromptDefaultNo)
 }
 
+func (l LoginUI) ChooseDeviceToRecoverWith(ctx context.Context, arg keybase1.ChooseDeviceToRecoverWithArg) (keybase1.DeviceID, error) {
+	_ = l.parent.Output("Which one of your existing devices would you like to use to recover your\n")
+	_ = l.parent.Output("password?\n\n")
+
+	for i, d := range arg.Devices {
+		var ft string
+		switch d.Type {
+		case libkb.DeviceTypePaper:
+			ft = "paper key"
+		case libkb.DeviceTypeDesktop:
+			ft = "computer"
+		case libkb.DeviceTypeMobile:
+			ft = "mobile"
+		}
+		l.parent.Printf("\t%d. [%s]\t%s\n", i+1, ft, d.Name)
+	}
+
+	allowed := len(arg.Devices) + 1
+	l.parent.Printf("\t%d. I don't have access to any of these devices.\n", len(arg.Devices)+1)
+	_ = l.parent.Output("\n")
+
+	ret, err := PromptSelectionOrCancel(PromptDescriptorChooseDevice, l.parent, "Choose a device", 1, allowed)
+	if err != nil {
+		if err == ErrInputCanceled {
+			return keybase1.DeviceID(""), libkb.InputCanceledError{}
+		}
+		return keybase1.DeviceID(""), err
+	}
+
+	if ret == len(arg.Devices)+1 {
+		// selecting reset
+		return keybase1.DeviceID(""), nil
+	}
+
+	return arg.Devices[ret-1].DeviceID, nil
+}
+
+func (l LoginUI) DisplayResetMessage(_ context.Context, arg keybase1.DisplayResetMessageArg) error {
+	switch arg.Kind {
+	case keybase1.ResetMessage_ENTERED_VERIFIED:
+		_ = l.parent.Output(`Your account has been added to the reset pipeline.
+Please check your email and phone for instructions on continuing. If you
+remember your correct password or you want to resend verification emails and
+texts, retry this command.
+`)
+	case keybase1.ResetMessage_ENTERED_PASSWORDLESS:
+		_ = l.parent.Output(`Your account has been added to the reset pipeline.
+To check the status of your reset request, login again with your Keybase
+password.
+`)
+	case keybase1.ResetMessage_REQUEST_VERIFIED:
+		_ = l.parent.Output("Your account's reset request is now verified.\n")
+	case keybase1.ResetMessage_NOT_COMPLETED:
+		_ = l.parent.Output("Reset not completed.\n")
+	case keybase1.ResetMessage_CANCELED:
+		_ = l.parent.Output("Canceling reset.\n")
+	case keybase1.ResetMessage_COMPLETED:
+		_ = l.parent.Output("Your account has been reset.\n")
+	case keybase1.ResetMessage_RESET_LINK_SENT:
+		_ = l.parent.Output("A reset link has been sent to primary email.\n")
+	}
+
+	return nil
+}
+
 type SecretUI struct {
 	parent *UI
 }

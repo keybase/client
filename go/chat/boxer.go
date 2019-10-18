@@ -93,7 +93,7 @@ func (b *Boxer) log() logger.Logger {
 
 func (b *Boxer) makeErrorMessageFromPieces(ctx context.Context, err types.UnboxingError,
 	msgID chat1.MessageID, msgType chat1.MessageType, ctime gregor1.Time,
-	sender gregor1.UID, senderDevice gregor1.DeviceID,
+	sender gregor1.UID, senderDevice gregor1.DeviceID, botUID *gregor1.UID,
 	isEphemeral, isEphemeralExpired bool, etime gregor1.Time) chat1.MessageUnboxed {
 	e := chat1.MessageUnboxedError{
 		ErrType:            err.ExportType(),
@@ -108,6 +108,7 @@ func (b *Boxer) makeErrorMessageFromPieces(ctx context.Context, err types.Unboxi
 		IsEphemeral:        isEphemeral,
 		IsEphemeralExpired: isEphemeralExpired,
 		Etime:              etime,
+		BotUsername:        b.getBotInfoLocal(ctx, botUID),
 	}
 	e.SenderUsername, e.SenderDeviceName, e.SenderDeviceType = b.getSenderInfoLocal(ctx,
 		sender, senderDevice)
@@ -117,6 +118,7 @@ func (b *Boxer) makeErrorMessageFromPieces(ctx context.Context, err types.Unboxi
 func (b *Boxer) makeErrorMessage(ctx context.Context, msg chat1.MessageBoxed, err types.UnboxingError) chat1.MessageUnboxed {
 	return b.makeErrorMessageFromPieces(ctx, err, msg.GetMessageID(), msg.GetMessageType(),
 		msg.ServerHeader.Ctime, msg.ClientHeader.Sender, msg.ClientHeader.SenderDevice,
+		msg.ClientHeader.BotUID,
 		msg.IsEphemeral(), msg.IsEphemeralExpired(b.clock.Now()), msg.Etime())
 }
 
@@ -690,6 +692,7 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed,
 		ChannelMention:        chanMention,
 		ChannelNameMentions:   channelNameMentions,
 		MaybeMentions:         maybeRes,
+		BotUsername:           b.getBotInfoLocal(ctx, clientHeader.BotUID),
 	}, nil
 }
 
@@ -764,7 +767,8 @@ func (b *Boxer) ResolveSkippedUnboxed(ctx context.Context, msg chat1.MessageUnbo
 		if ierr.IsPermanent() {
 			return b.makeErrorMessageFromPieces(ctx, ierr, msg.GetMessageID(), msg.GetMessageType(),
 				msg.Valid().ServerHeader.Ctime, msg.Valid().ClientHeader.Sender,
-				msg.Valid().ClientHeader.SenderDevice, msg.Valid().IsEphemeral(),
+				msg.Valid().ClientHeader.SenderDevice,
+				msg.Valid().ClientHeader.BotUID, msg.Valid().IsEphemeral(),
 				msg.Valid().IsEphemeralExpired(b.clock.Now()), msg.Valid().Etime()), true, nil
 		}
 		return msg, false, ierr
@@ -959,6 +963,7 @@ func (b *Boxer) unboxV2orV3orV4(ctx context.Context, boxed chat1.MessageBoxed,
 		ChannelMention:        chanMention,
 		ChannelNameMentions:   channelNameMentions,
 		MaybeMentions:         maybeRes,
+		BotUsername:           b.getBotInfoLocal(ctx, clientHeader.BotUID),
 	}, nil
 }
 
@@ -1229,6 +1234,19 @@ func (b *Boxer) getSenderInfoLocal(ctx context.Context, uid1 gregor1.UID, device
 		}
 	}
 	return username, deviceName, deviceType
+}
+
+func (b *Boxer) getBotInfoLocal(ctx context.Context, uid *gregor1.UID) string {
+	if uid == nil {
+		return ""
+	}
+	kbuid := keybase1.UID(uid.String())
+	username, err := b.getUsername(ctx, kbuid)
+	if err != nil {
+		b.Debug(ctx, "failed to fetch bot username: %v", err)
+		return ""
+	}
+	return username
 }
 
 func (b *Boxer) getAtMentionInfo(ctx context.Context, tlfID chat1.TLFID, topicType chat1.TopicType,

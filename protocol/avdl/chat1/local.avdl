@@ -275,7 +275,8 @@ protocol local {
     TOOMANYATTEMPTS_6,
     ALREADY_DELETED_7,
     UPLOADFAILED_8,
-    RESTRICTEDBOT_9
+    RESTRICTEDBOT_9,
+    MINWRITER_10
   }
 
   record OutboxStateError {
@@ -478,6 +479,8 @@ protocol local {
 
     // The message this replied to (if any)
     union { null, MessageUnboxed } replyTo;
+    // Non-empty if this message is keyed for a bot
+    string botUsername;
   }
 
   enum MessageUnboxedErrorType {
@@ -507,11 +510,29 @@ protocol local {
     boolean isEphemeral;
     boolean isEphemeralExpired;
     gregor1.Time etime;
+    // Non-empty if this message is keyed for a bot
+    string botUsername;
   }
 
   record MessageUnboxedPlaceholder {
     MessageID messageID;
     boolean hidden;
+  }
+
+  enum MessageUnboxedJourneyCardType {
+    WELCOME_0,
+    POPULAR_CHANNELS_1,
+    ADD_PEOPLE_2,
+    CREATE_CHANNELS_3,
+    MSG_ATTENTION_4,
+    USER_AWAY_FOR_LONG_5,
+    CHANNEL_INACTIVE_6,
+    MSG_NO_ANSWER_7
+  }
+
+  record MessageUnboxedJourneyCard {
+    MessageUnboxedJourneyCardType cardType;
+    string data;
   }
 
   // If a new case is needed here, make sure to update UIMessage in chat_ui.avdl as well.
@@ -520,6 +541,7 @@ protocol local {
     case ERROR: MessageUnboxedError;
     case OUTBOX: OutboxRecord;
     case PLACEHOLDER: MessageUnboxedPlaceholder;
+    case JOURNEYCARD: MessageUnboxedJourneyCard;
   }
 
   // This causes fetching to return N items, where N = IdeallyGetUnreadPlus +

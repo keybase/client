@@ -1,10 +1,11 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/teams.avdl
 
 package keybase1
 
 import (
 	"errors"
+	"fmt"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 	"time"
@@ -48,7 +49,7 @@ func (e TeamRole) String() string {
 	if v, ok := TeamRoleRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type TeamApplication int
@@ -89,7 +90,7 @@ func (e TeamApplication) String() string {
 	if v, ok := TeamApplicationRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type TeamStatus int
@@ -121,7 +122,7 @@ func (e TeamStatus) String() string {
 	if v, ok := TeamStatusRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type AuditMode int
@@ -150,7 +151,7 @@ func (e AuditMode) String() string {
 	if v, ok := AuditModeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type PerTeamKeyGeneration int
@@ -179,7 +180,7 @@ func (e PTKType) String() string {
 	if v, ok := PTKTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type PerTeamSeedCheckVersion int
@@ -202,7 +203,7 @@ func (e PerTeamSeedCheckVersion) String() string {
 	if v, ok := PerTeamSeedCheckVersionRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type PerTeamSeedCheck struct {
@@ -476,7 +477,7 @@ func (e TeamMemberStatus) String() string {
 	if v, ok := TeamMemberStatusRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type TeamMemberDetails struct {
@@ -972,7 +973,7 @@ func (e RatchetType) String() string {
 	if v, ok := RatchetTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type HiddenTeamChainRatchetSet struct {
@@ -1344,7 +1345,7 @@ func (e AuditVersion) String() string {
 	if v, ok := AuditVersionRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type AuditHistory struct {
@@ -1454,7 +1455,7 @@ func (e TeamInviteCategory) String() string {
 	if v, ok := TeamInviteCategoryRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type TeamInviteType struct {
@@ -2188,7 +2189,7 @@ func (e SeitanKeyAndLabelVersion) String() string {
 	if v, ok := SeitanKeyAndLabelVersionRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type SeitanKeyAndLabel struct {
@@ -2317,7 +2318,7 @@ func (e SeitanKeyLabelType) String() string {
 	if v, ok := SeitanKeyLabelTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type SeitanKeyLabel struct {
@@ -3250,7 +3251,7 @@ func (e RotationType) String() string {
 	if v, ok := RotationTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type TeamDebugRes struct {

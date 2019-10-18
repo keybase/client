@@ -11,7 +11,7 @@ import {HeaderRightActions} from './main/header'
 import openURL from '../util/open-url'
 import * as Constants from '../constants/teams'
 import * as WaitingConstants from '../constants/waiting'
-import {Teamname} from '../constants/types/teams'
+import * as Types from '../constants/types/teams'
 import {memoize} from '../util/memoize'
 
 type OwnProps = Container.PropsWithSafeNavigation<{}>
@@ -29,7 +29,7 @@ const headerActions = (dispatch: Container.TypedDispatch, ownProps: OwnProps) =>
     dispatch(ownProps.safeNavigateAppendPayload({path: ['teamJoinTeamDialog']}))
   },
 })
-const makeTeamToRequest = memoize(tr =>
+const makeTeamToRequest = memoize((tr: Types.State['newTeamRequests']) =>
   tr.reduce((map, team) => {
     map[team] = (map[team] !== null && map[team] !== undefined ? map[team] : 0) + 1
     return map
@@ -78,14 +78,14 @@ const Connected = Container.withSafeNavigation(
   Container.connect(
     (state: Container.TypedState) => ({
       _deletedTeams: state.teams.deletedTeams,
-      _newTeamRequests: state.teams.getIn(['newTeamRequests'], I.List()),
-      _newTeams: state.teams.getIn(['newTeams'], I.Set()),
-      _teamNameToIsOpen: state.teams.getIn(['teamNameToIsOpen'], I.Map()),
-      _teamNameToRole: state.teams.getIn(['teamNameToRole'], I.Map()),
-      _teammembercounts: state.teams.getIn(['teammembercounts'], I.Map()),
-      _teamresetusers: state.teams.getIn(['teamNameToResetUsers'], I.Map()),
+      _newTeamRequests: state.teams.newTeamRequests,
+      _newTeams: state.teams.newTeams,
+      _teamNameToIsOpen: state.teams.teamNameToIsOpen || I.Map(),
+      _teamNameToRole: state.teams.teamNameToRole || I.Map(),
+      _teammembercounts: state.teams.teammembercounts || I.Map(),
+      _teamresetusers: state.teams.teamNameToResetUsers || I.Map(),
       loaded: !WaitingConstants.anyWaiting(state, Constants.teamsLoadedWaitingKey),
-      sawChatBanner: state.teams.getIn(['sawChatBanner'], false),
+      sawChatBanner: state.teams.sawChatBanner || false,
       teamnames: Constants.getSortedTeamnames(state),
     }),
     (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
@@ -94,25 +94,25 @@ const Connected = Container.withSafeNavigation(
       onClearBadges: () => dispatch(TeamsGen.createClearNavBadges()),
       onHideChatBanner: () =>
         dispatch(GregorGen.createUpdateCategory({body: 'true', category: 'sawChatBanner'})),
-      onManageChat: (teamname: Teamname) =>
+      onManageChat: (teamname: Types.Teamname) =>
         dispatch(
           ownProps.safeNavigateAppendPayload({path: [{props: {teamname}, selected: 'chatManageChannels'}]})
         ),
-      onOpenFolder: (teamname: Teamname) =>
+      onOpenFolder: (teamname: Types.Teamname) =>
         dispatch(
           FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/team/${teamname}`))
         ),
       onReadMore: () => {
         openURL('https://keybase.io/blog/introducing-keybase-teams')
       },
-      onViewTeam: (teamname: Teamname) =>
+      onViewTeam: (teamname: Types.Teamname) =>
         dispatch(ownProps.safeNavigateAppendPayload({path: [{props: {teamname}, selected: 'team'}]})),
     }),
 
     (stateProps, dispatchProps, _: OwnProps) => ({
-      deletedTeams: stateProps._deletedTeams.toArray(),
+      deletedTeams: stateProps._deletedTeams,
       loaded: stateProps.loaded,
-      newTeams: stateProps._newTeams.toArray(),
+      newTeams: [...stateProps._newTeams],
       sawChatBanner: stateProps.sawChatBanner,
       teamNameToCanManageChat: stateProps._teamNameToRole.map(role => role !== 'none').toObject(),
       teamNameToIsOpen: stateProps._teamNameToIsOpen.toObject(),

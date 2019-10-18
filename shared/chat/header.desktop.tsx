@@ -75,6 +75,9 @@ const Header = (p: Props) => {
       ? p.participants.filter(part => part !== p.username)
       : p.participants
 
+  // if there is no description (and is not a 1-on-1), don't render the description box
+  const renderDescription = description || (withoutSelf && withoutSelf.length === 1)
+
   // trim() call makes sure that string is not just whitespace
   if (withoutSelf && withoutSelf.length === 1 && p.desc.trim()) {
     description = (
@@ -106,7 +109,10 @@ const Header = (p: Props) => {
         alignItems="flex-end"
         alignSelf="flex-end"
       >
-        <Kb.Box2 direction="vertical" style={styles.headerTitle}>
+        <Kb.Box2
+          direction="vertical"
+          style={renderDescription ? styles.headerTitle : styles.headerTitleNoDesc}
+        >
           <Kb.Box2 direction="horizontal" fullWidth={true}>
             {p.channel ? (
               <Kb.Text selectable={true} type="Header" lineClamp={1}>
@@ -146,24 +152,26 @@ const Header = (p: Props) => {
               />
             )}
           </Kb.Box2>
-          <Kb.Box2 direction="vertical" style={styles.descriptionContainer} fullWidth={true}>
-            {withoutSelf && withoutSelf.length === 1 ? (
-              <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
-                <Kb.ConnectedUsernames
-                  colorFollowing={true}
-                  underline={true}
-                  inline={true}
-                  commaColor={Styles.globalColors.black_50}
-                  type="BodySmallSemibold"
-                  usernames={[withoutSelf[0]]}
-                  onUsernameClicked="profile"
-                />
-                {description}
-              </Kb.Box2>
-            ) : (
-              description
-            )}
-          </Kb.Box2>
+          {renderDescription && (
+            <Kb.Box2 direction="vertical" style={styles.descriptionContainer} fullWidth={true}>
+              {withoutSelf && withoutSelf.length === 1 ? (
+                <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
+                  <Kb.ConnectedUsernames
+                    colorFollowing={true}
+                    underline={true}
+                    inline={true}
+                    commaColor={Styles.globalColors.black_50}
+                    type="BodySmallSemibold"
+                    usernames={[withoutSelf[0]]}
+                    onUsernameClicked="profile"
+                  />
+                  {description}
+                </Kb.Box2>
+              ) : (
+                description
+              )}
+            </Kb.Box2>
+          )}
         </Kb.Box2>
         {p.showActions && (
           <Kb.Box2
@@ -215,6 +223,10 @@ const styles = Styles.styleSheetCreate(
       },
       headerTitle: Styles.platformStyles({
         common: {flexGrow: 1, paddingBottom: Styles.globalMargins.xtiny},
+        isElectron: Styles.desktopStyles.windowDraggingClickable,
+      }),
+      headerTitleNoDesc: Styles.platformStyles({
+        common: {flexGrow: 1, paddingBottom: Styles.globalMargins.tiny},
         isElectron: Styles.desktopStyles.windowDraggingClickable,
       }),
       left: {minWidth: 260},

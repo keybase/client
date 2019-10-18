@@ -376,6 +376,8 @@ export type TypedActionsMap = {
   'engine-gen:keybase1LoginUiDisplayResetProgress': enginegen.Keybase1LoginUiDisplayResetProgressPayload
   'engine-gen:keybase1LoginUiExplainDeviceRecovery': enginegen.Keybase1LoginUiExplainDeviceRecoveryPayload
   'engine-gen:keybase1LoginUiPromptPassphraseRecovery': enginegen.Keybase1LoginUiPromptPassphraseRecoveryPayload
+  'engine-gen:keybase1LoginUiChooseDeviceToRecoverWith': enginegen.Keybase1LoginUiChooseDeviceToRecoverWithPayload
+  'engine-gen:keybase1LoginUiDisplayResetMessage': enginegen.Keybase1LoginUiDisplayResetMessagePayload
   'engine-gen:keybase1LogsendPrepareLogsend': enginegen.Keybase1LogsendPrepareLogsendPayload
   'engine-gen:keybase1NotifyAppExit': enginegen.Keybase1NotifyAppExitPayload
   'engine-gen:keybase1NotifyAuditRootAuditError': enginegen.Keybase1NotifyAuditRootAuditErrorPayload
@@ -710,6 +712,7 @@ export type TypedActionsMap = {
   'settings:editEmail': settings.EditEmailPayload
   'settings:editPhone': settings.EditPhonePayload
   'settings:sentVerificationEmail': settings.SentVerificationEmailPayload
+  'settings:emailVerified': settings.EmailVerifiedPayload
   'settings:loadContactImportEnabled': settings.LoadContactImportEnabledPayload
   'settings:loadedContactImportEnabled': settings.LoadedContactImportEnabledPayload
   'settings:loadedContactPermissions': settings.LoadedContactPermissionsPayload

@@ -33,12 +33,6 @@ export type _PublicitySettings = {
   team: boolean
 }
 
-// Record types don't play well with $ReadOnly types, which
-// RPCTypes.TeamSettings is, so we want to extract the underlying
-// writeable type. Just spreading doesn't give us what we want, as
-// that makes all keys optional (see
-// https://github.com/facebook/flow/issues/3534 ), so use $Exact to
-// fix that.
 export type _TeamSettings = {} & RPCTypes.TeamSettings
 export type TeamSettings = I.RecordOf<_TeamSettings>
 
@@ -103,24 +97,23 @@ export type _ResetUser = {
 }
 export type ResetUser = I.RecordOf<_ResetUser>
 
-export type _EmailInviteError = {
-  malformed: I.Set<string>
+export type EmailInviteError = {
+  malformed: Set<string>
   message: string
 }
-export type EmailInviteError = I.RecordOf<_EmailInviteError>
 
 export type AddUserToTeamsState = 'notStarted' | 'pending' | 'succeeded' | 'failed'
 
-export type _State = {
+export type State = Readonly<{
   addUserToTeamsState: AddUserToTeamsState
   addUserToTeamsResults: string
   channelCreationError: string
-  deletedTeams: I.List<RPCTypes.DeletedTeamInfo>
+  deletedTeams: Array<RPCTypes.DeletedTeamInfo>
   emailInviteError: EmailInviteError
-  teamsWithChosenChannels: I.Set<Teamname>
+  teamsWithChosenChannels: Set<Teamname>
   sawChatBanner: boolean
   sawSubteamsBanner: boolean
-  teamAccessRequestsPending: I.Set<Teamname>
+  teamAccessRequestsPending: Set<Teamname>
   teamInviteError: string
   teamJoinError: string
   teamJoinSuccess: boolean
@@ -142,12 +135,10 @@ export type _State = {
   teamNameToPublicitySettings: I.Map<Teamname, _PublicitySettings>
   teamNameToAllowPromote: I.Map<Teamname, boolean>
   teamNameToIsShowcasing: I.Map<Teamname, boolean>
-  teamnames: I.Set<Teamname>
+  teamnames: Set<Teamname>
   teammembercounts: I.Map<Teamname, number>
-  teamProfileAddList: I.List<TeamProfileAddList>
-  newTeams: I.Set<string>
-  newTeamRequests: I.List<string>
+  teamProfileAddList: Array<TeamProfileAddList>
+  newTeams: Set<string>
+  newTeamRequests: Array<string>
   teamBuilding: TeamBuildingSubState
-}
-
-export type State = I.RecordOf<_State>
+}>

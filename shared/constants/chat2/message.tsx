@@ -957,6 +957,8 @@ export const rpcErrorToString = (error: RPCChatTypes.OutboxStateError) => {
       return 'took too long to send'
     case RPCChatTypes.OutboxErrorType.restrictedbot:
       return 'bot is restricted from sending to this conversation'
+    case RPCChatTypes.OutboxErrorType.minwriter:
+      return 'not high enough team role to post in this conversation'
     default:
       return `${error.message || ''} (code: ${error.typ})`
   }

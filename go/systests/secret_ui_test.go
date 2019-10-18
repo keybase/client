@@ -148,6 +148,12 @@ func (u *loginUI) ExplainDeviceRecovery(_ context.Context, arg keybase1.ExplainD
 func (u *loginUI) PromptPassphraseRecovery(_ context.Context, arg keybase1.PromptPassphraseRecoveryArg) (bool, error) {
 	return false, nil
 }
+func (u *loginUI) ChooseDeviceToRecoverWith(_ context.Context, arg keybase1.ChooseDeviceToRecoverWithArg) (keybase1.DeviceID, error) {
+	return "", nil
+}
+func (u *loginUI) DisplayResetMessage(_ context.Context, arg keybase1.DisplayResetMessageArg) error {
+	return nil
+}
 
 type provisionUI struct {
 	libkb.Contextified

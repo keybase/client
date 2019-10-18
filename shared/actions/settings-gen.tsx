@@ -24,6 +24,7 @@ export const deleteAccountForever = 'settings:deleteAccountForever'
 export const editContactImportEnabled = 'settings:editContactImportEnabled'
 export const editEmail = 'settings:editEmail'
 export const editPhone = 'settings:editPhone'
+export const emailVerified = 'settings:emailVerified'
 export const feedbackSent = 'settings:feedbackSent'
 export const importContactsLater = 'settings:importContactsLater'
 export const invitesClearError = 'settings:invitesClearError'
@@ -108,6 +109,7 @@ type _EditEmailPayload = {
   readonly verify?: boolean
 }
 type _EditPhonePayload = {readonly phone: string; readonly delete?: boolean; readonly setSearchable?: boolean}
+type _EmailVerifiedPayload = {readonly email: string}
 type _FeedbackSentPayload = {readonly error: Error | null}
 type _ImportContactsLaterPayload = void
 type _InvitesClearErrorPayload = void
@@ -185,6 +187,13 @@ type _VerifyPhoneNumberPayload = {readonly phoneNumber: string; readonly code: s
 export const createAddPhoneNumber = (payload: _AddPhoneNumberPayload): AddPhoneNumberPayload => ({
   payload,
   type: addPhoneNumber,
+})
+/**
+ * An email was just marked as verified
+ */
+export const createEmailVerified = (payload: _EmailVerifiedPayload): EmailVerifiedPayload => ({
+  payload,
+  type: emailVerified,
 })
 /**
  * An error occurred on the unfurl settings screen
@@ -513,6 +522,10 @@ export type EditContactImportEnabledPayload = {
 }
 export type EditEmailPayload = {readonly payload: _EditEmailPayload; readonly type: typeof editEmail}
 export type EditPhonePayload = {readonly payload: _EditPhonePayload; readonly type: typeof editPhone}
+export type EmailVerifiedPayload = {
+  readonly payload: _EmailVerifiedPayload
+  readonly type: typeof emailVerified
+}
 export type FeedbackSentPayload = {readonly payload: _FeedbackSentPayload; readonly type: typeof feedbackSent}
 export type ImportContactsLaterPayload = {
   readonly payload: _ImportContactsLaterPayload
@@ -736,6 +749,7 @@ export type Actions =
   | EditContactImportEnabledPayload
   | EditEmailPayload
   | EditPhonePayload
+  | EmailVerifiedPayload
   | FeedbackSentPayload
   | ImportContactsLaterPayload
   | InvitesClearErrorPayload

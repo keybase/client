@@ -337,7 +337,7 @@ func testEngineWithSecretStore(
 	defer tc.Cleanup()
 
 	fu := SignupFakeUserStoreSecret(tc, "wss")
-	tc.SimulateServiceRestart()
+	simulateServiceRestart(t, tc, fu)
 
 	testSecretUI := libkb.TestSecretUI{
 		Passphrase:  fu.Passphrase,
