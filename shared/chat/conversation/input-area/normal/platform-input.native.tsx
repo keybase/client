@@ -19,7 +19,6 @@ import AddSuggestors, {standardTransformer} from '../suggestors'
 import {parseUri, launchCameraAsync, launchImageLibraryAsync} from '../../../../util/expo-image-picker'
 import {BotCommandUpdateStatus} from './shared'
 import {formatDurationShort} from '../../../../util/timestamp'
-import {Animated} from 'react-native'
 
 type menuType = 'exploding' | 'filepickerpopup' | 'moremenu'
 
@@ -224,11 +223,15 @@ type ActionProps = {
 
 const Action = React.memo(
   ({hasText, insertMentionMarker, isEditing, onSubmit, openFilePicker, openMoreMenu}: ActionProps) => {
-    const hasValue = React.useRef(new Animated.Value(hasText ? 1 : 0)).current
+    const hasValue = React.useRef(new Kb.NativeAnimated.Value(hasText ? 1 : 0)).current
     const prevHasText = Container.usePrevious(hasText)
 
     React.useEffect(() => {
-      Animated.timing(hasValue, {duration: 200, toValue: hasText ? 1 : 0, useNativeDriver: true}).start()
+      Kb.NativeAnimated.timing(hasValue, {
+        duration: 200,
+        toValue: hasText ? 1 : 0,
+        useNativeDriver: true,
+      }).start()
     }, [hasText, prevHasText, hasValue])
 
     return (
@@ -241,7 +244,7 @@ const Action = React.memo(
           width: 106,
         }}
       >
-        <Animated.View
+        <Kb.NativeAnimated.View
           style={{
             bottom: 0,
             opacity: hasValue,
@@ -257,8 +260,8 @@ const Action = React.memo(
             onClick={onSubmit}
             label={isEditing ? 'Save' : 'Send'}
           />
-        </Animated.View>
-        <Animated.View
+        </Kb.NativeAnimated.View>
+        <Kb.NativeAnimated.View
           style={{
             bottom: 0,
             opacity: hasValue.interpolate({
@@ -292,7 +295,7 @@ const Action = React.memo(
               fontSize={22}
             />
           </Kb.Box2>
-        </Animated.View>
+        </Kb.NativeAnimated.View>
       </Kb.Box2>
     )
   }
