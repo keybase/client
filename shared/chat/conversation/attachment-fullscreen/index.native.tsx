@@ -71,11 +71,11 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
     return (
       <Kb.Box2
         direction="vertical"
-        style={{backgroundColor: Styles.globalColors.black}}
+        style={{backgroundColor: Styles.globalColors.blackOrBlack}}
         fullWidth={true}
         fullHeight={true}
       >
-        <Kb.SafeAreaViewTop style={{backgroundColor: Styles.globalColors.black}} />
+        <Kb.SafeAreaViewTop style={{backgroundColor: Styles.globalColors.blackOrBlack}} />
         <Kb.NativeStatusBar hidden={true} />
         <Kb.Text type="Body" onClick={this.props.onClose} style={styles.close}>
           Close
