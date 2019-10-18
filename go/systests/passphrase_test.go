@@ -311,6 +311,12 @@ func (r *testRecoverUIProvision) PromptPassphraseRecovery(_ context.Context, arg
 func (r *testRecoverUIProvision) ExplainDeviceRecovery(_ context.Context, arg keybase1.ExplainDeviceRecoveryArg) error {
 	return nil
 }
+func (r *testRecoverUIProvision) ChooseDeviceToRecoverWith(_ context.Context, arg keybase1.ChooseDeviceToRecoverWithArg) (keybase1.DeviceID, error) {
+	return "", nil
+}
+func (r *testRecoverUIProvision) DisplayResetMessage(_ context.Context, arg keybase1.DisplayResetMessageArg) error {
+	return nil
+}
 
 type testRecoverUIRecover struct {
 	libkb.Contextified

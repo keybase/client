@@ -225,6 +225,7 @@ func (a *ActiveDevice) clear() (KeychainMode, error) {
 
 	a.uv = keybase1.UserVersion{}
 	a.deviceID = ""
+	a.deviceName = ""
 	a.signingKey = nil
 	a.encryptionKey = nil
 	a.nistFactory = nil

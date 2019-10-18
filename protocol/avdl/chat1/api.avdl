@@ -60,6 +60,14 @@ protocol api {
     string deviceName;
   }
 
+  record MsgBotInfo {
+    @jsonkey("bot_uid")
+    string botUID;
+    @jsonkey("bot_username")
+    @optional(true)
+    string botUsername;
+  }
+
   record MsgFlipContent {
     @jsonkey("text")
     string text;
@@ -160,8 +168,8 @@ protocol api {
     @jsonkey("channel_name_mentions")
     @optional(true)
     array<UIChannelNameMention> channelNameMentions;
-    @jsonkey("bot_uid")
-    union { null, string } botUID;
+    @jsonkey("bot_info")
+    union { null, MsgBotInfo } botInfo;
   }
 
 
@@ -330,5 +338,20 @@ protocol api {
   record GetResetConvMembersRes {
     array<ResetConvMemberAPI> members;
     array<RateLimitRes> rateLimits;
+  }
+
+  record DeviceInfo {
+    @jsonkey("id")
+    string deviceID;
+    @jsonkey("description")
+    string deviceDescription;
+    @jsonkey("type")
+    string deviceType;
+    @jsonkey("ctime")
+    int64 deviceCtime;
+  }
+
+  record GetDeviceInfoRes {
+    array<DeviceInfo> devices;
   }
 }

@@ -46,7 +46,6 @@ import java.util.UUID;
 import io.keybase.ossifrage.modules.AppearanceModule;
 import io.keybase.ossifrage.modules.KeybaseEngine;
 import io.keybase.ossifrage.modules.NativeLogger;
-import io.keybase.ossifrage.util.ContactsPermissionsWrapper;
 import io.keybase.ossifrage.util.DNSNSFetcher;
 import io.keybase.ossifrage.util.VideoHelper;
 import keybase.Keybase;
@@ -172,10 +171,6 @@ public class MainActivity extends ReactFragmentActivity {
   public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
     if (listener != null) {
       listener.onRequestPermissionsResult(requestCode, permissions, grantResults);
-    }
-    if (permissions.length > 0 && permissions[0].equals("android.permission.READ_CONTACTS")) {
-      // Call callback wrapper with results
-      ContactsPermissionsWrapper.callbackWrapper(requestCode, permissions, grantResults);
     }
     super.onRequestPermissionsResult(requestCode, permissions, grantResults);
   }

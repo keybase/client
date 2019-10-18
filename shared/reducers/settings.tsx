@@ -12,7 +12,6 @@ const initialState: Types.State = Constants.makeState()
 type Actions =
   | SettingsGen.Actions
   | EngineGen.Keybase1NotifyEmailAddressEmailsChangedPayload
-  | EngineGen.Keybase1NotifyEmailAddressEmailAddressVerifiedPayload
   | EngineGen.Keybase1NotifyPhoneNumberPhoneNumbersChangedPayload
 
 function reducer(state: Types.State = initialState, action: Actions): Types.State {
@@ -92,13 +91,13 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
         ['email', 'emails'],
         I.Map((action.payload.params.list || []).map(row => [row.email, Constants.makeEmailRow(row)]))
       )
-    case EngineGen.keybase1NotifyEmailAddressEmailAddressVerified:
+    case SettingsGen.emailVerified:
       return state
         .updateIn(
           ['email', 'emails'],
           emails =>
             emails
-              ? emails.update(action.payload.params.emailAddress, (email: any) =>
+              ? emails.update(action.payload.email, (email: any) =>
                   email
                     ? email.merge({
                         isVerified: true,

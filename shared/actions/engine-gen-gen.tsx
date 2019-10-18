@@ -105,8 +105,10 @@ export const keybase1IdentifyUiReportLastTrack = 'engine-gen:keybase1IdentifyUiR
 export const keybase1IdentifyUiReportTrackToken = 'engine-gen:keybase1IdentifyUiReportTrackToken'
 export const keybase1IdentifyUiStart = 'engine-gen:keybase1IdentifyUiStart'
 export const keybase1LogUiLog = 'engine-gen:keybase1LogUiLog'
+export const keybase1LoginUiChooseDeviceToRecoverWith = 'engine-gen:keybase1LoginUiChooseDeviceToRecoverWith'
 export const keybase1LoginUiDisplayPaperKeyPhrase = 'engine-gen:keybase1LoginUiDisplayPaperKeyPhrase'
 export const keybase1LoginUiDisplayPrimaryPaperKey = 'engine-gen:keybase1LoginUiDisplayPrimaryPaperKey'
+export const keybase1LoginUiDisplayResetMessage = 'engine-gen:keybase1LoginUiDisplayResetMessage'
 export const keybase1LoginUiDisplayResetProgress = 'engine-gen:keybase1LoginUiDisplayResetProgress'
 export const keybase1LoginUiExplainDeviceRecovery = 'engine-gen:keybase1LoginUiExplainDeviceRecovery'
 export const keybase1LoginUiGetEmailOrUsername = 'engine-gen:keybase1LoginUiGetEmailOrUsername'
@@ -937,6 +939,17 @@ type _Keybase1LogUiLogPayload = {
     result: (param: keybase1Types.MessageTypes['keybase.1.logUi.log']['outParam']) => void
   }
 }
+type _Keybase1LoginUiChooseDeviceToRecoverWithPayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.loginUi.chooseDeviceToRecoverWith']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (
+      param: keybase1Types.MessageTypes['keybase.1.loginUi.chooseDeviceToRecoverWith']['outParam']
+    ) => void
+  }
+}
 type _Keybase1LoginUiDisplayPaperKeyPhrasePayload = {
   readonly params: keybase1Types.MessageTypes['keybase.1.loginUi.displayPaperKeyPhrase']['inParam'] & {
     sessionID: number
@@ -955,6 +968,15 @@ type _Keybase1LoginUiDisplayPrimaryPaperKeyPayload = {
     result: (
       param: keybase1Types.MessageTypes['keybase.1.loginUi.displayPrimaryPaperKey']['outParam']
     ) => void
+  }
+}
+type _Keybase1LoginUiDisplayResetMessagePayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.loginUi.displayResetMessage']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (param: keybase1Types.MessageTypes['keybase.1.loginUi.displayResetMessage']['outParam']) => void
   }
 }
 type _Keybase1LoginUiDisplayResetProgressPayload = {
@@ -2118,12 +2140,21 @@ export const createKeybase1LogUiLog = (payload: _Keybase1LogUiLogPayload): Keyba
   payload,
   type: keybase1LogUiLog,
 })
+export const createKeybase1LoginUiChooseDeviceToRecoverWith = (
+  payload: _Keybase1LoginUiChooseDeviceToRecoverWithPayload
+): Keybase1LoginUiChooseDeviceToRecoverWithPayload => ({
+  payload,
+  type: keybase1LoginUiChooseDeviceToRecoverWith,
+})
 export const createKeybase1LoginUiDisplayPaperKeyPhrase = (
   payload: _Keybase1LoginUiDisplayPaperKeyPhrasePayload
 ): Keybase1LoginUiDisplayPaperKeyPhrasePayload => ({payload, type: keybase1LoginUiDisplayPaperKeyPhrase})
 export const createKeybase1LoginUiDisplayPrimaryPaperKey = (
   payload: _Keybase1LoginUiDisplayPrimaryPaperKeyPayload
 ): Keybase1LoginUiDisplayPrimaryPaperKeyPayload => ({payload, type: keybase1LoginUiDisplayPrimaryPaperKey})
+export const createKeybase1LoginUiDisplayResetMessage = (
+  payload: _Keybase1LoginUiDisplayResetMessagePayload
+): Keybase1LoginUiDisplayResetMessagePayload => ({payload, type: keybase1LoginUiDisplayResetMessage})
 export const createKeybase1LoginUiDisplayResetProgress = (
   payload: _Keybase1LoginUiDisplayResetProgressPayload
 ): Keybase1LoginUiDisplayResetProgressPayload => ({payload, type: keybase1LoginUiDisplayResetProgress})
@@ -2860,6 +2891,10 @@ export type Keybase1LogUiLogPayload = {
   readonly payload: _Keybase1LogUiLogPayload
   readonly type: typeof keybase1LogUiLog
 }
+export type Keybase1LoginUiChooseDeviceToRecoverWithPayload = {
+  readonly payload: _Keybase1LoginUiChooseDeviceToRecoverWithPayload
+  readonly type: typeof keybase1LoginUiChooseDeviceToRecoverWith
+}
 export type Keybase1LoginUiDisplayPaperKeyPhrasePayload = {
   readonly payload: _Keybase1LoginUiDisplayPaperKeyPhrasePayload
   readonly type: typeof keybase1LoginUiDisplayPaperKeyPhrase
@@ -2867,6 +2902,10 @@ export type Keybase1LoginUiDisplayPaperKeyPhrasePayload = {
 export type Keybase1LoginUiDisplayPrimaryPaperKeyPayload = {
   readonly payload: _Keybase1LoginUiDisplayPrimaryPaperKeyPayload
   readonly type: typeof keybase1LoginUiDisplayPrimaryPaperKey
+}
+export type Keybase1LoginUiDisplayResetMessagePayload = {
+  readonly payload: _Keybase1LoginUiDisplayResetMessagePayload
+  readonly type: typeof keybase1LoginUiDisplayResetMessage
 }
 export type Keybase1LoginUiDisplayResetProgressPayload = {
   readonly payload: _Keybase1LoginUiDisplayResetProgressPayload
@@ -3368,8 +3407,10 @@ export type Actions =
   | Keybase1IdentifyUiReportTrackTokenPayload
   | Keybase1IdentifyUiStartPayload
   | Keybase1LogUiLogPayload
+  | Keybase1LoginUiChooseDeviceToRecoverWithPayload
   | Keybase1LoginUiDisplayPaperKeyPhrasePayload
   | Keybase1LoginUiDisplayPrimaryPaperKeyPayload
+  | Keybase1LoginUiDisplayResetMessagePayload
   | Keybase1LoginUiDisplayResetProgressPayload
   | Keybase1LoginUiExplainDeviceRecoveryPayload
   | Keybase1LoginUiGetEmailOrUsernamePayload

@@ -1,9 +1,10 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/constants.avdl
 
 package keybase1
 
 import (
+	"fmt"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -708,7 +709,7 @@ func (e StatusCode) String() string {
 	if v, ok := StatusCodeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type ConstantsInterface interface {

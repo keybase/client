@@ -1,14 +1,14 @@
 import * as Types from '../constants/types/signup'
 import * as Constants from '../constants/signup'
 import * as SignupGen from '../actions/signup-gen'
-import * as EngineGen from '../actions/engine-gen-gen'
+import * as SettingsGen from '../actions/settings-gen'
 import HiddenString from '../util/hidden-string'
 import trim from 'lodash/trim'
 import {isValidEmail, isValidName, isValidUsername} from '../util/simple-validators'
 
 const initialState: Types.State = Constants.makeState()
 
-type Actions = SignupGen.Actions | EngineGen.Keybase1NotifyEmailAddressEmailAddressVerifiedPayload
+type Actions = SignupGen.Actions | SettingsGen.EmailVerifiedPayload
 
 export default function(state: Types.State = initialState, action: Actions): Types.State {
   switch (action.type) {
@@ -98,7 +98,7 @@ export default function(state: Types.State = initialState, action: Actions): Typ
         justSignedUpEmail: action.payload.email,
       })
     case SignupGen.clearJustSignedUpEmail:
-    case EngineGen.keybase1NotifyEmailAddressEmailAddressVerified:
+    case SettingsGen.emailVerified:
       return state.merge({justSignedUpEmail: ''})
     // Saga only actions
     case SignupGen.requestAutoInvite:

@@ -185,6 +185,12 @@ func (s usernameLoginUI) ExplainDeviceRecovery(_ context.Context, arg keybase1.E
 func (s usernameLoginUI) PromptPassphraseRecovery(_ context.Context, arg keybase1.PromptPassphraseRecoveryArg) (bool, error) {
 	return false, nil
 }
+func (s usernameLoginUI) ChooseDeviceToRecoverWith(_ context.Context, arg keybase1.ChooseDeviceToRecoverWithArg) (keybase1.DeviceID, error) {
+	return "", nil
+}
+func (s usernameLoginUI) DisplayResetMessage(_ context.Context, arg keybase1.DisplayResetMessageArg) error {
+	return nil
+}
 
 func (d *smuDeviceWrapper) popClone() *libkb.TestContext {
 	if len(d.clones) == 0 {

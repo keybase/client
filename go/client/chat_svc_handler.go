@@ -48,6 +48,7 @@ type ChatServiceHandler interface {
 	UnpinV1(context.Context, unpinOptionsV1) Reply
 	GetResetConvMembersV1(context.Context) Reply
 	AddResetConvMemberV1(context.Context, addResetConvMemberOptionsV1) Reply
+	GetDeviceInfoV1(context.Context, getDeviceInfoOptionsV1) Reply
 }
 
 // chatServiceHandler implements ChatServiceHandler.
@@ -281,6 +282,38 @@ func (c *chatServiceHandler) SetUnfurlSettingsV1(ctx context.Context, opts setUn
 	return Reply{Result: true}
 }
 
+func (c *chatServiceHandler) GetDeviceInfoV1(ctx context.Context, opts getDeviceInfoOptionsV1) Reply {
+	client, err := GetUserClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	user, err := client.LoadUserByName(ctx, keybase1.LoadUserByNameArg{Username: opts.Username})
+	if err != nil {
+		return c.errReply(err)
+	}
+	arg := keybase1.LoadUserPlusKeysV2Arg{
+		Uid: user.Uid,
+	}
+	them, err := client.LoadUserPlusKeysV2(ctx, arg)
+	if err != nil {
+		return c.errReply(err)
+	}
+	var res chat1.GetDeviceInfoRes
+	for _, m := range them.Current.DeviceKeys {
+		dev := chat1.DeviceInfo{
+			DeviceID:          string(m.DeviceID),
+			DeviceDescription: m.DeviceDescription,
+			DeviceType:        m.DeviceType,
+			DeviceCtime:       m.Base.CTime.UnixSeconds(),
+		}
+		if string(m.DeviceID) != "" && m.Base.Revocation == nil {
+			res.Devices = append(res.Devices, dev)
+		}
+	}
+
+	return Reply{Result: res}
+}
+
 func (c *chatServiceHandler) getAdvertTyp(typ string) (chat1.BotCommandsAdvertisementTyp, error) {
 	switch typ {
 	case "public":
@@ -460,6 +493,21 @@ func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat
 			continue
 		}
 
+		if st == chat1.MessageUnboxedState_JOURNEYCARD {
+			mc := m.Journeycard()
+			ret = append(ret, chat1.Message{
+				Msg: &chat1.MsgSummary{
+					Content: chat1.MsgContent{
+						TypeName: chat1.MessageUnboxedJourneyCardTypeRevMap[mc.CardType],
+						Text: &chat1.MessageText{
+							Body: mc.Data,
+						},
+					},
+				},
+			})
+			continue
+		}
+
 		// skip any PLACEHOLDER or OUTBOX messages
 		if st != chat1.MessageUnboxedState_VALID {
 			continue
@@ -523,7 +571,10 @@ func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat
 		}
 		if mv.ClientHeader.BotUID != nil {
 			botUID := mv.ClientHeader.BotUID.String()
-			msg.BotUID = &botUID
+			msg.BotInfo = &chat1.MsgBotInfo{
+				BotUID:      botUID,
+				BotUsername: mv.BotUsername,
+			}
 		}
 		if mv.Reactions.Reactions != nil {
 			msg.Reactions = &mv.Reactions

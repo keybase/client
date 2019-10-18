@@ -1,10 +1,11 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/chat1/chat_ui.avdl
 
 package chat1
 
 import (
 	"errors"
+	"fmt"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	stellar1 "github.com/keybase/client/go/protocol/stellar1"
@@ -94,7 +95,7 @@ func (e UIInboxBigTeamRowTyp) String() string {
 	if v, ok := UIInboxBigTeamRowTypRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type UIInboxBigTeamChannelRow struct {
@@ -480,7 +481,7 @@ func (e UIParticipantType) String() string {
 	if v, ok := UIParticipantTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type UIParticipant struct {
@@ -910,7 +911,7 @@ type UIMessageValid struct {
 	IsEditable            bool                   `codec:"isEditable" json:"isEditable"`
 	ReplyTo               *UIMessage             `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
 	PinnedMessageID       *MessageID             `codec:"pinnedMessageID,omitempty" json:"pinnedMessageID,omitempty"`
-	BotUID                *gregor1.UID           `codec:"botUID,omitempty" json:"botUID,omitempty"`
+	BotUsername           string                 `codec:"botUsername" json:"botUsername"`
 }
 
 func (o UIMessageValid) DeepCopy() UIMessageValid {
@@ -1041,13 +1042,7 @@ func (o UIMessageValid) DeepCopy() UIMessageValid {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.PinnedMessageID),
-		BotUID: (func(x *gregor1.UID) *gregor1.UID {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.BotUID),
+		BotUsername: o.BotUsername,
 	}
 }
 
@@ -1116,6 +1111,7 @@ const (
 	MessageUnboxedState_ERROR       MessageUnboxedState = 2
 	MessageUnboxedState_OUTBOX      MessageUnboxedState = 3
 	MessageUnboxedState_PLACEHOLDER MessageUnboxedState = 4
+	MessageUnboxedState_JOURNEYCARD MessageUnboxedState = 5
 )
 
 func (o MessageUnboxedState) DeepCopy() MessageUnboxedState { return o }
@@ -1125,6 +1121,7 @@ var MessageUnboxedStateMap = map[string]MessageUnboxedState{
 	"ERROR":       2,
 	"OUTBOX":      3,
 	"PLACEHOLDER": 4,
+	"JOURNEYCARD": 5,
 }
 
 var MessageUnboxedStateRevMap = map[MessageUnboxedState]string{
@@ -1132,13 +1129,14 @@ var MessageUnboxedStateRevMap = map[MessageUnboxedState]string{
 	2: "ERROR",
 	3: "OUTBOX",
 	4: "PLACEHOLDER",
+	5: "JOURNEYCARD",
 }
 
 func (e MessageUnboxedState) String() string {
 	if v, ok := MessageUnboxedStateRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type UIMessage struct {
@@ -1147,6 +1145,7 @@ type UIMessage struct {
 	Error__       *MessageUnboxedError       `codec:"error,omitempty" json:"error,omitempty"`
 	Outbox__      *UIMessageOutbox           `codec:"outbox,omitempty" json:"outbox,omitempty"`
 	Placeholder__ *MessageUnboxedPlaceholder `codec:"placeholder,omitempty" json:"placeholder,omitempty"`
+	Journeycard__ *MessageUnboxedJourneyCard `codec:"journeycard,omitempty" json:"journeycard,omitempty"`
 }
 
 func (o *UIMessage) State() (ret MessageUnboxedState, err error) {
@@ -1169,6 +1168,11 @@ func (o *UIMessage) State() (ret MessageUnboxedState, err error) {
 	case MessageUnboxedState_PLACEHOLDER:
 		if o.Placeholder__ == nil {
 			err = errors.New("unexpected nil value for Placeholder__")
+			return ret, err
+		}
+	case MessageUnboxedState_JOURNEYCARD:
+		if o.Journeycard__ == nil {
+			err = errors.New("unexpected nil value for Journeycard__")
 			return ret, err
 		}
 	}
@@ -1215,6 +1219,16 @@ func (o UIMessage) Placeholder() (res MessageUnboxedPlaceholder) {
 	return *o.Placeholder__
 }
 
+func (o UIMessage) Journeycard() (res MessageUnboxedJourneyCard) {
+	if o.State__ != MessageUnboxedState_JOURNEYCARD {
+		panic("wrong case accessed")
+	}
+	if o.Journeycard__ == nil {
+		return
+	}
+	return *o.Journeycard__
+}
+
 func NewUIMessageWithValid(v UIMessageValid) UIMessage {
 	return UIMessage{
 		State__: MessageUnboxedState_VALID,
@@ -1240,6 +1254,13 @@ func NewUIMessageWithPlaceholder(v MessageUnboxedPlaceholder) UIMessage {
 	return UIMessage{
 		State__:       MessageUnboxedState_PLACEHOLDER,
 		Placeholder__: &v,
+	}
+}
+
+func NewUIMessageWithJourneycard(v MessageUnboxedJourneyCard) UIMessage {
+	return UIMessage{
+		State__:       MessageUnboxedState_JOURNEYCARD,
+		Journeycard__: &v,
 	}
 }
 
@@ -1274,6 +1295,13 @@ func (o UIMessage) DeepCopy() UIMessage {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Placeholder__),
+		Journeycard__: (func(x *MessageUnboxedJourneyCard) *MessageUnboxedJourneyCard {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Journeycard__),
 	}
 }
 
@@ -1391,7 +1419,7 @@ func (e UITextDecorationTyp) String() string {
 	if v, ok := UITextDecorationTypRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type UIMaybeMentionStatus int
@@ -1423,7 +1451,7 @@ func (e UIMaybeMentionStatus) String() string {
 	if v, ok := UIMaybeMentionStatusRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type UILinkDecoration struct {
@@ -1757,7 +1785,7 @@ func (e UIChatThreadStatusTyp) String() string {
 	if v, ok := UIChatThreadStatusTypRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type UIChatThreadStatus struct {
@@ -1985,7 +2013,7 @@ func (e UICoinFlipPhase) String() string {
 	if v, ok := UICoinFlipPhaseRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type UICoinFlipErrorParticipant struct {
@@ -2061,7 +2089,7 @@ func (e UICoinFlipErrorTyp) String() string {
 	if v, ok := UICoinFlipErrorTypRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type UICoinFlipError struct {
@@ -2304,7 +2332,7 @@ func (e UICoinFlipResultTyp) String() string {
 	if v, ok := UICoinFlipResultTypRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type UICoinFlipHand struct {
@@ -2646,7 +2674,7 @@ func (e UIWatchPositionPerm) String() string {
 	if v, ok := UIWatchPositionPermRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type UICommandStatusDisplayTyp int
@@ -2675,7 +2703,7 @@ func (e UICommandStatusDisplayTyp) String() string {
 	if v, ok := UICommandStatusDisplayTypRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type UICommandStatusActionTyp int
@@ -2698,7 +2726,7 @@ func (e UICommandStatusActionTyp) String() string {
 	if v, ok := UICommandStatusActionTypRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type UIBotCommandsUpdateStatus int
@@ -2730,7 +2758,7 @@ func (e UIBotCommandsUpdateStatus) String() string {
 	if v, ok := UIBotCommandsUpdateStatusRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type ChatAttachmentDownloadStartArg struct {

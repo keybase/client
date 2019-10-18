@@ -1,10 +1,11 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/chat1/notify.avdl
 
 package chat1
 
 import (
 	"errors"
+	"fmt"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
@@ -34,7 +35,7 @@ func (e ChatActivitySource) String() string {
 	if v, ok := ChatActivitySourceRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type ChatActivityType int
@@ -93,7 +94,7 @@ func (e ChatActivityType) String() string {
 	if v, ok := ChatActivityTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type IncomingMessage struct {
@@ -816,7 +817,7 @@ func (e StaleUpdateType) String() string {
 	if v, ok := StaleUpdateTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type ConversationStaleUpdate struct {
