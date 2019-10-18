@@ -224,7 +224,6 @@ type ActionProps = {
 const Action = React.memo(
   ({hasText, insertMentionMarker, isEditing, onSubmit, openFilePicker, openMoreMenu}: ActionProps) => {
     const hasValue = React.useRef(new Kb.NativeAnimated.Value(hasText ? 1 : 0)).current
-    const prevHasText = Container.usePrevious(hasText)
 
     React.useEffect(() => {
       Kb.NativeAnimated.timing(hasValue, {
@@ -232,26 +231,18 @@ const Action = React.memo(
         toValue: hasText ? 1 : 0,
         useNativeDriver: true,
       }).start()
-    }, [hasText, prevHasText, hasValue])
+    }, [hasText, hasValue])
 
     return (
-      <Kb.Box2
-        direction="vertical"
-        style={{
-          alignSelf: 'flex-end',
-          height: 50,
-          position: 'relative',
-          width: 106,
-        }}
-      >
+      <Kb.Box2 direction="vertical" style={styles.actionContainer}>
         <Kb.NativeAnimated.View
-          style={{
-            bottom: 0,
-            opacity: hasValue,
-            position: 'absolute',
-            right: 0,
-            transform: [{translateX: hasValue.interpolate({inputRange: [0, 1], outputRange: [200, 0]})}],
-          }}
+          style={[
+            styles.animatedContainer,
+            {
+              opacity: hasValue,
+              transform: [{translateX: hasValue.interpolate({inputRange: [0, 1], outputRange: [200, 0]})}],
+            },
+          ]}
         >
           <Kb.Button
             type="Default"
@@ -262,16 +253,16 @@ const Action = React.memo(
           />
         </Kb.NativeAnimated.View>
         <Kb.NativeAnimated.View
-          style={{
-            bottom: 0,
-            opacity: hasValue.interpolate({
-              inputRange: [0, 1],
-              outputRange: [1, 0],
-            }),
-            position: 'absolute',
-            right: 0,
-            transform: [{translateX: hasValue.interpolate({inputRange: [0, 1], outputRange: [0, 200]})}],
-          }}
+          style={[
+            styles.animatedContainer,
+            {
+              opacity: hasValue.interpolate({
+                inputRange: [0, 1],
+                outputRange: [1, 0],
+              }),
+              transform: [{translateX: hasValue.interpolate({inputRange: [0, 1], outputRange: [0, 200]})}],
+            },
+          ]}
         >
           <Kb.Box2 direction="horizontal" style={styles.actionIconsContainer}>
             <Kb.Icon
@@ -342,6 +333,12 @@ const styles = Styles.styleSheetCreate(
       actionButton: {
         alignSelf: isIOS ? 'flex-end' : 'center',
       },
+      actionContainer: {
+        alignSelf: 'flex-end',
+        height: 50,
+        position: 'relative',
+        width: 106,
+      },
       actionIconsContainer: {
         marginBottom: Styles.globalMargins.xsmall,
       },
@@ -349,6 +346,11 @@ const styles = Styles.styleSheetCreate(
         alignSelf: 'flex-end',
         paddingBottom: Styles.globalMargins.xsmall,
         paddingRight: Styles.globalMargins.tiny,
+      },
+      animatedContainer: {
+        bottom: 0,
+        position: 'absolute',
+        right: 0,
       },
       container: {
         ...Styles.globalStyles.flexBoxRow,
