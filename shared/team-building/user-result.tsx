@@ -153,7 +153,12 @@ const ServicesIcons = (props: {
     <Kb.Box2 direction="horizontal" fullWidth={Styles.isMobile} style={styles.services}>
       {serviceIds.map((serviceName, index) => {
         const iconStyle =
-          firstIconNoMargin && index === 0 ? null : Kb.iconCastPlatformStyles(styles.serviceIcon)
+          firstIconNoMargin && index === 0
+            ? Styles.collapseStyles([
+                Kb.iconCastPlatformStyles(styles.serviceIcon),
+                Kb.iconCastPlatformStyles({marginLeft: 0}),
+              ])
+            : Kb.iconCastPlatformStyles(styles.serviceIcon)
         return (
           <Kb.WithTooltip
             key={serviceName}
@@ -198,6 +203,21 @@ const FormatPrettyName = (props: {
     </Kb.Text>
   ) : null
 
+const MobileScrollView = ({children}: {children: React.ReactNode}) =>
+  Styles.isMobile ? (
+    <Kb.ScrollView
+      horizontal={true}
+      showsHorizontalScrollIndicator={false}
+      showsVerticalScrollIndicator={false}
+      scrollEventThrottle={1000}
+      contentContainerStyle={styles.bottomRowScrollContainer}
+    >
+      {children}
+    </Kb.ScrollView>
+  ) : (
+    <>{children}</>
+  )
+
 const BottomRow = (props: {
   isKeybaseResult: boolean
   username: string
@@ -227,13 +247,7 @@ const BottomRow = (props: {
 
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignSelf="flex-start" style={styles.bottomRowContainer}>
-      <Kb.ScrollView
-        horizontal={true}
-        showsHorizontalScrollIndicator={false}
-        showsVerticalScrollIndicator={false}
-        scrollEventThrottle={1000}
-        contentContainerStyle={styles.bottomRowScrollContainer}
-      >
+      <MobileScrollView>
         {keybaseUsernameComponent}
         {props.isPreExistingTeamMember ? (
           <Kb.Text type="BodySmall" lineClamp={1}>
@@ -263,7 +277,7 @@ const BottomRow = (props: {
             ) : null}
           </>
         )}
-      </Kb.ScrollView>
+      </MobileScrollView>
     </Kb.Box2>
   )
 }
