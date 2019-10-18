@@ -205,6 +205,7 @@ type ConfigReader interface {
 	GetProxyCACerts() ([]string, error)
 	GetSecurityAccessGroupOverride() (bool, bool)
 	GetBug3964RepairTime(NormalizedUsername) (time.Time, error)
+	GetStayLoggedOut() (bool, bool)
 
 	GetUpdatePreferenceAuto() (bool, bool)
 	GetUpdatePreferenceSkip() string
@@ -247,6 +248,7 @@ type ConfigWriter interface {
 	SetBug3964RepairTime(NormalizedUsername, time.Time) error
 	SetRememberPassphrase(NormalizedUsername, bool) error
 	SetPassphraseState(keybase1.PassphraseState) error
+	SetStayLoggedOut(bool) error
 	Reset()
 	BeginTransaction() (ConfigWriterTransacter, error)
 }
