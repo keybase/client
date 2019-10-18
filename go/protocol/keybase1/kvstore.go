@@ -167,6 +167,7 @@ type PutKVEntryArg struct {
 	TeamName   string `codec:"teamName" json:"teamName"`
 	Namespace  string `codec:"namespace" json:"namespace"`
 	EntryKey   string `codec:"entryKey" json:"entryKey"`
+	Revision   int    `codec:"revision" json:"revision"`
 	EntryValue string `codec:"entryValue" json:"entryValue"`
 }
 
@@ -186,6 +187,7 @@ type DelKVEntryArg struct {
 	TeamName  string `codec:"teamName" json:"teamName"`
 	Namespace string `codec:"namespace" json:"namespace"`
 	EntryKey  string `codec:"entryKey" json:"entryKey"`
+	Revision  int    `codec:"revision" json:"revision"`
 }
 
 type KvstoreInterface interface {

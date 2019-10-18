@@ -166,7 +166,7 @@ type putEntryAPIRes struct {
 func (h *KVStoreHandler) PutKVEntry(ctx context.Context, arg keybase1.PutKVEntryArg) (res keybase1.KVPutResult, err error) {
 	ctx = libkb.WithLogTag(ctx, "KV")
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.TraceTimed(fmt.Sprintf("KVStoreHandler#PutKVEntry: t:%s, n:%s, k:%s", arg.TeamName, arg.Namespace, arg.EntryKey), func() error { return err })()
+	defer mctx.TraceTimed(fmt.Sprintf("KVStoreHandler#PutKVEntry: t:%s, n:%s, k:%s, r:%d", arg.TeamName, arg.Namespace, arg.EntryKey, arg.Revision), func() error { return err })()
 	if err := h.assertLoggedIn(ctx); err != nil {
 		mctx.Debug("not logged in err: %v", err)
 		return res, err
@@ -181,19 +181,22 @@ func (h *KVStoreHandler) PutKVEntry(ctx context.Context, arg keybase1.PutKVEntry
 		EntryKey:  arg.EntryKey,
 	}
 
-	// populate the local cache (this will make more sense after PICNIC-534)
-	getRes, err := h.GetKVEntry(ctx, keybase1.GetKVEntryArg{
-		SessionID: arg.SessionID,
-		TeamName:  arg.TeamName,
-		Namespace: arg.Namespace,
-		EntryKey:  arg.EntryKey,
-	})
-	if err != nil {
-		err = fmt.Errorf("error fetching the revision before writing this entry: %s", err)
-		mctx.Debug("%+v: %s", entryID, err)
-		return res, err
+	revision := arg.Revision
+	if revision == 0 {
+		// fetch to get the correct revision when it's not specified
+		getRes, err := h.GetKVEntry(ctx, keybase1.GetKVEntryArg{
+			SessionID: arg.SessionID,
+			TeamName:  arg.TeamName,
+			Namespace: arg.Namespace,
+			EntryKey:  arg.EntryKey,
+		})
+		if err != nil {
+			err = fmt.Errorf("error fetching the revision before writing this entry: %s", err)
+			mctx.Debug("%+v: %s", entryID, err)
+			return res, err
+		}
+		revision = getRes.Revision + 1
 	}
-	revision := getRes.Revision + 1
 
 	mctx.Debug("updating %+v to revision %d", entryID, revision)
 	ciphertext, teamKeyGen, ciphertextVersion, err := h.Boxer.Box(mctx, entryID, revision, arg.EntryValue)
@@ -201,10 +204,9 @@ func (h *KVStoreHandler) PutKVEntry(ctx context.Context, arg keybase1.PutKVEntry
 		mctx.Debug("error boxing %+v: %v", entryID, err)
 		return res, err
 	}
-	err = mctx.G().GetKVRevisionCache().Check(mctx, entryID, &ciphertext, teamKeyGen, revision)
+	err = mctx.G().GetKVRevisionCache().CheckForUpdate(mctx, entryID, revision)
 	if err != nil {
-		err = fmt.Errorf("error comparing the entry we want to write with what's in the local cache: %s", err)
-		mctx.Debug("%+v: %s", entryID, err)
+		mctx.Debug("error from cache for updating %+v: %s", entryID, err)
 		return res, err
 	}
 
@@ -248,7 +250,7 @@ func (h *KVStoreHandler) PutKVEntry(ctx context.Context, arg keybase1.PutKVEntry
 func (h *KVStoreHandler) DelKVEntry(ctx context.Context, arg keybase1.DelKVEntryArg) (res keybase1.KVDeleteEntryResult, err error) {
 	ctx = libkb.WithLogTag(ctx, "KV")
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.TraceTimed(fmt.Sprintf("KVStoreHandler#DeleteKVEntry: t:%s, n:%s, k:%s", arg.TeamName, arg.Namespace, arg.EntryKey), func() error { return err })()
+	defer mctx.TraceTimed(fmt.Sprintf("KVStoreHandler#DeleteKVEntry: t:%s, n:%s, k:%s, r:%d", arg.TeamName, arg.Namespace, arg.EntryKey, arg.Revision), func() error { return err })()
 	if err := h.assertLoggedIn(ctx); err != nil {
 		mctx.Debug("not logged in err: %v", err)
 		return res, err
@@ -263,21 +265,27 @@ func (h *KVStoreHandler) DelKVEntry(ctx context.Context, arg keybase1.DelKVEntry
 		EntryKey:  arg.EntryKey,
 	}
 
-	// populate the local cache (this will make more sense after PICNIC-534)
-	getArg := keybase1.GetKVEntryArg(arg)
-	getRes, err := h.GetKVEntry(ctx, getArg)
-	if err != nil {
-		err = fmt.Errorf("error fetching the revision before deleting this entry: %s", err)
-		mctx.Debug("%+v: %s", entryID, err)
-		return res, err
+	revision := arg.Revision
+	if revision == 0 {
+		getArg := keybase1.GetKVEntryArg{
+			SessionID: arg.SessionID,
+			TeamName:  arg.TeamName,
+			Namespace: arg.Namespace,
+			EntryKey:  arg.EntryKey,
+		}
+		getRes, err := h.GetKVEntry(ctx, getArg)
+		if err != nil {
+			err = fmt.Errorf("error fetching the revision before deleting this entry: %s", err)
+			mctx.Debug("%+v: %s", entryID, err)
+			return res, err
+		}
+		revision = getRes.Revision + 1
 	}
-	revision := getRes.Revision + 1
 
 	mctx.Debug("deleting %+v at revision %d", entryID, revision)
-	err = mctx.G().GetKVRevisionCache().CheckDeletable(mctx, entryID, revision)
+	err = mctx.G().GetKVRevisionCache().CheckForUpdate(mctx, entryID, revision)
 	if err != nil {
-		err = fmt.Errorf("error comparing the entry we want to delete with what's in the local cache: %s", err)
-		mctx.Debug("%+v: %s", entryID, err)
+		mctx.Debug("error from cache for deleting %+v: %s", entryID, err)
 		return res, err
 	}
 	apiArg := libkb.APIArg{

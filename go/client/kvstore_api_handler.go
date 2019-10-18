@@ -108,6 +108,7 @@ type putEntryOptions struct {
 	Team       string `json:"team"`
 	Namespace  string `json:"namespace"`
 	EntryKey   string `json:"entryKey"`
+	Revision   int    `json:"revision"`
 	EntryValue string `json:"entryValue"`
 }
 
@@ -137,6 +138,7 @@ func (t *kvStoreAPIHandler) putEntry(ctx context.Context, c Call, w io.Writer) e
 		TeamName:   opts.Team,
 		Namespace:  opts.Namespace,
 		EntryKey:   opts.EntryKey,
+		Revision:   opts.Revision,
 		EntryValue: opts.EntryValue,
 	}
 	res, err := t.cli.PutKVEntry(ctx, arg)
@@ -150,6 +152,7 @@ type deleteEntryOptions struct {
 	Team      string `json:"team"`
 	Namespace string `json:"namespace"`
 	EntryKey  string `json:"entryKey"`
+	Revision  int    `json:"revision"`
 }
 
 func (a *deleteEntryOptions) Check() error {
@@ -175,6 +178,7 @@ func (t *kvStoreAPIHandler) deleteEntry(ctx context.Context, c Call, w io.Writer
 		TeamName:  opts.Team,
 		Namespace: opts.Namespace,
 		EntryKey:  opts.EntryKey,
+		Revision:  opts.Revision,
 	}
 	res, err := t.cli.DelKVEntry(ctx, arg)
 	if err != nil {

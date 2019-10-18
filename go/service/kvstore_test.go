@@ -330,6 +330,7 @@ func TestRevisionCache(t *testing.T) {
 	tc := kvTestSetup(t)
 	defer tc.Cleanup()
 	mctx := libkb.NewMetaContextForTest(tc)
+	ctx := mctx.Ctx()
 	user, err := kbtest.CreateAndSignupFakeUser("kv", tc.G)
 	require.NoError(t, err)
 	handler := NewKVStoreHandler(nil, tc.G)
@@ -349,7 +350,7 @@ func TestRevisionCache(t *testing.T) {
 		EntryKey:   entryKey,
 		EntryValue: secretData,
 	}
-	putRes, err := handler.PutKVEntry(mctx.Ctx(), putArg)
+	putRes, err := handler.PutKVEntry(ctx, putArg)
 	require.NoError(t, err)
 	require.Equal(t, 1, putRes.Revision)
 	entryID := keybase1.KVEntryID{
@@ -372,25 +373,25 @@ func TestRevisionCache(t *testing.T) {
 	require.EqualValues(t, 1, generation)
 	require.Equal(t, 1, revision)
 
-	// bump the revision in the cache and verify error when going through the handler
+	// bump the revision in a new cache and verify error when going through the handler
 	tc.G.SetKVRevisionCache(kvstore.NewKVRevisionCache(tc.G))
 	revCache := tc.G.GetKVRevisionCache()
 	err = revCache.Check(mctx, entryID, &secretData, generation, 2)
 	require.NoError(t, err)
 	err = revCache.Put(mctx, entryID, &secretData, generation, 2)
 	require.NoError(t, err)
-	_, err = handler.GetKVEntry(mctx.Ctx(), getArg)
+	_, err = handler.GetKVEntry(ctx, getArg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "revision")
 
-	// bump the team key generation and verify error
+	// bump the team key generation in a new cache and verify error
 	tc.G.SetKVRevisionCache(kvstore.NewKVRevisionCache(tc.G))
 	revCache = tc.G.GetKVRevisionCache()
 	err = revCache.Check(mctx, entryID, &secretData, keybase1.PerTeamKeyGeneration(2), revision)
 	require.NoError(t, err)
 	err = revCache.Put(mctx, entryID, &secretData, keybase1.PerTeamKeyGeneration(2), revision)
 	require.NoError(t, err)
-	_, err = handler.GetKVEntry(mctx.Ctx(), getArg)
+	_, err = handler.GetKVEntry(ctx, getArg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "team key generation")
 
@@ -402,10 +403,62 @@ func TestRevisionCache(t *testing.T) {
 	require.NoError(t, err)
 	err = revCache.Put(mctx, entryID, &differentCiphertext, generation, revision)
 	require.NoError(t, err)
-
-	_, err = handler.GetKVEntry(mctx.Ctx(), getArg)
+	_, err = handler.GetKVEntry(ctx, getArg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "hash of entry")
+	t.Logf("revision cache protects the client from the server lying in fetches")
+
+	// convenience checks for PUT and DELETE
+	// set a new cache and put an update
+	tc.G.SetKVRevisionCache(kvstore.NewKVRevisionCache(tc.G))
+	putArg = keybase1.PutKVEntryArg{
+		SessionID:  0,
+		TeamName:   teamName,
+		Namespace:  namespace,
+		EntryKey:   entryKey,
+		EntryValue: secretData,
+		Revision:   2,
+	}
+	putRes, err = handler.PutKVEntry(ctx, putArg)
+	require.NoError(t, err)
+	require.Equal(t, 2, putRes.Revision)
+	// assert the revision cache is what we think
+	kvRevCache = tc.G.GetKVRevisionCache().(*kvstore.KVRevisionCache)
+	entryHash, generation, revision = kvRevCache.Inspect(entryID)
+	require.NotEmpty(t, entryHash)
+	require.EqualValues(t, 1, generation)
+	require.Equal(t, 2, revision)
+
+	// attempt a put with a revision that the cache knows is too low
+	putArg.Revision = 2
+	_, err = handler.PutKVEntry(ctx, putArg)
+	require.Error(t, err)
+	require.Equal(t, "expected revision greater than 2", err.Error())
+	// attempt a put with a revision that's too high, but the cache can't know that (so it's a server error)
+	putArg.Revision = 4
+	_, err = handler.PutKVEntry(ctx, putArg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "expected revision 3 but got 4")
+	require.IsType(t, err, libkb.AppStatusError{})
+	t.Logf("revision cache provides convenience checks (the server also catches these things too) on updates")
+
+	// and the same for deletes
+	delArg := keybase1.DelKVEntryArg{
+		SessionID: 0,
+		TeamName:  teamName,
+		Namespace: namespace,
+		EntryKey:  entryKey,
+	}
+	delArg.Revision = 2
+	_, err = handler.DelKVEntry(ctx, delArg)
+	require.Error(t, err)
+	require.Equal(t, "expected revision greater than 2", err.Error())
+	delArg.Revision = 4
+	_, err = handler.DelKVEntry(ctx, delArg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "expected revision 3 but got 4")
+	require.IsType(t, err, libkb.AppStatusError{})
+	t.Logf("revision cache also provides the convenience checks for deletes")
 }
 
 var _ kvstore.KVStoreBoxer = (*KVStoreTestBoxer)(nil)
@@ -581,4 +634,106 @@ func TestKVEncryptionAndVerification(t *testing.T) {
 	require.Equal(t, len(secondNonce), 16, "secondNonce got populated")
 	require.NotEqual(t, firstNonce, secondNonce)
 	t.Logf("two puts with identical data and keys use different nonces")
+}
+
+// TestManualControlOfRevisionWithoutCache tests the server erroring correctly
+// when fed the wrong revision, and that error bubbling up. This requires resetting
+// the cache before each request.
+func TestManualControlOfRevisionWithoutCache(t *testing.T) {
+	tc := kvTestSetup(t)
+	defer tc.Cleanup()
+	mctx := libkb.NewMetaContextForTest(tc)
+	ctx := mctx.Ctx()
+	user, err := kbtest.CreateAndSignupFakeUser("kv", tc.G)
+	require.NoError(t, err)
+	handler := NewKVStoreHandler(nil, tc.G)
+	teamName := user.Username + "t"
+	teamID, err := teams.CreateRootTeam(context.Background(), tc.G, teamName, keybase1.TeamSettings{})
+	require.NoError(t, err)
+	require.NotNil(t, teamID)
+
+	// create a new entry and other basic setup
+	namespace := "manually-controlled-namespace"
+	entryKey := "ye-new-key"
+	secretData := "supersecret"
+	basePutArg := keybase1.PutKVEntryArg{
+		SessionID:  0,
+		TeamName:   teamName,
+		Namespace:  namespace,
+		EntryKey:   entryKey,
+		EntryValue: secretData,
+	}
+
+	putItWithRev := func(revision int) (res keybase1.KVPutResult, err error) {
+		// reset the cache before each PUT to avoid additional errors from there
+		tc.G.SetKVRevisionCache(kvstore.NewKVRevisionCache(tc.G))
+		putArg := basePutArg
+		putArg.Revision = revision
+		return handler.PutKVEntry(ctx, putArg)
+	}
+
+	assertIsRevisionError := func(err error, expected, received int) {
+		expectedHelpfulErrorMessage := fmt.Sprintf("expected revision %d but got %d", expected, received)
+		require.Error(t, err)
+		require.IsType(t, err, libkb.AppStatusError{})
+		aerr, _ := err.(libkb.AppStatusError)
+		if aerr.Code != libkb.SCTeamStorageWrongRevision {
+			t.Fatalf("expected an SCTeamStorageWrongRevision error but got %v", err)
+		}
+		require.Contains(t, err.Error(), expectedHelpfulErrorMessage)
+	}
+
+	// errors if you specify a Revision > 1 for a new entry
+	_, err = putItWithRev(2)
+	assertIsRevisionError(err, 1, 2)
+
+	// create it with revision 1
+	putRes, err := putItWithRev(1)
+	require.NoError(t, err)
+	require.Equal(t, putRes.Revision, 1)
+
+	// cannot update it again with revision 1
+	_, err = putItWithRev(1)
+	assertIsRevisionError(err, 2, 1)
+
+	// updates correctly
+	putRes, err = putItWithRev(2)
+	require.NoError(t, err)
+	require.Equal(t, putRes.Revision, 2)
+
+	// cannot update with a revision that's too high
+	_, err = putItWithRev(4)
+	assertIsRevisionError(err, 3, 4)
+
+	// cannot update with a revision that's too low
+	_, err = putItWithRev(2)
+	assertIsRevisionError(err, 3, 2)
+
+	baseDelArg := keybase1.DelKVEntryArg{
+		SessionID: 0,
+		TeamName:  teamName,
+		Namespace: namespace,
+		EntryKey:  entryKey,
+	}
+
+	deleteItWithRev := func(revision int) (res keybase1.KVDeleteEntryResult, err error) {
+		// reset the cache before each request to avoid additional errors from there
+		tc.G.SetKVRevisionCache(kvstore.NewKVRevisionCache(tc.G))
+		delArg := baseDelArg
+		delArg.Revision = revision
+		return handler.DelKVEntry(ctx, delArg)
+	}
+
+	// cannot delete with a revision that's too low
+	_, err = deleteItWithRev(2)
+	assertIsRevisionError(err, 3, 2)
+
+	// cannot delete with a revision that's too high
+	_, err = deleteItWithRev(4)
+	assertIsRevisionError(err, 3, 4)
+
+	// deletes correctly
+	delRes, err := deleteItWithRev(3)
+	require.NoError(t, err)
+	require.Equal(t, delRes.Revision, 3)
 }

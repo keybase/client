@@ -1124,6 +1124,6 @@ type SyncedContactListProvider interface {
 type KVRevisionCacher interface {
 	Check(mctx MetaContext, entryID keybase1.KVEntryID, ciphertext *string, teamKeyGen keybase1.PerTeamKeyGeneration, revision int) (err error)
 	Put(mctx MetaContext, entryID keybase1.KVEntryID, ciphertext *string, teamKeyGen keybase1.PerTeamKeyGeneration, revision int) (err error)
-	CheckDeletable(mctx MetaContext, entryID keybase1.KVEntryID, revision int) (err error)
+	CheckForUpdate(mctx MetaContext, entryID keybase1.KVEntryID, revision int) (err error)
 	MarkDeleted(mctx MetaContext, entryID keybase1.KVEntryID, revision int) (err error)
 }
