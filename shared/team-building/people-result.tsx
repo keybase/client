@@ -311,8 +311,15 @@ const FormatPrettyName = (props: {
   username: string
   services: Array<Types.ServiceIdWithContact>
   showServicesIcons: boolean
-}) =>
-  props.prettyName && props.prettyName !== props.username ? (
+  keybaseUsername: string | null
+}) => {
+  return props.prettyName &&
+    props.prettyName !== props.username &&
+    // When the searching service is not keybase, but the service user is also a keybase user, hide their pretty name if it matches their keybase username
+    // E.g. Github
+    //   | chriscoyne
+    //   | chris • chris (prettyName) • {serviceIcons}
+    props.prettyName !== props.keybaseUsername ? (
     <Kb.Text type="BodySmall" lineClamp={1}>
       {textWithConditionalSeparator(props.prettyName, props.showServicesIcons && !!props.services.length)}
     </Kb.Text>
@@ -321,6 +328,7 @@ const FormatPrettyName = (props: {
       {textWithConditionalSeparator(props.displayLabel, props.showServicesIcons && !!props.services.length)}
     </Kb.Text>
   ) : null
+}
 
 const BottomRow = (props: {
   isKeybaseResult: boolean
@@ -370,6 +378,7 @@ const BottomRow = (props: {
               prettyName={props.prettyName}
               username={props.username}
               services={serviceMapToArray(props.services)}
+              keybaseUsername={props.keybaseUsername}
               showServicesIcons={showServicesIcons}
             />
             {/* When the service result does not have any information other than
