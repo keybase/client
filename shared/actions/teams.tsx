@@ -96,7 +96,7 @@ const getTeamProfileAddList = async (_: TypedState, action: TeamsGen.GetTeamProf
     teamName: team.teamName.parts ? team.teamName.parts.join('.') : '',
   }))
   teamlist.sort((a, b) => a.teamName.localeCompare(b.teamName))
-  return TeamsGen.createSetTeamProfileAddList({teamlist: I.List(teamlist)})
+  return TeamsGen.createSetTeamProfileAddList({teamlist})
 }
 
 function* deleteTeam(_: TypedState, action: TeamsGen.DeleteTeamPayload, logger: Saga.SagaLogger) {
@@ -599,7 +599,7 @@ function* getDetails(_: TypedState, action: TeamsGen.GetDetailsPayload, logger: 
 }
 
 const getDetailsForAllTeams = (state: TypedState) =>
-  state.teams.teamnames.toArray().map(teamname => TeamsGen.createGetDetails({teamname}))
+  [...state.teams.teamnames].map(teamname => TeamsGen.createGetDetails({teamname}))
 
 function* addUserToTeams(_: TypedState, action: TeamsGen.AddUserToTeamsPayload) {
   const {role, teams, user} = action.payload
@@ -801,7 +801,7 @@ function* getTeams(
 
     // Dismiss any stale badges for teams we're no longer in
     const teamResetUsers = state.teams.teamNameToResetUsers || I.Map()
-    const teamNameSet = I.Set<string>(teamnames)
+    const teamNameSet = new Set<string>(teamnames)
     const dismissIDs = teamResetUsers.reduce<Array<string>>(
       (ids, value: I.Set<Types.ResetUser>, key: string) => {
         if (!teamNameSet.has(key)) {
@@ -847,7 +847,7 @@ const checkRequestedAccess = async (_: TypedState) => {
     Constants.teamsAccessRequestWaitingKey
   )
   const teams = (result || []).map(row => (row && row.parts ? row.parts.join('.') : ''))
-  return TeamsGen.createSetTeamAccessRequestsPending({accessRequestsPending: I.Set(teams)})
+  return TeamsGen.createSetTeamAccessRequestsPending({accessRequestsPending: new Set<Types.Teamname>(teams)})
 }
 
 const _joinConversation = function*(
@@ -1276,11 +1276,9 @@ const badgeAppForTeams = (state: TypedState, action: TeamsGen.BadgeAppForTeamsPa
   }
 
   let actions: Array<TypedActions> = []
-  const deletedTeams = I.List(action.payload.deletedTeams || [])
-  // TODO ts-migration remove any
-  const newTeams: I.Set<any> = I.Set(action.payload.newTeamNames || [])
-  // TODO ts-migration remove any
-  const newTeamRequests: I.List<any> = I.List(action.payload.newTeamAccessRequests || [])
+  const deletedTeams = action.payload.deletedTeams
+  const newTeams = new Set<string>(action.payload.newTeamNames || [])
+  const newTeamRequests = action.payload.newTeamAccessRequests || []
 
   // TODO ts-migration remove any
   const teamsWithResetUsers: I.List<any> = I.List(action.payload.teamsWithResetUsers || [])
@@ -1297,28 +1295,29 @@ const badgeAppForTeams = (state: TypedState, action: TeamsGen.BadgeAppForTeamsPa
     return res
   }, {})
 
-  if (_wasOnTeamsTab() && (newTeams.size > 0 || newTeamRequests.size > 0 || deletedTeams.size > 0)) {
-    // Call getTeams if new teams come in.
-    // Covers the case when we're staring at the teams page so
-    // we don't miss a notification we clear when we tab away
-    const existingNewTeams = state.teams.newTeams || I.Set()
-    const existingNewTeamRequests = state.teams.newTeamRequests || I.List()
-    if (!newTeams.equals(existingNewTeams) && newTeams.size > 0) {
-      // We have been added to a new team & we need to refresh the list
-      actions.push(TeamsGen.createGetTeams())
-    }
+  /* TODO team notifications should handle what the following block did */
+  // if (_wasOnTeamsTab() && (newTeams.size > 0 || newTeamRequests.size > 0 || deletedTeams.length > 0)) {
+  //   // Call getTeams if new teams come in.
+  //   // Covers the case when we're staring at the teams page so
+  //   // we don't miss a notification we clear when we tab away
+  //   const existingNewTeams = state.teams.newTeams || I.Set()
+  //   const existingNewTeamRequests = state.teams.newTeamRequests || I.List()
+  //   if (!newTeams.equals(existingNewTeams) && newTeams.size > 0) {
+  //     // We have been added to a new team & we need to refresh the list
+  //     actions.push(TeamsGen.createGetTeams())
+  //   }
 
-    // getDetails for teams that have new access requests
-    // Covers case where we have a badge appear on the requests
-    // tab with no rows showing up
-    const newTeamRequestsSet = I.Set(newTeamRequests)
-    // TODO ts-migration remove any
-    const existingNewTeamRequestsSet = I.Set(existingNewTeamRequests)
-    // TODO ts-migration remove any
-    const toLoad: I.Set<any> = newTeamRequestsSet.subtract(existingNewTeamRequestsSet)
-    const loadingCalls = toLoad.map(teamname => TeamsGen.createGetDetails({teamname})).toArray()
-    actions = actions.concat(loadingCalls)
-  }
+  //   // getDetails for teams that have new access requests
+  //   // Covers case where we have a badge appear on the requests
+  //   // tab with no rows showing up
+  //   const newTeamRequestsSet = I.Set(newTeamRequests)
+  //   // TODO ts-migration remove any
+  //   const existingNewTeamRequestsSet = I.Set(existingNewTeamRequests)
+  //   // TODO ts-migration remove any
+  //   const toLoad: I.Set<any> = newTeamRequestsSet.subtract(existingNewTeamRequestsSet)
+  //   const loadingCalls = toLoad.map(teamname => TeamsGen.createGetDetails({teamname})).toArray()
+  //   actions = actions.concat(loadingCalls)
+  // }
 
   // if the user wasn't on the teams tab, loads will be triggered by navigation around the app
   actions.push(
@@ -1336,11 +1335,8 @@ let _wasOnTeamsTab = () => Constants.isOnTeamsTab()
 
 const receivedBadgeState = (_: TypedState, action: NotificationsGen.ReceivedBadgeStatePayload) =>
   TeamsGen.createBadgeAppForTeams({
-    // @ts-ignore codemod-issue
     deletedTeams: action.payload.badgeState.deletedTeams || [],
-    // @ts-ignore codemod-issue
     newTeamAccessRequests: action.payload.badgeState.newTeamAccessRequests || [],
-    // @ts-ignore codemod-issue
     newTeamNames: action.payload.badgeState.newTeamNames || [],
     teamsWithResetUsers: action.payload.badgeState.teamsWithResetUsers || [],
   })
@@ -1362,8 +1358,8 @@ const gregorPushState = (_: TypedState, action: GregorGen.PushStatePayload) => {
   const teamsWithChosenChannelsStr =
     chosenChannels && chosenChannels.item && chosenChannels.item.body && chosenChannels.item.body.toString()
   const teamsWithChosenChannels = teamsWithChosenChannelsStr
-    ? I.Set(JSON.parse(teamsWithChosenChannelsStr))
-    : I.Set()
+    ? new Set<Types.Teamname>(JSON.parse(teamsWithChosenChannelsStr))
+    : new Set<Types.Teamname>()
   actions.push(TeamsGen.createSetTeamsWithChosenChannels({teamsWithChosenChannels}))
 
   return actions

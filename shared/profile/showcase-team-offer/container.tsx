@@ -42,7 +42,8 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
     }, 500)
     dispatch(RouteTreeGen.createNavigateUp())
   },
-  onPromote: (teamname, showcase) => dispatch(TeamsGen.createSetMemberPublicity({showcase, teamname})),
+  onPromote: (teamname: string, showcase: boolean) =>
+    dispatch(TeamsGen.createSetMemberPublicity({showcase, teamname})),
 })
 
 export default Container.compose(
