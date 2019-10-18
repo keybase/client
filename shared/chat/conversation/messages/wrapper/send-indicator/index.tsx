@@ -135,7 +135,7 @@ const styles = Styles.styleSheetCreate(
     ({
       animation: Styles.platformStyles({
         common: {
-          height: 20,
+          height: 24,
           width: 36,
         },
         isMobile: {
