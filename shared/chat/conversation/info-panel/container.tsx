@@ -179,8 +179,6 @@ const ConnectedInfoPanel = Container.connect(
           l.push(mi.username)
           return l
         }, [])
-    } else {
-      teamMembers = I.Map()
     }
     return {
       admin: stateProps.admin,
