@@ -28,9 +28,10 @@ export type Props = {
   onClick?: (event: React.BaseSyntheticEvent) => void
   onMouseEnter?: (e: React.MouseEvent) => void
   onMouseLeave?: (e: React.MouseEvent) => void
-  label?: string
+  label?: String
   style?: Styles.StylesCrossPlatform
   labelContainerStyle?: Styles.StylesCrossPlatform
+  labelIcon?: React.ReactNode
   labelStyle?: Styles.StylesCrossPlatform
   type?: ButtonType
   backgroundColor?: ButtonColor
@@ -140,6 +141,7 @@ const Button = React.forwardRef<ClickableBox, Props>((props: Props, ref: React.R
           {!!props.label && (
             <Kb.Text type="BodySemibold" style={Styles.collapseStyles([labelStyle, props.labelStyle])}>
               {props.label}
+              {props.labelIcon}
             </Kb.Text>
           )}
           {!!props.subLabel && (

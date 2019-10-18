@@ -1,5 +1,6 @@
 import * as React from 'react'
-import {Task, TaskButton} from '.'
+import {Task} from '.'
+import {TaskButton} from '../item'
 import * as PeopleGen from '../../actions/people-gen'
 import * as Types from '../../constants/types/people'
 import * as Tabs from '../../constants/tabs'

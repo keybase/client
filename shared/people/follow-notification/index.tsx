@@ -3,6 +3,11 @@ import PeopleItem from '../item'
 import * as Types from '../../constants/types/people'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import * as Container from '../../util/container'
+import * as Tracker2Constants from '../../constants/tracker2'
+import * as Tracker2Gen from '../../actions/tracker2-gen'
+import * as Chat2Gen from '../../actions/chat2-gen'
+import HiddenString from '../../util/hidden-string'
 
 const connectedUsernamesProps = {
   colorFollowing: true,
@@ -41,11 +46,30 @@ const FollowNotification = (props: Props) => {
     />
   )
   const desc = props.newFollows[0].contactDescription
-  const optionalExplanation = desc ? ` (${desc})` : ''
+
+  const dispatch = Container.useDispatch()
+  const userDetails = Container.useSelector(state => Tracker2Constants.getDetails(state, username))
+  const onFollow = () => dispatch(Tracker2Gen.createChangeFollow({follow: true, guiID: userDetails.guiID}))
+  const onWave = () =>
+    dispatch(Chat2Gen.createMessageSendByUsername({text: new HiddenString(':wave:'), username}))
+  const onClickBox = props.type === 'follow' ? () => props.onClickUser(username) : undefined
   return (
-    <Kb.ClickableBox onClick={() => props.onClickUser(username)}>
+    <Kb.ClickableBox onClick={onClickBox}>
       <PeopleItem
         badged={props.badged}
+        buttons={
+          props.type == 'contact'
+            ? [
+                {label: 'Follow', onClick: onFollow, type: 'Success' as const},
+                {
+                  label: 'Wave ',
+                  labelIcon: <Kb.Emoji emojiName=":wave:" size={16} />,
+                  mode: 'Secondary' as const,
+                  onClick: onWave,
+                },
+              ]
+            : undefined
+        }
         icon={
           <Kb.Avatar
             username={username}
@@ -62,8 +86,7 @@ const FollowNotification = (props: Props) => {
           <Kb.Text type="Body">{usernameComponent} followed you.</Kb.Text>
         ) : (
           <Kb.Text type="Body">
-            Your contact {usernameComponent}
-            {optionalExplanation} joined Keybase.
+            Your contact {desc} joined Keybase as {usernameComponent}.
           </Kb.Text>
         )}
       </PeopleItem>

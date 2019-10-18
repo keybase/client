@@ -270,6 +270,10 @@
       "text": "HiddenString",
       "replyTo?": "Types.MessageID"
     },
+    "messageSendByUsername": {
+      "username": "string",
+      "text": "HiddenString"
+    },
     "toggleLocalReaction": {
       "_description": "Toggle a reaction in the store.",
       "conversationIDKey": "Types.ConversationIDKey",

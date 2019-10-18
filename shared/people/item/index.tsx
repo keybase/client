@@ -2,7 +2,16 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {formatTimeForPeopleItem} from '../../util/timestamp'
+import {Props as ButtonProps} from '../../common-adapters/button'
 
+export type TaskButton = {
+  label: string
+  onClick: () => void
+  labelIcon?: ButtonProps['labelIcon']
+  type?: ButtonProps['type']
+  mode?: ButtonProps['mode']
+  waiting?: ButtonProps['waiting']
+}
 export type Props = {
   badged: boolean
   icon?: React.ReactNode
@@ -11,6 +20,7 @@ export type Props = {
   contentStyle?: any
   format?: 'single' | 'multi'
   iconContainerStyle?: Styles.StylesCrossPlatform
+  buttons?: Array<TaskButton>
 }
 
 export default (props: Props) => (
@@ -27,6 +37,11 @@ export default (props: Props) => (
       style={Styles.collapseStyles([styles.childrenContainer, props.contentStyle])}
     >
       {props.children}
+      <Kb.Box2 direction="horizontal" style={styles.actionContainer} alignItems="center" fullWidth={true}>
+        {props.buttons &&
+          props.buttons.length > 0 &&
+          props.buttons.map(b => <Kb.Button key={b.label} small={true} style={styles.button} {...b} />)}
+      </Kb.Box2>
     </Kb.Box2>
     <Kb.Box
       style={Styles.collapseStyles([
@@ -43,9 +58,14 @@ export default (props: Props) => (
 )
 
 const styles = Styles.styleSheetCreate(() => ({
+  actionContainer: {
+    flexWrap: 'wrap',
+    justifyContent: 'flex-start',
+  },
   badge: {
     marginLeft: Styles.globalMargins.xtiny,
   },
+  button: {marginBottom: Styles.globalMargins.xtiny, marginRight: Styles.globalMargins.tiny},
   childrenContainer: {
     flex: 1,
     overflow: 'hidden',

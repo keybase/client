@@ -1698,6 +1698,7 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         draftState.teamBuilding = teamBuildingReducer('chat2', _state.teamBuilding, action)
         return
       // Saga only actions
+      case Chat2Gen.messageSendByUsername:
       case Chat2Gen.attachmentPreviewSelect:
       case Chat2Gen.attachmentsUpload:
       case Chat2Gen.attachmentPasted:

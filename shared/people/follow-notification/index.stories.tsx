@@ -9,7 +9,15 @@ const singleFollowProps1 = {
   newFollows: [C.makeFollowedNotification({username: 'mmaxim'})],
   notificationTime: new Date(),
   onClickUser: Sb.action('onClickUser'),
-  type: 'notification',
+  type: 'follow' as const,
+}
+
+const singleContactProps = {
+  badged: true,
+  newFollows: [C.makeFollowedNotification({username: 'mmaxim', contactDescription: 'Mike from basketball'})],
+  notificationTime: new Date(),
+  onClickUser: Sb.action('onClickUser'),
+  type: 'contact' as const,
 }
 
 const singleFollowProps2 = {
@@ -19,7 +27,7 @@ const singleFollowProps2 = {
     .subtract(3, 'days')
     .toDate(),
   onClickUser: Sb.action('onClickUser'),
-  type: 'notification',
+  type: 'follow' as const,
 }
 
 const multiFollowProps1 = {
@@ -34,7 +42,7 @@ const multiFollowProps1 = {
     .toDate(),
   numAdditional: 0,
   onClickUser: Sb.action('onClickUser'),
-  type: 'notification',
+  type: 'follow' as const,
 }
 
 const multiFollowProps2 = {
@@ -58,18 +66,15 @@ const multiFollowProps2 = {
     .toDate(),
   numAdditional: 5,
   onClickUser: Sb.action('onClickUser'),
-  type: 'notification',
+  type: 'follow' as const,
 }
 
 const load = () => {
   Sb.storiesOf('People/Follow notification', module)
-    // @ts-ignore not sure why this is being weird w/ records
     .add('Someone followed you', () => <FollowNotification {...singleFollowProps1} />)
-    // @ts-ignore not sure why this is being weird w/ records
+    .add('Your contact joined Keybase', () => <FollowNotification {...singleContactProps} />)
     .add('Someone you follow followed you', () => <FollowNotification {...singleFollowProps2} />)
-    // @ts-ignore not sure why this is being weird w/ records
     .add('A few people followed you', () => <FollowNotification {...multiFollowProps1} />)
-    // @ts-ignore not sure why this is being weird w/ records
     .add('Many people followed you', () => <FollowNotification {...multiFollowProps2} />)
 }
 
