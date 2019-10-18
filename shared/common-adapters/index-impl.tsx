@@ -11,9 +11,6 @@ module.exports = {
   get AvatarLine() {
     return require('./avatar-line').default
   },
-  get animated() {
-    return require('./animated').animated
-  },
   get BackButton() {
     return require('./back-button').default
   },
@@ -327,6 +324,9 @@ module.exports = {
   },
   get WithTooltip() {
     return require('./with-tooltip').default
+  },
+  get animated() {
+    return require('./animated').animated
   },
   get avatarCastPlatformStyles() {
     return require('./avatar').castPlatformStyles
