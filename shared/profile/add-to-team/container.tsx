@@ -113,7 +113,7 @@ export default Container.connect(
     _them: Container.getRouteProps(ownProps, 'username', ''),
     addUserToTeamsResults: state.teams.addUserToTeamsResults,
     addUserToTeamsState: state.teams.addUserToTeamsState,
-    teamProfileAddList: state.teams.get('teamProfileAddList'),
+    teamProfileAddList: state.teams.teamProfileAddList,
     teamnames: Constants.getSortedTeamnames(state),
     waiting: WaitingConstants.anyWaiting(state, Constants.teamProfileAddListWaitingKey),
   }),
@@ -128,7 +128,7 @@ export default Container.connect(
       ),
     onBack: () => {
       dispatch(RouteTreeGen.createNavigateUp())
-      dispatch(TeamsGen.createSetTeamProfileAddList({teamlist: I.List([])}))
+      dispatch(TeamsGen.createSetTeamProfileAddList({teamlist: []}))
     },
   }),
   (stateProps, dispatchProps, _: OwnProps) => {
@@ -144,7 +144,7 @@ export default Container.connect(
       onAddToTeams: (role: TeamRoleType, teams: Array<string>) =>
         dispatchProps._onAddToTeams(role, teams, stateProps._them),
       onBack: dispatchProps.onBack,
-      teamProfileAddList: teamProfileAddList.toArray(),
+      teamProfileAddList: teamProfileAddList,
       them: _them,
       title,
       waiting: stateProps.waiting,

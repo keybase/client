@@ -18,15 +18,15 @@ func TestEncoding(t *testing.T) {
 		bin string
 		p   Position
 	}{
-		{config1bit, "1", *config1bit.getRootPosition()},
-		{config2bits, "1", *config2bits.getRootPosition()},
-		{config3bits, "1", *config3bits.getRootPosition()},
-		{config1bit, "10", *config1bit.getChild(config1bit.getRootPosition(), 0)},
-		{config2bits, "100", *config2bits.getChild(config2bits.getRootPosition(), 0)},
-		{config3bits, "1000", *config3bits.getChild(config3bits.getRootPosition(), 0)},
-		{config1bit, "101", *config1bit.getChild(config1bit.getChild(config1bit.getRootPosition(), 0), 1)},
-		{config2bits, "10011", *config2bits.getChild(config2bits.getChild(config2bits.getRootPosition(), 0), 3)},
-		{config3bits, "1000101", *config3bits.getChild(config3bits.getChild(config3bits.getRootPosition(), 0), 5)},
+		{config1bit, "1", *config1bit.GetRootPosition()},
+		{config2bits, "1", *config2bits.GetRootPosition()},
+		{config3bits, "1", *config3bits.GetRootPosition()},
+		{config1bit, "10", *config1bit.GetChild(config1bit.GetRootPosition(), 0)},
+		{config2bits, "100", *config2bits.GetChild(config2bits.GetRootPosition(), 0)},
+		{config3bits, "1000", *config3bits.GetChild(config3bits.GetRootPosition(), 0)},
+		{config1bit, "101", *config1bit.GetChild(config1bit.GetChild(config1bit.GetRootPosition(), 0), 1)},
+		{config2bits, "10011", *config2bits.GetChild(config2bits.GetChild(config2bits.GetRootPosition(), 0), 3)},
+		{config3bits, "1000101", *config3bits.GetChild(config3bits.GetChild(config3bits.GetRootPosition(), 0), 5)},
 	}
 
 	for _, et := range encodingTests {
@@ -65,7 +65,7 @@ func TestGetAndUpdateParentAndGetChild(t *testing.T) {
 			parent, err := makePositionFromStringForTesting(test.parent)
 			require.NoError(t, err)
 			require.True(t, test.c.getParent(&child).Equals(&parent))
-			require.True(t, test.c.getChild(&parent, test.i).Equals(&child))
+			require.True(t, test.c.GetChild(&parent, test.i).Equals(&child))
 			parentInPlace := child.Clone()
 			test.c.updateToParent(parentInPlace)
 			require.True(t, parentInPlace.Equals(&parent))

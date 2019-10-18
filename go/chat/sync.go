@@ -173,40 +173,28 @@ func (s *Syncer) IsConnected(ctx context.Context) bool {
 func (s *Syncer) Connected(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID,
 	syncRes *chat1.SyncChatRes) (err error) {
 	ctx = globals.CtxAddLogTags(ctx, s.G())
-	s.Lock()
-	defer s.Unlock()
 	defer s.Trace(ctx, func() error { return err }, "Connected")()
-
+	s.Lock()
 	s.isConnected = true
-
 	// Let the Offlinables know that we are back online
 	for _, o := range s.offlinables {
 		o.Connected(ctx)
 	}
+	s.Unlock()
 
 	// Run sync against the server
-	return s.sync(ctx, cli, uid, syncRes)
+	return s.Sync(ctx, cli, uid, syncRes)
 }
 
 func (s *Syncer) Disconnected(ctx context.Context) {
-	s.Lock()
-	defer s.Unlock()
 	defer s.Trace(ctx, func() error { return nil }, "Disconnected")()
-
+	s.Lock()
 	s.isConnected = false
-
 	// Let the Offlinables know of connection state change
 	for _, o := range s.offlinables {
 		o.Disconnected(ctx)
 	}
-}
-
-func (s *Syncer) Sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID,
-	syncRes *chat1.SyncChatRes) (err error) {
-	s.Lock()
-	defer s.Unlock()
-	defer s.Trace(ctx, func() error { return err }, "Sync")()
-	return s.sync(ctx, cli, uid, syncRes)
+	s.Unlock()
 }
 
 func (s *Syncer) handleMembersTypeChanged(ctx context.Context, uid gregor1.UID,
@@ -326,12 +314,17 @@ func (s *Syncer) notifyIncrementalSync(ctx context.Context, uid gregor1.UID,
 	}
 }
 
-func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID,
+func (s *Syncer) Sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID,
 	syncRes *chat1.SyncChatRes) (err error) {
+	defer s.Trace(ctx, func() error { return err }, "Sync")()
+	s.Lock()
 	if !s.isConnected {
+		defer s.Unlock()
 		s.Debug(ctx, "Sync: aborting because currently offline")
 		return OfflineError{}
 	}
+	s.Unlock()
+
 	// Grab current on disk version
 	ibox := storage.NewInbox(s.G())
 	vers, err := ibox.Version(ctx, uid)

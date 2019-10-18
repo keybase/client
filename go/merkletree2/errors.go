@@ -42,6 +42,19 @@ func NewProofVerificationFailedError(reason error) ProofVerificationFailedError 
 	return ProofVerificationFailedError{reason: reason}
 }
 
+// NodeNotFoundError is returned by a StorageEngine when trying to fetch an internal node
+// which is not part of the tree at a specific Seqno.
+type NodeNotFoundError struct{}
+
+func (e NodeNotFoundError) Error() string {
+	return fmt.Sprintf("Node not found.")
+}
+
+// NewNodeNotFoundError returns a new error
+func NewNodeNotFoundError() NodeNotFoundError {
+	return NodeNotFoundError{}
+}
+
 // KeyNotFoundError is returned when trying to fetch a key which is not part of
 // the tree at a specific Seqno.
 type KeyNotFoundError struct{}

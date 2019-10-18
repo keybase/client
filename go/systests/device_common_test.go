@@ -411,6 +411,12 @@ func (r *testProvisionUI) ExplainDeviceRecovery(_ context.Context, arg keybase1.
 func (r *testProvisionUI) PromptPassphraseRecovery(_ context.Context, arg keybase1.PromptPassphraseRecoveryArg) (bool, error) {
 	return false, nil
 }
+func (r *testProvisionUI) ChooseDeviceToRecoverWith(_ context.Context, arg keybase1.ChooseDeviceToRecoverWithArg) (keybase1.DeviceID, error) {
+	return "", nil
+}
+func (r *testProvisionUI) DisplayResetMessage(_ context.Context, arg keybase1.DisplayResetMessageArg) error {
+	return nil
+}
 
 func (s *testDeviceSet) findNewKIDs(newList []keybase1.KID) []keybase1.KID {
 	var ret []keybase1.KID

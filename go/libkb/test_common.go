@@ -516,6 +516,14 @@ func (t *TestLoginUI) PromptPassphraseRecovery(_ context.Context, arg keybase1.P
 	return t.PassphraseRecovery, nil
 }
 
+func (t *TestLoginUI) ChooseDeviceToRecoverWith(_ context.Context, arg keybase1.ChooseDeviceToRecoverWithArg) (keybase1.DeviceID, error) {
+	return "", nil
+}
+
+func (t *TestLoginUI) DisplayResetMessage(_ context.Context, arg keybase1.DisplayResetMessageArg) error {
+	return nil
+}
+
 type TestLoginCancelUI struct {
 	TestLoginUI
 }

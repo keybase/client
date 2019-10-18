@@ -40,7 +40,7 @@ export type ContactRowProps = {
 
 export type DesktopProps = {
   errorMessage: string
-  malformedEmails: I.Set<string>
+  malformedEmails: Set<string>
   name: string
   onClearInviteError: () => void
   onClose: () => void

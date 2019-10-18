@@ -11,7 +11,7 @@ import HiddenString from '../util/hidden-string'
 import {RPCError} from '../util/errors'
 
 const chooseDevice = (
-  params: RPCTypes.MessageTypes['keybase.1.provisionUi.chooseDevice']['inParam'],
+  params: RPCTypes.MessageTypes['keybase.1.loginUi.chooseDeviceToRecoverWith']['inParam'],
   response: {
     result: (id: string) => void
     error: (res: {code: RPCTypes.StatusCode; desc: string}) => void
@@ -132,8 +132,8 @@ function* startRecoverPassword(
   try {
     yield RPCTypes.loginRecoverPassphraseRpcSaga({
       customResponseIncomingCallMap: {
+        'keybase.1.loginUi.chooseDeviceToRecoverWith': chooseDevice,
         'keybase.1.loginUi.promptResetAccount': promptReset,
-        'keybase.1.provisionUi.chooseDevice': chooseDevice,
         'keybase.1.secretUi.getPassphrase': getPaperKeyOrPw,
       },
       incomingCallMap: {

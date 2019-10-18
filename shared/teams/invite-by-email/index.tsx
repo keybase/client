@@ -1,12 +1,20 @@
 import * as React from 'react'
-import * as I from 'immutable'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {FloatingRolePicker} from '../role-picker'
 import capitalize from 'lodash/capitalize'
 import {TeamRoleType} from '../../constants/types/teams'
 import {pluralize} from '../../util/string'
-import {DesktopProps as Props} from '.'
+
+export type Props = {
+  errorMessage: string
+  malformedEmails: Set<string>
+  name: string
+  onClearInviteError: () => void
+  onClose: () => void
+  onInvite: (invitees: string, role: TeamRoleType) => void
+  waitingKey: string
+}
 
 const _makeDropdownItem = (item: string) => (
   <Kb.Box
@@ -24,7 +32,7 @@ const _makeDropdownItem = (item: string) => (
 
 type State = {
   invitees: string
-  malformedEmails: I.Set<string>
+  malformedEmails: Set<string>
   role: TeamRoleType
   isRolePickerOpen: boolean
 }
@@ -33,7 +41,7 @@ class InviteByEmailDesktop extends React.Component<Props, State> {
   state = {
     invitees: '',
     isRolePickerOpen: false,
-    malformedEmails: I.Set(),
+    malformedEmails: this.props.malformedEmails,
     role: 'reader' as TeamRoleType,
   }
   _input: Kb.Input | null = null
@@ -70,8 +78,8 @@ class InviteByEmailDesktop extends React.Component<Props, State> {
     this.props.onClearInviteError()
   }
 
-  _setMalformedEmails = (malformedEmails: I.Set<string>) => {
-    this.setState({invitees: malformedEmails.join('\n'), malformedEmails})
+  _setMalformedEmails = (malformedEmails: Set<string>) => {
+    this.setState({invitees: [...malformedEmails].join('\n'), malformedEmails})
   }
 
   _setRole = (role: TeamRoleType) => this.setState({role})

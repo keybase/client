@@ -46,11 +46,7 @@ func NewBlindedSHA512_256v1Encoder() *BlindedSHA512_256v1Encoder {
 	mh.WriteExt = true
 	mh.Canonical = true
 
-	var mh2 codec.MsgpackHandle
-	mh2.WriteExt = true
-	mh2.Canonical = true
-
-	return &BlindedSHA512_256v1Encoder{enc: codec.NewEncoderBytes(nil, &mh), dec: codec.NewDecoderBytes(nil, &mh2)}
+	return &BlindedSHA512_256v1Encoder{enc: codec.NewEncoderBytes(nil, &mh), dec: codec.NewDecoderBytes(nil, &mh)}
 }
 
 func (e *BlindedSHA512_256v1Encoder) Encode(o interface{}) (out []byte, err error) {

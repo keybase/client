@@ -301,6 +301,12 @@
         "keybase1LoginUiPromptPassphraseRecovery": {
             "params": "keybase1Types.MessageTypes['keybase.1.loginUi.promptPassphraseRecovery']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.loginUi.promptPassphraseRecovery']['outParam']) => void}"
         },
+        "keybase1LoginUiChooseDeviceToRecoverWith": {
+            "params": "keybase1Types.MessageTypes['keybase.1.loginUi.chooseDeviceToRecoverWith']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.loginUi.chooseDeviceToRecoverWith']['outParam']) => void}"
+        },
+        "keybase1LoginUiDisplayResetMessage": {
+            "params": "keybase1Types.MessageTypes['keybase.1.loginUi.displayResetMessage']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.loginUi.displayResetMessage']['outParam']) => void}"
+        },
         "keybase1LogsendPrepareLogsend": {
             "params": "keybase1Types.MessageTypes['keybase.1.logsend.prepareLogsend']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.logsend.prepareLogsend']['outParam']) => void}"
         },

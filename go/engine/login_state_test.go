@@ -147,6 +147,14 @@ func (m *GetUsernameMock) PromptPassphraseRecovery(_ context.Context, arg keybas
 	return false, nil
 }
 
+func (m *GetUsernameMock) ChooseDeviceToRecoverWith(_ context.Context, arg keybase1.ChooseDeviceToRecoverWithArg) (keybase1.DeviceID, error) {
+	return "", nil
+}
+
+func (m *GetUsernameMock) DisplayResetMessage(_ context.Context, arg keybase1.DisplayResetMessageArg) error {
+	return nil
+}
+
 // Test that the login falls back to a passphrase login if pubkey
 // login fails.
 func TestLoginWithPromptPassphrase(t *testing.T) {
