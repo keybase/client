@@ -234,7 +234,7 @@ const styles = Styles.styleSheetCreate(
         alignItems: 'center',
         flex: 1,
         justifyContent: 'center',
-        padding: Styles.globalMargins.xtiny
+        padding: Styles.globalMargins.xtiny,
         position: 'relative',
       },
       summaryRowError: {
