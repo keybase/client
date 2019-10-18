@@ -13,6 +13,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/badges"
 	"github.com/keybase/client/go/chat/pager"
 
 	"github.com/keybase/client/go/chat/globals"
@@ -105,6 +106,7 @@ func NewChatMockWorld(t *testing.T, name string, numUsers int) (world *ChatMockW
 			TestContext: kbTc,
 			ChatG:       &globals.ChatContext{},
 		}
+		tc.ChatG.Badger = badges.NewBadger(kbTc.G)
 		tc.G.SetClock(world.Fc)
 		u, err := CreateAndSignupFakeUser("chat", tc.G)
 		if err != nil {

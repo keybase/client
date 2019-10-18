@@ -2621,3 +2621,17 @@ func (r UIInboxReselectInfo) String() string {
 	}
 	return fmt.Sprintf("[oldconv: %s newconv: %s]", r.OldConvID, newConvStr)
 }
+
+func (e OutboxErrorType) IsBadgableError() bool {
+	switch e {
+	case OutboxErrorType_MISC,
+		OutboxErrorType_OFFLINE,
+		OutboxErrorType_TOOLONG,
+		OutboxErrorType_EXPIRED,
+		OutboxErrorType_TOOMANYATTEMPTS,
+		OutboxErrorType_UPLOADFAILED:
+		return true
+	default:
+		return false
+	}
+}

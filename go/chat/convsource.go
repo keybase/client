@@ -154,7 +154,7 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 
 	// Fetch outbox and tack onto the result
 	outbox := storage.NewOutbox(s.G(), uid)
-	if err = outbox.SprinkleIntoThread(ctx, conv.GetConvID(), thread); err != nil {
+	if err = outbox.AppendToThread(ctx, conv.GetConvID(), thread); err != nil {
 		if _, ok := err.(storage.MissError); !ok {
 			return err
 		}
