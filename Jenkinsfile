@@ -482,6 +482,7 @@ def testGo(prefix, packagesToTest) {
     println "Installing golangci-lint"
     dir("..") {
       retry(5) {
+        // This works with go1.12.12 but not go1.13.1 with an error containing "invalid pseudo-version"
         sh 'GO111MODULE=on go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.16.0'
       }
     }
