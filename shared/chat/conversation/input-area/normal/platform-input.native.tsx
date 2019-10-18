@@ -18,7 +18,7 @@ import AddSuggestors, {standardTransformer} from '../suggestors'
 import {parseUri, launchCameraAsync, launchImageLibraryAsync} from '../../../../util/expo-image-picker'
 import {BotCommandUpdateStatus} from './shared'
 import {formatDurationShort} from '../../../../util/timestamp'
-import {config, animated, useTransition} from 'react-spring/native'
+import {animated, useTransition} from 'react-spring/native'
 
 type menuType = 'exploding' | 'filepickerpopup' | 'moremenu'
 
@@ -221,53 +221,53 @@ type ActionProps = {
   insertMentionMarker: () => void
 }
 
-const Action1 = React.memo(
-  ({hasText, insertMentionMarker, isEditing, onSubmit, openFilePicker, openMoreMenu}) =>
-    hasText ? (
-      <Kb.Button
-        type="Default"
-        small={true}
-        style={styles.send}
-        onClick={onSubmit}
-        label={isEditing ? 'Save' : 'Send'}
-      />
-    ) : (
-      <Kb.Box2 direction="horizontal" style={styles.actionIconsContainer}>
-        <Kb.Icon
-          onClick={insertMentionMarker}
-          type="iconfont-mention"
-          style={Kb.iconCastPlatformStyles(styles.actionButton)}
-          fontSize={22}
-        />
-        {smallGap}
-        <Kb.Icon
-          onClick={openFilePicker}
-          type="iconfont-camera"
-          style={Kb.iconCastPlatformStyles(styles.actionButton)}
-          fontSize={22}
-        />
-        {smallGap}
-        <Kb.Icon
-          onClick={openMoreMenu}
-          type="iconfont-add"
-          style={Kb.iconCastPlatformStyles(styles.actionButton)}
-          fontSize={22}
-        />
-      </Kb.Box2>
-    )
-)
+// const Action1 = React.memo(
+// ({hasText, insertMentionMarker, isEditing, onSubmit, openFilePicker, openMoreMenu}) =>
+// hasText ? (
+// <Kb.Button
+// type="Default"
+// small={true}
+// style={styles.send}
+// onClick={onSubmit}
+// label={isEditing ? 'Save' : 'Send'}
+// />
+// ) : (
+// <Kb.Box2 direction="horizontal" style={styles.actionIconsContainer}>
+// <Kb.Icon
+// onClick={insertMentionMarker}
+// type="iconfont-mention"
+// style={Kb.iconCastPlatformStyles(styles.actionButton)}
+// fontSize={22}
+// />
+// {smallGap}
+// <Kb.Icon
+// onClick={openFilePicker}
+// type="iconfont-camera"
+// style={Kb.iconCastPlatformStyles(styles.actionButton)}
+// fontSize={22}
+// />
+// {smallGap}
+// <Kb.Icon
+// onClick={openMoreMenu}
+// type="iconfont-add"
+// style={Kb.iconCastPlatformStyles(styles.actionButton)}
+// fontSize={22}
+// />
+// </Kb.Box2>
+// )
+// )
 
-const AnimatedView: Kb.NativeView = animated(Kb.NativeView)
-const Action2 = React.memo(
+const AnimatedView: typeof Kb.NativeView = animated(Kb.NativeView) as any
+const Action = React.memo(
   ({hasText, insertMentionMarker, isEditing, onSubmit, openFilePicker, openMoreMenu}: ActionProps) => {
-    const transitions = useTransition(hasText, null, {
+    const transitions = useTransition<boolean, any>(hasText, null, {
       enter: {opacity: 1, translateX: 0},
       from: {opacity: 0, translateX: 200},
       initial: {opacity: 1, translateX: 0},
       leave: {opacity: 0, translateX: 200},
     })
     return (
-      <Kb.Box2 direction="vertical" style={{position: 'relative', width: 106, height: 50}}>
+      <Kb.Box2 direction="vertical" style={{height: 50, position: 'relative', width: 106}}>
         {transitions.map(({item, props}) =>
           item ? (
             <AnimatedView
@@ -329,7 +329,7 @@ const Action2 = React.memo(
   }
 )
 
-const Action = Action2
+// const Action = Action2
 
 const ExplodingIcon = ({explodingModeSeconds, isExploding, openExplodingPicker}) => (
   <Kb.Box2 direction="horizontal" style={styles.explodingOuterContainer}>
