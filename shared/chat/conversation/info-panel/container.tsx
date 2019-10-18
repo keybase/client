@@ -380,17 +380,14 @@ const InfoPanelSelector = (props: Props) => {
     <Kb.Box onClick={() => setShow(false)} style={styles.clickCatcher}>
       <Kb.Transition
         items={show}
-        from={{right: -320}}
-        enter={{right: 0}}
-        leave={{right: -320}}
+        from={{...styles.panelContainer, right: -320}}
+        enter={{...styles.panelContainer, right: 0}}
+        leave={{...styles.panelContainer, right: -320}}
         onDestroyed={onDestroyed}
       >
-        {show => ({right}) => {
+        {show => style => {
           return show ? (
-            <Kb.Box
-              style={Styles.collapseStyles([styles.panelContainer, {right}])}
-              onClick={(evt: React.BaseSyntheticEvent) => evt.stopPropagation()}
-            >
+            <Kb.animated.div style={style} onClick={(evt: React.BaseSyntheticEvent) => evt.stopPropagation()}>
               <ConnectedInfoPanel
                 loadDelay={400}
                 onBack={() => setShow(false)}
@@ -400,7 +397,7 @@ const InfoPanelSelector = (props: Props) => {
                 onSelectAttachmentView={onSelectAttachmentView}
                 selectedAttachmentView={selectedAttachmentView}
               />
-            </Kb.Box>
+            </Kb.animated.div>
           ) : null
         }}
       </Kb.Transition>
