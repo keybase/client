@@ -135,7 +135,7 @@ type _FinishedDownloadWithIntentPayload = {
   readonly mimeType: string
 }
 type _FinishedRegularDownloadPayload = {readonly downloadID: string; readonly mimeType: string}
-type _FolderListLoadPayload = {readonly path: Types.Path}
+type _FolderListLoadPayload = {readonly recursive: boolean; readonly path: Types.Path}
 type _FolderListLoadedPayload = {
   readonly path: Types.Path
   readonly pathItems: I.Map<Types.Path, Types.PathItem>

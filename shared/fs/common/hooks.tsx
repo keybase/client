@@ -60,12 +60,12 @@ export const useFsPathMetadata = (path: Types.Path) => {
   }, [dispatch, path])
 }
 
-export const useFsChildren = (path: Types.Path) => {
+export const useFsChildren = (path: Types.Path, initialLoadRecursive?: boolean) => {
   useFsPathSubscriptionEffect(path, RPCTypes.PathSubscriptionTopic.children)
   const dispatch = useDispatchWhenConnectedAndOnline()
   React.useEffect(() => {
-    isPathItem(path) && dispatch(FsGen.createFolderListLoad({path}))
-  }, [dispatch, path])
+    isPathItem(path) && dispatch(FsGen.createFolderListLoad({path, recursive: !!initialLoadRecursive}))
+  }, [dispatch, path, initialLoadRecursive])
 }
 
 export const useFsTlfs = () => {

@@ -15,6 +15,8 @@ import {TypedActions} from '../actions/typed-actions-gen'
 import flags from '../util/feature-flags'
 
 export const syncToggleWaitingKey = 'fs:syncToggle'
+export const folderListWaitingKey = 'fs:folderList'
+export const statWaitingKey = 'fs:stat'
 
 export const defaultPath = Types.stringToPath('/keybase')
 

@@ -19,6 +19,7 @@
     "pollJournalStatus": {},
     "getOnlineStatus": {},
     "folderListLoad": {
+      "recursive": "boolean",
       "path": "Types.Path"
     },
     "folderListLoaded": {

@@ -258,17 +258,10 @@ const makeEntry = (d: RPCTypes.Dirent, children?: Set<string>) => {
 
 function* folderList(_: TypedState, action: FsGen.FolderListLoadPayload | FsGen.EditSuccessPayload) {
   const rootPath = action.type === FsGen.editSuccess ? action.payload.parentPath : action.payload.path
+  const isRecursive = action.type === FsGen.folderListLoad && action.payload.recursive
   try {
     const opID = Constants.makeUUID()
-    const pathElems = Types.getPathElements(rootPath)
-    if (pathElems.length < 3) {
-      yield RPCTypes.SimpleFSSimpleFSListRpcPromise({
-        filter: RPCTypes.ListFilter.filterSystemHidden,
-        opID,
-        path: Constants.pathToRPCPath(rootPath),
-        refreshSubscription: false,
-      })
-    } else {
+    if (isRecursive) {
       yield RPCTypes.SimpleFSSimpleFSListRecursiveToDepthRpcPromise({
         depth: 1,
         filter: RPCTypes.ListFilter.filterSystemHidden,
@@ -276,9 +269,16 @@ function* folderList(_: TypedState, action: FsGen.FolderListLoadPayload | FsGen.
         path: Constants.pathToRPCPath(rootPath),
         refreshSubscription: false,
       })
+    } else {
+      yield RPCTypes.SimpleFSSimpleFSListRpcPromise({
+        filter: RPCTypes.ListFilter.filterSystemHidden,
+        opID,
+        path: Constants.pathToRPCPath(rootPath),
+        refreshSubscription: false,
+      })
     }
 
-    yield RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID})
+    yield RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID}, Constants.folderListWaitingKey)
 
     const result: Saga.RPCPromiseType<
       typeof RPCTypes.SimpleFSSimpleFSReadListRpcPromise
@@ -309,7 +309,7 @@ function* folderList(_: TypedState, action: FsGen.FolderListLoadPayload | FsGen.
     const direntToPathAndPathItem = (d: RPCTypes.Dirent) => {
       const path = Types.pathConcat(rootPath, d.name)
       const entry = makeEntry(d, childMap.get(path))
-      if (entry.type === Types.PathType.Folder && Types.getPathLevel(path) > 3 && d.name.indexOf('/') < 0) {
+      if (entry.type === Types.PathType.Folder && isRecursive && d.name.indexOf('/') < 0) {
         // Since we are loading with a depth of 2, first level directories are
         // considered "loaded".
         return [path, entry.set('progress', Types.ProgressType.Loaded)]
@@ -500,10 +500,13 @@ function* loadPathMetadata(_: TypedState, action: FsGen.LoadPathMetadataPayload)
   const {path} = action.payload
 
   try {
-    const dirent = yield RPCTypes.SimpleFSSimpleFSStatRpcPromise({
-      path: Constants.pathToRPCPath(path),
-      refreshSubscription: false,
-    })
+    const dirent = yield RPCTypes.SimpleFSSimpleFSStatRpcPromise(
+      {
+        path: Constants.pathToRPCPath(path),
+        refreshSubscription: false,
+      },
+      Constants.statWaitingKey
+    )
     let pathItem = makeEntry(dirent)
     yield Saga.put(
       FsGen.createPathItemLoaded({
@@ -783,7 +786,7 @@ const onPathChange = (_: TypedState, action: EngineGen.Keybase1NotifyFSFSSubscri
   const {path, topic} = action.payload.params
   switch (topic) {
     case RPCTypes.PathSubscriptionTopic.children:
-      return FsGen.createFolderListLoad({path: Types.stringToPath(path)})
+      return FsGen.createFolderListLoad({path: Types.stringToPath(path), recursive: false})
     case RPCTypes.PathSubscriptionTopic.stat:
       return FsGen.createLoadPathMetadata({path: Types.stringToPath(path)})
   }

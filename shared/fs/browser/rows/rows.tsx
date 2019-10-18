@@ -157,7 +157,7 @@ class Rows extends React.PureComponent<Props> {
 }
 
 const RowsWithAutoLoad = (props: Props) => {
-  useFsChildren(props.path)
+  useFsChildren(props.path, true) // need recursive fot the EMPTY tag
   return <Rows {...props} />
 }
 

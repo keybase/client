@@ -18,7 +18,7 @@ type Props = {
   copyPath?: (() => void) | null
   delete?: (() => void) | null
   download?: (() => void) | null
-  ignoreTlf?: (() => void) | null
+  ignoreTlf?: (() => void) | 'disabled' | null
   moveOrCopy?: (() => void) | null
   me: string
   newFolder?: (() => void) | null
@@ -160,7 +160,8 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => {
       ? [
           {
             danger: true,
-            onClick: hideMenuOnClick(props.ignoreTlf, hideMenu),
+            disabled: props.ignoreTlf === 'disabled',
+            onClick: props.ignoreTlf === 'disabled' ? undefined : hideMenuOnClick(props.ignoreTlf, hideMenu),
             subTitle: 'Will hide the folder from your list.',
             title: 'Ignore this folder',
           },
