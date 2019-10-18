@@ -67,6 +67,7 @@ export type Props = {
   shouldShowPopup: boolean
   showCrowns: boolean
   showSendIndicator: boolean
+  youAreAuthor: boolean
 }
 
 type State = {
@@ -152,9 +153,10 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                 colorBroken={true}
                 colorFollowing={true}
                 colorYou={true}
+                onUsernameClicked={this._onAuthorClick}
+                style={Styles.collapseStyles([this._showCenteredHighlight() && this.props.youAreAuthor && styles.usernameHighlighted])}
                 type="BodySmallBold"
                 usernames={[this.props.showUsername]}
-                onUsernameClicked={this._onAuthorClick}
               />
               {this.props.showCrowns && (this.props.authorIsOwner || this.props.authorIsAdmin) && (
                 <Kb.WithTooltip tooltip={this.props.authorIsOwner ? 'Owner' : 'Admin'}>
@@ -167,7 +169,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                   />
                 </Kb.WithTooltip>
               )}
-              <Kb.Text type="BodyTiny" style={styles.timestamp}>
+              <Kb.Text type="BodyTiny" style={Styles.collapseStyles([styles.timestamp, this._showCenteredHighlight() && styles.timestampHighlighted])}>
                 {formatTimeForChat(this.props.message.timestamp)}
               </Kb.Text>
             </Kb.Box2>
@@ -743,6 +745,9 @@ const styles = Styles.styleSheetCreate(
         common: {paddingLeft: Styles.globalMargins.xtiny},
         isElectron: {lineHeight: 19},
       }),
+      timestampHighlighted: {
+        color: Styles.globalColors.black_50OrBlack_40,
+      },
       usernameCrown: Styles.platformStyles({
         isElectron: {
           alignItems: 'baseline',
@@ -751,6 +756,9 @@ const styles = Styles.styleSheetCreate(
         },
         isMobile: {alignItems: 'center'},
       }),
+      usernameHighlighted: {
+        color: Styles.globalColors.blackOrBlack,
+      },
     } as const)
 )
 

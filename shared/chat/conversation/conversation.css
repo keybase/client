@@ -74,18 +74,33 @@
 .WrapperMessage-centered {
   background-color: #fff75a;
 }
+.darkMode .WrapperMessage-centered {
+  background-color: #e0d733;
+}
 .darkMode .WrapperMessage-centered .text_Body {
   color: #101010;
 }
-.darkMode .WrapperMessage-centered:hover .text_Body {
-  color: rgba(255, 255, 255, 0.85);
+/* .darkMode .WrapperMessage-centered .text_BodySmallBold {
+  color: rgba(0, 0, 0, 0.85) !important;
 }
+.darkMode .WrapperMessage-centered:hover .text_Body {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+.darkMode .WrapperMessage-centered:hover .text_BodyTiny {
+  color: rgba(255, 255, 255, 0.4) !important;
+} */
 .ReplyBox:hover {
   background-color: white;
 }
 .darkMode .ReplyBox:hover {
   background-color: rgba(24, 45, 110, 0.5);
 }
+/* .darkMode .WrapperMessage-centered .ReplyBox .text_BodySmall {
+  color: #101010;
+}
+.darkMode .WrapperMessage-centered:hover .ReplyBox .text_BodySmall {
+  color: rgba(255, 255, 255, 0.6);
+} */
 .WrapperMessage-hoverBox:hover .sendingStatus {
   visibility: hidden;
 }

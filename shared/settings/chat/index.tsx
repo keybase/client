@@ -110,7 +110,7 @@ class Chat extends React.Component<Props, State> {
                     <Kb.Text type="BodySemibold">{w}</Kb.Text>
                     <Kb.Text
                       type="BodyPrimaryLink"
-                      style={wlremoved ? {color: Styles.globalColors.white} : undefined}
+                      style={wlremoved ? {color: Styles.globalColors.whiteOrWhite} : undefined}
                       onClick={() => this._toggleUnfurlWhitelist(w)}
                     >
                       {wlremoved ? 'Restore' : 'Remove'}

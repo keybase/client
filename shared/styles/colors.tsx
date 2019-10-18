@@ -29,6 +29,12 @@ export const colors = {
   black_35: 'rgba(0, 0, 0, 0.35)',
   black_40: 'rgba(0, 0, 0, 0.40)',
   black_50: 'rgba(0, 0, 0, 0.50)',
+  get black_50OrBlack_40() {
+    return this.black_50
+  },
+  get black_50OrBlack_50() {
+    return this.black_50
+  },
   get black_50OrBlack_60() {
     return this.black_50
   },
@@ -209,6 +215,12 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   black_35: 'rgba(255, 255, 255, 0.35)',
   black_40: 'rgba(255, 255, 255, 0.40)',
   black_50: 'rgba(255, 255, 255, 0.50)',
+  get black_50OrBlack_40() {
+    return colors.black_40
+  },
+  get black_50OrBlack_50() {
+    return colors.black_50
+  },
   get black_50OrBlack_60() {
     return colors.black_60
   },

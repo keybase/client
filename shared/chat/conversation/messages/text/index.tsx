@@ -10,6 +10,7 @@ type ReplyProps = {
   imageHeight?: number
   imageURL?: string
   imageWidth?: number
+  isParentHighlighted: boolean
   onClick: () => void
   text: string
   username: string
@@ -35,7 +36,7 @@ const Reply = (props: ReplyProps) => {
           <Kb.Box2 direction="horizontal" fullWidth={true}>
             <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
               <Kb.Avatar username={props.username} size={32} />
-              <Kb.Text type="BodySemibold" style={styles.replyUsername}>
+              <Kb.Text type="BodySemibold" style={Styles.collapseStyles([styles.replyUsername, props.isParentHighlighted && styles.replyUsernameHighlighted])}>
                 {props.username}
               </Kb.Text>
             </Kb.Box2>
@@ -55,7 +56,7 @@ const Reply = (props: ReplyProps) => {
             )}
             <Kb.Box2 direction="horizontal" style={styles.replyTextContainer}>
               {!props.deleted ? (
-                <Kb.Text type="BodySmall">{props.text}</Kb.Text>
+                <Kb.Text type="BodySmall" style={Styles.collapseStyles([props.isParentHighlighted && styles.textHighlighted])}>{props.text}</Kb.Text>
               ) : (
                 <Kb.Text type="BodyTiny" style={styles.replyEdited}>
                   The original message was deleted.
@@ -117,7 +118,7 @@ const MessageText = ({claim, isEditing, isHighlighted, message, reply, text, typ
   )
   const content = (
     <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
-      {!!reply && <Reply {...reply} />}
+      {!!reply && <Reply {...reply} isParentHighlighted={isHighlighted} />}
       {markdown}
       {!!claim && <Claim {...claim} />}
     </Kb.Box2>
@@ -227,8 +228,14 @@ const styles = Styles.styleSheetCreate(
       replyUsername: {
         alignSelf: 'center',
       },
+      replyUsernameHighlighted: {
+        color: Styles.globalColors.blackOrBlack,
+      },
       sent,
       sentEditing,
+      textHighlighted: {
+        color: Styles.globalColors.black_50OrBlack_50,
+      },
       wrapper: {alignSelf: 'flex-start', flex: 1},
     } as const)
 )
