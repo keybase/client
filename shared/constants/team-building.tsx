@@ -164,17 +164,14 @@ type HasServiceMap = {
 const pluckServiceMap = (contact: HasServiceMap) =>
   Object.entries(contact.serviceMap || {})
     .concat([['keybase', contact.username]])
-    .reduce(
-      (acc, [service, username]) => {
-        if (serviceIdFromString(service) === service) {
-          // Service can also give us proof values like "https" or "dns" that
-          // we don't want here.
-          acc[service] = username
-        }
-        return acc
-      },
-      {} as Types.ServiceMap
-    )
+    .reduce<Types.ServiceMap>((acc, [service, username]) => {
+      if (serviceIdFromString(service) === service) {
+        // Service can also give us proof values like "https" or "dns" that
+        // we don't want here.
+        acc[service] = username
+      }
+      return acc
+    }, {})
 
 export const contactToUser = (contact: RPCTypes.ProcessedContact): Types.User => ({
   contact: true,
