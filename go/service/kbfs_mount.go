@@ -53,14 +53,14 @@ func (h *KBFSMountHandler) WaitForMounts(ctx context.Context) (active bool, err 
 				if err == nil && !fi.IsDir() {
 					directMountFound = true
 				}
+				// Not check os.IsNotExist here because it can be permission
+				// error too. So just wait it out.
 			}
 			if !preferredMountFound {
 				if len(libkb.FindPreferredKBFSMountDirs()) > 0 {
 					preferredMountFound = true
 				}
 			}
-			// Not check os.IsNotExist here because it can be permission
-			// error too. So just wait it out.
 		case <-ctx.Done():
 			return false, nil
 		}
