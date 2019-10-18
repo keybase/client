@@ -1,16 +1,16 @@
-import * as React from 'react'
-import * as Types from '../../../../constants/types/chat2'
-import Message from '../../messages'
-import SpecialTopMessage from '../../messages/special-top-message'
-import SpecialBottomMessage from '../../messages/special-bottom-message'
-import {mobileTypingContainerHeight} from '../../input-area/normal/typing'
-import * as Kb from '../../../../common-adapters/mobile.native'
 import * as Container from '../../../../util/container'
-import {Animated} from 'react-native'
-import logger from '../../../../logger'
+import * as Kb from '../../../../common-adapters/mobile.native'
+import * as React from 'react'
 import * as Styles from '../../../../styles'
-import {Props} from '.'
+import * as Types from '../../../../constants/types/chat2'
 import JumpToRecent from './jump-to-recent'
+import Message from '../../messages'
+import SpecialBottomMessage from '../../messages/special-bottom-message'
+import SpecialTopMessage from '../../messages/special-top-message'
+import logger from '../../../../logger'
+import {Animated} from 'react-native'
+import {Props} from '.'
+import {mobileTypingContainerHeight} from '../../input-area/normal/typing'
 
 const debugEnabled = false
 
@@ -18,26 +18,36 @@ const debug = debugEnabled ? s => logger.debug('scroll: ' + s) : () => {}
 
 const targetHitArea = 1
 
-// only animate one node once, ever, once it has a height
-let animatingConversationIDKey = null
-let animatingOrdinal = null
+// Bookkeep whats animating so it finishes and isn't replaced
+const animatingMap = new Map<string, React.ReactNode>()
 
-const AnimatedChild = React.memo(({children}) => {
-  console.log('aaa sent CCHILD render', children)
+type AnimatedChildProps = {
+  animatingKey: string
+  children: React.ReactNode
+}
+const AnimatedChild = React.memo(({children, animatingKey}: AnimatedChildProps) => {
   const translateY = new Animated.Value(999)
-  translateY.addListener(i => console.log('aaa translate animating', i.value))
-  // onLayout={e => setHeight(e.layout.height)}
+  const opacity = new Animated.Value(0)
   return (
     <Animated.View
-      style={{overflow: 'hidden', transform: [{translateY}], width: '100%'}}
-      onLayout={e => {
+      style={{opacity, overflow: 'hidden', transform: [{translateY}], width: '100%'}}
+      onLayout={(e: any) => {
         const {height} = e.nativeEvent.layout
-        translateY.setValue(height + 20)
-        Animated.timing(translateY, {
-          duration: 300,
-          toValue: 0,
-          useNativeDriver: true,
-        }).start()
+        translateY.setValue(height + 10)
+        Animated.parallel([
+          Animated.timing(opacity, {
+            duration: 200,
+            toValue: 1,
+            useNativeDriver: true,
+          }),
+          Animated.timing(translateY, {
+            duration: 200,
+            toValue: 0,
+            useNativeDriver: true,
+          }),
+        ]).start(() => {
+          animatingMap.set(animatingKey, undefined)
+        })
       }}
     >
       {children}
@@ -45,16 +55,28 @@ const AnimatedChild = React.memo(({children}) => {
   )
 })
 
-const Sent = React.memo(({children, conversationIDKey, ordinal}) => {
-  console.log('aaa sent render', conversationIDKey, ordinal)
+type SentProps = {
+  children: React.ReactNode
+  conversationIDKey: Types.ConversationIDKey
+  ordinal: Types.Ordinal
+}
+const Sent = React.memo(({children, conversationIDKey, ordinal}: SentProps) => {
   const {message, you} = Container.useSelector(state => ({
     message: state.chat2.messageMap.getIn([conversationIDKey, ordinal]),
     you: state.config.username,
   }))
   const youSent = message && message.author === you && message.ordinal !== message.id
+  const key = `${conversationIDKey}:${ordinal}`
+  const state = animatingMap.get(key)
+  // if its animating always show it
+  if (state) {
+    return state
+  }
 
   if (youSent) {
-    return <AnimatedChild>{children}</AnimatedChild>
+    const c = <AnimatedChild animatingKey={key}>{children}</AnimatedChild>
+    animatingMap.set(key, c)
+    return c
   } else {
     return children
   }
