@@ -377,6 +377,8 @@ const InfoPanelSelector = (props: Props) => {
     <Kb.Box onClick={() => setShow(false)} style={styles.clickCatcher}>
       <Kb.Transition
         items={show}
+        keys={item => (item ? 'showing' : 'hiding')}
+        config={(showing, state) => ({duration: showing && state == 'enter' ? 200 : 50})}
         from={{...styles.panelContainer, right: -320}}
         enter={{...styles.panelContainer, right: 0}}
         leave={{...styles.panelContainer, right: -320}}
