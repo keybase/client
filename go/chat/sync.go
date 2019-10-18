@@ -176,12 +176,11 @@ func (s *Syncer) Connected(ctx context.Context, cli chat1.RemoteInterface, uid g
 	defer s.Trace(ctx, func() error { return err }, "Connected")()
 	s.Lock()
 	s.isConnected = true
-	s.Unlock()
-
 	// Let the Offlinables know that we are back online
 	for _, o := range s.offlinables {
 		o.Connected(ctx)
 	}
+	s.Unlock()
 
 	// Run sync against the server
 	return s.Sync(ctx, cli, uid, syncRes)
@@ -191,12 +190,11 @@ func (s *Syncer) Disconnected(ctx context.Context) {
 	defer s.Trace(ctx, func() error { return nil }, "Disconnected")()
 	s.Lock()
 	s.isConnected = false
-	s.Unlock()
-
 	// Let the Offlinables know of connection state change
 	for _, o := range s.offlinables {
 		o.Disconnected(ctx)
 	}
+	s.Unlock()
 }
 
 func (s *Syncer) handleMembersTypeChanged(ctx context.Context, uid gregor1.UID,

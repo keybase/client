@@ -318,9 +318,9 @@ func (f *FetchRetrier) Failure(ctx context.Context, uid gregor1.UID, desc types.
 // Success indicates a success of type kind loading a conversation. This effectively removes
 // that conversation from the retry queue.
 func (f *FetchRetrier) Success(ctx context.Context, uid gregor1.UID, desc types.RetryDescription) {
+	defer f.Trace(ctx, func() error { return nil }, fmt.Sprintf("Success(%s)", desc))()
 	f.Lock()
 	defer f.Unlock()
-	defer f.Trace(ctx, func() error { return nil }, fmt.Sprintf("Success(%s)", desc))()
 	key := f.key(uid, desc)
 	if control, ok := f.retriers[key]; ok {
 		control.Shutdown()
@@ -330,9 +330,9 @@ func (f *FetchRetrier) Success(ctx context.Context, uid gregor1.UID, desc types.
 // Connected is called when a connection to the chat server is established, and forces a
 // pass over the retry queue
 func (f *FetchRetrier) Connected(ctx context.Context) {
+	defer f.Trace(ctx, func() error { return nil }, "Connected")()
 	f.Lock()
 	defer f.Unlock()
-	defer f.Trace(ctx, func() error { return nil }, "Connected")()
 	f.offline = false
 	for _, control := range f.retriers {
 		control.Force()
