@@ -108,7 +108,7 @@ type putEntryOptions struct {
 	Team       string `json:"team"`
 	Namespace  string `json:"namespace"`
 	EntryKey   string `json:"entryKey"`
-	Revision   int    `json:"revision"`
+	Revision   *int   `json:"revision"`
 	EntryValue string `json:"entryValue"`
 }
 
@@ -125,6 +125,9 @@ func (a *putEntryOptions) Check() error {
 	if len(a.EntryValue) == 0 {
 		return errors.New("`entryValue` field required")
 	}
+	if a.Revision != nil && *a.Revision <= 0 {
+		return errors.New("if setting optional `revision` field, it needs to be a positive integer")
+	}
 	return nil
 }
 
@@ -133,12 +136,16 @@ func (t *kvStoreAPIHandler) putEntry(ctx context.Context, c Call, w io.Writer) e
 	if err := unmarshalOptions(c, &opts); err != nil {
 		return t.encodeErr(c, err, w)
 	}
+	var revision int
+	if opts.Revision != nil {
+		revision = *opts.Revision
+	}
 	arg := keybase1.PutKVEntryArg{
 		SessionID:  0,
 		TeamName:   opts.Team,
 		Namespace:  opts.Namespace,
 		EntryKey:   opts.EntryKey,
-		Revision:   opts.Revision,
+		Revision:   revision,
 		EntryValue: opts.EntryValue,
 	}
 	res, err := t.cli.PutKVEntry(ctx, arg)
@@ -152,7 +159,7 @@ type deleteEntryOptions struct {
 	Team      string `json:"team"`
 	Namespace string `json:"namespace"`
 	EntryKey  string `json:"entryKey"`
-	Revision  int    `json:"revision"`
+	Revision  *int   `json:"revision"`
 }
 
 func (a *deleteEntryOptions) Check() error {
@@ -165,6 +172,9 @@ func (a *deleteEntryOptions) Check() error {
 	if len(a.EntryKey) == 0 {
 		return errors.New("`entryKey` field required")
 	}
+	if a.Revision != nil && *a.Revision <= 0 {
+		return errors.New("if setting optional `revision` field, it needs to be a positive integer")
+	}
 	return nil
 }
 
@@ -173,12 +183,16 @@ func (t *kvStoreAPIHandler) deleteEntry(ctx context.Context, c Call, w io.Writer
 	if err := unmarshalOptions(c, &opts); err != nil {
 		return t.encodeErr(c, err, w)
 	}
+	var revision int
+	if opts.Revision != nil {
+		revision = *opts.Revision
+	}
 	arg := keybase1.DelKVEntryArg{
 		SessionID: 0,
 		TeamName:  opts.Team,
 		Namespace: opts.Namespace,
 		EntryKey:  opts.EntryKey,
-		Revision:  opts.Revision,
+		Revision:  revision,
 	}
 	res, err := t.cli.DelKVEntry(ctx, arg)
 	if err != nil {
