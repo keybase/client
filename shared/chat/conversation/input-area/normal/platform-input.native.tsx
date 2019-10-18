@@ -237,6 +237,13 @@ const Action = ({hasText, insertMentionMarker, isEditing, onSubmit, openFilePick
       />
       {smallGap}
       <Kb.Icon
+        onClick={openFilePicker}
+        type="iconfont-star"
+        style={Kb.iconCastPlatformStyles(styles.actionButton)}
+        fontSize={22}
+      />
+      {smallGap}
+      <Kb.Icon
         onClick={openMoreMenu}
         type="iconfont-add"
         style={Kb.iconCastPlatformStyles(styles.actionButton)}
