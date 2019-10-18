@@ -1,9 +1,10 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/notify_runtimestats.avdl
 
 package keybase1
 
 import (
+	"fmt"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 	"time"
@@ -35,7 +36,7 @@ func (e StatsSeverityLevel) String() string {
 	if v, ok := StatsSeverityLevelRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type DbStats struct {
@@ -75,7 +76,7 @@ func (e ProcessType) String() string {
 	if v, ok := ProcessTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type ProcessRuntimeStats struct {

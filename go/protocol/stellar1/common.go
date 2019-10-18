@@ -1,9 +1,10 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/stellar1/common.avdl
 
 package stellar1
 
 import (
+	"fmt"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
@@ -187,7 +188,7 @@ func (e TransactionStatus) String() string {
 	if v, ok := TransactionStatusRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type RequestStatus int
@@ -216,7 +217,7 @@ func (e RequestStatus) String() string {
 	if v, ok := RequestStatusRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type PaymentStrategy int
@@ -245,7 +246,7 @@ func (e PaymentStrategy) String() string {
 	if v, ok := PaymentStrategyRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type RelayDirection int
@@ -271,7 +272,7 @@ func (e RelayDirection) String() string {
 	if v, ok := RelayDirectionRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type PaymentResult struct {
@@ -495,7 +496,7 @@ func (e AccountMode) String() string {
 	if v, ok := AccountModeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type Trustline struct {
