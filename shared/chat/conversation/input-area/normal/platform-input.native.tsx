@@ -267,14 +267,24 @@ const Action = React.memo(
       leave: {opacity: 0, translateX: 200},
     })
     return (
-      <Kb.Box2 direction="vertical" style={{height: 50, position: 'relative', width: 106}}>
-        {transitions.map(({item, props}) =>
-          item ? (
+      <Kb.Box2
+        direction="vertical"
+        style={{
+          alignSelf: 'flex-end',
+          backgroundColor: 'orange',
+          height: 50,
+          position: 'relative',
+          width: 106,
+        }}
+      >
+        {transitions.map(({item, props}) => {
+          console.log('aaa', item, props)
+          return item ? (
             <AnimatedView
               style={{
+                backgroundColor: 'green',
                 bottom: 0,
-                opacity: props.opacity,
-                overflow: 'hidden',
+                // opacity: props.opacity,
                 position: 'absolute',
                 right: 0,
                 transform: [{translateX: props.translateX}],
@@ -291,9 +301,9 @@ const Action = React.memo(
           ) : (
             <AnimatedView
               style={{
+                backgroundColor: 'red',
                 bottom: 0,
-                opacity: props.opacity,
-                overflow: 'hidden',
+                // opacity: props.opacity,
                 position: 'absolute',
                 right: 0,
                 transform: [{translateX: props.translateX}],
@@ -323,7 +333,7 @@ const Action = React.memo(
               </Kb.Box2>
             </AnimatedView>
           )
-        )}
+        })}
       </Kb.Box2>
     )
   }
