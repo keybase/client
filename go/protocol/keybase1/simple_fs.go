@@ -1238,6 +1238,22 @@ func (o SyncConfigAndStatusRes) DeepCopy() SyncConfigAndStatusRes {
 	}
 }
 
+type FolderWithFavFlags struct {
+	Folder     Folder `codec:"folder" json:"folder"`
+	IsFavorite bool   `codec:"isFavorite" json:"isFavorite"`
+	IsIgnored  bool   `codec:"isIgnored" json:"isIgnored"`
+	IsNew      bool   `codec:"isNew" json:"isNew"`
+}
+
+func (o FolderWithFavFlags) DeepCopy() FolderWithFavFlags {
+	return FolderWithFavFlags{
+		Folder:     o.Folder.DeepCopy(),
+		IsFavorite: o.IsFavorite,
+		IsIgnored:  o.IsIgnored,
+		IsNew:      o.IsNew,
+	}
+}
+
 type FSSettings struct {
 	SpaceAvailableNotificationThreshold int64 `codec:"spaceAvailableNotificationThreshold" json:"spaceAvailableNotificationThreshold"`
 }
@@ -1650,6 +1666,10 @@ type SimpleFSSyncConfigAndStatusArg struct {
 	IdentifyBehavior *TLFIdentifyBehavior `codec:"identifyBehavior,omitempty" json:"identifyBehavior,omitempty"`
 }
 
+type SimpleFSGetFolderArg struct {
+	Path KBFSPath `codec:"path" json:"path"`
+}
+
 type SimpleFSAreWeConnectedToMDServerArg struct {
 }
 
@@ -1827,6 +1847,7 @@ type SimpleFSInterface interface {
 	SimpleFSFolderSyncConfigAndStatus(context.Context, Path) (FolderSyncConfigAndStatus, error)
 	SimpleFSSetFolderSyncConfig(context.Context, SimpleFSSetFolderSyncConfigArg) error
 	SimpleFSSyncConfigAndStatus(context.Context, *TLFIdentifyBehavior) (SyncConfigAndStatusRes, error)
+	SimpleFSGetFolder(context.Context, KBFSPath) (FolderWithFavFlags, error)
 	SimpleFSAreWeConnectedToMDServer(context.Context) (bool, error)
 	SimpleFSCheckReachability(context.Context) error
 	SimpleFSSetDebugLevel(context.Context, string) error
@@ -2376,6 +2397,21 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return
 				},
 			},
+			"simpleFSGetFolder": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSGetFolderArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleFSGetFolderArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSGetFolderArg)(nil), args)
+						return
+					}
+					ret, err = i.SimpleFSGetFolder(ctx, typedArgs[0].Path)
+					return
+				},
+			},
 			"simpleFSAreWeConnectedToMDServer": {
 				MakeArg: func() interface{} {
 					var ret [1]SimpleFSAreWeConnectedToMDServerArg
@@ -2887,6 +2923,12 @@ func (c SimpleFSClient) SimpleFSSetFolderSyncConfig(ctx context.Context, __arg S
 func (c SimpleFSClient) SimpleFSSyncConfigAndStatus(ctx context.Context, identifyBehavior *TLFIdentifyBehavior) (res SyncConfigAndStatusRes, err error) {
 	__arg := SimpleFSSyncConfigAndStatusArg{IdentifyBehavior: identifyBehavior}
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSyncConfigAndStatus", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSGetFolder(ctx context.Context, path KBFSPath) (res FolderWithFavFlags, err error) {
+	__arg := SimpleFSGetFolderArg{Path: path}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetFolder", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
