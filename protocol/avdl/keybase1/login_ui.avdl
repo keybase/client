@@ -49,4 +49,23 @@ protocol loginUi {
     ENCRYPTED_PGP_KEYS_0 // explain to the user that they'll lose encrypted pgp keys
   }
   bool promptPassphraseRecovery(int sessionID, PassphraseRecoveryPromptType kind);
+
+  /**
+   Different from ProvisionUI's chooseDevice due to phrasing in the UI.
+  */
+  DeviceID chooseDeviceToRecoverWith(int sessionID, array<Device> devices);
+
+  enum ResetMessage {
+    ENTERED_VERIFIED_0,     // entered with a password
+    ENTERED_PASSWORDLESS_1, // entered without a password
+    REQUEST_VERIFIED_2,     // existing request has been verified
+    NOT_COMPLETED_3,        // in reset prompt, it was not completed
+    CANCELED_4,             // in reset prompt, it was canceled
+    COMPLETED_5,            // in reset prompt, it was completed
+    RESET_LINK_SENT_6       // there were no devices, reset link was sent to email
+  }
+  /**
+   Simply displays a message in the recovery flow.
+  */
+  void displayResetMessage(int sessionID, ResetMessage kind);
 }

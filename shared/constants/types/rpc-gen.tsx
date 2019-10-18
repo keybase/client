@@ -883,12 +883,20 @@ export type MessageTypes = {
     inParam: {readonly username: String}
     outParam: void
   }
+  'keybase.1.loginUi.chooseDeviceToRecoverWith': {
+    inParam: {readonly devices?: Array<Device> | null}
+    outParam: DeviceID
+  }
   'keybase.1.loginUi.displayPaperKeyPhrase': {
     inParam: {readonly phrase: String}
     outParam: void
   }
   'keybase.1.loginUi.displayPrimaryPaperKey': {
     inParam: {readonly phrase: String}
+    outParam: void
+  }
+  'keybase.1.loginUi.displayResetMessage': {
+    inParam: {readonly kind: ResetMessage}
     outParam: void
   }
   'keybase.1.loginUi.displayResetProgress': {
@@ -1933,6 +1941,16 @@ export enum RekeyEventType {
   noGregorMessages = 8,
 }
 
+export enum ResetMessage {
+  enteredVerified = 0,
+  enteredPasswordless = 1,
+  requestVerified = 2,
+  notCompleted = 3,
+  canceled = 4,
+  completed = 5,
+  resetLinkSent = 6,
+}
+
 export enum ResetPromptResponse {
   nothing = 0,
   cancelReset = 1,
@@ -2962,6 +2980,8 @@ export type IncomingCallMapType = {
   'keybase.1.loginUi.displayResetProgress'?: (params: MessageTypes['keybase.1.loginUi.displayResetProgress']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.loginUi.explainDeviceRecovery'?: (params: MessageTypes['keybase.1.loginUi.explainDeviceRecovery']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.loginUi.promptPassphraseRecovery'?: (params: MessageTypes['keybase.1.loginUi.promptPassphraseRecovery']['inParam'] & {sessionID: number}) => IncomingReturn
+  'keybase.1.loginUi.chooseDeviceToRecoverWith'?: (params: MessageTypes['keybase.1.loginUi.chooseDeviceToRecoverWith']['inParam'] & {sessionID: number}) => IncomingReturn
+  'keybase.1.loginUi.displayResetMessage'?: (params: MessageTypes['keybase.1.loginUi.displayResetMessage']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.logsend.prepareLogsend'?: (params: MessageTypes['keybase.1.logsend.prepareLogsend']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyApp.exit'?: (params: MessageTypes['keybase.1.NotifyApp.exit']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyAudit.rootAuditError'?: (params: MessageTypes['keybase.1.NotifyAudit.rootAuditError']['inParam'] & {sessionID: number}) => IncomingReturn
@@ -3094,6 +3114,8 @@ export type CustomResponseIncomingCallMap = {
   'keybase.1.loginUi.displayResetProgress'?: (params: MessageTypes['keybase.1.loginUi.displayResetProgress']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.loginUi.displayResetProgress']['outParam']) => void}) => IncomingReturn
   'keybase.1.loginUi.explainDeviceRecovery'?: (params: MessageTypes['keybase.1.loginUi.explainDeviceRecovery']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.loginUi.explainDeviceRecovery']['outParam']) => void}) => IncomingReturn
   'keybase.1.loginUi.promptPassphraseRecovery'?: (params: MessageTypes['keybase.1.loginUi.promptPassphraseRecovery']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.loginUi.promptPassphraseRecovery']['outParam']) => void}) => IncomingReturn
+  'keybase.1.loginUi.chooseDeviceToRecoverWith'?: (params: MessageTypes['keybase.1.loginUi.chooseDeviceToRecoverWith']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.loginUi.chooseDeviceToRecoverWith']['outParam']) => void}) => IncomingReturn
+  'keybase.1.loginUi.displayResetMessage'?: (params: MessageTypes['keybase.1.loginUi.displayResetMessage']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.loginUi.displayResetMessage']['outParam']) => void}) => IncomingReturn
   'keybase.1.logsend.prepareLogsend'?: (params: MessageTypes['keybase.1.logsend.prepareLogsend']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.logsend.prepareLogsend']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyApp.exit'?: (params: MessageTypes['keybase.1.NotifyApp.exit']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyApp.exit']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyEmailAddress.emailAddressVerified'?: (params: MessageTypes['keybase.1.NotifyEmailAddress.emailAddressVerified']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyEmailAddress.emailAddressVerified']['outParam']) => void}) => IncomingReturn
@@ -3529,6 +3551,8 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.loginUi.displayResetProgress'
 // 'keybase.1.loginUi.explainDeviceRecovery'
 // 'keybase.1.loginUi.promptPassphraseRecovery'
+// 'keybase.1.loginUi.chooseDeviceToRecoverWith'
+// 'keybase.1.loginUi.displayResetMessage'
 // 'keybase.1.logsend.prepareLogsend'
 // 'keybase.1.merkle.getCurrentMerkleRoot'
 // 'keybase.1.merkle.verifyMerkleRootAndKBFS'
