@@ -264,6 +264,23 @@ func (w *WalletState) RefreshAll(mctx libkb.MetaContext, reason string) error {
 
 func (w *WalletState) refreshAll(mctx libkb.MetaContext, reason string) (err error) {
 	defer mctx.TraceTimed(fmt.Sprintf("WalletState.RefreshAll [%s]", reason), func() error { return err })()
+
+	// get all details in one call
+	all, err := w.AllDetailsPlusPayments(mctx)
+	if err != nil {
+		return err
+	}
+
+	mctx.Debug("all payments: %+v", all)
+	panic("here")
+
+	// make a map out of results for easier lookup
+	details := make(map[stellar1.AccountID]*stellar1.DetailsPlusPayments)
+	for _, entry := range all {
+		details[entry.Details.AccountID] = &entry
+	}
+
+	// we need to get this to get the account names and primary status
 	bundle, err := remote.FetchSecretlessBundle(mctx)
 	if err != nil {
 		return err
@@ -273,7 +290,7 @@ func (w *WalletState) refreshAll(mctx libkb.MetaContext, reason string) (err err
 	for _, account := range bundle.Accounts {
 		a, _ := w.accountStateBuild(account.AccountID)
 		a.updateEntry(account)
-		if err := a.Refresh(mctx, w.G().NotifyRouter, reason); err != nil {
+		if err := a.RefreshWithDetails(mctx, w.G().NotifyRouter, reason, details[account.AccountID]); err != nil {
 			mctx.Debug("error refreshing account %s: %s", account.AccountID, err)
 			lastErr = err
 		}
@@ -282,6 +299,23 @@ func (w *WalletState) refreshAll(mctx libkb.MetaContext, reason string) (err err
 		mctx.Debug("RefreshAll last error: %s", lastErr)
 		return lastErr
 	}
+
+	/*
+
+		var lastErr error
+		for _, account := range bundle.Accounts {
+			a, _ := w.accountStateBuild(account.AccountID)
+			a.updateEntry(account)
+			if err := a.Refresh(mctx, w.G().NotifyRouter, reason); err != nil {
+				mctx.Debug("error refreshing account %s: %s", account.AccountID, err)
+				lastErr = err
+			}
+		}
+		if lastErr != nil {
+			mctx.Debug("RefreshAll last error: %s", lastErr)
+			return lastErr
+		}
+	*/
 
 	w.Lock()
 	w.refreshCount++
@@ -665,6 +699,21 @@ func (a *AccountState) Refresh(mctx libkb.MetaContext, router *libkb.NotifyRoute
 	return err
 }
 
+// RefreshWithDetails updates all the data for this account with the provided details data.
+func (a *AccountState) RefreshWithDetails(mctx libkb.MetaContext, router *libkb.NotifyRouter, reason string, details *stellar1.DetailsPlusPayments) error {
+	_, err := a.refreshGroup.Do("Refresh", func() (interface{}, error) {
+		var doErr error
+		if details != nil {
+			doErr = a.refreshWithDetails(mctx, router, reason, details)
+		} else {
+			mctx.Debug("RefreshWithDetails called with nil details, using network refresh")
+			doErr = a.refresh(mctx, router, reason)
+		}
+		return nil, doErr
+	})
+	return err
+}
+
 func (a *AccountState) refresh(mctx libkb.MetaContext, router *libkb.NotifyRouter, reason string) (err error) {
 	defer mctx.TraceTimed(fmt.Sprintf("WalletState.Refresh(%s) [%s]", a.accountID, reason), func() error { return err })()
 
@@ -674,6 +723,10 @@ func (a *AccountState) refresh(mctx libkb.MetaContext, router *libkb.NotifyRoute
 		return err
 	}
 
+	return a.refreshWithDetails(mctx, router, reason, &dpp)
+}
+
+func (a *AccountState) refreshWithDetails(mctx libkb.MetaContext, router *libkb.NotifyRouter, reason string, dpp *stellar1.DetailsPlusPayments) (err error) {
 	var seqno uint64
 	if dpp.Details.Seqno != "" {
 		seqno, err = strconv.ParseUint(dpp.Details.Seqno, 10, 64)

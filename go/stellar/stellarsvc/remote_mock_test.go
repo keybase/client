@@ -555,6 +555,11 @@ func (r *RemoteClientMock) DetailsPlusPayments(ctx context.Context, accountID st
 	}, nil
 }
 
+func (r *RemoteClientMock) AllDetailsPlusPayments(mctx libkb.MetaContext) ([]stellar1.DetailsPlusPayments, error) {
+	panic("here")
+	return nil, errors.New("not mocked")
+}
+
 func (r *RemoteClientMock) ChangeTrustline(ctx context.Context, signedTx string) error {
 	return r.Backend.ChangeTrustline(ctx, r.Tc, signedTx)
 }
