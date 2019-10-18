@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"sync"
 	"testing"
 
 	"github.com/keybase/client/go/chat/signencrypt"
@@ -736,4 +737,65 @@ func TestManualControlOfRevisionWithoutCache(t *testing.T) {
 	delRes, err := deleteItWithRev(3)
 	require.NoError(t, err)
 	require.Equal(t, delRes.Revision, 3)
+}
+
+// TestKVStoreLocalRace tests that multiple requests at the same time are caught by the server
+// and do not wreck the local revision cache.
+func TestKVStoreLocalRace(t *testing.T) {
+	tc := kvTestSetup(t)
+	defer tc.Cleanup()
+	mctx := libkb.NewMetaContextForTest(tc)
+	ctx := mctx.Ctx()
+	user, err := kbtest.CreateAndSignupFakeUser("kv", tc.G)
+	require.NoError(t, err)
+	handler := NewKVStoreHandler(nil, tc.G)
+	teamName := user.Username + "t"
+	teamID, err := teams.CreateRootTeam(context.Background(), tc.G, teamName, keybase1.TeamSettings{})
+	require.NoError(t, err)
+	require.NotNil(t, teamID)
+
+	namespace := "race-namespace"
+	entryKey := "race-key"
+	secretData := "supersecret"
+	putArg := keybase1.PutKVEntryArg{
+		SessionID:  0,
+		TeamName:   teamName,
+		Namespace:  namespace,
+		EntryKey:   entryKey,
+		EntryValue: secretData,
+	}
+	var wg sync.WaitGroup
+	errChan := make(chan error, 10)
+	for i := 0; i < 10; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			_, err = handler.PutKVEntry(ctx, putArg)
+			errChan <- err
+		}()
+	}
+	wg.Wait()
+	close(errChan)
+	var atLeastOneError bool
+	for err := range errChan {
+		if err != nil {
+			atLeastOneError = true
+			require.Error(t, err)
+			require.IsType(t, err, libkb.AppStatusError{})
+			aerr, _ := err.(libkb.AppStatusError)
+			if aerr.Code != libkb.SCTeamStorageWrongRevision {
+				t.Fatalf("expected an SCTeamStorageWrongRevision error but got %v", err)
+			}
+		}
+	}
+	require.True(t, atLeastOneError, "didn't generate a race")
+	// after the race, getting and putting should still work fine
+	_, err = handler.PutKVEntry(ctx, putArg)
+	require.NoError(t, err)
+	_, err = handler.GetKVEntry(ctx, keybase1.GetKVEntryArg{
+		TeamName:  teamName,
+		Namespace: namespace,
+		EntryKey:  entryKey,
+	})
+	require.NoError(t, err)
 }
