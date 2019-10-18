@@ -50,7 +50,8 @@
     },
     "getTeams": {},
     "getDetails": {
-      "teamname": "string"
+      "teamname": "string",
+      "clearInviteLoadingKey?": "string"
     },
     "getMembers": {
       "teamname": "string"
@@ -94,13 +95,15 @@
       "role": "Types.TeamRoleType",
       "rootPath?": "I.List<string>",
       "sourceSubPath?": "I.List<string>",
-      "teamname": "string"
+      "teamname": "string",
+      "loadingKey?": "string"
     },
     "inviteToTeamByPhone": {
       "teamname": "string",
       "role": "Types.TeamRoleType",
       "phoneNumber": "string",
-      "fullName": "string"
+      "fullName": "string",
+      "loadingKey?": "string"
     },
     "joinTeam": {
       "teamname": "string"
@@ -143,7 +146,8 @@
       "email": "string",
       "teamname": "string",
       "username": "string",
-      "inviteID": "string"
+      "inviteID": "string",
+      "loadingKey?": "string"
     },
     "ignoreRequest": {
       "teamname": "string",
@@ -182,8 +186,8 @@
     },
     "setTeamLoadingInvites": {
       "teamname": "string",
-      "invitees": "string",
-      "loadingInvites": "boolean"
+      "loadingKey": "string",
+      "isLoading": "boolean"
     },
     "clearTeamRequests": {
       "teamname": "string"

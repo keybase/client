@@ -144,7 +144,7 @@ type _GetChannelInfoPayload = {
 }
 type _GetChannelsPayload = {readonly teamname: string}
 type _GetDetailsForAllTeamsPayload = void
-type _GetDetailsPayload = {readonly teamname: string}
+type _GetDetailsPayload = {readonly teamname: string; readonly clearInviteLoadingKey?: string}
 type _GetMembersPayload = {readonly teamname: string}
 type _GetTeamOperationsPayload = {readonly teamname: string}
 type _GetTeamProfileAddListPayload = {readonly username: string}
@@ -159,12 +159,14 @@ type _InviteToTeamByEmailPayload = {
   readonly rootPath?: I.List<string>
   readonly sourceSubPath?: I.List<string>
   readonly teamname: string
+  readonly loadingKey?: string
 }
 type _InviteToTeamByPhonePayload = {
   readonly teamname: string
   readonly role: Types.TeamRoleType
   readonly phoneNumber: string
   readonly fullName: string
+  readonly loadingKey?: string
 }
 type _JoinTeamPayload = {readonly teamname: string}
 type _LeaveTeamPayload = {readonly teamname: string; readonly context: 'teams' | 'chat'}
@@ -175,6 +177,7 @@ type _RemoveMemberOrPendingInvitePayload = {
   readonly teamname: string
   readonly username: string
   readonly inviteID: string
+  readonly loadingKey?: string
 }
 type _RemoveParticipantPayload = {
   readonly teamname: string
@@ -233,8 +236,8 @@ type _SetTeamJoinErrorPayload = {readonly error: string}
 type _SetTeamJoinSuccessPayload = {readonly success: boolean; readonly teamname: string}
 type _SetTeamLoadingInvitesPayload = {
   readonly teamname: string
-  readonly invitees: string
-  readonly loadingInvites: boolean
+  readonly loadingKey: string
+  readonly isLoading: boolean
 }
 type _SetTeamProfileAddListPayload = {readonly teamlist: Array<Types.TeamProfileAddList>}
 type _SetTeamPublicitySettingsPayload = {

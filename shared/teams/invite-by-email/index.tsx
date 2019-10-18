@@ -5,7 +5,16 @@ import {FloatingRolePicker} from '../role-picker'
 import capitalize from 'lodash/capitalize'
 import {TeamRoleType} from '../../constants/types/teams'
 import {pluralize} from '../../util/string'
-import {DesktopProps as Props} from '.'
+
+export type Props = {
+  errorMessage: string
+  malformedEmails: Set<string>
+  name: string
+  onClearInviteError: () => void
+  onClose: () => void
+  onInvite: (invitees: string, role: TeamRoleType) => void
+  waitingKey: string
+}
 
 const _makeDropdownItem = (item: string) => (
   <Kb.Box

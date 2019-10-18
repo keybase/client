@@ -190,7 +190,7 @@ export const makePhoneError = (e: RPCError) => {
 }
 
 // Get phone number in e.164, or null if we can't parse it.
-const getE164 = (phoneNumber: string, countryCode?: string) => {
+export const getE164 = (phoneNumber: string, countryCode?: string) => {
   try {
     const parsed = countryCode ? phoneUtil.parse(phoneNumber, countryCode) : phoneUtil.parse(phoneNumber)
     const reason = phoneUtil.isPossibleNumberWithReason(parsed)
