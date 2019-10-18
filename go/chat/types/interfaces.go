@@ -335,6 +335,8 @@ type ActivityNotifier interface {
 
 	PromptUnfurl(ctx context.Context, uid gregor1.UID,
 		convID chat1.ConversationID, msgID chat1.MessageID, domain string)
+	ConvUpdate(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		topicType chat1.TopicType, conv *chat1.InboxUIItem)
 }
 
 type IdentifyNotifier interface {

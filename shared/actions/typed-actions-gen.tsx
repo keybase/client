@@ -334,6 +334,7 @@ export type TypedActionsMap = {
   'engine-gen:chat1NotifyChatChatPaymentInfo': enginegen.Chat1NotifyChatChatPaymentInfoPayload
   'engine-gen:chat1NotifyChatChatRequestInfo': enginegen.Chat1NotifyChatChatRequestInfoPayload
   'engine-gen:chat1NotifyChatChatPromptUnfurl': enginegen.Chat1NotifyChatChatPromptUnfurlPayload
+  'engine-gen:chat1NotifyChatChatConvUpdate': enginegen.Chat1NotifyChatChatConvUpdatePayload
   'engine-gen:keybase1GpgUiWantToAddGPGKey': enginegen.Keybase1GpgUiWantToAddGPGKeyPayload
   'engine-gen:keybase1GpgUiConfirmDuplicateKeyChosen': enginegen.Keybase1GpgUiConfirmDuplicateKeyChosenPayload
   'engine-gen:keybase1GpgUiConfirmImportSecretToExistingKey': enginegen.Keybase1GpgUiConfirmImportSecretToExistingKeyPayload

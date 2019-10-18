@@ -779,6 +779,14 @@ func (g *PushHandler) notifyNewChatActivity(ctx context.Context, uid gregor1.UID
 	g.G().ActivityNotifier.Activity(ctx, uid, topicType, activity, chat1.ChatActivitySource_REMOTE)
 }
 
+func (g *PushHandler) notifyConvUpdates(ctx context.Context, uid gregor1.UID,
+	convs []chat1.ConversationLocal) {
+	for _, conv := range convs {
+		g.G().ActivityNotifier.ConvUpdate(ctx, uid, conv.GetConvID(),
+			conv.GetTopicType(), g.presentUIItem(ctx, &conv, uid))
+	}
+}
+
 func (g *PushHandler) notifyJoinChannel(ctx context.Context, uid gregor1.UID,
 	conv chat1.ConversationLocal) {
 	g.G().ActivityNotifier.JoinedConversation(ctx, uid, conv.GetConvID(),
@@ -843,11 +851,11 @@ func (g *PushHandler) notifyMembersUpdate(ctx context.Context, uid gregor1.UID,
 }
 
 func (g *PushHandler) notifyConversationsStale(ctx context.Context, uid gregor1.UID,
-	convIDs []chat1.ConversationID) {
+	updates []chat1.ConversationUpdate) {
 	var supdate []chat1.ConversationStaleUpdate
-	for _, convID := range convIDs {
+	for _, update := range updates {
 		supdate = append(supdate, chat1.ConversationStaleUpdate{
-			ConvID:     convID,
+			ConvID:     update.ConvID,
 			UpdateType: chat1.StaleUpdateType_CLEAR,
 		})
 	}
@@ -980,7 +988,7 @@ func (g *PushHandler) MembershipUpdate(ctx context.Context, m gregor.OutOfBandMe
 			g.notifyReset(ctx, uid, c.ConvID, c.TopicType)
 		}
 		g.notifyMembersUpdate(ctx, uid, updateRes)
-		g.notifyConversationsStale(ctx, uid, updateRes.RoleUpdates)
+		g.notifyConvUpdates(ctx, uid, updateRes.RoleUpdates)
 
 		// Fire off badger updates
 		if update.UnreadUpdate != nil {
@@ -1030,11 +1038,7 @@ func (g *PushHandler) ConversationsUpdate(ctx context.Context, m gregor.OutOfBan
 		}
 
 		// Send out notifications
-		convIDs := []chat1.ConversationID{}
-		for _, update := range update.ConvUpdates {
-			convIDs = append(convIDs, update.ConvID)
-		}
-		g.notifyConversationsStale(ctx, uid, convIDs)
+		g.notifyConversationsStale(ctx, uid, update.ConvUpdates)
 		return nil
 	}
 	go func() { _ = f(globals.BackgroundChatCtx(ctx, g.G())) }()

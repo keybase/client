@@ -108,10 +108,8 @@ func TestBackgroundPurge(t *testing.T) {
 			}
 			require.Equal(t, msgIDs, purgedIDs)
 		}
-		updates := listener.consumeThreadsStale(t)
-		require.Len(t, updates, 1)
-		require.Equal(t, updates[0].ConvID, convID)
-		require.Equal(t, updates[0].UpdateType, chat1.StaleUpdateType_CONVUPDATE)
+		updateID := listener.consumeConvUpdate(t)
+		require.Equal(t, updateID, convID)
 
 		rc, err := utils.GetUnverifiedConv(ctx, g, uid, convID, types.InboxSourceDataSourceLocalOnly)
 		require.NoError(t, err)

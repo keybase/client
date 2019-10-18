@@ -770,7 +770,9 @@ const onChatSetConvSettings = (
       conv.convSettings.minWriterRoleInfo &&
       conv.convSettings.minWriterRoleInfo.cannotWrite) ||
     false
-  logger.info(`got new minWriterRole ${role || ''} for convID ${conversationIDKey}`)
+  logger.info(
+    `got new minWriterRole ${role || ''} for convID ${conversationIDKey}, cannotWrite ${cannotWrite}`
+  )
   if (role && role !== 'none' && cannotWrite !== undefined) {
     return Chat2Gen.createSaveMinWriterRole({cannotWrite, conversationIDKey, role})
   }
@@ -954,6 +956,17 @@ const onNewChatActivity = (
     }
   }
   return actions
+}
+
+const onChatConvUpdate = (state: TypedState, action: EngineGen.Chat1NotifyChatChatConvUpdatePayload) => {
+  const {conv} = action.payload.params
+  if (conv) {
+    const meta = Constants.inboxUIItemToConversationMeta(state, conv)
+    if (meta) {
+      return [Chat2Gen.createMetasReceived({metas: [meta]})]
+    }
+  }
+  return []
 }
 
 const loadThreadMessageTypes = Object.keys(RPCChatTypes.MessageType)
@@ -2249,6 +2262,14 @@ const loadCanUserPerform = (state: TypedState, action: Chat2Gen.SelectConversati
     return TeamsGen.createGetTeamOperations({teamname})
   }
   return undefined
+}
+
+const refreshCanUserPerform = (
+  _: TypedState,
+  action: EngineGen.Keybase1NotifyCanUserPerformCanUserPerformChangedPayload
+) => {
+  const {teamName} = action.payload.params
+  return TeamsGen.createGetTeamOperations({teamname: teamName})
 }
 
 // Get the full channel names/descs for a team if we don't already have them.
@@ -3617,6 +3638,12 @@ function* chat2Saga() {
   yield* Saga.chainAction2(EngineGen.connected, onConnect, 'onConnect')
 
   yield* chatTeamBuildingSaga()
+  yield* Saga.chainAction2(
+    EngineGen.keybase1NotifyCanUserPerformCanUserPerformChanged,
+    refreshCanUserPerform,
+    'refreshCanUserPerform'
+  )
+  yield* Saga.chainAction2(EngineGen.chat1NotifyChatChatConvUpdate, onChatConvUpdate, 'onChatConvUpdate')
 }
 
 export default chat2Saga

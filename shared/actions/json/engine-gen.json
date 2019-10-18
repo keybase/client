@@ -175,6 +175,9 @@
         "chat1NotifyChatChatPromptUnfurl": {
             "params": "chat1Types.MessageTypes['chat.1.NotifyChat.ChatPromptUnfurl']['inParam'] & {sessionID: number}"
         },
+        "chat1NotifyChatChatConvUpdate": {
+            "params": "chat1Types.MessageTypes['chat.1.NotifyChat.ChatConvUpdate']['inParam'] & {sessionID: number}"
+        },
         "keybase1GpgUiWantToAddGPGKey": {
             "params": "keybase1Types.MessageTypes['keybase.1.gpgUi.wantToAddGPGKey']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.gpgUi.wantToAddGPGKey']['outParam']) => void}"
         },

@@ -1760,6 +1760,7 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 	for _, conv := range convs {
 		if teamMemberRoleUpdate != nil && conv.Conv.Metadata.IdTriple.Tlfid.Eq(teamMemberRoleUpdate.TlfID) {
 			conv.Conv.ReaderInfo.UntrustedTeamRole = teamMemberRoleUpdate.Role
+			conv.Conv.Metadata.LocalVersion++
 			roleUpdates = append(roleUpdates, conv.GetConvID())
 		}
 

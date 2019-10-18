@@ -35,6 +35,10 @@ export type MessageTypes = {
     inParam: {readonly uid: Keybase1.UID; readonly convID: ConversationID; readonly outboxID: OutboxID}
     outParam: void
   }
+  'chat.1.NotifyChat.ChatConvUpdate': {
+    inParam: {readonly uid: Keybase1.UID; readonly convID: ConversationID; readonly conv?: InboxUIItem | null}
+    outParam: void
+  }
   'chat.1.NotifyChat.ChatIdentifyUpdate': {
     inParam: {readonly update: Keybase1.CanonicalTLFNameAndIDWithBreaks}
     outParam: void
@@ -805,7 +809,6 @@ export enum RetentionPolicyType {
 export enum StaleUpdateType {
   clear = 0,
   newactivity = 1,
-  convupdate = 2,
 }
 
 export enum SyncAllNotificationType {
@@ -1366,6 +1369,7 @@ export type IncomingCallMapType = {
   'chat.1.NotifyChat.ChatPaymentInfo'?: (params: MessageTypes['chat.1.NotifyChat.ChatPaymentInfo']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.NotifyChat.ChatRequestInfo'?: (params: MessageTypes['chat.1.NotifyChat.ChatRequestInfo']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.NotifyChat.ChatPromptUnfurl'?: (params: MessageTypes['chat.1.NotifyChat.ChatPromptUnfurl']['inParam'] & {sessionID: number}) => IncomingReturn
+  'chat.1.NotifyChat.ChatConvUpdate'?: (params: MessageTypes['chat.1.NotifyChat.ChatConvUpdate']['inParam'] & {sessionID: number}) => IncomingReturn
 }
 
 export type CustomResponseIncomingCallMap = {
@@ -1551,6 +1555,7 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.NotifyChat.ChatPaymentInfo'
 // 'chat.1.NotifyChat.ChatRequestInfo'
 // 'chat.1.NotifyChat.ChatPromptUnfurl'
+// 'chat.1.NotifyChat.ChatConvUpdate'
 // 'chat.1.remote.getInboxRemote'
 // 'chat.1.remote.getThreadRemote'
 // 'chat.1.remote.getUnreadlineRemote'
