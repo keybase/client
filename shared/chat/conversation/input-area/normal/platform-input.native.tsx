@@ -1,7 +1,7 @@
 /* eslint-env browser */
 import * as ImagePicker from 'expo-image-picker'
 import React, {PureComponent} from 'react'
-import * as Kb from '../../../../common-adapters'
+import * as Kb from '../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import {isIOS, isLargeScreen} from '../../../../constants/platform'
@@ -18,6 +18,7 @@ import AddSuggestors, {standardTransformer} from '../suggestors'
 import {parseUri, launchCameraAsync, launchImageLibraryAsync} from '../../../../util/expo-image-picker'
 import {BotCommandUpdateStatus} from './shared'
 import {formatDurationShort} from '../../../../util/timestamp'
+import {config, animated, useTransition} from 'react-spring/native'
 
 type menuType = 'exploding' | 'filepickerpopup' | 'moremenu'
 
@@ -211,7 +212,16 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
 }
 const PlatformInput = AddSuggestors(_PlatformInput)
 
-const Action = React.memo(
+type ActionProps = {
+  hasText: boolean
+  onSubmit: () => void
+  isEditing: boolean
+  openFilePicker: () => void
+  openMoreMenu: () => void
+  insertMentionMarker: () => void
+}
+
+const Action1 = React.memo(
   ({hasText, insertMentionMarker, isEditing, onSubmit, openFilePicker, openMoreMenu}) =>
     hasText ? (
       <Kb.Button
@@ -246,6 +256,80 @@ const Action = React.memo(
       </Kb.Box2>
     )
 )
+
+const AnimatedView: Kb.NativeView = animated(Kb.NativeView)
+const Action2 = React.memo(
+  ({hasText, insertMentionMarker, isEditing, onSubmit, openFilePicker, openMoreMenu}: ActionProps) => {
+    const transitions = useTransition(hasText, null, {
+      enter: {opacity: 1, translateX: 0},
+      from: {opacity: 0, translateX: 200},
+      initial: {opacity: 1, translateX: 0},
+      leave: {opacity: 0, translateX: 200},
+    })
+    return (
+      <Kb.Box2 direction="vertical" style={{position: 'relative', width: 106, height: 50}}>
+        {transitions.map(({item, props}) =>
+          item ? (
+            <AnimatedView
+              style={{
+                bottom: 0,
+                opacity: props.opacity,
+                overflow: 'hidden',
+                position: 'absolute',
+                right: 0,
+                transform: [{translateX: props.translateX}],
+              }}
+            >
+              <Kb.Button
+                type="Default"
+                small={true}
+                style={styles.send}
+                onClick={onSubmit}
+                label={isEditing ? 'Save' : 'Send'}
+              />
+            </AnimatedView>
+          ) : (
+            <AnimatedView
+              style={{
+                bottom: 0,
+                opacity: props.opacity,
+                overflow: 'hidden',
+                position: 'absolute',
+                right: 0,
+                transform: [{translateX: props.translateX}],
+              }}
+            >
+              <Kb.Box2 direction="horizontal" style={styles.actionIconsContainer}>
+                <Kb.Icon
+                  onClick={insertMentionMarker}
+                  type="iconfont-mention"
+                  style={Kb.iconCastPlatformStyles(styles.actionButton)}
+                  fontSize={22}
+                />
+                {smallGap}
+                <Kb.Icon
+                  onClick={openFilePicker}
+                  type="iconfont-camera"
+                  style={Kb.iconCastPlatformStyles(styles.actionButton)}
+                  fontSize={22}
+                />
+                {smallGap}
+                <Kb.Icon
+                  onClick={openMoreMenu}
+                  type="iconfont-add"
+                  style={Kb.iconCastPlatformStyles(styles.actionButton)}
+                  fontSize={22}
+                />
+              </Kb.Box2>
+            </AnimatedView>
+          )
+        )}
+      </Kb.Box2>
+    )
+  }
+)
+
+const Action = Action2
 
 const ExplodingIcon = ({explodingModeSeconds, isExploding, openExplodingPicker}) => (
   <Kb.Box2 direction="horizontal" style={styles.explodingOuterContainer}>
@@ -289,7 +373,7 @@ const styles = Styles.styleSheetCreate(
         alignSelf: isIOS ? 'flex-end' : 'center',
       },
       actionIconsContainer: {
-        paddingRight: Styles.globalMargins.small - containerPadding,
+        marginBottom: Styles.globalMargins.tiny,
       },
       actionText: {
         alignSelf: 'flex-end',
