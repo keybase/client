@@ -35,6 +35,8 @@ target 'Keybase' do
 
   use_unimodules!(modules_paths: ['../node_modules'])
   use_native_modules!
+  pod 'RNAudio', :path => '../node_modules/react-native-audio'
+
 end
 
 # # The following is needed to ensure the "archive" step works in XCode.
