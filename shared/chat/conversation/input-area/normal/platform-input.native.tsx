@@ -211,39 +211,41 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
 }
 const PlatformInput = AddSuggestors(_PlatformInput)
 
-const Action = ({hasText, insertMentionMarker, isEditing, onSubmit, openFilePicker, openMoreMenu}) =>
-  hasText ? (
-    <Kb.Button
-      type="Default"
-      small={true}
-      style={styles.send}
-      onClick={onSubmit}
-      label={isEditing ? 'Save' : 'Send'}
-    />
-  ) : (
-    <Kb.Box2 direction="horizontal" style={styles.actionIconsContainer}>
-      <Kb.Icon
-        onClick={insertMentionMarker}
-        type="iconfont-mention"
-        style={Kb.iconCastPlatformStyles(styles.actionButton)}
-        fontSize={22}
+const Action = React.memo(
+  ({hasText, insertMentionMarker, isEditing, onSubmit, openFilePicker, openMoreMenu}) =>
+    hasText ? (
+      <Kb.Button
+        type="Default"
+        small={true}
+        style={styles.send}
+        onClick={onSubmit}
+        label={isEditing ? 'Save' : 'Send'}
       />
-      {smallGap}
-      <Kb.Icon
-        onClick={openFilePicker}
-        type="iconfont-camera"
-        style={Kb.iconCastPlatformStyles(styles.actionButton)}
-        fontSize={22}
-      />
-      {smallGap}
-      <Kb.Icon
-        onClick={openMoreMenu}
-        type="iconfont-add"
-        style={Kb.iconCastPlatformStyles(styles.actionButton)}
-        fontSize={22}
-      />
-    </Kb.Box2>
-  )
+    ) : (
+      <Kb.Box2 direction="horizontal" style={styles.actionIconsContainer}>
+        <Kb.Icon
+          onClick={insertMentionMarker}
+          type="iconfont-mention"
+          style={Kb.iconCastPlatformStyles(styles.actionButton)}
+          fontSize={22}
+        />
+        {smallGap}
+        <Kb.Icon
+          onClick={openFilePicker}
+          type="iconfont-camera"
+          style={Kb.iconCastPlatformStyles(styles.actionButton)}
+          fontSize={22}
+        />
+        {smallGap}
+        <Kb.Icon
+          onClick={openMoreMenu}
+          type="iconfont-add"
+          style={Kb.iconCastPlatformStyles(styles.actionButton)}
+          fontSize={22}
+        />
+      </Kb.Box2>
+    )
+)
 
 const ExplodingIcon = ({explodingModeSeconds, isExploding, openExplodingPicker}) => (
   <Kb.Box2 direction="horizontal" style={styles.explodingOuterContainer}>
