@@ -19,10 +19,10 @@ import * as Constants from '../../../../constants/chat2'
 
 const firstOrdinal = 10000
 const makeMoreOrdinals = (
-  ordinals: I.List<Types.Ordinal>,
+  ordinals: Set<Types.Ordinal>,
   direction: 'append' | 'prepend',
   num = __STORYSHOT__ ? 10 : 100
-): I.List<Types.Ordinal> => {
+): Set<Types.Ordinal> => {
   if (direction === 'prepend') {
     const oldStart = ordinals.size ? Types.ordinalToNumber(ordinals.first() as Types.Ordinal) : firstOrdinal
     const start = Math.max(0, oldStart - num)
@@ -31,7 +31,7 @@ const makeMoreOrdinals = (
     for (let i = start; i < end; ++i) {
       newOrdinals.push(Types.numberToOrdinal(i))
     }
-    return ordinals.unshift(...newOrdinals)
+    return new Set([...ordinals].unshift(...newOrdinals))
   } else {
     const oldEnd = ordinals.size ? Types.ordinalToNumber(ordinals.last() as Types.Ordinal) + 1 : firstOrdinal
     const start = oldEnd
@@ -40,7 +40,7 @@ const makeMoreOrdinals = (
     for (let i = start; i < end; ++i) {
       newOrdinals.push(Types.numberToOrdinal(i))
     }
-    return ordinals.push(...newOrdinals)
+    return new Set([...ordinals, ...newOrdinals])
   }
 }
 
@@ -222,7 +222,7 @@ type State = {
   conversationIDKey: Types.ConversationIDKey
   loadMoreEnabled: boolean
   messageInjectionEnabled: boolean
-  messageOrdinals: I.List<Types.Ordinal>
+  messageOrdinals: Set<Types.Ordinal>
   scrollListDownCounter: number
   scrollListToBottomCounter: number
   scrollListUpCounter: number
@@ -238,7 +238,7 @@ class ThreadWrapper extends React.Component<Props, State> {
       conversationIDKey: Types.stringToConversationIDKey('a'),
       loadMoreEnabled: false,
       messageInjectionEnabled: false,
-      messageOrdinals: makeMoreOrdinals(I.List(), 'append'),
+      messageOrdinals: makeMoreOrdinals(new Set(), 'append'),
       scrollListDownCounter: 0,
       scrollListToBottomCounter: 0,
       scrollListUpCounter: 0,
@@ -254,7 +254,7 @@ class ThreadWrapper extends React.Component<Props, State> {
         console.log('++++ Reloading messages')
         this.setState({messageOrdinals})
       }, 2000)
-      return {conversationIDKey, messageOrdinals: I.List()}
+      return {conversationIDKey, messageOrdinals: new Set()}
     })
   }
 

@@ -54,7 +54,7 @@ export const makeState = (): Types.State => ({
   maybeMentionMap: new Map(),
   messageCenterOrdinals: new Map(), // ordinals to center threads on,
   messageMap: I.Map(), // messages in a thread,
-  messageOrdinals: I.Map(), // ordered ordinals in a thread,
+  messageOrdinals: new Map(), // ordered ordinals in a thread,
   metaMap: new Map(), // metadata about a thread, There is a special node for the pending conversation,
   moreToLoadMap: new Map(), // if we have more data to load,
   mutedMap: new Map(),
@@ -140,7 +140,7 @@ export const getThreadSearchInfo = (state: TypedState, conversationIDKey: Types.
   state.chat2.threadSearchInfoMap.get(conversationIDKey) || makeThreadSearchInfo()
 
 export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKey) =>
-  state.chat2.messageOrdinals.get(id, I.OrderedSet<Types.Ordinal>())
+  state.chat2.messageOrdinals.get(id) || new Set<Types.Ordinal>()
 export const getMessageCenterOrdinal = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.messageCenterOrdinals.get(id)
 export const getMessage = (

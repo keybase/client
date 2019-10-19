@@ -7,7 +7,7 @@ export type Props = {
   copyToClipboard: (arg0: string) => void
   containsLatestMessage: boolean
   conversationIDKey: Types.ConversationIDKey
-  messageOrdinals: I.List<Types.Ordinal>
+  messageOrdinals: Set<Types.Ordinal>
   onFocusInput: () => void
   onJumpToRecent: () => void
   loadNewerMessages: (ordinal?: Types.Ordinal | null) => void

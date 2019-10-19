@@ -143,7 +143,7 @@ export type State = Readonly<{
   maybeMentionMap: Map<string, RPCChatTypes.UIMaybeMentionInfo>
   messageCenterOrdinals: Map<Common.ConversationIDKey, CenterOrdinal> // ordinals to center threads on,
   messageMap: I.Map<Common.ConversationIDKey, I.Map<Message.Ordinal, Message.Message>> // messages in a thread,
-  messageOrdinals: I.Map<Common.ConversationIDKey, I.OrderedSet<Message.Ordinal>> // ordered ordinals in a thread,
+  messageOrdinals: Map<Common.ConversationIDKey, Set<Message.Ordinal>> // ordered ordinals in a thread,
   metaMap: MetaMap // metadata about a thread, There is a special node for the pending conversation,
   moreToLoadMap: Map<Common.ConversationIDKey, boolean> // if we have more data to load,
   mutedMap: Map<Common.ConversationIDKey, boolean> // muted convs

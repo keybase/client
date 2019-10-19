@@ -177,8 +177,8 @@ class Thread extends React.PureComponent<Props, State> {
     // prepending, lets keep track of the old scrollHeight
     if (
       this.props.conversationIDKey === prevProps.conversationIDKey &&
-      this.props.messageOrdinals.first() !== prevProps.messageOrdinals.first() &&
-      prevProps.messageOrdinals.first()
+      this.props.messageOrdinals.values().next().value !== prevProps.messageOrdinals.values().next().value &&
+      prevProps.messageOrdinals.values().next().value
     ) {
       const {current} = this.listRef
 
@@ -232,7 +232,7 @@ class Thread extends React.PureComponent<Props, State> {
     // position at all, so just bail out if we detect this case.
     if (
       this.props.messageOrdinals.size !== prevProps.messageOrdinals.size &&
-      this.props.messageOrdinals.first() === prevProps.messageOrdinals.first()
+      this.props.messageOrdinals.values().next().value === prevProps.messageOrdinals.values().next().value
     ) {
       // do nothing do scroll position if this is true
       return
@@ -257,7 +257,7 @@ class Thread extends React.PureComponent<Props, State> {
     }
     if (list && this.props.editingOrdinal && this.props.editingOrdinal !== prevProps.editingOrdinal) {
       const ordinal = this.props.editingOrdinal
-      const idx = this.props.messageOrdinals.indexOf(ordinal)
+      const idx = [...this.props.messageOrdinals].indexOf(ordinal)
       if (idx !== -1) {
         const waypoints = list.querySelectorAll('[data-key]')
         // find an id that should be our parent
@@ -397,7 +397,7 @@ class Thread extends React.PureComponent<Props, State> {
   private makeItems = () => this.makeItemsMemoized(this.props.conversationIDKey, this.props.messageOrdinals)
 
   private makeItemsMemoized = memoize(
-    (conversationIDKey: Types.ConversationIDKey, messageOrdinals: I.List<number>) => {
+    (conversationIDKey: Types.ConversationIDKey, messageOrdinals: Set<number>) => {
       const items: Array<React.ReactNode> = []
       items.push(<TopItem key="topItem" conversationIDKey={conversationIDKey} />)
 
@@ -406,7 +406,7 @@ class Thread extends React.PureComponent<Props, State> {
       let previous: undefined | Types.Ordinal
       let lastBucket: number | undefined
       let baseIndex = 0 // this is used to de-dupe the waypoint around the centered ordinal
-      messageOrdinals.forEach((ordinal, idx) => {
+      [...messageOrdinals].forEach((ordinal, idx) => {
         // Centered ordinal is where we want the view to be centered on when jumping around in the thread.
         const isCenteredOrdinal = ordinal === this.props.centeredOrdinal
 
