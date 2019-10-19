@@ -128,7 +128,7 @@ export const getExtraChatLogsForLogSend = (state: TypedState) => {
       badgeMap: chat.badgeMap.get(c),
       editingMap: chat.editingMap.get(c),
       // @ts-ignore
-      messageMap: chat.messageMap.get(c, I.Map()).map(m => ({
+      messageMap: [...(chat.messageMap.get(c) || new Map()).values()].map(m => ({
         a: m.author,
         i: m.id,
         o: m.ordinal,

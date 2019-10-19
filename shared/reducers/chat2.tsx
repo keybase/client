@@ -29,7 +29,8 @@ const messageIDToOrdinal = (
   messageID: Types.MessageID
 ) => {
   // A message we didn't send in this session?
-  let m = messageMap.getIn([conversationIDKey, Types.numberToOrdinal(messageID)])
+  const mm = messageMap.get(conversationIDKey)
+  const m = mm && mm.get(Types.numberToOrdinal(messageID))
   if (m && m.id && m.id === messageID) {
     return m.ordinal
   }
@@ -37,7 +38,8 @@ const messageIDToOrdinal = (
   const pendingOrdinal = [
     ...(pendingOutboxToOrdinal.get(conversationIDKey) || new Map<Types.OutboxID, Types.Ordinal>()).values(),
   ].find(o => {
-    m = messageMap.getIn([conversationIDKey, o])
+    const mm = messageMap.get(conversationIDKey)
+    const m = mm && mm.get(o)
     if (m && m.id && m.id === messageID) {
       return true
     }
@@ -210,6 +212,30 @@ const metaMapReducer = (
   }
 }
 
+// update a message in a message map if the updater changes propagate up
+const updateMessageInMessageMap = (
+  messageMap: Map<Types.ConversationIDKey, Map<Types.Ordinal, Types.Message>>,
+  conversationIDKey: Types.ConversationIDKey,
+  ordinal: Types.Ordinal,
+  updater: (m?: Types.Message) => undefined | Types.Message
+) => {
+  const ordToMsgMap = messageMap.get(conversationIDKey)
+  const oldMsg = (ordToMsgMap && ordToMsgMap.get(ordinal)) || undefined
+  const newMsg = updater(oldMsg)
+  if (oldMsg === newMsg) {
+    return messageMap
+  } else {
+    const newOrdToMsgMap = new Map(ordToMsgMap || [])
+    if (newMsg) {
+      newOrdToMsgMap.set(ordinal, newMsg)
+    } else {
+      newOrdToMsgMap.delete(ordinal)
+    }
+    const newMessageMap = new Map(messageMap)
+    newMessageMap.set(conversationIDKey, newOrdToMsgMap)
+    return newMessageMap
+  }
+}
 const messageMapReducer = (
   messageMap: Container.Draft<Types.State['messageMap']>,
   action: Chat2Gen.Actions,
@@ -217,53 +243,55 @@ const messageMapReducer = (
 ) => {
   switch (action.type) {
     case Chat2Gen.markConversationsStale:
-      return action.payload.updateType === RPCChatTypes.StaleUpdateType.clear
-        ? messageMap.deleteAll(action.payload.conversationIDKeys)
-        : messageMap
+      if (action.payload.updateType === RPCChatTypes.StaleUpdateType.clear) {
+        const mm = new Map(messageMap)
+        action.payload.conversationIDKeys.forEach(id => mm.delete(id))
+        return mm
+      } else {
+        return messageMap
+      }
     case Chat2Gen.messageEdit: // fallthrough
-    case Chat2Gen.messageDelete:
-      return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message =>
-        message && message.type === 'text'
+    case Chat2Gen.messageDelete: {
+      const {conversationIDKey, ordinal} = action.payload
+      const submitState = action.type === Chat2Gen.messageDelete ? 'deleting' : 'editing'
+      return updateMessageInMessageMap(messageMap, conversationIDKey, ordinal, m =>
+        m && m.type === 'text'
           ? message.set('submitState', action.type === Chat2Gen.messageDelete ? 'deleting' : 'editing')
-          : message
+          : m
       )
+    }
     case Chat2Gen.messageAttachmentUploaded: {
       const {conversationIDKey, message, placeholderID} = action.payload
       const ordinal = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, conversationIDKey, placeholderID)
-      if (!ordinal) {
-        return messageMap
-      }
-      return messageMap.updateIn([conversationIDKey, ordinal], old =>
-        old ? Constants.upgradeMessage(old, message) : message
-      )
+      return ordinal
+        ? updateMessageInMessageMap(messageMap, conversationIDKey, ordinal, m =>
+            m ? Constants.upgradeMessage(m, message) : m
+          )
+        : messageMap
     }
     case Chat2Gen.messageWasEdited: {
-      const {
-        conversationIDKey,
-        messageID,
-        text,
-        mentionsAt,
-        mentionsChannel,
-        mentionsChannelName,
-      } = action.payload
+      const {conversationIDKey, messageID, text} = action.payload
+      const {mentionsAt, mentionsChannel, mentionsChannelName} = action.payload
 
       const ordinal = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, conversationIDKey, messageID)
       if (!ordinal) {
         return messageMap
       }
-
-      return messageMap.updateIn([conversationIDKey, ordinal], message =>
-        !message || message.type !== 'text'
-          ? message
-          : message.withMutations((m: any) => {
-              m.set('text', text)
-              m.set('hasBeenEdited', true)
-              m.set('submitState', null)
-              m.set('mentionsAt', mentionsAt)
-              m.set('mentionsChannel', mentionsChannel)
-              m.set('mentionsChannelName', mentionsChannelName)
-            })
-      )
+      return updateMessageInMessageMap(messageMap, conversationIDKey, ordinal, m => {
+        if (!m || m.type !== 'text') {
+          return m
+        } else {
+          return m.withMutations((m: any) => {
+            m.set('text', text)
+            m.set('hasBeenEdited', true)
+            m.set('submitState', null)
+            m.set('mentionsAt', mentionsAt)
+            m.set('mentionsChannel', mentionsChannel)
+            m.set('mentionsChannelName', mentionsChannelName)
+          })
+        }
+      })
+      // AAA from here <<<<
     }
     case Chat2Gen.pendingMessageWasEdited: {
       const {conversationIDKey, ordinal, text} = action.payload
