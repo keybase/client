@@ -4,7 +4,6 @@ import React, {PureComponent} from 'react'
 import * as Kb from '../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
-import * as Container from '../../../../util/container'
 import {isIOS, isLargeScreen} from '../../../../constants/platform'
 import {
   NativeKeyboard,
