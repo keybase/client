@@ -35,7 +35,7 @@ const messageIDToOrdinal = (
   }
   // Search through our sent messages
   const pendingOrdinal = [
-    ...(pendingOutboxToOrdinal.get(conversationIDKey) || new Map<Types.OutboxID, Types.Ordinal>()),
+    ...(pendingOutboxToOrdinal.get(conversationIDKey) || new Map<Types.OutboxID, Types.Ordinal>()).values(),
   ].find(o => {
     m = messageMap.getIn([conversationIDKey, o])
     if (m && m.id && m.id === messageID) {
