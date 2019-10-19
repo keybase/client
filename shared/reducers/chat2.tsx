@@ -1292,11 +1292,12 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
           return
         }
       }
-      case Chat2Gen.replyJump:
-        draftState.messageCenterOrdinals = draftState.messageCenterOrdinals.delete(
-          action.payload.conversationIDKey
-        )
+      case Chat2Gen.replyJump: {
+        const messageCenterOrdinals = new Map(draftState.messageCenterOrdinals)
+        messageCenterOrdinals.delete(action.payload.conversationIDKey)
+        draftState.messageCenterOrdinals = messageCenterOrdinals
         return
+      }
       case Chat2Gen.threadSearchResults: {
         const threadSearchInfoMap = new Map(draftState.threadSearchInfoMap)
         const info =
@@ -1330,9 +1331,9 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         threadSearchInfoMap.set(action.payload.conversationIDKey, info)
         draftState.threadSearchInfoMap = threadSearchInfoMap
 
-        draftState.messageCenterOrdinals = draftState.messageCenterOrdinals.delete(
-          action.payload.conversationIDKey
-        )
+        const messageCenterOrdinals = new Map(draftState.messageCenterOrdinals)
+        messageCenterOrdinals.delete(action.payload.conversationIDKey)
+        draftState.messageCenterOrdinals = messageCenterOrdinals
         return
       }
       case Chat2Gen.threadSearch: {
