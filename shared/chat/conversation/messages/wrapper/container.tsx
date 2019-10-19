@@ -135,6 +135,7 @@ export default Container.namedConnect(
     const authorIsOwner = teamname
       ? TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'owner')
       : false
+    const ordinals = [...Constants.getMessageOrdinals(state, ownProps.conversationIDKey)]
     return {
       _you: state.config.username,
       authorIsAdmin,
@@ -142,8 +143,7 @@ export default Container.namedConnect(
       centeredOrdinal,
       conversationIDKey: ownProps.conversationIDKey,
       hasUnfurlPrompts,
-      isLastInThread:
-        Constants.getMessageOrdinals(state, ownProps.conversationIDKey).last() === ownProps.ordinal,
+      isLastInThread: ordinals[ordinals.lenght - 1] === ownProps.ordinal,
       isPendingPayment: Constants.isPendingPaymentMessage(state, message),
       message,
       orangeLineAbove,

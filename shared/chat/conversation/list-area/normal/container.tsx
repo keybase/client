@@ -56,7 +56,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   editingOrdinal: stateProps.editingOrdinal,
   lastMessageIsOurs: stateProps.lastMessageIsOurs,
   markInitiallyLoadedThreadAsRead: dispatchProps._markInitiallyLoadedThreadAsRead,
-  messageOrdinals: stateProps.messageOrdinals,
+  messageOrdinals: [...stateProps.messageOrdinals],
   onFocusInput: ownProps.onFocusInput,
   onJumpToRecent: dispatchProps.onJumpToRecent,
   scrollListDownCounter: ownProps.scrollListDownCounter,

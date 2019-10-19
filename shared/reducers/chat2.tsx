@@ -420,11 +420,15 @@ const messageOrdinalsReducer = (
 ): Container.Draft<Types.State['messageOrdinals']> => {
   switch (action.type) {
     case Chat2Gen.markConversationsStale:
-      return action.payload.updateType === RPCChatTypes.StaleUpdateType.clear
-        ? messageOrdinals.deleteAll(action.payload.conversationIDKeys)
-        : messageOrdinals
+      if (action.payload.updateType === RPCChatTypes.StaleUpdateType.clear) {
+        const os = new Map(messageOrdinals)
+        action.payload.conversationIDKeys.forEach(o => os.delete(o))
+        return os
+      } else {
+        return messageOrdinals
+      }
     case Chat2Gen.clearMessages:
-      return messageOrdinals.clear()
+      return new Map()
     default:
       return messageOrdinals
   }
@@ -683,7 +687,7 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         }
 
         // Editing your last message
-        const ordinals = draftState.messageOrdinals.get(conversationIDKey) || I.OrderedSet<Types.Ordinal>()
+        const ordinals = draftState.messageOrdinals.get(conversationIDKey) || new Set<Types.Ordinal>()
         const found = ordinals.findLast(o => {
           const message = messageMap.get(o)
           return !!(
@@ -718,6 +722,7 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         // pull out deletes and handle at the end
         const [messages, deletedMessages] = partition(action.payload.messages, m => m.type !== 'deleted')
         // we want the clear applied when we call findExisting
+        // aaa HERE <---
         let oldMessageOrdinals = draftState.messageOrdinals
         let oldPendingOutboxToOrdinal = new Map(draftState.pendingOutboxToOrdinal)
         let oldMessageMap = draftState.messageMap
