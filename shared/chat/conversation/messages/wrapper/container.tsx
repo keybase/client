@@ -143,7 +143,7 @@ export default Container.namedConnect(
       centeredOrdinal,
       conversationIDKey: ownProps.conversationIDKey,
       hasUnfurlPrompts,
-      isLastInThread: ordinals[ordinals.lenght - 1] === ownProps.ordinal,
+      isLastInThread: ordinals[ordinals.length - 1] === ownProps.ordinal,
       isPendingPayment: Constants.isPendingPaymentMessage(state, message),
       message,
       orangeLineAbove,

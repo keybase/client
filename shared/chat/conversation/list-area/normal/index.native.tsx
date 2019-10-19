@@ -261,7 +261,7 @@ class ConversationList extends React.PureComponent<Props> {
       } first: ${this.props.messageOrdinals[0]} last: ${
         this.props.messageOrdinals[this.props.messageOrdinals.length - 1]
       } oldFirst: ${prevProps.messageOrdinals[0]} oldLast: ${
-        prevProps.messageOrdinals[prevProps.messageOrdinals.lenght - 1]
+        prevProps.messageOrdinals[prevProps.messageOrdinals.length - 1]
       }`
     )
     if (!!this.props.centeredOrdinal && this.props.centeredOrdinal !== prevProps.centeredOrdinal) {

@@ -1166,9 +1166,9 @@ export const getClientPrev = (state: TypedState, conversationIDKey: Types.Conver
   const mm = state.chat2.messageMap.get(conversationIDKey)
   if (mm) {
     // find last valid messageid we know about
-    const goodOrdinal = [...(state.chat2.messageOrdinals.get(conversationIDKey) || new Set())].findLast(o =>
-      mm.getIn([o, 'id'])
-    )
+    const goodOrdinal = [...(state.chat2.messageOrdinals.get(conversationIDKey) || new Set())]
+      .reverse()
+      .find(o => mm.getIn([o, 'id']))
 
     if (goodOrdinal) {
       clientPrev = mm.getIn([goodOrdinal, 'id'])

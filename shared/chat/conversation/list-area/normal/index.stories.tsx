@@ -1,7 +1,6 @@
 /* eslint-disable sort-keys */
 import * as React from 'react'
 import * as Sb from '../../../../stories/storybook'
-import I from 'immutable'
 import moment from 'moment'
 import {Button, ButtonBar, Box2, Text} from '../../../../common-adapters'
 import * as Types from '../../../../constants/types/chat2'
@@ -19,28 +18,28 @@ import * as Constants from '../../../../constants/chat2'
 
 const firstOrdinal = 10000
 const makeMoreOrdinals = (
-  ordinals: Set<Types.Ordinal>,
+  ordinals: Array<Types.Ordinal>,
   direction: 'append' | 'prepend',
   num = __STORYSHOT__ ? 10 : 100
-): Set<Types.Ordinal> => {
+): Array<Types.Ordinal> => {
   if (direction === 'prepend') {
-    const oldStart = ordinals.size ? Types.ordinalToNumber(ordinals.first() as Types.Ordinal) : firstOrdinal
+    const oldStart = ordinals.length ? Types.ordinalToNumber(ordinals[0] as Types.Ordinal) : firstOrdinal
     const start = Math.max(0, oldStart - num)
     const end = oldStart
     const newOrdinals: Array<Types.Ordinal> = []
     for (let i = start; i < end; ++i) {
       newOrdinals.push(Types.numberToOrdinal(i))
     }
-    return new Set([...ordinals].unshift(...newOrdinals))
+    return [...newOrdinals, ...ordinals]
   } else {
-    const oldEnd = ordinals.size ? Types.ordinalToNumber(ordinals.last() as Types.Ordinal) + 1 : firstOrdinal
+    const oldEnd = ordinals.length ? Types.ordinalToNumber(ordinals[ordinals.length - 1]) + 1 : firstOrdinal
     const start = oldEnd
     const end = oldEnd + num
     const newOrdinals: Array<Types.Ordinal> = []
     for (let i = start; i < end; ++i) {
       newOrdinals.push(Types.numberToOrdinal(i))
     }
-    return new Set([...ordinals, ...newOrdinals])
+    return [...ordinals, ...newOrdinals]
   }
 }
 
@@ -222,7 +221,7 @@ type State = {
   conversationIDKey: Types.ConversationIDKey
   loadMoreEnabled: boolean
   messageInjectionEnabled: boolean
-  messageOrdinals: Set<Types.Ordinal>
+  messageOrdinals: Array<Types.Ordinal>
   scrollListDownCounter: number
   scrollListToBottomCounter: number
   scrollListUpCounter: number
@@ -238,7 +237,7 @@ class ThreadWrapper extends React.Component<Props, State> {
       conversationIDKey: Types.stringToConversationIDKey('a'),
       loadMoreEnabled: false,
       messageInjectionEnabled: false,
-      messageOrdinals: makeMoreOrdinals(new Set(), 'append'),
+      messageOrdinals: makeMoreOrdinals([], 'append'),
       scrollListDownCounter: 0,
       scrollListToBottomCounter: 0,
       scrollListUpCounter: 0,
@@ -254,7 +253,7 @@ class ThreadWrapper extends React.Component<Props, State> {
         console.log('++++ Reloading messages')
         this.setState({messageOrdinals})
       }, 2000)
-      return {conversationIDKey, messageOrdinals: new Set()}
+      return {conversationIDKey, messageOrdinals: []}
     })
   }
 
