@@ -129,6 +129,13 @@ export type Tlf = {
 export type TlfList = Map<string, Tlf>
 
 export type Tlfs = {
+  // additionalTlfs includes Tlfs that we care about but are not in one of
+  // private, public, team. This could include Tlfs that are referenced by
+  // non-canonical paths.
+  //
+  // additionalTlfs should always have lower-priority than the three lists
+  // (private, public, team). In other words, check those first.
+  additionalTlfs: Map<Path, Tlf>
   loaded: boolean
   private: TlfList
   public: TlfList

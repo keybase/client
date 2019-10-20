@@ -264,6 +264,13 @@
       "path": "Types.Path",
       "fileContext": "Types.FileContext"
     },
+    "loadAdditionalTlf": {
+      "tlfPath": "Types.Path"
+    },
+    "loadedAdditionalTlf": {
+      "tlf": "Types.Tlf",
+      "tlfPath": "Types.Path"
+    },
 
     "setDebugLevel": {
       "level": "string"
