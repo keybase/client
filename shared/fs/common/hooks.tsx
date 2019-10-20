@@ -4,7 +4,6 @@ import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as FsGen from '../../actions/fs-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as Kb from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
 import uuidv1 from 'uuid/v1'
 import flags from '../../util/feature-flags'
@@ -75,31 +74,6 @@ export const useFsTlfs = () => {
   React.useEffect(() => {
     dispatch(FsGen.createFavoritesLoad())
   }, [dispatch])
-}
-
-export const useFsTlf = (path: Types.Path) => {
-  const tlfPath = Constants.getTlfPath(path)
-  const tlfs = Container.useSelector(state => state.fs.tlfs)
-  const dispatch = useDispatchWhenConnected()
-  const active =
-    // If we don't have a TLF path, we are not inside a TLF yet. So no need
-    // to load.
-    !!tlfPath
-  // If favorites are not loaded, don't load anything yet -- what we need
-  // might be available from favorites.
-  tlfs.loaded &&
-    // If TLF is part of favorites list, we already have notifications to
-    // cover the refresh, so no need to load here. (To be clear,
-    // notifications don't cover syncConfig, but we already lod when use
-    // toggles change.)
-    Constants.unknownTlf === Constants.getTlfFromPathInFavoritesOnly(tlfs, tlfPath)
-  // We need to load TLFs. We don't have notifications for this rpc yet, so
-  // just poll on a 10s interval.
-  Kb.useInterval(() => dispatch(FsGen.createLoadAdditionalTlf({tlfPath})), active ? 10000 : undefined)
-  // useInterval doesn't trigger at beginning, so call in an effect here.
-  React.useEffect(() => {
-    active && dispatch(FsGen.createLoadAdditionalTlf({tlfPath}))
-  }, [active, dispatch, tlfPath])
 }
 
 export const useFsJournalStatus = () => {

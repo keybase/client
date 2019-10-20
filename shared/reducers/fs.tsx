@@ -37,7 +37,6 @@ const initialState: Types.State = {
   softErrors: Constants.makeSoftErrors(),
   tlfUpdates: I.List(),
   tlfs: {
-    additionalTlfs: new Map(),
     loaded: false,
     private: new Map(),
     public: new Map(),
@@ -262,15 +261,6 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
     draftState.tlfs.team = updateTlfList(draftState.tlfs.team, action.payload.team)
     draftState.tlfs.loaded = true
   },
-  [FsGen.loadedAdditionalTlf]: (draftState, action) => {
-    if (isEqual(draftState.tlfs.additionalTlfs.get(action.payload.tlfPath), action.payload.tlf)) {
-      return
-    }
-    draftState.tlfs.additionalTlfs = new Map([
-      ...draftState.tlfs.additionalTlfs,
-      [action.payload.tlfPath, action.payload.tlf],
-    ])
-  },
   [FsGen.setTlfsAsUnloaded]: draftState => {
     draftState.tlfs.loaded = false
   },
@@ -279,39 +269,16 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
   },
   [FsGen.tlfSyncConfigLoaded]: (draftState, action) => {
     const oldTlfList = draftState.tlfs[action.payload.tlfType]
-    const oldTlfFromFavorites = oldTlfList.get(action.payload.tlfName) || Constants.unknownTlf
-    if (oldTlfFromFavorites !== Constants.unknownTlf) {
-      draftState.tlfs[action.payload.tlfType] = new Map([
-        ...oldTlfList,
-        [
-          action.payload.tlfName,
-          {
-            ...oldTlfFromFavorites,
-            syncConfig: action.payload.syncConfig,
-          },
-        ],
-      ])
-      return
-    }
-
-    const tlfPath = Types.pathConcat(
-      Types.pathConcat(Constants.defaultPath, action.payload.tlfType),
-      action.payload.tlfName
-    )
-    const oldTlfFromAdditional = draftState.tlfs.additionalTlfs.get(tlfPath) || Constants.unknownTlf
-    if (oldTlfFromAdditional !== Constants.unknownTlf) {
-      draftState.tlfs.additionalTlfs = new Map([
-        ...draftState.tlfs.additionalTlfs,
-        [
-          tlfPath,
-          {
-            ...oldTlfFromAdditional,
-            syncConfig: action.payload.syncConfig,
-          },
-        ],
-      ])
-      return
-    }
+    draftState.tlfs[action.payload.tlfType] = new Map([
+      ...oldTlfList,
+      [
+        action.payload.tlfName,
+        {
+          ...(oldTlfList.get(action.payload.tlfName) || Constants.unknownTlf),
+          syncConfig: action.payload.syncConfig,
+        },
+      ],
+    ])
   },
   [FsGen.sortSetting]: (draftState, action) => {
     draftState.pathUserSettings = draftState.pathUserSettings.update(action.payload.path, setting =>
