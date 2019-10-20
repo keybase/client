@@ -215,6 +215,7 @@ export type TypedActionsMap = {
   'chat2:toggleGiphyPrefill': chat2.ToggleGiphyPrefillPayload
   'chat2:setChannelSearchText': chat2.SetChannelSearchTextPayload
   'chat2:startAudioRecording': chat2.StartAudioRecordingPayload
+  'chat2:stopAudioRecording': chat2.StopAudioRecordingPayload
   'config:startHandshake': config.StartHandshakePayload
   'config:restartHandshake': config.RestartHandshakePayload
   'config:daemonHandshake': config.DaemonHandshakePayload

@@ -549,6 +549,21 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         draftState.unfurlPromptMap = unfurlPromptMap
         return
       }
+      case Chat2Gen.startAudioRecording: {
+        const audio = new Map(draftState.audioRecording)
+        audio.set(action.payload.conversationIDKey, {
+          locked: false,
+          lastAmplitude: 0,
+        })
+        draftState.audioRecording = audio
+        return
+      }
+      case Chat2Gen.stopAudioRecording: {
+        const audio = new Map(draftState.audioRecording)
+        audio.delete(action.payload.conversationIDKey)
+        draftState.audioRecording = audio
+        return
+      }
       case Chat2Gen.updateCoinFlipStatus: {
         const flipStatusMap = draftState.flipStatusMap
         action.payload.statuses.forEach(status => {

@@ -4,6 +4,7 @@ import * as TeamTypes from '../../../../constants/types/teams'
 import {PlainInput} from '../../../../common-adapters'
 
 type CommonProps = {
+  audioRecording?: Types.AudioRecordingInfo
   cannotWrite: boolean | null
   clearInboxFilter: () => void
   conversationIDKey: Types.ConversationIDKey
@@ -24,6 +25,8 @@ type CommonProps = {
   onGiphyToggle: () => void
   onRequestScrollDown: () => void
   onRequestScrollUp: () => void
+  onStartAudioRecording: () => void
+  onStopAudioRecording: () => void
   onSubmit: (text: string) => void
   prependText: string | null
   quoteCounter: number

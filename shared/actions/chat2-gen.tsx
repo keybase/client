@@ -125,6 +125,7 @@ export const setUnsentText = 'chat2:setUnsentText'
 export const setWalletsOld = 'chat2:setWalletsOld'
 export const startAudioRecording = 'chat2:startAudioRecording'
 export const staticConfigLoaded = 'chat2:staticConfigLoaded'
+export const stopAudioRecording = 'chat2:stopAudioRecording'
 export const tabSelected = 'chat2:tabSelected'
 export const threadSearch = 'chat2:threadSearch'
 export const threadSearchResults = 'chat2:threadSearchResults'
@@ -578,8 +579,9 @@ type _SetUnsentTextPayload = {
   readonly text?: HiddenString
 }
 type _SetWalletsOldPayload = void
-type _StartAudioRecordingPayload = void
+type _StartAudioRecordingPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _StaticConfigLoadedPayload = {readonly staticConfig: Types.StaticConfig}
+type _StopAudioRecordingPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _TabSelectedPayload = void
 type _ThreadSearchPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
@@ -1367,6 +1369,10 @@ export const createSetConversationOffline = (
 export const createStartAudioRecording = (
   payload: _StartAudioRecordingPayload
 ): StartAudioRecordingPayload => ({payload, type: startAudioRecording})
+export const createStopAudioRecording = (payload: _StopAudioRecordingPayload): StopAudioRecordingPayload => ({
+  payload,
+  type: stopAudioRecording,
+})
 export const createToggleInfoPanel = (payload: _ToggleInfoPanelPayload): ToggleInfoPanelPayload => ({
   payload,
   type: toggleInfoPanel,
@@ -1806,6 +1812,10 @@ export type StaticConfigLoadedPayload = {
   readonly payload: _StaticConfigLoadedPayload
   readonly type: typeof staticConfigLoaded
 }
+export type StopAudioRecordingPayload = {
+  readonly payload: _StopAudioRecordingPayload
+  readonly type: typeof stopAudioRecording
+}
 export type TabSelectedPayload = {readonly payload: _TabSelectedPayload; readonly type: typeof tabSelected}
 export type ThreadSearchPayload = {readonly payload: _ThreadSearchPayload; readonly type: typeof threadSearch}
 export type ThreadSearchResultsPayload = {
@@ -2029,6 +2039,7 @@ export type Actions =
   | SetWalletsOldPayload
   | StartAudioRecordingPayload
   | StaticConfigLoadedPayload
+  | StopAudioRecordingPayload
   | TabSelectedPayload
   | ThreadSearchPayload
   | ThreadSearchResultsPayload

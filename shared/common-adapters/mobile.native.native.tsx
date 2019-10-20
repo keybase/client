@@ -109,6 +109,9 @@ module.exports = {
   get FormWithCheckbox() {
     return Index.FormWithCheckbox
   },
+  get GestureState() {
+    return require('react-native-gesture-handler').State
+  },
   get HOCTimers() {
     return Index.HOCTimers
   },
@@ -168,6 +171,9 @@ module.exports = {
   },
   get LocationMap() {
     return Index.LocationMap
+  },
+  get LongPressGestureHandler() {
+    return require('react-native-gesture-handler').LongPressGestureHandler
   },
   get Markdown() {
     return Index.Markdown

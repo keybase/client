@@ -65,6 +65,7 @@ export default Container.namedConnect(
     const suggestBotCommandsUpdateStatus =
       state.chat2.botCommandsUpdateStatusMap.get(conversationIDKey) ||
       RPCChatTypes.UIBotCommandsUpdateStatus.blank
+    const audioRecording = state.chat2.audioRecording.get(conversationIDKey) || undefined
 
     return {
       _containsLatestMessage,
@@ -74,6 +75,7 @@ export default Container.namedConnect(
       _metaMap: state.chat2.metaMap,
       _replyTo,
       _you,
+      audioRecording,
       cannotWrite: meta.cannotWrite,
       conversationIDKey,
       editText: editInfo ? editInfo.text : '',
@@ -155,6 +157,10 @@ export default Container.namedConnect(
           text: new HiddenString(text),
         })
       ),
+    _onStartAudioRecording: (conversationIDKey: Types.ConversationIDKey) =>
+      dispatch(Chat2Gen.createStartAudioRecording({conversationIDKey})),
+    _onStopAudioRecording: (conversationIDKey: Types.ConversationIDKey) =>
+      dispatch(Chat2Gen.createStopAudioRecording({conversationIDKey})),
     _sendTyping: (conversationIDKey: Types.ConversationIDKey, typing: boolean) =>
       conversationIDKey && dispatch(Chat2Gen.createSendTyping({conversationIDKey, typing})),
     _unsentTextChanged: (conversationIDKey: Types.ConversationIDKey, text: string) =>
@@ -166,6 +172,7 @@ export default Container.namedConnect(
       dispatch(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset})),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => ({
+    audioRecording: stateProps.audioRecording,
     cannotWrite: stateProps.cannotWrite,
     clearInboxFilter: dispatchProps.clearInboxFilter,
     conversationIDKey: stateProps.conversationIDKey,
@@ -203,7 +210,8 @@ export default Container.namedConnect(
     onGiphyToggle: () => dispatchProps._onGiphyToggle(stateProps.conversationIDKey),
     onRequestScrollDown: ownProps.onRequestScrollDown,
     onRequestScrollUp: ownProps.onRequestScrollUp,
-
+    onStartAudioRecording: () => dispatchProps._onStartAudioRecording(stateProps.conversationIDKey),
+    onStopAudioRecording: () => dispatchProps._onStopAudioRecording(stateProps.conversationIDKey),
     onSubmit: (text: string) => {
       if (stateProps._editOrdinal) {
         dispatchProps._onEditMessage(stateProps.conversationIDKey, stateProps._editOrdinal, text)

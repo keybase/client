@@ -1,5 +1,6 @@
 /* eslint-env browser */
 import * as ImagePicker from 'expo-image-picker'
+import * as Types from '../../../../constants/types/chat2'
 import React, {PureComponent} from 'react'
 import * as Kb from '../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../styles'
@@ -17,7 +18,7 @@ import {PlatformInputPropsInternal} from './platform-input'
 import AddSuggestors, {standardTransformer} from '../suggestors'
 import {parseUri, launchCameraAsync, launchImageLibraryAsync} from '../../../../util/expo-image-picker'
 import {BotCommandUpdateStatus} from './shared'
-import {formatDurationShort} from '../../../../util/timestamp'
+import {formatDurationShort, formatAudioRecordDuration} from '../../../../util/timestamp'
 
 type menuType = 'exploding' | 'filepickerpopup' | 'moremenu'
 
@@ -164,39 +165,50 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
               </Kb.Text>
             </Kb.Box>
           )}
-          {!this.props.isEditing && !this.props.cannotWrite && (
+          {!this.props.audioRecording && !this.props.isEditing && !this.props.cannotWrite && (
             <ExplodingIcon
               explodingModeSeconds={this.props.explodingModeSeconds}
               isExploding={this.props.isExploding}
               openExplodingPicker={() => this._toggleShowingMenu('exploding')}
             />
           )}
-          <Kb.PlainInput
-            autoCorrect={true}
-            autoCapitalize="sentences"
-            disabled={
-              // Auto generated from flowToTs. Please clean me!
-              this.props.cannotWrite !== null && this.props.cannotWrite !== undefined
-                ? this.props.cannotWrite
-                : false
-            }
-            placeholder={hintText}
-            multiline={true}
-            onBlur={this.props.onBlur}
-            onFocus={this.props.onFocus}
-            // TODO: Call onCancelQuoting on text change or selection
-            // change to match desktop.
-            onChangeText={this._onChangeText}
-            onSelectionChange={this.props.onSelectionChange}
-            ref={this._inputSetRef}
-            style={styles.input}
-            textType="Body"
-            rowsMax={Styles.dimensionHeight < 600 ? 5 : 9}
-            rowsMin={1}
-          />
+          {!!this.props.audioRecording && (
+            <>
+              <AudioCounter />
+              <AudioSlideToCancel />
+            </>
+          )}
+          {!this.props.audioRecording && (
+            <Kb.PlainInput
+              autoCorrect={true}
+              autoCapitalize="sentences"
+              disabled={
+                // Auto generated from flowToTs. Please clean me!
+                this.props.cannotWrite !== null && this.props.cannotWrite !== undefined
+                  ? this.props.cannotWrite
+                  : false
+              }
+              placeholder={hintText}
+              multiline={true}
+              onBlur={this.props.onBlur}
+              onFocus={this.props.onFocus}
+              // TODO: Call onCancelQuoting on text change or selection
+              // change to match desktop.
+              onChangeText={this._onChangeText}
+              onSelectionChange={this.props.onSelectionChange}
+              ref={this._inputSetRef}
+              style={styles.input}
+              textType="Body"
+              rowsMax={Styles.dimensionHeight < 600 ? 5 : 9}
+              rowsMin={1}
+            />
+          )}
           {!this.props.cannotWrite && (
             <Action
+              audioRecording={this.props.audioRecording}
               hasText={this.state.hasText}
+              onStartAudioRecording={this.props.onStartAudioRecording}
+              onStopAudioRecording={this.props.onStopAudioRecording}
               onSubmit={this._onSubmit}
               isEditing={this.props.isEditing}
               openFilePicker={this._openFilePicker}
@@ -212,7 +224,10 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
 const PlatformInput = AddSuggestors(_PlatformInput)
 
 type ActionProps = {
+  audioRecording?: Types.AudioRecordingInfo
   hasText: boolean
+  onStartAudioRecording: () => void
+  onStopAudioRecording: () => void
   onSubmit: () => void
   isEditing: boolean
   openFilePicker: () => void
@@ -221,7 +236,17 @@ type ActionProps = {
 }
 
 const Action = React.memo(
-  ({hasText, insertMentionMarker, isEditing, onSubmit, openFilePicker, openMoreMenu}: ActionProps) => {
+  ({
+    audioRecording,
+    hasText,
+    insertMentionMarker,
+    isEditing,
+    onStartAudioRecording,
+    onStopAudioRecording,
+    onSubmit,
+    openFilePicker,
+    openMoreMenu,
+  }: ActionProps) => {
     const hasValue = React.useRef(new Kb.NativeAnimated.Value(hasText ? 1 : 0)).current
 
     React.useEffect(() => {
@@ -264,39 +289,106 @@ const Action = React.memo(
           ]}
         >
           <Kb.Box2 direction="horizontal" style={styles.actionIconsContainer}>
-            <Kb.Icon
-              onClick={insertMentionMarker}
-              type="iconfont-mention"
-              style={Kb.iconCastPlatformStyles(styles.actionButton)}
-              fontSize={22}
-            />
+            {!audioRecording && (
+              <Kb.Icon
+                onClick={insertMentionMarker}
+                type="iconfont-mention"
+                style={Kb.iconCastPlatformStyles(styles.actionButton)}
+                fontSize={22}
+              />
+            )}
             {smallGap}
-            <Kb.Icon
-              onClick={openFilePicker}
-              type="iconfont-camera"
-              style={Kb.iconCastPlatformStyles(styles.actionButton)}
-              fontSize={22}
-            />
+            {!audioRecording && (
+              <Kb.Icon
+                onClick={openFilePicker}
+                type="iconfont-camera"
+                style={Kb.iconCastPlatformStyles(styles.actionButton)}
+                fontSize={22}
+              />
+            )}
             {smallGap}
-            <Kb.Icon
-              onClick={openFilePicker}
-              type="iconfont-star"
-              style={Kb.iconCastPlatformStyles(styles.actionButton)}
-              fontSize={22}
-            />
+            <Kb.LongPressGestureHandler
+              onHandlerStateChange={({nativeEvent}) => {
+                if (nativeEvent.state === Kb.GestureState.ACTIVE) {
+                  onStartAudioRecording()
+                } else if (nativeEvent.state === Kb.GestureState.END) {
+                  onStopAudioRecording()
+                }
+              }}
+            >
+              <Kb.NativeView style={{height: 22, width: 22}}>
+                {!audioRecording ? (
+                  <Kb.Icon
+                    type="iconfont-star"
+                    style={Kb.iconCastPlatformStyles(styles.actionButton)}
+                    fontSize={22}
+                  />
+                ) : (
+                  <AudioRecorder />
+                )}
+              </Kb.NativeView>
+            </Kb.LongPressGestureHandler>
             {smallGap}
-            <Kb.Icon
-              onClick={openMoreMenu}
-              type="iconfont-add"
-              style={Kb.iconCastPlatformStyles(styles.actionButton)}
-              fontSize={22}
-            />
+            {!audioRecording && (
+              <Kb.Icon
+                onClick={openMoreMenu}
+                type="iconfont-add"
+                style={Kb.iconCastPlatformStyles(styles.actionButton)}
+                fontSize={22}
+              />
+            )}
           </Kb.Box2>
         </Kb.NativeAnimated.View>
       </Kb.Box2>
     )
   }
 )
+
+const AudioSlideToCancel = () => {
+  return (
+    <Kb.Box2 direction="horizontal">
+      <Kb.Icon type="iconfont-arrow-left" fontSize={16} />
+      <Kb.Text type="BodySecondaryLink">Slide to cancel</Kb.Text>
+    </Kb.Box2>
+  )
+}
+
+const AudioCounter = () => {
+  const [seconds, setSeconds] = React.useState(0)
+  React.useEffect(() => {
+    const timer = setInterval(() => {
+      setSeconds(seconds + 1)
+    }, 1000)
+    return () => clearTimeout(timer)
+  }, [seconds])
+  return <Kb.Text type="BodyBold">{formatAudioRecordDuration(seconds * 1000)}</Kb.Text>
+}
+
+const AudioRecorder = () => {
+  const radiusBoost = React.useRef(new Kb.NativeAnimated.Value(0)).current
+  React.useEffect(() => {
+    Kb.NativeAnimated.timing(radiusBoost, {
+      duration: 200,
+      toValue: 44,
+    }).start()
+  }, [])
+  const size = Kb.NativeAnimated.add(25, radiusBoost)
+  const borderRadius = Kb.NativeAnimated.divide(size, 2)
+  return (
+    <Kb.NativeAnimated.View
+      style={{
+        height: size,
+        width: size,
+        borderRadius,
+        backgroundColor: Styles.globalColors.blue,
+        position: 'absolute',
+        bottom: '5%',
+      }}
+    >
+      <Kb.Icon type="iconfont-arrow-left" fontSize={22} />
+    </Kb.NativeAnimated.View>
+  )
+}
 
 const ExplodingIcon = ({explodingModeSeconds, isExploding, openExplodingPicker}) => (
   <Kb.Box2 direction="horizontal" style={styles.explodingOuterContainer}>
