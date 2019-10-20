@@ -25,7 +25,6 @@ import (
 
 	"encoding/base64"
 
-	"github.com/keybase/client/go/badges"
 	"github.com/keybase/client/go/chat/commands"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/msgchecker"
@@ -391,7 +390,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	g.ConvSource = NewHybridConversationSource(g, h.boxer, chatStorage,
 		func() chat1.RemoteInterface { return ri })
 	chatStorage.SetAssetDeleter(g.ConvSource)
-	g.InboxSource = NewHybridInboxSource(g, badges.NewBadger(g.ExternalG()),
+	g.InboxSource = NewHybridInboxSource(g,
 		func() chat1.RemoteInterface { return ri })
 	g.InboxSource.Start(context.TODO(), uid)
 	g.InboxSource.Connected(context.TODO())

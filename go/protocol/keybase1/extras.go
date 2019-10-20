@@ -3471,3 +3471,9 @@ func NewBotToken(s string) (BotToken, error) {
 	}
 	return BotToken(s), nil
 }
+
+func (b BadgeConversationInfo) IsEmpty() bool {
+	return (b.UnreadMessages == 0 &&
+		b.BadgeCounts[DeviceType_DESKTOP] == 0 &&
+		b.BadgeCounts[DeviceType_MOBILE] == 0)
+}

@@ -1,7 +1,7 @@
 /* eslint-env browser */
 import * as ImagePicker from 'expo-image-picker'
 import React, {PureComponent} from 'react'
-import * as Kb from '../../../../common-adapters'
+import * as Kb from '../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import {isIOS, isLargeScreen} from '../../../../constants/platform'
@@ -211,46 +211,92 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
 }
 const PlatformInput = AddSuggestors(_PlatformInput)
 
-const Action = ({hasText, insertMentionMarker, isEditing, onSubmit, openFilePicker, openMoreMenu}) =>
-  hasText ? (
-    <Kb.Button
-      type="Default"
-      small={true}
-      style={styles.send}
-      onClick={onSubmit}
-      label={isEditing ? 'Save' : 'Send'}
-    />
-  ) : (
-    <Kb.Box2 direction="horizontal" style={styles.actionIconsContainer}>
-      <Kb.Icon
-        onClick={insertMentionMarker}
-        type="iconfont-mention"
-        style={Kb.iconCastPlatformStyles(styles.actionButton)}
-        fontSize={22}
-      />
-      {smallGap}
-      <Kb.Icon
-        onClick={openFilePicker}
-        type="iconfont-camera"
-        style={Kb.iconCastPlatformStyles(styles.actionButton)}
-        fontSize={22}
-      />
-      {smallGap}
-      <Kb.Icon
-        onClick={openFilePicker}
-        type="iconfont-star"
-        style={Kb.iconCastPlatformStyles(styles.actionButton)}
-        fontSize={22}
-      />
-      {smallGap}
-      <Kb.Icon
-        onClick={openMoreMenu}
-        type="iconfont-add"
-        style={Kb.iconCastPlatformStyles(styles.actionButton)}
-        fontSize={22}
-      />
-    </Kb.Box2>
-  )
+type ActionProps = {
+  hasText: boolean
+  onSubmit: () => void
+  isEditing: boolean
+  openFilePicker: () => void
+  openMoreMenu: () => void
+  insertMentionMarker: () => void
+}
+
+const Action = React.memo(
+  ({hasText, insertMentionMarker, isEditing, onSubmit, openFilePicker, openMoreMenu}: ActionProps) => {
+    const hasValue = React.useRef(new Kb.NativeAnimated.Value(hasText ? 1 : 0)).current
+
+    React.useEffect(() => {
+      Kb.NativeAnimated.timing(hasValue, {
+        duration: 200,
+        toValue: hasText ? 1 : 0,
+        useNativeDriver: true,
+      }).start()
+    }, [hasText, hasValue])
+
+    return (
+      <Kb.Box2 direction="vertical" style={styles.actionContainer}>
+        <Kb.NativeAnimated.View
+          style={[
+            styles.animatedContainer,
+            {
+              opacity: hasValue,
+              transform: [{translateX: hasValue.interpolate({inputRange: [0, 1], outputRange: [200, 0]})}],
+            },
+          ]}
+        >
+          <Kb.Button
+            type="Default"
+            small={true}
+            style={styles.send}
+            onClick={onSubmit}
+            label={isEditing ? 'Save' : 'Send'}
+          />
+        </Kb.NativeAnimated.View>
+        <Kb.NativeAnimated.View
+          style={[
+            styles.animatedContainer,
+            {
+              opacity: hasValue.interpolate({
+                inputRange: [0, 1],
+                outputRange: [1, 0],
+              }),
+              transform: [{translateX: hasValue.interpolate({inputRange: [0, 1], outputRange: [0, 200]})}],
+            },
+          ]}
+        >
+          <Kb.Box2 direction="horizontal" style={styles.actionIconsContainer}>
+            <Kb.Icon
+              onClick={insertMentionMarker}
+              type="iconfont-mention"
+              style={Kb.iconCastPlatformStyles(styles.actionButton)}
+              fontSize={22}
+            />
+            {smallGap}
+            <Kb.Icon
+              onClick={openFilePicker}
+              type="iconfont-camera"
+              style={Kb.iconCastPlatformStyles(styles.actionButton)}
+              fontSize={22}
+            />
+            {smallGap}
+            <Kb.Icon
+              onClick={openFilePicker}
+              type="iconfont-star"
+              style={Kb.iconCastPlatformStyles(styles.actionButton)}
+              fontSize={22}
+            />
+            {smallGap}
+            <Kb.Icon
+              onClick={openMoreMenu}
+              type="iconfont-add"
+              style={Kb.iconCastPlatformStyles(styles.actionButton)}
+              fontSize={22}
+            />
+          </Kb.Box2>
+        </Kb.NativeAnimated.View>
+      </Kb.Box2>
+    )
+  }
+)
 
 const ExplodingIcon = ({explodingModeSeconds, isExploding, openExplodingPicker}) => (
   <Kb.Box2 direction="horizontal" style={styles.explodingOuterContainer}>
@@ -293,13 +339,24 @@ const styles = Styles.styleSheetCreate(
       actionButton: {
         alignSelf: isIOS ? 'flex-end' : 'center',
       },
+      actionContainer: {
+        alignSelf: 'flex-end',
+        height: 50,
+        position: 'relative',
+        width: 106,
+      },
       actionIconsContainer: {
-        paddingRight: Styles.globalMargins.small - containerPadding,
+        marginBottom: Styles.globalMargins.xsmall,
       },
       actionText: {
         alignSelf: 'flex-end',
         paddingBottom: Styles.globalMargins.xsmall,
         paddingRight: Styles.globalMargins.tiny,
+      },
+      animatedContainer: {
+        bottom: 0,
+        position: 'absolute',
+        right: 0,
       },
       container: {
         ...Styles.globalStyles.flexBoxRow,

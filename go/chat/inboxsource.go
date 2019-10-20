@@ -8,7 +8,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keybase/client/go/badges"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
@@ -555,6 +554,10 @@ func (s *RemoteInboxSource) NotifyUpdate(ctx context.Context, uid gregor1.UID, c
 
 }
 
+func (s *RemoteInboxSource) UpdateLocalMtime(ctx context.Context, uid gregor1.UID, updates []chat1.LocalMtimeUpdate) error {
+	return nil
+}
+
 type HybridInboxSource struct {
 	sync.Mutex
 	globals.Contextified
@@ -562,7 +565,6 @@ type HybridInboxSource struct {
 	*baseInboxSource
 
 	uid                   gregor1.UID
-	badger                *badges.Badger
 	started               bool
 	stopCh                chan struct{}
 	eg                    errgroup.Group
@@ -578,14 +580,13 @@ type HybridInboxSource struct {
 
 var _ types.InboxSource = (*HybridInboxSource)(nil)
 
-func NewHybridInboxSource(g *globals.Context, badger *badges.Badger,
+func NewHybridInboxSource(g *globals.Context,
 	getChatInterface func() chat1.RemoteInterface) *HybridInboxSource {
 	labeler := utils.NewDebugLabeler(g.GetLog(), "HybridInboxSource", false)
 	s := &HybridInboxSource{
 		Contextified:   globals.NewContextified(g),
 		DebugLabeler:   labeler,
 		flushDelay:     time.Minute,
-		badger:         badger,
 		readFlushDelay: 5 * time.Second,
 		readFlushCh:    make(chan struct{}, 10),
 	}
@@ -720,15 +721,23 @@ func (s *HybridInboxSource) markAsReadDeliverLoop(uid gregor1.UID, stopCh chan s
 	}
 }
 
-var emptyBadgeCounts = map[keybase1.DeviceType]int{
-	keybase1.DeviceType_DESKTOP: 0,
-	keybase1.DeviceType_MOBILE:  0,
+func makeBadgeConversationInfo(convID keybase1.ChatConversationID, count int) keybase1.BadgeConversationInfo {
+	return keybase1.BadgeConversationInfo{
+		ConvID: convID,
+		BadgeCounts: map[keybase1.DeviceType]int{
+			keybase1.DeviceType_DESKTOP: count,
+			keybase1.DeviceType_MOBILE:  count,
+		},
+		UnreadMessages: count,
+	}
 }
 
+// ApplyLocalChatState marks items locally as read and badges conversations
+// that have failed outbox items.
 func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []keybase1.BadgeConversationInfo) (res []keybase1.BadgeConversationInfo) {
 	var convIDs []chat1.ConversationID
 	for _, info := range infos {
-		if info.UnreadMessages > 0 {
+		if !info.IsEmpty() {
 			convIDs = append(convIDs, chat1.ConversationID(info.ConvID.Bytes()))
 		}
 	}
@@ -736,25 +745,86 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 		ConvIDs: convIDs,
 	}, nil)
 	if err != nil {
-		s.Debug(ctx, "ApplyLocalChatState: failed to get convs: %s", err)
-		return infos
+		s.Debug(ctx, "ApplyLocalChatState: failed to get convs: %v", err)
 	}
-	convMap := make(map[string]bool)
+
+	// convID -> isRead
+	readConvMap := make(map[string]bool)
 	for _, conv := range convs {
 		if conv.IsLocallyRead() {
-			convMap[conv.GetConvID().String()] = true
+			readConvMap[conv.GetConvID().String()] = true
 		}
 	}
-	for _, info := range infos {
-		if convMap[info.ConvID.String()] {
-			res = append(res, keybase1.BadgeConversationInfo{
-				ConvID:         info.ConvID,
-				BadgeCounts:    emptyBadgeCounts,
-				UnreadMessages: 0,
-			})
-		} else {
-			res = append(res, info)
+
+	outbox := storage.NewOutbox(s.G(), s.uid)
+	obrs, oerr := outbox.PullAllConversations(ctx, true /*includeErrors */, false /*remove*/)
+	if oerr != nil {
+		s.Debug(ctx, "ApplyLocalChatState: failed to get outbox: %v", err)
+	}
+
+	// convID -> unreadCount
+	failedOutboxMap := make(map[string]int)
+	// convID -> mtime
+	localUpdates := make(map[string]chat1.LocalMtimeUpdate)
+	for _, obr := range obrs {
+		state, err := obr.State.State()
+		if err != nil {
+			s.Debug(ctx, "ApplyLocalChatState: unknown state item: skipping: err: %v", err)
+			continue
 		}
+		if state == chat1.OutboxStateType_ERROR && obr.State.Error().Typ.IsBadgableError() {
+			ctime := obr.Ctime
+			if update, ok := localUpdates[obr.ConvID.String()]; ok {
+				if ctime.After(update.Mtime) {
+					localUpdates[obr.ConvID.String()] = update
+				}
+			} else {
+				localUpdates[obr.ConvID.String()] = chat1.LocalMtimeUpdate{
+					ConvID: obr.ConvID,
+					Mtime:  ctime,
+				}
+			}
+			failedOutboxMap[obr.ConvID.String()]++
+		}
+	}
+
+	updates := []chat1.LocalMtimeUpdate{}
+	for _, update := range localUpdates {
+		updates = append(updates, update)
+	}
+	if err := s.createInbox().UpdateLocalMtime(ctx, s.uid, updates); err != nil {
+		s.Debug(ctx, "ApplyLocalChatState: unable to apply UpdateLocalMtime: %v", err)
+	}
+
+	for _, info := range infos {
+		// mark this conv as read
+		if readConvMap[info.ConvID.String()] {
+			info = makeBadgeConversationInfo(info.ConvID, 0)
+			s.Debug(ctx, "ApplyLocalChatState, marking as read %+v", info)
+		}
+		// badge qualifying failed outbox items
+		if failedCount, ok := failedOutboxMap[info.ConvID.String()]; ok {
+			newInfo := makeBadgeConversationInfo(info.ConvID, failedCount)
+			newInfo.BadgeCounts[keybase1.DeviceType_DESKTOP] += info.BadgeCounts[keybase1.DeviceType_DESKTOP]
+			newInfo.BadgeCounts[keybase1.DeviceType_MOBILE] += info.BadgeCounts[keybase1.DeviceType_MOBILE]
+			newInfo.UnreadMessages += info.UnreadMessages
+			info = newInfo
+			delete(failedOutboxMap, info.ConvID.String())
+			s.Debug(ctx, "ApplyLocalChatState, applying failed to existing info %+v", info)
+		}
+		res = append(res, info)
+	}
+
+	// apply any new failed outbox items
+	for convIDStr, failedCount := range failedOutboxMap {
+		convID, err := chat1.MakeConvID(convIDStr)
+		if err != nil {
+			s.Debug(ctx, "ApplyLocalChatState: Unable to make convID: %v", err)
+			continue
+		}
+		newInfo := makeBadgeConversationInfo(keybase1.ChatConversationID(convID), failedCount)
+		s.Debug(ctx, "ApplyLocalChatState, applying failed to new info %+v", newInfo)
+		res = append(res, newInfo)
 	}
 	return res
 }
@@ -762,6 +832,13 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 func (s *HybridInboxSource) Draft(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	text *string) error {
 	if err := s.createInbox().Draft(ctx, uid, convID, text); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *HybridInboxSource) UpdateLocalMtime(ctx context.Context, uid gregor1.UID, updates []chat1.LocalMtimeUpdate) error {
+	if err := s.createInbox().UpdateLocalMtime(ctx, uid, updates); err != nil {
 		return err
 	}
 	return nil
@@ -805,8 +882,7 @@ func (s *HybridInboxSource) MarkAsRead(ctx context.Context, convID chat1.Convers
 	if err := s.createInbox().MarkLocalRead(ctx, uid, convID, *msgID); err != nil {
 		s.Debug(ctx, "MarkAsRead: failed to mark local read: %s", err)
 	} else {
-		err := s.badger.Send(ctx)
-		if err != nil {
+		if err := s.G().Badger.Send(ctx); err != nil {
 			return err
 		}
 	}
@@ -1067,8 +1143,8 @@ func (h convSearchHit) less(o convSearchHit) bool {
 	} else if hScore > oScore {
 		return false
 	}
-	htime := utils.GetConvMtime(h.conv.Conv)
-	otime := utils.GetConvMtime(o.conv.Conv)
+	htime := utils.GetConvMtime(h.conv)
+	otime := utils.GetConvMtime(o.conv)
 	return htime.Before(otime)
 }
 
@@ -1091,7 +1167,7 @@ func (s *HybridInboxSource) isConvSearchHit(ctx context.Context, conv types.Remo
 	if len(queryToks) == 0 {
 		if conv.Conv.IsUnread() {
 			cqe := nameContainsQueryUnread
-			if s.badger.State().ConversationBadge(ctx, conv.GetConvID(), s.getDeviceType()) > 0 {
+			if s.G().Badger.State().ConversationBadge(ctx, conv.GetConvID(), s.getDeviceType()) > 0 {
 				cqe = nameContainsQueryBadged
 			}
 			res.hits = []nameContainsQueryRes{cqe}
@@ -1542,10 +1618,10 @@ func (s *HybridInboxSource) modConversation(ctx context.Context, debugLabel stri
 	return conv, nil
 }
 
-func NewInboxSource(g *globals.Context, typ string, badger *badges.Badger, ri func() chat1.RemoteInterface) types.InboxSource {
+func NewInboxSource(g *globals.Context, typ string, ri func() chat1.RemoteInterface) types.InboxSource {
 	switch typ {
 	case "hybrid":
-		return NewHybridInboxSource(g, badger, ri)
+		return NewHybridInboxSource(g, ri)
 	default:
 		return NewRemoteInboxSource(g, ri)
 	}

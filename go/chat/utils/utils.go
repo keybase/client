@@ -910,7 +910,8 @@ func CreateTopicNameState(cmp chat1.ConversationIDMessageIDPairs) (chat1.TopicNa
 	return h.Sum(nil), nil
 }
 
-func GetConvMtime(conv chat1.Conversation) gregor1.Time {
+func GetConvMtime(rc types.RemoteConversation) (res gregor1.Time) {
+	conv := rc.Conv
 	var summaries []chat1.MessageSummary
 	for _, typ := range chat1.VisibleChatMessageTypes() {
 		summary, err := conv.GetMaxMessage(typ)
@@ -918,11 +919,16 @@ func GetConvMtime(conv chat1.Conversation) gregor1.Time {
 			summaries = append(summaries, summary)
 		}
 	}
-	if len(summaries) == 0 {
-		return conv.ReaderInfo.Mtime
-	}
 	sort.Sort(ByMsgSummaryCtime(summaries))
-	return summaries[len(summaries)-1].Ctime
+	if len(summaries) == 0 {
+		res = conv.ReaderInfo.Mtime
+	} else {
+		res = summaries[len(summaries)-1].Ctime
+	}
+	if res > rc.LocalMtime {
+		return res
+	}
+	return rc.LocalMtime
 }
 
 type MessageSummaryContainer interface {
@@ -1155,7 +1161,7 @@ func PresentRemoteConversationAsSmallTeamRow(ctx context.Context, rc types.Remot
 	res.ConvID = rc.GetConvID().String()
 	res.IsTeam = rc.GetTeamType() != chat1.TeamType_NONE
 	res.Name = StripUsernameFromConvName(GetRemoteConvDisplayName(rc), username)
-	res.Time = GetConvMtime(rc.Conv)
+	res.Time = GetConvMtime(rc)
 	if useSnippet && rc.LocalMetadata != nil {
 		res.Snippet = &rc.LocalMetadata.Snippet
 		res.SnippetDecoration = &rc.LocalMetadata.SnippetDecoration
@@ -1188,7 +1194,7 @@ func PresentRemoteConversation(ctx context.Context, g *globals.Context, rc types
 	res.IsPublic = rawConv.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC
 	res.Name = tlfName
 	res.Status = rawConv.Metadata.Status
-	res.Time = GetConvMtime(rawConv)
+	res.Time = GetConvMtime(rc)
 	res.Visibility = rawConv.Metadata.Visibility
 	res.Notifications = rawConv.Notifications
 	res.MembersType = rawConv.GetMembersType()

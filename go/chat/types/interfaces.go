@@ -216,6 +216,7 @@ type InboxSource interface {
 
 	GetInboxQueryLocalToRemote(ctx context.Context,
 		lquery *chat1.GetInboxLocalQuery) (*chat1.GetInboxQuery, NameInfo, error)
+	UpdateLocalMtime(ctx context.Context, uid gregor1.UID, updates []chat1.LocalMtimeUpdate) error
 
 	SetRemoteInterface(func() chat1.RemoteInterface)
 }

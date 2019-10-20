@@ -3,6 +3,7 @@ import {connect} from '../../util/container'
 import * as ConfigGen from '../../actions/config-gen'
 import {settingsTab} from '../../constants/tabs'
 import {feedbackTab} from '../../constants/settings'
+import * as Platform from '../../constants/platform'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 
 type OwnProps = {}
@@ -22,17 +23,21 @@ const mapDispatchToProps = dispatch => ({
     dispatch(ConfigGen.createGlobalError({}))
     if (loggedIn) {
       dispatch(RouteTreeGen.createClearModals())
-      dispatch(RouteTreeGen.createNavigateAppend({path: [settingsTab]}))
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [
-            {
-              props: {heading: 'Oh no, a bug!'},
-              selected: feedbackTab,
-            },
-          ],
-        })
-      )
+      if (Platform.isMobile) {
+        dispatch(RouteTreeGen.createNavigateAppend({path: [settingsTab]}))
+        dispatch(
+          RouteTreeGen.createNavigateAppend({
+            path: [
+              {
+                props: {heading: 'Oh no, a bug!'},
+                selected: feedbackTab,
+              },
+            ],
+          })
+        )
+      } else {
+        dispatch(RouteTreeGen.createNavigateAppend({path: ['modalFeedback']}))
+      }
     } else {
       dispatch(RouteTreeGen.createNavigateAppend({path: ['feedback']}))
     }
