@@ -64,6 +64,41 @@ const rpcConflictStateToConflictState = (
   }
 }
 
+const loadAdditionalTlf = async (state: TypedState, action: FsGen.LoadAdditionalTlfPayload) => {
+  if (Types.getPathLevel(action.payload.tlfPath) !== 3) {
+    return
+  }
+  try {
+    const {folder, isFavorite, isIgnored, isNew} = await RPCTypes.SimpleFSSimpleFSGetFolderRpcPromise({
+      path: Constants.pathToRPCPath(action.payload.tlfPath).kbfs,
+    })
+    const tlfType = rpcFolderTypeToTlfType(folder.folderType)
+    const tlfName =
+      tlfType === Types.TlfType.Private || tlfType === Types.TlfType.Public
+        ? tlfToPreferredOrder(folder.name, state.config.username)
+        : folder.name
+    return (
+      tlfType &&
+      FsGen.createLoadedAdditionalTlf({
+        tlf: Constants.makeTlf({
+          conflictState: rpcConflictStateToConflictState(folder.conflictState || null),
+          isFavorite,
+          isIgnored,
+          isNew,
+          name: tlfName,
+          resetParticipants: (folder.reset_members || []).map(({username}) => username),
+          syncConfig: getSyncConfigFromRPC(tlfName, tlfType, folder.syncConfig || null),
+          teamId: folder.team_id || '',
+          tlfMtime: folder.mtime || 0,
+        }),
+        tlfPath: action.payload.tlfPath,
+      })
+    )
+  } catch (e) {
+    return makeRetriableErrorHandler(action)(e)
+  }
+}
+
 const loadFavorites = async (state: TypedState, action: FsGen.FavoritesLoadPayload) => {
   try {
     if (
@@ -881,6 +916,7 @@ function* fsSaga() {
   yield* Saga.chainAction2(FsGen.kbfsDaemonRpcStatusChanged, setTlfsAsUnloadedWhenKbfsDaemonDisconnects)
   yield* Saga.chainGenerator<FsGen.FavoriteIgnorePayload>(FsGen.favoriteIgnore, ignoreFavoriteSaga)
   yield* Saga.chainAction2(FsGen.favoritesLoaded, updateFsBadge)
+  yield* Saga.chainAction2(FsGen.loadAdditionalTlf, loadAdditionalTlf)
   yield* Saga.chainAction2(FsGen.letResetUserBackIn, letResetUserBackIn)
   yield* Saga.chainAction2(FsGen.commitEdit, commitEdit)
   yield* Saga.chainAction2(FsGen.deleteFile, deleteFile)
@@ -898,7 +934,7 @@ function* fsSaga() {
   )
   if (flags.kbfsOfflineMode) {
     yield* Saga.chainAction2(FsGen.setTlfSyncConfig, setTlfSyncConfig)
-    yield* Saga.chainAction2([FsGen.loadTlfSyncConfig, FsGen.loadPathMetadata], loadTlfSyncConfig)
+    yield* Saga.chainAction2(FsGen.loadTlfSyncConfig, loadTlfSyncConfig)
     yield* Saga.chainAction2([FsGen.getOnlineStatus], getOnlineStatus)
     yield* Saga.chainAction2(ConfigGen.osNetworkStatusChanged, checkKbfsServerReachabilityIfNeeded)
     yield* Saga.chainAction2(
