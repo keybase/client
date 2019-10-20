@@ -843,6 +843,10 @@ export type MessageTypes = {
     inParam: void
     outParam: Array<String> | null
   }
+  'keybase.1.kbfsMount.WaitForMounts': {
+    inParam: void
+    outParam: Boolean
+  }
   'keybase.1.logUi.log': {
     inParam: {readonly level: LogLevel; readonly text: Text}
     outParam: void
@@ -3285,6 +3289,7 @@ export const installUninstallKBFSRpcPromise = (params: MessageTypes['keybase.1.i
 export const kbfsMountGetCurrentMountDirRpcPromise = (params: MessageTypes['keybase.1.kbfsMount.GetCurrentMountDir']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.kbfsMount.GetCurrentMountDir']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.kbfsMount.GetCurrentMountDir', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const kbfsMountGetKBFSPathInfoRpcPromise = (params: MessageTypes['keybase.1.kbfsMount.GetKBFSPathInfo']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.kbfsMount.GetKBFSPathInfo']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.kbfsMount.GetKBFSPathInfo', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const kbfsMountGetPreferredMountDirsRpcPromise = (params: MessageTypes['keybase.1.kbfsMount.GetPreferredMountDirs']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.kbfsMount.GetPreferredMountDirs']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.kbfsMount.GetPreferredMountDirs', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const kbfsMountWaitForMountsRpcPromise = (params: MessageTypes['keybase.1.kbfsMount.WaitForMounts']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.kbfsMount.WaitForMounts']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.kbfsMount.WaitForMounts', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const loginAccountDeleteRpcPromise = (params: MessageTypes['keybase.1.login.accountDelete']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.login.accountDelete']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.login.accountDelete', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const loginDeprovisionRpcPromise = (params: MessageTypes['keybase.1.login.deprovision']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.login.deprovision']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.login.deprovision', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const loginGetConfiguredAccountsRpcPromise = (params: MessageTypes['keybase.1.login.getConfiguredAccounts']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.login.getConfiguredAccounts']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.login.getConfiguredAccounts', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
