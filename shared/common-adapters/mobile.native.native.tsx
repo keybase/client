@@ -319,6 +319,9 @@ module.exports = {
   get OverlayParentHOC() {
     return Index.OverlayParentHOC
   },
+  get PanGestureHandler() {
+    return require('react-native-gesture-handler').PanGestureHandler
+  },
   get Placeholder() {
     return Index.Placeholder
   },

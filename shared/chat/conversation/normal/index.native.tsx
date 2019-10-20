@@ -58,7 +58,7 @@ class Conversation extends React.PureComponent<Props> {
           onRequestScrollUp={this.props.onRequestScrollUp}
           conversationIDKey={this.props.conversationIDKey}
         />
-        {this.props.audioRecording && <AudioRecorder />}
+        <AudioRecorder conversationIDKey={this.props.conversationIDKey} />
       </Box2>
     )
   }

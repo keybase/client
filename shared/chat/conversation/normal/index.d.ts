@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
 export type Props = {
-  audioRecording: boolean
   conversationIDKey: Types.ConversationIDKey
   focusInputCounter: number
   jumpToRecent: () => void

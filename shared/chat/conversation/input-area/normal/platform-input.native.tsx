@@ -242,7 +242,6 @@ const Action = React.memo(
     openMoreMenu,
   }: ActionProps) => {
     const hasValue = React.useRef(new Kb.NativeAnimated.Value(hasText ? 1 : 0)).current
-
     React.useEffect(() => {
       Kb.NativeAnimated.timing(hasValue, {
         duration: 200,
@@ -302,6 +301,11 @@ const Action = React.memo(
             )}
             {smallGap}
             <Kb.LongPressGestureHandler
+              onGestureEvent={({nativeEvent}) => {
+                if (nativeEvent.x < -150) {
+                  onStopAudioRecording()
+                }
+              }}
               onHandlerStateChange={({nativeEvent}) => {
                 if (nativeEvent.state === Kb.GestureState.ACTIVE) {
                   onStartAudioRecording()
