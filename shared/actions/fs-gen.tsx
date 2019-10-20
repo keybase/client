@@ -38,7 +38,6 @@ export const journalUpdate = 'fs:journalUpdate'
 export const kbfsDaemonOnlineStatusChanged = 'fs:kbfsDaemonOnlineStatusChanged'
 export const kbfsDaemonRpcStatusChanged = 'fs:kbfsDaemonRpcStatusChanged'
 export const letResetUserBackIn = 'fs:letResetUserBackIn'
-export const loadAdditionalTlf = 'fs:loadAdditionalTlf'
 export const loadDownloadInfo = 'fs:loadDownloadInfo'
 export const loadDownloadStatus = 'fs:loadDownloadStatus'
 export const loadFileContext = 'fs:loadFileContext'
@@ -46,7 +45,6 @@ export const loadPathInfo = 'fs:loadPathInfo'
 export const loadPathMetadata = 'fs:loadPathMetadata'
 export const loadSettings = 'fs:loadSettings'
 export const loadTlfSyncConfig = 'fs:loadTlfSyncConfig'
-export const loadedAdditionalTlf = 'fs:loadedAdditionalTlf'
 export const loadedDownloadInfo = 'fs:loadedDownloadInfo'
 export const loadedDownloadStatus = 'fs:loadedDownloadStatus'
 export const loadedFileContext = 'fs:loadedFileContext'
@@ -154,7 +152,6 @@ type _JournalUpdatePayload = {
 type _KbfsDaemonOnlineStatusChangedPayload = {readonly online: boolean}
 type _KbfsDaemonRpcStatusChangedPayload = {readonly rpcStatus: Types.KbfsDaemonRpcStatus}
 type _LetResetUserBackInPayload = {readonly id: RPCTypes.TeamID; readonly username: string}
-type _LoadAdditionalTlfPayload = {readonly tlfPath: Types.Path}
 type _LoadDownloadInfoPayload = {readonly downloadID: string}
 type _LoadDownloadStatusPayload = void
 type _LoadFileContextPayload = {readonly path: Types.Path}
@@ -162,7 +159,6 @@ type _LoadPathInfoPayload = {readonly path: Types.Path}
 type _LoadPathMetadataPayload = {readonly path: Types.Path}
 type _LoadSettingsPayload = void
 type _LoadTlfSyncConfigPayload = {readonly tlfPath: Types.Path}
-type _LoadedAdditionalTlfPayload = {readonly tlf: Types.Tlf; readonly tlfPath: Types.Path}
 type _LoadedDownloadInfoPayload = {readonly downloadID: string; readonly info: Types.DownloadInfo}
 type _LoadedDownloadStatusPayload = {
   readonly regularDownloads: Array<string>
@@ -345,10 +341,6 @@ export const createLetResetUserBackIn = (payload: _LetResetUserBackInPayload): L
   payload,
   type: letResetUserBackIn,
 })
-export const createLoadAdditionalTlf = (payload: _LoadAdditionalTlfPayload): LoadAdditionalTlfPayload => ({
-  payload,
-  type: loadAdditionalTlf,
-})
 export const createLoadDownloadInfo = (payload: _LoadDownloadInfoPayload): LoadDownloadInfoPayload => ({
   payload,
   type: loadDownloadInfo,
@@ -377,9 +369,6 @@ export const createLoadTlfSyncConfig = (payload: _LoadTlfSyncConfigPayload): Loa
   payload,
   type: loadTlfSyncConfig,
 })
-export const createLoadedAdditionalTlf = (
-  payload: _LoadedAdditionalTlfPayload
-): LoadedAdditionalTlfPayload => ({payload, type: loadedAdditionalTlf})
 export const createLoadedDownloadInfo = (payload: _LoadedDownloadInfoPayload): LoadedDownloadInfoPayload => ({
   payload,
   type: loadedDownloadInfo,
@@ -680,10 +669,6 @@ export type LetResetUserBackInPayload = {
   readonly payload: _LetResetUserBackInPayload
   readonly type: typeof letResetUserBackIn
 }
-export type LoadAdditionalTlfPayload = {
-  readonly payload: _LoadAdditionalTlfPayload
-  readonly type: typeof loadAdditionalTlf
-}
 export type LoadDownloadInfoPayload = {
   readonly payload: _LoadDownloadInfoPayload
   readonly type: typeof loadDownloadInfo
@@ -705,10 +690,6 @@ export type LoadSettingsPayload = {readonly payload: _LoadSettingsPayload; reado
 export type LoadTlfSyncConfigPayload = {
   readonly payload: _LoadTlfSyncConfigPayload
   readonly type: typeof loadTlfSyncConfig
-}
-export type LoadedAdditionalTlfPayload = {
-  readonly payload: _LoadedAdditionalTlfPayload
-  readonly type: typeof loadedAdditionalTlf
 }
 export type LoadedDownloadInfoPayload = {
   readonly payload: _LoadedDownloadInfoPayload
@@ -960,7 +941,6 @@ export type Actions =
   | KbfsDaemonOnlineStatusChangedPayload
   | KbfsDaemonRpcStatusChangedPayload
   | LetResetUserBackInPayload
-  | LoadAdditionalTlfPayload
   | LoadDownloadInfoPayload
   | LoadDownloadStatusPayload
   | LoadFileContextPayload
@@ -968,7 +948,6 @@ export type Actions =
   | LoadPathMetadataPayload
   | LoadSettingsPayload
   | LoadTlfSyncConfigPayload
-  | LoadedAdditionalTlfPayload
   | LoadedDownloadInfoPayload
   | LoadedDownloadStatusPayload
   | LoadedFileContextPayload

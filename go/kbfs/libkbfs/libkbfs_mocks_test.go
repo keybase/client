@@ -1166,21 +1166,6 @@ func (mr *MockKBFSOpsMockRecorder) GetFavoritesAll(arg0 interface{}) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFavoritesAll", reflect.TypeOf((*MockKBFSOps)(nil).GetFavoritesAll), arg0)
 }
 
-// GetFolderWithFavFlags mocks base method
-func (m *MockKBFSOps) GetFolderWithFavFlags(arg0 context.Context, arg1 *tlfhandle.Handle) (keybase1.FolderWithFavFlags, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetFolderWithFavFlags", arg0, arg1)
-	ret0, _ := ret[0].(keybase1.FolderWithFavFlags)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetFolderWithFavFlags indicates an expected call of GetFolderWithFavFlags
-func (mr *MockKBFSOpsMockRecorder) GetFolderWithFavFlags(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFolderWithFavFlags", reflect.TypeOf((*MockKBFSOps)(nil).GetFolderWithFavFlags), arg0, arg1)
-}
-
 // GetNodeMetadata mocks base method
 func (m *MockKBFSOps) GetNodeMetadata(arg0 context.Context, arg1 Node) (NodeMetadata, error) {
 	m.ctrl.T.Helper()
