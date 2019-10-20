@@ -25,7 +25,9 @@ const mapStateToProps = (state, {conversationIDKey}) => {
   )
   const showThreadSearch = Constants.getThreadSearchInfo(state, conversationIDKey).visible
   const meta = Constants.getMeta(state, conversationIDKey)
+  const audioRecording = !!state.chat2.audioRecording.get(conversationIDKey)
   return {
+    audioRecording,
     conversationIDKey,
     showLoader,
     showThreadSearch,
@@ -63,6 +65,7 @@ const hotkeys = [`${isDarwin ? 'command' : 'ctrl'}+f`]
 
 const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
   return {
+    audioRecording: stateProps.audioRecording,
     conversationIDKey: stateProps.conversationIDKey,
     hotkeys,
     jumpToRecent: dispatchProps.jumpToRecent,

@@ -18,7 +18,7 @@ import {PlatformInputPropsInternal} from './platform-input'
 import AddSuggestors, {standardTransformer} from '../suggestors'
 import {parseUri, launchCameraAsync, launchImageLibraryAsync} from '../../../../util/expo-image-picker'
 import {BotCommandUpdateStatus} from './shared'
-import {formatDurationShort, formatAudioRecordDuration} from '../../../../util/timestamp'
+import {formatDurationShort} from '../../../../util/timestamp'
 
 type menuType = 'exploding' | 'filepickerpopup' | 'moremenu'
 
@@ -165,20 +165,14 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
               </Kb.Text>
             </Kb.Box>
           )}
-          {!this.props.audioRecording && !this.props.isEditing && !this.props.cannotWrite && (
+          {!this.props.isEditing && !this.props.cannotWrite && (
             <ExplodingIcon
               explodingModeSeconds={this.props.explodingModeSeconds}
               isExploding={this.props.isExploding}
               openExplodingPicker={() => this._toggleShowingMenu('exploding')}
             />
           )}
-          {!!this.props.audioRecording && (
-            <>
-              <AudioCounter />
-              <AudioSlideToCancel />
-            </>
-          )}
-          {!this.props.audioRecording && (
+          {
             <Kb.PlainInput
               autoCorrect={true}
               autoCapitalize="sentences"
@@ -202,7 +196,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
               rowsMax={Styles.dimensionHeight < 600 ? 5 : 9}
               rowsMin={1}
             />
-          )}
+          }
           {!this.props.cannotWrite && (
             <Action
               audioRecording={this.props.audioRecording}
@@ -317,78 +311,26 @@ const Action = React.memo(
               }}
             >
               <Kb.NativeView style={{height: 22, width: 22}}>
-                {!audioRecording ? (
-                  <Kb.Icon
-                    type="iconfont-star"
-                    style={Kb.iconCastPlatformStyles(styles.actionButton)}
-                    fontSize={22}
-                  />
-                ) : (
-                  <AudioRecorder />
-                )}
+                <Kb.Icon
+                  type="iconfont-star"
+                  style={Kb.iconCastPlatformStyles(styles.actionButton)}
+                  fontSize={22}
+                />
               </Kb.NativeView>
             </Kb.LongPressGestureHandler>
             {smallGap}
-            {!audioRecording && (
-              <Kb.Icon
-                onClick={openMoreMenu}
-                type="iconfont-add"
-                style={Kb.iconCastPlatformStyles(styles.actionButton)}
-                fontSize={22}
-              />
-            )}
+            <Kb.Icon
+              onClick={openMoreMenu}
+              type="iconfont-add"
+              style={Kb.iconCastPlatformStyles(styles.actionButton)}
+              fontSize={22}
+            />
           </Kb.Box2>
         </Kb.NativeAnimated.View>
       </Kb.Box2>
     )
   }
 )
-
-const AudioSlideToCancel = () => {
-  return (
-    <Kb.Box2 direction="horizontal">
-      <Kb.Icon type="iconfont-arrow-left" fontSize={16} />
-      <Kb.Text type="BodySecondaryLink">Slide to cancel</Kb.Text>
-    </Kb.Box2>
-  )
-}
-
-const AudioCounter = () => {
-  const [seconds, setSeconds] = React.useState(0)
-  React.useEffect(() => {
-    const timer = setInterval(() => {
-      setSeconds(seconds + 1)
-    }, 1000)
-    return () => clearTimeout(timer)
-  }, [seconds])
-  return <Kb.Text type="BodyBold">{formatAudioRecordDuration(seconds * 1000)}</Kb.Text>
-}
-
-const AudioRecorder = () => {
-  const radiusBoost = React.useRef(new Kb.NativeAnimated.Value(0)).current
-  React.useEffect(() => {
-    Kb.NativeAnimated.timing(radiusBoost, {
-      duration: 200,
-      toValue: 44,
-    }).start()
-  }, [])
-  const size = Kb.NativeAnimated.add(25, radiusBoost)
-  const borderRadius = Kb.NativeAnimated.divide(size, 2)
-  return (
-    <Kb.NativeAnimated.View
-      style={{
-        height: size,
-        width: size,
-        borderRadius,
-        backgroundColor: Styles.globalColors.blue,
-        position: 'absolute',
-        bottom: '5%',
-      }}
-    >
-      <Kb.Icon type="iconfont-arrow-left" fontSize={22} />
-    </Kb.NativeAnimated.View>
-  )
-}
 
 const ExplodingIcon = ({explodingModeSeconds, isExploding, openExplodingPicker}) => (
   <Kb.Box2 direction="horizontal" style={styles.explodingOuterContainer}>
