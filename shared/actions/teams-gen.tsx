@@ -231,6 +231,9 @@ type _SetTeamInfoPayload = {
   readonly teamNameToIsShowcasing: I.Map<Types.Teamname, boolean>
   readonly teamNameToID: I.Map<Types.Teamname, string>
   readonly teamIDToName: Map<Types.TeamID, string>
+  readonly teamIDToIsOpen: Map<Types.TeamID, boolean>
+  readonly teamIDToAllowPromote: Map<Types.TeamID, boolean>
+  readonly teamIDToIsShowcasing: Map<Types.TeamID, boolean>
 }
 type _SetTeamInviteErrorPayload = {readonly error: string}
 type _SetTeamJoinErrorPayload = {readonly error: string}

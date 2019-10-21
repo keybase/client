@@ -123,11 +123,14 @@ export type State = Readonly<{
   teamJoinSuccess: boolean
   teamJoinSuccessTeamName: string
   teamCreationError: string
+  teamIDToAllowPromote: Map<TeamID, boolean>
+  teamIDToIsOpen: Map<TeamID, boolean>
+  teamIDToIsShowcasing: Map<TeamID, boolean>
   teamIDToName: Map<TeamID, string>
   teamNameToChannelInfos: I.Map<Teamname, I.Map<ConversationIDKey, ChannelInfo>>
   teamNameToID: I.Map<Teamname, string>
   teamNameToInvites: I.Map<Teamname, I.Set<InviteInfo>>
-  teamNameToIsOpen: I.Map<Teamname, boolean>
+  teamNameToIsOpen: I.Map<Teamname, boolean> // TODO remove
   teamNameToLoadingInvites: I.Map<Teamname, I.Map<string, boolean>>
   teamNameToMembers: I.Map<Teamname, I.Map<string, MemberInfo>>
   teamNameToRequests: I.Map<Teamname, I.Set<RequestInfo>>
@@ -138,8 +141,8 @@ export type State = Readonly<{
   teamNameToCanPerform: I.Map<Teamname, TeamOperations>
   teamNameToSettings: I.Map<Teamname, TeamSettings>
   teamNameToPublicitySettings: I.Map<Teamname, _PublicitySettings>
-  teamNameToAllowPromote: I.Map<Teamname, boolean>
-  teamNameToIsShowcasing: I.Map<Teamname, boolean>
+  teamNameToAllowPromote: I.Map<Teamname, boolean> // TODO remove
+  teamNameToIsShowcasing: I.Map<Teamname, boolean> // TODO remove
   teamnames: Set<Teamname>
   teammembercounts: I.Map<Teamname, number>
   teamProfileAddList: Array<TeamProfileAddList>

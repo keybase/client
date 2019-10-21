@@ -130,6 +130,9 @@ export default (
         draftState.teammembercounts = action.payload.teammembercounts
         draftState.teamnames = action.payload.teamnames
         draftState.teamIDToName = action.payload.teamIDToName
+        draftState.teamIDToAllowPromote = action.payload.teamIDToAllowPromote
+        draftState.teamIDToIsOpen = action.payload.teamIDToIsOpen
+        draftState.teamIDToIsShowcasing = action.payload.teamIDToIsShowcasing
         return
       case TeamsGen.setTeamAccessRequestsPending:
         draftState.teamAccessRequestsPending = action.payload.accessRequestsPending
