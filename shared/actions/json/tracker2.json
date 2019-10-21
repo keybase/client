@@ -68,7 +68,8 @@
       "location?": "string",
       "pictureUrl?": "string",
       "siteIcon": "Array<Types.SiteIcon>",
-      "siteIconFull": "Array<Types.SiteIcon>"
+      "siteIconFull": "Array<Types.SiteIcon>",
+      "siteIconWhite": "Array<Types.SiteIcon>"
     }
   }
 }

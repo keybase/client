@@ -664,6 +664,19 @@ func (m *MsgEphemeralMetadata) String() string {
 	return fmt.Sprintf("{ Lifetime: %v, Generation: %v, ExplodedBy: %v }", m.Lifetime.ToDuration(), m.Generation, explodedBy)
 }
 
+func (m MessagePlaintext) IsVisible() bool {
+	typ, err := m.MessageBody.MessageType()
+	if err != nil {
+		return false
+	}
+	for _, visType := range VisibleChatMessageTypes() {
+		if typ == visType {
+			return true
+		}
+	}
+	return false
+}
+
 func (m MessagePlaintext) SearchableText() string {
 	return m.MessageBody.SearchableText()
 }
@@ -2634,4 +2647,8 @@ func (e OutboxErrorType) IsBadgableError() bool {
 	default:
 		return false
 	}
+}
+
+func (c UserBotCommandOutput) Matches(text string) bool {
+	return strings.HasPrefix(text, fmt.Sprintf("!%s ", c.Name))
 }
