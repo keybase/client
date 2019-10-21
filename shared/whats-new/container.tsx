@@ -14,6 +14,12 @@ import {
 import {Current, Last, LastLast} from './versions'
 import WhatsNew from '.'
 
+type OwnProps = {
+  // Desktop only: popup.desktop.tsx passes this function to close the popup
+  // when navigating within the app
+  onBack?: () => void
+}
+
 const mapStateToProps = (state: Container.TypedState) => ({
   lastSeenVersion: state.config.whatsNewLastSeenVersion,
 })
@@ -46,10 +52,19 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
 })
 const mergeProps = (
   stateProps: ReturnType<typeof mapStateToProps>,
-  dispatchProps: ReturnType<typeof mapDispatchToProps>
+  dispatchProps: ReturnType<typeof mapDispatchToProps>,
+  ownProps: OwnProps
 ) => {
   const seenVersions = getSeenVersions(stateProps.lastSeenVersion)
   const newRelease = anyVersionsUnseen(stateProps.lastSeenVersion)
+  const onBack = () => {
+    if (newRelease) {
+      dispatchProps._onUpdateLastSeenVersion(currentVersion)
+    }
+    if (ownProps.onBack) {
+      ownProps.onBack()
+    }
+  }
   return {
     Current,
     Last,
@@ -58,12 +73,11 @@ const mergeProps = (
     lastLastVersion,
     lastVersion,
     noVersion,
-    onBack: () => {
-      if (newRelease) {
-        dispatchProps._onUpdateLastSeenVersion(currentVersion)
-      }
+    onBack,
+    onNavigate: () => {
+      onBack()
+      dispatchProps._onNavigate
     },
-    onNavigate: dispatchProps._onNavigate,
     onNavigateExternal: dispatchProps._onNavigateExternal,
     seenVersions,
   }

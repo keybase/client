@@ -133,9 +133,6 @@ const styles = Styles.styleSheetCreate(() => ({
   badgeContainerStyle: {
     position: 'absolute',
   },
-  badgeStyles: {
-    backgroundColor: Styles.globalColors.blue,
-  },
   badgePositioning: {
     right: -1,
     top: 1,
@@ -143,6 +140,9 @@ const styles = Styles.styleSheetCreate(() => ({
   badgePositioningAlt: {
     right: 1,
     top: 3,
+  },
+  badgeStyles: {
+    backgroundColor: Styles.globalColors.blue,
   },
   iconContainer: Styles.platformStyles({
     common: {

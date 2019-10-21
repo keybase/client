@@ -30,7 +30,7 @@ const IconContainer = Container.connect(
   })
 )(IconComponent)
 
-// Whats New icon with popup which is connectected to the badge state and marking release as seen.
+// Whats New icon with popup which is connected to the badge state and marking release as seen.
 export const IconWithPopup = Container.connect(
   mapStateToProps,
   () => ({}),

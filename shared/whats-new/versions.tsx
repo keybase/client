@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
+import {appendNewChatBuilder} from '../actions/typed-routes'
 import {accountTab, displayTab, contactsTab} from '../constants/settings'
 import NewFeatureRow from './new-feature-row'
 
@@ -48,15 +49,13 @@ export const Current = ({seen, onNavigate, onNavigateExternal}: VersionProps) =>
       </NewFeatureRow>
       <NewFeatureRow
         seen={seen}
-        primaryButtonText={Styles.isMobile ? 'Try it' : 'Read the doc'}
+        primaryButtonText="Try it"
         onPrimaryButtonClick={() => {
-          Styles.isMobile
-            ? onNavigate({}, contactsTab)
-            : onNavigateExternal('https://keybase.io/docs/chat/phones_and_emails')
+          onNavigate({namespace: 'chat2', title: 'New chat'}, 'chatNewChat')
         }}
-        secondaryButtonText={Styles.isMobile ? 'Read the doc' : undefined}
+        secondaryButtonText="Read the doc"
         onSecondaryButtonClick={() => {
-          Styles.isMobile && onNavigateExternal('https://keybase.io/docs/chat/phones_and_emails')
+          onNavigateExternal('https://keybase.io/docs/chat/phones_and_emails')
         }}
       >
         You can now start a conversation with a phone number or email address.

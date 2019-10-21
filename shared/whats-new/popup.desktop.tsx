@@ -20,7 +20,7 @@ const Popup = (props: Props) => {
       onHidden={props.onHidden}
       attachTo={props.attachTo}
     >
-      <WhatsNew />
+      <WhatsNew onBack={onHidden} />
     </Kb.FloatingBox>
   )
 }
