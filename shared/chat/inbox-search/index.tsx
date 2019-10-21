@@ -214,6 +214,10 @@ const styles = Styles.styleSheetCreate(
           minWidth: inboxWidth,
           position: 'relative',
         },
+        isMobile: {
+          height: '100%',
+          width: '100%',
+        },
       }),
       errorText: {
         color: Styles.globalColors.redDark,
