@@ -145,6 +145,8 @@ export default Container.namedConnect(
       ),
     _onGiphyToggle: (conversationIDKey: Types.ConversationIDKey) =>
       dispatch(Chat2Gen.createToggleGiphyPrefill({conversationIDKey})),
+    _onLockAudioRecording: (conversationIDKey: Types.ConversationIDKey) =>
+      dispatch(Chat2Gen.createLockAudioRecording({conversationIDKey})),
     _onPostMessage: (
       conversationIDKey: Types.ConversationIDKey,
       text: string,
@@ -160,7 +162,7 @@ export default Container.namedConnect(
     _onStartAudioRecording: (conversationIDKey: Types.ConversationIDKey) =>
       dispatch(Chat2Gen.createStartAudioRecording({conversationIDKey})),
     _onStopAudioRecording: (conversationIDKey: Types.ConversationIDKey) =>
-      dispatch(Chat2Gen.createStopAudioRecording({conversationIDKey})),
+      dispatch(Chat2Gen.createStopAudioRecording({conversationIDKey, lockOverride: false})),
     _sendTyping: (conversationIDKey: Types.ConversationIDKey, typing: boolean) =>
       conversationIDKey && dispatch(Chat2Gen.createSendTyping({conversationIDKey, typing})),
     _unsentTextChanged: (conversationIDKey: Types.ConversationIDKey, text: string) =>
@@ -208,6 +210,7 @@ export default Container.namedConnect(
     onEditLastMessage: () => dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
     onFilePickerError: dispatchProps.onFilePickerError,
     onGiphyToggle: () => dispatchProps._onGiphyToggle(stateProps.conversationIDKey),
+    onLockAudioRecording: () => dispatchProps._onLockAudioRecording(stateProps.conversationIDKey),
     onRequestScrollDown: ownProps.onRequestScrollDown,
     onRequestScrollUp: ownProps.onRequestScrollUp,
     onStartAudioRecording: () => dispatchProps._onStartAudioRecording(stateProps.conversationIDKey),

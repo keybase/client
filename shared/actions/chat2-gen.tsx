@@ -60,6 +60,7 @@ export const loadAttachmentView = 'chat2:loadAttachmentView'
 export const loadMessagesCentered = 'chat2:loadMessagesCentered'
 export const loadNewerMessagesDueToScroll = 'chat2:loadNewerMessagesDueToScroll'
 export const loadOlderMessagesDueToScroll = 'chat2:loadOlderMessagesDueToScroll'
+export const lockAudioRecording = 'chat2:lockAudioRecording'
 export const markConversationsStale = 'chat2:markConversationsStale'
 export const markInitiallyLoadedThreadAsRead = 'chat2:markInitiallyLoadedThreadAsRead'
 export const messageAttachmentNativeSave = 'chat2:messageAttachmentNativeSave'
@@ -288,6 +289,7 @@ type _LoadMessagesCenteredPayload = {
 }
 type _LoadNewerMessagesDueToScrollPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _LoadOlderMessagesDueToScrollPayload = {readonly conversationIDKey: Types.ConversationIDKey}
+type _LockAudioRecordingPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _MarkConversationsStalePayload = {
   readonly conversationIDKeys: Array<Types.ConversationIDKey>
   readonly updateType: RPCChatTypes.StaleUpdateType
@@ -581,7 +583,10 @@ type _SetUnsentTextPayload = {
 type _SetWalletsOldPayload = void
 type _StartAudioRecordingPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _StaticConfigLoadedPayload = {readonly staticConfig: Types.StaticConfig}
-type _StopAudioRecordingPayload = {readonly conversationIDKey: Types.ConversationIDKey}
+type _StopAudioRecordingPayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly lockOverride: boolean
+}
 type _TabSelectedPayload = void
 type _ThreadSearchPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
@@ -1233,6 +1238,10 @@ export const createLoadNewerMessagesDueToScroll = (
 export const createLoadOlderMessagesDueToScroll = (
   payload: _LoadOlderMessagesDueToScrollPayload
 ): LoadOlderMessagesDueToScrollPayload => ({payload, type: loadOlderMessagesDueToScroll})
+export const createLockAudioRecording = (payload: _LockAudioRecordingPayload): LockAudioRecordingPayload => ({
+  payload,
+  type: lockAudioRecording,
+})
 export const createMarkConversationsStale = (
   payload: _MarkConversationsStalePayload
 ): MarkConversationsStalePayload => ({payload, type: markConversationsStale})
@@ -1578,6 +1587,10 @@ export type LoadNewerMessagesDueToScrollPayload = {
 export type LoadOlderMessagesDueToScrollPayload = {
   readonly payload: _LoadOlderMessagesDueToScrollPayload
   readonly type: typeof loadOlderMessagesDueToScroll
+}
+export type LockAudioRecordingPayload = {
+  readonly payload: _LockAudioRecordingPayload
+  readonly type: typeof lockAudioRecording
 }
 export type MarkConversationsStalePayload = {
   readonly payload: _MarkConversationsStalePayload
@@ -1974,6 +1987,7 @@ export type Actions =
   | LoadMessagesCenteredPayload
   | LoadNewerMessagesDueToScrollPayload
   | LoadOlderMessagesDueToScrollPayload
+  | LockAudioRecordingPayload
   | MarkConversationsStalePayload
   | MarkInitiallyLoadedThreadAsReadPayload
   | MessageAttachmentNativeSavePayload

@@ -201,6 +201,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
             <Action
               audioRecording={this.props.audioRecording}
               hasText={this.state.hasText}
+              onLockAudioRecording={this.props.onLockAudioRecording}
               onStartAudioRecording={this.props.onStartAudioRecording}
               onStopAudioRecording={this.props.onStopAudioRecording}
               onSubmit={this._onSubmit}
@@ -235,6 +236,7 @@ const Action = React.memo(
     hasText,
     insertMentionMarker,
     isEditing,
+    onLockAudioRecording,
     onStartAudioRecording,
     onStopAudioRecording,
     onSubmit,
@@ -304,6 +306,9 @@ const Action = React.memo(
               onGestureEvent={({nativeEvent}) => {
                 if (nativeEvent.x < -150) {
                   onStopAudioRecording()
+                }
+                if (nativeEvent.y < -100) {
+                  onLockAudioRecording()
                 }
               }}
               onHandlerStateChange={({nativeEvent}) => {

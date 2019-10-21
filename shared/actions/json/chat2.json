@@ -772,6 +772,10 @@
       "conversationIDKey": "Types.ConversationIDKey"
     },
     "stopAudioRecording": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "lockOverride": "boolean"
+    },
+    "lockAudioRecording": {
       "conversationIDKey": "Types.ConversationIDKey"
     }
   }

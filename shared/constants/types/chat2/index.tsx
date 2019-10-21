@@ -111,8 +111,14 @@ export type Coordinate = {
   lon: number
 }
 
+export enum AudioRecordingStatus {
+  INITIAL = 0,
+  LOCKED,
+  STAGED,
+}
+
 export type AudioRecordingInfo = {
-  locked: boolean
+  status: AudioRecordingStatus
   lastAmplitude: number
 }
 

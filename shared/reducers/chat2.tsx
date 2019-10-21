@@ -551,16 +551,25 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
       }
       case Chat2Gen.startAudioRecording: {
         const audio = new Map(draftState.audioRecording)
-        audio.set(action.payload.conversationIDKey, {
-          locked: false,
-          lastAmplitude: 0,
-        })
+        audio.set(action.payload.conversationIDKey, Constants.makeAudioRecordingInfo())
         draftState.audioRecording = audio
         return
       }
       case Chat2Gen.stopAudioRecording: {
         const audio = new Map(draftState.audioRecording)
+        const info = audio.get(action.payload.conversationIDKey) || Constants.makeAudioRecordingInfo()
+        if (info.status === Types.AudioRecordingStatus.LOCKED && !action.payload.lockOverride) {
+          return
+        }
         audio.delete(action.payload.conversationIDKey)
+        draftState.audioRecording = audio
+        return
+      }
+      case Chat2Gen.lockAudioRecording: {
+        const audio = new Map(draftState.audioRecording)
+        const info = audio.get(action.payload.conversationIDKey) || Constants.makeAudioRecordingInfo()
+        info.status = Types.AudioRecordingStatus.LOCKED
+        audio.set(action.payload.conversationIDKey, info)
         draftState.audioRecording = audio
         return
       }

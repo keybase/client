@@ -112,6 +112,11 @@ export const makeAttachmentViewInfo = (): Types.AttachmentViewInfo => ({
 
 export const initialAttachmentViewInfo = makeAttachmentViewInfo()
 
+export const makeAudioRecordingInfo = (): Types.AudioRecordingInfo => ({
+  lastAmplitude: 0,
+  status: Types.AudioRecordingStatus.INITIAL,
+})
+
 export const getInboxSearchSelected = (inboxSearch: Types.InboxSearchInfo) => {
   if (inboxSearch.selectedIndex < inboxSearch.nameResults.length) {
     const maybeNameResults = inboxSearch.nameResults[inboxSearch.selectedIndex]
