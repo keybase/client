@@ -16,6 +16,7 @@ const NewFeature = (props: Props) => {
     <Kb.Button
       type="Default"
       mode="Primary"
+      small={true}
       label={props.primaryButtonText}
       style={styles.buttons}
       onClick={props.onPrimaryButtonClick}
@@ -27,6 +28,7 @@ const NewFeature = (props: Props) => {
       <Kb.Button
         type="Default"
         mode="Secondary"
+        small={true}
         label={props.secondaryButtonText}
         style={styles.buttons}
         onClick={props.onSecondaryButtonClick}
@@ -47,14 +49,14 @@ const NewFeature = (props: Props) => {
       )}
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.contentContainer}>
         <Kb.Text type="Body">{props.children}</Kb.Text>
-        <Kb.Box2 direction="vertical" style={styles.imageContainer}>
-          {props.image && (
+        {props.image && (
+          <Kb.Box2 direction="vertical" style={styles.imageContainer}>
             <Kb.RequireImage
               src={props.image}
               style={Styles.collapseStyles([styles.image, props.imageStyle])}
             />
-          )}
-        </Kb.Box2>
+          </Kb.Box2>
+        )}
         <Kb.Box2 direction="horizontal" style={styles.buttonRowContainer} gap="xtiny">
           {primaryButton}
           {secondaryButton}

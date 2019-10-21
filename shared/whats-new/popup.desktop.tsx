@@ -26,10 +26,15 @@ const Popup = (props: Props) => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  container: {
-    ...Styles.globalStyles.rounded,
-    marginRight: Styles.globalMargins.tiny,
-  },
+  container: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.rounded,
+      marginRight: Styles.globalMargins.tiny,
+    },
+    isElectron: {
+      ...Styles.desktopStyles.boxShadow,
+    },
+  }),
 }))
 
 export default Popup
