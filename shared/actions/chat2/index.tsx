@@ -2264,14 +2264,6 @@ const loadCanUserPerform = (state: TypedState, action: Chat2Gen.SelectConversati
   return undefined
 }
 
-const refreshCanUserPerform = (
-  _: TypedState,
-  action: EngineGen.Keybase1NotifyCanUserPerformCanUserPerformChangedPayload
-) => {
-  const {teamName} = action.payload.params
-  return TeamsGen.createGetTeamOperations({teamname: teamName})
-}
-
 // Get the full channel names/descs for a team if we don't already have them.
 function* loadChannelInfos(state: TypedState, action: Chat2Gen.SelectConversationPayload) {
   const {conversationIDKey} = action.payload
@@ -3638,11 +3630,6 @@ function* chat2Saga() {
   yield* Saga.chainAction2(EngineGen.connected, onConnect, 'onConnect')
 
   yield* chatTeamBuildingSaga()
-  yield* Saga.chainAction2(
-    EngineGen.keybase1NotifyCanUserPerformCanUserPerformChanged,
-    refreshCanUserPerform,
-    'refreshCanUserPerform'
-  )
   yield* Saga.chainAction2(EngineGen.chat1NotifyChatChatConvUpdate, onChatConvUpdate, 'onChatConvUpdate')
 }
 

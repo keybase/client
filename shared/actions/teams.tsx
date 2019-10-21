@@ -1432,6 +1432,14 @@ function addThemToTeamFromTeamBuilder(
   )
 }
 
+const refreshCanUserPerform = (
+  _: TypedState,
+  action: EngineGen.Keybase1NotifyCanUserPerformCanUserPerformChangedPayload
+) => {
+  const {teamName} = action.payload.params
+  return TeamsGen.createGetTeamOperations({teamname: teamName})
+}
+
 function* teamBuildingSaga() {
   yield* commonTeamBuildingSaga('teams')
 
@@ -1550,6 +1558,11 @@ const teamsSaga = function*() {
   )
 
   yield* Saga.chainAction2(TeamsGen.clearNavBadges, clearNavBadges)
+  yield* Saga.chainAction2(
+    EngineGen.keybase1NotifyCanUserPerformCanUserPerformChanged,
+    refreshCanUserPerform,
+    'refreshCanUserPerform'
+  )
 
   // Hook up the team building sub saga
   yield* teamBuildingSaga()
