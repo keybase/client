@@ -13,6 +13,7 @@ export type Props = {
   showServiceResultCount: boolean
   servicesShown?: number
   minimalBorder?: boolean
+  size: any
 }
 
 export type IconProps = {

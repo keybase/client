@@ -1,3 +1,4 @@
-import {SectionList} from 'react-native'
+import {Animated, SectionList} from 'react-native'
 
-export default SectionList
+const AnimatedSectionList = Animated.createAnimatedComponent(SectionList)
+export default AnimatedSectionList
