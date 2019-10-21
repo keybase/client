@@ -5,7 +5,6 @@ import * as TeamBuildingConstants from './team-building'
 import invert from 'lodash/invert'
 import {IconType} from '../common-adapters/icon.constants-gen' // do NOT pull in all of common-adapters
 import {isMobile} from './platform'
-import {e164ToDisplay} from '../util/phone-numbers'
 
 export const defaultNumFollowSuggestions = 10
 export const getPeopleDataWaitingKey = 'getPeopleData'
@@ -116,6 +115,7 @@ export function makeDescriptionForTodoItem(todo: RPCTypes.HomeScreenTodo) {
     case T.verifyAllEmail:
       return `Your email address *${todo.verifyAllEmail}* is unverified.`
     case T.verifyAllPhoneNumber: {
+      const {e164ToDisplay} = require('../util/phone-numbers')
       const p = todo.verifyAllPhoneNumber
       return `Your number *${p ? e164ToDisplay(p) : ''}* is unverified.`
     }

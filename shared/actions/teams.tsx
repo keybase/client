@@ -24,7 +24,6 @@ import {uploadAvatarWaitingKey} from '../constants/profile'
 import openSMS from '../util/sms'
 import {convertToError, logError} from '../util/errors'
 import {TypedState, TypedActions, isMobile} from '../util/container'
-import {e164ToDisplay} from '../util/phone-numbers'
 
 function* createNewTeam(_: TypedState, action: TeamsGen.CreateNewTeamPayload) {
   const {joinSubteam, teamname} = action.payload
@@ -571,6 +570,8 @@ function* getDetails(_: TypedState, action: TeamsGen.GetDetailsPayload, logger: 
           const sbs: RPCTypes.TeamInviteSocialNetwork = t.sbs
           username = `${invite.name}@${sbs}`
         }
+
+        const {e164ToDisplay} = require('../util/phone-numbers')
         arr.push(
           Constants.makeInviteInfo({
             email: invite.type.c === RPCTypes.TeamInviteCategory.email ? invite.name : '',
