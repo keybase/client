@@ -123,7 +123,6 @@ export type State = Readonly<{
   teamJoinSuccess: boolean
   teamJoinSuccessTeamName: string
   teamCreationError: string
-  teamIDs: Array<TeamID>
   teamIDToName: Map<TeamID, string>
   teamNameToChannelInfos: I.Map<Teamname, I.Map<ConversationIDKey, ChannelInfo>>
   teamNameToID: I.Map<Teamname, string>

@@ -223,8 +223,7 @@ type _SetTeamDetailsPayload = {
   readonly requests: I.Map<string, I.Set<Types.RequestInfo>>
 }
 type _SetTeamInfoPayload = {
-  readonly teamnames: I.Set<Types.Teamname>
-  readonly teamIDs: Array<Types.TeamID>
+  readonly teamnames: Set<Types.Teamname>
   readonly teammembercounts: I.Map<Types.Teamname, number>
   readonly teamNameToIsOpen: I.Map<Types.Teamname, boolean>
   readonly teamNameToRole: I.Map<Types.Teamname, Types.MaybeTeamRoleType>

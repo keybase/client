@@ -218,8 +218,7 @@
       "channelInfos": "I.Map<ChatTypes.ConversationIDKey, Types.ChannelInfo>"
     },
     "setTeamInfo": {
-      "teamnames": "I.Set<Types.Teamname>",
-      "teamIDs": "Array<Types.TeamID>",
+      "teamnames": "Set<Types.Teamname>",
       "teammembercounts": "I.Map<Types.Teamname, number>",
       "teamNameToIsOpen": "I.Map<Types.Teamname, boolean>",
       "teamNameToRole": "I.Map<Types.Teamname, Types.MaybeTeamRoleType>",
