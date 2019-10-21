@@ -20,7 +20,12 @@ type teamEKBoxCacheItem struct {
 
 func newTeamEKBoxCacheItem(teamEKBoxed keybase1.TeamEphemeralKeyBoxed, err error) teamEKBoxCacheItem {
 	var ekErr *EphemeralKeyError
-	if e, ok := err.(EphemeralKeyError); ok {
+	e, ok := err.(EphemeralKeyError)
+	if !ok && err != nil {
+		e = newEphemeralKeyError(err.Error(), DefaultHumanErrMsg,
+			EphemeralKeyErrorKind_UNKNOWN, TeamEKKind)
+	}
+	if err != nil {
 		ekErr = &e
 	}
 	return teamEKBoxCacheItem{
@@ -103,10 +108,13 @@ func (s *TeamEKBoxStorage) Get(mctx libkb.MetaContext, teamID keybase1.TeamID, g
 	}
 
 	teamEK, err = s.keyer.Unbox(mctx, cacheItem.TeamEKBoxed, contentCtime)
-	if err != nil { // if we can no longer unbox this, store the error
+	switch err.(type) {
+	case EphemeralKeyError:
 		if perr := s.putLocked(mctx, teamID, generation, keybase1.TeamEphemeralKeyBoxed{}, err); perr != nil {
 			mctx.Debug("unable to store unboxing error %v", perr)
 		}
+	default:
+		// don't store
 	}
 	return teamEK, err
 }
