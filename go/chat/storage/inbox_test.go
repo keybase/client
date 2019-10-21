@@ -931,7 +931,10 @@ func TestInboxMembershipUpdate(t *testing.T) {
 	vers, res, err := inbox.ReadAll(context.TODO(), uid, true)
 	require.NoError(t, err)
 	require.Equal(t, chat1.InboxVers(2), vers)
-	for _, c := range res {
+	for i, c := range res {
+		// make sure we bump the local version during the membership update for a role change
+		require.EqualValues(t, 1, c.Conv.Metadata.LocalVersion)
+		res[i].Conv.Metadata.LocalVersion = 0 // zero it out for later equality checks
 		if c.GetConvID().Eq(convs[5].GetConvID()) {
 			require.Equal(t, chat1.ConversationMemberStatus_LEFT, c.Conv.ReaderInfo.Status)
 			require.Equal(t, keybase1.TeamRole_WRITER, c.Conv.ReaderInfo.UntrustedTeamRole)
