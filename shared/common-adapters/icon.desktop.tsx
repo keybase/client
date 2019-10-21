@@ -180,6 +180,7 @@ export function iconTypeToImgSet(imgMap: {[size: string]: string}, targetSize: n
       const img = imgMap[multsMap[mult]]
       if (!img) return null
       const url = resolveImageAsURL('icons', img)
+      if (Styles.isDarkMode()) url.replace('icon-', 'icon-dark-')
       return `url('${url}.png') ${mult}x`
     })
     .filter(Boolean)

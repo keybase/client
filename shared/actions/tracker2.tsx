@@ -257,6 +257,7 @@ const loadNonUserProfile = async (_: Container.TypedState, action: Tracker2Gen.L
         description: res.description,
         siteIcon: res.siteIcon || [],
         siteIconFull: res.siteIconFull || [],
+        siteIconWhite: res.siteIconWhite || [],
       }
       if (res.service) {
         return Tracker2Gen.createLoadedNonUserProfile({

@@ -33,6 +33,7 @@ export type Assertion = {
   sigID: string
   siteIcon: SiteIconSet
   siteIconFull: SiteIconSet // full color icon,
+  siteIconWhite: SiteIconSet
   siteURL: string // https://twitter.com/bob,
   state: AssertionState
   timestamp: number // can be 0,
@@ -73,6 +74,7 @@ export type NonUserDetails = {
   formattedName?: string
   siteIcon: SiteIconSet
   siteIconFull: SiteIconSet // full color icon,
+  siteIconWhite: SiteIconSet
   siteURL: string // https://twitter.com/bob,
 }
 

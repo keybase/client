@@ -73,7 +73,7 @@ const ConfirmSend = (props: ConfirmSendProps) => {
                   <Kb.Icon
                     type="iconfont-stellar-send"
                     style={Kb.iconCastPlatformStyles(styles.buttonIcon)}
-                    color={Styles.globalColors.white}
+                    color={Styles.globalColors.whiteOrWhite}
                   />
                   <Kb.Text type="BodyBig" style={styles.buttonText}>
                     Send{' '}
@@ -112,7 +112,7 @@ const styles = Styles.styleSheetCreate(() => ({
   buttonIcon: {
     marginRight: Styles.globalMargins.xtiny,
   },
-  buttonText: {color: Styles.globalColors.white},
+  buttonText: {color: Styles.globalColors.whiteOrWhite},
   container: Styles.platformStyles({
     isElectron: {
       height: 560,

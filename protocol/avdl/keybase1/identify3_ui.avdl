@@ -53,6 +53,7 @@ protocol identify3Ui {
     string siteURL;                // https://twitter.com/bob
     array<SizedImage> siteIcon;
     array<SizedImage> siteIconFull;
+    array<SizedImage> siteIconWhite;
     @lint("ignore")
     string proofURL;               // http://twitter.com/bob/post/1234
     SigID sigID;                   // so we can later revoke the sig....
