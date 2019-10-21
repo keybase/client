@@ -14,6 +14,7 @@ const Checkbox = (props: Props) => (
       props.onCheck && props.onCheck(!props.checked)
     }}
     style={Styles.collapseStyles([styles.container, props.style])}
+    labelSubtitle={props.labelSubtitle}
   />
 )
 
