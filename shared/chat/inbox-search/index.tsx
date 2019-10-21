@@ -188,14 +188,14 @@ class InboxSearch extends React.Component<Props, State> {
     return (
       <Kb.Box2 style={styles.container} direction="vertical" fullWidth={true}>
         <Rover />
-        {/*<Kb.SectionList
+        <Kb.SectionList
           ListHeaderComponent={this.props.header}
           stickySectionHeadersEnabled={true}
           renderSectionHeader={this._renderSectionHeader}
           keyExtractor={this._keyExtractor}
           keyboardShouldPersistTaps="handled"
           sections={sections}
-          />*/}
+        />
       </Kb.Box2>
     )
   }
