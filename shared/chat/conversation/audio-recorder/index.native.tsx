@@ -25,6 +25,9 @@ const AudioRecorder = (props: Props) => {
   const startRecording = (meteringCb: (n: number) => void) => {
     dispatch(Chat2Gen.createStartAudioRecording({conversationIDKey, meteringCb}))
   }
+  const sendRecording = () => {
+    dispatch(Chat2Gen.createStopAudioRecording({conversationIDKey, stopType: Types.AudioStopType.SEND}))
+  }
   // lifecycle
   React.useEffect(() => {
     if (audioRecording && audioRecording.status === Types.AudioRecordingStatus.INITIAL) {
@@ -36,7 +39,7 @@ const AudioRecorder = (props: Props) => {
   const locked = audioRecording ? audioRecording.status === Types.AudioRecordingStatus.LOCKED : false
   return !audioRecording || audioRecording.status === Types.AudioRecordingStatus.STOPPED ? null : (
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
-      <AudioButton locked={locked} lastAmp={lastAmp} />
+      <AudioButton locked={locked} lastAmp={lastAmp} sendRecording={sendRecording} />
       <Kb.Box2 gap="medium" direction="horizontal" fullWidth={true} style={styles.rowContainer}>
         <AudioCounter />
         <AudioSlideToCancel locked={locked} onCancel={onCancel} />
@@ -48,6 +51,7 @@ const AudioRecorder = (props: Props) => {
 type ButtonProps = {
   lastAmp: number
   locked: boolean
+  sendRecording: () => void
 }
 
 const ampToScale = (amp: number) => {
@@ -59,6 +63,8 @@ const AudioButton = (props: ButtonProps) => {
   const ampScale = React.useRef(new Kb.NativeAnimated.Value(0)).current
   const outerScale = React.useRef(new Kb.NativeAnimated.Value(0)).current
   const lockTranslate = React.useRef(new Kb.NativeAnimated.Value(0)).current
+  const sendTranslate = React.useRef(new Kb.NativeAnimated.Value(0)).current
+  // lifecycle
   React.useEffect(() => {
     Kb.NativeAnimated.timing(innerScale, {
       duration: 200,
@@ -90,6 +96,15 @@ const AudioButton = (props: ButtonProps) => {
       }).start()
     }
   }, [props.lastAmp])
+  React.useEffect(() => {
+    if (props.locked) {
+      Kb.NativeAnimated.timing(sendTranslate, {
+        duration: 200,
+        toValue: 1,
+        useNativeDriver: true,
+      }).start()
+    }
+  }, [props.locked])
 
   const innerSize = 28
   const ampSize = 34
@@ -121,7 +136,7 @@ const AudioButton = (props: ButtonProps) => {
           backgroundColor: props.locked ? Styles.globalColors.redLight : Styles.globalColors.blueLighter,
           position: 'absolute',
           bottom: 8,
-          right: 41,
+          right: 40,
           transform: [
             {
               scale: ampScale,
@@ -145,22 +160,53 @@ const AudioButton = (props: ButtonProps) => {
           ],
         }}
       />
-      <Kb.NativeAnimated.View
-        style={{
-          position: 'absolute',
-          right: 45,
-          bottom: 110,
-          opacity: lockTranslate,
-          transform: [{translateY: lockTranslate.interpolate({inputRange: [0, 1], outputRange: [150, 0]})}],
-        }}
-      >
-        <Kb.NativeView>
-          <Kb.Box2 direction="vertical">
-            <Kb.Icon type="iconfont-arrow-up" fontSize={22} />
-            <Kb.Icon type="iconfont-lock" fontSize={22} />
-          </Kb.Box2>
-        </Kb.NativeView>
-      </Kb.NativeAnimated.View>
+
+      {!props.locked ? (
+        <Kb.NativeAnimated.View
+          style={{
+            position: 'absolute',
+            right: 45,
+            bottom: 100,
+            opacity: lockTranslate,
+            transform: [{translateY: lockTranslate.interpolate({inputRange: [0, 1], outputRange: [150, 0]})}],
+          }}
+        >
+          <Kb.NativeView>
+            <Kb.Box2 direction="vertical">
+              <Kb.Icon type="iconfont-arrow-up" fontSize={22} />
+              <Kb.Icon type="iconfont-lock" fontSize={22} />
+            </Kb.Box2>
+          </Kb.NativeView>
+        </Kb.NativeAnimated.View>
+      ) : (
+        <Kb.NativeAnimated.View
+          style={{
+            position: 'absolute',
+            right: 45,
+            bottom: 100,
+            opacity: sendTranslate,
+            transform: [{translateY: sendTranslate.interpolate({inputRange: [0, 1], outputRange: [150, 0]})}],
+          }}
+        >
+          <Kb.NativeView
+            style={{
+              alignItems: 'center',
+              height: 32,
+              width: 32,
+              borderRadius: 16,
+              backgroundColor: Styles.globalColors.blue,
+              justifyContent: 'center',
+            }}
+          >
+            <Kb.ClickableBox onClick={props.sendRecording}>
+              <Kb.Box2 direction="vertical" centerChildren={true}>
+                <Kb.Icon type="iconfont-arrow-full-up" color={Styles.globalColors.white} fontSize={22} />
+              </Kb.Box2>
+            </Kb.ClickableBox>
+          </Kb.NativeView>
+        </Kb.NativeAnimated.View>
+      )}
+
       {!props.locked ? (
         <Kb.Icon
           type="iconfont-star"
