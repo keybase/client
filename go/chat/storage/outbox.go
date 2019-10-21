@@ -500,13 +500,6 @@ func (o *Outbox) RemoveMessage(ctx context.Context, obid chat1.OutboxID) (err er
 	return o.writeStorage(ctx, obox)
 }
 
-func (o *Outbox) getMsgOrdinal(msg chat1.MessageUnboxed) chat1.MessageID {
-	if msg.IsValid() && msg.Valid().ClientHeader.OutboxInfo != nil {
-		return msg.Valid().ClientHeader.OutboxInfo.Prev
-	}
-	return msg.GetMessageID()
-}
-
 func (o *Outbox) AppendToThread(ctx context.Context, convID chat1.ConversationID,
 	thread *chat1.ThreadView) error {
 	locks.Outbox.Lock()
