@@ -13,6 +13,7 @@ const oneDayInMs = oneHourInMs * 24
 export type _Props = {
   exploded: boolean
   explodesAt: number
+  isParentHighlighted: boolean
   messageKey: string
   onClick?: () => void
   pending: boolean
@@ -127,20 +128,21 @@ class ExplodingMeta extends React.Component<Props, State> {
                     {
                       backgroundColor,
                     },
+                    this.props.isParentHighlighted && styles.countdownContainerHighlighted,
                   ])}
                 >
-                  <Kb.Text type="Body" style={styles.countdown}>
+                  <Kb.Text type="Body" style={Styles.collapseStyles([styles.countdown, this.props.isParentHighlighted && styles.countdownHighlighted])}>
                     {formatDurationShort(this.props.explodesAt - Date.now())}
                   </Kb.Text>
                 </Kb.Box2>
               )}
-              <Kb.Icon type="iconfont-timer" fontSize={stopWatchIconSize} color={Styles.globalColors.black} />
+              <Kb.Icon type="iconfont-timer" fontSize={stopWatchIconSize} color={this.props.isParentHighlighted ? Styles.globalColors.blackOrBlack : Styles.globalColors.black} />
             </Kb.Box2>
           )
         }
         break
       case 'boom':
-        children = <Kb.Icon type="iconfont-boom" color={Styles.globalColors.black} />
+        children = <Kb.Icon type="iconfont-boom" color={this.props.isParentHighlighted ? Styles.globalColors.blackOrBlack : Styles.globalColors.black} />
     }
 
     if (this.props.pending) {
@@ -218,6 +220,9 @@ const styles = Styles.styleSheetCreate(
         isElectron: {fontSize: 10, lineHeight: 14},
         isMobile: {fontSize: 11, lineHeight: 16},
       }),
+      countdownHighlighted: {
+        color: Styles.globalColors.whiteOrWhite,
+      },
       countdownContainer: Styles.platformStyles({
         common: {
           alignItems: 'center',
@@ -235,6 +240,9 @@ const styles = Styles.styleSheetCreate(
           width: 30,
         },
       }),
+      countdownContainerHighlighted: {
+        backgroundColor: Styles.globalColors.blackOrBlack,
+      },
       progressContainer: Styles.platformStyles({
         common: {
           alignItems: 'center',

@@ -7,7 +7,7 @@ import * as WalletConstants from '../../../../constants/wallets'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 
 type OwnProps = {
-  isHighlighted?: boolean
+  isHighlighted: boolean
   message: Types.MessageText
 }
 

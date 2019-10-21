@@ -506,6 +506,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
             {exploding && (
               <ExplodingMeta
                 conversationIDKey={this.props.conversationIDKey}
+                isParentHighlighted={this._showCenteredHighlight()}
                 onClick={this.props.toggleShowingMenu}
                 ordinal={message.ordinal}
               />
@@ -563,6 +564,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
           <Kb.Box2 direction="horizontal" style={this._menuAreaStyle(exploded, exploding)}>
             <ExplodingMeta
               conversationIDKey={this.props.conversationIDKey}
+              isParentHighlighted={this._showCenteredHighlight()}
               onClick={this.props.toggleShowingMenu}
               ordinal={message.ordinal}
             />
