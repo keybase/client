@@ -35,7 +35,7 @@ export default (props: Props) => (
       ])}
     >
       {!!props.when && <Kb.Text type="BodyTiny">{formatTimeForPeopleItem(props.when.getTime())}</Kb.Text>}
-      {props.badged && <Kb.Badge badgeStyle={styles.badge} height={Styles.globalMargins.tiny} />}
+      {props.badged && <Kb.Badge badgeStyle={styles.badge} height={Styles.globalMargins.tiny} leftRightPadding={0} />}
     </Kb.Box>
   </Kb.Box>
 )
