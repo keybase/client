@@ -117,4 +117,7 @@ export {default as WebView} from './web-view'
 export type WebViewProps = WebViewProps
 export type WebViewInjections = WebViewInjections
 export {default as WithTooltip} from './with-tooltip'
-export const AnimatedValue: any
+// convenience plumbing for rn animated things, no desktop impl
+export const RNAnimatedValue: any
+export const RNAnimatedEvent: any
+export const RNAnimatedSpring: any

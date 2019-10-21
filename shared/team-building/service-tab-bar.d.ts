@@ -25,6 +25,7 @@ export type IconProps = {
   showCount: boolean
   isActive: boolean
   minimalBorder?: boolean
+  size: any
 }
 
 export class ServiceTabBar extends React.Component<Props> {}
