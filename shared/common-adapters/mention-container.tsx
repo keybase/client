@@ -6,6 +6,7 @@ import * as Container from '../util/container'
 
 export default Container.namedConnect(
   (state, {username}: OwnProps) => {
+    username = username.toLowerCase()
     if (isSpecialMention(username)) {
       return {theme: 'highlight' as const}
     }

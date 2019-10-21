@@ -650,11 +650,11 @@ func ParseChannelNameMentions(ctx context.Context, body string, uid gregor1.UID,
 }
 
 var atMentionRegExp = regexp.MustCompile(ServiceDecorationPrefix +
-	`(@(?:[a-z0-9][a-z0-9._]*[a-z0-9_]+(?:#[a-z0-9A-Z_-]+)?))`)
+	`(@(?:[a-zA-Z0-9][a-zA-Z0-9._]*[a-zA-Z0-9_]+(?:#[a-z0-9A-Z_-]+)?))`)
 
 type nameMatch struct {
-	name     string
-	position []int
+	name, normalizedName string
+	position             []int
 }
 
 func (m nameMatch) Len() int {
@@ -671,8 +671,9 @@ func parseRegexpNames(ctx context.Context, body string, re *regexp.Regexp) (res 
 			high := indexMatch[3]
 			hit := body[low:high]
 			res = append(res, nameMatch{
-				name:     hit,
-				position: []int{low, high},
+				name:           hit,
+				normalizedName: strings.ToLower(hit),
+				position:       []int{low, high},
 			})
 		}
 	}
@@ -710,21 +711,13 @@ func GetPaymentAtMentions(ctx context.Context, upak libkb.UPAKLoader, payments [
 	return atMentions
 }
 
-func ParseAtMentionsNames(ctx context.Context, body string) (res []string) {
-	matches := parseRegexpNames(ctx, body, atMentionRegExp)
-	for _, m := range matches {
-		res = append(res, m.name)
-	}
-	return res
-}
-
 func parseItemAsUID(ctx context.Context, g *globals.Context, name string,
 	knownMentions []chat1.KnownUserMention,
 	getConvMembs func() ([]chat1.ConversationLocalParticipant, error)) (gregor1.UID, error) {
 	nname := libkb.NewNormalizedUsername(name)
 	shouldLookup := false
 	for _, known := range knownMentions {
-		if known.Text == name {
+		if known.Text == nname.String() {
 			shouldLookup = true
 			break
 		}
@@ -738,7 +731,7 @@ func parseItemAsUID(ctx context.Context, g *globals.Context, name string,
 			return nil, err
 		}
 		for _, memb := range membs {
-			if memb.Username == name {
+			if memb.Username == nname.String() {
 				shouldLookup = true
 				break
 			}
@@ -756,16 +749,18 @@ func parseItemAsUID(ctx context.Context, g *globals.Context, name string,
 
 func ParseAtMentionedItems(ctx context.Context, g *globals.Context, body string,
 	knownMentions []chat1.KnownUserMention, getConvMembs func() ([]chat1.ConversationLocalParticipant, error)) (atRes []chat1.KnownUserMention, maybeRes []chat1.MaybeMention, chanRes chat1.ChannelMention) {
-	names := ParseAtMentionsNames(ctx, body)
+	matches := parseRegexpNames(ctx, body, atMentionRegExp)
 	chanRes = chat1.ChannelMention_NONE
-	for _, name := range names {
+	for _, m := range matches {
 		var channel string
-		toks := strings.Split(name, "#")
+		toks := strings.Split(m.name, "#")
 		baseName := toks[0]
 		if len(toks) > 1 {
 			channel = toks[1]
 		}
-		switch baseName {
+
+		normalizedBaseName := strings.Split(m.normalizedName, "#")[0]
+		switch normalizedBaseName {
 		case "channel", "everyone":
 			chanRes = chat1.ChannelMention_ALL
 			continue
@@ -778,7 +773,7 @@ func ParseAtMentionedItems(ctx context.Context, g *globals.Context, body string,
 		}
 
 		// Try UID first then team
-		if uid, err := parseItemAsUID(ctx, g, baseName, knownMentions, getConvMembs); err == nil {
+		if uid, err := parseItemAsUID(ctx, g, normalizedBaseName, knownMentions, getConvMembs); err == nil {
 			atRes = append(atRes, chat1.KnownUserMention{
 				Text: baseName,
 				Uid:  uid,
@@ -1619,8 +1614,7 @@ func loadTeamMentions(ctx context.Context, g *globals.Context, uid gregor1.UID,
 		knownTeamMentions = valid.MessageBody.Edit().TeamMentions
 	}
 	for _, tm := range valid.MaybeMentions {
-		err := g.TeamMentionLoader.LoadTeamMention(ctx, uid, tm, knownTeamMentions, false)
-		if err != nil {
+		if err := g.TeamMentionLoader.LoadTeamMention(ctx, uid, tm, knownTeamMentions, false); err != nil {
 			g.GetLog().CDebugf(ctx, "loadTeamMentions: error loading team mentions: %+v", err)
 		}
 	}
@@ -2372,13 +2366,11 @@ func DecorateWithMentions(ctx context.Context, body string, atMentions []string,
 	var added int
 	offset := 0
 	if len(atMentions) > 0 || len(maybeMentions) > 0 || chanMention != chat1.ChannelMention_NONE {
-		inputBody := body
-		atMatches := parseRegexpNames(ctx, inputBody, atMentionRegExp)
 		atMap := make(map[string]bool)
-		maybeMap := make(map[string]chat1.MaybeMention)
 		for _, at := range atMentions {
 			atMap[at] = true
 		}
+		maybeMap := make(map[string]chat1.MaybeMention)
 		for _, tm := range maybeMentions {
 			name := tm.Name
 			if len(tm.Channel) > 0 {
@@ -2386,18 +2378,20 @@ func DecorateWithMentions(ctx context.Context, body string, atMentions []string,
 			}
 			maybeMap[name] = tm
 		}
+		inputBody := body
+		atMatches := parseRegexpNames(ctx, inputBody, atMentionRegExp)
 		for _, m := range atMatches {
 			switch {
-			case m.name == "here":
+			case m.normalizedName == "here":
 				fallthrough
-			case m.name == "channel":
+			case m.normalizedName == "channel":
 				fallthrough
-			case m.name == "everyone":
+			case m.normalizedName == "everyone":
 				if chanMention == chat1.ChannelMention_NONE {
 					continue
 				}
 				fallthrough
-			case atMap[m.name]:
+			case atMap[m.normalizedName]:
 				body, added = DecorateBody(ctx, body, m.position[0]+offset-1, m.Len()+1,
 					chat1.NewUITextDecorationWithAtmention(m.name))
 				offset += added
@@ -2410,13 +2404,13 @@ func DecorateWithMentions(ctx context.Context, body string, atMentions []string,
 		}
 	}
 	if len(channelNameMentions) > 0 {
-		inputBody := body
 		chanMap := make(map[string]chat1.ConversationID)
-		chanMatches := parseRegexpNames(ctx, inputBody, chanNameMentionRegExp)
 		for _, c := range channelNameMentions {
 			chanMap[c.TopicName] = c.ConvID
 		}
 		offset = 0
+		inputBody := body
+		chanMatches := parseRegexpNames(ctx, inputBody, chanNameMentionRegExp)
 		for _, c := range chanMatches {
 			convID, ok := chanMap[c.name]
 			if !ok {
