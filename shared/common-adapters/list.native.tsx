@@ -53,6 +53,7 @@ class List<Item> extends PureComponent<Props<Item>> {
             onEndReachedThreshold={this.props.onEndReachedThreshold}
             windowSize={this.props.windowSize || 10}
             debug={false /* set to true to debug the list */}
+            onScroll={this.props.onScroll}
           />
         </View>
       </View>

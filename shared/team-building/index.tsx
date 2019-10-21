@@ -478,6 +478,7 @@ class TeamBuilding extends React.PureComponent<Props, {size: any}> {
     return (
       <Kb.List
         items={this.props.searchResults || []}
+        onScroll={this.onScroll}
         selectedIndex={this.props.highlightedIndex || 0}
         style={styles.list}
         contentContainerStyle={styles.listContentContainer}

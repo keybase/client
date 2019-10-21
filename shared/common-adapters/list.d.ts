@@ -17,6 +17,7 @@ export type Props<Item> = {
   onEndReached?: () => void
   ListHeaderComponent?: React.ComponentType<any> | React.ReactElement | null
   onEndReachedThreshold?: number // mobile only
+  onScroll?: (e: any) => void // mobile only
 }
 
 export default class List<Item> extends React.Component<Props<Item>> {}
