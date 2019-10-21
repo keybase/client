@@ -11,6 +11,9 @@ type Props = {
   onBack: () => void
 }
 
+// needs to be an invalid device name
+const resetSentry = '!reset'
+
 class SelectOtherDevice extends React.Component<Props> {
   static navigationOptions = {
     header: null,
@@ -19,7 +22,7 @@ class SelectOtherDevice extends React.Component<Props> {
   }
 
   _renderItem = (index, item) => {
-    if (item.name === 'reset') {
+    if (item.name === resetSentry) {
       return (
         <Kb.Box2 direction="vertical" fullWidth={true}>
           <Kb.Text type="BodySmall" style={styles.or}>
@@ -80,7 +83,7 @@ class SelectOtherDevice extends React.Component<Props> {
   }
 
   render() {
-    const items = [...this.props.devices, {name: 'reset'}]
+    const items = [...this.props.devices, {name: resetSentry}]
     return (
       <SignupScreen
         noBackground={true}
