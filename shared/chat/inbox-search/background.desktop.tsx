@@ -8,9 +8,9 @@ const widthX = window.innerWidth
 const heightY = window.innerHeight
 
 const calc = (x: number, y: number) => [(x - widthX / 2) / widthX, (y - heightY / 2) / heightY]
-const transBackgroundX = (x: number) => -10 + x * 3
+const transBackgroundX = (x: number) => -100 + x * 3
 const transBackgroundY = (_x: number, y: number) => y
-const transForegroundX = (x: number) => -10 + x * 30
+const transForegroundX = (x: number) => -100 + x * 30
 const transForegroundY = (_x: number, y: number) => y
 const transRoverX = (x: number) => 180 + x * 20
 const transRoverY = (x: number, y: number) => 70 + x * 2 + 3 * y
