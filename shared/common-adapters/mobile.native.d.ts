@@ -5,6 +5,7 @@ import {
   LongPressGestureHandler,
   PanGestureHandler,
   State as GestureState,
+  TapGestureHandler,
 } from 'react-native-gesture-handler'
 export * from '.'
 export * from './native-wrappers.native'
@@ -18,5 +19,6 @@ export {
   LongPressGestureHandler,
   PanGestureHandler,
   Swipeable,
+  TapGestureHandler,
 }
 export {default as ZoomableImage} from './zoomable-image.native'

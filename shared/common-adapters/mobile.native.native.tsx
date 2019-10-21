@@ -418,6 +418,9 @@ module.exports = {
   get Tabs() {
     return Index.Tabs
   },
+  get TapGestureHandler() {
+    return require('react-native-gesture-handler').TapGestureHandler
+  },
   get Text() {
     return Index.Text
   },

@@ -52,7 +52,7 @@ const AudioRecorder = (props: Props) => {
         sendRecording={sendRecording}
         stageRecording={stageRecording}
       />
-      <Kb.Box2 gap="medium" direction="horizontal" fullWidth={true} style={styles.rowContainer}>
+      <Kb.Box2 gap="medium" direction="horizontal" style={styles.rowContainer}>
         <AudioCounter />
         <AudioSlideToCancel locked={locked} onCancel={onCancel} />
       </Kb.Box2>
@@ -68,7 +68,7 @@ type ButtonProps = {
 }
 
 const ampToScale = (amp: number) => {
-  return Math.max(3, (1 - amp / minAmp) * 8)
+  return Math.max(3, (1 - amp / minAmp) * 7)
 }
 
 const AudioButton = (props: ButtonProps) => {
@@ -148,7 +148,7 @@ const AudioButton = (props: ButtonProps) => {
           borderRadius: ampSize / 2,
           backgroundColor: props.locked ? Styles.globalColors.redLight : Styles.globalColors.blueLighter,
           position: 'absolute',
-          bottom: 8,
+          bottom: 15,
           right: 40,
           transform: [
             {
@@ -164,7 +164,7 @@ const AudioButton = (props: ButtonProps) => {
           borderRadius: innerSize / 2,
           backgroundColor: props.locked ? Styles.globalColors.red : Styles.globalColors.blue,
           position: 'absolute',
-          bottom: 10,
+          bottom: 17,
           right: 43,
           transform: [
             {
@@ -195,7 +195,7 @@ const AudioButton = (props: ButtonProps) => {
         <Kb.NativeAnimated.View
           style={{
             position: 'absolute',
-            right: 45,
+            right: 42,
             bottom: 100,
             opacity: sendTranslate,
             transform: [{translateY: sendTranslate.interpolate({inputRange: [0, 1], outputRange: [150, 0]})}],
@@ -225,32 +225,30 @@ const AudioButton = (props: ButtonProps) => {
           type="iconfont-star"
           fontSize={22}
           color={Styles.globalColors.white}
-          style={{position: 'absolute', bottom: 12, right: 46}}
+          style={{position: 'absolute', bottom: 19, right: 46}}
         />
       ) : (
-        <Kb.NativeView
-          style={{
-            height: 48,
-            width: 48,
-            position: 'absolute',
-            justifyContent: 'center',
-            bottom: 5,
-            right: 34,
-          }}
-        >
-          <Kb.ClickableBox onClick={props.stageRecording}>
-            <Kb.Box2 direction="vertical" centerChildren={true}>
-              <Kb.NativeView
-                style={{
-                  backgroundColor: Styles.globalColors.white,
-                  borderRadius: 2,
-                  height: 18,
-                  width: 18,
-                }}
-              />
-            </Kb.Box2>
-          </Kb.ClickableBox>
-        </Kb.NativeView>
+        <Kb.TapGestureHandler onHandlerStateChange={props.stageRecording}>
+          <Kb.NativeView
+            style={{
+              height: 48,
+              width: 48,
+              position: 'absolute',
+              justifyContent: 'center',
+              bottom: 8,
+              right: 18,
+            }}
+          >
+            <Kb.Box
+              style={{
+                backgroundColor: Styles.globalColors.white,
+                borderRadius: 2,
+                height: 18,
+                width: 18,
+              }}
+            />
+          </Kb.NativeView>
+        </Kb.TapGestureHandler>
       )}
     </>
   )
@@ -292,7 +290,7 @@ const styles = Styles.styleSheetCreate(() => ({
     padding: Styles.globalMargins.tiny + 3,
   },
   rowContainer: {
-    alignItems: 'center',
+    alignSelf: 'flex-start',
   },
 }))
 
