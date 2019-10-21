@@ -1023,7 +1023,7 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
                 mutedMap.delete(t.convID)
               }
               if (t.draft) {
-                draftMap.set(t.convID, true)
+                draftMap.set(t.convID, t.draft)
               } else {
                 draftMap.delete(t.convID)
               }
@@ -1033,12 +1033,12 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
                 if (t.channel.isMuted) {
                   mutedMap.set(t.channel.convID, true)
                 } else {
-                  mutedMap.delete(t.convID)
+                  mutedMap.delete(t.channel.convID)
                 }
                 if (t.channel.draft) {
-                  draftMap.set(t.channel.convID, true)
+                  draftMap.set(t.channel.convID, t.channel.draft)
                 } else {
-                  draftMap.delete(t.convID)
+                  draftMap.delete(t.channel.convID)
                 }
               }
             })
@@ -1504,7 +1504,7 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         const mutedMap = new Map(draftState.mutedMap)
         action.payload.metas.forEach((m: Types.ConversationMeta) => {
           if (m.draft) {
-            draftMap.set(m.conversationIDKey, true)
+            draftMap.set(m.conversationIDKey, m.draft)
           } else {
             draftMap.delete(m.conversationIDKey)
           }
