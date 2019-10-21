@@ -13,6 +13,7 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/config'
 import * as ChatConstants from '../../constants/chat2'
 import * as SettingsConstants from '../../constants/settings'
+import * as LoginConstants from '../../constants/login'
 import * as Saga from '../../util/saga'
 import * as PlatformSpecific from '../platform-specific'
 import * as RouteTreeGen from '../route-tree-gen'
@@ -593,7 +594,7 @@ const logoutAndTryToLogInAs = async (
   action: ConfigGen.LogoutAndTryToLogInAsPayload
 ) => {
   if (state.config.loggedIn) {
-    await RPCTypes.loginLogoutRpcPromise({force: false, keepSecrets: true})
+    await RPCTypes.loginLogoutRpcPromise({force: false, keepSecrets: true}, LoginConstants.waitingKey)
   }
   return ConfigGen.createSetDefaultUsername({username: action.payload.username})
 }
