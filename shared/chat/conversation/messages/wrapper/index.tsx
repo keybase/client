@@ -154,7 +154,9 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                 colorFollowing={true}
                 colorYou={true}
                 onUsernameClicked={this._onAuthorClick}
-                style={Styles.collapseStyles([this._showCenteredHighlight() && this.props.youAreAuthor && styles.usernameHighlighted])}
+                style={Styles.collapseStyles([
+                  this._showCenteredHighlight() && this.props.youAreAuthor && styles.usernameHighlighted,
+                ])}
                 type="BodySmallBold"
                 usernames={[this.props.showUsername]}
               />
@@ -169,7 +171,13 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                   />
                 </Kb.WithTooltip>
               )}
-              <Kb.Text type="BodyTiny" style={Styles.collapseStyles([styles.timestamp, this._showCenteredHighlight() && styles.timestampHighlighted])}>
+              <Kb.Text
+                type="BodyTiny"
+                style={Styles.collapseStyles([
+                  styles.timestamp,
+                  this._showCenteredHighlight() && styles.timestampHighlighted,
+                ])}
+              >
                 {formatTimeForChat(this.props.message.timestamp)}
               </Kb.Text>
             </Kb.Box2>

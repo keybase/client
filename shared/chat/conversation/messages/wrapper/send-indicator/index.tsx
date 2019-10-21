@@ -118,7 +118,11 @@ class SendIndicator extends React.Component<Props, State> {
     }
     return (
       <Kb.Animation
-        animationType={Styles.isDarkMode() ? statusToIconDark[this.state.animationStatus] : statusToIcon[this.state.animationStatus]}
+        animationType={
+          Styles.isDarkMode()
+            ? statusToIconDark[this.state.animationStatus]
+            : statusToIcon[this.state.animationStatus]
+        }
         className="sendingStatus"
         containerStyle={this.props.style}
         style={Styles.collapseStyles([

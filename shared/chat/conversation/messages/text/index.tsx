@@ -36,7 +36,13 @@ const Reply = (props: ReplyProps) => {
           <Kb.Box2 direction="horizontal" fullWidth={true}>
             <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
               <Kb.Avatar username={props.username} size={32} />
-              <Kb.Text type="BodySemibold" style={Styles.collapseStyles([styles.replyUsername, props.isParentHighlighted && styles.replyUsernameHighlighted])}>
+              <Kb.Text
+                type="BodySemibold"
+                style={Styles.collapseStyles([
+                  styles.replyUsername,
+                  props.isParentHighlighted && styles.replyUsernameHighlighted,
+                ])}
+              >
                 {props.username}
               </Kb.Text>
             </Kb.Box2>
@@ -56,7 +62,12 @@ const Reply = (props: ReplyProps) => {
             )}
             <Kb.Box2 direction="horizontal" style={styles.replyTextContainer}>
               {!props.deleted ? (
-                <Kb.Text type="BodySmall" style={Styles.collapseStyles([props.isParentHighlighted && styles.textHighlighted])}>{props.text}</Kb.Text>
+                <Kb.Text
+                  type="BodySmall"
+                  style={Styles.collapseStyles([props.isParentHighlighted && styles.textHighlighted])}
+                >
+                  {props.text}
+                </Kb.Text>
               ) : (
                 <Kb.Text type="BodyTiny" style={styles.replyEdited}>
                   The original message was deleted.
