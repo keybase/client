@@ -177,7 +177,7 @@ var whitelistedTeamLinkSigs = []keybase1.SigID{
 
 	// See https://github.com/keybase/client/issues/20503; a server bug allowed a team leave to interleave
 	// with a downgrade lease acquisition for a key revoke on a slow connection. The acquisition should have
-	// been blocked until the merkle tree relected the leave, but the acquistion actually happened before the
+	// been blocked until the merkle tree reflected the leave, but the acquistion actually happened before the
 	// team leave transation was committed to the DB. The fix on the server is to check for leases before and
 	// after the team change is commited (in the same transaction). We were previously only checking before.
 	// It has been fixed in Y2K-891.
