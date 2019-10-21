@@ -12,7 +12,7 @@ const transBackgroundX = (x: number) => -100 + x * 3
 const transBackgroundY = (_x: number, y: number) => y
 const transForegroundX = (x: number) => -100 + x * 30
 const transForegroundY = (_x: number, y: number) => y
-const transRoverX = (x: number) => 180 + x * 20
+const transRoverX = (x: number) => 160 + x * 20
 const transRoverY = (x: number, y: number) => 70 + x * 2 + 3 * y
 
 const Rover = () => {
