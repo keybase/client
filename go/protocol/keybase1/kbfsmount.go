@@ -12,6 +12,9 @@ import (
 type GetCurrentMountDirArg struct {
 }
 
+type WaitForMountsArg struct {
+}
+
 type GetPreferredMountDirsArg struct {
 }
 
@@ -28,6 +31,7 @@ type GetKBFSPathInfoArg struct {
 
 type KbfsMountInterface interface {
 	GetCurrentMountDir(context.Context) (string, error)
+	WaitForMounts(context.Context) (bool, error)
 	GetPreferredMountDirs(context.Context) ([]string, error)
 	GetAllAvailableMountDirs(context.Context) ([]string, error)
 	SetCurrentMountDir(context.Context, string) error
@@ -45,6 +49,16 @@ func KbfsMountProtocol(i KbfsMountInterface) rpc.Protocol {
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					ret, err = i.GetCurrentMountDir(ctx)
+					return
+				},
+			},
+			"WaitForMounts": {
+				MakeArg: func() interface{} {
+					var ret [1]WaitForMountsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.WaitForMounts(ctx)
 					return
 				},
 			},
@@ -108,6 +122,11 @@ type KbfsMountClient struct {
 
 func (c KbfsMountClient) GetCurrentMountDir(ctx context.Context) (res string, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.kbfsMount.GetCurrentMountDir", []interface{}{GetCurrentMountDirArg{}}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c KbfsMountClient) WaitForMounts(ctx context.Context) (res bool, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.kbfsMount.WaitForMounts", []interface{}{WaitForMountsArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
