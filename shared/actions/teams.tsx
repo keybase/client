@@ -855,10 +855,7 @@ function* getTeams(
 
     yield Saga.put(
       TeamsGen.createSetTeamInfo({
-        teamIDToAllowPromote,
-        teamIDToIsOpen,
-        teamIDToIsShowcasing,
-        teamIDToName,
+        teamDetails: Constants.teamListToDetails(teams),
         teamNameToAllowPromote: I.Map(teamNameToAllowPromote),
         teamNameToID: I.Map(teamNameToID),
         teamNameToIsOpen: I.Map(teamNameToIsOpen),

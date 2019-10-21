@@ -158,10 +158,7 @@ const emptyState: Types.State = {
   teamAccessRequestsPending: new Set(),
   teamBuilding: TeamBuildingConstants.makeSubState(),
   teamCreationError: '',
-  teamIDToAllowPromote: new Map(),
-  teamIDToName: new Map(),
-  teamIDToIsOpen: new Map(),
-  teamIDToIsShowcasing: new Map(),
+  teamDetails: new Map(),
   teamInviteError: '',
   teamJoinError: '',
   teamJoinSuccess: false,
@@ -595,6 +592,22 @@ export const chosenChannelsGregorKey = 'chosenChannelsForTeam'
 export const isOnTeamsTab = () => {
   const path = getFullRoute()
   return Array.isArray(path) ? path.some(p => p.routeName === teamsTab) : false
+}
+
+export const teamListToDetails = (
+  list: Array<RPCTypes.AnnotatedMemberInfo>
+): Map<Types.TeamID, Types.TeamDetails> => {
+  return new Map(
+    list.map(t => [
+      t.teamID,
+      {
+        allowPromote: t.allowProfilePromote,
+        isOpen: t.isOpenTeam,
+        showcasing: t.isMemberShowcased,
+        teamname: t.fqName,
+      },
+    ])
+  )
 }
 
 export {

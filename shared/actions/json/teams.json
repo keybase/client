@@ -225,10 +225,7 @@
       "teamNameToAllowPromote": "I.Map<Types.Teamname, boolean>",
       "teamNameToIsShowcasing": "I.Map<Types.Teamname, boolean>",
       "teamNameToID": "I.Map<Types.Teamname, string>",
-      "teamIDToName": "Map<Types.TeamID, string>",
-      "teamIDToIsOpen": "Map<Types.TeamID, boolean>",
-      "teamIDToAllowPromote": "Map<Types.TeamID, boolean>",
-      "teamIDToIsShowcasing": "Map<Types.TeamID, boolean>"
+      "teamDetails": "Map<Types.TeamID, Types.TeamDetails>"
     },
     "setTeamProfileAddList": {
       "teamlist": "Array<Types.TeamProfileAddList>"

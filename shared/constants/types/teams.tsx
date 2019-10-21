@@ -108,6 +108,13 @@ export type EmailInviteError = {
 
 export type AddUserToTeamsState = 'notStarted' | 'pending' | 'succeeded' | 'failed'
 
+export type TeamDetails = {
+  teamname: string
+  allowPromote: boolean
+  isOpen: boolean
+  showcasing: boolean
+}
+
 export type State = Readonly<{
   addUserToTeamsState: AddUserToTeamsState
   addUserToTeamsResults: string
@@ -123,10 +130,7 @@ export type State = Readonly<{
   teamJoinSuccess: boolean
   teamJoinSuccessTeamName: string
   teamCreationError: string
-  teamIDToAllowPromote: Map<TeamID, boolean>
-  teamIDToIsOpen: Map<TeamID, boolean>
-  teamIDToIsShowcasing: Map<TeamID, boolean>
-  teamIDToName: Map<TeamID, string>
+  teamDetails: Map<TeamID, TeamDetails>
   teamNameToChannelInfos: I.Map<Teamname, I.Map<ConversationIDKey, ChannelInfo>>
   teamNameToID: I.Map<Teamname, string>
   teamNameToInvites: I.Map<Teamname, I.Set<InviteInfo>>
