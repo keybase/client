@@ -64,7 +64,7 @@ export const useFsChildren = (path: Types.Path, initialLoadRecursive?: boolean) 
   useFsPathSubscriptionEffect(path, RPCTypes.PathSubscriptionTopic.children)
   const dispatch = useDispatchWhenConnectedAndOnline()
   React.useEffect(() => {
-    isPathItem(path) && dispatch(FsGen.createFolderListLoad({path, recursive: !!initialLoadRecursive}))
+    isPathItem(path) && dispatch(FsGen.createFolderListLoad({path, recursive: initialLoadRecursive || false}))
   }, [dispatch, path, initialLoadRecursive])
 }
 
