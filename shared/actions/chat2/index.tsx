@@ -32,7 +32,6 @@ import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {RPCError} from '../../util/errors'
 import HiddenString from '../../util/hidden-string'
 import {TypedActions, TypedState} from '../../util/container'
-import {store} from 'emoji-mart'
 
 const onConnect = async () => {
   try {
@@ -1934,6 +1933,8 @@ const onUpdateUserReacjis = (state: TypedState) => {
     i++
     reacjis[el] = userReacjis.topReacjis.length - i
   })
+
+  const {store} = require('emoji-mart')
   store.setHandlers({
     getter: key => {
       switch (key) {
