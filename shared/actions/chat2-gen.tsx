@@ -38,6 +38,7 @@ export const createConversation = 'chat2:createConversation'
 export const deselectConversation = 'chat2:deselectConversation'
 export const desktopNotification = 'chat2:desktopNotification'
 export const dismissBottomBanner = 'chat2:dismissBottomBanner'
+export const enableAudioRecording = 'chat2:enableAudioRecording'
 export const giphyGotSearchResult = 'chat2:giphyGotSearchResult'
 export const giphySend = 'chat2:giphySend'
 export const giphyToggleWindow = 'chat2:giphyToggleWindow'
@@ -230,6 +231,7 @@ type _DesktopNotificationPayload = {
   readonly body: string
 }
 type _DismissBottomBannerPayload = {readonly conversationIDKey: Types.ConversationIDKey}
+type _EnableAudioRecordingPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _GiphyGotSearchResultPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly results: RPCChatTypes.GiphySearchResults
@@ -581,7 +583,10 @@ type _SetUnsentTextPayload = {
   readonly text?: HiddenString
 }
 type _SetWalletsOldPayload = void
-type _StartAudioRecordingPayload = {readonly conversationIDKey: Types.ConversationIDKey}
+type _StartAudioRecordingPayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly meteringCb: (amp: number) => void
+}
 type _StaticConfigLoadedPayload = {readonly staticConfig: Types.StaticConfig}
 type _StopAudioRecordingPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
@@ -1213,6 +1218,9 @@ export const createDeselectConversation = (
 export const createDesktopNotification = (
   payload: _DesktopNotificationPayload
 ): DesktopNotificationPayload => ({payload, type: desktopNotification})
+export const createEnableAudioRecording = (
+  payload: _EnableAudioRecordingPayload
+): EnableAudioRecordingPayload => ({payload, type: enableAudioRecording})
 export const createHideConversation = (payload: _HideConversationPayload): HideConversationPayload => ({
   payload,
   type: hideConversation,
@@ -1511,6 +1519,10 @@ export type DesktopNotificationPayload = {
 export type DismissBottomBannerPayload = {
   readonly payload: _DismissBottomBannerPayload
   readonly type: typeof dismissBottomBanner
+}
+export type EnableAudioRecordingPayload = {
+  readonly payload: _EnableAudioRecordingPayload
+  readonly type: typeof enableAudioRecording
 }
 export type GiphyGotSearchResultPayload = {
   readonly payload: _GiphyGotSearchResultPayload
@@ -1965,6 +1977,7 @@ export type Actions =
   | DeselectConversationPayload
   | DesktopNotificationPayload
   | DismissBottomBannerPayload
+  | EnableAudioRecordingPayload
   | GiphyGotSearchResultPayload
   | GiphySendPayload
   | GiphyToggleWindowPayload

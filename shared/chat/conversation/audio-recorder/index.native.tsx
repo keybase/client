@@ -7,10 +7,13 @@ import * as Chat2Gen from '../../../actions/chat2-gen'
 import {formatAudioRecordDuration} from '../../../util/timestamp'
 import {Props} from '.'
 
+const minAmp = -100
+
 const AudioRecorder = (props: Props) => {
   // props
   const {conversationIDKey} = props
   // state
+  const [lastAmp, setLastAmp] = React.useState(minAmp - 1)
   const {audioRecording} = Container.useSelector(state => ({
     audioRecording: state.chat2.audioRecording.get(conversationIDKey),
   }))
@@ -19,10 +22,21 @@ const AudioRecorder = (props: Props) => {
   const onCancel = () => {
     dispatch(Chat2Gen.createStopAudioRecording({conversationIDKey, lockOverride: true}))
   }
+  const startRecording = (meteringCb: (n: number) => void) => {
+    dispatch(Chat2Gen.createStartAudioRecording({conversationIDKey, meteringCb}))
+  }
+  // lifecycle
+  React.useEffect(() => {
+    if (audioRecording && audioRecording.status === Types.AudioRecordingStatus.INITIAL) {
+      startRecording(setLastAmp)
+    }
+  }, [audioRecording])
+
+  // render
   const locked = audioRecording ? audioRecording.status === Types.AudioRecordingStatus.LOCKED : false
   return !audioRecording ? null : (
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
-      <AudioButton locked={locked} />
+      <AudioButton locked={locked} lastAmp={lastAmp} />
       <Kb.Box2 gap="medium" direction="horizontal" fullWidth={true} style={styles.rowContainer}>
         <AudioCounter />
         <AudioSlideToCancel locked={locked} onCancel={onCancel} />
@@ -32,39 +46,53 @@ const AudioRecorder = (props: Props) => {
 }
 
 type ButtonProps = {
+  lastAmp: number
   locked: boolean
+}
+
+const ampToScale = (amp: number) => {
+  return Math.max(3, (1 - amp / minAmp) * 8)
 }
 
 const AudioButton = (props: ButtonProps) => {
   const innerScale = React.useRef(new Kb.NativeAnimated.Value(0)).current
+  const ampScale = React.useRef(new Kb.NativeAnimated.Value(0)).current
   const outerScale = React.useRef(new Kb.NativeAnimated.Value(0)).current
-  const lockTranslate = new Kb.NativeAnimated.Value(0)
+  const lockTranslate = React.useRef(new Kb.NativeAnimated.Value(0)).current
   React.useEffect(() => {
     Kb.NativeAnimated.timing(innerScale, {
       duration: 200,
-      toValue: 4,
+      toValue: 3,
+      useNativeDriver: true,
     }).start()
     Kb.NativeAnimated.timing(outerScale, {
       duration: 200,
       toValue: 15,
+      useNativeDriver: true,
     }).start()
     Kb.NativeAnimated.timing(lockTranslate, {
       duration: 200,
       toValue: 1,
+      useNativeDriver: true,
     }).start()
-    return () => {
-      Kb.NativeAnimated.timing(innerScale, {
+    Kb.NativeAnimated.timing(ampScale, {
+      duration: 200,
+      toValue: 3,
+      useNativeDriver: true,
+    }).start()
+  }, [])
+  React.useEffect(() => {
+    if (props.lastAmp >= minAmp) {
+      Kb.NativeAnimated.timing(ampScale, {
         duration: 200,
-        toValue: 0,
-      }).start()
-      Kb.NativeAnimated.timing(outerScale, {
-        duration: 200,
-        toValue: 0,
+        toValue: ampToScale(props.lastAmp),
+        useNativeDriver: true,
       }).start()
     }
-  }, [])
+  }, [props.lastAmp])
 
   const innerSize = 28
+  const ampSize = 34
   const outerSize = 50
   return (
     <>
@@ -81,6 +109,22 @@ const AudioButton = (props: ButtonProps) => {
           transform: [
             {
               scale: outerScale,
+            },
+          ],
+        }}
+      />
+      <Kb.NativeAnimated.View
+        style={{
+          height: ampSize,
+          width: ampSize,
+          borderRadius: ampSize / 2,
+          backgroundColor: props.locked ? Styles.globalColors.redLight : Styles.globalColors.blueLighter,
+          position: 'absolute',
+          bottom: 8,
+          right: 41,
+          transform: [
+            {
+              scale: ampScale,
             },
           ],
         }}
@@ -107,7 +151,7 @@ const AudioButton = (props: ButtonProps) => {
           right: 45,
           bottom: 110,
           opacity: lockTranslate,
-          transform: [{translateY: lockTranslate.interpolate({inputRange: [0, 1], outputRange: [50, 0]})}],
+          transform: [{translateY: lockTranslate.interpolate({inputRange: [0, 1], outputRange: [150, 0]})}],
         }}
       >
         <Kb.NativeView>

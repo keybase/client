@@ -549,9 +549,18 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         draftState.unfurlPromptMap = unfurlPromptMap
         return
       }
-      case Chat2Gen.startAudioRecording: {
+      case Chat2Gen.enableAudioRecording: {
         const audio = new Map(draftState.audioRecording)
         audio.set(action.payload.conversationIDKey, Constants.makeAudioRecordingInfo())
+        draftState.audioRecording = audio
+        return
+      }
+      case Chat2Gen.startAudioRecording: {
+        const audio = new Map(draftState.audioRecording)
+        audio.set(action.payload.conversationIDKey, {
+          ...(audio.get(action.payload.conversationIDKey) || Constants.makeAudioRecordingInfo()),
+          status: Types.AudioRecordingStatus.RECORDING,
+        })
         draftState.audioRecording = audio
         return
       }
@@ -567,9 +576,10 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
       }
       case Chat2Gen.lockAudioRecording: {
         const audio = new Map(draftState.audioRecording)
-        const info = audio.get(action.payload.conversationIDKey) || Constants.makeAudioRecordingInfo()
-        info.status = Types.AudioRecordingStatus.LOCKED
-        audio.set(action.payload.conversationIDKey, info)
+        audio.set(action.payload.conversationIDKey, {
+          ...(audio.get(action.payload.conversationIDKey) || Constants.makeAudioRecordingInfo()),
+          status: Types.AudioRecordingStatus.LOCKED,
+        })
         draftState.audioRecording = audio
         return
       }

@@ -160,7 +160,7 @@ export default Container.namedConnect(
         })
       ),
     _onStartAudioRecording: (conversationIDKey: Types.ConversationIDKey) =>
-      dispatch(Chat2Gen.createStartAudioRecording({conversationIDKey})),
+      dispatch(Chat2Gen.createEnableAudioRecording({conversationIDKey})),
     _onStopAudioRecording: (conversationIDKey: Types.ConversationIDKey) =>
       dispatch(Chat2Gen.createStopAudioRecording({conversationIDKey, lockOverride: false})),
     _sendTyping: (conversationIDKey: Types.ConversationIDKey, typing: boolean) =>

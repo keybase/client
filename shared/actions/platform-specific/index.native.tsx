@@ -3,6 +3,7 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as SettingsConstants from '../../constants/settings'
 import * as PushConstants from '../../constants/push'
+import * as ChatConstants from '../../constants/chat2'
 import * as ConfigGen from '../config-gen'
 import * as Chat2Gen from '../chat2-gen'
 import * as ProfileGen from '../profile-gen'
@@ -36,6 +37,7 @@ import * as Container from '../../util/container'
 import * as Contacts from 'expo-contacts'
 import {launchImageLibraryAsync} from '../../util/expo-image-picker'
 import Geolocation from '@react-native-community/geolocation'
+import {AudioRecorder} from 'react-native-audio'
 
 const requestPermissionsToWrite = async () => {
   if (isAndroid) {
@@ -683,9 +685,14 @@ const configureFileAttachmentDownloadForAndroid = () =>
     downloadDirOverride: RNFetchBlob.fs.dirs.DownloadDir,
   })
 
-const startAudioRecording = async () => {
+const startAudioRecording = async (
+  _: Container.TypedState,
+  action: Chat2Gen.StartAudioRecordingPayload,
+  logger: Saga.SagaLogger
+) => {
   const authorized = await AudioRecorder.requestAuthorization()
   if (!authorized) {
+    logger.info('startAudioRecording: no auth granted')
     throw new Error('no audio access')
   }
   const outboxID = ChatConstants.generateOutboxID()
@@ -695,7 +702,25 @@ const startAudioRecording = async () => {
     Channels: 1,
     AudioQuality: 'Low',
     AudioEncoding: 'aac',
+    AudioEncodingBitRate: 32000,
+    MeteringEnabled: true,
   })
+  AudioRecorder.onProgress = data => {
+    logger.info('startAudioRecording: progress: ' + JSON.stringify(data))
+    action.payload.meteringCb(data.currentMetering)
+  }
+  AudioRecorder.onFinished = data => {
+    logger.info('startAudioRecording: recording finished: ' + JSON.stringify(data))
+  }
+  logger.info('startAudioRecording: beginning recording')
+  await AudioRecorder.startRecording()
+}
+
+const stopAudioRecording = async (state: Container.TypedState) => {
+  if (state.chat2.audioRecording && state.chat2.audioRecording.status !== Types.AudioRecordingStatus.LOCKED) {
+    return false
+  }
+  await AudioRecorder.stopRecording()
 }
 
 export function* platformConfigSaga() {
@@ -742,6 +767,7 @@ export function* platformConfigSaga() {
 
   // Audio
   yield* Saga.chainAction2(Chat2Gen.startAudioRecording, startAudioRecording, 'startAudioRecording')
+  yield* Saga.chainAction2(Chat2Gen.stopAudioRecording, stopAudioRecording, 'stopAudioRecording')
 
   // Start this immediately instead of waiting so we can do more things in parallel
   yield Saga.spawn(loadStartupDetails)

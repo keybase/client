@@ -768,8 +768,12 @@
       "_description": "Set filter for channel search",
       "text": "string"
     },
-    "startAudioRecording": {
+    "enableAudioRecording": {
       "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "startAudioRecording": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "meteringCb": "(amp: number) => void"
     },
     "stopAudioRecording": {
       "conversationIDKey": "Types.ConversationIDKey",

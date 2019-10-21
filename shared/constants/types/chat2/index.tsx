@@ -113,6 +113,7 @@ export type Coordinate = {
 
 export enum AudioRecordingStatus {
   INITIAL = 0,
+  RECORDING,
   LOCKED,
   STAGED,
 }

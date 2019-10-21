@@ -214,6 +214,7 @@ export type TypedActionsMap = {
   'chat2:updateLastCoord': chat2.UpdateLastCoordPayload
   'chat2:toggleGiphyPrefill': chat2.ToggleGiphyPrefillPayload
   'chat2:setChannelSearchText': chat2.SetChannelSearchTextPayload
+  'chat2:enableAudioRecording': chat2.EnableAudioRecordingPayload
   'chat2:startAudioRecording': chat2.StartAudioRecordingPayload
   'chat2:stopAudioRecording': chat2.StopAudioRecordingPayload
   'chat2:lockAudioRecording': chat2.LockAudioRecordingPayload
