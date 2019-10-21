@@ -1,10 +1,11 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/chat1/local.avdl
 
 package chat1
 
 import (
 	"errors"
+	"fmt"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	stellar1 "github.com/keybase/client/go/protocol/stellar1"
@@ -42,7 +43,7 @@ func (e TextPaymentResultTyp) String() string {
 	if v, ok := TextPaymentResultTypRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type TextPaymentResult struct {
@@ -433,7 +434,7 @@ func (e MessageSystemType) String() string {
 	if v, ok := MessageSystemTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type MessageSystemAddedToTeam struct {
@@ -1708,7 +1709,7 @@ func (e OutboxStateType) String() string {
 	if v, ok := OutboxStateTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type OutboxErrorType int
@@ -1761,7 +1762,7 @@ func (e OutboxErrorType) String() string {
 	if v, ok := OutboxErrorTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type OutboxStateError struct {
@@ -1953,7 +1954,7 @@ func (e HeaderPlaintextVersion) String() string {
 	if v, ok := HeaderPlaintextVersionRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type HeaderPlaintextMetaInfo struct {
@@ -2429,7 +2430,7 @@ func (e BodyPlaintextVersion) String() string {
 	if v, ok := BodyPlaintextVersionRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type BodyPlaintextMetaInfo struct {
@@ -2973,7 +2974,7 @@ func (e MessageUnboxedErrorType) String() string {
 	if v, ok := MessageUnboxedErrorTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type MessageUnboxedError struct {
@@ -3069,7 +3070,7 @@ func (e MessageUnboxedJourneyCardType) String() string {
 	if v, ok := MessageUnboxedJourneyCardTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type MessageUnboxedJourneyCard struct {
@@ -3432,7 +3433,7 @@ func (e ConversationErrorType) String() string {
 	if v, ok := ConversationErrorTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type ConversationErrorLocal struct {
@@ -3744,7 +3745,7 @@ func (e MessageIDControlMode) String() string {
 	if v, ok := MessageIDControlModeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type MessageIDControl struct {
@@ -3878,7 +3879,7 @@ func (e GetThreadNonblockCbMode) String() string {
 	if v, ok := GetThreadNonblockCbModeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type GetThreadNonblockPgMode int
@@ -3904,7 +3905,7 @@ func (e GetThreadNonblockPgMode) String() string {
 	if v, ok := GetThreadNonblockPgModeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type UnreadlineRes struct {
@@ -4206,7 +4207,7 @@ func (e InboxLayoutReselectMode) String() string {
 	if v, ok := InboxLayoutReselectModeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type PostLocalRes struct {
@@ -4750,7 +4751,7 @@ func (e PreviewLocationTyp) String() string {
 	if v, ok := PreviewLocationTypRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type PreviewLocation struct {
@@ -5372,7 +5373,7 @@ func (e UnfurlPromptAction) String() string {
 	if v, ok := UnfurlPromptActionRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type UnfurlPromptResult struct {
@@ -5495,7 +5496,7 @@ func (e GalleryItemTyp) String() string {
 	if v, ok := GalleryItemTypRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type LoadGalleryRes struct {
@@ -5757,6 +5758,18 @@ func (o PinMessageRes) DeepCopy() PinMessageRes {
 			}
 			return ret
 		})(o.RateLimits),
+	}
+}
+
+type LocalMtimeUpdate struct {
+	ConvID ConversationID `codec:"convID" json:"convID"`
+	Mtime  gregor1.Time   `codec:"mtime" json:"mtime"`
+}
+
+func (o LocalMtimeUpdate) DeepCopy() LocalMtimeUpdate {
+	return LocalMtimeUpdate{
+		ConvID: o.ConvID.DeepCopy(),
+		Mtime:  o.Mtime.DeepCopy(),
 	}
 }
 

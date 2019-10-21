@@ -475,7 +475,8 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	boxer := chat.NewBoxer(g)
 	chatStorage := storage.New(g, nil)
 	g.CtxFactory = chat.NewCtxFactory(g)
-	inboxSource := chat.NewInboxSource(g, g.Env.GetInboxSourceType(), d.badger, ri)
+	g.Badger = d.badger
+	inboxSource := chat.NewInboxSource(g, g.Env.GetInboxSourceType(), ri)
 	g.InboxSource = inboxSource
 	d.badger.SetLocalChatState(inboxSource)
 	g.ConvSource = chat.NewConversationSource(g, g.Env.GetConvSourceType(),
@@ -497,7 +498,6 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	// Set up push handler with the badger
 	d.badger.SetInboxVersionSource(storage.NewInboxVersionSource(g))
 	pushHandler := chat.NewPushHandler(g)
-	pushHandler.SetBadger(d.badger)
 	g.PushHandler = pushHandler
 
 	// Message sending apparatus

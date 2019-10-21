@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as FsGen from '../../../actions/fs-gen'
 import * as Constants from '../../../constants/chat2'
@@ -179,8 +178,6 @@ const ConnectedInfoPanel = Container.connect(
           l.push(mi.username)
           return l
         }, [])
-    } else {
-      teamMembers = I.Map()
     }
     return {
       admin: stateProps.admin,
@@ -380,17 +377,16 @@ const InfoPanelSelector = (props: Props) => {
     <Kb.Box onClick={() => setShow(false)} style={styles.clickCatcher}>
       <Kb.Transition
         items={show}
-        from={{right: -320}}
-        enter={{right: 0}}
-        leave={{right: -320}}
+        keys={item => (item ? 'showing' : 'hiding')}
+        config={(showing, state) => ({duration: showing && state == 'enter' ? 200 : 50})}
+        from={{...styles.panelContainer, right: -320}}
+        enter={{...styles.panelContainer, right: 0}}
+        leave={{...styles.panelContainer, right: -320}}
         onDestroyed={onDestroyed}
       >
-        {show => ({right}) => {
+        {show => style => {
           return show ? (
-            <Kb.Box
-              style={Styles.collapseStyles([styles.panelContainer, {right}])}
-              onClick={(evt: React.BaseSyntheticEvent) => evt.stopPropagation()}
-            >
+            <Kb.animated.div style={style} onClick={(evt: React.BaseSyntheticEvent) => evt.stopPropagation()}>
               <ConnectedInfoPanel
                 loadDelay={400}
                 onBack={() => setShow(false)}
@@ -400,7 +396,7 @@ const InfoPanelSelector = (props: Props) => {
                 onSelectAttachmentView={onSelectAttachmentView}
                 selectedAttachmentView={selectedAttachmentView}
               />
-            </Kb.Box>
+            </Kb.animated.div>
           ) : null
         }}
       </Kb.Transition>

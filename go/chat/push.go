@@ -10,7 +10,6 @@ import (
 
 	"strings"
 
-	"github.com/keybase/client/go/badges"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/pager"
 	"github.com/keybase/client/go/chat/storage"
@@ -205,7 +204,6 @@ type PushHandler struct {
 	utils.DebugLabeler
 	sync.Mutex
 
-	badger        *badges.Badger
 	identNotifier types.IdentifyNotifier
 	orderer       *gregorMessageOrderer
 	typingMonitor *TypingMonitor
@@ -224,10 +222,6 @@ func NewPushHandler(g *globals.Context) *PushHandler {
 	}
 	p.identNotifier.ResetOnGUIConnect()
 	return p
-}
-
-func (g *PushHandler) SetBadger(badger *badges.Badger) {
-	g.badger = badger
 }
 
 func (g *PushHandler) SetClock(clock clockwork.Clock) {
@@ -768,8 +762,8 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			g.Debug(ctx, "unhandled chat.activity action %q", action)
 			return
 		}
-		if g.badger != nil && gm.UnreadUpdate != nil {
-			g.badger.PushChatUpdate(ctx, *gm.UnreadUpdate, gm.InboxVers)
+		if gm.UnreadUpdate != nil {
+			g.G().Badger.PushChatUpdate(ctx, *gm.UnreadUpdate, gm.InboxVers)
 		}
 		if activity != nil {
 			g.notifyNewChatActivity(ctx, m.UID().(gregor1.UID), gm.TopicType, activity)
@@ -988,13 +982,11 @@ func (g *PushHandler) MembershipUpdate(ctx context.Context, m gregor.OutOfBandMe
 		g.notifyMembersUpdate(ctx, uid, updateRes)
 
 		// Fire off badger updates
-		if g.badger != nil {
-			if update.UnreadUpdate != nil {
-				g.badger.PushChatUpdate(ctx, *update.UnreadUpdate, update.InboxVers)
-			}
-			for _, upd := range update.UnreadUpdates {
-				g.badger.PushChatUpdate(ctx, upd, update.InboxVers)
-			}
+		if update.UnreadUpdate != nil {
+			g.G().Badger.PushChatUpdate(ctx, *update.UnreadUpdate, update.InboxVers)
+		}
+		for _, upd := range update.UnreadUpdates {
+			g.G().Badger.PushChatUpdate(ctx, upd, update.InboxVers)
 		}
 
 		return nil

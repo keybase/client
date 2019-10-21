@@ -53,7 +53,7 @@ export default (
         draftState.teamNameToLoadingInvites = draftState.teamNameToLoadingInvites.update(
           action.payload.teamname,
           (inviteToLoading = I.Map<string, boolean>()) =>
-            inviteToLoading.set(action.payload.invitees, action.payload.loadingInvites)
+            inviteToLoading.set(action.payload.loadingKey, action.payload.isLoading)
         )
         return
       case TeamsGen.clearTeamRequests:
@@ -114,10 +114,12 @@ export default (
         )
         return
       case TeamsGen.setEmailInviteError:
-        draftState.emailInviteError = Constants.makeEmailInviteError({
-          malformed: I.Set(action.payload.malformed),
-          message: action.payload.message,
-        })
+        if (!action.payload.malformed.length && !action.payload.message) {
+          draftState.emailInviteError = Constants.emptyEmailInviteError
+          return
+        }
+        draftState.emailInviteError.malformed = new Set(action.payload.malformed)
+        draftState.emailInviteError.message = action.payload.message
         return
       case TeamsGen.setTeamInfo:
         draftState.teamNameToAllowPromote = action.payload.teamNameToAllowPromote

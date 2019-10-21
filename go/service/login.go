@@ -178,10 +178,7 @@ func (h *LoginHandler) LoginOneshot(ctx context.Context, arg keybase1.LoginOnesh
 }
 
 func (h *LoginHandler) IsOnline(ctx context.Context) (bool, error) {
-	mctx := libkb.NewMetaContext(ctx, h.G())
-
-	_, err := h.G().API.Post(mctx, libkb.APIArg{Endpoint: "ping"})
-	return err == nil, nil
+	return h.G().ConnectivityMonitor.IsConnected(ctx) == libkb.ConnectivityMonitorYes, nil
 }
 
 func (h *LoginHandler) RecoverPassphrase(ctx context.Context, arg keybase1.RecoverPassphraseArg) error {

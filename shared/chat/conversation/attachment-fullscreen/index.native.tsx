@@ -69,11 +69,18 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
   _setLoaded = () => this.setState({loaded: true})
   render() {
     return (
-      <Kb.SafeAreaViewTop style={styles.safeAreaTop}>
+      <Kb.Box2
+        direction="vertical"
+        style={{backgroundColor: Styles.globalColors.blackOrBlack}}
+        fullWidth={true}
+        fullHeight={true}
+      >
+        <Kb.SafeAreaViewTop style={{backgroundColor: Styles.globalColors.blackOrBlack}} />
+        <Kb.NativeStatusBar hidden={true} />
         <Kb.Text type="Body" onClick={this.props.onClose} style={styles.close}>
           Close
         </Kb.Text>
-        <Kb.Box style={styles.assetWrapper}>
+        <Kb.Box2 direction="vertical" fullWidth={true} style={Styles.globalStyles.flexGrow}>
           {!!this.props.path && this.props.isVideo ? (
             <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.videoWrapper}>
               <RNVideo
@@ -91,15 +98,32 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
                 resizeMode="contain"
               />
             </Kb.Box2>
-          ) : (
+          ) : Styles.isIOS ? (
             <AutoMaxSizeImage
               source={{uri: `${this.props.path}`}}
               onLoad={this._setLoaded}
               opacity={this.state.loaded ? 1 : 0}
             />
+          ) : (
+            <Kb.ZoomableImage
+              uri={this.props.path}
+              onLoad={this._setLoaded}
+              style={{
+                height: '100%',
+                opacity: this.state.loaded ? 1 : 0,
+                overflow: 'hidden',
+                position: 'relative',
+                width: '100%',
+              }}
+            />
           )}
-          {!this.state.loaded && <Kb.ProgressIndicator style={styles.progressIndicator} white={true} />}
-        </Kb.Box>
+          {!this.state.loaded && (
+            <Kb.ProgressIndicator
+              style={{alignSelf: 'center', margin: 'auto', position: 'absolute', top: '50%', width: 48}}
+              white={true}
+            />
+          )}
+        </Kb.Box2>
         <Kb.Icon
           type="iconfont-ellipsis"
           // @ts-ignore TODO fix styles
@@ -114,7 +138,7 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
           position="bottom left"
           visible={this.props.showingMenu}
         />
-      </Kb.SafeAreaViewTop>
+      </Kb.Box2>
     )
   }
 }

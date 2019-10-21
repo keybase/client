@@ -598,6 +598,12 @@ func (f *JSONConfigFile) GetRememberPassphrase(username NormalizedUsername) (boo
 	}
 	return f.GetTopLevelBool(legacyRememberPassphraseKey)
 }
+func (f *JSONConfigFile) GetStayLoggedOut() (bool, bool) {
+	return f.GetBoolAtPath("stay_logged_out")
+}
+func (f *JSONConfigFile) SetStayLoggedOut(stayLoggedOut bool) error {
+	return f.SetBoolAtPath("stay_logged_out", stayLoggedOut)
+}
 func (f *JSONConfigFile) GetLogFormat() string {
 	return f.GetTopLevelString("log_format")
 }

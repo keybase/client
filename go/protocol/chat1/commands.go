@@ -1,10 +1,11 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/chat1/commands.avdl
 
 package chat1
 
 import (
 	"errors"
+	"fmt"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -58,7 +59,7 @@ func (e ConversationCommandGroupsTyp) String() string {
 	if v, ok := ConversationCommandGroupsTypRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type ConversationBuiltinCommandTyp int
@@ -93,7 +94,7 @@ func (e ConversationBuiltinCommandTyp) String() string {
 	if v, ok := ConversationBuiltinCommandTypRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type ConversationCommandGroupsCustom struct {

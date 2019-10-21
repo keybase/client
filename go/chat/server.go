@@ -1228,7 +1228,10 @@ func (h *Server) CancelPost(ctx context.Context, outboxID chat1.OutboxID) (err e
 		return err
 	}
 	// Alert the attachment uploader as well, in case this outboxID corresponds to an attachment upload
-	return h.G().AttachmentUploader.Cancel(ctx, outboxID)
+	if err := h.G().AttachmentUploader.Cancel(ctx, outboxID); err != nil {
+		return err
+	}
+	return h.G().Badger.Send(ctx)
 }
 
 func (h *Server) RetryPost(ctx context.Context, arg chat1.RetryPostArg) (err error) {
