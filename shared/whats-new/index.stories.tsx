@@ -385,12 +385,6 @@ const styles = Styles.styleSheetCreate(() => ({
     maxHeight: modalHeight,
     maxWidth: modalWidth,
   },
-  whatsNewWrapper: {
-    flexWrap: 'wrap',
-    marginTop: Styles.globalMargins.small,
-    maxHeight: modalHeight,
-    maxWidth: modalWidth,
-  },
   roundedImage: Styles.platformStyles({
     common: {
       borderColor: Styles.globalColors.grey,
@@ -402,6 +396,12 @@ const styles = Styles.styleSheetCreate(() => ({
       borderStyle: 'solid',
     },
   }),
+  whatsNewWrapper: {
+    flexWrap: 'wrap',
+    marginTop: Styles.globalMargins.small,
+    maxHeight: modalHeight,
+    maxWidth: modalWidth,
+  },
 }))
 
 export default load
