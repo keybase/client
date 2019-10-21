@@ -230,15 +230,26 @@ const AudioButton = (props: ButtonProps) => {
       ) : (
         <Kb.NativeView
           style={{
+            height: 48,
+            width: 48,
             position: 'absolute',
-            bottom: 30,
-            right: 45,
+            justifyContent: 'center',
+            bottom: 5,
+            right: 34,
           }}
         >
-          <Kb.ClickableBox
-            onClick={props.stageRecording}
-            style={{backgroundColor: Styles.globalColors.white, borderRadius: 2, height: 18, width: 18}}
-          />
+          <Kb.ClickableBox onClick={props.stageRecording}>
+            <Kb.Box2 direction="vertical" centerChildren={true}>
+              <Kb.NativeView
+                style={{
+                  backgroundColor: Styles.globalColors.white,
+                  borderRadius: 2,
+                  height: 18,
+                  width: 18,
+                }}
+              />
+            </Kb.Box2>
+          </Kb.ClickableBox>
         </Kb.NativeView>
       )}
     </>

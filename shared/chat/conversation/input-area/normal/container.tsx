@@ -65,6 +65,7 @@ export default Container.namedConnect(
     const suggestBotCommandsUpdateStatus =
       state.chat2.botCommandsUpdateStatusMap.get(conversationIDKey) ||
       RPCChatTypes.UIBotCommandsUpdateStatus.blank
+    const audio = state.chat2.audioRecording.get(conversationIDKey)
 
     return {
       _containsLatestMessage,

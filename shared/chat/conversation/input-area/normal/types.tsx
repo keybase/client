@@ -14,6 +14,7 @@ type CommonProps = {
   isEditExploded: boolean
   isEditing: boolean
   isExploding: boolean
+  isLockedAudio: boolean
   isSearching: boolean
   minWriterRole: TeamTypes.TeamRoleType
   onAttach: (paths: Array<string>) => void
