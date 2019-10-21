@@ -771,7 +771,7 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
           messages.forEach(message => {
             const m = canSendType(message)
             if (m && !m.id && m.outboxID) {
-              const outToOrd = pendingOutboxToOrdinal.get(m.conversationIDKey) || new Map()
+              const outToOrd = new Map(pendingOutboxToOrdinal.get(m.conversationIDKey) || [])
               outToOrd.set(m.outboxID, m.ordinal)
               pendingOutboxToOrdinal.set(m.conversationIDKey, outToOrd)
             }
