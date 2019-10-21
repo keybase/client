@@ -777,10 +777,18 @@
     },
     "stopAudioRecording": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "lockOverride": "boolean"
+      "stopType": "Types.AudioStopType"
     },
     "lockAudioRecording": {
       "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "sendAudioRecording": {
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "setAudioRecordingPostInfo": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "path": "string",
+      "outboxID": "Buffer"
     }
   }
 }

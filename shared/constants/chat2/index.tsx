@@ -113,7 +113,9 @@ export const makeAttachmentViewInfo = (): Types.AttachmentViewInfo => ({
 export const initialAttachmentViewInfo = makeAttachmentViewInfo()
 
 export const makeAudioRecordingInfo = (): Types.AudioRecordingInfo => ({
-  lastAmplitude: 0,
+  outboxID: new Buffer('hex'),
+  path: '',
+  recordStart: 0,
   status: Types.AudioRecordingStatus.INITIAL,
 })
 

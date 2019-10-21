@@ -695,6 +695,7 @@ const startAudioRecording = async (
     logger.info('startAudioRecording: no auth granted')
     throw new Error('no audio access')
   }
+  const conversationIDKey = action.payload.conversationIDKey
   const outboxID = ChatConstants.generateOutboxID()
   const audioPath = await RPCChatTypes.localGetUploadTempFileRpcPromise({filename: 'audio.aac', outboxID})
   AudioRecorder.prepareRecordingAtPath(audioPath, {
@@ -706,7 +707,6 @@ const startAudioRecording = async (
     MeteringEnabled: true,
   })
   AudioRecorder.onProgress = data => {
-    logger.info('startAudioRecording: progress: ' + JSON.stringify(data))
     action.payload.meteringCb(data.currentMetering)
   }
   AudioRecorder.onFinished = data => {
@@ -714,13 +714,35 @@ const startAudioRecording = async (
   }
   logger.info('startAudioRecording: beginning recording')
   await AudioRecorder.startRecording()
+  return Chat2Gen.createSetAudioRecordingPostInfo({conversationIDKey, path: audioPath, outboxID})
 }
 
-const stopAudioRecording = async (state: Container.TypedState) => {
-  if (state.chat2.audioRecording && state.chat2.audioRecording.status !== Types.AudioRecordingStatus.LOCKED) {
+const stopAudioRecording = async (
+  state: Container.TypedState,
+  action: Chat2Gen.StopAudioRecordingPayload,
+  logger: Saga.SagaLogger
+) => {
+  const conversationIDKey = action.payload.conversationIDKey
+  if (state.chat2.audioRecording) {
+    const audio = state.chat2.audioRecording.get(conversationIDKey)
+    if (audio && audio.status === Types.AudioRecordingStatus.LOCKED) {
+      return false
+    }
+  }
+  logger.info('stopAudioRecording: stopping recording')
+  await AudioRecorder.stopRecording()
+  if (!state.chat2.audioRecording) {
     return false
   }
-  await AudioRecorder.stopRecording()
+  if (action.payload.stopType === Types.AudioStopType.CANCEL) {
+    logger.info('stopAudioRecording: recording canceled, not sending')
+    return false
+  }
+  const audio = state.chat2.audioRecording.get(conversationIDKey)
+  if (!audio) {
+    return false
+  }
+  return Chat2Gen.createSendAudioRecording({conversationIDKey})
 }
 
 export function* platformConfigSaga() {

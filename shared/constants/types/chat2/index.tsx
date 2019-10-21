@@ -116,11 +116,21 @@ export enum AudioRecordingStatus {
   RECORDING,
   LOCKED,
   STAGED,
+  STOPPED,
+}
+
+export enum AudioStopType {
+  CANCEL = 0,
+  RELEASE,
+  SEND,
+  STOPBUTTON,
 }
 
 export type AudioRecordingInfo = {
   status: AudioRecordingStatus
-  lastAmplitude: number
+  outboxID: Buffer
+  path: string
+  recordStart: number
 }
 
 export type State = Readonly<{

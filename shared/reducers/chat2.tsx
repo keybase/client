@@ -567,10 +567,31 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
       case Chat2Gen.stopAudioRecording: {
         const audio = new Map(draftState.audioRecording)
         const info = audio.get(action.payload.conversationIDKey) || Constants.makeAudioRecordingInfo()
-        if (info.status === Types.AudioRecordingStatus.LOCKED && !action.payload.lockOverride) {
-          return
+        let nextStatus = info.status
+        switch (info.status) {
+          case Types.AudioRecordingStatus.LOCKED:
+            switch (action.payload.stopType) {
+              case Types.AudioStopType.CANCEL:
+                nextStatus = Types.AudioRecordingStatus.STOPPED
+                break
+              case Types.AudioStopType.RELEASE:
+                nextStatus = Types.AudioRecordingStatus.LOCKED
+                break
+              case Types.AudioStopType.SEND:
+                nextStatus = Types.AudioRecordingStatus.STOPPED
+                break
+              case Types.AudioStopType.STOPBUTTON:
+                nextStatus = Types.AudioRecordingStatus.STAGED
+                break
+            }
+            break
+          default:
+            nextStatus = Types.AudioRecordingStatus.STOPPED
         }
-        audio.delete(action.payload.conversationIDKey)
+        audio.set(action.payload.conversationIDKey, {
+          ...info,
+          status: nextStatus,
+        })
         draftState.audioRecording = audio
         return
       }
@@ -579,6 +600,25 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         audio.set(action.payload.conversationIDKey, {
           ...(audio.get(action.payload.conversationIDKey) || Constants.makeAudioRecordingInfo()),
           status: Types.AudioRecordingStatus.LOCKED,
+        })
+        draftState.audioRecording = audio
+        return
+      }
+      case Chat2Gen.sendAudioRecording: {
+        const audio = new Map(draftState.audioRecording)
+        audio.set(action.payload.conversationIDKey, {
+          ...(audio.get(action.payload.conversationIDKey) || Constants.makeAudioRecordingInfo()),
+          status: Types.AudioRecordingStatus.STOPPED,
+        })
+        draftState.audioRecording = audio
+        return
+      }
+      case Chat2Gen.setAudioRecordingPostInfo: {
+        const audio = new Map(draftState.audioRecording)
+        audio.set(action.payload.conversationIDKey, {
+          ...(audio.get(action.payload.conversationIDKey) || Constants.makeAudioRecordingInfo()),
+          outboxID: action.payload.outboxID,
+          path: action.payload.path,
         })
         draftState.audioRecording = audio
         return

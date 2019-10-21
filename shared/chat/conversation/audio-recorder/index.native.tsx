@@ -20,7 +20,7 @@ const AudioRecorder = (props: Props) => {
   // dispatch
   const dispatch = Container.useDispatch()
   const onCancel = () => {
-    dispatch(Chat2Gen.createStopAudioRecording({conversationIDKey, lockOverride: true}))
+    dispatch(Chat2Gen.createStopAudioRecording({conversationIDKey, stopType: Types.AudioStopType.CANCEL}))
   }
   const startRecording = (meteringCb: (n: number) => void) => {
     dispatch(Chat2Gen.createStartAudioRecording({conversationIDKey, meteringCb}))
@@ -34,7 +34,7 @@ const AudioRecorder = (props: Props) => {
 
   // render
   const locked = audioRecording ? audioRecording.status === Types.AudioRecordingStatus.LOCKED : false
-  return !audioRecording ? null : (
+  return !audioRecording || audioRecording.status === Types.AudioRecordingStatus.STOPPED ? null : (
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
       <AudioButton locked={locked} lastAmp={lastAmp} />
       <Kb.Box2 gap="medium" direction="horizontal" fullWidth={true} style={styles.rowContainer}>

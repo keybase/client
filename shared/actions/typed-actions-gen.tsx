@@ -218,6 +218,8 @@ export type TypedActionsMap = {
   'chat2:startAudioRecording': chat2.StartAudioRecordingPayload
   'chat2:stopAudioRecording': chat2.StopAudioRecordingPayload
   'chat2:lockAudioRecording': chat2.LockAudioRecordingPayload
+  'chat2:sendAudioRecording': chat2.SendAudioRecordingPayload
+  'chat2:setAudioRecordingPostInfo': chat2.SetAudioRecordingPostInfoPayload
   'config:startHandshake': config.StartHandshakePayload
   'config:restartHandshake': config.RestartHandshakePayload
   'config:daemonHandshake': config.DaemonHandshakePayload
