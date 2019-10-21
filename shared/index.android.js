@@ -5,7 +5,13 @@ import {NativeModules} from 'react-native'
 import {_setSystemIsDarkMode, _setSystemSupported, _setDarkModePreference} from './styles/dark-mode'
 
 require.Systrace.beginEvent = message => {
-  global.nativeTest.traceBeginSection(message, 0)
+  if (message.startsWith('RCTDeviceEventEmitter.emit(["RPC"')) {
+    global.nativeTest.traceBeginSection(
+      'RCTDeviceEventEmitter: RPC(' + (message.length - 37) + ' bytes): ' + message.substring(35, 35 + 30)
+    )
+  } else {
+    global.nativeTest.traceBeginSection(message, 0)
+  }
 }
 
 require.Systrace.endEvent = () => {
