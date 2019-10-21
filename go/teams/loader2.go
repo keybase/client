@@ -174,6 +174,14 @@ var whitelistedTeamLinkSigs = []keybase1.SigID{
 	// See https://github.com/keybase/client/issues/17573; a server bug allowed a rotate after a revoke, which
 	// has been fixed in CORE-10942.
 	"070e6d737607109ba17d1d43419d950cde6d206b66c555c837566913a31ca59122",
+
+	// See https://github.com/keybase/client/issues/20503; a server bug allowed a team leave to interleave
+	// with a downgrade lease acquisition for a key revoke on a slow connection. The acquisition should have
+	// been blocked until the merkle tree relected the leave, but the acquistion actually happened before the
+	// team leave transation was committed to the DB. The fix on the server is to check for leases before and
+	// after the team change is commited (in the same transaction). We were previously only checking before.
+	// It has been fixed in Y2K-891.
+	"c641d1246493cf04ec2c6141acdb569a457c02d577b392d4eb1872118c563c2822",
 }
 
 func (l *TeamLoader) addProofsForKeyInUserSigchain(ctx context.Context, teamID keybase1.TeamID, link *ChainLinkUnpacked, uid keybase1.UID, key *keybase1.PublicKeyV2NaCl, userLinkMap linkMapT, proofSet *proofSetT) {
