@@ -1017,16 +1017,28 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
             const draftMap = new Map(draftState.draftMap)
             const mutedMap = new Map(draftState.mutedMap)
             ;(layout.smallTeams || []).forEach((t: RPCChatTypes.UIInboxSmallTeamRow) => {
-              mutedMap.set(t.convID, t.isMuted)
+              if (t.isMuted) {
+                mutedMap.set(t.convID, true)
+              } else {
+                mutedMap.delete(t.convID)
+              }
               if (t.draft) {
-                draftMap.set(t.convID, t.draft)
+                draftMap.set(t.convID, true)
+              } else {
+                draftMap.delete(t.convID)
               }
             })
             ;(layout.bigTeams || []).forEach((t: RPCChatTypes.UIInboxBigTeamRow) => {
               if (t.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel) {
-                mutedMap.set(t.channel.convID, t.channel.isMuted)
+                if (t.channel.isMuted) {
+                  mutedMap.set(t.channel.convID, true)
+                } else {
+                  mutedMap.delete(t.convID)
+                }
                 if (t.channel.draft) {
-                  draftMap.set(t.channel.convID, t.channel.draft)
+                  draftMap.set(t.channel.convID, true)
+                } else {
+                  draftMap.delete(t.convID)
                 }
               }
             })
@@ -1491,8 +1503,16 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         const draftMap = new Map(draftState.draftMap)
         const mutedMap = new Map(draftState.mutedMap)
         action.payload.metas.forEach((m: Types.ConversationMeta) => {
-          draftMap.set(m.conversationIDKey, m.draft)
-          mutedMap.set(m.conversationIDKey, m.isMuted)
+          if (m.draft) {
+            draftMap.set(m.conversationIDKey, true)
+          } else {
+            draftMap.delete(m.conversationIDKey)
+          }
+          if (m.isMuted) {
+            mutedMap.set(m.conversationIDKey, true)
+          } else {
+            mutedMap.delete(m.conversationIDKey)
+          }
         })
         draftState.draftMap = draftMap
         draftState.mutedMap = mutedMap
