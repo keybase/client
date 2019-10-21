@@ -120,7 +120,6 @@ const styles = Styles.styleSheetCreate(() => ({
     isElectron: {
       // Align menu edge with icon on desktop
       marginRight: Styles.globalMargins.xtiny,
-      paddingLeft: Styles.globalMargins.tiny,
     },
   }),
   popupContainer: Styles.platformStyles({
@@ -136,8 +135,7 @@ const styles = Styles.styleSheetCreate(() => ({
       width: '100%',
     },
     isElectron: {
-      paddingBottom: Styles.globalMargins.tiny,
-      paddingRight: Styles.globalMargins.tiny,
+      ...Styles.padding(Styles.globalMargins.tiny),
     },
   }),
   scrollViewInner: Styles.platformStyles({
