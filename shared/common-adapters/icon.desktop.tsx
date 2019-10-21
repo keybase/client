@@ -181,7 +181,6 @@ export function iconTypeToImgSet(imgMap: {[size: string]: string}, targetSize: n
       if (!img) return null
       const url = resolveImageAsURL('icons', img)
       if (Styles.isDarkMode()) url.replace('icon-', 'icon-dark-')
-      console.log('SPOONER', url)
       return `url('${url}.png') ${mult}x`
     })
     .filter(Boolean)
