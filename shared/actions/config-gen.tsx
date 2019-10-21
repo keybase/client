@@ -27,6 +27,7 @@ export const installerRan = 'config:installerRan'
 export const loggedIn = 'config:loggedIn'
 export const loggedOut = 'config:loggedOut'
 export const logout = 'config:logout'
+export const logoutAndTryToLogInAs = 'config:logoutAndTryToLogInAs'
 export const logoutHandshake = 'config:logoutHandshake'
 export const logoutHandshakeWait = 'config:logoutHandshakeWait'
 export const mobileAppState = 'config:mobileAppState'
@@ -93,6 +94,7 @@ type _GlobalErrorPayload = {readonly globalError?: Error | RPCError}
 type _InstallerRanPayload = void
 type _LoggedInPayload = {readonly causedBySignup: boolean; readonly causedByStartup: boolean}
 type _LoggedOutPayload = void
+type _LogoutAndTryToLogInAsPayload = {readonly username: string}
 type _LogoutHandshakePayload = {readonly version: number}
 type _LogoutHandshakeWaitPayload = {
   readonly name: string
@@ -149,6 +151,12 @@ type _UpdateNowPayload = void
 type _UpdateWindowStatePayload = {readonly windowState: Types.WindowState}
 
 // Action Creators
+/**
+ * Log out the current user, keeping secrets stored. Then prefill the username for provisioned another user to log in.
+ */
+export const createLogoutAndTryToLogInAs = (
+  payload: _LogoutAndTryToLogInAsPayload
+): LogoutAndTryToLogInAsPayload => ({payload, type: logoutAndTryToLogInAs})
 /**
  * Open a link to the app store
  */
@@ -397,6 +405,10 @@ export type GlobalErrorPayload = {readonly payload: _GlobalErrorPayload; readonl
 export type InstallerRanPayload = {readonly payload: _InstallerRanPayload; readonly type: typeof installerRan}
 export type LoggedInPayload = {readonly payload: _LoggedInPayload; readonly type: typeof loggedIn}
 export type LoggedOutPayload = {readonly payload: _LoggedOutPayload; readonly type: typeof loggedOut}
+export type LogoutAndTryToLogInAsPayload = {
+  readonly payload: _LogoutAndTryToLogInAsPayload
+  readonly type: typeof logoutAndTryToLogInAs
+}
 export type LogoutHandshakePayload = {
   readonly payload: _LogoutHandshakePayload
   readonly type: typeof logoutHandshake
@@ -510,6 +522,7 @@ export type Actions =
   | InstallerRanPayload
   | LoggedInPayload
   | LoggedOutPayload
+  | LogoutAndTryToLogInAsPayload
   | LogoutHandshakePayload
   | LogoutHandshakeWaitPayload
   | LogoutPayload

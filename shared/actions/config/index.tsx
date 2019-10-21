@@ -588,6 +588,16 @@ const saveDarkPrefs = async (state: Container.TypedState) => {
   } catch (_) {}
 }
 
+const logoutAndTryToLogInAs = async (
+  state: Container.TypedState,
+  action: ConfigGen.LogoutAndTryToLogInAsPayload
+) => {
+  if (state.config.loggedIn) {
+    await RPCTypes.loginLogoutRpcPromise({force: false, keepSecrets: true})
+  }
+  return ConfigGen.createSetDefaultUsername({username: action.payload.username})
+}
+
 function* configSaga() {
   // Start the handshake process. This means we tell all sagas we're handshaking with the daemon. If another
   // saga needs to do something before we leave the loading screen they should call daemonHandshakeWait
@@ -616,6 +626,8 @@ function* configSaga() {
   yield* Saga.chainAction2(ConfigGen.setNavigator, setNavigator)
   // Go to the correct starting screen
   yield* Saga.chainAction2([ConfigGen.daemonHandshakeDone, ConfigGen.setNavigator], routeToInitialScreen2)
+
+  yield* Saga.chainAction2(ConfigGen.logoutAndTryToLogInAs, logoutAndTryToLogInAs, 'logoutAndTryToLogInAs')
 
   yield* Saga.chainAction2(
     [
