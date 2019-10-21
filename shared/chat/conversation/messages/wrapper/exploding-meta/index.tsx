@@ -122,6 +122,7 @@ class ExplodingMeta extends React.Component<Props, State> {
                 </Kb.Box2>
               ) : (
                 <Kb.Box2
+                  className="explodingTimeContainer"
                   direction="horizontal"
                   style={Styles.collapseStyles([
                     styles.countdownContainer,
@@ -131,18 +132,18 @@ class ExplodingMeta extends React.Component<Props, State> {
                     this.props.isParentHighlighted && styles.countdownContainerHighlighted,
                   ])}
                 >
-                  <Kb.Text type="Body" style={Styles.collapseStyles([styles.countdown, this.props.isParentHighlighted && styles.countdownHighlighted])}>
+                  <Kb.Text className="explodingTimeText" type="Body" style={Styles.collapseStyles([styles.countdown, this.props.isParentHighlighted && styles.countdownHighlighted])}>
                     {formatDurationShort(this.props.explodesAt - Date.now())}
                   </Kb.Text>
                 </Kb.Box2>
               )}
-              <Kb.Icon type="iconfont-timer" fontSize={stopWatchIconSize} color={this.props.isParentHighlighted ? Styles.globalColors.blackOrBlack : Styles.globalColors.black} />
+              <Kb.Icon className="explodingTimeIcon" type="iconfont-timer" fontSize={stopWatchIconSize} color={this.props.isParentHighlighted ? Styles.globalColors.blackOrBlack : Styles.globalColors.black} />
             </Kb.Box2>
           )
         }
         break
       case 'boom':
-        children = <Kb.Icon type="iconfont-boom" color={this.props.isParentHighlighted ? Styles.globalColors.blackOrBlack : Styles.globalColors.black} />
+        children = <Kb.Icon className="explodingTimeIcon" type="iconfont-boom" color={this.props.isParentHighlighted ? Styles.globalColors.blackOrBlack : Styles.globalColors.black} />
     }
 
     if (this.props.pending) {

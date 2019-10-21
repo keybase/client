@@ -625,7 +625,7 @@ const styles = Styles.styleSheetCreate(
         isMobile: {marginLeft: Styles.globalMargins.tiny},
       }),
       centeredOrdinal: {
-        backgroundColor: Styles.globalColors.yellow,
+        backgroundColor: Styles.globalColors.yellowOrYellowAlt,
       },
       container: Styles.platformStyles({isMobile: {overflow: 'hidden'}}),
       containerJoinLeave: Styles.platformStyles({
