@@ -1,6 +1,8 @@
-Chat:
-• Replies will automatically notify who you're replying to
+Chat: 
+• Faster inbox loading
+• Better handling of non-image attachments
+• Reduce system announcements cluttering threads
+• Show a small user card when long pressing usernames
 
-Misc:
-• Configure a HTTP or SOCKS proxy in advanced settings
-• Support user lookup by phone number
+Misc: 
+• Better reset account flow
