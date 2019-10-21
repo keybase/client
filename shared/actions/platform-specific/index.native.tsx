@@ -683,6 +683,21 @@ const configureFileAttachmentDownloadForAndroid = () =>
     downloadDirOverride: RNFetchBlob.fs.dirs.DownloadDir,
   })
 
+const startAudioRecording = async () => {
+  const authorized = await AudioRecorder.requestAuthorization()
+  if (!authorized) {
+    throw new Error('no audio access')
+  }
+  const outboxID = ChatConstants.generateOutboxID()
+  const audioPath = await RPCChatTypes.localGetUploadTempFileRpcPromise({filename: 'audio.aac', outboxID})
+  AudioRecorder.prepareRecordingAtPath(audioPath, {
+    SampleRate: 22050,
+    Channels: 1,
+    AudioQuality: 'Low',
+    AudioEncoding: 'aac',
+  })
+}
+
 export function* platformConfigSaga() {
   yield* Saga.chainGenerator<ConfigGen.PersistRoutePayload>(ConfigGen.persistRoute, persistRoute)
   yield* Saga.chainAction2(ConfigGen.mobileAppState, updateChangedFocus)
@@ -724,6 +739,9 @@ export function* platformConfigSaga() {
   if (isAndroid) {
     yield* Saga.chainAction2(ConfigGen.daemonHandshake, configureFileAttachmentDownloadForAndroid)
   }
+
+  // Audio
+  yield* Saga.chainAction2(Chat2Gen.startAudioRecording, startAudioRecording, 'startAudioRecording')
 
   // Start this immediately instead of waiting so we can do more things in parallel
   yield Saga.spawn(loadStartupDetails)
