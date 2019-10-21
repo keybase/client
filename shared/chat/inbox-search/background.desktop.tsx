@@ -1,3 +1,4 @@
+// parallax animated rover while waiting for a search
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
@@ -5,8 +6,6 @@ import {useSpring, animated} from 'react-spring'
 
 const widthX = window.innerWidth
 const heightY = window.innerHeight
-// const widthX = 260
-// const heightY = 380
 
 const calc = (x: number, y: number) => [(x - widthX / 2) / widthX, (y - heightY / 2) / heightY]
 const transBackgroundX = (x: number) => -10 + x * 3
@@ -20,7 +19,7 @@ const Rover = () => {
   const [props, set] = useSpring(() => ({config: {friction: 140, mass: 10, tension: 550}, xy: [0, 0]}))
 
   React.useEffect(() => {
-    const onMouseMove = e => {
+    const onMouseMove = (e: any) => {
       const {clientX: x, clientY: y} = e
       set({xy: calc(x, y)})
     }
