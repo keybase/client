@@ -296,10 +296,6 @@ func (l *LevelDb) isCorrupt(err error) bool {
 	if strings.Contains(err.Error(), "corrupt") {
 		return true
 	}
-	// if our db is in a bad state with too many open files also nuke
-	if strings.Contains(strings.ToLower(err.Error()), "too many open files") {
-		return true
-	}
 	return false
 }
 
