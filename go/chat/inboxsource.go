@@ -767,6 +767,9 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 	// convID -> mtime
 	localUpdates := make(map[string]chat1.LocalMtimeUpdate)
 	for _, obr := range obrs {
+		if !obr.Msg.IsVisible() {
+			continue
+		}
 		state, err := obr.State.State()
 		if err != nil {
 			s.Debug(ctx, "ApplyLocalChatState: unknown state item: skipping: err: %v", err)
