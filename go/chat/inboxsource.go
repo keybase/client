@@ -767,7 +767,7 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 	// convID -> mtime
 	localUpdates := make(map[string]chat1.LocalMtimeUpdate)
 	for _, obr := range obrs {
-		if !obr.Msg.IsVisible() {
+		if !obr.Msg.IsBadgableType() {
 			continue
 		}
 		state, err := obr.State.State()
@@ -776,6 +776,8 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 			continue
 		}
 		if state == chat1.OutboxStateType_ERROR && obr.State.Error().Typ.IsBadgableError() {
+			s.Debug(ctx, "ApplyLocalChatState: found badgable outbox item ctime: %v, error: %v, messageType: %v",
+				obr.Ctime.Time(), obr.State.Error(), obr.Msg.MessageType())
 			ctime := obr.Ctime
 			if update, ok := localUpdates[obr.ConvID.String()]; ok {
 				if ctime.After(update.Mtime) {
