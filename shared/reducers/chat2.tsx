@@ -566,14 +566,20 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
       }
       case Chat2Gen.stopAudioRecording: {
         const audio = new Map(draftState.audioRecording)
-        const info = audio.get(action.payload.conversationIDKey) || Constants.makeAudioRecordingInfo()
+        if (action.payload.stopType === Types.AudioStopType.CANCEL) {
+          // just blow the record away if we get a cancel
+          audio.delete(action.payload.conversationIDKey)
+          draftState.audioRecording = audio
+          return
+        }
+        const info = audio.get(action.payload.conversationIDKey)
+        if (!info) {
+          return
+        }
         let nextStatus = info.status
         switch (info.status) {
           case Types.AudioRecordingStatus.LOCKED:
             switch (action.payload.stopType) {
-              case Types.AudioStopType.CANCEL:
-                nextStatus = Types.AudioRecordingStatus.STOPPED
-                break
               case Types.AudioStopType.RELEASE:
                 nextStatus = Types.AudioRecordingStatus.LOCKED
                 break

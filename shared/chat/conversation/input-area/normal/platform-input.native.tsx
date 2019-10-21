@@ -221,8 +221,9 @@ const PlatformInput = AddSuggestors(_PlatformInput)
 type ActionProps = {
   audioRecording?: Types.AudioRecordingInfo
   hasText: boolean
+  onLockAudioRecording: () => void
   onStartAudioRecording: () => void
-  onStopAudioRecording: () => void
+  onStopAudioRecording: (stopType: Types.AudioStopType) => void
   onSubmit: () => void
   isEditing: boolean
   openFilePicker: () => void
@@ -305,7 +306,7 @@ const Action = React.memo(
             <Kb.LongPressGestureHandler
               onGestureEvent={({nativeEvent}) => {
                 if (nativeEvent.x < -150) {
-                  onStopAudioRecording()
+                  onStopAudioRecording(Types.AudioStopType.CANCEL)
                 }
                 if (nativeEvent.y < -100) {
                   onLockAudioRecording()
@@ -315,7 +316,7 @@ const Action = React.memo(
                 if (nativeEvent.state === Kb.GestureState.ACTIVE) {
                   onStartAudioRecording()
                 } else if (nativeEvent.state === Kb.GestureState.END) {
-                  onStopAudioRecording()
+                  onStopAudioRecording(Types.AudioStopType.RELEASE)
                 }
               }}
             >

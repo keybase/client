@@ -27,7 +27,7 @@ type CommonProps = {
   onRequestScrollDown: () => void
   onRequestScrollUp: () => void
   onStartAudioRecording: () => void
-  onStopAudioRecording: () => void
+  onStopAudioRecording: (stopType: Types.AudioStopType) => void
   onSubmit: (text: string) => void
   prependText: string | null
   quoteCounter: number
