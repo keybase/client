@@ -899,7 +899,7 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
             return
           }
           const meta = draftState.metaMap.get(conversationIDKey)
-          const ordinals = [...(messageOrdinals.get(conversationIDKey) || new Set())]
+          const ordinals = [...(messageOrdinals.get(conversationIDKey) || [])]
           let maxMsgID = 0
           const convMsgMap = messageMap.get(conversationIDKey, I.Map<Types.Ordinal, Types.Message>())
           for (let i = ordinals.length - 1; i >= 0; i--) {
