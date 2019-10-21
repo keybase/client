@@ -36,6 +36,7 @@ const inAdmin: {[K in keyof FeatureFlags]?: boolean} = {
   moveOrCopy: true,
   outOfDateBanner: true,
   proofProviders: true,
+  whatsNew: true,
 }
 
 // load overrides

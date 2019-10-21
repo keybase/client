@@ -52,15 +52,7 @@ const Icon = (props: Props) => {
           height={badgeSize}
           containerStyle={Styles.collapseStyles([
             styles.badgeContainerStyle,
-            props.badgeColor
-              ? {
-                  right: 1,
-                  top: 3,
-                }
-              : {
-                  right: -1,
-                  top: 1,
-                },
+            props.badgeColor ? styles.badgePositioningAlt : styles.badgePositioning,
           ])}
           badgeStyle={Styles.collapseStyles([
             styles.badgeStyles,
@@ -86,7 +78,7 @@ const Icon = (props: Props) => {
       style={Styles.collapseStyles([{marginRight: Styles.globalMargins.small}, props.style])}
     />
   ) : (
-    // clasName will be hover_contained_color_$color so that should override the non-hover color set by the `color` prop.
+    // className will be hover_contained_color_$color so that should override the non-hover color set by the `color` prop.
     <Kb.Icon type="iconfont-radio" className={props.className} color={props.color} onClick={props.onClick} />
   )
 }
@@ -143,6 +135,14 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   badgeStyles: {
     backgroundColor: Styles.globalColors.blue,
+  },
+  badgePositioning: {
+    right: -1,
+    top: 1,
+  },
+  badgePositioningAlt: {
+    right: 1,
+    top: 3,
   },
   iconContainer: Styles.platformStyles({
     common: {

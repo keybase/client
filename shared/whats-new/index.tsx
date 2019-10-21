@@ -19,16 +19,23 @@ type Props = {
 }
 
 // Need to switch the order of the scroll view on mobile and desktop so that contentBackground will fill the entire view
-const Wrapper = ({children}: {children: React.ReactNode}) =>
-  Styles.isMobile ? (
-    <Kb.Box2 direction="vertical" alignItems="flex-start" alignSelf="flex-start" fullHeight={true}>
-      <Kb.Box2
-        direction="vertical"
-        alignItems="flex-start"
-        alignSelf="flex-start"
-        fullHeight={true}
-        style={styles.contentBackground}
-      >
+const Wrapper = ({children}: {children: React.ReactNode}) => (
+  <Kb.Box2
+    direction="vertical"
+    alignItems="flex-start"
+    alignSelf="flex-start"
+    fullHeight={true}
+    style={!Styles.isMobile && styles.popupContainer}
+  >
+    <Kb.Box2
+      direction="vertical"
+      alignItems="flex-start"
+      alignSelf="flex-start"
+      fullHeight={true}
+      fullWidth={!Styles.isMobile}
+      style={styles.contentBackground}
+    >
+      {Styles.isMobile ? (
         <Kb.ScrollView style={styles.scrollView}>
           <Kb.Box2
             direction="vertical"
@@ -39,28 +46,12 @@ const Wrapper = ({children}: {children: React.ReactNode}) =>
             {children}
           </Kb.Box2>
         </Kb.ScrollView>
-      </Kb.Box2>
-    </Kb.Box2>
-  ) : (
-    <Kb.Box2
-      direction="vertical"
-      alignItems="flex-start"
-      alignSelf="flex-start"
-      fullHeight={true}
-      style={styles.popupContainer}
-    >
-      <Kb.Box2
-        direction="vertical"
-        alignItems="flex-start"
-        alignSelf="flex-start"
-        fullHeight={true}
-        fullWidth={true}
-        style={styles.contentBackground}
-      >
+      ) : (
         <Kb.ScrollView style={styles.scrollView}>{children}</Kb.ScrollView>
-      </Kb.Box2>
+      )}
     </Kb.Box2>
-  )
+  </Kb.Box2>
+)
 
 class WhatsNew extends React.PureComponent<Props> {
   static navigationOptions = {}
@@ -143,7 +134,7 @@ const styles = Styles.styleSheetCreate(() => ({
       marginBottom: Styles.globalMargins.small,
       marginLeft: Styles.globalMargins.small,
       marginRight: Styles.globalMargins.small,
-      marginTop: Styles.globalMargins.small + 2,
+      marginTop: Styles.globalMargins.small,
     },
   }),
   versionTitle: {

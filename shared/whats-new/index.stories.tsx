@@ -86,7 +86,7 @@ const LastLast = (props: VersionProps) => (
 const noVersion = '0.0.1'
 
 const load = () => {
-  Sb.storiesOf('Whats New/Icon', module)
+  Sb.storiesOf("What's New/Icon", module)
     .addDecorator(Sb.scrollViewDecorator)
     .add('Nothing New', () => (
       <HeaderIconWrapper>
@@ -108,7 +108,7 @@ const load = () => {
       </>
     ))
 
-  Sb.storiesOf('Whats New/New Feature Row', module)
+  Sb.storiesOf("What's New/New Feature Row", module)
     .addDecorator(Sb.scrollViewDecorator)
     .add('Unseen', () => {
       const unseen = newFeatures.map((feature, index) => (
@@ -181,7 +181,7 @@ const load = () => {
       return squareImages
     })
 
-  Sb.storiesOf('Whats New/Versions', module)
+  Sb.storiesOf("What's New/Versions", module)
     .addDecorator(Sb.scrollViewDecorator)
     .add('One Version - Unseen', () => (
       <WhatsNewWrapper>

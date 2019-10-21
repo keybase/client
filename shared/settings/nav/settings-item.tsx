@@ -49,11 +49,7 @@ export default function SettingsItem(props: SettingsItemProps) {
         >
           {props.text}
         </Text>
-        {props.text && props.subText && (
-          <Text type="BodySecondaryLink" style={styles.subText}>
-            {props.subText}
-          </Text>
-        )}
+        {props.text && props.subText && <Text type="BodySmall">{props.subText}</Text>}
       </Box2>
       {props.inProgress && <ProgressIndicator style={styles.progress} />}
       {!!props.badgeNumber && props.badgeNumber > 0 && (
@@ -98,8 +94,5 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   selectedText: {
     color: Styles.globalColors.black,
-  },
-  subText: {
-    color: Styles.globalColors.black_50,
   },
 }))

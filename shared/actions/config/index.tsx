@@ -684,7 +684,7 @@ function* configSaga() {
   yield* Saga.chainAction2(EngineGen.keybase1NotifyTrackingTrackingInfo, onTrackingInfo)
   yield* Saga.chainAction2(EngineGen.keybase1NotifyServiceHTTPSrvInfoUpdate, onHTTPSrvInfoUpdated)
 
-  // Listen for updated to `whatsNewLastSeenVersion`
+  // Listen for updates to `whatsNewLastSeenVersion`
   yield* Saga.chainAction2(GregorGen.pushState, gregorPushState, 'gregorPushState')
 
   yield* Saga.chainAction2(SettingsGen.loadedSettings, maybeLoadAppLink)

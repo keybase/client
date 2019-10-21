@@ -26,7 +26,7 @@ export const Version = ({children}: {children: React.ReactNode}) => {
 
 export const VersionTitle = ({title}: {title: string}) => (
   <Kb.Box2 direction="vertical" alignItems="flex-start" fullWidth={true}>
-    <Kb.Text type="BodySemibold" style={styles.versionTitle}>
+    <Kb.Text type="BodySmallSemibold" style={styles.versionTitle}>
       {title}
     </Kb.Text>
   </Kb.Box2>
@@ -39,12 +39,12 @@ export const Current = ({seen, onNavigate, onNavigateExternal}: VersionProps) =>
         noSeparator={true}
         seen={seen}
         image={darkModeImage}
-        primaryButtonText="Go dark"
+        primaryButtonText="Open display settings"
         onPrimaryButtonClick={() => {
           onNavigate({fromKey: accountTab}, displayTab)
         }}
       >
-        Dark mode is here! You can access theme settings under the Display section of settings.
+        Dark mode is here! You can access theme settings under the Display section in Settings.
       </NewFeatureRow>
       <NewFeatureRow
         seen={seen}
@@ -83,7 +83,7 @@ export const Current = ({seen, onNavigate, onNavigateExternal}: VersionProps) =>
 export const Last = (_: VersionProps) => {
   return (
     <Version>
-      <VersionTitle title="Last Release" />
+      <VersionTitle title="Last release" />
     </Version>
   )
 }
@@ -91,7 +91,7 @@ export const Last = (_: VersionProps) => {
 export const LastLast = (_: VersionProps) => {
   return (
     <Version>
-      <VersionTitle title="Last Last Release" />
+      <VersionTitle title="Last last release" />
     </Version>
   )
 }

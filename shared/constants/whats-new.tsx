@@ -54,7 +54,7 @@ export const getSeenVersions = (lastSeenVersion: string): seenVersionsMap => {
   // last and lastLast versions might not be set
   const validVersions = versions.filter(isVersionValid)
 
-  // Unseen versions are ones that are greated than the lastSeenVersion
+  // Unseen versions are ones that are greater than the lastSeenVersion
   // seen =  lastLastVersion >= version
   const seenVersions = validVersions.reduce(
     (acc, version) => ({
