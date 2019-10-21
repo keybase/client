@@ -199,7 +199,6 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
           }
           {!this.props.cannotWrite && (
             <Action
-              audioRecording={this.props.audioRecording}
               hasText={this.state.hasText}
               onLockAudioRecording={this.props.onLockAudioRecording}
               onStartAudioRecording={this.props.onStartAudioRecording}
@@ -219,7 +218,6 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
 const PlatformInput = AddSuggestors(_PlatformInput)
 
 type ActionProps = {
-  audioRecording?: Types.AudioRecordingInfo
   hasText: boolean
   onLockAudioRecording: () => void
   onStartAudioRecording: () => void
@@ -233,7 +231,6 @@ type ActionProps = {
 
 const Action = React.memo(
   ({
-    audioRecording,
     hasText,
     insertMentionMarker,
     isEditing,
@@ -285,23 +282,19 @@ const Action = React.memo(
           ]}
         >
           <Kb.Box2 direction="horizontal" style={styles.actionIconsContainer}>
-            {!audioRecording && (
-              <Kb.Icon
-                onClick={insertMentionMarker}
-                type="iconfont-mention"
-                style={Kb.iconCastPlatformStyles(styles.actionButton)}
-                fontSize={22}
-              />
-            )}
+            <Kb.Icon
+              onClick={insertMentionMarker}
+              type="iconfont-mention"
+              style={Kb.iconCastPlatformStyles(styles.actionButton)}
+              fontSize={22}
+            />
             {smallGap}
-            {!audioRecording && (
-              <Kb.Icon
-                onClick={openFilePicker}
-                type="iconfont-camera"
-                style={Kb.iconCastPlatformStyles(styles.actionButton)}
-                fontSize={22}
-              />
-            )}
+            <Kb.Icon
+              onClick={openFilePicker}
+              type="iconfont-camera"
+              style={Kb.iconCastPlatformStyles(styles.actionButton)}
+              fontSize={22}
+            />
             {smallGap}
             <Kb.LongPressGestureHandler
               onGestureEvent={({nativeEvent}) => {

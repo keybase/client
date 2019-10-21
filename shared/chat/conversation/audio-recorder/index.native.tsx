@@ -28,6 +28,9 @@ const AudioRecorder = (props: Props) => {
   const sendRecording = () => {
     dispatch(Chat2Gen.createStopAudioRecording({conversationIDKey, stopType: Types.AudioStopType.SEND}))
   }
+  const stageRecording = () => {
+    dispatch(Chat2Gen.createStopAudioRecording({conversationIDKey, stopType: Types.AudioStopType.STOPBUTTON}))
+  }
   // lifecycle
   React.useEffect(() => {
     if (audioRecording && audioRecording.status === Types.AudioRecordingStatus.INITIAL) {
@@ -37,9 +40,18 @@ const AudioRecorder = (props: Props) => {
 
   // render
   const locked = audioRecording ? audioRecording.status === Types.AudioRecordingStatus.LOCKED : false
-  return !audioRecording || audioRecording.status === Types.AudioRecordingStatus.STOPPED ? null : (
+  const noShow =
+    !audioRecording ||
+    audioRecording.status === Types.AudioRecordingStatus.STOPPED ||
+    audioRecording.status === Types.AudioRecordingStatus.STAGED
+  return noShow ? null : (
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
-      <AudioButton locked={locked} lastAmp={lastAmp} sendRecording={sendRecording} />
+      <AudioButton
+        locked={locked}
+        lastAmp={lastAmp}
+        sendRecording={sendRecording}
+        stageRecording={stageRecording}
+      />
       <Kb.Box2 gap="medium" direction="horizontal" fullWidth={true} style={styles.rowContainer}>
         <AudioCounter />
         <AudioSlideToCancel locked={locked} onCancel={onCancel} />
@@ -52,6 +64,7 @@ type ButtonProps = {
   lastAmp: number
   locked: boolean
   sendRecording: () => void
+  stageRecording: () => void
 }
 
 const ampToScale = (amp: number) => {
@@ -217,15 +230,16 @@ const AudioButton = (props: ButtonProps) => {
       ) : (
         <Kb.NativeView
           style={{
-            backgroundColor: Styles.globalColors.white,
-            borderRadius: 2,
-            height: 18,
-            width: 18,
             position: 'absolute',
-            bottom: 15,
-            right: 49,
+            bottom: 30,
+            right: 45,
           }}
-        />
+        >
+          <Kb.ClickableBox
+            onClick={props.stageRecording}
+            style={{backgroundColor: Styles.globalColors.white, borderRadius: 2, height: 18, width: 18}}
+          />
+        </Kb.NativeView>
       )}
     </>
   )

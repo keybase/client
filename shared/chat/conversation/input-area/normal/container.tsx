@@ -65,7 +65,6 @@ export default Container.namedConnect(
     const suggestBotCommandsUpdateStatus =
       state.chat2.botCommandsUpdateStatusMap.get(conversationIDKey) ||
       RPCChatTypes.UIBotCommandsUpdateStatus.blank
-    const audioRecording = state.chat2.audioRecording.get(conversationIDKey) || undefined
 
     return {
       _containsLatestMessage,
@@ -75,7 +74,6 @@ export default Container.namedConnect(
       _metaMap: state.chat2.metaMap,
       _replyTo,
       _you,
-      audioRecording,
       cannotWrite: meta.cannotWrite,
       conversationIDKey,
       editText: editInfo ? editInfo.text : '',
@@ -174,7 +172,6 @@ export default Container.namedConnect(
       dispatch(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset})),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => ({
-    audioRecording: stateProps.audioRecording,
     cannotWrite: stateProps.cannotWrite,
     clearInboxFilter: dispatchProps.clearInboxFilter,
     conversationIDKey: stateProps.conversationIDKey,
