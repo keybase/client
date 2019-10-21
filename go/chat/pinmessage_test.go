@@ -58,7 +58,7 @@ func TestPinMessages(t *testing.T) {
 	require.Error(t, err)
 	require.NoError(t, ctc.as(t, users[1]).chatLocalHandler().IgnorePinnedMessage(ctx1, impConv.Id))
 	select {
-	case <-listener1.threadsStale:
+	case <-listener1.convUpdate:
 	case <-time.After(timeout):
 		require.Fail(t, "no stale")
 	}

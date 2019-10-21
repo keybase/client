@@ -84,9 +84,8 @@ func TestBotCommandManager(t *testing.T) {
 		}
 	}
 	select {
-	case items := <-listener0.threadsStale:
-		require.Equal(t, 1, len(items))
-		require.Equal(t, impConv.Id, items[0].ConvID)
+	case convID := <-listener0.convUpdate:
+		require.Equal(t, impConv.Id, convID)
 	case <-time.After(timeout):
 		require.Fail(t, "no stale")
 	}
