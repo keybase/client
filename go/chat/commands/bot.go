@@ -3,10 +3,10 @@ package commands
 import (
 	"context"
 	"errors"
-	"sort"
 	"strings"
 	"sync"
 
+	"github.com/keybase/client/go/chat/bots"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -68,19 +68,13 @@ func (b *Bot) Preview(ctx context.Context, uid gregor1.UID, convID chat1.Convers
 		return
 	}
 
-	// sort commands by reverse command length to prefer specificity
-	// (i.e. if there's a longer command that matches the prefix, show the help text for that one)
-	sort.SliceStable(cmds, func(i, j int) bool {
-		l := cmds[i]
-		r := cmds[j]
-		return len(l.Name) > len(r.Name)
-	})
+	bots.SortCommandsForMatching(cmds)
 
 	// Since we have a list of all valid commands for this conversation, don't do any tokenizing
 	// Instead, just check if any valid bot command (followed by a space) is a prefix of this message
 	for _, cmd := range cmds {
 		// If we decide to support the !<command>@<username> syntax, we can just add another check here
-		if strings.HasPrefix(text, "!"+cmd.Name+" ") && cmd.ExtendedDescription != nil {
+		if cmd.Matches(text) && cmd.ExtendedDescription != nil {
 			var body string
 			if b.G().IsMobileAppType() {
 				body = cmd.ExtendedDescription.MobileBody

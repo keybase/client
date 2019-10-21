@@ -2648,3 +2648,7 @@ func (e OutboxErrorType) IsBadgableError() bool {
 		return false
 	}
 }
+
+func (c UserBotCommandOutput) Matches(text string) bool {
+	return strings.HasPrefix(text, fmt.Sprintf("!%s ", c.Name))
+}
