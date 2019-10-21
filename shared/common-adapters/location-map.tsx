@@ -1,9 +1,10 @@
 import * as React from 'react'
-import {Box2} from './box'
+import { Box2 } from './box'
 import Text from './text'
 import Image from './image'
 import ProgressIndicator from './progress-indicator'
 import * as Styles from '../styles'
+import { Banner } from './banner'
 
 type Props = {
   height: number
@@ -13,7 +14,7 @@ type Props = {
 }
 
 const LocationMap = (props: Props) => {
-  const {height, mapSrc, width} = props
+  const { height, mapSrc, width } = props
   const [mapLoaded, setMapLoaded] = React.useState(false)
   const onLoad = () => {
     setMapLoaded(true)
@@ -21,14 +22,19 @@ const LocationMap = (props: Props) => {
   }
   return (
     <Box2 direction="vertical" fullHeight={true} fullWidth={true} gap="small" style={styles.container}>
-      {!!mapSrc && <Image src={mapSrc} style={{height, width}} onLoad={onLoad} />}
+      {!!mapSrc && <Image src={mapSrc} style={{ height, width }} onLoad={onLoad} />}
       {!mapLoaded && <ProgressIndicator style={styles.loading} />}
-      <Box2 style={styles.banner} direction="horizontal" fullWidth={true} centerChildren={true} gap="xxtiny">
+      {/* 
+      // @ts-ignore  */}
+      <Banner color="white">
         <Text type="BodyTiny">Your location is protected.</Text>
         <Text type="BodyTinyLink" style={styles.learn} onClickURL="https://keybase.io/docs/chat/location">
           Learn more
         </Text>
-      </Box2>
+      </Banner>
+      {/* <Box2 style={styles.banner} direction="horizontal" fullWidth={true} centerChildren={true} gap="xxtiny">
+
+      </Box2> */}
     </Box2>
   )
 }
