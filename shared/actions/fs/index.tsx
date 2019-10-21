@@ -66,6 +66,7 @@ const rpcConflictStateToConflictState = (
 
 const loadAdditionalTlf = async (state: TypedState, action: FsGen.LoadAdditionalTlfPayload) => {
   if (Types.getPathLevel(action.payload.tlfPath) !== 3) {
+    logger.warn('loadAdditionalTlf called on non-TLF path')
     return
   }
   try {

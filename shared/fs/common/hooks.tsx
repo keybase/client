@@ -84,15 +84,15 @@ export const useFsTlf = (path: Types.Path) => {
   const active =
     // If we don't have a TLF path, we are not inside a TLF yet. So no need
     // to load.
-    !!tlfPath
-  // If favorites are not loaded, don't load anything yet -- what we need
-  // might be available from favorites.
-  tlfs.loaded &&
+    !!tlfPath &&
+    // If favorites are not loaded, don't load anything yet -- what we need
+    // might be available from favorites.
+    tlfs.loaded &&
     // If TLF is part of favorites list, we already have notifications to
     // cover the refresh, so no need to load here. (To be clear,
-    // notifications don't cover syncConfig, but we already lod when use
+    // notifications don't cover syncConfig, but we already load when user
     // toggles change.)
-    Constants.unknownTlf === Constants.getTlfFromPathInFavoritesOnly(tlfs, tlfPath)
+    Constants.getTlfFromPathInFavoritesOnly(tlfs, tlfPath) === Constants.unknownTlf
   // We need to load TLFs. We don't have notifications for this rpc yet, so
   // just poll on a 10s interval.
   Kb.useInterval(() => dispatch(FsGen.createLoadAdditionalTlf({tlfPath})), active ? 10000 : undefined)
