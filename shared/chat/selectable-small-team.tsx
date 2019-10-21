@@ -59,7 +59,7 @@ class SelectableSmallTeam extends React.PureComponent<Props, State> {
           })}
           style={Styles.collapseStyles([
             styles.rowContainer,
-            this.props.isSelected && {backgroundColor: Styles.globalColors.blue},
+            {backgroundColor: this.props.isSelected ? Styles.globalColors.blue : Styles.globalColors.white},
           ])}
           onMouseLeave={this._onMouseLeave}
           onMouseOver={this._onMouseOver}
