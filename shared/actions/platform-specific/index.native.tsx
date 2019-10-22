@@ -58,6 +58,26 @@ const requestPermissionsToWrite = async () => {
   return Promise.resolve()
 }
 
+export const requestAudioPermission = async () => {
+  if (isIOS) {
+    const {status} = await Permissions.getAsync(Permissions.AUDIO_RECORDING)
+    if (status === Permissions.PermissionStatus.DENIED) {
+      throw new Error('Please allow Keybase to access the microphone in the phone settings.')
+    }
+  }
+  if (isAndroid) {
+    const permissionStatus = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.RECORD_AUDIO, {
+      buttonNegative: 'Cancel',
+      buttonPositive: 'OK',
+      message: 'Keybase needs access to your microphone to send an audio attachment',
+      title: 'Keybase Record Audio Permission',
+    })
+    if (permissionStatus !== 'granted') {
+      throw new Error('Unable to acquire record audio permissions')
+    }
+  }
+}
+
 export const requestLocationPermission = async (mode: RPCChatTypes.UIWatchPositionPerm) => {
   if (isIOS) {
     const {status, permissions} = await Permissions.getAsync(Permissions.LOCATION)
@@ -690,11 +710,7 @@ const startAudioRecording = async (
   action: Chat2Gen.StartAudioRecordingPayload,
   logger: Saga.SagaLogger
 ) => {
-  const authorized = await AudioRecorder.requestAuthorization()
-  if (!authorized) {
-    logger.info('startAudioRecording: no auth granted')
-    throw new Error('no audio access')
-  }
+  await requestAudioPermission()
   const conversationIDKey = action.payload.conversationIDKey
   const outboxID = ChatConstants.generateOutboxID()
   const audioPath = await RPCChatTypes.localGetUploadTempFileRpcPromise({filename: 'audio.aac', outboxID})
@@ -729,11 +745,11 @@ const stopAudioRecording = async (
       return false
     }
   }
-  logger.info('stopAudioRecording: stopping recording')
-  await AudioRecorder.stopRecording()
   if (!state.chat2.audioRecording) {
     return false
   }
+  logger.info('stopAudioRecording: stopping recording')
+  await AudioRecorder.stopRecording()
   if (action.payload.stopType === Types.AudioStopType.CANCEL) {
     logger.info('stopAudioRecording: recording canceled, not sending')
     return false
@@ -746,7 +762,7 @@ const stopAudioRecording = async (
     logger.info('stopAudioRecording: in staged mode, not sending')
     return false
   }
-  return Chat2Gen.createSendAudioRecording({conversationIDKey})
+  //return Chat2Gen.createSendAudioRecording({conversationIDKey})
 }
 
 export function* platformConfigSaga() {

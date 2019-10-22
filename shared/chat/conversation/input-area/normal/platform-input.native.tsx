@@ -297,7 +297,9 @@ const Action = React.memo(
             />
             {smallGap}
             <Kb.LongPressGestureHandler
+              minDurationMs={200}
               onGestureEvent={({nativeEvent}) => {
+                console.log('GESTURE: ' + JSON.stringify(nativeEvent))
                 if (nativeEvent.x < -150) {
                   onStopAudioRecording(Types.AudioStopType.CANCEL)
                 }
@@ -306,9 +308,13 @@ const Action = React.memo(
                 }
               }}
               onHandlerStateChange={({nativeEvent}) => {
+                console.log('STATE: ' + JSON.stringify(nativeEvent))
                 if (nativeEvent.state === Kb.GestureState.ACTIVE) {
                   onStartAudioRecording()
-                } else if (nativeEvent.state === Kb.GestureState.END) {
+                } else if (
+                  nativeEvent.state === Kb.GestureState.END ||
+                  nativeEvent.state === Kb.GestureState.CANCELLED
+                ) {
                   onStopAudioRecording(Types.AudioStopType.RELEASE)
                 }
               }}
