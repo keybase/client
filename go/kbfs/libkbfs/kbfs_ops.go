@@ -430,6 +430,7 @@ func (fs *KBFSOpsStandard) findRelatedFolders(ctx context.Context,
 	return folderNormalView, found, nil
 }
 
+// GetFolderWithFavFlags implements the KBFSOps interface.
 func (fs *KBFSOpsStandard) GetFolderWithFavFlags(ctx context.Context, handle *tlfhandle.Handle) (keybase1.FolderWithFavFlags, error) {
 	favFolder := handle.ToFavorite()
 	folderWithFavFlags, err := fs.favs.GetFolderWithFavFlags(ctx, favFolder)
