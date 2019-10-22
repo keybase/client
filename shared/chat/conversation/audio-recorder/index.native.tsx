@@ -7,7 +7,7 @@ import * as Chat2Gen from '../../../actions/chat2-gen'
 import {formatAudioRecordDuration} from '../../../util/timestamp'
 import {Props} from '.'
 
-const minAmp = -100
+const minAmp = -80
 
 const AudioRecorder = (props: Props) => {
   // props
@@ -64,7 +64,7 @@ const AudioRecorder = (props: Props) => {
       />
       <Kb.Box2 gap="medium" direction="horizontal" style={styles.rowContainer}>
         <AudioCounter />
-        <AudioSlideToCancel locked={locked} onCancel={onCancel} />
+        <AudioSlideToCancel closeDown={closingDown} locked={locked} onCancel={onCancel} />
       </Kb.Box2>
     </Kb.Box2>
   )
@@ -79,7 +79,7 @@ type ButtonProps = {
 }
 
 const ampToScale = (amp: number) => {
-  return Math.max(3, (1 - amp / minAmp) * 7)
+  return Math.max(3, (1 - amp / minAmp) * 8)
 }
 
 const AudioButton = (props: ButtonProps) => {
@@ -290,6 +290,7 @@ const AudioButton = (props: ButtonProps) => {
 }
 
 type CancelProps = {
+  closeDown: boolean
   locked: boolean
   onCancel: () => void
 }
@@ -303,6 +304,15 @@ const AudioSlideToCancel = (props: CancelProps) => {
       useNativeDriver: true,
     }).start()
   }, [])
+  React.useEffect(() => {
+    if (props.closeDown) {
+      Kb.NativeAnimated.timing(translate, {
+        duration: 400,
+        toValue: 0,
+        useNativeDriver: true,
+      }).start()
+    }
+  }, [props.closeDown])
   return props.locked ? (
     <Kb.Text type="BodyPrimaryLink" onClick={props.onCancel} style={{marginLeft: 30}}>
       Cancel
@@ -310,7 +320,7 @@ const AudioSlideToCancel = (props: CancelProps) => {
   ) : (
     <Kb.NativeAnimated.View
       style={{
-        transform: [{translateX: translate.interpolate({inputRange: [0, 1], outputRange: [150, 0]})}],
+        transform: [{translateX: translate.interpolate({inputRange: [0, 1], outputRange: [100, 0]})}],
       }}
     >
       <Kb.Box2 direction="horizontal" gap="tiny">
