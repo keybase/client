@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {Color, StylesCrossPlatform} from '../../../styles'
+import {Color} from '../../../styles'
 
 export type MenuItem = {
   backgroundColor?: Color
