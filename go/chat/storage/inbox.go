@@ -1851,6 +1851,11 @@ func (i *Inbox) ConversationsUpdate(ctx context.Context, uid gregor1.UID, vers c
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
+
+	if len(convUpdates) == 0 {
+		return nil
+	}
+
 	layoutChanged := false
 	defer func() {
 		if layoutChanged {
@@ -1898,6 +1903,11 @@ func (i *Inbox) UpdateLocalMtime(ctx context.Context, uid gregor1.UID,
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
+
+	if len(convUpdates) == 0 {
+		return nil
+	}
+
 	defer i.layoutNotifier.UpdateLayout(ctx, chat1.InboxLayoutReselectMode_DEFAULT, "local conversations update")
 
 	i.Debug(ctx, "UpdateLocalMtime: updating %d convs", len(convUpdates))
