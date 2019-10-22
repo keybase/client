@@ -1,8 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import {appendNewChatBuilder} from '../actions/typed-routes'
-import {accountTab, displayTab, contactsTab} from '../constants/settings'
+import {displayTab} from '../constants/settings'
 import NewFeatureRow from './new-feature-row'
 
 /* Include images */
@@ -12,7 +11,11 @@ const darkModeImage = require('../images/releases/4.7.0/dark-mode.png')
 
 export type VersionProps = {
   seen: boolean
-  onNavigate: (props: {}, selected: string) => void
+  onNavigate: (props: {
+    fromKey?: string
+    path: Array<{props?: {}; selected: string}>
+    replace?: boolean
+  }) => void
   onNavigateExternal: (url: string) => void
 }
 
@@ -42,7 +45,7 @@ export const Current = ({seen, onNavigate, onNavigateExternal}: VersionProps) =>
         image={darkModeImage}
         primaryButtonText="Open display settings"
         onPrimaryButtonClick={() => {
-          onNavigate({fromKey: accountTab}, displayTab)
+          onNavigate({path: [{props: {}, selected: displayTab}]})
         }}
       >
         Dark mode is here! You can access theme settings under the Display section in Settings.
@@ -51,7 +54,9 @@ export const Current = ({seen, onNavigate, onNavigateExternal}: VersionProps) =>
         seen={seen}
         primaryButtonText="Try it"
         onPrimaryButtonClick={() => {
-          onNavigate({namespace: 'chat2', title: 'New chat'}, 'chatNewChat')
+          onNavigate({
+            path: [{props: {namespace: 'chat2', title: 'New chat'}, selected: 'chatNewChat'}],
+          })
         }}
         secondaryButtonText="Read the doc"
         onSecondaryButtonClick={() => {

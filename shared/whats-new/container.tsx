@@ -25,21 +25,24 @@ const mapStateToProps = (state: Container.TypedState) => ({
 })
 const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   // Navigate primary/secondary button click
-  _onNavigate: (props: {}, selected: string) => {
-    if (Object.keys(props).length) {
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props, selected}],
-        })
-      )
-    } else {
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [selected],
-        })
-      )
-    }
+  _onNavigate: ({
+    fromKey,
+    path,
+    replace,
+  }: {
+    fromKey?: string
+    path: Array<{props?: {}; selected: string}>
+    replace?: boolean
+  }) => {
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        fromKey,
+        path,
+        replace,
+      })
+    )
   },
+
   _onNavigateExternal: (url: string) => openURL(url),
 
   _onUpdateLastSeenVersion: (lastSeenVersion: string) => {
@@ -74,9 +77,14 @@ const mergeProps = (
     lastVersion,
     noVersion,
     onBack,
-    onNavigate: () => {
+    // Navigate then handle setting seen state and closing the modal (desktop only)
+    onNavigate: (props: {
+      fromKey?: string
+      path: Array<{props?: {}; selected: string}>
+      replace?: boolean
+    }) => {
+      dispatchProps._onNavigate(props)
       onBack()
-      dispatchProps._onNavigate
     },
     onNavigateExternal: dispatchProps._onNavigateExternal,
     seenVersions,

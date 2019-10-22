@@ -6,7 +6,11 @@ import {VersionProps} from './versions'
 
 type Props = {
   onBack: () => void
-  onNavigate: (props: {}, selected: string) => void
+  onNavigate: (props: {
+    fromKey?: string
+    path: Array<{props?: {}; selected: string}>
+    replace?: boolean
+  }) => void
   onNavigateExternal: (url: string) => void
   seenVersions: {[key: string]: boolean}
   currentVersion: Types.CurrentVersion
