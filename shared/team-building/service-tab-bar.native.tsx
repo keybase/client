@@ -88,10 +88,37 @@ const ServiceIcon = (props: IconProps) => {
 
 const undefToNull = (n: number | undefined | null): number | null => (n === undefined ? null : n)
 
+const initialBounce = () => {
+  const {Clock, Value, debug, startClock, stopClock, cond, spring, block, SpringUtils} = Kb.ReAnimated
+  const clock = new Clock()
+
+  const state = {
+    finished: new Value(0),
+    position: new Value(100),
+    time: new Value(0),
+    velocity: new Value(0),
+  }
+
+  const config = {
+    ...SpringUtils.makeDefaultConfig(),
+    toValue: new Value(0),
+  }
+
+  return block([
+    startClock(clock),
+    spring(clock, state, config),
+    cond(state.finished, debug('aaa clock stop', stopClock(clock))),
+    state.position,
+  ])
+}
+
 export class ServiceTabBar extends React.Component<Props> {
   private onClick = service => {
     this.props.onChangeService(service)
   }
+
+  private bounce = initialBounce()
+
   render() {
     const props = this.props
 
@@ -109,6 +136,7 @@ export class ServiceTabBar extends React.Component<Props> {
           flexGrow: 0,
           flexShrink: 0,
           height,
+          transform: [{translateX: this.bounce}] as any,
           width: '100%',
         }}
       >
