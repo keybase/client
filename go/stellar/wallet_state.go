@@ -272,7 +272,6 @@ func (w *WalletState) refreshAll(mctx libkb.MetaContext, reason string) (err err
 	}
 
 	mctx.Debug("all payments: %+v", all)
-	panic("here")
 
 	// make a map out of results for easier lookup
 	details := make(map[stellar1.AccountID]*stellar1.DetailsPlusPayments)
