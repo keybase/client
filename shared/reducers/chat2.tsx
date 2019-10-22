@@ -272,8 +272,8 @@ const messageMapReducer = (
       )
     }
     case Chat2Gen.attachmentUploading: {
-      const convMap = pendingOutboxToOrdinal.get(action.payload.conversationIDKey) || new Map()
-      const ordinal = convMap.get(action.payload.outboxID)
+      const convMap = pendingOutboxToOrdinal.get(action.payload.conversationIDKey)
+      const ordinal = convMap && convMap.get(action.payload.outboxID)
       if (!ordinal) {
         return messageMap
       }
@@ -481,9 +481,7 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
                 conversationIDKey,
                 I.Map<Types.Ordinal, Types.Message>()
               )
-              const ordinals = [
-                ...(draftState.messageOrdinals.get(conversationIDKey) || new Set<Types.Ordinal>()),
-              ]
+              const ordinals = [...(draftState.messageOrdinals.get(conversationIDKey) || [])]
               const ord = ordinals.find(o => {
                 const message = messageMap.get(o)
                 return !!(message && message.id >= readMsgID + 1)
@@ -688,7 +686,7 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         }
 
         // Editing your last message
-        const ordinals = [...(draftState.messageOrdinals.get(conversationIDKey) || new Set<Types.Ordinal>())]
+        const ordinals = [...(draftState.messageOrdinals.get(conversationIDKey) || [])]
         const found = ordinals.reverse().find(o => {
           const message = messageMap.get(o)
           return !!(

@@ -1095,8 +1095,7 @@ export const makePendingTextMessage = (
   // and probably reset when we get the real message back.
 
   const lastOrdinal =
-    [...(state.chat2.messageOrdinals.get(conversationIDKey) || new Set<number>())].pop() ||
-    Types.numberToOrdinal(0)
+    [...(state.chat2.messageOrdinals.get(conversationIDKey) || [])].pop() || Types.numberToOrdinal(0)
 
   const ordinal = nextFractionalOrdinal(lastOrdinal)
 
@@ -1131,8 +1130,7 @@ export const makePendingAttachmentMessage = (
   explodeTime?: number
 ) => {
   const lastOrdinal =
-    [...(state.chat2.messageOrdinals.get(conversationIDKey) || new Set<number>())].pop() ||
-    Types.numberToOrdinal(0)
+    [...(state.chat2.messageOrdinals.get(conversationIDKey) || [])].pop() || Types.numberToOrdinal(0)
   const ordinal = !inOrdinal ? nextFractionalOrdinal(lastOrdinal) : inOrdinal
   const explodeInfo = explodeTime ? {exploding: true, explodingTime: Date.now() + explodeTime * 1000} : {}
 
@@ -1166,7 +1164,7 @@ export const getClientPrev = (state: TypedState, conversationIDKey: Types.Conver
   const mm = state.chat2.messageMap.get(conversationIDKey)
   if (mm) {
     // find last valid messageid we know about
-    const goodOrdinal = [...(state.chat2.messageOrdinals.get(conversationIDKey) || new Set())]
+    const goodOrdinal = [...(state.chat2.messageOrdinals.get(conversationIDKey) || [])]
       .reverse()
       .find(o => mm.getIn([o, 'id']))
 
