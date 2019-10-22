@@ -550,18 +550,18 @@ function* getDetails(_: TypedState, action: TeamsGen.GetDetailsPayload, logger: 
     }
     requests.sort((a, b) => a.username.localeCompare(b.username))
 
-    const requestMap = requests.reduce((reqMap, req) => {
+    const requestMap: {[key: string]: Array<string>} = requests.reduce((reqMap, req) => {
       if (!reqMap[req.name]) {
-        reqMap[req.name] = I.Set()
+        reqMap[req.name] = []
       }
-      reqMap[req.name] = reqMap[req.name].add(Constants.makeRequestInfo({username: req.username}))
+      reqMap[req.name].push(req.username)
       return reqMap
     }, {})
 
-    const invites = Object.values(details.annotatedActiveInvites).reduce<Array<Types.InviteInfo>>(
+    const invites = Object.values(details.annotatedActiveInvites).reduce<Array<Types._InviteInfo>>(
       (arr, invite) => {
         const role = Constants.teamRoleByEnum[invite.role]
-        if (role === 'none') {
+        if (!role || role === 'none') {
           return arr
         }
 
@@ -571,17 +571,14 @@ function* getDetails(_: TypedState, action: TeamsGen.GetDetailsPayload, logger: 
           const sbs: RPCTypes.TeamInviteSocialNetwork = t.sbs
           username = `${invite.name}@${sbs}`
         }
-        arr.push(
-          Constants.makeInviteInfo({
-            email: invite.type.c === RPCTypes.TeamInviteCategory.email ? invite.name : '',
-            id: invite.id,
-            name: invite.type.c === RPCTypes.TeamInviteCategory.seitan ? invite.name : '',
-            phone:
-              invite.type.c === RPCTypes.TeamInviteCategory.phone ? e164ToDisplay('+' + invite.name) : '',
-            role,
-            username,
-          })
-        )
+        arr.push({
+          email: invite.type.c === RPCTypes.TeamInviteCategory.email ? invite.name : '',
+          id: invite.id,
+          name: invite.type.c === RPCTypes.TeamInviteCategory.seitan ? invite.name : '',
+          phone: invite.type.c === RPCTypes.TeamInviteCategory.phone ? e164ToDisplay('+' + invite.name) : '',
+          role,
+          username,
+        })
         return arr
       },
       []
@@ -603,11 +600,12 @@ function* getDetails(_: TypedState, action: TeamsGen.GetDetailsPayload, logger: 
     }, [])
     yield Saga.put(
       TeamsGen.createSetTeamDetails({
-        invites: I.Set(invites),
-        members: Constants.rpcDetailsToMemberInfos(details.members),
-        requests: I.Map(requestMap),
-        settings: Constants.makeTeamSettings(details.settings),
-        subteams: I.Set(subteams),
+        invites: invites,
+        members: details.members,
+        requests: requestMap,
+        settings: details.settings,
+        subteams: subteams,
+        teamID: Constants.getTeamID(state, teamname),
         teamname,
       })
     )
