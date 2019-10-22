@@ -4,7 +4,7 @@ import Icon from './icon'
 import Text from './text'
 import * as Styles from '../styles'
 
-type Color = 'blue' | 'red' | 'yellow' | 'green' | 'grey'
+type Color = 'blue' | 'red' | 'yellow' | 'green' | 'grey' | 'white'
 
 type _Segment = {
   onClick?: () => void
@@ -210,6 +210,7 @@ const colorToBackgroundColorStyles = Styles.styleSheetCreate(() => ({
   grey: {backgroundColor: Styles.globalColors.grey},
   red: {backgroundColor: Styles.globalColors.red},
   yellow: {backgroundColor: Styles.globalColors.yellow},
+  white: {backgroundColor: Styles.globalColors.white},
 }))
 
 const colorToTextColorStyles = Styles.styleSheetCreate(() => ({
@@ -218,6 +219,7 @@ const colorToTextColorStyles = Styles.styleSheetCreate(() => ({
   grey: {color: Styles.globalColors.black_50},
   red: {color: Styles.globalColors.white},
   yellow: {color: Styles.globalColors.brown_75},
+  white: {color: Styles.globalColors.black_50},
 }))
 
 const colorToIconColor = () => ({
@@ -226,6 +228,7 @@ const colorToIconColor = () => ({
   grey: Styles.globalColors.black_50,
   red: Styles.globalColors.white_90,
   yellow: Styles.globalColors.brown_75,
+  white: Styles.globalColors.black_50,
 })
 
 const colorToIconHoverColor = () => ({
@@ -234,4 +237,5 @@ const colorToIconHoverColor = () => ({
   grey: Styles.globalColors.black,
   red: Styles.globalColors.white,
   yellow: Styles.globalColors.brown,
+  white: Styles.globalColors.black,
 })

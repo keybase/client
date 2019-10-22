@@ -24,14 +24,12 @@ const LocationMap = (props: Props) => {
     <Box2 direction="vertical" fullHeight={true} fullWidth={true} gap="small" style={styles.container}>
       {!!mapSrc && <Image src={mapSrc} style={{height, width}} onLoad={onLoad} />}
       {!mapLoaded && <ProgressIndicator style={styles.loading} />}
-      {/* 
-      // @ts-ignore  */}
       <Banner color="white" style={styles.banner}>
         <BannerParagraph
-          bannerColor="grey"
+          bannerColor="white"
           content={[
             'Your location is protected. ',
-            {text: 'Learn more', onClick: () => openURL('https://keybase.io/docs/chat/location')},
+            {onClick: () => openURL('https://keybase.io/docs/chat/location'), text: 'Learn more'},
           ]}
         />
       </Banner>
