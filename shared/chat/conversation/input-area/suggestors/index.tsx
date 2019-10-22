@@ -14,14 +14,14 @@ type TransformerData = {
 
 const standardTransformer = (
   toInsert: string,
-  { text, position: { start, end } }: TransformerData,
+  {text, position: {start, end}}: TransformerData,
   preview: boolean
 ) => {
   const newText = `${text.substring(0, start || 0)}${toInsert}${preview ? '' : ' '}${text.substring(
     end || 0
   )}`
   const newSelection = (start || 0) + toInsert.length + (preview ? 0 : 1)
-  return { selection: { end: newSelection, start: newSelection }, text: newText }
+  return {selection: {end: newSelection, start: newSelection}, text: newText}
 }
 
 const matchesMarker = (
@@ -32,22 +32,22 @@ const matchesMarker = (
   matches: boolean
 } => {
   if (typeof marker === 'string') {
-    return { marker, matches: word.startsWith(marker) }
+    return {marker, matches: word.startsWith(marker)}
   }
   const match = word.match(marker)
   if (!match) {
-    return { marker: '', matches: false }
+    return {marker: '', matches: false}
   }
-  return { marker: match[0] || '', matches: true }
+  return {marker: match[0] || '', matches: true}
 }
 
 type AddSuggestorsProps = {
-  dataSources: { [K in string]: (filter: string) => Array<any> }
-  keyExtractors?: { [K in string]: (item: any) => string }
-  renderers: { [K in string]: (item: any, selected: boolean) => React.ElementType }
+  dataSources: {[K in string]: (filter: string) => {data: Array<any>; useSpaces: boolean}}
+  keyExtractors?: {[K in string]: (item: any) => string}
+  renderers: {[K in string]: (item: any, selected: boolean) => React.ElementType}
   suggestionListStyle?: Styles.StylesCrossPlatform
   suggestionOverlayStyle?: Styles.StylesCrossPlatform
-  suggestorToMarker: { [K in string]: string | RegExp }
+  suggestorToMarker: {[K in string]: string | RegExp}
   transformers: {
     [K in string]: (
       item: any,
@@ -77,7 +77,7 @@ type SuggestorHooks = {
   onKeyDown: (event: React.KeyboardEvent, isComposingIME: boolean) => void
   onBlur: () => void
   onFocus: () => void
-  onSelectionChange: (arg0: { start: number | null; end: number | null }) => void
+  onSelectionChange: (arg0: {start: number | null; end: number | null}) => void
 }
 
 export type PropsWithSuggestorOuter<P> = P & AddSuggestorsProps
@@ -93,12 +93,12 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
     SuggestorHooks
 
   class SuggestorsComponent extends React.Component<SuggestorsComponentProps, AddSuggestorsState> {
-    state: AddSuggestorsState = { active: undefined, filter: '', selected: 0 }
+    state: AddSuggestorsState = {active: undefined, filter: '', selected: 0}
     _inputRef = React.createRef<Kb.PlainInput>()
     _attachmentRef = React.createRef()
     _lastText?: string
     _suggestors = Object.keys(this.props.suggestorToMarker)
-    _markerToSuggestor: { [K in string]: string } = invert(this.props.suggestorToMarker)
+    _markerToSuggestor: {[K in string]: string} = invert(this.props.suggestorToMarker)
     _timeoutID?: NodeJS.Timer
 
     componentWillUnmount() {
@@ -120,10 +120,13 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
     _getInputRef = () => this._inputRef.current
     _getAttachmentRef: () => any = () => this._attachmentRef.current
 
-    _setInactive = () => this.setState(s => (s.active ? { active: undefined, filter: '', selected: 0 } : null))
+    _setInactive = () => this.setState(s => (s.active ? {active: undefined, filter: '', selected: 0} : null))
 
     _getWordAtCursor = () => {
       if (this._inputRef.current) {
+        const {useSpaces} = this._getResults()
+        console.warn(useSpaces)
+        console.warn(this._getResults())
         const input = this._inputRef.current
         const selection = input.getSelection()
         const text = this._lastText
@@ -132,9 +135,11 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
         }
 
         let wordRegex: string | RegExp
-        if (this.state.active === 'commands') {
-          console.warn(this._getResults())
-          wordRegex = new RegExp(` (?=${Object.values(this.props.suggestorToMarker).map(p => p instanceof RegExp ? p.source : p).join('|')})`, 'g')
+        if (useSpaces) {
+          const markers = Object.values(this.props.suggestorToMarker).map(p =>
+            p instanceof RegExp ? p.source : p
+          )
+          wordRegex = new RegExp(` (?=${markers.join('|')})`, 'g')
         } else {
           wordRegex = ' '
         }
@@ -143,16 +148,16 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
         const words = upToCursor.split(wordRegex)
         console.warn(wordRegex, words)
         const word = words[words.length - 1]
-        const position = { end: selection.start, start: selection.start - word.length }
-        return { position, word }
+        const position = {end: selection.start, start: selection.start - word.length}
+        return {position, word}
       }
       return null
     }
 
     _stabilizeSelection = () => {
-      const results = this._getResults()
-      if (this.state.selected > results.length - 1) {
-        this.setState({ selected: 0 })
+      const {data} = this._getResults()
+      if (this.state.selected > data.length - 1) {
+        this.setState({selected: 0})
       }
     }
 
@@ -164,8 +169,8 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
         if (!cursorInfo) {
           return
         }
-        const { word } = cursorInfo
-        const { active } = this.state
+        const {word} = cursorInfo
+        const {active} = this.state
         if (active) {
           const activeMarker = this.props.suggestorToMarker[active]
           const matchInfo = matchesMarker(word, activeMarker)
@@ -173,7 +178,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
             // not active anymore
             this._setInactive()
           } else {
-            this.setState({ filter: word.substring(matchInfo.marker.length) }, this._stabilizeSelection)
+            this.setState({filter: word.substring(matchInfo.marker.length)}, this._stabilizeSelection)
             return
           }
         }
@@ -184,14 +189,14 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
           // @ts-ignore
           const matchInfo = matchesMarker(word, marker)
           if (matchInfo.matches && this._inputRef.current && this._inputRef.current.isFocused()) {
-            this.setState({ active: suggestor, filter: word.substring(matchInfo.marker.length) })
+            this.setState({active: suggestor, filter: word.substring(matchInfo.marker.length)})
           }
         }
       }, 0)
     }
 
     _validateProps = () => {
-      const { active } = this.state
+      const {active} = this.state
       if (!active) {
         return
       }
@@ -213,9 +218,9 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
           if (!s.active) {
             return null
           }
-          const length = this._getResults().length
+          const length = this._getResults().data.length
           const selected = (((up ? s.selected - 1 : s.selected + 1) % length) + length) % length
-          return selected === s.selected ? null : { selected }
+          return selected === s.selected ? null : {selected}
         },
         () => this._triggerTransform(this._getSelected(), false)
       )
@@ -232,7 +237,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
         this._checkTrigger()
       }
 
-      if (!this.state.active || this._getResults().length === 0) {
+      if (!this.state.active || this._getResults().data.length === 0) {
         // not showing list, bail
         this.props.onKeyDown && this.props.onKeyDown(evt, ici)
         return
@@ -251,7 +256,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
         shouldCallParentCallback = false
       } else if (evt.key === 'Enter') {
         evt.preventDefault()
-        this._triggerTransform(this._getResults()[this.state.selected])
+        this._triggerTransform(this._getResults().data[this.state.selected])
         shouldCallParentCallback = false
       } else if (evt.key === 'Tab') {
         evt.preventDefault()
@@ -287,7 +292,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
     _triggerTransform = (value, final = true) => {
       if (this._inputRef.current && this.state.active) {
         const input = this._inputRef.current
-        const { active } = this.state
+        const {active} = this.state
         const cursorInfo = this._getWordAtCursor()
         if (!cursorInfo) {
           return
@@ -317,7 +322,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
             value
           }
           onClick={() => this._triggerTransform(value)}
-          onMouseMove={() => this.setState(s => (s.selected === index ? null : { selected: index }))}
+          onMouseMove={() => this.setState(s => (s.selected === index ? null : {selected: index}))}
         >
           {this.props.renderers[this.state.active](
             value,
@@ -326,12 +331,12 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
         </Kb.ClickableBox>
       )
 
-    _getResults = () => {
-      const { active } = this.state
-      return active ? this.props.dataSources[active](this.state.filter) : []
+    _getResults = (): {data: any[]; useSpaces: boolean} => {
+      const {active} = this.state
+      return active ? this.props.dataSources[active](this.state.filter) : {data: [], useSpaces: false}
     }
 
-    _getSelected = () => (this.state.active ? this._getResults()[this.state.selected] : null)
+    _getSelected = () => (this.state.active ? this._getResults().data[this.state.selected] : null)
 
     render() {
       let overlay: React.ReactNode = null
@@ -339,7 +344,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
         this._validateProps()
       }
       let suggestionsVisible = false
-      const results = this._getResults()
+      const results = this._getResults().data
       if (results.length) {
         suggestionsVisible = true
         const active = this.state.active
@@ -363,19 +368,19 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
             {content}
           </Kb.FloatingBox>
         ) : (
-            <Kb.Overlay
-              attachTo={this._getAttachmentRef}
-              matchDimension={true}
-              position="top center"
-              positionFallbacks={['bottom center']}
-              visible={true}
-              propagateOutsideClicks={false}
-              onHidden={this._setInactive}
-              style={this.props.suggestionOverlayStyle}
-            >
-              {content}
-            </Kb.Overlay>
-          )
+          <Kb.Overlay
+            attachTo={this._getAttachmentRef}
+            matchDimension={true}
+            position="top center"
+            positionFallbacks={['bottom center']}
+            visible={true}
+            propagateOutsideClicks={false}
+            onHidden={this._setInactive}
+            style={this.props.suggestionOverlayStyle}
+          >
+            {content}
+          </Kb.Overlay>
+        )
       }
 
       const {
@@ -413,5 +418,5 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
   return React.forwardRef((props, ref) => <SuggestorsComponent {...props} forwardedRef={ref} />)
 }
 
-export { standardTransformer }
+export {standardTransformer}
 export default AddSuggestors
