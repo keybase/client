@@ -77,7 +77,12 @@ export const Current = ({seen, onNavigate, onNavigateExternal}: VersionProps) =>
       <NewFeatureRow seen={seen} image={keybaseFMImage}>
         Listen to
         {` `}
-        <Kb.Icon type="iconfont-radio" color={Styles.globalColors.black_50} boxStyle={styles.inlineIcon} />
+        <Kb.Icon
+          type="iconfont-radio"
+          color={Styles.globalColors.black_50}
+          boxStyle={styles.inlineIcon}
+          sizeType={Styles.isMobile ? 'Small' : 'Default'}
+        />
         {` `}
         {keybaseFM}
         {` `}
@@ -107,6 +112,7 @@ const styles = Styles.styleSheetCreate(() => ({
   inlineIcon: Styles.platformStyles({
     isElectron: {
       display: 'inline-block',
+      marginTop: Styles.globalMargins.xtiny,
     },
   }),
   roundedImage: Styles.platformStyles({
