@@ -94,14 +94,13 @@ func (s *baseConversationSource) addConversationCards(ctx context.Context, uid g
 	cc := newJourneyCardChecker(s.G())
 	card, err := cc.Next(ctx, uid, conv, thread)
 	if err != nil {
-		s.Debug(ctx, "error getting next conversation card: %s", err)
+		s.Debug(ctx, "addConversationCards: error getting next conversation card: %s", err)
 		return
 	}
 	if card == nil {
-		s.Debug(ctx, "card is nil")
 		return
 	}
-	s.Debug(ctx, "got a card for this conversation: %+v", card)
+	s.Debug(ctx, "addConversationCards: got a card: %+v", card)
 	thread.Messages = append([]chat1.MessageUnboxed{chat1.NewMessageUnboxedWithJourneycard(*card)}, thread.Messages...)
 }
 
