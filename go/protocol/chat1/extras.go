@@ -2551,6 +2551,9 @@ func (m MessageSystem) String() string {
 }
 
 func (m MessageHeadline) String() string {
+	if m.Headline == "" {
+		return "cleared the channel description"
+	}
 	return fmt.Sprintf("set the channel description: %v", m.Headline)
 }
 
