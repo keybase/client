@@ -14,9 +14,15 @@ const AudioRecorder = (props: Props) => {
   const {conversationIDKey} = props
   // state
   const [lastAmp, setLastAmp] = React.useState(minAmp - 1)
+  const [visible, setVisible] = React.useState(false)
+  const [closingDown, setClosingDown] = React.useState(false)
   const {audioRecording} = Container.useSelector(state => ({
     audioRecording: state.chat2.audioRecording.get(conversationIDKey),
   }))
+  const noShow =
+    !audioRecording ||
+    audioRecording.status === Types.AudioRecordingStatus.STOPPED ||
+    audioRecording.status === Types.AudioRecordingStatus.STAGED
   // dispatch
   const dispatch = Container.useDispatch()
   const onCancel = () => {
@@ -39,14 +45,18 @@ const AudioRecorder = (props: Props) => {
   }, [audioRecording])
 
   // render
+  if (!visible && !noShow) {
+    setVisible(true)
+    setClosingDown(false)
+  } else if (visible && noShow && !closingDown) {
+    setClosingDown(true)
+    setTimeout(() => setVisible(false), 200)
+  }
   const locked = audioRecording ? audioRecording.status === Types.AudioRecordingStatus.LOCKED : false
-  const noShow =
-    !audioRecording ||
-    audioRecording.status === Types.AudioRecordingStatus.STOPPED ||
-    audioRecording.status === Types.AudioRecordingStatus.STAGED
-  return noShow ? null : (
+  return !visible ? null : (
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
       <AudioButton
+        closeDown={closingDown}
         locked={locked}
         lastAmp={lastAmp}
         sendRecording={sendRecording}
@@ -61,6 +71,7 @@ const AudioRecorder = (props: Props) => {
 }
 
 type ButtonProps = {
+  closeDown: boolean
   lastAmp: number
   locked: boolean
   sendRecording: () => void
@@ -118,6 +129,25 @@ const AudioButton = (props: ButtonProps) => {
       }).start()
     }
   }, [props.locked])
+  React.useEffect(() => {
+    if (props.closeDown) {
+      Kb.NativeAnimated.timing(innerScale, {
+        duration: 200,
+        toValue: 0,
+        useNativeDriver: true,
+      }).start()
+      Kb.NativeAnimated.timing(ampScale, {
+        duration: 200,
+        toValue: 0,
+        useNativeDriver: true,
+      }).start()
+      Kb.NativeAnimated.timing(lockTranslate, {
+        duration: 200,
+        toValue: 0,
+        useNativeDriver: true,
+      }).start()
+    }
+  }, [props.closeDown])
 
   const innerSize = 28
   const ampSize = 34
@@ -260,15 +290,29 @@ type CancelProps = {
 }
 
 const AudioSlideToCancel = (props: CancelProps) => {
+  const translate = React.useRef(new Kb.NativeAnimated.Value(0)).current
+  React.useEffect(() => {
+    Kb.NativeAnimated.timing(translate, {
+      duration: 200,
+      toValue: 1,
+      useNativeDriver: true,
+    }).start()
+  }, [])
   return props.locked ? (
     <Kb.Text type="BodyPrimaryLink" onClick={props.onCancel} style={{marginLeft: 30}}>
       Cancel
     </Kb.Text>
   ) : (
-    <Kb.Box2 direction="horizontal" gap="tiny">
-      <Kb.Icon type="iconfont-arrow-left" fontSize={16} />
-      <Kb.Text type="BodySecondaryLink">Slide to cancel</Kb.Text>
-    </Kb.Box2>
+    <Kb.NativeAnimated.View
+      style={{
+        transform: [{translateX: translate.interpolate({inputRange: [0, 1], outputRange: [150, 0]})}],
+      }}
+    >
+      <Kb.Box2 direction="horizontal" gap="tiny">
+        <Kb.Icon type="iconfont-arrow-left" fontSize={16} />
+        <Kb.Text type="BodySecondaryLink">Slide to cancel</Kb.Text>
+      </Kb.Box2>
+    </Kb.NativeAnimated.View>
   )
 }
 
