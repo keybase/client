@@ -18,18 +18,22 @@ import {virtualListMarks} from '../../local-debug'
 import shallowEqual from 'shallowequal'
 
 type State = {
+  dragY: number
   showFloating: boolean
   showUnread: boolean
 }
 
 class Inbox extends React.Component<T.Props, State> {
   state = {
+    dragY: -1,
     showFloating: false,
     showUnread: false,
   }
 
   private mounted: boolean = false
   private list: VariableSizeList | null = null
+
+  private dragList = React.createRef<HTMLDivElement>()
 
   // stuff for UnreadShortcut
   private firstOffscreenIdx: number = -1
@@ -82,10 +86,6 @@ class Inbox extends React.Component<T.Props, State> {
     return getRowHeight(row.type, row.type === 'divider' && row.showButton)
   }
 
-  private onDrag = e => {
-    console.log('aaa', e)
-  }
-
   private itemRenderer = (index, style) => {
     const row = this.props.rows[index]
     if (!row) {
@@ -94,8 +94,9 @@ class Inbox extends React.Component<T.Props, State> {
     }
     const divStyle = Styles.collapseStyles([style, virtualListMarks && styles.divider])
     if (row.type === 'divider') {
+      const expandingRows = new Array(Math.max(0, Math.floor(this.state.dragY / 60) - index))
       return (
-        <div style={divStyle} draggable={true} dragStart={this.onDrag}>
+        <div style={{...divStyle, position: 'relative'}} draggable={true}>
           <div
             style={{
               backgroundColor: Styles.globalColors.blue,
@@ -116,6 +117,32 @@ class Inbox extends React.Component<T.Props, State> {
               top: 36,
             }}
           />
+          {this.state.dragY !== -1 && (
+            <div
+              style={{
+                flexDirection: 'flex-column',
+                display: 'flex',
+                backgroundColor: Styles.globalColors.grey,
+                height: expandingRows.length * 60,
+                left: 0,
+                position: 'absolute',
+                right: 0,
+                zIndex: 9999,
+              }}
+            >
+              {expandingRows.map((_, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    backgroundColor: 'red',
+                    border: 'dashed rgba(0,0,0,1) 1px',
+                    width: '100%',
+                    height: 60,
+                  }}
+                />
+              ))}
+            </div>
+          )}
           <TeamsDivider
             key="divider"
             toggle={this.props.toggleSmallTeamsExpanded}
@@ -229,7 +256,15 @@ class Inbox extends React.Component<T.Props, State> {
   private listChild = ({index, style}) => this.itemRenderer(index, style)
 
   private onDragOver = e => {
-    console.log('aaa over', e.clientY)
+    if (this.dragList.current) {
+      this.setState({dragY: e.clientY - this.dragList.current.getBoundingClientRect().top})
+    }
+    // console.log('aaa over', e.clientY)
+  }
+
+  private onDrop = e => {
+    this.setState({dragY: -1})
+    console.log('aaa end', e.clientY)
   }
 
   render() {
@@ -239,7 +274,7 @@ class Inbox extends React.Component<T.Props, State> {
     return (
       <ErrorBoundary>
         <div style={styles.container}>
-          <div style={styles.list} onDragOver={this.onDragOver}>
+          <div style={styles.list} onDragOver={this.onDragOver} onDrop={this.onDrop} ref={this.dragList}>
             <AutoSizer>
               {({height, width}) => (
                 <VariableSizeList
@@ -251,7 +286,7 @@ class Inbox extends React.Component<T.Props, State> {
                   itemCount={this.props.rows.length}
                   itemSize={this.itemSizeGetter}
                   estimatedItemSize={56}
-                  itemData={this.props.rows}
+                  itemData={this.state.dragY === -1 ? this.props.rows : this.state.dragY}
                 >
                   {this.listChild}
                 </VariableSizeList>
