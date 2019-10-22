@@ -32,6 +32,7 @@ const Joined = (props: Props) =>
         {props.joiners.length > 0 && getAddedUsernames(props.joiners)}
         {props.joiners.length > 0 &&
           ` joined ${props.isBigTeam ? `#${props.channelname}.` : `${props.teamname}.`}`}
+        {props.leavers.length > 0 && props.joiners.length > 0 && ' '}
         {props.leavers.length > 0 && getAddedUsernames(props.leavers)}
         {props.leavers.length > 0 &&
           ` left ${props.isBigTeam ? `#${props.channelname}.` : `${props.teamname}.`}`}
