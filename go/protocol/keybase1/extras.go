@@ -2090,6 +2090,7 @@ func validatePart(s string) (err error) {
 func TeamNameFromString(s string) (TeamName, error) {
 	ret := TeamName{}
 
+	s = strings.ToLower(s)
 	parts := strings.Split(s, ".")
 	if len(parts) == 0 {
 		return ret, errors.New("team names cannot be empty")
