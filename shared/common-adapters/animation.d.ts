@@ -2,6 +2,10 @@ import * as React from 'react'
 import {StylesCrossPlatform} from '../styles'
 
 export type AnimationType =
+  | 'darkMessageStatusEncrypting'
+  | 'darkMessageStatusError'
+  | 'darkMessageStatusSending'
+  | 'darkMessageStatusSent'
   | 'disconnected'
   | 'loadingInfinity'
   | 'messageStatusEncrypting'

@@ -47,7 +47,6 @@ type configGetter interface {
 	GetDbFilename() string
 	GetDebug() (bool, bool)
 	GetDisplayRawUntrustedOutput() (bool, bool)
-	GetUpgradePerUserKey() (bool, bool)
 	GetGpg() string
 	GetGpgHome() string
 	GetGpgOptions() []string
@@ -1009,6 +1008,7 @@ type UserServiceSummaryPackage struct {
 type ServiceSummaryMapper interface {
 	MapUIDsToServiceSummaries(ctx context.Context, g UIDMapperContext, uids []keybase1.UID, freshness time.Duration,
 		networkTimeBudget time.Duration) map[keybase1.UID]UserServiceSummaryPackage
+	InformOfServiceSummary(ctx context.Context, g UIDMapperContext, uid keybase1.UID, summary UserServiceSummary) error
 }
 
 type ChatHelper interface {

@@ -767,7 +767,7 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 	// convID -> mtime
 	localUpdates := make(map[string]chat1.LocalMtimeUpdate)
 	for _, obr := range obrs {
-		if !obr.Msg.IsBadgableType() {
+		if !(obr.Msg.IsBadgableType() && obr.Msg.ClientHeader.Conv.TopicType == chat1.TopicType_CHAT) {
 			continue
 		}
 		state, err := obr.State.State()

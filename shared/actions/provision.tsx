@@ -1,5 +1,6 @@
 import * as Constants from '../constants/provision'
 import * as LoginConstants from '../constants/login'
+import * as ConfigConstants from '../constants/config'
 import * as RouteTreeGen from './route-tree-gen'
 import * as DevicesGen from './devices-gen'
 import * as ProvisionGen from './provision-gen'
@@ -536,7 +537,10 @@ const showUsernameEmailPage = async (
 ) => {
   // If we're logged in, we're coming from the user switcher; log out first to prevent the service from getting out of sync with the GUI about our logged-in-ness
   if (state.config.loggedIn) {
-    await RPCTypes.loginLogoutRpcPromise({force: false, keepSecrets: true})
+    await RPCTypes.loginLogoutRpcPromise(
+      {force: false, keepSecrets: true},
+      ConfigConstants.loginAsOtherUserWaitingKey
+    )
   }
   return RouteTreeGen.createNavigateAppend({
     path: [{props: {fromReset: action.payload.fromReset}, selected: 'username'}],

@@ -22,6 +22,7 @@ export {
   useFsOnlineStatus,
   useFsPathInfo,
   useFsSoftError,
+  useFsTlf,
   useFsTlfs,
   useFsWatchDownloadForMobile,
   useDispatchWhenConnected as useDispatchWhenKbfsIsConnected,

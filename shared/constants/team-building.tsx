@@ -2,6 +2,7 @@ import logger from '../logger'
 import * as I from 'immutable'
 import * as Types from './types/team-building'
 import * as RPCTypes from './types/rpc-gen'
+import {serviceIdFromString} from '../util/platforms'
 
 const searchServices: Array<Types.ServiceId> = [
   'keybase',
@@ -155,13 +156,30 @@ export const selfToUser = (you: string): Types.User => ({
   username: you,
 })
 
+type HasServiceMap = {
+  username: string
+  serviceMap: {[key: string]: string}
+}
+
+const pluckServiceMap = (contact: HasServiceMap) =>
+  Object.entries(contact.serviceMap || {})
+    .concat([['keybase', contact.username]])
+    .reduce<Types.ServiceMap>((acc, [service, username]) => {
+      if (serviceIdFromString(service) === service) {
+        // Service can also give us proof values like "https" or "dns" that
+        // we don't want here.
+        acc[service] = username
+      }
+      return acc
+    }, {})
+
 export const contactToUser = (contact: RPCTypes.ProcessedContact): Types.User => ({
   contact: true,
   id: contact.assertion,
   label: contact.displayLabel,
   prettyName: contact.displayName,
   serviceId: contact.component.phoneNumber ? 'phone' : 'email',
-  serviceMap: {keybase: contact.username},
+  serviceMap: pluckServiceMap(contact),
   username: contact.component.email || contact.component.phoneNumber || '',
 })
 
@@ -171,7 +189,7 @@ export const interestingPersonToUser = (person: RPCTypes.InterestingPerson): Typ
     id: username,
     prettyName: fullname,
     serviceId: 'keybase' as const,
-    serviceMap: {keybase: username},
+    serviceMap: pluckServiceMap(person),
     username: username,
   }
 }
