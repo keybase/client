@@ -3,13 +3,13 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Constants from '../../../../constants/chat2'
-import {emojiIndex} from 'emoji-mart'
+import { emojiIndex } from 'emoji-mart'
 import PlatformInput from './platform-input'
-import {standardTransformer} from '../suggestors'
-import {InputProps} from './types'
+import { standardTransformer } from '../suggestors'
+import { InputProps } from './types'
 import debounce from 'lodash/debounce'
 import throttle from 'lodash/throttle'
-import {memoize} from '../../../../util/memoize'
+import { memoize } from '../../../../util/memoize'
 import CommandMarkdown from '../../command-markdown/container'
 import CommandStatus from '../../command-status/container'
 import Giphy from '../../giphy/container'
@@ -49,11 +49,11 @@ const searchUsersAndTeamsAndTeamChannels = memoize(
           if (channelname.startsWith(channelfil)) {
             score += 2
           }
-          return {score, v}
+          return { score, v }
         })
         .filter(withScore => !!withScore.score)
         .sort((a, b) => b.score - a.score)
-        .map(({v}) => v)
+        .map(({ v }) => v)
     }
     const sortedUsers = users
       .map(u => {
@@ -72,7 +72,7 @@ const searchUsersAndTeamsAndTeamChannels = memoize(
           // 2 points for start of username
           score += 2
         }
-        return {score, user: u}
+        return { score, user: u }
       })
       .filter(withScore => !!withScore.score)
       .sort((a, b) => b.score - a.score)
@@ -94,13 +94,13 @@ const suggestorToMarker = {
   commands: /(!|\/)/,
   emoji: ':',
   // 'users' is for @user, @team, and @team#channel
-  users: /^((\+\d+(\.\d+)?[a-zA-Z]{3,12}@)|@)/, // match normal mentions and ones in a stellar send
+  users: /((\+\d+(\.\d+)?[a-zA-Z]{3,12}@)|@)/, // match normal mentions and ones in a stellar send
 }
 
 const suggestorKeyExtractors = {
   commands: (c: RPCChatTypes.ConversationCommand) => c.name + c.username,
-  emoji: (item: {id: string}) => item.id,
-  users: ({username, teamname, channelname}: {username: string; teamname?: string; channelname?: string}) => {
+  emoji: (item: { id: string }) => item.id,
+  users: ({ username, teamname, channelname }: { username: string; teamname?: string; channelname?: string }) => {
     if (teamname) {
       if (channelname) {
         return teamname + '#' + channelname
@@ -161,7 +161,7 @@ class Input extends React.Component<InputProps, InputState> {
 
   constructor(props: InputProps) {
     super(props)
-    this.state = {inputHeight: 0, showBotCommandUpdateStatus: false}
+    this.state = { inputHeight: 0, showBotCommandUpdateStatus: false }
     this._lastQuote = 0
     this._suggestorDatasource = {
       channels: this._getChannelSuggestions,
@@ -228,9 +228,9 @@ class Input extends React.Component<InputProps, InputState> {
 
     // Handle the command status bar
     if (text.startsWith('!') && !this.state.showBotCommandUpdateStatus) {
-      this.setState({showBotCommandUpdateStatus: true})
+      this.setState({ showBotCommandUpdateStatus: true })
     } else if (!text.startsWith('!') && this.state.showBotCommandUpdateStatus) {
-      this.setState({showBotCommandUpdateStatus: false})
+      this.setState({ showBotCommandUpdateStatus: false })
     }
 
     if (skipDebounce) {
@@ -254,7 +254,7 @@ class Input extends React.Component<InputProps, InputState> {
     if (this._input) {
       this._input.transformText(
         () => ({
-          selection: {end: text.length, start: text.length},
+          selection: { end: text.length, start: text.length },
           text,
         }),
         true
@@ -268,7 +268,7 @@ class Input extends React.Component<InputProps, InputState> {
   }
 
   _setHeight = (inputHeight: number) =>
-    this.setState(s => (s.inputHeight === inputHeight ? null : {inputHeight}))
+    this.setState(s => (s.inputHeight === inputHeight ? null : { inputHeight }))
 
   componentDidMount = () => {
     // Set lastQuote so we only inject quoted text after we mount.
@@ -412,37 +412,37 @@ class Input extends React.Component<InputProps, InputState> {
     return teamname ? (
       this._renderTeamSuggestion(teamname, channelname, selected)
     ) : (
-      <Kb.Box2
-        direction="horizontal"
-        fullWidth={true}
-        style={Styles.collapseStyles([
-          styles.suggestionBase,
-          styles.fixSuggestionHeight,
-          {
-            backgroundColor: selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white,
-          },
-        ])}
-        gap="tiny"
-      >
-        {Constants.isSpecialMention(username) ? (
-          <Kb.Icon
-            type="iconfont-people"
-            style={styles.paddingXTiny}
-            color={Styles.globalColors.blue}
-            fontSize={24}
+        <Kb.Box2
+          direction="horizontal"
+          fullWidth={true}
+          style={Styles.collapseStyles([
+            styles.suggestionBase,
+            styles.fixSuggestionHeight,
+            {
+              backgroundColor: selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white,
+            },
+          ])}
+          gap="tiny"
+        >
+          {Constants.isSpecialMention(username) ? (
+            <Kb.Icon
+              type="iconfont-people"
+              style={styles.paddingXTiny}
+              color={Styles.globalColors.blue}
+              fontSize={24}
+            />
+          ) : (
+              <Kb.Avatar username={username} size={32} />
+            )}
+          <Kb.ConnectedUsernames
+            type="Body"
+            colorFollowing={true}
+            usernames={[username]}
+            style={styles.boldStyle}
           />
-        ) : (
-          <Kb.Avatar username={username} size={32} />
-        )}
-        <Kb.ConnectedUsernames
-          type="Body"
-          colorFollowing={true}
-          usernames={[username]}
-          style={styles.boldStyle}
-        />
-        <Kb.Text type="BodySmall">{fullName}</Kb.Text>
-      </Kb.Box2>
-    )
+          <Kb.Text type="BodySmall">{fullName}</Kb.Text>
+        </Kb.Box2>
+      )
   }
 
   _transformUserSuggestion = (
@@ -506,7 +506,7 @@ class Input extends React.Component<InputProps, InputState> {
         fullWidth={true}
         style={Styles.collapseStyles([
           styles.suggestionBase,
-          {backgroundColor: selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white},
+          { backgroundColor: selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white },
           {
             alignItems: 'flex-start',
           },
@@ -566,7 +566,7 @@ class Input extends React.Component<InputProps, InputState> {
           suggestorToMarker={suggestorToMarker}
           suggestionListStyle={Styles.collapseStyles([
             styles.suggestionList,
-            !!this.state.inputHeight && {marginBottom: this.state.inputHeight},
+            !!this.state.inputHeight && { marginBottom: this.state.inputHeight },
           ])}
           suggestionOverlayStyle={styles.suggestionOverlay}
           suggestBotCommandsUpdateStatus={this.props.suggestBotCommandsUpdateStatus}
@@ -597,7 +597,7 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       fixSuggestionHeight: Styles.platformStyles({
-        isMobile: {height: 48},
+        isMobile: { height: 48 },
       }),
       paddingXTiny: {
         padding: Styles.globalMargins.xtiny,
@@ -620,7 +620,7 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       suggestionOverlay: Styles.platformStyles({
-        isElectron: {marginLeft: 15, marginRight: 15, marginTop: 'auto'},
+        isElectron: { marginLeft: 15, marginRight: 15, marginTop: 'auto' },
       }),
     } as const)
 )
