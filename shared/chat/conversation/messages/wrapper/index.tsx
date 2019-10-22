@@ -128,7 +128,17 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     this.setState(s => (s.showingPicker === showingPicker ? null : {showingPicker}))
   _dismissKeyboard = () => dismissKeyboard()
   _orangeLine = () =>
-    this.props.orangeLineAbove && <Kb.Box2 key="orangeLine" direction="vertical" style={Styles.collapseStyles([styles.orangeLine, !this._isExploding() && styles.orangeLineCompensation])} />
+    this.props.orangeLineAbove && (
+      <Kb.Box2
+        key="orangeLine"
+        direction="vertical"
+        style={Styles.collapseStyles([
+          styles.orangeLine,
+          !this._isExploding() && styles.orangeLineCompensationRight,
+          !this.props.showUsername && styles.orangeLineCompensationLeft,
+        ])}
+      />
+    )
   _onAuthorClick = () => this.props.onAuthorClick()
   _isExploding = () =>
     (this.props.message.type === 'text' || this.props.message.type === 'attachment') &&
@@ -725,7 +735,12 @@ const styles = Styles.styleSheetCreate(
         right: 0,
         top: 0,
       },
-      orangeLineCompensation: Styles.platformStyles({
+      orangeLineCompensationLeft: Styles.platformStyles({
+        isMobile: {
+          left: -Styles.globalMargins.mediumLarge, // compensate for containerNoUsername's padding
+        },
+      }),
+      orangeLineCompensationRight: Styles.platformStyles({
         isMobile: {
           right: -Styles.globalMargins.tiny, // compensate for containerNoExploding's padding
         },
