@@ -572,8 +572,7 @@ func (h *UIInboxLoader) layoutLoop(shutdownCh chan struct{}) error {
 	for {
 		select {
 		case reselectMode := <-h.layoutCh:
-			switch reselectMode {
-			case chat1.InboxLayoutReselectMode_FORCE:
+			if reselectMode == chat1.InboxLayoutReselectMode_FORCE {
 				lastReselectMode = reselectMode
 			}
 			if h.clock.Since(h.lastLayoutFlush) > h.batchDelay || h.testingLayoutForceMode {
