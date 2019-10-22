@@ -749,7 +749,9 @@ const stopAudioRecording = async (
     return false
   }
   logger.info('stopAudioRecording: stopping recording')
-  await AudioRecorder.stopRecording()
+  try {
+    await AudioRecorder.stopRecording()
+  } catch (e) {}
   if (action.payload.stopType === Types.AudioStopType.CANCEL) {
     logger.info('stopAudioRecording: recording canceled, not sending')
     return false
@@ -762,7 +764,7 @@ const stopAudioRecording = async (
     logger.info('stopAudioRecording: in staged mode, not sending')
     return false
   }
-  //return Chat2Gen.createSendAudioRecording({conversationIDKey})
+  return Chat2Gen.createSendAudioRecording({conversationIDKey})
 }
 
 export function* platformConfigSaga() {

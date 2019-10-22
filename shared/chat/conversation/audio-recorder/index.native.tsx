@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters/mobile.native'
 import * as Types from '../../../constants/types/chat2'
+import * as Constants from '../../../constants/chat2'
 import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
 import * as Chat2Gen from '../../../actions/chat2-gen'
@@ -19,10 +20,8 @@ const AudioRecorder = (props: Props) => {
   const {audioRecording} = Container.useSelector(state => ({
     audioRecording: state.chat2.audioRecording.get(conversationIDKey),
   }))
-  const noShow =
-    !audioRecording ||
-    audioRecording.status === Types.AudioRecordingStatus.STOPPED ||
-    audioRecording.status === Types.AudioRecordingStatus.STAGED
+  const noShow = !Constants.showAudioRecording(audioRecording)
+
   // dispatch
   const dispatch = Container.useDispatch()
   const onCancel = () => {

@@ -119,6 +119,14 @@ export const makeAudioRecordingInfo = (): Types.AudioRecordingInfo => ({
   status: Types.AudioRecordingStatus.INITIAL,
 })
 
+export const showAudioRecording = (audioRecording: Types.AudioRecordingInfo | undefined) => {
+  return !(
+    !audioRecording ||
+    audioRecording.status === Types.AudioRecordingStatus.STOPPED ||
+    audioRecording.status === Types.AudioRecordingStatus.STAGED
+  )
+}
+
 export const getInboxSearchSelected = (inboxSearch: Types.InboxSearchInfo) => {
   if (inboxSearch.selectedIndex < inboxSearch.nameResults.length) {
     const maybeNameResults = inboxSearch.nameResults[inboxSearch.selectedIndex]

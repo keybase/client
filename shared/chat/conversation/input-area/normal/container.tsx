@@ -75,6 +75,7 @@ export default Container.namedConnect(
       _metaMap: state.chat2.metaMap,
       _replyTo,
       _you,
+      audio,
       cannotWrite: meta.cannotWrite,
       conversationIDKey,
       editText: editInfo ? editInfo.text : '',
@@ -173,6 +174,7 @@ export default Container.namedConnect(
       dispatch(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset})),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => ({
+    audio: stateProps.audio,
     cannotWrite: stateProps.cannotWrite,
     clearInboxFilter: dispatchProps.clearInboxFilter,
     conversationIDKey: stateProps.conversationIDKey,

@@ -4,6 +4,7 @@ import * as TeamTypes from '../../../../constants/types/teams'
 import {PlainInput} from '../../../../common-adapters'
 
 type CommonProps = {
+  audio?: Types.AudioRecordingInfo
   cannotWrite: boolean | null
   clearInboxFilter: () => void
   conversationIDKey: Types.ConversationIDKey

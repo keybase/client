@@ -1,6 +1,7 @@
 /* eslint-env browser */
 import * as ImagePicker from 'expo-image-picker'
 import * as Types from '../../../../constants/types/chat2'
+import * as Constants from '../../../../constants/chat2'
 import React, {PureComponent} from 'react'
 import * as Kb from '../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../styles'
@@ -199,6 +200,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
           }
           {!this.props.cannotWrite && (
             <Action
+              audio={this.props.audio}
               hasText={this.state.hasText}
               onLockAudioRecording={this.props.onLockAudioRecording}
               onStartAudioRecording={this.props.onStartAudioRecording}
@@ -218,6 +220,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
 const PlatformInput = AddSuggestors(_PlatformInput)
 
 type ActionProps = {
+  audio?: Types.AudioRecordingInfo
   hasText: boolean
   onLockAudioRecording: () => void
   onStartAudioRecording: () => void
@@ -231,6 +234,7 @@ type ActionProps = {
 
 const Action = React.memo(
   ({
+    audio,
     hasText,
     insertMentionMarker,
     isEditing,
@@ -296,37 +300,12 @@ const Action = React.memo(
               fontSize={22}
             />
             {smallGap}
-            <Kb.LongPressGestureHandler
-              minDurationMs={200}
-              onGestureEvent={({nativeEvent}) => {
-                console.log('GESTURE: ' + JSON.stringify(nativeEvent))
-                if (nativeEvent.x < -150) {
-                  onStopAudioRecording(Types.AudioStopType.CANCEL)
-                }
-                if (nativeEvent.y < -100) {
-                  onLockAudioRecording()
-                }
-              }}
-              onHandlerStateChange={({nativeEvent}) => {
-                console.log('STATE: ' + JSON.stringify(nativeEvent))
-                if (nativeEvent.state === Kb.GestureState.ACTIVE) {
-                  onStartAudioRecording()
-                } else if (
-                  nativeEvent.state === Kb.GestureState.END ||
-                  nativeEvent.state === Kb.GestureState.CANCELLED
-                ) {
-                  onStopAudioRecording(Types.AudioStopType.RELEASE)
-                }
-              }}
-            >
-              <Kb.NativeView style={{height: 22, width: 22}}>
-                <Kb.Icon
-                  type="iconfont-star"
-                  style={Kb.iconCastPlatformStyles(styles.actionButton)}
-                  fontSize={22}
-                />
-              </Kb.NativeView>
-            </Kb.LongPressGestureHandler>
+            <AudioStarter
+              lockRecording={onLockAudioRecording}
+              recording={Constants.showAudioRecording(audio)}
+              startRecording={onStartAudioRecording}
+              stopRecording={onStopAudioRecording}
+            />
             {smallGap}
             <Kb.Icon
               onClick={openMoreMenu}
@@ -340,6 +319,58 @@ const Action = React.memo(
     )
   }
 )
+
+type AudioStarterProps = {
+  recording: boolean
+  lockRecording: () => void
+  startRecording: () => void
+  stopRecording: (st: Types.AudioStopType) => void
+}
+
+const AudioStarter = (props: AudioStarterProps) => {
+  let longPressTimer
+  return (
+    <Kb.TapGestureHandler
+      onHandlerStateChange={({nativeEvent}) => {
+        if (nativeEvent.state === Kb.GestureState.BEGAN) {
+          if (!longPressTimer) {
+            longPressTimer = setTimeout(props.startRecording, 200)
+          }
+        }
+        if (nativeEvent.state === Kb.GestureState.ACTIVE || nativeEvent.state === Kb.GestureState.END) {
+          clearTimeout(longPressTimer)
+          if (props.recording) {
+            props.stopRecording(Types.AudioStopType.RELEASE)
+          }
+        }
+        //console.log('GEST: TAP: EVENT: ' + JSON.stringify(nativeEvent))
+      }}
+    >
+      <Kb.PanGestureHandler
+        minOffsetX={0}
+        minOffsetY={0}
+        onGestureEvent={({nativeEvent}) => {
+          if (props.recording && nativeEvent.translationY < -50) {
+            props.lockRecording()
+          }
+          if (nativeEvent.translationX < -20) {
+            props.stopRecording(Types.AudioStopType.CANCEL)
+          }
+          //console.log('GEST: PAN EVENT: ' + JSON.stringify(nativeEvent))
+        }}
+        onHandlerStateChange={({nativeEvent}) => {
+          if (nativeEvent.state === Kb.GestureState.END) {
+            props.stopRecording(Types.AudioStopType.RELEASE)
+          }
+        }}
+      >
+        <Kb.NativeView>
+          <Kb.Icon type="iconfont-star" style={styles.actionButton} fontSize={22} />
+        </Kb.NativeView>
+      </Kb.PanGestureHandler>
+    </Kb.TapGestureHandler>
+  )
+}
 
 const ExplodingIcon = ({explodingModeSeconds, isExploding, openExplodingPicker}) => (
   <Kb.Box2 direction="horizontal" style={styles.explodingOuterContainer}>
