@@ -10,7 +10,7 @@ type ReplyProps = {
   imageHeight?: number
   imageURL?: string
   imageWidth?: number
-  isParentHighlighted: boolean
+  isParentHighlighted?: boolean
   onClick: () => void
   text: string
   username: string
@@ -108,7 +108,7 @@ const Claim = (props: ClaimProps) => {
 export type Props = {
   claim?: ClaimProps
   isEditing: boolean
-  isHighlighted: boolean
+  isHighlighted?: boolean
   // eslint-disable-next-line
   message: Types.MessageText
   reply?: ReplyProps
