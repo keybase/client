@@ -89,7 +89,7 @@ const ServiceIcon = (props: IconProps) => {
 const undefToNull = (n: number | undefined | null): number | null => (n === undefined ? null : n)
 
 const initialBounce = () => {
-  const {Clock, Value, debug, startClock, stopClock, cond, spring, block, SpringUtils} = Kb.ReAnimated
+  const {Clock, Value, startClock, stopClock, cond, spring, block, SpringUtils} = Kb.ReAnimated
   const clock = new Clock()
 
   const state = {
@@ -107,7 +107,7 @@ const initialBounce = () => {
   return block([
     startClock(clock),
     spring(clock, state, config),
-    cond(state.finished, debug('aaa clock stop', stopClock(clock))),
+    cond(state.finished, stopClock(clock)),
     state.position,
   ])
 }
