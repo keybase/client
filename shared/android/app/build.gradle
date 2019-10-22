@@ -86,6 +86,7 @@ project.ext.react = [
     // the root of your project, i.e. where "package.json" lives
     root: "../../",
     enableHermes: false,  // clean and rebuild if changing
+    enableV8: KB_USEV8 == 'true',  // clean and rebuild if changing
 ]
 
 
@@ -115,6 +116,7 @@ def jscFlavor = 'org.webkit:android-jsc:+'
  * and the benefits of using Hermes will therefore be sharply reduced.
  */
 def enableHermes = project.ext.react.get("enableHermes", false);
+def enableV8 = project.ext.react.get("enableV8", false);
 
 // KB: Number of commits, like ios
 def Integer getVersionCode() {
@@ -207,12 +209,17 @@ android {
     }
 
     packagingOptions {
-        pickFirst '**/armeabi-v7a/libc++_shared.so'
-        pickFirst '**/x86/libc++_shared.so'
-        pickFirst '**/arm64-v8a/libc++_shared.so'
-        pickFirst '**/x86_64/libc++_shared.so'
-        pickFirst '**/x86/libjsc.so'
-        pickFirst '**/armeabi-v7a/libjsc.so'
+        if (enableV8) {
+            // Make sure libjsc.so does not packed in APK
+            exclude "**/libjsc.so"
+        } else {
+            pickFirst '**/armeabi-v7a/libc++_shared.so'
+            pickFirst '**/x86/libc++_shared.so'
+            pickFirst '**/arm64-v8a/libc++_shared.so'
+            pickFirst '**/x86_64/libc++_shared.so'
+            pickFirst '**/x86/libjsc.so'
+            pickFirst '**/armeabi-v7a/libjsc.so'
+        }
     }
 }
 
@@ -226,13 +233,18 @@ dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation "com.facebook.react:react-native:+"  // From node_modules
 
-    if (enableHermes) {
-      def hermesPath = "../../node_modules/hermesvm/android/";
-      debugImplementation files(hermesPath + "hermes-debug.aar")
-      releaseImplementation files(hermesPath + "hermes-release.aar")
-    } else {
-      implementation jscFlavor
-    }
+
+
+     if (enableHermes) {
+       def hermesPath = "../../node_modules/hermesvm/android/";
+       debugImplementation files(hermesPath + "hermes-debug.aar")
+       releaseImplementation files(hermesPath + "hermes-release.aar")
+     } else if (enableV8) {
+         // Add v8-android - prebuilt libv8.so into APK
+         implementation 'org.chromium:v8-android:+'
+     } else {
+       implementation jscFlavor
+     }
 
     implementation 'androidx.multidex:multidex:2.0.1'
     implementation "com.google.firebase:firebase-messaging:17.3.0" // sync with firebaseVersion in gradle.properties

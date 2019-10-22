@@ -5,6 +5,10 @@ import {RetentionPolicy} from './retention-policy'
 import * as RPCChatTypes from './rpc-chat-gen'
 import {TeamBuildingSubState} from './team-building'
 
+export type TeamID = string
+export const stringToTeamID = (s: string): TeamID => s
+export const teamIDToString = (t: TeamID): string => t
+
 export type TeamRoleType = 'reader' | 'writer' | 'admin' | 'owner' | 'bot' | 'restrictedbot'
 export type DisabledReasonsForRolePicker = {[K in TeamRoleType]?: string}
 export type MaybeTeamRoleType = 'none' | TeamRoleType
@@ -104,6 +108,13 @@ export type EmailInviteError = {
 
 export type AddUserToTeamsState = 'notStarted' | 'pending' | 'succeeded' | 'failed'
 
+export type TeamDetails = {
+  teamname: string
+  allowPromote: boolean
+  isOpen: boolean
+  showcasing: boolean
+}
+
 export type State = Readonly<{
   addUserToTeamsState: AddUserToTeamsState
   addUserToTeamsResults: string
@@ -119,10 +130,11 @@ export type State = Readonly<{
   teamJoinSuccess: boolean
   teamJoinSuccessTeamName: string
   teamCreationError: string
+  teamDetails: Map<TeamID, TeamDetails>
   teamNameToChannelInfos: I.Map<Teamname, I.Map<ConversationIDKey, ChannelInfo>>
   teamNameToID: I.Map<Teamname, string>
   teamNameToInvites: I.Map<Teamname, I.Set<InviteInfo>>
-  teamNameToIsOpen: I.Map<Teamname, boolean>
+  teamNameToIsOpen: I.Map<Teamname, boolean> // TODO remove
   teamNameToLoadingInvites: I.Map<Teamname, I.Map<string, boolean>>
   teamNameToMembers: I.Map<Teamname, I.Map<string, MemberInfo>>
   teamNameToRequests: I.Map<Teamname, I.Set<RequestInfo>>
@@ -133,8 +145,8 @@ export type State = Readonly<{
   teamNameToCanPerform: I.Map<Teamname, TeamOperations>
   teamNameToSettings: I.Map<Teamname, TeamSettings>
   teamNameToPublicitySettings: I.Map<Teamname, _PublicitySettings>
-  teamNameToAllowPromote: I.Map<Teamname, boolean>
-  teamNameToIsShowcasing: I.Map<Teamname, boolean>
+  teamNameToAllowPromote: I.Map<Teamname, boolean> // TODO remove
+  teamNameToIsShowcasing: I.Map<Teamname, boolean> // TODO remove
   teamnames: Set<Teamname>
   teammembercounts: I.Map<Teamname, number>
   teamProfileAddList: Array<TeamProfileAddList>

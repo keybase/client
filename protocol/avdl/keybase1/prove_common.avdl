@@ -116,6 +116,8 @@ protocol proveCommon {
     string svgBlack;
     @jsonkey("svg_full")
     string svgFull;
+    @jsonkey("svg_white")
+    string svgWhite;
   }
 
   record ParamProofServiceConfig {

@@ -76,7 +76,7 @@ class LoginRender extends React.Component<Props> {
             <Kb.WaitingButton
               disabled={this.props.needPassword && !this.props.password}
               waitingKey={Constants.waitingKey}
-              style={{marginTop: 0, width: '100%'}}
+              style={{marginTop: this.props.needPassword ? 0 : Styles.globalMargins.small, width: '100%'}}
               fullWidth={true}
               label="Log in"
               onClick={this.props.onSubmit}

@@ -129,6 +129,7 @@ export default (
         draftState.teamNameToRole = action.payload.teamNameToRole
         draftState.teammembercounts = action.payload.teammembercounts
         draftState.teamnames = action.payload.teamnames
+        draftState.teamDetails = action.payload.teamDetails
         return
       case TeamsGen.setTeamAccessRequestsPending:
         draftState.teamAccessRequestsPending = action.payload.accessRequestsPending

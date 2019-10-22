@@ -298,7 +298,7 @@ const messageMapReducer = (
     }
     case Chat2Gen.attachmentUploading: {
       const {conversationIDKey, outboxID} = action.payload
-      const convMap = pendingOutboxToOrdinal.get(conversationIDKey) || new Map()
+      const convMap = new Map(pendingOutboxToOrdinal.get(conversationIDKey) || [])
       const ordinal = convMap.get(outboxID)
       if (!ordinal) {
         return messageMap
@@ -801,7 +801,7 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
           messages.forEach(message => {
             const m = canSendType(message)
             if (m && !m.id && m.outboxID) {
-              const outToOrd = pendingOutboxToOrdinal.get(m.conversationIDKey) || new Map()
+              const outToOrd = new Map(pendingOutboxToOrdinal.get(m.conversationIDKey) || [])
               outToOrd.set(m.outboxID, m.ordinal)
               pendingOutboxToOrdinal.set(m.conversationIDKey, outToOrd)
             }
@@ -929,7 +929,7 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
             return
           }
           const meta = draftState.metaMap.get(conversationIDKey)
-          const ordinals = [...(messageOrdinals.get(conversationIDKey) || new Set())]
+          const ordinals = [...(messageOrdinals.get(conversationIDKey) || [])]
           let maxMsgID = 0
           const convMsgMap = messageMap.get(conversationIDKey, I.Map<Types.Ordinal, Types.Message>())
           for (let i = ordinals.length - 1; i >= 0; i--) {

@@ -484,6 +484,7 @@ func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext, tracer prof
 	for i := range suggestions {
 		suggestion := &suggestions[i]
 		suggestion.ProfileIcon = externals.MakeIcons(mctx, suggestion.LogoKey, "logo_black", 16)
+		suggestion.ProfileIconWhite = externals.MakeIcons(mctx, suggestion.LogoKey, "logo_white", 16)
 		suggestion.PickerIcon = externals.MakeIcons(mctx, suggestion.LogoKey, "logo_full", 32)
 	}
 
