@@ -327,6 +327,13 @@ func TestKVDelete(t *testing.T) {
 	require.Equal(t, 4, delRes.Revision)
 }
 
+func assertRevisionError(t *testing.T, err error, expectedSource kvstore.RevisionErrorSource) {
+	require.Error(t, err)
+	kerr, _ := err.(kvstore.KVRevisionError)
+	require.IsType(t, kvstore.KVRevisionError{}, kerr)
+	require.Equal(t, expectedSource, kerr.Source)
+}
+
 func TestRevisionCache(t *testing.T) {
 	tc := kvTestSetup(t)
 	defer tc.Cleanup()
@@ -433,14 +440,11 @@ func TestRevisionCache(t *testing.T) {
 	// attempt a put with a revision that the cache knows is too low
 	putArg.Revision = 2
 	_, err = handler.PutKVEntry(ctx, putArg)
-	require.Error(t, err)
-	require.Equal(t, "expected revision greater than 2", err.Error())
+	assertRevisionError(t, err, kvstore.RevisionErrorSourceCACHE)
 	// attempt a put with a revision that's too high, but the cache can't know that (so it's a server error)
 	putArg.Revision = 4
 	_, err = handler.PutKVEntry(ctx, putArg)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "expected revision 3 but got 4")
-	require.IsType(t, err, libkb.AppStatusError{})
+	assertRevisionError(t, err, kvstore.RevisionErrorSourceSERVER)
 	t.Logf("revision cache provides convenience checks (the server also catches these things too) on updates")
 
 	// and the same for deletes
@@ -452,13 +456,10 @@ func TestRevisionCache(t *testing.T) {
 	}
 	delArg.Revision = 2
 	_, err = handler.DelKVEntry(ctx, delArg)
-	require.Error(t, err)
-	require.Equal(t, "expected revision greater than 2", err.Error())
+	assertRevisionError(t, err, kvstore.RevisionErrorSourceCACHE)
 	delArg.Revision = 4
 	_, err = handler.DelKVEntry(ctx, delArg)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "expected revision 3 but got 4")
-	require.IsType(t, err, libkb.AppStatusError{})
+	assertRevisionError(t, err, kvstore.RevisionErrorSourceSERVER)
 	t.Logf("revision cache also provides the convenience checks for deletes")
 }
 
@@ -673,20 +674,9 @@ func TestManualControlOfRevisionWithoutCache(t *testing.T) {
 		return handler.PutKVEntry(ctx, putArg)
 	}
 
-	assertIsRevisionError := func(err error, expected, received int) {
-		expectedHelpfulErrorMessage := fmt.Sprintf("expected revision %d but got %d", expected, received)
-		require.Error(t, err)
-		require.IsType(t, err, libkb.AppStatusError{})
-		aerr, _ := err.(libkb.AppStatusError)
-		if aerr.Code != libkb.SCTeamStorageWrongRevision {
-			t.Fatalf("expected an SCTeamStorageWrongRevision error but got %v", err)
-		}
-		require.Contains(t, err.Error(), expectedHelpfulErrorMessage)
-	}
-
 	// errors if you specify a Revision > 1 for a new entry
 	_, err = putItWithRev(2)
-	assertIsRevisionError(err, 1, 2)
+	assertRevisionError(t, err, kvstore.RevisionErrorSourceSERVER)
 
 	// create it with revision 1
 	putRes, err := putItWithRev(1)
@@ -695,7 +685,7 @@ func TestManualControlOfRevisionWithoutCache(t *testing.T) {
 
 	// cannot update it again with revision 1
 	_, err = putItWithRev(1)
-	assertIsRevisionError(err, 2, 1)
+	assertRevisionError(t, err, kvstore.RevisionErrorSourceSERVER)
 
 	// updates correctly
 	putRes, err = putItWithRev(2)
@@ -704,11 +694,11 @@ func TestManualControlOfRevisionWithoutCache(t *testing.T) {
 
 	// cannot update with a revision that's too high
 	_, err = putItWithRev(4)
-	assertIsRevisionError(err, 3, 4)
+	assertRevisionError(t, err, kvstore.RevisionErrorSourceSERVER)
 
 	// cannot update with a revision that's too low
 	_, err = putItWithRev(2)
-	assertIsRevisionError(err, 3, 2)
+	assertRevisionError(t, err, kvstore.RevisionErrorSourceSERVER)
 
 	baseDelArg := keybase1.DelKVEntryArg{
 		SessionID: 0,
@@ -727,11 +717,11 @@ func TestManualControlOfRevisionWithoutCache(t *testing.T) {
 
 	// cannot delete with a revision that's too low
 	_, err = deleteItWithRev(2)
-	assertIsRevisionError(err, 3, 2)
+	assertRevisionError(t, err, kvstore.RevisionErrorSourceSERVER)
 
 	// cannot delete with a revision that's too high
 	_, err = deleteItWithRev(4)
-	assertIsRevisionError(err, 3, 4)
+	assertRevisionError(t, err, kvstore.RevisionErrorSourceSERVER)
 
 	// deletes correctly
 	delRes, err := deleteItWithRev(3)
@@ -780,12 +770,7 @@ func TestKVStoreLocalRace(t *testing.T) {
 	for err := range errChan {
 		if err != nil {
 			atLeastOneError = true
-			require.Error(t, err)
-			require.IsType(t, err, libkb.AppStatusError{})
-			aerr, _ := err.(libkb.AppStatusError)
-			if aerr.Code != libkb.SCTeamStorageWrongRevision {
-				t.Fatalf("expected an SCTeamStorageWrongRevision error but got %v", err)
-			}
+			assertRevisionError(t, err, kvstore.RevisionErrorSourceSERVER)
 		}
 	}
 	require.True(t, atLeastOneError, "didn't generate a race")

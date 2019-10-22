@@ -36,14 +36,6 @@ func NewKVRevisionCache(g *libkb.GlobalContext) *KVRevisionCache {
 	return kvr
 }
 
-type KVRevisionCacheError struct {
-	Message string
-}
-
-func (e KVRevisionCacheError) Error() string {
-	return e.Message
-}
-
 // Hash is a sha256 on the input string. If the string is empty, then Hash will also be an
 // empty string for tracking deleted entries in perpetuity.
 func (k *KVRevisionCache) hash(ciphertext *string) string {
@@ -64,17 +56,17 @@ func (k *KVRevisionCache) checkLocked(mctx libkb.MetaContext, entryID keybase1.K
 	}
 	entryHash := k.hash(ciphertext)
 	if revision < entry.Revision {
-		return KVRevisionCacheError{fmt.Sprintf("cache error: revision decreased from %d to %d", entry.Revision, revision)}
+		return KVCacheError{fmt.Sprintf("cache error: revision decreased from %d to %d", entry.Revision, revision)}
 	}
 	if teamKeyGen < entry.TeamKeyGen {
-		return KVRevisionCacheError{fmt.Sprintf("cache error: team key generation decreased from %d to %d", entry.TeamKeyGen, teamKeyGen)}
+		return KVCacheError{fmt.Sprintf("cache error: team key generation decreased from %d to %d", entry.TeamKeyGen, teamKeyGen)}
 	}
 	if revision == entry.Revision {
 		if teamKeyGen != entry.TeamKeyGen {
-			return KVRevisionCacheError{fmt.Sprintf("cache error: at the same revision (%d) team key gen cannot be different: %d -> %d", revision, entry.TeamKeyGen, teamKeyGen)}
+			return KVCacheError{fmt.Sprintf("cache error: at the same revision (%d) team key gen cannot be different: %d -> %d", revision, entry.TeamKeyGen, teamKeyGen)}
 		}
 		if entryHash != entry.EntryHash {
-			return KVRevisionCacheError{fmt.Sprintf("cache error: at the same revision (%d) hash of entry cannot be different: %s -> %s", revision, entry.EntryHash, entryHash)}
+			return KVCacheError{fmt.Sprintf("cache error: at the same revision (%d) hash of entry cannot be different: %s -> %s", revision, entry.EntryHash, entryHash)}
 		}
 	}
 	return nil
@@ -115,7 +107,10 @@ func (k *KVRevisionCache) checkForUpdateLocked(mctx libkb.MetaContext, entryID k
 		return nil
 	}
 	if revision <= entry.Revision {
-		return KVRevisionCacheError{fmt.Sprintf("expected revision greater than %d", entry.Revision)}
+		return KVRevisionError{
+			Source:  RevisionErrorSourceCACHE,
+			Message: fmt.Sprintf("expected revision greater than %d", entry.Revision),
+		}
 	}
 	return nil
 }

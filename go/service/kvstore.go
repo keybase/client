@@ -226,6 +226,13 @@ func (h *KVStoreHandler) PutKVEntry(ctx context.Context, arg keybase1.PutKVEntry
 	var apiRes putEntryAPIRes
 	err = mctx.G().API.PostDecode(mctx, apiArg, &apiRes)
 	if err != nil {
+		aerr, ok := err.(libkb.AppStatusError)
+		if ok && aerr.Code == libkb.SCTeamStorageWrongRevision {
+			err = kvstore.KVRevisionError{
+				Source:  kvstore.RevisionErrorSourceSERVER,
+				Message: aerr.Error(),
+			}
+		}
 		mctx.Debug("error posting update for %+v to the server: %v", entryID, err)
 		return res, err
 	}
