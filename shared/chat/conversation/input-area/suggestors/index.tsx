@@ -125,16 +125,18 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
     _getWordAtCursor = () => {
       if (this._inputRef.current) {
         const {useSpaces} = this._getResults()
-        console.warn(useSpaces)
-        console.warn(this._getResults())
         const input = this._inputRef.current
         const selection = input.getSelection()
         const text = this._lastText
         if (!selection || selection.start === null || text === undefined) {
           return null
         }
+        const upToCursor = text.substring(0, selection.start)
 
         let wordRegex: string | RegExp
+
+        // If the datasource has data which contains spaces, we can't just split by a space character.
+        // So if we need to, we instead split on the next space which precedes another special marker
         if (useSpaces) {
           const markers = Object.values(this.props.suggestorToMarker).map(p =>
             p instanceof RegExp ? p.source : p
@@ -143,10 +145,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
         } else {
           wordRegex = ' '
         }
-        const upToCursor = text.substring(0, selection.start)
-        // this regex is a fancy way to say "split on command separators or newlines, but include the separators in the result"
         const words = upToCursor.split(wordRegex)
-        console.warn(wordRegex, words)
         const word = words[words.length - 1]
         const position = {end: selection.start, start: selection.start - word.length}
         return {position, word}
