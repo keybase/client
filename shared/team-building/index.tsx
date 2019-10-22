@@ -224,7 +224,7 @@ const FilteredServiceTabBar = (
       showServiceResultCount={props.showServiceResultCount}
       servicesShown={props.servicesShown}
       minimalBorder={props.minimalBorder}
-      size={props.size}
+      offset={props.offset}
     />
   )
 }
@@ -259,10 +259,10 @@ const EmptyResultText = (props: {selectedService: ServiceIdWithContact; action: 
   </Kb.Box2>
 )
 
-class TeamBuilding extends React.PureComponent<Props, {size: any}> {
-  state = {
-    size: new Kb.ReAnimated.Value(0),
-  }
+const SectionList = Styles.isMobile ? Kb.ReAnimated.createAnimatedComponent(Kb.SectionList) : Kb.SectionList
+
+class TeamBuilding extends React.PureComponent<Props> {
+  private offset: any = Styles.isMobile ? new Kb.ReAnimated.Value(0) : undefined
 
   sectionListRef = React.createRef<Kb.SectionList>()
   componentDidMount = () => {
@@ -422,11 +422,12 @@ class TeamBuilding extends React.PureComponent<Props, {size: any}> {
       return (
         <Kb.BoxGrow>
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
-            <Kb.SectionList
+            <SectionList
               ref={this.sectionListRef}
               keyboardDismissMode="on-drag"
               keyboardShouldPersistTaps="handled"
               stickySectionHeadersEnabled={false}
+              scrollEventThrottle={1}
               onScroll={this.onScroll}
               selectedIndex={Styles.isMobile ? undefined : this.props.highlightedIndex || 0}
               sections={this.props.recommendations}
@@ -477,6 +478,7 @@ class TeamBuilding extends React.PureComponent<Props, {size: any}> {
 
     return (
       <Kb.List
+        reAnimated={true}
         items={this.props.searchResults || []}
         onScroll={this.onScroll}
         selectedIndex={this.props.highlightedIndex || 0}
@@ -510,12 +512,7 @@ class TeamBuilding extends React.PureComponent<Props, {size: any}> {
   }, 500)
 
   onScroll = Styles.isMobile
-    ? e => {
-        const y = e.nativeEvent.contentOffset.y
-        Kb.ReAnimated.spring(this.state.size, {
-          toValue: y,
-        }).start()
-      }
+    ? Kb.ReAnimated.event([{nativeEvent: {contentOffset: {y: this.offset}}}], {useNativeDriver: true})
     : undefined
 
   render() {
@@ -556,7 +553,7 @@ class TeamBuilding extends React.PureComponent<Props, {size: any}> {
                 showServiceResultCount={props.showServiceResultCount}
                 servicesShown={5} // wider bar, show more services
                 minimalBorder={true} // only show bottom border on icon when active
-                size={1}
+                offset={1}
               />
             )}
             {this._listBody()}
@@ -636,7 +633,7 @@ class TeamBuilding extends React.PureComponent<Props, {size: any}> {
             onChangeService={props.onChangeService}
             serviceResultCount={props.serviceResultCount}
             showServiceResultCount={props.showServiceResultCount}
-            size={this.state.size}
+            offset={this.offset}
           />
         )}
         {showContactsBanner && (

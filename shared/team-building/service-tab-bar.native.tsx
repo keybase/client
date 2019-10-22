@@ -4,10 +4,6 @@ import * as Styles from '../styles'
 import {serviceIdToIconFont, serviceIdToAccentColor, serviceIdToLongLabel, serviceIdToBadge} from './shared'
 import {Props, IconProps} from './service-tab-bar'
 
-const mapRange = (v: number, fromMin: number, fromMax: number, toMin: number, toMax: number) => {
-  return ((v - fromMin) / (fromMax - fromMin)) * (toMax - toMin) + toMin
-}
-
 export const labelHeight = 34
 
 const serviceMinWidthWhenSmall = (containerWidth: number) => {
@@ -24,26 +20,24 @@ const serviceMinWidthWhenSmall = (containerWidth: number) => {
   return containerWidth / n
 }
 
-const AnimatedBox2 = Kb.NativeAnimated.createAnimatedComponent(Kb.Box2)
+const smallWidth = serviceMinWidthWhenSmall(Styles.dimensionWidth)
+const bigWidth = Math.max(smallWidth, 92)
+const AnimatedBox2 = Kb.ReAnimated.createAnimatedComponent(Kb.Box2)
 
 const ServiceIcon = (props: IconProps) => {
-  const smallWidth = serviceMinWidthWhenSmall(Styles.dimensionWidth)
-  const bigWidth = Math.max(smallWidth, 92)
   const color = props.isActive ? serviceIdToAccentColor(props.service) : Styles.globalColors.black
+  const opacity = Kb.ReAnimated.interpolate(props.offset, {
+    inputRange: [-9999, 0, 100, 9999],
+    outputRange: [1, 1, 0, 0],
+  })
+
+  const width = Kb.ReAnimated.interpolate(props.offset, {
+    inputRange: [-9999, -100, 0, 100, 9999],
+    outputRange: [bigWidth + 5, bigWidth + 5, bigWidth, smallWidth, smallWidth],
+  })
   return (
     <Kb.ClickableBox onClick={props.onClick}>
-      <AnimatedBox2
-        direction="vertical"
-        style={[
-          styles.serviceIconContainer,
-          {
-            width: props.size.interpolate({
-              inputRange: [-9999, -100, 0, 100, 9999],
-              outputRange: [bigWidth + 5, bigWidth + 5, bigWidth, smallWidth, smallWidth],
-            }),
-          },
-        ]}
-      >
+      <AnimatedBox2 direction="vertical" style={[styles.serviceIconContainer, {width}]}>
         <Kb.Box2 direction="vertical" style={{position: 'relative'}}>
           {serviceIdToBadge(props.service) && (
             <Kb.Badge
@@ -56,18 +50,7 @@ const ServiceIcon = (props: IconProps) => {
           )}
           <Kb.Icon fontSize={18} type={serviceIdToIconFont(props.service)} color={color} />
         </Kb.Box2>
-        <AnimatedBox2
-          direction="vertical"
-          style={[
-            styles.labelContainer,
-            {
-              opacity: props.size.interpolate({
-                inputRange: [-9999, 0, 100, 9999],
-                outputRange: [1, 1, 0, 0],
-              }),
-            },
-          ]}
-        >
+        <AnimatedBox2 direction="vertical" style={[styles.labelContainer, {opacity}]}>
           <Kb.Box2 direction="vertical" style={{height: labelHeight, width: 74}}>
             <Kb.Box2 direction="vertical">
               {props.label.map((label, i) => (
@@ -112,35 +95,36 @@ export class ServiceTabBar extends React.Component<Props> {
   render() {
     const props = this.props
 
+    const height = Kb.ReAnimated.interpolate(props.offset, {
+      inputRange: [-9999, 0, 100, 9999],
+      outputRange: [72, 72, 40, 40],
+    })
+
     return (
-      <Kb.NativeAnimated.ScrollView
+      <Kb.ReAnimated.ScrollView
         horizontal={true}
         showsHorizontalScrollIndicator={false}
         scrollEventThrottle={1000}
         style={{
-          height: this.props.size.interpolate({
-            inputRange: [-9999, 0, 100, 9999],
-            outputRange: [72, 72, 40, 40],
-          }),
-          width: '100%',
           flexGrow: 0,
           flexShrink: 0,
+          height,
+          width: '100%',
         }}
       >
         {props.services.map(service => (
           <ServiceIcon
             key={service}
-            size={this.props.size}
+            offset={props.offset}
             service={service}
             label={serviceIdToLongLabel(service)}
-            labelPresence={1}
             onClick={() => this.onClick(service)}
             count={undefToNull(props.serviceResultCount[service])}
             showCount={props.showServiceResultCount}
             isActive={props.selectedService === service}
           />
         ))}
-      </Kb.NativeAnimated.ScrollView>
+      </Kb.ReAnimated.ScrollView>
     )
   }
 }

@@ -18,6 +18,7 @@ export type Props<Item> = {
   ListHeaderComponent?: React.ComponentType<any> | React.ReactElement | null
   onEndReachedThreshold?: number // mobile only
   onScroll?: (e: any) => void // mobile only
+  reAnimated?: boolean // mobile only, make list animated
 }
 
 export default class List<Item> extends React.Component<Props<Item>> {}
