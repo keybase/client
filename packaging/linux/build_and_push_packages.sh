@@ -94,9 +94,9 @@ export AWS_SECRET_KEY
 
 # Upload both repos to S3.
 echo Syncing the deb repo...
-s3cmd -d sync --add-header="Cache-Control:max-age=60" --delete-removed "$build_dir/deb_repo/repo/" "s3://$BUCKET_NAME/deb/"
+s3cmd sync --add-header="Cache-Control:max-age=60" --delete-removed "$build_dir/deb_repo/repo/" "s3://$BUCKET_NAME/deb/"
 echo Syncing the rpm repo...
-s3cmd -d sync --add-header="Cache-Control:max-age=60" --delete-removed "$build_dir/rpm_repo/repo/" "s3://$BUCKET_NAME/rpm/"
+s3cmd sync --add-header="Cache-Control:max-age=60" --delete-removed "$build_dir/rpm_repo/repo/" "s3://$BUCKET_NAME/rpm/"
 
 # For each .deb and .rpm file we just uploaded, unset the Cache-Control
 # header (because these files are large, and they have versioned names), and
@@ -104,16 +104,16 @@ s3cmd -d sync --add-header="Cache-Control:max-age=60" --delete-removed "$build_d
 echo Unsetting .deb Cache-Control headers...
 dot_deb_blobs="$(s3cmd ls -r "s3://$BUCKET_NAME/deb" | awk '{print $4}' | grep '\.deb$')"
 for blob in $dot_deb_blobs ; do
-  s3cmd -d modify --remove-header "Cache-Control" "$blob"
-  s3cmd -d cp "$blob" "s3://$BUCKET_NAME/linux_binaries/deb/"
-  s3cmd -d cp "$blob.sig" "s3://$BUCKET_NAME/linux_binaries/deb/"
+  s3cmd modify --remove-header "Cache-Control" "$blob"
+  s3cmd cp "$blob" "s3://$BUCKET_NAME/linux_binaries/deb/"
+  s3cmd cp "$blob.sig" "s3://$BUCKET_NAME/linux_binaries/deb/"
 done
 echo Unsetting .rpm Cache-Control headers...
 dot_rpm_blobs="$(s3cmd ls -r "s3://$BUCKET_NAME/rpm" | awk '{print $4}' | grep '\.rpm$')"
 for blob in $dot_rpm_blobs ; do
-  s3cmd -d modify --remove-header "Cache-Control" "$blob"
-  s3cmd -d cp "$blob" "s3://$BUCKET_NAME/linux_binaries/rpm/"
-  s3cmd -d cp "$blob.sig" "s3://$BUCKET_NAME/linux_binaries/rpm/"
+  s3cmd modify --remove-header "Cache-Control" "$blob"
+  s3cmd cp "$blob" "s3://$BUCKET_NAME/linux_binaries/rpm/"
+  s3cmd cp "$blob.sig" "s3://$BUCKET_NAME/linux_binaries/rpm/"
 done
 
 # Make yet another copy of the .deb and .rpm packages we just made, in a
@@ -122,8 +122,8 @@ done
 # Note that these files have slightly different names on the server than they
 # do here in the build (x86_64 vs amd64).
 another_copy() {
-  s3cmd -d put --follow-symlinks "$1" "$2"
-  s3cmd -d put --follow-symlinks "$1.sig" "$2.sig"
+  s3cmd put --follow-symlinks "$1" "$2"
+  s3cmd put --follow-symlinks "$1.sig" "$2.sig"
 }
 copy_bins() {
     another_copy "$build_dir/deb_repo/keybase-latest-amd64.deb" "s3://$1/keybase_amd64.deb"
@@ -139,7 +139,7 @@ echo "Writing version into JSON to $json_tmp"
 "$release_bin" update-json --version="$version" > "$json_tmp"
 
 copy_metadata() {
-    s3cmd -d put --mime-type application/json "$json_tmp" "s3://$1/update-linux-prod.json"
+    s3cmd put --mime-type application/json "$json_tmp" "s3://$1/update-linux-prod.json"
 }
 copy_metadata "$BUCKET_NAME"
 
