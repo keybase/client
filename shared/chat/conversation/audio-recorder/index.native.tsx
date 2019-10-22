@@ -90,29 +90,34 @@ const AudioButton = (props: ButtonProps) => {
   const sendTranslate = React.useRef(new Kb.NativeAnimated.Value(0)).current
   // lifecycle
   React.useEffect(() => {
-    Kb.NativeAnimated.timing(innerScale, {
-      duration: 200,
-      toValue: 3,
-      useNativeDriver: true,
-    }).start()
-    Kb.NativeAnimated.timing(outerScale, {
-      duration: 200,
-      toValue: 15,
-      useNativeDriver: true,
-    }).start()
-    Kb.NativeAnimated.timing(lockTranslate, {
-      duration: 200,
-      toValue: 1,
-      useNativeDriver: true,
-    }).start()
-    Kb.NativeAnimated.timing(ampScale, {
-      duration: 200,
-      toValue: 3,
-      useNativeDriver: true,
-    }).start()
+    Kb.NativeAnimated.parallel(
+      [
+        Kb.NativeAnimated.timing(innerScale, {
+          duration: 200,
+          toValue: 3,
+          useNativeDriver: true,
+        }),
+        Kb.NativeAnimated.timing(outerScale, {
+          duration: 200,
+          toValue: 15,
+          useNativeDriver: true,
+        }),
+        Kb.NativeAnimated.timing(lockTranslate, {
+          duration: 200,
+          toValue: 1,
+          useNativeDriver: true,
+        }),
+        Kb.NativeAnimated.timing(ampScale, {
+          duration: 200,
+          toValue: 3,
+          useNativeDriver: true,
+        }),
+      ],
+      {stopTogether: false}
+    ).start()
   }, [])
   React.useEffect(() => {
-    if (props.lastAmp >= minAmp) {
+    if (!props.closeDown && props.lastAmp >= minAmp) {
       Kb.NativeAnimated.timing(ampScale, {
         duration: 200,
         toValue: ampToScale(props.lastAmp),
@@ -131,21 +136,26 @@ const AudioButton = (props: ButtonProps) => {
   }, [props.locked])
   React.useEffect(() => {
     if (props.closeDown) {
-      Kb.NativeAnimated.timing(innerScale, {
-        duration: 200,
-        toValue: 0,
-        useNativeDriver: true,
-      }).start()
-      Kb.NativeAnimated.timing(ampScale, {
-        duration: 200,
-        toValue: 0,
-        useNativeDriver: true,
-      }).start()
-      Kb.NativeAnimated.timing(lockTranslate, {
-        duration: 200,
-        toValue: 0,
-        useNativeDriver: true,
-      }).start()
+      Kb.NativeAnimated.parallel(
+        [
+          Kb.NativeAnimated.timing(innerScale, {
+            duration: 200,
+            toValue: 0,
+            useNativeDriver: true,
+          }),
+          Kb.NativeAnimated.timing(ampScale, {
+            duration: 200,
+            toValue: 0,
+            useNativeDriver: true,
+          }),
+          Kb.NativeAnimated.timing(lockTranslate, {
+            duration: 200,
+            toValue: 0,
+            useNativeDriver: true,
+          }),
+        ],
+        {stopTogether: false}
+      ).start()
     }
   }, [props.closeDown])
 
