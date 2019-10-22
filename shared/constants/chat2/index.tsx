@@ -47,6 +47,7 @@ export const makeState = (): Types.State => ({
   giphyWindowMap: new Map(),
   inboxHasLoaded: false,
   inboxLayout: null,
+  inboxNumSmallRows: 5,
   inboxSearch: undefined,
   inboxShowNew: false,
   isWalletsNew: true,

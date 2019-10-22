@@ -82,6 +82,10 @@ class Inbox extends React.Component<T.Props, State> {
     return getRowHeight(row.type, row.type === 'divider' && row.showButton)
   }
 
+  private onDrag = e => {
+    console.log('aaa', e)
+  }
+
   private itemRenderer = (index, style) => {
     const row = this.props.rows[index]
     if (!row) {
@@ -91,7 +95,27 @@ class Inbox extends React.Component<T.Props, State> {
     const divStyle = Styles.collapseStyles([style, virtualListMarks && styles.divider])
     if (row.type === 'divider') {
       return (
-        <div style={divStyle}>
+        <div style={divStyle} draggable={true} dragStart={this.onDrag}>
+          <div
+            style={{
+              backgroundColor: Styles.globalColors.blue,
+              height: 2,
+              left: 8,
+              position: 'absolute',
+              right: 8,
+              top: 32,
+            }}
+          />
+          <div
+            style={{
+              backgroundColor: Styles.globalColors.blue,
+              height: 2,
+              left: 8,
+              position: 'absolute',
+              right: 8,
+              top: 36,
+            }}
+          />
           <TeamsDivider
             key="divider"
             toggle={this.props.toggleSmallTeamsExpanded}
@@ -204,6 +228,10 @@ class Inbox extends React.Component<T.Props, State> {
 
   private listChild = ({index, style}) => this.itemRenderer(index, style)
 
+  private onDragOver = e => {
+    console.log('aaa over', e.clientY)
+  }
+
   render() {
     const floatingDivider = this.state.showFloating && this.props.allowShowFloatingButton && (
       <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
@@ -211,7 +239,7 @@ class Inbox extends React.Component<T.Props, State> {
     return (
       <ErrorBoundary>
         <div style={styles.container}>
-          <div style={styles.list}>
+          <div style={styles.list} onDragOver={this.onDragOver}>
             <AutoSizer>
               {({height, width}) => (
                 <VariableSizeList

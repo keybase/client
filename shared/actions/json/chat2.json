@@ -767,6 +767,9 @@
     "setChannelSearchText": {
       "_description": "Set filter for channel search",
       "text": "string"
+    },
+    "setInboxNumSmallRows": {
+        "rows": "number"
     }
   }
 }
