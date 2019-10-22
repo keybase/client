@@ -70,6 +70,13 @@ class TabBar extends React.PureComponent<Props, State> {
             }
           />
         </Kb.ClickableBox>
+        <Kb.Button
+          label="View/Edit profile"
+          mode="Secondary"
+          onClick={this.onClickWrapper}
+          small={true}
+          style={styles.button}
+        />
         {flags.fastAccountSwitch && <AccountSwitcher />}
       </Kb.Box2>
     ),
@@ -180,12 +187,14 @@ const styles = Styles.styleSheetCreate(
         position: 'absolute',
         right: 8,
       },
+      button: {
+        margin: Styles.globalMargins.tiny,
+      },
       caret: {marginRight: 12},
       divider: {marginTop: Styles.globalMargins.tiny},
       fullname: {maxWidth: 180},
       header: {flexShrink: 0, height: 80, marginBottom: 20},
       headerBox: {
-        paddingBottom: Styles.globalMargins.small,
         paddingTop: Styles.globalMargins.small,
       },
       iconBox: {
