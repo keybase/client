@@ -44,13 +44,27 @@ func (h *KVStoreHandler) assertLoggedIn(ctx context.Context) error {
 	return nil
 }
 
+func rewriteMisleadingError(err error) error {
+	if err == nil {
+		return nil
+	}
+	return libkb.AppStatusError{
+		Code: libkb.SCTeamReadError,
+		Desc: "You are not a member of this team",
+	}
+}
+
 func (h *KVStoreHandler) resolveTeam(mctx libkb.MetaContext, userInputTeamName string) (teamID keybase1.TeamID, err error) {
+	if strings.Contains(userInputTeamName, "@") {
+		// SBS isn't supported, so we also shouldn't support user assertions
+		return teamID, fmt.Errorf("only fully qualified keybase usernames and teams")
+	}
 	if strings.Contains(userInputTeamName, ",") {
 		// it's an implicit team that might not exist yet
 		team, _, _, err := teams.LookupOrCreateImplicitTeam(mctx.Ctx(), mctx.G(), userInputTeamName, false /*public*/)
 		if err != nil {
 			mctx.Debug("error loading implicit team %s: %v", userInputTeamName, err)
-			err = fmt.Errorf("error resolving team with name %s: %v", userInputTeamName, err)
+			err = rewriteMisleadingError(err)
 			return teamID, err
 		}
 		return team.ID, nil
@@ -58,7 +72,6 @@ func (h *KVStoreHandler) resolveTeam(mctx libkb.MetaContext, userInputTeamName s
 	teamID, err = teams.GetTeamIDByNameRPC(mctx, userInputTeamName)
 	if err != nil {
 		mctx.Debug("error resolving team with name %s: %v", userInputTeamName, err)
-		err = fmt.Errorf("error resolving team with name %s: %v", userInputTeamName, err)
 	}
 	return teamID, err
 }
@@ -226,13 +239,6 @@ func (h *KVStoreHandler) PutKVEntry(ctx context.Context, arg keybase1.PutKVEntry
 	var apiRes putEntryAPIRes
 	err = mctx.G().API.PostDecode(mctx, apiArg, &apiRes)
 	if err != nil {
-		aerr, ok := err.(libkb.AppStatusError)
-		if ok && aerr.Code == libkb.SCTeamStorageWrongRevision {
-			err = kvstore.KVRevisionError{
-				Source:  kvstore.RevisionErrorSourceSERVER,
-				Message: aerr.Error(),
-			}
-		}
 		mctx.Debug("error posting update for %+v to the server: %v", entryID, err)
 		return res, err
 	}

@@ -107,10 +107,7 @@ func (k *KVRevisionCache) checkForUpdateLocked(mctx libkb.MetaContext, entryID k
 		return nil
 	}
 	if revision <= entry.Revision {
-		return KVRevisionError{
-			Source:  RevisionErrorSourceCACHE,
-			Message: fmt.Sprintf("expected revision greater than %d", entry.Revision),
-		}
+		return NewKVRevisionError("" /* use the default out-of-date message */)
 	}
 	return nil
 }

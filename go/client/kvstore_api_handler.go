@@ -247,6 +247,29 @@ func (t *kvStoreAPIHandler) encodeResult(call Call, result interface{}, w io.Wri
 	return encodeResult(call, result, w, t.indent)
 }
 
+func statusErrorCode(err error) (code int) {
+	if err == nil {
+		return 0
+	}
+	if aerr, ok := err.(libkb.AppStatusError); ok {
+		return aerr.Code
+	}
+	return 0
+}
+
 func (t *kvStoreAPIHandler) encodeErr(call Call, err error, w io.Writer) error {
-	return encodeErr(call, err, w, t.indent)
+	errorCode := statusErrorCode(err)
+	switch errorCode {
+	case 0:
+		return encodeErr(call, err, w, t.indent)
+	default:
+		// e.g. libkb.SCTeamStorageWrongRevision
+		r := Reply{
+			Error: &CallError{
+				Message: err.Error(),
+				Code:    errorCode,
+			},
+		}
+		return encodeReply(call, r, w, t.indent)
+	}
 }

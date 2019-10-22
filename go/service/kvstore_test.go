@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"sync"
 	"testing"
 
@@ -101,7 +102,7 @@ func TestKvStoreSelfTeamPutGet(t *testing.T) {
 	eveHandler := NewKVStoreHandler(nil, tcEve.G)
 	getRes, err = eveHandler.GetKVEntry(ctx, getArg)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "error resolving team")
+	require.Contains(t, err.Error(), "You are not a member of this team")
 	putRes, err = handler.PutKVEntry(ctx, putArg)
 	require.NoError(t, err)
 
@@ -327,11 +328,21 @@ func TestKVDelete(t *testing.T) {
 	require.Equal(t, 4, delRes.Revision)
 }
 
-func assertRevisionError(t *testing.T, err error, expectedSource kvstore.RevisionErrorSource) {
+func assertRevisionError(t *testing.T, err error, expectedSource string) {
 	require.Error(t, err)
-	kerr, _ := err.(kvstore.KVRevisionError)
-	require.IsType(t, kvstore.KVRevisionError{}, kerr)
-	require.Equal(t, expectedSource, kerr.Source)
+	aerr, _ := err.(libkb.AppStatusError)
+	require.IsType(t, libkb.AppStatusError{}, aerr)
+	require.Equal(t, libkb.SCTeamStorageWrongRevision, aerr.Code)
+	require.Contains(t, err.Error(), "(error 2760)")
+	require.Contains(t, err.Error(), "revision")
+	switch expectedSource {
+	case "server":
+		require.Regexp(t, regexp.MustCompile("expected revision [0-9]+ but got [0-9]+"), err.Error())
+	case "cache":
+		require.Regexp(t, regexp.MustCompile("revision out of date"), err.Error())
+	default:
+		require.Fail(t, "revision error must come from the server or the cache")
+	}
 }
 
 func TestRevisionCache(t *testing.T) {
@@ -440,11 +451,11 @@ func TestRevisionCache(t *testing.T) {
 	// attempt a put with a revision that the cache knows is too low
 	putArg.Revision = 2
 	_, err = handler.PutKVEntry(ctx, putArg)
-	assertRevisionError(t, err, kvstore.RevisionErrorSourceCACHE)
+	assertRevisionError(t, err, "cache")
 	// attempt a put with a revision that's too high, but the cache can't know that (so it's a server error)
 	putArg.Revision = 4
 	_, err = handler.PutKVEntry(ctx, putArg)
-	assertRevisionError(t, err, kvstore.RevisionErrorSourceSERVER)
+	assertRevisionError(t, err, "server")
 	t.Logf("revision cache provides convenience checks (the server also catches these things too) on updates")
 
 	// and the same for deletes
@@ -456,10 +467,10 @@ func TestRevisionCache(t *testing.T) {
 	}
 	delArg.Revision = 2
 	_, err = handler.DelKVEntry(ctx, delArg)
-	assertRevisionError(t, err, kvstore.RevisionErrorSourceCACHE)
+	assertRevisionError(t, err, "cache")
 	delArg.Revision = 4
 	_, err = handler.DelKVEntry(ctx, delArg)
-	assertRevisionError(t, err, kvstore.RevisionErrorSourceSERVER)
+	assertRevisionError(t, err, "server")
 	t.Logf("revision cache also provides the convenience checks for deletes")
 }
 
@@ -676,7 +687,7 @@ func TestManualControlOfRevisionWithoutCache(t *testing.T) {
 
 	// errors if you specify a Revision > 1 for a new entry
 	_, err = putItWithRev(2)
-	assertRevisionError(t, err, kvstore.RevisionErrorSourceSERVER)
+	assertRevisionError(t, err, "server")
 
 	// create it with revision 1
 	putRes, err := putItWithRev(1)
@@ -685,7 +696,7 @@ func TestManualControlOfRevisionWithoutCache(t *testing.T) {
 
 	// cannot update it again with revision 1
 	_, err = putItWithRev(1)
-	assertRevisionError(t, err, kvstore.RevisionErrorSourceSERVER)
+	assertRevisionError(t, err, "server")
 
 	// updates correctly
 	putRes, err = putItWithRev(2)
@@ -694,11 +705,11 @@ func TestManualControlOfRevisionWithoutCache(t *testing.T) {
 
 	// cannot update with a revision that's too high
 	_, err = putItWithRev(4)
-	assertRevisionError(t, err, kvstore.RevisionErrorSourceSERVER)
+	assertRevisionError(t, err, "server")
 
 	// cannot update with a revision that's too low
 	_, err = putItWithRev(2)
-	assertRevisionError(t, err, kvstore.RevisionErrorSourceSERVER)
+	assertRevisionError(t, err, "server")
 
 	baseDelArg := keybase1.DelKVEntryArg{
 		SessionID: 0,
@@ -717,11 +728,11 @@ func TestManualControlOfRevisionWithoutCache(t *testing.T) {
 
 	// cannot delete with a revision that's too low
 	_, err = deleteItWithRev(2)
-	assertRevisionError(t, err, kvstore.RevisionErrorSourceSERVER)
+	assertRevisionError(t, err, "server")
 
 	// cannot delete with a revision that's too high
 	_, err = deleteItWithRev(4)
-	assertRevisionError(t, err, kvstore.RevisionErrorSourceSERVER)
+	assertRevisionError(t, err, "server")
 
 	// deletes correctly
 	delRes, err := deleteItWithRev(3)
@@ -754,26 +765,39 @@ func TestKVStoreLocalRace(t *testing.T) {
 		EntryKey:   entryKey,
 		EntryValue: secretData,
 	}
-	var wg sync.WaitGroup
-	errChan := make(chan error, 10)
-	for i := 0; i < 10; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			_, err = handler.PutKVEntry(ctx, putArg)
-			errChan <- err
-		}()
-	}
-	wg.Wait()
-	close(errChan)
-	var atLeastOneError bool
-	for err := range errChan {
-		if err != nil {
-			atLeastOneError = true
-			assertRevisionError(t, err, kvstore.RevisionErrorSourceSERVER)
+	var sawTheRace bool
+	for attempt := 0; attempt < 5; attempt++ {
+		var wg sync.WaitGroup
+		errChan := make(chan error, 10)
+		for i := 0; i < 10; i++ {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				_, err = handler.PutKVEntry(ctx, putArg)
+				errChan <- err
+			}()
+		}
+		wg.Wait()
+		close(errChan)
+		for err := range errChan {
+			if err != nil {
+				require.Error(t, err)
+				aerr, _ := err.(libkb.AppStatusError)
+				if aerr.Code != libkb.SCTeamStorageWrongRevision {
+					t.Fatalf("expected only SCTeamStorageWrongRevision errors but got %v", err)
+				}
+				raceRegex := regexp.MustCompile("revision [0-9]+ already exists for this entry")
+				if raceRegex.MatchString(err.Error()) {
+					sawTheRace = true
+					break
+				}
+			}
+		}
+		if sawTheRace {
+			break
 		}
 	}
-	require.True(t, atLeastOneError, "didn't generate a race")
+	require.True(t, sawTheRace, "didn't generate a race")
 	// after the race, getting and putting should still work fine
 	_, err = handler.PutKVEntry(ctx, putArg)
 	require.NoError(t, err)
