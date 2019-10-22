@@ -4,6 +4,7 @@
 // We group messages into a series of Waypoints. When the wayoint exits the screen we replace it with a single div instead
 // We use react-measure to cache the heights
 import * as React from 'react'
+import * as I from 'immutable'
 import * as Styles from '../../../../styles'
 import * as Types from '../../../../constants/types/chat2'
 import JumpToRecent from './jump-to-recent'
@@ -176,8 +177,8 @@ class Thread extends React.PureComponent<Props, State> {
     // prepending, lets keep track of the old scrollHeight
     if (
       this.props.conversationIDKey === prevProps.conversationIDKey &&
-      this.props.messageOrdinals[0] !== prevProps.messageOrdinals[0] &&
-      prevProps.messageOrdinals[0]
+      this.props.messageOrdinals.first() !== prevProps.messageOrdinals.first() &&
+      prevProps.messageOrdinals.first()
     ) {
       const {current} = this.listRef
 
@@ -230,8 +231,8 @@ class Thread extends React.PureComponent<Props, State> {
     // Check if we just added new messages from the future. In this case, we don't want to adjust scroll
     // position at all, so just bail out if we detect this case.
     if (
-      this.props.messageOrdinals.length !== prevProps.messageOrdinals.length &&
-      this.props.messageOrdinals[0] === prevProps.messageOrdinals[0]
+      this.props.messageOrdinals.size !== prevProps.messageOrdinals.size &&
+      this.props.messageOrdinals.first() === prevProps.messageOrdinals.first()
     ) {
       // do nothing do scroll position if this is true
       return
@@ -396,11 +397,11 @@ class Thread extends React.PureComponent<Props, State> {
   private makeItems = () => this.makeItemsMemoized(this.props.conversationIDKey, this.props.messageOrdinals)
 
   private makeItemsMemoized = memoize(
-    (conversationIDKey: Types.ConversationIDKey, messageOrdinals: Array<number>) => {
+    (conversationIDKey: Types.ConversationIDKey, messageOrdinals: I.List<number>) => {
       const items: Array<React.ReactNode> = []
       items.push(<TopItem key="topItem" conversationIDKey={conversationIDKey} />)
 
-      const numOrdinals = messageOrdinals.length
+      const numOrdinals = messageOrdinals.size
       let ordinals: Array<Types.Ordinal> = []
       let previous: undefined | Types.Ordinal
       let lastBucket: number | undefined
@@ -511,7 +512,7 @@ class Thread extends React.PureComponent<Props, State> {
               {items}
             </div>
           </div>
-          {!this.props.containsLatestMessage && this.props.messageOrdinals.length > 0 && (
+          {!this.props.containsLatestMessage && this.props.messageOrdinals.size > 0 && (
             <JumpToRecent onClick={this.jumpToRecent} style={styles.jumpToRecent} />
           )}
         </div>
