@@ -737,7 +737,7 @@ const styles = Styles.styleSheetCreate(
         common: {
           position: 'relative',
         },
-        isElectron: {flex: 1, overflow: 'hidden', height: '100%'},
+        isElectron: {flex: 1, height: '100%', overflow: 'hidden'},
         isMobile: {
           flexGrow: 1,
           width: '100%',
