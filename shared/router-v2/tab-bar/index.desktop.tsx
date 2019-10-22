@@ -188,7 +188,7 @@ const styles = Styles.styleSheetCreate(
         right: 8,
       },
       button: {
-        margin: Styles.globalMargins.tiny,
+        margin: Styles.globalMargins.xsmall,
       },
       caret: {marginRight: 12},
       divider: {marginTop: Styles.globalMargins.tiny},
