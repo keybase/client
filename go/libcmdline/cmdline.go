@@ -123,9 +123,6 @@ func (p CommandLine) GetDisplayRawUntrustedOutput() (bool, bool) {
 func (p CommandLine) GetVDebugSetting() string {
 	return p.GetGString("vdebug")
 }
-func (p CommandLine) GetUpgradePerUserKey() (bool, bool) {
-	return p.GetBool("upgrade-per-user-key", true)
-}
 func (p CommandLine) GetPGPFingerprint() *libkb.PGPFingerprint {
 	return libkb.PGPFingerprintFromHexNoError(p.GetGString("fingerprint"))
 }
@@ -735,10 +732,6 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.StringFlag{
 			Name:  "gui-config-file",
 			Usage: "Specify a path to the GUI config file",
-		},
-		cli.BoolFlag{
-			Name:  "upgrade-per-user-key",
-			Usage: "Create new per-user-keys. Experimental, will break sigchain!",
 		},
 		cli.BoolFlag{
 			Name:  "use-default-log-file",
