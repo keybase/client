@@ -118,6 +118,4 @@ export type WebViewProps = WebViewProps
 export type WebViewInjections = WebViewInjections
 export {default as WithTooltip} from './with-tooltip'
 // convenience plumbing for rn animated things, no desktop impl
-export const RNAnimatedValue: any
-export const RNAnimatedEvent: any
-export const RNAnimatedSpring: any
+export const ReAnimated: any

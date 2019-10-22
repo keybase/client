@@ -261,7 +261,7 @@ const EmptyResultText = (props: {selectedService: ServiceIdWithContact; action: 
 
 class TeamBuilding extends React.PureComponent<Props, {size: any}> {
   state = {
-    size: new Kb.RNAnimatedValue(0),
+    size: new Kb.ReAnimated.Value(0),
   }
 
   sectionListRef = React.createRef<Kb.SectionList>()
@@ -512,7 +512,7 @@ class TeamBuilding extends React.PureComponent<Props, {size: any}> {
   onScroll = Styles.isMobile
     ? e => {
         const y = e.nativeEvent.contentOffset.y
-        Kb.RNAnimatedSpring(this.state.size, {
+        Kb.ReAnimated.spring(this.state.size, {
           toValue: y,
         }).start()
       }

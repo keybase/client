@@ -1,7 +1,5 @@
 // @ts-ignore
-import {Animated} from 'react-native'
+import Animated from 'react-native-reanimated'
 export * from './index-impl'
 
-export const AnimatedValue = Animated.Value
-export const AnimatedEvent = Animated.event
-export const AnimatedSpring = Animated.spring
+export const ReAnimated = Animated
