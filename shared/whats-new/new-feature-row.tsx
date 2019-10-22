@@ -48,7 +48,7 @@ const NewFeature = (props: Props) => {
         <Kb.Badge height={8} badgeStyle={styles.badgeStyle} containerStyle={styles.badgeContainerStyle} />
       )}
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.contentContainer}>
-        <Kb.Text type="Body">{props.children}</Kb.Text>
+        <Kb.Text type="BodySmallSemibold">{props.children}</Kb.Text>
         {props.image && (
           <Kb.Box2 direction="vertical" style={styles.imageContainer}>
             <Kb.RequireImage
@@ -98,7 +98,6 @@ const styles = Styles.styleSheetCreate(() => ({
     maxWidth: 300,
   },
   imageContainer: {
-    marginBottom: Styles.globalMargins.xtiny,
     marginTop: Styles.globalMargins.tiny,
   },
   rowContainer: {

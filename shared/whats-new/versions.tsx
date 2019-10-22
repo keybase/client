@@ -2,12 +2,14 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import {displayTab} from '../constants/settings'
+import {keybaseFM} from '../constants/whats-new'
 import NewFeatureRow from './new-feature-row'
 
 /* Include images */
 /* const imageName = require('../images/release/MAJ.MIN.PATCH/name.png') */
-const pinnedMessageImage = require('../images/releases/4.7.0/pinned-message.png')
+const pinnedMessagesImage = require('../images/releases/4.7.0/pinned-messages.png')
 const darkModeImage = require('../images/releases/4.7.0/dark-mode.png')
+const keybaseFMImage = require('../images/releases/4.7.0/keybase-fm.png')
 
 export type VersionProps = {
   seen: boolean
@@ -30,7 +32,7 @@ export const Version = ({children}: {children: React.ReactNode}) => {
 
 export const VersionTitle = ({title}: {title: string}) => (
   <Kb.Box2 direction="vertical" alignItems="flex-start" fullWidth={true}>
-    <Kb.Text type="BodySmallSemibold" style={styles.versionTitle}>
+    <Kb.Text type="BodySemibold" style={styles.versionTitle}>
       {title}
     </Kb.Text>
   </Kb.Box2>
@@ -67,18 +69,19 @@ export const Current = ({seen, onNavigate, onNavigateExternal}: VersionProps) =>
         {` `}
         <Kb.Emoji allowFontScaling={true} size={Styles.globalMargins.small} emojiName=":phone:" />
       </NewFeatureRow>
-      <NewFeatureRow
-        seen={seen}
-        image={pinnedMessageImage}
-        imageStyle={Styles.collapseStyles([
-          styles.roundedImage,
-          // Need to set fixed width on native to get image width not to be set to maxWidth
-          Styles.isMobile && {borderRadius: 150, width: 150},
-        ])}
-      >
+      <NewFeatureRow seen={seen} image={pinnedMessagesImage}>
         Chat admins can now pin messages.
         {` `}
         <Kb.Emoji size={Styles.globalMargins.small} emojiName=":pushpin:" />
+      </NewFeatureRow>
+      <NewFeatureRow seen={seen} image={keybaseFMImage}>
+        Listen to
+        {` `}
+        <Kb.Icon type="iconfont-radio" color={Styles.globalColors.black_50} boxStyle={styles.inlineIcon} />
+        {` `}
+        {keybaseFM}
+        {` `}
+        to get updates and new features.
       </NewFeatureRow>
     </Version>
   )
@@ -101,6 +104,11 @@ export const LastLast = (_: VersionProps) => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
+  inlineIcon: Styles.platformStyles({
+    isElectron: {
+      display: 'inline-block',
+    },
+  }),
   roundedImage: Styles.platformStyles({
     common: {
       borderColor: Styles.globalColors.grey,
