@@ -10,8 +10,9 @@ import flags from '../../util/feature-flags'
 
 type OwnProps = {}
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state: Container.TypedState) => ({
   error: state.provision.error.stringValue(),
+  resetEmailSent: state.recoverPassword.resetEmailSent,
   username: state.provision.username,
   waiting: Container.anyWaiting(state, Constants.waitingKey),
 })
@@ -24,6 +25,7 @@ const mapDispatchToProps = dispatch => ({
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onSubmit: (password: string) =>
     dispatch(ProvisionGen.createSubmitPassword({password: new HiddenString(password)})),
+  resetRecoverState: () => dispatch(RecoverPasswordGen.createResetResetPasswordState()),
 })
 
 export default Container.connect(mapStateToProps, mapDispatchToProps, (s, d, o: OwnProps) => ({

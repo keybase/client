@@ -11,6 +11,8 @@ export type Props = {
   waiting: boolean
   error: string
   username?: string
+  resetRecoverState: () => void
+  resetEmailSent?: boolean
 }
 
 const Password = (props: Props) => {
@@ -18,9 +20,25 @@ const Password = (props: Props) => {
   const {onSubmit} = props
   const _onSubmit = React.useCallback(() => onSubmit(password), [password, onSubmit])
 
+  const {resetRecoverState} = props
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  React.useEffect(() => () => resetRecoverState(), [])
+
   return (
     <SignupScreen
-      banners={[...errorBanner(props.error)]}
+      banners={[
+        ...(props.resetEmailSent
+          ? [
+              <Kb.Banner color="green" key="resetBanner">
+                <Kb.BannerParagraph
+                  bannerColor="green"
+                  content="We've sent you an email with password reset instructions."
+                />
+              </Kb.Banner>,
+            ]
+          : []),
+        ...errorBanner(props.error),
+      ]}
       buttons={[
         {
           disabled: !password,
