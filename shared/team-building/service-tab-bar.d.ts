@@ -13,7 +13,7 @@ export type Props = {
   showServiceResultCount: boolean
   servicesShown?: number
   minimalBorder?: boolean
-  offset: any
+  offset?: any
 }
 
 export type IconProps = {
@@ -24,7 +24,7 @@ export type IconProps = {
   showCount: boolean
   isActive: boolean
   minimalBorder?: boolean
-  offset: any
+  offset?: any
 }
 
 export class ServiceTabBar extends React.Component<Props> {}
