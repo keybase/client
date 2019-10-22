@@ -162,6 +162,7 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => {
             danger: true,
             disabled: props.ignoreTlf === 'disabled',
             onClick: props.ignoreTlf === 'disabled' ? undefined : hideMenuOnClick(props.ignoreTlf, hideMenu),
+            progressIndicator: props.ignoreTlf === 'disabled',
             subTitle: 'Will hide the folder from your list.',
             title: 'Ignore this folder',
           },
