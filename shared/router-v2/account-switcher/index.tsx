@@ -2,8 +2,8 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as ConfigTypes from '../../constants/types/config'
+import * as Constants from '../../constants/config'
 import {Props as HeaderHocProps} from '../../common-adapters/header-hoc/types'
-
 export type AccountRowItem = {
   account: ConfigTypes.ConfiguredAccount
   fullName: string
@@ -35,17 +35,19 @@ const MobileHeader = (props: Props) => (
       </Kb.Box2>
     </Kb.Box2>
     <Kb.Box2 direction="vertical" style={styles.buttonBox} fullWidth={true} gap="tiny">
-      <Kb.Button
+      <Kb.WaitingButton
         onClick={props.onAddAccount}
         label="Log in as another user"
         mode="Primary"
         fullWidth={true}
+        waitingKey={Constants.loginAsOtherUserWaitingKey}
       />
-      <Kb.Button
+      <Kb.WaitingButton
         onClick={props.onCreateAccount}
         label="Create a new account"
         mode="Secondary"
         fullWidth={true}
+        waitingKey={Constants.createOtherAccountWaitingKey}
       />
     </Kb.Box2>
   </>

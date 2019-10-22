@@ -361,6 +361,7 @@ export default (state: Types.State = Constants.initialState, action: Actions): T
       case ConfigGen.persistRoute:
       case ConfigGen.openAppStore:
       case ConfigGen.setNavigator:
+      case ConfigGen.logoutAndTryToLogInAs:
         return
     }
   })

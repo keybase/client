@@ -221,6 +221,7 @@ export type TypedActionsMap = {
   'config:daemonHandshakeDone': config.DaemonHandshakeDonePayload
   'config:filePickerError': config.FilePickerErrorPayload
   'config:logout': config.LogoutPayload
+  'config:logoutAndTryToLogInAs': config.LogoutAndTryToLogInAsPayload
   'config:logoutHandshake': config.LogoutHandshakePayload
   'config:logoutHandshakeWait': config.LogoutHandshakeWaitPayload
   'config:installerRan': config.InstallerRanPayload
