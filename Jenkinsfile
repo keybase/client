@@ -182,7 +182,11 @@ helpers.rootLinuxNode(env, {
               sh "git add -A"
               // Generate protocols
               dir ('protocol') {
-                sh "npm i"
+                sh "yarn --frozen-lockfile"
+              }
+              checkDiffs(['./go/', './protocol/'], 'Please run \\"yarn\\" inside the client/protocol directory.')
+
+              dir ('protocol') {
                 sh "make clean"
                 sh "make"
               }
