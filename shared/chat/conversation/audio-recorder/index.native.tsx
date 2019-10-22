@@ -40,7 +40,7 @@ const AudioRecorder = (props: Props) => {
   // lifecycle
   React.useEffect(() => {
     if (audioRecording && audioRecording.status === Types.AudioRecordingStatus.INITIAL) {
-      startRecording(setLastAmp)
+      setTimeout(() => startRecording(setLastAmp), 400)
     }
   }, [audioRecording])
 
@@ -50,7 +50,7 @@ const AudioRecorder = (props: Props) => {
     setClosingDown(false)
   } else if (visible && noShow && !closingDown) {
     setClosingDown(true)
-    setTimeout(() => setVisible(false), 200)
+    setTimeout(() => setVisible(false), 400)
   }
   const locked = audioRecording ? audioRecording.status === Types.AudioRecordingStatus.LOCKED : false
   return !visible ? null : (
@@ -93,23 +93,18 @@ const AudioButton = (props: ButtonProps) => {
     Kb.NativeAnimated.parallel(
       [
         Kb.NativeAnimated.timing(innerScale, {
-          duration: 200,
+          duration: 400,
           toValue: 3,
           useNativeDriver: true,
         }),
         Kb.NativeAnimated.timing(outerScale, {
-          duration: 200,
+          duration: 400,
           toValue: 15,
           useNativeDriver: true,
         }),
         Kb.NativeAnimated.timing(lockTranslate, {
-          duration: 200,
+          duration: 400,
           toValue: 1,
-          useNativeDriver: true,
-        }),
-        Kb.NativeAnimated.timing(ampScale, {
-          duration: 200,
-          toValue: 3,
           useNativeDriver: true,
         }),
       ],
@@ -119,7 +114,7 @@ const AudioButton = (props: ButtonProps) => {
   React.useEffect(() => {
     if (!props.closeDown && props.lastAmp >= minAmp) {
       Kb.NativeAnimated.timing(ampScale, {
-        duration: 200,
+        duration: 250,
         toValue: ampToScale(props.lastAmp),
         useNativeDriver: true,
       }).start()
@@ -128,7 +123,7 @@ const AudioButton = (props: ButtonProps) => {
   React.useEffect(() => {
     if (props.locked) {
       Kb.NativeAnimated.timing(sendTranslate, {
-        duration: 200,
+        duration: 400,
         toValue: 1,
         useNativeDriver: true,
       }).start()
@@ -139,17 +134,17 @@ const AudioButton = (props: ButtonProps) => {
       Kb.NativeAnimated.parallel(
         [
           Kb.NativeAnimated.timing(innerScale, {
-            duration: 200,
+            duration: 400,
             toValue: 0,
             useNativeDriver: true,
           }),
           Kb.NativeAnimated.timing(ampScale, {
-            duration: 200,
+            duration: 400,
             toValue: 0,
             useNativeDriver: true,
           }),
           Kb.NativeAnimated.timing(lockTranslate, {
-            duration: 200,
+            duration: 400,
             toValue: 0,
             useNativeDriver: true,
           }),
@@ -303,7 +298,7 @@ const AudioSlideToCancel = (props: CancelProps) => {
   const translate = React.useRef(new Kb.NativeAnimated.Value(0)).current
   React.useEffect(() => {
     Kb.NativeAnimated.timing(translate, {
-      duration: 200,
+      duration: 400,
       toValue: 1,
       useNativeDriver: true,
     }).start()
