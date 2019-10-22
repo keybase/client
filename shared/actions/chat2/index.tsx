@@ -2196,7 +2196,7 @@ const markThreadAsRead = async (
   const mmap = state.chat2.messageMap.get(conversationIDKey)
   if (mmap) {
     const ordinals = Constants.getMessageOrdinals(state, conversationIDKey)
-    const ordinal = ordinals.findLast(o => {
+    const ordinal = [...ordinals].reverse().find(o => {
       const m = mmap.get(o)
       return m ? !!m.id : false
     })

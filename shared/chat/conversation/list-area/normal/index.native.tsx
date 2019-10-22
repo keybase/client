@@ -95,14 +95,14 @@ class ConversationList extends React.PureComponent<Props> {
       return <SpecialBottomMessage conversationIDKey={this.props.conversationIDKey} measure={null} />
     } else {
       const ordinalIndex = item
-      const ordinal = this.props.messageOrdinals.get(ordinalIndex)
-      const prevOrdinal = ordinalIndex > 0 ? this.props.messageOrdinals.get(ordinalIndex - 1) : undefined
+      const ordinal = this.props.messageOrdinals[ordinalIndex]
+      const prevOrdinal = ordinalIndex > 0 ? this.props.messageOrdinals[ordinalIndex - 1] : undefined
 
       if (!ordinal) {
         return null
       }
 
-      if (this.props.messageOrdinals.size - 1 === ordinalIndex) {
+      if (this.props.messageOrdinals.length - 1 === ordinalIndex) {
         return (
           <Sent key={ordinal} ordinal={ordinal} conversationIDKey={this.props.conversationIDKey}>
             <Message
@@ -146,8 +146,8 @@ class ConversationList extends React.PureComponent<Props> {
   }
 
   private getOrdinalIndex = target => {
-    for (let item = 0; item < this.props.messageOrdinals.size; item++) {
-      const ordinal = this.props.messageOrdinals.get(item, 0)
+    for (let item = 0; item < this.props.messageOrdinals.length; item++) {
+      const ordinal = this.props.messageOrdinals[item] || 0
       if (ordinal === target) {
         return this.getIndexFromItem(item)
       }
@@ -155,7 +155,7 @@ class ConversationList extends React.PureComponent<Props> {
     return -1
   }
 
-  private getItemCount = messageOrdinals => (messageOrdinals ? messageOrdinals.size + 2 : 2)
+  private getItemCount = messageOrdinals => (messageOrdinals ? messageOrdinals.length + 2 : 2)
 
   private keyExtractor = item => {
     if (item === 'specialTop') {
@@ -164,7 +164,7 @@ class ConversationList extends React.PureComponent<Props> {
     if (item === 'specialBottom') {
       return 'specialBottom'
     }
-    return String(this.props.messageOrdinals.get(item))
+    return String(this.props.messageOrdinals[item])
   }
 
   // Was using onEndReached but that was really flakey
@@ -177,7 +177,7 @@ class ConversationList extends React.PureComponent<Props> {
       const ordinalRecord = viewableItems[viewableItems.length - 2]
       // ignore if we don't have real messages
       if (ordinalRecord && ordinalRecord.item !== 'specialBottom') {
-        this.props.loadOlderMessages(this.props.messageOrdinals.get(ordinalRecord.item))
+        this.props.loadOlderMessages(this.props.messageOrdinals[ordinalRecord.item])
       }
     }
     if (!topRecord || !bottomRecord) {
@@ -216,7 +216,7 @@ class ConversationList extends React.PureComponent<Props> {
   private jumpToRecent = () => {
     const list = this.listRef.current
     if (list) {
-      const index = this.getOrdinalIndex(this.props.messageOrdinals.last())
+      const index = this.getOrdinalIndex(this.props.messageOrdinals[this.props.messageOrdinals.length - 1])
       if (index >= 0) {
         list.scrollToIndex({index})
       }
@@ -258,7 +258,11 @@ class ConversationList extends React.PureComponent<Props> {
     debug(
       `componentDidUpdate: center: ${this.props.centeredOrdinal} oldCenter: ${
         prevProps.centeredOrdinal
-      } first: ${this.props.messageOrdinals.first()} last: ${this.props.messageOrdinals.last()} oldFirst: ${prevProps.messageOrdinals.first()} oldLast: ${prevProps.messageOrdinals.last()}`
+      } first: ${this.props.messageOrdinals[0]} last: ${
+        this.props.messageOrdinals[this.props.messageOrdinals.length - 1]
+      } oldFirst: ${prevProps.messageOrdinals[0]} oldLast: ${
+        prevProps.messageOrdinals[prevProps.messageOrdinals.length - 1]
+      }`
     )
     if (!!this.props.centeredOrdinal && this.props.centeredOrdinal !== prevProps.centeredOrdinal) {
       debug(`componentDidUpdate: attempting scroll`)
@@ -288,7 +292,7 @@ class ConversationList extends React.PureComponent<Props> {
             onScrollToIndexFailed={this.onScrollToIndexFailed}
             removeClippedSubviews={Styles.isAndroid}
           />
-          {!this.props.containsLatestMessage && this.props.messageOrdinals.size > 0 && (
+          {!this.props.containsLatestMessage && this.props.messageOrdinals.length > 0 && (
             <JumpToRecent onClick={this.jumpToRecent} style={styles.jumpToRecent} />
           )}
         </Kb.Box>
