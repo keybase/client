@@ -558,6 +558,11 @@ func (s *RemoteInboxSource) UpdateLocalMtime(ctx context.Context, uid gregor1.UI
 	return nil
 }
 
+func (s *RemoteInboxSource) TeamBotSettingsForConv(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (
+	map[keybase1.UID]keybase1.TeamBotSettings, error) {
+	return nil, nil
+}
+
 type HybridInboxSource struct {
 	sync.Mutex
 	globals.Contextified
@@ -1629,11 +1634,45 @@ func (s *HybridInboxSource) modConversation(ctx context.Context, debugLabel stri
 		return nil, err
 	}
 	if conv, err = s.getConvLocal(ctx, uid, convID); err != nil {
-		s.Debug(ctx, "%v: unable to load conversation: convID: %s err: %s",
-			debugLabel, convID, err.Error())
+		s.Debug(ctx, "%v: unable to load conversation: convID: %s err: %v",
+			debugLabel, convID, err)
 		return nil, nil
 	}
 	return conv, nil
+}
+
+func (s *HybridInboxSource) TeamBotSettingsForConv(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (
+	teambotSettings map[keybase1.UID]keybase1.TeamBotSettings, err error) {
+	defer s.Trace(ctx, func() error { return err }, "TeamBotSettingsForConv")()
+	rConv, err := s.createInbox().GetConversation(ctx, uid, convID)
+	if err != nil {
+		return nil, err
+	}
+
+	metadata := rConv.Conv.Metadata
+	public := metadata.Visibility == keybase1.TLFVisibility_PUBLIC
+	tlfID := metadata.IdTriple.Tlfid
+	infoSource := CreateNameInfoSource(ctx, s.G(), metadata.MembersType)
+	var tlfName string
+	if rConv.LocalMetadata == nil {
+		info, err := infoSource.LookupName(ctx, tlfID, public, "")
+		if err != nil {
+			return nil, err
+		}
+		tlfName = info.CanonicalName
+	} else {
+		tlfName = rConv.LocalMetadata.Name
+	}
+
+	teamBotSettings, err := infoSource.TeamBotSettings(ctx, tlfName, tlfID, metadata.MembersType, public)
+	if err != nil {
+		return nil, err
+	}
+	res := make(map[keybase1.UID]keybase1.TeamBotSettings)
+	for uv, botSettings := range teamBotSettings {
+		res[uv.Uid] = botSettings
+	}
+	return res, nil
 }
 
 func NewInboxSource(g *globals.Context, typ string, ri func() chat1.RemoteInterface) types.InboxSource {
