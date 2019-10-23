@@ -36,7 +36,7 @@ const ServiceIcon = (props: IconProps) => {
     outputRange: [bigWidth + 5, bigWidth + 5, bigWidth, smallWidth, smallWidth],
   })
   return (
-    <Kb.ClickableBox onClick={props.onClick} style={{position: 'relative', height: '100%'}}>
+    <Kb.ClickableBox onClick={props.onClick} style={{height: '100%', position: 'relative'}}>
       <AnimatedBox2 direction="vertical" style={[styles.serviceIconContainer, {width}]}>
         <Kb.Box2 direction="vertical" style={{position: 'relative'}}>
           {serviceIdToBadge(props.service) && (
