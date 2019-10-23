@@ -22,8 +22,9 @@ const styleSheetCreate = (funcOrObj: FuncOrObject, transform: Transform) => {
         }
       },
     }
+    return transform(funcOrObj())
 
-    return new Proxy({}, wrapped)
+    // return new Proxy({}, wrapped)
   } else {
     if (__DEV__) {
       // TODO turn on to see whats not updated
