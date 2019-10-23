@@ -720,12 +720,12 @@ const startAudioRecording = async (
   await requestAudioPermission()
   const audioPath = await RPCChatTypes.localGetUploadTempFileRpcPromise({filename: 'audio.m4a', outboxID})
   AudioRecorder.prepareRecordingAtPath(audioPath, {
-    SampleRate: 22050,
-    Channels: 1,
-    AudioQuality: 'Low',
     AudioEncoding: 'aac',
     AudioEncodingBitRate: 32000,
+    AudioQuality: 'Low',
+    Channels: 1,
     MeteringEnabled: true,
+    SampleRate: 22050,
   })
   AudioRecorder.onProgress = data => {
     action.payload.meteringCb(data.currentMetering)
@@ -735,7 +735,7 @@ const startAudioRecording = async (
   }
   logger.info('startAudioRecording: beginning recording')
   await AudioRecorder.startRecording()
-  return Chat2Gen.createSetAudioRecordingPostInfo({conversationIDKey, path: audioPath, outboxID})
+  return Chat2Gen.createSetAudioRecordingPostInfo({conversationIDKey, outboxID, path: audioPath})
 }
 
 const stopAudioRecording = async (

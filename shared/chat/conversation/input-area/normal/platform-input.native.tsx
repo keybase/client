@@ -327,28 +327,26 @@ type AudioStarterProps = {
   stopRecording: (st: Types.AudioStopType) => void
 }
 
+const maxAudioDrift = -20
+
 const AudioStarter = (props: AudioStarterProps) => {
   let longPressTimer
   return (
     <Kb.TapGestureHandler
       onHandlerStateChange={({nativeEvent}) => {
-        console.log('GEST: TAP: EVENT: ' + JSON.stringify(nativeEvent))
         if (!props.recording && nativeEvent.state === Kb.GestureState.BEGAN) {
           if (!longPressTimer) {
-            console.log('GEST: setting timeout')
             longPressTimer = setTimeout(props.startRecording, 200)
           }
         }
         if (nativeEvent.state === Kb.GestureState.ACTIVE || nativeEvent.state === Kb.GestureState.END) {
           clearTimeout(longPressTimer)
           if (props.recording && nativeEvent.state === Kb.GestureState.END) {
-            if (nativeEvent.x < -20) {
-              console.log('GEST: TAP: STOPPING: swipe cancel')
+            if (nativeEvent.x < maxAudioDrift) {
               props.stopRecording(Types.AudioStopType.CANCEL)
-            } else if (nativeEvent.y < -20) {
+            } else if (nativeEvent.y < maxAudioDrift) {
               props.lockRecording()
             } else {
-              console.log('GEST: TAP: STOPPING: within bounds')
               props.stopRecording(Types.AudioStopType.RELEASE)
             }
           }
@@ -359,27 +357,23 @@ const AudioStarter = (props: AudioStarterProps) => {
         minOffsetX={0}
         minOffsetY={0}
         onGestureEvent={({nativeEvent}) => {
-          console.log('GEST: PAN EVENT: ' + JSON.stringify(nativeEvent))
-          if (nativeEvent.translationY < -20) {
+          if (nativeEvent.translationY < maxAudioDrift) {
             props.lockRecording()
           }
-          if (nativeEvent.translationX < -20) {
-            console.log('GEST: PAN: STOPPING: swipe cancel')
+          if (nativeEvent.translationX < maxAudioDrift) {
             clearTimeout(longPressTimer)
             props.stopRecording(Types.AudioStopType.CANCEL)
           }
         }}
         onHandlerStateChange={({nativeEvent}) => {
           if (nativeEvent.state === Kb.GestureState.END) {
-            if (nativeEvent.y < -20) {
+            if (nativeEvent.y < maxAudioDrift) {
               props.lockRecording()
             }
-            if (nativeEvent.x < -20) {
-              console.log('GEST: PAN: STOPPING: swipe cancel')
+            if (nativeEvent.x < maxAudioDrift) {
               clearTimeout(longPressTimer)
               props.stopRecording(Types.AudioStopType.CANCEL)
             } else {
-              console.log('GEST: PAN: STOPPING: release')
               clearTimeout(longPressTimer)
               props.stopRecording(Types.AudioStopType.RELEASE)
             }

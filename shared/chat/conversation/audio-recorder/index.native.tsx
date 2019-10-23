@@ -24,27 +24,36 @@ const AudioRecorder = (props: Props) => {
 
   // dispatch
   const dispatch = Container.useDispatch()
-  const onCancel = () => {
+  const onCancel = React.useCallback(() => {
     dispatch(Chat2Gen.createStopAudioRecording({conversationIDKey, stopType: Types.AudioStopType.CANCEL}))
-  }
-  const startRecording = (meteringCb: (n: number) => void) => {
-    dispatch(Chat2Gen.createStartAudioRecording({conversationIDKey, meteringCb}))
-  }
-  const sendRecording = () => {
+  }, [dispatch, conversationIDKey])
+  const startRecording = React.useCallback(
+    (meteringCb: (n: number) => void) => {
+      dispatch(Chat2Gen.createStartAudioRecording({conversationIDKey, meteringCb}))
+    },
+    [dispatch, conversationIDKey]
+  )
+  const sendRecording = React.useCallback(() => {
     dispatch(Chat2Gen.createStopAudioRecording({conversationIDKey, stopType: Types.AudioStopType.SEND}))
-  }
-  const stageRecording = () => {
+  }, [dispatch, conversationIDKey])
+  const stageRecording = React.useCallback(() => {
     dispatch(Chat2Gen.createStopAudioRecording({conversationIDKey, stopType: Types.AudioStopType.STOPBUTTON}))
-  }
+  }, [dispatch, conversationIDKey])
+
   // lifecycle
   React.useEffect(() => {
+    // we only want one of these timers running ever, so keep track of it here. We clear the timeout
+    // whenever we drop the audio recording interface from the conv
     if (!timerRef.current && audioRecording && audioRecording.status === Types.AudioRecordingStatus.INITIAL) {
       timerRef.current = setTimeout(() => startRecording(setLastAmp), 400)
     } else if (!Constants.showAudioRecording(audioRecording) && timerRef.current) {
       clearTimeout(timerRef.current)
       timerRef.current = null
     }
-  }, [audioRecording])
+  }, [audioRecording, startRecording])
+  const setVisibleFalseLater = Kb.useTimeout(() => {
+    setVisible(false)
+  }, 400)
 
   // render
   const noShow = !Constants.showAudioRecording(audioRecording)
@@ -53,15 +62,15 @@ const AudioRecorder = (props: Props) => {
     setClosingDown(false)
   } else if (visible && noShow && !closingDown) {
     setClosingDown(true)
-    setTimeout(() => setVisible(false), 400)
+    setVisibleFalseLater()
   }
   const locked = audioRecording ? audioRecording.isLocked : false
   return !visible ? null : (
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
       <AudioButton
         closeDown={closingDown}
-        locked={locked}
         lastAmp={lastAmp}
+        locked={locked}
         sendRecording={sendRecording}
         stageRecording={stageRecording}
       />
@@ -113,7 +122,7 @@ const AudioButton = (props: ButtonProps) => {
       ],
       {stopTogether: false}
     ).start()
-  }, [])
+  })
   React.useEffect(() => {
     if (!props.closeDown && props.lastAmp >= minAmp) {
       Kb.NativeAnimated.timing(ampScale, {
@@ -122,7 +131,7 @@ const AudioButton = (props: ButtonProps) => {
         useNativeDriver: true,
       }).start()
     }
-  }, [props.lastAmp])
+  }, [props.closeDown, props.lastAmp, ampScale])
   React.useEffect(() => {
     if (props.locked) {
       Kb.NativeAnimated.timing(sendTranslate, {
@@ -131,7 +140,7 @@ const AudioButton = (props: ButtonProps) => {
         useNativeDriver: true,
       }).start()
     }
-  }, [props.locked])
+  }, [props.locked, sendTranslate])
   React.useEffect(() => {
     if (props.closeDown) {
       Kb.NativeAnimated.parallel(
@@ -165,7 +174,7 @@ const AudioButton = (props: ButtonProps) => {
         {stopTogether: false}
       ).start()
     }
-  }, [props.closeDown])
+  }, [props.closeDown, ampScale, innerScale, outerScale, lockTranslate, sendTranslate])
 
   const innerSize = 28
   const ampSize = 34
@@ -174,63 +183,63 @@ const AudioButton = (props: ButtonProps) => {
     <>
       <Kb.NativeAnimated.View
         style={{
-          height: outerSize,
-          width: outerSize,
-          borderRadius: outerSize / 2,
           backgroundColor: Styles.globalColors.white,
-          position: 'absolute',
+          borderRadius: outerSize / 2,
           bottom: 20,
-          right: 30,
+          height: outerSize,
           opacity: 0.9,
+          position: 'absolute',
+          right: 30,
           transform: [
             {
               scale: outerScale,
             },
           ],
+          width: outerSize,
         }}
       />
       <Kb.NativeAnimated.View
         style={{
-          height: ampSize,
-          width: ampSize,
-          borderRadius: ampSize / 2,
           backgroundColor: props.locked
             ? Styles.globalColors.redLight
             : Styles.globalColors.blueLighterOrBlueLight,
-          position: 'absolute',
+          borderRadius: ampSize / 2,
           bottom: 15,
+          height: ampSize,
+          position: 'absolute',
           right: 40,
           transform: [
             {
               scale: ampScale,
             },
           ],
+          width: ampSize,
         }}
       />
       <Kb.NativeAnimated.View
         style={{
-          height: innerSize,
-          width: innerSize,
-          borderRadius: innerSize / 2,
           backgroundColor: props.locked ? Styles.globalColors.red : Styles.globalColors.blue,
-          position: 'absolute',
+          borderRadius: innerSize / 2,
           bottom: 17,
+          height: innerSize,
+          position: 'absolute',
           right: 43,
           transform: [
             {
               scale: innerScale,
             },
           ],
+          width: innerSize,
         }}
       />
 
       {!props.locked ? (
         <Kb.NativeAnimated.View
           style={{
-            position: 'absolute',
-            right: 45,
             bottom: 100,
             opacity: lockTranslate,
+            position: 'absolute',
+            right: 45,
             transform: [{translateY: lockTranslate.interpolate({inputRange: [0, 1], outputRange: [150, 0]})}],
           }}
         >
@@ -244,21 +253,21 @@ const AudioButton = (props: ButtonProps) => {
       ) : (
         <Kb.NativeAnimated.View
           style={{
-            position: 'absolute',
-            right: 42,
             bottom: 100,
             opacity: sendTranslate,
+            position: 'absolute',
+            right: 42,
             transform: [{translateY: sendTranslate.interpolate({inputRange: [0, 1], outputRange: [150, 0]})}],
           }}
         >
           <Kb.NativeView
             style={{
               alignItems: 'center',
-              height: 32,
-              width: 32,
-              borderRadius: 16,
               backgroundColor: Styles.globalColors.blue,
+              borderRadius: 16,
+              height: 32,
               justifyContent: 'center',
+              width: 32,
             }}
           >
             <Kb.ClickableBox onClick={props.sendRecording}>
@@ -279,18 +288,18 @@ const AudioButton = (props: ButtonProps) => {
           type="iconfont-mic"
           fontSize={22}
           color={Styles.globalColors.whiteOrWhite}
-          style={{position: 'absolute', bottom: 13, right: 46}}
+          style={{bottom: 13, position: 'absolute', right: 46}}
         />
       ) : (
         <Kb.TapGestureHandler onHandlerStateChange={props.stageRecording}>
           <Kb.NativeView
             style={{
-              height: 48,
-              width: 48,
-              position: 'absolute',
-              justifyContent: 'center',
               bottom: 8,
+              height: 48,
+              justifyContent: 'center',
+              position: 'absolute',
               right: 18,
+              width: 48,
             }}
           >
             <Kb.Box
@@ -322,7 +331,7 @@ const AudioSlideToCancel = (props: CancelProps) => {
       toValue: 1,
       useNativeDriver: true,
     }).start()
-  }, [])
+  })
   React.useEffect(() => {
     if (props.closeDown) {
       Kb.NativeAnimated.timing(translate, {
@@ -331,7 +340,7 @@ const AudioSlideToCancel = (props: CancelProps) => {
         useNativeDriver: true,
       }).start()
     }
-  }, [props.closeDown])
+  }, [props.closeDown, translate])
   return props.locked ? (
     <Kb.Text type="BodyPrimaryLink" onClick={props.onCancel} style={{marginLeft: 30}}>
       Cancel

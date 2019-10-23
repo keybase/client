@@ -2087,12 +2087,12 @@ const sendAudioRecording = async (
   const audioRecording = state.chat2.audioRecording.get(conversationIDKey)
   if (!audioRecording) {
     logger.info('sendAudioRecording: no audio info for send')
-    return false
+    return
   }
   const meta = state.chat2.metaMap.get(conversationIDKey)
   if (!meta) {
     logger.warn('sendAudioRecording: no meta for send')
-    return false
+    return
   }
   const clientPrev = Constants.getClientPrev(state, conversationIDKey)
   const ephemeralLifetime = Constants.getConversationExplodingMode(state, conversationIDKey)
@@ -2111,7 +2111,6 @@ const sendAudioRecording = async (
     },
     clientPrev,
   })
-  return false
 }
 
 // Upload an attachment
