@@ -550,18 +550,20 @@ function* getDetails(_: TypedState, action: TeamsGen.GetDetailsPayload, logger: 
     }
     requests.sort((a, b) => a.username.localeCompare(b.username))
 
-    const requestMap = requests.reduce((reqMap, req) => {
-      if (!reqMap[req.name]) {
-        reqMap[req.name] = I.Set()
+    const requestMap = new Map<string, Array<string>>()
+    requests.forEach(request => {
+      let arr = requestMap.get(request.name)
+      if (!arr) {
+        arr = []
+        requestMap.set(request.name, arr)
       }
-      reqMap[req.name] = reqMap[req.name].add(Constants.makeRequestInfo({username: req.username}))
-      return reqMap
-    }, {})
+      arr.push(request.username)
+    })
 
-    const invites = Object.values(details.annotatedActiveInvites).reduce<Array<Types.InviteInfo>>(
+    const invites = Object.values(details.annotatedActiveInvites).reduce<Array<Types._InviteInfo>>(
       (arr, invite) => {
         const role = Constants.teamRoleByEnum[invite.role]
-        if (role === 'none') {
+        if (!role || role === 'none') {
           return arr
         }
 
@@ -571,24 +573,21 @@ function* getDetails(_: TypedState, action: TeamsGen.GetDetailsPayload, logger: 
           const sbs: RPCTypes.TeamInviteSocialNetwork = t.sbs
           username = `${invite.name}@${sbs}`
         }
-        arr.push(
-          Constants.makeInviteInfo({
-            email: invite.type.c === RPCTypes.TeamInviteCategory.email ? invite.name : '',
-            id: invite.id,
-            name: invite.type.c === RPCTypes.TeamInviteCategory.seitan ? invite.name : '',
-            phone:
-              invite.type.c === RPCTypes.TeamInviteCategory.phone ? e164ToDisplay('+' + invite.name) : '',
-            role,
-            username,
-          })
-        )
+        arr.push({
+          email: invite.type.c === RPCTypes.TeamInviteCategory.email ? invite.name : '',
+          id: invite.id,
+          name: invite.type.c === RPCTypes.TeamInviteCategory.seitan ? invite.name : '',
+          phone: invite.type.c === RPCTypes.TeamInviteCategory.phone ? e164ToDisplay('+' + invite.name) : '',
+          role,
+          username,
+        })
         return arr
       },
       []
     )
 
     // if we have no requests for this team, make sure we don't hold on to any old ones
-    if (!requestMap[teamname]) {
+    if (!requestMap.get(teamname)) {
       yield Saga.put(TeamsGen.createClearTeamRequests({teamname}))
     }
 
@@ -603,11 +602,12 @@ function* getDetails(_: TypedState, action: TeamsGen.GetDetailsPayload, logger: 
     }, [])
     yield Saga.put(
       TeamsGen.createSetTeamDetails({
-        invites: I.Set(invites),
-        members: Constants.rpcDetailsToMemberInfos(details.members),
-        requests: I.Map(requestMap),
-        settings: Constants.makeTeamSettings(details.settings),
-        subteams: I.Set(subteams),
+        invites: invites,
+        members: details.members,
+        requests: requestMap,
+        settings: details.settings,
+        subteams: subteams,
+        teamID: Constants.getTeamID(state, teamname),
         teamname,
       })
     )
@@ -1442,6 +1442,14 @@ function addThemToTeamFromTeamBuilder(
   )
 }
 
+const refreshCanUserPerform = (
+  _: TypedState,
+  action: EngineGen.Keybase1NotifyCanUserPerformCanUserPerformChangedPayload
+) => {
+  const {teamName} = action.payload.params
+  return TeamsGen.createGetTeamOperations({teamname: teamName})
+}
+
 function* teamBuildingSaga() {
   yield* commonTeamBuildingSaga('teams')
 
@@ -1560,6 +1568,11 @@ const teamsSaga = function*() {
   )
 
   yield* Saga.chainAction2(TeamsGen.clearNavBadges, clearNavBadges)
+  yield* Saga.chainAction2(
+    EngineGen.keybase1NotifyCanUserPerformCanUserPerformChanged,
+    refreshCanUserPerform,
+    'refreshCanUserPerform'
+  )
 
   // Hook up the team building sub saga
   yield* teamBuildingSaga()

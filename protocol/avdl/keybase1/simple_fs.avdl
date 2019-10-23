@@ -495,6 +495,19 @@ protocol SimpleFS {
   // device.
   SyncConfigAndStatusRes simpleFSSyncConfigAndStatus(union{ null, TLFIdentifyBehavior } identifyBehavior);
 
+  // simpleFSGetFolder is used get TLF metadata for a specific path. It's more
+  // expensive than getting favorites,but works with both any tlf path -- it
+  // doesn't have to be canonical. This allows GUI to query on any TLF path
+  // without having to worrying about canonicalization, or whether a TLF is
+  // already in the favorites or not.
+  record FolderWithFavFlags {
+    Folder folder;
+    boolean isFavorite;
+    boolean isIgnored;
+    boolean isNew;
+  }
+  FolderWithFavFlags simpleFSGetFolder(KBFSPath path);
+
   boolean simpleFSAreWeConnectedToMDServer();
 
   // This is called when GUI learns about a OS level network status change, and

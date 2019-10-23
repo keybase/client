@@ -64,7 +64,7 @@ class LoginRender extends React.Component<Props> {
               value={this.props.selectedUser}
               onClick={this._selectedUserChange}
               onOther={this.props.onSomeoneElse}
-              options={this.props.users.map(u => u.username)}
+              options={this.props.users}
             />
             {this.props.needPassword && (
               <Kb.FormWithCheckbox
@@ -91,7 +91,7 @@ class LoginRender extends React.Component<Props> {
             </Kb.Text>
           </Kb.UserCard>
           <Kb.Text
-            style={{marginTop: Styles.globalMargins.xlarge}}
+            style={{marginTop: Styles.globalMargins.medium}}
             type="BodyBigLink"
             onClick={this.props.onSignup}
           >

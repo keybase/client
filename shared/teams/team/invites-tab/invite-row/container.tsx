@@ -1,5 +1,5 @@
 import * as TeamsGen from '../../../../actions/teams-gen'
-import {getTeamInvites, getTeamMembers, makeInviteInfo} from '../../../../constants/teams'
+import {getTeamInvites, makeInviteInfo} from '../../../../constants/teams'
 import {TeamInviteRow} from '.'
 import {connect} from '../../../../util/container'
 import {InviteInfo} from '../../../../constants/types/teams'
@@ -12,7 +12,6 @@ type OwnProps = {
 const mapStateToProps = (state, {teamname}: OwnProps) => {
   return {
     _invites: getTeamInvites(state, teamname),
-    _members: getTeamMembers(state, teamname),
   }
 }
 

@@ -41,6 +41,7 @@ const ChooseComponent = (props: ChooseComponentProps) => {
   Kbfs.useFsFileContext(props.path)
   Kbfs.useFsTlfs()
   Kbfs.useFsOnlineStatus()
+  Kbfs.useFsTlf(props.path)
   const softError = Kbfs.useFsSoftError(props.path)
 
   if (props.kbfsDaemonStatus.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected) {
