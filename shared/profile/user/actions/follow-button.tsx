@@ -6,6 +6,7 @@ type Props = {
   following?: boolean
   followsYou?: boolean
   waitingKey: string
+  small?: boolean
   style?: Object
   onFollow?: () => void
   onUnfollow?: () => void

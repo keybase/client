@@ -9,10 +9,12 @@ import password from './password/index.stories'
 import chat from './chat/index.stories'
 import landing from './landing/index.stories'
 import files from './files/index.stories'
+import contacts from './contacts-joined/index.stories.native'
 
 const load = () => {
   ;[
     account,
+    contacts,
     email,
     password,
     deleteConfirm,
