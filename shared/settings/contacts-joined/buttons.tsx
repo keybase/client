@@ -33,9 +33,10 @@ export const WaveButton = (props: Props) => {
 
   // TODO a box around the waved version, perhaps
   return waved && !waving ? (
-    <Kb.Text type="BodySmall" style={styles.waved}>
-      <Kb.Icon type="iconfont-check" color={Styles.globalColors.black_50} sizeType="Tiny" /> Waved
-    </Kb.Text>
+    <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.waved} gap="xtiny">
+      <Kb.Icon type="iconfont-check" color={Styles.globalColors.black_50} sizeType="Tiny" />
+      <Kb.Text type="BodySmall"> Waved</Kb.Text>
+    </Kb.Box2>
   ) : (
     <Kb.Button onClick={onWave} small={props.small} mode="Secondary" waiting={waving}>
       <Kb.Text type="BodyBig" style={styles.blueText}>
@@ -72,6 +73,9 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       blueText: {color: Styles.globalColors.blueDark},
-      waved: Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.small),
+      waved: {
+        ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.small),
+        minWidth: 94,
+      },
     } as const)
 )

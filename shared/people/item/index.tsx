@@ -4,14 +4,17 @@ import * as Styles from '../../styles'
 import {formatTimeForPeopleItem} from '../../util/timestamp'
 import {Props as ButtonProps} from '../../common-adapters/button'
 
-export type TaskButton = {
-  label: string
-  onClick: () => void
-  labelIcon?: ButtonProps['labelIcon']
-  type?: ButtonProps['type']
-  mode?: ButtonProps['mode']
-  waiting?: ButtonProps['waiting']
-}
+export type TaskButton =
+  | {
+      label: string
+      onClick: () => void
+      labelIcon?: ButtonProps['labelIcon']
+      type?: ButtonProps['type']
+      mode?: ButtonProps['mode']
+      waiting?: ButtonProps['waiting']
+    }
+  | React.ReactElement<any>
+
 export type Props = {
   badged: boolean
   icon?: React.ReactNode
@@ -40,7 +43,13 @@ export default (props: Props) => (
       <Kb.Box2 direction="horizontal" style={styles.actionContainer} alignItems="center" fullWidth={true}>
         {props.buttons &&
           props.buttons.length > 0 &&
-          props.buttons.map(b => <Kb.Button key={b.label} small={true} style={styles.button} {...b} />)}
+          props.buttons.map(b =>
+            React.isValidElement(b) ? (
+              <Kb.Box style={styles.button}>{b}</Kb.Box>
+            ) : (
+              <Kb.Button key={b.label} small={true} style={styles.button} {...b} />
+            )
+          )}
       </Kb.Box2>
     </Kb.Box2>
     <Kb.Box

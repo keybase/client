@@ -27,22 +27,22 @@ const ContactsJoinedModal = (props: Props) => {
         ),
       }}
     >
-      <Kb.Text type="Body" style={styles.woot} center>
+      <Kb.Text type="Body" style={styles.woot} center={true}>
         Woot! Some of your contacts are already on Keybase.
       </Kb.Text>
       <Kb.ScrollView>
-        <Kb.Box2 direction="vertical" fullWidth>
+        <Kb.Box2 direction="vertical" fullWidth={true}>
           {people.map(({username, contactLabel}) => (
-            <Kb.Box2 direction="horizontal" key={username} fullWidth>
+            <Kb.Box2 direction="horizontal" key={username} fullWidth={true}>
               <Kb.Box style={styles.avatar}>
                 <Kb.Avatar username={username} size={48} />
               </Kb.Box>
               <Kb.Box2 direction="vertical" style={styles.rightBox}>
                 <Kb.ConnectedUsernames colorFollowing={true} type="BodySemibold" usernames={[username]} />
                 <Kb.Text type="BodySmall">{contactLabel}</Kb.Text>
-                <Kb.Box2 direction="horizontal" gap="tiny" fullWidth style={styles.buttons}>
-                  <FollowButton username={username} small />
-                  <WaveButton username={username} small />
+                <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} style={styles.buttons}>
+                  <FollowButton username={username} small={true} />
+                  <WaveButton username={username} small={true} />
                 </Kb.Box2>
                 <Kb.Divider style={styles.divider} />
               </Kb.Box2>
