@@ -2,7 +2,14 @@ import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 
+type Action = {
+  label: string
+  onClick: () => void
+}
+
 type Props = {
+  actions: Array<Action>
+  image: string
   teamname: string
   text: string
 }
@@ -12,6 +19,17 @@ const TeamJourney = (props: Props) => (
     <TeamJourneyHeader teamname={props.teamname} />
     <Kb.Box2 key="content" direction="vertical" fullWidth={true} style={styles.content}>
       <Kb.Text type="Body">{props.text}</Kb.Text>
+      <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.actionsBox}>
+        {props.actions.map(action => (
+          <Kb.Button
+            small={true}
+            type="Default"
+            mode="Secondary"
+            label={action.label}
+            onClick={action.onClick}
+          />
+        ))}
+      </Kb.Box2>
     </Kb.Box2>
   </>
 )
@@ -40,6 +58,9 @@ const TeamJourneyHeader = (props: HeaderProps) => (
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      actionsBox: {
+        marginTop: Styles.globalMargins.tiny,
+      },
       authorContainer: Styles.platformStyles({
         common: {
           alignItems: 'flex-start',

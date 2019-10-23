@@ -77,7 +77,8 @@
         "'requestedPayment'",
         "'teamMention'",
         "'appLink'",
-        "'search'"
+        "'search'",
+        "'journeyCardPopular'"
       ]
     },
     "createConversation": {
