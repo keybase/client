@@ -1075,7 +1075,7 @@ func (e NoSigChainError) Error() string {
 type NotProvisionedError struct{}
 
 func (e NotProvisionedError) Error() string {
-	return "This device isn't provisioned (no 'device_kid' entry in config.json)"
+	return "This device isn't authorized (no 'device_kid' entry in config.json)"
 }
 
 //=============================================================================
@@ -1677,7 +1677,7 @@ func (e SecretStoreError) Error() string {
 type PassphraseProvisionImpossibleError struct{}
 
 func (e PassphraseProvisionImpossibleError) Error() string {
-	return "Passphrase provision is not possible since you have at least one provisioned device or pgp key already"
+	return "Passphrase authorization is not possible since you have at least one authorized device or pgp key already"
 }
 
 type ProvisionViaDeviceRequiredError struct{}
@@ -1872,7 +1872,7 @@ func (e NoMatchingGPGKeysError) Error() string {
 type DeviceAlreadyProvisionedError struct{}
 
 func (e DeviceAlreadyProvisionedError) Error() string {
-	return "Device already provisioned for current user"
+	return "Device already authorized for current user"
 }
 
 type DirExecError struct {
@@ -2417,7 +2417,7 @@ func (e KeyMaskNotFoundError) Error() string {
 type ProvisionFailedOfflineError struct{}
 
 func (e ProvisionFailedOfflineError) Error() string {
-	return "Device provisioning failed because the device is offline"
+	return "Device authorization failed because the device is offline"
 }
 
 //=============================================================================
