@@ -348,6 +348,9 @@ export default (state: Types.State = Constants.initialState, action: Actions): T
       case ConfigGen.setUseNativeFrame:
         draftState.useNativeFrame = action.payload.useNativeFrame
         return
+      case ConfigGen.setWhatsNewLastSeenVersion:
+        draftState.whatsNewLastSeenVersion = action.payload.lastSeenVersion
+        return
       // Saga only actions
       case ConfigGen.dumpLogs:
       case ConfigGen.logout:

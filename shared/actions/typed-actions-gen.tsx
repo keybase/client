@@ -261,6 +261,7 @@ export type TypedActionsMap = {
   'config:remoteWindowWantsProps': config.RemoteWindowWantsPropsPayload
   'config:updateWindowState': config.UpdateWindowStatePayload
   'config:setUseNativeFrame': config.SetUseNativeFramePayload
+  'config:setWhatsNewLastSeenVersion': config.SetWhatsNewLastSeenVersionPayload
   'deeplinks:handleKeybaseLink': deeplinks.HandleKeybaseLinkPayload
   'deeplinks:link': deeplinks.LinkPayload
   'deeplinks:setKeybaseLinkError': deeplinks.SetKeybaseLinkErrorPayload

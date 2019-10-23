@@ -49,6 +49,7 @@ export const setStartupDetails = 'config:setStartupDetails'
 export const setSystemDarkMode = 'config:setSystemDarkMode'
 export const setUseNativeFrame = 'config:setUseNativeFrame'
 export const setUserSwitching = 'config:setUserSwitching'
+export const setWhatsNewLastSeenVersion = 'config:setWhatsNewLastSeenVersion'
 export const showMain = 'config:showMain'
 export const startHandshake = 'config:startHandshake'
 export const updateCriticalCheckStatus = 'config:updateCriticalCheckStatus'
@@ -134,6 +135,7 @@ type _SetStartupDetailsPayload = {
 type _SetSystemDarkModePayload = {readonly dark: boolean}
 type _SetUseNativeFramePayload = {readonly useNativeFrame: boolean}
 type _SetUserSwitchingPayload = {readonly userSwitching: boolean}
+type _SetWhatsNewLastSeenVersionPayload = {readonly lastSeenVersion: string}
 type _ShowMainPayload = void
 type _StartHandshakePayload = void
 type _UpdateCriticalCheckStatusPayload = {
@@ -177,6 +179,12 @@ export const createFilePickerError = (payload: _FilePickerErrorPayload): FilePic
   payload,
   type: filePickerError,
 })
+/**
+ * Set the latest version number that a user has seen from Gregor. This is used to set the badged state of the 'What's New' radio icon
+ */
+export const createSetWhatsNewLastSeenVersion = (
+  payload: _SetWhatsNewLastSeenVersionPayload
+): SetWhatsNewLastSeenVersionPayload => ({payload, type: setWhatsNewLastSeenVersion})
 /**
  * Used internally to know we were logged in. if you want to react to being logged in likely you want bootstrapStatusLoaded
  */
@@ -479,6 +487,10 @@ export type SetUserSwitchingPayload = {
   readonly payload: _SetUserSwitchingPayload
   readonly type: typeof setUserSwitching
 }
+export type SetWhatsNewLastSeenVersionPayload = {
+  readonly payload: _SetWhatsNewLastSeenVersionPayload
+  readonly type: typeof setWhatsNewLastSeenVersion
+}
 export type ShowMainPayload = {readonly payload: _ShowMainPayload; readonly type: typeof showMain}
 export type StartHandshakePayload = {
   readonly payload: _StartHandshakePayload
@@ -545,6 +557,7 @@ export type Actions =
   | SetSystemDarkModePayload
   | SetUseNativeFramePayload
   | SetUserSwitchingPayload
+  | SetWhatsNewLastSeenVersionPayload
   | ShowMainPayload
   | StartHandshakePayload
   | UpdateCriticalCheckStatusPayload
