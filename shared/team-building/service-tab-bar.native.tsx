@@ -92,11 +92,11 @@ const delay = (after: Kb.ReAnimated.Adaptable<number>) => {
   const {greaterOrEq, Clock, Value, startClock, stopClock, cond, set, defined, block, add} = Kb.ReAnimated
   const clock = new Clock()
   const time = new Value(400)
-  const when = new Value()
+  const when = new Value(0)
   return block([
     startClock(clock),
     cond(defined(when), 0, [set(when, add(clock, time))]),
-    cond(greaterOrEq(clock, when), [stopClock(clock), after], 0),
+    cond(greaterOrEq(clock, when), block([stopClock(clock), after]), 0),
   ])
 }
 
@@ -146,7 +146,7 @@ export class ServiceTabBar extends React.Component<Props> {
         horizontal={true}
         showsHorizontalScrollIndicator={false}
         scrollEventThrottle={1000}
-        keybaseDismissMode="on-drag"
+        keyboardDismissMode="on-drag"
         keyboardShouldPersistTaps="handled"
         style={{
           flexGrow: 0,
