@@ -5086,6 +5086,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-mic': {
+    charCode: 0xe99d,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-nav-2-chat': {
     charCode: 0xe97d,
     gridSize: 24,
@@ -5231,6 +5236,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-play': {
+    charCode: 0xe99e,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-proof-broken': {
     charCode: 0xe94b,
     gridSize: 16,
@@ -5348,6 +5358,11 @@ const iconMeta_ = {
   },
   'iconfont-stellar-send': {
     charCode: 0xe95b,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-stop': {
+    charCode: 0xe99f,
     gridSize: 16,
     isFont: true,
   },
