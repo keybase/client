@@ -44,27 +44,16 @@ func (h *KVStoreHandler) assertLoggedIn(ctx context.Context) error {
 	return nil
 }
 
-func rewriteMisleadingError(err error) error {
-	if err == nil {
-		return nil
-	}
-	return libkb.AppStatusError{
-		Code: libkb.SCTeamReadError,
-		Desc: "You are not a member of this team",
-	}
-}
-
 func (h *KVStoreHandler) resolveTeam(mctx libkb.MetaContext, userInputTeamName string) (teamID keybase1.TeamID, err error) {
-	if strings.Contains(userInputTeamName, "@") {
-		// SBS isn't supported, so we also shouldn't support user assertions
-		return teamID, fmt.Errorf("only fully qualified keybase usernames and teams")
-	}
 	if strings.Contains(userInputTeamName, ",") {
 		// it's an implicit team that might not exist yet
 		team, _, _, err := teams.LookupOrCreateImplicitTeam(mctx.Ctx(), mctx.G(), userInputTeamName, false /*public*/)
 		if err != nil {
 			mctx.Debug("error loading implicit team %s: %v", userInputTeamName, err)
-			err = rewriteMisleadingError(err)
+			err = libkb.AppStatusError{
+				Code: libkb.SCTeamReadError,
+				Desc: "You are not a member of this team",
+			}
 			return teamID, err
 		}
 		return team.ID, nil
