@@ -305,7 +305,13 @@ class Inbox extends React.Component<T.Props, State> {
     return (
       <Kb.ErrorBoundary>
         <div style={styles.container}>
-          <div style={styles.list} onDragOver={this.onDragOver} onDrop={this.onDrop} ref={this.dragList}>
+          <div
+            style={styles.list}
+            onDragEnd={this.onDrop}
+            onDragOver={this.onDragOver}
+            onDrop={this.onDrop}
+            ref={this.dragList}
+          >
             <AutoSizer>
               {({height, width}) => (
                 <VariableSizeList
