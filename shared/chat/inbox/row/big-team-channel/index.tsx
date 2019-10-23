@@ -44,21 +44,30 @@ class BigTeamChannel extends PureComponent<Props, State> {
           >
             <Kb.Text
               lineClamp={1}
-              type={this.props.isSelected ? 'BodySemibold' : 'Body'}
+              type="Body"
               style={Styles.collapseStyles([
-                styles.channelText,
-                this.props.isError
-                  ? styles.textError
-                  : this.props.isSelected
-                  ? this.props.hasUnread
-                    ? styles.textSelectedBold
-                    : styles.textSelected
-                  : this.props.hasUnread
-                  ? styles.textPlainBold
-                  : styles.textPlain,
+                styles.channelHash,
+                this.props.isSelected && styles.channelHashSelected,
               ])}
             >
-              #{this.props.channelname}
+              #{' '}
+              <Kb.Text
+                type={this.props.isSelected ? 'BodySemibold' : 'Body'}
+                style={Styles.collapseStyles([
+                  styles.channelText,
+                  this.props.isError
+                    ? styles.textError
+                    : this.props.isSelected
+                    ? this.props.hasUnread
+                      ? styles.textSelectedBold
+                      : styles.textSelected
+                    : this.props.hasUnread
+                    ? styles.textPlainBold
+                    : styles.textPlain,
+                ])}
+              >
+                {this.props.channelname}
+              </Kb.Text>
             </Kb.Text>
             {this.props.isMuted && (
               <MutedIcon isHovered={this.state.isHovered} isSelected={this.props.isSelected} />
@@ -123,6 +132,12 @@ const styles = Styles.styleSheetCreate(() => ({
       flex: 1,
     },
   }),
+  channelHash: {
+    color: Styles.globalColors.black_20,
+  },
+  channelHashSelected: {
+    color: Styles.globalColors.white_60,
+  },
   channelText: Styles.platformStyles({
     isElectron: {
       wordBreak: 'break-all',

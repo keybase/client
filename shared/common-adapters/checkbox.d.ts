@@ -6,6 +6,7 @@ export type Props = {
   key?: string
   label?: string
   labelComponent?: React.ReactNode
+  labelSubtitle?: string
   onCheck: ((newCheckedValue: boolean) => void) | null
   checked: boolean
   style?: StylesCrossPlatform

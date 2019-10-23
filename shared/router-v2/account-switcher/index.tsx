@@ -23,7 +23,14 @@ export type Props = {
 
 const MobileHeader = (props: Props) => (
   <>
-    <Kb.Box2 direction="vertical" gap="tiny" gapStart={true} centerChildren={true} gapEnd={true}>
+    <Kb.Box2
+      direction="vertical"
+      gap="tiny"
+      gapStart={true}
+      centerChildren={true}
+      gapEnd={true}
+      style={styles.userBox}
+    >
       <Kb.Avatar username={props.username} onClick={props.onProfileClick} size={128} />
       <Kb.Box2 direction="vertical" centerChildren={true}>
         <Kb.Text type="BodyBig" onClick={props.onProfileClick}>
@@ -33,6 +40,8 @@ const MobileHeader = (props: Props) => (
           {props.fullname}
         </Kb.Text>
       </Kb.Box2>
+      <Kb.Button fullWidth={true} label="View/Edit profile" mode="Secondary" onClick={props.onProfileClick} />
+      <Kb.Divider style={styles.divider} />
     </Kb.Box2>
     <Kb.Box2 direction="vertical" style={styles.buttonBox} fullWidth={true} gap="tiny">
       <Kb.WaitingButton
@@ -141,6 +150,11 @@ const styles = Styles.styleSheetCreate(() => ({
     paddingTop: -Styles.globalMargins.small,
   },
   text2: {flexShrink: 0},
+  userBox: {
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
+    width: '100%',
+  },
   waiting: {
     opacity: 0.5,
   },

@@ -1104,6 +1104,20 @@ func (o UIMessageOutbox) DeepCopy() UIMessageOutbox {
 	}
 }
 
+type UIMessageJourneycard struct {
+	Ordinal        float64         `codec:"ordinal" json:"ordinal"`
+	CardType       JourneycardType `codec:"cardType" json:"cardType"`
+	HighlightMsgID MessageID       `codec:"highlightMsgID" json:"highlightMsgID"`
+}
+
+func (o UIMessageJourneycard) DeepCopy() UIMessageJourneycard {
+	return UIMessageJourneycard{
+		Ordinal:        o.Ordinal,
+		CardType:       o.CardType.DeepCopy(),
+		HighlightMsgID: o.HighlightMsgID.DeepCopy(),
+	}
+}
+
 type MessageUnboxedState int
 
 const (
@@ -1145,7 +1159,7 @@ type UIMessage struct {
 	Error__       *MessageUnboxedError       `codec:"error,omitempty" json:"error,omitempty"`
 	Outbox__      *UIMessageOutbox           `codec:"outbox,omitempty" json:"outbox,omitempty"`
 	Placeholder__ *MessageUnboxedPlaceholder `codec:"placeholder,omitempty" json:"placeholder,omitempty"`
-	Journeycard__ *MessageUnboxedJourneyCard `codec:"journeycard,omitempty" json:"journeycard,omitempty"`
+	Journeycard__ *UIMessageJourneycard      `codec:"journeycard,omitempty" json:"journeycard,omitempty"`
 }
 
 func (o *UIMessage) State() (ret MessageUnboxedState, err error) {
@@ -1219,7 +1233,7 @@ func (o UIMessage) Placeholder() (res MessageUnboxedPlaceholder) {
 	return *o.Placeholder__
 }
 
-func (o UIMessage) Journeycard() (res MessageUnboxedJourneyCard) {
+func (o UIMessage) Journeycard() (res UIMessageJourneycard) {
 	if o.State__ != MessageUnboxedState_JOURNEYCARD {
 		panic("wrong case accessed")
 	}
@@ -1257,7 +1271,7 @@ func NewUIMessageWithPlaceholder(v MessageUnboxedPlaceholder) UIMessage {
 	}
 }
 
-func NewUIMessageWithJourneycard(v MessageUnboxedJourneyCard) UIMessage {
+func NewUIMessageWithJourneycard(v UIMessageJourneycard) UIMessage {
 	return UIMessage{
 		State__:       MessageUnboxedState_JOURNEYCARD,
 		Journeycard__: &v,
@@ -1295,7 +1309,7 @@ func (o UIMessage) DeepCopy() UIMessage {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Placeholder__),
-		Journeycard__: (func(x *MessageUnboxedJourneyCard) *MessageUnboxedJourneyCard {
+		Journeycard__: (func(x *UIMessageJourneycard) *UIMessageJourneycard {
 			if x == nil {
 				return nil
 			}

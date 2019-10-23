@@ -522,7 +522,7 @@ protocol local {
     boolean hidden;
   }
 
-  enum MessageUnboxedJourneyCardType {
+  enum JourneycardType {
     WELCOME_0,
     POPULAR_CHANNELS_1,
     ADD_PEOPLE_2,
@@ -533,18 +533,22 @@ protocol local {
     MSG_NO_ANSWER_7
   }
 
-  record MessageUnboxedJourneyCard {
-    MessageUnboxedJourneyCardType cardType;
-    string data;
+  record MessageUnboxedJourneycard {
+    MessageID prevID; // ID of the message after which this card appears.
+    int ordinal; // sub-position after prevID. Ought to be >=1. See computeOutboxOrdinal for some context.
+    JourneycardType cardType;
+    MessageID highlightMsgID; // Message ID to highlight for MSG_ATTENTION
   }
 
-  // If a new case is needed here, make sure to update UIMessage in chat_ui.avdl as well.
+  // If a new case is needed here, make sure to update at least:
+  // - variant UIMessage in chat_ui.avdl
+  // - func PresentMessageUnboxed
   variant MessageUnboxed switch (MessageUnboxedState state) {
     case VALID: MessageUnboxedValid;
     case ERROR: MessageUnboxedError;
     case OUTBOX: OutboxRecord;
     case PLACEHOLDER: MessageUnboxedPlaceholder;
-    case JOURNEYCARD: MessageUnboxedJourneyCard;
+    case JOURNEYCARD: MessageUnboxedJourneycard;
   }
 
   // This causes fetching to return N items, where N = IdeallyGetUnreadPlus +
