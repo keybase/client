@@ -99,20 +99,19 @@ class Feedback extends React.Component<Props, State> {
           )}
           <Kb.Box2 direction="vertical" style={styles.mainBox} gap="xsmall">
             <Kb.Box2 direction="horizontal" fullWidth={true}>
-              <Kb.Input
-                autoCapitalize="sentences"
-                autoCorrect={true}
-                autoFocus={true}
-                style={{flex: 1}}
-                hideLabel={true}
-                inputStyle={{textAlign: 'left'}}
-                multiline={true}
-                rowsMin={4}
-                rowsMax={isMobile ? 4 : 10}
-                hintText="Please tell us what you were doing, your experience, or anything else we should know. Thanks!"
-                value={this.state.feedback}
-                onChangeText={this._onChangeFeedback}
-              />
+              <Kb.RoundedBox style={styles.roundedBox}>
+                <Kb.PlainInput
+                  autoCapitalize="sentences"
+                  autoCorrect={true}
+                  autoFocus={true}
+                  multiline={true}
+                  onChangeText={this._onChangeFeedback}
+                  placeholder="Please tell us what you were doing, your experience, or anything else we should know. Thanks!"
+                  rowsMin={4}
+                  rowsMax={isMobile ? 4 : 10}
+                  value={this.state.feedback}
+                />
+              </Kb.RoundedBox>
             </Kb.Box2>
             {this._sendMaxBytes() && (
               <Kb.Banner color="green">
@@ -168,6 +167,7 @@ const styles = Styles.styleSheetCreate(
       }),
       mainBox: {padding: Styles.globalMargins.small},
       outerStyle: {backgroundColor: Styles.globalColors.white},
+      roundedBox: {width: '100%'},
       smallLabel: {color: Styles.globalColors.black},
     } as const)
 )
