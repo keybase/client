@@ -45,6 +45,7 @@ export const chat1ChatUiTriggerContactSync = 'engine-gen:chat1ChatUiTriggerConta
 export const chat1NotifyChatChatAttachmentUploadProgress =
   'engine-gen:chat1NotifyChatChatAttachmentUploadProgress'
 export const chat1NotifyChatChatAttachmentUploadStart = 'engine-gen:chat1NotifyChatChatAttachmentUploadStart'
+export const chat1NotifyChatChatConvUpdate = 'engine-gen:chat1NotifyChatChatConvUpdate'
 export const chat1NotifyChatChatIdentifyUpdate = 'engine-gen:chat1NotifyChatChatIdentifyUpdate'
 export const chat1NotifyChatChatInboxStale = 'engine-gen:chat1NotifyChatChatInboxStale'
 export const chat1NotifyChatChatInboxSyncStarted = 'engine-gen:chat1NotifyChatChatInboxSyncStarted'
@@ -518,6 +519,11 @@ type _Chat1NotifyChatChatAttachmentUploadProgressPayload = {
 }
 type _Chat1NotifyChatChatAttachmentUploadStartPayload = {
   readonly params: chat1Types.MessageTypes['chat.1.NotifyChat.ChatAttachmentUploadStart']['inParam'] & {
+    sessionID: number
+  }
+}
+type _Chat1NotifyChatChatConvUpdatePayload = {
+  readonly params: chat1Types.MessageTypes['chat.1.NotifyChat.ChatConvUpdate']['inParam'] & {
     sessionID: number
   }
 }
@@ -1941,6 +1947,9 @@ export const createChat1NotifyChatChatAttachmentUploadStart = (
   payload,
   type: chat1NotifyChatChatAttachmentUploadStart,
 })
+export const createChat1NotifyChatChatConvUpdate = (
+  payload: _Chat1NotifyChatChatConvUpdatePayload
+): Chat1NotifyChatChatConvUpdatePayload => ({payload, type: chat1NotifyChatChatConvUpdate})
 export const createChat1NotifyChatChatIdentifyUpdate = (
   payload: _Chat1NotifyChatChatIdentifyUpdatePayload
 ): Chat1NotifyChatChatIdentifyUpdatePayload => ({payload, type: chat1NotifyChatChatIdentifyUpdate})
@@ -2673,6 +2682,10 @@ export type Chat1NotifyChatChatAttachmentUploadStartPayload = {
   readonly payload: _Chat1NotifyChatChatAttachmentUploadStartPayload
   readonly type: typeof chat1NotifyChatChatAttachmentUploadStart
 }
+export type Chat1NotifyChatChatConvUpdatePayload = {
+  readonly payload: _Chat1NotifyChatChatConvUpdatePayload
+  readonly type: typeof chat1NotifyChatChatConvUpdate
+}
 export type Chat1NotifyChatChatIdentifyUpdatePayload = {
   readonly payload: _Chat1NotifyChatChatIdentifyUpdatePayload
   readonly type: typeof chat1NotifyChatChatIdentifyUpdate
@@ -3351,6 +3364,7 @@ export type Actions =
   | Chat1ChatUiTriggerContactSyncPayload
   | Chat1NotifyChatChatAttachmentUploadProgressPayload
   | Chat1NotifyChatChatAttachmentUploadStartPayload
+  | Chat1NotifyChatChatConvUpdatePayload
   | Chat1NotifyChatChatIdentifyUpdatePayload
   | Chat1NotifyChatChatInboxStalePayload
   | Chat1NotifyChatChatInboxSyncStartedPayload
