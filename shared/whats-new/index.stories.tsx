@@ -8,7 +8,6 @@ import HeaderIcon from './icon/'
 import NewFeatureRow from './new-feature-row'
 import WhatsNew from '.'
 
-const darkModeImage = require('../images/releases/storybook/dark-mode.png')
 const pinnedMessagesImage = require('../images/releases/storybook/pinned-messages.png')
 const keybaseFMImage = require('../images/releases/storybook/keybase-fm.png')
 

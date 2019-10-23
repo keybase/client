@@ -7,6 +7,7 @@ import NewFeatureRow from './new-feature-row'
 
 /* Include images */
 /* const imageName = require('../images/release/MAJ.MIN.PATCH/name.png') */
+const fastUserSwitchingImage = require('../images/releases/4.7.0/fast-user-switching.png')
 const pinnedMessagesImage = require('../images/releases/4.7.0/pinned-messages.png')
 const darkModeImage = require('../images/releases/4.7.0/dark-mode.png')
 const keybaseFMImage = require('../images/releases/4.7.0/keybase-fm.png')
@@ -41,8 +42,10 @@ export const VersionTitle = ({title}: {title: string}) => (
 export const Current = ({seen, onNavigate, onNavigateExternal}: VersionProps) => {
   return (
     <Version>
+      <NewFeatureRow noSeparator={true} seen={seen} image={fastUserSwitchingImage}>
+        You can now quickly switch between all your signed in accounts from the user menu.
+      </NewFeatureRow>
       <NewFeatureRow
-        noSeparator={true}
         seen={seen}
         image={darkModeImage}
         primaryButtonText="Open display settings"
@@ -84,7 +87,7 @@ export const Current = ({seen, onNavigate, onNavigateExternal}: VersionProps) =>
           sizeType={Styles.isMobile ? 'Small' : 'Default'}
         />
         {` `}
-        {keybaseFM}
+        <Kb.Text type="BodySmallSemibold">{keybaseFM}</Kb.Text>
         {` `}
         to get updates and new features.
       </NewFeatureRow>

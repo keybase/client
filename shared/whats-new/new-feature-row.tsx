@@ -48,7 +48,7 @@ const NewFeature = (props: Props) => {
         <Kb.Badge height={8} badgeStyle={styles.badgeStyle} containerStyle={styles.badgeContainerStyle} />
       )}
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.contentContainer}>
-        <Kb.Text type="BodySmallSemibold" allowFontScaling={true}>
+        <Kb.Text type="BodySmall" allowFontScaling={true}>
           {props.children}
         </Kb.Text>
         {props.image && (
