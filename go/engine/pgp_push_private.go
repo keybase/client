@@ -202,6 +202,7 @@ func (e *PGPPushPrivate) push(m libkb.MetaContext, fp libkb.PGPFingerprint, tty 
 		return err
 	}
 
+	// Note the small chance of a race here, but it doesn't seem dangerous.
 	if linkExists {
 		err = e.remove(m, fs, linkpath)
 		if err != nil {
