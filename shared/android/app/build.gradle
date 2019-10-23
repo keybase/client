@@ -85,7 +85,7 @@ def VERSION_NAME = "4.7.0"
 project.ext.react = [
     // the root of your project, i.e. where "package.json" lives
     root: "../../",
-    enableHermes: false,  // clean and rebuild if changing
+    enableHermes: KB_USEHERMES == 'true',  // clean and rebuild if changing
     bundleInDebug: true,
     enableV8: KB_USEV8 == 'true',  // clean and rebuild if changing
 ]
@@ -244,6 +244,7 @@ dependencies {
      if (enableHermes) {
        def hermesPath = "../../node_modules/hermesvm/android/";
        debugImplementation files(hermesPath + "hermes-debug.aar")
+       releaseUnsignedImplementation files(hermesPath + "hermes-release.aar")
        releaseImplementation files(hermesPath + "hermes-release.aar")
      } else if (enableV8) {
          // Add v8-android - prebuilt libv8.so into APK
