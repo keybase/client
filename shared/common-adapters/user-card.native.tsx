@@ -57,7 +57,7 @@ const styles = Styles.styleSheetCreate(() => ({
     marginTop: 0,
   },
   avatarBackground: {
-    backgroundColor: Styles.globalColors.white,
+    backgroundColor: Styles.globalColors.blueGrey,
     left: 0,
     position: 'absolute',
     right: 0,
@@ -70,7 +70,7 @@ const styles = Styles.styleSheetCreate(() => ({
   inside: {
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'stretch',
-    backgroundColor: Styles.globalColors.fastBlank,
+    backgroundColor: Styles.globalColors.blueGrey,
     justifyContent: 'flex-start',
     padding: 16,
     width: '100%',

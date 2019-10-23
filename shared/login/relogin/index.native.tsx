@@ -73,7 +73,7 @@ class LoginRender extends React.Component<Props, State> {
               />
               {this.props.needPassword && (
                 <Kb.FormWithCheckbox
-                  style={{alignSelf: 'stretch', marginTop: Styles.globalMargins.small}}
+                  style={styles.form}
                   inputProps={inputProps}
                   checkboxesProps={checkboxProps}
                 />
@@ -131,7 +131,7 @@ const styles = Styles.styleSheetCreate(
       container: {
         ...Styles.globalStyles.flexBoxColumn,
         alignItems: 'center',
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Styles.globalColors.blueGrey,
         flex: 1,
       },
       deviceNotSecureContainer: {
@@ -143,8 +143,12 @@ const styles = Styles.styleSheetCreate(
       deviceNotSecureText: {
         color: Styles.globalColors.brown_75,
       },
+      form: {
+        alignSelf: 'stretch',
+        marginTop: Styles.globalMargins.tiny,
+      },
       scrollView: {
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Styles.globalColors.blueGrey,
       },
     } as const)
 )

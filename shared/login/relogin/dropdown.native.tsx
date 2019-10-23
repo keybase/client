@@ -199,6 +199,7 @@ const styles = Styles.styleSheetCreate(
       container: {
         ...Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
+        backgroundColor: Styles.globalColors.white,
         borderColor: Styles.globalColors.black_10,
         borderRadius: Styles.borderRadius,
         borderWidth: 1,
