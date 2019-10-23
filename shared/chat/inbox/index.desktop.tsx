@@ -18,6 +18,7 @@ import {virtualListMarks} from '../../local-debug'
 import shallowEqual from 'shallowequal'
 
 type State = {
+  dragging: boolean
   dragY: number
   showFloating: boolean
   showUnread: boolean
@@ -26,7 +27,7 @@ type State = {
 const widths = [10, 80, 2, 66]
 const stableWidth = (idx: number) => 160 + -widths[idx % widths.length]
 
-const FakeRow = ({idx}) => (
+const FakeRow = ({idx, last}) => (
   <Kb.Box2 direction="horizontal" style={styles.fakeRow}>
     <Kb.Box2 direction="vertical" style={styles.fakeAvatar} />
     <Kb.Box2 direction="vertical" style={styles.fakeText}>
@@ -41,13 +42,29 @@ const FakeRow = ({idx}) => (
         alignSelf="flex-start"
       />
     </Kb.Box2>
+    {last && <Kb.Divider style={styles.fakeRowDivider} />}
   </Kb.Box2>
 )
 
-const FakeRemovingRow = ({idx}) => <Kb.Box2 direction="horizontal" style={styles.fakeRemovingRow} />
+const HoverBox = Styles.styled(Kb.Box2)(() => ({
+  opacity: 0.25,
+  transition: 'opacity 0.25s ease-in-out',
+  '.hiddenGrabber': {
+    opacity: 0,
+    transition: 'opacity 0.25s ease-in-out',
+  },
+  ':hover, :hover .hiddenGrabber': {opacity: 1}
+}))
+
+const FakeRemovingRow = ({first}) => (
+  <Kb.Box2 direction="horizontal" style={styles.fakeRemovingRow}>
+    {first && <Kb.Divider style={styles.fakeRemovingRowDivider} />}
+  </Kb.Box2>
+)
 
 class Inbox extends React.Component<T.Props, State> {
   state = {
+    dragging: false,
     dragY: -1,
     showFloating: false,
     showUnread: false,
@@ -128,40 +145,35 @@ class Inbox extends React.Component<T.Props, State> {
       }
       return (
         <div style={{...divStyle, position: 'relative'}} draggable={true}>
-          <Kb.Box2
+          <HoverBox
             direction="vertical"
-            style={{
-              cursor: 'ns-resize',
-              height: '100%',
-              justifyContent: 'center',
-              position: 'absolute',
-              width: '100%',
-            }}
+            style={Styles.collapseStyles([
+              styles.grabberContainer,
+              {
+                cursor: this.state.dragging ? '-webkit-grabbing' : 'grab',
+              },
+            ])}
+            onMouseDown={() => this.setState({dragging: true})}
+            onMouseUp={() => this.setState({dragging: false})}
           >
+            <div className="hiddenGrabber" style={styles.grabber} />
             <div style={styles.grabber} />
-            <div style={styles.grabber} />
-          </Kb.Box2>
+            <div className="hiddenGrabber" style={styles.grabber} />
+          </HoverBox>
           {this.state.dragY !== -1 && (
             <Kb.Box2
               direction="vertical"
-              style={{
-                backgroundColor: expandingRows.length
-                  ? Styles.globalColors.grey
-                  : Styles.globalColors.black_10,
+              style={Styles.collapseStyles([styles.fakeRowContainer, {
                 bottom: expandingRows.length ? undefined : dividerHeight(row.showButton),
                 height: (expandingRows.length ? expandingRows.length : removingRows.length) * smallRowHeight,
-                left: 0,
-                position: 'absolute',
-                right: 0,
                 top: expandingRows.length ? 0 : undefined,
-                zIndex: 9999,
-              }}
+              }])}
             >
               {expandingRows.map((_, idx) => (
-                <FakeRow idx={idx} key={idx} />
+                <FakeRow idx={idx} key={idx} last={expandingRows.length - 1 === idx} />
               ))}
               {removingRows.map((_, idx) => (
-                <FakeRemovingRow idx={idx} key={idx} />
+                <FakeRemovingRow key={idx} first={idx === 0} />
               ))}
             </Kb.Box2>
           )}
@@ -363,7 +375,7 @@ const styles = Styles.styleSheetCreate(
       },
       fakeAvatar: Styles.platformStyles({
         isElectron: {
-          backgroundColor: Styles.globalColors.black_40,
+          backgroundColor: Styles.globalColors.black_10,
           borderRadius: '50%',
           height: 48,
           marginLeft: 8,
@@ -372,52 +384,74 @@ const styles = Styles.styleSheetCreate(
       }),
       fakeRemovingRow: Styles.platformStyles({
         isElectron: {
-          background: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' preserveAspectRatio='none' viewBox='0 0 100 100'><path d='M1 0 L0 1 L99 100 L100 99' fill='${
-            Styles.globalColors.black_60
-          }' /></svg>")`,
           height: 56,
+          position: 'relative',
           width: '100%',
         },
       }),
+      fakeRemovingRowDivider:{
+        top: 0,
+        position: 'absolute',
+        width: '100%',
+      },
       fakeRow: Styles.platformStyles({
         isElectron: {
-          backgroundColor: Styles.globalColors.grey,
-          borderBottom: `dashed ${Styles.globalColors.black_10} 1px`,
+          backgroundColor: Styles.globalColors.blueGrey,
           height: 56,
+          position: 'relative',
           width: '100%',
         },
       }),
+      fakeRowContainer: {
+        backgroundColor: Styles.globalColors.blueGrey,
+        left: 0,
+        position: 'absolute',
+        right: 0,
+        zIndex: 9999,
+      },
+      fakeRowDivider: {
+        bottom: 0,
+        position: 'absolute',
+        width: '100%',
+      },
       fakeText: {
         flexGrow: 1,
         height: '100%',
         justifyContent: 'space-around',
         padding: 8,
+        paddingLeft: 16,
       },
       fakeTextBottom: Styles.platformStyles({
         isElectron: {
-          backgroundColor: Styles.globalColors.black_40,
+          backgroundColor: Styles.globalColors.black_10,
           borderRadius: 8,
-          height: 12,
+          height: 10,
           width: '75%',
         },
       }),
       fakeTextTop: Styles.platformStyles({
         isElectron: {
-          backgroundColor: Styles.globalColors.black_40,
+          backgroundColor: Styles.globalColors.black_10,
           borderRadius: 8,
-          height: 12,
+          height: 10,
           width: '25%',
         },
       }),
       grabber: {
-        backgroundColor: Styles.globalColors.black_40,
+        backgroundColor: Styles.globalColors.black_10,
         borderRadius: Styles.borderRadius,
         boxShadow: Styles.desktopStyles.boxShadow,
         height: 2,
-        marginBottom: 2,
+        marginBottom: 1,
         marginLeft: 8,
         marginRight: 8,
-        marginTop: 2,
+        marginTop: 1,
+      },
+      grabberContainer: {
+        height: '100%',
+        justifyContent: 'center',
+        position: 'absolute',
+        width: '100%',
       },
       hover: {backgroundColor: Styles.globalColors.blueGreyDark},
       list: {flex: 1},
