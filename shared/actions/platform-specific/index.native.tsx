@@ -706,13 +706,17 @@ const configureFileAttachmentDownloadForAndroid = () =>
   })
 
 const startAudioRecording = async (
-  _: Container.TypedState,
+  state: Container.TypedState,
   action: Chat2Gen.StartAudioRecordingPayload,
   logger: Saga.SagaLogger
 ) => {
-  await requestAudioPermission()
   const conversationIDKey = action.payload.conversationIDKey
+  if (!state.chat2.audioRecording.get(conversationIDKey)) {
+    logger.info('startAudioRecording: no recording info set, bailing')
+    return false
+  }
   const outboxID = ChatConstants.generateOutboxID()
+  await requestAudioPermission()
   const audioPath = await RPCChatTypes.localGetUploadTempFileRpcPromise({filename: 'audio.m4a', outboxID})
   AudioRecorder.prepareRecordingAtPath(audioPath, {
     SampleRate: 22050,

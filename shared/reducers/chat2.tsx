@@ -557,9 +557,17 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
       }
       case Chat2Gen.startAudioRecording: {
         const audio = new Map(draftState.audioRecording)
+        const info = audio.get(action.payload.conversationIDKey)
+        if (!info) {
+          return
+        }
+        const nextStatus =
+          info.status === Types.AudioRecordingStatus.LOCKED
+            ? info.status
+            : Types.AudioRecordingStatus.RECORDING
         audio.set(action.payload.conversationIDKey, {
-          ...(audio.get(action.payload.conversationIDKey) || Constants.makeAudioRecordingInfo()),
-          status: Types.AudioRecordingStatus.RECORDING,
+          ...info,
+          status: nextStatus,
         })
         draftState.audioRecording = audio
         return
