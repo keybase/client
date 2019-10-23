@@ -194,7 +194,9 @@ const AudioButton = (props: ButtonProps) => {
           height: ampSize,
           width: ampSize,
           borderRadius: ampSize / 2,
-          backgroundColor: props.locked ? Styles.globalColors.redLight : Styles.globalColors.blueLighter,
+          backgroundColor: props.locked
+            ? Styles.globalColors.redLight
+            : Styles.globalColors.blueLighterOrBlueLight,
           position: 'absolute',
           bottom: 15,
           right: 40,
@@ -261,7 +263,11 @@ const AudioButton = (props: ButtonProps) => {
           >
             <Kb.ClickableBox onClick={props.sendRecording}>
               <Kb.Box2 direction="vertical" centerChildren={true}>
-                <Kb.Icon type="iconfont-arrow-full-up" color={Styles.globalColors.white} fontSize={22} />
+                <Kb.Icon
+                  type="iconfont-arrow-full-up"
+                  color={Styles.globalColors.whiteOrWhite}
+                  fontSize={22}
+                />
               </Kb.Box2>
             </Kb.ClickableBox>
           </Kb.NativeView>
@@ -272,8 +278,8 @@ const AudioButton = (props: ButtonProps) => {
         <Kb.Icon
           type="iconfont-mic"
           fontSize={22}
-          color={Styles.globalColors.white}
-          style={{position: 'absolute', bottom: 19, right: 46}}
+          color={Styles.globalColors.whiteOrWhite}
+          style={{position: 'absolute', bottom: 13, right: 46}}
         />
       ) : (
         <Kb.TapGestureHandler onHandlerStateChange={props.stageRecording}>
@@ -289,7 +295,7 @@ const AudioButton = (props: ButtonProps) => {
           >
             <Kb.Box
               style={{
-                backgroundColor: Styles.globalColors.white,
+                backgroundColor: Styles.globalColors.whiteOrWhite,
                 borderRadius: 2,
                 height: 18,
                 width: 18,

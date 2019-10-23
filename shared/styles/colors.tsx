@@ -75,6 +75,9 @@ export const colors = {
   get blueLighterOrWhite() {
     return this.blueLighter
   },
+  get blueLighterOrBlueLight() {
+    return this.blueLighter
+  },
   blueLighter_20: 'rgba(168, 204, 255, 0.2)',
   blueLighter_20_on_white: 'rgb(238, 245, 255)',
   blueLighter_40: 'rgba(168, 204, 255, 0.4)',
@@ -266,6 +269,9 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   blueLighter3: '#101010',
   get blueLighterOrWhite() {
     return colors.white
+  },
+  get blueLighterOrBlueLight() {
+    return colors.blueLight
   },
   blueLighter_20: 'rgba(168, 204, 255, 0.2)',
   blueLighter_20_on_white: 'rgb(238, 245, 255)',
