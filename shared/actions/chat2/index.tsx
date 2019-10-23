@@ -1792,28 +1792,32 @@ function* messageSend(state: TypedState, action: Chat2Gen.MessageSendPayload, lo
 }
 const messageSendByUsername = async (state: TypedState, action: Chat2Gen.MessageSendByUsernamePayload) => {
   const tlfName = `${state.config.username},${action.payload.username}`
-  const result = await RPCChatTypes.localNewConversationLocalRpcPromise(
-    {
-      identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-      membersType: RPCChatTypes.ConversationMembersType.impteamnative,
-      tlfName,
-      tlfVisibility: RPCTypes.TLFVisibility.private,
-      topicType: RPCChatTypes.TopicType.chat,
-    },
-    Constants.waitingKeyCreating
-  )
-  await RPCChatTypes.localPostTextNonblockRpcPromise(
-    {
-      body: action.payload.text.stringValue(),
-      clientPrev: Constants.getClientPrev(state, Types.conversationIDToKey(result.conv.info.id)),
-      conversationID: result.conv.info.id,
-      identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-      outboxID: null,
-      tlfName,
-      tlfPublic: false,
-    },
-    Constants.waitingKeyPost
-  )
+  try {
+    const result = await RPCChatTypes.localNewConversationLocalRpcPromise(
+      {
+        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+        membersType: RPCChatTypes.ConversationMembersType.impteamnative,
+        tlfName,
+        tlfVisibility: RPCTypes.TLFVisibility.private,
+        topicType: RPCChatTypes.TopicType.chat,
+      },
+      Constants.waitingKeyCreating
+    )
+    await RPCChatTypes.localPostTextNonblockRpcPromise(
+      {
+        body: action.payload.text.stringValue(),
+        clientPrev: Constants.getClientPrev(state, Types.conversationIDToKey(result.conv.info.id)),
+        conversationID: result.conv.info.id,
+        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+        outboxID: null,
+        tlfName,
+        tlfPublic: false,
+      },
+      Constants.waitingKeyPost
+    )
+  } catch (e) {
+    logger.info('Could not send in messageSendByUsername', e)
+  }
 }
 
 type StellarConfirmWindowResponse = {result: (b: boolean) => void}

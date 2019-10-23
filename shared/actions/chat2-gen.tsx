@@ -323,7 +323,11 @@ type _MessageRetryPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly outboxID: Types.OutboxID
 }
-type _MessageSendByUsernamePayload = {readonly username: string; readonly text: HiddenString}
+type _MessageSendByUsernamePayload = {
+  readonly username: string
+  readonly text: HiddenString
+  readonly waitingKey?: string
+}
 type _MessageSendPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly text: HiddenString

@@ -2,7 +2,12 @@ import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
-import * as Chat2Gen from '../../'
+import * as Chat2Gen from '../../actions/chat2-gen'
+import * as Tracker2Gen from '../../actions/tracker2-gen'
+import HiddenString from '../../util/hidden-string'
+import UnconnectedFollowButton from '../../profile/user/actions/follow-button'
+import * as Tracker2Constants from '../../constants/tracker2'
+
 type Props = {
   username: string
   small?: boolean
@@ -16,14 +21,20 @@ export const WaveButton = (props: Props) => {
   const dispatch = Container.useDispatch()
 
   const onWave = () => {
-    dispatch(Chat2Gen.wa)
+    dispatch(
+      Chat2Gen.createMessageSendByUsername({
+        text: new HiddenString(':wave:'),
+        username: props.username,
+        waitingKey: getWaveWaitingKey(props.username),
+      })
+    )
     setWaved(true)
   }
 
+  // TODO a box around the waved version, perhaps
   return waved && !waving ? (
-    <Kb.Text type="BodySmall">
-      <Kb.Icon type="iconfont-check" color={Styles.globalColors.black_50} />
-      Waved
+    <Kb.Text type="BodySmall" style={styles.waved}>
+      <Kb.Icon type="iconfont-check" color={Styles.globalColors.black_50} sizeType="Tiny" /> Waved
     </Kb.Text>
   ) : (
     <Kb.Button onClick={onWave} small={props.small} mode="Secondary" waiting={waving}>
@@ -35,9 +46,32 @@ export const WaveButton = (props: Props) => {
   )
 }
 
+export const FollowButton = (props: Props) => {
+  const userDetails = Container.useSelector(state => Tracker2Constants.getDetails(state, props.username))
+  const followThem = Container.useSelector(state => Tracker2Constants.followThem(state, props.username))
+  const followsYou = Container.useSelector(state => Tracker2Constants.followsYou(state, props.username))
+
+  const dispatch = Container.useDispatch()
+  const onChangeFollow = (follow: boolean) =>
+    dispatch(Tracker2Gen.createChangeFollow({follow, guiID: userDetails.guiID}))
+
+  // TODO: followsYou
+  return (
+    <UnconnectedFollowButton
+      following={followThem}
+      followsYou={followsYou}
+      waitingKey={getFollowWaitingKey(props.username)}
+      small={props.small}
+      onFollow={() => onChangeFollow(true)}
+      onUnfollow={() => onChangeFollow(false)}
+    />
+  )
+}
+
 const styles = Styles.styleSheetCreate(
   () =>
     ({
       blueText: {color: Styles.globalColors.blueDark},
+      waved: Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.small),
     } as const)
 )

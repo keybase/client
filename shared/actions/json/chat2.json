@@ -272,7 +272,8 @@
     },
     "messageSendByUsername": {
       "username": "string",
-      "text": "HiddenString"
+      "text": "HiddenString",
+      "waitingKey?": "string"
     },
     "toggleLocalReaction": {
       "_description": "Toggle a reaction in the store.",

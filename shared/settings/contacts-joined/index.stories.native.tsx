@@ -1,18 +1,20 @@
 import * as React from 'react'
-import ContactsJoinedModal from '.'
-import {storiesOf} from '../../stories/storybook'
+import ContactsJoinedModal from './index.native'
+import * as Sb from '../../stories/storybook'
 
 const props = {
   people: [
-    {username: 'marcopolo', contactLabel: 'Marco'},
-    {username: 'chris', contactLabel: 'Coyne'},
-    {username: 'cecileb', contactLabel: '+1 (347) 555-8978'},
-    {username: 'elliott', contactLabel: 'Elliott Smith'},
+    {contactLabel: 'Marco', username: 'marcopolo'},
+    {contactLabel: 'Coyne', username: 'chris'},
+    {contactLabel: '+1 (347) 555-8978', username: 'cecileb'},
+    {contactLabel: 'Elliott Smith', username: 'elliott'},
   ],
 }
 
 const load = () => {
-  storiesOf('Settings/Contacts', module).add('Contacts on Keybase', () => <ContactsJoinedModal {...props} />)
+  Sb.storiesOf('Settings/Contacts', module).add('Contacts on Keybase', () => (
+    <ContactsJoinedModal {...Sb.createNavigator(props)} />
+  ))
 }
 
 export default load
