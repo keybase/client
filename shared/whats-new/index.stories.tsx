@@ -8,7 +8,7 @@ import HeaderIcon from './icon/'
 import NewFeatureRow from './new-feature-row'
 import WhatsNew from '.'
 
-const pinnedMessagesImage = require('../images/releases/storybook/pinned-messages.png')
+const darkModeImage = require('../images/releases/storybook/dark-mode.png')
 const keybaseFMImage = require('../images/releases/storybook/keybase-fm.png')
 
 const commonNewFeatureProps = {
@@ -170,7 +170,7 @@ const load = () => {
             onSecondaryButtonClick={Sb.action('onSecondaryButtonClick')}
             {...feature}
             seen={true}
-            image={pinnedMessagesImage}
+            image={darkModeImage}
             imageStyle={styles.roundedImage}
           >
             {feature.text}
