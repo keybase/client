@@ -769,6 +769,7 @@
       "text": "string"
     },
     "setInboxNumSmallRows": {
+        "ignoreWrite?": "boolean",
         "rows": "number"
     }
   }

@@ -63,6 +63,7 @@ export type Props = {
   onNewChat: () => void
   onUntrustedInboxVisible: (conversationIDKeys: Array<ConversationIDKey>) => void
   rows: Array<RowItem>
+  setInboxNumSmallRows: (rows: number) => void
   smallTeamsExpanded: boolean
   toggleSmallTeamsExpanded: () => void
   unreadIndices: Array<number>

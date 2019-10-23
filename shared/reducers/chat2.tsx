@@ -1697,6 +1697,13 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
       case TeamBuildingGen.changeSendNotification:
         draftState.teamBuilding = teamBuildingReducer('chat2', _state.teamBuilding, action)
         return
+      case Chat2Gen.setInboxNumSmallRows: {
+        const {rows} = action.payload
+        if (rows > 0) {
+          draftState.inboxNumSmallRows = rows
+        }
+        return
+      }
       // Saga only actions
       case Chat2Gen.attachmentPreviewSelect:
       case Chat2Gen.attachmentsUpload:

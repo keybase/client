@@ -12,7 +12,7 @@ import * as Kb from '../../common-adapters'
 import {VariableSizeList} from 'react-window'
 import debounce from 'lodash/debounce'
 import throttle from 'lodash/throttle'
-import {inboxWidth, getRowHeight} from './row/sizes'
+import {inboxWidth, getRowHeight, smallRowHeight, dividerHeight} from './row/sizes'
 import {makeRow} from './row'
 import {virtualListMarks} from '../../local-debug'
 import shallowEqual from 'shallowequal'
@@ -43,6 +43,8 @@ const FakeRow = ({idx}) => (
     </Kb.Box2>
   </Kb.Box2>
 )
+
+const FakeRemovingRow = ({idx}) => <Kb.Box2 direction="horizontal" style={styles.fakeRemovingRow} />
 
 class Inbox extends React.Component<T.Props, State> {
   state = {
@@ -117,30 +119,43 @@ class Inbox extends React.Component<T.Props, State> {
     if (row.type === 'divider') {
       const newSmallRows = this.deltaNewSmallRows()
       let expandingRows: Array<string> = []
+      let removingRows: Array<string> = []
       if (newSmallRows === 0) {
-      } else if (newSmallRows > 1) {
+      } else if (newSmallRows > 0) {
         expandingRows = new Array(newSmallRows).fill('')
       } else {
-        // TODO deal with delete
+        removingRows = new Array(-newSmallRows).fill('')
       }
       return (
         <div style={{...divStyle, position: 'relative'}} draggable={true}>
-          <div style={Styles.collapseStyles([styles.grabber, {top: 32}])} />
-          <div style={Styles.collapseStyles([styles.grabber, {top: 36}])} />
+          <Kb.Box2
+            direction="vertical"
+            style={{height: '100%', justifyContent: 'center', position: 'absolute', width: '100%'}}
+          >
+            <div style={styles.grabber} />
+            <div style={styles.grabber} />
+          </Kb.Box2>
           {this.state.dragY !== -1 && (
             <Kb.Box2
               direction="vertical"
               style={{
-                backgroundColor: Styles.globalColors.grey,
-                height: expandingRows.length * 60,
+                backgroundColor: expandingRows.length
+                  ? Styles.globalColors.grey
+                  : Styles.globalColors.black_10,
+                bottom: expandingRows.length ? undefined : dividerHeight(row.showButton),
+                height: (expandingRows.length ? expandingRows.length : removingRows.length) * smallRowHeight,
                 left: 0,
                 position: 'absolute',
                 right: 0,
+                top: expandingRows.length ? 0 : undefined,
                 zIndex: 9999,
               }}
             >
               {expandingRows.map((_, idx) => (
                 <FakeRow idx={idx} key={idx} />
+              ))}
+              {removingRows.map((_, idx) => (
+                <FakeRemovingRow idx={idx} key={idx} />
               ))}
             </Kb.Box2>
           )}
@@ -260,20 +275,21 @@ class Inbox extends React.Component<T.Props, State> {
     if (this.dragList.current) {
       this.setState({dragY: e.clientY - this.dragList.current.getBoundingClientRect().top})
     }
-    // console.log('aaa over', e.clientY)
   }
 
   private deltaNewSmallRows = () => {
     if (this.state.dragY === -1) {
       return 0
     }
-    return Math.max(0, Math.floor(this.state.dragY / 60)) - this.props.inboxNumSmallRows
+    return Math.max(0, Math.floor(this.state.dragY / smallRowHeight)) - this.props.inboxNumSmallRows
   }
 
-  private onDrop = e => {
-    this.props.setInboxNumSmallRows(this.props.inboxNumSmallRows + this.deltaNewSmallRows())
+  private onDrop = () => {
+    const delta = this.deltaNewSmallRows()
+    if (delta !== 0) {
+      this.props.setInboxNumSmallRows(this.props.inboxNumSmallRows + delta)
+    }
     this.setState({dragY: -1})
-    console.log('aaa end', e.clientY)
   }
 
   render() {
@@ -339,11 +355,20 @@ const styles = Styles.styleSheetCreate(
           width: 48,
         },
       }),
+      fakeRemovingRow: Styles.platformStyles({
+        isElectron: {
+          background: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' preserveAspectRatio='none' viewBox='0 0 100 100'><path d='M1 0 L0 1 L99 100 L100 99' fill='${
+            Styles.globalColors.black_60
+          }' /></svg>")`,
+          height: 56,
+          width: '100%',
+        },
+      }),
       fakeRow: Styles.platformStyles({
         isElectron: {
           backgroundColor: Styles.globalColors.grey,
           borderBottom: `dashed ${Styles.globalColors.black_10} 1px`,
-          height: 60,
+          height: 56,
           width: '100%',
         },
       }),
@@ -374,9 +399,10 @@ const styles = Styles.styleSheetCreate(
         borderRadius: Styles.borderRadius,
         boxShadow: Styles.desktopStyles.boxShadow,
         height: 2,
-        left: 8,
-        position: 'absolute',
-        right: 8,
+        marginBottom: 2,
+        marginLeft: 8,
+        marginRight: 8,
+        marginTop: 2,
       },
       hover: {backgroundColor: Styles.globalColors.blueGreyDark},
       list: {flex: 1},

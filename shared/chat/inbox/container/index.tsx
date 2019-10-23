@@ -104,7 +104,11 @@ class InboxWrapper extends React.PureComponent<Props> {
 
 const Connected = Container.namedConnect(
   state => {
-    const {inboxLayout, inboxHasLoaded, inboxNumSmallRows} = state.chat2
+    const {inboxLayout, inboxHasLoaded} = state.chat2
+    let {inboxNumSmallRows} = state.chat2
+    if (inboxNumSmallRows === undefined) {
+      inboxNumSmallRows = 5
+    }
     const neverLoaded = !inboxHasLoaded
     const _canRefreshOnMount = neverLoaded && !Constants.anyChatWaitingKeys(state)
     const allowShowFloatingButton = inboxLayout

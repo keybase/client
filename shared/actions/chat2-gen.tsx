@@ -547,7 +547,7 @@ type _SetExplodingModeLockPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly unset?: boolean
 }
-type _SetInboxNumSmallRowsPayload = {readonly rows: number}
+type _SetInboxNumSmallRowsPayload = {readonly ignoreWrite?: boolean; readonly rows: number}
 type _SetInboxShowIsNewPayload = {readonly isNew: boolean}
 type _SetMaybeMentionInfoPayload = {readonly name: string; readonly info: RPCChatTypes.UIMaybeMentionInfo}
 type _SetMinWriterRolePayload = {
