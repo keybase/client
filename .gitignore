@@ -68,3 +68,6 @@ go/.go_package_deps*
 
 # Files used during the Docker build
 .docker
+
+# Files used during Vagrant smoketests
+.vagrant
