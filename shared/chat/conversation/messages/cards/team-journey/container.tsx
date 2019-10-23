@@ -7,6 +7,9 @@ import * as MessageTypes from '../../../../../constants/types/chat2/message'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
 import * as TeamConstants from '../../../../../constants/teams'
+import * as TeamsGen from '../../../../../actions/teams-gen'
+import {appendNewTeamBuilder} from '../../../../../actions/typed-routes'
+
 import * as I from 'immutable'
 import TeamJourney from './index'
 
@@ -17,8 +20,11 @@ type OwnProps = {
 type Props = {
   message: I.RecordOf<MessageTypes._MessageJourneycard>
   otherChannels: Array<string>
+  onAddPeopleToTeam: () => void
   onBrowseChannels: () => void
+  onCreateChatChannels: () => void
   onGoToChannel: (channelname: string) => void
+  onLoadTeam: () => void
   onPublishTeam: () => void
   teamname: string
 }
@@ -32,6 +38,7 @@ const TeamJourneyContainer = (props: Props) => {
   let text = ''
   const image = ''
   let actions: Array<Action> = []
+  let loadTeam: (() => void) | null = null
 
   switch (props.message.cardType) {
     case RPCChatTypes.JourneycardType.welcome:
@@ -42,19 +49,24 @@ const TeamJourneyContainer = (props: Props) => {
       ]
       break
     case RPCChatTypes.JourneycardType.popularChannels:
-      text = 'You are in #somechan. Other popular channels in this team:'
+      text = 'You are in #somechan. Some popular channels in this team:'
+      loadTeam = props.onLoadTeam
       actions = props.otherChannels.map(chan => ({label: chan, onClick: () => props.onGoToChannel(chan)}))
       break
     case RPCChatTypes.JourneycardType.addPeople:
       text = `Do you know people interested in joining? ${props.teamname} is open to anyone.`
+      actions = [{label: 'Add people to the team', onClick: props.onAddPeopleToTeam}]
       break
     case RPCChatTypes.JourneycardType.createChannels:
       text = 'Go ahead and create #channels around topics you think are missing.'
+      actions = [{label: 'Create chat channels', onClick: props.onCreateChatChannels}]
       break
     case RPCChatTypes.JourneycardType.msgAttention:
+      // XXX: implement
       text = 'One of your messages is getting a lot of attention!'
       break
     case RPCChatTypes.JourneycardType.userAwayForLong:
+      // XXX: implement
       text = 'Long time no see! Look at all the things you missed.'
       break
     case RPCChatTypes.JourneycardType.channelInactive:
@@ -62,6 +74,8 @@ const TeamJourneyContainer = (props: Props) => {
       break
     case RPCChatTypes.JourneycardType.msgNoAnswer:
       text = 'People haven’t been talkative in a while. Perhaps post in another channel?'
+      loadTeam = props.onLoadTeam
+      actions = props.otherChannels.map(chan => ({label: chan, onClick: () => props.onGoToChannel(chan)}))
       break
     default:
       console.warn(`Unexpected journey card type: ${props.message.cardType}`)
@@ -69,7 +83,7 @@ const TeamJourneyContainer = (props: Props) => {
   }
 
   return props.teamname ? (
-    <TeamJourney actions={actions} image={image} teamname={props.teamname} text={text} />
+    <TeamJourney actions={actions} image={image} loadTeam={loadTeam} teamname={props.teamname} text={text} />
   ) : (
     <Kb.Box2 direction="horizontal" />
   )
@@ -84,12 +98,18 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
+  _onAddPeopleToTeam: (teamname: string) => dispatch(appendNewTeamBuilder(teamname)),
   _onBrowseChannels: (teamname: string) =>
+    dispatch(
+      RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'chatManageChannels'}]})
+    ),
+  _onCreateChatChannels: (teamname: string) =>
     dispatch(
       RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'chatManageChannels'}]})
     ),
   _onGoToChannel: (channelname: string, teamname: string) =>
     dispatch(Chat2Gen.createPreviewConversation({channelname, reason: 'journeyCardPopular', teamname})),
+  _onLoadTeam: (teamname: string) => dispatch(TeamsGen.createGetChannels({teamname})),
   _onPublishTeam: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['profileShowcaseTeamOffer']})),
 })
 
@@ -97,16 +117,23 @@ const TeamJourneyConnected = Container.connect(
   mapStateToProps,
   mapDispatchToProps,
   (stateProps, dispatchProps, ownProps) => {
+    // Take the top three channels with most recent activity.
     const otherChannels = stateProps._channelInfos
-      .map(info => info.channelname)
       .valueSeq()
       .toArray()
+      .sort((x, y) => y.mtime - x.mtime)
+      .map(info => info.channelname)
+      .slice(0, 3)
+
     return {
       ...stateProps,
       ...dispatchProps,
       ...ownProps,
+      onAddPeopleToTeam: () => dispatchProps._onAddPeopleToTeam(stateProps.teamname),
       onBrowseChannels: () => dispatchProps._onBrowseChannels(stateProps.teamname),
+      onCreateChatChannels: () => dispatchProps._onCreateChatChannels(stateProps.teamname),
       onGoToChannel: (channelName: string) => dispatchProps._onGoToChannel(channelName, stateProps.teamname),
+      onLoadTeam: () => dispatchProps._onLoadTeam(stateProps.teamname),
       onPublishTeam: () => dispatchProps._onPublishTeam(),
       otherChannels,
     }
