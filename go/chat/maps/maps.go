@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"image/draw"
 	"image/png"
 	"io"
 	"io/ioutil"
@@ -45,8 +46,8 @@ func GetCustomMapURL(ctx context.Context, apiKeySource types.ExternalAPIKeySourc
 	widthScaled := width / scale
 	heightScaled := height / scale
 	return fmt.Sprintf(
-		"https://%s/maps/api/staticmap?center=%f,%f&markers=color:red%%7C%f,%f&size=%dx%d&scale=%d&key=%s",
-		MapsProxy, lat, lon, lat, lon, widthScaled, heightScaled, scale,
+		"https://%s/maps/api/staticmap?zoom=17&center=%f,%f&size=%dx%d&scale=%d&key=%s",
+		MapsProxy, lat, lon, widthScaled, heightScaled, scale,
 		key.Googlemaps()), nil
 
 }
@@ -70,8 +71,8 @@ func GetLiveMapURL(ctx context.Context, apiKeySource types.ExternalAPIKeySource,
 		pathStr += "&"
 	}
 	url := fmt.Sprintf(
-		"https://%s/maps/api/staticmap?zoom=15&%s%smarkers=color:red%%7C%f,%f&size=%dx%d&scale=%d&key=%s",
-		MapsProxy, centerStr, pathStr, last.Lat, last.Lon, liveMapWidthScaled,
+		"https://%s/maps/api/staticmap?zoom=17&%s%ssize=%dx%d&scale=%d&key=%s",
+		MapsProxy, centerStr, pathStr, liveMapWidthScaled,
 		liveMapHeightScaled, scale, key.Googlemaps())
 	return url, nil
 }
@@ -139,6 +140,66 @@ func MapReaderFromURL(ctx context.Context, url string) (res io.ReadCloser, lengt
 	return resp.Body, resp.ContentLength, nil
 }
 
-func MapMarkerFromUsername(ctx context.Context, username string) (res io.ReadCloser, length int64, err error) {
+func createMask(cx, cy, r int) draw.Image {
+	mask := image.NewRGBA(image.Rect(cx-r, cy-r, cx+r, cy+r))
+	for x := 0; x < mask.Bounds().Dx(); x++ {
+		for y := 0; y < mask.Bounds().Dy(); y++ {
+			xx, yy, rr := float64(x-cx)+0.5, float64(y-cy)+0.5, float64(r)
+			if xx*xx+yy*yy < rr*rr {
+				mask.Set(x, y, color.RGBA{255, 255, 255, 255})
+			} else {
+				mask.Set(x, y, color.RGBA{0, 0, 0, 0})
+			}
+		}
+	}
+	return mask
+}
 
+func DecorateMap(ctx context.Context, username string, mapReader io.Reader) (res io.ReadCloser, length int64, err error) {
+	req, err := http.NewRequest("GET", "https://01.keybase.pub/computer.png", nil)
+	if err != nil {
+		return res, length, err
+	}
+
+	req.Host = "01.keybase.pub"
+	// TODO: get user avatar for masking
+	avatarResp, err := ctxhttp.Do(ctx, httpClient("01.keybase.pub"), req)
+	if err != nil {
+		return res, length, err
+	}
+	avatarPng, err := png.Decode(avatarResp.Body)
+
+	// maskReq, err := http.NewRequest("GET", "https://01.keybase.pub/mask.png", nil)
+	// if err != nil {
+	// 	return res, length, err
+	// }
+	// maskReq.Host = "01.keybase.pub"
+	// // TODO: get user avatar for masking
+	// maskResp, err := ctxhttp.Do(ctx, httpClient("01.keybase.pub"), maskReq)
+	// if err != nil {
+	// 	return res, length, err
+	// }
+
+	// maskPng, err := png.Decode(maskResp.Body)
+
+	mapPng, err := png.Decode(mapReader)
+	if err != nil {
+		return res, length, err
+	}
+	bounds := mapPng.Bounds()
+
+	middle := image.Point{bounds.Max.X / 2, bounds.Max.Y / 2}
+	iconRect := image.Rect(middle.X-32, middle.Y-32, middle.X+32, middle.Y+32)
+	mask := createMask(middle.X, middle.Y, 64)
+	decorated := image.NewRGBA(bounds)
+	draw.Draw(decorated, bounds, mapPng, image.ZP, draw.Src)
+	// draw.Draw(decorated, iconRect, maskPng, image.ZP, draw.Over)
+	draw.DrawMask(decorated, iconRect, avatarPng, image.ZP, mask, image.ZP, draw.Over)
+
+	var buf bytes.Buffer
+	err = png.Encode(&buf, decorated)
+	if err != nil {
+		return res, length, err
+	}
+	return ioutil.NopCloser(bytes.NewReader(buf.Bytes())), int64(buf.Len()), nil
 }

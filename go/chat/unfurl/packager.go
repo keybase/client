@@ -278,21 +278,24 @@ func (p *Packager) packageMaps(ctx context.Context, uid gregor1.UID, convID chat
 	var reader io.ReadCloser
 	var length int64
 	mapsURL := mapsRaw.ImageUrl
-	locReader, locLength, err := maps.MapReaderFromURL(ctx, mapsURL)
+	locReader, _, err := maps.MapReaderFromURL(ctx, mapsURL)
 	if err != nil {
 		return res, err
 	}
 	defer locReader.Close()
 	if mapsRaw.HistoryImageUrl != nil {
-		liveReader, liveLength, err := maps.MapReaderFromURL(ctx, *mapsRaw.HistoryImageUrl)
+		liveReader, _, err := maps.MapReaderFromURL(ctx, *mapsRaw.HistoryImageUrl)
 		if err != nil {
 			return res, err
 		}
-		reader = liveReader
-		length = liveLength
+		defer liveReader.Close()
+		if reader, length, err = maps.DecorateMap(ctx, "01", liveReader); err != nil {
+			return res, err
+		}
 	} else {
-		reader = locReader
-		length = locLength
+		if reader, length, err = maps.DecorateMap(ctx, "01", locReader); err != nil {
+			return res, err
+		}
 	}
 	asset, err := p.assetFromURLWithBody(ctx, reader, length, mapsURL, uid, convID, true)
 	if err != nil {
