@@ -138,7 +138,11 @@ export class ServiceTabBar extends React.Component<Props> {
 
     const height = Kb.ReAnimated.interpolate(props.offset, {
       inputRange: [-9999, 0, 100, 9999],
-      outputRange: [72, 72, 32, 32],
+      outputRange: [72, 72, 48, 48],
+    })
+    const paddingTop = Kb.ReAnimated.interpolate(props.offset, {
+      inputRange: [-9999, 0, 100, 9999],
+      outputRange: [0, 0, 8, 8],
     })
 
     return (
@@ -152,6 +156,7 @@ export class ServiceTabBar extends React.Component<Props> {
           flexGrow: 0,
           flexShrink: 0,
           height,
+          paddingTop,
           transform: [{translateX: this.bounce}] as any,
           width: '100%',
         }}
