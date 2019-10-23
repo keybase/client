@@ -863,11 +863,13 @@ func (s *HybridInboxSource) NotifyUpdate(ctx context.Context, uid gregor1.UID, c
 		s.Debug(ctx, "NotifyUpdate: unable to getConvLocal, err", err)
 	}
 	var inboxUIItem *chat1.InboxUIItem
+	topicType := chat1.TopicType_NONE
 	if conv != nil {
 		inboxUIItem = PresentConversationLocalWithFetchRetry(ctx, s.G(), uid, *conv)
+		topicType = conv.GetTopicType()
 	}
-	s.G().ActivityNotifier.ConvUpdate(ctx, uid, conv.GetConvID(),
-		conv.GetTopicType(), inboxUIItem)
+	s.G().ActivityNotifier.ConvUpdate(ctx, uid, convID,
+		topicType, inboxUIItem)
 }
 
 func (s *HybridInboxSource) MarkAsRead(ctx context.Context, convID chat1.ConversationID,
