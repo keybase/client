@@ -593,8 +593,6 @@ export type TypedActionsMap = {
   'gregor:updateReachable': gregor.UpdateReachablePayload
   'gregor:updateCategory': gregor.UpdateCategoryPayload
   'login:login': login.LoginPayload
-  'login:launchAccountResetWebPage': login.LaunchAccountResetWebPagePayload
-  'login:launchForgotPasswordWebPage': login.LaunchForgotPasswordWebPagePayload
   'login:loginError': login.LoginErrorPayload
   'login:loadIsOnline': login.LoadIsOnlinePayload
   'login:loadedIsOnline': login.LoadedIsOnlinePayload
