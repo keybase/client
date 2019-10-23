@@ -24,7 +24,7 @@ type State = {
 }
 
 const widths = [10, 80, 2, 66]
-const stableWidth = idx => 160 + -widths[idx % widths.length]
+const stableWidth = (idx: number) => 160 + -widths[idx % widths.length]
 
 const FakeRow = ({idx}) => (
   <Kb.Box2 direction="horizontal" style={styles.fakeRow}>
@@ -115,7 +115,14 @@ class Inbox extends React.Component<T.Props, State> {
     }
     const divStyle = Styles.collapseStyles([style, virtualListMarks && styles.divider])
     if (row.type === 'divider') {
-      const expandingRows = new Array(Math.max(0, Math.floor(this.state.dragY / 60) - index)).fill('')
+      const newSmallRows = this.deltaNewSmallRows()
+      let expandingRows: Array<string> = []
+      if (newSmallRows === 0) {
+      } else if (newSmallRows > 1) {
+        expandingRows = new Array(newSmallRows).fill('')
+      } else {
+        // TODO deal with delete
+      }
       return (
         <div style={{...divStyle, position: 'relative'}} draggable={true}>
           <div style={Styles.collapseStyles([styles.grabber, {top: 32}])} />
@@ -256,7 +263,15 @@ class Inbox extends React.Component<T.Props, State> {
     // console.log('aaa over', e.clientY)
   }
 
+  private deltaNewSmallRows = () => {
+    if (this.state.dragY === -1) {
+      return 0
+    }
+    return Math.max(0, Math.floor(this.state.dragY / 60)) - this.props.inboxNumSmallRows
+  }
+
   private onDrop = e => {
+    this.props.setInboxNumSmallRows(this.props.inboxNumSmallRows + this.deltaNewSmallRows())
     this.setState({dragY: -1})
     console.log('aaa end', e.clientY)
   }

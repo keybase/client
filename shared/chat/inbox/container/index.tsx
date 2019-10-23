@@ -140,8 +140,8 @@ const Connected = Container.namedConnect(
           reason: 'untrusted inbox visible',
         })
       ),
-    toggleSmallTeamsExpanded: () => dispatch(Chat2Gen.createToggleSmallTeamsExpanded()),
     setInboxNumSmallRows: (rows: number) => dispatch(Chat2Gen.createSetInboxNumSmallRows({rows})),
+    toggleSmallTeamsExpanded: () => dispatch(Chat2Gen.createToggleSmallTeamsExpanded()),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     const bigTeams = stateProps._inboxLayout ? stateProps._inboxLayout.bigTeams || [] : []
@@ -181,6 +181,7 @@ const Connected = Container.namedConnect(
       _onMountedDesktop: dispatchProps._onMountedDesktop,
       _refreshInbox: dispatchProps._refreshInbox,
       allowShowFloatingButton: stateProps.allowShowFloatingButton,
+      inboxNumSmallRows: stateProps.inboxNumSmallRows,
       isLoading: stateProps.isLoading,
       isSearching: stateProps.isSearching,
       navKey: ownProps.navKey,

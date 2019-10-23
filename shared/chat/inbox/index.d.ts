@@ -55,6 +55,9 @@ export type RouteState = I.RecordOf<{
 
 export type Props = {
   allowShowFloatingButton: boolean
+  inboxNumSmallRows: number
+  isLoading: boolean
+  isSearching: boolean
   navKey: string
   neverLoaded: boolean
   onNewChat: () => void
@@ -63,8 +66,6 @@ export type Props = {
   smallTeamsExpanded: boolean
   toggleSmallTeamsExpanded: () => void
   unreadIndices: Array<number>
-  isSearching: boolean
-  isLoading: boolean
 }
 
 export default class Inbox extends React.Component<Props> {}
