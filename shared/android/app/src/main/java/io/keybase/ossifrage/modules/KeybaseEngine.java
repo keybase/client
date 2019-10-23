@@ -3,6 +3,7 @@ package io.keybase.ossifrage.modules;
 import android.app.KeyguardManager;
 import android.content.Context;
 
+import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -10,6 +11,7 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.module.annotations.ReactModule;
+import com.facebook.react.modules.blob.BlobModule;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 
 import java.io.BufferedReader;
@@ -32,6 +34,7 @@ import keybase.Keybase;
 
 import static io.keybase.ossifrage.MainActivity.isTestDevice;
 import static keybase.Keybase.readB64;
+import static keybase.Keybase.readBytes;
 import static keybase.Keybase.version;
 import static keybase.Keybase.writeB64;
 
@@ -58,6 +61,12 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
         }
     }
 
+
+    private BlobModule getBlobModule() {
+      return getReactApplicationContext().getNativeModule(BlobModule.class);
+    }
+
+
     private class ReadFromKBLib implements Runnable {
         private final ReactApplicationContext reactContext;
 
@@ -69,7 +78,13 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
         public void run() {
           do {
               try {
-                  final String data = readB64();
+//                  final String data = readB64();
+                  final byte[] data = readBytes();
+                  String blobID = getBlobModule().store(data);
+                  WritableMap blob = Arguments.createMap();
+                  blob.putString("blobId", blobID);
+                  blob.putInt("offset", 0);
+                  blob.putInt("size", data.length);
 
                   if (!reactContext.hasActiveCatalystInstance()) {
                       NativeLogger.info(NAME + ": JS Bridge is dead, dropping engine message: " + data);
