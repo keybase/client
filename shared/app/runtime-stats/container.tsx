@@ -1,5 +1,5 @@
+import * as React from 'react'
 import * as Container from '../../util/container'
-import RuntimeStats from '.'
 
 const blank = {
   _dbStats: [],
@@ -50,4 +50,10 @@ export default Container.connect(
       selectiveSyncActive: stateProps.selectiveSyncActive,
     }
   }
-)(RuntimeStats)
+)(props => {
+  if (props.hasData) {
+    const RuntimeStats = require('.').default
+    return <RuntimeStats {...props} />
+  }
+  return null
+})
