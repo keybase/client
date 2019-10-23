@@ -650,11 +650,11 @@ func ParseChannelNameMentions(ctx context.Context, body string, uid gregor1.UID,
 }
 
 var atMentionRegExp = regexp.MustCompile(ServiceDecorationPrefix +
-	`(@(?:[a-z0-9][a-z0-9._]*[a-z0-9_]+(?:#[a-z0-9A-Z_-]+)?))`)
+	`(@(?:[a-zA-Z0-9][a-zA-Z0-9._]*[a-zA-Z0-9_]+(?:#[a-z0-9A-Z_-]+)?))`)
 
 type nameMatch struct {
-	name     string
-	position []int
+	name, normalizedName string
+	position             []int
 }
 
 func (m nameMatch) Len() int {
@@ -671,8 +671,9 @@ func parseRegexpNames(ctx context.Context, body string, re *regexp.Regexp) (res 
 			high := indexMatch[3]
 			hit := body[low:high]
 			res = append(res, nameMatch{
-				name:     hit,
-				position: []int{low, high},
+				name:           hit,
+				normalizedName: strings.ToLower(hit),
+				position:       []int{low, high},
 			})
 		}
 	}
@@ -710,21 +711,13 @@ func GetPaymentAtMentions(ctx context.Context, upak libkb.UPAKLoader, payments [
 	return atMentions
 }
 
-func ParseAtMentionsNames(ctx context.Context, body string) (res []string) {
-	matches := parseRegexpNames(ctx, body, atMentionRegExp)
-	for _, m := range matches {
-		res = append(res, m.name)
-	}
-	return res
-}
-
 func parseItemAsUID(ctx context.Context, g *globals.Context, name string,
 	knownMentions []chat1.KnownUserMention,
 	getConvMembs func() ([]chat1.ConversationLocalParticipant, error)) (gregor1.UID, error) {
 	nname := libkb.NewNormalizedUsername(name)
 	shouldLookup := false
 	for _, known := range knownMentions {
-		if known.Text == name {
+		if known.Text == nname.String() {
 			shouldLookup = true
 			break
 		}
@@ -738,7 +731,7 @@ func parseItemAsUID(ctx context.Context, g *globals.Context, name string,
 			return nil, err
 		}
 		for _, memb := range membs {
-			if memb.Username == name {
+			if memb.Username == nname.String() {
 				shouldLookup = true
 				break
 			}
@@ -756,16 +749,18 @@ func parseItemAsUID(ctx context.Context, g *globals.Context, name string,
 
 func ParseAtMentionedItems(ctx context.Context, g *globals.Context, body string,
 	knownMentions []chat1.KnownUserMention, getConvMembs func() ([]chat1.ConversationLocalParticipant, error)) (atRes []chat1.KnownUserMention, maybeRes []chat1.MaybeMention, chanRes chat1.ChannelMention) {
-	names := ParseAtMentionsNames(ctx, body)
+	matches := parseRegexpNames(ctx, body, atMentionRegExp)
 	chanRes = chat1.ChannelMention_NONE
-	for _, name := range names {
+	for _, m := range matches {
 		var channel string
-		toks := strings.Split(name, "#")
+		toks := strings.Split(m.name, "#")
 		baseName := toks[0]
 		if len(toks) > 1 {
 			channel = toks[1]
 		}
-		switch baseName {
+
+		normalizedBaseName := strings.Split(m.normalizedName, "#")[0]
+		switch normalizedBaseName {
 		case "channel", "everyone":
 			chanRes = chat1.ChannelMention_ALL
 			continue
@@ -778,7 +773,7 @@ func ParseAtMentionedItems(ctx context.Context, g *globals.Context, body string,
 		}
 
 		// Try UID first then team
-		if uid, err := parseItemAsUID(ctx, g, baseName, knownMentions, getConvMembs); err == nil {
+		if uid, err := parseItemAsUID(ctx, g, normalizedBaseName, knownMentions, getConvMembs); err == nil {
 			atRes = append(atRes, chat1.KnownUserMention{
 				Text: baseName,
 				Uid:  uid,
@@ -910,7 +905,8 @@ func CreateTopicNameState(cmp chat1.ConversationIDMessageIDPairs) (chat1.TopicNa
 	return h.Sum(nil), nil
 }
 
-func GetConvMtime(conv chat1.Conversation) gregor1.Time {
+func GetConvMtime(rc types.RemoteConversation) (res gregor1.Time) {
+	conv := rc.Conv
 	var summaries []chat1.MessageSummary
 	for _, typ := range chat1.VisibleChatMessageTypes() {
 		summary, err := conv.GetMaxMessage(typ)
@@ -918,11 +914,16 @@ func GetConvMtime(conv chat1.Conversation) gregor1.Time {
 			summaries = append(summaries, summary)
 		}
 	}
-	if len(summaries) == 0 {
-		return conv.ReaderInfo.Mtime
-	}
 	sort.Sort(ByMsgSummaryCtime(summaries))
-	return summaries[len(summaries)-1].Ctime
+	if len(summaries) == 0 {
+		res = conv.ReaderInfo.Mtime
+	} else {
+		res = summaries[len(summaries)-1].Ctime
+	}
+	if res > rc.LocalMtime {
+		return res
+	}
+	return rc.LocalMtime
 }
 
 type MessageSummaryContainer interface {
@@ -1155,7 +1156,7 @@ func PresentRemoteConversationAsSmallTeamRow(ctx context.Context, rc types.Remot
 	res.ConvID = rc.GetConvID().String()
 	res.IsTeam = rc.GetTeamType() != chat1.TeamType_NONE
 	res.Name = StripUsernameFromConvName(GetRemoteConvDisplayName(rc), username)
-	res.Time = GetConvMtime(rc.Conv)
+	res.Time = GetConvMtime(rc)
 	if useSnippet && rc.LocalMetadata != nil {
 		res.Snippet = &rc.LocalMetadata.Snippet
 		res.SnippetDecoration = &rc.LocalMetadata.SnippetDecoration
@@ -1188,7 +1189,7 @@ func PresentRemoteConversation(ctx context.Context, g *globals.Context, rc types
 	res.IsPublic = rawConv.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC
 	res.Name = tlfName
 	res.Status = rawConv.Metadata.Status
-	res.Time = GetConvMtime(rawConv)
+	res.Time = GetConvMtime(rc)
 	res.Visibility = rawConv.Metadata.Visibility
 	res.Notifications = rawConv.Notifications
 	res.MembersType = rawConv.GetMembersType()
@@ -1353,7 +1354,16 @@ func PresentThreadView(ctx context.Context, g *globals.Context, uid gregor1.UID,
 }
 
 func computeOutboxOrdinal(obr chat1.OutboxRecord) float64 {
-	return float64(obr.Msg.ClientHeader.OutboxInfo.Prev) + float64(obr.Ordinal)/1000.0
+	return computeOrdinal(obr.Msg.ClientHeader.OutboxInfo.Prev, obr.Ordinal)
+}
+
+// Compute an "ordinal". There are two senses of "ordinal".
+// The service considers ordinals ints, like 3, which are the offset after some message ID.
+// The frontend considers ordinals floats like "180.03" where before the dot is
+// a message ID, and after the dot is a sub-position in thousandths.
+// This function translates from the service's sense to the frontend's sense.
+func computeOrdinal(messageID chat1.MessageID, serviceOrdinal int) (frontendOrdinal float64) {
+	return float64(messageID) + float64(serviceOrdinal)/1000.0
 }
 
 func PresentChannelNameMentions(ctx context.Context, crs []chat1.ChannelNameMention) (res []chat1.UIChannelNameMention) {
@@ -1613,8 +1623,7 @@ func loadTeamMentions(ctx context.Context, g *globals.Context, uid gregor1.UID,
 		knownTeamMentions = valid.MessageBody.Edit().TeamMentions
 	}
 	for _, tm := range valid.MaybeMentions {
-		err := g.TeamMentionLoader.LoadTeamMention(ctx, uid, tm, knownTeamMentions, false)
-		if err != nil {
+		if err := g.TeamMentionLoader.LoadTeamMention(ctx, uid, tm, knownTeamMentions, false); err != nil {
 			g.GetLog().CDebugf(ctx, "loadTeamMentions: error loading team mentions: %+v", err)
 		}
 	}
@@ -1786,6 +1795,16 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 		res = chat1.NewUIMessageWithError(rawMsg.Error())
 	case chat1.MessageUnboxedState_PLACEHOLDER:
 		res = chat1.NewUIMessageWithPlaceholder(rawMsg.Placeholder())
+	case chat1.MessageUnboxedState_JOURNEYCARD:
+		journeycard := rawMsg.Journeycard()
+		res = chat1.NewUIMessageWithJourneycard(chat1.UIMessageJourneycard{
+			Ordinal:        computeOrdinal(journeycard.PrevID, journeycard.Ordinal),
+			CardType:       journeycard.CardType,
+			HighlightMsgID: journeycard.HighlightMsgID,
+		})
+	default:
+		g.MetaContext(ctx).Debug("PresentMessageUnboxed: unhandled MessageUnboxedState: %v", state)
+		// res = zero values
 	}
 	return res
 }
@@ -2366,13 +2385,11 @@ func DecorateWithMentions(ctx context.Context, body string, atMentions []string,
 	var added int
 	offset := 0
 	if len(atMentions) > 0 || len(maybeMentions) > 0 || chanMention != chat1.ChannelMention_NONE {
-		inputBody := body
-		atMatches := parseRegexpNames(ctx, inputBody, atMentionRegExp)
 		atMap := make(map[string]bool)
-		maybeMap := make(map[string]chat1.MaybeMention)
 		for _, at := range atMentions {
 			atMap[at] = true
 		}
+		maybeMap := make(map[string]chat1.MaybeMention)
 		for _, tm := range maybeMentions {
 			name := tm.Name
 			if len(tm.Channel) > 0 {
@@ -2380,18 +2397,20 @@ func DecorateWithMentions(ctx context.Context, body string, atMentions []string,
 			}
 			maybeMap[name] = tm
 		}
+		inputBody := body
+		atMatches := parseRegexpNames(ctx, inputBody, atMentionRegExp)
 		for _, m := range atMatches {
 			switch {
-			case m.name == "here":
+			case m.normalizedName == "here":
 				fallthrough
-			case m.name == "channel":
+			case m.normalizedName == "channel":
 				fallthrough
-			case m.name == "everyone":
+			case m.normalizedName == "everyone":
 				if chanMention == chat1.ChannelMention_NONE {
 					continue
 				}
 				fallthrough
-			case atMap[m.name]:
+			case atMap[m.normalizedName]:
 				body, added = DecorateBody(ctx, body, m.position[0]+offset-1, m.Len()+1,
 					chat1.NewUITextDecorationWithAtmention(m.name))
 				offset += added
@@ -2404,13 +2423,13 @@ func DecorateWithMentions(ctx context.Context, body string, atMentions []string,
 		}
 	}
 	if len(channelNameMentions) > 0 {
-		inputBody := body
 		chanMap := make(map[string]chat1.ConversationID)
-		chanMatches := parseRegexpNames(ctx, inputBody, chanNameMentionRegExp)
 		for _, c := range channelNameMentions {
 			chanMap[c.TopicName] = c.ConvID
 		}
 		offset = 0
+		inputBody := body
+		chanMatches := parseRegexpNames(ctx, inputBody, chanNameMentionRegExp)
 		for _, c := range chanMatches {
 			convID, ok := chanMap[c.name]
 			if !ok {

@@ -64,7 +64,7 @@ class LoginRender extends React.Component<Props> {
               value={this.props.selectedUser}
               onClick={this._selectedUserChange}
               onOther={this.props.onSomeoneElse}
-              options={this.props.users.map(u => u.username)}
+              options={this.props.users}
             />
             {this.props.needPassword && (
               <Kb.FormWithCheckbox
@@ -76,7 +76,7 @@ class LoginRender extends React.Component<Props> {
             <Kb.WaitingButton
               disabled={this.props.needPassword && !this.props.password}
               waitingKey={Constants.waitingKey}
-              style={{marginTop: 0, width: '100%'}}
+              style={{marginTop: this.props.needPassword ? 0 : Styles.globalMargins.small, width: '100%'}}
               fullWidth={true}
               label="Log in"
               onClick={this.props.onSubmit}
@@ -91,7 +91,7 @@ class LoginRender extends React.Component<Props> {
             </Kb.Text>
           </Kb.UserCard>
           <Kb.Text
-            style={{marginTop: Styles.globalMargins.xlarge}}
+            style={{marginTop: Styles.globalMargins.medium}}
             type="BodyBigLink"
             onClick={this.props.onSignup}
           >

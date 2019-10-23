@@ -46,8 +46,8 @@ type configGetter interface {
 	GetConfigFilename() string
 	GetDbFilename() string
 	GetDebug() (bool, bool)
+	GetDebugJourneycard() (bool, bool)
 	GetDisplayRawUntrustedOutput() (bool, bool)
-	GetUpgradePerUserKey() (bool, bool)
 	GetGpg() string
 	GetGpgHome() string
 	GetGpgOptions() []string
@@ -1009,6 +1009,7 @@ type UserServiceSummaryPackage struct {
 type ServiceSummaryMapper interface {
 	MapUIDsToServiceSummaries(ctx context.Context, g UIDMapperContext, uids []keybase1.UID, freshness time.Duration,
 		networkTimeBudget time.Duration) map[keybase1.UID]UserServiceSummaryPackage
+	InformOfServiceSummary(ctx context.Context, g UIDMapperContext, uid keybase1.UID, summary UserServiceSummary) error
 }
 
 type ChatHelper interface {
@@ -1124,6 +1125,6 @@ type SyncedContactListProvider interface {
 type KVRevisionCacher interface {
 	Check(mctx MetaContext, entryID keybase1.KVEntryID, ciphertext *string, teamKeyGen keybase1.PerTeamKeyGeneration, revision int) (err error)
 	Put(mctx MetaContext, entryID keybase1.KVEntryID, ciphertext *string, teamKeyGen keybase1.PerTeamKeyGeneration, revision int) (err error)
-	CheckDeletable(mctx MetaContext, entryID keybase1.KVEntryID, revision int) (err error)
+	CheckForUpdate(mctx MetaContext, entryID keybase1.KVEntryID, revision int) (err error)
 	MarkDeleted(mctx MetaContext, entryID keybase1.KVEntryID, revision int) (err error)
 }

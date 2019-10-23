@@ -221,6 +221,7 @@ export type TypedActionsMap = {
   'config:daemonHandshakeDone': config.DaemonHandshakeDonePayload
   'config:filePickerError': config.FilePickerErrorPayload
   'config:logout': config.LogoutPayload
+  'config:logoutAndTryToLogInAs': config.LogoutAndTryToLogInAsPayload
   'config:logoutHandshake': config.LogoutHandshakePayload
   'config:logoutHandshakeWait': config.LogoutHandshakeWaitPayload
   'config:installerRan': config.InstallerRanPayload
@@ -334,6 +335,7 @@ export type TypedActionsMap = {
   'engine-gen:chat1NotifyChatChatPaymentInfo': enginegen.Chat1NotifyChatChatPaymentInfoPayload
   'engine-gen:chat1NotifyChatChatRequestInfo': enginegen.Chat1NotifyChatChatRequestInfoPayload
   'engine-gen:chat1NotifyChatChatPromptUnfurl': enginegen.Chat1NotifyChatChatPromptUnfurlPayload
+  'engine-gen:chat1NotifyChatChatConvUpdate': enginegen.Chat1NotifyChatChatConvUpdatePayload
   'engine-gen:keybase1GpgUiWantToAddGPGKey': enginegen.Keybase1GpgUiWantToAddGPGKeyPayload
   'engine-gen:keybase1GpgUiConfirmDuplicateKeyChosen': enginegen.Keybase1GpgUiConfirmDuplicateKeyChosenPayload
   'engine-gen:keybase1GpgUiConfirmImportSecretToExistingKey': enginegen.Keybase1GpgUiConfirmImportSecretToExistingKeyPayload
@@ -569,6 +571,8 @@ export type TypedActionsMap = {
   'fs:finishedRegularDownload': fs.FinishedRegularDownloadPayload
   'fs:loadFileContext': fs.LoadFileContextPayload
   'fs:loadedFileContext': fs.LoadedFileContextPayload
+  'fs:loadAdditionalTlf': fs.LoadAdditionalTlfPayload
+  'fs:loadedAdditionalTlf': fs.LoadedAdditionalTlfPayload
   'fs:setDebugLevel': fs.SetDebugLevelPayload
   'git:loadGit': git.LoadGitPayload
   'git:loaded': git.LoadedPayload

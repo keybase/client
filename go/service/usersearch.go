@@ -547,6 +547,7 @@ func (h *UserSearchHandler) GetNonUserDetails(ctx context.Context, arg keybase1.
 		}
 
 		res.SiteIcon = externals.MakeIcons(mctx, service, "logo_black", 16)
+		res.SiteIconWhite = externals.MakeIcons(mctx, service, "logo_white", 16)
 		res.SiteIconFull = externals.MakeIcons(mctx, service, "logo_full", 64)
 	} else if service == "phone" || service == "email" {
 		contacts, err := mctx.G().SyncedContactList.RetrieveContacts(mctx)

@@ -196,7 +196,8 @@ type InboxSource interface {
 		convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) ([]chat1.ConversationLocal, error)
 	MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 		joined []chat1.ConversationMember, removed []chat1.ConversationMember,
-		resets []chat1.ConversationMember, previews []chat1.ConversationID) (MembershipUpdateRes, error)
+		resets []chat1.ConversationMember, previews []chat1.ConversationID,
+		teamMemberRoleUpdate *chat1.TeamMemberRoleUpdate) (MembershipUpdateRes, error)
 	ConversationsUpdate(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 		convUpdates []chat1.ConversationUpdate) error
 	TeamTypeChanged(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
@@ -216,6 +217,7 @@ type InboxSource interface {
 
 	GetInboxQueryLocalToRemote(ctx context.Context,
 		lquery *chat1.GetInboxLocalQuery) (*chat1.GetInboxQuery, NameInfo, error)
+	UpdateLocalMtime(ctx context.Context, uid gregor1.UID, updates []chat1.LocalMtimeUpdate) error
 
 	SetRemoteInterface(func() chat1.RemoteInterface)
 }
@@ -333,6 +335,8 @@ type ActivityNotifier interface {
 
 	PromptUnfurl(ctx context.Context, uid gregor1.UID,
 		convID chat1.ConversationID, msgID chat1.MessageID, domain string)
+	ConvUpdate(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		topicType chat1.TopicType, conv *chat1.InboxUIItem)
 }
 
 type IdentifyNotifier interface {

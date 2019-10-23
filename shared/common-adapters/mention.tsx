@@ -36,9 +36,9 @@ export default ({username, theme, style, allowFontScaling, onClick}: Props) => {
 
 const styles = Styles.styleSheetCreate(() => ({
   follow: {
-    backgroundColor: Styles.globalColors.green,
+    backgroundColor: Styles.globalColors.greenLighterOrGreen,
     borderRadius: 2,
-    color: Styles.globalColors.white,
+    color: Styles.globalColors.greenDarkOrBlack,
   },
   highlight: {
     backgroundColor: Styles.globalColors.yellowOrYellowAlt,

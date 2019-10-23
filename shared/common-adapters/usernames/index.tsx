@@ -86,8 +86,8 @@ function UsernameText(props: Props) {
           isElectron: props.inline ? {display: 'inline'} : {},
         })
         userStyle = Styles.collapseStyles([
-          props.style,
           userStyle,
+          props.style,
           props.type.startsWith('Body') && styles.kerning,
         ])
 

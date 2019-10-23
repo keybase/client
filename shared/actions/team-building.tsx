@@ -123,8 +123,8 @@ const fetchUserRecs = async (
       suggestions = suggestions.slice(0, 10)
     }
     return TeamBuildingGen.createFetchedUserRecs({namespace, users: suggestions.concat(contacts)})
-  } catch (_) {
-    logger.error(`Error in fetching recs`)
+  } catch (err) {
+    logger.error(`Error in fetching recs: ${err}`)
     return TeamBuildingGen.createFetchedUserRecs({namespace, users: []})
   }
 }

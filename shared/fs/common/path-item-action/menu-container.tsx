@@ -3,6 +3,7 @@ import * as Constants from '../../../constants/fs'
 import * as FsGen from '../../../actions/fs-gen'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Container from '../../../util/container'
+import {anyWaiting} from '../../../constants/waiting'
 import {isMobile} from '../../../constants/platform'
 import {memoize} from '../../../util/memoize'
 import flags from '../../../util/feature-flags'
@@ -22,6 +23,7 @@ const mapStateToProps = (state: Container.TypedState, {path}: OwnProps) => ({
   _downloadID: state.fs.pathItemActionMenu.downloadID,
   _downloads: state.fs.downloads,
   _fileContext: state.fs.fileContext.get(path) || Constants.emptyFileContext,
+  _ignoreNeedsToWait: anyWaiting(state, Constants.folderListWaitingKey, Constants.statWaitingKey),
   _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
   _pathItemActionMenu: state.fs.pathItemActionMenu,
   _sfmiEnabled: state.fs.sfmi.driverStatus.type === Types.DriverStatusType.Enabled,
@@ -173,7 +175,11 @@ const mergeProps = (
     // eslint-disable-next-line sort-keys
     delete: layout.delete ? c(dispatchProps._delete) : null,
     download: layout.download ? c(dispatchProps._download) : null,
-    ignoreTlf: layout.ignoreTlf ? c(dispatchProps._ignoreTlf) : null,
+    ignoreTlf: layout.ignoreTlf
+      ? stateProps._ignoreNeedsToWait
+        ? 'disabled'
+        : c(dispatchProps._ignoreTlf)
+      : null,
     me: stateProps._username,
     moveOrCopy: flags.moveOrCopy && layout.moveOrCopy ? c(dispatchProps._moveOrCopy) : null,
     newFolder: layout.newFolder ? c(dispatchProps._newFolder) : null,

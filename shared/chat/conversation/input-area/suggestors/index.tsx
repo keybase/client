@@ -131,7 +131,8 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
           return null
         }
         const upToCursor = text.substring(0, selection.start)
-        const words = upToCursor.split(/ |\n/)
+        // this regex is a fancy way to say "split on command separators or newlines, but include the separators in the result"
+        const words = upToCursor.split(/ (?=@|!|#|\n)/)
         const word = words[words.length - 1]
         const position = {end: selection.start, start: selection.start - word.length}
         return {position, word}

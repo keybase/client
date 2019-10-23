@@ -85,6 +85,7 @@ export const newModalRoutes = {
     getScreen: (): typeof DisableCertPinningModal =>
       require('./disable-cert-pinning-modal/container').default,
   },
+  modalFeedback: {getScreen: (): typeof FeedbackTab => require('../signup/feedback/container').default},
   settingsAddEmail: {getScreen: (): typeof Email => require('./account/add-modals').Email},
   settingsAddPhone: {getScreen: (): typeof Phone => require('./account/add-modals').Phone},
   settingsDeleteAddress: {

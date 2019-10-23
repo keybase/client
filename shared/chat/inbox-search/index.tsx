@@ -6,6 +6,7 @@ import * as Styles from '../../styles'
 import SelectableSmallTeam from '../selectable-small-team-container'
 import SelectableBigTeamChannel from '../selectable-big-team-channel-container'
 import {inboxWidth} from '../inbox/row/sizes'
+import Rover from './background'
 
 type NameResult = {
   conversationIDKey: Types.ConversationIDKey
@@ -186,6 +187,7 @@ class InboxSearch extends React.Component<Props, State> {
     }
     return (
       <Kb.Box2 style={styles.container} direction="vertical" fullWidth={true}>
+        <Rover />
         <Kb.SectionList
           ListHeaderComponent={this.props.header}
           stickySectionHeadersEnabled={true}
@@ -211,6 +213,10 @@ const styles = Styles.styleSheetCreate(
           maxWidth: inboxWidth,
           minWidth: inboxWidth,
           position: 'relative',
+        },
+        isMobile: {
+          height: '100%',
+          width: '100%',
         },
       }),
       errorText: {

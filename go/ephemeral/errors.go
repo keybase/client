@@ -33,6 +33,7 @@ const (
 	EphemeralKeyErrorKind_MEMBERAFTEREK
 	EphemeralKeyErrorKind_DEVICESTALE
 	EphemeralKeyErrorKind_USERSTALE
+	EphemeralKeyErrorKind_UNKNOWN
 )
 
 type EphemeralKeyError struct {

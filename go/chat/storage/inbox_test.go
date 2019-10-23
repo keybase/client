@@ -843,8 +843,10 @@ func TestInboxMembershipDupUpdate(t *testing.T) {
 		Uid:    uid2,
 		ConvID: conv.GetConvID(),
 	}}
-	require.NoError(t, inbox.MembershipUpdate(context.TODO(), uid, 2, []chat1.Conversation{conv.Conv},
-		nil, otherJoinedConvs, nil, nil, nil))
+	roleUpdates, err := inbox.MembershipUpdate(context.TODO(), uid, 2, []chat1.Conversation{conv.Conv},
+		nil, otherJoinedConvs, nil, nil, nil, nil)
+	require.NoError(t, err)
+	require.Nil(t, roleUpdates)
 
 	_, res, err := inbox.ReadAll(context.TODO(), uid, true)
 	require.NoError(t, err)
@@ -873,8 +875,10 @@ func TestInboxMembershipUpdate(t *testing.T) {
 	// Create an inbox with a bunch of convos, merge it and read it back out
 	numConvs := 10
 	var convs []types.RemoteConversation
+	tlfID := makeTlfID()
 	for i := numConvs - 1; i >= 0; i-- {
 		conv := makeConvo(gregor1.Time(i), 1, 1)
+		conv.Conv.Metadata.IdTriple.Tlfid = tlfID
 		conv.Conv.Metadata.AllList = []gregor1.UID{uid, uid3, uid4}
 		convs = append(convs, conv)
 	}
@@ -884,6 +888,7 @@ func TestInboxMembershipUpdate(t *testing.T) {
 	numJoinedConvs := 5
 	for i := 0; i < numJoinedConvs; i++ {
 		conv := makeConvo(gregor1.Time(i), 1, 1)
+		conv.Conv.Metadata.IdTriple.Tlfid = tlfID
 		conv.Conv.Metadata.AllList = []gregor1.UID{uid, uid3, uid4}
 		joinedConvs = append(joinedConvs, conv)
 	}
@@ -913,32 +918,46 @@ func TestInboxMembershipUpdate(t *testing.T) {
 		Uid:    uid,
 		ConvID: userResetConvID,
 	}}
-	require.NoError(t, inbox.MembershipUpdate(context.TODO(), uid, 2, utils.PluckConvs(joinedConvs),
+
+	roleUpdates, err := inbox.MembershipUpdate(context.TODO(), uid, 2, utils.PluckConvs(joinedConvs),
 		userRemovedConvs, otherJoinedConvs, otherRemovedConvs,
-		userResetConvs, otherResetConvs))
+		userResetConvs, otherResetConvs, &chat1.TeamMemberRoleUpdate{
+			TlfID: tlfID,
+			Role:  keybase1.TeamRole_WRITER,
+		})
+	require.NoError(t, err)
+	require.NotNil(t, roleUpdates)
 
 	vers, res, err := inbox.ReadAll(context.TODO(), uid, true)
 	require.NoError(t, err)
 	require.Equal(t, chat1.InboxVers(2), vers)
-	for _, c := range res {
+	for i, c := range res {
+		// make sure we bump the local version during the membership update for a role change
+		require.EqualValues(t, 1, c.Conv.Metadata.LocalVersion)
+		res[i].Conv.Metadata.LocalVersion = 0 // zero it out for later equality checks
 		if c.GetConvID().Eq(convs[5].GetConvID()) {
 			require.Equal(t, chat1.ConversationMemberStatus_LEFT, c.Conv.ReaderInfo.Status)
+			require.Equal(t, keybase1.TeamRole_WRITER, c.Conv.ReaderInfo.UntrustedTeamRole)
 			convs[5].Conv.ReaderInfo.Status = chat1.ConversationMemberStatus_LEFT
 			convs[5].Conv.Metadata.Version = chat1.ConversationVers(2)
 		}
 		if c.GetConvID().Eq(convs[6].GetConvID()) {
 			require.Equal(t, chat1.ConversationMemberStatus_RESET, c.Conv.ReaderInfo.Status)
+			require.Equal(t, keybase1.TeamRole_WRITER, c.Conv.ReaderInfo.UntrustedTeamRole)
 			convs[6].Conv.ReaderInfo.Status = chat1.ConversationMemberStatus_RESET
 			convs[6].Conv.Metadata.Version = chat1.ConversationVers(2)
 		}
 	}
 	expected := append(convs, joinedConvs...)
 	sort.Sort(utils.RemoteConvByConvID(expected))
+	sort.Sort(utils.ByConvID(roleUpdates))
 	sort.Sort(utils.RemoteConvByConvID(res))
 	require.Equal(t, len(expected), len(res))
 	for i := 0; i < len(res); i++ {
 		sort.Sort(chat1.ByUID(res[i].Conv.Metadata.AllList))
 		sort.Sort(chat1.ByUID(expected[i].Conv.Metadata.AllList))
+		require.Equal(t, keybase1.TeamRole_WRITER, res[i].Conv.ReaderInfo.UntrustedTeamRole)
+		require.True(t, expected[i].GetConvID().Eq(roleUpdates[i]))
 		if res[i].GetConvID().Eq(otherJoinConvID) {
 			allUsers := []gregor1.UID{uid, uid2, uid3, uid4}
 			sort.Sort(chat1.ByUID(allUsers))
@@ -987,4 +1006,34 @@ func TestInboxCacheOnLogout(t *testing.T) {
 	require.NoError(t, err)
 	require.Nil(t, inboxMemCache.Get(gregor1.UID(uid)))
 	require.Empty(t, len(inboxMemCache.datMap))
+}
+
+func TestUpdateLocalMtime(t *testing.T) {
+	tc, inbox, uid := setupInboxTest(t, "local conv")
+	defer tc.Cleanup()
+	convs := []types.RemoteConversation{
+		makeConvo(gregor1.Time(1), 1, 1),
+		makeConvo(gregor1.Time(0), 1, 1),
+	}
+	err := inbox.Merge(context.TODO(), uid, 1, utils.PluckConvs(convs), nil, nil)
+	require.NoError(t, err)
+	mtime1 := gregor1.Time(5)
+	mtime2 := gregor1.Time(1)
+	err = inbox.UpdateLocalMtime(context.TODO(), uid, []chat1.LocalMtimeUpdate{
+		{
+			ConvID: convs[0].GetConvID(),
+			Mtime:  mtime1,
+		},
+		{
+			ConvID: convs[1].GetConvID(),
+			Mtime:  mtime2,
+		},
+	})
+	require.NoError(t, err)
+
+	diskIbox, err := inbox.readDiskInbox(context.TODO(), uid, true)
+	require.NoError(t, err)
+
+	require.Equal(t, mtime1, diskIbox.Conversations[0].GetMtime())
+	require.Equal(t, mtime2, diskIbox.Conversations[1].GetMtime())
 }

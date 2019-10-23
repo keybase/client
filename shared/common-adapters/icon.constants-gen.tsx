@@ -2639,6 +2639,83 @@ const iconMeta_ = {
       return require('../images/icons/icon-dark-phone-success-background-9-48.png')
     },
   },
+  'icon-dark-placeholder-avatar-192': {
+    extension: 'png',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-placeholder-avatar-192.png')
+    },
+  },
+  'icon-dark-placeholder-avatar-256': {
+    extension: 'png',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-placeholder-avatar-256.png')
+    },
+  },
+  'icon-dark-placeholder-avatar-32': {
+    extension: 'png',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-placeholder-avatar-32.png')
+    },
+  },
+  'icon-dark-placeholder-avatar-960': {
+    extension: 'png',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-placeholder-avatar-960.png')
+    },
+  },
+  'icon-dark-placeholder-avatar-circular-32': {
+    extension: 'png',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-placeholder-avatar-circular-32.png')
+    },
+  },
+  'icon-dark-placeholder-avatar-circular-48': {
+    extension: 'png',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-placeholder-avatar-circular-48.png')
+    },
+  },
+  'icon-dark-placeholder-avatar-circular-reversed-32': {
+    extension: 'png',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-placeholder-avatar-circular-reversed-32.png')
+    },
+  },
+  'icon-dark-placeholder-avatar-circular-reversed-48': {
+    extension: 'png',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-placeholder-avatar-circular-reversed-48.png')
+    },
+  },
+  'icon-dark-placeholder-avatar-lighter-192': {
+    extension: 'png',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-placeholder-avatar-lighter-192.png')
+    },
+  },
+  'icon-dark-placeholder-avatar-lighter-256': {
+    extension: 'png',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-placeholder-avatar-lighter-256.png')
+    },
+  },
+  'icon-dark-placeholder-avatar-lighter-960': {
+    extension: 'png',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-placeholder-avatar-lighter-960.png')
+    },
+  },
   'icon-dark-placeholder-secret-user-16': {
     extension: 'png',
     isFont: false,
@@ -2800,6 +2877,20 @@ const iconMeta_ = {
       return require('../images/icons/icon-dark-team-placeholder-avatar-16.png')
     },
   },
+  'icon-dark-team-placeholder-avatar-192': {
+    extension: 'png',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-team-placeholder-avatar-192.png')
+    },
+  },
+  'icon-dark-team-placeholder-avatar-256': {
+    extension: 'png',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-team-placeholder-avatar-256.png')
+    },
+  },
   'icon-dark-team-placeholder-avatar-32': {
     extension: 'png',
     isFont: false,
@@ -2826,6 +2917,13 @@ const iconMeta_ = {
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-team-placeholder-avatar-80.png')
+    },
+  },
+  'icon-dark-team-placeholder-avatar-960': {
+    extension: 'png',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-team-placeholder-avatar-960.png')
     },
   },
   'icon-dark-wallet-add-48': {
@@ -3889,6 +3987,27 @@ const iconMeta_ = {
     isFont: false,
     get require() {
       return require('../images/icons/icon-illustration-exploding-messages-240.png')
+    },
+  },
+  'icon-illustration-mars-rover': {
+    extension: 'png',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-illustration-mars-rover.png')
+    },
+  },
+  'icon-illustration-mars-rover-background': {
+    extension: 'png',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-illustration-mars-rover-background.png')
+    },
+  },
+  'icon-illustration-mars-rover-foreground': {
+    extension: 'png',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-illustration-mars-rover-foreground.png')
     },
   },
   'icon-illustration-stellar-payments-200-188': {
@@ -5674,71 +5793,111 @@ const iconMeta_ = {
   'icon-placeholder-avatar-192': {
     extension: 'png',
     isFont: false,
+    nameDark: 'icon-dark-placeholder-avatar-192',
     get require() {
       return require('../images/icons/icon-placeholder-avatar-192.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-placeholder-avatar-192.png')
     },
   },
   'icon-placeholder-avatar-256': {
     extension: 'png',
     isFont: false,
+    nameDark: 'icon-dark-placeholder-avatar-256',
     get require() {
       return require('../images/icons/icon-placeholder-avatar-256.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-placeholder-avatar-256.png')
     },
   },
   'icon-placeholder-avatar-32': {
     extension: 'png',
     isFont: false,
+    nameDark: 'icon-dark-placeholder-avatar-32',
     get require() {
       return require('../images/icons/icon-placeholder-avatar-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-placeholder-avatar-32.png')
     },
   },
   'icon-placeholder-avatar-960': {
     extension: 'png',
     isFont: false,
+    nameDark: 'icon-dark-placeholder-avatar-960',
     get require() {
       return require('../images/icons/icon-placeholder-avatar-960.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-placeholder-avatar-960.png')
     },
   },
   'icon-placeholder-avatar-circular-32': {
     extension: 'png',
     isFont: false,
+    nameDark: 'icon-dark-placeholder-avatar-circular-32',
     get require() {
       return require('../images/icons/icon-placeholder-avatar-circular-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-placeholder-avatar-circular-32.png')
     },
   },
   'icon-placeholder-avatar-circular-48': {
     extension: 'png',
     isFont: false,
+    nameDark: 'icon-dark-placeholder-avatar-circular-48',
     get require() {
       return require('../images/icons/icon-placeholder-avatar-circular-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-placeholder-avatar-circular-48.png')
     },
   },
   'icon-placeholder-avatar-circular-reversed-32': {
     extension: 'png',
     isFont: false,
+    nameDark: 'icon-dark-placeholder-avatar-circular-reversed-32',
     get require() {
       return require('../images/icons/icon-placeholder-avatar-circular-reversed-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-placeholder-avatar-circular-reversed-32.png')
     },
   },
   'icon-placeholder-avatar-circular-reversed-48': {
     extension: 'png',
     isFont: false,
+    nameDark: 'icon-dark-placeholder-avatar-circular-reversed-48',
     get require() {
       return require('../images/icons/icon-placeholder-avatar-circular-reversed-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-placeholder-avatar-circular-reversed-48.png')
     },
   },
   'icon-placeholder-avatar-lighter-192': {
     extension: 'png',
     isFont: false,
+    nameDark: 'icon-dark-placeholder-avatar-lighter-192',
     get require() {
       return require('../images/icons/icon-placeholder-avatar-lighter-192.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-placeholder-avatar-lighter-192.png')
     },
   },
   'icon-placeholder-avatar-lighter-256': {
     extension: 'png',
     isFont: false,
+    nameDark: 'icon-dark-placeholder-avatar-lighter-256',
     get require() {
       return require('../images/icons/icon-placeholder-avatar-lighter-256.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-placeholder-avatar-lighter-256.png')
     },
   },
   'icon-placeholder-avatar-lighter-32': {
@@ -5751,8 +5910,12 @@ const iconMeta_ = {
   'icon-placeholder-avatar-lighter-960': {
     extension: 'png',
     isFont: false,
+    nameDark: 'icon-dark-placeholder-avatar-lighter-960',
     get require() {
       return require('../images/icons/icon-placeholder-avatar-lighter-960.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-placeholder-avatar-lighter-960.png')
     },
   },
   'icon-placeholder-secret-user-16': {
@@ -6361,15 +6524,23 @@ const iconMeta_ = {
   'icon-team-placeholder-avatar-192': {
     extension: 'png',
     isFont: false,
+    nameDark: 'icon-dark-team-placeholder-avatar-192',
     get require() {
       return require('../images/icons/icon-team-placeholder-avatar-192.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-team-placeholder-avatar-192.png')
     },
   },
   'icon-team-placeholder-avatar-256': {
     extension: 'png',
     isFont: false,
+    nameDark: 'icon-dark-team-placeholder-avatar-256',
     get require() {
       return require('../images/icons/icon-team-placeholder-avatar-256.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-team-placeholder-avatar-256.png')
     },
   },
   'icon-team-placeholder-avatar-32': {
@@ -6419,8 +6590,12 @@ const iconMeta_ = {
   'icon-team-placeholder-avatar-960': {
     extension: 'png',
     isFont: false,
+    nameDark: 'icon-dark-team-placeholder-avatar-960',
     get require() {
       return require('../images/icons/icon-team-placeholder-avatar-960.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-team-placeholder-avatar-960.png')
     },
   },
   'icon-team-sparkles-64-40': {
@@ -7101,6 +7276,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-mic': {
+    charCode: 0xe99d,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-nav-2-chat': {
     charCode: 0xe97d,
     gridSize: 24,
@@ -7246,6 +7426,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-play': {
+    charCode: 0xe99e,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-proof-broken': {
     charCode: 0xe94b,
     gridSize: 16,
@@ -7363,6 +7548,11 @@ const iconMeta_ = {
   },
   'iconfont-stellar-send': {
     charCode: 0xe95b,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-stop': {
+    charCode: 0xe99f,
     gridSize: 16,
     isFont: true,
   },

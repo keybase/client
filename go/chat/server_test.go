@@ -25,7 +25,6 @@ import (
 
 	"encoding/base64"
 
-	"github.com/keybase/client/go/badges"
 	"github.com/keybase/client/go/chat/commands"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/msgchecker"
@@ -391,7 +390,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	g.ConvSource = NewHybridConversationSource(g, h.boxer, chatStorage,
 		func() chat1.RemoteInterface { return ri })
 	chatStorage.SetAssetDeleter(g.ConvSource)
-	g.InboxSource = NewHybridInboxSource(g, badges.NewBadger(g.ExternalG()),
+	g.InboxSource = NewHybridInboxSource(g,
 		func() chat1.RemoteInterface { return ri })
 	g.InboxSource.Start(context.TODO(), uid)
 	g.InboxSource.Connected(context.TODO())
@@ -2042,6 +2041,7 @@ type serverChatListener struct {
 	readMessage             chan chat1.ReadMessageInfo
 
 	threadsStale     chan []chat1.ConversationStaleUpdate
+	convUpdate       chan chat1.ConversationID
 	inboxStale       chan struct{}
 	joinedConv       chan *chat1.InboxUIItem
 	leftConv         chan chat1.ConversationID
@@ -2066,6 +2066,9 @@ func (n *serverChatListener) ChatIdentifyUpdate(update keybase1.CanonicalTLFName
 }
 func (n *serverChatListener) ChatInboxStale(uid keybase1.UID) {
 	n.inboxStale <- struct{}{}
+}
+func (n *serverChatListener) ChatConvUpdate(uid keybase1.UID, convID chat1.ConversationID) {
+	n.convUpdate <- convID
 }
 func (n *serverChatListener) ChatThreadsStale(uid keybase1.UID, cids []chat1.ConversationStaleUpdate) {
 	n.threadsStale <- cids
@@ -2171,6 +2174,7 @@ func newServerChatListener() *serverChatListener {
 		messagesUpdated:         make(chan chat1.MessagesUpdated, buf),
 
 		threadsStale:     make(chan []chat1.ConversationStaleUpdate, buf),
+		convUpdate:       make(chan chat1.ConversationID, buf),
 		inboxStale:       make(chan struct{}, buf),
 		joinedConv:       make(chan *chat1.InboxUIItem, buf),
 		leftConv:         make(chan chat1.ConversationID, buf),

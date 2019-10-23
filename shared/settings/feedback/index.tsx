@@ -120,14 +120,12 @@ class Feedback extends React.Component<Props, State> {
               </Kb.Banner>
             )}
             <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
-              <Kb.Checkbox label="" checked={this.state.sendLogs} onCheck={this._onChangeSendLogs} />
-              <Kb.Box2 direction="vertical" style={styles.textBox}>
-                <Kb.Text type="Body">Include your logs</Kb.Text>
-                <Kb.Text type="BodySmall" onClick={this._onLabelClick} style={styles.text}>
-                  This includes some private metadata info (e.g., file sizes, but not names or contents) but
-                  it will help the developers fix bugs more quickly.
-                </Kb.Text>
-              </Kb.Box2>
+              <Kb.Checkbox
+                label="Include your logs"
+                labelSubtitle="This includes some private metadata info (e.g., file sizes, but not names or contents) but it will help the developers fix bugs more quickly."
+                checked={this.state.sendLogs}
+                onCheck={this._onChangeSendLogs}
+              />
             </Kb.Box2>
             {this.props.loggedOut && (
               <Kb.Box2 direction="horizontal" fullWidth={true}>
@@ -171,9 +169,5 @@ const styles = Styles.styleSheetCreate(
       mainBox: {padding: Styles.globalMargins.small},
       outerStyle: {backgroundColor: Styles.globalColors.white},
       smallLabel: {color: Styles.globalColors.black},
-      text: Styles.platformStyles({
-        isElectron: {cursor: 'default'},
-      }),
-      textBox: {flex: 1},
     } as const)
 )

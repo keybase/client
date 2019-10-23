@@ -108,6 +108,7 @@ type putEntryOptions struct {
 	Team       string `json:"team"`
 	Namespace  string `json:"namespace"`
 	EntryKey   string `json:"entryKey"`
+	Revision   *int   `json:"revision"`
 	EntryValue string `json:"entryValue"`
 }
 
@@ -124,6 +125,9 @@ func (a *putEntryOptions) Check() error {
 	if len(a.EntryValue) == 0 {
 		return errors.New("`entryValue` field required")
 	}
+	if a.Revision != nil && *a.Revision <= 0 {
+		return errors.New("if setting optional `revision` field, it needs to be a positive integer")
+	}
 	return nil
 }
 
@@ -132,11 +136,16 @@ func (t *kvStoreAPIHandler) putEntry(ctx context.Context, c Call, w io.Writer) e
 	if err := unmarshalOptions(c, &opts); err != nil {
 		return t.encodeErr(c, err, w)
 	}
+	var revision int
+	if opts.Revision != nil {
+		revision = *opts.Revision
+	}
 	arg := keybase1.PutKVEntryArg{
 		SessionID:  0,
 		TeamName:   opts.Team,
 		Namespace:  opts.Namespace,
 		EntryKey:   opts.EntryKey,
+		Revision:   revision,
 		EntryValue: opts.EntryValue,
 	}
 	res, err := t.cli.PutKVEntry(ctx, arg)
@@ -150,6 +159,7 @@ type deleteEntryOptions struct {
 	Team      string `json:"team"`
 	Namespace string `json:"namespace"`
 	EntryKey  string `json:"entryKey"`
+	Revision  *int   `json:"revision"`
 }
 
 func (a *deleteEntryOptions) Check() error {
@@ -162,6 +172,9 @@ func (a *deleteEntryOptions) Check() error {
 	if len(a.EntryKey) == 0 {
 		return errors.New("`entryKey` field required")
 	}
+	if a.Revision != nil && *a.Revision <= 0 {
+		return errors.New("if setting optional `revision` field, it needs to be a positive integer")
+	}
 	return nil
 }
 
@@ -170,11 +183,16 @@ func (t *kvStoreAPIHandler) deleteEntry(ctx context.Context, c Call, w io.Writer
 	if err := unmarshalOptions(c, &opts); err != nil {
 		return t.encodeErr(c, err, w)
 	}
+	var revision int
+	if opts.Revision != nil {
+		revision = *opts.Revision
+	}
 	arg := keybase1.DelKVEntryArg{
 		SessionID: 0,
 		TeamName:  opts.Team,
 		Namespace: opts.Namespace,
 		EntryKey:  opts.EntryKey,
+		Revision:  revision,
 	}
 	res, err := t.cli.DelKVEntry(ctx, arg)
 	if err != nil {
@@ -229,6 +247,29 @@ func (t *kvStoreAPIHandler) encodeResult(call Call, result interface{}, w io.Wri
 	return encodeResult(call, result, w, t.indent)
 }
 
+func statusErrorCode(err error) (code int) {
+	if err == nil {
+		return 0
+	}
+	if aerr, ok := err.(libkb.AppStatusError); ok {
+		return aerr.Code
+	}
+	return 0
+}
+
 func (t *kvStoreAPIHandler) encodeErr(call Call, err error, w io.Writer) error {
-	return encodeErr(call, err, w, t.indent)
+	errorCode := statusErrorCode(err)
+	switch errorCode {
+	case 0:
+		return encodeErr(call, err, w, t.indent)
+	default:
+		// e.g. libkb.SCTeamStorageWrongRevision
+		r := Reply{
+			Error: &CallError{
+				Message: err.Error(),
+				Code:    errorCode,
+			},
+		}
+		return encodeReply(call, r, w, t.indent)
+	}
 }

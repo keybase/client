@@ -769,7 +769,9 @@ const onChatSetConvSettings = (
       conv.convSettings.minWriterRoleInfo &&
       conv.convSettings.minWriterRoleInfo.cannotWrite) ||
     false
-  logger.info(`got new minWriterRole ${role || ''} for convID ${conversationIDKey}`)
+  logger.info(
+    `got new minWriterRole ${role || ''} for convID ${conversationIDKey}, cannotWrite ${cannotWrite}`
+  )
   if (role && role !== 'none' && cannotWrite !== undefined) {
     return Chat2Gen.createSaveMinWriterRole({cannotWrite, conversationIDKey, role})
   }
@@ -953,6 +955,17 @@ const onNewChatActivity = (
     }
   }
   return actions
+}
+
+const onChatConvUpdate = (state: TypedState, action: EngineGen.Chat1NotifyChatChatConvUpdatePayload) => {
+  const {conv} = action.payload.params
+  if (conv) {
+    const meta = Constants.inboxUIItemToConversationMeta(state, conv)
+    if (meta) {
+      return [Chat2Gen.createMetasReceived({metas: [meta]})]
+    }
+  }
+  return []
 }
 
 const loadThreadMessageTypes = Object.keys(RPCChatTypes.MessageType)
@@ -3618,6 +3631,7 @@ function* chat2Saga() {
   yield* Saga.chainAction2(EngineGen.connected, onConnect, 'onConnect')
 
   yield* chatTeamBuildingSaga()
+  yield* Saga.chainAction2(EngineGen.chat1NotifyChatChatConvUpdate, onChatConvUpdate, 'onChatConvUpdate')
 }
 
 export default chat2Saga

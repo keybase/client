@@ -134,8 +134,7 @@ protocol NotifyChat {
 
   enum StaleUpdateType {
     CLEAR_0,
-    NEWACTIVITY_1,
-    CONVUPDATE_2
+    NEWACTIVITY_1
   }
 
   record ConversationStaleUpdate {
@@ -247,4 +246,8 @@ protocol NotifyChat {
   @notify("")
   @lint("ignore")
   void ChatPromptUnfurl(keybase1.UID uid, ConversationID convID, MessageID msgID, string domain);
+
+  @notify("")
+  @lint("ignore")
+  void ChatConvUpdate(keybase1.UID uid, ConversationID convID, union { null, InboxUIItem } conv);
 }

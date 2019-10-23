@@ -29,6 +29,12 @@ export const colors = {
   black_35: 'rgba(0, 0, 0, 0.35)',
   black_40: 'rgba(0, 0, 0, 0.40)',
   black_50: 'rgba(0, 0, 0, 0.50)',
+  get black_50OrBlack_40() {
+    return this.black_50
+  },
+  get black_50OrBlack_50() {
+    return this.black_50
+  },
   get black_50OrBlack_60() {
     return this.black_50
   },
@@ -88,12 +94,18 @@ export const colors = {
   fastBlank: isIOS ? '#FFFFFF' : undefined, // on iOS overdraw is eliminiated if we use white, on Android it's eliminated if it's transparent /shrug
   green: '#37BD99',
   greenDark: '#189e7a',
+  get greenDarkOrBlack() {
+    return this.greenDark
+  },
   get greenDarkOrWhite() {
     return this.greenDark
   },
   greenDarker: '#12785d',
   greenLight: '#B7EED9',
   greenLighter: '#E8FAF6',
+  get greenLighterOrGreen() {
+    return this.greenLighter
+  },
   get greenLighterOrGreenDark() {
     return this.greenLighter
   },
@@ -170,6 +182,7 @@ export const colors = {
     return this.white_40
   },
   white_40_on_white: '#FFFFFF',
+  white_60: 'rgba(255, 255, 255, 0.60)',
   white_75: 'rgba(255, 255, 255, 0.75)',
   white_75_on_white: '#FFFFFF',
   white_90: 'rgba(255, 255, 255, 0.90)',
@@ -209,6 +222,12 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   black_35: 'rgba(255, 255, 255, 0.35)',
   black_40: 'rgba(255, 255, 255, 0.40)',
   black_50: 'rgba(255, 255, 255, 0.50)',
+  get black_50OrBlack_40() {
+    return colors.black_40
+  },
+  get black_50OrBlack_50() {
+    return colors.black_50
+  },
   get black_50OrBlack_60() {
     return colors.black_60
   },
@@ -268,12 +287,18 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   fastBlank: isIOS ? '#191919' : undefined, // on iOS overdraw is eliminated if we use solid color, on Android it's eliminated if it's transparent /shrug
   green: '#37BD99',
   greenDark: '#189e7a',
+  get greenDarkOrBlack() {
+    return colors.black
+  },
   get greenDarkOrWhite() {
     return colors.white
   },
   greenDarker: '#12785d',
   greenLight: '#B7EED9',
   greenLighter: '#E8FAF6',
+  get greenLighterOrGreen() {
+    return colors.green
+  },
   get greenLighterOrGreenDark() {
     return colors.greenDark
   },
@@ -350,6 +375,7 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
     return colors.white_40
   },
   white_40_on_white: '#191919',
+  white_60: 'rgba(25, 25, 25, 0.60)',
   white_75: 'rgba(25, 25, 25, 0.75)',
   white_75_on_white: '#191919',
   white_90: 'rgba(25, 25, 25, 0.90)',

@@ -102,10 +102,6 @@ export const makeInviteInfo = I.Record<Types._InviteInfo>({
   username: '',
 })
 
-export const makeRequestInfo = I.Record<Types._RequestInfo>({
-  username: '',
-})
-
 export const emptyEmailInviteError: Readonly<Types.EmailInviteError> = Object.freeze({
   malformed: new Set<string>(),
   message: '',
@@ -158,6 +154,7 @@ const emptyState: Types.State = {
   teamAccessRequestsPending: new Set(),
   teamBuilding: TeamBuildingConstants.makeSubState(),
   teamCreationError: '',
+  teamDetails: new Map(),
   teamInviteError: '',
   teamJoinError: '',
   teamJoinSuccess: false,
@@ -479,7 +476,7 @@ const getTeamResetUsers = (state: TypedState, teamname: Types.Teamname): I.Set<T
 const getTeamLoadingInvites = (state: TypedState, teamname: Types.Teamname): I.Map<string, boolean> =>
   state.teams.teamNameToLoadingInvites.get(teamname) || I.Map<string, boolean>()
 
-const getTeamRequests = (state: TypedState, teamname: Types.Teamname): I.Set<Types.RequestInfo> =>
+const getTeamRequests = (state: TypedState, teamname: Types.Teamname): I.Set<string> =>
   state.teams.teamNameToRequests.get(teamname, I.Set())
 
 // Sorts teamnames canonically.
@@ -591,6 +588,32 @@ export const chosenChannelsGregorKey = 'chosenChannelsForTeam'
 export const isOnTeamsTab = () => {
   const path = getFullRoute()
   return Array.isArray(path) ? path.some(p => p.routeName === teamsTab) : false
+}
+
+const emptyTeamDetails: Readonly<Types.TeamDetails> = {
+  allowPromote: false,
+  isOpen: false,
+  showcasing: false,
+  teamname: '',
+}
+
+export const makeTeamDetails = (td: Partial<Types.TeamDetails>): Types.TeamDetails =>
+  td ? Object.assign({...emptyTeamDetails}, td) : emptyTeamDetails
+
+export const teamListToDetails = (
+  list: Array<RPCTypes.AnnotatedMemberInfo>
+): Map<Types.TeamID, Types.TeamDetails> => {
+  return new Map(
+    list.map(t => [
+      t.teamID,
+      {
+        allowPromote: t.allowProfilePromote,
+        isOpen: t.isOpenTeam,
+        showcasing: t.isMemberShowcased,
+        teamname: t.fqName,
+      },
+    ])
+  )
 }
 
 export {
