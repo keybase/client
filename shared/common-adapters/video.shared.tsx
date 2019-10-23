@@ -2,7 +2,14 @@ import * as React from 'react'
 import {State} from './video'
 import {Box2} from './box'
 import Text from './text'
-import {URL} from 'whatwg-url' // URL is not available in rn
+import {isMobile} from '../constants/platform'
+
+let URL = isMobile
+  ? function() {
+      // @ts-ignore
+      this.hostname = ''
+    }
+  : false
 
 type Size = {
   height: number
