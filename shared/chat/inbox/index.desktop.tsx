@@ -8,7 +8,7 @@ import BigTeamsDivider from './row/big-teams-divider/container'
 import BuildTeam from './row/build-team/container'
 import TeamsDivider from './row/teams-divider/container'
 import UnreadShortcut from './unread-shortcut'
-import {ErrorBoundary} from '../../common-adapters'
+import * as Kb from '../../common-adapters'
 import {VariableSizeList} from 'react-window'
 import debounce from 'lodash/debounce'
 import throttle from 'lodash/throttle'
@@ -22,6 +22,27 @@ type State = {
   showFloating: boolean
   showUnread: boolean
 }
+
+const widths = [10, 80, 2, 66]
+const stableWidth = idx => 160 + -widths[idx % widths.length]
+
+const FakeRow = ({idx}) => (
+  <Kb.Box2 direction="horizontal" style={styles.fakeRow}>
+    <Kb.Box2 direction="vertical" style={styles.fakeAvatar} />
+    <Kb.Box2 direction="vertical" style={styles.fakeText}>
+      <Kb.Box2
+        direction="vertical"
+        style={Styles.collapseStyles([styles.fakeTextTop, {width: stableWidth(idx) / 4}])}
+        alignSelf="flex-start"
+      />
+      <Kb.Box2
+        direction="vertical"
+        style={Styles.collapseStyles([styles.fakeTextBottom, {width: stableWidth(idx)}])}
+        alignSelf="flex-start"
+      />
+    </Kb.Box2>
+  </Kb.Box2>
+)
 
 class Inbox extends React.Component<T.Props, State> {
   state = {
@@ -94,34 +115,15 @@ class Inbox extends React.Component<T.Props, State> {
     }
     const divStyle = Styles.collapseStyles([style, virtualListMarks && styles.divider])
     if (row.type === 'divider') {
-      const expandingRows = new Array(Math.max(0, Math.floor(this.state.dragY / 60) - index))
+      const expandingRows = new Array(Math.max(0, Math.floor(this.state.dragY / 60) - index)).fill('')
       return (
         <div style={{...divStyle, position: 'relative'}} draggable={true}>
-          <div
-            style={{
-              backgroundColor: Styles.globalColors.blue,
-              height: 2,
-              left: 8,
-              position: 'absolute',
-              right: 8,
-              top: 32,
-            }}
-          />
-          <div
-            style={{
-              backgroundColor: Styles.globalColors.blue,
-              height: 2,
-              left: 8,
-              position: 'absolute',
-              right: 8,
-              top: 36,
-            }}
-          />
+          <div style={Styles.collapseStyles([styles.grabber, {top: 32}])} />
+          <div style={Styles.collapseStyles([styles.grabber, {top: 36}])} />
           {this.state.dragY !== -1 && (
-            <div
+            <Kb.Box2
+              direction="vertical"
               style={{
-                flexDirection: 'flex-column',
-                display: 'flex',
                 backgroundColor: Styles.globalColors.grey,
                 height: expandingRows.length * 60,
                 left: 0,
@@ -131,17 +133,9 @@ class Inbox extends React.Component<T.Props, State> {
               }}
             >
               {expandingRows.map((_, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    backgroundColor: 'red',
-                    border: 'dashed rgba(0,0,0,1) 1px',
-                    width: '100%',
-                    height: 60,
-                  }}
-                />
+                <FakeRow idx={idx} key={idx} />
               ))}
-            </div>
+            </Kb.Box2>
           )}
           <TeamsDivider
             key="divider"
@@ -272,7 +266,7 @@ class Inbox extends React.Component<T.Props, State> {
       <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
     )
     return (
-      <ErrorBoundary>
+      <Kb.ErrorBoundary>
         <div style={styles.container}>
           <div style={styles.list} onDragOver={this.onDragOver} onDrop={this.onDrop} ref={this.dragList}>
             <AutoSizer>
@@ -298,30 +292,81 @@ class Inbox extends React.Component<T.Props, State> {
             <UnreadShortcut onClick={this.scrollToUnread} />
           )}
         </div>
-      </ErrorBoundary>
+      </Kb.ErrorBoundary>
     )
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: Styles.platformStyles({
-    isElectron: {
-      ...Styles.globalStyles.flexBoxColumn,
-      backgroundColor: Styles.globalColors.blueGrey,
-      contain: 'strict',
-      height: '100%',
-      maxWidth: inboxWidth,
-      minWidth: inboxWidth,
-      position: 'relative',
-    },
-  }),
-  divider: {
-    backgroundColor: 'purple',
-    overflow: 'hidden',
-  },
-  hover: {backgroundColor: Styles.globalColors.blueGreyDark},
-  list: {flex: 1},
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: Styles.platformStyles({
+        isElectron: {
+          ...Styles.globalStyles.flexBoxColumn,
+          backgroundColor: Styles.globalColors.blueGrey,
+          contain: 'strict',
+          height: '100%',
+          maxWidth: inboxWidth,
+          minWidth: inboxWidth,
+          position: 'relative',
+        },
+      }),
+      divider: {
+        backgroundColor: 'purple',
+        overflow: 'hidden',
+      },
+      fakeAvatar: Styles.platformStyles({
+        isElectron: {
+          backgroundColor: Styles.globalColors.black_40,
+          borderRadius: '50%',
+          height: 48,
+          marginLeft: 8,
+          width: 48,
+        },
+      }),
+      fakeRow: Styles.platformStyles({
+        isElectron: {
+          backgroundColor: Styles.globalColors.grey,
+          borderBottom: `dashed ${Styles.globalColors.black_10} 1px`,
+          height: 60,
+          width: '100%',
+        },
+      }),
+      fakeText: {
+        flexGrow: 1,
+        height: '100%',
+        justifyContent: 'space-around',
+        padding: 8,
+      },
+      fakeTextBottom: Styles.platformStyles({
+        isElectron: {
+          backgroundColor: Styles.globalColors.black_40,
+          borderRadius: 8,
+          height: 12,
+          width: '75%',
+        },
+      }),
+      fakeTextTop: Styles.platformStyles({
+        isElectron: {
+          backgroundColor: Styles.globalColors.black_40,
+          borderRadius: 8,
+          height: 12,
+          width: '25%',
+        },
+      }),
+      grabber: {
+        backgroundColor: Styles.globalColors.black_40,
+        borderRadius: Styles.borderRadius,
+        boxShadow: Styles.desktopStyles.boxShadow,
+        height: 2,
+        left: 8,
+        position: 'absolute',
+        right: 8,
+      },
+      hover: {backgroundColor: Styles.globalColors.blueGreyDark},
+      list: {flex: 1},
+    } as const)
+)
 
 export type RowItem = T.RowItem
 export type RowItemSmall = T.RowItemSmall
