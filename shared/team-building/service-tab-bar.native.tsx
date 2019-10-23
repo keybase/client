@@ -88,15 +88,27 @@ const ServiceIcon = (props: IconProps) => {
 
 const undefToNull = (n: number | undefined | null): number | null => (n === undefined ? null : n)
 
+const delay = (after: Kb.ReAnimated.Adaptable<number>) => {
+  const {greaterOrEq, Clock, Value, startClock, stopClock, cond, set, defined, block, add} = Kb.ReAnimated
+  const clock = new Clock()
+  const time = new Value(400)
+  const when = new Value()
+  return block([
+    startClock(clock),
+    cond(defined(when), 0, [set(when, add(clock, time))]),
+    cond(greaterOrEq(clock, when), [stopClock(clock), after], 0),
+  ])
+}
+
 const initialBounce = () => {
   const {Clock, Value, startClock, stopClock, cond, spring, block, SpringUtils} = Kb.ReAnimated
   const clock = new Clock()
 
   const state = {
     finished: new Value(0),
-    position: new Value(100),
+    position: new Value(0),
     time: new Value(0),
-    velocity: new Value(0),
+    velocity: new Value(800),
   }
 
   const config = {
@@ -104,12 +116,14 @@ const initialBounce = () => {
     toValue: new Value(0),
   }
 
-  return block([
-    startClock(clock),
-    spring(clock, state, config),
-    cond(state.finished, stopClock(clock)),
-    state.position,
-  ])
+  return delay(
+    block([
+      startClock(clock),
+      spring(clock, state, config),
+      cond(state.finished, stopClock(clock)),
+      state.position,
+    ])
+  )
 }
 
 export class ServiceTabBar extends React.Component<Props> {
@@ -124,7 +138,7 @@ export class ServiceTabBar extends React.Component<Props> {
 
     const height = Kb.ReAnimated.interpolate(props.offset, {
       inputRange: [-9999, 0, 100, 9999],
-      outputRange: [72, 72, 40, 40],
+      outputRange: [72, 72, 32, 32],
     })
 
     return (
@@ -132,6 +146,8 @@ export class ServiceTabBar extends React.Component<Props> {
         horizontal={true}
         showsHorizontalScrollIndicator={false}
         scrollEventThrottle={1000}
+        keybaseDismissMode="on-drag"
+        keyboardShouldPersistTaps="handled"
         style={{
           flexGrow: 0,
           flexShrink: 0,
