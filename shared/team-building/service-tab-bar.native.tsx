@@ -36,7 +36,7 @@ const ServiceIcon = (props: IconProps) => {
     outputRange: [bigWidth + 5, bigWidth + 5, bigWidth, smallWidth, smallWidth],
   })
   return (
-    <Kb.ClickableBox onClick={props.onClick}>
+    <Kb.ClickableBox onClick={props.onClick} style={{position: 'relative', height: '100%'}}>
       <AnimatedBox2 direction="vertical" style={[styles.serviceIconContainer, {width}]}>
         <Kb.Box2 direction="vertical" style={{position: 'relative'}}>
           {serviceIdToBadge(props.service) && (
@@ -152,7 +152,11 @@ export class ServiceTabBar extends React.Component<Props> {
         scrollEventThrottle={1000}
         keyboardDismissMode="on-drag"
         keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{height: '100%'}}
         style={{
+          borderBottomColor: Styles.globalColors.black_10,
+          borderBottomWidth: 1,
+          borderStyle: 'solid',
           flexGrow: 0,
           flexShrink: 0,
           height,
@@ -183,7 +187,10 @@ const styles = Styles.styleSheetCreate(
     ({
       activeTabBar: {
         backgroundColor: Styles.globalColors.blue,
+        bottom: 0,
         height: 2,
+        position: 'absolute',
+        width: '100%',
       },
       badgeContainerStyle: {
         position: 'absolute',
@@ -195,7 +202,9 @@ const styles = Styles.styleSheetCreate(
       inactiveTabBar: {
         borderBottomWidth: 1,
         borderColor: Styles.globalColors.black_10,
+        bottom: 0,
         height: 2,
+        position: 'absolute',
       },
       labelContainer: {
         marginTop: Styles.globalMargins.xtiny,
@@ -205,7 +214,6 @@ const styles = Styles.styleSheetCreate(
       serviceIconContainer: {
         alignSelf: 'center',
         height: '100%',
-        paddingBottom: Styles.globalMargins.tiny,
         paddingTop: Styles.globalMargins.tiny,
         position: 'relative',
       },
