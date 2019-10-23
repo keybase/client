@@ -28,7 +28,7 @@ const scale = 2
 const locationMapWidth = 640
 const locationMapHeight = 350
 const liveMapWidth = 640
-const liveMapHeight = 270
+const liveMapHeight = 350
 const liveMapWidthScaled = liveMapWidth / scale
 const liveMapHeightScaled = liveMapHeight / scale
 
@@ -61,17 +61,16 @@ func GetLiveMapURL(ctx context.Context, apiKeySource types.ExternalAPIKeySource,
 	}
 	var pathStr, centerStr string
 	last := coords[len(coords)-1]
+	centerStr = fmt.Sprintf("center=%f,%f&", last.Lat, last.Lon)
 	if len(coords) > 1 {
-		pathStr = "path=color:0xff0000ff|weight:3"
+		pathStr = "path=color:0x4c8effff|weight:5"
 		for _, c := range coords {
 			pathStr += fmt.Sprintf("|%f,%f", c.Lat, c.Lon)
 		}
 		pathStr += "&"
-	} else {
-		centerStr = fmt.Sprintf("center=%f,%f&", last.Lat, last.Lon)
 	}
 	url := fmt.Sprintf(
-		"https://%s/maps/api/staticmap?%s%smarkers=color:red%%7Csize:tiny%%7C%f,%f&size=%dx%d&scale=%d&key=%s",
+		"https://%s/maps/api/staticmap?zoom=15&%s%smarkers=color:red%%7C%f,%f&size=%dx%d&scale=%d&key=%s",
 		MapsProxy, centerStr, pathStr, last.Lat, last.Lon, liveMapWidthScaled,
 		liveMapHeightScaled, scale, key.Googlemaps())
 	return url, nil
@@ -138,4 +137,8 @@ func MapReaderFromURL(ctx context.Context, url string) (res io.ReadCloser, lengt
 		return res, length, err
 	}
 	return resp.Body, resp.ContentLength, nil
+}
+
+func MapMarkerFromUsername(ctx context.Context, username string) (res io.ReadCloser, length int64, err error) {
+
 }

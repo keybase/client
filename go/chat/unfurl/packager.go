@@ -284,14 +284,12 @@ func (p *Packager) packageMaps(ctx context.Context, uid gregor1.UID, convID chat
 	}
 	defer locReader.Close()
 	if mapsRaw.HistoryImageUrl != nil {
-		liveReader, _, err := maps.MapReaderFromURL(ctx, *mapsRaw.HistoryImageUrl)
+		liveReader, liveLength, err := maps.MapReaderFromURL(ctx, *mapsRaw.HistoryImageUrl)
 		if err != nil {
 			return res, err
 		}
-		defer liveReader.Close()
-		if reader, length, err = maps.CombineMaps(ctx, locReader, liveReader); err != nil {
-			return res, err
-		}
+		reader = liveReader
+		length = liveLength
 	} else {
 		reader = locReader
 		length = locLength
