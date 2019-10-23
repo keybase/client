@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import * as React from 'react'
 import * as Kb from '../../../common-adapters/mobile.native'
 import * as Types from '../../../constants/types/chat2'
@@ -50,10 +51,7 @@ const AudioRecorder = (props: Props) => {
       clearTimeout(timerRef.current)
       timerRef.current = null
     }
-  }, [audioRecording, startRecording])
-  const setVisibleFalseLater = Kb.useTimeout(() => {
-    setVisible(false)
-  }, 400)
+  }, [audioRecording])
 
   // render
   const noShow = !Constants.showAudioRecording(audioRecording)
@@ -62,7 +60,7 @@ const AudioRecorder = (props: Props) => {
     setClosingDown(false)
   } else if (visible && noShow && !closingDown) {
     setClosingDown(true)
-    setVisibleFalseLater()
+    setTimeout(() => setVisible(false), 400)
   }
   const locked = audioRecording ? audioRecording.isLocked : false
   return !visible ? null : (
@@ -122,7 +120,7 @@ const AudioButton = (props: ButtonProps) => {
       ],
       {stopTogether: false}
     ).start()
-  })
+  }, [])
   React.useEffect(() => {
     if (!props.closeDown && props.lastAmp >= minAmp) {
       Kb.NativeAnimated.timing(ampScale, {
@@ -131,7 +129,7 @@ const AudioButton = (props: ButtonProps) => {
         useNativeDriver: true,
       }).start()
     }
-  }, [props.closeDown, props.lastAmp, ampScale])
+  }, [props.closeDown, props.lastAmp])
   React.useEffect(() => {
     if (props.locked) {
       Kb.NativeAnimated.timing(sendTranslate, {
@@ -140,7 +138,7 @@ const AudioButton = (props: ButtonProps) => {
         useNativeDriver: true,
       }).start()
     }
-  }, [props.locked, sendTranslate])
+  }, [props.locked])
   React.useEffect(() => {
     if (props.closeDown) {
       Kb.NativeAnimated.parallel(
@@ -174,7 +172,7 @@ const AudioButton = (props: ButtonProps) => {
         {stopTogether: false}
       ).start()
     }
-  }, [props.closeDown, ampScale, innerScale, outerScale, lockTranslate, sendTranslate])
+  }, [props.closeDown])
 
   const innerSize = 28
   const ampSize = 34
@@ -331,7 +329,7 @@ const AudioSlideToCancel = (props: CancelProps) => {
       toValue: 1,
       useNativeDriver: true,
     }).start()
-  })
+  }, [])
   React.useEffect(() => {
     if (props.closeDown) {
       Kb.NativeAnimated.timing(translate, {
@@ -340,7 +338,7 @@ const AudioSlideToCancel = (props: CancelProps) => {
         useNativeDriver: true,
       }).start()
     }
-  }, [props.closeDown, translate])
+  }, [props.closeDown])
   return props.locked ? (
     <Kb.Text type="BodyPrimaryLink" onClick={props.onCancel} style={{marginLeft: 30}}>
       Cancel

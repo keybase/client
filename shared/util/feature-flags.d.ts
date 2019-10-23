@@ -1,6 +1,7 @@
 export type FeatureFlags = {
   admin: boolean
   airdrop: boolean
+  audioAttachments: boolean
   chatIndexProfilingEnabled: boolean
   conflictResolution: boolean
   dbCleanEnabled: boolean
@@ -15,7 +16,6 @@ export type FeatureFlags = {
   resetPipeline: boolean
   stellarExternalPartners: boolean
   lagRadar: boolean
-  audioAttachments: boolean
 }
 
 declare const ff: FeatureFlags
