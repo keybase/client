@@ -99,6 +99,7 @@ class LoginRender extends React.Component<Props> {
               Problems logging in?
             </Kb.Text>
           </Kb.UserCard>
+          <Kb.Box2 direction="vertical" style={{backgroundColor: 'red', flex: 1}} />
           <Kb.Button
             fullWidth={true}
             label="Create an account"
