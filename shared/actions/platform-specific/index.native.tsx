@@ -713,7 +713,7 @@ const startAudioRecording = async (
   await requestAudioPermission()
   const conversationIDKey = action.payload.conversationIDKey
   const outboxID = ChatConstants.generateOutboxID()
-  const audioPath = await RPCChatTypes.localGetUploadTempFileRpcPromise({filename: 'audio.aac', outboxID})
+  const audioPath = await RPCChatTypes.localGetUploadTempFileRpcPromise({filename: 'audio.m4a', outboxID})
   AudioRecorder.prepareRecordingAtPath(audioPath, {
     SampleRate: 22050,
     Channels: 1,

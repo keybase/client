@@ -132,6 +132,11 @@ const AudioButton = (props: ButtonProps) => {
     if (props.closeDown) {
       Kb.NativeAnimated.parallel(
         [
+          Kb.NativeAnimated.timing(outerScale, {
+            duration: 400,
+            toValue: 0,
+            useNativeDriver: true,
+          }),
           Kb.NativeAnimated.timing(innerScale, {
             duration: 400,
             toValue: 0,
@@ -319,7 +324,14 @@ const AudioSlideToCancel = (props: CancelProps) => {
   ) : (
     <Kb.NativeAnimated.View
       style={{
-        transform: [{translateX: translate.interpolate({inputRange: [0, 1], outputRange: [100, 0]})}],
+        transform: [
+          {
+            translateX: translate.interpolate({
+              inputRange: [0, 1],
+              outputRange: [100, props.closeDown ? -100 : 0],
+            }),
+          },
+        ],
       }}
     >
       <Kb.Box2 direction="horizontal" gap="tiny">

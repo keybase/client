@@ -340,7 +340,13 @@ const AudioStarter = (props: AudioStarterProps) => {
         if (nativeEvent.state === Kb.GestureState.ACTIVE || nativeEvent.state === Kb.GestureState.END) {
           clearTimeout(longPressTimer)
           if (props.recording) {
-            props.stopRecording(Types.AudioStopType.RELEASE)
+            if (nativeEvent.x < -150) {
+              props.stopRecording(Types.AudioStopType.CANCEL)
+            } else if (nativeEvent.y < -100) {
+              props.lockRecording()
+            } else {
+              props.stopRecording(Types.AudioStopType.RELEASE)
+            }
           }
         }
         //console.log('GEST: TAP: EVENT: ' + JSON.stringify(nativeEvent))
