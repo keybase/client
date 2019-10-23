@@ -8,6 +8,9 @@
 // eslint-disable-next-line
 const {getDefaultConfig} = require('metro-config')
 const blacklist = require('metro-config/src/defaults/blacklist')
+const modulePaths = require('./initialRNPackages')
+const fs = require('fs')
+const resolve = require('path').resolve
 
 module.exports = (async () => {
   const {
@@ -20,12 +23,21 @@ module.exports = (async () => {
     },
     transformer: {
       babelTransformerPath: require.resolve('./rn-css-transformer.js'),
-      getTransformOptions: async () => ({
-        transform: {
-          experimentalImportSupport: false,
-          inlineRequires: true,
-        },
-      }),
+      getTransformOptions: async () => {
+        const moduleMap = {}
+        modulePaths.forEach(path => {
+          if (fs.existsSync(path)) {
+            moduleMap[resolve(path)] = true
+          }
+        })
+        return {
+          preloadedModules: moduleMap,
+          transform: {
+            experimentalImportSupport: false,
+            inlineRequires: {blacklist: moduleMap},
+          },
+        }
+      },
     },
   }
 })()
