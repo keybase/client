@@ -262,6 +262,8 @@ export type TypedActionsMap = {
   'config:updateWindowState': config.UpdateWindowStatePayload
   'config:setUseNativeFrame': config.SetUseNativeFramePayload
   'config:setWhatsNewLastSeenVersion': config.SetWhatsNewLastSeenVersionPayload
+  'config:loadNixOnLoginStartup': config.LoadNixOnLoginStartupPayload
+  'config:loadedNixOnLoginStartup': config.LoadedNixOnLoginStartupPayload
   'deeplinks:handleKeybaseLink': deeplinks.HandleKeybaseLinkPayload
   'deeplinks:link': deeplinks.LinkPayload
   'deeplinks:setKeybaseLinkError': deeplinks.SetKeybaseLinkErrorPayload

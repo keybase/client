@@ -381,8 +381,7 @@ const setOpenAtLogin = async (state: Container.TypedState) => {
     },
   })
 
-  if (__DEV__)
-    return;
+  if (__DEV__) return
   if (isLinux) {
     const enabled =
       (await RPCTypes.ctlGetNixOnLoginStartupRpcPromise()) === RPCTypes.OnLoginStartupStatus.enabled
