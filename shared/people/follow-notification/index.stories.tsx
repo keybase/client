@@ -14,7 +14,9 @@ const singleFollowProps1 = {
 
 const singleContactProps = {
   badged: true,
-  newFollows: [C.makeFollowedNotification({username: 'mmaxim', contactDescription: 'Mike from basketball'})],
+  newFollows: [
+    C.makeFollowedNotification({contactDescription: 'Ja[ck]ob without the hair', username: 'jakob223'}),
+  ],
   notificationTime: new Date(),
   onClickUser: Sb.action('onClickUser'),
   type: 'contact' as const,
