@@ -179,10 +179,8 @@ func (e *PGPPushPrivate) push(m libkb.MetaContext, fp libkb.PGPFingerprint, tty 
 		return err
 	}
 
-	err = e.remove(m, fs, linkpath)
-	if err != nil {
-		return err
-	}
+	// This error is fine to ignore, removal might not work if we've never done this before.
+	_ = e.remove(m, fs, linkpath)
 
 	err = e.link(m, fs, filename, linkpath)
 	return err
