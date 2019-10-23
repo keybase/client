@@ -143,7 +143,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
           )
           wordRegex = new RegExp(` (?=${markers.join('|')})`, 'g')
         } else {
-          wordRegex = ' '
+          wordRegex = / |\n/
         }
         const words = upToCursor.split(wordRegex)
         const word = words[words.length - 1]
