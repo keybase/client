@@ -10,29 +10,37 @@ type Action = {
 type Props = {
   actions: Array<Action>
   image: string
+  loadTeam: (() => void) | null
   teamname: string
   text: string
 }
 
-const TeamJourney = (props: Props) => (
-  <>
-    <TeamJourneyHeader teamname={props.teamname} />
-    <Kb.Box2 key="content" direction="vertical" fullWidth={true} style={styles.content}>
-      <Kb.Text type="Body">{props.text}</Kb.Text>
-      <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.actionsBox}>
-        {props.actions.map(action => (
-          <Kb.Button
-            small={true}
-            type="Default"
-            mode="Secondary"
-            label={action.label}
-            onClick={action.onClick}
-          />
-        ))}
+const TeamJourney = (props: Props) => {
+  // Load the team once on mount for its channel list if required.
+  React.useEffect(() => {
+    props.loadTeam !== null && props.loadTeam()
+  }, [])
+  return (
+    <>
+      <TeamJourneyHeader teamname={props.teamname} />
+      <Kb.Box2 key="content" direction="vertical" fullWidth={true} style={styles.content}>
+        <Kb.Text type="Body">{props.text}</Kb.Text>
+        <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.actionsBox}>
+          {props.actions.map(action => (
+            <Kb.Button
+              key={action.label}
+              small={true}
+              type="Default"
+              mode="Secondary"
+              label={action.label}
+              onClick={action.onClick}
+            />
+          ))}
+        </Kb.Box2>
       </Kb.Box2>
-    </Kb.Box2>
-  </>
-)
+    </>
+  )
+}
 
 type HeaderProps = {
   teamname: string
