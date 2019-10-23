@@ -154,7 +154,7 @@ func (e *PGPPushPrivate) linkExists(m libkb.MetaContext, fs *keybase1.SimpleFSCl
 		RefreshSubscription: false,
 	})
 	if err != nil {
-		m.Debug("error type %T, but assuming that the file doesn't exist", err)
+		m.Debug("error accessing %s; assuming that the file doesn't exist (%s)", file, err.Error())
 		return false, nil
 	}
 	if dirent.DirentType != keybase1.DirentType_SYM {
