@@ -1652,7 +1652,7 @@
     },
     {
       "type": "enum",
-      "name": "MessageUnboxedJourneyCardType",
+      "name": "JourneycardType",
       "symbols": [
         "WELCOME_0",
         "POPULAR_CHANNELS_1",
@@ -1666,15 +1666,23 @@
     },
     {
       "type": "record",
-      "name": "MessageUnboxedJourneyCard",
+      "name": "MessageUnboxedJourneycard",
       "fields": [
         {
-          "type": "MessageUnboxedJourneyCardType",
+          "type": "MessageID",
+          "name": "prevID"
+        },
+        {
+          "type": "int",
+          "name": "ordinal"
+        },
+        {
+          "type": "JourneycardType",
           "name": "cardType"
         },
         {
-          "type": "string",
-          "name": "data"
+          "type": "MessageID",
+          "name": "highlightMsgID"
         }
       ]
     },
@@ -1719,7 +1727,7 @@
             "name": "JOURNEYCARD",
             "def": false
           },
-          "body": "MessageUnboxedJourneyCard"
+          "body": "MessageUnboxedJourneycard"
         }
       ]
     },
