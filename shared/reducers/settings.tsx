@@ -19,8 +19,6 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
   switch (action.type) {
     case SettingsGen.resetStore:
       return initialState
-    case SettingsGen.setAllowDeleteAccount:
-      return state.merge({allowDeleteAccount: action.payload.allow})
     case SettingsGen.notificationsToggle: {
       if (!state.notifications.groups.get('email')) {
         logger.warn('Trying to toggle while not loaded')
