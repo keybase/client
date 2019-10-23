@@ -182,7 +182,7 @@ helpers.rootLinuxNode(env, {
               sh "git add -A"
               // Generate protocols
               dir ('protocol') {
-                sh "npm i"
+                sh "yarn --frozen-lockfile"
                 sh "make clean"
                 sh "make"
               }
