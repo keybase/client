@@ -84,6 +84,8 @@ type Asset struct {
 	WithdrawType       string `codec:"withdrawType" json:"withdrawType"`
 	TransferServer     string `codec:"transferServer" json:"transferServer"`
 	AuthEndpoint       string `codec:"authEndpoint" json:"authEndpoint"`
+	DepositReqAuth     bool   `codec:"depositReqAuth" json:"depositReqAuth"`
+	WithdrawReqAuth    bool   `codec:"withdrawReqAuth" json:"withdrawReqAuth"`
 }
 
 func (o Asset) DeepCopy() Asset {
@@ -103,6 +105,8 @@ func (o Asset) DeepCopy() Asset {
 		WithdrawType:       o.WithdrawType,
 		TransferServer:     o.TransferServer,
 		AuthEndpoint:       o.AuthEndpoint,
+		DepositReqAuth:     o.DepositReqAuth,
+		WithdrawReqAuth:    o.WithdrawReqAuth,
 	}
 }
 
