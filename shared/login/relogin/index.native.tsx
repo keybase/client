@@ -89,25 +89,23 @@ class LoginRender extends React.Component<Props> {
             >
               Forgot password?
             </Kb.Text>
+            <Kb.Text
+              style={{
+                alignSelf: 'center',
+              }}
+              type="BodySmallSecondaryLink"
+              onClick={this.props.onFeedback}
+            >
+              Problems logging in?
+            </Kb.Text>
           </Kb.UserCard>
-          <Kb.Text
-            style={{marginTop: Styles.globalMargins.xlarge}}
-            type="BodyBigLink"
+          <Kb.Button
+            fullWidth={true}
+            label="Create an account"
+            mode="Secondary"
+            style={{margin: Styles.globalMargins.small}}
             onClick={this.props.onSignup}
-          >
-            Create an account
-          </Kb.Text>
-          <Kb.Text
-            style={{
-              alignSelf: 'center',
-              margin: Styles.globalMargins.small,
-              marginTop: Styles.globalMargins.large,
-            }}
-            type="BodySmallSecondaryLink"
-            onClick={this.props.onFeedback}
-          >
-            Problems logging in?
-          </Kb.Text>
+          />
         </Kb.Box>
       </Kb.NativeScrollView>
     )
