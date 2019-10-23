@@ -113,6 +113,7 @@ export const makeAttachmentViewInfo = (): Types.AttachmentViewInfo => ({
 export const initialAttachmentViewInfo = makeAttachmentViewInfo()
 
 export const makeAudioRecordingInfo = (): Types.AudioRecordingInfo => ({
+  isLocked: false,
   outboxID: new Buffer('hex'),
   path: '',
   recordStart: 0,
@@ -123,8 +124,13 @@ export const showAudioRecording = (audioRecording: Types.AudioRecordingInfo | un
   return !(
     !audioRecording ||
     audioRecording.status === Types.AudioRecordingStatus.STOPPED ||
-    audioRecording.status === Types.AudioRecordingStatus.STAGED
+    audioRecording.status === Types.AudioRecordingStatus.STAGED ||
+    audioRecording.status === Types.AudioRecordingStatus.CANCELLED
   )
+}
+
+export const isCancelledAudioRecording = (audioRecording: Types.AudioRecordingInfo | undefined) => {
+  return audioRecording && audioRecording.status === Types.AudioRecordingStatus.CANCELLED
 }
 
 export const getInboxSearchSelected = (inboxSearch: Types.InboxSearchInfo) => {

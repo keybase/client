@@ -20,7 +20,7 @@ const AudioRecorder = (props: Props) => {
   const {audioRecording} = Container.useSelector(state => ({
     audioRecording: state.chat2.audioRecording.get(conversationIDKey),
   }))
-  const noShow = !Constants.showAudioRecording(audioRecording)
+  const timerRef = React.useRef<NodeJS.Timeout | null>(null)
 
   // dispatch
   const dispatch = Container.useDispatch()
@@ -38,12 +38,16 @@ const AudioRecorder = (props: Props) => {
   }
   // lifecycle
   React.useEffect(() => {
-    if (audioRecording && audioRecording.status === Types.AudioRecordingStatus.INITIAL) {
-      setTimeout(() => startRecording(setLastAmp), 400)
+    if (!timerRef.current && audioRecording && audioRecording.status === Types.AudioRecordingStatus.INITIAL) {
+      timerRef.current = setTimeout(() => startRecording(setLastAmp), 400)
+    } else if (!Constants.showAudioRecording(audioRecording) && timerRef.current) {
+      clearTimeout(timerRef.current)
+      timerRef.current = null
     }
   }, [audioRecording])
 
   // render
+  const noShow = !Constants.showAudioRecording(audioRecording)
   if (!visible && !noShow) {
     setVisible(true)
     setClosingDown(false)
@@ -51,7 +55,7 @@ const AudioRecorder = (props: Props) => {
     setClosingDown(true)
     setTimeout(() => setVisible(false), 400)
   }
-  const locked = audioRecording ? audioRecording.status === Types.AudioRecordingStatus.LOCKED : false
+  const locked = audioRecording ? audioRecording.isLocked : false
   return !visible ? null : (
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
       <AudioButton
@@ -148,6 +152,11 @@ const AudioButton = (props: ButtonProps) => {
             useNativeDriver: true,
           }),
           Kb.NativeAnimated.timing(lockTranslate, {
+            duration: 400,
+            toValue: 0,
+            useNativeDriver: true,
+          }),
+          Kb.NativeAnimated.timing(sendTranslate, {
             duration: 400,
             toValue: 0,
             useNativeDriver: true,
@@ -261,7 +270,7 @@ const AudioButton = (props: ButtonProps) => {
 
       {!props.locked ? (
         <Kb.Icon
-          type="iconfont-star"
+          type="iconfont-mic"
           fontSize={22}
           color={Styles.globalColors.white}
           style={{position: 'absolute', bottom: 19, right: 46}}

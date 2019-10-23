@@ -335,6 +335,7 @@ const AudioStarter = (props: AudioStarterProps) => {
         console.log('GEST: TAP: EVENT: ' + JSON.stringify(nativeEvent))
         if (!props.recording && nativeEvent.state === Kb.GestureState.BEGAN) {
           if (!longPressTimer) {
+            console.log('GEST: setting timeout')
             longPressTimer = setTimeout(props.startRecording, 200)
           }
         }
@@ -386,7 +387,7 @@ const AudioStarter = (props: AudioStarterProps) => {
         }}
       >
         <Kb.NativeView>
-          <Kb.Icon type="iconfont-star" style={styles.actionButton} fontSize={22} />
+          <Kb.Icon type="iconfont-mic" style={styles.actionButton} fontSize={22} />
         </Kb.NativeView>
       </Kb.PanGestureHandler>
     </Kb.TapGestureHandler>

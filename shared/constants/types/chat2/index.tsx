@@ -114,9 +114,9 @@ export type Coordinate = {
 export enum AudioRecordingStatus {
   INITIAL = 0,
   RECORDING,
-  LOCKED,
   STAGED,
   STOPPED,
+  CANCELLED,
 }
 
 export enum AudioStopType {
@@ -131,6 +131,7 @@ export type AudioRecordingInfo = {
   outboxID: Buffer
   path: string
   recordStart: number
+  isLocked: boolean
 }
 
 export type State = Readonly<{

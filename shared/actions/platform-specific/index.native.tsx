@@ -711,7 +711,8 @@ const startAudioRecording = async (
   logger: Saga.SagaLogger
 ) => {
   const conversationIDKey = action.payload.conversationIDKey
-  if (!state.chat2.audioRecording.get(conversationIDKey)) {
+  const audio = state.chat2.audioRecording.get(conversationIDKey)
+  if (!audio || ChatConstants.isCancelledAudioRecording(audio)) {
     logger.info('startAudioRecording: no recording info set, bailing')
     return false
   }
@@ -744,24 +745,27 @@ const stopAudioRecording = async (
 ) => {
   const conversationIDKey = action.payload.conversationIDKey
   if (state.chat2.audioRecording) {
+    // don't do anything if we are recording and are in locked mode.
     const audio = state.chat2.audioRecording.get(conversationIDKey)
-    if (audio && audio.status === Types.AudioRecordingStatus.LOCKED) {
+    if (audio && ChatConstants.showAudioRecording(audio) && audio.isLocked) {
       return false
     }
-  }
-  if (!state.chat2.audioRecording) {
-    return false
   }
   logger.info('stopAudioRecording: stopping recording')
   try {
     await AudioRecorder.stopRecording()
   } catch (e) {}
+
+  if (!state.chat2.audioRecording) {
+    return false
+  }
   if (action.payload.stopType === Types.AudioStopType.CANCEL) {
     logger.info('stopAudioRecording: recording canceled, not sending')
     return false
   }
   const audio = state.chat2.audioRecording.get(conversationIDKey)
   if (!audio) {
+    logger.info('stopAudioRecording: no audio record, not sending')
     return false
   }
   if (audio.status === Types.AudioRecordingStatus.STAGED) {
