@@ -160,9 +160,6 @@
     "onUpdatedPGPSettings": {
       "hasKeys": "boolean"
     },
-    "setAllowDeleteAccount": {
-      "allow": "boolean"
-    },
     "stop": {
       "exitCode": "RPCTypes.ExitCode"
     },

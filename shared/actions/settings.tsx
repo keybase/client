@@ -333,14 +333,9 @@ const dbNuke = async () => {
 
 const deleteAccountForever = async (state: TypedState) => {
   const username = state.config.username
-  const allowDeleteAccount = state.settings.allowDeleteAccount
 
   if (!username) {
     throw new Error('Unable to delete account: no username set')
-  }
-
-  if (!allowDeleteAccount) {
-    throw new Error('Account deletion failsafe was not disengaged. This is a bug!')
   }
 
   await RPCTypes.loginAccountDeleteRpcPromise(undefined, Constants.settingsWaitingKey)

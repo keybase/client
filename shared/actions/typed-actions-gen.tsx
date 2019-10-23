@@ -757,7 +757,6 @@ export type TypedActionsMap = {
   'settings:onUpdatePGPSettings': settings.OnUpdatePGPSettingsPayload
   'settings:onUpdatePasswordError': settings.OnUpdatePasswordErrorPayload
   'settings:onUpdatedPGPSettings': settings.OnUpdatedPGPSettingsPayload
-  'settings:setAllowDeleteAccount': settings.SetAllowDeleteAccountPayload
   'settings:stop': settings.StopPayload
   'settings:trace': settings.TracePayload
   'settings:processorProfile': settings.ProcessorProfilePayload
