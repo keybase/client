@@ -1118,6 +1118,24 @@
       ]
     },
     {
+      "type": "record",
+      "name": "UIMessageJourneycard",
+      "fields": [
+        {
+          "type": "double",
+          "name": "ordinal"
+        },
+        {
+          "type": "JourneycardType",
+          "name": "cardType"
+        },
+        {
+          "type": "MessageID",
+          "name": "highlightMsgID"
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "MessageUnboxedState",
       "symbols": [
@@ -1169,7 +1187,7 @@
             "name": "JOURNEYCARD",
             "def": false
           },
-          "body": "MessageUnboxedJourneyCard"
+          "body": "UIMessageJourneycard"
         }
       ]
     },

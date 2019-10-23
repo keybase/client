@@ -91,7 +91,7 @@ class LoginRender extends React.Component<Props> {
             </Kb.Text>
           </Kb.UserCard>
           <Kb.Text
-            style={{marginTop: Styles.globalMargins.xlarge}}
+            style={{marginTop: Styles.globalMargins.medium}}
             type="BodyBigLink"
             onClick={this.props.onSignup}
           >

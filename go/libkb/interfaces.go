@@ -46,6 +46,7 @@ type configGetter interface {
 	GetConfigFilename() string
 	GetDbFilename() string
 	GetDebug() (bool, bool)
+	GetDebugJourneycard() (bool, bool)
 	GetDisplayRawUntrustedOutput() (bool, bool)
 	GetGpg() string
 	GetGpgHome() string

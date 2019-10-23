@@ -433,6 +433,7 @@ export {
   isPendingPaymentMessage,
   isSpecialMention,
   isVideoAttachment,
+  journeyCardTypeToType,
   makeChatRequestInfo,
   makeMessageAttachment,
   makeMessageDeleted,

@@ -155,9 +155,8 @@ func (n NullConfiguration) GetAllUserConfigs() (*UserConfig, []UserConfig, error
 	return nil, nil, nil
 }
 
-func (n NullConfiguration) GetDebug() (bool, bool) {
-	return false, false
-}
+func (n NullConfiguration) GetDebug() (bool, bool)            { return false, false }
+func (n NullConfiguration) GetDebugJourneycard() (bool, bool) { return false, false }
 func (n NullConfiguration) GetDisplayRawUntrustedOutput() (bool, bool) {
 	return false, false
 }
@@ -816,6 +815,14 @@ func (e *Env) GetProveBypass() bool {
 		func() (bool, bool) { return e.cmd.GetProveBypass() },
 		func() (bool, bool) { return e.getEnvBool("KEYBASE_PROVE_BYPASS") },
 		func() (bool, bool) { return e.GetConfig().GetProveBypass() })
+}
+
+// GetDebugJourneycard enables experimental chat journey cards.
+func (e *Env) GetDebugJourneycard() bool {
+	return e.GetBool(false,
+		func() (bool, bool) { return e.cmd.GetDebugJourneycard() },
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_DEBUG_JOURNEYCARD") },
+		func() (bool, bool) { return e.GetConfig().GetDebugJourneycard() })
 }
 
 func (e *Env) GetDebug() bool {
