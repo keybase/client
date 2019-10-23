@@ -358,6 +358,16 @@ func ReadB64() (res string, err error) {
 	return "", nil
 }
 
+func ReadBytes() (res []byte, err error) {
+	defer func() { err = flattenError(err) }()
+	if conn == nil {
+		return nil, errors.New("connection not initialized")
+	}
+	n, err := conn.Read(buffer)
+	readBytes := append([]byte(nil), buffer[0:n]...)
+	return readBytes, nil
+}
+
 // Reset resets the socket connection
 func Reset() error {
 	if conn != nil {
