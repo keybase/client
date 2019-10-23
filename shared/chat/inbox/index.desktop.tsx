@@ -278,8 +278,11 @@ class Inbox extends React.Component<T.Props, State> {
   private listChild = ({index, style}) => this.itemRenderer(index, style)
 
   private onDragOver = e => {
-    if (this.dragList.current) {
-      this.setState({dragY: e.clientY - this.dragList.current.getBoundingClientRect().top})
+    if (this.scrollDiv.current) {
+      this.setState({
+        dragY:
+          e.clientY - this.scrollDiv.current.getBoundingClientRect().top + this.scrollDiv.current.scrollTop,
+      })
     }
   }
 
