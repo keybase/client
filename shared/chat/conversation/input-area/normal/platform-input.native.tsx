@@ -20,6 +20,7 @@ import AddSuggestors, {standardTransformer} from '../suggestors'
 import {parseUri, launchCameraAsync, launchImageLibraryAsync} from '../../../../util/expo-image-picker'
 import {BotCommandUpdateStatus} from './shared'
 import {formatDurationShort} from '../../../../util/timestamp'
+import flags from '../../../../util/feature-flags'
 
 type menuType = 'exploding' | 'filepickerpopup' | 'moremenu'
 
@@ -331,7 +332,7 @@ const maxAudioDrift = -20
 
 const AudioStarter = (props: AudioStarterProps) => {
   let longPressTimer
-  return (
+  return flags.audioAttachments ? (
     <Kb.TapGestureHandler
       onHandlerStateChange={({nativeEvent}) => {
         if (!props.recording && nativeEvent.state === Kb.GestureState.BEGAN) {
@@ -385,6 +386,8 @@ const AudioStarter = (props: AudioStarterProps) => {
         </Kb.NativeView>
       </Kb.PanGestureHandler>
     </Kb.TapGestureHandler>
+  ) : (
+    <Kb.Icon type="iconfont-mic" style={styles.actionButton} fontSize={22} />
   )
 }
 

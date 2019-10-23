@@ -2082,7 +2082,8 @@ const sendAudioRecording = async (
   logger: Saga.SagaLogger
 ) => {
   // TODO: add preview call
-
+  // sit here for 400ms for animations
+  await Saga.delay(400)
   const conversationIDKey = action.payload.conversationIDKey
   const audioRecording = state.chat2.audioRecording.get(conversationIDKey)
   if (!audioRecording) {

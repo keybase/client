@@ -15,6 +15,7 @@ export type FeatureFlags = {
   resetPipeline: boolean
   stellarExternalPartners: boolean
   lagRadar: boolean
+  audioAttachments: boolean
 }
 
 declare const ff: FeatureFlags
