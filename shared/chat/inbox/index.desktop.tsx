@@ -130,7 +130,13 @@ class Inbox extends React.Component<T.Props, State> {
         <div style={{...divStyle, position: 'relative'}} draggable={true}>
           <Kb.Box2
             direction="vertical"
-            style={{height: '100%', justifyContent: 'center', position: 'absolute', width: '100%'}}
+            style={{
+              cursor: 'ns-resize',
+              height: '100%',
+              justifyContent: 'center',
+              position: 'absolute',
+              width: '100%',
+            }}
           >
             <div style={styles.grabber} />
             <div style={styles.grabber} />
