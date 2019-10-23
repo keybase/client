@@ -854,7 +854,7 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
           // add new ones, remove deleted ones, sort
           const os = new Set(messageOrdinals.get(conversationIDKey) || [])
           removedOrdinals.forEach(o => os.delete(o))
-          messageOrdinals.set(conversationIDKey, new Set([...os, ...ordinals].sort()))
+          messageOrdinals.set(conversationIDKey, new Set([...os, ...ordinals].sort((a, b) => a - b)))
         })
 
         let messageMap = oldMessageMap.withMutations(
