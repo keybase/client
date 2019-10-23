@@ -606,12 +606,12 @@ export const teamListToDetails = (
   return new Map(
     list.map(t => [
       t.teamID,
-      makeTeamDetails({
+      {
         allowPromote: t.allowProfilePromote,
         isOpen: t.isOpenTeam,
         showcasing: t.isMemberShowcased,
         teamname: t.fqName,
-      }),
+      },
     ])
   )
 }

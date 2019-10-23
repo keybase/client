@@ -221,7 +221,7 @@ type _SetTeamDetailsPayload = {
   readonly settings: RPCTypes.TeamSettings
   readonly invites: Array<Types._InviteInfo>
   readonly subteams: Array<Types.Teamname>
-  readonly requests: {[key: string]: Array<string>}
+  readonly requests: Map<string, Array<string>>
 }
 type _SetTeamInfoPayload = {
   readonly teamnames: Set<Types.Teamname>

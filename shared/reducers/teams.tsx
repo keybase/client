@@ -78,7 +78,7 @@ export default (
           I.Set(action.payload.subteams)
         )
         const immRequests = I.Map(
-          Object.entries(action.payload.requests).map(([teamname, reqArr]) => [teamname, I.Set(reqArr)])
+          [...action.payload.requests.entries()].map(([teamname, reqArr]) => [teamname, I.Set(reqArr)])
         )
         draftState.teamNameToRequests = draftState.teamNameToRequests.merge(immRequests)
 

@@ -550,13 +550,15 @@ function* getDetails(_: TypedState, action: TeamsGen.GetDetailsPayload, logger: 
     }
     requests.sort((a, b) => a.username.localeCompare(b.username))
 
-    const requestMap: {[key: string]: Array<string>} = requests.reduce((reqMap, req) => {
-      if (!reqMap[req.name]) {
-        reqMap[req.name] = []
+    const requestMap = new Map<string, Array<string>>()
+    requests.forEach(request => {
+      let arr = requestMap.get(request.name)
+      if (!arr) {
+        arr = []
+        requestMap.set(request.name, arr)
       }
-      reqMap[req.name].push(req.username)
-      return reqMap
-    }, {})
+      arr.push(request.username)
+    })
 
     const invites = Object.values(details.annotatedActiveInvites).reduce<Array<Types._InviteInfo>>(
       (arr, invite) => {
@@ -585,7 +587,7 @@ function* getDetails(_: TypedState, action: TeamsGen.GetDetailsPayload, logger: 
     )
 
     // if we have no requests for this team, make sure we don't hold on to any old ones
-    if (!requestMap[teamname]) {
+    if (!requestMap.get(teamname)) {
       yield Saga.put(TeamsGen.createClearTeamRequests({teamname}))
     }
 
