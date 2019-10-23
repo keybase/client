@@ -20,6 +20,7 @@ const ff: FeatureFlags = {
   plansEnabled: false,
   proofProviders: true,
   stellarExternalPartners: false,
+  userBlocking: true,
 }
 
 console.warn('feature flag mock in effect')

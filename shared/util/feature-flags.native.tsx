@@ -21,6 +21,7 @@ const ff: FeatureFlags = {
   plansEnabled: false,
   proofProviders: true,
   stellarExternalPartners: true,
+  userBlocking: true,
 }
 
 // load overrides
