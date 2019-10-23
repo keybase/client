@@ -1,7 +1,7 @@
 import * as Constants from '../../constants/login'
 import * as Kb from '../../common-adapters/mobile.native'
 import * as Styles from '../../styles'
-import {Props as InputProps} from '../../common-adapters/input'
+import {Props as InputProps} from '../../common-adapters/labeled-input'
 import Dropdown from './dropdown.native'
 import * as React from 'react'
 import {isDeviceSecureAndroid, isAndroidNewerThanM, isAndroid} from '../../constants/platform.native'
@@ -12,32 +12,24 @@ type State = {
 }
 
 class LoginRender extends React.Component<Props, State> {
-  _inputRef = React.createRef<Kb.Input>()
-
   state = {scrollViewHeight: undefined}
-
-  _focusInput = () => {
-    if (this._inputRef.current) {
-      this._inputRef.current.focus()
-    }
-  }
 
   _selectedUserChange = selectedUser => {
     this.props.selectedUserChange(selectedUser)
     // For some reason, calling this immediately doesn't work, at
     // least on iOS.
-    setImmediate(this._focusInput)
+    // setImmediate(this._focusInput)
   }
 
   render() {
     const inputProps: InputProps = {
       autoFocus: true,
-      hintText: 'Password',
+      keyboardType: this.props.showTyping && Styles.isAndroid ? 'visible-password' : 'default',
       onChangeText: password => this.props.passwordChange(password),
       onEnterKeyDown: () => this.props.onSubmit(),
-      ref: this._inputRef,
-      style: {marginBottom: 0},
-      type: this.props.showTyping ? 'passwordVisible' : 'password',
+      placeholder: 'Password',
+      secureTextEntry: true,
+      type: this.props.showTyping ? 'text' : 'password',
       // There is a weird bug with RN 0.54+ where if this is controlled it somehow causes a race which causes a crash
       // making this uncontrolled fixes this
       uncontrolled: true,
@@ -81,7 +73,7 @@ class LoginRender extends React.Component<Props, State> {
               />
               {this.props.needPassword && (
                 <Kb.FormWithCheckbox
-                  style={{alignSelf: 'stretch'}}
+                  style={{alignSelf: 'stretch', marginTop: Styles.globalMargins.small}}
                   inputProps={inputProps}
                   checkboxesProps={checkboxProps}
                 />
@@ -98,7 +90,7 @@ class LoginRender extends React.Component<Props, State> {
                 type="BodySmallSecondaryLink"
                 center={true}
                 onClick={this.props.onForgotPassword}
-                style={{marginTop: Styles.globalMargins.medium}}
+                style={{marginBottom: Styles.globalMargins.tiny, marginTop: Styles.globalMargins.medium}}
               >
                 Forgot password?
               </Kb.Text>
@@ -113,13 +105,15 @@ class LoginRender extends React.Component<Props, State> {
               </Kb.Text>
             </Kb.UserCard>
             <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne} />
-            <Kb.Button
-              fullWidth={true}
-              label="Create an account"
-              mode="Secondary"
-              style={{flexGrow: 0, margin: Styles.globalMargins.small}}
-              onClick={this.props.onSignup}
-            />
+            <Kb.Box2 direction="vertical" fullWidth={true} style={{padding: Styles.globalMargins.medium}}>
+              <Kb.Button
+                fullWidth={true}
+                label="Create an account"
+                mode="Secondary"
+                onClick={this.props.onSignup}
+                style={{flexGrow: 0}}
+              />
+            </Kb.Box2>
           </Kb.Box>
         </Kb.NativeScrollView>
       </Kb.Box>

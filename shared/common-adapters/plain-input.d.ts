@@ -83,6 +83,7 @@ export type Props = {
   placeholderColor?: string
   rowsMin?: number
   rowsMax?: number
+  secureTextEntry?: boolean
   style?: InputStyle
   textType?: TextType
   type?: 'password' | 'text'

@@ -48,7 +48,7 @@ const ReflessLabeledInput = (props: Props & RefProps) => {
 
   // We're using fontSize to derive heights
   const textStyle = getTextStyle(props.textType || 'BodySemibold')
-  const computedHeight = textStyle.fontSize + (isMobile ? 52 : 38)
+  const computedHeight = textStyle.fontSize + (isMobile ? 48 : 32)
 
   const {containerStyle, error, forwardedRef, placeholder, ...plainInputProps} = props
   return (
@@ -59,7 +59,7 @@ const ReflessLabeledInput = (props: Props & RefProps) => {
       gapEnd={false}
       style={Styles.collapseStyles([
         styles.container,
-        {height: textStyle.fontSize + (isMobile ? 52 : 38)},
+        {height: textStyle.fontSize + (isMobile ? 48 : 32)},
         focused && styles.containerFocused,
         error && styles.containerError,
         containerStyle,
@@ -173,10 +173,10 @@ const styles = Styles.styleSheetCreate(
           height: '100%',
         },
         isElectron: {
-          paddingTop: Styles.globalMargins.tiny,
+          paddingTop: Styles.globalMargins.xtiny,
         },
         isMobile: {
-          paddingTop: 10,
+          paddingTop: 4,
         },
       }),
       labelWrapper: {

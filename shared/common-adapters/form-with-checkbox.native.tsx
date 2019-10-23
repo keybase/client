@@ -1,6 +1,6 @@
 import Box from './box'
 import Checkbox, {Props as CheckboxProps} from './checkbox'
-import Input from './input'
+import LabeledInput from './labeled-input'
 import React, {Component} from 'react'
 import {Props} from './form-with-checkbox'
 import {collapseStyles, globalStyles} from '../styles'
@@ -11,7 +11,7 @@ class FormWithCheckbox extends Component<Props> {
 
     return (
       <Box style={collapseStyles([globalStyles.flexBoxColumn, {marginBottom: 30}, this.props.style])}>
-        <Input {...inputProps} />
+        <LabeledInput {...inputProps} />
         <Box style={collapseStyles([styles.checkboxContainer, this.props.checkboxContainerStyle])}>
           {checkboxesProps.map(p => {
             const checkProps: CheckboxProps = {key: p.label, ...p}
@@ -26,9 +26,10 @@ class FormWithCheckbox extends Component<Props> {
 const styles = {
   checkboxContainer: {
     ...globalStyles.flexBoxRow,
+    alignSelf: 'flex-start',
     justifyContent: 'space-around',
     position: 'relative',
-    top: 7,
+    top: 8,
   },
 }
 
