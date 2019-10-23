@@ -101,18 +101,9 @@ public class MainApplication extends Application implements ReactApplication {
                   Trace.beginSection(name.toString() + " " + tag);
                   Trace.endSection();
                 }
-//                if (seenTags.contains(name)) {
-//                    seenTags.remove(name);
-//                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-//                        Trace.endSection();
-//                    }
-//                } else {
-//                    seenTags.add(name);
-//                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-//                        Trace.beginSection(name + " " + tag);
-//                    }
-//                }
-              Log.i("Marker", name.toString() + "-" + name.ordinal() + " " + tag + ". instanceKey::" + instanceKey);
+
+
+//              Log.i("Marker", name.toString() + "-" + name.ordinal() + " " + tag + ". instanceKey::" + instanceKey);
             }
         });
 
@@ -155,6 +146,7 @@ public class MainApplication extends Application implements ReactApplication {
                       public boolean onPreDraw() {
                         view.getViewTreeObserver().removeOnPreDrawListener(this);
                         Trace.endAsyncSection("Starting App", 0);
+                        Log.d("App Start Timing", "End Time " + System.currentTimeMillis());
                         return true;
                       }
                     });
@@ -181,6 +173,7 @@ public class MainApplication extends Application implements ReactApplication {
 //
 //            MainPackageConfig appConfig = new MainPackageConfig.Builder().setFrescoConfig(frescoConfig).build();
 
+            Log.d("Package Timing", "Start " + System.currentTimeMillis());
             Trace.beginSection("getPackages");
             @SuppressWarnings("UnnecessaryLocalVariable")
             List<ReactPackage> packages = new PackageList(this).getPackages();
@@ -200,6 +193,7 @@ public class MainApplication extends Application implements ReactApplication {
 
             packages.add(new ModuleRegistryAdapter(mModuleRegistryProvider));
             Trace.endSection();
+            Log.d("Package Timing", "End " + System.currentTimeMillis());
 
             return packages;
         }

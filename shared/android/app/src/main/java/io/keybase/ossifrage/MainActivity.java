@@ -149,6 +149,7 @@ public class MainActivity extends ReactFragmentActivity implements ReactInstance
   @Override
   @TargetApi(Build.VERSION_CODES.KITKAT)
   protected void onCreate(Bundle savedInstanceState) {
+    Log.d("App Start Timing", "Start time " + System.currentTimeMillis());
     setupKBRuntime(this, true);
     super.onCreate(null);
 
