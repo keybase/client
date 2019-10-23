@@ -21,7 +21,6 @@ const ff: FeatureFlags = {
   proofProviders: true,
   resetPipeline: true,
   stellarExternalPartners: false,
-  whatsNew: false,
 }
 
 console.warn('feature flag mock in effect')

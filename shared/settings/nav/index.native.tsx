@@ -49,16 +49,12 @@ function SettingsNav(props: Props) {
               onClick: () => props.onTabChange(Constants.walletsTab),
               text: 'Wallet',
             },
-            ...(flags.whatsNew
-              ? [
-                  {
-                    iconComponent: WhatsNewIcon,
-                    onClick: () => props.onTabChange(Constants.whatsNewTab),
-                    subText: `What's new?`,
-                    text: keybaseFM,
-                  },
-                ]
-              : []),
+            {
+              iconComponent: WhatsNewIcon,
+              onClick: () => props.onTabChange(Constants.whatsNewTab),
+              subText: `What's new?`,
+              text: keybaseFM,
+            },
           ],
           title: '',
         },

@@ -1,5 +1,4 @@
 import * as Constants from '../constants/settings'
-import flags from '../util/feature-flags'
 import AboutTab from './about-container'
 import AdvancedTab from './advanced/container'
 import ChatTab from './chat/container'
@@ -48,13 +47,9 @@ export const newRoutes = {
   [Constants.screenprotectorTab]: {
     getScreen: (): typeof ScreenprotectorTab => require('./screenprotector-container.native').default,
   },
-  ...(flags.whatsNew
-    ? {
-        [Constants.whatsNewTab]: {
-          getScreen: (): typeof WhatsNewTab => require('../whats-new/container.tsx').default,
-        },
-      }
-    : {}),
+  [Constants.whatsNewTab]: {
+    getScreen: (): typeof WhatsNewTab => require('../whats-new/container.tsx').default,
+  },
   addEmail: {getScreen: (): typeof Email => require('./account/add-modals').Email},
   addPhone: {getScreen: (): typeof Phone => require('./account/add-modals').Phone},
   dbNukeConfirm: {getScreen: (): typeof DbNukeConfirm => require('./db-nuke-confirm/container').default},

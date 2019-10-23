@@ -218,7 +218,7 @@ class Header extends React.PureComponent<Props> {
                   }
                 />
               )}
-              {flags.whatsNew && this.props.loggedIn && (
+              {this.props.loggedIn && (
                 <WhatsNewIconWithPopup
                   color={opt.whatsNewIconColor}
                   badgeColor={opt.whatsNewIconColor}
