@@ -2,6 +2,8 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as ConfigTypes from '../../constants/types/config'
+import * as Constants from '../../constants/config'
+import {usePrevious} from '../../util/container'
 import {Props as HeaderHocProps} from '../../common-adapters/header-hoc/types'
 
 export type AccountRowItem = {
@@ -58,6 +60,13 @@ type AccountRowProps = {
 }
 const AccountRow = (props: AccountRowProps) => {
   const [clicked, setClicked] = React.useState(false)
+  const prevWaiting = usePrevious(props.waiting)
+  React.useEffect(() => {
+    if (prevWaiting && !props.waiting) {
+      setClicked(false)
+    }
+  }, [setClicked, props.waiting, prevWaiting])
+
   const onClick = props.waiting
     ? undefined
     : () => {
@@ -132,7 +141,7 @@ const styles = Styles.styleSheetCreate(() => ({
     common: {flexShrink: 1},
     isElectron: {wordBreak: 'break-all'},
   }),
-  progressIndicator: {bottom: 0, position: 'absolute'},
+  progressIndicator: {bottom: 0, position: 'absolute', right: 0},
   row: {
     maxWidth: 200,
     paddingBottom: -Styles.globalMargins.small,
