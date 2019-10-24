@@ -2,8 +2,6 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as ConfigTypes from '../../constants/types/config'
-import * as Constants from '../../constants/config'
-import {usePrevious} from '../../util/container'
 import {Props as HeaderHocProps} from '../../common-adapters/header-hoc/types'
 
 export type AccountRowItem = {
