@@ -546,6 +546,20 @@
         {
           "type": "Asset",
           "name": "sourceAsset"
+        },
+        {
+          "type": [
+            null,
+            "ChatConversationID"
+          ],
+          "name": "chatConversationID"
+        },
+        {
+          "type": [
+            null,
+            "ChatOutboxID"
+          ],
+          "name": "chatOutboxID"
         }
       ]
     },
@@ -648,6 +662,20 @@
         {
           "type": "boolean",
           "name": "fromAirdrop"
+        },
+        {
+          "type": [
+            null,
+            "ChatConversationID"
+          ],
+          "name": "chatConversationID"
+        },
+        {
+          "type": [
+            null,
+            "ChatOutboxID"
+          ],
+          "name": "chatOutboxID"
         }
       ]
     },

@@ -150,6 +150,8 @@ protocol remote {
     string sourceAmountMax;
     string sourceAmountActual;
     Asset sourceAsset;
+    union { null, ChatConversationID } chatConversationID;
+    union { null, ChatOutboxID } chatOutboxID;
   }
 
   record PaymentSummaryRelay {
@@ -178,6 +180,9 @@ protocol remote {
     string cursorToken;
     string batchID;
     boolean fromAirdrop;
+
+    union { null, ChatConversationID } chatConversationID;
+    union { null, ChatOutboxID } chatOutboxID;
   }
 
   record ClaimSummary {

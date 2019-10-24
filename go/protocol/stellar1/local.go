@@ -301,6 +301,8 @@ type PaymentLocal struct {
 	IsInflation         bool                   `codec:"isInflation" json:"isInflation"`
 	InflationSource     *string                `codec:"inflationSource,omitempty" json:"inflationSource,omitempty"`
 	Trustline           *PaymentTrustlineLocal `codec:"trustline,omitempty" json:"trustline,omitempty"`
+	ChatConversationID  *ChatConversationID    `codec:"chatConversationID,omitempty" json:"chatConversationID,omitempty"`
+	ChatOutboxID        *ChatOutboxID          `codec:"chatOutboxID,omitempty" json:"chatOutboxID,omitempty"`
 }
 
 func (o PaymentLocal) DeepCopy() PaymentLocal {
@@ -378,6 +380,20 @@ func (o PaymentLocal) DeepCopy() PaymentLocal {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Trustline),
+		ChatConversationID: (func(x *ChatConversationID) *ChatConversationID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ChatConversationID),
+		ChatOutboxID: (func(x *ChatOutboxID) *ChatOutboxID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ChatOutboxID),
 	}
 }
 

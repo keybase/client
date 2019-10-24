@@ -499,6 +499,8 @@ type PaymentSummaryDirect struct {
 	SourceAmountMax     string                `codec:"sourceAmountMax" json:"sourceAmountMax"`
 	SourceAmountActual  string                `codec:"sourceAmountActual" json:"sourceAmountActual"`
 	SourceAsset         Asset                 `codec:"sourceAsset" json:"sourceAsset"`
+	ChatConversationID  *ChatConversationID   `codec:"chatConversationID,omitempty" json:"chatConversationID,omitempty"`
+	ChatOutboxID        *ChatOutboxID         `codec:"chatOutboxID,omitempty" json:"chatOutboxID,omitempty"`
 }
 
 func (o PaymentSummaryDirect) DeepCopy() PaymentSummaryDirect {
@@ -549,31 +551,47 @@ func (o PaymentSummaryDirect) DeepCopy() PaymentSummaryDirect {
 		SourceAmountMax:     o.SourceAmountMax,
 		SourceAmountActual:  o.SourceAmountActual,
 		SourceAsset:         o.SourceAsset.DeepCopy(),
+		ChatConversationID: (func(x *ChatConversationID) *ChatConversationID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ChatConversationID),
+		ChatOutboxID: (func(x *ChatOutboxID) *ChatOutboxID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ChatOutboxID),
 	}
 }
 
 type PaymentSummaryRelay struct {
-	KbTxID          KeybaseTransactionID  `codec:"kbTxID" json:"kbTxID"`
-	TxID            TransactionID         `codec:"txID" json:"txID"`
-	TxStatus        TransactionStatus     `codec:"txStatus" json:"txStatus"`
-	TxErrMsg        string                `codec:"txErrMsg" json:"txErrMsg"`
-	FromStellar     AccountID             `codec:"fromStellar" json:"fromStellar"`
-	From            keybase1.UserVersion  `codec:"from" json:"from"`
-	FromDeviceID    keybase1.DeviceID     `codec:"fromDeviceID" json:"fromDeviceID"`
-	To              *keybase1.UserVersion `codec:"to,omitempty" json:"to,omitempty"`
-	ToAssertion     string                `codec:"toAssertion" json:"toAssertion"`
-	RelayAccount    AccountID             `codec:"relayAccount" json:"relayAccount"`
-	Amount          string                `codec:"amount" json:"amount"`
-	DisplayAmount   *string               `codec:"displayAmount,omitempty" json:"displayAmount,omitempty"`
-	DisplayCurrency *string               `codec:"displayCurrency,omitempty" json:"displayCurrency,omitempty"`
-	Ctime           TimeMs                `codec:"ctime" json:"ctime"`
-	Rtime           TimeMs                `codec:"rtime" json:"rtime"`
-	BoxB64          string                `codec:"boxB64" json:"boxB64"`
-	TeamID          keybase1.TeamID       `codec:"teamID" json:"teamID"`
-	Claim           *ClaimSummary         `codec:"claim,omitempty" json:"claim,omitempty"`
-	CursorToken     string                `codec:"cursorToken" json:"cursorToken"`
-	BatchID         string                `codec:"batchID" json:"batchID"`
-	FromAirdrop     bool                  `codec:"fromAirdrop" json:"fromAirdrop"`
+	KbTxID             KeybaseTransactionID  `codec:"kbTxID" json:"kbTxID"`
+	TxID               TransactionID         `codec:"txID" json:"txID"`
+	TxStatus           TransactionStatus     `codec:"txStatus" json:"txStatus"`
+	TxErrMsg           string                `codec:"txErrMsg" json:"txErrMsg"`
+	FromStellar        AccountID             `codec:"fromStellar" json:"fromStellar"`
+	From               keybase1.UserVersion  `codec:"from" json:"from"`
+	FromDeviceID       keybase1.DeviceID     `codec:"fromDeviceID" json:"fromDeviceID"`
+	To                 *keybase1.UserVersion `codec:"to,omitempty" json:"to,omitempty"`
+	ToAssertion        string                `codec:"toAssertion" json:"toAssertion"`
+	RelayAccount       AccountID             `codec:"relayAccount" json:"relayAccount"`
+	Amount             string                `codec:"amount" json:"amount"`
+	DisplayAmount      *string               `codec:"displayAmount,omitempty" json:"displayAmount,omitempty"`
+	DisplayCurrency    *string               `codec:"displayCurrency,omitempty" json:"displayCurrency,omitempty"`
+	Ctime              TimeMs                `codec:"ctime" json:"ctime"`
+	Rtime              TimeMs                `codec:"rtime" json:"rtime"`
+	BoxB64             string                `codec:"boxB64" json:"boxB64"`
+	TeamID             keybase1.TeamID       `codec:"teamID" json:"teamID"`
+	Claim              *ClaimSummary         `codec:"claim,omitempty" json:"claim,omitempty"`
+	CursorToken        string                `codec:"cursorToken" json:"cursorToken"`
+	BatchID            string                `codec:"batchID" json:"batchID"`
+	FromAirdrop        bool                  `codec:"fromAirdrop" json:"fromAirdrop"`
+	ChatConversationID *ChatConversationID   `codec:"chatConversationID,omitempty" json:"chatConversationID,omitempty"`
+	ChatOutboxID       *ChatOutboxID         `codec:"chatOutboxID,omitempty" json:"chatOutboxID,omitempty"`
 }
 
 func (o PaymentSummaryRelay) DeepCopy() PaymentSummaryRelay {
@@ -623,6 +641,20 @@ func (o PaymentSummaryRelay) DeepCopy() PaymentSummaryRelay {
 		CursorToken: o.CursorToken,
 		BatchID:     o.BatchID,
 		FromAirdrop: o.FromAirdrop,
+		ChatConversationID: (func(x *ChatConversationID) *ChatConversationID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ChatConversationID),
+		ChatOutboxID: (func(x *ChatOutboxID) *ChatOutboxID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ChatOutboxID),
 	}
 }
 

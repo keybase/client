@@ -155,6 +155,9 @@ protocol local {
     union { null, string } inflationSource; // name of inflation source
 
     union { null, PaymentTrustlineLocal } trustline; // this tx is only a trust line change.
+
+    union { null, ChatConversationID } chatConversationID;
+    union { null, ChatOutboxID } chatOutboxID;
   }
 
   // Details of a payment.
