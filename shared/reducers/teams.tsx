@@ -151,12 +151,24 @@ export default (
       case TeamsGen.setTeamAccessRequestsPending:
         draftState.teamAccessRequestsPending = action.payload.accessRequestsPending
         return
-      case TeamsGen.setNewTeamInfo:
+      case TeamsGen.setNewTeamInfo: {
         draftState.deletedTeams = action.payload.deletedTeams
-        draftState.newTeamRequests = action.payload.newTeamRequests
         draftState.newTeams = action.payload.newTeams
         draftState.teamNameToResetUsers = action.payload.teamNameToResetUsers
+
+        const newTeamRequests = new Map<Types.TeamID, number>()
+        const newTeamRequestsByName = new Map<string, number>()
+        action.payload.newTeamRequests.forEach(teamID => {
+          newTeamRequests.set(teamID, (newTeamRequests.get(teamID) || 0) + 1)
+          const teamname = (state.teamDetails.get(teamID) || Constants.emptyTeamDetails).teamname
+          if (teamname) {
+            newTeamRequestsByName.set(teamname, (newTeamRequestsByName.get(teamname) || 0) + 1)
+          }
+        })
+        draftState.newTeamRequests = newTeamRequests
+        draftState.newTeamRequestsByName = newTeamRequestsByName
         return
+      }
       case TeamsGen.setTeamProfileAddList:
         draftState.teamProfileAddList = action.payload.teamlist
         return

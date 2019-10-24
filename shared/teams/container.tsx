@@ -29,12 +29,6 @@ const headerActions = (dispatch: Container.TypedDispatch, ownProps: OwnProps) =>
     dispatch(ownProps.safeNavigateAppendPayload({path: ['teamJoinTeamDialog']}))
   },
 })
-const makeTeamToRequest = memoize((tr: Types.State['newTeamRequests']) =>
-  tr.reduce((map, team) => {
-    map[team] = (map[team] !== null && map[team] !== undefined ? map[team] : 0) + 1
-    return map
-  }, {})
-)
 
 const orderTeams = memoize((teams: Types.State['teamDetails']) =>
   [...teams.values()].sort((a, b) => a.teamname.localeCompare(b.teamname))
@@ -75,11 +69,11 @@ class Reloadable extends React.PureComponent<Props & {loadTeams: () => void; onC
 const _Connected = Container.connect(
   (state: Container.TypedState) => ({
     _deletedTeams: state.teams.deletedTeams,
-    _newTeamRequests: state.teams.newTeamRequests,
     _newTeams: state.teams.newTeams,
     _teamresetusers: state.teams.teamNameToResetUsers || I.Map(),
     _teams: state.teams.teamDetails,
     loaded: !WaitingConstants.anyWaiting(state, Constants.teamsLoadedWaitingKey),
+    newTeamRequests: state.teams.newTeamRequests,
     sawChatBanner: state.teams.sawChatBanner || false,
   }),
   (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
@@ -106,8 +100,8 @@ const _Connected = Container.connect(
     deletedTeams: stateProps._deletedTeams,
     loaded: stateProps.loaded,
     newTeams: stateProps._newTeams,
+    newTeamRequests: stateProps.newTeamRequests,
     sawChatBanner: stateProps.sawChatBanner,
-    teamToRequest: makeTeamToRequest(stateProps._newTeamRequests),
     teamresetusers: stateProps._teamresetusers.toObject(),
     teams: orderTeams(stateProps._teams),
     ...dispatchProps,

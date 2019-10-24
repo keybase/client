@@ -147,7 +147,8 @@ const emptyState: Types.State = {
   channelCreationError: '',
   deletedTeams: [],
   emailInviteError: emptyEmailInviteError,
-  newTeamRequests: [],
+  newTeamRequests: new Map(),
+  newTeamRequestsByName: new Map(),
   newTeams: new Set(),
   sawChatBanner: false,
   sawSubteamsBanner: false,
@@ -590,7 +591,7 @@ export const isOnTeamsTab = () => {
   return Array.isArray(path) ? path.some(p => p.routeName === teamsTab) : false
 }
 
-const emptyTeamDetails: Readonly<Types.TeamDetails> = {
+export const emptyTeamDetails: Readonly<Types.TeamDetails> = {
   allowPromote: false,
   id: Types.noTeamID,
   isMember: false,

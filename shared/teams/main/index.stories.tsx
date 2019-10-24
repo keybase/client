@@ -20,6 +20,7 @@ const teams = [
     teamname: 'stripe.usa',
   }),
   Constants.makeTeamDetails({
+    id: 'techtonica_id',
     isMember: true,
     isOpen: true,
     memberCount: 1,
@@ -51,7 +52,7 @@ const load = () => {
           onCreateTeam={Sb.action('onCreateTeam')}
           onHideChatBanner={Sb.action('onHideChatBanner')}
           sawChatBanner={Sb.action('sawChatBanner')}
-          teamToRequest={{techtonica: 2}}
+          newTeamRequests={new Map([['techtonica_id', 2]])}
           teamresetusers={{}}
           onOpenFolder={Sb.action('onOpenFolder')}
           onManageChat={Sb.action('onManageChat')}
