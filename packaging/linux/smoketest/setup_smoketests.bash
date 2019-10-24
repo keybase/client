@@ -11,7 +11,7 @@ for platform in ubuntu-stab*; do
     (
         cd "$platform"
         vagrant up
-        vagrant snapshot push
+        vagrant snapshot save default
         vagrant halt
     )
 done

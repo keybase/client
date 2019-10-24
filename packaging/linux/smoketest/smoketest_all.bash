@@ -11,15 +11,22 @@ for platform in ubuntu-stab*; do
     echo "testing $platform"
     (
         cd "$platform"
+        vagrant snapshot restore default
         vagrant up
         ssh -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyChecking no" \
             -i .vagrant/machines/default/virtualbox/private_key \
-            -Y -p "$(cat port)" -t vagrant@localhost /vagrant/smoketest.bash
+            -Y -p "$(cat port)" vagrant@localhost <<EOF
+                /vagrant/smoketest.bash
+                exit
+EOF
         ret=$?
-        vagrant halt
-        vagrant snapshot pop
         if [ "$ret" != 0 ]; then
             echo "failed test for $platform"
+        fi
+        vagrant halt
+        vagrant snapshot restore default
+        vagrant halt
+        if [ "$ret" != 0 ]; then
             exit 1
         fi
     )
