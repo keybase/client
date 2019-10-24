@@ -68,11 +68,11 @@ class Reloadable extends React.PureComponent<Props & {loadTeams: () => void; onC
 
 const _Connected = Container.connect(
   (state: Container.TypedState) => ({
-    _deletedTeams: state.teams.deletedTeams,
-    _newTeams: state.teams.newTeams,
     _teamresetusers: state.teams.teamNameToResetUsers || I.Map(),
     _teams: state.teams.teamDetails,
+    deletedTeams: state.teams.deletedTeams,
     loaded: !WaitingConstants.anyWaiting(state, Constants.teamsLoadedWaitingKey),
+    newTeams: state.teams.newTeams,
     newTeamRequests: state.teams.newTeamRequests,
     sawChatBanner: state.teams.sawChatBanner || false,
   }),
@@ -97,9 +97,9 @@ const _Connected = Container.connect(
       dispatch(ownProps.safeNavigateAppendPayload({path: [{props: {teamname}, selected: 'team'}]})),
   }),
   (stateProps, dispatchProps, _: OwnProps) => ({
-    deletedTeams: stateProps._deletedTeams,
+    deletedTeams: stateProps.deletedTeams,
     loaded: stateProps.loaded,
-    newTeams: stateProps._newTeams,
+    newTeams: stateProps.newTeams,
     newTeamRequests: stateProps.newTeamRequests,
     sawChatBanner: stateProps.sawChatBanner,
     teamresetusers: stateProps._teamresetusers.toObject(),
