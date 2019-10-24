@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Styles from '../../../styles'
 import {NativeTouchableOpacity, NativeSafeAreaView} from '../../native-wrappers.native'
 import Box, {Box2} from '../../box'
+import Icon from '../../icon'
 import Text from '../../text'
 import Meta from '../../meta'
 import Divider from '../../divider'
@@ -11,6 +12,7 @@ import {isLargeScreen} from '../../../constants/platform'
 import {MenuItem, _InnerMenuItem, MenuLayoutProps} from '.'
 
 type MenuRowProps = {
+  centered?: boolean
   isHeader?: boolean
   newTag?: boolean | null
   index: number
@@ -33,23 +35,42 @@ const MenuRow = (props: MenuRowProps) => (
     ])}
   >
     {props.view || (
-      <>
-        <Box2 direction="horizontal" fullWidth={true} centerChildren={true}>
-          {props.decoration && <Box style={styles.flexOne} />}
-          <Text center={true} type="BodyBig" style={styleRowText(props)}>
-            {props.title}
-          </Text>
-          {props.newTag && (
-            <Meta title="New" size="Small" backgroundColor={Styles.globalColors.blue} style={styles.badge} />
-          )}
-          {props.decoration && <Box style={styles.flexOne}>{props.decoration}</Box>}
-        </Box2>
-        {!!props.subTitle && (
-          <Text center={true} type="BodyTiny">
-            {props.subTitle}
-          </Text>
+      <Box2 centerChildren={props.centered} direction="horizontal" fullWidth={true}>
+        {props.icon && (
+          <Box2
+            alignItems="center"
+            direction="horizontal"
+            fullHeight={true}
+            style={styles.iconContainer}
+          >
+            <Icon type={props.icon} fontSize={24} />
+          </Box2>
         )}
-      </>
+        <Box2 direction="horizontal">
+          <Box2 direction="vertical" fullHeight={true}>
+            <Box2 direction="horizontal" fullWidth={true}>
+              {props.decoration && <Box style={styles.flexOne} />}
+              <Text type="BodyBig" style={styleRowText(props)}>
+                {props.title}
+              </Text>
+              {props.newTag && (
+                <Meta
+                  title="New"
+                  size="Small"
+                  backgroundColor={Styles.globalColors.blue}
+                  style={styles.badge}
+                />
+              )}
+              {props.decoration && <Box style={styles.flexOne}>{props.decoration}</Box>}
+            </Box2>
+            {!!props.subTitle && (
+              <Box2 direction="horizontal" fullWidth={true}>
+                <Text type="BodySmall">{props.subTitle}</Text>
+              </Box2>
+            )}
+          </Box2>
+        </Box2>
+      </Box2>
     )}
     {!!props.progressIndicator && <ProgressIndicator style={styles.progressIndicator} />}
   </NativeTouchableOpacity>
@@ -103,6 +124,7 @@ const MenuLayout = (props: MenuLayoutProps) => {
         <Divider style={styles.divider} />
         <Box style={Styles.collapseStyles([styles.menuGroup, props.listStyle])}>
           <MenuRow
+            centered={true}
             title={props.closeText || 'Close'}
             index={0}
             numItems={1}
@@ -144,6 +166,9 @@ const styles = Styles.styleSheetCreate(
       },
       flexOne: {
         flex: 1,
+      },
+      iconContainer: {
+        paddingRight: Styles.globalMargins.small,
       },
       itemContainer: {
         ...Styles.globalStyles.flexBoxColumn,

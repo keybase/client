@@ -85,52 +85,28 @@ const MoreMenuPopup = (props: Props) => {
         ]
       : []),
     {
+      icon: 'iconfont-gif',
       onClick: onGiphy,
-      title: 'gif',
-      view: (
-        <Kb.Box2 direction="vertical" centerChildren={true}>
-          <Kb.Text type="BodyBig" style={styles.item}>
-            Share a GIF
-          </Kb.Text>
-          <Kb.Text type="BodySmall">/giphy</Kb.Text>
-        </Kb.Box2>
-      ),
+      title: 'Share a GIF',
+      subTitle: '/giphy',
     },
     {
+      icon: 'iconfont-coin',
       onClick: onCoinFlip,
-      title: 'coin',
-      view: (
-        <Kb.Box2 direction="vertical" centerChildren={true}>
-          <Kb.Text type="BodyBig" style={styles.item}>
-            Flip a coin
-          </Kb.Text>
-          <Kb.Text type="BodySmall">/flip</Kb.Text>
-        </Kb.Box2>
-      ),
+      title: 'Flip a coin',
+      subTitle: '/flip',
     },
     {
+      icon: 'iconfont-star',
       onClick: onLocationShare,
-      title: 'location',
-      view: (
-        <Kb.Box2 direction="vertical" centerChildren={true}>
-          <Kb.Text type="BodyBig" style={styles.item}>
-            Share your location
-          </Kb.Text>
-          <Kb.Text type="BodySmall">/location</Kb.Text>
-        </Kb.Box2>
-      ),
+      title: 'Share your location',
+      subTitle: '/location',
     },
     {
+      icon: 'iconfont-calculator',
       onClick: onInsertSlashCommand,
-      title: 'slash',
-      view: (
-        <Kb.Box2 direction="vertical" centerChildren={true}>
-          <Kb.Text type="BodyBig" style={styles.item}>
-            Other commands
-          </Kb.Text>
-          <Kb.Text type="BodySmall">/...</Kb.Text>
-        </Kb.Box2>
-      ),
+      title: 'Other commands',
+      subTitle: '/...',
     },
   ]
   return <Kb.FloatingMenu closeOnSelect={true} items={items} onHidden={onHidden} visible={visible} />
