@@ -128,7 +128,7 @@ func (e OnLoginStartupStatus) String() string {
 	if v, ok := OnLoginStartupStatusRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type StopArg struct {
@@ -444,11 +444,11 @@ func (c CtlClient) DbGet(ctx context.Context, __arg DbGetArg) (res *DbValue, err
 
 func (c CtlClient) SetNixOnLoginStartup(ctx context.Context, enabled bool) (err error) {
 	__arg := SetNixOnLoginStartupArg{Enabled: enabled}
-	err = c.Cli.Call(ctx, "keybase.1.ctl.setNixOnLoginStartup", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.ctl.setNixOnLoginStartup", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c CtlClient) GetNixOnLoginStartup(ctx context.Context) (res OnLoginStartupStatus, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.ctl.getNixOnLoginStartup", []interface{}{GetNixOnLoginStartupArg{}}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.ctl.getNixOnLoginStartup", []interface{}{GetNixOnLoginStartupArg{}}, &res, 0*time.Millisecond)
 	return
 }
