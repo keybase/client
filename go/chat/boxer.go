@@ -300,6 +300,7 @@ func (b *Boxer) getEffectiveMembersType(ctx context.Context, boxed chat1.Message
 // whereas temporary errors are transient failures.
 func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv types.UnboxConversationInfo,
 	info *types.BoxerEncryptionInfo) (m chat1.MessageUnboxed, uberr types.UnboxingError) {
+	ctx = libkb.WithLogTag(ctx, "CHTUNBOX")
 	defer b.Trace(ctx, func() error { return uberr }, "UnboxMessage(%s, %d)", conv.GetConvID(),
 		boxed.GetMessageID())()
 
