@@ -22,6 +22,7 @@ import (
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 type Packager struct {
@@ -274,6 +275,12 @@ func (p *Packager) packageMaps(ctx context.Context, uid gregor1.UID, convID chat
 		SiteName:    mapsRaw.SiteName,
 		Description: &mapsRaw.Description,
 	}
+
+	// load user avatar for fancy maps
+	username := p.G().ExternalG().GetEnv().GetUsername().String()
+	avRes, err := p.G().ExternalG().GetAvatarSource().LoadUsers(libkb.NewMetaContext(ctx, p.G().ExternalG()), []string{username}, []keybase1.AvatarFormat{"square_192"})
+	avatarURL := avRes.Picmap[username]["square_192"].String()
+
 	// load map
 	var reader io.ReadCloser
 	var length int64
@@ -289,11 +296,11 @@ func (p *Packager) packageMaps(ctx context.Context, uid gregor1.UID, convID chat
 			return res, err
 		}
 		defer liveReader.Close()
-		if reader, length, err = maps.DecorateMap(ctx, "01", liveReader); err != nil {
+		if reader, length, err = maps.DecorateMap(ctx, avatarURL, liveReader); err != nil {
 			return res, err
 		}
 	} else {
-		if reader, length, err = maps.DecorateMap(ctx, "01", locReader); err != nil {
+		if reader, length, err = maps.DecorateMap(ctx, avatarURL, locReader); err != nil {
 			return res, err
 		}
 	}

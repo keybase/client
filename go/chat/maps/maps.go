@@ -140,15 +140,13 @@ func MapReaderFromURL(ctx context.Context, url string) (res io.ReadCloser, lengt
 	return resp.Body, resp.ContentLength, nil
 }
 
-func DecorateMap(ctx context.Context, username string, mapReader io.Reader) (res io.ReadCloser, length int64, err error) {
+func DecorateMap(ctx context.Context, avatarUrl string, mapReader io.Reader) (res io.ReadCloser, length int64, err error) {
 	// TODO: fetch actual user avatar
-	req, err := http.NewRequest("GET", "https://01.keybase.pub/icon128-test.png", nil)
+	req, err := http.NewRequest("GET", avatarUrl, nil)
 	if err != nil {
 		return res, length, err
 	}
-
-	req.Host = "01.keybase.pub"
-	avatarResp, err := ctxhttp.Do(ctx, httpClient("01.keybase.pub"), req)
+	avatarResp, err := ctxhttp.Do(ctx, httpClient(""), req)
 	if err != nil {
 		return res, length, err
 	}
