@@ -211,8 +211,8 @@ const styles = Styles.styleSheetCreate(
       item: {color: Styles.globalColors.black},
       orangeText: {
         color: Styles.globalColors.orange,
-        lineHeight: 28,
         flex: 1,
+        lineHeight: 28,
       },
       pickerAndroid: {
         backgroundColor: Styles.globalColors.transparent,
