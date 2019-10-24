@@ -98,7 +98,7 @@ const Advanced = (props: Props) => {
           </Kb.Box>
         )}
         {isLinux ? <UseNativeFrame {...props} /> : null}
-        {!Styles.isMobile && !isLinux && (
+        {!Styles.isMobile && (
           <Kb.Box style={styles.checkboxContainer}>
             <Kb.Checkbox
               label="Open Keybase on startup"
