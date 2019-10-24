@@ -98,6 +98,7 @@
   "keybase.1.SimpleFS.simpleFSUserEditHistory": {"promise": true},
   "keybase.1.SimpleFS.simpleFSWait": {"promise": true},
   "keybase.1.SimpleFS.simpleFSGetFolder": {"promise": true},
+  "keybase.1.SimpleFS.simpleFSGetFilesTabBadge": {"promise": true},
   "keybase.1.account.cancelReset": {"promise": true},
   "keybase.1.account.emailChange": {"promise": true},
   "keybase.1.account.enterResetPipeline": {"engineSaga": true},

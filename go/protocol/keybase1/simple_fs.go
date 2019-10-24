@@ -1318,6 +1318,7 @@ const (
 	SubscriptionTopic_JOURNAL_STATUS  SubscriptionTopic = 1
 	SubscriptionTopic_ONLINE_STATUS   SubscriptionTopic = 2
 	SubscriptionTopic_DOWNLOAD_STATUS SubscriptionTopic = 3
+	SubscriptionTopic_FILES_TAB_BADGE SubscriptionTopic = 4
 )
 
 func (o SubscriptionTopic) DeepCopy() SubscriptionTopic { return o }
@@ -1327,6 +1328,7 @@ var SubscriptionTopicMap = map[string]SubscriptionTopic{
 	"JOURNAL_STATUS":  1,
 	"ONLINE_STATUS":   2,
 	"DOWNLOAD_STATUS": 3,
+	"FILES_TAB_BADGE": 4,
 }
 
 var SubscriptionTopicRevMap = map[SubscriptionTopic]string{
@@ -1334,6 +1336,7 @@ var SubscriptionTopicRevMap = map[SubscriptionTopic]string{
 	1: "JOURNAL_STATUS",
 	2: "ONLINE_STATUS",
 	3: "DOWNLOAD_STATUS",
+	4: "FILES_TAB_BADGE",
 }
 
 func (e SubscriptionTopic) String() string {
@@ -1439,6 +1442,38 @@ func (o DownloadStatus) DeepCopy() DownloadStatus {
 			return ret
 		})(o.States),
 	}
+}
+
+type FilesTabBadge int
+
+const (
+	FilesTabBadge_NONE             FilesTabBadge = 0
+	FilesTabBadge_UploadingStuck   FilesTabBadge = 1
+	FilesTabBadge_AwaitingToUpload FilesTabBadge = 2
+	FilesTabBadge_Uploading        FilesTabBadge = 3
+)
+
+func (o FilesTabBadge) DeepCopy() FilesTabBadge { return o }
+
+var FilesTabBadgeMap = map[string]FilesTabBadge{
+	"NONE":             0,
+	"UploadingStuck":   1,
+	"AwaitingToUpload": 2,
+	"Uploading":        3,
+}
+
+var FilesTabBadgeRevMap = map[FilesTabBadge]string{
+	0: "NONE",
+	1: "UploadingStuck",
+	2: "AwaitingToUpload",
+	3: "Uploading",
+}
+
+func (e FilesTabBadge) String() string {
+	if v, ok := FilesTabBadgeRevMap[e]; ok {
+		return v
+	}
+	return fmt.Sprintf("%v", int(e))
 }
 
 type GUIViewType int
@@ -1744,6 +1779,9 @@ type SimpleFSConfigureDownloadArg struct {
 	DownloadDirOverride string `codec:"downloadDirOverride" json:"downloadDirOverride"`
 }
 
+type SimpleFSGetFilesTabBadgeArg struct {
+}
+
 type SimpleFSGetGUIFileContextArg struct {
 	Path KBFSPath `codec:"path" json:"path"`
 }
@@ -1866,6 +1904,7 @@ type SimpleFSInterface interface {
 	SimpleFSCancelDownload(context.Context, string) error
 	SimpleFSDismissDownload(context.Context, string) error
 	SimpleFSConfigureDownload(context.Context, SimpleFSConfigureDownloadArg) error
+	SimpleFSGetFilesTabBadge(context.Context) (FilesTabBadge, error)
 	SimpleFSGetGUIFileContext(context.Context, KBFSPath) (GUIFileContext, error)
 }
 
@@ -2643,6 +2682,16 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return
 				},
 			},
+			"simpleFSGetFilesTabBadge": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSGetFilesTabBadgeArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.SimpleFSGetFilesTabBadge(ctx)
+					return
+				},
+			},
 			"simpleFSGetGUIFileContext": {
 				MakeArg: func() interface{} {
 					var ret [1]SimpleFSGetGUIFileContextArg
@@ -3022,6 +3071,11 @@ func (c SimpleFSClient) SimpleFSDismissDownload(ctx context.Context, downloadID 
 
 func (c SimpleFSClient) SimpleFSConfigureDownload(ctx context.Context, __arg SimpleFSConfigureDownloadArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSConfigureDownload", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSGetFilesTabBadge(ctx context.Context) (res FilesTabBadge, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetFilesTabBadge", []interface{}{SimpleFSGetFilesTabBadgeArg{}}, &res, 0*time.Millisecond)
 	return
 }
 

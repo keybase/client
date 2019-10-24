@@ -550,7 +550,8 @@ protocol SimpleFS {
     FAVORITES_0,
     JOURNAL_STATUS_1,
     ONLINE_STATUS_2,
-    DOWNLOAD_STATUS_3
+    DOWNLOAD_STATUS_3,
+    FILES_TAB_BADGE_4
   }
   enum PathSubscriptionTopic {
     CHILDREN_0,
@@ -606,6 +607,23 @@ protocol SimpleFS {
   // and non-regular downloads.
   void simpleFSDismissDownload(string downloadID);
   void simpleFSConfigureDownload(string cacheDirOverride, string downloadDirOverride);
+
+  // FilesTabBadge is the bagde we show on the Files tab, to indicate
+  // attention-seeking status across entire KBFS.
+  enum FilesTabBadge {
+    NONE_0, // No badge.
+    // We are stuck in conflict resolution in a TLF. This causes GUI to show a
+    // red upload icon on the Files tab. NOTE that this should have higher
+    // priority than other uplaod status.
+    UploadingStuck_1, 
+    // We have stuff in the journal for a TLF, but we are currently offline.
+    // This causes GUI to show a gray uplaod icon on the Files tab.
+    AwaitingToUpload_2, 
+    // We have stuff in the journal for a TLF, and we're uploading. This causes
+    // GUI to show a blue uplaod icon on the Files tab.
+    Uploading_3
+  }
+  FilesTabBadge simpleFSGetFilesTabBadge();
 
   enum GUIViewType {
     DEFAULT_0,

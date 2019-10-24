@@ -788,7 +788,8 @@
         "FAVORITES_0",
         "JOURNAL_STATUS_1",
         "ONLINE_STATUS_2",
-        "DOWNLOAD_STATUS_3"
+        "DOWNLOAD_STATUS_3",
+        "FILES_TAB_BADGE_4"
       ]
     },
     {
@@ -877,6 +878,16 @@
           },
           "name": "states"
         }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "FilesTabBadge",
+      "symbols": [
+        "NONE_0",
+        "UploadingStuck_1",
+        "AwaitingToUpload_2",
+        "Uploading_3"
       ]
     },
     {
@@ -1571,6 +1582,10 @@
         }
       ],
       "response": null
+    },
+    "simpleFSGetFilesTabBadge": {
+      "request": [],
+      "response": "FilesTabBadge"
     },
     "simpleFSGetGUIFileContext": {
       "request": [
