@@ -6181,7 +6181,7 @@ fragment-cache@^0.2.1:
 
 "framed-msgpack-rpc@git://github.com/keybase/node-framed-msgpack-rpc#nojima/HOTPOT-msgpack-js-impl":
   version "1.1.18"
-  resolved "git://github.com/keybase/node-framed-msgpack-rpc#aeb3607e5842b1804cfcfbb4e321b74ffee46301"
+  resolved "git://github.com/keybase/node-framed-msgpack-rpc#010828a48a77315cee4b354dc96a675435e9fc56"
   dependencies:
     "@msgpack/msgpack" "1.9.1"
     iced-error "0.0.9"
