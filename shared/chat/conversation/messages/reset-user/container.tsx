@@ -26,7 +26,7 @@ export default connect(
   (stateProps, dispatchProps, _: OwnProps) => {
     const {_resetParticipants, _participants, _conversationIDKey} = stateProps
     const {_chatWithoutThem, _letThemIn, _viewProfile} = dispatchProps
-    const username = (_resetParticipants && _resetParticipants.values().next().value) || ''
+    const username = (_resetParticipants && [..._resetParticipants][0]) || ''
     const nonResetUsers = new Set(_participants)
     _resetParticipants.forEach(r => nonResetUsers.delete(r))
     const allowChatWithoutThem = nonResetUsers.size > 1
