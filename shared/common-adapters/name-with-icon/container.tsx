@@ -46,7 +46,7 @@ const mergeProps = (
       functionOnClick = () => dispatchProps.onOpenTeamProfile(teamname)
     }
     clickType = 'profile'
-  } else if (!!onClick) {
+  } else if (onClick) {
     clickType = 'onClick'
     functionOnClick = onClick
   }
