@@ -13,7 +13,8 @@ import (
 
 type audioVisualizer struct {
 	amps        []float64
-	strokeColor color.RGBA
+	bkgColor    color.Color
+	strokeColor color.Color
 	strokeWidth int
 	strokeGap   int
 	height      int
@@ -22,13 +23,9 @@ type audioVisualizer struct {
 
 func newAudioVisualizer(amps []float64) *audioVisualizer {
 	return &audioVisualizer{
-		amps: amps,
-		strokeColor: color.RGBA{
-			R: 0,
-			G: 0,
-			B: 0,
-			A: 255,
-		},
+		amps:        amps,
+		bkgColor:    color.White,
+		strokeColor: color.Black,
 		strokeWidth: 3,
 		strokeGap:   2,
 		height:      64,
@@ -54,6 +51,11 @@ func (a *audioVisualizer) visualize() ([]byte, int) {
 	width := numStrokes * (a.strokeWidth + a.strokeGap)
 	img := image.NewNRGBA(image.Rect(0, 0, width, a.height))
 	offset := 0
+	for i := 0; i < width; i++ {
+		for j := 0; j < a.height; j++ {
+			img.Set(i, j, a.bkgColor)
+		}
+	}
 	for i := 0; i < numStrokes; i++ {
 		height := a.getHeight(a.amps[i])
 		a.stroke(offset, height, img)
