@@ -97,6 +97,7 @@ export default Container.connect(
     onTabClick: (tab: Tabs.AppTab) =>
       dispatchProps._onTabClick(tab, stateProps._justSignedUpEmail, stateProps._settingsEmailBanner),
     selectedTab: ownProps.selectedTab,
+    // TODO use the new Strib powered badge data
     uploadIcon: FsConstants.getUploadIconForFilesTab(
       stateProps._kbfsDaemonStatus,
       stateProps._uploads,

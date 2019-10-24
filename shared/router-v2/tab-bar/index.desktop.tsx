@@ -45,16 +45,6 @@ type State = {
   showingMenu: boolean
 }
 
-const LoadFsStuff = () => {
-  // If we ever remove or disable this, please re-enable them for desktop in
-  // fs/. The first two go to fs/container.tsx, and the last one goes to
-  // fsfooter/upload-container.tsx.
-  Kbfs.useFsTlfs()
-  Kbfs.useFsOnlineStatus()
-  Kbfs.useFsJournalStatus()
-  return null
-}
-
 class TabBar extends React.PureComponent<Props, State> {
   state = {showingMenu: false}
 
@@ -184,7 +174,6 @@ class TabBar extends React.PureComponent<Props, State> {
             </Kb.ClickableBox>
           ))}
           <RuntimeStats />
-          <LoadFsStuff />
         </Kb.Box2>
       )
     )

@@ -1,5 +1,4 @@
 import * as React from 'react'
-import {isMobile} from '../../constants/platform'
 import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
 import {compose, namedConnect} from '../../util/container'
@@ -76,6 +75,6 @@ export default compose(
   namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedUpload'),
   UploadCountdownHOC
 )((props: UploadProps) => {
-  isMobile && Kbfs.useFsJournalStatus()
+  Kbfs.useFsJournalStatus()
   return <Upload {...props} />
 })

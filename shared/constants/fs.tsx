@@ -804,7 +804,7 @@ export const getUploadIconForTlfType = (
     return Types.UploadIcon.UploadingStuck
   }
 
-  const prefix = Types.pathToString(Types.getTlfTypePathFromTlfPath(tlfType))
+  const prefix = Types.pathToString(Types.getTlfTypePathFromTlfType(tlfType))
   if (
     [uploads.syncingPaths, uploads.writingToJournal].some(s =>
       [...s].some(p => Types.pathToString(p).startsWith(prefix))
@@ -818,6 +818,9 @@ export const getUploadIconForTlfType = (
   return undefined
 }
 
+export const tlfIsStuckInConflict = (tlf: Types.Tlf) =>
+  tlf.conflictState.type === Types.ConflictStateType.NormalView && tlf.conflictState.stuckInConflict
+
 export const getUploadIconForFilesTab = (
   kbfsDaemonStatus: Types.KbfsDaemonStatus,
   uploads: Types.Uploads,
@@ -830,12 +833,7 @@ export const getUploadIconForFilesTab = (
       tlfs.team,
       // omitting additionalTlfs for now since there's no way to access them
       // anyway if they are not part of the favorites
-    ].some(tlfList =>
-      [...tlfList.entries()].some(
-        ([_, tlf]) =>
-          tlf.conflictState.type === Types.ConflictStateType.NormalView && tlf.conflictState.stuckInConflict
-      )
-    )
+    ].some(tlfList => [...tlfList.entries()].some(([_, tlf]) => tlfIsStuckInConflict(tlf)))
   ) {
     return Types.UploadIcon.UploadingStuck
   }

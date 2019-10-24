@@ -58,7 +58,7 @@ export enum TlfType {
   Team = 'team',
 }
 
-export const getTlfTypePathFromTlfPath = (tlfType: TlfType): Path => {
+export const getTlfTypePathFromTlfType = (tlfType: TlfType): Path => {
   switch (tlfType) {
     case TlfType.Public:
       return '/keybase/public'
