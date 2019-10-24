@@ -3,7 +3,6 @@ import * as Types from '../../../constants/types/fs'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import {OpenInSystemFileManager, PathItemIcon, PathItemAction, SyncStatus} from '../../common'
-import flags from '../../../util/feature-flags'
 
 export type StillCommonProps = {
   path: Types.Path
@@ -21,7 +20,7 @@ export const StillCommon = (
 ) => (
   <Kb.ListItem2
     type="Small"
-    statusIcon={flags.kbfsOfflineMode && <SyncStatus path={props.path} />}
+    statusIcon={<SyncStatus path={props.path} />}
     icon={
       <PathItemIcon
         path={props.path}
