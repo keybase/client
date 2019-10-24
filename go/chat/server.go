@@ -675,6 +675,8 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 		return res, nil
 	}
 
+	// XXX can we make outboxid in runStellarSendUI?
+
 	// Run Stellar UI on any payments in the body
 	if arg.Msg.MessageBody, err = h.runStellarSendUI(ctx, arg.SessionID, uid, arg.ConversationID,
 		arg.Msg.MessageBody); err != nil {
@@ -689,6 +691,8 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 		h.Debug(ctx, "PostLocal: unable to send message: %s", err.Error())
 		return res, err
 	}
+
+	// XXX send to (convid, outboxid) to stellard (add something to runStellarSendUI to sy if there were any payments)
 
 	return chat1.PostLocalRes{
 		MessageID:        msgBoxed.GetMessageID(),
@@ -980,6 +984,7 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 	}
 
 	// Determine if the messages contains any Stellar payments, and execute them if so
+	// XXX return outbox ID and use it in Send(...)
 	if arg.Msg.MessageBody, err = h.runStellarSendUI(ctx, arg.SessionID, uid, arg.ConversationID,
 		arg.Msg.MessageBody); err != nil {
 		return res, err

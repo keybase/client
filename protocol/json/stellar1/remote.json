@@ -20,6 +20,12 @@
     },
     {
       "type": "record",
+      "name": "ChatOutboxID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
       "name": "PaymentDirectPost",
       "fields": [
         {
@@ -59,6 +65,13 @@
             "ChatConversationID"
           ],
           "name": "chatConversationID"
+        },
+        {
+          "type": [
+            null,
+            "ChatOutboxID"
+          ],
+          "name": "chatOutboxID"
         },
         {
           "type": "string",
@@ -119,6 +132,13 @@
             "ChatConversationID"
           ],
           "name": "chatConversationID"
+        },
+        {
+          "type": [
+            null,
+            "ChatOutboxID"
+          ],
+          "name": "chatOutboxID"
         },
         {
           "type": "string",
@@ -184,6 +204,13 @@
             "ChatConversationID"
           ],
           "name": "chatConversationID"
+        },
+        {
+          "type": [
+            null,
+            "ChatOutboxID"
+          ],
+          "name": "chatOutboxID"
         }
       ]
     },

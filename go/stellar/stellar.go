@@ -1743,6 +1743,9 @@ func chatSendPaymentMessage(m libkb.MetaContext, to string, txID stellar1.Transa
 	_, err := m.G().ChatHelper.SendMsgByNameNonblock(m.Ctx(), name, nil,
 		chat1.ConversationMembersType_IMPTEAMNATIVE, keybase1.TLFIdentifyBehavior_CHAT_SKIP, body,
 		chat1.MessageType_SENDPAYMENT, nil)
+
+	// XXX send convid, outboxid to stellard for txID
+
 	return err
 }
 

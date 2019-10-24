@@ -5,6 +5,7 @@ protocol remote {
   import idl "common.avdl";
 
   @typedef("string") record ChatConversationID {}
+  @typedef("string") record ChatOutboxID {}
 
   record PaymentDirectPost {
     keybase1.DeviceID fromDeviceID;
@@ -19,6 +20,7 @@ protocol remote {
     // if not empty, stellard will inform gregord about this payment's
     // status changes along with this conversation ID
     union { null, ChatConversationID } chatConversationID;
+    union { null, ChatOutboxID } chatOutboxID;
     string batchID; // if this payment is part of a batch
   }
 
@@ -36,6 +38,7 @@ protocol remote {
     // if not empty, stellard will inform gregord about this payment's
     // status changes along with this conversation ID
     union { null, ChatConversationID } chatConversationID;
+    union { null, ChatOutboxID } chatOutboxID;
     string batchID; // if this payment is part of a batch
   }
 
@@ -57,6 +60,7 @@ protocol remote {
     // if not empty, stellard will inform gregord about this payment's
     // status changes along with this conversation ID
     union { null, ChatConversationID } chatConversationID;
+    union { null, ChatOutboxID } chatOutboxID;
   }
 
   record DirectOp {
