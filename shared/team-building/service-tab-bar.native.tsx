@@ -26,17 +26,22 @@ const AnimatedBox2 = Kb.ReAnimated.createAnimatedComponent(Kb.Box2)
 
 const ServiceIcon = (props: IconProps) => {
   const color = props.isActive ? serviceIdToAccentColor(props.service) : Styles.globalColors.black
+
   const opacity = Kb.ReAnimated.interpolate(props.offset, {
-    inputRange: [-9999, 0, 100, 9999],
+    inputRange: [-9999, 0, 40, 9999],
     outputRange: [1, 1, 0, 0],
   })
-
   const width = Kb.ReAnimated.interpolate(props.offset, {
     inputRange: [-9999, -100, 0, 100, 9999],
     outputRange: [bigWidth + 5, bigWidth + 5, bigWidth, smallWidth, smallWidth],
   })
+  const translateY = Kb.ReAnimated.interpolate(props.offset, {
+    inputRange: [-100, 0, 100, 9999],
+    outputRange: [0, 0, -8, -8],
+  })
+
   return (
-    <Kb.ClickableBox onClick={props.onClick} style={{height: '100%', position: 'relative'}}>
+    <Kb.ClickableBox onClick={props.onClick} style={{position: 'relative'}}>
       <AnimatedBox2 direction="vertical" style={[styles.serviceIconContainer, {width}]}>
         <Kb.Box2 direction="vertical" style={{position: 'relative'}}>
           {serviceIdToBadge(props.service) && (
@@ -74,12 +79,13 @@ const ServiceIcon = (props: IconProps) => {
           <Kb.Text type="BodyTinySemibold">{props.count && props.count === 11 ? '10+' : props.count}</Kb.Text>
         )}
       </AnimatedBox2>
-      <Kb.Box2
+      <AnimatedBox2
         direction="horizontal"
         fullWidth={true}
         style={Styles.collapseStyles([
           props.isActive ? styles.activeTabBar : styles.inactiveTabBar,
           props.isActive && {backgroundColor: serviceIdToAccentColor(props.service)},
+          {transform: [{translateY}]},
         ])}
       />
     </Kb.ClickableBox>
@@ -140,7 +146,7 @@ export class ServiceTabBar extends React.Component<Props> {
       inputRange: [-9999, 0, 100, 9999],
       outputRange: [72, 72, 48, 48],
     })
-    const paddingTop = Kb.ReAnimated.interpolate(props.offset, {
+    const translateY = Kb.ReAnimated.interpolate(props.offset, {
       inputRange: [-9999, 0, 100, 9999],
       outputRange: [0, 0, 8, 8],
     })
@@ -154,14 +160,10 @@ export class ServiceTabBar extends React.Component<Props> {
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{height: '100%'}}
         style={{
-          borderBottomColor: Styles.globalColors.black_10,
-          borderBottomWidth: 1,
-          borderStyle: 'solid',
           flexGrow: 0,
           flexShrink: 0,
           height,
-          paddingTop,
-          transform: [{translateX: this.bounce}] as any,
+          transform: [{translateX: this.bounce, translateY}] as any,
           width: '100%',
         }}
       >
