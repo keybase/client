@@ -595,7 +595,7 @@ func (fs *KBFSOpsStandard) GetBadge(ctx context.Context) (
 			return keybase1.FilesTabBadge_NONE, err
 		}
 		if s == keybase1.FolderConflictType_IN_CONFLICT_AND_STUCK {
-			return keybase1.FilesTabBadge_UploadingStuck, nil
+			return keybase1.FilesTabBadge_UPLOADING_STUCK, nil
 		}
 	}
 
@@ -609,10 +609,10 @@ func (fs *KBFSOpsStandard) GetBadge(ctx context.Context) (
 		// then data isn't uploading.  Technically it could still
 		// be uploading to the bserver, but that should be very
 		// rare.
-		return keybase1.FilesTabBadge_AwaitingToUpload, nil
+		return keybase1.FilesTabBadge_WAITING_TO_UPLOAD, nil
 	}
 
-	return keybase1.FilesTabBadge_Uploading, nil
+	return keybase1.FilesTabBadge_UPLOADING, nil
 }
 
 // RefreshCachedFavorites implements the KBFSOps interface for

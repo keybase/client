@@ -1431,7 +1431,7 @@ func TestFavoriteConflicts(t *testing.T) {
 	t.Log("Check for stuck badge state")
 	badge, err := sfs.SimpleFSGetFilesTabBadge(ctx)
 	require.NoError(t, err)
-	require.Equal(t, keybase1.FilesTabBadge_UploadingStuck, badge)
+	require.Equal(t, keybase1.FilesTabBadge_UPLOADING_STUCK, badge)
 
 	t.Log("Resolve the conflict")
 	err = sfs.SimpleFSClearConflictState(ctx, pathPub)
@@ -1660,7 +1660,7 @@ func TestBadgeState(t *testing.T) {
 	require.NoError(t, err)
 	badge, err = sfs.SimpleFSGetFilesTabBadge(ctx)
 	require.NoError(t, err)
-	require.Equal(t, keybase1.FilesTabBadge_Uploading, badge)
+	require.Equal(t, keybase1.FilesTabBadge_UPLOADING, badge)
 
 	t.Log("Get a different TLF stuck, badge state should update")
 	writeRemoteFile(
@@ -1670,7 +1670,7 @@ func TestBadgeState(t *testing.T) {
 	require.NoError(t, err)
 	badge, err = sfs.SimpleFSGetFilesTabBadge(ctx)
 	require.NoError(t, err)
-	require.Equal(t, keybase1.FilesTabBadge_UploadingStuck, badge)
+	require.Equal(t, keybase1.FilesTabBadge_UPLOADING_STUCK, badge)
 
 	jManager.ResumeBackgroundWork(ctx, tlfID)
 }

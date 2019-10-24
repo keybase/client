@@ -1565,8 +1565,8 @@ export enum FileType {
 
 export enum FilesTabBadge {
   none = 0,
-  uploadingstuck = 1,
-  awaitingtoupload = 2,
+  uploadingStuck = 1,
+  awaitingUpload = 2,
   uploading = 3,
 }
 

@@ -885,9 +885,9 @@
       "name": "FilesTabBadge",
       "symbols": [
         "NONE_0",
-        "UploadingStuck_1",
-        "AwaitingToUpload_2",
-        "Uploading_3"
+        "UPLOADING_STUCK_1",
+        "AWAITING_UPLOAD_2",
+        "UPLOADING_3"
       ]
     },
     {
