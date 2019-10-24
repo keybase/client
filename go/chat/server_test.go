@@ -1914,6 +1914,20 @@ func TestChatSrvGetOutbox(t *testing.T) {
 		outbox := storage.NewOutbox(tc.Context(), users[0].User.GetUID().ToBytes())
 
 		obr, err := outbox.PushMessage(ctx, created.Id, chat1.MessagePlaintext{
+			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{}),
+			ClientHeader: chat1.MessageClientHeader{
+				Sender:    u.User.GetUID().ToBytes(),
+				TlfName:   u.Username,
+				TlfPublic: false,
+				OutboxInfo: &chat1.OutboxInfo{
+					Prev: 10,
+				},
+			},
+		}, nil, nil, nil, keybase1.TLFIdentifyBehavior_CHAT_CLI)
+		require.NoError(t, err)
+
+		// only badgeable messages are added to the thread
+		_, err = outbox.PushMessage(ctx, created.Id, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				Sender:    u.User.GetUID().ToBytes(),
 				TlfName:   u.Username,
