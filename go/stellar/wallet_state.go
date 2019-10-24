@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"sync"
@@ -737,6 +738,11 @@ func (a *AccountState) refreshWithDetails(mctx libkb.MetaContext, router *libkb.
 	a.Lock()
 	if seqno > a.seqno {
 		a.seqno = seqno
+	}
+
+	if a.accountID != dpp.Details.AccountID {
+		mctx.Debug("refreshWithDetails a.accountID (%s) != dpp.Details.AccountID (%s)", a.accountID, dpp.Details.AccountID)
+		debug.PrintStack()
 	}
 
 	a.balances = dpp.Details.Balances
