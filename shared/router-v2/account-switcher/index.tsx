@@ -60,12 +60,11 @@ type AccountRowProps = {
 }
 const AccountRow = (props: AccountRowProps) => {
   const [clicked, setClicked] = React.useState(false)
-  const prevWaiting = usePrevious(props.waiting)
   React.useEffect(() => {
-    if (prevWaiting && !props.waiting) {
+    if (!props.waiting) {
       setClicked(false)
     }
-  }, [setClicked, props.waiting, prevWaiting])
+  }, [setClicked, props.waiting])
 
   const onClick = props.waiting
     ? undefined
