@@ -36,6 +36,10 @@ const makeTeamToRequest = memoize((tr: Types.State['newTeamRequests']) =>
   }, {})
 )
 
+const orderTeams = memoize((teams: Types.State['teamDetails']) =>
+  [...teams.values()].sort((a, b) => a.teamname.localeCompare(b.teamname))
+)
+
 class Reloadable extends React.PureComponent<Props & {loadTeams: () => void; onClearBadges: () => void}> {
   static navigationOptions = {
     header: undefined,
@@ -98,7 +102,6 @@ const _Connected = Container.connect(
     onViewTeam: (teamname: Types.Teamname) =>
       dispatch(ownProps.safeNavigateAppendPayload({path: [{props: {teamname}, selected: 'team'}]})),
   }),
-
   (stateProps, dispatchProps, _: OwnProps) => ({
     deletedTeams: stateProps._deletedTeams,
     loaded: stateProps.loaded,
@@ -106,7 +109,7 @@ const _Connected = Container.connect(
     sawChatBanner: stateProps.sawChatBanner,
     teamToRequest: makeTeamToRequest(stateProps._newTeamRequests),
     teamresetusers: stateProps._teamresetusers.toObject(),
-    teams: [...stateProps._teams.values()],
+    teams: orderTeams(stateProps._teams),
     ...dispatchProps,
   })
 )(Reloadable)
