@@ -82,7 +82,7 @@ build_one_architecture() {
   # could backfire on us if we get weird whitespace in any filename, but
   # hopefully that will never happen. (Maintaining this list by hand would be
   # much worse.)
-  files="$(cd "$copied_binaries" && find -type f | sed 's/\.//' | sed 's@/opt/keybase/chrome-sandbox@%attr(4755, root, -) /opt/keybase/chrome-sandbox@')"
+  files="$(cd "$copied_binaries" && find -type f | sed 's/\.//')"
 
   spec="$dest/SPECS/keybase-$rpm_arch.spec"
   mkdir -p "$(dirname "$spec")"
