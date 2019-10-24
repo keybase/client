@@ -1155,6 +1155,9 @@ protocol teams {
   // trust path and returned list is not checked.
   AnnotatedTeamList teamListUnverified(int sessionID, string userAssertion, boolean includeImplicitTeams);
 
+  // List known team memberships for current user, excluding implicit teams. Returns a cached list immediately, 
+  AnnotatedTeamList teamListUnverifiedDeferred(int sessionID);
+
   // List all team mates from all teams for current user. Results are
   // checked - team members returned from the server are verified
   // locally with team sigchains.

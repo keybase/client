@@ -568,6 +568,9 @@
         "keybase1TeamsUiConfirmSubteamDelete": {
             "params": "keybase1Types.MessageTypes['keybase.1.teamsUi.confirmSubteamDelete']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.teamsUi.confirmSubteamDelete']['outParam']) => void}"
         },
+        "keybase1TeamsUiTeamListUnverifiedLoaded": {
+            "params": "keybase1Types.MessageTypes['keybase.1.teamsUi.teamListUnverifiedLoaded']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.teamsUi.teamListUnverifiedLoaded']['outParam']) => void}"
+        },
         "keybase1UiPromptYesNo": {
             "params": "keybase1Types.MessageTypes['keybase.1.ui.promptYesNo']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.ui.promptYesNo']['outParam']) => void}"
         },

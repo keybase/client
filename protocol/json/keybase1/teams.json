@@ -3020,6 +3020,15 @@
       ],
       "response": "AnnotatedTeamList"
     },
+    "teamListUnverifiedDeferred": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "AnnotatedTeamList"
+    },
     "teamListTeammates": {
       "request": [
         {

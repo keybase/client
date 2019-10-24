@@ -188,6 +188,10 @@ func (h *TeamsHandler) TeamListUnverified(ctx context.Context, arg keybase1.Team
 	return *x, nil
 }
 
+func (h *TeamsHandler) TeamListUnverifiedDeferred(ctx context.Context, sessionID int) (res keybase1.AnnotatedTeamList, err error) {
+	return keybase1.AnnotatedTeamList{}, err
+}
+
 func (h *TeamsHandler) TeamListTeammates(ctx context.Context, arg keybase1.TeamListTeammatesArg) (res keybase1.AnnotatedTeamList, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamListTeammates(%t)", arg.IncludeImplicitTeams), func() error { return err })()

@@ -19,9 +19,15 @@ type ConfirmSubteamDeleteArg struct {
 	TeamName  string `codec:"teamName" json:"teamName"`
 }
 
+type TeamListUnverifiedLoadedArg struct {
+	SessionID int               `codec:"sessionID" json:"sessionID"`
+	List      AnnotatedTeamList `codec:"list" json:"list"`
+}
+
 type TeamsUiInterface interface {
 	ConfirmRootTeamDelete(context.Context, ConfirmRootTeamDeleteArg) (bool, error)
 	ConfirmSubteamDelete(context.Context, ConfirmSubteamDeleteArg) (bool, error)
+	TeamListUnverifiedLoaded(context.Context, TeamListUnverifiedLoadedArg) error
 }
 
 func TeamsUiProtocol(i TeamsUiInterface) rpc.Protocol {
@@ -58,6 +64,21 @@ func TeamsUiProtocol(i TeamsUiInterface) rpc.Protocol {
 					return
 				},
 			},
+			"teamListUnverifiedLoaded": {
+				MakeArg: func() interface{} {
+					var ret [1]TeamListUnverifiedLoadedArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]TeamListUnverifiedLoadedArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]TeamListUnverifiedLoadedArg)(nil), args)
+						return
+					}
+					err = i.TeamListUnverifiedLoaded(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -73,5 +94,10 @@ func (c TeamsUiClient) ConfirmRootTeamDelete(ctx context.Context, __arg ConfirmR
 
 func (c TeamsUiClient) ConfirmSubteamDelete(ctx context.Context, __arg ConfirmSubteamDeleteArg) (res bool, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teamsUi.confirmSubteamDelete", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c TeamsUiClient) TeamListUnverifiedLoaded(ctx context.Context, __arg TeamListUnverifiedLoadedArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teamsUi.teamListUnverifiedLoaded", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }

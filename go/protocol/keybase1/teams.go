@@ -3341,6 +3341,10 @@ type TeamListUnverifiedArg struct {
 	IncludeImplicitTeams bool   `codec:"includeImplicitTeams" json:"includeImplicitTeams"`
 }
 
+type TeamListUnverifiedDeferredArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type TeamListTeammatesArg struct {
 	SessionID            int  `codec:"sessionID" json:"sessionID"`
 	IncludeImplicitTeams bool `codec:"includeImplicitTeams" json:"includeImplicitTeams"`
@@ -3632,6 +3636,7 @@ type TeamsInterface interface {
 	TeamGetMembers(context.Context, TeamGetMembersArg) (TeamMembersDetails, error)
 	TeamImplicitAdmins(context.Context, TeamImplicitAdminsArg) ([]TeamMemberDetails, error)
 	TeamListUnverified(context.Context, TeamListUnverifiedArg) (AnnotatedTeamList, error)
+	TeamListUnverifiedDeferred(context.Context, int) (AnnotatedTeamList, error)
 	TeamListTeammates(context.Context, TeamListTeammatesArg) (AnnotatedTeamList, error)
 	TeamListVerified(context.Context, TeamListVerifiedArg) (AnnotatedTeamList, error)
 	TeamListSubteamsRecursive(context.Context, TeamListSubteamsRecursiveArg) ([]TeamIDAndName, error)
@@ -3804,6 +3809,21 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.TeamListUnverified(ctx, typedArgs[0])
+					return
+				},
+			},
+			"teamListUnverifiedDeferred": {
+				MakeArg: func() interface{} {
+					var ret [1]TeamListUnverifiedDeferredArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]TeamListUnverifiedDeferredArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]TeamListUnverifiedDeferredArg)(nil), args)
+						return
+					}
+					ret, err = i.TeamListUnverifiedDeferred(ctx, typedArgs[0].SessionID)
 					return
 				},
 			},
@@ -4567,6 +4587,12 @@ func (c TeamsClient) TeamImplicitAdmins(ctx context.Context, __arg TeamImplicitA
 
 func (c TeamsClient) TeamListUnverified(ctx context.Context, __arg TeamListUnverifiedArg) (res AnnotatedTeamList, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamListUnverified", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c TeamsClient) TeamListUnverifiedDeferred(ctx context.Context, sessionID int) (res AnnotatedTeamList, err error) {
+	__arg := TeamListUnverifiedDeferredArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamListUnverifiedDeferred", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 

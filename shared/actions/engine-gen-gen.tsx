@@ -215,6 +215,7 @@ export const keybase1StreamUiReset = 'engine-gen:keybase1StreamUiReset'
 export const keybase1StreamUiWrite = 'engine-gen:keybase1StreamUiWrite'
 export const keybase1TeamsUiConfirmRootTeamDelete = 'engine-gen:keybase1TeamsUiConfirmRootTeamDelete'
 export const keybase1TeamsUiConfirmSubteamDelete = 'engine-gen:keybase1TeamsUiConfirmSubteamDelete'
+export const keybase1TeamsUiTeamListUnverifiedLoaded = 'engine-gen:keybase1TeamsUiTeamListUnverifiedLoaded'
 export const keybase1UiPromptYesNo = 'engine-gen:keybase1UiPromptYesNo'
 export const stellar1NotifyAccountDetailsUpdate = 'engine-gen:stellar1NotifyAccountDetailsUpdate'
 export const stellar1NotifyAccountsUpdate = 'engine-gen:stellar1NotifyAccountsUpdate'
@@ -1779,6 +1780,17 @@ type _Keybase1TeamsUiConfirmSubteamDeletePayload = {
     result: (param: keybase1Types.MessageTypes['keybase.1.teamsUi.confirmSubteamDelete']['outParam']) => void
   }
 }
+type _Keybase1TeamsUiTeamListUnverifiedLoadedPayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.teamsUi.teamListUnverifiedLoaded']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (
+      param: keybase1Types.MessageTypes['keybase.1.teamsUi.teamListUnverifiedLoaded']['outParam']
+    ) => void
+  }
+}
 type _Keybase1UiPromptYesNoPayload = {
   readonly params: keybase1Types.MessageTypes['keybase.1.ui.promptYesNo']['inParam'] & {sessionID: number}
   response: {
@@ -2503,6 +2515,12 @@ export const createKeybase1TeamsUiConfirmRootTeamDelete = (
 export const createKeybase1TeamsUiConfirmSubteamDelete = (
   payload: _Keybase1TeamsUiConfirmSubteamDeletePayload
 ): Keybase1TeamsUiConfirmSubteamDeletePayload => ({payload, type: keybase1TeamsUiConfirmSubteamDelete})
+export const createKeybase1TeamsUiTeamListUnverifiedLoaded = (
+  payload: _Keybase1TeamsUiTeamListUnverifiedLoadedPayload
+): Keybase1TeamsUiTeamListUnverifiedLoadedPayload => ({
+  payload,
+  type: keybase1TeamsUiTeamListUnverifiedLoaded,
+})
 export const createKeybase1UiPromptYesNo = (
   payload: _Keybase1UiPromptYesNoPayload
 ): Keybase1UiPromptYesNoPayload => ({payload, type: keybase1UiPromptYesNo})
@@ -3288,6 +3306,10 @@ export type Keybase1TeamsUiConfirmSubteamDeletePayload = {
   readonly payload: _Keybase1TeamsUiConfirmSubteamDeletePayload
   readonly type: typeof keybase1TeamsUiConfirmSubteamDelete
 }
+export type Keybase1TeamsUiTeamListUnverifiedLoadedPayload = {
+  readonly payload: _Keybase1TeamsUiTeamListUnverifiedLoadedPayload
+  readonly type: typeof keybase1TeamsUiTeamListUnverifiedLoaded
+}
 export type Keybase1UiPromptYesNoPayload = {
   readonly payload: _Keybase1UiPromptYesNoPayload
   readonly type: typeof keybase1UiPromptYesNo
@@ -3517,6 +3539,7 @@ export type Actions =
   | Keybase1StreamUiWritePayload
   | Keybase1TeamsUiConfirmRootTeamDeletePayload
   | Keybase1TeamsUiConfirmSubteamDeletePayload
+  | Keybase1TeamsUiTeamListUnverifiedLoadedPayload
   | Keybase1UiPromptYesNoPayload
   | Stellar1NotifyAccountDetailsUpdatePayload
   | Stellar1NotifyAccountsUpdatePayload

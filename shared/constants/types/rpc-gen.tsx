@@ -1299,6 +1299,10 @@ export type MessageTypes = {
     inParam: {readonly teamName: String}
     outParam: Boolean
   }
+  'keybase.1.teamsUi.teamListUnverifiedLoaded': {
+    inParam: {readonly list: AnnotatedTeamList}
+    outParam: void
+  }
   'keybase.1.track.checkTracking': {
     inParam: void
     outParam: void
@@ -3077,6 +3081,7 @@ export type IncomingCallMapType = {
   'keybase.1.streamUi.write'?: (params: MessageTypes['keybase.1.streamUi.write']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.teamsUi.confirmRootTeamDelete'?: (params: MessageTypes['keybase.1.teamsUi.confirmRootTeamDelete']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.teamsUi.confirmSubteamDelete'?: (params: MessageTypes['keybase.1.teamsUi.confirmSubteamDelete']['inParam'] & {sessionID: number}) => IncomingReturn
+  'keybase.1.teamsUi.teamListUnverifiedLoaded'?: (params: MessageTypes['keybase.1.teamsUi.teamListUnverifiedLoaded']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.ui.promptYesNo'?: (params: MessageTypes['keybase.1.ui.promptYesNo']['inParam'] & {sessionID: number}) => IncomingReturn
 }
 
@@ -3196,6 +3201,7 @@ export type CustomResponseIncomingCallMap = {
   'keybase.1.streamUi.write'?: (params: MessageTypes['keybase.1.streamUi.write']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.streamUi.write']['outParam']) => void}) => IncomingReturn
   'keybase.1.teamsUi.confirmRootTeamDelete'?: (params: MessageTypes['keybase.1.teamsUi.confirmRootTeamDelete']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.teamsUi.confirmRootTeamDelete']['outParam']) => void}) => IncomingReturn
   'keybase.1.teamsUi.confirmSubteamDelete'?: (params: MessageTypes['keybase.1.teamsUi.confirmSubteamDelete']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.teamsUi.confirmSubteamDelete']['outParam']) => void}) => IncomingReturn
+  'keybase.1.teamsUi.teamListUnverifiedLoaded'?: (params: MessageTypes['keybase.1.teamsUi.teamListUnverifiedLoaded']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.teamsUi.teamListUnverifiedLoaded']['outParam']) => void}) => IncomingReturn
   'keybase.1.ui.promptYesNo'?: (params: MessageTypes['keybase.1.ui.promptYesNo']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.ui.promptYesNo']['outParam']) => void}) => IncomingReturn
 }
 export const SimpleFSSimpleFSAreWeConnectedToMDServerRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSAreWeConnectedToMDServer']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSAreWeConnectedToMDServer']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSAreWeConnectedToMDServer', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -3746,6 +3752,7 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.teams.teamCreateWithSettings'
 // 'keybase.1.teams.teamGetByID'
 // 'keybase.1.teams.teamImplicitAdmins'
+// 'keybase.1.teams.teamListUnverifiedDeferred'
 // 'keybase.1.teams.teamListTeammates'
 // 'keybase.1.teams.teamListVerified'
 // 'keybase.1.teams.teamListSubteamsRecursive'
@@ -3772,6 +3779,7 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.teams.ftl'
 // 'keybase.1.teamsUi.confirmRootTeamDelete'
 // 'keybase.1.teamsUi.confirmSubteamDelete'
+// 'keybase.1.teamsUi.teamListUnverifiedLoaded'
 // 'keybase.1.test.test'
 // 'keybase.1.test.testCallback'
 // 'keybase.1.test.panic'

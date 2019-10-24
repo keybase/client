@@ -47,3 +47,7 @@ func (t *TeamsUI) ConfirmSubteamDelete(ctx context.Context, arg keybase1.Confirm
 	}
 	return strings.TrimSpace(response) == confirm, nil
 }
+
+func (t *TeamsUI) TeamListUnverifiedLoaded(ctx context.Context, arg keybase1.TeamListUnverifiedLoadedArg) error {
+	return nil
+}

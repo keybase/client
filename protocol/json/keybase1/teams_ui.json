@@ -28,6 +28,19 @@
         }
       ],
       "response": "boolean"
+    },
+    "teamListUnverifiedLoaded": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "list",
+          "type": "AnnotatedTeamList"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"

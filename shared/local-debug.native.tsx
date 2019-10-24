@@ -27,7 +27,7 @@ window.console._info = window.console.info
 // require('InteractionStallDebugger').install({thresholdMS: 100})
 
 // Set this to true if you want to turn off most console logging so you can profile easier
-const PERF = false
+const PERF = true
 
 let config = {
   allowMultipleInstances: false,
@@ -57,13 +57,13 @@ let config = {
 }
 
 // Developer settings
+config.isDevApplePushToken = true
 if (__DEV__) {
   config.enableActionLogging = true
   config.enableStoreLogging = false
   config.immediateStateLogging = false
   // Move this outside the if statement to get notifications working
   // with a "Profile" build on a phone.
-  config.isDevApplePushToken = true
   config.printOutstandingRPCs = true
   config.printOutstandingTimerListeners = true
   config.printRPCWaitingSession = false
