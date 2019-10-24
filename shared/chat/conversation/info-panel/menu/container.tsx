@@ -46,7 +46,9 @@ export default Container.namedConnect(
       const participants = ChatConstants.getRowParticipants(meta, state.config.username)
       // If it's a one-on-one chat, we need the user's fullname.
       const fullname =
-        participants.length === 1 ? (state.users.infoMap.get(participants[0]) || {fullname: ''}).fullname : ''
+        (participants.length === 1 &&
+          (state.users.infoMap.get(participants[0]) || {fullname: ''}).fullname) ||
+        ''
       convProps = {
         fullname,
         ignored: meta.status === RPCChatTypes.ConversationStatus.ignored,

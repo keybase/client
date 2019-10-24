@@ -1,5 +1,5 @@
 import logger from '../logger'
-import {isEqual} from 'lodash'
+import isEqual from 'lodash/isEqual'
 import * as I from 'immutable'
 import * as FsGen from '../actions/fs-gen'
 import * as Constants from '../constants/fs'
