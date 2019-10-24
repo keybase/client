@@ -105,7 +105,7 @@ const _Connected = Container.connect(
   (stateProps, dispatchProps, _: OwnProps) => ({
     deletedTeams: stateProps._deletedTeams,
     loaded: stateProps.loaded,
-    newTeams: [...stateProps._newTeams],
+    newTeams: stateProps._newTeams,
     sawChatBanner: stateProps.sawChatBanner,
     teamToRequest: makeTeamToRequest(stateProps._newTeamRequests),
     teamresetusers: stateProps._teamresetusers.toObject(),

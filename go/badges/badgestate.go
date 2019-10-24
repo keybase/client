@@ -99,9 +99,9 @@ type problemSetBody struct {
 }
 
 type newTeamBody struct {
-	TeamID   string `json:"id"`
-	TeamName string `json:"name"`
-	Implicit bool   `json:"implicit_team"`
+	TeamID   keybase1.TeamID `json:"id"`
+	TeamName string          `json:"name"`
+	Implicit bool            `json:"implicit_team"`
 }
 
 type teamDeletedBody struct {
@@ -190,7 +190,7 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 	b.state.NewGitRepoGlobalUniqueIDs = []string{}
 	b.state.NewDevices = []keybase1.DeviceID{}
 	b.state.RevokedDevices = []keybase1.DeviceID{}
-	b.state.NewTeamNames = nil
+	b.state.NewTeams = nil
 	b.state.DeletedTeams = nil
 	b.state.NewTeamAccessRequests = nil
 	b.state.HomeTodoItems = 0
@@ -303,7 +303,7 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 				if x.Implicit {
 					continue
 				}
-				b.state.NewTeamNames = append(b.state.NewTeamNames, x.TeamName)
+				b.state.NewTeams = append(b.state.NewTeams, x.TeamID)
 			}
 		case "team.delete":
 			var body []teamDeletedBody

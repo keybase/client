@@ -236,7 +236,7 @@
     },
     "setNewTeamInfo": {
       "deletedTeams": "Array<RPCTypes.DeletedTeamInfo>",
-      "newTeams": "Set<string>",
+      "newTeams": "Set<Types.TeamID>",
       "newTeamRequests": "Array<string>",
       "teamNameToResetUsers": "I.Map<Types.Teamname, I.Set<Types.ResetUser>>"
     },
@@ -269,12 +269,6 @@
     "deleteChannelInfo": {
       "teamname": "Types.Teamname",
       "conversationIDKey": "ChatTypes.ConversationIDKey"
-    },
-    "badgeAppForTeams": {
-      "deletedTeams": "Array<RPCTypes.DeletedTeamInfo>",
-      "newTeamNames": "Array<string>",
-      "newTeamAccessRequests": "Array<string>",
-      "teamsWithResetUsers": "ReadonlyArray<{id: Buffer, teamname: string, username: string, uid: string}>"
     },
     "checkRequestedAccess": {
       "teamname": "string"

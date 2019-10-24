@@ -16,7 +16,7 @@ type DeletedTeam = {
 export type Props = {
   loaded: boolean
   deletedTeams: ReadonlyArray<DeletedTeam>
-  newTeams: ReadonlyArray<string>
+  newTeams: Set<Types.TeamID>
   onCreateTeam: () => void
   onHideChatBanner: () => void
   onJoinTeam: () => void
@@ -169,7 +169,7 @@ class Teams extends React.PureComponent<Props, State> {
             firstItem={index === (this.state.sawChatBanner ? 0 : 1)}
             key={team.teamname}
             name={team.teamname}
-            isNew={this.props.newTeams.includes(team.teamname)}
+            isNew={this.props.newTeams.has(team.id)}
             isOpen={team.isOpen}
             newRequests={this.props.teamToRequest[team.teamname]}
             membercount={team.memberCount}

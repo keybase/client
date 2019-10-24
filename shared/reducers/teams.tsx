@@ -227,7 +227,6 @@ export default (
       case TeamsGen.addUserToTeams:
       case TeamsGen.addToTeam:
       case TeamsGen.reAddToTeam:
-      case TeamsGen.badgeAppForTeams:
       case TeamsGen.checkRequestedAccess:
       case TeamsGen.clearNavBadges:
       case TeamsGen.createChannel:

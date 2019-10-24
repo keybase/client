@@ -156,7 +156,7 @@ export type State = Readonly<{
   teamnames: Set<Teamname> // TODO remove
   teammembercounts: I.Map<Teamname, number>
   teamProfileAddList: Array<TeamProfileAddList>
-  newTeams: Set<string>
+  newTeams: Set<TeamID>
   newTeamRequests: Array<string>
   teamBuilding: TeamBuildingSubState
 }>

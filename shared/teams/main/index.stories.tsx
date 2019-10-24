@@ -26,6 +26,7 @@ const teams = [
     teamname: 'techtonica',
   }),
   Constants.makeTeamDetails({
+    id: 'ted_talks_inc_id',
     isMember: true,
     isOpen: false,
     memberCount: 3,
@@ -43,7 +44,7 @@ const load = () => {
       <Box style={{display: 'flex', flexDirection: 'column', height: '100%', maxWidth: 320}}>
         <TeamList
           deletedTeams={[]}
-          newTeams={[]}
+          newTeams={new Set(['ted_talks_inc_id'])}
           loaded={true}
           onReadMore={Sb.action('onReadMore')}
           onJoinTeam={Sb.action('onJoinTeam')}

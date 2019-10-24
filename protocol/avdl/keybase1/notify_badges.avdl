@@ -43,7 +43,7 @@ protocol NotifyBadges {
     array<DeviceID> revokedDevices;
     array<BadgeConversationInfo> conversations;
     array<string> newGitRepoGlobalUniqueIDs;
-    array<string> newTeamNames;
+    array<TeamID> newTeams;
     array<DeletedTeamInfo> deletedTeams;
     array<string> newTeamAccessRequests;
     array<TeamMemberOutReset> teamsWithResetUsers;
