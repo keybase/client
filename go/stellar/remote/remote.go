@@ -990,6 +990,24 @@ func DetailsPlusPayments(ctx context.Context, g *libkb.GlobalContext, accountID 
 	return apiRes.Result, nil
 }
 
+type allDetailsPlusPaymentsRes struct {
+	libkb.AppStatusEmbed
+	Result []stellar1.DetailsPlusPayments `json:"res"`
+}
+
+func AllDetailsPlusPayments(mctx libkb.MetaContext) ([]stellar1.DetailsPlusPayments, error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/all_details_plus_payments",
+		SessionType: libkb.APISessionTypeREQUIRED,
+	}
+	var apiRes allDetailsPlusPaymentsRes
+	if err := mctx.G().API.GetDecode(mctx, apiArg, &apiRes); err != nil {
+		return nil, err
+	}
+
+	return apiRes.Result, nil
+}
+
 type airdropDetails struct {
 	libkb.AppStatusEmbed
 	Details    json.RawMessage `json:"details"`
