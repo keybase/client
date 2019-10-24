@@ -24,6 +24,8 @@ export const filePickerError = 'config:filePickerError'
 export const followerInfoUpdated = 'config:followerInfoUpdated'
 export const globalError = 'config:globalError'
 export const installerRan = 'config:installerRan'
+export const loadNixOnLoginStartup = 'config:loadNixOnLoginStartup'
+export const loadedNixOnLoginStartup = 'config:loadedNixOnLoginStartup'
 export const loggedIn = 'config:loggedIn'
 export const loggedOut = 'config:loggedOut'
 export const logout = 'config:logout'
@@ -93,6 +95,8 @@ type _FollowerInfoUpdatedPayload = {
 }
 type _GlobalErrorPayload = {readonly globalError?: Error | RPCError}
 type _InstallerRanPayload = void
+type _LoadNixOnLoginStartupPayload = void
+type _LoadedNixOnLoginStartupPayload = {readonly status: boolean | null}
 type _LoggedInPayload = {readonly causedBySignup: boolean; readonly causedByStartup: boolean}
 type _LoggedOutPayload = void
 type _LogoutAndTryToLogInAsPayload = {readonly username: string}
@@ -297,6 +301,12 @@ export const createGlobalError = (payload: _GlobalErrorPayload = Object.freeze({
   payload,
   type: globalError,
 })
+export const createLoadNixOnLoginStartup = (
+  payload: _LoadNixOnLoginStartupPayload
+): LoadNixOnLoginStartupPayload => ({payload, type: loadNixOnLoginStartup})
+export const createLoadedNixOnLoginStartup = (
+  payload: _LoadedNixOnLoginStartupPayload
+): LoadedNixOnLoginStartupPayload => ({payload, type: loadedNixOnLoginStartup})
 export const createLoggedOut = (payload: _LoggedOutPayload): LoggedOutPayload => ({payload, type: loggedOut})
 export const createMobileAppState = (payload: _MobileAppStatePayload): MobileAppStatePayload => ({
   payload,
@@ -411,6 +421,14 @@ export type FollowerInfoUpdatedPayload = {
 }
 export type GlobalErrorPayload = {readonly payload: _GlobalErrorPayload; readonly type: typeof globalError}
 export type InstallerRanPayload = {readonly payload: _InstallerRanPayload; readonly type: typeof installerRan}
+export type LoadNixOnLoginStartupPayload = {
+  readonly payload: _LoadNixOnLoginStartupPayload
+  readonly type: typeof loadNixOnLoginStartup
+}
+export type LoadedNixOnLoginStartupPayload = {
+  readonly payload: _LoadedNixOnLoginStartupPayload
+  readonly type: typeof loadedNixOnLoginStartup
+}
 export type LoggedInPayload = {readonly payload: _LoggedInPayload; readonly type: typeof loggedIn}
 export type LoggedOutPayload = {readonly payload: _LoggedOutPayload; readonly type: typeof loggedOut}
 export type LogoutAndTryToLogInAsPayload = {
@@ -532,6 +550,8 @@ export type Actions =
   | FollowerInfoUpdatedPayload
   | GlobalErrorPayload
   | InstallerRanPayload
+  | LoadNixOnLoginStartupPayload
+  | LoadedNixOnLoginStartupPayload
   | LoggedInPayload
   | LoggedOutPayload
   | LogoutAndTryToLogInAsPayload

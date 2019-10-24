@@ -142,6 +142,8 @@
   "keybase.1.ctl.stop": {"promise": true},
   "keybase.1.ctl.dbNuke": {"promise": true},
   "keybase.1.ctl.dbClean": {"promise": true},
+  "keybase.1.ctl.getNixOnLoginStartup": {"promise": true},
+  "keybase.1.ctl.setNixOnLoginStartup": {"promise": true},
   "keybase.1.delegateUiCtl.registerChatUI": {"promise": true},
   "keybase.1.delegateUiCtl.registerGregorFirehoseFiltered": {"promise": true},
   "keybase.1.delegateUiCtl.registerHomeUI": {"promise": true},

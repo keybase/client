@@ -351,6 +351,9 @@ export default (state: Types.State = Constants.initialState, action: Actions): T
       case ConfigGen.setWhatsNewLastSeenVersion:
         draftState.whatsNewLastSeenVersion = action.payload.lastSeenVersion
         return
+      case ConfigGen.loadedNixOnLoginStartup:
+        draftState.openAtLogin = action.payload.status === true
+        return
       // Saga only actions
       case ConfigGen.dumpLogs:
       case ConfigGen.logout:
@@ -365,6 +368,7 @@ export default (state: Types.State = Constants.initialState, action: Actions): T
       case ConfigGen.openAppStore:
       case ConfigGen.setNavigator:
       case ConfigGen.logoutAndTryToLogInAs:
+      case ConfigGen.loadNixOnLoginStartup:
         return
     }
   })
