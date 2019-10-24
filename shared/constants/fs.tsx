@@ -286,10 +286,11 @@ export const emptyFileContext = {
 // 12 chars
 const uuidSeed = Date.now().toString(36) + '-'
 let counter = 0
+// We have 36^4=1,679,616 of space to work with in order to not exceed 16
+// bytes.
+const counterMod = 36 * 36 * 36 * 36
 export const makeUUID = () => {
-  // We have 36^4=1,679,616 of space to work with in order to not exceed 16
-  // bytes, so mod 1e6 is safe.
-  counter = (counter + 1) % 1e6
+  counter = (counter + 1) % counterMod
   return uuidSeed + counter.toString(36)
 }
 
