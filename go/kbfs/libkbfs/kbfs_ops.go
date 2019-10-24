@@ -197,6 +197,11 @@ func (fs *KBFSOpsStandard) PushConnectionStatusChange(
 	service string, newStatus error) {
 	fs.currentStatus.PushConnectionStatusChange(service, newStatus)
 
+	if service == MDServiceName {
+		fs.config.SubscriptionManagerPublisher().PublishChange(
+			keybase1.SubscriptionTopic_FILES_TAB_BADGE)
+	}
+
 	if fs.config.KeybaseService() == nil {
 		return
 	}
@@ -609,7 +614,7 @@ func (fs *KBFSOpsStandard) GetBadge(ctx context.Context) (
 		// then data isn't uploading.  Technically it could still
 		// be uploading to the bserver, but that should be very
 		// rare.
-		return keybase1.FilesTabBadge_WAITING_TO_UPLOAD, nil
+		return keybase1.FilesTabBadge_AWAITING_UPLOAD, nil
 	}
 
 	return keybase1.FilesTabBadge_UPLOADING, nil
