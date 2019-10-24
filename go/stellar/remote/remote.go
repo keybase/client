@@ -1005,8 +1005,6 @@ func AllDetailsPlusPayments(mctx libkb.MetaContext) ([]stellar1.DetailsPlusPayme
 		return nil, err
 	}
 
-	mctx.Debug("******* AllDetailsPlusPayments: %+v", apiRes.Result)
-
 	return apiRes.Result, nil
 }
 

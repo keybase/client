@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"runtime/debug"
 	"strconv"
 	"strings"
 	"sync"
@@ -729,8 +728,8 @@ func (a *AccountState) refreshWithDetails(mctx libkb.MetaContext, router *libkb.
 	}
 
 	if a.accountID != dpp.Details.AccountID {
-		mctx.Debug("refreshWithDetails a.accountID (%s) != dpp.Details.AccountID (%s)", a.accountID, dpp.Details.AccountID)
-		debug.PrintStack()
+		mctx.Debug("refreshWithDetails dpp.Details.AccountID (%s) != a.accountID (%s)", dpp.Details.AccountID, a.accountID)
+		return fmt.Errorf("refreshWithDetails [%s], account ID in parameter does not match(%s != %s)", reason, dpp.Details.AccountID, a.accountID)
 	}
 
 	a.balances = dpp.Details.Balances

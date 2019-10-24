@@ -556,7 +556,6 @@ func (r *RemoteClientMock) DetailsPlusPayments(ctx context.Context, accountID st
 }
 
 func (r *RemoteClientMock) AllDetailsPlusPayments(mctx libkb.MetaContext) ([]stellar1.DetailsPlusPayments, error) {
-	// return remote.AllDetailsPlusPayments(mctx)
 	r.Tc.T.Log("AllDetailsPlusPayments for %s", r.Tc.Fu.GetUID())
 	ids := r.Backend.AllAccountIDs(r.Tc.Fu.GetUID())
 	var all []stellar1.DetailsPlusPayments
