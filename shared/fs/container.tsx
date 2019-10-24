@@ -39,8 +39,8 @@ const ChooseComponent = (props: ChooseComponentProps) => {
 
   Kbfs.useFsPathMetadata(props.path)
   Kbfs.useFsFileContext(props.path)
-  Kbfs.useFsTlfs()
-  Kbfs.useFsOnlineStatus()
+  Container.isMobile && Kbfs.useFsTlfs()
+  Container.isMobile && Kbfs.useFsOnlineStatus()
   Kbfs.useFsTlf(props.path)
   const softError = Kbfs.useFsSoftError(props.path)
 

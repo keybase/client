@@ -6,29 +6,27 @@ import {OpenInSystemFileManager, PathItemIcon, PathItemAction, SyncStatus} from 
 import flags from '../../../util/feature-flags'
 
 export type StillCommonProps = {
-  name: string
   path: Types.Path
   inDestinationPicker?: boolean
-  onOpen: () => void
+  onOpen?: () => void
   showTlfTypeIcon?: boolean
 }
 
 export const StillCommon = (
   props: StillCommonProps & {
+    badge?: Types.PathItemBadge
     children: React.ReactNode
-    badge?: Types.PathItemBadge | null
+    writingToJournal: boolean
   }
 ) => (
   <Kb.ListItem2
     type="Small"
-    statusIcon={
-      flags.kbfsOfflineMode && Types.getPathLevel(props.path) > 2 && <SyncStatus path={props.path} />
-    }
+    statusIcon={flags.kbfsOfflineMode && <SyncStatus path={props.path} />}
     icon={
       <PathItemIcon
         path={props.path}
         size={32}
-        style={rowStyles.pathItemIcon}
+        style={Styles.collapseStyles([rowStyles.pathItemIcon, props.writingToJournal && rowStyles.opacity30])}
         badge={props.badge}
         showTlfTypeIcon={props.showTlfTypeIcon}
       />
@@ -39,6 +37,7 @@ export const StillCommon = (
     onlyShowActionOnHover="fade"
     action={
       !props.inDestinationPicker &&
+      !props.writingToJournal &&
       Types.getPathLevel(props.path) > 2 && (
         <Kb.Box2 direction="horizontal">
           <OpenInSystemFileManager path={props.path} />
@@ -63,6 +62,9 @@ export const rowStyles = Styles.styleSheetCreate(
         justifyContent: 'center',
         minWidth: 0,
         width: 0,
+      },
+      opacity30: {
+        opacity: 0.3,
       },
       pathItemIcon: {
         marginLeft: Styles.globalMargins.medium,

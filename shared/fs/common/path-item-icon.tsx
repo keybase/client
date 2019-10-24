@@ -3,6 +3,7 @@ import * as Styles from '../../styles'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as Kb from '../../common-adapters'
+import UploadIcon from './upload-icon'
 import * as Flow from '../../util/flow'
 import logger from '../../logger'
 
@@ -11,7 +12,7 @@ type RealSizeString = '96' | '64' | '48' | '32' | '16'
 export type Size = RealSize | 12
 
 export type Props = {
-  badge?: Types.PathItemBadge | null
+  badge?: Types.PathItemBadge
   path: Types.Path
   showTlfTypeIcon?: boolean
   size: Size
@@ -135,13 +136,15 @@ const Badge = (props: Props) => {
   }
   const badgeStyle = props.size === 48 ? badgeStyles['48'] : badgeStyles['32']
   switch (props.badge) {
-    case Types.PathItemBadgeType.Upload:
-      return <Kb.Icon type="icon-addon-file-uploading" style={badgeStyle.rightBottomBadge} />
-    case Types.PathItemBadgeType.Download:
+    case Types.UploadIcon.AwaitingToUpload:
+    case Types.UploadIcon.Uploading:
+    case Types.UploadIcon.UploadingStuck:
+      return <UploadIcon uploadIcon={props.badge} style={badgeStyle.rightBottomBadge} />
+    case Types.NonUploadPathItemBadgeType.Download:
       return <Kb.Icon type="icon-addon-file-downloading" style={badgeStyle.rightBottomBadge} />
-    case Types.PathItemBadgeType.Rekey:
+    case Types.NonUploadPathItemBadgeType.Rekey:
       return <Kb.Meta title="rekey" backgroundColor={Styles.globalColors.red} style={badgeStyle.rekeyBadge} />
-    case Types.PathItemBadgeType.New:
+    case Types.NonUploadPathItemBadgeType.New:
       return <Kb.Meta title="new" backgroundColor={Styles.globalColors.orange} style={badgeStyle.newBadge} />
     default:
       if (!props.badge) {
@@ -150,7 +153,6 @@ const Badge = (props: Props) => {
       if (typeof props.badge === 'number') {
         return <Kb.Badge badgeNumber={props.badge} badgeStyle={badgeStyle.numberBadge} />
       }
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.badge)
       return null
   }
 }
@@ -200,11 +202,23 @@ const badgeStyles = {
           position: 'absolute',
           top: -36,
         },
-        rightBottomBadge: {
-          left: 20,
-          position: 'absolute',
-          top: -14,
-        },
+        rightBottomBadge: Styles.platformStyles({
+          common: {
+            position: 'absolute',
+          },
+          isElectron: {
+            height: Styles.globalMargins.xsmall,
+            left: Styles.globalMargins.medium - Styles.globalMargins.xxtiny,
+            top: -Styles.globalMargins.xsmall,
+            width: Styles.globalMargins.xsmall,
+          },
+          isMobile: {
+            height: Styles.globalMargins.small,
+            left: Styles.globalMargins.medium - Styles.globalMargins.xtiny,
+            top: -Styles.globalMargins.small,
+            width: Styles.globalMargins.small,
+          },
+        }),
       } as const)
   ),
   '48': Styles.styleSheetCreate(
@@ -226,9 +240,11 @@ const badgeStyles = {
           top: -48,
         },
         rightBottomBadge: {
-          left: 32,
+          height: Styles.globalMargins.small,
+          left: Styles.globalMargins.mediumLarge + Styles.globalMargins.xxtiny,
           position: 'absolute',
-          top: -18,
+          top: -Styles.globalMargins.small - Styles.globalMargins.xtiny,
+          width: Styles.globalMargins.small,
         },
       } as const)
   ),

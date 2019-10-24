@@ -3,6 +3,8 @@ import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Tabs from '../../constants/tabs'
 import * as Platforms from '../../constants/platform'
+import * as FsTypes from '../../constants/types/fs'
+import * as Kbfs from '../../fs/common'
 import KeyHandler from '../../util/key-handler.desktop'
 import RuntimeStats from '../../app/runtime-stats/container'
 import './tab-bar.css'
@@ -22,7 +24,7 @@ export type Props = {
   onSignOut: () => void
   onTabClick: (tab: Tabs.AppTab) => void
   selectedTab: Tabs.Tab
-  uploading: boolean
+  uploadIcon?: FsTypes.UploadIcon
   username: string
 }
 
@@ -41,6 +43,16 @@ const tabs = Tabs.desktopTabOrder
 
 type State = {
   showingMenu: boolean
+}
+
+const LoadFsStuff = () => {
+  // If we ever remove or disable this, please re-enable them for desktop in
+  // fs/. The first two go to fs/container.tsx, and the last one goes to
+  // fsfooter/upload-container.tsx.
+  Kbfs.useFsTlfs()
+  Kbfs.useFsOnlineStatus()
+  Kbfs.useFsJournalStatus()
+  return null
 }
 
 class TabBar extends React.PureComponent<Props, State> {
@@ -157,8 +169,8 @@ class TabBar extends React.PureComponent<Props, State> {
                   <Kb.Box2 className="tab-highlight" direction="vertical" fullHeight={true} />
                   <Kb.Box2 style={styles.iconBox} direction="horizontal">
                     <Kb.Icon className="tab-icon" type={data[t].icon} sizeType="Big" />
-                    {p.uploading && t === Tabs.fsTab && (
-                      <Kb.Icon type="icon-addon-file-uploading" sizeType="Default" style={styles.badgeIcon} />
+                    {p.uploadIcon && t === Tabs.fsTab && (
+                      <Kbfs.UploadIcon uploadIcon={p.uploadIcon} style={styles.badgeIconUpload} />
                     )}
                   </Kb.Box2>
                   <Kb.Text className="tab-label" type="BodySmallSemibold">
@@ -172,6 +184,7 @@ class TabBar extends React.PureComponent<Props, State> {
             </Kb.ClickableBox>
           ))}
           <RuntimeStats />
+          <LoadFsStuff />
         </Kb.Box2>
       )
     )
@@ -186,6 +199,13 @@ const styles = Styles.styleSheetCreate(
         bottom: -4,
         position: 'absolute',
         right: 8,
+      },
+      badgeIconUpload: {
+        bottom: -Styles.globalMargins.xxtiny,
+        height: Styles.globalMargins.xsmall,
+        position: 'absolute',
+        right: Styles.globalMargins.xsmall,
+        width: Styles.globalMargins.xsmall,
       },
       button: {
         margin: Styles.globalMargins.xsmall,
