@@ -25,8 +25,8 @@ const ff: FeatureFlags = {
   outOfDateBanner: false,
   plansEnabled: false,
   proofProviders: true,
-  resetPipeline: true,
   stellarExternalPartners: true,
+  userBlocking: false,
 }
 
 const inAdmin: {[K in keyof FeatureFlags]?: boolean} = {
@@ -37,6 +37,7 @@ const inAdmin: {[K in keyof FeatureFlags]?: boolean} = {
   moveOrCopy: true,
   outOfDateBanner: true,
   proofProviders: true,
+  userBlocking: true,
 }
 
 // load overrides

@@ -252,7 +252,9 @@ const Connected = Container.connect(
       _meta.teamType === 'adhoc' && otherParticipants.length === 1 ? otherParticipants[0] : ''
     const otherInfo = userInfo.get(first)
     // If it's a one-on-one chat, use the user's fullname as the description
-    const desc = (otherInfo && otherInfo.bio.replace(/(\r\n|\n|\r)/gm, ' ')) || _meta.descriptionDecorated
+    const desc =
+      (otherInfo && otherInfo.bio && otherInfo.bio.replace(/(\r\n|\n|\r)/gm, ' ')) ||
+      _meta.descriptionDecorated
     const fullName = otherInfo && otherInfo.fullname
 
     return {

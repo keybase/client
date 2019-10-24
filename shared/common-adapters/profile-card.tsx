@@ -179,7 +179,7 @@ const ProfileCard = ({clickToProfile, showClose, containerStyle, username}: Prop
           <ServiceIcons userDetails={userDetails} />
           {!!userDetails.bio && (
             <Kb.Text type="Body" center={true} lineClamp={4} ellipsizeMode="tail">
-              {userDetails.bio.replace(/\s/g, ' ')}
+              {(userDetails.bio || '').replace(/\s/g, ' ')}
             </Kb.Text>
           )}
         </>

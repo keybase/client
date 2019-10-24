@@ -193,12 +193,13 @@
       "teamname": "string"
     },
     "setTeamDetails": {
+      "teamID": "Types.TeamID",
       "teamname": "string",
-      "members": "I.Map<string, Types.MemberInfo>",
-      "settings": "Types.TeamSettings",
-      "invites": "I.Set<Types.InviteInfo>",
-      "subteams": "I.Set<Types.Teamname>",
-      "requests": "I.Map<string, I.Set<Types.RequestInfo>>"
+      "members": "RPCTypes.TeamMembersDetails",
+      "settings": "RPCTypes.TeamSettings",
+      "invites": "Array<Types._InviteInfo>",
+      "subteams": "Array<Types.Teamname>",
+      "requests": "Map<string, Array<string>>"
     },
     "setTeamCanPerform": {
       "teamname": "string",

@@ -125,6 +125,14 @@
         {
           "type": "string",
           "name": "authEndpoint"
+        },
+        {
+          "type": "boolean",
+          "name": "depositReqAuth"
+        },
+        {
+          "type": "boolean",
+          "name": "withdrawReqAuth"
         }
       ]
     },

@@ -94,7 +94,7 @@ const suggestorToMarker = {
   commands: /(!|\/)/,
   emoji: ':',
   // 'users' is for @user, @team, and @team#channel
-  users: /^((\+\d+(\.\d+)?[a-zA-Z]{3,12}@)|@)/, // match normal mentions and ones in a stellar send
+  users: /((\+\d+(\.\d+)?[a-zA-Z]{3,12}@)|@)/, // match normal mentions and ones in a stellar send
 }
 
 const suggestorKeyExtractors = {
@@ -115,7 +115,10 @@ const suggestorKeyExtractors = {
 
 // 2+ valid emoji chars and no ending colon
 const emojiPrepass = /[a-z0-9_]{2,}(?!.*:)/i
-const emojiDatasource = (filter: string) => (emojiPrepass.test(filter) ? emojiIndex.search(filter) : [])
+const emojiDatasource = (filter: string) => ({
+  data: emojiPrepass.test(filter) ? emojiIndex.search(filter) : [],
+  useSpaces: false,
+})
 const emojiRenderer = (item, selected: boolean) => (
   <Kb.Box2
     direction="horizontal"
@@ -345,17 +348,19 @@ class Input extends React.Component<InputProps, InputState> {
     }
   }
 
-  _getUserSuggestions = filter =>
-    searchUsersAndTeamsAndTeamChannels(
+  _getUserSuggestions = filter => ({
+    data: searchUsersAndTeamsAndTeamChannels(
       this.props.suggestUsers,
       this.props.suggestTeams,
       this.props.suggestAllChannels,
       filter
-    )
+    ),
+    useSpaces: false,
+  })
 
   _getCommandSuggestions = filter => {
     if (this.props.showCommandMarkdown || this.props.showGiphySearch) {
-      return []
+      return {data: [], useSpaces: true}
     }
     const sel = this._input && this._input.getSelection()
     if (sel && this._lastText) {
@@ -367,14 +372,15 @@ class Input extends React.Component<InputProps, InputState> {
         (sel.start || 0) > this._maxCmdLength
       ) {
         // not at beginning of message
-        return []
+        return {data: [], useSpaces: true}
       }
     }
     const fil = filter.toLowerCase()
-    return (this._lastText && this._lastText.startsWith('!')
+    const data = (this._lastText && this._lastText.startsWith('!')
       ? this.props.suggestBotCommands
       : this.props.suggestCommands
     ).filter(c => c.name.includes(fil))
+    return {data, useSpaces: true}
   }
 
   _renderTeamSuggestion = (teamname, channelname, selected) => (
@@ -471,7 +477,10 @@ class Input extends React.Component<InputProps, InputState> {
 
   _getChannelSuggestions = filter => {
     const fil = filter.toLowerCase()
-    return this.props.suggestChannels.filter(ch => ch.toLowerCase().includes(fil)).sort()
+    return {
+      data: this.props.suggestChannels.filter(ch => ch.toLowerCase().includes(fil)).sort(),
+      useSpaces: false,
+    }
   }
 
   _renderChannelSuggestion = (channelname: string, selected) => (

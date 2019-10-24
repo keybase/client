@@ -24,6 +24,8 @@ export const filePickerError = 'config:filePickerError'
 export const followerInfoUpdated = 'config:followerInfoUpdated'
 export const globalError = 'config:globalError'
 export const installerRan = 'config:installerRan'
+export const loadNixOnLoginStartup = 'config:loadNixOnLoginStartup'
+export const loadedNixOnLoginStartup = 'config:loadedNixOnLoginStartup'
 export const loggedIn = 'config:loggedIn'
 export const loggedOut = 'config:loggedOut'
 export const logout = 'config:logout'
@@ -49,6 +51,7 @@ export const setStartupDetails = 'config:setStartupDetails'
 export const setSystemDarkMode = 'config:setSystemDarkMode'
 export const setUseNativeFrame = 'config:setUseNativeFrame'
 export const setUserSwitching = 'config:setUserSwitching'
+export const setWhatsNewLastSeenVersion = 'config:setWhatsNewLastSeenVersion'
 export const showMain = 'config:showMain'
 export const startHandshake = 'config:startHandshake'
 export const updateCriticalCheckStatus = 'config:updateCriticalCheckStatus'
@@ -92,6 +95,8 @@ type _FollowerInfoUpdatedPayload = {
 }
 type _GlobalErrorPayload = {readonly globalError?: Error | RPCError}
 type _InstallerRanPayload = void
+type _LoadNixOnLoginStartupPayload = void
+type _LoadedNixOnLoginStartupPayload = {readonly status: boolean | null}
 type _LoggedInPayload = {readonly causedBySignup: boolean; readonly causedByStartup: boolean}
 type _LoggedOutPayload = void
 type _LogoutAndTryToLogInAsPayload = {readonly username: string}
@@ -134,6 +139,7 @@ type _SetStartupDetailsPayload = {
 type _SetSystemDarkModePayload = {readonly dark: boolean}
 type _SetUseNativeFramePayload = {readonly useNativeFrame: boolean}
 type _SetUserSwitchingPayload = {readonly userSwitching: boolean}
+type _SetWhatsNewLastSeenVersionPayload = {readonly lastSeenVersion: string}
 type _ShowMainPayload = void
 type _StartHandshakePayload = void
 type _UpdateCriticalCheckStatusPayload = {
@@ -177,6 +183,12 @@ export const createFilePickerError = (payload: _FilePickerErrorPayload): FilePic
   payload,
   type: filePickerError,
 })
+/**
+ * Set the latest version number that a user has seen from Gregor. This is used to set the badged state of the 'What's New' radio icon
+ */
+export const createSetWhatsNewLastSeenVersion = (
+  payload: _SetWhatsNewLastSeenVersionPayload
+): SetWhatsNewLastSeenVersionPayload => ({payload, type: setWhatsNewLastSeenVersion})
 /**
  * Used internally to know we were logged in. if you want to react to being logged in likely you want bootstrapStatusLoaded
  */
@@ -289,6 +301,12 @@ export const createGlobalError = (payload: _GlobalErrorPayload = Object.freeze({
   payload,
   type: globalError,
 })
+export const createLoadNixOnLoginStartup = (
+  payload: _LoadNixOnLoginStartupPayload
+): LoadNixOnLoginStartupPayload => ({payload, type: loadNixOnLoginStartup})
+export const createLoadedNixOnLoginStartup = (
+  payload: _LoadedNixOnLoginStartupPayload
+): LoadedNixOnLoginStartupPayload => ({payload, type: loadedNixOnLoginStartup})
 export const createLoggedOut = (payload: _LoggedOutPayload): LoggedOutPayload => ({payload, type: loggedOut})
 export const createMobileAppState = (payload: _MobileAppStatePayload): MobileAppStatePayload => ({
   payload,
@@ -403,6 +421,14 @@ export type FollowerInfoUpdatedPayload = {
 }
 export type GlobalErrorPayload = {readonly payload: _GlobalErrorPayload; readonly type: typeof globalError}
 export type InstallerRanPayload = {readonly payload: _InstallerRanPayload; readonly type: typeof installerRan}
+export type LoadNixOnLoginStartupPayload = {
+  readonly payload: _LoadNixOnLoginStartupPayload
+  readonly type: typeof loadNixOnLoginStartup
+}
+export type LoadedNixOnLoginStartupPayload = {
+  readonly payload: _LoadedNixOnLoginStartupPayload
+  readonly type: typeof loadedNixOnLoginStartup
+}
 export type LoggedInPayload = {readonly payload: _LoggedInPayload; readonly type: typeof loggedIn}
 export type LoggedOutPayload = {readonly payload: _LoggedOutPayload; readonly type: typeof loggedOut}
 export type LogoutAndTryToLogInAsPayload = {
@@ -479,6 +505,10 @@ export type SetUserSwitchingPayload = {
   readonly payload: _SetUserSwitchingPayload
   readonly type: typeof setUserSwitching
 }
+export type SetWhatsNewLastSeenVersionPayload = {
+  readonly payload: _SetWhatsNewLastSeenVersionPayload
+  readonly type: typeof setWhatsNewLastSeenVersion
+}
 export type ShowMainPayload = {readonly payload: _ShowMainPayload; readonly type: typeof showMain}
 export type StartHandshakePayload = {
   readonly payload: _StartHandshakePayload
@@ -520,6 +550,8 @@ export type Actions =
   | FollowerInfoUpdatedPayload
   | GlobalErrorPayload
   | InstallerRanPayload
+  | LoadNixOnLoginStartupPayload
+  | LoadedNixOnLoginStartupPayload
   | LoggedInPayload
   | LoggedOutPayload
   | LogoutAndTryToLogInAsPayload
@@ -545,6 +577,7 @@ export type Actions =
   | SetSystemDarkModePayload
   | SetUseNativeFramePayload
   | SetUserSwitchingPayload
+  | SetWhatsNewLastSeenVersionPayload
   | ShowMainPayload
   | StartHandshakePayload
   | UpdateCriticalCheckStatusPayload

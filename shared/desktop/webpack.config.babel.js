@@ -67,6 +67,11 @@ const config = (_, {mode}) => {
         use: [fileLoaderRule],
       },
       {
+        include: path.resolve(__dirname, '../images/releases'),
+        test: [/.*\.(png)$/],
+        use: [fileLoaderRule],
+      },
+      {
         test: /\.css$/,
         use: ['style-loader', 'css-loader'],
       },
@@ -114,6 +119,7 @@ const config = (_, {mode}) => {
       plugins: [
         new webpack.DefinePlugin(defines), // Inject some defines
         new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/), // Skip a bunch of crap moment pulls in
+        new webpack.IgnorePlugin(/^lodash$/), // Disallow entire lodash
       ],
       resolve: {
         ...(isHot

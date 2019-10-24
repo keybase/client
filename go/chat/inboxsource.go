@@ -491,7 +491,7 @@ func (s *RemoteInboxSource) TlfFinalize(ctx context.Context, uid gregor1.UID, ve
 
 func (s *RemoteInboxSource) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	joined []chat1.ConversationMember, removed []chat1.ConversationMember, resets []chat1.ConversationMember,
-	previews []chat1.ConversationID) (res types.MembershipUpdateRes, err error) {
+	previews []chat1.ConversationID, teamMemberRoleUpdate *chat1.TeamMemberRoleUpdate) (res types.MembershipUpdateRes, err error) {
 	return res, err
 }
 
@@ -858,12 +858,18 @@ func (s *HybridInboxSource) NotifyUpdate(ctx context.Context, uid gregor1.UID, c
 	if err := s.createInbox().IncrementLocalConvVersion(ctx, uid, convID); err != nil {
 		s.Debug(ctx, "NotifyUpdate: unable to IncrementLocalConvVersion, err", err)
 	}
-	s.G().ActivityNotifier.ThreadsStale(ctx, uid, []chat1.ConversationStaleUpdate{
-		{
-			ConvID:     convID,
-			UpdateType: chat1.StaleUpdateType_CONVUPDATE,
-		},
-	})
+	conv, err := s.getConvLocal(ctx, uid, convID)
+	if err != nil {
+		s.Debug(ctx, "NotifyUpdate: unable to getConvLocal, err", err)
+	}
+	var inboxUIItem *chat1.InboxUIItem
+	topicType := chat1.TopicType_NONE
+	if conv != nil {
+		inboxUIItem = PresentConversationLocalWithFetchRetry(ctx, s.G(), uid, *conv)
+		topicType = conv.GetTopicType()
+	}
+	s.G().ActivityNotifier.ConvUpdate(ctx, uid, convID,
+		topicType, inboxUIItem)
 }
 
 func (s *HybridInboxSource) MarkAsRead(ctx context.Context, convID chat1.ConversationID,
@@ -1311,20 +1317,17 @@ func (s *HybridInboxSource) NewConversation(ctx context.Context, uid gregor1.UID
 func (s *HybridInboxSource) getConvLocal(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID) (conv *chat1.ConversationLocal, err error) {
 	// Read back affected conversation so we can send it to the frontend
-	ib, _, err := s.Read(ctx, uid, types.ConversationLocalizerBlocking, types.InboxSourceDataSourceAll, nil,
-		&chat1.GetInboxLocalQuery{
-			ConvIDs: []chat1.ConversationID{convID},
-		}, nil)
+	convs, err := s.getConvsLocal(ctx, uid, []chat1.ConversationID{convID})
 	if err != nil {
-		return conv, err
+		return nil, err
 	}
-	if len(ib.Convs) == 0 {
-		return conv, fmt.Errorf("unable to find conversation for new message: convID: %s", convID)
+	if len(convs) == 0 {
+		return nil, fmt.Errorf("unable to find conversation for new message: convID: %s", convID)
 	}
-	if len(ib.Convs) > 1 {
-		return conv, fmt.Errorf("more than one conversation returned? convID: %s", convID)
+	if len(convs) > 1 {
+		return nil, fmt.Errorf("more than one conversation returned? convID: %s", convID)
 	}
-	return &ib.Convs[0], nil
+	return &convs[0], nil
 }
 
 // Get convs. May return fewer or no conversations.
@@ -1469,7 +1472,7 @@ func (s *HybridInboxSource) TlfFinalize(ctx context.Context, uid gregor1.UID, ve
 
 func (s *HybridInboxSource) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	joined []chat1.ConversationMember, removed []chat1.ConversationMember, resets []chat1.ConversationMember,
-	previews []chat1.ConversationID) (res types.MembershipUpdateRes, err error) {
+	previews []chat1.ConversationID, teamMemberRoleUpdate *chat1.TeamMemberRoleUpdate) (res types.MembershipUpdateRes, err error) {
 	defer s.Trace(ctx, func() error { return err }, "MembershipUpdate")()
 
 	// Separate into joins and removed on uid, and then on other users
@@ -1525,10 +1528,20 @@ func (s *HybridInboxSource) MembershipUpdate(ctx context.Context, uid gregor1.UI
 	}
 
 	ib := s.createInbox()
-	if cerr := ib.MembershipUpdate(ctx, uid, vers, userJoinedConvs, res.UserRemovedConvs,
-		res.OthersJoinedConvs, res.OthersRemovedConvs, res.UserResetConvs, res.OthersResetConvs); cerr != nil {
+	roleUpdates, cerr := ib.MembershipUpdate(ctx, uid, vers, userJoinedConvs, res.UserRemovedConvs,
+		res.OthersJoinedConvs, res.OthersRemovedConvs, res.UserResetConvs,
+		res.OthersResetConvs, teamMemberRoleUpdate)
+	if cerr != nil {
 		err = s.handleInboxError(ctx, cerr, uid)
 		return res, err
+	}
+	if len(roleUpdates) > 0 {
+		convs, err := s.getConvsLocal(ctx, uid, roleUpdates)
+		if err != nil {
+			s.Debug(ctx, "MembershipUpdate: failed to read role update convs: %v", err)
+			return res, err
+		}
+		res.RoleUpdates = convs
 	}
 
 	return res, nil

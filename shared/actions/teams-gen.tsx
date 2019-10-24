@@ -215,12 +215,13 @@ type _SetTeamChannelsPayload = {
 }
 type _SetTeamCreationErrorPayload = {readonly error: string}
 type _SetTeamDetailsPayload = {
+  readonly teamID: Types.TeamID
   readonly teamname: string
-  readonly members: I.Map<string, Types.MemberInfo>
-  readonly settings: Types.TeamSettings
-  readonly invites: I.Set<Types.InviteInfo>
-  readonly subteams: I.Set<Types.Teamname>
-  readonly requests: I.Map<string, I.Set<Types.RequestInfo>>
+  readonly members: RPCTypes.TeamMembersDetails
+  readonly settings: RPCTypes.TeamSettings
+  readonly invites: Array<Types._InviteInfo>
+  readonly subteams: Array<Types.Teamname>
+  readonly requests: Map<string, Array<string>>
 }
 type _SetTeamInfoPayload = {
   readonly teamnames: Set<Types.Teamname>

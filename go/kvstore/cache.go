@@ -10,7 +10,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-const DELETED_OR_NONEXISTENT = ""
+const DeletedOrNonExistent = ""
 
 var _ libkb.KVRevisionCacher = (*KVRevisionCache)(nil)
 
@@ -36,19 +36,11 @@ func NewKVRevisionCache(g *libkb.GlobalContext) *KVRevisionCache {
 	return kvr
 }
 
-type KVRevisionCacheError struct {
-	Message string
-}
-
-func (e KVRevisionCacheError) Error() string {
-	return e.Message
-}
-
 // Hash is a sha256 on the input string. If the string is empty, then Hash will also be an
 // empty string for tracking deleted entries in perpetuity.
 func (k *KVRevisionCache) hash(ciphertext *string) string {
-	if ciphertext == nil || len(*ciphertext) == 0 || *ciphertext == DELETED_OR_NONEXISTENT {
-		return DELETED_OR_NONEXISTENT
+	if ciphertext == nil || len(*ciphertext) == 0 || *ciphertext == DeletedOrNonExistent {
+		return DeletedOrNonExistent
 	}
 	b := sha256.Sum256([]byte(*ciphertext))
 	return hex.EncodeToString(b[:])
@@ -64,17 +56,17 @@ func (k *KVRevisionCache) checkLocked(mctx libkb.MetaContext, entryID keybase1.K
 	}
 	entryHash := k.hash(ciphertext)
 	if revision < entry.Revision {
-		return KVRevisionCacheError{fmt.Sprintf("cache error: revision decreased from %d to %d", entry.Revision, revision)}
+		return KVCacheError{fmt.Sprintf("cache error: revision decreased from %d to %d", entry.Revision, revision)}
 	}
 	if teamKeyGen < entry.TeamKeyGen {
-		return KVRevisionCacheError{fmt.Sprintf("cache error: team key generation decreased from %d to %d", entry.TeamKeyGen, teamKeyGen)}
+		return KVCacheError{fmt.Sprintf("cache error: team key generation decreased from %d to %d", entry.TeamKeyGen, teamKeyGen)}
 	}
 	if revision == entry.Revision {
 		if teamKeyGen != entry.TeamKeyGen {
-			return KVRevisionCacheError{fmt.Sprintf("cache error: at the same revision (%d) team key gen cannot be different: %d -> %d", revision, entry.TeamKeyGen, teamKeyGen)}
+			return KVCacheError{fmt.Sprintf("cache error: at the same revision (%d) team key gen cannot be different: %d -> %d", revision, entry.TeamKeyGen, teamKeyGen)}
 		}
 		if entryHash != entry.EntryHash {
-			return KVRevisionCacheError{fmt.Sprintf("cache error: at the same revision (%d) hash of entry cannot be different: %s -> %s", revision, entry.EntryHash, entryHash)}
+			return KVCacheError{fmt.Sprintf("cache error: at the same revision (%d) hash of entry cannot be different: %s -> %s", revision, entry.EntryHash, entryHash)}
 		}
 	}
 	return nil
@@ -106,49 +98,44 @@ func (k *KVRevisionCache) Put(mctx libkb.MetaContext, entryID keybase1.KVEntryID
 	return nil
 }
 
-func (k *KVRevisionCache) checkDeletableLocked(mctx libkb.MetaContext, entryID keybase1.KVEntryID, revision int) (err error) {
+func (k *KVRevisionCache) checkForUpdateLocked(mctx libkb.MetaContext, entryID keybase1.KVEntryID, revision int) (err error) {
 	k.ensureIntermediateLocked(entryID)
 
 	entry, ok := k.data[entryID.TeamID][entryID.Namespace][entryID.EntryKey]
 	if !ok {
-		// this should never happen
-		return KVRevisionCacheError{fmt.Sprintf("cache is corrupted - please restart")}
+		// this entry didn't exist in the cache, so there's nothing to check
+		return nil
 	}
-	entryHash := DELETED_OR_NONEXISTENT
-	if revision < entry.Revision {
-		return KVRevisionCacheError{fmt.Sprintf("cache error: revision decreased from %d to %d", entry.Revision, revision)}
-	}
-	if revision == entry.Revision {
-		if entryHash != entry.EntryHash {
-			return KVRevisionCacheError{fmt.Sprintf("cache error: at the same revision (%d) hash of entry cannot be different: %s -> %s", revision, entry.EntryHash, entryHash)}
-		}
+	if revision <= entry.Revision {
+		return NewKVRevisionError("" /* use the default out-of-date message */)
 	}
 	return nil
 }
 
-func (k *KVRevisionCache) CheckDeletable(mctx libkb.MetaContext, entryID keybase1.KVEntryID, revision int) (err error) {
+func (k *KVRevisionCache) CheckForUpdate(mctx libkb.MetaContext, entryID keybase1.KVEntryID, revision int) (err error) {
 	k.Lock()
 	defer k.Unlock()
 
-	return k.checkDeletableLocked(mctx, entryID, revision)
+	return k.checkForUpdateLocked(mctx, entryID, revision)
 }
 
 func (k *KVRevisionCache) MarkDeleted(mctx libkb.MetaContext, entryID keybase1.KVEntryID, revision int) (err error) {
 	k.Lock()
 	defer k.Unlock()
 
-	err = k.checkDeletableLocked(mctx, entryID, revision)
+	err = k.checkForUpdateLocked(mctx, entryID, revision)
 	if err != nil {
 		return err
 	}
 	existingEntry, ok := k.data[entryID.TeamID][entryID.Namespace][entryID.EntryKey]
 	if !ok {
-		// this should never happen
-		return KVRevisionCacheError{fmt.Sprintf("cache is corrupted - please restart")}
+		// deleting an entry that's not been seen yet by the cache.
+		// being explicit here that it's ok to use an empty entry
+		existingEntry = kvCacheEntry{}
 	}
 	newEntry := kvCacheEntry{
-		EntryHash:  DELETED_OR_NONEXISTENT,
-		TeamKeyGen: existingEntry.TeamKeyGen, // nothing gets encrypted here, so this should just roll forward
+		EntryHash:  DeletedOrNonExistent,
+		TeamKeyGen: existingEntry.TeamKeyGen, // nothing gets encrypted here, so this should just roll forward or default to 0
 		Revision:   revision,
 	}
 	k.data[entryID.TeamID][entryID.Namespace][entryID.EntryKey] = newEntry

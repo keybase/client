@@ -599,6 +599,33 @@ const logoutAndTryToLogInAs = async (
   return ConfigGen.createSetDefaultUsername({username: action.payload.username})
 }
 
+const gregorPushState = (_: Container.TypedState, action: GregorGen.PushStatePayload) => {
+  const actions: Array<Container.TypedActions> = []
+  const items = action.payload.state
+  const lastSeenItem = items.find(i => i.item && i.item.category === 'whatsNewLastSeenVersion')
+  if (lastSeenItem) {
+    const {body} = lastSeenItem.item
+    const lastVersion = body.toString()
+    actions.push(
+      ConfigGen.createSetWhatsNewLastSeenVersion({
+        lastSeenVersion: lastVersion,
+      })
+    )
+  }
+  return actions
+}
+
+const loadNixOnLoginStartup = async () => {
+  try {
+    const status =
+      (await RPCTypes.ctlGetNixOnLoginStartupRpcPromise()) === RPCTypes.OnLoginStartupStatus.enabled
+    return ConfigGen.createLoadedNixOnLoginStartup({status})
+  } catch (err) {
+    logger.warn('Error in loading proxy data', err)
+    return null
+  }
+}
+
 function* configSaga() {
   // Start the handshake process. This means we tell all sagas we're handshaking with the daemon. If another
   // saga needs to do something before we leave the loading screen they should call daemonHandshakeWait
@@ -668,6 +695,9 @@ function* configSaga() {
   yield* Saga.chainAction2(EngineGen.keybase1NotifyTrackingTrackingInfo, onTrackingInfo)
   yield* Saga.chainAction2(EngineGen.keybase1NotifyServiceHTTPSrvInfoUpdate, onHTTPSrvInfoUpdated)
 
+  // Listen for updates to `whatsNewLastSeenVersion`
+  yield* Saga.chainAction2(GregorGen.pushState, gregorPushState, 'gregorPushState')
+
   yield* Saga.chainAction2(SettingsGen.loadedSettings, maybeLoadAppLink)
 
   yield* Saga.chainAction2(ConfigGen.setDarkModePreference, saveDarkPrefs)
@@ -680,6 +710,8 @@ function* configSaga() {
   // Kick off platform specific stuff
   yield Saga.spawn(PlatformSpecific.platformConfigSaga)
   yield Saga.spawn(criticalOutOfDateCheck)
+
+  yield* Saga.chainAction2(ConfigGen.loadNixOnLoginStartup, loadNixOnLoginStartup)
 }
 
 export default configSaga
