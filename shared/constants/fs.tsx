@@ -9,7 +9,6 @@ import * as Tabs from './tabs'
 import * as SettingsConstants from './settings'
 import {TypedState} from '../util/container'
 import {isLinux, isMobile} from './platform'
-import uuidv1 from 'uuid/v1'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import {TypedActions} from '../actions/typed-actions-gen'
 import flags from '../util/feature-flags'
@@ -279,8 +278,20 @@ export const emptyFileContext = {
   viewType: RPCTypes.GUIViewType.default,
 }
 
-// RPC expects a string that's interpreted as [16]byte on Go side.
-export const makeUUID = () => uuidv1({}, Buffer.alloc(16), 0).toString()
+// RPC expects a string that's interpreted as [16]byte on Go side and it has to
+// be unique among all ongoing ops at any given time. uuidv1 may exceed 16
+// bytes, so just roll something simple that's seeded with time.
+//
+// MAX_SAFE_INTEGER after toString(36) is 11 characters, so this should take <=
+// 12 chars
+const uuidSeed = Date.now().toString(36) + '-'
+let counter = 0
+export const makeUUID = () => {
+  // We have 36^4=1,679,616 of space to work with in order to not exceed 16
+  // bytes, so mod 1e6 is safe.
+  counter = (counter + 1) % 1e6
+  return uuidSeed + counter.toString(36)
+}
 
 export const pathToRPCPath = (
   path: Types.Path
@@ -445,7 +456,7 @@ export const syntheticEventToTargetRect = (evt?: React.SyntheticEvent): ClientRe
 export const invalidTokenError = new Error('invalid token')
 export const notFoundError = new Error('not found')
 
-export const makeEditID = (): Types.EditID => Types.stringToEditID(uuidv1())
+export const makeEditID = (): Types.EditID => Types.stringToEditID(makeUUID())
 
 export const getTlfListFromType = (tlfs: Types.Tlfs, tlfType: Types.TlfType): Types.TlfList => {
   switch (tlfType) {

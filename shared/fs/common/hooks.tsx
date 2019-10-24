@@ -6,7 +6,6 @@ import * as FsGen from '../../actions/fs-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Kb from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
-import uuidv1 from 'uuid/v1'
 import flags from '../../util/feature-flags'
 
 const isPathItem = (path: Types.Path) => Types.getPathLevel(path) > 2 || Constants.hasSpecialFileElement(path)
@@ -38,7 +37,7 @@ const useFsPathSubscriptionEffect = (path: Types.Path, topic: RPCTypes.PathSubsc
       return () => {}
     }
 
-    const subscriptionID = uuidv1()
+    const subscriptionID = Constants.makeUUID()
     dispatch(FsGen.createSubscribePath({path, subscriptionID, topic}))
     return () => dispatch(FsGen.createUnsubscribe({subscriptionID}))
   }, [dispatch, path, topic])
@@ -47,7 +46,7 @@ const useFsPathSubscriptionEffect = (path: Types.Path, topic: RPCTypes.PathSubsc
 const useFsNonPathSubscriptionEffect = (topic: RPCTypes.SubscriptionTopic) => {
   const dispatch = useDispatchWhenConnected()
   React.useEffect(() => {
-    const subscriptionID = uuidv1()
+    const subscriptionID = Constants.makeUUID()
     dispatch(FsGen.createSubscribeNonPath({subscriptionID, topic}))
     return () => dispatch(FsGen.createUnsubscribe({subscriptionID}))
   }, [dispatch, topic])

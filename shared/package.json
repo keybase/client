@@ -193,7 +193,6 @@
     "typedarray-to-buffer": "3.1.5",
     "unidecode": "0.1.8",
     "url-parse": "1.4.7",
-    "uuid": "3.3.2",
     "whatwg-url": "7.0.0"
   },
   "devDependencies": {
