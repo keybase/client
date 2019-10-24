@@ -16,34 +16,19 @@ class LoginRender extends React.Component<Props, State> {
 
   _selectedUserChange = selectedUser => {
     this.props.selectedUserChange(selectedUser)
-    // For some reason, calling this immediately doesn't work, at
-    // least on iOS.
-    // setImmediate(this._focusInput)
   }
 
   render() {
     const inputProps: InputProps = {
       autoFocus: true,
+      error: !!this.props.error,
       keyboardType: this.props.showTyping && Styles.isAndroid ? 'visible-password' : 'default',
       onChangeText: password => this.props.passwordChange(password),
       onEnterKeyDown: () => this.props.onSubmit(),
       placeholder: 'Password',
       secureTextEntry: true,
       type: this.props.showTyping ? 'text' : 'password',
-      // There is a weird bug with RN 0.54+ where if this is controlled it somehow causes a race which causes a crash
-      // making this uncontrolled fixes this
-      uncontrolled: true,
     }
-
-    const checkboxProps = [
-      {
-        checked: this.props.showTyping,
-        label: 'Show typing',
-        onCheck: check => {
-          this.props.showTypingChange(check)
-        },
-      },
-    ]
 
     return (
       <Kb.Box
@@ -72,11 +57,15 @@ class LoginRender extends React.Component<Props, State> {
                 options={this.props.users}
               />
               {this.props.needPassword && (
-                <Kb.FormWithCheckbox
-                  style={styles.form}
-                  inputProps={inputProps}
-                  checkboxesProps={checkboxProps}
-                />
+                <Kb.Box2 direction="vertical" gap="tiny" gapEnd={true} gapStart={true} fullWidth={true}>
+                  <Kb.LabeledInput {...inputProps} />
+                  <Kb.Checkbox
+                    checked={this.props.showTyping}
+                    label="Show typing"
+                    onCheck={check => this.props.showTypingChange(check)}
+                    style={styles.formElements}
+                  />
+                </Kb.Box2>
               )}
               <Kb.WaitingButton
                 disabled={this.props.needPassword && !this.props.password}
@@ -143,9 +132,8 @@ const styles = Styles.styleSheetCreate(
       deviceNotSecureText: {
         color: Styles.globalColors.brown_75,
       },
-      form: {
-        alignSelf: 'stretch',
-        marginTop: Styles.globalMargins.tiny,
+      formElements: {
+        marginBottom: Styles.globalMargins.tiny,
       },
       scrollView: {
         backgroundColor: Styles.globalColors.blueGrey,
