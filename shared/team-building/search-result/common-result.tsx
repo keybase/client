@@ -1,22 +1,16 @@
 import * as React from 'react'
-import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
-import * as Types from '../constants/types/team-building'
-import * as Tracker2Constants from '../constants/tracker2'
-import * as FsConstants from '../constants/fs'
-import * as FsTypes from '../constants/types/fs'
-import * as RouteTreeGen from '../actions/route-tree-gen'
-import * as ProfileGen from '../actions/profile-gen'
-import * as WalletsGen from '../actions/wallets-gen'
-import * as WalletsType from '../constants/types/wallets'
-import * as ChatConstants from '../constants/chat2'
-import * as Container from '../util/container'
-import * as Chat2Gen from '../actions/chat2-gen'
-
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
+import * as Types from '../../constants/types/team-building'
 import capitalize from 'lodash/capitalize'
-import {serviceIdToIconFont, serviceIdToAccentColor, serviceMapToArray} from './shared'
+import {
+  serviceIdToIconFont,
+  serviceIdToAccentColor,
+  serviceMapToArray,
+  serviceIdToAvatarIcon,
+} from '../shared'
 
-export type Props = {
+export type ResultProps = {
   // They are already a member in the actual team, not this temporary set.
   isPreExistingTeamMember: boolean
   resultForService: Types.ServiceIdWithContact
@@ -29,14 +23,12 @@ export type Props = {
   highlight: boolean
   onAdd: () => void
   onRemove: () => void
+  rightButtons?: React.ReactNode
 }
 
-/*
- * This component is intended to be a drop-in replacement for UserResult.
- * It replaces the team-builder checkbox with a 'chat' button and action menu on desktop.
- * It retains most of the display code and logic from UserResult, but also includes
- * a bunch of React hooks to handle all the stateful logic needed to make the menu and chat button work.
- */
+export type CommonResultProps = ResultProps & {
+  rowStyle?: Styles.StylesCrossPlatform
+}
 
 /*
  * Case 1: the service is 'keybase' (isKeybaseResult = true)
@@ -53,8 +45,7 @@ export type Props = {
  *    {prettyName} if the user added it. Can fallback to username if no prettyName is set
  *    {service icons} if the user has proofs
  */
-const PeopleResult = (props: Props) => {
-  const dispatch = Container.useDispatch()
+const CommonResult = (props: CommonResultProps) => {
   /*
    * Regardless of the service that is being searched, if we find that a
    * service user is also a keybase user, we also want to show their keybase
@@ -66,119 +57,18 @@ const PeopleResult = (props: Props) => {
   const onAdd = !props.isPreExistingTeamMember ? props.onAdd : undefined
   const onRemove = !props.isPreExistingTeamMember ? props.onRemove : undefined
 
-  // action button specific definitions
-  const myUsername = Container.useSelector(state => state.config.username)
-  const userDetails = Container.useSelector(state => Tracker2Constants.getDetails(state, props.username))
-  const blocked = userDetails.blocked
-  const decoratedUsername = keybaseUsername ? keybaseUsername : `${serviceUsername}@${props.resultForService}`
-
-  const onMenuAddToTeam = () =>
-    keybaseUsername &&
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {username: keybaseUsername}, selected: 'profileAddToTeam'}],
-      })
-    )
-  const onOpenPrivateFolder = React.useCallback(() => {
-    dispatch(RouteTreeGen.createNavigateUp())
-    dispatch(
-      FsConstants.makeActionForOpenPathInFilesTab(
-        FsTypes.stringToPath(`/keybase/private/${decoratedUsername},${myUsername}`)
-      )
-    )
-  }, [dispatch, myUsername, decoratedUsername])
-  const onBrowsePublicFolder = () => {
-    dispatch(RouteTreeGen.createNavigateUp())
-    dispatch(
-      FsConstants.makeActionForOpenPathInFilesTab(
-        FsTypes.stringToPath(`/keybase/public/${decoratedUsername}`)
-      )
-    )
-  }
-
-  const onSendLumens = () =>
-    keybaseUsername &&
-    dispatch(
-      WalletsGen.createOpenSendRequestForm({
-        from: WalletsType.noAccountID,
-        isRequest: false,
-        recipientType: 'keybaseUser',
-        to: keybaseUsername,
-      })
-    )
-  const onRequestLumens = () =>
-    keybaseUsername &&
-    dispatch(
-      WalletsGen.createOpenSendRequestForm({
-        from: WalletsType.noAccountID,
-        isRequest: true,
-        recipientType: 'keybaseUser',
-        to: keybaseUsername,
-      })
-    )
-  const onBlock = () =>
-    keybaseUsername &&
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {username: keybaseUsername}, selected: 'profileBlockUser'}],
-      })
-    )
-  const onUnblock = React.useCallback(
-    () =>
-      keybaseUsername &&
-      dispatch(ProfileGen.createSubmitUnblockUser({guiID: userDetails.guiID, username: keybaseUsername})),
-    [dispatch, keybaseUsername, userDetails.guiID]
-  )
-  const onChat = () => {
-    dispatch(RouteTreeGen.createNavigateUp())
-    dispatch(Chat2Gen.createPreviewConversation({participants: [decoratedUsername], reason: 'search'}))
-  }
-
-  const dropdown = keybaseUsername ? (
-    <DropdownButton
-      key="dropdown"
-      onAddToTeam={onMenuAddToTeam}
-      onOpenPrivateFolder={onOpenPrivateFolder}
-      onBrowsePublicFolder={onBrowsePublicFolder}
-      onSendLumens={onSendLumens}
-      onRequestLumens={onRequestLumens}
-      onBlock={onBlock}
-      onUnblock={onUnblock}
-      blocked={blocked}
-    />
-  ) : (
-    <DropdownButton
-      // if a result doesn't include a keybase account, the only action we can show is opening private folder
-      key="dropdown"
-      onOpenPrivateFolder={onOpenPrivateFolder}
-    />
-  )
-
-  const chatButton = (
-    <Kb.WaitingButton
-      key="Chat"
-      label="Chat"
-      small={true}
-      waitingKey={ChatConstants.waitingKeyCreating}
-      onClick={e => {
-        e.stopPropagation() // instead of using onAdd, use onChat logic
-        onChat()
-      }}
-    >
-      <Kb.Icon type="iconfont-chat" color={Styles.globalColors.whiteOrWhite} style={styles.chatIcon} />
-    </Kb.WaitingButton>
-  )
-
-  const buttons = Styles.isMobile ? [] : [chatButton, dropdown] // don't show action buttons on mobile for space reasons
-
   return (
     <Kb.ClickableBox onClick={props.inTeam ? onRemove : onAdd}>
       <Kb.Box2
-        className="hover_background_color_blueLighter2 people-result-row"
+        className="hover_background_color_blueLighter2"
         direction="horizontal"
         fullWidth={true}
         centerChildren={true}
-        style={Styles.collapseStyles([styles.rowContainer, props.highlight ? styles.highlighted : null])}
+        style={Styles.collapseStyles([
+          styles.rowContainer,
+          props.rowStyle,
+          props.highlight ? styles.highlighted : null,
+        ])}
       >
         <Avatar resultForService={props.resultForService} keybaseUsername={keybaseUsername} />
         <Kb.Box2 direction="vertical" style={styles.username}>
@@ -221,7 +111,8 @@ const PeopleResult = (props: Props) => {
           className="result-actions"
           style={props.highlight ? styles.actionButtonsHighlighted : undefined}
         >
-          {buttons}
+          {/* Renders checkbox for new-chat and team-building, and chat buttons + dropdown for people search */}
+          {props.rightButtons ? props.rightButtons : null}
         </Kb.Box2>
       </Kb.Box2>
     </Kb.ClickableBox>
@@ -253,7 +144,7 @@ const Avatar = ({
   return (
     <Kb.Icon
       fontSize={avatarSize}
-      type={serviceIdToIconFont(resultForService)}
+      type={serviceIdToAvatarIcon(resultForService)}
       colorOverride={serviceIdToAccentColor(resultForService)}
     />
   )
@@ -298,7 +189,7 @@ const ServicesIcons = (props: {
           >
             {/* On desktop the styles need to be applied to the box parent if they are to work correctly */}
             <Kb.Icon
-              fontSize={14}
+              sizeType="Small"
               type={serviceIdToIconFont(serviceName)}
               style={Styles.isMobile && iconStyle}
               boxStyle={!Styles.isMobile && iconStyle}
@@ -315,16 +206,16 @@ const FormatPrettyName = (props: {
   prettyName: string
   username: string
   services: Array<Types.ServiceIdWithContact>
-  showServicesIcons: boolean
   keybaseUsername: string | null
-}) => {
-  return props.prettyName &&
-    props.prettyName !== props.username &&
-    // When the searching service is not keybase, but the service user is also a keybase user, hide their pretty name if it matches their keybase username
-    // E.g. Github
-    //   | chriscoyne
-    //   | chris • chris (prettyName) • {serviceIcons}
-    props.prettyName !== props.keybaseUsername ? (
+  showServicesIcons: boolean
+}) =>
+  props.prettyName &&
+  props.prettyName !== props.username &&
+  // When the searching service is not keybase, but the service user is also a keybase user, hide their pretty name if it matches their keybase username
+  // E.g. Github
+  //   | chriscoyne
+  //   | chris • chris (prettyName) • {serviceIcons}
+  props.prettyName !== props.keybaseUsername ? (
     <Kb.Text type="BodySmall" lineClamp={1}>
       {textWithConditionalSeparator(props.prettyName, props.showServicesIcons && !!props.services.length)}
     </Kb.Text>
@@ -333,7 +224,6 @@ const FormatPrettyName = (props: {
       {textWithConditionalSeparator(props.displayLabel, props.showServicesIcons && !!props.services.length)}
     </Kb.Text>
   ) : null
-}
 
 const MobileScrollView = ({children}: {children: React.ReactNode}) =>
   Styles.isMobile ? (
@@ -391,8 +281,8 @@ const BottomRow = (props: {
               displayLabel={props.displayLabel}
               prettyName={props.prettyName}
               username={props.username}
-              services={serviceMapToArray(props.services)}
               keybaseUsername={props.keybaseUsername}
+              services={serviceMapToArray(props.services)}
               showServicesIcons={showServicesIcons}
             />
             {/* When the service result does not have any information other than
@@ -430,60 +320,6 @@ const Username = (props: {
   </Kb.Text>
 )
 
-type DropdownProps = {
-  onAddToTeam?: () => void
-  onOpenPrivateFolder?: () => void
-  onBrowsePublicFolder?: () => void
-  onSendLumens?: () => void
-  onRequestLumens?: () => void
-  onBlock?: () => void
-  onUnblock?: () => void
-  blocked?: boolean
-  onUnfollow?: () => void
-}
-
-const DropdownButton = Kb.OverlayParentHOC((p: Kb.PropsWithOverlay<DropdownProps>) => {
-  const items = [
-    p.onAddToTeam && {onClick: p.onAddToTeam, title: 'Add to team...'},
-    p.onSendLumens && {onClick: p.onSendLumens, title: 'Send Lumens (XLM)'},
-    p.onRequestLumens && {onClick: p.onRequestLumens, title: 'Request Lumens (XLM)'},
-    p.onOpenPrivateFolder && {onClick: p.onOpenPrivateFolder, title: 'Open private folder'},
-    p.onBrowsePublicFolder && {onClick: p.onBrowsePublicFolder, title: 'Browse public folder'},
-    p.onUnblock &&
-      p.onBlock &&
-      (p.blocked
-        ? {danger: true, onClick: p.onUnblock, title: 'Unblock'}
-        : {danger: true, onClick: p.onBlock, title: 'Block'}),
-  ].reduce<Kb.MenuItems>((arr, i) => {
-    i && arr.push(i)
-    return arr
-  }, [])
-
-  return (
-    <Kb.ClickableBox
-      onClick={e => {
-        e.stopPropagation()
-        p.toggleShowingMenu()
-      }}
-      ref={p.setAttachmentRef}
-    >
-      <Kb.Box2 direction="horizontal" fullWidth={true} gap="xsmall">
-        <Kb.Button onClick={undefined} mode="Secondary" style={styles.dropdownButton} small={true}>
-          <Kb.Icon color={Styles.globalColors.blue} type="iconfont-ellipsis" />
-        </Kb.Button>
-      </Kb.Box2>
-      <Kb.FloatingMenu
-        closeOnSelect={true}
-        attachTo={p.getAttachmentRef}
-        items={items}
-        onHidden={p.toggleShowingMenu}
-        position="bottom right"
-        visible={p.showingMenu}
-      />
-    </Kb.ClickableBox>
-  )
-})
-
 export const userResultHeight = Styles.isMobile ? Styles.globalMargins.xlarge : 48
 const styles = Styles.styleSheetCreate(() => ({
   actionButtonsHighlighted: Styles.platformStyles({
@@ -500,11 +336,9 @@ const styles = Styles.styleSheetCreate(() => ({
     alignItems: 'baseline',
     display: 'flex',
   },
-  chatIcon: {marginRight: Styles.globalMargins.tiny},
   contactName: {
     lineHeight: 22,
   },
-  dropdownButton: {minWidth: undefined},
   highlighted: Styles.platformStyles({
     isElectron: {
       backgroundColor: Styles.globalColors.blueLighter2,
@@ -514,13 +348,17 @@ const styles = Styles.styleSheetCreate(() => ({
   keybaseServiceIcon: {
     marginRight: Styles.globalMargins.xtiny,
   },
+  // Default padding to people search vlaues:
+  // top/bottom: 8, left/right: 12
+  //
+  // Chat and team building have larger right padding
   rowContainer: {
     ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall),
     height: userResultHeight,
   },
   serviceIcon: {
     marginLeft: Styles.globalMargins.xtiny,
-    marginTop: 1,
+    marginTop: Styles.globalMargins.xtiny,
   },
   services: {
     justifyContent: 'flex-start',
@@ -548,4 +386,4 @@ const followingStateToStyle = (followingState: Types.FollowingState) => {
   }[followingState]
 }
 
-export default PeopleResult
+export default CommonResult

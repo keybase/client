@@ -8,7 +8,7 @@ import Input from './input'
 import TeamBox from './team-box'
 import GoButton from './go-button'
 import {ServiceTabBar} from './service-tab-bar'
-import UserResult from './user-result'
+import UserResult from './search-result/user-result'
 import PhoneSearch from './phone-search'
 import * as Constants from '../constants/team-building'
 
