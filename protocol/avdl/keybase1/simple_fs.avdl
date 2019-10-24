@@ -608,20 +608,20 @@ protocol SimpleFS {
   void simpleFSDismissDownload(string downloadID);
   void simpleFSConfigureDownload(string cacheDirOverride, string downloadDirOverride);
 
-  // FilesTabBadge is the bagde we show on the Files tab, to indicate
+  // FilesTabBadge is the badge we show on the Files tab, to indicate
   // attention-seeking status across entire KBFS.
   enum FilesTabBadge {
     NONE_0, // No badge.
     // We are stuck in conflict resolution in a TLF. This causes GUI to show a
     // red upload icon on the Files tab. NOTE that this should have higher
-    // priority than other uplaod status.
-    UploadingStuck_1, 
+    // priority than other upload status.
+    UPLOADING_STUCK_1,
     // We have stuff in the journal for a TLF, but we are currently offline.
     // This causes GUI to show a gray uplaod icon on the Files tab.
-    AwaitingToUpload_2, 
+    AWAITING_UPLOAD_2,
     // We have stuff in the journal for a TLF, and we're uploading. This causes
-    // GUI to show a blue uplaod icon on the Files tab.
-    Uploading_3
+    // GUI to show a blue upload icon on the Files tab.
+    UPLOADING_3
   }
   FilesTabBadge simpleFSGetFilesTabBadge();
 

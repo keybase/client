@@ -1447,26 +1447,26 @@ func (o DownloadStatus) DeepCopy() DownloadStatus {
 type FilesTabBadge int
 
 const (
-	FilesTabBadge_NONE             FilesTabBadge = 0
-	FilesTabBadge_UploadingStuck   FilesTabBadge = 1
-	FilesTabBadge_AwaitingToUpload FilesTabBadge = 2
-	FilesTabBadge_Uploading        FilesTabBadge = 3
+	FilesTabBadge_NONE            FilesTabBadge = 0
+	FilesTabBadge_UPLOADING_STUCK FilesTabBadge = 1
+	FilesTabBadge_AWAITING_UPLOAD FilesTabBadge = 2
+	FilesTabBadge_UPLOADING       FilesTabBadge = 3
 )
 
 func (o FilesTabBadge) DeepCopy() FilesTabBadge { return o }
 
 var FilesTabBadgeMap = map[string]FilesTabBadge{
-	"NONE":             0,
-	"UploadingStuck":   1,
-	"AwaitingToUpload": 2,
-	"Uploading":        3,
+	"NONE":            0,
+	"UPLOADING_STUCK": 1,
+	"AWAITING_UPLOAD": 2,
+	"UPLOADING":       3,
 }
 
 var FilesTabBadgeRevMap = map[FilesTabBadge]string{
 	0: "NONE",
-	1: "UploadingStuck",
-	2: "AwaitingToUpload",
-	3: "Uploading",
+	1: "UPLOADING_STUCK",
+	2: "AWAITING_UPLOAD",
+	3: "UPLOADING",
 }
 
 func (e FilesTabBadge) String() string {
