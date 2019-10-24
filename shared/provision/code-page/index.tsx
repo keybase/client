@@ -225,8 +225,9 @@ class CodePage2 extends React.Component<Props, State> {
         <Kb.BannerParagraph
           bannerColor="yellow"
           content={[
-            `Wait, I'm on that ${this.props.otherDeviceType === 'mobile' ? 'phone' : 'computer'} right now!`,
-          ]}
+            `Are you on that ${this.props.otherDeviceType === 'mobile' ? 'phone' : 'computer'} now? `,
+            {onClick: () => this.setState({troubleshooting: true}), text: 'Resolve'},
+            ]}
         />
       </Kb.Banner>
     </Kb.ClickableBox>

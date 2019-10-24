@@ -129,7 +129,7 @@ class Feedback extends React.Component<Props, State> {
               <Kb.Box2 direction="horizontal" fullWidth={true}>
                 <Kb.NewInput
                   containerStyle={styles.input}
-                  placeholder="Email (pretty please!)"
+                  placeholder="Your email address"
                   onChangeText={this._onChangeEmail}
                 />
               </Kb.Box2>
@@ -172,7 +172,10 @@ const styles = Styles.styleSheetCreate(
         isElectron: {padding: Styles.globalMargins.tiny},
         isMobile: {...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small)},
       }),
-      mainBox: {padding: Styles.globalMargins.small},
+      mainBox: Styles.platformStyles({
+        common: { padding: Styles.globalMargins.small },
+        isElectron: {width: 368,},
+      }),
       outerStyle: {backgroundColor: Styles.globalColors.white},
       smallLabel: {color: Styles.globalColors.black},
     } as const)
