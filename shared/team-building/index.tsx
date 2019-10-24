@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Kb from '../common-adapters/index'
+import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
 import * as Constants from '../constants/team-building'
@@ -225,6 +225,7 @@ const FilteredServiceTabBar = (
       showServiceResultCount={props.showServiceResultCount}
       servicesShown={props.servicesShown}
       minimalBorder={props.minimalBorder}
+      offset={props.offset}
     />
   )
 }
@@ -234,7 +235,6 @@ const EmptyResultText = (props: {selectedService: ServiceIdWithContact; action: 
     alignSelf="center"
     centerChildren={!Styles.isMobile}
     direction="vertical"
-    fullHeight={true}
     fullWidth={true}
     gap="tiny"
     style={styles.emptyContainer}
@@ -260,7 +260,11 @@ const EmptyResultText = (props: {selectedService: ServiceIdWithContact; action: 
   </Kb.Box2>
 )
 
-class TeamBuilding extends React.PureComponent<Props, {}> {
+const SectionList = Styles.isMobile ? Kb.ReAnimated.createAnimatedComponent(Kb.SectionList) : Kb.SectionList
+
+class TeamBuilding extends React.PureComponent<Props> {
+  private offset: any = Styles.isMobile ? new Kb.ReAnimated.Value(0) : undefined
+
   sectionListRef = React.createRef<Kb.SectionList>()
   componentDidMount = () => {
     this.props.fetchUserRecs()
@@ -417,57 +421,67 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         this.props.recommendations
       )
       return (
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
-          <Kb.SectionList
-            ref={this.sectionListRef}
-            keyboardDismissMode="on-drag"
-            keyboardShouldPersistTaps="handled"
-            stickySectionHeadersEnabled={false}
-            selectedIndex={Styles.isMobile ? undefined : this.props.highlightedIndex || 0}
-            sections={this.props.recommendations}
-            keyExtractor={(item: SearchResult | ImportContactsEntry, index: number) => {
-              if (!isImportContactsEntry(item) && item.contact) {
-                // Ids for contacts are not guaranteed to be unique
-                return item.userId + index
+        <Kb.BoxGrow>
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
+            <SectionList
+              ref={this.sectionListRef}
+              keyboardDismissMode="on-drag"
+              keyboardShouldPersistTaps="handled"
+              stickySectionHeadersEnabled={false}
+              scrollEventThrottle={1}
+              onScroll={this.onScroll}
+              selectedIndex={Styles.isMobile ? undefined : this.props.highlightedIndex || 0}
+              sections={this.props.recommendations}
+              keyExtractor={(item: SearchResult | ImportContactsEntry, index: number) => {
+                if (!isImportContactsEntry(item) && item.contact) {
+                  // Ids for contacts are not guaranteed to be unique
+                  return item.userId + index
+                }
+                return isImportContactsEntry(item) ? 'Import Contacts' : item.userId
+              }}
+              getItemLayout={this._getRecLayout}
+              renderItem={({index, item: result, section}) =>
+                result.isImportButton ? (
+                  <ContactsImportButton {...this.props} />
+                ) : (
+                  <ResultRow
+                    resultForService={this.props.selectedService}
+                    username={result.username}
+                    prettyName={result.prettyName}
+                    displayLabel={result.displayLabel}
+                    services={result.services}
+                    inTeam={result.inTeam}
+                    isPreExistingTeamMember={result.isPreExistingTeamMember}
+                    followingState={result.followingState}
+                    highlight={
+                      !Styles.isMobile &&
+                      !!highlightDetails &&
+                      this.props.namespace !== 'people' &&
+                      highlightDetails.section === section &&
+                      highlightDetails.index === index
+                    }
+                    onAdd={() => this.props.onAdd(result.userId)}
+                    onRemove={() => this.props.onRemove(result.userId)}
+                  />
+                )
               }
-              return isImportContactsEntry(item) ? 'Import Contacts' : item.userId
-            }}
-            getItemLayout={this._getRecLayout}
-            renderItem={({index, item: result, section}) =>
-              result.isImportButton ? (
-                <ContactsImportButton {...this.props} />
-              ) : (
-                <ResultRow
-                  resultForService={this.props.selectedService}
-                  username={result.username}
-                  prettyName={result.prettyName}
-                  displayLabel={result.displayLabel}
-                  services={result.services}
-                  inTeam={result.inTeam}
-                  isPreExistingTeamMember={result.isPreExistingTeamMember}
-                  followingState={result.followingState}
-                  highlight={
-                    !Styles.isMobile &&
-                    !!highlightDetails &&
-                    this.props.namespace !== 'people' &&
-                    highlightDetails.section === section &&
-                    highlightDetails.index === index
-                  }
-                  onAdd={() => this.props.onAdd(result.userId)}
-                  onRemove={() => this.props.onRemove(result.userId)}
-                />
-              )
-            }
-            renderSectionHeader={({section: {label}}) => (label ? <Kb.SectionDivider label={label} /> : null)}
-          />
-          {Styles.isMobile && this._alphabetIndex()}
-        </Kb.Box2>
+              renderSectionHeader={({section: {label}}) =>
+                label && (!Styles.isMobile || label !== 'Recommendations') ? (
+                  <Kb.SectionDivider label={label} />
+                ) : null
+              }
+            />
+            {Styles.isMobile && this._alphabetIndex()}
+          </Kb.Box2>
+        </Kb.BoxGrow>
       )
     }
 
     return (
       <Kb.List
+        reAnimated={true}
         items={this.props.searchResults || []}
+        onScroll={this.onScroll}
         selectedIndex={this.props.highlightedIndex || 0}
         style={styles.list}
         contentContainerStyle={styles.listContentContainer}
@@ -497,6 +511,10 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
   _onEndReached = throttle(() => {
     this.props.onSearchForMore()
   }, 500)
+
+  onScroll = Styles.isMobile
+    ? Kb.ReAnimated.event([{nativeEvent: {contentOffset: {y: this.offset}}}], {useNativeDriver: true})
+    : undefined
 
   render() {
     const props = this.props
@@ -536,6 +554,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
                 showServiceResultCount={props.showServiceResultCount}
                 servicesShown={5} // wider bar, show more services
                 minimalBorder={true} // only show bottom border on icon when active
+                offset={1}
               />
             )}
             {this._listBody()}
@@ -615,6 +634,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
             onChangeService={props.onChangeService}
             serviceResultCount={props.serviceResultCount}
             showServiceResultCount={props.showServiceResultCount}
+            offset={this.offset}
           />
         )}
         {showContactsBanner && (
@@ -665,15 +685,19 @@ const styles = Styles.styleSheetCreate(
       },
       container: Styles.platformStyles({
         common: {
-          flex: 1,
-          minHeight: 200,
           position: 'relative',
         },
         isElectron: {
           borderRadius: 4,
+          flex: 1,
           height: 560,
           maxHeight: 560,
+          minHeight: 200,
           overflow: 'visible',
+        },
+        isMobile: {
+          flexGrow: 1,
+          height: '100%',
         },
       }),
       emptyContainer: Styles.platformStyles({
@@ -712,10 +736,13 @@ const styles = Styles.styleSheetCreate(
       }),
       listContainer: Styles.platformStyles({
         common: {
-          flex: 1,
           position: 'relative',
         },
-        isElectron: {overflow: 'hidden'},
+        isElectron: {flex: 1, height: '100%', overflow: 'hidden'},
+        isMobile: {
+          flexGrow: 1,
+          width: '100%',
+        },
       }),
       listContentContainer: Styles.platformStyles({
         isMobile: {paddingTop: Styles.globalMargins.xtiny},
