@@ -8,6 +8,7 @@ import {TeamBuildingSubState} from './team-building'
 export type TeamID = string
 export const stringToTeamID = (s: string): TeamID => s
 export const teamIDToString = (t: TeamID): string => t
+export const noTeamID = 'NOTEAMID'
 
 export type TeamRoleType = 'reader' | 'writer' | 'admin' | 'owner' | 'bot' | 'restrictedbot'
 export type DisabledReasonsForRolePicker = {[K in TeamRoleType]?: string}
@@ -104,10 +105,14 @@ export type EmailInviteError = {
 export type AddUserToTeamsState = 'notStarted' | 'pending' | 'succeeded' | 'failed'
 
 export type TeamDetails = {
-  teamname: string
   allowPromote: boolean
+  id: TeamID
+  isMember: boolean
   isOpen: boolean
+  memberCount: number
+  role: MaybeTeamRoleType
   showcasing: boolean
+  teamname: string
 
   members?: Map<string, _MemberInfo>
   settings?: _TeamSettings

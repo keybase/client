@@ -1,26 +1,37 @@
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
+import * as Constants from '../../constants/teams'
 import NoTeamsPlaceholder from './no-teams-placeholder'
 import Header from './header'
 import TeamList from '.'
 import {Box} from '../../common-adapters'
 
-const teamnames = ['stripe', 'stripe.usa', 'techtonica']
-const teammembercounts = {
-  stripe: 5,
-  'stripe.usa': 1,
-  techtonica: 0,
-}
-const teamNameToIsOpen = {
-  stripe: true,
-  'stripe.usa': false,
-  techtonica: true,
-}
-const teamNameToCanManageChat = {
-  stripe: true,
-  'stripe.usa': false,
-  techtonica: true,
-}
+const teams = [
+  Constants.makeTeamDetails({
+    isMember: true,
+    isOpen: true,
+    memberCount: 5,
+    teamname: 'stripe',
+  }),
+  Constants.makeTeamDetails({
+    isMember: false,
+    isOpen: false,
+    memberCount: 1,
+    teamname: 'stripe.usa',
+  }),
+  Constants.makeTeamDetails({
+    isMember: true,
+    isOpen: true,
+    memberCount: 1,
+    teamname: 'techtonica',
+  }),
+  Constants.makeTeamDetails({
+    isMember: true,
+    isOpen: false,
+    memberCount: 3,
+    teamname: 'ted_talks_inc',
+  }),
+]
 
 const load = () => {
   Sb.storiesOf('Teams/Main', module)
@@ -31,7 +42,6 @@ const load = () => {
     .add('TeamList', () => (
       <Box style={{display: 'flex', flexDirection: 'column', height: '100%', maxWidth: 320}}>
         <TeamList
-          teamnames={teamnames}
           deletedTeams={[]}
           newTeams={[]}
           loaded={true}
@@ -40,14 +50,12 @@ const load = () => {
           onCreateTeam={Sb.action('onCreateTeam')}
           onHideChatBanner={Sb.action('onHideChatBanner')}
           sawChatBanner={Sb.action('sawChatBanner')}
-          teamNameToCanManageChat={teamNameToCanManageChat}
-          teamNameToIsOpen={teamNameToIsOpen}
           teamToRequest={{techtonica: 2}}
-          teammembercounts={teammembercounts}
           teamresetusers={{}}
           onOpenFolder={Sb.action('onOpenFolder')}
           onManageChat={Sb.action('onManageChat')}
           onViewTeam={Sb.action('onViewTeam')}
+          teams={teams}
         />
       </Box>
     ))

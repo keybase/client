@@ -592,7 +592,11 @@ export const isOnTeamsTab = () => {
 
 const emptyTeamDetails: Readonly<Types.TeamDetails> = {
   allowPromote: false,
+  id: Types.noTeamID,
+  isMember: false,
   isOpen: false,
+  memberCount: -1,
+  role: 'none',
   showcasing: false,
   teamname: '',
 }
@@ -608,7 +612,11 @@ export const teamListToDetails = (
       t.teamID,
       {
         allowPromote: t.allowProfilePromote,
+        id: t.teamID,
+        isMember: t.role !== RPCTypes.TeamRole.none,
         isOpen: t.isOpenTeam,
+        memberCount: t.memberCount,
+        role: teamRoleByEnum[t.role] || 'none',
         showcasing: t.isMemberShowcased,
         teamname: t.fqName,
       },
