@@ -114,6 +114,7 @@ func (c *ConversationLockTab) doAcquire(ctx context.Context, uid gregor1.UID, co
 		c.Unlock() // Give up map lock while we are waiting for conv lock
 		lock.lock.Lock()
 		c.Lock()
+		c.Debug(ctx, "Acquire: unblocked from trace: %s on convID: %s", lock.trace, convID)
 		delete(c.waits, trace)
 		lock.trace = trace
 		lock.shares = 1
