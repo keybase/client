@@ -6181,13 +6181,13 @@ fragment-cache@^0.2.1:
 
 "framed-msgpack-rpc@git://github.com/keybase/node-framed-msgpack-rpc#nojima/HOTPOT-msgpack-js-impl":
   version "1.1.18"
-  resolved "git://github.com/keybase/node-framed-msgpack-rpc#7d7d61679168d79a934a05dc73129995030f97c0"
+  resolved "git://github.com/keybase/node-framed-msgpack-rpc#aeb3607e5842b1804cfcfbb4e321b74ffee46301"
   dependencies:
+    "@msgpack/msgpack" "1.9.1"
     iced-error "0.0.9"
     iced-lock "^1.0.2"
     iced-runtime "^1.0.1"
     path-parse "^1.0.6"
-    purepack ">=1"
 
 fresh@0.5.2:
   version "0.5.2"
@@ -10692,11 +10692,6 @@ purepack@1.0.4:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/purepack/-/purepack-1.0.4.tgz#086282fd939285f58664ba9a9bba31cdb165ccd2"
   integrity sha1-CGKC/ZOShfWGZLqam7oxzbFlzNI=
-
-purepack@>=1:
-  version "1.0.5"
-  resolved "https://registry.yarnpkg.com/purepack/-/purepack-1.0.5.tgz#6520678a264b5a2823051d059c1205d21f54e81f"
-  integrity sha512-Amc1FB7Xyp/qFAHfr6NzrvMgUJ4Qc7dd4TteEBmXtPxxz1iRBUHjMKdgVRqviSIjb3u5yuylWcsijGVbKHfffg==
 
 q@^1.1.2:
   version "1.5.1"
