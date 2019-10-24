@@ -20,7 +20,7 @@ class LoginRender extends React.Component<Props> {
     this.props.selectedUserChange(selectedUser)
     // For some reason, calling this immediately doesn't work, at
     // least on iOS.
-    setImmediate(this._focusInput)
+    setTimeout(this._focusInput, 0)
   }
 
   render() {

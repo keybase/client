@@ -218,9 +218,9 @@ class Engine {
       waitingKey: p.waitingKey,
     })
     // Don't make outgoing calls immediately since components can do this when they mount
-    setImmediate(() => {
+    setTimeout(() => {
       session.start(p.method, p.params, p.callback)
-    })
+    }, 0)
     return session.getId()
   }
 

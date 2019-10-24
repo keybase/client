@@ -33,6 +33,8 @@ import {RPCError} from '../../util/errors'
 import HiddenString from '../../util/hidden-string'
 import {TypedActions, TypedState} from '../../util/container'
 
+window.NOJIMA = (p: any) => RPCTypes.testEchoRpcPromise(p)
+
 const onConnect = async () => {
   try {
     await RPCTypes.delegateUiCtlRegisterChatUIRpcPromise()
