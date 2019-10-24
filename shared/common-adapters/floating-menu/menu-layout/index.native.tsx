@@ -38,12 +38,11 @@ const MenuRow = (props: MenuRowProps) => (
       <Box2 centerChildren={props.centered} direction="horizontal" fullWidth={true}>
         {props.icon && (
           <Box2
-            alignItems="center"
             direction="horizontal"
             fullHeight={true}
             style={styles.iconContainer}
           >
-            <Icon type={props.icon} fontSize={24} />
+            <Icon color={Styles.globalColors.black_40} fontSize={16} type={props.icon}/>
           </Box2>
         )}
         <Box2 direction="horizontal">
@@ -188,6 +187,7 @@ const styles = Styles.styleSheetCreate(
         backgroundColor: Styles.globalColors.white,
         justifyContent: 'flex-end',
         paddingBottom: Styles.globalMargins.tiny,
+        paddingTop: Styles.globalMargins.xsmall,
       },
       menuGroup: {
         ...Styles.globalStyles.flexBoxColumn,

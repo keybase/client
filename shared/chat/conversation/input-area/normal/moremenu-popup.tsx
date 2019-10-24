@@ -71,6 +71,7 @@ const MoreMenuPopup = (props: Props) => {
     ...(onSendLumens
       ? [
           {
+            icon: 'iconfont-stellar-send',
             onClick: onSendLumens,
             title: 'Send Lumens (XLM)',
           },
@@ -79,6 +80,7 @@ const MoreMenuPopup = (props: Props) => {
     ...(onRequestLumens
       ? [
           {
+            icon: 'iconfont-stellar-request',
             onClick: onRequestLumens,
             title: 'Request Lumens (XLM)',
           },
