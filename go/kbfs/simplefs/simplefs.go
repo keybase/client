@@ -3110,7 +3110,7 @@ func (k *SimpleFS) SimpleFSGetGUIFileContext(ctx context.Context,
 }
 
 // SimpleFSGetFilesTabBadge implements the SimpleFSInterface.
-func (k *SimpleFS) SimpleFSGetFilesTabBadge(context.Context) (
+func (k *SimpleFS) SimpleFSGetFilesTabBadge(ctx context.Context) (
 	keybase1.FilesTabBadge, error) {
-	return keybase1.FilesTabBadge_NONE, nil
+	return k.config.KBFSOps().GetBadge(ctx)
 }

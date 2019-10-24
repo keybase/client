@@ -573,6 +573,48 @@ func (fs *KBFSOpsStandard) GetFavoritesAll(ctx context.Context) (
 	return favs, nil
 }
 
+// GetBadge implements the KBFSOps interface for KBFSOpsStandard.
+func (fs *KBFSOpsStandard) GetBadge(ctx context.Context) (
+	keybase1.FilesTabBadge, error) {
+	journalManager, err := GetJournalManager(fs.config)
+	if err != nil {
+		// Journaling not enabled.
+		return keybase1.FilesTabBadge_NONE, nil
+	}
+
+	tlfsInConflict, numUploadingTlfs, err := journalManager.GetFoldersSummary()
+	if err != nil {
+		return keybase1.FilesTabBadge_NONE, err
+	}
+
+	for _, tlfID := range tlfsInConflict {
+		fb := data.FolderBranch{Tlf: tlfID, Branch: data.MasterBranch}
+		ops := fs.getOps(ctx, fb, FavoritesOpNoChange)
+		s, err := ops.FolderConflictStatus(ctx)
+		if err != nil {
+			return keybase1.FilesTabBadge_NONE, err
+		}
+		if s == keybase1.FolderConflictType_IN_CONFLICT_AND_STUCK {
+			return keybase1.FilesTabBadge_UploadingStuck, nil
+		}
+	}
+
+	if numUploadingTlfs == 0 {
+		return keybase1.FilesTabBadge_NONE, nil
+	}
+
+	serviceErrors, _ := fs.config.KBFSOps().StatusOfServices()
+	if serviceErrors[MDServiceName] != nil {
+		// Assume that if we're not connected to the mdserver,
+		// then data isn't uploading.  Technically it could still
+		// be uploading to the bserver, but that should be very
+		// rare.
+		return keybase1.FilesTabBadge_AwaitingToUpload, nil
+	}
+
+	return keybase1.FilesTabBadge_Uploading, nil
+}
+
 // RefreshCachedFavorites implements the KBFSOps interface for
 // KBFSOpsStandard.
 func (fs *KBFSOpsStandard) RefreshCachedFavorites(ctx context.Context,
