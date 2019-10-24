@@ -127,7 +127,11 @@ class Feedback extends React.Component<Props, State> {
             </Kb.Box2>
             {this.props.loggedOut && (
               <Kb.Box2 direction="horizontal" fullWidth={true}>
-                <Kb.NewInput containerStyle={styles.input} placeholder="Email (pretty please!)" onChangeText={this._onChangeEmail} />
+                <Kb.NewInput
+                  containerStyle={styles.input}
+                  placeholder="Email (pretty please!)"
+                  onChangeText={this._onChangeEmail}
+                />
               </Kb.Box2>
             )}
             <Kb.ButtonBar>
