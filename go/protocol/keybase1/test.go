@@ -20,6 +20,55 @@ func (o Test) DeepCopy() Test {
 	}
 }
 
+type Generic struct {
+	M map[string]Generic `codec:"m" json:"m"`
+	A []Generic          `codec:"a" json:"a"`
+	S *string            `codec:"s,omitempty" json:"s,omitempty"`
+	I *int               `codec:"i,omitempty" json:"i,omitempty"`
+}
+
+func (o Generic) DeepCopy() Generic {
+	return Generic{
+		M: (func(x map[string]Generic) map[string]Generic {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]Generic, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.M),
+		A: (func(x []Generic) []Generic {
+			if x == nil {
+				return nil
+			}
+			ret := make([]Generic, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.A),
+		S: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.S),
+		I: (func(x *int) *int {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.I),
+	}
+}
+
 type TestArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Name      string `codec:"name" json:"name"`
@@ -37,6 +86,10 @@ type PanicArg struct {
 type TestAirdropRegArg struct {
 }
 
+type EchoArg struct {
+	Arg Generic `codec:"arg" json:"arg"`
+}
+
 type TestInterface interface {
 	// Call test method.
 	// Will trigger the testCallback method, whose result will be set in the
@@ -49,6 +102,7 @@ type TestInterface interface {
 	Panic(context.Context, string) error
 	// For testing airdrop reg.
 	TestAirdropReg(context.Context) error
+	Echo(context.Context, Generic) (Generic, error)
 }
 
 func TestProtocol(i TestInterface) rpc.Protocol {
@@ -110,6 +164,21 @@ func TestProtocol(i TestInterface) rpc.Protocol {
 					return
 				},
 			},
+			"echo": {
+				MakeArg: func() interface{} {
+					var ret [1]EchoArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]EchoArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]EchoArg)(nil), args)
+						return
+					}
+					ret, err = i.Echo(ctx, typedArgs[0].Arg)
+					return
+				},
+			},
 		},
 	}
 }
@@ -143,5 +212,11 @@ func (c TestClient) Panic(ctx context.Context, message string) (err error) {
 // For testing airdrop reg.
 func (c TestClient) TestAirdropReg(ctx context.Context) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.test.testAirdropReg", []interface{}{TestAirdropRegArg{}}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c TestClient) Echo(ctx context.Context, arg Generic) (res Generic, err error) {
+	__arg := EchoArg{Arg: arg}
+	err = c.Cli.Call(ctx, "keybase.1.test.echo", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
