@@ -340,7 +340,7 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 				if x.TeamName == "" {
 					continue
 				}
-				b.state.NewTeamAccessRequests = append(b.state.NewTeamAccessRequests, x.TeamName)
+				b.state.NewTeamAccessRequests = append(b.state.NewTeamAccessRequests, x.TeamID)
 			}
 		case "team.member_out_from_reset":
 			var body keybase1.TeamMemberOutFromReset

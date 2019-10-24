@@ -237,7 +237,7 @@
     "setNewTeamInfo": {
       "deletedTeams": "Array<RPCTypes.DeletedTeamInfo>",
       "newTeams": "Set<Types.TeamID>",
-      "newTeamRequests": "Array<string>",
+      "newTeamRequests": "Array<Types.TeamID>",
       "teamNameToResetUsers": "I.Map<Types.Teamname, I.Set<Types.ResetUser>>"
     },
     "setTeamSawChatBanner": {},

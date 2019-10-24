@@ -89,7 +89,7 @@ type BadgeState struct {
 	NewGitRepoGlobalUniqueIDs []string                `codec:"newGitRepoGlobalUniqueIDs" json:"newGitRepoGlobalUniqueIDs"`
 	NewTeams                  []TeamID                `codec:"newTeams" json:"newTeams"`
 	DeletedTeams              []DeletedTeamInfo       `codec:"deletedTeams" json:"deletedTeams"`
-	NewTeamAccessRequests     []string                `codec:"newTeamAccessRequests" json:"newTeamAccessRequests"`
+	NewTeamAccessRequests     []TeamID                `codec:"newTeamAccessRequests" json:"newTeamAccessRequests"`
 	TeamsWithResetUsers       []TeamMemberOutReset    `codec:"teamsWithResetUsers" json:"teamsWithResetUsers"`
 	UnreadWalletAccounts      []WalletAccountInfo     `codec:"unreadWalletAccounts" json:"unreadWalletAccounts"`
 	ResetState                ResetState              `codec:"resetState" json:"resetState"`
@@ -170,13 +170,13 @@ func (o BadgeState) DeepCopy() BadgeState {
 			}
 			return ret
 		})(o.DeletedTeams),
-		NewTeamAccessRequests: (func(x []string) []string {
+		NewTeamAccessRequests: (func(x []TeamID) []TeamID {
 			if x == nil {
 				return nil
 			}
-			ret := make([]string, len(x))
+			ret := make([]TeamID, len(x))
 			for i, v := range x {
-				vCopy := v
+				vCopy := v.DeepCopy()
 				ret[i] = vCopy
 			}
 			return ret
