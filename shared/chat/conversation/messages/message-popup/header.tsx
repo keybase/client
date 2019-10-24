@@ -1,36 +1,36 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import { formatTimeForPopup, formatTimeForRevoked } from '../../../../util/timestamp'
-import { DeviceType } from '../../../../constants/types/devices'
+import {formatTimeForPopup, formatTimeForRevoked} from '../../../../util/timestamp'
+import {DeviceType} from '../../../../constants/types/devices'
 
 const iconNameForDeviceType = Styles.isMobile
   ? (deviceType: string, isRevoked: boolean): Kb.IconType => {
-    switch (deviceType) {
-      case 'mobile':
-        return isRevoked
-          ? 'icon-fancy-revoked-phone-mobile-226-96'
-          : 'icon-fancy-encrypted-phone-mobile-226-96'
-      default:
-        return isRevoked
-          ? 'icon-fancy-revoked-computer-mobile-226-96'
-          : 'icon-fancy-encrypted-computer-mobile-226-96'
+      switch (deviceType) {
+        case 'mobile':
+          return isRevoked
+            ? 'icon-fancy-revoked-phone-mobile-226-96'
+            : 'icon-fancy-encrypted-phone-mobile-226-96'
+        default:
+          return isRevoked
+            ? 'icon-fancy-revoked-computer-mobile-226-96'
+            : 'icon-fancy-encrypted-computer-mobile-226-96'
+      }
     }
-  }
   : (deviceType: string, isRevoked: boolean, isLocation: boolean): Kb.IconType => {
-    switch (deviceType) {
-      case 'mobile':
-        return isRevoked
-          ? 'icon-fancy-revoked-phone-desktop-150-72'
-          : isLocation
+      switch (deviceType) {
+        case 'mobile':
+          return isRevoked
+            ? 'icon-fancy-revoked-phone-desktop-150-72'
+            : isLocation
             ? 'icon-fancy-encrypted-location-phone-desktop-150-72'
             : 'icon-fancy-encrypted-phone-desktop-150-72'
-      default:
-        return isRevoked
-          ? 'icon-fancy-revoked-computer-desktop-150-72'
-          : 'icon-fancy-encrypted-computer-desktop-150-72'
+        default:
+          return isRevoked
+            ? 'icon-fancy-revoked-computer-desktop-150-72'
+            : 'icon-fancy-encrypted-computer-desktop-150-72'
+      }
     }
-  }
 
 const headerIconHeight = Styles.isMobile ? 96 : 72
 
@@ -44,7 +44,7 @@ const MessagePopupHeader = (props: {
   timestamp: number
   yourMessage: boolean
 }) => {
-  const { author, deviceName, deviceRevokedAt, deviceType, isLast, isLocation, timestamp, yourMessage } = props
+  const {author, deviceName, deviceRevokedAt, deviceType, isLast, isLocation, timestamp, yourMessage} = props
   const iconName = iconNameForDeviceType(deviceType, !!deviceRevokedAt, isLocation)
   const whoRevoked = yourMessage ? 'You' : author
   return (
@@ -53,13 +53,13 @@ const MessagePopupHeader = (props: {
       <Kb.Box style={Styles.globalStyles.flexBoxRow}>
         <Kb.Text
           type="BodySmall"
-          style={{ color: deviceRevokedAt ? Styles.globalColors.black_50 : Styles.globalColors.greenDark }}
+          style={{color: deviceRevokedAt ? Styles.globalColors.black_50 : Styles.globalColors.greenDark}}
         >
           ENCRYPTED
         </Kb.Text>
         <Kb.Text
           type="BodySmall"
-          style={{ color: deviceRevokedAt ? Styles.globalColors.black_50 : Styles.globalColors.greenDark }}
+          style={{color: deviceRevokedAt ? Styles.globalColors.black_50 : Styles.globalColors.greenDark}}
         >
           &nbsp;& SIGNED
         </Kb.Text>
@@ -109,8 +109,8 @@ const MessagePopupHeader = (props: {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      alignItemsCenter: { alignItems: 'center' },
-      colorBlack40: { color: Styles.globalColors.black_50 },
+      alignItemsCenter: {alignItems: 'center'},
+      colorBlack40: {color: Styles.globalColors.black_50},
       headerContainer: Styles.platformStyles({
         common: {
           ...Styles.globalStyles.flexBoxColumn,
@@ -138,7 +138,7 @@ const styles = Styles.styleSheetCreate(
           marginBottom: Styles.globalMargins.small,
           marginTop: Styles.globalMargins.small,
         },
-        isElectron: { marginTop: Styles.globalMargins.tiny },
+        isElectron: {marginTop: Styles.globalMargins.tiny},
         isMobile: {
           marginTop: Styles.globalMargins.small,
         },
