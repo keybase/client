@@ -83,7 +83,6 @@ class SearchFilter extends React.PureComponent<Props, State> {
     this.props.onBlur && this.props.onBlur()
   }
   private onFocus = () => {
-    console.log('JRY SearchFilter onFocus called')
     this.setState({focused: true})
     this.props.onFocus && this.props.onFocus()
   }
