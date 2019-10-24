@@ -272,12 +272,10 @@ func (w *WalletState) refreshAll(mctx libkb.MetaContext, reason string) (err err
 		return err
 	}
 
-	mctx.Debug("all payments: %+v", all)
-
 	// make a map out of results for easier lookup
-	details := make(map[stellar1.AccountID]*stellar1.DetailsPlusPayments)
+	details := make(map[stellar1.AccountID]stellar1.DetailsPlusPayments)
 	for _, entry := range all {
-		details[entry.Details.AccountID] = &entry
+		details[entry.Details.AccountID] = entry
 	}
 
 	// we need to get this to get the account names and primary status
@@ -290,7 +288,14 @@ func (w *WalletState) refreshAll(mctx libkb.MetaContext, reason string) (err err
 	for _, account := range bundle.Accounts {
 		a, _ := w.accountStateBuild(account.AccountID)
 		a.updateEntry(account)
-		if err := a.RefreshWithDetails(mctx, w.G().NotifyRouter, reason, details[account.AccountID]); err != nil {
+
+		var dp *stellar1.DetailsPlusPayments
+		d, ok := details[account.AccountID]
+		if ok {
+			dp = &d
+		}
+
+		if err := a.RefreshWithDetails(mctx, w.G().NotifyRouter, reason, dp); err != nil {
 			mctx.Debug("error refreshing account %s: %s", account.AccountID, err)
 			lastErr = err
 		}
@@ -299,23 +304,6 @@ func (w *WalletState) refreshAll(mctx libkb.MetaContext, reason string) (err err
 		mctx.Debug("RefreshAll last error: %s", lastErr)
 		return lastErr
 	}
-
-	/*
-
-		var lastErr error
-		for _, account := range bundle.Accounts {
-			a, _ := w.accountStateBuild(account.AccountID)
-			a.updateEntry(account)
-			if err := a.Refresh(mctx, w.G().NotifyRouter, reason); err != nil {
-				mctx.Debug("error refreshing account %s: %s", account.AccountID, err)
-				lastErr = err
-			}
-		}
-		if lastErr != nil {
-			mctx.Debug("RefreshAll last error: %s", lastErr)
-			return lastErr
-		}
-	*/
 
 	w.Lock()
 	w.refreshCount++
