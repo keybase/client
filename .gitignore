@@ -71,3 +71,4 @@ go/.go_package_deps*
 
 # Files used during Vagrant smoketests
 .vagrant
+*cloudimg-console.log
