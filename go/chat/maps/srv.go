@@ -74,7 +74,12 @@ func (s *Srv) serve(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	defer reader.Close()
-	if _, err := io.Copy(w, reader); err != nil {
+	fancyReader, _, err := DecorateMap(ctx, "01", reader)
+	if err != nil {
+		s.makeError(w, http.StatusInternalServerError, "unable to decorate map: %s", err)
+		return
+	}
+	if _, err := io.Copy(w, fancyReader); err != nil {
 		s.makeError(w, http.StatusInternalServerError, "unable to read map: %s", err)
 		return
 	}

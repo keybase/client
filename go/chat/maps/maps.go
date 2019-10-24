@@ -140,47 +140,20 @@ func MapReaderFromURL(ctx context.Context, url string) (res io.ReadCloser, lengt
 	return resp.Body, resp.ContentLength, nil
 }
 
-func createMask(cx, cy, r int) draw.Image {
-	mask := image.NewRGBA(image.Rect(cx-r, cy-r, cx+r, cy+r))
-	for x := 0; x < mask.Bounds().Dx(); x++ {
-		for y := 0; y < mask.Bounds().Dy(); y++ {
-			xx, yy, rr := float64(x-cx)+0.5, float64(y-cy)+0.5, float64(r)
-			if xx*xx+yy*yy < rr*rr {
-				mask.Set(x, y, color.RGBA{255, 255, 255, 255})
-			} else {
-				mask.Set(x, y, color.RGBA{0, 0, 0, 0})
-			}
-		}
-	}
-	return mask
-}
-
 func DecorateMap(ctx context.Context, username string, mapReader io.Reader) (res io.ReadCloser, length int64, err error) {
-	req, err := http.NewRequest("GET", "https://01.keybase.pub/computer.png", nil)
+	// TODO: fetch actual user avatar
+	req, err := http.NewRequest("GET", "https://01.keybase.pub/icon128-test.png", nil)
 	if err != nil {
 		return res, length, err
 	}
 
 	req.Host = "01.keybase.pub"
-	// TODO: get user avatar for masking
 	avatarResp, err := ctxhttp.Do(ctx, httpClient("01.keybase.pub"), req)
 	if err != nil {
 		return res, length, err
 	}
 	avatarPng, err := png.Decode(avatarResp.Body)
-
-	// maskReq, err := http.NewRequest("GET", "https://01.keybase.pub/mask.png", nil)
-	// if err != nil {
-	// 	return res, length, err
-	// }
-	// maskReq.Host = "01.keybase.pub"
-	// // TODO: get user avatar for masking
-	// maskResp, err := ctxhttp.Do(ctx, httpClient("01.keybase.pub"), maskReq)
-	// if err != nil {
-	// 	return res, length, err
-	// }
-
-	// maskPng, err := png.Decode(maskResp.Body)
+	avatarRadius := avatarPng.Bounds().Dx() / 2
 
 	mapPng, err := png.Decode(mapReader)
 	if err != nil {
@@ -189,11 +162,12 @@ func DecorateMap(ctx context.Context, username string, mapReader io.Reader) (res
 	bounds := mapPng.Bounds()
 
 	middle := image.Point{bounds.Max.X / 2, bounds.Max.Y / 2}
-	iconRect := image.Rect(middle.X-32, middle.Y-32, middle.X+32, middle.Y+32)
-	mask := createMask(middle.X, middle.Y, 64)
+	iconRect := image.Rect(middle.X-avatarRadius, middle.Y-avatarRadius, middle.X+avatarRadius, middle.Y+avatarRadius)
+	mask := &circle{image.Point{avatarRadius, avatarRadius}, avatarRadius}
+
 	decorated := image.NewRGBA(bounds)
 	draw.Draw(decorated, bounds, mapPng, image.ZP, draw.Src)
-	// draw.Draw(decorated, iconRect, maskPng, image.ZP, draw.Over)
+	draw.Draw(decorated, bounds, &circle{middle, avatarRadius + 10}, image.ZP, draw.Over)
 	draw.DrawMask(decorated, iconRect, avatarPng, image.ZP, mask, image.ZP, draw.Over)
 
 	var buf bytes.Buffer
@@ -202,4 +176,25 @@ func DecorateMap(ctx context.Context, username string, mapReader io.Reader) (res
 		return res, length, err
 	}
 	return ioutil.NopCloser(bytes.NewReader(buf.Bytes())), int64(buf.Len()), nil
+}
+
+type circle struct {
+	p image.Point
+	r int
+}
+
+func (c *circle) ColorModel() color.Model {
+	return color.AlphaModel
+}
+
+func (c *circle) Bounds() image.Rectangle {
+	return image.Rect(c.p.X-c.r, c.p.Y-c.r, c.p.X+c.r, c.p.Y+c.r)
+}
+
+func (c *circle) At(x, y int) color.Color {
+	xx, yy, rr := float64(x-c.p.X)+0.1, float64(y-c.p.Y)+0.1, float64(c.r)
+	if xx*xx+yy*yy < rr*rr {
+		return color.Alpha{255}
+	}
+	return color.Alpha{0}
 }
