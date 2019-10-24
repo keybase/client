@@ -2,11 +2,21 @@ import * as React from 'react'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
+import * as Constants from '../constants/team-building'
 import TeamBox from './team-box'
 import Input from './input'
 import {ServiceTabBar} from './service-tab-bar'
-import UserResult, {userResultHeight} from './user-result'
 import Flags from '../util/feature-flags'
+import {Props as OriginalRolePickerProps} from '../teams/role-picker'
+import {TeamRoleType} from '../constants/types/teams'
+import {memoize} from '../util/memoize'
+import throttle from 'lodash/throttle'
+import PhoneSearch from './phone-search'
+import AlphabetIndex from './alphabet-index'
+import EmailSearch from './email-search'
+import PeopleResult from './search-result/people-result'
+import UserResult from './search-result/user-result'
+import {userResultHeight} from './search-result/common-result'
 import {
   serviceIdToAccentColor,
   serviceIdToIconFont,
@@ -20,15 +30,6 @@ import {
   SelectedUser,
   User,
 } from '../constants/types/team-building'
-import {Props as OriginalRolePickerProps} from '../teams/role-picker'
-import {TeamRoleType} from '../constants/types/teams'
-import {memoize} from '../util/memoize'
-import throttle from 'lodash/throttle'
-import PhoneSearch from './phone-search'
-import AlphabetIndex from './alphabet-index'
-import EmailSearch from './email-search'
-import * as Constants from '../constants/team-building'
-import PeopleResult from './people-result'
 
 export const numSectionLabel = '0-9'
 
