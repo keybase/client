@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/kvstore.avdl
 
 package keybase1
@@ -167,6 +167,7 @@ type PutKVEntryArg struct {
 	TeamName   string `codec:"teamName" json:"teamName"`
 	Namespace  string `codec:"namespace" json:"namespace"`
 	EntryKey   string `codec:"entryKey" json:"entryKey"`
+	Revision   int    `codec:"revision" json:"revision"`
 	EntryValue string `codec:"entryValue" json:"entryValue"`
 }
 
@@ -186,6 +187,7 @@ type DelKVEntryArg struct {
 	TeamName  string `codec:"teamName" json:"teamName"`
 	Namespace string `codec:"namespace" json:"namespace"`
 	EntryKey  string `codec:"entryKey" json:"entryKey"`
+	Revision  int    `codec:"revision" json:"revision"`
 }
 
 type KvstoreInterface interface {

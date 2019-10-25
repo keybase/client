@@ -183,7 +183,7 @@ const JustEnabled = ({onDismiss}: JustEnabledProps) => {
   const displayingMountDir = preferredMountDirs.get(0) || ''
   const dispatch = Container.useDispatch()
   const open = displayingMountDir
-    ? () => dispatch(FsGen.createOpenPathInSystemFileManager({path: displayingMountDir}))
+    ? () => dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: displayingMountDir}))
     : undefined
   return (
     <Banner

@@ -151,6 +151,7 @@ const emptyAsset: RPCStellarTypes.Asset = {
   authEndpoint: '',
   code: '',
   depositButtonText: '',
+  depositReqAuth: false,
   desc: '',
   infoUrl: '',
   infoUrlText: '',
@@ -162,6 +163,7 @@ const emptyAsset: RPCStellarTypes.Asset = {
   type: 'native',
   verifiedDomain: '',
   withdrawButtonText: '',
+  withdrawReqAuth: false,
   withdrawType: '',
 }
 
@@ -606,58 +608,6 @@ const loadDisplayCurrency = async (_: TypedState, action: WalletsGen.LoadDisplay
     accountID: accountID,
     currency: Constants.makeCurrency(res),
     setBuildingCurrency: action.payload.setBuildingCurrency,
-  })
-}
-
-const setInflationDestination = async (_, action: WalletsGen.SetInflationDestinationPayload) => {
-  const accountID = action.payload.accountID
-  if (!accountID || !Types.isValidAccountID(accountID)) {
-    return false
-  }
-  try {
-    await RPCStellarTypes.localSetInflationDestinationLocalRpcPromise(
-      {
-        accountID,
-        destination: action.payload.destination,
-      },
-      Constants.inflationDestinationWaitingKey
-    )
-    return WalletsGen.createInflationDestinationReceived({
-      accountID,
-      selected: Constants.makeAccountInflationDestination({
-        accountID: action.payload.destination,
-        name: action.payload.name,
-      }),
-    })
-  } catch (error) {
-    return WalletsGen.createInflationDestinationReceived({error: error.message})
-  }
-}
-
-const loadInflationDestination = async (
-  _: TypedState,
-  action: WalletsGen.LoadInflationDestinationPayload
-) => {
-  const accountID = action.payload.accountID
-  if (!accountID || !Types.isValidAccountID(accountID)) {
-    return false
-  }
-  const [dest, predefs] = await Promise.all([
-    RPCStellarTypes.localGetInflationDestinationLocalRpcPromise({accountID}),
-    RPCStellarTypes.localGetPredefinedInflationDestinationsLocalRpcPromise(),
-  ])
-  const options = (predefs || []).map(p =>
-    Constants.makeInflationDestination({
-      address: Types.stringToAccountID(p.accountID),
-      link: p.url,
-      name: p.name,
-      recommended: p.recommended,
-    })
-  )
-  return WalletsGen.createInflationDestinationReceived({
-    accountID,
-    options,
-    selected: Constants.inflationDestResultToAccountInflationDest(dest),
   })
 }
 
@@ -1317,6 +1267,7 @@ const assetDescriptionOrNativeToRpcAsset = (
   authEndpoint: '',
   code: asset === 'native' ? '' : asset.code,
   depositButtonText: '',
+  depositReqAuth: false,
   desc: '',
   infoUrl: '',
   infoUrlText: '',
@@ -1328,6 +1279,7 @@ const assetDescriptionOrNativeToRpcAsset = (
   type: asset === 'native' ? 'native' : asset.code.length > 4 ? 'credit_alphanum12' : 'credit_alphanum4',
   verifiedDomain: asset === 'native' ? '' : asset.issuerVerifiedDomain,
   withdrawButtonText: '',
+  withdrawReqAuth: false,
   withdrawType: '',
 })
 
@@ -1409,7 +1361,9 @@ const refreshTrustlineAcceptedAssetsByUsername = async (_: TypedState, {payload:
     {recipient: username},
     Constants.refreshTrustlineAcceptedAssetsWaitingKey(username)
   )
-  return balancesToAction(trustlines || [], Types.noAccountID, username)
+  return Constants.isFederatedAddress(username)
+    ? balancesToAction(trustlines || [], username, '')
+    : balancesToAction(trustlines || [], Types.noAccountID, username)
 }
 
 const refreshTrustlinePopularAssets = async () => {
@@ -1773,17 +1727,7 @@ function* walletsSaga() {
   )
   yield* Saga.chainAction2(WalletsGen.loadSendAssetChoices, loadSendAssetChoices, 'loadSendAssetChoices')
   yield* Saga.chainAction2(WalletsGen.loadDisplayCurrency, loadDisplayCurrency, 'loadDisplayCurrency')
-  yield* Saga.chainAction2(
-    WalletsGen.loadInflationDestination,
-    loadInflationDestination,
-    'loadInflationDestination'
-  )
   yield* Saga.chainAction2(WalletsGen.loadExternalPartners, loadExternalPartners, 'loadExternalPartners')
-  yield* Saga.chainAction2(
-    WalletsGen.setInflationDestination,
-    setInflationDestination,
-    'setInflationDestination'
-  )
   yield* Saga.chainAction2(WalletsGen.displayCurrencyReceived, refreshAssets, 'refreshAssets')
   yield* Saga.chainAction2(WalletsGen.changeDisplayCurrency, changeDisplayCurrency, 'changeDisplayCurrency')
   yield* Saga.chainAction2(WalletsGen.setAccountAsDefault, setAccountAsDefault, 'setAccountAsDefault')

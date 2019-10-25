@@ -1009,6 +1009,11 @@ func (h *Server) MakePreview(ctx context.Context, arg chat1.MakePreviewArg) (res
 	return attachments.NewSender(h.G()).MakePreview(ctx, arg.Filename, arg.OutboxID)
 }
 
+func (h *Server) MakeAudioPreview(ctx context.Context, amps []float64) (res chat1.MakePreviewRes, err error) {
+	defer h.Trace(ctx, func() error { return err }, "MakeAudioPreview")()
+	return attachments.NewSender(h.G()).MakeAudioPreview(ctx, amps)
+}
+
 func (h *Server) GetUploadTempFile(ctx context.Context, arg chat1.GetUploadTempFileArg) (res string, err error) {
 	defer h.Trace(ctx, func() error { return err }, "GetUploadTempFile")()
 	return h.G().AttachmentUploader.GetUploadTempFile(ctx, arg.OutboxID, arg.Filename)
@@ -1228,7 +1233,10 @@ func (h *Server) CancelPost(ctx context.Context, outboxID chat1.OutboxID) (err e
 		return err
 	}
 	// Alert the attachment uploader as well, in case this outboxID corresponds to an attachment upload
-	return h.G().AttachmentUploader.Cancel(ctx, outboxID)
+	if err := h.G().AttachmentUploader.Cancel(ctx, outboxID); err != nil {
+		return err
+	}
+	return h.G().Badger.Send(ctx)
 }
 
 func (h *Server) RetryPost(ctx context.Context, arg chat1.RetryPostArg) (err error) {

@@ -10,7 +10,6 @@ import (
 
 	"encoding/hex"
 
-	"github.com/keybase/client/go/badges"
 	"github.com/keybase/client/go/chat/commands"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/search"
@@ -42,7 +41,9 @@ type chatListener struct {
 	failing        chan []chat1.OutboxRecord
 	identifyUpdate chan keybase1.CanonicalTLFNameAndIDWithBreaks
 	inboxStale     chan struct{}
+	convUpdate     chan chat1.ConversationID
 	threadsStale   chan []chat1.ConversationStaleUpdate
+
 	bgConvLoads    chan chat1.ConversationID
 	typingUpdate   chan []chat1.ConvTypingUpdate
 	inboxSynced    chan chat1.ChatSyncResult
@@ -59,6 +60,13 @@ func (n *chatListener) ChatInboxStale(uid keybase1.UID) {
 	case n.inboxStale <- struct{}{}:
 	case <-time.After(5 * time.Second):
 		panic("timeout on the inbox stale channel")
+	}
+}
+func (n *chatListener) ChatConvUpdate(uid keybase1.UID, convID chat1.ConversationID) {
+	select {
+	case n.convUpdate <- convID:
+	case <-time.After(5 * time.Second):
+		panic("timeout on the threads stale channel")
 	}
 }
 func (n *chatListener) ChatThreadsStale(uid keybase1.UID, updates []chat1.ConversationStaleUpdate) {
@@ -138,6 +146,16 @@ func (n *chatListener) consumeEphemeralPurge(t *testing.T) chat1.EphemeralPurgeN
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "failed to get ephemeralPurge notification")
 		return chat1.EphemeralPurgeNotifInfo{}
+	}
+}
+
+func (n *chatListener) consumeConvUpdate(t *testing.T) chat1.ConversationID {
+	select {
+	case x := <-n.convUpdate:
+		return x
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "failed to get conv update notification")
+		return nil
 	}
 }
 
@@ -233,6 +251,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 		failing:        make(chan []chat1.OutboxRecord, 100),
 		identifyUpdate: make(chan keybase1.CanonicalTLFNameAndIDWithBreaks, 10),
 		inboxStale:     make(chan struct{}, 1),
+		convUpdate:     make(chan chat1.ConversationID, 10),
 		threadsStale:   make(chan []chat1.ConversationStaleUpdate, 10),
 		bgConvLoads:    make(chan chat1.ConversationID, 10),
 		typingUpdate:   make(chan []chat1.ConvTypingUpdate, 10),
@@ -244,7 +263,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	g.CtxFactory = NewCtxFactory(g)
 	g.ConvSource = NewHybridConversationSource(g, boxer, chatStorage, getRI)
 	chatStorage.SetAssetDeleter(g.ConvSource)
-	g.InboxSource = NewHybridInboxSource(g, badges.NewBadger(g.ExternalG()), getRI)
+	g.InboxSource = NewHybridInboxSource(g, getRI)
 	g.InboxSource.Start(context.TODO(), uid)
 	g.InboxSource.Connected(context.TODO())
 	g.ServerCacheVersions = storage.NewServerVersions(g)
@@ -357,7 +376,7 @@ func checkThread(t *testing.T, thread chat1.ThreadView, ref []sentRecord) {
 			t.Logf("msgID: ref: %d actual: %d", *ref[rindex].msgID, thread.Messages[index].GetMessageID())
 			require.NotZero(t, msg.GetMessageID(), "missing message ID")
 			require.Equal(t, *ref[rindex].msgID, msg.GetMessageID(), "invalid message ID")
-		} else if ref[index].outboxID != nil {
+		} else if ref[rindex].outboxID != nil {
 			t.Logf("obID: ref: %s actual: %s",
 				hex.EncodeToString(*ref[rindex].outboxID),
 				hex.EncodeToString(msg.Outbox().OutboxID))
@@ -440,7 +459,6 @@ func TestNonblockTimer(t *testing.T) {
 		obid := obr.OutboxID
 		t.Logf("generated obid: %s prev: %d", hex.EncodeToString(obid), msgID)
 		require.NoError(t, err)
-		sentRef = append(sentRef, sentRecord{outboxID: &obid})
 		obids = append(obids, obid)
 	}
 
@@ -474,6 +492,12 @@ func TestNonblockTimer(t *testing.T) {
 		msgID := msgBoxed.GetMessageID()
 		t.Logf("generated msgID: %d", msgID)
 		sentRef = append(sentRef, sentRecord{msgID: &msgID})
+	}
+
+	// Push the outbox records to the front of the thread.
+	for _, o := range obids {
+		obid := o
+		sentRef = append(sentRef, sentRecord{outboxID: &obid})
 	}
 
 	// Check get thread, make sure it makes sense

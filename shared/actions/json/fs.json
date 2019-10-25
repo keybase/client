@@ -19,6 +19,7 @@
     "pollJournalStatus": {},
     "getOnlineStatus": {},
     "folderListLoad": {
+      "recursive": "boolean",
       "path": "Types.Path"
     },
     "folderListLoaded": {
@@ -263,6 +264,13 @@
     "loadedFileContext": {
       "path": "Types.Path",
       "fileContext": "Types.FileContext"
+    },
+    "loadAdditionalTlf": {
+      "tlfPath": "Types.Path"
+    },
+    "loadedAdditionalTlf": {
+      "tlf": "Types.Tlf",
+      "tlfPath": "Types.Path"
     },
 
     "setDebugLevel": {

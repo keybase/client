@@ -135,6 +135,7 @@ export default Container.namedConnect(
     const authorIsOwner = teamname
       ? TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'owner')
       : false
+    const ordinals = [...Constants.getMessageOrdinals(state, ownProps.conversationIDKey)]
     return {
       _you: state.config.username,
       authorIsAdmin,
@@ -142,8 +143,7 @@ export default Container.namedConnect(
       centeredOrdinal,
       conversationIDKey: ownProps.conversationIDKey,
       hasUnfurlPrompts,
-      isLastInThread:
-        Constants.getMessageOrdinals(state, ownProps.conversationIDKey).last() === ownProps.ordinal,
+      isLastInThread: ordinals[ordinals.length - 1] === ownProps.ordinal,
       isPendingPayment: Constants.isPendingPaymentMessage(state, message),
       message,
       orangeLineAbove,
@@ -178,7 +178,8 @@ export default Container.namedConnect(
     )
 
     // show send only if its possible we sent while you're looking at it
-    const showSendIndicator = _you === message.author && message.ordinal !== message.id
+    const youAreAuthor = _you === message.author
+    const showSendIndicator = youAreAuthor && message.ordinal !== message.id
     const decorate = getDecorate(message)
     const onCancel = allowCancel
       ? () => dispatchProps._onCancel(message.conversationIDKey, message.ordinal)
@@ -221,6 +222,7 @@ export default Container.namedConnect(
       showCrowns: stateProps.showCrowns,
       showSendIndicator,
       showUsername,
+      youAreAuthor,
     }
   },
   'WrapperMessage'

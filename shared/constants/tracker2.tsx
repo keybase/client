@@ -29,6 +29,7 @@ export const noNonUserDetails: Readonly<Types.NonUserDetails> = Object.freeze({
   description: '',
   siteIcon: emptyArray,
   siteIconFull: emptyArray,
+  siteIconWhite: emptyArray,
   siteURL: '',
 })
 
@@ -48,6 +49,7 @@ export const noAssertion: Readonly<Types.Assertion> = Object.freeze({
   sigID: '',
   siteIcon: [],
   siteIconFull: [],
+  siteIconWhite: [],
   siteURL: '',
   state: 'error',
   timestamp: 0,
@@ -113,6 +115,7 @@ export const rpcAssertionToAssertion = (row: RPCTypes.Identify3Row): Types.Asser
   sigID: row.sigID,
   siteIcon: row.siteIcon || [],
   siteIconFull: row.siteIconFull || [],
+  siteIconWhite: row.siteIconWhite || [],
   siteURL: row.siteURL,
   state: rpcRowStateToAssertionState(row.state),
   timestamp: row.ctime,
@@ -134,6 +137,7 @@ export const rpcSuggestionToAssertion = (s: RPCTypes.ProofSuggestion): Types.Ass
     pickerText: s.pickerText,
     proofURL: '',
     siteIcon: s.profileIcon || [],
+    siteIconWhite: s.profileIconWhite || [],
     siteURL: '',
     state: 'suggestion',
     type: ourKey,

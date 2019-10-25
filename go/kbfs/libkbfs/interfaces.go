@@ -293,6 +293,10 @@ type KBFSOps interface {
 	// top-level folders.  This is a remote-access operation when the cache
 	// is empty or expired.
 	GetFavorites(ctx context.Context) ([]favorites.Folder, error)
+	// GetFolderWithFavFlags returns a keybase1.FolderWithFavFlags for given
+	// handle.
+	GetFolderWithFavFlags(ctx context.Context,
+		handle *tlfhandle.Handle) (keybase1.FolderWithFavFlags, error)
 	// GetFavoritesAll returns the logged-in user's lists of favorite, ignored,
 	// and new top-level folders.  This is a remote-access operation when the
 	// cache is empty or expired.

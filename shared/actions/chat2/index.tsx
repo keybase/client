@@ -32,7 +32,6 @@ import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {RPCError} from '../../util/errors'
 import HiddenString from '../../util/hidden-string'
 import {TypedActions, TypedState} from '../../util/container'
-import {store} from 'emoji-mart'
 
 const onConnect = async () => {
   try {
@@ -770,7 +769,9 @@ const onChatSetConvSettings = (
       conv.convSettings.minWriterRoleInfo &&
       conv.convSettings.minWriterRoleInfo.cannotWrite) ||
     false
-  logger.info(`got new minWriterRole ${role || ''} for convID ${conversationIDKey}`)
+  logger.info(
+    `got new minWriterRole ${role || ''} for convID ${conversationIDKey}, cannotWrite ${cannotWrite}`
+  )
   if (role && role !== 'none' && cannotWrite !== undefined) {
     return Chat2Gen.createSaveMinWriterRole({cannotWrite, conversationIDKey, role})
   }
@@ -954,6 +955,17 @@ const onNewChatActivity = (
     }
   }
   return actions
+}
+
+const onChatConvUpdate = (state: TypedState, action: EngineGen.Chat1NotifyChatChatConvUpdatePayload) => {
+  const {conv} = action.payload.params
+  if (conv) {
+    const meta = Constants.inboxUIItemToConversationMeta(state, conv)
+    if (meta) {
+      return [Chat2Gen.createMetasReceived({metas: [meta]})]
+    }
+  }
+  return []
 }
 
 const loadThreadMessageTypes = Object.keys(RPCChatTypes.MessageType)
@@ -1934,6 +1946,8 @@ const onUpdateUserReacjis = (state: TypedState) => {
     i++
     reacjis[el] = userReacjis.topReacjis.length - i
   })
+
+  const {store} = require('emoji-mart')
   store.setHandlers({
     getter: key => {
       switch (key) {
@@ -2196,7 +2210,7 @@ const markThreadAsRead = async (
   const mmap = state.chat2.messageMap.get(conversationIDKey)
   if (mmap) {
     const ordinals = Constants.getMessageOrdinals(state, conversationIDKey)
-    const ordinal = ordinals.findLast(o => {
+    const ordinal = [...ordinals].reverse().find(o => {
       const m = mmap.get(o)
       return m ? !!m.id : false
     })
@@ -3617,6 +3631,7 @@ function* chat2Saga() {
   yield* Saga.chainAction2(EngineGen.connected, onConnect, 'onConnect')
 
   yield* chatTeamBuildingSaga()
+  yield* Saga.chainAction2(EngineGen.chat1NotifyChatChatConvUpdate, onChatConvUpdate, 'onChatConvUpdate')
 }
 
 export default chat2Saga

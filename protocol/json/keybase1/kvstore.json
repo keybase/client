@@ -207,6 +207,10 @@
           "type": "string"
         },
         {
+          "name": "revision",
+          "type": "int"
+        },
+        {
           "name": "entryValue",
           "type": "string"
         }
@@ -260,6 +264,10 @@
         {
           "name": "entryKey",
           "type": "string"
+        },
+        {
+          "name": "revision",
+          "type": "int"
         }
       ],
       "response": "KVDeleteEntryResult"

@@ -1,6 +1,7 @@
 package globals
 
 import (
+	"github.com/keybase/client/go/badges"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/libkb"
 	"golang.org/x/net/context"
@@ -35,6 +36,7 @@ type ChatContext struct {
 	LiveLocationTracker  types.LiveLocationTracker        // track live location messages for updates
 	BotCommandManager    types.BotCommandManager          // manages commands from bots in convs
 	UIInboxLoader        types.UIInboxLoader              // manages loading inbox for UI
+	Badger               *badges.Badger                   // app badging
 }
 
 type Context struct {

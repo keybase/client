@@ -1,5 +1,6 @@
 import logger from '../logger'
 import * as Constants from '../constants/signup'
+import * as ConfigConstants from '../constants/config'
 import * as SignupGen from './signup-gen'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -66,7 +67,10 @@ const checkInviteCode = async (state: Container.TypedState) => {
 const requestAutoInvite = async (state: Container.TypedState) => {
   // If we're logged in, we're coming from the user switcher; log out first to prevent the service from getting out of sync with the GUI about our logged-in-ness
   if (state.config.loggedIn) {
-    await RPCTypes.loginLogoutRpcPromise({force: false, keepSecrets: true})
+    await RPCTypes.loginLogoutRpcPromise(
+      {force: false, keepSecrets: true},
+      ConfigConstants.createOtherAccountWaitingKey
+    )
   }
   try {
     const inviteCode = await RPCTypes.signupGetInvitationCodeRpcPromise(undefined, Constants.waitingKey)

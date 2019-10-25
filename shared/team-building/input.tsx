@@ -94,6 +94,7 @@ const styles = Styles.styleSheetCreate(() => ({
       ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall),
     },
     isMobile: {
+      justifyContent: 'flex-start',
       zIndex: -1, // behind ServiceTabBar
     },
   }),

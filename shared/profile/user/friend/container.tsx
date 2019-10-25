@@ -14,7 +14,7 @@ export default Container.namedConnect(
   }),
   dispatch => ({_onClick: (username: string) => dispatch(ProfileGen.createShowUserProfile({username}))}),
   (stateProps, dispatchProps, ownProps: OwnProps) => ({
-    fullname: stateProps.fullname,
+    fullname: stateProps.fullname || '',
     onClick: () => dispatchProps._onClick(stateProps.username),
     username: stateProps.username,
     width: ownProps.width,

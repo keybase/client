@@ -67,7 +67,11 @@ type State = {
 
 class SearchFilter extends React.PureComponent<Props, State> {
   state = {
-    focused: false,
+    // If we recieve the focusOnMount prop, then we can use autoFocus to immediately focus the input element.
+    // However we also need to make sure the state is initialized to be focused
+    // to prevent an additional render which appears to the user as the search
+    // icon and clear button appear/disappearing
+    focused: this.props.focusOnMount || false,
     hover: false,
     text: '',
   }
@@ -85,7 +89,10 @@ class SearchFilter extends React.PureComponent<Props, State> {
 
   private text = () => (this.props.valueControlled ? this.props.value : this.state.text)
   focus = () => {
-    if (this.state.focused) {
+    // When focusOnMount is true so is state.focused.
+    // This is to speed up the focus time when using focusOnMount
+    // So continue to focus() the input elemenet if both are true
+    if (this.state.focused && !this.props.focusOnMount) {
       return
     }
     this.inputRef.current && this.inputRef.current.focus()
@@ -177,6 +184,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
         : ''
     return (
       <Kb.NewInput
+        autoFocus={this.props.focusOnMount}
         value={this.text()}
         placeholder={this.props.placeholderText + hotkeyText}
         dummyInput={this.props.dummyInput}

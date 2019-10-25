@@ -1,10 +1,11 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/chat1/local.avdl
 
 package chat1
 
 import (
 	"errors"
+	"fmt"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	stellar1 "github.com/keybase/client/go/protocol/stellar1"
@@ -42,7 +43,7 @@ func (e TextPaymentResultTyp) String() string {
 	if v, ok := TextPaymentResultTypRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type TextPaymentResult struct {
@@ -433,7 +434,7 @@ func (e MessageSystemType) String() string {
 	if v, ok := MessageSystemTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type MessageSystemAddedToTeam struct {
@@ -1708,7 +1709,7 @@ func (e OutboxStateType) String() string {
 	if v, ok := OutboxStateTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type OutboxErrorType int
@@ -1761,7 +1762,7 @@ func (e OutboxErrorType) String() string {
 	if v, ok := OutboxErrorTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type OutboxStateError struct {
@@ -1953,7 +1954,7 @@ func (e HeaderPlaintextVersion) String() string {
 	if v, ok := HeaderPlaintextVersionRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type HeaderPlaintextMetaInfo struct {
@@ -2429,7 +2430,7 @@ func (e BodyPlaintextVersion) String() string {
 	if v, ok := BodyPlaintextVersionRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type BodyPlaintextMetaInfo struct {
@@ -2973,7 +2974,7 @@ func (e MessageUnboxedErrorType) String() string {
 	if v, ok := MessageUnboxedErrorTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type MessageUnboxedError struct {
@@ -3028,22 +3029,22 @@ func (o MessageUnboxedPlaceholder) DeepCopy() MessageUnboxedPlaceholder {
 	}
 }
 
-type MessageUnboxedJourneyCardType int
+type JourneycardType int
 
 const (
-	MessageUnboxedJourneyCardType_WELCOME            MessageUnboxedJourneyCardType = 0
-	MessageUnboxedJourneyCardType_POPULAR_CHANNELS   MessageUnboxedJourneyCardType = 1
-	MessageUnboxedJourneyCardType_ADD_PEOPLE         MessageUnboxedJourneyCardType = 2
-	MessageUnboxedJourneyCardType_CREATE_CHANNELS    MessageUnboxedJourneyCardType = 3
-	MessageUnboxedJourneyCardType_MSG_ATTENTION      MessageUnboxedJourneyCardType = 4
-	MessageUnboxedJourneyCardType_USER_AWAY_FOR_LONG MessageUnboxedJourneyCardType = 5
-	MessageUnboxedJourneyCardType_CHANNEL_INACTIVE   MessageUnboxedJourneyCardType = 6
-	MessageUnboxedJourneyCardType_MSG_NO_ANSWER      MessageUnboxedJourneyCardType = 7
+	JourneycardType_WELCOME            JourneycardType = 0
+	JourneycardType_POPULAR_CHANNELS   JourneycardType = 1
+	JourneycardType_ADD_PEOPLE         JourneycardType = 2
+	JourneycardType_CREATE_CHANNELS    JourneycardType = 3
+	JourneycardType_MSG_ATTENTION      JourneycardType = 4
+	JourneycardType_USER_AWAY_FOR_LONG JourneycardType = 5
+	JourneycardType_CHANNEL_INACTIVE   JourneycardType = 6
+	JourneycardType_MSG_NO_ANSWER      JourneycardType = 7
 )
 
-func (o MessageUnboxedJourneyCardType) DeepCopy() MessageUnboxedJourneyCardType { return o }
+func (o JourneycardType) DeepCopy() JourneycardType { return o }
 
-var MessageUnboxedJourneyCardTypeMap = map[string]MessageUnboxedJourneyCardType{
+var JourneycardTypeMap = map[string]JourneycardType{
 	"WELCOME":            0,
 	"POPULAR_CHANNELS":   1,
 	"ADD_PEOPLE":         2,
@@ -3054,7 +3055,7 @@ var MessageUnboxedJourneyCardTypeMap = map[string]MessageUnboxedJourneyCardType{
 	"MSG_NO_ANSWER":      7,
 }
 
-var MessageUnboxedJourneyCardTypeRevMap = map[MessageUnboxedJourneyCardType]string{
+var JourneycardTypeRevMap = map[JourneycardType]string{
 	0: "WELCOME",
 	1: "POPULAR_CHANNELS",
 	2: "ADD_PEOPLE",
@@ -3065,22 +3066,26 @@ var MessageUnboxedJourneyCardTypeRevMap = map[MessageUnboxedJourneyCardType]stri
 	7: "MSG_NO_ANSWER",
 }
 
-func (e MessageUnboxedJourneyCardType) String() string {
-	if v, ok := MessageUnboxedJourneyCardTypeRevMap[e]; ok {
+func (e JourneycardType) String() string {
+	if v, ok := JourneycardTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
-type MessageUnboxedJourneyCard struct {
-	CardType MessageUnboxedJourneyCardType `codec:"cardType" json:"cardType"`
-	Data     string                        `codec:"data" json:"data"`
+type MessageUnboxedJourneycard struct {
+	PrevID         MessageID       `codec:"prevID" json:"prevID"`
+	Ordinal        int             `codec:"ordinal" json:"ordinal"`
+	CardType       JourneycardType `codec:"cardType" json:"cardType"`
+	HighlightMsgID MessageID       `codec:"highlightMsgID" json:"highlightMsgID"`
 }
 
-func (o MessageUnboxedJourneyCard) DeepCopy() MessageUnboxedJourneyCard {
-	return MessageUnboxedJourneyCard{
-		CardType: o.CardType.DeepCopy(),
-		Data:     o.Data,
+func (o MessageUnboxedJourneycard) DeepCopy() MessageUnboxedJourneycard {
+	return MessageUnboxedJourneycard{
+		PrevID:         o.PrevID.DeepCopy(),
+		Ordinal:        o.Ordinal,
+		CardType:       o.CardType.DeepCopy(),
+		HighlightMsgID: o.HighlightMsgID.DeepCopy(),
 	}
 }
 
@@ -3090,7 +3095,7 @@ type MessageUnboxed struct {
 	Error__       *MessageUnboxedError       `codec:"error,omitempty" json:"error,omitempty"`
 	Outbox__      *OutboxRecord              `codec:"outbox,omitempty" json:"outbox,omitempty"`
 	Placeholder__ *MessageUnboxedPlaceholder `codec:"placeholder,omitempty" json:"placeholder,omitempty"`
-	Journeycard__ *MessageUnboxedJourneyCard `codec:"journeycard,omitempty" json:"journeycard,omitempty"`
+	Journeycard__ *MessageUnboxedJourneycard `codec:"journeycard,omitempty" json:"journeycard,omitempty"`
 }
 
 func (o *MessageUnboxed) State() (ret MessageUnboxedState, err error) {
@@ -3164,7 +3169,7 @@ func (o MessageUnboxed) Placeholder() (res MessageUnboxedPlaceholder) {
 	return *o.Placeholder__
 }
 
-func (o MessageUnboxed) Journeycard() (res MessageUnboxedJourneyCard) {
+func (o MessageUnboxed) Journeycard() (res MessageUnboxedJourneycard) {
 	if o.State__ != MessageUnboxedState_JOURNEYCARD {
 		panic("wrong case accessed")
 	}
@@ -3202,7 +3207,7 @@ func NewMessageUnboxedWithPlaceholder(v MessageUnboxedPlaceholder) MessageUnboxe
 	}
 }
 
-func NewMessageUnboxedWithJourneycard(v MessageUnboxedJourneyCard) MessageUnboxed {
+func NewMessageUnboxedWithJourneycard(v MessageUnboxedJourneycard) MessageUnboxed {
 	return MessageUnboxed{
 		State__:       MessageUnboxedState_JOURNEYCARD,
 		Journeycard__: &v,
@@ -3240,7 +3245,7 @@ func (o MessageUnboxed) DeepCopy() MessageUnboxed {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Placeholder__),
-		Journeycard__: (func(x *MessageUnboxedJourneyCard) *MessageUnboxedJourneyCard {
+		Journeycard__: (func(x *MessageUnboxedJourneycard) *MessageUnboxedJourneycard {
 			if x == nil {
 				return nil
 			}
@@ -3432,7 +3437,7 @@ func (e ConversationErrorType) String() string {
 	if v, ok := ConversationErrorTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type ConversationErrorLocal struct {
@@ -3744,7 +3749,7 @@ func (e MessageIDControlMode) String() string {
 	if v, ok := MessageIDControlModeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type MessageIDControl struct {
@@ -3878,7 +3883,7 @@ func (e GetThreadNonblockCbMode) String() string {
 	if v, ok := GetThreadNonblockCbModeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type GetThreadNonblockPgMode int
@@ -3904,7 +3909,7 @@ func (e GetThreadNonblockPgMode) String() string {
 	if v, ok := GetThreadNonblockPgModeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type UnreadlineRes struct {
@@ -4206,7 +4211,7 @@ func (e InboxLayoutReselectMode) String() string {
 	if v, ok := InboxLayoutReselectModeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type PostLocalRes struct {
@@ -4750,7 +4755,7 @@ func (e PreviewLocationTyp) String() string {
 	if v, ok := PreviewLocationTypRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type PreviewLocation struct {
@@ -5372,7 +5377,7 @@ func (e UnfurlPromptAction) String() string {
 	if v, ok := UnfurlPromptActionRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type UnfurlPromptResult struct {
@@ -5495,7 +5500,7 @@ func (e GalleryItemTyp) String() string {
 	if v, ok := GalleryItemTypRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type LoadGalleryRes struct {
@@ -5757,6 +5762,18 @@ func (o PinMessageRes) DeepCopy() PinMessageRes {
 			}
 			return ret
 		})(o.RateLimits),
+	}
+}
+
+type LocalMtimeUpdate struct {
+	ConvID ConversationID `codec:"convID" json:"convID"`
+	Mtime  gregor1.Time   `codec:"mtime" json:"mtime"`
+}
+
+func (o LocalMtimeUpdate) DeepCopy() LocalMtimeUpdate {
+	return LocalMtimeUpdate{
+		ConvID: o.ConvID.DeepCopy(),
+		Mtime:  o.Mtime.DeepCopy(),
 	}
 }
 
@@ -6024,6 +6041,10 @@ type MakePreviewArg struct {
 	SessionID int      `codec:"sessionID" json:"sessionID"`
 	Filename  string   `codec:"filename" json:"filename"`
 	OutboxID  OutboxID `codec:"outboxID" json:"outboxID"`
+}
+
+type MakeAudioPreviewArg struct {
+	Amps []float64 `codec:"amps" json:"amps"`
 }
 
 type GetUploadTempFileArg struct {
@@ -6350,6 +6371,7 @@ type LocalInterface interface {
 	DownloadFileAttachmentLocal(context.Context, DownloadFileAttachmentLocalArg) (DownloadFileAttachmentLocalRes, error)
 	ConfigureFileAttachmentDownloadLocal(context.Context, ConfigureFileAttachmentDownloadLocalArg) error
 	MakePreview(context.Context, MakePreviewArg) (MakePreviewRes, error)
+	MakeAudioPreview(context.Context, []float64) (MakePreviewRes, error)
 	GetUploadTempFile(context.Context, GetUploadTempFileArg) (string, error)
 	MakeUploadTempFile(context.Context, MakeUploadTempFileArg) (string, error)
 	CancelPost(context.Context, OutboxID) error
@@ -6927,6 +6949,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.MakePreview(ctx, typedArgs[0])
+					return
+				},
+			},
+			"makeAudioPreview": {
+				MakeArg: func() interface{} {
+					var ret [1]MakeAudioPreviewArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]MakeAudioPreviewArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]MakeAudioPreviewArg)(nil), args)
+						return
+					}
+					ret, err = i.MakeAudioPreview(ctx, typedArgs[0].Amps)
 					return
 				},
 			},
@@ -7889,6 +7926,12 @@ func (c LocalClient) ConfigureFileAttachmentDownloadLocal(ctx context.Context, _
 
 func (c LocalClient) MakePreview(ctx context.Context, __arg MakePreviewArg) (res MakePreviewRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.makePreview", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) MakeAudioPreview(ctx context.Context, amps []float64) (res MakePreviewRes, err error) {
+	__arg := MakeAudioPreviewArg{Amps: amps}
+	err = c.Cli.Call(ctx, "chat.1.local.makeAudioPreview", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 

@@ -2546,6 +2546,26 @@ func (k *SimpleFS) SimpleFSSetFolderSyncConfig(
 	return err
 }
 
+// SimpleFSGetFolder implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSGetFolder(
+	ctx context.Context, kbfsPath keybase1.KBFSPath) (
+	res keybase1.FolderWithFavFlags, err error) {
+	ctx, err = k.makeContextWithIdentifyBehavior(ctx, kbfsPath.IdentifyBehavior)
+	if err != nil {
+		return keybase1.FolderWithFavFlags{}, err
+	}
+	t, tlfName, _, _, err := remoteTlfAndPath(keybase1.NewPathWithKbfs(kbfsPath))
+	if err != nil {
+		return keybase1.FolderWithFavFlags{}, err
+	}
+	tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
+		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, tlfName, t)
+	if err != nil {
+		return keybase1.FolderWithFavFlags{}, err
+	}
+	return k.config.KBFSOps().GetFolderWithFavFlags(ctx, tlfHandle)
+}
+
 // SimpleFSSyncConfigAndStatus implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSSyncConfigAndStatus(ctx context.Context,
 	identifyBehavior *keybase1.TLFIdentifyBehavior) (

@@ -7,7 +7,6 @@ import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Container from '../util/container'
 import logger from '../logger'
-import openURL from '../util/open-url'
 import {isMobile} from '../constants/platform'
 import {RPCError, niceError} from '../util/errors'
 import flags from '../util/feature-flags'
@@ -88,13 +87,6 @@ function* login(_: Container.TypedState, action: LoginGen.LoginPayload) {
   }
 }
 
-const launchForgotPasswordWebPage = () => {
-  openURL('https://keybase.io/#password-reset')
-}
-const launchAccountResetWebPage = () => {
-  openURL('https://keybase.io/#account-reset')
-}
-
 const loadIsOnline = async () => {
   try {
     const result = await RPCTypes.loginIsOnlineRpcPromise(undefined)
@@ -108,8 +100,6 @@ const loadIsOnline = async () => {
 function* loginSaga() {
   // Actually log in
   yield* Saga.chainGenerator<LoginGen.LoginPayload>(LoginGen.login, login)
-  yield* Saga.chainAction2(LoginGen.launchForgotPasswordWebPage, launchForgotPasswordWebPage)
-  yield* Saga.chainAction2(LoginGen.launchAccountResetWebPage, launchAccountResetWebPage)
   yield* Saga.chainAction2(LoginGen.loadIsOnline, loadIsOnline)
 }
 

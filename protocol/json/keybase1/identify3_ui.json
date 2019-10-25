@@ -95,6 +95,13 @@
           "name": "siteIconFull"
         },
         {
+          "type": {
+            "type": "array",
+            "items": "SizedImage"
+          },
+          "name": "siteIconWhite"
+        },
+        {
           "type": "string",
           "name": "proofURL",
           "lint": "ignore"

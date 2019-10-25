@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
-	"strings"
+	"sort"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
@@ -27,6 +27,15 @@ func MakeConversationCommandGroups(cmds []chat1.UserBotCommandOutput) chat1.Conv
 	}
 	return chat1.NewConversationCommandGroupsWithCustom(chat1.ConversationCommandGroupsCustom{
 		Commands: outCmds,
+	})
+}
+
+func SortCommandsForMatching(cmds []chat1.UserBotCommandOutput) {
+	// sort commands by reverse command length to prefer specificity (i.e. if
+	// there's a longer command that matches the prefix, we'll match that
+	// first.)
+	sort.SliceStable(cmds, func(i, j int) bool {
+		return len(cmds[i].Name) > len(cmds[j].Name)
 	})
 }
 
@@ -114,8 +123,9 @@ func ApplyTeamBotSettings(ctx context.Context, g *globals.Context, botUID gregor
 		if err != nil {
 			return false, nil
 		}
+		SortCommandsForMatching(cmds)
 		for _, cmd := range cmds {
-			if unn.String() == cmd.Username && strings.HasPrefix(matchText, fmt.Sprintf("!%s", cmd.Name)) {
+			if unn.String() == cmd.Username && cmd.Matches(matchText) {
 				return true, nil
 			}
 		}

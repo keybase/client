@@ -299,20 +299,6 @@ export type _Account = {
 }
 export type Account = I.RecordOf<_Account>
 
-export type _InflationDestination = {
-  name: string
-  recommended: boolean
-  address: AccountID
-  link: string
-}
-export type InflationDestination = I.RecordOf<_InflationDestination>
-
-export type _AccountInflationDestination = {
-  accountID: AccountID
-  name: string // if known
-}
-export type AccountInflationDestination = I.RecordOf<_AccountInflationDestination>
-
 export type ValidationState = 'none' | 'waiting' | 'error' | 'valid'
 
 export type AirdropState =
@@ -416,9 +402,6 @@ export type _State = {
   exportedSecretKey: HiddenString
   exportedSecretKeyAccountID: AccountID
   externalPartners: I.List<PartnerUrl>
-  inflationDestinationError: string
-  inflationDestinationMap: I.Map<AccountID, AccountInflationDestination>
-  inflationDestinations: I.List<InflationDestination>
   lastSentXLM: boolean
   linkExistingAccountError: string
   mobileOnlyMap: I.Map<AccountID, boolean>

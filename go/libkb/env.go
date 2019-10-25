@@ -38,7 +38,6 @@ func (n NullConfiguration) GetExternalURLKitFilename() string                   
 func (n NullConfiguration) GetProveBypass() (bool, bool)                                   { return false, false }
 func (n NullConfiguration) GetUsername() NormalizedUsername                                { return NormalizedUsername("") }
 func (n NullConfiguration) GetEmail() string                                               { return "" }
-func (n NullConfiguration) GetUpgradePerUserKey() (bool, bool)                             { return false, false }
 func (n NullConfiguration) GetProxy() string                                               { return "" }
 func (n NullConfiguration) GetProxyType() string                                           { return "" }
 func (n NullConfiguration) IsCertPinningEnabled() bool                                     { return true }
@@ -78,6 +77,7 @@ func (n NullConfiguration) GetUsernameForUID(u keybase1.UID) NormalizedUsername 
 func (n NullConfiguration) GetUIDForUsername(u NormalizedUsername) keybase1.UID {
 	return keybase1.UID("")
 }
+func (n NullConfiguration) GetStayLoggedOut() (bool, bool)                        { return false, false }
 func (n NullConfiguration) GetAutoFork() (bool, bool)                             { return false, false }
 func (n NullConfiguration) GetRunMode() (RunMode, error)                          { return NoRunMode, nil }
 func (n NullConfiguration) GetNoAutoFork() (bool, bool)                           { return false, false }
@@ -155,9 +155,8 @@ func (n NullConfiguration) GetAllUserConfigs() (*UserConfig, []UserConfig, error
 	return nil, nil, nil
 }
 
-func (n NullConfiguration) GetDebug() (bool, bool) {
-	return false, false
-}
+func (n NullConfiguration) GetDebug() (bool, bool)            { return false, false }
+func (n NullConfiguration) GetDebugJourneycard() (bool, bool) { return false, false }
 func (n NullConfiguration) GetDisplayRawUntrustedOutput() (bool, bool) {
 	return false, false
 }
@@ -818,6 +817,14 @@ func (e *Env) GetProveBypass() bool {
 		func() (bool, bool) { return e.GetConfig().GetProveBypass() })
 }
 
+// GetDebugJourneycard enables experimental chat journey cards.
+func (e *Env) GetDebugJourneycard() bool {
+	return e.GetBool(false,
+		func() (bool, bool) { return e.cmd.GetDebugJourneycard() },
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_DEBUG_JOURNEYCARD") },
+		func() (bool, bool) { return e.GetConfig().GetDebugJourneycard() })
+}
+
 func (e *Env) GetDebug() bool {
 	return e.GetBool(false,
 		func() (bool, bool) { return e.Test.GetDebug() },
@@ -1119,6 +1126,12 @@ func (e *Env) GetPidFile() (ret string, err error) {
 func (e *Env) GetEmail() string {
 	return e.GetString(
 		func() string { return os.Getenv("KEYBASE_EMAIL") },
+	)
+}
+
+func (e *Env) GetStayLoggedOut() bool {
+	return e.GetBool(false,
+		func() (bool, bool) { return e.GetConfig().GetStayLoggedOut() },
 	)
 }
 

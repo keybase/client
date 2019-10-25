@@ -70,9 +70,9 @@ func TestLoginAfterServiceRestart(t *testing.T) {
 	defer tc.Cleanup()
 
 	// Logs the user in.
-	_ = SignupFakeUserStoreSecret(tc, "li")
+	fu := SignupFakeUserStoreSecret(tc, "li")
 
-	tc.SimulateServiceRestart()
+	simulateServiceRestart(t, tc, fu)
 	ok, _ := isLoggedIn(NewMetaContextForTest(tc))
 	require.True(t, ok, "we are logged in after a service restart")
 }

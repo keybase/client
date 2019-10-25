@@ -55,10 +55,14 @@ func (e *SelfProvisionEngine) Result() error {
 	return e.result
 }
 
-func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
+func (e *SelfProvisionEngine) Run(mctx libkb.MetaContext) (err error) {
+	defer mctx.Trace("SelfProvisionEngine#Run", func() error { return err })()
+	return retryOnEphemeralRace(mctx, e.run)
+}
+
+func (e *SelfProvisionEngine) run(m libkb.MetaContext) (err error) {
 	m.G().LocalSigchainGuard().Set(m.Ctx(), "SelfProvisionEngine")
 	defer m.G().LocalSigchainGuard().Clear(m.Ctx(), "SelfProvisionEngine")
-	defer m.Trace("SelfProvisionEngine#Run", func() error { return err })()
 
 	if d, err := libkb.GetDeviceCloneState(m); err != nil {
 		return err

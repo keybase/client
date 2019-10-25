@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as FsGen from '../../../actions/fs-gen'
 import * as Constants from '../../../constants/chat2'
@@ -179,8 +178,6 @@ const ConnectedInfoPanel = Container.connect(
           l.push(mi.username)
           return l
         }, [])
-    } else {
-      teamMembers = I.Map()
     }
     return {
       admin: stateProps.admin,
@@ -380,6 +377,8 @@ const InfoPanelSelector = (props: Props) => {
     <Kb.Box onClick={() => setShow(false)} style={styles.clickCatcher}>
       <Kb.Transition
         items={show}
+        keys={item => (item ? 'showing' : 'hiding')}
+        config={(showing, state) => ({duration: showing && state == 'enter' ? 200 : 50})}
         from={{...styles.panelContainer, right: -320}}
         enter={{...styles.panelContainer, right: 0}}
         leave={{...styles.panelContainer, right: -320}}
