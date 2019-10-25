@@ -42,7 +42,7 @@ export const WaveButton = (props: Props) => {
       <Kb.Text type="BodyBig" style={styles.blueText}>
         Wave{' '}
       </Kb.Text>
-      <Kb.Emoji emojiName=":wave:" size={16} />
+      <Kb.Emoji emojiName=":wave:" size={18} />
     </Kb.Button>
   )
 }
@@ -74,7 +74,11 @@ const styles = Styles.styleSheetCreate(
     ({
       blueText: {color: Styles.globalColors.blueDark},
       waved: {
-        ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.small),
+        ...Styles.padding(
+          Styles.globalMargins.tiny + Styles.globalMargins.xxtiny,
+          Styles.globalMargins.small,
+          Styles.globalMargins.xxtiny
+        ),
         minWidth: 94,
       },
     } as const)

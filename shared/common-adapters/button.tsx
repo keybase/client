@@ -28,7 +28,7 @@ export type Props = {
   onClick?: (event: React.BaseSyntheticEvent) => void
   onMouseEnter?: (e: React.MouseEvent) => void
   onMouseLeave?: (e: React.MouseEvent) => void
-  label?: String
+  label?: string
   style?: Styles.StylesCrossPlatform
   labelContainerStyle?: Styles.StylesCrossPlatform
   labelIcon?: React.ReactNode

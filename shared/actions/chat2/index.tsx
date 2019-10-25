@@ -1790,7 +1790,11 @@ function* messageSend(state: TypedState, action: Chat2Gen.MessageSendPayload, lo
   // narrow down the places where the action can possibly stop.
   logger.info('non-empty text?', text.stringValue().length > 0)
 }
-const messageSendByUsername = async (state: TypedState, action: Chat2Gen.MessageSendByUsernamePayload) => {
+const messageSendByUsername = async (
+  state: TypedState,
+  action: Chat2Gen.MessageSendByUsernamePayload,
+  logger: Saga.SagaLogger
+) => {
   const tlfName = `${state.config.username},${action.payload.username}`
   try {
     const result = await RPCChatTypes.localNewConversationLocalRpcPromise(
@@ -1801,7 +1805,7 @@ const messageSendByUsername = async (state: TypedState, action: Chat2Gen.Message
         tlfVisibility: RPCTypes.TLFVisibility.private,
         topicType: RPCChatTypes.TopicType.chat,
       },
-      Constants.waitingKeyCreating
+      action.payload.waitingKey
     )
     await RPCChatTypes.localPostTextNonblockRpcPromise(
       {
@@ -1813,10 +1817,10 @@ const messageSendByUsername = async (state: TypedState, action: Chat2Gen.Message
         tlfName,
         tlfPublic: false,
       },
-      Constants.waitingKeyPost
+      action.payload.waitingKey
     )
   } catch (e) {
-    logger.info('Could not send in messageSendByUsername', e)
+    logger.warn('Could not send in messageSendByUsername', e)
   }
 }
 
