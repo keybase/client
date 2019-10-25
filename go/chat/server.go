@@ -678,7 +678,8 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 	// XXX can we make outboxid in runStellarSendUI?
 
 	// Run Stellar UI on any payments in the body
-	if arg.Msg.MessageBody, err = h.runStellarSendUI(ctx, arg.SessionID, uid, arg.ConversationID,
+	var obid *chat1.OutboxID
+	if arg.Msg.MessageBody, obid, err = h.runStellarSendUI(ctx, arg.SessionID, uid, arg.ConversationID,
 		arg.Msg.MessageBody); err != nil {
 		return res, err
 	}
@@ -686,7 +687,7 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 	var prepareOpts chat1.SenderPrepareOptions
 	prepareOpts.ReplyTo = arg.ReplyTo
 	sender := NewBlockingSender(h.G(), h.boxer, h.remoteClient)
-	_, msgBoxed, err := sender.Send(ctx, arg.ConversationID, arg.Msg, 0, nil, nil, &prepareOpts)
+	_, msgBoxed, err := sender.Send(ctx, arg.ConversationID, arg.Msg, 0, obid, nil, &prepareOpts)
 	if err != nil {
 		h.Debug(ctx, "PostLocal: unable to send message: %s", err.Error())
 		return res, err
@@ -747,22 +748,22 @@ func (h *Server) PostEditNonblock(ctx context.Context, arg chat1.PostEditNonbloc
 }
 
 func (h *Server) runStellarSendUI(ctx context.Context, sessionID int, uid gregor1.UID,
-	convID chat1.ConversationID, msgBody chat1.MessageBody) (res chat1.MessageBody, err error) {
+	convID chat1.ConversationID, msgBody chat1.MessageBody) (res chat1.MessageBody, obidp *chat1.OutboxID, err error) {
 	defer h.Trace(ctx, func() error { return err }, "runStellarSendUI")()
 	ui := h.getChatUI(sessionID)
 	bodyTyp, err := msgBody.MessageType()
 	if err != nil || bodyTyp != chat1.MessageType_TEXT {
-		return msgBody, nil
+		return msgBody, nil, nil
 	}
 	body := msgBody.Text().Body
 	parsedPayments := h.G().StellarSender.ParsePayments(ctx, uid, convID, body)
 	if len(parsedPayments) == 0 {
 		h.Debug(ctx, "runStellarSendUI: no payments")
-		return msgBody, nil
+		return msgBody, nil, nil
 	}
 	h.Debug(ctx, "runStellarSendUI: payments found, showing confirm screen")
 	if err := ui.ChatStellarShowConfirm(ctx); err != nil {
-		return res, err
+		return res, nil, err
 	}
 	defer func() {
 		_ = ui.ChatStellarDone(ctx, err != nil)
@@ -774,27 +775,31 @@ func (h *Server) runStellarSendUI(ctx context.Context, sessionID int, uid gregor
 		} else {
 			h.Debug(ctx, "error exported to nothing") // should never happen
 		}
-		return res, err
+		return res, nil, err
 	}
 	h.Debug(ctx, "runStellarSendUI: payments described, telling UI")
 	accepted, err := ui.ChatStellarDataConfirm(ctx, uiSummary)
 	if err != nil {
-		return res, err
+		return res, nil, err
 	}
 	if !accepted {
-		return res, errors.New("Payment message declined")
+		return res, nil, errors.New("Payment message declined")
 	}
 	h.Debug(ctx, "runStellarSendUI: message confirmed, sending payments")
-	payments, err := h.G().StellarSender.SendPayments(ctx, convID, toSend)
+	obid, err := h.GenerateOutboxID(ctx)
+	if err != nil {
+		return res, nil, err
+	}
+	payments, err := h.G().StellarSender.SendPayments(ctx, convID, obid, toSend)
 	if err != nil {
 		// Send regardless here
 		h.Debug(ctx, "runStellarSendUI: failed to send payments, but continuing on: %s", err)
-		return msgBody, nil
+		return msgBody, nil, nil
 	}
 	return chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body:     body,
 		Payments: payments,
-	}), nil
+	}), &obid, nil
 }
 
 func (h *Server) PostTextNonblock(ctx context.Context, arg chat1.PostTextNonblockArg) (res chat1.PostLocalNonblockRes, err error) {
@@ -985,7 +990,10 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 
 	// Determine if the messages contains any Stellar payments, and execute them if so
 	// XXX return outbox ID and use it in Send(...)
-	if arg.Msg.MessageBody, err = h.runStellarSendUI(ctx, arg.SessionID, uid, arg.ConversationID,
+	var obid *chat1.OutboxID
+	// XXX obid = arg.OutboxID
+	// XXX pass that into runStellarSendUI...
+	if arg.Msg.MessageBody, obid, err = h.runStellarSendUI(ctx, arg.SessionID, uid, arg.ConversationID,
 		arg.Msg.MessageBody); err != nil {
 		return res, err
 	}

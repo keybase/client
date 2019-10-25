@@ -497,7 +497,7 @@ func (d DummyStellarSender) DescribePayments(ctx context.Context, uid gregor1.UI
 	return res, toSend, nil
 }
 
-func (d DummyStellarSender) SendPayments(ctx context.Context, convID chat1.ConversationID, payments []ParsedStellarPayment) ([]chat1.TextPayment, error) {
+func (d DummyStellarSender) SendPayments(ctx context.Context, convID chat1.ConversationID, outboxID chat1.OutboxID, payments []ParsedStellarPayment) ([]chat1.TextPayment, error) {
 	return nil, nil
 }
 
