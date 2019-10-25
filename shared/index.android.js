@@ -1,8 +1,43 @@
 // @flow
 // React-native tooling assumes this file is here, so we just require our real entry point
-import './app/globals.native'
-import {NativeModules} from 'react-native'
-import {_setSystemIsDarkMode, _setSystemSupported, _setDarkModePreference} from './styles/dark-mode'
+
+let lastThing = []
+const noop = () => {}
+const measureStart =
+  // @ts-ignore
+  __DEV__ && require && require.Systrace && require.Systrace.beginEvent
+    ? name => {
+        lastThing.push(name)
+        require.Systrace.beginEvent(name)
+      }
+    : noop
+
+const measureStop =
+  // @ts-ignore
+  __DEV__ && require && require.Systrace && require.Systrace.endEvent
+    ? name => {
+        if (name !== lastThing[lastThing.length - 1]) {
+          console.log("This isn't something I've seen before. Out of order??")
+        } else {
+          lastThing.pop()
+          // @ts-ignore
+          require.Systrace.endEvent()
+        }
+      }
+    : noop
+
+window.performance = {}
+window.performance = {
+  clearMarks: n => lastThing[lastThing.length - 1] === n && measureStop(n),
+  clearMeasures: l => console.log('Clear Measures', l),
+  mark: n => measureStart(n),
+  measure: (l, n) => measureStop(n),
+}
+
+require('./app/globals.native')
+const NativeModules = require('react-native').NativeModules
+const darkMode = require('./styles/dark-mode')
+const {_setSystemIsDarkMode, _setSystemSupported, _setDarkModePreference} = darkMode
 
 console.disableYellowBox = true
 
