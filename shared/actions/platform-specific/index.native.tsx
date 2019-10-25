@@ -730,8 +730,8 @@ const startAudioRecording = async (
   AudioRecorder.onProgress = data => {
     action.payload.meteringCb(data.currentMetering)
   }
-  AudioRecorder.onFinished = data => {
-    logger.info('startAudioRecording: recording finished: ' + JSON.stringify(data))
+  AudioRecorder.onFinished = () => {
+    logger.info('startAudioRecording: recording finished')
   }
   logger.info('startAudioRecording: beginning recording')
   await AudioRecorder.startRecording()
@@ -753,7 +753,7 @@ const stopAudioRecording = async (
   }
   logger.info('stopAudioRecording: stopping recording')
   try {
-    await AudioRecorder.stopRecording()
+    AudioRecorder.stopRecording()
   } catch (e) {}
 
   if (!state.chat2.audioRecording) {

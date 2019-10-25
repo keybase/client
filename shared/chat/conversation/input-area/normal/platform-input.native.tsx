@@ -174,31 +174,29 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
               openExplodingPicker={() => this._toggleShowingMenu('exploding')}
             />
           )}
-          {
-            <Kb.PlainInput
-              autoCorrect={true}
-              autoCapitalize="sentences"
-              disabled={
-                // Auto generated from flowToTs. Please clean me!
-                this.props.cannotWrite !== null && this.props.cannotWrite !== undefined
-                  ? this.props.cannotWrite
-                  : false
-              }
-              placeholder={hintText}
-              multiline={true}
-              onBlur={this.props.onBlur}
-              onFocus={this.props.onFocus}
-              // TODO: Call onCancelQuoting on text change or selection
-              // change to match desktop.
-              onChangeText={this._onChangeText}
-              onSelectionChange={this.props.onSelectionChange}
-              ref={this._inputSetRef}
-              style={styles.input}
-              textType="Body"
-              rowsMax={Styles.dimensionHeight < 600 ? 5 : 9}
-              rowsMin={1}
-            />
-          }
+          <Kb.PlainInput
+            autoCorrect={true}
+            autoCapitalize="sentences"
+            disabled={
+              // Auto generated from flowToTs. Please clean me!
+              this.props.cannotWrite !== null && this.props.cannotWrite !== undefined
+                ? this.props.cannotWrite
+                : false
+            }
+            placeholder={hintText}
+            multiline={true}
+            onBlur={this.props.onBlur}
+            onFocus={this.props.onFocus}
+            // TODO: Call onCancelQuoting on text change or selection
+            // change to match desktop.
+            onChangeText={this._onChangeText}
+            onSelectionChange={this.props.onSelectionChange}
+            ref={this._inputSetRef}
+            style={styles.input}
+            textType="Body"
+            rowsMax={Styles.dimensionHeight < 600 ? 5 : 9}
+            rowsMin={1}
+          />
           {!this.props.cannotWrite && (
             <Action
               audio={this.props.audio}
@@ -233,8 +231,8 @@ type ActionProps = {
   insertMentionMarker: () => void
 }
 
-const Action = React.memo(
-  ({
+const Action = React.memo((props: ActionProps) => {
+  const {
     audio,
     hasText,
     insertMentionMarker,
@@ -245,81 +243,80 @@ const Action = React.memo(
     onSubmit,
     openFilePicker,
     openMoreMenu,
-  }: ActionProps) => {
-    const hasValue = React.useRef(new Kb.NativeAnimated.Value(hasText ? 1 : 0)).current
-    React.useEffect(() => {
-      Kb.NativeAnimated.timing(hasValue, {
-        duration: 200,
-        toValue: hasText ? 1 : 0,
-        useNativeDriver: true,
-      }).start()
-    }, [hasText, hasValue])
+  } = props
+  const hasValue = React.useRef(new Kb.NativeAnimated.Value(hasText ? 1 : 0)).current
+  React.useEffect(() => {
+    Kb.NativeAnimated.timing(hasValue, {
+      duration: 200,
+      toValue: hasText ? 1 : 0,
+      useNativeDriver: true,
+    }).start()
+  }, [hasText, hasValue])
 
-    return (
-      <Kb.Box2 direction="vertical" style={styles.actionContainer}>
-        <Kb.NativeAnimated.View
-          style={[
-            styles.animatedContainer,
-            {
-              opacity: hasValue,
-              transform: [{translateX: hasValue.interpolate({inputRange: [0, 1], outputRange: [200, 0]})}],
-            },
-          ]}
-        >
-          <Kb.Button
-            type="Default"
-            small={true}
-            style={styles.send}
-            onClick={onSubmit}
-            label={isEditing ? 'Save' : 'Send'}
+  return (
+    <Kb.Box2 direction="vertical" style={styles.actionContainer}>
+      <Kb.NativeAnimated.View
+        style={[
+          styles.animatedContainer,
+          {
+            opacity: hasValue,
+            transform: [{translateX: hasValue.interpolate({inputRange: [0, 1], outputRange: [200, 0]})}],
+          },
+        ]}
+      >
+        <Kb.Button
+          type="Default"
+          small={true}
+          style={styles.send}
+          onClick={onSubmit}
+          label={isEditing ? 'Save' : 'Send'}
+        />
+      </Kb.NativeAnimated.View>
+      <Kb.NativeAnimated.View
+        style={[
+          styles.animatedContainer,
+          {
+            opacity: hasValue.interpolate({
+              inputRange: [0, 1],
+              outputRange: [1, 0],
+            }),
+            transform: [{translateX: hasValue.interpolate({inputRange: [0, 1], outputRange: [0, 200]})}],
+          },
+        ]}
+      >
+        <Kb.Box2 direction="horizontal" style={styles.actionIconsContainer}>
+          <Kb.Icon
+            onClick={insertMentionMarker}
+            type="iconfont-mention"
+            style={Kb.iconCastPlatformStyles(styles.actionButton)}
+            fontSize={22}
           />
-        </Kb.NativeAnimated.View>
-        <Kb.NativeAnimated.View
-          style={[
-            styles.animatedContainer,
-            {
-              opacity: hasValue.interpolate({
-                inputRange: [0, 1],
-                outputRange: [1, 0],
-              }),
-              transform: [{translateX: hasValue.interpolate({inputRange: [0, 1], outputRange: [0, 200]})}],
-            },
-          ]}
-        >
-          <Kb.Box2 direction="horizontal" style={styles.actionIconsContainer}>
-            <Kb.Icon
-              onClick={insertMentionMarker}
-              type="iconfont-mention"
-              style={Kb.iconCastPlatformStyles(styles.actionButton)}
-              fontSize={22}
-            />
-            {smallGap}
-            <Kb.Icon
-              onClick={openFilePicker}
-              type="iconfont-camera"
-              style={Kb.iconCastPlatformStyles(styles.actionButton)}
-              fontSize={22}
-            />
-            {smallGap}
-            <AudioStarter
-              lockRecording={onLockAudioRecording}
-              recording={Constants.showAudioRecording(audio)}
-              startRecording={onStartAudioRecording}
-              stopRecording={onStopAudioRecording}
-            />
-            {smallGap}
-            <Kb.Icon
-              onClick={openMoreMenu}
-              type="iconfont-add"
-              style={Kb.iconCastPlatformStyles(styles.actionButton)}
-              fontSize={22}
-            />
-          </Kb.Box2>
-        </Kb.NativeAnimated.View>
-      </Kb.Box2>
-    )
-  }
-)
+          {smallGap}
+          <Kb.Icon
+            onClick={openFilePicker}
+            type="iconfont-camera"
+            style={Kb.iconCastPlatformStyles(styles.actionButton)}
+            fontSize={22}
+          />
+          {smallGap}
+          <AudioStarter
+            lockRecording={onLockAudioRecording}
+            recording={Constants.showAudioRecording(audio)}
+            startRecording={onStartAudioRecording}
+            stopRecording={onStopAudioRecording}
+          />
+          {smallGap}
+          <Kb.Icon
+            onClick={openMoreMenu}
+            type="iconfont-add"
+            style={Kb.iconCastPlatformStyles(styles.actionButton)}
+            fontSize={22}
+          />
+        </Kb.Box2>
+      </Kb.NativeAnimated.View>
+    </Kb.Box2>
+  )
+})
 
 type AudioStarterProps = {
   recording: boolean
@@ -332,7 +329,10 @@ const maxAudioDrift = -20
 
 const AudioStarter = (props: AudioStarterProps) => {
   let longPressTimer
-  return flags.audioAttachments ? (
+  if (!flags.audioAttachments) {
+    return null
+  }
+  return (
     <Kb.TapGestureHandler
       onHandlerStateChange={({nativeEvent}) => {
         if (!props.recording && nativeEvent.state === Kb.GestureState.BEGAN) {
@@ -342,6 +342,7 @@ const AudioStarter = (props: AudioStarterProps) => {
         }
         if (nativeEvent.state === Kb.GestureState.ACTIVE || nativeEvent.state === Kb.GestureState.END) {
           clearTimeout(longPressTimer)
+          longPressTimer = null
           if (props.recording && nativeEvent.state === Kb.GestureState.END) {
             if (nativeEvent.x < maxAudioDrift) {
               props.stopRecording(Types.AudioStopType.CANCEL)
@@ -363,6 +364,7 @@ const AudioStarter = (props: AudioStarterProps) => {
           }
           if (nativeEvent.translationX < maxAudioDrift) {
             clearTimeout(longPressTimer)
+            longPressTimer = null
             props.stopRecording(Types.AudioStopType.CANCEL)
           }
         }}
@@ -373,9 +375,11 @@ const AudioStarter = (props: AudioStarterProps) => {
             }
             if (nativeEvent.x < maxAudioDrift) {
               clearTimeout(longPressTimer)
+              longPressTimer = null
               props.stopRecording(Types.AudioStopType.CANCEL)
             } else {
               clearTimeout(longPressTimer)
+              longPressTimer = null
               props.stopRecording(Types.AudioStopType.RELEASE)
             }
           }
@@ -386,8 +390,6 @@ const AudioStarter = (props: AudioStarterProps) => {
         </Kb.NativeView>
       </Kb.PanGestureHandler>
     </Kb.TapGestureHandler>
-  ) : (
-    <Kb.Icon type="iconfont-mic" style={styles.actionButton} fontSize={22} />
   )
 }
 
