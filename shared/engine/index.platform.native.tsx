@@ -79,12 +79,14 @@ function createClient(
       logger.debug('[RPC] Read', payload.length, 'chars:', payload)
     }
 
+    const measureNameBytes = `ToBytesBuffer`
+    measureStart(measureNameBytes)
     const buffer = toBuffer(toByteArray(payload))
+    measureStop(measureNameBytes)
     const measureName = `packetize${packetizeCount++}:${buffer.length}`
     measureStart(measureName)
-    const ret = client.transport.packetize_data(buffer)
+    client.transport.packetize_data(buffer)
     measureStop(measureName)
-    return ret
   })
 
   RNEmitter.addListener(nativeBridge.metaEventName, (payload: string) => {

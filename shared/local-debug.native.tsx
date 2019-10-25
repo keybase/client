@@ -27,7 +27,7 @@ window.console._info = window.console.info
 // require('InteractionStallDebugger').install({thresholdMS: 100})
 
 // Set this to true if you want to turn off most console logging so you can profile easier
-const PERF = true
+const PERF = false
 
 let config = {
   allowMultipleInstances: false,
@@ -39,8 +39,7 @@ let config = {
   ignoreDisconnectOverlay: false,
   immediateStateLogging: false, // Don't wait for idle to log state
   isDevApplePushToken: false, // Use a dev push token
-  isTesting:
-    nativeBridge.test === '1' || (__DEV__ && NativeModules.Storybook && NativeModules.Storybook.isStorybook), // Is running a unit test
+  isTesting: false,
   partyMode: false,
   printOutstandingRPCs: false, // Periodically print rpcs we're waiting for
   printOutstandingTimerListeners: false, // Periodically print listeners to the second clock
@@ -59,17 +58,17 @@ let config = {
 
 // Developer settings
 if (__DEV__) {
-  config.enableActionLogging = true
+  config.enableActionLogging = false
   config.enableStoreLogging = false
   config.immediateStateLogging = false
   // Move this outside the if statement to get notifications working
   // with a "Profile" build on a phone.
   config.isDevApplePushToken = true
-  config.printOutstandingRPCs = true
+  config.printOutstandingRPCs = false
   config.printOutstandingTimerListeners = true
   config.printRPCWaitingSession = false
-  config.printRPC = true
-  config.printRPCStats = true
+  config.printRPC = false
+  config.printRPCStats = false
   config.reduxSagaLoggerMasked = false
   config.userTimings = false
 

@@ -116,9 +116,9 @@ class Session {
   }
 
   end() {
-    __DEV__ && global.nativeTest.traceEndAsyncSection(`RPC-${this._startMethod}`, this._id)
     if (this._startMethod) {
-      measureStop(`engine:${this._startMethod}:${this.getId()}`)
+      __DEV__ && global.nativeTest.traceEndAsyncSection(`RPC-${this._startMethod}`, this._id)
+      // measureStop(`engine:${this._startMethod}:${this.getId()}`)
     }
     this._endHandler && this._endHandler(this)
   }
@@ -157,13 +157,13 @@ class Session {
       this._invoke
     )
     this._outgoingRequests.push(outgoingRequest)
-    measureStart(`engine:${method}:${this.getId()}`)
+    // measureStart(`engine:${method}:${this.getId()}`)
     outgoingRequest.send()
   }
 
   // We have an incoming call tied to a sessionID, called only by engine
   incomingCall(method: MethodKey, param: Object, response: any): boolean {
-    measureStart(`engine:${method}:${this.getId()}`)
+    // measureStart(`engine:${method}:${this.getId()}`)
     rpcLog({
       extra: {
         id: this.getId(),
