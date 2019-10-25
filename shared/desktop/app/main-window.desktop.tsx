@@ -269,7 +269,7 @@ export default () => {
     frame: useNativeFrame,
     height: windowState.height,
     minHeight: 600,
-    minWidth: 400,
+    minWidth: 740,
     show: false,
     webPreferences: {
       backgroundThrottling: false,

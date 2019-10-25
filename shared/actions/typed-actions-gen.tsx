@@ -940,9 +940,6 @@ export type TypedActionsMap = {
   'wallets:loadAssets': wallets.LoadAssetsPayload
   'wallets:loadAccounts': wallets.LoadAccountsPayload
   'wallets:loadExternalPartners': wallets.LoadExternalPartnersPayload
-  'wallets:loadInflationDestination': wallets.LoadInflationDestinationPayload
-  'wallets:setInflationDestination': wallets.SetInflationDestinationPayload
-  'wallets:inflationDestinationReceived': wallets.InflationDestinationReceivedPayload
   'wallets:loadMorePayments': wallets.LoadMorePaymentsPayload
   'wallets:loadPayments': wallets.LoadPaymentsPayload
   'wallets:loadPaymentDetail': wallets.LoadPaymentDetailPayload

@@ -1065,18 +1065,20 @@ func (o RemoteBotCommandsAdvertisement) DeepCopy() RemoteBotCommandsAdvertisemen
 }
 
 type BotCommandConv struct {
-	Uid    gregor1.UID     `codec:"uid" json:"uid"`
-	ConvID ConversationID  `codec:"convID" json:"convID"`
-	Vers   CommandConvVers `codec:"vers" json:"vers"`
-	Mtime  gregor1.Time    `codec:"mtime" json:"mtime"`
+	Uid               gregor1.UID       `codec:"uid" json:"uid"`
+	UntrustedTeamRole keybase1.TeamRole `codec:"untrustedTeamRole" json:"untrustedTeamRole"`
+	ConvID            ConversationID    `codec:"convID" json:"convID"`
+	Vers              CommandConvVers   `codec:"vers" json:"vers"`
+	Mtime             gregor1.Time      `codec:"mtime" json:"mtime"`
 }
 
 func (o BotCommandConv) DeepCopy() BotCommandConv {
 	return BotCommandConv{
-		Uid:    o.Uid.DeepCopy(),
-		ConvID: o.ConvID.DeepCopy(),
-		Vers:   o.Vers.DeepCopy(),
-		Mtime:  o.Mtime.DeepCopy(),
+		Uid:               o.Uid.DeepCopy(),
+		UntrustedTeamRole: o.UntrustedTeamRole.DeepCopy(),
+		ConvID:            o.ConvID.DeepCopy(),
+		Vers:              o.Vers.DeepCopy(),
+		Mtime:             o.Mtime.DeepCopy(),
 	}
 }
 
