@@ -17,23 +17,29 @@ const markPrefix = '\uD83D\uDD11' // key unicode. inlining this actually screws 
 
 const noop = () => {}
 
-const measureStart = allowTiming
-  ? (name: string) => {
-      mark && mark(name)
-    }
-  : noop
+let lastThing: Array<string> = []
+const measureStart =
+  // @ts-ignore
+  __DEV__ && require && require.Systrace && require.Systrace.beginEvent
+    ? (name: string) => {
+        lastThing.push(name)
+        require.Systrace.beginEvent(name)
+      }
+    : noop
 
-const measureStop = allowTiming
-  ? (name: string) => {
-      const measureName = `${markPrefix} ${name}`
-      try {
-        // measure can throw if you mention something it hasn't seen
-        measure && measure(measureName, name)
-      } catch (_) {}
-      clearMarks && clearMarks(name)
-      clearMeasures && clearMeasures(measureName)
-    }
-  : noop
+const measureStop =
+  // @ts-ignore
+  __DEV__ && require && require.Systrace && require.Systrace.endEvent
+    ? (name: string) => {
+        if (name !== lastThing[lastThing.length - 1]) {
+          console.log("This isn't something I've seen before. Out of order??")
+        } else {
+          lastThing.pop()
+          // @ts-ignore
+          require.Systrace.endEvent()
+        }
+      }
+    : noop
 
 // const timingWrap = (name, call) => {
 // return (...args) => {
