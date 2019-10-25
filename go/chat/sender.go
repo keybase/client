@@ -442,10 +442,10 @@ func (s *BlockingSender) checkTopicNameAndGetState(ctx context.Context, msg chat
 		for _, conv := range convs {
 			// If we have empty TopicName consider the conv invalid. Exclude
 			// the conv from out TopicNameState forcing the client to retry.
-			if conv.Info.TopicName != "" {
+			if conv.GetTopicName() != "" {
 				validConvs = append(validConvs, conv)
 			}
-			if conv.Info.TopicName == newTopicName {
+			if conv.GetTopicName() == newTopicName {
 				return nil, DuplicateTopicNameError{TopicName: newTopicName}
 			}
 		}
@@ -548,7 +548,7 @@ func (s *BlockingSender) getParticipantsForMentions(ctx context.Context, uid gre
 	// get the conv that we will look for @ mentions in
 	switch conv.GetMembersType() {
 	case chat1.ConversationMembersType_TEAM:
-		if conv.Info.TopicName == globals.DefaultTeamTopic {
+		if conv.GetTopicName() == globals.DefaultTeamTopic {
 			return conv.Info.Participants, nil
 		}
 		topicType := chat1.TopicType_CHAT
