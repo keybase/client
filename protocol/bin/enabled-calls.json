@@ -29,6 +29,7 @@
   "chat.1.local.loadGallery": {"engineSaga": true},
   "chat.1.local.locationDenied": {"promise": true},
   "chat.1.local.locationUpdate": {"promise": true},
+  "chat.1.local.makeAudioPreview": {"promise": true},
   "chat.1.local.makePreview": {"promise": true},
   "chat.1.local.makeUploadTempFile": {"promise": true},
   "chat.1.local.markAsReadLocal": {"promise": true},
