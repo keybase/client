@@ -217,10 +217,7 @@ class Engine {
       incomingCallMap: p.incomingCallMap,
       waitingKey: p.waitingKey,
     })
-    // Don't make outgoing calls immediately since components can do this when they mount
-    // setTimeout(() => {
     session.start(p.method, p.params, p.callback)
-    // }, 0)
     return session.getId()
   }
 

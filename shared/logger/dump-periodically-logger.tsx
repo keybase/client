@@ -19,7 +19,7 @@ class DumpPeriodicallyLogger implements Logger {
     this._periodInMs = periodInMs
     this._fileWriterFn = fileWriterFn
     this._levelPrefix = levelPrefix
-    // this._periodicallyDump()
+    this._periodicallyDump()
   }
 
   log = (...s: Array<any>) => this._innerLogger.log(...s)
@@ -53,9 +53,9 @@ class DumpPeriodicallyLogger implements Logger {
   }
 
   flush() {
-    // this._ok = true
-    // this._lastTimeoutId && clearTimeout(this._lastTimeoutId)
-    // return this._innerLogger.flush().then(this._periodicallyDump)
+    this._ok = true
+    this._lastTimeoutId && clearTimeout(this._lastTimeoutId)
+    return this._innerLogger.flush().then(this._periodicallyDump)
   }
 }
 

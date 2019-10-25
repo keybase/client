@@ -33,33 +33,6 @@ import {RPCError} from '../../util/errors'
 import HiddenString from '../../util/hidden-string'
 import {TypedActions, TypedState} from '../../util/container'
 
-let start = 0
-let calls = 0
-
-let log = (...l: Array<any>) => console._log(...l)
-
-const NOJIMA_DONE = (v: any) => {
-  let diff = performance.now() - start
-  performance.measure(`NOJIMA ${calls++}`, 'NOJIMA')
-  start = 0
-  log('aaa done', v, diff)
-}
-const NOJIMA = (p: any) => {
-  if (start) {
-    throw new Error('only one')
-  }
-  performance.mark('NOJIMA')
-  start = performance.now()
-  try {
-    RPCTypes.testEchoRpcPromise(p).then(v => NOJIMA_DONE(v))
-  } catch (_) {
-    log('aaa call failed')
-    start = 0
-  }
-}
-
-;(window as any).NOJIMA = NOJIMA
-
 const onConnect = async () => {
   try {
     await RPCTypes.delegateUiCtlRegisterChatUIRpcPromise()
