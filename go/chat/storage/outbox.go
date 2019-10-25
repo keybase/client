@@ -193,7 +193,7 @@ func (o *Outbox) PushMessage(ctx context.Context, convID chat1.ConversationID,
 	// Add any pending attachment previews for the notification and return value
 	if o.pendingPreviewer != nil {
 		if err := o.pendingPreviewer(ctx, &rec); err != nil {
-			o.Debug(ctx, "PushMessage: failed to add pending preview: %s", err)
+			o.Debug(ctx, "PushMessage: failed to add pending preview: %v", err)
 		}
 	}
 	// Run the notification before we write to the disk so that it is guaranteed to beat
@@ -227,7 +227,7 @@ func (o *Outbox) PullAllConversations(ctx context.Context, includeErrors bool, r
 	for _, obr := range obox.Records {
 		state, err := obr.State.State()
 		if err != nil {
-			o.Debug(ctx, "PullAllConversations: unknown state item: skipping: err: %s", err.Error())
+			o.Debug(ctx, "PullAllConversations: unknown state item: skipping: err: %v", err)
 			continue
 		}
 		if state == chat1.OutboxStateType_ERROR {
@@ -306,7 +306,8 @@ func (o *Outbox) RecordFailedAttempt(ctx context.Context, oldObr chat1.OutboxRec
 	return nil
 }
 
-func (o *Outbox) MarkAllAsError(ctx context.Context, errRec chat1.OutboxStateError) (res []chat1.OutboxRecord, err error) {
+func (o *Outbox) MarkConvAsError(ctx context.Context, convID chat1.ConversationID,
+	errRec chat1.OutboxStateError) (res []chat1.OutboxRecord, err error) {
 	locks.Outbox.Lock()
 	defer locks.Outbox.Unlock()
 	obox, err := o.readStorage(ctx)
@@ -314,18 +315,18 @@ func (o *Outbox) MarkAllAsError(ctx context.Context, errRec chat1.OutboxStateErr
 		return res, err
 	}
 	var recs []chat1.OutboxRecord
-	for _, obr := range obox.Records {
-		state, err := obr.State.State()
+	for _, iobr := range obox.Records {
+		state, err := iobr.State.State()
 		if err != nil {
 			o.Debug(ctx, "MarkAllAsError: unknown state item: adding: err: %s", err.Error())
-			recs = append(recs, obr)
+			recs = append(recs, iobr)
 			continue
 		}
-		if state != chat1.OutboxStateType_ERROR {
-			obr.State = chat1.NewOutboxStateWithError(errRec)
-			res = append(res, obr)
+		if iobr.ConvID.Eq(convID) && state != chat1.OutboxStateType_ERROR {
+			iobr.State = chat1.NewOutboxStateWithError(errRec)
+			res = append(res, iobr)
 		}
-		recs = append(recs, obr)
+		recs = append(recs, iobr)
 	}
 	obox.Records = recs
 	if err := o.writeStorage(ctx, obox); err != nil {
@@ -476,7 +477,7 @@ func (o *Outbox) CancelMessagesWithPredicate(ctx context.Context, shouldCancel f
 	return numCancelled, nil
 }
 
-func (o *Outbox) RemoveMessage(ctx context.Context, obid chat1.OutboxID) error {
+func (o *Outbox) RemoveMessage(ctx context.Context, obid chat1.OutboxID) (err error) {
 	locks.Outbox.Lock()
 	defer locks.Outbox.Unlock()
 
@@ -496,63 +497,10 @@ func (o *Outbox) RemoveMessage(ctx context.Context, obid chat1.OutboxID) error {
 	obox.Records = recs
 
 	// Write out box
-	if err := o.writeStorage(ctx, obox); err != nil {
-		return err
-	}
-	return nil
+	return o.writeStorage(ctx, obox)
 }
 
-func (o *Outbox) getMsgOrdinal(msg chat1.MessageUnboxed) chat1.MessageID {
-	if msg.IsValid() && msg.Valid().ClientHeader.OutboxInfo != nil {
-		return msg.Valid().ClientHeader.OutboxInfo.Prev
-	}
-	return msg.GetMessageID()
-}
-
-func (o *Outbox) insertMessage(ctx context.Context, thread *chat1.ThreadView, obr chat1.OutboxRecord) error {
-	prev := obr.Msg.ClientHeader.OutboxInfo.Prev
-	inserted := false
-	var res []chat1.MessageUnboxed
-
-	// Special case a prev of 0, just stick it at the front
-	if prev == 0 {
-		thread.Messages = append([]chat1.MessageUnboxed{chat1.NewMessageUnboxedWithOutbox(obr)},
-			thread.Messages...)
-		return nil
-	}
-
-	for index, msg := range thread.Messages {
-		ord := o.getMsgOrdinal(msg)
-		if !inserted && prev >= ord {
-			res = append(res, chat1.NewMessageUnboxedWithOutbox(obr))
-			o.Debug(ctx, "inserting at: %d msgID: %d total: %d obid: %s prev: %d", index,
-				msg.GetMessageID(), len(thread.Messages), obr.OutboxID, prev)
-			inserted = true
-		}
-		res = append(res, msg)
-	}
-
-	if !inserted {
-		// Check to see if outbox item is so old that it has no place in this thread view (but has
-		// a valid prev value)
-		if prev > 0 && len(thread.Messages) > 0 &&
-			prev < o.getMsgOrdinal(thread.Messages[len(thread.Messages)-1]) {
-			oldestMsg := thread.Messages[len(thread.Messages)-1]
-			o.Debug(ctx, "outbox item is too old to be included in this thread view: obid: %s prev: %d oldestMsg: %d", obr.OutboxID, prev, oldestMsg.GetMessageID())
-			return nil
-		}
-
-		// If we didn't insert this guy, then put it at the front just so the user can see it
-		o.Debug(ctx, "failed to insert instream, placing at front: obid: %s prev: %d", obr.OutboxID, prev)
-		res = append([]chat1.MessageUnboxed{chat1.NewMessageUnboxedWithOutbox(obr)},
-			res...)
-	}
-
-	thread.Messages = res
-	return nil
-}
-
-func (o *Outbox) SprinkleIntoThread(ctx context.Context, convID chat1.ConversationID,
+func (o *Outbox) AppendToThread(ctx context.Context, convID chat1.ConversationID,
 	thread *chat1.ThreadView) error {
 	locks.Outbox.Lock()
 	defer locks.Outbox.Unlock()
@@ -563,7 +511,7 @@ func (o *Outbox) SprinkleIntoThread(ctx context.Context, convID chat1.Conversati
 		return err
 	}
 
-	// Sprinkle each outbox message in
+	// Sprinkle each outbox message in once
 	threadOutboxIDs := make(map[string]bool)
 	for _, m := range thread.Messages {
 		outboxID := m.GetOutboxID()
@@ -571,8 +519,10 @@ func (o *Outbox) SprinkleIntoThread(ctx context.Context, convID chat1.Conversati
 			threadOutboxIDs[outboxID.String()] = true
 		}
 	}
+
 	for _, obr := range obox.Records {
-		if !obr.ConvID.Eq(convID) {
+		// skip outbox records that are not able to be retried.
+		if !(obr.ConvID.Eq(convID) && obr.Msg.IsBadgableType()) {
 			continue
 		}
 		if threadOutboxIDs[obr.OutboxID.String()] {
@@ -587,9 +537,8 @@ func (o *Outbox) SprinkleIntoThread(ctx context.Context, convID chat1.Conversati
 			o.Debug(ctx, "skipping sprinkle on duplicate message error: %s", obr.OutboxID)
 			continue
 		}
-		if err := o.insertMessage(ctx, thread, obr); err != nil {
-			return err
-		}
+		thread.Messages = append([]chat1.MessageUnboxed{chat1.NewMessageUnboxedWithOutbox(obr)},
+			thread.Messages...)
 	}
 	// Update prev values for outbox messages to point at correct place (in case it has changed since
 	// some messages got sent)
@@ -628,7 +577,7 @@ func (o *Outbox) OutboxPurge(ctx context.Context) (ephemeralPurged []chat1.Outbo
 	for _, obr := range obox.Records {
 		st, err := obr.State.State()
 		if err != nil {
-			o.Debug(ctx, "purging message from outbox with error getting state: %s", err)
+			o.Debug(ctx, "purging message from outbox with error getting state: %v", err)
 			continue
 		}
 		if st == chat1.OutboxStateType_ERROR {

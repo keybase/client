@@ -763,9 +763,6 @@ func (e *loginProvision) chooseDevice(m libkb.MetaContext, pgp bool) (err error)
 		idMap[d.ID] = d
 	}
 
-	// TODO: Y2K-3 cleanup for autoreset.
-	autoresetEnabled := true
-
 	// check to see if they have a PUK, in which case they must select a device
 	hasPUK, err := e.hasPerUserKey(m)
 	if err != nil {
@@ -774,7 +771,7 @@ func (e *loginProvision) chooseDevice(m libkb.MetaContext, pgp bool) (err error)
 
 	arg := keybase1.ChooseDeviceArg{
 		Devices:           expDevices,
-		CanSelectNoDevice: (pgp && !hasPUK) || autoresetEnabled,
+		CanSelectNoDevice: true,
 	}
 	id, err := m.UIs().ProvisionUI.ChooseDevice(m.Ctx(), arg)
 	if err != nil {
@@ -793,21 +790,8 @@ func (e *loginProvision) chooseDevice(m libkb.MetaContext, pgp bool) (err error)
 				return nil
 			}
 
-			// If autoreset is enabled, an error here should passthrough into
-			// autoreset.
-			if autoresetEnabled {
-				m.Warning("Unable to log in with a PGP signature: %s", err.Error())
-			} else {
-				return err
-			}
-		}
-
-		// Error differs depending on the input.
-		if !autoresetEnabled {
-			if pgp && hasPUK {
-				return libkb.ProvisionViaDeviceRequiredError{}
-			}
-			return libkb.ProvisionUnavailableError{}
+			// Error here passes through into autoreset.
+			m.Warning("Unable to log in with a PGP signature: %s", err.Error())
 		}
 
 		// Prompt the user whether they'd like to enter the reset flow.
@@ -819,7 +803,7 @@ func (e *loginProvision) chooseDevice(m libkb.MetaContext, pgp bool) (err error)
 			return err
 		}
 
-		if !enterReset {
+		if enterReset != keybase1.ResetPromptResponse_CONFIRM_RESET {
 			m.Debug("User decided not to enter the reset pipeline")
 			// User had to explicitly decline entering the pipeline so in order to prevent
 			// confusion prevent further prompts by completing a noop login flow.

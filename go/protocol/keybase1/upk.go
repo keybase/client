@@ -1,10 +1,11 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/upk.avdl
 
 package keybase1
 
 import (
 	"errors"
+	"fmt"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -34,7 +35,7 @@ func (e KeyType) String() string {
 	if v, ok := KeyTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type UPK2MinorVersion int
@@ -75,7 +76,7 @@ func (e UPK2MinorVersion) String() string {
 	if v, ok := UPK2MinorVersionRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type MerkleRootV2 struct {
@@ -447,7 +448,7 @@ func (e UPAKVersion) String() string {
 	if v, ok := UPAKVersionRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 // * What we're storing for each user. At first it was UPAKs, as defined
@@ -548,7 +549,7 @@ func (e UPKLiteMinorVersion) String() string {
 	if v, ok := UPKLiteMinorVersionRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type UPKLiteV1 struct {

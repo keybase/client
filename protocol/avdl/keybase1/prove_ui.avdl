@@ -14,6 +14,7 @@ protocol proveUi {
   record ProveParameters {
     array<SizedImage> logoFull;
     array<SizedImage> logoBlack;
+    array<SizedImage> logoWhite;
     string title;
     string subtext;
     string suffix; // Example: "@boardgames.social"

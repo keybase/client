@@ -65,6 +65,7 @@ type NotifyListener interface {
 	ChatPaymentInfo(uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, info chat1.UIPaymentInfo)
 	ChatRequestInfo(uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, info chat1.UIRequestInfo)
 	ChatPromptUnfurl(uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, domain string)
+	ChatConvUpdate(uid keybase1.UID, convID chat1.ConversationID)
 	PGPKeyInSecretStoreFile()
 	BadgeState(badgeState keybase1.BadgeState)
 	ReachabilityChanged(r keybase1.Reachability)
@@ -173,6 +174,8 @@ func (n *NoopNotifyListener) ChatRequestInfo(uid keybase1.UID, convID chat1.Conv
 func (n *NoopNotifyListener) ChatPromptUnfurl(uid keybase1.UID, convID chat1.ConversationID,
 	msgID chat1.MessageID, domain string) {
 }
+func (n *NoopNotifyListener) ChatConvUpdate(uid keybase1.UID, convID chat1.ConversationID) {}
+
 func (n *NoopNotifyListener) PGPKeyInSecretStoreFile()                    {}
 func (n *NoopNotifyListener) BadgeState(badgeState keybase1.BadgeState)   {}
 func (n *NoopNotifyListener) ReachabilityChanged(r keybase1.Reachability) {}
@@ -1421,6 +1424,20 @@ func (n *NotifyRouter) HandleChatPromptUnfurl(ctx context.Context, uid keybase1.
 			})
 		}, func(ctx context.Context, listener NotifyListener) {
 			listener.ChatPromptUnfurl(uid, convID, msgID, domain)
+		})
+}
+
+func (n *NotifyRouter) HandleChatConvUpdate(ctx context.Context, uid keybase1.UID,
+	convID chat1.ConversationID, topicType chat1.TopicType, conv *chat1.InboxUIItem) {
+	n.notifyChatCommon(ctx, "ChatConvUpdate", topicType,
+		func(ctx context.Context, cli *chat1.NotifyChatClient) {
+			_ = cli.ChatConvUpdate(ctx, chat1.ChatConvUpdateArg{
+				Uid:    uid,
+				ConvID: convID,
+				Conv:   conv,
+			})
+		}, func(ctx context.Context, listener NotifyListener) {
+			listener.ChatConvUpdate(uid, convID)
 		})
 }
 

@@ -24,18 +24,18 @@ export default connect(
     _viewProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
   }),
   (stateProps, dispatchProps, _: OwnProps) => {
-    const username = (stateProps._resetParticipants && stateProps._resetParticipants[0]) || ''
-    const nonResetUsers = new Set(stateProps._participants)
-    stateProps._resetParticipants.forEach(r => {
-      nonResetUsers.delete(r)
-    })
+    const {_resetParticipants, _participants, _conversationIDKey} = stateProps
+    const {_chatWithoutThem, _letThemIn, _viewProfile} = dispatchProps
+    const username = (_resetParticipants && [..._resetParticipants][0]) || ''
+    const nonResetUsers = new Set(_participants)
+    _resetParticipants.forEach(r => nonResetUsers.delete(r))
     const allowChatWithoutThem = nonResetUsers.size > 1
     return {
       allowChatWithoutThem,
-      chatWithoutThem: () => dispatchProps._chatWithoutThem(stateProps._conversationIDKey),
-      letThemIn: () => dispatchProps._letThemIn(username, stateProps._conversationIDKey),
+      chatWithoutThem: () => _chatWithoutThem(_conversationIDKey),
+      letThemIn: () => _letThemIn(username, _conversationIDKey),
       username,
-      viewProfile: () => dispatchProps._viewProfile(username),
+      viewProfile: () => _viewProfile(username),
     }
   }
 )(ResetUser)

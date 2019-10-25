@@ -424,6 +424,7 @@ func (c *bigTeamCollector) finalize(ctx context.Context) (res []chat1.UIInboxBig
 
 func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox,
 	reselectMode chat1.InboxLayoutReselectMode) (res chat1.UIInboxLayout) {
+	var widgetList []chat1.UIInboxSmallTeamRow
 	var btunboxes []chat1.ConversationID
 	btcollector := newBigTeamCollector()
 	selectedInLayout := false
@@ -448,6 +449,8 @@ func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox,
 				utils.PresentRemoteConversationAsSmallTeamRow(ctx, conv,
 					h.G().GetEnv().GetUsername().String(), len(res.SmallTeams) < 50))
 		}
+		widgetList = append(widgetList, utils.PresentRemoteConversationAsSmallTeamRow(ctx, conv,
+			h.G().GetEnv().GetUsername().String(), true))
 	}
 	sort.Slice(res.SmallTeams, func(i, j int) bool {
 		return res.SmallTeams[i].Time.After(res.SmallTeams[j].Time)
@@ -462,6 +465,17 @@ func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox,
 		}
 		h.Debug(ctx, "buildLayout: adding reselect info: %s", reselect)
 		res.ReselectInfo = &reselect
+	}
+	if !h.G().IsMobileAppType() {
+		sort.Slice(widgetList, func(i, j int) bool {
+			return widgetList[i].Time.After(widgetList[j].Time)
+		})
+		// only set widget entries on desktop to the top 3 overall convs
+		if len(widgetList) > 5 {
+			res.WidgetList = widgetList[:5]
+		} else {
+			res.WidgetList = widgetList
+		}
 	}
 	if len(btunboxes) > 0 {
 		h.Debug(ctx, "buildLayout: big teams missing names, unboxing: %v", len(btunboxes))
@@ -523,12 +537,23 @@ func (h *UIInboxLoader) bigTeamUnboxLoop(shutdownCh chan struct{}) error {
 	for {
 		select {
 		case convIDs := <-h.bigTeamUnboxCh:
-			h.Debug(ctx, "bigTeamUnboxLoop: pulled %d convs to unbox", len(convIDs))
-			if err := h.UpdateConvs(ctx, convIDs); err != nil {
-				h.Debug(ctx, "bigTeamUnboxLoop: unbox convs error: %s", err)
+			doneCh := make(chan struct{})
+			ctx, cancel := context.WithCancel(ctx)
+			go func(ctx context.Context) {
+				defer close(doneCh)
+				h.Debug(ctx, "bigTeamUnboxLoop: pulled %d convs to unbox", len(convIDs))
+				if err := h.UpdateConvs(ctx, convIDs); err != nil {
+					h.Debug(ctx, "bigTeamUnboxLoop: unbox convs error: %s", err)
+				}
+				// update layout again after we have done all this work to get everything in the right order
+				h.UpdateLayout(ctx, chat1.InboxLayoutReselectMode_DEFAULT, "big team unbox")
+			}(ctx)
+			select {
+			case <-doneCh:
+			case <-shutdownCh:
+				h.Debug(ctx, "bigTeamUnboxLoop: shutdown during unboxing, going down")
 			}
-			// update layout again after we have done all this work to get everything in the right order
-			h.UpdateLayout(ctx, chat1.InboxLayoutReselectMode_DEFAULT, "big team unbox")
+			cancel()
 		case <-shutdownCh:
 			h.Debug(ctx, "bigTeamUnboxLoop: shutting down")
 			return nil
@@ -547,8 +572,7 @@ func (h *UIInboxLoader) layoutLoop(shutdownCh chan struct{}) error {
 	for {
 		select {
 		case reselectMode := <-h.layoutCh:
-			switch reselectMode {
-			case chat1.InboxLayoutReselectMode_FORCE:
+			if reselectMode == chat1.InboxLayoutReselectMode_FORCE {
 				lastReselectMode = reselectMode
 			}
 			if h.clock.Since(h.lastLayoutFlush) > h.batchDelay || h.testingLayoutForceMode {

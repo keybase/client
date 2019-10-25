@@ -24,6 +24,7 @@ export const deleteAccountForever = 'settings:deleteAccountForever'
 export const editContactImportEnabled = 'settings:editContactImportEnabled'
 export const editEmail = 'settings:editEmail'
 export const editPhone = 'settings:editPhone'
+export const emailVerified = 'settings:emailVerified'
 export const feedbackSent = 'settings:feedbackSent'
 export const importContactsLater = 'settings:importContactsLater'
 export const invitesClearError = 'settings:invitesClearError'
@@ -69,7 +70,6 @@ export const resendVerificationForPhoneNumber = 'settings:resendVerificationForP
 export const saveProxyData = 'settings:saveProxyData'
 export const sendFeedback = 'settings:sendFeedback'
 export const sentVerificationEmail = 'settings:sentVerificationEmail'
-export const setAllowDeleteAccount = 'settings:setAllowDeleteAccount'
 export const setContactImportedCount = 'settings:setContactImportedCount'
 export const stop = 'settings:stop'
 export const toggleRuntimeStats = 'settings:toggleRuntimeStats'
@@ -108,6 +108,7 @@ type _EditEmailPayload = {
   readonly verify?: boolean
 }
 type _EditPhonePayload = {readonly phone: string; readonly delete?: boolean; readonly setSearchable?: boolean}
+type _EmailVerifiedPayload = {readonly email: string}
 type _FeedbackSentPayload = {readonly error: Error | null}
 type _ImportContactsLaterPayload = void
 type _InvitesClearErrorPayload = void
@@ -160,7 +161,6 @@ type _SendFeedbackPayload = {
   readonly sendMaxBytes: boolean
 }
 type _SentVerificationEmailPayload = {readonly email: string}
-type _SetAllowDeleteAccountPayload = {readonly allow: boolean}
 type _SetContactImportedCountPayload = {readonly count: number | null; readonly error?: string}
 type _StopPayload = {readonly exitCode: RPCTypes.ExitCode}
 type _ToggleRuntimeStatsPayload = void
@@ -185,6 +185,13 @@ type _VerifyPhoneNumberPayload = {readonly phoneNumber: string; readonly code: s
 export const createAddPhoneNumber = (payload: _AddPhoneNumberPayload): AddPhoneNumberPayload => ({
   payload,
   type: addPhoneNumber,
+})
+/**
+ * An email was just marked as verified
+ */
+export const createEmailVerified = (payload: _EmailVerifiedPayload): EmailVerifiedPayload => ({
+  payload,
+  type: emailVerified,
 })
 /**
  * An error occurred on the unfurl settings screen
@@ -450,9 +457,6 @@ export const createSendFeedback = (payload: _SendFeedbackPayload): SendFeedbackP
 export const createSentVerificationEmail = (
   payload: _SentVerificationEmailPayload
 ): SentVerificationEmailPayload => ({payload, type: sentVerificationEmail})
-export const createSetAllowDeleteAccount = (
-  payload: _SetAllowDeleteAccountPayload
-): SetAllowDeleteAccountPayload => ({payload, type: setAllowDeleteAccount})
 export const createSetContactImportedCount = (
   payload: _SetContactImportedCountPayload
 ): SetContactImportedCountPayload => ({payload, type: setContactImportedCount})
@@ -513,6 +517,10 @@ export type EditContactImportEnabledPayload = {
 }
 export type EditEmailPayload = {readonly payload: _EditEmailPayload; readonly type: typeof editEmail}
 export type EditPhonePayload = {readonly payload: _EditPhonePayload; readonly type: typeof editPhone}
+export type EmailVerifiedPayload = {
+  readonly payload: _EmailVerifiedPayload
+  readonly type: typeof emailVerified
+}
 export type FeedbackSentPayload = {readonly payload: _FeedbackSentPayload; readonly type: typeof feedbackSent}
 export type ImportContactsLaterPayload = {
   readonly payload: _ImportContactsLaterPayload
@@ -678,10 +686,6 @@ export type SentVerificationEmailPayload = {
   readonly payload: _SentVerificationEmailPayload
   readonly type: typeof sentVerificationEmail
 }
-export type SetAllowDeleteAccountPayload = {
-  readonly payload: _SetAllowDeleteAccountPayload
-  readonly type: typeof setAllowDeleteAccount
-}
 export type SetContactImportedCountPayload = {
   readonly payload: _SetContactImportedCountPayload
   readonly type: typeof setContactImportedCount
@@ -736,6 +740,7 @@ export type Actions =
   | EditContactImportEnabledPayload
   | EditEmailPayload
   | EditPhonePayload
+  | EmailVerifiedPayload
   | FeedbackSentPayload
   | ImportContactsLaterPayload
   | InvitesClearErrorPayload
@@ -781,7 +786,6 @@ export type Actions =
   | SaveProxyDataPayload
   | SendFeedbackPayload
   | SentVerificationEmailPayload
-  | SetAllowDeleteAccountPayload
   | SetContactImportedCountPayload
   | StopPayload
   | ToggleRuntimeStatsPayload

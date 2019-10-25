@@ -7,7 +7,7 @@ import noop from 'lodash/noop'
 const nativeBridge = NativeModules.KeybaseEngine || {test: 'fallback'}
 
 // Uncomment this to disable yellowboxes
-// console.disableYellowBox = true
+console.disableYellowBox = true
 //
 // Ignore some yellowboxes on 3rd party libs we can't control
 YellowBox.ignoreWarnings([
@@ -33,7 +33,7 @@ let config = {
   allowMultipleInstances: false,
   enableActionLogging: true, // Log actions to the log
   enableStoreLogging: false, // Log full store changes
-  featureFlagsOverride: '', // Override feature flags
+  featureFlagsOverride: 'whatsNew', // Override feature flags
   filterActionLogs: null, // Filter actions in log
   forceImmediateLogging: false, // Don't wait for idle to log
   ignoreDisconnectOverlay: false,

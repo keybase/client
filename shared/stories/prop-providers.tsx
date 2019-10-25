@@ -146,6 +146,7 @@ export const Reloadable = () => ({
   Reloadable: (p: ReloadableOwnProps): ReloadableProps => ({
     children: p.children,
     needsReload: false,
+    onFeedback: action('feedback'),
     onReload: action('reload'),
     reason: '',
     reloadOnMount: false,

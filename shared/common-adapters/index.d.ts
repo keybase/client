@@ -7,7 +7,7 @@ import {AnimationType} from './animation'
 
 export {NavigationEvents} from '@react-navigation/core'
 
-export {default as Animated} from './animated'
+export {default as Animated, Transition, animated} from './animated'
 export {default as Animation} from './animation'
 export type AnimationType = AnimationType
 export {default as Avatar, castPlatformStyles as avatarCastPlatformStyles} from './avatar'
@@ -117,3 +117,5 @@ export {default as WebView} from './web-view'
 export type WebViewProps = WebViewProps
 export type WebViewInjections = WebViewInjections
 export {default as WithTooltip} from './with-tooltip'
+// convenience plumbing for rn animated things, no desktop impl
+export const ReAnimated: any

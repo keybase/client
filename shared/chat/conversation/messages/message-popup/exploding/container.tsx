@@ -31,10 +31,17 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const _canExplodeNow = (yourMessage || _canDeleteHistory) && ownProps.message.isDeleteable
   const _canEdit = yourMessage && ownProps.message.isEditable
   const _mapUnfurl = Constants.getMapUnfurl(ownProps.message)
+  // you can reply privately *if* text message, someone else's message, and not in a 1-on-1 chat
+  const _canReplyPrivately =
+    !yourMessage &&
+    ownProps.message.type === 'text' &&
+    (['small', 'big'].includes(meta.teamType) || meta.participants.length > 2)
+
   return {
     _canDeleteHistory,
     _canEdit,
     _canExplodeNow,
+    _canReplyPrivately,
     _mapUnfurl,
     author: ownProps.message.author,
     deviceName: ownProps.message.deviceName,
@@ -174,7 +181,9 @@ export default connect(
       }
       items.push({onClick: dispatchProps._onCopy, title: 'Copy text'})
       items.push({onClick: dispatchProps._onReply, title: 'Reply'})
-      items.push({onClick: dispatchProps._onReplyPrivately, title: 'Reply privately'})
+      if (stateProps._canReplyPrivately) {
+        items.push({onClick: dispatchProps._onReplyPrivately, title: 'Reply privately'})
+      }
       items.push({onClick: dispatchProps._onPinMessage, title: 'Pin message'})
     }
     return {

@@ -720,6 +720,28 @@
     },
     {
       "type": "record",
+      "name": "FolderWithFavFlags",
+      "fields": [
+        {
+          "type": "Folder",
+          "name": "folder"
+        },
+        {
+          "type": "boolean",
+          "name": "isFavorite"
+        },
+        {
+          "type": "boolean",
+          "name": "isIgnored"
+        },
+        {
+          "type": "boolean",
+          "name": "isNew"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "FSSettings",
       "fields": [
         {
@@ -1360,6 +1382,15 @@
         }
       ],
       "response": "SyncConfigAndStatusRes"
+    },
+    "simpleFSGetFolder": {
+      "request": [
+        {
+          "name": "path",
+          "type": "KBFSPath"
+        }
+      ],
+      "response": "FolderWithFavFlags"
     },
     "simpleFSAreWeConnectedToMDServer": {
       "request": [],

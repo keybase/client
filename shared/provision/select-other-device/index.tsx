@@ -19,7 +19,7 @@ class SelectOtherDevice extends React.Component<Props> {
   }
 
   _renderItem = (index, item) => {
-    if (item.name === 'reset') {
+    if (item.__reset) {
       return (
         <Kb.Box2 direction="vertical" fullWidth={true}>
           <Kb.Text type="BodySmall" style={styles.or}>
@@ -80,7 +80,7 @@ class SelectOtherDevice extends React.Component<Props> {
   }
 
   render() {
-    const items = [...this.props.devices, {name: 'reset'}]
+    const items = [...this.props.devices, {__reset: true}]
     return (
       <SignupScreen
         noBackground={true}

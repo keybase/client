@@ -70,9 +70,9 @@ func TestLoginAfterServiceRestart(t *testing.T) {
 	defer tc.Cleanup()
 
 	// Logs the user in.
-	_ = SignupFakeUserStoreSecret(tc, "li")
+	fu := SignupFakeUserStoreSecret(tc, "li")
 
-	tc.SimulateServiceRestart()
+	simulateServiceRestart(t, tc, fu)
 	ok, _ := isLoggedIn(NewMetaContextForTest(tc))
 	require.True(t, ok, "we are logged in after a service restart")
 }
@@ -101,6 +101,8 @@ type GetUsernameMock struct {
 	LastErr  error
 }
 
+var _ libkb.LoginUI = (*GetUsernameMock)(nil)
+
 func (m *GetUsernameMock) GetEmailOrUsername(context.Context, int) (string, error) {
 	if m.Called {
 		m.LastErr = errors.New("GetEmailOrUsername unexpectedly called more than once")
@@ -122,8 +124,9 @@ func (m *GetUsernameMock) DisplayPrimaryPaperKey(_ context.Context, arg keybase1
 	return nil
 }
 
-func (m *GetUsernameMock) PromptResetAccount(_ context.Context, arg keybase1.PromptResetAccountArg) (bool, error) {
-	return false, nil
+func (m *GetUsernameMock) PromptResetAccount(_ context.Context,
+	arg keybase1.PromptResetAccountArg) (keybase1.ResetPromptResponse, error) {
+	return keybase1.ResetPromptResponse_NOTHING, nil
 }
 
 func (m *GetUsernameMock) DisplayResetProgress(_ context.Context, arg keybase1.DisplayResetProgressArg) error {
@@ -142,6 +145,14 @@ func (m *GetUsernameMock) ExplainDeviceRecovery(_ context.Context, arg keybase1.
 
 func (m *GetUsernameMock) PromptPassphraseRecovery(_ context.Context, arg keybase1.PromptPassphraseRecoveryArg) (bool, error) {
 	return false, nil
+}
+
+func (m *GetUsernameMock) ChooseDeviceToRecoverWith(_ context.Context, arg keybase1.ChooseDeviceToRecoverWithArg) (keybase1.DeviceID, error) {
+	return "", nil
+}
+
+func (m *GetUsernameMock) DisplayResetMessage(_ context.Context, arg keybase1.DisplayResetMessageArg) error {
+	return nil
 }
 
 // Test that the login falls back to a passphrase login if pubkey

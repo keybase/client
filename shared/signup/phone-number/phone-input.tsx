@@ -15,12 +15,12 @@ import {memoize} from '../../util/memoize'
 const normalizeCountryCode = countryCode =>
   countryCode.endsWith('?') ? countryCode.slice(0, -1) : countryCode
 const getCallingCode = countryCode =>
-  countryCode !== '' ? countryData[normalizeCountryCode(countryCode)].callingCode : ''
+  countryCode !== '' ? countryData()[normalizeCountryCode(countryCode)].callingCode : ''
 const getCountryEmoji = countryCode => (
-  <Kb.Emoji size={16} emojiName={countryData[normalizeCountryCode(countryCode)].emojiText} />
+  <Kb.Emoji size={16} emojiName={countryData()[normalizeCountryCode(countryCode)].emojiText} />
 )
 const getPlaceholder = countryCode =>
-  countryCode !== '' ? 'Ex: ' + countryData[normalizeCountryCode(countryCode)].example : 'N/A'
+  countryCode !== '' ? 'Ex: ' + countryData()[normalizeCountryCode(countryCode)].example : 'N/A'
 const filterNumeric = text => text.replace(/[^\d]/g, '')
 const defaultCountry = 'US'
 const prioritizedCountries = ['US', 'CA', 'GB']
@@ -186,7 +186,7 @@ class CountrySelector extends React.Component<CountrySelectorProps, CountrySelec
 
   render() {
     if (!Styles.isMobile) {
-      this.desktopItems = menuItems(countryData, this.state.filter, this.onSelectMenu)
+      this.desktopItems = menuItems(countryData(), this.state.filter, this.onSelectMenu)
       return (
         <Kb.FloatingMenu
           closeOnSelect={true}
@@ -216,7 +216,7 @@ class CountrySelector extends React.Component<CountrySelectorProps, CountrySelec
         />
       )
     }
-    this.mobileItems = pickerItems(countryData)
+    this.mobileItems = pickerItems(countryData())
     return (
       <Kb.FloatingPicker
         items={this.mobileItems}
@@ -295,7 +295,7 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
         const extPrefix = this.state.prefix + ' ' + areaCode
 
         // First look it up against the table
-        const possibleMatch = codeToCountry[extPrefix]
+        const possibleMatch = codeToCountry()[extPrefix]
         if (possibleMatch) {
           this.setCountry(possibleMatch, false)
         } else {
@@ -313,7 +313,7 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
   private reformatPrefix = (_newText, skipCountry) => {
     let newText = filterNumeric(_newText)
     if (!skipCountry) {
-      const matchedCountry = codeToCountry[newText]
+      const matchedCountry = codeToCountry()[newText]
       if (matchedCountry) {
         this.setCountry(matchedCountry, false)
       } else {
@@ -376,7 +376,7 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
             ? this.state.prefix === ''
               ? '- Pick a country -'
               : '- Invalid country prefix -'
-            : countryData[this.state.country].emoji + ' ' + countryData[this.state.country].name}
+            : countryData()[this.state.country].emoji + ' ' + countryData()[this.state.country].name}
         </Kb.Text>
       )
     }

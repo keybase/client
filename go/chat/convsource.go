@@ -86,9 +86,28 @@ func (s *baseConversationSource) addPendingPreviews(ctx context.Context, thread 
 	}
 }
 
+func (s *baseConversationSource) addConversationCards(ctx context.Context, uid gregor1.UID,
+	conv *chat1.ConversationLocal, thread *chat1.ThreadView) {
+
+	// Maybe this should only be created once and reused, but for now, just make
+	// a new one.
+	cc := newJourneyCardChecker(s.G())
+	card, err := cc.Next(ctx, uid, conv, thread)
+	if err != nil {
+		s.Debug(ctx, "addConversationCards: error getting next conversation card: %s", err)
+		return
+	}
+	if card == nil {
+		return
+	}
+	s.Debug(ctx, "addConversationCards: got a card: %+v", card)
+	thread.Messages = append([]chat1.MessageUnboxed{chat1.NewMessageUnboxedWithJourneycard(*card)}, thread.Messages...)
+}
+
 func (s *baseConversationSource) postProcessThread(ctx context.Context, uid gregor1.UID,
 	conv types.UnboxConversationInfo, thread *chat1.ThreadView, q *chat1.GetThreadQuery,
-	superXform types.SupersedesTransform, replyFiller types.ReplyFiller, checkPrev bool, patchPagination bool) (err error) {
+	superXform types.SupersedesTransform, replyFiller types.ReplyFiller, checkPrev bool,
+	patchPagination bool, verifiedConv *chat1.ConversationLocal) (err error) {
 	if q != nil && q.DisablePostProcessThread {
 		return nil
 	}
@@ -132,13 +151,17 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 
 	// Fetch outbox and tack onto the result
 	outbox := storage.NewOutbox(s.G(), uid)
-	if err = outbox.SprinkleIntoThread(ctx, conv.GetConvID(), thread); err != nil {
+	if err = outbox.AppendToThread(ctx, conv.GetConvID(), thread); err != nil {
 		if _, ok := err.(storage.MissError); !ok {
 			return err
 		}
 	}
 	// Add attachment previews to pending messages
 	s.addPendingPreviews(ctx, thread)
+
+	// Add any conversation cards
+	s.addConversationCards(ctx, uid, verifiedConv, thread)
+
 	return nil
 }
 
@@ -268,7 +291,7 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	}
 
 	// Get conversation metadata
-	conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
+	conv, err := utils.GetVerifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		return chat1.ThreadView{}, err
 	}
@@ -285,13 +308,13 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		return chat1.ThreadView{}, err
 	}
 
-	thread, err := s.boxer.UnboxThread(ctx, boxed.Thread, conv.Conv)
+	thread, err := s.boxer.UnboxThread(ctx, boxed.Thread, conv)
 	if err != nil {
 		return chat1.ThreadView{}, err
 	}
 
 	// Post process thread before returning
-	if err = s.postProcessThread(ctx, uid, conv.Conv, &thread, query, nil, nil, true, false); err != nil {
+	if err = s.postProcessThread(ctx, uid, conv, &thread, query, nil, nil, true, false, &conv); err != nil {
 		return chat1.ThreadView{}, err
 	}
 
@@ -570,8 +593,12 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 				s.Debug(ctx, "Pull: skipping mark as read call")
 			}
 			// Run post process stuff
-			if err = s.postProcessThread(ctx, uid, conv, &thread, query, nil, nil, true, true); err != nil {
-				return thread, err
+			vconv, err := utils.GetVerifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
+			if err == nil {
+				if err = s.postProcessThread(ctx, uid, conv, &thread, query, nil, nil, true, true, &vconv); err != nil {
+					return thread, err
+				}
+				s.Debug(ctx, "b thread: %+v", thread)
 			}
 			return thread, nil
 		}
@@ -610,7 +637,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	}
 
 	// Run post process stuff
-	if err = s.postProcessThread(ctx, uid, unboxConv, &thread, query, nil, nil, true, true); err != nil {
+	if err = s.postProcessThread(ctx, uid, unboxConv, &thread, query, nil, nil, true, true, nil); err != nil {
 		return thread, err
 	}
 	return thread, nil
@@ -689,7 +716,7 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 			// Form a fake version of a conversation so we don't need to hit the network ever here
 			var conv chat1.Conversation
 			conv.Metadata.ConversationID = convID
-			err = s.postProcessThread(ctx, uid, conv, &tv, query, superXform, replyFiller, false, true)
+			err = s.postProcessThread(ctx, uid, conv, &tv, query, superXform, replyFiller, false, true, nil)
 		}
 	}()
 

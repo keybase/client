@@ -68,6 +68,7 @@ protocol userSearch {
         union { null, APIUserServiceResult } service;
         array<SizedImage> siteIcon;
         array<SizedImage> siteIconFull;
+        array<SizedImage> siteIconWhite;
     }
     NonUserDetails getNonUserDetails(int sessionID, string assertion);
 

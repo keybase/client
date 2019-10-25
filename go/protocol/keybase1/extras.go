@@ -1638,6 +1638,9 @@ func (u UserPlusKeysV2AllIncarnations) IsOlderThan(v UserPlusKeysV2AllIncarnatio
 	if u.Uvv.Id < v.Uvv.Id {
 		return true
 	}
+	if u.Uvv.CachedAt < v.Uvv.CachedAt {
+		return true
+	}
 	return false
 }
 
@@ -2090,6 +2093,7 @@ func validatePart(s string) (err error) {
 func TeamNameFromString(s string) (TeamName, error) {
 	ret := TeamName{}
 
+	s = strings.ToLower(s)
 	parts := strings.Split(s, ".")
 	if len(parts) == 0 {
 		return ret, errors.New("team names cannot be empty")
@@ -3470,4 +3474,10 @@ func NewBotToken(s string) (BotToken, error) {
 		return BotToken(""), errors.New("bad bot token")
 	}
 	return BotToken(s), nil
+}
+
+func (b BadgeConversationInfo) IsEmpty() bool {
+	return (b.UnreadMessages == 0 &&
+		b.BadgeCounts[DeviceType_DESKTOP] == 0 &&
+		b.BadgeCounts[DeviceType_MOBILE] == 0)
 }

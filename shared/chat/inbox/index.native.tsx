@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as Kb from '../../common-adapters/mobile.native'
 import * as React from 'react'
 import * as RowSizes from './row/sizes'
@@ -14,6 +13,7 @@ import UnreadShortcut from './unread-shortcut'
 import debounce from 'lodash/debounce'
 import {makeRow} from './row'
 import {virtualListMarks} from '../../local-debug'
+import shallowEqual from 'shallowequal'
 
 const NoChats = (props: {onNewChat: () => void}) => (
   <Kb.Box2
@@ -57,7 +57,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
   state = {showFloating: false, showUnread: false}
 
   componentDidUpdate(prevProps: T.Props) {
-    if (!I.is(prevProps.unreadIndices, this.props.unreadIndices)) {
+    if (!shallowEqual(prevProps.unreadIndices, this.props.unreadIndices)) {
       this._updateShowUnread()
     }
     if (this.props.rows.length !== prevProps.rows.length) {
@@ -141,7 +141,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
   }
 
   _updateShowUnread = () => {
-    if (!this.props.unreadIndices.size || this._lastVisibleIdx < 0) {
+    if (!this.props.unreadIndices.length || this._lastVisibleIdx < 0) {
       this.setState(s => (s.showUnread ? {showUnread: false} : null))
       return
     }

@@ -201,6 +201,13 @@
             "UIInboxReselectInfo"
           ],
           "name": "reselectInfo"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UIInboxSmallTeamRow"
+          },
+          "name": "widgetList"
         }
       ]
     },
@@ -1035,11 +1042,8 @@
           "name": "pinnedMessageID"
         },
         {
-          "type": [
-            null,
-            "gregor1.UID"
-          ],
-          "name": "botUID"
+          "type": "string",
+          "name": "botUsername"
         }
       ]
     },
@@ -1114,13 +1118,32 @@
       ]
     },
     {
+      "type": "record",
+      "name": "UIMessageJourneycard",
+      "fields": [
+        {
+          "type": "double",
+          "name": "ordinal"
+        },
+        {
+          "type": "JourneycardType",
+          "name": "cardType"
+        },
+        {
+          "type": "MessageID",
+          "name": "highlightMsgID"
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "MessageUnboxedState",
       "symbols": [
         "VALID_1",
         "ERROR_2",
         "OUTBOX_3",
-        "PLACEHOLDER_4"
+        "PLACEHOLDER_4",
+        "JOURNEYCARD_5"
       ]
     },
     {
@@ -1158,6 +1181,13 @@
             "def": false
           },
           "body": "MessageUnboxedPlaceholder"
+        },
+        {
+          "label": {
+            "name": "JOURNEYCARD",
+            "def": false
+          },
+          "body": "UIMessageJourneycard"
         }
       ]
     },

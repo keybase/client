@@ -135,15 +135,6 @@ func (e *EKLib) setBackgroundDeleteTestCh(ch chan bool) {
 	e.backgroundDeletionTestCh = ch
 }
 
-func (e *EKLib) checkLogin(mctx libkb.MetaContext) error {
-	if loggedIn, _, err := libkb.BootstrapActiveDeviceWithMetaContext(mctx); err != nil {
-		return err
-	} else if !loggedIn {
-		return fmt.Errorf("Aborting ephemeral key generation, user is not logged in!")
-	}
-	return nil
-}
-
 func (e *EKLib) KeygenIfNeeded(mctx libkb.MetaContext) (err error) {
 	e.Lock()
 	defer e.Unlock()
@@ -158,10 +149,6 @@ func (e *EKLib) KeygenIfNeeded(mctx libkb.MetaContext) (err error) {
 		}
 	}()
 
-	if err = e.checkLogin(mctx); err != nil {
-		return err
-	}
-
 	for tries := 0; tries < maxRetries; tries++ {
 		mctx.Debug("keygenIfNeeded attempt #%d: %v", tries, err)
 		merkleRootPtr, err := mctx.G().GetMerkleClient().FetchRootFromServer(mctx, libkb.EphemeralKeyMerkleFreshness)
@@ -172,6 +159,18 @@ func (e *EKLib) KeygenIfNeeded(mctx libkb.MetaContext) (err error) {
 		if err = e.keygenIfNeeded(mctx, *merkleRootPtr, true /* shouldCleanup */); err == nil {
 			return nil
 		}
+
+		if !libkb.IsEphemeralRetryableError(err) {
+			return err
+		}
+
+		switch err.(type) {
+		case libkb.LoginRequiredError:
+			return err
+		default:
+			// retry
+		}
+
 		select {
 		case <-mctx.Ctx().Done():
 			mctx.Debug("aborting KeygenIfNeeded, context cancelled")
@@ -505,9 +504,6 @@ func (e *EKLib) purgeCachesForTeamIDAndTypeByGeneration(mctx libkb.MetaContext, 
 func (e *EKLib) GetOrCreateLatestTeamEK(mctx libkb.MetaContext, teamID keybase1.TeamID) (
 	ek keybase1.TeamEphemeralKey, created bool, err error) {
 	mctx = mctx.WithLogTag("GOCTEK")
-	if err = e.checkLogin(mctx); err != nil {
-		return ek, false, err
-	}
 
 	err = teamEKRetryWrapper(mctx, func() error {
 		e.Lock()
@@ -636,10 +632,6 @@ func (e *EKLib) GetTeamEK(mctx libkb.MetaContext, teamID keybase1.TeamID, genera
 	mctx = mctx.WithLogTag("GLTEK")
 	defer mctx.TraceTimed("GetTeamEK", func() error { return err })()
 
-	if err = e.checkLogin(mctx); err != nil {
-		return ek, err
-	}
-
 	teamEKBoxStorage := mctx.G().GetTeamEKBoxStorage()
 	ek, err = teamEKBoxStorage.Get(mctx, teamID, generation, contentCtime)
 	if err != nil {
@@ -685,9 +677,6 @@ func (e *EKLib) GetTeamEK(mctx libkb.MetaContext, teamID keybase1.TeamID, genera
 func (e *EKLib) GetOrCreateLatestTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID, gBotUID gregor1.UID) (
 	ek keybase1.TeamEphemeralKey, created bool, err error) {
 	mctx = mctx.WithLogTag("GOCLTBEK")
-	if err = e.checkLogin(mctx); err != nil {
-		return ek, false, err
-	}
 	botUID, err := keybase1.UIDFromSlice(gBotUID.Bytes())
 	if err != nil {
 		return ek, false, err
@@ -925,9 +914,6 @@ func (e *EKLib) GetTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID, gBo
 	mctx = mctx.WithLogTag("GTBEK")
 	defer mctx.TraceTimed("GetTeambotEK", func() error { return err })()
 
-	if err = e.checkLogin(mctx); err != nil {
-		return ek, err
-	}
 	botUID, err := keybase1.UIDFromSlice(gBotUID.Bytes())
 	if err != nil {
 		return ek, err

@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keybase/client/go/badges"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/teams"
 
@@ -294,10 +293,9 @@ func TestInboxSourceMarkAsRead(t *testing.T) {
 	tc1 := ctc.world.Tcs[users[1].Username]
 	inboxSource := tc1.Context().InboxSource.(*HybridInboxSource)
 	syncer := ctc.world.Tcs[users[1].Username].ChatG.Syncer.(*Syncer)
-	badger := badges.NewBadger(tc1.G)
+	badger := tc1.ChatG.Badger
 	badger.SetLocalChatState(inboxSource)
 	pusher := tc1.Context().PushHandler.(*PushHandler)
-	pusher.SetBadger(badger)
 	ctx1 := ctc.as(t, users[1]).startCtx
 	uid1 := users[1].User.GetUID().ToBytes()
 	syncer.RegisterOfflinable(inboxSource)

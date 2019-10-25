@@ -55,6 +55,7 @@ const getContent = (props, ref) => (
         style={Styles.collapseStyles([
           props.align === 'left' && styles.switchLeft,
           props.align === 'right' && styles.switchRight,
+          !!props.labelSubtitle && styles.switch,
         ])}
       />
     </Kb.ClickableBox>
@@ -63,7 +64,7 @@ const getContent = (props, ref) => (
     {typeof props.label === 'string' ? (
       <LabelContainer {...props}>
         <Kb.Text type="BodySemibold">{props.label}</Kb.Text>
-        {!!props.labelSubtitle && <Kb.Text type="BodyTiny">{props.labelSubtitle}</Kb.Text>}
+        {!!props.labelSubtitle && <Kb.Text type="BodySmall">{props.labelSubtitle}</Kb.Text>}
       </LabelContainer>
     ) : (
       props.label
@@ -97,13 +98,13 @@ export default Switch
 
 const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({
-    common: {
-      alignItems: 'center',
-    },
     isElectron: {
+      alignItems: 'center',
       minHeight: 24,
     },
     isMobile: {
+      alignItems: 'flex-start',
+      flexShrink: 1,
       minHeight: 32,
     },
   }),
@@ -116,6 +117,12 @@ const styles = Styles.styleSheetCreate(() => ({
   labelContainer: {
     flexShrink: 1,
   },
+  switch: Styles.platformStyles({
+    isMobile: {
+      bottom: Styles.globalMargins.xtiny,
+      position: 'relative',
+    },
+  }),
   switchLeft: Styles.platformStyles({
     isElectron: {
       marginRight: 10,

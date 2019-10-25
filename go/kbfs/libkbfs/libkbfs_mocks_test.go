@@ -1092,6 +1092,20 @@ func (mr *MockKBFSOpsMockRecorder) ForceStuckConflictForTesting(arg0, arg1 inter
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ForceStuckConflictForTesting", reflect.TypeOf((*MockKBFSOps)(nil).ForceStuckConflictForTesting), arg0, arg1)
 }
 
+// GetAllSyncedTlfMDs mocks base method
+func (m *MockKBFSOps) GetAllSyncedTlfMDs(arg0 context.Context) map[tlf.ID]SyncedTlfMD {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAllSyncedTlfMDs", arg0)
+	ret0, _ := ret[0].(map[tlf.ID]SyncedTlfMD)
+	return ret0
+}
+
+// GetAllSyncedTlfMDs indicates an expected call of GetAllSyncedTlfMDs
+func (mr *MockKBFSOpsMockRecorder) GetAllSyncedTlfMDs(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllSyncedTlfMDs", reflect.TypeOf((*MockKBFSOps)(nil).GetAllSyncedTlfMDs), arg0)
+}
+
 // GetDirChildren mocks base method
 func (m *MockKBFSOps) GetDirChildren(arg0 context.Context, arg1 Node) (map[data.PathPartString]data.EntryInfo, error) {
 	m.ctrl.T.Helper()
@@ -1150,6 +1164,21 @@ func (m *MockKBFSOps) GetFavoritesAll(arg0 context.Context) (keybase1.FavoritesR
 func (mr *MockKBFSOpsMockRecorder) GetFavoritesAll(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFavoritesAll", reflect.TypeOf((*MockKBFSOps)(nil).GetFavoritesAll), arg0)
+}
+
+// GetFolderWithFavFlags mocks base method
+func (m *MockKBFSOps) GetFolderWithFavFlags(arg0 context.Context, arg1 *tlfhandle.Handle) (keybase1.FolderWithFavFlags, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetFolderWithFavFlags", arg0, arg1)
+	ret0, _ := ret[0].(keybase1.FolderWithFavFlags)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetFolderWithFavFlags indicates an expected call of GetFolderWithFavFlags
+func (mr *MockKBFSOpsMockRecorder) GetFolderWithFavFlags(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFolderWithFavFlags", reflect.TypeOf((*MockKBFSOps)(nil).GetFolderWithFavFlags), arg0, arg1)
 }
 
 // GetNodeMetadata mocks base method

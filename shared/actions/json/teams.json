@@ -50,7 +50,8 @@
     },
     "getTeams": {},
     "getDetails": {
-      "teamname": "string"
+      "teamname": "string",
+      "clearInviteLoadingKey?": "string"
     },
     "getMembers": {
       "teamname": "string"
@@ -94,13 +95,15 @@
       "role": "Types.TeamRoleType",
       "rootPath?": "I.List<string>",
       "sourceSubPath?": "I.List<string>",
-      "teamname": "string"
+      "teamname": "string",
+      "loadingKey?": "string"
     },
     "inviteToTeamByPhone": {
       "teamname": "string",
       "role": "Types.TeamRoleType",
       "phoneNumber": "string",
-      "fullName": "string"
+      "fullName": "string",
+      "loadingKey?": "string"
     },
     "joinTeam": {
       "teamname": "string"
@@ -143,7 +146,8 @@
       "email": "string",
       "teamname": "string",
       "username": "string",
-      "inviteID": "string"
+      "inviteID": "string",
+      "loadingKey?": "string"
     },
     "ignoreRequest": {
       "teamname": "string",
@@ -161,7 +165,7 @@
       "error": "string"
     },
     "setTeamsWithChosenChannels": {
-      "teamsWithChosenChannels": "I.Set<Types.Teamname>"
+      "teamsWithChosenChannels": "Set<Types.Teamname>"
     },
     "setTeamCreationError": {
       "error": "string"
@@ -182,19 +186,20 @@
     },
     "setTeamLoadingInvites": {
       "teamname": "string",
-      "invitees": "string",
-      "loadingInvites": "boolean"
+      "loadingKey": "string",
+      "isLoading": "boolean"
     },
     "clearTeamRequests": {
       "teamname": "string"
     },
     "setTeamDetails": {
+      "teamID": "Types.TeamID",
       "teamname": "string",
-      "members": "I.Map<string, Types.MemberInfo>",
-      "settings": "Types.TeamSettings",
-      "invites": "I.Set<Types.InviteInfo>",
-      "subteams": "I.Set<Types.Teamname>",
-      "requests": "I.Map<string, I.Set<Types.RequestInfo>>"
+      "members": "RPCTypes.TeamMembersDetails",
+      "settings": "RPCTypes.TeamSettings",
+      "invites": "Array<Types._InviteInfo>",
+      "subteams": "Array<Types.Teamname>",
+      "requests": "Map<string, Array<string>>"
     },
     "setTeamCanPerform": {
       "teamname": "string",
@@ -214,24 +219,25 @@
       "channelInfos": "I.Map<ChatTypes.ConversationIDKey, Types.ChannelInfo>"
     },
     "setTeamInfo": {
-      "teamnames": "I.Set<Types.Teamname>",
+      "teamnames": "Set<Types.Teamname>",
       "teammembercounts": "I.Map<Types.Teamname, number>",
       "teamNameToIsOpen": "I.Map<Types.Teamname, boolean>",
       "teamNameToRole": "I.Map<Types.Teamname, Types.MaybeTeamRoleType>",
       "teamNameToAllowPromote": "I.Map<Types.Teamname, boolean>",
       "teamNameToIsShowcasing": "I.Map<Types.Teamname, boolean>",
-      "teamNameToID": "I.Map<Types.Teamname, string>"
+      "teamNameToID": "I.Map<Types.Teamname, string>",
+      "teamDetails": "Map<Types.TeamID, Types.TeamDetails>"
     },
     "setTeamProfileAddList": {
-      "teamlist": "I.List<Types.TeamProfileAddList>"
+      "teamlist": "Array<Types.TeamProfileAddList>"
     },
     "setTeamAccessRequestsPending": {
-      "accessRequestsPending": "I.Set<Types.Teamname>"
+      "accessRequestsPending": "Set<Types.Teamname>"
     },
     "setNewTeamInfo": {
-      "deletedTeams": "I.List<RPCTypes.DeletedTeamInfo>",
-      "newTeams": "I.Set<string>",
-      "newTeamRequests": "I.List<string>",
+      "deletedTeams": "Array<RPCTypes.DeletedTeamInfo>",
+      "newTeams": "Set<string>",
+      "newTeamRequests": "Array<string>",
       "teamNameToResetUsers": "I.Map<Types.Teamname, I.Set<Types.ResetUser>>"
     },
     "setTeamSawChatBanner": {},
@@ -265,9 +271,9 @@
       "conversationIDKey": "ChatTypes.ConversationIDKey"
     },
     "badgeAppForTeams": {
-      "deletedTeams": "I.List<RPCTypes.DeletedTeamInfo>",
-      "newTeamNames": "I.List<string>",
-      "newTeamAccessRequests": "I.List<string>",
+      "deletedTeams": "Array<RPCTypes.DeletedTeamInfo>",
+      "newTeamNames": "Array<string>",
+      "newTeamAccessRequests": "Array<string>",
       "teamsWithResetUsers": "ReadonlyArray<{id: Buffer, teamname: string, username: string, uid: string}>"
     },
     "checkRequestedAccess": {

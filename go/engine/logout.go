@@ -66,6 +66,14 @@ func (e *LogoutEngine) Run(mctx libkb.MetaContext) (err error) {
 	if err != nil {
 		return err
 	}
+
+	if e.options.KeepSecrets {
+		err = mctx.G().Env.GetConfigWriter().SetStayLoggedOut(true)
+		if err != nil {
+			mctx.Warning("Could not save logged out state to config.json: %v", err)
+		}
+	}
+
 	if err := e.printSwitchInfo(mctx); err != nil {
 		// We don't care if this doesn't work here - user is logged
 		// out at this point. LogoutEngine is considered successful.

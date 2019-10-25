@@ -1,9 +1,10 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/prove_ui.avdl
 
 package keybase1
 
 import (
+	"fmt"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 	"time"
@@ -32,12 +33,13 @@ func (e PromptOverwriteType) String() string {
 	if v, ok := PromptOverwriteTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type ProveParameters struct {
 	LogoFull    []SizedImage `codec:"logoFull" json:"logoFull"`
 	LogoBlack   []SizedImage `codec:"logoBlack" json:"logoBlack"`
+	LogoWhite   []SizedImage `codec:"logoWhite" json:"logoWhite"`
 	Title       string       `codec:"title" json:"title"`
 	Subtext     string       `codec:"subtext" json:"subtext"`
 	Suffix      string       `codec:"suffix" json:"suffix"`
@@ -68,6 +70,17 @@ func (o ProveParameters) DeepCopy() ProveParameters {
 			}
 			return ret
 		})(o.LogoBlack),
+		LogoWhite: (func(x []SizedImage) []SizedImage {
+			if x == nil {
+				return nil
+			}
+			ret := make([]SizedImage, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.LogoWhite),
 		Title:       o.Title,
 		Subtext:     o.Subtext,
 		Suffix:      o.Suffix,

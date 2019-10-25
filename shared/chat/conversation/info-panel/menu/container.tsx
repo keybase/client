@@ -9,6 +9,7 @@ import * as ChatGen from '../../../../actions/chat2-gen'
 import * as Container from '../../../../util/container'
 import {InfoPanelMenu, ConvProps} from '.'
 import * as ChatTypes from '../../../../constants/types/chat2'
+import * as Styles from '../../../../styles'
 
 export type OwnProps = {
   attachTo?: () => React.Component<any> | null
@@ -45,7 +46,9 @@ export default Container.namedConnect(
       const participants = ChatConstants.getRowParticipants(meta, state.config.username)
       // If it's a one-on-one chat, we need the user's fullname.
       const fullname =
-        participants.length === 1 ? (state.users.infoMap.get(participants[0]) || {fullname: ''}).fullname : ''
+        (participants.length === 1 &&
+          (state.users.infoMap.get(participants[0]) || {fullname: ''}).fullname) ||
+        ''
       convProps = {
         fullname,
         ignored: meta.status === RPCChatTypes.ConversationStatus.ignored,
@@ -95,10 +98,10 @@ export default Container.namedConnect(
     loadOperations: () => teamname && dispatch(TeamsGen.createGetTeamOperations({teamname})),
     onAddPeople: () => teamname && dispatch(appendNewTeamBuilder(teamname)),
     onHideConv: () => dispatch(ChatGen.createHideConversation({conversationIDKey})),
-    onInvite: () =>
-      dispatch(
-        RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamInviteByEmail'}]})
-      ),
+    onInvite: () => {
+      const selected = Styles.isMobile ? 'teamInviteByContact' : 'teamInviteByEmail'
+      return dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected}]}))
+    },
     onLeaveTeam: () => {
       dispatch(
         RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamReallyLeaveTeam'}]})

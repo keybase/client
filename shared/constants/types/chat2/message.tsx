@@ -83,12 +83,20 @@ type _MessageCommonWithDeviceDeletableEditableReactions = {
 
 // Message types have a lot of copy and paste. Originally I had this split out but this
 // causes flow to get confused or makes the error messages a million times harder to understand
+// Possibly as a result, some types have sentinel-valued fields hanging off them.
 
 export type _MessagePlaceholder = {
   type: 'placeholder'
 } & _MessageCommon
 
 export type MessagePlaceholder = I.RecordOf<_MessagePlaceholder>
+
+export type _MessageJourneycard = {
+  type: 'journeycard'
+  cardType: RPCChatTypes.JourneycardType
+  highlightMsgID: MessageID
+} & _MessageCommon
+export type MessageJourneycard = I.RecordOf<_MessageJourneycard>
 
 // We keep deleted messages around so the bookkeeping is simpler
 export type _MessageDeleted = {
@@ -286,6 +294,7 @@ export type MessageSystemGitPush = I.RecordOf<_MessageSystemGitPush>
 export type _MessageSystemAddedToTeam = {
   addee: string
   adder: string
+  bulkAdds: Array<string>
   role: TeamTypes.MaybeTeamRoleType
   isAdmin: boolean
   team: string
@@ -397,6 +406,7 @@ export type Message =
   | MessageText
   | MessagePlaceholder
   | MessagePin
+  | MessageJourneycard
 export type MessageType =
   | 'attachment'
   | 'deleted'
@@ -417,3 +427,4 @@ export type MessageType =
   | 'text'
   | 'placeholder'
   | 'pin'
+  | 'journeycard'

@@ -6,7 +6,6 @@ import * as RouteTreeGen from './route-tree-gen'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import {TypedState} from '../constants/reducer'
-import {validateNumber} from '../util/phone-numbers'
 import {validateEmailAddress} from '../util/email-address'
 
 const closeTeamBuilding = () => RouteTreeGen.createNavigateUp()
@@ -57,6 +56,7 @@ const apiSearchOne = async (
 // If the query is a well-formatted phone number or email, do additional search
 // and if the result is not already in the list, insert at the beginning.
 async function specialContactSearch(users: TeamBuildingTypes.User[], query: string, region: string | null) {
+  const {validateNumber} = require('../util/phone-numbers')
   let result: TeamBuildingTypes.User | undefined
   const phoneNumber = validateNumber(query, region)
   if (phoneNumber.valid) {
@@ -123,8 +123,8 @@ const fetchUserRecs = async (
       suggestions = suggestions.slice(0, 10)
     }
     return TeamBuildingGen.createFetchedUserRecs({namespace, users: suggestions.concat(contacts)})
-  } catch (_) {
-    logger.error(`Error in fetching recs`)
+  } catch (err) {
+    logger.error(`Error in fetching recs: ${err}`)
     return TeamBuildingGen.createFetchedUserRecs({namespace, users: []})
   }
 }

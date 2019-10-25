@@ -20,8 +20,7 @@ type StateProps = {
 
 /* Helpers to build the teams tabs. mapStateHelper is called by the master mapStateToProps, getRows makes the rows to be injected below the header, renderItem renders the individual row */
 export const mapStateHelper = (state: TypedState, {teamname}: OwnProps): StateProps => ({
-  // @ts-ignore getIn
-  _sawSubteamsBanner: state.teams.getIn(['sawSubteamsBanner'], false),
+  _sawSubteamsBanner: state.teams.sawSubteamsBanner,
   _subteams: Constants.getTeamSubteams(state, teamname),
   _yourOperations: Constants.getCanPerform(state, teamname),
 })

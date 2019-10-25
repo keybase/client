@@ -355,6 +355,13 @@
             "type": "array",
             "items": "string"
           },
+          "name": "bulkAdds"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
           "name": "owners"
         },
         {
@@ -957,7 +964,8 @@
         "TOOMANYATTEMPTS_6",
         "ALREADY_DELETED_7",
         "UPLOADFAILED_8",
-        "RESTRICTEDBOT_9"
+        "RESTRICTEDBOT_9",
+        "MINWRITER_10"
       ]
     },
     {
@@ -1539,6 +1547,10 @@
             "MessageUnboxed"
           ],
           "name": "replyTo"
+        },
+        {
+          "type": "string",
+          "name": "botUsername"
         }
       ]
     },
@@ -1617,6 +1629,10 @@
         {
           "type": "gregor1.Time",
           "name": "etime"
+        },
+        {
+          "type": "string",
+          "name": "botUsername"
         }
       ]
     },
@@ -1631,6 +1647,42 @@
         {
           "type": "boolean",
           "name": "hidden"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "JourneycardType",
+      "symbols": [
+        "WELCOME_0",
+        "POPULAR_CHANNELS_1",
+        "ADD_PEOPLE_2",
+        "CREATE_CHANNELS_3",
+        "MSG_ATTENTION_4",
+        "USER_AWAY_FOR_LONG_5",
+        "CHANNEL_INACTIVE_6",
+        "MSG_NO_ANSWER_7"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MessageUnboxedJourneycard",
+      "fields": [
+        {
+          "type": "MessageID",
+          "name": "prevID"
+        },
+        {
+          "type": "int",
+          "name": "ordinal"
+        },
+        {
+          "type": "JourneycardType",
+          "name": "cardType"
+        },
+        {
+          "type": "MessageID",
+          "name": "highlightMsgID"
         }
       ]
     },
@@ -1669,6 +1721,13 @@
             "def": false
           },
           "body": "MessageUnboxedPlaceholder"
+        },
+        {
+          "label": {
+            "name": "JOURNEYCARD",
+            "def": false
+          },
+          "body": "MessageUnboxedJourneycard"
         }
       ]
     },
@@ -3556,6 +3615,20 @@
           "name": "rateLimits"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "LocalMtimeUpdate",
+      "fields": [
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "mtime"
+        }
+      ]
     }
   ],
   "messages": {
@@ -4462,6 +4535,18 @@
         {
           "name": "outboxID",
           "type": "OutboxID"
+        }
+      ],
+      "response": "MakePreviewRes"
+    },
+    "makeAudioPreview": {
+      "request": [
+        {
+          "name": "amps",
+          "type": {
+            "type": "array",
+            "items": "double"
+          }
         }
       ],
       "response": "MakePreviewRes"

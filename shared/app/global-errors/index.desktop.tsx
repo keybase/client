@@ -135,6 +135,13 @@ class GlobalError extends Component<Props, State> {
           <Kb.Text center={true} type="BodyBig" style={styles.summary}>
             {summary}
           </Kb.Text>
+          <Kb.Button
+            label="Please tell us"
+            onClick={this.props.onFeedback}
+            small={true}
+            type="Dim"
+            style={styles.feedbackButton}
+          />
           {summary && (
             <Kb.Icon
               color={Styles.globalColors.white_75}
@@ -167,7 +174,7 @@ const styles = Styles.styleSheetCreate(
         isElectron: {
           position: 'absolute',
           right: Styles.globalMargins.xsmall,
-          top: Styles.globalMargins.xsmall,
+          top: 10,
         },
       }),
       container: {
@@ -198,6 +205,9 @@ const styles = Styles.styleSheetCreate(
         paddingLeft: Styles.globalMargins.xlarge,
         paddingRight: Styles.globalMargins.xlarge,
       },
+      feedbackButton: {
+        marginRight: Styles.globalMargins.large,
+      },
       message: {
         color: Styles.globalColors.white,
       },
@@ -224,7 +234,7 @@ const styles = Styles.styleSheetCreate(
         alignItems: 'center',
         flex: 1,
         justifyContent: 'center',
-        padding: 8,
+        padding: Styles.globalMargins.xtiny,
         position: 'relative',
       },
       summaryRowError: {

@@ -59,7 +59,7 @@ const ServiceIcon = (props: IconProps) => {
                 {props.count && props.count > 10 ? '10+' : props.count}
               </Kb.Text>
             ) : (
-              <Kb.Animation animationType="spinnerGrey" style={styles.pendingAnimation} />
+              <Kb.Animation animationType="spinner" style={styles.pendingAnimation} />
             ))}
         </Kb.Box2>
       </Kb.Box2>
@@ -166,7 +166,6 @@ export const ServiceTabBar = (props: Props) => {
           key={service}
           service={service}
           label={serviceIdToLongLabel(service)}
-          labelPresence={1}
           onClick={() => onChangeService(service)}
           count={undefToNull(props.serviceResultCount[service])}
           showCount={props.showServiceResultCount}

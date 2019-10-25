@@ -103,7 +103,8 @@
         "'joinedAConversation'",
         "'leftAConversation'",
         "'teamTypeChanged'",
-        "'maybeKickedFromTeam'"
+        "'maybeKickedFromTeam'",
+        "'widgetRefresh'"
       ]
     },
     // We want to unbox an inbox row
@@ -132,6 +133,7 @@
         "'membersUpdate'",
         "'scroll'",
         "'ensureSelectedMeta'",
+        "'ensureWidgetMetas'",
         "'inboxSearchResults'"
       ],
       "conversationIDKeys": "Array<Types.ConversationIDKey>"
@@ -181,6 +183,7 @@
     "messageErrored": {
       "conversationIDKey": "Types.ConversationIDKey",
       "reason": "string",
+      "errorTyp": "number | null",
       "outboxID": "Types.OutboxID"
     },
     // Start editing a message / or edit the last message / or clear editing

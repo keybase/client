@@ -151,6 +151,7 @@ const emptyAsset: RPCStellarTypes.Asset = {
   authEndpoint: '',
   code: '',
   depositButtonText: '',
+  depositReqAuth: false,
   desc: '',
   infoUrl: '',
   infoUrlText: '',
@@ -162,6 +163,7 @@ const emptyAsset: RPCStellarTypes.Asset = {
   type: 'native',
   verifiedDomain: '',
   withdrawButtonText: '',
+  withdrawReqAuth: false,
   withdrawType: '',
 }
 
@@ -1317,6 +1319,7 @@ const assetDescriptionOrNativeToRpcAsset = (
   authEndpoint: '',
   code: asset === 'native' ? '' : asset.code,
   depositButtonText: '',
+  depositReqAuth: false,
   desc: '',
   infoUrl: '',
   infoUrlText: '',
@@ -1328,6 +1331,7 @@ const assetDescriptionOrNativeToRpcAsset = (
   type: asset === 'native' ? 'native' : asset.code.length > 4 ? 'credit_alphanum12' : 'credit_alphanum4',
   verifiedDomain: asset === 'native' ? '' : asset.issuerVerifiedDomain,
   withdrawButtonText: '',
+  withdrawReqAuth: false,
   withdrawType: '',
 })
 
@@ -1409,7 +1413,9 @@ const refreshTrustlineAcceptedAssetsByUsername = async (_: TypedState, {payload:
     {recipient: username},
     Constants.refreshTrustlineAcceptedAssetsWaitingKey(username)
   )
-  return balancesToAction(trustlines || [], Types.noAccountID, username)
+  return Constants.isFederatedAddress(username)
+    ? balancesToAction(trustlines || [], username, '')
+    : balancesToAction(trustlines || [], Types.noAccountID, username)
 }
 
 const refreshTrustlinePopularAssets = async () => {

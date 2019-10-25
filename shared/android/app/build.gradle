@@ -6,7 +6,7 @@ apply from: '../../node_modules/react-native-unimodules/gradle.groovy'
 import com.android.build.OutputFile
 
 // KB: app version
-def VERSION_NAME = "4.7.0"
+def VERSION_NAME = "4.8.0"
 
 /**
  * The react.gradle file registers a task for each build variant (e.g. bundleDebugJsAndAssets
@@ -240,11 +240,10 @@ dependencies {
     implementation "com.facebook.react:react-native:+"  // From node_modules
 
 
-
      if (enableHermes) {
        def hermesPath = "../../node_modules/hermesvm/android/";
        debugImplementation files(hermesPath + "hermes-debug.aar")
-       releaseUnsignedImplementation files(hermesPath + "hermes-release.aar")
+       releaseImplementation files(hermesPath + "hermes-release.aar")
        releaseImplementation files(hermesPath + "hermes-release.aar")
      } else if (enableV8) {
          // Add v8-android - prebuilt libv8.so into APK

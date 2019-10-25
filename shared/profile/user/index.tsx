@@ -337,6 +337,7 @@ class User extends React.Component<Props, State> {
     },
     headerTransparent: true,
     underNotch: true,
+    whatsNewIconColor: Styles.globalColors.white,
   })
 
   constructor(props: Props) {
@@ -535,7 +536,7 @@ export const styles = Styles.styleSheetCreate(() => ({
   followTab: Styles.platformStyles({
     common: {
       alignItems: 'center',
-      borderBottomColor: 'white',
+      borderBottomColor: Styles.globalColors.white,
       borderBottomWidth: 2,
       justifyContent: 'center',
     },

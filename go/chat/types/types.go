@@ -54,6 +54,7 @@ func NewNameInfo() *NameInfo {
 }
 
 type MembershipUpdateRes struct {
+	RoleUpdates        []chat1.ConversationLocal
 	UserJoinedConvs    []chat1.ConversationLocal
 	UserRemovedConvs   []chat1.ConversationMember
 	UserResetConvs     []chat1.ConversationMember
@@ -92,10 +93,15 @@ type RemoteConversation struct {
 	LocalMetadata  *RemoteConversationMetadata `codec:"l"`
 	LocalReadMsgID chat1.MessageID             `codec:"r"`
 	LocalDraft     *string                     `codec:"d"`
+	LocalMtime     gregor1.Time                `codec:"t"`
 }
 
 func (rc RemoteConversation) GetMtime() gregor1.Time {
-	return rc.Conv.GetMtime()
+	res := rc.Conv.GetMtime()
+	if res > rc.LocalMtime {
+		return res
+	}
+	return rc.LocalMtime
 }
 
 func (rc RemoteConversation) GetConvID() chat1.ConversationID {

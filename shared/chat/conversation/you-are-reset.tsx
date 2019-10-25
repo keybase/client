@@ -1,20 +1,20 @@
 import * as React from 'react'
-import {Box, Icon, Text} from '../../common-adapters'
+import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
 const YouAreReset = () => (
-  <Box style={{...Styles.globalStyles.flexBoxColumn, flex: 1}}>
-    <Box
+  <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, flex: 1}}>
+    <Kb.Box
       style={{...Styles.globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, justifyContent: 'center'}}
     >
-      <Icon type={Styles.isMobile ? 'icon-skull-64' : 'icon-skull-48'} />
-    </Box>
-    <Box style={styles.box}>
-      <Text type="BodySemibold" negative={true} style={{textAlign: 'center' as const}}>
+      <Kb.Icon type={Styles.isMobile ? 'icon-skull-64' : 'icon-skull-48'} />
+    </Kb.Box>
+    <Kb.Box style={styles.box}>
+      <Kb.Text type="BodySemibold" negative={true} style={{textAlign: 'center' as const}}>
         Since you reset your account, participants have to accept to let you back in.
-      </Text>
-    </Box>
-  </Box>
+      </Kb.Text>
+    </Kb.Box>
+  </Kb.Box>
 )
 
 const styles = Styles.styleSheetCreate(
@@ -29,4 +29,4 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export default YouAreReset
+export default Kb.HeaderHoc(YouAreReset)

@@ -25,6 +25,10 @@ import (
 	"golang.org/x/net/context"
 )
 
+const (
+	cacheNotWriterExpiration = 5 * time.Second
+)
+
 // KeybaseServiceBase implements most of KeybaseService from protocol
 // defined clients.
 type KeybaseServiceBase struct {
@@ -54,7 +58,8 @@ type KeybaseServiceBase struct {
 
 	teamCacheLock sync.RWMutex
 	// Map entries are removed when invalidated.
-	teamCache map[keybase1.TeamID]idutil.TeamInfo
+	teamCache      map[keybase1.TeamID]idutil.TeamInfo
+	notWriterCache map[keybase1.TeamID]map[keybase1.UID]time.Time
 }
 
 // Wrapper over `KeybaseServiceBase` implementing a `merkleRootGetter`
@@ -79,11 +84,12 @@ func (k *keybaseServiceMerkleGetter) VerifyMerkleRoot(
 // NewKeybaseServiceBase makes a new KeybaseService.
 func NewKeybaseServiceBase(config Config, kbCtx Context, log logger.Logger) *KeybaseServiceBase {
 	k := KeybaseServiceBase{
-		config:    config,
-		context:   kbCtx,
-		log:       log,
-		userCache: make(map[keybase1.UID]idutil.UserInfo),
-		teamCache: make(map[keybase1.TeamID]idutil.TeamInfo),
+		config:         config,
+		context:        kbCtx,
+		log:            log,
+		userCache:      make(map[keybase1.UID]idutil.UserInfo),
+		teamCache:      make(map[keybase1.TeamID]idutil.TeamInfo),
+		notWriterCache: make(map[keybase1.TeamID]map[keybase1.UID]time.Time),
 	}
 	if config != nil {
 		k.merkleRoot = NewEventuallyConsistentMerkleRoot(
@@ -284,9 +290,38 @@ func (k *KeybaseServiceBase) setCachedTeamInfo(
 	defer k.teamCacheLock.Unlock()
 	if info.Name == kbname.NormalizedUsername("") {
 		delete(k.teamCache, tid)
+		delete(k.notWriterCache, tid)
 	} else {
 		k.teamCache[tid] = info
 	}
+}
+
+func (k *KeybaseServiceBase) getCachedNotWriter(
+	tid keybase1.TeamID, uid keybase1.UID) (notWriter bool) {
+	k.teamCacheLock.RLock()
+	defer k.teamCacheLock.RUnlock()
+	cachedTime, notWriter := k.notWriterCache[tid][uid]
+	if !notWriter {
+		return false
+	}
+
+	if k.config.Clock().Now().Sub(cachedTime) > cacheNotWriterExpiration {
+		delete(k.notWriterCache[tid], uid)
+		return false
+	}
+	return true
+}
+
+func (k *KeybaseServiceBase) setCachedNotWriter(
+	tid keybase1.TeamID, uid keybase1.UID) {
+	k.teamCacheLock.Lock()
+	defer k.teamCacheLock.Unlock()
+	teamMap := k.notWriterCache[tid]
+	if teamMap == nil {
+		teamMap = make(map[keybase1.UID]time.Time)
+		k.notWriterCache[tid] = teamMap
+	}
+	teamMap[uid] = k.config.Clock().Now()
 }
 
 // ClearCaches implements the KeybaseService interface for
@@ -303,6 +338,7 @@ func (k *KeybaseServiceBase) ClearCaches(ctx context.Context) {
 	k.teamCacheLock.Lock()
 	defer k.teamCacheLock.Unlock()
 	k.teamCache = make(map[keybase1.TeamID]idutil.TeamInfo)
+	k.notWriterCache = make(map[keybase1.TeamID]map[keybase1.UID]time.Time)
 }
 
 // LoggedIn implements keybase1.NotifySessionInterface.
@@ -791,18 +827,27 @@ func (k *KeybaseServiceBase) LoadTeamPlusKeys(
 					// role is a reader, we need to check the reader
 					// map explicitly.
 					satisfiesDesires = cachedTeamInfo.Readers[desiredUser.Uid]
-				} else if !desiredKey.IsNil() {
-					// If the desired role was at least a writer, but
-					// the user isn't currently a writer, see if they
-					// ever were.
-					var err error
-					cachedTeamInfo, err = k.getLastWriterInfo(
-						ctx, cachedTeamInfo, tlfType, desiredUser.Uid,
-						desiredKey)
-					if err != nil {
-						return idutil.TeamInfo{}, err
+				} else {
+					if !desiredKey.IsNil() {
+						// If the desired role was at least a writer, but
+						// the user isn't currently a writer, see if they
+						// ever were.
+						var err error
+						cachedTeamInfo, err = k.getLastWriterInfo(
+							ctx, cachedTeamInfo, tlfType, desiredUser.Uid,
+							desiredKey)
+						if err != nil {
+							return idutil.TeamInfo{}, err
+						}
+						k.setCachedTeamInfo(tid, cachedTeamInfo)
 					}
-					k.setCachedTeamInfo(tid, cachedTeamInfo)
+
+					// If we have recently learned that the user is
+					// not a writer (e.g., of a public folder), we
+					// should rely on that cached info to avoid
+					// looking that up too often.
+					satisfiesDesires = k.getCachedNotWriter(
+						tid, desiredUser.Uid)
 				}
 			}
 		}
@@ -887,6 +932,15 @@ func (k *KeybaseServiceBase) LoadTeamPlusKeys(
 	}
 
 	k.setCachedTeamInfo(tid, info)
+
+	if desiredUser.Uid.Exists() && !info.Writers[desiredUser.Uid] &&
+		!(desiredRole == keybase1.TeamRole_NONE ||
+			desiredRole == keybase1.TeamRole_READER) {
+		// Remember that this user was not a writer for a short
+		// amount of time, to avoid repeated lookups for writers
+		// in a public folder (for example).
+		k.setCachedNotWriter(tid, desiredUser.Uid)
+	}
 
 	return info, nil
 }

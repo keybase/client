@@ -1,10 +1,11 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/common.avdl
 
 package keybase1
 
 import (
 	"errors"
+	"fmt"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -213,7 +214,7 @@ func (e TeamType) String() string {
 	if v, ok := TeamTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type CompatibilityTeamID struct {
@@ -318,7 +319,7 @@ func (e TLFVisibility) String() string {
 	if v, ok := TLFVisibilityRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type TeamIDWithVisibility struct {
@@ -386,7 +387,7 @@ func (e SeqType) String() string {
 	if v, ok := SeqTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type Bytes32 [32]byte
@@ -552,7 +553,7 @@ func (e DeviceType) String() string {
 	if v, ok := DeviceTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type Stream struct {
@@ -606,7 +607,7 @@ func (e LogLevel) String() string {
 	if v, ok := LogLevelRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type ClientType int
@@ -806,7 +807,7 @@ func (e UserOrTeamResult) String() string {
 	if v, ok := UserOrTeamResultRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type RemoteTrack struct {
@@ -944,7 +945,7 @@ func (e FullNamePackageVersion) String() string {
 	if v, ok := FullNamePackageVersionRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type FullNamePackage struct {
@@ -1018,7 +1019,7 @@ func (e IdentityVisibility) String() string {
 	if v, ok := IdentityVisibilityRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type SizedImage struct {
@@ -1056,7 +1057,7 @@ func (e OfflineAvailability) String() string {
 	if v, ok := OfflineAvailabilityRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type ReacjiSkinTone int

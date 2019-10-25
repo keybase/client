@@ -159,6 +159,8 @@ type usernameLoginUI struct {
 	username string
 }
 
+var _ libkb.LoginUI = (*usernameLoginUI)(nil)
+
 func (s usernameLoginUI) GetEmailOrUsername(contextOld.Context, int) (string, error) {
 	return s.username, nil
 }
@@ -171,8 +173,8 @@ func (s usernameLoginUI) DisplayPaperKeyPhrase(contextOld.Context, keybase1.Disp
 func (s usernameLoginUI) DisplayPrimaryPaperKey(contextOld.Context, keybase1.DisplayPrimaryPaperKeyArg) error {
 	return nil
 }
-func (s usernameLoginUI) PromptResetAccount(_ context.Context, arg keybase1.PromptResetAccountArg) (bool, error) {
-	return false, nil
+func (s usernameLoginUI) PromptResetAccount(_ context.Context, arg keybase1.PromptResetAccountArg) (keybase1.ResetPromptResponse, error) {
+	return keybase1.ResetPromptResponse_NOTHING, nil
 }
 func (s usernameLoginUI) DisplayResetProgress(_ context.Context, arg keybase1.DisplayResetProgressArg) error {
 	return nil
@@ -182,6 +184,12 @@ func (s usernameLoginUI) ExplainDeviceRecovery(_ context.Context, arg keybase1.E
 }
 func (s usernameLoginUI) PromptPassphraseRecovery(_ context.Context, arg keybase1.PromptPassphraseRecoveryArg) (bool, error) {
 	return false, nil
+}
+func (s usernameLoginUI) ChooseDeviceToRecoverWith(_ context.Context, arg keybase1.ChooseDeviceToRecoverWithArg) (keybase1.DeviceID, error) {
+	return "", nil
+}
+func (s usernameLoginUI) DisplayResetMessage(_ context.Context, arg keybase1.DisplayResetMessageArg) error {
+	return nil
 }
 
 func (d *smuDeviceWrapper) popClone() *libkb.TestContext {

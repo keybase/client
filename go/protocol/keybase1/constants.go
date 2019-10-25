@@ -1,9 +1,10 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/constants.avdl
 
 package keybase1
 
 import (
+	"fmt"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -181,6 +182,9 @@ const (
 	StatusCode_SCTeamProvisionalCanKey                     StatusCode = 2721
 	StatusCode_SCTeamProvisionalCannotKey                  StatusCode = 2722
 	StatusCode_SCTeamFTLOutdated                           StatusCode = 2736
+	StatusCode_SCTeamStorageWrongRevision                  StatusCode = 2760
+	StatusCode_SCTeamStorageBadGeneration                  StatusCode = 2761
+	StatusCode_SCTeamStorageNotFound                       StatusCode = 2762
 	StatusCode_SCEphemeralKeyBadGeneration                 StatusCode = 2900
 	StatusCode_SCEphemeralKeyUnexpectedBox                 StatusCode = 2901
 	StatusCode_SCEphemeralKeyMissingBox                    StatusCode = 2902
@@ -411,6 +415,9 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCTeamProvisionalCanKey":                     2721,
 	"SCTeamProvisionalCannotKey":                  2722,
 	"SCTeamFTLOutdated":                           2736,
+	"SCTeamStorageWrongRevision":                  2760,
+	"SCTeamStorageBadGeneration":                  2761,
+	"SCTeamStorageNotFound":                       2762,
 	"SCEphemeralKeyBadGeneration":                 2900,
 	"SCEphemeralKeyUnexpectedBox":                 2901,
 	"SCEphemeralKeyMissingBox":                    2902,
@@ -639,6 +646,9 @@ var StatusCodeRevMap = map[StatusCode]string{
 	2721: "SCTeamProvisionalCanKey",
 	2722: "SCTeamProvisionalCannotKey",
 	2736: "SCTeamFTLOutdated",
+	2760: "SCTeamStorageWrongRevision",
+	2761: "SCTeamStorageBadGeneration",
+	2762: "SCTeamStorageNotFound",
 	2900: "SCEphemeralKeyBadGeneration",
 	2901: "SCEphemeralKeyUnexpectedBox",
 	2902: "SCEphemeralKeyMissingBox",
@@ -699,7 +709,7 @@ func (e StatusCode) String() string {
 	if v, ok := StatusCodeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type ConstantsInterface interface {

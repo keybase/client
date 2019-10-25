@@ -15,6 +15,8 @@ import {TypedActions} from '../actions/typed-actions-gen'
 import flags from '../util/feature-flags'
 
 export const syncToggleWaitingKey = 'fs:syncToggle'
+export const folderListWaitingKey = 'fs:folderList'
+export const statWaitingKey = 'fs:stat'
 
 export const defaultPath = Types.stringToPath('/keybase')
 
@@ -467,6 +469,11 @@ export const computeBadgeNumberForAll = (tlfs: Types.Tlfs): number =>
     .map(tlfType => computeBadgeNumberForTlfList(getTlfListFromType(tlfs, tlfType)))
     .reduce((sum, count) => sum + count, 0)
 
+export const getTlfPath = (path: Types.Path): Types.Path | null => {
+  const elems = Types.getPathElements(path)
+  return elems.length > 2 ? Types.pathConcat(Types.pathConcat(defaultPath, elems[1]), elems[2]) : null
+}
+
 export const getTlfListAndTypeFromPath = (
   tlfs: Types.Tlfs,
   path: Types.Path
@@ -488,13 +495,20 @@ export const getTlfListAndTypeFromPath = (
 }
 
 export const unknownTlf = makeTlf({})
-export const getTlfFromPath = (tlfs: Types.Tlfs, path: Types.Path): Types.Tlf => {
+export const getTlfFromPathInFavoritesOnly = (tlfs: Types.Tlfs, path: Types.Path): Types.Tlf => {
   const elems = Types.getPathElements(path)
   if (elems.length < 3) {
     return unknownTlf
   }
   const {tlfList} = getTlfListAndTypeFromPath(tlfs, path)
   return tlfList.get(elems[2]) || unknownTlf
+}
+
+export const getTlfFromPath = (tlfs: Types.Tlfs, path: Types.Path): Types.Tlf => {
+  const fromFavorites = getTlfFromPathInFavoritesOnly(tlfs, path)
+  return fromFavorites !== unknownTlf
+    ? fromFavorites
+    : tlfs.additionalTlfs.get(getTlfPath(path)) || unknownTlf
 }
 
 export const getTlfFromTlfs = (tlfs: Types.Tlfs, tlfType: Types.TlfType, name: string): Types.Tlf => {
@@ -898,11 +912,6 @@ export const humanizeBytesOfTotal = (n: number, d: number): string => {
     return `${(n / mb).toFixed(2)} of ${(d / mb).toFixed(2)} MB`
   }
   return `${(n / gb).toFixed(2)} of ${(d / gb).toFixed(2)} GB`
-}
-
-export const getTlfPath = (path: Types.Path): Types.Path | null => {
-  const elems = Types.getPathElements(path)
-  return elems.length > 2 ? Types.pathConcat(Types.pathConcat(defaultPath, elems[1]), elems[2]) : null
 }
 
 export const hasPublicTag = (path: Types.Path): boolean => {

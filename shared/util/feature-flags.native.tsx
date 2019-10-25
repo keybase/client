@@ -11,7 +11,7 @@ const ff: FeatureFlags = {
   chatIndexProfilingEnabled: false,
   conflictResolution: false,
   dbCleanEnabled: false,
-  fastAccountSwitch: false,
+  fastAccountSwitch: true,
   foldersInProfileTab: false,
   kbfsOfflineMode: false,
   lagRadar: false,
@@ -20,8 +20,8 @@ const ff: FeatureFlags = {
   outOfDateBanner: false,
   plansEnabled: false,
   proofProviders: true,
-  resetPipeline: true,
   stellarExternalPartners: true,
+  userBlocking: true,
 }
 
 // load overrides

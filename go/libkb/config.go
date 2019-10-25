@@ -24,6 +24,8 @@ type JSONConfigFile struct {
 	userConfigWrapper *UserConfigWrapper
 }
 
+var _ (ConfigReader) = (*JSONConfigFile)(nil)
+
 func NewJSONConfigFile(g *GlobalContext, s string) *JSONConfigFile {
 	return &JSONConfigFile{NewJSONFile(g, s, "config"), &UserConfigWrapper{}}
 }
@@ -50,10 +52,6 @@ func (f *JSONConfigFile) GetDurationAtPath(p string) (time.Duration, bool) {
 		return 0, false
 	}
 	return d, true
-}
-
-func (f *JSONConfigFile) GetUpgradePerUserKey() (bool, bool) {
-	return false, false
 }
 
 func (f *JSONConfigFile) GetTopLevelString(s string) (ret string) {
@@ -573,6 +571,9 @@ func (f *JSONConfigFile) IsCertPinningEnabled() bool {
 func (f *JSONConfigFile) GetDebug() (bool, bool) {
 	return f.GetTopLevelBool("debug")
 }
+func (f *JSONConfigFile) GetDebugJourneycard() (bool, bool) {
+	return f.GetTopLevelBool("debug_journeycard")
+}
 func (f *JSONConfigFile) GetDisplayRawUntrustedOutput() (bool, bool) {
 	return f.GetTopLevelBool("display_raw_untrusted_output")
 }
@@ -597,6 +598,12 @@ func (f *JSONConfigFile) GetRememberPassphrase(username NormalizedUsername) (boo
 		}
 	}
 	return f.GetTopLevelBool(legacyRememberPassphraseKey)
+}
+func (f *JSONConfigFile) GetStayLoggedOut() (bool, bool) {
+	return f.GetBoolAtPath("stay_logged_out")
+}
+func (f *JSONConfigFile) SetStayLoggedOut(stayLoggedOut bool) error {
+	return f.SetBoolAtPath("stay_logged_out", stayLoggedOut)
 }
 func (f *JSONConfigFile) GetLogFormat() string {
 	return f.GetTopLevelString("log_format")

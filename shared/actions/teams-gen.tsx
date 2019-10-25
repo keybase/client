@@ -95,9 +95,9 @@ type _AddUserToTeamsPayload = {
   readonly user: string
 }
 type _BadgeAppForTeamsPayload = {
-  readonly deletedTeams: I.List<RPCTypes.DeletedTeamInfo>
-  readonly newTeamNames: I.List<string>
-  readonly newTeamAccessRequests: I.List<string>
+  readonly deletedTeams: Array<RPCTypes.DeletedTeamInfo>
+  readonly newTeamNames: Array<string>
+  readonly newTeamAccessRequests: Array<string>
   readonly teamsWithResetUsers: ReadonlyArray<{id: Buffer; teamname: string; username: string; uid: string}>
 }
 type _CheckRequestedAccessPayload = {readonly teamname: string}
@@ -144,7 +144,7 @@ type _GetChannelInfoPayload = {
 }
 type _GetChannelsPayload = {readonly teamname: string}
 type _GetDetailsForAllTeamsPayload = void
-type _GetDetailsPayload = {readonly teamname: string}
+type _GetDetailsPayload = {readonly teamname: string; readonly clearInviteLoadingKey?: string}
 type _GetMembersPayload = {readonly teamname: string}
 type _GetTeamOperationsPayload = {readonly teamname: string}
 type _GetTeamProfileAddListPayload = {readonly username: string}
@@ -159,12 +159,14 @@ type _InviteToTeamByEmailPayload = {
   readonly rootPath?: I.List<string>
   readonly sourceSubPath?: I.List<string>
   readonly teamname: string
+  readonly loadingKey?: string
 }
 type _InviteToTeamByPhonePayload = {
   readonly teamname: string
   readonly role: Types.TeamRoleType
   readonly phoneNumber: string
   readonly fullName: string
+  readonly loadingKey?: string
 }
 type _JoinTeamPayload = {readonly teamname: string}
 type _LeaveTeamPayload = {readonly teamname: string; readonly context: 'teams' | 'chat'}
@@ -175,6 +177,7 @@ type _RemoveMemberOrPendingInvitePayload = {
   readonly teamname: string
   readonly username: string
   readonly inviteID: string
+  readonly loadingKey?: string
 }
 type _RemoveParticipantPayload = {
   readonly teamname: string
@@ -193,13 +196,13 @@ type _SetEmailInviteErrorPayload = {readonly message: string; readonly malformed
 type _SetMemberPublicityPayload = {readonly teamname: string; readonly showcase: boolean}
 type _SetMembersPayload = {readonly teamname: string; readonly members: I.Map<string, Types.MemberInfo>}
 type _SetNewTeamInfoPayload = {
-  readonly deletedTeams: I.List<RPCTypes.DeletedTeamInfo>
-  readonly newTeams: I.Set<string>
-  readonly newTeamRequests: I.List<string>
+  readonly deletedTeams: Array<RPCTypes.DeletedTeamInfo>
+  readonly newTeams: Set<string>
+  readonly newTeamRequests: Array<string>
   readonly teamNameToResetUsers: I.Map<Types.Teamname, I.Set<Types.ResetUser>>
 }
 type _SetPublicityPayload = {readonly teamname: string; readonly settings: Types.PublicitySettings}
-type _SetTeamAccessRequestsPendingPayload = {readonly accessRequestsPending: I.Set<Types.Teamname>}
+type _SetTeamAccessRequestsPendingPayload = {readonly accessRequestsPending: Set<Types.Teamname>}
 type _SetTeamCanPerformPayload = {readonly teamname: string; readonly teamOperation: Types.TeamOperations}
 type _SetTeamChannelInfoPayload = {
   readonly teamname: string
@@ -212,31 +215,33 @@ type _SetTeamChannelsPayload = {
 }
 type _SetTeamCreationErrorPayload = {readonly error: string}
 type _SetTeamDetailsPayload = {
+  readonly teamID: Types.TeamID
   readonly teamname: string
-  readonly members: I.Map<string, Types.MemberInfo>
-  readonly settings: Types.TeamSettings
-  readonly invites: I.Set<Types.InviteInfo>
-  readonly subteams: I.Set<Types.Teamname>
-  readonly requests: I.Map<string, I.Set<Types.RequestInfo>>
+  readonly members: RPCTypes.TeamMembersDetails
+  readonly settings: RPCTypes.TeamSettings
+  readonly invites: Array<Types._InviteInfo>
+  readonly subteams: Array<Types.Teamname>
+  readonly requests: Map<string, Array<string>>
 }
 type _SetTeamInfoPayload = {
-  readonly teamnames: I.Set<Types.Teamname>
+  readonly teamnames: Set<Types.Teamname>
   readonly teammembercounts: I.Map<Types.Teamname, number>
   readonly teamNameToIsOpen: I.Map<Types.Teamname, boolean>
   readonly teamNameToRole: I.Map<Types.Teamname, Types.MaybeTeamRoleType>
   readonly teamNameToAllowPromote: I.Map<Types.Teamname, boolean>
   readonly teamNameToIsShowcasing: I.Map<Types.Teamname, boolean>
   readonly teamNameToID: I.Map<Types.Teamname, string>
+  readonly teamDetails: Map<Types.TeamID, Types.TeamDetails>
 }
 type _SetTeamInviteErrorPayload = {readonly error: string}
 type _SetTeamJoinErrorPayload = {readonly error: string}
 type _SetTeamJoinSuccessPayload = {readonly success: boolean; readonly teamname: string}
 type _SetTeamLoadingInvitesPayload = {
   readonly teamname: string
-  readonly invitees: string
-  readonly loadingInvites: boolean
+  readonly loadingKey: string
+  readonly isLoading: boolean
 }
-type _SetTeamProfileAddListPayload = {readonly teamlist: I.List<Types.TeamProfileAddList>}
+type _SetTeamProfileAddListPayload = {readonly teamlist: Array<Types.TeamProfileAddList>}
 type _SetTeamPublicitySettingsPayload = {
   readonly teamname: string
   readonly publicity: Types._PublicitySettings
@@ -244,7 +249,7 @@ type _SetTeamPublicitySettingsPayload = {
 type _SetTeamRetentionPolicyPayload = {readonly teamname: string; readonly retentionPolicy: RetentionPolicy}
 type _SetTeamSawChatBannerPayload = void
 type _SetTeamSawSubteamsBannerPayload = void
-type _SetTeamsWithChosenChannelsPayload = {readonly teamsWithChosenChannels: I.Set<Types.Teamname>}
+type _SetTeamsWithChosenChannelsPayload = {readonly teamsWithChosenChannels: Set<Types.Teamname>}
 type _SetUpdatedChannelNamePayload = {
   readonly teamname: Types.Teamname
   readonly conversationIDKey: ChatTypes.ConversationIDKey

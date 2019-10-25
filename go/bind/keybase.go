@@ -174,6 +174,7 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 
 	// 10k uid -> FullName cache entries allowed
 	kbCtx.SetUIDMapper(uidmap.NewUIDMap(10000))
+	kbCtx.SetServiceSummaryMapper(uidmap.NewServiceSummaryMap(1000))
 	usage := libkb.Usage{
 		Config:    true,
 		API:       true,

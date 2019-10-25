@@ -351,6 +351,8 @@ type testProvisionUI struct {
 	backupKey  backupKey
 }
 
+var _ libkb.LoginUI = (*testProvisionUI)(nil)
+
 func (r *testProvisionUI) GetEmailOrUsername(context.Context, int) (string, error) {
 	return r.username, nil
 }
@@ -397,8 +399,8 @@ func (r *testProvisionUI) GetPassphrase(context.Context, keybase1.GetPassphraseA
 	ret.Passphrase = r.backupKey.secret
 	return ret, nil
 }
-func (r *testProvisionUI) PromptResetAccount(_ context.Context, arg keybase1.PromptResetAccountArg) (bool, error) {
-	return false, nil
+func (r *testProvisionUI) PromptResetAccount(_ context.Context, arg keybase1.PromptResetAccountArg) (keybase1.ResetPromptResponse, error) {
+	return keybase1.ResetPromptResponse_NOTHING, nil
 }
 func (r *testProvisionUI) DisplayResetProgress(_ context.Context, arg keybase1.DisplayResetProgressArg) error {
 	return nil
@@ -408,6 +410,12 @@ func (r *testProvisionUI) ExplainDeviceRecovery(_ context.Context, arg keybase1.
 }
 func (r *testProvisionUI) PromptPassphraseRecovery(_ context.Context, arg keybase1.PromptPassphraseRecoveryArg) (bool, error) {
 	return false, nil
+}
+func (r *testProvisionUI) ChooseDeviceToRecoverWith(_ context.Context, arg keybase1.ChooseDeviceToRecoverWithArg) (keybase1.DeviceID, error) {
+	return "", nil
+}
+func (r *testProvisionUI) DisplayResetMessage(_ context.Context, arg keybase1.DisplayResetMessageArg) error {
+	return nil
 }
 
 func (s *testDeviceSet) findNewKIDs(newList []keybase1.KID) []keybase1.KID {

@@ -32,7 +32,6 @@ import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {RPCError} from '../../util/errors'
 import HiddenString from '../../util/hidden-string'
 import {TypedActions, TypedState} from '../../util/container'
-import {store} from 'emoji-mart'
 
 const onConnect = async () => {
   try {
@@ -247,18 +246,23 @@ const maybeChangeSelectedConv = (
   ) {
     if (isMobile) {
       // on mobile just head back to the inbox if we have something selected
-      return Constants.isValidConversationIDKey(state.chat2.selectedConversation)
-        ? Chat2Gen.createNavigateToInbox()
-        : false
+      if (Constants.isValidConversationIDKey(state.chat2.selectedConversation)) {
+        logger.info(`maybeChangeSelectedConv: mobile: navigating up on conv change`)
+        return Chat2Gen.createNavigateToInbox()
+      }
+      logger.info(`maybeChangeSelectedConv: mobile: ignoring conv change, no conv selected`)
+      return false
     }
     if (state.chat2.inboxLayout.reselectInfo.newConvID) {
-      logger.info(`onChatInboxLayout: selecting new conv: ${state.chat2.inboxLayout.reselectInfo.newConvID}`)
+      logger.info(
+        `maybeChangeSelectedConv: selecting new conv: ${state.chat2.inboxLayout.reselectInfo.newConvID}`
+      )
       return Chat2Gen.createSelectConversation({
         conversationIDKey: state.chat2.inboxLayout.reselectInfo.newConvID,
         reason: 'findNewestConversation',
       })
     } else {
-      logger.info(`onChatInboxLayout: deselecting conv, service provided no new conv`)
+      logger.info(`maybeChangeSelectedConv: deselecting conv, service provided no new conv`)
       return Chat2Gen.createSelectConversation({
         conversationIDKey: Constants.noConversationIDKey,
         reason: 'clearSelected',
@@ -266,7 +270,7 @@ const maybeChangeSelectedConv = (
     }
   } else {
     logger.info(
-      `onChatInboxLayout: selected conv mismatch on reselect (ignoring): selected: ${
+      `maybeChangeSelectedConv: selected conv mismatch on reselect (ignoring): selected: ${
         state.chat2.selectedConversation
       } srvold: ${state.chat2.inboxLayout.reselectInfo.oldConvID}`
     )
@@ -321,7 +325,7 @@ const onIncomingMessage = (
 
   if (convID && cMsg) {
     const conversationIDKey = Types.conversationIDToKey(convID)
-    const shouldAddMessage = state.chat2.containsLatestMessageMap.get(conversationIDKey, false)
+    const shouldAddMessage = state.chat2.containsLatestMessageMap.get(conversationIDKey) || false
     const message = Constants.uiMessageToMessage(state, conversationIDKey, cMsg)
     if (message) {
       // The attachmentuploaded call is like an 'edit' of an attachment. We get the placeholder, then its replaced by the actual image
@@ -461,7 +465,6 @@ const onErrorMessage = (outboxRecords: Array<RPCChatTypes.OutboxRecord>) => {
     const s = outboxRecord.state
     if (s.state === RPCChatTypes.OutboxStateType.error) {
       const error = s.error
-
       const conversationIDKey = Types.conversationIDToKey(outboxRecord.convID)
       const outboxID = Types.rpcOutboxIDToOutboxID(outboxRecord.outboxID)
 
@@ -474,7 +477,7 @@ const onErrorMessage = (outboxRecords: Array<RPCChatTypes.OutboxRecord>) => {
           const match = error.message.match(/"(.*)"/)
           tempForceRedBox = match && match[1]
         }
-        arr.push(Chat2Gen.createMessageErrored({conversationIDKey, outboxID, reason}))
+        arr.push(Chat2Gen.createMessageErrored({conversationIDKey, errorTyp: error.typ, outboxID, reason}))
         if (tempForceRedBox) {
           arr.push(UsersGen.createUpdateBrokenState({newlyBroken: [tempForceRedBox], newlyFixed: []}))
         }
@@ -766,7 +769,9 @@ const onChatSetConvSettings = (
       conv.convSettings.minWriterRoleInfo &&
       conv.convSettings.minWriterRoleInfo.cannotWrite) ||
     false
-  logger.info(`got new minWriterRole ${role || ''} for convID ${conversationIDKey}`)
+  logger.info(
+    `got new minWriterRole ${role || ''} for convID ${conversationIDKey}, cannotWrite ${cannotWrite}`
+  )
   if (role && role !== 'none' && cannotWrite !== undefined) {
     return Chat2Gen.createSaveMinWriterRole({cannotWrite, conversationIDKey, role})
   }
@@ -950,6 +955,17 @@ const onNewChatActivity = (
     }
   }
   return actions
+}
+
+const onChatConvUpdate = (state: TypedState, action: EngineGen.Chat1NotifyChatChatConvUpdatePayload) => {
+  const {conv} = action.payload.params
+  if (conv) {
+    const meta = Constants.inboxUIItemToConversationMeta(state, conv)
+    if (meta) {
+      return [Chat2Gen.createMetasReceived({metas: [meta]})]
+    }
+  }
+  return []
 }
 
 const loadThreadMessageTypes = Object.keys(RPCChatTypes.MessageType)
@@ -1930,6 +1946,8 @@ const onUpdateUserReacjis = (state: TypedState) => {
     i++
     reacjis[el] = userReacjis.topReacjis.length - i
   })
+
+  const {store} = require('emoji-mart')
   store.setHandlers({
     getter: key => {
       switch (key) {
@@ -2180,7 +2198,10 @@ const markThreadAsRead = async (
 
   // Check to see if we do not have the latest message, and don't mark anything as read in that case
   // If we have no information at all, then just mark as read
-  if (!state.chat2.containsLatestMessageMap.get(conversationIDKey, true)) {
+  if (
+    !state.chat2.containsLatestMessageMap.has(conversationIDKey) ||
+    !state.chat2.containsLatestMessageMap.get(conversationIDKey)
+  ) {
     logger.info('bail on not containing latest message')
     return
   }
@@ -2189,7 +2210,7 @@ const markThreadAsRead = async (
   const mmap = state.chat2.messageMap.get(conversationIDKey)
   if (mmap) {
     const ordinals = Constants.getMessageOrdinals(state, conversationIDKey)
-    const ordinal = ordinals.findLast(o => {
+    const ordinal = [...ordinals].reverse().find(o => {
       const m = mmap.get(o)
       return m ? !!m.id : false
     })
@@ -2258,6 +2279,10 @@ function* loadChannelInfos(state: TypedState, action: Chat2Gen.SelectConversatio
   }
 }
 
+const clearModalsFromConvEvent = () => {
+  return RouteTreeGen.createClearModals()
+}
+
 // Helpers to nav you to the right place
 const navigateToInbox = (
   _: TypedState,
@@ -2266,6 +2291,7 @@ const navigateToInbox = (
     | Chat2Gen.LeaveConversationPayload
     | TeamsGen.LeaveTeamPayload
     | TeamsGen.LeftTeamPayload
+    | TeamsGen.DeleteChannelConfirmedPayload
 ) => {
   if (action.type === Chat2Gen.leaveConversation && action.payload.dontNavigateToInbox) {
     return
@@ -2314,35 +2340,54 @@ const navigateToThread = (state: TypedState) => {
   return navigateToThreadRoute(state.chat2.selectedConversation)
 }
 
-const ensureSelectedTeamLoaded = (state: TypedState, action: Chat2Gen.MetasReceivedPayload) => {
-  const metas = action.payload.metas
-  const filtered = metas.filter(m => m.conversationIDKey === state.chat2.selectedConversation)
-  if (filtered.length === 0) {
-    return false
-  }
-  const meta = filtered[0]
+const maybeLoadTeamFromMeta = (meta: Types.ConversationMeta) => {
   const teamname = meta.teamname
   if (!meta.teamname) {
-    return false
-  }
-  const members = state.teams.teamNameToMembers.get(teamname)
-  if (members) {
     return false
   }
   return TeamsGen.createGetMembers({teamname})
 }
 
+const ensureSelectedTeamLoaded = (state: TypedState, action: Chat2Gen.MetasReceivedPayload) => {
+  const metas = action.payload.metas
+  const meta = metas.find(m => m.conversationIDKey === state.chat2.selectedConversation)
+  if (!meta) {
+    return false
+  }
+  return maybeLoadTeamFromMeta(meta)
+}
+
 const ensureSelectedMeta = (state: TypedState) => {
   const meta = state.chat2.metaMap.get(state.chat2.selectedConversation)
-  if (!meta) {
-    return Chat2Gen.createMetaRequestTrusted({
-      conversationIDKeys: [state.chat2.selectedConversation],
-      force: true,
-      noWaiting: true,
-      reason: 'ensureSelectedMeta',
-    })
+  return !meta
+    ? Chat2Gen.createMetaRequestTrusted({
+        conversationIDKeys: [state.chat2.selectedConversation],
+        force: true,
+        noWaiting: true,
+        reason: 'ensureSelectedMeta',
+      })
+    : maybeLoadTeamFromMeta(meta)
+}
+
+const ensureWidgetMetas = (state: TypedState) => {
+  if (!state.chat2.inboxLayout || !state.chat2.inboxLayout.widgetList) {
+    return false
   }
-  return false
+  const missing = state.chat2.inboxLayout.widgetList.reduce<Array<Types.ConversationIDKey>>((l, v) => {
+    if (!state.chat2.metaMap.get(v.convID)) {
+      l.push(v.convID)
+    }
+    return l
+  }, [])
+  if (missing.length === 0) {
+    return false
+  }
+  return Chat2Gen.createMetaRequestTrusted({
+    conversationIDKeys: missing,
+    force: true,
+    noWaiting: true,
+    reason: 'ensureWidgetMetas',
+  })
 }
 
 const refreshPreviousSelected = (state: TypedState) => {
@@ -3280,6 +3325,7 @@ function* chat2Saga() {
     maybeChangeSelectedConv,
     'maybeChangeSelectedConv'
   )
+  yield* Saga.chainAction2(EngineGen.chat1ChatUiChatInboxLayout, ensureWidgetMetas, 'ensureWidgetMetas')
 
   // Load the selected thread
   yield* Saga.chainGenerator<
@@ -3380,7 +3426,11 @@ function* chat2Saga() {
     markThreadAsRead,
     'markThreadAsRead'
   )
-
+  yield* Saga.chainAction2(
+    [Chat2Gen.leaveConversation, TeamsGen.leaveTeam, TeamsGen.leftTeam, TeamsGen.deleteChannelConfirmed],
+    clearModalsFromConvEvent,
+    'clearModalsFromConvEvent'
+  )
   yield* Saga.chainAction2(
     [Chat2Gen.navigateToInbox, Chat2Gen.leaveConversation, TeamsGen.leaveTeam, TeamsGen.leftTeam],
     navigateToInbox,
@@ -3581,6 +3631,7 @@ function* chat2Saga() {
   yield* Saga.chainAction2(EngineGen.connected, onConnect, 'onConnect')
 
   yield* chatTeamBuildingSaga()
+  yield* Saga.chainAction2(EngineGen.chat1NotifyChatChatConvUpdate, onChatConvUpdate, 'onChatConvUpdate')
 }
 
 export default chat2Saga

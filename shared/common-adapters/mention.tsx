@@ -36,12 +36,12 @@ export default ({username, theme, style, allowFontScaling, onClick}: Props) => {
 
 const styles = Styles.styleSheetCreate(() => ({
   follow: {
-    backgroundColor: Styles.globalColors.greenOrGreenLighter,
+    backgroundColor: Styles.globalColors.greenLighterOrGreen,
     borderRadius: 2,
-    color: Styles.globalColors.whiteOrGreenDark,
+    color: Styles.globalColors.greenDarkOrBlack,
   },
   highlight: {
-    backgroundColor: Styles.globalColors.yellowOrYellowLight,
+    backgroundColor: Styles.globalColors.yellowOrYellowAlt,
     borderRadius: 2,
     color: Styles.globalColors.blackOrBlack,
   },

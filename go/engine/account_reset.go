@@ -160,13 +160,24 @@ func (e *AccountReset) Run(mctx libkb.MetaContext) (err error) {
 	if willVerifyUnverifiedState {
 		// If we got here, then we supplied a correct passphrase thus verifying
 		// a pipeline that was previously in START.
-		mctx.G().Log.Info("Your account's reset request is now verified.")
+		if err := mctx.UIs().LoginUI.DisplayResetMessage(mctx.Ctx(), keybase1.DisplayResetMessageArg{
+			Kind: keybase1.ResetMessage_REQUEST_VERIFIED,
+		}); err != nil {
+			return err
+		}
 	} else {
-		mctx.G().Log.Info("Your account has been added to the reset pipeline.")
-		if !self {
-			mctx.G().Log.Info("Please check your email and phone for instructions on continuing. If you remember your correct password or you want to resend verification emails and texts, retry this command.")
+		if self {
+			if err := mctx.UIs().LoginUI.DisplayResetMessage(mctx.Ctx(), keybase1.DisplayResetMessageArg{
+				Kind: keybase1.ResetMessage_ENTERED_PASSWORDLESS,
+			}); err != nil {
+				return err
+			}
 		} else {
-			mctx.G().Log.Info("To check the status of your reset request, login again with your Keybase password.")
+			if err := mctx.UIs().LoginUI.DisplayResetMessage(mctx.Ctx(), keybase1.DisplayResetMessageArg{
+				Kind: keybase1.ResetMessage_ENTERED_VERIFIED,
+			}); err != nil {
+				return err
+			}
 		}
 	}
 	e.resetPending = true
@@ -230,16 +241,26 @@ func (e *AccountReset) loadResetStatus(mctx libkb.MetaContext) (*accountResetSta
 func (e *AccountReset) resetPrompt(mctx libkb.MetaContext, status *accountResetStatusResponse) error {
 	if status.EventType == libkb.AutoresetEventReady {
 		// Ask the user if they'd like to reset if we're in login + it's ready
-		shouldReset, err := mctx.UIs().LoginUI.PromptResetAccount(mctx.Ctx(), keybase1.PromptResetAccountArg{
+		response, err := mctx.UIs().LoginUI.PromptResetAccount(mctx.
+			Ctx(), keybase1.PromptResetAccountArg{
 			Prompt: keybase1.NewResetPromptWithComplete(keybase1.ResetPromptInfo{HasWallet: status.HasWallet}),
 		})
 		if err != nil {
 			return err
 		}
-		if !shouldReset {
+		if response == keybase1.ResetPromptResponse_NOTHING {
 			// noop
-			mctx.Info("Reset not completed.")
-			return nil
+			return mctx.UIs().LoginUI.DisplayResetMessage(mctx.Ctx(), keybase1.DisplayResetMessageArg{
+				Kind: keybase1.ResetMessage_NOT_COMPLETED,
+			})
+		} else if response == keybase1.ResetPromptResponse_CANCEL_RESET {
+			// noop
+			if err := mctx.UIs().LoginUI.DisplayResetMessage(mctx.Ctx(), keybase1.DisplayResetMessageArg{
+				Kind: keybase1.ResetMessage_CANCELED,
+			}); err != nil {
+				return err
+			}
+			return libkb.CancelResetPipeline(mctx)
 		}
 
 		arg := libkb.NewAPIArg("autoreset/reset")
@@ -251,7 +272,11 @@ func (e *AccountReset) resetPrompt(mctx libkb.MetaContext, status *accountResetS
 		if _, err := mctx.G().API.Post(mctx, arg); err != nil {
 			return err
 		}
-		mctx.G().Log.Info("Your account has been reset.")
+		if err := mctx.UIs().LoginUI.DisplayResetMessage(mctx.Ctx(), keybase1.DisplayResetMessageArg{
+			Kind: keybase1.ResetMessage_COMPLETED,
+		}); err != nil {
+			return err
+		}
 
 		e.resetComplete = true
 		return nil

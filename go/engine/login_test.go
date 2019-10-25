@@ -598,7 +598,7 @@ func TestProvisionAutoreset(t *testing.T) {
 		ProvisionUI: newTestProvisionUIChooseNoDevice(),
 		LoginUI: &libkb.TestLoginUI{
 			Username:     userX.Username,
-			ResetAccount: true,
+			ResetAccount: keybase1.ResetPromptResponse_CONFIRM_RESET,
 		},
 		LogUI:    tcY.G.UI.GetLogUI(),
 		SecretUI: &libkb.TestSecretUI{Passphrase: userX.Passphrase},
@@ -630,7 +630,7 @@ func TestProvisionAutoreset(t *testing.T) {
 		ProvisionUI: newTestProvisionUIChooseNoDevice(),
 		LoginUI: &libkb.TestLoginUI{
 			Username:     userX.Username,
-			ResetAccount: true,
+			ResetAccount: keybase1.ResetPromptResponse_CONFIRM_RESET,
 		},
 		LogUI:    tcY.G.UI.GetLogUI(),
 		SecretUI: &libkb.TestSecretUI{Passphrase: userX.Passphrase},
@@ -4111,6 +4111,8 @@ type paperLoginUI struct {
 	PaperPhrase string
 }
 
+var _ libkb.LoginUI = (*paperLoginUI)(nil)
+
 func (p *paperLoginUI) GetEmailOrUsername(_ context.Context, _ int) (string, error) {
 	return p.Username, nil
 }
@@ -4128,8 +4130,8 @@ func (p *paperLoginUI) DisplayPrimaryPaperKey(_ context.Context, arg keybase1.Di
 	return nil
 }
 
-func (p *paperLoginUI) PromptResetAccount(_ context.Context, arg keybase1.PromptResetAccountArg) (bool, error) {
-	return false, nil
+func (p *paperLoginUI) PromptResetAccount(_ context.Context, arg keybase1.PromptResetAccountArg) (keybase1.ResetPromptResponse, error) {
+	return keybase1.ResetPromptResponse_NOTHING, nil
 }
 
 func (p *paperLoginUI) DisplayResetProgress(_ context.Context, arg keybase1.DisplayResetProgressArg) error {
@@ -4142,6 +4144,14 @@ func (p *paperLoginUI) ExplainDeviceRecovery(_ context.Context, arg keybase1.Exp
 
 func (p *paperLoginUI) PromptPassphraseRecovery(_ context.Context, arg keybase1.PromptPassphraseRecoveryArg) (bool, error) {
 	return false, nil
+}
+
+func (p *paperLoginUI) ChooseDeviceToRecoverWith(_ context.Context, arg keybase1.ChooseDeviceToRecoverWithArg) (keybase1.DeviceID, error) {
+	return "", nil
+}
+
+func (p *paperLoginUI) DisplayResetMessage(_ context.Context, arg keybase1.DisplayResetMessageArg) error {
+	return nil
 }
 
 func signString(tc libkb.TestContext, input string, secUI libkb.SecretUI) error {

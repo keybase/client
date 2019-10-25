@@ -2,13 +2,17 @@ import * as React from 'react'
 import {StylesCrossPlatform} from '../styles'
 
 export type AnimationType =
+  | 'darkMessageStatusEncrypting'
+  | 'darkMessageStatusError'
+  | 'darkMessageStatusSending'
+  | 'darkMessageStatusSent'
   | 'disconnected'
   | 'loadingInfinity'
   | 'messageStatusEncrypting'
   | 'messageStatusError'
   | 'messageStatusSending'
   | 'messageStatusSent'
-  | 'spinnerGrey'
+  | 'spinner'
   | 'spinnerWhite'
   | 'typing'
 

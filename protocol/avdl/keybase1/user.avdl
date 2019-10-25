@@ -124,6 +124,7 @@ protocol user {
     UID uid;
     string username;
     string fullname;
+    map<string, string> serviceMap;
   }
   array<InterestingPerson> interestingPeople(int maxUsers);
 
@@ -155,6 +156,7 @@ protocol user {
     boolean belowFold;
     string profileText; // "Prove your Twitter", "Add a PGP key"
     array<SizedImage> profileIcon;
+    array<SizedImage> profileIconWhite;
     string pickerText; // "Twitter", "Your own website", "octodon.xyz"
     string pickerSubtext; // "twitter.com", "Mastodon instance"
     array<SizedImage> pickerIcon;

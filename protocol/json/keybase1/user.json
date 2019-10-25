@@ -229,6 +229,14 @@
         {
           "type": "string",
           "name": "fullname"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "string",
+            "keys": "string"
+          },
+          "name": "serviceMap"
         }
       ]
     },
@@ -271,6 +279,13 @@
             "items": "SizedImage"
           },
           "name": "profileIcon"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SizedImage"
+          },
+          "name": "profileIconWhite"
         },
         {
           "type": "string",

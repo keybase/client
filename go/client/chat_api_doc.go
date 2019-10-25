@@ -114,4 +114,7 @@ Pin a message to a chat:
 
 Unpin the message of chat:
    {"method": "unpin", "params": {"options": {"channel": {"name": "treehouse", "members_type": "team", "topic_name": "random"}}}}
+
+Get a user's device info from their username:
+   {"method": "getdeviceinfo", "params": {"options": {"username": "cjb"}}}
 `

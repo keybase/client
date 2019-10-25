@@ -35,6 +35,8 @@ export const settingsWaitingKey = (teamname: Types.Teamname) => `teamSettings:${
 export const retentionWaitingKey = (teamname: Types.Teamname) => `teamRetention:${teamname}`
 export const addMemberWaitingKey = (teamname: Types.Teamname, username: string) =>
   `teamAdd:${teamname};${username}`
+export const addInviteWaitingKey = (teamname: Types.Teamname, value: string) =>
+  `teamAddInvite:${teamname};${value}`
 // also for pending invites, hence id rather than username
 export const removeMemberWaitingKey = (teamname: Types.Teamname, id: string) => `teamRemove:${teamname};${id}`
 export const addToTeamSearchKey = 'addToTeamSearch'
@@ -100,12 +102,8 @@ export const makeInviteInfo = I.Record<Types._InviteInfo>({
   username: '',
 })
 
-export const makeRequestInfo = I.Record<Types._RequestInfo>({
-  username: '',
-})
-
-export const makeEmailInviteError = I.Record<Types._EmailInviteError>({
-  malformed: I.Set(),
+export const emptyEmailInviteError: Readonly<Types.EmailInviteError> = Object.freeze({
+  malformed: new Set<string>(),
   message: '',
 })
 
@@ -143,19 +141,20 @@ export const makeRetentionPolicy = (r?: Partial<RetentionPolicy>): RetentionPoli
   ...(r || {}),
 })
 
-export const makeState = I.Record<Types._State>({
+const emptyState: Types.State = {
   addUserToTeamsResults: '',
   addUserToTeamsState: 'notStarted',
   channelCreationError: '',
-  deletedTeams: I.List(),
-  emailInviteError: makeEmailInviteError(),
-  newTeamRequests: I.List(),
-  newTeams: I.Set(),
+  deletedTeams: [],
+  emailInviteError: emptyEmailInviteError,
+  newTeamRequests: [],
+  newTeams: new Set(),
   sawChatBanner: false,
   sawSubteamsBanner: false,
-  teamAccessRequestsPending: I.Set(),
+  teamAccessRequestsPending: new Set(),
   teamBuilding: TeamBuildingConstants.makeSubState(),
   teamCreationError: '',
+  teamDetails: new Map(),
   teamInviteError: '',
   teamJoinError: '',
   teamJoinSuccess: false,
@@ -176,11 +175,14 @@ export const makeState = I.Record<Types._State>({
   teamNameToRole: I.Map(),
   teamNameToSettings: I.Map(),
   teamNameToSubteams: I.Map(),
-  teamProfileAddList: I.List(),
+  teamProfileAddList: [],
   teammembercounts: I.Map(),
-  teamnames: I.Set(),
-  teamsWithChosenChannels: I.Set(),
-})
+  teamnames: new Set(),
+  teamsWithChosenChannels: new Set(),
+}
+
+export const makeState = (s?: Partial<Types.State>): Types.State =>
+  s ? Object.assign({...emptyState}, s) : emptyState
 
 export const initialCanUserPerform: RPCTypes.TeamOperation = {
   changeOpenTeam: false,
@@ -311,10 +313,10 @@ const getCanPerform = (state: TypedState, teamname: Types.Teamname): RPCTypes.Te
   state.teams.teamNameToCanPerform.get(teamname, initialCanUserPerform)
 
 const hasCanPerform = (state: TypedState, teamname: Types.Teamname): boolean =>
-  state.teams.hasIn(['teamNameToCanPerform', teamname])
+  state.teams.teamNameToCanPerform.has(teamname)
 
 const hasChannelInfos = (state: TypedState, teamname: Types.Teamname): boolean =>
-  state.teams.hasIn(['teamNameToChannelInfos', teamname])
+  state.teams.teamNameToChannelInfos.has(teamname)
 
 const getTeamMemberCount = (state: TypedState, teamname: Types.Teamname): number =>
   state.teams.teammembercounts.get(teamname, 0)
@@ -460,7 +462,7 @@ const isInSomeTeam = (state: TypedState): boolean =>
   !!state.teams.teamNameToRole.find(role => role !== 'none')
 
 const isAccessRequestPending = (state: TypedState, teamname: Types.Teamname): boolean =>
-  state.teams.hasIn(['teamNameAccessRequestsPending', teamname])
+  state.teams.teamAccessRequestsPending.has(teamname)
 
 const getTeamSubteams = (state: TypedState, teamname: Types.Teamname): I.Set<Types.Teamname> =>
   state.teams.teamNameToSubteams.get(teamname, I.Set())
@@ -474,7 +476,7 @@ const getTeamResetUsers = (state: TypedState, teamname: Types.Teamname): I.Set<T
 const getTeamLoadingInvites = (state: TypedState, teamname: Types.Teamname): I.Map<string, boolean> =>
   state.teams.teamNameToLoadingInvites.get(teamname) || I.Map<string, boolean>()
 
-const getTeamRequests = (state: TypedState, teamname: Types.Teamname): I.Set<Types.RequestInfo> =>
+const getTeamRequests = (state: TypedState, teamname: Types.Teamname): I.Set<string> =>
   state.teams.teamNameToRequests.get(teamname, I.Set())
 
 // Sorts teamnames canonically.
@@ -490,7 +492,7 @@ function sortTeamnames(a: string, b: string) {
   }
 }
 
-const _memoizedSorted = memoize(names => names.toArray().sort(sortTeamnames))
+const _memoizedSorted = memoize((names: Set<Types.Teamname>) => [...names].sort(sortTeamnames))
 const getSortedTeamnames = (state: TypedState): Types.Teamname[] => _memoizedSorted(state.teams.teamnames)
 
 const isAdmin = (type: Types.MaybeTeamRoleType) => type === 'admin'
@@ -586,6 +588,32 @@ export const chosenChannelsGregorKey = 'chosenChannelsForTeam'
 export const isOnTeamsTab = () => {
   const path = getFullRoute()
   return Array.isArray(path) ? path.some(p => p.routeName === teamsTab) : false
+}
+
+const emptyTeamDetails: Readonly<Types.TeamDetails> = {
+  allowPromote: false,
+  isOpen: false,
+  showcasing: false,
+  teamname: '',
+}
+
+export const makeTeamDetails = (td: Partial<Types.TeamDetails>): Types.TeamDetails =>
+  td ? Object.assign({...emptyTeamDetails}, td) : emptyTeamDetails
+
+export const teamListToDetails = (
+  list: Array<RPCTypes.AnnotatedMemberInfo>
+): Map<Types.TeamID, Types.TeamDetails> => {
+  return new Map(
+    list.map(t => [
+      t.teamID,
+      {
+        allowPromote: t.allowProfilePromote,
+        isOpen: t.isOpenTeam,
+        showcasing: t.isMemberShowcased,
+        teamname: t.fqName,
+      },
+    ])
+  )
 }
 
 export {

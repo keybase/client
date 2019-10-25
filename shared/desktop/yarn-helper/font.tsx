@@ -324,8 +324,8 @@ function updateIconConstants() {
           icon.gridSize ? [`gridSize: ${icons[name].gridSize}`] : [],
           `isFont: ${icon.isFont}`,
           icon.nameDark ? [`nameDark: ${icons[name].nameDark}`] : [],
-          icon.require ? [`require: require(${icons[name].require})`] : [],
-          icon.requireDark ? [`requireDark: require(${icons[name].requireDark})`] : [],
+          icon.require ? [`get require() {return require(${icons[name].require})}`] : [],
+          icon.requireDark ? [`get requireDark() {return require(${icons[name].requireDark})}`] : [],
         ]
 
         return `'${name}': {

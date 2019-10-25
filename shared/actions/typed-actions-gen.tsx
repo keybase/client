@@ -221,6 +221,7 @@ export type TypedActionsMap = {
   'config:daemonHandshakeDone': config.DaemonHandshakeDonePayload
   'config:filePickerError': config.FilePickerErrorPayload
   'config:logout': config.LogoutPayload
+  'config:logoutAndTryToLogInAs': config.LogoutAndTryToLogInAsPayload
   'config:logoutHandshake': config.LogoutHandshakePayload
   'config:logoutHandshakeWait': config.LogoutHandshakeWaitPayload
   'config:installerRan': config.InstallerRanPayload
@@ -260,6 +261,9 @@ export type TypedActionsMap = {
   'config:remoteWindowWantsProps': config.RemoteWindowWantsPropsPayload
   'config:updateWindowState': config.UpdateWindowStatePayload
   'config:setUseNativeFrame': config.SetUseNativeFramePayload
+  'config:setWhatsNewLastSeenVersion': config.SetWhatsNewLastSeenVersionPayload
+  'config:loadNixOnLoginStartup': config.LoadNixOnLoginStartupPayload
+  'config:loadedNixOnLoginStartup': config.LoadedNixOnLoginStartupPayload
   'deeplinks:handleKeybaseLink': deeplinks.HandleKeybaseLinkPayload
   'deeplinks:link': deeplinks.LinkPayload
   'deeplinks:setKeybaseLinkError': deeplinks.SetKeybaseLinkErrorPayload
@@ -334,6 +338,7 @@ export type TypedActionsMap = {
   'engine-gen:chat1NotifyChatChatPaymentInfo': enginegen.Chat1NotifyChatChatPaymentInfoPayload
   'engine-gen:chat1NotifyChatChatRequestInfo': enginegen.Chat1NotifyChatChatRequestInfoPayload
   'engine-gen:chat1NotifyChatChatPromptUnfurl': enginegen.Chat1NotifyChatChatPromptUnfurlPayload
+  'engine-gen:chat1NotifyChatChatConvUpdate': enginegen.Chat1NotifyChatChatConvUpdatePayload
   'engine-gen:keybase1GpgUiWantToAddGPGKey': enginegen.Keybase1GpgUiWantToAddGPGKeyPayload
   'engine-gen:keybase1GpgUiConfirmDuplicateKeyChosen': enginegen.Keybase1GpgUiConfirmDuplicateKeyChosenPayload
   'engine-gen:keybase1GpgUiConfirmImportSecretToExistingKey': enginegen.Keybase1GpgUiConfirmImportSecretToExistingKeyPayload
@@ -376,6 +381,8 @@ export type TypedActionsMap = {
   'engine-gen:keybase1LoginUiDisplayResetProgress': enginegen.Keybase1LoginUiDisplayResetProgressPayload
   'engine-gen:keybase1LoginUiExplainDeviceRecovery': enginegen.Keybase1LoginUiExplainDeviceRecoveryPayload
   'engine-gen:keybase1LoginUiPromptPassphraseRecovery': enginegen.Keybase1LoginUiPromptPassphraseRecoveryPayload
+  'engine-gen:keybase1LoginUiChooseDeviceToRecoverWith': enginegen.Keybase1LoginUiChooseDeviceToRecoverWithPayload
+  'engine-gen:keybase1LoginUiDisplayResetMessage': enginegen.Keybase1LoginUiDisplayResetMessagePayload
   'engine-gen:keybase1LogsendPrepareLogsend': enginegen.Keybase1LogsendPrepareLogsendPayload
   'engine-gen:keybase1NotifyAppExit': enginegen.Keybase1NotifyAppExitPayload
   'engine-gen:keybase1NotifyAuditRootAuditError': enginegen.Keybase1NotifyAuditRootAuditErrorPayload
@@ -567,6 +574,8 @@ export type TypedActionsMap = {
   'fs:finishedRegularDownload': fs.FinishedRegularDownloadPayload
   'fs:loadFileContext': fs.LoadFileContextPayload
   'fs:loadedFileContext': fs.LoadedFileContextPayload
+  'fs:loadAdditionalTlf': fs.LoadAdditionalTlfPayload
+  'fs:loadedAdditionalTlf': fs.LoadedAdditionalTlfPayload
   'fs:setDebugLevel': fs.SetDebugLevelPayload
   'git:loadGit': git.LoadGitPayload
   'git:loaded': git.LoadedPayload
@@ -588,8 +597,6 @@ export type TypedActionsMap = {
   'gregor:updateReachable': gregor.UpdateReachablePayload
   'gregor:updateCategory': gregor.UpdateCategoryPayload
   'login:login': login.LoginPayload
-  'login:launchAccountResetWebPage': login.LaunchAccountResetWebPagePayload
-  'login:launchForgotPasswordWebPage': login.LaunchForgotPasswordWebPagePayload
   'login:loginError': login.LoginErrorPayload
   'login:loadIsOnline': login.LoadIsOnlinePayload
   'login:loadedIsOnline': login.LoadedIsOnlinePayload
@@ -710,6 +717,7 @@ export type TypedActionsMap = {
   'settings:editEmail': settings.EditEmailPayload
   'settings:editPhone': settings.EditPhonePayload
   'settings:sentVerificationEmail': settings.SentVerificationEmailPayload
+  'settings:emailVerified': settings.EmailVerifiedPayload
   'settings:loadContactImportEnabled': settings.LoadContactImportEnabledPayload
   'settings:loadedContactImportEnabled': settings.LoadedContactImportEnabledPayload
   'settings:loadedContactPermissions': settings.LoadedContactPermissionsPayload
@@ -751,7 +759,6 @@ export type TypedActionsMap = {
   'settings:onUpdatePGPSettings': settings.OnUpdatePGPSettingsPayload
   'settings:onUpdatePasswordError': settings.OnUpdatePasswordErrorPayload
   'settings:onUpdatedPGPSettings': settings.OnUpdatedPGPSettingsPayload
-  'settings:setAllowDeleteAccount': settings.SetAllowDeleteAccountPayload
   'settings:stop': settings.StopPayload
   'settings:trace': settings.TracePayload
   'settings:processorProfile': settings.ProcessorProfilePayload

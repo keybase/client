@@ -12,6 +12,7 @@ import {isMobile} from '../constants/platform'
 import logger from '../logger'
 import HiddenString from '../util/hidden-string'
 import partition from 'lodash/partition'
+import shallowEqual from 'shallowequal'
 
 type EngineActions =
   | EngineGen.Chat1NotifyChatChatTypingUpdatePayload
@@ -33,9 +34,9 @@ const messageIDToOrdinal = (
     return m.ordinal
   }
   // Search through our sent messages
-  const pendingOrdinal = (
-    pendingOutboxToOrdinal.get(conversationIDKey) || I.Map<Types.OutboxID, Types.Ordinal>()
-  ).find(o => {
+  const pendingOrdinal = [
+    ...(pendingOutboxToOrdinal.get(conversationIDKey) || new Map<Types.OutboxID, Types.Ordinal>()).values(),
+  ].find(o => {
     m = messageMap.getIn([conversationIDKey, o])
     if (m && m.id && m.id === messageID) {
       return true
@@ -271,8 +272,8 @@ const messageMapReducer = (
       )
     }
     case Chat2Gen.attachmentUploading: {
-      const convMap = pendingOutboxToOrdinal.get(action.payload.conversationIDKey, I.Map())
-      const ordinal = convMap.get(action.payload.outboxID)
+      const convMap = pendingOutboxToOrdinal.get(action.payload.conversationIDKey)
+      const ordinal = convMap && convMap.get(action.payload.outboxID)
       if (!ordinal) {
         return messageMap
       }
@@ -419,11 +420,15 @@ const messageOrdinalsReducer = (
 ): Container.Draft<Types.State['messageOrdinals']> => {
   switch (action.type) {
     case Chat2Gen.markConversationsStale:
-      return action.payload.updateType === RPCChatTypes.StaleUpdateType.clear
-        ? messageOrdinals.deleteAll(action.payload.conversationIDKeys)
-        : messageOrdinals
+      if (action.payload.updateType === RPCChatTypes.StaleUpdateType.clear) {
+        const os = new Map(messageOrdinals)
+        action.payload.conversationIDKeys.forEach(o => os.delete(o))
+        return os
+      } else {
+        return messageOrdinals
+      }
     case Chat2Gen.clearMessages:
-      return messageOrdinals.clear()
+      return new Map()
     default:
       return messageOrdinals
   }
@@ -465,6 +470,7 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
             logger.info(
               `rootReducer: selectConversation: setting orange line: convID: ${conversationIDKey} maxVisible: ${maxVisibleMsgID} read: ${readMsgID}`
             )
+            const orangeLineMap = new Map(draftState.orangeLineMap)
             if (maxVisibleMsgID > readMsgID) {
               // Store the message ID that will display the orange line above it,
               // which is the first message after the last read message. We can't
@@ -475,23 +481,23 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
                 conversationIDKey,
                 I.Map<Types.Ordinal, Types.Message>()
               )
-              const ordinals =
-                draftState.messageOrdinals.get(conversationIDKey) || I.OrderedSet<Types.Ordinal>()
+              const ordinals = [...(draftState.messageOrdinals.get(conversationIDKey) || [])]
               const ord = ordinals.find(o => {
                 const message = messageMap.get(o)
                 return !!(message && message.id >= readMsgID + 1)
               })
               const message = ord && messageMap.get(ord)
               if (message && message.id) {
-                draftState.orangeLineMap = draftState.orangeLineMap.set(conversationIDKey, message.id)
+                orangeLineMap.set(conversationIDKey, message.id)
               } else {
-                draftState.orangeLineMap = draftState.orangeLineMap.delete(conversationIDKey)
+                orangeLineMap.delete(conversationIDKey)
               }
             } else {
               // If there aren't any new messages, we don't want to display an
               // orange line so remove its entry from orangeLineMap
-              draftState.orangeLineMap = draftState.orangeLineMap.delete(conversationIDKey)
+              orangeLineMap.delete(conversationIDKey)
             }
+            draftState.orangeLineMap = orangeLineMap
           }
           const prevConvIDKey = draftState.selectedConversation
           // blank out draft so we don't flash old data when switching convs
@@ -501,14 +507,16 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
             metaMap.set(prevConvIDKey, {...meta, draft: ''})
             draftState.metaMap = metaMap
           }
-          draftState.messageCenterOrdinals = draftState.messageCenterOrdinals.delete(conversationIDKey)
+          const messageCenterOrdinals = new Map(draftState.messageCenterOrdinals)
+          messageCenterOrdinals.delete(conversationIDKey)
+          draftState.messageCenterOrdinals = messageCenterOrdinals
           const threadLoadStatus = new Map(draftState.threadLoadStatus)
           threadLoadStatus.delete(conversationIDKey)
           draftState.threadLoadStatus = threadLoadStatus
-          draftState.containsLatestMessageMap = draftState.containsLatestMessageMap.set(
-            conversationIDKey,
-            true
-          )
+
+          const containsLatestMessageMap = new Map(draftState.containsLatestMessageMap)
+          containsLatestMessageMap.set(conversationIDKey, true)
+          draftState.containsLatestMessageMap = containsLatestMessageMap
           draftState.previousSelectedConversation = prevConvIDKey
           draftState.selectedConversation = conversationIDKey
           if (Constants.isValidConversationIDKey(conversationIDKey)) {
@@ -521,16 +529,16 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
       case Chat2Gen.conversationErrored:
         draftState.createConversationError = action.payload.message
         return
-      case Chat2Gen.updateUnreadline:
+      case Chat2Gen.updateUnreadline: {
+        const orangeLineMap = new Map(draftState.orangeLineMap)
         if (action.payload.messageID > 0) {
-          draftState.orangeLineMap = draftState.orangeLineMap.set(
-            action.payload.conversationIDKey,
-            action.payload.messageID
-          )
+          orangeLineMap.set(action.payload.conversationIDKey, action.payload.messageID)
         } else {
-          draftState.orangeLineMap = draftState.orangeLineMap.delete(action.payload.conversationIDKey)
+          orangeLineMap.delete(action.payload.conversationIDKey)
         }
+        draftState.orangeLineMap = orangeLineMap
         return
+      }
       case Chat2Gen.unfurlTogglePrompt: {
         const {show, domain, conversationIDKey, messageID} = action.payload
         const unfurlPromptMap = new Map(draftState.unfurlPromptMap || [])
@@ -547,24 +555,31 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         return
       }
       case Chat2Gen.updateCoinFlipStatus: {
-        draftState.flipStatusMap = draftState.flipStatusMap.withMutations(fm => {
-          action.payload.statuses.forEach(status => {
-            fm.set(status.gameID, status)
-          })
+        const flipStatusMap = draftState.flipStatusMap
+        action.payload.statuses.forEach(status => {
+          flipStatusMap.set(status.gameID, status)
         })
+        draftState.flipStatusMap = flipStatusMap
         return
       }
-      case Chat2Gen.messageSend:
-        draftState.commandMarkdownMap = draftState.commandMarkdownMap.delete(action.payload.conversationIDKey)
-        draftState.replyToMap = draftState.replyToMap.delete(action.payload.conversationIDKey)
+      case Chat2Gen.messageSend: {
+        const commandMarkdownMap = new Map(draftState.commandMarkdownMap)
+        commandMarkdownMap.delete(action.payload.conversationIDKey)
+        draftState.commandMarkdownMap = commandMarkdownMap
+        const replyToMap = new Map(draftState.replyToMap)
+        replyToMap.delete(action.payload.conversationIDKey)
+        draftState.replyToMap = replyToMap
         return
+      }
       case Chat2Gen.setCommandMarkdown: {
         const {conversationIDKey, md} = action.payload
+        const commandMarkdownMap = new Map(draftState.commandMarkdownMap)
         if (md) {
-          draftState.commandMarkdownMap = draftState.commandMarkdownMap.set(conversationIDKey, md)
+          commandMarkdownMap.set(conversationIDKey, md)
         } else {
-          draftState.commandMarkdownMap = draftState.commandMarkdownMap.delete(conversationIDKey)
+          commandMarkdownMap.delete(conversationIDKey)
         }
+        draftState.commandMarkdownMap = commandMarkdownMap
         return
       }
       case Chat2Gen.setThreadLoadStatus: {
@@ -573,12 +588,12 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         draftState.threadLoadStatus = threadLoadStatus
         return
       }
-      case Chat2Gen.setCommandStatusInfo:
-        draftState.commandStatusMap = draftState.commandStatusMap.set(
-          action.payload.conversationIDKey,
-          action.payload.info
-        )
+      case Chat2Gen.setCommandStatusInfo: {
+        const commandStatusMap = new Map(draftState.commandStatusMap)
+        commandStatusMap.set(action.payload.conversationIDKey, action.payload.info)
+        draftState.commandStatusMap = commandStatusMap
         return
+      }
       case Chat2Gen.clearCommandStatusInfo: {
         const {conversationIDKey} = action.payload
         const commandStatusMap = new Map(draftState.commandStatusMap)
@@ -588,9 +603,14 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
       }
       case Chat2Gen.giphyToggleWindow: {
         const conversationIDKey = action.payload.conversationIDKey
-        draftState.giphyWindowMap = draftState.giphyWindowMap.set(conversationIDKey, action.payload.show)
+
+        const giphyWindowMap = new Map(draftState.giphyWindowMap)
+        giphyWindowMap.set(conversationIDKey, action.payload.show)
+        draftState.giphyWindowMap = giphyWindowMap
         if (!action.payload.show) {
-          draftState.giphyResultMap = draftState.giphyResultMap.set(conversationIDKey, null)
+          const giphyResultMap = new Map(draftState.giphyResultMap)
+          giphyResultMap.set(conversationIDKey, undefined)
+          draftState.giphyResultMap = giphyResultMap
         }
         if (action.payload.clearInput) {
           const unsentTextMap = new Map(draftState.unsentTextMap)
@@ -602,12 +622,12 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
       case Chat2Gen.updateLastCoord:
         draftState.lastCoord = action.payload.coord
         return
-      case Chat2Gen.giphyGotSearchResult:
-        draftState.giphyResultMap = draftState.giphyResultMap.set(
-          action.payload.conversationIDKey,
-          action.payload.results
-        )
+      case Chat2Gen.giphyGotSearchResult: {
+        const giphyResultMap = new Map(draftState.giphyResultMap)
+        giphyResultMap.set(action.payload.conversationIDKey, action.payload.results)
+        draftState.giphyResultMap = giphyResultMap
         return
+      }
       case Chat2Gen.setPaymentConfirmInfo:
         draftState.paymentConfirmInfo = action.payload.error
           ? {error: action.payload.error}
@@ -617,22 +637,23 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         draftState.paymentConfirmInfo = undefined
         return
       case Chat2Gen.badgesUpdated: {
-        const badgeMap = I.Map<Types.ConversationIDKey, number>(
+        const badgeMap = new Map<Types.ConversationIDKey, number>(
           action.payload.conversations.map(({convID, badgeCounts}) => [
             Types.conversationIDToKey(convID),
             badgeCounts[badgeKey] || 0,
           ])
         )
-        if (!draftState.badgeMap.equals(badgeMap)) {
+        if (!shallowEqual([...badgeMap.entries()], [...draftState.badgeMap.entries()])) {
           draftState.badgeMap = badgeMap
         }
-        const unreadMap = I.Map<Types.ConversationIDKey, number>(
+        const unreadMap = new Map<Types.ConversationIDKey, number>(
           action.payload.conversations.map(({convID, unreadMessages}) => [
             Types.conversationIDToKey(convID),
             unreadMessages,
           ])
         )
-        if (!draftState.unreadMap.equals(unreadMap)) {
+
+        if (!shallowEqual([...unreadMap.entries()], [...draftState.unreadMap.entries()])) {
           draftState.unreadMap = unreadMap
         }
 
@@ -643,7 +664,9 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
 
         // clearing
         if (!editLastUser && !ordinal) {
-          draftState.editingMap = draftState.editingMap.delete(conversationIDKey)
+          const editingMap = new Map(draftState.editingMap)
+          editingMap.delete(conversationIDKey)
+          draftState.editingMap = editingMap
           return
         }
 
@@ -653,7 +676,9 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         if (ordinal) {
           const message = messageMap.get(ordinal)
           if (message && message.type === 'text') {
-            draftState.editingMap = draftState.editingMap.set(conversationIDKey, ordinal)
+            const editingMap = new Map(draftState.editingMap)
+            editingMap.set(conversationIDKey, ordinal)
+            draftState.editingMap = editingMap
             return
           } else {
             return
@@ -661,8 +686,8 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         }
 
         // Editing your last message
-        const ordinals = draftState.messageOrdinals.get(conversationIDKey) || I.OrderedSet<Types.Ordinal>()
-        const found = ordinals.findLast(o => {
+        const ordinals = [...(draftState.messageOrdinals.get(conversationIDKey) || [])]
+        const found = ordinals.reverse().find(o => {
           const message = messageMap.get(o)
           return !!(
             message &&
@@ -673,7 +698,9 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
           )
         })
         if (found) {
-          draftState.editingMap = draftState.editingMap.set(conversationIDKey, found)
+          const editingMap = new Map(draftState.editingMap)
+          editingMap.set(conversationIDKey, found)
+          draftState.editingMap = editingMap
           return
         }
         return
@@ -694,8 +721,8 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         // pull out deletes and handle at the end
         const [messages, deletedMessages] = partition(action.payload.messages, m => m.type !== 'deleted')
         // we want the clear applied when we call findExisting
-        let oldMessageOrdinals = draftState.messageOrdinals
-        let oldPendingOutboxToOrdinal = draftState.pendingOutboxToOrdinal
+        let messageOrdinals = new Map(draftState.messageOrdinals)
+        let oldPendingOutboxToOrdinal = new Map(draftState.pendingOutboxToOrdinal)
         let oldMessageMap = draftState.messageMap
 
         // so we can keep messages if they haven't mutated
@@ -721,12 +748,12 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         )
 
         if (shouldClearOthers) {
-          oldMessageOrdinals = oldMessageOrdinals.withMutations(map => {
-            Object.keys(convoToMessages).forEach(cid => map.delete(Types.stringToConversationIDKey(cid)))
-          })
-          oldPendingOutboxToOrdinal = oldPendingOutboxToOrdinal.withMutations(map => {
-            Object.keys(convoToMessages).forEach(cid => map.delete(Types.stringToConversationIDKey(cid)))
-          })
+          Object.keys(convoToMessages).forEach(cid =>
+            messageOrdinals.delete(Types.stringToConversationIDKey(cid))
+          )
+          Object.keys(convoToMessages).forEach(cid =>
+            oldPendingOutboxToOrdinal.delete(Types.stringToConversationIDKey(cid))
+          )
           oldMessageMap = oldMessageMap.withMutations(map => {
             Object.keys(convoToMessages).forEach(cid => map.delete(Types.stringToConversationIDKey(cid)))
           })
@@ -737,18 +764,17 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
           m.type === 'text' || m.type === 'attachment' ? m : null
 
         // Update any pending messages
-        const pendingOutboxToOrdinal = oldPendingOutboxToOrdinal.withMutations(
-          (map: I.Map<Types.ConversationIDKey, I.Map<Types.OutboxID, Types.Ordinal>>) => {
-            if (context.type === 'sent' || context.type === 'threadLoad' || context.type === 'incoming') {
-              messages.forEach(message => {
-                const m = canSendType(message)
-                if (m && !m.id && m.outboxID) {
-                  map.setIn([m.conversationIDKey, m.outboxID], m.ordinal)
-                }
-              })
+        const pendingOutboxToOrdinal = new Map(oldPendingOutboxToOrdinal)
+        if (context.type === 'sent' || context.type === 'threadLoad' || context.type === 'incoming') {
+          messages.forEach(message => {
+            const m = canSendType(message)
+            if (m && !m.id && m.outboxID) {
+              const outToOrd = new Map(pendingOutboxToOrdinal.get(m.conversationIDKey) || [])
+              outToOrd.set(m.outboxID, m.ordinal)
+              pendingOutboxToOrdinal.set(m.conversationIDKey, outToOrd)
             }
-          }
-        )
+          })
+        }
 
         const findExistingSentOrPending = (
           conversationIDKey: Types.ConversationIDKey,
@@ -757,7 +783,8 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
           // something we sent
           if (m.outboxID) {
             // and we know about it
-            const ordinal = oldPendingOutboxToOrdinal.getIn([conversationIDKey, m.outboxID])
+            const outMap = oldPendingOutboxToOrdinal.get(conversationIDKey)
+            const ordinal = outMap && outMap.get(m.outboxID)
             if (ordinal) {
               return oldMessageMap.getIn([conversationIDKey, ordinal])
             }
@@ -774,73 +801,61 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
           return null
         }
 
-        let messageOrdinals = oldMessageOrdinals.withMutations(
-          (map: I.Map<Types.ConversationIDKey, I.OrderedSet<Types.Ordinal>>) => {
-            Object.keys(convoToDeletedOrdinals).forEach(cid => {
-              const conversationIDKey = Types.stringToConversationIDKey(cid)
-              map.update(conversationIDKey, I.OrderedSet(), (set: I.OrderedSet<Types.Ordinal>) =>
-                set.subtract(convoToDeletedOrdinals[conversationIDKey])
-              )
-            })
-          }
-        )
-        messageOrdinals = messageOrdinals.withMutations(
-          (map: I.Map<Types.ConversationIDKey, I.OrderedSet<Types.Ordinal>>) => {
-            Object.keys(convoToMessages).forEach(cid => {
-              const conversationIDKey = Types.stringToConversationIDKey(cid)
-              const messages = convoToMessages[cid]
-              const removedOrdinals: Array<Types.Ordinal> = []
-              const ordinals = messages.reduce<Array<Types.Ordinal>>((arr, message) => {
-                const m = canSendType(message)
-                if (m) {
-                  // Sendable so we might have an existing message
-                  if (!findExistingSentOrPending(conversationIDKey, m)) {
-                    arr.push(m.ordinal)
-                  }
-                  // We might have a placeholder for this message in there with ordinal of its own ID, let's
-                  // get rid of it if that is the case
-                  if (m.id) {
-                    const oldMsg: Types.Message = oldMessageMap.getIn([
-                      conversationIDKey,
-                      Types.numberToOrdinal(m.id),
-                    ])
-                    if (oldMsg && oldMsg.type === 'placeholder' && oldMsg.ordinal !== m.ordinal) {
-                      removedOrdinals.push(oldMsg.ordinal)
-                    }
-                  }
-                } else if (message.type === 'placeholder') {
-                  // sometimes we send then get a placeholder for that send. Lets see if we already have the message id for the sent
-                  // and ignore the placeholder in that instance
-                  logger.info(`Got placeholder message with id: ${message.id}`)
-                  const existingOrdinal = messageIDToOrdinal(
-                    oldMessageMap,
-                    pendingOutboxToOrdinal,
-                    conversationIDKey,
-                    message.id
-                  )
-                  if (!existingOrdinal) {
-                    arr.push(message.ordinal)
-                  } else {
-                    logger.info(
-                      `Skipping placeholder for message with id ${message.id} because already exists`
-                    )
-                  }
-                } else {
-                  arr.push(message.ordinal)
-                }
-                return arr
-              }, [])
+        Object.keys(convoToDeletedOrdinals).forEach(cid => {
+          const conversationIDKey = Types.stringToConversationIDKey(cid)
+          const os = messageOrdinals.get(conversationIDKey) || new Set()
+          convoToDeletedOrdinals[conversationIDKey].forEach(o => os.delete(o))
+          messageOrdinals.set(conversationIDKey, os)
+        })
 
-              map.update(conversationIDKey, I.OrderedSet(), (set: I.OrderedSet<Types.Ordinal>) =>
-                // add new ones, remove deleted ones, sort
-                set
-                  .subtract(removedOrdinals)
-                  .concat(ordinals)
-                  .sort()
+        Object.keys(convoToMessages).forEach(cid => {
+          const conversationIDKey = Types.stringToConversationIDKey(cid)
+          const messages = convoToMessages[cid]
+          const removedOrdinals: Array<Types.Ordinal> = []
+          const ordinals = messages.reduce<Array<Types.Ordinal>>((arr, message) => {
+            const m = canSendType(message)
+            if (m) {
+              // Sendable so we might have an existing message
+              if (!findExistingSentOrPending(conversationIDKey, m)) {
+                arr.push(m.ordinal)
+              }
+              // We might have a placeholder for this message in there with ordinal of its own ID, let's
+              // get rid of it if that is the case
+              if (m.id) {
+                const oldMsg: Types.Message = oldMessageMap.getIn([
+                  conversationIDKey,
+                  Types.numberToOrdinal(m.id),
+                ])
+                if (oldMsg && oldMsg.type === 'placeholder' && oldMsg.ordinal !== m.ordinal) {
+                  removedOrdinals.push(oldMsg.ordinal)
+                }
+              }
+            } else if (message.type === 'placeholder') {
+              // sometimes we send then get a placeholder for that send. Lets see if we already have the message id for the sent
+              // and ignore the placeholder in that instance
+              logger.info(`Got placeholder message with id: ${message.id}`)
+              const existingOrdinal = messageIDToOrdinal(
+                oldMessageMap,
+                pendingOutboxToOrdinal,
+                conversationIDKey,
+                message.id
               )
-            })
-          }
-        )
+              if (!existingOrdinal) {
+                arr.push(message.ordinal)
+              } else {
+                logger.info(`Skipping placeholder for message with id ${message.id} because already exists`)
+              }
+            } else {
+              arr.push(message.ordinal)
+            }
+            return arr
+          }, [])
+
+          // add new ones, remove deleted ones, sort
+          const os = new Set(messageOrdinals.get(conversationIDKey) || [])
+          removedOrdinals.forEach(o => os.delete(o))
+          messageOrdinals.set(conversationIDKey, new Set([...os, ...ordinals].sort((a, b) => a - b)))
+        })
 
         let messageMap = oldMessageMap.withMutations(
           (map: I.Map<Types.ConversationIDKey, I.Map<Types.Ordinal, Types.Message>>) => {
@@ -875,33 +890,33 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
           }
         )
 
-        const containsLatestMessageMap = draftState.containsLatestMessageMap.withMutations(map => {
-          Object.keys(convoToMessages).forEach(cid => {
-            const conversationIDKey = Types.stringToConversationIDKey(cid)
-            if (!action.payload.forceContainsLatestCalc && map.get(conversationIDKey, false)) {
-              return
+        const containsLatestMessageMap = new Map(draftState.containsLatestMessageMap)
+        Object.keys(convoToMessages).forEach(cid => {
+          const conversationIDKey = Types.stringToConversationIDKey(cid)
+          if (!action.payload.forceContainsLatestCalc && containsLatestMessageMap.get(conversationIDKey)) {
+            return
+          }
+          const meta = draftState.metaMap.get(conversationIDKey)
+          const ordinals = [...(messageOrdinals.get(conversationIDKey) || [])]
+          let maxMsgID = 0
+          const convMsgMap = messageMap.get(conversationIDKey, I.Map<Types.Ordinal, Types.Message>())
+          for (let i = ordinals.length - 1; i >= 0; i--) {
+            const ordinal = ordinals[i]
+            const message = convMsgMap.get(ordinal)
+            if (message && message.id > 0) {
+              maxMsgID = message.id
+              break
             }
-            const meta = draftState.metaMap.get(conversationIDKey)
-            const ordinals = messageOrdinals.get(conversationIDKey, I.OrderedSet()).toArray()
-            let maxMsgID = 0
-            const convMsgMap = messageMap.get(conversationIDKey, I.Map<Types.Ordinal, Types.Message>())
-            for (let i = ordinals.length - 1; i >= 0; i--) {
-              const ordinal = ordinals[i]
-              const message = convMsgMap.get(ordinal)
-              if (message && message.id > 0) {
-                maxMsgID = message.id
-                break
-              }
-            }
-            if (meta && maxMsgID >= meta.maxVisibleMsgID) {
-              map.set(conversationIDKey, true)
-            } else if (action.payload.forceContainsLatestCalc) {
-              map.set(conversationIDKey, false)
-            }
-          })
+          }
+          if (meta && maxMsgID >= meta.maxVisibleMsgID) {
+            containsLatestMessageMap.set(conversationIDKey, true)
+          } else if (action.payload.forceContainsLatestCalc) {
+            containsLatestMessageMap.set(conversationIDKey, false)
+          }
         })
+        draftState.containsLatestMessageMap = containsLatestMessageMap
 
-        let messageCenterOrdinals = draftState.messageCenterOrdinals
+        let messageCenterOrdinals = new Map(draftState.messageCenterOrdinals)
         const centeredMessageIDs = action.payload.centeredMessageIDs || []
         centeredMessageIDs.forEach(cm => {
           let ordinal = messageIDToOrdinal(
@@ -913,7 +928,7 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
           if (!ordinal) {
             ordinal = Types.numberToOrdinal(Types.messageIDToNumber(cm.messageID))
           }
-          messageCenterOrdinals = messageCenterOrdinals.set(cm.conversationIDKey, {
+          messageCenterOrdinals.set(cm.conversationIDKey, {
             highlightMode: cm.highlightMode,
             ordinal,
           })
@@ -925,26 +940,28 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         }
         draftState.containsLatestMessageMap = containsLatestMessageMap
         // only if different
-        if (!draftState.messageOrdinals.equals(messageOrdinals)) {
+        if (!shallowEqual([...draftState.messageOrdinals], [...messageOrdinals])) {
           draftState.messageOrdinals = messageOrdinals
         }
         draftState.pendingOutboxToOrdinal = pendingOutboxToOrdinal
         return
       }
-      case Chat2Gen.jumpToRecent:
-        draftState.messageCenterOrdinals = draftState.messageCenterOrdinals.delete(
-          action.payload.conversationIDKey
-        )
+      case Chat2Gen.jumpToRecent: {
+        const messageCenterOrdinals = new Map(draftState.messageCenterOrdinals)
+        messageCenterOrdinals.delete(action.payload.conversationIDKey)
+        draftState.messageCenterOrdinals = messageCenterOrdinals
         return
-      case Chat2Gen.setContainsLastMessage:
-        draftState.containsLatestMessageMap = draftState.containsLatestMessageMap.set(
-          action.payload.conversationIDKey,
-          action.payload.contains
-        )
+      }
+      case Chat2Gen.setContainsLastMessage: {
+        const containsLatestMessageMap = draftState.containsLatestMessageMap
+        containsLatestMessageMap.set(action.payload.conversationIDKey, action.payload.contains)
+        draftState.containsLatestMessageMap = containsLatestMessageMap
         return
+      }
       case Chat2Gen.messageRetry: {
         const {conversationIDKey, outboxID} = action.payload
-        const ordinal = draftState.pendingOutboxToOrdinal.getIn([conversationIDKey, outboxID])
+        const outToOrd = draftState.pendingOutboxToOrdinal.get(conversationIDKey)
+        const ordinal = outToOrd && outToOrd.get(outboxID)
         if (!ordinal) {
           return
         }
@@ -962,18 +979,25 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         return
       }
       case Chat2Gen.messageErrored: {
-        const {conversationIDKey, outboxID, reason} = action.payload
-        const ordinal = draftState.pendingOutboxToOrdinal.getIn([conversationIDKey, outboxID])
+        const {conversationIDKey, errorTyp, outboxID, reason} = action.payload
+        const outToOrd = draftState.pendingOutboxToOrdinal.get(conversationIDKey)
+        const ordinal = outToOrd && outToOrd.get(outboxID)
         if (!ordinal) {
           return
         }
         draftState.messageMap = draftState.messageMap.updateIn([conversationIDKey, ordinal], message => {
           if (message) {
             if (message.type === 'text') {
-              return message.set('errorReason', reason).set('submitState', 'failed')
+              return message
+                .set('errorReason', reason)
+                .set('submitState', 'failed')
+                .set('errorTyp', errorTyp)
             }
             if (message.type === 'attachment') {
-              return message.set('errorReason', reason).set('submitState', 'failed')
+              return message
+                .set('errorReason', reason)
+                .set('submitState', 'failed')
+                .set('errorTyp', errorTyp)
             }
           }
           return message
@@ -989,16 +1013,28 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
             const draftMap = new Map(draftState.draftMap)
             const mutedMap = new Map(draftState.mutedMap)
             ;(layout.smallTeams || []).forEach((t: RPCChatTypes.UIInboxSmallTeamRow) => {
-              mutedMap.set(t.convID, t.isMuted)
+              if (t.isMuted) {
+                mutedMap.set(t.convID, true)
+              } else {
+                mutedMap.delete(t.convID)
+              }
               if (t.draft) {
                 draftMap.set(t.convID, t.draft)
+              } else {
+                draftMap.delete(t.convID)
               }
             })
             ;(layout.bigTeams || []).forEach((t: RPCChatTypes.UIInboxBigTeamRow) => {
               if (t.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel) {
-                mutedMap.set(t.channel.convID, t.channel.isMuted)
+                if (t.channel.isMuted) {
+                  mutedMap.set(t.channel.convID, true)
+                } else {
+                  mutedMap.delete(t.channel.convID)
+                }
                 if (t.channel.draft) {
                   draftMap.set(t.channel.convID, t.channel.draft)
+                } else {
+                  draftMap.delete(t.channel.convID)
                 }
               }
             })
@@ -1012,12 +1048,15 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         }
         return
       }
-      case EngineGen.chat1ChatUiChatBotCommandsUpdateStatus:
-        draftState.botCommandsUpdateStatusMap = draftState.botCommandsUpdateStatusMap.set(
+      case EngineGen.chat1ChatUiChatBotCommandsUpdateStatus: {
+        const botCommandsUpdateStatusMap = new Map(draftState.botCommandsUpdateStatusMap)
+        botCommandsUpdateStatusMap.set(
           Types.stringToConversationIDKey(action.payload.params.convID),
           action.payload.params.status
         )
+        draftState.botCommandsUpdateStatusMap = botCommandsUpdateStatusMap
         return
+      }
       case EngineGen.chat1NotifyChatChatTypingUpdate: {
         const {typingUpdates} = action.payload.params
         const typingMap = new Map(
@@ -1167,43 +1206,50 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
             })
         )
 
-        draftState.messageOrdinals = draftState.messageOrdinals.update(conversationIDKey, ordinals =>
-          ordinals ? ordinals.subtract(allOrdinals) : ordinals
-        )
-
+        const messageOrdinals = new Map(draftState.messageOrdinals)
+        const os = new Set(messageOrdinals.get(conversationIDKey))
+        allOrdinals.forEach(o => os.delete(o))
+        messageOrdinals.set(conversationIDKey, os)
+        draftState.messageOrdinals = messageOrdinals
         return
       }
-      case Chat2Gen.updateMoreToLoad:
-        draftState.moreToLoadMap = draftState.moreToLoadMap.set(
-          action.payload.conversationIDKey,
-          action.payload.moreToLoad
-        )
+      case Chat2Gen.updateMoreToLoad: {
+        const moreToLoadMap = new Map(draftState.moreToLoadMap)
+        moreToLoadMap.set(action.payload.conversationIDKey, action.payload.moreToLoad)
+        draftState.moreToLoadMap = moreToLoadMap
         return
+      }
       case Chat2Gen.updateConvExplodingModes: {
         const {modes} = action.payload
-        const explodingMap = modes.reduce((map, mode) => {
-          map[Types.conversationIDKeyToString(mode.conversationIDKey)] = mode.seconds
-          return map
-        }, {})
-        draftState.explodingModes = I.Map(explodingMap)
+        const explodingModes = new Map()
+        modes.forEach(mode =>
+          explodingModes.set(Types.conversationIDKeyToString(mode.conversationIDKey), mode.seconds)
+        )
+        draftState.explodingModes = explodingModes
         return
       }
       case Chat2Gen.setExplodingModeLock: {
         const {conversationIDKey, unset} = action.payload
-        const mode = draftState.explodingModes.get(conversationIDKey, 0)
+        const mode = draftState.explodingModes.get(conversationIDKey) || 0
         // we already have the new mode in `explodingModes`, if we've already locked it we shouldn't update
-        const alreadyLocked = draftState.explodingModeLocks.get(conversationIDKey, null) !== null
+        const alreadyLocked = (draftState.explodingModeLocks.get(conversationIDKey) || null) !== null
         if (unset) {
-          draftState.explodingModeLocks = draftState.explodingModeLocks.delete(conversationIDKey)
+          const explodingModeLocks = new Map(draftState.explodingModeLocks)
+          explodingModeLocks.delete(conversationIDKey)
+          draftState.explodingModeLocks = explodingModeLocks
           return
         }
         if (!alreadyLocked) {
-          draftState.explodingModeLocks = draftState.explodingModeLocks.set(conversationIDKey, mode)
+          const explodingModeLocks = new Map(draftState.explodingModeLocks)
+          explodingModeLocks.set(conversationIDKey, mode)
+          draftState.explodingModeLocks = explodingModeLocks
         }
         return
       }
       case Chat2Gen.giphySend: {
-        draftState.giphyWindowMap = draftState.giphyWindowMap.set(action.payload.conversationIDKey, false)
+        const giphyWindowMap = new Map(draftState.giphyWindowMap)
+        giphyWindowMap.set(action.payload.conversationIDKey, false)
+        draftState.giphyWindowMap = giphyWindowMap
         const unsentTextMap = new Map(draftState.unsentTextMap)
         unsentTextMap.set(action.payload.conversationIDKey, new HiddenString(''))
         draftState.unsentTextMap = unsentTextMap
@@ -1212,7 +1258,7 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
       case Chat2Gen.toggleGiphyPrefill: {
         // if the window is up, just blow it away
         const unsentTextMap = new Map(draftState.unsentTextMap)
-        if (draftState.giphyWindowMap.get(action.payload.conversationIDKey, false)) {
+        if (draftState.giphyWindowMap.get(action.payload.conversationIDKey)) {
           unsentTextMap.set(action.payload.conversationIDKey, new HiddenString(''))
         } else {
           unsentTextMap.set(action.payload.conversationIDKey, new HiddenString('/giphy '))
@@ -1226,29 +1272,36 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         draftState.unsentTextMap = unsentTextMap
         return
       }
-      case Chat2Gen.setPrependText:
-        draftState.prependTextMap = draftState.prependTextMap.set(
-          action.payload.conversationIDKey,
-          action.payload.text
-        )
+      case Chat2Gen.setPrependText: {
+        const prependTextMap = new Map(draftState.prependTextMap)
+        prependTextMap.set(action.payload.conversationIDKey, action.payload.text)
+        draftState.prependTextMap = prependTextMap
         return
+      }
       case Chat2Gen.toggleReplyToMessage: {
         const {conversationIDKey, ordinal} = action.payload
         if (ordinal) {
-          draftState.replyToMap = draftState.replyToMap.set(conversationIDKey, ordinal)
+          const replyToMap = new Map(draftState.replyToMap)
+          replyToMap.set(conversationIDKey, ordinal)
+          draftState.replyToMap = replyToMap
           // we always put something in prepend to trigger the focus regain on the input bar
-          draftState.prependTextMap = draftState.prependTextMap.set(conversationIDKey, new HiddenString(''))
+          const prependTextMap = new Map(draftState.prependTextMap)
+          prependTextMap.set(conversationIDKey, new HiddenString(''))
+          draftState.prependTextMap = prependTextMap
           return
         } else {
-          draftState.replyToMap = draftState.replyToMap.delete(conversationIDKey)
+          const replyToMap = new Map(draftState.replyToMap)
+          replyToMap.delete(conversationIDKey)
+          draftState.replyToMap = replyToMap
           return
         }
       }
-      case Chat2Gen.replyJump:
-        draftState.messageCenterOrdinals = draftState.messageCenterOrdinals.delete(
-          action.payload.conversationIDKey
-        )
+      case Chat2Gen.replyJump: {
+        const messageCenterOrdinals = new Map(draftState.messageCenterOrdinals)
+        messageCenterOrdinals.delete(action.payload.conversationIDKey)
+        draftState.messageCenterOrdinals = messageCenterOrdinals
         return
+      }
       case Chat2Gen.threadSearchResults: {
         const threadSearchInfoMap = new Map(draftState.threadSearchInfoMap)
         const info =
@@ -1282,9 +1335,9 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         threadSearchInfoMap.set(action.payload.conversationIDKey, info)
         draftState.threadSearchInfoMap = threadSearchInfoMap
 
-        draftState.messageCenterOrdinals = draftState.messageCenterOrdinals.delete(
-          action.payload.conversationIDKey
-        )
+        const messageCenterOrdinals = new Map(draftState.messageCenterOrdinals)
+        messageCenterOrdinals.delete(action.payload.conversationIDKey)
+        draftState.messageCenterOrdinals = messageCenterOrdinals
         return
       }
       case Chat2Gen.threadSearch: {
@@ -1448,8 +1501,16 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         const draftMap = new Map(draftState.draftMap)
         const mutedMap = new Map(draftState.mutedMap)
         action.payload.metas.forEach((m: Types.ConversationMeta) => {
-          draftMap.set(m.conversationIDKey, m.draft)
-          mutedMap.set(m.conversationIDKey, m.isMuted)
+          if (m.draft) {
+            draftMap.set(m.conversationIDKey, m.draft)
+          } else {
+            draftMap.delete(m.conversationIDKey)
+          }
+          if (m.isMuted) {
+            mutedMap.set(m.conversationIDKey, true)
+          } else {
+            mutedMap.delete(m.conversationIDKey)
+          }
         })
         draftState.draftMap = draftMap
         draftState.mutedMap = mutedMap
@@ -1467,24 +1528,33 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
       }
       case Chat2Gen.paymentInfoReceived: {
         const {conversationIDKey, messageID, paymentInfo} = action.payload
-        draftState.accountsInfoMap = draftState.accountsInfoMap.setIn(
-          [conversationIDKey, messageID],
-          paymentInfo
-        )
-        draftState.paymentStatusMap = draftState.paymentStatusMap.setIn([paymentInfo.paymentID], paymentInfo)
+
+        const accountsInfoMap = new Map(draftState.accountsInfoMap)
+        const convMap = new Map(accountsInfoMap.get(conversationIDKey) || [])
+        convMap.set(messageID, paymentInfo)
+        accountsInfoMap.set(conversationIDKey, convMap)
+        draftState.accountsInfoMap = accountsInfoMap
+
+        const paymentStatusMap = new Map(draftState.paymentStatusMap)
+        paymentStatusMap.set(paymentInfo.paymentID, paymentInfo)
+        draftState.paymentStatusMap = paymentStatusMap
         return
       }
       case Chat2Gen.setMaybeMentionInfo: {
         const {name, info} = action.payload
-        draftState.maybeMentionMap = draftState.maybeMentionMap.set(name, info)
+        const maybeMentionMap = new Map(draftState.maybeMentionMap)
+        maybeMentionMap.set(name, info)
+        draftState.maybeMentionMap = maybeMentionMap
         return
       }
       case Chat2Gen.requestInfoReceived: {
         const {conversationIDKey, messageID, requestInfo} = action.payload
-        draftState.accountsInfoMap = draftState.accountsInfoMap.setIn(
-          [conversationIDKey, messageID],
-          requestInfo
-        )
+
+        const accountsInfoMap = new Map(draftState.accountsInfoMap)
+        const convMap = new Map(accountsInfoMap.get(conversationIDKey) || [])
+        convMap.set(messageID, requestInfo)
+        accountsInfoMap.set(conversationIDKey, convMap)
+        draftState.accountsInfoMap = accountsInfoMap
         return
       }
       case Chat2Gen.attachmentFullscreenSelection: {
@@ -1594,10 +1664,9 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         return
       }
       case Chat2Gen.dismissBottomBanner: {
-        draftState.dismissedInviteBannersMap = draftState.dismissedInviteBannersMap.set(
-          action.payload.conversationIDKey,
-          true
-        )
+        const dismissedInviteBannersMap = new Map(draftState.dismissedInviteBannersMap)
+        dismissedInviteBannersMap.set(action.payload.conversationIDKey, true)
+        draftState.dismissedInviteBannersMap = dismissedInviteBannersMap
         return
       }
       // metaMap/messageMap/messageOrdinalsList only actions

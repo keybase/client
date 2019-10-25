@@ -1,5 +1,4 @@
 import * as Constants from '../../constants/chat2'
-import * as I from 'immutable'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as T from './index.d'
@@ -31,7 +30,6 @@ class Inbox extends React.Component<T.Props, State> {
 
   private mounted: boolean = false
   private list: VariableSizeList | null = null
-  private selectedVisible: boolean = false
 
   // stuff for UnreadShortcut
   private firstOffscreenIdx: number = -1
@@ -49,8 +47,8 @@ class Inbox extends React.Component<T.Props, State> {
       listRowsResized = true
     }
 
-    if (listRowsResized) {
-      this.list && this.list.resetAfterIndex(0, true)
+    if (listRowsResized && this.list) {
+      this.list.resetAfterIndex(0, true)
       // ^ this will force an update so just do it once instead of twice
       return false
     }
@@ -59,11 +57,11 @@ class Inbox extends React.Component<T.Props, State> {
 
   componentDidUpdate(prevProps: T.Props) {
     // list changed
-    if (
-      this.props.rows.length !== prevProps.rows.length ||
-      !I.is(this.props.unreadIndices, prevProps.unreadIndices)
-    ) {
+    if (this.props.rows.length !== prevProps.rows.length) {
       this.calculateShowFloating()
+    }
+    if (!shallowEqual(this.props.unreadIndices, prevProps.unreadIndices)) {
+      this.calculateShowUnreadShortcut()
     }
   }
 
@@ -106,11 +104,10 @@ class Inbox extends React.Component<T.Props, State> {
 
     const conversationIDKey: Types.ConversationIDKey = row.conversationIDKey || Constants.noConversationIDKey
     const teamname = row.teamname || ''
-    const isHighlighted = index === 0 && !this.selectedVisible
 
     // pointer events on so you can click even right after a scroll
     return (
-      <div style={Styles.collapseStyles([divStyle, {pointerEvents: 'auto'}, isHighlighted && styles.hover])}>
+      <div style={Styles.collapseStyles([divStyle, {pointerEvents: 'auto'}])}>
         {makeRow({
           channelname: (row.type === 'big' && row.channelname) || '',
           conversationIDKey,
@@ -130,17 +127,23 @@ class Inbox extends React.Component<T.Props, State> {
     if (!this.mounted) {
       return
     }
-    if (!this.props.unreadIndices.size || this.lastVisibleIdx < 0) {
-      this.setState(s => (s.showUnread ? {showUnread: false} : null))
+    if (!this.props.unreadIndices.length || this.lastVisibleIdx < 0) {
+      if (this.state.showUnread) {
+        this.setState({showUnread: false})
+      }
       return
     }
 
     const firstOffscreenIdx = this.props.unreadIndices.find(idx => idx > this.lastVisibleIdx)
     if (firstOffscreenIdx) {
-      this.setState(s => (s.showUnread ? null : {showUnread: true}))
+      if (!this.state.showUnread) {
+        this.setState({showUnread: true})
+      }
       this.firstOffscreenIdx = firstOffscreenIdx
     } else {
-      this.setState(s => (s.showUnread ? {showUnread: false} : null))
+      if (this.state.showUnread) {
+        this.setState({showUnread: false})
+      }
       this.firstOffscreenIdx = -1
     }
   }
@@ -157,7 +160,9 @@ class Inbox extends React.Component<T.Props, State> {
       showFloating = false
     }
 
-    this.setState(old => (old.showFloating !== showFloating ? {showFloating} : null))
+    if (this.state.showFloating !== showFloating) {
+      this.setState({showFloating})
+    }
   }
 
   private onItemsRendered = ({visibleStartIndex, visibleStopIndex}) => {
@@ -197,10 +202,9 @@ class Inbox extends React.Component<T.Props, State> {
     this.list = list
   }
 
+  private listChild = ({index, style}) => this.itemRenderer(index, style)
+
   render() {
-    this.selectedVisible = !!this.props.rows.find(
-      r => r.conversationIDKey && r.conversationIDKey === this.props.selectedConversationIDKey
-    )
     const floatingDivider = this.state.showFloating && this.props.allowShowFloatingButton && (
       <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
     )
@@ -219,8 +223,9 @@ class Inbox extends React.Component<T.Props, State> {
                   itemCount={this.props.rows.length}
                   itemSize={this.itemSizeGetter}
                   estimatedItemSize={56}
+                  itemData={this.props.rows}
                 >
-                  {({index, style}) => this.itemRenderer(index, style)}
+                  {this.listChild}
                 </VariableSizeList>
               )}
             </AutoSizer>

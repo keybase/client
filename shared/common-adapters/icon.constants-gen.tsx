@@ -13,4550 +13,6848 @@ const iconMeta_ = {
   'icon-GPG-export': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-GPG-export.png'),
+    get require() {
+      return require('../images/icons/icon-GPG-export.png')
+    },
   },
   'icon-addon-file-downloading': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-addon-file-downloading',
-    require: require('../images/icons/icon-addon-file-downloading.png'),
-    requireDark: require('../images/icons/icon-dark-addon-file-downloading.png'),
+    get require() {
+      return require('../images/icons/icon-addon-file-downloading.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-addon-file-downloading.png')
+    },
   },
   'icon-addon-file-uploading': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-addon-file-uploading',
-    require: require('../images/icons/icon-addon-file-uploading.png'),
-    requireDark: require('../images/icons/icon-dark-addon-file-uploading.png'),
+    get require() {
+      return require('../images/icons/icon-addon-file-uploading.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-addon-file-uploading.png')
+    },
   },
   'icon-addon-lock-16': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-addon-lock-16',
-    require: require('../images/icons/icon-addon-lock-16.png'),
-    requireDark: require('../images/icons/icon-dark-addon-lock-16.png'),
+    get require() {
+      return require('../images/icons/icon-addon-lock-16.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-addon-lock-16.png')
+    },
   },
   'icon-addon-lock-22': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-addon-lock-22',
-    require: require('../images/icons/icon-addon-lock-22.png'),
-    requireDark: require('../images/icons/icon-dark-addon-lock-22.png'),
+    get require() {
+      return require('../images/icons/icon-addon-lock-22.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-addon-lock-22.png')
+    },
   },
   'icon-addon-lock-active-16': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-addon-lock-active-16.png'),
+    get require() {
+      return require('../images/icons/icon-addon-lock-active-16.png')
+    },
   },
   'icon-addon-lock-active-22': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-addon-lock-active-22.png'),
+    get require() {
+      return require('../images/icons/icon-addon-lock-active-22.png')
+    },
   },
   'icon-addon-lock-hover-16': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-addon-lock-hover-16',
-    require: require('../images/icons/icon-addon-lock-hover-16.png'),
-    requireDark: require('../images/icons/icon-dark-addon-lock-hover-16.png'),
+    get require() {
+      return require('../images/icons/icon-addon-lock-hover-16.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-addon-lock-hover-16.png')
+    },
   },
   'icon-airdrop-glowing-16': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-airdrop-glowing-16.png'),
+    get require() {
+      return require('../images/icons/icon-airdrop-glowing-16.png')
+    },
   },
   'icon-airdrop-glowing-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-airdrop-glowing-32.png'),
+    get require() {
+      return require('../images/icons/icon-airdrop-glowing-32.png')
+    },
   },
   'icon-airdrop-logo-16': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-airdrop-logo-16.png'),
+    get require() {
+      return require('../images/icons/icon-airdrop-logo-16.png')
+    },
   },
   'icon-airdrop-logo-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-airdrop-logo-32.png'),
+    get require() {
+      return require('../images/icons/icon-airdrop-logo-32.png')
+    },
   },
   'icon-airdrop-logo-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-airdrop-logo-48.png'),
+    get require() {
+      return require('../images/icons/icon-airdrop-logo-48.png')
+    },
   },
   'icon-airdrop-logo-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-airdrop-logo-64.png'),
+    get require() {
+      return require('../images/icons/icon-airdrop-logo-64.png')
+    },
   },
   'icon-bitcoin-logo-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-bitcoin-logo-48.png'),
+    get require() {
+      return require('../images/icons/icon-bitcoin-logo-48.png')
+    },
   },
   'icon-bitcoin-logo-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-bitcoin-logo-64.png'),
+    get require() {
+      return require('../images/icons/icon-bitcoin-logo-64.png')
+    },
   },
   'icon-coin-heads-48-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-coin-heads-48-48.png'),
+    get require() {
+      return require('../images/icons/icon-coin-heads-48-48.png')
+    },
   },
   'icon-coin-tails-48-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-coin-tails-48-48.png'),
+    get require() {
+      return require('../images/icons/icon-coin-tails-48-48.png')
+    },
   },
   'icon-computer-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-computer-32.png'),
+    get require() {
+      return require('../images/icons/icon-computer-32.png')
+    },
   },
   'icon-computer-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-computer-48.png'),
+    get require() {
+      return require('../images/icons/icon-computer-48.png')
+    },
   },
   'icon-computer-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-computer-64.png'),
+    get require() {
+      return require('../images/icons/icon-computer-64.png')
+    },
   },
   'icon-computer-96': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-computer-96.png'),
+    get require() {
+      return require('../images/icons/icon-computer-96.png')
+    },
   },
   'icon-computer-background-1-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-computer-background-1-32.png'),
+    get require() {
+      return require('../images/icons/icon-computer-background-1-32.png')
+    },
   },
   'icon-computer-background-1-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-computer-background-1-48.png'),
+    get require() {
+      return require('../images/icons/icon-computer-background-1-48.png')
+    },
   },
   'icon-computer-background-1-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-computer-background-1-64.png'),
+    get require() {
+      return require('../images/icons/icon-computer-background-1-64.png')
+    },
   },
   'icon-computer-background-1-96': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-computer-background-1-96.png'),
+    get require() {
+      return require('../images/icons/icon-computer-background-1-96.png')
+    },
   },
   'icon-computer-background-10-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-computer-background-10-32.png'),
+    get require() {
+      return require('../images/icons/icon-computer-background-10-32.png')
+    },
   },
   'icon-computer-background-10-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-computer-background-10-48.png'),
+    get require() {
+      return require('../images/icons/icon-computer-background-10-48.png')
+    },
   },
   'icon-computer-background-10-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-computer-background-10-64.png'),
+    get require() {
+      return require('../images/icons/icon-computer-background-10-64.png')
+    },
   },
   'icon-computer-background-10-96': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-computer-background-10-96.png'),
+    get require() {
+      return require('../images/icons/icon-computer-background-10-96.png')
+    },
   },
   'icon-computer-background-2-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-computer-background-2-32.png'),
+    get require() {
+      return require('../images/icons/icon-computer-background-2-32.png')
+    },
   },
   'icon-computer-background-2-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-computer-background-2-48.png'),
+    get require() {
+      return require('../images/icons/icon-computer-background-2-48.png')
+    },
   },
   'icon-computer-background-2-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-computer-background-2-64.png'),
+    get require() {
+      return require('../images/icons/icon-computer-background-2-64.png')
+    },
   },
   'icon-computer-background-2-96': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-computer-background-2-96.png'),
+    get require() {
+      return require('../images/icons/icon-computer-background-2-96.png')
+    },
   },
   'icon-computer-background-3-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-computer-background-3-32.png'),
+    get require() {
+      return require('../images/icons/icon-computer-background-3-32.png')
+    },
   },
   'icon-computer-background-3-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-computer-background-3-48.png'),
+    get require() {
+      return require('../images/icons/icon-computer-background-3-48.png')
+    },
   },
   'icon-computer-background-3-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-computer-background-3-64.png'),
+    get require() {
+      return require('../images/icons/icon-computer-background-3-64.png')
+    },
   },
   'icon-computer-background-3-96': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-computer-background-3-96.png'),
+    get require() {
+      return require('../images/icons/icon-computer-background-3-96.png')
+    },
   },
   'icon-computer-background-4-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-computer-background-4-32.png'),
+    get require() {
+      return require('../images/icons/icon-computer-background-4-32.png')
+    },
   },
   'icon-computer-background-4-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-computer-background-4-48.png'),
+    get require() {
+      return require('../images/icons/icon-computer-background-4-48.png')
+    },
   },
   'icon-computer-background-4-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-computer-background-4-64.png'),
+    get require() {
+      return require('../images/icons/icon-computer-background-4-64.png')
+    },
   },
   'icon-computer-background-4-96': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-computer-background-4-96.png'),
+    get require() {
+      return require('../images/icons/icon-computer-background-4-96.png')
+    },
   },
   'icon-computer-background-5-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-computer-background-5-32.png'),
+    get require() {
+      return require('../images/icons/icon-computer-background-5-32.png')
+    },
   },
   'icon-computer-background-5-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-computer-background-5-48.png'),
+    get require() {
+      return require('../images/icons/icon-computer-background-5-48.png')
+    },
   },
   'icon-computer-background-5-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-computer-background-5-64.png'),
+    get require() {
+      return require('../images/icons/icon-computer-background-5-64.png')
+    },
   },
   'icon-computer-background-5-96': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-computer-background-5-96.png'),
+    get require() {
+      return require('../images/icons/icon-computer-background-5-96.png')
+    },
   },
   'icon-computer-background-6-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-computer-background-6-32.png'),
+    get require() {
+      return require('../images/icons/icon-computer-background-6-32.png')
+    },
   },
   'icon-computer-background-6-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-computer-background-6-48.png'),
+    get require() {
+      return require('../images/icons/icon-computer-background-6-48.png')
+    },
   },
   'icon-computer-background-6-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-computer-background-6-64.png'),
+    get require() {
+      return require('../images/icons/icon-computer-background-6-64.png')
+    },
   },
   'icon-computer-background-6-96': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-computer-background-6-96.png'),
+    get require() {
+      return require('../images/icons/icon-computer-background-6-96.png')
+    },
   },
   'icon-computer-background-7-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-computer-background-7-32.png'),
+    get require() {
+      return require('../images/icons/icon-computer-background-7-32.png')
+    },
   },
   'icon-computer-background-7-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-computer-background-7-48.png'),
+    get require() {
+      return require('../images/icons/icon-computer-background-7-48.png')
+    },
   },
   'icon-computer-background-7-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-computer-background-7-64.png'),
+    get require() {
+      return require('../images/icons/icon-computer-background-7-64.png')
+    },
   },
   'icon-computer-background-7-96': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-computer-background-7-96.png'),
+    get require() {
+      return require('../images/icons/icon-computer-background-7-96.png')
+    },
   },
   'icon-computer-background-8-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-computer-background-8-32.png'),
+    get require() {
+      return require('../images/icons/icon-computer-background-8-32.png')
+    },
   },
   'icon-computer-background-8-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-computer-background-8-48.png'),
+    get require() {
+      return require('../images/icons/icon-computer-background-8-48.png')
+    },
   },
   'icon-computer-background-8-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-computer-background-8-64.png'),
+    get require() {
+      return require('../images/icons/icon-computer-background-8-64.png')
+    },
   },
   'icon-computer-background-8-96': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-computer-background-8-96.png'),
+    get require() {
+      return require('../images/icons/icon-computer-background-8-96.png')
+    },
   },
   'icon-computer-background-9-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-computer-background-9-32.png'),
+    get require() {
+      return require('../images/icons/icon-computer-background-9-32.png')
+    },
   },
   'icon-computer-background-9-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-computer-background-9-48.png'),
+    get require() {
+      return require('../images/icons/icon-computer-background-9-48.png')
+    },
   },
   'icon-computer-background-9-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-computer-background-9-64.png'),
+    get require() {
+      return require('../images/icons/icon-computer-background-9-64.png')
+    },
   },
   'icon-computer-background-9-96': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-computer-background-9-96.png'),
+    get require() {
+      return require('../images/icons/icon-computer-background-9-96.png')
+    },
   },
   'icon-computer-revoke-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-computer-revoke-48.png'),
+    get require() {
+      return require('../images/icons/icon-computer-revoke-48.png')
+    },
   },
   'icon-computer-revoke-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-computer-revoke-64.png'),
+    get require() {
+      return require('../images/icons/icon-computer-revoke-64.png')
+    },
   },
   'icon-computer-revoke-background-1-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-1-32',
-    require: require('../images/icons/icon-computer-revoke-background-1-32.png'),
-    requireDark: require('../images/icons/icon-dark-computer-revoke-background-1-32.png'),
+    get require() {
+      return require('../images/icons/icon-computer-revoke-background-1-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-revoke-background-1-32.png')
+    },
   },
   'icon-computer-revoke-background-1-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-1-48',
-    require: require('../images/icons/icon-computer-revoke-background-1-48.png'),
-    requireDark: require('../images/icons/icon-dark-computer-revoke-background-1-48.png'),
+    get require() {
+      return require('../images/icons/icon-computer-revoke-background-1-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-revoke-background-1-48.png')
+    },
   },
   'icon-computer-revoke-background-1-64': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-1-64',
-    require: require('../images/icons/icon-computer-revoke-background-1-64.png'),
-    requireDark: require('../images/icons/icon-dark-computer-revoke-background-1-64.png'),
+    get require() {
+      return require('../images/icons/icon-computer-revoke-background-1-64.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-revoke-background-1-64.png')
+    },
   },
   'icon-computer-revoke-background-10-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-10-32',
-    require: require('../images/icons/icon-computer-revoke-background-10-32.png'),
-    requireDark: require('../images/icons/icon-dark-computer-revoke-background-10-32.png'),
+    get require() {
+      return require('../images/icons/icon-computer-revoke-background-10-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-revoke-background-10-32.png')
+    },
   },
   'icon-computer-revoke-background-10-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-10-48',
-    require: require('../images/icons/icon-computer-revoke-background-10-48.png'),
-    requireDark: require('../images/icons/icon-dark-computer-revoke-background-10-48.png'),
+    get require() {
+      return require('../images/icons/icon-computer-revoke-background-10-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-revoke-background-10-48.png')
+    },
   },
   'icon-computer-revoke-background-10-64': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-10-64',
-    require: require('../images/icons/icon-computer-revoke-background-10-64.png'),
-    requireDark: require('../images/icons/icon-dark-computer-revoke-background-10-64.png'),
+    get require() {
+      return require('../images/icons/icon-computer-revoke-background-10-64.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-revoke-background-10-64.png')
+    },
   },
   'icon-computer-revoke-background-2-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-2-32',
-    require: require('../images/icons/icon-computer-revoke-background-2-32.png'),
-    requireDark: require('../images/icons/icon-dark-computer-revoke-background-2-32.png'),
+    get require() {
+      return require('../images/icons/icon-computer-revoke-background-2-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-revoke-background-2-32.png')
+    },
   },
   'icon-computer-revoke-background-2-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-2-48',
-    require: require('../images/icons/icon-computer-revoke-background-2-48.png'),
-    requireDark: require('../images/icons/icon-dark-computer-revoke-background-2-48.png'),
+    get require() {
+      return require('../images/icons/icon-computer-revoke-background-2-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-revoke-background-2-48.png')
+    },
   },
   'icon-computer-revoke-background-2-64': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-2-64',
-    require: require('../images/icons/icon-computer-revoke-background-2-64.png'),
-    requireDark: require('../images/icons/icon-dark-computer-revoke-background-2-64.png'),
+    get require() {
+      return require('../images/icons/icon-computer-revoke-background-2-64.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-revoke-background-2-64.png')
+    },
   },
   'icon-computer-revoke-background-3-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-3-32',
-    require: require('../images/icons/icon-computer-revoke-background-3-32.png'),
-    requireDark: require('../images/icons/icon-dark-computer-revoke-background-3-32.png'),
+    get require() {
+      return require('../images/icons/icon-computer-revoke-background-3-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-revoke-background-3-32.png')
+    },
   },
   'icon-computer-revoke-background-3-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-3-48',
-    require: require('../images/icons/icon-computer-revoke-background-3-48.png'),
-    requireDark: require('../images/icons/icon-dark-computer-revoke-background-3-48.png'),
+    get require() {
+      return require('../images/icons/icon-computer-revoke-background-3-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-revoke-background-3-48.png')
+    },
   },
   'icon-computer-revoke-background-3-64': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-3-64',
-    require: require('../images/icons/icon-computer-revoke-background-3-64.png'),
-    requireDark: require('../images/icons/icon-dark-computer-revoke-background-3-64.png'),
+    get require() {
+      return require('../images/icons/icon-computer-revoke-background-3-64.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-revoke-background-3-64.png')
+    },
   },
   'icon-computer-revoke-background-4-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-4-32',
-    require: require('../images/icons/icon-computer-revoke-background-4-32.png'),
-    requireDark: require('../images/icons/icon-dark-computer-revoke-background-4-32.png'),
+    get require() {
+      return require('../images/icons/icon-computer-revoke-background-4-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-revoke-background-4-32.png')
+    },
   },
   'icon-computer-revoke-background-4-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-4-48',
-    require: require('../images/icons/icon-computer-revoke-background-4-48.png'),
-    requireDark: require('../images/icons/icon-dark-computer-revoke-background-4-48.png'),
+    get require() {
+      return require('../images/icons/icon-computer-revoke-background-4-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-revoke-background-4-48.png')
+    },
   },
   'icon-computer-revoke-background-4-64': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-4-64',
-    require: require('../images/icons/icon-computer-revoke-background-4-64.png'),
-    requireDark: require('../images/icons/icon-dark-computer-revoke-background-4-64.png'),
+    get require() {
+      return require('../images/icons/icon-computer-revoke-background-4-64.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-revoke-background-4-64.png')
+    },
   },
   'icon-computer-revoke-background-5-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-5-32',
-    require: require('../images/icons/icon-computer-revoke-background-5-32.png'),
-    requireDark: require('../images/icons/icon-dark-computer-revoke-background-5-32.png'),
+    get require() {
+      return require('../images/icons/icon-computer-revoke-background-5-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-revoke-background-5-32.png')
+    },
   },
   'icon-computer-revoke-background-5-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-5-48',
-    require: require('../images/icons/icon-computer-revoke-background-5-48.png'),
-    requireDark: require('../images/icons/icon-dark-computer-revoke-background-5-48.png'),
+    get require() {
+      return require('../images/icons/icon-computer-revoke-background-5-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-revoke-background-5-48.png')
+    },
   },
   'icon-computer-revoke-background-5-64': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-5-64',
-    require: require('../images/icons/icon-computer-revoke-background-5-64.png'),
-    requireDark: require('../images/icons/icon-dark-computer-revoke-background-5-64.png'),
+    get require() {
+      return require('../images/icons/icon-computer-revoke-background-5-64.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-revoke-background-5-64.png')
+    },
   },
   'icon-computer-revoke-background-6-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-6-32',
-    require: require('../images/icons/icon-computer-revoke-background-6-32.png'),
-    requireDark: require('../images/icons/icon-dark-computer-revoke-background-6-32.png'),
+    get require() {
+      return require('../images/icons/icon-computer-revoke-background-6-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-revoke-background-6-32.png')
+    },
   },
   'icon-computer-revoke-background-6-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-6-48',
-    require: require('../images/icons/icon-computer-revoke-background-6-48.png'),
-    requireDark: require('../images/icons/icon-dark-computer-revoke-background-6-48.png'),
+    get require() {
+      return require('../images/icons/icon-computer-revoke-background-6-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-revoke-background-6-48.png')
+    },
   },
   'icon-computer-revoke-background-6-64': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-6-64',
-    require: require('../images/icons/icon-computer-revoke-background-6-64.png'),
-    requireDark: require('../images/icons/icon-dark-computer-revoke-background-6-64.png'),
+    get require() {
+      return require('../images/icons/icon-computer-revoke-background-6-64.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-revoke-background-6-64.png')
+    },
   },
   'icon-computer-revoke-background-7-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-7-32',
-    require: require('../images/icons/icon-computer-revoke-background-7-32.png'),
-    requireDark: require('../images/icons/icon-dark-computer-revoke-background-7-32.png'),
+    get require() {
+      return require('../images/icons/icon-computer-revoke-background-7-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-revoke-background-7-32.png')
+    },
   },
   'icon-computer-revoke-background-7-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-7-48',
-    require: require('../images/icons/icon-computer-revoke-background-7-48.png'),
-    requireDark: require('../images/icons/icon-dark-computer-revoke-background-7-48.png'),
+    get require() {
+      return require('../images/icons/icon-computer-revoke-background-7-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-revoke-background-7-48.png')
+    },
   },
   'icon-computer-revoke-background-7-64': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-7-64',
-    require: require('../images/icons/icon-computer-revoke-background-7-64.png'),
-    requireDark: require('../images/icons/icon-dark-computer-revoke-background-7-64.png'),
+    get require() {
+      return require('../images/icons/icon-computer-revoke-background-7-64.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-revoke-background-7-64.png')
+    },
   },
   'icon-computer-revoke-background-8-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-8-32',
-    require: require('../images/icons/icon-computer-revoke-background-8-32.png'),
-    requireDark: require('../images/icons/icon-dark-computer-revoke-background-8-32.png'),
+    get require() {
+      return require('../images/icons/icon-computer-revoke-background-8-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-revoke-background-8-32.png')
+    },
   },
   'icon-computer-revoke-background-8-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-8-48',
-    require: require('../images/icons/icon-computer-revoke-background-8-48.png'),
-    requireDark: require('../images/icons/icon-dark-computer-revoke-background-8-48.png'),
+    get require() {
+      return require('../images/icons/icon-computer-revoke-background-8-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-revoke-background-8-48.png')
+    },
   },
   'icon-computer-revoke-background-8-64': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-8-64',
-    require: require('../images/icons/icon-computer-revoke-background-8-64.png'),
-    requireDark: require('../images/icons/icon-dark-computer-revoke-background-8-64.png'),
+    get require() {
+      return require('../images/icons/icon-computer-revoke-background-8-64.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-revoke-background-8-64.png')
+    },
   },
   'icon-computer-revoke-background-9-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-9-32',
-    require: require('../images/icons/icon-computer-revoke-background-9-32.png'),
-    requireDark: require('../images/icons/icon-dark-computer-revoke-background-9-32.png'),
+    get require() {
+      return require('../images/icons/icon-computer-revoke-background-9-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-revoke-background-9-32.png')
+    },
   },
   'icon-computer-revoke-background-9-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-9-48',
-    require: require('../images/icons/icon-computer-revoke-background-9-48.png'),
-    requireDark: require('../images/icons/icon-dark-computer-revoke-background-9-48.png'),
+    get require() {
+      return require('../images/icons/icon-computer-revoke-background-9-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-revoke-background-9-48.png')
+    },
   },
   'icon-computer-revoke-background-9-64': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-9-64',
-    require: require('../images/icons/icon-computer-revoke-background-9-64.png'),
-    requireDark: require('../images/icons/icon-dark-computer-revoke-background-9-64.png'),
+    get require() {
+      return require('../images/icons/icon-computer-revoke-background-9-64.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-revoke-background-9-64.png')
+    },
   },
   'icon-computer-success-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-success-32',
-    require: require('../images/icons/icon-computer-success-32.png'),
-    requireDark: require('../images/icons/icon-dark-computer-success-32.png'),
+    get require() {
+      return require('../images/icons/icon-computer-success-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-success-32.png')
+    },
   },
   'icon-computer-success-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-success-48',
-    require: require('../images/icons/icon-computer-success-48.png'),
-    requireDark: require('../images/icons/icon-dark-computer-success-48.png'),
+    get require() {
+      return require('../images/icons/icon-computer-success-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-success-48.png')
+    },
   },
   'icon-computer-success-background-1-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-1-32',
-    require: require('../images/icons/icon-computer-success-background-1-32.png'),
-    requireDark: require('../images/icons/icon-dark-computer-success-background-1-32.png'),
+    get require() {
+      return require('../images/icons/icon-computer-success-background-1-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-success-background-1-32.png')
+    },
   },
   'icon-computer-success-background-1-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-1-48',
-    require: require('../images/icons/icon-computer-success-background-1-48.png'),
-    requireDark: require('../images/icons/icon-dark-computer-success-background-1-48.png'),
+    get require() {
+      return require('../images/icons/icon-computer-success-background-1-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-success-background-1-48.png')
+    },
   },
   'icon-computer-success-background-10-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-10-32',
-    require: require('../images/icons/icon-computer-success-background-10-32.png'),
-    requireDark: require('../images/icons/icon-dark-computer-success-background-10-32.png'),
+    get require() {
+      return require('../images/icons/icon-computer-success-background-10-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-success-background-10-32.png')
+    },
   },
   'icon-computer-success-background-10-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-10-48',
-    require: require('../images/icons/icon-computer-success-background-10-48.png'),
-    requireDark: require('../images/icons/icon-dark-computer-success-background-10-48.png'),
+    get require() {
+      return require('../images/icons/icon-computer-success-background-10-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-success-background-10-48.png')
+    },
   },
   'icon-computer-success-background-2-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-2-32',
-    require: require('../images/icons/icon-computer-success-background-2-32.png'),
-    requireDark: require('../images/icons/icon-dark-computer-success-background-2-32.png'),
+    get require() {
+      return require('../images/icons/icon-computer-success-background-2-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-success-background-2-32.png')
+    },
   },
   'icon-computer-success-background-2-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-2-48',
-    require: require('../images/icons/icon-computer-success-background-2-48.png'),
-    requireDark: require('../images/icons/icon-dark-computer-success-background-2-48.png'),
+    get require() {
+      return require('../images/icons/icon-computer-success-background-2-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-success-background-2-48.png')
+    },
   },
   'icon-computer-success-background-3-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-3-32',
-    require: require('../images/icons/icon-computer-success-background-3-32.png'),
-    requireDark: require('../images/icons/icon-dark-computer-success-background-3-32.png'),
+    get require() {
+      return require('../images/icons/icon-computer-success-background-3-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-success-background-3-32.png')
+    },
   },
   'icon-computer-success-background-3-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-3-48',
-    require: require('../images/icons/icon-computer-success-background-3-48.png'),
-    requireDark: require('../images/icons/icon-dark-computer-success-background-3-48.png'),
+    get require() {
+      return require('../images/icons/icon-computer-success-background-3-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-success-background-3-48.png')
+    },
   },
   'icon-computer-success-background-4-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-4-32',
-    require: require('../images/icons/icon-computer-success-background-4-32.png'),
-    requireDark: require('../images/icons/icon-dark-computer-success-background-4-32.png'),
+    get require() {
+      return require('../images/icons/icon-computer-success-background-4-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-success-background-4-32.png')
+    },
   },
   'icon-computer-success-background-4-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-4-48',
-    require: require('../images/icons/icon-computer-success-background-4-48.png'),
-    requireDark: require('../images/icons/icon-dark-computer-success-background-4-48.png'),
+    get require() {
+      return require('../images/icons/icon-computer-success-background-4-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-success-background-4-48.png')
+    },
   },
   'icon-computer-success-background-5-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-5-32',
-    require: require('../images/icons/icon-computer-success-background-5-32.png'),
-    requireDark: require('../images/icons/icon-dark-computer-success-background-5-32.png'),
+    get require() {
+      return require('../images/icons/icon-computer-success-background-5-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-success-background-5-32.png')
+    },
   },
   'icon-computer-success-background-5-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-5-48',
-    require: require('../images/icons/icon-computer-success-background-5-48.png'),
-    requireDark: require('../images/icons/icon-dark-computer-success-background-5-48.png'),
+    get require() {
+      return require('../images/icons/icon-computer-success-background-5-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-success-background-5-48.png')
+    },
   },
   'icon-computer-success-background-6-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-6-32',
-    require: require('../images/icons/icon-computer-success-background-6-32.png'),
-    requireDark: require('../images/icons/icon-dark-computer-success-background-6-32.png'),
+    get require() {
+      return require('../images/icons/icon-computer-success-background-6-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-success-background-6-32.png')
+    },
   },
   'icon-computer-success-background-6-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-6-48',
-    require: require('../images/icons/icon-computer-success-background-6-48.png'),
-    requireDark: require('../images/icons/icon-dark-computer-success-background-6-48.png'),
+    get require() {
+      return require('../images/icons/icon-computer-success-background-6-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-success-background-6-48.png')
+    },
   },
   'icon-computer-success-background-7-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-7-32',
-    require: require('../images/icons/icon-computer-success-background-7-32.png'),
-    requireDark: require('../images/icons/icon-dark-computer-success-background-7-32.png'),
+    get require() {
+      return require('../images/icons/icon-computer-success-background-7-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-success-background-7-32.png')
+    },
   },
   'icon-computer-success-background-7-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-7-48',
-    require: require('../images/icons/icon-computer-success-background-7-48.png'),
-    requireDark: require('../images/icons/icon-dark-computer-success-background-7-48.png'),
+    get require() {
+      return require('../images/icons/icon-computer-success-background-7-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-success-background-7-48.png')
+    },
   },
   'icon-computer-success-background-8-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-8-32',
-    require: require('../images/icons/icon-computer-success-background-8-32.png'),
-    requireDark: require('../images/icons/icon-dark-computer-success-background-8-32.png'),
+    get require() {
+      return require('../images/icons/icon-computer-success-background-8-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-success-background-8-32.png')
+    },
   },
   'icon-computer-success-background-8-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-8-48',
-    require: require('../images/icons/icon-computer-success-background-8-48.png'),
-    requireDark: require('../images/icons/icon-dark-computer-success-background-8-48.png'),
+    get require() {
+      return require('../images/icons/icon-computer-success-background-8-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-success-background-8-48.png')
+    },
   },
   'icon-computer-success-background-9-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-9-32',
-    require: require('../images/icons/icon-computer-success-background-9-32.png'),
-    requireDark: require('../images/icons/icon-dark-computer-success-background-9-32.png'),
+    get require() {
+      return require('../images/icons/icon-computer-success-background-9-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-success-background-9-32.png')
+    },
   },
   'icon-computer-success-background-9-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-9-48',
-    require: require('../images/icons/icon-computer-success-background-9-48.png'),
-    requireDark: require('../images/icons/icon-dark-computer-success-background-9-48.png'),
+    get require() {
+      return require('../images/icons/icon-computer-success-background-9-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-computer-success-background-9-48.png')
+    },
   },
   'icon-dark-addon-file-downloading': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-addon-file-downloading.png'),
+    get require() {
+      return require('../images/icons/icon-dark-addon-file-downloading.png')
+    },
   },
   'icon-dark-addon-file-uploading': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-addon-file-uploading.png'),
+    get require() {
+      return require('../images/icons/icon-dark-addon-file-uploading.png')
+    },
   },
   'icon-dark-addon-lock-16': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-addon-lock-16.png'),
+    get require() {
+      return require('../images/icons/icon-dark-addon-lock-16.png')
+    },
   },
   'icon-dark-addon-lock-22': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-addon-lock-22.png'),
+    get require() {
+      return require('../images/icons/icon-dark-addon-lock-22.png')
+    },
   },
   'icon-dark-addon-lock-hover-16': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-addon-lock-hover-16.png'),
+    get require() {
+      return require('../images/icons/icon-dark-addon-lock-hover-16.png')
+    },
   },
   'icon-dark-computer-revoke-background-1-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-revoke-background-1-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-revoke-background-1-32.png')
+    },
   },
   'icon-dark-computer-revoke-background-1-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-revoke-background-1-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-revoke-background-1-48.png')
+    },
   },
   'icon-dark-computer-revoke-background-1-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-revoke-background-1-64.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-revoke-background-1-64.png')
+    },
   },
   'icon-dark-computer-revoke-background-10-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-revoke-background-10-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-revoke-background-10-32.png')
+    },
   },
   'icon-dark-computer-revoke-background-10-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-revoke-background-10-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-revoke-background-10-48.png')
+    },
   },
   'icon-dark-computer-revoke-background-10-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-revoke-background-10-64.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-revoke-background-10-64.png')
+    },
   },
   'icon-dark-computer-revoke-background-2-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-revoke-background-2-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-revoke-background-2-32.png')
+    },
   },
   'icon-dark-computer-revoke-background-2-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-revoke-background-2-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-revoke-background-2-48.png')
+    },
   },
   'icon-dark-computer-revoke-background-2-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-revoke-background-2-64.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-revoke-background-2-64.png')
+    },
   },
   'icon-dark-computer-revoke-background-3-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-revoke-background-3-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-revoke-background-3-32.png')
+    },
   },
   'icon-dark-computer-revoke-background-3-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-revoke-background-3-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-revoke-background-3-48.png')
+    },
   },
   'icon-dark-computer-revoke-background-3-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-revoke-background-3-64.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-revoke-background-3-64.png')
+    },
   },
   'icon-dark-computer-revoke-background-4-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-revoke-background-4-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-revoke-background-4-32.png')
+    },
   },
   'icon-dark-computer-revoke-background-4-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-revoke-background-4-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-revoke-background-4-48.png')
+    },
   },
   'icon-dark-computer-revoke-background-4-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-revoke-background-4-64.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-revoke-background-4-64.png')
+    },
   },
   'icon-dark-computer-revoke-background-5-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-revoke-background-5-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-revoke-background-5-32.png')
+    },
   },
   'icon-dark-computer-revoke-background-5-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-revoke-background-5-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-revoke-background-5-48.png')
+    },
   },
   'icon-dark-computer-revoke-background-5-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-revoke-background-5-64.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-revoke-background-5-64.png')
+    },
   },
   'icon-dark-computer-revoke-background-6-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-revoke-background-6-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-revoke-background-6-32.png')
+    },
   },
   'icon-dark-computer-revoke-background-6-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-revoke-background-6-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-revoke-background-6-48.png')
+    },
   },
   'icon-dark-computer-revoke-background-6-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-revoke-background-6-64.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-revoke-background-6-64.png')
+    },
   },
   'icon-dark-computer-revoke-background-7-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-revoke-background-7-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-revoke-background-7-32.png')
+    },
   },
   'icon-dark-computer-revoke-background-7-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-revoke-background-7-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-revoke-background-7-48.png')
+    },
   },
   'icon-dark-computer-revoke-background-7-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-revoke-background-7-64.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-revoke-background-7-64.png')
+    },
   },
   'icon-dark-computer-revoke-background-8-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-revoke-background-8-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-revoke-background-8-32.png')
+    },
   },
   'icon-dark-computer-revoke-background-8-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-revoke-background-8-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-revoke-background-8-48.png')
+    },
   },
   'icon-dark-computer-revoke-background-8-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-revoke-background-8-64.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-revoke-background-8-64.png')
+    },
   },
   'icon-dark-computer-revoke-background-9-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-revoke-background-9-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-revoke-background-9-32.png')
+    },
   },
   'icon-dark-computer-revoke-background-9-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-revoke-background-9-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-revoke-background-9-48.png')
+    },
   },
   'icon-dark-computer-revoke-background-9-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-revoke-background-9-64.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-revoke-background-9-64.png')
+    },
   },
   'icon-dark-computer-success-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-success-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-success-32.png')
+    },
   },
   'icon-dark-computer-success-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-success-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-success-48.png')
+    },
   },
   'icon-dark-computer-success-background-1-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-success-background-1-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-success-background-1-32.png')
+    },
   },
   'icon-dark-computer-success-background-1-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-success-background-1-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-success-background-1-48.png')
+    },
   },
   'icon-dark-computer-success-background-10-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-success-background-10-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-success-background-10-32.png')
+    },
   },
   'icon-dark-computer-success-background-10-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-success-background-10-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-success-background-10-48.png')
+    },
   },
   'icon-dark-computer-success-background-2-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-success-background-2-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-success-background-2-32.png')
+    },
   },
   'icon-dark-computer-success-background-2-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-success-background-2-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-success-background-2-48.png')
+    },
   },
   'icon-dark-computer-success-background-3-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-success-background-3-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-success-background-3-32.png')
+    },
   },
   'icon-dark-computer-success-background-3-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-success-background-3-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-success-background-3-48.png')
+    },
   },
   'icon-dark-computer-success-background-4-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-success-background-4-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-success-background-4-32.png')
+    },
   },
   'icon-dark-computer-success-background-4-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-success-background-4-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-success-background-4-48.png')
+    },
   },
   'icon-dark-computer-success-background-5-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-success-background-5-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-success-background-5-32.png')
+    },
   },
   'icon-dark-computer-success-background-5-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-success-background-5-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-success-background-5-48.png')
+    },
   },
   'icon-dark-computer-success-background-6-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-success-background-6-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-success-background-6-32.png')
+    },
   },
   'icon-dark-computer-success-background-6-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-success-background-6-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-success-background-6-48.png')
+    },
   },
   'icon-dark-computer-success-background-7-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-success-background-7-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-success-background-7-32.png')
+    },
   },
   'icon-dark-computer-success-background-7-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-success-background-7-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-success-background-7-48.png')
+    },
   },
   'icon-dark-computer-success-background-8-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-success-background-8-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-success-background-8-32.png')
+    },
   },
   'icon-dark-computer-success-background-8-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-success-background-8-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-success-background-8-48.png')
+    },
   },
   'icon-dark-computer-success-background-9-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-success-background-9-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-success-background-9-32.png')
+    },
   },
   'icon-dark-computer-success-background-9-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-computer-success-background-9-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-computer-success-background-9-48.png')
+    },
   },
   'icon-dark-dns-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-dns-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-dns-48.png')
+    },
   },
   'icon-dark-dns-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-dns-64.png'),
+    get require() {
+      return require('../images/icons/icon-dark-dns-64.png')
+    },
   },
   'icon-dark-email-remove-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-email-remove-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-email-remove-48.png')
+    },
   },
   'icon-dark-email-remove-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-email-remove-64.png'),
+    get require() {
+      return require('../images/icons/icon-dark-email-remove-64.png')
+    },
   },
   'icon-dark-email-remove-96': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-email-remove-96.png'),
+    get require() {
+      return require('../images/icons/icon-dark-email-remove-96.png')
+    },
   },
   'icon-dark-fancy-bomb-desktop-150-72': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-fancy-bomb-desktop-150-72.png'),
+    get require() {
+      return require('../images/icons/icon-dark-fancy-bomb-desktop-150-72.png')
+    },
   },
   'icon-dark-fancy-bomb-mobile-226-96': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-fancy-bomb-mobile-226-96.png'),
+    get require() {
+      return require('../images/icons/icon-dark-fancy-bomb-mobile-226-96.png')
+    },
   },
   'icon-dark-fancy-chat-103-x-75': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-fancy-chat-103-x-75.png'),
+    get require() {
+      return require('../images/icons/icon-dark-fancy-chat-103-x-75.png')
+    },
   },
   'icon-dark-fancy-chat-72-x-52': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-fancy-chat-72-x-52.png'),
+    get require() {
+      return require('../images/icons/icon-dark-fancy-chat-72-x-52.png')
+    },
   },
   'icon-dark-fancy-email-sent-144-x-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-fancy-email-sent-144-x-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-fancy-email-sent-144-x-48.png')
+    },
   },
   'icon-dark-fancy-email-sent-192-x-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-fancy-email-sent-192-x-64.png'),
+    get require() {
+      return require('../images/icons/icon-dark-fancy-email-sent-192-x-64.png')
+    },
   },
   'icon-dark-fancy-encrypted-computer-desktop-150-72': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-fancy-encrypted-computer-desktop-150-72.png'),
+    get require() {
+      return require('../images/icons/icon-dark-fancy-encrypted-computer-desktop-150-72.png')
+    },
   },
   'icon-dark-fancy-encrypted-computer-mobile-226-96': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-fancy-encrypted-computer-mobile-226-96.png'),
+    get require() {
+      return require('../images/icons/icon-dark-fancy-encrypted-computer-mobile-226-96.png')
+    },
   },
-  'icon-dark-fancy-encrypted-phone-desktop-150-72': {
+  'icon-dark-fancy-encrypted-location-phone-desktop-150-72': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-fancy-encrypted-phone-desktop-150-72.png'),
+    get require() {
+      return require('../images/icons/icon-dark-fancy-encrypted-location-phone-desktop-150-72.png')
+    },
   },
   'icon-dark-fancy-encrypted-phone-mobile-226-96': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-fancy-encrypted-phone-mobile-226-96.png'),
+    get require() {
+      return require('../images/icons/icon-dark-fancy-encrypted-phone-mobile-226-96.png')
+    },
   },
   'icon-dark-fancy-finder-132-96': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-fancy-finder-132-96.png'),
+    get require() {
+      return require('../images/icons/icon-dark-fancy-finder-132-96.png')
+    },
   },
   'icon-dark-fancy-finder-enabled-132-96': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-fancy-finder-enabled-132-96.png'),
+    get require() {
+      return require('../images/icons/icon-dark-fancy-finder-enabled-132-96.png')
+    },
   },
   'icon-dark-fancy-revoked-computer-desktop-150-72': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-fancy-revoked-computer-desktop-150-72.png'),
+    get require() {
+      return require('../images/icons/icon-dark-fancy-revoked-computer-desktop-150-72.png')
+    },
   },
   'icon-dark-fancy-revoked-computer-mobile-226-96': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-fancy-revoked-computer-mobile-226-96.png'),
+    get require() {
+      return require('../images/icons/icon-dark-fancy-revoked-computer-mobile-226-96.png')
+    },
   },
   'icon-dark-fancy-revoked-phone-mobile-226-96': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-fancy-revoked-phone-mobile-226-96.png'),
+    get require() {
+      return require('../images/icons/icon-dark-fancy-revoked-phone-mobile-226-96.png')
+    },
   },
   'icon-dark-fancy-unfurl-preview-desktop-96-96': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-fancy-unfurl-preview-desktop-96-96.png'),
+    get require() {
+      return require('../images/icons/icon-dark-fancy-unfurl-preview-desktop-96-96.png')
+    },
   },
   'icon-dark-fancy-unfurl-preview-mobile-128-128': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-fancy-unfurl-preview-mobile-128-128.png'),
+    get require() {
+      return require('../images/icons/icon-dark-fancy-unfurl-preview-mobile-128-128.png')
+    },
   },
   'icon-dark-fancy-user-card-desktop-80-99': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-fancy-user-card-desktop-80-99.png'),
+    get require() {
+      return require('../images/icons/icon-dark-fancy-user-card-desktop-80-99.png')
+    },
   },
   'icon-dark-fancy-user-card-desktop-airdrop-80-99': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-fancy-user-card-desktop-airdrop-80-99.png'),
+    get require() {
+      return require('../images/icons/icon-dark-fancy-user-card-desktop-airdrop-80-99.png')
+    },
   },
   'icon-dark-fancy-user-card-mobile-120-149': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-fancy-user-card-mobile-120-149.png'),
+    get require() {
+      return require('../images/icons/icon-dark-fancy-user-card-mobile-120-149.png')
+    },
   },
   'icon-dark-fancy-user-card-mobile-airdrop-120-149': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-fancy-user-card-mobile-airdrop-120-149.png'),
+    get require() {
+      return require('../images/icons/icon-dark-fancy-user-card-mobile-airdrop-120-149.png')
+    },
   },
   'icon-dark-file-16': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-file-16.png'),
+    get require() {
+      return require('../images/icons/icon-dark-file-16.png')
+    },
   },
   'icon-dark-file-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-file-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-file-32.png')
+    },
   },
   'icon-dark-file-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-file-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-file-48.png')
+    },
   },
   'icon-dark-file-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-file-64.png'),
+    get require() {
+      return require('../images/icons/icon-dark-file-64.png')
+    },
   },
   'icon-dark-file-96': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-file-96.png'),
+    get require() {
+      return require('../images/icons/icon-dark-file-96.png')
+    },
   },
   'icon-dark-file-delete-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-file-delete-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-file-delete-48.png')
+    },
   },
   'icon-dark-file-delete-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-file-delete-64.png'),
+    get require() {
+      return require('../images/icons/icon-dark-file-delete-64.png')
+    },
   },
   'icon-dark-file-placeholder-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-file-placeholder-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-file-placeholder-32.png')
+    },
   },
   'icon-dark-file-txt-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-file-txt-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-file-txt-48.png')
+    },
   },
   'icon-dark-file-txt-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-file-txt-64.png'),
+    get require() {
+      return require('../images/icons/icon-dark-file-txt-64.png')
+    },
   },
   'icon-dark-file-uploading-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-file-uploading-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-file-uploading-48.png')
+    },
   },
   'icon-dark-file-uploading-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-file-uploading-64.png'),
+    get require() {
+      return require('../images/icons/icon-dark-file-uploading-64.png')
+    },
   },
   'icon-dark-folder-16': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-folder-16.png'),
+    get require() {
+      return require('../images/icons/icon-dark-folder-16.png')
+    },
   },
   'icon-dark-folder-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-folder-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-folder-32.png')
+    },
   },
   'icon-dark-folder-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-folder-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-folder-48.png')
+    },
   },
   'icon-dark-folder-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-folder-64.png'),
+    get require() {
+      return require('../images/icons/icon-dark-folder-64.png')
+    },
   },
   'icon-dark-folder-copy-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-folder-copy-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-folder-copy-32.png')
+    },
   },
   'icon-dark-folder-copy-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-folder-copy-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-folder-copy-48.png')
+    },
   },
   'icon-dark-folder-default-96': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-folder-default-96.png'),
+    get require() {
+      return require('../images/icons/icon-dark-folder-default-96.png')
+    },
   },
   'icon-dark-folder-move-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-folder-move-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-folder-move-32.png')
+    },
   },
   'icon-dark-folder-move-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-folder-move-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-folder-move-48.png')
+    },
   },
   'icon-dark-folder-placeholder-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-folder-placeholder-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-folder-placeholder-32.png')
+    },
   },
   'icon-dark-folder-private-16': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-folder-private-16.png'),
+    get require() {
+      return require('../images/icons/icon-dark-folder-private-16.png')
+    },
   },
   'icon-dark-folder-private-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-folder-private-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-folder-private-32.png')
+    },
   },
   'icon-dark-folder-private-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-folder-private-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-folder-private-48.png')
+    },
   },
   'icon-dark-folder-private-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-folder-private-64.png'),
+    get require() {
+      return require('../images/icons/icon-dark-folder-private-64.png')
+    },
   },
   'icon-dark-folder-private-96': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-folder-private-96.png'),
+    get require() {
+      return require('../images/icons/icon-dark-folder-private-96.png')
+    },
   },
   'icon-dark-folder-public-16': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-folder-public-16.png'),
+    get require() {
+      return require('../images/icons/icon-dark-folder-public-16.png')
+    },
   },
   'icon-dark-folder-public-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-folder-public-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-folder-public-32.png')
+    },
   },
   'icon-dark-folder-public-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-folder-public-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-folder-public-48.png')
+    },
   },
   'icon-dark-folder-public-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-folder-public-64.png'),
+    get require() {
+      return require('../images/icons/icon-dark-folder-public-64.png')
+    },
   },
   'icon-dark-folder-public-96': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-folder-public-96.png'),
+    get require() {
+      return require('../images/icons/icon-dark-folder-public-96.png')
+    },
   },
   'icon-dark-folder-success-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-folder-success-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-folder-success-48.png')
+    },
   },
   'icon-dark-folder-team-16': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-folder-team-16.png'),
+    get require() {
+      return require('../images/icons/icon-dark-folder-team-16.png')
+    },
   },
   'icon-dark-folder-team-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-folder-team-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-folder-team-32.png')
+    },
   },
   'icon-dark-folder-team-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-folder-team-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-folder-team-48.png')
+    },
   },
   'icon-dark-folder-team-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-folder-team-64.png'),
+    get require() {
+      return require('../images/icons/icon-dark-folder-team-64.png')
+    },
   },
   'icon-dark-folder-team-96': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-folder-team-96.png'),
+    get require() {
+      return require('../images/icons/icon-dark-folder-team-96.png')
+    },
   },
   'icon-dark-follow-me-21': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-follow-me-21.png'),
+    get require() {
+      return require('../images/icons/icon-dark-follow-me-21.png')
+    },
   },
   'icon-dark-follow-me-28': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-follow-me-28.png'),
+    get require() {
+      return require('../images/icons/icon-dark-follow-me-28.png')
+    },
   },
   'icon-dark-following-21': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-following-21.png'),
+    get require() {
+      return require('../images/icons/icon-dark-following-21.png')
+    },
   },
   'icon-dark-following-28': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-following-28.png'),
+    get require() {
+      return require('../images/icons/icon-dark-following-28.png')
+    },
   },
   'icon-dark-message-deletion-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-message-deletion-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-message-deletion-32.png')
+    },
   },
   'icon-dark-message-deletion-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-message-deletion-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-message-deletion-48.png')
+    },
   },
   'icon-dark-message-deletion-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-message-deletion-64.png'),
+    get require() {
+      return require('../images/icons/icon-dark-message-deletion-64.png')
+    },
   },
   'icon-dark-message-retention-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-message-retention-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-message-retention-32.png')
+    },
   },
   'icon-dark-message-retention-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-message-retention-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-message-retention-48.png')
+    },
   },
   'icon-dark-message-retention-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-message-retention-64.png'),
+    get require() {
+      return require('../images/icons/icon-dark-message-retention-64.png')
+    },
   },
   'icon-dark-mutual-follow-21': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-mutual-follow-21.png'),
+    get require() {
+      return require('../images/icons/icon-dark-mutual-follow-21.png')
+    },
   },
   'icon-dark-mutual-follow-28': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-mutual-follow-28.png'),
+    get require() {
+      return require('../images/icons/icon-dark-mutual-follow-28.png')
+    },
   },
   'icon-dark-onboarding-chat-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-onboarding-chat-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-onboarding-chat-32.png')
+    },
   },
   'icon-dark-onboarding-chat-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-onboarding-chat-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-onboarding-chat-48.png')
+    },
   },
   'icon-dark-onboarding-computer-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-onboarding-computer-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-onboarding-computer-48.png')
+    },
   },
   'icon-dark-onboarding-email-add-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-onboarding-email-add-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-onboarding-email-add-32.png')
+    },
   },
   'icon-dark-onboarding-email-add-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-onboarding-email-add-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-onboarding-email-add-48.png')
+    },
   },
   'icon-dark-onboarding-email-searchable-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-onboarding-email-searchable-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-onboarding-email-searchable-48.png')
+    },
   },
   'icon-dark-onboarding-email-verify-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-onboarding-email-verify-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-onboarding-email-verify-32.png')
+    },
   },
   'icon-dark-onboarding-email-verify-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-onboarding-email-verify-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-onboarding-email-verify-48.png')
+    },
   },
   'icon-dark-onboarding-folder-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-onboarding-folder-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-onboarding-folder-32.png')
+    },
   },
   'icon-dark-onboarding-folder-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-onboarding-folder-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-onboarding-folder-48.png')
+    },
   },
   'icon-dark-onboarding-follow-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-onboarding-follow-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-onboarding-follow-32.png')
+    },
   },
   'icon-dark-onboarding-follow-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-onboarding-follow-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-onboarding-follow-48.png')
+    },
   },
   'icon-dark-onboarding-git-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-onboarding-git-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-onboarding-git-32.png')
+    },
   },
   'icon-dark-onboarding-git-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-onboarding-git-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-onboarding-git-48.png')
+    },
   },
   'icon-dark-onboarding-number-new-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-onboarding-number-new-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-onboarding-number-new-32.png')
+    },
   },
   'icon-dark-onboarding-number-new-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-onboarding-number-new-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-onboarding-number-new-48.png')
+    },
   },
   'icon-dark-onboarding-number-verify-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-onboarding-number-verify-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-onboarding-number-verify-32.png')
+    },
   },
   'icon-dark-onboarding-number-verify-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-onboarding-number-verify-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-onboarding-number-verify-48.png')
+    },
   },
   'icon-dark-onboarding-paper-key-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-onboarding-paper-key-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-onboarding-paper-key-32.png')
+    },
   },
   'icon-dark-onboarding-paper-key-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-onboarding-paper-key-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-onboarding-paper-key-48.png')
+    },
   },
   'icon-dark-onboarding-phone-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-onboarding-phone-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-onboarding-phone-32.png')
+    },
   },
   'icon-dark-onboarding-proofs-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-onboarding-proofs-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-onboarding-proofs-32.png')
+    },
   },
   'icon-dark-onboarding-proofs-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-onboarding-proofs-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-onboarding-proofs-48.png')
+    },
   },
   'icon-dark-onboarding-team-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-onboarding-team-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-onboarding-team-32.png')
+    },
   },
   'icon-dark-onboarding-team-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-onboarding-team-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-onboarding-team-48.png')
+    },
   },
   'icon-dark-onboarding-team-avatar-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-onboarding-team-avatar-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-onboarding-team-avatar-32.png')
+    },
   },
   'icon-dark-onboarding-team-avatar-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-onboarding-team-avatar-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-onboarding-team-avatar-48.png')
+    },
   },
   'icon-dark-onboarding-team-publicity-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-onboarding-team-publicity-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-onboarding-team-publicity-32.png')
+    },
   },
   'icon-dark-onboarding-team-publicity-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-onboarding-team-publicity-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-onboarding-team-publicity-48.png')
+    },
   },
   'icon-dark-onboarding-user-avatar-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-onboarding-user-avatar-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-onboarding-user-avatar-32.png')
+    },
   },
   'icon-dark-onboarding-user-avatar-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-onboarding-user-avatar-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-onboarding-user-avatar-48.png')
+    },
   },
   'icon-dark-onboarding-user-info-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-onboarding-user-info-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-onboarding-user-info-32.png')
+    },
   },
   'icon-dark-onboarding-user-info-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-onboarding-user-info-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-onboarding-user-info-48.png')
+    },
   },
   'icon-dark-paper-key-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-paper-key-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-paper-key-32.png')
+    },
   },
   'icon-dark-paper-key-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-paper-key-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-paper-key-48.png')
+    },
   },
   'icon-dark-paper-key-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-paper-key-64.png'),
+    get require() {
+      return require('../images/icons/icon-dark-paper-key-64.png')
+    },
   },
   'icon-dark-paper-key-96': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-paper-key-96.png'),
+    get require() {
+      return require('../images/icons/icon-dark-paper-key-96.png')
+    },
   },
   'icon-dark-paper-key-revoke-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-paper-key-revoke-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-paper-key-revoke-48.png')
+    },
   },
   'icon-dark-paper-key-revoke-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-paper-key-revoke-64.png'),
+    get require() {
+      return require('../images/icons/icon-dark-paper-key-revoke-64.png')
+    },
   },
   'icon-dark-phone-number-remove-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-number-remove-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-number-remove-48.png')
+    },
   },
   'icon-dark-phone-number-remove-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-number-remove-64.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-number-remove-64.png')
+    },
   },
   'icon-dark-phone-number-remove-96': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-number-remove-96.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-number-remove-96.png')
+    },
   },
   'icon-dark-phone-revoke-background-1-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-revoke-background-1-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-revoke-background-1-32.png')
+    },
   },
   'icon-dark-phone-revoke-background-1-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-revoke-background-1-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-revoke-background-1-48.png')
+    },
   },
   'icon-dark-phone-revoke-background-1-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-revoke-background-1-64.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-revoke-background-1-64.png')
+    },
   },
   'icon-dark-phone-revoke-background-10-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-revoke-background-10-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-revoke-background-10-32.png')
+    },
   },
   'icon-dark-phone-revoke-background-10-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-revoke-background-10-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-revoke-background-10-48.png')
+    },
   },
   'icon-dark-phone-revoke-background-10-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-revoke-background-10-64.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-revoke-background-10-64.png')
+    },
   },
   'icon-dark-phone-revoke-background-2-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-revoke-background-2-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-revoke-background-2-32.png')
+    },
   },
   'icon-dark-phone-revoke-background-2-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-revoke-background-2-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-revoke-background-2-48.png')
+    },
   },
   'icon-dark-phone-revoke-background-2-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-revoke-background-2-64.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-revoke-background-2-64.png')
+    },
   },
   'icon-dark-phone-revoke-background-3-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-revoke-background-3-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-revoke-background-3-32.png')
+    },
   },
   'icon-dark-phone-revoke-background-3-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-revoke-background-3-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-revoke-background-3-48.png')
+    },
   },
   'icon-dark-phone-revoke-background-3-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-revoke-background-3-64.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-revoke-background-3-64.png')
+    },
   },
   'icon-dark-phone-revoke-background-4-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-revoke-background-4-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-revoke-background-4-32.png')
+    },
   },
   'icon-dark-phone-revoke-background-4-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-revoke-background-4-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-revoke-background-4-48.png')
+    },
   },
   'icon-dark-phone-revoke-background-4-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-revoke-background-4-64.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-revoke-background-4-64.png')
+    },
   },
   'icon-dark-phone-revoke-background-5-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-revoke-background-5-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-revoke-background-5-32.png')
+    },
   },
   'icon-dark-phone-revoke-background-5-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-revoke-background-5-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-revoke-background-5-48.png')
+    },
   },
   'icon-dark-phone-revoke-background-5-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-revoke-background-5-64.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-revoke-background-5-64.png')
+    },
   },
   'icon-dark-phone-revoke-background-6-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-revoke-background-6-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-revoke-background-6-32.png')
+    },
   },
   'icon-dark-phone-revoke-background-6-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-revoke-background-6-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-revoke-background-6-48.png')
+    },
   },
   'icon-dark-phone-revoke-background-6-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-revoke-background-6-64.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-revoke-background-6-64.png')
+    },
   },
   'icon-dark-phone-revoke-background-7-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-revoke-background-7-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-revoke-background-7-32.png')
+    },
   },
   'icon-dark-phone-revoke-background-7-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-revoke-background-7-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-revoke-background-7-48.png')
+    },
   },
   'icon-dark-phone-revoke-background-7-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-revoke-background-7-64.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-revoke-background-7-64.png')
+    },
   },
   'icon-dark-phone-revoke-background-8-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-revoke-background-8-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-revoke-background-8-32.png')
+    },
   },
   'icon-dark-phone-revoke-background-8-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-revoke-background-8-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-revoke-background-8-48.png')
+    },
   },
   'icon-dark-phone-revoke-background-8-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-revoke-background-8-64.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-revoke-background-8-64.png')
+    },
   },
   'icon-dark-phone-revoke-background-9-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-revoke-background-9-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-revoke-background-9-32.png')
+    },
   },
   'icon-dark-phone-revoke-background-9-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-revoke-background-9-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-revoke-background-9-48.png')
+    },
   },
   'icon-dark-phone-revoke-background-9-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-revoke-background-9-64.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-revoke-background-9-64.png')
+    },
   },
   'icon-dark-phone-success-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-success-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-success-32.png')
+    },
   },
   'icon-dark-phone-success-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-success-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-success-48.png')
+    },
   },
   'icon-dark-phone-success-background-1-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-success-background-1-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-success-background-1-32.png')
+    },
   },
   'icon-dark-phone-success-background-1-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-success-background-1-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-success-background-1-48.png')
+    },
   },
   'icon-dark-phone-success-background-10-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-success-background-10-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-success-background-10-32.png')
+    },
   },
   'icon-dark-phone-success-background-10-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-success-background-10-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-success-background-10-48.png')
+    },
   },
   'icon-dark-phone-success-background-2-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-success-background-2-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-success-background-2-32.png')
+    },
   },
   'icon-dark-phone-success-background-2-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-success-background-2-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-success-background-2-48.png')
+    },
   },
   'icon-dark-phone-success-background-3-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-success-background-3-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-success-background-3-32.png')
+    },
   },
   'icon-dark-phone-success-background-3-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-success-background-3-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-success-background-3-48.png')
+    },
   },
   'icon-dark-phone-success-background-4-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-success-background-4-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-success-background-4-32.png')
+    },
   },
   'icon-dark-phone-success-background-4-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-success-background-4-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-success-background-4-48.png')
+    },
   },
   'icon-dark-phone-success-background-5-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-success-background-5-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-success-background-5-32.png')
+    },
   },
   'icon-dark-phone-success-background-5-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-success-background-5-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-success-background-5-48.png')
+    },
   },
   'icon-dark-phone-success-background-6-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-success-background-6-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-success-background-6-32.png')
+    },
   },
   'icon-dark-phone-success-background-6-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-success-background-6-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-success-background-6-48.png')
+    },
   },
   'icon-dark-phone-success-background-7-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-success-background-7-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-success-background-7-32.png')
+    },
   },
   'icon-dark-phone-success-background-7-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-success-background-7-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-success-background-7-48.png')
+    },
   },
   'icon-dark-phone-success-background-8-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-success-background-8-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-success-background-8-32.png')
+    },
   },
   'icon-dark-phone-success-background-8-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-success-background-8-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-success-background-8-48.png')
+    },
   },
   'icon-dark-phone-success-background-9-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-success-background-9-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-success-background-9-32.png')
+    },
   },
   'icon-dark-phone-success-background-9-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-phone-success-background-9-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-phone-success-background-9-48.png')
+    },
+  },
+  'icon-dark-placeholder-avatar-192': {
+    extension: 'png',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-placeholder-avatar-192.png')
+    },
+  },
+  'icon-dark-placeholder-avatar-256': {
+    extension: 'png',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-placeholder-avatar-256.png')
+    },
+  },
+  'icon-dark-placeholder-avatar-32': {
+    extension: 'png',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-placeholder-avatar-32.png')
+    },
+  },
+  'icon-dark-placeholder-avatar-960': {
+    extension: 'png',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-placeholder-avatar-960.png')
+    },
+  },
+  'icon-dark-placeholder-avatar-circular-32': {
+    extension: 'png',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-placeholder-avatar-circular-32.png')
+    },
+  },
+  'icon-dark-placeholder-avatar-circular-48': {
+    extension: 'png',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-placeholder-avatar-circular-48.png')
+    },
+  },
+  'icon-dark-placeholder-avatar-circular-reversed-32': {
+    extension: 'png',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-placeholder-avatar-circular-reversed-32.png')
+    },
+  },
+  'icon-dark-placeholder-avatar-circular-reversed-48': {
+    extension: 'png',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-placeholder-avatar-circular-reversed-48.png')
+    },
+  },
+  'icon-dark-placeholder-avatar-lighter-192': {
+    extension: 'png',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-placeholder-avatar-lighter-192.png')
+    },
+  },
+  'icon-dark-placeholder-avatar-lighter-256': {
+    extension: 'png',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-placeholder-avatar-lighter-256.png')
+    },
+  },
+  'icon-dark-placeholder-avatar-lighter-960': {
+    extension: 'png',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-placeholder-avatar-lighter-960.png')
+    },
   },
   'icon-dark-placeholder-secret-user-16': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-placeholder-secret-user-16.png'),
+    get require() {
+      return require('../images/icons/icon-dark-placeholder-secret-user-16.png')
+    },
   },
   'icon-dark-placeholder-secret-user-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-placeholder-secret-user-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-placeholder-secret-user-32.png')
+    },
   },
   'icon-dark-placeholder-secret-user-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-placeholder-secret-user-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-placeholder-secret-user-48.png')
+    },
   },
   'icon-dark-placeholder-secret-user-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-placeholder-secret-user-64.png'),
+    get require() {
+      return require('../images/icons/icon-dark-placeholder-secret-user-64.png')
+    },
   },
   'icon-dark-proof-pending': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-proof-pending.png'),
+    get require() {
+      return require('../images/icons/icon-dark-proof-pending.png')
+    },
   },
   'icon-dark-proof-published': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-proof-published.png'),
+    get require() {
+      return require('../images/icons/icon-dark-proof-published.png')
+    },
   },
   'icon-dark-proof-success': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-proof-success.png'),
+    get require() {
+      return require('../images/icons/icon-dark-proof-success.png')
+    },
   },
   'icon-dark-proof-unfinished': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-proof-unfinished.png'),
+    get require() {
+      return require('../images/icons/icon-dark-proof-unfinished.png')
+    },
   },
   'icon-dark-repo-personal-add-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-repo-personal-add-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-repo-personal-add-48.png')
+    },
   },
   'icon-dark-repo-personal-delete-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-repo-personal-delete-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-repo-personal-delete-48.png')
+    },
   },
   'icon-dark-repo-team-add-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-repo-team-add-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-repo-team-add-48.png')
+    },
   },
   'icon-dark-repo-team-delete-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-repo-team-delete-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-repo-team-delete-48.png')
+    },
   },
   'icon-dark-shh-19-16': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-shh-19-16.png'),
+    get require() {
+      return require('../images/icons/icon-dark-shh-19-16.png')
+    },
   },
   'icon-dark-shh-26-21': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-shh-26-21.png'),
+    get require() {
+      return require('../images/icons/icon-dark-shh-26-21.png')
+    },
   },
   'icon-dark-shh-active-19-16': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-shh-active-19-16.png'),
+    get require() {
+      return require('../images/icons/icon-dark-shh-active-19-16.png')
+    },
   },
   'icon-dark-shh-hover-19-16': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-shh-hover-19-16.png'),
+    get require() {
+      return require('../images/icons/icon-dark-shh-hover-19-16.png')
+    },
   },
   'icon-dark-stellar-coins-stacked-inflation-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-stellar-coins-stacked-inflation-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-stellar-coins-stacked-inflation-48.png')
+    },
   },
   'icon-dark-stellar-coins-stacked-inflation-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-stellar-coins-stacked-inflation-64.png'),
+    get require() {
+      return require('../images/icons/icon-dark-stellar-coins-stacked-inflation-64.png')
+    },
   },
   'icon-dark-team-delete-28': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-team-delete-28.png'),
+    get require() {
+      return require('../images/icons/icon-dark-team-delete-28.png')
+    },
   },
   'icon-dark-team-git-16': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-team-git-16.png'),
+    get require() {
+      return require('../images/icons/icon-dark-team-git-16.png')
+    },
   },
   'icon-dark-team-leave-28': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-team-leave-28.png'),
+    get require() {
+      return require('../images/icons/icon-dark-team-leave-28.png')
+    },
   },
   'icon-dark-team-placeholder-avatar-112': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-team-placeholder-avatar-112.png'),
+    get require() {
+      return require('../images/icons/icon-dark-team-placeholder-avatar-112.png')
+    },
   },
   'icon-dark-team-placeholder-avatar-16': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-team-placeholder-avatar-16.png'),
+    get require() {
+      return require('../images/icons/icon-dark-team-placeholder-avatar-16.png')
+    },
+  },
+  'icon-dark-team-placeholder-avatar-192': {
+    extension: 'png',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-team-placeholder-avatar-192.png')
+    },
+  },
+  'icon-dark-team-placeholder-avatar-256': {
+    extension: 'png',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-team-placeholder-avatar-256.png')
+    },
   },
   'icon-dark-team-placeholder-avatar-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-team-placeholder-avatar-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-team-placeholder-avatar-32.png')
+    },
   },
   'icon-dark-team-placeholder-avatar-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-team-placeholder-avatar-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-team-placeholder-avatar-48.png')
+    },
   },
   'icon-dark-team-placeholder-avatar-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-team-placeholder-avatar-64.png'),
+    get require() {
+      return require('../images/icons/icon-dark-team-placeholder-avatar-64.png')
+    },
   },
   'icon-dark-team-placeholder-avatar-80': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-team-placeholder-avatar-80.png'),
+    get require() {
+      return require('../images/icons/icon-dark-team-placeholder-avatar-80.png')
+    },
+  },
+  'icon-dark-team-placeholder-avatar-960': {
+    extension: 'png',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-team-placeholder-avatar-960.png')
+    },
   },
   'icon-dark-wallet-add-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-wallet-add-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-wallet-add-48.png')
+    },
   },
   'icon-dark-wallet-add-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-wallet-add-64.png'),
+    get require() {
+      return require('../images/icons/icon-dark-wallet-add-64.png')
+    },
   },
   'icon-dark-wallet-placeholder-add-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-wallet-placeholder-add-32.png'),
+    get require() {
+      return require('../images/icons/icon-dark-wallet-placeholder-add-32.png')
+    },
   },
   'icon-dark-wallet-remove-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-wallet-remove-48.png'),
+    get require() {
+      return require('../images/icons/icon-dark-wallet-remove-48.png')
+    },
   },
   'icon-dark-wallet-remove-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-wallet-remove-64.png'),
+    get require() {
+      return require('../images/icons/icon-dark-wallet-remove-64.png')
+    },
   },
   'icon-dns-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-dns-48',
-    require: require('../images/icons/icon-dns-48.png'),
-    requireDark: require('../images/icons/icon-dark-dns-48.png'),
+    get require() {
+      return require('../images/icons/icon-dns-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-dns-48.png')
+    },
   },
   'icon-dns-64': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-dns-64',
-    require: require('../images/icons/icon-dns-64.png'),
-    requireDark: require('../images/icons/icon-dark-dns-64.png'),
+    get require() {
+      return require('../images/icons/icon-dns-64.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-dns-64.png')
+    },
   },
   'icon-email-add-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-email-add-48.png'),
+    get require() {
+      return require('../images/icons/icon-email-add-48.png')
+    },
   },
   'icon-email-add-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-email-add-64.png'),
+    get require() {
+      return require('../images/icons/icon-email-add-64.png')
+    },
   },
   'icon-email-add-96': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-email-add-96.png'),
+    get require() {
+      return require('../images/icons/icon-email-add-96.png')
+    },
   },
   'icon-email-remove-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-email-remove-48',
-    require: require('../images/icons/icon-email-remove-48.png'),
-    requireDark: require('../images/icons/icon-dark-email-remove-48.png'),
+    get require() {
+      return require('../images/icons/icon-email-remove-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-email-remove-48.png')
+    },
   },
   'icon-email-remove-64': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-email-remove-64',
-    require: require('../images/icons/icon-email-remove-64.png'),
-    requireDark: require('../images/icons/icon-dark-email-remove-64.png'),
+    get require() {
+      return require('../images/icons/icon-email-remove-64.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-email-remove-64.png')
+    },
   },
   'icon-email-remove-96': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-email-remove-96',
-    require: require('../images/icons/icon-email-remove-96.png'),
-    requireDark: require('../images/icons/icon-dark-email-remove-96.png'),
+    get require() {
+      return require('../images/icons/icon-email-remove-96.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-email-remove-96.png')
+    },
   },
   'icon-facebook-continue': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-facebook-continue.png'),
+    get require() {
+      return require('../images/icons/icon-facebook-continue.png')
+    },
   },
   'icon-facebook-logo-16': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-facebook-logo-16.png'),
+    get require() {
+      return require('../images/icons/icon-facebook-logo-16.png')
+    },
   },
   'icon-facebook-logo-24': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-facebook-logo-24.png'),
+    get require() {
+      return require('../images/icons/icon-facebook-logo-24.png')
+    },
   },
   'icon-facebook-logo-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-facebook-logo-32.png'),
+    get require() {
+      return require('../images/icons/icon-facebook-logo-32.png')
+    },
   },
   'icon-facebook-logo-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-facebook-logo-48.png'),
+    get require() {
+      return require('../images/icons/icon-facebook-logo-48.png')
+    },
   },
   'icon-facebook-logo-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-facebook-logo-64.png'),
+    get require() {
+      return require('../images/icons/icon-facebook-logo-64.png')
+    },
   },
   'icon-fancy-airdrop-faded-120': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-fancy-airdrop-faded-120.png'),
+    get require() {
+      return require('../images/icons/icon-fancy-airdrop-faded-120.png')
+    },
   },
   'icon-fancy-airdrop-shining-120': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-fancy-airdrop-shining-120.png'),
+    get require() {
+      return require('../images/icons/icon-fancy-airdrop-shining-120.png')
+    },
   },
   'icon-fancy-airdrop-shining-80': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-fancy-airdrop-shining-80.png'),
+    get require() {
+      return require('../images/icons/icon-fancy-airdrop-shining-80.png')
+    },
   },
   'icon-fancy-airdrop-star-faded-120': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-fancy-airdrop-star-faded-120.png'),
+    get require() {
+      return require('../images/icons/icon-fancy-airdrop-star-faded-120.png')
+    },
   },
   'icon-fancy-airdrop-star-shining-120': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-fancy-airdrop-star-shining-120.png'),
+    get require() {
+      return require('../images/icons/icon-fancy-airdrop-star-shining-120.png')
+    },
   },
   'icon-fancy-airdrop-star-shining-80': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-fancy-airdrop-star-shining-80.png'),
+    get require() {
+      return require('../images/icons/icon-fancy-airdrop-star-shining-80.png')
+    },
   },
   'icon-fancy-bomb-desktop-150-72': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-fancy-bomb-desktop-150-72',
-    require: require('../images/icons/icon-fancy-bomb-desktop-150-72.png'),
-    requireDark: require('../images/icons/icon-dark-fancy-bomb-desktop-150-72.png'),
+    get require() {
+      return require('../images/icons/icon-fancy-bomb-desktop-150-72.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-fancy-bomb-desktop-150-72.png')
+    },
   },
   'icon-fancy-bomb-mobile-226-96': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-fancy-bomb-mobile-226-96',
-    require: require('../images/icons/icon-fancy-bomb-mobile-226-96.png'),
-    requireDark: require('../images/icons/icon-dark-fancy-bomb-mobile-226-96.png'),
+    get require() {
+      return require('../images/icons/icon-fancy-bomb-mobile-226-96.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-fancy-bomb-mobile-226-96.png')
+    },
   },
   'icon-fancy-chat-103-x-75': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-fancy-chat-103-x-75',
-    require: require('../images/icons/icon-fancy-chat-103-x-75.png'),
-    requireDark: require('../images/icons/icon-dark-fancy-chat-103-x-75.png'),
+    get require() {
+      return require('../images/icons/icon-fancy-chat-103-x-75.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-fancy-chat-103-x-75.png')
+    },
   },
   'icon-fancy-chat-72-x-52': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-fancy-chat-72-x-52',
-    require: require('../images/icons/icon-fancy-chat-72-x-52.png'),
-    requireDark: require('../images/icons/icon-dark-fancy-chat-72-x-52.png'),
+    get require() {
+      return require('../images/icons/icon-fancy-chat-72-x-52.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-fancy-chat-72-x-52.png')
+    },
   },
   'icon-fancy-email-sent-144-x-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-fancy-email-sent-144-x-48',
-    require: require('../images/icons/icon-fancy-email-sent-144-x-48.png'),
-    requireDark: require('../images/icons/icon-dark-fancy-email-sent-144-x-48.png'),
+    get require() {
+      return require('../images/icons/icon-fancy-email-sent-144-x-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-fancy-email-sent-144-x-48.png')
+    },
   },
   'icon-fancy-email-sent-192-x-64': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-fancy-email-sent-192-x-64',
-    require: require('../images/icons/icon-fancy-email-sent-192-x-64.png'),
-    requireDark: require('../images/icons/icon-dark-fancy-email-sent-192-x-64.png'),
+    get require() {
+      return require('../images/icons/icon-fancy-email-sent-192-x-64.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-fancy-email-sent-192-x-64.png')
+    },
   },
   'icon-fancy-encrypted-computer-desktop-150-72': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-fancy-encrypted-computer-desktop-150-72',
-    require: require('../images/icons/icon-fancy-encrypted-computer-desktop-150-72.png'),
-    requireDark: require('../images/icons/icon-dark-fancy-encrypted-computer-desktop-150-72.png'),
+    get require() {
+      return require('../images/icons/icon-fancy-encrypted-computer-desktop-150-72.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-fancy-encrypted-computer-desktop-150-72.png')
+    },
   },
   'icon-fancy-encrypted-computer-mobile-226-96': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-fancy-encrypted-computer-mobile-226-96',
-    require: require('../images/icons/icon-fancy-encrypted-computer-mobile-226-96.png'),
-    requireDark: require('../images/icons/icon-dark-fancy-encrypted-computer-mobile-226-96.png'),
+    get require() {
+      return require('../images/icons/icon-fancy-encrypted-computer-mobile-226-96.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-fancy-encrypted-computer-mobile-226-96.png')
+    },
   },
   'icon-fancy-encrypted-location-phone-desktop-150-72': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-fancy-encrypted-location-phone-desktop-150-72.png'),
+    nameDark: 'icon-dark-fancy-encrypted-location-phone-desktop-150-72',
+    get require() {
+      return require('../images/icons/icon-fancy-encrypted-location-phone-desktop-150-72.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-fancy-encrypted-location-phone-desktop-150-72.png')
+    },
   },
   'icon-fancy-encrypted-phone-desktop-150-72': {
     extension: 'png',
     isFont: false,
-    nameDark: 'icon-dark-fancy-encrypted-phone-desktop-150-72',
-    require: require('../images/icons/icon-fancy-encrypted-phone-desktop-150-72.png'),
-    requireDark: require('../images/icons/icon-dark-fancy-encrypted-phone-desktop-150-72.png'),
+    get require() {
+      return require('../images/icons/icon-fancy-encrypted-phone-desktop-150-72.png')
+    },
   },
   'icon-fancy-encrypted-phone-mobile-226-96': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-fancy-encrypted-phone-mobile-226-96',
-    require: require('../images/icons/icon-fancy-encrypted-phone-mobile-226-96.png'),
-    requireDark: require('../images/icons/icon-dark-fancy-encrypted-phone-mobile-226-96.png'),
+    get require() {
+      return require('../images/icons/icon-fancy-encrypted-phone-mobile-226-96.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-fancy-encrypted-phone-mobile-226-96.png')
+    },
   },
   'icon-fancy-finder-132-96': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-fancy-finder-132-96',
-    require: require('../images/icons/icon-fancy-finder-132-96.png'),
-    requireDark: require('../images/icons/icon-dark-fancy-finder-132-96.png'),
+    get require() {
+      return require('../images/icons/icon-fancy-finder-132-96.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-fancy-finder-132-96.png')
+    },
   },
   'icon-fancy-finder-enabled-132-96': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-fancy-finder-enabled-132-96',
-    require: require('../images/icons/icon-fancy-finder-enabled-132-96.png'),
-    requireDark: require('../images/icons/icon-dark-fancy-finder-enabled-132-96.png'),
+    get require() {
+      return require('../images/icons/icon-fancy-finder-enabled-132-96.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-fancy-finder-enabled-132-96.png')
+    },
   },
   'icon-fancy-folder-file-inexistant-desktop-153-94': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-fancy-folder-file-inexistant-desktop-153-94.png'),
+    get require() {
+      return require('../images/icons/icon-fancy-folder-file-inexistant-desktop-153-94.png')
+    },
   },
   'icon-fancy-folder-file-inexistant-mobile-188-120': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-fancy-folder-file-inexistant-mobile-188-120.png'),
+    get require() {
+      return require('../images/icons/icon-fancy-folder-file-inexistant-mobile-188-120.png')
+    },
   },
   'icon-fancy-no-access-desktop-96-94': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-fancy-no-access-desktop-96-94.png'),
+    get require() {
+      return require('../images/icons/icon-fancy-no-access-desktop-96-94.png')
+    },
   },
   'icon-fancy-no-access-mobile-128-125': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-fancy-no-access-mobile-128-125.png'),
+    get require() {
+      return require('../images/icons/icon-fancy-no-access-mobile-128-125.png')
+    },
   },
   'icon-fancy-revoked-computer-desktop-150-72': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-fancy-revoked-computer-desktop-150-72',
-    require: require('../images/icons/icon-fancy-revoked-computer-desktop-150-72.png'),
-    requireDark: require('../images/icons/icon-dark-fancy-revoked-computer-desktop-150-72.png'),
+    get require() {
+      return require('../images/icons/icon-fancy-revoked-computer-desktop-150-72.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-fancy-revoked-computer-desktop-150-72.png')
+    },
   },
   'icon-fancy-revoked-computer-mobile-226-96': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-fancy-revoked-computer-mobile-226-96',
-    require: require('../images/icons/icon-fancy-revoked-computer-mobile-226-96.png'),
-    requireDark: require('../images/icons/icon-dark-fancy-revoked-computer-mobile-226-96.png'),
+    get require() {
+      return require('../images/icons/icon-fancy-revoked-computer-mobile-226-96.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-fancy-revoked-computer-mobile-226-96.png')
+    },
   },
   'icon-fancy-revoked-phone-desktop-150-72': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-fancy-revoked-phone-desktop-150-72.png'),
+    get require() {
+      return require('../images/icons/icon-fancy-revoked-phone-desktop-150-72.png')
+    },
   },
   'icon-fancy-revoked-phone-mobile-226-96': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-fancy-revoked-phone-mobile-226-96',
-    require: require('../images/icons/icon-fancy-revoked-phone-mobile-226-96.png'),
-    requireDark: require('../images/icons/icon-dark-fancy-revoked-phone-mobile-226-96.png'),
+    get require() {
+      return require('../images/icons/icon-fancy-revoked-phone-mobile-226-96.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-fancy-revoked-phone-mobile-226-96.png')
+    },
   },
   'icon-fancy-stellar-receiving-desktop-98-86': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-fancy-stellar-receiving-desktop-98-86.png'),
+    get require() {
+      return require('../images/icons/icon-fancy-stellar-receiving-desktop-98-86.png')
+    },
   },
   'icon-fancy-stellar-receiving-mobile-149-129': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-fancy-stellar-receiving-mobile-149-129.png'),
+    get require() {
+      return require('../images/icons/icon-fancy-stellar-receiving-mobile-149-129.png')
+    },
   },
   'icon-fancy-stellar-sending-desktop-98-86': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-fancy-stellar-sending-desktop-98-86.png'),
+    get require() {
+      return require('../images/icons/icon-fancy-stellar-sending-desktop-98-86.png')
+    },
   },
   'icon-fancy-stellar-sending-mobile-149-129': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-fancy-stellar-sending-mobile-149-129.png'),
+    get require() {
+      return require('../images/icons/icon-fancy-stellar-sending-mobile-149-129.png')
+    },
   },
   'icon-fancy-unfurl-preview-desktop-96-96': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-fancy-unfurl-preview-desktop-96-96',
-    require: require('../images/icons/icon-fancy-unfurl-preview-desktop-96-96.png'),
-    requireDark: require('../images/icons/icon-dark-fancy-unfurl-preview-desktop-96-96.png'),
+    get require() {
+      return require('../images/icons/icon-fancy-unfurl-preview-desktop-96-96.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-fancy-unfurl-preview-desktop-96-96.png')
+    },
   },
   'icon-fancy-unfurl-preview-mobile-128-128': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-fancy-unfurl-preview-mobile-128-128',
-    require: require('../images/icons/icon-fancy-unfurl-preview-mobile-128-128.png'),
-    requireDark: require('../images/icons/icon-dark-fancy-unfurl-preview-mobile-128-128.png'),
+    get require() {
+      return require('../images/icons/icon-fancy-unfurl-preview-mobile-128-128.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-fancy-unfurl-preview-mobile-128-128.png')
+    },
   },
   'icon-fancy-user-card-desktop-80-99': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-fancy-user-card-desktop-80-99',
-    require: require('../images/icons/icon-fancy-user-card-desktop-80-99.png'),
-    requireDark: require('../images/icons/icon-dark-fancy-user-card-desktop-80-99.png'),
+    get require() {
+      return require('../images/icons/icon-fancy-user-card-desktop-80-99.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-fancy-user-card-desktop-80-99.png')
+    },
   },
   'icon-fancy-user-card-desktop-airdrop-80-99': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-fancy-user-card-desktop-airdrop-80-99',
-    require: require('../images/icons/icon-fancy-user-card-desktop-airdrop-80-99.png'),
-    requireDark: require('../images/icons/icon-dark-fancy-user-card-desktop-airdrop-80-99.png'),
+    get require() {
+      return require('../images/icons/icon-fancy-user-card-desktop-airdrop-80-99.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-fancy-user-card-desktop-airdrop-80-99.png')
+    },
   },
   'icon-fancy-user-card-mobile-120-149': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-fancy-user-card-mobile-120-149',
-    require: require('../images/icons/icon-fancy-user-card-mobile-120-149.png'),
-    requireDark: require('../images/icons/icon-dark-fancy-user-card-mobile-120-149.png'),
+    get require() {
+      return require('../images/icons/icon-fancy-user-card-mobile-120-149.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-fancy-user-card-mobile-120-149.png')
+    },
   },
   'icon-fancy-user-card-mobile-airdrop-120-149': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-fancy-user-card-mobile-airdrop-120-149',
-    require: require('../images/icons/icon-fancy-user-card-mobile-airdrop-120-149.png'),
-    requireDark: require('../images/icons/icon-dark-fancy-user-card-mobile-airdrop-120-149.png'),
+    get require() {
+      return require('../images/icons/icon-fancy-user-card-mobile-airdrop-120-149.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-fancy-user-card-mobile-airdrop-120-149.png')
+    },
   },
   'icon-file-16': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-file-16',
-    require: require('../images/icons/icon-file-16.png'),
-    requireDark: require('../images/icons/icon-dark-file-16.png'),
+    get require() {
+      return require('../images/icons/icon-file-16.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-file-16.png')
+    },
   },
   'icon-file-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-file-32',
-    require: require('../images/icons/icon-file-32.png'),
-    requireDark: require('../images/icons/icon-dark-file-32.png'),
+    get require() {
+      return require('../images/icons/icon-file-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-file-32.png')
+    },
   },
   'icon-file-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-file-48',
-    require: require('../images/icons/icon-file-48.png'),
-    requireDark: require('../images/icons/icon-dark-file-48.png'),
+    get require() {
+      return require('../images/icons/icon-file-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-file-48.png')
+    },
   },
   'icon-file-64': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-file-64',
-    require: require('../images/icons/icon-file-64.png'),
-    requireDark: require('../images/icons/icon-dark-file-64.png'),
+    get require() {
+      return require('../images/icons/icon-file-64.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-file-64.png')
+    },
   },
   'icon-file-96': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-file-96',
-    require: require('../images/icons/icon-file-96.png'),
-    requireDark: require('../images/icons/icon-dark-file-96.png'),
+    get require() {
+      return require('../images/icons/icon-file-96.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-file-96.png')
+    },
   },
   'icon-file-delete-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-file-delete-48',
-    require: require('../images/icons/icon-file-delete-48.png'),
-    requireDark: require('../images/icons/icon-dark-file-delete-48.png'),
+    get require() {
+      return require('../images/icons/icon-file-delete-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-file-delete-48.png')
+    },
   },
   'icon-file-delete-64': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-file-delete-64',
-    require: require('../images/icons/icon-file-delete-64.png'),
-    requireDark: require('../images/icons/icon-dark-file-delete-64.png'),
+    get require() {
+      return require('../images/icons/icon-file-delete-64.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-file-delete-64.png')
+    },
   },
   'icon-file-placeholder-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-file-placeholder-32',
-    require: require('../images/icons/icon-file-placeholder-32.png'),
-    requireDark: require('../images/icons/icon-dark-file-placeholder-32.png'),
+    get require() {
+      return require('../images/icons/icon-file-placeholder-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-file-placeholder-32.png')
+    },
   },
   'icon-file-txt-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-file-txt-48',
-    require: require('../images/icons/icon-file-txt-48.png'),
-    requireDark: require('../images/icons/icon-dark-file-txt-48.png'),
+    get require() {
+      return require('../images/icons/icon-file-txt-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-file-txt-48.png')
+    },
   },
   'icon-file-txt-64': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-file-txt-64',
-    require: require('../images/icons/icon-file-txt-64.png'),
-    requireDark: require('../images/icons/icon-dark-file-txt-64.png'),
+    get require() {
+      return require('../images/icons/icon-file-txt-64.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-file-txt-64.png')
+    },
   },
   'icon-file-uploading-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-file-uploading-48',
-    require: require('../images/icons/icon-file-uploading-48.png'),
-    requireDark: require('../images/icons/icon-dark-file-uploading-48.png'),
+    get require() {
+      return require('../images/icons/icon-file-uploading-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-file-uploading-48.png')
+    },
   },
   'icon-file-uploading-64': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-file-uploading-64',
-    require: require('../images/icons/icon-file-uploading-64.png'),
-    requireDark: require('../images/icons/icon-dark-file-uploading-64.png'),
+    get require() {
+      return require('../images/icons/icon-file-uploading-64.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-file-uploading-64.png')
+    },
   },
   'icon-film-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-film-64.png'),
+    get require() {
+      return require('../images/icons/icon-film-64.png')
+    },
   },
   'icon-folder-16': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-folder-16',
-    require: require('../images/icons/icon-folder-16.png'),
-    requireDark: require('../images/icons/icon-dark-folder-16.png'),
+    get require() {
+      return require('../images/icons/icon-folder-16.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-folder-16.png')
+    },
   },
   'icon-folder-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-folder-32',
-    require: require('../images/icons/icon-folder-32.png'),
-    requireDark: require('../images/icons/icon-dark-folder-32.png'),
+    get require() {
+      return require('../images/icons/icon-folder-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-folder-32.png')
+    },
   },
   'icon-folder-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-folder-48',
-    require: require('../images/icons/icon-folder-48.png'),
-    requireDark: require('../images/icons/icon-dark-folder-48.png'),
+    get require() {
+      return require('../images/icons/icon-folder-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-folder-48.png')
+    },
   },
   'icon-folder-64': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-folder-64',
-    require: require('../images/icons/icon-folder-64.png'),
-    requireDark: require('../images/icons/icon-dark-folder-64.png'),
+    get require() {
+      return require('../images/icons/icon-folder-64.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-folder-64.png')
+    },
   },
   'icon-folder-copy-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-folder-copy-32',
-    require: require('../images/icons/icon-folder-copy-32.png'),
-    requireDark: require('../images/icons/icon-dark-folder-copy-32.png'),
+    get require() {
+      return require('../images/icons/icon-folder-copy-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-folder-copy-32.png')
+    },
   },
   'icon-folder-copy-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-folder-copy-48',
-    require: require('../images/icons/icon-folder-copy-48.png'),
-    requireDark: require('../images/icons/icon-dark-folder-copy-48.png'),
+    get require() {
+      return require('../images/icons/icon-folder-copy-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-folder-copy-48.png')
+    },
   },
   'icon-folder-default-96': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-folder-default-96',
-    require: require('../images/icons/icon-folder-default-96.png'),
-    requireDark: require('../images/icons/icon-dark-folder-default-96.png'),
+    get require() {
+      return require('../images/icons/icon-folder-default-96.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-folder-default-96.png')
+    },
   },
   'icon-folder-move-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-folder-move-32',
-    require: require('../images/icons/icon-folder-move-32.png'),
-    requireDark: require('../images/icons/icon-dark-folder-move-32.png'),
+    get require() {
+      return require('../images/icons/icon-folder-move-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-folder-move-32.png')
+    },
   },
   'icon-folder-move-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-folder-move-48',
-    require: require('../images/icons/icon-folder-move-48.png'),
-    requireDark: require('../images/icons/icon-dark-folder-move-48.png'),
+    get require() {
+      return require('../images/icons/icon-folder-move-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-folder-move-48.png')
+    },
   },
   'icon-folder-placeholder-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-folder-placeholder-32',
-    require: require('../images/icons/icon-folder-placeholder-32.png'),
-    requireDark: require('../images/icons/icon-dark-folder-placeholder-32.png'),
+    get require() {
+      return require('../images/icons/icon-folder-placeholder-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-folder-placeholder-32.png')
+    },
   },
   'icon-folder-private-16': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-folder-private-16',
-    require: require('../images/icons/icon-folder-private-16.png'),
-    requireDark: require('../images/icons/icon-dark-folder-private-16.png'),
+    get require() {
+      return require('../images/icons/icon-folder-private-16.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-folder-private-16.png')
+    },
   },
   'icon-folder-private-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-folder-private-32',
-    require: require('../images/icons/icon-folder-private-32.png'),
-    requireDark: require('../images/icons/icon-dark-folder-private-32.png'),
+    get require() {
+      return require('../images/icons/icon-folder-private-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-folder-private-32.png')
+    },
   },
   'icon-folder-private-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-folder-private-48',
-    require: require('../images/icons/icon-folder-private-48.png'),
-    requireDark: require('../images/icons/icon-dark-folder-private-48.png'),
+    get require() {
+      return require('../images/icons/icon-folder-private-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-folder-private-48.png')
+    },
   },
   'icon-folder-private-64': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-folder-private-64',
-    require: require('../images/icons/icon-folder-private-64.png'),
-    requireDark: require('../images/icons/icon-dark-folder-private-64.png'),
+    get require() {
+      return require('../images/icons/icon-folder-private-64.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-folder-private-64.png')
+    },
   },
   'icon-folder-private-96': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-folder-private-96',
-    require: require('../images/icons/icon-folder-private-96.png'),
-    requireDark: require('../images/icons/icon-dark-folder-private-96.png'),
+    get require() {
+      return require('../images/icons/icon-folder-private-96.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-folder-private-96.png')
+    },
   },
   'icon-folder-public-16': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-folder-public-16',
-    require: require('../images/icons/icon-folder-public-16.png'),
-    requireDark: require('../images/icons/icon-dark-folder-public-16.png'),
+    get require() {
+      return require('../images/icons/icon-folder-public-16.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-folder-public-16.png')
+    },
   },
   'icon-folder-public-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-folder-public-32',
-    require: require('../images/icons/icon-folder-public-32.png'),
-    requireDark: require('../images/icons/icon-dark-folder-public-32.png'),
+    get require() {
+      return require('../images/icons/icon-folder-public-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-folder-public-32.png')
+    },
   },
   'icon-folder-public-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-folder-public-48',
-    require: require('../images/icons/icon-folder-public-48.png'),
-    requireDark: require('../images/icons/icon-dark-folder-public-48.png'),
+    get require() {
+      return require('../images/icons/icon-folder-public-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-folder-public-48.png')
+    },
   },
   'icon-folder-public-64': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-folder-public-64',
-    require: require('../images/icons/icon-folder-public-64.png'),
-    requireDark: require('../images/icons/icon-dark-folder-public-64.png'),
+    get require() {
+      return require('../images/icons/icon-folder-public-64.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-folder-public-64.png')
+    },
   },
   'icon-folder-public-96': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-folder-public-96',
-    require: require('../images/icons/icon-folder-public-96.png'),
-    requireDark: require('../images/icons/icon-dark-folder-public-96.png'),
+    get require() {
+      return require('../images/icons/icon-folder-public-96.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-folder-public-96.png')
+    },
   },
   'icon-folder-success-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-folder-success-48',
-    require: require('../images/icons/icon-folder-success-48.png'),
-    requireDark: require('../images/icons/icon-dark-folder-success-48.png'),
+    get require() {
+      return require('../images/icons/icon-folder-success-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-folder-success-48.png')
+    },
   },
   'icon-folder-team-16': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-folder-team-16',
-    require: require('../images/icons/icon-folder-team-16.png'),
-    requireDark: require('../images/icons/icon-dark-folder-team-16.png'),
+    get require() {
+      return require('../images/icons/icon-folder-team-16.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-folder-team-16.png')
+    },
   },
   'icon-folder-team-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-folder-team-32',
-    require: require('../images/icons/icon-folder-team-32.png'),
-    requireDark: require('../images/icons/icon-dark-folder-team-32.png'),
+    get require() {
+      return require('../images/icons/icon-folder-team-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-folder-team-32.png')
+    },
   },
   'icon-folder-team-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-folder-team-48',
-    require: require('../images/icons/icon-folder-team-48.png'),
-    requireDark: require('../images/icons/icon-dark-folder-team-48.png'),
+    get require() {
+      return require('../images/icons/icon-folder-team-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-folder-team-48.png')
+    },
   },
   'icon-folder-team-64': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-folder-team-64',
-    require: require('../images/icons/icon-folder-team-64.png'),
-    requireDark: require('../images/icons/icon-dark-folder-team-64.png'),
+    get require() {
+      return require('../images/icons/icon-folder-team-64.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-folder-team-64.png')
+    },
   },
   'icon-folder-team-96': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-folder-team-96',
-    require: require('../images/icons/icon-folder-team-96.png'),
-    requireDark: require('../images/icons/icon-dark-folder-team-96.png'),
+    get require() {
+      return require('../images/icons/icon-folder-team-96.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-folder-team-96.png')
+    },
   },
   'icon-follow-me-21': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-follow-me-21',
-    require: require('../images/icons/icon-follow-me-21.png'),
-    requireDark: require('../images/icons/icon-dark-follow-me-21.png'),
+    get require() {
+      return require('../images/icons/icon-follow-me-21.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-follow-me-21.png')
+    },
   },
   'icon-follow-me-28': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-follow-me-28',
-    require: require('../images/icons/icon-follow-me-28.png'),
-    requireDark: require('../images/icons/icon-dark-follow-me-28.png'),
+    get require() {
+      return require('../images/icons/icon-follow-me-28.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-follow-me-28.png')
+    },
   },
   'icon-follow-me-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-follow-me-32.png'),
+    get require() {
+      return require('../images/icons/icon-follow-me-32.png')
+    },
   },
   'icon-following-21': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-following-21',
-    require: require('../images/icons/icon-following-21.png'),
-    requireDark: require('../images/icons/icon-dark-following-21.png'),
+    get require() {
+      return require('../images/icons/icon-following-21.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-following-21.png')
+    },
   },
   'icon-following-28': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-following-28',
-    require: require('../images/icons/icon-following-28.png'),
-    requireDark: require('../images/icons/icon-dark-following-28.png'),
+    get require() {
+      return require('../images/icons/icon-following-28.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-following-28.png')
+    },
   },
   'icon-following-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-following-32.png'),
+    get require() {
+      return require('../images/icons/icon-following-32.png')
+    },
   },
   'icon-github-logo-16': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-github-logo-16.png'),
+    get require() {
+      return require('../images/icons/icon-github-logo-16.png')
+    },
   },
   'icon-github-logo-24': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-github-logo-24.png'),
+    get require() {
+      return require('../images/icons/icon-github-logo-24.png')
+    },
   },
   'icon-github-logo-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-github-logo-32.png'),
+    get require() {
+      return require('../images/icons/icon-github-logo-32.png')
+    },
   },
   'icon-github-logo-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-github-logo-48.png'),
+    get require() {
+      return require('../images/icons/icon-github-logo-48.png')
+    },
   },
   'icon-github-logo-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-github-logo-64.png'),
+    get require() {
+      return require('../images/icons/icon-github-logo-64.png')
+    },
   },
   'icon-hacker-news-logo-16': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-hacker-news-logo-16.png'),
+    get require() {
+      return require('../images/icons/icon-hacker-news-logo-16.png')
+    },
   },
   'icon-hacker-news-logo-24': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-hacker-news-logo-24.png'),
+    get require() {
+      return require('../images/icons/icon-hacker-news-logo-24.png')
+    },
   },
   'icon-hacker-news-logo-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-hacker-news-logo-32.png'),
+    get require() {
+      return require('../images/icons/icon-hacker-news-logo-32.png')
+    },
   },
   'icon-hacker-news-logo-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-hacker-news-logo-48.png'),
+    get require() {
+      return require('../images/icons/icon-hacker-news-logo-48.png')
+    },
   },
   'icon-hacker-news-logo-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-hacker-news-logo-64.png'),
+    get require() {
+      return require('../images/icons/icon-hacker-news-logo-64.png')
+    },
   },
   'icon-illustration-encrypted-116-96': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-illustration-encrypted-116-96.png'),
+    get require() {
+      return require('../images/icons/icon-illustration-encrypted-116-96.png')
+    },
   },
   'icon-illustration-exploding-messages-240': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-illustration-exploding-messages-240.png'),
+    get require() {
+      return require('../images/icons/icon-illustration-exploding-messages-240.png')
+    },
+  },
+  'icon-illustration-mars-rover': {
+    extension: 'png',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-illustration-mars-rover.png')
+    },
+  },
+  'icon-illustration-mars-rover-background': {
+    extension: 'png',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-illustration-mars-rover-background.png')
+    },
+  },
+  'icon-illustration-mars-rover-foreground': {
+    extension: 'png',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-illustration-mars-rover-foreground.png')
+    },
   },
   'icon-illustration-stellar-payments-200-188': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-illustration-stellar-payments-200-188.png'),
+    get require() {
+      return require('../images/icons/icon-illustration-stellar-payments-200-188.png')
+    },
   },
   'icon-illustration-subteams-380': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-illustration-subteams-380.png'),
+    get require() {
+      return require('../images/icons/icon-illustration-subteams-380.png')
+    },
   },
   'icon-illustration-teams-180': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-illustration-teams-180.png'),
+    get require() {
+      return require('../images/icons/icon-illustration-teams-180.png')
+    },
   },
   'icon-illustration-teams-216': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-illustration-teams-216.png'),
+    get require() {
+      return require('../images/icons/icon-illustration-teams-216.png')
+    },
   },
   'icon-illustration-zen-240-180': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-illustration-zen-240-180.png'),
+    get require() {
+      return require('../images/icons/icon-illustration-zen-240-180.png')
+    },
   },
   'icon-invite-link-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-invite-link-48.png'),
+    get require() {
+      return require('../images/icons/icon-invite-link-48.png')
+    },
   },
   'icon-keybase-logo-128': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-keybase-logo-128.png'),
+    get require() {
+      return require('../images/icons/icon-keybase-logo-128.png')
+    },
   },
   'icon-keybase-logo-16': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-keybase-logo-16.png'),
+    get require() {
+      return require('../images/icons/icon-keybase-logo-16.png')
+    },
   },
   'icon-keybase-logo-24': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-keybase-logo-24.png'),
+    get require() {
+      return require('../images/icons/icon-keybase-logo-24.png')
+    },
   },
   'icon-keybase-logo-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-keybase-logo-32.png'),
+    get require() {
+      return require('../images/icons/icon-keybase-logo-32.png')
+    },
   },
   'icon-keybase-logo-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-keybase-logo-64.png'),
+    get require() {
+      return require('../images/icons/icon-keybase-logo-64.png')
+    },
   },
   'icon-keybase-logo-80': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-keybase-logo-80.png'),
+    get require() {
+      return require('../images/icons/icon-keybase-logo-80.png')
+    },
   },
   'icon-keybase-logo-logged-out-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-keybase-logo-logged-out-64.png'),
+    get require() {
+      return require('../images/icons/icon-keybase-logo-logged-out-64.png')
+    },
   },
   'icon-keybase-logo-logged-out-80': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-keybase-logo-logged-out-80.png'),
+    get require() {
+      return require('../images/icons/icon-keybase-logo-logged-out-80.png')
+    },
   },
   'icon-keybase-wordmark-128-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-keybase-wordmark-128-48.png'),
+    get require() {
+      return require('../images/icons/icon-keybase-wordmark-128-48.png')
+    },
   },
   'icon-message-deletion-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-message-deletion-32',
-    require: require('../images/icons/icon-message-deletion-32.png'),
-    requireDark: require('../images/icons/icon-dark-message-deletion-32.png'),
+    get require() {
+      return require('../images/icons/icon-message-deletion-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-message-deletion-32.png')
+    },
   },
   'icon-message-deletion-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-message-deletion-48',
-    require: require('../images/icons/icon-message-deletion-48.png'),
-    requireDark: require('../images/icons/icon-dark-message-deletion-48.png'),
+    get require() {
+      return require('../images/icons/icon-message-deletion-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-message-deletion-48.png')
+    },
   },
   'icon-message-deletion-64': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-message-deletion-64',
-    require: require('../images/icons/icon-message-deletion-64.png'),
-    requireDark: require('../images/icons/icon-dark-message-deletion-64.png'),
+    get require() {
+      return require('../images/icons/icon-message-deletion-64.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-message-deletion-64.png')
+    },
   },
   'icon-message-exploding-260': {
     extension: 'gif',
     isFont: false,
-    require: require('../images/icons/icon-message-exploding-260.gif'),
+    get require() {
+      return require('../images/icons/icon-message-exploding-260.gif')
+    },
   },
   'icon-message-retention-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-message-retention-32',
-    require: require('../images/icons/icon-message-retention-32.png'),
-    requireDark: require('../images/icons/icon-dark-message-retention-32.png'),
+    get require() {
+      return require('../images/icons/icon-message-retention-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-message-retention-32.png')
+    },
   },
   'icon-message-retention-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-message-retention-48',
-    require: require('../images/icons/icon-message-retention-48.png'),
-    requireDark: require('../images/icons/icon-dark-message-retention-48.png'),
+    get require() {
+      return require('../images/icons/icon-message-retention-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-message-retention-48.png')
+    },
   },
   'icon-message-retention-64': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-message-retention-64',
-    require: require('../images/icons/icon-message-retention-64.png'),
-    requireDark: require('../images/icons/icon-dark-message-retention-64.png'),
+    get require() {
+      return require('../images/icons/icon-message-retention-64.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-message-retention-64.png')
+    },
   },
   'icon-mutual-follow-21': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-mutual-follow-21',
-    require: require('../images/icons/icon-mutual-follow-21.png'),
-    requireDark: require('../images/icons/icon-dark-mutual-follow-21.png'),
+    get require() {
+      return require('../images/icons/icon-mutual-follow-21.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-mutual-follow-21.png')
+    },
   },
   'icon-mutual-follow-28': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-mutual-follow-28',
-    require: require('../images/icons/icon-mutual-follow-28.png'),
-    requireDark: require('../images/icons/icon-dark-mutual-follow-28.png'),
+    get require() {
+      return require('../images/icons/icon-mutual-follow-28.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-mutual-follow-28.png')
+    },
   },
   'icon-mutual-follow-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-mutual-follow-32.png'),
+    get require() {
+      return require('../images/icons/icon-mutual-follow-32.png')
+    },
   },
   'icon-nav-chat-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-nav-chat-32.png'),
+    get require() {
+      return require('../images/icons/icon-nav-chat-32.png')
+    },
   },
   'icon-nav-chat-40': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-nav-chat-40.png'),
+    get require() {
+      return require('../images/icons/icon-nav-chat-40.png')
+    },
   },
   'icon-nav-chat-selected-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-nav-chat-selected-32.png'),
+    get require() {
+      return require('../images/icons/icon-nav-chat-selected-32.png')
+    },
   },
   'icon-nav-chat-selected-40': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-nav-chat-selected-40.png'),
+    get require() {
+      return require('../images/icons/icon-nav-chat-selected-40.png')
+    },
   },
   'icon-nav-devices-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-nav-devices-32.png'),
+    get require() {
+      return require('../images/icons/icon-nav-devices-32.png')
+    },
   },
   'icon-nav-devices-selected-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-nav-devices-selected-32.png'),
+    get require() {
+      return require('../images/icons/icon-nav-devices-selected-32.png')
+    },
   },
   'icon-nav-folders-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-nav-folders-32.png'),
+    get require() {
+      return require('../images/icons/icon-nav-folders-32.png')
+    },
   },
   'icon-nav-folders-40': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-nav-folders-40.png'),
+    get require() {
+      return require('../images/icons/icon-nav-folders-40.png')
+    },
   },
   'icon-nav-folders-selected-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-nav-folders-selected-32.png'),
+    get require() {
+      return require('../images/icons/icon-nav-folders-selected-32.png')
+    },
   },
   'icon-nav-folders-selected-40': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-nav-folders-selected-40.png'),
+    get require() {
+      return require('../images/icons/icon-nav-folders-selected-40.png')
+    },
   },
   'icon-nav-people-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-nav-people-32.png'),
+    get require() {
+      return require('../images/icons/icon-nav-people-32.png')
+    },
   },
   'icon-nav-people-40': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-nav-people-40.png'),
+    get require() {
+      return require('../images/icons/icon-nav-people-40.png')
+    },
   },
   'icon-nav-people-selected-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-nav-people-selected-32.png'),
+    get require() {
+      return require('../images/icons/icon-nav-people-selected-32.png')
+    },
   },
   'icon-nav-people-selected-40': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-nav-people-selected-40.png'),
+    get require() {
+      return require('../images/icons/icon-nav-people-selected-40.png')
+    },
   },
   'icon-nav-settings-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-nav-settings-32.png'),
+    get require() {
+      return require('../images/icons/icon-nav-settings-32.png')
+    },
   },
   'icon-nav-settings-40': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-nav-settings-40.png'),
+    get require() {
+      return require('../images/icons/icon-nav-settings-40.png')
+    },
   },
   'icon-nav-settings-selected-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-nav-settings-selected-32.png'),
+    get require() {
+      return require('../images/icons/icon-nav-settings-selected-32.png')
+    },
   },
   'icon-nav-settings-selected-40': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-nav-settings-selected-40.png'),
+    get require() {
+      return require('../images/icons/icon-nav-settings-selected-40.png')
+    },
   },
   'icon-onboarding-chat-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-onboarding-chat-32',
-    require: require('../images/icons/icon-onboarding-chat-32.png'),
-    requireDark: require('../images/icons/icon-dark-onboarding-chat-32.png'),
+    get require() {
+      return require('../images/icons/icon-onboarding-chat-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-onboarding-chat-32.png')
+    },
   },
   'icon-onboarding-chat-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-onboarding-chat-48',
-    require: require('../images/icons/icon-onboarding-chat-48.png'),
-    requireDark: require('../images/icons/icon-dark-onboarding-chat-48.png'),
+    get require() {
+      return require('../images/icons/icon-onboarding-chat-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-onboarding-chat-48.png')
+    },
   },
   'icon-onboarding-computer-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-onboarding-computer-48',
-    require: require('../images/icons/icon-onboarding-computer-48.png'),
-    requireDark: require('../images/icons/icon-dark-onboarding-computer-48.png'),
+    get require() {
+      return require('../images/icons/icon-onboarding-computer-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-onboarding-computer-48.png')
+    },
   },
   'icon-onboarding-email-add-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-onboarding-email-add-32',
-    require: require('../images/icons/icon-onboarding-email-add-32.png'),
-    requireDark: require('../images/icons/icon-dark-onboarding-email-add-32.png'),
+    get require() {
+      return require('../images/icons/icon-onboarding-email-add-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-onboarding-email-add-32.png')
+    },
   },
   'icon-onboarding-email-add-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-onboarding-email-add-48',
-    require: require('../images/icons/icon-onboarding-email-add-48.png'),
-    requireDark: require('../images/icons/icon-dark-onboarding-email-add-48.png'),
+    get require() {
+      return require('../images/icons/icon-onboarding-email-add-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-onboarding-email-add-48.png')
+    },
   },
   'icon-onboarding-email-searchable-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-onboarding-email-searchable-48',
-    require: require('../images/icons/icon-onboarding-email-searchable-48.png'),
-    requireDark: require('../images/icons/icon-dark-onboarding-email-searchable-48.png'),
+    get require() {
+      return require('../images/icons/icon-onboarding-email-searchable-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-onboarding-email-searchable-48.png')
+    },
   },
   'icon-onboarding-email-verify-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-onboarding-email-verify-32',
-    require: require('../images/icons/icon-onboarding-email-verify-32.png'),
-    requireDark: require('../images/icons/icon-dark-onboarding-email-verify-32.png'),
+    get require() {
+      return require('../images/icons/icon-onboarding-email-verify-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-onboarding-email-verify-32.png')
+    },
   },
   'icon-onboarding-email-verify-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-onboarding-email-verify-48',
-    require: require('../images/icons/icon-onboarding-email-verify-48.png'),
-    requireDark: require('../images/icons/icon-dark-onboarding-email-verify-48.png'),
+    get require() {
+      return require('../images/icons/icon-onboarding-email-verify-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-onboarding-email-verify-48.png')
+    },
   },
   'icon-onboarding-folder-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-onboarding-folder-32',
-    require: require('../images/icons/icon-onboarding-folder-32.png'),
-    requireDark: require('../images/icons/icon-dark-onboarding-folder-32.png'),
+    get require() {
+      return require('../images/icons/icon-onboarding-folder-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-onboarding-folder-32.png')
+    },
   },
   'icon-onboarding-folder-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-onboarding-folder-48',
-    require: require('../images/icons/icon-onboarding-folder-48.png'),
-    requireDark: require('../images/icons/icon-dark-onboarding-folder-48.png'),
+    get require() {
+      return require('../images/icons/icon-onboarding-folder-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-onboarding-folder-48.png')
+    },
   },
   'icon-onboarding-follow-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-onboarding-follow-32',
-    require: require('../images/icons/icon-onboarding-follow-32.png'),
-    requireDark: require('../images/icons/icon-dark-onboarding-follow-32.png'),
+    get require() {
+      return require('../images/icons/icon-onboarding-follow-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-onboarding-follow-32.png')
+    },
   },
   'icon-onboarding-follow-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-onboarding-follow-48',
-    require: require('../images/icons/icon-onboarding-follow-48.png'),
-    requireDark: require('../images/icons/icon-dark-onboarding-follow-48.png'),
+    get require() {
+      return require('../images/icons/icon-onboarding-follow-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-onboarding-follow-48.png')
+    },
   },
   'icon-onboarding-git-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-onboarding-git-32',
-    require: require('../images/icons/icon-onboarding-git-32.png'),
-    requireDark: require('../images/icons/icon-dark-onboarding-git-32.png'),
+    get require() {
+      return require('../images/icons/icon-onboarding-git-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-onboarding-git-32.png')
+    },
   },
   'icon-onboarding-git-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-onboarding-git-48',
-    require: require('../images/icons/icon-onboarding-git-48.png'),
-    requireDark: require('../images/icons/icon-dark-onboarding-git-48.png'),
+    get require() {
+      return require('../images/icons/icon-onboarding-git-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-onboarding-git-48.png')
+    },
   },
   'icon-onboarding-number-new-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-onboarding-number-new-32',
-    require: require('../images/icons/icon-onboarding-number-new-32.png'),
-    requireDark: require('../images/icons/icon-dark-onboarding-number-new-32.png'),
+    get require() {
+      return require('../images/icons/icon-onboarding-number-new-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-onboarding-number-new-32.png')
+    },
   },
   'icon-onboarding-number-new-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-onboarding-number-new-48',
-    require: require('../images/icons/icon-onboarding-number-new-48.png'),
-    requireDark: require('../images/icons/icon-dark-onboarding-number-new-48.png'),
+    get require() {
+      return require('../images/icons/icon-onboarding-number-new-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-onboarding-number-new-48.png')
+    },
   },
   'icon-onboarding-number-verify-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-onboarding-number-verify-32',
-    require: require('../images/icons/icon-onboarding-number-verify-32.png'),
-    requireDark: require('../images/icons/icon-dark-onboarding-number-verify-32.png'),
+    get require() {
+      return require('../images/icons/icon-onboarding-number-verify-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-onboarding-number-verify-32.png')
+    },
   },
   'icon-onboarding-number-verify-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-onboarding-number-verify-48',
-    require: require('../images/icons/icon-onboarding-number-verify-48.png'),
-    requireDark: require('../images/icons/icon-dark-onboarding-number-verify-48.png'),
+    get require() {
+      return require('../images/icons/icon-onboarding-number-verify-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-onboarding-number-verify-48.png')
+    },
   },
   'icon-onboarding-paper-key-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-onboarding-paper-key-32',
-    require: require('../images/icons/icon-onboarding-paper-key-32.png'),
-    requireDark: require('../images/icons/icon-dark-onboarding-paper-key-32.png'),
+    get require() {
+      return require('../images/icons/icon-onboarding-paper-key-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-onboarding-paper-key-32.png')
+    },
   },
   'icon-onboarding-paper-key-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-onboarding-paper-key-48',
-    require: require('../images/icons/icon-onboarding-paper-key-48.png'),
-    requireDark: require('../images/icons/icon-dark-onboarding-paper-key-48.png'),
+    get require() {
+      return require('../images/icons/icon-onboarding-paper-key-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-onboarding-paper-key-48.png')
+    },
   },
   'icon-onboarding-phone-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-onboarding-phone-32',
-    require: require('../images/icons/icon-onboarding-phone-32.png'),
-    requireDark: require('../images/icons/icon-dark-onboarding-phone-32.png'),
+    get require() {
+      return require('../images/icons/icon-onboarding-phone-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-onboarding-phone-32.png')
+    },
   },
   'icon-onboarding-phone-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-onboarding-phone-48.png'),
+    get require() {
+      return require('../images/icons/icon-onboarding-phone-48.png')
+    },
   },
   'icon-onboarding-proofs-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-onboarding-proofs-32',
-    require: require('../images/icons/icon-onboarding-proofs-32.png'),
-    requireDark: require('../images/icons/icon-dark-onboarding-proofs-32.png'),
+    get require() {
+      return require('../images/icons/icon-onboarding-proofs-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-onboarding-proofs-32.png')
+    },
   },
   'icon-onboarding-proofs-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-onboarding-proofs-48',
-    require: require('../images/icons/icon-onboarding-proofs-48.png'),
-    requireDark: require('../images/icons/icon-dark-onboarding-proofs-48.png'),
+    get require() {
+      return require('../images/icons/icon-onboarding-proofs-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-onboarding-proofs-48.png')
+    },
   },
   'icon-onboarding-team-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-onboarding-team-32',
-    require: require('../images/icons/icon-onboarding-team-32.png'),
-    requireDark: require('../images/icons/icon-dark-onboarding-team-32.png'),
+    get require() {
+      return require('../images/icons/icon-onboarding-team-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-onboarding-team-32.png')
+    },
   },
   'icon-onboarding-team-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-onboarding-team-48',
-    require: require('../images/icons/icon-onboarding-team-48.png'),
-    requireDark: require('../images/icons/icon-dark-onboarding-team-48.png'),
+    get require() {
+      return require('../images/icons/icon-onboarding-team-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-onboarding-team-48.png')
+    },
   },
   'icon-onboarding-team-avatar-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-onboarding-team-avatar-32',
-    require: require('../images/icons/icon-onboarding-team-avatar-32.png'),
-    requireDark: require('../images/icons/icon-dark-onboarding-team-avatar-32.png'),
+    get require() {
+      return require('../images/icons/icon-onboarding-team-avatar-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-onboarding-team-avatar-32.png')
+    },
   },
   'icon-onboarding-team-avatar-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-onboarding-team-avatar-48',
-    require: require('../images/icons/icon-onboarding-team-avatar-48.png'),
-    requireDark: require('../images/icons/icon-dark-onboarding-team-avatar-48.png'),
+    get require() {
+      return require('../images/icons/icon-onboarding-team-avatar-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-onboarding-team-avatar-48.png')
+    },
   },
   'icon-onboarding-team-publicity-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-onboarding-team-publicity-32',
-    require: require('../images/icons/icon-onboarding-team-publicity-32.png'),
-    requireDark: require('../images/icons/icon-dark-onboarding-team-publicity-32.png'),
+    get require() {
+      return require('../images/icons/icon-onboarding-team-publicity-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-onboarding-team-publicity-32.png')
+    },
   },
   'icon-onboarding-team-publicity-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-onboarding-team-publicity-48',
-    require: require('../images/icons/icon-onboarding-team-publicity-48.png'),
-    requireDark: require('../images/icons/icon-dark-onboarding-team-publicity-48.png'),
+    get require() {
+      return require('../images/icons/icon-onboarding-team-publicity-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-onboarding-team-publicity-48.png')
+    },
   },
   'icon-onboarding-user-avatar-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-onboarding-user-avatar-32',
-    require: require('../images/icons/icon-onboarding-user-avatar-32.png'),
-    requireDark: require('../images/icons/icon-dark-onboarding-user-avatar-32.png'),
+    get require() {
+      return require('../images/icons/icon-onboarding-user-avatar-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-onboarding-user-avatar-32.png')
+    },
   },
   'icon-onboarding-user-avatar-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-onboarding-user-avatar-48',
-    require: require('../images/icons/icon-onboarding-user-avatar-48.png'),
-    requireDark: require('../images/icons/icon-dark-onboarding-user-avatar-48.png'),
+    get require() {
+      return require('../images/icons/icon-onboarding-user-avatar-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-onboarding-user-avatar-48.png')
+    },
   },
   'icon-onboarding-user-info-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-onboarding-user-info-32',
-    require: require('../images/icons/icon-onboarding-user-info-32.png'),
-    requireDark: require('../images/icons/icon-dark-onboarding-user-info-32.png'),
+    get require() {
+      return require('../images/icons/icon-onboarding-user-info-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-onboarding-user-info-32.png')
+    },
   },
   'icon-onboarding-user-info-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-onboarding-user-info-48',
-    require: require('../images/icons/icon-onboarding-user-info-48.png'),
-    requireDark: require('../images/icons/icon-dark-onboarding-user-info-48.png'),
+    get require() {
+      return require('../images/icons/icon-onboarding-user-info-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-onboarding-user-info-48.png')
+    },
   },
   'icon-paper-key-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-paper-key-32',
-    require: require('../images/icons/icon-paper-key-32.png'),
-    requireDark: require('../images/icons/icon-dark-paper-key-32.png'),
+    get require() {
+      return require('../images/icons/icon-paper-key-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-paper-key-32.png')
+    },
   },
   'icon-paper-key-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-paper-key-48',
-    require: require('../images/icons/icon-paper-key-48.png'),
-    requireDark: require('../images/icons/icon-dark-paper-key-48.png'),
+    get require() {
+      return require('../images/icons/icon-paper-key-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-paper-key-48.png')
+    },
   },
   'icon-paper-key-64': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-paper-key-64',
-    require: require('../images/icons/icon-paper-key-64.png'),
-    requireDark: require('../images/icons/icon-dark-paper-key-64.png'),
+    get require() {
+      return require('../images/icons/icon-paper-key-64.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-paper-key-64.png')
+    },
   },
   'icon-paper-key-96': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-paper-key-96',
-    require: require('../images/icons/icon-paper-key-96.png'),
-    requireDark: require('../images/icons/icon-dark-paper-key-96.png'),
-  },
-  'icon-paper-key-corner': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-paper-key-corner.png'),
+    get require() {
+      return require('../images/icons/icon-paper-key-96.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-paper-key-96.png')
+    },
   },
   'icon-paper-key-revoke-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-paper-key-revoke-48',
-    require: require('../images/icons/icon-paper-key-revoke-48.png'),
-    requireDark: require('../images/icons/icon-dark-paper-key-revoke-48.png'),
+    get require() {
+      return require('../images/icons/icon-paper-key-revoke-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-paper-key-revoke-48.png')
+    },
   },
   'icon-paper-key-revoke-64': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-paper-key-revoke-64',
-    require: require('../images/icons/icon-paper-key-revoke-64.png'),
-    requireDark: require('../images/icons/icon-dark-paper-key-revoke-64.png'),
+    get require() {
+      return require('../images/icons/icon-paper-key-revoke-64.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-paper-key-revoke-64.png')
+    },
   },
   'icon-pgp-key-16': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-pgp-key-16.png'),
+    get require() {
+      return require('../images/icons/icon-pgp-key-16.png')
+    },
   },
   'icon-pgp-key-24': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-pgp-key-24.png'),
+    get require() {
+      return require('../images/icons/icon-pgp-key-24.png')
+    },
   },
   'icon-pgp-key-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-pgp-key-32.png'),
+    get require() {
+      return require('../images/icons/icon-pgp-key-32.png')
+    },
   },
   'icon-pgp-key-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-pgp-key-48.png'),
+    get require() {
+      return require('../images/icons/icon-pgp-key-48.png')
+    },
   },
   'icon-pgp-key-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-pgp-key-64.png'),
+    get require() {
+      return require('../images/icons/icon-pgp-key-64.png')
+    },
   },
   'icon-pgp-key-import-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-pgp-key-import-48.png'),
+    get require() {
+      return require('../images/icons/icon-pgp-key-import-48.png')
+    },
   },
   'icon-pgp-key-import-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-pgp-key-import-64.png'),
+    get require() {
+      return require('../images/icons/icon-pgp-key-import-64.png')
+    },
   },
   'icon-pgp-key-new-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-pgp-key-new-48.png'),
+    get require() {
+      return require('../images/icons/icon-pgp-key-new-48.png')
+    },
   },
   'icon-pgp-key-new-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-pgp-key-new-64.png'),
+    get require() {
+      return require('../images/icons/icon-pgp-key-new-64.png')
+    },
   },
   'icon-phone-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-32.png'),
+    get require() {
+      return require('../images/icons/icon-phone-32.png')
+    },
   },
   'icon-phone-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-48.png'),
+    get require() {
+      return require('../images/icons/icon-phone-48.png')
+    },
   },
   'icon-phone-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-64.png'),
+    get require() {
+      return require('../images/icons/icon-phone-64.png')
+    },
   },
   'icon-phone-96': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-96.png'),
+    get require() {
+      return require('../images/icons/icon-phone-96.png')
+    },
   },
   'icon-phone-background-1-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-background-1-32.png'),
+    get require() {
+      return require('../images/icons/icon-phone-background-1-32.png')
+    },
   },
   'icon-phone-background-1-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-background-1-48.png'),
+    get require() {
+      return require('../images/icons/icon-phone-background-1-48.png')
+    },
   },
   'icon-phone-background-1-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-background-1-64.png'),
+    get require() {
+      return require('../images/icons/icon-phone-background-1-64.png')
+    },
   },
   'icon-phone-background-1-96': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-background-1-96.png'),
+    get require() {
+      return require('../images/icons/icon-phone-background-1-96.png')
+    },
   },
   'icon-phone-background-10-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-background-10-32.png'),
+    get require() {
+      return require('../images/icons/icon-phone-background-10-32.png')
+    },
   },
   'icon-phone-background-10-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-background-10-48.png'),
+    get require() {
+      return require('../images/icons/icon-phone-background-10-48.png')
+    },
   },
   'icon-phone-background-10-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-background-10-64.png'),
+    get require() {
+      return require('../images/icons/icon-phone-background-10-64.png')
+    },
   },
   'icon-phone-background-10-96': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-background-10-96.png'),
+    get require() {
+      return require('../images/icons/icon-phone-background-10-96.png')
+    },
   },
   'icon-phone-background-2-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-background-2-32.png'),
+    get require() {
+      return require('../images/icons/icon-phone-background-2-32.png')
+    },
   },
   'icon-phone-background-2-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-background-2-48.png'),
+    get require() {
+      return require('../images/icons/icon-phone-background-2-48.png')
+    },
   },
   'icon-phone-background-2-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-background-2-64.png'),
+    get require() {
+      return require('../images/icons/icon-phone-background-2-64.png')
+    },
   },
   'icon-phone-background-2-96': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-background-2-96.png'),
+    get require() {
+      return require('../images/icons/icon-phone-background-2-96.png')
+    },
   },
   'icon-phone-background-3-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-background-3-32.png'),
+    get require() {
+      return require('../images/icons/icon-phone-background-3-32.png')
+    },
   },
   'icon-phone-background-3-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-background-3-48.png'),
+    get require() {
+      return require('../images/icons/icon-phone-background-3-48.png')
+    },
   },
   'icon-phone-background-3-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-background-3-64.png'),
+    get require() {
+      return require('../images/icons/icon-phone-background-3-64.png')
+    },
   },
   'icon-phone-background-3-96': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-background-3-96.png'),
+    get require() {
+      return require('../images/icons/icon-phone-background-3-96.png')
+    },
   },
   'icon-phone-background-4-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-background-4-32.png'),
+    get require() {
+      return require('../images/icons/icon-phone-background-4-32.png')
+    },
   },
   'icon-phone-background-4-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-background-4-48.png'),
+    get require() {
+      return require('../images/icons/icon-phone-background-4-48.png')
+    },
   },
   'icon-phone-background-4-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-background-4-64.png'),
+    get require() {
+      return require('../images/icons/icon-phone-background-4-64.png')
+    },
   },
   'icon-phone-background-4-96': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-background-4-96.png'),
+    get require() {
+      return require('../images/icons/icon-phone-background-4-96.png')
+    },
   },
   'icon-phone-background-5-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-background-5-32.png'),
+    get require() {
+      return require('../images/icons/icon-phone-background-5-32.png')
+    },
   },
   'icon-phone-background-5-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-background-5-48.png'),
+    get require() {
+      return require('../images/icons/icon-phone-background-5-48.png')
+    },
   },
   'icon-phone-background-5-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-background-5-64.png'),
+    get require() {
+      return require('../images/icons/icon-phone-background-5-64.png')
+    },
   },
   'icon-phone-background-5-96': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-background-5-96.png'),
+    get require() {
+      return require('../images/icons/icon-phone-background-5-96.png')
+    },
   },
   'icon-phone-background-6-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-background-6-32.png'),
+    get require() {
+      return require('../images/icons/icon-phone-background-6-32.png')
+    },
   },
   'icon-phone-background-6-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-background-6-48.png'),
+    get require() {
+      return require('../images/icons/icon-phone-background-6-48.png')
+    },
   },
   'icon-phone-background-6-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-background-6-64.png'),
+    get require() {
+      return require('../images/icons/icon-phone-background-6-64.png')
+    },
   },
   'icon-phone-background-6-96': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-background-6-96.png'),
+    get require() {
+      return require('../images/icons/icon-phone-background-6-96.png')
+    },
   },
   'icon-phone-background-7-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-background-7-32.png'),
+    get require() {
+      return require('../images/icons/icon-phone-background-7-32.png')
+    },
   },
   'icon-phone-background-7-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-background-7-48.png'),
+    get require() {
+      return require('../images/icons/icon-phone-background-7-48.png')
+    },
   },
   'icon-phone-background-7-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-background-7-64.png'),
+    get require() {
+      return require('../images/icons/icon-phone-background-7-64.png')
+    },
   },
   'icon-phone-background-7-96': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-background-7-96.png'),
+    get require() {
+      return require('../images/icons/icon-phone-background-7-96.png')
+    },
   },
   'icon-phone-background-8-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-background-8-32.png'),
+    get require() {
+      return require('../images/icons/icon-phone-background-8-32.png')
+    },
   },
   'icon-phone-background-8-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-background-8-48.png'),
+    get require() {
+      return require('../images/icons/icon-phone-background-8-48.png')
+    },
   },
   'icon-phone-background-8-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-background-8-64.png'),
+    get require() {
+      return require('../images/icons/icon-phone-background-8-64.png')
+    },
   },
   'icon-phone-background-8-96': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-background-8-96.png'),
+    get require() {
+      return require('../images/icons/icon-phone-background-8-96.png')
+    },
   },
   'icon-phone-background-9-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-background-9-32.png'),
+    get require() {
+      return require('../images/icons/icon-phone-background-9-32.png')
+    },
   },
   'icon-phone-background-9-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-background-9-48.png'),
+    get require() {
+      return require('../images/icons/icon-phone-background-9-48.png')
+    },
   },
   'icon-phone-background-9-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-background-9-64.png'),
+    get require() {
+      return require('../images/icons/icon-phone-background-9-64.png')
+    },
   },
   'icon-phone-background-9-96': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-background-9-96.png'),
+    get require() {
+      return require('../images/icons/icon-phone-background-9-96.png')
+    },
   },
   'icon-phone-number-add-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-number-add-48.png'),
+    get require() {
+      return require('../images/icons/icon-phone-number-add-48.png')
+    },
   },
   'icon-phone-number-add-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-number-add-64.png'),
+    get require() {
+      return require('../images/icons/icon-phone-number-add-64.png')
+    },
   },
   'icon-phone-number-add-96': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-number-add-96.png'),
+    get require() {
+      return require('../images/icons/icon-phone-number-add-96.png')
+    },
   },
   'icon-phone-number-remove-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-number-remove-48',
-    require: require('../images/icons/icon-phone-number-remove-48.png'),
-    requireDark: require('../images/icons/icon-dark-phone-number-remove-48.png'),
+    get require() {
+      return require('../images/icons/icon-phone-number-remove-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-number-remove-48.png')
+    },
   },
   'icon-phone-number-remove-64': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-number-remove-64',
-    require: require('../images/icons/icon-phone-number-remove-64.png'),
-    requireDark: require('../images/icons/icon-dark-phone-number-remove-64.png'),
+    get require() {
+      return require('../images/icons/icon-phone-number-remove-64.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-number-remove-64.png')
+    },
   },
   'icon-phone-number-remove-96': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-number-remove-96',
-    require: require('../images/icons/icon-phone-number-remove-96.png'),
-    requireDark: require('../images/icons/icon-dark-phone-number-remove-96.png'),
+    get require() {
+      return require('../images/icons/icon-phone-number-remove-96.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-number-remove-96.png')
+    },
   },
   'icon-phone-revoke-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-revoke-48.png'),
+    get require() {
+      return require('../images/icons/icon-phone-revoke-48.png')
+    },
   },
   'icon-phone-revoke-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-phone-revoke-64.png'),
+    get require() {
+      return require('../images/icons/icon-phone-revoke-64.png')
+    },
   },
   'icon-phone-revoke-background-1-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-1-32',
-    require: require('../images/icons/icon-phone-revoke-background-1-32.png'),
-    requireDark: require('../images/icons/icon-dark-phone-revoke-background-1-32.png'),
+    get require() {
+      return require('../images/icons/icon-phone-revoke-background-1-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-revoke-background-1-32.png')
+    },
   },
   'icon-phone-revoke-background-1-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-1-48',
-    require: require('../images/icons/icon-phone-revoke-background-1-48.png'),
-    requireDark: require('../images/icons/icon-dark-phone-revoke-background-1-48.png'),
+    get require() {
+      return require('../images/icons/icon-phone-revoke-background-1-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-revoke-background-1-48.png')
+    },
   },
   'icon-phone-revoke-background-1-64': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-1-64',
-    require: require('../images/icons/icon-phone-revoke-background-1-64.png'),
-    requireDark: require('../images/icons/icon-dark-phone-revoke-background-1-64.png'),
+    get require() {
+      return require('../images/icons/icon-phone-revoke-background-1-64.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-revoke-background-1-64.png')
+    },
   },
   'icon-phone-revoke-background-10-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-10-32',
-    require: require('../images/icons/icon-phone-revoke-background-10-32.png'),
-    requireDark: require('../images/icons/icon-dark-phone-revoke-background-10-32.png'),
+    get require() {
+      return require('../images/icons/icon-phone-revoke-background-10-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-revoke-background-10-32.png')
+    },
   },
   'icon-phone-revoke-background-10-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-10-48',
-    require: require('../images/icons/icon-phone-revoke-background-10-48.png'),
-    requireDark: require('../images/icons/icon-dark-phone-revoke-background-10-48.png'),
+    get require() {
+      return require('../images/icons/icon-phone-revoke-background-10-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-revoke-background-10-48.png')
+    },
   },
   'icon-phone-revoke-background-10-64': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-10-64',
-    require: require('../images/icons/icon-phone-revoke-background-10-64.png'),
-    requireDark: require('../images/icons/icon-dark-phone-revoke-background-10-64.png'),
+    get require() {
+      return require('../images/icons/icon-phone-revoke-background-10-64.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-revoke-background-10-64.png')
+    },
   },
   'icon-phone-revoke-background-2-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-2-32',
-    require: require('../images/icons/icon-phone-revoke-background-2-32.png'),
-    requireDark: require('../images/icons/icon-dark-phone-revoke-background-2-32.png'),
+    get require() {
+      return require('../images/icons/icon-phone-revoke-background-2-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-revoke-background-2-32.png')
+    },
   },
   'icon-phone-revoke-background-2-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-2-48',
-    require: require('../images/icons/icon-phone-revoke-background-2-48.png'),
-    requireDark: require('../images/icons/icon-dark-phone-revoke-background-2-48.png'),
+    get require() {
+      return require('../images/icons/icon-phone-revoke-background-2-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-revoke-background-2-48.png')
+    },
   },
   'icon-phone-revoke-background-2-64': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-2-64',
-    require: require('../images/icons/icon-phone-revoke-background-2-64.png'),
-    requireDark: require('../images/icons/icon-dark-phone-revoke-background-2-64.png'),
+    get require() {
+      return require('../images/icons/icon-phone-revoke-background-2-64.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-revoke-background-2-64.png')
+    },
   },
   'icon-phone-revoke-background-3-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-3-32',
-    require: require('../images/icons/icon-phone-revoke-background-3-32.png'),
-    requireDark: require('../images/icons/icon-dark-phone-revoke-background-3-32.png'),
+    get require() {
+      return require('../images/icons/icon-phone-revoke-background-3-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-revoke-background-3-32.png')
+    },
   },
   'icon-phone-revoke-background-3-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-3-48',
-    require: require('../images/icons/icon-phone-revoke-background-3-48.png'),
-    requireDark: require('../images/icons/icon-dark-phone-revoke-background-3-48.png'),
+    get require() {
+      return require('../images/icons/icon-phone-revoke-background-3-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-revoke-background-3-48.png')
+    },
   },
   'icon-phone-revoke-background-3-64': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-3-64',
-    require: require('../images/icons/icon-phone-revoke-background-3-64.png'),
-    requireDark: require('../images/icons/icon-dark-phone-revoke-background-3-64.png'),
+    get require() {
+      return require('../images/icons/icon-phone-revoke-background-3-64.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-revoke-background-3-64.png')
+    },
   },
   'icon-phone-revoke-background-4-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-4-32',
-    require: require('../images/icons/icon-phone-revoke-background-4-32.png'),
-    requireDark: require('../images/icons/icon-dark-phone-revoke-background-4-32.png'),
+    get require() {
+      return require('../images/icons/icon-phone-revoke-background-4-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-revoke-background-4-32.png')
+    },
   },
   'icon-phone-revoke-background-4-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-4-48',
-    require: require('../images/icons/icon-phone-revoke-background-4-48.png'),
-    requireDark: require('../images/icons/icon-dark-phone-revoke-background-4-48.png'),
+    get require() {
+      return require('../images/icons/icon-phone-revoke-background-4-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-revoke-background-4-48.png')
+    },
   },
   'icon-phone-revoke-background-4-64': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-4-64',
-    require: require('../images/icons/icon-phone-revoke-background-4-64.png'),
-    requireDark: require('../images/icons/icon-dark-phone-revoke-background-4-64.png'),
+    get require() {
+      return require('../images/icons/icon-phone-revoke-background-4-64.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-revoke-background-4-64.png')
+    },
   },
   'icon-phone-revoke-background-5-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-5-32',
-    require: require('../images/icons/icon-phone-revoke-background-5-32.png'),
-    requireDark: require('../images/icons/icon-dark-phone-revoke-background-5-32.png'),
+    get require() {
+      return require('../images/icons/icon-phone-revoke-background-5-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-revoke-background-5-32.png')
+    },
   },
   'icon-phone-revoke-background-5-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-5-48',
-    require: require('../images/icons/icon-phone-revoke-background-5-48.png'),
-    requireDark: require('../images/icons/icon-dark-phone-revoke-background-5-48.png'),
+    get require() {
+      return require('../images/icons/icon-phone-revoke-background-5-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-revoke-background-5-48.png')
+    },
   },
   'icon-phone-revoke-background-5-64': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-5-64',
-    require: require('../images/icons/icon-phone-revoke-background-5-64.png'),
-    requireDark: require('../images/icons/icon-dark-phone-revoke-background-5-64.png'),
+    get require() {
+      return require('../images/icons/icon-phone-revoke-background-5-64.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-revoke-background-5-64.png')
+    },
   },
   'icon-phone-revoke-background-6-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-6-32',
-    require: require('../images/icons/icon-phone-revoke-background-6-32.png'),
-    requireDark: require('../images/icons/icon-dark-phone-revoke-background-6-32.png'),
+    get require() {
+      return require('../images/icons/icon-phone-revoke-background-6-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-revoke-background-6-32.png')
+    },
   },
   'icon-phone-revoke-background-6-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-6-48',
-    require: require('../images/icons/icon-phone-revoke-background-6-48.png'),
-    requireDark: require('../images/icons/icon-dark-phone-revoke-background-6-48.png'),
+    get require() {
+      return require('../images/icons/icon-phone-revoke-background-6-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-revoke-background-6-48.png')
+    },
   },
   'icon-phone-revoke-background-6-64': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-6-64',
-    require: require('../images/icons/icon-phone-revoke-background-6-64.png'),
-    requireDark: require('../images/icons/icon-dark-phone-revoke-background-6-64.png'),
+    get require() {
+      return require('../images/icons/icon-phone-revoke-background-6-64.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-revoke-background-6-64.png')
+    },
   },
   'icon-phone-revoke-background-7-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-7-32',
-    require: require('../images/icons/icon-phone-revoke-background-7-32.png'),
-    requireDark: require('../images/icons/icon-dark-phone-revoke-background-7-32.png'),
+    get require() {
+      return require('../images/icons/icon-phone-revoke-background-7-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-revoke-background-7-32.png')
+    },
   },
   'icon-phone-revoke-background-7-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-7-48',
-    require: require('../images/icons/icon-phone-revoke-background-7-48.png'),
-    requireDark: require('../images/icons/icon-dark-phone-revoke-background-7-48.png'),
+    get require() {
+      return require('../images/icons/icon-phone-revoke-background-7-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-revoke-background-7-48.png')
+    },
   },
   'icon-phone-revoke-background-7-64': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-7-64',
-    require: require('../images/icons/icon-phone-revoke-background-7-64.png'),
-    requireDark: require('../images/icons/icon-dark-phone-revoke-background-7-64.png'),
+    get require() {
+      return require('../images/icons/icon-phone-revoke-background-7-64.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-revoke-background-7-64.png')
+    },
   },
   'icon-phone-revoke-background-8-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-8-32',
-    require: require('../images/icons/icon-phone-revoke-background-8-32.png'),
-    requireDark: require('../images/icons/icon-dark-phone-revoke-background-8-32.png'),
+    get require() {
+      return require('../images/icons/icon-phone-revoke-background-8-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-revoke-background-8-32.png')
+    },
   },
   'icon-phone-revoke-background-8-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-8-48',
-    require: require('../images/icons/icon-phone-revoke-background-8-48.png'),
-    requireDark: require('../images/icons/icon-dark-phone-revoke-background-8-48.png'),
+    get require() {
+      return require('../images/icons/icon-phone-revoke-background-8-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-revoke-background-8-48.png')
+    },
   },
   'icon-phone-revoke-background-8-64': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-8-64',
-    require: require('../images/icons/icon-phone-revoke-background-8-64.png'),
-    requireDark: require('../images/icons/icon-dark-phone-revoke-background-8-64.png'),
+    get require() {
+      return require('../images/icons/icon-phone-revoke-background-8-64.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-revoke-background-8-64.png')
+    },
   },
   'icon-phone-revoke-background-9-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-9-32',
-    require: require('../images/icons/icon-phone-revoke-background-9-32.png'),
-    requireDark: require('../images/icons/icon-dark-phone-revoke-background-9-32.png'),
+    get require() {
+      return require('../images/icons/icon-phone-revoke-background-9-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-revoke-background-9-32.png')
+    },
   },
   'icon-phone-revoke-background-9-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-9-48',
-    require: require('../images/icons/icon-phone-revoke-background-9-48.png'),
-    requireDark: require('../images/icons/icon-dark-phone-revoke-background-9-48.png'),
+    get require() {
+      return require('../images/icons/icon-phone-revoke-background-9-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-revoke-background-9-48.png')
+    },
   },
   'icon-phone-revoke-background-9-64': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-9-64',
-    require: require('../images/icons/icon-phone-revoke-background-9-64.png'),
-    requireDark: require('../images/icons/icon-dark-phone-revoke-background-9-64.png'),
+    get require() {
+      return require('../images/icons/icon-phone-revoke-background-9-64.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-revoke-background-9-64.png')
+    },
   },
   'icon-phone-success-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-success-32',
-    require: require('../images/icons/icon-phone-success-32.png'),
-    requireDark: require('../images/icons/icon-dark-phone-success-32.png'),
+    get require() {
+      return require('../images/icons/icon-phone-success-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-success-32.png')
+    },
   },
   'icon-phone-success-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-success-48',
-    require: require('../images/icons/icon-phone-success-48.png'),
-    requireDark: require('../images/icons/icon-dark-phone-success-48.png'),
+    get require() {
+      return require('../images/icons/icon-phone-success-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-success-48.png')
+    },
   },
   'icon-phone-success-background-1-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-1-32',
-    require: require('../images/icons/icon-phone-success-background-1-32.png'),
-    requireDark: require('../images/icons/icon-dark-phone-success-background-1-32.png'),
+    get require() {
+      return require('../images/icons/icon-phone-success-background-1-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-success-background-1-32.png')
+    },
   },
   'icon-phone-success-background-1-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-1-48',
-    require: require('../images/icons/icon-phone-success-background-1-48.png'),
-    requireDark: require('../images/icons/icon-dark-phone-success-background-1-48.png'),
+    get require() {
+      return require('../images/icons/icon-phone-success-background-1-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-success-background-1-48.png')
+    },
   },
   'icon-phone-success-background-10-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-10-32',
-    require: require('../images/icons/icon-phone-success-background-10-32.png'),
-    requireDark: require('../images/icons/icon-dark-phone-success-background-10-32.png'),
+    get require() {
+      return require('../images/icons/icon-phone-success-background-10-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-success-background-10-32.png')
+    },
   },
   'icon-phone-success-background-10-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-10-48',
-    require: require('../images/icons/icon-phone-success-background-10-48.png'),
-    requireDark: require('../images/icons/icon-dark-phone-success-background-10-48.png'),
+    get require() {
+      return require('../images/icons/icon-phone-success-background-10-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-success-background-10-48.png')
+    },
   },
   'icon-phone-success-background-2-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-2-32',
-    require: require('../images/icons/icon-phone-success-background-2-32.png'),
-    requireDark: require('../images/icons/icon-dark-phone-success-background-2-32.png'),
+    get require() {
+      return require('../images/icons/icon-phone-success-background-2-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-success-background-2-32.png')
+    },
   },
   'icon-phone-success-background-2-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-2-48',
-    require: require('../images/icons/icon-phone-success-background-2-48.png'),
-    requireDark: require('../images/icons/icon-dark-phone-success-background-2-48.png'),
+    get require() {
+      return require('../images/icons/icon-phone-success-background-2-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-success-background-2-48.png')
+    },
   },
   'icon-phone-success-background-3-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-3-32',
-    require: require('../images/icons/icon-phone-success-background-3-32.png'),
-    requireDark: require('../images/icons/icon-dark-phone-success-background-3-32.png'),
+    get require() {
+      return require('../images/icons/icon-phone-success-background-3-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-success-background-3-32.png')
+    },
   },
   'icon-phone-success-background-3-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-3-48',
-    require: require('../images/icons/icon-phone-success-background-3-48.png'),
-    requireDark: require('../images/icons/icon-dark-phone-success-background-3-48.png'),
+    get require() {
+      return require('../images/icons/icon-phone-success-background-3-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-success-background-3-48.png')
+    },
   },
   'icon-phone-success-background-4-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-4-32',
-    require: require('../images/icons/icon-phone-success-background-4-32.png'),
-    requireDark: require('../images/icons/icon-dark-phone-success-background-4-32.png'),
+    get require() {
+      return require('../images/icons/icon-phone-success-background-4-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-success-background-4-32.png')
+    },
   },
   'icon-phone-success-background-4-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-4-48',
-    require: require('../images/icons/icon-phone-success-background-4-48.png'),
-    requireDark: require('../images/icons/icon-dark-phone-success-background-4-48.png'),
+    get require() {
+      return require('../images/icons/icon-phone-success-background-4-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-success-background-4-48.png')
+    },
   },
   'icon-phone-success-background-5-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-5-32',
-    require: require('../images/icons/icon-phone-success-background-5-32.png'),
-    requireDark: require('../images/icons/icon-dark-phone-success-background-5-32.png'),
+    get require() {
+      return require('../images/icons/icon-phone-success-background-5-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-success-background-5-32.png')
+    },
   },
   'icon-phone-success-background-5-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-5-48',
-    require: require('../images/icons/icon-phone-success-background-5-48.png'),
-    requireDark: require('../images/icons/icon-dark-phone-success-background-5-48.png'),
+    get require() {
+      return require('../images/icons/icon-phone-success-background-5-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-success-background-5-48.png')
+    },
   },
   'icon-phone-success-background-6-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-6-32',
-    require: require('../images/icons/icon-phone-success-background-6-32.png'),
-    requireDark: require('../images/icons/icon-dark-phone-success-background-6-32.png'),
+    get require() {
+      return require('../images/icons/icon-phone-success-background-6-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-success-background-6-32.png')
+    },
   },
   'icon-phone-success-background-6-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-6-48',
-    require: require('../images/icons/icon-phone-success-background-6-48.png'),
-    requireDark: require('../images/icons/icon-dark-phone-success-background-6-48.png'),
+    get require() {
+      return require('../images/icons/icon-phone-success-background-6-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-success-background-6-48.png')
+    },
   },
   'icon-phone-success-background-7-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-7-32',
-    require: require('../images/icons/icon-phone-success-background-7-32.png'),
-    requireDark: require('../images/icons/icon-dark-phone-success-background-7-32.png'),
+    get require() {
+      return require('../images/icons/icon-phone-success-background-7-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-success-background-7-32.png')
+    },
   },
   'icon-phone-success-background-7-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-7-48',
-    require: require('../images/icons/icon-phone-success-background-7-48.png'),
-    requireDark: require('../images/icons/icon-dark-phone-success-background-7-48.png'),
+    get require() {
+      return require('../images/icons/icon-phone-success-background-7-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-success-background-7-48.png')
+    },
   },
   'icon-phone-success-background-8-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-8-32',
-    require: require('../images/icons/icon-phone-success-background-8-32.png'),
-    requireDark: require('../images/icons/icon-dark-phone-success-background-8-32.png'),
+    get require() {
+      return require('../images/icons/icon-phone-success-background-8-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-success-background-8-32.png')
+    },
   },
   'icon-phone-success-background-8-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-8-48',
-    require: require('../images/icons/icon-phone-success-background-8-48.png'),
-    requireDark: require('../images/icons/icon-dark-phone-success-background-8-48.png'),
+    get require() {
+      return require('../images/icons/icon-phone-success-background-8-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-success-background-8-48.png')
+    },
   },
   'icon-phone-success-background-9-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-9-32',
-    require: require('../images/icons/icon-phone-success-background-9-32.png'),
-    requireDark: require('../images/icons/icon-dark-phone-success-background-9-32.png'),
+    get require() {
+      return require('../images/icons/icon-phone-success-background-9-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-success-background-9-32.png')
+    },
   },
   'icon-phone-success-background-9-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-9-48',
-    require: require('../images/icons/icon-phone-success-background-9-48.png'),
-    requireDark: require('../images/icons/icon-dark-phone-success-background-9-48.png'),
+    get require() {
+      return require('../images/icons/icon-phone-success-background-9-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-phone-success-background-9-48.png')
+    },
   },
   'icon-placeholder-avatar-192': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-placeholder-avatar-192.png'),
+    nameDark: 'icon-dark-placeholder-avatar-192',
+    get require() {
+      return require('../images/icons/icon-placeholder-avatar-192.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-placeholder-avatar-192.png')
+    },
   },
   'icon-placeholder-avatar-256': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-placeholder-avatar-256.png'),
+    nameDark: 'icon-dark-placeholder-avatar-256',
+    get require() {
+      return require('../images/icons/icon-placeholder-avatar-256.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-placeholder-avatar-256.png')
+    },
   },
   'icon-placeholder-avatar-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-placeholder-avatar-32.png'),
+    nameDark: 'icon-dark-placeholder-avatar-32',
+    get require() {
+      return require('../images/icons/icon-placeholder-avatar-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-placeholder-avatar-32.png')
+    },
   },
   'icon-placeholder-avatar-960': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-placeholder-avatar-960.png'),
+    nameDark: 'icon-dark-placeholder-avatar-960',
+    get require() {
+      return require('../images/icons/icon-placeholder-avatar-960.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-placeholder-avatar-960.png')
+    },
   },
   'icon-placeholder-avatar-circular-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-placeholder-avatar-circular-32.png'),
+    nameDark: 'icon-dark-placeholder-avatar-circular-32',
+    get require() {
+      return require('../images/icons/icon-placeholder-avatar-circular-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-placeholder-avatar-circular-32.png')
+    },
   },
   'icon-placeholder-avatar-circular-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-placeholder-avatar-circular-48.png'),
+    nameDark: 'icon-dark-placeholder-avatar-circular-48',
+    get require() {
+      return require('../images/icons/icon-placeholder-avatar-circular-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-placeholder-avatar-circular-48.png')
+    },
   },
   'icon-placeholder-avatar-circular-reversed-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-placeholder-avatar-circular-reversed-32.png'),
+    nameDark: 'icon-dark-placeholder-avatar-circular-reversed-32',
+    get require() {
+      return require('../images/icons/icon-placeholder-avatar-circular-reversed-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-placeholder-avatar-circular-reversed-32.png')
+    },
   },
   'icon-placeholder-avatar-circular-reversed-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-placeholder-avatar-circular-reversed-48.png'),
+    nameDark: 'icon-dark-placeholder-avatar-circular-reversed-48',
+    get require() {
+      return require('../images/icons/icon-placeholder-avatar-circular-reversed-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-placeholder-avatar-circular-reversed-48.png')
+    },
   },
   'icon-placeholder-avatar-lighter-192': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-placeholder-avatar-lighter-192.png'),
+    nameDark: 'icon-dark-placeholder-avatar-lighter-192',
+    get require() {
+      return require('../images/icons/icon-placeholder-avatar-lighter-192.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-placeholder-avatar-lighter-192.png')
+    },
   },
   'icon-placeholder-avatar-lighter-256': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-placeholder-avatar-lighter-256.png'),
+    nameDark: 'icon-dark-placeholder-avatar-lighter-256',
+    get require() {
+      return require('../images/icons/icon-placeholder-avatar-lighter-256.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-placeholder-avatar-lighter-256.png')
+    },
   },
   'icon-placeholder-avatar-lighter-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-placeholder-avatar-lighter-32.png'),
+    get require() {
+      return require('../images/icons/icon-placeholder-avatar-lighter-32.png')
+    },
   },
   'icon-placeholder-avatar-lighter-960': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-placeholder-avatar-lighter-960.png'),
+    nameDark: 'icon-dark-placeholder-avatar-lighter-960',
+    get require() {
+      return require('../images/icons/icon-placeholder-avatar-lighter-960.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-placeholder-avatar-lighter-960.png')
+    },
   },
   'icon-placeholder-secret-user-16': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-placeholder-secret-user-16',
-    require: require('../images/icons/icon-placeholder-secret-user-16.png'),
-    requireDark: require('../images/icons/icon-dark-placeholder-secret-user-16.png'),
+    get require() {
+      return require('../images/icons/icon-placeholder-secret-user-16.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-placeholder-secret-user-16.png')
+    },
   },
   'icon-placeholder-secret-user-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-placeholder-secret-user-32',
-    require: require('../images/icons/icon-placeholder-secret-user-32.png'),
-    requireDark: require('../images/icons/icon-dark-placeholder-secret-user-32.png'),
+    get require() {
+      return require('../images/icons/icon-placeholder-secret-user-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-placeholder-secret-user-32.png')
+    },
   },
   'icon-placeholder-secret-user-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-placeholder-secret-user-48',
-    require: require('../images/icons/icon-placeholder-secret-user-48.png'),
-    requireDark: require('../images/icons/icon-dark-placeholder-secret-user-48.png'),
+    get require() {
+      return require('../images/icons/icon-placeholder-secret-user-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-placeholder-secret-user-48.png')
+    },
   },
   'icon-placeholder-secret-user-64': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-placeholder-secret-user-64',
-    require: require('../images/icons/icon-placeholder-secret-user-64.png'),
-    requireDark: require('../images/icons/icon-dark-placeholder-secret-user-64.png'),
+    get require() {
+      return require('../images/icons/icon-placeholder-secret-user-64.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-placeholder-secret-user-64.png')
+    },
   },
   'icon-play-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-play-64.png'),
+    get require() {
+      return require('../images/icons/icon-play-64.png')
+    },
   },
   'icon-powered-by-giphy-120-26': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-powered-by-giphy-120-26.png'),
+    get require() {
+      return require('../images/icons/icon-powered-by-giphy-120-26.png')
+    },
   },
   'icon-proof-broken': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-proof-broken.png'),
+    get require() {
+      return require('../images/icons/icon-proof-broken.png')
+    },
   },
   'icon-proof-pending': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-proof-pending',
-    require: require('../images/icons/icon-proof-pending.png'),
-    requireDark: require('../images/icons/icon-dark-proof-pending.png'),
+    get require() {
+      return require('../images/icons/icon-proof-pending.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-proof-pending.png')
+    },
   },
   'icon-proof-published': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-proof-published',
-    require: require('../images/icons/icon-proof-published.png'),
-    requireDark: require('../images/icons/icon-dark-proof-published.png'),
+    get require() {
+      return require('../images/icons/icon-proof-published.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-proof-published.png')
+    },
   },
   'icon-proof-success': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-proof-success',
-    require: require('../images/icons/icon-proof-success.png'),
-    requireDark: require('../images/icons/icon-dark-proof-success.png'),
+    get require() {
+      return require('../images/icons/icon-proof-success.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-proof-success.png')
+    },
   },
   'icon-proof-unfinished': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-proof-unfinished',
-    require: require('../images/icons/icon-proof-unfinished.png'),
-    requireDark: require('../images/icons/icon-dark-proof-unfinished.png'),
+    get require() {
+      return require('../images/icons/icon-proof-unfinished.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-proof-unfinished.png')
+    },
   },
   'icon-reddit-logo-16': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-reddit-logo-16.png'),
+    get require() {
+      return require('../images/icons/icon-reddit-logo-16.png')
+    },
   },
   'icon-reddit-logo-24': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-reddit-logo-24.png'),
+    get require() {
+      return require('../images/icons/icon-reddit-logo-24.png')
+    },
   },
   'icon-reddit-logo-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-reddit-logo-32.png'),
+    get require() {
+      return require('../images/icons/icon-reddit-logo-32.png')
+    },
   },
   'icon-reddit-logo-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-reddit-logo-48.png'),
+    get require() {
+      return require('../images/icons/icon-reddit-logo-48.png')
+    },
   },
   'icon-reddit-logo-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-reddit-logo-64.png'),
+    get require() {
+      return require('../images/icons/icon-reddit-logo-64.png')
+    },
   },
   'icon-repo-personal-add-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-repo-personal-add-48',
-    require: require('../images/icons/icon-repo-personal-add-48.png'),
-    requireDark: require('../images/icons/icon-dark-repo-personal-add-48.png'),
+    get require() {
+      return require('../images/icons/icon-repo-personal-add-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-repo-personal-add-48.png')
+    },
   },
   'icon-repo-personal-delete-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-repo-personal-delete-48',
-    require: require('../images/icons/icon-repo-personal-delete-48.png'),
-    requireDark: require('../images/icons/icon-dark-repo-personal-delete-48.png'),
+    get require() {
+      return require('../images/icons/icon-repo-personal-delete-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-repo-personal-delete-48.png')
+    },
   },
   'icon-repo-team-add-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-repo-team-add-48',
-    require: require('../images/icons/icon-repo-team-add-48.png'),
-    requireDark: require('../images/icons/icon-dark-repo-team-add-48.png'),
+    get require() {
+      return require('../images/icons/icon-repo-team-add-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-repo-team-add-48.png')
+    },
   },
   'icon-repo-team-delete-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-repo-team-delete-48',
-    require: require('../images/icons/icon-repo-team-delete-48.png'),
-    requireDark: require('../images/icons/icon-dark-repo-team-delete-48.png'),
+    get require() {
+      return require('../images/icons/icon-repo-team-delete-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-repo-team-delete-48.png')
+    },
   },
   'icon-search-facebook-active-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-search-facebook-active-32.png'),
+    get require() {
+      return require('../images/icons/icon-search-facebook-active-32.png')
+    },
   },
   'icon-search-facebook-active-40': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-search-facebook-active-40.png'),
+    get require() {
+      return require('../images/icons/icon-search-facebook-active-40.png')
+    },
   },
   'icon-search-facebook-inactive-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-search-facebook-inactive-32.png'),
+    get require() {
+      return require('../images/icons/icon-search-facebook-inactive-32.png')
+    },
   },
   'icon-search-facebook-inactive-40': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-search-facebook-inactive-40.png'),
+    get require() {
+      return require('../images/icons/icon-search-facebook-inactive-40.png')
+    },
   },
   'icon-search-github-active-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-search-github-active-32.png'),
+    get require() {
+      return require('../images/icons/icon-search-github-active-32.png')
+    },
   },
   'icon-search-github-active-40': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-search-github-active-40.png'),
+    get require() {
+      return require('../images/icons/icon-search-github-active-40.png')
+    },
   },
   'icon-search-github-inactive-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-search-github-inactive-32.png'),
+    get require() {
+      return require('../images/icons/icon-search-github-inactive-32.png')
+    },
   },
   'icon-search-github-inactive-40': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-search-github-inactive-40.png'),
+    get require() {
+      return require('../images/icons/icon-search-github-inactive-40.png')
+    },
   },
   'icon-search-hacker-news-active-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-search-hacker-news-active-32.png'),
+    get require() {
+      return require('../images/icons/icon-search-hacker-news-active-32.png')
+    },
   },
   'icon-search-hacker-news-active-40': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-search-hacker-news-active-40.png'),
+    get require() {
+      return require('../images/icons/icon-search-hacker-news-active-40.png')
+    },
   },
   'icon-search-hacker-news-inactive-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-search-hacker-news-inactive-32.png'),
+    get require() {
+      return require('../images/icons/icon-search-hacker-news-inactive-32.png')
+    },
   },
   'icon-search-hacker-news-inactive-40': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-search-hacker-news-inactive-40.png'),
+    get require() {
+      return require('../images/icons/icon-search-hacker-news-inactive-40.png')
+    },
   },
   'icon-search-keybase-active-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-search-keybase-active-32.png'),
+    get require() {
+      return require('../images/icons/icon-search-keybase-active-32.png')
+    },
   },
   'icon-search-keybase-active-40': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-search-keybase-active-40.png'),
+    get require() {
+      return require('../images/icons/icon-search-keybase-active-40.png')
+    },
   },
   'icon-search-keybase-inactive-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-search-keybase-inactive-32.png'),
+    get require() {
+      return require('../images/icons/icon-search-keybase-inactive-32.png')
+    },
   },
   'icon-search-keybase-inactive-40': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-search-keybase-inactive-40.png'),
+    get require() {
+      return require('../images/icons/icon-search-keybase-inactive-40.png')
+    },
   },
   'icon-search-reddit-active-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-search-reddit-active-32.png'),
+    get require() {
+      return require('../images/icons/icon-search-reddit-active-32.png')
+    },
   },
   'icon-search-reddit-active-40': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-search-reddit-active-40.png'),
+    get require() {
+      return require('../images/icons/icon-search-reddit-active-40.png')
+    },
   },
   'icon-search-reddit-inactive-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-search-reddit-inactive-32.png'),
+    get require() {
+      return require('../images/icons/icon-search-reddit-inactive-32.png')
+    },
   },
   'icon-search-reddit-inactive-40': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-search-reddit-inactive-40.png'),
+    get require() {
+      return require('../images/icons/icon-search-reddit-inactive-40.png')
+    },
   },
   'icon-search-twitter-active-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-search-twitter-active-32.png'),
+    get require() {
+      return require('../images/icons/icon-search-twitter-active-32.png')
+    },
   },
   'icon-search-twitter-active-40': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-search-twitter-active-40.png'),
+    get require() {
+      return require('../images/icons/icon-search-twitter-active-40.png')
+    },
   },
   'icon-search-twitter-inactive-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-search-twitter-inactive-32.png'),
+    get require() {
+      return require('../images/icons/icon-search-twitter-inactive-32.png')
+    },
   },
   'icon-search-twitter-inactive-40': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-search-twitter-inactive-40.png'),
+    get require() {
+      return require('../images/icons/icon-search-twitter-inactive-40.png')
+    },
   },
   'icon-shh-19-16': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-shh-19-16',
-    require: require('../images/icons/icon-shh-19-16.png'),
-    requireDark: require('../images/icons/icon-dark-shh-19-16.png'),
+    get require() {
+      return require('../images/icons/icon-shh-19-16.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-shh-19-16.png')
+    },
   },
   'icon-shh-26-21': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-shh-26-21',
-    require: require('../images/icons/icon-shh-26-21.png'),
-    requireDark: require('../images/icons/icon-dark-shh-26-21.png'),
+    get require() {
+      return require('../images/icons/icon-shh-26-21.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-shh-26-21.png')
+    },
   },
   'icon-shh-active-19-16': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-shh-active-19-16',
-    require: require('../images/icons/icon-shh-active-19-16.png'),
-    requireDark: require('../images/icons/icon-dark-shh-active-19-16.png'),
+    get require() {
+      return require('../images/icons/icon-shh-active-19-16.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-shh-active-19-16.png')
+    },
   },
   'icon-shh-active-26-21': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-shh-active-26-21.png'),
+    get require() {
+      return require('../images/icons/icon-shh-active-26-21.png')
+    },
   },
   'icon-shh-hover-19-16': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-shh-hover-19-16',
-    require: require('../images/icons/icon-shh-hover-19-16.png'),
-    requireDark: require('../images/icons/icon-dark-shh-hover-19-16.png'),
+    get require() {
+      return require('../images/icons/icon-shh-hover-19-16.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-shh-hover-19-16.png')
+    },
   },
   'icon-skull-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-skull-32.png'),
+    get require() {
+      return require('../images/icons/icon-skull-32.png')
+    },
   },
   'icon-skull-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-skull-48.png'),
+    get require() {
+      return require('../images/icons/icon-skull-48.png')
+    },
   },
   'icon-skull-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-skull-64.png'),
+    get require() {
+      return require('../images/icons/icon-skull-64.png')
+    },
   },
   'icon-skull-96': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-skull-96.png'),
+    get require() {
+      return require('../images/icons/icon-skull-96.png')
+    },
   },
   'icon-stellar-coins-receiving-16': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-stellar-coins-receiving-16.png'),
+    get require() {
+      return require('../images/icons/icon-stellar-coins-receiving-16.png')
+    },
   },
   'icon-stellar-coins-receiving-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-stellar-coins-receiving-32.png'),
+    get require() {
+      return require('../images/icons/icon-stellar-coins-receiving-32.png')
+    },
   },
   'icon-stellar-coins-receiving-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-stellar-coins-receiving-48.png'),
+    get require() {
+      return require('../images/icons/icon-stellar-coins-receiving-48.png')
+    },
   },
   'icon-stellar-coins-receiving-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-stellar-coins-receiving-64.png'),
+    get require() {
+      return require('../images/icons/icon-stellar-coins-receiving-64.png')
+    },
   },
   'icon-stellar-coins-sending-16': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-stellar-coins-sending-16.png'),
+    get require() {
+      return require('../images/icons/icon-stellar-coins-sending-16.png')
+    },
   },
   'icon-stellar-coins-sending-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-stellar-coins-sending-32.png'),
+    get require() {
+      return require('../images/icons/icon-stellar-coins-sending-32.png')
+    },
   },
   'icon-stellar-coins-sending-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-stellar-coins-sending-48.png'),
+    get require() {
+      return require('../images/icons/icon-stellar-coins-sending-48.png')
+    },
   },
   'icon-stellar-coins-sending-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-stellar-coins-sending-64.png'),
+    get require() {
+      return require('../images/icons/icon-stellar-coins-sending-64.png')
+    },
   },
   'icon-stellar-coins-stacked-16': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-stellar-coins-stacked-16.png'),
+    get require() {
+      return require('../images/icons/icon-stellar-coins-stacked-16.png')
+    },
   },
   'icon-stellar-coins-stacked-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-stellar-coins-stacked-32.png'),
+    get require() {
+      return require('../images/icons/icon-stellar-coins-stacked-32.png')
+    },
   },
   'icon-stellar-coins-stacked-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-stellar-coins-stacked-48.png'),
+    get require() {
+      return require('../images/icons/icon-stellar-coins-stacked-48.png')
+    },
   },
   'icon-stellar-coins-stacked-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-stellar-coins-stacked-64.png'),
+    get require() {
+      return require('../images/icons/icon-stellar-coins-stacked-64.png')
+    },
   },
   'icon-stellar-coins-stacked-inflation-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-stellar-coins-stacked-inflation-48',
-    require: require('../images/icons/icon-stellar-coins-stacked-inflation-48.png'),
-    requireDark: require('../images/icons/icon-dark-stellar-coins-stacked-inflation-48.png'),
+    get require() {
+      return require('../images/icons/icon-stellar-coins-stacked-inflation-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-stellar-coins-stacked-inflation-48.png')
+    },
   },
   'icon-stellar-coins-stacked-inflation-64': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-stellar-coins-stacked-inflation-64',
-    require: require('../images/icons/icon-stellar-coins-stacked-inflation-64.png'),
-    requireDark: require('../images/icons/icon-dark-stellar-coins-stacked-inflation-64.png'),
+    get require() {
+      return require('../images/icons/icon-stellar-coins-stacked-inflation-64.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-stellar-coins-stacked-inflation-64.png')
+    },
   },
   'icon-team-delete-28': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-team-delete-28',
-    require: require('../images/icons/icon-team-delete-28.png'),
-    requireDark: require('../images/icons/icon-dark-team-delete-28.png'),
+    get require() {
+      return require('../images/icons/icon-team-delete-28.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-team-delete-28.png')
+    },
   },
   'icon-team-git-16': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-team-git-16',
-    require: require('../images/icons/icon-team-git-16.png'),
-    requireDark: require('../images/icons/icon-dark-team-git-16.png'),
+    get require() {
+      return require('../images/icons/icon-team-git-16.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-team-git-16.png')
+    },
   },
   'icon-team-leave-28': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-team-leave-28',
-    require: require('../images/icons/icon-team-leave-28.png'),
-    requireDark: require('../images/icons/icon-dark-team-leave-28.png'),
+    get require() {
+      return require('../images/icons/icon-team-leave-28.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-team-leave-28.png')
+    },
   },
   'icon-team-placeholder-avatar-112': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-team-placeholder-avatar-112',
-    require: require('../images/icons/icon-team-placeholder-avatar-112.png'),
-    requireDark: require('../images/icons/icon-dark-team-placeholder-avatar-112.png'),
+    get require() {
+      return require('../images/icons/icon-team-placeholder-avatar-112.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-team-placeholder-avatar-112.png')
+    },
   },
   'icon-team-placeholder-avatar-16': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-team-placeholder-avatar-16',
-    require: require('../images/icons/icon-team-placeholder-avatar-16.png'),
-    requireDark: require('../images/icons/icon-dark-team-placeholder-avatar-16.png'),
+    get require() {
+      return require('../images/icons/icon-team-placeholder-avatar-16.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-team-placeholder-avatar-16.png')
+    },
   },
   'icon-team-placeholder-avatar-176': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-team-placeholder-avatar-176.png'),
+    get require() {
+      return require('../images/icons/icon-team-placeholder-avatar-176.png')
+    },
   },
   'icon-team-placeholder-avatar-192': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-team-placeholder-avatar-192.png'),
+    nameDark: 'icon-dark-team-placeholder-avatar-192',
+    get require() {
+      return require('../images/icons/icon-team-placeholder-avatar-192.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-team-placeholder-avatar-192.png')
+    },
   },
   'icon-team-placeholder-avatar-256': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-team-placeholder-avatar-256.png'),
+    nameDark: 'icon-dark-team-placeholder-avatar-256',
+    get require() {
+      return require('../images/icons/icon-team-placeholder-avatar-256.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-team-placeholder-avatar-256.png')
+    },
   },
   'icon-team-placeholder-avatar-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-team-placeholder-avatar-32',
-    require: require('../images/icons/icon-team-placeholder-avatar-32.png'),
-    requireDark: require('../images/icons/icon-dark-team-placeholder-avatar-32.png'),
+    get require() {
+      return require('../images/icons/icon-team-placeholder-avatar-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-team-placeholder-avatar-32.png')
+    },
   },
   'icon-team-placeholder-avatar-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-team-placeholder-avatar-48',
-    require: require('../images/icons/icon-team-placeholder-avatar-48.png'),
-    requireDark: require('../images/icons/icon-dark-team-placeholder-avatar-48.png'),
+    get require() {
+      return require('../images/icons/icon-team-placeholder-avatar-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-team-placeholder-avatar-48.png')
+    },
   },
   'icon-team-placeholder-avatar-64': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-team-placeholder-avatar-64',
-    require: require('../images/icons/icon-team-placeholder-avatar-64.png'),
-    requireDark: require('../images/icons/icon-dark-team-placeholder-avatar-64.png'),
+    get require() {
+      return require('../images/icons/icon-team-placeholder-avatar-64.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-team-placeholder-avatar-64.png')
+    },
   },
   'icon-team-placeholder-avatar-80': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-team-placeholder-avatar-80',
-    require: require('../images/icons/icon-team-placeholder-avatar-80.png'),
-    requireDark: require('../images/icons/icon-dark-team-placeholder-avatar-80.png'),
+    get require() {
+      return require('../images/icons/icon-team-placeholder-avatar-80.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-team-placeholder-avatar-80.png')
+    },
   },
   'icon-team-placeholder-avatar-960': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-team-placeholder-avatar-960.png'),
+    nameDark: 'icon-dark-team-placeholder-avatar-960',
+    get require() {
+      return require('../images/icons/icon-team-placeholder-avatar-960.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-team-placeholder-avatar-960.png')
+    },
   },
   'icon-team-sparkles-64-40': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-team-sparkles-64-40.png'),
+    get require() {
+      return require('../images/icons/icon-team-sparkles-64-40.png')
+    },
   },
   'icon-terminal-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-terminal-32.png'),
+    get require() {
+      return require('../images/icons/icon-terminal-32.png')
+    },
   },
   'icon-terminal-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-terminal-48.png'),
+    get require() {
+      return require('../images/icons/icon-terminal-48.png')
+    },
   },
   'icon-twitter-logo-16': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-twitter-logo-16.png'),
+    get require() {
+      return require('../images/icons/icon-twitter-logo-16.png')
+    },
   },
   'icon-twitter-logo-24': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-twitter-logo-24.png'),
+    get require() {
+      return require('../images/icons/icon-twitter-logo-24.png')
+    },
   },
   'icon-twitter-logo-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-twitter-logo-32.png'),
+    get require() {
+      return require('../images/icons/icon-twitter-logo-32.png')
+    },
   },
   'icon-twitter-logo-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-twitter-logo-48.png'),
+    get require() {
+      return require('../images/icons/icon-twitter-logo-48.png')
+    },
   },
   'icon-twitter-logo-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-twitter-logo-64.png'),
+    get require() {
+      return require('../images/icons/icon-twitter-logo-64.png')
+    },
   },
   'icon-user-add-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-user-add-32.png'),
+    get require() {
+      return require('../images/icons/icon-user-add-32.png')
+    },
   },
   'icon-wallet-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-wallet-32.png'),
+    get require() {
+      return require('../images/icons/icon-wallet-32.png')
+    },
   },
   'icon-wallet-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-wallet-48.png'),
+    get require() {
+      return require('../images/icons/icon-wallet-48.png')
+    },
   },
   'icon-wallet-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-wallet-64.png'),
+    get require() {
+      return require('../images/icons/icon-wallet-64.png')
+    },
   },
   'icon-wallet-add-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-wallet-add-48',
-    require: require('../images/icons/icon-wallet-add-48.png'),
-    requireDark: require('../images/icons/icon-dark-wallet-add-48.png'),
+    get require() {
+      return require('../images/icons/icon-wallet-add-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-wallet-add-48.png')
+    },
   },
   'icon-wallet-add-64': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-wallet-add-64',
-    require: require('../images/icons/icon-wallet-add-64.png'),
-    requireDark: require('../images/icons/icon-dark-wallet-add-64.png'),
+    get require() {
+      return require('../images/icons/icon-wallet-add-64.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-wallet-add-64.png')
+    },
   },
   'icon-wallet-open-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-wallet-open-32.png'),
+    get require() {
+      return require('../images/icons/icon-wallet-open-32.png')
+    },
   },
   'icon-wallet-open-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-wallet-open-48.png'),
+    get require() {
+      return require('../images/icons/icon-wallet-open-48.png')
+    },
   },
   'icon-wallet-open-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-wallet-open-64.png'),
+    get require() {
+      return require('../images/icons/icon-wallet-open-64.png')
+    },
   },
   'icon-wallet-placeholder-add-32': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-wallet-placeholder-add-32',
-    require: require('../images/icons/icon-wallet-placeholder-add-32.png'),
-    requireDark: require('../images/icons/icon-dark-wallet-placeholder-add-32.png'),
+    get require() {
+      return require('../images/icons/icon-wallet-placeholder-add-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-wallet-placeholder-add-32.png')
+    },
   },
   'icon-wallet-receive-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-wallet-receive-48.png'),
+    get require() {
+      return require('../images/icons/icon-wallet-receive-48.png')
+    },
   },
   'icon-wallet-receive-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-wallet-receive-64.png'),
+    get require() {
+      return require('../images/icons/icon-wallet-receive-64.png')
+    },
   },
   'icon-wallet-remove-48': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-wallet-remove-48',
-    require: require('../images/icons/icon-wallet-remove-48.png'),
-    requireDark: require('../images/icons/icon-dark-wallet-remove-48.png'),
+    get require() {
+      return require('../images/icons/icon-wallet-remove-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-wallet-remove-48.png')
+    },
   },
   'icon-wallet-remove-64': {
     extension: 'png',
     isFont: false,
     nameDark: 'icon-dark-wallet-remove-64',
-    require: require('../images/icons/icon-wallet-remove-64.png'),
-    requireDark: require('../images/icons/icon-dark-wallet-remove-64.png'),
+    get require() {
+      return require('../images/icons/icon-wallet-remove-64.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-wallet-remove-64.png')
+    },
   },
   'icon-wallet-secret-key-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-wallet-secret-key-48.png'),
+    get require() {
+      return require('../images/icons/icon-wallet-secret-key-48.png')
+    },
   },
   'icon-wallet-secret-key-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-wallet-secret-key-64.png'),
+    get require() {
+      return require('../images/icons/icon-wallet-secret-key-64.png')
+    },
   },
   'icon-wallet-to-wallet-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-wallet-to-wallet-32.png'),
+    get require() {
+      return require('../images/icons/icon-wallet-to-wallet-32.png')
+    },
   },
   'icon-wallet-to-wallet-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-wallet-to-wallet-48.png'),
+    get require() {
+      return require('../images/icons/icon-wallet-to-wallet-48.png')
+    },
   },
   'icon-website-16': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-website-16.png'),
+    get require() {
+      return require('../images/icons/icon-website-16.png')
+    },
   },
   'icon-website-24': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-website-24.png'),
+    get require() {
+      return require('../images/icons/icon-website-24.png')
+    },
   },
   'icon-website-32': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-website-32.png'),
+    get require() {
+      return require('../images/icons/icon-website-32.png')
+    },
   },
   'icon-website-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-website-48.png'),
+    get require() {
+      return require('../images/icons/icon-website-48.png')
+    },
   },
   'icon-website-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-website-64.png'),
+    get require() {
+      return require('../images/icons/icon-website-64.png')
+    },
   },
   'icon-windows-badge': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-windows-badge.png'),
+    get require() {
+      return require('../images/icons/icon-windows-badge.png')
+    },
   },
   'icon-zcash-logo-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-zcash-logo-48.png'),
+    get require() {
+      return require('../images/icons/icon-zcash-logo-48.png')
+    },
   },
   'icon-zcash-logo-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-zcash-logo-64.png'),
+    get require() {
+      return require('../images/icons/icon-zcash-logo-64.png')
+    },
   },
   'iconfont-add': {
     charCode: 0xe900,
@@ -4978,6 +7276,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-mic': {
+    charCode: 0xe99d,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-nav-2-chat': {
     charCode: 0xe97d,
     gridSize: 24,
@@ -5123,6 +7426,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-play': {
+    charCode: 0xe99e,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-proof-broken': {
     charCode: 0xe94b,
     gridSize: 16,
@@ -5240,6 +7548,11 @@ const iconMeta_ = {
   },
   'iconfont-stellar-send': {
     charCode: 0xe95b,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-stop': {
+    charCode: 0xe99f,
     gridSize: 16,
     isFont: true,
   },
