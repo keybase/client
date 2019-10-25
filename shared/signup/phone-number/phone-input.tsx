@@ -376,7 +376,7 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
             ? this.state.prefix === ''
               ? '- Pick a country -'
               : '- Invalid country prefix -'
-            : countryData[this.state.country].emoji + ' ' + countryData[this.state.country].name}
+            : countryData()[this.state.country].emoji + ' ' + countryData()[this.state.country].name}
         </Kb.Text>
       )
     }
