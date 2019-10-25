@@ -134,23 +134,6 @@
     "loadExternalPartners": {
       "_description": "Refresh our list of external tools and partner links"
     },
-    "loadInflationDestination": {
-      "_description": "Refresh inflation destination and options",
-      "accountID": "Types.AccountID"
-    },
-    "setInflationDestination": {
-      "_description": "Set our inflation destination",
-      "accountID": "Types.AccountID",
-      "destination": "Types.AccountID",
-      "name": "string"
-    },
-    "inflationDestinationReceived": {
-      "_description": "Got inflation destination",
-      "accountID?": "Types.AccountID",
-      "selected?": "Types.AccountInflationDestination",
-      "options?": "Array<Types.InflationDestination>",
-      "error?": "string"
-    },
     "loadMorePayments": {
       "_description": "Scrolled down the list of payments for a given account",
       "accountID": "Types.AccountID"
