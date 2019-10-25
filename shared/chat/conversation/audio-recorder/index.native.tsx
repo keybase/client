@@ -9,7 +9,7 @@ import * as Chat2Gen from '../../../actions/chat2-gen'
 import {formatAudioRecordDuration} from '../../../util/timestamp'
 import {Props} from '.'
 
-const minAmp = -100
+const minAmp = -60
 
 const AudioRecorder = (props: Props) => {
   // props
