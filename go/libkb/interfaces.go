@@ -877,18 +877,20 @@ type EKLib interface {
 }
 
 type TeambotBotKeyer interface {
-	GetLatestTeambotKey(mctx MetaContext, teamID keybase1.TeamID) (keybase1.TeambotKey, error)
-	GetTeambotKeyAtGeneration(mctx MetaContext, teamID keybase1.TeamID,
+	GetLatestTeambotKey(mctx MetaContext, teamID keybase1.TeamID, app keybase1.TeamApplication) (keybase1.TeambotKey, error)
+	GetTeambotKeyAtGeneration(mctx MetaContext, teamID keybase1.TeamID, app keybase1.TeamApplication,
 		generation keybase1.TeambotKeyGeneration) (keybase1.TeambotKey, error)
 
-	DeleteTeambotKeyForTest(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.TeambotKeyGeneration) error
+	DeleteTeambotKeyForTest(mctx MetaContext, teamID keybase1.TeamID, app keybase1.TeamApplication,
+		generation keybase1.TeambotKeyGeneration) error
 }
 
 type TeambotMemberKeyer interface {
 	GetOrCreateTeambotKey(mctx MetaContext, teamID keybase1.TeamID, botUID gregor1.UID,
 		appKey keybase1.TeamApplicationKey) (keybase1.TeambotKey, bool, error)
 	PurgeCache(mctx MetaContext)
-	PurgeCacheAtGeneration(mctx MetaContext, teamID keybase1.TeamID, botUID keybase1.UID, generation keybase1.TeambotKeyGeneration)
+	PurgeCacheAtGeneration(mctx MetaContext, teamID keybase1.TeamID, botUID keybase1.UID,
+		app keybase1.TeamApplication, generation keybase1.TeambotKeyGeneration)
 }
 
 type ImplicitTeamConflictInfoCacher interface {

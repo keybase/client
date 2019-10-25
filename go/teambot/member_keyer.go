@@ -64,22 +64,22 @@ func (k *MemberKeyer) retryWrapper(mctx libkb.MetaContext, retryFn func() error)
 	return err
 }
 
-func (k *MemberKeyer) lockForTeamID(mctx libkb.MetaContext, teamID keybase1.TeamID) func() {
+func (k *MemberKeyer) lockForTeamIDAndApp(mctx libkb.MetaContext, teamID keybase1.TeamID, app keybase1.TeamApplication) func() {
 	k.RLock()
-	lock := k.locktab.AcquireOnName(mctx.Ctx(), mctx.G(), k.lockKey(teamID))
+	lock := k.locktab.AcquireOnName(mctx.Ctx(), mctx.G(), k.lockKey(teamID, app))
 	return func() {
 		k.RUnlock()
 		lock.Release(mctx.Ctx())
 	}
 }
 
-func (k *MemberKeyer) lockKey(teamID keybase1.TeamID) string {
-	return teamID.String()
+func (k *MemberKeyer) lockKey(teamID keybase1.TeamID, app keybase1.TeamApplication) string {
+	return fmt.Sprintf("%s-%d", teamID.String(), app)
 }
 
 func (k *MemberKeyer) cacheKey(teamID keybase1.TeamID, botUID keybase1.UID,
-	generation keybase1.TeambotKeyGeneration) string {
-	return fmt.Sprintf("%s-%s-%d", teamID, botUID, generation)
+	app keybase1.TeamApplication, generation keybase1.TeambotKeyGeneration) string {
+	return fmt.Sprintf("%s-%s-%d-%d", teamID, botUID, app, generation)
 }
 
 // GetOrCreateTeambotKey derives a TeambotKey from the given `appKey`, and
@@ -96,7 +96,7 @@ func (k *MemberKeyer) GetOrCreateTeambotKey(mctx libkb.MetaContext, teamID keyba
 	}
 
 	err = k.retryWrapper(mctx, func() error {
-		unlock := k.lockForTeamID(mctx, teamID)
+		unlock := k.lockForTeamIDAndApp(mctx, teamID, appKey.Application)
 		defer unlock()
 		key, created, err = k.getOrCreateTeambotKeyLocked(mctx, teamID, botUID, appKey)
 		return err
@@ -113,7 +113,7 @@ func (k *MemberKeyer) getOrCreateTeambotKeyLocked(mctx libkb.MetaContext, teamID
 
 	// Check our cache and see if we should attempt to publish the our derived
 	// key or not.
-	cacheKey := k.cacheKey(teamID, botUID, keybase1.TeambotKeyGeneration(appKey.KeyGeneration))
+	cacheKey := k.cacheKey(teamID, botUID, appKey.Application, keybase1.TeambotKeyGeneration(appKey.KeyGeneration))
 	entry, ok := k.lru.Get(cacheKey)
 	if ok {
 		metadata, ok := entry.(keybase1.TeambotKeyMetadata)
@@ -224,6 +224,7 @@ func (k *MemberKeyer) prepareNewTeambotKey(mctx libkb.MetaContext, team *teams.T
 		Generation:    keybase1.TeambotKeyGeneration(appKey.KeyGeneration),
 		Uid:           botUID,
 		PukGeneration: keybase1.PerUserKeyGeneration(latestPUK.Gen),
+		Application:   appKey.Application,
 	}
 
 	// Encrypting with a nil sender means we'll generate a random sender
@@ -260,10 +261,10 @@ func (k *MemberKeyer) prepareNewTeambotKey(mctx libkb.MetaContext, team *teams.T
 }
 
 func (k *MemberKeyer) PurgeCacheAtGeneration(mctx libkb.MetaContext, teamID keybase1.TeamID,
-	botUID keybase1.UID, generation keybase1.TeambotKeyGeneration) {
-	unlock := k.lockForTeamID(mctx, teamID)
+	botUID keybase1.UID, app keybase1.TeamApplication, generation keybase1.TeambotKeyGeneration) {
+	unlock := k.lockForTeamIDAndApp(mctx, teamID, app)
 	defer unlock()
-	cacheKey := k.cacheKey(teamID, botUID, generation)
+	cacheKey := k.cacheKey(teamID, botUID, app, generation)
 	k.lru.Remove(cacheKey)
 }
 

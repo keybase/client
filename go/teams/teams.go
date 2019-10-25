@@ -1949,10 +1949,16 @@ func createTeambotKeys(g *libkb.GlobalContext, teamID keybase1.TeamID, bots []ke
 
 		ekLib := mctx.G().GetEKLib()
 		keyer := mctx.G().GetTeambotMemberKeyer()
-		appKey, err := team.ChatKey(mctx.Ctx())
+		makeChatKey, makeKVStoreKey := true, true
+		chatKey, err := team.ChatKey(mctx.Ctx())
+		if err != nil {
+			mctx.Debug("unable to get teamApplication key %v, aborting TeambotKey appkey creation", err)
+			makeChatKey = false
+		}
+		kvStoreKey, err := team.ApplicationKey(mctx.Ctx(), keybase1.TeamApplication_KVSTORE)
 		if err != nil {
 			mctx.Debug("unable to get teamApplication key %v, aborting TeambotKey creation", err)
-			keyer = nil
+			makeKVStoreKey = false
 		}
 
 		for _, uid := range bots {
@@ -1965,10 +1971,23 @@ func createTeambotKeys(g *libkb.GlobalContext, teamID keybase1.TeamID, bots []ke
 				}
 			}
 			if keyer != nil {
-				if teambotKey, created, err := keyer.GetOrCreateTeambotKey(mctx, teamID, guid, appKey); err != nil {
-					mctx.Debug("unable to GetOrCreateTeambotKey for %v, %v", guid, err)
-				} else {
-					mctx.Debug("published TeambotKey generation %d for %v, newly created: %v", teambotKey.Generation(), uid, created)
+				if makeChatKey {
+					if teambotKey, created, err := keyer.GetOrCreateTeambotKey(mctx, teamID, guid, chatKey); err != nil {
+						mctx.Debug("unable to GetOrCreateTeambotKey application %v, uid: %v, %v",
+							keybase1.TeamApplication_CHAT, guid, err)
+					} else {
+						mctx.Debug("published TeambotKey app: %v generation %d for %v, newly created: %v",
+							keybase1.TeamApplication_CHAT, teambotKey.Generation(), uid, created)
+					}
+				}
+				if makeKVStoreKey {
+					if teambotKey, created, err := keyer.GetOrCreateTeambotKey(mctx, teamID, guid, kvStoreKey); err != nil {
+						mctx.Debug("unable to GetOrCreateTeambotKey application %v, uid: %v, %v",
+							keybase1.TeamApplication_KVSTORE, guid, err)
+					} else {
+						mctx.Debug("published TeambotKey app: %v generation %d for %v, newly created: %v",
+							keybase1.TeamApplication_KVSTORE, teambotKey.Generation(), uid, created)
+					}
 				}
 			}
 		}
