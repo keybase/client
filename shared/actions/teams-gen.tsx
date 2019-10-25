@@ -191,7 +191,7 @@ type _SetMembersPayload = {readonly teamname: string; readonly members: I.Map<st
 type _SetNewTeamInfoPayload = {
   readonly deletedTeams: Array<RPCTypes.DeletedTeamInfo>
   readonly newTeams: Set<Types.TeamID>
-  readonly newTeamRequests: Array<string>
+  readonly newTeamRequests: Array<Types.TeamID>
   readonly teamNameToResetUsers: I.Map<Types.Teamname, I.Set<Types.ResetUser>>
 }
 type _SetPublicityPayload = {readonly teamname: string; readonly settings: Types.PublicitySettings}
