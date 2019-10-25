@@ -103,8 +103,8 @@ const AudioButton = (props: ButtonProps) => {
     Kb.NativeAnimated.parallel(
       [
         Kb.NativeAnimated.timing(innerScale, {
-          easing: Kb.NativeEasing.elastic(1),
           duration: 400,
+          easing: Kb.NativeEasing.elastic(1),
           toValue: 3,
           useNativeDriver: true,
         }),
@@ -114,8 +114,8 @@ const AudioButton = (props: ButtonProps) => {
           useNativeDriver: true,
         }),
         Kb.NativeAnimated.timing(lockTranslate, {
-          easing: Kb.NativeEasing.elastic(1),
           duration: 400,
+          easing: Kb.NativeEasing.elastic(1),
           toValue: 1,
           useNativeDriver: true,
         }),
@@ -135,8 +135,8 @@ const AudioButton = (props: ButtonProps) => {
   React.useEffect(() => {
     if (props.locked) {
       Kb.NativeAnimated.timing(sendTranslate, {
-        easing: Kb.NativeEasing.elastic(1),
         duration: 400,
+        easing: Kb.NativeEasing.elastic(1),
         toValue: 1,
         useNativeDriver: true,
       }).start()
@@ -402,8 +402,8 @@ const AudioCounter = (props: CounterProps) => {
   const [seconds, setSeconds] = React.useState(0)
   React.useEffect(() => {
     Kb.NativeAnimated.timing(translate, {
-      easing: Kb.NativeEasing.elastic(1),
       duration: 400,
+      easing: Kb.NativeEasing.elastic(1),
       toValue: 1,
       useNativeDriver: true,
     }).start()
