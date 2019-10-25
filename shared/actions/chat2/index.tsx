@@ -33,7 +33,24 @@ import {RPCError} from '../../util/errors'
 import HiddenString from '../../util/hidden-string'
 import {TypedActions, TypedState} from '../../util/container'
 
-window.NOJIMA = (p: any) => RPCTypes.testEchoRpcPromise(p)
+let start = 0
+let end = 0
+
+let log = (...l) => console._log(...l)
+
+window.NOJIMA_DONE = (v: any) => {
+  let diff = performance.now() - start
+  start = 0
+  log('aaa done', v, diff)
+}
+window.NOJIMA = (p: any) => {
+  end = 0
+  if (start) {
+    throw new Error('only one')
+  }
+  start = performance.now()
+  RPCTypes.testEchoRpcPromise(p).then(v => window.NOJIMA_DONE(v))
+}
 
 const onConnect = async () => {
   try {
