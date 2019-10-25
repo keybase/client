@@ -218,6 +218,8 @@ type InboxSource interface {
 	GetInboxQueryLocalToRemote(ctx context.Context,
 		lquery *chat1.GetInboxLocalQuery) (*chat1.GetInboxQuery, NameInfo, error)
 	UpdateLocalMtime(ctx context.Context, uid gregor1.UID, updates []chat1.LocalMtimeUpdate) error
+	TeamBotSettingsForConv(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (
+		map[keybase1.UID]keybase1.TeamBotSettings, error)
 
 	SetRemoteInterface(func() chat1.RemoteInterface)
 }

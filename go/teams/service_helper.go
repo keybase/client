@@ -684,9 +684,21 @@ func editMember(ctx context.Context, g *libkb.GlobalContext, teamGetter func() (
 		if err != nil {
 			return err
 		}
+
 		if existingRole == role {
-			g.Log.CDebugf(ctx, "bailing out, role given is the same as current")
-			return nil
+			if !role.IsRestrictedBot() {
+				g.Log.CDebugf(ctx, "bailing out, role given is the same as current")
+				return nil
+			}
+			teamBotSettings, err := t.TeamBotSettings()
+			if err != nil {
+				return err
+			}
+			existingBotSettings := teamBotSettings[uv]
+			if botSettings.Eq(&existingBotSettings) {
+				g.Log.CDebugf(ctx, "bailing out, role given is the same as current, botSettings unchanged")
+				return nil
+			}
 		}
 
 		req, err := reqFromRole(uv, role, botSettings)
