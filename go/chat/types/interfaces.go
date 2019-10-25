@@ -560,8 +560,7 @@ type ReplyFiller interface {
 type UIInboxLoader interface {
 	Resumable
 	UpdateLayout(ctx context.Context, reselectMode chat1.InboxLayoutReselectMode, reason string)
-	UpdateLayoutFromNewMessage(ctx context.Context, conv RemoteConversation,
-		msg chat1.MessageBoxed, firstConv bool, previousStatus chat1.ConversationStatus)
+	UpdateLayoutFromNewMessage(ctx context.Context, conv RemoteConversation)
 	UpdateLayoutFromSubteamRename(ctx context.Context, convs []RemoteConversation)
 	UpdateConvs(ctx context.Context, convIDs []chat1.ConversationID) error
 	LoadNonblock(ctx context.Context, query *chat1.GetInboxLocalQuery,
