@@ -1,5 +1,7 @@
 /* eslint-env browser */
 import * as ImagePicker from 'expo-image-picker'
+import * as Types from '../../../../constants/types/chat2'
+import * as Constants from '../../../../constants/chat2'
 import React, {PureComponent} from 'react'
 import * as Kb from '../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../styles'
@@ -18,6 +20,7 @@ import AddSuggestors, {standardTransformer} from '../suggestors'
 import {parseUri, launchCameraAsync, launchImageLibraryAsync} from '../../../../util/expo-image-picker'
 import {BotCommandUpdateStatus} from './shared'
 import {formatDurationShort} from '../../../../util/timestamp'
+import flags from '../../../../util/feature-flags'
 
 type menuType = 'exploding' | 'filepickerpopup' | 'moremenu'
 
@@ -196,7 +199,11 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
           />
           {!this.props.cannotWrite && (
             <Action
+              audio={this.props.audio}
               hasText={this.state.hasText}
+              onLockAudioRecording={this.props.onLockAudioRecording}
+              onStartAudioRecording={this.props.onStartAudioRecording}
+              onStopAudioRecording={this.props.onStopAudioRecording}
               onSubmit={this._onSubmit}
               isEditing={this.props.isEditing}
               openFilePicker={this._openFilePicker}
@@ -212,7 +219,11 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
 const PlatformInput = AddSuggestors(_PlatformInput)
 
 type ActionProps = {
+  audio?: Types.AudioRecordingInfo
   hasText: boolean
+  onLockAudioRecording: () => void
+  onStartAudioRecording: () => void
+  onStopAudioRecording: (stopType: Types.AudioStopType) => void
   onSubmit: () => void
   isEditing: boolean
   openFilePicker: () => void
@@ -220,76 +231,167 @@ type ActionProps = {
   insertMentionMarker: () => void
 }
 
-const Action = React.memo(
-  ({hasText, insertMentionMarker, isEditing, onSubmit, openFilePicker, openMoreMenu}: ActionProps) => {
-    const hasValue = React.useRef(new Kb.NativeAnimated.Value(hasText ? 1 : 0)).current
+const Action = React.memo((props: ActionProps) => {
+  const {
+    audio,
+    hasText,
+    insertMentionMarker,
+    isEditing,
+    onLockAudioRecording,
+    onStartAudioRecording,
+    onStopAudioRecording,
+    onSubmit,
+    openFilePicker,
+    openMoreMenu,
+  } = props
+  const hasValue = React.useRef(new Kb.NativeAnimated.Value(hasText ? 1 : 0)).current
+  React.useEffect(() => {
+    Kb.NativeAnimated.timing(hasValue, {
+      duration: 200,
+      toValue: hasText ? 1 : 0,
+      useNativeDriver: true,
+    }).start()
+  }, [hasText, hasValue])
 
-    React.useEffect(() => {
-      Kb.NativeAnimated.timing(hasValue, {
-        duration: 200,
-        toValue: hasText ? 1 : 0,
-        useNativeDriver: true,
-      }).start()
-    }, [hasText, hasValue])
-
-    return (
-      <Kb.Box2 direction="vertical" style={styles.actionContainer}>
-        <Kb.NativeAnimated.View
-          style={[
-            styles.animatedContainer,
-            {
-              opacity: hasValue,
-              transform: [{translateX: hasValue.interpolate({inputRange: [0, 1], outputRange: [200, 0]})}],
-            },
-          ]}
-        >
-          <Kb.Button
-            type="Default"
-            small={true}
-            style={styles.send}
-            onClick={onSubmit}
-            label={isEditing ? 'Save' : 'Send'}
+  return (
+    <Kb.Box2 direction="vertical" style={styles.actionContainer}>
+      <Kb.NativeAnimated.View
+        style={[
+          styles.animatedContainer,
+          {
+            opacity: hasValue,
+            transform: [{translateX: hasValue.interpolate({inputRange: [0, 1], outputRange: [200, 0]})}],
+          },
+        ]}
+      >
+        <Kb.Button
+          type="Default"
+          small={true}
+          style={styles.send}
+          onClick={onSubmit}
+          label={isEditing ? 'Save' : 'Send'}
+        />
+      </Kb.NativeAnimated.View>
+      <Kb.NativeAnimated.View
+        style={[
+          styles.animatedContainer,
+          {
+            opacity: hasValue.interpolate({
+              inputRange: [0, 1],
+              outputRange: [1, 0],
+            }),
+            transform: [{translateX: hasValue.interpolate({inputRange: [0, 1], outputRange: [0, 200]})}],
+          },
+        ]}
+      >
+        <Kb.Box2 direction="horizontal" style={styles.actionIconsContainer}>
+          <Kb.Icon
+            onClick={insertMentionMarker}
+            type="iconfont-mention"
+            style={Kb.iconCastPlatformStyles(styles.actionButton)}
+            fontSize={22}
           />
-        </Kb.NativeAnimated.View>
-        <Kb.NativeAnimated.View
-          style={[
-            styles.animatedContainer,
-            {
-              opacity: hasValue.interpolate({
-                inputRange: [0, 1],
-                outputRange: [1, 0],
-              }),
-              transform: [{translateX: hasValue.interpolate({inputRange: [0, 1], outputRange: [0, 200]})}],
-            },
-          ]}
-        >
-          <Kb.Box2 direction="horizontal" style={styles.actionIconsContainer}>
-            <Kb.Icon
-              onClick={insertMentionMarker}
-              type="iconfont-mention"
-              style={Kb.iconCastPlatformStyles(styles.actionButton)}
-              fontSize={22}
-            />
-            {smallGap}
-            <Kb.Icon
-              onClick={openFilePicker}
-              type="iconfont-camera"
-              style={Kb.iconCastPlatformStyles(styles.actionButton)}
-              fontSize={22}
-            />
-            {smallGap}
-            <Kb.Icon
-              onClick={openMoreMenu}
-              type="iconfont-add"
-              style={Kb.iconCastPlatformStyles(styles.actionButton)}
-              fontSize={22}
-            />
-          </Kb.Box2>
-        </Kb.NativeAnimated.View>
-      </Kb.Box2>
-    )
+          {smallGap}
+          <Kb.Icon
+            onClick={openFilePicker}
+            type="iconfont-camera"
+            style={Kb.iconCastPlatformStyles(styles.actionButton)}
+            fontSize={22}
+          />
+          {smallGap}
+          <AudioStarter
+            lockRecording={onLockAudioRecording}
+            recording={Constants.showAudioRecording(audio)}
+            startRecording={onStartAudioRecording}
+            stopRecording={onStopAudioRecording}
+          />
+          {smallGap}
+          <Kb.Icon
+            onClick={openMoreMenu}
+            type="iconfont-add"
+            style={Kb.iconCastPlatformStyles(styles.actionButton)}
+            fontSize={22}
+          />
+        </Kb.Box2>
+      </Kb.NativeAnimated.View>
+    </Kb.Box2>
+  )
+})
+
+type AudioStarterProps = {
+  recording: boolean
+  lockRecording: () => void
+  startRecording: () => void
+  stopRecording: (st: Types.AudioStopType) => void
+}
+
+const maxAudioDrift = -20
+
+const AudioStarter = (props: AudioStarterProps) => {
+  let longPressTimer
+  if (!flags.audioAttachments) {
+    return null
   }
-)
+  return (
+    <Kb.TapGestureHandler
+      onHandlerStateChange={({nativeEvent}) => {
+        if (!props.recording && nativeEvent.state === Kb.GestureState.BEGAN) {
+          if (!longPressTimer) {
+            longPressTimer = setTimeout(props.startRecording, 200)
+          }
+        }
+        if (nativeEvent.state === Kb.GestureState.ACTIVE || nativeEvent.state === Kb.GestureState.END) {
+          clearTimeout(longPressTimer)
+          longPressTimer = null
+          if (props.recording && nativeEvent.state === Kb.GestureState.END) {
+            if (nativeEvent.x < maxAudioDrift) {
+              props.stopRecording(Types.AudioStopType.CANCEL)
+            } else if (nativeEvent.y < maxAudioDrift) {
+              props.lockRecording()
+            } else {
+              props.stopRecording(Types.AudioStopType.RELEASE)
+            }
+          }
+        }
+      }}
+    >
+      <Kb.PanGestureHandler
+        minOffsetX={0}
+        minOffsetY={0}
+        onGestureEvent={({nativeEvent}) => {
+          if (nativeEvent.translationY < maxAudioDrift) {
+            props.lockRecording()
+          }
+          if (nativeEvent.translationX < maxAudioDrift) {
+            clearTimeout(longPressTimer)
+            longPressTimer = null
+            props.stopRecording(Types.AudioStopType.CANCEL)
+          }
+        }}
+        onHandlerStateChange={({nativeEvent}) => {
+          if (nativeEvent.state === Kb.GestureState.END) {
+            if (nativeEvent.y < maxAudioDrift) {
+              props.lockRecording()
+            }
+            if (nativeEvent.x < maxAudioDrift) {
+              clearTimeout(longPressTimer)
+              longPressTimer = null
+              props.stopRecording(Types.AudioStopType.CANCEL)
+            } else {
+              clearTimeout(longPressTimer)
+              longPressTimer = null
+              props.stopRecording(Types.AudioStopType.RELEASE)
+            }
+          }
+        }}
+      >
+        <Kb.NativeView>
+          <Kb.Icon type="iconfont-mic" style={styles.actionButton} fontSize={22} />
+        </Kb.NativeView>
+      </Kb.PanGestureHandler>
+    </Kb.TapGestureHandler>
+  )
+}
 
 const ExplodingIcon = ({explodingModeSeconds, isExploding, openExplodingPicker}) => (
   <Kb.Box2 direction="horizontal" style={styles.explodingOuterContainer}>

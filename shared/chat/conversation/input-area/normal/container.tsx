@@ -65,6 +65,7 @@ export default Container.namedConnect(
     const suggestBotCommandsUpdateStatus =
       state.chat2.botCommandsUpdateStatusMap.get(conversationIDKey) ||
       RPCChatTypes.UIBotCommandsUpdateStatus.blank
+    const audio = state.chat2.audioRecording.get(conversationIDKey)
 
     return {
       _containsLatestMessage,
@@ -74,6 +75,7 @@ export default Container.namedConnect(
       _metaMap: state.chat2.metaMap,
       _replyTo,
       _you,
+      audio,
       cannotWrite: meta.cannotWrite,
       conversationIDKey,
       editText: editInfo ? editInfo.text : '',
@@ -143,6 +145,8 @@ export default Container.namedConnect(
       ),
     _onGiphyToggle: (conversationIDKey: Types.ConversationIDKey) =>
       dispatch(Chat2Gen.createToggleGiphyPrefill({conversationIDKey})),
+    _onLockAudioRecording: (conversationIDKey: Types.ConversationIDKey) =>
+      dispatch(Chat2Gen.createLockAudioRecording({conversationIDKey})),
     _onPostMessage: (
       conversationIDKey: Types.ConversationIDKey,
       text: string,
@@ -155,6 +159,10 @@ export default Container.namedConnect(
           text: new HiddenString(text),
         })
       ),
+    _onStartAudioRecording: (conversationIDKey: Types.ConversationIDKey) =>
+      dispatch(Chat2Gen.createEnableAudioRecording({conversationIDKey})),
+    _onStopAudioRecording: (conversationIDKey: Types.ConversationIDKey, stopType: Types.AudioStopType) =>
+      dispatch(Chat2Gen.createStopAudioRecording({conversationIDKey, stopType})),
     _sendTyping: (conversationIDKey: Types.ConversationIDKey, typing: boolean) =>
       conversationIDKey && dispatch(Chat2Gen.createSendTyping({conversationIDKey, typing})),
     _unsentTextChanged: (conversationIDKey: Types.ConversationIDKey, text: string) =>
@@ -166,6 +174,7 @@ export default Container.namedConnect(
       dispatch(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset})),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => ({
+    audio: stateProps.audio,
     cannotWrite: stateProps.cannotWrite,
     clearInboxFilter: dispatchProps.clearInboxFilter,
     conversationIDKey: stateProps.conversationIDKey,
@@ -201,9 +210,12 @@ export default Container.namedConnect(
     onEditLastMessage: () => dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
     onFilePickerError: dispatchProps.onFilePickerError,
     onGiphyToggle: () => dispatchProps._onGiphyToggle(stateProps.conversationIDKey),
+    onLockAudioRecording: () => dispatchProps._onLockAudioRecording(stateProps.conversationIDKey),
     onRequestScrollDown: ownProps.onRequestScrollDown,
     onRequestScrollUp: ownProps.onRequestScrollUp,
-
+    onStartAudioRecording: () => dispatchProps._onStartAudioRecording(stateProps.conversationIDKey),
+    onStopAudioRecording: (stopType: Types.AudioStopType) =>
+      dispatchProps._onStopAudioRecording(stateProps.conversationIDKey, stopType),
     onSubmit: (text: string) => {
       if (stateProps._editOrdinal) {
         dispatchProps._onEditMessage(stateProps.conversationIDKey, stateProps._editOrdinal, text)

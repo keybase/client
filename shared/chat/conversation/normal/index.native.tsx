@@ -8,6 +8,7 @@ import {globalStyles, globalColors, globalMargins, styleSheetCreate} from '../..
 import {Props} from '.'
 import ThreadLoadStatus from '../load-status/container'
 import PinnedMessage from '../pinned-message/container'
+import AudioRecorder from '../audio-recorder'
 
 const Offline = () => (
   <Box
@@ -57,6 +58,7 @@ class Conversation extends React.PureComponent<Props> {
           onRequestScrollUp={this.props.onRequestScrollUp}
           conversationIDKey={this.props.conversationIDKey}
         />
+        <AudioRecorder conversationIDKey={this.props.conversationIDKey} />
       </Box2>
     )
   }
