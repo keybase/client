@@ -91,8 +91,8 @@ func TestProofSuggestions(t *testing.T) {
 	require.Equal(t, expected.ShowMore, res.ShowMore)
 	require.True(t, len(res.Suggestions) >= len(expected.Suggestions), "should be at least as many results as expected")
 	iconExempt := map[string]struct{}{
-		"gubble-with-dashes.dot": struct{}{},
-		"mastodon.local":         struct{}{},
+		"gubble-with-dashes.dot": {},
+		"mastodon.local":         {},
 	}
 	for _, b := range res.Suggestions {
 		if _, exempt := iconExempt[b.Key]; exempt {
