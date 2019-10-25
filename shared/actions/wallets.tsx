@@ -1413,7 +1413,9 @@ const refreshTrustlineAcceptedAssetsByUsername = async (_: TypedState, {payload:
     {recipient: username},
     Constants.refreshTrustlineAcceptedAssetsWaitingKey(username)
   )
-  return balancesToAction(trustlines || [], Types.noAccountID, username)
+  return Constants.isFederatedAddress(username)
+    ? balancesToAction(trustlines || [], username, '')
+    : balancesToAction(trustlines || [], Types.noAccountID, username)
 }
 
 const refreshTrustlinePopularAssets = async () => {

@@ -145,60 +145,60 @@ func (u *CachedUPAKLoader) getCachedUPAKFromDB(ctx context.Context, uid keybase1
 	return &tmp
 }
 
-func (u *CachedUPAKLoader) getCachedUPAKFromDBMaybeTryBothSlots(ctx context.Context, uid keybase1.UID, stubMode StubMode) (ret *keybase1.UserPlusKeysV2AllIncarnations) {
+func (u *CachedUPAKLoader) getCachedUPAKFromDBMaybeTryBothSlots(ctx context.Context, uid keybase1.UID, stubMode StubMode) (ret *keybase1.UserPlusKeysV2AllIncarnations, finalStubMode StubMode) {
 	return pickBetterFromCache(func(stubMode StubMode) *keybase1.UserPlusKeysV2AllIncarnations {
 		return u.getCachedUPAKFromDB(ctx, uid, stubMode)
 	}, stubMode)
 }
 
-func (u *CachedUPAKLoader) getMemCacheMaybeTryBothSlots(ctx context.Context, uid keybase1.UID, stubMode StubMode) (ret *keybase1.UserPlusKeysV2AllIncarnations) {
+func (u *CachedUPAKLoader) getMemCacheMaybeTryBothSlots(ctx context.Context, uid keybase1.UID, stubMode StubMode) (ret *keybase1.UserPlusKeysV2AllIncarnations, finalStubMode StubMode) {
 	return pickBetterFromCache(func(stubMode StubMode) *keybase1.UserPlusKeysV2AllIncarnations {
 		return u.getMemCache(ctx, uid, stubMode)
 	}, stubMode)
 }
 
-func pickBetterFromCache(getter func(stubMode StubMode) *keybase1.UserPlusKeysV2AllIncarnations, stubMode StubMode) (ret *keybase1.UserPlusKeysV2AllIncarnations) {
+func pickBetterFromCache(getter func(stubMode StubMode) *keybase1.UserPlusKeysV2AllIncarnations, stubMode StubMode) (ret *keybase1.UserPlusKeysV2AllIncarnations, finalStubMode StubMode) {
 
 	ret = getter(stubMode)
 	if stubMode == StubModeUnstubbed {
-		return ret
+		return ret, StubModeUnstubbed
 	}
 
 	stubbed := ret
 	unstubbed := getter(StubModeUnstubbed)
 
 	if unstubbed == nil {
-		return stubbed
+		return stubbed, StubModeStubbed
 	}
 	if stubbed == nil {
-		return unstubbed
+		return unstubbed, StubModeUnstubbed
 	}
 	if unstubbed.IsOlderThan(*stubbed) {
-		return stubbed
+		return stubbed, StubModeStubbed
 	}
-	return unstubbed
+	return unstubbed, StubModeUnstubbed
 }
 
 func (u *CachedUPAKLoader) getCachedUPAKTryMemThenDisk(ctx context.Context, uid keybase1.UID, stubMode StubMode, info *CachedUserLoadInfo) *keybase1.UserPlusKeysV2AllIncarnations {
-	upak := u.getMemCacheMaybeTryBothSlots(ctx, uid, stubMode)
+	upak, cacheStubMode := u.getMemCacheMaybeTryBothSlots(ctx, uid, stubMode)
 
 	if upak != nil {
 		// Note that below we check the minor version and then discard the cached object if it's
 		// stale. But no need in memory, since we'll never have the old version in memory.
-		u.G().VDL.CLogf(ctx, VLog0, "| hit memory cache")
+		u.G().VDL.CLogf(ctx, VLog0, "| hit memory cache (%s -> %s)", stubMode, cacheStubMode)
 		if info != nil {
 			info.InCache = true
 		}
 		return upak
 	}
 
-	upak = u.getCachedUPAKFromDBMaybeTryBothSlots(ctx, uid, stubMode)
+	upak, cacheStubMode = u.getCachedUPAKFromDBMaybeTryBothSlots(ctx, uid, stubMode)
 	if upak == nil {
 		u.G().VDL.CLogf(ctx, VLog0, "| missed cache")
 		return nil
 	}
 
-	u.G().VDL.CLogf(ctx, VLog0, "| hit disk cache")
+	u.G().VDL.CLogf(ctx, VLog0, "| hit disk cache (%s -> %s)", stubMode, cacheStubMode)
 	if info != nil {
 		info.InDiskCache = true
 	}

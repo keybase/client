@@ -1638,6 +1638,9 @@ func (u UserPlusKeysV2AllIncarnations) IsOlderThan(v UserPlusKeysV2AllIncarnatio
 	if u.Uvv.Id < v.Uvv.Id {
 		return true
 	}
+	if u.Uvv.CachedAt < v.Uvv.CachedAt {
+		return true
+	}
 	return false
 }
 
