@@ -72,8 +72,8 @@ const _Connected = Container.connect(
     _teams: state.teams.teamDetails,
     deletedTeams: state.teams.deletedTeams,
     loaded: !WaitingConstants.anyWaiting(state, Constants.teamsLoadedWaitingKey),
-    newTeams: state.teams.newTeams,
     newTeamRequests: state.teams.newTeamRequests,
+    newTeams: state.teams.newTeams,
     sawChatBanner: state.teams.sawChatBanner || false,
   }),
   (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
@@ -99,8 +99,8 @@ const _Connected = Container.connect(
   (stateProps, dispatchProps, _: OwnProps) => ({
     deletedTeams: stateProps.deletedTeams,
     loaded: stateProps.loaded,
-    newTeams: stateProps.newTeams,
     newTeamRequests: stateProps.newTeamRequests,
+    newTeams: stateProps.newTeams,
     sawChatBanner: stateProps.sawChatBanner,
     teamresetusers: stateProps._teamresetusers.toObject(),
     teams: orderTeams(stateProps._teams),
