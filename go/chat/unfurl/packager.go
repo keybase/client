@@ -325,11 +325,11 @@ func (p *Packager) packageMaps(ctx context.Context, uid gregor1.UID, convID chat
 			return res, err
 		}
 		defer liveReader.Close()
-		if reader, length, err = maps.DecorateMap(ctx, avatarReader, liveReader); err != nil {
+		if reader, length, err = maps.DecorateMap(ctx, avatarReader, liveReader, 128); err != nil {
 			return res, err
 		}
 	} else {
-		if reader, length, err = maps.DecorateMap(ctx, avatarReader, locReader); err != nil {
+		if reader, length, err = maps.DecorateMap(ctx, avatarReader, locReader, 128); err != nil {
 			return res, err
 		}
 	}

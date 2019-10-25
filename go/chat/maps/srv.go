@@ -5,9 +5,13 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
+	"os"
+	"runtime"
 	"strconv"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 
 	"github.com/keybase/client/go/kbhttp/manager"
@@ -42,6 +46,7 @@ func (s *Srv) serve(w http.ResponseWriter, req *http.Request) {
 	strlon := req.URL.Query().Get("lon")
 	strwidth := req.URL.Query().Get("width")
 	strheight := req.URL.Query().Get("height")
+	username := req.URL.Query().Get("username")
 	lat, err := strconv.ParseFloat(strlat, 64)
 	if err != nil {
 		s.makeError(w, http.StatusBadRequest, "invalid lat: %s", err)
@@ -62,23 +67,60 @@ func (s *Srv) serve(w http.ResponseWriter, req *http.Request) {
 		s.makeError(w, http.StatusBadRequest, "invalid height: %s", err)
 		return
 	}
-	url, err := GetCustomMapURL(ctx, s.G().ExternalAPIKeySource, lat, lon, int(width)*scale,
+	mapUrl, err := GetCustomMapURL(ctx, s.G().ExternalAPIKeySource, lat, lon, int(width)*scale,
 		int(height)*scale)
 	if err != nil {
 		s.makeError(w, http.StatusInternalServerError, "unable to get map url: %s", err)
 		return
 	}
-	reader, _, err := MapReaderFromURL(ctx, url)
+	mapReader, _, err := MapReaderFromURL(ctx, mapUrl)
 	if err != nil {
 		s.makeError(w, http.StatusInternalServerError, "unable to get map reader: %s", err)
 		return
 	}
-	defer reader.Close()
-	// fancyReader, _, err := DecorateMap(ctx, "01", reader)
-	// if err != nil {
-	// 	s.makeError(w, http.StatusInternalServerError, "unable to decorate map: %s", err)
-	// 	return
-	// }
+
+	defer mapReader.Close()
+
+	var reader io.ReadCloser
+	if username != "" {
+		avMap, err := s.G().GetAvatarLoader().LoadUsers(libkb.NewMetaContext(ctx, s.G().ExternalG()), []string{username}, []keybase1.AvatarFormat{"square_192"})
+		if err != nil {
+			return
+		}
+		avatarURL := avMap.Picmap[username]["square_192"].String()
+
+		var avatarReader io.ReadCloser
+		parsed, err := url.Parse(avatarURL)
+		if err != nil {
+			return
+		}
+		switch parsed.Scheme {
+		case "http", "https":
+			avResp, err := libkb.ProxyHTTPGet(s.G().GetEnv(), avatarURL)
+			if err != nil {
+				return
+			}
+			avatarReader = avResp.Body
+		case "file":
+			filePath := parsed.Path
+			if runtime.GOOS == "windows" && len(filePath) > 0 {
+				filePath = filePath[1:]
+			}
+			avatarReader, err = os.Open(filePath)
+			if err != nil {
+				return
+			}
+		}
+		fancyReader, _, err := DecorateMap(ctx, avatarReader, mapReader, 128)
+		if err != nil {
+			s.makeError(w, http.StatusInternalServerError, "unable to decorate map: %s", err)
+			return
+		}
+		reader = fancyReader
+	} else {
+		reader = mapReader
+	}
+
 	if _, err := io.Copy(w, reader); err != nil {
 		s.makeError(w, http.StatusInternalServerError, "unable to read map: %s", err)
 		return

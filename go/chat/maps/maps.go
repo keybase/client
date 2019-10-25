@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"image"
 	"image/color"
-	"image/draw"
 	"image/png"
 	"io"
 	"io/ioutil"
@@ -17,6 +16,7 @@ import (
 
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/protocol/chat1"
+	"golang.org/x/image/draw"
 	"golang.org/x/net/context/ctxhttp"
 )
 
@@ -140,12 +140,14 @@ func MapReaderFromURL(ctx context.Context, url string) (res io.ReadCloser, lengt
 	return resp.Body, resp.ContentLength, nil
 }
 
-func DecorateMap(ctx context.Context, avatarReader, mapReader io.Reader) (res io.ReadCloser, length int64, err error) {
-	avatarPng, _, err := image.Decode(avatarReader)
+func DecorateMap(ctx context.Context, avatarReader, mapReader io.Reader, avatarSize int) (res io.ReadCloser, length int64, err error) {
+	avatarImg, _, err := image.Decode(avatarReader)
 	if err != nil {
 		return res, length, err
 	}
-	avatarRadius := avatarPng.Bounds().Dx() / 2
+	scaledAvatar := image.NewRGBA(image.Rect(0, 0, avatarSize, avatarSize))
+	draw.BiLinear.Scale(scaledAvatar, scaledAvatar.Bounds(), avatarImg, avatarImg.Bounds(), draw.Over, nil)
+	avatarRadius := avatarSize / 2
 
 	mapPng, err := png.Decode(mapReader)
 	if err != nil {
@@ -160,7 +162,7 @@ func DecorateMap(ctx context.Context, avatarReader, mapReader io.Reader) (res io
 	decorated := image.NewRGBA(bounds)
 	draw.Draw(decorated, bounds, mapPng, image.ZP, draw.Src)
 	draw.Draw(decorated, bounds, &circle{middle, avatarRadius + 10}, image.ZP, draw.Over)
-	draw.DrawMask(decorated, iconRect, avatarPng, image.ZP, mask, image.ZP, draw.Over)
+	draw.DrawMask(decorated, iconRect, scaledAvatar, image.ZP, mask, image.ZP, draw.Over)
 
 	var buf bytes.Buffer
 	err = png.Encode(&buf, decorated)
