@@ -24,6 +24,32 @@ func (o ChatOutboxID) DeepCopy() ChatOutboxID {
 	return o
 }
 
+type PaymentFeatureVersion int
+
+const (
+	PaymentFeatureVersion_NONE   PaymentFeatureVersion = 0
+	PaymentFeatureVersion_CHATID PaymentFeatureVersion = 1
+)
+
+func (o PaymentFeatureVersion) DeepCopy() PaymentFeatureVersion { return o }
+
+var PaymentFeatureVersionMap = map[string]PaymentFeatureVersion{
+	"NONE":   0,
+	"CHATID": 1,
+}
+
+var PaymentFeatureVersionRevMap = map[PaymentFeatureVersion]string{
+	0: "NONE",
+	1: "CHATID",
+}
+
+func (e PaymentFeatureVersion) String() string {
+	if v, ok := PaymentFeatureVersionRevMap[e]; ok {
+		return v
+	}
+	return fmt.Sprintf("%v", int(e))
+}
+
 type PaymentDirectPost struct {
 	FromDeviceID       keybase1.DeviceID     `codec:"fromDeviceID" json:"fromDeviceID"`
 	To                 *keybase1.UserVersion `codec:"to,omitempty" json:"to,omitempty"`
@@ -36,6 +62,7 @@ type PaymentDirectPost struct {
 	ChatOutboxID       *ChatOutboxID         `codec:"chatOutboxID,omitempty" json:"chatOutboxID,omitempty"`
 	Ics                bool                  `codec:"ics" json:"ics"`
 	BatchID            string                `codec:"batchID" json:"batchID"`
+	FeatureVersion     PaymentFeatureVersion `codec:"featureVersion" json:"featureVersion"`
 }
 
 func (o PaymentDirectPost) DeepCopy() PaymentDirectPost {
@@ -67,8 +94,9 @@ func (o PaymentDirectPost) DeepCopy() PaymentDirectPost {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.ChatOutboxID),
-		Ics:     o.Ics,
-		BatchID: o.BatchID,
+		Ics:            o.Ics,
+		BatchID:        o.BatchID,
+		FeatureVersion: o.FeatureVersion.DeepCopy(),
 	}
 }
 
@@ -87,6 +115,7 @@ type PaymentRelayPost struct {
 	ChatOutboxID       *ChatOutboxID         `codec:"chatOutboxID,omitempty" json:"chatOutboxID,omitempty"`
 	Ics                bool                  `codec:"ics" json:"ics"`
 	BatchID            string                `codec:"batchID" json:"batchID"`
+	FeatureVersion     PaymentFeatureVersion `codec:"featureVersion" json:"featureVersion"`
 }
 
 func (o PaymentRelayPost) DeepCopy() PaymentRelayPost {
@@ -121,8 +150,9 @@ func (o PaymentRelayPost) DeepCopy() PaymentRelayPost {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.ChatOutboxID),
-		Ics:     o.Ics,
-		BatchID: o.BatchID,
+		Ics:            o.Ics,
+		BatchID:        o.BatchID,
+		FeatureVersion: o.FeatureVersion.DeepCopy(),
 	}
 }
 
@@ -156,6 +186,7 @@ type PathPaymentPost struct {
 	QuickReturn        bool                  `codec:"quickReturn" json:"quickReturn"`
 	ChatConversationID *ChatConversationID   `codec:"chatConversationID,omitempty" json:"chatConversationID,omitempty"`
 	ChatOutboxID       *ChatOutboxID         `codec:"chatOutboxID,omitempty" json:"chatOutboxID,omitempty"`
+	FeatureVersion     PaymentFeatureVersion `codec:"featureVersion" json:"featureVersion"`
 }
 
 func (o PathPaymentPost) DeepCopy() PathPaymentPost {
@@ -185,6 +216,7 @@ func (o PathPaymentPost) DeepCopy() PathPaymentPost {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.ChatOutboxID),
+		FeatureVersion: o.FeatureVersion.DeepCopy(),
 	}
 }
 

@@ -210,10 +210,11 @@ func prepareBatchPaymentDirect(mctx libkb.MetaContext, remoter remote.Remoter, s
 	}
 
 	result.Direct = &stellar1.PaymentDirectPost{
-		FromDeviceID: mctx.G().ActiveDevice.DeviceID(),
-		To:           &recipient.User.UV,
-		QuickReturn:  true,
-		BatchID:      batchID,
+		FromDeviceID:   mctx.G().ActiveDevice.DeviceID(),
+		To:             &recipient.User.UV,
+		QuickReturn:    true,
+		BatchID:        batchID,
+		FeatureVersion: stellar1.PaymentFeatureVersion_CHATID,
 	}
 
 	var signResult stellarnet.SignResult
@@ -287,6 +288,7 @@ func prepareBatchPaymentRelay(mctx libkb.MetaContext, remoter remote.Remoter, sp
 		SignedTransaction: relay.FundTx.Signed,
 		QuickReturn:       true,
 		BatchID:           batchID,
+		FeatureVersion:    stellar1.PaymentFeatureVersion_CHATID,
 	}
 	if recipient.User != nil {
 		post.To = &recipient.User.UV

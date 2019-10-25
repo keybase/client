@@ -25,6 +25,14 @@
       "typedef": "string"
     },
     {
+      "type": "enum",
+      "name": "PaymentFeatureVersion",
+      "symbols": [
+        "NONE_0",
+        "CHATID_1"
+      ]
+    },
+    {
       "type": "record",
       "name": "PaymentDirectPost",
       "fields": [
@@ -80,6 +88,10 @@
         {
           "type": "string",
           "name": "batchID"
+        },
+        {
+          "type": "PaymentFeatureVersion",
+          "name": "featureVersion"
         }
       ]
     },
@@ -151,6 +163,10 @@
         {
           "type": "string",
           "name": "batchID"
+        },
+        {
+          "type": "PaymentFeatureVersion",
+          "name": "featureVersion"
         }
       ]
     },
@@ -219,6 +235,10 @@
             "ChatOutboxID"
           ],
           "name": "chatOutboxID"
+        },
+        {
+          "type": "PaymentFeatureVersion",
+          "name": "featureVersion"
         }
       ]
     },

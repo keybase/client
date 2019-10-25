@@ -604,6 +604,7 @@ func sendPayment(mctx libkb.MetaContext, walletState *WalletState, sendArg SendP
 		DisplayAmount:   sendArg.DisplayBalance.Amount,
 		DisplayCurrency: sendArg.DisplayBalance.Currency,
 		QuickReturn:     sendArg.QuickReturn,
+		FeatureVersion:  stellar1.PaymentFeatureVersion_CHATID,
 	}
 	if recipient.User != nil {
 		post.To = &recipient.User.UV
@@ -801,6 +802,7 @@ func sendPathPayment(mctx libkb.MetaContext, walletState *WalletState, sendArg S
 		FromDeviceID:      mctx.G().ActiveDevice.DeviceID(),
 		QuickReturn:       sendArg.QuickReturn,
 		SignedTransaction: sig.Signed,
+		FeatureVersion:    stellar1.PaymentFeatureVersion_CHATID,
 	}
 
 	if recipient.User != nil {
@@ -1097,10 +1099,11 @@ func prepareMiniChatPaymentDirect(m libkb.MetaContext, remoter remote.Remoter, s
 	}
 
 	result.Direct = &stellar1.PaymentDirectPost{
-		FromDeviceID: m.G().ActiveDevice.DeviceID(),
-		To:           &recipient.User.UV,
-		QuickReturn:  true,
-		Ics:          true,
+		FromDeviceID:   m.G().ActiveDevice.DeviceID(),
+		To:             &recipient.User.UV,
+		QuickReturn:    true,
+		Ics:            true,
+		FeatureVersion: stellar1.PaymentFeatureVersion_CHATID,
 	}
 	if convID != nil {
 		result.Direct.ChatConversationID = stellar1.NewChatConversationID(convID)
@@ -1200,6 +1203,7 @@ func prepareMiniChatPaymentRelay(mctx libkb.MetaContext, remoter remote.Remoter,
 		DisplayCurrency:   displayCurrency,
 		QuickReturn:       true,
 		Ics:               true,
+		FeatureVersion:    stellar1.PaymentFeatureVersion_CHATID,
 	}
 	if recipient.User != nil {
 		post.To = &recipient.User.UV
@@ -1269,6 +1273,7 @@ func sendRelayPayment(mctx libkb.MetaContext, walletState *WalletState,
 		DisplayAmount:     displayBalance.Amount,
 		DisplayCurrency:   displayBalance.Currency,
 		QuickReturn:       quickReturn,
+		FeatureVersion:    stellar1.PaymentFeatureVersion_CHATID,
 	}
 	if recipient.User != nil {
 		post.To = &recipient.User.UV

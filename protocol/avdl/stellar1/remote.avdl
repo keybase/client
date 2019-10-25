@@ -7,6 +7,11 @@ protocol remote {
   @typedef("string") record ChatConversationID {}
   @typedef("string") record ChatOutboxID {}
 
+  enum PaymentFeatureVersion {
+    NONE_0,
+    CHATID_1
+  }
+
   record PaymentDirectPost {
     keybase1.DeviceID fromDeviceID;
     union { null, keybase1.UserVersion } to; // Nil for payments to stellar addresses
@@ -23,6 +28,7 @@ protocol remote {
     union { null, ChatOutboxID } chatOutboxID;
     boolean ics; // true if in chat send
     string batchID; // if this payment is part of a batch
+    PaymentFeatureVersion featureVersion;
   }
 
   record PaymentRelayPost {
@@ -42,6 +48,7 @@ protocol remote {
     union { null, ChatOutboxID } chatOutboxID;
     boolean ics; // true if in chat send
     string batchID; // if this payment is part of a batch
+    PaymentFeatureVersion featureVersion;
   }
 
   record RelayClaimPost {
@@ -63,6 +70,7 @@ protocol remote {
     // status changes along with this conversation ID
     union { null, ChatConversationID } chatConversationID;
     union { null, ChatOutboxID } chatOutboxID;
+    PaymentFeatureVersion featureVersion;
   }
 
   record DirectOp {
