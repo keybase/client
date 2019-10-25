@@ -11,7 +11,7 @@ for platform in ubuntu-stab*; do
     echo "testing $platform"
     (
         cd "$platform"
-        vagrant snapshot restore default
+        vagrant snapshot restore --no-start default
         vagrant up
         ssh -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyChecking no" \
             -i .vagrant/machines/default/virtualbox/private_key \
@@ -24,8 +24,7 @@ EOF
             echo "failed test for $platform"
         fi
         vagrant halt
-        vagrant snapshot restore default
-        vagrant halt
+        vagrant snapshot --no-start restore default
         if [ "$ret" != 0 ]; then
             exit 1
         fi

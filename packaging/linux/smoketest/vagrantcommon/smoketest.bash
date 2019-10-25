@@ -13,8 +13,8 @@ trap cleanup EXIT
 U=vagrant
 whoami
 if command -v apt; then
-	# curl -O https://prerelease.keybase.io/keybase_amd64.deb
-	# echo vagrant | sudo -S apt -y install ./keybase_amd64.deb
+	curl -O https://prerelease.keybase.io/keybase_amd64.deb
+	echo vagrant | sudo -S apt -y install ./keybase_amd64.deb
     PIDOF=/bin/pidof
 else
 	curl -O https://prerelease.keybase.io/keybase_amd64.rpm

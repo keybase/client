@@ -3,5 +3,5 @@ set -euox pipefail
 
 whoami
 yum install -y vim less curl sudo
-yum groupinstall "X Window system"
-yum install xorg-x11-apps
+yum install -y @base-x
+yum install -y xorg-x11-apps

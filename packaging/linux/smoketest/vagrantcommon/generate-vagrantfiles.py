@@ -4,7 +4,7 @@ import os
 
 template = """Vagrant.configure("2") do |config|
   config.vm.box = "{}"
-  config.vm.synced_folder "../vagrantcommon/", "/vagrant"
+  config.vm.synced_folder "../vagrantcommon/", "/vagrant", type: "rsync"
   config.vm.provider "virtualbox" do |vb|
     vb.gui = true
     vb.memory = "4096"
@@ -12,6 +12,7 @@ template = """Vagrant.configure("2") do |config|
   config.vm.provision "shell", path: "../vagrantcommon/provision_{}.bash"
   config.ssh.forward_x11 = true
   config.vm.network :forwarded_port, guest: 22, host: {}, id: "ssh"
+  config.vbguest.auto_update = false
 end
 """
 

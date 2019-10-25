@@ -2,16 +2,16 @@
 set -euox pipefail
 echo "Starting setting up linux smoketests"
 
-for platform in ubuntu-stab*; do
+for platform in */; do
     case $platform in
-        smoketest_all.bash) continue;;
-        setup_smoketests.bash) continue;;
         vagrantcommon) continue;;
     esac
     (
         cd "$platform"
+        # vagrant destroy -f
+        # vagrant plugin install vagrant-vbguest
         vagrant up
-        vagrant snapshot save default
+        vagrant snapshot save --force default
         vagrant halt
     )
 done
