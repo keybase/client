@@ -1,15 +1,15 @@
 import * as I from 'immutable'
 import {TeamRoleType} from './teams'
-import {ServiceId} from '../../util/platforms'
+import {ServiceId as _ServiceId} from '../../util/platforms'
 
 export type AllowedNamespace = 'chat2' | 'teams' | 'people' | 'wallets'
 export type FollowingState = 'Following' | 'NotFollowing' | 'NoState' | 'You'
-export {ServiceId} from '../../util/platforms'
+export type ServiceId = _ServiceId
 
 export type ContactServiceId = 'email' | 'phone'
 // These are the possible tabs in team building, and also consts that can be
 // passed as `service` to search RPC (`userSearch.UserSearch`).
-export type ServiceIdWithContact = ServiceId | ContactServiceId
+export type ServiceIdWithContact = _ServiceId | ContactServiceId
 
 export const isContactServiceId = (id: string): id is ContactServiceId => id === 'email' || id === 'phone'
 
