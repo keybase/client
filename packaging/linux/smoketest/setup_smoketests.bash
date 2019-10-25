@@ -8,9 +8,7 @@ for platform in */; do
     esac
     (
         cd "$platform"
-        # vagrant destroy -f
-        # vagrant plugin install vagrant-vbguest
-        vagrant up
+        vagrant up --provision
         vagrant snapshot save --force default
         vagrant halt
     )

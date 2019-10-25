@@ -2,7 +2,7 @@
 set -euox pipefail
 echo "Starting linux smoketests"
 
-for platform in ubuntu-stab*; do
+for platform in ubuntu-lat*; do
     case $platform in
         smoketest_all.bash) continue;;
         setup_smoketests.bash) continue;;
