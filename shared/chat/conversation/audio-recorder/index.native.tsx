@@ -103,6 +103,7 @@ const AudioButton = (props: ButtonProps) => {
     Kb.NativeAnimated.parallel(
       [
         Kb.NativeAnimated.timing(innerScale, {
+          easing: Kb.NativeEasing.elastic(1),
           duration: 400,
           toValue: 3,
           useNativeDriver: true,
@@ -113,6 +114,7 @@ const AudioButton = (props: ButtonProps) => {
           useNativeDriver: true,
         }),
         Kb.NativeAnimated.timing(lockTranslate, {
+          easing: Kb.NativeEasing.elastic(1),
           duration: 400,
           toValue: 1,
           useNativeDriver: true,
@@ -325,6 +327,7 @@ const AudioSlideToCancel = (props: CancelProps) => {
   const translate = React.useRef(new Kb.NativeAnimated.Value(0)).current
   React.useEffect(() => {
     Kb.NativeAnimated.timing(translate, {
+      easing: Kb.NativeEasing.elastic(1),
       duration: 400,
       toValue: 1,
       useNativeDriver: true,
