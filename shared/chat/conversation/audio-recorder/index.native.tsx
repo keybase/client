@@ -329,8 +329,8 @@ const AudioSlideToCancel = (props: CancelProps) => {
   const cancelTranslate = React.useRef(new Kb.NativeAnimated.Value(0)).current
   React.useEffect(() => {
     Kb.NativeAnimated.timing(translate, {
-      easing: Kb.NativeEasing.elastic(1),
       duration: 400,
+      easing: Kb.NativeEasing.elastic(1),
       toValue: 1,
       useNativeDriver: true,
     }).start()
