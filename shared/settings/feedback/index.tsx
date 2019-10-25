@@ -173,8 +173,8 @@ const styles = Styles.styleSheetCreate(
         isMobile: {...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small)},
       }),
       mainBox: Styles.platformStyles({
-        common: { padding: Styles.globalMargins.small },
-        isElectron: {width: 368,},
+        common: {padding: Styles.globalMargins.small},
+        isElectron: {width: 368},
       }),
       outerStyle: {backgroundColor: Styles.globalColors.white},
       smallLabel: {color: Styles.globalColors.black},

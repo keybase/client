@@ -156,7 +156,7 @@ const styles = Styles.styleSheetCreate(() => ({
     isElectron: Styles.padding(Styles.globalMargins.medium, Styles.globalMargins.xlarge, 0),
     isMobile: {
       padding: Styles.globalMargins.medium,
-    }
+    },
   }),
   buttonBar: {
     marginLeft: Styles.globalMargins.medium,
