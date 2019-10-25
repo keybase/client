@@ -7006,6 +7006,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-coin-flip': {
+    charCode: 0xe9a1,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-coin-stack': {
     charCode: 0xe972,
     gridSize: 16,
@@ -7258,6 +7263,11 @@ const iconMeta_ = {
   },
   'iconfont-link': {
     charCode: 0xe939,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-location': {
+    charCode: 0xe9a2,
     gridSize: 16,
     isFont: true,
   },
