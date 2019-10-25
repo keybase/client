@@ -108,6 +108,9 @@ const load = () => {
         <Banner key="19" color="grey" inline={true}>
           This is an inline grey banner.
         </Banner>
+        <Banner key="20" color="white" inline={true}>
+          This is an inline white banner.
+        </Banner>
       </Box2>
     ))
 }

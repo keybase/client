@@ -183,6 +183,7 @@ func ReorderParticipants(mctx libkb.MetaContext, g libkb.UIDMapperContext, umapp
 	}
 
 	// Include participants even if they weren't in the active list, in stable order.
+	var leftOvers []chat1.ConversationLocalParticipant
 	for user, available := range allowedWriters {
 		if !available {
 			continue
@@ -192,9 +193,13 @@ func ReorderParticipants(mctx libkb.MetaContext, g libkb.UIDMapperContext, umapp
 			FullName:           nil,
 		})
 		part.InConvName = convNameUsers[part.Username]
-		writerNames = append(writerNames, part)
+		leftOvers = append(leftOvers, part)
 		allowedWriters[user] = false
 	}
+	sort.Slice(leftOvers, func(i, j int) bool {
+		return strings.Compare(leftOvers[i].Username, leftOvers[j].Username) < 0
+	})
+	writerNames = append(writerNames, leftOvers...)
 
 	return writerNames, nil
 }

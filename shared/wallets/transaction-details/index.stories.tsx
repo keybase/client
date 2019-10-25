@@ -60,6 +60,7 @@ const partialAsset = {
   authEndpoint: '',
   code: '',
   depositButtonText: '',
+  depositReqAuth: false,
   desc: '',
   infoUrl: '',
   infoUrlText: '',
@@ -69,6 +70,7 @@ const partialAsset = {
   transferServer: '',
   type: '',
   withdrawButtonText: '',
+  withdrawReqAuth: false,
   withdrawType: '',
 }
 

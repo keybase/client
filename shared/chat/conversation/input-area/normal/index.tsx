@@ -445,6 +445,7 @@ class Input extends React.Component<InputProps, InputState> {
           colorFollowing={true}
           usernames={[username]}
           style={styles.boldStyle}
+          withProfileCardPopup={false}
         />
         <Kb.Text type="BodySmall">{fullName}</Kb.Text>
       </Kb.Box2>

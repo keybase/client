@@ -615,6 +615,17 @@ const gregorPushState = (_: Container.TypedState, action: GregorGen.PushStatePay
   return actions
 }
 
+const loadNixOnLoginStartup = async () => {
+  try {
+    const status =
+      (await RPCTypes.ctlGetNixOnLoginStartupRpcPromise()) === RPCTypes.OnLoginStartupStatus.enabled
+    return ConfigGen.createLoadedNixOnLoginStartup({status})
+  } catch (err) {
+    logger.warn('Error in loading proxy data', err)
+    return null
+  }
+}
+
 function* configSaga() {
   // Start the handshake process. This means we tell all sagas we're handshaking with the daemon. If another
   // saga needs to do something before we leave the loading screen they should call daemonHandshakeWait
@@ -699,6 +710,8 @@ function* configSaga() {
   // Kick off platform specific stuff
   yield Saga.spawn(PlatformSpecific.platformConfigSaga)
   yield Saga.spawn(criticalOutOfDateCheck)
+
+  yield* Saga.chainAction2(ConfigGen.loadNixOnLoginStartup, loadNixOnLoginStartup)
 }
 
 export default configSaga
