@@ -46,7 +46,7 @@ func GetCustomMapURL(ctx context.Context, apiKeySource types.ExternalAPIKeySourc
 	widthScaled := width / scale
 	heightScaled := height / scale
 	return fmt.Sprintf(
-		"https://%s/maps/api/staticmap?zoom=17&center=%f,%f&size=%dx%d&scale=%d&key=%s",
+		"https://%s/maps/api/staticmap?zoom=18&center=%f,%f&size=%dx%d&scale=%d&key=%s",
 		MapsProxy, lat, lon, widthScaled, heightScaled, scale,
 		key.Googlemaps()), nil
 
@@ -71,7 +71,7 @@ func GetLiveMapURL(ctx context.Context, apiKeySource types.ExternalAPIKeySource,
 		pathStr += "&"
 	}
 	url := fmt.Sprintf(
-		"https://%s/maps/api/staticmap?zoom=17&%s%ssize=%dx%d&scale=%d&key=%s",
+		"https://%s/maps/api/staticmap?zoom=18&%s%ssize=%dx%d&scale=%d&key=%s",
 		MapsProxy, centerStr, pathStr, liveMapWidthScaled,
 		liveMapHeightScaled, scale, key.Googlemaps())
 	return url, nil
@@ -140,17 +140,11 @@ func MapReaderFromURL(ctx context.Context, url string) (res io.ReadCloser, lengt
 	return resp.Body, resp.ContentLength, nil
 }
 
-func DecorateMap(ctx context.Context, avatarUrl string, mapReader io.Reader) (res io.ReadCloser, length int64, err error) {
-	// TODO: fetch actual user avatar
-	req, err := http.NewRequest("GET", avatarUrl, nil)
+func DecorateMap(ctx context.Context, avatarReader, mapReader io.Reader) (res io.ReadCloser, length int64, err error) {
+	avatarPng, _, err := image.Decode(avatarReader)
 	if err != nil {
 		return res, length, err
 	}
-	avatarResp, err := ctxhttp.Do(ctx, httpClient(""), req)
-	if err != nil {
-		return res, length, err
-	}
-	avatarPng, err := png.Decode(avatarResp.Body)
 	avatarRadius := avatarPng.Bounds().Dx() / 2
 
 	mapPng, err := png.Decode(mapReader)

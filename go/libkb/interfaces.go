@@ -1127,3 +1127,14 @@ type KVRevisionCacher interface {
 	CheckDeletable(mctx MetaContext, entryID keybase1.KVEntryID, revision int) (err error)
 	MarkDeleted(mctx MetaContext, entryID keybase1.KVEntryID, revision int) (err error)
 }
+
+type AvatarLoaderSource interface {
+	LoadUsers(MetaContext, []string, []keybase1.AvatarFormat) (keybase1.LoadAvatarsRes, error)
+	LoadTeams(MetaContext, []string, []keybase1.AvatarFormat) (keybase1.LoadAvatarsRes, error)
+
+	ClearCacheForName(MetaContext, string, []keybase1.AvatarFormat) error
+	OnDbNuke(MetaContext) error // Called after leveldb data goes away after db nuke
+
+	StartBackgroundTasks(MetaContext)
+	StopBackgroundTasks(MetaContext)
+}
