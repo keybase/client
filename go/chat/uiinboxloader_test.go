@@ -112,9 +112,12 @@ func TestUIInboxLoaderLayout(t *testing.T) {
 	require.Equal(t, conv2.Id.String(), layout.SmallTeams[0].ConvID)
 	require.Equal(t, conv1.Id.String(), layout.SmallTeams[1].ConvID)
 	select {
-	case <-chatUI.InboxLayoutCb:
-		require.Fail(t, "unexpected layout")
-	default:
+	case layout = <-chatUI.InboxLayoutCb:
+		require.Equal(t, 2, len(layout.SmallTeams))
+		require.Equal(t, conv1.Id.String(), layout.SmallTeams[0].ConvID)
+		require.Equal(t, conv2.Id.String(), layout.SmallTeams[1].ConvID)
+	case <-time.After(timeout):
+		// just don't care if we don't get anything
 	}
 	_, err := ctc.as(t, users[0]).chatLocalHandler().SetConversationStatusLocal(ctx,
 		chat1.SetConversationStatusLocalArg{
