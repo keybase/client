@@ -16,7 +16,7 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
-type journeyCardChecker struct {
+type JourneyCardChecker struct {
 	globals.Contextified
 	utils.DebugLabeler
 	storageLock sync.Mutex
@@ -24,16 +24,16 @@ type journeyCardChecker struct {
 	// TODO when it comes to disk storage. Do versioning in a way that makes it easy to reset. But not spam cards. Maybe burn card types for a conv.
 }
 
-var _ (types.JourneyCardManager) = (*journeyCardChecker)(nil)
+var _ (types.JourneyCardManager) = (*JourneyCardChecker)(nil)
 
-func NewJourneyCardChecker(g *globals.Context) *journeyCardChecker {
-	labeler := utils.NewDebugLabeler(g.GetLog(), "journeyCardChecker", false)
+func NewJourneyCardChecker(g *globals.Context) *JourneyCardChecker {
+	labeler := utils.NewDebugLabeler(g.GetLog(), "JourneyCardChecker", false)
 	lru, err := lru.New(200)
 	if err != nil {
 		// lru.New only panics if size <= 0
 		log.Panicf("Could not create lru cache: %v", err)
 	}
-	return &journeyCardChecker{
+	return &JourneyCardChecker{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: labeler,
 		lru:          lru,
@@ -42,7 +42,7 @@ func NewJourneyCardChecker(g *globals.Context) *journeyCardChecker {
 
 // Choose a journey card to show in the conversation.
 // Called by postProcessThread so keep it snappy.
-func (cc *journeyCardChecker) PickCard(ctx context.Context, uid gregor1.UID,
+func (cc *JourneyCardChecker) PickCard(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID,
 	convLocalOptional *chat1.ConversationLocal,
 	thread *chat1.ThreadView,
@@ -225,7 +225,7 @@ func (cc *journeyCardChecker) PickCard(ctx context.Context, uid gregor1.UID,
 }
 
 // The user has sent a message.
-func (cc *journeyCardChecker) SentMessage(ctx context.Context, convID chat1.ConversationID) {
+func (cc *JourneyCardChecker) SentMessage(ctx context.Context, convID chat1.ConversationID) {
 	err := libkb.AcquireWithContextAndTimeout(ctx, &cc.storageLock, 10*time.Second)
 	if err != nil {
 		cc.Debug(ctx, "SentMessage storageLock error: %v", err)
@@ -245,7 +245,7 @@ func (cc *journeyCardChecker) SentMessage(ctx context.Context, convID chat1.Conv
 
 // Get info about a conversation.
 // Note the return value may share internal structure with other threads. Do not deeply modify.
-func (cc *journeyCardChecker) getConvData(ctx context.Context, convID chat1.ConversationID) journeyCardConvData {
+func (cc *JourneyCardChecker) getConvData(ctx context.Context, convID chat1.ConversationID) journeyCardConvData {
 	err := libkb.AcquireWithContextAndTimeout(ctx, &cc.storageLock, 10*time.Second)
 	if err != nil {
 		cc.Debug(ctx, "getConvData storageLock error: %v", err)
@@ -255,7 +255,7 @@ func (cc *journeyCardChecker) getConvData(ctx context.Context, convID chat1.Conv
 	return cc.getConvDataWithLock(ctx, convID)
 }
 
-func (cc *journeyCardChecker) getConvDataWithLock(ctx context.Context, convID chat1.ConversationID) journeyCardConvData {
+func (cc *JourneyCardChecker) getConvDataWithLock(ctx context.Context, convID chat1.ConversationID) journeyCardConvData {
 	if convID.IsNil() {
 		return newJourneyCardConvData()
 	}
@@ -271,7 +271,7 @@ func (cc *journeyCardChecker) getConvDataWithLock(ctx context.Context, convID ch
 	return jcd
 }
 
-func (cc *journeyCardChecker) savePosition(ctx context.Context, convID chat1.ConversationID, cardType chat1.JourneycardType, pos journeyCardPosition) {
+func (cc *JourneyCardChecker) savePosition(ctx context.Context, convID chat1.ConversationID, cardType chat1.JourneycardType, pos journeyCardPosition) {
 	err := libkb.AcquireWithContextAndTimeout(ctx, &cc.storageLock, 10*time.Second)
 	if err != nil {
 		cc.Debug(ctx, "savePosition storageLock error: %v", err)
@@ -287,7 +287,7 @@ func (cc *journeyCardChecker) savePosition(ctx context.Context, convID chat1.Con
 }
 
 // Save the time the user joined. Discards value if one is already saved.
-func (cc *journeyCardChecker) saveJoinedTime(ctx context.Context, convID chat1.ConversationID, t time.Time) {
+func (cc *JourneyCardChecker) saveJoinedTime(ctx context.Context, convID chat1.ConversationID, t time.Time) {
 	err := libkb.AcquireWithContextAndTimeout(ctx, &cc.storageLock, 10*time.Second)
 	if err != nil {
 		cc.Debug(ctx, "saveJoinedTime storageLock error: %v", err)
