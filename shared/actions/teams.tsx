@@ -1298,14 +1298,15 @@ const badgeAppForTeams = (state: TypedState, action: NotificationsGen.ReceivedBa
     // Don't make any calls we don't have permission to.
     return
   }
+  const {badgeState} = action.payload
 
   let actions: Array<TypedActions> = []
-  const deletedTeams = action.payload.badgeState.deletedTeams || []
-  const newTeams = new Set<string>(action.payload.badgeState.newTeams || [])
-  const newTeamRequests = action.payload.badgeState.newTeamAccessRequests || []
+  const deletedTeams = badgeState.deletedTeams || []
+  const newTeams = new Set<string>(badgeState.newTeams || [])
+  const newTeamRequests = badgeState.newTeamAccessRequests || []
 
   // TODO ts-migration remove any
-  const teamsWithResetUsers: I.List<any> = I.List(action.payload.badgeState.teamsWithResetUsers || [])
+  const teamsWithResetUsers: I.List<any> = I.List(badgeState.teamsWithResetUsers || [])
   const teamsWithResetUsersMap = teamsWithResetUsers.reduce((res, entry) => {
     if (!res[entry.teamname]) {
       res[entry.teamname] = I.Set()

@@ -102,7 +102,7 @@ export const makeInviteInfo = I.Record<Types._InviteInfo>({
   username: '',
 })
 
-export const emptyEmailInviteError: Readonly<Types.EmailInviteError> = Object.freeze({
+export const emptyEmailInviteError = Object.freeze<Types.EmailInviteError>({
   malformed: new Set<string>(),
   message: '',
 })
@@ -591,7 +591,7 @@ export const isOnTeamsTab = () => {
   return Array.isArray(path) ? path.some(p => p.routeName === teamsTab) : false
 }
 
-export const emptyTeamDetails: Readonly<Types.TeamDetails> = {
+export const emptyTeamDetails = Object.freeze<Types.TeamDetails>({
   allowPromote: false,
   id: Types.noTeamID,
   isMember: false,
@@ -600,7 +600,7 @@ export const emptyTeamDetails: Readonly<Types.TeamDetails> = {
   role: 'none',
   showcasing: false,
   teamname: '',
-}
+})
 
 export const makeTeamDetails = (td: Partial<Types.TeamDetails>): Types.TeamDetails =>
   td ? Object.assign({...emptyTeamDetails}, td) : emptyTeamDetails
