@@ -4,7 +4,7 @@ echo "Starting clearing linux smoketests"
 
 for platform in */; do
     case $platform in
-        vagrantcommon) continue;;
+        vagrantcommon/) continue;;
     esac
     (
         cd "$platform"
