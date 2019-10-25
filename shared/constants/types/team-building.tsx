@@ -4,7 +4,7 @@ import {ServiceId} from '../../util/platforms'
 
 export type AllowedNamespace = 'chat2' | 'teams' | 'people' | 'wallets'
 export type FollowingState = 'Following' | 'NotFollowing' | 'NoState' | 'You'
-export type ServiceId = ServiceId
+export {ServiceId} from '../../util/platforms'
 
 export type ContactServiceId = 'email' | 'phone'
 // These are the possible tabs in team building, and also consts that can be

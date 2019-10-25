@@ -30,8 +30,8 @@ const messageIDToOrdinal = (
 ) => {
   // A message we didn't send in this session?
   let m = messageMap.getIn([conversationIDKey, Types.numberToOrdinal(messageID)])
-  if (m && m.id && m.id === messageID) {
-    return m.ordinal
+  if(m?.id === messageID) {
+      return m.ordinal
   }
   // Search through our sent messages
   const pendingOrdinal = [

@@ -39,7 +39,7 @@ const shimNewRoute = (Original: any) => {
       return safeKeyboardBody
     }
   }
-  return Container.connect(() => ({isDarkMode: Styles.isDarkMode()}), undefined, (s, _, o) => ({
+  return Container.connect(() => ({isDarkMode: Styles.isDarkMode()}), undefined, (s, _, o: Object) => ({
     ...s,
     ...o,
     // @ts-ignore

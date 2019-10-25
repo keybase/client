@@ -170,10 +170,14 @@ class UnconnectedTabNavigator extends React.PureComponent<any> {
   }
 }
 
-const TabNavigator = Container.connect(() => ({isDarkMode: Styles.isDarkMode()}), undefined, (s, _, o) => ({
-  ...s,
-  ...o,
-}))(UnconnectedTabNavigator)
+const TabNavigator = Container.connect(
+  () => ({isDarkMode: Styles.isDarkMode()}),
+  undefined,
+  (s, _, o: any) => ({
+    ...s,
+    ...o,
+  })
+)(UnconnectedTabNavigator)
 
 const tabStyles = Styles.styleSheetCreate(
   () =>

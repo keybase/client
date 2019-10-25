@@ -244,6 +244,7 @@ class SectionList extends React.Component<Props, State> {
             itemRenderer={this._itemRenderer as any}
             itemSizeEstimator={this.props.itemSizeEstimator}
             length={this._flat.length}
+            // @ts-ignore we want to trigger a rerender
             retrigger={this._flat}
             ref={this._listRef}
             type="variable"
