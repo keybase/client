@@ -72,9 +72,14 @@ const AudioRecorder = (props: Props) => {
         sendRecording={sendRecording}
         stageRecording={stageRecording}
       />
+      {!locked && <AudioSlideToCancel closeDown={closingDown} onCancel={onCancel} />}
       <Kb.Box2 gap="medium" direction="horizontal" style={styles.rowContainer}>
         <AudioCounter />
-        <AudioSlideToCancel closeDown={closingDown} locked={locked} onCancel={onCancel} />
+        {locked && (
+          <Kb.Text type="BodyPrimaryLink" onClick={onCancel} style={{marginLeft: 30}}>
+            Cancel
+          </Kb.Text>
+        )}
       </Kb.Box2>
     </Kb.Box2>
   )
@@ -319,7 +324,6 @@ const AudioButton = (props: ButtonProps) => {
 
 type CancelProps = {
   closeDown: boolean
-  locked: boolean
   onCancel: () => void
 }
 
@@ -342,18 +346,17 @@ const AudioSlideToCancel = (props: CancelProps) => {
       }).start()
     }
   }, [props.closeDown])
-  return props.locked ? (
-    <Kb.Text type="BodyPrimaryLink" onClick={props.onCancel} style={{marginLeft: 30}}>
-      Cancel
-    </Kb.Text>
-  ) : (
+  return (
     <Kb.NativeAnimated.View
       style={{
+        bottom: 10,
+        position: 'absolute',
+        right: 0,
         transform: [
           {
             translateX: translate.interpolate({
               inputRange: [0, 1],
-              outputRange: [100, props.closeDown ? -100 : 0],
+              outputRange: [-10, -120],
             }),
           },
         ],
