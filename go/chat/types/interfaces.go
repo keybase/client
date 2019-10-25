@@ -568,6 +568,11 @@ type UIInboxLoader interface {
 		pagination *chat1.Pagination, maxUnbox *int, skipUnverified bool) error
 }
 
+type JourneyCardManager interface {
+	PickCard(context.Context, gregor1.UID, chat1.ConversationID, *chat1.ConversationLocal, *chat1.ThreadView) (*chat1.MessageUnboxedJourneycard, error)
+	SentMessage(context.Context, chat1.ConversationID) // Tell JourneyCardManager that the user has sent a message.
+}
+
 type InternalError interface {
 	// verbose error info for debugging but not user display
 	InternalError() string

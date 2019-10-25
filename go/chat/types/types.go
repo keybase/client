@@ -135,6 +135,10 @@ func (rc RemoteConversation) IsLocallyRead() bool {
 	return rc.LocalReadMsgID >= rc.Conv.MaxVisibleMsgID()
 }
 
+func (rc RemoteConversation) MaxVisibleMsgID() chat1.MessageID {
+	return rc.Conv.MaxVisibleMsgID()
+}
+
 type UnboxMode int
 
 const (
