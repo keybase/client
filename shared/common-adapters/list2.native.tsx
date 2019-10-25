@@ -3,8 +3,10 @@ import * as Flow from '../util/flow'
 import {FlatList, View} from 'react-native'
 import * as Styles from '../styles'
 import {smallHeight, largeHeight} from './list-item2'
-
+import Animated from 'react-native-reanimated'
 import {Props} from './list2'
+
+const AnimatedFlatList = Animated.createAnimatedComponent(FlatList)
 
 class List2<T> extends PureComponent<Props<T>> {
   static defaultProps = {
@@ -41,10 +43,11 @@ class List2<T> extends PureComponent<Props<T>> {
   }
 
   render() {
+    const List = this.props.reAnimated ? AnimatedFlatList : FlatList
     return (
       <View style={styles.outerView}>
         {/* need windowSize so iphone 6 doesn't have OOM issues */}
-        <FlatList
+        <List
           bounces={this.props.bounces}
           renderItem={this._itemRender}
           data={this.props.items}

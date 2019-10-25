@@ -3,7 +3,6 @@ import Text, {TextType, Background, StylesTextCrossPlatform} from '../text'
 import shallowEqual from 'shallowequal'
 import * as Styles from '../../styles'
 import {backgroundModeIsNegative} from '../text.shared'
-import {e164ToDisplay} from '../../util/phone-numbers'
 
 export type UserListItem = {
   username: string
@@ -53,6 +52,9 @@ export type PlaintextProps = {
   title?: string
 }
 
+// Mobile handles spaces correctly so don't insert anything
+const space = Styles.isMobile ? `` : <>&nbsp;</>
+
 // common-adapters/profile-card.tsx already imports this, so have it assign
 // this here instead of importing directly to avoid an import cycle.
 let WithProfileCardPopup: React.ComponentType<any> | null
@@ -101,6 +103,7 @@ function UsernameText(props: Props) {
           <Text type={props.type} key={u.username}>
             {i !== 0 && i === props.users.length - 1 && props.showAnd && (
               <Text type={props.type} negative={isNegative} style={derivedJoinerStyle}>
+                {space}
                 {'and '}
               </Text>
             )}
@@ -125,7 +128,7 @@ function UsernameText(props: Props) {
             {/* Injecting the commas here so we never wrap and have newlines starting with a , */}
             {i !== props.users.length - 1 && (!props.inlineGrammar || props.users.length > 2) && (
               <Text type={props.type} negative={isNegative} style={derivedJoinerStyle}>
-                ,
+                ,{props.users.length > 2 && i !== props.users.length - 2 ? space : null}
               </Text>
             )}
             {i !== props.users.length - 1 && ' '}
@@ -248,6 +251,7 @@ export const assertionToDisplay = (assertion: string): string => {
     }
     // phone number
     try {
+      const {e164ToDisplay} = require('../../util/phone-numbers')
       return e164ToDisplay('+' + noSuffix)
     } catch (e) {
       return '+' + noSuffix

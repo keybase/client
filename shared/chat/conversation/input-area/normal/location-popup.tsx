@@ -87,7 +87,7 @@ const LocationPopup = (props: Props) => {
             <Kb.Button
               disabled={locationDenied}
               fullWidth={true}
-              label="Share location for 1 hours"
+              label="Share location for 1 hour"
               onClick={() => onLocationShare('1h')}
               mode="Secondary"
               type="Default"
@@ -104,7 +104,6 @@ const LocationPopup = (props: Props) => {
               style={styles.liveButton}
               subLabel="Live location"
             />
-            <Kb.Divider />
             <Kb.Button
               disabled={locationDenied}
               fullWidth={true}

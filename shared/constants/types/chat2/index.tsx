@@ -141,16 +141,16 @@ export type State = Readonly<{
   isWalletsNew: boolean // controls new-ness of wallets in chat UI,
   lastCoord?: Coordinate
   maybeMentionMap: Map<string, RPCChatTypes.UIMaybeMentionInfo>
-  messageCenterOrdinals: I.Map<Common.ConversationIDKey, CenterOrdinal> // ordinals to center threads on,
+  messageCenterOrdinals: Map<Common.ConversationIDKey, CenterOrdinal> // ordinals to center threads on,
   messageMap: I.Map<Common.ConversationIDKey, I.Map<Message.Ordinal, Message.Message>> // messages in a thread,
-  messageOrdinals: I.Map<Common.ConversationIDKey, I.OrderedSet<Message.Ordinal>> // ordered ordinals in a thread,
+  messageOrdinals: Map<Common.ConversationIDKey, Set<Message.Ordinal>> // ordered ordinals in a thread,
   metaMap: MetaMap // metadata about a thread, There is a special node for the pending conversation,
   moreToLoadMap: Map<Common.ConversationIDKey, boolean> // if we have more data to load,
   mutedMap: Map<Common.ConversationIDKey, boolean> // muted convs
   orangeLineMap: Map<Common.ConversationIDKey, number> // last message we've seen,
   paymentConfirmInfo?: PaymentConfirmInfo // chat payment confirm screen data,
   paymentStatusMap: Map<Wallet.PaymentID, Message.ChatPaymentInfo>
-  pendingOutboxToOrdinal: I.Map<Common.ConversationIDKey, I.Map<Message.OutboxID, Message.Ordinal>> // messages waiting to be sent,
+  pendingOutboxToOrdinal: Map<Common.ConversationIDKey, Map<Message.OutboxID, Message.Ordinal>> // messages waiting to be sent,
   prependTextMap: Map<Common.ConversationIDKey, HiddenString | null>
   previousSelectedConversation: Common.ConversationIDKey // the previous selected conversation, if any,
   quote?: QuoteInfo // last quoted message,

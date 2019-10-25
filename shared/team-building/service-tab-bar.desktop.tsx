@@ -166,7 +166,6 @@ export const ServiceTabBar = (props: Props) => {
           key={service}
           service={service}
           label={serviceIdToLongLabel(service)}
-          labelPresence={1}
           onClick={() => onChangeService(service)}
           count={undefToNull(props.serviceResultCount[service])}
           showCount={props.showServiceResultCount}

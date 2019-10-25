@@ -1009,6 +1009,11 @@ func (h *Server) MakePreview(ctx context.Context, arg chat1.MakePreviewArg) (res
 	return attachments.NewSender(h.G()).MakePreview(ctx, arg.Filename, arg.OutboxID)
 }
 
+func (h *Server) MakeAudioPreview(ctx context.Context, amps []float64) (res chat1.MakePreviewRes, err error) {
+	defer h.Trace(ctx, func() error { return err }, "MakeAudioPreview")()
+	return attachments.NewSender(h.G()).MakeAudioPreview(ctx, amps)
+}
+
 func (h *Server) GetUploadTempFile(ctx context.Context, arg chat1.GetUploadTempFileArg) (res string, err error) {
 	defer h.Trace(ctx, func() error { return err }, "GetUploadTempFile")()
 	return h.G().AttachmentUploader.GetUploadTempFile(ctx, arg.OutboxID, arg.Filename)

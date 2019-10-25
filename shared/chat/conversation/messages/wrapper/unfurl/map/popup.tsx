@@ -66,7 +66,7 @@ const UnfurlMapPopup = (props: Props) => {
       }}
       footer={{
         content: (
-          <Kb.Box2 direction="vertical" gap="small" fullWidth={true}>
+          <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
             <Kb.Button fullWidth={true} onClick={onViewURL} label="View on Google Maps" type="Default" />
             {isAuthor && isLiveLocation && (
               <Kb.Button

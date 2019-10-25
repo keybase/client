@@ -17,7 +17,7 @@ import (
 
 type MemberKeyer struct {
 	locktab *libkb.LockTable
-	sync.Mutex
+	sync.RWMutex
 	lru *lru.Cache
 }
 
@@ -64,6 +64,15 @@ func (k *MemberKeyer) retryWrapper(mctx libkb.MetaContext, retryFn func() error)
 	return err
 }
 
+func (k *MemberKeyer) lockForTeamID(mctx libkb.MetaContext, teamID keybase1.TeamID) func() {
+	k.RLock()
+	lock := k.locktab.AcquireOnName(mctx.Ctx(), mctx.G(), k.lockKey(teamID))
+	return func() {
+		k.RUnlock()
+		lock.Release(mctx.Ctx())
+	}
+}
+
 func (k *MemberKeyer) lockKey(teamID keybase1.TeamID) string {
 	return teamID.String()
 }
@@ -87,8 +96,8 @@ func (k *MemberKeyer) GetOrCreateTeambotKey(mctx libkb.MetaContext, teamID keyba
 	}
 
 	err = k.retryWrapper(mctx, func() error {
-		lock := k.locktab.AcquireOnName(mctx.Ctx(), mctx.G(), k.lockKey(teamID))
-		defer lock.Release(mctx.Ctx())
+		unlock := k.lockForTeamID(mctx, teamID)
+		defer unlock()
 		key, created, err = k.getOrCreateTeambotKeyLocked(mctx, teamID, botUID, appKey)
 		return err
 	})
@@ -252,13 +261,15 @@ func (k *MemberKeyer) prepareNewTeambotKey(mctx libkb.MetaContext, team *teams.T
 
 func (k *MemberKeyer) PurgeCacheAtGeneration(mctx libkb.MetaContext, teamID keybase1.TeamID,
 	botUID keybase1.UID, generation keybase1.TeambotKeyGeneration) {
-	lock := k.locktab.AcquireOnName(mctx.Ctx(), mctx.G(), k.lockKey(teamID))
-	defer lock.Release(mctx.Ctx())
+	unlock := k.lockForTeamID(mctx, teamID)
+	defer unlock()
 	cacheKey := k.cacheKey(teamID, botUID, generation)
 	k.lru.Remove(cacheKey)
 }
 
 func (k *MemberKeyer) PurgeCache(mctx libkb.MetaContext) {
+	k.Lock()
+	defer k.Unlock()
 	k.lru.Purge()
 }
 

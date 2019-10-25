@@ -32,7 +32,6 @@ import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {RPCError} from '../../util/errors'
 import HiddenString from '../../util/hidden-string'
 import {TypedActions, TypedState} from '../../util/container'
-import {store} from 'emoji-mart'
 
 const onConnect = async () => {
   try {
@@ -1947,6 +1946,8 @@ const onUpdateUserReacjis = (state: TypedState) => {
     i++
     reacjis[el] = userReacjis.topReacjis.length - i
   })
+
+  const {store} = require('emoji-mart')
   store.setHandlers({
     getter: key => {
       switch (key) {
@@ -2209,7 +2210,7 @@ const markThreadAsRead = async (
   const mmap = state.chat2.messageMap.get(conversationIDKey)
   if (mmap) {
     const ordinals = Constants.getMessageOrdinals(state, conversationIDKey)
-    const ordinal = ordinals.findLast(o => {
+    const ordinal = [...ordinals].reverse().find(o => {
       const m = mmap.get(o)
       return m ? !!m.id : false
     })

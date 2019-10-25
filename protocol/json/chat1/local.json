@@ -4539,6 +4539,18 @@
       ],
       "response": "MakePreviewRes"
     },
+    "makeAudioPreview": {
+      "request": [
+        {
+          "name": "amps",
+          "type": {
+            "type": "array",
+            "items": "double"
+          }
+        }
+      ],
+      "response": "MakePreviewRes"
+    },
     "getUploadTempFile": {
       "request": [
         {

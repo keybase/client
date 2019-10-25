@@ -16,7 +16,6 @@ import {
   RenameAccountPopup,
   ReallyRemoveAccountPopup,
   RemoveAccountPopup,
-  InflationDestination,
   SetDefaultAccountPopup,
 } from './wallet/settings/popups'
 import Receive from './receive-modal/container'
@@ -158,9 +157,6 @@ export const newModalRoutes = {
   setDefaultAccount: {
     getScreen: (): typeof SetDefaultAccountPopup =>
       require('./wallet/settings/popups').SetDefaultAccountPopup,
-  },
-  setInflation: {
-    getScreen: (): typeof InflationDestination => require('./wallet/settings/popups').InflationDestination,
   },
   trustline: {getScreen: (): typeof Trustline => require('./trustline/container').default},
   walletOnboarding: {

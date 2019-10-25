@@ -16,7 +16,7 @@ type OwnProps = {
 
 const mapStateToProps = (state: Container.TypedState, {conversationIDKey}: OwnProps) => {
   const messageOrdinals = Constants.getMessageOrdinals(state, conversationIDKey)
-  const lastOrdinal = messageOrdinals.last(null)
+  const lastOrdinal = [...messageOrdinals].pop()
   const maybeCenterMessage = Constants.getMessageCenterOrdinal(state, conversationIDKey)
   const centeredOrdinal =
     maybeCenterMessage === null || maybeCenterMessage === undefined ? undefined : maybeCenterMessage.ordinal
@@ -56,7 +56,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   editingOrdinal: stateProps.editingOrdinal,
   lastMessageIsOurs: stateProps.lastMessageIsOurs,
   markInitiallyLoadedThreadAsRead: dispatchProps._markInitiallyLoadedThreadAsRead,
-  messageOrdinals: stateProps.messageOrdinals.toList(),
+  messageOrdinals: [...stateProps.messageOrdinals],
   onFocusInput: ownProps.onFocusInput,
   onJumpToRecent: dispatchProps.onJumpToRecent,
   scrollListDownCounter: ownProps.scrollListDownCounter,
