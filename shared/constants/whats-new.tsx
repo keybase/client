@@ -36,7 +36,10 @@ export const isVersionValid = (version: string) => {
 }
 
 export const anyVersionsUnseen = (lastSeenVersion: string): boolean =>
-  Object.values(getSeenVersions(lastSeenVersion)).some(seen => !seen)
+  // On first load of what's new, lastSeenVersion == noVersion so everything is unseen
+  lastLastVersion && lastSeenVersion === noVersion
+    ? true
+    : Object.values(getSeenVersions(lastSeenVersion)).some(seen => !seen)
 
 export const getSeenVersions = (lastSeenVersion: string): seenVersionsMap => {
   // Mark all versions as seen so that the icon doesn't change as Gregor state is loading
@@ -46,9 +49,17 @@ export const getSeenVersions = (lastSeenVersion: string): seenVersionsMap => {
     [lastVersion]: true,
   }
 
-  // User has no entry in Gregor for lastSeenVersion, so mark all as unseen
+  // lastSeenVersion hasn't loaded yet, so don't set a badge state
   if (!lastSeenVersion || !semver.valid(lastSeenVersion)) {
     return initialMap
+  }
+  // User has no entry in Gregor for lastSeenVersion, so mark all as unseen
+  if (lastSeenVersion === noVersion) {
+    return {
+      [currentVersion]: false,
+      [lastLastVersion]: false,
+      [lastVersion]: false,
+    }
   }
 
   // last and lastLast versions might not be set
