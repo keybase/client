@@ -40,7 +40,7 @@ const KeybaseLink = (props: KeybaseLinkProps) => {
 
   return (
     <Text
-      className="hover-underline"
+      className="hover-underline hover_contained_color_blueDark"
       type="BodyPrimaryLink"
       style={Styles.collapseStyles([props.wrapStyle, linkStyle, props.linkStyle])}
       title={props.link}
@@ -117,7 +117,7 @@ const ServiceDecoration = (props: Props) => {
       <KeybaseLink link={link} linkStyle={props.styleOverride.link} wrapStyle={props.styles.wrapStyle} />
     ) : (
       <Text
-        className="hover-underline"
+        className="hover-underline hover_contained_color_blueDark"
         type="BodyPrimaryLink"
         style={Styles.collapseStyles([props.styles.wrapStyle, linkStyle, props.styleOverride.link])}
         title={parsed.link.display}
@@ -130,7 +130,7 @@ const ServiceDecoration = (props: Props) => {
   } else if (parsed.typ === RPCChatTypes.UITextDecorationTyp.mailto) {
     return (
       <Text
-        className="hover-underline"
+        className="hover-underline hover_contained_color_blueDark"
         type="BodyPrimaryLink"
         style={Styles.collapseStyles([props.styles.wrapStyle, linkStyle, props.styleOverride.mailto])}
         title={parsed.mailto.display}
