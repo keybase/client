@@ -35,11 +35,13 @@ import {TypedActions, TypedState} from '../../util/container'
 
 let start = 0
 let end = 0
+let calls = 0
 
 let log = (...l) => console._log(...l)
 
 window.NOJIMA_DONE = (v: any) => {
   let diff = performance.now() - start
+  performance.measure(`${calls++}`, 'NOJIMA1')
   start = 0
   log('aaa done', v, diff)
 }
@@ -48,8 +50,14 @@ window.NOJIMA = (p: any) => {
   if (start) {
     throw new Error('only one')
   }
+  performance.mark('NOJIMA1')
   start = performance.now()
-  RPCTypes.testEchoRpcPromise(p).then(v => window.NOJIMA_DONE(v))
+  try {
+    RPCTypes.testEchoRpcPromise(p).then(v => window.NOJIMA_DONE(v))
+  } catch (_) {
+    log('aaa call failed')
+    start = 0
+  }
 }
 
 const onConnect = async () => {

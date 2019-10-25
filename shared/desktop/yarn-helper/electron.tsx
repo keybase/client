@@ -56,7 +56,7 @@ function startHot() {
 
   const env = {
     ...process.env,
-    ...devToolExtensions,
+    // ...devToolExtensions,
   }
 
   const hitServer = () => {
