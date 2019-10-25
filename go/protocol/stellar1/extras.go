@@ -382,6 +382,22 @@ func NewChatConversationID(b []byte) *ChatConversationID {
 	return &cid
 }
 
+func NewChatConversationIDFromStr(s *string) *ChatConversationID {
+	if s == nil {
+		return nil
+	}
+	cid := ChatConversationID(*s)
+	return &cid
+}
+
+func NewChatOutboxIDFromStr(s *string) *ChatOutboxID {
+	if s == nil {
+		return nil
+	}
+	obid := ChatOutboxID(*s)
+	return &obid
+}
+
 func (a *AccountDetails) SetDefaultDisplayCurrency() {
 	if a.DisplayCurrency == "" {
 		a.DisplayCurrency = "USD"
