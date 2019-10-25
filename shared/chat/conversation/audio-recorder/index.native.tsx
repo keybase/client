@@ -9,7 +9,7 @@ import * as Chat2Gen from '../../../actions/chat2-gen'
 import {formatAudioRecordDuration} from '../../../util/timestamp'
 import {Props} from '.'
 
-const minAmp = -80
+const minAmp = -100
 
 const AudioRecorder = (props: Props) => {
   // props
@@ -72,14 +72,9 @@ const AudioRecorder = (props: Props) => {
         sendRecording={sendRecording}
         stageRecording={stageRecording}
       />
-      {!locked && <AudioSlideToCancel closeDown={closingDown} onCancel={onCancel} />}
+      <AudioSlideToCancel closeDown={closingDown} locked={locked} onCancel={onCancel} />
       <Kb.Box2 gap="medium" direction="horizontal" style={styles.rowContainer}>
-        <AudioCounter />
-        {locked && (
-          <Kb.Text type="BodyPrimaryLink" onClick={onCancel} style={{marginLeft: 30}}>
-            Cancel
-          </Kb.Text>
-        )}
+        <AudioCounter closeDown={closingDown} />
       </Kb.Box2>
     </Kb.Box2>
   )
@@ -140,6 +135,7 @@ const AudioButton = (props: ButtonProps) => {
   React.useEffect(() => {
     if (props.locked) {
       Kb.NativeAnimated.timing(sendTranslate, {
+        easing: Kb.NativeEasing.elastic(1),
         duration: 400,
         toValue: 1,
         useNativeDriver: true,
@@ -324,11 +320,86 @@ const AudioButton = (props: ButtonProps) => {
 
 type CancelProps = {
   closeDown: boolean
+  locked: boolean
   onCancel: () => void
 }
 
 const AudioSlideToCancel = (props: CancelProps) => {
   const translate = React.useRef(new Kb.NativeAnimated.Value(0)).current
+  const cancelTranslate = React.useRef(new Kb.NativeAnimated.Value(0)).current
+  React.useEffect(() => {
+    Kb.NativeAnimated.timing(translate, {
+      easing: Kb.NativeEasing.elastic(1),
+      duration: 400,
+      toValue: 1,
+      useNativeDriver: true,
+    }).start()
+  }, [])
+  React.useEffect(() => {
+    if (props.closeDown) {
+      Kb.NativeAnimated.timing(translate, {
+        duration: 400,
+        toValue: 0,
+        useNativeDriver: true,
+      }).start()
+      Kb.NativeAnimated.timing(cancelTranslate, {
+        duration: 400,
+        toValue: 1,
+        useNativeDriver: true,
+      }).start()
+    }
+  }, [props.closeDown])
+  return props.locked ? (
+    <Kb.NativeAnimated.View
+      style={{
+        bottom: 10,
+        position: 'absolute',
+        right: 150,
+        transform: [
+          {
+            translateY: cancelTranslate.interpolate({
+              inputRange: [0, 1],
+              outputRange: [0, 50],
+            }),
+          },
+        ],
+      }}
+    >
+      <Kb.Text type="BodyPrimaryLink" onClick={props.onCancel} style={{marginLeft: 30}}>
+        Cancel
+      </Kb.Text>
+    </Kb.NativeAnimated.View>
+  ) : (
+    <Kb.NativeAnimated.View
+      style={{
+        bottom: 10,
+        position: 'absolute',
+        right: 0,
+        transform: [
+          {
+            translateX: translate.interpolate({
+              inputRange: [0, 1],
+              outputRange: [-10, -125],
+            }),
+          },
+        ],
+      }}
+    >
+      <Kb.Box2 direction="horizontal" gap="tiny">
+        <Kb.Icon type="iconfont-arrow-left" fontSize={16} />
+        <Kb.Text type="BodySecondaryLink">Slide to cancel</Kb.Text>
+      </Kb.Box2>
+    </Kb.NativeAnimated.View>
+  )
+}
+
+type CounterProps = {
+  closeDown: boolean
+}
+
+const AudioCounter = (props: CounterProps) => {
+  const translate = React.useRef(new Kb.NativeAnimated.Value(0)).current
+  const [seconds, setSeconds] = React.useState(0)
   React.useEffect(() => {
     Kb.NativeAnimated.timing(translate, {
       easing: Kb.NativeEasing.elastic(1),
@@ -346,39 +417,28 @@ const AudioSlideToCancel = (props: CancelProps) => {
       }).start()
     }
   }, [props.closeDown])
-  return (
-    <Kb.NativeAnimated.View
-      style={{
-        bottom: 10,
-        position: 'absolute',
-        right: 0,
-        transform: [
-          {
-            translateX: translate.interpolate({
-              inputRange: [0, 1],
-              outputRange: [-10, -120],
-            }),
-          },
-        ],
-      }}
-    >
-      <Kb.Box2 direction="horizontal" gap="tiny">
-        <Kb.Icon type="iconfont-arrow-left" fontSize={16} />
-        <Kb.Text type="BodySecondaryLink">Slide to cancel</Kb.Text>
-      </Kb.Box2>
-    </Kb.NativeAnimated.View>
-  )
-}
-
-const AudioCounter = () => {
-  const [seconds, setSeconds] = React.useState(0)
   React.useEffect(() => {
     const timer = setInterval(() => {
       setSeconds(seconds + 1)
     }, 1000)
     return () => clearTimeout(timer)
   }, [seconds])
-  return <Kb.Text type="BodyBold">{formatAudioRecordDuration(seconds * 1000)}</Kb.Text>
+  return (
+    <Kb.NativeAnimated.View
+      style={{
+        transform: [
+          {
+            translateX: translate.interpolate({
+              inputRange: [0, 1],
+              outputRange: [props.closeDown ? -50 : -20, 0],
+            }),
+          },
+        ],
+      }}
+    >
+      <Kb.Text type="BodyBold">{formatAudioRecordDuration(seconds * 1000)}</Kb.Text>
+    </Kb.NativeAnimated.View>
+  )
 }
 
 const styles = Styles.styleSheetCreate(() => ({
