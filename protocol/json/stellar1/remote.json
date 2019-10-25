@@ -74,6 +74,10 @@
           "name": "chatOutboxID"
         },
         {
+          "type": "boolean",
+          "name": "ics"
+        },
+        {
           "type": "string",
           "name": "batchID"
         }
@@ -139,6 +143,10 @@
             "ChatOutboxID"
           ],
           "name": "chatOutboxID"
+        },
+        {
+          "type": "boolean",
+          "name": "ics"
         },
         {
           "type": "string",

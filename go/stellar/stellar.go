@@ -1100,6 +1100,7 @@ func prepareMiniChatPaymentDirect(m libkb.MetaContext, remoter remote.Remoter, s
 		FromDeviceID: m.G().ActiveDevice.DeviceID(),
 		To:           &recipient.User.UV,
 		QuickReturn:  true,
+		Ics:          true,
 	}
 	if convID != nil {
 		result.Direct.ChatConversationID = stellar1.NewChatConversationID(convID)
@@ -1198,6 +1199,7 @@ func prepareMiniChatPaymentRelay(mctx libkb.MetaContext, remoter remote.Remoter,
 		DisplayAmount:     displayAmount,
 		DisplayCurrency:   displayCurrency,
 		QuickReturn:       true,
+		Ics:               true,
 	}
 	if recipient.User != nil {
 		post.To = &recipient.User.UV

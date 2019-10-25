@@ -34,6 +34,7 @@ type PaymentDirectPost struct {
 	QuickReturn        bool                  `codec:"quickReturn" json:"quickReturn"`
 	ChatConversationID *ChatConversationID   `codec:"chatConversationID,omitempty" json:"chatConversationID,omitempty"`
 	ChatOutboxID       *ChatOutboxID         `codec:"chatOutboxID,omitempty" json:"chatOutboxID,omitempty"`
+	Ics                bool                  `codec:"ics" json:"ics"`
 	BatchID            string                `codec:"batchID" json:"batchID"`
 }
 
@@ -66,6 +67,7 @@ func (o PaymentDirectPost) DeepCopy() PaymentDirectPost {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.ChatOutboxID),
+		Ics:     o.Ics,
 		BatchID: o.BatchID,
 	}
 }
@@ -83,6 +85,7 @@ type PaymentRelayPost struct {
 	QuickReturn        bool                  `codec:"quickReturn" json:"quickReturn"`
 	ChatConversationID *ChatConversationID   `codec:"chatConversationID,omitempty" json:"chatConversationID,omitempty"`
 	ChatOutboxID       *ChatOutboxID         `codec:"chatOutboxID,omitempty" json:"chatOutboxID,omitempty"`
+	Ics                bool                  `codec:"ics" json:"ics"`
 	BatchID            string                `codec:"batchID" json:"batchID"`
 }
 
@@ -118,6 +121,7 @@ func (o PaymentRelayPost) DeepCopy() PaymentRelayPost {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.ChatOutboxID),
+		Ics:     o.Ics,
 		BatchID: o.BatchID,
 	}
 }

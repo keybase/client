@@ -21,6 +21,7 @@ protocol remote {
     // status changes along with this conversation ID
     union { null, ChatConversationID } chatConversationID;
     union { null, ChatOutboxID } chatOutboxID;
+    boolean ics; // true if in chat send
     string batchID; // if this payment is part of a batch
   }
 
@@ -39,6 +40,7 @@ protocol remote {
     // status changes along with this conversation ID
     union { null, ChatConversationID } chatConversationID;
     union { null, ChatOutboxID } chatOutboxID;
+    boolean ics; // true if in chat send
     string batchID; // if this payment is part of a batch
   }
 
