@@ -42,14 +42,14 @@
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
-    <key>NSExceptionDomains</key>
-    <dict>
-      <key>localhost</key>
-      <dict>
-        <key>NSExceptionAllowsInsecureHTTPLoads</key>
-        <true/>
-      </dict>
-    </dict>
+		<key>NSExceptionDomains</key>
+		<dict>
+			<key>localhost</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+			</dict>
+		</dict>
 	</dict>
 	<key>NSCalendarsUsageDescription</key>
 	<string>Keybase does not use this data! Please send feedback if you see this message.</string>
@@ -99,10 +99,13 @@
 		<string>armv7</string>
 	</array>
 	<key>UIRequiresFullScreen</key>
-	<true/>
+	<false/>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
