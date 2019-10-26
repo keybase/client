@@ -14,6 +14,7 @@ type OwnProps = {
   onRequestScrollDown: () => void
   onRequestScrollToBottom: () => void
   onRequestScrollUp: () => void
+  onStopAudioRecording: (stopType: Types.AudioStopType) => void
 }
 
 type Props = {
@@ -68,6 +69,7 @@ class InputArea extends React.PureComponent<Props> {
         onRequestScrollToBottom={this.props.onRequestScrollToBottom}
         onRequestScrollUp={this.props.onRequestScrollUp}
         conversationIDKey={this.props.conversationIDKey}
+        onStopAudioRecording={this.props.onStopAudioRecording}
       />
     )
   }

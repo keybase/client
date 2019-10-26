@@ -2098,12 +2098,10 @@ const sendAudioRecording = async (
   // sit here for 400ms for animations
   await Saga.delay(400)
 
-  await RPCChatTypes.localMakeAudioPreviewRpcPromise({
-
-  })
-
   const conversationIDKey = action.payload.conversationIDKey
   const audioRecording = state.chat2.audioRecording.get(conversationIDKey)
+  const clientPrev = Constants.getClientPrev(state, conversationIDKey)
+  const ephemeralLifetime = Constants.getConversationExplodingMode(state, conversationIDKey)
   if (!audioRecording) {
     logger.info('sendAudioRecording: no audio info for send')
     return
@@ -2113,12 +2111,18 @@ const sendAudioRecording = async (
     logger.warn('sendAudioRecording: no meta for send')
     return
   }
-  const clientPrev = Constants.getClientPrev(state, conversationIDKey)
-  const ephemeralLifetime = Constants.getConversationExplodingMode(state, conversationIDKey)
+
+  let callerPreview: RPCChatTypes.MakePreviewRes | null = null
+  if (audioRecording.amps.length > 0) {
+    callerPreview = await RPCChatTypes.localMakeAudioPreviewRpcPromise({
+      amps: audioRecording.amps,
+    })
+  }
   const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
   await RPCChatTypes.localPostFileAttachmentLocalNonblockRpcPromise({
     arg: {
       ...ephemeralData,
+      callerPreview,
       conversationID: Types.keyToConversationID(conversationIDKey),
       filename: audioRecording.path,
       identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,

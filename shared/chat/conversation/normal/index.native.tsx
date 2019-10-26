@@ -52,6 +52,7 @@ const Input = (props: InputProps) => {
         stopType,
       })
     )
+    ampTracker.reset()
   }
   return (
     <>

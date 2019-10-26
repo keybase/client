@@ -26,8 +26,8 @@ func newAudioVisualizer(amps []float64) *audioVisualizer {
 		amps:        amps,
 		bkgColor:    color.White,
 		strokeColor: color.Black,
-		strokeWidth: 3,
-		strokeGap:   2,
+		strokeWidth: 2,
+		strokeGap:   1,
 		height:      64,
 		minAmp:      -80,
 	}
@@ -78,7 +78,7 @@ func (s *Sender) MakeAudioPreview(ctx context.Context, amps []float64) (res chat
 	baseMd := chat1.NewAssetMetadataWithVideo(chat1.AssetMetadataVideo{
 		Width:      previewWidth,
 		Height:     v.height,
-		DurationMs: 0,
+		DurationMs: 1,
 	})
 	res.BaseMetadata = &baseMd
 	previewMd := chat1.NewAssetMetadataWithImage(chat1.AssetMetadataImage{
