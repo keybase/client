@@ -53,7 +53,7 @@ function getTooltip(syncStatus: Types.SyncStatus, isFolder: boolean): string {
     case Types.UploadIcon.Uploading:
       return 'Uploading...'
     case Types.UploadIcon.UploadingStuck:
-      return 'Stuck in conflict resolution. Upload will start once you resolve confliction.'
+      return 'Stuck in conflict resolution. Upload will start once you resolve conflict.'
     case Types.NonUploadStaticSyncStatus.OnlineOnly:
       return 'Online only'
     case Types.NonUploadStaticSyncStatus.Synced:
