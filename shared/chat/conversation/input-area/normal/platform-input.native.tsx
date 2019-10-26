@@ -21,7 +21,7 @@ import {parseUri, launchCameraAsync, launchImageLibraryAsync} from '../../../../
 import {BotCommandUpdateStatus} from './shared'
 import {formatDurationShort} from '../../../../util/timestamp'
 import flags from '../../../../util/feature-flags'
-import AudioRecorder from './audio-recorder'
+import AudioRecorder from './audio-recorder.native'
 import {AmpTracker} from './amptracker'
 
 type menuType = 'exploding' | 'filepickerpopup' | 'moremenu'
@@ -34,6 +34,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
   _whichMenu?: menuType
   state = {hasText: false}
   _ampTracker = new AmpTracker(60)
+  _audioDragY = new Kb.NativeAnimated.Value(0)
 
   _inputSetRef = (ref: null | Kb.PlainInput) => {
     this._input = ref
@@ -212,6 +213,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
             {!this.props.cannotWrite && (
               <Action
                 audio={this.props.audio}
+                audioDragY={this._audioDragY}
                 hasText={this.state.hasText}
                 onEnableAudioRecording={this._enableAudioRecording}
                 onLockAudioRecording={this.props.onLockAudioRecording}
@@ -227,6 +229,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
         </Kb.Box>
         <AudioRecorder
           conversationIDKey={this.props.conversationIDKey}
+          dragY={this._audioDragY}
           onMetering={this._ampTracker.addAmp}
           onStopRecording={this._stopAudioRecording}
         />
@@ -238,6 +241,7 @@ const PlatformInput = AddSuggestors(_PlatformInput)
 
 type ActionProps = {
   audio?: Types.AudioRecordingInfo
+  audioDragY: Kb.NativeAnimated.Value
   hasText: boolean
   onEnableAudioRecording: () => void
   onLockAudioRecording: () => void
@@ -252,6 +256,7 @@ type ActionProps = {
 const Action = React.memo((props: ActionProps) => {
   const {
     audio,
+    audioDragY,
     hasText,
     insertMentionMarker,
     isEditing,
@@ -318,6 +323,7 @@ const Action = React.memo((props: ActionProps) => {
           />
           {smallGap}
           <AudioStarter
+            dragY={audioDragY}
             lockRecording={onLockAudioRecording}
             recording={Constants.showAudioRecording(audio)}
             enableRecording={onEnableAudioRecording}
@@ -337,6 +343,7 @@ const Action = React.memo((props: ActionProps) => {
 })
 
 type AudioStarterProps = {
+  dragY: Kb.NativeAnimated.Value
   recording: boolean
   lockRecording: () => void
   enableRecording: () => void
@@ -385,7 +392,15 @@ const AudioStarter = (props: AudioStarterProps) => {
             longPressTimer = null
             props.stopRecording(Types.AudioStopType.CANCEL)
           }
+          props.dragY.setValue(nativeEvent.translationY)
         }}
+        /*onGestureEvent={Kb.NativeAnimated.event([
+          {
+            nativeEvent: {
+              translationY: props.dragY,
+            },
+          },
+        ])}*/
         onHandlerStateChange={({nativeEvent}) => {
           if (nativeEvent.state === Kb.GestureState.END) {
             if (nativeEvent.y < maxAudioDrift) {
