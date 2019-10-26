@@ -44,6 +44,10 @@ type InputProps = {
 const Input = (props: InputProps) => {
   const ampTracker = React.useRef<AmpTracker>(new AmpTracker(60)).current
   const dispatch = Container.useDispatch()
+  const enableRecording = () => {
+    ampTracker.reset()
+    dispatch(Chat2Gen.createEnableAudioRecording({conversationIDKey: props.conversationIDKey}))
+  }
   const stopRecording = (stopType: Types.AudioStopType) => {
     dispatch(
       Chat2Gen.createStopAudioRecording({
@@ -52,13 +56,13 @@ const Input = (props: InputProps) => {
         stopType,
       })
     )
-    ampTracker.reset()
   }
   return (
     <>
       <InputArea
         focusInputCounter={props.focusInputCounter}
         jumpToRecent={props.jumpToRecent}
+        onEnableAudioRecording={enableRecording}
         onRequestScrollDown={props.onRequestScrollDown}
         onRequestScrollToBottom={props.onRequestScrollToBottom}
         onRequestScrollUp={props.onRequestScrollUp}

@@ -11,6 +11,7 @@ type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
   focusInputCounter: number
   jumpToRecent: () => void
+  onEnableAudioRecording: () => void
   onRequestScrollDown: () => void
   onRequestScrollToBottom: () => void
   onRequestScrollUp: () => void
@@ -65,6 +66,7 @@ class InputArea extends React.PureComponent<Props> {
       <Normal
         focusInputCounter={this.props.focusInputCounter}
         jumpToRecent={this.props.jumpToRecent}
+        onEnableAudioRecording={this.props.onEnableAudioRecording}
         onRequestScrollDown={this.props.onRequestScrollDown}
         onRequestScrollToBottom={this.props.onRequestScrollToBottom}
         onRequestScrollUp={this.props.onRequestScrollUp}

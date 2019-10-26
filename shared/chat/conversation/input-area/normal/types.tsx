@@ -21,6 +21,7 @@ type CommonProps = {
   onCancelEditing: () => void
   onCancelReply: () => void
   onEditLastMessage: () => void
+  onEnableAudioRecording: () => void
   onFilePickerError: (error: Error) => void
   onGiphyToggle: () => void
   onLockAudioRecording: () => void

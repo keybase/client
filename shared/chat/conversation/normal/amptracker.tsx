@@ -1,31 +1,30 @@
+import chunk from 'lodash/chunk'
+
 export class AmpTracker {
   private numBuckets: number
   private buckets: Array<number> = []
-  private curBucket = 0
   constructor(numBuckets: number) {
     this.numBuckets = numBuckets
   }
 
   addAmp = (amp: number) => {
-    const samples = Math.floor(this.curBucket / this.numBuckets)
-    const index = this.curBucket % this.numBuckets
-    if (!samples) {
-      this.buckets[index] = amp
-    } else {
-      let avg = this.buckets[index]
-      avg -= avg / (samples + 1)
-      avg += amp / (samples + 1)
-      this.buckets[index] = avg
-    }
-    this.curBucket++
+    this.buckets.push(amp)
   }
 
   getBucketedAmps = (): Array<number> => {
-    return this.buckets
+    const chunkSize = Math.max(1, Math.floor(this.buckets.length / this.numBuckets))
+    const chunks = chunk(this.buckets, chunkSize)
+    return chunks.reduce((l, c) => {
+      l.push(
+        c.reduce((a, b) => {
+          return a + b
+        }, 0) / c.length
+      )
+      return l
+    }, [])
   }
 
   reset = () => {
     this.buckets = []
-    this.curBucket = 0
   }
 }

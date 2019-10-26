@@ -201,8 +201,8 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
             <Action
               audio={this.props.audio}
               hasText={this.state.hasText}
+              onEnableAudioRecording={this.props.onEnableAudioRecording}
               onLockAudioRecording={this.props.onLockAudioRecording}
-              onStartAudioRecording={this.props.onStartAudioRecording}
               onStopAudioRecording={this.props.onStopAudioRecording}
               onSubmit={this._onSubmit}
               isEditing={this.props.isEditing}
@@ -221,8 +221,8 @@ const PlatformInput = AddSuggestors(_PlatformInput)
 type ActionProps = {
   audio?: Types.AudioRecordingInfo
   hasText: boolean
+  onEnableAudioRecording: () => void
   onLockAudioRecording: () => void
-  onStartAudioRecording: () => void
   onStopAudioRecording: (stopType: Types.AudioStopType) => void
   onSubmit: () => void
   isEditing: boolean
@@ -237,8 +237,8 @@ const Action = React.memo((props: ActionProps) => {
     hasText,
     insertMentionMarker,
     isEditing,
+    onEnableAudioRecording,
     onLockAudioRecording,
-    onStartAudioRecording,
     onStopAudioRecording,
     onSubmit,
     openFilePicker,
@@ -302,7 +302,7 @@ const Action = React.memo((props: ActionProps) => {
           <AudioStarter
             lockRecording={onLockAudioRecording}
             recording={Constants.showAudioRecording(audio)}
-            startRecording={onStartAudioRecording}
+            enableRecording={onEnableAudioRecording}
             stopRecording={onStopAudioRecording}
           />
           {smallGap}
@@ -321,7 +321,7 @@ const Action = React.memo((props: ActionProps) => {
 type AudioStarterProps = {
   recording: boolean
   lockRecording: () => void
-  startRecording: () => void
+  enableRecording: () => void
   stopRecording: (st: Types.AudioStopType) => void
 }
 
@@ -337,7 +337,7 @@ const AudioStarter = (props: AudioStarterProps) => {
       onHandlerStateChange={({nativeEvent}) => {
         if (!props.recording && nativeEvent.state === Kb.GestureState.BEGAN) {
           if (!longPressTimer) {
-            longPressTimer = setTimeout(props.startRecording, 200)
+            longPressTimer = setTimeout(props.enableRecording, 200)
           }
         }
         if (nativeEvent.state === Kb.GestureState.ACTIVE || nativeEvent.state === Kb.GestureState.END) {

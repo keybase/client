@@ -13,6 +13,7 @@ type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
   focusInputCounter: number
   jumpToRecent: () => void
+  onEnableAudioRecording: () => void
   onRequestScrollDown: () => void
   onRequestScrollToBottom: () => void
   onRequestScrollUp: () => void
@@ -160,8 +161,6 @@ export default Container.namedConnect(
           text: new HiddenString(text),
         })
       ),
-    _onStartAudioRecording: (conversationIDKey: Types.ConversationIDKey) =>
-      dispatch(Chat2Gen.createEnableAudioRecording({conversationIDKey})),
     _sendTyping: (conversationIDKey: Types.ConversationIDKey, typing: boolean) =>
       conversationIDKey && dispatch(Chat2Gen.createSendTyping({conversationIDKey, typing})),
     _unsentTextChanged: (conversationIDKey: Types.ConversationIDKey, text: string) =>
@@ -207,12 +206,12 @@ export default Container.namedConnect(
     onCancelEditing: () => dispatchProps._onCancelEditing(stateProps.conversationIDKey),
     onCancelReply: () => dispatchProps._onCancelReply(stateProps.conversationIDKey),
     onEditLastMessage: () => dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
+    onEnableAudioRecording: ownProps.onEnableAudioRecording,
     onFilePickerError: dispatchProps.onFilePickerError,
     onGiphyToggle: () => dispatchProps._onGiphyToggle(stateProps.conversationIDKey),
     onLockAudioRecording: () => dispatchProps._onLockAudioRecording(stateProps.conversationIDKey),
     onRequestScrollDown: ownProps.onRequestScrollDown,
     onRequestScrollUp: ownProps.onRequestScrollUp,
-    onStartAudioRecording: () => dispatchProps._onStartAudioRecording(stateProps.conversationIDKey),
     onStopAudioRecording: ownProps.onStopAudioRecording,
     onSubmit: (text: string) => {
       if (stateProps._editOrdinal) {
