@@ -26,5 +26,6 @@ export class AmpTracker {
 
   reset = () => {
     this.buckets = []
+    this.curBucket = 0
   }
 }
