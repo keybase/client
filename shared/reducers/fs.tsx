@@ -409,6 +409,13 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
       draftEdit.status = Types.EditStatusType.Saving
     })
   },
+  [FsGen.editSuccess]: (draftState, action) => {
+    if (draftState.edits.has(action.payload.editID)) {
+      const edits = new Map(draftState.edits)
+      edits.delete(action.payload.editID)
+      draftState.edits = edits
+    }
+  },
   [FsGen.discardEdit]: (draftState, action) => {
     if (draftState.edits.has(action.payload.editID)) {
       const edits = new Map(draftState.edits)
