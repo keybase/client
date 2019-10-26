@@ -25,6 +25,10 @@ const AudioRecorder = (props: Props) => {
 
   // dispatch
   const dispatch = Container.useDispatch()
+  const meteringCb = (amp: number) => {
+    props.onMetering(amp)
+    setLastAmp(amp)
+  }
   const onCancel = React.useCallback(() => {
     dispatch(Chat2Gen.createStopAudioRecording({conversationIDKey, stopType: Types.AudioStopType.CANCEL}))
   }, [dispatch, conversationIDKey])
@@ -34,19 +38,15 @@ const AudioRecorder = (props: Props) => {
     },
     [dispatch, conversationIDKey]
   )
-  const sendRecording = React.useCallback(() => {
-    dispatch(Chat2Gen.createStopAudioRecording({conversationIDKey, stopType: Types.AudioStopType.SEND}))
-  }, [dispatch, conversationIDKey])
-  const stageRecording = React.useCallback(() => {
-    dispatch(Chat2Gen.createStopAudioRecording({conversationIDKey, stopType: Types.AudioStopType.STOPBUTTON}))
-  }, [dispatch, conversationIDKey])
+  const sendRecording = () => props.onStopRecording(Types.AudioStopType.SEND)
+  const stageRecording = () => props.onStopRecording(Types.AudioStopType.STOPBUTTON)
 
   // lifecycle
   React.useEffect(() => {
     // we only want one of these timers running ever, so keep track of it here. We clear the timeout
     // whenever we drop the audio recording interface from the conv
     if (!timerRef.current && audioRecording && audioRecording.status === Types.AudioRecordingStatus.INITIAL) {
-      timerRef.current = setTimeout(() => startRecording(setLastAmp), 400)
+      timerRef.current = setTimeout(() => startRecording(meteringCb), 400)
     } else if (!Constants.showAudioRecording(audioRecording) && timerRef.current) {
       clearTimeout(timerRef.current)
       timerRef.current = null

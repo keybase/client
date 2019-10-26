@@ -1,4 +1,7 @@
 import * as React from 'react'
+import * as Types from '../../../constants/types/chat2'
+import * as Container from '../../../util/container'
+import * as Chat2Gen from '../../../actions/chat2-gen'
 import Banner from '../bottom-banner/container'
 import HeaderArea from '../header-area/container'
 import InputArea from '../input-area/container'
@@ -9,6 +12,7 @@ import {Props} from '.'
 import ThreadLoadStatus from '../load-status/container'
 import PinnedMessage from '../pinned-message/container'
 import AudioRecorder from '../audio-recorder'
+import {AmpTracker} from './amptracker'
 
 const Offline = () => (
   <Box
@@ -28,40 +32,80 @@ const Offline = () => (
   </Box>
 )
 
-class Conversation extends React.PureComponent<Props> {
-  render() {
-    return (
-      <Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-        {this.props.threadLoadedOffline && <Offline />}
-        <HeaderArea
-          onToggleInfoPanel={this.props.onToggleInfoPanel}
-          conversationIDKey={this.props.conversationIDKey}
-        />
-        <Box2 direction="vertical" fullWidth={true} style={styles.innerContainer}>
-          <ThreadLoadStatus conversationIDKey={this.props.conversationIDKey} />
-          <PinnedMessage conversationIDKey={this.props.conversationIDKey} />
-          <ListArea
-            scrollListDownCounter={this.props.scrollListDownCounter}
-            scrollListToBottomCounter={this.props.scrollListToBottomCounter}
-            scrollListUpCounter={this.props.scrollListUpCounter}
-            onFocusInput={this.props.onFocusInput}
-            conversationIDKey={this.props.conversationIDKey}
-          />
-          {this.props.showLoader && <LoadingLine />}
-        </Box2>
-        <Banner conversationIDKey={this.props.conversationIDKey} />
-        <InputArea
-          focusInputCounter={this.props.focusInputCounter}
-          jumpToRecent={this.props.jumpToRecent}
-          onRequestScrollDown={this.props.onRequestScrollDown}
-          onRequestScrollToBottom={this.props.onRequestScrollToBottom}
-          onRequestScrollUp={this.props.onRequestScrollUp}
-          conversationIDKey={this.props.conversationIDKey}
-        />
-        <AudioRecorder conversationIDKey={this.props.conversationIDKey} />
-      </Box2>
+type InputProps = {
+  conversationIDKey: Types.ConversationIDKey
+  focusInputCounter: number
+  jumpToRecent: () => void
+  onRequestScrollDown: () => void
+  onRequestScrollToBottom: () => void
+  onRequestScrollUp: () => void
+}
+
+const Input = (props: InputProps) => {
+  const ampTracker = React.useRef<AmpTracker>(new AmpTracker(60)).current
+  const dispatch = Container.useDispatch()
+  const enableRecording = () => {
+    ampTracker.reset()
+    dispatch(Chat2Gen.createEnableAudioRecording({conversationIDKey: props.conversationIDKey}))
+  }
+  const stopRecording = (stopType: Types.AudioStopType) => {
+    dispatch(
+      Chat2Gen.createStopAudioRecording({
+        amps: ampTracker.getBucketedAmps(),
+        conversationIDKey: props.conversationIDKey,
+        stopType,
+      })
     )
   }
+  return (
+    <>
+      <InputArea
+        focusInputCounter={props.focusInputCounter}
+        jumpToRecent={props.jumpToRecent}
+        onEnableAudioRecording={enableRecording}
+        onRequestScrollDown={props.onRequestScrollDown}
+        onRequestScrollToBottom={props.onRequestScrollToBottom}
+        onRequestScrollUp={props.onRequestScrollUp}
+        conversationIDKey={props.conversationIDKey}
+        onStopAudioRecording={stopRecording}
+      />
+      <AudioRecorder
+        conversationIDKey={props.conversationIDKey}
+        onMetering={ampTracker.addAmp}
+        onStopRecording={stopRecording}
+      />
+    </>
+  )
+}
+
+const Conversation = (props: Props) => {
+  return (
+    <Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+      {props.threadLoadedOffline && <Offline />}
+      <HeaderArea onToggleInfoPanel={props.onToggleInfoPanel} conversationIDKey={props.conversationIDKey} />
+      <Box2 direction="vertical" fullWidth={true} style={styles.innerContainer}>
+        <ThreadLoadStatus conversationIDKey={props.conversationIDKey} />
+        <PinnedMessage conversationIDKey={props.conversationIDKey} />
+        <ListArea
+          scrollListDownCounter={props.scrollListDownCounter}
+          scrollListToBottomCounter={props.scrollListToBottomCounter}
+          scrollListUpCounter={props.scrollListUpCounter}
+          onFocusInput={props.onFocusInput}
+          conversationIDKey={props.conversationIDKey}
+        />
+        {props.showLoader && <LoadingLine />}
+      </Box2>
+      <Banner conversationIDKey={props.conversationIDKey} />
+      <Input
+        focusInputCounter={props.focusInputCounter}
+        jumpToRecent={props.jumpToRecent}
+        onRequestScrollDown={props.onRequestScrollDown}
+        onRequestScrollToBottom={props.onRequestScrollToBottom}
+        onRequestScrollUp={props.onRequestScrollUp}
+        conversationIDKey={props.conversationIDKey}
+      />
+    </Box2>
+  )
 }
 
 const styles = styleSheetCreate(
