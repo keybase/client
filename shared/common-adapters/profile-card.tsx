@@ -38,6 +38,7 @@ const Kb = {
 type Props = {
   clickToProfile?: true
   containerStyle?: Styles.StylesCrossPlatform
+  onGoToProfile?: () => void
   showClose?: true
   username: string
 }
@@ -121,7 +122,7 @@ const ServiceIcons = ({userDetails}: ServiceIconsProps) => {
   )
 }
 
-const ProfileCard = ({clickToProfile, showClose, containerStyle, username}: Props) => {
+const ProfileCard = ({clickToProfile, onGoToProfile, showClose, containerStyle, username}: Props) => {
   const userDetails = Container.useSelector(state => Tracker2Constants.getDetails(state, username))
   const followThem = Container.useSelector(state => Tracker2Constants.followThem(state, username))
   const followsYou = Container.useSelector(state => Tracker2Constants.followsYou(state, username))
@@ -150,10 +151,10 @@ const ProfileCard = ({clickToProfile, showClose, containerStyle, username}: Prop
     [dispatch, userDetails]
   )
 
-  const openProfile = React.useCallback(() => dispatch(ProfileGen.createShowUserProfile({username})), [
-    dispatch,
-    username,
-  ])
+  const openProfile = React.useCallback(() => {
+    dispatch(ProfileGen.createShowUserProfile({username}))
+    onGoToProfile && onGoToProfile()
+  }, [dispatch, onGoToProfile, username])
 
   return (
     <Kb.Box2
@@ -165,7 +166,7 @@ const ProfileCard = ({clickToProfile, showClose, containerStyle, username}: Prop
         <Kb.Icon type="iconfont-close" onClick={() => {}} boxStyle={styles.close} padding="tiny" />
       )}
       <Kb.ConnectedNameWithIcon
-        onClick={clickToProfile && 'profile'}
+        onClick={clickToProfile && openProfile}
         colorFollowing={true}
         username={username}
         metaStyle={styles.connectedNameWithIconMetaStyle}
@@ -241,7 +242,12 @@ export const WithProfileCardPopup = ({username, children}: WithProfileCardPopupP
         header={{
           title: '',
           view: (
-            <ProfileCard containerStyle={styles.profileCardPopup} username={username} clickToProfile={true} />
+            <ProfileCard
+              containerStyle={styles.profileCardPopup}
+              username={username}
+              clickToProfile={true}
+              onGoToProfile={() => setShowing(false)}
+            />
           ),
         }}
         items={[]}

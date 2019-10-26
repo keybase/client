@@ -598,7 +598,6 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 				if err = s.postProcessThread(ctx, uid, conv, &thread, query, nil, nil, true, true, &vconv); err != nil {
 					return thread, err
 				}
-				s.Debug(ctx, "b thread: %+v", thread)
 			}
 			return thread, nil
 		}

@@ -6,7 +6,7 @@ import {namedConnect, isMobile} from '../../util/container'
 import {teamsTab} from '../../constants/tabs'
 
 export type ConnectedNameWithIconProps = {
-  onClick?: 'tracker' | 'profile' | NameWithIconProps['onClick']
+  onClick?: 'tracker' | 'profile' | NameWithIconProps['onClick'] | (() => void)
 } & Omit<NameWithIconProps, 'onClick'>
 
 type OwnProps = ConnectedNameWithIconProps
@@ -46,6 +46,9 @@ const mergeProps = (
       functionOnClick = () => dispatchProps.onOpenTeamProfile(teamname)
     }
     clickType = 'profile'
+  } else if (onClick) {
+    clickType = 'onClick'
+    functionOnClick = onClick
   }
 
   return {
