@@ -14,7 +14,7 @@ import {isAndroid} from '../constants/platform'
 let KBInputText = RNTextInput
 
 if (isAndroid) {
-  const NativeTextInput = isAndroid ? requireNativeComponent('KBTextInput') : {}
+  let NativeTextInput: any
   class _KBInputText extends RNTextInput {
     render() {
       // @ts-ignore we added this
@@ -45,7 +45,9 @@ if (isAndroid) {
           start: p.selection.start,
         }
       }
-
+      if (!NativeTextInput) {
+        NativeTextInput = isAndroid ? requireNativeComponent('KBTextInput') : {}
+      }
       const textContainer = (
         <NativeTextInput
           // @ts-ignore This neets
