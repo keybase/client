@@ -12,7 +12,6 @@ import TlfRow from './tlf'
 import StillRow from './still'
 import EditingRow from './editing'
 import PlaceholderRow from './placeholder'
-import UploadingRow from './uploading'
 import * as RowTypes from './types'
 import {commonProvider} from '../../common/index.stories'
 import {topBarProvider} from '../../top-bar/index.stories'
@@ -139,22 +138,6 @@ export const rowsProvider = {
         : []),
     ],
   }),
-  ConnectedStillRow: ({
-    path,
-    destinationPickerIndex,
-  }: {
-    destinationPickerIndex?: number
-    path: Types.Path
-  }) => {
-    const pathStr = Types.pathToString(path)
-    return {
-      destinationPickerIndex,
-      isEmpty: pathStr.includes('empty'),
-      name: Types.getPathName(path),
-      path,
-      type: Types.PathType.Folder,
-    }
-  },
   ConnectedTlfTypeRow: ({destinationPickerIndex, name}) => ({
     badgeCount: 0,
     destinationPickerIndex,
@@ -173,6 +156,16 @@ export const rowsProvider = {
     sortSetting: Types.SortSetting.NameAsc,
     sortSettingToAction: Sb.action('sortSettingToAction'),
   }),
+  Still: ({path, destinationPickerIndex}: {destinationPickerIndex?: number; path: Types.Path}) => {
+    const pathStr = Types.pathToString(path)
+    return {
+      destinationPickerIndex,
+      isEmpty: pathStr.includes('empty'),
+      name: Types.getPathName(path),
+      path,
+      type: Types.PathType.Folder,
+    }
+  },
 }
 
 const provider = Sb.createPropProviderWithCommon({
@@ -194,7 +187,7 @@ const load = () =>
     .add('Rows', () => (
       <Box>
         <WrapRow key="1">
-          <ConnectedStillRow name="a" path={Types.stringToPath('/keybase/private/meatball/a')} />
+          <ConnectedStillRow path={Types.stringToPath('/keybase/private/meatball/a')} />
         </WrapRow>
         <WrapRow key="2">
           <EditingRow
@@ -229,84 +222,93 @@ const load = () =>
           />
         </WrapRow>
         <WrapRow key="6">
-          <UploadingRow
+          <StillRow
+            isEmpty={false}
             path={Types.stringToPath('/keybase/team/kbkbfstest/foo')}
             type={Types.PathType.Folder}
             writingToJournal={true}
-            syncing={false}
+            uploading={false}
           />
         </WrapRow>
         <WrapRow key="7">
-          <UploadingRow
+          <StillRow
+            isEmpty={false}
             path={Types.stringToPath('/keybase/team/kbkbfstest/dir/foo')}
             type={Types.PathType.File}
             writingToJournal={true}
-            syncing={false}
+            uploading={false}
           />
         </WrapRow>
         <WrapRow key="8">
-          <UploadingRow
+          <StillRow
+            isEmpty={false}
             path={Types.stringToPath('/keybase/team/kbkbfstest/dir/foo')}
             type={Types.PathType.File}
             writingToJournal={true}
-            syncing={true}
+            uploading={true}
           />
         </WrapRow>
         <WrapRow key="9">
-          <UploadingRow
+          <StillRow
+            isEmpty={false}
             path={Types.stringToPath(
               '/keybase/team/kbkbfstest/dir/foo-obnoxiously-long-aslkdjhfalskjdhfaklsjdfhalksdjfhasdf-asdflkasjdfhlaksdjfh-asdhflaksjdhfaskd.mpeg4'
             )}
             type={Types.PathType.File}
             writingToJournal={false}
-            syncing={true}
+            uploading={true}
           />
         </WrapRow>
         <WrapRow key="10">
-          <UploadingRow
+          <StillRow
+            isEmpty={false}
             path={Types.stringToPath('/keybase/team/kbkbfstest/dir/foo')}
             type={Types.PathType.File}
             writingToJournal={false}
-            syncing={false}
+            uploading={false}
           />
         </WrapRow>
         <WrapRow key="11">
-          <UploadingRow
+          <StillRow
+            isEmpty={false}
             path={Types.stringToPath('/keybase/team/kbkbfstest/dir/foo')}
             type={Types.PathType.File}
             writingToJournal={false}
-            syncing={false}
-            errorRetry={Sb.action('errorRetry')}
+            uploading={false}
+            uploadErrorRetry={Sb.action('uploadErrorRetry')}
           />
         </WrapRow>
         <WrapRow key="download-normal">
           <StillRow
             path={Types.stringToPath('/keybase/private/foo/dir/bar')}
-            name="bar"
             type={Types.PathType.File}
             intentIfDownloading={Types.DownloadIntent.None}
             onOpen={Sb.action('onOpen')}
             isEmpty={false}
+            writingToJournal={false}
+            uploading={false}
           />
         </WrapRow>
         <WrapRow key="download-save">
           <StillRow
             path={Types.stringToPath('/keybase/private/foo/dir/bar')}
-            name="bar"
             type={Types.PathType.File}
             intentIfDownloading={Types.DownloadIntent.CameraRoll}
             onOpen={Sb.action('onOpen')}
             isEmpty={false}
+            writingToJournal={false}
+            uploading={false}
           />
         </WrapRow>
         <WrapRow key="download-share">
           <StillRow
             path={Types.stringToPath('/keybase/private/foo/dir/bar')}
-            name="bar"
             type={Types.PathType.File}
             intentIfDownloading={Types.DownloadIntent.Share}
             onOpen={Sb.action('onOpen')}
             isEmpty={false}
+            writingToJournal={false}
+            uploading={false}
           />
         </WrapRow>
         <WrapRow key="13">
@@ -316,20 +318,20 @@ const load = () =>
           <PlaceholderRow type={Types.PathType.File} />
         </WrapRow>
         <WrapRow key="15">
-          <ConnectedStillRow name="empty" path={Types.stringToPath('/keybase/private/meatball/empty')} />
+          <ConnectedStillRow path={Types.stringToPath('/keybase/private/meatball/empty')} />
         </WrapRow>
         <WrapRow key="16">
           <StillRow
             path={Types.stringToPath('/keybase/private/foo/bar/baz')}
-            name="qux"
             type={Types.PathType.File}
             onOpen={Sb.action('onOpen')}
             isEmpty={false}
+            writingToJournal={false}
+            uploading={false}
           />
         </WrapRow>
         <WrapRow key="17">
           <TlfTypeRow
-            name="private"
             path={Types.stringToPath('/keybase/private')}
             badgeCount={0}
             onOpen={Sb.action('onOpen')}
@@ -337,7 +339,6 @@ const load = () =>
         </WrapRow>
         <WrapRow key="18">
           <TlfTypeRow
-            name="private"
             path={Types.stringToPath('/keybase/private')}
             badgeCount={3}
             onOpen={Sb.action('onOpen')}
@@ -345,7 +346,6 @@ const load = () =>
         </WrapRow>
         <WrapRow key="19">
           <TlfRow
-            name="alice,bob,charlie"
             path={Types.stringToPath('/keybase/private/alice,bob,charlie')}
             isIgnored={false}
             isNew={true}
@@ -355,7 +355,6 @@ const load = () =>
         </WrapRow>
         <WrapRow key="20">
           <TlfRow
-            name="alice,bob,charlie"
             path={Types.stringToPath('/keybase/private/alice,bob,charlie')}
             isIgnored={false}
             isNew={true}
@@ -365,7 +364,6 @@ const load = () =>
         </WrapRow>
         <WrapRow key="21">
           <TlfRow
-            name="alice,bob,charlie,david,eve,felicity,george"
             path={Types.stringToPath('/keybase/private/alice,bob,charlie,david,eve,felicity,george')}
             isIgnored={false}
             isNew={true}

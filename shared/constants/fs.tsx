@@ -801,28 +801,86 @@ const isPathEnabledForSync = (syncConfig: Types.TlfSyncConfig, path: Types.Path)
   }
 }
 
+export const getUploadIconForTlfType = (
+  kbfsDaemonStatus: Types.KbfsDaemonStatus,
+  uploads: Types.Uploads,
+  tlfList: Types.TlfList,
+  tlfType: Types.TlfType
+): Types.UploadIcon | undefined => {
+  if (
+    [...tlfList].some(
+      ([_, tlf]) =>
+        tlf.conflictState.type === Types.ConflictStateType.NormalView && tlf.conflictState.stuckInConflict
+    )
+  ) {
+    return Types.UploadIcon.UploadingStuck
+  }
+
+  const prefix = Types.pathToString(Types.getTlfTypePathFromTlfType(tlfType))
+  if (
+    [uploads.syncingPaths, uploads.writingToJournal].some(s =>
+      [...s].some(p => Types.pathToString(p).startsWith(prefix))
+    )
+  ) {
+    return kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Offline
+      ? Types.UploadIcon.AwaitingToUpload
+      : Types.UploadIcon.Uploading
+  }
+
+  return undefined
+}
+
+export const tlfIsStuckInConflict = (tlf: Types.Tlf) =>
+  tlf.conflictState.type === Types.ConflictStateType.NormalView && tlf.conflictState.stuckInConflict
+
+export const getUploadIconForFilesTab = (
+  kbfsDaemonStatus: Types.KbfsDaemonStatus,
+  uploads: Types.Uploads,
+  tlfs: Types.Tlfs
+): Types.UploadIcon | undefined => {
+  if (
+    [
+      tlfs.private,
+      tlfs.public,
+      tlfs.team,
+      // omitting additionalTlfs for now since there's no way to access them
+      // anyway if they are not part of the favorites
+    ].some(tlfList => [...tlfList.entries()].some(([_, tlf]) => tlfIsStuckInConflict(tlf)))
+  ) {
+    return Types.UploadIcon.UploadingStuck
+  }
+  if (uploads.syncingPaths.size || uploads.writingToJournal.size) {
+    return kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Offline
+      ? Types.UploadIcon.AwaitingToUpload
+      : Types.UploadIcon.Uploading
+  }
+  return undefined
+}
+
 export const getSyncStatusInMergeProps = (
   kbfsDaemonStatus: Types.KbfsDaemonStatus,
   tlf: Types.Tlf,
   pathItem: Types.PathItem,
-  uploadingPaths: I.Set<Types.Path>,
+  uploadingPaths: Set<Types.Path>,
   path: Types.Path
 ): Types.SyncStatus => {
+  // uploading state has higher priority
+  if (uploadingPaths.has(path)) {
+    return tlf.conflictState.type === Types.ConflictStateType.NormalView && tlf.conflictState.stuckInConflict
+      ? Types.UploadIcon.UploadingStuck
+      : kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Offline
+      ? Types.UploadIcon.AwaitingToUpload
+      : Types.UploadIcon.Uploading
+  }
+  if (!isPathEnabledForSync(tlf.syncConfig, path)) {
+    return Types.NonUploadStaticSyncStatus.OnlineOnly
+  }
+
   if (
     !tlf.syncConfig ||
     (pathItem === unknownPathItem && tlf.syncConfig.mode !== Types.TlfSyncMode.Disabled)
   ) {
-    return Types.SyncStatusStatic.Unknown
-  }
-  const tlfSyncConfig: Types.TlfSyncConfig = tlf.syncConfig
-  // uploading state has higher priority
-  if (uploadingPaths.has(path)) {
-    return kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Offline
-      ? Types.SyncStatusStatic.AwaitingToUpload
-      : Types.SyncStatusStatic.Uploading
-  }
-  if (!isPathEnabledForSync(tlfSyncConfig, path)) {
-    return Types.SyncStatusStatic.OnlineOnly
+    return Types.NonUploadStaticSyncStatus.Unknown
   }
 
   // TODO: what about 'sync-error'?
@@ -830,22 +888,22 @@ export const getSyncStatusInMergeProps = (
   // We don't have an upload state, and sync is enabled for this path.
   switch (pathItem.prefetchStatus.state) {
     case Types.PrefetchState.NotStarted:
-      return Types.SyncStatusStatic.AwaitingToSync
+      return Types.NonUploadStaticSyncStatus.AwaitingToSync
     case Types.PrefetchState.Complete:
-      return Types.SyncStatusStatic.Synced
+      return Types.NonUploadStaticSyncStatus.Synced
     case Types.PrefetchState.InProgress: {
       if (kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Offline) {
-        return Types.SyncStatusStatic.AwaitingToSync
+        return Types.NonUploadStaticSyncStatus.AwaitingToSync
       }
       const inProgress: Types.PrefetchInProgress = pathItem.prefetchStatus
       if (inProgress.bytesTotal === 0) {
-        return Types.SyncStatusStatic.AwaitingToSync
+        return Types.NonUploadStaticSyncStatus.AwaitingToSync
       }
       return inProgress.bytesFetched / inProgress.bytesTotal
     }
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(pathItem.prefetchStatus)
-      return Types.SyncStatusStatic.Unknown
+      return Types.NonUploadStaticSyncStatus.Unknown
   }
 }
 
