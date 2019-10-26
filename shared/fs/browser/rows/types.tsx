@@ -6,7 +6,6 @@ export enum RowType {
   Tlf,
   Still,
   Editing,
-  Uploading,
   Placeholder,
   Empty,
   Header,
@@ -47,14 +46,6 @@ export type EditingRowItem = {
   type: Types.PathType
 }
 
-export type UploadingRowItem = {
-  key: string
-  name: string
-  path: Types.Path
-  rowType: RowType.Uploading
-  type: Types.PathType
-}
-
 export type PlaceholderRowItem = {
   key: string
   name: string
@@ -74,12 +65,6 @@ export type HeaderRowItem = {
   node: React.ReactElement
 }
 
-export type NamedRowItem =
-  | TlfTypeRowItem
-  | TlfRowItem
-  | StillRowItem
-  | EditingRowItem
-  | UploadingRowItem
-  | PlaceholderRowItem
+export type NamedRowItem = TlfTypeRowItem | TlfRowItem | StillRowItem | EditingRowItem | PlaceholderRowItem
 
 export type RowItem = NamedRowItem | EmptyRowItem | HeaderRowItem
