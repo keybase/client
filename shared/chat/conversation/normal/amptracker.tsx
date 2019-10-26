@@ -6,5 +6,7 @@ export class AmpTracker {
 
   addAmp = (amp: number) => {}
 
-  getBucketedAmps = () => {}
+  getBucketedAmps = (): Array<number> => {
+    return []
+  }
 }

@@ -16,6 +16,7 @@ type OwnProps = {
   onRequestScrollDown: () => void
   onRequestScrollToBottom: () => void
   onRequestScrollUp: () => void
+  onStopAudioRecording: (stopType: Types.AudioStopType) => void
 }
 
 // We used to store this in the route state but that's so complicated. We just want a map of id => text if we haven't sent
@@ -161,8 +162,6 @@ export default Container.namedConnect(
       ),
     _onStartAudioRecording: (conversationIDKey: Types.ConversationIDKey) =>
       dispatch(Chat2Gen.createEnableAudioRecording({conversationIDKey})),
-    _onStopAudioRecording: (conversationIDKey: Types.ConversationIDKey, stopType: Types.AudioStopType) =>
-      dispatch(Chat2Gen.createStopAudioRecording({conversationIDKey, stopType})),
     _sendTyping: (conversationIDKey: Types.ConversationIDKey, typing: boolean) =>
       conversationIDKey && dispatch(Chat2Gen.createSendTyping({conversationIDKey, typing})),
     _unsentTextChanged: (conversationIDKey: Types.ConversationIDKey, text: string) =>
@@ -214,8 +213,7 @@ export default Container.namedConnect(
     onRequestScrollDown: ownProps.onRequestScrollDown,
     onRequestScrollUp: ownProps.onRequestScrollUp,
     onStartAudioRecording: () => dispatchProps._onStartAudioRecording(stateProps.conversationIDKey),
-    onStopAudioRecording: (stopType: Types.AudioStopType) =>
-      dispatchProps._onStopAudioRecording(stateProps.conversationIDKey, stopType),
+    onStopAudioRecording: ownProps.onStopAudioRecording,
     onSubmit: (text: string) => {
       if (stateProps._editOrdinal) {
         dispatchProps._onEditMessage(stateProps.conversationIDKey, stateProps._editOrdinal, text)

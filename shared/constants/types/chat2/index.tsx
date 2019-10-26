@@ -132,6 +132,7 @@ export type AudioRecordingInfo = {
   path: string
   recordStart: number
   isLocked: boolean
+  amps: Array<number>
 }
 
 export type State = Readonly<{

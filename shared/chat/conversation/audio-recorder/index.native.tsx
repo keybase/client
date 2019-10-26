@@ -8,7 +8,6 @@ import * as Container from '../../../util/container'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import {formatAudioRecordDuration} from '../../../util/timestamp'
 import {Props} from '.'
-import {AmpTracker} from './amptracker'
 
 const minAmp = -60
 
@@ -23,12 +22,11 @@ const AudioRecorder = (props: Props) => {
     audioRecording: state.chat2.audioRecording.get(conversationIDKey),
   }))
   const timerRef = React.useRef<NodeJS.Timeout | null>(null)
-  const ampTracker = React.useRef<AmpTracker>(new AmpTracker(60)).current
 
   // dispatch
   const dispatch = Container.useDispatch()
   const meteringCb = (amp: number) => {
-    ampTracker.addAmp(amp)
+    props.onMetering(amp)
     setLastAmp(amp)
   }
   const onCancel = React.useCallback(() => {
@@ -40,12 +38,8 @@ const AudioRecorder = (props: Props) => {
     },
     [dispatch, conversationIDKey]
   )
-  const sendRecording = React.useCallback(() => {
-    dispatch(Chat2Gen.createStopAudioRecording({conversationIDKey, stopType: Types.AudioStopType.SEND}))
-  }, [dispatch, conversationIDKey])
-  const stageRecording = React.useCallback(() => {
-    dispatch(Chat2Gen.createStopAudioRecording({conversationIDKey, stopType: Types.AudioStopType.STOPBUTTON}))
-  }, [dispatch, conversationIDKey])
+  const sendRecording = () => props.onStopRecording(Types.AudioStopType.SEND)
+  const stageRecording = () => props.onStopRecording(Types.AudioStopType.STOPBUTTON)
 
   // lifecycle
   React.useEffect(() => {
