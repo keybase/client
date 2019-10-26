@@ -28,7 +28,6 @@ import {
 } from 'react-native'
 import CameraRoll from '@react-native-community/cameraroll'
 import NetInfo from '@react-native-community/netinfo'
-import RNFetchBlob from 'rn-fetch-blob'
 import * as PushNotifications from 'react-native-push-notification'
 import {Permissions} from 'react-native-unimodules'
 import {isIOS, isAndroid} from '../../constants/platform'
@@ -139,7 +138,7 @@ export async function saveAttachmentToCameraRoll(filePath: string, mimeType: str
     logger.debug(logPrefix + 'failed to save: ' + e)
     throw e
   } finally {
-    RNFetchBlob.fs.unlink(filePath)
+    require('rn-fetch-blob').default.fs.unlink(filePath)
   }
 }
 
@@ -701,8 +700,8 @@ const configureFileAttachmentDownloadForAndroid = () =>
   RPCChatTypes.localConfigureFileAttachmentDownloadLocalRpcPromise({
     // Android's cache dir is (when I tried) [app]/cache but Go side uses
     // [app]/.cache by default, which can't be used for sharing to other apps.
-    cacheDirOverride: RNFetchBlob.fs.dirs.CacheDir,
-    downloadDirOverride: RNFetchBlob.fs.dirs.DownloadDir,
+    cacheDirOverride: require('rn-fetch-blob').default.fs.dirs.CacheDir,
+    downloadDirOverride: require('rn-fetch-blob').default.fs.dirs.DownloadDir,
   })
 
 const startAudioRecording = async (
