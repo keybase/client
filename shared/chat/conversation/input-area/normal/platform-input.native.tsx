@@ -21,6 +21,8 @@ import {parseUri, launchCameraAsync, launchImageLibraryAsync} from '../../../../
 import {BotCommandUpdateStatus} from './shared'
 import {formatDurationShort} from '../../../../util/timestamp'
 import flags from '../../../../util/feature-flags'
+import AudioRecorder from './audio-recorder'
+import {AmpTracker} from './amptracker'
 
 type menuType = 'exploding' | 'filepickerpopup' | 'moremenu'
 
@@ -31,6 +33,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
   _lastText?: string
   _whichMenu?: menuType
   state = {hasText: false}
+  _ampTracker = new AmpTracker(60)
 
   _inputSetRef = (ref: null | Kb.PlainInput) => {
     this._input = ref
@@ -112,6 +115,14 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
     }
   }
 
+  _enableAudioRecording = () => {
+    this._ampTracker.reset()
+    this.props.onEnableAudioRecording()
+  }
+  _stopAudioRecording = (stopType: Types.AudioStopType) => {
+    this.props.onStopAudioRecording(stopType, this._ampTracker.getBucketedAmps())
+  }
+
   render() {
     let hintText = 'Write a message'
     if (this.props.isExploding && isLargeScreen) {
@@ -127,92 +138,99 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
     }
 
     return (
-      <Kb.Box onLayout={this._onLayout}>
-        {this.props.suggestBotCommandsUpdateStatus !== RPCChatTypes.UIBotCommandsUpdateStatus.blank &&
-          (this.props.suggestionsVisible ||
-            this.props.suggestBotCommandsUpdateStatus ===
-              RPCChatTypes.UIBotCommandsUpdateStatus.updating) && (
-            <BotCommandUpdateStatus status={this.props.suggestBotCommandsUpdateStatus} />
-          )}
-        {this.props.showingMenu && this._whichMenu === 'filepickerpopup' ? (
-          <FilePickerPopup
-            attachTo={this.props.getAttachmentRef}
-            visible={this.props.showingMenu}
-            onHidden={this.props.toggleShowingMenu}
-            onSelect={this._launchNativeImagePicker}
-          />
-        ) : this._whichMenu === 'moremenu' ? (
-          <MoreMenuPopup
-            conversationIDKey={this.props.conversationIDKey}
-            onHidden={this.props.toggleShowingMenu}
-            visible={this.props.showingMenu}
-          />
-        ) : (
-          <SetExplodingMessagePicker
-            attachTo={this.props.getAttachmentRef}
-            conversationIDKey={this.props.conversationIDKey}
-            onHidden={this.props.toggleShowingMenu}
-            visible={this.props.showingMenu}
-          />
-        )}
-        {this.props.showTypingStatus && !this.props.suggestionsVisible && (
-          <Typing conversationIDKey={this.props.conversationIDKey} />
-        )}
-        <Kb.Box style={styles.container}>
-          {this.props.isEditing && (
-            <Kb.Box style={styles.editingTabStyle}>
-              <Kb.Text type="BodySmall">Edit:</Kb.Text>
-              <Kb.Text type="BodySmallPrimaryLink" onClick={this.props.onCancelEditing}>
-                Cancel
-              </Kb.Text>
-            </Kb.Box>
-          )}
-          {!this.props.isEditing && !this.props.cannotWrite && (
-            <ExplodingIcon
-              explodingModeSeconds={this.props.explodingModeSeconds}
-              isExploding={this.props.isExploding}
-              openExplodingPicker={() => this._toggleShowingMenu('exploding')}
+      <>
+        <Kb.Box onLayout={this._onLayout}>
+          {this.props.suggestBotCommandsUpdateStatus !== RPCChatTypes.UIBotCommandsUpdateStatus.blank &&
+            (this.props.suggestionsVisible ||
+              this.props.suggestBotCommandsUpdateStatus ===
+                RPCChatTypes.UIBotCommandsUpdateStatus.updating) && (
+              <BotCommandUpdateStatus status={this.props.suggestBotCommandsUpdateStatus} />
+            )}
+          {this.props.showingMenu && this._whichMenu === 'filepickerpopup' ? (
+            <FilePickerPopup
+              attachTo={this.props.getAttachmentRef}
+              visible={this.props.showingMenu}
+              onHidden={this.props.toggleShowingMenu}
+              onSelect={this._launchNativeImagePicker}
+            />
+          ) : this._whichMenu === 'moremenu' ? (
+            <MoreMenuPopup
+              conversationIDKey={this.props.conversationIDKey}
+              onHidden={this.props.toggleShowingMenu}
+              visible={this.props.showingMenu}
+            />
+          ) : (
+            <SetExplodingMessagePicker
+              attachTo={this.props.getAttachmentRef}
+              conversationIDKey={this.props.conversationIDKey}
+              onHidden={this.props.toggleShowingMenu}
+              visible={this.props.showingMenu}
             />
           )}
-          <Kb.PlainInput
-            autoCorrect={true}
-            autoCapitalize="sentences"
-            disabled={
-              // Auto generated from flowToTs. Please clean me!
-              this.props.cannotWrite !== null && this.props.cannotWrite !== undefined
-                ? this.props.cannotWrite
-                : false
-            }
-            placeholder={hintText}
-            multiline={true}
-            onBlur={this.props.onBlur}
-            onFocus={this.props.onFocus}
-            // TODO: Call onCancelQuoting on text change or selection
-            // change to match desktop.
-            onChangeText={this._onChangeText}
-            onSelectionChange={this.props.onSelectionChange}
-            ref={this._inputSetRef}
-            style={styles.input}
-            textType="Body"
-            rowsMax={Styles.dimensionHeight < 600 ? 5 : 9}
-            rowsMin={1}
-          />
-          {!this.props.cannotWrite && (
-            <Action
-              audio={this.props.audio}
-              hasText={this.state.hasText}
-              onEnableAudioRecording={this.props.onEnableAudioRecording}
-              onLockAudioRecording={this.props.onLockAudioRecording}
-              onStopAudioRecording={this.props.onStopAudioRecording}
-              onSubmit={this._onSubmit}
-              isEditing={this.props.isEditing}
-              openFilePicker={this._openFilePicker}
-              openMoreMenu={this._openMoreMenu}
-              insertMentionMarker={this._insertMentionMarker}
-            />
+          {this.props.showTypingStatus && !this.props.suggestionsVisible && (
+            <Typing conversationIDKey={this.props.conversationIDKey} />
           )}
+          <Kb.Box style={styles.container}>
+            {this.props.isEditing && (
+              <Kb.Box style={styles.editingTabStyle}>
+                <Kb.Text type="BodySmall">Edit:</Kb.Text>
+                <Kb.Text type="BodySmallPrimaryLink" onClick={this.props.onCancelEditing}>
+                  Cancel
+                </Kb.Text>
+              </Kb.Box>
+            )}
+            {!this.props.isEditing && !this.props.cannotWrite && (
+              <ExplodingIcon
+                explodingModeSeconds={this.props.explodingModeSeconds}
+                isExploding={this.props.isExploding}
+                openExplodingPicker={() => this._toggleShowingMenu('exploding')}
+              />
+            )}
+            <Kb.PlainInput
+              autoCorrect={true}
+              autoCapitalize="sentences"
+              disabled={
+                // Auto generated from flowToTs. Please clean me!
+                this.props.cannotWrite !== null && this.props.cannotWrite !== undefined
+                  ? this.props.cannotWrite
+                  : false
+              }
+              placeholder={hintText}
+              multiline={true}
+              onBlur={this.props.onBlur}
+              onFocus={this.props.onFocus}
+              // TODO: Call onCancelQuoting on text change or selection
+              // change to match desktop.
+              onChangeText={this._onChangeText}
+              onSelectionChange={this.props.onSelectionChange}
+              ref={this._inputSetRef}
+              style={styles.input}
+              textType="Body"
+              rowsMax={Styles.dimensionHeight < 600 ? 5 : 9}
+              rowsMin={1}
+            />
+            {!this.props.cannotWrite && (
+              <Action
+                audio={this.props.audio}
+                hasText={this.state.hasText}
+                onEnableAudioRecording={this._enableAudioRecording}
+                onLockAudioRecording={this.props.onLockAudioRecording}
+                onStopAudioRecording={this._stopAudioRecording}
+                onSubmit={this._onSubmit}
+                isEditing={this.props.isEditing}
+                openFilePicker={this._openFilePicker}
+                openMoreMenu={this._openMoreMenu}
+                insertMentionMarker={this._insertMentionMarker}
+              />
+            )}
+          </Kb.Box>
         </Kb.Box>
-      </Kb.Box>
+        <AudioRecorder
+          conversationIDKey={this.props.conversationIDKey}
+          onMetering={this._ampTracker.addAmp}
+          onStopRecording={this._stopAudioRecording}
+        />
+      </>
     )
   }
 }

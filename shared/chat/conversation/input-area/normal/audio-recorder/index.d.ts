@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Types from '../../../constants/types/chat2'
+import * as Types from '../../../../../constants/types/chat2'
 export type Props = {
   conversationIDKey: Types.ConversationIDKey
   onMetering: (amp: number) => void
