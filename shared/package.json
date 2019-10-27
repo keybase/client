@@ -156,7 +156,6 @@
     "moment": "2.24.0",
     "mousetrap": "1.6.3",
     "path-parse": "1.0.6",
-    "purepack": "1.0.4",
     "qrcode-generator": "git://github.com/keybase/qrcode-generator#keybase-changes-off-140",
     "react": "16.8.6",
     "react-dom": "16.8.6",
