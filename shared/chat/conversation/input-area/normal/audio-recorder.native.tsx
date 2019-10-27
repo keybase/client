@@ -108,8 +108,12 @@ const AudioButton = (props: ButtonProps) => {
   const outerScale = React.useRef(new Kb.NativeAnimated.Value(0)).current
   const lockTranslate = React.useRef(new Kb.NativeAnimated.Value(0)).current
   const sendTranslate = React.useRef(new Kb.NativeAnimated.Value(0)).current
+  const innerOffsetY = React.useRef(new Kb.NativeAnimated.Value(-17)).current
+  const ampOffsetY = React.useRef(new Kb.NativeAnimated.Value(-15)).current
+  const micOffsetY = React.useRef(new Kb.NativeAnimated.Value(-13)).current
   // lifecycle
   React.useEffect(() => {
+    console.log('DRAGY: BUTTON: ' + JSON.stringify(props.dragY))
     Kb.NativeAnimated.parallel(
       [
         Kb.NativeAnimated.timing(innerScale, {
@@ -150,6 +154,12 @@ const AudioButton = (props: ButtonProps) => {
         toValue: 1,
         useNativeDriver: true,
       }).start()
+      Kb.NativeAnimated.timing(props.dragY, {
+        duration: 400,
+        easing: Kb.NativeEasing.elastic(1),
+        toValue: 0,
+        useNativeDriver: true,
+      }).start(() => props.dragY.setValue(0))
     }
   }, [props.locked])
   React.useEffect(() => {
@@ -215,11 +225,11 @@ const AudioButton = (props: ButtonProps) => {
             ? Styles.globalColors.redLight
             : Styles.globalColors.blueLighterOrBlueLight,
           borderRadius: ampSize / 2,
-          bottom: 15,
           height: ampSize,
           position: 'absolute',
           right: 40,
           transform: [
+            {translateY: Kb.NativeAnimated.add(ampOffsetY, props.dragY)},
             {
               scale: ampScale,
             },
@@ -231,11 +241,10 @@ const AudioButton = (props: ButtonProps) => {
         style={{
           backgroundColor: props.locked ? Styles.globalColors.red : Styles.globalColors.blue,
           borderRadius: innerSize / 2,
-          bottom: 17,
           height: innerSize,
           position: 'absolute',
           right: 43,
-          transform: [{scale: innerScale}, {translateY: props.dragY}],
+          transform: [{translateY: Kb.NativeAnimated.add(innerOffsetY, props.dragY)}, {scale: innerScale}],
           width: innerSize,
         }}
       />
@@ -291,12 +300,15 @@ const AudioButton = (props: ButtonProps) => {
       )}
 
       {!props.locked ? (
-        <Kb.Icon
-          type="iconfont-mic"
-          fontSize={22}
-          color={Styles.globalColors.whiteOrWhite}
-          style={{bottom: 13, position: 'absolute', right: 46}}
-        />
+        <Kb.NativeAnimated.View
+          style={{
+            position: 'absolute',
+            right: 46,
+            transform: [{translateY: Kb.NativeAnimated.add(micOffsetY, props.dragY)}],
+          }}
+        >
+          <Kb.Icon type="iconfont-mic" fontSize={22} color={Styles.globalColors.whiteOrWhite} />
+        </Kb.NativeAnimated.View>
       ) : (
         <Kb.TapGestureHandler onHandlerStateChange={props.stageRecording}>
           <Kb.NativeView

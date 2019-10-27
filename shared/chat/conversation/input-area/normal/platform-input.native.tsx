@@ -23,6 +23,7 @@ import {formatDurationShort} from '../../../../util/timestamp'
 import flags from '../../../../util/feature-flags'
 import AudioRecorder from './audio-recorder.native'
 import {AmpTracker} from './amptracker'
+import {BooleanLiteral} from '@babel/types'
 
 type menuType = 'exploding' | 'filepickerpopup' | 'moremenu'
 
@@ -324,6 +325,7 @@ const Action = React.memo((props: ActionProps) => {
           {smallGap}
           <AudioStarter
             dragY={audioDragY}
+            locked={audio ? audio.isLocked : false}
             lockRecording={onLockAudioRecording}
             recording={Constants.showAudioRecording(audio)}
             enableRecording={onEnableAudioRecording}
@@ -344,19 +346,27 @@ const Action = React.memo((props: ActionProps) => {
 
 type AudioStarterProps = {
   dragY: Kb.NativeAnimated.Value
+  locked: boolean
   recording: boolean
   lockRecording: () => void
   enableRecording: () => void
   stopRecording: (st: Types.AudioStopType) => void
 }
 
-const maxAudioDrift = -20
+const maxCancelDrift = -20
+const maxLockDrift = -70
 
 const AudioStarter = (props: AudioStarterProps) => {
   let longPressTimer
   if (!flags.audioAttachments) {
     return null
   }
+  const locked = React.useRef<boolean>(false)
+  React.useEffect(() => {
+    if (locked.current && !props.locked) {
+      locked.current = false
+    }
+  }, [props.locked])
   return (
     <Kb.TapGestureHandler
       onHandlerStateChange={({nativeEvent}) => {
@@ -369,9 +379,9 @@ const AudioStarter = (props: AudioStarterProps) => {
           clearTimeout(longPressTimer)
           longPressTimer = null
           if (props.recording && nativeEvent.state === Kb.GestureState.END) {
-            if (nativeEvent.x < maxAudioDrift) {
+            if (nativeEvent.x < maxCancelDrift) {
               props.stopRecording(Types.AudioStopType.CANCEL)
-            } else if (nativeEvent.y < maxAudioDrift) {
+            } else if (nativeEvent.y < maxLockDrift) {
               props.lockRecording()
             } else {
               props.stopRecording(Types.AudioStopType.RELEASE)
@@ -384,29 +394,32 @@ const AudioStarter = (props: AudioStarterProps) => {
         minOffsetX={0}
         minOffsetY={0}
         onGestureEvent={({nativeEvent}) => {
-          if (nativeEvent.translationY < maxAudioDrift) {
-            props.lockRecording()
+          if (locked.current) {
+            return
           }
-          if (nativeEvent.translationX < maxAudioDrift) {
+          if (nativeEvent.translationY < maxLockDrift) {
+            props.lockRecording()
+            locked.current = true
+          }
+          if (nativeEvent.translationX < maxCancelDrift) {
             clearTimeout(longPressTimer)
             longPressTimer = null
             props.stopRecording(Types.AudioStopType.CANCEL)
           }
-          props.dragY.setValue(nativeEvent.translationY)
+          if (!locked.current) {
+            console.log('DRAGY: ' + nativeEvent.translationY)
+            props.dragY.setValue(nativeEvent.translationY)
+          }
         }}
-        /*onGestureEvent={Kb.NativeAnimated.event([
-          {
-            nativeEvent: {
-              translationY: props.dragY,
-            },
-          },
-        ])}*/
         onHandlerStateChange={({nativeEvent}) => {
           if (nativeEvent.state === Kb.GestureState.END) {
-            if (nativeEvent.y < maxAudioDrift) {
+            if (locked.current) {
+              return
+            }
+            if (nativeEvent.y < maxLockDrift) {
               props.lockRecording()
             }
-            if (nativeEvent.x < maxAudioDrift) {
+            if (nativeEvent.x < maxCancelDrift) {
               clearTimeout(longPressTimer)
               longPressTimer = null
               props.stopRecording(Types.AudioStopType.CANCEL)
