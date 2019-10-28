@@ -65,7 +65,6 @@ func (s *Scraper) scrapeMap(ctx context.Context, uri string) (res chat1.UnfurlRa
 		timeStr = fmt.Sprintf("Posted %s.", now.Format("15:04:05 MST"))
 		siteName = "Live Location Share"
 		if liveLocationDone {
-			siteName += " (finished)"
 			desc := fmt.Sprintf("Last updated %s", now.Format("3:04 PM"))
 			return chat1.NewUnfurlRawWithGeneric(chat1.UnfurlGenericRaw{
 				Title:    "Location sharing ended.",
