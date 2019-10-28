@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -20,6 +21,7 @@ func setupLoaderTest(t *testing.T) (context.Context, *kbtest.ChatTestContext, *k
 
 	u := world.GetUsers()[0]
 	tc := world.Tcs[u.Username]
+	tc.ChatG.JourneyCardManager = NewJourneyCardChecker(globals.NewContext(tc.G, tc.ChatG))
 	trip := newConvTriple(ctx, t, tc, u.Username)
 	firstMessagePlaintext := chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
