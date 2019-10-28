@@ -29,11 +29,9 @@ const headerActions = (dispatch: Container.TypedDispatch, ownProps: OwnProps) =>
     dispatch(ownProps.safeNavigateAppendPayload({path: ['teamJoinTeamDialog']}))
   },
 })
-const makeTeamToRequest = memoize((tr: Types.State['newTeamRequests']) =>
-  tr.reduce((map, team) => {
-    map[team] = (map[team] !== null && map[team] !== undefined ? map[team] : 0) + 1
-    return map
-  }, {})
+
+const orderTeams = memoize((teams: Types.State['teamDetails']) =>
+  [...teams.values()].sort((a, b) => a.teamname.localeCompare(b.teamname))
 )
 
 class Reloadable extends React.PureComponent<Props & {loadTeams: () => void; onClearBadges: () => void}> {
@@ -58,13 +56,7 @@ class Reloadable extends React.PureComponent<Props & {loadTeams: () => void; onC
   render() {
     const {loadTeams, ...rest} = this.props
     return (
-      <Kb.Reloadable
-        waitingKeys={Constants.teamsLoadedWaitingKey}
-        onBack={Container.isMobile ? this.props.onBack : undefined}
-        onReload={loadTeams}
-        reloadOnMount={true}
-        title={this.props.title}
-      >
+      <Kb.Reloadable waitingKeys={Constants.teamsLoadedWaitingKey} onReload={loadTeams} reloadOnMount={true}>
         {Container.isMobile && (
           <Kb.NavigationEvents onDidFocus={this.onDidFocus} onWillBlur={this.onWillBlur} />
         )}
@@ -74,56 +66,48 @@ class Reloadable extends React.PureComponent<Props & {loadTeams: () => void; onC
   }
 }
 
-const Connected = Container.withSafeNavigation(
-  Container.connect(
-    (state: Container.TypedState) => ({
-      _deletedTeams: state.teams.deletedTeams,
-      _newTeamRequests: state.teams.newTeamRequests,
-      _newTeams: state.teams.newTeams,
-      _teamNameToIsOpen: state.teams.teamNameToIsOpen || I.Map(),
-      _teamNameToRole: state.teams.teamNameToRole || I.Map(),
-      _teammembercounts: state.teams.teammembercounts || I.Map(),
-      _teamresetusers: state.teams.teamNameToResetUsers || I.Map(),
-      loaded: !WaitingConstants.anyWaiting(state, Constants.teamsLoadedWaitingKey),
-      sawChatBanner: state.teams.sawChatBanner || false,
-      teamnames: Constants.getSortedTeamnames(state),
-    }),
-    (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
-      ...headerActions(dispatch, ownProps),
-      loadTeams: () => dispatch(TeamsGen.createGetTeams()),
-      onClearBadges: () => dispatch(TeamsGen.createClearNavBadges()),
-      onHideChatBanner: () =>
-        dispatch(GregorGen.createUpdateCategory({body: 'true', category: 'sawChatBanner'})),
-      onManageChat: (teamname: Types.Teamname) =>
-        dispatch(
-          ownProps.safeNavigateAppendPayload({path: [{props: {teamname}, selected: 'chatManageChannels'}]})
-        ),
-      onOpenFolder: (teamname: Types.Teamname) =>
-        dispatch(
-          FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/team/${teamname}`))
-        ),
-      onReadMore: () => {
-        openURL('https://keybase.io/blog/introducing-keybase-teams')
-      },
-      onViewTeam: (teamname: Types.Teamname) =>
-        dispatch(ownProps.safeNavigateAppendPayload({path: [{props: {teamname}, selected: 'team'}]})),
-    }),
-
-    (stateProps, dispatchProps, _: OwnProps) => ({
-      deletedTeams: stateProps._deletedTeams,
-      loaded: stateProps.loaded,
-      newTeams: [...stateProps._newTeams],
-      sawChatBanner: stateProps.sawChatBanner,
-      teamNameToCanManageChat: stateProps._teamNameToRole.map(role => role !== 'none').toObject(),
-      teamNameToIsOpen: stateProps._teamNameToIsOpen.toObject(),
-      teamToRequest: makeTeamToRequest(stateProps._newTeamRequests),
-      teammembercounts: stateProps._teammembercounts.toObject(),
-      teamnames: stateProps.teamnames,
-      teamresetusers: stateProps._teamresetusers.toObject(),
-      ...dispatchProps,
-    })
-  )(Reloadable)
-)
+const _Connected = Container.connect(
+  (state: Container.TypedState) => ({
+    _teamresetusers: state.teams.teamNameToResetUsers || I.Map(),
+    _teams: state.teams.teamDetails,
+    deletedTeams: state.teams.deletedTeams,
+    loaded: !WaitingConstants.anyWaiting(state, Constants.teamsLoadedWaitingKey),
+    newTeamRequests: state.teams.newTeamRequests,
+    newTeams: state.teams.newTeams,
+    sawChatBanner: state.teams.sawChatBanner || false,
+  }),
+  (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
+    ...headerActions(dispatch, ownProps),
+    loadTeams: () => dispatch(TeamsGen.createGetTeams()),
+    onClearBadges: () => dispatch(TeamsGen.createClearNavBadges()),
+    onHideChatBanner: () =>
+      dispatch(GregorGen.createUpdateCategory({body: 'true', category: 'sawChatBanner'})),
+    onManageChat: (teamname: Types.Teamname) =>
+      dispatch(
+        ownProps.safeNavigateAppendPayload({path: [{props: {teamname}, selected: 'chatManageChannels'}]})
+      ),
+    onOpenFolder: (teamname: Types.Teamname) =>
+      dispatch(
+        FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/team/${teamname}`))
+      ),
+    onReadMore: () => {
+      openURL('https://keybase.io/blog/introducing-keybase-teams')
+    },
+    onViewTeam: (teamname: Types.Teamname) =>
+      dispatch(ownProps.safeNavigateAppendPayload({path: [{props: {teamname}, selected: 'team'}]})),
+  }),
+  (stateProps, dispatchProps, _: OwnProps) => ({
+    deletedTeams: stateProps.deletedTeams,
+    loaded: stateProps.loaded,
+    newTeamRequests: stateProps.newTeamRequests,
+    newTeams: stateProps.newTeams,
+    sawChatBanner: stateProps.sawChatBanner,
+    teamresetusers: stateProps._teamresetusers.toObject(),
+    teams: orderTeams(stateProps._teams),
+    ...dispatchProps,
+  })
+)(Reloadable)
+const Connected = Container.withSafeNavigation(_Connected)
 
 const ConnectedHeaderRightActions = Container.compose(
   Container.withSafeNavigation,

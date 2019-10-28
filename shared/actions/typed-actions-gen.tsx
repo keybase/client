@@ -873,7 +873,6 @@ export type TypedActionsMap = {
   'teams:setUpdatedTopic': teams.SetUpdatedTopicPayload
   'teams:deleteChannelConfirmed': teams.DeleteChannelConfirmedPayload
   'teams:deleteChannelInfo': teams.DeleteChannelInfoPayload
-  'teams:badgeAppForTeams': teams.BadgeAppForTeamsPayload
   'teams:checkRequestedAccess': teams.CheckRequestedAccessPayload
   'teams:getTeamRetentionPolicy': teams.GetTeamRetentionPolicyPayload
   'teams:saveTeamRetentionPolicy': teams.SaveTeamRetentionPolicyPayload

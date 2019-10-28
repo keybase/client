@@ -102,7 +102,7 @@ export const makeInviteInfo = I.Record<Types._InviteInfo>({
   username: '',
 })
 
-export const emptyEmailInviteError: Readonly<Types.EmailInviteError> = Object.freeze({
+export const emptyEmailInviteError = Object.freeze<Types.EmailInviteError>({
   malformed: new Set<string>(),
   message: '',
 })
@@ -147,7 +147,8 @@ const emptyState: Types.State = {
   channelCreationError: '',
   deletedTeams: [],
   emailInviteError: emptyEmailInviteError,
-  newTeamRequests: [],
+  newTeamRequests: new Map(),
+  newTeamRequestsByName: new Map(),
   newTeams: new Set(),
   sawChatBanner: false,
   sawSubteamsBanner: false,
@@ -590,12 +591,16 @@ export const isOnTeamsTab = () => {
   return Array.isArray(path) ? path.some(p => p.routeName === teamsTab) : false
 }
 
-const emptyTeamDetails: Readonly<Types.TeamDetails> = {
+export const emptyTeamDetails = Object.freeze<Types.TeamDetails>({
   allowPromote: false,
+  id: Types.noTeamID,
+  isMember: false,
   isOpen: false,
+  memberCount: -1,
+  role: 'none',
   showcasing: false,
   teamname: '',
-}
+})
 
 export const makeTeamDetails = (td: Partial<Types.TeamDetails>): Types.TeamDetails =>
   td ? Object.assign({...emptyTeamDetails}, td) : emptyTeamDetails
@@ -608,7 +613,11 @@ export const teamListToDetails = (
       t.teamID,
       {
         allowPromote: t.allowProfilePromote,
+        id: t.teamID,
+        isMember: t.role !== RPCTypes.TeamRole.none,
         isOpen: t.isOpenTeam,
+        memberCount: t.memberCount,
+        role: teamRoleByEnum[t.role] || 'none',
         showcasing: t.isMemberShowcased,
         teamname: t.fqName,
       },
