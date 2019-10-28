@@ -92,8 +92,7 @@ type SharedInboxItem struct {
 
 type InboxLayoutChangedNotifier interface {
 	UpdateLayout(ctx context.Context, reselectMode chat1.InboxLayoutReselectMode, reason string)
-	UpdateLayoutFromNewMessage(ctx context.Context, conv types.RemoteConversation,
-		msg chat1.MessageBoxed, firstConv bool, previousStatus chat1.ConversationStatus)
+	UpdateLayoutFromNewMessage(ctx context.Context, conv types.RemoteConversation)
 	UpdateLayoutFromSubteamRename(ctx context.Context, convs []types.RemoteConversation)
 }
 
@@ -104,8 +103,7 @@ func (d dummyInboxLayoutChangedNotifier) UpdateLayout(ctx context.Context,
 }
 
 func (d dummyInboxLayoutChangedNotifier) UpdateLayoutFromNewMessage(ctx context.Context,
-	conv types.RemoteConversation, msg chat1.MessageBoxed, firstConv bool,
-	previousStatus chat1.ConversationStatus) {
+	conv types.RemoteConversation) {
 }
 
 func (d dummyInboxLayoutChangedNotifier) UpdateLayoutFromSubteamRename(ctx context.Context,
@@ -1127,7 +1125,6 @@ func (i *Inbox) NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.Inbo
 		conv.Conv.MaxMsgSummaries = maxMsgs
 	}
 
-	var previousStatus = conv.Conv.Metadata.Status
 	// If we are all up to date on the thread (and the sender is the current user),
 	// mark this message as read too
 	if conv.Conv.ReaderInfo.ReadMsgid == conv.Conv.ReaderInfo.MaxMsgid &&
@@ -1155,7 +1152,7 @@ func (i *Inbox) NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.Inbo
 	// if we have a conv at all, then we want to let any layout engine know about this
 	// new message
 	if mconv.GetTopicType() == chat1.TopicType_CHAT {
-		defer i.layoutNotifier.UpdateLayoutFromNewMessage(ctx, mconv, msg, index == 0, previousStatus)
+		defer i.layoutNotifier.UpdateLayoutFromNewMessage(ctx, mconv)
 	}
 	i.Debug(ctx, "NewMessage: promoting convID: %s to the top of %d convs", convID,
 		len(ibox.Conversations))

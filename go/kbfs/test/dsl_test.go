@@ -398,6 +398,10 @@ func addNewAssertion(oldAssertion, newAssertion string) optionOp {
 		for _, u := range o.users {
 			err := o.engine.AddNewAssertion(u, oldAssertion, newAssertion)
 			o.expectSuccess("addNewAssertion", err)
+			// Sync the TLF to wait for the TLF handle change
+			// notifications to be processed. Ignore the error since
+			// the user might not even have access to that TLF.
+			_ = o.engine.SyncFromServer(u, o.tlfName, o.tlfType)
 		}
 	}
 }

@@ -39,6 +39,20 @@ const iconMeta_ = {
       return require('../images/icons/icon-dark-addon-file-uploading.png')
     },
   },
+  'icon-addon-file-uploading-error': {
+    extension: 'png',
+    isFont: false,
+    nameDark: 'icon-dark-addon-file-uploading-error',
+    require: require('../images/icons/icon-addon-file-uploading-error.png'),
+    requireDark: require('../images/icons/icon-dark-addon-file-uploading-error.png'),
+  },
+  'icon-addon-file-uploading-offline': {
+    extension: 'png',
+    isFont: false,
+    nameDark: 'icon-dark-addon-file-uploading-offline',
+    require: require('../images/icons/icon-addon-file-uploading-offline.png'),
+    requireDark: require('../images/icons/icon-dark-addon-file-uploading-offline.png'),
+  },
   'icon-addon-lock-16': {
     extension: 'png',
     isFont: false,
@@ -1063,6 +1077,16 @@ const iconMeta_ = {
     get require() {
       return require('../images/icons/icon-dark-addon-file-uploading.png')
     },
+  },
+  'icon-dark-addon-file-uploading-error': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-dark-addon-file-uploading-error.png'),
+  },
+  'icon-dark-addon-file-uploading-offline': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-dark-addon-file-uploading-offline.png'),
   },
   'icon-dark-addon-lock-16': {
     extension: 'png',
@@ -7513,6 +7537,11 @@ const iconMeta_ = {
   },
   'iconfont-return': {
     charCode: 0xe96a,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-root': {
+    charCode: 0xe9a0,
     gridSize: 16,
     isFont: true,
   },

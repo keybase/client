@@ -185,7 +185,10 @@ func (e *loginProvision) deviceWithType(m libkb.MetaContext, provisionerType key
 	uid := e.arg.User.GetUID()
 
 	// Continue to generate legacy Kex2 secret types
-	kex2SecretTyp := libkb.Kex2SecretTypeV2
+	kex2SecretTyp := libkb.Kex2SecretTypeV1Desktop
+	if e.arg.DeviceType == libkb.DeviceTypeMobile || provisionerType == keybase1.DeviceType_MOBILE {
+		kex2SecretTyp = libkb.Kex2SecretTypeV1Mobile
+	}
 	m.Debug("Generating Kex2 secret for uid=%s, typ=%d", uid, kex2SecretTyp)
 	secret, err := libkb.NewKex2SecretFromTypeAndUID(kex2SecretTyp, uid)
 	if err != nil {
@@ -198,7 +201,7 @@ func (e *loginProvision) deviceWithType(m libkb.MetaContext, provisionerType key
 		m.Debug("Failed to get salt")
 		return err
 	}
-	provisionee := NewKex2Provisionee(m.G(), device, secret.Secret(), e.arg.User.GetUID(), salt)
+	provisionee := NewKex2Provisionee(m.G(), device, secret.Secret(), uid, salt)
 
 	var canceler func()
 
@@ -274,7 +277,7 @@ func (e *loginProvision) deviceWithType(m libkb.MetaContext, provisionerType key
 	}
 
 	// Load me again so that keys will be up to date.
-	loadArg := libkb.NewLoadUserArgWithMetaContext(m).WithSelf(true).WithUID(e.arg.User.GetUID())
+	loadArg := libkb.NewLoadUserArgWithMetaContext(m).WithSelf(true).WithUID(uid)
 	e.arg.User, err = libkb.LoadUser(loadArg)
 	if err != nil {
 		return err

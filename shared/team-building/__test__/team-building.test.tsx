@@ -1,7 +1,7 @@
 /* eslint-env jest */
 import TeamBuilding, {SearchResult, SearchRecSection} from '../index'
 import {sortAndSplitRecommendations} from '../container'
-import {userResultHeight} from '../user-result'
+import {userResultHeight} from '../search-result/common-result'
 import {SectionDivider} from '../../common-adapters/index'
 
 describe('team building list', () => {

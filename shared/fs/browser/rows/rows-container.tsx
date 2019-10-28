@@ -54,30 +54,6 @@ const getStillRows = memoize(
     }, [])
 )
 
-// TODO: when we have renames, reconcile editing rows in here too.
-const amendStillRowsWithUploads = memoize(
-  (stills: Array<RowTypes.StillRowItem>, uploads: Types.Uploads): Array<SortableRowItem> =>
-    stills.map(still => {
-      const {name, type, path} = still
-      if (type === Types.PathType.Folder) {
-        // Don't show an upload row for folders.
-        return still
-      }
-      if (!uploads.writingToJournal.has(path) && !uploads.syncingPaths.has(path)) {
-        // The entry is absent from uploads. So just show a still row.
-        return still
-      }
-      return {
-        key: `uploading:${name}`,
-        name,
-        path,
-        rowType: RowTypes.RowType.Uploading,
-        // field for sortable
-        type,
-      } as RowTypes.UploadingRowItem
-    })
-)
-
 const _getPlaceholderRows = (type): Array<RowTypes.PlaceholderRowItem> => [
   {key: 'placeholder:1', name: '1', rowType: RowTypes.RowType.Placeholder, type},
   {key: 'placeholder:2', name: '2', rowType: RowTypes.RowType.Placeholder, type},
@@ -101,11 +77,7 @@ const getInTlfItemsFromStateProps = (stateProps, path: Types.Path): Array<RowTyp
   const editingRows = getEditingRows(stateProps._edits, path)
   const stillRows = getStillRows(stateProps._pathItems, path, _pathItem.children)
 
-  return sortRowItems(
-    _makeInTlfRows(editingRows, amendStillRowsWithUploads(stillRows, stateProps._uploads)),
-    stateProps._sortSetting,
-    ''
-  )
+  return sortRowItems(_makeInTlfRows(editingRows, stillRows), stateProps._sortSetting, '')
 }
 
 const getTlfRowsFromTlfs = memoize(
@@ -162,7 +134,6 @@ export default namedConnect(
     _pathItems: state.fs.pathItems,
     _sortSetting: Constants.getPathUserSetting(state.fs.pathUserSettings, path).sort,
     _tlfs: state.fs.tlfs,
-    _uploads: state.fs.uploads,
     _username: state.config.username,
   }),
   () => ({}),

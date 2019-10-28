@@ -13,7 +13,7 @@ type OwnProps = {
 
 export default connect(
   (state, {teamname}: OwnProps) => ({
-    _newTeamRequests: state.teams.newTeamRequests,
+    _newTeamRequestsByName: state.teams.newTeamRequestsByName,
     _teamNameToIsOpen: state.teams.teamNameToIsOpen || I.Map(),
     members: Constants.getTeamMemberCount(state, teamname),
     yourRole: Constants.getRole(state, teamname),
@@ -36,7 +36,7 @@ export default connect(
       isOpen: stateProps._teamNameToIsOpen.toObject()[ownProps.teamname],
       membercount: stateProps.members,
       name: ownProps.teamname,
-      newRequests: stateProps._newTeamRequests.filter(team => team === ownProps.teamname).length,
+      newRequests: stateProps._newTeamRequestsByName.get(ownProps.teamname) || [],
       onManageChat: youAreMember ? () => dispatchProps._onManageChat(ownProps.teamname) : null,
       onOpenFolder: youAreMember ? () => dispatchProps._onOpenFolder(ownProps.teamname) : null,
       onViewTeam: () => dispatchProps._onViewTeam(ownProps.teamname),

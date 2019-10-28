@@ -40,6 +40,10 @@ type UIInboxLoader struct {
 	lastBatchFlush    time.Time
 	lastLayoutFlush   time.Time
 
+	// layout tracking
+	lastLayoutMu sync.Mutex
+	lastLayout   *chat1.UIInboxLayout
+
 	// testing
 	testingLayoutForceMode bool
 }
@@ -521,6 +525,7 @@ func (h *UIInboxLoader) flushLayout(reselectMode chat1.InboxLayoutReselectMode) 
 	if err := ui.ChatInboxLayout(ctx, string(dat)); err != nil {
 		return err
 	}
+	h.setLastLayout(&layout)
 	return nil
 }
 
@@ -593,6 +598,24 @@ func (h *UIInboxLoader) layoutLoop(shutdownCh chan struct{}) error {
 	}
 }
 
+func (h *UIInboxLoader) isTopSmallTeamInLastLayout(convID chat1.ConversationID) bool {
+	h.lastLayoutMu.Lock()
+	defer h.lastLayoutMu.Unlock()
+	if h.lastLayout == nil {
+		return false
+	}
+	if len(h.lastLayout.SmallTeams) == 0 {
+		return false
+	}
+	return h.lastLayout.SmallTeams[0].ConvID == convID.String()
+}
+
+func (h *UIInboxLoader) setLastLayout(l *chat1.UIInboxLayout) {
+	h.lastLayoutMu.Lock()
+	defer h.lastLayoutMu.Unlock()
+	h.lastLayout = l
+}
+
 func (h *UIInboxLoader) UpdateLayout(ctx context.Context, reselectMode chat1.InboxLayoutReselectMode,
 	reason string) {
 	defer h.Trace(ctx, func() error { return nil }, "UpdateLayout: %s", reason)()
@@ -603,19 +626,15 @@ func (h *UIInboxLoader) UpdateLayout(ctx context.Context, reselectMode chat1.Inb
 	}
 }
 
-func (h *UIInboxLoader) UpdateLayoutFromNewMessage(ctx context.Context, conv types.RemoteConversation,
-	msg chat1.MessageBoxed, firstConv bool, previousStatus chat1.ConversationStatus) {
-	defer h.Trace(ctx, func() error { return nil }, "UpdateLayoutFromNewMessage")()
-	if conv.GetTeamType() == chat1.TeamType_COMPLEX {
-		h.Debug(ctx, "UpdateLayoutFromNewMessage: skipping layout for big team")
-		return
+func (h *UIInboxLoader) UpdateLayoutFromNewMessage(ctx context.Context, conv types.RemoteConversation) {
+	defer h.Trace(ctx, func() error { return nil }, "UpdateLayoutFromNewMessage: %s", conv.GetConvID())()
+	if h.isTopSmallTeamInLastLayout(conv.GetConvID()) {
+		h.Debug(ctx, "UpdateLayoutFromNewMessage: skipping layout, conv top small team in last layout")
+	} else if conv.GetTeamType() == chat1.TeamType_COMPLEX {
+		h.Debug(ctx, "UpdateLayoutFromNewMessage: skipping layout, complex team conv")
+	} else {
+		h.UpdateLayout(ctx, chat1.InboxLayoutReselectMode_DEFAULT, "new message")
 	}
-	if firstConv && msg.GetMessageID() > 2 &&
-		utils.GetConversationStatusBehavior(previousStatus).ShowInInbox {
-		h.Debug(ctx, "UpdateLayoutFromNewMessage: skipping layout on first conv change")
-		return
-	}
-	h.UpdateLayout(ctx, chat1.InboxLayoutReselectMode_DEFAULT, "new message")
 }
 
 func (h *UIInboxLoader) UpdateLayoutFromSubteamRename(ctx context.Context, convs []types.RemoteConversation) {
