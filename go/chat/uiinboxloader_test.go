@@ -114,8 +114,8 @@ func TestUIInboxLoaderLayout(t *testing.T) {
 	select {
 	case layout = <-chatUI.InboxLayoutCb:
 		require.Equal(t, 2, len(layout.SmallTeams))
-		require.Equal(t, conv1.Id.String(), layout.SmallTeams[0].ConvID)
-		require.Equal(t, conv2.Id.String(), layout.SmallTeams[1].ConvID)
+		require.Equal(t, conv2.Id.String(), layout.SmallTeams[0].ConvID)
+		require.Equal(t, conv1.Id.String(), layout.SmallTeams[1].ConvID)
 	case <-time.After(timeout):
 		// just don't care if we don't get anything
 	}
