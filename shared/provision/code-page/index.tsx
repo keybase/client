@@ -227,7 +227,7 @@ class CodePage2 extends React.Component<Props, State> {
           content={[
             `Are you on that ${this.props.otherDeviceType === 'mobile' ? 'phone' : 'computer'} now? `,
             {onClick: () => this.setState({troubleshooting: true}), text: 'Resolve'},
-            ]}
+          ]}
         />
       </Kb.Banner>
     </Kb.ClickableBox>
