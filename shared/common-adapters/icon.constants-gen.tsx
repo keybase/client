@@ -3298,6 +3298,13 @@ const iconMeta_ = {
       return require('../images/icons/icon-fancy-folder-file-inexistant-mobile-188-120.png')
     },
   },
+  'icon-fancy-hellobot-96': {
+    extension: 'png',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-fancy-hellobot-96.png')
+    },
+  },
   'icon-fancy-no-access-desktop-96-94': {
     extension: 'png',
     isFont: false,
