@@ -599,7 +599,7 @@ type _StaticConfigLoadedPayload = {readonly staticConfig: Types.StaticConfig}
 type _StopAudioRecordingPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly stopType: Types.AudioStopType
-  readonly amps: Array<number>
+  readonly amps?: Array<number>
 }
 type _TabSelectedPayload = void
 type _ThreadSearchPayload = {

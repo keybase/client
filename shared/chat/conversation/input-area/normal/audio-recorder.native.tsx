@@ -36,9 +36,7 @@ const AudioRecorder = (props: Props) => {
     setLastAmp(amp)
   }
   const onCancel = React.useCallback(() => {
-    dispatch(
-      Chat2Gen.createStopAudioRecording({amps: [], conversationIDKey, stopType: Types.AudioStopType.CANCEL})
-    )
+    dispatch(Chat2Gen.createStopAudioRecording({conversationIDKey, stopType: Types.AudioStopType.CANCEL}))
   }, [dispatch, conversationIDKey])
   const startRecording = React.useCallback(
     (meteringCb: (n: number) => void) => {

@@ -22,7 +22,7 @@ export default Container.namedConnect(
     const _meta = Constants.getMeta(state, _conversationIDKey)
     const youAreReset = _meta.membershipType === 'youAreReset'
     const typers = state.chat2.typingMap.get(_conversationIDKey)
-    let snippet = _meta ? _meta.snippet : ownProps.snippet || ''
+    let snippet = state.chat2.metaMap.get(_conversationIDKey) ? _meta.snippet : ownProps.snippet || ''
     const snippetDecoration = _meta.snippetDecoration || ownProps.snippetDecoration || ''
     let isTypingSnippet = false
     if (typers && typers.size > 0) {

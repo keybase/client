@@ -36,21 +36,21 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
   _ampTracker = new AmpTracker(60)
   _audioDragY = new Kb.NativeAnimated.Value(0)
 
-  _inputSetRef = (ref: null | Kb.PlainInput) => {
+  private inputSetRef = (ref: null | Kb.PlainInput) => {
     this._input = ref
     this.props.inputSetRef(ref)
     // @ts-ignore this is probably wrong: https://github.com/DefinitelyTyped/DefinitelyTyped/issues/31065
     this.props.inputRef.current = ref
   }
 
-  _openFilePicker = () => {
-    this._toggleShowingMenu('filepickerpopup')
+  private openFilePicker = () => {
+    this.toggleShowingMenu('filepickerpopup')
   }
-  _openMoreMenu = () => {
-    this._toggleShowingMenu('moremenu')
+  private openMoreMenu = () => {
+    this.toggleShowingMenu('moremenu')
   }
 
-  _launchNativeImagePicker = (mediaType: 'photo' | 'video' | 'mixed', location: string) => {
+  private launchNativeImagePicker = (mediaType: 'photo' | 'video' | 'mixed', location: string) => {
     const handleSelection = (result: ImagePicker.ImagePickerResult) => {
       if (result.cancelled === true || !this.props.conversationIDKey) {
         return
@@ -75,37 +75,37 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
     }
   }
 
-  _getText = () => {
+  private getText = () => {
     return this._lastText || ''
   }
 
-  _onChangeText = (text: string) => {
+  private onChangeText = (text: string) => {
     this.setState({hasText: !!text})
     this._lastText = text
     this.props.onChangeText(text)
   }
 
-  _onSubmit = () => {
-    const text = this._getText()
+  private onSubmit = () => {
+    const text = this.getText()
     if (text) {
       this.props.onSubmit(text)
     }
   }
 
-  _toggleShowingMenu = (menu: menuType) => {
+  private toggleShowingMenu = (menu: menuType) => {
     // Hide the keyboard on mobile when showing the menu.
     NativeKeyboard.dismiss()
     this._whichMenu = menu
     this.props.toggleShowingMenu()
   }
 
-  _onLayout = ({
+  private onLayout = ({
     nativeEvent: {
       layout: {height},
     },
   }) => this.props.setHeight(height)
 
-  _insertMentionMarker = () => {
+  private insertMentionMarker = () => {
     if (this._input) {
       const input = this._input
       input.focus()
@@ -116,11 +116,11 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
     }
   }
 
-  _enableAudioRecording = () => {
+  private enableAudioRecording = () => {
     this._ampTracker.reset()
     this.props.onEnableAudioRecording()
   }
-  _stopAudioRecording = (stopType: Types.AudioStopType) => {
+  private stopAudioRecording = (stopType: Types.AudioStopType) => {
     this.props.onStopAudioRecording(stopType, this._ampTracker.getBucketedAmps())
   }
 
@@ -140,7 +140,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
 
     return (
       <>
-        <Kb.Box onLayout={this._onLayout}>
+        <Kb.Box onLayout={this.onLayout}>
           {this.props.suggestBotCommandsUpdateStatus !== RPCChatTypes.UIBotCommandsUpdateStatus.blank &&
             (this.props.suggestionsVisible ||
               this.props.suggestBotCommandsUpdateStatus ===
@@ -152,7 +152,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
               attachTo={this.props.getAttachmentRef}
               visible={this.props.showingMenu}
               onHidden={this.props.toggleShowingMenu}
-              onSelect={this._launchNativeImagePicker}
+              onSelect={this.launchNativeImagePicker}
             />
           ) : this._whichMenu === 'moremenu' ? (
             <MoreMenuPopup
@@ -184,7 +184,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
               <ExplodingIcon
                 explodingModeSeconds={this.props.explodingModeSeconds}
                 isExploding={this.props.isExploding}
-                openExplodingPicker={() => this._toggleShowingMenu('exploding')}
+                openExplodingPicker={() => this.toggleShowingMenu('exploding')}
               />
             )}
             <Kb.PlainInput
@@ -202,9 +202,9 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
               onFocus={this.props.onFocus}
               // TODO: Call onCancelQuoting on text change or selection
               // change to match desktop.
-              onChangeText={this._onChangeText}
+              onChangeText={this.onChangeText}
               onSelectionChange={this.props.onSelectionChange}
-              ref={this._inputSetRef}
+              ref={this.inputSetRef}
               style={styles.input}
               textType="Body"
               rowsMax={Styles.dimensionHeight < 600 ? 5 : 9}
@@ -215,14 +215,14 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
                 audio={this.props.audio}
                 audioDragY={this._audioDragY}
                 hasText={this.state.hasText}
-                onEnableAudioRecording={this._enableAudioRecording}
+                onEnableAudioRecording={this.enableAudioRecording}
                 onLockAudioRecording={this.props.onLockAudioRecording}
-                onStopAudioRecording={this._stopAudioRecording}
-                onSubmit={this._onSubmit}
+                onStopAudioRecording={this.stopAudioRecording}
+                onSubmit={this.onSubmit}
                 isEditing={this.props.isEditing}
-                openFilePicker={this._openFilePicker}
-                openMoreMenu={this._openMoreMenu}
-                insertMentionMarker={this._insertMentionMarker}
+                openFilePicker={this.openFilePicker}
+                openMoreMenu={this.openMoreMenu}
+                insertMentionMarker={this.insertMentionMarker}
               />
             )}
           </Kb.Box>
@@ -231,7 +231,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
           conversationIDKey={this.props.conversationIDKey}
           dragY={this._audioDragY}
           onMetering={this._ampTracker.addAmp}
-          onStopRecording={this._stopAudioRecording}
+          onStopRecording={this.stopAudioRecording}
         />
       </>
     )
