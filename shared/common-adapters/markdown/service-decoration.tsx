@@ -7,14 +7,14 @@ import * as DeeplinksConstants from '../../constants/deeplinks'
 import * as DeeplinksGen from '../../actions/deeplinks-gen'
 import * as Styles from '../../styles'
 import * as FsConstants from '../../constants/fs'
-import { toByteArray } from 'base64-js'
+import {toByteArray} from 'base64-js'
 import PaymentStatus from '../../chat/payments/status/container'
 import Mention from '../mention-container'
 import Channel from '../channel-container'
 import KbfsPath from '../../fs/common/kbfs-path'
 import MaybeMention from '../../chat/conversation/maybe-mention'
-import Text, { StylesTextCrossPlatform } from '../text'
-import { StyleOverride } from '.'
+import Text, {StylesTextCrossPlatform} from '../text'
+import {StyleOverride} from '.'
 
 const linkStyle = Styles.platformStyles({
   isElectron: {
@@ -33,7 +33,7 @@ type KeybaseLinkProps = {
 
 const KeybaseLink = (props: KeybaseLinkProps) => {
   const dispatch = Container.useDispatch()
-  const onClick = React.useCallback(() => dispatch(DeeplinksGen.createLink({ link: props.link })), [
+  const onClick = React.useCallback(() => dispatch(DeeplinksGen.createLink({link: props.link})), [
     dispatch,
     props.link,
   ])
@@ -57,7 +57,7 @@ export type Props = {
   allowFontScaling?: boolean | null
   message?: Types.MessageText
   styleOverride: StyleOverride
-  styles: { [K in string]: StylesTextCrossPlatform }
+  styles: {[K in string]: StylesTextCrossPlatform}
 }
 
 const ServiceDecoration = (props: Props) => {
@@ -116,17 +116,18 @@ const ServiceDecoration = (props: Props) => {
     return DeeplinksConstants.linkIsKeybaseLink(link) ? (
       <KeybaseLink link={link} linkStyle={props.styleOverride.link} wrapStyle={props.styles.wrapStyle} />
     ) : (
-        <Text
-          className="hover-underline"
-          type="BodyPrimaryLink"
-          style={Styles.collapseStyles([props.styles.wrapStyle, linkStyle, props.styleOverride.link])}
-          title={parsed.link.display}
-          onClickURL={parsed.link.url}
-          onLongPressURL={parsed.link.url}
-        >
-          {parsed.link.display} {parsed.link.punycode && `(${parsed.link.punycode})`}
-        </Text>
-      )
+      <Text
+        className="hover-underline"
+        type="BodyPrimaryLink"
+        style={Styles.collapseStyles([props.styles.wrapStyle, linkStyle, props.styleOverride.link])}
+        title={parsed.link.display}
+        onClickURL={parsed.link.url}
+        onLongPressURL={parsed.link.url}
+      >
+        {parsed.link.display}
+        {parsed.link.punycode && ` (${parsed.link.punycode})`}
+      </Text>
+    )
   } else if (parsed.typ === RPCChatTypes.UITextDecorationTyp.mailto) {
     return (
       <Text
