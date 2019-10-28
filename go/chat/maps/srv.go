@@ -67,13 +67,13 @@ func (s *Srv) serve(w http.ResponseWriter, req *http.Request) {
 		s.makeError(w, http.StatusBadRequest, "invalid height: %s", err)
 		return
 	}
-	mapUrl, err := GetCustomMapURL(ctx, s.G().ExternalAPIKeySource, lat, lon, int(width)*scale,
+	mapURL, err := GetCustomMapURL(ctx, s.G().ExternalAPIKeySource, lat, lon, int(width)*scale,
 		int(height)*scale)
 	if err != nil {
 		s.makeError(w, http.StatusInternalServerError, "unable to get map url: %s", err)
 		return
 	}
-	mapReader, _, err := MapReaderFromURL(ctx, mapUrl)
+	mapReader, _, err := MapReaderFromURL(ctx, mapURL)
 	if err != nil {
 		s.makeError(w, http.StatusInternalServerError, "unable to get map reader: %s", err)
 		return
