@@ -113,7 +113,6 @@ const AudioButton = (props: ButtonProps) => {
   const micOffsetY = React.useRef(new Kb.NativeAnimated.Value(-13)).current
   // lifecycle
   React.useEffect(() => {
-    console.log('DRAGY: BUTTON: ' + JSON.stringify(props.dragY))
     Kb.NativeAnimated.parallel(
       [
         Kb.NativeAnimated.timing(innerScale, {
@@ -193,7 +192,7 @@ const AudioButton = (props: ButtonProps) => {
           }),
         ],
         {stopTogether: false}
-      ).start()
+      ).start(() => props.dragY.setValue(0))
     }
   }, [props.closeDown])
 

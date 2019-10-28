@@ -23,7 +23,6 @@ import {formatDurationShort} from '../../../../util/timestamp'
 import flags from '../../../../util/feature-flags'
 import AudioRecorder from './audio-recorder.native'
 import {AmpTracker} from './amptracker'
-import {BooleanLiteral} from '@babel/types'
 
 type menuType = 'exploding' | 'filepickerpopup' | 'moremenu'
 
@@ -358,15 +357,15 @@ const maxLockDrift = -70
 
 const AudioStarter = (props: AudioStarterProps) => {
   let longPressTimer
-  if (!flags.audioAttachments) {
-    return null
-  }
   const locked = React.useRef<boolean>(false)
   React.useEffect(() => {
     if (locked.current && !props.locked) {
       locked.current = false
     }
   }, [props.locked])
+  if (!flags.audioAttachments) {
+    return null
+  }
   return (
     <Kb.TapGestureHandler
       onHandlerStateChange={({nativeEvent}) => {
@@ -391,8 +390,8 @@ const AudioStarter = (props: AudioStarterProps) => {
       }}
     >
       <Kb.PanGestureHandler
-        minOffsetX={0}
-        minOffsetY={0}
+        minDeltaX={0}
+        minDeltaY={0}
         onGestureEvent={({nativeEvent}) => {
           if (locked.current) {
             return
@@ -406,8 +405,7 @@ const AudioStarter = (props: AudioStarterProps) => {
             longPressTimer = null
             props.stopRecording(Types.AudioStopType.CANCEL)
           }
-          if (!locked.current) {
-            console.log('DRAGY: ' + nativeEvent.translationY)
+          if (!locked.current && nativeEvent.translationY <= 0) {
             props.dragY.setValue(nativeEvent.translationY)
           }
         }}
