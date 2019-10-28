@@ -559,32 +559,7 @@ function* getDetails(_: TypedState, action: TeamsGen.GetDetailsPayload, logger: 
       arr.push(request.username)
     })
 
-    const invites = Object.values(details.annotatedActiveInvites).reduce<Array<Types._InviteInfo>>(
-      (arr, invite) => {
-        const role = Constants.teamRoleByEnum[invite.role]
-        if (!role || role === 'none') {
-          return arr
-        }
-
-        let username = ''
-        const t = invite.type
-        if (t.c === RPCTypes.TeamInviteCategory.sbs) {
-          const sbs: RPCTypes.TeamInviteSocialNetwork = t.sbs
-          username = `${invite.name}@${sbs}`
-        }
-        const {e164ToDisplay} = require('../util/phone-numbers')
-        arr.push({
-          email: invite.type.c === RPCTypes.TeamInviteCategory.email ? invite.name : '',
-          id: invite.id,
-          name: invite.type.c === RPCTypes.TeamInviteCategory.seitan ? invite.name : '',
-          phone: invite.type.c === RPCTypes.TeamInviteCategory.phone ? e164ToDisplay('+' + invite.name) : '',
-          role,
-          username,
-        })
-        return arr
-      },
-      []
-    )
+    const invites = Constants.annotatedInvitesToInviteInfo(details.annotatedActiveInvites)
 
     // if we have no requests for this team, make sure we don't hold on to any old ones
     if (!requestMap.get(teamname)) {
