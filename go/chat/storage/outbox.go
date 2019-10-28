@@ -166,10 +166,14 @@ func (o *Outbox) PushMessage(ctx context.Context, convID chat1.ConversationID,
 		outboxID = *suppliedOutboxID
 	}
 
+	// Ordinals for the outbox start at 100.
+	// So that journeycard ordinals, which are added at the last minute by postProcessConv, do not conflict.
+	const outboxOrdinalStart = 100
+
 	// Compute prev ordinal by predicting that all outbox messages will be appended to the thread
-	prevOrdinal := 1
+	prevOrdinal := outboxOrdinalStart
 	for _, obr := range obox.Records {
-		if obr.ConvID.Eq(convID) && obr.Ordinal >= prevOrdinal {
+		if obr.ConvID.Eq(convID) && obr.Ordinal >= outboxOrdinalStart && obr.Ordinal >= prevOrdinal {
 			prevOrdinal = obr.Ordinal + 1
 		}
 	}
