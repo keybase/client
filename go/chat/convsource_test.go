@@ -28,6 +28,7 @@ func testGetThreadSupersedes(t *testing.T, deleteHistory bool) {
 
 	u := world.GetUsers()[0]
 	tc := world.Tcs[u.Username]
+	tc.ChatG.JourneyCardManager = NewJourneyCardChecker(globals.NewContext(tc.G, tc.ChatG))
 	trip := newConvTriple(ctx, t, tc, u.Username)
 	firstMessagePlaintext := chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
