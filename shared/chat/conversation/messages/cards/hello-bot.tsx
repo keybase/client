@@ -6,7 +6,7 @@ type Props = {}
 
 const HelloBot = (_: Props) => (
   <Kb.Box2 direction="horizontal" style={styles.container} alignItems="flex-start">
-    <Kb.Icon type="icon-fancy-hellobot-96" style={styles.image} />
+    <Kb.Icon type="icon-fancy-hellobot-hi-96" style={styles.image} />
     <Kb.Box2 direction="vertical" gap="xtiny" fullHeight={true} style={styles.textContainer}>
       <Kb.Text type="BodySmallSemibold" style={styles.header} negative={true}>
         Hi, I'm Hello Bot. You can play puzzles with me or ask for help.
