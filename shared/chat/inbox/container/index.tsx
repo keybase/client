@@ -92,6 +92,7 @@ class InboxWrapper extends React.PureComponent<Props> {
   }
 
   render() {
+    console.log('aaaaa inbox wrapper draw')
     const {
       _hasLoadedTrusted,
       _refreshInbox,
