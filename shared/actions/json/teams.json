@@ -60,7 +60,6 @@
       "teamname": "string",
       "members": "I.Map<string, Types.MemberInfo>"
     },
-    "getDetailsForAllTeams": {},
     "getTeamOperations": {
       "teamname": "string"
     },

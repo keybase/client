@@ -621,9 +621,6 @@ function* getDetails(_: TypedState, action: TeamsGen.GetDetailsPayload, logger: 
   }
 }
 
-const getDetailsForAllTeams = (state: TypedState) =>
-  [...state.teams.teamnames].map(teamname => TeamsGen.createGetDetails({teamname}))
-
 function* addUserToTeams(_: TypedState, action: TeamsGen.AddUserToTeamsPayload) {
   const {role, teams, user} = action.payload
   const teamsAddedTo: Array<string> = []
@@ -1486,7 +1483,6 @@ const teamsSaga = function*() {
   yield* Saga.chainGenerator<TeamsGen.JoinTeamPayload>(TeamsGen.joinTeam, joinTeam, 'joinTeam')
   yield* Saga.chainGenerator<TeamsGen.GetDetailsPayload>(TeamsGen.getDetails, getDetails, 'getDetails')
   yield* Saga.chainAction2(TeamsGen.getMembers, getMembers, 'getMembers')
-  yield* Saga.chainAction2(TeamsGen.getDetailsForAllTeams, getDetailsForAllTeams, 'getDetailsForAllTeams')
   yield* Saga.chainGenerator<TeamsGen.GetTeamPublicityPayload>(
     TeamsGen.getTeamPublicity,
     getTeamPublicity,
