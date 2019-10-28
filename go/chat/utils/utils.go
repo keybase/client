@@ -183,6 +183,7 @@ func ReorderParticipants(mctx libkb.MetaContext, g libkb.UIDMapperContext, umapp
 	}
 
 	// Include participants even if they weren't in the active list, in stable order.
+	var leftOvers []chat1.ConversationLocalParticipant
 	for user, available := range allowedWriters {
 		if !available {
 			continue
@@ -192,9 +193,13 @@ func ReorderParticipants(mctx libkb.MetaContext, g libkb.UIDMapperContext, umapp
 			FullName:           nil,
 		})
 		part.InConvName = convNameUsers[part.Username]
-		writerNames = append(writerNames, part)
+		leftOvers = append(leftOvers, part)
 		allowedWriters[user] = false
 	}
+	sort.Slice(leftOvers, func(i, j int) bool {
+		return strings.Compare(leftOvers[i].Username, leftOvers[j].Username) < 0
+	})
+	writerNames = append(writerNames, leftOvers...)
 
 	return writerNames, nil
 }
@@ -1185,6 +1190,7 @@ func PresentRemoteConversation(ctx context.Context, g *globals.Context, rc types
 		tlfName = latest.TlfName
 	}
 	res.ConvID = rawConv.GetConvID().String()
+	res.TlfID = rawConv.Metadata.IdTriple.Tlfid.String()
 	res.TopicType = rawConv.GetTopicType()
 	res.IsPublic = rawConv.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC
 	res.Name = tlfName
@@ -1295,6 +1301,7 @@ func presentConversationParticipantsLocal(ctx context.Context, rawParticipants [
 func PresentConversationLocal(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	rawConv chat1.ConversationLocal) (res chat1.InboxUIItem) {
 	res.ConvID = rawConv.GetConvID().String()
+	res.TlfID = rawConv.Info.Triple.Tlfid.String()
 	res.TopicType = rawConv.GetTopicType()
 	res.IsPublic = rawConv.Info.Visibility == keybase1.TLFVisibility_PUBLIC
 	res.Name = rawConv.Info.TlfName

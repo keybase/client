@@ -438,25 +438,6 @@ export default function(
       })
     case WalletsGen.loadedMobileOnlyMode:
       return state.setIn(['mobileOnlyMap', action.payload.accountID], action.payload.enabled)
-    case WalletsGen.inflationDestinationReceived:
-      return action.payload.error || !action.payload.accountID || !action.payload.selected
-        ? state.merge({inflationDestinationError: action.payload.error})
-        : state.merge({
-            inflationDestinationError: '',
-            inflationDestinationMap: state.inflationDestinationMap.merge(
-              I.Map([[action.payload.accountID, action.payload.selected]])
-            ),
-            inflationDestinations: action.payload.options
-              ? I.List(action.payload.options)
-              : state.inflationDestinations,
-          })
-    case WalletsGen.setInflationDestination:
-      return state.merge({inflationDestinationError: ''})
-    case WalletsGen.updatedAirdropState:
-      return state.merge({
-        airdropQualifications: I.List(action.payload.airdropQualifications),
-        airdropState: action.payload.airdropState,
-      })
     case WalletsGen.validateSEP7Link:
       // Clear out old state just in case.
       return state.merge({
@@ -606,7 +587,6 @@ export default function(
     case WalletsGen.loadMobileOnlyMode:
     case WalletsGen.changeMobileOnlyMode:
     case WalletsGen.exitFailedPayment:
-    case WalletsGen.loadInflationDestination:
     case WalletsGen.loadExternalPartners:
     case WalletsGen.acceptSEP7Pay:
     case WalletsGen.acceptSEP7Path:

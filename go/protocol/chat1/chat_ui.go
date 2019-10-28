@@ -312,6 +312,7 @@ func (o UnverifiedInboxUIItemMetadata) DeepCopy() UnverifiedInboxUIItemMetadata 
 
 type UnverifiedInboxUIItem struct {
 	ConvID          string                         `codec:"convID" json:"convID"`
+	TlfID           string                         `codec:"tlfID" json:"tlfID"`
 	TopicType       TopicType                      `codec:"topicType" json:"topicType"`
 	IsPublic        bool                           `codec:"isPublic" json:"isPublic"`
 	Name            string                         `codec:"name" json:"name"`
@@ -340,6 +341,7 @@ type UnverifiedInboxUIItem struct {
 func (o UnverifiedInboxUIItem) DeepCopy() UnverifiedInboxUIItem {
 	return UnverifiedInboxUIItem{
 		ConvID:       o.ConvID,
+		TlfID:        o.TlfID,
 		TopicType:    o.TopicType.DeepCopy(),
 		IsPublic:     o.IsPublic,
 		Name:         o.Name,
@@ -528,6 +530,7 @@ func (o UIPinnedMessage) DeepCopy() UIPinnedMessage {
 
 type InboxUIItem struct {
 	ConvID            string                        `codec:"convID" json:"convID"`
+	TlfID             string                        `codec:"tlfID" json:"tlfID"`
 	TopicType         TopicType                     `codec:"topicType" json:"topicType"`
 	IsPublic          bool                          `codec:"isPublic" json:"isPublic"`
 	IsEmpty           bool                          `codec:"isEmpty" json:"isEmpty"`
@@ -567,6 +570,7 @@ type InboxUIItem struct {
 func (o InboxUIItem) DeepCopy() InboxUIItem {
 	return InboxUIItem{
 		ConvID:            o.ConvID,
+		TlfID:             o.TlfID,
 		TopicType:         o.TopicType.DeepCopy(),
 		IsPublic:          o.IsPublic,
 		IsEmpty:           o.IsEmpty,

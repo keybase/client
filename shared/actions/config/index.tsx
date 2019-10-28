@@ -21,6 +21,7 @@ import * as Tabs from '../../constants/tabs'
 import * as Router2 from '../../constants/router2'
 import * as FsTypes from '../../constants/types/fs'
 import URL from 'url-parse'
+import {noVersion} from '../../constants/whats-new'
 import {isAndroid, isMobile, appColorSchemeChanged} from '../../constants/platform'
 import {updateServerConfigLastLoggedIn} from '../../app/server-config'
 import * as Container from '../../util/container'
@@ -605,10 +606,12 @@ const gregorPushState = (_: Container.TypedState, action: GregorGen.PushStatePay
   const lastSeenItem = items.find(i => i.item && i.item.category === 'whatsNewLastSeenVersion')
   if (lastSeenItem) {
     const {body} = lastSeenItem.item
-    const lastVersion = body.toString()
+    const pushStateLastSeenVersion = body.toString()
+    const lastSeenVersion = pushStateLastSeenVersion || noVersion
+    // Default to 0.0.0 (noVersion) if user has never marked a version as seen
     actions.push(
       ConfigGen.createSetWhatsNewLastSeenVersion({
-        lastSeenVersion: lastVersion,
+        lastSeenVersion,
       })
     )
   }

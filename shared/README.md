@@ -174,3 +174,19 @@ VSCode's ESLint extension needs to know where to look for .eslintrc. Add this to
 ```
 { "eslint.workingDirectories": ["shared"] }
 ```
+
+### React Devtools standalone
+
+If you want to use react devtools to examine the DOM of a running RN app in the simulator, you'll need:
+
+```
+yarn global add react-devtools@3
+```
+
+### Watchman
+
+You'll need to have watchman installed if you're running out of file descriptors:
+
+```
+brew install watchman
+```

@@ -214,6 +214,12 @@ export type TypedActionsMap = {
   'chat2:updateLastCoord': chat2.UpdateLastCoordPayload
   'chat2:toggleGiphyPrefill': chat2.ToggleGiphyPrefillPayload
   'chat2:setChannelSearchText': chat2.SetChannelSearchTextPayload
+  'chat2:enableAudioRecording': chat2.EnableAudioRecordingPayload
+  'chat2:startAudioRecording': chat2.StartAudioRecordingPayload
+  'chat2:stopAudioRecording': chat2.StopAudioRecordingPayload
+  'chat2:lockAudioRecording': chat2.LockAudioRecordingPayload
+  'chat2:sendAudioRecording': chat2.SendAudioRecordingPayload
+  'chat2:setAudioRecordingPostInfo': chat2.SetAudioRecordingPostInfoPayload
   'config:startHandshake': config.StartHandshakePayload
   'config:restartHandshake': config.RestartHandshakePayload
   'config:daemonHandshake': config.DaemonHandshakePayload
@@ -933,9 +939,6 @@ export type TypedActionsMap = {
   'wallets:loadAssets': wallets.LoadAssetsPayload
   'wallets:loadAccounts': wallets.LoadAccountsPayload
   'wallets:loadExternalPartners': wallets.LoadExternalPartnersPayload
-  'wallets:loadInflationDestination': wallets.LoadInflationDestinationPayload
-  'wallets:setInflationDestination': wallets.SetInflationDestinationPayload
-  'wallets:inflationDestinationReceived': wallets.InflationDestinationReceivedPayload
   'wallets:loadMorePayments': wallets.LoadMorePaymentsPayload
   'wallets:loadPayments': wallets.LoadPaymentsPayload
   'wallets:loadPaymentDetail': wallets.LoadPaymentDetailPayload

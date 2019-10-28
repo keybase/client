@@ -62,6 +62,7 @@
   "chat.1.local.unpinMessage": {"promise": true},
   "chat.1.local.updateTyping": {"promise": true},
   "chat.1.local.updateUnsentText": {"promise": true},
+  "keybase.1.test.echo": {"promise": true},
   "keybase.1.SimpleFS.simpleFSAreWeConnectedToMDServer": {"promise": true},
   "keybase.1.SimpleFS.simpleFSCancel": {"promise": true},
   "keybase.1.SimpleFS.simpleFSCancelDownload": {"promise": true},

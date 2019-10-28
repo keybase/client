@@ -38,6 +38,7 @@ export const createConversation = 'chat2:createConversation'
 export const deselectConversation = 'chat2:deselectConversation'
 export const desktopNotification = 'chat2:desktopNotification'
 export const dismissBottomBanner = 'chat2:dismissBottomBanner'
+export const enableAudioRecording = 'chat2:enableAudioRecording'
 export const giphyGotSearchResult = 'chat2:giphyGotSearchResult'
 export const giphySend = 'chat2:giphySend'
 export const giphyToggleWindow = 'chat2:giphyToggleWindow'
@@ -60,6 +61,7 @@ export const loadAttachmentView = 'chat2:loadAttachmentView'
 export const loadMessagesCentered = 'chat2:loadMessagesCentered'
 export const loadNewerMessagesDueToScroll = 'chat2:loadNewerMessagesDueToScroll'
 export const loadOlderMessagesDueToScroll = 'chat2:loadOlderMessagesDueToScroll'
+export const lockAudioRecording = 'chat2:lockAudioRecording'
 export const markConversationsStale = 'chat2:markConversationsStale'
 export const markInitiallyLoadedThreadAsRead = 'chat2:markInitiallyLoadedThreadAsRead'
 export const messageAttachmentNativeSave = 'chat2:messageAttachmentNativeSave'
@@ -103,8 +105,10 @@ export const resetLetThemIn = 'chat2:resetLetThemIn'
 export const resolveMaybeMention = 'chat2:resolveMaybeMention'
 export const saveMinWriterRole = 'chat2:saveMinWriterRole'
 export const selectConversation = 'chat2:selectConversation'
+export const sendAudioRecording = 'chat2:sendAudioRecording'
 export const sendTyping = 'chat2:sendTyping'
 export const setAttachmentViewStatus = 'chat2:setAttachmentViewStatus'
+export const setAudioRecordingPostInfo = 'chat2:setAudioRecordingPostInfo'
 export const setChannelSearchText = 'chat2:setChannelSearchText'
 export const setCommandMarkdown = 'chat2:setCommandMarkdown'
 export const setCommandStatusInfo = 'chat2:setCommandStatusInfo'
@@ -123,7 +127,9 @@ export const setThreadSearchQuery = 'chat2:setThreadSearchQuery'
 export const setThreadSearchStatus = 'chat2:setThreadSearchStatus'
 export const setUnsentText = 'chat2:setUnsentText'
 export const setWalletsOld = 'chat2:setWalletsOld'
+export const startAudioRecording = 'chat2:startAudioRecording'
 export const staticConfigLoaded = 'chat2:staticConfigLoaded'
+export const stopAudioRecording = 'chat2:stopAudioRecording'
 export const tabSelected = 'chat2:tabSelected'
 export const threadSearch = 'chat2:threadSearch'
 export const threadSearchResults = 'chat2:threadSearchResults'
@@ -227,6 +233,7 @@ type _DesktopNotificationPayload = {
   readonly body: string
 }
 type _DismissBottomBannerPayload = {readonly conversationIDKey: Types.ConversationIDKey}
+type _EnableAudioRecordingPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _GiphyGotSearchResultPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly results: RPCChatTypes.GiphySearchResults
@@ -286,6 +293,7 @@ type _LoadMessagesCenteredPayload = {
 }
 type _LoadNewerMessagesDueToScrollPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _LoadOlderMessagesDueToScrollPayload = {readonly conversationIDKey: Types.ConversationIDKey}
+type _LockAudioRecordingPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _MarkConversationsStalePayload = {
   readonly conversationIDKeys: Array<Types.ConversationIDKey>
   readonly updateType: RPCChatTypes.StaleUpdateType
@@ -510,12 +518,18 @@ type _SelectConversationPayload = {
     | 'teamMention'
   readonly navKey?: string
 }
+type _SendAudioRecordingPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _SendTypingPayload = {readonly conversationIDKey: Types.ConversationIDKey; readonly typing: boolean}
 type _SetAttachmentViewStatusPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly viewType: RPCChatTypes.GalleryItemTyp
   readonly status: Types.AttachmentViewStatus
   readonly last?: boolean
+}
+type _SetAudioRecordingPostInfoPayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly path: string
+  readonly outboxID: Buffer
 }
 type _SetChannelSearchTextPayload = {readonly text: string}
 type _SetCommandMarkdownPayload = {
@@ -577,7 +591,15 @@ type _SetUnsentTextPayload = {
   readonly text?: HiddenString
 }
 type _SetWalletsOldPayload = void
+type _StartAudioRecordingPayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly meteringCb: (amp: number) => void
+}
 type _StaticConfigLoadedPayload = {readonly staticConfig: Types.StaticConfig}
+type _StopAudioRecordingPayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly stopType: Types.AudioStopType
+}
 type _TabSelectedPayload = void
 type _ThreadSearchPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
@@ -1204,6 +1226,9 @@ export const createDeselectConversation = (
 export const createDesktopNotification = (
   payload: _DesktopNotificationPayload
 ): DesktopNotificationPayload => ({payload, type: desktopNotification})
+export const createEnableAudioRecording = (
+  payload: _EnableAudioRecordingPayload
+): EnableAudioRecordingPayload => ({payload, type: enableAudioRecording})
 export const createHideConversation = (payload: _HideConversationPayload): HideConversationPayload => ({
   payload,
   type: hideConversation,
@@ -1229,6 +1254,10 @@ export const createLoadNewerMessagesDueToScroll = (
 export const createLoadOlderMessagesDueToScroll = (
   payload: _LoadOlderMessagesDueToScrollPayload
 ): LoadOlderMessagesDueToScrollPayload => ({payload, type: loadOlderMessagesDueToScroll})
+export const createLockAudioRecording = (payload: _LockAudioRecordingPayload): LockAudioRecordingPayload => ({
+  payload,
+  type: lockAudioRecording,
+})
 export const createMarkConversationsStale = (
   payload: _MarkConversationsStalePayload
 ): MarkConversationsStalePayload => ({payload, type: markConversationsStale})
@@ -1355,13 +1384,27 @@ export const createSelectConversation = (payload: _SelectConversationPayload): S
   payload,
   type: selectConversation,
 })
+export const createSendAudioRecording = (payload: _SendAudioRecordingPayload): SendAudioRecordingPayload => ({
+  payload,
+  type: sendAudioRecording,
+})
 export const createSendTyping = (payload: _SendTypingPayload): SendTypingPayload => ({
   payload,
   type: sendTyping,
 })
+export const createSetAudioRecordingPostInfo = (
+  payload: _SetAudioRecordingPostInfoPayload
+): SetAudioRecordingPostInfoPayload => ({payload, type: setAudioRecordingPostInfo})
 export const createSetConversationOffline = (
   payload: _SetConversationOfflinePayload
 ): SetConversationOfflinePayload => ({payload, type: setConversationOffline})
+export const createStartAudioRecording = (
+  payload: _StartAudioRecordingPayload
+): StartAudioRecordingPayload => ({payload, type: startAudioRecording})
+export const createStopAudioRecording = (payload: _StopAudioRecordingPayload): StopAudioRecordingPayload => ({
+  payload,
+  type: stopAudioRecording,
+})
 export const createToggleInfoPanel = (payload: _ToggleInfoPanelPayload): ToggleInfoPanelPayload => ({
   payload,
   type: toggleInfoPanel,
@@ -1492,6 +1535,10 @@ export type DismissBottomBannerPayload = {
   readonly payload: _DismissBottomBannerPayload
   readonly type: typeof dismissBottomBanner
 }
+export type EnableAudioRecordingPayload = {
+  readonly payload: _EnableAudioRecordingPayload
+  readonly type: typeof enableAudioRecording
+}
 export type GiphyGotSearchResultPayload = {
   readonly payload: _GiphyGotSearchResultPayload
   readonly type: typeof giphyGotSearchResult
@@ -1567,6 +1614,10 @@ export type LoadNewerMessagesDueToScrollPayload = {
 export type LoadOlderMessagesDueToScrollPayload = {
   readonly payload: _LoadOlderMessagesDueToScrollPayload
   readonly type: typeof loadOlderMessagesDueToScroll
+}
+export type LockAudioRecordingPayload = {
+  readonly payload: _LockAudioRecordingPayload
+  readonly type: typeof lockAudioRecording
 }
 export type MarkConversationsStalePayload = {
   readonly payload: _MarkConversationsStalePayload
@@ -1716,10 +1767,18 @@ export type SelectConversationPayload = {
   readonly payload: _SelectConversationPayload
   readonly type: typeof selectConversation
 }
+export type SendAudioRecordingPayload = {
+  readonly payload: _SendAudioRecordingPayload
+  readonly type: typeof sendAudioRecording
+}
 export type SendTypingPayload = {readonly payload: _SendTypingPayload; readonly type: typeof sendTyping}
 export type SetAttachmentViewStatusPayload = {
   readonly payload: _SetAttachmentViewStatusPayload
   readonly type: typeof setAttachmentViewStatus
+}
+export type SetAudioRecordingPostInfoPayload = {
+  readonly payload: _SetAudioRecordingPostInfoPayload
+  readonly type: typeof setAudioRecordingPostInfo
 }
 export type SetChannelSearchTextPayload = {
   readonly payload: _SetChannelSearchTextPayload
@@ -1793,9 +1852,17 @@ export type SetWalletsOldPayload = {
   readonly payload: _SetWalletsOldPayload
   readonly type: typeof setWalletsOld
 }
+export type StartAudioRecordingPayload = {
+  readonly payload: _StartAudioRecordingPayload
+  readonly type: typeof startAudioRecording
+}
 export type StaticConfigLoadedPayload = {
   readonly payload: _StaticConfigLoadedPayload
   readonly type: typeof staticConfigLoaded
+}
+export type StopAudioRecordingPayload = {
+  readonly payload: _StopAudioRecordingPayload
+  readonly type: typeof stopAudioRecording
 }
 export type TabSelectedPayload = {readonly payload: _TabSelectedPayload; readonly type: typeof tabSelected}
 export type ThreadSearchPayload = {readonly payload: _ThreadSearchPayload; readonly type: typeof threadSearch}
@@ -1933,6 +2000,7 @@ export type Actions =
   | DeselectConversationPayload
   | DesktopNotificationPayload
   | DismissBottomBannerPayload
+  | EnableAudioRecordingPayload
   | GiphyGotSearchResultPayload
   | GiphySendPayload
   | GiphyToggleWindowPayload
@@ -1955,6 +2023,7 @@ export type Actions =
   | LoadMessagesCenteredPayload
   | LoadNewerMessagesDueToScrollPayload
   | LoadOlderMessagesDueToScrollPayload
+  | LockAudioRecordingPayload
   | MarkConversationsStalePayload
   | MarkInitiallyLoadedThreadAsReadPayload
   | MessageAttachmentNativeSavePayload
@@ -1998,8 +2067,10 @@ export type Actions =
   | ResolveMaybeMentionPayload
   | SaveMinWriterRolePayload
   | SelectConversationPayload
+  | SendAudioRecordingPayload
   | SendTypingPayload
   | SetAttachmentViewStatusPayload
+  | SetAudioRecordingPostInfoPayload
   | SetChannelSearchTextPayload
   | SetCommandMarkdownPayload
   | SetCommandStatusInfoPayload
@@ -2018,7 +2089,9 @@ export type Actions =
   | SetThreadSearchStatusPayload
   | SetUnsentTextPayload
   | SetWalletsOldPayload
+  | StartAudioRecordingPayload
   | StaticConfigLoadedPayload
+  | StopAudioRecordingPayload
   | TabSelectedPayload
   | ThreadSearchPayload
   | ThreadSearchResultsPayload

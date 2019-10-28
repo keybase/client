@@ -1315,6 +1315,7 @@ func (j *JournalManager) MoveAway(ctx context.Context, tlfID tlf.ID) error {
 		return err
 	}
 	j.insertConflictJournalLocked(ctx, tj, fakeTlfID, t)
+	j.config.SubscriptionManagerPublisher().PublishChange(keybase1.SubscriptionTopic_FAVORITES)
 	return j.config.KeybaseService().NotifyFavoritesChanged(ctx)
 }
 

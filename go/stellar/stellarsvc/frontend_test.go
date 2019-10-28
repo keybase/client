@@ -34,7 +34,7 @@ func TestGetWalletAccountsLocal(t *testing.T) {
 
 	acceptDisclaimer(tcs[0])
 
-	accountID := tcs[0].Backend.AddAccount()
+	accountID := tcs[0].Backend.AddAccount(tcs[0].Fu.GetUID())
 
 	err := tcs[0].Srv.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
 		SecretKey:   tcs[0].Backend.SecretKey(accountID),
@@ -107,7 +107,7 @@ func TestGetWalletAccountsLocal(t *testing.T) {
 
 	// Add another account that we will add 1 XLM, enough to be funded but not
 	// enough to make any txs out of it.
-	anotherAccountID := tcs[0].Backend.AddAccountEmpty(t)
+	anotherAccountID := tcs[0].Backend.AddAccountEmpty(t, tcs[0].Fu.GetUID())
 	err = tcs[0].Srv.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
 		SecretKey:   tcs[0].Backend.SecretKey(anotherAccountID),
 		MakePrimary: false,
@@ -127,7 +127,7 @@ func TestGetWalletAccountsLocal(t *testing.T) {
 	require.False(t, details.CanAddTrustline)
 
 	// Add another account that we will add 10 XLM, enough to be funded and can create trustlines
-	yetAnotherAccountID := tcs[0].Backend.AddAccountEmpty(t)
+	yetAnotherAccountID := tcs[0].Backend.AddAccountEmpty(t, tcs[0].Fu.GetUID())
 	err = tcs[0].Srv.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
 		SecretKey:   tcs[0].Backend.SecretKey(yetAnotherAccountID),
 		MakePrimary: false,
@@ -152,7 +152,7 @@ func TestGetAccountAssetsLocalWithBalance(t *testing.T) {
 
 	acceptDisclaimer(tcs[0])
 
-	accountID := tcs[0].Backend.AddAccount()
+	accountID := tcs[0].Backend.AddAccount(tcs[0].Fu.GetUID())
 
 	err := tcs[0].Srv.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
 		SecretKey:   tcs[0].Backend.SecretKey(accountID),
@@ -184,7 +184,7 @@ func TestGetAccountAssetsLocalWithCHFBalance(t *testing.T) {
 
 	acceptDisclaimer(tcs[0])
 
-	accountID := tcs[0].Backend.AddAccount()
+	accountID := tcs[0].Backend.AddAccount(tcs[0].Fu.GetUID())
 
 	err := tcs[0].Srv.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
 		SecretKey:   tcs[0].Backend.SecretKey(accountID),
@@ -424,8 +424,8 @@ func TestSetAccountAsDefault(t *testing.T) {
 	require.Error(t, err)
 
 	additionalAccs := []stellar1.AccountID{
-		tcs[0].Backend.AddAccountEmpty(t),
-		tcs[0].Backend.AddAccountEmpty(t),
+		tcs[0].Backend.AddAccountEmpty(t, tcs[0].Fu.GetUID()),
+		tcs[0].Backend.AddAccountEmpty(t, tcs[0].Fu.GetUID()),
 	}
 
 	for _, v := range additionalAccs {
@@ -542,7 +542,7 @@ func TestDeleteWallet(t *testing.T) {
 
 	// Add new account, make it primary, now first account should be
 	// deletable.
-	accID2 := tcs[0].Backend.AddAccountEmpty(t)
+	accID2 := tcs[0].Backend.AddAccountEmpty(t, tcs[0].Fu.GetUID())
 	err = tcs[0].Srv.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
 		SecretKey:   tcs[0].Backend.SecretKey(accID2),
 		MakePrimary: true,
@@ -728,9 +728,9 @@ func TestGetPaymentsLocal(t *testing.T) {
 
 	srvSender := tcs[0].Srv
 	rm := tcs[0].Backend
-	accountIDSender := rm.AddAccount()
-	accountIDRecip := rm.AddAccount()
-	accountIDRecip2 := rm.AddAccount()
+	accountIDSender := rm.AddAccount(tcs[0].Fu.GetUID())
+	accountIDRecip := rm.AddAccount(tcs[1].Fu.GetUID())
+	accountIDRecip2 := rm.AddAccount(tcs[1].Fu.GetUID())
 
 	srvRecip := tcs[1].Srv
 
@@ -1058,8 +1058,8 @@ func TestSendToSelf(t *testing.T) {
 
 	acceptDisclaimer(tcs[0])
 	rm := tcs[0].Backend
-	accountID1 := rm.AddAccount()
-	accountID2 := rm.AddAccount()
+	accountID1 := rm.AddAccount(tcs[0].Fu.GetUID())
+	accountID2 := rm.AddAccount(tcs[0].Fu.GetUID())
 
 	err := tcs[0].Srv.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
 		SecretKey:   rm.SecretKey(accountID1),
@@ -2737,7 +2737,7 @@ func TestGetSendAssetChoices(t *testing.T) {
 	require.True(t, choices2[1].Enabled)
 
 	// Try with arg.To AccountID not in the system.
-	externalAcc := tcs[0].Backend.AddAccount()
+	externalAcc := tcs[0].Backend.AddAccount(tcs[0].Fu.GetUID())
 	choices3, err := tcs[0].Srv.GetSendAssetChoicesLocal(context.Background(), stellar1.GetSendAssetChoicesLocalArg{
 		From: fakeAccts[0].accountID,
 		To:   externalAcc.String(),

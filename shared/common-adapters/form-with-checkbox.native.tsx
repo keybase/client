@@ -26,9 +26,10 @@ class FormWithCheckbox extends Component<Props> {
 const styles = {
   checkboxContainer: {
     ...globalStyles.flexBoxRow,
+    alignSelf: 'flex-start',
     justifyContent: 'space-around',
     position: 'relative',
-    top: 7,
+    top: 8,
   },
 }
 

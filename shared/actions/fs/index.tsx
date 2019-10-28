@@ -292,8 +292,8 @@ const makeEntry = (d: RPCTypes.Dirent, children?: Set<string>) => {
   }
 }
 
-function* folderList(_: TypedState, action: FsGen.FolderListLoadPayload | FsGen.EditSuccessPayload) {
-  const rootPath = action.type === FsGen.editSuccess ? action.payload.parentPath : action.payload.path
+function* folderList(_: TypedState, action: FsGen.FolderListLoadPayload) {
+  const rootPath = action.payload.path
   const isRecursive = action.type === FsGen.folderListLoad && action.payload.recursive
   try {
     const opID = Constants.makeUUID()
@@ -370,14 +370,6 @@ function* folderList(_: TypedState, action: FsGen.FolderListLoadPayload | FsGen.
       ...entries.map(direntToPathAndPathItem),
     ]
     yield Saga.put(FsGen.createFolderListLoaded({path: rootPath, pathItems: I.Map(pathItems)}))
-    if (action.type === FsGen.editSuccess) {
-      // Note that we discard the Edit metadata here rather than immediately
-      // after an FsGen.editSuccess event, so that if we hear about journal
-      // uploading the new folder before we hear from the folder list result,
-      // fs/footer/upload-container.js can determine this is a newly created
-      // folder instead of a file upload based on state.fs.edits.
-      yield Saga.put(FsGen.createDiscardEdit({editID: action.payload.editID}))
-    }
   } catch (error) {
     yield makeRetriableErrorHandler(action, rootPath)(error).map(action => Saga.put(action))
   }
@@ -912,10 +904,7 @@ const loadFileContext = async (_: TypedState, action: FsGen.LoadFileContextPaylo
 
 function* fsSaga() {
   yield* Saga.chainGenerator<FsGen.UploadPayload>(FsGen.upload, upload)
-  yield* Saga.chainGenerator<FsGen.FolderListLoadPayload | FsGen.EditSuccessPayload>(
-    [FsGen.folderListLoad, FsGen.editSuccess],
-    folderList
-  )
+  yield* Saga.chainGenerator<FsGen.FolderListLoadPayload>(FsGen.folderListLoad, folderList)
   yield* Saga.chainAction2(FsGen.favoritesLoad, loadFavorites)
   yield* Saga.chainAction2(FsGen.kbfsDaemonRpcStatusChanged, setTlfsAsUnloadedWhenKbfsDaemonDisconnects)
   yield* Saga.chainGenerator<FsGen.FavoriteIgnorePayload>(FsGen.favoriteIgnore, ignoreFavoriteSaga)

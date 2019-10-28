@@ -62,8 +62,14 @@ const EmailPhone = (props: Props) => (
       <Kb.Text type="BodySmall">
         Secures your account by letting us send important notifications, and allows friends and teammates to
         find you by phone number or email.{' '}
-        <Kb.Text type="BodySmallSecondaryLink" onClickURL="https://keybase.io/docs/chat/phones_and_emails">
-          Read more <Kb.Icon type="iconfont-open-browser" sizeType="Tiny" boxStyle={styles.displayInline} />
+        <Kb.Text type="BodySmallPrimaryLink" onClickURL="https://keybase.io/docs/chat/phones_and_emails">
+          Read more{' '}
+          <Kb.Icon
+            type="iconfont-open-browser"
+            sizeType="Tiny"
+            boxStyle={styles.displayInline}
+            color={Styles.globalColors.blueDark}
+          />
         </Kb.Text>
       </Kb.Text>
     </Kb.Box2>
