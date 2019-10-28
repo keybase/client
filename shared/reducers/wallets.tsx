@@ -438,6 +438,11 @@ export default function(
       })
     case WalletsGen.loadedMobileOnlyMode:
       return state.setIn(['mobileOnlyMap', action.payload.accountID], action.payload.enabled)
+    case WalletsGen.updatedAirdropState:
+      return state.merge({
+        airdropQualifications: I.List(action.payload.airdropQualifications),
+        airdropState: action.payload.airdropState,
+      })
     case WalletsGen.validateSEP7Link:
       // Clear out old state just in case.
       return state.merge({
