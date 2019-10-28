@@ -28,9 +28,7 @@ import {
 } from 'react-native'
 import CameraRoll from '@react-native-community/cameraroll'
 import NetInfo from '@react-native-community/netinfo'
-import RNFetchBlob from 'rn-fetch-blob'
 import * as PushNotifications from 'react-native-push-notification'
-import {Permissions} from 'react-native-unimodules'
 import {isIOS, isAndroid} from '../../constants/platform'
 import pushSaga, {getStartupDetailsFromInitialPush} from './push.native'
 import * as Container from '../../util/container'
@@ -61,6 +59,7 @@ const requestPermissionsToWrite = async () => {
 
 export const requestAudioPermission = async () => {
   if (isIOS) {
+    const {Permissions} = require('react-native-unimodules')
     const {status} = await Permissions.getAsync(Permissions.AUDIO_RECORDING)
     if (status === Permissions.PermissionStatus.DENIED) {
       throw new Error('Please allow Keybase to access the microphone in the phone settings.')
@@ -81,6 +80,7 @@ export const requestAudioPermission = async () => {
 
 export const requestLocationPermission = async (mode: RPCChatTypes.UIWatchPositionPerm) => {
   if (isIOS) {
+    const {Permissions} = require('react-native-unimodules')
     const {status, permissions} = await Permissions.getAsync(Permissions.LOCATION)
     switch (mode) {
       case RPCChatTypes.UIWatchPositionPerm.base:
@@ -140,7 +140,7 @@ export async function saveAttachmentToCameraRoll(filePath: string, mimeType: str
     logger.debug(logPrefix + 'failed to save: ' + e)
     throw e
   } finally {
-    RNFetchBlob.fs.unlink(filePath)
+    require('rn-fetch-blob').default.fs.unlink(filePath)
   }
 }
 
@@ -414,15 +414,19 @@ const openAppStore = () =>
       : 'https://itunes.apple.com/us/app/keybase-crypto-for-everyone/id1044461770?mt=8'
   ).catch(() => {})
 
-const expoPermissionStatusMap = {
-  [Permissions.PermissionStatus.GRANTED]: 'granted' as const,
-  [Permissions.PermissionStatus.DENIED]: 'never_ask_again' as const,
-  [Permissions.PermissionStatus.UNDETERMINED]: 'undetermined' as const,
+const expoPermissionStatusMap = () => {
+  const {Permissions} = require('react-native-unimodules')
+  return {
+    [Permissions.PermissionStatus.GRANTED]: 'granted' as const,
+    [Permissions.PermissionStatus.DENIED]: 'never_ask_again' as const,
+    [Permissions.PermissionStatus.UNDETERMINED]: 'undetermined' as const,
+  }
 }
 
 const loadContactPermissionFromNative = async () => {
   if (isIOS) {
-    return expoPermissionStatusMap[(await Permissions.getAsync(Permissions.CONTACTS)).status]
+    const {Permissions} = require('react-native-unimodules')
+    return expoPermissionStatusMap()[(await Permissions.getAsync(Permissions.CONTACTS)).status]
   }
   return (await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.READ_CONTACTS))
     ? 'granted'
@@ -461,8 +465,9 @@ const askForContactPermissionsAndroid = async () => {
 }
 
 const askForContactPermissionsIOS = async () => {
+  const {Permissions} = require('react-native-unimodules')
   const {status} = await Permissions.askAsync(Permissions.CONTACTS)
-  return expoPermissionStatusMap[status]
+  return expoPermissionStatusMap()[status]
 }
 
 const askForContactPermissions = () => {
@@ -702,8 +707,8 @@ const configureFileAttachmentDownloadForAndroid = () =>
   RPCChatTypes.localConfigureFileAttachmentDownloadLocalRpcPromise({
     // Android's cache dir is (when I tried) [app]/cache but Go side uses
     // [app]/.cache by default, which can't be used for sharing to other apps.
-    cacheDirOverride: RNFetchBlob.fs.dirs.CacheDir,
-    downloadDirOverride: RNFetchBlob.fs.dirs.DownloadDir,
+    cacheDirOverride: require('rn-fetch-blob').default.fs.dirs.CacheDir,
+    downloadDirOverride: require('rn-fetch-blob').default.fs.dirs.DownloadDir,
   })
 
 const startAudioRecording = async (
