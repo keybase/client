@@ -1,5 +1,4 @@
 import * as Constants from '../../../constants/tracker2'
-import * as ChatConstants from '../../../constants/chat2'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../styles'
@@ -13,7 +12,6 @@ type Props = {
   onAccept: () => void
   onAddToTeam: () => void
   onBrowsePublicFolder: () => void
-  onChat: () => void
   onEditProfile?: () => void
   onFollow: () => void
   onIgnoreFor24Hours: () => void
@@ -25,6 +23,7 @@ type Props = {
   onBlock: () => void
   onUnblock: () => void
   state: Types.DetailsState
+  username: string
 }
 
 type DropdownProps = Pick<
@@ -57,16 +56,7 @@ const Actions = (p: Props) => {
     />
   )
 
-  const chatButton = (
-    <Kb.WaitingButton
-      key="Chat"
-      label="Chat"
-      waitingKey={ChatConstants.waitingKeyCreating}
-      onClick={p.onChat}
-    >
-      <Kb.Icon type="iconfont-chat" color={Styles.globalColors.whiteOrWhite} style={styles.chatIcon} />
-    </Kb.WaitingButton>
-  )
+  const chatButton = <Kb.ChatButton username={p.username} />
 
   if (p.state === 'notAUserYet') {
     buttons = [
