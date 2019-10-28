@@ -151,12 +151,6 @@ const AudioButton = (props: ButtonProps) => {
         toValue: 1,
         useNativeDriver: true,
       }).start()
-      Kb.NativeAnimated.timing(props.dragY, {
-        duration: 400,
-        easing: Kb.NativeEasing.elastic(1),
-        toValue: 0,
-        useNativeDriver: true,
-      }).start(() => props.dragY.setValue(0))
     }
   }, [props.locked])
   React.useEffect(() => {
@@ -190,7 +184,7 @@ const AudioButton = (props: ButtonProps) => {
           }),
         ],
         {stopTogether: false}
-      ).start(() => props.dragY.setValue(0))
+      ).start()
     }
   }, [props.closeDown])
 
