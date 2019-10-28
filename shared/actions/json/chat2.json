@@ -777,7 +777,8 @@
     },
     "stopAudioRecording": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "stopType": "Types.AudioStopType"
+      "stopType": "Types.AudioStopType",
+      "amps?": "Array<number>"
     },
     "lockAudioRecording": {
       "conversationIDKey": "Types.ConversationIDKey"

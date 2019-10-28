@@ -1,13 +1,19 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import * as React from 'react'
-import * as Kb from '../../../common-adapters/mobile.native'
-import * as Types from '../../../constants/types/chat2'
-import * as Constants from '../../../constants/chat2'
-import * as Styles from '../../../styles'
-import * as Container from '../../../util/container'
-import * as Chat2Gen from '../../../actions/chat2-gen'
-import {formatAudioRecordDuration} from '../../../util/timestamp'
-import {Props} from '.'
+import * as Kb from '../../../../common-adapters/mobile.native'
+import * as Types from '../../../../constants/types/chat2'
+import * as Constants from '../../../../constants/chat2'
+import * as Styles from '../../../../styles'
+import * as Container from '../../../../util/container'
+import * as Chat2Gen from '../../../../actions/chat2-gen'
+import {formatAudioRecordDuration} from '../../../../util/timestamp'
+
+type Props = {
+  conversationIDKey: Types.ConversationIDKey
+  dragY: Kb.NativeAnimated.Value
+  onMetering: (amp: number) => void
+  onStopRecording: (stopType: Types.AudioStopType) => void
+}
 
 const minAmp = -60
 
@@ -25,6 +31,10 @@ const AudioRecorder = (props: Props) => {
 
   // dispatch
   const dispatch = Container.useDispatch()
+  const meteringCb = (amp: number) => {
+    props.onMetering(amp)
+    setLastAmp(amp)
+  }
   const onCancel = React.useCallback(() => {
     dispatch(Chat2Gen.createStopAudioRecording({conversationIDKey, stopType: Types.AudioStopType.CANCEL}))
   }, [dispatch, conversationIDKey])
@@ -34,19 +44,15 @@ const AudioRecorder = (props: Props) => {
     },
     [dispatch, conversationIDKey]
   )
-  const sendRecording = React.useCallback(() => {
-    dispatch(Chat2Gen.createStopAudioRecording({conversationIDKey, stopType: Types.AudioStopType.SEND}))
-  }, [dispatch, conversationIDKey])
-  const stageRecording = React.useCallback(() => {
-    dispatch(Chat2Gen.createStopAudioRecording({conversationIDKey, stopType: Types.AudioStopType.STOPBUTTON}))
-  }, [dispatch, conversationIDKey])
+  const sendRecording = () => props.onStopRecording(Types.AudioStopType.SEND)
+  const stageRecording = () => props.onStopRecording(Types.AudioStopType.STOPBUTTON)
 
   // lifecycle
   React.useEffect(() => {
     // we only want one of these timers running ever, so keep track of it here. We clear the timeout
     // whenever we drop the audio recording interface from the conv
     if (!timerRef.current && audioRecording && audioRecording.status === Types.AudioRecordingStatus.INITIAL) {
-      timerRef.current = setTimeout(() => startRecording(setLastAmp), 400)
+      timerRef.current = setTimeout(() => startRecording(meteringCb), 400)
     } else if (!Constants.showAudioRecording(audioRecording) && timerRef.current) {
       clearTimeout(timerRef.current)
       timerRef.current = null
@@ -67,6 +73,7 @@ const AudioRecorder = (props: Props) => {
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
       <AudioButton
         closeDown={closingDown}
+        dragY={props.dragY}
         lastAmp={lastAmp}
         locked={locked}
         sendRecording={sendRecording}
@@ -82,6 +89,7 @@ const AudioRecorder = (props: Props) => {
 
 type ButtonProps = {
   closeDown: boolean
+  dragY: Kb.NativeAnimated.Value
   lastAmp: number
   locked: boolean
   sendRecording: () => void
@@ -98,6 +106,9 @@ const AudioButton = (props: ButtonProps) => {
   const outerScale = React.useRef(new Kb.NativeAnimated.Value(0)).current
   const lockTranslate = React.useRef(new Kb.NativeAnimated.Value(0)).current
   const sendTranslate = React.useRef(new Kb.NativeAnimated.Value(0)).current
+  const innerOffsetY = React.useRef(new Kb.NativeAnimated.Value(-17)).current
+  const ampOffsetY = React.useRef(new Kb.NativeAnimated.Value(-15)).current
+  const micOffsetY = React.useRef(new Kb.NativeAnimated.Value(-13)).current
   // lifecycle
   React.useEffect(() => {
     Kb.NativeAnimated.parallel(
@@ -205,11 +216,11 @@ const AudioButton = (props: ButtonProps) => {
             ? Styles.globalColors.redLight
             : Styles.globalColors.blueLighterOrBlueLight,
           borderRadius: ampSize / 2,
-          bottom: 15,
           height: ampSize,
           position: 'absolute',
           right: 40,
           transform: [
+            {translateY: Kb.NativeAnimated.add(ampOffsetY, props.dragY)},
             {
               scale: ampScale,
             },
@@ -221,15 +232,10 @@ const AudioButton = (props: ButtonProps) => {
         style={{
           backgroundColor: props.locked ? Styles.globalColors.red : Styles.globalColors.blue,
           borderRadius: innerSize / 2,
-          bottom: 17,
           height: innerSize,
           position: 'absolute',
           right: 43,
-          transform: [
-            {
-              scale: innerScale,
-            },
-          ],
+          transform: [{translateY: Kb.NativeAnimated.add(innerOffsetY, props.dragY)}, {scale: innerScale}],
           width: innerSize,
         }}
       />
@@ -285,12 +291,15 @@ const AudioButton = (props: ButtonProps) => {
       )}
 
       {!props.locked ? (
-        <Kb.Icon
-          type="iconfont-mic"
-          fontSize={22}
-          color={Styles.globalColors.whiteOrWhite}
-          style={{bottom: 13, position: 'absolute', right: 46}}
-        />
+        <Kb.NativeAnimated.View
+          style={{
+            position: 'absolute',
+            right: 46,
+            transform: [{translateY: Kb.NativeAnimated.add(micOffsetY, props.dragY)}],
+          }}
+        >
+          <Kb.Icon type="iconfont-mic" fontSize={22} color={Styles.globalColors.whiteOrWhite} />
+        </Kb.NativeAnimated.View>
       ) : (
         <Kb.TapGestureHandler onHandlerStateChange={props.stageRecording}>
           <Kb.NativeView
