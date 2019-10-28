@@ -541,7 +541,7 @@ func (o *Outbox) AppendToThread(ctx context.Context, convID chat1.ConversationID
 	}
 	// Update prev values for outbox messages to point at correct place (in case it has changed since
 	// some messages got sent)
-	for index := len(thread.Messages) - 1; index >= 0; index-- {
+	for index := len(thread.Messages) - 2; index >= 0; index-- {
 		msg := thread.Messages[index]
 		typ, err := msg.State()
 		if err != nil {
