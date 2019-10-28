@@ -675,12 +675,10 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 		return res, nil
 	}
 
-	// XXX can we make outboxid in runStellarSendUI?
-
 	// Run Stellar UI on any payments in the body
 	var obid *chat1.OutboxID
 	if arg.Msg.MessageBody, obid, err = h.runStellarSendUI(ctx, arg.SessionID, uid, arg.ConversationID,
-		arg.Msg.MessageBody); err != nil {
+		arg.Msg.MessageBody, nil); err != nil {
 		return res, err
 	}
 
@@ -692,8 +690,6 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 		h.Debug(ctx, "PostLocal: unable to send message: %s", err.Error())
 		return res, err
 	}
-
-	// XXX send to (convid, outboxid) to stellard (add something to runStellarSendUI to sy if there were any payments)
 
 	return chat1.PostLocalRes{
 		MessageID:        msgBoxed.GetMessageID(),
@@ -748,18 +744,18 @@ func (h *Server) PostEditNonblock(ctx context.Context, arg chat1.PostEditNonbloc
 }
 
 func (h *Server) runStellarSendUI(ctx context.Context, sessionID int, uid gregor1.UID,
-	convID chat1.ConversationID, msgBody chat1.MessageBody) (res chat1.MessageBody, obidp *chat1.OutboxID, err error) {
+	convID chat1.ConversationID, msgBody chat1.MessageBody, inObid *chat1.OutboxID) (res chat1.MessageBody, obidp *chat1.OutboxID, err error) {
 	defer h.Trace(ctx, func() error { return err }, "runStellarSendUI")()
 	ui := h.getChatUI(sessionID)
 	bodyTyp, err := msgBody.MessageType()
 	if err != nil || bodyTyp != chat1.MessageType_TEXT {
-		return msgBody, nil, nil
+		return msgBody, inObid, nil
 	}
 	body := msgBody.Text().Body
 	parsedPayments := h.G().StellarSender.ParsePayments(ctx, uid, convID, body)
 	if len(parsedPayments) == 0 {
 		h.Debug(ctx, "runStellarSendUI: no payments")
-		return msgBody, nil, nil
+		return msgBody, inObid, nil
 	}
 	h.Debug(ctx, "runStellarSendUI: payments found, showing confirm screen")
 	if err := ui.ChatStellarShowConfirm(ctx); err != nil {
@@ -786,20 +782,24 @@ func (h *Server) runStellarSendUI(ctx context.Context, sessionID int, uid gregor
 		return res, nil, errors.New("Payment message declined")
 	}
 	h.Debug(ctx, "runStellarSendUI: message confirmed, sending payments")
-	obid, err := h.GenerateOutboxID(ctx)
-	if err != nil {
-		return res, nil, err
+	if inObid == nil {
+		// if no incoming outboxid, make one
+		obid, err := h.GenerateOutboxID(ctx)
+		if err != nil {
+			return res, nil, err
+		}
+		inObid = &obid
 	}
-	payments, err := h.G().StellarSender.SendPayments(ctx, convID, obid, toSend)
+	payments, err := h.G().StellarSender.SendPayments(ctx, convID, *inObid, toSend)
 	if err != nil {
 		// Send regardless here
 		h.Debug(ctx, "runStellarSendUI: failed to send payments, but continuing on: %s", err)
-		return msgBody, nil, nil
+		return msgBody, inObid, nil
 	}
 	return chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body:     body,
 		Payments: payments,
-	}), &obid, nil
+	}), inObid, nil
 }
 
 func (h *Server) PostTextNonblock(ctx context.Context, arg chat1.PostTextNonblockArg) (res chat1.PostLocalNonblockRes, err error) {
@@ -989,12 +989,9 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 	}
 
 	// Determine if the messages contains any Stellar payments, and execute them if so
-	// XXX return outbox ID and use it in Send(...)
-	var obid *chat1.OutboxID
-	// XXX obid = arg.OutboxID
-	// XXX pass that into runStellarSendUI...
-	if arg.Msg.MessageBody, obid, err = h.runStellarSendUI(ctx, arg.SessionID, uid, arg.ConversationID,
-		arg.Msg.MessageBody); err != nil {
+	inObid := arg.OutboxID
+	if arg.Msg.MessageBody, inObid, err = h.runStellarSendUI(ctx, arg.SessionID, uid, arg.ConversationID,
+		arg.Msg.MessageBody, inObid); err != nil {
 		return res, err
 	}
 
@@ -1003,7 +1000,7 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 	sender := NewBlockingSender(h.G(), h.boxer, h.remoteClient)
 	nonblockSender := NewNonblockingSender(h.G(), sender)
 	prepareOpts.ReplyTo = arg.ReplyTo
-	obid, _, err := nonblockSender.Send(ctx, arg.ConversationID, arg.Msg, arg.ClientPrev, arg.OutboxID,
+	obid, _, err := nonblockSender.Send(ctx, arg.ConversationID, arg.Msg, arg.ClientPrev, inObid,
 		nil, &prepareOpts)
 	if err != nil {
 		return res, fmt.Errorf("PostLocalNonblock: unable to send message: err: %s", err.Error())

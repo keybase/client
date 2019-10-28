@@ -38,7 +38,7 @@ func (n *nullStellar) UpdateUnreadCount(context.Context, stellar1.AccountID, int
 	return errors.New("nullStellar UpdateUnreadCount")
 }
 
-func (n *nullStellar) SendMiniChatPayments(mctx MetaContext, convID chat1.ConversationID, payments []MiniChatPayment) ([]MiniChatPaymentResult, error) {
+func (n *nullStellar) SendMiniChatPayments(mctx MetaContext, convID chat1.ConversationID, outboxID chat1.OutboxID, payments []MiniChatPayment) ([]MiniChatPaymentResult, error) {
 	return nil, errors.New("nullStellar SendMiniChatPayments")
 }
 

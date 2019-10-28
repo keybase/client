@@ -248,8 +248,8 @@ func (s *Stellar) UpdateUnreadCount(ctx context.Context, accountID stellar1.Acco
 // SendMiniChatPayments sends multiple payments from one sender to multiple
 // different recipients as fast as it can.  These come from chat messages
 // like "+1XLM@alice +2XLM@charlie".
-func (s *Stellar) SendMiniChatPayments(mctx libkb.MetaContext, convID chat1.ConversationID, payments []libkb.MiniChatPayment) ([]libkb.MiniChatPaymentResult, error) {
-	return SendMiniChatPayments(mctx, s.walletState, convID, payments)
+func (s *Stellar) SendMiniChatPayments(mctx libkb.MetaContext, convID chat1.ConversationID, outboxID chat1.OutboxID, payments []libkb.MiniChatPayment) ([]libkb.MiniChatPaymentResult, error) {
+	return SendMiniChatPayments(mctx, s.walletState, convID, outboxID, payments)
 }
 
 // SpecMiniChatPayments creates a summary of the amounts that a list of MiniChatPayments will

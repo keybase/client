@@ -807,7 +807,7 @@ type Stellar interface {
 	KickAutoClaimRunner(MetaContext, gregor.MsgID)
 	UpdateUnreadCount(ctx context.Context, accountID stellar1.AccountID, unread int) error
 	SpecMiniChatPayments(mctx MetaContext, payments []MiniChatPayment) (*MiniChatPaymentSummary, error)
-	SendMiniChatPayments(mctx MetaContext, convID chat1.ConversationID, payments []MiniChatPayment) ([]MiniChatPaymentResult, error)
+	SendMiniChatPayments(mctx MetaContext, convID chat1.ConversationID, outboxID chat1.OutboxID, payments []MiniChatPayment) ([]MiniChatPaymentResult, error)
 	HandleOobm(context.Context, gregor.OutOfBandMessage) (bool, error)
 	RemovePendingTx(mctx MetaContext, accountID stellar1.AccountID, txID stellar1.TransactionID) error
 	KnownCurrencyCodeInstant(ctx context.Context, code string) (known, ok bool)
