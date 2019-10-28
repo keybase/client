@@ -444,6 +444,7 @@ const getNumberOfSubscribedChannels = (state: TypedState, teamname: Types.Teamna
  * Gets whether the team is big or small for teams you are a member of
  */
 const getTeamType = (state: TypedState, teamname: Types.Teamname): 'big' | 'small' | null => {
+  // TODO do not use metaMap here. It's likely this team has no convos in the metaMap.
   const conv = [...state.chat2.metaMap.values()].find(c => c.teamname === teamname)
   if (conv) {
     if (conv.teamType === 'big' || conv.teamType === 'small') {
