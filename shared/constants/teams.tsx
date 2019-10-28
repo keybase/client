@@ -672,6 +672,9 @@ export const annotatedInvitesToInviteInfo = (
     return arr
   }, [])
 
+export const getTeamDetails = (state: TypedState, teamID: Types.TeamID) =>
+  state.teams.teamDetails.get(teamID) || emptyTeamDetails
+
 export {
   getNumberOfSubscribedChannels,
   getRole,

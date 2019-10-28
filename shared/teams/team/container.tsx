@@ -7,11 +7,12 @@ import {HeaderRightActions, HeaderTitle, SubHeader} from './nav-header/container
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
+import * as Types from '../../constants/types/teams'
 import {mapStateHelper as invitesMapStateHelper, getRows as getInviteRows} from './invites-tab/helper'
 import {mapStateHelper as memberMapStateHelper, getRows as getMemberRows} from './members-tab/helper'
 import {mapStateHelper as subteamsMapStateHelper, getRows as getSubteamsRows} from './subteams-tab/helper'
 
-type OwnProps = Container.RouteProps<{teamname: string}> & {
+type OwnProps = Container.RouteProps<{teamID: Types.TeamID}> & {
   selectedTab: string
   setSelectedTab: (arg0: string) => void
 }
@@ -20,20 +21,16 @@ type OwnProps = Container.RouteProps<{teamname: string}> & {
 const lastSelectedTabs = {}
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
-  const teamname = Container.getRouteProps(ownProps, 'teamname', '')
-  if (!teamname) {
+  const teamID = Container.getRouteProps(ownProps, 'teamID', '')
+  if (!teamID) {
     throw new Error('There was a problem loading the team page, please report this error.')
   }
 
   const selectedTab = ownProps.selectedTab || 'members'
 
-  // TODO this shouldn't be implemented as smashing these unrelated states together makes the typing really messy and this hard to understand
   return {
-    ...(selectedTab === 'members' ? memberMapStateHelper(state, {teamname}) : {}),
-    ...(selectedTab === 'invites' ? invitesMapStateHelper(state, {teamname}) : {}),
-    ...(selectedTab === 'subteams' ? subteamsMapStateHelper(state, {teamname}) : {}),
+    teamDetails: Constants.getTeamDetails(state, teamID),
     selectedTab,
-    teamname,
   }
 }
 
@@ -46,6 +43,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {setSelectedTab}:
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
+// TODO move into index
 class Reloadable extends React.PureComponent<Props & {_load: () => void}> {
   componentDidUpdate(prevProps) {
     if (this.props.teamname !== prevProps.teamname) {
@@ -68,36 +66,6 @@ class Reloadable extends React.PureComponent<Props & {_load: () => void}> {
           teamname={this.props.teamname}
         />
       </Kb.Reloadable>
-    )
-  }
-}
-
-type State = {
-  selectedTab: string
-}
-
-// We don't use route state anymore
-class TabsState extends React.PureComponent<Props, State> {
-  static navigationOptions = (ownProps: Container.RouteProps<{teamname: string}>) => ({
-    headerExpandable: true,
-    headerHideBorder: true,
-    headerRightActions: Container.isMobile
-      ? undefined
-      : () => <HeaderRightActions teamname={Container.getRouteProps(ownProps, 'teamname', '')} />,
-    headerTitle: Container.isMobile
-      ? undefined
-      : () => <HeaderTitle teamname={Container.getRouteProps(ownProps, 'teamname', '')} />,
-    subHeader: Container.isMobile
-      ? undefined
-      : () => <SubHeader teamname={Container.getRouteProps(ownProps, 'teamname', '')} />,
-  })
-  state = {selectedTab: lastSelectedTabs[this.props.teamname]}
-  _setSelectedTab = selectedTab => {
-    this.setState({selectedTab})
-  }
-  render() {
-    return (
-      <Connected {...this.props} setSelectedTab={this._setSelectedTab} selectedTab={this.state.selectedTab} />
     )
   }
 }
@@ -152,5 +120,30 @@ const Connected = Container.compose(
   }),
   Kb.HeaderHoc
 )(Reloadable) as any
+
+class TabsState extends React.PureComponent<Props, {selectedTab: string}> {
+  static navigationOptions = (ownProps: Container.RouteProps<{teamname: string}>) => ({
+    headerExpandable: true,
+    headerHideBorder: true,
+    headerRightActions: Container.isMobile
+      ? undefined
+      : () => <HeaderRightActions teamname={Container.getRouteProps(ownProps, 'teamname', '')} />,
+    headerTitle: Container.isMobile
+      ? undefined
+      : () => <HeaderTitle teamname={Container.getRouteProps(ownProps, 'teamname', '')} />,
+    subHeader: Container.isMobile
+      ? undefined
+      : () => <SubHeader teamname={Container.getRouteProps(ownProps, 'teamname', '')} />,
+  })
+  state = {selectedTab: lastSelectedTabs[this.props.teamname]}
+  _setSelectedTab = selectedTab => {
+    this.setState({selectedTab})
+  }
+  render() {
+    return (
+      <Connected {...this.props} setSelectedTab={this._setSelectedTab} selectedTab={this.state.selectedTab} />
+    )
+  }
+}
 
 export default TabsState
