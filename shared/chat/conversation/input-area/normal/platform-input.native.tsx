@@ -29,15 +29,15 @@ type menuType = 'exploding' | 'filepickerpopup' | 'moremenu'
 type State = {hasText: boolean}
 
 class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
-  _input: null | Kb.PlainInput = null
-  _lastText?: string
-  _whichMenu?: menuType
+  private input: null | Kb.PlainInput = null
+  private lastText?: string
+  private whichMenu?: menuType
+  private ampTracker = new AmpTracker(60)
+  private audioDragY = new Kb.NativeAnimated.Value(0)
   state = {hasText: false}
-  _ampTracker = new AmpTracker(60)
-  _audioDragY = new Kb.NativeAnimated.Value(0)
 
   private inputSetRef = (ref: null | Kb.PlainInput) => {
-    this._input = ref
+    this.input = ref
     this.props.inputSetRef(ref)
     // @ts-ignore this is probably wrong: https://github.com/DefinitelyTyped/DefinitelyTyped/issues/31065
     this.props.inputRef.current = ref
@@ -76,12 +76,12 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
   }
 
   private getText = () => {
-    return this._lastText || ''
+    return this.lastText || ''
   }
 
   private onChangeText = (text: string) => {
     this.setState({hasText: !!text})
-    this._lastText = text
+    this.lastText = text
     this.props.onChangeText(text)
   }
 
@@ -95,7 +95,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
   private toggleShowingMenu = (menu: menuType) => {
     // Hide the keyboard on mobile when showing the menu.
     NativeKeyboard.dismiss()
-    this._whichMenu = menu
+    this.whichMenu = menu
     this.props.toggleShowingMenu()
   }
 
@@ -106,8 +106,8 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
   }) => this.props.setHeight(height)
 
   private insertMentionMarker = () => {
-    if (this._input) {
-      const input = this._input
+    if (this.input) {
+      const input = this.input
       input.focus()
       input.transformText(
         ({selection: {end, start}, text}) => standardTransformer('@', {position: {end, start}, text}, true),
@@ -117,11 +117,11 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
   }
 
   private enableAudioRecording = () => {
-    this._ampTracker.reset()
+    this.ampTracker.reset()
     this.props.onEnableAudioRecording()
   }
   private stopAudioRecording = (stopType: Types.AudioStopType) => {
-    this.props.onStopAudioRecording(stopType, this._ampTracker.getBucketedAmps())
+    this.props.onStopAudioRecording(stopType, this.ampTracker.getBucketedAmps())
   }
 
   render() {
@@ -147,14 +147,14 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
                 RPCChatTypes.UIBotCommandsUpdateStatus.updating) && (
               <BotCommandUpdateStatus status={this.props.suggestBotCommandsUpdateStatus} />
             )}
-          {this.props.showingMenu && this._whichMenu === 'filepickerpopup' ? (
+          {this.props.showingMenu && this.whichMenu === 'filepickerpopup' ? (
             <FilePickerPopup
               attachTo={this.props.getAttachmentRef}
               visible={this.props.showingMenu}
               onHidden={this.props.toggleShowingMenu}
               onSelect={this.launchNativeImagePicker}
             />
-          ) : this._whichMenu === 'moremenu' ? (
+          ) : this.whichMenu === 'moremenu' ? (
             <MoreMenuPopup
               conversationIDKey={this.props.conversationIDKey}
               onHidden={this.props.toggleShowingMenu}
@@ -213,7 +213,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
             {!this.props.cannotWrite && (
               <Action
                 audio={this.props.audio}
-                audioDragY={this._audioDragY}
+                audioDragY={this.audioDragY}
                 hasText={this.state.hasText}
                 onEnableAudioRecording={this.enableAudioRecording}
                 onLockAudioRecording={this.props.onLockAudioRecording}
@@ -229,8 +229,8 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
         </Kb.Box>
         <AudioRecorder
           conversationIDKey={this.props.conversationIDKey}
-          dragY={this._audioDragY}
-          onMetering={this._ampTracker.addAmp}
+          dragY={this.audioDragY}
+          onMetering={this.ampTracker.addAmp}
           onStopRecording={this.stopAudioRecording}
         />
       </>
