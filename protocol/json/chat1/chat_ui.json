@@ -69,24 +69,15 @@
           "name": "time"
         },
         {
-          "type": [
-            null,
-            "string"
-          ],
+          "type": [null, "string"],
           "name": "snippet"
         },
         {
-          "type": [
-            null,
-            "string"
-          ],
+          "type": [null, "string"],
           "name": "snippetDecoration"
         },
         {
-          "type": [
-            null,
-            "string"
-          ],
+          "type": [null, "string"],
           "name": "draft"
         },
         {
@@ -102,10 +93,7 @@
     {
       "type": "enum",
       "name": "UIInboxBigTeamRowTyp",
-      "symbols": [
-        "LABEL_1",
-        "CHANNEL_2"
-      ]
+      "symbols": ["LABEL_1", "CHANNEL_2"]
     },
     {
       "type": "record",
@@ -124,10 +112,7 @@
           "name": "channelname"
         },
         {
-          "type": [
-            null,
-            "string"
-          ],
+          "type": [null, "string"],
           "name": "draft"
         },
         {
@@ -169,10 +154,7 @@
           "name": "oldConvID"
         },
         {
-          "type": [
-            null,
-            "string"
-          ],
+          "type": [null, "string"],
           "name": "newConvID"
         }
       ]
@@ -196,10 +178,7 @@
           "name": "bigTeams"
         },
         {
-          "type": [
-            null,
-            "UIInboxReselectInfo"
-          ],
+          "type": [null, "UIInboxReselectInfo"],
           "name": "reselectInfo"
         },
         {
@@ -296,10 +275,7 @@
           "name": "teamType"
         },
         {
-          "type": [
-            null,
-            "ConversationNotificationInfo"
-          ],
+          "type": [null, "ConversationNotificationInfo"],
           "name": "notifications"
         },
         {
@@ -315,17 +291,11 @@
           "name": "localVersion"
         },
         {
-          "type": [
-            null,
-            "RetentionPolicy"
-          ],
+          "type": [null, "RetentionPolicy"],
           "name": "convRetention"
         },
         {
-          "type": [
-            null,
-            "RetentionPolicy"
-          ],
+          "type": [null, "RetentionPolicy"],
           "name": "teamRetention"
         },
         {
@@ -341,24 +311,15 @@
           "name": "readMsgID"
         },
         {
-          "type": [
-            null,
-            "UnverifiedInboxUIItemMetadata"
-          ],
+          "type": [null, "UnverifiedInboxUIItemMetadata"],
           "name": "localMetadata"
         },
         {
-          "type": [
-            null,
-            "string"
-          ],
+          "type": [null, "string"],
           "name": "draft"
         },
         {
-          "type": [
-            null,
-            "ConversationFinalizeInfo"
-          ],
+          "type": [null, "ConversationFinalizeInfo"],
           "name": "finalizeInfo"
         },
         {
@@ -393,10 +354,7 @@
           "name": "items"
         },
         {
-          "type": [
-            null,
-            "UIPagination"
-          ],
+          "type": [null, "UIPagination"],
           "name": "pagination"
         },
         {
@@ -408,12 +366,7 @@
     {
       "type": "enum",
       "name": "UIParticipantType",
-      "symbols": [
-        "NONE_0",
-        "USER_1",
-        "PHONENO_2",
-        "EMAIL_3"
-      ]
+      "symbols": ["NONE_0", "USER_1", "PHONENO_2", "EMAIL_3"]
     },
     {
       "type": "record",
@@ -432,17 +385,11 @@
           "name": "inConvName"
         },
         {
-          "type": [
-            null,
-            "string"
-          ],
+          "type": [null, "string"],
           "name": "fullName"
         },
         {
-          "type": [
-            null,
-            "string"
-          ],
+          "type": [null, "string"],
           "name": "contactName"
         }
       ]
@@ -510,10 +457,7 @@
           "name": "headlineDecorated"
         },
         {
-          "type": [
-            null,
-            "string"
-          ],
+          "type": [null, "string"],
           "name": "draft"
         },
         {
@@ -555,17 +499,11 @@
           "name": "time"
         },
         {
-          "type": [
-            null,
-            "ConversationNotificationInfo"
-          ],
+          "type": [null, "ConversationNotificationInfo"],
           "name": "notifications"
         },
         {
-          "type": [
-            null,
-            "ConversationCreatorInfoLocal"
-          ],
+          "type": [null, "ConversationCreatorInfoLocal"],
           "name": "creatorInfo"
         },
         {
@@ -589,31 +527,19 @@
           "name": "readMsgID"
         },
         {
-          "type": [
-            null,
-            "RetentionPolicy"
-          ],
+          "type": [null, "RetentionPolicy"],
           "name": "convRetention"
         },
         {
-          "type": [
-            null,
-            "RetentionPolicy"
-          ],
+          "type": [null, "RetentionPolicy"],
           "name": "teamRetention"
         },
         {
-          "type": [
-            null,
-            "ConversationSettingsLocal"
-          ],
+          "type": [null, "ConversationSettingsLocal"],
           "name": "convSettings"
         },
         {
-          "type": [
-            null,
-            "ConversationFinalizeInfo"
-          ],
+          "type": [null, "ConversationFinalizeInfo"],
           "name": "finalizeInfo"
         },
         {
@@ -639,10 +565,7 @@
           "name": "botCommands"
         },
         {
-          "type": [
-            null,
-            "UIPinnedMessage"
-          ],
+          "type": [null, "UIPinnedMessage"],
           "name": "pinnedMsg"
         }
       ]
@@ -664,10 +587,7 @@
           "name": "unverifiedTLFName"
         },
         {
-          "type": [
-            null,
-            "ConversationErrorRekey"
-          ],
+          "type": [null, "ConversationErrorRekey"],
           "name": "rekeyInfo"
         },
         {
@@ -688,10 +608,7 @@
           "name": "items"
         },
         {
-          "type": [
-            null,
-            "UIPagination"
-          ],
+          "type": [null, "UIPagination"],
           "name": "pagination"
         },
         {
@@ -735,10 +652,7 @@
           "name": "mimeType"
         },
         {
-          "type": [
-            null,
-            "string"
-          ],
+          "type": [null, "string"],
           "name": "videoDuration"
         },
         {
@@ -752,10 +666,7 @@
       "name": "UIPaymentInfo",
       "fields": [
         {
-          "type": [
-            null,
-            "stellar1.AccountID"
-          ],
+          "type": [null, "stellar1.AccountID"],
           "name": "accountID"
         },
         {
@@ -833,17 +744,11 @@
           "name": "amountDescription"
         },
         {
-          "type": [
-            null,
-            "stellar1.Asset"
-          ],
+          "type": [null, "stellar1.Asset"],
           "name": "asset"
         },
         {
-          "type": [
-            null,
-            "stellar1.OutsideCurrencyCode"
-          ],
+          "type": [null, "stellar1.OutsideCurrencyCode"],
           "name": "currency"
         },
         {
@@ -891,10 +796,7 @@
           "name": "ctime"
         },
         {
-          "type": [
-            null,
-            "string"
-          ],
+          "type": [null, "string"],
           "name": "outboxID"
         },
         {
@@ -902,10 +804,7 @@
           "name": "messageBody"
         },
         {
-          "type": [
-            null,
-            "string"
-          ],
+          "type": [null, "string"],
           "name": "decoratedTextBody"
         },
         {
@@ -937,17 +836,11 @@
           "name": "superseded"
         },
         {
-          "type": [
-            null,
-            "UIAssetUrlInfo"
-          ],
+          "type": [null, "UIAssetUrlInfo"],
           "name": "assetUrlInfo"
         },
         {
-          "type": [
-            null,
-            "gregor1.Time"
-          ],
+          "type": [null, "gregor1.Time"],
           "name": "senderDeviceRevokedAt"
         },
         {
@@ -977,10 +870,7 @@
           "name": "isEphemeralExpired"
         },
         {
-          "type": [
-            null,
-            "string"
-          ],
+          "type": [null, "string"],
           "name": "explodedBy"
         },
         {
@@ -1003,10 +893,7 @@
           "name": "paymentInfos"
         },
         {
-          "type": [
-            null,
-            "UIRequestInfo"
-          ],
+          "type": [null, "UIRequestInfo"],
           "name": "requestInfo"
         },
         {
@@ -1021,10 +908,7 @@
           "name": "isCollapsed"
         },
         {
-          "type": [
-            null,
-            "string"
-          ],
+          "type": [null, "string"],
           "name": "flipGameID"
         },
         {
@@ -1036,17 +920,11 @@
           "name": "isEditable"
         },
         {
-          "type": [
-            null,
-            "UIMessage"
-          ],
+          "type": [null, "UIMessage"],
           "name": "replyTo"
         },
         {
-          "type": [
-            null,
-            "MessageID"
-          ],
+          "type": [null, "MessageID"],
           "name": "pinnedMessageID"
         },
         {
@@ -1076,10 +954,7 @@
           "name": "body"
         },
         {
-          "type": [
-            null,
-            "string"
-          ],
+          "type": [null, "string"],
           "name": "decoratedTextBody"
         },
         {
@@ -1095,17 +970,11 @@
           "name": "isEphemeral"
         },
         {
-          "type": [
-            null,
-            "string"
-          ],
+          "type": [null, "string"],
           "name": "flipGameID"
         },
         {
-          "type": [
-            null,
-            "UIMessage"
-          ],
+          "type": [null, "UIMessage"],
           "name": "replyTo"
         },
         {
@@ -1117,10 +986,7 @@
           "name": "title"
         },
         {
-          "type": [
-            null,
-            "MakePreviewRes"
-          ],
+          "type": [null, "MakePreviewRes"],
           "name": "preview"
         }
       ]
@@ -1146,13 +1012,7 @@
     {
       "type": "enum",
       "name": "MessageUnboxedState",
-      "symbols": [
-        "VALID_1",
-        "ERROR_2",
-        "OUTBOX_3",
-        "PLACEHOLDER_4",
-        "JOURNEYCARD_5"
-      ]
+      "symbols": ["VALID_1", "ERROR_2", "OUTBOX_3", "PLACEHOLDER_4", "JOURNEYCARD_5"]
     },
     {
       "type": "variant",
@@ -1211,10 +1071,7 @@
           "name": "messages"
         },
         {
-          "type": [
-            null,
-            "UIPagination"
-          ],
+          "type": [null, "UIPagination"],
           "name": "pagination"
         }
       ]
@@ -1232,17 +1089,11 @@
           "name": "open"
         },
         {
-          "type": [
-            null,
-            "string"
-          ],
+          "type": [null, "string"],
           "name": "description"
         },
         {
-          "type": [
-            null,
-            "int"
-          ],
+          "type": [null, "int"],
           "name": "numMembers"
         },
         {
@@ -1253,10 +1104,7 @@
           "name": "publicAdmins"
         },
         {
-          "type": [
-            null,
-            "string"
-          ],
+          "type": [null, "string"],
           "name": "convID"
         }
       ]
@@ -1277,12 +1125,7 @@
     {
       "type": "enum",
       "name": "UIMaybeMentionStatus",
-      "symbols": [
-        "UNKNOWN_0",
-        "USER_1",
-        "TEAM_2",
-        "NOTHING_3"
-      ]
+      "symbols": ["UNKNOWN_0", "USER_1", "TEAM_2", "NOTHING_3"]
     },
     {
       "type": "record",
@@ -1295,6 +1138,10 @@
         {
           "type": "string",
           "name": "url"
+        },
+        {
+          "type": "string",
+          "name": "punycode"
         }
       ]
     },
@@ -1398,12 +1245,7 @@
     {
       "type": "enum",
       "name": "UIChatThreadStatusTyp",
-      "symbols": [
-        "NONE_0",
-        "SERVER_1",
-        "VALIDATING_2",
-        "VALIDATED_3"
-      ]
+      "symbols": ["NONE_0", "SERVER_1", "VALIDATING_2", "VALIDATED_3"]
     },
     {
       "type": "variant",
@@ -1499,17 +1341,11 @@
           "name": "xlmAmount"
         },
         {
-          "type": [
-            null,
-            "string"
-          ],
+          "type": [null, "string"],
           "name": "error"
         },
         {
-          "type": [
-            null,
-            "string"
-          ],
+          "type": [null, "string"],
           "name": "displayAmount"
         }
       ]
@@ -1581,12 +1417,7 @@
     {
       "type": "enum",
       "name": "UICoinFlipPhase",
-      "symbols": [
-        "COMMITMENT_0",
-        "REVEALS_1",
-        "COMPLETE_2",
-        "ERROR_3"
-      ]
+      "symbols": ["COMMITMENT_0", "REVEALS_1", "COMPLETE_2", "ERROR_3"]
     },
     {
       "type": "record",
@@ -1698,13 +1529,7 @@
     {
       "type": "enum",
       "name": "UICoinFlipResultTyp",
-      "symbols": [
-        "NUMBER_0",
-        "SHUFFLE_1",
-        "DECK_2",
-        "HANDS_3",
-        "COIN_4"
-      ]
+      "symbols": ["NUMBER_0", "SHUFFLE_1", "DECK_2", "HANDS_3", "COIN_4"]
     },
     {
       "type": "record",
@@ -1802,10 +1627,7 @@
           "name": "commitment"
         },
         {
-          "type": [
-            null,
-            "string"
-          ],
+          "type": [null, "string"],
           "name": "reveal"
         }
       ]
@@ -1846,17 +1668,11 @@
           "name": "participants"
         },
         {
-          "type": [
-            null,
-            "UICoinFlipError"
-          ],
+          "type": [null, "UICoinFlipError"],
           "name": "errorInfo"
         },
         {
-          "type": [
-            null,
-            "UICoinFlipResult"
-          ],
+          "type": [null, "UICoinFlipResult"],
           "name": "resultInfo"
         }
       ]
@@ -1870,10 +1686,7 @@
           "name": "body"
         },
         {
-          "type": [
-            null,
-            "string"
-          ],
+          "type": [null, "string"],
           "name": "title"
         }
       ]
@@ -1888,36 +1701,22 @@
     {
       "type": "enum",
       "name": "UIWatchPositionPerm",
-      "symbols": [
-        "BASE_0",
-        "ALWAYS_1"
-      ]
+      "symbols": ["BASE_0", "ALWAYS_1"]
     },
     {
       "type": "enum",
       "name": "UICommandStatusDisplayTyp",
-      "symbols": [
-        "STATUS_0",
-        "WARNING_1",
-        "ERROR_2"
-      ]
+      "symbols": ["STATUS_0", "WARNING_1", "ERROR_2"]
     },
     {
       "type": "enum",
       "name": "UICommandStatusActionTyp",
-      "symbols": [
-        "APPSETTINGS_0"
-      ]
+      "symbols": ["APPSETTINGS_0"]
     },
     {
       "type": "enum",
       "name": "UIBotCommandsUpdateStatus",
-      "symbols": [
-        "UPTODATE_0",
-        "UPDATING_1",
-        "FAILED_2",
-        "BLANK_3"
-      ]
+      "symbols": ["UPTODATE_0", "UPDATING_1", "FAILED_2", "BLANK_3"]
     }
   ],
   "messages": {
@@ -2021,10 +1820,7 @@
         },
         {
           "name": "thread",
-          "type": [
-            null,
-            "string"
-          ]
+          "type": [null, "string"]
         }
       ],
       "response": null
@@ -2282,10 +2078,7 @@
         },
         {
           "name": "md",
-          "type": [
-            null,
-            "UICommandMarkdown"
-          ]
+          "type": [null, "UICommandMarkdown"]
         }
       ],
       "response": null
