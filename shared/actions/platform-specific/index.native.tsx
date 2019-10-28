@@ -38,6 +38,7 @@ import * as Contacts from 'expo-contacts'
 import {launchImageLibraryAsync} from '../../util/expo-image-picker'
 import Geolocation from '@react-native-community/geolocation'
 import {AudioRecorder} from 'react-native-audio'
+import * as Haptics from 'expo-haptics'
 
 const requestPermissionsToWrite = async () => {
   if (isAndroid) {
@@ -775,6 +776,14 @@ const stopAudioRecording = async (
   return Chat2Gen.createSendAudioRecording({conversationIDKey})
 }
 
+const onEnableAudioRecording = () => {
+  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+}
+
+const onSendAudioRecording = () => {
+  Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+}
+
 export function* platformConfigSaga() {
   yield* Saga.chainGenerator<ConfigGen.PersistRoutePayload>(ConfigGen.persistRoute, persistRoute)
   yield* Saga.chainAction2(ConfigGen.mobileAppState, updateChangedFocus)
@@ -820,6 +829,8 @@ export function* platformConfigSaga() {
   // Audio
   yield* Saga.chainAction2(Chat2Gen.startAudioRecording, startAudioRecording, 'startAudioRecording')
   yield* Saga.chainAction2(Chat2Gen.stopAudioRecording, stopAudioRecording, 'stopAudioRecording')
+  yield* Saga.chainAction2(Chat2Gen.enableAudioRecording, onEnableAudioRecording, 'onEnableAudioRecording')
+  yield* Saga.chainAction2(Chat2Gen.sendAudioRecording, onSendAudioRecording, 'onSendAudioRecording')
 
   // Start this immediately instead of waiting so we can do more things in parallel
   yield Saga.spawn(loadStartupDetails)
