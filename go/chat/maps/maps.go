@@ -77,40 +77,6 @@ func GetLiveMapURL(ctx context.Context, apiKeySource types.ExternalAPIKeySource,
 	return url, nil
 }
 
-func CombineMaps(ctx context.Context, locReader, liveReader io.Reader) (res io.ReadCloser, length int64, err error) {
-	sepHeight := 3
-	locPng, err := png.Decode(locReader)
-	if err != nil {
-		return res, length, err
-	}
-	livePng, err := png.Decode(liveReader)
-	if err != nil {
-		return res, length, err
-	}
-	combined := image.NewRGBA(image.Rect(0, 0, locationMapWidth, locationMapHeight+liveMapHeight+sepHeight))
-	for x := 0; x < locPng.Bounds().Dx(); x++ {
-		for y := 0; y < locPng.Bounds().Dy(); y++ {
-			combined.Set(x, y, locPng.At(x, y))
-		}
-	}
-	for x := 0; x < locPng.Bounds().Dx(); x++ {
-		for y := 0; y < sepHeight; y++ {
-			combined.Set(x, locationMapHeight+y, color.Black)
-		}
-	}
-	for x := 0; x < livePng.Bounds().Dx(); x++ {
-		for y := 0; y < livePng.Bounds().Dy(); y++ {
-			combined.Set(x, y+locationMapHeight+sepHeight, livePng.At(x, y))
-		}
-	}
-	var buf bytes.Buffer
-	err = png.Encode(&buf, combined)
-	if err != nil {
-		return res, length, err
-	}
-	return ioutil.NopCloser(bytes.NewReader(buf.Bytes())), int64(buf.Len()), nil
-}
-
 func GetExternalMapURL(ctx context.Context, lat, lon float64) string {
 	return fmt.Sprintf("https://www.google.com/maps/place/%f,%f/@%f,%f,15z", lat, lon, lat, lon)
 }
