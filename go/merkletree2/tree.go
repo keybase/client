@@ -140,15 +140,19 @@ var _ codec.Selfer = &Node{}
 func (n *Node) CodecEncodeSelf(e *codec.Encoder) {
 	if n.INodes != nil && n.LeafHashes != nil && len(n.INodes) > 0 && len(n.LeafHashes) > 0 {
 		panic("Cannot Encode a node with both Inodes and LeafHashes")
-	} else if n.INodes != nil && len(n.INodes) > 0 {
+	}
+
+	if n.INodes != nil && len(n.INodes) > 0 {
 		e.MustEncode(NodeTypeINode)
 		e.MustEncode(n.INodes)
-	} else if n.LeafHashes != nil && len(n.LeafHashes) > 0 {
-		e.MustEncode(NodeTypeLeaf)
-		e.MustEncode(n.LeafHashes)
-	} else {
-		e.MustEncode(nil)
+		return
 	}
+
+	// Note: we encode empty nodes (with empty or nil LeafHashes) as leaf nodes.
+	// This is so we can represent a tree with no values as a single (empty)
+	// leaf node.
+	e.MustEncode(NodeTypeLeaf)
+	e.MustEncode(n.LeafHashes)
 }
 
 func (n *Node) CodecDecodeSelf(d *codec.Decoder) {
@@ -446,11 +450,18 @@ func (t *Tree) GetKeyValuePair(ctx logger.ContextInterface, tr Transaction, s Se
 }
 
 // A MerkleInclusionProof proves that a specific key value pair is stored in a
-// merkle tree, given the RootMetadata hash of such tree.
+// merkle tree, given the RootMetadata hash of such tree. It can also be used to
+// prove that a specific key is not part of the tree (we call this an exclusion
+// or absence proof)
 type MerkleInclusionProof struct {
 	_struct           struct{}          `codec:",toarray"` //nolint
 	KeySpecificSecret KeySpecificSecret `codec:"k"`
-	OtherPairsInLeaf  []KeyHashPair     `codec:"l"`
+	// When this struct is used as an exclusion proof, OtherPairsInLeaf is set
+	// to nil if the proof ends at an internal node, and set to a slice of
+	// length 0 or more if the proof ends at a (possibly empty) leaf node. In
+	// particular, a tree with no keys is encoded with the root being the only
+	// (empty leaf) node.
+	OtherPairsInLeaf []KeyHashPair `codec:"l"`
 	// SiblingHashesOnPath are ordered by level from the farthest to the closest
 	// to the root, and lexicographically within each level.
 	SiblingHashesOnPath []Hash       `codec:"s"`
@@ -600,7 +611,6 @@ func (t *Tree) getEncodedValueWithInclusionProofOrExclusionProof(ctx logger.Cont
 	}
 
 	var kevps []KeyEncodedValuePair
-	var seqnos []Seqno
 
 	// We have two cases: either the node at leafPos is actually a leaf
 	// (which might or not contain the key which we are trying to look up),
@@ -617,7 +627,7 @@ func (t *Tree) getEncodedValueWithInclusionProofOrExclusionProof(ctx logger.Cont
 		if t.cfg.MaxValuesPerLeaf == 1 {
 			// Try to avoid LookupKEVPairsUnderPosition if possible as it is a range
 			// query and thus more expensive.
-			kevp, s, err := t.eng.LookupKEVPair(ctx, tr, s, k)
+			kevp, _, err := t.eng.LookupKEVPair(ctx, tr, s, k)
 			if err != nil {
 				// KeyNotFoundError is ignored as the inclusion proof we
 				// produce will prove that the key is not in the tree.
@@ -626,7 +636,6 @@ func (t *Tree) getEncodedValueWithInclusionProofOrExclusionProof(ctx logger.Cont
 				}
 			} else {
 				kevps = append(kevps, KeyEncodedValuePair{Key: k, Value: kevp})
-				seqnos = append(seqnos, s)
 			}
 		}
 
@@ -636,32 +645,38 @@ func (t *Tree) getEncodedValueWithInclusionProofOrExclusionProof(ctx logger.Cont
 		if len(kevps) == 0 {
 			// Lookup hashes of key value pairs stored at the same leaf.
 			// These pairs are ordered by key.
-			kevps, seqnos, err = t.eng.LookupKEVPairsUnderPosition(ctx, tr, s, leafPos)
+			kevps, _, err = t.eng.LookupKEVPairsUnderPosition(ctx, tr, s, leafPos)
 			if err != nil {
-				return nil, MerkleInclusionProof{}, err
+				// KeyNotFoundError is ignored. This would happen when we are
+				// trying to produce an absence proof on an empty tree: there
+				// would be a leaf node containing no keys.
+				if _, keyNotFound := err.(KeyNotFoundError); !keyNotFound {
+					return nil, MerkleInclusionProof{}, err
+				}
+				kevps = make([]KeyEncodedValuePair, 0)
 			}
 		}
 	}
 
-	var msMap map[Seqno]MasterSecret
-	if t.cfg.UseBlindedValueHashes && len(seqnos) > 0 {
-		msMap, err = t.eng.(StorageEngineWithBlinding).LookupMasterSecrets(ctx, tr, seqnos)
+	var ms MasterSecret
+	if t.cfg.UseBlindedValueHashes && len(kevps) > 0 {
+		msMap, err := t.eng.(StorageEngineWithBlinding).LookupMasterSecrets(ctx, tr, []Seqno{s})
 		if err != nil {
 			return nil, MerkleInclusionProof{}, err
 		}
+		ms = msMap[s]
 	}
 
 	// OtherPairsInLeaf will have length equal to kevps - 1  in an inclusion
 	// proof, and kevps in an absence proof.
-	if len(kevps) > 0 {
+	if kevps != nil {
 		proof.OtherPairsInLeaf = make([]KeyHashPair, 0, len(kevps))
 	}
-
-	for i, kevpi := range kevps {
+	for _, kevpi := range kevps {
 		if kevpi.Key.Equal(k) {
 			val = kevpi.Value
 			if t.cfg.UseBlindedValueHashes {
-				proof.KeySpecificSecret = t.cfg.Encoder.ComputeKeySpecificSecret(msMap[seqnos[i]], k)
+				proof.KeySpecificSecret = t.cfg.Encoder.ComputeKeySpecificSecret(ms, k)
 			} else {
 				proof.KeySpecificSecret = nil
 			}
@@ -669,7 +684,7 @@ func (t *Tree) getEncodedValueWithInclusionProofOrExclusionProof(ctx logger.Cont
 		}
 
 		var hash Hash
-		hash, err = t.cfg.Encoder.HashKeyEncodedValuePairWithKeySpecificSecret(kevpi, t.cfg.Encoder.ComputeKeySpecificSecret(msMap[seqnos[i]], kevpi.Key))
+		hash, err = t.cfg.Encoder.HashKeyEncodedValuePairWithKeySpecificSecret(kevpi, t.cfg.Encoder.ComputeKeySpecificSecret(ms, kevpi.Key))
 		if err != nil {
 			return nil, MerkleInclusionProof{}, err
 		}

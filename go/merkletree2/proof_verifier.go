@@ -59,7 +59,7 @@ func (m *MerkleProofVerifier) verifyInclusionOrExclusionProof(ctx logger.Context
 
 	// Reconstruct the leaf node if necessary
 	var nodeHash Hash
-	if kvp.Value != nil || len(proof.OtherPairsInLeaf) > 0 {
+	if kvp.Value != nil || proof.OtherPairsInLeaf != nil {
 		valueToInsert := false
 		leafHashesLength := len(proof.OtherPairsInLeaf)
 		if kvp.Value != nil {
@@ -91,6 +91,8 @@ func (m *MerkleProofVerifier) verifyInclusionOrExclusionProof(ctx logger.Context
 		}
 	}
 
+	//	fmt.Printf("nodeHash: %x\n", nodeHash)
+
 	sibH := proof.SiblingHashesOnPath
 	if len(sibH)%(m.cfg.ChildrenPerNode-1) != 0 {
 		return NewProofVerificationFailedError(fmt.Errorf("Invalid number of SiblingHashes %v", len(sibH)))
@@ -100,6 +102,8 @@ func (m *MerkleProofVerifier) verifyInclusionOrExclusionProof(ctx logger.Context
 		return NewProofVerificationFailedError(err)
 	}
 	leafPosition := m.cfg.getParentAtLevel(keyAsPos, uint(len(sibH)/(m.cfg.ChildrenPerNode-1)))
+
+	//	fmt.Printf("leafPos: %x\n", leafPosition.GetBytes())
 
 	// recompute the hash of the root node by recreating all the internal nodes
 	// on the path from the leaf to the root.
@@ -117,8 +121,10 @@ func (m *MerkleProofVerifier) verifyInclusionOrExclusionProof(ctx logger.Context
 		if err != nil {
 			return NewProofVerificationFailedError(err)
 		}
+		//		fmt.Printf("nodeHash: %x\n", nodeHash)
 	}
 
+	//	fmt.Printf("nodeHash: %x\n", nodeHash)
 	// Compute the hash of the RootMetadata by filling in the BareRootHash
 	// with the value computed above.
 	rootMetadata := proof.RootMetadataNoHash
@@ -130,7 +136,7 @@ func (m *MerkleProofVerifier) verifyInclusionOrExclusionProof(ctx logger.Context
 
 	// Check the rootHash computed matches the expected value.
 	if !rootHash.Equal(expRootHash) {
-		return NewProofVerificationFailedError(fmt.Errorf("expected rootHash does not match the computed one: expected %X but got %X", expRootHash, rootHash))
+		return NewProofVerificationFailedError(fmt.Errorf("expected rootHash does not match the computed one (for key: %X, value: %v): expected %X but got %X", kvp.Key, kvp.Value, expRootHash, rootHash))
 	}
 
 	// Success!
