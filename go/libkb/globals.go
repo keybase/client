@@ -311,6 +311,7 @@ func (g *GlobalContext) SetUPAKLoader(u UPAKLoader) {
 func (g *GlobalContext) SetAvatarLoader(a AvatarLoaderSource) {
 	g.avatarLoader = a
 }
+
 // simulateServiceRestart simulates what happens when a service restarts for the
 // purposes of testing.
 func (g *GlobalContext) simulateServiceRestart() {
