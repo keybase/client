@@ -6,12 +6,13 @@ package chat1
 import (
 	"errors"
 	"fmt"
+	"time"
+
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	stellar1 "github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
-	"time"
 )
 
 type UIPagination struct {
@@ -1473,8 +1474,9 @@ func (e UIMaybeMentionStatus) String() string {
 }
 
 type UILinkDecoration struct {
-	Display string `codec:"display" json:"display"`
-	Url     string `codec:"url" json:"url"`
+	Display  string `codec:"display" json:"display"`
+	Url      string `codec:"url" json:"url"`
+	Punycode string `codec:"punycode" json:"punycode"`
 }
 
 func (o UILinkDecoration) DeepCopy() UILinkDecoration {

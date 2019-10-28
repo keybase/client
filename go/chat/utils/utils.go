@@ -30,6 +30,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 	context "golang.org/x/net/context"
+	"golang.org/x/net/idna"
 )
 
 func AssertLoggedInUID(ctx context.Context, g *globals.Context) (uid gregor1.UID, err error) {
@@ -2352,16 +2353,21 @@ func DecorateWithLinks(ctx context.Context, body string) string {
 
 		bodyMatch := origBody[match[lowhit]:match[highhit]]
 		url := bodyMatch
+		var punycode string
 		if shouldSkipLink(bodyMatch) {
 			continue
 		}
 		if !(strings.HasPrefix(bodyMatch, "http://") || strings.HasPrefix(bodyMatch, "https://")) {
 			url = "http://" + bodyMatch
 		}
+		if encoded, err := idna.ToASCII(url); err == nil && encoded != url {
+			punycode = encoded
+		}
 		body, added = DecorateBody(ctx, body, match[lowhit]+offset, match[highhit]-match[lowhit],
 			chat1.NewUITextDecorationWithLink(chat1.UILinkDecoration{
-				Display: bodyMatch,
-				Url:     url,
+				Display:  bodyMatch,
+				Url:      url,
+				Punycode: punycode,
 			}))
 		offset += added
 	}
