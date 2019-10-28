@@ -72,7 +72,6 @@ export default Container.namedConnect(
       _draft: Constants.getDraft(state, conversationIDKey),
       _editOrdinal: editInfo ? editInfo.ordinal : null,
       _isExplodingModeLocked: Constants.isExplodingModeLocked(state, conversationIDKey),
-      _metaMap: state.chat2.metaMap,
       _replyTo,
       _you,
       audio,
