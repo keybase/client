@@ -51,4 +51,7 @@ protocol NotifyTeam {
     TEAM_2
   }
   void avatarUpdated(string name, array<AvatarFormat> formats, AvatarUpdateType typ) oneway;
+
+  // Sent when any information on the top-level teams tab changes
+  void teamMetadataUpdate() oneway;
 }
