@@ -34,7 +34,7 @@ const CoinFlipError = (props: Props) => {
 const CoinFlipGenericError = () => {
   const dispatch = Container.useDispatch()
   const sendFeedback = () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['feedback']}))
+    dispatch(RouteTreeGen.createNavigateAppend({path: ['modalFeedback']}))
   }
   return (
     <Kb.Text selectable={true} style={styles.error} type="BodySmall">
