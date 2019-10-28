@@ -7403,7 +7403,6 @@ func TestTeamBotSettings(t *testing.T) {
 				TlfName:     created.TlfName,
 				Username:    botua2.Username,
 				Role:        keybase1.TeamRole_BOT,
-				BotSettings: nil,
 				MembersType: mt,
 				TlfPublic:   created.Visibility == keybase1.TLFVisibility_PUBLIC,
 			})

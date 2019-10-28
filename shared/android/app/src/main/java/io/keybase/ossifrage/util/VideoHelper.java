@@ -9,12 +9,16 @@ public class VideoHelper implements keybase.NativeVideoHelper {
         MediaMetadataRetriever retriever = new MediaMetadataRetriever();
         retriever.setDataSource(filename);
         Bitmap bmp = retriever.getFrameAtTime();
+        if (bmp == null) {
+            return new byte[0];
+        }
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         bmp.compress(Bitmap.CompressFormat.JPEG, 100, stream);
         byte[] ret = stream.toByteArray();
         retriever.release();
         return ret;
     }
+
     public long duration(String filename) {
         MediaMetadataRetriever retriever = new MediaMetadataRetriever();
         retriever.setDataSource(filename);

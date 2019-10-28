@@ -166,11 +166,10 @@ func (o *Outbox) PushMessage(ctx context.Context, convID chat1.ConversationID,
 		outboxID = *suppliedOutboxID
 	}
 
-	// Compute prev ordinal
+	// Compute prev ordinal by predicting that all outbox messages will be appended to the thread
 	prevOrdinal := 1
 	for _, obr := range obox.Records {
-		if obr.Msg.ClientHeader.OutboxInfo.Prev == msg.ClientHeader.OutboxInfo.Prev &&
-			obr.Ordinal >= prevOrdinal {
+		if obr.ConvID.Eq(convID) && obr.Ordinal >= prevOrdinal {
 			prevOrdinal = obr.Ordinal + 1
 		}
 	}

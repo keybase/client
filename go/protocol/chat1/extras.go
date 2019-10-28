@@ -2599,6 +2599,7 @@ func (b BotInfo) Hash() BotInfoHash {
 	for _, cconv := range b.CommandConvs {
 		hash.Write(cconv.ConvID)
 		hash.Write(cconv.Uid)
+		hash.Write([]byte(strconv.FormatUint(uint64(cconv.UntrustedTeamRole), 10)))
 		hash.Write([]byte(strconv.FormatUint(uint64(cconv.Vers), 10)))
 	}
 	return BotInfoHash(hash.Sum(nil))

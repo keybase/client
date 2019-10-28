@@ -15,6 +15,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
 	"regexp"
 	"sort"
 	"strconv"
@@ -3480,4 +3481,8 @@ func (b BadgeConversationInfo) IsEmpty() bool {
 	return (b.UnreadMessages == 0 &&
 		b.BadgeCounts[DeviceType_DESKTOP] == 0 &&
 		b.BadgeCounts[DeviceType_MOBILE] == 0)
+}
+
+func (s *TeamBotSettings) Eq(o *TeamBotSettings) bool {
+	return reflect.DeepEqual(s, o)
 }

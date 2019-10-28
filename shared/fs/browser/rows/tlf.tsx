@@ -48,12 +48,12 @@ const FsPathMetadataLoader = ({path}: {path: Types.Path}) => {
 
 const Tlf = (props: TlfProps) => (
   <StillCommon
-    name={props.name}
     path={props.path}
     onOpen={props.onOpen}
     inDestinationPicker={props.inDestinationPicker}
-    badge={props.isNew ? Types.PathItemBadgeType.New : null}
+    badge={props.isNew ? Types.NonUploadPathItemBadgeType.New : undefined}
     showTlfTypeIcon={!!props.mixedMode}
+    writingToJournal={false}
   >
     {!!props.loadPathMetadata && <FsPathMetadataLoader path={props.path} />}
     <Kb.Box style={rowStyles.itemBox}>

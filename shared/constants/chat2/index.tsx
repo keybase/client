@@ -29,6 +29,7 @@ export const makeState = (): Types.State => ({
   accountsInfoMap: new Map(),
   attachmentFullscreenSelection: undefined,
   attachmentViewMap: new Map(),
+  audioRecording: new Map(),
   badgeMap: new Map(), // id to the badge count
   botCommandsUpdateStatusMap: new Map(),
   channelSearchText: '',
@@ -110,6 +111,28 @@ export const makeAttachmentViewInfo = (): Types.AttachmentViewInfo => ({
 })
 
 export const initialAttachmentViewInfo = makeAttachmentViewInfo()
+
+export const makeAudioRecordingInfo = (): Types.AudioRecordingInfo => ({
+  amps: [],
+  isLocked: false,
+  outboxID: new Buffer('hex'),
+  path: '',
+  recordStart: 0,
+  status: Types.AudioRecordingStatus.INITIAL,
+})
+
+export const showAudioRecording = (audioRecording: Types.AudioRecordingInfo | undefined) => {
+  return !(
+    !audioRecording ||
+    audioRecording.status === Types.AudioRecordingStatus.STOPPED ||
+    audioRecording.status === Types.AudioRecordingStatus.STAGED ||
+    audioRecording.status === Types.AudioRecordingStatus.CANCELLED
+  )
+}
+
+export const isCancelledAudioRecording = (audioRecording: Types.AudioRecordingInfo | undefined) => {
+  return audioRecording && audioRecording.status === Types.AudioRecordingStatus.CANCELLED
+}
 
 export const getInboxSearchSelected = (inboxSearch: Types.InboxSearchInfo) => {
   if (inboxSearch.selectedIndex < inboxSearch.nameResults.length) {

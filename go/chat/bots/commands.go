@@ -22,6 +22,8 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
+const storageVersion = 1
+
 type commandUpdaterJob struct {
 	convID     chat1.ConversationID
 	info       *chat1.BotInfo
@@ -35,12 +37,15 @@ type userCommandAdvertisement struct {
 }
 
 type storageCommandAdvertisement struct {
-	Advertisement userCommandAdvertisement
-	Username      string
+	Advertisement     userCommandAdvertisement
+	UntrustedTeamRole keybase1.TeamRole
+	UID               gregor1.UID
+	Username          string
 }
 
 type commandsStorage struct {
 	Advertisements []storageCommandAdvertisement `codec:"A"`
+	Version        int                           `codec:"V"`
 }
 
 var commandsPublicTopicName = "___keybase_botcommands_public"
@@ -220,16 +225,35 @@ func (b *CachingBotCommandManager) dbCommandsKey(convID chat1.ConversationID) li
 
 func (b *CachingBotCommandManager) ListCommands(ctx context.Context, convID chat1.ConversationID) (res []chat1.UserBotCommandOutput, err error) {
 	defer b.Trace(ctx, func() error { return err }, "ListCommands")()
+	dbKey := b.dbCommandsKey(convID)
 	var s commandsStorage
-	found, err := b.edb.Get(ctx, b.dbCommandsKey(convID), &s)
+	found, err := b.edb.Get(ctx, dbKey, &s)
 	if err != nil {
 		return res, err
 	}
 	if !found {
 		return nil, nil
 	}
+	if s.Version != storageVersion {
+		if err := b.edb.Delete(ctx, dbKey); err != nil {
+			b.Debug(ctx, "edb.Delete: %v", err)
+		}
+		return nil, nil
+	}
 	cmdDedup := make(map[string]bool)
 	for _, ad := range s.Advertisements {
+
+		// If the advertisement is by a restricted bot that will not be keyed
+		// for commands, filter the advertisement out.
+		if ad.UntrustedTeamRole.IsRestrictedBot() {
+			teamBotSettings, err := b.G().InboxSource.TeamBotSettingsForConv(ctx, b.uid, convID)
+			if err != nil {
+				return nil, err
+			}
+			if !teamBotSettings[keybase1.UID(ad.UID.String())].Cmds {
+				continue
+			}
+		}
 		ad.Username = libkb.NewNormalizedUsername(ad.Username).String()
 		for _, cmd := range ad.Advertisement.Commands {
 			key := cmd.Name + ad.Username
@@ -361,7 +385,7 @@ func (b *CachingBotCommandManager) getBotInfo(ctx context.Context, job commandUp
 }
 
 func (b *CachingBotCommandManager) getConvAdvertisement(ctx context.Context, convID chat1.ConversationID,
-	botUID gregor1.UID) (res *storageCommandAdvertisement) {
+	botUID gregor1.UID, untrustedTeamRole keybase1.TeamRole) (res *storageCommandAdvertisement) {
 	b.Debug(ctx, "getConvAdvertisement: reading commands from: %s for uid: %s", convID, botUID)
 	tv, err := b.G().ConvSource.Pull(ctx, convID, b.uid, chat1.GetThreadReason_BOTCOMMANDS,
 		&chat1.GetThreadQuery{
@@ -396,6 +420,9 @@ func (b *CachingBotCommandManager) getConvAdvertisement(ctx context.Context, con
 		return nil
 	}
 	res.Username = msg.Valid().SenderUsername
+	res.UID = botUID
+	res.UntrustedTeamRole = untrustedTeamRole
+
 	return res
 }
 
@@ -417,9 +444,11 @@ func (b *CachingBotCommandManager) commandUpdate(ctx context.Context, job comman
 		b.Debug(ctx, "commandUpdate: bot info uptodate, not updating")
 		return nil
 	}
-	var s commandsStorage
+	s := commandsStorage{
+		Version: storageVersion,
+	}
 	for _, cconv := range botInfo.CommandConvs {
-		ad := b.getConvAdvertisement(ctx, cconv.ConvID, cconv.Uid)
+		ad := b.getConvAdvertisement(ctx, cconv.ConvID, cconv.Uid, cconv.UntrustedTeamRole)
 		if ad != nil {
 			s.Advertisements = append(s.Advertisements, *ad)
 		}

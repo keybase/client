@@ -5,7 +5,7 @@ import {namedConnect} from '../../util/container'
 import PathItemIcon, {Size} from './path-item-icon'
 
 export type OwnProps = {
-  badge?: Types.PathItemBadge | null
+  badge?: Types.PathItemBadge
   path: Types.Path
   showTlfTypeIcon?: boolean
   size: Size
