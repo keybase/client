@@ -21,7 +21,7 @@ import {parseUri, launchCameraAsync, launchImageLibraryAsync} from '../../../../
 import {BotCommandUpdateStatus} from './shared'
 import {formatDurationShort} from '../../../../util/timestamp'
 import flags from '../../../../util/feature-flags'
-import AudioRecorder from './audio-recorder'
+import AudioRecorder from './audio-recorder.native'
 import {AmpTracker} from './amptracker'
 
 type menuType = 'exploding' | 'filepickerpopup' | 'moremenu'
@@ -34,6 +34,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
   _whichMenu?: menuType
   state = {hasText: false}
   _ampTracker = new AmpTracker(60)
+  _audioDragY = new Kb.NativeAnimated.Value(0)
 
   private inputSetRef = (ref: null | Kb.PlainInput) => {
     this._input = ref
@@ -212,6 +213,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
             {!this.props.cannotWrite && (
               <Action
                 audio={this.props.audio}
+                audioDragY={this._audioDragY}
                 hasText={this.state.hasText}
                 onEnableAudioRecording={this.enableAudioRecording}
                 onLockAudioRecording={this.props.onLockAudioRecording}
@@ -227,6 +229,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
         </Kb.Box>
         <AudioRecorder
           conversationIDKey={this.props.conversationIDKey}
+          dragY={this._audioDragY}
           onMetering={this._ampTracker.addAmp}
           onStopRecording={this.stopAudioRecording}
         />
@@ -238,6 +241,7 @@ const PlatformInput = AddSuggestors(_PlatformInput)
 
 type ActionProps = {
   audio?: Types.AudioRecordingInfo
+  audioDragY: Kb.NativeAnimated.Value
   hasText: boolean
   onEnableAudioRecording: () => void
   onLockAudioRecording: () => void
@@ -252,6 +256,7 @@ type ActionProps = {
 const Action = React.memo((props: ActionProps) => {
   const {
     audio,
+    audioDragY,
     hasText,
     insertMentionMarker,
     isEditing,
@@ -318,6 +323,8 @@ const Action = React.memo((props: ActionProps) => {
           />
           {smallGap}
           <AudioStarter
+            dragY={audioDragY}
+            locked={audio ? audio.isLocked : false}
             lockRecording={onLockAudioRecording}
             recording={Constants.showAudioRecording(audio)}
             enableRecording={onEnableAudioRecording}
@@ -337,18 +344,43 @@ const Action = React.memo((props: ActionProps) => {
 })
 
 type AudioStarterProps = {
+  dragY: Kb.NativeAnimated.Value
+  locked: boolean
   recording: boolean
   lockRecording: () => void
   enableRecording: () => void
   stopRecording: (st: Types.AudioStopType) => void
 }
 
-const maxAudioDrift = -20
+const maxCancelDrift = -20
+const maxLockDrift = -70
 
 const AudioStarter = (props: AudioStarterProps) => {
   let longPressTimer
+  const locked = React.useRef<boolean>(false)
+  React.useEffect(() => {
+    if (locked.current && !props.locked) {
+      locked.current = false
+    }
+  }, [props.locked])
   if (!flags.audioAttachments) {
     return null
+  }
+  const animateDown = () => {
+    Kb.NativeAnimated.timing(props.dragY, {
+      duration: 400,
+      easing: Kb.NativeEasing.elastic(1),
+      toValue: 0,
+      useNativeDriver: true,
+    }).start(() => props.dragY.setValue(0))
+  }
+  const lockRecording = () => {
+    animateDown()
+    props.lockRecording()
+  }
+  const stopRecording = (stopType: Types.AudioStopType) => {
+    animateDown()
+    props.stopRecording(stopType)
   }
   return (
     <Kb.TapGestureHandler
@@ -362,43 +394,53 @@ const AudioStarter = (props: AudioStarterProps) => {
           clearTimeout(longPressTimer)
           longPressTimer = null
           if (props.recording && nativeEvent.state === Kb.GestureState.END) {
-            if (nativeEvent.x < maxAudioDrift) {
-              props.stopRecording(Types.AudioStopType.CANCEL)
-            } else if (nativeEvent.y < maxAudioDrift) {
-              props.lockRecording()
+            if (nativeEvent.x < maxCancelDrift) {
+              stopRecording(Types.AudioStopType.CANCEL)
+            } else if (nativeEvent.y < maxLockDrift) {
+              lockRecording()
             } else {
-              props.stopRecording(Types.AudioStopType.RELEASE)
+              stopRecording(Types.AudioStopType.RELEASE)
             }
           }
         }
       }}
     >
       <Kb.PanGestureHandler
-        minOffsetX={0}
-        minOffsetY={0}
+        minDeltaX={0}
+        minDeltaY={0}
         onGestureEvent={({nativeEvent}) => {
-          if (nativeEvent.translationY < maxAudioDrift) {
-            props.lockRecording()
+          if (locked.current) {
+            return
           }
-          if (nativeEvent.translationX < maxAudioDrift) {
+          if (nativeEvent.translationY < maxLockDrift) {
+            locked.current = true
+            lockRecording()
+          }
+          if (nativeEvent.translationX < maxCancelDrift) {
             clearTimeout(longPressTimer)
             longPressTimer = null
-            props.stopRecording(Types.AudioStopType.CANCEL)
+            stopRecording(Types.AudioStopType.CANCEL)
+          }
+          if (!locked.current && nativeEvent.translationY <= 0) {
+            props.dragY.setValue(nativeEvent.translationY)
           }
         }}
         onHandlerStateChange={({nativeEvent}) => {
           if (nativeEvent.state === Kb.GestureState.END) {
-            if (nativeEvent.y < maxAudioDrift) {
-              props.lockRecording()
+            if (locked.current) {
+              return
             }
-            if (nativeEvent.x < maxAudioDrift) {
+            if (nativeEvent.y < maxLockDrift) {
+              lockRecording()
+            }
+            if (nativeEvent.x < maxCancelDrift) {
               clearTimeout(longPressTimer)
               longPressTimer = null
-              props.stopRecording(Types.AudioStopType.CANCEL)
+              stopRecording(Types.AudioStopType.CANCEL)
             } else {
               clearTimeout(longPressTimer)
               longPressTimer = null
-              props.stopRecording(Types.AudioStopType.RELEASE)
+              stopRecording(Types.AudioStopType.RELEASE)
             }
           }
         }}
