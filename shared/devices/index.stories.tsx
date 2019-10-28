@@ -21,9 +21,9 @@ const idToType = i => {
 
 const activeDevices = withNew => {
   const existingDevices = [
-    {id: stringToDeviceID('1'), isNew: false, key: '1', type: 'device'},
-    {id: stringToDeviceID('2'), isNew: false, key: '2', type: 'device'},
-    {id: stringToDeviceID('3'), isNew: false, key: '3', type: 'device'},
+    {id: stringToDeviceID('1'), deviceNumberOfType: 0, isNew: false, key: '1', type: 'device'},
+    {id: stringToDeviceID('2'), deviceNumberOfType: 3, isNew: false, key: '2', type: 'device'},
+    {id: stringToDeviceID('3'), deviceNumberOfType: 7, isNew: false, key: '3', type: 'device'},
   ]
   if (withNew) {
     return [...existingDevices, {id: stringToDeviceID('6'), isNew: true, key: '6', type: 'device'}]
@@ -33,8 +33,8 @@ const activeDevices = withNew => {
 
 const revokedDevices = withNew => {
   const existingDevices = [
-    {id: stringToDeviceID('4'), isNew: false, key: '4', type: 'device'},
-    {id: stringToDeviceID('5'), isNew: false, key: '5', type: 'device'},
+    {id: stringToDeviceID('4'), isNew: false, deviceNumberOfType: 8, key: '4', type: 'device'},
+    {id: stringToDeviceID('5'), isNew: false, deviceNumberOfType: 9, key: '5', type: 'device'},
   ]
   if (withNew) {
     return [...existingDevices, {id: stringToDeviceID('7'), isNew: true, key: '7', type: 'device'}]
@@ -47,6 +47,19 @@ const Devices = (p: any) => <DevicesReal {...p} />
 
 const provider = Sb.createPropProviderWithCommon({
   DeviceRow: ({deviceID}) => ({
+    device: {
+      currentDevice: deviceID === '1',
+      deviceNumberOfType: 8,
+      name: {
+        '1': 'laptop',
+        '2': 'phone',
+        '3': 'hello robot',
+        '4': 'dog party',
+        '5': 'desktop',
+        '6': 'new device',
+        '7': 'newly revoked',
+      }[deviceID],
+    },
     firstItem: deviceID === '1',
     iconNumber: Number(deviceID),
     isCurrentDevice: deviceID === '1',

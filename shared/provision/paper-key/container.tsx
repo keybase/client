@@ -10,7 +10,7 @@ type OwnProps = {}
 const mapStateToProps = (state: Container.TypedState) => ({
   _configuredAccounts: state.config.configuredAccounts,
   error: state.provision.error.stringValue(),
-  hint: `${state.provision.codePageOtherDeviceName || ''}...`,
+  hint: `${state.provision.codePageOtherDevice.name || ''}...`,
   waiting: Container.anyWaiting(state, Constants.waitingKey),
 })
 

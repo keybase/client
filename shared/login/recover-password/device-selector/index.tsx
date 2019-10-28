@@ -4,21 +4,19 @@ import * as Styles from '../../../styles'
 import * as ProvisionTypes from '../../../constants/types/provision'
 import {globalMargins, styleSheetCreate, platformStyles, isMobile} from '../../../styles'
 import {SignupScreen, InfoIcon} from '../../../signup/common'
+import DeviceIcon from '../../../devices/device-icon'
 
+const resetSignal = 'reset'
+type DeviceOrReset = ProvisionTypes.Device | 'reset'
 type ItemProps = {
   index: number
-  item: {
-    name: string
-    type: string
-  }
+  item: DeviceOrReset
   onSelect: (name) => void
   onResetAccount: () => void
 }
 
 const RecoverMenuItem = (props: ItemProps) => {
-  const {name, type} = props.item
-
-  if (type === 'account-reset') {
+  if (props.item === resetSignal) {
     return (
       <Kb.ListItem2
         type="Small"
@@ -35,33 +33,17 @@ const RecoverMenuItem = (props: ItemProps) => {
       />
     )
   }
-
-  let iconType
-  switch (type) {
-    case 'mobile':
-      iconType = 'icon-phone-32'
-      break
-    case 'desktop':
-      iconType = 'icon-computer-32'
-      break
-    case 'backup':
-      iconType = 'icon-paper-key-32'
-      break
-    default:
-      iconType = 'icon-paper-key-32'
-  }
-
   return (
     <Kb.ListItem2
       type="Small"
       firstItem={props.index === 0}
       key={name}
       onClick={() => props.onSelect(name)}
-      icon={<Kb.Icon type={iconType} />}
+      icon={<DeviceIcon device={props.item} size={32} />}
       body={
         <Kb.Box2 direction="vertical" fullWidth={true}>
-          <Kb.Text type="BodySemibold">{name}</Kb.Text>
-          {type === 'backup' && <Kb.Text type="BodySmall">Paper key</Kb.Text>}
+          <Kb.Text type="BodySemibold">{props.item.name}</Kb.Text>
+          {props.item.type === 'backup' && <Kb.Text type="BodySmall">Paper key</Kb.Text>}
         </Kb.Box2>
       }
     />
@@ -76,13 +58,7 @@ export type Props = {
 }
 
 const DeviceSelector = (props: Props) => {
-  const items = [
-    ...props.devices,
-    {
-      name: 'account-reset',
-      type: 'account-reset',
-    },
-  ]
+  const items: DeviceOrReset[] = [...props.devices, resetSignal]
   return (
     <SignupScreen onBack={props.onBack} noBackground={true} title="Recover password">
       <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} fullHeight={true}>

@@ -17,24 +17,28 @@ const commonProps: Props = {
     ProvisionConstants.rpcDeviceToDevice({
       ...rd,
       deviceID: '1',
+      deviceNumberOfType: 1,
       name: 'iPhone',
       type: 'mobile',
     }),
     ProvisionConstants.rpcDeviceToDevice({
       ...rd,
       deviceID: '2',
+      deviceNumberOfType: 3,
       name: 'Home Computer',
       type: 'desktop',
     }),
     ProvisionConstants.rpcDeviceToDevice({
       ...rd,
       deviceID: '3',
+      deviceNumberOfType: 8,
       name: 'Android Nexus 5x',
       type: 'mobile',
     }),
     ProvisionConstants.rpcDeviceToDevice({
       ...rd,
       deviceID: '4',
+      deviceNumberOfType: 19,
       name: 'tuba contest',
       type: 'backup',
     }),
