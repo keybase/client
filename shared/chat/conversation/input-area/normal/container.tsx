@@ -143,6 +143,9 @@ export default Container.namedConnect(
           text: new HiddenString(body),
         })
       ),
+    _onEnableAudioRecording: (conversationIDKey: Types.ConversationIDKey) => {
+      dispatch(Chat2Gen.createEnableAudioRecording({conversationIDKey}))
+    },
     _onGiphyToggle: (conversationIDKey: Types.ConversationIDKey) =>
       dispatch(Chat2Gen.createToggleGiphyPrefill({conversationIDKey})),
     _onLockAudioRecording: (conversationIDKey: Types.ConversationIDKey) =>
@@ -159,10 +162,19 @@ export default Container.namedConnect(
           text: new HiddenString(text),
         })
       ),
-    _onStartAudioRecording: (conversationIDKey: Types.ConversationIDKey) =>
-      dispatch(Chat2Gen.createEnableAudioRecording({conversationIDKey})),
-    _onStopAudioRecording: (conversationIDKey: Types.ConversationIDKey, stopType: Types.AudioStopType) =>
-      dispatch(Chat2Gen.createStopAudioRecording({conversationIDKey, stopType})),
+    _onStopAudioRecording: (
+      conversationIDKey: Types.ConversationIDKey,
+      stopType: Types.AudioStopType,
+      amps: Array<number>
+    ) => {
+      dispatch(
+        Chat2Gen.createStopAudioRecording({
+          amps,
+          conversationIDKey,
+          stopType,
+        })
+      )
+    },
     _sendTyping: (conversationIDKey: Types.ConversationIDKey, typing: boolean) =>
       conversationIDKey && dispatch(Chat2Gen.createSendTyping({conversationIDKey, typing})),
     _unsentTextChanged: (conversationIDKey: Types.ConversationIDKey, text: string) =>
@@ -208,14 +220,15 @@ export default Container.namedConnect(
     onCancelEditing: () => dispatchProps._onCancelEditing(stateProps.conversationIDKey),
     onCancelReply: () => dispatchProps._onCancelReply(stateProps.conversationIDKey),
     onEditLastMessage: () => dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
+    onEnableAudioRecording: () => dispatchProps._onEnableAudioRecording(stateProps.conversationIDKey),
     onFilePickerError: dispatchProps.onFilePickerError,
     onGiphyToggle: () => dispatchProps._onGiphyToggle(stateProps.conversationIDKey),
     onLockAudioRecording: () => dispatchProps._onLockAudioRecording(stateProps.conversationIDKey),
     onRequestScrollDown: ownProps.onRequestScrollDown,
     onRequestScrollUp: ownProps.onRequestScrollUp,
-    onStartAudioRecording: () => dispatchProps._onStartAudioRecording(stateProps.conversationIDKey),
-    onStopAudioRecording: (stopType: Types.AudioStopType) =>
-      dispatchProps._onStopAudioRecording(stateProps.conversationIDKey, stopType),
+    onStopAudioRecording: (stopType: Types.AudioStopType, amps: Array<number>) => {
+      dispatchProps._onStopAudioRecording(stateProps.conversationIDKey, stopType, amps)
+    },
     onSubmit: (text: string) => {
       if (stateProps._editOrdinal) {
         dispatchProps._onEditMessage(stateProps.conversationIDKey, stateProps._editOrdinal, text)
