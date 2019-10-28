@@ -12,6 +12,7 @@ const featureOn = (key: keyof FeatureFlags) => features.includes(key)
 const ff: FeatureFlags = {
   admin: false,
   airdrop: true,
+  audioAttachments: false,
   chatIndexProfilingEnabled: false,
   conflictResolution: false,
   dbCleanEnabled: false,
@@ -24,17 +25,19 @@ const ff: FeatureFlags = {
   outOfDateBanner: false,
   plansEnabled: false,
   proofProviders: true,
-  resetPipeline: true,
   stellarExternalPartners: true,
+  userBlocking: false,
 }
 
 const inAdmin: {[K in keyof FeatureFlags]?: boolean} = {
+  audioAttachments: false,
   chatIndexProfilingEnabled: true,
   dbCleanEnabled: true,
   kbfsOfflineMode: true,
   moveOrCopy: true,
   outOfDateBanner: true,
   proofProviders: true,
+  userBlocking: true,
 }
 
 // load overrides

@@ -64,6 +64,42 @@ const rpcConflictStateToConflictState = (
   }
 }
 
+const loadAdditionalTlf = async (state: TypedState, action: FsGen.LoadAdditionalTlfPayload) => {
+  if (Types.getPathLevel(action.payload.tlfPath) !== 3) {
+    logger.warn('loadAdditionalTlf called on non-TLF path')
+    return
+  }
+  try {
+    const {folder, isFavorite, isIgnored, isNew} = await RPCTypes.SimpleFSSimpleFSGetFolderRpcPromise({
+      path: Constants.pathToRPCPath(action.payload.tlfPath).kbfs,
+    })
+    const tlfType = rpcFolderTypeToTlfType(folder.folderType)
+    const tlfName =
+      tlfType === Types.TlfType.Private || tlfType === Types.TlfType.Public
+        ? tlfToPreferredOrder(folder.name, state.config.username)
+        : folder.name
+    return (
+      tlfType &&
+      FsGen.createLoadedAdditionalTlf({
+        tlf: Constants.makeTlf({
+          conflictState: rpcConflictStateToConflictState(folder.conflictState || null),
+          isFavorite,
+          isIgnored,
+          isNew,
+          name: tlfName,
+          resetParticipants: (folder.reset_members || []).map(({username}) => username),
+          syncConfig: getSyncConfigFromRPC(tlfName, tlfType, folder.syncConfig || null),
+          teamId: folder.team_id || '',
+          tlfMtime: folder.mtime || 0,
+        }),
+        tlfPath: action.payload.tlfPath,
+      })
+    )
+  } catch (e) {
+    return makeRetriableErrorHandler(action)(e)
+  }
+}
+
 const loadFavorites = async (state: TypedState, action: FsGen.FavoritesLoadPayload) => {
   try {
     if (
@@ -256,19 +292,12 @@ const makeEntry = (d: RPCTypes.Dirent, children?: Set<string>) => {
   }
 }
 
-function* folderList(_: TypedState, action: FsGen.FolderListLoadPayload | FsGen.EditSuccessPayload) {
-  const rootPath = action.type === FsGen.editSuccess ? action.payload.parentPath : action.payload.path
+function* folderList(_: TypedState, action: FsGen.FolderListLoadPayload) {
+  const rootPath = action.payload.path
+  const isRecursive = action.type === FsGen.folderListLoad && action.payload.recursive
   try {
     const opID = Constants.makeUUID()
-    const pathElems = Types.getPathElements(rootPath)
-    if (pathElems.length < 3) {
-      yield RPCTypes.SimpleFSSimpleFSListRpcPromise({
-        filter: RPCTypes.ListFilter.filterSystemHidden,
-        opID,
-        path: Constants.pathToRPCPath(rootPath),
-        refreshSubscription: false,
-      })
-    } else {
+    if (isRecursive) {
       yield RPCTypes.SimpleFSSimpleFSListRecursiveToDepthRpcPromise({
         depth: 1,
         filter: RPCTypes.ListFilter.filterSystemHidden,
@@ -276,9 +305,16 @@ function* folderList(_: TypedState, action: FsGen.FolderListLoadPayload | FsGen.
         path: Constants.pathToRPCPath(rootPath),
         refreshSubscription: false,
       })
+    } else {
+      yield RPCTypes.SimpleFSSimpleFSListRpcPromise({
+        filter: RPCTypes.ListFilter.filterSystemHidden,
+        opID,
+        path: Constants.pathToRPCPath(rootPath),
+        refreshSubscription: false,
+      })
     }
 
-    yield RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID})
+    yield RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID}, Constants.folderListWaitingKey)
 
     const result: Saga.RPCPromiseType<
       typeof RPCTypes.SimpleFSSimpleFSReadListRpcPromise
@@ -309,7 +345,7 @@ function* folderList(_: TypedState, action: FsGen.FolderListLoadPayload | FsGen.
     const direntToPathAndPathItem = (d: RPCTypes.Dirent) => {
       const path = Types.pathConcat(rootPath, d.name)
       const entry = makeEntry(d, childMap.get(path))
-      if (entry.type === Types.PathType.Folder && Types.getPathLevel(path) > 3 && d.name.indexOf('/') < 0) {
+      if (entry.type === Types.PathType.Folder && isRecursive && d.name.indexOf('/') < 0) {
         // Since we are loading with a depth of 2, first level directories are
         // considered "loaded".
         return [path, entry.set('progress', Types.ProgressType.Loaded)]
@@ -334,14 +370,6 @@ function* folderList(_: TypedState, action: FsGen.FolderListLoadPayload | FsGen.
       ...entries.map(direntToPathAndPathItem),
     ]
     yield Saga.put(FsGen.createFolderListLoaded({path: rootPath, pathItems: I.Map(pathItems)}))
-    if (action.type === FsGen.editSuccess) {
-      // Note that we discard the Edit metadata here rather than immediately
-      // after an FsGen.editSuccess event, so that if we hear about journal
-      // uploading the new folder before we hear from the folder list result,
-      // fs/footer/upload-container.js can determine this is a newly created
-      // folder instead of a file upload based on state.fs.edits.
-      yield Saga.put(FsGen.createDiscardEdit({editID: action.payload.editID}))
-    }
   } catch (error) {
     yield makeRetriableErrorHandler(action, rootPath)(error).map(action => Saga.put(action))
   }
@@ -500,10 +528,13 @@ function* loadPathMetadata(_: TypedState, action: FsGen.LoadPathMetadataPayload)
   const {path} = action.payload
 
   try {
-    const dirent = yield RPCTypes.SimpleFSSimpleFSStatRpcPromise({
-      path: Constants.pathToRPCPath(path),
-      refreshSubscription: false,
-    })
+    const dirent = yield RPCTypes.SimpleFSSimpleFSStatRpcPromise(
+      {
+        path: Constants.pathToRPCPath(path),
+        refreshSubscription: false,
+      },
+      Constants.statWaitingKey
+    )
     let pathItem = makeEntry(dirent)
     yield Saga.put(
       FsGen.createPathItemLoaded({
@@ -783,7 +814,7 @@ const onPathChange = (_: TypedState, action: EngineGen.Keybase1NotifyFSFSSubscri
   const {path, topic} = action.payload.params
   switch (topic) {
     case RPCTypes.PathSubscriptionTopic.children:
-      return FsGen.createFolderListLoad({path: Types.stringToPath(path)})
+      return FsGen.createFolderListLoad({path: Types.stringToPath(path), recursive: false})
     case RPCTypes.PathSubscriptionTopic.stat:
       return FsGen.createLoadPathMetadata({path: Types.stringToPath(path)})
   }
@@ -873,14 +904,12 @@ const loadFileContext = async (_: TypedState, action: FsGen.LoadFileContextPaylo
 
 function* fsSaga() {
   yield* Saga.chainGenerator<FsGen.UploadPayload>(FsGen.upload, upload)
-  yield* Saga.chainGenerator<FsGen.FolderListLoadPayload | FsGen.EditSuccessPayload>(
-    [FsGen.folderListLoad, FsGen.editSuccess],
-    folderList
-  )
+  yield* Saga.chainGenerator<FsGen.FolderListLoadPayload>(FsGen.folderListLoad, folderList)
   yield* Saga.chainAction2(FsGen.favoritesLoad, loadFavorites)
   yield* Saga.chainAction2(FsGen.kbfsDaemonRpcStatusChanged, setTlfsAsUnloadedWhenKbfsDaemonDisconnects)
   yield* Saga.chainGenerator<FsGen.FavoriteIgnorePayload>(FsGen.favoriteIgnore, ignoreFavoriteSaga)
   yield* Saga.chainAction2(FsGen.favoritesLoaded, updateFsBadge)
+  yield* Saga.chainAction2(FsGen.loadAdditionalTlf, loadAdditionalTlf)
   yield* Saga.chainAction2(FsGen.letResetUserBackIn, letResetUserBackIn)
   yield* Saga.chainAction2(FsGen.commitEdit, commitEdit)
   yield* Saga.chainAction2(FsGen.deleteFile, deleteFile)
@@ -898,7 +927,7 @@ function* fsSaga() {
   )
   if (flags.kbfsOfflineMode) {
     yield* Saga.chainAction2(FsGen.setTlfSyncConfig, setTlfSyncConfig)
-    yield* Saga.chainAction2([FsGen.loadTlfSyncConfig, FsGen.loadPathMetadata], loadTlfSyncConfig)
+    yield* Saga.chainAction2(FsGen.loadTlfSyncConfig, loadTlfSyncConfig)
     yield* Saga.chainAction2([FsGen.getOnlineStatus], getOnlineStatus)
     yield* Saga.chainAction2(ConfigGen.osNetworkStatusChanged, checkKbfsServerReachabilityIfNeeded)
     yield* Saga.chainAction2(

@@ -26,6 +26,8 @@ func NewDebuggingHandler(xp rpc.Transporter, g *libkb.GlobalContext, userHandler
 	}
 }
 
+// See debugging_{devel,production}.go for additional handlers.
+
 func (t *DebuggingHandler) FirstStep(ctx context.Context, arg keybase1.FirstStepArg) (result keybase1.FirstStepResult, err error) {
 	client := t.rpcClient()
 	cbArg := keybase1.SecondStepArg{Val: arg.Val + 1, SessionID: arg.SessionID}

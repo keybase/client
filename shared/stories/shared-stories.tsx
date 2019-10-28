@@ -14,6 +14,7 @@ import styles from '../styles/index.stories'
 import teamBuilding from '../team-building/index.stories'
 import teams from '../teams/index.stories'
 import wallets from '../wallets/index.stories'
+import whatsNew from '../whats-new/index.stories'
 
 const stories = {
   chat,
@@ -32,6 +33,7 @@ const stories = {
   teamBuilding,
   teams,
   wallets,
+  whatsNew,
 }
 
 export default stories

@@ -3,6 +3,7 @@ android/local.properties
 android/.gradle
 android/keybaselib/keybaselib.aar
 android/.idea
+android/app/.externalNativeBuild
 android/**/build/
 android/dist
 android/**/*.iml

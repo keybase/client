@@ -8,7 +8,6 @@ import HiddenString from '../../util/hidden-string'
 import Login from '.'
 import sortBy from 'lodash/sortBy'
 import * as Container from '../../util/container'
-import flags from '../../util/feature-flags'
 import * as ConfigTypes from '../../constants/types/config'
 
 type OwnProps = {}
@@ -97,9 +96,7 @@ export default Container.connect(
   }),
   dispatch => ({
     _onForgotPassword: (username: string) =>
-      flags.resetPipeline
-        ? dispatch(RecoverPasswordGen.createStartRecoverPassword({username}))
-        : dispatch(LoginGen.createLaunchForgotPasswordWebPage()),
+      dispatch(RecoverPasswordGen.createStartRecoverPassword({username})),
     onFeedback: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['feedback']})),
     onLogin: (username: string, password: string) =>
       dispatch(LoginGen.createLogin({password: new HiddenString(password), username})),

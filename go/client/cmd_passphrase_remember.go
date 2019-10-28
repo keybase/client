@@ -24,8 +24,8 @@ type CmdPassphraseRemember struct {
 func NewCmdPassphraseRemember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "remember",
-		ArgumentHelp: "[bool]",
-		Usage:        "Remember your keybase account passphrase.",
+		ArgumentHelp: "[<true|false>]",
+		Usage:        "Set whether your account passphrase should be remembered across restarts. Run with no arguments to check status.",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdPassphraseRememberRunner(g), "change", c)
 		},

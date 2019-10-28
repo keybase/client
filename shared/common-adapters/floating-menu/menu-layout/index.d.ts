@@ -9,6 +9,7 @@ export type MenuItem = {
   newTag?: boolean | null
   onClick?: ((evt?: React.SyntheticEvent) => void) | null
   onPress?: void
+  progressIndicator?: boolean
   style?: Object
   subTitle?: string
   title: string // Only used as ID if view is provided for Header,

@@ -4,11 +4,7 @@ import * as Flow from '../../../util/flow'
 import {memoize} from '../../../util/memoize'
 import logger from '../../../logger'
 
-export type SortableRowItem =
-  | RowTypes.StillRowItem
-  | RowTypes.EditingRowItem
-  | RowTypes.UploadingRowItem
-  | RowTypes.TlfRowItem
+export type SortableRowItem = RowTypes.StillRowItem | RowTypes.EditingRowItem | RowTypes.TlfRowItem
 
 type PathItemComparer = (a: SortableRowItem, b: SortableRowItem) => number
 

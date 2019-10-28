@@ -3,92 +3,123 @@ import * as Types from '../../constants/types/fs'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import PieSlice from './pie-slice'
-import * as Flow from '../../util/flow'
+import UploadIcon from './upload-icon'
 
 type Props = {
-  // This is a bug in eslint, it believes that SyncStatus is not yet defined
-  // and so Types.SyncStatus isn't either.
-  // eslint-disable-next-line
-  status: Types.SyncStatus
-  folder: boolean
+  isTlfType?: boolean
+  isFolder: boolean
+  syncStatus?: Types.SyncStatus
 }
 
-function getIcon(status: Types.SyncStatusStatic): Kb.IconType {
+function getIcon(status: Types.NonUploadStaticSyncStatus): Kb.IconType {
   switch (status) {
-    case Types.SyncStatusStatic.AwaitingToSync:
+    case Types.NonUploadStaticSyncStatus.AwaitingToSync:
       return 'iconfont-time'
-    case Types.SyncStatusStatic.AwaitingToUpload:
-    case Types.SyncStatusStatic.Uploading:
-      return 'iconfont-upload'
-    case Types.SyncStatusStatic.OnlineOnly:
+    case Types.NonUploadStaticSyncStatus.OnlineOnly:
       return 'iconfont-cloud'
-    case Types.SyncStatusStatic.Synced:
+    case Types.NonUploadStaticSyncStatus.Synced:
       return 'iconfont-success'
-    case Types.SyncStatusStatic.SyncError:
+    case Types.NonUploadStaticSyncStatus.SyncError:
       return 'iconfont-exclamation'
-    case Types.SyncStatusStatic.Unknown:
-      return 'iconfont-question-mark'
-    default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(status)
+    case Types.NonUploadStaticSyncStatus.Unknown:
       return 'iconfont-question-mark'
   }
 }
 
-function getColor(status: Types.SyncStatusStatic) {
+function getColor(status: Types.NonUploadStaticSyncStatus) {
   switch (status) {
-    case Types.SyncStatusStatic.AwaitingToSync:
-    case Types.SyncStatusStatic.OnlineOnly:
-    case Types.SyncStatusStatic.Uploading:
+    case Types.NonUploadStaticSyncStatus.AwaitingToSync:
+    case Types.NonUploadStaticSyncStatus.OnlineOnly:
       return Styles.globalColors.blue
-    case Types.SyncStatusStatic.AwaitingToUpload:
-    case Types.SyncStatusStatic.Unknown:
+    case Types.NonUploadStaticSyncStatus.Unknown:
       return Styles.globalColors.greyDark
-    case Types.SyncStatusStatic.Synced:
+    case Types.NonUploadStaticSyncStatus.Synced:
       return Styles.globalColors.green
-    case Types.SyncStatusStatic.SyncError:
+    case Types.NonUploadStaticSyncStatus.SyncError:
       return Styles.globalColors.red
-    default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(status)
-      return Styles.globalColors.greyDark
   }
 }
 
-function getTooltip(props: Props): string {
-  if (typeof props.status === 'number') {
-    return 'Syncing ' + Math.floor(props.status * 100) + '%...'
+function getTooltip(syncStatus: Types.SyncStatus, isFolder: boolean): string {
+  if (typeof syncStatus === 'number') {
+    return 'Syncing ' + Math.floor(syncStatus * 100) + '%...'
   }
 
-  switch (props.status) {
-    case Types.SyncStatusStatic.AwaitingToSync:
+  switch (syncStatus) {
+    case Types.NonUploadStaticSyncStatus.AwaitingToSync:
       return 'Waiting to sync'
-    case Types.SyncStatusStatic.AwaitingToUpload:
-      return 'Local ' + (props.folder ? 'folder' : 'file') + '. Upload will start once you get back online.'
-    case Types.SyncStatusStatic.Uploading:
+    case Types.UploadIcon.AwaitingToUpload:
+      return 'Local ' + (isFolder ? 'folder' : 'file') + '. Upload will start once you get back online.'
+    case Types.UploadIcon.Uploading:
       return 'Uploading...'
-    case Types.SyncStatusStatic.OnlineOnly:
+    case Types.UploadIcon.UploadingStuck:
+      return 'Stuck in conflict resolution. Upload will start once you resolve conflict.'
+    case Types.NonUploadStaticSyncStatus.OnlineOnly:
       return 'Online only'
-    case Types.SyncStatusStatic.Synced:
+    case Types.NonUploadStaticSyncStatus.Synced:
       return 'Synced'
-    case Types.SyncStatusStatic.SyncError:
-      return (props.folder ? 'Folder' : 'File') + " couldn't sync"
-    case Types.SyncStatusStatic.Unknown:
-      return 'Unknown sync state'
-    default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.status)
+    case Types.NonUploadStaticSyncStatus.SyncError:
+      return (isFolder ? 'Folder' : 'File') + " couldn't sync"
+    case Types.NonUploadStaticSyncStatus.Unknown:
       return 'Unknown sync state'
   }
 }
 
-const SyncStatus = (props: Props) => (
-  <Kb.WithTooltip tooltip={getTooltip(props)}>
-    {typeof props.status === 'number' ? (
-      <Kb.Box2 direction="horizontal" style={{margin: Styles.globalMargins.xtiny}}>
-        <PieSlice degrees={360 * props.status} animated={true} />
-      </Kb.Box2>
-    ) : (
-      <Kb.Icon type={getIcon(props.status)} sizeType="Small" padding="xtiny" color={getColor(props.status)} />
-    )}
-  </Kb.WithTooltip>
-)
+const SyncStatus = (props: Props) =>
+  props.syncStatus ? (
+    <Kb.WithTooltip tooltip={getTooltip(props.syncStatus, props.isFolder)}>
+      {typeof props.syncStatus === 'number' ? (
+        <Kb.Box2 direction="horizontal" style={{margin: Styles.globalMargins.xtiny}}>
+          <PieSlice degrees={360 * props.syncStatus} animated={true} />
+        </Kb.Box2>
+      ) : props.syncStatus === Types.UploadIcon.AwaitingToUpload ||
+        props.syncStatus === Types.UploadIcon.Uploading ||
+        props.syncStatus === Types.UploadIcon.UploadingStuck ? (
+        <UploadIcon uploadIcon={props.syncStatus} style={styles.iconNonFont} />
+      ) : (
+        <Kb.Icon
+          type={getIcon(props.syncStatus)}
+          sizeType="Small"
+          style={styles.iconFont}
+          color={getColor(props.syncStatus)}
+        />
+      )}
+    </Kb.WithTooltip>
+  ) : props.isTlfType ? (
+    <Kb.Icon type="iconfont-root" sizeType="Small" padding="xtiny" />
+  ) : (
+    <Kb.Box style={styles.placeholder} />
+  )
+
+const styles = Styles.styleSheetCreate(() => ({
+  iconFont: {
+    paddingLeft: Styles.globalMargins.xtiny,
+    paddingRight: Styles.globalMargins.xtiny,
+  },
+  iconNonFont: Styles.platformStyles({
+    common: {
+      marginLeft: Styles.globalMargins.xtiny,
+      marginRight: Styles.globalMargins.xtiny,
+    },
+    isElectron: {
+      height: Styles.globalMargins.xsmall,
+      width: Styles.globalMargins.xsmall,
+    },
+    isMobile: {
+      height: Styles.globalMargins.small,
+      width: Styles.globalMargins.small,
+    },
+  }),
+  placeholder: Styles.platformStyles({
+    isElectron: {
+      height: Styles.globalMargins.xsmall + Styles.globalMargins.xtiny,
+      width: Styles.globalMargins.xsmall + Styles.globalMargins.xtiny,
+    },
+    isMobile: {
+      height: Styles.globalMargins.small + Styles.globalMargins.xtiny,
+      width: Styles.globalMargins.small + Styles.globalMargins.xtiny,
+    },
+  }),
+}))
 
 export default SyncStatus

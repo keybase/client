@@ -34,14 +34,26 @@ func TestParseDurationExtended(t *testing.T) {
 }
 
 func TestParseAtMentionsNames(t *testing.T) {
-	text := "@chat_1e2263952c hello! @mike From @chat_5511c5e0ce. @ksjdskj 889@ds8 @_dskdjs @k1 @0011_"
-	matches := ParseAtMentionsNames(context.TODO(), text)
-	expected := []string{"chat_1e2263952c", "mike", "chat_5511c5e0ce", "ksjdskj", "k1", "0011_"}
-	require.Equal(t, expected, matches)
+	text := "@Chat_1e2263952c hello! @Mike From @chat_5511c5e0ce. @ksjdskj 889@ds8 @_dskdjs @k1 @0011_"
+	matches := parseRegexpNames(context.TODO(), text, atMentionRegExp)
+	var names, normalizedNames []string
+	for _, m := range matches {
+		names = append(names, m.name)
+		normalizedNames = append(normalizedNames, m.normalizedName)
+	}
+
+	expected := []string{"Chat_1e2263952c", "Mike", "chat_5511c5e0ce", "ksjdskj", "k1", "0011_"}
+	require.Equal(t, expected, names)
+	expectedNormalized := []string{"chat_1e2263952c", "mike", "chat_5511c5e0ce", "ksjdskj", "k1", "0011_"}
+	require.Equal(t, expectedNormalized, normalizedNames)
 	text = "@mike@jim"
-	matches = ParseAtMentionsNames(context.TODO(), text)
+	matches = parseRegexpNames(context.TODO(), text, atMentionRegExp)
+	names = []string{}
+	for _, m := range matches {
+		names = append(names, m.name)
+	}
 	expected = []string{"mike"}
-	require.Equal(t, expected, matches)
+	require.Equal(t, expected, names)
 }
 
 type testTeamChannelSource struct {
@@ -206,20 +218,20 @@ func TestDecorateMentions(t *testing.T) {
 			result: "$>kb$eyJ0eXAiOjEsImF0bWVudGlvbiI6Im1pa2VtIn0=$<kb$ fix something",
 		},
 		{
-			body:        "@mikem,@max @mikem/@max please check out #general, also @here you should too",
+			body:        "@Mikem,@Max @mikem/@max please check out #general, also @here you should too",
 			atMentions:  []string{"mikem", "max"},
 			chanMention: chat1.ChannelMention_HERE,
 			channelNameMentions: []chat1.ChannelNameMention{{
 				ConvID:    convID,
 				TopicName: "general",
 			}},
-			// {"typ":1,"atmention":"mikem"}
-			// {"typ":1,"atmention":"max"}
+			// {"typ":1,"atmention":"Mikem"}
+			// {"typ":1,"atmention":"Max"}
 			// {"typ":1,"atmention":"mikem"}
 			// {"typ":1,"atmention":"max"}
 			// {"typ":2,"channelnamemention":{"name":"general","convID":"01020304"}}
 			// {"typ":1,"atmention":"here"}
-			result: "$>kb$eyJ0eXAiOjEsImF0bWVudGlvbiI6Im1pa2VtIn0=$<kb$,$>kb$eyJ0eXAiOjEsImF0bWVudGlvbiI6Im1heCJ9$<kb$ $>kb$eyJ0eXAiOjEsImF0bWVudGlvbiI6Im1pa2VtIn0=$<kb$/$>kb$eyJ0eXAiOjEsImF0bWVudGlvbiI6Im1heCJ9$<kb$ please check out $>kb$eyJ0eXAiOjIsImNoYW5uZWxuYW1lbWVudGlvbiI6eyJuYW1lIjoiZ2VuZXJhbCIsImNvbnZJRCI6IjAxMDIwMzA0In19$<kb$, also $>kb$eyJ0eXAiOjEsImF0bWVudGlvbiI6ImhlcmUifQ==$<kb$ you should too",
+			result: "$>kb$eyJ0eXAiOjEsImF0bWVudGlvbiI6Ik1pa2VtIn0=$<kb$,$>kb$eyJ0eXAiOjEsImF0bWVudGlvbiI6Ik1heCJ9$<kb$ $>kb$eyJ0eXAiOjEsImF0bWVudGlvbiI6Im1pa2VtIn0=$<kb$/$>kb$eyJ0eXAiOjEsImF0bWVudGlvbiI6Im1heCJ9$<kb$ please check out $>kb$eyJ0eXAiOjIsImNoYW5uZWxuYW1lbWVudGlvbiI6eyJuYW1lIjoiZ2VuZXJhbCIsImNvbnZJRCI6IjAxMDIwMzA0In19$<kb$, also $>kb$eyJ0eXAiOjEsImF0bWVudGlvbiI6ImhlcmUifQ==$<kb$ you should too",
 		},
 		{
 			body:       "@mikem talk to @patrick",

@@ -812,6 +812,14 @@ func (fbo *folderBranchOps) forceStuckConflictForTesting(
 		if err != nil {
 			return err
 		}
+		// Wait for the flush handler to finish, so we don't
+		// accidentally swap in the upcoming MD on the conflict branch
+		// over the "merged" one we just flushed, before the pointer
+		// archiving step happens.
+		err = fbo.mdFlushes.Wait(ctx)
+		if err != nil {
+			return err
+		}
 	}
 
 	// Roll back the local view to the original revision.
@@ -9143,6 +9151,7 @@ func (fbo *folderBranchOps) SetSyncConfig(
 
 	defer func() {
 		if err == nil {
+			fbo.config.SubscriptionManagerPublisher().PublishChange(keybase1.SubscriptionTopic_FAVORITES)
 			fbo.config.Reporter().NotifyFavoritesChanged(ctx)
 		}
 	}()

@@ -32,8 +32,7 @@ export default Container.connect(
       dispatch(LoginGen.createLogin({password: new HiddenString(''), username}))
     },
     onSelectAccountLoggedOut: (username: string) => {
-      dispatch(ConfigGen.createSetDefaultUsername({username}))
-      dispatch(RouteTreeGen.createSwitchLoggedIn({loggedIn: false}))
+      dispatch(ConfigGen.createLogoutAndTryToLogInAs({username}))
     },
     onSignOut: () => dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.logOutTab]})),
   }),
@@ -42,7 +41,7 @@ export default Container.connect(
     return {
       accountRows: accountRows.map(account => ({
         account: account,
-        fullName: (stateProps._fullnames.get(account.username) || {fullname: ''}).fullname,
+        fullName: (stateProps._fullnames.get(account.username) || {fullname: ''}).fullname || '',
       })),
       fullname: stateProps.fullname,
       onAddAccount: dispatchProps.onAddAccount,

@@ -32,7 +32,6 @@ import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {RPCError} from '../../util/errors'
 import HiddenString from '../../util/hidden-string'
 import {TypedActions, TypedState} from '../../util/container'
-import {store} from 'emoji-mart'
 
 const onConnect = async () => {
   try {
@@ -770,7 +769,9 @@ const onChatSetConvSettings = (
       conv.convSettings.minWriterRoleInfo &&
       conv.convSettings.minWriterRoleInfo.cannotWrite) ||
     false
-  logger.info(`got new minWriterRole ${role || ''} for convID ${conversationIDKey}`)
+  logger.info(
+    `got new minWriterRole ${role || ''} for convID ${conversationIDKey}, cannotWrite ${cannotWrite}`
+  )
   if (role && role !== 'none' && cannotWrite !== undefined) {
     return Chat2Gen.createSaveMinWriterRole({cannotWrite, conversationIDKey, role})
   }
@@ -954,6 +955,17 @@ const onNewChatActivity = (
     }
   }
   return actions
+}
+
+const onChatConvUpdate = (state: TypedState, action: EngineGen.Chat1NotifyChatChatConvUpdatePayload) => {
+  const {conv} = action.payload.params
+  if (conv) {
+    const meta = Constants.inboxUIItemToConversationMeta(state, conv)
+    if (meta) {
+      return [Chat2Gen.createMetasReceived({metas: [meta]})]
+    }
+  }
+  return []
 }
 
 const loadThreadMessageTypes = Object.keys(RPCChatTypes.MessageType)
@@ -1934,6 +1946,8 @@ const onUpdateUserReacjis = (state: TypedState) => {
     i++
     reacjis[el] = userReacjis.topReacjis.length - i
   })
+
+  const {store} = require('emoji-mart')
   store.setHandlers({
     getter: key => {
       switch (key) {
@@ -2073,6 +2087,52 @@ const attachmentPasted = async (_: TypedState, action: Chat2Gen.AttachmentPasted
   const pathAndOutboxIDs = [{outboxID, path}]
   return RouteTreeGen.createNavigateAppend({
     path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'chatAttachmentGetTitles'}],
+  })
+}
+
+const sendAudioRecording = async (
+  state: TypedState,
+  action: Chat2Gen.SendAudioRecordingPayload,
+  logger: Saga.SagaLogger
+) => {
+  // sit here for 400ms for animations
+  await Saga.delay(400)
+
+  const conversationIDKey = action.payload.conversationIDKey
+  const audioRecording = state.chat2.audioRecording.get(conversationIDKey)
+  const clientPrev = Constants.getClientPrev(state, conversationIDKey)
+  const ephemeralLifetime = Constants.getConversationExplodingMode(state, conversationIDKey)
+  if (!audioRecording) {
+    logger.info('sendAudioRecording: no audio info for send')
+    return
+  }
+  const meta = state.chat2.metaMap.get(conversationIDKey)
+  if (!meta) {
+    logger.warn('sendAudioRecording: no meta for send')
+    return
+  }
+
+  let callerPreview: RPCChatTypes.MakePreviewRes | null = null
+  if (audioRecording.amps.length > 0) {
+    callerPreview = await RPCChatTypes.localMakeAudioPreviewRpcPromise({
+      amps: audioRecording.amps,
+    })
+  }
+  const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
+  await RPCChatTypes.localPostFileAttachmentLocalNonblockRpcPromise({
+    arg: {
+      ...ephemeralData,
+      callerPreview,
+      conversationID: Types.keyToConversationID(conversationIDKey),
+      filename: audioRecording.path,
+      identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+      metadata: Buffer.from([]),
+      outboxID: audioRecording.outboxID,
+      title: '',
+      tlfName: meta.tlfname,
+      visibility: RPCTypes.TLFVisibility.private,
+    },
+    clientPrev,
   })
 }
 
@@ -3614,9 +3674,12 @@ function* chat2Saga() {
 
   yield* Saga.chainAction2(Chat2Gen.selectConversation, fetchConversationBio)
 
+  yield* Saga.chainAction2(Chat2Gen.sendAudioRecording, sendAudioRecording, 'sendAudioRecording')
+
   yield* Saga.chainAction2(EngineGen.connected, onConnect, 'onConnect')
 
   yield* chatTeamBuildingSaga()
+  yield* Saga.chainAction2(EngineGen.chat1NotifyChatChatConvUpdate, onChatConvUpdate, 'onChatConvUpdate')
 }
 
 export default chat2Saga

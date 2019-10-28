@@ -493,21 +493,6 @@ func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat
 			continue
 		}
 
-		if st == chat1.MessageUnboxedState_JOURNEYCARD {
-			mc := m.Journeycard()
-			ret = append(ret, chat1.Message{
-				Msg: &chat1.MsgSummary{
-					Content: chat1.MsgContent{
-						TypeName: chat1.MessageUnboxedJourneyCardTypeRevMap[mc.CardType],
-						Text: &chat1.MessageText{
-							Body: mc.Data,
-						},
-					},
-				},
-			})
-			continue
-		}
-
 		// skip any PLACEHOLDER or OUTBOX messages
 		if st != chat1.MessageUnboxedState_VALID {
 			continue

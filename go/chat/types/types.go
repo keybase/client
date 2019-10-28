@@ -54,6 +54,7 @@ func NewNameInfo() *NameInfo {
 }
 
 type MembershipUpdateRes struct {
+	RoleUpdates        []chat1.ConversationLocal
 	UserJoinedConvs    []chat1.ConversationLocal
 	UserRemovedConvs   []chat1.ConversationMember
 	UserResetConvs     []chat1.ConversationMember
@@ -627,8 +628,7 @@ func (d DummyUIInboxLoader) UpdateConvs(ctx context.Context, convIDs []chat1.Con
 	return nil
 }
 
-func (d DummyUIInboxLoader) UpdateLayoutFromNewMessage(ctx context.Context, conv RemoteConversation,
-	msg chat1.MessageBoxed, firstConv bool, previousStatus chat1.ConversationStatus) {
+func (d DummyUIInboxLoader) UpdateLayoutFromNewMessage(ctx context.Context, conv RemoteConversation) {
 }
 
 func (d DummyUIInboxLoader) UpdateLayoutFromSubteamRename(ctx context.Context, convs []RemoteConversation) {

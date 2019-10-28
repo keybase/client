@@ -423,14 +423,10 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 			return ret, err
 		}
 
+		cacheUserServiceSummary(m, ret)
 	} else if !arg.publicKeyOptional {
 		m.Debug("No active key for user: %s", ret.GetUID())
-
-		var emsg string
-		if arg.self {
-			emsg = "You don't have a public key; try `keybase pgp select` or `keybase pgp import` if you have a key; or `keybase pgp gen` if you don't"
-		}
-		err = NoKeyError{emsg}
+		return ret, NoKeyError{}
 	}
 
 	return ret, err
@@ -671,4 +667,21 @@ func IsUserByUsernameOffline(m MetaContext, un NormalizedUsername) bool {
 	}
 
 	return false
+}
+
+func cacheUserServiceSummary(mctx MetaContext, user *User) {
+	serviceMapper := mctx.G().ServiceMapper
+	if serviceMapper == nil {
+		// no service summary mapper in current context - e.g. in tests.
+		return
+	}
+
+	remoteProofs := user.idTable.remoteProofLinks
+	if remoteProofs != nil {
+		summary := remoteProofs.toServiceSummary()
+		err := serviceMapper.InformOfServiceSummary(mctx.Ctx(), mctx.G(), user.id, summary)
+		if err != nil {
+			mctx.Debug("cacheUserServiceSummary for %q uid: %q: error: %s", user.name, user.id, err)
+		}
+	}
 }

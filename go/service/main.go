@@ -851,11 +851,6 @@ func (d *Service) tryGregordConnect() error {
 }
 
 func (d *Service) runBackgroundPerUserKeyUpgrade() {
-	if !d.G().Env.GetUpgradePerUserKey() {
-		d.G().Log.Debug("PerUserKeyUpgradeBackground disabled (not starting)")
-		return
-	}
-
 	eng := engine.NewPerUserKeyUpgradeBackground(d.G(), &engine.PerUserKeyUpgradeBackgroundArgs{})
 	go func() {
 		m := libkb.NewMetaContextBackground(d.G())

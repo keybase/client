@@ -1,14 +1,13 @@
 {
-  "prelude": ["import HiddenString from '../util/hidden-string'",
-    "import {RPCError} from '../util/errors'",
+  "prelude": [
+    "import HiddenString from '../util/hidden-string'",
+    "import {RPCError} from '../util/errors'"
   ],
   "actions": {
     "login": {
       "username": "string",
       "password": "HiddenString"
     },
-    "launchAccountResetWebPage": {},
-    "launchForgotPasswordWebPage": {},
     "loginError": {"error": "RPCError | null"},
     "loadIsOnline": {},
     "loadedIsOnline": {

@@ -68,22 +68,22 @@ const setupApp = (store, runSagas) => {
   SafeElectron.getApp().on('KBdispatchAction' as any, (_: string, action: TypedActions) => {
     // we MUST convert this else we'll run into issues with redux. See https://github.com/rackt/redux/issues/830
     // This is because this is touched due to the remote proxying. We get a __proto__ which causes the _.isPlainObject check to fail. We use
-    setImmediate(() => {
+    setTimeout(() => {
       try {
         store.dispatch({
           payload: action.payload,
           type: action.type,
         })
       } catch (_) {}
-    })
+    }, 0)
   })
 
   // See if we're connected, and try starting keybase if not
-  setImmediate(() => {
+  setTimeout(() => {
     if (!eng.hasEverConnected()) {
       SafeElectron.getApp().emit('KBkeybase', '', {type: 'requestStartService'})
     }
-  })
+  }, 0)
 
   // After a delay dump logs in case some startup stuff happened
   setTimeout(() => {

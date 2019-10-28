@@ -9,12 +9,13 @@ import * as Tabs from './tabs'
 import * as SettingsConstants from './settings'
 import {TypedState} from '../util/container'
 import {isLinux, isMobile} from './platform'
-import uuidv1 from 'uuid/v1'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import {TypedActions} from '../actions/typed-actions-gen'
 import flags from '../util/feature-flags'
 
 export const syncToggleWaitingKey = 'fs:syncToggle'
+export const folderListWaitingKey = 'fs:folderList'
+export const statWaitingKey = 'fs:stat'
 
 export const defaultPath = Types.stringToPath('/keybase')
 
@@ -277,8 +278,21 @@ export const emptyFileContext = {
   viewType: RPCTypes.GUIViewType.default,
 }
 
-// RPC expects a string that's interpreted as [16]byte on Go side.
-export const makeUUID = () => uuidv1({}, Buffer.alloc(16), 0).toString()
+// RPC expects a string that's interpreted as [16]byte on Go side and it has to
+// be unique among all ongoing ops at any given time. uuidv1 may exceed 16
+// bytes, so just roll something simple that's seeded with time.
+//
+// MAX_SAFE_INTEGER after toString(36) is 11 characters, so this should take <=
+// 12 chars
+const uuidSeed = Date.now().toString(36) + '-'
+let counter = 0
+// We have 36^4=1,679,616 of space to work with in order to not exceed 16
+// bytes.
+const counterMod = 36 * 36 * 36 * 36
+export const makeUUID = () => {
+  counter = (counter + 1) % counterMod
+  return uuidSeed + counter.toString(36)
+}
 
 export const pathToRPCPath = (
   path: Types.Path
@@ -443,7 +457,7 @@ export const syntheticEventToTargetRect = (evt?: React.SyntheticEvent): ClientRe
 export const invalidTokenError = new Error('invalid token')
 export const notFoundError = new Error('not found')
 
-export const makeEditID = (): Types.EditID => Types.stringToEditID(uuidv1())
+export const makeEditID = (): Types.EditID => Types.stringToEditID(makeUUID())
 
 export const getTlfListFromType = (tlfs: Types.Tlfs, tlfType: Types.TlfType): Types.TlfList => {
   switch (tlfType) {
@@ -467,6 +481,11 @@ export const computeBadgeNumberForAll = (tlfs: Types.Tlfs): number =>
     .map(tlfType => computeBadgeNumberForTlfList(getTlfListFromType(tlfs, tlfType)))
     .reduce((sum, count) => sum + count, 0)
 
+export const getTlfPath = (path: Types.Path): Types.Path | null => {
+  const elems = Types.getPathElements(path)
+  return elems.length > 2 ? Types.pathConcat(Types.pathConcat(defaultPath, elems[1]), elems[2]) : null
+}
+
 export const getTlfListAndTypeFromPath = (
   tlfs: Types.Tlfs,
   path: Types.Path
@@ -488,13 +507,20 @@ export const getTlfListAndTypeFromPath = (
 }
 
 export const unknownTlf = makeTlf({})
-export const getTlfFromPath = (tlfs: Types.Tlfs, path: Types.Path): Types.Tlf => {
+export const getTlfFromPathInFavoritesOnly = (tlfs: Types.Tlfs, path: Types.Path): Types.Tlf => {
   const elems = Types.getPathElements(path)
   if (elems.length < 3) {
     return unknownTlf
   }
   const {tlfList} = getTlfListAndTypeFromPath(tlfs, path)
   return tlfList.get(elems[2]) || unknownTlf
+}
+
+export const getTlfFromPath = (tlfs: Types.Tlfs, path: Types.Path): Types.Tlf => {
+  const fromFavorites = getTlfFromPathInFavoritesOnly(tlfs, path)
+  return fromFavorites !== unknownTlf
+    ? fromFavorites
+    : tlfs.additionalTlfs.get(getTlfPath(path)) || unknownTlf
 }
 
 export const getTlfFromTlfs = (tlfs: Types.Tlfs, tlfType: Types.TlfType, name: string): Types.Tlf => {
@@ -775,28 +801,86 @@ const isPathEnabledForSync = (syncConfig: Types.TlfSyncConfig, path: Types.Path)
   }
 }
 
+export const getUploadIconForTlfType = (
+  kbfsDaemonStatus: Types.KbfsDaemonStatus,
+  uploads: Types.Uploads,
+  tlfList: Types.TlfList,
+  tlfType: Types.TlfType
+): Types.UploadIcon | undefined => {
+  if (
+    [...tlfList].some(
+      ([_, tlf]) =>
+        tlf.conflictState.type === Types.ConflictStateType.NormalView && tlf.conflictState.stuckInConflict
+    )
+  ) {
+    return Types.UploadIcon.UploadingStuck
+  }
+
+  const prefix = Types.pathToString(Types.getTlfTypePathFromTlfType(tlfType))
+  if (
+    [uploads.syncingPaths, uploads.writingToJournal].some(s =>
+      [...s].some(p => Types.pathToString(p).startsWith(prefix))
+    )
+  ) {
+    return kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Offline
+      ? Types.UploadIcon.AwaitingToUpload
+      : Types.UploadIcon.Uploading
+  }
+
+  return undefined
+}
+
+export const tlfIsStuckInConflict = (tlf: Types.Tlf) =>
+  tlf.conflictState.type === Types.ConflictStateType.NormalView && tlf.conflictState.stuckInConflict
+
+export const getUploadIconForFilesTab = (
+  kbfsDaemonStatus: Types.KbfsDaemonStatus,
+  uploads: Types.Uploads,
+  tlfs: Types.Tlfs
+): Types.UploadIcon | undefined => {
+  if (
+    [
+      tlfs.private,
+      tlfs.public,
+      tlfs.team,
+      // omitting additionalTlfs for now since there's no way to access them
+      // anyway if they are not part of the favorites
+    ].some(tlfList => [...tlfList.entries()].some(([_, tlf]) => tlfIsStuckInConflict(tlf)))
+  ) {
+    return Types.UploadIcon.UploadingStuck
+  }
+  if (uploads.syncingPaths.size || uploads.writingToJournal.size) {
+    return kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Offline
+      ? Types.UploadIcon.AwaitingToUpload
+      : Types.UploadIcon.Uploading
+  }
+  return undefined
+}
+
 export const getSyncStatusInMergeProps = (
   kbfsDaemonStatus: Types.KbfsDaemonStatus,
   tlf: Types.Tlf,
   pathItem: Types.PathItem,
-  uploadingPaths: I.Set<Types.Path>,
+  uploadingPaths: Set<Types.Path>,
   path: Types.Path
 ): Types.SyncStatus => {
+  // uploading state has higher priority
+  if (uploadingPaths.has(path)) {
+    return tlf.conflictState.type === Types.ConflictStateType.NormalView && tlf.conflictState.stuckInConflict
+      ? Types.UploadIcon.UploadingStuck
+      : kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Offline
+      ? Types.UploadIcon.AwaitingToUpload
+      : Types.UploadIcon.Uploading
+  }
+  if (!isPathEnabledForSync(tlf.syncConfig, path)) {
+    return Types.NonUploadStaticSyncStatus.OnlineOnly
+  }
+
   if (
     !tlf.syncConfig ||
     (pathItem === unknownPathItem && tlf.syncConfig.mode !== Types.TlfSyncMode.Disabled)
   ) {
-    return Types.SyncStatusStatic.Unknown
-  }
-  const tlfSyncConfig: Types.TlfSyncConfig = tlf.syncConfig
-  // uploading state has higher priority
-  if (uploadingPaths.has(path)) {
-    return kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Offline
-      ? Types.SyncStatusStatic.AwaitingToUpload
-      : Types.SyncStatusStatic.Uploading
-  }
-  if (!isPathEnabledForSync(tlfSyncConfig, path)) {
-    return Types.SyncStatusStatic.OnlineOnly
+    return Types.NonUploadStaticSyncStatus.Unknown
   }
 
   // TODO: what about 'sync-error'?
@@ -804,22 +888,22 @@ export const getSyncStatusInMergeProps = (
   // We don't have an upload state, and sync is enabled for this path.
   switch (pathItem.prefetchStatus.state) {
     case Types.PrefetchState.NotStarted:
-      return Types.SyncStatusStatic.AwaitingToSync
+      return Types.NonUploadStaticSyncStatus.AwaitingToSync
     case Types.PrefetchState.Complete:
-      return Types.SyncStatusStatic.Synced
+      return Types.NonUploadStaticSyncStatus.Synced
     case Types.PrefetchState.InProgress: {
       if (kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Offline) {
-        return Types.SyncStatusStatic.AwaitingToSync
+        return Types.NonUploadStaticSyncStatus.AwaitingToSync
       }
       const inProgress: Types.PrefetchInProgress = pathItem.prefetchStatus
       if (inProgress.bytesTotal === 0) {
-        return Types.SyncStatusStatic.AwaitingToSync
+        return Types.NonUploadStaticSyncStatus.AwaitingToSync
       }
       return inProgress.bytesFetched / inProgress.bytesTotal
     }
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(pathItem.prefetchStatus)
-      return Types.SyncStatusStatic.Unknown
+      return Types.NonUploadStaticSyncStatus.Unknown
   }
 }
 
@@ -898,11 +982,6 @@ export const humanizeBytesOfTotal = (n: number, d: number): string => {
     return `${(n / mb).toFixed(2)} of ${(d / mb).toFixed(2)} MB`
   }
   return `${(n / gb).toFixed(2)} of ${(d / gb).toFixed(2)} GB`
-}
-
-export const getTlfPath = (path: Types.Path): Types.Path | null => {
-  const elems = Types.getPathElements(path)
-  return elems.length > 2 ? Types.pathConcat(Types.pathConcat(defaultPath, elems[1]), elems[2]) : null
 }
 
 export const hasPublicTag = (path: Types.Path): boolean => {

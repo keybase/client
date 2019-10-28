@@ -67,15 +67,17 @@ func (l *TeamMentionLoader) Stop(ctx context.Context) chan struct{} {
 
 func (l *TeamMentionLoader) IsTeamMention(ctx context.Context, uid gregor1.UID,
 	maybeMention chat1.MaybeMention, knownTeamMentions []chat1.KnownTeamMention) bool {
-	if _, err := keybase1.TeamNameFromString(maybeMention.Name); err != nil {
+	teamName, err := keybase1.TeamNameFromString(maybeMention.Name)
+	if err != nil {
 		return false
 	}
+	name := teamName.String()
 	for _, known := range knownTeamMentions {
-		if known.Name == maybeMention.Name {
+		if known.Name == name {
 			return true
 		}
 	}
-	res, err := l.G().InboxSource.IsTeam(ctx, uid, maybeMention.Name)
+	res, err := l.G().InboxSource.IsTeam(ctx, uid, name)
 	if err != nil {
 		l.Debug(ctx, "isTeam: failed to check if team: %s", err)
 		return false
@@ -179,7 +181,7 @@ func (l *TeamMentionLoader) loadMention(ctx context.Context, uid gregor1.UID,
 		convs, err := l.G().ChatHelper.FindConversations(ctx, maybeMention.Name, channel,
 			chat1.TopicType_CHAT, chat1.ConversationMembersType_TEAM, keybase1.TLFVisibility_PRIVATE)
 		if err != nil || len(convs) == 0 {
-			l.Debug(ctx, "loadMention: failed to find conversation: %s", err)
+			l.Debug(ctx, "loadMention: failed to find conversation: %v", err)
 		} else {
 			info.ConvID = new(string)
 			*info.ConvID = convs[0].GetConvID().String()

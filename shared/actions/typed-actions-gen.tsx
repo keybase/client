@@ -214,6 +214,12 @@ export type TypedActionsMap = {
   'chat2:updateLastCoord': chat2.UpdateLastCoordPayload
   'chat2:toggleGiphyPrefill': chat2.ToggleGiphyPrefillPayload
   'chat2:setChannelSearchText': chat2.SetChannelSearchTextPayload
+  'chat2:enableAudioRecording': chat2.EnableAudioRecordingPayload
+  'chat2:startAudioRecording': chat2.StartAudioRecordingPayload
+  'chat2:stopAudioRecording': chat2.StopAudioRecordingPayload
+  'chat2:lockAudioRecording': chat2.LockAudioRecordingPayload
+  'chat2:sendAudioRecording': chat2.SendAudioRecordingPayload
+  'chat2:setAudioRecordingPostInfo': chat2.SetAudioRecordingPostInfoPayload
   'config:startHandshake': config.StartHandshakePayload
   'config:restartHandshake': config.RestartHandshakePayload
   'config:daemonHandshake': config.DaemonHandshakePayload
@@ -221,6 +227,7 @@ export type TypedActionsMap = {
   'config:daemonHandshakeDone': config.DaemonHandshakeDonePayload
   'config:filePickerError': config.FilePickerErrorPayload
   'config:logout': config.LogoutPayload
+  'config:logoutAndTryToLogInAs': config.LogoutAndTryToLogInAsPayload
   'config:logoutHandshake': config.LogoutHandshakePayload
   'config:logoutHandshakeWait': config.LogoutHandshakeWaitPayload
   'config:installerRan': config.InstallerRanPayload
@@ -260,6 +267,9 @@ export type TypedActionsMap = {
   'config:remoteWindowWantsProps': config.RemoteWindowWantsPropsPayload
   'config:updateWindowState': config.UpdateWindowStatePayload
   'config:setUseNativeFrame': config.SetUseNativeFramePayload
+  'config:setWhatsNewLastSeenVersion': config.SetWhatsNewLastSeenVersionPayload
+  'config:loadNixOnLoginStartup': config.LoadNixOnLoginStartupPayload
+  'config:loadedNixOnLoginStartup': config.LoadedNixOnLoginStartupPayload
   'deeplinks:handleKeybaseLink': deeplinks.HandleKeybaseLinkPayload
   'deeplinks:link': deeplinks.LinkPayload
   'deeplinks:setKeybaseLinkError': deeplinks.SetKeybaseLinkErrorPayload
@@ -334,6 +344,7 @@ export type TypedActionsMap = {
   'engine-gen:chat1NotifyChatChatPaymentInfo': enginegen.Chat1NotifyChatChatPaymentInfoPayload
   'engine-gen:chat1NotifyChatChatRequestInfo': enginegen.Chat1NotifyChatChatRequestInfoPayload
   'engine-gen:chat1NotifyChatChatPromptUnfurl': enginegen.Chat1NotifyChatChatPromptUnfurlPayload
+  'engine-gen:chat1NotifyChatChatConvUpdate': enginegen.Chat1NotifyChatChatConvUpdatePayload
   'engine-gen:keybase1GpgUiWantToAddGPGKey': enginegen.Keybase1GpgUiWantToAddGPGKeyPayload
   'engine-gen:keybase1GpgUiConfirmDuplicateKeyChosen': enginegen.Keybase1GpgUiConfirmDuplicateKeyChosenPayload
   'engine-gen:keybase1GpgUiConfirmImportSecretToExistingKey': enginegen.Keybase1GpgUiConfirmImportSecretToExistingKeyPayload
@@ -569,6 +580,8 @@ export type TypedActionsMap = {
   'fs:finishedRegularDownload': fs.FinishedRegularDownloadPayload
   'fs:loadFileContext': fs.LoadFileContextPayload
   'fs:loadedFileContext': fs.LoadedFileContextPayload
+  'fs:loadAdditionalTlf': fs.LoadAdditionalTlfPayload
+  'fs:loadedAdditionalTlf': fs.LoadedAdditionalTlfPayload
   'fs:setDebugLevel': fs.SetDebugLevelPayload
   'git:loadGit': git.LoadGitPayload
   'git:loaded': git.LoadedPayload
@@ -590,8 +603,6 @@ export type TypedActionsMap = {
   'gregor:updateReachable': gregor.UpdateReachablePayload
   'gregor:updateCategory': gregor.UpdateCategoryPayload
   'login:login': login.LoginPayload
-  'login:launchAccountResetWebPage': login.LaunchAccountResetWebPagePayload
-  'login:launchForgotPasswordWebPage': login.LaunchForgotPasswordWebPagePayload
   'login:loginError': login.LoginErrorPayload
   'login:loadIsOnline': login.LoadIsOnlinePayload
   'login:loadedIsOnline': login.LoadedIsOnlinePayload
@@ -758,7 +769,6 @@ export type TypedActionsMap = {
   'settings:onUpdatePGPSettings': settings.OnUpdatePGPSettingsPayload
   'settings:onUpdatePasswordError': settings.OnUpdatePasswordErrorPayload
   'settings:onUpdatedPGPSettings': settings.OnUpdatedPGPSettingsPayload
-  'settings:setAllowDeleteAccount': settings.SetAllowDeleteAccountPayload
   'settings:stop': settings.StopPayload
   'settings:trace': settings.TracePayload
   'settings:processorProfile': settings.ProcessorProfilePayload
@@ -867,7 +877,6 @@ export type TypedActionsMap = {
   'teams:setUpdatedTopic': teams.SetUpdatedTopicPayload
   'teams:deleteChannelConfirmed': teams.DeleteChannelConfirmedPayload
   'teams:deleteChannelInfo': teams.DeleteChannelInfoPayload
-  'teams:badgeAppForTeams': teams.BadgeAppForTeamsPayload
   'teams:checkRequestedAccess': teams.CheckRequestedAccessPayload
   'teams:getTeamRetentionPolicy': teams.GetTeamRetentionPolicyPayload
   'teams:saveTeamRetentionPolicy': teams.SaveTeamRetentionPolicyPayload
@@ -934,9 +943,6 @@ export type TypedActionsMap = {
   'wallets:loadAssets': wallets.LoadAssetsPayload
   'wallets:loadAccounts': wallets.LoadAccountsPayload
   'wallets:loadExternalPartners': wallets.LoadExternalPartnersPayload
-  'wallets:loadInflationDestination': wallets.LoadInflationDestinationPayload
-  'wallets:setInflationDestination': wallets.SetInflationDestinationPayload
-  'wallets:inflationDestinationReceived': wallets.InflationDestinationReceivedPayload
   'wallets:loadMorePayments': wallets.LoadMorePaymentsPayload
   'wallets:loadPayments': wallets.LoadPaymentsPayload
   'wallets:loadPaymentDetail': wallets.LoadPaymentDetailPayload

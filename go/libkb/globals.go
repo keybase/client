@@ -123,6 +123,7 @@ type GlobalContext struct {
 	UIRouter           UIRouter                  // How to route UIs
 	proofServices      ExternalServicesCollector // All known external services
 	UIDMapper          UIDMapper                 // maps from UID to Usernames
+	ServiceMapper      ServiceSummaryMapper      // handles and caches batch requests for service summaries
 	ExitCode           keybase1.ExitCode         // Value to return to OS on Exit()
 	RateLimits         *RateLimits               // tracks the last time certain actions were taken
 	clockMu            *sync.Mutex               // protects Clock
@@ -286,6 +287,10 @@ func (g *GlobalContext) SetService() {
 
 func (g *GlobalContext) SetUIDMapper(u UIDMapper) {
 	g.UIDMapper = u
+}
+
+func (g *GlobalContext) SetServiceSummaryMapper(u ServiceSummaryMapper) {
+	g.ServiceMapper = u
 }
 
 func (g *GlobalContext) SetUIRouter(u UIRouter) {

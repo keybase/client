@@ -14,7 +14,7 @@ export type OwnProps = {
 
 type StateProps = {
   _invites: I.Set<Types.InviteInfo>
-  _requests: I.Set<Types.RequestInfo>
+  _requests: I.Set<string>
 }
 
 /* Helpers to build the teams tabs. mapStateHelper is called by the master mapStateToProps, getRows makes the rows to be injected below the header, renderItem renders the individual row */
@@ -24,12 +24,10 @@ export const mapStateHelper = (state: TypedState, {teamname}: OwnProps): StatePr
 })
 
 export const getRows = ({_requests, _invites}: StateProps) => {
-  const requests = _requests
-    .sortBy(i => i.username)
-    .map(r => ({
-      type: 'invites-request',
-      username: r.username,
-    }))
+  const requests = _requests.sort().map(r => ({
+    type: 'invites-request',
+    username: r,
+  }))
   const invites = _invites
     .sortBy(i => i.email || i.username || i.name || i.id)
     .map(i => ({id: i.id, type: 'invites-invite'}))

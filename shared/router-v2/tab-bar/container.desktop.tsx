@@ -11,6 +11,7 @@ import * as SettingsGen from '../../actions/settings-gen'
 import * as SignupGen from '../../actions/signup-gen'
 import * as SettingsConstants from '../../constants/settings'
 import * as TrackerConstants from '../../constants/tracker2'
+import * as FsConstants from '../../constants/fs'
 import TabBar from './index.desktop'
 import * as Container from '../../util/container'
 import {isLinux} from '../../constants/platform'
@@ -28,10 +29,12 @@ export default Container.connect(
     _badgeNumbers: state.notifications.navBadges,
     _fullnames: state.users.infoMap,
     _justSignedUpEmail: state.signup.justSignedUpEmail,
+    _kbfsDaemonStatus: state.fs.kbfsDaemonStatus,
     _settingsEmailBanner: state.settings.email.addedEmail,
+    _tlfs: state.fs.tlfs,
+    _uploads: state.fs.uploads,
     fullname: TrackerConstants.getDetails(state, state.config.username).fullname || '',
     isWalletsNew: state.chat2.isWalletsNew,
-    uploading: state.fs.uploads.syncingPaths.size > 0 || state.fs.uploads.writingToJournal.size > 0,
     username: state.config.username,
   }),
   (dispatch, ownProps: OwnProps) => ({
@@ -94,7 +97,12 @@ export default Container.connect(
     onTabClick: (tab: Tabs.AppTab) =>
       dispatchProps._onTabClick(tab, stateProps._justSignedUpEmail, stateProps._settingsEmailBanner),
     selectedTab: ownProps.selectedTab,
-    uploading: stateProps.uploading,
+    // TODO use the new Strib powered badge data
+    uploadIcon: FsConstants.getUploadIconForFilesTab(
+      stateProps._kbfsDaemonStatus,
+      stateProps._uploads,
+      stateProps._tlfs
+    ),
     username: stateProps.username,
   })
 )(TabBar)

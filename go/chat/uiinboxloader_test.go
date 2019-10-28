@@ -73,18 +73,7 @@ func TestUIInboxLoaderLayout(t *testing.T) {
 	default:
 	}
 
-	t.Logf("resmsgID: %d",
-		mustPostLocalForTest(t, ctc, users[0], conv2, chat1.NewMessageBodyWithText(chat1.MessageText{
-			Body: "HI",
-		})))
-	// we eat two here because the first conv optimization is off for message ID 2. The two are from
-	// the local and remote updates to the inbox.
-	for i := 0; i < 2; i++ {
-		layout = recvLayout()
-		require.Equal(t, 2, len(layout.SmallTeams))
-		require.Equal(t, conv2.Id.String(), layout.SmallTeams[0].ConvID)
-		require.Equal(t, conv1.Id.String(), layout.SmallTeams[1].ConvID)
-	}
+	// no layout is expected here, since the conv is in the layout (since we created it)
 	t.Logf("resmsgID: %d",
 		mustPostLocalForTest(t, ctc, users[0], conv2, chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: "HI",
@@ -97,13 +86,22 @@ func TestUIInboxLoaderLayout(t *testing.T) {
 	mustPostLocalForTest(t, ctc, users[0], conv1, chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: "HI",
 	}))
-	// we eat two here for the same reason as above
-	for i := 0; i < 2; i++ {
-		layout = recvLayout()
+	// just one here, since the local update gets this into the top slot (we might get a second, so wait
+	// for it a bit (there is a race between the layout sending up to UI, and remote notification coming
+	// in)
+	layout = recvLayout()
+	require.Equal(t, 2, len(layout.SmallTeams))
+	require.Equal(t, conv1.Id.String(), layout.SmallTeams[0].ConvID)
+	require.Equal(t, conv2.Id.String(), layout.SmallTeams[1].ConvID)
+	select {
+	case layout = <-chatUI.InboxLayoutCb:
 		require.Equal(t, 2, len(layout.SmallTeams))
 		require.Equal(t, conv1.Id.String(), layout.SmallTeams[0].ConvID)
 		require.Equal(t, conv2.Id.String(), layout.SmallTeams[1].ConvID)
+	case <-time.After(timeout):
+		// just don't care if we don't get anything
 	}
+
 	// just one here, since we are now on msg ID 3
 	t.Logf("resmsgID: %d",
 		mustPostLocalForTest(t, ctc, users[0], conv2, chat1.NewMessageBodyWithText(chat1.MessageText{
@@ -114,9 +112,12 @@ func TestUIInboxLoaderLayout(t *testing.T) {
 	require.Equal(t, conv2.Id.String(), layout.SmallTeams[0].ConvID)
 	require.Equal(t, conv1.Id.String(), layout.SmallTeams[1].ConvID)
 	select {
-	case <-chatUI.InboxLayoutCb:
-		require.Fail(t, "unexpected layout")
-	default:
+	case layout = <-chatUI.InboxLayoutCb:
+		require.Equal(t, 2, len(layout.SmallTeams))
+		require.Equal(t, conv1.Id.String(), layout.SmallTeams[0].ConvID)
+		require.Equal(t, conv2.Id.String(), layout.SmallTeams[1].ConvID)
+	case <-time.After(timeout):
+		// just don't care if we don't get anything
 	}
 	_, err := ctc.as(t, users[0]).chatLocalHandler().SetConversationStatusLocal(ctx,
 		chat1.SetConversationStatusLocalArg{

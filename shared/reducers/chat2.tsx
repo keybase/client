@@ -272,8 +272,8 @@ const messageMapReducer = (
       )
     }
     case Chat2Gen.attachmentUploading: {
-      const convMap = pendingOutboxToOrdinal.get(action.payload.conversationIDKey) || new Map()
-      const ordinal = convMap.get(action.payload.outboxID)
+      const convMap = pendingOutboxToOrdinal.get(action.payload.conversationIDKey)
+      const ordinal = convMap && convMap.get(action.payload.outboxID)
       if (!ordinal) {
         return messageMap
       }
@@ -481,9 +481,7 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
                 conversationIDKey,
                 I.Map<Types.Ordinal, Types.Message>()
               )
-              const ordinals = [
-                ...(draftState.messageOrdinals.get(conversationIDKey) || new Set<Types.Ordinal>()),
-              ]
+              const ordinals = [...(draftState.messageOrdinals.get(conversationIDKey) || [])]
               const ord = ordinals.find(o => {
                 const message = messageMap.get(o)
                 return !!(message && message.id >= readMsgID + 1)
@@ -554,6 +552,87 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         mmap.set(messageID, prompts)
         unfurlPromptMap.set(conversationIDKey, mmap)
         draftState.unfurlPromptMap = unfurlPromptMap
+        return
+      }
+      case Chat2Gen.enableAudioRecording: {
+        const audio = new Map(draftState.audioRecording)
+        audio.set(action.payload.conversationIDKey, Constants.makeAudioRecordingInfo())
+        draftState.audioRecording = audio
+        return
+      }
+      case Chat2Gen.startAudioRecording: {
+        const audio = new Map(draftState.audioRecording)
+        const info = audio.get(action.payload.conversationIDKey)
+        if (!info || !Constants.showAudioRecording(info)) {
+          return
+        }
+        audio.set(action.payload.conversationIDKey, {
+          ...info,
+          status: Types.AudioRecordingStatus.RECORDING,
+        })
+        draftState.audioRecording = audio
+        return
+      }
+      case Chat2Gen.stopAudioRecording: {
+        const audio = new Map(draftState.audioRecording)
+        const info = audio.get(action.payload.conversationIDKey)
+        if (!info) {
+          return
+        }
+        let nextStatus = info.status
+        if (info.isLocked) {
+          switch (action.payload.stopType) {
+            case Types.AudioStopType.CANCEL:
+              nextStatus = Types.AudioRecordingStatus.CANCELLED
+              break
+            case Types.AudioStopType.SEND:
+              nextStatus = Types.AudioRecordingStatus.STOPPED
+              break
+            case Types.AudioStopType.STOPBUTTON:
+              nextStatus = Types.AudioRecordingStatus.STAGED
+              break
+          }
+        } else {
+          nextStatus = Types.AudioRecordingStatus.STOPPED
+        }
+        audio.set(action.payload.conversationIDKey, {
+          ...info,
+          amps: action.payload.amps || [],
+          status: nextStatus,
+        })
+        draftState.audioRecording = audio
+        return
+      }
+      case Chat2Gen.lockAudioRecording: {
+        const audio = new Map(draftState.audioRecording)
+        const info = audio.get(action.payload.conversationIDKey) || Constants.makeAudioRecordingInfo()
+        if (info.isLocked) {
+          return
+        }
+        audio.set(action.payload.conversationIDKey, {
+          ...info,
+          isLocked: true,
+        })
+        draftState.audioRecording = audio
+        return
+      }
+      case Chat2Gen.sendAudioRecording: {
+        const audio = new Map(draftState.audioRecording)
+        audio.set(action.payload.conversationIDKey, {
+          ...(audio.get(action.payload.conversationIDKey) || Constants.makeAudioRecordingInfo()),
+          status: Types.AudioRecordingStatus.STOPPED,
+        })
+        draftState.audioRecording = audio
+        return
+      }
+      case Chat2Gen.setAudioRecordingPostInfo: {
+        const audio = new Map(draftState.audioRecording)
+        audio.set(action.payload.conversationIDKey, {
+          ...(audio.get(action.payload.conversationIDKey) || Constants.makeAudioRecordingInfo()),
+          outboxID: action.payload.outboxID,
+          path: action.payload.path,
+        })
+        draftState.audioRecording = audio
         return
       }
       case Chat2Gen.updateCoinFlipStatus: {
@@ -688,7 +767,7 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         }
 
         // Editing your last message
-        const ordinals = [...(draftState.messageOrdinals.get(conversationIDKey) || new Set<Types.Ordinal>())]
+        const ordinals = [...(draftState.messageOrdinals.get(conversationIDKey) || [])]
         const found = ordinals.reverse().find(o => {
           const message = messageMap.get(o)
           return !!(
@@ -854,9 +933,9 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
           }, [])
 
           // add new ones, remove deleted ones, sort
-          const os = messageOrdinals.get(conversationIDKey) || new Set()
+          const os = new Set(messageOrdinals.get(conversationIDKey) || [])
           removedOrdinals.forEach(o => os.delete(o))
-          messageOrdinals.set(conversationIDKey, new Set([...os, ...ordinals].sort()))
+          messageOrdinals.set(conversationIDKey, new Set([...os, ...ordinals].sort((a, b) => a - b)))
         })
 
         let messageMap = oldMessageMap.withMutations(
@@ -1015,16 +1094,28 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
             const draftMap = new Map(draftState.draftMap)
             const mutedMap = new Map(draftState.mutedMap)
             ;(layout.smallTeams || []).forEach((t: RPCChatTypes.UIInboxSmallTeamRow) => {
-              mutedMap.set(t.convID, t.isMuted)
+              if (t.isMuted) {
+                mutedMap.set(t.convID, true)
+              } else {
+                mutedMap.delete(t.convID)
+              }
               if (t.draft) {
                 draftMap.set(t.convID, t.draft)
+              } else {
+                draftMap.delete(t.convID)
               }
             })
             ;(layout.bigTeams || []).forEach((t: RPCChatTypes.UIInboxBigTeamRow) => {
               if (t.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel) {
-                mutedMap.set(t.channel.convID, t.channel.isMuted)
+                if (t.channel.isMuted) {
+                  mutedMap.set(t.channel.convID, true)
+                } else {
+                  mutedMap.delete(t.channel.convID)
+                }
                 if (t.channel.draft) {
                   draftMap.set(t.channel.convID, t.channel.draft)
+                } else {
+                  draftMap.delete(t.channel.convID)
                 }
               }
             })
@@ -1491,8 +1582,16 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         const draftMap = new Map(draftState.draftMap)
         const mutedMap = new Map(draftState.mutedMap)
         action.payload.metas.forEach((m: Types.ConversationMeta) => {
-          draftMap.set(m.conversationIDKey, m.draft)
-          mutedMap.set(m.conversationIDKey, m.isMuted)
+          if (m.draft) {
+            draftMap.set(m.conversationIDKey, m.draft)
+          } else {
+            draftMap.delete(m.conversationIDKey)
+          }
+          if (m.isMuted) {
+            mutedMap.set(m.conversationIDKey, true)
+          } else {
+            mutedMap.delete(m.conversationIDKey)
+          }
         })
         draftState.draftMap = draftMap
         draftState.mutedMap = mutedMap

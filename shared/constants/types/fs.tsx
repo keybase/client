@@ -58,6 +58,28 @@ export enum TlfType {
   Team = 'team',
 }
 
+export const getTlfTypePathFromTlfType = (tlfType: TlfType): Path => {
+  switch (tlfType) {
+    case TlfType.Public:
+      return '/keybase/public'
+    case TlfType.Private:
+      return '/keybase/private'
+    case TlfType.Team:
+      return '/keybase/team'
+  }
+}
+
+export const getTlfTypeFromPath = (path: Path): undefined | TlfType => {
+  const str = pathToString(path)
+  return str.startsWith('/keybase/private')
+    ? TlfType.Private
+    : str.startsWith('/keybase/public')
+    ? TlfType.Public
+    : str.startsWith('/keybase/team')
+    ? TlfType.Team
+    : undefined
+}
+
 export enum TlfSyncMode {
   Enabled = 'enabled',
   Disabled = 'disabled',
@@ -129,6 +151,17 @@ export type Tlf = {
 export type TlfList = Map<string, Tlf>
 
 export type Tlfs = {
+  // additionalTlfs includes Tlfs that we care about but are not in one of
+  // private, public, team. This could include Tlfs that are referenced by
+  // non-preferred paths, such as /keybase/private/me,z,a or
+  // /keybase/private/a,me, or /keybase/private/me@twitter.
+  //
+  // Note that this is orthogonal to the TLFs added to fav list that are just
+  // for conflict resolutions.
+  //
+  // additionalTlfs should always have lower-priority than the three lists
+  // (private, public, team). In other words, check those first.
+  additionalTlfs: Map<Path, Tlf>
   loaded: boolean
   private: TlfList
   public: TlfList
@@ -260,15 +293,20 @@ export type UnknownPathItem = I.RecordOf<_UnknownPathItem>
 
 export type PathItem = FolderPathItem | SymlinkPathItem | FilePathItem | UnknownPathItem
 
-export enum SyncStatusStatic {
+export enum UploadIcon {
+  AwaitingToUpload = 'awaiting-to-upload', // has local changes but we're offline
+  Uploading = 'uploading', // flushing or writing into journal and we're online
+  UploadingStuck = 'uploading-stuck', // flushing or writing into journal but we are stuck in conflict resolution
+}
+
+export enum NonUploadStaticSyncStatus {
   Unknown = 'unknown', // trying to figure out what it is
   AwaitingToSync = 'awaiting-to-sync', // sync enabled but we're offline
-  AwaitingToUpload = 'awaiting-to-upload', // has local changes but we're offline
   OnlineOnly = 'online-only', // sync disabled
   Synced = 'synced', // sync enabled and fully synced
   SyncError = 'sync-error', // uh oh
-  Uploading = 'uploading', // flushing or writing into journal and we're online
 }
+export type SyncStatusStatic = UploadIcon | NonUploadStaticSyncStatus
 export type SyncStatus = SyncStatusStatic | number // percentage<1. not uploading, and we're syncing down
 
 export type EditID = string
@@ -799,13 +837,12 @@ export type ResetMetadata = {
   resetParticipants: Array<string>
 }
 
-export enum PathItemBadgeType {
-  Upload = 'upload',
+export enum NonUploadPathItemBadgeType {
   Download = 'download',
   New = 'new',
   Rekey = 'rekey',
 }
-export type PathItemBadge = PathItemBadgeType | number
+export type PathItemBadge = UploadIcon | NonUploadPathItemBadgeType | number
 
 export enum ResetBannerNoOthersType {
   None = 'none',

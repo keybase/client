@@ -94,17 +94,14 @@ func (s *baseConversationSource) addConversationCards(ctx context.Context, uid g
 	cc := newJourneyCardChecker(s.G())
 	card, err := cc.Next(ctx, uid, conv, thread)
 	if err != nil {
-		s.Debug(ctx, "error getting next conversation card: %s", err)
+		s.Debug(ctx, "addConversationCards: error getting next conversation card: %s", err)
 		return
 	}
-
 	if card == nil {
-		s.Debug(ctx, "card is nil")
 		return
 	}
-
-	s.Debug(ctx, "got a card for this conversation: %+v", card)
-	thread.Messages = append(thread.Messages, chat1.NewMessageUnboxedWithJourneycard(*card))
+	s.Debug(ctx, "addConversationCards: got a card: %+v", card)
+	thread.Messages = append([]chat1.MessageUnboxed{chat1.NewMessageUnboxedWithJourneycard(*card)}, thread.Messages...)
 }
 
 func (s *baseConversationSource) postProcessThread(ctx context.Context, uid gregor1.UID,
@@ -601,7 +598,6 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 				if err = s.postProcessThread(ctx, uid, conv, &thread, query, nil, nil, true, true, &vconv); err != nil {
 					return thread, err
 				}
-				s.Debug(ctx, "b thread: %+v", thread)
 			}
 			return thread, nil
 		}
