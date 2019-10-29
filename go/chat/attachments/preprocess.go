@@ -46,6 +46,7 @@ type Preprocess struct {
 	PreviewContentType string
 	BaseDim            *Dimension
 	BaseDurationMs     int
+	BaseIsAudio        bool
 	PreviewDim         *Dimension
 	PreviewDurationMs  int
 }
@@ -59,6 +60,7 @@ func (p *Preprocess) BaseMetadata() chat1.AssetMetadata {
 			Width:      p.BaseDim.Width,
 			Height:     p.BaseDim.Height,
 			DurationMs: p.BaseDurationMs,
+			IsAudio:    p.BaseIsAudio,
 		})
 	}
 	return chat1.NewAssetMetadataWithImage(chat1.AssetMetadataImage{
@@ -171,6 +173,7 @@ func processCallerPreview(ctx context.Context, g *globals.Context, callerPreview
 			}
 		case chat1.AssetMetadataType_VIDEO:
 			p.BaseDurationMs = callerPreview.BaseMetadata.Video().DurationMs
+			p.BaseIsAudio = callerPreview.BaseMetadata.Video().IsAudio
 			p.BaseDim = &Dimension{
 				Width:  callerPreview.BaseMetadata.Video().Width,
 				Height: callerPreview.BaseMetadata.Video().Height,
