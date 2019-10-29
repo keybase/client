@@ -644,6 +644,6 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
     }
   },
   [FsGen.loadedFilesTabBadge]: (draftState, action) => {
-    draftState.badge = RPCTypes.FilesTabBadge.uploadingStuck || action.payload.badge
+    draftState.badge = action.payload.badge
   },
 })
