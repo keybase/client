@@ -219,11 +219,17 @@ func TestBotCommandManager(t *testing.T) {
 	require.NoError(t, err)
 	pollForSeqno(6)
 
-	errChT, err = tc.Context().BotCommandManager.UpdateCommands(ctx, teamConv.Id, nil)
-	require.NoError(t, err)
-	require.NoError(t, readErrCh(errChT))
+	for i := 0; i < 5; i++ {
+		errChT, err = tc.Context().BotCommandManager.UpdateCommands(ctx, teamConv.Id, nil)
+		require.NoError(t, err)
+		require.NoError(t, readErrCh(errChT))
 
-	cmds, err = tc.Context().BotCommandManager.ListCommands(ctx, teamConv.Id)
-	require.NoError(t, err)
-	require.Equal(t, 6, len(cmds))
+		cmds, err = tc.Context().BotCommandManager.ListCommands(ctx, teamConv.Id)
+		require.NoError(t, err)
+		if len(cmds) == 6 {
+			break
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+	require.Len(t, cmds, 6)
 }
