@@ -91,7 +91,8 @@
       "constants/platform": "<rootDir>/__mocks__/platform.tsx",
       "local-debug": "<rootDir>/__mocks__/local-debug.tsx",
       "feature-flags": "<rootDir>/__mocks__/feature-flags.tsx",
-      "engine/saga$": "<rootDir>/__mocks__/engine-saga.tsx"
+      "engine/saga$": "<rootDir>/__mocks__/engine-saga.tsx",
+      "@msgpack": "<rootDir>/node_modules/@msgpack/msgpack/dist.es5/msgpack.js"
     },
     "moduleFileExtensions": [
       "js",
