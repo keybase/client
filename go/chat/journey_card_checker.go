@@ -260,7 +260,7 @@ func (cc *JourneyCardChecker) PickCard(ctx context.Context, uid gregor1.UID,
 		if !show {
 			// Figure whether the user is in other channels.
 			topicType := chat1.TopicType_CHAT
-			inbox, err := cc.G().InboxSource.ReadUnverified(libkb.WithLogTag(ctx, "xyztag"), uid, types.InboxSourceDataSourceLocalOnly, &chat1.GetInboxQuery{
+			inbox, err := cc.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceLocalOnly, &chat1.GetInboxQuery{
 				TlfID: &tlfID,
 				// ConvIDs:   []chat1.ConversationID{convID},
 				TopicType: &topicType,
