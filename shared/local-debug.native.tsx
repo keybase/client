@@ -35,7 +35,7 @@ let config = {
   enableStoreLogging: false, // Log full store changes
   featureFlagsOverride: 'whatsNew', // Override feature flags
   filterActionLogs: null, // Filter actions in log
-  forceImmediateLogging: true, // Don't wait for idle to log
+  forceImmediateLogging: false, // Don't wait for idle to log
   ignoreDisconnectOverlay: false,
   immediateStateLogging: false, // Don't wait for idle to log state
   isDevApplePushToken: false, // Use a dev push token
