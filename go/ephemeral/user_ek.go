@@ -224,21 +224,48 @@ func fetchUserEKStatements(mctx libkb.MetaContext, uids []keybase1.UID) (
 		return nil, err
 	}
 
-	parsedResponse := userEKStatementResponse{}
-	err = res.Body.UnmarshalAgain(&parsedResponse)
-	if err != nil {
+	userEKStatements := userEKStatementResponse{}
+	if err = res.Body.UnmarshalAgain(&userEKStatements); err != nil {
 		return nil, err
 	}
 
+	getArg := func(i int) *libkb.LoadUserArg {
+		if i >= len(uids) {
+			return nil
+		}
+		tmp := libkb.NewLoadUserArgWithMetaContext(mctx).WithUID(uids[i])
+		return &tmp
+	}
+
+	var upaks []*keybase1.UserPlusKeysV2AllIncarnations
 	statements = make(map[keybase1.UID]*keybase1.UserEkStatement)
-	for uid, sig := range parsedResponse.Sigs {
-		statement, _, wrongKID, err := verifySigWithLatestPUK(mctx, uid, *sig)
-		// Check the wrongKID condition before checking the error, since an error
-		// is still returned in this case. TODO: Turn this warning into an error
-		// after EK support is sufficiently widespread.
+	processResult := func(i int, upak *keybase1.UserPlusKeysV2AllIncarnations) error {
+		mctx.Debug("processing member %d/%d %.2f%% complete", i, len(uids), (float64(i) / float64(len(uids)) * 100))
+		if upak == nil {
+			mctx.Debug("Unable to load user %v", uids[i])
+			return nil
+		}
+		upaks = append(upaks, upak)
+		return nil
+	}
+
+	if err = mctx.G().GetUPAKLoader().Batcher(mctx.Ctx(), getArg, processResult, 0); err != nil {
+		return nil, err
+	}
+
+	for _, upak := range upaks {
+		uid := upak.GetUID()
+		sig, ok := userEKStatements.Sigs[uid]
+		if !ok || sig == nil {
+			mctx.Debug("missing memberEK statement for UID %v", uid)
+			continue
+		}
+
+		statement, _, wrongKID, err := verifySigWithLatestPUK(mctx, uid,
+			upak.Current.GetLatestPerUserKey(), *sig)
 		if wrongKID {
-			mctx.Debug("It looks like you revoked a device without generating new ephemeral keys. Are you running an old version?")
-			// Don't include this statement since it is invalid.
+			mctx.Debug("UID %v has a statement signed with the wrongKID, skipping", uid)
+			// Don't box for this member since they have no valid userEK
 			continue
 		} else if err != nil {
 			return nil, err
@@ -287,7 +314,13 @@ func fetchUserEKStatement(mctx libkb.MetaContext, uid keybase1.UID) (
 		return nil, latestGeneration, false, fmt.Errorf("Invalid server response, wrong uid returned")
 	}
 
-	statement, latestGeneration, wrongKID, err = verifySigWithLatestPUK(mctx, uid, *sig)
+	upak, _, err := mctx.G().GetUPAKLoader().LoadV2(
+		libkb.NewLoadUserArgWithMetaContext(mctx).WithUID(uid))
+	if err != nil {
+		return nil, latestGeneration, false, err
+	}
+	latestPUK := upak.Current.GetLatestPerUserKey()
+	statement, latestGeneration, wrongKID, err = verifySigWithLatestPUK(mctx, uid, latestPUK, *sig)
 	// Check the wrongKID condition before checking the error, since an error
 	// is still returned in this case. TODO: Turn this warning into an error
 	// after EK support is sufficiently widespread.
@@ -321,7 +354,8 @@ func extractUserEKStatementFromSig(sig string) (signerKey *kbcrypto.NaclSigningK
 // the wild to have EK support, callers will treat that case as "there is no
 // key" and convert the error to a warning. We set `latestGeneration` so that
 // callers can use this value to generate a new key even if `wrongKID` is set.
-func verifySigWithLatestPUK(mctx libkb.MetaContext, uid keybase1.UID, sig string) (
+func verifySigWithLatestPUK(mctx libkb.MetaContext, uid keybase1.UID,
+	latestPUK *keybase1.PerUserKey, sig string) (
 	statement *keybase1.UserEkStatement, latestGeneration keybase1.EkGeneration, wrongKID bool, err error) {
 	defer mctx.TraceTimed("verifySigWithLatestPUK", func() error { return err })()
 
@@ -334,19 +368,13 @@ func verifySigWithLatestPUK(mctx libkb.MetaContext, uid keybase1.UID, sig string
 	}
 	latestGeneration = parsedStatement.CurrentUserEkMetadata.Generation
 
-	// Verify the signing key corresponds to the latest PUK. We load the user's
+	// Verify the signing key corresponds to the latest PUK. We use the user's
 	// UPAK from cache, but if the KID doesn't match, we try a forced reload to
 	// see if the cache might've been stale. Only if the KID still doesn't
 	// match after the reload do we complain.
-	upak, _, err := mctx.G().GetUPAKLoader().LoadV2(
-		libkb.NewLoadUserArgWithMetaContext(mctx).WithUID(uid))
-	if err != nil {
-		return nil, latestGeneration, false, err
-	}
-	latestPUK := upak.Current.GetLatestPerUserKey()
 	if latestPUK == nil || !latestPUK.SigKID.Equal(signerKey.GetKID()) {
 		// The latest PUK might be stale. Force a reload, then check this over again.
-		upak, _, err = mctx.G().GetUPAKLoader().LoadV2(
+		upak, _, err := mctx.G().GetUPAKLoader().LoadV2(
 			libkb.NewLoadUserArgWithMetaContext(mctx).WithUID(uid).WithForceReload())
 		if err != nil {
 			return nil, latestGeneration, false, err

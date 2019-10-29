@@ -500,9 +500,9 @@ func batchLoadEncryptionKIDs(ctx context.Context, g *libkb.GlobalContext, uvs []
 		return &tmp
 	}
 
-	processResult := func(i int, upak *keybase1.UserPlusKeysV2AllIncarnations) {
+	processResult := func(i int, upak *keybase1.UserPlusKeysV2AllIncarnations) error {
 		if upak == nil {
-			return
+			return nil
 		}
 		for _, key := range upak.Current.DeviceKeys {
 			// Include only unrevoked encryption keys.
@@ -510,6 +510,7 @@ func batchLoadEncryptionKIDs(ctx context.Context, g *libkb.GlobalContext, uvs []
 				ret = append(ret, key.Base.Kid)
 			}
 		}
+		return nil
 	}
 
 	err = g.GetUPAKLoader().Batcher(ctx, getArg, processResult, 0)
