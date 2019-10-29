@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Tabs from '../../constants/tabs'
 import * as Platforms from '../../constants/platform'
-import * as FsTypes from '../../constants/types/fs'
+import * as FsConstants from '../../constants/fs'
 import * as Kbfs from '../../fs/common'
 import KeyHandler from '../../util/key-handler.desktop'
 import RuntimeStats from '../../app/runtime-stats/container'
@@ -24,7 +24,6 @@ export type Props = {
   onSignOut: () => void
   onTabClick: (tab: Tabs.AppTab) => void
   selectedTab: Tabs.Tab
-  uploadIcon?: FsTypes.UploadIcon
   username: string
 }
 
@@ -43,6 +42,11 @@ const tabs = Tabs.desktopTabOrder
 
 type State = {
   showingMenu: boolean
+}
+
+const FilesTabBadge = () => {
+  const uploadIcon = FsConstants.getUploadIconForFilesTab(Kbfs.useFsBadge())
+  return uploadIcon ? <Kbfs.UploadIcon uploadIcon={uploadIcon} style={styles.badgeIconUpload} /> : null
 }
 
 class TabBar extends React.PureComponent<Props, State> {
@@ -159,9 +163,7 @@ class TabBar extends React.PureComponent<Props, State> {
                   <Kb.Box2 className="tab-highlight" direction="vertical" fullHeight={true} />
                   <Kb.Box2 style={styles.iconBox} direction="horizontal">
                     <Kb.Icon className="tab-icon" type={data[t].icon} sizeType="Big" />
-                    {p.uploadIcon && t === Tabs.fsTab && (
-                      <Kbfs.UploadIcon uploadIcon={p.uploadIcon} style={styles.badgeIconUpload} />
-                    )}
+                    {t === Tabs.fsTab && <FilesTabBadge />}
                   </Kb.Box2>
                   <Kb.Text className="tab-label" type="BodySmallSemibold">
                     {data[t].label}

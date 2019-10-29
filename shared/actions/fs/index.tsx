@@ -831,6 +831,8 @@ const onNonPathChange = (_: TypedState, action: EngineGen.Keybase1NotifyFSFSSubs
       return checkIfWeReConnectedToMDServerUpToNTimes(1)
     case RPCTypes.SubscriptionTopic.downloadStatus:
       return FsGen.createLoadDownloadStatus()
+    case RPCTypes.SubscriptionTopic.filesTabBadge:
+      return FsGen.createLoadFilesTabBadge()
   }
 }
 
@@ -902,6 +904,11 @@ const loadFileContext = async (_: TypedState, action: FsGen.LoadFileContextPaylo
   })
 }
 
+const loadFilesTabBadge = async () => {
+  const badge = await RPCTypes.SimpleFSSimpleFSGetFilesTabBadgeRpcPromise()
+  return FsGen.createLoadedFilesTabBadge({badge})
+}
+
 function* fsSaga() {
   yield* Saga.chainGenerator<FsGen.UploadPayload>(FsGen.upload, upload)
   yield* Saga.chainGenerator<FsGen.FolderListLoadPayload>(FsGen.folderListLoad, folderList)
@@ -943,6 +950,7 @@ function* fsSaga() {
   }
   yield* Saga.chainAction2(FsGen.loadPathInfo, loadPathInfo)
   yield* Saga.chainAction2(FsGen.loadFileContext, loadFileContext)
+  yield* Saga.chainAction2(FsGen.loadFilesTabBadge, loadFilesTabBadge)
 
   yield* Saga.chainAction2([FsGen.download, FsGen.shareNative, FsGen.saveMedia], download)
   yield* Saga.chainAction2(FsGen.cancelDownload, cancelDownload)

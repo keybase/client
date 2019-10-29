@@ -582,6 +582,8 @@ export type TypedActionsMap = {
   'fs:loadedFileContext': fs.LoadedFileContextPayload
   'fs:loadAdditionalTlf': fs.LoadAdditionalTlfPayload
   'fs:loadedAdditionalTlf': fs.LoadedAdditionalTlfPayload
+  'fs:loadFilesTabBadge': fs.LoadFilesTabBadgePayload
+  'fs:loadedFilesTabBadge': fs.LoadedFilesTabBadgePayload
   'fs:setDebugLevel': fs.SetDebugLevelPayload
   'git:loadGit': git.LoadGitPayload
   'git:loaded': git.LoadedPayload

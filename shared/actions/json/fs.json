@@ -272,6 +272,10 @@
       "tlf": "Types.Tlf",
       "tlfPath": "Types.Path"
     },
+    "loadFilesTabBadge": {},
+    "loadedFilesTabBadge": {
+      "badge": "RPCTypes.FilesTabBadge"
+    },
 
     "setDebugLevel": {
       "level": "string"
