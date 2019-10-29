@@ -7,6 +7,7 @@ import * as DeeplinksConstants from '../../constants/deeplinks'
 import * as DeeplinksGen from '../../actions/deeplinks-gen'
 import * as Styles from '../../styles'
 import * as FsConstants from '../../constants/fs'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {toByteArray} from 'base64-js'
 import PaymentStatus from '../../chat/payments/status/container'
 import Mention from '../mention-container'
@@ -61,6 +62,8 @@ type WarningLinkProps = {
 }
 
 const WarningLink = (props: WarningLinkProps) => {
+  const dispatch = Container.useDispatch()
+  const {display, punycode} = props
   if (Styles.isMobile) {
     return (
       <Text
@@ -68,10 +71,15 @@ const WarningLink = (props: WarningLinkProps) => {
         type="BodyPrimaryLink"
         style={Styles.collapseStyles([props.wrapStyle, linkStyle, props.linkStyle])}
         title={props.display}
-        onClickURL={props.url}
-        onLongPressURL={props.punycode}
+        onClick={() =>
+          dispatch(
+            RouteTreeGen.createNavigateAppend({
+              path: [{props: {display, punycode}, selected: 'chatConfirmNavigateExternal'}],
+            })
+          )
+        }
       >
-        {props.display}
+        {display}
       </Text>
     )
   }
