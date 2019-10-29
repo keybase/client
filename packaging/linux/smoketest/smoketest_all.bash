@@ -6,8 +6,11 @@ versionstring=$1
 version=$(echo "$versionstring" | cut -d'-' -f1)
 datetime=$(echo "$versionstring" | cut -d'-' -f2 | cut -d'+' -f1)
 revision=$(echo "$versionstring" | cut -d'+' -f2)
+
+# Make sure binaries are built so we can download them in tests
 curl --output /dev/null --silent --head --fail "https://s3.amazonaws.com/jack-testing.keybase.io/linux_binaries/deb/keybase_${version}-${datetime}.${revision}_amd64.deb"
 curl --output /dev/null --silent --head --fail "https://s3.amazonaws.com/jack-testing.keybase.io/linux_binaries/rpm/keybase-${version}.${datetime}.${revision}-1.x86_64.rpm"
+
 for platform in */; do
     case $platform in
         vagrantcommon/) continue;;
