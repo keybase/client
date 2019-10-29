@@ -118,6 +118,10 @@ class TransportShared extends RobustTransport {
     }
   }
 
+  _packetize_error(err: any) {
+    console.error('Got packetize error!', err)
+  }
+
   // add logging / multiple call checking
   _injectInstrumentedResponse(payload: any) {
     if (!payload || !payload.response) {
