@@ -1923,9 +1923,6 @@ const previewConversationTeam = async (state: TypedState, action: Chat2Gen.Previ
   }
 }
 
-const startupInboxLoad = (state: TypedState) =>
-  !!state.config.username && Chat2Gen.createInboxRefresh({reason: 'bootstrap'})
-
 const startupUserReacjisLoad = (_: TypedState, action: ConfigGen.BootstrapStatusLoadedPayload) =>
   Chat2Gen.createUpdateUserReacjis({userReacjis: action.payload.userReacjis})
 

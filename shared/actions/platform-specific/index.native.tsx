@@ -279,14 +279,14 @@ const updateMobileNetState = async (
   try {
     const {type} = action.payload
     if (type === _lastNetworkType) {
-      return false
+      return false as const
     }
     _lastNetworkType = type
     await RPCTypes.appStateUpdateMobileNetStateRpcPromise({state: type})
   } catch (err) {
     console.warn('Error sending mobileNetStateUpdate', err)
   }
-  return false
+  return false as const
 }
 
 const initOsNetworkStatus = async () => {
