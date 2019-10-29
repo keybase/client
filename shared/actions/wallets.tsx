@@ -1225,7 +1225,6 @@ const updateAirdropState = async (
   if (action.type === ConfigGen.loggedIn && action.payload.causedByStartup) {
     return false
   }
-  console.log('aaa update aidrdrop', action.type)
   try {
     const {state, rows} = await RPCStellarTypes.localAirdropStatusLocalRpcPromise(
       undefined,

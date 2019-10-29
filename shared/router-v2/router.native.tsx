@@ -325,18 +325,11 @@ class RNApp extends React.PureComponent<Props> {
     }
   }
 
-  private getNavState = () => {
-    const n = this.nav
-    return (n && n.state && n.state.nav) || null
-  }
-
   private setNav = (n: any) => {
-    console.log('aaa set nav')
     this.nav = n
   }
 
   private onNavigationStateChange = () => {
-    console.log('aaa onNavigationStateChange ')
     this.persistRoute()
   }
 

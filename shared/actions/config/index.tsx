@@ -362,7 +362,6 @@ const routeToInitialScreen2 = (state: Container.TypedState) => {
     return
   }
 
-  console.log('aaa route to initial 2 TEMPT EMPT EMPTMEP MTE TEMP ')
   return routeToInitialScreen(state)
 }
 
@@ -646,9 +645,8 @@ const loadNixOnLoginStartup = async () => {
 
 const emitStartupFirstIdle = async () => {
   await Saga.delay(1000)
-  return new Promise(resolve => {
+  return new Promise<ConfigGen.StartupFirstIdlePayload>(resolve => {
     requestAnimationFrame(() => {
-      console.log('aaa startup firsst idle')
       resolve(ConfigGen.createStartupFirstIdle())
     })
   })

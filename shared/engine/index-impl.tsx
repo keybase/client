@@ -211,7 +211,6 @@ class Engine {
     customResponseIncomingCallMap?: any
     waitingKey?: WaitingKey
   }) {
-    console.log('aaaa rpc outgoing', p.method)
     // Make a new session and start the request
     const session = this.createSession({
       customResponseIncomingCallMap: p.customResponseIncomingCallMap,

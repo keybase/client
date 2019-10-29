@@ -503,7 +503,6 @@ const manageContactsCache = async (
   _: SettingsGen.LoadedContactImportEnabledPayload | EngineGen.Chat1ChatUiTriggerContactSyncPayload,
   logger: Saga.SagaLogger
 ) => {
-  console.log('aaa contact,', _.type)
   if (state.settings.contacts.importEnabled === false) {
     await RPCTypes.contactsSaveContactListRpcPromise({contacts: []})
     return SettingsGen.createSetContactImportedCount({count: null})
