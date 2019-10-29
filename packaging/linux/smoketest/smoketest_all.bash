@@ -2,6 +2,9 @@
 set -euox pipefail
 echo "Starting linux smoketests"
 
+parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
+cd "$parent_path"
+
 versionstring=$1
 version=$(echo "$versionstring" | cut -d'-' -f1)
 datetime=$(echo "$versionstring" | cut -d'-' -f2 | cut -d'+' -f1)
