@@ -40,8 +40,9 @@ const darkMode = require('./styles/dark-mode')
 const {_setSystemIsDarkMode, _setSystemSupported, _setDarkModePreference} = darkMode
 
 console.disableYellowBox = true
+const __REMOTEDEV__ = typeof __REMOTEDEV__ !== 'undefined'
 
-if (__DEV__ && require && require.Systrace) {
+if (__DEV__ && !__REMOTEDEV__ && require && require.Systrace && global.nativeTest) {
   require.Systrace.beginEvent = message => {
     if (message.startsWith('RCTDeviceEventEmitter.emit(["RPC"')) {
       global.nativeTest.traceBeginSection(

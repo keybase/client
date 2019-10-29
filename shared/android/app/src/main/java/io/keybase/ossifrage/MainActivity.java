@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -14,6 +15,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Trace;
+import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.util.Log;
@@ -62,7 +64,15 @@ public class MainActivity extends ReactFragmentActivity implements ReactInstance
   @Override
   public void onReactContextInitialized(ReactContext context) {
     // Call our native function with the runtime pointer
-    install(context.getJavaScriptContextHolder().get());
+    try {
+      SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+      Boolean isRemoteDebug = prefs.getBoolean("remote_js_debug", false);
+      if (!isRemoteDebug) {
+        install(context.getJavaScriptContextHolder().get());
+      }
+    } catch (Exception e) {
+      Log.d(TAG, "Failed to install JSI");
+    }
   }
 
   public native void install(long jsContextNativePointer);

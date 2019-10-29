@@ -6,6 +6,7 @@ import {RPCError} from '../util/errors'
 import {measureStart, measureStop} from '../util/user-timings'
 import {getEngine} from './require'
 import isArray from 'lodash/isArray'
+const __REMOTEDEV__ = typeof __REMOTEDEV__ !== 'undefined' || !global.nativeTest
 
 type WaitingKey = string | Array<string>
 
@@ -117,7 +118,9 @@ class Session {
 
   end() {
     if (this._startMethod) {
-      __DEV__ && global.nativeTest.traceEndAsyncSection(`RPC-${this._startMethod}`, this._id)
+      __DEV__ &&
+        !__REMOTEDEV__ &&
+        global.nativeTest.traceEndAsyncSection(`RPC-${this._startMethod}`, this._id)
       // measureStop(`engine:${this._startMethod}:${this.getId()}`)
     }
     this._endHandler && this._endHandler(this)
@@ -127,7 +130,9 @@ class Session {
   start(method: MethodKey, param: Object, callback: (() => void) | undefined) {
     this._startMethod = method
     this._startCallback = callback
-    __DEV__ && global.nativeTest.traceBeginAsyncSection(`RPC-${this._startMethod}`, this._id)
+    __DEV__ &&
+      !__REMOTEDEV__ &&
+      global.nativeTest.traceBeginAsyncSection(`RPC-${this._startMethod}`, this._id)
 
     // When this request is done the session is done
     const wrappedCallback = (...args) => {
