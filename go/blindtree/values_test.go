@@ -5,16 +5,16 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/msgpack"
-
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/sig3"
 
 	"github.com/stretchr/testify/require"
 )
 
 func TestEncodeMerkleValues(t *testing.T) {
-	fakeTail := Teamv1HiddenTail([32]byte{0x01, 0x02, 0x03, 0x04, 0x01, 0x02, 0x03, 0x04, 0x01, 0x02, 0x03, 0x04, 0x01, 0x02, 0x03, 0x04, 0x01, 0x02, 0x03, 0x04, 0x01, 0x02, 0x03, 0x04, 0x01, 0x02, 0x03, 0x04, 0x01, 0x02, 0x03, 0x04})
-	fakeTeamValue := Teamv1Value{
-		Tails: map[keybase1.SeqType]Teamv1HiddenTail{keybase1.SeqType_TEAM_PRIVATE_HIDDEN: fakeTail},
+	fakeTail := sig3.Tail{Seqno: keybase1.Seqno(2), Hash: [32]byte{0x01, 0x02, 0x03, 0x04, 0x01, 0x02, 0x03, 0x04, 0x01, 0x02, 0x03, 0x04, 0x01, 0x02, 0x03, 0x04, 0x01, 0x02, 0x03, 0x04, 0x01, 0x02, 0x03, 0x04, 0x01, 0x02, 0x03, 0x04, 0x01, 0x02, 0x03, 0x04}}
+	fakeTeamValue := TeamV1Value{
+		Tails: map[keybase1.SeqType]sig3.Tail{keybase1.SeqType_TEAM_PRIVATE_HIDDEN: fakeTail},
 	}
 
 	encodingTests := []struct {
@@ -26,6 +26,7 @@ func TestEncodeMerkleValues(t *testing.T) {
 		{"Bong", BlindMerkleValueStringForTesting("Bong"), ValueTypeStringForTesting},
 		{"", BlindMerkleValueStringForTesting(""), ValueTypeStringForTesting},
 		{fakeTeamValue, BlindMerkleValueTeamV1(fakeTeamValue), ValueTypeTeamV1},
+		{nil, BlindMerkleValueEmpty(), ValueTypeEmpty},
 	}
 
 	for _, et := range encodingTests {
@@ -48,9 +49,11 @@ func TestEncodeMerkleValues(t *testing.T) {
 				require.True(t, ok, "Got type %T", dec.InnerValue)
 				require.EqualValues(t, et.Value, s)
 			case ValueTypeTeamV1:
-				s, ok := dec.InnerValue.(Teamv1Value)
+				s, ok := dec.InnerValue.(TeamV1Value)
 				require.True(t, ok, "Got type %T", dec.InnerValue)
 				require.EqualValues(t, et.Value, s)
+			case ValueTypeEmpty:
+				require.Nil(t, dec.InnerValue)
 			default:
 				t.Errorf("The test does not suppor type %v", et.Type)
 			}
