@@ -4,6 +4,7 @@ import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
 import * as AutoresetGen from '../../../actions/autoreset-gen'
 import * as AutoresetConstants from '../../../constants/autoreset'
+import * as RecoverPasswordGen from '../../../actions/recover-password-gen'
 import {SignupScreen, InfoIcon} from '../../../signup/common'
 import {ButtonType} from '../../../common-adapters/button'
 
@@ -23,7 +24,10 @@ const PromptReset = (_: Props) => {
       ),
     [dispatch, skipPassword, nav]
   )
-  const onBack = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [dispatch, nav])
+  const onBack = React.useCallback(
+    () => dispatch(skipPassword ? RecoverPasswordGen.createRestartRecovery() : nav.safeNavigateUpPayload()),
+    [dispatch, skipPassword, nav]
+  )
   const title = skipPassword ? 'Recover password' : 'Account reset'
   return (
     <SignupScreen
