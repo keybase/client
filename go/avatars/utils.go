@@ -59,6 +59,9 @@ func GetBorderedCircleAvatar(ctx context.Context, g *globals.Context, username s
 		return res, length, err
 	}
 	avatarImg, _, err := image.Decode(avatarReader)
+	if err != nil {
+		return res, length, err
+	}
 	scaledAvatar := image.NewRGBA(image.Rect(0, 0, avatarSize, avatarSize))
 	draw.BiLinear.Scale(scaledAvatar, scaledAvatar.Bounds(), avatarImg, avatarImg.Bounds(), draw.Over, nil)
 	avatarRadius := avatarSize / 2
