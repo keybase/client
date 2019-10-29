@@ -177,7 +177,7 @@ func TestPrepareMiniChatRelays(t *testing.T) {
 	senderSeed, err := stellarnet.NewSeedStr(senderAccountBundle.Signers[0].SecureNoLogString())
 	require.NoError(t, err)
 
-	prepared, unlock, err := stellar.PrepareMiniChatPayments(mctx, tc.Srv.walletState, senderSeed, nil, payments)
+	prepared, unlock, err := stellar.PrepareMiniChatPayments(mctx, tc.Srv.walletState, senderSeed, nil, nil, payments)
 	defer unlock()
 	require.NoError(t, err)
 	require.Len(t, prepared, 2)
@@ -225,7 +225,7 @@ func TestPrepareMiniChatLowAmounts(t *testing.T) {
 	senderSeed, err := stellarnet.NewSeedStr(senderAccountBundle.Signers[0].SecureNoLogString())
 	require.NoError(t, err)
 
-	prepared, unlock, err := stellar.PrepareMiniChatPayments(mctx, tc.Srv.walletState, senderSeed, nil, payments)
+	prepared, unlock, err := stellar.PrepareMiniChatPayments(mctx, tc.Srv.walletState, senderSeed, nil, nil, payments)
 	defer unlock()
 	require.NoError(t, err)
 	require.Len(t, prepared, 2)

@@ -610,9 +610,23 @@ func sendPayment(mctx libkb.MetaContext, walletState *WalletState, sendArg SendP
 		post.To = &recipient.User.UV
 	}
 
+	var chatIDs *ChatIDs
+	var chatRecipient string
 	if senderEntry.IsPrimary {
-		// XXX figure out conversation id
-		// XXX make an outbox id
+		chatRecipient = chatRecipientStr(mctx, recipient)
+		if chatRecipient != "" {
+			// we will be sending a chat message later after the payment succeeds, so
+			// figure out the chat IDs here.
+			chatIDs, err = NewChatIDsFindConv(mctx, chatRecipient, nil)
+			if err != nil {
+				mctx.Debug("error finding chat ids for payment to %q: %s", chatRecipient, err)
+				// not fatal error, keep going and send the payment...
+			} else {
+				mctx.Debug("chat ids for payment: %+v", chatIDs)
+				post.ChatConversationID = chatIDs.ConvID
+				post.ChatOutboxID = chatIDs.OutboxID
+			}
+		}
 	}
 
 	// check if recipient account exists
@@ -707,12 +721,9 @@ func sendPayment(mctx libkb.MetaContext, walletState *WalletState, sendArg SendP
 		mctx.Debug("SubmitPayment ws.Refresh error: %s", err)
 	}
 
-	var chatRecipient string
 	if senderEntry.IsPrimary {
-		// XXX use outbox id calculated above
-		chatRecipient = chatRecipientStr(mctx, recipient)
 		sendChat := func(mctx libkb.MetaContext) {
-			chatSendPaymentMessageSoft(mctx, chatRecipient, rres.StellarID, "SendPayment")
+			chatSendPaymentMessageSoft(mctx, chatIDs, chatRecipient, rres.StellarID, "SendPayment")
 		}
 		if sendArg.QuickReturn {
 			go sendChat(mctx.WithCtx(context.Background()))
@@ -815,6 +826,25 @@ func sendPathPayment(mctx libkb.MetaContext, walletState *WalletState, sendArg S
 		post.To = &recipient.User.UV
 	}
 
+	var chatIDs *ChatIDs
+	var chatRecipient string
+	if senderEntry.IsPrimary {
+		chatRecipient = chatRecipientStr(mctx, *recipient)
+		if chatRecipient != "" {
+			// we will be sending a chat message later after the payment succeeds, so
+			// figure out the chat IDs here.
+			chatIDs, err = NewChatIDsFindConv(mctx, chatRecipient, nil)
+			if err != nil {
+				mctx.Debug("error finding chat ids for payment to %q: %s", chatRecipient, err)
+				// not fatal error, keep going and send the payment...
+			} else {
+				mctx.Debug("chat ids for payment: %+v", chatIDs)
+				post.ChatConversationID = chatIDs.ConvID
+				post.ChatOutboxID = chatIDs.OutboxID
+			}
+		}
+	}
+
 	if err := walletState.AddPendingTx(mctx.Ctx(), senderEntry.AccountID, stellar1.TransactionID(sig.TxHash), sig.Seqno); err != nil {
 		mctx.Debug("error calling AddPendingTx: %s", err)
 	}
@@ -857,11 +887,9 @@ func sendPathPayment(mctx libkb.MetaContext, walletState *WalletState, sendArg S
 		mctx.Debug("SubmitPathPayment ws.Refresh error: %s", err)
 	}
 
-	var chatRecipient string
 	if senderEntry.IsPrimary {
-		chatRecipient = chatRecipientStr(mctx, *recipient)
 		sendChat := func(mctx libkb.MetaContext) {
-			chatSendPaymentMessageSoft(mctx, chatRecipient, rres.StellarID, "SendPathPayment")
+			chatSendPaymentMessageSoft(mctx, chatIDs, chatRecipient, rres.StellarID, "SendPathPayment")
 		}
 		if sendArg.QuickReturn {
 			go sendChat(mctx.WithCtx(context.Background()))
@@ -1282,6 +1310,26 @@ func sendRelayPayment(mctx libkb.MetaContext, walletState *WalletState,
 	if recipient.User != nil {
 		post.To = &recipient.User.UV
 	}
+
+	var chatIDs *ChatIDs
+	var chatRecipient string
+	if senderEntryPrimary {
+		chatRecipient = chatRecipientStr(mctx, recipient)
+		if chatRecipient != "" {
+			// we will be sending a chat message later after the payment succeeds, so
+			// figure out the chat IDs here.
+			chatIDs, err = NewChatIDsFindConv(mctx, chatRecipient, nil)
+			if err != nil {
+				mctx.Debug("error finding chat ids for payment to %q: %s", chatRecipient, err)
+				// not fatal error, keep going and send the payment...
+			} else {
+				mctx.Debug("chat ids for payment: %+v", chatIDs)
+				post.ChatConversationID = chatIDs.ConvID
+				post.ChatOutboxID = chatIDs.OutboxID
+			}
+		}
+	}
+
 	rres, err := walletState.SubmitRelayPayment(mctx.Ctx(), post)
 	if err != nil {
 		if rerr := walletState.RemovePendingTx(mctx.Ctx(), accountID, stellar1.TransactionID(relay.FundTx.TxHash)); rerr != nil {
@@ -1297,11 +1345,9 @@ func sendRelayPayment(mctx libkb.MetaContext, walletState *WalletState,
 		}
 	}
 
-	var chatRecipient string
 	if senderEntryPrimary {
-		chatRecipient = chatRecipientStr(mctx, recipient)
 		sendChat := func(mctx libkb.MetaContext) {
-			chatSendPaymentMessageSoft(mctx, chatRecipient, rres.StellarID, "SendRelayPayment")
+			chatSendPaymentMessageSoft(mctx, chatIDs, chatRecipient, rres.StellarID, "SendRelayPayment")
 		}
 		if post.QuickReturn {
 			go sendChat(mctx.WithCtx(context.Background()))
@@ -1725,24 +1771,29 @@ func chatRecipientStr(mctx libkb.MetaContext, recipient stellarcommon.Recipient)
 	return ""
 }
 
-func chatSendPaymentMessageSoft(mctx libkb.MetaContext, to string, txID stellar1.TransactionID, logLabel string) {
+func chatSendPaymentMessageSoft(mctx libkb.MetaContext, chatIDs *ChatIDs, to string, txID stellar1.TransactionID, logLabel string) {
 	if to == "" {
 		return
 	}
-	err := chatSendPaymentMessage(mctx, to, txID)
+	err := chatSendPaymentMessage(mctx, chatIDs, to, txID)
 	if err != nil {
 		// if the chat message fails to send, just log the error
 		mctx.Debug("failed to send chat %v mesage: %s", logLabel, err)
 	}
 }
 
-func chatSendPaymentMessage(m libkb.MetaContext, to string, txID stellar1.TransactionID) error {
-	m.G().StartStandaloneChat()
-	if m.G().ChatHelper == nil {
+func chatSendPaymentMessage(mctx libkb.MetaContext, chatIDs *ChatIDs, to string, txID stellar1.TransactionID) error {
+	mctx.G().StartStandaloneChat()
+	if mctx.G().ChatHelper == nil {
 		return errors.New("cannot send SendPayment message:  chat helper is nil")
 	}
 
-	name := strings.Join([]string{m.CurrentUsername().String(), to}, ",")
+	var obid *chat1.OutboxID
+	if chatIDs != nil {
+		obid = &chatIDs.OutboxIDForChat
+	}
+
+	name := strings.Join([]string{mctx.CurrentUsername().String(), to}, ",")
 
 	msg := chat1.MessageSendPayment{
 		PaymentID: stellar1.NewPaymentID(txID),
@@ -1751,9 +1802,9 @@ func chatSendPaymentMessage(m libkb.MetaContext, to string, txID stellar1.Transa
 	body := chat1.NewMessageBodyWithSendpayment(msg)
 
 	// identify already performed, so skip here
-	_, err := m.G().ChatHelper.SendMsgByNameNonblock(m.Ctx(), name, nil,
+	_, err := mctx.G().ChatHelper.SendMsgByNameNonblock(mctx.Ctx(), name, nil,
 		chat1.ConversationMembersType_IMPTEAMNATIVE, keybase1.TLFIdentifyBehavior_CHAT_SKIP, body,
-		chat1.MessageType_SENDPAYMENT, nil) // XXX replace nil with outbox id
+		chat1.MessageType_SENDPAYMENT, obid)
 
 	return err
 }
