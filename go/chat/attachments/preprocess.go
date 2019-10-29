@@ -156,8 +156,6 @@ func processCallerPreview(ctx context.Context, g *globals.Context, callerPreview
 				Width:  callerPreview.Metadata.Video().Width,
 				Height: callerPreview.Metadata.Video().Height,
 			}
-		case chat1.AssetMetadataType_AUDIO:
-			p.PreviewDurationMs = callerPreview.Metadata.Audio().DurationMs
 		}
 	}
 	if callerPreview.BaseMetadata != nil {
@@ -177,8 +175,6 @@ func processCallerPreview(ctx context.Context, g *globals.Context, callerPreview
 				Width:  callerPreview.BaseMetadata.Video().Width,
 				Height: callerPreview.BaseMetadata.Video().Height,
 			}
-		case chat1.AssetMetadataType_AUDIO:
-			p.BaseDurationMs = callerPreview.BaseMetadata.Audio().DurationMs
 		}
 	}
 	return p, nil

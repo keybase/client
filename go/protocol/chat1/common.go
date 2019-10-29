@@ -2215,9 +2215,10 @@ func (o AssetMetadataImage) DeepCopy() AssetMetadataImage {
 }
 
 type AssetMetadataVideo struct {
-	Width      int `codec:"width" json:"width"`
-	Height     int `codec:"height" json:"height"`
-	DurationMs int `codec:"durationMs" json:"durationMs"`
+	Width      int  `codec:"width" json:"width"`
+	Height     int  `codec:"height" json:"height"`
+	DurationMs int  `codec:"durationMs" json:"durationMs"`
+	IsAudio    bool `codec:"isAudio" json:"isAudio"`
 }
 
 func (o AssetMetadataVideo) DeepCopy() AssetMetadataVideo {
@@ -2225,16 +2226,7 @@ func (o AssetMetadataVideo) DeepCopy() AssetMetadataVideo {
 		Width:      o.Width,
 		Height:     o.Height,
 		DurationMs: o.DurationMs,
-	}
-}
-
-type AssetMetadataAudio struct {
-	DurationMs int `codec:"durationMs" json:"durationMs"`
-}
-
-func (o AssetMetadataAudio) DeepCopy() AssetMetadataAudio {
-	return AssetMetadataAudio{
-		DurationMs: o.DurationMs,
+		IsAudio:    o.IsAudio,
 	}
 }
 
@@ -2244,7 +2236,6 @@ const (
 	AssetMetadataType_NONE  AssetMetadataType = 0
 	AssetMetadataType_IMAGE AssetMetadataType = 1
 	AssetMetadataType_VIDEO AssetMetadataType = 2
-	AssetMetadataType_AUDIO AssetMetadataType = 3
 )
 
 func (o AssetMetadataType) DeepCopy() AssetMetadataType { return o }
@@ -2253,21 +2244,18 @@ var AssetMetadataTypeMap = map[string]AssetMetadataType{
 	"NONE":  0,
 	"IMAGE": 1,
 	"VIDEO": 2,
-	"AUDIO": 3,
 }
 
 var AssetMetadataTypeRevMap = map[AssetMetadataType]string{
 	0: "NONE",
 	1: "IMAGE",
 	2: "VIDEO",
-	3: "AUDIO",
 }
 
 type AssetMetadata struct {
 	AssetType__ AssetMetadataType   `codec:"assetType" json:"assetType"`
 	Image__     *AssetMetadataImage `codec:"image,omitempty" json:"image,omitempty"`
 	Video__     *AssetMetadataVideo `codec:"video,omitempty" json:"video,omitempty"`
-	Audio__     *AssetMetadataAudio `codec:"audio,omitempty" json:"audio,omitempty"`
 }
 
 func (o *AssetMetadata) AssetType() (ret AssetMetadataType, err error) {
@@ -2280,11 +2268,6 @@ func (o *AssetMetadata) AssetType() (ret AssetMetadataType, err error) {
 	case AssetMetadataType_VIDEO:
 		if o.Video__ == nil {
 			err = errors.New("unexpected nil value for Video__")
-			return ret, err
-		}
-	case AssetMetadataType_AUDIO:
-		if o.Audio__ == nil {
-			err = errors.New("unexpected nil value for Audio__")
 			return ret, err
 		}
 	}
@@ -2311,16 +2294,6 @@ func (o AssetMetadata) Video() (res AssetMetadataVideo) {
 	return *o.Video__
 }
 
-func (o AssetMetadata) Audio() (res AssetMetadataAudio) {
-	if o.AssetType__ != AssetMetadataType_AUDIO {
-		panic("wrong case accessed")
-	}
-	if o.Audio__ == nil {
-		return
-	}
-	return *o.Audio__
-}
-
 func NewAssetMetadataWithImage(v AssetMetadataImage) AssetMetadata {
 	return AssetMetadata{
 		AssetType__: AssetMetadataType_IMAGE,
@@ -2332,13 +2305,6 @@ func NewAssetMetadataWithVideo(v AssetMetadataVideo) AssetMetadata {
 	return AssetMetadata{
 		AssetType__: AssetMetadataType_VIDEO,
 		Video__:     &v,
-	}
-}
-
-func NewAssetMetadataWithAudio(v AssetMetadataAudio) AssetMetadata {
-	return AssetMetadata{
-		AssetType__: AssetMetadataType_AUDIO,
-		Audio__:     &v,
 	}
 }
 
@@ -2359,13 +2325,6 @@ func (o AssetMetadata) DeepCopy() AssetMetadata {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Video__),
-		Audio__: (func(x *AssetMetadataAudio) *AssetMetadataAudio {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.Audio__),
 	}
 }
 
