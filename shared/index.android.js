@@ -29,7 +29,8 @@ const measureStop =
 window.performance = {}
 window.performance = {
   clearMarks: n => lastThing[lastThing.length - 1] === n && measureStop(n),
-  clearMeasures: l => console.log('Clear Measures', l),
+  // clearMeasures: l => console.log('Clear Measures', l),
+  clearMeasures: noop,
   mark: n => measureStart(n),
   measure: (l, n) => measureStop(n),
 }
