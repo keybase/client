@@ -2,6 +2,7 @@ import {NativeModules, NativeEventEmitter} from 'react-native'
 import logger from '../logger'
 import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
 import {toByteArray, fromByteArray} from 'base64-js'
+// @ts-ignore
 import {encode} from '@msgpack/msgpack'
 import toBuffer from 'typedarray-to-buffer'
 import {printRPCBytes} from '../local-debug'
