@@ -48,7 +48,6 @@ export const renderItem = (
     case 'subteam-none':
       return <None key="subteam-none" />
     case 'subteam-subteam':
-      // @ts-ignore doesn't seem to understand connect here
       return <Team key={row.teamname} teamname={row.teamname} />
     default:
       return null
