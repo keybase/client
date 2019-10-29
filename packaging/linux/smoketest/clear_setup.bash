@@ -2,6 +2,9 @@
 set -euox pipefail
 echo "Starting clearing linux smoketests"
 
+parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
+cd "$parent_path"
+
 for platform in */; do
     case $platform in
         vagrantcommon/) continue;;

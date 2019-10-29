@@ -833,28 +833,17 @@ export const getUploadIconForTlfType = (
 export const tlfIsStuckInConflict = (tlf: Types.Tlf) =>
   tlf.conflictState.type === Types.ConflictStateType.NormalView && tlf.conflictState.stuckInConflict
 
-export const getUploadIconForFilesTab = (
-  kbfsDaemonStatus: Types.KbfsDaemonStatus,
-  uploads: Types.Uploads,
-  tlfs: Types.Tlfs
-): Types.UploadIcon | undefined => {
-  if (
-    [
-      tlfs.private,
-      tlfs.public,
-      tlfs.team,
-      // omitting additionalTlfs for now since there's no way to access them
-      // anyway if they are not part of the favorites
-    ].some(tlfList => [...tlfList.entries()].some(([_, tlf]) => tlfIsStuckInConflict(tlf)))
-  ) {
-    return Types.UploadIcon.UploadingStuck
+export const getUploadIconForFilesTab = (badge: RPCTypes.FilesTabBadge): Types.UploadIcon | undefined => {
+  switch (badge) {
+    case RPCTypes.FilesTabBadge.awaitingUpload:
+      return Types.UploadIcon.AwaitingToUpload
+    case RPCTypes.FilesTabBadge.uploadingStuck:
+      return Types.UploadIcon.UploadingStuck
+    case RPCTypes.FilesTabBadge.uploading:
+      return Types.UploadIcon.Uploading
+    case RPCTypes.FilesTabBadge.none:
+      return undefined
   }
-  if (uploads.syncingPaths.size || uploads.writingToJournal.size) {
-    return kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Offline
-      ? Types.UploadIcon.AwaitingToUpload
-      : Types.UploadIcon.Uploading
-  }
-  return undefined
 }
 
 export const getSyncStatusInMergeProps = (

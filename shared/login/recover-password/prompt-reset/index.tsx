@@ -32,8 +32,12 @@ const PromptReset = (props: Props) => {
       ),
     [dispatch, skipPassword, resetPassword, nav]
   )
-  const onBack = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [dispatch, nav])
+  const onBack = React.useCallback(
+    () => dispatch(skipPassword ? RecoverPasswordGen.createRestartRecovery() : nav.safeNavigateUpPayload()),
+    [dispatch, skipPassword, nav]
+  )
   const title = props.resetPassword ? 'Reset password' : skipPassword ? 'Recover password' : 'Account reset'
+
   return (
     <SignupScreen
       buttons={[
@@ -93,7 +97,7 @@ const PromptReset = (props: Props) => {
   )
 }
 
-PromptReset.navigationOptions = {
+const navigationOptions = {
   header: null,
   headerBottomStyle: {height: undefined},
   headerLeft: null, // no back button
@@ -118,5 +122,9 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
 }))
 
-export const PromptResetAccount = () => <PromptReset />
-export const PromptResetPassword = () => <PromptReset resetPassword={true} />
+const PromptResetAccount = () => <PromptReset />
+PromptResetAccount.navigationOptions = navigationOptions
+const PromptResetPassword = () => <PromptReset resetPassword={true} />
+PromptResetPassword.navigationOptions = navigationOptions
+
+export {PromptResetAccount, PromptResetPassword}

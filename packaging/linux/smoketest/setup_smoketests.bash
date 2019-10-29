@@ -2,6 +2,11 @@
 set -euox pipefail
 echo "Starting setting up linux smoketests"
 
+parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
+cd "$parent_path"
+
+vagrant plugin install vagrant-vbguest
+
 for platform in */; do
     case $platform in
         vagrantcommon/) continue;;

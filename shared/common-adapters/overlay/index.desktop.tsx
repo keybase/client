@@ -12,6 +12,7 @@ const Overlay = (props: Props) => {
       attachTo={props.attachTo}
       matchDimension={!!props.matchDimension}
       onHidden={props.onHidden}
+      remeasureHint={props.remeasureHint}
       position={props.position}
       positionFallbacks={props.positionFallbacks}
       propagateOutsideClicks={props.propagateOutsideClicks}
