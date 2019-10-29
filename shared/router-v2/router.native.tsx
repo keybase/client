@@ -17,11 +17,12 @@ import {Props} from './router'
 import {connect} from '../util/container'
 import {createAppContainer} from '@react-navigation/native'
 import {createBottomTabNavigator} from 'react-navigation-tabs'
-import {createSwitchNavigator, StackActions, NavigationActions} from '@react-navigation/core'
+import {createSwitchNavigator, StackActions} from '@react-navigation/core'
 import debounce from 'lodash/debounce'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {useScreens} from 'react-native-screens'
 import {getPersistenceFunctions} from './persist.native'
+import Loading from '../login/loading'
 
 const {createStackNavigator} = Stack
 
@@ -228,12 +229,24 @@ const LoggedOutStackNavigator = createStackNavigator(
   }
 )
 
+const SimpleLoading = () => (
+  <Kb.Box2
+    direction="vertical"
+    fullHeight={true}
+    fullWidth={true}
+    style={{backgroundColor: Styles.globalColors.white}}
+  >
+    <Loading allowFeedback={false} failed="" status="" onRetry={null} onFeedback={null} />
+  </Kb.Box2>
+)
+
 const RootStackNavigator = createSwitchNavigator(
   {
+    loading: {screen: SimpleLoading},
     loggedIn: LoggedInStackNavigator,
     loggedOut: LoggedOutStackNavigator,
   },
-  {initialRouteName: 'loggedOut'}
+  {initialRouteName: 'loading'}
 )
 
 const AppContainer = createAppContainer(RootStackNavigator)
