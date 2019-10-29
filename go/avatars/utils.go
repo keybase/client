@@ -19,7 +19,7 @@ import (
 	"golang.org/x/image/draw"
 )
 
-func FetchAvatar(g *globals.Context, ctx context.Context, username string) (res io.ReadCloser, err error) {
+func FetchAvatar(ctx context.Context, g *globals.Context, username string) (res io.ReadCloser, err error) {
 	avMap, err := g.GetAvatarLoader().LoadUsers(libkb.NewMetaContext(ctx, g.ExternalG()), []string{username}, []keybase1.AvatarFormat{"square_192"})
 	if err != nil {
 		return
@@ -53,8 +53,8 @@ func FetchAvatar(g *globals.Context, ctx context.Context, username string) (res 
 	return avatarReader, nil
 }
 
-func GetBorderedCircleAvatar(g *globals.Context, ctx context.Context, username string, avatarSize, borderWidth int) (res io.ReadCloser, length int64, err error) {
-	avatarReader, err := FetchAvatar(g, ctx, username)
+func GetBorderedCircleAvatar(ctx context.Context, g *globals.Context, username string, avatarSize, borderWidth int) (res io.ReadCloser, length int64, err error) {
+	avatarReader, err := FetchAvatar(ctx, g, username)
 	if err != nil {
 		return res, length, err
 	}
