@@ -67,6 +67,7 @@ const (
 	standard branchType = iota // an online, read-write branch
 	archive                    // an online, read-only branch
 	conflict                   // a cleared, local conflict branch
+	local                      // a purely local-storage branch
 )
 
 // Constants used in this file.  TODO: Make these configurable?
