@@ -1177,15 +1177,21 @@ const changeAirdrop = async (_: TypedState, action: WalletsGen.ChangeAirdropPayl
 
 const updateAirdropDetails = async (
   state: TypedState,
-  _:
+  action:
     | WalletsGen.UpdateAirdropDetailsPayload
-    | ConfigGen.DaemonHandshakeDonePayload
+    | ConfigGen.StartupFirstIdlePayload
     | ConfigGen.LoggedInPayload,
   logger: Saga.SagaLogger
 ) => {
   if (!state.config.loggedIn) {
     return false
   }
+
+  // ignore, we handle startup first idle instead
+  if (action.type === ConfigGen.loggedIn && action.payload.causedByStartup) {
+    return false
+  }
+
   try {
     const response = await RPCStellarTypes.localAirdropDetailsLocalRpcPromise(
       undefined,
@@ -1206,12 +1212,20 @@ const updateAirdropDetails = async (
 
 const updateAirdropState = async (
   state: TypedState,
-  _: WalletsGen.UpdateAirdropStatePayload | ConfigGen.DaemonHandshakeDonePayload | ConfigGen.LoggedInPayload,
+  action:
+    | WalletsGen.UpdateAirdropStatePayload
+    | ConfigGen.StartupFirstIdlePayload
+    | ConfigGen.LoggedInPayload,
   logger: Saga.SagaLogger
 ) => {
   if (!state.config.loggedIn) {
     return false
   }
+  // ignore startup since we already listen for first idle
+  if (action.type === ConfigGen.loggedIn && action.payload.causedByStartup) {
+    return false
+  }
+  console.log('aaa update aidrdrop', action.type)
   try {
     const {state, rows} = await RPCStellarTypes.localAirdropStatusLocalRpcPromise(
       undefined,
@@ -1832,7 +1846,7 @@ function* walletsSaga() {
   yield* Saga.chainAction2(NotificationsGen.receivedBadgeState, receivedBadgeState, 'receivedBadgeState')
 
   yield* Saga.chainAction2(
-    [WalletsGen.loadAccounts, ConfigGen.bootstrapStatusLoaded, WalletsGen.loadWalletDisclaimer],
+    [WalletsGen.loadAccounts, ConfigGen.startupFirstIdle, WalletsGen.loadWalletDisclaimer],
     loadWalletDisclaimer,
     'loadWalletDisclaimer'
   )
@@ -1875,12 +1889,12 @@ function* walletsSaga() {
     yield* Saga.chainAction2(GregorGen.pushState, gregorPushState, 'gregorPushState')
     yield* Saga.chainAction2(WalletsGen.changeAirdrop, changeAirdrop, 'changeAirdrop')
     yield* Saga.chainAction2(
-      [WalletsGen.updateAirdropDetails, ConfigGen.daemonHandshakeDone, ConfigGen.loggedIn],
+      [WalletsGen.updateAirdropDetails, ConfigGen.startupFirstIdle, ConfigGen.loggedIn],
       updateAirdropDetails,
       'updateAirdropDetails'
     )
     yield* Saga.chainAction2(
-      [WalletsGen.updateAirdropState, ConfigGen.daemonHandshakeDone, ConfigGen.loggedIn],
+      [WalletsGen.updateAirdropState, ConfigGen.startupFirstIdle, ConfigGen.loggedIn],
       updateAirdropState,
       'updateAirdropState'
     )

@@ -79,6 +79,8 @@ export default (state: Types.State = Constants.initialState, action: Actions): T
         draftState.daemonHandshakeState = 'starting'
         return
       case ConfigGen.startHandshake:
+        console.log('aaa dameoon start')
+
         draftState.daemonError = undefined
         draftState.daemonHandshakeFailedReason = ''
         draftState.daemonHandshakeRetriesLeft = Constants.maxHandshakeTries
@@ -119,6 +121,12 @@ export default (state: Types.State = Constants.initialState, action: Actions): T
           daemonHandshakeWaiters.set(name, newCount)
         }
 
+        console.log(
+          'aaa dameoon shaked',
+          action.payload.name,
+          action.payload.increment,
+          daemonHandshakeWaiters
+        )
         draftState.daemonHandshakeWaiters = daemonHandshakeWaiters
         if (failedFatal) {
           draftState.daemonHandshakeFailedReason = failedReason || ''
@@ -278,6 +286,7 @@ export default (state: Types.State = Constants.initialState, action: Actions): T
         draftState.justDeletedSelf = action.payload.deletedUsername
         return
       case ConfigGen.daemonHandshakeDone:
+        console.log('aaa daemon hand done')
         draftState.daemonHandshakeState = 'done'
         draftState.startupDetailsLoaded = isMobile ? draftState.startupDetailsLoaded : true
         return
