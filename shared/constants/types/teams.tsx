@@ -72,7 +72,7 @@ export type _InviteInfo = {
 }
 export type InviteInfo = I.RecordOf<_InviteInfo> // TODO remove
 
-export type TabKey = 'members' | 'requests' | 'pending'
+export type TabKey = 'members' | 'invites' | 'subteams' | 'settings'
 
 export type _SubteamInfo = {
   key: string
@@ -117,7 +117,7 @@ export type TeamDetails = {
   members?: Map<string, _MemberInfo>
   settings?: _TeamSettings
   invites?: Set<_InviteInfo>
-  subteams?: Set<string>
+  subteams?: Set<TeamID>
   requests?: Set<string>
 }
 

@@ -90,7 +90,7 @@ export default (
         )
         details.settings = action.payload.settings
         details.invites = new Set(action.payload.invites)
-        details.subteams = new Set(action.payload.subteams)
+        details.subteams = new Set(action.payload.subteams) // TODO put IDs in here
         details.requests = new Set(action.payload.requests.get(action.payload.teamname))
 
         return

@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import Team, {Props} from '.'
 import CustomTitle from './custom-title/container'
 import {HeaderRightActions, HeaderTitle, SubHeader} from './nav-header/container'
 import * as Kb from '../../common-adapters'
@@ -11,10 +10,11 @@ import * as Types from '../../constants/types/teams'
 import {mapStateHelper as invitesMapStateHelper, getRows as getInviteRows} from './invites-tab/helper'
 import {mapStateHelper as memberMapStateHelper, getRows as getMemberRows} from './members-tab/helper'
 import {mapStateHelper as subteamsMapStateHelper, getRows as getSubteamsRows} from './subteams-tab/helper'
+import Team, {Props} from '.'
 
 type OwnProps = Container.RouteProps<{teamID: Types.TeamID}> & {
-  selectedTab: string
-  setSelectedTab: (arg0: string) => void
+  selectedTab: Types.TabKey
+  setSelectedTab: (tab: Types.TabKey) => void
 }
 
 // keep track during session
@@ -29,8 +29,8 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const selectedTab = ownProps.selectedTab || 'members'
 
   return {
-    teamDetails: Constants.getTeamDetails(state, teamID),
     selectedTab,
+    teamDetails: Constants.getTeamDetails(state, teamID),
   }
 }
 

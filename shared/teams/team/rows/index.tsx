@@ -1,4 +1,6 @@
 import * as Types from '../../../constants/types/teams'
+import {isMobile} from '../../../constants/platform'
+import {getOrderedMemberArray, sortInvites} from './helpers'
 
 type HeaderRow = {type: 'header'} | {type: 'tabs'}
 
@@ -20,6 +22,63 @@ type SettingsRow = {type: 'settings'}
 
 export type Row = HeaderRow | MemberRow | InviteRow | SubteamRow | SettingsRow
 
-const makeRows = (): Array<Row> => []
+const makeRows = (
+  details: Types.TeamDetails,
+  selectedTab: Types.TabKey,
+  yourUsername: string,
+  yourOperations: Types.TeamOperations
+): Array<Row> => {
+  const rows: Array<Row> = []
+  if (!isMobile) {
+    rows.push({type: 'header'}, {type: 'tabs'})
+  }
+  switch (selectedTab) {
+    case 'members':
+      // TODO
+      rows.push(
+        ...getOrderedMemberArray(details.members, yourUsername, yourOperations).map(user => ({
+          type: 'member' as const,
+          username: user.username,
+        }))
+      )
+      break
+    case 'invites': {
+      const {invites, requests} = details
+      let empty = true
+      if (requests && requests.size) {
+        empty = false
+        rows.push({label: 'Requests', type: 'invites-divider'})
+        rows.push(...[...requests].sort().map(username => ({type: 'invites-request' as const, username})))
+      }
+      if (invites && invites.size) {
+        empty = false
+        rows.push({label: 'Invites', type: 'invites-divider'})
+        rows.push(...[...invites].sort(sortInvites).map(i => ({id: i.id, type: 'invites-invite' as const})))
+      }
+      if (empty) {
+        rows.push({type: 'invites-none'})
+      }
+      break
+    }
+    case 'subteams': {
+      const {subteams} = details
+      // always push subteam intro, it can decide not to render if already seen
+      rows.push({type: 'subteam-intro'})
+      if (yourOperations.manageSubteams) {
+        rows.push({type: 'subteam-add'})
+      }
+      if (subteams && subteams.size) {
+        rows.push(...[...subteams].sort().map(teamID => ({teamID, type: 'subteam-subteam' as const})))
+      } else {
+        rows.push({type: 'subteam-none'})
+      }
+      break
+    }
+    case 'settings':
+      rows.push({type: 'settings'})
+      break
+  }
+  return rows
+}
 
 export default makeRows
