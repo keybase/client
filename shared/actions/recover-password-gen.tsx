@@ -29,7 +29,7 @@ export const submitResetPrompt = 'recover-password:submitResetPrompt'
 type _AbortDeviceSelectPayload = void
 type _AbortPaperKeyPayload = void
 type _CompleteResetPasswordPayload = void
-type _DisplayDeviceSelectPayload = {readonly devices: Array<Types.Device>}
+type _DisplayDeviceSelectPayload = {readonly devices: Array<Types.Device>; readonly replaceRoute?: boolean}
 type _DisplayErrorPayload = {readonly error: HiddenString}
 type _PromptResetPasswordPayload = void
 type _ResetResetPasswordStatePayload = void
@@ -37,7 +37,11 @@ type _RestartRecoveryPayload = void
 type _SetPaperKeyErrorPayload = {readonly error: HiddenString}
 type _SetPasswordErrorPayload = {readonly error: HiddenString}
 type _ShowExplainDevicePayload = {readonly type: RPCTypes.DeviceType; readonly name: string}
-type _StartRecoverPasswordPayload = {readonly username: string; readonly abortProvisioning?: boolean}
+type _StartRecoverPasswordPayload = {
+  readonly username: string
+  readonly abortProvisioning?: boolean
+  readonly replaceRoute?: boolean
+}
 type _SubmitDeviceSelectPayload = {readonly id: string}
 type _SubmitPaperKeyPayload = {readonly paperKey: HiddenString}
 type _SubmitPasswordPayload = {readonly password: HiddenString}
