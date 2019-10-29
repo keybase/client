@@ -9452,6 +9452,13 @@ func (fbo *folderBranchOps) getEditMessages(
 			id, err)
 		return nil
 	}
+	if fbo.config.IsTestMode() {
+		// Extra debugging for HOTPOT-1096.
+		fbo.vlog.CLogf(
+			ctx, libkb.VLog1, "%p: Got messages in channel %s: %s",
+			fbo, channelName, messages)
+	}
+
 	_, err = fbo.editHistory.AddNotifications(channelName, messages)
 	if err != nil {
 		fbo.log.CWarningf(ctx, "Couldn't add messages for conv %s: %+v",
@@ -9504,6 +9511,14 @@ func (fbo *folderBranchOps) recomputeEditHistory(
 			}
 		}
 	}
+
+	if fbo.config.IsTestMode() {
+		// Extra debugging for HOTPOT-1096.
+		fbo.vlog.CLogf(
+			ctx, libkb.VLog1, "%p: Recomputing history for %s",
+			fbo, session.Name)
+	}
+
 	// Update the overall user history.  TODO: if the TLF name
 	// changed, we should clean up the old user history.
 	fbo.config.UserHistory().UpdateHistory(
@@ -9579,6 +9594,12 @@ func (fbo *folderBranchOps) handleEditActivity(
 	}
 	if a.message != "" {
 		fbo.vlog.CLogf(ctx, libkb.VLog1, "New edit message for %s", name)
+		if fbo.config.IsTestMode() {
+			// Extra debugging for HOTPOT-1096.
+			fbo.vlog.CLogf(
+				ctx, libkb.VLog1, "%p: Processing edit message %s",
+				fbo, a.message)
+		}
 		maxRev, err := fbo.editHistory.AddNotifications(
 			name, []string{a.message})
 		if err != nil {
