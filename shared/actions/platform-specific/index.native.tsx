@@ -270,15 +270,23 @@ function* persistRoute(state: Container.TypedState, action: ConfigGen.PersistRou
   )
 }
 
+// only send when different, we get called a bunch where this doesn't actually change
+let _lastNetworkType: ConfigGen.OsNetworkStatusChangedPayload['payload']['type'] | undefined
 const updateMobileNetState = async (
   _: Container.TypedState,
   action: ConfigGen.OsNetworkStatusChangedPayload
 ) => {
   try {
-    await RPCTypes.appStateUpdateMobileNetStateRpcPromise({state: action.payload.type})
+    const {type} = action.payload
+    if (type === _lastNetworkType) {
+      return false
+    }
+    _lastNetworkType = type
+    await RPCTypes.appStateUpdateMobileNetStateRpcPromise({state: type})
   } catch (err) {
     console.warn('Error sending mobileNetStateUpdate', err)
   }
+  return false
 }
 
 const initOsNetworkStatus = async () => {
@@ -495,6 +503,7 @@ const manageContactsCache = async (
   _: SettingsGen.LoadedContactImportEnabledPayload | EngineGen.Chat1ChatUiTriggerContactSyncPayload,
   logger: Saga.SagaLogger
 ) => {
+  console.log('aaa contact,', _.type)
   if (state.settings.contacts.importEnabled === false) {
     await RPCTypes.contactsSaveContactListRpcPromise({contacts: []})
     return SettingsGen.createSetContactImportedCount({count: null})
