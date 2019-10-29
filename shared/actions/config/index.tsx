@@ -645,9 +645,13 @@ const loadNixOnLoginStartup = async () => {
 }
 
 const emitStartupFirstIdle = async () => {
-  await Saga.delay(100)
-  console.log('aaa startup firsst idle')
-  return ConfigGen.createStartupFirstIdle()
+  await Saga.delay(1000)
+  return new Promise(resolve => {
+    requestAnimationFrame(() => {
+      console.log('aaa startup firsst idle')
+      resolve(ConfigGen.createStartupFirstIdle())
+    })
+  })
 }
 
 function* configSaga() {
@@ -709,7 +713,7 @@ function* configSaga() {
   // When we're all done lets clean up
   yield* Saga.chainAction2(ConfigGen.loggedOut, resetGlobalStore)
   // Store per user server config info
-  yield* Saga.chainAction2(ConfigGen.loggedIn, updateServerConfig)
+  yield* Saga.chainAction2(ConfigGen.startupFirstIdle, updateServerConfig)
 
   yield* Saga.chainAction2(ConfigGen.setDeletedSelf, showDeletedSelfRootPage)
 
