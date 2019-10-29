@@ -9,8 +9,11 @@ export const resetStore = 'common:resetStore' // not a part of recover-password 
 export const typePrefix = 'recover-password:'
 export const abortDeviceSelect = 'recover-password:abortDeviceSelect'
 export const abortPaperKey = 'recover-password:abortPaperKey'
+export const completeResetPassword = 'recover-password:completeResetPassword'
 export const displayDeviceSelect = 'recover-password:displayDeviceSelect'
 export const displayError = 'recover-password:displayError'
+export const promptResetPassword = 'recover-password:promptResetPassword'
+export const resetResetPasswordState = 'recover-password:resetResetPasswordState'
 export const restartRecovery = 'recover-password:restartRecovery'
 export const setPaperKeyError = 'recover-password:setPaperKeyError'
 export const setPasswordError = 'recover-password:setPasswordError'
@@ -19,13 +22,17 @@ export const startRecoverPassword = 'recover-password:startRecoverPassword'
 export const submitDeviceSelect = 'recover-password:submitDeviceSelect'
 export const submitPaperKey = 'recover-password:submitPaperKey'
 export const submitPassword = 'recover-password:submitPassword'
+export const submitResetPassword = 'recover-password:submitResetPassword'
 export const submitResetPrompt = 'recover-password:submitResetPrompt'
 
 // Payload Types
 type _AbortDeviceSelectPayload = void
 type _AbortPaperKeyPayload = void
+type _CompleteResetPasswordPayload = void
 type _DisplayDeviceSelectPayload = {readonly devices: Array<Types.Device>; readonly replaceRoute?: boolean}
 type _DisplayErrorPayload = {readonly error: HiddenString}
+type _PromptResetPasswordPayload = void
+type _ResetResetPasswordStatePayload = void
 type _RestartRecoveryPayload = void
 type _SetPaperKeyErrorPayload = {readonly error: HiddenString}
 type _SetPasswordErrorPayload = {readonly error: HiddenString}
@@ -38,6 +45,7 @@ type _StartRecoverPasswordPayload = {
 type _SubmitDeviceSelectPayload = {readonly id: string}
 type _SubmitPaperKeyPayload = {readonly paperKey: HiddenString}
 type _SubmitPasswordPayload = {readonly password: HiddenString}
+type _SubmitResetPasswordPayload = {readonly action: RPCTypes.ResetPromptResponse}
 type _SubmitResetPromptPayload = {readonly action: RPCTypes.ResetPromptResponse}
 
 // Action Creators
@@ -49,6 +57,9 @@ export const createAbortPaperKey = (payload: _AbortPaperKeyPayload): AbortPaperK
   payload,
   type: abortPaperKey,
 })
+export const createCompleteResetPassword = (
+  payload: _CompleteResetPasswordPayload
+): CompleteResetPasswordPayload => ({payload, type: completeResetPassword})
 export const createDisplayDeviceSelect = (
   payload: _DisplayDeviceSelectPayload
 ): DisplayDeviceSelectPayload => ({payload, type: displayDeviceSelect})
@@ -56,6 +67,12 @@ export const createDisplayError = (payload: _DisplayErrorPayload): DisplayErrorP
   payload,
   type: displayError,
 })
+export const createPromptResetPassword = (
+  payload: _PromptResetPasswordPayload
+): PromptResetPasswordPayload => ({payload, type: promptResetPassword})
+export const createResetResetPasswordState = (
+  payload: _ResetResetPasswordStatePayload
+): ResetResetPasswordStatePayload => ({payload, type: resetResetPasswordState})
 export const createRestartRecovery = (payload: _RestartRecoveryPayload): RestartRecoveryPayload => ({
   payload,
   type: restartRecovery,
@@ -87,6 +104,9 @@ export const createSubmitPassword = (payload: _SubmitPasswordPayload): SubmitPas
   payload,
   type: submitPassword,
 })
+export const createSubmitResetPassword = (
+  payload: _SubmitResetPasswordPayload
+): SubmitResetPasswordPayload => ({payload, type: submitResetPassword})
 export const createSubmitResetPrompt = (payload: _SubmitResetPromptPayload): SubmitResetPromptPayload => ({
   payload,
   type: submitResetPrompt,
@@ -101,11 +121,23 @@ export type AbortPaperKeyPayload = {
   readonly payload: _AbortPaperKeyPayload
   readonly type: typeof abortPaperKey
 }
+export type CompleteResetPasswordPayload = {
+  readonly payload: _CompleteResetPasswordPayload
+  readonly type: typeof completeResetPassword
+}
 export type DisplayDeviceSelectPayload = {
   readonly payload: _DisplayDeviceSelectPayload
   readonly type: typeof displayDeviceSelect
 }
 export type DisplayErrorPayload = {readonly payload: _DisplayErrorPayload; readonly type: typeof displayError}
+export type PromptResetPasswordPayload = {
+  readonly payload: _PromptResetPasswordPayload
+  readonly type: typeof promptResetPassword
+}
+export type ResetResetPasswordStatePayload = {
+  readonly payload: _ResetResetPasswordStatePayload
+  readonly type: typeof resetResetPasswordState
+}
 export type RestartRecoveryPayload = {
   readonly payload: _RestartRecoveryPayload
   readonly type: typeof restartRecovery
@@ -138,6 +170,10 @@ export type SubmitPasswordPayload = {
   readonly payload: _SubmitPasswordPayload
   readonly type: typeof submitPassword
 }
+export type SubmitResetPasswordPayload = {
+  readonly payload: _SubmitResetPasswordPayload
+  readonly type: typeof submitResetPassword
+}
 export type SubmitResetPromptPayload = {
   readonly payload: _SubmitResetPromptPayload
   readonly type: typeof submitResetPrompt
@@ -148,8 +184,11 @@ export type SubmitResetPromptPayload = {
 export type Actions =
   | AbortDeviceSelectPayload
   | AbortPaperKeyPayload
+  | CompleteResetPasswordPayload
   | DisplayDeviceSelectPayload
   | DisplayErrorPayload
+  | PromptResetPasswordPayload
+  | ResetResetPasswordStatePayload
   | RestartRecoveryPayload
   | SetPaperKeyErrorPayload
   | SetPasswordErrorPayload
@@ -158,5 +197,6 @@ export type Actions =
   | SubmitDeviceSelectPayload
   | SubmitPaperKeyPayload
   | SubmitPasswordPayload
+  | SubmitResetPasswordPayload
   | SubmitResetPromptPayload
   | {type: 'common:resetStore', payload: {}}
