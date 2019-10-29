@@ -1125,6 +1125,7 @@ type convSearchHit struct {
 	conv      types.RemoteConversation
 	queryToks []string
 	convToks  []string
+	nameToks  []string
 	hits      []nameContainsQueryRes
 }
 
@@ -1146,6 +1147,8 @@ func (h convSearchHit) hitScore() (score int) {
 		}
 	}
 	if len(h.queryToks) == len(h.convToks) && len(h.hits) == len(h.convToks) && exacts == len(h.hits) {
+		return 1000000
+	} else if len(h.queryToks) == len(h.nameToks) && len(h.hits) == len(h.nameToks) && exacts == len(h.hits) {
 		return 1000000
 	}
 	return score
@@ -1175,6 +1178,35 @@ func (s *HybridInboxSource) getDeviceType() keybase1.DeviceType {
 	return keybase1.DeviceType_DESKTOP
 }
 
+func (s *HybridInboxSource) fullNamesForSearch(ctx context.Context, conv types.RemoteConversation,
+	convName, username string) (res []string) {
+	switch conv.GetMembersType() {
+	case chat1.ConversationMembersType_TEAM:
+		return nil
+	default:
+	}
+
+	var kuids []keybase1.UID
+	for _, uid := range conv.Conv.Metadata.AllList {
+		kuids = append(kuids, keybase1.UID(uid.String()))
+	}
+	pkgs, err := s.G().UIDMapper.MapUIDsToUsernamePackagesOffline(ctx, s.G(), kuids, 24*time.Hour)
+	if err != nil {
+		s.Debug(ctx, "unable to map uid packages: %v", err)
+	}
+	for _, pkg := range pkgs {
+		// skip our own full name except for our self chat
+		if pkg.NormalizedUsername.String() == username && convName != username {
+			continue
+		}
+		if pkg.FullName != nil {
+			fullname := strings.ToLower(pkg.FullName.FullName.String())
+			res = append(res, strings.Split(fullname, " ")...)
+		}
+	}
+	return res
+}
+
 func (s *HybridInboxSource) isConvSearchHit(ctx context.Context, conv types.RemoteConversation,
 	queryToks []string, username string) (res convSearchHit) {
 	var convToks []string
@@ -1190,14 +1222,16 @@ func (s *HybridInboxSource) isConvSearchHit(ctx context.Context, conv types.Remo
 		}
 		return res
 	}
-	searchable := utils.SearchableRemoteConversationName(conv, username)
+	convName := utils.SearchableRemoteConversationName(conv, username)
 	switch conv.GetMembersType() {
 	case chat1.ConversationMembersType_TEAM:
-		convToks = []string{searchable}
+		convToks = []string{convName}
 	default:
-		convToks = strings.Split(searchable, ",")
+		convToks = strings.Split(convName, ",")
 	}
 	res.convToks = convToks
+	res.nameToks = s.fullNamesForSearch(ctx, conv, convName, username)
+	convToks = append(convToks, res.nameToks...)
 	for _, queryTok := range queryToks {
 		curHit := nameContainsQueryNone
 		for _, convTok := range convToks {
