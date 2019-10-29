@@ -59,8 +59,27 @@ const explainDevice = (
 }
 
 // This same RPC is called at the beginning and end of the 7-day wait by the service.
-// TODO figure out what the deal is with typing here
-const promptReset = () => Saga.put(AutoresetGen.createStartAccountReset({skipPassword: true}))
+const promptReset = (
+  params: RPCTypes.MessageTypes['keybase.1.loginUi.promptResetAccount']['inParam'],
+  response: {
+    result: (res: RPCTypes.ResetPromptResponse) => void
+  }
+) => {
+  return Saga.callUntyped(function*() {
+    if (params.prompt.t == RPCTypes.ResetPromptType.enterResetPw) {
+      yield Saga.put(RecoverPasswordGen.createPromptResetPassword())
+
+      const action: RecoverPasswordGen.SubmitResetPasswordPayload = yield Saga.take(
+        RecoverPasswordGen.submitResetPassword
+      )
+      response.result(action.payload.action)
+      yield Saga.put(RecoverPasswordGen.createCompleteResetPassword())
+    } else {
+      yield Saga.put(AutoresetGen.createStartAccountReset({skipPassword: true}))
+      response.result(RPCTypes.ResetPromptResponse.nothing)
+    }
+  })
+}
 
 const getPaperKeyOrPw = (
   params: RPCTypes.MessageTypes['keybase.1.secretUi.getPassphrase']['inParam'],
@@ -188,6 +207,16 @@ const restartRecovery = (state: Container.TypedState) => {
   ]
 }
 
+const promptResetPassword = () => {
+  return RouteTreeGen.createNavigateAppend({
+    path: ['recoverPasswordPromptResetPassword'],
+  })
+}
+
+const completeResetPassword = () => {
+  return RouteTreeGen.createNavigateUp()
+}
+
 function* recoverPasswordSaga() {
   yield* Saga.chainGenerator<RecoverPasswordGen.StartRecoverPasswordPayload>(
     RecoverPasswordGen.startRecoverPassword,
@@ -197,6 +226,8 @@ function* recoverPasswordSaga() {
   yield* Saga.chainAction2(RecoverPasswordGen.displayDeviceSelect, displayDeviceSelect, 'displayDeviceSelect')
   yield* Saga.chainAction2(RecoverPasswordGen.displayError, displayError, 'displayError')
   yield* Saga.chainAction2(RecoverPasswordGen.restartRecovery, restartRecovery, 'restartRecovery')
+  yield* Saga.chainAction2(RecoverPasswordGen.promptResetPassword, promptResetPassword)
+  yield* Saga.chainAction2(RecoverPasswordGen.completeResetPassword, completeResetPassword)
 }
 
 export default recoverPasswordSaga

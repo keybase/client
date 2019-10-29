@@ -43,6 +43,14 @@ export default function(state: Types.State = initialState, action: Actions): Typ
       return state.merge({
         error: action.payload.error,
       })
+    case RecoverPasswordGen.completeResetPassword:
+      return state.merge({
+        resetEmailSent: true,
+      })
+    case RecoverPasswordGen.resetResetPasswordState:
+      return state.merge({
+        resetEmailSent: false,
+      })
     default:
       return state
   }

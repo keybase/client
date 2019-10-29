@@ -2,8 +2,7 @@ import DeviceSelector from './device-selector/container'
 import ExplainDevice from './explain-device/container'
 import Error, {ConnectedErrorModal} from './error/container'
 import PaperKey from './paper-key/container'
-import PromptReset from './prompt-reset'
-import ResetPassword from './reset-password'
+import {PromptResetAccount, PromptResetPassword} from './prompt-reset'
 import Password from './password'
 
 export const newRoutes = {
@@ -19,11 +18,11 @@ export const newRoutes = {
   recoverPasswordPaperKey: {
     getScreen: (): typeof PaperKey => require('./paper-key/container').default,
   },
-  recoverPasswordPromptReset: {
-    getScreen: (): typeof PromptReset => require('./prompt-reset').default,
+  recoverPasswordPromptResetAccount: {
+    getScreen: (): typeof PromptResetAccount => require('./prompt-reset').PromptResetAccount,
   },
-  recoverPasswordResetPassword: {
-    getScreen: (): typeof ResetPassword => require('./reset-password').default,
+  recoverPasswordPromptResetPassword: {
+    getScreen: (): typeof PromptResetPassword => require('./prompt-reset').PromptResetPassword,
   },
 }
 
