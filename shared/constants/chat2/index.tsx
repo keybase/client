@@ -117,7 +117,7 @@ export const makeAudioRecordingInfo = (): Types.AudioRecordingInfo => ({
   isLocked: false,
   outboxID: new Buffer('hex'),
   path: '',
-  recordStart: 0,
+  recordStart: Date.now(),
   status: Types.AudioRecordingStatus.INITIAL,
 })
 

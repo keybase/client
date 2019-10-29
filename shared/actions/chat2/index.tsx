@@ -2116,6 +2116,7 @@ const sendAudioRecording = async (
   if (audioRecording.amps.length > 0) {
     callerPreview = await RPCChatTypes.localMakeAudioPreviewRpcPromise({
       amps: audioRecording.amps,
+      duration: action.payload.duration,
     })
   }
   const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}

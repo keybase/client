@@ -194,6 +194,7 @@ protocol chatUi {
     string fullUrl;
     boolean fullUrlCached;
     string mimeType;
+    int audioDuration;
     union { null, string } videoDuration;
     boolean inlineVideoPlayable;
   }

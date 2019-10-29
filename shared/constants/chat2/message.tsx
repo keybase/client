@@ -233,6 +233,7 @@ export const makeMessageAttachment = I.Record<MessageTypes._MessageAttachment>({
   ...makeMessageCommon,
   ...makeMessageExplodable,
   attachmentType: 'file',
+  audioDuration: 0,
   downloadPath: null,
   fileName: '',
   fileSize: 0,
@@ -704,10 +705,19 @@ export const previewSpecs = (
   if (preview.assetType === RPCChatTypes.AssetMetadataType.image && preview.image) {
     res.height = preview.image.height
     res.width = preview.image.width
-    res.attachmentType = 'image'
-    // full is a video but preview is an image?
-    if (full && full.assetType === RPCChatTypes.AssetMetadataType.video) {
-      res.showPlayButton = true
+    const isAudio =
+      full &&
+      full.assetType === RPCChatTypes.AssetMetadataType.video &&
+      preview.video &&
+      preview.video.isAudio
+    if (isAudio) {
+      res.attachmentType = 'audio'
+    } else {
+      res.attachmentType = 'image'
+      // full is a video but preview is an image?
+      if (full && full.assetType === RPCChatTypes.AssetMetadataType.video) {
+        res.showPlayButton = true
+      }
     }
   } else if (preview.assetType === RPCChatTypes.AssetMetadataType.video && preview.video) {
     res.height = preview.video.height
@@ -867,6 +877,7 @@ const validUIMessagetoMessage = (
       let fileURLCached = false
       let videoDuration: string | null = null
       let inlineVideoPlayable = false
+      let audioDuration = 0
       if (m.assetUrlInfo) {
         previewURL = m.assetUrlInfo.previewUrl
         fileURL = m.assetUrlInfo.fullUrl
@@ -874,12 +885,14 @@ const validUIMessagetoMessage = (
         fileURLCached = m.assetUrlInfo.fullUrlCached
         videoDuration = m.assetUrlInfo.videoDuration || null
         inlineVideoPlayable = m.assetUrlInfo.inlineVideoPlayable
+        audioDuration = m.assetUrlInfo.audioDuration
       }
 
       return makeMessageAttachment({
         ...common,
         ...explodable,
         attachmentType: pre.attachmentType,
+        audioDuration,
         fileName: filename,
         fileSize: size,
         fileType,

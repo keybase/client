@@ -6044,7 +6044,8 @@ type MakePreviewArg struct {
 }
 
 type MakeAudioPreviewArg struct {
-	Amps []float64 `codec:"amps" json:"amps"`
+	Amps     []float64 `codec:"amps" json:"amps"`
+	Duration int       `codec:"duration" json:"duration"`
 }
 
 type GetUploadTempFileArg struct {
@@ -6371,7 +6372,7 @@ type LocalInterface interface {
 	DownloadFileAttachmentLocal(context.Context, DownloadFileAttachmentLocalArg) (DownloadFileAttachmentLocalRes, error)
 	ConfigureFileAttachmentDownloadLocal(context.Context, ConfigureFileAttachmentDownloadLocalArg) error
 	MakePreview(context.Context, MakePreviewArg) (MakePreviewRes, error)
-	MakeAudioPreview(context.Context, []float64) (MakePreviewRes, error)
+	MakeAudioPreview(context.Context, MakeAudioPreviewArg) (MakePreviewRes, error)
 	GetUploadTempFile(context.Context, GetUploadTempFileArg) (string, error)
 	MakeUploadTempFile(context.Context, MakeUploadTempFileArg) (string, error)
 	CancelPost(context.Context, OutboxID) error
@@ -6963,7 +6964,7 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]MakeAudioPreviewArg)(nil), args)
 						return
 					}
-					ret, err = i.MakeAudioPreview(ctx, typedArgs[0].Amps)
+					ret, err = i.MakeAudioPreview(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -7929,8 +7930,7 @@ func (c LocalClient) MakePreview(ctx context.Context, __arg MakePreviewArg) (res
 	return
 }
 
-func (c LocalClient) MakeAudioPreview(ctx context.Context, amps []float64) (res MakePreviewRes, err error) {
-	__arg := MakeAudioPreviewArg{Amps: amps}
+func (c LocalClient) MakeAudioPreview(ctx context.Context, __arg MakeAudioPreviewArg) (res MakePreviewRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.makeAudioPreview", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

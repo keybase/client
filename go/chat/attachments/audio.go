@@ -66,7 +66,7 @@ func (a *audioVisualizer) visualize() ([]byte, int) {
 	return buf.Bytes(), width
 }
 
-func (s *Sender) MakeAudioPreview(ctx context.Context, amps []float64) (res chat1.MakePreviewRes, err error) {
+func (s *Sender) MakeAudioPreview(ctx context.Context, amps []float64, duration int) (res chat1.MakePreviewRes, err error) {
 	defer s.Trace(ctx, func() error { return err }, "MakeAudioPreview")()
 	v := newAudioVisualizer(amps)
 	previewDat, previewWidth := v.visualize()
@@ -78,7 +78,8 @@ func (s *Sender) MakeAudioPreview(ctx context.Context, amps []float64) (res chat
 	baseMd := chat1.NewAssetMetadataWithVideo(chat1.AssetMetadataVideo{
 		Width:      previewWidth,
 		Height:     v.height,
-		DurationMs: 1,
+		DurationMs: duration,
+		IsAudio:    true,
 	})
 	res.BaseMetadata = &baseMd
 	previewMd := chat1.NewAssetMetadataWithImage(chat1.AssetMetadataImage{

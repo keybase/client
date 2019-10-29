@@ -368,7 +368,7 @@ export type MessageTypes = {
     outParam: void
   }
   'chat.1.local.makeAudioPreview': {
-    inParam: {readonly amps?: Array<Double> | null}
+    inParam: {readonly amps?: Array<Double> | null; readonly duration: Int}
     outParam: MakePreviewRes
   }
   'chat.1.local.makePreview': {
@@ -1246,7 +1246,7 @@ export type ThreadViewBoxed = {readonly messages?: Array<MessageBoxed> | null; r
 export type TopicID = Bytes
 export type TopicNameState = Bytes
 export type TyperInfo = {readonly uid: Keybase1.UID; readonly username: String; readonly deviceID: Keybase1.DeviceID; readonly deviceName: String; readonly deviceType: String}
-export type UIAssetUrlInfo = {readonly previewUrl: String; readonly fullUrl: String; readonly fullUrlCached: Boolean; readonly mimeType: String; readonly videoDuration?: String | null; readonly inlineVideoPlayable: Boolean}
+export type UIAssetUrlInfo = {readonly previewUrl: String; readonly fullUrl: String; readonly fullUrlCached: Boolean; readonly mimeType: String; readonly audioDuration: Int; readonly videoDuration?: String | null; readonly inlineVideoPlayable: Boolean}
 export type UIChannelNameMention = {readonly name: String; readonly convID: String}
 export type UIChatPayment = {readonly username: String; readonly fullName: String; readonly xlmAmount: String; readonly error?: String | null; readonly displayAmount?: String | null}
 export type UIChatPaymentSummary = {readonly xlmTotal: String; readonly displayTotal: String; readonly payments?: Array<UIChatPayment> | null}

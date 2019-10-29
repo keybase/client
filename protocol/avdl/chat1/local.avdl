@@ -979,7 +979,7 @@ protocol local {
     union {null, AssetMetadata} baseMetadata; // will exist if service is able to get base metadata
   }
   MakePreviewRes makePreview(int sessionID, string filename, OutboxID outboxID);
-  MakePreviewRes makeAudioPreview(array<double> amps);
+  MakePreviewRes makeAudioPreview(array<double> amps, int duration);
   string getUploadTempFile(OutboxID outboxID, string filename);
   string makeUploadTempFile(OutboxID outboxID, string filename, bytes data);
 

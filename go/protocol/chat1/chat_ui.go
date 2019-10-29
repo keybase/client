@@ -767,6 +767,7 @@ type UIAssetUrlInfo struct {
 	FullUrl             string  `codec:"fullUrl" json:"fullUrl"`
 	FullUrlCached       bool    `codec:"fullUrlCached" json:"fullUrlCached"`
 	MimeType            string  `codec:"mimeType" json:"mimeType"`
+	AudioDuration       int     `codec:"audioDuration" json:"audioDuration"`
 	VideoDuration       *string `codec:"videoDuration,omitempty" json:"videoDuration,omitempty"`
 	InlineVideoPlayable bool    `codec:"inlineVideoPlayable" json:"inlineVideoPlayable"`
 }
@@ -777,6 +778,7 @@ func (o UIAssetUrlInfo) DeepCopy() UIAssetUrlInfo {
 		FullUrl:       o.FullUrl,
 		FullUrlCached: o.FullUrlCached,
 		MimeType:      o.MimeType,
+		AudioDuration: o.AudioDuration,
 		VideoDuration: (func(x *string) *string {
 			if x == nil {
 				return nil
