@@ -242,7 +242,6 @@ func (b *CachingBotCommandManager) ListCommands(ctx context.Context, convID chat
 	}
 	cmdDedup := make(map[string]bool)
 	for _, ad := range s.Advertisements {
-
 		// If the advertisement is by a restricted bot that will not be keyed
 		// for commands, filter the advertisement out.
 		if ad.UntrustedTeamRole.IsRestrictedBot() {
