@@ -1,15 +1,15 @@
 import React from 'react'
-import * as Types from '../../../constants/types/chat2'
-import * as Container from '../../../util/container'
-import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
+import * as Types from '../../constants/types/chat2'
+import * as Container from '../../util/container'
+import * as Chat2Gen from '../../actions/chat2-gen'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
 }
 
-export const AudioSend = (props: Props) => {
+const AudioSend = (props: Props) => {
   // props
   const {conversationIDKey} = props
   // dispatch
@@ -46,3 +46,5 @@ const styles = Styles.styleSheetCreate(() => ({
     marginTop: Styles.globalMargins.tiny,
   },
 }))
+
+export default AudioSend

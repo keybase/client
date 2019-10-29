@@ -1,7 +1,14 @@
+import * as React from 'react'
+import * as Kb from '../../common-adapters/mobile.native'
+import * as Types from '../../constants/types/chat2'
+import * as Styles from '../../styles'
+import flags from '../../util/feature-flags'
+
 type AudioStarterProps = {
   dragY: Kb.NativeAnimated.Value
   locked: boolean
   recording: boolean
+  iconStyle?: Styles.StylesCrossPlatform
   lockRecording: () => void
   enableRecording: () => void
   stopRecording: (st: Types.AudioStopType) => void
@@ -101,9 +108,11 @@ const AudioStarter = (props: AudioStarterProps) => {
         }}
       >
         <Kb.NativeView>
-          <Kb.Icon type="iconfont-mic" style={styles.actionButton} fontSize={22} />
+          <Kb.Icon type="iconfont-mic" style={props.iconStyle} fontSize={22} />
         </Kb.NativeView>
       </Kb.PanGestureHandler>
     </Kb.TapGestureHandler>
   )
 }
+
+export default AudioStarter

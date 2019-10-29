@@ -20,8 +20,8 @@ import AddSuggestors, {standardTransformer} from '../suggestors'
 import {parseUri, launchCameraAsync, launchImageLibraryAsync} from '../../../../util/expo-image-picker'
 import {BotCommandUpdateStatus} from './shared'
 import {formatDurationShort} from '../../../../util/timestamp'
-import flags from '../../../../util/feature-flags'
 import AudioRecorder from '../../../audio/audio-recorder.native'
+import AudioStarter from '../../../audio/audio-starter.native'
 import {AmpTracker} from '../../../audio/amptracker'
 
 type menuType = 'exploding' | 'filepickerpopup' | 'moremenu'
@@ -329,6 +329,7 @@ const Action = React.memo((props: ActionProps) => {
             recording={Constants.showAudioRecording(audio)}
             enableRecording={onEnableAudioRecording}
             stopRecording={onStopAudioRecording}
+            iconStyle={styles.actionButton}
           />
           {smallGap}
           <Kb.Icon
