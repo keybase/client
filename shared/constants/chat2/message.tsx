@@ -706,10 +706,7 @@ export const previewSpecs = (
     res.height = preview.image.height
     res.width = preview.image.width
     const isAudio =
-      full &&
-      full.assetType === RPCChatTypes.AssetMetadataType.video &&
-      preview.video &&
-      preview.video.isAudio
+      full && full.assetType === RPCChatTypes.AssetMetadataType.video && full.video && full.video.isAudio
     if (isAudio) {
       res.attachmentType = 'audio'
     } else {
