@@ -4,32 +4,41 @@ import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
 import * as AutoresetGen from '../../../actions/autoreset-gen'
 import * as AutoresetConstants from '../../../constants/autoreset'
+import * as RecoverPasswordGen from '../../../actions/recover-password-gen'
+import * as RPCTypes from '../../../constants/types/rpc-gen'
 import {SignupScreen, InfoIcon} from '../../../signup/common'
 import {ButtonType} from '../../../common-adapters/button'
 
-export type Props = {}
+export type Props = {
+  resetPassword?: boolean
+}
 
-const PromptReset = (_: Props) => {
+const PromptReset = (props: Props) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const skipPassword = Container.useSelector(state => state.autoreset.skipPassword)
   const error = Container.useSelector(state => state.autoreset.error)
+  const {resetPassword} = props
   const onContinue = React.useCallback(
     () =>
       dispatch(
-        skipPassword
+        resetPassword
+          ? RecoverPasswordGen.createSubmitResetPassword({
+              action: RPCTypes.ResetPromptResponse.confirmReset,
+            })
+          : skipPassword
           ? AutoresetGen.createResetAccount({})
           : nav.safeNavigateAppendPayload({path: ['resetKnowPassword'], replace: true})
       ),
-    [dispatch, skipPassword, nav]
+    [dispatch, skipPassword, resetPassword, nav]
   )
   const onBack = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [dispatch, nav])
-  const title = skipPassword ? 'Recover password' : 'Account reset'
+  const title = props.resetPassword ? 'Reset password' : skipPassword ? 'Recover password' : 'Account reset'
   return (
     <SignupScreen
       buttons={[
         {
-          label: 'Start account reset',
+          label: props.resetPassword ? 'Send a link' : 'Start account reset',
           onClick: onContinue,
           type: 'Default' as ButtonType,
           waitingKey: AutoresetConstants.enterPipelineWaitingKey,
@@ -56,17 +65,29 @@ const PromptReset = (_: Props) => {
         style={styles.topGap}
       >
         <Kb.Icon type="iconfont-skull" sizeType="Big" color={Styles.globalColors.black} />
-        <Kb.Text type="Body" center={true} style={styles.main}>
-          If you have lost all of your devices, or if you logged out or uninstalled Keybase from all of them
-          and forgot your password, you can reset your account.
-        </Kb.Text>
-        <Kb.Text type="Body" center={true} style={styles.main}>
-          You will keep your username but{' '}
-          <Kb.Text type="BodyBold">
-            lose all your data (chat, files, git repos) and be removed from teams.
-          </Kb.Text>{' '}
-          Teams for which you were the last admin or owner will be lost forever.
-        </Kb.Text>
+        {props.resetPassword ? (
+          <Kb.Text type="Body" center={true} style={styles.main}>
+            If you have forgotten your password you can reset it here. You will keep your username, but{' '}
+            <Kb.Text type="BodyBold">
+              lose all your encrypted data, including all of your uploaded private PGP keys
+            </Kb.Text>
+            .
+          </Kb.Text>
+        ) : (
+          <>
+            <Kb.Text type="Body" center={true} style={styles.main}>
+              If you have lost all of your devices, or if you logged out or uninstalled Keybase from all of
+              them and forgot your password, you can reset your account.
+            </Kb.Text>
+            <Kb.Text type="Body" center={true} style={styles.main}>
+              You will keep your username but{' '}
+              <Kb.Text type="BodyBold">
+                lose all your data (chat, files, git repos) and be removed from teams.
+              </Kb.Text>{' '}
+              Teams for which you were the last admin or owner will be lost forever.
+            </Kb.Text>
+          </>
+        )}
       </Kb.Box2>
     </SignupScreen>
   )
@@ -97,4 +118,5 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
 }))
 
-export default PromptReset
+export const PromptResetAccount = () => <PromptReset />
+export const PromptResetPassword = () => <PromptReset resetPassword={true} />

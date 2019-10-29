@@ -301,6 +301,9 @@ type KBFSOps interface {
 	// and new top-level folders.  This is a remote-access operation when the
 	// cache is empty or expired.
 	GetFavoritesAll(ctx context.Context) (keybase1.FavoritesResult, error)
+	// GetBadge returns the overall KBFS badge state for this device.
+	// It's cheaper than the other favorites methods.
+	GetBadge(ctx context.Context) (keybase1.FilesTabBadge, error)
 	// RefreshCachedFavorites tells the instances to forget any cached
 	// favorites list and fetch a new list from the server.  The
 	// effects are asychronous; if there's an error refreshing the
