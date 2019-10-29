@@ -2179,14 +2179,15 @@ func (n *NotifyRouter) HandleTeambotEKNeeded(ctx context.Context, teamID keybase
 }
 
 func (n *NotifyRouter) HandleNewTeambotKey(ctx context.Context, teamID keybase1.TeamID,
-	generation keybase1.TeambotKeyGeneration) {
+	app keybase1.TeamApplication, generation keybase1.TeambotKeyGeneration) {
 	if n == nil {
 		return
 	}
 
 	arg := keybase1.NewTeambotKeyArg{
-		Id:         teamID,
-		Generation: generation,
+		Id:          teamID,
+		Application: app,
+		Generation:  generation,
 	}
 
 	var wg sync.WaitGroup
@@ -2212,15 +2213,16 @@ func (n *NotifyRouter) HandleNewTeambotKey(ctx context.Context, teamID keybase1.
 }
 
 func (n *NotifyRouter) HandleTeambotKeyNeeded(ctx context.Context, teamID keybase1.TeamID,
-	botUID keybase1.UID, generation keybase1.TeambotKeyGeneration) {
+	botUID keybase1.UID, app keybase1.TeamApplication, generation keybase1.TeambotKeyGeneration) {
 	if n == nil {
 		return
 	}
 
 	arg := keybase1.TeambotKeyNeededArg{
-		Id:         teamID,
-		Uid:        botUID,
-		Generation: generation,
+		Id:          teamID,
+		Application: app,
+		Uid:         botUID,
+		Generation:  generation,
 	}
 
 	var wg sync.WaitGroup

@@ -180,11 +180,11 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.NotifyTeambot.newTeambotKey': {
-    inParam: {readonly id: TeamID; readonly generation: TeambotKeyGeneration}
+    inParam: {readonly id: TeamID; readonly generation: TeambotKeyGeneration; readonly application: TeamApplication}
     outParam: void
   }
   'keybase.1.NotifyTeambot.teambotKeyNeeded': {
-    inParam: {readonly id: TeamID; readonly uid: UID; readonly generation: TeambotKeyGeneration}
+    inParam: {readonly id: TeamID; readonly uid: UID; readonly generation: TeambotKeyGeneration; readonly application: TeamApplication}
     outParam: void
   }
   'keybase.1.NotifyTracking.trackingChanged': {
@@ -2922,7 +2922,7 @@ export type TeambotEkMetadata = {readonly kid: KID; readonly generation: EkGener
 export type TeambotKey = {readonly seed: Bytes32; readonly metadata: TeambotKeyMetadata}
 export type TeambotKeyBoxed = {readonly box: String; readonly metadata: TeambotKeyMetadata}
 export type TeambotKeyGeneration = Int64
-export type TeambotKeyMetadata = {readonly kid: KID; readonly generation: TeambotKeyGeneration; readonly uid: UID; readonly pukGeneration: PerUserKeyGeneration}
+export type TeambotKeyMetadata = {readonly kid: KID; readonly generation: TeambotKeyGeneration; readonly uid: UID; readonly pukGeneration: PerUserKeyGeneration; readonly application: TeamApplication}
 export type Test = {readonly reply: String}
 export type Text = {readonly data: String; readonly markup: Boolean}
 export type Time = Long
