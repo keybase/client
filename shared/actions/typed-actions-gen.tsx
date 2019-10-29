@@ -584,6 +584,8 @@ export type TypedActionsMap = {
   'fs:loadedFileContext': fs.LoadedFileContextPayload
   'fs:loadAdditionalTlf': fs.LoadAdditionalTlfPayload
   'fs:loadedAdditionalTlf': fs.LoadedAdditionalTlfPayload
+  'fs:loadFilesTabBadge': fs.LoadFilesTabBadgePayload
+  'fs:loadedFilesTabBadge': fs.LoadedFilesTabBadgePayload
   'fs:setDebugLevel': fs.SetDebugLevelPayload
   'git:loadGit': git.LoadGitPayload
   'git:loaded': git.LoadedPayload
@@ -705,6 +707,10 @@ export type TypedActionsMap = {
   'recover-password:abortPaperKey': recoverpassword.AbortPaperKeyPayload
   'recover-password:setPasswordError': recoverpassword.SetPasswordErrorPayload
   'recover-password:submitPassword': recoverpassword.SubmitPasswordPayload
+  'recover-password:promptResetPassword': recoverpassword.PromptResetPasswordPayload
+  'recover-password:submitResetPassword': recoverpassword.SubmitResetPasswordPayload
+  'recover-password:completeResetPassword': recoverpassword.CompleteResetPasswordPayload
+  'recover-password:resetResetPasswordState': recoverpassword.ResetResetPasswordStatePayload
   'recover-password:displayError': recoverpassword.DisplayErrorPayload
   'route-tree:navigateAppend': routetree.NavigateAppendPayload
   'route-tree:navigateUp': routetree.NavigateUpPayload

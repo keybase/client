@@ -3,6 +3,6 @@ protocol NotifyTeambot {
   import idl "common.avdl";
 
   @notify("")
-  void newTeambotKey(TeamID id, TeambotKeyGeneration generation);
-  void teambotKeyNeeded(TeamID id, UID uid, TeambotKeyGeneration generation);
+  void newTeambotKey(TeamID id, TeambotKeyGeneration generation, TeamApplication application);
+  void teambotKeyNeeded(TeamID id, UID uid, TeambotKeyGeneration generation, TeamApplication application);
 }

@@ -841,8 +841,11 @@ file and chat data, and any unbacked-up wallet funds. Any teams you were the
 only owner or admin of will be orphaned and unrecoverable.`
 	case keybase1.ResetPromptType_ENTER_FORGOT_PW:
 		msg = `If you have forgotten your password and either lost all of your devices, or if you
-uninstalled Keybase from all of them, you can reset your account. You will keep your username,
-but lose all your data.`
+uninstalled Keybase from all of them, you can reset your account. You will keep
+your username, but lose all your data.
+
+If you don't know your password and don't have an email or phone number in your
+account, you won't be able to reset.`
 	case keybase1.ResetPromptType_ENTER_RESET_PW:
 		msg = `If you have forgotten your password you can reset your password. You will keep your
 username, but lose all your data, including all of your uploaded encrypted PGP keys.`

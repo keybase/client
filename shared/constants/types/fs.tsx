@@ -600,6 +600,7 @@ export type FileContext = {
 }
 
 export type State = {
+  badge: RPCTypes.FilesTabBadge
   destinationPicker: DestinationPicker
   downloads: Downloads
   edits: Edits

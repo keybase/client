@@ -78,6 +78,7 @@ class FloatingBox extends React.Component<Props, State> {
         targetRect={this.state.targetRect}
         matchDimension={!!this.props.matchDimension}
         onClosePopup={this._onHidden}
+        remeasureHint={this.props.remeasureHint}
         propagateOutsideClicks={this.props.propagateOutsideClicks}
         style={this.props.containerStyle}
       >

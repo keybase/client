@@ -30,9 +30,9 @@ func getTeamCryptKey(mctx libkb.MetaContext, team *teams.Team, generation keybas
 		}
 		keyer := mctx.G().GetTeambotBotKeyer()
 		if forEncryption {
-			return keyer.GetLatestTeambotKey(mctx, team.ID)
+			return keyer.GetLatestTeambotKey(mctx, team.ID, keybase1.TeamApplication_CHAT)
 		}
-		return keyer.GetTeambotKeyAtGeneration(mctx, team.ID, keybase1.TeambotKeyGeneration(generation))
+		return keyer.GetTeambotKeyAtGeneration(mctx, team.ID, keybase1.TeamApplication_CHAT, keybase1.TeambotKeyGeneration(generation))
 	}
 
 	if kbfsEncrypted {
