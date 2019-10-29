@@ -7,4 +7,7 @@ const Deferred = () => {
   return everFocused ? <Inbox /> : <Kb.NavigationEvents onWillFocus={() => setEverFocused(true)} />
 }
 
+// @ts-ignore TS doesn't understand hoisting
+Deferred.navigationOptions = Inbox.navigationOptions
+
 export default Deferred
