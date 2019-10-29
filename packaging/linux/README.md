@@ -46,9 +46,8 @@ If you want to test the build without pushing live, set `KEYBASE_DRY_RUN=1` in
 the environment. Be very careful not to typo that variable. You should see
 "This build+push is a DRY RUN." after all the git fetches in the build output,
 if you did this right. A dry run will push the package to the s3 bucket
-jack-testing.keybase.io, but this is not exposed on the internet.  You
-could copy the repo to somewhere in prerelease.keybase.io to test a `yum
-install`, for example.
+tests.keybase.io.  You could copy the repo to somewhere in
+prerelease.keybase.io to test a `yum install`, for example.
 
 To make a nightly build, add `KEYBASE_NIGHTLY=1` to the environment.
 
