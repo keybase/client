@@ -42,6 +42,7 @@ export const loadAdditionalTlf = 'fs:loadAdditionalTlf'
 export const loadDownloadInfo = 'fs:loadDownloadInfo'
 export const loadDownloadStatus = 'fs:loadDownloadStatus'
 export const loadFileContext = 'fs:loadFileContext'
+export const loadFilesTabBadge = 'fs:loadFilesTabBadge'
 export const loadPathInfo = 'fs:loadPathInfo'
 export const loadPathMetadata = 'fs:loadPathMetadata'
 export const loadSettings = 'fs:loadSettings'
@@ -50,6 +51,7 @@ export const loadedAdditionalTlf = 'fs:loadedAdditionalTlf'
 export const loadedDownloadInfo = 'fs:loadedDownloadInfo'
 export const loadedDownloadStatus = 'fs:loadedDownloadStatus'
 export const loadedFileContext = 'fs:loadedFileContext'
+export const loadedFilesTabBadge = 'fs:loadedFilesTabBadge'
 export const loadedPathInfo = 'fs:loadedPathInfo'
 export const move = 'fs:move'
 export const newFolderName = 'fs:newFolderName'
@@ -158,6 +160,7 @@ type _LoadAdditionalTlfPayload = {readonly tlfPath: Types.Path}
 type _LoadDownloadInfoPayload = {readonly downloadID: string}
 type _LoadDownloadStatusPayload = void
 type _LoadFileContextPayload = {readonly path: Types.Path}
+type _LoadFilesTabBadgePayload = void
 type _LoadPathInfoPayload = {readonly path: Types.Path}
 type _LoadPathMetadataPayload = {readonly path: Types.Path}
 type _LoadSettingsPayload = void
@@ -169,6 +172,7 @@ type _LoadedDownloadStatusPayload = {
   readonly state: Map<string, Types.DownloadState>
 }
 type _LoadedFileContextPayload = {readonly path: Types.Path; readonly fileContext: Types.FileContext}
+type _LoadedFilesTabBadgePayload = {readonly badge: RPCTypes.FilesTabBadge}
 type _LoadedPathInfoPayload = {readonly path: Types.Path; readonly pathInfo: Types.PathInfo}
 type _MovePayload = {readonly destinationParentPath: Types.Path}
 type _NewFolderNamePayload = {readonly editID: Types.EditID; readonly name: string}
@@ -361,6 +365,10 @@ export const createLoadFileContext = (payload: _LoadFileContextPayload): LoadFil
   payload,
   type: loadFileContext,
 })
+export const createLoadFilesTabBadge = (payload: _LoadFilesTabBadgePayload): LoadFilesTabBadgePayload => ({
+  payload,
+  type: loadFilesTabBadge,
+})
 export const createLoadPathInfo = (payload: _LoadPathInfoPayload): LoadPathInfoPayload => ({
   payload,
   type: loadPathInfo,
@@ -391,6 +399,9 @@ export const createLoadedFileContext = (payload: _LoadedFileContextPayload): Loa
   payload,
   type: loadedFileContext,
 })
+export const createLoadedFilesTabBadge = (
+  payload: _LoadedFilesTabBadgePayload
+): LoadedFilesTabBadgePayload => ({payload, type: loadedFilesTabBadge})
 export const createLoadedPathInfo = (payload: _LoadedPathInfoPayload): LoadedPathInfoPayload => ({
   payload,
   type: loadedPathInfo,
@@ -696,6 +707,10 @@ export type LoadFileContextPayload = {
   readonly payload: _LoadFileContextPayload
   readonly type: typeof loadFileContext
 }
+export type LoadFilesTabBadgePayload = {
+  readonly payload: _LoadFilesTabBadgePayload
+  readonly type: typeof loadFilesTabBadge
+}
 export type LoadPathInfoPayload = {readonly payload: _LoadPathInfoPayload; readonly type: typeof loadPathInfo}
 export type LoadPathMetadataPayload = {
   readonly payload: _LoadPathMetadataPayload
@@ -721,6 +736,10 @@ export type LoadedDownloadStatusPayload = {
 export type LoadedFileContextPayload = {
   readonly payload: _LoadedFileContextPayload
   readonly type: typeof loadedFileContext
+}
+export type LoadedFilesTabBadgePayload = {
+  readonly payload: _LoadedFilesTabBadgePayload
+  readonly type: typeof loadedFilesTabBadge
 }
 export type LoadedPathInfoPayload = {
   readonly payload: _LoadedPathInfoPayload
@@ -964,6 +983,7 @@ export type Actions =
   | LoadDownloadInfoPayload
   | LoadDownloadStatusPayload
   | LoadFileContextPayload
+  | LoadFilesTabBadgePayload
   | LoadPathInfoPayload
   | LoadPathMetadataPayload
   | LoadSettingsPayload
@@ -972,6 +992,7 @@ export type Actions =
   | LoadedDownloadInfoPayload
   | LoadedDownloadStatusPayload
   | LoadedFileContextPayload
+  | LoadedFilesTabBadgePayload
   | LoadedPathInfoPayload
   | MovePayload
   | NewFolderNamePayload

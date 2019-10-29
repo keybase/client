@@ -6,9 +6,11 @@ import * as Constants from '../constants/fs'
 import * as ChatConstants from '../constants/chat2'
 import * as Types from '../constants/types/fs'
 import * as Container from '../util/container'
+import * as RPCTypes from '../constants/types/rpc-gen'
 import {produce, Draft} from 'immer'
 
 const initialState: Types.State = {
+  badge: RPCTypes.FilesTabBadge.none,
   destinationPicker: {
     destinationParentPath: [],
     source: {
@@ -150,15 +152,19 @@ const updateTlf = (oldTlf: Types.Tlf | undefined, newTlf: Types.Tlf): Types.Tlf 
         }
         const copiedNewTlf = {...newTlf}
         const {conflictState, resetParticipants, syncConfig} = oldTlf
-        if (!isEqual(syncConfig, copiedNewTlf.syncConfig)) {
+
+        // Compare object fields in new vs old and override equal ones in
+        // newTlf with the old references to avoid updating.
+        if (isEqual(syncConfig, copiedNewTlf.syncConfig)) {
           copiedNewTlf.syncConfig = syncConfig
         }
-        if (!isEqual(resetParticipants, copiedNewTlf.resetParticipants)) {
+        if (isEqual(resetParticipants, copiedNewTlf.resetParticipants)) {
           copiedNewTlf.resetParticipants = resetParticipants
         }
-        if (!isEqual(conflictState, copiedNewTlf.conflictState)) {
+        if (isEqual(conflictState, copiedNewTlf.conflictState)) {
           copiedNewTlf.conflictState = conflictState
         }
+
         return copiedNewTlf
       })
     : newTlf
@@ -636,5 +642,8 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
         [action.payload.path, action.payload.fileContext],
       ])
     }
+  },
+  [FsGen.loadedFilesTabBadge]: (draftState, action) => {
+    draftState.badge = RPCTypes.FilesTabBadge.uploadingStuck || action.payload.badge
   },
 })

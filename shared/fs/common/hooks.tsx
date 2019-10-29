@@ -196,3 +196,12 @@ export const useFsWatchDownloadForMobile = isMobile
       }, [finished, mimeType, downloadID, downloadIntent, dispatch])
     }
   : () => {}
+
+export const useFsBadge = (): RPCTypes.FilesTabBadge => {
+  useFsNonPathSubscriptionEffect(RPCTypes.SubscriptionTopic.filesTabBadge)
+  const dispatch = useDispatchWhenConnected()
+  React.useEffect(() => {
+    dispatch(FsGen.createLoadFilesTabBadge())
+  }, [dispatch])
+  return Container.useSelector(state => state.fs.badge)
+}
