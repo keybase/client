@@ -2090,6 +2090,33 @@ const attachmentPasted = async (_: TypedState, action: Chat2Gen.AttachmentPasted
   })
 }
 
+const createAudioPreview = async (
+  state: TypedState,
+  action: Chat2Gen.CreateAudioPreviewPayload,
+  logger: Saga.SagaLogger
+) => {
+  const conversationIDKey = action.payload.conversationIDKey
+  const audioRecording = state.chat2.audioRecording.get(conversationIDKey)
+  if (!audioRecording) {
+    logger.info('createAudioPreview: no audio info, bailing')
+    return false
+  }
+  let callerPreview: RPCChatTypes.MakePreviewRes | null = null
+  try {
+    callerPreview = await RPCChatTypes.localMakeAudioPreviewRpcPromise({
+      amps: audioRecording.amps,
+      duration: Constants.audioRecordingDuration(audioRecording),
+    })
+  } catch (e) {
+    logger.info('createAudioPreview: failed to create preview')
+    return false
+  }
+
+  return callerPreview
+    ? Chat2Gen.createSetAudioRecordingPreview({conversationIDKey, preview: callerPreview})
+    : false
+}
+
 const sendAudioRecording = async (
   state: TypedState,
   action: Chat2Gen.SendAudioRecordingPayload,
@@ -2112,11 +2139,11 @@ const sendAudioRecording = async (
     return
   }
 
-  let callerPreview: RPCChatTypes.MakePreviewRes | null = null
-  if (audioRecording.amps.length > 0) {
+  let callerPreview: RPCChatTypes.MakePreviewRes | undefined = audioRecording.preview
+  if (!callerPreview && audioRecording.amps.length > 0) {
     callerPreview = await RPCChatTypes.localMakeAudioPreviewRpcPromise({
       amps: audioRecording.amps,
-      duration: action.payload.duration,
+      duration: Constants.audioRecordingDuration(audioRecording),
     })
   }
   const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
@@ -3676,6 +3703,7 @@ function* chat2Saga() {
   yield* Saga.chainAction2(Chat2Gen.selectConversation, fetchConversationBio)
 
   yield* Saga.chainAction2(Chat2Gen.sendAudioRecording, sendAudioRecording, 'sendAudioRecording')
+  yield* Saga.chainAction2(Chat2Gen.createAudioPreview, createAudioPreview, 'createAudioVis')
 
   yield* Saga.chainAction2(EngineGen.connected, onConnect, 'onConnect')
 

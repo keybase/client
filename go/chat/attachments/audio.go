@@ -26,8 +26,8 @@ func newAudioVisualizer(amps []float64) *audioVisualizer {
 		amps:        amps,
 		bkgColor:    color.White,
 		strokeColor: color.Black,
-		strokeWidth: 1,
-		strokeGap:   1,
+		strokeWidth: 2,
+		strokeGap:   2,
 		height:      64,
 		minAmp:      -80,
 	}

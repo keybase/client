@@ -4,6 +4,9 @@ import * as Container from '../../util/container'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import * as Constants from '../../constants/chat2'
+import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
+import AudioPlayer from './audio-player'
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
@@ -12,6 +15,10 @@ type Props = {
 const AudioSend = (props: Props) => {
   // props
   const {conversationIDKey} = props
+  // state
+  const {audioRecording} = Container.useSelector(state => ({
+    audioRecording: state.chat2.audioRecording.get(conversationIDKey),
+  }))
   // dispatch
   const dispatch = Container.useDispatch()
   const onCancel = () => {
@@ -20,11 +27,45 @@ const AudioSend = (props: Props) => {
   const onSend = () => {
     dispatch(Chat2Gen.createSendAudioRecording({conversationIDKey}))
   }
+  const loadVis = () => {
+    dispatch(Chat2Gen.createCreateAudioPreview({conversationIDKey}))
+  }
+  // lifecycle
+  React.useEffect(() => {
+    loadVis()
+  }, [])
 
   // render
+  let player = <Kb.Text type="Body">No recording available</Kb.Text>
+  if (audioRecording) {
+    let vis = ''
+    if (audioRecording.preview) {
+      vis =
+        audioRecording.preview.location &&
+        audioRecording.preview.location.ltyp === RPCChatTypes.PreviewLocationTyp.bytes
+          ? audioRecording.preview.location.bytes.toString('base64')
+          : ''
+      const specs = Constants.previewSpecs(audioRecording.preview.metadata || null, null)
+      const audioUrl = `file://${audioRecording.path}`
+      player = (
+        <AudioPlayer
+          duration={Constants.audioRecordingDuration(audioRecording)}
+          url={audioUrl}
+          visBytes={vis}
+          visHeight={specs.height}
+          visWidth={specs.width}
+        />
+      )
+    } else {
+      player = <Kb.ProgressIndicator />
+    }
+  }
   return (
     <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true}>
-      <Kb.Icon type="iconfont-remove" fontSize={22} onClick={onCancel} />
+      <Kb.Box2 direction="horizontal" gap="medium" alignItems="center">
+        <Kb.Icon type="iconfont-remove" fontSize={22} onClick={onCancel} />
+        {player}
+      </Kb.Box2>
       <Kb.Button type="Default" small={true} style={styles.send} onClick={onSend} label="Send" />
     </Kb.Box2>
   )
@@ -37,8 +78,7 @@ const styles = Styles.styleSheetCreate(() => ({
     borderTopColor: Styles.globalColors.black_10,
     borderTopWidth: 1,
     justifyContent: 'space-between',
-    paddingLeft: Styles.globalMargins.tiny,
-    paddingRight: Styles.globalMargins.tiny,
+    padding: Styles.globalMargins.tiny,
   },
   send: {
     alignSelf: 'flex-end',

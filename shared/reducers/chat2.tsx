@@ -598,6 +598,7 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         audio.set(action.payload.conversationIDKey, {
           ...info,
           amps: action.payload.amps || [],
+          recordEnd: Constants.isStoppedAudioRecordingStatus(nextStatus) ? Date.now() : undefined,
           status: nextStatus,
         })
         draftState.audioRecording = audio
@@ -631,6 +632,19 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
           ...(audio.get(action.payload.conversationIDKey) || Constants.makeAudioRecordingInfo()),
           outboxID: action.payload.outboxID,
           path: action.payload.path,
+        })
+        draftState.audioRecording = audio
+        return
+      }
+      case Chat2Gen.setAudioRecordingPreview: {
+        const audio = new Map(draftState.audioRecording)
+        const info = audio.get(action.payload.conversationIDKey)
+        if (!info) {
+          return
+        }
+        audio.set(action.payload.conversationIDKey, {
+          ...info,
+          preview: action.payload.preview,
         })
         draftState.audioRecording = audio
         return
@@ -1848,6 +1862,7 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
       case Chat2Gen.pinMessage:
       case Chat2Gen.unpinMessage:
       case Chat2Gen.ignorePinnedMessage:
+      case Chat2Gen.createAudioPreview:
         return
     }
   })

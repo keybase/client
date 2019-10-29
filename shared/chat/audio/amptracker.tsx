@@ -4,7 +4,7 @@ export class AmpTracker {
   private numBuckets: number
   private buckets: Array<number> = []
   constructor(numBuckets: number) {
-    this.numBuckets = numBuckets
+    this.numBuckets = numBuckets / 2
   }
 
   addAmp = (amp: number) => {

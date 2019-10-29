@@ -130,6 +130,18 @@ export const showAudioRecording = (audioRecording: Types.AudioRecordingInfo | un
   )
 }
 
+export const isStoppedAudioRecordingStatus = (status: Types.AudioRecordingStatus) => {
+  return (
+    status === Types.AudioRecordingStatus.STOPPED ||
+    status === Types.AudioRecordingStatus.STAGED ||
+    status === Types.AudioRecordingStatus.CANCELLED
+  )
+}
+
+export const audioRecordingDuration = (audioRecording: Types.AudioRecordingInfo) => {
+  return (audioRecording.recordEnd || audioRecording.recordStart) - audioRecording.recordStart
+}
+
 export const isCancelledAudioRecording = (audioRecording: Types.AudioRecordingInfo | undefined) => {
   return audioRecording && audioRecording.status === Types.AudioRecordingStatus.CANCELLED
 }

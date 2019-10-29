@@ -130,9 +130,11 @@ export type AudioRecordingInfo = {
   status: AudioRecordingStatus
   outboxID: Buffer
   path: string
+  recordEnd?: number
   recordStart: number
   isLocked: boolean
   amps: Array<number>
+  preview?: RPCChatTypes.MakePreviewRes
 }
 
 export type State = Readonly<{

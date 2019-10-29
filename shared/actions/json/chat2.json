@@ -784,13 +784,19 @@
       "conversationIDKey": "Types.ConversationIDKey"
     },
     "sendAudioRecording": {
-      "conversationIDKey": "Types.ConversationIDKey",
-      "duration": "number"
+      "conversationIDKey": "Types.ConversationIDKey"
     },
     "setAudioRecordingPostInfo": {
       "conversationIDKey": "Types.ConversationIDKey",
       "path": "string",
       "outboxID": "Buffer"
+    },
+    "createAudioPreview": {
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "setAudioRecordingPreview": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "preview": "RPCChatTypes.MakePreviewRes"
     }
   }
 }
