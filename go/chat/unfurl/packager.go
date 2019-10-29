@@ -6,11 +6,9 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"net/url"
-	"os"
-	"runtime"
 	"strings"
 
+	"github.com/keybase/client/go/avatars"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
 
@@ -25,7 +23,6 @@ import (
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
-	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 type Packager struct {
@@ -281,33 +278,9 @@ func (p *Packager) packageMaps(ctx context.Context, uid gregor1.UID, convID chat
 
 	// load user avatar for fancy maps
 	username := p.G().ExternalG().GetEnv().GetUsername().String()
-	avMap, err := p.G().ExternalG().GetAvatarLoader().LoadUsers(libkb.NewMetaContext(ctx, p.G().ExternalG()), []string{username}, []keybase1.AvatarFormat{"square_192"})
+	avatarReader, _, err := avatars.GetBorderedCircleAvatar(p.G(), ctx, username, 128, 10)
 	if err != nil {
 		return res, err
-	}
-	avatarURL := avMap.Picmap[username]["square_192"].String()
-
-	var avatarReader io.ReadCloser
-	parsed, err := url.Parse(avatarURL)
-	if err != nil {
-		return res, err
-	}
-	switch parsed.Scheme {
-	case "http", "https":
-		avResp, err := libkb.ProxyHTTPGet(p.G().GetEnv(), avatarURL)
-		if err != nil {
-			return res, err
-		}
-		avatarReader = avResp.Body
-	case "file":
-		filePath := parsed.Path
-		if runtime.GOOS == "windows" && len(filePath) > 0 { // do we need this since this is only ever going to run on mobile
-			filePath = filePath[1:]
-		}
-		avatarReader, err = os.Open(filePath)
-		if err != nil {
-			return res, err
-		}
 	}
 
 	// load map
@@ -325,11 +298,11 @@ func (p *Packager) packageMaps(ctx context.Context, uid gregor1.UID, convID chat
 			return res, err
 		}
 		defer liveReader.Close()
-		if reader, length, err = maps.DecorateMap(ctx, avatarReader, liveReader, 128); err != nil {
+		if reader, length, err = maps.DecorateMap(ctx, avatarReader, liveReader); err != nil {
 			return res, err
 		}
 	} else {
-		if reader, length, err = maps.DecorateMap(ctx, avatarReader, locReader, 128); err != nil {
+		if reader, length, err = maps.DecorateMap(ctx, avatarReader, locReader); err != nil {
 			return res, err
 		}
 	}

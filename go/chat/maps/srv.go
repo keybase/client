@@ -5,13 +5,10 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
-	"os"
-	"runtime"
 	"strconv"
 
+	"github.com/keybase/client/go/avatars"
 	"github.com/keybase/client/go/chat/globals"
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 
 	"github.com/keybase/client/go/kbhttp/manager"
@@ -83,35 +80,13 @@ func (s *Srv) serve(w http.ResponseWriter, req *http.Request) {
 
 	var reader io.ReadCloser
 	if username != "" {
-		avMap, err := s.G().GetAvatarLoader().LoadUsers(libkb.NewMetaContext(ctx, s.G().ExternalG()), []string{username}, []keybase1.AvatarFormat{"square_192"})
+		avatarReader, _, err := avatars.GetBorderedCircleAvatar(s.G(), ctx, username, 128, 10)
 		if err != nil {
+			s.makeError(w, http.StatusInternalServerError, "unable to get avatar: %s", err)
 			return
 		}
-		avatarURL := avMap.Picmap[username]["square_192"].String()
 
-		var avatarReader io.ReadCloser
-		parsed, err := url.Parse(avatarURL)
-		if err != nil {
-			return
-		}
-		switch parsed.Scheme {
-		case "http", "https":
-			avResp, err := libkb.ProxyHTTPGet(s.G().GetEnv(), avatarURL)
-			if err != nil {
-				return
-			}
-			avatarReader = avResp.Body
-		case "file":
-			filePath := parsed.Path
-			if runtime.GOOS == "windows" && len(filePath) > 0 {
-				filePath = filePath[1:]
-			}
-			avatarReader, err = os.Open(filePath)
-			if err != nil {
-				return
-			}
-		}
-		fancyReader, _, err := DecorateMap(ctx, avatarReader, mapReader, 128)
+		fancyReader, _, err := DecorateMap(ctx, avatarReader, mapReader)
 		if err != nil {
 			s.makeError(w, http.StatusInternalServerError, "unable to decorate map: %s", err)
 			return

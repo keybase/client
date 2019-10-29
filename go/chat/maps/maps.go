@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"image"
-	"image/color"
 	"image/png"
 	"io"
 	"io/ioutil"
@@ -106,14 +105,12 @@ func MapReaderFromURL(ctx context.Context, url string) (res io.ReadCloser, lengt
 	return resp.Body, resp.ContentLength, nil
 }
 
-func DecorateMap(ctx context.Context, avatarReader, mapReader io.Reader, avatarSize int) (res io.ReadCloser, length int64, err error) {
+func DecorateMap(ctx context.Context, avatarReader, mapReader io.Reader) (res io.ReadCloser, length int64, err error) {
 	avatarImg, _, err := image.Decode(avatarReader)
 	if err != nil {
 		return res, length, err
 	}
-	scaledAvatar := image.NewRGBA(image.Rect(0, 0, avatarSize, avatarSize))
-	draw.BiLinear.Scale(scaledAvatar, scaledAvatar.Bounds(), avatarImg, avatarImg.Bounds(), draw.Over, nil)
-	avatarRadius := avatarSize / 2
+	avatarRadius := avatarImg.Bounds().Dx() / 2
 
 	mapPng, err := png.Decode(mapReader)
 	if err != nil {
@@ -123,12 +120,10 @@ func DecorateMap(ctx context.Context, avatarReader, mapReader io.Reader, avatarS
 
 	middle := image.Point{bounds.Max.X / 2, bounds.Max.Y / 2}
 	iconRect := image.Rect(middle.X-avatarRadius, middle.Y-avatarRadius, middle.X+avatarRadius, middle.Y+avatarRadius)
-	mask := &circle{image.Point{avatarRadius, avatarRadius}, avatarRadius}
 
 	decorated := image.NewRGBA(bounds)
 	draw.Draw(decorated, bounds, mapPng, image.ZP, draw.Src)
-	draw.Draw(decorated, bounds, &circle{middle, avatarRadius + 10}, image.ZP, draw.Over)
-	draw.DrawMask(decorated, iconRect, scaledAvatar, image.ZP, mask, image.ZP, draw.Over)
+	draw.Draw(decorated, iconRect, avatarImg, image.ZP, draw.Over)
 
 	var buf bytes.Buffer
 	err = png.Encode(&buf, decorated)
@@ -136,25 +131,4 @@ func DecorateMap(ctx context.Context, avatarReader, mapReader io.Reader, avatarS
 		return res, length, err
 	}
 	return ioutil.NopCloser(bytes.NewReader(buf.Bytes())), int64(buf.Len()), nil
-}
-
-type circle struct {
-	p image.Point
-	r int
-}
-
-func (c *circle) ColorModel() color.Model {
-	return color.AlphaModel
-}
-
-func (c *circle) Bounds() image.Rectangle {
-	return image.Rect(c.p.X-c.r, c.p.Y-c.r, c.p.X+c.r, c.p.Y+c.r)
-}
-
-func (c *circle) At(x, y int) color.Color {
-	xx, yy, rr := float64(x-c.p.X)+1, float64(y-c.p.Y)+1, float64(c.r)
-	if xx*xx+yy*yy < rr*rr {
-		return color.Alpha{255}
-	}
-	return color.Alpha{0}
 }
