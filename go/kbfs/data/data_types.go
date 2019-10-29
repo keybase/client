@@ -378,6 +378,7 @@ const (
 
 	branchRevPrefix           = "rev="
 	branchLocalConflictPrefix = "localConflict="
+	branchLocalStoragePrefix  = "localStorage="
 )
 
 // MakeRevBranchName returns a branch name specifying an archive
@@ -397,6 +398,13 @@ func MakeConflictBranchName(h *tlfhandle.Handle) (BranchName, bool) {
 		branchLocalConflictPrefix + h.ConflictInfo().String()), true
 }
 
+// MakeLocalStorageBranchName returns a branch name specifying that
+// data for the folder shouldn't be flushed to the server, but instead
+// to the provided local storage path.
+func MakeLocalStorageBranchName(path string) BranchName {
+	return BranchName(branchLocalStoragePrefix + path)
+}
+
 // IsArchived returns true if the branch specifies an archived revision.
 func (bn BranchName) IsArchived() bool {
 	return strings.HasPrefix(string(bn), branchRevPrefix)
@@ -405,6 +413,12 @@ func (bn BranchName) IsArchived() bool {
 // IsLocalConflict returns true if the branch specifies a local conflict branch.
 func (bn BranchName) IsLocalConflict() bool {
 	return strings.HasPrefix(string(bn), branchLocalConflictPrefix)
+}
+
+// IsLocalStorage returns true if the branch specifies a local storage
+// branch.
+func (bn BranchName) IsLocalStorage() bool {
+	return strings.HasPrefix(string(bn), branchLocalStoragePrefix)
 }
 
 // RevisionIfSpecified returns a valid revision number and true if
@@ -420,6 +434,16 @@ func (bn BranchName) RevisionIfSpecified() (kbfsmd.Revision, bool) {
 	}
 
 	return kbfsmd.Revision(i), true
+}
+
+// LocalStorageIfSpecified returns a local storage path and true if
+// `bn` is a local storage branch.
+func (bn BranchName) LocalStorageIfSpecified() (string, bool) {
+	if !bn.IsLocalStorage() {
+		return "", false
+	}
+
+	return string(bn[len(branchLocalStoragePrefix):]), true
 }
 
 // FolderBranch represents a unique pair of top-level folder and a
