@@ -19,12 +19,11 @@ import Text from './text'
 import WithTooltip from './with-tooltip'
 import DelayedMounting from './delayed-mounting'
 import FollowButton from '../profile/user/actions/follow-button'
-import ChatButton from './chat-button'
+import ChatButton from '../chat/chat-button'
 
 const Kb = {
   Box,
   Box2,
-  ChatButton,
   ClickableBox,
   ConnectedNameWithIcon,
   FloatingMenu,
@@ -231,7 +230,7 @@ const ProfileCard = ({
             style={styles.button}
           />
         ))}
-      <Kb.ChatButton small={true} style={styles.button} username={username} />
+      <ChatButton small={true} style={styles.button} username={username} />
     </Kb.Box2>
   )
 }

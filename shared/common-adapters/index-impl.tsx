@@ -41,9 +41,6 @@ module.exports = {
   get ButtonBar() {
     return require('./button-bar').default
   },
-  get ChatButton() {
-    return require('./chat-button').default
-  },
   get Checkbox() {
     return require('./checkbox').default
   },

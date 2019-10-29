@@ -4,6 +4,7 @@ import * as React from 'react'
 import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/tracker2'
 import FollowButton from './follow-button'
+import ChatButton from '../../../chat/chat-button'
 
 type Props = {
   followThem: boolean
@@ -56,7 +57,7 @@ const Actions = (p: Props) => {
     />
   )
 
-  const chatButton = <Kb.ChatButton username={p.username} />
+  const chatButton = <ChatButton username={p.username} />
 
   if (p.state === 'notAUserYet') {
     buttons = [

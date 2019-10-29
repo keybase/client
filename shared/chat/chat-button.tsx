@@ -4,13 +4,7 @@ import * as Chat2Gen from '../actions/chat2-gen'
 import * as ConfigGen from '../actions/config-gen'
 import * as Container from '../util/container'
 import * as Styles from '../styles'
-import Icon from './icon'
-import WaitingButton from './waiting-button'
-
-const Kb = {
-  Icon,
-  WaitingButton,
-}
+import * as Kb from '../common-adapters'
 
 type Props = {
   small?: boolean
