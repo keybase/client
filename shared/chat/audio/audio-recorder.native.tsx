@@ -1,12 +1,12 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import * as React from 'react'
-import * as Kb from '../../../../common-adapters/mobile.native'
-import * as Types from '../../../../constants/types/chat2'
-import * as Constants from '../../../../constants/chat2'
-import * as Styles from '../../../../styles'
-import * as Container from '../../../../util/container'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
-import {formatAudioRecordDuration} from '../../../../util/timestamp'
+import * as Kb from '../../common-adapters/mobile.native'
+import * as Types from '../../constants/types/chat2'
+import * as Constants from '../../constants/chat2'
+import * as Styles from '../../styles'
+import * as Container from '../../util/container'
+import * as Chat2Gen from '../../actions/chat2-gen'
+import {formatAudioRecordDuration} from '../../util/timestamp'
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
