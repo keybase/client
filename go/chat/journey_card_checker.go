@@ -197,6 +197,7 @@ func (cc *JourneyCardChecker) PickCard(ctx context.Context, uid gregor1.UID,
 				}
 			}
 		}
+	msgscan:
 		for _, msg := range thread.Messages {
 			state, err := msg.State()
 			if err != nil {
@@ -235,7 +236,7 @@ func (cc *JourneyCardChecker) PickCard(ctx context.Context, uid gregor1.UID,
 				// If there's something in the outbox, don't show this card.
 				eligibleMsg = 0
 				preventerMsg = 9999
-				break
+				break msgscan
 			case chat1.MessageUnboxedState_PLACEHOLDER:
 				save(msg.Placeholder().MessageID, false)
 			case chat1.MessageUnboxedState_JOURNEYCARD:
