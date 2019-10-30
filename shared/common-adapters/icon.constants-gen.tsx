@@ -6964,6 +6964,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-block-user': {
+    charCode: 0xe9a4,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-bomb': {
     charCode: 0xe908,
     gridSize: 16,

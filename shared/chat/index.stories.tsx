@@ -21,9 +21,11 @@ import messages from './conversation/messages/index.stories'
 import thread from './conversation/list-area/normal/index.stories'
 import threadSearch from './conversation/search/index.stories'
 import typing from './conversation/input-area/normal/typing/index.stories'
+import blocking from './blocking/index.stories'
 
 const load = () => {
   ;[
+    blocking,
     commandMarkdown,
     commandStatus,
     confirmPayment,
