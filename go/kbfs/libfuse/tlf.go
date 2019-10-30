@@ -197,6 +197,7 @@ func (tlf *TLF) Attr(ctx context.Context, a *fuse.Attr) error {
 // not, which can cause a tracker popup storm (see KBFS-2649).
 var tlfLoadAvoidingLookupNames = map[string]bool{
 	".localized": true,
+	"Contents":   true,
 }
 
 // Lookup implements the fs.NodeRequestLookuper interface for TLF.
