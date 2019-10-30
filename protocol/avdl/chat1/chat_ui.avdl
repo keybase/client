@@ -346,6 +346,7 @@ protocol chatUi {
   record UILinkDecoration {
     string display;
     string url;
+    string punycode;
   }
 
   variant UIMaybeMentionInfo switch (UIMaybeMentionStatus status) {

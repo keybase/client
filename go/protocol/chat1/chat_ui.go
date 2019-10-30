@@ -1473,14 +1473,16 @@ func (e UIMaybeMentionStatus) String() string {
 }
 
 type UILinkDecoration struct {
-	Display string `codec:"display" json:"display"`
-	Url     string `codec:"url" json:"url"`
+	Display  string `codec:"display" json:"display"`
+	Url      string `codec:"url" json:"url"`
+	Punycode string `codec:"punycode" json:"punycode"`
 }
 
 func (o UILinkDecoration) DeepCopy() UILinkDecoration {
 	return UILinkDecoration{
-		Display: o.Display,
-		Url:     o.Url,
+		Display:  o.Display,
+		Url:      o.Url,
+		Punycode: o.Punycode,
 	}
 }
 
