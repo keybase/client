@@ -8,7 +8,6 @@ import {renderItem as renderSubteamsItem} from './subteams-tab/helper'
 import Settings from './settings-tab/container'
 import TeamHeader from './header/container'
 import TeamTabs from './tabs/container'
-import List from './list'
 import {Row} from './rows'
 
 export type Sections = Array<{data: Array<Row>; header?: Row; key: string}>

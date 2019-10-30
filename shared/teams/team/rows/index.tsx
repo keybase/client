@@ -1,5 +1,4 @@
 import * as Types from '../../../constants/types/teams'
-import {isMobile} from '../../../constants/platform'
 import {getOrderedMemberArray, sortInvites} from './helpers'
 
 type HeaderRow = {type: 'header'} | {type: 'tabs'}
