@@ -62,7 +62,12 @@ func newWalletAPIHandler(g *libkb.GlobalContext, indentOutput bool) *walletAPIHa
 }
 
 // handle processes the Call based on the version.
-func (w *walletAPIHandler) handle(ctx context.Context, c Call, wr io.Writer) error {
+func (w *walletAPIHandler) handle(ctx context.Context, c Call, wr io.Writer) (err error) {
+	defer func() {
+		if err != nil {
+			err = encodeErr(c, err, wr, false)
+		}
+	}()
 	switch c.Params.Version {
 	case 0, 1:
 		return w.handleV1(ctx, c, wr)
