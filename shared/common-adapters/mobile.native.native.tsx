@@ -109,6 +109,9 @@ module.exports = {
   get FormWithCheckbox() {
     return Index.FormWithCheckbox
   },
+  get GestureState() {
+    return require('react-native-gesture-handler').State
+  },
   get HOCTimers() {
     return Index.HOCTimers
   },
@@ -168,6 +171,9 @@ module.exports = {
   },
   get LocationMap() {
     return Index.LocationMap
+  },
+  get LongPressGestureHandler() {
+    return require('react-native-gesture-handler').LongPressGestureHandler
   },
   get Markdown() {
     return Index.Markdown
@@ -313,6 +319,9 @@ module.exports = {
   get OverlayParentHOC() {
     return Index.OverlayParentHOC
   },
+  get PanGestureHandler() {
+    return require('react-native-gesture-handler').PanGestureHandler
+  },
   get Placeholder() {
     return Index.Placeholder
   },
@@ -408,6 +417,9 @@ module.exports = {
   },
   get Tabs() {
     return Index.Tabs
+  },
+  get TapGestureHandler() {
+    return require('react-native-gesture-handler').TapGestureHandler
   },
   get Text() {
     return Index.Text

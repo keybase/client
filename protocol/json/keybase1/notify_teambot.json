@@ -17,6 +17,10 @@
         {
           "name": "generation",
           "type": "TeambotKeyGeneration"
+        },
+        {
+          "name": "application",
+          "type": "TeamApplication"
         }
       ],
       "response": null,
@@ -35,6 +39,10 @@
         {
           "name": "generation",
           "type": "TeambotKeyGeneration"
+        },
+        {
+          "name": "application",
+          "type": "TeamApplication"
         }
       ],
       "response": null

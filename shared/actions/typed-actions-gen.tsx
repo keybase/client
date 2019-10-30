@@ -214,6 +214,12 @@ export type TypedActionsMap = {
   'chat2:updateLastCoord': chat2.UpdateLastCoordPayload
   'chat2:toggleGiphyPrefill': chat2.ToggleGiphyPrefillPayload
   'chat2:setChannelSearchText': chat2.SetChannelSearchTextPayload
+  'chat2:enableAudioRecording': chat2.EnableAudioRecordingPayload
+  'chat2:startAudioRecording': chat2.StartAudioRecordingPayload
+  'chat2:stopAudioRecording': chat2.StopAudioRecordingPayload
+  'chat2:lockAudioRecording': chat2.LockAudioRecordingPayload
+  'chat2:sendAudioRecording': chat2.SendAudioRecordingPayload
+  'chat2:setAudioRecordingPostInfo': chat2.SetAudioRecordingPostInfoPayload
   'config:startHandshake': config.StartHandshakePayload
   'config:restartHandshake': config.RestartHandshakePayload
   'config:daemonHandshake': config.DaemonHandshakePayload
@@ -576,6 +582,8 @@ export type TypedActionsMap = {
   'fs:loadedFileContext': fs.LoadedFileContextPayload
   'fs:loadAdditionalTlf': fs.LoadAdditionalTlfPayload
   'fs:loadedAdditionalTlf': fs.LoadedAdditionalTlfPayload
+  'fs:loadFilesTabBadge': fs.LoadFilesTabBadgePayload
+  'fs:loadedFilesTabBadge': fs.LoadedFilesTabBadgePayload
   'fs:setDebugLevel': fs.SetDebugLevelPayload
   'git:loadGit': git.LoadGitPayload
   'git:loaded': git.LoadedPayload
@@ -697,6 +705,10 @@ export type TypedActionsMap = {
   'recover-password:abortPaperKey': recoverpassword.AbortPaperKeyPayload
   'recover-password:setPasswordError': recoverpassword.SetPasswordErrorPayload
   'recover-password:submitPassword': recoverpassword.SubmitPasswordPayload
+  'recover-password:promptResetPassword': recoverpassword.PromptResetPasswordPayload
+  'recover-password:submitResetPassword': recoverpassword.SubmitResetPasswordPayload
+  'recover-password:completeResetPassword': recoverpassword.CompleteResetPasswordPayload
+  'recover-password:resetResetPasswordState': recoverpassword.ResetResetPasswordStatePayload
   'recover-password:displayError': recoverpassword.DisplayErrorPayload
   'route-tree:navigateAppend': routetree.NavigateAppendPayload
   'route-tree:navigateUp': routetree.NavigateUpPayload
@@ -867,7 +879,6 @@ export type TypedActionsMap = {
   'teams:setUpdatedTopic': teams.SetUpdatedTopicPayload
   'teams:deleteChannelConfirmed': teams.DeleteChannelConfirmedPayload
   'teams:deleteChannelInfo': teams.DeleteChannelInfoPayload
-  'teams:badgeAppForTeams': teams.BadgeAppForTeamsPayload
   'teams:checkRequestedAccess': teams.CheckRequestedAccessPayload
   'teams:getTeamRetentionPolicy': teams.GetTeamRetentionPolicyPayload
   'teams:saveTeamRetentionPolicy': teams.SaveTeamRetentionPolicyPayload

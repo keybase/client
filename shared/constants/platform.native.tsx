@@ -18,6 +18,7 @@ export const isDeviceSecureAndroid: boolean =
     : nativeBridge.isDeviceSecure === 'true' || false
 export const isTestDevice = nativeBridge.isTestDevice
 
+export const isRemoteDebuggerAttached = typeof __REMOTEDEV__ !== 'undefined'
 export const runMode = 'prod'
 export const isIOS = Platform.OS === 'ios'
 export const isAndroid = !isIOS

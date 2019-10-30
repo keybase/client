@@ -1,5 +1,4 @@
 /* eslint-disable sort-keys */
-import Animation from './animation'
 import Badge from './badge'
 import {Box, Box2} from './box'
 import ClickableBox from './clickable-box'
@@ -10,7 +9,6 @@ import * as Styles from '../styles'
 import './button.css'
 
 const Kb = {
-  Animation,
   Badge,
   Box,
   Box2,
@@ -44,14 +42,17 @@ export type Props = {
   className?: string
 }
 
-const Progress = ({small, white}) => (
-  <Kb.Box style={styles.progressContainer}>
-    <Kb.Animation
-      animationType={white ? 'spinnerWhite' : 'spinner'}
-      style={small ? styles.progressSmall : styles.progressNormal}
-    />
-  </Kb.Box>
-)
+const Progress = ({small, white}) => {
+  const Animation = require('./animation').default
+  return (
+    <Kb.Box style={styles.progressContainer}>
+      <Animation
+        animationType={white ? 'spinnerWhite' : 'spinner'}
+        style={small ? styles.progressSmall : styles.progressNormal}
+      />
+    </Kb.Box>
+  )
+}
 
 const Button = React.forwardRef<ClickableBox, Props>((props: Props, ref: React.Ref<ClickableBox>) => {
   const {mode = 'Primary', type = 'Default'} = props

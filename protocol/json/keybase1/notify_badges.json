@@ -151,9 +151,9 @@
         {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "TeamID"
           },
-          "name": "newTeamNames"
+          "name": "newTeams"
         },
         {
           "type": {
@@ -165,7 +165,7 @@
         {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "TeamID"
           },
           "name": "newTeamAccessRequests"
         },

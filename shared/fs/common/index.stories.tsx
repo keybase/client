@@ -108,8 +108,8 @@ export const commonProvider = {
     refresh: Sb.action('refresh'),
   }),
   SyncStatus: () => ({
-    folder: false,
-    status: 'online-only',
+    isFolder: false,
+    syncStatus: 'online-only',
   }),
   SyncingFolders: () => ({
     progress: 0.67,
@@ -368,13 +368,14 @@ const load = () => {
     ))
     .add('Sync Status', () => (
       <Kb.Box2 direction="vertical" gap="large" gapStart={true} fullWidth={false} alignItems="center">
-        <SyncStatus status={Types.SyncStatusStatic.AwaitingToSync} folder={false} />
-        <SyncStatus status={Types.SyncStatusStatic.AwaitingToUpload} folder={false} />
-        <SyncStatus status={Types.SyncStatusStatic.OnlineOnly} folder={false} />
-        <SyncStatus status={Types.SyncStatusStatic.Synced} folder={false} />
-        <SyncStatus status={Types.SyncStatusStatic.SyncError} folder={true} />
-        <SyncStatus status={Types.SyncStatusStatic.Uploading} folder={false} />
-        <SyncStatus status={0.3} folder={false} />
+        <SyncStatus syncStatus={Types.NonUploadStaticSyncStatus.AwaitingToSync} isFolder={false} />
+        <SyncStatus syncStatus={Types.UploadIcon.AwaitingToUpload} isFolder={false} />
+        <SyncStatus syncStatus={Types.NonUploadStaticSyncStatus.OnlineOnly} isFolder={false} />
+        <SyncStatus syncStatus={Types.NonUploadStaticSyncStatus.Synced} isFolder={false} />
+        <SyncStatus syncStatus={Types.NonUploadStaticSyncStatus.SyncError} isFolder={true} />
+        <SyncStatus syncStatus={Types.UploadIcon.Uploading} isFolder={false} />
+        <SyncStatus syncStatus={Types.UploadIcon.UploadingStuck} isFolder={false} />
+        <SyncStatus syncStatus={0.3} isFolder={false} />
       </Kb.Box2>
     ))
     .add('Pie Loaders', () => (
@@ -562,7 +563,7 @@ const load = () => {
   ;[32 as 32, 48 as 48].forEach(size =>
     Sb.storiesOf('Files/PathItemIcon', module).add(`badged - ${size}`, () => (
       <Kb.Box2 direction="vertical" gap="large" gapStart={true}>
-        {[Types.PathItemBadgeType.New, Types.PathItemBadgeType.Rekey].map(badge => (
+        {[Types.NonUploadPathItemBadgeType.New, Types.NonUploadPathItemBadgeType.Rekey].map(badge => (
           <Kb.Box2 key={badge} direction="horizontal" gap="small" gapStart={true} centerChildren={true}>
             <Kb.Text type="Header">{badge}</Kb.Text>
             <PathItemIcon
@@ -574,7 +575,12 @@ const load = () => {
             />
           </Kb.Box2>
         ))}
-        {[Types.PathItemBadgeType.Upload, Types.PathItemBadgeType.Download].map(badge => (
+        {[
+          Types.UploadIcon.AwaitingToUpload,
+          Types.UploadIcon.Uploading,
+          Types.UploadIcon.UploadingStuck,
+          Types.NonUploadPathItemBadgeType.Download,
+        ].map(badge => (
           <>
             <Kb.Box2 key="file" direction="horizontal" gap="small" gapStart={true} centerChildren={true}>
               <Kb.Text type="Header">{badge} - file</Kb.Text>

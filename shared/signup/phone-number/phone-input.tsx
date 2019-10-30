@@ -577,7 +577,7 @@ const styles = Styles.styleSheetCreate(
         textAlign: 'right',
       },
       prefixPlus: {
-        paddingLeft: Styles.globalMargins.tiny,
+        paddingLeft: Styles.globalMargins.small,
       },
       searchWrapper: {
         ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny),

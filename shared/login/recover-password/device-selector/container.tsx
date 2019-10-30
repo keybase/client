@@ -1,6 +1,6 @@
 import * as Container from '../../../util/container'
 import * as RecoverPasswordGen from '../../../actions/recover-password-gen'
-import DeviceSelector from '.'
+import DeviceSelector from '../../../provision/select-other-device'
 
 type OwnProps = {}
 
@@ -22,6 +22,7 @@ const ConnectedDeviceSelector = Container.connect(
       const device = s.devices.find(device => device.name === name)
       d._onSelect(device ? device.id : '')
     },
+    passwordRecovery: true,
   })
 )(DeviceSelector)
 

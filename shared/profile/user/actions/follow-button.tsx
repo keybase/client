@@ -6,6 +6,7 @@ type Props = {
   following?: boolean
   followsYou?: boolean
   waitingKey: string
+  small?: boolean
   style?: Object
   onFollow?: () => void
   onUnfollow?: () => void
@@ -29,6 +30,7 @@ class FollowButton extends React.Component<Props, State> {
           onMouseEnter={Styles.isMobile ? undefined : () => this.setState({mouseOver: true})}
           onMouseLeave={Styles.isMobile ? undefined : () => this.setState({mouseOver: false})}
           waitingKey={waitingKey}
+          small={this.props.small}
           style={{...styleButton, ...style}}
           {...otherProps}
         />
@@ -40,6 +42,7 @@ class FollowButton extends React.Component<Props, State> {
           label={followsYou ? 'Follow back' : 'Follow'}
           onClick={onFollow}
           waitingKey={waitingKey}
+          small={this.props.small}
           style={{...styleButton, ...style}}
           {...otherProps}
         />

@@ -39,6 +39,28 @@ const iconMeta_ = {
       return require('../images/icons/icon-dark-addon-file-uploading.png')
     },
   },
+  'icon-addon-file-uploading-error': {
+    extension: 'png',
+    isFont: false,
+    nameDark: 'icon-dark-addon-file-uploading-error',
+    get require() {
+      return require('../images/icons/icon-addon-file-uploading-error.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-addon-file-uploading-error.png')
+    },
+  },
+  'icon-addon-file-uploading-offline': {
+    extension: 'png',
+    isFont: false,
+    nameDark: 'icon-dark-addon-file-uploading-offline',
+    get require() {
+      return require('../images/icons/icon-addon-file-uploading-offline.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-addon-file-uploading-offline.png')
+    },
+  },
   'icon-addon-lock-16': {
     extension: 'png',
     isFont: false,
@@ -1062,6 +1084,20 @@ const iconMeta_ = {
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-addon-file-uploading.png')
+    },
+  },
+  'icon-dark-addon-file-uploading-error': {
+    extension: 'png',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-addon-file-uploading-error.png')
+    },
+  },
+  'icon-dark-addon-file-uploading-offline': {
+    extension: 'png',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-addon-file-uploading-offline.png')
     },
   },
   'icon-dark-addon-lock-16': {
@@ -3272,6 +3308,13 @@ const iconMeta_ = {
     isFont: false,
     get require() {
       return require('../images/icons/icon-fancy-folder-file-inexistant-mobile-188-120.png')
+    },
+  },
+  'icon-fancy-hellobot-hi-96': {
+    extension: 'png',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-fancy-hellobot-hi-96.png')
     },
   },
   'icon-fancy-no-access-desktop-96-94': {
@@ -7523,6 +7566,11 @@ const iconMeta_ = {
   },
   'iconfont-return': {
     charCode: 0xe96a,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-root': {
+    charCode: 0xe9a0,
     gridSize: 16,
     isFont: true,
   },
