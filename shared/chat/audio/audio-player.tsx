@@ -7,6 +7,7 @@ import {formatAudioRecordDuration} from '../../util/timestamp'
 type VisProps = {
   amps: Array<number>
   height: number
+  maxWidth?: number
 }
 
 const ampHeightProp = (amp: number) => {
@@ -15,7 +16,11 @@ const ampHeightProp = (amp: number) => {
 
 const AudioVis = (props: VisProps) => {
   return (
-    <Kb.Box2 direction="horizontal" gap="xxtiny" style={{height: props.height}}>
+    <Kb.ScrollView
+      horizontal={true}
+      style={{height: props.height, maxWidth: props.maxWidth}}
+      showsHorizontalScrollIndicator={false}
+    >
       {props.amps.map((amp, index) => {
         const heightProp = ampHeightProp(amp)
         const height = heightProp * props.height
@@ -24,16 +29,17 @@ const AudioVis = (props: VisProps) => {
             alignSelf="flex-end"
             direction="vertical"
             key={index}
-            style={{backgroundColor: Styles.globalColors.black, height, width: 1}}
+            style={{backgroundColor: Styles.globalColors.black, height, marginRight: 2, width: 1}}
           />
         )
       })}
-    </Kb.Box2>
+    </Kb.ScrollView>
   )
 }
 
 type Props = {
   duration: number
+  maxWidth?: number
   url: string
   visAmps: Array<number>
 }
@@ -88,7 +94,7 @@ const AudioPlayer = (props: Props) => {
         </Kb.Box2>
       </Kb.ClickableBox>
       <Kb.Box2 direction="vertical" style={styles.visContainer} gap="xxtiny">
-        <AudioVis height={32} amps={props.visAmps} />
+        <AudioVis height={32} amps={props.visAmps} maxWidth={props.maxWidth} />
         <Kb.Text type="BodyTiny" style={styles.duration}>
           {formatAudioRecordDuration(timeLeft)}
         </Kb.Text>

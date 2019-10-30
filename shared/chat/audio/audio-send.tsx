@@ -34,6 +34,7 @@ const AudioSend = (props: Props) => {
     player = (
       <AudioPlayer
         duration={Constants.audioRecordingDuration(audioRecording)}
+        maxWidth={120}
         url={audioUrl}
         visAmps={audioRecording.amps}
       />
