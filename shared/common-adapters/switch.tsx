@@ -66,7 +66,7 @@ const getContent = (props, ref) => (
         <Kb.Text type="BodySemibold">{props.label}</Kb.Text>
         {!!props.labelSubtitle && <Kb.Text type="BodySmall">{props.labelSubtitle}</Kb.Text>}
       </LabelContainer>
-    ) : !!props.labelSubtitle ? (
+    ) : props.labelSubtitle ? (
       <LabelContainer {...props}>
         {props.label}
         <Kb.Text type="BodySmall">{props.labelSubtitle}</Kb.Text>
