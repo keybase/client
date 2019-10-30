@@ -25,8 +25,10 @@ const TeamJourney = (props: Props) => {
       <TeamJourneyHeader teamname={props.teamname} />
       <Kb.Box2 key="content" direction="vertical" fullWidth={true} style={styles.content}>
         <Kb.Box2 direction="horizontal" fullWidth={true}>
-          <Kb.Text type="Body">{props.text}</Kb.Text>
-          {!!props.image && <Kb.Icon type={props.image} />}
+          <Kb.Box2 direction="horizontal" style={props.image ? styles.text : undefined}>
+          <Kb.Text type="BodySmall">{props.text}</Kb.Text>
+          </Kb.Box2>
+          {!!props.image && <Kb.Icon style={styles.image} type={props.image} />}
         </Kb.Box2>
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.actionsBox}>
           {props.actions.map(action => (
@@ -59,9 +61,9 @@ const TeamJourneyHeader = (props: HeaderProps) => (
         style={styles.avatar}
       />
       <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
-        <Kb.Text style={styles.teamnameText} type="BodySmallBold">
-          {props.teamname}
-        </Kb.Text>
+          <Kb.Text style={styles.teamnameText} type="BodySmallBold">
+            {props.teamname}
+          </Kb.Text>
         <Kb.Text type="BodyTiny">• System message</Kb.Text>
       </Kb.Box2>
     </Kb.Box2>
@@ -108,8 +110,15 @@ const styles = Styles.styleSheetCreate(
           paddingRight: Styles.globalMargins.tiny,
         },
       }),
+      image: {
+        left: '50%',
+        position: 'absolute',
+      },
       teamnameText: {
         color: Styles.globalColors.black,
+      },
+      text: {
+        maxWidth: '45%',
       },
     } as const)
 )
