@@ -56,7 +56,6 @@ export const FollowButton = (props: Props) => {
   const onChangeFollow = (follow: boolean) =>
     dispatch(Tracker2Gen.createChangeFollow({follow, guiID: userDetails.guiID}))
 
-  // TODO: followsYou
   return (
     <UnconnectedFollowButton
       following={followThem}

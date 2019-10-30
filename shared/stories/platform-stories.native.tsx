@@ -5,9 +5,9 @@ import ContactsJoined from '../settings/contacts-joined/index.stories.native'
 
 const stories = {
   AccountSwitcher,
+  ContactsJoined,
   PushPrompt,
   WalletMobile,
-  ContactsJoined,
 }
 
 export default stories
