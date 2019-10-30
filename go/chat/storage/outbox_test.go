@@ -173,7 +173,7 @@ func TestChatOutboxPurge(t *testing.T) {
 		var obrs []chat1.OutboxRecord
 		conv := makeConvo(gregor1.Time(5), 1, 1)
 
-		prevOrdinal := 1
+		prevOrdinal := outboxOrdinalStart
 		ephemeralMetadata := &chat1.MsgEphemeralMetadata{Lifetime: 0}
 		for i := 0; i < 9; i++ {
 			// send some exploding and some non exploding msgs
