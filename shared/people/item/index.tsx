@@ -8,7 +8,6 @@ export type TaskButton =
   | {
       label: string
       onClick: () => void
-      labelIcon?: ButtonProps['labelIcon']
       type?: ButtonProps['type']
       mode?: ButtonProps['mode']
       waiting?: ButtonProps['waiting']
