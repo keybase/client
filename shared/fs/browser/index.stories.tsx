@@ -52,7 +52,8 @@ export default () => {
         <Browser
           path={Types.stringToPath('/keybase/private/foo')}
           resetBannerType={Types.ResetBannerNoOthersType.None}
-          offline={false}
+          offlineUnsynced={false}
+          writable={true}
         />
       </Kb.Box2>
     ))
@@ -61,7 +62,8 @@ export default () => {
         <Browser
           path={Types.stringToPath('/keybase/public/foo')}
           resetBannerType={Types.ResetBannerNoOthersType.None}
-          offline={false}
+          offlineUnsynced={false}
+          writable={true}
         />
       </Kb.Box2>
     ))
@@ -70,7 +72,8 @@ export default () => {
         <Browser
           path={Types.stringToPath('/keybase/private/me,reset')}
           resetBannerType={Types.ResetBannerNoOthersType.Self}
-          offline={false}
+          offlineUnsynced={false}
+          writable={true}
         />
       </Kb.Box2>
     ))
@@ -79,7 +82,8 @@ export default () => {
         <Browser
           path={Types.stringToPath('/keybase/private/others,reset')}
           resetBannerType={1}
-          offline={false}
+          offlineUnsynced={false}
+          writable={true}
         />
       </Kb.Box2>
     ))
@@ -88,7 +92,8 @@ export default () => {
         <Browser
           path={Types.stringToPath('/keybase/private/others,reset')}
           resetBannerType={Types.ResetBannerNoOthersType.None}
-          offline={true}
+          offlineUnsynced={true}
+          writable={true}
         />
       </Kb.Box2>
     ))
