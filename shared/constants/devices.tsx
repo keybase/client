@@ -75,13 +75,16 @@ type NextDeviceIconInfo = {desktop: number; mobile: number}
 
 const getIndexMap = memoize(
   (devices: Map<Types.DeviceID, Types.Device>): NextDeviceIconInfo => {
-    return [...devices.values()].reduce<NextDeviceIconInfo>(
+    const result = [...devices.values()].reduce<NextDeviceIconInfo>(
       ({desktop, mobile}, {type}) => ({
-        desktop: (desktop % numBackgrounds) + (type === 'desktop' ? 1 : 0),
-        mobile: (mobile % numBackgrounds) + (type === 'mobile' ? 1 : 0),
+        desktop: desktop + (type === 'desktop' ? 1 : 0),
+        mobile: mobile + (type === 'mobile' ? 1 : 0),
       }),
-      {desktop: 1, mobile: 1}
+      {desktop: 0, mobile: 0}
     )
+    result.desktop = (result.desktop % numBackgrounds) + 1
+    result.mobile = (result.mobile % numBackgrounds) + 1
+    return result
   }
 )
 
