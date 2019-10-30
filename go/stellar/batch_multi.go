@@ -47,6 +47,7 @@ func BatchMulti(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.B
 
 	results := make([]stellar1.BatchPaymentResult, len(arg.Payments))
 	var multiOps []multiOp
+	var relays []stellar1.BatchPaymentArg
 	for i, payment := range arg.Payments {
 		results[i] = stellar1.BatchPaymentResult{
 			Username: libkb.NewNormalizedUsername(payment.Recipient).String(),
@@ -59,12 +60,10 @@ func BatchMulti(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.B
 		}
 
 		if recipient.AccountID == nil {
-			mop, err := prepareRelayOp(mctx, payment, recipient)
-			if err != nil {
-				makeResultError(&results[i], err)
-				continue
-			}
-			multiOps = append(multiOps, mop)
+			// relays don't work well in multi-op payments, so handle
+			// them separately
+			// XXX include recipient too?  does that help with anything?
+			relays = append(relays, payment)
 		} else {
 			mop, err := prepareDirectOp(mctx, walletState, payment, recipient)
 			if err != nil {

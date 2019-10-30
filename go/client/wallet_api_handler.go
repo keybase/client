@@ -164,7 +164,7 @@ func (w *walletAPIHandler) batch(ctx context.Context, c Call, wr io.Writer) erro
 	arg := stellar1.BatchLocalArg{
 		BatchID:     opts.BatchID,
 		TimeoutSecs: opts.Timeout,
-		UseMulti:    false,
+		UseMulti:    true,
 	}
 	for _, p := range opts.Payments {
 		arg.Payments = append(arg.Payments, stellar1.BatchPaymentArg{Recipient: p.Recipient, Amount: p.Amount, Message: p.Message})
