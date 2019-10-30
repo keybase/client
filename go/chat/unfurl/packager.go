@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"strings"
 
+	"github.com/keybase/client/go/avatars"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
 
@@ -274,11 +275,19 @@ func (p *Packager) packageMaps(ctx context.Context, uid gregor1.UID, convID chat
 		SiteName:    mapsRaw.SiteName,
 		Description: &mapsRaw.Description,
 	}
+
+	// load user avatar for fancy maps
+	username := p.G().ExternalG().GetEnv().GetUsername().String()
+	avatarReader, _, err := avatars.GetBorderedCircleAvatar(ctx, p.G(), username, 128, 10)
+	if err != nil {
+		return res, err
+	}
+
 	// load map
 	var reader io.ReadCloser
 	var length int64
 	mapsURL := mapsRaw.ImageUrl
-	locReader, locLength, err := maps.MapReaderFromURL(ctx, mapsURL)
+	locReader, _, err := maps.MapReaderFromURL(ctx, mapsURL)
 	if err != nil {
 		return res, err
 	}
@@ -289,12 +298,13 @@ func (p *Packager) packageMaps(ctx context.Context, uid gregor1.UID, convID chat
 			return res, err
 		}
 		defer liveReader.Close()
-		if reader, length, err = maps.CombineMaps(ctx, locReader, liveReader); err != nil {
+		if reader, length, err = maps.DecorateMap(ctx, avatarReader, liveReader); err != nil {
 			return res, err
 		}
 	} else {
-		reader = locReader
-		length = locLength
+		if reader, length, err = maps.DecorateMap(ctx, avatarReader, locReader); err != nil {
+			return res, err
+		}
 	}
 	asset, err := p.assetFromURLWithBody(ctx, reader, length, mapsURL, uid, convID, true)
 	if err != nil {
