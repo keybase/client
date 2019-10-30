@@ -71,29 +71,21 @@ export const getEndangeredTLFs = (state: Container.TypedState, id?: Types.Device
 // as the background #
 export const numBackgrounds = 10
 
-type NextDeviceIconInfo = {desktop: number; mobile: number}
-
-const getIndexMap = memoize(
-  (devices: Map<Types.DeviceID, Types.Device>): NextDeviceIconInfo => {
-    const result = [...devices.values()].reduce<NextDeviceIconInfo>(
-      ({desktop, mobile}, {type}) => ({
-        desktop: desktop + (type === 'desktop' ? 1 : 0),
-        mobile: mobile + (type === 'mobile' ? 1 : 0),
-      }),
-      {desktop: 0, mobile: 0}
-    )
-    result.desktop = (result.desktop % numBackgrounds) + 1
-    result.mobile = (result.mobile % numBackgrounds) + 1
-    return result
-  }
-)
-
 export const getDeviceIconNumberInner = (
   devices: Map<Types.DeviceID, Types.Device>,
   deviceID: Types.DeviceID
 ): number => ((devices.get(deviceID) || {deviceNumberOfType: 0}).deviceNumberOfType % numBackgrounds) + 1
 
-const getNextDeviceIconNumberInner = (devices: Map<Types.DeviceID, Types.Device>) => getIndexMap(devices)
+const getNextDeviceIconNumberInner = (devices: Map<Types.DeviceID, Types.Device>) => {
+  // Find the max device number and add one (+ one more since these are 1-indexed)
+  const result = {desktop: 1, mobile: 1, backup: 1}
+  devices.forEach(device => {
+    if (device.deviceNumberOfType >= result[device.type]) {
+      result[device.type] = device.deviceNumberOfType + 1
+    }
+  })
+  return {desktop: (result.desktop % numBackgrounds) + 1, mobile: (result.mobile % numBackgrounds) + 1}
+}
 
 export const getDeviceIconNumber = (state: Container.TypedState, deviceID: Types.DeviceID) =>
   getDeviceIconNumberInner(state.devices.deviceMap, deviceID)
