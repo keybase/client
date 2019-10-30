@@ -901,3 +901,10 @@ func (c *ChatRPC) ChatRequestInfo(
 func (c *ChatRPC) ChatPromptUnfurl(_ context.Context, _ chat1.ChatPromptUnfurlArg) error {
 	return nil
 }
+
+// ChatConvUpdate implements the chat1.NotifyChatInterface for
+// ChatRPC.
+func (c *ChatRPC) ChatConvUpdate(
+	_ context.Context, _ chat1.ChatConvUpdateArg) error {
+	return nil
+}

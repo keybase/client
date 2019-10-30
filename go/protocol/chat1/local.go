@@ -6043,6 +6043,10 @@ type MakePreviewArg struct {
 	OutboxID  OutboxID `codec:"outboxID" json:"outboxID"`
 }
 
+type MakeAudioPreviewArg struct {
+	Amps []float64 `codec:"amps" json:"amps"`
+}
+
 type GetUploadTempFileArg struct {
 	OutboxID OutboxID `codec:"outboxID" json:"outboxID"`
 	Filename string   `codec:"filename" json:"filename"`
@@ -6367,6 +6371,7 @@ type LocalInterface interface {
 	DownloadFileAttachmentLocal(context.Context, DownloadFileAttachmentLocalArg) (DownloadFileAttachmentLocalRes, error)
 	ConfigureFileAttachmentDownloadLocal(context.Context, ConfigureFileAttachmentDownloadLocalArg) error
 	MakePreview(context.Context, MakePreviewArg) (MakePreviewRes, error)
+	MakeAudioPreview(context.Context, []float64) (MakePreviewRes, error)
 	GetUploadTempFile(context.Context, GetUploadTempFileArg) (string, error)
 	MakeUploadTempFile(context.Context, MakeUploadTempFileArg) (string, error)
 	CancelPost(context.Context, OutboxID) error
@@ -6944,6 +6949,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.MakePreview(ctx, typedArgs[0])
+					return
+				},
+			},
+			"makeAudioPreview": {
+				MakeArg: func() interface{} {
+					var ret [1]MakeAudioPreviewArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]MakeAudioPreviewArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]MakeAudioPreviewArg)(nil), args)
+						return
+					}
+					ret, err = i.MakeAudioPreview(ctx, typedArgs[0].Amps)
 					return
 				},
 			},
@@ -7906,6 +7926,12 @@ func (c LocalClient) ConfigureFileAttachmentDownloadLocal(ctx context.Context, _
 
 func (c LocalClient) MakePreview(ctx context.Context, __arg MakePreviewArg) (res MakePreviewRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.makePreview", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) MakeAudioPreview(ctx context.Context, amps []float64) (res MakePreviewRes, err error) {
+	__arg := MakeAudioPreviewArg{Amps: amps}
+	err = c.Cli.Call(ctx, "chat.1.local.makeAudioPreview", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 

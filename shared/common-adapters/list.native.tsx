@@ -2,6 +2,9 @@ import React, {PureComponent} from 'react'
 import {FlatList, View} from 'react-native'
 import * as Styles from '../styles'
 import {Props} from './list'
+import Animated from 'react-native-reanimated'
+
+const AnimatedFlatList = Animated.createAnimatedComponent(FlatList)
 
 class List<Item> extends PureComponent<Props<Item>> {
   static defaultProps = {
@@ -27,6 +30,7 @@ class List<Item> extends PureComponent<Props<Item>> {
   }
 
   render() {
+    const List = this.props.reAnimated ? AnimatedFlatList : FlatList
     return (
       <View style={Styles.collapseStyles([styles.outerView, this.props.style])}>
         {/* need windowSize so iphone 6 doesn't have OOM issues */}
@@ -39,7 +43,7 @@ class List<Item> extends PureComponent<Props<Item>> {
           end of the list is at the bottom.
        */}
         <View style={Styles.globalStyles.fillAbsolute}>
-          <FlatList
+          <List
             bounces={this.props.bounces}
             // @ts-ignore TODO styles
             contentContainerStyle={this.props.contentContainerStyle}
@@ -53,6 +57,7 @@ class List<Item> extends PureComponent<Props<Item>> {
             onEndReachedThreshold={this.props.onEndReachedThreshold}
             windowSize={this.props.windowSize || 10}
             debug={false /* set to true to debug the list */}
+            onScroll={this.props.onScroll}
           />
         </View>
       </View>

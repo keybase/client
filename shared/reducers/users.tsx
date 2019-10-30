@@ -7,7 +7,6 @@ import * as Types from '../constants/types/users'
 import * as UsersGen from '../actions/users-gen'
 
 const initialState: Types.State = Constants.makeState()
-const blankUserInfo = Constants.makeUserInfo()
 
 type Actions =
   | UsersGen.Actions
@@ -17,10 +16,23 @@ type Actions =
   | TeamBuildingGen.SearchResultsLoadedPayload
 
 const updateInfo = (map: Map<string, Types.UserInfo>, username: string, info: Partial<Types.UserInfo>) => {
-  map.set(username, {
-    ...(map.get(username) || blankUserInfo),
-    ...info,
+  const next = {
+      ...(map.get(username) || null),
+      ...info,
+    }
+
+    // cleanup data structure so its not full of empty items
+  ;['fullname', 'broken', 'bio'].forEach(key => {
+    if (!next[key]) {
+      delete next[key]
+    }
   })
+
+  if (Object.keys(next).length) {
+    map.set(username, next)
+  } else {
+    map.delete(username)
+  }
 }
 
 export default Container.makeReducer<Actions, Types.State>(initialState, {

@@ -29,7 +29,7 @@ var _ codec.Selfer = &BlindMerkleValue{}
 
 func (t *BlindMerkleValue) CodecEncodeSelf(e *codec.Encoder) {
 	switch t.ValueType {
-	case ValueTypeTeamV1, ValueTypeStringForTesting:
+	case ValueTypeTeamV1, ValueTypeStringForTesting, ValueTypeEmpty:
 		// pass
 	default:
 		panic("Unknown merkle value type")
@@ -44,7 +44,7 @@ func (t *BlindMerkleValue) CodecDecodeSelf(d *codec.Decoder) {
 	case ValueTypeEmpty:
 		// Nothing to do here
 	case ValueTypeTeamV1:
-		var v Teamv1Value
+		var v TeamV1Value
 		d.MustDecode(&v)
 		t.InnerValue = v
 	case ValueTypeStringForTesting:
@@ -56,19 +56,19 @@ func (t *BlindMerkleValue) CodecDecodeSelf(d *codec.Decoder) {
 	}
 }
 
-type SigID []byte
-
-type Teamv1HiddenTail sig3.LinkID
-
-type Teamv1Value struct {
+type TeamV1Value struct {
 	_struct struct{} `codec:",toarray"` //nolint
-	Tails   map[keybase1.SeqType]Teamv1HiddenTail
+	Tails   map[keybase1.SeqType]sig3.Tail
 }
 
 func BlindMerkleValueStringForTesting(s string) BlindMerkleValue {
 	return BlindMerkleValue{ValueType: ValueTypeStringForTesting, InnerValue: s}
 }
 
-func BlindMerkleValueTeamV1(v Teamv1Value) BlindMerkleValue {
+func BlindMerkleValueTeamV1(v TeamV1Value) BlindMerkleValue {
 	return BlindMerkleValue{ValueType: ValueTypeTeamV1, InnerValue: v}
+}
+
+func BlindMerkleValueEmpty() BlindMerkleValue {
+	return BlindMerkleValue{ValueType: ValueTypeEmpty, InnerValue: nil}
 }

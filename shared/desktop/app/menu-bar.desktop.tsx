@@ -101,7 +101,7 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
     // Hack: open widget when left/right/double clicked
     mb.tray.on('right-click', (e: Electron.Event, bounds: Bounds) => {
       e.preventDefault()
-      setImmediate(() => mb.tray.emit('click', {...e}, {...bounds}))
+      setTimeout(() => mb.tray.emit('click', {...e}, {...bounds}), 0)
     })
     mb.tray.on('double-click', (e: Electron.Event) => e.preventDefault())
 

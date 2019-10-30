@@ -1106,6 +1106,21 @@ func (mr *MockKBFSOpsMockRecorder) GetAllSyncedTlfMDs(arg0 interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllSyncedTlfMDs", reflect.TypeOf((*MockKBFSOps)(nil).GetAllSyncedTlfMDs), arg0)
 }
 
+// GetBadge mocks base method
+func (m *MockKBFSOps) GetBadge(arg0 context.Context) (keybase1.FilesTabBadge, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetBadge", arg0)
+	ret0, _ := ret[0].(keybase1.FilesTabBadge)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetBadge indicates an expected call of GetBadge
+func (mr *MockKBFSOpsMockRecorder) GetBadge(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBadge", reflect.TypeOf((*MockKBFSOps)(nil).GetBadge), arg0)
+}
+
 // GetDirChildren mocks base method
 func (m *MockKBFSOps) GetDirChildren(arg0 context.Context, arg1 Node) (map[data.PathPartString]data.EntryInfo, error) {
 	m.ctrl.T.Helper()

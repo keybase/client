@@ -99,19 +99,17 @@ class Feedback extends React.Component<Props, State> {
           )}
           <Kb.Box2 direction="vertical" style={styles.mainBox} gap="xsmall">
             <Kb.Box2 direction="horizontal" fullWidth={true}>
-              <Kb.Input
+              <Kb.NewInput
                 autoCapitalize="sentences"
                 autoCorrect={true}
                 autoFocus={true}
-                style={{flex: 1}}
-                hideLabel={true}
-                inputStyle={{textAlign: 'left'}}
+                containerStyle={styles.input}
                 multiline={true}
+                onChangeText={this._onChangeFeedback}
+                placeholder="Please tell us what you were doing, your experience, or anything else we should know. Thanks!"
                 rowsMin={4}
                 rowsMax={isMobile ? 4 : 10}
-                hintText="Please tell us what you were doing, your experience, or anything else we should know. Thanks!"
                 value={this.state.feedback}
-                onChangeText={this._onChangeFeedback}
               />
             </Kb.Box2>
             {this._sendMaxBytes() && (
@@ -129,7 +127,11 @@ class Feedback extends React.Component<Props, State> {
             </Kb.Box2>
             {this.props.loggedOut && (
               <Kb.Box2 direction="horizontal" fullWidth={true}>
-                <Kb.NewInput placeholder="Email (pretty please!)" onChangeText={this._onChangeEmail} />
+                <Kb.NewInput
+                  containerStyle={styles.input}
+                  placeholder="Your email address"
+                  onChangeText={this._onChangeEmail}
+                />
               </Kb.Box2>
             )}
             <Kb.ButtonBar>
@@ -166,7 +168,14 @@ const styles = Styles.styleSheetCreate(
       container: Styles.platformStyles({
         common: {flex: 1},
       }),
-      mainBox: {padding: Styles.globalMargins.small},
+      input: Styles.platformStyles({
+        isElectron: {padding: Styles.globalMargins.tiny},
+        isMobile: {...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small)},
+      }),
+      mainBox: Styles.platformStyles({
+        common: {padding: Styles.globalMargins.small},
+        isElectron: {width: 368},
+      }),
       outerStyle: {backgroundColor: Styles.globalColors.white},
       smallLabel: {color: Styles.globalColors.black},
     } as const)

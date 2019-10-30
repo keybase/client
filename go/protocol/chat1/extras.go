@@ -1261,19 +1261,23 @@ func (c ConversationLocal) GetMaxDeletedUpTo() MessageID {
 	return maxDelHID
 }
 
-func (c ConversationLocal) MaxVisibleMsgID() MessageID {
+func maxVisibleMsgIDFromSummaries(maxMessages []MessageSummary) MessageID {
 	visibleTyps := VisibleChatMessageTypes()
 	visibleTypsMap := map[MessageType]bool{}
 	for _, typ := range visibleTyps {
 		visibleTypsMap[typ] = true
 	}
 	maxMsgID := MessageID(0)
-	for _, msg := range c.MaxMessages {
+	for _, msg := range maxMessages {
 		if _, ok := visibleTypsMap[msg.GetMessageType()]; ok && msg.GetMessageID() > maxMsgID {
 			maxMsgID = msg.GetMessageID()
 		}
 	}
 	return maxMsgID
+}
+
+func (c ConversationLocal) MaxVisibleMsgID() MessageID {
+	return maxVisibleMsgIDFromSummaries(c.MaxMessages)
 }
 
 func (c ConversationLocal) ConvNameNames() (res []string) {
@@ -1371,18 +1375,7 @@ func (c Conversation) IsSelfFinalized(username string) bool {
 }
 
 func (c Conversation) MaxVisibleMsgID() MessageID {
-	visibleTyps := VisibleChatMessageTypes()
-	visibleTypsMap := map[MessageType]bool{}
-	for _, typ := range visibleTyps {
-		visibleTypsMap[typ] = true
-	}
-	maxMsgID := MessageID(0)
-	for _, msg := range c.MaxMsgSummaries {
-		if _, ok := visibleTypsMap[msg.GetMessageType()]; ok && msg.GetMessageID() > maxMsgID {
-			maxMsgID = msg.GetMessageID()
-		}
-	}
-	return maxMsgID
+	return maxVisibleMsgIDFromSummaries(c.MaxMsgSummaries)
 }
 
 func (c Conversation) IsUnread() bool {
@@ -2599,6 +2592,7 @@ func (b BotInfo) Hash() BotInfoHash {
 	for _, cconv := range b.CommandConvs {
 		hash.Write(cconv.ConvID)
 		hash.Write(cconv.Uid)
+		hash.Write([]byte(strconv.FormatUint(uint64(cconv.UntrustedTeamRole), 10)))
 		hash.Write([]byte(strconv.FormatUint(uint64(cconv.Vers), 10)))
 	}
 	return BotInfoHash(hash.Sum(nil))

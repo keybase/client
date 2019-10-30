@@ -7,6 +7,8 @@ import * as Shim from './shim.native'
 import * as Stack from 'react-navigation-stack'
 import * as Styles from '../styles'
 import * as Tabs from '../constants/tabs'
+import * as FsConstants from '../constants/fs'
+import * as Kbfs from '../fs/common'
 import GlobalError from '../app/global-errors/container'
 import OutOfDate from '../app/out-of-date'
 import RuntimeStats from '../app/runtime-stats/container'
@@ -73,6 +75,11 @@ const icons: {[key: string]: IconType} = {
   [Tabs.walletsTab]: 'iconfont-nav-2-wallets',
 }
 
+const FilesTabBadge = () => {
+  const uploadIcon = FsConstants.getUploadIconForFilesTab(Kbfs.useFsBadge())
+  return uploadIcon ? <Kbfs.UploadIcon uploadIcon={uploadIcon} style={styles.fsBadgeIconUpload} /> : null
+}
+
 const TabBarIcon = ({badgeNumber, focused, routeName}) => (
   <Kb.NativeView style={tabStyles.container}>
     <Kb.Icon
@@ -82,6 +89,7 @@ const TabBarIcon = ({badgeNumber, focused, routeName}) => (
       color={focused ? Styles.globalColors.whiteOrWhite : Styles.globalColors.blueDarkerOrBlack}
     />
     {!!badgeNumber && <Kb.Badge badgeNumber={badgeNumber} badgeStyle={tabStyles.badge} />}
+    {routeName === Tabs.fsTab && <FilesTabBadge />}
   </Kb.NativeView>
 )
 
@@ -117,34 +125,40 @@ const TabBarIconContainer = props => (
 // globalColors automatically respects dark mode pref
 const getBg = () => Styles.globalColors.white
 
+const BlankScreen = () => null
+
 const VanillaTabNavigator = createBottomTabNavigator(
-  tabs.reduce((map, tab) => {
-    map[tab] = createStackNavigator(Shim.shim(routes), {
-      bgOnlyDuringTransition: Styles.isAndroid ? getBg : undefined,
-      cardStyle: Styles.isAndroid ? {backgroundColor: 'rgba(0,0,0,0)'} : undefined,
-      defaultNavigationOptions,
-      headerMode,
-      initialRouteName: tabRoots[tab],
-      initialRouteParams: undefined,
-      transitionConfig: () => ({
-        transitionSpec: {
-          // the 'accurate' ios one is very slow to stop so going back leads to a missed taps
-          duration: 250,
-          easing: Kb.NativeEasing.bezier(0.2833, 0.99, 0.31833, 0.99),
-          timing: Kb.NativeAnimated.timing,
-        },
-      }),
-    })
-    return map
-  }, {}),
+  tabs.reduce(
+    (map, tab) => {
+      map[tab] = createStackNavigator(Shim.shim(routes), {
+        bgOnlyDuringTransition: Styles.isAndroid ? getBg : undefined,
+        cardStyle: Styles.isAndroid ? {backgroundColor: 'rgba(0,0,0,0)'} : undefined,
+        defaultNavigationOptions,
+        headerMode,
+        initialRouteName: tabRoots[tab],
+        initialRouteParams: undefined,
+        transitionConfig: () => ({
+          transitionSpec: {
+            // the 'accurate' ios one is very slow to stop so going back leads to a missed taps
+            duration: 250,
+            easing: Kb.NativeEasing.bezier(0.2833, 0.99, 0.31833, 0.99),
+            timing: Kb.NativeAnimated.timing,
+          },
+        }),
+      })
+      return map
+    },
+    // Start with a blank screen w/o a tab icon so we dont' render the people tab on start always
+    {blank: {screen: BlankScreen}}
+  ),
   {
     defaultNavigationOptions: ({navigation}) => ({
-      tabBarButtonComponent: TabBarIconContainer,
+      tabBarButtonComponent: navigation.state.routeName === 'blank' ? BlankScreen : TabBarIconContainer,
       tabBarIcon: ({focused}) => (
         <ConnectedTabBarIcon focused={focused} routeName={navigation.state.routeName as Tabs.Tab} />
       ),
     }),
-    order: tabs,
+    order: ['blank', ...tabs],
     tabBarOptions: {
       get activeBackgroundColor() {
         return Styles.globalColors.blueDarkOrGreyDarkest
@@ -323,6 +337,13 @@ class RNApp extends React.PureComponent<Props> {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
+  fsBadgeIconUpload: {
+    bottom: Styles.globalMargins.tiny,
+    height: Styles.globalMargins.small,
+    position: 'absolute',
+    right: Styles.globalMargins.small,
+    width: Styles.globalMargins.small,
+  },
   headerTitle: {color: Styles.globalColors.black},
   keyboard: {
     flexGrow: 1,

@@ -2,13 +2,13 @@ import * as Constants from '../constants/settings'
 import AboutTab from './about-container'
 import AdvancedTab from './advanced/container'
 import ChatTab from './chat/container'
+import DisplayTab from './display/container'
 import FsTab from './files/container'
 import WalletsTab from '../wallets/wallet/container'
 import FeedbackTab from './feedback/container'
 import InvitationsTab from './invites/container'
 import AccountTab from './account/container'
 import NotificationsTab from './notifications/container'
-import DisplayTab from './display/container'
 import PasswordTab from './password/container'
 import ScreenprotectorTab from './screenprotector-container.native'
 import DbNukeConfirm from './db-nuke-confirm/container'
@@ -24,6 +24,7 @@ import {Email, Phone, VerifyPhone} from './account/add-modals'
 import ManageContactsTab from './manage-contacts.native'
 import PushPrompt from './notifications/push-prompt.native'
 import ContactsJoinedModal from './contacts-joined/index.native'
+import WhatsNewTab from '../whats-new/container'
 
 export const newRoutes = {
   [Constants.aboutTab]: {getScreen: (): typeof AboutTab => require('./about-container').default},
@@ -46,6 +47,9 @@ export const newRoutes = {
   },
   [Constants.screenprotectorTab]: {
     getScreen: (): typeof ScreenprotectorTab => require('./screenprotector-container.native').default,
+  },
+  [Constants.whatsNewTab]: {
+    getScreen: (): typeof WhatsNewTab => require('../whats-new/container.tsx').default,
   },
   addEmail: {getScreen: (): typeof Email => require('./account/add-modals').Email},
   addPhone: {getScreen: (): typeof Phone => require('./account/add-modals').Phone},

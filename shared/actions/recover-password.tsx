@@ -10,7 +10,7 @@ import * as Saga from '../util/saga'
 import HiddenString from '../util/hidden-string'
 import {RPCError} from '../util/errors'
 
-const chooseDevice = (
+const chooseDevice = (replaceRoute: boolean) => (
   params: RPCTypes.MessageTypes['keybase.1.loginUi.chooseDeviceToRecoverWith']['inParam'],
   response: {
     result: (id: string) => void
@@ -19,7 +19,12 @@ const chooseDevice = (
 ) => {
   return Saga.callUntyped(function*() {
     const devices = (params.devices || []).map(d => ProvisionConstants.rpcDeviceToDevice(d))
-    yield Saga.put(RecoverPasswordGen.createDisplayDeviceSelect({devices}))
+    yield Saga.put(
+      RecoverPasswordGen.createDisplayDeviceSelect({
+        devices,
+        replaceRoute,
+      })
+    )
 
     const action:
       | RecoverPasswordGen.SubmitDeviceSelectPayload
@@ -42,25 +47,43 @@ const chooseDevice = (
 const explainDevice = (
   params: RPCTypes.MessageTypes['keybase.1.loginUi.explainDeviceRecovery']['inParam']
 ) => {
-  return Saga.all([
-    Saga.put(
-      RecoverPasswordGen.createShowExplainDevice({
-        name: params.name,
-        type: params.kind,
-      })
-    ),
-    Saga.put(
-      RouteTreeGen.createNavigateAppend({
-        path: ['recoverPasswordExplainDevice'],
-        replace: true,
-      })
-    ),
-  ])
+  return Saga.put(
+    RecoverPasswordGen.createShowExplainDevice({
+      name: params.name,
+      type: params.kind,
+    })
+  )
+}
+
+const showExplainDevice = () => {
+  return RouteTreeGen.createNavigateAppend({
+    path: ['recoverPasswordExplainDevice'],
+    replace: true,
+  })
 }
 
 // This same RPC is called at the beginning and end of the 7-day wait by the service.
-// TODO figure out what the deal is with typing here
-const promptReset = () => Saga.put(AutoresetGen.createStartAccountReset({skipPassword: true}))
+const promptReset = (
+  params: RPCTypes.MessageTypes['keybase.1.loginUi.promptResetAccount']['inParam'],
+  response: {
+    result: (res: RPCTypes.ResetPromptResponse) => void
+  }
+) => {
+  return Saga.callUntyped(function*() {
+    if (params.prompt.t == RPCTypes.ResetPromptType.enterResetPw) {
+      yield Saga.put(RecoverPasswordGen.createPromptResetPassword())
+
+      const action: RecoverPasswordGen.SubmitResetPasswordPayload = yield Saga.take(
+        RecoverPasswordGen.submitResetPassword
+      )
+      response.result(action.payload.action)
+      yield Saga.put(RecoverPasswordGen.createCompleteResetPassword())
+    } else {
+      yield Saga.put(AutoresetGen.createStartAccountReset({skipPassword: true}))
+      response.result(RPCTypes.ResetPromptResponse.nothing)
+    }
+  })
+}
 
 const getPaperKeyOrPw = (
   params: RPCTypes.MessageTypes['keybase.1.secretUi.getPassphrase']['inParam'],
@@ -132,7 +155,7 @@ function* startRecoverPassword(
   try {
     yield RPCTypes.loginRecoverPassphraseRpcSaga({
       customResponseIncomingCallMap: {
-        'keybase.1.loginUi.chooseDeviceToRecoverWith': chooseDevice,
+        'keybase.1.loginUi.chooseDeviceToRecoverWith': chooseDevice(!!action.payload.replaceRoute),
         'keybase.1.loginUi.promptResetAccount': promptReset,
         'keybase.1.secretUi.getPassphrase': getPaperKeyOrPw,
       },
@@ -166,9 +189,13 @@ function* startRecoverPassword(
   }
 }
 
-const displayDeviceSelect = () => {
+const displayDeviceSelect = (
+  _: Container.TypedState,
+  action: RecoverPasswordGen.DisplayDeviceSelectPayload
+) => {
   return RouteTreeGen.createNavigateAppend({
     path: ['recoverPasswordDeviceSelector'],
+    replace: !!action.payload.replaceRoute,
   })
 }
 
@@ -180,12 +207,20 @@ const displayError = (state: Container.TypedState) => {
 }
 
 const restartRecovery = (state: Container.TypedState) => {
-  return [
-    RecoverPasswordGen.createStartRecoverPassword({
-      username: state.recoverPassword.username,
-    }),
-    RouteTreeGen.createNavigateUp(),
-  ]
+  return RecoverPasswordGen.createStartRecoverPassword({
+    replaceRoute: true,
+    username: state.recoverPassword.username,
+  })
+}
+
+const promptResetPassword = () => {
+  return RouteTreeGen.createNavigateAppend({
+    path: ['recoverPasswordPromptResetPassword'],
+  })
+}
+
+const completeResetPassword = () => {
+  return RouteTreeGen.createNavigateUp()
 }
 
 function* recoverPasswordSaga() {
@@ -195,8 +230,11 @@ function* recoverPasswordSaga() {
     'startRecoverPassword'
   )
   yield* Saga.chainAction2(RecoverPasswordGen.displayDeviceSelect, displayDeviceSelect, 'displayDeviceSelect')
+  yield* Saga.chainAction2(RecoverPasswordGen.showExplainDevice, showExplainDevice, 'showExplainDevice')
   yield* Saga.chainAction2(RecoverPasswordGen.displayError, displayError, 'displayError')
   yield* Saga.chainAction2(RecoverPasswordGen.restartRecovery, restartRecovery, 'restartRecovery')
+  yield* Saga.chainAction2(RecoverPasswordGen.promptResetPassword, promptResetPassword)
+  yield* Saga.chainAction2(RecoverPasswordGen.completeResetPassword, completeResetPassword)
 }
 
 export default recoverPasswordSaga

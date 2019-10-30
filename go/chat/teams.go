@@ -30,9 +30,9 @@ func getTeamCryptKey(mctx libkb.MetaContext, team *teams.Team, generation keybas
 		}
 		keyer := mctx.G().GetTeambotBotKeyer()
 		if forEncryption {
-			return keyer.GetLatestTeambotKey(mctx, team.ID)
+			return keyer.GetLatestTeambotKey(mctx, team.ID, keybase1.TeamApplication_CHAT)
 		}
-		return keyer.GetTeambotKeyAtGeneration(mctx, team.ID, keybase1.TeambotKeyGeneration(generation))
+		return keyer.GetTeambotKeyAtGeneration(mctx, team.ID, keybase1.TeamApplication_CHAT, keybase1.TeambotKeyGeneration(generation))
 	}
 
 	if kbfsEncrypted {
@@ -500,9 +500,9 @@ func batchLoadEncryptionKIDs(ctx context.Context, g *libkb.GlobalContext, uvs []
 		return &tmp
 	}
 
-	processResult := func(i int, upak *keybase1.UserPlusKeysV2AllIncarnations) {
+	processResult := func(i int, upak *keybase1.UserPlusKeysV2AllIncarnations) error {
 		if upak == nil {
-			return
+			return nil
 		}
 		for _, key := range upak.Current.DeviceKeys {
 			// Include only unrevoked encryption keys.
@@ -510,6 +510,7 @@ func batchLoadEncryptionKIDs(ctx context.Context, g *libkb.GlobalContext, uvs []
 				ret = append(ret, key.Base.Kid)
 			}
 		}
+		return nil
 	}
 
 	err = g.GetUPAKLoader().Batcher(ctx, getArg, processResult, 0)

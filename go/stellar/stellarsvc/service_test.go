@@ -313,7 +313,7 @@ func TestBalances(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
-	accountID := tcs[0].Backend.AddAccount()
+	accountID := tcs[0].Backend.AddAccount(tcs[0].Fu.GetUID())
 
 	balances, err := tcs[0].Srv.BalancesLocal(context.Background(), accountID)
 	if err != nil {
@@ -354,8 +354,8 @@ func TestSendLocalStellarAddress(t *testing.T) {
 
 	srv := tcs[0].Srv
 	rm := tcs[0].Backend
-	accountIDSender := rm.AddAccount()
-	accountIDRecip := rm.AddAccount()
+	accountIDSender := rm.AddAccount(tcs[0].Fu.GetUID())
+	accountIDRecip := rm.AddAccount(tcs[0].Fu.GetUID())
 
 	err := srv.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
 		SecretKey:   rm.SecretKey(accountIDSender),
@@ -397,8 +397,8 @@ func TestSendLocalKeybase(t *testing.T) {
 
 	srvSender := tcs[0].Srv
 	rm := tcs[0].Backend
-	accountIDSender := rm.AddAccount()
-	accountIDRecip := rm.AddAccount()
+	accountIDSender := rm.AddAccount(tcs[0].Fu.GetUID())
+	accountIDRecip := rm.AddAccount(tcs[1].Fu.GetUID())
 
 	srvRecip := tcs[1].Srv
 
@@ -446,8 +446,8 @@ func TestRecentPaymentsLocal(t *testing.T) {
 
 	srvSender := tcs[0].Srv
 	rm := tcs[0].Backend
-	accountIDSender := rm.AddAccount()
-	accountIDRecip := rm.AddAccount()
+	accountIDSender := rm.AddAccount(tcs[0].Fu.GetUID())
+	accountIDRecip := rm.AddAccount(tcs[1].Fu.GetUID())
 
 	srvRecip := tcs[1].Srv
 
@@ -1360,7 +1360,7 @@ func TestShutdown(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
-	accountID := tcs[0].Backend.AddAccount()
+	accountID := tcs[0].Backend.AddAccount(tcs[0].Fu.GetUID())
 
 	tcs[0].Srv.walletState.SeqnoLock()
 	_, err := tcs[0].Srv.walletState.AccountSeqnoAndBump(context.Background(), accountID)

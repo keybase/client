@@ -6,7 +6,6 @@ import * as Container from '../util/container'
 import * as Constants from '../constants/tracker2'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import logger from '../logger'
-import {formatPhoneNumberInternational} from '../util/phone-numbers'
 
 const identify3Result = (
   _: Container.TypedState,
@@ -265,6 +264,7 @@ const loadNonUserProfile = async (_: Container.TypedState, action: Tracker2Gen.L
           ...res.service,
         })
       } else {
+        const {formatPhoneNumberInternational} = require('../util/phone-numbers')
         const formattedName =
           res.assertionKey === 'phone' ? formatPhoneNumberInternational('+' + res.assertionValue) : undefined
         const fullName = res.contact ? res.contact.contactName : ''

@@ -83,6 +83,9 @@ function* chainAction2Impl<Actions extends {readonly type: string}>(
       const state: TypedState = yield* selectState()
       // @ts-ignore
       let toPut = yield Effects.call(f, state, action, sl)
+      // release memory
+      // @ts-ignore
+      action = undefined
       if (toPut) {
         const outActions: Array<TypedActions> = isArray(toPut) ? toPut : [toPut]
         for (var out of outActions) {

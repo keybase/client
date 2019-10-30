@@ -48,10 +48,10 @@ describe('chat2 reducer', () => {
         ] as Array<[Types.Ordinal, ReturnType<typeof ConstantsMessage.makeMessageText>]>),
       ],
     ]),
-    messageOrdinals: I.Map([
+    messageOrdinals: new Map([
       [
         conversationIDKey,
-        I.OrderedSet([
+        new Set([
           Types.numberToOrdinal(1),
           Types.numberToOrdinal(2),
           Types.numberToOrdinal(3),

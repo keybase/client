@@ -104,6 +104,12 @@ export const formatDuration = (duration: number): string => {
   const d = moment.duration(duration)
   return d.hours() ? `${d.hours()} hr` : d.minutes() ? `${d.minutes()} min` : `${d.seconds()} s`
 }
+
+export const formatAudioRecordDuration = (duration: number): string => {
+  const d = moment.duration(duration)
+  return moment.utc(d.as('milliseconds')).format('mm:ss')
+}
+
 export const formatDurationForAutoreset = (duration: number): string => {
   if (!duration) {
     return ''

@@ -1066,6 +1066,10 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver kbfsmd.MetadataVer)
 
 	// meanwhile, device 3 should be able to read both the new and the
 	// old files
+	kbfsOps3 := config2Dev3.KBFSOps()
+	err = kbfsOps3.SyncFromServer(
+		ctx, rootNode2.GetFolderBranch(), nil)
+	require.NoError(t, err)
 	rootNode2Dev3 := GetRootNodeOrBust(ctx, t, config2Dev3, name, tlf.Private)
 
 	kbfsOps2Dev3 := config2Dev3.KBFSOps()

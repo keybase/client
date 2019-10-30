@@ -8,6 +8,7 @@ import {anyErrors, anyWaiting} from '../../constants/waiting'
 import {compose} from 'recompose'
 import Advanced from '.'
 import {connect, lifecycle, TypedState} from '../../util/container'
+import {isLinux} from '../../constants/platform'
 
 type OwnProps = {}
 const mapStateToProps = (state: TypedState) => {
@@ -30,6 +31,7 @@ const mapStateToProps = (state: TypedState) => {
 const mapDispatchToProps = dispatch => ({
   _loadHasRandomPW: () => dispatch(SettingsGen.createLoadHasRandomPw()),
   _loadLockdownMode: () => dispatch(SettingsGen.createLoadLockdownMode()),
+  _loadNixOnLoginStartup: () => isLinux && dispatch(ConfigGen.createLoadNixOnLoginStartup()),
   _loadRememberPassword: () => dispatch(SettingsGen.createLoadRememberPassword()),
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onChangeLockdownMode: (checked: boolean) =>
@@ -61,6 +63,7 @@ export default compose(
       this.props._loadLockdownMode()
       this.props._loadHasRandomPW()
       this.props._loadRememberPassword()
+      this.props._loadNixOnLoginStartup()
     },
   } as any),
   HeaderHoc

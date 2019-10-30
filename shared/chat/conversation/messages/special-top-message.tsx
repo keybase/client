@@ -9,6 +9,7 @@ import * as Kb from '../../../common-adapters'
 import * as Container from '../../../util/container'
 import * as Styles from '../../../styles'
 import NewChatCard from './cards/new-chat'
+import HelloBotCard from './cards/hello-bot'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
@@ -19,6 +20,7 @@ type Props = {
   conversationIDKey: Types.ConversationIDKey
   createConversationError: string | null
   hasOlderResetConversation: boolean
+  isHelloBotConversation: boolean
   loadMoreType: 'moreToLoad' | 'noMoreToLoad'
   measure: (() => void) | null
   pendingState: 'waiting' | 'error' | 'done'
@@ -67,7 +69,7 @@ class TopMessage extends React.PureComponent<Props> {
           !this.props.showRetentionNotice &&
           this.props.pendingState === 'done' && (
             <Kb.Box style={styles.more}>
-              <NewChatCard />
+              {this.props.isHelloBotConversation ? <HelloBotCard /> : <NewChatCard />}
             </Kb.Box>
           )}
         {this.props.showTeamOffer && (
@@ -146,10 +148,13 @@ export default Container.namedConnect(
       meta.retentionPolicy.type !== 'retain' &&
       !(meta.retentionPolicy.type === 'inherit' && meta.teamRetentionPolicy.type === 'retain')
     const {createConversationError} = state.chat2
+    const isHelloBotConversation =
+      hasLoadedEver && meta.teamType === 'adhoc' && meta.participants.includes('hellobot')
     return {
       conversationIDKey: ownProps.conversationIDKey,
       createConversationError,
       hasOlderResetConversation,
+      isHelloBotConversation,
       loadMoreType,
       measure: ownProps.measure,
       pendingState,

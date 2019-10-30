@@ -24,7 +24,6 @@ import {uploadAvatarWaitingKey} from '../constants/profile'
 import openSMS from '../util/sms'
 import {convertToError, logError} from '../util/errors'
 import {TypedState, TypedActions, isMobile} from '../util/container'
-import {e164ToDisplay} from '../util/phone-numbers'
 
 function* createNewTeam(_: TypedState, action: TeamsGen.CreateNewTeamPayload) {
   const {joinSubteam, teamname} = action.payload
@@ -550,18 +549,20 @@ function* getDetails(_: TypedState, action: TeamsGen.GetDetailsPayload, logger: 
     }
     requests.sort((a, b) => a.username.localeCompare(b.username))
 
-    const requestMap = requests.reduce((reqMap, req) => {
-      if (!reqMap[req.name]) {
-        reqMap[req.name] = I.Set()
+    const requestMap = new Map<string, Array<string>>()
+    requests.forEach(request => {
+      let arr = requestMap.get(request.name)
+      if (!arr) {
+        arr = []
+        requestMap.set(request.name, arr)
       }
-      reqMap[req.name] = reqMap[req.name].add(Constants.makeRequestInfo({username: req.username}))
-      return reqMap
-    }, {})
+      arr.push(request.username)
+    })
 
-    const invites = Object.values(details.annotatedActiveInvites).reduce<Array<Types.InviteInfo>>(
+    const invites = Object.values(details.annotatedActiveInvites).reduce<Array<Types._InviteInfo>>(
       (arr, invite) => {
         const role = Constants.teamRoleByEnum[invite.role]
-        if (role === 'none') {
+        if (!role || role === 'none') {
           return arr
         }
 
@@ -571,24 +572,22 @@ function* getDetails(_: TypedState, action: TeamsGen.GetDetailsPayload, logger: 
           const sbs: RPCTypes.TeamInviteSocialNetwork = t.sbs
           username = `${invite.name}@${sbs}`
         }
-        arr.push(
-          Constants.makeInviteInfo({
-            email: invite.type.c === RPCTypes.TeamInviteCategory.email ? invite.name : '',
-            id: invite.id,
-            name: invite.type.c === RPCTypes.TeamInviteCategory.seitan ? invite.name : '',
-            phone:
-              invite.type.c === RPCTypes.TeamInviteCategory.phone ? e164ToDisplay('+' + invite.name) : '',
-            role,
-            username,
-          })
-        )
+        const {e164ToDisplay} = require('../util/phone-numbers')
+        arr.push({
+          email: invite.type.c === RPCTypes.TeamInviteCategory.email ? invite.name : '',
+          id: invite.id,
+          name: invite.type.c === RPCTypes.TeamInviteCategory.seitan ? invite.name : '',
+          phone: invite.type.c === RPCTypes.TeamInviteCategory.phone ? e164ToDisplay('+' + invite.name) : '',
+          role,
+          username,
+        })
         return arr
       },
       []
     )
 
     // if we have no requests for this team, make sure we don't hold on to any old ones
-    if (!requestMap[teamname]) {
+    if (!requestMap.get(teamname)) {
       yield Saga.put(TeamsGen.createClearTeamRequests({teamname}))
     }
 
@@ -603,11 +602,12 @@ function* getDetails(_: TypedState, action: TeamsGen.GetDetailsPayload, logger: 
     }, [])
     yield Saga.put(
       TeamsGen.createSetTeamDetails({
-        invites: I.Set(invites),
-        members: Constants.rpcDetailsToMemberInfos(details.members),
-        requests: I.Map(requestMap),
-        settings: Constants.makeTeamSettings(details.settings),
-        subteams: I.Set(subteams),
+        invites: invites,
+        members: details.members,
+        requests: requestMap,
+        settings: details.settings,
+        subteams: subteams,
+        teamID: Constants.getTeamID(state, teamname),
         teamname,
       })
     )
@@ -812,10 +812,6 @@ function* getTeams(
     const teamNameToAllowPromote: {[key: string]: boolean} = {}
     const teamNameToIsShowcasing: {[key: string]: boolean} = {}
     const teamNameToID: {[key: string]: string} = {}
-    const teamIDToName: Map<Types.TeamID, string> = new Map()
-    const teamIDToIsOpen: Map<Types.TeamID, boolean> = new Map()
-    const teamIDToAllowPromote: Map<Types.TeamID, boolean> = new Map()
-    const teamIDToIsShowcasing: Map<Types.TeamID, boolean> = new Map()
     teams.forEach(team => {
       teamnames.push(team.fqName)
       teammembercounts[team.fqName] = team.memberCount
@@ -824,11 +820,6 @@ function* getTeams(
       teamNameToAllowPromote[team.fqName] = team.allowProfilePromote
       teamNameToIsShowcasing[team.fqName] = team.isMemberShowcased
       teamNameToID[team.fqName] = team.teamID
-
-      teamIDToName.set(team.teamID, team.fqName)
-      teamIDToIsOpen.set(team.teamID, team.isOpenTeam)
-      teamIDToAllowPromote.set(team.teamID, team.allowProfilePromote)
-      teamIDToIsShowcasing.set(team.teamID, team.isMemberShowcased)
     })
 
     // Dismiss any stale badges for teams we're no longer in
@@ -1301,20 +1292,21 @@ const getMembers = async (_: TypedState, action: TeamsGen.GetMembersPayload, log
   }
 }
 
-const badgeAppForTeams = (state: TypedState, action: TeamsGen.BadgeAppForTeamsPayload) => {
+const badgeAppForTeams = (state: TypedState, action: NotificationsGen.ReceivedBadgeStatePayload) => {
   const loggedIn = state.config.loggedIn
   if (!loggedIn) {
     // Don't make any calls we don't have permission to.
     return
   }
+  const {badgeState} = action.payload
 
   let actions: Array<TypedActions> = []
-  const deletedTeams = action.payload.deletedTeams
-  const newTeams = new Set<string>(action.payload.newTeamNames || [])
-  const newTeamRequests = action.payload.newTeamAccessRequests || []
+  const deletedTeams = badgeState.deletedTeams || []
+  const newTeams = new Set<string>(badgeState.newTeams || [])
+  const newTeamRequests = badgeState.newTeamAccessRequests || []
 
   // TODO ts-migration remove any
-  const teamsWithResetUsers: I.List<any> = I.List(action.payload.teamsWithResetUsers || [])
+  const teamsWithResetUsers: I.List<any> = I.List(badgeState.teamsWithResetUsers || [])
   const teamsWithResetUsersMap = teamsWithResetUsers.reduce((res, entry) => {
     if (!res[entry.teamname]) {
       res[entry.teamname] = I.Set()
@@ -1365,14 +1357,6 @@ const badgeAppForTeams = (state: TypedState, action: TeamsGen.BadgeAppForTeamsPa
 }
 
 let _wasOnTeamsTab = () => Constants.isOnTeamsTab()
-
-const receivedBadgeState = (_: TypedState, action: NotificationsGen.ReceivedBadgeStatePayload) =>
-  TeamsGen.createBadgeAppForTeams({
-    deletedTeams: action.payload.badgeState.deletedTeams || [],
-    newTeamAccessRequests: action.payload.badgeState.newTeamAccessRequests || [],
-    newTeamNames: action.payload.badgeState.newTeamNames || [],
-    teamsWithResetUsers: action.payload.badgeState.teamsWithResetUsers || [],
-  })
 
 const gregorPushState = (_: TypedState, action: GregorGen.PushStatePayload) => {
   const actions: Array<TypedActions> = []
@@ -1440,6 +1424,14 @@ function addThemToTeamFromTeamBuilder(
       username: user.id,
     })
   )
+}
+
+const refreshCanUserPerform = (
+  _: TypedState,
+  action: EngineGen.Keybase1NotifyCanUserPerformCanUserPerformChangedPayload
+) => {
+  const {teamName} = action.payload.params
+  return TeamsGen.createGetTeamOperations({teamname: teamName})
 }
 
 function* teamBuildingSaga() {
@@ -1516,8 +1508,6 @@ const teamsSaga = function*() {
   yield* Saga.chainAction2(TeamsGen.updateTopic, updateTopic, 'updateTopic')
   yield* Saga.chainAction2(TeamsGen.updateChannelName, updateChannelname, 'updateChannelname')
   yield* Saga.chainAction2(TeamsGen.deleteChannelConfirmed, deleteChannelConfirmed, 'deleteChannelConfirmed')
-  yield* Saga.chainAction2(TeamsGen.badgeAppForTeams, badgeAppForTeams, 'badgeAppForTeams')
-  yield* Saga.chainAction2(TeamsGen.badgeAppForTeams, badgeAppForTeams, 'badgeAppForTeams')
   yield* Saga.chainGenerator<TeamsGen.InviteToTeamByPhonePayload>(
     TeamsGen.inviteToTeamByPhone,
     inviteToTeamByPhone,
@@ -1546,7 +1536,7 @@ const teamsSaga = function*() {
     'addTeamWithChosenChannels'
   )
   yield* Saga.chainAction2(TeamsGen.renameTeam, renameTeam)
-  yield* Saga.chainAction2(NotificationsGen.receivedBadgeState, receivedBadgeState, 'receivedBadgeState')
+  yield* Saga.chainAction2(NotificationsGen.receivedBadgeState, badgeAppForTeams, 'badgeAppForTeams')
   yield* Saga.chainAction2(GregorGen.pushState, gregorPushState, 'gregorPushState')
   yield* Saga.chainAction2(
     EngineGen.keybase1NotifyTeamTeamChangedByName,
@@ -1560,6 +1550,11 @@ const teamsSaga = function*() {
   )
 
   yield* Saga.chainAction2(TeamsGen.clearNavBadges, clearNavBadges)
+  yield* Saga.chainAction2(
+    EngineGen.keybase1NotifyCanUserPerformCanUserPerformChanged,
+    refreshCanUserPerform,
+    'refreshCanUserPerform'
+  )
 
   // Hook up the team building sub saga
   yield* teamBuildingSaga()

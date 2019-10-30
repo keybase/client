@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/keybase/client/go/avatars"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/protocol/keybase1"
 
@@ -42,6 +43,7 @@ func (s *Srv) serve(w http.ResponseWriter, req *http.Request) {
 	strlon := req.URL.Query().Get("lon")
 	strwidth := req.URL.Query().Get("width")
 	strheight := req.URL.Query().Get("height")
+	username := req.URL.Query().Get("username")
 	lat, err := strconv.ParseFloat(strlat, 64)
 	if err != nil {
 		s.makeError(w, http.StatusBadRequest, "invalid lat: %s", err)
@@ -62,18 +64,38 @@ func (s *Srv) serve(w http.ResponseWriter, req *http.Request) {
 		s.makeError(w, http.StatusBadRequest, "invalid height: %s", err)
 		return
 	}
-	url, err := GetCustomMapURL(ctx, s.G().ExternalAPIKeySource, lat, lon, int(width)*scale,
+	mapURL, err := GetCustomMapURL(ctx, s.G().ExternalAPIKeySource, lat, lon, int(width)*scale,
 		int(height)*scale)
 	if err != nil {
 		s.makeError(w, http.StatusInternalServerError, "unable to get map url: %s", err)
 		return
 	}
-	reader, _, err := MapReaderFromURL(ctx, url)
+	mapReader, _, err := MapReaderFromURL(ctx, mapURL)
 	if err != nil {
 		s.makeError(w, http.StatusInternalServerError, "unable to get map reader: %s", err)
 		return
 	}
-	defer reader.Close()
+
+	defer mapReader.Close()
+
+	var reader io.ReadCloser
+	if username != "" {
+		avatarReader, _, err := avatars.GetBorderedCircleAvatar(ctx, s.G(), username, 128, 10)
+		if err != nil {
+			s.makeError(w, http.StatusInternalServerError, "unable to get avatar: %s", err)
+			return
+		}
+
+		fancyReader, _, err := DecorateMap(ctx, avatarReader, mapReader)
+		if err != nil {
+			s.makeError(w, http.StatusInternalServerError, "unable to decorate map: %s", err)
+			return
+		}
+		reader = fancyReader
+	} else {
+		reader = mapReader
+	}
+
 	if _, err := io.Copy(w, reader); err != nil {
 		s.makeError(w, http.StatusInternalServerError, "unable to read map: %s", err)
 		return

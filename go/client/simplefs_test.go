@@ -362,6 +362,11 @@ func (s SimpleFSMock) SimpleFSGetGUIFileContext(ctx context.Context,
 	return keybase1.GUIFileContext{}, nil
 }
 
+func (s SimpleFSMock) SimpleFSGetFilesTabBadge(_ context.Context) (
+	keybase1.FilesTabBadge, error) {
+	return keybase1.FilesTabBadge_NONE, nil
+}
+
 /*
  file source cases:
  1. file

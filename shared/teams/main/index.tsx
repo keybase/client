@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as I from 'immutable'
+import * as Types from '../../constants/types/teams'
 import Header from './header'
 import Banner from './banner'
 import NoTeamsPlaceholder from './no-teams-placeholder'
@@ -15,8 +16,7 @@ type DeletedTeam = {
 export type Props = {
   loaded: boolean
   deletedTeams: ReadonlyArray<DeletedTeam>
-  newTeams: ReadonlyArray<string>
-  onBack?: () => void
+  newTeams: Set<Types.TeamID>
   onCreateTeam: () => void
   onHideChatBanner: () => void
   onJoinTeam: () => void
@@ -25,13 +25,9 @@ export type Props = {
   onReadMore: () => void
   onViewTeam: (arg0: string) => void
   sawChatBanner: boolean
-  teamNameToCanManageChat: {[K in string]: boolean}
-  teamNameToIsOpen: {[K in string]: boolean}
-  teammembercounts: {[K in string]: number}
-  teamnames: ReadonlyArray<string>
   teamresetusers: {[K in string]: I.Set<string> | null}
-  teamToRequest: {[K in string]: number}
-  title?: string
+  newTeamRequests: Map<Types.TeamID, number>
+  teams: Array<Types.TeamDetails>
 }
 
 type RowProps = {
@@ -103,6 +99,26 @@ export const TeamRow = React.memo<RowProps>((props: RowProps) => {
   )
 })
 
+type Row =
+  | {
+      key: string
+      type: '_banner'
+    }
+  | {
+      key: string
+      team: DeletedTeam
+      type: 'deletedTeam'
+    }
+  | {
+      key: string
+      team: Types.TeamDetails
+      type: 'team'
+    }
+  | {
+      key: string
+      type: '_placeholder'
+    }
+
 type State = {
   sawChatBanner: boolean
 }
@@ -110,12 +126,14 @@ type State = {
 class Teams extends React.PureComponent<Props, State> {
   state = {sawChatBanner: this.props.sawChatBanner}
 
-  _teamsAndExtras = memoize((deletedTeams, teamnames) => [
-    {key: '_banner', type: '_banner'},
-    ...deletedTeams.map(t => ({key: 'deletedTeam' + t.teamName, team: t, type: 'deletedTeam'})),
-    ...teamnames.map(t => ({key: t, team: t, type: 'team'})),
-    ...(teamnames.length === 0 ? [{key: '_placeholder', type: '_placeholder'}] : []),
-  ])
+  _teamsAndExtras = memoize(
+    (deletedTeams: Props['deletedTeams'], teams: Props['teams']): Array<Row> => [
+      ...(this.state.sawChatBanner ? [] : [{key: '_banner', type: '_banner' as const}]),
+      ...deletedTeams.map(dt => ({key: 'deletedTeam' + dt.teamName, team: dt, type: 'deletedTeam' as const})),
+      ...teams.map(team => ({key: team.id, team, type: 'team' as const})),
+      ...(teams.length === 0 ? [{key: '_placeholder', type: '_placeholder' as const}] : []),
+    ]
+  )
 
   _onHideChatBanner = () => {
     this.setState({sawChatBanner: true})
@@ -125,12 +143,10 @@ class Teams extends React.PureComponent<Props, State> {
   _onManageChat = name => this.props.onManageChat(name)
   _onViewTeam = name => this.props.onViewTeam(name)
 
-  _renderItem = (index, item) => {
+  _renderItem = (index: number, item: Row) => {
     switch (item.type) {
       case '_banner':
-        return this.state.sawChatBanner ? null : (
-          <Banner onReadMore={this.props.onReadMore} onHideChatBanner={this._onHideChatBanner} />
-        )
+        return <Banner onReadMore={this.props.onReadMore} onHideChatBanner={this._onHideChatBanner} />
       case '_placeholder':
         return <NoTeamsPlaceholder />
       case 'deletedTeam': {
@@ -145,21 +161,21 @@ class Teams extends React.PureComponent<Props, State> {
         )
       }
       case 'team': {
-        const name = item.team
-        const reset = this.props.teamresetusers[name]
+        const team = item.team
+        const reset = this.props.teamresetusers[team.teamname]
         const resetUserCount = (reset && reset.size) || 0
         return (
           <TeamRow
-            firstItem={index === 1}
-            key={name}
-            name={name}
-            isNew={this.props.newTeams.includes(name)}
-            isOpen={this.props.teamNameToIsOpen[name]}
-            newRequests={this.props.teamToRequest[name] || 0}
-            membercount={this.props.teammembercounts[name]}
-            onOpenFolder={() => this._onOpenFolder(name)}
-            onManageChat={this.props.teamNameToCanManageChat[name] ? () => this._onManageChat(name) : null}
-            onViewTeam={() => this._onViewTeam(name)}
+            firstItem={index === (this.state.sawChatBanner ? 0 : 1)}
+            key={team.teamname}
+            name={team.teamname}
+            isNew={this.props.newTeams.has(team.id)}
+            isOpen={team.isOpen}
+            newRequests={this.props.newTeamRequests.get(team.id) || 0}
+            membercount={team.memberCount}
+            onOpenFolder={() => this._onOpenFolder(team.teamname)}
+            onManageChat={team.isMember ? () => this._onManageChat(team.teamname) : null}
+            onViewTeam={() => this._onViewTeam(team.teamname)}
             resetUserCount={resetUserCount}
           />
         )
@@ -188,7 +204,7 @@ class Teams extends React.PureComponent<Props, State> {
           />
         )}
         <Kb.List
-          items={this._teamsAndExtras(this.props.deletedTeams, this.props.teamnames)}
+          items={this._teamsAndExtras(this.props.deletedTeams, this.props.teams)}
           renderItem={this._renderItem}
         />
       </Kb.Box2>

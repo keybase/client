@@ -772,6 +772,29 @@
     "setChannelSearchText": {
       "_description": "Set filter for channel search",
       "text": "string"
+    },
+    "enableAudioRecording": {
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "startAudioRecording": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "meteringCb": "(amp: number) => void"
+    },
+    "stopAudioRecording": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "stopType": "Types.AudioStopType",
+      "amps?": "Array<number>"
+    },
+    "lockAudioRecording": {
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "sendAudioRecording": {
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "setAudioRecordingPostInfo": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "path": "string",
+      "outboxID": "Buffer"
     }
   }
 }

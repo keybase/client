@@ -104,7 +104,7 @@ class Dropdown extends React.Component<Props, State> {
 
   _renderLabelAndCaret() {
     return [
-      <Text center={true} key="text" type="Header" style={styles.orangeText}>
+      <Text key="text" type="Header" style={styles.orangeText}>
         {this._label(this.state.value)}
       </Text>,
       <Icon key="icon" type="iconfont-caret-down" style={styles.icon} sizeType="Tiny" />,
@@ -118,7 +118,7 @@ class Dropdown extends React.Component<Props, State> {
 
     const actualItems = (this.props.options || []).map(o => ({
       key: o.username,
-      label: o.hasStoredSecret ? `${o.username} (signed in)` : o.username,
+      label: o.hasStoredSecret ? `${o.username} (Signed in)` : o.username,
       value: o.username,
     }))
     const otherItem = this.props.onOther
@@ -199,18 +199,20 @@ const styles = Styles.styleSheetCreate(
       container: {
         ...Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
+        backgroundColor: Styles.globalColors.white,
         borderColor: Styles.globalColors.black_10,
         borderRadius: Styles.borderRadius,
         borderWidth: 1,
-        height: 40,
-        paddingLeft: 17,
-        paddingRight: 17,
+        height: 48,
+        paddingLeft: Styles.globalMargins.small,
+        paddingRight: Styles.globalMargins.small,
       },
       icon: {width: 10},
       item: {color: Styles.globalColors.black},
       orangeText: {
         color: Styles.globalColors.orange,
         flex: 1,
+        lineHeight: 28,
       },
       pickerAndroid: {
         backgroundColor: Styles.globalColors.transparent,
