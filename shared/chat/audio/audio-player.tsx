@@ -40,13 +40,19 @@ const AudioPlayer = (props: Props) => {
       }
     }, 1000)
     return () => clearTimeout(timer)
-  }, [timeLeft, paused])
+  }, [timeLeft, paused, props.duration])
 
   const visUrl = props.visUrl ? props.visUrl : `data:image/png;base64, ${props.visBytes}`
   return (
     <Kb.Box2 direction="horizontal" style={styles.container} gap="tiny">
-      <Kb.ClickableBox onClick={onClick} style={{justifyContent: 'center'}}>
-        <Kb.Box2 direction="vertical" style={styles.button}>
+      <Kb.ClickableBox onClick={props.url ? onClick : undefined} style={{justifyContent: 'center'}}>
+        <Kb.Box2
+          direction="vertical"
+          style={Styles.collapseStyles([
+            styles.button,
+            {backgroundColor: props.url ? Styles.globalColors.blue : Styles.globalColors.grey},
+          ])}
+        >
           <Kb.Icon
             type={!paused ? 'iconfont-stop' : 'iconfont-play'}
             fontSize={14}
@@ -65,9 +71,11 @@ const AudioPlayer = (props: Props) => {
             {height: props.visHeight / 2, width: props.visWidth / 2},
           ])}
         />
-        <Kb.Text type="BodyTiny">{formatAudioRecordDuration(timeLeft)}</Kb.Text>
+        <Kb.Text type="BodyTiny" style={styles.duration}>
+          {formatAudioRecordDuration(timeLeft)}
+        </Kb.Text>
       </Kb.Box2>
-      <AudioVideo ref={vidRef} url={props.url} paused={paused} />
+      {props.url.length > 0 && <AudioVideo ref={vidRef} url={props.url} paused={paused} />}
     </Kb.Box2>
   )
 }
@@ -82,24 +90,35 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   container: {
     ...Styles.padding(Styles.globalMargins.xxtiny, Styles.globalMargins.tiny),
-    borderColor: Styles.globalColors.black_10,
+    backgroundColor: Styles.globalColors.whiteOrWhite,
+    borderColor: Styles.globalColors.grey,
     borderRadius: Styles.borderRadius,
     borderStyle: 'solid',
     borderWidth: 1,
-    padding: Styles.globalMargins.tiny,
+    marginTop: Styles.globalMargins.xtiny,
   },
-  play: {
-    bottom: '50%',
-    color: Styles.globalColors.white,
-    left: '50%',
-    marginBottom: -8,
-    marginLeft: -6,
-    marginRight: -8,
-    marginTop: -8,
-    position: 'absolute',
-    right: '50%',
-    top: '50%',
+  duration: {
+    color: Styles.globalColors.black_50OrBlack_50,
   },
+  play: Styles.platformStyles({
+    common: {
+      bottom: '50%',
+      color: Styles.globalColors.whiteOrWhite,
+      left: '50%',
+      marginBottom: -8,
+      marginLeft: -6,
+      marginRight: -8,
+      position: 'absolute',
+      right: '50%',
+      top: '50%',
+    },
+    isElectron: {
+      marginTop: -6,
+    },
+    isMobile: {
+      marginTop: -8,
+    },
+  }),
   vis: {
     alignSelf: 'flex-start',
   },

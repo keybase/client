@@ -2664,3 +2664,11 @@ func (e OutboxErrorType) IsBadgableError() bool {
 func (c UserBotCommandOutput) Matches(text string) bool {
 	return strings.HasPrefix(text, fmt.Sprintf("!%s ", c.Name))
 }
+
+func (m AssetMetadata) IsType(typ AssetMetadataType) bool {
+	mtyp, err := m.AssetType()
+	if err != nil {
+		return false
+	}
+	return mtyp == typ
+}

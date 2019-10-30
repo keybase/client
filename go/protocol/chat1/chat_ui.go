@@ -1065,6 +1065,7 @@ type UIMessageOutbox struct {
 	ReplyTo           *UIMessage      `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
 	Filename          string          `codec:"filename" json:"filename"`
 	Title             string          `codec:"title" json:"title"`
+	AudioDuration     int             `codec:"audioDuration" json:"audioDuration"`
 	Preview           *MakePreviewRes `codec:"preview,omitempty" json:"preview,omitempty"`
 }
 
@@ -1098,8 +1099,9 @@ func (o UIMessageOutbox) DeepCopy() UIMessageOutbox {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.ReplyTo),
-		Filename: o.Filename,
-		Title:    o.Title,
+		Filename:      o.Filename,
+		Title:         o.Title,
+		AudioDuration: o.AudioDuration,
 		Preview: (func(x *MakePreviewRes) *MakePreviewRes {
 			if x == nil {
 				return nil

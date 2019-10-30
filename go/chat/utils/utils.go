@@ -1060,7 +1060,11 @@ func GetMsgSnippetBody(msg chat1.MessageUnboxed) (snippet string) {
 			case chat1.AssetMetadataType_IMAGE:
 				title = "📷 attachment"
 			case chat1.AssetMetadataType_VIDEO:
-				title = "🎞 attachment"
+				if obj.Metadata.Video().IsAudio {
+					title = "🔊 attachment"
+				} else {
+					title = "🎞 attachment"
+				}
 			default:
 				title = obj.Filename
 			}
@@ -1759,6 +1763,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 		})
 	case chat1.MessageUnboxedState_OUTBOX:
 		var body, title, filename string
+		var audioDuration int
 		var decoratedBody *string
 		var preview *chat1.MakePreviewRes
 		typ := rawMsg.Outbox().Msg.ClientHeader.MessageType
@@ -1778,8 +1783,12 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			msgBody := rawMsg.Outbox().Msg.MessageBody
 			btyp, err := msgBody.MessageType()
 			if err == nil && btyp == chat1.MessageType_ATTACHMENT {
-				title = msgBody.Attachment().Object.Title
-				filename = msgBody.Attachment().Object.Filename
+				asset := msgBody.Attachment().Object
+				if asset.Metadata.IsType(chat1.AssetMetadataType_VIDEO) && asset.Metadata.Video().IsAudio {
+					audioDuration = asset.Metadata.Video().DurationMs
+				}
+				title = asset.Title
+				filename = asset.Filename
 			}
 		}
 		var replyTo *chat1.UIMessage
@@ -1801,6 +1810,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			IsEphemeral:       rawMsg.Outbox().Msg.IsEphemeral(),
 			FlipGameID:        presentFlipGameID(ctx, g, uid, convID, rawMsg),
 			ReplyTo:           replyTo,
+			AudioDuration:     audioDuration,
 		})
 	case chat1.MessageUnboxedState_ERROR:
 		res = chat1.NewUIMessageWithError(rawMsg.Error())

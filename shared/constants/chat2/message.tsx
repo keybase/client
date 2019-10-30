@@ -1017,6 +1017,7 @@ const outboxUIMessagetoMessage = (
         FsTypes.getLocalPathName(fileName),
         previewURL,
         pre,
+        o.audioDuration,
         Types.stringToOutboxID(o.outboxID),
         Types.numberToOrdinal(o.ordinal),
         errorReason,
@@ -1164,6 +1165,7 @@ export const makePendingAttachmentMessage = (
   fileName: string,
   previewURL: string,
   previewSpec: Types.PreviewSpec,
+  audioDuration: number,
   outboxID: Types.OutboxID,
   inOrdinal: Types.Ordinal | null,
   errorReason: string | null,
@@ -1178,6 +1180,7 @@ export const makePendingAttachmentMessage = (
   return makeMessageAttachment({
     ...explodeInfo,
     attachmentType: previewSpec.attachmentType,
+    audioDuration,
     author: state.config.username,
     conversationIDKey,
     deviceName: '',

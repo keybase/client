@@ -1121,6 +1121,10 @@
           "name": "title"
         },
         {
+          "type": "int",
+          "name": "audioDuration"
+        },
+        {
           "type": [
             null,
             "MakePreviewRes"

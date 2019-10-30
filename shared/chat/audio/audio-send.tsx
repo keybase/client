@@ -27,13 +27,13 @@ const AudioSend = (props: Props) => {
   const onSend = () => {
     dispatch(Chat2Gen.createSendAudioRecording({conversationIDKey}))
   }
-  const loadVis = () => {
+  const loadVis = React.useCallback(() => {
     dispatch(Chat2Gen.createCreateAudioPreview({conversationIDKey}))
-  }
+  }, [dispatch, conversationIDKey])
   // lifecycle
   React.useEffect(() => {
     loadVis()
-  }, [])
+  }, [loadVis])
 
   // render
   let player = <Kb.Text type="Body">No recording available</Kb.Text>

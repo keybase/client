@@ -8,7 +8,7 @@ type Props = {
 
 const AudioAttachment = (props: Props) => {
   const {message} = props
-  const url = `${message.fileURL}&contentforce=true`
+  const url = message.fileURL.length > 0 ? `${message.fileURL}&contentforce=true` : ''
   return (
     <AudioPlayer
       duration={message.audioDuration}

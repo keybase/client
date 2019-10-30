@@ -288,6 +288,7 @@ protocol chatUi {
     // For attachments
     string filename;
     string title;
+    int audioDuration;
     union { null, MakePreviewRes } preview;
   }
 
