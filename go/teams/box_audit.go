@@ -975,58 +975,45 @@ func calculateSummaryAtMerkleSeqno(mctx libkb.MetaContext, team *Team, merkleSeq
 	}
 
 	d := make(map[keybase1.UserVersion]keybase1.PerUserKey)
-	var processErr error
 	// for UPAK Batcher API
-	processResult := func(idx int, upak *keybase1.UserPlusKeysV2AllIncarnations) {
+	processResult := func(idx int, upak *keybase1.UserPlusKeysV2AllIncarnations) error {
 		uv := uvs[idx]
 		checkpoint := checkpoints[uv]
 
 		if upak == nil {
-			processErr = fmt.Errorf("got nil upak for uv %+v", uv)
-			mctx.Warning(processErr.Error())
-			return
+			return fmt.Errorf("got nil upak for uv %+v", uv)
 		}
 
 		var perUserKey *keybase1.PerUserKey
 		leaf, _, err := mctx.G().GetMerkleClient().LookupLeafAtSeqno(mctx, keybase1.UserOrTeamID(uv.Uid), checkpoint)
 		if err != nil {
-			processErr = fmt.Errorf("failed to lookup leaf at merkle seqno %v for %v", checkpoint, uv)
-			mctx.Warning(processErr.Error())
-			return
+			return fmt.Errorf("failed to lookup leaf at merkle seqno %v for %v", checkpoint, uv)
 		}
 		if leaf == nil {
-			processErr = fmt.Errorf("got nil leaf at seqno %v for %v", checkpoint, uv)
-			mctx.Warning(processErr.Error())
-			return
+			return fmt.Errorf("got nil leaf at seqno %v for %v", checkpoint, uv)
 		}
 		if leaf.Public == nil {
-			processErr = fmt.Errorf("got nil leaf public at seqno %v for %v (leaf=%+v)", checkpoint, uv, leaf)
-			mctx.Warning(processErr.Error())
-			return
+			return fmt.Errorf("got nil leaf public at seqno %v for %v (leaf=%+v)", checkpoint, uv, leaf)
 		}
 		sigchainSeqno := leaf.Public.Seqno
 
 		perUserKey, err = upak.GetPerUserKeyAtSeqno(uv, sigchainSeqno, checkpoint)
 		if err != nil {
-			processErr := fmt.Errorf("failed to find peruserkey at seqno %v for upak", sigchainSeqno)
-			mctx.Warning(processErr.Error())
-			return
+			return fmt.Errorf("failed to find peruserkey at seqno %v for upak", sigchainSeqno)
 		}
 		if perUserKey == nil {
 			// Not a critical error, since reset users have no current per user keys, for example.
 			mctx.Debug("%s has no per-user-key at seqno %v", uv, sigchainSeqno)
-			return
+			return nil
 		}
 
 		d[uv] = *perUserKey
+		return nil
 	}
 
 	err = mctx.G().GetUPAKLoader().Batcher(mctx.Ctx(), getArg, processResult, 0)
 	if err != nil {
 		return nil, err
-	}
-	if processErr != nil {
-		return nil, fmt.Errorf("got error while batch loading upaks for box audit: %s", processErr)
 	}
 
 	return newBoxPublicSummary(d)
