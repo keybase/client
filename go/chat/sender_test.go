@@ -159,16 +159,6 @@ func (n *chatListener) consumeConvUpdate(t *testing.T) chat1.ConversationID {
 	}
 }
 
-func (n *chatListener) consumeThreadsStale(t *testing.T) []chat1.ConversationStaleUpdate {
-	select {
-	case x := <-n.threadsStale:
-		return x
-	case <-time.After(20 * time.Second):
-		require.Fail(t, "failed to get threadsStale notification")
-		return nil
-	}
-}
-
 func newConvTriple(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext, username string) chat1.ConversationIDTriple {
 	return newConvTripleWithMembersType(ctx, t, tc, username, chat1.ConversationMembersType_IMPTEAMNATIVE)
 }
