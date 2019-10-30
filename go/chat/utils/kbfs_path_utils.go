@@ -39,6 +39,8 @@ func (m *outerMatch) standardPath() string {
 	return "/keybase" + m.afterKeybase
 }
 
+const unquotedTrailingTrimCutset = ",.?!;:，。？！；："
+
 func matchKBFSPathOuter(body string) (outerMatches []outerMatch) {
 	res := kbfsPathOuterRegExp.FindAllStringSubmatchIndex(body, -1)
 	for _, indices := range res {
@@ -55,11 +57,11 @@ func matchKBFSPathOuter(body string) (outerMatches []outerMatch) {
 		case indices[4] > 0:
 			outerMatches = append(outerMatches, outerMatch{
 				matchStartIndex: indices[2],
-				wholeMatch:      body[indices[2]:indices[3]],
+				wholeMatch:      strings.TrimRight(body[indices[2]:indices[3]], unquotedTrailingTrimCutset),
 				afterKeybase: strings.TrimRight(
 					strings.Replace(
 						strings.Replace(
-							body[indices[4]:indices[5]],
+							strings.TrimRight(body[indices[4]:indices[5]], unquotedTrailingTrimCutset),
 							`\\`,
 							`\`,
 							-1,
@@ -83,10 +85,10 @@ func matchKBFSPathOuter(body string) (outerMatches []outerMatch) {
 		case indices[8] > 0:
 			outerMatches = append(outerMatches, outerMatch{
 				matchStartIndex: indices[2],
-				wholeMatch:      body[indices[2]:indices[3]],
+				wholeMatch:      strings.TrimRight(body[indices[2]:indices[3]], unquotedTrailingTrimCutset),
 				afterKeybase: strings.TrimRight(
 					strings.Replace(
-						body[indices[8]:indices[9]],
+						strings.TrimRight(body[indices[8]:indices[9]], unquotedTrailingTrimCutset),
 						`\`,
 						`/`,
 						-1,
@@ -109,13 +111,13 @@ func matchKBFSPathOuter(body string) (outerMatches []outerMatch) {
 				),
 			})
 		case indices[12] > 0:
-			unescaped, err := url.PathUnescape(body[indices[12]:indices[13]])
+			unescaped, err := url.PathUnescape(strings.TrimRight(body[indices[12]:indices[13]], unquotedTrailingTrimCutset))
 			if err != nil {
 				continue
 			}
 			outerMatches = append(outerMatches, outerMatch{
 				matchStartIndex: indices[2],
-				wholeMatch:      body[indices[2]:indices[3]],
+				wholeMatch:      strings.TrimRight(body[indices[2]:indices[3]], unquotedTrailingTrimCutset),
 				afterKeybase: strings.TrimRight(
 					unescaped,
 					"/",
