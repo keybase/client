@@ -9,12 +9,14 @@ import TeamTabs from './tabs/container'
 import {Box} from '../../common-adapters'
 import List from './list'
 import {globalStyles} from '../../styles'
+import {Row} from './rows'
+
+export type Sections = Array<{data: Array<Row>; header?: Row; key: string}>
 
 export type Props = {
   teamname: Types.Teamname
   selectedTab: string
-  // TODO better type
-  rows: Array<any>
+  sections: Sections
   setSelectedTab: (arg0: Types.TabKey) => void
 }
 

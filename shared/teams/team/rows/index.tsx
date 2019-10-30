@@ -34,7 +34,6 @@ const makeRows = (
   }
   switch (selectedTab) {
     case 'members':
-      // TODO
       rows.push(
         ...getOrderedMemberArray(details.members, yourUsername, yourOperations).map(user => ({
           type: 'member' as const,

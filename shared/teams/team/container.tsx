@@ -7,10 +7,8 @@ import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
-import {mapStateHelper as invitesMapStateHelper, getRows as getInviteRows} from './invites-tab/helper'
-import {mapStateHelper as memberMapStateHelper, getRows as getMemberRows} from './members-tab/helper'
-import {mapStateHelper as subteamsMapStateHelper, getRows as getSubteamsRows} from './subteams-tab/helper'
-import Team, {Props} from '.'
+import Team, {Props, Sections} from '.'
+import makeRows from './rows'
 
 type OwnProps = Container.RouteProps<{teamID: Types.TeamID}> & {
   selectedTab: Types.TabKey
@@ -29,14 +27,17 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const selectedTab = ownProps.selectedTab || 'members'
 
   return {
+    _teamnameTodoRemove: Constants.getTeamDetails(state, teamID).teamname,
     selectedTab,
     teamDetails: Constants.getTeamDetails(state, teamID),
+    yourOperations: Constants.getCanPerformByID(state, teamID),
+    yourUsername: state.config.username,
   }
 }
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch, {setSelectedTab}: OwnProps) => ({
   _loadTeam: (teamname: string) => dispatch(TeamsGen.createGetDetails({teamname})),
-  _setSelectedTab: (teamname: string, selectedTab: string) => {
+  _setSelectedTab: (teamname: string, selectedTab: Types.TabKey) => {
     lastSelectedTabs[teamname] = selectedTab
     setSelectedTab(selectedTab)
   },
@@ -60,7 +61,7 @@ class Reloadable extends React.PureComponent<Props & {_load: () => void}> {
         reloadOnMount={true}
       >
         <Team
-          rows={this.props.rows}
+          sections={this.props.sections}
           selectedTab={this.props.selectedTab}
           setSelectedTab={this.props.setSelectedTab}
           teamname={this.props.teamname}
@@ -72,50 +73,27 @@ class Reloadable extends React.PureComponent<Props & {_load: () => void}> {
 
 const Connected = Container.compose(
   Container.connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps) => {
-    let tabSpecificRows: Array<any> = []
-    switch (stateProps.selectedTab) {
-      case 'members':
-        tabSpecificRows = getMemberRows({
-          // @ts-ignore don't mash these together
-          _memberInfo: stateProps._memberInfo,
-          // @ts-ignore don't mash these together
-          _you: stateProps._you,
-          // @ts-ignore don't mash these together
-          _yourOperations: stateProps._yourOperations,
-        })
-        break
-      case 'invites':
-        tabSpecificRows = getInviteRows({
-          // @ts-ignore don't mash these together
-          _invites: stateProps._invites,
-          // @ts-ignore don't mash these together
-          _requests: stateProps._requests,
-        })
-        break
-      case 'subteams':
-        tabSpecificRows = getSubteamsRows({
-          // @ts-ignore don't mash these together
-          _sawSubteamsBanner: stateProps._sawSubteamsBanner,
-          // @ts-ignore don't mash these together
-          _subteams: stateProps._subteams,
-          // @ts-ignore don't mash these together
-          _yourOperations: stateProps._yourOperations,
-        })
-        break
-      case 'settings':
-        tabSpecificRows = [{type: 'settings'}]
-        break
-    }
-    const rows = [...(!Container.isMobile ? [] : [{type: 'header'}]), {type: 'tabs'}, ...tabSpecificRows]
-    const customComponent = <CustomTitle teamname={stateProps.teamname} />
+    const rows = makeRows(
+      stateProps.teamDetails,
+      stateProps.selectedTab,
+      stateProps.yourUsername,
+      stateProps.yourOperations
+    )
+    const sections: Sections = [
+      ...(Container.isMobile ? [{data: [{type: 'header' as const}], key: 'header'}] : []),
+      {data: rows, header: {type: 'tabs'}, key: 'body'},
+    ]
+    const customComponent = <CustomTitle teamname={stateProps._teamnameTodoRemove} />
     return {
-      _load: () => dispatchProps._loadTeam(stateProps.teamname),
+      _load: () => dispatchProps._loadTeam(stateProps._teamnameTodoRemove),
       customComponent,
       onBack: dispatchProps.onBack,
       rows,
+      sections,
       selectedTab: stateProps.selectedTab,
-      setSelectedTab: selectedTab => dispatchProps._setSelectedTab(stateProps.teamname, selectedTab),
-      teamname: stateProps.teamname,
+      setSelectedTab: selectedTab =>
+        dispatchProps._setSelectedTab(stateProps._teamnameTodoRemove, selectedTab),
+      teamname: stateProps._teamnameTodoRemove,
     }
   }),
   Kb.HeaderHoc
