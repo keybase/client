@@ -88,26 +88,26 @@ const MoreMenuPopup = (props: Props) => {
     {
       icon: 'iconfont-gif',
       onClick: onGiphy,
-      title: 'Share a GIF',
       subTitle: '/giphy',
+      title: 'Share a GIF',
     },
     {
       icon: 'iconfont-coin-flip',
       onClick: onCoinFlip,
-      title: 'Flip a coin',
       subTitle: '/flip',
+      title: 'Flip a coin',
     },
     {
       icon: 'iconfont-location',
       onClick: onLocationShare,
-      title: 'Share your location',
       subTitle: '/location',
+      title: 'Share your location',
     },
     {
       icon: 'iconfont-ellipsis',
       onClick: onInsertSlashCommand,
-      title: 'Other commands',
       subTitle: '/...',
+      title: 'Other commands',
     },
   ]
   return <Kb.FloatingMenu closeOnSelect={true} items={items} onHidden={onHidden} visible={visible} />
