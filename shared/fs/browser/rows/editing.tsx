@@ -22,6 +22,7 @@ const Editing = (props: EditingProps) => {
     <Kb.ListItem2
       type="Small"
       firstItem={true /* we add divider in Rows */}
+      statusIcon={<Kb.Icon type="iconfont-add" sizeType="Small" padding="xtiny" />}
       icon={
         <PathItemIcon
           path={props.projectedPath}

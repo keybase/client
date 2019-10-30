@@ -7,6 +7,7 @@ const props = {
   onBack: Sb.action('onBack'),
   onForgotPassword: Sb.action('onForgotPassword'),
   onSubmit: Sb.action('onSubmit'),
+  resetRecoverState: Sb.action('resetRecoverState'),
   username: 'ciphersaurus_rex',
   waiting: false,
 }

@@ -401,6 +401,7 @@ const setNixOnLoginStartup = async (enabled: boolean) => {
 }
 
 export const requestLocationPermission = () => Promise.resolve()
+export const requestAudioPermission = () => Promise.resolve()
 export const clearWatchPosition = () => {}
 export const watchPositionForMap = () => Promise.resolve(0)
 

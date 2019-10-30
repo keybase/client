@@ -180,11 +180,11 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.NotifyTeambot.newTeambotKey': {
-    inParam: {readonly id: TeamID; readonly generation: TeambotKeyGeneration}
+    inParam: {readonly id: TeamID; readonly generation: TeambotKeyGeneration; readonly application: TeamApplication}
     outParam: void
   }
   'keybase.1.NotifyTeambot.teambotKeyNeeded': {
-    inParam: {readonly id: TeamID; readonly uid: UID; readonly generation: TeambotKeyGeneration}
+    inParam: {readonly id: TeamID; readonly uid: UID; readonly generation: TeambotKeyGeneration; readonly application: TeamApplication}
     outParam: void
   }
   'keybase.1.NotifyTracking.trackingChanged': {
@@ -262,6 +262,10 @@ export type MessageTypes = {
   'keybase.1.SimpleFS.simpleFSGetDownloadStatus': {
     inParam: void
     outParam: DownloadStatus
+  }
+  'keybase.1.SimpleFS.simpleFSGetFilesTabBadge': {
+    inParam: void
+    outParam: FilesTabBadge
   }
   'keybase.1.SimpleFS.simpleFSGetFolder': {
     inParam: {readonly path: KBFSPath}
@@ -1559,6 +1563,13 @@ export enum FileType {
   file = 2,
 }
 
+export enum FilesTabBadge {
+  none = 0,
+  uploadingStuck = 1,
+  awaitingUpload = 2,
+  uploading = 3,
+}
+
 export enum FolderConflictType {
   none = 0,
   inConflict = 1,
@@ -2291,6 +2302,7 @@ export enum SubscriptionTopic {
   journalStatus = 1,
   onlineStatus = 2,
   downloadStatus = 3,
+  filesTabBadge = 4,
 }
 
 export enum TLFIdentifyBehavior {
@@ -2448,7 +2460,7 @@ export type AvatarClearCacheMsg = {readonly name: String; readonly formats?: Arr
 export type AvatarFormat = String
 export type AvatarUrl = String
 export type BadgeConversationInfo = {readonly convID: ChatConversationID; readonly badgeCounts: {[key: string]: Int}; readonly unreadMessages: Int}
-export type BadgeState = {readonly newTlfs: Int; readonly rekeysNeeded: Int; readonly newFollowers: Int; readonly inboxVers: Int; readonly homeTodoItems: Int; readonly unverifiedEmails: Int; readonly unverifiedPhones: Int; readonly newDevices?: Array<DeviceID> | null; readonly revokedDevices?: Array<DeviceID> | null; readonly conversations?: Array<BadgeConversationInfo> | null; readonly newGitRepoGlobalUniqueIDs?: Array<String> | null; readonly newTeamNames?: Array<String> | null; readonly deletedTeams?: Array<DeletedTeamInfo> | null; readonly newTeamAccessRequests?: Array<String> | null; readonly teamsWithResetUsers?: Array<TeamMemberOutReset> | null; readonly unreadWalletAccounts?: Array<WalletAccountInfo> | null; readonly resetState: ResetState}
+export type BadgeState = {readonly newTlfs: Int; readonly rekeysNeeded: Int; readonly newFollowers: Int; readonly inboxVers: Int; readonly homeTodoItems: Int; readonly unverifiedEmails: Int; readonly unverifiedPhones: Int; readonly newDevices?: Array<DeviceID> | null; readonly revokedDevices?: Array<DeviceID> | null; readonly conversations?: Array<BadgeConversationInfo> | null; readonly newGitRepoGlobalUniqueIDs?: Array<String> | null; readonly newTeams?: Array<TeamID> | null; readonly deletedTeams?: Array<DeletedTeamInfo> | null; readonly newTeamAccessRequests?: Array<TeamID> | null; readonly teamsWithResetUsers?: Array<TeamMemberOutReset> | null; readonly unreadWalletAccounts?: Array<WalletAccountInfo> | null; readonly resetState: ResetState}
 export type BinaryKID = Bytes
 export type BinaryLinkID = Bytes
 export type BlockIdCombo = {readonly blockHash: String; readonly chargedTo: UserOrTeamID; readonly blockType: BlockType}
@@ -2910,7 +2922,7 @@ export type TeambotEkMetadata = {readonly kid: KID; readonly generation: EkGener
 export type TeambotKey = {readonly seed: Bytes32; readonly metadata: TeambotKeyMetadata}
 export type TeambotKeyBoxed = {readonly box: String; readonly metadata: TeambotKeyMetadata}
 export type TeambotKeyGeneration = Int64
-export type TeambotKeyMetadata = {readonly kid: KID; readonly generation: TeambotKeyGeneration; readonly uid: UID; readonly pukGeneration: PerUserKeyGeneration}
+export type TeambotKeyMetadata = {readonly kid: KID; readonly generation: TeambotKeyGeneration; readonly uid: UID; readonly pukGeneration: PerUserKeyGeneration; readonly application: TeamApplication}
 export type Test = {readonly reply: String}
 export type Text = {readonly data: String; readonly markup: Boolean}
 export type Time = Long
@@ -3230,6 +3242,7 @@ export const SimpleFSSimpleFSFinishResolvingConflictRpcPromise = (params: Messag
 export const SimpleFSSimpleFSFolderSyncConfigAndStatusRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSGetDownloadInfoRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSGetDownloadInfo']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSGetDownloadInfo']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSGetDownloadInfo', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSGetDownloadStatusRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSGetDownloadStatus']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSGetDownloadStatus']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSGetDownloadStatus', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const SimpleFSSimpleFSGetFilesTabBadgeRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSGetFilesTabBadge']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSGetFilesTabBadge']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSGetFilesTabBadge', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSGetFolderRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSGetFolder']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSGetFolder']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSGetFolder', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSGetGUIFileContextRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSGetGUIFileContext']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSGetGUIFileContext']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSGetGUIFileContext', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSListFavoritesRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSListFavorites']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSListFavorites']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSListFavorites', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))

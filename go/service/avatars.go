@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/keybase/client/go/avatars"
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
@@ -18,10 +17,10 @@ import (
 type AvatarHandler struct {
 	libkb.Contextified
 	*BaseHandler
-	source avatars.Source
+	source libkb.AvatarLoaderSource
 }
 
-func NewAvatarHandler(xp rpc.Transporter, g *libkb.GlobalContext, source avatars.Source) *AvatarHandler {
+func NewAvatarHandler(xp rpc.Transporter, g *libkb.GlobalContext, source libkb.AvatarLoaderSource) *AvatarHandler {
 	handler := &AvatarHandler{
 		Contextified: libkb.NewContextified(g),
 		BaseHandler:  NewBaseHandler(g, xp),
@@ -46,12 +45,12 @@ const avatarGregorHandlerName = "avatarHandler"
 
 type avatarGregorHandler struct {
 	libkb.Contextified
-	source avatars.Source
+	source libkb.AvatarLoaderSource
 }
 
 var _ libkb.GregorInBandMessageHandler = (*avatarGregorHandler)(nil)
 
-func newAvatarGregorHandler(g *libkb.GlobalContext, source avatars.Source) *avatarGregorHandler {
+func newAvatarGregorHandler(g *libkb.GlobalContext, source libkb.AvatarLoaderSource) *avatarGregorHandler {
 	return &avatarGregorHandler{
 		Contextified: libkb.NewContextified(g),
 		source:       source,

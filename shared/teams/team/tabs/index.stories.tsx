@@ -32,7 +32,7 @@ const commonProps = {
   admin: false,
   loading: false,
   memberCount: 12,
-  newTeamRequests: ['Cool Team 😎'],
+  newRequests: 1,
   numInvites: 5,
   numRequests: 0,
   numSubteams: 0,

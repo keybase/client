@@ -53,7 +53,6 @@ export const exitFailedPayment = 'wallets:exitFailedPayment'
 export const exportSecretKey = 'wallets:exportSecretKey'
 export const externalPartnersReceived = 'wallets:externalPartnersReceived'
 export const hideAirdropBanner = 'wallets:hideAirdropBanner'
-export const inflationDestinationReceived = 'wallets:inflationDestinationReceived'
 export const linkExistingAccount = 'wallets:linkExistingAccount'
 export const linkedExistingAccount = 'wallets:linkedExistingAccount'
 export const loadAccounts = 'wallets:loadAccounts'
@@ -61,7 +60,6 @@ export const loadAssets = 'wallets:loadAssets'
 export const loadDisplayCurrencies = 'wallets:loadDisplayCurrencies'
 export const loadDisplayCurrency = 'wallets:loadDisplayCurrency'
 export const loadExternalPartners = 'wallets:loadExternalPartners'
-export const loadInflationDestination = 'wallets:loadInflationDestination'
 export const loadMobileOnlyMode = 'wallets:loadMobileOnlyMode'
 export const loadMorePayments = 'wallets:loadMorePayments'
 export const loadPaymentDetail = 'wallets:loadPaymentDetail'
@@ -110,7 +108,6 @@ export const setBuildingRecipientType = 'wallets:setBuildingRecipientType'
 export const setBuildingSecretNote = 'wallets:setBuildingSecretNote'
 export const setBuildingTo = 'wallets:setBuildingTo'
 export const setBuiltPaymentAdvanced = 'wallets:setBuiltPaymentAdvanced'
-export const setInflationDestination = 'wallets:setInflationDestination'
 export const setLastSentXLM = 'wallets:setLastSentXLM'
 export const setReadyToReview = 'wallets:setReadyToReview'
 export const setSEP6Message = 'wallets:setSEP6Message'
@@ -212,12 +209,6 @@ type _ExitFailedPaymentPayload = void
 type _ExportSecretKeyPayload = {readonly accountID: Types.AccountID}
 type _ExternalPartnersReceivedPayload = {readonly externalPartners: I.List<Types.PartnerUrl>}
 type _HideAirdropBannerPayload = void
-type _InflationDestinationReceivedPayload = {
-  readonly accountID?: Types.AccountID
-  readonly selected?: Types.AccountInflationDestination
-  readonly options?: Array<Types.InflationDestination>
-  readonly error?: string
-}
 type _LinkExistingAccountPayload = {
   readonly name: string
   readonly secretKey: HiddenString
@@ -240,7 +231,6 @@ type _LoadDisplayCurrencyPayload = {
   readonly setBuildingCurrency?: boolean
 }
 type _LoadExternalPartnersPayload = void
-type _LoadInflationDestinationPayload = {readonly accountID: Types.AccountID}
 type _LoadMobileOnlyModePayload = {readonly accountID: Types.AccountID}
 type _LoadMorePaymentsPayload = {readonly accountID: Types.AccountID}
 type _LoadPaymentDetailPayload = {readonly accountID: Types.AccountID; readonly paymentID: Types.PaymentID}
@@ -338,11 +328,6 @@ type _SetBuildingToPayload = {readonly to: string}
 type _SetBuiltPaymentAdvancedPayload = {
   readonly builtPaymentAdvanced: Types.BuiltPaymentAdvanced
   readonly forSEP7: boolean
-}
-type _SetInflationDestinationPayload = {
-  readonly accountID: Types.AccountID
-  readonly destination: Types.AccountID
-  readonly name: string
 }
 type _SetLastSentXLMPayload = {readonly lastSentXLM: boolean; readonly writeFile: boolean}
 type _SetReadyToReviewPayload = {readonly readyToReview: boolean}
@@ -573,12 +558,6 @@ export const createSentPaymentError = (payload: _SentPaymentErrorPayload): SentP
   type: sentPaymentError,
 })
 /**
- * Got inflation destination
- */
-export const createInflationDestinationReceived = (
-  payload: _InflationDestinationReceivedPayload = Object.freeze({})
-): InflationDestinationReceivedPayload => ({payload, type: inflationDestinationReceived})
-/**
  * Handle a SEP6 Deposit link
  */
 export const createAssetDeposit = (payload: _AssetDepositPayload): AssetDepositPayload => ({
@@ -685,12 +664,6 @@ export const createPendingPaymentsReceived = (
 export const createWalletDisclaimerReceived = (
   payload: _WalletDisclaimerReceivedPayload
 ): WalletDisclaimerReceivedPayload => ({payload, type: walletDisclaimerReceived})
-/**
- * Refresh inflation destination and options
- */
-export const createLoadInflationDestination = (
-  payload: _LoadInflationDestinationPayload
-): LoadInflationDestinationPayload => ({payload, type: loadInflationDestination})
 /**
  * Refresh our list of accounts
  */
@@ -810,12 +783,6 @@ export const createSetBuildingTo = (payload: _SetBuildingToPayload): SetBuilding
   payload,
   type: setBuildingTo,
 })
-/**
- * Set our inflation destination
- */
-export const createSetInflationDestination = (
-  payload: _SetInflationDestinationPayload
-): SetInflationDestinationPayload => ({payload, type: setInflationDestination})
 /**
  * Set the error field for SEP7 accepted tx attempt
  */
@@ -1287,10 +1254,6 @@ export type HideAirdropBannerPayload = {
   readonly payload: _HideAirdropBannerPayload
   readonly type: typeof hideAirdropBanner
 }
-export type InflationDestinationReceivedPayload = {
-  readonly payload: _InflationDestinationReceivedPayload
-  readonly type: typeof inflationDestinationReceived
-}
 export type LinkExistingAccountPayload = {
   readonly payload: _LinkExistingAccountPayload
   readonly type: typeof linkExistingAccount
@@ -1312,10 +1275,6 @@ export type LoadDisplayCurrencyPayload = {
 export type LoadExternalPartnersPayload = {
   readonly payload: _LoadExternalPartnersPayload
   readonly type: typeof loadExternalPartners
-}
-export type LoadInflationDestinationPayload = {
-  readonly payload: _LoadInflationDestinationPayload
-  readonly type: typeof loadInflationDestination
 }
 export type LoadMobileOnlyModePayload = {
   readonly payload: _LoadMobileOnlyModePayload
@@ -1497,10 +1456,6 @@ export type SetBuiltPaymentAdvancedPayload = {
   readonly payload: _SetBuiltPaymentAdvancedPayload
   readonly type: typeof setBuiltPaymentAdvanced
 }
-export type SetInflationDestinationPayload = {
-  readonly payload: _SetInflationDestinationPayload
-  readonly type: typeof setInflationDestination
-}
 export type SetLastSentXLMPayload = {
   readonly payload: _SetLastSentXLMPayload
   readonly type: typeof setLastSentXLM
@@ -1646,7 +1601,6 @@ export type Actions =
   | ExportSecretKeyPayload
   | ExternalPartnersReceivedPayload
   | HideAirdropBannerPayload
-  | InflationDestinationReceivedPayload
   | LinkExistingAccountPayload
   | LinkedExistingAccountPayload
   | LoadAccountsPayload
@@ -1654,7 +1608,6 @@ export type Actions =
   | LoadDisplayCurrenciesPayload
   | LoadDisplayCurrencyPayload
   | LoadExternalPartnersPayload
-  | LoadInflationDestinationPayload
   | LoadMobileOnlyModePayload
   | LoadMorePaymentsPayload
   | LoadPaymentDetailPayload
@@ -1703,7 +1656,6 @@ export type Actions =
   | SetBuildingSecretNotePayload
   | SetBuildingToPayload
   | SetBuiltPaymentAdvancedPayload
-  | SetInflationDestinationPayload
   | SetLastSentXLMPayload
   | SetReadyToReviewPayload
   | SetSEP6MessagePayload

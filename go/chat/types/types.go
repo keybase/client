@@ -135,6 +135,10 @@ func (rc RemoteConversation) IsLocallyRead() bool {
 	return rc.LocalReadMsgID >= rc.Conv.MaxVisibleMsgID()
 }
 
+func (rc RemoteConversation) MaxVisibleMsgID() chat1.MessageID {
+	return rc.Conv.MaxVisibleMsgID()
+}
+
 type UnboxMode int
 
 const (
@@ -628,8 +632,7 @@ func (d DummyUIInboxLoader) UpdateConvs(ctx context.Context, convIDs []chat1.Con
 	return nil
 }
 
-func (d DummyUIInboxLoader) UpdateLayoutFromNewMessage(ctx context.Context, conv RemoteConversation,
-	msg chat1.MessageBoxed, firstConv bool, previousStatus chat1.ConversationStatus) {
+func (d DummyUIInboxLoader) UpdateLayoutFromNewMessage(ctx context.Context, conv RemoteConversation) {
 }
 
 func (d DummyUIInboxLoader) UpdateLayoutFromSubteamRename(ctx context.Context, convs []RemoteConversation) {

@@ -70,6 +70,7 @@ protocol chatUi {
 
   record UnverifiedInboxUIItem {
     string convID;
+    string tlfID;
     TopicType topicType;
     boolean isPublic;
     string name;
@@ -125,6 +126,7 @@ protocol chatUi {
 
   record InboxUIItem {
     string convID;
+    string tlfID;
     TopicType topicType;
     boolean isPublic;
     boolean isEmpty;

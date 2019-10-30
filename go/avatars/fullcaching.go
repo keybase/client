@@ -60,7 +60,7 @@ type populateArg struct {
 type FullCachingSource struct {
 	diskLRU        *lru.DiskLRU
 	staleThreshold time.Duration
-	simpleSource   Source
+	simpleSource   libkb.AvatarLoaderSource
 
 	populateCacheCh chan populateArg
 
@@ -71,7 +71,7 @@ type FullCachingSource struct {
 	tempDir           string
 }
 
-var _ Source = (*FullCachingSource)(nil)
+var _ libkb.AvatarLoaderSource = (*FullCachingSource)(nil)
 
 func NewFullCachingSource(staleThreshold time.Duration, size int) *FullCachingSource {
 	return &FullCachingSource{

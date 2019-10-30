@@ -282,6 +282,9 @@ func (i *InMemoryStorageEngine) LookupKEVPairsUnderPosition(ctx logger.ContextIn
 			}
 		}
 	}
+	if len(kvps) == 0 {
+		return nil, nil, NewKeyNotFoundError()
+	}
 	return kvps, seqnos, nil
 }
 

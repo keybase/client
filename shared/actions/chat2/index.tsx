@@ -2090,6 +2090,52 @@ const attachmentPasted = async (_: TypedState, action: Chat2Gen.AttachmentPasted
   })
 }
 
+const sendAudioRecording = async (
+  state: TypedState,
+  action: Chat2Gen.SendAudioRecordingPayload,
+  logger: Saga.SagaLogger
+) => {
+  // sit here for 400ms for animations
+  await Saga.delay(400)
+
+  const conversationIDKey = action.payload.conversationIDKey
+  const audioRecording = state.chat2.audioRecording.get(conversationIDKey)
+  const clientPrev = Constants.getClientPrev(state, conversationIDKey)
+  const ephemeralLifetime = Constants.getConversationExplodingMode(state, conversationIDKey)
+  if (!audioRecording) {
+    logger.info('sendAudioRecording: no audio info for send')
+    return
+  }
+  const meta = state.chat2.metaMap.get(conversationIDKey)
+  if (!meta) {
+    logger.warn('sendAudioRecording: no meta for send')
+    return
+  }
+
+  let callerPreview: RPCChatTypes.MakePreviewRes | null = null
+  if (audioRecording.amps.length > 0) {
+    callerPreview = await RPCChatTypes.localMakeAudioPreviewRpcPromise({
+      amps: audioRecording.amps,
+    })
+  }
+  const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
+  await RPCChatTypes.localPostFileAttachmentLocalNonblockRpcPromise({
+    arg: {
+      ...ephemeralData,
+      callerPreview,
+      conversationID: Types.keyToConversationID(conversationIDKey),
+      filename: audioRecording.path,
+      identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+      metadata: Buffer.from([]),
+      outboxID: audioRecording.outboxID,
+      title: '',
+      tlfName: meta.tlfname,
+      visibility: RPCTypes.TLFVisibility.private,
+    },
+    clientPrev,
+  })
+}
+
 // Upload an attachment
 function* attachmentsUpload(
   state: TypedState,
@@ -3627,6 +3673,8 @@ function* chat2Saga() {
   yield* Saga.chainAction2(Chat2Gen.selectConversation, ensureSelectedMeta)
 
   yield* Saga.chainAction2(Chat2Gen.selectConversation, fetchConversationBio)
+
+  yield* Saga.chainAction2(Chat2Gen.sendAudioRecording, sendAudioRecording, 'sendAudioRecording')
 
   yield* Saga.chainAction2(EngineGen.connected, onConnect, 'onConnect')
 

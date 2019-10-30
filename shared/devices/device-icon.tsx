@@ -14,7 +14,7 @@ export type Props = {
 const DeviceIcon = (props: Props) => {
   const defaultIcons = {
     backup: `icon-paper-key-${props.size}` as Kb.IconType,
-    desktop: `icon-desktop-${props.size}` as Kb.IconType,
+    desktop: `icon-computer-${props.size}` as Kb.IconType,
     mobile: `icon-phone-${props.size}` as Kb.IconType,
   }
 

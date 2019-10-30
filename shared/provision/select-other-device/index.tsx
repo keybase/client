@@ -6,10 +6,11 @@ import {SignupScreen} from '../../signup/common'
 import DeviceIcon from '../../devices/device-icon'
 
 type Props = {
+  passwordRecovery?: boolean
   devices: Array<Types.Device>
+  onBack: () => void
   onSelect: (name: string) => void
   onResetAccount: () => void
-  onBack: () => void
 }
 
 const resetSignal = 'reset'
@@ -74,7 +75,11 @@ class SelectOtherDevice extends React.Component<Props> {
       <SignupScreen
         noBackground={true}
         onBack={this.props.onBack}
-        title={`Authorize this ${Styles.isMobile ? 'phone' : 'computer'}`}
+        title={
+          this.props.passwordRecovery
+            ? 'Recover password'
+            : `Authorize this ${Styles.isMobile ? 'phone' : 'computer'}`
+        }
         contentContainerStyle={Styles.padding(0)}
       >
         <Kb.Box2
@@ -91,10 +96,12 @@ class SelectOtherDevice extends React.Component<Props> {
             keyProperty="name"
             ListHeaderComponent={
               <Kb.Box2 direction="vertical" style={styles.headerText}>
-                <Kb.Text center={true} type="Body">
-                  For security reasons, you need to authorize this {Styles.isMobile ? 'phone' : 'computer'}{' '}
-                  with another device or a paper key.
-                </Kb.Text>
+                {!this.props.passwordRecovery && (
+                  <Kb.Text center={true} type="Body">
+                    For security reasons, you need to authorize this {Styles.isMobile ? 'phone' : 'computer'}{' '}
+                    with another device or a paper key.
+                  </Kb.Text>
+                )}
                 <Kb.Text center={true} type="Body">
                   Which do you have handy?
                 </Kb.Text>

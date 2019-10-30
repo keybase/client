@@ -35,6 +35,10 @@
           "type": "PerUserKeyGeneration",
           "name": "pukGeneration",
           "jsonkey": "puk_generation"
+        },
+        {
+          "type": "TeamApplication",
+          "name": "application"
         }
       ]
     },

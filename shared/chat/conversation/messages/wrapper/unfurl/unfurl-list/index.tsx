@@ -18,6 +18,7 @@ export type UnfurlListItem = {
 export type ListProps = {
   conversationIDKey: Types.ConversationIDKey
   isAuthor: boolean
+  author?: string
   toggleMessagePopup: () => void
   unfurls: Array<UnfurlListItem>
 }
@@ -25,6 +26,7 @@ export type ListProps = {
 export type UnfurlProps = {
   conversationIDKey: Types.ConversationIDKey
   isAuthor: boolean
+  author?: string
   isCollapsed: boolean
   onClose?: () => void
   onCollapse: () => void
@@ -45,6 +47,7 @@ class Unfurl extends React.PureComponent<UnfurlProps> {
               imageURL={this.props.unfurl.generic.media ? this.props.unfurl.generic.media.url : ''}
               imageWidth={this.props.unfurl.generic.media ? this.props.unfurl.generic.media.width : 0}
               isAuthor={this.props.isAuthor}
+              author={this.props.author}
               isLiveLocationDone={this.props.unfurl.generic.mapInfo.isLiveLocationDone}
               liveLocationEndTime={this.props.unfurl.generic.mapInfo.liveLocationEndTime || undefined}
               time={this.props.unfurl.generic.mapInfo.time}
@@ -83,6 +86,7 @@ class UnfurlList extends React.PureComponent<ListProps> {
           <Unfurl
             conversationIDKey={this.props.conversationIDKey}
             isAuthor={this.props.isAuthor}
+            author={this.props.author}
             isCollapsed={u.isCollapsed}
             key={u.url}
             unfurl={u.unfurl}

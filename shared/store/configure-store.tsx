@@ -8,7 +8,7 @@ import {createStore, applyMiddleware, Store} from 'redux'
 import {enableStoreLogging, enableActionLogging, filterActionLogs} from '../local-debug'
 import * as DevGen from '../actions/dev-gen'
 import * as ConfigGen from '../actions/config-gen'
-import {isMobile} from '../constants/platform'
+import {isMobile, isRemoteDebuggerAttached} from '../constants/platform'
 import * as LocalConsole from '../util/local-console'
 
 let theStore: Store<any, any>
@@ -38,7 +38,9 @@ if (enableStoreLogging) {
       if (filterActionLogs) {
         args[0].type.match(filterActionLogs) && logger.info('Action:', ...args)
       } else if (args[0] && args[0].type) {
-        LocalConsole.gray('Action:', args[0].type, '', args[0])
+        if (!isMobile || isRemoteDebuggerAttached) {
+          LocalConsole.gray('Action:', args[0].type, '', args[0])
+        }
       }
       return null
     },
@@ -55,7 +57,9 @@ if (enableStoreLogging) {
     stateTransformer: (...args) => {
       if (logStateOk) {
         // This is noisy, so let's not show it while filtering action logs
-        !filterActionLogs && LocalConsole.purpleObject('State:', ...args) // DON'T use the logger here, we never want this in the logs
+        !filterActionLogs &&
+          (!isMobile || isRemoteDebuggerAttached) &&
+          LocalConsole.purpleObject('State:', ...args) // DON'T use the logger here, we never want this in the logs
         logStateOk = false
       } else {
         logStateOk = true

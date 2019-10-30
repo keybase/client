@@ -16,6 +16,7 @@ protocol teambot {
     UID uid;
     @jsonkey("puk_generation")
     PerUserKeyGeneration pukGeneration;
+    TeamApplication application;
   }
 
   record TeambotKeyBoxed {

@@ -3385,7 +3385,10 @@ func (cr *ConflictResolver) recordFinishResolve(
 		}
 
 		if wasStuck {
+			cr.config.SubscriptionManagerPublisher().PublishChange(keybase1.SubscriptionTopic_FAVORITES)
 			cr.config.Reporter().NotifyFavoritesChanged(ctx)
+			cr.config.SubscriptionManagerPublisher().PublishChange(
+				keybase1.SubscriptionTopic_FILES_TAB_BADGE)
 		}
 		return
 	}
@@ -3429,7 +3432,10 @@ func (cr *ConflictResolver) recordFinishResolve(
 	}
 
 	if !wasStuck && isCRStuckFromRecords(conflictsSoFar) {
+		cr.config.SubscriptionManagerPublisher().PublishChange(keybase1.SubscriptionTopic_FAVORITES)
 		cr.config.Reporter().NotifyFavoritesChanged(ctx)
+		cr.config.SubscriptionManagerPublisher().PublishChange(
+			keybase1.SubscriptionTopic_FILES_TAB_BADGE)
 	}
 }
 
@@ -3789,7 +3795,10 @@ func (cr *ConflictResolver) clearConflictRecords(ctx context.Context) error {
 	}
 
 	if wasStuck {
+		cr.config.SubscriptionManagerPublisher().PublishChange(keybase1.SubscriptionTopic_FAVORITES)
 		cr.config.Reporter().NotifyFavoritesChanged(ctx)
+		cr.config.SubscriptionManagerPublisher().PublishChange(
+			keybase1.SubscriptionTopic_FILES_TAB_BADGE)
 	}
 	return nil
 }

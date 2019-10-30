@@ -730,6 +730,10 @@
           "name": "uid"
         },
         {
+          "type": "keybase1.TeamRole",
+          "name": "untrustedTeamRole"
+        },
+        {
           "type": "ConversationID",
           "name": "convID"
         },

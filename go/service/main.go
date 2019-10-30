@@ -77,7 +77,6 @@ type Service struct {
 	home            *home.Home
 	tlfUpgrader     *tlfupgrade.BackgroundTLFUpdater
 	teamUpgrader    *teams.Upgrader
-	avatarLoader    avatars.Source
 	walletState     *stellar.WalletState
 	offlineRPCCache *offline.RPCCache
 	trackerLoader   *libkb.TrackerLoader
@@ -114,7 +113,6 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		trackerLoader:    libkb.NewTrackerLoader(g),
 		runtimeStats:     runtimestats.NewRunner(allG),
 		teamUpgrader:     teams.NewUpgrader(),
-		avatarLoader:     avatars.CreateSourceFromEnvAndInstall(g),
 		walletState:      stellar.NewWalletState(g, remote.NewRemoteNet(g)),
 		offlineRPCCache:  offline.NewRPCCache(g),
 		httpSrv:          manager.NewSrv(g),
@@ -179,7 +177,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.MerkleProtocol(newMerkleHandler(xp, g)),
 		keybase1.GitProtocol(NewGitHandler(xp, g)),
 		keybase1.HomeProtocol(NewHomeHandler(xp, g, d.home)),
-		keybase1.AvatarsProtocol(NewAvatarHandler(xp, g, d.avatarLoader)),
+		keybase1.AvatarsProtocol(NewAvatarHandler(xp, g, g.GetAvatarLoader())),
 		keybase1.PhoneNumbersProtocol(NewPhoneNumbersHandler(xp, g)),
 		keybase1.ContactsProtocol(NewContactsHandler(xp, g, contactsProv)),
 		keybase1.EmailsProtocol(NewEmailsHandler(xp, g)),
@@ -363,11 +361,12 @@ func (d *Service) SetupCriticalSubServices() error {
 	teams.ServiceInit(d.G())
 	stellar.ServiceInit(d.G(), d.walletState, d.badger)
 	pvl.NewPvlSourceAndInstall(d.G())
+	avatars.CreateSourceFromEnvAndInstall(d.G())
 	externals.NewParamProofStoreAndInstall(d.G())
 	externals.NewExternalURLStoreAndInstall(d.G())
 	ephemeral.ServiceInit(mctx)
 	teambot.ServiceInit(mctx)
-	d.avatarSrv = avatars.ServiceInit(d.G(), d.httpSrv, d.avatarLoader)
+	d.avatarSrv = avatars.ServiceInit(d.G(), d.httpSrv, d.G().GetAvatarLoader())
 	contacts.ServiceInit(d.G())
 	maps.ServiceInit(allG, d.httpSrv)
 	return nil
@@ -530,6 +529,7 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 		ri)
 	g.CommandsSource = commands.NewSource(g)
 	g.CoinFlipManager = chat.NewFlipManager(g, ri)
+	g.JourneyCardManager = chat.NewJourneyCardChecker(g)
 	g.TeamMentionLoader = chat.NewTeamMentionLoader(g)
 	g.ExternalAPIKeySource = chat.NewRemoteExternalAPIKeySource(g, ri)
 	g.LiveLocationTracker = maps.NewLiveLocationTracker(g)
@@ -668,7 +668,7 @@ func (d *Service) startupGregor() {
 		d.gregor.PushHandler(d.home)
 		d.gregor.PushHandler(newEKHandler(d.G()))
 		d.gregor.PushHandler(newTeambotHandler(d.G()))
-		d.gregor.PushHandler(newAvatarGregorHandler(d.G(), d.avatarLoader))
+		d.gregor.PushHandler(newAvatarGregorHandler(d.G(), d.G().GetAvatarLoader()))
 		d.gregor.PushHandler(newPhoneNumbersGregorHandler(d.G()))
 		d.gregor.PushHandler(newEmailsGregorHandler(d.G()))
 		d.gregor.PushHandler(newKBFSFavoritesHandler(d.G()))

@@ -26,12 +26,12 @@ type OwnProps = {
 export default Container.connect(
   (state: Container.TypedState) => ({
     _badgeNumbers: state.notifications.navBadges,
+    _filesTabBadge: state.fs.badge,
     _fullnames: state.users.infoMap,
     _justSignedUpEmail: state.signup.justSignedUpEmail,
     _settingsEmailBanner: state.settings.email.addedEmail,
     fullname: TrackerConstants.getDetails(state, state.config.username).fullname || '',
     isWalletsNew: state.chat2.isWalletsNew,
-    uploading: state.fs.uploads.syncingPaths.size > 0 || state.fs.uploads.writingToJournal.size > 0,
     username: state.config.username,
   }),
   (dispatch, ownProps: OwnProps) => ({
@@ -94,7 +94,6 @@ export default Container.connect(
     onTabClick: (tab: Tabs.AppTab) =>
       dispatchProps._onTabClick(tab, stateProps._justSignedUpEmail, stateProps._settingsEmailBanner),
     selectedTab: ownProps.selectedTab,
-    uploading: stateProps.uploading,
     username: stateProps.username,
   })
 )(TabBar)

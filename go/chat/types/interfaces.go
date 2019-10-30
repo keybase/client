@@ -218,6 +218,8 @@ type InboxSource interface {
 	GetInboxQueryLocalToRemote(ctx context.Context,
 		lquery *chat1.GetInboxLocalQuery) (*chat1.GetInboxQuery, NameInfo, error)
 	UpdateLocalMtime(ctx context.Context, uid gregor1.UID, updates []chat1.LocalMtimeUpdate) error
+	TeamBotSettingsForConv(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (
+		map[keybase1.UID]keybase1.TeamBotSettings, error)
 
 	SetRemoteInterface(func() chat1.RemoteInterface)
 }
@@ -560,12 +562,16 @@ type ReplyFiller interface {
 type UIInboxLoader interface {
 	Resumable
 	UpdateLayout(ctx context.Context, reselectMode chat1.InboxLayoutReselectMode, reason string)
-	UpdateLayoutFromNewMessage(ctx context.Context, conv RemoteConversation,
-		msg chat1.MessageBoxed, firstConv bool, previousStatus chat1.ConversationStatus)
+	UpdateLayoutFromNewMessage(ctx context.Context, conv RemoteConversation)
 	UpdateLayoutFromSubteamRename(ctx context.Context, convs []RemoteConversation)
 	UpdateConvs(ctx context.Context, convIDs []chat1.ConversationID) error
 	LoadNonblock(ctx context.Context, query *chat1.GetInboxLocalQuery,
 		pagination *chat1.Pagination, maxUnbox *int, skipUnverified bool) error
+}
+
+type JourneyCardManager interface {
+	PickCard(context.Context, gregor1.UID, chat1.ConversationID, *chat1.ConversationLocal, *chat1.ThreadView) (*chat1.MessageUnboxedJourneycard, error)
+	SentMessage(context.Context, chat1.ConversationID) // Tell JourneyCardManager that the user has sent a message.
 }
 
 type InternalError interface {

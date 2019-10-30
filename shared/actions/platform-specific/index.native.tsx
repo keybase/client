@@ -3,6 +3,7 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as SettingsConstants from '../../constants/settings'
 import * as PushConstants from '../../constants/push'
+import * as ChatConstants from '../../constants/chat2'
 import * as ConfigGen from '../config-gen'
 import * as Chat2Gen from '../chat2-gen'
 import * as ProfileGen from '../profile-gen'
@@ -27,15 +28,15 @@ import {
 } from 'react-native'
 import CameraRoll from '@react-native-community/cameraroll'
 import NetInfo from '@react-native-community/netinfo'
-import RNFetchBlob from 'rn-fetch-blob'
 import * as PushNotifications from 'react-native-push-notification'
-import {Permissions} from 'react-native-unimodules'
 import {isIOS, isAndroid} from '../../constants/platform'
 import pushSaga, {getStartupDetailsFromInitialPush} from './push.native'
 import * as Container from '../../util/container'
 import * as Contacts from 'expo-contacts'
 import {launchImageLibraryAsync} from '../../util/expo-image-picker'
 import Geolocation from '@react-native-community/geolocation'
+import {AudioRecorder} from 'react-native-audio'
+import * as Haptics from 'expo-haptics'
 
 const requestPermissionsToWrite = async () => {
   if (isAndroid) {
@@ -56,8 +57,30 @@ const requestPermissionsToWrite = async () => {
   return Promise.resolve()
 }
 
+export const requestAudioPermission = async () => {
+  if (isIOS) {
+    const {Permissions} = require('react-native-unimodules')
+    const {status} = await Permissions.getAsync(Permissions.AUDIO_RECORDING)
+    if (status === Permissions.PermissionStatus.DENIED) {
+      throw new Error('Please allow Keybase to access the microphone in the phone settings.')
+    }
+  }
+  if (isAndroid) {
+    const permissionStatus = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.RECORD_AUDIO, {
+      buttonNegative: 'Cancel',
+      buttonPositive: 'OK',
+      message: 'Keybase needs access to your microphone to send an audio attachment',
+      title: 'Keybase Record Audio Permission',
+    })
+    if (permissionStatus !== 'granted') {
+      throw new Error('Unable to acquire record audio permissions')
+    }
+  }
+}
+
 export const requestLocationPermission = async (mode: RPCChatTypes.UIWatchPositionPerm) => {
   if (isIOS) {
+    const {Permissions} = require('react-native-unimodules')
     const {status, permissions} = await Permissions.getAsync(Permissions.LOCATION)
     switch (mode) {
       case RPCChatTypes.UIWatchPositionPerm.base:
@@ -117,7 +140,7 @@ export async function saveAttachmentToCameraRoll(filePath: string, mimeType: str
     logger.debug(logPrefix + 'failed to save: ' + e)
     throw e
   } finally {
-    RNFetchBlob.fs.unlink(filePath)
+    require('rn-fetch-blob').default.fs.unlink(filePath)
   }
 }
 
@@ -391,15 +414,19 @@ const openAppStore = () =>
       : 'https://itunes.apple.com/us/app/keybase-crypto-for-everyone/id1044461770?mt=8'
   ).catch(() => {})
 
-const expoPermissionStatusMap = {
-  [Permissions.PermissionStatus.GRANTED]: 'granted' as const,
-  [Permissions.PermissionStatus.DENIED]: 'never_ask_again' as const,
-  [Permissions.PermissionStatus.UNDETERMINED]: 'undetermined' as const,
+const expoPermissionStatusMap = () => {
+  const {Permissions} = require('react-native-unimodules')
+  return {
+    [Permissions.PermissionStatus.GRANTED]: 'granted' as const,
+    [Permissions.PermissionStatus.DENIED]: 'never_ask_again' as const,
+    [Permissions.PermissionStatus.UNDETERMINED]: 'undetermined' as const,
+  }
 }
 
 const loadContactPermissionFromNative = async () => {
   if (isIOS) {
-    return expoPermissionStatusMap[(await Permissions.getAsync(Permissions.CONTACTS)).status]
+    const {Permissions} = require('react-native-unimodules')
+    return expoPermissionStatusMap()[(await Permissions.getAsync(Permissions.CONTACTS)).status]
   }
   return (await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.READ_CONTACTS))
     ? 'granted'
@@ -438,8 +465,9 @@ const askForContactPermissionsAndroid = async () => {
 }
 
 const askForContactPermissionsIOS = async () => {
+  const {Permissions} = require('react-native-unimodules')
   const {status} = await Permissions.askAsync(Permissions.CONTACTS)
-  return expoPermissionStatusMap[status]
+  return expoPermissionStatusMap()[status]
 }
 
 const askForContactPermissions = () => {
@@ -679,9 +707,87 @@ const configureFileAttachmentDownloadForAndroid = () =>
   RPCChatTypes.localConfigureFileAttachmentDownloadLocalRpcPromise({
     // Android's cache dir is (when I tried) [app]/cache but Go side uses
     // [app]/.cache by default, which can't be used for sharing to other apps.
-    cacheDirOverride: RNFetchBlob.fs.dirs.CacheDir,
-    downloadDirOverride: RNFetchBlob.fs.dirs.DownloadDir,
+    cacheDirOverride: require('rn-fetch-blob').default.fs.dirs.CacheDir,
+    downloadDirOverride: require('rn-fetch-blob').default.fs.dirs.DownloadDir,
   })
+
+const startAudioRecording = async (
+  state: Container.TypedState,
+  action: Chat2Gen.StartAudioRecordingPayload,
+  logger: Saga.SagaLogger
+) => {
+  const conversationIDKey = action.payload.conversationIDKey
+  const audio = state.chat2.audioRecording.get(conversationIDKey)
+  if (!audio || ChatConstants.isCancelledAudioRecording(audio)) {
+    logger.info('startAudioRecording: no recording info set, bailing')
+    return false
+  }
+  const outboxID = ChatConstants.generateOutboxID()
+  await requestAudioPermission()
+  const audioPath = await RPCChatTypes.localGetUploadTempFileRpcPromise({filename: 'audio.m4a', outboxID})
+  AudioRecorder.prepareRecordingAtPath(audioPath, {
+    AudioEncoding: 'aac',
+    AudioEncodingBitRate: 32000,
+    AudioQuality: 'Low',
+    Channels: 1,
+    MeteringEnabled: true,
+    SampleRate: 22050,
+  })
+  AudioRecorder.onProgress = data => {
+    action.payload.meteringCb(data.currentMetering)
+  }
+  AudioRecorder.onFinished = () => {
+    logger.info('startAudioRecording: recording finished')
+  }
+  logger.info('startAudioRecording: beginning recording')
+  await AudioRecorder.startRecording()
+  return Chat2Gen.createSetAudioRecordingPostInfo({conversationIDKey, outboxID, path: audioPath})
+}
+
+const stopAudioRecording = async (
+  state: Container.TypedState,
+  action: Chat2Gen.StopAudioRecordingPayload,
+  logger: Saga.SagaLogger
+) => {
+  const conversationIDKey = action.payload.conversationIDKey
+  if (state.chat2.audioRecording) {
+    // don't do anything if we are recording and are in locked mode.
+    const audio = state.chat2.audioRecording.get(conversationIDKey)
+    if (audio && ChatConstants.showAudioRecording(audio) && audio.isLocked) {
+      return false
+    }
+  }
+  logger.info('stopAudioRecording: stopping recording')
+  try {
+    AudioRecorder.stopRecording()
+  } catch (e) {}
+
+  if (!state.chat2.audioRecording) {
+    return false
+  }
+  if (action.payload.stopType === Types.AudioStopType.CANCEL) {
+    logger.info('stopAudioRecording: recording canceled, not sending')
+    return false
+  }
+  const audio = state.chat2.audioRecording.get(conversationIDKey)
+  if (!audio) {
+    logger.info('stopAudioRecording: no audio record, not sending')
+    return false
+  }
+  if (audio.status === Types.AudioRecordingStatus.STAGED) {
+    logger.info('stopAudioRecording: in staged mode, not sending')
+    return false
+  }
+  return Chat2Gen.createSendAudioRecording({conversationIDKey})
+}
+
+const onEnableAudioRecording = () => {
+  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+}
+
+const onSendAudioRecording = () => {
+  Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+}
 
 export function* platformConfigSaga() {
   yield* Saga.chainGenerator<ConfigGen.PersistRoutePayload>(ConfigGen.persistRoute, persistRoute)
@@ -724,6 +830,12 @@ export function* platformConfigSaga() {
   if (isAndroid) {
     yield* Saga.chainAction2(ConfigGen.daemonHandshake, configureFileAttachmentDownloadForAndroid)
   }
+
+  // Audio
+  yield* Saga.chainAction2(Chat2Gen.startAudioRecording, startAudioRecording, 'startAudioRecording')
+  yield* Saga.chainAction2(Chat2Gen.stopAudioRecording, stopAudioRecording, 'stopAudioRecording')
+  yield* Saga.chainAction2(Chat2Gen.enableAudioRecording, onEnableAudioRecording, 'onEnableAudioRecording')
+  yield* Saga.chainAction2(Chat2Gen.sendAudioRecording, onSendAudioRecording, 'onSendAudioRecording')
 
   // Start this immediately instead of waiting so we can do more things in parallel
   yield Saga.spawn(loadStartupDetails)

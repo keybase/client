@@ -72,7 +72,7 @@ const Troubleshooting = (props: Props) => {
     <Kb.Modal
       onClose={onBack}
       header={{
-        hideBorder: true,
+        hideBorder: false,
         leftButton: Styles.isMobile ? (
           <Kb.Text type="BodySemiboldLink" onClick={onBack}>
             Back
@@ -92,8 +92,8 @@ const Troubleshooting = (props: Props) => {
       mode="Wide"
     >
       <Kb.Box2 direction="vertical" gap="small" alignItems="center">
-        <Kb.Box2 direction="vertical">
-          <Kb.Text type="Body" center={true} style={styles.bodyMargins}>
+        <Kb.Box2 direction="vertical" style={styles.bodyMargins}>
+          <Kb.Text type="Body" center={true}>
             This appears to be a new {Styles.isMobile ? 'phone' : 'computer'}. Perhaps you restored from a
             backup or uninstalled Keybase. Either way, Keybase keys aren’t backed up, so this is now a totally
             new device.
@@ -152,6 +152,9 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   bodyMargins: Styles.platformStyles({
     isElectron: Styles.padding(Styles.globalMargins.medium, Styles.globalMargins.xlarge, 0),
+    isMobile: {
+      padding: Styles.globalMargins.medium,
+    },
   }),
   buttonBar: {
     marginLeft: Styles.globalMargins.medium,

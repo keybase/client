@@ -24,6 +24,7 @@ export type Props = {
   position?: Position
   positionFallbacks?: Position[]
   propagateOutsideClicks?: boolean
+  remeasureHint?: number
   textColor?: Color
 }
 
@@ -38,6 +39,7 @@ export default (props: Props) => {
       onHidden={props.onHidden}
       visible={props.visible}
       attachTo={props.attachTo}
+      remeasureHint={props.remeasureHint}
       style={props.containerStyle}
       propagateOutsideClicks={props.propagateOutsideClicks}
     >

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Sb from '../../../stories/storybook'
 import * as ProvisionConstants from '../../../constants/provision'
-import DeviceSelector, {Props} from '.'
+import DeviceSelector from '../../../provision/select-other-device'
 
 const rd = {
   cTime: 0,
@@ -12,7 +12,7 @@ const rd = {
   verifyKey: '',
 }
 
-const commonProps: Props = {
+const commonProps = {
   devices: [
     ProvisionConstants.rpcDeviceToDevice({
       ...rd,
@@ -50,7 +50,7 @@ const commonProps: Props = {
 
 const load = () => {
   Sb.storiesOf('Login/RecoverPassword/Device selector', module).add('Device selection', () => (
-    <DeviceSelector {...commonProps} />
+    <DeviceSelector passwordRecovery={true} {...commonProps} />
   ))
 }
 

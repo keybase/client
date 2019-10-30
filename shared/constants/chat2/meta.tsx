@@ -56,8 +56,9 @@ export const unverifiedInboxUIItemToConversationMeta = (
       : []
   )
 
-  const participants = i.localMetadata ? i.localMetadata.writerNames || [] : (i.name || '').split(',')
   const isTeam = i.membersType === RPCChatTypes.ConversationMembersType.team
+  const participants =
+    i.localMetadata && isTeam ? i.localMetadata.writerNames || [] : (i.name || '').split(',')
   const channelname = isTeam && i.localMetadata ? i.localMetadata.channelName : ''
 
   const supersededBy = conversationMetadataToMetaSupersedeInfo(i.supersededBy)

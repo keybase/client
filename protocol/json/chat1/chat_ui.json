@@ -260,6 +260,10 @@
           "name": "convID"
         },
         {
+          "type": "string",
+          "name": "tlfID"
+        },
+        {
           "type": "TopicType",
           "name": "topicType"
         },
@@ -464,6 +468,10 @@
         {
           "type": "string",
           "name": "convID"
+        },
+        {
+          "type": "string",
+          "name": "tlfID"
         },
         {
           "type": "TopicType",

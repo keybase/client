@@ -16,6 +16,7 @@ export const isMac: boolean
 export const isAndroidNewerThanN: boolean
 export const defaultUseNativeFrame: boolean
 export const isTestDevice: boolean
+export const isRemoteDebuggerAttached: boolean
 
 export declare const fileUIName: string
 export declare const version: string

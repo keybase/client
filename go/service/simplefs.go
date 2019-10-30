@@ -700,3 +700,15 @@ func (s *SimpleFSHandler) SimpleFSGetGUIFileContext(ctx context.Context,
 	}
 	return cli.SimpleFSGetGUIFileContext(ctx, path)
 }
+
+// SimpleFSGetFilesTabBadge implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSGetFilesTabBadge(ctx context.Context) (
+	keybase1.FilesTabBadge, error) {
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	cli, err := s.client()
+	if err != nil {
+		return keybase1.FilesTabBadge_NONE, err
+	}
+	return cli.SimpleFSGetFilesTabBadge(ctx)
+}

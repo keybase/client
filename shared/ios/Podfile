@@ -35,6 +35,7 @@ target 'Keybase' do
 
   use_unimodules!(modules_paths: ['../node_modules'])
   use_native_modules!
+
 end
 
 # # The following is needed to ensure the "archive" step works in XCode.

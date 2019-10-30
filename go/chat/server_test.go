@@ -443,6 +443,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	g.TeamMentionLoader = types.DummyTeamMentionLoader{}
 	g.CoinFlipManager = NewFlipManager(g, func() chat1.RemoteInterface { return ri })
 	g.CoinFlipManager.Start(context.TODO(), uid)
+	g.JourneyCardManager = NewJourneyCardChecker(g)
 	g.BotCommandManager = bots.NewCachingBotCommandManager(g, func() chat1.RemoteInterface { return ri })
 	g.BotCommandManager.Start(context.TODO(), uid)
 	g.UIInboxLoader = types.DummyUIInboxLoader{}
@@ -7403,7 +7404,6 @@ func TestTeamBotSettings(t *testing.T) {
 				TlfName:     created.TlfName,
 				Username:    botua2.Username,
 				Role:        keybase1.TeamRole_BOT,
-				BotSettings: nil,
 				MembersType: mt,
 				TlfPublic:   created.Visibility == keybase1.TLFVisibility_PUBLIC,
 			})

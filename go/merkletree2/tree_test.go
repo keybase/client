@@ -349,7 +349,6 @@ func TestHonestMerkleProofsVerifySuccesfully(t *testing.T) {
 			eVal, proof, err = tree.GetEncodedValueWithInclusionOrExclusionProofFromRootHash(NewLoggerContextTodoForTesting(t), nil, rootHash2, kvp.Key)
 			require.NoError(t, err)
 			require.Nil(t, eVal)
-			t.Logf("proof: %+v", proof)
 			require.NoError(t, verifier.VerifyExclusionProof(NewLoggerContextTodoForTesting(t), kvp.Key, &proof, rootHash2))
 
 			for _, kvp := range test.kvps1[:len(test.kvps1)-1] {
@@ -643,6 +642,51 @@ func TestSomeMaliciousExclusionProofsFail(t *testing.T) {
 	}
 }
 
+func TestExclProofOnEmptyTree(t *testing.T) {
+	config1bitU, config2bitsU, config3bitsU := getTreeCfgsWith1_2_3BitsPerIndexUnblinded(t)
+	config1bitB, config2bitsB, config3bitsB := getTreeCfgsWith1_2_3BitsPerIndexBlinded(t)
+	defaultStep := 2
+	kvps1_1bit, _, _ := getSampleKVPS1bit()
+	kvps1_3bits, _, _ := getSampleKVPS3bits()
+
+	config3bits2valsPerLeafU, err := NewConfig(IdentityHasher{}, false, 3, 2, 3, ConstructStringValueContainer)
+	require.NoError(t, err)
+	config3bits2valsPerLeafB, err := NewConfig(IdentityHasherBlinded{}, true, 3, 2, 3, ConstructStringValueContainer)
+	require.NoError(t, err)
+
+	tests := []struct {
+		cfg      Config
+		kvps1    []KeyValuePair
+		extraKey Key
+	}{
+		{config1bitU, kvps1_1bit, []byte{0xaa}},
+		{config2bitsU, kvps1_1bit, []byte{0xaa}},
+		{config3bitsU, kvps1_3bits, []byte{0xaa, 0xaa, 0xaa}},
+		{config3bits2valsPerLeafU, kvps1_3bits, []byte{0xaa, 0xaa, 0xaa}},
+		{config1bitB, kvps1_1bit, []byte{0xaa}},
+		{config2bitsB, kvps1_1bit, []byte{0xaa}},
+		{config3bitsB, kvps1_3bits, []byte{0xaa, 0xaa, 0xaa}},
+		{config3bits2valsPerLeafB, kvps1_3bits, []byte{0xaa, 0xaa, 0xaa}},
+	}
+
+	for _, test := range tests {
+		t.Run(fmt.Sprintf("%v bits %v values per leaf tree (blinded %v)", test.cfg.BitsPerIndex, test.cfg.MaxValuesPerLeaf, test.cfg.UseBlindedValueHashes), func(t *testing.T) {
+			tree, err := NewTree(test.cfg, defaultStep, NewInMemoryStorageEngine(test.cfg), RootVersionV1)
+			require.NoError(t, err)
+			verifier := MerkleProofVerifier{cfg: test.cfg}
+
+			s1, rootHash1, err := tree.Build(NewLoggerContextTodoForTesting(t), nil, nil, nil)
+			require.NoError(t, err)
+			require.EqualValues(t, 1, s1)
+
+			eVal, proof, err := tree.GetEncodedValueWithInclusionOrExclusionProofFromRootHash(NewLoggerContextTodoForTesting(t), nil, rootHash1, test.extraKey)
+			require.NoError(t, err)
+			require.Nil(t, eVal)
+			require.NoError(t, verifier.VerifyExclusionProof(NewLoggerContextTodoForTesting(t), test.extraKey, &proof, rootHash1))
+		})
+	}
+}
+
 func TestVerifyInclusionProofFailureBranches(t *testing.T) {
 
 	cfg, err := NewConfig(IdentityHasherBlinded{}, true, 2, 4, 2, ConstructStringValueContainer)
@@ -832,8 +876,14 @@ func TestGetLatestRoot(t *testing.T) {
 
 func TestNodeEncodingBasic(t *testing.T) {
 	n := Node{}
-	_, err := msgpack.EncodeCanonical(&n)
+	enc, err := msgpack.EncodeCanonical(&n)
 	require.NoError(t, err)
+
+	var den Node
+	err = msgpack.Decode(&den, enc)
+	require.NoError(t, err)
+	require.Equal(t, n, den)
+	require.NotEqual(t, Node{LeafHashes: []KeyHashPair{}}, den)
 
 	n.INodes = make([]Hash, 2)
 	_, err = msgpack.EncodeCanonical(&n)
@@ -845,7 +895,7 @@ func TestNodeEncodingBasic(t *testing.T) {
 	require.Contains(t, err.Error(), "msgpack encode error")
 
 	n = Node{INodes: []Hash{Hash([]byte{0x01, 0x02}), Hash([]byte{0x03, 0x04})}}
-	enc, err := msgpack.EncodeCanonical(&n)
+	enc, err = msgpack.EncodeCanonical(&n)
 	require.NoError(t, err)
 
 	t.Logf("enc : %X", enc)

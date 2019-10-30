@@ -18,6 +18,7 @@ type TeambotKeyMetadata struct {
 	Generation    TeambotKeyGeneration `codec:"generation" json:"generation"`
 	Uid           UID                  `codec:"uid" json:"uid"`
 	PukGeneration PerUserKeyGeneration `codec:"pukGeneration" json:"puk_generation"`
+	Application   TeamApplication      `codec:"application" json:"application"`
 }
 
 func (o TeambotKeyMetadata) DeepCopy() TeambotKeyMetadata {
@@ -26,6 +27,7 @@ func (o TeambotKeyMetadata) DeepCopy() TeambotKeyMetadata {
 		Generation:    o.Generation.DeepCopy(),
 		Uid:           o.Uid.DeepCopy(),
 		PukGeneration: o.PukGeneration.DeepCopy(),
+		Application:   o.Application.DeepCopy(),
 	}
 }
 
