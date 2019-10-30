@@ -44,6 +44,7 @@ protocol constants {
     SCEmailCannotDeletePrimary_716,
     SCEmailUnknown_717,
     SCBotSignupTokenNotFound_719,
+    SCNoUpdate_723,
     SCMissingResult_801,
     SCKeyNotFound_901,
     SCKeyCorrupted_905,

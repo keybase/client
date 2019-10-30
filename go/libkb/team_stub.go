@@ -188,3 +188,19 @@ func (n nullHiddenTeamChainManager) HintLatestSeqno(m MetaContext, id keybase1.T
 func newNullHiddenTeamChainManager() nullHiddenTeamChainManager {
 	return nullHiddenTeamChainManager{}
 }
+
+type nullTeamRoleListManager struct{}
+
+var _ TeamRoleListManager = nullTeamRoleListManager{}
+
+func newNullTeamRoleListManager() nullTeamRoleListManager {
+	return nullTeamRoleListManager{}
+}
+
+func (n nullTeamRoleListManager) Get(m MetaContext) (res keybase1.TeamRoleList, err error) {
+	return res, nil
+}
+func (n nullTeamRoleListManager) Update(m MetaContext, version keybase1.UserTeamVersion) (err error) {
+	return nil
+}
+func (n nullTeamRoleListManager) FlushCache() {}

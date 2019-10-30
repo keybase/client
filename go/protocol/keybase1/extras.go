@@ -3486,3 +3486,9 @@ func (b BadgeConversationInfo) IsEmpty() bool {
 func (s *TeamBotSettings) Eq(o *TeamBotSettings) bool {
 	return reflect.DeepEqual(s, o)
 }
+
+func (t TeamRoleList) Sort() TeamRoleList {
+	ret := t.DeepCopy()
+	sort.Slice(ret.Teams, func(i, j int) bool { return ret.Teams[i].TeamID < ret.Teams[j].TeamID })
+	return ret
+}

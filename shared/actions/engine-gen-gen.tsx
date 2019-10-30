@@ -162,6 +162,7 @@ export const keybase1NotifyTeamTeamChangedByID = 'engine-gen:keybase1NotifyTeamT
 export const keybase1NotifyTeamTeamChangedByName = 'engine-gen:keybase1NotifyTeamTeamChangedByName'
 export const keybase1NotifyTeamTeamDeleted = 'engine-gen:keybase1NotifyTeamTeamDeleted'
 export const keybase1NotifyTeamTeamExit = 'engine-gen:keybase1NotifyTeamTeamExit'
+export const keybase1NotifyTeamTeamRoleListChanged = 'engine-gen:keybase1NotifyTeamTeamRoleListChanged'
 export const keybase1NotifyTeambotNewTeambotKey = 'engine-gen:keybase1NotifyTeambotNewTeambotKey'
 export const keybase1NotifyTeambotTeambotKeyNeeded = 'engine-gen:keybase1NotifyTeambotTeambotKeyNeeded'
 export const keybase1NotifyTrackingTrackingChanged = 'engine-gen:keybase1NotifyTrackingTrackingChanged'
@@ -1381,6 +1382,17 @@ type _Keybase1NotifyTeamTeamExitPayload = {
     result: (param: keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamExit']['outParam']) => void
   }
 }
+type _Keybase1NotifyTeamTeamRoleListChangedPayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamRoleListChanged']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (
+      param: keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamRoleListChanged']['outParam']
+    ) => void
+  }
+}
 type _Keybase1NotifyTeambotNewTeambotKeyPayload = {
   readonly params: keybase1Types.MessageTypes['keybase.1.NotifyTeambot.newTeambotKey']['inParam'] & {
     sessionID: number
@@ -2338,6 +2350,9 @@ export const createKeybase1NotifyTeamTeamDeleted = (
 export const createKeybase1NotifyTeamTeamExit = (
   payload: _Keybase1NotifyTeamTeamExitPayload
 ): Keybase1NotifyTeamTeamExitPayload => ({payload, type: keybase1NotifyTeamTeamExit})
+export const createKeybase1NotifyTeamTeamRoleListChanged = (
+  payload: _Keybase1NotifyTeamTeamRoleListChangedPayload
+): Keybase1NotifyTeamTeamRoleListChangedPayload => ({payload, type: keybase1NotifyTeamTeamRoleListChanged})
 export const createKeybase1NotifyTeambotNewTeambotKey = (
   payload: _Keybase1NotifyTeambotNewTeambotKeyPayload
 ): Keybase1NotifyTeambotNewTeambotKeyPayload => ({payload, type: keybase1NotifyTeambotNewTeambotKey})
@@ -3104,6 +3119,10 @@ export type Keybase1NotifyTeamTeamExitPayload = {
   readonly payload: _Keybase1NotifyTeamTeamExitPayload
   readonly type: typeof keybase1NotifyTeamTeamExit
 }
+export type Keybase1NotifyTeamTeamRoleListChangedPayload = {
+  readonly payload: _Keybase1NotifyTeamTeamRoleListChangedPayload
+  readonly type: typeof keybase1NotifyTeamTeamRoleListChanged
+}
 export type Keybase1NotifyTeambotNewTeambotKeyPayload = {
   readonly payload: _Keybase1NotifyTeambotNewTeambotKeyPayload
   readonly type: typeof keybase1NotifyTeambotNewTeambotKey
@@ -3471,6 +3490,7 @@ export type Actions =
   | Keybase1NotifyTeamTeamChangedByNamePayload
   | Keybase1NotifyTeamTeamDeletedPayload
   | Keybase1NotifyTeamTeamExitPayload
+  | Keybase1NotifyTeamTeamRoleListChangedPayload
   | Keybase1NotifyTeambotNewTeambotKeyPayload
   | Keybase1NotifyTeambotTeambotKeyNeededPayload
   | Keybase1NotifyTrackingTrackingChangedPayload
