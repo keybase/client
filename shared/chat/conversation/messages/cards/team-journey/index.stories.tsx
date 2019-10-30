@@ -10,7 +10,7 @@ const load = () => {
           { label: 'Publish team on your own profile', onClick: Sb.action('onPublishTeam') },
           { label: 'Browse channels', onClick: Sb.action('onBrowseChannels') },
         ]}
-        image={''}
+        image="icon-illustration-welcome"
         loadTeam={null}
         teamname="foo"
         text="Welcome to the team! Say hi to everyone and introduce yourself."
@@ -23,7 +23,7 @@ const load = () => {
         { label: '#two', onClick: Sb.action('onGoToChan') },
         { label: '#three', onClick: Sb.action('onGoToChan') },
       ]}
-      image={''}
+      image=''
       loadTeam={null}
       teamname="foo"
       text="You are in #somechan. Some popular channels in this team:"
@@ -32,7 +32,7 @@ const load = () => {
   .add('Add people', () => (
     <TeamJourney
       actions={[{ label: 'Add people to the team', onClick: Sb.action('onAddPeopleToTeam') }]}
-      image=""
+      image="icon-illustration-friends"
       loadTeam={null}
       teamname="foo"
       text="Do you know people interested in joining? Foo is open to anyone."
@@ -41,7 +41,7 @@ const load = () => {
   .add('Create channels', () => (
     <TeamJourney
       actions={[{ label: 'Create chat channels', onClick: Sb.action('onCreateChatChannels') }]}
-      image=""
+      image="icon-illustration-happy-chat"
       loadTeam={null}
       teamname="foo"
       text="Go ahead and create #channels around topics you think are missing."
@@ -50,7 +50,7 @@ const load = () => {
   .add('Lots of attention', () => (
     <TeamJourney
       actions={[]}
-      image=""
+      image="icon-illustration-attention"
       loadTeam={null}
       teamname="foo"
       text="One of your messages is getting lots of attention!"
@@ -59,12 +59,21 @@ const load = () => {
   .add('Inactive channel', () => (
     <TeamJourney
       actions={[]}
-      image=""
+      image="icon-illustration-sleepy"
       loadTeam={null}
       teamname="foo"
       text="Zzz… This channel hasn’t been very active…. Revive it?"
     />
   ))
+    .add('Stuff you missed', () => (
+      <TeamJourney
+        actions={[{label: 'Scroll back in time', onClick: Sb.action('onBackInTime')}]}
+        image="icon-illustration-long-time"
+        loadTeam={null}
+        teamname="foo"
+        text="Long time no see… Look at all the things you missed."
+      />
+    ))
   .add('Message not answered', () => (
     <TeamJourney
       actions={[
