@@ -9,7 +9,7 @@ type Action = {
 
 type Props = {
   actions: Array<Action>
-  image: string
+  image: Kb.IconType | null
   loadTeam: (() => void) | null
   teamname: string
   text: string
@@ -59,7 +59,9 @@ const TeamJourneyHeader = (props: HeaderProps) => (
         style={styles.avatar}
       />
       <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
-        <Kb.Text style={styles.teamnameText} type="BodySmallBold">{props.teamname}</Kb.Text>
+        <Kb.Text style={styles.teamnameText} type="BodySmallBold">
+          {props.teamname}
+        </Kb.Text>
         <Kb.Text type="BodyTiny">• System message</Kb.Text>
       </Kb.Box2>
     </Kb.Box2>

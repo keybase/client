@@ -38,43 +38,43 @@ type Action = {
 
 const TeamJourneyContainer = (props: Props) => {
   let text = ''
-  let image = ''
+  let image: Kb.IconType | null = null
   let actions: Array<Action> = []
   let loadTeam: (() => void) | null = null
 
   switch (props.message.cardType) {
     case RPCChatTypes.JourneycardType.welcome:
       actions = [
-        { label: 'Publish team on your own profile', onClick: props.onPublishTeam },
-        { label: 'Browse channels', onClick: props.onBrowseChannels },
+        {label: 'Publish team on your own profile', onClick: props.onPublishTeam},
+        {label: 'Browse channels', onClick: props.onBrowseChannels},
       ]
       image = 'icon-illustration-welcome-96'
       text = 'Welcome to the team! Say hi to everyone and introduce yourself.'
       break
     case RPCChatTypes.JourneycardType.popularChannels:
-      loadTeam = props.onLoadTeam
       actions = props.otherChannels.map(chan => ({label: chan, onClick: () => props.onGoToChannel(chan)}))
+      loadTeam = props.onLoadTeam
       text = `You are in ${props.channelname}. Some popular channels in this team:`
       break
     case RPCChatTypes.JourneycardType.addPeople:
       actions = [{label: 'Add people to the team', onClick: props.onAddPeopleToTeam}]
-      image = 'icon-illustration-friends-96'
+      image = 'icon-illustration-friends-96' as Kb.IconType
       text = `Do you know people interested in joining? ${props.teamname} is open to anyone.`
       break
     case RPCChatTypes.JourneycardType.createChannels:
       actions = [{label: 'Create chat channels', onClick: props.onCreateChatChannels}]
-      image = 'icon-illustration-happy-chat-96'
+      image = 'icon-illustration-happy-chat-96' as Kb.IconType
       text = 'Go ahead and create #channels around topics you think are missing.'
       break
     case RPCChatTypes.JourneycardType.msgAttention:
       // XXX: implement
-      image = 'icon-illustration-attention-64'
+      image = 'icon-illustration-attention-64' as Kb.IconType
       text = 'One of your messages is getting a lot of attention!'
       break
     case RPCChatTypes.JourneycardType.userAwayForLong:
       // XXX: implement
-      actions = [{ label: 'Scroll back in time', onClick: props.onScrollBack }]
-      image = 'icon-illustration-long-time'
+      actions = [{label: 'Scroll back in time', onClick: props.onScrollBack}]
+      image = 'icon-illustration-long-time' as Kb.IconType
       text = 'Long time no see! Look at all the things you missed.'
       break
     case RPCChatTypes.JourneycardType.channelInactive:
