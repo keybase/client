@@ -24,7 +24,10 @@ const TeamJourney = (props: Props) => {
     <>
       <TeamJourneyHeader teamname={props.teamname} />
       <Kb.Box2 key="content" direction="vertical" fullWidth={true} style={styles.content}>
-        <Kb.Text type="Body">{props.text}</Kb.Text>
+        <Kb.Box2 direction="horizontal" fullWidth={true}>
+          <Kb.Text type="Body">{props.text}</Kb.Text>
+          {!!props.image && <Kb.Icon type={props.image} />}
+        </Kb.Box2>
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.actionsBox}>
           {props.actions.map(action => (
             <Kb.Button
@@ -56,7 +59,7 @@ const TeamJourneyHeader = (props: HeaderProps) => (
         style={styles.avatar}
       />
       <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
-        <Kb.Text type="BodySmallBold">{props.teamname}</Kb.Text>
+        <Kb.Text style={styles.teamnameText} type="BodySmallBold">{props.teamname}</Kb.Text>
         <Kb.Text type="BodyTiny">• System message</Kb.Text>
       </Kb.Box2>
     </Kb.Box2>
@@ -103,6 +106,9 @@ const styles = Styles.styleSheetCreate(
           paddingRight: Styles.globalMargins.tiny,
         },
       }),
+      teamnameText: {
+        color: Styles.globalColors.black,
+      },
     } as const)
 )
 

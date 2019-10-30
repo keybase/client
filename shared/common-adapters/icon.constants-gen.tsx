@@ -4018,6 +4018,11 @@ const iconMeta_ = {
       return require('../images/icons/icon-hacker-news-logo-64.png')
     },
   },
+  'icon-illustration-attention-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-illustration-attention-64.png'),
+  },
   'icon-illustration-encrypted-116-96': {
     extension: 'png',
     isFont: false,
@@ -4031,6 +4036,21 @@ const iconMeta_ = {
     get require() {
       return require('../images/icons/icon-illustration-exploding-messages-240.png')
     },
+  },
+  'icon-illustration-friends-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-illustration-friends-96.png'),
+  },
+  'icon-illustration-happy-chat-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-illustration-happy-chat-96.png'),
+  },
+  'icon-illustration-long-time-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-illustration-long-time-96.png'),
   },
   'icon-illustration-mars-rover': {
     extension: 'png',
@@ -4052,6 +4072,11 @@ const iconMeta_ = {
     get require() {
       return require('../images/icons/icon-illustration-mars-rover-foreground.png')
     },
+  },
+  'icon-illustration-sleepy-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-illustration-sleepy-96.png'),
   },
   'icon-illustration-stellar-payments-200-188': {
     extension: 'png',
@@ -4080,6 +4105,11 @@ const iconMeta_ = {
     get require() {
       return require('../images/icons/icon-illustration-teams-216.png')
     },
+  },
+  'icon-illustration-welcome-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-illustration-welcome-96.png'),
   },
   'icon-illustration-zen-240-180': {
     extension: 'png',
