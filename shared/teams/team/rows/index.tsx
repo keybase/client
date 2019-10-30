@@ -29,9 +29,6 @@ const makeRows = (
   yourOperations: Types.TeamOperations
 ): Array<Row> => {
   const rows: Array<Row> = []
-  if (!isMobile) {
-    rows.push({type: 'header'}, {type: 'tabs'})
-  }
   switch (selectedTab) {
     case 'members':
       rows.push(

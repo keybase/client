@@ -1,14 +1,14 @@
 import * as React from 'react'
+import * as Kb from '../../common-adapters'
 import * as Types from '../../constants/types/teams'
+import * as Styles from '../../styles'
 import {renderItem as renderInvitesItem} from './invites-tab/helper'
 import {renderItem as renderMemberItem} from './members-tab/helper'
 import {renderItem as renderSubteamsItem} from './subteams-tab/helper'
 import Settings from './settings-tab/container'
 import TeamHeader from './header/container'
 import TeamTabs from './tabs/container'
-import {Box} from '../../common-adapters'
 import List from './list'
-import {globalStyles} from '../../styles'
 import {Row} from './rows'
 
 export type Sections = Array<{data: Array<Row>; header?: Row; key: string}>
@@ -21,7 +21,9 @@ export type Props = {
 }
 
 class Team extends React.Component<Props> {
-  _renderItem = (row: any) => {
+  // TODO type this
+  private renderItem = (_row: any) => {
+    const row = _row.item
     switch (row.type) {
       case 'header':
         return <TeamHeader key="header" teamname={this.props.teamname} />
@@ -56,22 +58,61 @@ class Team extends React.Component<Props> {
     }
   }
 
+  private renderSectionHeader = ({section}) =>
+    section.key === 'body' ? (
+      <TeamTabs
+        key="tabs"
+        teamname={this.props.teamname}
+        selectedTab={this.props.selectedTab}
+        setSelectedTab={this.props.setSelectedTab}
+      />
+    ) : null
+
   render() {
     return (
-      <Box
-        style={{
-          ...globalStyles.flexBoxColumn,
-          alignItems: 'stretch',
-          flex: 1,
-          height: '100%',
-          position: 'relative',
-          width: '100%',
-        }}
-      >
-        <List rows={this.props.rows} renderRow={this._renderItem} />
-      </Box>
+      <Kb.Box style={styles.container}>
+        <Kb.SectionList
+          alwaysVounceVertical={false}
+          renderItem={this.renderItem}
+          renderSectionHeader={this.renderSectionHeader}
+          stickySectionHeadersEnabled={Styles.isMobile}
+          sections={this.props.sections}
+          style={styles.list}
+          contentContainerStyle={styles.listContentContainer}
+        />
+      </Kb.Box>
     )
   }
 }
+
+const styles = Styles.styleSheetCreate(() => ({
+  container: {
+    ...Styles.globalStyles.flexBoxColumn,
+    alignItems: 'stretch',
+    flex: 1,
+    height: '100%',
+    position: 'relative',
+    width: '100%',
+  },
+  list: Styles.platformStyles({
+    isElectron: {
+      ...Styles.globalStyles.fillAbsolute,
+      ...Styles.globalStyles.flexBoxColumn,
+      alignItems: 'center',
+    },
+    isMobile: {
+      ...Styles.globalStyles.fillAbsolute,
+    },
+  }),
+  listContentContainer: Styles.platformStyles({
+    isElectron: {
+      width: '100%',
+    },
+    isMobile: {
+      display: 'flex',
+      flexGrow: 1,
+    },
+  }),
+}))
 
 export default Team
