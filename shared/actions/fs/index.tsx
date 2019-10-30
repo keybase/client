@@ -724,7 +724,7 @@ const onNotifyFSOverallSyncSyncStatusChanged = (
   > = [
     FsGen.createOverallSyncStatusChanged({
       diskSpaceStatus,
-      progress: Constants.makeSyncingFoldersProgress(action.payload.params.status.prefetchProgress),
+      progress: action.payload.params.status.prefetchProgress,
     }),
   ]
   // Only notify about the disk space status if it has changed.

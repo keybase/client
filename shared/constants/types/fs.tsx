@@ -480,13 +480,12 @@ export enum PathItemActionMenuView {
   ConfirmSaveMedia = 'confirm-save-media',
   ConfirmSendToOtherApp = 'confirm-send-to-other-app',
 }
-export type _PathItemActionMenu = {
+export type PathItemActionMenu = {
   downloadID: string | null
   downloadIntent: DownloadIntent | null
   previousView: PathItemActionMenuView
   view: PathItemActionMenuView
 }
-export type PathItemActionMenu = I.RecordOf<_PathItemActionMenu>
 
 export enum DriverStatusType {
   Unknown = 'unknown',
@@ -540,26 +539,24 @@ export enum KbfsDaemonOnlineStatus {
   Offline = 'offline',
   Online = 'online',
 }
-export type _KbfsDaemonStatus = {
+export type KbfsDaemonStatus = {
   rpcStatus: KbfsDaemonRpcStatus
   onlineStatus: KbfsDaemonOnlineStatus
 }
-export type KbfsDaemonStatus = I.RecordOf<_KbfsDaemonStatus>
 
-export type _SyncingFoldersProgress = {
+export type SyncingFoldersProgress = {
   bytesFetched: number
   bytesTotal: number
   endEstimate: number
   start: number
 }
-export type SyncingFoldersProgress = I.RecordOf<_SyncingFoldersProgress>
 
 export enum DiskSpaceStatus {
   Ok = 'ok',
   Warning = 'warning',
   Error = 'error',
 }
-export type _OverallSyncStatus = {
+export type OverallSyncStatus = {
   syncingFoldersProgress: SyncingFoldersProgress
   diskSpaceStatus: DiskSpaceStatus
   // showingBanner tracks whether we need to show the banner.
@@ -567,7 +564,6 @@ export type _OverallSyncStatus = {
   // in the state since the user can dismiss it.
   showingBanner: boolean
 }
-export type OverallSyncStatus = I.RecordOf<_OverallSyncStatus>
 
 export enum SoftError {
   NoAccess = 'no-access',

@@ -146,18 +146,18 @@ export const makeTlf = ({
   */
 })
 
-export const makeSyncingFoldersProgress = I.Record<Types._SyncingFoldersProgress>({
+export const emptySyncingFoldersProgress = {
   bytesFetched: 0,
   bytesTotal: 0,
   endEstimate: 0,
   start: 0,
-})
+}
 
-export const makeOverallSyncStatus = I.Record<Types._OverallSyncStatus>({
+export const emptyOverallSyncStatus = {
   diskSpaceStatus: Types.DiskSpaceStatus.Ok,
   showingBanner: false,
-  syncingFoldersProgress: makeSyncingFoldersProgress(),
-})
+  syncingFoldersProgress: emptySyncingFoldersProgress,
+}
 
 export const makePathUserSetting = I.Record<Types._PathUserSetting>({
   sort: Types.SortSetting.NameAsc,
@@ -215,12 +215,12 @@ export const makeSendAttachmentToChat = I.Record<Types._SendAttachmentToChat>({
   title: '',
 })
 
-export const makePathItemActionMenu = I.Record<Types._PathItemActionMenu>({
+export const emptyPathItemActionMenu = {
   downloadID: null,
   downloadIntent: null,
   previousView: Types.PathItemActionMenuView.Root,
   view: Types.PathItemActionMenuView.Root,
-})
+}
 
 export const makeDriverStatusUnknown = I.Record<Types._DriverStatusUnknown>({
   type: Types.DriverStatusType.Unknown,
@@ -250,10 +250,10 @@ export const makeSystemFileManagerIntegration = I.Record<Types._SystemFileManage
   showingBanner: false,
 })
 
-export const makeKbfsDaemonStatus = I.Record<Types._KbfsDaemonStatus>({
+export const unknownKbfsDaemonStatus = {
   onlineStatus: Types.KbfsDaemonOnlineStatus.Unknown,
   rpcStatus: Types.KbfsDaemonRpcStatus.Unknown,
-})
+}
 
 export const makeSoftErrors = I.Record<Types._SoftErrors>({
   pathErrors: I.Map(),

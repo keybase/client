@@ -80,7 +80,7 @@ export const commonProvider = {
     loadPathMetadataWithRefreshTag: Sb.action('loadPathMetadataWithRefreshTag'),
     loadPathMetadataWithoutRefreshTag: Sb.action('loadPathMetadataWithoutRefreshTag'),
     path,
-    syncingFoldersProgress: Constants.makeSyncingFoldersProgress(),
+    syncingFoldersProgress: Constants.emptySyncingFoldersProgress,
   }),
   NewFolder: ({path}: {path: Types.Path}) => ({
     canCreateNewFolder: Types.getPathLevel(path) > 2,

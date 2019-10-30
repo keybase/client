@@ -26,11 +26,11 @@ const initialState: Types.State = {
   errors: new Map(),
   fileContext: new Map(),
   folderViewFilter: '',
-  kbfsDaemonStatus: Constants.makeKbfsDaemonStatus(),
+  kbfsDaemonStatus: Constants.unknownKbfsDaemonStatus,
   lastPublicBannerClosedTlf: '',
-  overallSyncStatus: Constants.makeOverallSyncStatus(),
+  overallSyncStatus: Constants.emptyOverallSyncStatus,
   pathInfos: I.Map(),
-  pathItemActionMenu: Constants.makePathItemActionMenu(),
+  pathItemActionMenu: Constants.emptyPathItemActionMenu,
   pathItems: I.Map([[Types.stringToPath('/keybase'), Constants.makeFolder()]]),
   pathUserSettings: I.Map(),
   sendAttachmentToChat: Constants.makeSendAttachmentToChat(),
@@ -510,40 +510,35 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
     )
   },
   [FsGen.setPathItemActionMenuView]: (draftState, action) => {
-    draftState.pathItemActionMenu = draftState.pathItemActionMenu
-      .set('previousView', draftState.pathItemActionMenu.view)
-      .set('view', action.payload.view)
+    draftState.pathItemActionMenu.previousView = draftState.pathItemActionMenu.view
+    draftState.pathItemActionMenu.view = action.payload.view
   },
   [FsGen.setPathItemActionMenuDownload]: (draftState, action) => {
-    draftState.pathItemActionMenu = draftState.pathItemActionMenu
-      .set('downloadID', action.payload.downloadID)
-      .set('downloadIntent', action.payload.intent)
+    draftState.pathItemActionMenu.downloadID = action.payload.downloadID
+    draftState.pathItemActionMenu.downloadIntent = action.payload.intent
   },
   [FsGen.waitForKbfsDaemon]: draftState => {
-    draftState.kbfsDaemonStatus = draftState.kbfsDaemonStatus.set(
-      'rpcStatus',
-      Types.KbfsDaemonRpcStatus.Waiting
-    )
+    draftState.kbfsDaemonStatus.rpcStatus = Types.KbfsDaemonRpcStatus.Waiting
   },
   [FsGen.kbfsDaemonRpcStatusChanged]: (draftState, action) => {
-    draftState.kbfsDaemonStatus = (action.payload.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected
-      ? draftState.kbfsDaemonStatus.set('onlineStatus', Types.KbfsDaemonOnlineStatus.Offline)
-      : draftState.kbfsDaemonStatus
-    ).set('rpcStatus', action.payload.rpcStatus)
+    if (action.payload.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected) {
+      draftState.kbfsDaemonStatus.onlineStatus = Types.KbfsDaemonOnlineStatus.Offline
+    }
+    draftState.kbfsDaemonStatus.rpcStatus = action.payload.rpcStatus
   },
   [FsGen.kbfsDaemonOnlineStatusChanged]: (draftState, action) => {
-    draftState.kbfsDaemonStatus = draftState.kbfsDaemonStatus.set(
-      'onlineStatus',
-      action.payload.online ? Types.KbfsDaemonOnlineStatus.Online : Types.KbfsDaemonOnlineStatus.Offline
-    )
+    draftState.kbfsDaemonStatus.onlineStatus = action.payload.online
+      ? Types.KbfsDaemonOnlineStatus.Online
+      : Types.KbfsDaemonOnlineStatus.Offline
   },
   [FsGen.overallSyncStatusChanged]: (draftState, action) => {
-    draftState.overallSyncStatus = draftState.overallSyncStatus
-      .set('syncingFoldersProgress', action.payload.progress)
-      .set('diskSpaceStatus', action.payload.diskSpaceStatus)
+    if (!isEqual(draftState.overallSyncStatus.syncingFoldersProgress, action.payload.progress)) {
+      draftState.overallSyncStatus.syncingFoldersProgress = action.payload.progress
+    }
+    draftState.overallSyncStatus.diskSpaceStatus = action.payload.diskSpaceStatus
   },
   [FsGen.showHideDiskSpaceBanner]: (draftState, action) => {
-    draftState.overallSyncStatus = draftState.overallSyncStatus.set('showingBanner', action.payload.show)
+    draftState.overallSyncStatus.showingBanner = action.payload.show
   },
   [FsGen.setDriverStatus]: (draftState, action) => {
     draftState.sfmi = draftState.sfmi.set('driverStatus', action.payload.driverStatus)

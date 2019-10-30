@@ -149,7 +149,7 @@ export const rowsProvider = {
     loadFolderListWithRefreshTag: Sb.action('loadFolderListWithRefreshTag'),
     loadFolderListWithoutRefreshTag: Sb.action('loadFolderListWithoutRefreshTag'),
     path,
-    syncingFoldersProgress: Constants.makeSyncingFoldersProgress(),
+    syncingFoldersProgress: Constants.emptySyncingFoldersProgress,
   }),
   SortBar: () => ({
     folderIsPending: true,
