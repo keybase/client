@@ -15,7 +15,7 @@ const ampHeightProp = (amp: number) => {
 
 const AudioVis = (props: VisProps) => {
   return (
-    <Kb.Box2 direction="horizontal" gap="xxtiny">
+    <Kb.Box2 direction="horizontal" gap="xxtiny" style={{height: props.height}}>
       {props.amps.map((amp, index) => {
         const heightProp = ampHeightProp(amp)
         const height = heightProp * props.height
