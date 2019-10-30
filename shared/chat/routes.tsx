@@ -18,6 +18,7 @@ import ChatShowBlockConversationDialog from './conversation/block-conversation-w
 import ChatShowNewTeamDialog from './new-team-dialog-container'
 import ChatLocationPopup from './conversation/input-area/normal/location-popup'
 import ChatUnfurlMapPopup from './conversation/messages/wrapper/unfurl/map/popup'
+import PunycodeLinkWarning from './punycode-link-warning'
 
 export const newRoutes = {
   chatConversation: {getScreen: (): typeof ChatConversation => require('./conversation/container').default},
@@ -33,6 +34,9 @@ export const newRoutes = {
 }
 
 export const newModalRoutes = {
+  chatConfirmNavigateExternal: {
+    getScreen: (): typeof PunycodeLinkWarning => require('./punycode-link-warning').default,
+  },
   chatAddToChannel: {
     getScreen: (): typeof ChatAddToChannel =>
       require('./conversation/info-panel/add-to-channel/container').default,

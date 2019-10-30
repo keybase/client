@@ -634,6 +634,10 @@ func (m MessageUnboxedError) ParseableVersion() bool {
 	return maxVersion >= version
 }
 
+func (m MessageUnboxedError) IsEphemeralError() bool {
+	return m.IsEphemeral && m.ErrType == MessageUnboxedErrorType_EPHEMERAL
+}
+
 func (m MessageUnboxedValid) AsDeleteHistory() (res MessageDeleteHistory, err error) {
 	if m.ClientHeader.MessageType != MessageType_DELETEHISTORY {
 		return res, fmt.Errorf("message is %v not %v", m.ClientHeader.MessageType, MessageType_DELETEHISTORY)

@@ -23,7 +23,7 @@ func NewSimpleSource() *SimpleSource {
 	return &SimpleSource{}
 }
 
-var _ Source = (*SimpleSource)(nil)
+var _ libkb.AvatarLoaderSource = (*SimpleSource)(nil)
 
 func (s *SimpleSource) StartBackgroundTasks(_ libkb.MetaContext) {}
 func (s *SimpleSource) StopBackgroundTasks(_ libkb.MetaContext)  {}
