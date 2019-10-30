@@ -113,7 +113,9 @@ const PathItemInfo = (props: Props) => {
         {pathItem.type === Types.PathType.File && (
           <Kb.Text type="BodySmall">{Constants.humanReadableFileSize(pathItem.size)}</Kb.Text>
         )}
-        {Constants.isFolder(props.path, pathItem) && <FilesAndFoldersCount {...props} />}
+        {Constants.isInTlf(props.path) && Constants.isFolder(props.path, pathItem) && (
+          <FilesAndFoldersCount {...props} />
+        )}
         {getTlfInfoLineOrLastModifiedLine(props.path)}
       </Kb.Box2>
     </>
