@@ -15,10 +15,11 @@ type Props = Container.RouteProps<{conversationIDKey: Types.ConversationIDKey}>
 const LocationPopup = (props: Props) => {
   // state
   const conversationIDKey = Container.getRouteProps(props, 'conversationIDKey', Constants.noConversationIDKey)
-  const {httpSrvAddress, httpSrvToken, location} = Container.useSelector(state => ({
+  const {httpSrvAddress, httpSrvToken, location, username} = Container.useSelector(state => ({
     httpSrvAddress: state.config.httpSrvAddress,
     httpSrvToken: state.config.httpSrvToken,
     location: state.chat2.lastCoord,
+    username: state.config.username,
   }))
   const [mapLoaded, setMapLoaded] = React.useState(false)
   const [locationDenied, setLocationDenied] = React.useState(false)
@@ -59,7 +60,7 @@ const LocationPopup = (props: Props) => {
   const mapSrc = location
     ? `http://${httpSrvAddress}/map?lat=${location.lat}&lon=${
         location.lon
-      }&width=${width}&height=${height}&token=${httpSrvToken}`
+      }&width=${width}&height=${height}&username=${username}&token=${httpSrvToken}`
     : ''
   return (
     <Kb.Modal

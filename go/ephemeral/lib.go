@@ -31,6 +31,7 @@ type EKLib struct {
 	// after deriving the teamkey.
 	teambotEKMetadataCache *lru.Cache
 	sync.Mutex
+	stateMu sync.Mutex
 
 	// During testing we may want to stall background work to assert cache
 	// state.
@@ -66,8 +67,8 @@ func NewEKLib(mctx libkb.MetaContext) *EKLib {
 }
 
 func (e *EKLib) Shutdown(mctx libkb.MetaContext) error {
-	e.Lock()
-	defer e.Unlock()
+	e.stateMu.Lock()
+	defer e.stateMu.Unlock()
 	if e.stopCh != nil {
 		mctx.Debug("stopping background eklib loop")
 		close(e.stopCh)
@@ -173,8 +174,7 @@ func (e *EKLib) KeygenIfNeeded(mctx libkb.MetaContext) (err error) {
 
 		select {
 		case <-mctx.Ctx().Done():
-			mctx.Debug("aborting KeygenIfNeeded, context cancelled")
-			return err
+			return mctx.Ctx().Err()
 		case <-time.After(20 * time.Millisecond):
 		}
 	}
@@ -1106,8 +1106,6 @@ func (e *EKLib) PrepareNewTeamEK(mctx libkb.MetaContext, teamID keybase1.TeamID,
 
 func (e *EKLib) ClearCaches(mctx libkb.MetaContext) {
 	defer mctx.TraceTimed("EKLib.ClearCaches", func() error { return nil })()
-	e.Lock()
-	defer e.Unlock()
 	mctx.Debug("| EKLib.ClearCaches teamEKGenCache")
 	e.teamEKGenCache.Purge()
 	e.teambotEKMetadataCache.Purge()

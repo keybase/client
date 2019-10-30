@@ -14,6 +14,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey, ordinal}: OwnPro
   const message = Constants.getMessage(state, conversationIDKey, ordinal)
   return {
     _unfurls: message && message.type === 'text' ? message.unfurls : null,
+    author: message ? message.author : undefined,
     isAuthor: message ? state.config.username === message.author : false,
     showClose: message ? message.author === state.config.username : false,
   }
@@ -48,6 +49,7 @@ export default connect(
           .toArray()
       : []
     return {
+      author: stateProps.author,
       conversationIDKey: ownProps.conversationIDKey,
       isAuthor: stateProps.isAuthor,
       toggleMessagePopup: ownProps.toggleMessagePopup,
