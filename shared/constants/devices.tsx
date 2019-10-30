@@ -4,7 +4,6 @@ import * as Types from './types/devices'
 import * as WaitingConstants from './waiting'
 import * as RPCTypes from './types/rpc-gen'
 import * as Container from '../util/container'
-import {memoize} from '../util/memoize'
 
 export const rpcDeviceToDevice = (d: RPCTypes.DeviceDetail): Types.Device =>
   makeDevice({
