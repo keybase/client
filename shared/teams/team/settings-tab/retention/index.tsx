@@ -123,25 +123,9 @@ class _RetentionPicker extends React.Component<PropsWithOverlay<Props>, State> {
           return [
             ...arr,
             {
+              icon: 'iconfont-timer',
               onClick: () => this._onSelect(policy),
               title: policy.title,
-              view: (
-                <Kb.Box2
-                  centerChildren={Styles.isMobile}
-                  alignItems="center"
-                  direction="horizontal"
-                  gap="tiny"
-                  fullWidth={true}
-                >
-                  <Kb.Icon type="iconfont-timer" />
-                  <Kb.Text
-                    type={Styles.isMobile ? 'BodyBig' : 'Body'}
-                    style={Styles.isMobile ? {color: Styles.globalColors.blueDark} : undefined}
-                  >
-                    {policy.title}
-                  </Kb.Text>
-                </Kb.Box2>
-              ),
             },
           ] as Kb.MenuItems
       }

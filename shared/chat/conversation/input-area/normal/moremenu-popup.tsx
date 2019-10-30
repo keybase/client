@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
 import * as Kb from '../../../../common-adapters/mobile.native'
-import * as Styles from '../../../../styles'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as Container from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'
@@ -93,19 +92,19 @@ const MoreMenuPopup = (props: Props) => {
       subTitle: '/giphy',
     },
     {
-      icon: 'iconfont-coin',
+      icon: 'iconfont-coin-flip',
       onClick: onCoinFlip,
       title: 'Flip a coin',
       subTitle: '/flip',
     },
     {
-      icon: 'iconfont-star',
+      icon: 'iconfont-location',
       onClick: onLocationShare,
       title: 'Share your location',
       subTitle: '/location',
     },
     {
-      icon: 'iconfont-calculator',
+      icon: 'iconfont-ellipsis',
       onClick: onInsertSlashCommand,
       title: 'Other commands',
       subTitle: '/...',
@@ -113,11 +112,5 @@ const MoreMenuPopup = (props: Props) => {
   ]
   return <Kb.FloatingMenu closeOnSelect={true} items={items} onHidden={onHidden} visible={visible} />
 }
-
-const styles = Styles.styleSheetCreate(() => ({
-  item: {
-    color: Styles.globalColors.blueDark,
-  },
-}))
 
 export default MoreMenuPopup

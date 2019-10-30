@@ -36,15 +36,13 @@ const MenuRow = (props: MenuRowProps) => (
   >
     {props.view || (
       <Box2 centerChildren={props.centered} direction="horizontal" fullWidth={true}>
-        {props.icon && (
-          <Box2
-            direction="horizontal"
-            fullHeight={true}
-            style={styles.iconContainer}
-          >
-            <Icon color={Styles.globalColors.black_40} fontSize={16} type={props.icon}/>
-          </Box2>
-        )}
+        <Box2
+          direction="horizontal"
+          fullHeight={true}
+          style={styles.iconContainer}
+        >
+          {props.icon && (<Icon color={Styles.globalColors.black_40} fontSize={16} type={props.icon}/>)}
+        </Box2>
         <Box2 direction="horizontal">
           <Box2 direction="vertical" fullHeight={true}>
             <Box2 direction="horizontal" fullWidth={true}>
@@ -168,6 +166,7 @@ const styles = Styles.styleSheetCreate(
       },
       iconContainer: {
         paddingRight: Styles.globalMargins.small,
+        width: 32,
       },
       itemContainer: {
         ...Styles.globalStyles.flexBoxColumn,
