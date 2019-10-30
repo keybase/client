@@ -21,11 +21,6 @@ func newTeamAPIHandler(g *libkb.GlobalContext, indentOutput bool) *teamAPIHandle
 }
 
 func (t *teamAPIHandler) handle(ctx context.Context, c Call, w io.Writer) (err error) {
-	defer func() {
-		if err != nil {
-			err = encodeErr(c, err, w, false)
-		}
-	}()
 	switch c.Params.Version {
 	case 0, 1:
 		return t.handleV1(ctx, c, w)
