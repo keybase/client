@@ -5,7 +5,6 @@ import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/chat2'
-import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import AudioPlayer from './audio-player'
 
 type Props = {
@@ -27,38 +26,18 @@ const AudioSend = (props: Props) => {
   const onSend = () => {
     dispatch(Chat2Gen.createSendAudioRecording({conversationIDKey}))
   }
-  const loadVis = React.useCallback(() => {
-    dispatch(Chat2Gen.createCreateAudioPreview({conversationIDKey}))
-  }, [dispatch, conversationIDKey])
-  // lifecycle
-  React.useEffect(() => {
-    loadVis()
-  }, [loadVis])
 
   // render
   let player = <Kb.Text type="Body">No recording available</Kb.Text>
   if (audioRecording) {
-    let vis = ''
-    if (audioRecording.preview) {
-      vis =
-        audioRecording.preview.location &&
-        audioRecording.preview.location.ltyp === RPCChatTypes.PreviewLocationTyp.bytes
-          ? audioRecording.preview.location.bytes.toString('base64')
-          : ''
-      const specs = Constants.previewSpecs(audioRecording.preview.metadata || null, null)
-      const audioUrl = `file://${audioRecording.path}`
-      player = (
-        <AudioPlayer
-          duration={Constants.audioRecordingDuration(audioRecording)}
-          url={audioUrl}
-          visBytes={vis}
-          visHeight={specs.height}
-          visWidth={specs.width}
-        />
-      )
-    } else {
-      player = <Kb.ProgressIndicator />
-    }
+    const audioUrl = `file://${audioRecording.path}`
+    player = (
+      <AudioPlayer
+        duration={Constants.audioRecordingDuration(audioRecording)}
+        url={audioUrl}
+        visAmps={audioRecording.amps}
+      />
+    )
   }
   return (
     <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true}>

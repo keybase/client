@@ -233,6 +233,7 @@ export const makeMessageAttachment = I.Record<MessageTypes._MessageAttachment>({
   ...makeMessageCommon,
   ...makeMessageExplodable,
   attachmentType: 'file',
+  audioAmps: [],
   audioDuration: 0,
   downloadPath: null,
   fileName: '',
@@ -693,8 +694,10 @@ export const previewSpecs = (
   preview: RPCChatTypes.AssetMetadata | null,
   full: RPCChatTypes.AssetMetadata | null
 ) => {
-  const res = {
+  const res: Types.PreviewSpec = {
     attachmentType: 'file' as Types.AttachmentType,
+    audioAmps: [],
+    audioDuration: 0,
     height: 0,
     showPlayButton: false,
     width: 0,
@@ -705,10 +708,9 @@ export const previewSpecs = (
   if (preview.assetType === RPCChatTypes.AssetMetadataType.image && preview.image) {
     res.height = preview.image.height
     res.width = preview.image.width
-    const isAudio =
-      full && full.assetType === RPCChatTypes.AssetMetadataType.video && full.video && full.video.isAudio
-    if (isAudio) {
+    if (full && full.assetType === RPCChatTypes.AssetMetadataType.video && full.video && full.video.isAudio) {
       res.attachmentType = 'audio'
+      res.audioDuration = full.video.durationMs
     } else {
       res.attachmentType = 'image'
       // full is a video but preview is an image?
@@ -716,6 +718,7 @@ export const previewSpecs = (
         res.showPlayButton = true
       }
     }
+    res.audioAmps = preview.image.audioAmps || []
   } else if (preview.assetType === RPCChatTypes.AssetMetadataType.video && preview.video) {
     res.height = preview.video.height
     res.width = preview.video.width
@@ -874,7 +877,6 @@ const validUIMessagetoMessage = (
       let fileURLCached = false
       let videoDuration: string | null = null
       let inlineVideoPlayable = false
-      let audioDuration = 0
       if (m.assetUrlInfo) {
         previewURL = m.assetUrlInfo.previewUrl
         fileURL = m.assetUrlInfo.fullUrl
@@ -882,14 +884,14 @@ const validUIMessagetoMessage = (
         fileURLCached = m.assetUrlInfo.fullUrlCached
         videoDuration = m.assetUrlInfo.videoDuration || null
         inlineVideoPlayable = m.assetUrlInfo.inlineVideoPlayable
-        audioDuration = m.assetUrlInfo.audioDuration
       }
 
       return makeMessageAttachment({
         ...common,
         ...explodable,
         attachmentType: pre.attachmentType,
-        audioDuration,
+        audioAmps: pre.audioAmps,
+        audioDuration: pre.audioDuration,
         fileName: filename,
         fileSize: size,
         fileType,
@@ -1017,7 +1019,6 @@ const outboxUIMessagetoMessage = (
         FsTypes.getLocalPathName(fileName),
         previewURL,
         pre,
-        o.audioDuration,
         Types.stringToOutboxID(o.outboxID),
         Types.numberToOrdinal(o.ordinal),
         errorReason,
@@ -1165,7 +1166,6 @@ export const makePendingAttachmentMessage = (
   fileName: string,
   previewURL: string,
   previewSpec: Types.PreviewSpec,
-  audioDuration: number,
   outboxID: Types.OutboxID,
   inOrdinal: Types.Ordinal | null,
   errorReason: string | null,
@@ -1180,7 +1180,8 @@ export const makePendingAttachmentMessage = (
   return makeMessageAttachment({
     ...explodeInfo,
     attachmentType: previewSpec.attachmentType,
-    audioDuration,
+    audioAmps: previewSpec.audioAmps,
+    audioDuration: previewSpec.audioDuration,
     author: state.config.username,
     conversationIDKey,
     deviceName: '',

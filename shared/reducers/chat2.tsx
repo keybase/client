@@ -636,19 +636,6 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         draftState.audioRecording = audio
         return
       }
-      case Chat2Gen.setAudioRecordingPreview: {
-        const audio = new Map(draftState.audioRecording)
-        const info = audio.get(action.payload.conversationIDKey)
-        if (!info) {
-          return
-        }
-        audio.set(action.payload.conversationIDKey, {
-          ...info,
-          preview: action.payload.preview,
-        })
-        draftState.audioRecording = audio
-        return
-      }
       case Chat2Gen.updateCoinFlipStatus: {
         const flipStatusMap = draftState.flipStatusMap
         action.payload.statuses.forEach(status => {
@@ -1862,7 +1849,6 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
       case Chat2Gen.pinMessage:
       case Chat2Gen.unpinMessage:
       case Chat2Gen.ignorePinnedMessage:
-      case Chat2Gen.createAudioPreview:
         return
     }
   })

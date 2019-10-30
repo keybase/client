@@ -735,10 +735,6 @@
           "name": "mimeType"
         },
         {
-          "type": "int",
-          "name": "audioDuration"
-        },
-        {
           "type": [
             null,
             "string"
@@ -1119,10 +1115,6 @@
         {
           "type": "string",
           "name": "title"
-        },
-        {
-          "type": "int",
-          "name": "audioDuration"
         },
         {
           "type": [

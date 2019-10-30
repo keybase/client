@@ -790,13 +790,6 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "path": "string",
       "outboxID": "Buffer"
-    },
-    "createAudioPreview": {
-      "conversationIDKey": "Types.ConversationIDKey"
-    },
-    "setAudioRecordingPreview": {
-      "conversationIDKey": "Types.ConversationIDKey",
-      "preview": "RPCChatTypes.MakePreviewRes"
     }
   }
 }

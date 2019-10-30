@@ -83,8 +83,9 @@ func (s *Sender) MakeAudioPreview(ctx context.Context, amps []float64, duration 
 	})
 	res.BaseMetadata = &baseMd
 	previewMd := chat1.NewAssetMetadataWithImage(chat1.AssetMetadataImage{
-		Width:  previewWidth,
-		Height: v.height,
+		Width:     previewWidth,
+		Height:    v.height,
+		AudioAmps: amps,
 	})
 	res.Metadata = &previewMd
 	return res, nil

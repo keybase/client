@@ -1704,6 +1704,13 @@
         {
           "type": "int",
           "name": "height"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "double"
+          },
+          "name": "audioAmps"
         }
       ]
     },

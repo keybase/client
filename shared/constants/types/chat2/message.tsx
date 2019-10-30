@@ -142,6 +142,8 @@ export type AttachmentType = 'image' | 'file' | 'audio'
 
 export type PreviewSpec = {
   attachmentType: AttachmentType
+  audioAmps: Array<number>
+  audioDuration: number
   height: number
   width: number
   showPlayButton: boolean
@@ -156,6 +158,7 @@ export type MessageAttachmentTransferState =
 
 export type _MessageAttachment = {
   attachmentType: AttachmentType
+  audioAmps: Array<number>
   audioDuration: number
   showPlayButton: boolean
   fileURL: string

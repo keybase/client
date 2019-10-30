@@ -644,6 +644,7 @@
   record AssetMetadataImage {
     int width;
     int height;
+    array<double> audioAmps; // amps used in the preview (so a client can re-render)
   }
 
   record AssetMetadataVideo {

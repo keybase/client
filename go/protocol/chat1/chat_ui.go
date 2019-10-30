@@ -767,7 +767,6 @@ type UIAssetUrlInfo struct {
 	FullUrl             string  `codec:"fullUrl" json:"fullUrl"`
 	FullUrlCached       bool    `codec:"fullUrlCached" json:"fullUrlCached"`
 	MimeType            string  `codec:"mimeType" json:"mimeType"`
-	AudioDuration       int     `codec:"audioDuration" json:"audioDuration"`
 	VideoDuration       *string `codec:"videoDuration,omitempty" json:"videoDuration,omitempty"`
 	InlineVideoPlayable bool    `codec:"inlineVideoPlayable" json:"inlineVideoPlayable"`
 }
@@ -778,7 +777,6 @@ func (o UIAssetUrlInfo) DeepCopy() UIAssetUrlInfo {
 		FullUrl:       o.FullUrl,
 		FullUrlCached: o.FullUrlCached,
 		MimeType:      o.MimeType,
-		AudioDuration: o.AudioDuration,
 		VideoDuration: (func(x *string) *string {
 			if x == nil {
 				return nil
@@ -1065,7 +1063,6 @@ type UIMessageOutbox struct {
 	ReplyTo           *UIMessage      `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
 	Filename          string          `codec:"filename" json:"filename"`
 	Title             string          `codec:"title" json:"title"`
-	AudioDuration     int             `codec:"audioDuration" json:"audioDuration"`
 	Preview           *MakePreviewRes `codec:"preview,omitempty" json:"preview,omitempty"`
 }
 
@@ -1099,9 +1096,8 @@ func (o UIMessageOutbox) DeepCopy() UIMessageOutbox {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.ReplyTo),
-		Filename:      o.Filename,
-		Title:         o.Title,
-		AudioDuration: o.AudioDuration,
+		Filename: o.Filename,
+		Title:    o.Title,
 		Preview: (func(x *MakePreviewRes) *MakePreviewRes {
 			if x == nil {
 				return nil

@@ -4,13 +4,38 @@ import * as Styles from '../../styles'
 import AudioVideo from './audio-video'
 import {formatAudioRecordDuration} from '../../util/timestamp'
 
+type VisProps = {
+  amps: Array<number>
+  height: number
+}
+
+const ampHeightProp = (amp: number) => {
+  return Math.max(0.05, Math.min(1.0, 1 - amp / -70))
+}
+
+const AudioVis = (props: VisProps) => {
+  return (
+    <Kb.Box2 direction="horizontal" gap="xxtiny">
+      {props.amps.map((amp, index) => {
+        const heightProp = ampHeightProp(amp)
+        const height = heightProp * props.height
+        return (
+          <Kb.Box2
+            alignSelf="flex-end"
+            direction="vertical"
+            key={index}
+            style={{backgroundColor: Styles.globalColors.black, height, width: 1}}
+          />
+        )
+      })}
+    </Kb.Box2>
+  )
+}
+
 type Props = {
   duration: number
   url: string
-  visUrl?: string
-  visBytes?: string
-  visHeight: number
-  visWidth: number
+  visAmps: Array<number>
 }
 
 const AudioPlayer = (props: Props) => {
@@ -42,7 +67,6 @@ const AudioPlayer = (props: Props) => {
     return () => clearTimeout(timer)
   }, [timeLeft, paused, props.duration])
 
-  const visUrl = props.visUrl ? props.visUrl : `data:image/png;base64, ${props.visBytes}`
   return (
     <Kb.Box2 direction="horizontal" style={styles.container} gap="tiny">
       <Kb.ClickableBox onClick={props.url ? onClick : undefined} style={{justifyContent: 'center'}}>
@@ -64,13 +88,7 @@ const AudioPlayer = (props: Props) => {
         </Kb.Box2>
       </Kb.ClickableBox>
       <Kb.Box2 direction="vertical" style={styles.visContainer} gap="xxtiny">
-        <Kb.Image
-          src={visUrl}
-          style={Styles.collapseStyles([
-            styles.vis,
-            {height: props.visHeight / 2, width: props.visWidth / 2},
-          ])}
-        />
+        <AudioVis height={32} amps={props.visAmps} />
         <Kb.Text type="BodyTiny" style={styles.duration}>
           {formatAudioRecordDuration(timeLeft)}
         </Kb.Text>
@@ -90,7 +108,7 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   container: {
     ...Styles.padding(Styles.globalMargins.xxtiny, Styles.globalMargins.tiny),
-    backgroundColor: Styles.globalColors.whiteOrWhite,
+    backgroundColor: Styles.globalColors.white,
     borderColor: Styles.globalColors.grey,
     borderRadius: Styles.borderRadius,
     borderStyle: 'solid',
@@ -98,7 +116,7 @@ const styles = Styles.styleSheetCreate(() => ({
     marginTop: Styles.globalMargins.xtiny,
   },
   duration: {
-    color: Styles.globalColors.black_50OrBlack_50,
+    color: Styles.globalColors.black_50,
   },
   play: Styles.platformStyles({
     common: {

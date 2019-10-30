@@ -34,7 +34,6 @@ export const clearMetas = 'chat2:clearMetas'
 export const clearPaymentConfirmInfo = 'chat2:clearPaymentConfirmInfo'
 export const confirmScreenResponse = 'chat2:confirmScreenResponse'
 export const conversationErrored = 'chat2:conversationErrored'
-export const createAudioPreview = 'chat2:createAudioPreview'
 export const createConversation = 'chat2:createConversation'
 export const deselectConversation = 'chat2:deselectConversation'
 export const desktopNotification = 'chat2:desktopNotification'
@@ -110,7 +109,6 @@ export const sendAudioRecording = 'chat2:sendAudioRecording'
 export const sendTyping = 'chat2:sendTyping'
 export const setAttachmentViewStatus = 'chat2:setAttachmentViewStatus'
 export const setAudioRecordingPostInfo = 'chat2:setAudioRecordingPostInfo'
-export const setAudioRecordingPreview = 'chat2:setAudioRecordingPreview'
 export const setChannelSearchText = 'chat2:setChannelSearchText'
 export const setCommandMarkdown = 'chat2:setCommandMarkdown'
 export const setCommandStatusInfo = 'chat2:setCommandStatusInfo'
@@ -227,7 +225,6 @@ type _ClearMetasPayload = void
 type _ClearPaymentConfirmInfoPayload = void
 type _ConfirmScreenResponsePayload = {readonly accept: boolean}
 type _ConversationErroredPayload = {readonly message: string}
-type _CreateAudioPreviewPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _CreateConversationPayload = {readonly participants: Array<string>}
 type _DeselectConversationPayload = {readonly ifConversationIDKey: Types.ConversationIDKey}
 type _DesktopNotificationPayload = {
@@ -533,10 +530,6 @@ type _SetAudioRecordingPostInfoPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly path: string
   readonly outboxID: Buffer
-}
-type _SetAudioRecordingPreviewPayload = {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly preview: RPCChatTypes.MakePreviewRes
 }
 type _SetChannelSearchTextPayload = {readonly text: string}
 type _SetCommandMarkdownPayload = {
@@ -1228,10 +1221,6 @@ export const createClearMetas = (payload: _ClearMetasPayload): ClearMetasPayload
 export const createConversationErrored = (
   payload: _ConversationErroredPayload
 ): ConversationErroredPayload => ({payload, type: conversationErrored})
-export const createCreateAudioPreview = (payload: _CreateAudioPreviewPayload): CreateAudioPreviewPayload => ({
-  payload,
-  type: createAudioPreview,
-})
 export const createDeselectConversation = (
   payload: _DeselectConversationPayload
 ): DeselectConversationPayload => ({payload, type: deselectConversation})
@@ -1407,9 +1396,6 @@ export const createSendTyping = (payload: _SendTypingPayload): SendTypingPayload
 export const createSetAudioRecordingPostInfo = (
   payload: _SetAudioRecordingPostInfoPayload
 ): SetAudioRecordingPostInfoPayload => ({payload, type: setAudioRecordingPostInfo})
-export const createSetAudioRecordingPreview = (
-  payload: _SetAudioRecordingPreviewPayload
-): SetAudioRecordingPreviewPayload => ({payload, type: setAudioRecordingPreview})
 export const createSetConversationOffline = (
   payload: _SetConversationOfflinePayload
 ): SetConversationOfflinePayload => ({payload, type: setConversationOffline})
@@ -1533,10 +1519,6 @@ export type ConfirmScreenResponsePayload = {
 export type ConversationErroredPayload = {
   readonly payload: _ConversationErroredPayload
   readonly type: typeof conversationErrored
-}
-export type CreateAudioPreviewPayload = {
-  readonly payload: _CreateAudioPreviewPayload
-  readonly type: typeof createAudioPreview
 }
 export type CreateConversationPayload = {
   readonly payload: _CreateConversationPayload
@@ -1799,10 +1781,6 @@ export type SetAudioRecordingPostInfoPayload = {
   readonly payload: _SetAudioRecordingPostInfoPayload
   readonly type: typeof setAudioRecordingPostInfo
 }
-export type SetAudioRecordingPreviewPayload = {
-  readonly payload: _SetAudioRecordingPreviewPayload
-  readonly type: typeof setAudioRecordingPreview
-}
 export type SetChannelSearchTextPayload = {
   readonly payload: _SetChannelSearchTextPayload
   readonly type: typeof setChannelSearchText
@@ -2019,7 +1997,6 @@ export type Actions =
   | ClearPaymentConfirmInfoPayload
   | ConfirmScreenResponsePayload
   | ConversationErroredPayload
-  | CreateAudioPreviewPayload
   | CreateConversationPayload
   | DeselectConversationPayload
   | DesktopNotificationPayload
@@ -2095,7 +2072,6 @@ export type Actions =
   | SendTypingPayload
   | SetAttachmentViewStatusPayload
   | SetAudioRecordingPostInfoPayload
-  | SetAudioRecordingPreviewPayload
   | SetChannelSearchTextPayload
   | SetCommandMarkdownPayload
   | SetCommandStatusInfoPayload

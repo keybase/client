@@ -134,7 +134,6 @@ export type AudioRecordingInfo = {
   recordStart: number
   isLocked: boolean
   amps: Array<number>
-  preview?: RPCChatTypes.MakePreviewRes
 }
 
 export type State = Readonly<{

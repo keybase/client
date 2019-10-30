@@ -194,7 +194,6 @@ protocol chatUi {
     string fullUrl;
     boolean fullUrlCached;
     string mimeType;
-    int audioDuration;
     union { null, string } videoDuration;
     boolean inlineVideoPlayable;
   }
@@ -288,7 +287,6 @@ protocol chatUi {
     // For attachments
     string filename;
     string title;
-    int audioDuration;
     union { null, MakePreviewRes } preview;
   }
 

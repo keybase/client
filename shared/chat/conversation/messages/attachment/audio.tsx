@@ -9,15 +9,7 @@ type Props = {
 const AudioAttachment = (props: Props) => {
   const {message} = props
   const url = message.fileURL.length > 0 ? `${message.fileURL}&contentforce=true` : ''
-  return (
-    <AudioPlayer
-      duration={message.audioDuration}
-      url={url}
-      visUrl={message.previewURL}
-      visHeight={message.previewHeight}
-      visWidth={message.previewWidth}
-    />
-  )
+  return <AudioPlayer duration={message.audioDuration} url={url} visAmps={message.audioAmps} />
 }
 
 export default AudioAttachment

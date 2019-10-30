@@ -1475,16 +1475,12 @@ func presentAttachmentAssetInfo(ctx context.Context, g *globals.Context, msg cha
 		}
 		atyp, err := asset.Metadata.AssetType()
 		if err == nil && atyp == chat1.AssetMetadataType_VIDEO && strings.HasPrefix(info.MimeType, "video") {
-			if asset.Metadata.Video().IsAudio {
-				info.AudioDuration = asset.Metadata.Video().DurationMs
-			} else {
-				if asset.Metadata.Video().DurationMs > 1 {
-					info.VideoDuration = new(string)
-					*info.VideoDuration = formatVideoDuration(asset.Metadata.Video().DurationMs) + ", " +
-						formatVideoSize(asset.Size)
-				}
-				info.InlineVideoPlayable = true
+			if asset.Metadata.Video().DurationMs > 1 {
+				info.VideoDuration = new(string)
+				*info.VideoDuration = formatVideoDuration(asset.Metadata.Video().DurationMs) + ", " +
+					formatVideoSize(asset.Size)
 			}
+			info.InlineVideoPlayable = true
 		}
 		if info.FullUrl == "" && info.PreviewUrl == "" && info.MimeType == "" {
 			return nil
@@ -1763,7 +1759,6 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 		})
 	case chat1.MessageUnboxedState_OUTBOX:
 		var body, title, filename string
-		var audioDuration int
 		var decoratedBody *string
 		var preview *chat1.MakePreviewRes
 		typ := rawMsg.Outbox().Msg.ClientHeader.MessageType
@@ -1784,9 +1779,6 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			btyp, err := msgBody.MessageType()
 			if err == nil && btyp == chat1.MessageType_ATTACHMENT {
 				asset := msgBody.Attachment().Object
-				if asset.Metadata.IsType(chat1.AssetMetadataType_VIDEO) && asset.Metadata.Video().IsAudio {
-					audioDuration = asset.Metadata.Video().DurationMs
-				}
 				title = asset.Title
 				filename = asset.Filename
 			}
@@ -1810,7 +1802,6 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			IsEphemeral:       rawMsg.Outbox().Msg.IsEphemeral(),
 			FlipGameID:        presentFlipGameID(ctx, g, uid, convID, rawMsg),
 			ReplyTo:           replyTo,
-			AudioDuration:     audioDuration,
 		})
 	case chat1.MessageUnboxedState_ERROR:
 		res = chat1.NewUIMessageWithError(rawMsg.Error())

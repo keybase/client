@@ -2203,14 +2203,26 @@ func (o ChatSearchIndexStatus) DeepCopy() ChatSearchIndexStatus {
 }
 
 type AssetMetadataImage struct {
-	Width  int `codec:"width" json:"width"`
-	Height int `codec:"height" json:"height"`
+	Width     int       `codec:"width" json:"width"`
+	Height    int       `codec:"height" json:"height"`
+	AudioAmps []float64 `codec:"audioAmps" json:"audioAmps"`
 }
 
 func (o AssetMetadataImage) DeepCopy() AssetMetadataImage {
 	return AssetMetadataImage{
 		Width:  o.Width,
 		Height: o.Height,
+		AudioAmps: (func(x []float64) []float64 {
+			if x == nil {
+				return nil
+			}
+			ret := make([]float64, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.AudioAmps),
 	}
 }
 
