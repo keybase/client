@@ -20,7 +20,7 @@ func newTeamAPIHandler(g *libkb.GlobalContext, indentOutput bool) *teamAPIHandle
 	return &teamAPIHandler{Contextified: libkb.NewContextified(g), indent: indentOutput}
 }
 
-func (t *teamAPIHandler) handle(ctx context.Context, c Call, w io.Writer) (err error) {
+func (t *teamAPIHandler) handle(ctx context.Context, c Call, w io.Writer) error {
 	switch c.Params.Version {
 	case 0, 1:
 		return t.handleV1(ctx, c, w)

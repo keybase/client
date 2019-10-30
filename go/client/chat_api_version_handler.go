@@ -19,7 +19,7 @@ func NewChatAPIVersionHandler(h ChatAPIHandler) *ChatAPIVersionHandler {
 	}
 }
 
-func (d *ChatAPIVersionHandler) handle(ctx context.Context, c Call, w io.Writer) (err error) {
+func (d *ChatAPIVersionHandler) handle(ctx context.Context, c Call, w io.Writer) error {
 	switch c.Params.Version {
 	case 0, 1:
 		return d.handleV1(ctx, c, w)
