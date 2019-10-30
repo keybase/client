@@ -17,8 +17,15 @@ lint:
 			echo "Missing golint" \
 			&& exit 1 \
 		) \
-	) \
-	&& ( \
+	)
+	( \
+		echo "test" | grep -P -e "test" > /dev/null \
+		|| ( \
+			echo "Grep does not support -P. MacOS' grep doesn't have -P. To remedy, 'brew install grep' and add '/usr/local/opt/grep/libexec/gnubin' to PATH." \
+			&& exit 1 \
+		) \
+	)
+	( \
 		golint ./... \
 		| grep -v ^vendor \
 		| grep -v "protocol[\/\\]" \
