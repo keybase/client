@@ -297,9 +297,8 @@ func (cc *JourneyCardChecker) PickCard(ctx context.Context, uid gregor1.UID,
 			debugDebug(ctx, "missing joined time")
 			go cc.saveJoinedTime(globals.BackgroundChatCtx(ctx, cc.G()), convID, cc.G().GetClock().Now())
 			return false
-		} else {
-			return cc.G().GetClock().Since(jcd.JoinedTime.Time()) >= duration
 		}
+		return cc.G().GetClock().Since(jcd.JoinedTime.Time()) >= duration
 	}
 
 	// Card type: POPULAR_CHANNELS
