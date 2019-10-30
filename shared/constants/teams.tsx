@@ -163,6 +163,7 @@ export const makeRetentionPolicy = (r?: Partial<RetentionPolicy>): RetentionPoli
 const emptyState: Types.State = {
   addUserToTeamsResults: '',
   addUserToTeamsState: 'notStarted',
+  canPerform: new Map(),
   channelCreationError: '',
   deletedTeams: [],
   emailInviteError: emptyEmailInviteError,
@@ -205,7 +206,7 @@ const emptyState: Types.State = {
 export const makeState = (s?: Partial<Types.State>): Types.State =>
   s ? Object.assign({...emptyState}, s) : emptyState
 
-export const initialCanUserPerform: RPCTypes.TeamOperation = {
+export const initialCanUserPerform = Object.freeze<Types.TeamOperations>({
   changeOpenTeam: false,
   changeTarsDisabled: false,
   chat: false,
@@ -229,7 +230,7 @@ export const initialCanUserPerform: RPCTypes.TeamOperation = {
   setPublicityAny: false,
   setRetentionPolicy: false,
   setTeamShowcase: false,
-}
+})
 
 const dayInS = 3600 * 24
 const policyInherit = makeRetentionPolicy({title: '', type: 'inherit'})
@@ -330,11 +331,14 @@ const getChannelInfoFromConvID = (
 const getRole = (state: TypedState, teamname: Types.Teamname): Types.MaybeTeamRoleType =>
   state.teams.teamNameToRole.get(teamname, 'none')
 
-const getCanPerform = (state: TypedState, teamname: Types.Teamname): RPCTypes.TeamOperation =>
+const getCanPerform = (state: TypedState, teamname: Types.Teamname): Types.TeamOperations =>
   state.teams.teamNameToCanPerform.get(teamname, initialCanUserPerform)
 
 const hasCanPerform = (state: TypedState, teamname: Types.Teamname): boolean =>
   state.teams.teamNameToCanPerform.has(teamname)
+
+export const getCanPerformByID = (state: TypedState, teamID: Types.TeamID): Types.TeamOperations =>
+  state.teams.canPerform.get(teamID) || initialCanUserPerform
 
 const hasChannelInfos = (state: TypedState, teamname: Types.Teamname): boolean =>
   state.teams.teamNameToChannelInfos.has(teamname)

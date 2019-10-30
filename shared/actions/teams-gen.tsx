@@ -196,7 +196,11 @@ type _SetNewTeamInfoPayload = {
 }
 type _SetPublicityPayload = {readonly teamname: string; readonly settings: Types.PublicitySettings}
 type _SetTeamAccessRequestsPendingPayload = {readonly accessRequestsPending: Set<Types.Teamname>}
-type _SetTeamCanPerformPayload = {readonly teamname: string; readonly teamOperation: Types.TeamOperations}
+type _SetTeamCanPerformPayload = {
+  readonly teamname: string
+  readonly teamID: Types.TeamID
+  readonly teamOperation: Types.TeamOperations
+}
 type _SetTeamChannelInfoPayload = {
   readonly teamname: string
   readonly conversationIDKey: ChatTypes.ConversationIDKey

@@ -652,12 +652,17 @@ function* addUserToTeams(_: TypedState, action: TeamsGen.AddUserToTeamsPayload) 
   )
 }
 
-const getTeamOperations = async (_: TypedState, action: TeamsGen.GetTeamOperationsPayload) => {
+const getTeamOperations = async (state: TypedState, action: TeamsGen.GetTeamOperationsPayload) => {
+  const {teamname} = action.payload
   const teamOperation = await RPCTypes.teamsCanUserPerformRpcPromise(
     {name: action.payload.teamname},
     Constants.teamWaitingKey(action.payload.teamname)
   )
-  return TeamsGen.createSetTeamCanPerform({teamOperation, teamname: action.payload.teamname})
+  return TeamsGen.createSetTeamCanPerform({
+    teamID: Constants.getTeamID(state, teamname),
+    teamOperation,
+    teamname,
+  })
 }
 
 function* getTeamPublicity(_: TypedState, action: TeamsGen.GetTeamPublicityPayload, logger: Saga.SagaLogger) {

@@ -202,6 +202,7 @@
     },
     "setTeamCanPerform": {
       "teamname": "string",
+      "teamID": "Types.TeamID",
       "teamOperation": "Types.TeamOperations"
     },
     "setTeamPublicitySettings": {
