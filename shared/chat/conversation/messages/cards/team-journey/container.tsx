@@ -18,6 +18,7 @@ type OwnProps = {
 }
 
 type Props = {
+  channelname: string
   message: I.RecordOf<MessageTypes._MessageJourneycard>
   otherChannels: Array<string>
   onAddPeopleToTeam: () => void
@@ -49,7 +50,7 @@ const TeamJourneyContainer = (props: Props) => {
       ]
       break
     case RPCChatTypes.JourneycardType.popularChannels:
-      text = 'You are in #somechan. Some popular channels in this team:'
+      text = `You are in ${props.channelname}. Some popular channels in this team:`
       loadTeam = props.onLoadTeam
       actions = props.otherChannels.map(chan => ({label: chan, onClick: () => props.onGoToChannel(chan)}))
       break
@@ -90,9 +91,11 @@ const TeamJourneyContainer = (props: Props) => {
 }
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
-  const teamname = Constants.getMeta(state, ownProps.message.conversationIDKey).teamname
+  const conv = Constants.getMeta(state, ownProps.message.conversationIDKey)
+  const {channelname, teamname} = conv
   return {
     _channelInfos: TeamConstants.getTeamChannelInfos(state, teamname),
+    channelname,
     teamname,
   }
 }
@@ -117,6 +120,7 @@ const TeamJourneyConnected = Container.connect(
   mapStateToProps,
   mapDispatchToProps,
   (stateProps, dispatchProps, ownProps) => {
+    const {channelname, teamname} = stateProps
     // Take the top three channels with most recent activity.
     const otherChannels = stateProps._channelInfos
       .valueSeq()
@@ -126,9 +130,8 @@ const TeamJourneyConnected = Container.connect(
       .slice(0, 3)
 
     return {
-      ...stateProps,
-      ...dispatchProps,
-      ...ownProps,
+      channelname,
+      message: ownProps.message,
       onAddPeopleToTeam: () => dispatchProps._onAddPeopleToTeam(stateProps.teamname),
       onBrowseChannels: () => dispatchProps._onBrowseChannels(stateProps.teamname),
       onCreateChatChannels: () => dispatchProps._onCreateChatChannels(stateProps.teamname),
@@ -136,6 +139,7 @@ const TeamJourneyConnected = Container.connect(
       onLoadTeam: () => dispatchProps._onLoadTeam(stateProps.teamname),
       onPublishTeam: () => dispatchProps._onPublishTeam(),
       otherChannels,
+      teamname,
     }
   }
 )(TeamJourneyContainer)
