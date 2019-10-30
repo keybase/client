@@ -34,9 +34,6 @@ export const newRoutes = {
 }
 
 export const newModalRoutes = {
-  chatConfirmNavigateExternal: {
-    getScreen: (): typeof PunycodeLinkWarning => require('./punycode-link-warning').default,
-  },
   chatAddToChannel: {
     getScreen: (): typeof ChatAddToChannel =>
       require('./conversation/info-panel/add-to-channel/container').default,
@@ -53,6 +50,9 @@ export const newModalRoutes = {
   chatChooseEmoji: {
     getScreen: (): typeof ChatChooseEmoji =>
       require('./conversation/messages/react-button/emoji-picker/container').default,
+  },
+  chatConfirmNavigateExternal: {
+    getScreen: (): typeof PunycodeLinkWarning => require('./punycode-link-warning').default,
   },
   chatCreateChannel: {
     getScreen: (): typeof ChatCreateChannel => require('./create-channel/container').default,
