@@ -617,11 +617,13 @@ func (a *ChatAPI) ListV1(ctx context.Context, c Call, w io.Writer) error {
 	// Options are optional for list
 	if len(c.Params.Options) != 0 {
 		if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
-			return err
+			return a.encodeErr(c, err, w)
+
 		}
 	}
 	if err := opts.Check(); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 
 	// opts are valid for list v1
@@ -635,10 +637,12 @@ func (a *ChatAPI) ReadV1(ctx context.Context, c Call, w io.Writer) error {
 	}
 	var opts readOptionsV1
 	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 	if err := opts.Check(); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 
 	// opts are valid for read v1
@@ -652,10 +656,12 @@ func (a *ChatAPI) GetV1(ctx context.Context, c Call, w io.Writer) error {
 	}
 	var opts getOptionsV1
 	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 	if err := opts.Check(); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 
 	// opts are valid for get v1
@@ -668,10 +674,12 @@ func (a *ChatAPI) SendV1(ctx context.Context, c Call, w io.Writer) error {
 	}
 	var opts sendOptionsV1
 	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 	if err := opts.Check(); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 
 	// opts are valid for send v1
@@ -685,10 +693,12 @@ func (a *ChatAPI) EditV1(ctx context.Context, c Call, w io.Writer) error {
 	}
 	var opts editOptionsV1
 	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 	if err := opts.Check(); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 
 	// opts are valid for edit v1
@@ -702,10 +712,12 @@ func (a *ChatAPI) ReactionV1(ctx context.Context, c Call, w io.Writer) error {
 	}
 	var opts reactionOptionsV1
 	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 	if err := opts.Check(); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 
 	// opts are valid for reaction v1
@@ -719,10 +731,12 @@ func (a *ChatAPI) DeleteV1(ctx context.Context, c Call, w io.Writer) error {
 	}
 	var opts deleteOptionsV1
 	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 	if err := opts.Check(); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 
 	// opts are valid for delete v1
@@ -736,10 +750,12 @@ func (a *ChatAPI) AttachV1(ctx context.Context, c Call, w io.Writer) error {
 	}
 	var opts attachOptionsV1
 	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 	if err := opts.Check(); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 
 	// opts are valid for attach v1
@@ -752,10 +768,12 @@ func (a *ChatAPI) DownloadV1(ctx context.Context, c Call, w io.Writer) error {
 	}
 	var opts downloadOptionsV1
 	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 	if err := opts.Check(); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 
 	// opts are valid for download v1
@@ -769,10 +787,12 @@ func (a *ChatAPI) SetStatusV1(ctx context.Context, c Call, w io.Writer) error {
 	}
 	var opts setStatusOptionsV1
 	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 	if err := opts.Check(); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 
 	// opts are valid for setstatus v1
@@ -786,10 +806,12 @@ func (a *ChatAPI) MarkV1(ctx context.Context, c Call, w io.Writer) error {
 	}
 	var opts markOptionsV1
 	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 	if err := opts.Check(); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 
 	// opts are valid for mark v1
@@ -803,10 +825,12 @@ func (a *ChatAPI) SearchInboxV1(ctx context.Context, c Call, w io.Writer) error 
 	}
 	var opts searchInboxOptionsV1
 	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 	if err := opts.Check(); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 
 	// opts are valid for search inbox v1
@@ -820,10 +844,12 @@ func (a *ChatAPI) SearchRegexpV1(ctx context.Context, c Call, w io.Writer) error
 	}
 	var opts searchRegexpOptionsV1
 	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 	if err := opts.Check(); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 
 	// opts are valid for search regexp v1
@@ -837,10 +863,12 @@ func (a *ChatAPI) NewConvV1(ctx context.Context, c Call, w io.Writer) error {
 	}
 	var opts newConvOptionsV1
 	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 	if err := opts.Check(); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 	return a.encodeReply(c, a.svcHandler.NewConvV1(ctx, opts), w)
 }
@@ -851,10 +879,12 @@ func (a *ChatAPI) ListConvsOnNameV1(ctx context.Context, c Call, w io.Writer) er
 	}
 	var opts listConvsOnNameOptionsV1
 	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 	if err := opts.Check(); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 	return a.encodeReply(c, a.svcHandler.ListConvsOnNameV1(ctx, opts), w)
 }
@@ -865,10 +895,12 @@ func (a *ChatAPI) JoinV1(ctx context.Context, c Call, w io.Writer) error {
 	}
 	var opts joinOptionsV1
 	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 	if err := opts.Check(); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 	return a.encodeReply(c, a.svcHandler.JoinV1(ctx, opts), w)
 }
@@ -879,10 +911,12 @@ func (a *ChatAPI) LeaveV1(ctx context.Context, c Call, w io.Writer) error {
 	}
 	var opts leaveOptionsV1
 	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 	if err := opts.Check(); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 	return a.encodeReply(c, a.svcHandler.LeaveV1(ctx, opts), w)
 }
@@ -893,10 +927,12 @@ func (a *ChatAPI) AddToChannelV1(ctx context.Context, c Call, w io.Writer) error
 	}
 	var opts addToChannelOptionsV1
 	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 	if err := opts.Check(); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 	return a.encodeReply(c, a.svcHandler.AddToChannelV1(ctx, opts), w)
 }
@@ -907,10 +943,12 @@ func (a *ChatAPI) LoadFlipV1(ctx context.Context, c Call, w io.Writer) error {
 	}
 	var opts loadFlipOptionsV1
 	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 	if err := opts.Check(); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 	return a.encodeReply(c, a.svcHandler.LoadFlipV1(ctx, opts), w)
 }
@@ -926,10 +964,12 @@ func (a *ChatAPI) SetUnfurlSettingsV1(ctx context.Context, c Call, w io.Writer) 
 	}
 	var opts setUnfurlSettingsOptionsV1
 	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 	if err := opts.Check(); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 	return a.encodeReply(c, a.svcHandler.SetUnfurlSettingsV1(ctx, opts), w)
 }
@@ -941,10 +981,12 @@ func (a *ChatAPI) AdvertiseCommandsV1(ctx context.Context, c Call, w io.Writer) 
 	}
 	var opts advertiseCommandsOptionsV1
 	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 	if err := opts.Check(); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 	return a.encodeReply(c, a.svcHandler.AdvertiseCommandsV1(ctx, opts), w)
 }
@@ -960,10 +1002,12 @@ func (a *ChatAPI) ListCommandsV1(ctx context.Context, c Call, w io.Writer) error
 	}
 	var opts listCommandsOptionsV1
 	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 	if err := opts.Check(); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 	return a.encodeReply(c, a.svcHandler.ListCommandsV1(ctx, opts), w)
 }
@@ -975,10 +1019,12 @@ func (a *ChatAPI) PinV1(ctx context.Context, c Call, w io.Writer) error {
 	}
 	var opts pinOptionsV1
 	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 	if err := opts.Check(); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 	return a.encodeReply(c, a.svcHandler.PinV1(ctx, opts), w)
 }
@@ -990,10 +1036,12 @@ func (a *ChatAPI) UnpinV1(ctx context.Context, c Call, w io.Writer) error {
 	}
 	var opts unpinOptionsV1
 	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 	if err := opts.Check(); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
+
 	}
 	return a.encodeReply(c, a.svcHandler.UnpinV1(ctx, opts), w)
 }
@@ -1025,10 +1073,10 @@ func (a *ChatAPI) AddResetConvMemberV1(ctx context.Context, c Call, w io.Writer)
 	}
 	var opts addResetConvMemberOptionsV1
 	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
 	}
 	if err := opts.Check(); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
 	}
 	return a.encodeReply(c, a.svcHandler.AddResetConvMemberV1(ctx, opts), w)
 }
@@ -1039,16 +1087,20 @@ func (a *ChatAPI) GetDeviceInfoV1(ctx context.Context, c Call, w io.Writer) erro
 	}
 	var opts getDeviceInfoOptionsV1
 	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
 	}
 	if err := opts.Check(); err != nil {
-		return err
+		return a.encodeErr(c, err, w)
 	}
 	return a.encodeReply(c, a.svcHandler.GetDeviceInfoV1(ctx, opts), w)
 }
 
 func (a *ChatAPI) encodeReply(call Call, reply Reply, w io.Writer) error {
 	return encodeReply(call, reply, w, a.indent)
+}
+
+func (a *ChatAPI) encodeErr(call Call, err error, w io.Writer) error {
+	return encodeErr(call, err, w, a.indent)
 }
 
 func checkChannelConv(method string, channel ChatChannel, convID string) error {
