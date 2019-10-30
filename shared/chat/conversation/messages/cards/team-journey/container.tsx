@@ -48,7 +48,7 @@ const TeamJourneyContainer = (props: Props) => {
         { label: 'Publish team on your own profile', onClick: props.onPublishTeam },
         { label: 'Browse channels', onClick: props.onBrowseChannels },
       ]
-      image = 'icon-illustration-welcome'
+      image = 'icon-illustration-welcome-96'
       text = 'Welcome to the team! Say hi to everyone and introduce yourself.'
       break
     case RPCChatTypes.JourneycardType.popularChannels:
@@ -58,17 +58,17 @@ const TeamJourneyContainer = (props: Props) => {
       break
     case RPCChatTypes.JourneycardType.addPeople:
       actions = [{label: 'Add people to the team', onClick: props.onAddPeopleToTeam}]
-      image = 'icon-illustration-friends'
+      image = 'icon-illustration-friends-96'
       text = `Do you know people interested in joining? ${props.teamname} is open to anyone.`
       break
     case RPCChatTypes.JourneycardType.createChannels:
       actions = [{label: 'Create chat channels', onClick: props.onCreateChatChannels}]
-      image = 'icon-illustration-happy-chat'
+      image = 'icon-illustration-happy-chat-96'
       text = 'Go ahead and create #channels around topics you think are missing.'
       break
     case RPCChatTypes.JourneycardType.msgAttention:
       // XXX: implement
-      image = 'icon-illustration-attention'
+      image = 'icon-illustration-attention-64'
       text = 'One of your messages is getting a lot of attention!'
       break
     case RPCChatTypes.JourneycardType.userAwayForLong:
@@ -78,7 +78,7 @@ const TeamJourneyContainer = (props: Props) => {
       text = 'Long time no see! Look at all the things you missed.'
       break
     case RPCChatTypes.JourneycardType.channelInactive:
-      image = 'icon-illustration-sleepy'
+      image = 'icon-illustration-sleepy-96'
       text = 'Zzz… This channel hasn’t been very active…. Revive it?'
       break
     case RPCChatTypes.JourneycardType.msgNoAnswer:

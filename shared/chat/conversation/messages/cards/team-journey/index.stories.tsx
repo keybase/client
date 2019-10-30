@@ -10,7 +10,7 @@ const load = () => {
           { label: 'Publish team on your own profile', onClick: Sb.action('onPublishTeam') },
           { label: 'Browse channels', onClick: Sb.action('onBrowseChannels') },
         ]}
-        image="icon-illustration-welcome"
+        image="icon-illustration-welcome-96"
         loadTeam={null}
         teamname="foo"
         text="Welcome to the team! Say hi to everyone and introduce yourself."
@@ -32,7 +32,7 @@ const load = () => {
   .add('Add people', () => (
     <TeamJourney
       actions={[{ label: 'Add people to the team', onClick: Sb.action('onAddPeopleToTeam') }]}
-      image="icon-illustration-friends"
+      image="icon-illustration-friends-96"
       loadTeam={null}
       teamname="foo"
       text="Do you know people interested in joining? Foo is open to anyone."
@@ -41,7 +41,7 @@ const load = () => {
   .add('Create channels', () => (
     <TeamJourney
       actions={[{ label: 'Create chat channels', onClick: Sb.action('onCreateChatChannels') }]}
-      image="icon-illustration-happy-chat"
+      image="icon-illustration-happy-chat-96"
       loadTeam={null}
       teamname="foo"
       text="Go ahead and create #channels around topics you think are missing."
@@ -50,7 +50,7 @@ const load = () => {
   .add('Lots of attention', () => (
     <TeamJourney
       actions={[]}
-      image="icon-illustration-attention"
+      image="icon-illustration-attention-64"
       loadTeam={null}
       teamname="foo"
       text="One of your messages is getting lots of attention!"
@@ -59,7 +59,7 @@ const load = () => {
   .add('Inactive channel', () => (
     <TeamJourney
       actions={[]}
-      image="icon-illustration-sleepy"
+      image="icon-illustration-sleepy-96"
       loadTeam={null}
       teamname="foo"
       text="Zzz… This channel hasn’t been very active…. Revive it?"
@@ -68,7 +68,7 @@ const load = () => {
     .add('Stuff you missed', () => (
       <TeamJourney
         actions={[{label: 'Scroll back in time', onClick: Sb.action('onBackInTime')}]}
-        image="icon-illustration-long-time"
+        image="icon-illustration-long-time-96"
         loadTeam={null}
         teamname="foo"
         text="Long time no see… Look at all the things you missed."
