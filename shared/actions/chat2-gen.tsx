@@ -6,6 +6,7 @@ import * as Types from '../constants/types/chat2'
 import * as TeamsTypes from '../constants/types/teams'
 import HiddenString from '../util/hidden-string'
 import {RetentionPolicy} from '../constants/types/retention-policy'
+import {AmpTracker} from '../chat/audio/amptracker'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of chat2 but is handled by every reducer. NEVER dispatch this
@@ -605,7 +606,7 @@ type _StaticConfigLoadedPayload = {readonly staticConfig: Types.StaticConfig}
 type _StopAudioRecordingPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly stopType: Types.AudioStopType
-  readonly amps?: Array<number>
+  readonly amps?: AmpTracker
 }
 type _TabSelectedPayload = void
 type _ThreadSearchPayload = {

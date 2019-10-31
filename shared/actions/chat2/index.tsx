@@ -2145,10 +2145,12 @@ const sendAudioRecording = async (
     return
   }
 
-  let callerPreview: RPCChatTypes.MakePreviewRes | null = null
-  if (audioRecording.amps.length > 0) {
+  let callerPreview: RPCChatTypes.MakePreviewRes | undefined = undefined
+  if (audioRecording.amps) {
+    const duration = Constants.audioRecordingDuration(audioRecording)
     callerPreview = await RPCChatTypes.localMakeAudioPreviewRpcPromise({
-      amps: audioRecording.amps,
+      amps: audioRecording.amps.getBucketedAmps(duration),
+      duration,
     })
   }
   const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}

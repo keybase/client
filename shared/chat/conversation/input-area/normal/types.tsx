@@ -2,6 +2,7 @@ import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Types from '../../../../constants/types/chat2'
 import * as TeamTypes from '../../../../constants/types/teams'
 import {PlainInput} from '../../../../common-adapters'
+import {AmpTracker} from '../../../audio/amptracker'
 
 type CommonProps = {
   audio?: Types.AudioRecordingInfo
@@ -27,7 +28,7 @@ type CommonProps = {
   onLockAudioRecording: () => void
   onRequestScrollDown: () => void
   onRequestScrollUp: () => void
-  onStopAudioRecording: (stopType: Types.AudioStopType, amps: Array<number>) => void
+  onStopAudioRecording: (stopType: Types.AudioStopType, amps: AmpTracker) => void
   onSubmit: (text: string) => void
   prependText: string | null
   quoteCounter: number
