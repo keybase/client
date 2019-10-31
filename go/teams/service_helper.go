@@ -31,6 +31,87 @@ func LoadTeamPlusApplicationKeys(ctx context.Context, g *libkb.GlobalContext, id
 	return team.ExportToTeamPlusApplicationKeys(ctx, keybase1.Time(0), application, includeKBFSKeys)
 }
 
+// GetAnnotatedTeam bundles up various data, both on and off chain, about a
+// specific team for consumption by the GUI. In particular, it supplies almost all of the information on a team's
+// subpage in the Teams tab
+func GetAnnotatedTeam(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) (res keybase1.AnnotatedTeam, err error) {
+	tracer := g.CTimeTracer(ctx, "TeamDetails", true)
+	defer tracer.Finish()
+
+	mctx := libkb.NewMetaContext(ctx, g)
+
+	tracer.Stage("load team")
+	t, err := GetMaybeAdminByID(ctx, g, id, id.IsPublic())
+	if err != nil {
+		return res, err
+	}
+	det, err := details(ctx, g, t, tracer)
+	if err != nil {
+		return res, err
+	}
+
+	// Subversion                int                                                  `codec:"v" json:"v"`
+	// Frozen                    bool                                                 `codec:"frozen" json:"frozen"`
+	// Tombstoned                bool                                                 `codec:"tombstoned" json:"tombstoned"`
+	// Secretless                bool                                                 `codec:"secretless" json:"secretless"`
+	// Name                      TeamName                                             `codec:"name" json:"name"`
+	// Chain                     TeamSigChainState                                    `codec:"chain" json:"chain"`
+	// PerTeamKeySeedsUnverified map[PerTeamKeyGeneration]PerTeamKeySeedItem          `codec:"perTeamKeySeeds" json:"perTeamKeySeedsUnverified"`
+	// ReaderKeyMasks            map[TeamApplication]map[PerTeamKeyGeneration]MaskB64 `codec:"readerKeyMasks" json:"readerKeyMasks"`
+	// LatestSeqnoHint           Seqno                                                `codec:"latestSeqnoHint" json:"latestSeqnoHint"`
+	// CachedAt                  Time                                                 `codec:"cachedAt" json:"cachedAt"`
+	// TlfCryptKeys              map[TeamApplication][]CryptKey                       `codec:"tlfCryptKeys" json:"tlfCryptKeys"`
+	transitiveSubteamsUnverified, err := ListSubteamsUnverified(mctx, t.Data.Name)
+	if err != nil {
+		return res, err
+	}
+
+	var members []keybase1.TeamMemberDetails
+	for _, u := range det.Members.Owners {
+		members = append(members, u)
+	}
+	for _, u := range det.Members.Admins {
+		members = append(members, u)
+	}
+	for _, u := range det.Members.Writers {
+		members = append(members, u)
+	}
+	for _, u := range det.Members.Readers {
+		members = append(members, u)
+	}
+	for _, u := range det.Members.Bots {
+		members = append(members, u)
+	}
+	for _, u := range det.Members.RestrictedBots {
+		members = append(members, u)
+	}
+
+	var invites []keybase1.AnnotatedTeamInvite
+	for _, invite := range det.AnnotatedActiveInvites {
+		invites = append(invites, invite)
+	}
+
+	name := t.Data.Name.String()
+	joinRequests, err := ListRequests(ctx, g, &name)
+	if err != nil {
+		return res, err
+	}
+
+	res = keybase1.AnnotatedTeam{
+		TeamID:                       id,
+		Name:                         t.Data.Name.String(),
+		TransitiveSubteamsUnverified: transitiveSubteamsUnverified,
+
+		Members:      members,
+		Invites:      invites,
+		JoinRequests: joinRequests,
+
+		Settings: det.Settings,
+		Showcase: det.Showcase,
+	}
+	return res, nil
+}
+
 // DetailsByID returns TeamDetails for team name. Keybase-type invites are
 // returned as members. It always repolls to ensure latest version of
 // a team, but member infos (username, full name, if they reset or not)
