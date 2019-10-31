@@ -65,7 +65,7 @@ const passToTeamBuildingReducer = (
   )
 }
 
-const teamActions = {
+const teamActions: Container.ActionHandler<Actions, Types.State> = {
   [TeamBuildingGen.resetStore]: passToTeamBuildingReducer,
   [TeamBuildingGen.cancelTeamBuilding]: passToTeamBuildingReducer,
   [TeamBuildingGen.addUsersToTeamSoFar]: passToTeamBuildingReducer,
@@ -80,6 +80,507 @@ const teamActions = {
   [TeamBuildingGen.changeSendNotification]: passToTeamBuildingReducer,
 }
 
+const audioActions: Container.ActionHandler<Actions, Types.State> = {
+  [Chat2Gen.enableAudioRecording]: (draftState, action) => {
+    const audio = new Map(draftState.audioRecording)
+    audio.set(action.payload.conversationIDKey, Constants.makeAudioRecordingInfo())
+    draftState.audioRecording = audio
+  },
+  [Chat2Gen.startAudioRecording]: (draftState, action) => {
+    const audio = new Map(draftState.audioRecording)
+    const info = audio.get(action.payload.conversationIDKey)
+    if (!info || !Constants.showAudioRecording(info)) {
+      return
+    }
+    audio.set(action.payload.conversationIDKey, {
+      ...info,
+      status: Types.AudioRecordingStatus.RECORDING,
+    })
+    draftState.audioRecording = audio
+  },
+  [Chat2Gen.stopAudioRecording]: (draftState, action) => {
+    const audio = new Map(draftState.audioRecording)
+    const info = audio.get(action.payload.conversationIDKey)
+    if (!info) {
+      return
+    }
+    let nextStatus = info.status
+    if (info.isLocked) {
+      switch (action.payload.stopType) {
+        case Types.AudioStopType.CANCEL:
+          nextStatus = Types.AudioRecordingStatus.CANCELLED
+          break
+        case Types.AudioStopType.SEND:
+          nextStatus = Types.AudioRecordingStatus.STOPPED
+          break
+        case Types.AudioStopType.STOPBUTTON:
+          nextStatus = Types.AudioRecordingStatus.STAGED
+          break
+      }
+    } else {
+      nextStatus = Types.AudioRecordingStatus.STOPPED
+    }
+    audio.set(action.payload.conversationIDKey, {
+      ...info,
+      amps: action.payload.amps || [],
+      status: nextStatus,
+    })
+    draftState.audioRecording = audio
+  },
+  [Chat2Gen.lockAudioRecording]: (draftState, action) => {
+    const audio = new Map(draftState.audioRecording)
+    const info = audio.get(action.payload.conversationIDKey) || Constants.makeAudioRecordingInfo()
+    if (info.isLocked) {
+      return
+    }
+    audio.set(action.payload.conversationIDKey, {
+      ...info,
+      isLocked: true,
+    })
+    draftState.audioRecording = audio
+  },
+  [Chat2Gen.sendAudioRecording]: (draftState, action) => {
+    const audio = new Map(draftState.audioRecording)
+    audio.set(action.payload.conversationIDKey, {
+      ...(audio.get(action.payload.conversationIDKey) || Constants.makeAudioRecordingInfo()),
+      status: Types.AudioRecordingStatus.STOPPED,
+    })
+    draftState.audioRecording = audio
+  },
+  [Chat2Gen.setAudioRecordingPostInfo]: (draftState, action) => {
+    const audio = new Map(draftState.audioRecording)
+    audio.set(action.payload.conversationIDKey, {
+      ...(audio.get(action.payload.conversationIDKey) || Constants.makeAudioRecordingInfo()),
+      outboxID: action.payload.outboxID,
+      path: action.payload.path,
+    })
+    draftState.audioRecording = audio
+  },
+}
+
+const giphyActions: Container.ActionHandler<Actions, Types.State> = {
+  [Chat2Gen.giphyToggleWindow]: (draftState, action) => {
+    const conversationIDKey = action.payload.conversationIDKey
+    const giphyWindowMap = new Map(draftState.giphyWindowMap)
+    giphyWindowMap.set(conversationIDKey, action.payload.show)
+    draftState.giphyWindowMap = giphyWindowMap
+    if (!action.payload.show) {
+      const giphyResultMap = new Map(draftState.giphyResultMap)
+      giphyResultMap.set(conversationIDKey, undefined)
+      draftState.giphyResultMap = giphyResultMap
+    }
+    if (action.payload.clearInput) {
+      const unsentTextMap = new Map(draftState.unsentTextMap)
+      unsentTextMap.set(action.payload.conversationIDKey, new HiddenString(''))
+      draftState.unsentTextMap = unsentTextMap
+    }
+  },
+  [Chat2Gen.giphySend]: (draftState, action) => {
+    const giphyWindowMap = new Map(draftState.giphyWindowMap)
+    giphyWindowMap.set(action.payload.conversationIDKey, false)
+    draftState.giphyWindowMap = giphyWindowMap
+    const unsentTextMap = new Map(draftState.unsentTextMap)
+    unsentTextMap.set(action.payload.conversationIDKey, new HiddenString(''))
+    draftState.unsentTextMap = unsentTextMap
+  },
+  [Chat2Gen.toggleGiphyPrefill]: (draftState, action) => {
+    // if the window is up, just blow it away
+    const unsentTextMap = new Map(draftState.unsentTextMap)
+    if (draftState.giphyWindowMap.get(action.payload.conversationIDKey)) {
+      unsentTextMap.set(action.payload.conversationIDKey, new HiddenString(''))
+    } else {
+      unsentTextMap.set(action.payload.conversationIDKey, new HiddenString('/giphy '))
+    }
+    draftState.unsentTextMap = unsentTextMap
+  },
+  [Chat2Gen.giphyGotSearchResult]: (draftState, action) => {
+    const giphyResultMap = new Map(draftState.giphyResultMap)
+    giphyResultMap.set(action.payload.conversationIDKey, action.payload.results)
+    draftState.giphyResultMap = giphyResultMap
+  },
+}
+
+const paymentActions: Container.ActionHandler<Actions, Types.State> = {
+  [Chat2Gen.setPaymentConfirmInfo]: (draftState, action) => {
+    draftState.paymentConfirmInfo = action.payload.error
+      ? {error: action.payload.error}
+      : {summary: action.payload.summary}
+  },
+  [Chat2Gen.clearPaymentConfirmInfo]: draftState => {
+    draftState.paymentConfirmInfo = undefined
+  },
+  [Chat2Gen.paymentInfoReceived]: (draftState, action) => {
+    const {conversationIDKey, messageID, paymentInfo} = action.payload
+
+    const accountsInfoMap = new Map(draftState.accountsInfoMap)
+    const convMap = new Map(accountsInfoMap.get(conversationIDKey) || [])
+    convMap.set(messageID, paymentInfo)
+    accountsInfoMap.set(conversationIDKey, convMap)
+    draftState.accountsInfoMap = accountsInfoMap
+
+    const paymentStatusMap = new Map(draftState.paymentStatusMap)
+    paymentStatusMap.set(paymentInfo.paymentID, paymentInfo)
+    draftState.paymentStatusMap = paymentStatusMap
+  },
+}
+
+const searchActions: Container.ActionHandler<Actions, Types.State> = {
+  [Chat2Gen.setChannelSearchText]: (draftState, action) => {
+    draftState.channelSearchText = action.payload.text.toLowerCase()
+  },
+  [Chat2Gen.threadSearchResults]: (draftState, action) => {
+    const threadSearchInfoMap = new Map(draftState.threadSearchInfoMap)
+    const info = threadSearchInfoMap.get(action.payload.conversationIDKey) || Constants.makeThreadSearchInfo()
+
+    if (action.payload.clear) {
+      info.hits = action.payload.messages
+    } else {
+      info.hits = [...info.hits, ...action.payload.messages]
+    }
+    threadSearchInfoMap.set(action.payload.conversationIDKey, info)
+    draftState.threadSearchInfoMap = threadSearchInfoMap
+  },
+  [Chat2Gen.setThreadSearchStatus]: (draftState, action) => {
+    const threadSearchInfoMap = new Map(draftState.threadSearchInfoMap)
+    const info = threadSearchInfoMap.get(action.payload.conversationIDKey) || Constants.makeThreadSearchInfo()
+    info.status = action.payload.status
+    threadSearchInfoMap.set(action.payload.conversationIDKey, info)
+    draftState.threadSearchInfoMap = threadSearchInfoMap
+  },
+  [Chat2Gen.toggleThreadSearch]: (draftState, action) => {
+    const threadSearchInfoMap = new Map(draftState.threadSearchInfoMap)
+    const info = threadSearchInfoMap.get(action.payload.conversationIDKey) || Constants.makeThreadSearchInfo()
+    info.hits = []
+    info.status = 'initial'
+    info.visible = !info.visible
+    threadSearchInfoMap.set(action.payload.conversationIDKey, info)
+    draftState.threadSearchInfoMap = threadSearchInfoMap
+
+    const messageCenterOrdinals = new Map(draftState.messageCenterOrdinals)
+    messageCenterOrdinals.delete(action.payload.conversationIDKey)
+    draftState.messageCenterOrdinals = messageCenterOrdinals
+  },
+  [Chat2Gen.threadSearch]: (draftState, action) => {
+    const threadSearchInfoMap = new Map(draftState.threadSearchInfoMap)
+    const info = threadSearchInfoMap.get(action.payload.conversationIDKey) || Constants.makeThreadSearchInfo()
+    info.hits = []
+    threadSearchInfoMap.set(action.payload.conversationIDKey, info)
+    draftState.threadSearchInfoMap = threadSearchInfoMap
+  },
+  [Chat2Gen.setThreadSearchQuery]: (draftState, action) => {
+    const threadSearchQueryMap = new Map(draftState.threadSearchQueryMap)
+    threadSearchQueryMap.set(action.payload.conversationIDKey, action.payload.query)
+    draftState.threadSearchQueryMap = threadSearchQueryMap
+  },
+  [Chat2Gen.inboxSearchSetTextStatus]: (draftState, action) => {
+    draftState.inboxSearch = {
+      ...(draftState.inboxSearch || Constants.makeInboxSearchInfo()),
+      textStatus: action.payload.status,
+    }
+  },
+  [Chat2Gen.inboxSearchSetIndexPercent]: (draftState, action) => {
+    if (!draftState.inboxSearch || draftState.inboxSearch.textStatus !== 'inprogress') {
+      return
+    }
+    const {percent} = action.payload
+    draftState.inboxSearch.indexPercent = percent
+  },
+  [Chat2Gen.toggleInboxSearch]: (draftState, action) => {
+    const {enabled} = action.payload
+    if (enabled && !draftState.inboxSearch) {
+      draftState.inboxSearch = Constants.makeInboxSearchInfo()
+    } else if (!enabled && draftState.inboxSearch) {
+      draftState.inboxSearch = undefined
+    }
+  },
+  [Chat2Gen.inboxSearchTextResult]: (draftState, action) => {
+    if (!draftState.inboxSearch || draftState.inboxSearch.textStatus !== 'inprogress') {
+      return
+    }
+    const {result} = action.payload
+    const {conversationIDKey} = result
+    const old = draftState.inboxSearch || Constants.makeInboxSearchInfo()
+    const textResults = old.textResults.filter(r => r.conversationIDKey !== conversationIDKey)
+    textResults.push(result)
+    draftState.inboxSearch.textResults = textResults.sort((l, r) => r.time - l.time)
+  },
+  [Chat2Gen.inboxSearchStarted]: draftState => {
+    if (!draftState.inboxSearch) {
+      return
+    }
+    draftState.inboxSearch = {
+      ...(draftState.inboxSearch || Constants.makeInboxSearchInfo()),
+      nameStatus: 'inprogress',
+      selectedIndex: 0,
+      textResults: [],
+      textStatus: 'inprogress',
+    }
+  },
+  [Chat2Gen.inboxSearchNameResults]: (draftState, action) => {
+    if (!draftState.inboxSearch || draftState.inboxSearch.nameStatus !== 'inprogress') {
+      return
+    }
+    const {results, unread} = action.payload
+    draftState.inboxSearch.nameResults = results
+    draftState.inboxSearch.nameResultsUnread = unread
+    draftState.inboxSearch.nameStatus = 'success'
+  },
+  [Chat2Gen.inboxSearchMoveSelectedIndex]: (draftState, action) => {
+    if (!draftState.inboxSearch) {
+      return
+    }
+    let selectedIndex = draftState.inboxSearch.selectedIndex
+    const totalResults = draftState.inboxSearch.nameResults.length + draftState.inboxSearch.textResults.length
+    if (action.payload.increment && selectedIndex < totalResults - 1) {
+      selectedIndex++
+    } else if (!action.payload.increment && selectedIndex > 0) {
+      selectedIndex--
+    }
+
+    draftState.inboxSearch.selectedIndex = selectedIndex
+  },
+  [Chat2Gen.inboxSearchSelect]: (draftState, action) => {
+    const {selectedIndex} = action.payload
+    if (!draftState.inboxSearch || selectedIndex == null) {
+      return
+    }
+    draftState.inboxSearch.selectedIndex = selectedIndex
+  },
+  [Chat2Gen.inboxSearch]: (draftState, action) => {
+    if (!draftState.inboxSearch) {
+      return
+    }
+
+    const {query} = action.payload
+    draftState.inboxSearch.query = query
+  },
+}
+
+const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
+  [Chat2Gen.loadAttachmentView]: (draftState, action) => {
+    const {conversationIDKey, viewType} = action.payload
+    const attachmentViewMap = new Map(draftState.attachmentViewMap)
+    const viewMap = new Map(attachmentViewMap.get(conversationIDKey) || [])
+    viewMap.set(viewType, {
+      ...(viewMap.get(viewType) || Constants.initialAttachmentViewInfo),
+      status: 'loading',
+    })
+    attachmentViewMap.set(conversationIDKey, viewMap)
+    draftState.attachmentViewMap = attachmentViewMap
+  },
+  [Chat2Gen.addAttachmentViewMessage]: (draftState, action) => {
+    const {conversationIDKey, viewType} = action.payload
+    const attachmentViewMap = new Map(draftState.attachmentViewMap)
+    const viewMap = new Map(attachmentViewMap.get(conversationIDKey) || [])
+    const old = viewMap.get(viewType) || Constants.initialAttachmentViewInfo
+    viewMap.set(viewType, {
+      ...old,
+      messages:
+        old.messages.findIndex((item: any) => item.id === action.payload.message.id) < 0
+          ? old.messages.concat(action.payload.message).sort((l: any, r: any) => r.id - l.id)
+          : old.messages,
+    })
+    attachmentViewMap.set(conversationIDKey, viewMap)
+    draftState.attachmentViewMap = attachmentViewMap
+  },
+  [Chat2Gen.setAttachmentViewStatus]: (draftState, action) => {
+    const {conversationIDKey, viewType, last, status} = action.payload
+    const attachmentViewMap = new Map(draftState.attachmentViewMap)
+    const viewMap = new Map(attachmentViewMap.get(conversationIDKey) || [])
+    viewMap.set(viewType, {
+      ...(viewMap.get(viewType) || Constants.initialAttachmentViewInfo),
+      last: !!last,
+      status,
+    })
+    attachmentViewMap.set(conversationIDKey, viewMap)
+    draftState.attachmentViewMap = attachmentViewMap
+  },
+  [Chat2Gen.clearAttachmentView]: (draftState, action) => {
+    const {conversationIDKey} = action.payload
+    const attachmentViewMap = new Map(draftState.attachmentViewMap)
+    attachmentViewMap.delete(conversationIDKey)
+    draftState.attachmentViewMap = attachmentViewMap
+  },
+  [Chat2Gen.attachmentUploading]: (draftState, action) => {
+    const convMap = draftState.pendingOutboxToOrdinal.get(action.payload.conversationIDKey)
+    const ordinal = convMap && convMap.get(action.payload.outboxID)
+    if (!ordinal) {
+      return
+    }
+    draftState.messageMap = draftState.messageMap.updateIn(
+      [action.payload.conversationIDKey, ordinal],
+      message => {
+        if (!message || message.type !== 'attachment') {
+          return message
+        }
+        return message.set('transferProgress', action.payload.ratio).set('transferState', 'uploading')
+      }
+    )
+  },
+  [Chat2Gen.attachmentUploaded]: (draftState, action) => {
+    draftState.messageMap = draftState.messageMap.updateIn(
+      [action.payload.conversationIDKey, action.payload.ordinal],
+      message => {
+        if (!message || message.type !== 'attachment') {
+          return message
+        }
+        return message.set('transferProgress', 0).set('transferState', null)
+      }
+    )
+  },
+  [Chat2Gen.attachmentMobileSave]: (draftState, action) => {
+    draftState.messageMap = draftState.messageMap.updateIn(
+      [action.payload.conversationIDKey, action.payload.ordinal],
+      message => {
+        if (!message || message.type !== 'attachment') {
+          return message
+        }
+        return message.set('transferState', 'mobileSaving').set('transferErrMsg', null)
+      }
+    )
+  },
+  [Chat2Gen.attachmentMobileSaved]: (draftState, action) => {
+    draftState.messageMap = draftState.messageMap.updateIn(
+      [action.payload.conversationIDKey, action.payload.ordinal],
+      message => {
+        if (!message || message.type !== 'attachment') {
+          return message
+        }
+        return message.set('transferState', null).set('transferErrMsg', null)
+      }
+    )
+  },
+  [Chat2Gen.attachmentDownload]: (draftState, action) => {
+    draftState.messageMap = draftState.messageMap.updateIn(
+      [action.payload.message.conversationIDKey, action.payload.message.ordinal],
+      message => {
+        if (!message || message.type !== 'attachment') {
+          return message
+        }
+        return message.set('transferState', 'downloading').set('transferErrMsg', null)
+      }
+    )
+  },
+  [Chat2Gen.messageAttachmentUploaded]: (draftState, action) => {
+    const {conversationIDKey, message, placeholderID} = action.payload
+    const ordinal = messageIDToOrdinal(
+      draftState.messageMap,
+      draftState.pendingOutboxToOrdinal,
+      conversationIDKey,
+      placeholderID
+    )
+    if (!ordinal) {
+      return
+    }
+    draftState.messageMap = draftState.messageMap.updateIn([conversationIDKey, ordinal], old =>
+      old ? Constants.upgradeMessage(old, message) : message
+    )
+  },
+  [Chat2Gen.attachmentFullscreenSelection]: (draftState, action) => {
+    const {autoPlay, message} = action.payload
+    draftState.attachmentFullscreenSelection = {autoPlay, message}
+  },
+  [Chat2Gen.attachmentLoading]: (draftState, action) => {
+    const {message} = action.payload
+    if (
+      draftState.attachmentFullscreenSelection &&
+      draftState.attachmentFullscreenSelection.message.conversationIDKey === message.conversationIDKey &&
+      draftState.attachmentFullscreenSelection.message.id === message.id &&
+      message.type === 'attachment'
+    ) {
+      draftState.attachmentFullscreenSelection = {
+        autoPlay: draftState.attachmentFullscreenSelection.autoPlay,
+        message: message.set('transferState', 'downloading').set('transferProgress', action.payload.ratio),
+      }
+    }
+
+    const {conversationIDKey} = action.payload
+    const viewType = RPCChatTypes.GalleryItemTyp.doc
+    const attachmentViewMap = new Map(draftState.attachmentViewMap)
+    const viewMap = new Map(attachmentViewMap.get(conversationIDKey) || [])
+    const old = viewMap.get(viewType) || Constants.initialAttachmentViewInfo
+    const messages = old.messages
+    const idx = old.messages.findIndex(item => item.id === message.id)
+    if (idx !== -1) {
+      const m: Types.MessageAttachment = messages[idx] as any // TODO don't cast
+      old.messages[idx] = m.set('transferState', 'downloading').set('transferProgress', action.payload.ratio)
+    }
+    viewMap.set(viewType, {...old, messages})
+    attachmentViewMap.set(conversationIDKey, viewMap)
+    draftState.attachmentViewMap = attachmentViewMap
+
+    draftState.messageMap = draftState.messageMap.updateIn(
+      [action.payload.conversationIDKey, action.payload.message.ordinal],
+      message => {
+        if (!message || message.type !== 'attachment') {
+          return message
+        }
+        return action.payload.isPreview
+          ? message.set('previewTransferState', 'downloading')
+          : message
+              .set('transferProgress', action.payload.ratio)
+              .set('transferState', 'downloading')
+              .set('transferErrMsg', null)
+      }
+    )
+  },
+  [Chat2Gen.attachmentDownloaded]: (draftState, action) => {
+    // @ts-ignore remove canError actions soon
+    const {message, path, conversationIDKey} = action.payload
+    if (
+      !action.payload.error &&
+      draftState.attachmentFullscreenSelection &&
+      draftState.attachmentFullscreenSelection.message.conversationIDKey === message.conversationIDKey &&
+      draftState.attachmentFullscreenSelection.message.id === message.id &&
+      message.type === 'attachment'
+    ) {
+      draftState.attachmentFullscreenSelection = {
+        autoPlay: draftState.attachmentFullscreenSelection.autoPlay,
+        message: message.set('downloadPath', action.payload.path || null),
+      }
+    }
+
+    const attachmentViewMap = new Map(draftState.attachmentViewMap)
+    const viewMap = new Map(attachmentViewMap.get(conversationIDKey) || [])
+    const viewType = RPCChatTypes.GalleryItemTyp.doc
+    const old = viewMap.get(viewType) || Constants.initialAttachmentViewInfo
+    const messages = old.messages
+    const idx = old.messages.findIndex(item => item.id === message.id)
+    if (idx !== -1) {
+      const m: Types.MessageAttachment = messages[idx] as any // TODO don't cast
+      old.messages[idx] = m.merge({
+        // @ts-ignore we aren't checking for the errors!
+        downloadPath: path,
+        fileURLCached: true,
+        transferProgress: 0,
+        transferState: null,
+      })
+    }
+    viewMap.set(viewType, {...old, messages})
+    attachmentViewMap.set(conversationIDKey, viewMap)
+    draftState.attachmentViewMap = attachmentViewMap
+
+    draftState.messageMap = draftState.messageMap.updateIn(
+      [action.payload.message.conversationIDKey, action.payload.message.ordinal],
+      message => {
+        if (!message || message.type !== 'attachment') {
+          return message
+        }
+        const path = (!action.payload.error && action.payload.path) || ''
+        return message
+          .set('downloadPath', path)
+          .set('transferProgress', 0)
+          .set('transferState', null)
+          .set(
+            'transferErrMsg',
+            action.payload.error ? action.payload.error || 'Error downloading attachment' : null
+          )
+          .set('fileURLCached', true) // assume we have this on the service now
+      }
+    )
+  },
+}
+
 const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   [Chat2Gen.resetStore]: draftState => {
     return {...initialState, staticConfig: draftState.staticConfig as Types.State['staticConfig']}
@@ -92,9 +593,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [Chat2Gen.changeFocus]: (draftState, action) => {
     draftState.focus = action.payload.nextFocus
-  },
-  [Chat2Gen.setChannelSearchText]: (draftState, action) => {
-    draftState.channelSearchText = action.payload.text.toLowerCase()
   },
   [Chat2Gen.selectConversation]: (draftState, action) => {
     // ignore non-changing
@@ -196,81 +694,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       prompts.delete(domain)
     }
   },
-  [Chat2Gen.enableAudioRecording]: (draftState, action) => {
-    const audio = new Map(draftState.audioRecording)
-    audio.set(action.payload.conversationIDKey, Constants.makeAudioRecordingInfo())
-    draftState.audioRecording = audio
-  },
-  [Chat2Gen.startAudioRecording]: (draftState, action) => {
-    const audio = new Map(draftState.audioRecording)
-    const info = audio.get(action.payload.conversationIDKey)
-    if (!info || !Constants.showAudioRecording(info)) {
-      return
-    }
-    audio.set(action.payload.conversationIDKey, {
-      ...info,
-      status: Types.AudioRecordingStatus.RECORDING,
-    })
-    draftState.audioRecording = audio
-  },
-  [Chat2Gen.stopAudioRecording]: (draftState, action) => {
-    const audio = new Map(draftState.audioRecording)
-    const info = audio.get(action.payload.conversationIDKey)
-    if (!info) {
-      return
-    }
-    let nextStatus = info.status
-    if (info.isLocked) {
-      switch (action.payload.stopType) {
-        case Types.AudioStopType.CANCEL:
-          nextStatus = Types.AudioRecordingStatus.CANCELLED
-          break
-        case Types.AudioStopType.SEND:
-          nextStatus = Types.AudioRecordingStatus.STOPPED
-          break
-        case Types.AudioStopType.STOPBUTTON:
-          nextStatus = Types.AudioRecordingStatus.STAGED
-          break
-      }
-    } else {
-      nextStatus = Types.AudioRecordingStatus.STOPPED
-    }
-    audio.set(action.payload.conversationIDKey, {
-      ...info,
-      amps: action.payload.amps || [],
-      status: nextStatus,
-    })
-    draftState.audioRecording = audio
-  },
-  [Chat2Gen.lockAudioRecording]: (draftState, action) => {
-    const audio = new Map(draftState.audioRecording)
-    const info = audio.get(action.payload.conversationIDKey) || Constants.makeAudioRecordingInfo()
-    if (info.isLocked) {
-      return
-    }
-    audio.set(action.payload.conversationIDKey, {
-      ...info,
-      isLocked: true,
-    })
-    draftState.audioRecording = audio
-  },
-  [Chat2Gen.sendAudioRecording]: (draftState, action) => {
-    const audio = new Map(draftState.audioRecording)
-    audio.set(action.payload.conversationIDKey, {
-      ...(audio.get(action.payload.conversationIDKey) || Constants.makeAudioRecordingInfo()),
-      status: Types.AudioRecordingStatus.STOPPED,
-    })
-    draftState.audioRecording = audio
-  },
-  [Chat2Gen.setAudioRecordingPostInfo]: (draftState, action) => {
-    const audio = new Map(draftState.audioRecording)
-    audio.set(action.payload.conversationIDKey, {
-      ...(audio.get(action.payload.conversationIDKey) || Constants.makeAudioRecordingInfo()),
-      outboxID: action.payload.outboxID,
-      path: action.payload.path,
-    })
-    draftState.audioRecording = audio
-  },
   [Chat2Gen.updateCoinFlipStatus]: (draftState, action) => {
     const flipStatusMap = draftState.flipStatusMap
     action.payload.statuses.forEach(status => {
@@ -312,38 +735,8 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     commandStatusMap.delete(conversationIDKey)
     draftState.commandStatusMap = commandStatusMap
   },
-  [Chat2Gen.giphyToggleWindow]: (draftState, action) => {
-    const conversationIDKey = action.payload.conversationIDKey
-
-    const giphyWindowMap = new Map(draftState.giphyWindowMap)
-    giphyWindowMap.set(conversationIDKey, action.payload.show)
-    draftState.giphyWindowMap = giphyWindowMap
-    if (!action.payload.show) {
-      const giphyResultMap = new Map(draftState.giphyResultMap)
-      giphyResultMap.set(conversationIDKey, undefined)
-      draftState.giphyResultMap = giphyResultMap
-    }
-    if (action.payload.clearInput) {
-      const unsentTextMap = new Map(draftState.unsentTextMap)
-      unsentTextMap.set(action.payload.conversationIDKey, new HiddenString(''))
-      draftState.unsentTextMap = unsentTextMap
-    }
-  },
   [Chat2Gen.updateLastCoord]: (draftState, action) => {
     draftState.lastCoord = action.payload.coord
-  },
-  [Chat2Gen.giphyGotSearchResult]: (draftState, action) => {
-    const giphyResultMap = new Map(draftState.giphyResultMap)
-    giphyResultMap.set(action.payload.conversationIDKey, action.payload.results)
-    draftState.giphyResultMap = giphyResultMap
-  },
-  [Chat2Gen.setPaymentConfirmInfo]: (draftState, action) => {
-    draftState.paymentConfirmInfo = action.payload.error
-      ? {error: action.payload.error}
-      : {summary: action.payload.summary}
-  },
-  [Chat2Gen.clearPaymentConfirmInfo]: draftState => {
-    draftState.paymentConfirmInfo = undefined
   },
   [Chat2Gen.badgesUpdated]: (draftState, action) => {
     const badgeMap = new Map<Types.ConversationIDKey, number>(
@@ -934,24 +1327,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       draftState.explodingModeLocks = explodingModeLocks
     }
   },
-  [Chat2Gen.giphySend]: (draftState, action) => {
-    const giphyWindowMap = new Map(draftState.giphyWindowMap)
-    giphyWindowMap.set(action.payload.conversationIDKey, false)
-    draftState.giphyWindowMap = giphyWindowMap
-    const unsentTextMap = new Map(draftState.unsentTextMap)
-    unsentTextMap.set(action.payload.conversationIDKey, new HiddenString(''))
-    draftState.unsentTextMap = unsentTextMap
-  },
-  [Chat2Gen.toggleGiphyPrefill]: (draftState, action) => {
-    // if the window is up, just blow it away
-    const unsentTextMap = new Map(draftState.unsentTextMap)
-    if (draftState.giphyWindowMap.get(action.payload.conversationIDKey)) {
-      unsentTextMap.set(action.payload.conversationIDKey, new HiddenString(''))
-    } else {
-      unsentTextMap.set(action.payload.conversationIDKey, new HiddenString('/giphy '))
-    }
-    draftState.unsentTextMap = unsentTextMap
-  },
   [Chat2Gen.setUnsentText]: (draftState, action) => {
     const unsentTextMap = new Map(draftState.unsentTextMap)
     unsentTextMap.set(action.payload.conversationIDKey, action.payload.text)
@@ -982,176 +1357,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const messageCenterOrdinals = new Map(draftState.messageCenterOrdinals)
     messageCenterOrdinals.delete(action.payload.conversationIDKey)
     draftState.messageCenterOrdinals = messageCenterOrdinals
-  },
-  [Chat2Gen.threadSearchResults]: (draftState, action) => {
-    const threadSearchInfoMap = new Map(draftState.threadSearchInfoMap)
-    const info = threadSearchInfoMap.get(action.payload.conversationIDKey) || Constants.makeThreadSearchInfo()
-
-    if (action.payload.clear) {
-      info.hits = action.payload.messages
-    } else {
-      info.hits = [...info.hits, ...action.payload.messages]
-    }
-    threadSearchInfoMap.set(action.payload.conversationIDKey, info)
-    draftState.threadSearchInfoMap = threadSearchInfoMap
-  },
-  [Chat2Gen.setThreadSearchStatus]: (draftState, action) => {
-    const threadSearchInfoMap = new Map(draftState.threadSearchInfoMap)
-    const info = threadSearchInfoMap.get(action.payload.conversationIDKey) || Constants.makeThreadSearchInfo()
-    info.status = action.payload.status
-    threadSearchInfoMap.set(action.payload.conversationIDKey, info)
-    draftState.threadSearchInfoMap = threadSearchInfoMap
-  },
-  [Chat2Gen.toggleThreadSearch]: (draftState, action) => {
-    const threadSearchInfoMap = new Map(draftState.threadSearchInfoMap)
-    const info = threadSearchInfoMap.get(action.payload.conversationIDKey) || Constants.makeThreadSearchInfo()
-    info.hits = []
-    info.status = 'initial'
-    info.visible = !info.visible
-    threadSearchInfoMap.set(action.payload.conversationIDKey, info)
-    draftState.threadSearchInfoMap = threadSearchInfoMap
-
-    const messageCenterOrdinals = new Map(draftState.messageCenterOrdinals)
-    messageCenterOrdinals.delete(action.payload.conversationIDKey)
-    draftState.messageCenterOrdinals = messageCenterOrdinals
-  },
-  [Chat2Gen.threadSearch]: (draftState, action) => {
-    const threadSearchInfoMap = new Map(draftState.threadSearchInfoMap)
-    const info = threadSearchInfoMap.get(action.payload.conversationIDKey) || Constants.makeThreadSearchInfo()
-    info.hits = []
-    threadSearchInfoMap.set(action.payload.conversationIDKey, info)
-    draftState.threadSearchInfoMap = threadSearchInfoMap
-  },
-  [Chat2Gen.setThreadSearchQuery]: (draftState, action) => {
-    const threadSearchQueryMap = new Map(draftState.threadSearchQueryMap)
-    threadSearchQueryMap.set(action.payload.conversationIDKey, action.payload.query)
-    draftState.threadSearchQueryMap = threadSearchQueryMap
-  },
-  [Chat2Gen.inboxSearchSetTextStatus]: (draftState, action) => {
-    draftState.inboxSearch = {
-      ...(draftState.inboxSearch || Constants.makeInboxSearchInfo()),
-      textStatus: action.payload.status,
-    }
-  },
-  [Chat2Gen.inboxSearchSetIndexPercent]: (draftState, action) => {
-    if (!draftState.inboxSearch || draftState.inboxSearch.textStatus !== 'inprogress') {
-      return
-    }
-    const {percent} = action.payload
-    draftState.inboxSearch.indexPercent = percent
-  },
-  [Chat2Gen.toggleInboxSearch]: (draftState, action) => {
-    const {enabled} = action.payload
-    if (enabled && !draftState.inboxSearch) {
-      draftState.inboxSearch = Constants.makeInboxSearchInfo()
-    } else if (!enabled && draftState.inboxSearch) {
-      draftState.inboxSearch = undefined
-    }
-  },
-  [Chat2Gen.inboxSearchTextResult]: (draftState, action) => {
-    if (!draftState.inboxSearch || draftState.inboxSearch.textStatus !== 'inprogress') {
-      return
-    }
-    const {result} = action.payload
-    const {conversationIDKey} = result
-    const old = draftState.inboxSearch || Constants.makeInboxSearchInfo()
-    const textResults = old.textResults.filter(r => r.conversationIDKey !== conversationIDKey)
-    textResults.push(result)
-    draftState.inboxSearch.textResults = textResults.sort((l, r) => r.time - l.time)
-  },
-  [Chat2Gen.inboxSearchStarted]: draftState => {
-    if (!draftState.inboxSearch) {
-      return
-    }
-    draftState.inboxSearch = {
-      ...(draftState.inboxSearch || Constants.makeInboxSearchInfo()),
-      nameStatus: 'inprogress',
-      selectedIndex: 0,
-      textResults: [],
-      textStatus: 'inprogress',
-    }
-  },
-  [Chat2Gen.inboxSearchNameResults]: (draftState, action) => {
-    if (!draftState.inboxSearch || draftState.inboxSearch.nameStatus !== 'inprogress') {
-      return
-    }
-    const {results, unread} = action.payload
-    draftState.inboxSearch.nameResults = results
-    draftState.inboxSearch.nameResultsUnread = unread
-    draftState.inboxSearch.nameStatus = 'success'
-  },
-  [Chat2Gen.inboxSearchMoveSelectedIndex]: (draftState, action) => {
-    if (!draftState.inboxSearch) {
-      return
-    }
-    let selectedIndex = draftState.inboxSearch.selectedIndex
-    const totalResults = draftState.inboxSearch.nameResults.length + draftState.inboxSearch.textResults.length
-    if (action.payload.increment && selectedIndex < totalResults - 1) {
-      selectedIndex++
-    } else if (!action.payload.increment && selectedIndex > 0) {
-      selectedIndex--
-    }
-
-    draftState.inboxSearch.selectedIndex = selectedIndex
-  },
-  [Chat2Gen.inboxSearchSelect]: (draftState, action) => {
-    const {selectedIndex} = action.payload
-    if (!draftState.inboxSearch || selectedIndex == null) {
-      return
-    }
-    draftState.inboxSearch.selectedIndex = selectedIndex
-  },
-  [Chat2Gen.inboxSearch]: (draftState, action) => {
-    if (!draftState.inboxSearch) {
-      return
-    }
-
-    const {query} = action.payload
-    draftState.inboxSearch.query = query
-  },
-  [Chat2Gen.loadAttachmentView]: (draftState, action) => {
-    const {conversationIDKey, viewType} = action.payload
-    const attachmentViewMap = new Map(draftState.attachmentViewMap)
-    const viewMap = new Map(attachmentViewMap.get(conversationIDKey) || [])
-    viewMap.set(viewType, {
-      ...(viewMap.get(viewType) || Constants.initialAttachmentViewInfo),
-      status: 'loading',
-    })
-    attachmentViewMap.set(conversationIDKey, viewMap)
-    draftState.attachmentViewMap = attachmentViewMap
-  },
-  [Chat2Gen.addAttachmentViewMessage]: (draftState, action) => {
-    const {conversationIDKey, viewType} = action.payload
-    const attachmentViewMap = new Map(draftState.attachmentViewMap)
-    const viewMap = new Map(attachmentViewMap.get(conversationIDKey) || [])
-    const old = viewMap.get(viewType) || Constants.initialAttachmentViewInfo
-    viewMap.set(viewType, {
-      ...old,
-      messages:
-        old.messages.findIndex((item: any) => item.id === action.payload.message.id) < 0
-          ? old.messages.concat(action.payload.message).sort((l: any, r: any) => r.id - l.id)
-          : old.messages,
-    })
-    attachmentViewMap.set(conversationIDKey, viewMap)
-    draftState.attachmentViewMap = attachmentViewMap
-  },
-  [Chat2Gen.setAttachmentViewStatus]: (draftState, action) => {
-    const {conversationIDKey, viewType, last, status} = action.payload
-    const attachmentViewMap = new Map(draftState.attachmentViewMap)
-    const viewMap = new Map(attachmentViewMap.get(conversationIDKey) || [])
-    viewMap.set(viewType, {
-      ...(viewMap.get(viewType) || Constants.initialAttachmentViewInfo),
-      last: !!last,
-      status,
-    })
-    attachmentViewMap.set(conversationIDKey, viewMap)
-    draftState.attachmentViewMap = attachmentViewMap
-  },
-  [Chat2Gen.clearAttachmentView]: (draftState, action) => {
-    const {conversationIDKey} = action.payload
-    const attachmentViewMap = new Map(draftState.attachmentViewMap)
-    attachmentViewMap.delete(conversationIDKey)
-    draftState.attachmentViewMap = attachmentViewMap
   },
   [Chat2Gen.staticConfigLoaded]: (draftState, action) => {
     draftState.staticConfig = action.payload.staticConfig
@@ -1185,19 +1390,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       draftState.metaMap.set(m.conversationIDKey, old ? Constants.updateMeta(old, m) : m)
     })
   },
-  [Chat2Gen.paymentInfoReceived]: (draftState, action) => {
-    const {conversationIDKey, messageID, paymentInfo} = action.payload
-
-    const accountsInfoMap = new Map(draftState.accountsInfoMap)
-    const convMap = new Map(accountsInfoMap.get(conversationIDKey) || [])
-    convMap.set(messageID, paymentInfo)
-    accountsInfoMap.set(conversationIDKey, convMap)
-    draftState.accountsInfoMap = accountsInfoMap
-
-    const paymentStatusMap = new Map(draftState.paymentStatusMap)
-    paymentStatusMap.set(paymentInfo.paymentID, paymentInfo)
-    draftState.paymentStatusMap = paymentStatusMap
-  },
   [Chat2Gen.setMaybeMentionInfo]: (draftState, action) => {
     const {name, info} = action.payload
     const maybeMentionMap = new Map(draftState.maybeMentionMap)
@@ -1213,114 +1405,11 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     accountsInfoMap.set(conversationIDKey, convMap)
     draftState.accountsInfoMap = accountsInfoMap
   },
-  [Chat2Gen.attachmentFullscreenSelection]: (draftState, action) => {
-    const {autoPlay, message} = action.payload
-    draftState.attachmentFullscreenSelection = {autoPlay, message}
-  },
   [Chat2Gen.handleSeeingWallets]: draftState => {
     draftState.isWalletsNew = false
   },
   [Chat2Gen.setWalletsOld]: draftState => {
     draftState.isWalletsNew = false
-  },
-  [Chat2Gen.attachmentLoading]: (draftState, action) => {
-    const {message} = action.payload
-    if (
-      draftState.attachmentFullscreenSelection &&
-      draftState.attachmentFullscreenSelection.message.conversationIDKey === message.conversationIDKey &&
-      draftState.attachmentFullscreenSelection.message.id === message.id &&
-      message.type === 'attachment'
-    ) {
-      draftState.attachmentFullscreenSelection = {
-        autoPlay: draftState.attachmentFullscreenSelection.autoPlay,
-        message: message.set('transferState', 'downloading').set('transferProgress', action.payload.ratio),
-      }
-    }
-
-    const {conversationIDKey} = action.payload
-    const viewType = RPCChatTypes.GalleryItemTyp.doc
-    const attachmentViewMap = new Map(draftState.attachmentViewMap)
-    const viewMap = new Map(attachmentViewMap.get(conversationIDKey) || [])
-    const old = viewMap.get(viewType) || Constants.initialAttachmentViewInfo
-    const messages = old.messages
-    const idx = old.messages.findIndex(item => item.id === message.id)
-    if (idx !== -1) {
-      const m: Types.MessageAttachment = messages[idx] as any // TODO don't cast
-      old.messages[idx] = m.set('transferState', 'downloading').set('transferProgress', action.payload.ratio)
-    }
-    viewMap.set(viewType, {...old, messages})
-    attachmentViewMap.set(conversationIDKey, viewMap)
-    draftState.attachmentViewMap = attachmentViewMap
-
-    draftState.messageMap = draftState.messageMap.updateIn(
-      [action.payload.conversationIDKey, action.payload.message.ordinal],
-      message => {
-        if (!message || message.type !== 'attachment') {
-          return message
-        }
-        return action.payload.isPreview
-          ? message.set('previewTransferState', 'downloading')
-          : message
-              .set('transferProgress', action.payload.ratio)
-              .set('transferState', 'downloading')
-              .set('transferErrMsg', null)
-      }
-    )
-  },
-  [Chat2Gen.attachmentDownloaded]: (draftState, action) => {
-    // @ts-ignore remove canError actions soon
-    const {message, path, conversationIDKey} = action.payload
-    if (
-      !action.payload.error &&
-      draftState.attachmentFullscreenSelection &&
-      draftState.attachmentFullscreenSelection.message.conversationIDKey === message.conversationIDKey &&
-      draftState.attachmentFullscreenSelection.message.id === message.id &&
-      message.type === 'attachment'
-    ) {
-      draftState.attachmentFullscreenSelection = {
-        autoPlay: draftState.attachmentFullscreenSelection.autoPlay,
-        message: message.set('downloadPath', action.payload.path || null),
-      }
-    }
-
-    const attachmentViewMap = new Map(draftState.attachmentViewMap)
-    const viewMap = new Map(attachmentViewMap.get(conversationIDKey) || [])
-    const viewType = RPCChatTypes.GalleryItemTyp.doc
-    const old = viewMap.get(viewType) || Constants.initialAttachmentViewInfo
-    const messages = old.messages
-    const idx = old.messages.findIndex(item => item.id === message.id)
-    if (idx !== -1) {
-      const m: Types.MessageAttachment = messages[idx] as any // TODO don't cast
-      old.messages[idx] = m.merge({
-        // @ts-ignore we aren't checking for the errors!
-        downloadPath: path,
-        fileURLCached: true,
-        transferProgress: 0,
-        transferState: null,
-      })
-    }
-    viewMap.set(viewType, {...old, messages})
-    attachmentViewMap.set(conversationIDKey, viewMap)
-    draftState.attachmentViewMap = attachmentViewMap
-
-    draftState.messageMap = draftState.messageMap.updateIn(
-      [action.payload.message.conversationIDKey, action.payload.message.ordinal],
-      message => {
-        if (!message || message.type !== 'attachment') {
-          return message
-        }
-        const path = (!action.payload.error && action.payload.path) || ''
-        return message
-          .set('downloadPath', path)
-          .set('transferProgress', 0)
-          .set('transferState', null)
-          .set(
-            'transferErrMsg',
-            action.payload.error ? action.payload.error || 'Error downloading attachment' : null
-          )
-          .set('fileURLCached', true) // assume we have this on the service now
-      }
-    )
   },
   [Chat2Gen.updateUserReacjis]: (draftState, action) => {
     let {skinTone, topReacjis} = action.payload.userReacjis
@@ -1377,21 +1466,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const {conversationIDKey, ordinal, text} = action.payload
     draftState.messageMap = draftState.messageMap.updateIn([conversationIDKey, ordinal], message =>
       !message || message.type !== 'text' ? message : message.set('text', text)
-    )
-  },
-  [Chat2Gen.messageAttachmentUploaded]: (draftState, action) => {
-    const {conversationIDKey, message, placeholderID} = action.payload
-    const ordinal = messageIDToOrdinal(
-      draftState.messageMap,
-      draftState.pendingOutboxToOrdinal,
-      conversationIDKey,
-      placeholderID
-    )
-    if (!ordinal) {
-      return
-    }
-    draftState.messageMap = draftState.messageMap.updateIn([conversationIDKey, ordinal], old =>
-      old ? Constants.upgradeMessage(old, message) : message
     )
   },
   [Chat2Gen.metaReceivedError]: (draftState, action) => {
@@ -1454,66 +1528,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
         old.trustedState = 'requesting'
       }
     })
-  },
-  [Chat2Gen.attachmentUploading]: (draftState, action) => {
-    const convMap = draftState.pendingOutboxToOrdinal.get(action.payload.conversationIDKey)
-    const ordinal = convMap && convMap.get(action.payload.outboxID)
-    if (!ordinal) {
-      return
-    }
-    draftState.messageMap = draftState.messageMap.updateIn(
-      [action.payload.conversationIDKey, ordinal],
-      message => {
-        if (!message || message.type !== 'attachment') {
-          return message
-        }
-        return message.set('transferProgress', action.payload.ratio).set('transferState', 'uploading')
-      }
-    )
-  },
-  [Chat2Gen.attachmentUploaded]: (draftState, action) => {
-    draftState.messageMap = draftState.messageMap.updateIn(
-      [action.payload.conversationIDKey, action.payload.ordinal],
-      message => {
-        if (!message || message.type !== 'attachment') {
-          return message
-        }
-        return message.set('transferProgress', 0).set('transferState', null)
-      }
-    )
-  },
-  [Chat2Gen.attachmentMobileSave]: (draftState, action) => {
-    draftState.messageMap = draftState.messageMap.updateIn(
-      [action.payload.conversationIDKey, action.payload.ordinal],
-      message => {
-        if (!message || message.type !== 'attachment') {
-          return message
-        }
-        return message.set('transferState', 'mobileSaving').set('transferErrMsg', null)
-      }
-    )
-  },
-  [Chat2Gen.attachmentMobileSaved]: (draftState, action) => {
-    draftState.messageMap = draftState.messageMap.updateIn(
-      [action.payload.conversationIDKey, action.payload.ordinal],
-      message => {
-        if (!message || message.type !== 'attachment') {
-          return message
-        }
-        return message.set('transferState', null).set('transferErrMsg', null)
-      }
-    )
-  },
-  [Chat2Gen.attachmentDownload]: (draftState, action) => {
-    draftState.messageMap = draftState.messageMap.updateIn(
-      [action.payload.message.conversationIDKey, action.payload.message.ordinal],
-      message => {
-        if (!message || message.type !== 'attachment') {
-          return message
-        }
-        return message.set('transferState', 'downloading').set('transferErrMsg', null)
-      }
-    )
   },
   [Chat2Gen.markConversationsStale]: (draftState, action) => {
     if (action.payload.updateType === RPCChatTypes.StaleUpdateType.clear) {
@@ -1632,6 +1646,11 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     draftState.metaMap.clear()
   },
   ...teamActions,
+  ...audioActions,
+  ...giphyActions,
+  ...paymentActions,
+  ...searchActions,
+  ...attachmentActions,
 })
 
 export default reducer
