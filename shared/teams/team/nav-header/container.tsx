@@ -76,11 +76,11 @@ export const HeaderTitle = Container.connect(
     members: stateProps.members,
     onEditAvatar: stateProps._canEditDescAvatar
       ? () => dispatchProps.onEditAvatar(stateProps.teamname)
-      : null,
+      : undefined,
     onEditDescription: stateProps._canEditDescAvatar
       ? () => dispatchProps.onEditDescription(stateProps.teamname)
-      : null,
-    onRename: stateProps._canRenameTeam ? () => dispatchProps.onRename(stateProps.teamname) : null,
+      : undefined,
+    onRename: stateProps._canRenameTeam ? () => dispatchProps.onRename(stateProps.teamname) : undefined,
     role: stateProps.role,
     teamname: stateProps.teamname,
   })
