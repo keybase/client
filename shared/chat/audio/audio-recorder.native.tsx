@@ -21,7 +21,7 @@ const AudioRecorder = (props: Props) => {
   // props
   const {conversationIDKey} = props
   // state
-  const [lastAmp, setLastAmp] = React.useState(minAmp - 1)
+  const ampScale = React.useRef(new Kb.NativeAnimated.Value(ampToScale(minAmp - 1))).current
   const [visible, setVisible] = React.useState(false)
   const [closingDown, setClosingDown] = React.useState(false)
   const {audioRecording} = Container.useSelector(state => ({
@@ -33,7 +33,13 @@ const AudioRecorder = (props: Props) => {
   const dispatch = Container.useDispatch()
   const meteringCb = (amp: number) => {
     props.onMetering(amp)
-    setLastAmp(amp)
+    if (!closingDown) {
+      Kb.NativeAnimated.timing(ampScale, {
+        duration: 100,
+        toValue: ampToScale(amp),
+        useNativeDriver: true,
+      }).start()
+    }
   }
   const onCancel = React.useCallback(() => {
     dispatch(Chat2Gen.createStopAudioRecording({conversationIDKey, stopType: Types.AudioStopType.CANCEL}))
@@ -72,9 +78,9 @@ const AudioRecorder = (props: Props) => {
   return !visible ? null : (
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
       <AudioButton
+        ampScale={ampScale}
         closeDown={closingDown}
         dragY={props.dragY}
-        lastAmp={lastAmp}
         locked={locked}
         sendRecording={sendRecording}
         stageRecording={stageRecording}
@@ -88,9 +94,9 @@ const AudioRecorder = (props: Props) => {
 }
 
 type ButtonProps = {
+  ampScale: Kb.NativeAnimated.Value
   closeDown: boolean
   dragY: Kb.NativeAnimated.Value
-  lastAmp: number
   locked: boolean
   sendRecording: () => void
   stageRecording: () => void
@@ -105,7 +111,6 @@ const ampToScale = (amp: number) => {
 
 const AudioButton = (props: ButtonProps) => {
   const innerScale = React.useRef(new Kb.NativeAnimated.Value(0)).current
-  const ampScale = React.useRef(new Kb.NativeAnimated.Value(0)).current
   const outerScale = React.useRef(new Kb.NativeAnimated.Value(0)).current
   const lockTranslate = React.useRef(new Kb.NativeAnimated.Value(0)).current
   const sendTranslate = React.useRef(new Kb.NativeAnimated.Value(0)).current
@@ -138,15 +143,6 @@ const AudioButton = (props: ButtonProps) => {
     ).start()
   }, [])
   React.useEffect(() => {
-    if (!props.closeDown && props.lastAmp >= minAmp) {
-      Kb.NativeAnimated.timing(ampScale, {
-        duration: 250,
-        toValue: ampToScale(props.lastAmp),
-        useNativeDriver: true,
-      }).start()
-    }
-  }, [props.closeDown, props.lastAmp])
-  React.useEffect(() => {
     if (props.locked) {
       Kb.NativeAnimated.timing(sendTranslate, {
         duration: 400,
@@ -166,11 +162,6 @@ const AudioButton = (props: ButtonProps) => {
             useNativeDriver: true,
           }),
           Kb.NativeAnimated.timing(innerScale, {
-            duration: 400,
-            toValue: 0,
-            useNativeDriver: true,
-          }),
-          Kb.NativeAnimated.timing(ampScale, {
             duration: 400,
             toValue: 0,
             useNativeDriver: true,
@@ -222,12 +213,7 @@ const AudioButton = (props: ButtonProps) => {
           height: ampSize,
           position: 'absolute',
           right: 40,
-          transform: [
-            {translateY: Kb.NativeAnimated.add(ampOffsetY, props.dragY)},
-            {
-              scale: ampScale,
-            },
-          ],
+          transform: [{translateY: Kb.NativeAnimated.add(ampOffsetY, props.dragY)}, {scale: props.ampScale}],
           width: ampSize,
         }}
       />
