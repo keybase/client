@@ -19,10 +19,10 @@ describe('chat2 reducer', () => {
   // 4: someone else wrote text
   const initialState: Types.State = {
     ...Constants.makeState(),
-    messageMap: I.Map([
+    messageMap: new Map([
       [
         conversationIDKey,
-        I.Map([
+        new Map([
           [
             Types.numberToOrdinal(1),
             ConstantsMessage.makeMessageText({

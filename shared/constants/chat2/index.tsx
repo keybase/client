@@ -169,7 +169,11 @@ export const getMessage = (
   state: TypedState,
   id: Types.ConversationIDKey,
   ordinal: Types.Ordinal
-): Types.Message | null => state.chat2.messageMap.getIn([id, ordinal])
+): Types.Message | null => {
+  const om = state.chat2.messageMap.get(id)
+  return (om && om.get(ordinal)) || null
+}
+
 export const isDecoratedMessage = (message: Types.Message): message is Types.DecoratedMessage => {
   return !(
     message.type === 'placeholder' ||
