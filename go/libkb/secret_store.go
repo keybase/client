@@ -124,17 +124,12 @@ func GetConfiguredAccountsFromProvisionedUsernames(m MetaContext, s SecretStoreA
 	}
 
 	// Get the full names
-
 	uids := make([]keybase1.UID, len(allUsernames))
 	for idx, username := range allUsernames {
-		uid := m.G().UIDMapper.MapHardcodedUsernameToUID(username)
-		if !uid.Exists() {
-			uid = UsernameToUIDPreserveCase(username.String())
-		}
-		uids[idx] = uid
+		uids[idx] = GetUIDByNormalizedUsername(m.G(), username)
 	}
 	usernamePackages, err := m.G().UIDMapper.MapUIDsToUsernamePackages(m.Ctx(), m.G(),
-		uids, time.Hour*24, time.Second*10, false)
+		uids, time.Hour*24, time.Second*10, true)
 	if err != nil {
 		if usernamePackages != nil {
 			// If data is returned, interpret the error as a warning
