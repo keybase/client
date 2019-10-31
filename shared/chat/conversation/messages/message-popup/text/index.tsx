@@ -40,6 +40,7 @@ const TextPopupMenu = (props: Props) => {
           {
             danger: true,
             disabled: !props.onDelete,
+            icon: 'iconfont-trash',
             onClick: props.onDelete,
             subTitle: 'Deletes this message for everyone',
             title: 'Delete',
@@ -49,20 +50,21 @@ const TextPopupMenu = (props: Props) => {
     ...((props.yourMessage && props.isDeleteable) || props.onDeleteMessageHistory
       ? (['Divider'] as const)
       : []),
-    ...(props.onViewMap ? [{onClick: props.onViewMap, title: 'View on Google Maps'}] : []),
+    ...(props.onViewMap ? [{icon: 'iconfont-location', onClick: props.onViewMap, title: 'View on Google Maps'}] : []),
     ...(props.onEdit && props.isEditable
       ? [
           {
+            icon: 'iconfont-edit',
             onClick: props.onEdit,
             title: 'Edit',
           },
         ]
       : []),
-    ...(props.onAddReaction ? [{onClick: props.onAddReaction, title: 'Add a reaction'}] : []),
-    ...(props.onCopy ? [{onClick: props.onCopy, title: 'Copy text'}] : []),
-    ...(props.onReply ? [{onClick: props.onReply, title: 'Reply'}] : []),
-    ...(props.onReplyPrivately ? [{onClick: props.onReplyPrivately, title: 'Reply privately'}] : []),
-    ...(props.onPinMessage ? [{onClick: props.onPinMessage, title: 'Pin message'}] : []),
+    ...(props.onAddReaction ? [{icon: 'iconfont-reacji', onClick: props.onAddReaction, title: 'Add a reaction'}] : []),
+    ...(props.onCopy ? [{icon: 'iconfont-clipboard', onClick: props.onCopy, title: 'Copy text'}] : []),
+    ...(props.onReply ? [{icon: 'iconfont-reply', onClick: props.onReply, title: 'Reply'}] : []),
+    ...(props.onReplyPrivately ? [{icon: 'iconfont-reply', onClick: props.onReplyPrivately, title: 'Reply privately'}] : []),
+    ...(props.onPinMessage ? [{icon: 'iconfont-pin', onClick: props.onPinMessage, subTitle:'testing', title: 'Pin message'}] : []),
     ...(props.onViewProfile ? [{onClick: props.onViewProfile, title: 'View profile'}] : []),
   ]
 

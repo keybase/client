@@ -14,6 +14,7 @@ import {MenuItem, _InnerMenuItem, MenuLayoutProps} from '.'
 type MenuRowProps = {
   centered?: boolean
   isHeader?: boolean
+  last: boolean
   newTag?: boolean | null
   index: number
   numItems: number
@@ -21,6 +22,8 @@ type MenuRowProps = {
   textColor?: Styles.Color
   backgroundColor?: Styles.Color
 } & MenuItem
+
+const itemContainerHeight = 56
 
 const MenuRow = (props: MenuRowProps) => (
   <NativeTouchableOpacity
@@ -31,6 +34,7 @@ const MenuRow = (props: MenuRowProps) => (
     }}
     style={Styles.collapseStyles([
       styles.itemContainer,
+      props.last && styles.itemContainerLast,
       props.backgroundColor && {backgroundColor: props.backgroundColor},
     ])}
   >
@@ -39,7 +43,7 @@ const MenuRow = (props: MenuRowProps) => (
         <Box2
           direction="horizontal"
           fullHeight={true}
-          style={styles.iconContainer}
+          style={Styles.collapseStyles([!props.centered && styles.iconContainer])}
         >
           {props.icon && (<Icon color={Styles.globalColors.black_40} fontSize={16} type={props.icon}/>)}
         </Box2>
@@ -94,12 +98,12 @@ const MenuLayout = (props: MenuLayoutProps) => {
       >
         {/* Display header if there is one */}
         {props.header && props.header.view}
-        {beginningDivider && <Divider style={styles.divider} />}
+        {beginningDivider && <Divider />}
         <ScrollView
           alwaysBounceVertical={false}
           style={Styles.collapseStyles([
-            styles.flexGrow,
-            // if we set it to numItems * 56 exactly, the scrollview
+            styles.scrollView,
+            // if we set it to numItems * itemContainerHeight exactly, the scrollview
             // shrinks by 2px for some reason, which undermines alwaysBounceVertical={false}
             // Add 2px to compensate
             {height: Math.min(menuItemsNoDividers.length * 56 + 2, isLargeScreen ? 500 : 350)},
@@ -111,6 +115,7 @@ const MenuLayout = (props: MenuLayoutProps) => {
               key={mi.title}
               {...mi}
               index={idx}
+              last={menuItemsNoDividers.length - 1 === idx}
               numItems={menuItemsNoDividers.length}
               onHidden={props.closeOnClick ? props.onHidden : undefined}
               textColor={props.textColor}
@@ -124,6 +129,7 @@ const MenuLayout = (props: MenuLayoutProps) => {
             centered={true}
             title={props.closeText || 'Close'}
             index={0}
+            last={false}
             numItems={1}
             onClick={props.onHidden} // pass in nothing to onHidden so it doesn't trigger it twice
             onHidden={() => {}}
@@ -156,10 +162,11 @@ const styles = Styles.styleSheetCreate(
       },
       divider: {
         marginBottom: Styles.globalMargins.tiny,
-        marginTop: Styles.globalMargins.tiny,
       },
-      flexGrow: {
+      scrollView: {
         flexGrow: 1,
+        paddingBottom: Styles.globalMargins.tiny,
+        paddingTop: Styles.globalMargins.tiny,
       },
       flexOne: {
         flex: 1,
@@ -172,13 +179,17 @@ const styles = Styles.styleSheetCreate(
         ...Styles.globalStyles.flexBoxColumn,
         alignItems: 'center',
         backgroundColor: Styles.globalColors.white,
-        height: 56,
+        height: itemContainerHeight,
         justifyContent: 'center',
         paddingBottom: Styles.globalMargins.tiny,
         paddingLeft: Styles.globalMargins.medium,
         paddingRight: Styles.globalMargins.medium,
         paddingTop: Styles.globalMargins.tiny,
         position: 'relative',
+      },
+      itemContainerLast: {
+        height: 'auto',
+        paddingBottom: Styles.globalMargins.small,
       },
       menuBox: {
         ...Styles.globalStyles.flexBoxColumn,
