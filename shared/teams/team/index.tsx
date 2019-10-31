@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
+import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
 import * as Styles from '../../styles'
 import {renderItem as renderInvitesItem} from './invites-tab/helper'
@@ -13,6 +14,8 @@ import {Row} from './rows'
 export type Sections = Array<{data: Array<Row>; header?: Row; key: string}>
 
 export type Props = {
+  load: () => void
+  teamID: Types.TeamID
   teamname: Types.Teamname
   selectedTab: string
   sections: Sections
@@ -20,6 +23,11 @@ export type Props = {
 }
 
 class Team extends React.Component<Props> {
+  componentDidUpdate(prevProps: Props) {
+    if (this.props.teamID !== prevProps.teamID) {
+      this.props.load()
+    }
+  }
   // TODO type this
   private renderItem = ({item}: {item: Row}) => {
     switch (item.type) {
@@ -61,17 +69,23 @@ class Team extends React.Component<Props> {
 
   render() {
     return (
-      <Kb.Box style={styles.container}>
-        <Kb.SectionList
-          alwaysVounceVertical={false}
-          renderItem={this.renderItem}
-          renderSectionHeader={this.renderSectionHeader}
-          stickySectionHeadersEnabled={Styles.isMobile}
-          sections={this.props.sections}
-          style={styles.list}
-          contentContainerStyle={styles.listContentContainer}
-        />
-      </Kb.Box>
+      <Kb.Reloadable
+        waitingKeys={Constants.teamGetWaitingKey(this.props.teamname)}
+        onReload={this.props.load}
+        reloadOnMount={true}
+      >
+        <Kb.Box style={styles.container}>
+          <Kb.SectionList
+            alwaysVounceVertical={false}
+            renderItem={this.renderItem}
+            renderSectionHeader={this.renderSectionHeader}
+            stickySectionHeadersEnabled={Styles.isMobile}
+            sections={this.props.sections}
+            style={styles.list}
+            contentContainerStyle={styles.listContentContainer}
+          />
+        </Kb.Box>
+      </Kb.Reloadable>
     )
   }
 }
@@ -89,16 +103,13 @@ const styles = Styles.styleSheetCreate(() => ({
     isElectron: {
       ...Styles.globalStyles.fillAbsolute,
       ...Styles.globalStyles.flexBoxColumn,
-      alignItems: 'center',
+      alignItems: 'stretch',
     },
     isMobile: {
       ...Styles.globalStyles.fillAbsolute,
     },
   }),
   listContentContainer: Styles.platformStyles({
-    isElectron: {
-      width: '100%',
-    },
     isMobile: {
       display: 'flex',
       flexGrow: 1,

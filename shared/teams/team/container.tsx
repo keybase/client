@@ -7,10 +7,11 @@ import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
-import Team, {Props, Sections} from '.'
+import Team, {Sections} from '.'
 import makeRows from './rows'
 
-type OwnProps = Container.RouteProps<{teamID: Types.TeamID}> & {
+type TabsStateOwnProps = Container.RouteProps<{teamID: Types.TeamID}>
+type OwnProps = TabsStateOwnProps & {
   selectedTab: Types.TabKey
   setSelectedTab: (tab: Types.TabKey) => void
 }
@@ -30,6 +31,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     _teamnameTodoRemove: Constants.getTeamDetails(state, teamID).teamname,
     selectedTab,
     teamDetails: Constants.getTeamDetails(state, teamID),
+    teamID,
     yourOperations: Constants.getCanPerformByID(state, teamID),
     yourUsername: state.config.username,
   }
@@ -43,33 +45,6 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {setSelectedTab}:
   },
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
-
-// TODO move into index
-class Reloadable extends React.PureComponent<Props & {_load: () => void}> {
-  componentDidUpdate(prevProps) {
-    if (this.props.teamname !== prevProps.teamname) {
-      this.props._load()
-      this.props.setSelectedTab(lastSelectedTabs[this.props.teamname] || 'members')
-    }
-  }
-
-  render() {
-    return (
-      <Kb.Reloadable
-        waitingKeys={Constants.teamGetWaitingKey(this.props.teamname)}
-        onReload={this.props._load}
-        reloadOnMount={true}
-      >
-        <Team
-          sections={this.props.sections}
-          selectedTab={this.props.selectedTab}
-          setSelectedTab={this.props.setSelectedTab}
-          teamname={this.props.teamname}
-        />
-      </Kb.Reloadable>
-    )
-  }
-}
 
 const Connected = Container.compose(
   Container.connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps) => {
@@ -85,41 +60,48 @@ const Connected = Container.compose(
     ]
     const customComponent = <CustomTitle teamname={stateProps._teamnameTodoRemove} />
     return {
-      _load: () => dispatchProps._loadTeam(stateProps._teamnameTodoRemove),
       customComponent,
+      load: () => dispatchProps._loadTeam(stateProps._teamnameTodoRemove),
       onBack: dispatchProps.onBack,
       rows,
       sections,
       selectedTab: stateProps.selectedTab,
       setSelectedTab: selectedTab =>
         dispatchProps._setSelectedTab(stateProps._teamnameTodoRemove, selectedTab),
+      teamID: stateProps.teamID,
       teamname: stateProps._teamnameTodoRemove,
     }
   }),
   Kb.HeaderHoc
-)(Reloadable) as any
+)(Team) as any
 
-class TabsState extends React.PureComponent<Props, {selectedTab: Types.TabKey}> {
-  static navigationOptions = (ownProps: Container.RouteProps<{teamname: string}>) => ({
+class TabsState extends React.PureComponent<TabsStateOwnProps, {selectedTab: Types.TabKey}> {
+  static navigationOptions = (ownProps: TabsStateOwnProps) => ({
     headerExpandable: true,
     headerHideBorder: true,
     headerRightActions: Container.isMobile
       ? undefined
-      : () => <HeaderRightActions teamname={Container.getRouteProps(ownProps, 'teamname', '')} />,
+      : () => <HeaderRightActions teamID={Container.getRouteProps(ownProps, 'teamID', '')} />,
     headerTitle: Container.isMobile
       ? undefined
-      : () => <HeaderTitle teamname={Container.getRouteProps(ownProps, 'teamname', '')} />,
+      : () => <HeaderTitle teamID={Container.getRouteProps(ownProps, 'teamID', '')} />,
     subHeader: Container.isMobile
       ? undefined
-      : () => <SubHeader teamname={Container.getRouteProps(ownProps, 'teamname', '')} />,
+      : () => <SubHeader teamID={Container.getRouteProps(ownProps, 'teamID', '')} />,
   })
-  state = {selectedTab: lastSelectedTabs[this.props.teamname] || 'members'}
-  _setSelectedTab = selectedTab => {
+  state = {selectedTab: lastSelectedTabs[Container.getRouteProps(this.props, 'teamID', '')] || 'members'}
+  private setSelectedTab = selectedTab => {
     this.setState({selectedTab})
+  }
+  componentDidUpdate(prevProps: TabsStateOwnProps) {
+    const teamID = Container.getRouteProps(this.props, 'teamID', '')
+    if (teamID !== Container.getRouteProps(prevProps, 'teamID', '')) {
+      this.setSelectedTab(lastSelectedTabs[teamID] || 'members')
+    }
   }
   render() {
     return (
-      <Connected {...this.props} setSelectedTab={this._setSelectedTab} selectedTab={this.state.selectedTab} />
+      <Connected {...this.props} setSelectedTab={this.setSelectedTab} selectedTab={this.state.selectedTab} />
     )
   }
 }
