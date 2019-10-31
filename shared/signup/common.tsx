@@ -69,6 +69,8 @@ type HeaderProps = {
   style: Styles.StylesCrossPlatform
   negative: boolean
   rightActionComponent?: React.ReactNode
+  rightActionLabel?: string
+  onRightAction?: (() => void) | null
 }
 
 // Only used on desktop
@@ -104,6 +106,16 @@ const Header = (props: HeaderProps) => (
         </Kb.ClickableBox>
       )}
       {props.titleComponent || <Kb.Text type="Header">{props.title}</Kb.Text>}
+      {props.onRightAction && !!props.rightActionLabel && (
+        <Kb.Button
+          type="Default"
+          mode="Secondary"
+          small={true}
+          label={props.rightActionLabel}
+          onClick={props.onRightAction}
+          style={styles.rightActionButton}
+        />
+      )}
       {props.rightActionComponent && (
         <Kb.Box2 direction="horizontal" style={styles.rightAction}>
           {props.rightActionComponent}
@@ -164,6 +176,8 @@ export const SignupScreen = (props: SignupScreenProps) => (
         style={Styles.collapseStyles([props.noBackground && styles.whiteHeaderContainer, props.headerStyle])}
         negative={!!props.negativeHeader}
         rightActionComponent={props.rightActionComponent}
+        rightActionLabel={props.rightActionLabel}
+        onRightAction={props.onRightAction}
       />
     )}
     {Styles.isMobile && !props.skipMobileHeader && (
@@ -315,6 +329,11 @@ const styles = Styles.styleSheetCreate(
         position: 'absolute',
         right: 0,
         top: 0,
+      },
+      rightActionButton: {
+        position: 'absolute',
+        right: Styles.globalMargins.small,
+        top: 10,
       },
       titleContainer: {
         ...Styles.padding(Styles.globalMargins.xsmall, 0, Styles.globalMargins.small),
