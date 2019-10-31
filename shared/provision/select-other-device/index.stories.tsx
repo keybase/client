@@ -15,22 +15,31 @@ const rd = {
 
 const props = {
   devices: [
-    Constants.rpcDeviceToDevice({...rd, deviceID: '1', name: 'iphone', type: 'mobile'}),
+    Constants.rpcDeviceToDevice({
+      ...rd,
+      deviceID: '1',
+      deviceNumberOfType: 1,
+      name: 'iphone',
+      type: 'mobile',
+    }),
     Constants.rpcDeviceToDevice({
       ...rd,
       deviceID: '2',
+      deviceNumberOfType: 2,
       name: 'Home Computer',
       type: 'desktop',
     }),
     Constants.rpcDeviceToDevice({
       ...rd,
       deviceID: '3',
+      deviceNumberOfType: 3,
       name: 'Android Nexus 5x',
       type: 'mobile',
     }),
     Constants.rpcDeviceToDevice({
       ...rd,
       deviceID: '4',
+      deviceNumberOfType: 4,
       name: 'Tuba Contest',
       type: 'backup',
     }),
@@ -59,6 +68,7 @@ for (var i = 0; i < 100; ++i) {
     Constants.rpcDeviceToDevice({
       ...rd,
       deviceID: String(i + 1),
+      deviceNumberOfType: i,
       name: 'name: ' + String(i),
       type,
     })

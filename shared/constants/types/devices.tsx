@@ -7,6 +7,7 @@ export type Device = {
   created: number
   currentDevice: boolean
   deviceID: DeviceID
+  deviceNumberOfType: number
   lastUsed: number
   name: string
   provisionedAt?: number

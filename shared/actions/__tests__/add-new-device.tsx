@@ -180,7 +180,7 @@ describe('reply with device type', () => {
     const {manager, response} = makeInit({
       initialStore: {
         provision: Constants.makeState({
-          codePageOtherDeviceType: 'mobile',
+          codePageOtherDevice: Constants.makeDevice({type: 'mobile'}),
         }),
       },
       method: 'keybase.1.provisionUi.chooseDeviceType',
@@ -197,7 +197,7 @@ describe('reply with device type', () => {
     const {manager, response} = makeInit({
       initialStore: {
         provision: Constants.makeState({
-          codePageOtherDeviceType: 'desktop',
+          codePageOtherDevice: Constants.makeDevice({type: 'desktop'}),
         }),
       },
       method: 'keybase.1.provisionUi.chooseDeviceType',
@@ -215,8 +215,8 @@ describe('reply with device type', () => {
       makeInit({
         initialStore: {
           provision: Constants.makeState({
-            codePageOtherDeviceType: 'backup',
-          } as any),
+            codePageOtherDevice: Constants.makeDevice({type: 'backup'}),
+          }),
         },
         method: 'keybase.1.provisionUi.chooseDeviceType',
         payload: {},
