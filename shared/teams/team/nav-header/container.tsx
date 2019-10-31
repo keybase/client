@@ -49,7 +49,7 @@ export const HeaderTitle = Container.connect(
     return {
       _canEditDescAvatar: yourOperations.editTeamDescription,
       _canRenameTeam: yourOperations.renameTeam,
-      description: 'TODO',
+      description: Constants.getTeamPublicitySettings(state, teamname).description,
       members: memberCount,
       role,
       teamname,
@@ -74,11 +74,13 @@ export const HeaderTitle = Container.connect(
   (stateProps, dispatchProps) => ({
     description: stateProps.description,
     members: stateProps.members,
-    onEditAvatar: () =>
-      stateProps._canEditDescAvatar ? dispatchProps.onEditAvatar(stateProps.teamname) : null,
-    onEditDescription: () =>
-      stateProps._canEditDescAvatar ? dispatchProps.onEditDescription(stateProps.teamname) : null,
-    onRename: () => (stateProps._canRenameTeam ? dispatchProps.onRename(stateProps.teamname) : null),
+    onEditAvatar: stateProps._canEditDescAvatar
+      ? () => dispatchProps.onEditAvatar(stateProps.teamname)
+      : null,
+    onEditDescription: stateProps._canEditDescAvatar
+      ? () => dispatchProps.onEditDescription(stateProps.teamname)
+      : null,
+    onRename: stateProps._canRenameTeam ? () => dispatchProps.onRename(stateProps.teamname) : null,
     role: stateProps.role,
     teamname: stateProps.teamname,
   })
