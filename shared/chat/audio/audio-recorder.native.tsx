@@ -48,6 +48,7 @@ const AudioRecorder = (props: Props) => {
   }, [dispatch, conversationIDKey])
   const startRecording = React.useCallback(
     (meteringCb: (n: number) => void) => {
+      closingDownRef.current = false
       dispatch(Chat2Gen.createStartAudioRecording({conversationIDKey, meteringCb}))
     },
     [dispatch, conversationIDKey]

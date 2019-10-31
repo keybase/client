@@ -32,7 +32,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
   private input: null | Kb.PlainInput = null
   private lastText?: string
   private whichMenu?: menuType
-  private ampTracker = new AmpTracker(60)
+  private ampTracker = new AmpTracker()
   private audioDragY = new Kb.NativeAnimated.Value(0)
   state = {hasText: false}
 
