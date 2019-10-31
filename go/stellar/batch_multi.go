@@ -2,6 +2,7 @@ package stellar
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"time"
 
@@ -15,6 +16,8 @@ import (
 	"github.com/keybase/stellarnet"
 	"github.com/stellar/go/keypair"
 )
+
+var ErrRelayinMultiBatch = errors.New("relay recipient not allowed in a multi-op batch")
 
 type multiOp struct {
 	Recipient     stellar1.AccountID
@@ -47,7 +50,6 @@ func BatchMulti(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.B
 
 	results := make([]stellar1.BatchPaymentResult, len(arg.Payments))
 	var multiOps []multiOp
-	var relays []stellar1.BatchPaymentArg
 	for i, payment := range arg.Payments {
 		results[i] = stellar1.BatchPaymentResult{
 			Username: libkb.NewNormalizedUsername(payment.Recipient).String(),
@@ -60,10 +62,10 @@ func BatchMulti(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.B
 		}
 
 		if recipient.AccountID == nil {
-			// relays don't work well in multi-op payments, so handle
-			// them separately
-			// XXX include recipient too?  does that help with anything?
-			relays = append(relays, payment)
+			// relays don't work well in multi-op payments, so return
+			// an error.  the caller can use the non-multi version
+			// for this batch.
+			return res, ErrRelayinMultiBatch
 		} else {
 			mop, err := prepareDirectOp(mctx, walletState, payment, recipient)
 			if err != nil {
@@ -119,6 +121,8 @@ func BatchMulti(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.B
 			results[i].TxID = submitRes.TxID
 			results[i].Status = stellar1.PaymentStatus_COMPLETED
 			results[i].EndTime = now
+
+			// XXX send chat messages
 		}
 	}
 
