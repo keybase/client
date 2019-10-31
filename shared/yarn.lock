@@ -1270,7 +1270,7 @@
 
 "@msgpack/msgpack@1.9.1", "@msgpack/msgpack@git://github.com/keybase/msgpack-javascript#nojima/keybase-fixes-off-191":
   version "1.9.1"
-  resolved "git://github.com/keybase/msgpack-javascript#4baddde592347358625b70ef28f09176c76f40a2"
+  resolved "git://github.com/keybase/msgpack-javascript#9931576abe9f49cd527c2da586d71eb1dff6e7f7"
   dependencies:
     base64-js "^1.3.0"
 
