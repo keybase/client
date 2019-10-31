@@ -96,8 +96,11 @@ type ButtonProps = {
   stageRecording: () => void
 }
 
+const maxScale = 8
+const minScale = 3
 const ampToScale = (amp: number) => {
-  return Math.max(3, (1 - amp / minAmp) * 8)
+  const prop = Math.max(0, 1 - amp / minAmp)
+  return minScale + prop * (maxScale - minScale)
 }
 
 const AudioButton = (props: ButtonProps) => {
@@ -409,6 +412,7 @@ type CounterProps = {
 const AudioCounter = (props: CounterProps) => {
   const translate = React.useRef(new Kb.NativeAnimated.Value(0)).current
   const [seconds, setSeconds] = React.useState(0)
+  const [startTime] = React.useState(Date.now())
   React.useEffect(() => {
     Kb.NativeAnimated.timing(translate, {
       duration: 400,
@@ -427,8 +431,8 @@ const AudioCounter = (props: CounterProps) => {
     }
   }, [props.closeDown])
   React.useEffect(() => {
-    const timer = setInterval(() => {
-      setSeconds(seconds + 1)
+    const timer = setTimeout(() => {
+      setSeconds((Date.now() - startTime) / 1000)
     }, 1000)
     return () => clearTimeout(timer)
   }, [seconds])

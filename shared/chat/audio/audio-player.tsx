@@ -58,10 +58,14 @@ type Props = {
 
 const AudioPlayer = (props: Props) => {
   const vidRef = React.useRef<AudioVideo>(null)
+  const [timeStart, setTimeStart] = React.useState(0)
   const [timeLeft, setTimeLeft] = React.useState(props.duration)
   const [paused, setPaused] = React.useState(true)
   const onClick = () => {
     if (paused) {
+      if (timeStart === 0) {
+        setTimeStart(Date.now())
+      }
       setPaused(false)
     } else {
       setPaused(true)
@@ -72,18 +76,22 @@ const AudioPlayer = (props: Props) => {
       return
     }
     const timer = setTimeout(() => {
-      if (timeLeft - 1000 <= 0) {
+      const newTimeLeft = props.duration - (Date.now() - timeStart)
+      if (newTimeLeft <= 0) {
         setTimeLeft(props.duration)
         setPaused(true)
+        setTimeStart(0)
         if (vidRef.current) {
           vidRef.current.seek(0)
         }
       } else {
-        setTimeLeft(timeLeft - 1000)
+        setTimeLeft(newTimeLeft)
       }
     }, 1000)
-    return () => clearTimeout(timer)
-  }, [timeLeft, paused, props.duration])
+    return () => {
+      clearTimeout(timer)
+    }
+  }, [timeLeft, timeStart, paused, props.duration])
 
   return (
     <Kb.Box2 direction="horizontal" style={styles.container} gap="tiny">
