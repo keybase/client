@@ -689,7 +689,8 @@
       "symbols": [
         "MAIN_0",
         "BLINDED_1",
-        "SELF_2"
+        "SELF_2",
+        "UNCOMMITTED_3"
       ]
     },
     {
@@ -741,6 +742,18 @@
         {
           "type": "Seqno",
           "name": "latestSeqnoHint"
+        },
+        {
+          "type": "Seqno",
+          "name": "lastCommittedSeqno"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "Time",
+            "keys": "Seqno"
+          },
+          "name": "linkReceiptTimes"
         },
         {
           "type": {

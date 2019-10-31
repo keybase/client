@@ -320,7 +320,13 @@ protocol teams {
     BLINDED_1,
     // When we make changes to the hidden chain ourselves, then we bump this
     // ratchet.
-    SELF_2
+    SELF_2,
+    // The server can tell us about a new hidden team chain link which was not
+    // yet committed to the blind tree (as that is updated slowly). We trust the
+    // server and accept it for now, but will complain later if this link does
+    // not get added to the blind tree later within a reasonable time (or if the
+    // tree shows a different history). 
+    UNCOMMITTED_3
   }
 
   record HiddenTeamChainRatchetSet{
@@ -348,6 +354,12 @@ protocol teams {
     // for last seqno. If this is wrong or buggy, it's a performance problem,
     // not a security problem.
     Seqno latestSeqnoHint;
+
+    Seqno lastCommittedSeqno;
+
+    // Used to ensure that the uncommitted updates given from the server are
+    // committed to the blind tree within a reasonable time.
+    map<Seqno, Time> linkReceiptTimes;
 
     // For each PTK type (right now only 'reader'), say where the last seqno of
     // the type is in the chain.
