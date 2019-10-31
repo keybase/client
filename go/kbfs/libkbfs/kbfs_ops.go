@@ -197,6 +197,11 @@ func (fs *KBFSOpsStandard) PushConnectionStatusChange(
 	service string, newStatus error) {
 	fs.currentStatus.PushConnectionStatusChange(service, newStatus)
 
+	if service == MDServiceName {
+		fs.config.SubscriptionManagerPublisher().PublishChange(
+			keybase1.SubscriptionTopic_FILES_TAB_BADGE)
+	}
+
 	if fs.config.KeybaseService() == nil {
 		return
 	}
@@ -359,6 +364,118 @@ func (fs *KBFSOpsStandard) GetFavorites(ctx context.Context) (
 	return favs, nil
 }
 
+func (fs *KBFSOpsStandard) getConflictMaps(ctx context.Context) (
+	conflictMap map[ConflictJournalRecord]tlf.ID,
+	clearedMap map[string][]keybase1.Path,
+	cleared []ConflictJournalRecord, err error) {
+	journalManager, err := GetJournalManager(fs.config)
+	if err != nil {
+		// Journaling not enabled.
+		return nil, nil, nil, nil
+	}
+	conflicts, cleared, err := journalManager.GetJournalsInConflict(ctx)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	if len(conflicts) == 0 && len(cleared) == 0 {
+		return nil, nil, nil, nil
+	}
+
+	clearedMap = make(map[string][]keybase1.Path)
+	for _, c := range cleared {
+		clearedMap[c.ServerViewPath.String()] = append(
+			clearedMap[c.ServerViewPath.String()], c.LocalViewPath)
+	}
+
+	conflictMap = make(map[ConflictJournalRecord]tlf.ID, len(conflicts))
+	for _, c := range conflicts {
+		conflictMap[ConflictJournalRecord{Name: c.Name, Type: c.Type}] = c.ID
+	}
+	return conflictMap, clearedMap, cleared, nil
+}
+
+func (fs *KBFSOpsStandard) findRelatedFolders(ctx context.Context,
+	conflictMap map[ConflictJournalRecord]tlf.ID,
+	clearedMap map[string][]keybase1.Path,
+	folderName string, folderType keybase1.FolderType) (
+	folderNormalView keybase1.FolderNormalView, found bool, err error) {
+	name := tlf.CanonicalName(folderName)
+	t := tlf.TypeFromFolderType(folderType)
+	c := ConflictJournalRecord{
+		Name: name,
+		Type: t,
+	}
+
+	// First check for any current automatically-resolving
+	// conflicts, and whether we're stuck.
+	tlfID, ok := conflictMap[c]
+	if ok {
+		fb := data.FolderBranch{Tlf: tlfID, Branch: data.MasterBranch}
+		ops := fs.getOps(ctx, fb, FavoritesOpNoChange)
+		s, err := ops.FolderConflictStatus(ctx)
+		if err != nil {
+			return keybase1.FolderNormalView{}, false, err
+		}
+		if s != keybase1.FolderConflictType_NONE {
+			folderNormalView.ResolvingConflict = true
+			folderNormalView.StuckInConflict =
+				s == keybase1.FolderConflictType_IN_CONFLICT_AND_STUCK
+			found = true
+		}
+	}
+	// Then check whether this favorite has any local conflict views.
+	p := tlfhandle.BuildProtocolPathForTlfName(t, name)
+	localViews, ok := clearedMap[p.String()]
+	if ok {
+		folderNormalView.LocalViews = localViews
+		found = true
+	}
+
+	return folderNormalView, found, nil
+}
+
+// GetFolderWithFavFlags implements the KBFSOps interface.
+func (fs *KBFSOpsStandard) GetFolderWithFavFlags(ctx context.Context, handle *tlfhandle.Handle) (keybase1.FolderWithFavFlags, error) {
+	favFolder := handle.ToFavorite()
+	folderWithFavFlags, err := fs.favs.GetFolderWithFavFlags(ctx, favFolder)
+	if err != nil {
+		return keybase1.FolderWithFavFlags{}, err
+	}
+	if folderWithFavFlags == nil {
+		folderWithFavFlags = &keybase1.FolderWithFavFlags{
+			Folder: favoriteToFolder(favFolder, handle.FavoriteData()),
+		}
+	}
+
+	// Add sync config.
+	if fs.config.IsSyncedTlf(handle.TlfID()) {
+		syncConfig, err := fs.GetSyncConfig(ctx, handle.TlfID())
+		if err != nil {
+			return keybase1.FolderWithFavFlags{}, err
+		}
+		folderWithFavFlags.Folder.SyncConfig = &syncConfig
+	}
+
+	// Add conflict state
+	conflictMap, clearedMap, _, err := fs.getConflictMaps(ctx)
+	if err != nil {
+		return keybase1.FolderWithFavFlags{}, err
+	}
+	folderNormalView, found, err := fs.findRelatedFolders(
+		ctx, conflictMap, clearedMap, favFolder.Name, favFolder.Type.FolderType())
+	if err != nil {
+		return keybase1.FolderWithFavFlags{}, err
+	}
+	if found {
+		conflictState :=
+			keybase1.NewConflictStateWithNormalview(folderNormalView)
+		folderWithFavFlags.Folder.ConflictState = &conflictState
+	}
+
+	return *folderWithFavFlags, nil
+}
+
 // GetFavoritesAll implements the KBFSOps interface for
 // KBFSOpsStandard.
 func (fs *KBFSOpsStandard) GetFavoritesAll(ctx context.Context) (
@@ -418,21 +535,11 @@ func (fs *KBFSOpsStandard) GetFavoritesAll(ctx context.Context) (
 
 	// Add the conflict status for any folders in a conflict state to
 	// the favorite struct.
-	journalManager, err := GetJournalManager(fs.config)
-	if err != nil {
-		// Journaling not enabled.
-		return favs, nil
-	}
-	conflicts, cleared, err := journalManager.GetJournalsInConflict(ctx)
+	conflictMap, clearedMap, cleared, err := fs.getConflictMaps(ctx)
 	if err != nil {
 		return keybase1.FavoritesResult{}, err
 	}
 
-	if len(conflicts) == 0 && len(cleared) == 0 {
-		return favs, nil
-	}
-
-	clearedMap := make(map[string][]keybase1.Path)
 	for _, c := range cleared {
 		cs := keybase1.NewConflictStateWithManualresolvinglocalview(
 			keybase1.FolderConflictManualResolvingLocalView{
@@ -446,51 +553,13 @@ func (fs *KBFSOpsStandard) GetFavoritesAll(ctx context.Context) (
 				ResetMembers:  []keybase1.User{},
 				ConflictState: &cs,
 			})
-
-		clearedMap[c.ServerViewPath.String()] = append(
-			clearedMap[c.ServerViewPath.String()], c.LocalViewPath)
-	}
-
-	conflictMap := make(map[ConflictJournalRecord]tlf.ID, len(conflicts))
-	for _, c := range conflicts {
-		conflictMap[ConflictJournalRecord{Name: c.Name, Type: c.Type}] = c.ID
 	}
 
 	found := 0
 	for i, f := range favs.FavoriteFolders {
-		name := tlf.CanonicalName(f.Name)
-		t := tlf.TypeFromFolderType(f.FolderType)
-		c := ConflictJournalRecord{
-			Name: name,
-			Type: t,
-		}
-
-		folderNormalView := keybase1.FolderNormalView{}
-		currentFavFound := false
-
-		// First check for any current automatically-resolving
-		// conflicts, and whether we're stuck.
-		tlfID, ok := conflictMap[c]
-		if ok {
-			fb := data.FolderBranch{Tlf: tlfID, Branch: data.MasterBranch}
-			ops := fs.getOps(ctx, fb, FavoritesOpNoChange)
-			s, err := ops.FolderConflictStatus(ctx)
-			if err != nil {
-				return keybase1.FavoritesResult{}, err
-			}
-			if s != keybase1.FolderConflictType_NONE {
-				folderNormalView.ResolvingConflict = true
-				folderNormalView.StuckInConflict =
-					s == keybase1.FolderConflictType_IN_CONFLICT_AND_STUCK
-				currentFavFound = true
-			}
-		}
-		// Then check whether this favorite has any local conflict views.
-		p := tlfhandle.BuildProtocolPathForTlfName(t, name)
-		localViews, ok := clearedMap[p.String()]
-		if ok {
-			folderNormalView.LocalViews = localViews
-			currentFavFound = true
+		folderNormalView, currentFavFound, err := fs.findRelatedFolders(ctx, conflictMap, clearedMap, f.Name, f.FolderType)
+		if err != nil {
+			return keybase1.FavoritesResult{}, err
 		}
 
 		if currentFavFound {
@@ -507,6 +576,48 @@ func (fs *KBFSOpsStandard) GetFavoritesAll(ctx context.Context) (
 	}
 
 	return favs, nil
+}
+
+// GetBadge implements the KBFSOps interface for KBFSOpsStandard.
+func (fs *KBFSOpsStandard) GetBadge(ctx context.Context) (
+	keybase1.FilesTabBadge, error) {
+	journalManager, err := GetJournalManager(fs.config)
+	if err != nil {
+		// Journaling not enabled.
+		return keybase1.FilesTabBadge_NONE, nil
+	}
+
+	tlfsInConflict, numUploadingTlfs, err := journalManager.GetFoldersSummary()
+	if err != nil {
+		return keybase1.FilesTabBadge_NONE, err
+	}
+
+	for _, tlfID := range tlfsInConflict {
+		fb := data.FolderBranch{Tlf: tlfID, Branch: data.MasterBranch}
+		ops := fs.getOps(ctx, fb, FavoritesOpNoChange)
+		s, err := ops.FolderConflictStatus(ctx)
+		if err != nil {
+			return keybase1.FilesTabBadge_NONE, err
+		}
+		if s == keybase1.FolderConflictType_IN_CONFLICT_AND_STUCK {
+			return keybase1.FilesTabBadge_UPLOADING_STUCK, nil
+		}
+	}
+
+	if numUploadingTlfs == 0 {
+		return keybase1.FilesTabBadge_NONE, nil
+	}
+
+	serviceErrors, _ := fs.config.KBFSOps().StatusOfServices()
+	if serviceErrors[MDServiceName] != nil {
+		// Assume that if we're not connected to the mdserver,
+		// then data isn't uploading.  Technically it could still
+		// be uploading to the bserver, but that should be very
+		// rare.
+		return keybase1.FilesTabBadge_AWAITING_UPLOAD, nil
+	}
+
+	return keybase1.FilesTabBadge_UPLOADING, nil
 }
 
 // RefreshCachedFavorites implements the KBFSOps interface for

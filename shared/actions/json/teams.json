@@ -193,12 +193,13 @@
       "teamname": "string"
     },
     "setTeamDetails": {
+      "teamID": "Types.TeamID",
       "teamname": "string",
-      "members": "I.Map<string, Types.MemberInfo>",
-      "settings": "Types.TeamSettings",
-      "invites": "I.Set<Types.InviteInfo>",
-      "subteams": "I.Set<Types.Teamname>",
-      "requests": "I.Map<string, I.Set<Types.RequestInfo>>"
+      "members": "RPCTypes.TeamMembersDetails",
+      "settings": "RPCTypes.TeamSettings",
+      "invites": "Array<Types._InviteInfo>",
+      "subteams": "Array<Types.Teamname>",
+      "requests": "Map<string, Array<string>>"
     },
     "setTeamCanPerform": {
       "teamname": "string",
@@ -235,8 +236,8 @@
     },
     "setNewTeamInfo": {
       "deletedTeams": "Array<RPCTypes.DeletedTeamInfo>",
-      "newTeams": "Set<string>",
-      "newTeamRequests": "Array<string>",
+      "newTeams": "Set<Types.TeamID>",
+      "newTeamRequests": "Array<Types.TeamID>",
       "teamNameToResetUsers": "I.Map<Types.Teamname, I.Set<Types.ResetUser>>"
     },
     "setTeamSawChatBanner": {},
@@ -268,12 +269,6 @@
     "deleteChannelInfo": {
       "teamname": "Types.Teamname",
       "conversationIDKey": "ChatTypes.ConversationIDKey"
-    },
-    "badgeAppForTeams": {
-      "deletedTeams": "Array<RPCTypes.DeletedTeamInfo>",
-      "newTeamNames": "Array<string>",
-      "newTeamAccessRequests": "Array<string>",
-      "teamsWithResetUsers": "ReadonlyArray<{id: Buffer, teamname: string, username: string, uid: string}>"
     },
     "checkRequestedAccess": {
       "teamname": "string"

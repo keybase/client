@@ -13,49 +13,30 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestTeambotNewTeambotKeyNotif(t *testing.T) {
-	tt := newTeamTester(t)
-	defer tt.cleanup()
-
-	user1 := tt.addUser("one")
-	botua := tt.addUser("botua")
-	botuaUID := gregor1.UID(botua.uid.ToBytes())
-	mctx := libkb.NewMetaContextForTest(*user1.tc)
-
-	teamID, teamName := user1.createTeam2()
-	user1.addRestrictedBotTeamMember(teamName.String(), botua.username, keybase1.TeamBotSettings{})
-
-	teambot.ServiceInit(mctx)
-	memberKeyer := user1.tc.G.GetTeambotMemberKeyer()
-
-	team, err := teams.Load(mctx.Ctx(), mctx.G(), keybase1.LoadTeamArg{
-		ID:          teamID,
-		ForceRepoll: true,
-	})
-	require.NoError(t, err)
-	appKey, err := team.ApplicationKey(mctx.Ctx(), keybase1.TeamApplication_CHAT)
-	require.NoError(t, err)
-
-	teambotKey, created, err := memberKeyer.GetOrCreateTeambotKey(mctx, teamID, botuaUID, appKey)
-	require.NoError(t, err)
-	require.True(t, created)
-	require.Equal(t, teambotKey.Generation(), appKey.Generation())
-
-	expectedArg := keybase1.NewTeambotKeyArg{
-		Id:         teamID,
-		Generation: teambotKey.Metadata.Generation,
-	}
-	checkNewTeambotKeyNotifications(botua.tc, botua.notifications, expectedArg)
-}
-
 func checkNewTeambotKeyNotifications(tc *libkb.TestContext, notifications *teamNotifyHandler,
-	expectedArg keybase1.NewTeambotKeyArg) {
-	select {
-	case arg := <-notifications.newTeambotKeyCh:
-		require.Equal(tc.T, expectedArg, arg)
-		return
-	case <-time.After(time.Second * libkb.CITimeMultiplier(tc.G)):
-		require.Fail(tc.T, "no notification on newTeambotKey")
+	expectedArgs []keybase1.NewTeambotKeyArg) {
+	matches := map[keybase1.NewTeambotKeyArg]struct{}{}
+	numFound := 0
+	for {
+		select {
+		case arg := <-notifications.newTeambotKeyCh:
+			for _, expectedArg := range expectedArgs {
+				if expectedArg == arg {
+					matches[arg] = struct{}{}
+					break
+				}
+			}
+			// make don't have any unexpected notifications
+			if len(matches) <= numFound {
+				require.Fail(tc.T, "unexpected newTeamKeyNeeded notification", arg)
+			}
+			if len(matches) == len(expectedArgs) {
+				return
+			}
+			numFound++
+		case <-time.After(5 * time.Second * libkb.CITimeMultiplier(tc.G)):
+			require.Fail(tc.T, "no notification on newTeambotKey")
+		}
 	}
 }
 
@@ -65,7 +46,7 @@ func checkTeambotKeyNeededNotifications(tc *libkb.TestContext, notifications *te
 	case arg := <-notifications.teambotKeyNeededCh:
 		require.Equal(tc.T, expectedArg, arg)
 		return
-	case <-time.After(time.Second * libkb.CITimeMultiplier(tc.G)):
+	case <-time.After(5 * time.Second * libkb.CITimeMultiplier(tc.G)):
 		require.Fail(tc.T, "no notification on teambotKeyNeeded")
 	}
 }
@@ -109,11 +90,19 @@ func TestTeambotKey(t *testing.T) {
 	user1.addRestrictedBotTeamMember(teamName.String(), botua.username, keybase1.TeamBotSettings{})
 
 	// bot gets a key on addition to the team
-	newKeyArg := keybase1.NewTeambotKeyArg{
-		Id:         teamID,
-		Generation: 1,
+	newKeyArgs := []keybase1.NewTeambotKeyArg{
+		{
+			Id:          teamID,
+			Generation:  1,
+			Application: keybase1.TeamApplication_CHAT,
+		},
+		{
+			Id:          teamID,
+			Generation:  1,
+			Application: keybase1.TeamApplication_KVSTORE,
+		},
 	}
-	checkNewTeambotKeyNotifications(botua.tc, botua.notifications, newKeyArg)
+	checkNewTeambotKeyNotifications(botua.tc, botua.notifications, newKeyArgs)
 
 	// grab the latest chat application key and make sure the generation lines
 	// up with the teambotKey
@@ -131,45 +120,77 @@ func TestTeambotKey(t *testing.T) {
 	require.False(t, created)
 	require.Equal(t, appKey1.Generation(), teambotKey.Generation())
 
-	teambotKey2, err := botKeyer.GetLatestTeambotKey(mctx3, teamID)
+	teambotKey2, err := botKeyer.GetLatestTeambotKey(mctx3, teamID, keybase1.TeamApplication_CHAT)
 	require.NoError(t, err)
 	require.Equal(t, teambotKey, teambotKey2)
 
 	// delete the initial key to check regeneration flows
-	err = teambot.DeleteTeambotKeyForTest(mctx3, teamID, teambotKey.Metadata.Generation)
+	err = teambot.DeleteTeambotKeyForTest(mctx3, teamID, keybase1.TeamApplication_CHAT,
+		teambotKey.Metadata.Generation)
+
 	require.NoError(t, err)
 
 	// initial get, bot has no key to access
-	_, err = botKeyer.GetLatestTeambotKey(mctx3, teamID)
-	require.Error(t, err)
+	_, err = botKeyer.GetLatestTeambotKey(mctx3, teamID, keybase1.TeamApplication_CHAT)
 	require.IsType(t, teambot.TeambotTransientKeyError{}, err)
 
 	// cry for help has been issued.
 	keyNeededArg := keybase1.TeambotKeyNeededArg{
-		Id:         teamID,
-		Uid:        botua.uid,
-		Generation: 1,
+		Id:          teamID,
+		Uid:         botua.uid,
+		Generation:  1,
+		Application: keybase1.TeamApplication_CHAT,
 	}
 	checkTeambotKeyNeededNotifications(user1.tc, user1.notifications, keyNeededArg)
 	checkTeambotKeyNeededNotifications(user2.tc, user2.notifications, keyNeededArg)
 
 	// and answered.
-	newKeyArg = keybase1.NewTeambotKeyArg{
-		Id:         teamID,
-		Generation: 1,
-	}
-	checkNewTeambotKeyNotifications(botua.tc, botua.notifications, newKeyArg)
+	newKeyArgs = []keybase1.NewTeambotKeyArg{{
+		Id:          teamID,
+		Generation:  1,
+		Application: keybase1.TeamApplication_CHAT,
+	}}
+	checkNewTeambotKeyNotifications(botua.tc, botua.notifications, newKeyArgs)
 
 	// bot can access the key
-	teambotKey2, err = botKeyer.GetLatestTeambotKey(mctx3, teamID)
+	teambotKey2, err = botKeyer.GetLatestTeambotKey(mctx3, teamID, keybase1.TeamApplication_CHAT)
 	require.NoError(t, err)
 	require.Equal(t, teambotKey, teambotKey2)
 	noTeambotKeyNeeded(user1.tc, user1.notifications)
 	noTeambotKeyNeeded(user2.tc, user2.notifications)
 	noNewTeambotKeyNotification(botua.tc, botua.notifications)
 
+	// check for wrong application
+	_, err = botKeyer.GetLatestTeambotKey(mctx3, teamID, keybase1.TeamApplication_KBFS)
+	require.IsType(t, teambot.TeambotTransientKeyError{}, err)
+
+	// cry for help has been issued.
+	keyNeededArg = keybase1.TeambotKeyNeededArg{
+		Id:          teamID,
+		Uid:         botua.uid,
+		Generation:  1,
+		Application: keybase1.TeamApplication_KBFS,
+	}
+	checkTeambotKeyNeededNotifications(user1.tc, user1.notifications, keyNeededArg)
+	checkTeambotKeyNeededNotifications(user2.tc, user2.notifications, keyNeededArg)
+
+	// and answered.
+	newKeyArgs = []keybase1.NewTeambotKeyArg{{
+		Id:          teamID,
+		Generation:  1,
+		Application: keybase1.TeamApplication_KBFS,
+	}}
+	checkNewTeambotKeyNotifications(botua.tc, botua.notifications, newKeyArgs)
+
+	_, err = botKeyer.GetLatestTeambotKey(mctx3, teamID, keybase1.TeamApplication_KBFS)
+	require.NoError(t, err)
+	noTeambotKeyNeeded(user1.tc, user1.notifications)
+	noTeambotKeyNeeded(user2.tc, user2.notifications)
+	noNewTeambotKeyNotification(botua.tc, botua.notifications)
+
 	// Test the AtGeneration flow
-	teambotKey2b, err := botKeyer.GetTeambotKeyAtGeneration(mctx3, teamID, teambotKey2.Metadata.Generation)
+	teambotKey2b, err := botKeyer.GetTeambotKeyAtGeneration(mctx3, teamID,
+		keybase1.TeamApplication_CHAT, teambotKey2.Metadata.Generation)
 	require.NoError(t, err)
 	require.Equal(t, teambotKey2, teambotKey2b)
 	noTeambotKeyNeeded(user1.tc, user1.notifications)
@@ -181,54 +202,65 @@ func TestTeambotKey(t *testing.T) {
 	user1.waitForRotateByID(teamID, keybase1.Seqno(4))
 
 	// bot gets a new key on rotation
-	newKeyArg = keybase1.NewTeambotKeyArg{
-		Id:         teamID,
-		Generation: 2,
+	newKeyArgs = []keybase1.NewTeambotKeyArg{
+		{
+			Id:          teamID,
+			Generation:  2,
+			Application: keybase1.TeamApplication_CHAT,
+		},
+		{
+			Id:          teamID,
+			Generation:  2,
+			Application: keybase1.TeamApplication_KVSTORE,
+		},
 	}
-	checkNewTeambotKeyNotifications(botua.tc, botua.notifications, newKeyArg)
+	checkNewTeambotKeyNotifications(botua.tc, botua.notifications, newKeyArgs)
 
 	// delete to check regeneration flow
-	err = teambot.DeleteTeambotKeyForTest(mctx3, teamID, 2)
+	err = teambot.DeleteTeambotKeyForTest(mctx3, teamID, keybase1.TeamApplication_CHAT, 2)
 	require.NoError(t, err)
 
 	// Force a wrongKID error on the bot user by expiring the wrongKID cache
-	key := teambot.TeambotKeyWrongKIDCacheKey(teamID, botua.uid, teambotKey2.Metadata.Generation)
+	key := teambot.TeambotKeyWrongKIDCacheKey(teamID, botua.uid, teambotKey2.Metadata.Generation,
+		keybase1.TeamApplication_CHAT)
 	expired := keybase1.ToTime(fc.Now())
 	err = mctx3.G().GetKVStore().PutObj(key, nil, expired)
 	require.NoError(t, err)
 	permitted, ctime, err := teambot.TeambotKeyWrongKIDPermitted(mctx3, teamID, botua.uid,
-		teambotKey2.Metadata.Generation, keybase1.ToTime(fc.Now()))
+		keybase1.TeamApplication_CHAT, teambotKey2.Metadata.Generation, keybase1.ToTime(fc.Now()))
 	require.NoError(t, err)
 	require.True(t, permitted)
 	require.Equal(t, expired, ctime)
 
 	fc.Advance(teambot.MaxTeambotKeyWrongKIDPermitted) // expire wrong KID cache
 	permitted, ctime, err = teambot.TeambotKeyWrongKIDPermitted(mctx3, teamID, botua.uid,
-		teambotKey2.Metadata.Generation, keybase1.ToTime(fc.Now()))
+		keybase1.TeamApplication_CHAT, teambotKey2.Metadata.Generation, keybase1.ToTime(fc.Now()))
 	require.NoError(t, err)
 	require.False(t, permitted)
 	require.Equal(t, expired, ctime)
 
-	_, err = botKeyer.GetLatestTeambotKey(mctx3, teamID)
-	require.Error(t, err)
+	_, err = botKeyer.GetLatestTeambotKey(mctx3, teamID, keybase1.TeamApplication_CHAT)
 	require.IsType(t, teambot.TeambotPermanentKeyError{}, err)
 	require.False(t, created)
 	keyNeededArg = keybase1.TeambotKeyNeededArg{
-		Id:         teamID,
-		Uid:        botua.uid,
-		Generation: teambotKey2.Metadata.Generation + 1,
+		Id:          teamID,
+		Uid:         botua.uid,
+		Generation:  teambotKey2.Metadata.Generation + 1,
+		Application: keybase1.TeamApplication_CHAT,
 	}
 	checkTeambotKeyNeededNotifications(user1.tc, user1.notifications, keyNeededArg)
 	checkTeambotKeyNeededNotifications(user2.tc, user2.notifications, keyNeededArg)
-	newKeyArg = keybase1.NewTeambotKeyArg{
-		Id:         teamID,
-		Generation: teambotKey2.Metadata.Generation + 1,
-	}
-	checkNewTeambotKeyNotifications(botua.tc, botua.notifications, newKeyArg)
+	newKeyArgs = []keybase1.NewTeambotKeyArg{{
+		Id:          teamID,
+		Generation:  teambotKey2.Metadata.Generation + 1,
+		Application: keybase1.TeamApplication_CHAT,
+	}}
+	checkNewTeambotKeyNotifications(botua.tc, botua.notifications, newKeyArgs)
 
-	teambotKey3, err := botKeyer.GetLatestTeambotKey(mctx3, teamID)
+	teambotKey3, err := botKeyer.GetLatestTeambotKey(mctx3, teamID, keybase1.TeamApplication_CHAT)
 	require.NoError(t, err)
 	require.Equal(t, teambotKey3.Metadata.Generation, teambotKey2.Metadata.Generation+1)
+	require.Equal(t, keybase1.TeamApplication_CHAT, teambotKey3.Metadata.Application)
 
 	// another PTK rotation happens, this time the bot can proceed with a key
 	// signed by the old PTK since the wrongKID cache did not expire
@@ -237,33 +269,43 @@ func TestTeambotKey(t *testing.T) {
 	user2.waitForNewlyAddedToTeamByID(teamID)
 	botua.waitForNewlyAddedToTeamByID(teamID)
 
-	newKeyArg = keybase1.NewTeambotKeyArg{
-		Id:         teamID,
-		Generation: 3,
+	newKeyArgs = []keybase1.NewTeambotKeyArg{
+		{
+			Id:          teamID,
+			Generation:  3,
+			Application: keybase1.TeamApplication_CHAT,
+		},
+		{
+			Id:          teamID,
+			Generation:  3,
+			Application: keybase1.TeamApplication_KVSTORE,
+		},
 	}
-	checkNewTeambotKeyNotifications(botua.tc, botua.notifications, newKeyArg)
+	checkNewTeambotKeyNotifications(botua.tc, botua.notifications, newKeyArgs)
 
-	err = teambot.DeleteTeambotKeyForTest(mctx3, teamID, 3)
+	err = teambot.DeleteTeambotKeyForTest(mctx3, teamID, keybase1.TeamApplication_CHAT, 3)
 	require.NoError(t, err)
 
 	// bot can access the old teambotKey, but asks for a new one to
 	// be created since it was signed by the old PTK
-	teambotKey4, err := botKeyer.GetLatestTeambotKey(mctx3, teamID)
+	teambotKey4, err := botKeyer.GetLatestTeambotKey(mctx3, teamID, keybase1.TeamApplication_CHAT)
 	require.NoError(t, err)
 	require.Equal(t, teambotKey3, teambotKey4)
 	keyNeededArg = keybase1.TeambotKeyNeededArg{
-		Id:         teamID,
-		Uid:        botua.uid,
-		Generation: teambotKey4.Metadata.Generation + 1,
+		Id:          teamID,
+		Uid:         botua.uid,
+		Generation:  teambotKey4.Metadata.Generation + 1,
+		Application: keybase1.TeamApplication_CHAT,
 	}
 	checkTeambotKeyNeededNotifications(user1.tc, user1.notifications, keyNeededArg)
 	checkTeambotKeyNeededNotifications(user2.tc, user2.notifications, keyNeededArg)
 
-	newKeyArg = keybase1.NewTeambotKeyArg{
-		Id:         teamID,
-		Generation: teambotKey4.Metadata.Generation + 1,
-	}
-	checkNewTeambotKeyNotifications(botua.tc, botua.notifications, newKeyArg)
+	newKeyArgs = []keybase1.NewTeambotKeyArg{{
+		Id:          teamID,
+		Generation:  teambotKey4.Metadata.Generation + 1,
+		Application: keybase1.TeamApplication_CHAT,
+	}}
+	checkNewTeambotKeyNotifications(botua.tc, botua.notifications, newKeyArgs)
 
 	team, err = teams.Load(mctx1.Ctx(), mctx1.G(), keybase1.LoadTeamArg{
 		ID:          teamID,
@@ -276,7 +318,7 @@ func TestTeambotKey(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, appKey1.Generation()+2, teambotKey.Generation())
 
-	teambotKey2, err = botKeyer.GetLatestTeambotKey(mctx3, teamID)
+	teambotKey2, err = botKeyer.GetLatestTeambotKey(mctx3, teamID, keybase1.TeamApplication_CHAT)
 	require.NoError(t, err)
 	require.Equal(t, teambotKey, teambotKey2)
 	noTeambotKeyNeeded(user1.tc, user1.notifications)
@@ -290,10 +332,11 @@ func TestTeambotKey(t *testing.T) {
 	// created is True since we attempt to publish but the generation remains
 	require.True(t, created)
 	require.Equal(t, teambotKey.Metadata.Generation, teambotKeyNoCache.Metadata.Generation)
+	require.Equal(t, keybase1.TeamApplication_CHAT, teambotKey.Metadata.Application)
 
 	// Make sure we can access the teambotKey at various generations
 	for i := keybase1.TeambotKeyGeneration(1); i < teambotKey.Metadata.Generation; i++ {
-		teambotKeyBot, err := botKeyer.GetTeambotKeyAtGeneration(mctx3, teamID, i)
+		teambotKeyBot, err := botKeyer.GetTeambotKeyAtGeneration(mctx3, teamID, keybase1.TeamApplication_CHAT, i)
 		require.NoError(t, err)
 		noTeambotKeyNeeded(user1.tc, user1.notifications)
 		noTeambotKeyNeeded(user2.tc, user2.notifications)
@@ -313,13 +356,13 @@ func TestTeambotKey(t *testing.T) {
 
 	// bot asks for a non-existent generation, no new key is created.
 	badGen := teambotKey.Metadata.Generation + 50
-	_, err = botKeyer.GetTeambotKeyAtGeneration(mctx3, teamID, badGen)
-	require.Error(t, err)
+	_, err = botKeyer.GetTeambotKeyAtGeneration(mctx3, teamID, keybase1.TeamApplication_CHAT, badGen)
 	require.IsType(t, teambot.TeambotTransientKeyError{}, err)
 	keyNeededArg = keybase1.TeambotKeyNeededArg{
-		Id:         teamID,
-		Uid:        botua.uid,
-		Generation: badGen,
+		Id:          teamID,
+		Uid:         botua.uid,
+		Generation:  badGen,
+		Application: keybase1.TeamApplication_CHAT,
 	}
 	checkTeambotKeyNeededNotifications(user1.tc, user1.notifications, keyNeededArg)
 	checkTeambotKeyNeededNotifications(user2.tc, user2.notifications, keyNeededArg)
@@ -339,11 +382,19 @@ func TestTeambotKeyRemovedMember(t *testing.T) {
 
 	teamID, teamName := user1.createTeam2()
 	user1.addRestrictedBotTeamMember(teamName.String(), botua.username, keybase1.TeamBotSettings{})
-	newKeyArg := keybase1.NewTeambotKeyArg{
-		Id:         teamID,
-		Generation: 1,
+	newKeyArgs := []keybase1.NewTeambotKeyArg{
+		{
+			Id:          teamID,
+			Generation:  1,
+			Application: keybase1.TeamApplication_CHAT,
+		},
+		{
+			Id:          teamID,
+			Generation:  1,
+			Application: keybase1.TeamApplication_KVSTORE,
+		},
 	}
-	checkNewTeambotKeyNotifications(botua.tc, botua.notifications, newKeyArg)
+	checkNewTeambotKeyNotifications(botua.tc, botua.notifications, newKeyArgs)
 	user1.removeTeamMember(teamName.String(), botua.username)
 
 	team, err := teams.Load(mctx1.Ctx(), mctx1.G(), keybase1.LoadTeamArg{

@@ -12,7 +12,6 @@ export const addParticipant = 'teams:addParticipant'
 export const addTeamWithChosenChannels = 'teams:addTeamWithChosenChannels'
 export const addToTeam = 'teams:addToTeam'
 export const addUserToTeams = 'teams:addUserToTeams'
-export const badgeAppForTeams = 'teams:badgeAppForTeams'
 export const checkRequestedAccess = 'teams:checkRequestedAccess'
 export const clearAddUserToTeamsResults = 'teams:clearAddUserToTeamsResults'
 export const clearNavBadges = 'teams:clearNavBadges'
@@ -93,12 +92,6 @@ type _AddUserToTeamsPayload = {
   readonly role: Types.TeamRoleType
   readonly teams: Array<string>
   readonly user: string
-}
-type _BadgeAppForTeamsPayload = {
-  readonly deletedTeams: Array<RPCTypes.DeletedTeamInfo>
-  readonly newTeamNames: Array<string>
-  readonly newTeamAccessRequests: Array<string>
-  readonly teamsWithResetUsers: ReadonlyArray<{id: Buffer; teamname: string; username: string; uid: string}>
 }
 type _CheckRequestedAccessPayload = {readonly teamname: string}
 type _ClearAddUserToTeamsResultsPayload = void
@@ -197,8 +190,8 @@ type _SetMemberPublicityPayload = {readonly teamname: string; readonly showcase:
 type _SetMembersPayload = {readonly teamname: string; readonly members: I.Map<string, Types.MemberInfo>}
 type _SetNewTeamInfoPayload = {
   readonly deletedTeams: Array<RPCTypes.DeletedTeamInfo>
-  readonly newTeams: Set<string>
-  readonly newTeamRequests: Array<string>
+  readonly newTeams: Set<Types.TeamID>
+  readonly newTeamRequests: Array<Types.TeamID>
   readonly teamNameToResetUsers: I.Map<Types.Teamname, I.Set<Types.ResetUser>>
 }
 type _SetPublicityPayload = {readonly teamname: string; readonly settings: Types.PublicitySettings}
@@ -215,12 +208,13 @@ type _SetTeamChannelsPayload = {
 }
 type _SetTeamCreationErrorPayload = {readonly error: string}
 type _SetTeamDetailsPayload = {
+  readonly teamID: Types.TeamID
   readonly teamname: string
-  readonly members: I.Map<string, Types.MemberInfo>
-  readonly settings: Types.TeamSettings
-  readonly invites: I.Set<Types.InviteInfo>
-  readonly subteams: I.Set<Types.Teamname>
-  readonly requests: I.Map<string, I.Set<Types.RequestInfo>>
+  readonly members: RPCTypes.TeamMembersDetails
+  readonly settings: RPCTypes.TeamSettings
+  readonly invites: Array<Types._InviteInfo>
+  readonly subteams: Array<Types.Teamname>
+  readonly requests: Map<string, Array<string>>
 }
 type _SetTeamInfoPayload = {
   readonly teamnames: Set<Types.Teamname>
@@ -325,10 +319,6 @@ export const createAddToTeam = (payload: _AddToTeamPayload): AddToTeamPayload =>
 export const createAddUserToTeams = (payload: _AddUserToTeamsPayload): AddUserToTeamsPayload => ({
   payload,
   type: addUserToTeams,
-})
-export const createBadgeAppForTeams = (payload: _BadgeAppForTeamsPayload): BadgeAppForTeamsPayload => ({
-  payload,
-  type: badgeAppForTeams,
 })
 export const createCheckRequestedAccess = (
   payload: _CheckRequestedAccessPayload
@@ -539,10 +529,6 @@ export type AddToTeamPayload = {readonly payload: _AddToTeamPayload; readonly ty
 export type AddUserToTeamsPayload = {
   readonly payload: _AddUserToTeamsPayload
   readonly type: typeof addUserToTeams
-}
-export type BadgeAppForTeamsPayload = {
-  readonly payload: _BadgeAppForTeamsPayload
-  readonly type: typeof badgeAppForTeams
 }
 export type CheckRequestedAccessPayload = {
   readonly payload: _CheckRequestedAccessPayload
@@ -762,7 +748,6 @@ export type Actions =
   | AddTeamWithChosenChannelsPayload
   | AddToTeamPayload
   | AddUserToTeamsPayload
-  | BadgeAppForTeamsPayload
   | CheckRequestedAccessPayload
   | ClearAddUserToTeamsResultsPayload
   | ClearNavBadgesPayload

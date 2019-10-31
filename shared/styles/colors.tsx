@@ -29,6 +29,12 @@ export const colors = {
   black_35: 'rgba(0, 0, 0, 0.35)',
   black_40: 'rgba(0, 0, 0, 0.40)',
   black_50: 'rgba(0, 0, 0, 0.50)',
+  get black_50OrBlack_40() {
+    return this.black_50
+  },
+  get black_50OrBlack_50() {
+    return this.black_50
+  },
   get black_50OrBlack_60() {
     return this.black_50
   },
@@ -66,6 +72,9 @@ export const colors = {
   blueLighter: '#A8CCFF',
   blueLighter2: '#EBF2FC',
   blueLighter3: '#F7F9FC',
+  get blueLighterOrBlueLight() {
+    return this.blueLighter
+  },
   get blueLighterOrWhite() {
     return this.blueLighter
   },
@@ -176,6 +185,7 @@ export const colors = {
     return this.white_40
   },
   white_40_on_white: '#FFFFFF',
+  white_60: 'rgba(255, 255, 255, 0.60)',
   white_75: 'rgba(255, 255, 255, 0.75)',
   white_75_on_white: '#FFFFFF',
   white_90: 'rgba(255, 255, 255, 0.90)',
@@ -215,6 +225,12 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   black_35: 'rgba(255, 255, 255, 0.35)',
   black_40: 'rgba(255, 255, 255, 0.40)',
   black_50: 'rgba(255, 255, 255, 0.50)',
+  get black_50OrBlack_40() {
+    return colors.black_40
+  },
+  get black_50OrBlack_50() {
+    return colors.black_50
+  },
   get black_50OrBlack_60() {
     return colors.black_60
   },
@@ -252,6 +268,9 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   blueLighter: '#4C8EFF',
   blueLighter2: 'rgba(24, 45, 110, .5)',
   blueLighter3: '#101010',
+  get blueLighterOrBlueLight() {
+    return colors.blueLight
+  },
   get blueLighterOrWhite() {
     return colors.white
   },
@@ -362,6 +381,7 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
     return colors.white_40
   },
   white_40_on_white: '#191919',
+  white_60: 'rgba(25, 25, 25, 0.60)',
   white_75: 'rgba(25, 25, 25, 0.75)',
   white_75_on_white: '#191919',
   white_90: 'rgba(25, 25, 25, 0.90)',

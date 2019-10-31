@@ -5,6 +5,9 @@ import sortBy from 'lodash/sortBy'
 import {defaultUseNativeFrame, runMode} from './platform'
 import {isDarkMode as _isDarkMode} from '../styles/dark-mode'
 
+export const loginAsOtherUserWaitingKey = 'config:loginAsOther'
+export const createOtherAccountWaitingKey = 'config:createOther'
+
 export const maxHandshakeTries = 3
 export const defaultKBFSPath = runMode === 'prod' ? '/keybase' : `/keybase.${runMode}`
 export const defaultPrivatePrefix = '/private/'
@@ -130,6 +133,7 @@ export const initialState: Types.State = {
   userActive: true,
   userSwitching: false,
   username: '',
+  whatsNewLastSeenVersion: '',
   windowState: {
     dockHidden: false,
     height: 800,

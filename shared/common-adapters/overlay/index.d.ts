@@ -25,6 +25,7 @@ export type Props = {
   position?: Position
   positionFallbacks?: Position[]
   propagateOutsideClicks?: boolean
+  remeasureHint?: number
   style?: StylesCrossPlatform
   visible?: boolean
 }

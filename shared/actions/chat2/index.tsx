@@ -32,7 +32,6 @@ import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {RPCError} from '../../util/errors'
 import HiddenString from '../../util/hidden-string'
 import {TypedActions, TypedState} from '../../util/container'
-import {store} from 'emoji-mart'
 
 const onConnect = async () => {
   try {
@@ -770,7 +769,9 @@ const onChatSetConvSettings = (
       conv.convSettings.minWriterRoleInfo &&
       conv.convSettings.minWriterRoleInfo.cannotWrite) ||
     false
-  logger.info(`got new minWriterRole ${role || ''} for convID ${conversationIDKey}`)
+  logger.info(
+    `got new minWriterRole ${role || ''} for convID ${conversationIDKey}, cannotWrite ${cannotWrite}`
+  )
   if (role && role !== 'none' && cannotWrite !== undefined) {
     return Chat2Gen.createSaveMinWriterRole({cannotWrite, conversationIDKey, role})
   }
@@ -954,6 +955,17 @@ const onNewChatActivity = (
     }
   }
   return actions
+}
+
+const onChatConvUpdate = (state: TypedState, action: EngineGen.Chat1NotifyChatChatConvUpdatePayload) => {
+  const {conv} = action.payload.params
+  if (conv) {
+    const meta = Constants.inboxUIItemToConversationMeta(state, conv)
+    if (meta) {
+      return [Chat2Gen.createMetasReceived({metas: [meta]})]
+    }
+  }
+  return []
 }
 
 const loadThreadMessageTypes = Object.keys(RPCChatTypes.MessageType)
@@ -1790,6 +1802,39 @@ function* messageSend(state: TypedState, action: Chat2Gen.MessageSendPayload, lo
   // narrow down the places where the action can possibly stop.
   logger.info('non-empty text?', text.stringValue().length > 0)
 }
+const messageSendByUsername = async (
+  state: TypedState,
+  action: Chat2Gen.MessageSendByUsernamePayload,
+  logger: Saga.SagaLogger
+) => {
+  const tlfName = `${state.config.username},${action.payload.username}`
+  try {
+    const result = await RPCChatTypes.localNewConversationLocalRpcPromise(
+      {
+        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+        membersType: RPCChatTypes.ConversationMembersType.impteamnative,
+        tlfName,
+        tlfVisibility: RPCTypes.TLFVisibility.private,
+        topicType: RPCChatTypes.TopicType.chat,
+      },
+      action.payload.waitingKey
+    )
+    await RPCChatTypes.localPostTextNonblockRpcPromise(
+      {
+        body: action.payload.text.stringValue(),
+        clientPrev: Constants.getClientPrev(state, Types.conversationIDToKey(result.conv.info.id)),
+        conversationID: result.conv.info.id,
+        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+        outboxID: null,
+        tlfName,
+        tlfPublic: false,
+      },
+      action.payload.waitingKey
+    )
+  } catch (e) {
+    logger.warn('Could not send in messageSendByUsername', e)
+  }
+}
 
 type StellarConfirmWindowResponse = {result: (b: boolean) => void}
 let _stellarConfirmWindowResponse: StellarConfirmWindowResponse | null = null
@@ -1934,6 +1979,8 @@ const onUpdateUserReacjis = (state: TypedState) => {
     i++
     reacjis[el] = userReacjis.topReacjis.length - i
   })
+
+  const {store} = require('emoji-mart')
   store.setHandlers({
     getter: key => {
       switch (key) {
@@ -2073,6 +2120,52 @@ const attachmentPasted = async (_: TypedState, action: Chat2Gen.AttachmentPasted
   const pathAndOutboxIDs = [{outboxID, path}]
   return RouteTreeGen.createNavigateAppend({
     path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'chatAttachmentGetTitles'}],
+  })
+}
+
+const sendAudioRecording = async (
+  state: TypedState,
+  action: Chat2Gen.SendAudioRecordingPayload,
+  logger: Saga.SagaLogger
+) => {
+  // sit here for 400ms for animations
+  await Saga.delay(400)
+
+  const conversationIDKey = action.payload.conversationIDKey
+  const audioRecording = state.chat2.audioRecording.get(conversationIDKey)
+  const clientPrev = Constants.getClientPrev(state, conversationIDKey)
+  const ephemeralLifetime = Constants.getConversationExplodingMode(state, conversationIDKey)
+  if (!audioRecording) {
+    logger.info('sendAudioRecording: no audio info for send')
+    return
+  }
+  const meta = state.chat2.metaMap.get(conversationIDKey)
+  if (!meta) {
+    logger.warn('sendAudioRecording: no meta for send')
+    return
+  }
+
+  let callerPreview: RPCChatTypes.MakePreviewRes | null = null
+  if (audioRecording.amps.length > 0) {
+    callerPreview = await RPCChatTypes.localMakeAudioPreviewRpcPromise({
+      amps: audioRecording.amps,
+    })
+  }
+  const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
+  await RPCChatTypes.localPostFileAttachmentLocalNonblockRpcPromise({
+    arg: {
+      ...ephemeralData,
+      callerPreview,
+      conversationID: Types.keyToConversationID(conversationIDKey),
+      filename: audioRecording.path,
+      identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+      metadata: Buffer.from([]),
+      outboxID: audioRecording.outboxID,
+      title: '',
+      tlfName: meta.tlfname,
+      visibility: RPCTypes.TLFVisibility.private,
+    },
+    clientPrev,
   })
 }
 
@@ -3345,6 +3438,7 @@ function* chat2Saga() {
 
   yield* Saga.chainAction2(Chat2Gen.messageRetry, messageRetry, 'messageRetry')
   yield* Saga.chainGenerator<Chat2Gen.MessageSendPayload>(Chat2Gen.messageSend, messageSend, 'messageSend')
+  yield* Saga.chainAction2(Chat2Gen.messageSendByUsername, messageSendByUsername, 'messageSendByUsername')
   yield* Saga.chainGenerator<Chat2Gen.MessageEditPayload>(Chat2Gen.messageEdit, messageEdit, 'messageEdit')
   yield* Saga.chainAction2(Chat2Gen.messageEdit, clearMessageSetEditing, 'clearMessageSetEditing')
   yield* Saga.chainAction2(Chat2Gen.messageDelete, messageDelete, 'messageDelete')
@@ -3614,9 +3708,12 @@ function* chat2Saga() {
 
   yield* Saga.chainAction2(Chat2Gen.selectConversation, fetchConversationBio)
 
+  yield* Saga.chainAction2(Chat2Gen.sendAudioRecording, sendAudioRecording, 'sendAudioRecording')
+
   yield* Saga.chainAction2(EngineGen.connected, onConnect, 'onConnect')
 
   yield* chatTeamBuildingSaga()
+  yield* Saga.chainAction2(EngineGen.chat1NotifyChatChatConvUpdate, onChatConvUpdate, 'onChatConvUpdate')
 }
 
 export default chat2Saga

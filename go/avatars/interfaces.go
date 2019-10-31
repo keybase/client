@@ -9,18 +9,8 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-type Source interface {
-	LoadUsers(libkb.MetaContext, []string, []keybase1.AvatarFormat) (keybase1.LoadAvatarsRes, error)
-	LoadTeams(libkb.MetaContext, []string, []keybase1.AvatarFormat) (keybase1.LoadAvatarsRes, error)
-
-	ClearCacheForName(libkb.MetaContext, string, []keybase1.AvatarFormat) error
-	OnDbNuke(libkb.MetaContext) error // Called after leveldb data goes away after db nuke
-
-	StartBackgroundTasks(libkb.MetaContext)
-	StopBackgroundTasks(libkb.MetaContext)
-}
-
-func CreateSourceFromEnvAndInstall(g *libkb.GlobalContext) (s Source) {
+func CreateSourceFromEnvAndInstall(g *libkb.GlobalContext) {
+	var s libkb.AvatarLoaderSource
 	typ := g.Env.GetAvatarSource()
 	switch typ {
 	case "simple":
@@ -37,10 +27,10 @@ func CreateSourceFromEnvAndInstall(g *libkb.GlobalContext) (s Source) {
 		s = NewFullCachingSource(time.Hour /* staleThreshold */, maxSize)
 	}
 	g.AddDbNukeHook(s, fmt.Sprintf("AvatarLoader[%s]", typ))
-	return s
+	g.SetAvatarLoader(s)
 }
 
-func ServiceInit(g *libkb.GlobalContext, httpSrv *manager.Srv, source Source) *Srv {
+func ServiceInit(g *libkb.GlobalContext, httpSrv *manager.Srv, source libkb.AvatarLoaderSource) *Srv {
 	m := libkb.NewMetaContextBackground(g)
 	source.StartBackgroundTasks(m)
 	s := NewSrv(g, httpSrv, source) // start the http srv up

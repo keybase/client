@@ -23,7 +23,7 @@ type TeamTabsProps = {
   admin: boolean
   memberCount: number
   teamname: Types.Teamname
-  newTeamRequests: Array<Types.Teamname>
+  newRequests: number
   numInvites: number
   numRequests: number
   numSubteams: number
@@ -48,14 +48,7 @@ const TeamTabs = (props: TeamTabsProps) => {
     </Box>,
   ]
 
-  let requestsBadge = 0
-  if (props.newTeamRequests.length) {
-    // Use min here so we never show a badge number > the (X) number of requests we have
-    requestsBadge = Math.min(
-      props.newTeamRequests.reduce((count, team) => (team === props.teamname ? count + 1 : count), 0),
-      props.numRequests
-    )
-  }
+  const requestsBadge = Math.min(props.newRequests, props.numRequests)
 
   if (props.admin) {
     tabs.push(

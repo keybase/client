@@ -4,6 +4,7 @@ import Box from '../../box'
 import Divider from '../../divider'
 import Text from '../../text'
 import Meta from '../../meta'
+import ProgressIndicator from '../../progress-indicator'
 import * as Styles from '../../../styles'
 
 class MenuLayout extends Component<MenuLayoutProps> {
@@ -63,6 +64,7 @@ class MenuLayout extends Component<MenuLayoutProps> {
             {item.subTitle}
           </Text>
         )}
+        {!!item.progressIndicator && <ProgressIndicator type="Large" style={styles.progressIndicator} />}
       </Box>
     )
   }
@@ -130,6 +132,7 @@ const styles = Styles.styleSheetCreate(
         paddingLeft: Styles.globalMargins.small,
         paddingRight: Styles.globalMargins.small,
         paddingTop: Styles.globalMargins.xtiny,
+        position: 'relative',
       },
       menuContainer: Styles.platformStyles({
         isElectron: {
@@ -149,6 +152,12 @@ const styles = Styles.styleSheetCreate(
         flexShrink: 0,
         paddingBottom: Styles.globalMargins.tiny,
         paddingTop: Styles.globalMargins.tiny,
+      },
+      progressIndicator: {
+        left: 0,
+        position: 'absolute',
+        right: 0,
+        top: Styles.globalMargins.xtiny,
       },
     } as const)
 )

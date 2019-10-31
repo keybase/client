@@ -241,6 +241,13 @@ func (s SimpleFSMock) SimpleFSGetTeamQuotaUsage(
 	return keybase1.SimpleFSQuotaUsage{}, nil
 }
 
+// SimpleFSGetFolder implements the SimpleFSInterface.
+func (s SimpleFSMock) SimpleFSGetFolder(
+	_ context.Context, _ keybase1.KBFSPath) (
+	res keybase1.FolderWithFavFlags, err error) {
+	return res, nil
+}
+
 // SimpleFSFolderSyncConfigAndStatus implements the SimpleFSInterface.
 func (s SimpleFSMock) SimpleFSFolderSyncConfigAndStatus(
 	_ context.Context, _ keybase1.Path) (
@@ -353,6 +360,11 @@ func (s SimpleFSMock) SimpleFSConfigureDownload(
 func (s SimpleFSMock) SimpleFSGetGUIFileContext(ctx context.Context,
 	path keybase1.KBFSPath) (resource keybase1.GUIFileContext, err error) {
 	return keybase1.GUIFileContext{}, nil
+}
+
+func (s SimpleFSMock) SimpleFSGetFilesTabBadge(_ context.Context) (
+	keybase1.FilesTabBadge, error) {
+	return keybase1.FilesTabBadge_NONE, nil
 }
 
 /*

@@ -9,7 +9,6 @@ import TlfType from './tlf-type-container'
 import Tlf from './tlf-container'
 import Still from './still-container'
 import Editing from './editing-container'
-import Uploading from './uploading-container'
 import {normalRowHeight} from './common'
 import {memoize} from '../../../util/memoize'
 import {useFsChildren} from '../../common'
@@ -58,17 +57,7 @@ class Rows extends React.PureComponent<Props> {
       case RowTypes.RowType.Still:
         return (
           <WrapRow>
-            <Still
-              name={item.name}
-              path={item.path}
-              destinationPickerIndex={this.props.destinationPickerIndex}
-            />
-          </WrapRow>
-        )
-      case RowTypes.RowType.Uploading:
-        return (
-          <WrapRow>
-            <Uploading path={item.path} />
+            <Still path={item.path} destinationPickerIndex={this.props.destinationPickerIndex} />
           </WrapRow>
         )
       case RowTypes.RowType.Editing:
@@ -157,7 +146,7 @@ class Rows extends React.PureComponent<Props> {
 }
 
 const RowsWithAutoLoad = (props: Props) => {
-  useFsChildren(props.path)
+  useFsChildren(props.path, /* recursive */ true) // need recursive for the EMPTY tag
   return <Rows {...props} />
 }
 

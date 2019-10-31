@@ -1239,6 +1239,22 @@ func (o SyncConfigAndStatusRes) DeepCopy() SyncConfigAndStatusRes {
 	}
 }
 
+type FolderWithFavFlags struct {
+	Folder     Folder `codec:"folder" json:"folder"`
+	IsFavorite bool   `codec:"isFavorite" json:"isFavorite"`
+	IsIgnored  bool   `codec:"isIgnored" json:"isIgnored"`
+	IsNew      bool   `codec:"isNew" json:"isNew"`
+}
+
+func (o FolderWithFavFlags) DeepCopy() FolderWithFavFlags {
+	return FolderWithFavFlags{
+		Folder:     o.Folder.DeepCopy(),
+		IsFavorite: o.IsFavorite,
+		IsIgnored:  o.IsIgnored,
+		IsNew:      o.IsNew,
+	}
+}
+
 type FSSettings struct {
 	SpaceAvailableNotificationThreshold int64 `codec:"spaceAvailableNotificationThreshold" json:"spaceAvailableNotificationThreshold"`
 }
@@ -1302,6 +1318,7 @@ const (
 	SubscriptionTopic_JOURNAL_STATUS  SubscriptionTopic = 1
 	SubscriptionTopic_ONLINE_STATUS   SubscriptionTopic = 2
 	SubscriptionTopic_DOWNLOAD_STATUS SubscriptionTopic = 3
+	SubscriptionTopic_FILES_TAB_BADGE SubscriptionTopic = 4
 )
 
 func (o SubscriptionTopic) DeepCopy() SubscriptionTopic { return o }
@@ -1311,6 +1328,7 @@ var SubscriptionTopicMap = map[string]SubscriptionTopic{
 	"JOURNAL_STATUS":  1,
 	"ONLINE_STATUS":   2,
 	"DOWNLOAD_STATUS": 3,
+	"FILES_TAB_BADGE": 4,
 }
 
 var SubscriptionTopicRevMap = map[SubscriptionTopic]string{
@@ -1318,6 +1336,7 @@ var SubscriptionTopicRevMap = map[SubscriptionTopic]string{
 	1: "JOURNAL_STATUS",
 	2: "ONLINE_STATUS",
 	3: "DOWNLOAD_STATUS",
+	4: "FILES_TAB_BADGE",
 }
 
 func (e SubscriptionTopic) String() string {
@@ -1423,6 +1442,38 @@ func (o DownloadStatus) DeepCopy() DownloadStatus {
 			return ret
 		})(o.States),
 	}
+}
+
+type FilesTabBadge int
+
+const (
+	FilesTabBadge_NONE            FilesTabBadge = 0
+	FilesTabBadge_UPLOADING_STUCK FilesTabBadge = 1
+	FilesTabBadge_AWAITING_UPLOAD FilesTabBadge = 2
+	FilesTabBadge_UPLOADING       FilesTabBadge = 3
+)
+
+func (o FilesTabBadge) DeepCopy() FilesTabBadge { return o }
+
+var FilesTabBadgeMap = map[string]FilesTabBadge{
+	"NONE":            0,
+	"UPLOADING_STUCK": 1,
+	"AWAITING_UPLOAD": 2,
+	"UPLOADING":       3,
+}
+
+var FilesTabBadgeRevMap = map[FilesTabBadge]string{
+	0: "NONE",
+	1: "UPLOADING_STUCK",
+	2: "AWAITING_UPLOAD",
+	3: "UPLOADING",
+}
+
+func (e FilesTabBadge) String() string {
+	if v, ok := FilesTabBadgeRevMap[e]; ok {
+		return v
+	}
+	return fmt.Sprintf("%v", int(e))
 }
 
 type GUIViewType int
@@ -1651,6 +1702,10 @@ type SimpleFSSyncConfigAndStatusArg struct {
 	IdentifyBehavior *TLFIdentifyBehavior `codec:"identifyBehavior,omitempty" json:"identifyBehavior,omitempty"`
 }
 
+type SimpleFSGetFolderArg struct {
+	Path KBFSPath `codec:"path" json:"path"`
+}
+
 type SimpleFSAreWeConnectedToMDServerArg struct {
 }
 
@@ -1722,6 +1777,9 @@ type SimpleFSDismissDownloadArg struct {
 type SimpleFSConfigureDownloadArg struct {
 	CacheDirOverride    string `codec:"cacheDirOverride" json:"cacheDirOverride"`
 	DownloadDirOverride string `codec:"downloadDirOverride" json:"downloadDirOverride"`
+}
+
+type SimpleFSGetFilesTabBadgeArg struct {
 }
 
 type SimpleFSGetGUIFileContextArg struct {
@@ -1828,6 +1886,7 @@ type SimpleFSInterface interface {
 	SimpleFSFolderSyncConfigAndStatus(context.Context, Path) (FolderSyncConfigAndStatus, error)
 	SimpleFSSetFolderSyncConfig(context.Context, SimpleFSSetFolderSyncConfigArg) error
 	SimpleFSSyncConfigAndStatus(context.Context, *TLFIdentifyBehavior) (SyncConfigAndStatusRes, error)
+	SimpleFSGetFolder(context.Context, KBFSPath) (FolderWithFavFlags, error)
 	SimpleFSAreWeConnectedToMDServer(context.Context) (bool, error)
 	SimpleFSCheckReachability(context.Context) error
 	SimpleFSSetDebugLevel(context.Context, string) error
@@ -1845,6 +1904,7 @@ type SimpleFSInterface interface {
 	SimpleFSCancelDownload(context.Context, string) error
 	SimpleFSDismissDownload(context.Context, string) error
 	SimpleFSConfigureDownload(context.Context, SimpleFSConfigureDownloadArg) error
+	SimpleFSGetFilesTabBadge(context.Context) (FilesTabBadge, error)
 	SimpleFSGetGUIFileContext(context.Context, KBFSPath) (GUIFileContext, error)
 }
 
@@ -2377,6 +2437,21 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return
 				},
 			},
+			"simpleFSGetFolder": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSGetFolderArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleFSGetFolderArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSGetFolderArg)(nil), args)
+						return
+					}
+					ret, err = i.SimpleFSGetFolder(ctx, typedArgs[0].Path)
+					return
+				},
+			},
 			"simpleFSAreWeConnectedToMDServer": {
 				MakeArg: func() interface{} {
 					var ret [1]SimpleFSAreWeConnectedToMDServerArg
@@ -2604,6 +2679,16 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 						return
 					}
 					err = i.SimpleFSConfigureDownload(ctx, typedArgs[0])
+					return
+				},
+			},
+			"simpleFSGetFilesTabBadge": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSGetFilesTabBadgeArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.SimpleFSGetFilesTabBadge(ctx)
 					return
 				},
 			},
@@ -2891,6 +2976,12 @@ func (c SimpleFSClient) SimpleFSSyncConfigAndStatus(ctx context.Context, identif
 	return
 }
 
+func (c SimpleFSClient) SimpleFSGetFolder(ctx context.Context, path KBFSPath) (res FolderWithFavFlags, err error) {
+	__arg := SimpleFSGetFolderArg{Path: path}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetFolder", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
 func (c SimpleFSClient) SimpleFSAreWeConnectedToMDServer(ctx context.Context) (res bool, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSAreWeConnectedToMDServer", []interface{}{SimpleFSAreWeConnectedToMDServerArg{}}, &res, 0*time.Millisecond)
 	return
@@ -2980,6 +3071,11 @@ func (c SimpleFSClient) SimpleFSDismissDownload(ctx context.Context, downloadID 
 
 func (c SimpleFSClient) SimpleFSConfigureDownload(ctx context.Context, __arg SimpleFSConfigureDownloadArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSConfigureDownload", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSGetFilesTabBadge(ctx context.Context) (res FilesTabBadge, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetFilesTabBadge", []interface{}{SimpleFSGetFilesTabBadgeArg{}}, &res, 0*time.Millisecond)
 	return
 }
 

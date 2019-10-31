@@ -41,7 +41,9 @@ type chatListener struct {
 	failing        chan []chat1.OutboxRecord
 	identifyUpdate chan keybase1.CanonicalTLFNameAndIDWithBreaks
 	inboxStale     chan struct{}
+	convUpdate     chan chat1.ConversationID
 	threadsStale   chan []chat1.ConversationStaleUpdate
+
 	bgConvLoads    chan chat1.ConversationID
 	typingUpdate   chan []chat1.ConvTypingUpdate
 	inboxSynced    chan chat1.ChatSyncResult
@@ -58,6 +60,13 @@ func (n *chatListener) ChatInboxStale(uid keybase1.UID) {
 	case n.inboxStale <- struct{}{}:
 	case <-time.After(5 * time.Second):
 		panic("timeout on the inbox stale channel")
+	}
+}
+func (n *chatListener) ChatConvUpdate(uid keybase1.UID, convID chat1.ConversationID) {
+	select {
+	case n.convUpdate <- convID:
+	case <-time.After(5 * time.Second):
+		panic("timeout on the threads stale channel")
 	}
 }
 func (n *chatListener) ChatThreadsStale(uid keybase1.UID, updates []chat1.ConversationStaleUpdate) {
@@ -137,6 +146,16 @@ func (n *chatListener) consumeEphemeralPurge(t *testing.T) chat1.EphemeralPurgeN
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "failed to get ephemeralPurge notification")
 		return chat1.EphemeralPurgeNotifInfo{}
+	}
+}
+
+func (n *chatListener) consumeConvUpdate(t *testing.T) chat1.ConversationID {
+	select {
+	case x := <-n.convUpdate:
+		return x
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "failed to get conv update notification")
+		return nil
 	}
 }
 
@@ -232,6 +251,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 		failing:        make(chan []chat1.OutboxRecord, 100),
 		identifyUpdate: make(chan keybase1.CanonicalTLFNameAndIDWithBreaks, 10),
 		inboxStale:     make(chan struct{}, 1),
+		convUpdate:     make(chan chat1.ConversationID, 10),
 		threadsStale:   make(chan []chat1.ConversationStaleUpdate, 10),
 		bgConvLoads:    make(chan chat1.ConversationID, 10),
 		typingUpdate:   make(chan []chat1.ConvTypingUpdate, 10),
@@ -299,6 +319,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	g.StellarLoader = types.DummyStellarLoader{}
 	g.StellarSender = types.DummyStellarSender{}
 	g.TeamMentionLoader = types.DummyTeamMentionLoader{}
+	g.JourneyCardManager = NewJourneyCardChecker(g)
 	g.BotCommandManager = types.DummyBotCommandManager{}
 	g.CommandsSource = commands.NewSource(g)
 	g.CoinFlipManager = NewFlipManager(g, getRI)

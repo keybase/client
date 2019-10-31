@@ -499,9 +499,7 @@ func (g *Game) handleMessage(ctx context.Context, msg *GameMessageWrapped, now t
 		if g.stage != Stage_ROUND2 {
 			return badStage()
 		}
-		if now.After(g.RevealEndTime()) {
-			return RevealTooLateError{G: g.md, U: msg.Sender}
-		}
+
 		key := msg.Sender.ToKey()
 		ps := g.players[key]
 
@@ -512,6 +510,9 @@ func (g *Game) handleMessage(ctx context.Context, msg *GameMessageWrapped, now t
 		if !ps.included {
 			g.clogf(ctx, "Skipping unincluded revealer %s for game %s", msg.Sender, g.md)
 			return nil
+		}
+		if now.After(g.RevealEndTime()) {
+			return RevealTooLateError{G: g.md, U: msg.Sender}
 		}
 
 		reveal := msg.Msg.Body.Reveal()

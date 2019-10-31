@@ -34,7 +34,7 @@ const cancelReset = async () => {
 
 const startAccountReset = (state: Container.TypedState, action: AutoresetGen.StartAccountResetPayload) => [
   AutoresetGen.createSetUsername({username: action.payload.username || state.recoverPassword.username}),
-  RouteTreeGen.createNavigateAppend({path: ['recoverPasswordPromptReset'], replace: true}),
+  RouteTreeGen.createNavigateAppend({path: ['recoverPasswordPromptResetAccount'], replace: true}),
 ]
 
 const finishedReset = (state: Container.TypedState) =>

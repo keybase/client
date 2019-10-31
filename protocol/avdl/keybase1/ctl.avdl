@@ -38,4 +38,14 @@ protocol ctl {
   void dbDelete(int sessionID, DbKey key);
   void dbPut(int sessionID, DbKey key, DbValue value);
   union { null, DbValue } dbGet(int sessionID, DbKey key);
+
+  void setNixOnLoginStartup(boolean enabled);
+
+  enum OnLoginStartupStatus {
+    UNKNOWN_0,
+    DISABLED_1,
+    ENABLED_2
+  }
+
+  OnLoginStartupStatus getNixOnLoginStartup();
 }

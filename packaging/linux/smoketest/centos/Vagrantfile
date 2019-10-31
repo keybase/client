@@ -1,0 +1,11 @@
+Vagrant.configure("2") do |config|
+  config.vm.box = "centos/7"
+  config.vm.synced_folder "../vagrantcommon/", "/vagrant", type: "rsync"
+  config.vm.provider "virtualbox" do |vb|
+    vb.memory = "4096"
+  end
+  config.vm.provision "shell", path: "../vagrantcommon/provision_rpm.bash"
+  config.ssh.forward_x11 = true
+  config.vm.network :forwarded_port, guest: 22, host: 2405, id: "ssh"
+  config.vbguest.auto_update = false
+end

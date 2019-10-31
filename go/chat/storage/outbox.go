@@ -42,6 +42,10 @@ const outboxVersion = 4
 const ephemeralPurgeCutoff = 24 * time.Hour
 const errorPurgeCutoff = time.Hour * 24 * 7 // one week
 
+// Ordinals for the outbox start at 100.
+// So that journeycard ordinals, which are added at the last minute by postProcessConv, do not conflict.
+const outboxOrdinalStart = 100
+
 type diskOutbox struct {
 	Version int                  `codec:"V"`
 	Records []chat1.OutboxRecord `codec:"O"`
@@ -166,11 +170,10 @@ func (o *Outbox) PushMessage(ctx context.Context, convID chat1.ConversationID,
 		outboxID = *suppliedOutboxID
 	}
 
-	// Compute prev ordinal
-	prevOrdinal := 1
+	// Compute prev ordinal by predicting that all outbox messages will be appended to the thread
+	prevOrdinal := outboxOrdinalStart
 	for _, obr := range obox.Records {
-		if obr.Msg.ClientHeader.OutboxInfo.Prev == msg.ClientHeader.OutboxInfo.Prev &&
-			obr.Ordinal >= prevOrdinal {
+		if obr.ConvID.Eq(convID) && obr.Ordinal >= outboxOrdinalStart && obr.Ordinal >= prevOrdinal {
 			prevOrdinal = obr.Ordinal + 1
 		}
 	}
@@ -521,7 +524,8 @@ func (o *Outbox) AppendToThread(ctx context.Context, convID chat1.ConversationID
 	}
 
 	for _, obr := range obox.Records {
-		if !obr.ConvID.Eq(convID) {
+		// skip outbox records that are not able to be retried.
+		if !(obr.ConvID.Eq(convID) && obr.Msg.IsBadgableType()) {
 			continue
 		}
 		if threadOutboxIDs[obr.OutboxID.String()] {

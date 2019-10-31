@@ -291,8 +291,8 @@ func testListAndGetHeads(ctx context.Context, t *testing.T,
 // 5) User pulls from the remote KBFS repo into the second repo.
 func testRunnerPushFetch(t *testing.T, cloning bool, secondRepoHasBranch bool) {
 	ctx, config, tempdir := initConfigForRunner(t)
-	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 	defer os.RemoveAll(tempdir)
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
 	git1, err := ioutil.TempDir(os.TempDir(), "kbfsgittest")
 	require.NoError(t, err)
@@ -372,8 +372,8 @@ func TestRunnerPushFetchWithBranch(t *testing.T) {
 
 func TestRunnerDeleteBranch(t *testing.T) {
 	ctx, config, tempdir := initConfigForRunner(t)
-	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 	defer os.RemoveAll(tempdir)
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
 	git, err := ioutil.TempDir(os.TempDir(), "kbfsgittest")
 	require.NoError(t, err)
@@ -402,8 +402,8 @@ func TestRunnerDeleteBranch(t *testing.T) {
 
 func TestRunnerExitEarlyOnEOF(t *testing.T) {
 	ctx, config, tempdir := initConfigForRunner(t)
-	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 	defer os.RemoveAll(tempdir)
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
 	git, err := ioutil.TempDir(os.TempDir(), "kbfsgittest")
 	require.NoError(t, err)
@@ -444,8 +444,8 @@ func TestRunnerExitEarlyOnEOF(t *testing.T) {
 
 func TestForcePush(t *testing.T) {
 	ctx, config, tempdir := initConfigForRunner(t)
-	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 	defer os.RemoveAll(tempdir)
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
 	git, err := ioutil.TempDir(os.TempDir(), "kbfsgittest")
 	require.NoError(t, err)
@@ -480,8 +480,8 @@ func TestForcePush(t *testing.T) {
 
 func TestPushAllWithPackedRefs(t *testing.T) {
 	ctx, config, tempdir := initConfigForRunner(t)
-	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 	defer os.RemoveAll(tempdir)
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
 	git, err := ioutil.TempDir(os.TempDir(), "kbfsgittest")
 	require.NoError(t, err)
@@ -508,8 +508,8 @@ func TestPushAllWithPackedRefs(t *testing.T) {
 
 func TestPushSomeWithPackedRefs(t *testing.T) {
 	ctx, config, tempdir := initConfigForRunner(t)
-	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 	defer os.RemoveAll(tempdir)
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
 	git, err := ioutil.TempDir(os.TempDir(), "kbfsgittest")
 	require.NoError(t, err)
@@ -604,8 +604,8 @@ func testCloneIntoNewLocalRepo(
 
 func TestRunnerReaderClone(t *testing.T) {
 	ctx, config, tempdir := initConfigForRunner(t)
-	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 	defer os.RemoveAll(tempdir)
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
 	git1, err := ioutil.TempDir(os.TempDir(), "kbfsgittest")
 	require.NoError(t, err)
@@ -617,11 +617,11 @@ func TestRunnerReaderClone(t *testing.T) {
 		"ok %s\n\n", "user1#user2")
 
 	// Make sure the reader can clone it.
-	config2 := libkbfs.ConfigAsUser(config, "user2")
-	defer libkbfs.CheckConfigAndShutdown(ctx, t, config2)
 	tempdir2, err := ioutil.TempDir(os.TempDir(), "journal_server")
 	require.NoError(t, err)
 	defer os.RemoveAll(tempdir2)
+	config2 := libkbfs.ConfigAsUser(config, "user2")
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config2)
 	err = config2.EnableDiskLimiter(tempdir2)
 	require.NoError(t, err)
 	err = config2.EnableJournaling(
@@ -638,8 +638,8 @@ func TestRunnerReaderClone(t *testing.T) {
 
 func TestRunnerDeletePackedRef(t *testing.T) {
 	ctx, config, tempdir := initConfigForRunner(t)
-	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 	defer os.RemoveAll(tempdir)
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
 	git1, err := ioutil.TempDir(os.TempDir(), "kbfsgittest")
 	require.NoError(t, err)
@@ -683,8 +683,8 @@ func TestRunnerDeletePackedRef(t *testing.T) {
 
 func TestPushcertOptions(t *testing.T) {
 	ctx, config, tempdir := initConfigForRunner(t)
-	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 	defer os.RemoveAll(tempdir)
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
 	git, err := ioutil.TempDir(os.TempDir(), "kbfsgittest")
 	require.NoError(t, err)
@@ -717,8 +717,8 @@ func TestPushcertOptions(t *testing.T) {
 
 func TestPackRefsAndOverwritePackedRef(t *testing.T) {
 	ctx, config, tempdir := initConfigForRunner(t)
-	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 	defer os.RemoveAll(tempdir)
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
 	git1, err := ioutil.TempDir(os.TempDir(), "kbfsgittest")
 	require.NoError(t, err)
@@ -734,11 +734,11 @@ func TestPackRefsAndOverwritePackedRef(t *testing.T) {
 		"ok %s\n\n", "user1,user2")
 
 	// Config for the second user.
-	config2 := libkbfs.ConfigAsUser(config, "user2")
-	defer libkbfs.CheckConfigAndShutdown(ctx, t, config2)
 	tempdir2, err := ioutil.TempDir(os.TempDir(), "journal_server")
 	require.NoError(t, err)
 	defer os.RemoveAll(tempdir2)
+	config2 := libkbfs.ConfigAsUser(config, "user2")
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config2)
 	err = config2.EnableDiskLimiter(tempdir2)
 	require.NoError(t, err)
 	err = config2.EnableJournaling(
@@ -802,8 +802,8 @@ func TestPackRefsAndOverwritePackedRef(t *testing.T) {
 
 func TestPackRefsAndDeletePackedRef(t *testing.T) {
 	ctx, config, tempdir := initConfigForRunner(t)
-	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 	defer os.RemoveAll(tempdir)
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
 	git1, err := ioutil.TempDir(os.TempDir(), "kbfsgittest")
 	require.NoError(t, err)
@@ -822,11 +822,11 @@ func TestPackRefsAndDeletePackedRef(t *testing.T) {
 		"ok %s\n\n", "user1,user2")
 
 	// Config for the second user.
-	config2 := libkbfs.ConfigAsUser(config, "user2")
-	defer libkbfs.CheckConfigAndShutdown(ctx, t, config2)
 	tempdir2, err := ioutil.TempDir(os.TempDir(), "journal_server")
 	require.NoError(t, err)
 	defer os.RemoveAll(tempdir2)
+	config2 := libkbfs.ConfigAsUser(config, "user2")
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config2)
 	err = config2.EnableDiskLimiter(tempdir2)
 	require.NoError(t, err)
 	err = config2.EnableJournaling(
@@ -920,8 +920,8 @@ func TestPackRefsAndDeletePackedRef(t *testing.T) {
 
 func TestRepackObjects(t *testing.T) {
 	ctx, config, tempdir := initConfigForRunner(t)
-	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 	defer os.RemoveAll(tempdir)
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
 	git, err := ioutil.TempDir(os.TempDir(), "kbfsgittest")
 	require.NoError(t, err)
@@ -999,8 +999,8 @@ func testHandlePushBatch(ctx context.Context, t *testing.T,
 func TestRunnerHandlePushBatch(t *testing.T) {
 	t.Skip("KBFS-3836: currently flaking a lot")
 	ctx, config, tempdir := initConfigForRunner(t)
-	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 	defer os.RemoveAll(tempdir)
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
 	git, err := ioutil.TempDir(os.TempDir(), "kbfsgittest")
 	require.NoError(t, err)
@@ -1087,8 +1087,8 @@ func TestRunnerSubmodule(t *testing.T) {
 	}
 
 	ctx, config, tempdir := initConfigForRunner(t)
-	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 	defer os.RemoveAll(tempdir)
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
 	shutdown := libgit.StartAutogit(config, 25)
 	defer shutdown()

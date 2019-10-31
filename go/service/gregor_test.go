@@ -793,10 +793,10 @@ func TestGregorTeamBadges(t *testing.T) {
 
 	listener.getBadgeState(t) // skip one since resync sends 2
 	bs := listener.getBadgeState(t)
-	require.Equal(t, 1, len(bs.NewTeamNames), "one new team name")
-	require.Equal(t, "teamname", bs.NewTeamNames[0])
+	require.Equal(t, 1, len(bs.NewTeams), "one new team name")
+	require.Equal(t, teamID, bs.NewTeams[0])
 	require.Equal(t, 1, len(bs.NewTeamAccessRequests), "one team access request")
-	require.Equal(t, "teamname", bs.NewTeamAccessRequests[0])
+	require.Equal(t, teamID, bs.NewTeamAccessRequests[0])
 	require.Equal(t, 1, len(bs.TeamsWithResetUsers), "one team member out due to reset")
 	require.Equal(t, "teamname", bs.TeamsWithResetUsers[0].Teamname)
 	require.Equal(t, "alice", bs.TeamsWithResetUsers[0].Username)

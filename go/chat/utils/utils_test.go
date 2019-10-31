@@ -34,14 +34,26 @@ func TestParseDurationExtended(t *testing.T) {
 }
 
 func TestParseAtMentionsNames(t *testing.T) {
-	text := "@chat_1e2263952c hello! @mike From @chat_5511c5e0ce. @ksjdskj 889@ds8 @_dskdjs @k1 @0011_"
-	matches := ParseAtMentionsNames(context.TODO(), text)
-	expected := []string{"chat_1e2263952c", "mike", "chat_5511c5e0ce", "ksjdskj", "k1", "0011_"}
-	require.Equal(t, expected, matches)
+	text := "@Chat_1e2263952c hello! @Mike From @chat_5511c5e0ce. @ksjdskj 889@ds8 @_dskdjs @k1 @0011_"
+	matches := parseRegexpNames(context.TODO(), text, atMentionRegExp)
+	var names, normalizedNames []string
+	for _, m := range matches {
+		names = append(names, m.name)
+		normalizedNames = append(normalizedNames, m.normalizedName)
+	}
+
+	expected := []string{"Chat_1e2263952c", "Mike", "chat_5511c5e0ce", "ksjdskj", "k1", "0011_"}
+	require.Equal(t, expected, names)
+	expectedNormalized := []string{"chat_1e2263952c", "mike", "chat_5511c5e0ce", "ksjdskj", "k1", "0011_"}
+	require.Equal(t, expectedNormalized, normalizedNames)
 	text = "@mike@jim"
-	matches = ParseAtMentionsNames(context.TODO(), text)
+	matches = parseRegexpNames(context.TODO(), text, atMentionRegExp)
+	names = []string{}
+	for _, m := range matches {
+		names = append(names, m.name)
+	}
 	expected = []string{"mike"}
-	require.Equal(t, expected, matches)
+	require.Equal(t, expected, names)
 }
 
 type testTeamChannelSource struct {
@@ -206,20 +218,20 @@ func TestDecorateMentions(t *testing.T) {
 			result: "$>kb$eyJ0eXAiOjEsImF0bWVudGlvbiI6Im1pa2VtIn0=$<kb$ fix something",
 		},
 		{
-			body:        "@mikem,@max @mikem/@max please check out #general, also @here you should too",
+			body:        "@Mikem,@Max @mikem/@max please check out #general, also @here you should too",
 			atMentions:  []string{"mikem", "max"},
 			chanMention: chat1.ChannelMention_HERE,
 			channelNameMentions: []chat1.ChannelNameMention{{
 				ConvID:    convID,
 				TopicName: "general",
 			}},
-			// {"typ":1,"atmention":"mikem"}
-			// {"typ":1,"atmention":"max"}
+			// {"typ":1,"atmention":"Mikem"}
+			// {"typ":1,"atmention":"Max"}
 			// {"typ":1,"atmention":"mikem"}
 			// {"typ":1,"atmention":"max"}
 			// {"typ":2,"channelnamemention":{"name":"general","convID":"01020304"}}
 			// {"typ":1,"atmention":"here"}
-			result: "$>kb$eyJ0eXAiOjEsImF0bWVudGlvbiI6Im1pa2VtIn0=$<kb$,$>kb$eyJ0eXAiOjEsImF0bWVudGlvbiI6Im1heCJ9$<kb$ $>kb$eyJ0eXAiOjEsImF0bWVudGlvbiI6Im1pa2VtIn0=$<kb$/$>kb$eyJ0eXAiOjEsImF0bWVudGlvbiI6Im1heCJ9$<kb$ please check out $>kb$eyJ0eXAiOjIsImNoYW5uZWxuYW1lbWVudGlvbiI6eyJuYW1lIjoiZ2VuZXJhbCIsImNvbnZJRCI6IjAxMDIwMzA0In19$<kb$, also $>kb$eyJ0eXAiOjEsImF0bWVudGlvbiI6ImhlcmUifQ==$<kb$ you should too",
+			result: "$>kb$eyJ0eXAiOjEsImF0bWVudGlvbiI6Ik1pa2VtIn0=$<kb$,$>kb$eyJ0eXAiOjEsImF0bWVudGlvbiI6Ik1heCJ9$<kb$ $>kb$eyJ0eXAiOjEsImF0bWVudGlvbiI6Im1pa2VtIn0=$<kb$/$>kb$eyJ0eXAiOjEsImF0bWVudGlvbiI6Im1heCJ9$<kb$ please check out $>kb$eyJ0eXAiOjIsImNoYW5uZWxuYW1lbWVudGlvbiI6eyJuYW1lIjoiZ2VuZXJhbCIsImNvbnZJRCI6IjAxMDIwMzA0In19$<kb$, also $>kb$eyJ0eXAiOjEsImF0bWVudGlvbiI6ImhlcmUifQ==$<kb$ you should too",
 		},
 		{
 			body:       "@mikem talk to @patrick",
@@ -261,15 +273,15 @@ func TestDecorateLinks(t *testing.T) {
 	cases := []decorateLinkTest{
 		{
 			body:   "click www.google.com",
-			result: "click $>kb$eyJ0eXAiOjQsImxpbmsiOnsiZGlzcGxheSI6Ind3dy5nb29nbGUuY29tIiwidXJsIjoiaHR0cDovL3d3dy5nb29nbGUuY29tIn19$<kb$",
+			result: "click $>kb$eyJ0eXAiOjQsImxpbmsiOnsiZGlzcGxheSI6Ind3dy5nb29nbGUuY29tIiwidXJsIjoiaHR0cDovL3d3dy5nb29nbGUuY29tIiwicHVueWNvZGUiOiIifX0=$<kb$",
 		},
 		{
 			body:   "https://maps.google.com?q=Goddess%20and%20the%20Baker,%20Legacy%20Tower,%20S%20Wabash%20Ave,%20Chicago,%20IL%2060603&ftid=0x880e2ca4623987cb:0x8b9a49f6050a873a&hl=en-US&gl=us",
-			result: "$>kb$eyJ0eXAiOjQsImxpbmsiOnsiZGlzcGxheSI6Imh0dHBzOi8vbWFwcy5nb29nbGUuY29tP3E9R29kZGVzcyUyMGFuZCUyMHRoZSUyMEJha2VyLCUyMExlZ2FjeSUyMFRvd2VyLCUyMFMlMjBXYWJhc2glMjBBdmUsJTIwQ2hpY2FnbywlMjBJTCUyMDYwNjAzXHUwMDI2ZnRpZD0weDg4MGUyY2E0NjIzOTg3Y2I6MHg4YjlhNDlmNjA1MGE4NzNhXHUwMDI2aGw9ZW4tVVNcdTAwMjZnbD11cyIsInVybCI6Imh0dHBzOi8vbWFwcy5nb29nbGUuY29tP3E9R29kZGVzcyUyMGFuZCUyMHRoZSUyMEJha2VyLCUyMExlZ2FjeSUyMFRvd2VyLCUyMFMlMjBXYWJhc2glMjBBdmUsJTIwQ2hpY2FnbywlMjBJTCUyMDYwNjAzXHUwMDI2ZnRpZD0weDg4MGUyY2E0NjIzOTg3Y2I6MHg4YjlhNDlmNjA1MGE4NzNhXHUwMDI2aGw9ZW4tVVNcdTAwMjZnbD11cyJ9fQ==$<kb$",
+			result: "$>kb$eyJ0eXAiOjQsImxpbmsiOnsiZGlzcGxheSI6Imh0dHBzOi8vbWFwcy5nb29nbGUuY29tP3E9R29kZGVzcyUyMGFuZCUyMHRoZSUyMEJha2VyLCUyMExlZ2FjeSUyMFRvd2VyLCUyMFMlMjBXYWJhc2glMjBBdmUsJTIwQ2hpY2FnbywlMjBJTCUyMDYwNjAzXHUwMDI2ZnRpZD0weDg4MGUyY2E0NjIzOTg3Y2I6MHg4YjlhNDlmNjA1MGE4NzNhXHUwMDI2aGw9ZW4tVVNcdTAwMjZnbD11cyIsInVybCI6Imh0dHBzOi8vbWFwcy5nb29nbGUuY29tP3E9R29kZGVzcyUyMGFuZCUyMHRoZSUyMEJha2VyLCUyMExlZ2FjeSUyMFRvd2VyLCUyMFMlMjBXYWJhc2glMjBBdmUsJTIwQ2hpY2FnbywlMjBJTCUyMDYwNjAzXHUwMDI2ZnRpZD0weDg4MGUyY2E0NjIzOTg3Y2I6MHg4YjlhNDlmNjA1MGE4NzNhXHUwMDI2aGw9ZW4tVVNcdTAwMjZnbD11cyIsInB1bnljb2RlIjoiIn19$<kb$",
 		},
 		{
 			body:   "10.0.0.24",
-			result: "$>kb$eyJ0eXAiOjQsImxpbmsiOnsiZGlzcGxheSI6IjEwLjAuMC4yNCIsInVybCI6Imh0dHA6Ly8xMC4wLjAuMjQifX0=$<kb$",
+			result: "$>kb$eyJ0eXAiOjQsImxpbmsiOnsiZGlzcGxheSI6IjEwLjAuMC4yNCIsInVybCI6Imh0dHA6Ly8xMC4wLjAuMjQiLCJwdW55Y29kZSI6IiJ9fQ==$<kb$",
 		},
 		{
 			body:   "ws-0.localdomain",
@@ -277,27 +289,27 @@ func TestDecorateLinks(t *testing.T) {
 		},
 		{
 			body:   "https://companyname.sharepoint.com/:f:/s/site-collection-name/subsite-name/Ds10TaJKAKhMp1hE0B_42WcBVhTHD3EQJKWhGprKFP3vpQ?e=14ohmf",
-			result: "$>kb$eyJ0eXAiOjQsImxpbmsiOnsiZGlzcGxheSI6Imh0dHBzOi8vY29tcGFueW5hbWUuc2hhcmVwb2ludC5jb20vOmY6L3Mvc2l0ZS1jb2xsZWN0aW9uLW5hbWUvc3Vic2l0ZS1uYW1lL0RzMTBUYUpLQUtoTXAxaEUwQl80MldjQlZoVEhEM0VRSktXaEdwcktGUDN2cFE/ZT0xNG9obWYiLCJ1cmwiOiJodHRwczovL2NvbXBhbnluYW1lLnNoYXJlcG9pbnQuY29tLzpmOi9zL3NpdGUtY29sbGVjdGlvbi1uYW1lL3N1YnNpdGUtbmFtZS9EczEwVGFKS0FLaE1wMWhFMEJfNDJXY0JWaFRIRDNFUUpLV2hHcHJLRlAzdnBRP2U9MTRvaG1mIn19$<kb$",
+			result: "$>kb$eyJ0eXAiOjQsImxpbmsiOnsiZGlzcGxheSI6Imh0dHBzOi8vY29tcGFueW5hbWUuc2hhcmVwb2ludC5jb20vOmY6L3Mvc2l0ZS1jb2xsZWN0aW9uLW5hbWUvc3Vic2l0ZS1uYW1lL0RzMTBUYUpLQUtoTXAxaEUwQl80MldjQlZoVEhEM0VRSktXaEdwcktGUDN2cFE/ZT0xNG9obWYiLCJ1cmwiOiJodHRwczovL2NvbXBhbnluYW1lLnNoYXJlcG9pbnQuY29tLzpmOi9zL3NpdGUtY29sbGVjdGlvbi1uYW1lL3N1YnNpdGUtbmFtZS9EczEwVGFKS0FLaE1wMWhFMEJfNDJXY0JWaFRIRDNFUUpLV2hHcHJLRlAzdnBRP2U9MTRvaG1mIiwicHVueWNvZGUiOiIifX0=$<kb$",
 		},
 		{
 			body:   "http://keybase.io/mikem;",
-			result: "$>kb$eyJ0eXAiOjQsImxpbmsiOnsiZGlzcGxheSI6Imh0dHA6Ly9rZXliYXNlLmlvL21pa2VtIiwidXJsIjoiaHR0cDovL2tleWJhc2UuaW8vbWlrZW0ifX0=$<kb$;",
+			result: "$>kb$eyJ0eXAiOjQsImxpbmsiOnsiZGlzcGxheSI6Imh0dHA6Ly9rZXliYXNlLmlvL21pa2VtIiwidXJsIjoiaHR0cDovL2tleWJhc2UuaW8vbWlrZW0iLCJwdW55Y29kZSI6IiJ9fQ==$<kb$;",
 		},
 		{
 			body:   "keybase.io, hi",
-			result: "$>kb$eyJ0eXAiOjQsImxpbmsiOnsiZGlzcGxheSI6ImtleWJhc2UuaW8iLCJ1cmwiOiJodHRwOi8va2V5YmFzZS5pbyJ9fQ==$<kb$, hi",
+			result: "$>kb$eyJ0eXAiOjQsImxpbmsiOnsiZGlzcGxheSI6ImtleWJhc2UuaW8iLCJ1cmwiOiJodHRwOi8va2V5YmFzZS5pbyIsInB1bnljb2RlIjoiIn19$<kb$, hi",
 		},
 		{
 			body:   "https://en.wikipedia.org/wiki/J/Z_(New_York_City_Subway_service)",
-			result: "$>kb$eyJ0eXAiOjQsImxpbmsiOnsiZGlzcGxheSI6Imh0dHBzOi8vZW4ud2lraXBlZGlhLm9yZy93aWtpL0ovWl8oTmV3X1lvcmtfQ2l0eV9TdWJ3YXlfc2VydmljZSkiLCJ1cmwiOiJodHRwczovL2VuLndpa2lwZWRpYS5vcmcvd2lraS9KL1pfKE5ld19Zb3JrX0NpdHlfU3Vid2F5X3NlcnZpY2UpIn19$<kb$",
+			result: "$>kb$eyJ0eXAiOjQsImxpbmsiOnsiZGlzcGxheSI6Imh0dHBzOi8vZW4ud2lraXBlZGlhLm9yZy93aWtpL0ovWl8oTmV3X1lvcmtfQ2l0eV9TdWJ3YXlfc2VydmljZSkiLCJ1cmwiOiJodHRwczovL2VuLndpa2lwZWRpYS5vcmcvd2lraS9KL1pfKE5ld19Zb3JrX0NpdHlfU3Vid2F5X3NlcnZpY2UpIiwicHVueWNvZGUiOiIifX0=$<kb$",
 		},
 		{
 			body:   "(keybase.io)",
-			result: "($>kb$eyJ0eXAiOjQsImxpbmsiOnsiZGlzcGxheSI6ImtleWJhc2UuaW8iLCJ1cmwiOiJodHRwOi8va2V5YmFzZS5pbyJ9fQ==$<kb$)",
+			result: "($>kb$eyJ0eXAiOjQsImxpbmsiOnsiZGlzcGxheSI6ImtleWJhc2UuaW8iLCJ1cmwiOiJodHRwOi8va2V5YmFzZS5pbyIsInB1bnljb2RlIjoiIn19$<kb$)",
 		},
 		{
 			body:   "https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/unicode-range",
-			result: "$>kb$eyJ0eXAiOjQsImxpbmsiOnsiZGlzcGxheSI6Imh0dHBzOi8vZGV2ZWxvcGVyLm1vemlsbGEub3JnL2VuLVVTL2RvY3MvV2ViL0NTUy9AZm9udC1mYWNlL3VuaWNvZGUtcmFuZ2UiLCJ1cmwiOiJodHRwczovL2RldmVsb3Blci5tb3ppbGxhLm9yZy9lbi1VUy9kb2NzL1dlYi9DU1MvQGZvbnQtZmFjZS91bmljb2RlLXJhbmdlIn19$<kb$",
+			result: "$>kb$eyJ0eXAiOjQsImxpbmsiOnsiZGlzcGxheSI6Imh0dHBzOi8vZGV2ZWxvcGVyLm1vemlsbGEub3JnL2VuLVVTL2RvY3MvV2ViL0NTUy9AZm9udC1mYWNlL3VuaWNvZGUtcmFuZ2UiLCJ1cmwiOiJodHRwczovL2RldmVsb3Blci5tb3ppbGxhLm9yZy9lbi1VUy9kb2NzL1dlYi9DU1MvQGZvbnQtZmFjZS91bmljb2RlLXJhbmdlIiwicHVueWNvZGUiOiIifX0=$<kb$",
 		},
 		{
 			body:   "`www.google.com`",
@@ -309,7 +321,7 @@ func TestDecorateLinks(t *testing.T) {
 		},
 		{
 			body:   "> www.google.com",
-			result: "> $>kb$eyJ0eXAiOjQsImxpbmsiOnsiZGlzcGxheSI6Ind3dy5nb29nbGUuY29tIiwidXJsIjoiaHR0cDovL3d3dy5nb29nbGUuY29tIn19$<kb$",
+			result: "> $>kb$eyJ0eXAiOjQsImxpbmsiOnsiZGlzcGxheSI6Ind3dy5nb29nbGUuY29tIiwidXJsIjoiaHR0cDovL3d3dy5nb29nbGUuY29tIiwicHVueWNvZGUiOiIifX0=$<kb$",
 		},
 		{
 			body:   "nytimes.json",
@@ -317,23 +329,23 @@ func TestDecorateLinks(t *testing.T) {
 		},
 		{
 			body:   "mike.maxim@gmail.com",
-			result: "$>kb$eyJ0eXAiOjUsIm1haWx0byI6eyJkaXNwbGF5IjoibWlrZS5tYXhpbUBnbWFpbC5jb20iLCJ1cmwiOiJtYWlsdG86bWlrZS5tYXhpbUBnbWFpbC5jb20ifX0=$<kb$",
+			result: "$>kb$eyJ0eXAiOjUsIm1haWx0byI6eyJkaXNwbGF5IjoibWlrZS5tYXhpbUBnbWFpbC5jb20iLCJ1cmwiOiJtYWlsdG86bWlrZS5tYXhpbUBnbWFpbC5jb20iLCJwdW55Y29kZSI6IiJ9fQ==$<kb$",
 		},
 		{
 			body:   "mailto:mike.maxim@gmail.com",
-			result: "mailto:$>kb$eyJ0eXAiOjUsIm1haWx0byI6eyJkaXNwbGF5IjoibWlrZS5tYXhpbUBnbWFpbC5jb20iLCJ1cmwiOiJtYWlsdG86bWlrZS5tYXhpbUBnbWFpbC5jb20ifX0=$<kb$",
+			result: "mailto:$>kb$eyJ0eXAiOjUsIm1haWx0byI6eyJkaXNwbGF5IjoibWlrZS5tYXhpbUBnbWFpbC5jb20iLCJ1cmwiOiJtYWlsdG86bWlrZS5tYXhpbUBnbWFpbC5jb20iLCJwdW55Y29kZSI6IiJ9fQ==$<kb$",
 		},
 		{
 			body:   "mike.maxim@gmail.com/google.com",
-			result: "$>kb$eyJ0eXAiOjUsIm1haWx0byI6eyJkaXNwbGF5IjoibWlrZS5tYXhpbUBnbWFpbC5jb20iLCJ1cmwiOiJtYWlsdG86bWlrZS5tYXhpbUBnbWFpbC5jb20ifX0=$<kb$/google.com",
+			result: "$>kb$eyJ0eXAiOjUsIm1haWx0byI6eyJkaXNwbGF5IjoibWlrZS5tYXhpbUBnbWFpbC5jb20iLCJ1cmwiOiJtYWlsdG86bWlrZS5tYXhpbUBnbWFpbC5jb20iLCJwdW55Y29kZSI6IiJ9fQ==$<kb$/google.com",
 		},
 		{
 			body:   "https://medium.com/@wouterarkink/https-medium-com-wouterarkink-how-to-send-money-to-anyone-in-the-world-by-only-knowing-their-social-handle-3180e6cd4e58",
-			result: "$>kb$eyJ0eXAiOjQsImxpbmsiOnsiZGlzcGxheSI6Imh0dHBzOi8vbWVkaXVtLmNvbS9Ad291dGVyYXJraW5rL2h0dHBzLW1lZGl1bS1jb20td291dGVyYXJraW5rLWhvdy10by1zZW5kLW1vbmV5LXRvLWFueW9uZS1pbi10aGUtd29ybGQtYnktb25seS1rbm93aW5nLXRoZWlyLXNvY2lhbC1oYW5kbGUtMzE4MGU2Y2Q0ZTU4IiwidXJsIjoiaHR0cHM6Ly9tZWRpdW0uY29tL0B3b3V0ZXJhcmtpbmsvaHR0cHMtbWVkaXVtLWNvbS13b3V0ZXJhcmtpbmstaG93LXRvLXNlbmQtbW9uZXktdG8tYW55b25lLWluLXRoZS13b3JsZC1ieS1vbmx5LWtub3dpbmctdGhlaXItc29jaWFsLWhhbmRsZS0zMTgwZTZjZDRlNTgifX0=$<kb$",
+			result: "$>kb$eyJ0eXAiOjQsImxpbmsiOnsiZGlzcGxheSI6Imh0dHBzOi8vbWVkaXVtLmNvbS9Ad291dGVyYXJraW5rL2h0dHBzLW1lZGl1bS1jb20td291dGVyYXJraW5rLWhvdy10by1zZW5kLW1vbmV5LXRvLWFueW9uZS1pbi10aGUtd29ybGQtYnktb25seS1rbm93aW5nLXRoZWlyLXNvY2lhbC1oYW5kbGUtMzE4MGU2Y2Q0ZTU4IiwidXJsIjoiaHR0cHM6Ly9tZWRpdW0uY29tL0B3b3V0ZXJhcmtpbmsvaHR0cHMtbWVkaXVtLWNvbS13b3V0ZXJhcmtpbmstaG93LXRvLXNlbmQtbW9uZXktdG8tYW55b25lLWluLXRoZS13b3JsZC1ieS1vbmx5LWtub3dpbmctdGhlaXItc29jaWFsLWhhbmRsZS0zMTgwZTZjZDRlNTgiLCJwdW55Y29kZSI6IiJ9fQ==$<kb$",
 		},
 		{
 			body:   "https://drive.google.com/open?id=1BKcMML-uqOFAK-D4btEBlcoyodfvE4gg&authuser=cecile@keyba.se&usp=drive_fs",
-			result: "$>kb$eyJ0eXAiOjQsImxpbmsiOnsiZGlzcGxheSI6Imh0dHBzOi8vZHJpdmUuZ29vZ2xlLmNvbS9vcGVuP2lkPTFCS2NNTUwtdXFPRkFLLUQ0YnRFQmxjb3lvZGZ2RTRnZ1x1MDAyNmF1dGh1c2VyPWNlY2lsZUBrZXliYS5zZVx1MDAyNnVzcD1kcml2ZV9mcyIsInVybCI6Imh0dHBzOi8vZHJpdmUuZ29vZ2xlLmNvbS9vcGVuP2lkPTFCS2NNTUwtdXFPRkFLLUQ0YnRFQmxjb3lvZGZ2RTRnZ1x1MDAyNmF1dGh1c2VyPWNlY2lsZUBrZXliYS5zZVx1MDAyNnVzcD1kcml2ZV9mcyJ9fQ==$<kb$",
+			result: "$>kb$eyJ0eXAiOjQsImxpbmsiOnsiZGlzcGxheSI6Imh0dHBzOi8vZHJpdmUuZ29vZ2xlLmNvbS9vcGVuP2lkPTFCS2NNTUwtdXFPRkFLLUQ0YnRFQmxjb3lvZGZ2RTRnZ1x1MDAyNmF1dGh1c2VyPWNlY2lsZUBrZXliYS5zZVx1MDAyNnVzcD1kcml2ZV9mcyIsInVybCI6Imh0dHBzOi8vZHJpdmUuZ29vZ2xlLmNvbS9vcGVuP2lkPTFCS2NNTUwtdXFPRkFLLUQ0YnRFQmxjb3lvZGZ2RTRnZ1x1MDAyNmF1dGh1c2VyPWNlY2lsZUBrZXliYS5zZVx1MDAyNnVzcD1kcml2ZV9mcyIsInB1bnljb2RlIjoiIn19$<kb$",
 		},
 		{
 			body:   "@google.com",
@@ -345,7 +357,7 @@ func TestDecorateLinks(t *testing.T) {
 		},
 		{
 			body:   "#google.com",
-			result: "#$>kb$eyJ0eXAiOjQsImxpbmsiOnsiZGlzcGxheSI6Imdvb2dsZS5jb20iLCJ1cmwiOiJodHRwOi8vZ29vZ2xlLmNvbSJ9fQ==$<kb$",
+			result: "#$>kb$eyJ0eXAiOjQsImxpbmsiOnsiZGlzcGxheSI6Imdvb2dsZS5jb20iLCJ1cmwiOiJodHRwOi8vZ29vZ2xlLmNvbSIsInB1bnljb2RlIjoiIn19$<kb$",
 		},
 		{
 			body:   "client/go/profiling/aggregate_timers.py",
@@ -353,11 +365,11 @@ func TestDecorateLinks(t *testing.T) {
 		},
 		{
 			body:   "cnn.com/@mike/index.html",
-			result: "$>kb$eyJ0eXAiOjQsImxpbmsiOnsiZGlzcGxheSI6ImNubi5jb20vQG1pa2UvaW5kZXguaHRtbCIsInVybCI6Imh0dHA6Ly9jbm4uY29tL0BtaWtlL2luZGV4Lmh0bWwifX0=$<kb$",
+			result: "$>kb$eyJ0eXAiOjQsImxpbmsiOnsiZGlzcGxheSI6ImNubi5jb20vQG1pa2UvaW5kZXguaHRtbCIsInVybCI6Imh0dHA6Ly9jbm4uY29tL0BtaWtlL2luZGV4Lmh0bWwiLCJwdW55Y29kZSI6IiJ9fQ==$<kb$",
 		},
 		{
 			body:   "google.com/mike?email=mike@gmail.com",
-			result: "$>kb$eyJ0eXAiOjQsImxpbmsiOnsiZGlzcGxheSI6Imdvb2dsZS5jb20vbWlrZT9lbWFpbD1taWtlQGdtYWlsLmNvbSIsInVybCI6Imh0dHA6Ly9nb29nbGUuY29tL21pa2U/ZW1haWw9bWlrZUBnbWFpbC5jb20ifX0=$<kb$",
+			result: "$>kb$eyJ0eXAiOjQsImxpbmsiOnsiZGlzcGxheSI6Imdvb2dsZS5jb20vbWlrZT9lbWFpbD1taWtlQGdtYWlsLmNvbSIsInVybCI6Imh0dHA6Ly9nb29nbGUuY29tL21pa2U/ZW1haWw9bWlrZUBnbWFpbC5jb20iLCJwdW55Y29kZSI6IiJ9fQ==$<kb$",
 		},
 		{
 			body:   "@keybase.bots.build.macos",

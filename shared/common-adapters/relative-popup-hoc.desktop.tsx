@@ -263,6 +263,7 @@ type ModalPositionRelativeProps<PP> = {
   matchDimension?: boolean
   onClosePopup: () => void
   propagateOutsideClicks?: boolean
+  remeasureHint?: number
   style?: Styles.StylesCrossPlatform
 } & PP
 
@@ -315,7 +316,10 @@ function ModalPositionRelative<PP>(
     }
 
     componentDidUpdate(prevProps: ModalPositionRelativeProps<PP>, _, snapshot) {
-      if (this.props.targetRect && this.props.targetRect !== prevProps.targetRect) {
+      if (
+        (this.props.targetRect && this.props.targetRect !== prevProps.targetRect) ||
+        this.props.remeasureHint !== prevProps.remeasureHint
+      ) {
         this._computeStyle(this.props.targetRect)
       }
 

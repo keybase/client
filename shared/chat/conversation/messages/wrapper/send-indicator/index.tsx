@@ -9,6 +9,12 @@ const statusToIcon: {[K in AnimationStatus]: Kb.AnimationType} = {
   sending: 'messageStatusSending',
   sent: 'messageStatusSent',
 }
+const statusToIconDark: {[K in AnimationStatus]: Kb.AnimationType} = {
+  encrypting: 'darkMessageStatusEncrypting',
+  error: 'darkMessageStatusError',
+  sending: 'darkMessageStatusSending',
+  sent: 'darkMessageStatusSent',
+}
 
 const encryptingTimeout = 600
 const sentTimeout = 400
@@ -112,7 +118,11 @@ class SendIndicator extends React.Component<Props, State> {
     }
     return (
       <Kb.Animation
-        animationType={statusToIcon[this.state.animationStatus]}
+        animationType={
+          Styles.isDarkMode()
+            ? statusToIconDark[this.state.animationStatus]
+            : statusToIcon[this.state.animationStatus]
+        }
         className="sendingStatus"
         containerStyle={this.props.style}
         style={Styles.collapseStyles([
@@ -129,7 +139,7 @@ const styles = Styles.styleSheetCreate(
     ({
       animation: Styles.platformStyles({
         common: {
-          height: 20,
+          height: 24,
           width: 36,
         },
         isMobile: {

@@ -123,6 +123,7 @@ type GlobalContext struct {
 	UIRouter           UIRouter                  // How to route UIs
 	proofServices      ExternalServicesCollector // All known external services
 	UIDMapper          UIDMapper                 // maps from UID to Usernames
+	ServiceMapper      ServiceSummaryMapper      // handles and caches batch requests for service summaries
 	ExitCode           keybase1.ExitCode         // Value to return to OS on Exit()
 	RateLimits         *RateLimits               // tracks the last time certain actions were taken
 	clockMu            *sync.Mutex               // protects Clock
@@ -167,6 +168,8 @@ type GlobalContext struct {
 	SyncedContactList SyncedContactListProvider
 
 	GUIConfig *JSONFile
+
+	avatarLoader AvatarLoaderSource
 }
 
 type GlobalTestOptions struct {
@@ -189,6 +192,7 @@ func (g *GlobalContext) GetEKLib() EKLib                               { return 
 func (g *GlobalContext) GetTeambotBotKeyer() TeambotBotKeyer           { return g.teambotBotKeyer }
 func (g *GlobalContext) GetTeambotMemberKeyer() TeambotMemberKeyer     { return g.teambotMemberKeyer }
 func (g *GlobalContext) GetProofServices() ExternalServicesCollector   { return g.proofServices }
+func (g *GlobalContext) GetAvatarLoader() AvatarLoaderSource           { return g.avatarLoader }
 
 type LogGetter func() logger.Logger
 
@@ -288,6 +292,10 @@ func (g *GlobalContext) SetUIDMapper(u UIDMapper) {
 	g.UIDMapper = u
 }
 
+func (g *GlobalContext) SetServiceSummaryMapper(u ServiceSummaryMapper) {
+	g.ServiceMapper = u
+}
+
 func (g *GlobalContext) SetUIRouter(u UIRouter) {
 	g.UIRouter = u
 }
@@ -298,6 +306,10 @@ func (g *GlobalContext) SetDNSNameServerFetcher(d DNSNameServerFetcher) {
 
 func (g *GlobalContext) SetUPAKLoader(u UPAKLoader) {
 	g.upakLoader = u
+}
+
+func (g *GlobalContext) SetAvatarLoader(a AvatarLoaderSource) {
+	g.avatarLoader = a
 }
 
 // simulateServiceRestart simulates what happens when a service restarts for the

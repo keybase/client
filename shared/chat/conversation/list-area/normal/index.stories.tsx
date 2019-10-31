@@ -139,8 +139,8 @@ const provider = Sb.createPropProviderWithCommon({
   ExplodingMeta: (_: ExplodingMetaOwnProps): ExplodingMetaViewProps => ({
     // no exploding messages here
     exploded: false,
-
     explodesAt: 0,
+    isParentHighlighted: false,
     messageKey: '',
     onClick: undefined,
     pending: false,

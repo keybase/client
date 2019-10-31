@@ -28,6 +28,8 @@ protocol common {
     string withdrawType; // bank_account, crypto, cash, etc. that the anchor supports
     string transferServer; // sep6 transfer server
     string authEndpoint; // sep6 auth endpoint
+    boolean depositReqAuth; // deposit requires sep10 authentication
+    boolean withdrawReqAuth; // withdraw requires sep10 authentication
   }
 
   record AssetListResult {

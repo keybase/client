@@ -110,6 +110,30 @@ export type Coordinate = {
   lon: number
 }
 
+export enum AudioRecordingStatus {
+  INITIAL = 0,
+  RECORDING,
+  STAGED,
+  STOPPED,
+  CANCELLED,
+}
+
+export enum AudioStopType {
+  CANCEL = 0,
+  RELEASE,
+  SEND,
+  STOPBUTTON,
+}
+
+export type AudioRecordingInfo = {
+  status: AudioRecordingStatus
+  outboxID: Buffer
+  path: string
+  recordStart: number
+  isLocked: boolean
+  amps: Array<number>
+}
+
 export type State = Readonly<{
   accountsInfoMap: Map<
     Common.ConversationIDKey,
@@ -117,6 +141,7 @@ export type State = Readonly<{
   > // temp cache for requestPayment and sendPayment message data,
   attachmentFullscreenSelection?: AttachmentFullscreenSelection
   attachmentViewMap: Map<Common.ConversationIDKey, Map<RPCChatTypes.GalleryItemTyp, AttachmentViewInfo>>
+  audioRecording: Map<Common.ConversationIDKey, AudioRecordingInfo>
   badgeMap: ConversationCountMap // id to the badge count,
   botCommandsUpdateStatusMap: Map<Common.ConversationIDKey, RPCChatTypes.UIBotCommandsUpdateStatus>
   channelSearchText: string

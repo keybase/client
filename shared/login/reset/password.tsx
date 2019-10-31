@@ -125,7 +125,7 @@ const styles = Styles.styleSheetCreate(() => ({
   topGap: Styles.platformStyles({
     isMobile: {
       justifyContent: 'flex-start',
-      marginTop: 120,
+      marginTop: '20%',
     },
   }),
 }))

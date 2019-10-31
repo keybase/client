@@ -59,25 +59,42 @@ export default (
       case TeamsGen.clearTeamRequests:
         draftState.teamNameToRequests = draftState.teamNameToRequests.set(action.payload.teamname, I.Set())
         return
-      case TeamsGen.setTeamDetails:
+      case TeamsGen.setTeamDetails: {
+        const members = Constants.rpcDetailsToMemberInfos(action.payload.members)
         draftState.teamNameToMembers = draftState.teamNameToMembers.set(
           action.payload.teamname,
-          action.payload.members
+          Constants.rpcDetailsToMemberInfos(action.payload.members)
         )
         draftState.teamNameToSettings = draftState.teamNameToSettings.set(
           action.payload.teamname,
-          action.payload.settings
+          Constants.makeTeamSettings(action.payload.settings)
         )
         draftState.teamNameToInvites = draftState.teamNameToInvites.set(
           action.payload.teamname,
-          action.payload.invites
+          I.Set(action.payload.invites.map(i => Constants.makeInviteInfo(i)))
         )
         draftState.teamNameToSubteams = draftState.teamNameToSubteams.set(
           action.payload.teamname,
-          action.payload.subteams
+          I.Set(action.payload.subteams)
         )
-        draftState.teamNameToRequests = draftState.teamNameToRequests.merge(action.payload.requests)
+        const immRequests = I.Map(
+          [...action.payload.requests.entries()].map(([teamname, reqArr]) => [teamname, I.Set(reqArr)])
+        )
+        draftState.teamNameToRequests = draftState.teamNameToRequests.merge(immRequests)
+
+        const details =
+          draftState.teamDetails.get(action.payload.teamID) ||
+          Constants.makeTeamDetails({teamname: action.payload.teamname})
+        details.members = new Map(
+          [...members.entries()].map(([username, memberInfo]) => [username, memberInfo.toObject()])
+        )
+        details.settings = action.payload.settings
+        details.invites = new Set(action.payload.invites)
+        details.subteams = new Set(action.payload.subteams)
+        details.requests = new Set(action.payload.requests.get(action.payload.teamname))
+
         return
+      }
       case TeamsGen.setMembers:
         draftState.teamNameToMembers = draftState.teamNameToMembers.set(
           action.payload.teamname,
@@ -134,12 +151,24 @@ export default (
       case TeamsGen.setTeamAccessRequestsPending:
         draftState.teamAccessRequestsPending = action.payload.accessRequestsPending
         return
-      case TeamsGen.setNewTeamInfo:
+      case TeamsGen.setNewTeamInfo: {
         draftState.deletedTeams = action.payload.deletedTeams
-        draftState.newTeamRequests = action.payload.newTeamRequests
         draftState.newTeams = action.payload.newTeams
         draftState.teamNameToResetUsers = action.payload.teamNameToResetUsers
+
+        const newTeamRequests = new Map<Types.TeamID, number>()
+        const newTeamRequestsByName = new Map<string, number>()
+        action.payload.newTeamRequests.forEach(teamID => {
+          newTeamRequests.set(teamID, (newTeamRequests.get(teamID) || 0) + 1)
+          const teamname = (state.teamDetails.get(teamID) || Constants.emptyTeamDetails).teamname
+          if (teamname) {
+            newTeamRequestsByName.set(teamname, (newTeamRequestsByName.get(teamname) || 0) + 1)
+          }
+        })
+        draftState.newTeamRequests = newTeamRequests
+        draftState.newTeamRequestsByName = newTeamRequestsByName
         return
+      }
       case TeamsGen.setTeamProfileAddList:
         draftState.teamProfileAddList = action.payload.teamlist
         return
@@ -210,7 +239,6 @@ export default (
       case TeamsGen.addUserToTeams:
       case TeamsGen.addToTeam:
       case TeamsGen.reAddToTeam:
-      case TeamsGen.badgeAppForTeams:
       case TeamsGen.checkRequestedAccess:
       case TeamsGen.clearNavBadges:
       case TeamsGen.createChannel:

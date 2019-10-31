@@ -170,4 +170,9 @@
 .icon-gen-iconfont-unhide::before {content: "\e99a";}
 .icon-gen-iconfont-nav-2-robot::before {content: "\e99b";}
 .icon-gen-iconfont-gif::before {content: "\e99c";}
+.icon-gen-iconfont-mic::before {content: "\e99d";}
+.icon-gen-iconfont-play::before {content: "\e99e";}
+.icon-gen-iconfont-stop::before {content: "\e99f";}
+.icon-gen-iconfont-root::before {content: "\e9a0";}
+.icon-gen-iconfont-pause::before {content: "\e9a3";}
 

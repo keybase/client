@@ -38,16 +38,20 @@ export const journalUpdate = 'fs:journalUpdate'
 export const kbfsDaemonOnlineStatusChanged = 'fs:kbfsDaemonOnlineStatusChanged'
 export const kbfsDaemonRpcStatusChanged = 'fs:kbfsDaemonRpcStatusChanged'
 export const letResetUserBackIn = 'fs:letResetUserBackIn'
+export const loadAdditionalTlf = 'fs:loadAdditionalTlf'
 export const loadDownloadInfo = 'fs:loadDownloadInfo'
 export const loadDownloadStatus = 'fs:loadDownloadStatus'
 export const loadFileContext = 'fs:loadFileContext'
+export const loadFilesTabBadge = 'fs:loadFilesTabBadge'
 export const loadPathInfo = 'fs:loadPathInfo'
 export const loadPathMetadata = 'fs:loadPathMetadata'
 export const loadSettings = 'fs:loadSettings'
 export const loadTlfSyncConfig = 'fs:loadTlfSyncConfig'
+export const loadedAdditionalTlf = 'fs:loadedAdditionalTlf'
 export const loadedDownloadInfo = 'fs:loadedDownloadInfo'
 export const loadedDownloadStatus = 'fs:loadedDownloadStatus'
 export const loadedFileContext = 'fs:loadedFileContext'
+export const loadedFilesTabBadge = 'fs:loadedFilesTabBadge'
 export const loadedPathInfo = 'fs:loadedPathInfo'
 export const move = 'fs:move'
 export const newFolderName = 'fs:newFolderName'
@@ -135,7 +139,7 @@ type _FinishedDownloadWithIntentPayload = {
   readonly mimeType: string
 }
 type _FinishedRegularDownloadPayload = {readonly downloadID: string; readonly mimeType: string}
-type _FolderListLoadPayload = {readonly path: Types.Path}
+type _FolderListLoadPayload = {readonly recursive: boolean; readonly path: Types.Path}
 type _FolderListLoadedPayload = {
   readonly path: Types.Path
   readonly pathItems: I.Map<Types.Path, Types.PathItem>
@@ -152,19 +156,23 @@ type _JournalUpdatePayload = {
 type _KbfsDaemonOnlineStatusChangedPayload = {readonly online: boolean}
 type _KbfsDaemonRpcStatusChangedPayload = {readonly rpcStatus: Types.KbfsDaemonRpcStatus}
 type _LetResetUserBackInPayload = {readonly id: RPCTypes.TeamID; readonly username: string}
+type _LoadAdditionalTlfPayload = {readonly tlfPath: Types.Path}
 type _LoadDownloadInfoPayload = {readonly downloadID: string}
 type _LoadDownloadStatusPayload = void
 type _LoadFileContextPayload = {readonly path: Types.Path}
+type _LoadFilesTabBadgePayload = void
 type _LoadPathInfoPayload = {readonly path: Types.Path}
 type _LoadPathMetadataPayload = {readonly path: Types.Path}
 type _LoadSettingsPayload = void
 type _LoadTlfSyncConfigPayload = {readonly tlfPath: Types.Path}
+type _LoadedAdditionalTlfPayload = {readonly tlf: Types.Tlf; readonly tlfPath: Types.Path}
 type _LoadedDownloadInfoPayload = {readonly downloadID: string; readonly info: Types.DownloadInfo}
 type _LoadedDownloadStatusPayload = {
   readonly regularDownloads: Array<string>
   readonly state: Map<string, Types.DownloadState>
 }
 type _LoadedFileContextPayload = {readonly path: Types.Path; readonly fileContext: Types.FileContext}
+type _LoadedFilesTabBadgePayload = {readonly badge: RPCTypes.FilesTabBadge}
 type _LoadedPathInfoPayload = {readonly path: Types.Path; readonly pathInfo: Types.PathInfo}
 type _MovePayload = {readonly destinationParentPath: Types.Path}
 type _NewFolderNamePayload = {readonly editID: Types.EditID; readonly name: string}
@@ -341,6 +349,10 @@ export const createLetResetUserBackIn = (payload: _LetResetUserBackInPayload): L
   payload,
   type: letResetUserBackIn,
 })
+export const createLoadAdditionalTlf = (payload: _LoadAdditionalTlfPayload): LoadAdditionalTlfPayload => ({
+  payload,
+  type: loadAdditionalTlf,
+})
 export const createLoadDownloadInfo = (payload: _LoadDownloadInfoPayload): LoadDownloadInfoPayload => ({
   payload,
   type: loadDownloadInfo,
@@ -352,6 +364,10 @@ export const createLoadDownloadStatus = (payload: _LoadDownloadStatusPayload): L
 export const createLoadFileContext = (payload: _LoadFileContextPayload): LoadFileContextPayload => ({
   payload,
   type: loadFileContext,
+})
+export const createLoadFilesTabBadge = (payload: _LoadFilesTabBadgePayload): LoadFilesTabBadgePayload => ({
+  payload,
+  type: loadFilesTabBadge,
 })
 export const createLoadPathInfo = (payload: _LoadPathInfoPayload): LoadPathInfoPayload => ({
   payload,
@@ -369,6 +385,9 @@ export const createLoadTlfSyncConfig = (payload: _LoadTlfSyncConfigPayload): Loa
   payload,
   type: loadTlfSyncConfig,
 })
+export const createLoadedAdditionalTlf = (
+  payload: _LoadedAdditionalTlfPayload
+): LoadedAdditionalTlfPayload => ({payload, type: loadedAdditionalTlf})
 export const createLoadedDownloadInfo = (payload: _LoadedDownloadInfoPayload): LoadedDownloadInfoPayload => ({
   payload,
   type: loadedDownloadInfo,
@@ -380,6 +399,9 @@ export const createLoadedFileContext = (payload: _LoadedFileContextPayload): Loa
   payload,
   type: loadedFileContext,
 })
+export const createLoadedFilesTabBadge = (
+  payload: _LoadedFilesTabBadgePayload
+): LoadedFilesTabBadgePayload => ({payload, type: loadedFilesTabBadge})
 export const createLoadedPathInfo = (payload: _LoadedPathInfoPayload): LoadedPathInfoPayload => ({
   payload,
   type: loadedPathInfo,
@@ -669,6 +691,10 @@ export type LetResetUserBackInPayload = {
   readonly payload: _LetResetUserBackInPayload
   readonly type: typeof letResetUserBackIn
 }
+export type LoadAdditionalTlfPayload = {
+  readonly payload: _LoadAdditionalTlfPayload
+  readonly type: typeof loadAdditionalTlf
+}
 export type LoadDownloadInfoPayload = {
   readonly payload: _LoadDownloadInfoPayload
   readonly type: typeof loadDownloadInfo
@@ -681,6 +707,10 @@ export type LoadFileContextPayload = {
   readonly payload: _LoadFileContextPayload
   readonly type: typeof loadFileContext
 }
+export type LoadFilesTabBadgePayload = {
+  readonly payload: _LoadFilesTabBadgePayload
+  readonly type: typeof loadFilesTabBadge
+}
 export type LoadPathInfoPayload = {readonly payload: _LoadPathInfoPayload; readonly type: typeof loadPathInfo}
 export type LoadPathMetadataPayload = {
   readonly payload: _LoadPathMetadataPayload
@@ -690,6 +720,10 @@ export type LoadSettingsPayload = {readonly payload: _LoadSettingsPayload; reado
 export type LoadTlfSyncConfigPayload = {
   readonly payload: _LoadTlfSyncConfigPayload
   readonly type: typeof loadTlfSyncConfig
+}
+export type LoadedAdditionalTlfPayload = {
+  readonly payload: _LoadedAdditionalTlfPayload
+  readonly type: typeof loadedAdditionalTlf
 }
 export type LoadedDownloadInfoPayload = {
   readonly payload: _LoadedDownloadInfoPayload
@@ -702,6 +736,10 @@ export type LoadedDownloadStatusPayload = {
 export type LoadedFileContextPayload = {
   readonly payload: _LoadedFileContextPayload
   readonly type: typeof loadedFileContext
+}
+export type LoadedFilesTabBadgePayload = {
+  readonly payload: _LoadedFilesTabBadgePayload
+  readonly type: typeof loadedFilesTabBadge
 }
 export type LoadedPathInfoPayload = {
   readonly payload: _LoadedPathInfoPayload
@@ -941,16 +979,20 @@ export type Actions =
   | KbfsDaemonOnlineStatusChangedPayload
   | KbfsDaemonRpcStatusChangedPayload
   | LetResetUserBackInPayload
+  | LoadAdditionalTlfPayload
   | LoadDownloadInfoPayload
   | LoadDownloadStatusPayload
   | LoadFileContextPayload
+  | LoadFilesTabBadgePayload
   | LoadPathInfoPayload
   | LoadPathMetadataPayload
   | LoadSettingsPayload
   | LoadTlfSyncConfigPayload
+  | LoadedAdditionalTlfPayload
   | LoadedDownloadInfoPayload
   | LoadedDownloadStatusPayload
   | LoadedFileContextPayload
+  | LoadedFilesTabBadgePayload
   | LoadedPathInfoPayload
   | MovePayload
   | NewFolderNamePayload

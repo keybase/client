@@ -111,11 +111,13 @@ func (h *Location) Preview(ctx context.Context, uid gregor1.UID, convID chat1.Co
 	h.displayed = true
 }
 
-var locationTitle = `*/location*`
+var locationTitle = `*/location*
+Post your current location and a map rendered through the use of Google Maps.
+`
 
-var locationUsage = `Location posts consist of your current location coordinate, and a map rendered through the use of Google Maps. We take care to guard your privacy: https://keybase.io/docs/chat/location. Variations: %s
-/location          # post your current location
-/location live 1h  # post your live location for the next hour
-/location stop     # stop posting live location%s
-- The location sender obtains the map from Google without using their IP address directly. The map is then sent as an encrypted attachment into the conversation.
-- Other members in the conversation obtain the map as an encrypted attachment, and never talk to Google at all.`
+var locationUsage = `We take care to guard your privacy: https://keybase.io/docs/chat/location.
+Variations: %s
+/location
+/location live 1h
+/location stop%s
+`

@@ -3,6 +3,8 @@ import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Tabs from '../../constants/tabs'
 import * as Platforms from '../../constants/platform'
+import * as FsConstants from '../../constants/fs'
+import * as Kbfs from '../../fs/common'
 import KeyHandler from '../../util/key-handler.desktop'
 import RuntimeStats from '../../app/runtime-stats/container'
 import './tab-bar.css'
@@ -22,7 +24,6 @@ export type Props = {
   onSignOut: () => void
   onTabClick: (tab: Tabs.AppTab) => void
   selectedTab: Tabs.Tab
-  uploading: boolean
   username: string
 }
 
@@ -41,6 +42,11 @@ const tabs = Tabs.desktopTabOrder
 
 type State = {
   showingMenu: boolean
+}
+
+const FilesTabBadge = () => {
+  const uploadIcon = FsConstants.getUploadIconForFilesTab(Kbfs.useFsBadge())
+  return uploadIcon ? <Kbfs.UploadIcon uploadIcon={uploadIcon} style={styles.badgeIconUpload} /> : null
 }
 
 class TabBar extends React.PureComponent<Props, State> {
@@ -70,6 +76,13 @@ class TabBar extends React.PureComponent<Props, State> {
             }
           />
         </Kb.ClickableBox>
+        <Kb.Button
+          label="View/Edit profile"
+          mode="Secondary"
+          onClick={this.onClickWrapper}
+          small={true}
+          style={styles.button}
+        />
         {flags.fastAccountSwitch && <AccountSwitcher />}
       </Kb.Box2>
     ),
@@ -150,9 +163,7 @@ class TabBar extends React.PureComponent<Props, State> {
                   <Kb.Box2 className="tab-highlight" direction="vertical" fullHeight={true} />
                   <Kb.Box2 style={styles.iconBox} direction="horizontal">
                     <Kb.Icon className="tab-icon" type={data[t].icon} sizeType="Big" />
-                    {p.uploading && t === Tabs.fsTab && (
-                      <Kb.Icon type="icon-addon-file-uploading" sizeType="Default" style={styles.badgeIcon} />
-                    )}
+                    {t === Tabs.fsTab && <FilesTabBadge />}
                   </Kb.Box2>
                   <Kb.Text className="tab-label" type="BodySmallSemibold">
                     {data[t].label}
@@ -180,12 +191,21 @@ const styles = Styles.styleSheetCreate(
         position: 'absolute',
         right: 8,
       },
+      badgeIconUpload: {
+        bottom: -Styles.globalMargins.xxtiny,
+        height: Styles.globalMargins.xsmall,
+        position: 'absolute',
+        right: Styles.globalMargins.xsmall,
+        width: Styles.globalMargins.xsmall,
+      },
+      button: {
+        margin: Styles.globalMargins.xsmall,
+      },
       caret: {marginRight: 12},
       divider: {marginTop: Styles.globalMargins.tiny},
       fullname: {maxWidth: 180},
       header: {flexShrink: 0, height: 80, marginBottom: 20},
       headerBox: {
-        paddingBottom: Styles.globalMargins.small,
         paddingTop: Styles.globalMargins.small,
       },
       iconBox: {

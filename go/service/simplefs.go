@@ -412,6 +412,19 @@ func (s *SimpleFSHandler) SimpleFSGetTeamQuotaUsage(
 	return cli.SimpleFSGetTeamQuotaUsage(ctx, teamName)
 }
 
+// SimpleFSGetFolder implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSGetFolder(
+	ctx context.Context, kbfsPath keybase1.KBFSPath) (
+	res keybase1.FolderWithFavFlags, err error) {
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	cli, err := s.client()
+	if err != nil {
+		return keybase1.FolderWithFavFlags{}, err
+	}
+	return cli.SimpleFSGetFolder(ctx, kbfsPath)
+}
+
 // SimpleFSFolderSyncConfigAndStatus implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSFolderSyncConfigAndStatus(
 	ctx context.Context, path keybase1.Path) (
@@ -686,4 +699,16 @@ func (s *SimpleFSHandler) SimpleFSGetGUIFileContext(ctx context.Context,
 		return keybase1.GUIFileContext{}, err
 	}
 	return cli.SimpleFSGetGUIFileContext(ctx, path)
+}
+
+// SimpleFSGetFilesTabBadge implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSGetFilesTabBadge(ctx context.Context) (
+	keybase1.FilesTabBadge, error) {
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	cli, err := s.client()
+	if err != nil {
+		return keybase1.FilesTabBadge_NONE, err
+	}
+	return cli.SimpleFSGetFilesTabBadge(ctx)
 }

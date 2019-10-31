@@ -8,6 +8,7 @@ import {TeamBuildingSubState} from './team-building'
 export type TeamID = string
 export const stringToTeamID = (s: string): TeamID => s
 export const teamIDToString = (t: TeamID): string => t
+export const noTeamID = 'NOTEAMID'
 
 export type TeamRoleType = 'reader' | 'writer' | 'admin' | 'owner' | 'bot' | 'restrictedbot'
 export type DisabledReasonsForRolePicker = {[K in TeamRoleType]?: string}
@@ -38,7 +39,7 @@ export type _PublicitySettings = {
 }
 
 export type _TeamSettings = {} & RPCTypes.TeamSettings
-export type TeamSettings = I.RecordOf<_TeamSettings>
+export type TeamSettings = I.RecordOf<_TeamSettings> // TODO remove
 
 export type ChannelMembershipState = {[K in ConversationIDKey]: boolean}
 
@@ -69,12 +70,7 @@ export type _InviteInfo = {
   username: string
   id: string
 }
-export type InviteInfo = I.RecordOf<_InviteInfo>
-
-export type _RequestInfo = {
-  username: string
-}
-export type RequestInfo = I.RecordOf<_RequestInfo>
+export type InviteInfo = I.RecordOf<_InviteInfo> // TODO remove
 
 export type TabKey = 'members' | 'requests' | 'pending'
 
@@ -109,10 +105,20 @@ export type EmailInviteError = {
 export type AddUserToTeamsState = 'notStarted' | 'pending' | 'succeeded' | 'failed'
 
 export type TeamDetails = {
-  teamname: string
   allowPromote: boolean
+  id: TeamID
+  isMember: boolean
   isOpen: boolean
+  memberCount: number
+  role: MaybeTeamRoleType
   showcasing: boolean
+  teamname: string
+
+  members?: Map<string, _MemberInfo>
+  settings?: _TeamSettings
+  invites?: Set<_InviteInfo>
+  subteams?: Set<string>
+  requests?: Set<string>
 }
 
 export type State = Readonly<{
@@ -133,24 +139,25 @@ export type State = Readonly<{
   teamDetails: Map<TeamID, TeamDetails>
   teamNameToChannelInfos: I.Map<Teamname, I.Map<ConversationIDKey, ChannelInfo>>
   teamNameToID: I.Map<Teamname, string>
-  teamNameToInvites: I.Map<Teamname, I.Set<InviteInfo>>
+  teamNameToInvites: I.Map<Teamname, I.Set<InviteInfo>> // TODO remove
   teamNameToIsOpen: I.Map<Teamname, boolean> // TODO remove
   teamNameToLoadingInvites: I.Map<Teamname, I.Map<string, boolean>>
-  teamNameToMembers: I.Map<Teamname, I.Map<string, MemberInfo>>
-  teamNameToRequests: I.Map<Teamname, I.Set<RequestInfo>>
+  teamNameToMembers: I.Map<Teamname, I.Map<string, MemberInfo>> // TODO remove
+  teamNameToRequests: I.Map<Teamname, I.Set<string>> // TODO remove
   teamNameToResetUsers: I.Map<Teamname, I.Set<ResetUser>>
   teamNameToRetentionPolicy: I.Map<Teamname, RetentionPolicy>
   teamNameToRole: I.Map<Teamname, MaybeTeamRoleType>
-  teamNameToSubteams: I.Map<Teamname, I.Set<Teamname>>
+  teamNameToSubteams: I.Map<Teamname, I.Set<Teamname>> // TODO remove
   teamNameToCanPerform: I.Map<Teamname, TeamOperations>
   teamNameToSettings: I.Map<Teamname, TeamSettings>
   teamNameToPublicitySettings: I.Map<Teamname, _PublicitySettings>
   teamNameToAllowPromote: I.Map<Teamname, boolean> // TODO remove
   teamNameToIsShowcasing: I.Map<Teamname, boolean> // TODO remove
-  teamnames: Set<Teamname>
+  teamnames: Set<Teamname> // TODO remove
   teammembercounts: I.Map<Teamname, number>
   teamProfileAddList: Array<TeamProfileAddList>
-  newTeams: Set<string>
-  newTeamRequests: Array<string>
+  newTeams: Set<TeamID>
+  newTeamRequests: Map<TeamID, number>
+  newTeamRequestsByName: Map<string, number> // TODO remove
   teamBuilding: TeamBuildingSubState
 }>

@@ -32,8 +32,7 @@ protocol kvstore {
   }
 
   KVGetResult getKVEntry(int sessionID, string teamName, string namespace, string entryKey);
-  KVPutResult putKVEntry(int sessionID, string teamName, string namespace, string entryKey, string entryValue);
-
+  KVPutResult putKVEntry(int sessionID, string teamName, string namespace, string entryKey, int revision, string entryValue);
 
   record KVListNamespaceResult {
     string teamName;
@@ -62,5 +61,5 @@ protocol kvstore {
     int revision; // this is the revision at which the entry was deleted, and a future GET will have
   }
 
-  KVDeleteEntryResult delKVEntry(int sessionID, string teamName, string namespace, string entryKey);
+  KVDeleteEntryResult delKVEntry(int sessionID, string teamName, string namespace, string entryKey, int revision);
 }
