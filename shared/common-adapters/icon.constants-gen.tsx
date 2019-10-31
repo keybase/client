@@ -7464,6 +7464,11 @@ const iconMeta_ = {
     gridSize: 24,
     isFont: true,
   },
+  'iconfont-pause': {
+    charCode: 0xe9a3,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-people': {
     charCode: 0xe94a,
     gridSize: 16,

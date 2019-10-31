@@ -74,6 +74,7 @@ export const messageErrored = 'chat2:messageErrored'
 export const messageReplyPrivately = 'chat2:messageReplyPrivately'
 export const messageRetry = 'chat2:messageRetry'
 export const messageSend = 'chat2:messageSend'
+export const messageSendByUsername = 'chat2:messageSendByUsername'
 export const messageSetEditing = 'chat2:messageSetEditing'
 export const messageSetQuoting = 'chat2:messageSetQuoting'
 export const messageWasEdited = 'chat2:messageWasEdited'
@@ -329,6 +330,11 @@ type _MessageReplyPrivatelyPayload = {
 type _MessageRetryPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly outboxID: Types.OutboxID
+}
+type _MessageSendByUsernamePayload = {
+  readonly username: string
+  readonly text: HiddenString
+  readonly waitingKey?: string
 }
 type _MessageSendPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
@@ -1300,6 +1306,9 @@ export const createMessageSend = (payload: _MessageSendPayload): MessageSendPayl
   payload,
   type: messageSend,
 })
+export const createMessageSendByUsername = (
+  payload: _MessageSendByUsernamePayload
+): MessageSendByUsernamePayload => ({payload, type: messageSendByUsername})
 export const createMessageSetEditing = (payload: _MessageSetEditingPayload): MessageSetEditingPayload => ({
   payload,
   type: messageSetEditing,
@@ -1658,6 +1667,10 @@ export type MessageReplyPrivatelyPayload = {
   readonly type: typeof messageReplyPrivately
 }
 export type MessageRetryPayload = {readonly payload: _MessageRetryPayload; readonly type: typeof messageRetry}
+export type MessageSendByUsernamePayload = {
+  readonly payload: _MessageSendByUsernamePayload
+  readonly type: typeof messageSendByUsername
+}
 export type MessageSendPayload = {readonly payload: _MessageSendPayload; readonly type: typeof messageSend}
 export type MessageSetEditingPayload = {
   readonly payload: _MessageSetEditingPayload
@@ -2036,6 +2049,7 @@ export type Actions =
   | MessageErroredPayload
   | MessageReplyPrivatelyPayload
   | MessageRetryPayload
+  | MessageSendByUsernamePayload
   | MessageSendPayload
   | MessageSetEditingPayload
   | MessageSetQuotingPayload

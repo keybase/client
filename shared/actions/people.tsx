@@ -12,7 +12,7 @@ import commonTeamBuildingSaga, {filterForNs} from './team-building'
 import {RPCError} from '../util/errors'
 import logger from '../logger'
 
-// set this to true to have all todo items show up all the time
+// set this to true to have all todo items + a contact joined notification show up all the time
 const debugTodo = false
 
 const getPeopleData = async (state: Container.TypedState, action: PeopleGen.GetPeopleDataPayload) => {
@@ -90,6 +90,19 @@ const getPeopleData = async (state: Container.TypedState, action: PeopleGen.GetP
           })
         )
       })
+      newItems = newItems.unshift(
+        Constants.makeFollowedNotificationItem({
+          badged: true,
+          newFollows: [
+            Constants.makeFollowedNotification({
+              contactDescription: 'Danny Test -- dannytest39@keyba.se',
+              username: 'dannytest39',
+            }),
+          ],
+          notificationTime: new Date(),
+          type: 'contact',
+        })
+      )
     }
 
     const followSuggestions: I.List<Types.FollowSuggestion> = (data.followSuggestions || []).reduce(

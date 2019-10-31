@@ -114,9 +114,12 @@ func ResolveAndSaveContacts(mctx libkb.MetaContext, provider ContactsProvider, c
 
 	resolutionsForPeoplePage := make([]ContactResolution, 0, len(newlyResolvedMap))
 	for _, contact := range newlyResolvedMap {
+		contactDisplay := contact.ContactName
+		if contactDisplay == "" {
+			contactDisplay = contact.Component.ValueString()
+		}
 		resolutionsForPeoplePage = append(resolutionsForPeoplePage, ContactResolution{
-			Description: fmt.Sprintf("%s — %s", contact.ContactName,
-				contact.Component.ValueString()),
+			Description: contactDisplay,
 			ResolvedUser: keybase1.User{
 				Uid:      contact.Uid,
 				Username: contact.Username,

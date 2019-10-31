@@ -15,13 +15,6 @@ repos:
             '--quiet',
             '--resolve-plugins-relative-to shared'
         ]
-    -   id: tsc
-        name: tsc
-        entry: node
-        args: ['--max-old-space-size=4096', 'shared/node_modules/.bin/tsc', '-p', 'shared/tsconfig.json']
-        language: node
-        files: \.(ts|tsx)$
-        pass_filenames: false
     -   id: prettier
         name: prettier
         entry: shared/node_modules/.bin/prettier --write
