@@ -121,7 +121,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
     this.props.onEnableAudioRecording()
   }
   private stopAudioRecording = (stopType: Types.AudioStopType) => {
-    this.props.onStopAudioRecording(stopType, this.ampTracker.getBucketedAmps())
+    this.props.onStopAudioRecording(stopType, this.ampTracker)
   }
 
   render() {

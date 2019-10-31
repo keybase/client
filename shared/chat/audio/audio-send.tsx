@@ -31,12 +31,13 @@ const AudioSend = (props: Props) => {
   let player = <Kb.Text type="Body">No recording available</Kb.Text>
   if (audioRecording) {
     const audioUrl = `file://${audioRecording.path}`
+    const duration = Constants.audioRecordingDuration(audioRecording)
     player = (
       <AudioPlayer
-        duration={Constants.audioRecordingDuration(audioRecording)}
+        duration={duration}
         maxWidth={120}
         url={audioUrl}
-        visAmps={audioRecording.amps}
+        visAmps={audioRecording.amps ? audioRecording.amps.getBucketedAmps(duration) : []}
       />
     )
   }

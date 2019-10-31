@@ -7,6 +7,7 @@ import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import HiddenString from '../../../../util/hidden-string'
 import * as Container from '../../../../util/container'
 import {memoize} from '../../../../util/memoize'
+import {AmpTracker} from '../../../audio/amptracker'
 import Input from '.'
 
 type OwnProps = {
@@ -164,7 +165,7 @@ export default Container.namedConnect(
     _onStopAudioRecording: (
       conversationIDKey: Types.ConversationIDKey,
       stopType: Types.AudioStopType,
-      amps: Array<number>
+      amps: AmpTracker
     ) => {
       dispatch(
         Chat2Gen.createStopAudioRecording({
@@ -225,7 +226,7 @@ export default Container.namedConnect(
     onLockAudioRecording: () => dispatchProps._onLockAudioRecording(stateProps.conversationIDKey),
     onRequestScrollDown: ownProps.onRequestScrollDown,
     onRequestScrollUp: ownProps.onRequestScrollUp,
-    onStopAudioRecording: (stopType: Types.AudioStopType, amps: Array<number>) => {
+    onStopAudioRecording: (stopType: Types.AudioStopType, amps: AmpTracker) => {
       dispatchProps._onStopAudioRecording(stateProps.conversationIDKey, stopType, amps)
     },
     onSubmit: (text: string) => {
