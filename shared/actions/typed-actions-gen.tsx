@@ -107,7 +107,7 @@ export type TypedActionsMap = {
   'chat2:loadMessagesCentered': chat2.LoadMessagesCenteredPayload
   'chat2:desktopNotification': chat2.DesktopNotificationPayload
   'chat2:messageSend': chat2.MessageSendPayload
-  'chat2:messageSendByUsername': chat2.MessageSendByUsernamePayload
+  'chat2:messageSendByUsernames': chat2.MessageSendByUsernamesPayload
   'chat2:toggleLocalReaction': chat2.ToggleLocalReactionPayload
   'chat2:toggleMessageReaction': chat2.ToggleMessageReactionPayload
   'chat2:updateReactions': chat2.UpdateReactionsPayload
