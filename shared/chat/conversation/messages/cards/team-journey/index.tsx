@@ -17,9 +17,10 @@ type Props = {
 
 const TeamJourney = (props: Props) => {
   // Load the team once on mount for its channel list if required.
+  const {loadTeam, teamname} = props
   React.useEffect(() => {
-    props.loadTeam !== null && props.loadTeam()
-  }, [])
+    loadTeam !== null && loadTeam()
+  }, [loadTeam, teamname])
   return (
     <>
       <TeamJourneyHeader teamname={props.teamname} />
