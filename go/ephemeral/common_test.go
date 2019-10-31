@@ -120,3 +120,19 @@ func TestEphemeralDeviceProvisionedAfterContent(t *testing.T) {
 	ekErr = err.(EphemeralKeyError)
 	require.Equal(t, DefaultHumanErrMsg, ekErr.HumanError())
 }
+
+func TestEphemeralPluralization(t *testing.T) {
+	humanMsg := humanMsgWithPrefix(DeviceProvisionedAfterContentCreationErrMsg)
+
+	pluralized := PluralizeErrorMessage(humanMsg, 0)
+	require.Equal(t, humanMsg, pluralized)
+
+	pluralized = PluralizeErrorMessage(humanMsg, 1)
+	require.Equal(t, humanMsg, pluralized)
+
+	pluralized = PluralizeErrorMessage(humanMsg, 2)
+	require.Equal(t, "2 exploding messages are not available to you, this device was created after the messages were sent", pluralized)
+
+	pluralized = PluralizeErrorMessage(DefaultHumanErrMsg, 2)
+	require.Equal(t, "2 exploding messages are not available to you", pluralized)
+}

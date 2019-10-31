@@ -1295,6 +1295,10 @@
         {
           "type": "string",
           "name": "url"
+        },
+        {
+          "type": "string",
+          "name": "punycode"
         }
       ]
     },

@@ -23,6 +23,7 @@ import {DeleteModal} from './account/confirm-delete'
 import {Email, Phone, VerifyPhone} from './account/add-modals'
 import ManageContactsTab from './manage-contacts.native'
 import PushPrompt from './notifications/push-prompt.native'
+import ContactsJoinedModal from './contacts-joined/index.native'
 import WhatsNewTab from '../whats-new/container'
 
 export const newRoutes = {
@@ -74,6 +75,7 @@ export const newModalRoutes = {
   },
   settingsAddEmail: {getScreen: (): typeof Email => require('./account/add-modals').Email},
   settingsAddPhone: {getScreen: (): typeof Phone => require('./account/add-modals').Phone},
+  settingsContactsJoined: {getScreen: (): typeof ContactsJoinedModal => require('./contacts-joined').default},
   settingsDeleteAddress: {
     getScreen: (): typeof DeleteModal => require('./account/confirm-delete').DeleteModal,
   },
