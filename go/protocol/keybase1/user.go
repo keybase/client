@@ -398,6 +398,66 @@ func (o UserPassphraseStateMsg) DeepCopy() UserPassphraseStateMsg {
 	}
 }
 
+type UserBlock struct {
+	Username      string `codec:"username" json:"username"`
+	ChatBlocked   bool   `codec:"chatBlocked" json:"chatBlocked"`
+	FollowBlocked bool   `codec:"followBlocked" json:"followBlocked"`
+}
+
+func (o UserBlock) DeepCopy() UserBlock {
+	return UserBlock{
+		Username:      o.Username,
+		ChatBlocked:   o.ChatBlocked,
+		FollowBlocked: o.FollowBlocked,
+	}
+}
+
+type RecordInfoArg struct {
+	ReportText     string `codec:"reportText" json:"reportText"`
+	AttachMessages bool   `codec:"attachMessages" json:"attachMessages"`
+}
+
+func (o RecordInfoArg) DeepCopy() RecordInfoArg {
+	return RecordInfoArg{
+		ReportText:     o.ReportText,
+		AttachMessages: o.AttachMessages,
+	}
+}
+
+type UserBlockArg struct {
+	Username       string         `codec:"username" json:"username"`
+	SetChatBlock   *bool          `codec:"setChatBlock,omitempty" json:"setChatBlock,omitempty"`
+	SetFollowBlock *bool          `codec:"setFollowBlock,omitempty" json:"setFollowBlock,omitempty"`
+	Report         *RecordInfoArg `codec:"report,omitempty" json:"report,omitempty"`
+}
+
+func (o UserBlockArg) DeepCopy() UserBlockArg {
+	return UserBlockArg{
+		Username: o.Username,
+		SetChatBlock: (func(x *bool) *bool {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.SetChatBlock),
+		SetFollowBlock: (func(x *bool) *bool {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.SetFollowBlock),
+		Report: (func(x *RecordInfoArg) *RecordInfoArg {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Report),
+	}
+}
+
 type LoadUncheckedUserSummariesArg struct {
 	SessionID int   `codec:"sessionID" json:"sessionID"`
 	Uids      []UID `codec:"uids" json:"uids"`
@@ -523,12 +583,14 @@ type UserCardArg struct {
 	UseSession bool   `codec:"useSession" json:"useSession"`
 }
 
-type BlockUserArg struct {
-	Username string `codec:"username" json:"username"`
+type SetUserBlocksArg struct {
+	SessionID int            `codec:"sessionID" json:"sessionID"`
+	Blocks    []UserBlockArg `codec:"blocks" json:"blocks"`
 }
 
-type UnblockUserArg struct {
-	Username string `codec:"username" json:"username"`
+type GetUserBlocksArg struct {
+	SessionID int      `codec:"sessionID" json:"sessionID"`
+	Usernames []string `codec:"usernames" json:"usernames"`
 }
 
 type UserInterface interface {
@@ -578,8 +640,8 @@ type UserInterface interface {
 	CanLogout(context.Context, int) (CanLogoutRes, error)
 	LoadPassphraseState(context.Context, int) (PassphraseState, error)
 	UserCard(context.Context, UserCardArg) (*UserCard, error)
-	BlockUser(context.Context, string) error
-	UnblockUser(context.Context, string) error
+	SetUserBlocks(context.Context, SetUserBlocksArg) error
+	GetUserBlocks(context.Context, GetUserBlocksArg) ([]UserBlock, error)
 }
 
 func UserProtocol(i UserInterface) rpc.Protocol {
@@ -946,33 +1008,33 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 					return
 				},
 			},
-			"blockUser": {
+			"setUserBlocks": {
 				MakeArg: func() interface{} {
-					var ret [1]BlockUserArg
+					var ret [1]SetUserBlocksArg
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]BlockUserArg)
+					typedArgs, ok := args.(*[1]SetUserBlocksArg)
 					if !ok {
-						err = rpc.NewTypeError((*[1]BlockUserArg)(nil), args)
+						err = rpc.NewTypeError((*[1]SetUserBlocksArg)(nil), args)
 						return
 					}
-					err = i.BlockUser(ctx, typedArgs[0].Username)
+					err = i.SetUserBlocks(ctx, typedArgs[0])
 					return
 				},
 			},
-			"unblockUser": {
+			"getUserBlocks": {
 				MakeArg: func() interface{} {
-					var ret [1]UnblockUserArg
+					var ret [1]GetUserBlocksArg
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]UnblockUserArg)
+					typedArgs, ok := args.(*[1]GetUserBlocksArg)
 					if !ok {
-						err = rpc.NewTypeError((*[1]UnblockUserArg)(nil), args)
+						err = rpc.NewTypeError((*[1]GetUserBlocksArg)(nil), args)
 						return
 					}
-					err = i.UnblockUser(ctx, typedArgs[0].Username)
+					ret, err = i.GetUserBlocks(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -1134,14 +1196,12 @@ func (c UserClient) UserCard(ctx context.Context, __arg UserCardArg) (res *UserC
 	return
 }
 
-func (c UserClient) BlockUser(ctx context.Context, username string) (err error) {
-	__arg := BlockUserArg{Username: username}
-	err = c.Cli.Call(ctx, "keybase.1.user.blockUser", []interface{}{__arg}, nil, 0*time.Millisecond)
+func (c UserClient) SetUserBlocks(ctx context.Context, __arg SetUserBlocksArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.user.setUserBlocks", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
-func (c UserClient) UnblockUser(ctx context.Context, username string) (err error) {
-	__arg := UnblockUserArg{Username: username}
-	err = c.Cli.Call(ctx, "keybase.1.user.unblockUser", []interface{}{__arg}, nil, 0*time.Millisecond)
+func (c UserClient) GetUserBlocks(ctx context.Context, __arg GetUserBlocksArg) (res []UserBlock, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.user.getUserBlocks", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

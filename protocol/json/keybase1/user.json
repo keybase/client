@@ -362,6 +362,69 @@
         }
       ],
       "lint": "ignore"
+    },
+    {
+      "type": "record",
+      "name": "UserBlock",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "boolean",
+          "name": "chatBlocked"
+        },
+        {
+          "type": "boolean",
+          "name": "followBlocked"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "RecordInfoArg",
+      "fields": [
+        {
+          "type": "string",
+          "name": "reportText"
+        },
+        {
+          "type": "boolean",
+          "name": "attachMessages"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserBlockArg",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": [
+            null,
+            "boolean"
+          ],
+          "name": "setChatBlock"
+        },
+        {
+          "type": [
+            null,
+            "boolean"
+          ],
+          "name": "setFollowBlock"
+        },
+        {
+          "type": [
+            null,
+            "RecordInfoArg"
+          ],
+          "name": "report"
+        }
+      ]
     }
   ],
   "messages": {
@@ -738,23 +801,40 @@
         "UserCard"
       ]
     },
-    "blockUser": {
+    "setUserBlocks": {
       "request": [
         {
-          "name": "username",
-          "type": "string"
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "blocks",
+          "type": {
+            "type": "array",
+            "items": "UserBlockArg"
+          }
         }
       ],
       "response": null
     },
-    "unblockUser": {
+    "getUserBlocks": {
       "request": [
         {
-          "name": "username",
-          "type": "string"
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "usernames",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
         }
       ],
-      "response": null
+      "response": {
+        "type": "array",
+        "items": "UserBlock"
+      }
     }
   },
   "namespace": "keybase.1"

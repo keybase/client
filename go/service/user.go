@@ -6,6 +6,7 @@ package service
 import (
 	"fmt"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/keybase/client/go/uidmap"
@@ -614,16 +615,97 @@ func (h *UserHandler) UserCard(ctx context.Context, arg keybase1.UserCardArg) (r
 	return res, nil
 }
 
-func (h *UserHandler) BlockUser(ctx context.Context, username string) (err error) {
+func (h *UserHandler) SetUserBlocks(ctx context.Context, arg keybase1.SetUserBlocksArg) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.TraceTimed("UserHandler#BlockUser", func() error { return err })()
-	return h.setUserBlock(mctx, username, true)
+	defer mctx.TraceTimed(
+		fmt.Sprintf("UserHandler#SetUserBlocks(len=%d)", len(arg.Blocks)),
+		func() error { return err })()
+
+	type setBlockArg struct {
+		BlockUID string `json:"block_uid"`
+		Chat     *bool  `json:"chat,omitempty"`
+		Follow   *bool  `json:"follow,omitempty"`
+	}
+
+	payloadBlocks := make([]setBlockArg, len(arg.Blocks))
+	for i, v := range arg.Blocks {
+		uid := libkb.UsernameToUIDPreserveCase(libkb.NewNormalizedUsername(v.Username).String())
+		payloadBlocks[i] = setBlockArg{
+			BlockUID: uid.String(),
+			Chat:     v.SetChatBlock,
+			Follow:   v.SetFollowBlock,
+		}
+	}
+
+	payload := make(libkb.JSONPayload)
+	payload["blocks"] = payloadBlocks
+
+	apiArg := libkb.APIArg{
+		Endpoint:    "user/set_blocks",
+		JSONPayload: payload,
+		SessionType: libkb.APISessionTypeREQUIRED,
+	}
+
+	_, err = mctx.G().API.Post(mctx, apiArg)
+	return err
+
 }
 
-func (h *UserHandler) UnblockUser(ctx context.Context, username string) (err error) {
+func (h *UserHandler) GetUserBlocks(ctx context.Context, arg keybase1.GetUserBlocksArg) (res []keybase1.UserBlock, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.TraceTimed("UserHandler#UnblockUser", func() error { return err })()
-	return h.setUserBlock(mctx, username, false)
+
+	var usernameLog string
+	if len(arg.Usernames) < 5 {
+		usernameLog = strings.Join(arg.Usernames, ",")
+	} else {
+		usernameLog = fmt.Sprintf("%s... %d total", strings.Join(arg.Usernames[:5], ","), len(arg.Usernames))
+	}
+	defer mctx.TraceTimed(
+		fmt.Sprintf("UserHandler#GetUserBlocks(%s)", usernameLog),
+		func() error { return err })()
+
+	uids := make([]keybase1.UID, len(arg.Usernames))
+	for i, v := range arg.Usernames {
+		uids[i] = libkb.UsernameToUIDPreserveCase(libkb.NewNormalizedUsername(v).String())
+	}
+
+	apiArg := libkb.APIArg{
+		Endpoint: "user/get_blocks",
+		Args: libkb.HTTPArgs{
+			"uids": libkb.S{Val: libkb.UidsToString(uids)},
+		},
+		SessionType: libkb.APISessionTypeREQUIRED,
+	}
+
+	type getBlockResult struct {
+		libkb.AppStatusEmbed
+		Blocks []struct {
+			BlockUID      keybase1.UID   `json:"block_uid"`
+			BlockUsername string         `json:"block_username"`
+			CTime         *keybase1.Time `json:"ctime,omitempty"`
+			MTime         *keybase1.Time `json:"mtime,omitempty"`
+			Chat          bool           `json:"chat"`
+			Follow        bool           `json:"follow"`
+		} `json:"blocks"`
+	}
+
+	var apiRes getBlockResult
+
+	err = mctx.G().API.PostDecode(mctx, apiArg, &apiRes)
+	if err != nil {
+		return nil, err
+	}
+
+	res = make([]keybase1.UserBlock, len(apiRes.Blocks))
+	for i, v := range apiRes.Blocks {
+		res[i] = keybase1.UserBlock{
+			Username:      v.BlockUsername,
+			ChatBlocked:   v.Chat,
+			FollowBlocked: v.Follow,
+		}
+	}
+
+	return res, nil
 }
 
 func (h *UserHandler) setUserBlock(mctx libkb.MetaContext, username string, block bool) error {
