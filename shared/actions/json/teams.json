@@ -198,7 +198,8 @@
       "settings": "RPCTypes.TeamSettings",
       "invites": "Array<Types._InviteInfo>",
       "subteams": "Array<Types.Teamname>",
-      "requests": "Map<string, Array<string>>"
+      "requests": "Map<string, Array<string>>",
+      "subteamIDs": "Set<Types.TeamID>"
     },
     "setTeamCanPerform": {
       "teamname": "string",

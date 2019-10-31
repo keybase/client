@@ -219,6 +219,7 @@ type _SetTeamDetailsPayload = {
   readonly invites: Array<Types._InviteInfo>
   readonly subteams: Array<Types.Teamname>
   readonly requests: Map<string, Array<string>>
+  readonly subteamIDs: Set<Types.TeamID>
 }
 type _SetTeamInfoPayload = {
   readonly teamnames: Set<Types.Teamname>

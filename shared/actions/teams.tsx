@@ -571,8 +571,10 @@ function* getDetails(_: TypedState, action: TeamsGen.GetDetailsPayload, logger: 
       typeof RPCTypes.teamsTeamGetSubteamsRpcPromise
     > = yield RPCTypes.teamsTeamGetSubteamsRpcPromise({name: {parts: teamname.split('.')}}, waitingKeys)
     const {entries} = subTeam
-    const subteams = (entries || []).reduce<Array<string>>((arr, {name}) => {
+    const subteamIDs = new Set<Types.TeamID>()
+    const subteams = (entries || []).reduce<Array<string>>((arr, {name, teamID}) => {
       name.parts && arr.push(name.parts.join('.'))
+      subteamIDs.add(teamID)
       return arr
     }, [])
     yield Saga.put(
@@ -581,6 +583,7 @@ function* getDetails(_: TypedState, action: TeamsGen.GetDetailsPayload, logger: 
         members: details.members,
         requests: requestMap,
         settings: details.settings,
+        subteamIDs,
         subteams: subteams,
         teamID: Constants.getTeamID(state, teamname),
         teamname,

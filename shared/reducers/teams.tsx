@@ -90,7 +90,7 @@ export default (
         )
         details.settings = action.payload.settings
         details.invites = new Set(action.payload.invites)
-        details.subteams = new Set(action.payload.subteams) // TODO put IDs in here
+        details.subteams = new Set(action.payload.subteamIDs)
         details.requests = new Set(action.payload.requests.get(action.payload.teamname))
         draftState.teamDetails = new Map(
           draftState.teamDetails.set(action.payload.teamID, Constants.makeTeamDetails(details))
