@@ -26,7 +26,7 @@ export class AmpTracker {
   }
 
   getBucketedAmps = (duration: number): Array<number> => {
-    const maxBuckets = Math.min(1, duration / 30000) * this.numBuckets
+    const maxBuckets = Math.max(20, Math.min(1, duration / 30000) * this.numBuckets)
     let res: Array<number> = this.buckets
     for (let i = 0; i < 20; i++) {
       if (res.length <= maxBuckets) {
