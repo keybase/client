@@ -51,7 +51,6 @@ class Team extends React.Component<Props> {
       case 'subteam-subteam':
         return renderRow(item, this.props.teamID)
       case 'settings':
-        // @ts-ignore doesn't seem to understand connect here
         return <Settings key="settings" teamname={this.props.teamname} />
       default: {
         throw new Error(`Impossible case encountered in team page list: ${item}`)

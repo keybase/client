@@ -26,6 +26,7 @@ const renderRow = (row: BodyRow, teamID: Types.TeamID) => {
     case 'subteam-subteam':
       return <SubteamTeamRow teamID={row.teamID} />
     case 'settings':
+      // Handled in index for now
       return null
   }
 }
