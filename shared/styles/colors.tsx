@@ -25,6 +25,9 @@ export const colors = {
   get black_20OrBlack() {
     return this.black_20
   },
+  get black_20OrBlack_40() {
+    return this.black_20
+  },
   black_20_on_white: 'rgb(204,204,204)',
   black_35: 'rgba(0, 0, 0, 0.35)',
   black_40: 'rgba(0, 0, 0, 0.40)',
@@ -220,6 +223,9 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   black_20: 'rgba(255, 255, 255, 0.20)',
   get black_20OrBlack() {
     return colors.black
+  },
+  get black_20OrBlack_40() {
+    return colors.black_40
   },
   black_20_on_white: 'rgb(51, 51, 51)',
   black_35: 'rgba(255, 255, 255, 0.35)',
