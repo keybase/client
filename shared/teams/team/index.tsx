@@ -8,6 +8,7 @@ import Settings from './settings-tab/container'
 import TeamHeader from './header/container'
 import TeamTabs from './tabs/container'
 import {Row} from './rows'
+import renderRow from './rows/render'
 
 export type Sections = Array<{data: Array<Row>; header?: Row; key: string}>
 
@@ -26,7 +27,6 @@ class Team extends React.Component<Props> {
       this.props.load()
     }
   }
-  // TODO type this
   private renderItem = ({item}: {item: Row}) => {
     switch (item.type) {
       case 'header':
@@ -42,12 +42,11 @@ class Team extends React.Component<Props> {
         )
       }
       case 'member':
-        return renderMemberItem(this.props.teamname, item)
       case 'invites-invite':
       case 'invites-request':
       case 'invites-divider':
       case 'invites-none':
-        return renderInvitesItem(this.props.teamname, item)
+        return renderRow(item, this.props.teamID)
       case 'subteam-intro':
       case 'subteam-add':
       case 'subteam-none':
