@@ -21,9 +21,8 @@ export type Props = {
 
 class Team extends React.Component<Props> {
   // TODO type this
-  private renderItem = (_row: any) => {
-    const row = _row.item
-    switch (row.type) {
+  private renderItem = ({item}: {item: Row}) => {
+    switch (item.type) {
       case 'header':
         return <TeamHeader key="header" teamname={this.props.teamname} />
       case 'tabs': {
@@ -37,35 +36,28 @@ class Team extends React.Component<Props> {
         )
       }
       case 'member':
-        return renderMemberItem(this.props.teamname, row)
+        return renderMemberItem(this.props.teamname, item)
       case 'invites-invite':
       case 'invites-request':
       case 'invites-divider':
       case 'invites-none':
-        return renderInvitesItem(this.props.teamname, row)
+        return renderInvitesItem(this.props.teamname, item)
       case 'subteam-intro':
       case 'subteam-add':
       case 'subteam-none':
       case 'subteam-subteam':
-        return renderSubteamsItem(this.props.teamname, row)
+        return renderSubteamsItem(this.props.teamname, item)
       case 'settings':
         // @ts-ignore doesn't seem to understand connect here
         return <Settings key="settings" teamname={this.props.teamname} />
       default: {
-        throw new Error(`Impossible case encountered in team page list: ${row}`)
+        throw new Error(`Impossible case encountered in team page list: ${item}`)
       }
     }
   }
 
   private renderSectionHeader = ({section}) =>
-    section.key === 'body' ? (
-      <TeamTabs
-        key="tabs"
-        teamname={this.props.teamname}
-        selectedTab={this.props.selectedTab}
-        setSelectedTab={this.props.setSelectedTab}
-      />
-    ) : null
+    section.header ? this.renderItem({item: section.header}) : null
 
   render() {
     return (

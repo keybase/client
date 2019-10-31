@@ -99,7 +99,7 @@ const Connected = Container.compose(
   Kb.HeaderHoc
 )(Reloadable) as any
 
-class TabsState extends React.PureComponent<Props, {selectedTab: string}> {
+class TabsState extends React.PureComponent<Props, {selectedTab: Types.TabKey}> {
   static navigationOptions = (ownProps: Container.RouteProps<{teamname: string}>) => ({
     headerExpandable: true,
     headerHideBorder: true,
@@ -113,7 +113,7 @@ class TabsState extends React.PureComponent<Props, {selectedTab: string}> {
       ? undefined
       : () => <SubHeader teamname={Container.getRouteProps(ownProps, 'teamname', '')} />,
   })
-  state = {selectedTab: lastSelectedTabs[this.props.teamname]}
+  state = {selectedTab: lastSelectedTabs[this.props.teamname] || 'members'}
   _setSelectedTab = selectedTab => {
     this.setState({selectedTab})
   }
