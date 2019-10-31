@@ -78,7 +78,7 @@ func bootstrapActiveDeviceReturnRawError(m MetaContext, uid keybase1.UID, device
 		m.Debug("active device is current")
 		return nil
 	}
-	uv, sib, sub, deviceName, err := LoadUnlockedDeviceKeys(m, uid, deviceID, online)
+	uv, sib, sub, deviceName, err := LoadUnlockedDeviceKeys(m, uid, deviceID, online, false)
 	if err != nil {
 		return err
 	}
@@ -86,13 +86,15 @@ func bootstrapActiveDeviceReturnRawError(m MetaContext, uid keybase1.UID, device
 	return err
 }
 
-func LoadUnlockedDeviceKeys(m MetaContext, uid keybase1.UID, deviceID keybase1.DeviceID, online bool) (uv keybase1.UserVersion, sib GenericKey, sub GenericKey, deviceName string, err error) {
+func LoadUnlockedDeviceKeys(m MetaContext, uid keybase1.UID, deviceID keybase1.DeviceID, online bool, staleOK bool) (uv keybase1.UserVersion, sib GenericKey, sub GenericKey, deviceName string, err error) {
 	defer m.Trace("LoadUnlockedDeviceKeys", func() error { return err })()
 
 	// use the UPAKLoader with StaleOK, CachedOnly in order to get cached upak
 	arg := NewLoadUserArgWithMetaContext(m).WithUID(uid).WithPublicKeyOptional()
 	if !online {
 		arg = arg.WithStaleOK(true).WithCachedOnly()
+	} else if staleOK {
+		arg = arg.WithStaleOK(staleOK)
 	}
 	upak, _, err := m.G().GetUPAKLoader().LoadV2(arg)
 	if err != nil {
@@ -148,7 +150,7 @@ func LoadUnlockedDeviceKeys(m MetaContext, uid keybase1.UID, deviceID keybase1.D
 
 func LoadProvisionalActiveDevice(m MetaContext, uid keybase1.UID, deviceID keybase1.DeviceID, online bool) (ret *ActiveDevice, err error) {
 	defer m.Trace("LoadProvisionalActiveDevice", func() error { return err })()
-	uv, sib, sub, deviceName, err := LoadUnlockedDeviceKeys(m, uid, deviceID, online)
+	uv, sib, sub, deviceName, err := LoadUnlockedDeviceKeys(m, uid, deviceID, online, true)
 	if err != nil {
 		return nil, err
 	}
