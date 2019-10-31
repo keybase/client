@@ -15,25 +15,37 @@ const ampHeightProp = (amp: number) => {
 }
 
 const AudioVis = (props: VisProps) => {
-  return (
+  let maxHeight = 0
+  const content = props.amps.map((amp, index) => {
+    const heightProp = ampHeightProp(amp)
+    const height = heightProp * props.height
+    if (height >= maxHeight) {
+      maxHeight = height
+    }
+    return (
+      <Kb.Box2
+        alignSelf="flex-end"
+        direction="vertical"
+        key={index}
+        style={{backgroundColor: Styles.globalColors.black, height, marginRight: 2, width: 1}}
+      />
+    )
+  })
+  return Styles.isMobile ? (
     <Kb.ScrollView
       horizontal={true}
-      style={{height: props.height, maxWidth: props.maxWidth}}
+      style={{height: maxHeight, maxWidth: props.maxWidth}}
       showsHorizontalScrollIndicator={false}
     >
-      {props.amps.map((amp, index) => {
-        const heightProp = ampHeightProp(amp)
-        const height = heightProp * props.height
-        return (
-          <Kb.Box2
-            alignSelf="flex-end"
-            direction="vertical"
-            key={index}
-            style={{backgroundColor: Styles.globalColors.black, height, marginRight: 2, width: 1}}
-          />
-        )
-      })}
+      {content}
     </Kb.ScrollView>
+  ) : (
+    <Kb.Box2
+      direction="horizontal"
+      style={{height: maxHeight, marginTop: Styles.globalMargins.xtiny, maxWidth: props.maxWidth}}
+    >
+      {content}
+    </Kb.Box2>
   )
 }
 
@@ -76,22 +88,11 @@ const AudioPlayer = (props: Props) => {
   return (
     <Kb.Box2 direction="horizontal" style={styles.container} gap="tiny">
       <Kb.ClickableBox onClick={props.url ? onClick : undefined} style={{justifyContent: 'center'}}>
-        <Kb.Box2
-          direction="vertical"
-          style={Styles.collapseStyles([
-            styles.button,
-            {backgroundColor: props.url ? Styles.globalColors.blue : Styles.globalColors.grey},
-          ])}
-        >
-          <Kb.Icon
-            type={!paused ? 'iconfont-stop' : 'iconfont-play'}
-            fontSize={14}
-            style={Styles.collapseStyles([
-              Kb.iconCastPlatformStyles(styles.play),
-              {marginLeft: paused ? -6 : -7},
-            ])}
-          />
-        </Kb.Box2>
+        <Kb.Icon
+          type={!paused ? 'iconfont-pause' : 'iconfont-play'}
+          fontSize={24}
+          style={Kb.iconCastPlatformStyles(styles.play)}
+        />
       </Kb.ClickableBox>
       <Kb.Box2 direction="vertical" style={styles.visContainer} gap="xxtiny">
         <AudioVis height={32} amps={props.visAmps} maxWidth={props.maxWidth} />
@@ -106,14 +107,13 @@ const AudioPlayer = (props: Props) => {
 
 const styles = Styles.styleSheetCreate(() => ({
   button: {
-    backgroundColor: Styles.globalColors.blue,
     borderRadius: 15,
     height: 30,
     position: 'relative',
     width: 30,
   },
   container: {
-    ...Styles.padding(Styles.globalMargins.xxtiny, Styles.globalMargins.tiny),
+    ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.tiny),
     backgroundColor: Styles.globalColors.white,
     borderColor: Styles.globalColors.grey,
     borderRadius: Styles.borderRadius,
@@ -124,25 +124,9 @@ const styles = Styles.styleSheetCreate(() => ({
   duration: {
     color: Styles.globalColors.black_50,
   },
-  play: Styles.platformStyles({
-    common: {
-      bottom: '50%',
-      color: Styles.globalColors.whiteOrWhite,
-      left: '50%',
-      marginBottom: -8,
-      marginLeft: -6,
-      marginRight: -8,
-      position: 'absolute',
-      right: '50%',
-      top: '50%',
-    },
-    isElectron: {
-      marginTop: -6,
-    },
-    isMobile: {
-      marginTop: -8,
-    },
-  }),
+  play: {
+    color: Styles.globalColors.blue,
+  },
   vis: {
     alignSelf: 'flex-start',
   },
