@@ -8,16 +8,20 @@ import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as FsConstants from '../../../../constants/fs'
 
 type OwnProps = {
-  teamname: string
+  teamID: Types.TeamID
 }
 
 export default Container.connect(
-  (state, {teamname}: OwnProps) => ({
-    _newTeamRequestsByName: state.teams.newTeamRequestsByName,
-    _teamNameToIsOpen: state.teams.teamNameToIsOpen || I.Map(),
-    members: Constants.getTeamMemberCount(state, teamname),
-    yourRole: Constants.getRole(state, teamname),
-  }),
+  (state, {teamID}: OwnProps) => {
+    const {teamname} = Constants.getTeamDetails(state, teamID)
+    return {
+      _newTeamRequests: state.teams.newTeamRequests,
+      _teamNameToIsOpen: state.teams.teamNameToIsOpen || I.Map(),
+      members: Constants.getTeamMemberCount(state, teamname),
+      teamname,
+      yourRole: Constants.getRole(state, teamname),
+    }
+  },
   dispatch => ({
     _onManageChat: (teamname: Types.Teamname) =>
       dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'manageChannels'}]})),
@@ -34,13 +38,13 @@ export default Container.connect(
     return {
       firstItem: false,
       isNew: false,
-      isOpen: stateProps._teamNameToIsOpen.toObject()[ownProps.teamname] || false,
+      isOpen: stateProps._teamNameToIsOpen.toObject()[stateProps.teamname] || false,
       membercount: stateProps.members,
-      name: ownProps.teamname,
-      newRequests: stateProps._newTeamRequestsByName.get(ownProps.teamname) || 0,
-      onManageChat: youAreMember ? () => dispatchProps._onManageChat(ownProps.teamname) : null,
-      onOpenFolder: () => dispatchProps._onOpenFolder(ownProps.teamname),
-      onViewTeam: () => dispatchProps._onViewTeam(ownProps.teamname),
+      name: stateProps.teamname,
+      newRequests: stateProps._newTeamRequests.get(ownProps.teamID) || 0,
+      onManageChat: youAreMember ? () => dispatchProps._onManageChat(stateProps.teamname) : null,
+      onOpenFolder: () => dispatchProps._onOpenFolder(stateProps.teamname),
+      onViewTeam: () => dispatchProps._onViewTeam(stateProps.teamname),
       resetUserCount: 0,
     }
   }

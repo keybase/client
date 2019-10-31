@@ -1,17 +1,27 @@
 import * as React from 'react'
+import * as Container from '../../../../util/container'
+import * as Constants from '../../../../constants/teams'
+import * as GregorGen from '../../../../actions/gregor-gen'
 import {Box, Icon, Text} from '../../../../common-adapters'
 import {styleSheetCreate, platformStyles, globalColors, globalMargins, globalStyles} from '../../../../styles'
-import {Teamname} from '../../../../constants/types/teams'
+import {TeamID} from '../../../../constants/types/teams'
 
 export type Props = {
-  onReadMore: () => void
-  onHideSubteamsBanner: () => void
-  shouldRender: boolean
-  teamname: Teamname
+  teamID: TeamID
 }
 
-const Banner = ({onReadMore, onHideSubteamsBanner, shouldRender, teamname}: Props) =>
-  shouldRender ? (
+const Banner = ({teamID}: Props) => {
+  const {teamname} = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
+  const shouldRender = Container.useSelector(state => !state.teams.sawSubteamsBanner)
+  const dispatch = Container.useDispatch()
+  const onHide = React.useCallback(
+    () => dispatch(GregorGen.createUpdateCategory({body: 'true', category: 'sawSubteamsBanner'})),
+    [dispatch]
+  )
+  if (!shouldRender) {
+    return null
+  }
+  return (
     <Box style={styles.containerBanner}>
       <Box style={styles.containerIllustration}>
         <Icon type="icon-illustration-subteams-380" />
@@ -39,19 +49,18 @@ const Banner = ({onReadMore, onHideSubteamsBanner, shouldRender, teamname}: Prop
           negative={true}
           type="BodySmallSemiboldPrimaryLink"
           className="underline"
-          onClick={onReadMore}
+          onClickURL={'https://keybase.io/docs/teams/design'}
           style={styles.readmore}
         >
           Read more about subteams
         </Text>
       </Box>
-      {onHideSubteamsBanner && (
-        <Box style={styles.iconCloseContainer}>
-          <Icon type="iconfont-close" style={{padding: globalMargins.tiny}} onClick={onHideSubteamsBanner} />
-        </Box>
-      )}
+      <Box style={styles.iconCloseContainer}>
+        <Icon type="iconfont-close" style={{padding: globalMargins.tiny}} onClick={onHide} />
+      </Box>
     </Box>
-  ) : null
+  )
+}
 
 const styles = styleSheetCreate(() => ({
   containerBanner: platformStyles({
@@ -81,6 +90,7 @@ const styles = styleSheetCreate(() => ({
     isElectron: {
       marginLeft: globalMargins.medium,
       maxWidth: 330,
+      paddingRight: globalMargins.small,
     },
     isMobile: {alignItems: 'center'},
   }),

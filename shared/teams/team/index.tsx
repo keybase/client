@@ -3,7 +3,6 @@ import * as Kb from '../../common-adapters'
 import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
 import * as Styles from '../../styles'
-import {renderItem as renderSubteamsItem} from './subteams-tab/helper'
 import Settings from './settings-tab/container'
 import TeamHeader from './header/container'
 import TeamTabs from './tabs/container'
@@ -46,12 +45,11 @@ class Team extends React.Component<Props> {
       case 'invites-request':
       case 'invites-divider':
       case 'invites-none':
-        return renderRow(item, this.props.teamID)
       case 'subteam-intro':
       case 'subteam-add':
       case 'subteam-none':
       case 'subteam-subteam':
-        return renderSubteamsItem(this.props.teamname, item)
+        return renderRow(item, this.props.teamID)
       case 'settings':
         // @ts-ignore doesn't seem to understand connect here
         return <Settings key="settings" teamname={this.props.teamname} />

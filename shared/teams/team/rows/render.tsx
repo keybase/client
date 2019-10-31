@@ -3,6 +3,7 @@ import * as Types from '../../../constants/types/teams'
 import {BodyRow} from '.'
 import MemberRow from './member-row/container'
 import {RequestRow, InviteRow, InvitesEmptyRow, DividerRow} from './invite-row'
+import {SubteamAddRow, SubteamIntroRow, SubteamNoneRow, SubteamTeamRow} from './subteam-row'
 
 const renderRow = (row: BodyRow, teamID: Types.TeamID) => {
   switch (row.type) {
@@ -16,11 +17,14 @@ const renderRow = (row: BodyRow, teamID: Types.TeamID) => {
       return <DividerRow label={row.label} />
     case 'invites-none':
       return <InvitesEmptyRow />
-    case 'subteam-intro':
     case 'subteam-add':
+      return <SubteamAddRow teamID={teamID} />
+    case 'subteam-intro':
+      return <SubteamIntroRow teamID={teamID} />
     case 'subteam-none':
+      return <SubteamNoneRow />
     case 'subteam-subteam':
-      return null
+      return <SubteamTeamRow teamID={row.teamID} />
     case 'settings':
       return null
   }
