@@ -6,50 +6,52 @@ import {Teamname} from '../../../../constants/types/teams'
 export type Props = {
   onReadMore: () => void
   onHideSubteamsBanner: () => void
+  shouldRender: boolean
   teamname: Teamname
 }
 
-const Banner = ({onReadMore, onHideSubteamsBanner, teamname}: Props) => (
-  <Box style={styles.containerBanner}>
-    <Box style={styles.containerIllustration}>
-      <Icon type="icon-illustration-subteams-380" />
-    </Box>
-
-    <Box style={styles.containerText}>
-      <Text negative={true} type="BodySmallSemibold" style={styles.text}>
-        Subteams are cryptographically distinct, and can welcome people who aren't elsewhere in your team
-        hierarchy. Some random ideas:
-      </Text>
-      <Text negative={true} type="BodySmallSemibold">
-        • {teamname}
-        .devops
-      </Text>
-      <Text negative={true} type="BodySmallSemibold">
-        • {teamname}
-        .legal
-      </Text>
-      <Text negative={true} type="BodySmallSemibold">
-        • {teamname}
-        .customers.vip
-      </Text>
-
-      <Text
-        negative={true}
-        type="BodySmallSemiboldPrimaryLink"
-        className="underline"
-        onClick={onReadMore}
-        style={styles.readmore}
-      >
-        Read more about subteams
-      </Text>
-    </Box>
-    {onHideSubteamsBanner && (
-      <Box style={styles.iconCloseContainer}>
-        <Icon type="iconfont-close" style={{padding: globalMargins.tiny}} onClick={onHideSubteamsBanner} />
+const Banner = ({onReadMore, onHideSubteamsBanner, shouldRender, teamname}: Props) =>
+  shouldRender ? (
+    <Box style={styles.containerBanner}>
+      <Box style={styles.containerIllustration}>
+        <Icon type="icon-illustration-subteams-380" />
       </Box>
-    )}
-  </Box>
-)
+
+      <Box style={styles.containerText}>
+        <Text negative={true} type="BodySmallSemibold" style={styles.text}>
+          Subteams are cryptographically distinct, and can welcome people who aren't elsewhere in your team
+          hierarchy. Some random ideas:
+        </Text>
+        <Text negative={true} type="BodySmallSemibold">
+          • {teamname}
+          .devops
+        </Text>
+        <Text negative={true} type="BodySmallSemibold">
+          • {teamname}
+          .legal
+        </Text>
+        <Text negative={true} type="BodySmallSemibold">
+          • {teamname}
+          .customers.vip
+        </Text>
+
+        <Text
+          negative={true}
+          type="BodySmallSemiboldPrimaryLink"
+          className="underline"
+          onClick={onReadMore}
+          style={styles.readmore}
+        >
+          Read more about subteams
+        </Text>
+      </Box>
+      {onHideSubteamsBanner && (
+        <Box style={styles.iconCloseContainer}>
+          <Icon type="iconfont-close" style={{padding: globalMargins.tiny}} onClick={onHideSubteamsBanner} />
+        </Box>
+      )}
+    </Box>
+  ) : null
 
 const styles = styleSheetCreate(() => ({
   containerBanner: platformStyles({

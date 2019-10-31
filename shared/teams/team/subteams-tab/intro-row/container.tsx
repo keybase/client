@@ -7,22 +7,17 @@ type OwnProps = {
   teamname: string
 }
 
-const mapStateToProps = () => ({})
-
-const mapDispatchToProps = dispatch => ({
-  onHideSubteamsBanner: () =>
-    dispatch(GregorGen.createUpdateCategory({body: 'true', category: 'sawSubteamsBanner'})),
-  onReadMore: () => openURL('https://keybase.io/docs/teams/design'),
-})
-
-const mergeProps = (_, dispatchProps, ownProps: OwnProps) => ({
-  onHideSubteamsBanner: dispatchProps.onHideSubteamsBanner,
-  onReadMore: dispatchProps.onReadMore,
-  teamname: ownProps.teamname,
-})
-
 export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
+  state => ({shouldRender: !state.teams.sawSubteamsBanner}),
+  dispatch => ({
+    onHideSubteamsBanner: () =>
+      dispatch(GregorGen.createUpdateCategory({body: 'true', category: 'sawSubteamsBanner'})),
+    onReadMore: () => openURL('https://keybase.io/docs/teams/design'),
+  }),
+  (stateProps, dispatchProps, ownProps: OwnProps) => ({
+    onHideSubteamsBanner: dispatchProps.onHideSubteamsBanner,
+    onReadMore: dispatchProps.onReadMore,
+    shouldRender: stateProps.shouldRender,
+    teamname: ownProps.teamname,
+  })
 )(Intro)
