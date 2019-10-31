@@ -20,7 +20,7 @@ func TestTeamRoleList(t *testing.T) {
 
 	expected := keybase1.TeamRoleList{
 		Teams: []keybase1.TeamRoleListRow{
-			keybase1.TeamRoleListRow{
+			{
 				TeamID:       teamID,
 				Role:         keybase1.TeamRole_ADMIN,
 				ImplicitRole: keybase1.TeamRole_NONE,
