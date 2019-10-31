@@ -71,6 +71,18 @@ Same as below.
 
 ## Hot reloading / File Watching
 
+## `$HOME/.../Android/sdk/ndk-bundle` Does not point to an Android NDK
+
+### macOS
+
+If you're hitting this issue, it is because you either don not have an NDK installed or installed an NDK with an older version of Android Studio that created an old directory path.
+
+Android Studio 3.5.0 and later seem to install ndk versions at the following path: `~/Library/Android/sdk/ndk/{version}`
+
+To resolve this issue, initialize gomobile with a new NDK path: `$GOPATH/bin/gomobile init -ndk ~/Library/Android/sdk/ndk/{version}`
+
+Then re-run `yarn rn-gobuilld-android`
+
 ### Linux
 [Here](../linux-dev.md#troubleshooting)
 
