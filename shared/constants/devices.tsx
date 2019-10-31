@@ -77,7 +77,7 @@ export const getDeviceIconNumberInner = (
 
 const getNextDeviceIconNumberInner = (devices: Map<Types.DeviceID, Types.Device>) => {
   // Find the max device number and add one (+ one more since these are 1-indexed)
-  const result = {desktop: 1, mobile: 1, backup: 1}
+  const result = {backup: 1, desktop: 1, mobile: 1}
   devices.forEach(device => {
     if (device.deviceNumberOfType >= result[device.type]) {
       result[device.type] = device.deviceNumberOfType + 1
