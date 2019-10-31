@@ -129,7 +129,7 @@ func GetConfiguredAccountsFromProvisionedUsernames(m MetaContext, s SecretStoreA
 		uids[idx] = GetUIDByNormalizedUsername(m.G(), username)
 	}
 	usernamePackages, err := m.G().UIDMapper.MapUIDsToUsernamePackages(m.Ctx(), m.G(),
-		uids, time.Hour*24, time.Second*10, true)
+		uids, time.Hour*24, time.Second*10, false)
 	if err != nil {
 		if usernamePackages != nil {
 			// If data is returned, interpret the error as a warning
