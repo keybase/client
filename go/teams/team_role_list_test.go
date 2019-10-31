@@ -53,7 +53,8 @@ func TestTeamRoleList(t *testing.T) {
 
 	// In teams/*_test.go, we don't have gregor hooked up, so we have to mock out what happens
 	// when a new gregpr notification comes down from the server.
-	m[1].G().GetTeamRoleListManager().Update(m[1], expected.Version)
+	err = m[1].G().GetTeamRoleListManager().Update(m[1], expected.Version)
+	require.NoError(t, err)
 
 	// Check that the state is eagerly refreshed.
 	pollForTrue(t, m[1].G(), func(i int) bool {
