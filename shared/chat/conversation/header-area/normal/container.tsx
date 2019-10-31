@@ -46,7 +46,6 @@ const mapDispatchToProps = (
 })
 
 const isPhoneOrEmail = (props: Props): boolean =>
-  props.participants.length === 2 &&
   props.participants.some(participant => participant.endsWith('@phone') || participant.endsWith('@email'))
 
 const HeaderBranch = (props: Props) => {
