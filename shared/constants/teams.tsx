@@ -93,7 +93,7 @@ export const rpcDetailsToMemberInfos = (
   return I.Map(infos)
 }
 
-export const makeInviteInfo = I.Record<Types._InviteInfo>({
+export const emptyInviteInfo = Object.freeze<Types._InviteInfo>({
   email: '',
   id: '',
   name: '',
@@ -101,6 +101,8 @@ export const makeInviteInfo = I.Record<Types._InviteInfo>({
   role: 'writer',
   username: '',
 })
+
+export const makeInviteInfo = I.Record<Types._InviteInfo>(emptyInviteInfo)
 
 export const emptyEmailInviteError = Object.freeze<Types.EmailInviteError>({
   malformed: new Set<string>(),

@@ -1,17 +1,19 @@
-import * as TeamsGen from '../../../../actions/teams-gen'
-import {getTeamInvites, makeInviteInfo} from '../../../../constants/teams'
+import * as TeamsGen from '../../../../../actions/teams-gen'
+import * as Constants from '../../../../../constants/teams'
 import {TeamInviteRow} from '.'
-import {connect} from '../../../../util/container'
-import {InviteInfo} from '../../../../constants/types/teams'
+import {connect} from '../../../../../util/container'
+import {InviteInfo, TeamID} from '../../../../../constants/types/teams'
 
 type OwnProps = {
   id: string
-  teamname: string
+  teamID: TeamID
 }
 
-const mapStateToProps = (state, {teamname}: OwnProps) => {
+const mapStateToProps = (state, {teamID}: OwnProps) => {
+  const teamDetails = Constants.getTeamDetails(state, teamID)
   return {
-    _invites: getTeamInvites(state, teamname),
+    _invites: teamDetails.invites,
+    teamname: teamDetails.teamname,
   }
 }
 
@@ -22,7 +24,8 @@ const mapDispatchToProps = dispatch => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
-  const user: InviteInfo = stateProps._invites.find(invite => invite.id === ownProps.id) || makeInviteInfo()
+  const user: InviteInfo =
+    stateProps._invites.find(invite => invite.id === ownProps.id) || Constants.emptyInviteInfo
 
   let onCancelInvite
   if (user.email) {
@@ -30,7 +33,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
       dispatchProps._onCancelInvite({
         email: user.email,
         inviteID: '',
-        teamname: ownProps.teamname,
+        teamname: stateProps.teamname,
         username: '',
       })
   } else if (user.username) {
@@ -38,7 +41,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
       dispatchProps._onCancelInvite({
         email: '',
         inviteID: '',
-        teamname: ownProps.teamname,
+        teamname: stateProps.teamname,
         username: user.username,
       })
   } else if (user.name || user.phone) {
@@ -46,7 +49,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
       dispatchProps._onCancelInvite({
         email: '',
         inviteID: ownProps.id,
-        teamname: ownProps.teamname,
+        teamname: stateProps.teamname,
         username: '',
       })
   }
