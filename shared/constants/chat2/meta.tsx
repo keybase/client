@@ -158,10 +158,10 @@ export const updateMeta = (
         if (shallowEqual(draft.nameParticipants, oldMeta.nameParticipants)) {
           draft.nameParticipants = oldMeta.nameParticipants
         }
-        if (shallowEqual(draft.rekeyers, oldMeta.rekeyers)) {
+        if (shallowEqual([...draft.rekeyers], [...oldMeta.rekeyers])) {
           draft.rekeyers = oldMeta.rekeyers
         }
-        if (shallowEqual(draft.resetParticipants, oldMeta.resetParticipants)) {
+        if (shallowEqual([...draft.resetParticipants], [...oldMeta.resetParticipants])) {
           draft.resetParticipants = oldMeta.resetParticipants
         }
         if (shallowEqual(draft.retentionPolicy, oldMeta.retentionPolicy)) {

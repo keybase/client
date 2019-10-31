@@ -541,17 +541,25 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
       }
       case Chat2Gen.unfurlTogglePrompt: {
         const {show, domain, conversationIDKey, messageID} = action.payload
-        const unfurlPromptMap = new Map(draftState.unfurlPromptMap || [])
-        const mmap = new Map(unfurlPromptMap.get(conversationIDKey) || [])
-        const prompts = new Set(mmap.get(messageID) || [])
+        const {unfurlPromptMap} = draftState
+
+        let map = draftState.unfurlPromptMap.get(conversationIDKey)
+        if (!map) {
+          map = new Map()
+          unfurlPromptMap.set(conversationIDKey, map)
+        }
+
+        let prompts = map.get(messageID)
+        if (!prompts) {
+          prompts = new Set()
+          map.set(messageID, prompts)
+        }
+
         if (show) {
           prompts.add(domain)
         } else {
           prompts.delete(domain)
         }
-        mmap.set(messageID, prompts)
-        unfurlPromptMap.set(conversationIDKey, mmap)
-        draftState.unfurlPromptMap = unfurlPromptMap
         return
       }
       case Chat2Gen.enableAudioRecording: {
