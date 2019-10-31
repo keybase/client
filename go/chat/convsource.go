@@ -96,7 +96,19 @@ func (s *baseConversationSource) addConversationCards(ctx context.Context, uid g
 	if card == nil {
 		return
 	}
-	thread.Messages = append([]chat1.MessageUnboxed{chat1.NewMessageUnboxedWithJourneycard(*card)}, thread.Messages...)
+	// Slot it in to the left of its prev.
+	addLeftOf := 0
+	for i := len(thread.Messages) - 1; i >= 0; i-- {
+		msgID := thread.Messages[i].GetMessageID()
+		if msgID != 0 && msgID >= card.PrevID {
+			addLeftOf = i
+			break
+		}
+	}
+	// Insert at index: https://github.com/golang/go/wiki/SliceTricks#insert
+	thread.Messages = append(thread.Messages, chat1.MessageUnboxed{})
+	copy(thread.Messages[addLeftOf+1:], thread.Messages[addLeftOf:])
+	thread.Messages[addLeftOf] = chat1.NewMessageUnboxedWithJourneycard(*card)
 }
 
 func (s *baseConversationSource) postProcessThread(ctx context.Context, uid gregor1.UID,
@@ -144,6 +156,9 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 	thread.Messages = utils.FilterExploded(conv, thread.Messages, s.boxer.clock.Now())
 	s.Debug(ctx, "postProcessThread: thread messages after explode filter: %d", len(thread.Messages))
 
+	// Add any conversation cards
+	s.addConversationCards(ctx, uid, conv.GetConvID(), verifiedConv, thread)
+
 	// Fetch outbox and tack onto the result
 	outbox := storage.NewOutbox(s.G(), uid)
 	if err = outbox.AppendToThread(ctx, conv.GetConvID(), thread); err != nil {
@@ -153,9 +168,6 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 	}
 	// Add attachment previews to pending messages
 	s.addPendingPreviews(ctx, thread)
-
-	// Add any conversation cards
-	s.addConversationCards(ctx, uid, conv.GetConvID(), verifiedConv, thread)
 
 	return nil
 }

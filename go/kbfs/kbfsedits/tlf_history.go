@@ -622,7 +622,7 @@ func (th *TlfHistory) getHistory(loggedInUser string) writersByRevision {
 	th.lock.Lock()
 	defer th.lock.Unlock()
 	if th.computed {
-		// Maybe another goroutine got the lock and recomuted the
+		// Maybe another goroutine got the lock and recomputed the
 		// history since we checked above.
 		return th.cachedHistory
 	}
