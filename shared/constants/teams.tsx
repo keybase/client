@@ -616,6 +616,15 @@ export const isOnTeamsTab = () => {
   return Array.isArray(path) ? path.some(p => p.routeName === teamsTab) : false
 }
 
+// Merge new teamDetails objs into old ones, removing any old teams that are not in the new map
+export const mergeTeamDetails = (oldMap: Types.State['teamDetails'], newMap: Types.State['teamDetails']) => {
+  const ret = new Map(newMap)
+  for (const [teamID, teamDetails] of newMap.entries()) {
+    ret.set(teamID, {...oldMap.get(teamID), ...teamDetails})
+  }
+  return ret
+}
+
 export const emptyTeamDetails = Object.freeze<Types.TeamDetails>({
   allowPromote: false,
   id: Types.noTeamID,
