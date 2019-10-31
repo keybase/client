@@ -5,19 +5,13 @@ import * as Container from '../../util/container'
 import * as Constants from '../../constants/provision'
 
 const store = Container.produce(Sb.createStoreWithCommon(), draftState => {
-  const deviceMap = new Map(draftState.devices.deviceMap)
-  deviceMap.set('Work Laptop', {
-    created: 1,
-    currentDevice: false,
-    deviceID: '123',
-    lastUsed: 1,
-    name: 'Work Laptop',
-    type: 'desktop',
-  })
-  draftState.devices.deviceMap = deviceMap
   draftState.provision = Constants.makeState({
-    codePageOtherDeviceId: '123',
-    codePageOtherDeviceName: 'Work Laptop',
+    codePageOtherDevice: Constants.makeDevice({
+      deviceNumberOfType: 3,
+      id: '1',
+      name: 'My laptop',
+      type: 'desktop',
+    }),
   })
 })
 
