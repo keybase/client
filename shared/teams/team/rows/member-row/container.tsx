@@ -3,27 +3,30 @@ import * as TeamsGen from '../../../../actions/teams-gen'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Tracker2Gen from '../../../../actions/tracker2-gen'
 import * as ProfileGen from '../../../../actions/profile-gen'
+import * as Types from '../../../../constants/types/teams'
 import {TeamMemberRow} from '.'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import {connect, isMobile} from '../../../../util/container'
 import {anyWaiting} from '../../../../constants/waiting'
 
 type OwnProps = {
-  teamname: string
+  teamID: Types.TeamID
   username: string
 }
 
 const blankInfo = Constants.makeMemberInfo()
 
-const mapStateToProps = (state, {teamname, username}: OwnProps) => {
-  const map = Constants.getTeamMembers(state, teamname)
-  const info = map.get(username, blankInfo)
+const mapStateToProps = (state, {teamID, username}: OwnProps) => {
+  const teamDetails = Constants.getTeamDetails(state, teamID)
+  const {members: map = new Map(), teamname} = teamDetails
+  const info = map.get(username) || blankInfo
 
   return {
     following: state.config.following.has(username),
     fullName: state.config.username === username ? 'You' : info.fullName,
     roleType: info.type,
     status: info.status,
+    teamname,
     username: info.username,
     waitingForAdd: anyWaiting(state, Constants.addMemberWaitingKey(teamname, username)),
     waitingForRemove: anyWaiting(state, Constants.removeMemberWaitingKey(teamname, username)),
@@ -73,8 +76,8 @@ const mergeProps = (stateProps, dispatchProps: DispatchProps, ownProps: OwnProps
     fullName: stateProps.fullName,
     onChat: dispatchProps.onChat,
     onClick: dispatchProps.onClick,
-    onReAddToTeam: () => dispatchProps._onReAddToTeam(ownProps.teamname, ownProps.username),
-    onRemoveFromTeam: () => dispatchProps._onRemoveFromTeam(ownProps.teamname, ownProps.username),
+    onReAddToTeam: () => dispatchProps._onReAddToTeam(stateProps.teamname, ownProps.username),
+    onRemoveFromTeam: () => dispatchProps._onRemoveFromTeam(stateProps.teamname, ownProps.username),
     onShowTracker: () => dispatchProps._onShowTracker(ownProps.username),
     roleType: stateProps.roleType,
     status: stateProps.status,

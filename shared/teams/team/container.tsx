@@ -37,17 +37,13 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Container.TypedDispatch, {setSelectedTab}: OwnProps) => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   _loadTeam: (teamname: string) => dispatch(TeamsGen.createGetDetails({teamname})),
-  _setSelectedTab: (teamname: string, selectedTab: Types.TabKey) => {
-    lastSelectedTabs[teamname] = selectedTab
-    setSelectedTab(selectedTab)
-  },
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
 const Connected = Container.compose(
-  Container.connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps) => {
+  Container.connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps, ownProps: OwnProps) => {
     const rows = makeRows(
       stateProps.teamDetails,
       stateProps.selectedTab,
@@ -66,8 +62,7 @@ const Connected = Container.compose(
       rows,
       sections,
       selectedTab: stateProps.selectedTab,
-      setSelectedTab: selectedTab =>
-        dispatchProps._setSelectedTab(stateProps._teamnameTodoRemove, selectedTab),
+      setSelectedTab: ownProps.setSelectedTab,
       teamID: stateProps.teamID,
       teamname: stateProps._teamnameTodoRemove,
     }
@@ -91,6 +86,7 @@ class TabsState extends React.PureComponent<TabsStateOwnProps, {selectedTab: Typ
   })
   state = {selectedTab: lastSelectedTabs[Container.getRouteProps(this.props, 'teamID', '')] || 'members'}
   private setSelectedTab = selectedTab => {
+    lastSelectedTabs[Container.getRouteProps(this.props, 'teamID', '')] = selectedTab
     this.setState({selectedTab})
   }
   componentDidUpdate(prevProps: TabsStateOwnProps) {

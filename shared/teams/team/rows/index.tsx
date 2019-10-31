@@ -19,7 +19,8 @@ type SubteamRow =
 
 type SettingsRow = {type: 'settings'}
 
-export type Row = HeaderRow | MemberRow | InviteRow | SubteamRow | SettingsRow
+export type BodyRow = MemberRow | InviteRow | SubteamRow | SettingsRow
+export type Row = HeaderRow | BodyRow
 
 const makeRows = (
   details: Types.TeamDetails,
