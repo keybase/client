@@ -34,23 +34,21 @@ export const emptyNewFolder = {
   type: Types.EditType.NewFolder,
 }
 
-const makePrefetchNotStarted = I.Record<Types._PrefetchNotStarted>({
+const prefetchNotStarted = {
   state: Types.PrefetchState.NotStarted,
-})
-export const prefetchNotStarted: Types.PrefetchNotStarted = makePrefetchNotStarted()
+}
 
-const makePrefetchComplete = I.Record<Types._PrefetchComplete>({
+const prefetchComplete = {
   state: Types.PrefetchState.Complete,
-})
-export const prefetchComplete: Types.PrefetchComplete = makePrefetchComplete()
+}
 
-export const makePrefetchInProgress = I.Record<Types._PrefetchInProgress>({
+export const emptyPrefetchInProgress = {
   bytesFetched: 0,
   bytesTotal: 0,
   endEstimate: 0,
   startTime: 0,
   state: Types.PrefetchState.InProgress,
-})
+}
 
 const pathItemMetadataDefault = {
   lastModifiedTimestamp: 0,
@@ -61,30 +59,28 @@ const pathItemMetadataDefault = {
   writable: false,
 }
 
-export const makeFolder = I.Record<Types._FolderPathItem>({
+export const emptyFolder = {
   ...pathItemMetadataDefault,
-  children: I.Set(),
+  children: new Set(),
   progress: Types.ProgressType.Pending,
   type: Types.PathType.Folder,
-})
+}
 
-export const makeFile = I.Record<Types._FilePathItem>({
+export const emptyFile = {
   ...pathItemMetadataDefault,
   type: Types.PathType.File,
-})
+}
 
-export const makeSymlink = I.Record<Types._SymlinkPathItem>({
+export const emptySymlink = {
   ...pathItemMetadataDefault,
   linkTarget: '',
   type: Types.PathType.Symlink,
-})
+}
 
-export const makeUnknownPathItem = I.Record<Types._UnknownPathItem>({
+export const unknownPathItem = {
   ...pathItemMetadataDefault,
   type: Types.PathType.Unknown,
-})
-
-export const unknownPathItem = makeUnknownPathItem()
+}
 
 export const tlfSyncEnabled: Types.TlfSyncEnabled = {
   mode: Types.TlfSyncMode.Enabled,
@@ -277,6 +273,9 @@ export const emptyFileContext = {
   url: '',
   viewType: RPCTypes.GUIViewType.default,
 }
+
+export const getPathItem = (pathItems: Map<Types.Path, Types.PathItem>, path: Types.Path): Types.PathItem =>
+  pathItems.get(path) || unknownPathItem
 
 // RPC expects a string that's interpreted as [16]byte on Go side and it has to
 // be unique among all ongoing ops at any given time. uuidv1 may exceed 16

@@ -142,7 +142,7 @@ type _FinishedRegularDownloadPayload = {readonly downloadID: string; readonly mi
 type _FolderListLoadPayload = {readonly recursive: boolean; readonly path: Types.Path}
 type _FolderListLoadedPayload = {
   readonly path: Types.Path
-  readonly pathItems: I.Map<Types.Path, Types.PathItem>
+  readonly pathItems: Map<Types.Path, Types.PathItem>
 }
 type _FsErrorPayload = {readonly error: Types.FsError; readonly expectedIfOffline: boolean}
 type _GetOnlineStatusPayload = void

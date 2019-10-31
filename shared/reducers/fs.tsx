@@ -31,7 +31,7 @@ const initialState: Types.State = {
   overallSyncStatus: Constants.emptyOverallSyncStatus,
   pathInfos: I.Map(),
   pathItemActionMenu: Constants.emptyPathItemActionMenu,
-  pathItems: I.Map([[Types.stringToPath('/keybase'), Constants.makeFolder()]]),
+  pathItems: new Map(),
   pathUserSettings: I.Map(),
   sendAttachmentToChat: Constants.makeSendAttachmentToChat(),
   settings: Constants.makeSettings(),
@@ -57,10 +57,13 @@ const initialState: Types.State = {
 export const _initialStateForTest = initialState
 
 const updatePathItem = (
-  oldPathItem: Types.PathItem | null | undefined,
+  oldPathItem: Types.PathItem,
   newPathItemFromAction: Types.PathItem
 ): Types.PathItem => {
-  if (!oldPathItem || oldPathItem.type !== newPathItemFromAction.type) {
+  if (oldPathItem.type !== newPathItemFromAction.type) {
+    return newPathItemFromAction
+  }
+  if (!isEqual(oldPathItem.prefetchStatus, newPathItemFromAction.prefetchStatus)) {
     return newPathItemFromAction
   }
   // Reuse prefetchStatus if they equal in value. Note that `update` and
@@ -235,32 +238,38 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
     return initialState
   },
   [FsGen.pathItemLoaded]: (draftState, action) => {
-    draftState.pathItems = draftState.pathItems.update(action.payload.path, original =>
-      updatePathItem(original, action.payload.pathItem)
-    )
+    const oldPathItem = Constants.getPathItem(draftState.pathItems, action.payload.path)
+    const newPathItem = updatePathItem(oldPathItem, action.payload.pathItem)
+    if (oldPathItem !== newPathItem) {
+      draftState.pathItems = new Map([...draftState.pathItems, [action.payload.path, newPathItem]])
+    }
     draftState.softErrors = draftState.softErrors
       .removeIn(['pathErrors', action.payload.path])
       .removeIn(['tlfErrors', Constants.getTlfPath(action.payload.path)])
   },
   [FsGen.folderListLoaded]: (draftState, action) => {
-    const toRemove: Array<Types.Path> = []
-    const toMerge = action.payload.pathItems.map((newPathItem, path) => {
-      const oldPathItem = draftState.pathItems.get(path, Constants.unknownPathItem)
-      const toSet =
-        oldPathItem === Constants.unknownPathItem ? newPathItem : updatePathItem(oldPathItem, newPathItem)
-
-      oldPathItem.type === Types.PathType.Folder &&
-        oldPathItem.children.forEach(
-          name =>
-            (toSet.type !== Types.PathType.Folder || !toSet.children.includes(name)) &&
-            toRemove.push(Types.pathConcat(path, name))
-        )
-
-      return toSet
-    })
-    draftState.pathItems = draftState.pathItems.withMutations(pathItems =>
-      pathItems.deleteAll(toRemove).merge(toMerge)
+    let newPathItems: Map<Types.Path, Types.PathItem> | null = null([...action.payload.pathItems]).forEach(
+      ([path, pathItemFromAction]) => {
+        const oldPathItem = Constants.getPathItem(draftState.pathItems, action.payload.path)
+        const newPathItem = updatePathItem(oldPathItem, pathItemFromAction)
+        if (oldPathItem !== newPathItem) {
+          if (!newPathItems) {
+            newPathItems = new Map([...draftState.pathItems])
+          }
+          oldPathItem.type === Types.PathType.Folder &&
+            oldPathItem.children.forEach(
+              name =>
+                (newPathItem.type !== Types.PathType.Folder || !newPathItem.children.has(name)) &&
+                newPathItems &&
+                newPathItems.delete(Types.pathConcat(path, name))
+            )
+          newPathItems.set(path, newPathItem)
+        }
+      }
     )
+    if (newPathItems) {
+      draftState.pathItems = newPathItems
+    }
   },
   [FsGen.favoritesLoaded]: (draftState, action) => {
     draftState.tlfs.private = updateTlfList(draftState.tlfs.private, action.payload.private)
@@ -375,7 +384,7 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
   },
   [FsGen.newFolderRow]: (draftState, action) => {
     const {parentPath} = action.payload
-    const parentPathItem = draftState.pathItems.get(parentPath, Constants.unknownPathItem)
+    const parentPathItem = Constants.getPathItem(draftState.pathItems, parentPath)
     if (parentPathItem.type !== Types.PathType.Folder) {
       console.warn(`bad parentPath: ${parentPathItem.type}`)
       return

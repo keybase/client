@@ -24,7 +24,7 @@
     },
     "folderListLoaded": {
       "path": "Types.Path",
-      "pathItems": "I.Map<Types.Path, Types.PathItem>"
+      "pathItems": "Map<Types.Path, Types.PathItem>"
     },
     "favoritesLoad": {},
     "favoritesLoaded": {

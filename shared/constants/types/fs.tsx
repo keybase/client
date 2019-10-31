@@ -238,24 +238,21 @@ export enum PrefetchState {
   Complete = 'complete',
 }
 
-export type _PrefetchNotStarted = {
+export type PrefetchNotStarted = {
   state: PrefetchState.NotStarted
 }
-export type PrefetchNotStarted = I.RecordOf<_PrefetchNotStarted>
 
-export type _PrefetchInProgress = {
+export type PrefetchInProgress = {
   state: PrefetchState.InProgress
   startTime: number
   endEstimate: number
   bytesTotal: number
   bytesFetched: number
 }
-export type PrefetchInProgress = I.RecordOf<_PrefetchInProgress>
 
-export type _PrefetchComplete = {
+export type PrefetchComplete = {
   state: PrefetchState.Complete
 }
-export type PrefetchComplete = I.RecordOf<_PrefetchComplete>
 
 export type PrefetchStatus = PrefetchNotStarted | PrefetchInProgress | PrefetchComplete
 
@@ -268,28 +265,24 @@ type _PathItemMetadata = {
   prefetchStatus: PrefetchStatus
 }
 
-export type _FolderPathItem = {
+export type FolderPathItem = {
   type: PathType.Folder
-  children: I.Set<string>
+  children: Set<string>
   progress: ProgressType
 } & _PathItemMetadata
-export type FolderPathItem = I.RecordOf<_FolderPathItem>
 
-export type _SymlinkPathItem = {
+export type SymlinkPathItem = {
   type: PathType.Symlink
   linkTarget: string
 } & _PathItemMetadata
-export type SymlinkPathItem = I.RecordOf<_SymlinkPathItem>
 
-export type _FilePathItem = {
+export type FilePathItem = {
   type: PathType.File
 } & _PathItemMetadata
-export type FilePathItem = I.RecordOf<_FilePathItem>
 
-export type _UnknownPathItem = {
+export type UnknownPathItem = {
   type: PathType.Unknown
 } & _PathItemMetadata
-export type UnknownPathItem = I.RecordOf<_UnknownPathItem>
 
 export type PathItem = FolderPathItem | SymlinkPathItem | FilePathItem | UnknownPathItem
 
@@ -424,7 +417,7 @@ export type TlfUpdate = I.RecordOf<_TlfUpdate>
 
 export type UserTlfUpdates = I.List<TlfUpdate>
 
-export type PathItems = I.Map<Path, PathItem>
+export type PathItems = Map<Path, PathItem>
 
 export type Edits = Map<EditID, Edit>
 
