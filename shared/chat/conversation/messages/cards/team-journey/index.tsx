@@ -27,7 +27,7 @@ const TeamJourney = (props: Props) => {
       <Kb.Box2 key="content" direction="vertical" fullWidth={true} style={styles.content}>
         <Kb.Box2 direction="horizontal" fullWidth={true}>
           <Kb.Box2 direction="horizontal" style={props.image ? styles.text : undefined}>
-          <Kb.Text type="BodySmall">{props.text}</Kb.Text>
+            <Kb.Text type="BodySmall">{props.text}</Kb.Text>
           </Kb.Box2>
           {!!props.image && <Kb.Icon style={styles.image} type={props.image} />}
         </Kb.Box2>
@@ -62,9 +62,9 @@ const TeamJourneyHeader = (props: HeaderProps) => (
         style={styles.avatar}
       />
       <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
-          <Kb.Text style={styles.teamnameText} type="BodySmallBold">
-            {props.teamname}
-          </Kb.Text>
+        <Kb.Text style={styles.teamnameText} type="BodySmallBold">
+          {props.teamname}
+        </Kb.Text>
         <Kb.Text type="BodyTiny">• System message</Kb.Text>
       </Kb.Box2>
     </Kb.Box2>
