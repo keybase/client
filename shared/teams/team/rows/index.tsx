@@ -19,7 +19,9 @@ type SubteamRow =
 
 type SettingsRow = {type: 'settings'}
 
-export type BodyRow = MemberRow | InviteRow | SubteamRow | SettingsRow
+type LoadingRow = {type: 'loading'}
+
+export type BodyRow = MemberRow | InviteRow | SubteamRow | SettingsRow | LoadingRow
 export type Row = HeaderRow | BodyRow
 
 const makeRows = (
@@ -37,6 +39,10 @@ const makeRows = (
           username: user.username,
         }))
       )
+      if (details.memberCount > 0 && !details.members) {
+        // loading
+        rows.push({type: 'loading'})
+      }
       break
     case 'invites': {
       const {invites, requests} = details

@@ -49,6 +49,7 @@ class Team extends React.Component<Props> {
       case 'subteam-add':
       case 'subteam-none':
       case 'subteam-subteam':
+      case 'loading':
         return renderRow(item, this.props.teamID)
       case 'settings':
         return <Settings key="settings" teamname={this.props.teamname} />
