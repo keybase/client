@@ -21,6 +21,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
 	context "golang.org/x/net/context"
+	"golang.org/x/sync/errgroup"
 )
 
 type BlockingSender struct {
@@ -1682,82 +1683,101 @@ func (s *Deliverer) deliverLoop() {
 			}
 			continue
 		}
-		if len(obrs) > 0 {
-			s.Debug(bgctx, "deliverLoop: flushing %d items from the outbox: uid: %s", len(obrs),
-				s.outbox.GetUID())
+
+		convMap := make(map[string][]chat1.OutboxRecord)
+		for _, o := range obrs {
+			obr := o
+			convMap[obr.ConvID.String()] = append(convMap[obr.ConvID.String()], obr)
 		}
 
-		// Send messages
-		var breaks []keybase1.TLFIdentifyFailure
-		for _, obr := range obrs {
-			bctx := globals.ChatCtx(context.Background(), s.G(), obr.IdentifyBehavior, &breaks,
-				s.identNotifier)
+		var eg errgroup.Group
+		for _, o := range convMap {
+			obrs := o
+			eg.Go(func() error { s.deliverForConv(bgctx, obrs); return nil })
+		}
+		if err := eg.Wait(); err != nil {
+			s.Debug(bgctx, "deliverLoop: error in waitgroup %v", err)
+		}
+	}
+}
 
-			if s.testingNameInfoSource != nil {
-				bctx = globals.CtxAddOverrideNameInfoSource(bctx, s.testingNameInfoSource)
-			}
-			if !s.connected {
-				err = errors.New("disconnected from chat server")
-			} else if s.clock.Now().Sub(obr.Ctime.Time()) > time.Hour {
-				// If we are re-trying a message after an hour, let's just give up. These times can
-				// get very long if the app is suspended on mobile.
-				s.Debug(bctx, "deliverLoop: expiring pending message because it is too old: obid: %s dur: %v",
-					obr.OutboxID, s.clock.Now().Sub(obr.Ctime.Time()))
-				err = delivererExpireError{}
-			} else {
-				// Check for special messages and process based on completion status
-				obr, err = s.processBackgroundTaskMessage(bctx, obr)
-				if err == nil {
-					canceled, err := s.cancelPendingDuplicateReactions(bctx, obr)
-					if err == nil && canceled {
-						s.Debug(bctx, "deliverLoop: aborting send, duplicate send convID: %s, obid: %s",
-							obr.ConvID, obr.OutboxID)
-						continue
-					}
-				} else if _, ok := err.(delivererBackgroundTaskError); ok {
-					// check for bkg task error and loop around if we hit one
-					s.Debug(bctx, "deliverLoop: bkg task in progress, skipping: convID: %s obid: %s task: %v",
-						obr.ConvID, obr.OutboxID, err)
+func (s *Deliverer) deliverForConv(ctx context.Context, obrs []chat1.OutboxRecord) {
+	if len(obrs) > 0 {
+		s.Debug(ctx, "deliverLoop: flushing %d items from the outbox: uid: %s, convID %v",
+			len(obrs), s.outbox.GetUID(), obrs[0].ConvID)
+	}
+
+	// Send messages
+	var err error
+	var breaks []keybase1.TLFIdentifyFailure
+	for _, obr := range obrs {
+		bctx := globals.ChatCtx(context.Background(), s.G(), obr.IdentifyBehavior, &breaks,
+			s.identNotifier)
+
+		if s.testingNameInfoSource != nil {
+			bctx = globals.CtxAddOverrideNameInfoSource(bctx, s.testingNameInfoSource)
+		}
+		if !s.connected {
+			err = errors.New("disconnected from chat server")
+		} else if s.clock.Now().Sub(obr.Ctime.Time()) > time.Hour {
+			// If we are re-trying a message after an hour, let's just give up. These times can
+			// get very long if the app is suspended on mobile.
+			s.Debug(bctx, "deliverLoop: expiring pending message because it is too old: obid: %s dur: %v",
+				obr.OutboxID, s.clock.Now().Sub(obr.Ctime.Time()))
+			err = delivererExpireError{}
+		} else {
+			// Check for special messages and process based on completion status
+			obr, err = s.processBackgroundTaskMessage(bctx, obr)
+			if err == nil {
+				canceled, err := s.cancelPendingDuplicateReactions(bctx, obr)
+				if err == nil && canceled {
+					s.Debug(bctx, "deliverLoop: aborting send, duplicate send convID: %s, obid: %s",
+						obr.ConvID, obr.OutboxID)
 					continue
 				}
-				if err == nil {
-					_, _, err = s.sender.Send(bctx, obr.ConvID, obr.Msg, 0, nil, obr.SendOpts,
-						obr.PrepareOpts)
+			} else if _, ok := err.(delivererBackgroundTaskError); ok {
+				// check for bkg task error and loop around if we hit one
+				s.Debug(bctx, "deliverLoop: bkg task in progress, skipping: convID: %s obid: %s task: %v",
+					obr.ConvID, obr.OutboxID, err)
+				continue
+			}
+			if err == nil {
+				_, _, err = s.sender.Send(bctx, obr.ConvID, obr.Msg, 0, nil, obr.SendOpts,
+					obr.PrepareOpts)
+			}
+		}
+		if err != nil {
+			s.Debug(bctx,
+				"deliverLoop: failed to send msg: uid: %s convID: %s obid: %s err: %v attempts: %d",
+				s.outbox.GetUID(), obr.ConvID, obr.OutboxID, err, obr.State.Sending())
+
+			// Process failure. If we determine that the message is unrecoverable, then bail out.
+			if errTyp, newErr, ok := s.doNotRetryFailure(bctx, obr, err); ok {
+				// Record failure if we hit this case, and put the rest of this loop in a
+				// mode where all other entries also fail.
+				s.Debug(bctx, "deliverLoop: failure condition reached, marking as error and notifying: obid: %s errTyp: %v attempts: %d", obr.OutboxID, errTyp, obr.State.Sending())
+
+				if err := s.failMessage(bctx, obr, chat1.OutboxStateError{
+					Message: newErr.Error(),
+					Typ:     errTyp,
+				}); err != nil {
+					s.Debug(bctx, "deliverLoop: unable to fail message: err: %v", err)
+				}
+			} else if s.shouldRecordError(bctx, err) {
+				if err = s.outbox.RecordFailedAttempt(bctx, obr); err != nil {
+					s.Debug(ctx, "deliverLoop: unable to record failed attempt on outbox: uid %s err: %v",
+						s.outbox.GetUID(), err)
 				}
 			}
-			if err != nil {
-				s.Debug(bctx,
-					"deliverLoop: failed to send msg: uid: %s convID: %s obid: %s err: %v attempts: %d",
-					s.outbox.GetUID(), obr.ConvID, obr.OutboxID, err, obr.State.Sending())
-
-				// Process failure. If we determine that the message is unrecoverable, then bail out.
-				if errTyp, newErr, ok := s.doNotRetryFailure(bctx, obr, err); ok {
-					// Record failure if we hit this case, and put the rest of this loop in a
-					// mode where all other entries also fail.
-					s.Debug(bctx, "deliverLoop: failure condition reached, marking as error and notifying: obid: %s errTyp: %v attempts: %d", obr.OutboxID, errTyp, obr.State.Sending())
-
-					if err := s.failMessage(bctx, obr, chat1.OutboxStateError{
-						Message: newErr.Error(),
-						Typ:     errTyp,
-					}); err != nil {
-						s.Debug(bctx, "deliverLoop: unable to fail message: err: %v", err)
-					}
-				} else if s.shouldRecordError(bctx, err) {
-					if err = s.outbox.RecordFailedAttempt(bctx, obr); err != nil {
-						s.Debug(bgctx, "deliverLoop: unable to record failed attempt on outbox: uid %s err: %v",
-							s.outbox.GetUID(), err)
-					}
-				}
-				// Check if we should break out of the deliverer loop on this failure
-				if s.shouldBreakLoop(bctx, obr) {
-					break
-				}
-			} else {
-				// BlockingSender actually does this too, so this will likely fail, but to maintain
-				// the types.Sender abstraction we will do it here too and likely fail.
-				if err = s.outbox.RemoveMessage(bctx, obr.OutboxID); err != nil {
-					s.Debug(bgctx, "deliverLoop: failed to remove successful message send: %v", err)
-				}
+			// Check if we should break out of the deliverer loop on this failure
+			if s.shouldBreakLoop(bctx, obr) {
+				break
+			}
+		} else {
+			// BlockingSender actually does this too, so this will likely fail, but to maintain
+			// the types.Sender abstraction we will do it here too and likely fail.
+			if err = s.outbox.RemoveMessage(bctx, obr.OutboxID); err != nil {
+				s.Debug(ctx, "deliverLoop: failed to remove successful message send: %v", err)
 			}
 		}
 	}
