@@ -7,6 +7,7 @@ import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import {formatAudioRecordDuration} from '../../util/timestamp'
+import {isIOS} from '../../constants/platform'
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
@@ -15,7 +16,7 @@ type Props = {
   onStopRecording: (stopType: Types.AudioStopType) => void
 }
 
-const minAmp = -60
+const minAmp = isIOS ? -40 : -60
 
 const AudioRecorder = (props: Props) => {
   // props
@@ -28,12 +29,13 @@ const AudioRecorder = (props: Props) => {
     audioRecording: state.chat2.audioRecording.get(conversationIDKey),
   }))
   const timerRef = React.useRef<NodeJS.Timeout | null>(null)
+  const closingDownRef = React.useRef(false)
 
   // dispatch
   const dispatch = Container.useDispatch()
   const meteringCb = (amp: number) => {
     props.onMetering(amp)
-    if (!closingDown) {
+    if (!closingDownRef.current) {
       Kb.NativeAnimated.timing(ampScale, {
         duration: 100,
         toValue: ampToScale(amp),
@@ -71,6 +73,7 @@ const AudioRecorder = (props: Props) => {
     setVisible(true)
     setClosingDown(false)
   } else if (visible && noShow && !closingDown) {
+    closingDownRef.current = true
     setClosingDown(true)
     setTimeout(() => setVisible(false), 400)
   }
@@ -172,6 +175,11 @@ const AudioButton = (props: ButtonProps) => {
             useNativeDriver: true,
           }),
           Kb.NativeAnimated.timing(sendTranslate, {
+            duration: 400,
+            toValue: 0,
+            useNativeDriver: true,
+          }),
+          Kb.NativeAnimated.timing(props.ampScale, {
             duration: 400,
             toValue: 0,
             useNativeDriver: true,
