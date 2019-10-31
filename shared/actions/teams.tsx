@@ -1143,6 +1143,30 @@ const teamChangedByName = (
   return getLoadCalls()
 }
 
+const teamRoleMapChangedUpdateLatestKnownVersion = (
+  _: TypedState,
+  action: EngineGen.Keybase1NotifyTeamTeamRoleMapChangedPayload
+) => {
+  const {newVersion} = action.payload.params
+  return TeamsGen.createSetTeamRoleMapLatestKnownVersion({version: newVersion})
+}
+
+const teamRoleMapChangedUpdateRefreshRoleMap = async (
+  _: TypedState,
+  action: EngineGen.Keybase1NotifyTeamTeamRoleMapChangedPayload,
+  logger: Saga.SagaLogger
+) => {
+  const {newVersion} = action.payload.params
+  logger.info(`Got teamRoleMapChanged with version ${newVersion}`)
+  const map = await RPCTypes.teamsGetTeamRoleMapRpcPromise()
+  return TeamsGen.createSetTeamRoleMap({map: Constants.rpcTeamRoleMapAndVersionToTeamRoleMap(map)})
+}
+
+const teamRoleMapPrimeOnStartup = async () => {
+  const map = await RPCTypes.teamsGetTeamRoleMapRpcPromise()
+  return TeamsGen.createSetTeamRoleMap({map: Constants.rpcTeamRoleMapAndVersionToTeamRoleMap(map)})
+}
+
 const teamDeletedOrExit = (
   state,
   action: EngineGen.Keybase1NotifyTeamTeamDeletedPayload | EngineGen.Keybase1NotifyTeamTeamExitPayload
@@ -1478,6 +1502,12 @@ const teamsSaga = function*() {
     saveChannelMembership,
     'saveChannelMembership'
   )
+  yield* Saga.chainAction2(
+    ConfigGen.bootstrapStatusLoaded,
+    teamRoleMapPrimeOnStartup,
+    'teamRoleMapPrimeOnStartup'
+  )
+
   yield* Saga.chainGenerator<TeamsGen.CreateChannelPayload>(
     TeamsGen.createChannel,
     createChannel,
@@ -1543,6 +1573,17 @@ const teamsSaga = function*() {
     teamChangedByName,
     'teamChangedByName'
   )
+  yield* Saga.chainAction2(
+    EngineGen.keybase1NotifyTeamTeamRoleMapChanged,
+    teamRoleMapChangedUpdateLatestKnownVersion,
+    'teamRoleMapChangedUpdateLatestKnownVersion'
+  )
+  yield* Saga.chainAction2(
+    EngineGen.keybase1NotifyTeamTeamRoleMapChanged,
+    teamRoleMapChangedUpdateRefreshRoleMap,
+    'teamRoleMapChangedUpdateRefreshRoleMap'
+  )
+
   yield* Saga.chainAction2(
     [EngineGen.keybase1NotifyTeamTeamDeleted, EngineGen.keybase1NotifyTeamTeamExit],
     teamDeletedOrExit,

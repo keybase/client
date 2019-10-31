@@ -67,6 +67,8 @@ export const setTeamLoadingInvites = 'teams:setTeamLoadingInvites'
 export const setTeamProfileAddList = 'teams:setTeamProfileAddList'
 export const setTeamPublicitySettings = 'teams:setTeamPublicitySettings'
 export const setTeamRetentionPolicy = 'teams:setTeamRetentionPolicy'
+export const setTeamRoleMap = 'teams:setTeamRoleMap'
+export const setTeamRoleMapLatestKnownVersion = 'teams:setTeamRoleMapLatestKnownVersion'
 export const setTeamSawChatBanner = 'teams:setTeamSawChatBanner'
 export const setTeamSawSubteamsBanner = 'teams:setTeamSawSubteamsBanner'
 export const setTeamsWithChosenChannels = 'teams:setTeamsWithChosenChannels'
@@ -240,6 +242,8 @@ type _SetTeamPublicitySettingsPayload = {
   readonly publicity: Types._PublicitySettings
 }
 type _SetTeamRetentionPolicyPayload = {readonly teamname: string; readonly retentionPolicy: RetentionPolicy}
+type _SetTeamRoleMapLatestKnownVersionPayload = {readonly version: number}
+type _SetTeamRoleMapPayload = {readonly map: Types.TeamRoleMap}
 type _SetTeamSawChatBannerPayload = void
 type _SetTeamSawSubteamsBannerPayload = void
 type _SetTeamsWithChosenChannelsPayload = {readonly teamsWithChosenChannels: Set<Types.Teamname>}
@@ -487,6 +491,13 @@ export const createSetTeamPublicitySettings = (
 export const createSetTeamRetentionPolicy = (
   payload: _SetTeamRetentionPolicyPayload
 ): SetTeamRetentionPolicyPayload => ({payload, type: setTeamRetentionPolicy})
+export const createSetTeamRoleMap = (payload: _SetTeamRoleMapPayload): SetTeamRoleMapPayload => ({
+  payload,
+  type: setTeamRoleMap,
+})
+export const createSetTeamRoleMapLatestKnownVersion = (
+  payload: _SetTeamRoleMapLatestKnownVersionPayload
+): SetTeamRoleMapLatestKnownVersionPayload => ({payload, type: setTeamRoleMapLatestKnownVersion})
 export const createSetTeamSawChatBanner = (
   payload: _SetTeamSawChatBannerPayload
 ): SetTeamSawChatBannerPayload => ({payload, type: setTeamSawChatBanner})
@@ -711,6 +722,14 @@ export type SetTeamRetentionPolicyPayload = {
   readonly payload: _SetTeamRetentionPolicyPayload
   readonly type: typeof setTeamRetentionPolicy
 }
+export type SetTeamRoleMapLatestKnownVersionPayload = {
+  readonly payload: _SetTeamRoleMapLatestKnownVersionPayload
+  readonly type: typeof setTeamRoleMapLatestKnownVersion
+}
+export type SetTeamRoleMapPayload = {
+  readonly payload: _SetTeamRoleMapPayload
+  readonly type: typeof setTeamRoleMap
+}
 export type SetTeamSawChatBannerPayload = {
   readonly payload: _SetTeamSawChatBannerPayload
   readonly type: typeof setTeamSawChatBanner
@@ -803,6 +822,8 @@ export type Actions =
   | SetTeamProfileAddListPayload
   | SetTeamPublicitySettingsPayload
   | SetTeamRetentionPolicyPayload
+  | SetTeamRoleMapLatestKnownVersionPayload
+  | SetTeamRoleMapPayload
   | SetTeamSawChatBannerPayload
   | SetTeamSawSubteamsBannerPayload
   | SetTeamsWithChosenChannelsPayload

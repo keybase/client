@@ -217,6 +217,21 @@ export default (
           () => RPCChatTypes.ConversationMemberStatus.left
         )
         return
+      case TeamsGen.setTeamRoleMapLatestKnownVersion:
+        draftState.teamRoleMap = {
+          ...draftState.teamRoleMap,
+          latestKnownVersion: action.payload.version,
+        }
+        return
+      case TeamsGen.setTeamRoleMap: {
+        draftState.teamRoleMap = {
+          ...draftState.teamRoleMap,
+          loadedVersion: action.payload.map.loadedVersion,
+          roles: action.payload.map.roles,
+        }
+        return
+      }
+
       case TeamBuildingGen.resetStore:
       case TeamBuildingGen.cancelTeamBuilding:
       case TeamBuildingGen.addUsersToTeamSoFar:
