@@ -40,7 +40,7 @@ const EnterDevicename = (props: Props) => {
           }
         />
         <Kb.Box2 direction="vertical" gap="tiny" style={styles.inputBox}>
-          <Kb.NewInput
+          <Kb.LabeledInput
             autoFocus={true}
             containerStyle={styles.input}
             placeholder={Styles.isMobile ? 'Phone 1' : 'Computer 1'}
@@ -72,15 +72,8 @@ EnterDevicename.navigationOptions = {
 
 const styles = Styles.styleSheetCreate(() => ({
   input: Styles.platformStyles({
-    common: {},
     isElectron: {
-      ...Styles.padding(0, Styles.globalMargins.xsmall),
-      height: 38,
       width: 368,
-    },
-    isMobile: {
-      ...Styles.padding(0, Styles.globalMargins.small),
-      height: 48,
     },
   }),
   inputBox: Styles.platformStyles({
