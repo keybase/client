@@ -11,7 +11,7 @@ type VisProps = {
 }
 
 const ampHeightProp = (amp: number) => {
-  return Math.max(0.05, Math.min(1.0, 1 - amp / -70))
+  return Math.max(0.05, Math.min(1.0, 1 - amp / -50))
 }
 
 const AudioVis = (props: VisProps) => {
