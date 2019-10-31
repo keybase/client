@@ -68,12 +68,6 @@ func (s *Sender) makeBaseAttachmentMessage(ctx context.Context, tlfName string, 
 		outboxID = *inOutboxID
 	}
 
-	if ephemeralLifetime != nil {
-		msg.ClientHeader.EphemeralMetadata = &chat1.MsgEphemeralMetadata{
-			Lifetime: *ephemeralLifetime,
-		}
-	}
-
 	var assetMetadata chat1.AssetMetadata
 	if pre, err := s.preprocess(ctx, filename, callerPreview); err != nil {
 		// If we can't generate a preview here, let's not blow the whole thing up, we can try
@@ -101,6 +95,11 @@ func (s *Sender) makeBaseAttachmentMessage(ctx context.Context, tlfName string, 
 			},
 			Metadata: md,
 		}),
+	}
+	if ephemeralLifetime != nil {
+		msg.ClientHeader.EphemeralMetadata = &chat1.MsgEphemeralMetadata{
+			Lifetime: *ephemeralLifetime,
+		}
 	}
 
 	return msg, outboxID, nil
