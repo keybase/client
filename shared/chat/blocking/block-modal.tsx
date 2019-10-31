@@ -50,10 +50,8 @@ const BlockModal = (props: Props) => {
   const [extraNotes, setExtraNotes] = React.useState('')
   const [otherBlocked, setOtherBlocked] = React.useState(new Map<string, boolean>())
 
-  const setBlockedOther = (username: string, block: string) => (blocked: boolean) => {
-    otherBlocked.set(`${username}:${block}`, blocked)
-    setOtherBlocked(new Map(otherBlocked))
-  }
+  const setBlockedOther = (username: string, block: string) => (blocked: boolean) =>
+    setOtherBlocked([...otherBlocked, [`${username}:${block}`, blocked]])
   const getBlockedOther = (username: string, block: string) =>
     otherBlocked.get(`${username}:${block}`) || false
 
