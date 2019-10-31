@@ -4547,6 +4547,10 @@
             "type": "array",
             "items": "double"
           }
+        },
+        {
+          "name": "duration",
+          "type": "int"
         }
       ],
       "response": "MakePreviewRes"

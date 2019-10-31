@@ -67,6 +67,19 @@ func (s *Sender) makeBaseAttachmentMessage(ctx context.Context, tlfName string, 
 	} else {
 		outboxID = *inOutboxID
 	}
+
+	var assetMetadata chat1.AssetMetadata
+	if pre, err := s.preprocess(ctx, filename, callerPreview); err != nil {
+		// If we can't generate a preview here, let's not blow the whole thing up, we can try
+		// again when we are actually uploading the attachment
+		s.Debug(ctx, "makeBaseAttachmentMessage: failed to process caller preview, skipping: %s", err)
+	} else {
+		if err := NewPendingPreviews(s.G()).Put(ctx, outboxID, pre); err != nil {
+			s.Debug(ctx, "makeBaseAttachmentMessage: failed to save pending preview: %s", err)
+		}
+		assetMetadata = pre.BaseMetadata()
+	}
+
 	msg = chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			MessageType: chat1.MessageType_ATTACHMENT,
@@ -78,6 +91,7 @@ func (s *Sender) makeBaseAttachmentMessage(ctx context.Context, tlfName string, 
 			Object: chat1.Asset{
 				Title:    title,
 				Filename: filename,
+				Metadata: assetMetadata,
 			},
 			Metadata: md,
 		}),
@@ -85,15 +99,6 @@ func (s *Sender) makeBaseAttachmentMessage(ctx context.Context, tlfName string, 
 	if ephemeralLifetime != nil {
 		msg.ClientHeader.EphemeralMetadata = &chat1.MsgEphemeralMetadata{
 			Lifetime: *ephemeralLifetime,
-		}
-	}
-	if pre, err := s.preprocess(ctx, filename, callerPreview); err != nil {
-		// If we can't generate a preview here, let's not blow the whole thing up, we can try
-		// again when we are actually uploading the attachment
-		s.Debug(ctx, "makeBaseAttachmentMessage: failed to process caller preview, skipping: %s", err)
-	} else {
-		if err := NewPendingPreviews(s.G()).Put(ctx, outboxID, pre); err != nil {
-			s.Debug(ctx, "makeBaseAttachmentMessage: failed to save pending preview: %s", err)
 		}
 	}
 

@@ -644,30 +644,26 @@
   record AssetMetadataImage {
     int width;
     int height;
+    array<double> audioAmps; // amps used in the preview (so a client can re-render)
   }
 
   record AssetMetadataVideo {
     int width;
     int height;
     int durationMs;
-  }
-
-  record AssetMetadataAudio {
-    int durationMs;
+    boolean isAudio;
   }
 
   @go("nostring")
   enum AssetMetadataType {
     NONE_0,
     IMAGE_1,
-    VIDEO_2,
-    AUDIO_3
+    VIDEO_2
   }
 
   variant AssetMetadata switch (AssetMetadataType assetType) {
     case IMAGE: AssetMetadataImage;
     case VIDEO: AssetMetadataVideo;
-    case AUDIO: AssetMetadataAudio;
   }
 
   @go("nostring")
