@@ -295,6 +295,8 @@ const switchRouteDef = (
           ? [RouteTreeGen.createNavigateAppend({path: ['signupEnterPhoneNumber']})]
           : []),
       ]
+    } else if (action.type === ConfigGen.loggedIn) {
+      return RouteTreeGen.createSwitchLoggedIn({loggedIn: true})
     }
   } else {
     return RouteTreeGen.createSwitchLoggedIn({loggedIn: false})
