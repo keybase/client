@@ -136,21 +136,13 @@ const BlockModal = (props: Props) => {
             {props.others.map(other => (
               <>
                 <CheckboxRow
-                  text={
-                    <Kb.Text type="Body">
-                      Block <Kb.Text type="BodySemibold">{other}</Kb.Text>
-                    </Kb.Text>
-                  }
+                  text={`Block ${other}`}
                   onCheck={setBlockedOther(other, 'block')}
                   checked={getBlockedOther(other, 'block')}
                 />
                 <Kb.Divider />
                 <CheckboxRow
-                  text={
-                    <Kb.Text type="Body">
-                      Hide <Kb.Text type="BodySemibold">{props.adder}</Kb.Text> from your followers
-                    </Kb.Text>
-                  }
+                  text={`Hide ${other} from your followers`}
                   onCheck={setBlockedOther(other, 'follow')}
                   checked={getBlockedOther(other, 'follow')}
                 />
