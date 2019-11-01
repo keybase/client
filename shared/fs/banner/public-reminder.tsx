@@ -45,7 +45,7 @@ const PublicBanner = (props: Props) => {
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => ({
   lastPublicBannerClosedTlf: state.fs.lastPublicBannerClosedTlf,
-  writable: state.fs.pathItems.get(ownProps.path, Constants.unknownPathItem).writable,
+  writable: Constants.getPathItem(state.fs.pathItems, ownProps.path).writable,
 })
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({

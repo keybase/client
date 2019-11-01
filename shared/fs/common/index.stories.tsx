@@ -63,12 +63,12 @@ export const commonProvider = {
   }),
   FolderViewFilter: (props: any) => ({
     onUpdate: Sb.action('onUpdate'),
-    pathItem: Constants.makeFolder(),
+    pathItem: Constants.emptyFolder,
     ...props,
   }),
   FolderViewFilterIcon: (props: any) => ({
     onUpdate: Sb.action('onUpdate'),
-    pathItem: Constants.makeFolder(),
+    pathItem: Constants.emptyFolder,
     ...props,
   }),
   LastModifiedLine: ({path, mode}: LastModifiedLineOwnProps) => ({

@@ -10,7 +10,7 @@ type OwnProps = {
 export default Container.connect(
   (state, {path}: OwnProps) => ({
     _kbfsDaemonStatus: state.fs.kbfsDaemonStatus,
-    _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
+    _pathItem: Constants.getPathItem(state.fs.pathItems, path),
     _tlf: Constants.getTlfFromPath(state.fs.tlfs, path),
     resetBannerType: Constants.resetBannerType(state, path),
   }),

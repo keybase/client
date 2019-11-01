@@ -34,11 +34,11 @@ export const emptyNewFolder = {
   type: Types.EditType.NewFolder,
 }
 
-const prefetchNotStarted = {
+export const prefetchNotStarted = {
   state: Types.PrefetchState.NotStarted,
 }
 
-const prefetchComplete = {
+export const prefetchComplete = {
   state: Types.PrefetchState.Complete,
 }
 
@@ -64,23 +64,23 @@ export const emptyFolder = {
   children: new Set(),
   progress: Types.ProgressType.Pending,
   type: Types.PathType.Folder,
-}
+} as Types.FolderPathItem
 
 export const emptyFile = {
   ...pathItemMetadataDefault,
   type: Types.PathType.File,
-}
+} as Types.FilePathItem
 
 export const emptySymlink = {
   ...pathItemMetadataDefault,
   linkTarget: '',
   type: Types.PathType.Symlink,
-}
+} as Types.SymlinkPathItem
 
 export const unknownPathItem = {
   ...pathItemMetadataDefault,
   type: Types.PathType.Unknown,
-}
+} as Types.UnknownPathItem
 
 export const tlfSyncEnabled: Types.TlfSyncEnabled = {
   mode: Types.TlfSyncMode.Enabled,
@@ -275,7 +275,7 @@ export const emptyFileContext = {
 }
 
 export const getPathItem = (pathItems: Map<Types.Path, Types.PathItem>, path: Types.Path): Types.PathItem =>
-  pathItems.get(path) || unknownPathItem
+  pathItems.get(path) || (unknownPathItem as Types.PathItem)
 
 // RPC expects a string that's interpreted as [16]byte on Go side and it has to
 // be unique among all ongoing ops at any given time. uuidv1 may exceed 16

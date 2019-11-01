@@ -178,7 +178,6 @@
       "localPath": "Types.LocalPath"
     },
     "showIncomingShare": {"initialDestinationParentPath": "Types.Path"},
-    "closeDestinationPicker": {},
     "move": {"destinationParentPath": "Types.Path"},
     "copy": {"destinationParentPath": "Types.Path"},
 

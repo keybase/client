@@ -148,7 +148,7 @@ export const useFsDownloadStatus = () => {
 
 export const useFsFileContext = (path: Types.Path) => {
   const dispatch = useDispatchWhenConnected()
-  const pathItem = Container.useSelector(state => state.fs.pathItems.get(path, Constants.unknownPathItem))
+  const pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, path))
   React.useEffect(() => {
     pathItem.type === Types.PathType.File && dispatch(FsGen.createLoadFileContext({path}))
   }, [

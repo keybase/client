@@ -11,33 +11,50 @@ const kbkbfstestPath = Types.stringToPath('/keybase/team/kbkbfstest')
 const file0Path = Types.pathConcat(kbkbfstestPath, 'file0')
 const folder0Path = Types.pathConcat(kbkbfstestPath, 'folder0')
 
-const getFolderOrFail = (pathItems, path): Types.FolderPathItem => {
+const getFolderOrFail = (
+  pathItems: Map<Types.Path, Types.PathItem>,
+  path: Types.Path
+): Types.FolderPathItem => {
   const pathItem = pathItems.get(path)
   expect(pathItem).toBeTruthy()
   expect(pathItem ? pathItem.type : 'nope').toBe(Types.PathType.Folder)
-  return pathItem && pathItem.type === Types.PathType.Folder ? pathItem : Constants.makeFolder()
+  return pathItem && pathItem.type === Types.PathType.Folder
+    ? pathItem
+    : (Constants.emptyFolder as Types.FolderPathItem)
 }
 
 const state0 = {
   ..._initialStateForTest,
-  pathItems: I.Map({
-    [file0Path || '']: Constants.makeFile({
-      lastModifiedTimestamp: 1,
-      lastWriter: 'foo',
-      name: 'file0',
-    }),
-    [folder0Path || '']: Constants.makeFolder({
-      children: I.Set(),
-      name: 'folder0',
-      progress: Types.ProgressType.Pending,
-    }),
-    [kbkbfstestPath || '']: Constants.makeFolder({
-      children: I.Set(['file0', 'folder0']),
-      name: 'kbkbfstest',
-      prefetchStatus: Constants.makePrefetchInProgress(),
-      progress: Types.ProgressType.Loaded,
-    }),
-  }),
+  pathItems: new Map([
+    [
+      file0Path || '',
+      {
+        ...Constants.emptyFile,
+        lastModifiedTimestamp: 1,
+        lastWriter: 'foo',
+        name: 'file0',
+      },
+    ],
+    [
+      folder0Path || '',
+      {
+        ...Constants.emptyFolder,
+        children: I.Set(),
+        name: 'folder0',
+        progress: Types.ProgressType.Pending,
+      },
+    ],
+    [
+      kbkbfstestPath || '',
+      {
+        ...Constants.emptyFolder,
+        children: I.Set(['file0', 'folder0']),
+        name: 'kbkbfstest',
+        prefetchStatus: Constants.emptyPrefetchInProgress,
+        progress: Types.ProgressType.Loaded,
+      },
+    ],
+  ]) as Map<Types.Path, Types.PathItem>,
 }
 
 describe('fs reducer', () => {
@@ -46,11 +63,12 @@ describe('fs reducer', () => {
       state0,
       FsGen.createPathItemLoaded({
         path: file0Path,
-        pathItem: Constants.makeFile({
+        pathItem: {
+          ...Constants.emptyFile,
           lastModifiedTimestamp: 1,
           lastWriter: 'foo',
           name: 'file0',
-        }),
+        } as Types.PathItem,
       })
     )
     expect(state1.pathItems).toBe(state0.pathItems)
@@ -61,10 +79,11 @@ describe('fs reducer', () => {
       state0,
       FsGen.createPathItemLoaded({
         path: kbkbfstestPath,
-        pathItem: Constants.makeFolder({
+        pathItem: {
+          ...Constants.emptyFolder,
           lastModifiedTimestamp: 1,
           name: 'kbkbfstest',
-        }),
+        } as Types.PathItem,
       })
     )
     expect(state1.pathItems).not.toBe(state0.pathItems)
@@ -78,12 +97,13 @@ describe('fs reducer', () => {
       state0,
       FsGen.createPathItemLoaded({
         path: kbkbfstestPath,
-        pathItem: Constants.makeFolder({
-          children: I.Set(['file0', 'folder0']),
+        pathItem: {
+          ...Constants.emptyFolder,
+          children: new Set(['file0', 'folder0']),
           name: 'kbkbfstest',
-          prefetchStatus: Constants.makePrefetchInProgress(),
+          prefetchStatus: Constants.emptyPrefetchInProgress,
           progress: Types.ProgressType.Loaded,
-        }),
+        } as Types.PathItem,
       })
     )
     expect(state1.pathItems).toBe(state0.pathItems)
@@ -94,17 +114,18 @@ describe('fs reducer', () => {
       state0,
       FsGen.createFolderListLoaded({
         path: folder0Path,
-        pathItems: I.Map([
+        pathItems: new Map([
           [
             folder0Path,
-            Constants.makeFolder({
-              children: I.Set(['file1']),
+            {
+              ...Constants.emptyFolder,
+              children: new Set(['file1']),
               name: 'folder0',
               prefetchStatus: Constants.prefetchNotStarted,
               progress: Types.ProgressType.Loaded,
-            }),
+            },
           ],
-        ]),
+        ]) as Map<Types.Path, Types.PathItem>,
       })
     )
     expect(state1.pathItems).not.toBe(state0.pathItems)
@@ -117,22 +138,23 @@ describe('fs reducer', () => {
       state0,
       FsGen.createFolderListLoaded({
         path: folder0Path,
-        pathItems: I.Map([
+        pathItems: new Map([
           [
             folder0Path,
-            Constants.makeFolder({
+            {
+              ...Constants.emptyFolder,
               name: 'folder0',
               prefetchStatus: Constants.prefetchComplete,
-            }),
+            },
           ],
-        ]),
+        ]) as Map<Types.Path, Types.PathItem>,
       })
     )
     expect(state1.pathItems).not.toBe(state0.pathItems)
     expect(getFolderOrFail(state1.pathItems, folder0Path).prefetchStatus).toBe(Constants.prefetchComplete)
   })
 
-  test('favorritesLoaded: reuse tlf', () => {
+  test('favoritesLoaded: reuse tlf', () => {
     const tlfFields = {
       conflictState: Constants.makeConflictStateNormalView({
         localViewTlfPaths: [
@@ -149,7 +171,7 @@ describe('fs reducer', () => {
       teamId: '123',
       tlfMtime: 123123123,
     }
-    const state0 = {
+    const favoritesLoadedState0 = {
       ..._initialStateForTest,
       tlfs: {
         ..._initialStateForTest.tlfs,
@@ -164,14 +186,14 @@ describe('fs reducer', () => {
         ]),
       },
     }
-    const state1 = reducer(
-      state0,
+    const favoritesLoadedState1 = reducer(
+      favoritesLoadedState0,
       FsGen.createFavoritesLoaded({
         private: new Map([['foo', Constants.makeTlf(tlfFields)]]),
         public: new Map(),
         team: new Map(),
       })
     )
-    expect(state1.tlfs.private.get('foo')).toBe(state0.tlfs.private.get('foo'))
+    expect(favoritesLoadedState1.tlfs.private.get('foo')).toBe(favoritesLoadedState0.tlfs.private.get('foo'))
   })
 })

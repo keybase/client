@@ -27,7 +27,7 @@ const mapDispatchToProps = (
 
 const isFolder = (stateProps, ownProps: OwnProps) =>
   Types.getPathLevel(ownProps.path) <= 3 ||
-  stateProps._pathItems.get(ownProps.path, Constants.unknownPathItem).type === Types.PathType.Folder
+  Constants.getPathItem(stateProps._pathItems, ownProps.path).type === Types.PathType.Folder
 
 const canOpenInDestinationPicker = (stateProps, ownProps) =>
   isFolder(stateProps, ownProps) &&
