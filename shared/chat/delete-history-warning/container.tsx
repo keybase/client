@@ -19,6 +19,7 @@ export default Container.connect(
         Constants.noConversationIDKey
       )
       dispatch(RouteTreeGen.createNavigateUp())
+      dispatch(RouteTreeGen.createNavigateUp())
       dispatch(Chat2Gen.createMessageDeleteHistory({conversationIDKey}))
     },
   }),
