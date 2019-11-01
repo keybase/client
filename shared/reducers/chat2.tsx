@@ -597,7 +597,8 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         }
         audio.set(action.payload.conversationIDKey, {
           ...info,
-          amps: action.payload.amps || [],
+          amps: action.payload.amps,
+          recordEnd: Constants.isStoppedAudioRecordingStatus(nextStatus) ? Date.now() : undefined,
           status: nextStatus,
         })
         draftState.audioRecording = audio

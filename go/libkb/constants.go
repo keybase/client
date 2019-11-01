@@ -256,6 +256,7 @@ const (
 	SCEmailLimitExceeded                        = int(keybase1.StatusCode_SCEmailLimitExceeded)
 	SCEmailCannotDeletePrimary                  = int(keybase1.StatusCode_SCEmailCannotDeletePrimary)
 	SCEmailUnknown                              = int(keybase1.StatusCode_SCEmailUnknown)
+	SCNoUpdate                                  = int(keybase1.StatusCode_SCNoUpdate)
 	SCMissingResult                             = int(keybase1.StatusCode_SCMissingResult)
 	SCKeyNotFound                               = int(keybase1.StatusCode_SCKeyNotFound)
 	SCKeyCorrupted                              = int(keybase1.StatusCode_SCKeyCorrupted)

@@ -1025,6 +1025,7 @@ type teamNotifyHandler struct {
 	newTeambotKeyCh    chan keybase1.NewTeambotKeyArg
 	teambotKeyNeededCh chan keybase1.TeambotKeyNeededArg
 	newlyAddedToTeam   chan keybase1.TeamID
+	teamRoleMapCh      chan keybase1.UserTeamVersion
 }
 
 func newTeamNotifyHandler() *teamNotifyHandler {
@@ -1038,6 +1039,7 @@ func newTeamNotifyHandler() *teamNotifyHandler {
 		newTeambotKeyCh:    make(chan keybase1.NewTeambotKeyArg, 10),
 		teambotKeyNeededCh: make(chan keybase1.TeambotKeyNeededArg, 10),
 		newlyAddedToTeam:   make(chan keybase1.TeamID, 10),
+		teamRoleMapCh:      make(chan keybase1.UserTeamVersion, 100),
 	}
 }
 
@@ -1099,6 +1101,11 @@ func (n *teamNotifyHandler) TeambotKeyNeeded(ctx context.Context, arg keybase1.T
 }
 
 func (n *teamNotifyHandler) AvatarUpdated(ctx context.Context, arg keybase1.AvatarUpdatedArg) error {
+	return nil
+}
+
+func (n *teamNotifyHandler) TeamRoleMapChanged(ctx context.Context, version keybase1.UserTeamVersion) error {
+	n.teamRoleMapCh <- version
 	return nil
 }
 

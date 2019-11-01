@@ -60,10 +60,8 @@ const Troubleshooting = (props: Props) => {
     setWaiting(true)
   }, [dispatch, username])
 
-  const deviceName = Container.useSelector(state => state.provision.codePageOtherDeviceName)
-  const deviceMap: Map<string, Types.Device> = Container.useSelector(state => state.devices.deviceMap)
-  const deviceId = Container.useSelector(state => state.provision.codePageOtherDeviceId)
-  const deviceIconNo = DevicesConstants.getDeviceIconNumberInner(deviceMap, deviceId)
+  const device = Container.useSelector(state => state.provision.codePageOtherDevice)
+  const deviceIconNo = (device.deviceNumberOfType % DevicesConstants.numBackgrounds) + 1
 
   // If we can't load the device icon, show the wrong one instead of erroring the whole page.
   const otherDeviceIcon = `icon-${props.otherDeviceType === 'mobile' ? 'phone' : 'computer'}-background-${
@@ -112,7 +110,7 @@ const Troubleshooting = (props: Props) => {
           <BigButton
             onClick={onBack}
             icon={otherDeviceIcon}
-            mainText={`I have my old "${deviceName}," let me use it to authorize.`}
+            mainText={`I have my old "${device.name}," let me use it to authorize.`}
             subText={`Back to ${props.mode} code`}
             waiting={false}
           />

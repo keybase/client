@@ -40,10 +40,11 @@ export default function(state: Types.State = initialState, action: ProvisionGen.
         existingDevices: I.List(action.payload.existingDevices),
       })
     case ProvisionGen.addNewDevice:
-      return state.merge({
-        codePageOtherDeviceType: action.payload.otherDeviceType,
-        error: initialState.error,
-      })
+      return state
+        .merge({
+          error: initialState.error,
+        })
+        .setIn(['codePageOtherDevice', 'type'], action.payload.otherDeviceType)
     case ProvisionGen.showDeviceListPage:
       return state.merge({
         devices: I.List(action.payload.devices),
@@ -55,10 +56,7 @@ export default function(state: Types.State = initialState, action: ProvisionGen.
         throw new Error('Selected a non existant device?')
       }
       return state.merge({
-        codePageOtherDeviceId: selectedDevice.id,
-        codePageOtherDeviceName: selectedDevice.name,
-        // only desktop or mobile, paperkey we treat as mobile but its never used in the flow
-        codePageOtherDeviceType: selectedDevice.type === 'desktop' ? 'desktop' : 'mobile',
+        codePageOtherDevice: selectedDevice,
         error: initialState.error,
       })
     }

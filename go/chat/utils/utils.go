@@ -1061,7 +1061,11 @@ func GetMsgSnippetBody(msg chat1.MessageUnboxed) (snippet string) {
 			case chat1.AssetMetadataType_IMAGE:
 				title = "📷 attachment"
 			case chat1.AssetMetadataType_VIDEO:
-				title = "🎞 attachment"
+				if obj.Metadata.Video().IsAudio {
+					title = "🔊 attachment"
+				} else {
+					title = "🎞 attachment"
+				}
 			default:
 				title = obj.Filename
 			}
@@ -1775,8 +1779,9 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			msgBody := rawMsg.Outbox().Msg.MessageBody
 			btyp, err := msgBody.MessageType()
 			if err == nil && btyp == chat1.MessageType_ATTACHMENT {
-				title = msgBody.Attachment().Object.Title
-				filename = msgBody.Attachment().Object.Filename
+				asset := msgBody.Attachment().Object
+				title = asset.Title
+				filename = asset.Filename
 			}
 		}
 		var replyTo *chat1.UIMessage

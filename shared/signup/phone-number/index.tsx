@@ -34,16 +34,6 @@ const EnterPhoneNumber = (props: Props) => {
           type: 'Success' as ButtonType,
           waiting: props.waiting,
         },
-        ...(Styles.isMobile
-          ? []
-          : [
-              {
-                disabled: props.waiting,
-                label: 'Skip for now',
-                onClick: props.onSkip,
-                type: 'Dim' as ButtonType,
-              },
-            ]),
       ]}
       banners={errorBanner(props.error)}
       rightActionLabel="Skip"

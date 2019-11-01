@@ -51,7 +51,7 @@ func TestLoadDeviceKeyNew(t *testing.T) {
 	var device1 *libkb.Device
 	for _, device := range devices {
 		if device.Type != libkb.DeviceTypePaper {
-			device1 = device
+			device1 = device.Device
 		}
 	}
 	require.NotNil(t, device1, "device1 should be non-nil")
@@ -109,7 +109,7 @@ func TestLoadDeviceKeyNew(t *testing.T) {
 	var device2 *libkb.Device
 	for _, device := range devices {
 		if device.Type != libkb.DeviceTypePaper && device.ID != device1.ID {
-			device2 = device
+			device2 = device.Device
 		}
 	}
 	require.NotNil(t, device2, "device2 should be non-nil")
@@ -150,7 +150,7 @@ func TestLoadDeviceKeyRevoked(t *testing.T) {
 	var thisDevice *libkb.Device
 	for _, device := range devices {
 		if device.Type != libkb.DeviceTypePaper {
-			thisDevice = device
+			thisDevice = device.Device
 		}
 	}
 

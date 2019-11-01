@@ -132,6 +132,16 @@
       "response": null,
       "oneway": true
     },
+    "teamRoleMapChanged": {
+      "request": [
+        {
+          "name": "newVersion",
+          "type": "UserTeamVersion"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    },
     "avatarUpdated": {
       "request": [
         {

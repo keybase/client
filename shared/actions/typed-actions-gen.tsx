@@ -429,6 +429,7 @@ export type TypedActionsMap = {
   'engine-gen:keybase1NotifyTeamTeamAbandoned': enginegen.Keybase1NotifyTeamTeamAbandonedPayload
   'engine-gen:keybase1NotifyTeamTeamExit': enginegen.Keybase1NotifyTeamTeamExitPayload
   'engine-gen:keybase1NotifyTeamNewlyAddedToTeam': enginegen.Keybase1NotifyTeamNewlyAddedToTeamPayload
+  'engine-gen:keybase1NotifyTeamTeamRoleMapChanged': enginegen.Keybase1NotifyTeamTeamRoleMapChangedPayload
   'engine-gen:keybase1NotifyTeamAvatarUpdated': enginegen.Keybase1NotifyTeamAvatarUpdatedPayload
   'engine-gen:keybase1NotifyTeambotNewTeambotKey': enginegen.Keybase1NotifyTeambotNewTeambotKeyPayload
   'engine-gen:keybase1NotifyTeambotTeambotKeyNeeded': enginegen.Keybase1NotifyTeambotTeambotKeyNeededPayload

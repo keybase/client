@@ -7,6 +7,7 @@ import * as Message from './message'
 import * as Wallet from '../wallets'
 import * as TeamBuildingTypes from '../team-building'
 import HiddenString from '../../../util/hidden-string'
+import {AmpTracker} from '../../../chat/audio/amptracker'
 
 export type QuoteInfo = {
   // Always positive and monotonically increasing.
@@ -130,9 +131,10 @@ export type AudioRecordingInfo = {
   status: AudioRecordingStatus
   outboxID: Buffer
   path: string
+  recordEnd?: number
   recordStart: number
   isLocked: boolean
-  amps: Array<number>
+  amps?: AmpTracker
 }
 
 export type State = Readonly<{

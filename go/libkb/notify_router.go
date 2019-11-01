@@ -72,6 +72,7 @@ type NotifyListener interface {
 	TeamChangedByID(teamID keybase1.TeamID, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet, latestHiddenSeqno keybase1.Seqno)
 	TeamChangedByName(teamName string, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet, latestHiddenSeqno keybase1.Seqno)
 	TeamDeleted(teamID keybase1.TeamID)
+	TeamRoleMapChanged(version keybase1.UserTeamVersion)
 	TeamExit(teamID keybase1.TeamID)
 	NewlyAddedToTeam(teamID keybase1.TeamID)
 	NewTeamEK(teamID keybase1.TeamID, generation keybase1.EkGeneration)
@@ -185,6 +186,7 @@ func (n *NoopNotifyListener) TeamChangedByName(teamName string, latestSeqno keyb
 }
 func (n *NoopNotifyListener) TeamDeleted(teamID keybase1.TeamID)                                    {}
 func (n *NoopNotifyListener) TeamExit(teamID keybase1.TeamID)                                       {}
+func (n *NoopNotifyListener) TeamRoleMapChanged(version keybase1.UserTeamVersion)                   {}
 func (n *NoopNotifyListener) NewTeamEK(teamID keybase1.TeamID, generation keybase1.EkGeneration)    {}
 func (n *NoopNotifyListener) NewTeambotEK(teamID keybase1.TeamID, generation keybase1.EkGeneration) {}
 func (n *NoopNotifyListener) TeambotEKNeeded(teamID keybase1.TeamID, botUID keybase1.UID,
@@ -2022,6 +2024,33 @@ func (n *NotifyRouter) HandleTeamExit(ctx context.Context, teamID keybase1.TeamI
 		listener.TeamExit(teamID)
 	})
 	n.G().Log.CDebugf(ctx, "- Sent TeamExit notification")
+}
+
+func (n *NotifyRouter) HandleTeamRoleMapChanged(ctx context.Context, version keybase1.UserTeamVersion) {
+	if n == nil {
+		return
+	}
+
+	var wg sync.WaitGroup
+	n.G().Log.CDebugf(ctx, "+ Sending TeamRoleMapChanged notification")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Team {
+			wg.Add(1)
+			go func() {
+				_ = (keybase1.NotifyTeamClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).TeamRoleMapChanged(context.Background(), version)
+				wg.Done()
+			}()
+		}
+		return true
+	})
+	wg.Wait()
+
+	n.runListeners(func(listener NotifyListener) {
+		listener.TeamRoleMapChanged(version)
+	})
+	n.G().Log.CDebugf(ctx, "- Sent TeamRoleMapChanged notification (version %d)", version)
 }
 
 func (n *NotifyRouter) HandleTeamAbandoned(ctx context.Context, teamID keybase1.TeamID) {
