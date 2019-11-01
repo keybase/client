@@ -1373,8 +1373,8 @@ func (k *KeybaseDaemonRPC) TeamExit(context.Context, keybase1.TeamID) error {
 	return nil
 }
 
-// TeamRoleListChanged implements keybase1.NotifyTeamInterface for KeybaseServiceBase.
-func (k *KeybaseDaemonRPC) TeamRoleListChanged(context.Context, keybase1.UserTeamVersion) error {
+// TeamRoleMapChanged implements keybase1.NotifyTeamInterface for KeybaseServiceBase.
+func (k *KeybaseDaemonRPC) TeamRoleMapChanged(context.Context, keybase1.UserTeamVersion) error {
 	return nil
 }
 

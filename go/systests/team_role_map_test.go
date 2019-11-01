@@ -28,7 +28,7 @@ func TestTeamRoleMap(t *testing.T) {
 	}
 
 	select {
-	case vers := <-tt.users[1].notifications.teamRoleListCh:
+	case vers := <-tt.users[1].notifications.teamRoleMapCh:
 		t.Logf("got notification")
 		require.Equal(t, expected.Version, vers)
 	case <-time.After(10 * time.Second):
