@@ -909,9 +909,6 @@ func TestTeamResetAfterReset(t *testing.T) {
 	bob.reset()
 	bob.loginAfterReset()
 	alice.addTeamMember(tn, bob.username, keybase1.TeamRole_OWNER)
-	bob.changeTeamMember(tn, alice.username, keybase1.TeamRole_READER)
-	alice.loadTeam(tn, false)
-	bob.changeTeamMember(tn, alice.username, keybase1.TeamRole_OWNER)
 	bob.leave(tn)
 	alice.loadTeam(tn, false)
 }
