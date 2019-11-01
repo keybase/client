@@ -152,10 +152,9 @@ const ProfileCard = ({
     assertions: userDetailsAssertions,
     bio: userDetailsBio,
     fullname: userDetailsFullname,
-    state: userdetailsState,
   } = userDetails
   React.useEffect(() => {
-    ;['error'].includes(userDetailsState) &&
+    userDetailsState === 'error' &&
       dispatch(Tracker2Gen.createShowUser({asTracker: false, skipNav: true, username}))
   }, [dispatch, username, userDetailsState])
   // signal layout change when it happens, to prevent popup cutoff.
@@ -166,7 +165,7 @@ const ProfileCard = ({
     userDetailsAssertions,
     userDetailsBio,
     userDetailsFullname,
-    userdetailsState,
+    userDetailsState,
     showFollowButton,
   ])
 
