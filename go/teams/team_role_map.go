@@ -10,14 +10,39 @@ import (
 )
 
 type TeamRoleMapManager struct {
+	libkb.NoopNotifyListener
 	sync.Mutex
 	lastKnownVersion *keybase1.UserTeamVersion
 	state            *keybase1.TeamRoleMapStored
+
+	reachabilityCh chan keybase1.Reachability
 }
 
 func NewTeamRoleMapManagerAndInstall(g *libkb.GlobalContext) {
-	r := &TeamRoleMapManager{}
+	r := NewTeamRoleMapManager()
 	g.SetTeamRoleMapManager(r)
+	if g.NotifyRouter != nil {
+		g.NotifyRouter.AddListener(r)
+	}
+}
+
+// Reachability should be called whenever the reachability status of the app changes
+// (via NotifyRouter). If we happen to be waiting on a refresh, then break out and
+// refresh it.
+func (t *TeamRoleMapManager) Reachability(r keybase1.Reachability) {
+	if r.Reachable == keybase1.Reachable_NO {
+		return
+	}
+	select {
+	case t.reachabilityCh <- r:
+	default:
+	}
+}
+
+func NewTeamRoleMapManager() *TeamRoleMapManager {
+	return &TeamRoleMapManager{
+		reachabilityCh: make(chan keybase1.Reachability),
+	}
 }
 
 var _ libkb.TeamRoleMapManager = (*TeamRoleMapManager)(nil)
@@ -41,6 +66,16 @@ func (t *TeamRoleMapManager) dbKey(mctx libkb.MetaContext, uid keybase1.UID) lib
 		Typ: libkb.DBTeamRoleMap,
 		Key: string(uid),
 	}
+}
+
+func (t *TeamRoleMapManager) wait(mctx libkb.MetaContext, dur time.Duration) {
+	select {
+	case <-mctx.G().Clock().After(dur):
+		mctx.Debug("Waited the full %s duration", dur)
+	case r := <-t.reachabilityCh:
+		mctx.Debug("short-circuited wait since we came back online (%s)", r.Reachable)
+	}
+	return
 }
 
 func (t *TeamRoleMapManager) loadFromDB(mctx libkb.MetaContext, uid keybase1.UID) (err error) {
@@ -93,8 +128,8 @@ func (t *TeamRoleMapManager) loadDelayedRetry(mctx libkb.MetaContext, backoff ti
 		return
 	}
 
-	time.Sleep(backoff)
-	mctx.Debug("delayed retry: woke up after %s backoff", backoff)
+	mctx.Debug("delayed retry: sleeping for %s backoff", backoff)
+	t.wait(mctx, backoff)
 
 	t.Lock()
 	defer t.Unlock()

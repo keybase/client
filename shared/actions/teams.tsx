@@ -1508,7 +1508,11 @@ const teamsSaga = function*() {
     saveChannelMembership,
     'saveChannelMembership'
   )
-  yield* Saga.chainAction2(ConfigGen.bootstrapStatusLoaded, refreshTeamRoleMap, 'refreshTeamRoleMap')
+  yield* Saga.chainAction2(
+    [ConfigGen.bootstrapStatusLoaded, EngineGen.keybase1NotifyTeamTeamRoleMapChanged],
+    refreshTeamRoleMap,
+    'refreshTeamRoleMap'
+  )
 
   yield* Saga.chainGenerator<TeamsGen.CreateChannelPayload>(
     TeamsGen.createChannel,
@@ -1579,11 +1583,6 @@ const teamsSaga = function*() {
     EngineGen.keybase1NotifyTeamTeamRoleMapChanged,
     teamRoleMapChangedUpdateLatestKnownVersion,
     'teamRoleMapChangedUpdateLatestKnownVersion'
-  )
-  yield* Saga.chainAction2(
-    EngineGen.keybase1NotifyTeamTeamRoleMapChanged,
-    refreshTeamRoleMap,
-    'refreshTeamRoleMap'
   )
 
   yield* Saga.chainAction2(
