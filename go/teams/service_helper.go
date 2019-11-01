@@ -50,17 +50,6 @@ func GetAnnotatedTeam(ctx context.Context, g *libkb.GlobalContext, id keybase1.T
 		return res, err
 	}
 
-	// Subversion                int                                                  `codec:"v" json:"v"`
-	// Frozen                    bool                                                 `codec:"frozen" json:"frozen"`
-	// Tombstoned                bool                                                 `codec:"tombstoned" json:"tombstoned"`
-	// Secretless                bool                                                 `codec:"secretless" json:"secretless"`
-	// Name                      TeamName                                             `codec:"name" json:"name"`
-	// Chain                     TeamSigChainState                                    `codec:"chain" json:"chain"`
-	// PerTeamKeySeedsUnverified map[PerTeamKeyGeneration]PerTeamKeySeedItem          `codec:"perTeamKeySeeds" json:"perTeamKeySeedsUnverified"`
-	// ReaderKeyMasks            map[TeamApplication]map[PerTeamKeyGeneration]MaskB64 `codec:"readerKeyMasks" json:"readerKeyMasks"`
-	// LatestSeqnoHint           Seqno                                                `codec:"latestSeqnoHint" json:"latestSeqnoHint"`
-	// CachedAt                  Time                                                 `codec:"cachedAt" json:"cachedAt"`
-	// TlfCryptKeys              map[TeamApplication][]CryptKey                       `codec:"tlfCryptKeys" json:"tlfCryptKeys"`
 	transitiveSubteamsUnverified, err := ListSubteamsUnverified(mctx, t.Data.Name)
 	if err != nil {
 		return res, err
