@@ -209,6 +209,9 @@
     boolean computeActiveList;
     boolean summarizeMaxMsgs; // if true, resulting conversation will only have summaries of max msgs
     boolean skipBgLoads; // optionally skip queuing the conversation in the background loader.
+    // Normally a query that has not been seen before will return an error.
+    // With allowUnseenQuery, an unfamiliar query is accepted.
+    boolean allowUnseenQuery;
   }
 
   record ConversationIDTriple {

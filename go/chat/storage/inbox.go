@@ -730,6 +730,12 @@ func (i *Inbox) queryExists(ctx context.Context, ibox inboxDiskData, query *chat
 		}
 	}
 
+	// Normally a query that has not been seen before will return an error.
+	// With AllowUnseenQuery, an unfamiliar query is accepted.
+	if query != nil && query.AllowUnseenQuery {
+		return true
+	}
+
 	hquery, err := i.hashQuery(ctx, query)
 	if err != nil {
 		i.Debug(ctx, "Read: queryExists: error hashing query: %s", err.Error())
