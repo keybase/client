@@ -93,7 +93,7 @@ const AudioPlayer = (props: Props) => {
       } else {
         setTimeLeft(newTimeLeft)
       }
-    }, 1000)
+    }, 200)
     return () => {
       clearTimeout(timer)
     }
