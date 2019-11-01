@@ -121,15 +121,15 @@ export type TeamDetails = {
   requests?: Set<string>
 }
 
-export type RolePair = {
+export type TeamRoleAndDetails = {
+  implicitAdmin: boolean
   role: MaybeTeamRoleType
-  implicitRole: MaybeTeamRoleType
 }
 
 export type TeamRoleMap = {
   latestKnownVersion: number
   loadedVersion: number
-  roles: Map<TeamID, RolePair>
+  roles: Map<TeamID, TeamRoleAndDetails>
 }
 
 export type State = Readonly<{

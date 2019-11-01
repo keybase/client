@@ -126,12 +126,13 @@ export const rpcTeamRoleMapAndVersionToTeamRoleMap = (
   const ret: Types.TeamRoleMap = {
     latestKnownVersion: -1,
     loadedVersion: m.version,
-    roles: new Map<Types.TeamID, Types.RolePair>(),
+    roles: new Map<Types.TeamID, Types.TeamRoleAndDetails>(),
   }
   for (const key in m.teams) {
     const value = m.teams[key]
     ret.roles.set(key, {
-      implicitRole: teamRoleByEnum[value.implicitRole] || 'none',
+      implicitAdmin:
+        value.implicitRole === RPCTypes.TeamRole.admin || value.implicitRole == RPCTypes.TeamRole.owner,
       role: teamRoleByEnum[value.role] || 'none',
     })
   }
