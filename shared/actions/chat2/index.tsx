@@ -2123,6 +2123,13 @@ const attachmentPasted = async (_: TypedState, action: Chat2Gen.AttachmentPasted
   })
 }
 
+const cancelAudioFromDeselect = (state: TypedState) => {
+  return Chat2Gen.createStopAudioRecording({
+    conversationIDKey: state.chat2.selectedConversation,
+    stopType: Types.AudioStopType.CANCEL,
+  })
+}
+
 const sendAudioRecording = async (
   state: TypedState,
   action: Chat2Gen.SendAudioRecordingPayload,
@@ -3690,6 +3697,7 @@ function* chat2Saga() {
   )
   yield* Saga.chainAction2(Chat2Gen.toggleThreadSearch, onToggleThreadSearch, 'onToggleThreadSearch')
   yield* Saga.chainAction2(Chat2Gen.selectConversation, hideThreadSearch)
+  yield* Saga.chainAction2(Chat2Gen.deselectConversation, cancelAudioFromDeselect, 'cancelAudioFromDeselect')
   yield* Saga.chainAction2(Chat2Gen.deselectConversation, deselectConversation)
 
   yield* Saga.chainAction2(Chat2Gen.resolveMaybeMention, resolveMaybeMention)

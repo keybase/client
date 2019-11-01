@@ -774,6 +774,12 @@ const stopAudioRecording = async (
     logger.info('stopAudioRecording: no audio record, not sending')
     return false
   }
+  if (ChatConstants.audioRecordingDuration(audio) < 500 || audio.path.length === 0) {
+    logger.info('stopAudioRecording: recording too short, skipping')
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
+    return Chat2Gen.createStopAudioRecording({conversationIDKey, stopType: Types.AudioStopType.CANCEL})
+  }
+
   if (audio.status === Types.AudioRecordingStatus.STAGED) {
     logger.info('stopAudioRecording: in staged mode, not sending')
     return false
