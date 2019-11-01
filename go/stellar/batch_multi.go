@@ -1,20 +1,16 @@
 package stellar
 
 import (
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/msgpack"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
-	"github.com/keybase/client/go/stellar/relays"
 	"github.com/keybase/client/go/stellar/remote"
 	"github.com/keybase/client/go/stellar/stellarcommon"
 	"github.com/keybase/stellarnet"
-	"github.com/stellar/go/keypair"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -202,57 +198,6 @@ func prepareDirectOp(mctx libkb.MetaContext, remoter remote.Remoter, payment ste
 		if err != nil {
 			return op, err
 		}
-	}
-
-	return op, nil
-}
-
-func prepareRelayOp(mctx libkb.MetaContext, payment stellar1.BatchPaymentArg, recipient stellarcommon.Recipient) (multiOp, error) {
-	op := multiOp{
-		Amount:        payment.Amount,
-		CreateAccount: true,
-	}
-	if isAmountLessThanMin(payment.Amount, minAmountRelayXLM) {
-		return op, fmt.Errorf("you must send at least %s XLM to fund the account for %s", minAmountRelayXLM, payment.Recipient)
-	}
-
-	appKey, teamID, err := relays.GetKey(mctx, recipient)
-	if err != nil {
-		return op, err
-	}
-
-	relayKp, err := keypair.Random()
-	if err != nil {
-		return op, err
-	}
-	relayAccountID, err := stellarnet.NewAddressStr(relayKp.Address())
-	if err != nil {
-		return op, err
-	}
-
-	op.Recipient = stellar1.AccountID(relayAccountID.String())
-
-	enc, err := relays.Encrypt(stellar1.RelayContents{
-		Sk:   stellar1.SecretKey(relayKp.Seed()),
-		Note: payment.Message,
-	}, appKey)
-	if err != nil {
-		return op, err
-	}
-	pack, err := msgpack.Encode(enc)
-	if err != nil {
-		return op, err
-	}
-	boxB64 := base64.StdEncoding.EncodeToString(pack)
-
-	op.Op = stellar1.PaymentOp{
-		To: &recipient.User.UV,
-		Relay: &stellar1.RelayOp{
-			ToAssertion:  string(recipient.Input),
-			RelayAccount: stellar1.AccountID(relayAccountID.String()),
-			TeamID:       teamID,
-			BoxB64:       boxB64,
-		},
 	}
 
 	return op, nil
