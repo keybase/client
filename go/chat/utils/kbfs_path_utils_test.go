@@ -41,7 +41,6 @@ var kbfsPathTests = map[string]chat1.KBFSPath{
 	"/keybase/teamaa/keybase":                {},
 	"/keybase/.kbfs_status":                  makeKBFSPathForTest("/keybase/.kbfs_status", nil),
 	"/foo":                                   {},
-	"/keybase.":                              {},
 
 	"/keybase/private/songgao,strib#jzila/file":                                                                   makeKBFSPathForTest("/keybase/private/songgao,strib#jzila/file", nil),
 	"/keybase/private/song-gao,strib#jzila/file":                                                                  {},
@@ -68,6 +67,21 @@ var kbfsPathTests = map[string]chat1.KBFSPath{
 	`k:\public\foo\blahblah`:          makeKBFSPathForTest(`k:\public\foo\blahblah`, strPointer("/keybase/public/foo/blahblah")),
 	`K:\public\foo\blahblah lalala`:   makeKBFSPathForTest(`K:\public\foo\blahblah`, strPointer("/keybase/public/foo/blahblah")),
 	`"K:\public\foo\blahblah lalala"`: makeKBFSPathForTest(`"K:\public\foo\blahblah lalala"`, strPointer("/keybase/public/foo/blahblah lalala")),
+
+	"/keybase.":                        makeKBFSPathForTest("/keybase", nil),
+	"/keybase/team.":                   makeKBFSPathForTest("/keybase/team", nil),
+	"/keybase/team/keybase/blahblah.":  makeKBFSPathForTest("/keybase/team/keybase/blahblah", nil),
+	`K:\team\keybase\blahblah.`:        makeKBFSPathForTest(`K:\team\keybase\blahblah`, strPointer("/keybase/team/keybase/blahblah")),
+	"keybase://team/keybase/blahblah.": makeKBFSPathForTest("keybase://team/keybase/blahblah", strPointer("/keybase/team/keybase/blahblah")),
+
+	"/keybase？":                        makeKBFSPathForTest("/keybase", nil),
+	"/keybase/team？":                   makeKBFSPathForTest("/keybase/team", nil),
+	"/keybase/team/keybase/blahblah？":  makeKBFSPathForTest("/keybase/team/keybase/blahblah", nil),
+	`K:\team\keybase\blahblah？`:        makeKBFSPathForTest(`K:\team\keybase\blahblah`, strPointer("/keybase/team/keybase/blahblah")),
+	"keybase://team/keybase/blahblah？": makeKBFSPathForTest("keybase://team/keybase/blahblah", strPointer("/keybase/team/keybase/blahblah")),
+
+	`"/keybase/team/keybase/blahblah."`: makeKBFSPathForTest(`"/keybase/team/keybase/blahblah."`, strPointer("/keybase/team/keybase/blahblah.")),
+	`"K:\team\keybase\blahblah."`:       makeKBFSPathForTest(`"K:\team\keybase\blahblah."`, strPointer("/keybase/team/keybase/blahblah.")),
 }
 
 func TestParseKBFSPathMatches(t *testing.T) {
