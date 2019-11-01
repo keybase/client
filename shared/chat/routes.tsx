@@ -19,6 +19,7 @@ import ChatShowNewTeamDialog from './new-team-dialog-container'
 import ChatLocationPopup from './conversation/input-area/normal/location-popup'
 import ChatUnfurlMapPopup from './conversation/messages/wrapper/unfurl/map/popup'
 import PunycodeLinkWarning from './punycode-link-warning'
+import BlockModal from './blocking/block-modal'
 
 export const newRoutes = {
   chatConversation: {getScreen: (): typeof ChatConversation => require('./conversation/container').default},
@@ -46,6 +47,9 @@ export const newModalRoutes = {
   chatAttachmentGetTitles: {
     getScreen: (): typeof ChatAttachmentGetTitles =>
       require('./conversation/attachment-get-titles/container').default,
+  },
+  chatBlockingModal: {
+    getScreen: (): typeof BlockModal => require('./blocking/block-modal').default,
   },
   chatChooseEmoji: {
     getScreen: (): typeof ChatChooseEmoji =>

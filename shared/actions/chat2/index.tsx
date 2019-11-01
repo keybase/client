@@ -1802,12 +1802,12 @@ function* messageSend(state: TypedState, action: Chat2Gen.MessageSendPayload, lo
   // narrow down the places where the action can possibly stop.
   logger.info('non-empty text?', text.stringValue().length > 0)
 }
-const messageSendByUsername = async (
+const messageSendByUsernames = async (
   state: TypedState,
-  action: Chat2Gen.MessageSendByUsernamePayload,
+  action: Chat2Gen.MessageSendByUsernamesPayload,
   logger: Saga.SagaLogger
 ) => {
-  const tlfName = `${state.config.username},${action.payload.username}`
+  const tlfName = `${state.config.username},${action.payload.usernames}`
   try {
     const result = await RPCChatTypes.localNewConversationLocalRpcPromise(
       {
@@ -1832,7 +1832,7 @@ const messageSendByUsername = async (
       action.payload.waitingKey
     )
   } catch (e) {
-    logger.warn('Could not send in messageSendByUsername', e)
+    logger.warn('Could not send in messageSendByUsernames', e)
   }
 }
 
@@ -3447,7 +3447,7 @@ function* chat2Saga() {
 
   yield* Saga.chainAction2(Chat2Gen.messageRetry, messageRetry, 'messageRetry')
   yield* Saga.chainGenerator<Chat2Gen.MessageSendPayload>(Chat2Gen.messageSend, messageSend, 'messageSend')
-  yield* Saga.chainAction2(Chat2Gen.messageSendByUsername, messageSendByUsername, 'messageSendByUsername')
+  yield* Saga.chainAction2(Chat2Gen.messageSendByUsernames, messageSendByUsernames, 'messageSendByUsernames')
   yield* Saga.chainGenerator<Chat2Gen.MessageEditPayload>(Chat2Gen.messageEdit, messageEdit, 'messageEdit')
   yield* Saga.chainAction2(Chat2Gen.messageEdit, clearMessageSetEditing, 'clearMessageSetEditing')
   yield* Saga.chainAction2(Chat2Gen.messageDelete, messageDelete, 'messageDelete')

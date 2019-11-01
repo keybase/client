@@ -271,8 +271,8 @@
       "text": "HiddenString",
       "replyTo?": "Types.MessageID"
     },
-    "messageSendByUsername": {
-      "username": "string",
+    "messageSendByUsernames": {
+      "usernames": "string",
       "text": "HiddenString",
       "waitingKey?": "string"
     },
