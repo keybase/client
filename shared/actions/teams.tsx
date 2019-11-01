@@ -1,4 +1,4 @@
-// TODO the relationships here are often inverted. we want to clear actions when a bunch of actions happen
+/// TODO the relationships here are often inverted. we want to clear actions when a bunch of actions happen
 // not have every handler clear it themselves. this reduces the nubmer of actionChains
 import * as I from 'immutable'
 import * as EngineGen from './engine-gen-gen'
@@ -1151,6 +1151,18 @@ const teamRoleMapChangedUpdateLatestKnownVersion = (
   return TeamsGen.createSetTeamRoleMapLatestKnownVersion({version: newVersion})
 }
 
+const refreshTeamRoleMap = async (logger: Saga.SagaLogger) => {
+  while (true) {
+    try {
+      const map = await RPCTypes.teamsGetTeamRoleMapRpcPromise()
+      return TeamsGen.createSetTeamRoleMap({map: Constants.rpcTeamRoleMapAndVersionToTeamRoleMap(map)})
+    } catch {
+      logger.info(`Failed to refresh TeamRoleMap; will retry in 30s`)
+      await Saga.delay(30 * 1000)
+    }
+  }
+}
+
 const teamRoleMapChangedUpdateRefreshRoleMap = async (
   _: TypedState,
   action: EngineGen.Keybase1NotifyTeamTeamRoleMapChangedPayload,
@@ -1158,13 +1170,13 @@ const teamRoleMapChangedUpdateRefreshRoleMap = async (
 ) => {
   const {newVersion} = action.payload.params
   logger.info(`Got teamRoleMapChanged with version ${newVersion}`)
-  const map = await RPCTypes.teamsGetTeamRoleMapRpcPromise()
-  return TeamsGen.createSetTeamRoleMap({map: Constants.rpcTeamRoleMapAndVersionToTeamRoleMap(map)})
+  let ret = await refreshTeamRoleMap(logger)
+  return ret
 }
 
-const teamRoleMapPrimeOnStartup = async () => {
-  const map = await RPCTypes.teamsGetTeamRoleMapRpcPromise()
-  return TeamsGen.createSetTeamRoleMap({map: Constants.rpcTeamRoleMapAndVersionToTeamRoleMap(map)})
+const teamRoleMapPrimeOnStartup = async (_: TypedState, __, logger: Saga.SagaLogger) => {
+  let ret = await refreshTeamRoleMap(logger)
+  return ret
 }
 
 const teamDeletedOrExit = (

@@ -217,16 +217,25 @@ export default (
           () => RPCChatTypes.ConversationMemberStatus.left
         )
         return
-      case TeamsGen.setTeamRoleMapLatestKnownVersion:
-        draftState.teamRoleMap = {
-          ...draftState.teamRoleMap,
-          latestKnownVersion: action.payload.version,
+      case TeamsGen.setTeamRoleMapLatestKnownVersion: {
+        let latestKnownVersion = action.payload.version
+        if (latestKnownVersion > draftState.teamRoleMap.latestKnownVersion) {
+          draftState.teamRoleMap = {
+            ...draftState.teamRoleMap,
+            latestKnownVersion: latestKnownVersion,
+          }
         }
         return
+      }
       case TeamsGen.setTeamRoleMap: {
+        let latestKnownVersion = draftState.teamRoleMap.latestKnownVersion
+        let loadedVersion = action.payload.map.loadedVersion
+        if (loadedVersion > latestKnownVersion) {
+          latestKnownVersion = loadedVersion
+        }
         draftState.teamRoleMap = {
-          ...draftState.teamRoleMap,
-          loadedVersion: action.payload.map.loadedVersion,
+          latestKnownVersion: latestKnownVersion,
+          loadedVersion: loadedVersion,
           roles: action.payload.map.roles,
         }
         return
