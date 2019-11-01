@@ -115,7 +115,6 @@ func (t *TeamRoleMapManager) loadDelayedRetry(mctx libkb.MetaContext, backoff ti
 	// on failure, and there was a failure. In that case, we call back to them
 	// (via sendNotification), and they will reattempt the Get(), hopefully succeeding this time.
 	t.sendNotification(mctx, t.state.Data.Version)
-	return
 }
 
 func (t *TeamRoleMapManager) sendNotification(mctx libkb.MetaContext, version keybase1.UserTeamVersion) {
