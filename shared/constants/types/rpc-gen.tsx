@@ -2105,6 +2105,7 @@ export enum StatusCode {
   scbadsignupusernametaken = 701,
   scduplicate = 706,
   scbadinvitationcode = 707,
+  scbadsignupusernamereserved = 710,
   scbadsignupteamname = 711,
   scfeatureflag = 712,
   scemailtaken = 713,

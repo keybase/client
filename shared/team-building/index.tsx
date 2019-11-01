@@ -98,6 +98,7 @@ export type Props = ContactProps & {
   onSearchForMore: () => void
   onUpArrowKeyDown: () => void
   onClear: () => void
+  onClose: () => void
   recommendations: Array<SearchRecSection> | null
   search: (query: string, service: ServiceIdWithContact) => void
   searchResults: Array<SearchResult> | null
@@ -375,7 +376,11 @@ class TeamBuilding extends React.PureComponent<Props> {
   _searchInput = () => (
     <Input
       onChangeText={this.props.onChangeText}
-      onClear={this.props.onClear}
+      onClear={
+        this.props.namespace === 'people' && !this.props.searchString
+          ? this.props.onClose
+          : this.props.onClear
+      }
       onDownArrowKeyDown={this.props.onDownArrowKeyDown}
       onUpArrowKeyDown={this.props.onUpArrowKeyDown}
       onEnterKeyDown={this.props.onEnterKeyDown}

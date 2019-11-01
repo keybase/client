@@ -68,7 +68,7 @@ const LockdownCheckbox = (props: Props) => {
       disabled={disabled}
       onCheck={props.onChangeLockdownMode}
       labelComponent={
-        <Kb.Box2 direction="vertical" alignItems="flex-start">
+        <Kb.Box2 direction="vertical" alignItems="flex-start" style={Styles.globalStyles.flexOne}>
           <Kb.Text type="Body">{label}</Kb.Text>
           <Kb.Text type="BodySmall">Prevent making account changes from the website.</Kb.Text>
           <Kb.Text type="BodySmall">
