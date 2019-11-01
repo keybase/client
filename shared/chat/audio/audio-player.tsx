@@ -66,14 +66,20 @@ const AudioPlayer = (props: Props) => {
   const vidRef = React.useRef<AudioVideo>(null)
   const [timeStart, setTimeStart] = React.useState(0)
   const [timeLeft, setTimeLeft] = React.useState(props.duration)
+  const [timePaused, setTimePaused] = React.useState(0)
+  const [timePauseButton, setTimePauseButton] = React.useState(0)
   const [paused, setPaused] = React.useState(true)
   const onClick = () => {
     if (paused) {
       if (timeStart === 0) {
         setTimeStart(Date.now())
+      } else if (timePauseButton > 0) {
+        setTimePaused(timePaused + (Date.now() - timePauseButton))
       }
       setPaused(false)
+      setTimePauseButton(0)
     } else {
+      setTimePauseButton(Date.now())
       setPaused(true)
     }
   }
@@ -82,11 +88,14 @@ const AudioPlayer = (props: Props) => {
       return
     }
     const timer = setTimeout(() => {
-      const newTimeLeft = props.duration - (Date.now() - timeStart)
+      const diff = Date.now() - timeStart - timePaused
+      const newTimeLeft = props.duration - diff
       if (newTimeLeft <= 0) {
         setTimeLeft(props.duration)
         setPaused(true)
         setTimeStart(0)
+        setTimePaused(0)
+        setTimePauseButton(0)
         if (vidRef.current) {
           vidRef.current.seek(0)
         }
@@ -97,7 +106,7 @@ const AudioPlayer = (props: Props) => {
     return () => {
       clearTimeout(timer)
     }
-  }, [timeLeft, timeStart, paused, props.duration])
+  }, [timeLeft, timeStart, timePaused, paused, props.duration])
 
   const ampsRemain = Math.floor((1 - timeLeft / props.duration) * props.visAmps.length)
   return (
