@@ -755,8 +755,8 @@ type HiddenTeamChainManager interface {
 	HintLatestSeqno(m MetaContext, id keybase1.TeamID, seqno keybase1.Seqno) error
 }
 
-type TeamRoleListManager interface {
-	Get(m MetaContext) (res keybase1.TeamRoleList, err error)
+type TeamRoleMapManager interface {
+	Get(m MetaContext) (res keybase1.TeamRoleMapAndVersion, err error)
 	Update(m MetaContext, version keybase1.UserTeamVersion) (err error)
 	FlushCache()
 }

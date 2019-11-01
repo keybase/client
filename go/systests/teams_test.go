@@ -1104,7 +1104,7 @@ func (n *teamNotifyHandler) AvatarUpdated(ctx context.Context, arg keybase1.Avat
 	return nil
 }
 
-func (n *teamNotifyHandler) TeamRoleListChanged(ctx context.Context, version keybase1.UserTeamVersion) error {
+func (n *teamNotifyHandler) TeamRoleMapChanged(ctx context.Context, version keybase1.UserTeamVersion) error {
 	n.teamRoleListCh <- version
 	return nil
 }

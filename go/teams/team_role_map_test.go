@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestTeamRoleList(t *testing.T) {
+func TestTeamRoleMap(t *testing.T) {
 	fus, tcs, cleanup := setupNTests(t, 2)
 	defer cleanup()
 
@@ -24,51 +24,51 @@ func TestTeamRoleList(t *testing.T) {
 	subteamID, err := CreateSubteam(m[0].Ctx(), tcs[0].G, subteamName, teamName, keybase1.TeamRole_WRITER)
 	require.NoError(t, err)
 
-	list, err := m[1].G().GetTeamRoleListManager().Get(m[1])
+	received, err := m[1].G().GetTeamRoleMapManager().Get(m[1])
 	require.NoError(t, err)
 
-	expected := keybase1.TeamRoleList{
-		Teams: []keybase1.TeamRoleListRow{
-			{
-				TeamID:       teamID,
-				Role:         keybase1.TeamRole_ADMIN,
-				ImplicitRole: keybase1.TeamRole_NONE,
-			},
-			{
-				TeamID:       *subteamID,
-				Role:         keybase1.TeamRole_NONE,
-				ImplicitRole: keybase1.TeamRole_ADMIN,
-			},
-		},
+	expected := keybase1.TeamRoleMapAndVersion{
+		Teams:   make(map[keybase1.TeamID]keybase1.TeamRolePair),
 		Version: keybase1.UserTeamVersion(1),
 	}
+	expected.Teams[teamID] = keybase1.TeamRolePair{
+		Role:         keybase1.TeamRole_ADMIN,
+		ImplicitRole: keybase1.TeamRole_NONE,
+	}
+	expected.Teams[*subteamID] = keybase1.TeamRolePair{
+		Role:         keybase1.TeamRole_NONE,
+		ImplicitRole: keybase1.TeamRole_ADMIN,
+	}
 
-	require.Equal(t, expected.Sort(), list.Sort())
+	require.Equal(t, expected, received)
 
 	_, err = AddMember(m[0].Ctx(), tcs[0].G, teamName.String()+"."+subteamName, fus[1].Username, keybase1.TeamRole_READER, nil)
 	require.NoError(t, err)
 
-	expected.Teams[1].Role = keybase1.TeamRole_READER
+	expected.Teams[*subteamID] = keybase1.TeamRolePair{
+		Role:         keybase1.TeamRole_READER,
+		ImplicitRole: keybase1.TeamRole_ADMIN,
+	}
 	expected.Version++
 
 	// In teams/*_test.go, we don't have gregor hooked up, so we have to mock out what happens
 	// when a new gregpr notification comes down from the server.
-	err = m[1].G().GetTeamRoleListManager().Update(m[1], expected.Version)
+	err = m[1].G().GetTeamRoleMapManager().Update(m[1], expected.Version)
 	require.NoError(t, err)
 
 	// Check that the state is eagerly refreshed.
 	pollForTrue(t, m[1].G(), func(i int) bool {
-		list := m[1].G().GetTeamRoleListManager().(*TeamRoleListManager).Query()
-		if list != nil && list.Data.Version == expected.Version {
-			require.Equal(t, expected.Sort(), list.Data.Sort())
+		received := m[1].G().GetTeamRoleMapManager().(*TeamRoleMapManager).Query()
+		if received != nil && received.Data.Version == expected.Version {
+			require.Equal(t, expected.Teams, received.Data.Teams)
 			return true
 		}
 		return false
 	})
 
-	m[1].G().GetTeamRoleListManager().FlushCache()
+	m[1].G().GetTeamRoleMapManager().FlushCache()
 
-	list, err = m[1].G().GetTeamRoleListManager().Get(m[1])
+	received, err = m[1].G().GetTeamRoleMapManager().Get(m[1])
 	require.NoError(t, err)
-	require.Equal(t, expected, list)
+	require.Equal(t, expected, received)
 }
