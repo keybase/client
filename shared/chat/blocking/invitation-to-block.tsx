@@ -2,16 +2,18 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import {WaveButton} from '../../settings/contacts-joined/buttons'
 import * as Styles from '../../styles'
-type Props = {team?: string; usernames?: Array<string>}
+type Props = {adder: string; others?: Array<string>; team?: string}
 
 const BlockButtons = (props: Props) => {
   return (
     <Kb.Box2 direction="vertical" gap="tiny" centerChildren={true}>
       <Kb.Text type="BodySmall">
-        {props.team ? 'Someone added you to this team.' : "You don't seem to know the sender."}
+        {props.team ? `${props.adder} added you to this team.` : `You don't seem to know ${props.adder}.`}
       </Kb.Text>
-      {props.usernames && <WaveButton usernames={props.usernames.join(',')} style={styles.button} />}
-      {props.usernames && props.usernames.length === 1 && (
+      {!props.team && (
+        <WaveButton usernames={[props.adder, ...(props.others || [])].join(',')} style={styles.button} />
+      )}
+      {!props.team && !props.others && (
         <Kb.Button label="View Profile" style={styles.button} mode="Secondary" />
       )}
       {props.team && <Kb.Button label="View team" style={styles.button} mode="Secondary" />}
