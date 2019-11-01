@@ -13,5 +13,5 @@ func ServiceInit(g *libkb.GlobalContext) {
 	NewImplicitTeamConflictInfoCacheAndInstall(g)
 	NewImplicitTeamCacheAndInstall(g)
 	hidden.NewChainManagerAndInstall(g)
-	NewTeamRoleListManagerAndInstall(g)
+	NewTeamRoleMapManagerAndInstall(g)
 }

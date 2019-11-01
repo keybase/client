@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func TestTeamRoleList(t *testing.T) {
+func TestTeamRoleMap(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
@@ -18,19 +18,17 @@ func TestTeamRoleList(t *testing.T) {
 	teamID, teamName := tt.users[0].createTeam2()
 	tt.users[0].addTeamMember(teamName.String(), tt.users[1].username, keybase1.TeamRole_ADMIN)
 
-	expected := keybase1.TeamRoleList{
-		Teams: []keybase1.TeamRoleListRow{
-			{
-				TeamID:       teamID,
-				Role:         keybase1.TeamRole_ADMIN,
-				ImplicitRole: keybase1.TeamRole_NONE,
-			},
-		},
+	expected := keybase1.TeamRoleMapAndVersion{
+		Teams:   make(map[keybase1.TeamID]keybase1.TeamRolePair),
 		Version: keybase1.UserTeamVersion(1),
+	}
+	expected.Teams[teamID] = keybase1.TeamRolePair{
+		Role:         keybase1.TeamRole_ADMIN,
+		ImplicitRole: keybase1.TeamRole_NONE,
 	}
 
 	select {
-	case vers := <-tt.users[1].notifications.teamRoleListCh:
+	case vers := <-tt.users[1].notifications.teamRoleMapCh:
 		t.Logf("got notification")
 		require.Equal(t, expected.Version, vers)
 	case <-time.After(10 * time.Second):
@@ -38,9 +36,9 @@ func TestTeamRoleList(t *testing.T) {
 	}
 
 	pollForTrue(t, tt.users[1].tc.G, func(i int) bool {
-		list := tt.users[1].tc.G.GetTeamRoleListManager().(*teams.TeamRoleListManager).Query()
+		list := tt.users[1].tc.G.GetTeamRoleMapManager().(*teams.TeamRoleMapManager).Query()
 		if list != nil && list.Data.Version == expected.Version {
-			require.Equal(t, expected.Sort(), list.Data.Sort())
+			require.Equal(t, expected, list.Data)
 			return true
 		}
 		return false

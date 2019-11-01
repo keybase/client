@@ -1397,26 +1397,24 @@ protocol teams {
     string role;
   }
 
-  record TeamRoleListRow {
-    @jsonkey("team_id")
-    TeamID teamID;
+  record TeamRolePair {
     TeamRole role;
     @jsonkey("implicit_role")
     TeamRole implicitRole;
   }
 
-  record TeamRoleList {
-    array<TeamRoleListRow> teams;
+  record TeamRoleMapAndVersion {
+    map<TeamID, TeamRolePair> teams;
     @jsonkey("user_team_version")
     UserTeamVersion version;
   }
 
-  record TeamRoleListStored {
-    TeamRoleList data;
+  record TeamRoleMapStored {
+    TeamRoleMapAndVersion data;
     Time cachedAt;
   }
 
-  TeamRoleList getTeamRoleList();
+  TeamRoleMapAndVersion getTeamRoleMap();
 
   @typedef("int")
   record UserTeamVersion {}

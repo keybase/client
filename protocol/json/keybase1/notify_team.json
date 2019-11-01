@@ -132,7 +132,7 @@
       "response": null,
       "oneway": true
     },
-    "teamRoleListChanged": {
+    "teamRoleMapChanged": {
       "request": [
         {
           "name": "newVersion",

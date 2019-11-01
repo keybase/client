@@ -2910,13 +2910,8 @@
     },
     {
       "type": "record",
-      "name": "TeamRoleListRow",
+      "name": "TeamRolePair",
       "fields": [
-        {
-          "type": "TeamID",
-          "name": "teamID",
-          "jsonkey": "team_id"
-        },
         {
           "type": "TeamRole",
           "name": "role"
@@ -2930,12 +2925,13 @@
     },
     {
       "type": "record",
-      "name": "TeamRoleList",
+      "name": "TeamRoleMapAndVersion",
       "fields": [
         {
           "type": {
-            "type": "array",
-            "items": "TeamRoleListRow"
+            "type": "map",
+            "values": "TeamRolePair",
+            "keys": "TeamID"
           },
           "name": "teams"
         },
@@ -2948,10 +2944,10 @@
     },
     {
       "type": "record",
-      "name": "TeamRoleListStored",
+      "name": "TeamRoleMapStored",
       "fields": [
         {
-          "type": "TeamRoleList",
+          "type": "TeamRoleMapAndVersion",
           "name": "data"
         },
         {
@@ -3934,9 +3930,9 @@
       ],
       "response": "FastTeamLoadRes"
     },
-    "getTeamRoleList": {
+    "getTeamRoleMap": {
       "request": [],
-      "response": "TeamRoleList"
+      "response": "TeamRoleMapAndVersion"
     }
   },
   "namespace": "keybase.1"

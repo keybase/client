@@ -231,7 +231,7 @@ func (r *teamHandler) userTeamVersion(ctx context.Context, cli gregor1.IncomingI
 		mctx.Debug("Error unmarshaling %s item: %s", nm, err)
 		return err
 	}
-	return r.G().GetTeamRoleListManager().Update(mctx, obj.Version)
+	return r.G().GetTeamRoleMapManager().Update(mctx, obj.Version)
 
 }
 

@@ -427,8 +427,8 @@
         "keybase1NotifyTeamNewlyAddedToTeam": {
             "params": "keybase1Types.MessageTypes['keybase.1.NotifyTeam.newlyAddedToTeam']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyTeam.newlyAddedToTeam']['outParam']) => void}"
         },
-        "keybase1NotifyTeamTeamRoleListChanged": {
-            "params": "keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamRoleListChanged']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamRoleListChanged']['outParam']) => void}"
+        "keybase1NotifyTeamTeamRoleMapChanged": {
+            "params": "keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamRoleMapChanged']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamRoleMapChanged']['outParam']) => void}"
         },
         "keybase1NotifyTeamAvatarUpdated": {
             "params": "keybase1Types.MessageTypes['keybase.1.NotifyTeam.avatarUpdated']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyTeam.avatarUpdated']['outParam']) => void}"

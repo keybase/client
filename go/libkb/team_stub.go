@@ -189,18 +189,18 @@ func newNullHiddenTeamChainManager() nullHiddenTeamChainManager {
 	return nullHiddenTeamChainManager{}
 }
 
-type nullTeamRoleListManager struct{}
+type nullTeamRoleMapManager struct{}
 
-var _ TeamRoleListManager = nullTeamRoleListManager{}
+var _ TeamRoleMapManager = nullTeamRoleMapManager{}
 
-func newNullTeamRoleListManager() nullTeamRoleListManager {
-	return nullTeamRoleListManager{}
+func newNullTeamRoleMapManager() nullTeamRoleMapManager {
+	return nullTeamRoleMapManager{}
 }
 
-func (n nullTeamRoleListManager) Get(m MetaContext) (res keybase1.TeamRoleList, err error) {
+func (n nullTeamRoleMapManager) Get(m MetaContext) (res keybase1.TeamRoleMapAndVersion, err error) {
 	return res, nil
 }
-func (n nullTeamRoleListManager) Update(m MetaContext, version keybase1.UserTeamVersion) (err error) {
+func (n nullTeamRoleMapManager) Update(m MetaContext, version keybase1.UserTeamVersion) (err error) {
 	return nil
 }
-func (n nullTeamRoleListManager) FlushCache() {}
+func (n nullTeamRoleMapManager) FlushCache() {}
