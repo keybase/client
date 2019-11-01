@@ -424,7 +424,7 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 
 	if upak != nil {
 		g.VDL.CLogf(ctx, VLog0, "%s: cache-hit; fresh=%v", culDebug(arg.uid), fresh)
-		if fresh || arg.staleOK {
+		if fresh {
 			return returnUPAK(upak, true)
 		}
 		if arg.cachedOnly {
@@ -501,7 +501,14 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 	// In some cases, it's OK to have a user object and an error. This comes up in
 	// Identify2 when identifying users who don't have a sigchain. Note that we'll never
 	// hit the cache in this case (for now...)
+	//
+	// Additionally, we might have an error, a cached UPAK, no user object. If
+	// stale is OK, we'll just return the stale data instead of the error.
 	if err != nil {
+		if upak != nil && arg.staleOK {
+			g.VDL.CLogf(ctx, VLog0, "Got error %+v when fetching UPAK, so using cached data", err)
+			return returnUPAK(upak, true)
+		}
 		return ret, user, err
 	}
 
