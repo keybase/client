@@ -218,21 +218,16 @@ export default (
         )
         return
       case TeamsGen.setTeamRoleMapLatestKnownVersion: {
-        let latestKnownVersion = action.payload.version
-        if (latestKnownVersion > draftState.teamRoleMap.latestKnownVersion) {
-          draftState.teamRoleMap = {
-            ...draftState.teamRoleMap,
-            latestKnownVersion: latestKnownVersion,
-          }
+        const latestKnownVersion = action.payload.version
+        draftState.teamRoleMap = {
+          ...draftState.teamRoleMap,
+          latestKnownVersion: latestKnownVersion,
         }
         return
       }
       case TeamsGen.setTeamRoleMap: {
-        let latestKnownVersion = draftState.teamRoleMap.latestKnownVersion
-        let loadedVersion = action.payload.map.loadedVersion
-        if (loadedVersion > latestKnownVersion) {
-          latestKnownVersion = loadedVersion
-        }
+        const loadedVersion = action.payload.map.loadedVersion
+        const latestKnownVersion = Math.max(loadedVersion, draftState.teamRoleMap.latestKnownVersion)
         draftState.teamRoleMap = {
           latestKnownVersion: latestKnownVersion,
           loadedVersion: loadedVersion,
