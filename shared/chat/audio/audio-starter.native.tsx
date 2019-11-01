@@ -25,7 +25,7 @@ const Tooltip = (props: TooltipProps) => {
   return (
     <Kb.Animated from={{}} to={{opacity: props.visible ? 1 : 0}}>
       {animatedStyle => (
-        <Kb.FloatingBox>
+        <Kb.FloatingBox dest="keyboard-avoiding-root">
           <Kb.Box2
             direction="horizontal"
             style={Styles.collapseStyles([styles.tooltipContainer, animatedStyle])}
@@ -47,7 +47,7 @@ const AudioStarter = (props: AudioStarterProps) => {
   const [showToolTip, setShowToolTip] = React.useState(false)
   const showToolTopFalseLater = Kb.useTimeout(() => {
     setShowToolTip(false)
-  }, 3000)
+  }, 2000)
   React.useEffect(() => {
     if (locked.current && !props.locked) {
       locked.current = false
