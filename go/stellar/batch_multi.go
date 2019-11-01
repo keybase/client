@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/stellar/stellarcommon"
 	"github.com/keybase/stellarnet"
 	"github.com/stellar/go/keypair"
+	"golang.org/x/sync/errgroup"
 )
 
 var ErrRelayinMultiBatch = errors.New("relay recipient not allowed in a multi-op batch")
@@ -66,14 +67,14 @@ func BatchMulti(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.B
 			// an error.  the caller can use the non-multi version
 			// for this batch.
 			return res, ErrRelayinMultiBatch
-		} else {
-			mop, err := prepareDirectOp(mctx, walletState, payment, recipient)
-			if err != nil {
-				makeResultError(&results[i], err)
-				continue
-			}
-			multiOps = append(multiOps, mop)
 		}
+
+		mop, err := prepareDirectOp(mctx, walletState, payment, recipient)
+		if err != nil {
+			makeResultError(&results[i], err)
+			continue
+		}
+		multiOps = append(multiOps, mop)
 	}
 
 	baseFee := walletState.BaseFee(mctx)
@@ -111,6 +112,7 @@ func BatchMulti(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.B
 	} else {
 		// make all ther results have success
 		now := stellar1.ToTimeMs(time.Now())
+
 		for i := 0; i < len(results); i++ {
 			if results[i].Status == stellar1.PaymentStatus_ERROR {
 				// some of the results have already been marked as an
@@ -121,8 +123,42 @@ func BatchMulti(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.B
 			results[i].TxID = submitRes.TxID
 			results[i].Status = stellar1.PaymentStatus_COMPLETED
 			results[i].EndTime = now
+		}
 
-			// XXX send chat messages
+		// send chat messages
+		g, ctx := errgroup.WithContext(mctx.Ctx())
+		recipients := make(chan string)
+		g.Go(func() error {
+			defer close(recipients)
+			for _, result := range results {
+				if result.Status != stellar1.PaymentStatus_COMPLETED {
+					continue
+				}
+				select {
+				case recipients <- result.Username:
+				case <-ctx.Done():
+					return ctx.Err()
+				}
+			}
+			return nil
+		})
+
+		for i := 0; i < 10; i++ {
+			g.Go(func() error {
+				for recipient := range recipients {
+					if err := chatSendPaymentMessage(mctx, recipient, submitRes.TxID); err != nil {
+						mctx.Debug("chatSendPaymentMessage to %s (%s) error: %s", recipient, submitRes.TxID, err)
+					} else {
+						mctx.Debug("chatSendPaymentMessage to %s (%s) success", recipient, submitRes.TxID)
+					}
+				}
+
+				return nil
+			})
+		}
+
+		if err := g.Wait(); err != nil {
+			mctx.Debug("error sending chat messages: %s", err)
 		}
 	}
 
