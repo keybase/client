@@ -36,6 +36,7 @@ protocol constants {
     SCBadSignupUsernameTaken_701,
     SCDuplicate_706,
     SCBadInvitationCode_707,
+    SCBadSignupUsernameReserved_710,
     SCBadSignupTeamName_711,
     SCFeatureFlag_712,
     SCEmailTaken_713,
