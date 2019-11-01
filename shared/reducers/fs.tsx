@@ -72,7 +72,7 @@ const updatePathItem = (
       ...newPathItemFromAction,
       children: oldPathItem.children,
       progress: Types.ProgressType.Loaded,
-    } as Types.FolderPathItem
+    }
     return newPathItemNoOverridingChildrenAndProgress
   }
   return newPathItemFromAction

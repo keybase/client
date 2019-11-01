@@ -25,36 +25,36 @@ const getFolderOrFail = (
 
 const state0 = {
   ..._initialStateForTest,
-  pathItems: new Map([
+  pathItems: new Map<Types.Path, Types.PathItem>([
     [
-      file0Path || '',
+      file0Path,
       {
         ...Constants.emptyFile,
         lastModifiedTimestamp: 1,
         lastWriter: 'foo',
         name: 'file0',
-      },
+      } as Types.PathItem,
     ],
     [
-      folder0Path || '',
+      folder0Path,
       {
         ...Constants.emptyFolder,
-        children: I.Set(),
+        children: new Set(),
         name: 'folder0',
         progress: Types.ProgressType.Pending,
-      },
+      } as Types.PathItem,
     ],
     [
-      kbkbfstestPath || '',
+      kbkbfstestPath,
       {
         ...Constants.emptyFolder,
-        children: I.Set(['file0', 'folder0']),
+        children: new Set(['file0', 'folder0']),
         name: 'kbkbfstest',
         prefetchStatus: Constants.emptyPrefetchInProgress,
         progress: Types.ProgressType.Loaded,
-      },
+      } as Types.PathItem,
     ],
-  ]) as Map<Types.Path, Types.PathItem>,
+  ]),
 }
 
 describe('fs reducer', () => {
@@ -114,7 +114,7 @@ describe('fs reducer', () => {
       state0,
       FsGen.createFolderListLoaded({
         path: folder0Path,
-        pathItems: new Map([
+        pathItems: new Map<Types.Path, Types.PathItem>([
           [
             folder0Path,
             {
@@ -123,9 +123,9 @@ describe('fs reducer', () => {
               name: 'folder0',
               prefetchStatus: Constants.prefetchNotStarted,
               progress: Types.ProgressType.Loaded,
-            },
+            } as Types.PathItem,
           ],
-        ]) as Map<Types.Path, Types.PathItem>,
+        ]),
       })
     )
     expect(state1.pathItems).not.toBe(state0.pathItems)
@@ -138,16 +138,16 @@ describe('fs reducer', () => {
       state0,
       FsGen.createFolderListLoaded({
         path: folder0Path,
-        pathItems: new Map([
+        pathItems: new Map<Types.Path, Types.PathItem>([
           [
             folder0Path,
             {
               ...Constants.emptyFolder,
               name: 'folder0',
               prefetchStatus: Constants.prefetchComplete,
-            },
+            } as Types.PathItem,
           ],
-        ]) as Map<Types.Path, Types.PathItem>,
+        ]),
       })
     )
     expect(state1.pathItems).not.toBe(state0.pathItems)

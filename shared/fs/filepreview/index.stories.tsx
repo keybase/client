@@ -1,5 +1,4 @@
 import React from 'react'
-import * as I from 'immutable'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as RPCTypes from '../../constants/types/rpc-gen'
@@ -112,21 +111,22 @@ const store = {
         },
       ],
     ]),
-    pathItems:
-      // @ts-ignore
-      I.Map([
-        ['/keybase/private/foo/loading', Constants.emptyFile],
-        ...filenames
-          .filter(n => n !== 'loading')
-          .map(name => [
-            `/keybase/private/foo/${name}`,
-            {
-              ...Constants.emptyFile,
-              ...fileCommon,
-              name,
-            },
-          ]),
-      ]),
+    pathItems: new Map<Types.Path, Types.PathItem>([
+      [Types.stringToPath('/keybase/private/foo/loading'), Constants.emptyFile],
+      ...filenames
+        .filter(n => n !== 'loading')
+        .map(
+          name =>
+            [
+              Types.stringToPath(`/keybase/private/foo/${name}`),
+              {
+                ...Constants.emptyFile,
+                ...fileCommon,
+                name,
+              },
+            ] as const
+        ),
+    ]),
   },
 }
 
