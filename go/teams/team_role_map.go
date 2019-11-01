@@ -25,9 +25,17 @@ func NewTeamRoleMapManagerAndInstall(g *libkb.GlobalContext) {
 	}
 }
 
+func NewTeamRoleMapManager() *TeamRoleMapManager {
+	return &TeamRoleMapManager{
+		reachabilityCh: make(chan keybase1.Reachability),
+	}
+}
+
+var _ libkb.TeamRoleMapManager = (*TeamRoleMapManager)(nil)
+
 // Reachability should be called whenever the reachability status of the app changes
-// (via NotifyRouter). If we happen to be waiting on a refresh, then break out and
-// refresh it.
+// (via NotifyRouter). If we happen to be waiting on a timer to do a refresh, then break
+// out and refresh it.
 func (t *TeamRoleMapManager) Reachability(r keybase1.Reachability) {
 	if r.Reachable == keybase1.Reachable_NO {
 		return
@@ -37,14 +45,6 @@ func (t *TeamRoleMapManager) Reachability(r keybase1.Reachability) {
 	default:
 	}
 }
-
-func NewTeamRoleMapManager() *TeamRoleMapManager {
-	return &TeamRoleMapManager{
-		reachabilityCh: make(chan keybase1.Reachability),
-	}
-}
-
-var _ libkb.TeamRoleMapManager = (*TeamRoleMapManager)(nil)
 
 func (t *TeamRoleMapManager) isFresh(m libkb.MetaContext, state *keybase1.TeamRoleMapStored) bool {
 	if t.lastKnownVersion != nil && *t.lastKnownVersion > state.Data.Version {

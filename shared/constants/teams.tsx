@@ -124,7 +124,7 @@ export const rpcTeamRoleMapAndVersionToTeamRoleMap = (
   m: RPCTypes.TeamRoleMapAndVersion
 ): Types.TeamRoleMap => {
   const ret: Types.TeamRoleMap = {
-    latestKnownVersion: -1,
+    latestKnownVersion: m.version,
     loadedVersion: m.version,
     roles: new Map<Types.TeamID, Types.TeamRoleAndDetails>(),
   }
