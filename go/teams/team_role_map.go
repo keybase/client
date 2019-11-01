@@ -75,7 +75,6 @@ func (t *TeamRoleMapManager) wait(mctx libkb.MetaContext, dur time.Duration) {
 	case r := <-t.reachabilityCh:
 		mctx.Debug("short-circuited wait since we came back online (%s)", r.Reachable)
 	}
-	return
 }
 
 func (t *TeamRoleMapManager) loadFromDB(mctx libkb.MetaContext, uid keybase1.UID) (err error) {
