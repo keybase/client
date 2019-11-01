@@ -1387,7 +1387,6 @@ protocol teams {
 
   FastTeamLoadRes ftl(FastTeamLoadArg arg);
 
-
   record MemberEmail {
     string email;
     string role;
@@ -1397,4 +1396,31 @@ protocol teams {
     string username;
     string role;
   }
+
+  record TeamRolePair {
+    TeamRole role;
+    @jsonkey("implicit_role")
+    TeamRole implicitRole;
+  }
+
+  record TeamRoleMapAndVersion {
+    map<TeamID, TeamRolePair> teams;
+    @jsonkey("user_team_version")
+    UserTeamVersion version;
+  }
+
+  record TeamRoleMapStored {
+    TeamRoleMapAndVersion data;
+    Time cachedAt;
+  }
+
+  TeamRoleMapAndVersion getTeamRoleMap();
+
+  @typedef("int")
+  record UserTeamVersion {}
+
+  record UserTeamVersionUpdate {
+    UserTeamVersion version;
+  }
+
 }

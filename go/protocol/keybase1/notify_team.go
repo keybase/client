@@ -87,6 +87,10 @@ type NewlyAddedToTeamArg struct {
 	TeamID TeamID `codec:"teamID" json:"teamID"`
 }
 
+type TeamRoleMapChangedArg struct {
+	NewVersion UserTeamVersion `codec:"newVersion" json:"newVersion"`
+}
+
 type AvatarUpdatedArg struct {
 	Name    string           `codec:"name" json:"name"`
 	Formats []AvatarFormat   `codec:"formats" json:"formats"`
@@ -100,6 +104,7 @@ type NotifyTeamInterface interface {
 	TeamAbandoned(context.Context, TeamID) error
 	TeamExit(context.Context, TeamID) error
 	NewlyAddedToTeam(context.Context, TeamID) error
+	TeamRoleMapChanged(context.Context, UserTeamVersion) error
 	AvatarUpdated(context.Context, AvatarUpdatedArg) error
 }
 
@@ -197,6 +202,21 @@ func NotifyTeamProtocol(i NotifyTeamInterface) rpc.Protocol {
 					return
 				},
 			},
+			"teamRoleMapChanged": {
+				MakeArg: func() interface{} {
+					var ret [1]TeamRoleMapChangedArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]TeamRoleMapChangedArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]TeamRoleMapChangedArg)(nil), args)
+						return
+					}
+					err = i.TeamRoleMapChanged(ctx, typedArgs[0].NewVersion)
+					return
+				},
+			},
 			"avatarUpdated": {
 				MakeArg: func() interface{} {
 					var ret [1]AvatarUpdatedArg
@@ -251,6 +271,12 @@ func (c NotifyTeamClient) TeamExit(ctx context.Context, teamID TeamID) (err erro
 func (c NotifyTeamClient) NewlyAddedToTeam(ctx context.Context, teamID TeamID) (err error) {
 	__arg := NewlyAddedToTeamArg{TeamID: teamID}
 	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.newlyAddedToTeam", []interface{}{__arg}, 0*time.Millisecond)
+	return
+}
+
+func (c NotifyTeamClient) TeamRoleMapChanged(ctx context.Context, newVersion UserTeamVersion) (err error) {
+	__arg := TeamRoleMapChangedArg{NewVersion: newVersion}
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamRoleMapChanged", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 

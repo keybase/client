@@ -179,6 +179,10 @@ export type MessageTypes = {
     inParam: {readonly teamID: TeamID}
     outParam: void
   }
+  'keybase.1.NotifyTeam.teamRoleMapChanged': {
+    inParam: {readonly newVersion: UserTeamVersion}
+    outParam: void
+  }
   'keybase.1.NotifyTeambot.newTeambotKey': {
     inParam: {readonly id: TeamID; readonly generation: TeambotKeyGeneration; readonly application: TeamApplication}
     outParam: void
@@ -2109,6 +2113,7 @@ export enum StatusCode {
   scemailcannotdeleteprimary = 716,
   scemailunknown = 717,
   scbotsignuptokennotfound = 719,
+  scnoupdate = 723,
   scmissingresult = 801,
   sckeynotfound = 901,
   sckeycorrupted = 905,
@@ -2908,6 +2913,9 @@ export type TeamProfileAddEntry = {readonly teamName: TeamName; readonly open: B
 export type TeamRefreshers = {readonly needKeyGeneration: PerTeamKeyGeneration; readonly needApplicationsAtGenerations: {[key: string]: Array<TeamApplication> | null}; readonly needApplicationsAtGenerationsWithKBFS: {[key: string]: Array<TeamApplication> | null}; readonly wantMembers?: Array<UserVersion> | null; readonly wantMembersRole: TeamRole; readonly needKBFSKeyGeneration: TeamKBFSKeyRefresher}
 export type TeamRequestAccessResult = {readonly open: Boolean}
 export type TeamResetUser = {readonly username: String; readonly uid: UID; readonly eldestSeqno: Seqno; readonly isDelete: Boolean}
+export type TeamRoleMapAndVersion = {readonly teams: {[key: string]: TeamRolePair}; readonly version: UserTeamVersion}
+export type TeamRoleMapStored = {readonly data: TeamRoleMapAndVersion; readonly cachedAt: Time}
+export type TeamRolePair = {readonly role: TeamRole; readonly implicitRole: TeamRole}
 export type TeamSBSMsg = {readonly teamID: TeamID; readonly score: Int; readonly invitees?: Array<TeamInvitee> | null}
 export type TeamSeitanMsg = {readonly teamID: TeamID; readonly seitans?: Array<TeamSeitanRequest> | null}
 export type TeamSeitanRequest = {readonly inviteID: TeamInviteID; readonly uid: UID; readonly eldestSeqno: Seqno; readonly akey: SeitanAKey; readonly role: TeamRole; readonly unixCTime: Int64}
@@ -2967,6 +2975,8 @@ export type UserSummary = {readonly uid: UID; readonly username: String; readonl
 export type UserSummary2 = {readonly uid: UID; readonly username: String; readonly thumbnail: String; readonly fullName: String; readonly isFollower: Boolean; readonly isFollowee: Boolean}
 export type UserSummary2Set = {readonly users?: Array<UserSummary2> | null; readonly time: Time; readonly version: Int}
 export type UserTeamShowcase = {readonly fqName: String; readonly open: Boolean; readonly teamIsShowcased: Boolean; readonly description: String; readonly role: TeamRole; readonly publicAdmins?: Array<String> | null; readonly numMembers: Int}
+export type UserTeamVersion = Int
+export type UserTeamVersionUpdate = {readonly version: UserTeamVersion}
 export type UserVersion = {readonly uid: UID; readonly eldestSeqno: Seqno}
 export type UserVersionPercentForm = String
 export type UserVersionVector = {readonly id: Long; readonly sigHints: Int; readonly sigChain: Long; readonly cachedAt: Time}
@@ -3061,6 +3071,7 @@ export type IncomingCallMapType = {
   'keybase.1.NotifyTeam.teamAbandoned'?: (params: MessageTypes['keybase.1.NotifyTeam.teamAbandoned']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyTeam.teamExit'?: (params: MessageTypes['keybase.1.NotifyTeam.teamExit']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyTeam.newlyAddedToTeam'?: (params: MessageTypes['keybase.1.NotifyTeam.newlyAddedToTeam']['inParam'] & {sessionID: number}) => IncomingReturn
+  'keybase.1.NotifyTeam.teamRoleMapChanged'?: (params: MessageTypes['keybase.1.NotifyTeam.teamRoleMapChanged']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyTeam.avatarUpdated'?: (params: MessageTypes['keybase.1.NotifyTeam.avatarUpdated']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyTeambot.newTeambotKey'?: (params: MessageTypes['keybase.1.NotifyTeambot.newTeambotKey']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyTeambot.teambotKeyNeeded'?: (params: MessageTypes['keybase.1.NotifyTeambot.teambotKeyNeeded']['inParam'] & {sessionID: number}) => IncomingReturn
@@ -3185,6 +3196,7 @@ export type CustomResponseIncomingCallMap = {
   'keybase.1.NotifyTeam.teamAbandoned'?: (params: MessageTypes['keybase.1.NotifyTeam.teamAbandoned']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyTeam.teamAbandoned']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyTeam.teamExit'?: (params: MessageTypes['keybase.1.NotifyTeam.teamExit']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyTeam.teamExit']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyTeam.newlyAddedToTeam'?: (params: MessageTypes['keybase.1.NotifyTeam.newlyAddedToTeam']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyTeam.newlyAddedToTeam']['outParam']) => void}) => IncomingReturn
+  'keybase.1.NotifyTeam.teamRoleMapChanged'?: (params: MessageTypes['keybase.1.NotifyTeam.teamRoleMapChanged']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyTeam.teamRoleMapChanged']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyTeam.avatarUpdated'?: (params: MessageTypes['keybase.1.NotifyTeam.avatarUpdated']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyTeam.avatarUpdated']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyTeambot.teambotKeyNeeded'?: (params: MessageTypes['keybase.1.NotifyTeambot.teambotKeyNeeded']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyTeambot.teambotKeyNeeded']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyTracking.trackingInfo'?: (params: MessageTypes['keybase.1.NotifyTracking.trackingInfo']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyTracking.trackingInfo']['outParam']) => void}) => IncomingReturn
@@ -3673,6 +3685,7 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.NotifyTeam.teamAbandoned'
 // 'keybase.1.NotifyTeam.teamExit'
 // 'keybase.1.NotifyTeam.newlyAddedToTeam'
+// 'keybase.1.NotifyTeam.teamRoleMapChanged'
 // 'keybase.1.NotifyTeam.avatarUpdated'
 // 'keybase.1.NotifyTeambot.newTeambotKey'
 // 'keybase.1.NotifyTeambot.teambotKeyNeeded'
@@ -3805,6 +3818,7 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.teams.profileTeamLoad'
 // 'keybase.1.teams.getTeamID'
 // 'keybase.1.teams.ftl'
+// 'keybase.1.teams.getTeamRoleMap'
 // 'keybase.1.teamsUi.confirmRootTeamDelete'
 // 'keybase.1.teamsUi.confirmSubteamDelete'
 // 'keybase.1.test.test'

@@ -92,6 +92,7 @@ const makePeopleResults = results =>
 
 const commonProps = {
   focusInputCounter: 0,
+  onClose: Sb.action('onClose'),
   showRecs: false,
   showResults: false,
   showServiceResultCount: false,
