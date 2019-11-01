@@ -97,7 +97,8 @@ const loadIsOnline = async () => {
   }
 }
 
-// On login error, drop back to the login screen even if user switching
+// On login error, turn off the user switching flag, so that the login screen is not
+// hidden and the user can see and respond to the error.
 const loginError = () => ConfigGen.createSetUserSwitching({userSwitching: false})
 
 function* loginSaga() {
