@@ -1522,6 +1522,7 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.local.GetMessagesLocal'
 // 'chat.1.local.postFileAttachmentLocal'
 // 'chat.1.local.DownloadAttachmentLocal'
+// 'chat.1.local.cancelUploadTempFile'
 // 'chat.1.local.joinConversationLocal'
 // 'chat.1.local.getAllResetConvMembers'
 // 'chat.1.local.upgradeKBFSConversationToImpteam'

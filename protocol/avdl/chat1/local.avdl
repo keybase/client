@@ -982,6 +982,7 @@ protocol local {
   MakePreviewRes makeAudioPreview(array<double> amps, int duration);
   string getUploadTempFile(OutboxID outboxID, string filename);
   string makeUploadTempFile(OutboxID outboxID, string filename, bytes data);
+  void cancelUploadTempFile(OutboxID outboxID);
 
   @lint("ignore")
   void CancelPost(OutboxID outboxID);
