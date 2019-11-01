@@ -1151,7 +1151,19 @@ const teamRoleMapChangedUpdateLatestKnownVersion = (
   return TeamsGen.createSetTeamRoleMapLatestKnownVersion({version: newVersion})
 }
 
-const refreshTeamRoleMap = async (logger: Saga.SagaLogger) => {
+const refreshTeamRoleMap = async (
+  state: TypedState,
+  action: EngineGen.Keybase1NotifyTeamTeamRoleMapChangedPayload | ConfigGen.BootstrapStatusLoadedPayload,
+  logger: Saga.SagaLogger
+) => {
+  if (action.type === EngineGen.keybase1NotifyTeamTeamRoleMapChanged) {
+    const {newVersion} = action.payload.params
+    const loadedVersion = state.teams.teamRoleMap.loadedVersion
+    logger.info(`Got teamRoleMapChanged with version ${newVersion}, loadedVersion is ${loadedVersion}`)
+    if (loadedVersion >= newVersion) {
+      return
+    }
+  }
   try {
     const map = await RPCTypes.teamsGetTeamRoleMapRpcPromise()
     return TeamsGen.createSetTeamRoleMap({map: Constants.rpcTeamRoleMapAndVersionToTeamRoleMap(map)})
@@ -1159,25 +1171,6 @@ const refreshTeamRoleMap = async (logger: Saga.SagaLogger) => {
     logger.info(`Failed to refresh TeamRoleMap; service will retry`)
     return
   }
-}
-
-const teamRoleMapChangedUpdateRefreshRoleMap = async (
-  state: TypedState,
-  action: EngineGen.Keybase1NotifyTeamTeamRoleMapChangedPayload,
-  logger: Saga.SagaLogger
-) => {
-  const {newVersion} = action.payload.params
-  logger.info(`Got teamRoleMapChanged with version ${newVersion}`)
-  if (state.teams.teamRoleMap.loadedVersion < newVersion) {
-    let ret = await refreshTeamRoleMap(logger)
-    return ret
-  }
-  return
-}
-
-const teamRoleMapPrimeOnStartup = async (_: TypedState, __, logger: Saga.SagaLogger) => {
-  let ret = await refreshTeamRoleMap(logger)
-  return ret
 }
 
 const teamDeletedOrExit = (
@@ -1515,11 +1508,7 @@ const teamsSaga = function*() {
     saveChannelMembership,
     'saveChannelMembership'
   )
-  yield* Saga.chainAction2(
-    ConfigGen.bootstrapStatusLoaded,
-    teamRoleMapPrimeOnStartup,
-    'teamRoleMapPrimeOnStartup'
-  )
+  yield* Saga.chainAction2(ConfigGen.bootstrapStatusLoaded, refreshTeamRoleMap, 'refreshTeamRoleMap')
 
   yield* Saga.chainGenerator<TeamsGen.CreateChannelPayload>(
     TeamsGen.createChannel,
@@ -1593,8 +1582,8 @@ const teamsSaga = function*() {
   )
   yield* Saga.chainAction2(
     EngineGen.keybase1NotifyTeamTeamRoleMapChanged,
-    teamRoleMapChangedUpdateRefreshRoleMap,
-    'teamRoleMapChangedUpdateRefreshRoleMap'
+    refreshTeamRoleMap,
+    'refreshTeamRoleMap'
   )
 
   yield* Saga.chainAction2(
