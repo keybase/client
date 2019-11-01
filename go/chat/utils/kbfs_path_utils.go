@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"unicode"
 
 	"github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
@@ -39,7 +40,12 @@ func (m *outerMatch) standardPath() string {
 	return "/keybase" + m.afterKeybase
 }
 
-const unquotedTrailingTrimCutset = ",.?!;:，。？！；："
+func unquotedTrailingTrimFuncWindows(r rune) bool {
+	return r != '\\' && unicode.IsPunct(r)
+}
+func unquotedTrailingTrimFuncUnix(r rune) bool {
+	return r != '/' && unicode.IsPunct(r)
+}
 
 func matchKBFSPathOuter(body string) (outerMatches []outerMatch) {
 	res := kbfsPathOuterRegExp.FindAllStringSubmatchIndex(body, -1)
@@ -57,11 +63,11 @@ func matchKBFSPathOuter(body string) (outerMatches []outerMatch) {
 		case indices[4] > 0:
 			outerMatches = append(outerMatches, outerMatch{
 				matchStartIndex: indices[2],
-				wholeMatch:      strings.TrimRight(body[indices[2]:indices[3]], unquotedTrailingTrimCutset),
+				wholeMatch:      strings.TrimRightFunc(body[indices[2]:indices[3]], unquotedTrailingTrimFuncUnix),
 				afterKeybase: strings.TrimRight(
 					strings.Replace(
 						strings.Replace(
-							strings.TrimRight(body[indices[4]:indices[5]], unquotedTrailingTrimCutset),
+							strings.TrimRightFunc(body[indices[4]:indices[5]], unquotedTrailingTrimFuncUnix),
 							`\\`,
 							`\`,
 							-1,
@@ -85,10 +91,10 @@ func matchKBFSPathOuter(body string) (outerMatches []outerMatch) {
 		case indices[8] > 0:
 			outerMatches = append(outerMatches, outerMatch{
 				matchStartIndex: indices[2],
-				wholeMatch:      strings.TrimRight(body[indices[2]:indices[3]], unquotedTrailingTrimCutset),
+				wholeMatch:      strings.TrimRightFunc(body[indices[2]:indices[3]], unquotedTrailingTrimFuncWindows),
 				afterKeybase: strings.TrimRight(
 					strings.Replace(
-						strings.TrimRight(body[indices[8]:indices[9]], unquotedTrailingTrimCutset),
+						strings.TrimRightFunc(body[indices[8]:indices[9]], unquotedTrailingTrimFuncWindows),
 						`\`,
 						`/`,
 						-1,
@@ -111,13 +117,13 @@ func matchKBFSPathOuter(body string) (outerMatches []outerMatch) {
 				),
 			})
 		case indices[12] > 0:
-			unescaped, err := url.PathUnescape(strings.TrimRight(body[indices[12]:indices[13]], unquotedTrailingTrimCutset))
+			unescaped, err := url.PathUnescape(strings.TrimRightFunc(body[indices[12]:indices[13]], unquotedTrailingTrimFuncUnix))
 			if err != nil {
 				continue
 			}
 			outerMatches = append(outerMatches, outerMatch{
 				matchStartIndex: indices[2],
-				wholeMatch:      strings.TrimRight(body[indices[2]:indices[3]], unquotedTrailingTrimCutset),
+				wholeMatch:      strings.TrimRightFunc(body[indices[2]:indices[3]], unquotedTrailingTrimFuncUnix),
 				afterKeybase: strings.TrimRight(
 					unescaped,
 					"/",
