@@ -162,6 +162,11 @@
       ],
       "response": null,
       "oneway": true
+    },
+    "teamMetadataUpdate": {
+      "request": [],
+      "response": null,
+      "oneway": true
     }
   },
   "namespace": "keybase.1"

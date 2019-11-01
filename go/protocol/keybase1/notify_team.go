@@ -97,6 +97,9 @@ type AvatarUpdatedArg struct {
 	Typ     AvatarUpdateType `codec:"typ" json:"typ"`
 }
 
+type TeamMetadataUpdateArg struct {
+}
+
 type NotifyTeamInterface interface {
 	TeamChangedByID(context.Context, TeamChangedByIDArg) error
 	TeamChangedByName(context.Context, TeamChangedByNameArg) error
@@ -106,6 +109,7 @@ type NotifyTeamInterface interface {
 	NewlyAddedToTeam(context.Context, TeamID) error
 	TeamRoleMapChanged(context.Context, UserTeamVersion) error
 	AvatarUpdated(context.Context, AvatarUpdatedArg) error
+	TeamMetadataUpdate(context.Context) error
 }
 
 func NotifyTeamProtocol(i NotifyTeamInterface) rpc.Protocol {
@@ -232,6 +236,16 @@ func NotifyTeamProtocol(i NotifyTeamInterface) rpc.Protocol {
 					return
 				},
 			},
+			"teamMetadataUpdate": {
+				MakeArg: func() interface{} {
+					var ret [1]TeamMetadataUpdateArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					err = i.TeamMetadataUpdate(ctx)
+					return
+				},
+			},
 		},
 	}
 }
@@ -282,5 +296,10 @@ func (c NotifyTeamClient) TeamRoleMapChanged(ctx context.Context, newVersion Use
 
 func (c NotifyTeamClient) AvatarUpdated(ctx context.Context, __arg AvatarUpdatedArg) (err error) {
 	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.avatarUpdated", []interface{}{__arg}, 0*time.Millisecond)
+	return
+}
+
+func (c NotifyTeamClient) TeamMetadataUpdate(ctx context.Context) (err error) {
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamMetadataUpdate", []interface{}{TeamMetadataUpdateArg{}}, 0*time.Millisecond)
 	return
 }

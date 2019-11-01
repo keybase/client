@@ -89,7 +89,7 @@ type NotifyListener interface {
 	WalletAccountsUpdate(accounts []stellar1.WalletAccountLocal)
 	WalletPendingPaymentsUpdate(accountID stellar1.AccountID, pending []stellar1.PaymentOrErrorLocal)
 	WalletRecentPaymentsUpdate(accountID stellar1.AccountID, firstPage stellar1.PaymentsPageLocal)
-	TeamListUnverifiedChanged(teamName string)
+	TeamMetadataUpdate()
 	CanUserPerformChanged(teamName string)
 	PhoneNumbersChanged(list []keybase1.UserPhoneNumber, category string, phoneNumber keybase1.PhoneNumber)
 	EmailAddressVerified(emailAddress keybase1.EmailAddress)
@@ -212,8 +212,8 @@ func (n *NoopNotifyListener) WalletPendingPaymentsUpdate(accountID stellar1.Acco
 }
 func (n *NoopNotifyListener) WalletRecentPaymentsUpdate(accountID stellar1.AccountID, firstPage stellar1.PaymentsPageLocal) {
 }
-func (n *NoopNotifyListener) TeamListUnverifiedChanged(teamName string) {}
-func (n *NoopNotifyListener) CanUserPerformChanged(teamName string)     {}
+func (n *NoopNotifyListener) TeamMetadataUpdate()                   {}
+func (n *NoopNotifyListener) CanUserPerformChanged(teamName string) {}
 func (n *NoopNotifyListener) PhoneNumbersChanged(list []keybase1.UserPhoneNumber, category string, phoneNumber keybase1.PhoneNumber) {
 }
 func (n *NoopNotifyListener) EmailAddressVerified(emailAddress keybase1.EmailAddress) {}
@@ -1912,15 +1912,14 @@ func (n *NotifyRouter) HandleTeamChangedByName(ctx context.Context,
 	n.G().Log.CDebugf(ctx, "- Sent TeamChanged notification")
 }
 
-// HandleTeamListUnverifiedChanged is called when a notification is received from gregor that
-// we think might be of interest to the UI, specifically the parts of the UI that update using
-// the TeamListUnverified rpc.
-func (n *NotifyRouter) HandleTeamListUnverifiedChanged(ctx context.Context, teamName string) {
+// TeamMetadataUpdateUnverified is called when a notification is received that
+// affects the teams tab root page.
+func (n *NotifyRouter) HandleTeamMetadataUpdate(ctx context.Context) {
 	if n == nil {
 		return
 	}
 
-	n.G().Log.Debug("+ Sending TeamListUnverifiedChanged notification (team:%v)", teamName)
+	n.G().Log.Debug("+ Sending TeamMetadataUpdate notification")
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		// If the connection wants the `Team` notifications
@@ -1928,18 +1927,18 @@ func (n *NotifyRouter) HandleTeamListUnverifiedChanged(ctx context.Context, team
 			// In the background do...
 			go func() {
 				// A send of a `TeamListUnverifiedChanged` RPC
-				_ = (keybase1.NotifyUnverifiedTeamListClient{
+				_ = (keybase1.NotifyTeamClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).TeamListUnverifiedChanged(context.Background(), teamName)
+				}).TeamMetadataUpdate(context.Background())
 			}()
 		}
 		return true
 	})
 
 	n.runListeners(func(listener NotifyListener) {
-		listener.TeamListUnverifiedChanged(teamName)
+		listener.TeamMetadataUpdate()
 	})
-	n.G().Log.Debug("- Sent TeamListUnverifiedChanged notification (team:%v)", teamName)
+	n.G().Log.Debug("- Sent TeamMetadata notification")
 }
 
 // HandleCanUserPerformChanged is called when a notification is received from gregor that

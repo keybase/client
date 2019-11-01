@@ -433,6 +433,9 @@
         "keybase1NotifyTeamAvatarUpdated": {
             "params": "keybase1Types.MessageTypes['keybase.1.NotifyTeam.avatarUpdated']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyTeam.avatarUpdated']['outParam']) => void}"
         },
+        "keybase1NotifyTeamTeamMetadataUpdate": {
+            "params": "keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamMetadataUpdate']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamMetadataUpdate']['outParam']) => void}"
+        },
         "keybase1NotifyTeambotNewTeambotKey": {
             "params": "keybase1Types.MessageTypes['keybase.1.NotifyTeambot.newTeambotKey']['inParam'] & {sessionID: number}"
         },
@@ -444,9 +447,6 @@
         },
         "keybase1NotifyTrackingTrackingInfo": {
             "params": "keybase1Types.MessageTypes['keybase.1.NotifyTracking.trackingInfo']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyTracking.trackingInfo']['outParam']) => void}"
-        },
-        "keybase1NotifyUnverifiedTeamListTeamListUnverifiedChanged": {
-            "params": "keybase1Types.MessageTypes['keybase.1.NotifyUnverifiedTeamList.teamListUnverifiedChanged']['inParam'] & {sessionID: number}"
         },
         "keybase1NotifyUsersUserChanged": {
             "params": "keybase1Types.MessageTypes['keybase.1.NotifyUsers.userChanged']['inParam'] & {sessionID: number}"

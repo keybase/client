@@ -1384,6 +1384,12 @@ func (k *KeybaseDaemonRPC) NewlyAddedToTeam(context.Context, keybase1.TeamID) er
 	return nil
 }
 
+// TeamMetadataUpdate implements keybase1.NotifyTeamInterface for
+// KeybaseServiceBase.
+func (k *KeybaseDaemonRPC) TeamMetadataUpdate(context.Context) error {
+	return nil
+}
+
 // TeamAbandoned implements keybase1.NotifyTeamInterface for KeybaseServiceBase.
 func (k *KeybaseDaemonRPC) TeamAbandoned(
 	ctx context.Context, tid keybase1.TeamID) error {
