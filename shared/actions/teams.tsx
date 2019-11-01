@@ -1152,26 +1152,27 @@ const teamRoleMapChangedUpdateLatestKnownVersion = (
 }
 
 const refreshTeamRoleMap = async (logger: Saga.SagaLogger) => {
-  while (true) {
-    try {
-      const map = await RPCTypes.teamsGetTeamRoleMapRpcPromise()
-      return TeamsGen.createSetTeamRoleMap({map: Constants.rpcTeamRoleMapAndVersionToTeamRoleMap(map)})
-    } catch {
-      logger.info(`Failed to refresh TeamRoleMap; will retry in 30s`)
-      await Saga.delay(30 * 1000)
-    }
+  try {
+    const map = await RPCTypes.teamsGetTeamRoleMapRpcPromise()
+    return TeamsGen.createSetTeamRoleMap({map: Constants.rpcTeamRoleMapAndVersionToTeamRoleMap(map)})
+  } catch {
+    logger.info(`Failed to refresh TeamRoleMap; service will retry`)
+    return
   }
 }
 
 const teamRoleMapChangedUpdateRefreshRoleMap = async (
-  _: TypedState,
+  state: TypedState,
   action: EngineGen.Keybase1NotifyTeamTeamRoleMapChangedPayload,
   logger: Saga.SagaLogger
 ) => {
   const {newVersion} = action.payload.params
   logger.info(`Got teamRoleMapChanged with version ${newVersion}`)
-  let ret = await refreshTeamRoleMap(logger)
-  return ret
+  if (state.teams.teamRoleMap.loadedVersion < newVersion) {
+    let ret = await refreshTeamRoleMap(logger)
+    return ret
+  }
+  return
 }
 
 const teamRoleMapPrimeOnStartup = async (_: TypedState, __, logger: Saga.SagaLogger) => {

@@ -130,12 +130,11 @@ export const rpcTeamRoleMapAndVersionToTeamRoleMap = (
   }
   for (let key in m.teams) {
     let value = m.teams[key]
-    ret.roles[key] = {
+    ret.roles.set(key, {
       implicitRole: teamRoleByEnum[value.implicitRole] || 'none',
       role: teamRoleByEnum[value.role] || 'none',
-    }
+    })
   }
-
   return ret
 }
 
