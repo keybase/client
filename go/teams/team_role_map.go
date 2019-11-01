@@ -14,8 +14,7 @@ type TeamRoleMapManager struct {
 	sync.Mutex
 	lastKnownVersion *keybase1.UserTeamVersion
 	state            *keybase1.TeamRoleMapStored
-
-	reachabilityCh chan keybase1.Reachability
+	reachabilityCh   chan keybase1.Reachability
 }
 
 func NewTeamRoleMapManagerAndInstall(g *libkb.GlobalContext) {
