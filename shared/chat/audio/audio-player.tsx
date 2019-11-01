@@ -6,6 +6,7 @@ import {formatAudioRecordDuration} from '../../util/timestamp'
 
 type VisProps = {
   amps: Array<number>
+  ampsRemain: number
   height: number
   maxWidth?: number
 }
@@ -27,7 +28,12 @@ const AudioVis = (props: VisProps) => {
         alignSelf="flex-end"
         direction="vertical"
         key={index}
-        style={{backgroundColor: Styles.globalColors.black, height, marginRight: 2, width: 1}}
+        style={{
+          backgroundColor: index < props.ampsRemain ? Styles.globalColors.blue : Styles.globalColors.black,
+          height,
+          marginRight: 2,
+          width: 1,
+        }}
       />
     )
   })
@@ -87,12 +93,13 @@ const AudioPlayer = (props: Props) => {
       } else {
         setTimeLeft(newTimeLeft)
       }
-    }, 1000)
+    }, 200)
     return () => {
       clearTimeout(timer)
     }
   }, [timeLeft, timeStart, paused, props.duration])
 
+  const ampsRemain = Math.floor((1 - timeLeft / props.duration) * props.visAmps.length)
   return (
     <Kb.Box2 direction="horizontal" style={styles.container} gap="tiny">
       <Kb.ClickableBox onClick={props.url ? onClick : undefined} style={{justifyContent: 'center'}}>
@@ -103,7 +110,7 @@ const AudioPlayer = (props: Props) => {
         />
       </Kb.ClickableBox>
       <Kb.Box2 direction="vertical" style={styles.visContainer} gap="xxtiny">
-        <AudioVis height={32} amps={props.visAmps} maxWidth={props.maxWidth} />
+        <AudioVis height={32} amps={props.visAmps} maxWidth={props.maxWidth} ampsRemain={ampsRemain} />
         <Kb.Text type="BodyTiny" style={styles.duration}>
           {formatAudioRecordDuration(timeLeft)}
         </Kb.Text>
