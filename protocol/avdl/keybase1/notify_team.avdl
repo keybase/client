@@ -43,6 +43,8 @@ protocol NotifyTeam {
 
   void newlyAddedToTeam(TeamID teamID) oneway;
 
+  void teamRoleListChanged(UserTeamVersion newVersion) oneway;
+
   enum AvatarUpdateType {
     NONE_0,
     USER_1,

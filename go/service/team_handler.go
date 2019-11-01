@@ -71,6 +71,8 @@ func (r *teamHandler) Create(ctx context.Context, cli gregor1.IncomingInterface,
 		return true, r.abandonTeam(ctx, cli, item)
 	case "team.newly_added_to_team":
 		return true, r.newlyAddedToTeam(ctx, cli, item)
+	case "team.user_team_version":
+		return true, r.userTeamVersion(ctx, cli, item)
 	default:
 		if strings.HasPrefix(category, "team.") {
 			return false, fmt.Errorf("unknown teamHandler category: %q", category)
@@ -217,6 +219,20 @@ func (r *teamHandler) exitTeam(ctx context.Context, cli gregor1.IncomingInterfac
 
 	r.G().Log.Debug("dismissing team.exit: %v", item.Metadata().MsgID().String())
 	return r.G().GregorState.DismissItem(ctx, cli, item.Metadata().MsgID())
+}
+
+func (r *teamHandler) userTeamVersion(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) (err error) {
+	mctx := libkb.NewMetaContext(ctx, r.G())
+	nm := "team.user_team_version"
+	defer mctx.Trace("teamHandler#userTeamVersion", func() error { return err })()
+	var obj keybase1.UserTeamVersionUpdate
+	err = json.Unmarshal(item.Body().Bytes(), &obj)
+	if err != nil {
+		mctx.Debug("Error unmarshaling %s item: %s", nm, err)
+		return err
+	}
+	return r.G().GetTeamRoleListManager().Update(mctx, obj.Version)
+
 }
 
 func (r *teamHandler) newlyAddedToTeam(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {

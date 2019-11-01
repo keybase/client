@@ -755,6 +755,12 @@ type HiddenTeamChainManager interface {
 	HintLatestSeqno(m MetaContext, id keybase1.TeamID, seqno keybase1.Seqno) error
 }
 
+type TeamRoleListManager interface {
+	Get(m MetaContext) (res keybase1.TeamRoleList, err error)
+	Update(m MetaContext, version keybase1.UserTeamVersion) (err error)
+	FlushCache()
+}
+
 type TeamAuditor interface {
 	AuditTeam(m MetaContext, id keybase1.TeamID, isPublic bool, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno, auditMode keybase1.AuditMode) (err error)
 }

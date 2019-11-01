@@ -3302,6 +3302,70 @@ func (o MemberUsername) DeepCopy() MemberUsername {
 	}
 }
 
+type TeamRoleListRow struct {
+	TeamID       TeamID   `codec:"teamID" json:"team_id"`
+	Role         TeamRole `codec:"role" json:"role"`
+	ImplicitRole TeamRole `codec:"implicitRole" json:"implicit_role"`
+}
+
+func (o TeamRoleListRow) DeepCopy() TeamRoleListRow {
+	return TeamRoleListRow{
+		TeamID:       o.TeamID.DeepCopy(),
+		Role:         o.Role.DeepCopy(),
+		ImplicitRole: o.ImplicitRole.DeepCopy(),
+	}
+}
+
+type TeamRoleList struct {
+	Teams   []TeamRoleListRow `codec:"teams" json:"teams"`
+	Version UserTeamVersion   `codec:"version" json:"user_team_version"`
+}
+
+func (o TeamRoleList) DeepCopy() TeamRoleList {
+	return TeamRoleList{
+		Teams: (func(x []TeamRoleListRow) []TeamRoleListRow {
+			if x == nil {
+				return nil
+			}
+			ret := make([]TeamRoleListRow, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Teams),
+		Version: o.Version.DeepCopy(),
+	}
+}
+
+type TeamRoleListStored struct {
+	Data     TeamRoleList `codec:"data" json:"data"`
+	CachedAt Time         `codec:"cachedAt" json:"cachedAt"`
+}
+
+func (o TeamRoleListStored) DeepCopy() TeamRoleListStored {
+	return TeamRoleListStored{
+		Data:     o.Data.DeepCopy(),
+		CachedAt: o.CachedAt.DeepCopy(),
+	}
+}
+
+type UserTeamVersion int
+
+func (o UserTeamVersion) DeepCopy() UserTeamVersion {
+	return o
+}
+
+type UserTeamVersionUpdate struct {
+	Version UserTeamVersion `codec:"version" json:"version"`
+}
+
+func (o UserTeamVersionUpdate) DeepCopy() UserTeamVersionUpdate {
+	return UserTeamVersionUpdate{
+		Version: o.Version.DeepCopy(),
+	}
+}
+
 type TeamCreateArg struct {
 	SessionID   int    `codec:"sessionID" json:"sessionID"`
 	Name        string `codec:"name" json:"name"`
@@ -3624,6 +3688,9 @@ type FtlArg struct {
 	Arg FastTeamLoadArg `codec:"arg" json:"arg"`
 }
 
+type GetTeamRoleListArg struct {
+}
+
 type TeamsInterface interface {
 	TeamCreate(context.Context, TeamCreateArg) (TeamCreateResult, error)
 	TeamCreateWithSettings(context.Context, TeamCreateWithSettingsArg) (TeamCreateResult, error)
@@ -3696,6 +3763,7 @@ type TeamsInterface interface {
 	// current user can't read the team.
 	GetTeamID(context.Context, string) (TeamID, error)
 	Ftl(context.Context, FastTeamLoadArg) (FastTeamLoadRes, error)
+	GetTeamRoleList(context.Context) (TeamRoleList, error)
 }
 
 func TeamsProtocol(i TeamsInterface) rpc.Protocol {
@@ -4527,6 +4595,16 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 					return
 				},
 			},
+			"getTeamRoleList": {
+				MakeArg: func() interface{} {
+					var ret [1]GetTeamRoleListArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.GetTeamRoleList(ctx)
+					return
+				},
+			},
 		},
 	}
 }
@@ -4832,5 +4910,10 @@ func (c TeamsClient) GetTeamID(ctx context.Context, teamName string) (res TeamID
 func (c TeamsClient) Ftl(ctx context.Context, arg FastTeamLoadArg) (res FastTeamLoadRes, err error) {
 	__arg := FtlArg{Arg: arg}
 	err = c.Cli.Call(ctx, "keybase.1.teams.ftl", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c TeamsClient) GetTeamRoleList(ctx context.Context) (res TeamRoleList, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.getTeamRoleList", []interface{}{GetTeamRoleListArg{}}, &res, 0*time.Millisecond)
 	return
 }

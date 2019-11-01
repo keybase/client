@@ -53,6 +53,7 @@ const (
 	StatusCode_SCEmailCannotDeletePrimary                  StatusCode = 716
 	StatusCode_SCEmailUnknown                              StatusCode = 717
 	StatusCode_SCBotSignupTokenNotFound                    StatusCode = 719
+	StatusCode_SCNoUpdate                                  StatusCode = 723
 	StatusCode_SCMissingResult                             StatusCode = 801
 	StatusCode_SCKeyNotFound                               StatusCode = 901
 	StatusCode_SCKeyCorrupted                              StatusCode = 905
@@ -286,6 +287,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCEmailCannotDeletePrimary": 716,
 	"SCEmailUnknown":             717,
 	"SCBotSignupTokenNotFound":   719,
+	"SCNoUpdate":                 723,
 	"SCMissingResult":            801,
 	"SCKeyNotFound":              901,
 	"SCKeyCorrupted":             905,
@@ -517,6 +519,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	716:  "SCEmailCannotDeletePrimary",
 	717:  "SCEmailUnknown",
 	719:  "SCBotSignupTokenNotFound",
+	723:  "SCNoUpdate",
 	801:  "SCMissingResult",
 	901:  "SCKeyNotFound",
 	905:  "SCKeyCorrupted",
