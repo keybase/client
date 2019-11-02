@@ -3,6 +3,7 @@ import * as Kb from '../../common-adapters/mobile.native'
 import * as Types from '../../constants/types/chat2'
 import * as Styles from '../../styles'
 import flags from '../../util/feature-flags'
+import {Gateway} from 'react-gateway'
 
 type AudioStarterProps = {
   dragY: Kb.NativeAnimated.Value
@@ -18,26 +19,35 @@ const maxCancelDrift = -20
 const maxLockDrift = -70
 
 type TooltipProps = {
-  visible: boolean
+  shouldBeVisible: boolean
 }
 
 const Tooltip = (props: TooltipProps) => {
-  return (
-    <Kb.Animated from={{}} to={{opacity: props.visible ? 1 : 0}}>
-      {animatedStyle => (
-        <Kb.FloatingBox dest="keyboard-avoiding-root">
-          <Kb.Box2
-            direction="horizontal"
-            style={Styles.collapseStyles([styles.tooltipContainer, animatedStyle])}
-          >
-            <Kb.Text type="BodySmall" style={{color: Styles.globalColors.white}}>
-              Hold the button to record audio.
-            </Kb.Text>
-          </Kb.Box2>
-        </Kb.FloatingBox>
-      )}
-    </Kb.Animated>
-  )
+  const opacity = React.useRef(new Kb.NativeAnimated.Value(0)).current
+  const [visible, setVisible] = React.useState(false)
+  React.useEffect(() => {
+    if (props.shouldBeVisible) {
+      setVisible(true)
+      Kb.NativeAnimated.timing(opacity, {
+        toValue: 1,
+        useNativeDriver: true,
+      }).start()
+    } else {
+      Kb.NativeAnimated.timing(opacity, {
+        toValue: 0,
+        useNativeDriver: true,
+      }).start(() => setVisible(false))
+    }
+  }, [props.shouldBeVisible])
+  return visible ? (
+    <Kb.NativeAnimated.View style={{opacity}}>
+      <Kb.Box2 direction="horizontal" style={styles.tooltipContainer}>
+        <Kb.Text type="BodySmall" style={{color: Styles.globalColors.white}}>
+          Hold the button to record audio.
+        </Kb.Text>
+      </Kb.Box2>
+    </Kb.NativeAnimated.View>
+  ) : null
 }
 
 const AudioStarter = (props: AudioStarterProps) => {
@@ -74,7 +84,9 @@ const AudioStarter = (props: AudioStarterProps) => {
   }
   return (
     <>
-      <Tooltip visible={showToolTip} />
+      <Gateway into="convOverlay">
+        <Tooltip shouldBeVisible={showToolTip} />
+      </Gateway>
       <Kb.TapGestureHandler
         onHandlerStateChange={({nativeEvent}) => {
           if (!props.recording && nativeEvent.state === Kb.GestureState.BEGAN) {
@@ -161,7 +173,7 @@ const styles = Styles.styleSheetCreate(() => ({
   tooltipContainer: {
     backgroundColor: Styles.globalColors.black,
     borderRadius: Styles.borderRadius,
-    bottom: 95,
+    bottom: 45,
     padding: Styles.globalMargins.tiny,
     position: 'absolute',
     right: 20,
