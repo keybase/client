@@ -31,7 +31,7 @@ const Offline = () => (
 class Conversation extends React.PureComponent<Props> {
   render() {
     return (
-      <GatewayProvider>
+      <>
         <Box2 direction="vertical" fullWidth={true} fullHeight={true}>
           {this.props.threadLoadedOffline && <Offline />}
           <HeaderArea
@@ -61,7 +61,7 @@ class Conversation extends React.PureComponent<Props> {
           />
         </Box2>
         <GatewayDest name="convOverlay" component={Box} />
-      </GatewayProvider>
+      </>
     )
   }
 }

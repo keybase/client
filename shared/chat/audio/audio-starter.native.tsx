@@ -55,7 +55,7 @@ const AudioStarter = (props: AudioStarterProps) => {
   const locked = React.useRef<boolean>(false)
   const tapLive = React.useRef<boolean>(false)
   const [showToolTip, setShowToolTip] = React.useState(false)
-  const showToolTopFalseLater = Kb.useTimeout(() => {
+  const showToolTipFalseLater = Kb.useTimeout(() => {
     setShowToolTip(false)
   }, 2000)
   React.useEffect(() => {
@@ -100,13 +100,18 @@ const AudioStarter = (props: AudioStarterProps) => {
               }, 200)
             }
           }
-          if (nativeEvent.state === Kb.GestureState.ACTIVE || nativeEvent.state === Kb.GestureState.END) {
+          if (
+            nativeEvent.state === Kb.GestureState.ACTIVE ||
+            nativeEvent.state === Kb.GestureState.END ||
+            nativeEvent.state === Kb.GestureState.CANCELLED ||
+            nativeEvent.state === Kb.GestureState.FAILED
+          ) {
             clearTimeout(longPressTimer)
             tapLive.current = false
             longPressTimer = null
             if (!props.recording) {
               setShowToolTip(true)
-              showToolTopFalseLater()
+              showToolTipFalseLater()
             }
             if (props.recording && nativeEvent.state === Kb.GestureState.END) {
               if (nativeEvent.x < maxCancelDrift) {

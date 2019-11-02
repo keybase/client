@@ -2161,21 +2161,25 @@ const sendAudioRecording = async (
     })
   }
   const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
-  await RPCChatTypes.localPostFileAttachmentLocalNonblockRpcPromise({
-    arg: {
-      ...ephemeralData,
-      callerPreview,
-      conversationID: Types.keyToConversationID(conversationIDKey),
-      filename: audioRecording.path,
-      identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-      metadata: Buffer.from([]),
-      outboxID: audioRecording.outboxID,
-      title: '',
-      tlfName: meta.tlfname,
-      visibility: RPCTypes.TLFVisibility.private,
-    },
-    clientPrev,
-  })
+  try {
+    await RPCChatTypes.localPostFileAttachmentLocalNonblockRpcPromise({
+      arg: {
+        ...ephemeralData,
+        callerPreview,
+        conversationID: Types.keyToConversationID(conversationIDKey),
+        filename: audioRecording.path,
+        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+        metadata: Buffer.from([]),
+        outboxID: audioRecording.outboxID,
+        title: '',
+        tlfName: meta.tlfname,
+        visibility: RPCTypes.TLFVisibility.private,
+      },
+      clientPrev,
+    })
+  } catch (e) {
+    logger.warn('sendAudioRecording: failed to send attachment: ' + JSON.stringify(e))
+  }
 }
 
 // Upload an attachment
