@@ -8,7 +8,7 @@ import {globalStyles, globalColors, globalMargins, styleSheetCreate} from '../..
 import {Props} from '.'
 import ThreadLoadStatus from '../load-status/container'
 import PinnedMessage from '../pinned-message/container'
-import {GatewayProvider, GatewayDest} from 'react-gateway'
+import {GatewayDest} from 'react-gateway'
 
 const Offline = () => (
   <Box
