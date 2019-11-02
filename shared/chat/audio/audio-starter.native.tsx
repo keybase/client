@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import * as React from 'react'
 import * as Kb from '../../common-adapters/mobile.native'
 import * as Types from '../../constants/types/chat2'

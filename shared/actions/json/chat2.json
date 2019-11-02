@@ -790,7 +790,8 @@
       "conversationIDKey": "Types.ConversationIDKey"
     },
     "sendAudioRecording": {
-      "conversationIDKey": "Types.ConversationIDKey"
+      "conversationIDKey": "Types.ConversationIDKey",
+      "fromStaged": "boolean"
     },
     "setAudioRecordingPostInfo": {
       "conversationIDKey": "Types.ConversationIDKey",

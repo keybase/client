@@ -2136,8 +2136,9 @@ const sendAudioRecording = async (
   logger: Saga.SagaLogger
 ) => {
   // sit here for 400ms for animations
-  await Saga.delay(400)
-
+  if (!action.payload.fromStaged) {
+    await Saga.delay(400)
+  }
   const conversationIDKey = action.payload.conversationIDKey
   const audioRecording = state.chat2.audioRecording.get(conversationIDKey)
   const clientPrev = Constants.getClientPrev(state, conversationIDKey)

@@ -525,7 +525,10 @@ type _SelectConversationPayload = {
     | 'teamMention'
   readonly navKey?: string
 }
-type _SendAudioRecordingPayload = {readonly conversationIDKey: Types.ConversationIDKey}
+type _SendAudioRecordingPayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly fromStaged: boolean
+}
 type _SendTypingPayload = {readonly conversationIDKey: Types.ConversationIDKey; readonly typing: boolean}
 type _SetAttachmentViewStatusPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
