@@ -756,7 +756,7 @@ type HiddenTeamChainManager interface {
 }
 
 type TeamRoleMapManager interface {
-	Get(m MetaContext) (res keybase1.TeamRoleMapAndVersion, err error)
+	Get(m MetaContext, retryOnFail bool) (res keybase1.TeamRoleMapAndVersion, err error)
 	Update(m MetaContext, version keybase1.UserTeamVersion) (err error)
 	FlushCache()
 }

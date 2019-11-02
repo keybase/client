@@ -120,6 +120,25 @@ export const teamRoleByEnum = ((m: {[K in Types.MaybeTeamRoleType]: RPCTypes.Tea
   return mInv
 })(RPCTypes.TeamRole)
 
+export const rpcTeamRoleMapAndVersionToTeamRoleMap = (
+  m: RPCTypes.TeamRoleMapAndVersion
+): Types.TeamRoleMap => {
+  const ret: Types.TeamRoleMap = {
+    latestKnownVersion: m.version,
+    loadedVersion: m.version,
+    roles: new Map<Types.TeamID, Types.TeamRoleAndDetails>(),
+  }
+  for (const key in m.teams) {
+    const value = m.teams[key]
+    ret.roles.set(key, {
+      implicitAdmin:
+        value.implicitRole === RPCTypes.TeamRole.admin || value.implicitRole == RPCTypes.TeamRole.owner,
+      role: teamRoleByEnum[value.role] || 'none',
+    })
+  }
+  return ret
+}
+
 export const typeToLabel: Types.TypeMap = {
   admin: 'Admin',
   bot: 'Bot',
@@ -177,6 +196,7 @@ const emptyState: Types.State = {
   teamNameToSettings: I.Map(),
   teamNameToSubteams: I.Map(),
   teamProfileAddList: [],
+  teamRoleMap: {latestKnownVersion: -1, loadedVersion: -1, roles: new Map()},
   teammembercounts: I.Map(),
   teamnames: new Set(),
   teamsWithChosenChannels: new Set(),

@@ -100,6 +100,7 @@ type NotifyListener interface {
 	RuntimeStatsUpdate(*keybase1.RuntimeStats)
 	HTTPSrvInfoUpdate(keybase1.HttpSrvInfo)
 	IdentifyUpdate(okUsernames []string, brokenUsernames []string)
+	Reachability(keybase1.Reachability)
 }
 
 type NoopNotifyListener struct{}
@@ -226,6 +227,7 @@ func (n *NoopNotifyListener) RuntimeStatsUpdate(*keybase1.RuntimeStats) {}
 func (n *NoopNotifyListener) HTTPSrvInfoUpdate(keybase1.HttpSrvInfo)    {}
 func (n *NoopNotifyListener) IdentifyUpdate(okUsernames []string, brokenUsernames []string) {
 }
+func (n *NoopNotifyListener) Reachability(keybase1.Reachability) {}
 
 type NotifyListenerID string
 
@@ -1821,6 +1823,9 @@ func (n *NotifyRouter) HandleReachability(r keybase1.Reachability) {
 			}()
 		}
 		return true
+	})
+	n.runListeners(func(listener NotifyListener) {
+		listener.Reachability(r)
 	})
 	n.G().Log.Debug("- Sent reachability")
 }

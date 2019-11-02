@@ -121,6 +121,17 @@ export type TeamDetails = {
   requests?: Set<string>
 }
 
+export type TeamRoleAndDetails = {
+  implicitAdmin: boolean
+  role: MaybeTeamRoleType
+}
+
+export type TeamRoleMap = {
+  latestKnownVersion: number
+  loadedVersion: number
+  roles: Map<TeamID, TeamRoleAndDetails>
+}
+
 export type State = Readonly<{
   addUserToTeamsState: AddUserToTeamsState
   addUserToTeamsResults: string
@@ -156,6 +167,7 @@ export type State = Readonly<{
   teamnames: Set<Teamname> // TODO remove
   teammembercounts: I.Map<Teamname, number>
   teamProfileAddList: Array<TeamProfileAddList>
+  teamRoleMap: TeamRoleMap
   newTeams: Set<TeamID>
   newTeamRequests: Map<TeamID, number>
   newTeamRequestsByName: Map<string, number> // TODO remove
