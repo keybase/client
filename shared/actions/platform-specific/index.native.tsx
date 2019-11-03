@@ -711,7 +711,7 @@ const configureFileAttachmentDownloadForAndroid = () =>
     downloadDirOverride: require('rn-fetch-blob').default.fs.dirs.DownloadDir,
   })
 
-const startAudioRecording = async (
+const startAudioRecording = (
   state: Container.TypedState,
   action: Chat2Gen.StartAudioRecordingPayload,
   logger: Saga.SagaLogger
@@ -720,16 +720,15 @@ const startAudioRecording = async (
   const audio = state.chat2.audioRecording.get(conversationIDKey)
   if (!audio) {
     logger.info('startAudioRecording: no recording info set, bailing')
-    return false
+    return
   }
   if (audio.status !== Types.AudioRecordingStatus.RECORDING) {
     logger.info('startAudioRecording: wrong status for start: ' + audio.status)
-    return false
+    return
   }
   AudioRecorder.onProgress = data => {
     action.payload.meteringCb(data.currentMetering)
   }
-  return false
 }
 
 const stopAudioRecording = async (
