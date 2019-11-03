@@ -2140,13 +2140,9 @@ const sendAudioRecording = async (
     await Saga.delay(400)
   }
   const conversationIDKey = action.payload.conversationIDKey
-  const audioRecording = state.chat2.audioRecording.get(conversationIDKey)
+  const audioRecording = action.payload.info
   const clientPrev = Constants.getClientPrev(state, conversationIDKey)
   const ephemeralLifetime = Constants.getConversationExplodingMode(state, conversationIDKey)
-  if (!audioRecording) {
-    logger.info('sendAudioRecording: no audio info for send')
-    return
-  }
   const meta = state.chat2.metaMap.get(conversationIDKey)
   if (!meta) {
     logger.warn('sendAudioRecording: no meta for send')

@@ -777,7 +777,7 @@ const stopAudioRecording = async (
     logger.info('stopAudioRecording: in staged mode, not sending')
     return false
   }
-  return Chat2Gen.createSendAudioRecording({conversationIDKey, fromStaged: false})
+  return Chat2Gen.createSendAudioRecording({conversationIDKey, fromStaged: false, info: audio})
 }
 
 const onEnableAudioRecording = async (

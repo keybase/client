@@ -528,6 +528,7 @@ type _SelectConversationPayload = {
 type _SendAudioRecordingPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly fromStaged: boolean
+  readonly info: Types.AudioRecordingInfo
 }
 type _SendTypingPayload = {readonly conversationIDKey: Types.ConversationIDKey; readonly typing: boolean}
 type _SetAttachmentViewStatusPayload = {

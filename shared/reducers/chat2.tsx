@@ -632,10 +632,7 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
       }
       case Chat2Gen.sendAudioRecording: {
         const audio = new Map(draftState.audioRecording)
-        audio.set(action.payload.conversationIDKey, {
-          ...(audio.get(action.payload.conversationIDKey) || Constants.makeAudioRecordingInfo()),
-          status: Types.AudioRecordingStatus.STOPPED,
-        })
+        audio.delete(action.payload.conversationIDKey)
         draftState.audioRecording = audio
         return
       }
