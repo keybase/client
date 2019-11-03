@@ -22,7 +22,7 @@ const AudioRecorder = (props: Props) => {
   // props
   const {conversationIDKey} = props
   // state
-  const ampScale = React.useRef(new Kb.NativeAnimated.Value(ampToScale(minAmp - 1))).current
+  const ampScale = React.useRef(new Kb.NativeAnimated.Value(0)).current
   const [visible, setVisible] = React.useState(false)
   const [closingDown, setClosingDown] = React.useState(false)
   const {audioRecording} = Container.useSelector(state => ({
@@ -140,6 +140,11 @@ const AudioButton = (props: ButtonProps) => {
           duration: 400,
           easing: Kb.NativeEasing.elastic(1),
           toValue: 1,
+          useNativeDriver: true,
+        }),
+        Kb.NativeAnimated.timing(props.ampScale, {
+          duration: 400,
+          toValue: ampToScale(minAmp - 1),
           useNativeDriver: true,
         }),
       ],
