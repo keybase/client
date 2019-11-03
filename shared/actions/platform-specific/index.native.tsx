@@ -763,6 +763,11 @@ const stopAudioRecording = async (
     logger.info('stopAudioRecording: no audio record, not sending')
     return false
   }
+  logger.info('stopAudioRecording: info: ' + JSON.stringify(audio))
+  if (audio.status === Types.AudioRecordingStatus.CANCELLED) {
+    logger.info('stopAudioRecording: recording cancelled, bailing out')
+    return false
+  }
   if (ChatConstants.audioRecordingDuration(audio) < 500 || audio.path.length === 0) {
     logger.info('stopAudioRecording: recording too short, skipping')
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)

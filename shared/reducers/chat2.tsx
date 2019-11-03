@@ -579,11 +579,16 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         if (!info) {
           return
         }
-        let nextStatus = info.status
+        let nextStatus: Types.AudioRecordingStatus = info.status
+        if (nextStatus === Types.AudioRecordingStatus.CANCELLED) {
+          return
+        }
+        let nextPath = info.path
         if (info.isLocked) {
           switch (action.payload.stopType) {
             case Types.AudioStopType.CANCEL:
               nextStatus = Types.AudioRecordingStatus.CANCELLED
+              nextPath = ''
               break
             case Types.AudioStopType.SEND:
               nextStatus = Types.AudioRecordingStatus.STOPPED
@@ -593,11 +598,19 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
               break
           }
         } else {
-          nextStatus = Types.AudioRecordingStatus.STOPPED
+          switch (action.payload.stopType) {
+            case Types.AudioStopType.CANCEL:
+              nextStatus = Types.AudioRecordingStatus.CANCELLED
+              nextPath = ''
+              break
+            default:
+              nextStatus = Types.AudioRecordingStatus.STOPPED
+          }
         }
         audio.set(action.payload.conversationIDKey, {
           ...info,
           amps: action.payload.amps,
+          path: nextPath,
           recordEnd: Constants.isStoppedAudioRecordingStatus(nextStatus) ? Date.now() : undefined,
           status: nextStatus,
         })
