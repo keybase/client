@@ -24,7 +24,7 @@ func TestTeamRoleMap(t *testing.T) {
 	subteamID, err := CreateSubteam(m[0].Ctx(), tcs[0].G, subteamName, teamName, keybase1.TeamRole_WRITER)
 	require.NoError(t, err)
 
-	received, err := m[1].G().GetTeamRoleMapManager().Get(m[1])
+	received, err := m[1].G().GetTeamRoleMapManager().Get(m[1], false)
 	require.NoError(t, err)
 
 	expected := keybase1.TeamRoleMapAndVersion{
@@ -68,7 +68,7 @@ func TestTeamRoleMap(t *testing.T) {
 
 	m[1].G().GetTeamRoleMapManager().FlushCache()
 
-	received, err = m[1].G().GetTeamRoleMapManager().Get(m[1])
+	received, err = m[1].G().GetTeamRoleMapManager().Get(m[1], false)
 	require.NoError(t, err)
 	require.Equal(t, expected, received)
 }

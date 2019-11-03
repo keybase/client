@@ -286,6 +286,12 @@
       "_description": "Rename a subteam",
       "oldName": "string",
       "newName": "string"
+    },
+    "setTeamRoleMapLatestKnownVersion": {
+      "version" : "number"
+    },
+    "setTeamRoleMap": {
+      "map" : "Types.TeamRoleMap"
     }
   }
 }

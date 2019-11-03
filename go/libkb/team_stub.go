@@ -197,7 +197,7 @@ func newNullTeamRoleMapManager() nullTeamRoleMapManager {
 	return nullTeamRoleMapManager{}
 }
 
-func (n nullTeamRoleMapManager) Get(m MetaContext) (res keybase1.TeamRoleMapAndVersion, err error) {
+func (n nullTeamRoleMapManager) Get(m MetaContext, retryOnFail bool) (res keybase1.TeamRoleMapAndVersion, err error) {
 	return res, nil
 }
 func (n nullTeamRoleMapManager) Update(m MetaContext, version keybase1.UserTeamVersion) (err error) {
