@@ -684,10 +684,10 @@ const verifyPhoneNumber = async (
 
 const loadContactImportEnabled = async (
   state: TypedState,
-  action: SettingsGen.LoadContactImportEnabledPayload | ConfigGen.BootstrapStatusLoadedPayload,
+  action: SettingsGen.LoadContactImportEnabledPayload | ConfigGen.StartupFirstIdlePayload,
   logger: Saga.SagaLogger
 ) => {
-  if (action.type === ConfigGen.bootstrapStatusLoaded && !action.payload.loggedIn) {
+  if (action.type === ConfigGen.startupFirstIdle && !state.config.loggedIn) {
     return
   }
   if (!state.config.username) {
@@ -810,7 +810,7 @@ function* settingsSaga() {
 
   // Contacts
   yield* Saga.chainAction2(
-    [SettingsGen.loadContactImportEnabled, ConfigGen.bootstrapStatusLoaded],
+    [SettingsGen.loadContactImportEnabled, ConfigGen.startupFirstIdle],
     loadContactImportEnabled,
     'loadContactImportEnabled'
   )
