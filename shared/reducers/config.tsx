@@ -369,6 +369,7 @@ export default (state: Types.State = Constants.initialState, action: Actions): T
       case ConfigGen.setNavigator:
       case ConfigGen.logoutAndTryToLogInAs:
       case ConfigGen.loadNixOnLoginStartup:
+      case ConfigGen.startupFirstIdle:
         return
     }
   })
