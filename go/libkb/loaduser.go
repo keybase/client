@@ -652,7 +652,7 @@ func IsUserByUsernameOffline(m MetaContext, un NormalizedUsername) bool {
 
 	// We already took care of the bad username casing in the harcoded exception list above,
 	// so it's ok to treat the NormalizedUsername as a cased string.
-	uid := UsernameToUIDPreserveCase(un.String())
+	uid := usernameToUIDPreserveCase(un.String())
 
 	// use the UPAKLoader with StaleOK, CachedOnly in order to get cached upak
 	arg := NewLoadUserArgWithMetaContext(m).WithUID(uid).WithPublicKeyOptional().WithStaleOK(true).WithCachedOnly()
