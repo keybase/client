@@ -25,27 +25,27 @@ import openSMS from '../util/sms'
 import {convertToError, logError} from '../util/errors'
 import {TypedState, TypedActions, isMobile} from '../util/container'
 
-function* createNewTeam(_: TypedState, action: TeamsGen.CreateNewTeamPayload) {
+async function createNewTeam(_: TypedState, action: TeamsGen.CreateNewTeamPayload) {
   const {joinSubteam, teamname} = action.payload
-  yield Saga.put(TeamsGen.createSetTeamCreationError({error: ''}))
   try {
-    yield RPCTypes.teamsTeamCreateRpcPromise({joinSubteam, name: teamname}, Constants.teamCreationWaitingKey)
+    const res = await RPCTypes.teamsTeamCreateRpcPromise(
+      {joinSubteam, name: teamname},
+      Constants.teamCreationWaitingKey
+    )
 
-    yield Saga.sequentially([
-      Saga.put(RouteTreeGen.createClearModals()),
-      Saga.put(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'team'}]})),
+    return [
+      RouteTreeGen.createClearModals(),
+      RouteTreeGen.createNavigateAppend({path: [{props: {teamID: res.teamID}, selected: 'team'}]}),
       ...(isMobile
         ? []
         : [
-            Saga.put(
-              RouteTreeGen.createNavigateAppend({
-                path: [{props: {createdTeam: true, teamname}, selected: 'teamEditTeamAvatar'}],
-              })
-            ),
+            RouteTreeGen.createNavigateAppend({
+              path: [{props: {createdTeam: true, teamname}, selected: 'teamEditTeamAvatar'}],
+            }),
           ]),
-    ])
+    ]
   } catch (error) {
-    yield Saga.put(TeamsGen.createSetTeamCreationError({error: error.desc}))
+    return TeamsGen.createSetTeamCreationError({error: error.desc})
   }
 }
 
@@ -1453,11 +1453,7 @@ const teamsSaga = function*() {
   yield* Saga.chainGenerator<TeamsGen.DeleteTeamPayload>(TeamsGen.deleteTeam, deleteTeam, 'deleteTeam')
   yield* Saga.chainAction2(TeamsGen.getTeamProfileAddList, getTeamProfileAddList, 'getTeamProfileAddList')
   yield* Saga.chainAction2(TeamsGen.leftTeam, leftTeam, 'leftTeam')
-  yield* Saga.chainGenerator<TeamsGen.CreateNewTeamPayload>(
-    TeamsGen.createNewTeam,
-    createNewTeam,
-    'createNewTeam'
-  )
+  yield* Saga.chainAction2(TeamsGen.createNewTeam, createNewTeam, 'createNewTeam')
   yield* Saga.chainGenerator<TeamsGen.JoinTeamPayload>(TeamsGen.joinTeam, joinTeam, 'joinTeam')
   yield* Saga.chainGenerator<TeamsGen.GetDetailsPayload>(TeamsGen.getDetails, getDetails, 'getDetails')
   yield* Saga.chainAction2(TeamsGen.getMembers, getMembers, 'getMembers')
