@@ -69,7 +69,7 @@ type CachingBotCommandManager struct {
 
 func NewCachingBotCommandManager(g *globals.Context, ri func() chat1.RemoteInterface) *CachingBotCommandManager {
 	keyFn := func(ctx context.Context) ([32]byte, error) {
-		return storage.GetSecretBoxKey(ctx, g.ExternalG(), storage.DefaultSecretUI)
+		return storage.GetSecretBoxKey(ctx, g.ExternalG())
 	}
 	dbFn := func(g *libkb.GlobalContext) *libkb.JSONLocalDb {
 		return g.LocalChatDb

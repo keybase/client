@@ -217,7 +217,7 @@ func (i *Inbox) sharedInboxFile(ctx context.Context, uid gregor1.UID) (*encrypte
 	}
 	return encrypteddb.NewFile(i.G().ExternalG(), filepath.Join(dir, "flatinbox.mpack"),
 		func(ctx context.Context) ([32]byte, error) {
-			return GetSecretBoxKey(ctx, i.G().ExternalG(), DefaultSecretUI)
+			return GetSecretBoxKey(ctx, i.G().ExternalG())
 		}), nil
 }
 

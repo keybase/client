@@ -108,7 +108,7 @@ func (u *uploaderTaskStorage) file(outboxID chat1.OutboxID, getPath func(chat1.O
 	}
 	return encrypteddb.NewFile(u.G().ExternalG(), getPath(outboxID),
 		func(ctx context.Context) ([32]byte, error) {
-			return storage.GetSecretBoxKey(ctx, u.G().ExternalG(), storage.DefaultSecretUI)
+			return storage.GetSecretBoxKey(ctx, u.G().ExternalG())
 		}), nil
 }
 

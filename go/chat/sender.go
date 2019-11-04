@@ -902,7 +902,7 @@ func (s *BlockingSender) applyTeamBotSettings(ctx context.Context, uid gregor1.U
 
 func (s *BlockingSender) getSigningKeyPair(ctx context.Context) (kp libkb.NaclSigningKeyPair, err error) {
 	// get device signing key for this user
-	signingKey, err := engine.GetMySecretKey(ctx, s.G().ExternalG(), storage.DefaultSecretUI,
+	signingKey, err := engine.GetMySecretKey(ctx, s.G().ExternalG(),
 		libkb.DeviceSigningKeyType, "sign chat message")
 	if err != nil {
 		return libkb.NaclSigningKeyPair{}, err

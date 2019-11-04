@@ -381,12 +381,9 @@ func TestSignAfterRevoke(t *testing.T) {
 
 	// Still logged in on tc1, a revoked device.
 
-	f := func() libkb.SecretUI {
-		return u.NewSecretUI()
-	}
 	// Test signing with (revoked) device key on tc1, which works...
 	msg := []byte("test message")
-	ret, err := SignED25519(context.TODO(), tc1.G, f, keybase1.SignED25519Arg{
+	ret, err := SignED25519(context.TODO(), tc1.G, keybase1.SignED25519Arg{
 		Msg: msg,
 	})
 	if err != nil {
@@ -406,7 +403,7 @@ func TestSignAfterRevoke(t *testing.T) {
 	require.NoError(t, err)
 
 	// And now this should fail.
-	ret, err = SignED25519(context.TODO(), tc1.G, f, keybase1.SignED25519Arg{
+	ret, err = SignED25519(context.TODO(), tc1.G, keybase1.SignED25519Arg{
 		Msg: msg,
 	})
 	if err == nil {
@@ -422,7 +419,7 @@ func TestLogoutAndDeprovisionIfRevokedNoop(t *testing.T) {
 	tc := SetupEngineTest(t, "rev")
 	defer tc.Cleanup()
 
-	u := CreateAndSignupFakeUser(tc, "rev")
+	CreateAndSignupFakeUser(tc, "rev")
 
 	err := AssertLoggedIn(tc)
 	require.NoError(t, err)
@@ -434,12 +431,8 @@ func TestLogoutAndDeprovisionIfRevokedNoop(t *testing.T) {
 	err = AssertLoggedIn(tc)
 	require.NoError(t, err)
 
-	f := func() libkb.SecretUI {
-		return u.NewSecretUI()
-	}
-
 	msg := []byte("test message")
-	ret, err := SignED25519(context.TODO(), tc.G, f, keybase1.SignED25519Arg{
+	ret, err := SignED25519(context.TODO(), tc.G, keybase1.SignED25519Arg{
 		Msg: msg,
 	})
 	if err != nil {

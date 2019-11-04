@@ -313,11 +313,55 @@ func (a *ActiveDevice) SigningKey() (GenericKey, error) {
 	return a.signingKey, nil
 }
 
+// SigningKeyWithUID returns the signing key for the active device.
+// Returns an error if uid is not active.
+// Safe for use by concurrent goroutines.
+func (a *ActiveDevice) SigningKeyWithUID(uid keybase1.UID) (GenericKey, error) {
+	a.RLock()
+	defer a.RUnlock()
+	if a.uv.Uid.IsNil() {
+		return nil, NotFoundError{
+			Msg: "Not found: device signing key (no active user)",
+		}
+	}
+	if a.uv.Uid != uid {
+		return nil, fmt.Errorf("device signing key for non-active user: %v != %v", a.uv.Uid, uid)
+	}
+	if a.signingKey == nil {
+		return nil, NotFoundError{
+			Msg: "Not found: device signing key",
+		}
+	}
+	return a.signingKey, nil
+}
+
 // EncryptionKey returns the encryption key for the active device.
 // Safe for use by concurrent goroutines.
 func (a *ActiveDevice) EncryptionKey() (GenericKey, error) {
 	a.RLock()
 	defer a.RUnlock()
+	if a.encryptionKey == nil {
+		return nil, NotFoundError{
+			Msg: "Not found: device encryption key",
+		}
+	}
+	return a.encryptionKey, nil
+}
+
+// EncryptionKeyWithUID returns the encryption key for the active device.
+// Returns an error if uid is not active.
+// Safe for use by concurrent goroutines.
+func (a *ActiveDevice) EncryptionKeyWithUID(uid keybase1.UID) (GenericKey, error) {
+	a.RLock()
+	defer a.RUnlock()
+	if a.uv.Uid.IsNil() {
+		return nil, NotFoundError{
+			Msg: "Not found: device encryption key (no active user)",
+		}
+	}
+	if a.uv.Uid != uid {
+		return nil, fmt.Errorf("device encryption key for non-active user: %v != %v", a.uv.Uid, uid)
+	}
 	if a.encryptionKey == nil {
 		return nil, NotFoundError{
 			Msg: "Not found: device encryption key",
@@ -349,6 +393,19 @@ func (a *ActiveDevice) KeyByType(t SecretKeyType) (GenericKey, error) {
 		return a.SigningKey()
 	case DeviceEncryptionKeyType:
 		return a.EncryptionKey()
+	default:
+		return nil, fmt.Errorf("Invalid type %v", t)
+	}
+}
+
+// KeyByTypeWithUID is like KeyByType but returns an error if uid is not active.
+// Safe for use by concurrent goroutines.
+func (a *ActiveDevice) KeyByTypeWithUID(uid keybase1.UID, t SecretKeyType) (GenericKey, error) {
+	switch t {
+	case DeviceSigningKeyType:
+		return a.SigningKeyWithUID(uid)
+	case DeviceEncryptionKeyType:
+		return a.EncryptionKeyWithUID(uid)
 	default:
 		return nil, fmt.Errorf("Invalid type %v", t)
 	}

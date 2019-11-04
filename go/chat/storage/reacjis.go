@@ -108,7 +108,7 @@ type ReacjiStore struct {
 //         },
 func NewReacjiStore(g *globals.Context) *ReacjiStore {
 	keyFn := func(ctx context.Context) ([32]byte, error) {
-		return GetSecretBoxKey(ctx, g.ExternalG(), DefaultSecretUI)
+		return GetSecretBoxKey(ctx, g.ExternalG())
 	}
 	dbFn := func(g *libkb.GlobalContext) *libkb.JSONLocalDb {
 		return g.LocalChatDb
