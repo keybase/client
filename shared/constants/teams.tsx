@@ -93,7 +93,7 @@ export const rpcDetailsToMemberInfos = (
   return I.Map(infos)
 }
 
-export const makeInviteInfo = I.Record<Types._InviteInfo>({
+export const emptyInviteInfo = Object.freeze<Types._InviteInfo>({
   email: '',
   id: '',
   name: '',
@@ -101,6 +101,8 @@ export const makeInviteInfo = I.Record<Types._InviteInfo>({
   role: 'writer',
   username: '',
 })
+
+export const makeInviteInfo = I.Record<Types._InviteInfo>(emptyInviteInfo)
 
 export const emptyEmailInviteError = Object.freeze<Types.EmailInviteError>({
   malformed: new Set<string>(),
@@ -163,6 +165,7 @@ export const makeRetentionPolicy = (r?: Partial<RetentionPolicy>): RetentionPoli
 const emptyState: Types.State = {
   addUserToTeamsResults: '',
   addUserToTeamsState: 'notStarted',
+  canPerform: new Map(),
   channelCreationError: '',
   deletedTeams: [],
   emailInviteError: emptyEmailInviteError,
@@ -205,7 +208,7 @@ const emptyState: Types.State = {
 export const makeState = (s?: Partial<Types.State>): Types.State =>
   s ? Object.assign({...emptyState}, s) : emptyState
 
-export const initialCanUserPerform: RPCTypes.TeamOperation = {
+export const initialCanUserPerform = Object.freeze<Types.TeamOperations>({
   changeOpenTeam: false,
   changeTarsDisabled: false,
   chat: false,
@@ -229,7 +232,7 @@ export const initialCanUserPerform: RPCTypes.TeamOperation = {
   setPublicityAny: false,
   setRetentionPolicy: false,
   setTeamShowcase: false,
-}
+})
 
 const dayInS = 3600 * 24
 const policyInherit = makeRetentionPolicy({title: '', type: 'inherit'})
@@ -330,11 +333,14 @@ const getChannelInfoFromConvID = (
 const getRole = (state: TypedState, teamname: Types.Teamname): Types.MaybeTeamRoleType =>
   state.teams.teamNameToRole.get(teamname, 'none')
 
-const getCanPerform = (state: TypedState, teamname: Types.Teamname): RPCTypes.TeamOperation =>
+const getCanPerform = (state: TypedState, teamname: Types.Teamname): Types.TeamOperations =>
   state.teams.teamNameToCanPerform.get(teamname, initialCanUserPerform)
 
 const hasCanPerform = (state: TypedState, teamname: Types.Teamname): boolean =>
   state.teams.teamNameToCanPerform.has(teamname)
+
+export const getCanPerformByID = (state: TypedState, teamID: Types.TeamID): Types.TeamOperations =>
+  state.teams.canPerform.get(teamID) || initialCanUserPerform
 
 const hasChannelInfos = (state: TypedState, teamname: Types.Teamname): boolean =>
   state.teams.teamNameToChannelInfos.has(teamname)
@@ -424,11 +430,11 @@ const getTeamNameFromID = (state: TypedState, teamID: string): Types.Teamname | 
 const getTeamRetentionPolicy = (state: TypedState, teamname: Types.Teamname): RetentionPolicy | null =>
   state.teams.teamNameToRetentionPolicy.get(teamname, null)
 
-const getSelectedTeamNames = (): Types.Teamname[] => {
+export const getSelectedTeams = (): Types.TeamID[] => {
   const path = getFullRoute()
   return path.reduce<Array<string>>((names, curr) => {
     if (curr.routeName === 'team') {
-      curr.params && curr.params.teamname && names.push(curr.params.teamname)
+      curr.params && curr.params.teamID && names.push(curr.params.teamID)
     }
     return names
   }, [])
@@ -444,6 +450,7 @@ const getNumberOfSubscribedChannels = (state: TypedState, teamname: Types.Teamna
  * Gets whether the team is big or small for teams you are a member of
  */
 const getTeamType = (state: TypedState, teamname: Types.Teamname): 'big' | 'small' | null => {
+  // TODO do not use metaMap here. It's likely this team has no convos in the metaMap.
   const conv = [...state.chat2.metaMap.values()].find(c => c.teamname === teamname)
   if (conv) {
     if (conv.teamType === 'big' || conv.teamType === 'small') {
@@ -611,6 +618,15 @@ export const isOnTeamsTab = () => {
   return Array.isArray(path) ? path.some(p => p.routeName === teamsTab) : false
 }
 
+// Merge new teamDetails objs into old ones, removing any old teams that are not in the new map
+export const mergeTeamDetails = (oldMap: Types.State['teamDetails'], newMap: Types.State['teamDetails']) => {
+  const ret = new Map(newMap)
+  for (const [teamID, teamDetails] of newMap.entries()) {
+    ret.set(teamID, {...oldMap.get(teamID), ...teamDetails})
+  }
+  return ret
+}
+
 export const emptyTeamDetails = Object.freeze<Types.TeamDetails>({
   allowPromote: false,
   id: Types.noTeamID,
@@ -645,6 +661,36 @@ export const teamListToDetails = (
   )
 }
 
+export const annotatedInvitesToInviteInfo = (
+  invites: RPCTypes.TeamDetails['annotatedActiveInvites']
+): Array<Types._InviteInfo> =>
+  Object.values(invites).reduce<Array<Types._InviteInfo>>((arr, invite) => {
+    const role = teamRoleByEnum[invite.role]
+    if (!role || role === 'none') {
+      return arr
+    }
+
+    let username = ''
+    const t = invite.type
+    if (t.c === RPCTypes.TeamInviteCategory.sbs) {
+      const sbs: RPCTypes.TeamInviteSocialNetwork = t.sbs
+      username = `${invite.name}@${sbs}`
+    }
+    const {e164ToDisplay} = require('../util/phone-numbers')
+    arr.push({
+      email: invite.type.c === RPCTypes.TeamInviteCategory.email ? invite.name : '',
+      id: invite.id,
+      name: invite.type.c === RPCTypes.TeamInviteCategory.seitan ? invite.name : '',
+      phone: invite.type.c === RPCTypes.TeamInviteCategory.phone ? e164ToDisplay('+' + invite.name) : '',
+      role,
+      username,
+    })
+    return arr
+  }, [])
+
+export const getTeamDetails = (state: TypedState, teamID: Types.TeamID) =>
+  state.teams.teamDetails.get(teamID) || emptyTeamDetails
+
 export {
   getNumberOfSubscribedChannels,
   getRole,
@@ -666,7 +712,6 @@ export {
   isInTeam,
   isInSomeTeam,
   isAccessRequestPending,
-  getSelectedTeamNames,
   getTeamSubteams,
   getTeamSettings,
   getTeamResetUsers,

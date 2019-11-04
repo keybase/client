@@ -143,7 +143,7 @@ func ListSubteamsUnverified(mctx libkb.MetaContext, name keybase1.TeamName) (res
 			if err != nil {
 				return res, err
 			}
-			entries = append(entries, keybase1.SubteamListEntry{Name: subteamName, MemberCount: potentialSubteam.MemberCount})
+			entries = append(entries, keybase1.SubteamListEntry{Name: subteamName, MemberCount: potentialSubteam.MemberCount, TeamID: potentialSubteam.TeamID})
 		}
 	}
 
