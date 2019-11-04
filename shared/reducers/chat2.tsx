@@ -560,19 +560,6 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         draftState.audioRecording = audio
         return
       }
-      case Chat2Gen.startAudioRecording: {
-        const audio = new Map(draftState.audioRecording)
-        const info = audio.get(action.payload.conversationIDKey)
-        if (!info || !Constants.showAudioRecording(info)) {
-          return
-        }
-        audio.set(action.payload.conversationIDKey, {
-          ...info,
-          status: Types.AudioRecordingStatus.RECORDING,
-        })
-        draftState.audioRecording = audio
-        return
-      }
       case Chat2Gen.stopAudioRecording: {
         const audio = new Map(draftState.audioRecording)
         const info = audio.get(action.payload.conversationIDKey)
@@ -638,10 +625,18 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
       }
       case Chat2Gen.setAudioRecordingPostInfo: {
         const audio = new Map(draftState.audioRecording)
+        const info = audio.get(action.payload.conversationIDKey)
+        if (!info) {
+          return
+        }
+        if (info.status !== Types.AudioRecordingStatus.INITIAL) {
+          return
+        }
         audio.set(action.payload.conversationIDKey, {
-          ...(audio.get(action.payload.conversationIDKey) || Constants.makeAudioRecordingInfo()),
+          ...info,
           outboxID: action.payload.outboxID,
           path: action.payload.path,
+          status: Types.AudioRecordingStatus.RECORDING,
         })
         draftState.audioRecording = audio
         return

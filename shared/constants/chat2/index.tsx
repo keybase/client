@@ -123,6 +123,7 @@ export const makeAudioRecordingInfo = (): Types.AudioRecordingInfo => ({
 export const showAudioRecording = (audioRecording: Types.AudioRecordingInfo | undefined) => {
   return !(
     !audioRecording ||
+    audioRecording.status === Types.AudioRecordingStatus.INITIAL ||
     audioRecording.status === Types.AudioRecordingStatus.STOPPED ||
     audioRecording.status === Types.AudioRecordingStatus.STAGED ||
     audioRecording.status === Types.AudioRecordingStatus.CANCELLED

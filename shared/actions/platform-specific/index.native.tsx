@@ -711,26 +711,6 @@ const configureFileAttachmentDownloadForAndroid = () =>
     downloadDirOverride: require('rn-fetch-blob').default.fs.dirs.DownloadDir,
   })
 
-const startAudioRecording = (
-  state: Container.TypedState,
-  action: Chat2Gen.StartAudioRecordingPayload,
-  logger: Saga.SagaLogger
-) => {
-  const conversationIDKey = action.payload.conversationIDKey
-  const audio = state.chat2.audioRecording.get(conversationIDKey)
-  if (!audio) {
-    logger.info('startAudioRecording: no recording info set, bailing')
-    return
-  }
-  if (audio.status !== Types.AudioRecordingStatus.RECORDING) {
-    logger.info('startAudioRecording: wrong status for start: ' + audio.status)
-    return
-  }
-  AudioRecorder.onProgress = data => {
-    action.payload.meteringCb(data.currentMetering)
-  }
-}
-
 const stopAudioRecording = async (
   state: Container.TypedState,
   action: Chat2Gen.StopAudioRecordingPayload,
@@ -785,13 +765,14 @@ const onEnableAudioRecording = async (
   action: Chat2Gen.EnableAudioRecordingPayload,
   logger: Saga.SagaLogger
 ) => {
-  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
   const conversationIDKey = action.payload.conversationIDKey
   const audio = state.chat2.audioRecording.get(conversationIDKey)
   if (!audio || ChatConstants.isCancelledAudioRecording(audio)) {
     logger.info('enableAudioRecording: no recording info set, bailing')
     return false
   }
+
+  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
   const outboxID = ChatConstants.generateOutboxID()
   await requestAudioPermission()
   const audioPath = await RPCChatTypes.localGetUploadTempFileRpcPromise({filename: 'audio.m4a', outboxID})
@@ -807,8 +788,10 @@ const onEnableAudioRecording = async (
   AudioRecorder.onFinished = () => {
     logger.info('onEnableAudioRecording: recording finished')
   }
-  logger.info('onEnableAudioRecording: beginning recording')
-  await AudioRecorder.startRecording()
+  AudioRecorder.onProgress = data => {
+    action.payload.meteringCb(data.currentMetering)
+  }
+  logger.info('onEnableAudioRecording: setting recording info')
   return Chat2Gen.createSetAudioRecordingPostInfo({conversationIDKey, outboxID, path: audioPath})
 }
 
@@ -816,6 +799,19 @@ const onSendAudioRecording = (_: Container.TypedState, action: Chat2Gen.SendAudi
   if (!action.payload.fromStaged) {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
   }
+}
+
+const onSetAudioRecordingPostInfo = async (
+  state: Container.TypedState,
+  action: Chat2Gen.SetAudioRecordingPostInfoPayload,
+  logger: Saga.SagaLogger
+) => {
+  const audio = state.chat2.audioRecording.get(action.payload.conversationIDKey)
+  if (!audio || audio.status !== Types.AudioRecordingStatus.RECORDING) {
+    logger.info('onSetAudioRecordingPostInfo: not in recording mode anymore, bailing')
+    return
+  }
+  await AudioRecorder.startRecording()
 }
 
 export function* platformConfigSaga() {
@@ -861,10 +857,14 @@ export function* platformConfigSaga() {
   }
 
   // Audio
-  yield* Saga.chainAction2(Chat2Gen.startAudioRecording, startAudioRecording, 'startAudioRecording')
   yield* Saga.chainAction2(Chat2Gen.stopAudioRecording, stopAudioRecording, 'stopAudioRecording')
   yield* Saga.chainAction2(Chat2Gen.enableAudioRecording, onEnableAudioRecording, 'onEnableAudioRecording')
   yield* Saga.chainAction2(Chat2Gen.sendAudioRecording, onSendAudioRecording, 'onSendAudioRecording')
+  yield* Saga.chainAction2(
+    Chat2Gen.setAudioRecordingPostInfo,
+    onSetAudioRecordingPostInfo,
+    'onSetAudioRecordingPostInfo'
+  )
 
   // Start this immediately instead of waiting so we can do more things in parallel
   yield Saga.spawn(loadStartupDetails)
