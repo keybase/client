@@ -32,6 +32,11 @@ func GetSecretBoxKey(ctx context.Context, g *libkb.GlobalContext,
 	return fkey, nil
 }
 
+func GetSecretBoxKeyWithUID(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID,
+	reason libkb.EncryptionReason, reasonStr string) (fkey [32]byte, err error) {
+	panic("xxx todo")
+}
+
 // NoSecretUI is the default SecretUI for GetSecretBoxKey, because we don't
 // expect to do any interactive key unlocking there. GetSecretBoxKey should
 // only be used where device key is present and unlocked.
