@@ -275,8 +275,9 @@ const addReAddErrorHandler = (username, e) => {
       // otherwise show tracker popup
       return Tracker2Gen.createShowUser({asTracker: true, username})
     }
+  } else {
+    throw e
   }
-  return undefined
 }
 
 const addToTeam = async (_: TypedState, action: TeamsGen.AddToTeamPayload) => {
