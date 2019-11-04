@@ -11,19 +11,26 @@ const styleSheetCreate = (funcOrObj: FuncOrObject, transform: Transform) => {
     let lightCached: Object | undefined
     let darkCached: Object | undefined
 
-    const wrapped = {
-      get: function(_: unknown, prop: string) {
-        if (isDarkMode()) {
-          darkCached = darkCached || transform(funcOrObj())
-          return darkCached[prop]
-        } else {
-          lightCached = lightCached || transform(funcOrObj())
-          return lightCached[prop]
-        }
-      },
-    }
+    const keys = Object.keys(funcOrObj())
+    const sheet = {}
 
-    return new Proxy({}, wrapped)
+    keys.forEach(key => {
+      Object.defineProperty(sheet, key, {
+        configurable: false,
+        enumerable: true,
+        get() {
+          if (isDarkMode()) {
+            darkCached = darkCached || transform(funcOrObj())
+            return darkCached[key]
+          } else {
+            lightCached = lightCached || transform(funcOrObj())
+            return lightCached[key]
+          }
+        },
+      })
+    })
+
+    return sheet
   } else {
     if (__DEV__) {
       // TODO turn on to see whats not updated
