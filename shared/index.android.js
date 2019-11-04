@@ -1,6 +1,10 @@
 // @flow
 // React-native tooling assumes this file is here, so we just require our real entry point
 
+if (global.nativeTest) {
+  global.nativeTest.timeMarker('User Code JS')
+}
+
 let lastThing = []
 const noop = () => {}
 const measureStart =

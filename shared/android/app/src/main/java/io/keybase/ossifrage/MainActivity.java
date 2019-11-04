@@ -121,6 +121,7 @@ public class MainActivity extends ReactFragmentActivity implements ReactInstance
     Trace.beginSection("Setup Keystore");
     try {
       Keybase.setGlobalExternalKeyStore(new KeyStore(context, context.getSharedPreferences("KeyStore", MODE_PRIVATE)));
+      Log.d("Time Marker", "Keystore: " + System.currentTimeMillis());
     } catch (KeyStoreException | CertificateException | IOException | NoSuchAlgorithmException e) {
       NativeLogger.error("Exception in MainActivity.onCreate", e);
     }
@@ -134,6 +135,7 @@ public class MainActivity extends ReactFragmentActivity implements ReactInstance
     initOnce(context.getFilesDir().getPath(), "", context.getFileStreamPath("service.log").getAbsolutePath(), "prod", false,
       new DNSNSFetcher(), new VideoHelper(), mobileOsVersion);
     Trace.endSection();
+    Log.d("Time Marker", "Go Init: " + System.currentTimeMillis());
 
   }
 
@@ -159,7 +161,7 @@ public class MainActivity extends ReactFragmentActivity implements ReactInstance
   @Override
   @TargetApi(Build.VERSION_CODES.KITKAT)
   protected void onCreate(Bundle savedInstanceState) {
-    Log.d("App Start Timing", "Start time " + System.currentTimeMillis());
+    Log.d("Time Marker", "Start time: " + System.currentTimeMillis());
     setupKBRuntime(this, true);
     super.onCreate(null);
 

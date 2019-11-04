@@ -146,7 +146,7 @@ public class MainApplication extends Application implements ReactApplication {
                       public boolean onPreDraw() {
                         view.getViewTreeObserver().removeOnPreDrawListener(this);
                         Trace.endAsyncSection("Starting App", 0);
-                        Log.d("App Start Timing", "End Time " + System.currentTimeMillis());
+                        Log.d("Time Marker", "TTI Found: " + System.currentTimeMillis());
                         return true;
                       }
                     });

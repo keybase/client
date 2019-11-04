@@ -8,6 +8,8 @@ import {getEngine} from './require'
 import isArray from 'lodash/isArray'
 const __REMOTEDEV__ = typeof __REMOTEDEV__ !== 'undefined' || !global.nativeTest
 
+let firstRpcSent = false
+
 type WaitingKey = string | Array<string>
 
 // A session is a series of calls back and forth tied together with a single sessionID
@@ -133,6 +135,11 @@ class Session {
     __DEV__ &&
       !__REMOTEDEV__ &&
       global.nativeTest.traceBeginAsyncSection(`RPC-${this._startMethod}`, this._id)
+
+    if (!firstRpcSent && global.nativeTest) {
+      firstRpcSent = true
+      global.nativeTest.timeMarker('First Rpc')
+    }
 
     // When this request is done the session is done
     const wrappedCallback = (...args) => {

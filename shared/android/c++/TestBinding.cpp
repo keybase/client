@@ -93,6 +93,22 @@ jsi::Value TestBinding::get(jsi::Runtime &runtime,
         });
   }
 
+  if (methodName == "timeMarker") {
+    return jsi::Function::createFromHostFunction(
+        runtime, name, 0,
+        [](jsi::Runtime &runtime, const jsi::Value &thisValue,
+           const jsi::Value *arguments, size_t count) -> jsi::Value {
+          auto label = arguments[0].toString(runtime).utf8(runtime);
+          std::chrono::milliseconds ms =
+              std::chrono::duration_cast<std::chrono::milliseconds>(
+                  std::chrono::system_clock::now().time_since_epoch());
+          __android_log_print(ANDROID_LOG_DEBUG, "Time Marker", "%s: %s",
+                              label.c_str(),
+                              std::to_string(ms.count()).c_str());
+          return 0;
+        });
+  }
+
   if (methodName == "runTest") {
     __android_log_print(ANDROID_LOG_VERBOSE, APPNAME,
                         "!!!!!! HI FROM NATIVE CODE %d", __ANDROID_API__);
