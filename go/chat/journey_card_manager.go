@@ -295,8 +295,6 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 		chat1.JourneycardType_MSG_NO_ANSWER,      // C on design
 	}
 
-	// TODO WELCOME cards should not show for all existing teams. That would be a bad transition.
-
 	type cardCondition func(context.Context) bool
 	cardConditionTODO := func(ctx context.Context) bool { return false }
 	cardConditions := map[chat1.JourneycardType]cardCondition{
@@ -369,10 +367,11 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 }
 
 // Card type: WELCOME (1 on design)
-// TODO Welcome's interaction with existing system message
 // Condition: Only in #general channel
 func (cc *JourneyCardManagerSingleUser) cardWelcome(ctx context.Context, convID chat1.ConversationID, conv convForJourneycard, jcd journeyCardConvData) bool {
-	return conv.IsGeneralChannel
+	// TODO PICNIC-593 Welcome's interaction with existing system message
+	// TODO PICNIC-593 Welcome cards should not show for all pre-existing teams when a client upgrades. That would be a bad transition. May require server support.
+	return conv.IsGeneralChannel && false
 }
 
 // Card type: POPULAR_CHANNELS (2 on design)
@@ -404,8 +403,7 @@ func (cc *JourneyCardManagerSingleUser) cardAddPeople(ctx context.Context, conv 
 	// Figure whether the user is in other channels.
 	topicType := chat1.TopicType_CHAT
 	inbox, err := cc.G().InboxSource.ReadUnverified(ctx, cc.uid, types.InboxSourceDataSourceLocalOnly, &chat1.GetInboxQuery{
-		TlfID: &conv.TlfID,
-		// ConvIDs:   []chat1.ConversationID{convID},
+		TlfID:     &conv.TlfID,
 		TopicType: &topicType,
 		MemberStatus: []chat1.ConversationMemberStatus{
 			chat1.ConversationMemberStatus_ACTIVE,
