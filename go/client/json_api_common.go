@@ -162,9 +162,7 @@ func (c *cmdAPI) runHandler(h handler) (err error) {
 	w := os.Stdout
 	defer func() {
 		if err != nil {
-			enc := json.NewEncoder(w)
-			reply := Reply{Error: &CallError{Message: err.Error()}}
-			err = enc.Encode(reply)
+			err = encodeErr(Call{}, err, w, false)
 		}
 	}()
 	if len(c.outputFile) > 0 {
