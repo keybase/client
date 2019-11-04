@@ -4,7 +4,8 @@
     "import * as Types from '../constants/types/chat2'",
     "import * as TeamsTypes from '../constants/types/teams'",
     "import HiddenString from '../util/hidden-string'",
-    "import {RetentionPolicy} from '../constants/types/retention-policy'"
+    "import {RetentionPolicy} from '../constants/types/retention-policy'",
+    "import {AmpTracker} from '../chat/audio/amptracker'"
   ],
   "actions": {
     "toggleSmallTeamsExpanded": {},
@@ -269,6 +270,11 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "text": "HiddenString",
       "replyTo?": "Types.MessageID"
+    },
+    "messageSendByUsernames": {
+      "usernames": "string",
+      "text": "HiddenString",
+      "waitingKey?": "string"
     },
     "toggleLocalReaction": {
       "_description": "Toggle a reaction in the store.",
@@ -771,6 +777,29 @@
     "setInboxNumSmallRows": {
         "ignoreWrite?": "boolean",
         "rows": "number"
+    },
+    "enableAudioRecording": {
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "startAudioRecording": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "meteringCb": "(amp: number) => void"
+    },
+    "stopAudioRecording": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "stopType": "Types.AudioStopType",
+      "amps?": "AmpTracker"
+    },
+    "lockAudioRecording": {
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "sendAudioRecording": {
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "setAudioRecordingPostInfo": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "path": "string",
+      "outboxID": "Buffer"
     }
   }
 }

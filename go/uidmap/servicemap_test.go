@@ -19,7 +19,6 @@ const tAlice = keybase1.UID("295a7eea607af32040647123732bc819")
 const strictNetworkBudget = 2 * time.Nanosecond
 
 func TestServiceMapLookupKnown(t *testing.T) {
-	t.Skip()
 	tc := libkb.SetupTest(t, "TestLookup", 1)
 	defer tc.Cleanup()
 

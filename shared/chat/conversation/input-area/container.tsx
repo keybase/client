@@ -5,6 +5,7 @@ import Normal from './normal/container'
 import Preview from './preview/container'
 import {connect, isMobile} from '../../../util/container'
 import ThreadSearch from '../search/container'
+import AudioSend from '../../audio/audio-send'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
@@ -18,6 +19,7 @@ type OwnProps = {
 type Props = {
   isPreview: boolean
   noInput: boolean
+  showAudioSend: boolean
   showThreadSearch: boolean
 } & OwnProps
 
@@ -25,6 +27,8 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   const meta = Constants.getMeta(state, conversationIDKey)
   let noInput = meta.resetParticipants.size > 0 || !!meta.wasFinalizedBy
   const showThreadSearch = Constants.getThreadSearchInfo(state, conversationIDKey).visible
+  const audio = state.chat2.audioRecording.get(conversationIDKey)
+  const showAudioSend = audio && audio.status === Types.AudioRecordingStatus.STAGED
 
   if (
     conversationIDKey === Constants.pendingWaitingConversationIDKey ||
@@ -37,6 +41,7 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
     conversationIDKey,
     isPreview: meta.membershipType === 'youArePreviewing',
     noInput,
+    showAudioSend,
     showThreadSearch,
   }
 }
@@ -51,6 +56,9 @@ class InputArea extends React.PureComponent<Props> {
     }
     if (this.props.showThreadSearch && isMobile) {
       return <ThreadSearch conversationIDKey={this.props.conversationIDKey} />
+    }
+    if (this.props.showAudioSend) {
+      return <AudioSend conversationIDKey={this.props.conversationIDKey} />
     }
     return (
       <Normal

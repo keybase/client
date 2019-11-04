@@ -13,17 +13,18 @@ export type Props = {
   showServiceResultCount: boolean
   servicesShown?: number
   minimalBorder?: boolean
+  offset?: any
 }
 
 export type IconProps = {
   service: ServiceIdWithContact
   label: Array<string>
-  labelPresence: number // how much to show the label [0, 1]
   onClick: () => void
   count: number | null
   showCount: boolean
   isActive: boolean
   minimalBorder?: boolean
+  offset?: any
 }
 
 export class ServiceTabBar extends React.Component<Props> {}

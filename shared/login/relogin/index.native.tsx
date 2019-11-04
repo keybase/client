@@ -1,115 +1,111 @@
 import * as Constants from '../../constants/login'
 import * as Kb from '../../common-adapters/mobile.native'
 import * as Styles from '../../styles'
-import {Props as InputProps} from '../../common-adapters/input'
+import {Props as InputProps} from '../../common-adapters/labeled-input'
 import Dropdown from './dropdown.native'
 import * as React from 'react'
 import {isDeviceSecureAndroid, isAndroidNewerThanM, isAndroid} from '../../constants/platform.native'
 import {Props} from '.'
 
-class LoginRender extends React.Component<Props> {
-  _inputRef = React.createRef<Kb.Input>()
+type State = {
+  scrollViewHeight?: number
+}
 
-  _focusInput = () => {
-    if (this._inputRef.current) {
-      this._inputRef.current.focus()
-    }
-  }
+class LoginRender extends React.Component<Props, State> {
+  state = {scrollViewHeight: undefined}
 
   _selectedUserChange = selectedUser => {
     this.props.selectedUserChange(selectedUser)
-    // For some reason, calling this immediately doesn't work, at
-    // least on iOS.
-    setImmediate(this._focusInput)
   }
 
   render() {
     const inputProps: InputProps = {
       autoFocus: true,
-      hintText: 'Password',
+      error: !!this.props.error,
+      keyboardType: this.props.showTyping && Styles.isAndroid ? 'visible-password' : 'default',
       onChangeText: password => this.props.passwordChange(password),
       onEnterKeyDown: () => this.props.onSubmit(),
-      ref: this._inputRef,
-      style: {marginBottom: 0},
-      type: this.props.showTyping ? 'passwordVisible' : 'password',
-      // There is a weird bug with RN 0.54+ where if this is controlled it somehow causes a race which causes a crash
-      // making this uncontrolled fixes this
-      uncontrolled: true,
+      placeholder: 'Password',
+      secureTextEntry: true,
+      type: this.props.showTyping ? 'text' : 'password',
     }
 
-    const checkboxProps = [
-      {
-        checked: this.props.showTyping,
-        label: 'Show typing',
-        onCheck: check => {
-          this.props.showTypingChange(check)
-        },
-      },
-    ]
-
     return (
-      <Kb.NativeScrollView style={styles.scrollView}>
-        <Kb.Box style={styles.container}>
-          {isAndroid && !isDeviceSecureAndroid && !isAndroidNewerThanM && (
-            <Kb.Box style={styles.deviceNotSecureContainer}>
-              <Kb.Text center={true} type="Body" negative={true} style={styles.deviceNotSecureText}>
-                Since you don't have a lock screen, you'll have to type your password everytime.
-              </Kb.Text>
-            </Kb.Box>
-          )}
-          {!!this.props.error && <Kb.Banner color="red">{this.props.error}</Kb.Banner>}
-          <Kb.UserCard username={this.props.selectedUser} outerStyle={styles.card}>
-            <Dropdown
-              type="Username"
-              value={this.props.selectedUser}
-              onClick={this._selectedUserChange}
-              onOther={this.props.onSomeoneElse}
-              options={this.props.users}
-            />
-            {this.props.needPassword && (
-              <Kb.FormWithCheckbox
-                style={{alignSelf: 'stretch'}}
-                inputProps={inputProps}
-                checkboxesProps={checkboxProps}
-              />
+      <Kb.Box
+        onLayout={evt => this.setState({scrollViewHeight: evt.nativeEvent.layout.height})}
+        style={Styles.globalStyles.flexOne}
+      >
+        <Kb.NativeScrollView
+          style={styles.scrollView}
+          contentContainerStyle={{minHeight: this.state.scrollViewHeight}}
+        >
+          <Kb.Box style={styles.container}>
+            {isAndroid && !isDeviceSecureAndroid && !isAndroidNewerThanM && (
+              <Kb.Box style={styles.deviceNotSecureContainer}>
+                <Kb.Text center={true} type="Body" negative={true} style={styles.deviceNotSecureText}>
+                  Since you don't have a lock screen, you'll have to type your password everytime.
+                </Kb.Text>
+              </Kb.Box>
             )}
-            <Kb.WaitingButton
-              disabled={this.props.needPassword && !this.props.password}
-              waitingKey={Constants.waitingKey}
-              style={{marginTop: this.props.needPassword ? 0 : Styles.globalMargins.small, width: '100%'}}
-              fullWidth={true}
-              label="Log in"
-              onClick={this.props.onSubmit}
-            />
-            <Kb.Text
-              type="BodySmallSecondaryLink"
-              center={true}
-              onClick={this.props.onForgotPassword}
-              style={{marginTop: Styles.globalMargins.medium}}
-            >
-              Forgot password?
-            </Kb.Text>
-          </Kb.UserCard>
-          <Kb.Text
-            style={{marginTop: Styles.globalMargins.xlarge}}
-            type="BodyBigLink"
-            onClick={this.props.onSignup}
-          >
-            Create an account
-          </Kb.Text>
-          <Kb.Text
-            style={{
-              alignSelf: 'center',
-              margin: Styles.globalMargins.small,
-              marginTop: Styles.globalMargins.large,
-            }}
-            type="BodySmallSecondaryLink"
-            onClick={this.props.onFeedback}
-          >
-            Problems logging in?
-          </Kb.Text>
-        </Kb.Box>
-      </Kb.NativeScrollView>
+            {!!this.props.error && <Kb.Banner color="red">{this.props.error}</Kb.Banner>}
+            <Kb.UserCard username={this.props.selectedUser} outerStyle={styles.card}>
+              <Dropdown
+                type="Username"
+                value={this.props.selectedUser}
+                onClick={this._selectedUserChange}
+                onOther={this.props.onSomeoneElse}
+                options={this.props.users}
+              />
+              {this.props.needPassword && (
+                <Kb.Box2 direction="vertical" gap="tiny" gapEnd={true} gapStart={true} fullWidth={true}>
+                  <Kb.LabeledInput {...inputProps} />
+                  <Kb.Checkbox
+                    checked={this.props.showTyping}
+                    label="Show typing"
+                    onCheck={check => this.props.showTypingChange(check)}
+                    style={styles.formElements}
+                  />
+                </Kb.Box2>
+              )}
+              <Kb.WaitingButton
+                disabled={this.props.needPassword && !this.props.password}
+                waitingKey={Constants.waitingKey}
+                style={{marginTop: this.props.needPassword ? 0 : Styles.globalMargins.small, width: '100%'}}
+                fullWidth={true}
+                label="Log in"
+                onClick={this.props.onSubmit}
+              />
+              <Kb.Text
+                type="BodySmallSecondaryLink"
+                center={true}
+                onClick={this.props.onForgotPassword}
+                style={{marginBottom: Styles.globalMargins.tiny, marginTop: Styles.globalMargins.medium}}
+              >
+                Forgot password?
+              </Kb.Text>
+              <Kb.Text
+                style={{
+                  alignSelf: 'center',
+                }}
+                type="BodySmallSecondaryLink"
+                onClick={this.props.onFeedback}
+              >
+                Problems logging in?
+              </Kb.Text>
+            </Kb.UserCard>
+            <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne} />
+            <Kb.Box2 direction="vertical" fullWidth={true} style={{padding: Styles.globalMargins.medium}}>
+              <Kb.Button
+                fullWidth={true}
+                label="Create an account"
+                mode="Secondary"
+                onClick={this.props.onSignup}
+                style={{flexGrow: 0}}
+              />
+            </Kb.Box2>
+          </Kb.Box>
+        </Kb.NativeScrollView>
+      </Kb.Box>
     )
   }
 }
@@ -124,7 +120,7 @@ const styles = Styles.styleSheetCreate(
       container: {
         ...Styles.globalStyles.flexBoxColumn,
         alignItems: 'center',
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Styles.globalColors.blueGrey,
         flex: 1,
       },
       deviceNotSecureContainer: {
@@ -136,8 +132,11 @@ const styles = Styles.styleSheetCreate(
       deviceNotSecureText: {
         color: Styles.globalColors.brown_75,
       },
+      formElements: {
+        marginBottom: Styles.globalMargins.tiny,
+      },
       scrollView: {
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Styles.globalColors.blueGrey,
       },
     } as const)
 )

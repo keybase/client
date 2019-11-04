@@ -1,9 +1,10 @@
 import * as React from 'react'
 import {Box2} from './box'
-import Text from './text'
 import Image from './image'
 import ProgressIndicator from './progress-indicator'
 import * as Styles from '../styles'
+import {Banner, BannerParagraph} from './banner'
+import openURL from '../util/open-url'
 
 type Props = {
   height: number
@@ -23,12 +24,15 @@ const LocationMap = (props: Props) => {
     <Box2 direction="vertical" fullHeight={true} fullWidth={true} gap="small" style={styles.container}>
       {!!mapSrc && <Image src={mapSrc} style={{height, width}} onLoad={onLoad} />}
       {!mapLoaded && <ProgressIndicator style={styles.loading} />}
-      <Box2 style={styles.banner} direction="horizontal" fullWidth={true} centerChildren={true} gap="xxtiny">
-        <Text type="BodyTiny">Your location is protected.</Text>
-        <Text type="BodyTinyLink" style={styles.learn} onClickURL="https://keybase.io/docs/chat/location">
-          Learn more
-        </Text>
-      </Box2>
+      <Banner color="white" style={styles.banner}>
+        <BannerParagraph
+          bannerColor="white"
+          content={[
+            'Your location is protected. ',
+            {onClick: () => openURL('https://keybase.io/docs/chat/location'), text: 'Learn more'},
+          ]}
+        />
+      </Banner>
     </Box2>
   )
 }

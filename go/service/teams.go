@@ -743,3 +743,8 @@ func (h *TeamsHandler) GetTeamID(ctx context.Context, teamName string) (res keyb
 	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
 	return teams.GetTeamIDByNameRPC(mctx, teamName)
 }
+
+func (h *TeamsHandler) GetTeamRoleMap(ctx context.Context) (res keybase1.TeamRoleMapAndVersion, err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
+	return mctx.G().GetTeamRoleMapManager().Get(mctx, true /* retry on fail */)
+}

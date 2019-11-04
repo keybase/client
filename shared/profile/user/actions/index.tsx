@@ -1,10 +1,10 @@
 import * as Constants from '../../../constants/tracker2'
-import * as ChatConstants from '../../../constants/chat2'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/tracker2'
 import FollowButton from './follow-button'
+import ChatButton from '../../../chat/chat-button'
 
 type Props = {
   followThem: boolean
@@ -13,7 +13,6 @@ type Props = {
   onAccept: () => void
   onAddToTeam: () => void
   onBrowsePublicFolder: () => void
-  onChat: () => void
   onEditProfile?: () => void
   onFollow: () => void
   onIgnoreFor24Hours: () => void
@@ -25,6 +24,7 @@ type Props = {
   onBlock: () => void
   onUnblock: () => void
   state: Types.DetailsState
+  username: string
 }
 
 type DropdownProps = Pick<
@@ -57,16 +57,7 @@ const Actions = (p: Props) => {
     />
   )
 
-  const chatButton = (
-    <Kb.WaitingButton
-      key="Chat"
-      label="Chat"
-      waitingKey={ChatConstants.waitingKeyCreating}
-      onClick={p.onChat}
-    >
-      <Kb.Icon type="iconfont-chat" color={Styles.globalColors.whiteOrWhite} style={styles.chatIcon} />
-    </Kb.WaitingButton>
-  )
+  const chatButton = <ChatButton key="Chat" username={p.username} />
 
   if (p.state === 'notAUserYet') {
     buttons = [
@@ -82,7 +73,7 @@ const Actions = (p: Props) => {
     if (p.state === 'valid') {
       buttons = [
         <FollowButton
-          key="unfollow"
+          key="Unfollow"
           following={true}
           onUnfollow={p.onUnfollow}
           waitingKey={Constants.waitingKey}
@@ -99,8 +90,8 @@ const Actions = (p: Props) => {
           onClick={p.onReload}
         />,
         <Kb.WaitingButton
-          type="Success"
           key="Accept"
+          type="Success"
           label="Accept"
           waitingKey={Constants.waitingKey}
           onClick={p.onAccept}
@@ -123,7 +114,7 @@ const Actions = (p: Props) => {
     } else {
       buttons = [
         <FollowButton
-          key="follow"
+          key="Follow"
           following={false}
           followsYou={p.followsYou}
           onFollow={p.onFollow}

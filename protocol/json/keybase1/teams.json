@@ -2907,6 +2907,70 @@
           "name": "role"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "TeamRolePair",
+      "fields": [
+        {
+          "type": "TeamRole",
+          "name": "role"
+        },
+        {
+          "type": "TeamRole",
+          "name": "implicitRole",
+          "jsonkey": "implicit_role"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamRoleMapAndVersion",
+      "fields": [
+        {
+          "type": {
+            "type": "map",
+            "values": "TeamRolePair",
+            "keys": "TeamID"
+          },
+          "name": "teams"
+        },
+        {
+          "type": "UserTeamVersion",
+          "name": "version",
+          "jsonkey": "user_team_version"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamRoleMapStored",
+      "fields": [
+        {
+          "type": "TeamRoleMapAndVersion",
+          "name": "data"
+        },
+        {
+          "type": "Time",
+          "name": "cachedAt"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserTeamVersion",
+      "fields": [],
+      "typedef": "int"
+    },
+    {
+      "type": "record",
+      "name": "UserTeamVersionUpdate",
+      "fields": [
+        {
+          "type": "UserTeamVersion",
+          "name": "version"
+        }
+      ]
     }
   ],
   "messages": {
@@ -3865,6 +3929,10 @@
         }
       ],
       "response": "FastTeamLoadRes"
+    },
+    "getTeamRoleMap": {
+      "request": [],
+      "response": "TeamRoleMapAndVersion"
     }
   },
   "namespace": "keybase.1"

@@ -53,3 +53,7 @@ func (t TestHandler) TestAirdropReg(ctx context.Context) error {
 	cli := airdrop.NewClient()
 	return cli.Register(mctx)
 }
+
+func (t TestHandler) Echo(ctx context.Context, arg keybase1.Generic) (keybase1.Generic, error) {
+	return arg, nil
+}

@@ -1,8 +1,6 @@
-import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as FsConstants from '../../../constants/fs'
 import * as FsTypes from '../../../constants/types/fs'
-import * as ConfigGen from '../../../actions/config-gen'
 import * as Constants from '../../../constants/tracker2'
 import * as Container from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
@@ -45,10 +43,6 @@ export default Container.namedConnect(
       dispatch(
         FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/public/${username}`))
       ),
-    _onChat: (username: string) => {
-      dispatch(ConfigGen.createShowMain())
-      dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'tracker'}))
-    },
     _onClose: (guiID: string) => dispatch(Tracker2Gen.createCloseTracker({guiID})),
     _onEditProfile: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['profileEdit']})),
     _onFollow: (guiID: string, follow: boolean) => dispatch(Tracker2Gen.createChangeFollow({follow, guiID})),
@@ -70,7 +64,7 @@ export default Container.namedConnect(
     _onUnblock: (username: string, guiID: string) =>
       dispatch(ProfileGen.createSubmitUnblockUser({guiID, username})),
   }),
-  (stateProps, dispatchProps, _: OwnProps) => ({
+  (stateProps, dispatchProps, {username}: OwnProps) => ({
     blocked: stateProps.blocked,
     followThem: stateProps.followThem,
     followsYou: stateProps.followsYou,
@@ -78,7 +72,6 @@ export default Container.namedConnect(
     onAddToTeam: () => dispatchProps._onAddToTeam(stateProps.username),
     onBlock: () => dispatchProps._onBlock(stateProps.username),
     onBrowsePublicFolder: () => dispatchProps._onBrowsePublicFolder(stateProps.username),
-    onChat: () => dispatchProps._onChat(stateProps.username),
     onEditProfile: stateProps._you === stateProps.username ? dispatchProps._onEditProfile : undefined,
     onFollow: () => dispatchProps._onFollow(stateProps._guiID, true),
     onIgnoreFor24Hours: () => dispatchProps._onIgnoreFor24Hours(stateProps._guiID),
@@ -89,6 +82,7 @@ export default Container.namedConnect(
     onUnblock: () => dispatchProps._onUnblock(stateProps.username, stateProps._guiID),
     onUnfollow: () => dispatchProps._onFollow(stateProps._guiID, false),
     state: stateProps.state,
+    username,
   }),
   'Actions'
 )(Actions)

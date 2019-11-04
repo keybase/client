@@ -196,7 +196,8 @@ type InboxSource interface {
 		convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) ([]chat1.ConversationLocal, error)
 	MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 		joined []chat1.ConversationMember, removed []chat1.ConversationMember,
-		resets []chat1.ConversationMember, previews []chat1.ConversationID) (MembershipUpdateRes, error)
+		resets []chat1.ConversationMember, previews []chat1.ConversationID,
+		teamMemberRoleUpdate *chat1.TeamMemberRoleUpdate) (MembershipUpdateRes, error)
 	ConversationsUpdate(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 		convUpdates []chat1.ConversationUpdate) error
 	TeamTypeChanged(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
@@ -217,6 +218,8 @@ type InboxSource interface {
 	GetInboxQueryLocalToRemote(ctx context.Context,
 		lquery *chat1.GetInboxLocalQuery) (*chat1.GetInboxQuery, NameInfo, error)
 	UpdateLocalMtime(ctx context.Context, uid gregor1.UID, updates []chat1.LocalMtimeUpdate) error
+	TeamBotSettingsForConv(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (
+		map[keybase1.UID]keybase1.TeamBotSettings, error)
 
 	SetRemoteInterface(func() chat1.RemoteInterface)
 }
@@ -334,6 +337,8 @@ type ActivityNotifier interface {
 
 	PromptUnfurl(ctx context.Context, uid gregor1.UID,
 		convID chat1.ConversationID, msgID chat1.MessageID, domain string)
+	ConvUpdate(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		topicType chat1.TopicType, conv *chat1.InboxUIItem)
 }
 
 type IdentifyNotifier interface {
@@ -557,12 +562,16 @@ type ReplyFiller interface {
 type UIInboxLoader interface {
 	Resumable
 	UpdateLayout(ctx context.Context, reselectMode chat1.InboxLayoutReselectMode, reason string)
-	UpdateLayoutFromNewMessage(ctx context.Context, conv RemoteConversation,
-		msg chat1.MessageBoxed, firstConv bool, previousStatus chat1.ConversationStatus)
+	UpdateLayoutFromNewMessage(ctx context.Context, conv RemoteConversation)
 	UpdateLayoutFromSubteamRename(ctx context.Context, convs []RemoteConversation)
 	UpdateConvs(ctx context.Context, convIDs []chat1.ConversationID) error
 	LoadNonblock(ctx context.Context, query *chat1.GetInboxLocalQuery,
 		pagination *chat1.Pagination, maxUnbox *int, skipUnverified bool) error
+}
+
+type JourneyCardManager interface {
+	PickCard(context.Context, gregor1.UID, chat1.ConversationID, *chat1.ConversationLocal, *chat1.ThreadView) (*chat1.MessageUnboxedJourneycard, error)
+	SentMessage(context.Context, chat1.ConversationID) // Tell JourneyCardManager that the user has sent a message.
 }
 
 type InternalError interface {

@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/ephemeral"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -59,14 +60,14 @@ func (t *UIThreadLoader) groupGeneric(ctx context.Context, uid gregor1.UID, msgs
 		grouped = nil
 	}
 	for _, msg := range msgs {
-		if msg.IsValid() && matches(msg, grouped) {
+		if matches(msg, grouped) {
 			grouped = append(grouped, msg)
 			continue
 		}
 		addGrouped()
 		// some match functions may depend on messages in grouped, so after we clear it
 		// this message might be a candidate to get grouped.
-		if msg.IsValid() && matches(msg, grouped) {
+		if matches(msg, grouped) {
 			grouped = append(grouped, msg)
 		} else {
 			res = append(res, msg)
@@ -81,6 +82,9 @@ func (t *UIThreadLoader) groupThreadView(ctx context.Context, uid gregor1.UID, t
 	// group JOIN/LEAVE messages
 	newMsgs := t.groupGeneric(ctx, uid, tv.Messages,
 		func(msg chat1.MessageUnboxed, grouped []chat1.MessageUnboxed) bool {
+			if !msg.IsValid() {
+				return false
+			}
 			body := msg.Valid().MessageBody
 			if !(body.IsType(chat1.MessageType_JOIN) || body.IsType(chat1.MessageType_LEAVE)) {
 				return false
@@ -118,6 +122,9 @@ func (t *UIThreadLoader) groupThreadView(ctx context.Context, uid gregor1.UID, t
 	// group BULKADDTOCONV system messages
 	newMsgs = t.groupGeneric(ctx, uid, newMsgs,
 		func(msg chat1.MessageUnboxed, grouped []chat1.MessageUnboxed) bool {
+			if !msg.IsValid() {
+				return false
+			}
 			body := msg.Valid().MessageBody
 			if !body.IsType(chat1.MessageType_SYSTEM) {
 				return false
@@ -172,6 +179,9 @@ func (t *UIThreadLoader) groupThreadView(ctx context.Context, uid gregor1.UID, t
 	var ownUsername *string
 	newMsgs = t.groupGeneric(ctx, uid, newMsgs,
 		func(msg chat1.MessageUnboxed, grouped []chat1.MessageUnboxed) bool {
+			if !msg.IsValid() {
+				return false
+			}
 			body := msg.Valid().MessageBody
 			if !body.IsType(chat1.MessageType_SYSTEM) {
 				return false
@@ -237,6 +247,32 @@ func (t *UIThreadLoader) groupThreadView(ctx context.Context, uid gregor1.UID, t
 				Adder:    mvalid.MessageBody.System().Addedtoteam().Adder,
 			}))
 			msg := chat1.NewMessageUnboxedWithValid(mvalid)
+			return &msg
+		})
+
+	// group duplicate ephemeral errors
+	newMsgs = t.groupGeneric(ctx, uid, newMsgs,
+		func(msg chat1.MessageUnboxed, grouped []chat1.MessageUnboxed) bool {
+			if !(msg.IsError() && msg.Error().IsEphemeralError()) {
+				return false
+			}
+			// group the same error message from the same sender
+			for _, g := range grouped {
+				if !(g.Error().SenderUsername == msg.Error().SenderUsername &&
+					g.Error().ErrMsg == msg.Error().ErrMsg) {
+					return false
+				}
+			}
+			return true
+		},
+		func(grouped []chat1.MessageUnboxed) *chat1.MessageUnboxed {
+			if len(grouped) == 0 {
+				return nil
+			}
+
+			merr := grouped[0].Error()
+			merr.ErrMsg = ephemeral.PluralizeErrorMessage(merr.ErrMsg, len(grouped))
+			msg := chat1.NewMessageUnboxedWithError(merr)
 			return &msg
 		})
 
@@ -317,7 +353,7 @@ func (t *UIThreadLoader) messageIDControlToPagination(ctx context.Context, uid g
 
 func (t *UIThreadLoader) isConsolidateMsg(msg chat1.MessageUnboxed) bool {
 	if !msg.IsValid() {
-		return false
+		return msg.IsError() && msg.Error().IsEphemeralError()
 	}
 	body := msg.Valid().MessageBody
 	typ, err := body.MessageType()

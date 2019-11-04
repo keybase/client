@@ -16,6 +16,8 @@ import {TypedState} from '../reducer'
 import {noConversationIDKey} from '../types/chat2/common'
 import logger from '../../logger'
 import {ServiceId} from 'util/platforms'
+import {assertNever} from '../../util/container'
+import invert from 'lodash/invert'
 
 export const getMessageID = (m: RPCChatTypes.UIMessage) => {
   switch (m.state) {
@@ -139,6 +141,9 @@ export const allMessageTypes: Set<Types.MessageType> = new Set([
   'text',
   'placeholder',
 ])
+
+// The types here are askew. It confuses frontend MessageType with protocol MessageType.
+// Placeholder is an example where it doesn't make sense.
 export const getDeletableByDeleteHistory = (state: TypedState) =>
   (!!state.chat2.staticConfig && state.chat2.staticConfig.deletableByDeleteHistory) || allMessageTypes
 
@@ -191,6 +196,13 @@ export const makeMessagePlaceholder = I.Record<MessageTypes._MessagePlaceholder>
   type: 'placeholder',
 })
 
+export const makeMessageJourneycard = I.Record<MessageTypes._MessageJourneycard>({
+  ...makeMessageMinimum,
+  cardType: RPCChatTypes.JourneycardType.welcome,
+  highlightMsgID: Types.numberToMessageID(0),
+  type: 'journeycard',
+})
+
 export const makeMessageDeleted = I.Record<MessageTypes._MessageDeleted>({
   ...makeMessageCommon,
   type: 'deleted',
@@ -221,6 +233,8 @@ export const makeMessageAttachment = I.Record<MessageTypes._MessageAttachment>({
   ...makeMessageCommon,
   ...makeMessageExplodable,
   attachmentType: 'file',
+  audioAmps: [],
+  audioDuration: 0,
   downloadPath: null,
   fileName: '',
   fileSize: 0,
@@ -680,8 +694,10 @@ export const previewSpecs = (
   preview: RPCChatTypes.AssetMetadata | null,
   full: RPCChatTypes.AssetMetadata | null
 ) => {
-  const res = {
+  const res: Types.PreviewSpec = {
     attachmentType: 'file' as Types.AttachmentType,
+    audioAmps: [],
+    audioDuration: 0,
     height: 0,
     showPlayButton: false,
     width: 0,
@@ -692,11 +708,17 @@ export const previewSpecs = (
   if (preview.assetType === RPCChatTypes.AssetMetadataType.image && preview.image) {
     res.height = preview.image.height
     res.width = preview.image.width
-    res.attachmentType = 'image'
-    // full is a video but preview is an image?
-    if (full && full.assetType === RPCChatTypes.AssetMetadataType.video) {
-      res.showPlayButton = true
+    if (full && full.assetType === RPCChatTypes.AssetMetadataType.video && full.video && full.video.isAudio) {
+      res.attachmentType = 'audio'
+      res.audioDuration = full.video.durationMs
+    } else {
+      res.attachmentType = 'image'
+      // full is a video but preview is an image?
+      if (full && full.assetType === RPCChatTypes.AssetMetadataType.video) {
+        res.showPlayButton = true
+      }
     }
+    res.audioAmps = preview.image.audioAmps || []
   } else if (preview.assetType === RPCChatTypes.AssetMetadataType.video && preview.video) {
     res.height = preview.video.height
     res.width = preview.video.width
@@ -868,6 +890,8 @@ const validUIMessagetoMessage = (
         ...common,
         ...explodable,
         attachmentType: pre.attachmentType,
+        audioAmps: pre.audioAmps,
+        audioDuration: pre.audioDuration,
         fileName: filename,
         fileSize: size,
         fileType,
@@ -1059,6 +1083,22 @@ const errorUIMessagetoMessage = (
   })
 }
 
+export const journeyCardTypeToType = invert(RPCChatTypes.JourneycardType) as {
+  [K in RPCChatTypes.JourneycardType]: keyof typeof RPCChatTypes.JourneycardType
+}
+
+const journeycardUIMessageToMessage = (
+  conversationIDKey: Types.ConversationIDKey,
+  m: RPCChatTypes.UIMessageJourneycard
+) => {
+  return makeMessageJourneycard({
+    cardType: m.cardType,
+    conversationIDKey,
+    highlightMsgID: m.highlightMsgID,
+    ordinal: Types.numberToOrdinal(m.ordinal),
+  })
+}
+
 export const uiMessageToMessage = (
   state: TypedState,
   conversationIDKey: Types.ConversationIDKey,
@@ -1073,7 +1113,10 @@ export const uiMessageToMessage = (
       return outboxUIMessagetoMessage(state, conversationIDKey, uiMessage.outbox)
     case RPCChatTypes.MessageUnboxedState.placeholder:
       return placeholderUIMessageToMessage(conversationIDKey, uiMessage.placeholder)
+    case RPCChatTypes.MessageUnboxedState.journeycard:
+      return journeycardUIMessageToMessage(conversationIDKey, uiMessage.journeycard)
     default:
+      assertNever(uiMessage) // A type error here means there is an unhandled message state
       return null
   }
 }
@@ -1094,9 +1137,9 @@ export const makePendingTextMessage = (
   // would cause the timer to count down while the message is still pending
   // and probably reset when we get the real message back.
 
-  const lastOrdinal = (state.chat2.messageOrdinals.get(conversationIDKey) || I.OrderedSet<number>()).last(
-    Types.numberToOrdinal(0)
-  )
+  const lastOrdinal =
+    [...(state.chat2.messageOrdinals.get(conversationIDKey) || [])].pop() || Types.numberToOrdinal(0)
+
   const ordinal = nextFractionalOrdinal(lastOrdinal)
 
   const explodeInfo = explodeTime ? {exploding: true, explodingTime: Date.now() + explodeTime * 1000} : {}
@@ -1129,15 +1172,16 @@ export const makePendingAttachmentMessage = (
   errorTyp: number | null,
   explodeTime?: number
 ) => {
-  const lastOrdinal = (state.chat2.messageOrdinals.get(conversationIDKey) || I.OrderedSet<number>()).last(
-    Types.numberToOrdinal(0)
-  )
+  const lastOrdinal =
+    [...(state.chat2.messageOrdinals.get(conversationIDKey) || [])].pop() || Types.numberToOrdinal(0)
   const ordinal = !inOrdinal ? nextFractionalOrdinal(lastOrdinal) : inOrdinal
   const explodeInfo = explodeTime ? {exploding: true, explodingTime: Date.now() + explodeTime * 1000} : {}
 
   return makeMessageAttachment({
     ...explodeInfo,
     attachmentType: previewSpec.attachmentType,
+    audioAmps: previewSpec.audioAmps,
+    audioDuration: previewSpec.audioDuration,
     author: state.config.username,
     conversationIDKey,
     deviceName: '',
@@ -1165,9 +1209,9 @@ export const getClientPrev = (state: TypedState, conversationIDKey: Types.Conver
   const mm = state.chat2.messageMap.get(conversationIDKey)
   if (mm) {
     // find last valid messageid we know about
-    const goodOrdinal = (state.chat2.messageOrdinals.get(conversationIDKey) || I.OrderedSet()).findLast(o =>
-      mm.getIn([o, 'id'])
-    )
+    const goodOrdinal = [...(state.chat2.messageOrdinals.get(conversationIDKey) || [])]
+      .reverse()
+      .find(o => mm.getIn([o, 'id']))
 
     if (goodOrdinal) {
       clientPrev = mm.getIn([goodOrdinal, 'id'])

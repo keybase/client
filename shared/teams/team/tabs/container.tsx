@@ -14,10 +14,10 @@ export default Container.connect(
   (state, {teamname, selectedTab, setSelectedTab}: OwnProps) => {
     const yourOperations = Constants.getCanPerform(state, teamname)
     return {
-      _newTeamRequests: state.teams.newTeamRequests,
       admin: yourOperations.manageMembers,
       loading: anyWaiting(state, Constants.teamWaitingKey(teamname), Constants.teamTarsWaitingKey(teamname)),
       memberCount: Constants.getTeamMemberCount(state, teamname),
+      newTeamRequestsByName: state.teams.newTeamRequestsByName,
       numInvites: Constants.getTeamInvites(state, teamname).size,
       numRequests: Constants.getTeamRequests(state, teamname).size,
       numSubteams: Constants.getTeamSubteams(state, teamname).size,
@@ -34,7 +34,7 @@ export default Container.connect(
       admin: stateProps.admin,
       loading: stateProps.loading,
       memberCount: stateProps.memberCount,
-      newTeamRequests: stateProps._newTeamRequests,
+      newRequests: stateProps.newTeamRequestsByName.get(stateProps.teamname) || 0,
       numInvites: stateProps.numInvites,
       numRequests: stateProps.numRequests,
       numSubteams: stateProps.numSubteams,

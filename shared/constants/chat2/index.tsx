@@ -29,6 +29,7 @@ export const makeState = (): Types.State => ({
   accountsInfoMap: new Map(),
   attachmentFullscreenSelection: undefined,
   attachmentViewMap: new Map(),
+  audioRecording: new Map(),
   badgeMap: new Map(), // id to the badge count
   botCommandsUpdateStatusMap: new Map(),
   channelSearchText: '',
@@ -53,16 +54,16 @@ export const makeState = (): Types.State => ({
   isWalletsNew: true,
   lastCoord: undefined,
   maybeMentionMap: new Map(),
-  messageCenterOrdinals: I.Map(), // ordinals to center threads on,
+  messageCenterOrdinals: new Map(), // ordinals to center threads on,
   messageMap: I.Map(), // messages in a thread,
-  messageOrdinals: I.Map(), // ordered ordinals in a thread,
+  messageOrdinals: new Map(), // ordered ordinals in a thread,
   metaMap: new Map(), // metadata about a thread, There is a special node for the pending conversation,
   moreToLoadMap: new Map(), // if we have more data to load,
   mutedMap: new Map(),
   orangeLineMap: new Map(), // last message we've seen,
   paymentConfirmInfo: undefined,
   paymentStatusMap: new Map(),
-  pendingOutboxToOrdinal: I.Map(), // messages waiting to be sent,
+  pendingOutboxToOrdinal: new Map(), // messages waiting to be sent,
   prependTextMap: new Map(),
   previousSelectedConversation: noConversationIDKey,
   quote: undefined,
@@ -112,6 +113,39 @@ export const makeAttachmentViewInfo = (): Types.AttachmentViewInfo => ({
 
 export const initialAttachmentViewInfo = makeAttachmentViewInfo()
 
+export const makeAudioRecordingInfo = (): Types.AudioRecordingInfo => ({
+  isLocked: false,
+  outboxID: new Buffer('hex'),
+  path: '',
+  recordStart: Date.now(),
+  status: Types.AudioRecordingStatus.INITIAL,
+})
+
+export const showAudioRecording = (audioRecording: Types.AudioRecordingInfo | undefined) => {
+  return !(
+    !audioRecording ||
+    audioRecording.status === Types.AudioRecordingStatus.STOPPED ||
+    audioRecording.status === Types.AudioRecordingStatus.STAGED ||
+    audioRecording.status === Types.AudioRecordingStatus.CANCELLED
+  )
+}
+
+export const isStoppedAudioRecordingStatus = (status: Types.AudioRecordingStatus) => {
+  return (
+    status === Types.AudioRecordingStatus.STOPPED ||
+    status === Types.AudioRecordingStatus.STAGED ||
+    status === Types.AudioRecordingStatus.CANCELLED
+  )
+}
+
+export const audioRecordingDuration = (audioRecording: Types.AudioRecordingInfo) => {
+  return (audioRecording.recordEnd || audioRecording.recordStart) - audioRecording.recordStart
+}
+
+export const isCancelledAudioRecording = (audioRecording: Types.AudioRecordingInfo | undefined) => {
+  return audioRecording && audioRecording.status === Types.AudioRecordingStatus.CANCELLED
+}
+
 export const getInboxSearchSelected = (inboxSearch: Types.InboxSearchInfo) => {
   if (inboxSearch.selectedIndex < inboxSearch.nameResults.length) {
     const maybeNameResults = inboxSearch.nameResults[inboxSearch.selectedIndex]
@@ -141,7 +175,7 @@ export const getThreadSearchInfo = (state: TypedState, conversationIDKey: Types.
   state.chat2.threadSearchInfoMap.get(conversationIDKey) || makeThreadSearchInfo()
 
 export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKey) =>
-  state.chat2.messageOrdinals.get(id, I.OrderedSet<Types.Ordinal>())
+  state.chat2.messageOrdinals.get(id) || new Set<Types.Ordinal>()
 export const getMessageCenterOrdinal = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.messageCenterOrdinals.get(id)
 export const getMessage = (
@@ -412,6 +446,7 @@ export {
   isPendingPaymentMessage,
   isSpecialMention,
   isVideoAttachment,
+  journeyCardTypeToType,
   makeChatRequestInfo,
   makeMessageAttachment,
   makeMessageDeleted,

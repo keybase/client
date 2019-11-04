@@ -19,6 +19,7 @@ func SetupTest(tb libkb.TestingTB, name string, depthIgnored int) (tc libkb.Test
 
 	tc.G.SetProofServices(externals.NewProofServices(tc.G))
 	tc.G.SetUIDMapper(uidmap.NewUIDMap(10000))
+	tc.G.SetServiceSummaryMapper(uidmap.NewServiceSummaryMap(1000))
 	pvl.NewPvlSourceAndInstall(tc.G)
 	externals.NewParamProofStoreAndInstall(tc.G)
 	return tc

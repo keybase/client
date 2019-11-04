@@ -7,6 +7,7 @@ import * as Message from './message'
 import * as Wallet from '../wallets'
 import * as TeamBuildingTypes from '../team-building'
 import HiddenString from '../../../util/hidden-string'
+import {AmpTracker} from '../../../chat/audio/amptracker'
 
 export type QuoteInfo = {
   // Always positive and monotonically increasing.
@@ -111,6 +112,31 @@ export type Coordinate = {
   lon: number
 }
 
+export enum AudioRecordingStatus {
+  INITIAL = 0,
+  RECORDING,
+  STAGED,
+  STOPPED,
+  CANCELLED,
+}
+
+export enum AudioStopType {
+  CANCEL = 0,
+  RELEASE,
+  SEND,
+  STOPBUTTON,
+}
+
+export type AudioRecordingInfo = {
+  status: AudioRecordingStatus
+  outboxID: Buffer
+  path: string
+  recordEnd?: number
+  recordStart: number
+  isLocked: boolean
+  amps?: AmpTracker
+}
+
 export type State = Readonly<{
   accountsInfoMap: Map<
     Common.ConversationIDKey,
@@ -118,6 +144,7 @@ export type State = Readonly<{
   > // temp cache for requestPayment and sendPayment message data,
   attachmentFullscreenSelection?: AttachmentFullscreenSelection
   attachmentViewMap: Map<Common.ConversationIDKey, Map<RPCChatTypes.GalleryItemTyp, AttachmentViewInfo>>
+  audioRecording: Map<Common.ConversationIDKey, AudioRecordingInfo>
   badgeMap: ConversationCountMap // id to the badge count,
   botCommandsUpdateStatusMap: Map<Common.ConversationIDKey, RPCChatTypes.UIBotCommandsUpdateStatus>
   channelSearchText: string
@@ -142,16 +169,16 @@ export type State = Readonly<{
   isWalletsNew: boolean // controls new-ness of wallets in chat UI,
   lastCoord?: Coordinate
   maybeMentionMap: Map<string, RPCChatTypes.UIMaybeMentionInfo>
-  messageCenterOrdinals: I.Map<Common.ConversationIDKey, CenterOrdinal> // ordinals to center threads on,
+  messageCenterOrdinals: Map<Common.ConversationIDKey, CenterOrdinal> // ordinals to center threads on,
   messageMap: I.Map<Common.ConversationIDKey, I.Map<Message.Ordinal, Message.Message>> // messages in a thread,
-  messageOrdinals: I.Map<Common.ConversationIDKey, I.OrderedSet<Message.Ordinal>> // ordered ordinals in a thread,
+  messageOrdinals: Map<Common.ConversationIDKey, Set<Message.Ordinal>> // ordered ordinals in a thread,
   metaMap: MetaMap // metadata about a thread, There is a special node for the pending conversation,
   moreToLoadMap: Map<Common.ConversationIDKey, boolean> // if we have more data to load,
   mutedMap: Map<Common.ConversationIDKey, boolean> // muted convs
   orangeLineMap: Map<Common.ConversationIDKey, number> // last message we've seen,
   paymentConfirmInfo?: PaymentConfirmInfo // chat payment confirm screen data,
   paymentStatusMap: Map<Wallet.PaymentID, Message.ChatPaymentInfo>
-  pendingOutboxToOrdinal: I.Map<Common.ConversationIDKey, I.Map<Message.OutboxID, Message.Ordinal>> // messages waiting to be sent,
+  pendingOutboxToOrdinal: Map<Common.ConversationIDKey, Map<Message.OutboxID, Message.Ordinal>> // messages waiting to be sent,
   prependTextMap: Map<Common.ConversationIDKey, HiddenString | null>
   previousSelectedConversation: Common.ConversationIDKey // the previous selected conversation, if any,
   quote?: QuoteInfo // last quoted message,

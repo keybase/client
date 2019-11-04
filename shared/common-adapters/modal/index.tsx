@@ -110,7 +110,11 @@ const Header = (props: HeaderProps) => {
       ])}
       fullWidth={true}
     >
-      {!!props.icon && props.icon}
+      {!!props.icon && (
+        <Kb.Box2 direction="vertical" centerChildren={true}>
+          {props.icon}
+        </Kb.Box2>
+      )}
       <Kb.Box2
         direction="horizontal"
         alignItems="center"

@@ -191,6 +191,8 @@ var validAnchorTests = []anchorTest{
 			AuthEndpoint:       "https://transfer.keybase.io/auth",
 			ShowDepositButton:  true,
 			ShowWithdrawButton: true,
+			DepositReqAuth:     true,
+			WithdrawReqAuth:    true,
 		},
 		MockTransferGet:     mockAuthGet,
 		DepositExternalURL:  "https://keybase.io/onboarding?account=GBZX4364PEPQTDICMIQDZ56K4T75QZCR4NBEYKO6PDRJAHZKGUOJPCXB&identifier=b700518e7430513abdbdab96e7ead566",

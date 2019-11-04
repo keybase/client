@@ -69,7 +69,7 @@ func TestFindNextMerkleRootAfterRevoke(t *testing.T) {
 	var paperDevice *libkb.Device
 	for _, device := range devices {
 		if device.Type == libkb.DeviceTypePaper {
-			paperDevice = device
+			paperDevice = device.Device
 		}
 	}
 

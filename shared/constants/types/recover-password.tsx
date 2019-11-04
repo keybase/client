@@ -12,6 +12,7 @@ export type _State = {
   }
   paperKeyError: HiddenString
   passwordError: HiddenString
+  resetEmailSent?: boolean
   username: string
 }
 

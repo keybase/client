@@ -37,7 +37,7 @@ const InviteBanner = ({users, openSMS, openShareSheet, usernameToContactName, on
       : `these ${users.length} people`
   const mobileClickInstall =
     users.length === 1 && users[0].endsWith('@phone') ? () => openSMS(users[0].slice(0, -6)) : openShareSheet
-  const caption = `Last step: summon ${theirName}`!
+  const caption = `Last step: summon ${theirName}!`
 
   if (isMobile) {
     return (

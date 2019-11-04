@@ -260,6 +260,10 @@
           "name": "convID"
         },
         {
+          "type": "string",
+          "name": "tlfID"
+        },
+        {
           "type": "TopicType",
           "name": "topicType"
         },
@@ -464,6 +468,10 @@
         {
           "type": "string",
           "name": "convID"
+        },
+        {
+          "type": "string",
+          "name": "tlfID"
         },
         {
           "type": "TopicType",
@@ -1118,6 +1126,24 @@
       ]
     },
     {
+      "type": "record",
+      "name": "UIMessageJourneycard",
+      "fields": [
+        {
+          "type": "double",
+          "name": "ordinal"
+        },
+        {
+          "type": "JourneycardType",
+          "name": "cardType"
+        },
+        {
+          "type": "MessageID",
+          "name": "highlightMsgID"
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "MessageUnboxedState",
       "symbols": [
@@ -1169,7 +1195,7 @@
             "name": "JOURNEYCARD",
             "def": false
           },
-          "body": "MessageUnboxedJourneyCard"
+          "body": "UIMessageJourneycard"
         }
       ]
     },
@@ -1269,6 +1295,10 @@
         {
           "type": "string",
           "name": "url"
+        },
+        {
+          "type": "string",
+          "name": "punycode"
         }
       ]
     },

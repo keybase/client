@@ -15,6 +15,7 @@ type Props = {
   imageWidth: number
   imageURL: string
   isAuthor: boolean
+  author?: string
   liveLocationEndTime?: number
   isLiveLocationDone: boolean
   time: number
@@ -33,6 +34,7 @@ const UnfurlMap = (props: Props) => {
             path: [
               {
                 props: {
+                  author: props.author,
                   conversationIDKey: props.conversationIDKey,
                   coord: props.coord,
                   isAuthor: props.isAuthor,

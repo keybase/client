@@ -87,24 +87,28 @@ func (s *baseConversationSource) addPendingPreviews(ctx context.Context, thread 
 }
 
 func (s *baseConversationSource) addConversationCards(ctx context.Context, uid gregor1.UID,
-	conv *chat1.ConversationLocal, thread *chat1.ThreadView) {
-
-	// Maybe this should only be created once and reused, but for now, just make
-	// a new one.
-	cc := newJourneyCardChecker(s.G())
-	card, err := cc.Next(ctx, uid, conv, thread)
+	convID chat1.ConversationID, convOptional *chat1.ConversationLocal, thread *chat1.ThreadView) {
+	card, err := s.G().JourneyCardManager.PickCard(ctx, uid, convID, convOptional, thread)
 	if err != nil {
-		s.Debug(ctx, "error getting next conversation card: %s", err)
+		s.Debug(ctx, "addConversationCards: error getting next conversation card: %s", err)
 		return
 	}
-
 	if card == nil {
-		s.Debug(ctx, "card is nil")
 		return
 	}
-
-	s.Debug(ctx, "got a card for this conversation: %+v", card)
-	thread.Messages = append(thread.Messages, chat1.NewMessageUnboxedWithJourneycard(*card))
+	// Slot it in to the left of its prev.
+	addLeftOf := 0
+	for i := len(thread.Messages) - 1; i >= 0; i-- {
+		msgID := thread.Messages[i].GetMessageID()
+		if msgID != 0 && msgID >= card.PrevID {
+			addLeftOf = i
+			break
+		}
+	}
+	// Insert at index: https://github.com/golang/go/wiki/SliceTricks#insert
+	thread.Messages = append(thread.Messages, chat1.MessageUnboxed{})
+	copy(thread.Messages[addLeftOf+1:], thread.Messages[addLeftOf:])
+	thread.Messages[addLeftOf] = chat1.NewMessageUnboxedWithJourneycard(*card)
 }
 
 func (s *baseConversationSource) postProcessThread(ctx context.Context, uid gregor1.UID,
@@ -152,6 +156,9 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 	thread.Messages = utils.FilterExploded(conv, thread.Messages, s.boxer.clock.Now())
 	s.Debug(ctx, "postProcessThread: thread messages after explode filter: %d", len(thread.Messages))
 
+	// Add any conversation cards
+	s.addConversationCards(ctx, uid, conv.GetConvID(), verifiedConv, thread)
+
 	// Fetch outbox and tack onto the result
 	outbox := storage.NewOutbox(s.G(), uid)
 	if err = outbox.AppendToThread(ctx, conv.GetConvID(), thread); err != nil {
@@ -161,9 +168,6 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 	}
 	// Add attachment previews to pending messages
 	s.addPendingPreviews(ctx, thread)
-
-	// Add any conversation cards
-	s.addConversationCards(ctx, uid, verifiedConv, thread)
 
 	return nil
 }
@@ -484,6 +488,9 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 	if err = s.mergeMaybeNotify(ctx, convID, uid, []chat1.MessageUnboxed{decmsg}); err != nil {
 		return decmsg, continuousUpdate, err
 	}
+	if msg.ClientHeader.Sender.Eq(uid) {
+		go s.G().JourneyCardManager.SentMessage(globals.BackgroundChatCtx(ctx, s.G()), convID)
+	}
 	// Remove any pending previews from storage
 	s.completeAttachmentUpload(ctx, decmsg)
 	// complete any active unfurl
@@ -601,7 +608,6 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 				if err = s.postProcessThread(ctx, uid, conv, &thread, query, nil, nil, true, true, &vconv); err != nil {
 					return thread, err
 				}
-				s.Debug(ctx, "b thread: %+v", thread)
 			}
 			return thread, nil
 		}

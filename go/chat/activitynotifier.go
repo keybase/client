@@ -219,3 +219,12 @@ func (n *NotifyRouterActivityRouter) PromptUnfurl(ctx context.Context, uid grego
 		n.G().NotifyRouter.HandleChatPromptUnfurl(ctx, n.kuid(uid), convID, msgID, domain)
 	}
 }
+
+func (n *NotifyRouterActivityRouter) ConvUpdate(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, topicType chat1.TopicType, conv *chat1.InboxUIItem) {
+	defer n.Trace(ctx, func() error { return nil }, "ConvUpdate(%s,%v)", convID, topicType)()
+	ctx = globals.BackgroundChatCtx(ctx, n.G())
+	n.notifyCh <- func() {
+		n.G().NotifyRouter.HandleChatConvUpdate(ctx, n.kuid(uid), convID, topicType, conv)
+	}
+}

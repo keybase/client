@@ -30,6 +30,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 	context "golang.org/x/net/context"
+	"golang.org/x/net/idna"
 )
 
 func AssertLoggedInUID(ctx context.Context, g *globals.Context) (uid gregor1.UID, err error) {
@@ -183,6 +184,7 @@ func ReorderParticipants(mctx libkb.MetaContext, g libkb.UIDMapperContext, umapp
 	}
 
 	// Include participants even if they weren't in the active list, in stable order.
+	var leftOvers []chat1.ConversationLocalParticipant
 	for user, available := range allowedWriters {
 		if !available {
 			continue
@@ -192,9 +194,13 @@ func ReorderParticipants(mctx libkb.MetaContext, g libkb.UIDMapperContext, umapp
 			FullName:           nil,
 		})
 		part.InConvName = convNameUsers[part.Username]
-		writerNames = append(writerNames, part)
+		leftOvers = append(leftOvers, part)
 		allowedWriters[user] = false
 	}
+	sort.Slice(leftOvers, func(i, j int) bool {
+		return strings.Compare(leftOvers[i].Username, leftOvers[j].Username) < 0
+	})
+	writerNames = append(writerNames, leftOvers...)
 
 	return writerNames, nil
 }
@@ -1055,7 +1061,11 @@ func GetMsgSnippetBody(msg chat1.MessageUnboxed) (snippet string) {
 			case chat1.AssetMetadataType_IMAGE:
 				title = "📷 attachment"
 			case chat1.AssetMetadataType_VIDEO:
-				title = "🎞 attachment"
+				if obj.Metadata.Video().IsAudio {
+					title = "🔊 attachment"
+				} else {
+					title = "🎞 attachment"
+				}
 			default:
 				title = obj.Filename
 			}
@@ -1185,6 +1195,7 @@ func PresentRemoteConversation(ctx context.Context, g *globals.Context, rc types
 		tlfName = latest.TlfName
 	}
 	res.ConvID = rawConv.GetConvID().String()
+	res.TlfID = rawConv.Metadata.IdTriple.Tlfid.String()
 	res.TopicType = rawConv.GetTopicType()
 	res.IsPublic = rawConv.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC
 	res.Name = tlfName
@@ -1295,6 +1306,7 @@ func presentConversationParticipantsLocal(ctx context.Context, rawParticipants [
 func PresentConversationLocal(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	rawConv chat1.ConversationLocal) (res chat1.InboxUIItem) {
 	res.ConvID = rawConv.GetConvID().String()
+	res.TlfID = rawConv.Info.Triple.Tlfid.String()
 	res.TopicType = rawConv.GetTopicType()
 	res.IsPublic = rawConv.Info.Visibility == keybase1.TLFVisibility_PUBLIC
 	res.Name = rawConv.Info.TlfName
@@ -1354,7 +1366,16 @@ func PresentThreadView(ctx context.Context, g *globals.Context, uid gregor1.UID,
 }
 
 func computeOutboxOrdinal(obr chat1.OutboxRecord) float64 {
-	return float64(obr.Msg.ClientHeader.OutboxInfo.Prev) + float64(obr.Ordinal)/1000.0
+	return computeOrdinal(obr.Msg.ClientHeader.OutboxInfo.Prev, obr.Ordinal)
+}
+
+// Compute an "ordinal". There are two senses of "ordinal".
+// The service considers ordinals ints, like 3, which are the offset after some message ID.
+// The frontend considers ordinals floats like "180.03" where before the dot is
+// a message ID, and after the dot is a sub-position in thousandths.
+// This function translates from the service's sense to the frontend's sense.
+func computeOrdinal(messageID chat1.MessageID, serviceOrdinal int) (frontendOrdinal float64) {
+	return float64(messageID) + float64(serviceOrdinal)/1000.0
 }
 
 func PresentChannelNameMentions(ctx context.Context, crs []chat1.ChannelNameMention) (res []chat1.UIChannelNameMention) {
@@ -1758,8 +1779,9 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			msgBody := rawMsg.Outbox().Msg.MessageBody
 			btyp, err := msgBody.MessageType()
 			if err == nil && btyp == chat1.MessageType_ATTACHMENT {
-				title = msgBody.Attachment().Object.Title
-				filename = msgBody.Attachment().Object.Filename
+				asset := msgBody.Attachment().Object
+				title = asset.Title
+				filename = asset.Filename
 			}
 		}
 		var replyTo *chat1.UIMessage
@@ -1786,6 +1808,16 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 		res = chat1.NewUIMessageWithError(rawMsg.Error())
 	case chat1.MessageUnboxedState_PLACEHOLDER:
 		res = chat1.NewUIMessageWithPlaceholder(rawMsg.Placeholder())
+	case chat1.MessageUnboxedState_JOURNEYCARD:
+		journeycard := rawMsg.Journeycard()
+		res = chat1.NewUIMessageWithJourneycard(chat1.UIMessageJourneycard{
+			Ordinal:        computeOrdinal(journeycard.PrevID, journeycard.Ordinal),
+			CardType:       journeycard.CardType,
+			HighlightMsgID: journeycard.HighlightMsgID,
+		})
+	default:
+		g.MetaContext(ctx).Debug("PresentMessageUnboxed: unhandled MessageUnboxedState: %v", state)
+		// res = zero values
 	}
 	return res
 }
@@ -2326,16 +2358,21 @@ func DecorateWithLinks(ctx context.Context, body string) string {
 
 		bodyMatch := origBody[match[lowhit]:match[highhit]]
 		url := bodyMatch
+		var punycode string
 		if shouldSkipLink(bodyMatch) {
 			continue
 		}
 		if !(strings.HasPrefix(bodyMatch, "http://") || strings.HasPrefix(bodyMatch, "https://")) {
 			url = "http://" + bodyMatch
 		}
+		if encoded, err := idna.ToASCII(url); err == nil && encoded != url {
+			punycode = encoded
+		}
 		body, added = DecorateBody(ctx, body, match[lowhit]+offset, match[highhit]-match[lowhit],
 			chat1.NewUITextDecorationWithLink(chat1.UILinkDecoration{
-				Display: bodyMatch,
-				Url:     url,
+				Display:  bodyMatch,
+				Url:      url,
+				Punycode: punycode,
 			}))
 		offset += added
 	}

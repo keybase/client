@@ -638,6 +638,7 @@ const mergeProps = (
     ),
     onChangeText,
     onClear,
+    onClose: dispatchProps._onCancelTeamBuilding,
     onClosePopup: dispatchProps._onCancelTeamBuilding,
     onDownArrowKeyDown:
       ownProps.showRolePicker && rolePickerArrowKeyFns

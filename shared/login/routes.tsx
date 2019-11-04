@@ -8,20 +8,24 @@ import Confirm from './reset/confirm'
 
 type OwnProps = {}
 type Props = {
+  isLoggedIn: boolean
   showLoading: boolean
   showRelogin: boolean
 }
 
-const _RootLogin = ({showLoading, showRelogin}: Props) => {
-  const JoinOrLogin = require('./join-or-login/container').default
-  const Loading = require('./loading/container').default
-  const Relogin = require('./relogin/container').default
-  if (showLoading) {
+const _RootLogin = (p: Props) => {
+  // routing should switch us away so lets not draw anything to speed things up
+  if (p.isLoggedIn) return null
+  if (p.showLoading) {
+    const Loading = require('./loading/container').default
     return <Loading />
   }
-  if (showRelogin) {
+  if (p.showRelogin) {
+    const Relogin = require('./relogin/container').default
     return <Relogin />
   }
+
+  const JoinOrLogin = require('./join-or-login/container').default
   return <JoinOrLogin />
 }
 
@@ -33,9 +37,10 @@ _RootLogin.navigationOptions = {
 
 const RootLogin = Container.connect(
   state => {
+    const isLoggedIn = state.config.loggedIn
     const showLoading = state.config.daemonHandshakeState !== 'done' || state.config.userSwitching
     const showRelogin = !showLoading && state.config.configuredAccounts.length > 0
-    return {showLoading, showRelogin}
+    return {isLoggedIn, showLoading, showRelogin}
   },
   () => ({}),
   (s, d, _: OwnProps) => ({...s, ...d})

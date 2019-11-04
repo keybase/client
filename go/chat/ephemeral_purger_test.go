@@ -57,7 +57,7 @@ func TestBackgroundPurge(t *testing.T) {
 		select {
 		case loadID := <-listener.bgConvLoads:
 			require.Equal(t, convID, loadID)
-			require.Equal(t, queueSize, purger.pq.Len())
+			require.Equal(t, queueSize, purger.Len())
 		case <-time.After(10 * time.Second):
 			require.Fail(t, "timeout waiting for conversation load")
 		}
@@ -108,10 +108,8 @@ func TestBackgroundPurge(t *testing.T) {
 			}
 			require.Equal(t, msgIDs, purgedIDs)
 		}
-		updates := listener.consumeThreadsStale(t)
-		require.Len(t, updates, 1)
-		require.Equal(t, updates[0].ConvID, convID)
-		require.Equal(t, updates[0].UpdateType, chat1.StaleUpdateType_CONVUPDATE)
+		updateID := listener.consumeConvUpdate(t)
+		require.Equal(t, updateID, convID)
 
 		rc, err := utils.GetUnverifiedConv(ctx, g, uid, convID, types.InboxSourceDataSourceLocalOnly)
 		require.NoError(t, err)
@@ -232,7 +230,7 @@ func TestBackgroundPurge(t *testing.T) {
 		NextPurgeTime:   msgs[3].Valid().Etime(),
 		IsActive:        true,
 	})
-	require.Equal(t, 2, purger.pq.Len())
+	require.Equal(t, 2, purger.Len())
 
 	g.EphemeralPurger.Start(ctx, uid)
 	world.Fc.Advance(lifetimeDuration * 3)
@@ -284,7 +282,7 @@ func TestBackgroundPurge(t *testing.T) {
 		NextPurgeTime:   0,
 		IsActive:        false,
 	})
-	require.Equal(t, 0, purger.pq.Len())
+	require.Equal(t, 0, purger.Len())
 }
 
 func TestQueueState(t *testing.T) {

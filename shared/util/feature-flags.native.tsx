@@ -8,6 +8,7 @@ const featureOn = (key: keyof FeatureFlags) => features.includes(key)
 const ff: FeatureFlags = {
   admin: __DEV__,
   airdrop: true,
+  audioAttachments: true,
   chatIndexProfilingEnabled: false,
   conflictResolution: false,
   dbCleanEnabled: false,
@@ -20,8 +21,8 @@ const ff: FeatureFlags = {
   outOfDateBanner: false,
   plansEnabled: false,
   proofProviders: true,
-  resetPipeline: true,
   stellarExternalPartners: true,
+  userBlocking: true,
 }
 
 // load overrides

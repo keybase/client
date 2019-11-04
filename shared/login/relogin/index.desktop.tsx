@@ -12,12 +12,11 @@ type State = {
 const other = 'Someone else...'
 
 const UserRow = ({user, hasStoredSecret}) => (
-  <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.userRow} gap="small">
-    {hasStoredSecret && <Kb.Box style={styles.leftBox} />}
+  <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.userRow} gap="xtiny">
     <Kb.Text type="Header" style={user === other ? styles.other : styles.provisioned}>
       {user}
     </Kb.Text>
-    {hasStoredSecret && <Kb.Text type="BodySmallItalic">Signed in</Kb.Text>}
+    {hasStoredSecret && <Kb.Text type="BodySmall"> • Signed in</Kb.Text>}
   </Kb.Box2>
 )
 
@@ -55,14 +54,8 @@ class Login extends React.Component<Props, State> {
       <SignupScreen
         banners={errorBanner(this.props.error)}
         headerStyle={styles.header}
-        rightActionComponent={
-          <Kb.Button
-            type="Default"
-            mode="Secondary"
-            onClick={this.props.onSignup}
-            label="Create an account"
-          />
-        }
+        onRightAction={this.props.onSignup}
+        rightActionLabel="Create an account"
         title="Log in"
       >
         <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.contentBox}>
@@ -154,9 +147,6 @@ const styles = Styles.styleSheetCreate(
         marginTop: Styles.globalMargins.tiny,
         width: '100%',
       },
-      leftBox: {
-        width: 54,
-      },
       loginSubmitButton: {
         marginTop: 0,
         maxHeight: 32,
@@ -181,7 +171,8 @@ const styles = Styles.styleSheetCreate(
         width: 348,
       },
       userRow: {
-        ...Styles.globalStyles.flexBoxCenter,
+        alignItems: 'center',
+        marginLeft: Styles.globalMargins.xsmall,
         minHeight: 40,
         width: '100%',
       },

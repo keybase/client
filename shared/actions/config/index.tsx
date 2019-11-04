@@ -21,6 +21,7 @@ import * as Tabs from '../../constants/tabs'
 import * as Router2 from '../../constants/router2'
 import * as FsTypes from '../../constants/types/fs'
 import URL from 'url-parse'
+import {noVersion} from '../../constants/whats-new'
 import {isAndroid, isMobile, appColorSchemeChanged} from '../../constants/platform'
 import {updateServerConfigLastLoggedIn} from '../../app/server-config'
 import * as Container from '../../util/container'
@@ -289,6 +290,7 @@ const switchRouteDef = (
       // only do this if we're not handling the initial loggedIn event, cause its handled by routeToInitialScreenOnce
       return [
         RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
+        RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}),
         ...(action.payload.causedBySignup
           ? [RouteTreeGen.createNavigateAppend({path: ['signupEnterPhoneNumber']})]
           : []),
@@ -599,6 +601,35 @@ const logoutAndTryToLogInAs = async (
   return ConfigGen.createSetDefaultUsername({username: action.payload.username})
 }
 
+const gregorPushState = (_: Container.TypedState, action: GregorGen.PushStatePayload) => {
+  const actions: Array<Container.TypedActions> = []
+  const items = action.payload.state
+  const lastSeenItem = items.find(i => i.item && i.item.category === 'whatsNewLastSeenVersion')
+  if (lastSeenItem) {
+    const {body} = lastSeenItem.item
+    const pushStateLastSeenVersion = body.toString()
+    const lastSeenVersion = pushStateLastSeenVersion || noVersion
+    // Default to 0.0.0 (noVersion) if user has never marked a version as seen
+    actions.push(
+      ConfigGen.createSetWhatsNewLastSeenVersion({
+        lastSeenVersion,
+      })
+    )
+  }
+  return actions
+}
+
+const loadNixOnLoginStartup = async () => {
+  try {
+    const status =
+      (await RPCTypes.ctlGetNixOnLoginStartupRpcPromise()) === RPCTypes.OnLoginStartupStatus.enabled
+    return ConfigGen.createLoadedNixOnLoginStartup({status})
+  } catch (err) {
+    logger.warn('Error in loading proxy data', err)
+    return null
+  }
+}
+
 function* configSaga() {
   // Start the handshake process. This means we tell all sagas we're handshaking with the daemon. If another
   // saga needs to do something before we leave the loading screen they should call daemonHandshakeWait
@@ -668,6 +699,9 @@ function* configSaga() {
   yield* Saga.chainAction2(EngineGen.keybase1NotifyTrackingTrackingInfo, onTrackingInfo)
   yield* Saga.chainAction2(EngineGen.keybase1NotifyServiceHTTPSrvInfoUpdate, onHTTPSrvInfoUpdated)
 
+  // Listen for updates to `whatsNewLastSeenVersion`
+  yield* Saga.chainAction2(GregorGen.pushState, gregorPushState, 'gregorPushState')
+
   yield* Saga.chainAction2(SettingsGen.loadedSettings, maybeLoadAppLink)
 
   yield* Saga.chainAction2(ConfigGen.setDarkModePreference, saveDarkPrefs)
@@ -680,6 +714,8 @@ function* configSaga() {
   // Kick off platform specific stuff
   yield Saga.spawn(PlatformSpecific.platformConfigSaga)
   yield Saga.spawn(criticalOutOfDateCheck)
+
+  yield* Saga.chainAction2(ConfigGen.loadNixOnLoginStartup, loadNixOnLoginStartup)
 }
 
 export default configSaga

@@ -133,6 +133,7 @@ export const initialState: Types.State = {
   userActive: true,
   userSwitching: false,
   username: '',
+  whatsNewLastSeenVersion: '',
   windowState: {
     dockHidden: false,
     height: 800,

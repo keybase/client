@@ -7,6 +7,7 @@ import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import HiddenString from '../../../../util/hidden-string'
 import * as Container from '../../../../util/container'
 import {memoize} from '../../../../util/memoize'
+import {AmpTracker} from '../../../audio/amptracker'
 import Input from '.'
 
 type OwnProps = {
@@ -31,13 +32,21 @@ const setUnsentText = (conversationIDKey: Types.ConversationIDKey, text: string)
 
 const getTeams = memoize((layout: RPCChatTypes.UIInboxLayout | null) => {
   const bigTeams = (layout && layout.bigTeams) || []
-  return bigTeams
-    .reduce<Array<string>>((arr, l) => {
-      if (l.state === RPCChatTypes.UIInboxBigTeamRowTyp.label) {
-        arr.push(l.label)
-      }
-      return arr
-    }, [])
+  const smallTeams = (layout && layout.smallTeams) || []
+  const bigTeamNames = bigTeams.reduce<Array<string>>((arr, l) => {
+    if (l.state === RPCChatTypes.UIInboxBigTeamRowTyp.label) {
+      arr.push(l.label)
+    }
+    return arr
+  }, [])
+  const smallTeamNames = smallTeams.reduce<Array<string>>((arr, l) => {
+    if (l.isTeam) {
+      arr.push(l.name)
+    }
+    return arr
+  }, [])
+  return bigTeamNames
+    .concat(smallTeamNames)
     .sort()
     .map(teamname => ({fullName: '', teamname, username: ''}))
 })
@@ -65,15 +74,16 @@ export default Container.namedConnect(
     const suggestBotCommandsUpdateStatus =
       state.chat2.botCommandsUpdateStatusMap.get(conversationIDKey) ||
       RPCChatTypes.UIBotCommandsUpdateStatus.blank
+    const audio = state.chat2.audioRecording.get(conversationIDKey)
 
     return {
       _containsLatestMessage,
       _draft: Constants.getDraft(state, conversationIDKey),
       _editOrdinal: editInfo ? editInfo.ordinal : null,
       _isExplodingModeLocked: Constants.isExplodingModeLocked(state, conversationIDKey),
-      _metaMap: state.chat2.metaMap,
       _replyTo,
       _you,
+      audio,
       cannotWrite: meta.cannotWrite,
       conversationIDKey,
       editText: editInfo ? editInfo.text : '',
@@ -141,8 +151,13 @@ export default Container.namedConnect(
           text: new HiddenString(body),
         })
       ),
+    _onEnableAudioRecording: (conversationIDKey: Types.ConversationIDKey) => {
+      dispatch(Chat2Gen.createEnableAudioRecording({conversationIDKey}))
+    },
     _onGiphyToggle: (conversationIDKey: Types.ConversationIDKey) =>
       dispatch(Chat2Gen.createToggleGiphyPrefill({conversationIDKey})),
+    _onLockAudioRecording: (conversationIDKey: Types.ConversationIDKey) =>
+      dispatch(Chat2Gen.createLockAudioRecording({conversationIDKey})),
     _onPostMessage: (
       conversationIDKey: Types.ConversationIDKey,
       text: string,
@@ -155,6 +170,19 @@ export default Container.namedConnect(
           text: new HiddenString(text),
         })
       ),
+    _onStopAudioRecording: (
+      conversationIDKey: Types.ConversationIDKey,
+      stopType: Types.AudioStopType,
+      amps: AmpTracker
+    ) => {
+      dispatch(
+        Chat2Gen.createStopAudioRecording({
+          amps,
+          conversationIDKey,
+          stopType,
+        })
+      )
+    },
     _sendTyping: (conversationIDKey: Types.ConversationIDKey, typing: boolean) =>
       conversationIDKey && dispatch(Chat2Gen.createSendTyping({conversationIDKey, typing})),
     _unsentTextChanged: (conversationIDKey: Types.ConversationIDKey, text: string) =>
@@ -166,6 +194,7 @@ export default Container.namedConnect(
       dispatch(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset})),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => ({
+    audio: stateProps.audio,
     cannotWrite: stateProps.cannotWrite,
     clearInboxFilter: dispatchProps.clearInboxFilter,
     conversationIDKey: stateProps.conversationIDKey,
@@ -199,11 +228,15 @@ export default Container.namedConnect(
     onCancelEditing: () => dispatchProps._onCancelEditing(stateProps.conversationIDKey),
     onCancelReply: () => dispatchProps._onCancelReply(stateProps.conversationIDKey),
     onEditLastMessage: () => dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
+    onEnableAudioRecording: () => dispatchProps._onEnableAudioRecording(stateProps.conversationIDKey),
     onFilePickerError: dispatchProps.onFilePickerError,
     onGiphyToggle: () => dispatchProps._onGiphyToggle(stateProps.conversationIDKey),
+    onLockAudioRecording: () => dispatchProps._onLockAudioRecording(stateProps.conversationIDKey),
     onRequestScrollDown: ownProps.onRequestScrollDown,
     onRequestScrollUp: ownProps.onRequestScrollUp,
-
+    onStopAudioRecording: (stopType: Types.AudioStopType, amps: AmpTracker) => {
+      dispatchProps._onStopAudioRecording(stateProps.conversationIDKey, stopType, amps)
+    },
     onSubmit: (text: string) => {
       if (stateProps._editOrdinal) {
         dispatchProps._onEditMessage(stateProps.conversationIDKey, stateProps._editOrdinal, text)

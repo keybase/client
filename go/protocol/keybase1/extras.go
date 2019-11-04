@@ -15,6 +15,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
 	"regexp"
 	"sort"
 	"strconv"
@@ -1636,6 +1637,9 @@ func (u UserPlusKeysV2AllIncarnations) IsOlderThan(v UserPlusKeysV2AllIncarnatio
 		return true
 	}
 	if u.Uvv.Id < v.Uvv.Id {
+		return true
+	}
+	if u.Uvv.CachedAt < v.Uvv.CachedAt {
 		return true
 	}
 	return false
@@ -3477,4 +3481,8 @@ func (b BadgeConversationInfo) IsEmpty() bool {
 	return (b.UnreadMessages == 0 &&
 		b.BadgeCounts[DeviceType_DESKTOP] == 0 &&
 		b.BadgeCounts[DeviceType_MOBILE] == 0)
+}
+
+func (s *TeamBotSettings) Eq(o *TeamBotSettings) bool {
+	return reflect.DeepEqual(s, o)
 }
