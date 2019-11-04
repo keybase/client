@@ -247,6 +247,7 @@ const (
 	SCProfileNotPublic                          = int(keybase1.StatusCode_SCProfileNotPublic)
 	SCRateLimit                                 = int(keybase1.StatusCode_SCRateLimit)
 	SCBadSignupUsernameTaken                    = int(keybase1.StatusCode_SCBadSignupUsernameTaken)
+	SCBadSignupUsernameReserved                 = int(keybase1.StatusCode_SCBadSignupUsernameReserved)
 	SCBadInvitationCode                         = int(keybase1.StatusCode_SCBadInvitationCode)
 	SCBadSignupTeamName                         = int(keybase1.StatusCode_SCBadSignupTeamName)
 	SCFeatureFlag                               = int(keybase1.StatusCode_SCFeatureFlag)
@@ -255,6 +256,7 @@ const (
 	SCEmailLimitExceeded                        = int(keybase1.StatusCode_SCEmailLimitExceeded)
 	SCEmailCannotDeletePrimary                  = int(keybase1.StatusCode_SCEmailCannotDeletePrimary)
 	SCEmailUnknown                              = int(keybase1.StatusCode_SCEmailUnknown)
+	SCNoUpdate                                  = int(keybase1.StatusCode_SCNoUpdate)
 	SCMissingResult                             = int(keybase1.StatusCode_SCMissingResult)
 	SCKeyNotFound                               = int(keybase1.StatusCode_SCKeyNotFound)
 	SCKeyCorrupted                              = int(keybase1.StatusCode_SCKeyCorrupted)
@@ -375,6 +377,9 @@ const (
 	SCPhoneNumberLimitExceeded                  = int(keybase1.StatusCode_SCPhoneNumberLimitExceeded)
 	SCNoPaperKeys                               = int(keybase1.StatusCode_SCNoPaperKeys)
 	SCTeambotKeyGenerationExists                = int(keybase1.StatusCode_SCTeambotKeyGenerationExists)
+	SCTeamStorageWrongRevision                  = int(keybase1.StatusCode_SCTeamStorageWrongRevision)
+	SCTeamStorageBadGeneration                  = int(keybase1.StatusCode_SCTeamStorageBadGeneration)
+	SCTeamStorageNotFound                       = int(keybase1.StatusCode_SCTeamStorageNotFound)
 )
 
 const (

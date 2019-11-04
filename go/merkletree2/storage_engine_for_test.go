@@ -17,6 +17,7 @@ type InMemoryStorageEngine struct {
 	SortedKVPRs      []*KVPRecord
 	Nodes            map[string]*NodeRecord
 	MasterSecretsMap map[Seqno]MasterSecret
+	ReverseRootMap   map[string]Seqno
 
 	// used to make prefix queries efficient. Not otherwise necessary
 	//PositionToKeys map[string](map[string]bool)
@@ -60,6 +61,7 @@ func NewInMemoryStorageEngine(cfg Config) *InMemoryStorageEngine {
 	i.MasterSecretsMap = make(map[Seqno]MasterSecret)
 	i.Roots = make(map[Seqno]RootMetadata)
 	i.Nodes = make(map[string]*NodeRecord)
+	i.ReverseRootMap = make(map[string]Seqno)
 	i.cfg = cfg
 	return &i
 }
@@ -114,8 +116,9 @@ func (i *InMemoryStorageEngine) StoreNode(c logger.ContextInterface, t Transacti
 	return nil
 }
 
-func (i *InMemoryStorageEngine) StoreRootMetadata(c logger.ContextInterface, t Transaction, r RootMetadata) error {
+func (i *InMemoryStorageEngine) StoreRootMetadata(c logger.ContextInterface, t Transaction, r RootMetadata, h Hash) error {
 	i.Roots[r.Seqno] = r
+	i.ReverseRootMap[string(h)] = r.Seqno
 	return nil
 }
 
@@ -140,17 +143,67 @@ func (i *InMemoryStorageEngine) LookupRoot(c logger.ContextInterface, t Transact
 	return RootMetadata{}, NewInvalidSeqnoError(s, fmt.Errorf("No root at seqno %v", s))
 }
 
+func (i *InMemoryStorageEngine) LookupRootFromHash(c logger.ContextInterface, t Transaction, h Hash) (RootMetadata, error) {
+	s, found := i.ReverseRootMap[string(h)]
+	if found {
+		return i.Roots[s], nil
+	}
+	return RootMetadata{}, NewInvalidSeqnoError(s, fmt.Errorf("No root at seqno %v", s))
+}
+
+func (i *InMemoryStorageEngine) LookupRoots(c logger.ContextInterface, t Transaction, seqnos []Seqno) (roots []RootMetadata, err error) {
+	seqnosSorted := make([]Seqno, len(seqnos))
+	copy(seqnosSorted, seqnos)
+	sort.Sort(SeqnoSortedAsInt(seqnosSorted))
+
+	roots = make([]RootMetadata, len(seqnosSorted))
+
+	for j, s := range seqnosSorted {
+		root, found := i.Roots[s]
+		if !found {
+			return nil, NewInvalidSeqnoError(s, fmt.Errorf("No root at seqno %v", s))
+		}
+		roots[j] = root
+	}
+
+	return roots, nil
+}
+
+func (i *InMemoryStorageEngine) LookupRootHashes(c logger.ContextInterface, t Transaction, seqnos []Seqno) (hashes []Hash, err error) {
+	if len(seqnos) == 0 {
+		return nil, fmt.Errorf("No seqnos requested")
+	}
+	seqnosSorted := make([]Seqno, len(seqnos))
+	copy(seqnosSorted, seqnos)
+	sort.Sort(SeqnoSortedAsInt(seqnosSorted))
+
+	hashes = make([]Hash, len(seqnosSorted))
+
+	for j, s := range seqnosSorted {
+		r, found := i.Roots[s]
+		if !found {
+			return nil, NewInvalidSeqnoError(s, fmt.Errorf("No root at seqno %v", s))
+		}
+		_, hashes[j], err = i.cfg.Encoder.EncodeAndHashGeneric(r)
+		if err != nil {
+			panic(fmt.Sprintf("Error encoding %+v", r))
+		}
+	}
+
+	return hashes, nil
+}
+
 func (i *InMemoryStorageEngine) LookupNode(c logger.ContextInterface, t Transaction, s Seqno, p *Position) (Hash, error) {
 	node, found := i.Nodes[string(p.GetBytes())]
 	if !found {
-		return nil, errors.New("No node found")
+		return nil, NewNodeNotFoundError()
 	}
 	for ; node != nil; node = node.next {
 		if node.s <= s {
 			return node.h, nil
 		}
 	}
-	return nil, errors.New("No node version found")
+	return nil, NewNodeNotFoundError()
 }
 
 func (i *InMemoryStorageEngine) LookupNodes(c logger.ContextInterface, t Transaction, s Seqno, positions []Position) (res []PositionHashPair, err error) {
@@ -228,6 +281,9 @@ func (i *InMemoryStorageEngine) LookupKEVPairsUnderPosition(ctx logger.ContextIn
 				break
 			}
 		}
+	}
+	if len(kvps) == 0 {
+		return nil, nil, NewKeyNotFoundError()
 	}
 	return kvps, seqnos, nil
 }

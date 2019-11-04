@@ -6,6 +6,7 @@ import * as Types from '../constants/types/chat2'
 import * as TeamsTypes from '../constants/types/teams'
 import HiddenString from '../util/hidden-string'
 import {RetentionPolicy} from '../constants/types/retention-policy'
+import {AmpTracker} from '../chat/audio/amptracker'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of chat2 but is handled by every reducer. NEVER dispatch this
@@ -38,6 +39,7 @@ export const createConversation = 'chat2:createConversation'
 export const deselectConversation = 'chat2:deselectConversation'
 export const desktopNotification = 'chat2:desktopNotification'
 export const dismissBottomBanner = 'chat2:dismissBottomBanner'
+export const enableAudioRecording = 'chat2:enableAudioRecording'
 export const giphyGotSearchResult = 'chat2:giphyGotSearchResult'
 export const giphySend = 'chat2:giphySend'
 export const giphyToggleWindow = 'chat2:giphyToggleWindow'
@@ -60,6 +62,7 @@ export const loadAttachmentView = 'chat2:loadAttachmentView'
 export const loadMessagesCentered = 'chat2:loadMessagesCentered'
 export const loadNewerMessagesDueToScroll = 'chat2:loadNewerMessagesDueToScroll'
 export const loadOlderMessagesDueToScroll = 'chat2:loadOlderMessagesDueToScroll'
+export const lockAudioRecording = 'chat2:lockAudioRecording'
 export const markConversationsStale = 'chat2:markConversationsStale'
 export const markInitiallyLoadedThreadAsRead = 'chat2:markInitiallyLoadedThreadAsRead'
 export const messageAttachmentNativeSave = 'chat2:messageAttachmentNativeSave'
@@ -72,6 +75,7 @@ export const messageErrored = 'chat2:messageErrored'
 export const messageReplyPrivately = 'chat2:messageReplyPrivately'
 export const messageRetry = 'chat2:messageRetry'
 export const messageSend = 'chat2:messageSend'
+export const messageSendByUsernames = 'chat2:messageSendByUsernames'
 export const messageSetEditing = 'chat2:messageSetEditing'
 export const messageSetQuoting = 'chat2:messageSetQuoting'
 export const messageWasEdited = 'chat2:messageWasEdited'
@@ -103,8 +107,10 @@ export const resetLetThemIn = 'chat2:resetLetThemIn'
 export const resolveMaybeMention = 'chat2:resolveMaybeMention'
 export const saveMinWriterRole = 'chat2:saveMinWriterRole'
 export const selectConversation = 'chat2:selectConversation'
+export const sendAudioRecording = 'chat2:sendAudioRecording'
 export const sendTyping = 'chat2:sendTyping'
 export const setAttachmentViewStatus = 'chat2:setAttachmentViewStatus'
+export const setAudioRecordingPostInfo = 'chat2:setAudioRecordingPostInfo'
 export const setChannelSearchText = 'chat2:setChannelSearchText'
 export const setCommandMarkdown = 'chat2:setCommandMarkdown'
 export const setCommandStatusInfo = 'chat2:setCommandStatusInfo'
@@ -124,6 +130,7 @@ export const setThreadSearchStatus = 'chat2:setThreadSearchStatus'
 export const setUnsentText = 'chat2:setUnsentText'
 export const setWalletsOld = 'chat2:setWalletsOld'
 export const staticConfigLoaded = 'chat2:staticConfigLoaded'
+export const stopAudioRecording = 'chat2:stopAudioRecording'
 export const tabSelected = 'chat2:tabSelected'
 export const threadSearch = 'chat2:threadSearch'
 export const threadSearchResults = 'chat2:threadSearchResults'
@@ -227,6 +234,10 @@ type _DesktopNotificationPayload = {
   readonly body: string
 }
 type _DismissBottomBannerPayload = {readonly conversationIDKey: Types.ConversationIDKey}
+type _EnableAudioRecordingPayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly meteringCb: (amp: number) => void
+}
 type _GiphyGotSearchResultPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly results: RPCChatTypes.GiphySearchResults
@@ -251,6 +262,7 @@ type _InboxRefreshPayload = {
     | 'leftAConversation'
     | 'teamTypeChanged'
     | 'maybeKickedFromTeam'
+    | 'widgetRefresh'
 }
 type _InboxSearchMoveSelectedIndexPayload = {readonly increment: boolean}
 type _InboxSearchNameResultsPayload = {
@@ -285,6 +297,7 @@ type _LoadMessagesCenteredPayload = {
 }
 type _LoadNewerMessagesDueToScrollPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _LoadOlderMessagesDueToScrollPayload = {readonly conversationIDKey: Types.ConversationIDKey}
+type _LockAudioRecordingPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _MarkConversationsStalePayload = {
   readonly conversationIDKeys: Array<Types.ConversationIDKey>
   readonly updateType: RPCChatTypes.StaleUpdateType
@@ -310,6 +323,7 @@ type _MessageEditPayload = {
 type _MessageErroredPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly reason: string
+  readonly errorTyp: number | null
   readonly outboxID: Types.OutboxID
 }
 type _MessageReplyPrivatelyPayload = {
@@ -319,6 +333,11 @@ type _MessageReplyPrivatelyPayload = {
 type _MessageRetryPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly outboxID: Types.OutboxID
+}
+type _MessageSendByUsernamesPayload = {
+  readonly usernames: string
+  readonly text: HiddenString
+  readonly waitingKey?: string
 }
 type _MessageSendPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
@@ -397,6 +416,7 @@ type _MetaRequestTrustedPayload = {
     | 'membersUpdate'
     | 'scroll'
     | 'ensureSelectedMeta'
+    | 'ensureWidgetMetas'
     | 'inboxSearchResults'
   readonly conversationIDKeys: Array<Types.ConversationIDKey>
 }
@@ -408,10 +428,7 @@ type _MetasReceivedPayload = {
   readonly initialTrustedLoad?: boolean
 }
 type _MuteConversationPayload = {readonly conversationIDKey: Types.ConversationIDKey; readonly muted: boolean}
-type _NavigateToInboxPayload = {
-  readonly avoidConversationID?: Types.ConversationIDKey
-  readonly findNewConversation: boolean
-}
+type _NavigateToInboxPayload = void
 type _NavigateToThreadPayload = void
 type _NotificationSettingsUpdatedPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
@@ -462,6 +479,7 @@ type _PreviewConversationPayload = {
     | 'requestedPayment'
     | 'teamMention'
     | 'appLink'
+    | 'search'
 }
 type _ReplyJumpPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
@@ -509,12 +527,22 @@ type _SelectConversationPayload = {
     | 'teamMention'
   readonly navKey?: string
 }
+type _SendAudioRecordingPayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly fromStaged: boolean
+  readonly info: Types.AudioRecordingInfo
+}
 type _SendTypingPayload = {readonly conversationIDKey: Types.ConversationIDKey; readonly typing: boolean}
 type _SetAttachmentViewStatusPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly viewType: RPCChatTypes.GalleryItemTyp
   readonly status: Types.AttachmentViewStatus
   readonly last?: boolean
+}
+type _SetAudioRecordingPostInfoPayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly path: string
+  readonly outboxID: Buffer
 }
 type _SetChannelSearchTextPayload = {readonly text: string}
 type _SetCommandMarkdownPayload = {
@@ -577,6 +605,11 @@ type _SetUnsentTextPayload = {
 }
 type _SetWalletsOldPayload = void
 type _StaticConfigLoadedPayload = {readonly staticConfig: Types.StaticConfig}
+type _StopAudioRecordingPayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly stopType: Types.AudioStopType
+  readonly amps?: AmpTracker
+}
 type _TabSelectedPayload = void
 type _ThreadSearchPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
@@ -1203,6 +1236,9 @@ export const createDeselectConversation = (
 export const createDesktopNotification = (
   payload: _DesktopNotificationPayload
 ): DesktopNotificationPayload => ({payload, type: desktopNotification})
+export const createEnableAudioRecording = (
+  payload: _EnableAudioRecordingPayload
+): EnableAudioRecordingPayload => ({payload, type: enableAudioRecording})
 export const createHideConversation = (payload: _HideConversationPayload): HideConversationPayload => ({
   payload,
   type: hideConversation,
@@ -1228,6 +1264,10 @@ export const createLoadNewerMessagesDueToScroll = (
 export const createLoadOlderMessagesDueToScroll = (
   payload: _LoadOlderMessagesDueToScrollPayload
 ): LoadOlderMessagesDueToScrollPayload => ({payload, type: loadOlderMessagesDueToScroll})
+export const createLockAudioRecording = (payload: _LockAudioRecordingPayload): LockAudioRecordingPayload => ({
+  payload,
+  type: lockAudioRecording,
+})
 export const createMarkConversationsStale = (
   payload: _MarkConversationsStalePayload
 ): MarkConversationsStalePayload => ({payload, type: markConversationsStale})
@@ -1269,6 +1309,9 @@ export const createMessageSend = (payload: _MessageSendPayload): MessageSendPayl
   payload,
   type: messageSend,
 })
+export const createMessageSendByUsernames = (
+  payload: _MessageSendByUsernamesPayload
+): MessageSendByUsernamesPayload => ({payload, type: messageSendByUsernames})
 export const createMessageSetEditing = (payload: _MessageSetEditingPayload): MessageSetEditingPayload => ({
   payload,
   type: messageSetEditing,
@@ -1354,13 +1397,24 @@ export const createSelectConversation = (payload: _SelectConversationPayload): S
   payload,
   type: selectConversation,
 })
+export const createSendAudioRecording = (payload: _SendAudioRecordingPayload): SendAudioRecordingPayload => ({
+  payload,
+  type: sendAudioRecording,
+})
 export const createSendTyping = (payload: _SendTypingPayload): SendTypingPayload => ({
   payload,
   type: sendTyping,
 })
+export const createSetAudioRecordingPostInfo = (
+  payload: _SetAudioRecordingPostInfoPayload
+): SetAudioRecordingPostInfoPayload => ({payload, type: setAudioRecordingPostInfo})
 export const createSetConversationOffline = (
   payload: _SetConversationOfflinePayload
 ): SetConversationOfflinePayload => ({payload, type: setConversationOffline})
+export const createStopAudioRecording = (payload: _StopAudioRecordingPayload): StopAudioRecordingPayload => ({
+  payload,
+  type: stopAudioRecording,
+})
 export const createToggleInfoPanel = (payload: _ToggleInfoPanelPayload): ToggleInfoPanelPayload => ({
   payload,
   type: toggleInfoPanel,
@@ -1491,6 +1545,10 @@ export type DismissBottomBannerPayload = {
   readonly payload: _DismissBottomBannerPayload
   readonly type: typeof dismissBottomBanner
 }
+export type EnableAudioRecordingPayload = {
+  readonly payload: _EnableAudioRecordingPayload
+  readonly type: typeof enableAudioRecording
+}
 export type GiphyGotSearchResultPayload = {
   readonly payload: _GiphyGotSearchResultPayload
   readonly type: typeof giphyGotSearchResult
@@ -1567,6 +1625,10 @@ export type LoadOlderMessagesDueToScrollPayload = {
   readonly payload: _LoadOlderMessagesDueToScrollPayload
   readonly type: typeof loadOlderMessagesDueToScroll
 }
+export type LockAudioRecordingPayload = {
+  readonly payload: _LockAudioRecordingPayload
+  readonly type: typeof lockAudioRecording
+}
 export type MarkConversationsStalePayload = {
   readonly payload: _MarkConversationsStalePayload
   readonly type: typeof markConversationsStale
@@ -1605,6 +1667,10 @@ export type MessageReplyPrivatelyPayload = {
   readonly type: typeof messageReplyPrivately
 }
 export type MessageRetryPayload = {readonly payload: _MessageRetryPayload; readonly type: typeof messageRetry}
+export type MessageSendByUsernamesPayload = {
+  readonly payload: _MessageSendByUsernamesPayload
+  readonly type: typeof messageSendByUsernames
+}
 export type MessageSendPayload = {readonly payload: _MessageSendPayload; readonly type: typeof messageSend}
 export type MessageSetEditingPayload = {
   readonly payload: _MessageSetEditingPayload
@@ -1715,10 +1781,18 @@ export type SelectConversationPayload = {
   readonly payload: _SelectConversationPayload
   readonly type: typeof selectConversation
 }
+export type SendAudioRecordingPayload = {
+  readonly payload: _SendAudioRecordingPayload
+  readonly type: typeof sendAudioRecording
+}
 export type SendTypingPayload = {readonly payload: _SendTypingPayload; readonly type: typeof sendTyping}
 export type SetAttachmentViewStatusPayload = {
   readonly payload: _SetAttachmentViewStatusPayload
   readonly type: typeof setAttachmentViewStatus
+}
+export type SetAudioRecordingPostInfoPayload = {
+  readonly payload: _SetAudioRecordingPostInfoPayload
+  readonly type: typeof setAudioRecordingPostInfo
 }
 export type SetChannelSearchTextPayload = {
   readonly payload: _SetChannelSearchTextPayload
@@ -1795,6 +1869,10 @@ export type SetWalletsOldPayload = {
 export type StaticConfigLoadedPayload = {
   readonly payload: _StaticConfigLoadedPayload
   readonly type: typeof staticConfigLoaded
+}
+export type StopAudioRecordingPayload = {
+  readonly payload: _StopAudioRecordingPayload
+  readonly type: typeof stopAudioRecording
 }
 export type TabSelectedPayload = {readonly payload: _TabSelectedPayload; readonly type: typeof tabSelected}
 export type ThreadSearchPayload = {readonly payload: _ThreadSearchPayload; readonly type: typeof threadSearch}
@@ -1932,6 +2010,7 @@ export type Actions =
   | DeselectConversationPayload
   | DesktopNotificationPayload
   | DismissBottomBannerPayload
+  | EnableAudioRecordingPayload
   | GiphyGotSearchResultPayload
   | GiphySendPayload
   | GiphyToggleWindowPayload
@@ -1954,6 +2033,7 @@ export type Actions =
   | LoadMessagesCenteredPayload
   | LoadNewerMessagesDueToScrollPayload
   | LoadOlderMessagesDueToScrollPayload
+  | LockAudioRecordingPayload
   | MarkConversationsStalePayload
   | MarkInitiallyLoadedThreadAsReadPayload
   | MessageAttachmentNativeSavePayload
@@ -1965,6 +2045,7 @@ export type Actions =
   | MessageErroredPayload
   | MessageReplyPrivatelyPayload
   | MessageRetryPayload
+  | MessageSendByUsernamesPayload
   | MessageSendPayload
   | MessageSetEditingPayload
   | MessageSetQuotingPayload
@@ -1997,8 +2078,10 @@ export type Actions =
   | ResolveMaybeMentionPayload
   | SaveMinWriterRolePayload
   | SelectConversationPayload
+  | SendAudioRecordingPayload
   | SendTypingPayload
   | SetAttachmentViewStatusPayload
+  | SetAudioRecordingPostInfoPayload
   | SetChannelSearchTextPayload
   | SetCommandMarkdownPayload
   | SetCommandStatusInfoPayload
@@ -2018,6 +2101,7 @@ export type Actions =
   | SetUnsentTextPayload
   | SetWalletsOldPayload
   | StaticConfigLoadedPayload
+  | StopAudioRecordingPayload
   | TabSelectedPayload
   | ThreadSearchPayload
   | ThreadSearchResultsPayload

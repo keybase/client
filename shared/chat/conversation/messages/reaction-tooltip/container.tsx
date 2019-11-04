@@ -65,7 +65,7 @@ export default namedConnect(
           // Earliest users go at the top
           .sort((a, b) => a.timestamp - b.timestamp)
           .map(r => ({
-            fullName: (stateProps._usersInfo.get(r.username) || {fullname: ''}).fullname,
+            fullName: (stateProps._usersInfo.get(r.username) || {fullname: ''}).fullname || '',
             timestamp: r.timestamp,
             username: r.username,
           }))

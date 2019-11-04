@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/chat1/api.avdl
 
 package chat1
@@ -70,6 +70,18 @@ func (o MsgSender) DeepCopy() MsgSender {
 		Username:   o.Username,
 		DeviceID:   o.DeviceID,
 		DeviceName: o.DeviceName,
+	}
+}
+
+type MsgBotInfo struct {
+	BotUID      string `codec:"botUID" json:"bot_uid"`
+	BotUsername string `codec:"botUsername,omitempty" json:"bot_username,omitempty"`
+}
+
+func (o MsgBotInfo) DeepCopy() MsgBotInfo {
+	return MsgBotInfo{
+		BotUID:      o.BotUID,
+		BotUsername: o.BotUsername,
 	}
 }
 
@@ -247,7 +259,7 @@ type MsgSummary struct {
 	AtMentionUsernames  []string                 `codec:"atMentionUsernames,omitempty" json:"at_mention_usernames,omitempty"`
 	ChannelMention      string                   `codec:"channelMention,omitempty" json:"channel_mention,omitempty"`
 	ChannelNameMentions []UIChannelNameMention   `codec:"channelNameMentions,omitempty" json:"channel_name_mentions,omitempty"`
-	BotUID              *string                  `codec:"botUID,omitempty" json:"bot_uid,omitempty"`
+	BotInfo             *MsgBotInfo              `codec:"botInfo,omitempty" json:"bot_info,omitempty"`
 }
 
 func (o MsgSummary) DeepCopy() MsgSummary {
@@ -308,13 +320,13 @@ func (o MsgSummary) DeepCopy() MsgSummary {
 			}
 			return ret
 		})(o.ChannelNameMentions),
-		BotUID: (func(x *string) *string {
+		BotInfo: (func(x *MsgBotInfo) *MsgBotInfo {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x)
+			tmp := (*x).DeepCopy()
 			return &tmp
-		})(o.BotUID),
+		})(o.BotInfo),
 	}
 }
 
@@ -842,6 +854,42 @@ func (o GetResetConvMembersRes) DeepCopy() GetResetConvMembersRes {
 			}
 			return ret
 		})(o.RateLimits),
+	}
+}
+
+type DeviceInfo struct {
+	DeviceID          string `codec:"deviceID" json:"id"`
+	DeviceDescription string `codec:"deviceDescription" json:"description"`
+	DeviceType        string `codec:"deviceType" json:"type"`
+	DeviceCtime       int64  `codec:"deviceCtime" json:"ctime"`
+}
+
+func (o DeviceInfo) DeepCopy() DeviceInfo {
+	return DeviceInfo{
+		DeviceID:          o.DeviceID,
+		DeviceDescription: o.DeviceDescription,
+		DeviceType:        o.DeviceType,
+		DeviceCtime:       o.DeviceCtime,
+	}
+}
+
+type GetDeviceInfoRes struct {
+	Devices []DeviceInfo `codec:"devices" json:"devices"`
+}
+
+func (o GetDeviceInfoRes) DeepCopy() GetDeviceInfoRes {
+	return GetDeviceInfoRes{
+		Devices: (func(x []DeviceInfo) []DeviceInfo {
+			if x == nil {
+				return nil
+			}
+			ret := make([]DeviceInfo, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Devices),
 	}
 }
 

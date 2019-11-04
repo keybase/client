@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func getActiveDevicesAndKeys(tc libkb.TestContext, u *FakeUser) ([]*libkb.Device, []libkb.GenericKey) {
+func getActiveDevicesAndKeys(tc libkb.TestContext, u *FakeUser) ([]libkb.DeviceWithDeviceNumber, []libkb.GenericKey) {
 	arg := libkb.NewLoadUserByNameArg(tc.G, u.Username).WithPublicKeyOptional()
 	user, err := libkb.LoadUser(arg)
 	require.NoError(tc.T, err)
@@ -22,7 +22,7 @@ func getActiveDevicesAndKeys(tc libkb.TestContext, u *FakeUser) ([]*libkb.Device
 	sibkeys := user.GetComputedKeyFamily().GetAllActiveSibkeys()
 	subkeys := user.GetComputedKeyFamily().GetAllActiveSubkeys()
 
-	activeDevices := []*libkb.Device{}
+	activeDevices := []libkb.DeviceWithDeviceNumber{}
 	for _, device := range user.GetComputedKeyFamily().GetAllDevices() {
 		if device.Status != nil && *device.Status == libkb.DeviceStatusActive {
 			activeDevices = append(activeDevices, device)
@@ -98,7 +98,7 @@ func testRevokeDevice(t *testing.T, upgradePerUserKey bool) {
 	assertNumDevicesAndKeys(tc, u, 2, 4)
 
 	devices, _ := getActiveDevicesAndKeys(tc, u)
-	var thisDevice *libkb.Device
+	var thisDevice libkb.DeviceWithDeviceNumber
 	for _, device := range devices {
 		if device.Type != libkb.DeviceTypePaper {
 			thisDevice = device
@@ -455,7 +455,7 @@ func revokeAnyPaperKey(tc libkb.TestContext, fu *FakeUser) *libkb.Device {
 	t := tc.T
 	t.Logf("revoke a paper key")
 	devices, _ := getActiveDevicesAndKeys(tc, fu)
-	var revokeDevice *libkb.Device
+	var revokeDevice libkb.DeviceWithDeviceNumber
 	for _, device := range devices {
 		if device.Type == libkb.DeviceTypePaper {
 			revokeDevice = device
@@ -465,7 +465,7 @@ func revokeAnyPaperKey(tc libkb.TestContext, fu *FakeUser) *libkb.Device {
 	t.Logf("revoke %s", revokeDevice.ID)
 	err := doRevokeDevice(tc, fu, revokeDevice.ID, false, false)
 	require.NoError(t, err)
-	return revokeDevice
+	return revokeDevice.Device
 }
 
 func TestRevokeLastDevice(t *testing.T) {

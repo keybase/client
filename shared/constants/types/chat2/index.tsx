@@ -7,6 +7,7 @@ import * as Message from './message'
 import * as Wallet from '../wallets'
 import * as TeamBuildingTypes from '../team-building'
 import HiddenString from '../../../util/hidden-string'
+import {AmpTracker} from '../../../chat/audio/amptracker'
 
 export type QuoteInfo = {
   // Always positive and monotonically increasing.
@@ -30,7 +31,7 @@ export type StaticConfig = {
 }
 
 export type MetaMap = Map<Common.ConversationIDKey, Meta.ConversationMeta>
-export type ConversationCountMap = I.Map<Common.ConversationIDKey, number>
+export type ConversationCountMap = Map<Common.ConversationIDKey, number>
 
 export type ThreadSearchStatus = 'initial' | 'inprogress' | 'done'
 
@@ -111,50 +112,76 @@ export type Coordinate = {
   lon: number
 }
 
+export enum AudioRecordingStatus {
+  INITIAL = 0,
+  RECORDING,
+  STAGED,
+  STOPPED,
+  CANCELLED,
+}
+
+export enum AudioStopType {
+  CANCEL = 0,
+  RELEASE,
+  SEND,
+  STOPBUTTON,
+}
+
+export type AudioRecordingInfo = {
+  status: AudioRecordingStatus
+  outboxID: Buffer
+  path: string
+  recordEnd?: number
+  recordStart: number
+  isLocked: boolean
+  amps?: AmpTracker
+}
+
 export type State = Readonly<{
-  accountsInfoMap: I.Map<
+  accountsInfoMap: Map<
     Common.ConversationIDKey,
-    I.Map<RPCChatTypes.MessageID, Message.ChatRequestInfo | Message.ChatPaymentInfo>
+    Map<RPCChatTypes.MessageID, Message.ChatRequestInfo | Message.ChatPaymentInfo>
   > // temp cache for requestPayment and sendPayment message data,
   attachmentFullscreenSelection?: AttachmentFullscreenSelection
   attachmentViewMap: Map<Common.ConversationIDKey, Map<RPCChatTypes.GalleryItemTyp, AttachmentViewInfo>>
+  audioRecording: Map<Common.ConversationIDKey, AudioRecordingInfo>
   badgeMap: ConversationCountMap // id to the badge count,
-  botCommandsUpdateStatusMap: I.Map<Common.ConversationIDKey, RPCChatTypes.UIBotCommandsUpdateStatus>
+  botCommandsUpdateStatusMap: Map<Common.ConversationIDKey, RPCChatTypes.UIBotCommandsUpdateStatus>
   channelSearchText: string
-  commandMarkdownMap: I.Map<Common.ConversationIDKey, RPCChatTypes.UICommandMarkdown>
+  commandMarkdownMap: Map<Common.ConversationIDKey, RPCChatTypes.UICommandMarkdown>
   commandStatusMap: Map<Common.ConversationIDKey, CommandStatusInfo>
-  containsLatestMessageMap: I.Map<Common.ConversationIDKey, boolean>
+  containsLatestMessageMap: Map<Common.ConversationIDKey, boolean>
   createConversationError: string | null
-  dismissedInviteBannersMap: I.Map<Common.ConversationIDKey, boolean>
+  dismissedInviteBannersMap: Map<Common.ConversationIDKey, boolean>
   draftMap: Map<Common.ConversationIDKey, string>
-  editingMap: I.Map<Common.ConversationIDKey, Message.Ordinal> // current message being edited,
-  explodingModeLocks: I.Map<Common.ConversationIDKey, number> // locks set on exploding mode while user is inputting text,
-  explodingModes: I.Map<Common.ConversationIDKey, number> // seconds to exploding message expiration,
-  flipStatusMap: I.Map<string, RPCChatTypes.UICoinFlipStatus>
+  editingMap: Map<Common.ConversationIDKey, Message.Ordinal> // current message being edited,
+  explodingModeLocks: Map<Common.ConversationIDKey, number> // locks set on exploding mode while user is inputting text,
+  explodingModes: Map<Common.ConversationIDKey, number> // seconds to exploding message expiration,
+  flipStatusMap: Map<string, RPCChatTypes.UICoinFlipStatus>
   focus: Focus
-  giphyResultMap: I.Map<Common.ConversationIDKey, RPCChatTypes.GiphySearchResults | null>
-  giphyWindowMap: I.Map<Common.ConversationIDKey, boolean>
+  giphyResultMap: Map<Common.ConversationIDKey, RPCChatTypes.GiphySearchResults | undefined>
+  giphyWindowMap: Map<Common.ConversationIDKey, boolean>
   inboxHasLoaded: boolean // if we've ever loaded,
   inboxLayout: RPCChatTypes.UIInboxLayout | null // layout of the inbox
   inboxSearch?: InboxSearchInfo
   inboxShowNew: boolean // mark search as new,
   isWalletsNew: boolean // controls new-ness of wallets in chat UI,
   lastCoord?: Coordinate
-  maybeMentionMap: I.Map<string, RPCChatTypes.UIMaybeMentionInfo>
-  messageCenterOrdinals: I.Map<Common.ConversationIDKey, CenterOrdinal> // ordinals to center threads on,
+  maybeMentionMap: Map<string, RPCChatTypes.UIMaybeMentionInfo>
+  messageCenterOrdinals: Map<Common.ConversationIDKey, CenterOrdinal> // ordinals to center threads on,
   messageMap: I.Map<Common.ConversationIDKey, I.Map<Message.Ordinal, Message.Message>> // messages in a thread,
-  messageOrdinals: I.Map<Common.ConversationIDKey, I.OrderedSet<Message.Ordinal>> // ordered ordinals in a thread,
+  messageOrdinals: Map<Common.ConversationIDKey, Set<Message.Ordinal>> // ordered ordinals in a thread,
   metaMap: MetaMap // metadata about a thread, There is a special node for the pending conversation,
-  moreToLoadMap: I.Map<Common.ConversationIDKey, boolean> // if we have more data to load,
+  moreToLoadMap: Map<Common.ConversationIDKey, boolean> // if we have more data to load,
   mutedMap: Map<Common.ConversationIDKey, boolean> // muted convs
-  orangeLineMap: I.Map<Common.ConversationIDKey, number> // last message we've seen,
+  orangeLineMap: Map<Common.ConversationIDKey, number> // last message we've seen,
   paymentConfirmInfo?: PaymentConfirmInfo // chat payment confirm screen data,
-  paymentStatusMap: I.Map<Wallet.PaymentID, Message.ChatPaymentInfo>
-  pendingOutboxToOrdinal: I.Map<Common.ConversationIDKey, I.Map<Message.OutboxID, Message.Ordinal>> // messages waiting to be sent,
-  prependTextMap: I.Map<Common.ConversationIDKey, HiddenString | null>
+  paymentStatusMap: Map<Wallet.PaymentID, Message.ChatPaymentInfo>
+  pendingOutboxToOrdinal: Map<Common.ConversationIDKey, Map<Message.OutboxID, Message.Ordinal>> // messages waiting to be sent,
+  prependTextMap: Map<Common.ConversationIDKey, HiddenString | null>
   previousSelectedConversation: Common.ConversationIDKey // the previous selected conversation, if any,
   quote?: QuoteInfo // last quoted message,
-  replyToMap: I.Map<Common.ConversationIDKey, Message.Ordinal>
+  replyToMap: Map<Common.ConversationIDKey, Message.Ordinal>
   selectedConversation: Common.ConversationIDKey // the selected conversation, if any,
   smallTeamsExpanded: boolean // if we're showing all small teams,
   staticConfig?: StaticConfig // static config stuff from the service. only needs to be loaded once. if null, it hasn't been loaded,

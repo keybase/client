@@ -1,4 +1,5 @@
 import URL from 'url-parse'
+import * as SafeElectron from '../../util/safe-electron.desktop'
 import * as Electron from 'electron'
 import * as ConfigGen from '../../actions/config-gen'
 import * as fs from 'fs'
@@ -132,7 +133,7 @@ const loadWindowState = () => {
       switch (darkMode) {
         case 'system':
           darkModePreference = darkMode
-          isDarkMode = isDarwin && Electron.systemPreferences.isDarkMode()
+          isDarkMode = SafeElectron.workingIsDarkMode()
           break
         case 'alwaysDark':
           darkModePreference = darkMode
@@ -268,7 +269,7 @@ export default () => {
     frame: useNativeFrame,
     height: windowState.height,
     minHeight: 600,
-    minWidth: 400,
+    minWidth: 740,
     show: false,
     webPreferences: {
       backgroundThrottling: false,

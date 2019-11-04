@@ -720,6 +720,28 @@
     },
     {
       "type": "record",
+      "name": "FolderWithFavFlags",
+      "fields": [
+        {
+          "type": "Folder",
+          "name": "folder"
+        },
+        {
+          "type": "boolean",
+          "name": "isFavorite"
+        },
+        {
+          "type": "boolean",
+          "name": "isIgnored"
+        },
+        {
+          "type": "boolean",
+          "name": "isNew"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "FSSettings",
       "fields": [
         {
@@ -766,7 +788,8 @@
         "FAVORITES_0",
         "JOURNAL_STATUS_1",
         "ONLINE_STATUS_2",
-        "DOWNLOAD_STATUS_3"
+        "DOWNLOAD_STATUS_3",
+        "FILES_TAB_BADGE_4"
       ]
     },
     {
@@ -855,6 +878,16 @@
           },
           "name": "states"
         }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "FilesTabBadge",
+      "symbols": [
+        "NONE_0",
+        "UPLOADING_STUCK_1",
+        "AWAITING_UPLOAD_2",
+        "UPLOADING_3"
       ]
     },
     {
@@ -1361,6 +1394,15 @@
       ],
       "response": "SyncConfigAndStatusRes"
     },
+    "simpleFSGetFolder": {
+      "request": [
+        {
+          "name": "path",
+          "type": "KBFSPath"
+        }
+      ],
+      "response": "FolderWithFavFlags"
+    },
     "simpleFSAreWeConnectedToMDServer": {
       "request": [],
       "response": "boolean"
@@ -1540,6 +1582,10 @@
         }
       ],
       "response": null
+    },
+    "simpleFSGetFilesTabBadge": {
+      "request": [],
+      "response": "FilesTabBadge"
     },
     "simpleFSGetGUIFileContext": {
       "request": [

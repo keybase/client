@@ -491,6 +491,10 @@
         {
           "type": "boolean",
           "name": "skipBgLoads"
+        },
+        {
+          "type": "boolean",
+          "name": "allowUnseenQuery"
         }
       ]
     },
@@ -1704,6 +1708,13 @@
         {
           "type": "int",
           "name": "height"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "double"
+          },
+          "name": "audioAmps"
         }
       ]
     },
@@ -1722,16 +1733,10 @@
         {
           "type": "int",
           "name": "durationMs"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "AssetMetadataAudio",
-      "fields": [
+        },
         {
-          "type": "int",
-          "name": "durationMs"
+          "type": "boolean",
+          "name": "isAudio"
         }
       ]
     },
@@ -1741,8 +1746,7 @@
       "symbols": [
         "NONE_0",
         "IMAGE_1",
-        "VIDEO_2",
-        "AUDIO_3"
+        "VIDEO_2"
       ],
       "go": "nostring"
     },
@@ -1767,13 +1771,6 @@
             "def": false
           },
           "body": "AssetMetadataVideo"
-        },
-        {
-          "label": {
-            "name": "AUDIO",
-            "def": false
-          },
-          "body": "AssetMetadataAudio"
         }
       ]
     },

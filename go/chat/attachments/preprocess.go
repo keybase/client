@@ -46,7 +46,9 @@ type Preprocess struct {
 	PreviewContentType string
 	BaseDim            *Dimension
 	BaseDurationMs     int
+	BaseIsAudio        bool
 	PreviewDim         *Dimension
+	PreviewAudioAmps   []float64
 	PreviewDurationMs  int
 }
 
@@ -59,6 +61,7 @@ func (p *Preprocess) BaseMetadata() chat1.AssetMetadata {
 			Width:      p.BaseDim.Width,
 			Height:     p.BaseDim.Height,
 			DurationMs: p.BaseDurationMs,
+			IsAudio:    p.BaseIsAudio,
 		})
 	}
 	return chat1.NewAssetMetadataWithImage(chat1.AssetMetadataImage{
@@ -79,8 +82,9 @@ func (p *Preprocess) PreviewMetadata() chat1.AssetMetadata {
 		})
 	}
 	return chat1.NewAssetMetadataWithImage(chat1.AssetMetadataImage{
-		Width:  p.PreviewDim.Width,
-		Height: p.PreviewDim.Height,
+		Width:     p.PreviewDim.Width,
+		Height:    p.PreviewDim.Height,
+		AudioAmps: p.PreviewAudioAmps,
 	})
 }
 
@@ -150,14 +154,13 @@ func processCallerPreview(ctx context.Context, g *globals.Context, callerPreview
 				Width:  callerPreview.Metadata.Image().Width,
 				Height: callerPreview.Metadata.Image().Height,
 			}
+			p.PreviewAudioAmps = callerPreview.Metadata.Image().AudioAmps
 		case chat1.AssetMetadataType_VIDEO:
 			p.PreviewDurationMs = callerPreview.Metadata.Video().DurationMs
 			p.PreviewDim = &Dimension{
 				Width:  callerPreview.Metadata.Video().Width,
 				Height: callerPreview.Metadata.Video().Height,
 			}
-		case chat1.AssetMetadataType_AUDIO:
-			p.PreviewDurationMs = callerPreview.Metadata.Audio().DurationMs
 		}
 	}
 	if callerPreview.BaseMetadata != nil {
@@ -173,12 +176,11 @@ func processCallerPreview(ctx context.Context, g *globals.Context, callerPreview
 			}
 		case chat1.AssetMetadataType_VIDEO:
 			p.BaseDurationMs = callerPreview.BaseMetadata.Video().DurationMs
+			p.BaseIsAudio = callerPreview.BaseMetadata.Video().IsAudio
 			p.BaseDim = &Dimension{
 				Width:  callerPreview.BaseMetadata.Video().Width,
 				Height: callerPreview.BaseMetadata.Video().Height,
 			}
-		case chat1.AssetMetadataType_AUDIO:
-			p.BaseDurationMs = callerPreview.BaseMetadata.Audio().DurationMs
 		}
 	}
 	return p, nil

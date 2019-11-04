@@ -728,6 +728,8 @@ type LoginUI struct {
 	noPrompt bool
 }
 
+var _ libkb.LoginUI = (*LoginUI)(nil)
+
 func NewLoginUI(t libkb.TerminalUI, noPrompt bool) LoginUI {
 	return LoginUI{t, noPrompt}
 }
@@ -818,11 +820,12 @@ func (l LoginUI) DisplayPrimaryPaperKey(_ context.Context, arg keybase1.DisplayP
 	return nil
 }
 
-func (l LoginUI) PromptResetAccount(ctx context.Context, arg keybase1.PromptResetAccountArg) (bool, error) {
+func (l LoginUI) PromptResetAccount(ctx context.Context,
+	arg keybase1.PromptResetAccountArg) (keybase1.ResetPromptResponse, error) {
 	var msg string
 	kind, err := arg.Prompt.T()
 	if err != nil {
-		return false, err
+		return keybase1.ResetPromptResponse_NOTHING, err
 	}
 	switch kind {
 	case keybase1.ResetPromptType_COMPLETE:
@@ -838,13 +841,16 @@ file and chat data, and any unbacked-up wallet funds. Any teams you were the
 only owner or admin of will be orphaned and unrecoverable.`
 	case keybase1.ResetPromptType_ENTER_FORGOT_PW:
 		msg = `If you have forgotten your password and either lost all of your devices, or if you
-uninstalled Keybase from all of them, you can reset your account. You will keep your username,
-but lose all your data.`
+uninstalled Keybase from all of them, you can reset your account. You will keep
+your username, but lose all your data.
+
+If you don't know your password and don't have an email or phone number in your
+account, you won't be able to reset.`
 	case keybase1.ResetPromptType_ENTER_RESET_PW:
 		msg = `If you have forgotten your password you can reset your password. You will keep your
 username, but lose all your data, including all of your uploaded encrypted PGP keys.`
 	default:
-		return false, fmt.Errorf("Unknown prompt type - got %v", kind)
+		return keybase1.ResetPromptResponse_NOTHING, fmt.Errorf("Unknown prompt type - got %v", kind)
 	}
 	_, _ = l.parent.PrintfUnescaped("%s\n\n", msg)
 	var question string
@@ -853,7 +859,13 @@ username, but lose all your data, including all of your uploaded encrypted PGP k
 	} else {
 		question = "Would you like to request a reset of your account?"
 	}
-	return l.parent.PromptYesNo(PromptDescriptorResetAccount, question, libkb.PromptDefaultNo)
+	userWantsToReset, err := l.parent.PromptYesNo(PromptDescriptorResetAccount, question,
+		libkb.PromptDefaultNo)
+
+	if userWantsToReset {
+		return keybase1.ResetPromptResponse_CONFIRM_RESET, err
+	}
+	return keybase1.ResetPromptResponse_NOTHING, err
 }
 
 func (l LoginUI) DisplayResetProgress(ctx context.Context, arg keybase1.DisplayResetProgressArg) error {
@@ -888,6 +900,71 @@ func (l LoginUI) PromptPassphraseRecovery(ctx context.Context, arg keybase1.Prom
 		return false, fmt.Errorf("Unknown prompt type - got %v", arg.Kind)
 	}
 	return l.parent.PromptYesNo(PromptDescriptorPassphraseRecovery, msg, libkb.PromptDefaultNo)
+}
+
+func (l LoginUI) ChooseDeviceToRecoverWith(ctx context.Context, arg keybase1.ChooseDeviceToRecoverWithArg) (keybase1.DeviceID, error) {
+	_ = l.parent.Output("Which one of your existing devices would you like to use to recover your\n")
+	_ = l.parent.Output("password?\n\n")
+
+	for i, d := range arg.Devices {
+		var ft string
+		switch d.Type {
+		case libkb.DeviceTypePaper:
+			ft = "paper key"
+		case libkb.DeviceTypeDesktop:
+			ft = "computer"
+		case libkb.DeviceTypeMobile:
+			ft = "mobile"
+		}
+		l.parent.Printf("\t%d. [%s]\t%s\n", i+1, ft, d.Name)
+	}
+
+	allowed := len(arg.Devices) + 1
+	l.parent.Printf("\t%d. I don't have access to any of these devices.\n", len(arg.Devices)+1)
+	_ = l.parent.Output("\n")
+
+	ret, err := PromptSelectionOrCancel(PromptDescriptorChooseDevice, l.parent, "Choose a device", 1, allowed)
+	if err != nil {
+		if err == ErrInputCanceled {
+			return keybase1.DeviceID(""), libkb.InputCanceledError{}
+		}
+		return keybase1.DeviceID(""), err
+	}
+
+	if ret == len(arg.Devices)+1 {
+		// selecting reset
+		return keybase1.DeviceID(""), nil
+	}
+
+	return arg.Devices[ret-1].DeviceID, nil
+}
+
+func (l LoginUI) DisplayResetMessage(_ context.Context, arg keybase1.DisplayResetMessageArg) error {
+	switch arg.Kind {
+	case keybase1.ResetMessage_ENTERED_VERIFIED:
+		_ = l.parent.Output(`Your account has been added to the reset pipeline.
+Please check your email and phone for instructions on continuing. If you
+remember your correct password or you want to resend verification emails and
+texts, retry this command.
+`)
+	case keybase1.ResetMessage_ENTERED_PASSWORDLESS:
+		_ = l.parent.Output(`Your account has been added to the reset pipeline.
+To check the status of your reset request, login again with your Keybase
+password.
+`)
+	case keybase1.ResetMessage_REQUEST_VERIFIED:
+		_ = l.parent.Output("Your account's reset request is now verified.\n")
+	case keybase1.ResetMessage_NOT_COMPLETED:
+		_ = l.parent.Output("Reset not completed.\n")
+	case keybase1.ResetMessage_CANCELED:
+		_ = l.parent.Output("Canceling reset.\n")
+	case keybase1.ResetMessage_COMPLETED:
+		_ = l.parent.Output("Your account has been reset.\n")
+	case keybase1.ResetMessage_RESET_LINK_SENT:
+		_ = l.parent.Output("A reset link has been sent to primary email.\n")
+	}
+
+	return nil
 }
 
 type SecretUI struct {

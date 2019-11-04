@@ -65,12 +65,14 @@ type NotifyListener interface {
 	ChatPaymentInfo(uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, info chat1.UIPaymentInfo)
 	ChatRequestInfo(uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, info chat1.UIRequestInfo)
 	ChatPromptUnfurl(uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, domain string)
+	ChatConvUpdate(uid keybase1.UID, convID chat1.ConversationID)
 	PGPKeyInSecretStoreFile()
 	BadgeState(badgeState keybase1.BadgeState)
 	ReachabilityChanged(r keybase1.Reachability)
 	TeamChangedByID(teamID keybase1.TeamID, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet, latestHiddenSeqno keybase1.Seqno)
 	TeamChangedByName(teamName string, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet, latestHiddenSeqno keybase1.Seqno)
 	TeamDeleted(teamID keybase1.TeamID)
+	TeamRoleMapChanged(version keybase1.UserTeamVersion)
 	TeamExit(teamID keybase1.TeamID)
 	NewlyAddedToTeam(teamID keybase1.TeamID)
 	NewTeamEK(teamID keybase1.TeamID, generation keybase1.EkGeneration)
@@ -87,7 +89,7 @@ type NotifyListener interface {
 	WalletAccountsUpdate(accounts []stellar1.WalletAccountLocal)
 	WalletPendingPaymentsUpdate(accountID stellar1.AccountID, pending []stellar1.PaymentOrErrorLocal)
 	WalletRecentPaymentsUpdate(accountID stellar1.AccountID, firstPage stellar1.PaymentsPageLocal)
-	TeamListUnverifiedChanged(teamName string)
+	TeamMetadataUpdate()
 	CanUserPerformChanged(teamName string)
 	PhoneNumbersChanged(list []keybase1.UserPhoneNumber, category string, phoneNumber keybase1.PhoneNumber)
 	EmailAddressVerified(emailAddress keybase1.EmailAddress)
@@ -98,6 +100,7 @@ type NotifyListener interface {
 	RuntimeStatsUpdate(*keybase1.RuntimeStats)
 	HTTPSrvInfoUpdate(keybase1.HttpSrvInfo)
 	IdentifyUpdate(okUsernames []string, brokenUsernames []string)
+	Reachability(keybase1.Reachability)
 }
 
 type NoopNotifyListener struct{}
@@ -173,6 +176,8 @@ func (n *NoopNotifyListener) ChatRequestInfo(uid keybase1.UID, convID chat1.Conv
 func (n *NoopNotifyListener) ChatPromptUnfurl(uid keybase1.UID, convID chat1.ConversationID,
 	msgID chat1.MessageID, domain string) {
 }
+func (n *NoopNotifyListener) ChatConvUpdate(uid keybase1.UID, convID chat1.ConversationID) {}
+
 func (n *NoopNotifyListener) PGPKeyInSecretStoreFile()                    {}
 func (n *NoopNotifyListener) BadgeState(badgeState keybase1.BadgeState)   {}
 func (n *NoopNotifyListener) ReachabilityChanged(r keybase1.Reachability) {}
@@ -182,6 +187,7 @@ func (n *NoopNotifyListener) TeamChangedByName(teamName string, latestSeqno keyb
 }
 func (n *NoopNotifyListener) TeamDeleted(teamID keybase1.TeamID)                                    {}
 func (n *NoopNotifyListener) TeamExit(teamID keybase1.TeamID)                                       {}
+func (n *NoopNotifyListener) TeamRoleMapChanged(version keybase1.UserTeamVersion)                   {}
 func (n *NoopNotifyListener) NewTeamEK(teamID keybase1.TeamID, generation keybase1.EkGeneration)    {}
 func (n *NoopNotifyListener) NewTeambotEK(teamID keybase1.TeamID, generation keybase1.EkGeneration) {}
 func (n *NoopNotifyListener) TeambotEKNeeded(teamID keybase1.TeamID, botUID keybase1.UID,
@@ -207,8 +213,8 @@ func (n *NoopNotifyListener) WalletPendingPaymentsUpdate(accountID stellar1.Acco
 }
 func (n *NoopNotifyListener) WalletRecentPaymentsUpdate(accountID stellar1.AccountID, firstPage stellar1.PaymentsPageLocal) {
 }
-func (n *NoopNotifyListener) TeamListUnverifiedChanged(teamName string) {}
-func (n *NoopNotifyListener) CanUserPerformChanged(teamName string)     {}
+func (n *NoopNotifyListener) TeamMetadataUpdate()                   {}
+func (n *NoopNotifyListener) CanUserPerformChanged(teamName string) {}
 func (n *NoopNotifyListener) PhoneNumbersChanged(list []keybase1.UserPhoneNumber, category string, phoneNumber keybase1.PhoneNumber) {
 }
 func (n *NoopNotifyListener) EmailAddressVerified(emailAddress keybase1.EmailAddress) {}
@@ -221,6 +227,7 @@ func (n *NoopNotifyListener) RuntimeStatsUpdate(*keybase1.RuntimeStats) {}
 func (n *NoopNotifyListener) HTTPSrvInfoUpdate(keybase1.HttpSrvInfo)    {}
 func (n *NoopNotifyListener) IdentifyUpdate(okUsernames []string, brokenUsernames []string) {
 }
+func (n *NoopNotifyListener) Reachability(keybase1.Reachability) {}
 
 type NotifyListenerID string
 
@@ -1424,6 +1431,20 @@ func (n *NotifyRouter) HandleChatPromptUnfurl(ctx context.Context, uid keybase1.
 		})
 }
 
+func (n *NotifyRouter) HandleChatConvUpdate(ctx context.Context, uid keybase1.UID,
+	convID chat1.ConversationID, topicType chat1.TopicType, conv *chat1.InboxUIItem) {
+	n.notifyChatCommon(ctx, "ChatConvUpdate", topicType,
+		func(ctx context.Context, cli *chat1.NotifyChatClient) {
+			_ = cli.ChatConvUpdate(ctx, chat1.ChatConvUpdateArg{
+				Uid:    uid,
+				ConvID: convID,
+				Conv:   conv,
+			})
+		}, func(ctx context.Context, listener NotifyListener) {
+			listener.ChatConvUpdate(uid, convID)
+		})
+}
+
 type notifyChatFn1 func(context.Context, *chat1.NotifyChatClient)
 type notifyChatFn2 func(context.Context, NotifyListener)
 
@@ -1803,6 +1824,9 @@ func (n *NotifyRouter) HandleReachability(r keybase1.Reachability) {
 		}
 		return true
 	})
+	n.runListeners(func(listener NotifyListener) {
+		listener.Reachability(r)
+	})
 	n.G().Log.Debug("- Sent reachability")
 }
 
@@ -1893,15 +1917,14 @@ func (n *NotifyRouter) HandleTeamChangedByName(ctx context.Context,
 	n.G().Log.CDebugf(ctx, "- Sent TeamChanged notification")
 }
 
-// HandleTeamListUnverifiedChanged is called when a notification is received from gregor that
-// we think might be of interest to the UI, specifically the parts of the UI that update using
-// the TeamListUnverified rpc.
-func (n *NotifyRouter) HandleTeamListUnverifiedChanged(ctx context.Context, teamName string) {
+// TeamMetadataUpdateUnverified is called when a notification is received that
+// affects the teams tab root page.
+func (n *NotifyRouter) HandleTeamMetadataUpdate(ctx context.Context) {
 	if n == nil {
 		return
 	}
 
-	n.G().Log.Debug("+ Sending TeamListUnverifiedChanged notification (team:%v)", teamName)
+	n.G().Log.Debug("+ Sending TeamMetadataUpdate notification")
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		// If the connection wants the `Team` notifications
@@ -1909,18 +1932,18 @@ func (n *NotifyRouter) HandleTeamListUnverifiedChanged(ctx context.Context, team
 			// In the background do...
 			go func() {
 				// A send of a `TeamListUnverifiedChanged` RPC
-				_ = (keybase1.NotifyUnverifiedTeamListClient{
+				_ = (keybase1.NotifyTeamClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).TeamListUnverifiedChanged(context.Background(), teamName)
+				}).TeamMetadataUpdate(context.Background())
 			}()
 		}
 		return true
 	})
 
 	n.runListeners(func(listener NotifyListener) {
-		listener.TeamListUnverifiedChanged(teamName)
+		listener.TeamMetadataUpdate()
 	})
-	n.G().Log.Debug("- Sent TeamListUnverifiedChanged notification (team:%v)", teamName)
+	n.G().Log.Debug("- Sent TeamMetadata notification")
 }
 
 // HandleCanUserPerformChanged is called when a notification is received from gregor that
@@ -2005,6 +2028,33 @@ func (n *NotifyRouter) HandleTeamExit(ctx context.Context, teamID keybase1.TeamI
 		listener.TeamExit(teamID)
 	})
 	n.G().Log.CDebugf(ctx, "- Sent TeamExit notification")
+}
+
+func (n *NotifyRouter) HandleTeamRoleMapChanged(ctx context.Context, version keybase1.UserTeamVersion) {
+	if n == nil {
+		return
+	}
+
+	var wg sync.WaitGroup
+	n.G().Log.CDebugf(ctx, "+ Sending TeamRoleMapChanged notification")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Team {
+			wg.Add(1)
+			go func() {
+				_ = (keybase1.NotifyTeamClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).TeamRoleMapChanged(context.Background(), version)
+				wg.Done()
+			}()
+		}
+		return true
+	})
+	wg.Wait()
+
+	n.runListeners(func(listener NotifyListener) {
+		listener.TeamRoleMapChanged(version)
+	})
+	n.G().Log.CDebugf(ctx, "- Sent TeamRoleMapChanged notification (version %d)", version)
 }
 
 func (n *NotifyRouter) HandleTeamAbandoned(ctx context.Context, teamID keybase1.TeamID) {
@@ -2162,14 +2212,15 @@ func (n *NotifyRouter) HandleTeambotEKNeeded(ctx context.Context, teamID keybase
 }
 
 func (n *NotifyRouter) HandleNewTeambotKey(ctx context.Context, teamID keybase1.TeamID,
-	generation keybase1.TeambotKeyGeneration) {
+	app keybase1.TeamApplication, generation keybase1.TeambotKeyGeneration) {
 	if n == nil {
 		return
 	}
 
 	arg := keybase1.NewTeambotKeyArg{
-		Id:         teamID,
-		Generation: generation,
+		Id:          teamID,
+		Application: app,
+		Generation:  generation,
 	}
 
 	var wg sync.WaitGroup
@@ -2195,15 +2246,16 @@ func (n *NotifyRouter) HandleNewTeambotKey(ctx context.Context, teamID keybase1.
 }
 
 func (n *NotifyRouter) HandleTeambotKeyNeeded(ctx context.Context, teamID keybase1.TeamID,
-	botUID keybase1.UID, generation keybase1.TeambotKeyGeneration) {
+	botUID keybase1.UID, app keybase1.TeamApplication, generation keybase1.TeambotKeyGeneration) {
 	if n == nil {
 		return
 	}
 
 	arg := keybase1.TeambotKeyNeededArg{
-		Id:         teamID,
-		Uid:        botUID,
-		Generation: generation,
+		Id:          teamID,
+		Application: app,
+		Uid:         botUID,
+		Generation:  generation,
 	}
 
 	var wg sync.WaitGroup

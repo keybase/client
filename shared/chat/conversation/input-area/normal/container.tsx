@@ -31,13 +31,21 @@ const setUnsentText = (conversationIDKey: Types.ConversationIDKey, text: string)
 
 const getTeams = memoize((layout: RPCChatTypes.UIInboxLayout | null) => {
   const bigTeams = (layout && layout.bigTeams) || []
-  return bigTeams
-    .reduce<Array<string>>((arr, l) => {
-      if (l.state === RPCChatTypes.UIInboxBigTeamRowTyp.label) {
-        arr.push(l.label)
-      }
-      return arr
-    }, [])
+  const smallTeams = (layout && layout.smallTeams) || []
+  const bigTeamNames = bigTeams.reduce<Array<string>>((arr, l) => {
+    if (l.state === RPCChatTypes.UIInboxBigTeamRowTyp.label) {
+      arr.push(l.label)
+    }
+    return arr
+  }, [])
+  const smallTeamNames = smallTeams.reduce<Array<string>>((arr, l) => {
+    if (l.isTeam) {
+      arr.push(l.name)
+    }
+    return arr
+  }, [])
+  return bigTeamNames
+    .concat(smallTeamNames)
     .sort()
     .map(teamname => ({fullName: '', teamname, username: ''}))
 })
@@ -57,21 +65,20 @@ export default Container.namedConnect(
     const isExploding = explodingModeSeconds !== 0
     const unsentText = state.chat2.unsentTextMap.get(conversationIDKey)
     const prependText = state.chat2.prependTextMap.get(conversationIDKey)
-    const showCommandMarkdown = state.chat2.commandMarkdownMap.get(conversationIDKey, '') !== ''
+    const showCommandMarkdown = (state.chat2.commandMarkdownMap.get(conversationIDKey) || '') !== ''
     const showCommandStatus = !!state.chat2.commandStatusMap.get(conversationIDKey)
-    const showGiphySearch = state.chat2.giphyWindowMap.get(conversationIDKey, false)
+    const showGiphySearch = state.chat2.giphyWindowMap.get(conversationIDKey) || false
     const _replyTo = Constants.getReplyToMessageID(state, conversationIDKey)
-    const _containsLatestMessage = state.chat2.containsLatestMessageMap.get(conversationIDKey, false)
-    const suggestBotCommandsUpdateStatus = state.chat2.botCommandsUpdateStatusMap.get(
-      conversationIDKey,
+    const _containsLatestMessage = state.chat2.containsLatestMessageMap.get(conversationIDKey) || false
+    const suggestBotCommandsUpdateStatus =
+      state.chat2.botCommandsUpdateStatusMap.get(conversationIDKey) ||
       RPCChatTypes.UIBotCommandsUpdateStatus.blank
-    )
+
     return {
       _containsLatestMessage,
       _draft: Constants.getDraft(state, conversationIDKey),
       _editOrdinal: editInfo ? editInfo.ordinal : null,
       _isExplodingModeLocked: Constants.isExplodingModeLocked(state, conversationIDKey),
-      _metaMap: state.chat2.metaMap,
       _replyTo,
       _you,
       cannotWrite: meta.cannotWrite,
@@ -203,7 +210,6 @@ export default Container.namedConnect(
     onGiphyToggle: () => dispatchProps._onGiphyToggle(stateProps.conversationIDKey),
     onRequestScrollDown: ownProps.onRequestScrollDown,
     onRequestScrollUp: ownProps.onRequestScrollUp,
-
     onSubmit: (text: string) => {
       if (stateProps._editOrdinal) {
         dispatchProps._onEditMessage(stateProps.conversationIDKey, stateProps._editOrdinal, text)

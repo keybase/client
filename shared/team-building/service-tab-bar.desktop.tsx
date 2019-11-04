@@ -14,7 +14,7 @@ const ServiceIcon = (props: IconProps) => {
       onClick={props.onClick}
       onMouseOver={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
-      style={{flex: 1}}
+      style={styles.serviceIconFlex}
     >
       <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.serviceIconContainer}>
         <Kb.Box2
@@ -59,7 +59,7 @@ const ServiceIcon = (props: IconProps) => {
                 {props.count && props.count > 10 ? '10+' : props.count}
               </Kb.Text>
             ) : (
-              <Kb.Animation animationType="spinnerGrey" style={styles.pendingAnimation} />
+              <Kb.Animation animationType="spinner" style={styles.pendingAnimation} />
             ))}
         </Kb.Box2>
       </Kb.Box2>
@@ -67,7 +67,9 @@ const ServiceIcon = (props: IconProps) => {
         direction="horizontal"
         fullWidth={true}
         style={Styles.collapseStyles([
-          props.isActive ? styles.activeTabBar : styles.inactiveTabBar,
+          props.isActive
+            ? styles.activeTabBar
+            : {...styles.inactiveTabBar, ...(props.minimalBorder ? {borderBottomWidth: 0} : undefined)},
           props.isActive && {backgroundColor: serviceIdToAccentColor(props.service)},
         ])}
       />
@@ -134,8 +136,7 @@ export const ServiceTabBar = (props: Props) => {
     lastSelectedUnlockedService,
     setLastSelectedUnlockedService,
   ] = React.useState<ServiceIdWithContact | null>(null)
-  const {services, onChangeService: propsOnChangeService} = props
-  const nLocked = 3 // Services always out front on the left. Add one to get the number out front.
+  const {services, onChangeService: propsOnChangeService, servicesShown: nLocked = 3} = props
   const onChangeService = React.useCallback(
     (service: ServiceIdWithContact) => {
       if (services.indexOf(service) >= nLocked && service !== lastSelectedUnlockedService) {
@@ -165,11 +166,11 @@ export const ServiceTabBar = (props: Props) => {
           key={service}
           service={service}
           label={serviceIdToLongLabel(service)}
-          labelPresence={1}
           onClick={() => onChangeService(service)}
           count={undefToNull(props.serviceResultCount[service])}
           showCount={props.showServiceResultCount}
           isActive={props.selectedService === service}
+          minimalBorder={props.minimalBorder}
         />
       ))}
       {moreServices.length > 0 && (
@@ -253,6 +254,10 @@ const styles = Styles.styleSheetCreate(
       },
       serviceIconContainerInner: {
         justifyContent: 'flex-start',
+      },
+      serviceIconFlex: {
+        flex: 1,
+        maxWidth: 90,
       },
       tabBarContainer: {
         flexShrink: 0,

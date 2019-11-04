@@ -493,7 +493,7 @@ func (idx *Indexer) convsByMTime(ctx context.Context, uid gregor1.UID,
 	}
 	sortMap := make(map[string]gregor1.Time)
 	for _, conv := range ib {
-		sortMap[conv.GetConvID().String()] = utils.GetConvMtime(conv.Conv)
+		sortMap[conv.GetConvID().String()] = utils.GetConvMtime(conv)
 	}
 	sort.Slice(res, func(i, j int) bool {
 		imtime := sortMap[res[i].GetConvID().String()]

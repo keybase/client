@@ -50,7 +50,7 @@ func (h *SignupHandler) CheckUsernameAvailable(ctx context.Context, arg keybase1
 		return libkb.AppStatusError{
 			Code: libkb.SCBadUsername,
 			Name: "BAD_USERNAME",
-			Desc: "This is not a valid username. Please pick another one.",
+			Desc: "Usernames must be 2-16 characters long, and can use letters, numbers, and underscores.",
 		}
 	case "user":
 		// User found, so the name is taken.
@@ -58,6 +58,12 @@ func (h *SignupHandler) CheckUsernameAvailable(ctx context.Context, arg keybase1
 			Code: libkb.SCBadSignupUsernameTaken,
 			Name: "BAD_SIGNUP_USERNAME_TAKEN",
 			Desc: "This username is already taken! Please pick another one.",
+		}
+	case "reserved":
+		return libkb.AppStatusError{
+			Code: libkb.SCBadSignupUsernameReserved,
+			Name: "BAD_SIGNUP_USERNAME_RESERVED",
+			Desc: "This username is reserved by the Keybase team, possibly for your organization. Contact chris@keybase.io to claim it.",
 		}
 	case "user_deleted":
 		return libkb.AppStatusError{

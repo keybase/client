@@ -56,7 +56,6 @@ const sharedSettingsProps = {
   currencies: testCurrencies,
   currencyWaiting: false,
   externalPartners,
-  inflationDestination: '',
   mobileOnlyEditable: false,
   mobileOnlyMode: false,
   mobileOnlyWaiting: false,
@@ -68,7 +67,6 @@ const sharedSettingsProps = {
   onMobileOnlyModeChange: Sb.action('onMobileOnlyModeChange'),
   onSecretKeySeen: Sb.action('onSecretKeySeen'),
   onSetDefault: Sb.action('setDefault'),
-  onSetupInflation: Sb.action('onSetupInflation'),
   refresh: () => {},
   saveCurrencyWaiting: false,
   secretKey: 'NOTASECRETKEY',
@@ -107,9 +105,6 @@ const load = () => {
   Sb.storiesOf('Wallets/Wallet/Settings', module)
     .addDecorator(provider)
     .add('Default', () => <Settings {...defaultSettingsProps} />)
-    .add('Default with inflation dest', () => (
-      <Settings {...defaultSettingsProps} inflationDestination="Stellar Development Foundation" />
-    ))
     .add("Not funded account (can't make tx)", () => (
       <Settings {...defaultSettingsProps} canSubmitTx={false} />
     ))

@@ -45,6 +45,7 @@ export const chat1ChatUiTriggerContactSync = 'engine-gen:chat1ChatUiTriggerConta
 export const chat1NotifyChatChatAttachmentUploadProgress =
   'engine-gen:chat1NotifyChatChatAttachmentUploadProgress'
 export const chat1NotifyChatChatAttachmentUploadStart = 'engine-gen:chat1NotifyChatChatAttachmentUploadStart'
+export const chat1NotifyChatChatConvUpdate = 'engine-gen:chat1NotifyChatChatConvUpdate'
 export const chat1NotifyChatChatIdentifyUpdate = 'engine-gen:chat1NotifyChatChatIdentifyUpdate'
 export const chat1NotifyChatChatInboxStale = 'engine-gen:chat1NotifyChatChatInboxStale'
 export const chat1NotifyChatChatInboxSyncStarted = 'engine-gen:chat1NotifyChatChatInboxSyncStarted'
@@ -105,8 +106,10 @@ export const keybase1IdentifyUiReportLastTrack = 'engine-gen:keybase1IdentifyUiR
 export const keybase1IdentifyUiReportTrackToken = 'engine-gen:keybase1IdentifyUiReportTrackToken'
 export const keybase1IdentifyUiStart = 'engine-gen:keybase1IdentifyUiStart'
 export const keybase1LogUiLog = 'engine-gen:keybase1LogUiLog'
+export const keybase1LoginUiChooseDeviceToRecoverWith = 'engine-gen:keybase1LoginUiChooseDeviceToRecoverWith'
 export const keybase1LoginUiDisplayPaperKeyPhrase = 'engine-gen:keybase1LoginUiDisplayPaperKeyPhrase'
 export const keybase1LoginUiDisplayPrimaryPaperKey = 'engine-gen:keybase1LoginUiDisplayPrimaryPaperKey'
+export const keybase1LoginUiDisplayResetMessage = 'engine-gen:keybase1LoginUiDisplayResetMessage'
 export const keybase1LoginUiDisplayResetProgress = 'engine-gen:keybase1LoginUiDisplayResetProgress'
 export const keybase1LoginUiExplainDeviceRecovery = 'engine-gen:keybase1LoginUiExplainDeviceRecovery'
 export const keybase1LoginUiGetEmailOrUsername = 'engine-gen:keybase1LoginUiGetEmailOrUsername'
@@ -159,12 +162,12 @@ export const keybase1NotifyTeamTeamChangedByID = 'engine-gen:keybase1NotifyTeamT
 export const keybase1NotifyTeamTeamChangedByName = 'engine-gen:keybase1NotifyTeamTeamChangedByName'
 export const keybase1NotifyTeamTeamDeleted = 'engine-gen:keybase1NotifyTeamTeamDeleted'
 export const keybase1NotifyTeamTeamExit = 'engine-gen:keybase1NotifyTeamTeamExit'
+export const keybase1NotifyTeamTeamMetadataUpdate = 'engine-gen:keybase1NotifyTeamTeamMetadataUpdate'
+export const keybase1NotifyTeamTeamRoleMapChanged = 'engine-gen:keybase1NotifyTeamTeamRoleMapChanged'
 export const keybase1NotifyTeambotNewTeambotKey = 'engine-gen:keybase1NotifyTeambotNewTeambotKey'
 export const keybase1NotifyTeambotTeambotKeyNeeded = 'engine-gen:keybase1NotifyTeambotTeambotKeyNeeded'
 export const keybase1NotifyTrackingTrackingChanged = 'engine-gen:keybase1NotifyTrackingTrackingChanged'
 export const keybase1NotifyTrackingTrackingInfo = 'engine-gen:keybase1NotifyTrackingTrackingInfo'
-export const keybase1NotifyUnverifiedTeamListTeamListUnverifiedChanged =
-  'engine-gen:keybase1NotifyUnverifiedTeamListTeamListUnverifiedChanged'
 export const keybase1NotifyUsersIdentifyUpdate = 'engine-gen:keybase1NotifyUsersIdentifyUpdate'
 export const keybase1NotifyUsersPasswordChanged = 'engine-gen:keybase1NotifyUsersPasswordChanged'
 export const keybase1NotifyUsersUserChanged = 'engine-gen:keybase1NotifyUsersUserChanged'
@@ -516,6 +519,11 @@ type _Chat1NotifyChatChatAttachmentUploadProgressPayload = {
 }
 type _Chat1NotifyChatChatAttachmentUploadStartPayload = {
   readonly params: chat1Types.MessageTypes['chat.1.NotifyChat.ChatAttachmentUploadStart']['inParam'] & {
+    sessionID: number
+  }
+}
+type _Chat1NotifyChatChatConvUpdatePayload = {
+  readonly params: chat1Types.MessageTypes['chat.1.NotifyChat.ChatConvUpdate']['inParam'] & {
     sessionID: number
   }
 }
@@ -937,6 +945,17 @@ type _Keybase1LogUiLogPayload = {
     result: (param: keybase1Types.MessageTypes['keybase.1.logUi.log']['outParam']) => void
   }
 }
+type _Keybase1LoginUiChooseDeviceToRecoverWithPayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.loginUi.chooseDeviceToRecoverWith']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (
+      param: keybase1Types.MessageTypes['keybase.1.loginUi.chooseDeviceToRecoverWith']['outParam']
+    ) => void
+  }
+}
 type _Keybase1LoginUiDisplayPaperKeyPhrasePayload = {
   readonly params: keybase1Types.MessageTypes['keybase.1.loginUi.displayPaperKeyPhrase']['inParam'] & {
     sessionID: number
@@ -955,6 +974,15 @@ type _Keybase1LoginUiDisplayPrimaryPaperKeyPayload = {
     result: (
       param: keybase1Types.MessageTypes['keybase.1.loginUi.displayPrimaryPaperKey']['outParam']
     ) => void
+  }
+}
+type _Keybase1LoginUiDisplayResetMessagePayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.loginUi.displayResetMessage']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (param: keybase1Types.MessageTypes['keybase.1.loginUi.displayResetMessage']['outParam']) => void
   }
 }
 type _Keybase1LoginUiDisplayResetProgressPayload = {
@@ -1353,6 +1381,24 @@ type _Keybase1NotifyTeamTeamExitPayload = {
     result: (param: keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamExit']['outParam']) => void
   }
 }
+type _Keybase1NotifyTeamTeamMetadataUpdatePayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamMetadataUpdate']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (param: keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamMetadataUpdate']['outParam']) => void
+  }
+}
+type _Keybase1NotifyTeamTeamRoleMapChangedPayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamRoleMapChanged']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (param: keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamRoleMapChanged']['outParam']) => void
+  }
+}
 type _Keybase1NotifyTeambotNewTeambotKeyPayload = {
   readonly params: keybase1Types.MessageTypes['keybase.1.NotifyTeambot.newTeambotKey']['inParam'] & {
     sessionID: number
@@ -1381,11 +1427,6 @@ type _Keybase1NotifyTrackingTrackingInfoPayload = {
   response: {
     error: keybase1Types.IncomingErrorCallback
     result: (param: keybase1Types.MessageTypes['keybase.1.NotifyTracking.trackingInfo']['outParam']) => void
-  }
-}
-type _Keybase1NotifyUnverifiedTeamListTeamListUnverifiedChangedPayload = {
-  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyUnverifiedTeamList.teamListUnverifiedChanged']['inParam'] & {
-    sessionID: number
   }
 }
 type _Keybase1NotifyUsersIdentifyUpdatePayload = {
@@ -1919,6 +1960,9 @@ export const createChat1NotifyChatChatAttachmentUploadStart = (
   payload,
   type: chat1NotifyChatChatAttachmentUploadStart,
 })
+export const createChat1NotifyChatChatConvUpdate = (
+  payload: _Chat1NotifyChatChatConvUpdatePayload
+): Chat1NotifyChatChatConvUpdatePayload => ({payload, type: chat1NotifyChatChatConvUpdate})
 export const createChat1NotifyChatChatIdentifyUpdate = (
   payload: _Chat1NotifyChatChatIdentifyUpdatePayload
 ): Chat1NotifyChatChatIdentifyUpdatePayload => ({payload, type: chat1NotifyChatChatIdentifyUpdate})
@@ -2118,12 +2162,21 @@ export const createKeybase1LogUiLog = (payload: _Keybase1LogUiLogPayload): Keyba
   payload,
   type: keybase1LogUiLog,
 })
+export const createKeybase1LoginUiChooseDeviceToRecoverWith = (
+  payload: _Keybase1LoginUiChooseDeviceToRecoverWithPayload
+): Keybase1LoginUiChooseDeviceToRecoverWithPayload => ({
+  payload,
+  type: keybase1LoginUiChooseDeviceToRecoverWith,
+})
 export const createKeybase1LoginUiDisplayPaperKeyPhrase = (
   payload: _Keybase1LoginUiDisplayPaperKeyPhrasePayload
 ): Keybase1LoginUiDisplayPaperKeyPhrasePayload => ({payload, type: keybase1LoginUiDisplayPaperKeyPhrase})
 export const createKeybase1LoginUiDisplayPrimaryPaperKey = (
   payload: _Keybase1LoginUiDisplayPrimaryPaperKeyPayload
 ): Keybase1LoginUiDisplayPrimaryPaperKeyPayload => ({payload, type: keybase1LoginUiDisplayPrimaryPaperKey})
+export const createKeybase1LoginUiDisplayResetMessage = (
+  payload: _Keybase1LoginUiDisplayResetMessagePayload
+): Keybase1LoginUiDisplayResetMessagePayload => ({payload, type: keybase1LoginUiDisplayResetMessage})
 export const createKeybase1LoginUiDisplayResetProgress = (
   payload: _Keybase1LoginUiDisplayResetProgressPayload
 ): Keybase1LoginUiDisplayResetProgressPayload => ({payload, type: keybase1LoginUiDisplayResetProgress})
@@ -2298,6 +2351,12 @@ export const createKeybase1NotifyTeamTeamDeleted = (
 export const createKeybase1NotifyTeamTeamExit = (
   payload: _Keybase1NotifyTeamTeamExitPayload
 ): Keybase1NotifyTeamTeamExitPayload => ({payload, type: keybase1NotifyTeamTeamExit})
+export const createKeybase1NotifyTeamTeamMetadataUpdate = (
+  payload: _Keybase1NotifyTeamTeamMetadataUpdatePayload
+): Keybase1NotifyTeamTeamMetadataUpdatePayload => ({payload, type: keybase1NotifyTeamTeamMetadataUpdate})
+export const createKeybase1NotifyTeamTeamRoleMapChanged = (
+  payload: _Keybase1NotifyTeamTeamRoleMapChangedPayload
+): Keybase1NotifyTeamTeamRoleMapChangedPayload => ({payload, type: keybase1NotifyTeamTeamRoleMapChanged})
 export const createKeybase1NotifyTeambotNewTeambotKey = (
   payload: _Keybase1NotifyTeambotNewTeambotKeyPayload
 ): Keybase1NotifyTeambotNewTeambotKeyPayload => ({payload, type: keybase1NotifyTeambotNewTeambotKey})
@@ -2310,12 +2369,6 @@ export const createKeybase1NotifyTrackingTrackingChanged = (
 export const createKeybase1NotifyTrackingTrackingInfo = (
   payload: _Keybase1NotifyTrackingTrackingInfoPayload
 ): Keybase1NotifyTrackingTrackingInfoPayload => ({payload, type: keybase1NotifyTrackingTrackingInfo})
-export const createKeybase1NotifyUnverifiedTeamListTeamListUnverifiedChanged = (
-  payload: _Keybase1NotifyUnverifiedTeamListTeamListUnverifiedChangedPayload
-): Keybase1NotifyUnverifiedTeamListTeamListUnverifiedChangedPayload => ({
-  payload,
-  type: keybase1NotifyUnverifiedTeamListTeamListUnverifiedChanged,
-})
 export const createKeybase1NotifyUsersIdentifyUpdate = (
   payload: _Keybase1NotifyUsersIdentifyUpdatePayload
 ): Keybase1NotifyUsersIdentifyUpdatePayload => ({payload, type: keybase1NotifyUsersIdentifyUpdate})
@@ -2642,6 +2695,10 @@ export type Chat1NotifyChatChatAttachmentUploadStartPayload = {
   readonly payload: _Chat1NotifyChatChatAttachmentUploadStartPayload
   readonly type: typeof chat1NotifyChatChatAttachmentUploadStart
 }
+export type Chat1NotifyChatChatConvUpdatePayload = {
+  readonly payload: _Chat1NotifyChatChatConvUpdatePayload
+  readonly type: typeof chat1NotifyChatChatConvUpdate
+}
 export type Chat1NotifyChatChatIdentifyUpdatePayload = {
   readonly payload: _Chat1NotifyChatChatIdentifyUpdatePayload
   readonly type: typeof chat1NotifyChatChatIdentifyUpdate
@@ -2860,6 +2917,10 @@ export type Keybase1LogUiLogPayload = {
   readonly payload: _Keybase1LogUiLogPayload
   readonly type: typeof keybase1LogUiLog
 }
+export type Keybase1LoginUiChooseDeviceToRecoverWithPayload = {
+  readonly payload: _Keybase1LoginUiChooseDeviceToRecoverWithPayload
+  readonly type: typeof keybase1LoginUiChooseDeviceToRecoverWith
+}
 export type Keybase1LoginUiDisplayPaperKeyPhrasePayload = {
   readonly payload: _Keybase1LoginUiDisplayPaperKeyPhrasePayload
   readonly type: typeof keybase1LoginUiDisplayPaperKeyPhrase
@@ -2867,6 +2928,10 @@ export type Keybase1LoginUiDisplayPaperKeyPhrasePayload = {
 export type Keybase1LoginUiDisplayPrimaryPaperKeyPayload = {
   readonly payload: _Keybase1LoginUiDisplayPrimaryPaperKeyPayload
   readonly type: typeof keybase1LoginUiDisplayPrimaryPaperKey
+}
+export type Keybase1LoginUiDisplayResetMessagePayload = {
+  readonly payload: _Keybase1LoginUiDisplayResetMessagePayload
+  readonly type: typeof keybase1LoginUiDisplayResetMessage
 }
 export type Keybase1LoginUiDisplayResetProgressPayload = {
   readonly payload: _Keybase1LoginUiDisplayResetProgressPayload
@@ -3052,6 +3117,14 @@ export type Keybase1NotifyTeamTeamExitPayload = {
   readonly payload: _Keybase1NotifyTeamTeamExitPayload
   readonly type: typeof keybase1NotifyTeamTeamExit
 }
+export type Keybase1NotifyTeamTeamMetadataUpdatePayload = {
+  readonly payload: _Keybase1NotifyTeamTeamMetadataUpdatePayload
+  readonly type: typeof keybase1NotifyTeamTeamMetadataUpdate
+}
+export type Keybase1NotifyTeamTeamRoleMapChangedPayload = {
+  readonly payload: _Keybase1NotifyTeamTeamRoleMapChangedPayload
+  readonly type: typeof keybase1NotifyTeamTeamRoleMapChanged
+}
 export type Keybase1NotifyTeambotNewTeambotKeyPayload = {
   readonly payload: _Keybase1NotifyTeambotNewTeambotKeyPayload
   readonly type: typeof keybase1NotifyTeambotNewTeambotKey
@@ -3067,10 +3140,6 @@ export type Keybase1NotifyTrackingTrackingChangedPayload = {
 export type Keybase1NotifyTrackingTrackingInfoPayload = {
   readonly payload: _Keybase1NotifyTrackingTrackingInfoPayload
   readonly type: typeof keybase1NotifyTrackingTrackingInfo
-}
-export type Keybase1NotifyUnverifiedTeamListTeamListUnverifiedChangedPayload = {
-  readonly payload: _Keybase1NotifyUnverifiedTeamListTeamListUnverifiedChangedPayload
-  readonly type: typeof keybase1NotifyUnverifiedTeamListTeamListUnverifiedChanged
 }
 export type Keybase1NotifyUsersIdentifyUpdatePayload = {
   readonly payload: _Keybase1NotifyUsersIdentifyUpdatePayload
@@ -3312,6 +3381,7 @@ export type Actions =
   | Chat1ChatUiTriggerContactSyncPayload
   | Chat1NotifyChatChatAttachmentUploadProgressPayload
   | Chat1NotifyChatChatAttachmentUploadStartPayload
+  | Chat1NotifyChatChatConvUpdatePayload
   | Chat1NotifyChatChatIdentifyUpdatePayload
   | Chat1NotifyChatChatInboxStalePayload
   | Chat1NotifyChatChatInboxSyncStartedPayload
@@ -3368,8 +3438,10 @@ export type Actions =
   | Keybase1IdentifyUiReportTrackTokenPayload
   | Keybase1IdentifyUiStartPayload
   | Keybase1LogUiLogPayload
+  | Keybase1LoginUiChooseDeviceToRecoverWithPayload
   | Keybase1LoginUiDisplayPaperKeyPhrasePayload
   | Keybase1LoginUiDisplayPrimaryPaperKeyPayload
+  | Keybase1LoginUiDisplayResetMessagePayload
   | Keybase1LoginUiDisplayResetProgressPayload
   | Keybase1LoginUiExplainDeviceRecoveryPayload
   | Keybase1LoginUiGetEmailOrUsernamePayload
@@ -3416,11 +3488,12 @@ export type Actions =
   | Keybase1NotifyTeamTeamChangedByNamePayload
   | Keybase1NotifyTeamTeamDeletedPayload
   | Keybase1NotifyTeamTeamExitPayload
+  | Keybase1NotifyTeamTeamMetadataUpdatePayload
+  | Keybase1NotifyTeamTeamRoleMapChangedPayload
   | Keybase1NotifyTeambotNewTeambotKeyPayload
   | Keybase1NotifyTeambotTeambotKeyNeededPayload
   | Keybase1NotifyTrackingTrackingChangedPayload
   | Keybase1NotifyTrackingTrackingInfoPayload
-  | Keybase1NotifyUnverifiedTeamListTeamListUnverifiedChangedPayload
   | Keybase1NotifyUsersIdentifyUpdatePayload
   | Keybase1NotifyUsersPasswordChangedPayload
   | Keybase1NotifyUsersUserChangedPayload

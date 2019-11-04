@@ -1,10 +1,11 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/chat1/notify.avdl
 
 package chat1
 
 import (
 	"errors"
+	"fmt"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
@@ -34,7 +35,7 @@ func (e ChatActivitySource) String() string {
 	if v, ok := ChatActivitySourceRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type ChatActivityType int
@@ -93,7 +94,7 @@ func (e ChatActivityType) String() string {
 	if v, ok := ChatActivityTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type IncomingMessage struct {
@@ -795,7 +796,6 @@ type StaleUpdateType int
 const (
 	StaleUpdateType_CLEAR       StaleUpdateType = 0
 	StaleUpdateType_NEWACTIVITY StaleUpdateType = 1
-	StaleUpdateType_CONVUPDATE  StaleUpdateType = 2
 )
 
 func (o StaleUpdateType) DeepCopy() StaleUpdateType { return o }
@@ -803,20 +803,18 @@ func (o StaleUpdateType) DeepCopy() StaleUpdateType { return o }
 var StaleUpdateTypeMap = map[string]StaleUpdateType{
 	"CLEAR":       0,
 	"NEWACTIVITY": 1,
-	"CONVUPDATE":  2,
 }
 
 var StaleUpdateTypeRevMap = map[StaleUpdateType]string{
 	0: "CLEAR",
 	1: "NEWACTIVITY",
-	2: "CONVUPDATE",
 }
 
 func (e StaleUpdateType) String() string {
 	if v, ok := StaleUpdateTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type ConversationStaleUpdate struct {
@@ -1057,6 +1055,12 @@ type ChatPromptUnfurlArg struct {
 	Domain string         `codec:"domain" json:"domain"`
 }
 
+type ChatConvUpdateArg struct {
+	Uid    keybase1.UID   `codec:"uid" json:"uid"`
+	ConvID ConversationID `codec:"convID" json:"convID"`
+	Conv   *InboxUIItem   `codec:"conv,omitempty" json:"conv,omitempty"`
+}
+
 type NotifyChatInterface interface {
 	NewChatActivity(context.Context, NewChatActivityArg) error
 	ChatIdentifyUpdate(context.Context, keybase1.CanonicalTLFNameAndIDWithBreaks) error
@@ -1080,6 +1084,7 @@ type NotifyChatInterface interface {
 	ChatPaymentInfo(context.Context, ChatPaymentInfoArg) error
 	ChatRequestInfo(context.Context, ChatRequestInfoArg) error
 	ChatPromptUnfurl(context.Context, ChatPromptUnfurlArg) error
+	ChatConvUpdate(context.Context, ChatConvUpdateArg) error
 }
 
 func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
@@ -1416,6 +1421,21 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 					return
 				},
 			},
+			"ChatConvUpdate": {
+				MakeArg: func() interface{} {
+					var ret [1]ChatConvUpdateArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ChatConvUpdateArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ChatConvUpdateArg)(nil), args)
+						return
+					}
+					err = i.ChatConvUpdate(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -1535,5 +1555,10 @@ func (c NotifyChatClient) ChatRequestInfo(ctx context.Context, __arg ChatRequest
 
 func (c NotifyChatClient) ChatPromptUnfurl(ctx context.Context, __arg ChatPromptUnfurlArg) (err error) {
 	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatPromptUnfurl", []interface{}{__arg}, 0*time.Millisecond)
+	return
+}
+
+func (c NotifyChatClient) ChatConvUpdate(ctx context.Context, __arg ChatConvUpdateArg) (err error) {
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatConvUpdate", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }

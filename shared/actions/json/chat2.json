@@ -4,7 +4,8 @@
     "import * as Types from '../constants/types/chat2'",
     "import * as TeamsTypes from '../constants/types/teams'",
     "import HiddenString from '../util/hidden-string'",
-    "import {RetentionPolicy} from '../constants/types/retention-policy'"
+    "import {RetentionPolicy} from '../constants/types/retention-policy'",
+    "import {AmpTracker} from '../chat/audio/amptracker'"
   ],
   "actions": {
     "toggleSmallTeamsExpanded": {},
@@ -76,7 +77,8 @@
         "'sentPayment'",
         "'requestedPayment'",
         "'teamMention'",
-        "'appLink'"
+        "'appLink'",
+        "'search'"
       ]
     },
     "createConversation": {
@@ -102,7 +104,8 @@
         "'joinedAConversation'",
         "'leftAConversation'",
         "'teamTypeChanged'",
-        "'maybeKickedFromTeam'"
+        "'maybeKickedFromTeam'",
+        "'widgetRefresh'"
       ]
     },
     // We want to unbox an inbox row
@@ -131,6 +134,7 @@
         "'membersUpdate'",
         "'scroll'",
         "'ensureSelectedMeta'",
+        "'ensureWidgetMetas'",
         "'inboxSearchResults'"
       ],
       "conversationIDKeys": "Array<Types.ConversationIDKey>"
@@ -180,6 +184,7 @@
     "messageErrored": {
       "conversationIDKey": "Types.ConversationIDKey",
       "reason": "string",
+      "errorTyp": "number | null",
       "outboxID": "Types.OutboxID"
     },
     // Start editing a message / or edit the last message / or clear editing
@@ -266,6 +271,11 @@
       "text": "HiddenString",
       "replyTo?": "Types.MessageID"
     },
+    "messageSendByUsernames": {
+      "usernames": "string",
+      "text": "HiddenString",
+      "waitingKey?": "string"
+    },
     "toggleLocalReaction": {
       "_description": "Toggle a reaction in the store.",
       "conversationIDKey": "Types.ConversationIDKey",
@@ -341,7 +351,7 @@
     "attachmentDownloaded": {
       "message": "Types.Message",
       "error?": "string",
-      "path?": "string",
+      "path?": "string"
     },
     // We want to upload some attachments
     "attachmentsUpload": {
@@ -396,10 +406,7 @@
       "updateType": "RPCChatTypes.StaleUpdateType"
     },
     // Navigation helpers. Nav is slightly different on mobile / desktop
-    "navigateToInbox": {
-      "avoidConversationID?": "Types.ConversationIDKey",
-      "findNewConversation": "boolean"
-    },
+    "navigateToInbox": {},
     "navigateToThread": {},
     // Share to external app on mobile
     "messageAttachmentNativeShare": {
@@ -557,7 +564,7 @@
     "setPaymentConfirmInfo": {
       "_description": "Set the payment confirm modal payment data",
       "error?": "RPCTypes.Status",
-      "summary?": "RPCChatTypes.UIChatPaymentSummary",
+      "summary?": "RPCChatTypes.UIChatPaymentSummary"
     },
     "confirmScreenResponse": {
       "_description": "User responded to the chat Stellar confirm screen",
@@ -766,6 +773,28 @@
     "setChannelSearchText": {
       "_description": "Set filter for channel search",
       "text": "string"
+    },
+    "enableAudioRecording": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "meteringCb": "(amp: number) => void"
+    },
+    "stopAudioRecording": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "stopType": "Types.AudioStopType",
+      "amps?": "AmpTracker"
+    },
+    "lockAudioRecording": {
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "sendAudioRecording": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "fromStaged": "boolean",
+      "info": "Types.AudioRecordingInfo"
+    },
+    "setAudioRecordingPostInfo": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "path": "string",
+      "outboxID": "Buffer"
     }
   }
 }

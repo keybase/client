@@ -22,9 +22,6 @@ export default function(
     case LoginGen.loadedIsOnline:
       return state.merge({isOnline: action.payload.result})
     // Saga only actions
-    case LoginGen.launchAccountResetWebPage:
-    case LoginGen.launchForgotPasswordWebPage:
-      return state
     default:
       return state
   }

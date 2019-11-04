@@ -142,7 +142,7 @@ const styles = Styles.styleSheetCreate(
           backgroundColor: Styles.globalColors.blueGrey,
         },
         isMobile: {
-          backgroundColor: Styles.globalColors.fastBlank,
+          backgroundColor: Styles.globalColors.white,
         },
       }),
       filterContainer: Styles.platformStyles({

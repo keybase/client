@@ -1,9 +1,10 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/provision_ui.avdl
 
 package keybase1
 
 import (
+	"fmt"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 	"time"
@@ -41,7 +42,7 @@ func (e ProvisionMethod) String() string {
 	if v, ok := ProvisionMethodRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type GPGMethod int
@@ -70,7 +71,7 @@ func (e GPGMethod) String() string {
 	if v, ok := GPGMethodRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type ChooseType int
@@ -96,7 +97,7 @@ func (e ChooseType) String() string {
 	if v, ok := ChooseTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 // SecretResponse should be returned by DisplayAndPromptSecret.  Use either secret or phrase.

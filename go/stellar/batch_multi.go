@@ -1,20 +1,20 @@
 package stellar
 
 import (
-	"encoding/base64"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/msgpack"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
-	"github.com/keybase/client/go/stellar/relays"
 	"github.com/keybase/client/go/stellar/remote"
 	"github.com/keybase/client/go/stellar/stellarcommon"
 	"github.com/keybase/stellarnet"
-	"github.com/stellar/go/keypair"
+	"golang.org/x/sync/errgroup"
 )
+
+var ErrRelayinMultiBatch = errors.New("relay recipient not allowed in a multi-op batch")
 
 type multiOp struct {
 	Recipient     stellar1.AccountID
@@ -59,20 +59,18 @@ func BatchMulti(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.B
 		}
 
 		if recipient.AccountID == nil {
-			mop, err := prepareRelayOp(mctx, payment, recipient)
-			if err != nil {
-				makeResultError(&results[i], err)
-				continue
-			}
-			multiOps = append(multiOps, mop)
-		} else {
-			mop, err := prepareDirectOp(mctx, walletState, payment, recipient)
-			if err != nil {
-				makeResultError(&results[i], err)
-				continue
-			}
-			multiOps = append(multiOps, mop)
+			// relays don't work well in multi-op payments, so return
+			// an error.  the caller can use the non-multi version
+			// for this batch.
+			return res, ErrRelayinMultiBatch
 		}
+
+		mop, err := prepareDirectOp(mctx, walletState, payment, recipient)
+		if err != nil {
+			makeResultError(&results[i], err)
+			continue
+		}
+		multiOps = append(multiOps, mop)
 	}
 
 	baseFee := walletState.BaseFee(mctx)
@@ -110,6 +108,7 @@ func BatchMulti(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.B
 	} else {
 		// make all ther results have success
 		now := stellar1.ToTimeMs(time.Now())
+
 		for i := 0; i < len(results); i++ {
 			if results[i].Status == stellar1.PaymentStatus_ERROR {
 				// some of the results have already been marked as an
@@ -120,6 +119,42 @@ func BatchMulti(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.B
 			results[i].TxID = submitRes.TxID
 			results[i].Status = stellar1.PaymentStatus_COMPLETED
 			results[i].EndTime = now
+		}
+
+		// send chat messages
+		g, ctx := errgroup.WithContext(mctx.Ctx())
+		recipients := make(chan string)
+		g.Go(func() error {
+			defer close(recipients)
+			for _, result := range results {
+				if result.Status != stellar1.PaymentStatus_COMPLETED {
+					continue
+				}
+				select {
+				case recipients <- result.Username:
+				case <-ctx.Done():
+					return ctx.Err()
+				}
+			}
+			return nil
+		})
+
+		for i := 0; i < 10; i++ {
+			g.Go(func() error {
+				for recipient := range recipients {
+					if err := chatSendPaymentMessage(mctx, recipient, submitRes.TxID); err != nil {
+						mctx.Debug("chatSendPaymentMessage to %s (%s) error: %s", recipient, submitRes.TxID, err)
+					} else {
+						mctx.Debug("chatSendPaymentMessage to %s (%s) success", recipient, submitRes.TxID)
+					}
+				}
+
+				return nil
+			})
+		}
+
+		if err := g.Wait(); err != nil {
+			mctx.Debug("error sending chat messages: %s", err)
 		}
 	}
 
@@ -163,57 +198,6 @@ func prepareDirectOp(mctx libkb.MetaContext, remoter remote.Remoter, payment ste
 		if err != nil {
 			return op, err
 		}
-	}
-
-	return op, nil
-}
-
-func prepareRelayOp(mctx libkb.MetaContext, payment stellar1.BatchPaymentArg, recipient stellarcommon.Recipient) (multiOp, error) {
-	op := multiOp{
-		Amount:        payment.Amount,
-		CreateAccount: true,
-	}
-	if isAmountLessThanMin(payment.Amount, minAmountRelayXLM) {
-		return op, fmt.Errorf("you must send at least %s XLM to fund the account for %s", minAmountRelayXLM, payment.Recipient)
-	}
-
-	appKey, teamID, err := relays.GetKey(mctx, recipient)
-	if err != nil {
-		return op, err
-	}
-
-	relayKp, err := keypair.Random()
-	if err != nil {
-		return op, err
-	}
-	relayAccountID, err := stellarnet.NewAddressStr(relayKp.Address())
-	if err != nil {
-		return op, err
-	}
-
-	op.Recipient = stellar1.AccountID(relayAccountID.String())
-
-	enc, err := relays.Encrypt(stellar1.RelayContents{
-		Sk:   stellar1.SecretKey(relayKp.Seed()),
-		Note: payment.Message,
-	}, appKey)
-	if err != nil {
-		return op, err
-	}
-	pack, err := msgpack.Encode(enc)
-	if err != nil {
-		return op, err
-	}
-	boxB64 := base64.StdEncoding.EncodeToString(pack)
-
-	op.Op = stellar1.PaymentOp{
-		To: &recipient.User.UV,
-		Relay: &stellar1.RelayOp{
-			ToAssertion:  string(recipient.Input),
-			RelayAccount: stellar1.AccountID(relayAccountID.String()),
-			TeamID:       teamID,
-			BoxB64:       boxB64,
-		},
 	}
 
 	return op, nil

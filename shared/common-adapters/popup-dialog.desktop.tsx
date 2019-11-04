@@ -4,6 +4,7 @@ import Icon from './icon'
 import {EscapeHandler} from '../util/key-event-handler.desktop'
 import * as Styles from '../styles'
 import {Props} from './popup-dialog'
+import ModalTabBarShim from './modal-tab-bar-shim'
 
 function stopBubbling(ev) {
   ev.stopPropagation()
@@ -21,13 +22,14 @@ export function PopupDialog({
   styleContainer,
   styleClose,
   styleClipContainer,
+  tabBarShim,
   allowClipBubbling,
 }: Props) {
   const [mouseDownOnCover, setMouseDownOnCover] = React.useState(false)
   return (
     <EscapeHandler onESC={!immuneToEscape ? onClose || null : null}>
       <Box
-        style={Styles.collapseStyles([styles.cover, styleCover])}
+        style={Styles.collapseStyles([tabBarShim ? styles.coverTabBarShim : styles.cover, styleCover])}
         onMouseUp={(e: React.MouseEvent) => {
           if (mouseDownOnCover) {
             onClose && onClose()
@@ -40,6 +42,7 @@ export function PopupDialog({
         }}
         onMouseMove={onMouseMove}
       >
+        {tabBarShim && <ModalTabBarShim />}
         <Box
           style={Styles.collapseStyles([styles.container, fill && styles.containerFill, styleContainer])}
           onMouseDown={(e: React.BaseSyntheticEvent) => {
@@ -70,17 +73,19 @@ export function PopupDialog({
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  clipContainer: Styles.platformStyles({
-    isElectron: {
-      ...Styles.desktopStyles.boxShadow,
-      ...Styles.globalStyles.flexBoxColumn,
-      backgroundColor: Styles.globalColors.white,
-      borderRadius: Styles.borderRadius,
-      flex: 1,
-      maxWidth: '100%',
-      position: 'relative',
-    },
-  }),
+  get clipContainer() {
+    return Styles.platformStyles({
+      isElectron: {
+        ...Styles.desktopStyles.boxShadow,
+        ...Styles.globalStyles.flexBoxColumn,
+        backgroundColor: Styles.globalColors.white,
+        borderRadius: Styles.borderRadius,
+        flex: 1,
+        maxWidth: '100%',
+        position: 'relative',
+      },
+    })
+  },
   close: Styles.platformStyles({
     isElectron: {
       cursor: 'pointer',
@@ -108,6 +113,17 @@ const styles = Styles.styleSheetCreate(() => ({
     paddingBottom: Styles.globalMargins.small,
     paddingLeft: Styles.globalMargins.large,
     paddingRight: Styles.globalMargins.large,
+    paddingTop: Styles.globalMargins.large,
+  },
+  coverTabBarShim: {
+    ...Styles.globalStyles.flexBoxRow,
+    ...Styles.globalStyles.fillAbsolute,
+    alignItems: 'center',
+    backgroundColor: Styles.globalColors.black_50OrBlack_60,
+    justifyContent: 'center',
+    paddingBottom: Styles.globalMargins.small,
+    paddingLeft: 0,
+    paddingRight: 0,
     paddingTop: Styles.globalMargins.large,
   },
 }))

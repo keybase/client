@@ -503,10 +503,12 @@ func (s *localizerPipeline) localizeConversations(localizeJob *localizerPipeline
 
 	// Fetch conversation local information in parallel
 	eg, ctx := errgroup.WithContext(ctx)
+	ctx = libkb.WithLogTag(ctx, "CHTLOCS")
 	pending := localizeJob.getPending()
 	if len(pending) == 0 {
 		return nil
 	}
+	s.Debug(ctx, "localizeConversations: pending: %d", len(pending))
 	convCh := make(chan types.RemoteConversation, len(pending))
 	retCh := make(chan chat1.ConversationID, len(pending))
 	eg.Go(func() error {
@@ -545,6 +547,7 @@ func (s *localizerPipeline) localizeConversations(localizeJob *localizerPipeline
 					ConvLocal: convLocal,
 					Conv:      conv,
 				}
+				s.Debug(ctx, "localizeConversations: localized: %d convID: %s", index, conv.GetConvID())
 			}
 			return nil
 		})
@@ -553,7 +556,10 @@ func (s *localizerPipeline) localizeConversations(localizeJob *localizerPipeline
 		_ = eg.Wait()
 		close(retCh)
 	}()
+	complete := 0
 	for convID := range retCh {
+		complete++
+		s.Debug(ctx, "localizeConversations: complete: %d remaining: %d", complete, len(pending)-complete)
 		localizeJob.complete(convID)
 	}
 	return eg.Wait()
@@ -709,6 +715,13 @@ func (s *localizerPipeline) getPinnedMsg(ctx context.Context, uid gregor1.UID, c
 
 func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor1.UID,
 	rc types.RemoteConversation) (conversationLocal chat1.ConversationLocal) {
+	ctx = libkb.WithLogTag(ctx, "CHTLOC")
+	conversationRemote := rc.Conv
+	unverifiedTLFName := getUnverifiedTlfNameForErrors(conversationRemote)
+	defer s.Trace(ctx, func() error { return nil },
+		"localizeConversation: TLF: %s convID: %s offline: %v vis: %v", unverifiedTLFName,
+		conversationRemote.GetConvID(), s.offline, conversationRemote.Metadata.Visibility)()
+
 	var err error
 	// Pick a source of usernames based on offline status, if we are offline then just use a
 	// type that just returns errors all the time (this will just use TLF name as the ordering)
@@ -718,11 +731,6 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	} else {
 		umapper = s.G().UIDMapper
 	}
-
-	conversationRemote := rc.Conv
-	unverifiedTLFName := getUnverifiedTlfNameForErrors(conversationRemote)
-	s.Debug(ctx, "localizing: TLF: %s convID: %s offline: %v vis: %v", unverifiedTLFName,
-		conversationRemote.GetConvID(), s.offline, conversationRemote.Metadata.Visibility)
 
 	conversationLocal.Info = chat1.ConversationInfoLocal{
 		Id:           conversationRemote.Metadata.ConversationID,
@@ -1054,8 +1062,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	if err != nil {
 		s.Debug(ctx, "localizeConversation: failed to list commands: %s", err)
 	}
-	botCommands, err := s.G().BotCommandManager.ListCommands(ctx,
-		conversationLocal.GetConvID())
+	botCommands, err := s.G().BotCommandManager.ListCommands(ctx, conversationLocal.GetConvID())
 	if err != nil {
 		s.Debug(ctx, "localizeConversation: failed to list bot commands: %s", err)
 	} else if len(botCommands) > 0 {

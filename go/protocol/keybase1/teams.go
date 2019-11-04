@@ -1,10 +1,11 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/teams.avdl
 
 package keybase1
 
 import (
 	"errors"
+	"fmt"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 	"time"
@@ -48,7 +49,7 @@ func (e TeamRole) String() string {
 	if v, ok := TeamRoleRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type TeamApplication int
@@ -89,7 +90,7 @@ func (e TeamApplication) String() string {
 	if v, ok := TeamApplicationRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type TeamStatus int
@@ -121,7 +122,7 @@ func (e TeamStatus) String() string {
 	if v, ok := TeamStatusRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type AuditMode int
@@ -150,7 +151,7 @@ func (e AuditMode) String() string {
 	if v, ok := AuditModeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type PerTeamKeyGeneration int
@@ -179,7 +180,7 @@ func (e PTKType) String() string {
 	if v, ok := PTKTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type PerTeamSeedCheckVersion int
@@ -202,7 +203,7 @@ func (e PerTeamSeedCheckVersion) String() string {
 	if v, ok := PerTeamSeedCheckVersionRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type PerTeamSeedCheck struct {
@@ -476,7 +477,7 @@ func (e TeamMemberStatus) String() string {
 	if v, ok := TeamMemberStatusRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type TeamMemberDetails struct {
@@ -972,7 +973,7 @@ func (e RatchetType) String() string {
 	if v, ok := RatchetTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type HiddenTeamChainRatchetSet struct {
@@ -1344,7 +1345,7 @@ func (e AuditVersion) String() string {
 	if v, ok := AuditVersionRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type AuditHistory struct {
@@ -1454,7 +1455,7 @@ func (e TeamInviteCategory) String() string {
 	if v, ok := TeamInviteCategoryRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type TeamInviteType struct {
@@ -2188,7 +2189,7 @@ func (e SeitanKeyAndLabelVersion) String() string {
 	if v, ok := SeitanKeyAndLabelVersionRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type SeitanKeyAndLabel struct {
@@ -2317,7 +2318,7 @@ func (e SeitanKeyLabelType) String() string {
 	if v, ok := SeitanKeyLabelTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type SeitanKeyLabel struct {
@@ -2849,12 +2850,14 @@ func (o TeamTreeEntry) DeepCopy() TeamTreeEntry {
 
 type SubteamListEntry struct {
 	Name        TeamName `codec:"name" json:"name"`
+	TeamID      TeamID   `codec:"teamID" json:"teamID"`
 	MemberCount int      `codec:"memberCount" json:"memberCount"`
 }
 
 func (o SubteamListEntry) DeepCopy() SubteamListEntry {
 	return SubteamListEntry{
 		Name:        o.Name.DeepCopy(),
+		TeamID:      o.TeamID.DeepCopy(),
 		MemberCount: o.MemberCount,
 	}
 }
@@ -3250,7 +3253,7 @@ func (e RotationType) String() string {
 	if v, ok := RotationTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type TeamDebugRes struct {
@@ -3298,6 +3301,69 @@ func (o MemberUsername) DeepCopy() MemberUsername {
 	return MemberUsername{
 		Username: o.Username,
 		Role:     o.Role,
+	}
+}
+
+type TeamRolePair struct {
+	Role         TeamRole `codec:"role" json:"role"`
+	ImplicitRole TeamRole `codec:"implicitRole" json:"implicit_role"`
+}
+
+func (o TeamRolePair) DeepCopy() TeamRolePair {
+	return TeamRolePair{
+		Role:         o.Role.DeepCopy(),
+		ImplicitRole: o.ImplicitRole.DeepCopy(),
+	}
+}
+
+type TeamRoleMapAndVersion struct {
+	Teams   map[TeamID]TeamRolePair `codec:"teams" json:"teams"`
+	Version UserTeamVersion         `codec:"version" json:"user_team_version"`
+}
+
+func (o TeamRoleMapAndVersion) DeepCopy() TeamRoleMapAndVersion {
+	return TeamRoleMapAndVersion{
+		Teams: (func(x map[TeamID]TeamRolePair) map[TeamID]TeamRolePair {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[TeamID]TeamRolePair, len(x))
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Teams),
+		Version: o.Version.DeepCopy(),
+	}
+}
+
+type TeamRoleMapStored struct {
+	Data     TeamRoleMapAndVersion `codec:"data" json:"data"`
+	CachedAt Time                  `codec:"cachedAt" json:"cachedAt"`
+}
+
+func (o TeamRoleMapStored) DeepCopy() TeamRoleMapStored {
+	return TeamRoleMapStored{
+		Data:     o.Data.DeepCopy(),
+		CachedAt: o.CachedAt.DeepCopy(),
+	}
+}
+
+type UserTeamVersion int
+
+func (o UserTeamVersion) DeepCopy() UserTeamVersion {
+	return o
+}
+
+type UserTeamVersionUpdate struct {
+	Version UserTeamVersion `codec:"version" json:"version"`
+}
+
+func (o UserTeamVersionUpdate) DeepCopy() UserTeamVersionUpdate {
+	return UserTeamVersionUpdate{
+		Version: o.Version.DeepCopy(),
 	}
 }
 
@@ -3623,6 +3689,9 @@ type FtlArg struct {
 	Arg FastTeamLoadArg `codec:"arg" json:"arg"`
 }
 
+type GetTeamRoleMapArg struct {
+}
+
 type TeamsInterface interface {
 	TeamCreate(context.Context, TeamCreateArg) (TeamCreateResult, error)
 	TeamCreateWithSettings(context.Context, TeamCreateWithSettingsArg) (TeamCreateResult, error)
@@ -3695,6 +3764,7 @@ type TeamsInterface interface {
 	// current user can't read the team.
 	GetTeamID(context.Context, string) (TeamID, error)
 	Ftl(context.Context, FastTeamLoadArg) (FastTeamLoadRes, error)
+	GetTeamRoleMap(context.Context) (TeamRoleMapAndVersion, error)
 }
 
 func TeamsProtocol(i TeamsInterface) rpc.Protocol {
@@ -4526,6 +4596,16 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 					return
 				},
 			},
+			"getTeamRoleMap": {
+				MakeArg: func() interface{} {
+					var ret [1]GetTeamRoleMapArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.GetTeamRoleMap(ctx)
+					return
+				},
+			},
 		},
 	}
 }
@@ -4831,5 +4911,10 @@ func (c TeamsClient) GetTeamID(ctx context.Context, teamName string) (res TeamID
 func (c TeamsClient) Ftl(ctx context.Context, arg FastTeamLoadArg) (res FastTeamLoadRes, err error) {
 	__arg := FtlArg{Arg: arg}
 	err = c.Cli.Call(ctx, "keybase.1.teams.ftl", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c TeamsClient) GetTeamRoleMap(ctx context.Context) (res TeamRoleMapAndVersion, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.getTeamRoleMap", []interface{}{GetTeamRoleMapArg{}}, &res, 0*time.Millisecond)
 	return
 }

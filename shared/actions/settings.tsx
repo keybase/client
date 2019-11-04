@@ -333,14 +333,9 @@ const dbNuke = async () => {
 
 const deleteAccountForever = async (state: TypedState) => {
   const username = state.config.username
-  const allowDeleteAccount = state.settings.allowDeleteAccount
 
   if (!username) {
     throw new Error('Unable to delete account: no username set')
-  }
-
-  if (!allowDeleteAccount) {
-    throw new Error('Account deletion failsafe was not disengaged. This is a bug!')
   }
 
   await RPCTypes.loginAccountDeleteRpcPromise(undefined, Constants.settingsWaitingKey)
@@ -755,6 +750,15 @@ const addEmail = async (state: TypedState, action: SettingsGen.AddEmailPayload, 
   }
 }
 
+const emailAddressVerified = (
+  _: TypedState,
+  action: EngineGen.Keybase1NotifyEmailAddressEmailAddressVerifiedPayload,
+  logger: Saga.SagaLogger
+) => {
+  logger.info('email verified')
+  return SettingsGen.createEmailVerified({email: action.payload.params.emailAddress})
+}
+
 function* settingsSaga() {
   yield* Saga.chainAction2(SettingsGen.invitesReclaim, reclaimInvite)
   yield* Saga.chainAction2(SettingsGen.invitesRefresh, refreshInvites)
@@ -820,6 +824,11 @@ function* settingsSaga() {
   yield* Saga.chainAction2(SettingsGen.editEmail, editEmail, 'editEmail')
   yield* Saga.chainAction2(SettingsGen.addEmail, addEmail, 'addEmail')
   yield* Saga.chainAction2(SettingsGen.onSubmitNewEmail, onSubmitNewEmail)
+  yield* Saga.chainAction2(
+    EngineGen.keybase1NotifyEmailAddressEmailAddressVerified,
+    emailAddressVerified,
+    'emailAddressVerified'
+  )
 }
 
 export default settingsSaga

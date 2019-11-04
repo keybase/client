@@ -4,6 +4,7 @@ import HiddenString from '../../util/hidden-string'
 import {RPCError} from '../../util/errors'
 
 export type _Device = {
+  deviceNumberOfType: number
   id: DeviceTypes.DeviceID
   name: string
   type: DeviceTypes.DeviceType
@@ -11,9 +12,7 @@ export type _Device = {
 export type Device = I.RecordOf<_Device>
 
 export type _State = {
-  codePageOtherDeviceName: string
-  codePageOtherDeviceType: 'mobile' | 'desktop'
-  codePageOtherDeviceId: string
+  codePageOtherDevice: Device
   // Code from the daemon
   codePageIncomingTextCode: HiddenString
   // Code from other device

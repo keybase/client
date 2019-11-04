@@ -40,6 +40,10 @@ type UIInboxLoader struct {
 	lastBatchFlush    time.Time
 	lastLayoutFlush   time.Time
 
+	// layout tracking
+	lastLayoutMu sync.Mutex
+	lastLayout   *chat1.UIInboxLayout
+
 	// testing
 	testingLayoutForceMode bool
 }
@@ -260,6 +264,7 @@ func (h *UIInboxLoader) transmitLoop(shutdownCh chan struct{}) error {
 		case <-h.clock.After(h.batchDelay):
 			_ = h.flushConvBatch()
 		case <-shutdownCh:
+			h.Debug(context.Background(), "transmitLoop: shutting down")
 			return nil
 		}
 	}
@@ -423,6 +428,7 @@ func (c *bigTeamCollector) finalize(ctx context.Context) (res []chat1.UIInboxBig
 
 func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox,
 	reselectMode chat1.InboxLayoutReselectMode) (res chat1.UIInboxLayout) {
+	var widgetList []chat1.UIInboxSmallTeamRow
 	var btunboxes []chat1.ConversationID
 	btcollector := newBigTeamCollector()
 	selectedInLayout := false
@@ -447,6 +453,8 @@ func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox,
 				utils.PresentRemoteConversationAsSmallTeamRow(ctx, conv,
 					h.G().GetEnv().GetUsername().String(), len(res.SmallTeams) < 50))
 		}
+		widgetList = append(widgetList, utils.PresentRemoteConversationAsSmallTeamRow(ctx, conv,
+			h.G().GetEnv().GetUsername().String(), true))
 	}
 	sort.Slice(res.SmallTeams, func(i, j int) bool {
 		return res.SmallTeams[i].Time.After(res.SmallTeams[j].Time)
@@ -461,6 +469,17 @@ func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox,
 		}
 		h.Debug(ctx, "buildLayout: adding reselect info: %s", reselect)
 		res.ReselectInfo = &reselect
+	}
+	if !h.G().IsMobileAppType() {
+		sort.Slice(widgetList, func(i, j int) bool {
+			return widgetList[i].Time.After(widgetList[j].Time)
+		})
+		// only set widget entries on desktop to the top 3 overall convs
+		if len(widgetList) > 5 {
+			res.WidgetList = widgetList[:5]
+		} else {
+			res.WidgetList = widgetList
+		}
 	}
 	if len(btunboxes) > 0 {
 		h.Debug(ctx, "buildLayout: big teams missing names, unboxing: %v", len(btunboxes))
@@ -506,6 +525,7 @@ func (h *UIInboxLoader) flushLayout(reselectMode chat1.InboxLayoutReselectMode) 
 	if err := ui.ChatInboxLayout(ctx, string(dat)); err != nil {
 		return err
 	}
+	h.setLastLayout(&layout)
 	return nil
 }
 
@@ -522,13 +542,25 @@ func (h *UIInboxLoader) bigTeamUnboxLoop(shutdownCh chan struct{}) error {
 	for {
 		select {
 		case convIDs := <-h.bigTeamUnboxCh:
-			h.Debug(ctx, "bigTeamUnboxLoop: pulled %d convs to unbox", len(convIDs))
-			if err := h.UpdateConvs(ctx, convIDs); err != nil {
-				h.Debug(ctx, "bigTeamUnboxLoop: unbox convs error: %s", err)
+			doneCh := make(chan struct{})
+			ctx, cancel := context.WithCancel(ctx)
+			go func(ctx context.Context) {
+				defer close(doneCh)
+				h.Debug(ctx, "bigTeamUnboxLoop: pulled %d convs to unbox", len(convIDs))
+				if err := h.UpdateConvs(ctx, convIDs); err != nil {
+					h.Debug(ctx, "bigTeamUnboxLoop: unbox convs error: %s", err)
+				}
+				// update layout again after we have done all this work to get everything in the right order
+				h.UpdateLayout(ctx, chat1.InboxLayoutReselectMode_DEFAULT, "big team unbox")
+			}(ctx)
+			select {
+			case <-doneCh:
+			case <-shutdownCh:
+				h.Debug(ctx, "bigTeamUnboxLoop: shutdown during unboxing, going down")
 			}
-			// update layout again after we have done all this work to get everything in the right order
-			h.UpdateLayout(ctx, chat1.InboxLayoutReselectMode_DEFAULT, "big team unbox")
+			cancel()
 		case <-shutdownCh:
+			h.Debug(ctx, "bigTeamUnboxLoop: shutting down")
 			return nil
 		}
 	}
@@ -545,8 +577,7 @@ func (h *UIInboxLoader) layoutLoop(shutdownCh chan struct{}) error {
 	for {
 		select {
 		case reselectMode := <-h.layoutCh:
-			switch reselectMode {
-			case chat1.InboxLayoutReselectMode_FORCE:
+			if reselectMode == chat1.InboxLayoutReselectMode_FORCE {
 				lastReselectMode = reselectMode
 			}
 			if h.clock.Since(h.lastLayoutFlush) > h.batchDelay || h.testingLayoutForceMode {
@@ -561,9 +592,28 @@ func (h *UIInboxLoader) layoutLoop(shutdownCh chan struct{}) error {
 				reset()
 			}
 		case <-shutdownCh:
+			h.Debug(context.Background(), "layoutLoop: shutting down")
 			return nil
 		}
 	}
+}
+
+func (h *UIInboxLoader) isTopSmallTeamInLastLayout(convID chat1.ConversationID) bool {
+	h.lastLayoutMu.Lock()
+	defer h.lastLayoutMu.Unlock()
+	if h.lastLayout == nil {
+		return false
+	}
+	if len(h.lastLayout.SmallTeams) == 0 {
+		return false
+	}
+	return h.lastLayout.SmallTeams[0].ConvID == convID.String()
+}
+
+func (h *UIInboxLoader) setLastLayout(l *chat1.UIInboxLayout) {
+	h.lastLayoutMu.Lock()
+	defer h.lastLayoutMu.Unlock()
+	h.lastLayout = l
 }
 
 func (h *UIInboxLoader) UpdateLayout(ctx context.Context, reselectMode chat1.InboxLayoutReselectMode,
@@ -576,19 +626,15 @@ func (h *UIInboxLoader) UpdateLayout(ctx context.Context, reselectMode chat1.Inb
 	}
 }
 
-func (h *UIInboxLoader) UpdateLayoutFromNewMessage(ctx context.Context, conv types.RemoteConversation,
-	msg chat1.MessageBoxed, firstConv bool, previousStatus chat1.ConversationStatus) {
-	defer h.Trace(ctx, func() error { return nil }, "UpdateLayoutFromNewMessage")()
-	if conv.GetTeamType() == chat1.TeamType_COMPLEX {
-		h.Debug(ctx, "UpdateLayoutFromNewMessage: skipping layout for big team")
-		return
+func (h *UIInboxLoader) UpdateLayoutFromNewMessage(ctx context.Context, conv types.RemoteConversation) {
+	defer h.Trace(ctx, func() error { return nil }, "UpdateLayoutFromNewMessage: %s", conv.GetConvID())()
+	if h.isTopSmallTeamInLastLayout(conv.GetConvID()) {
+		h.Debug(ctx, "UpdateLayoutFromNewMessage: skipping layout, conv top small team in last layout")
+	} else if conv.GetTeamType() == chat1.TeamType_COMPLEX {
+		h.Debug(ctx, "UpdateLayoutFromNewMessage: skipping layout, complex team conv")
+	} else {
+		h.UpdateLayout(ctx, chat1.InboxLayoutReselectMode_DEFAULT, "new message")
 	}
-	if firstConv && msg.GetMessageID() > 2 &&
-		utils.GetConversationStatusBehavior(previousStatus).ShowInInbox {
-		h.Debug(ctx, "UpdateLayoutFromNewMessage: skipping layout on first conv change")
-		return
-	}
-	h.UpdateLayout(ctx, chat1.InboxLayoutReselectMode_DEFAULT, "new message")
 }
 
 func (h *UIInboxLoader) UpdateLayoutFromSubteamRename(ctx context.Context, convs []types.RemoteConversation) {

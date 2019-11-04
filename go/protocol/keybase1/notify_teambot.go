@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/notify_teambot.avdl
 
 package keybase1
@@ -10,14 +10,16 @@ import (
 )
 
 type NewTeambotKeyArg struct {
-	Id         TeamID               `codec:"id" json:"id"`
-	Generation TeambotKeyGeneration `codec:"generation" json:"generation"`
+	Id          TeamID               `codec:"id" json:"id"`
+	Generation  TeambotKeyGeneration `codec:"generation" json:"generation"`
+	Application TeamApplication      `codec:"application" json:"application"`
 }
 
 type TeambotKeyNeededArg struct {
-	Id         TeamID               `codec:"id" json:"id"`
-	Uid        UID                  `codec:"uid" json:"uid"`
-	Generation TeambotKeyGeneration `codec:"generation" json:"generation"`
+	Id          TeamID               `codec:"id" json:"id"`
+	Uid         UID                  `codec:"uid" json:"uid"`
+	Generation  TeambotKeyGeneration `codec:"generation" json:"generation"`
+	Application TeamApplication      `codec:"application" json:"application"`
 }
 
 type NotifyTeambotInterface interface {

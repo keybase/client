@@ -10,10 +10,15 @@ import * as Styles from '../../../styles'
 import {InfoPanel, Panel, ParticipantTyp} from '.'
 import * as Container from '../../../util/container'
 import {createShowUserProfile} from '../../../actions/profile-gen'
-import {Box} from '../../../common-adapters'
+import * as Kb from '../../../common-adapters'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
+import * as TeamTypes from '../../../constants/types/teams'
+
+// TODO this container does a ton of stuff for the various tabs. Really the tabs should be connected
+// and this thing is just a holder of tabs
 
 type OwnProps = {
+  loadDelay?: number
   conversationIDKey: Types.ConversationIDKey
   onBack?: () => void
   onCancel?: () => void
@@ -30,6 +35,11 @@ const getFromMsgID = (info: Types.AttachmentViewInfo): Types.MessageID | null =>
   const lastMessage = info.messages.length > 0 ? info.messages[info.messages.length - 1] : null
   return lastMessage ? lastMessage.id : null
 }
+
+const noAttachmentView = Constants.makeAttachmentViewInfo()
+const noDocs = {docs: [], onLoadMore: () => {}, status: 'loading'}
+const noLinks = {links: [], onLoadMore: () => {}, status: 'loading'}
+const noMedia = {onLoadMore: () => {}, status: 'loading', thumbs: []}
 
 const ConnectedInfoPanel = Container.connect(
   (state: Container.TypedState, ownProps: OwnProps) => {
@@ -55,15 +65,17 @@ const ConnectedInfoPanel = Container.connect(
     const selectedTab = ownProps.selectedTab || (meta.teamname ? 'members' : 'attachments')
     const selectedAttachmentView = ownProps.selectedAttachmentView || RPCChatTypes.GalleryItemTyp.media
     const m = state.chat2.attachmentViewMap.get(conversationIDKey)
-    const attachmentInfo = (m && m.get(selectedAttachmentView)) || Constants.makeAttachmentViewInfo()
+    const attachmentInfo = (m && m.get(selectedAttachmentView)) || noAttachmentView
     const attachmentsLoading = selectedTab === 'attachments' && attachmentInfo.status === 'loading'
+    const _teamMembers =
+      state.teams.teamNameToMembers.get(meta.teamname) || I.Map<string, TeamTypes.MemberInfo>()
     return {
       _attachmentInfo: attachmentInfo,
       _fromMsgID: getFromMsgID(attachmentInfo),
       _infoMap: state.users.infoMap,
       _participantToContactName: meta.participantToContactName,
       _participants: meta.participants,
-      _teamMembers: state.teams.teamNameToMembers.get(meta.teamname),
+      _teamMembers,
       admin,
       attachmentsLoading,
       canDeleteHistory,
@@ -89,7 +101,7 @@ const ConnectedInfoPanel = Container.connect(
     dispatch: Container.TypedDispatch,
     {conversationIDKey, onBack, onCancel, onSelectAttachmentView}: OwnProps
   ) => ({
-    _navToRootChat: () => dispatch(Chat2Gen.createNavigateToInbox({findNewConversation: false})),
+    _navToRootChat: () => dispatch(Chat2Gen.createNavigateToInbox()),
     _onDocDownload: message => dispatch(Chat2Gen.createAttachmentDownload({message})),
     _onEditChannel: (teamname: string) =>
       dispatch(
@@ -170,8 +182,6 @@ const ConnectedInfoPanel = Container.connect(
           l.push(mi.username)
           return l
         }, [])
-    } else {
-      teamMembers = I.Map()
     }
     return {
       admin: stateProps.admin,
@@ -207,7 +217,7 @@ const ConnectedInfoPanel = Container.connect(
                 : null,
               status: stateProps._attachmentInfo.status,
             }
-          : {docs: [], onLoadMore: () => {}, status: 'loading'},
+          : noDocs,
       ignored: stateProps.ignored,
       isPreview: stateProps.isPreview,
       links:
@@ -245,7 +255,8 @@ const ConnectedInfoPanel = Container.connect(
                 : null,
               status: stateProps._attachmentInfo.status,
             }
-          : {links: [], onLoadMore: () => {}, status: 'loading'},
+          : noLinks,
+      loadDelay: ownProps.loadDelay,
       media:
         stateProps.selectedAttachmentView === RPCChatTypes.GalleryItemTyp.media
           ? {
@@ -263,7 +274,7 @@ const ConnectedInfoPanel = Container.connect(
                   width: m.previewWidth,
                 })),
             }
-          : {onLoadMore: () => {}, status: 'loading', thumbs: []},
+          : noMedia,
       onAttachmentViewChange: dispatchProps.onAttachmentViewChange,
       onBack: dispatchProps.onBack,
       onCancel: dispatchProps.onCancel,
@@ -284,20 +295,10 @@ const ConnectedInfoPanel = Container.connect(
             stateProps._participantToContactName.get(p) ||
             '',
           isAdmin: stateProps.teamname
-            ? TeamConstants.userIsRoleInTeamWithInfo(
-                // @ts-ignore
-                teamMembers,
-                p,
-                'admin'
-              )
+            ? TeamConstants.userIsRoleInTeamWithInfo(teamMembers, p, 'admin')
             : false,
           isOwner: stateProps.teamname
-            ? TeamConstants.userIsRoleInTeamWithInfo(
-                // @ts-ignore
-                teamMembers,
-                p,
-                'owner'
-              )
+            ? TeamConstants.userIsRoleInTeamWithInfo(teamMembers, p, 'owner')
             : false,
           username: p,
         }))
@@ -329,93 +330,72 @@ type SelectorOwnProps = Container.RouteProps<{
   attachmentview: RPCChatTypes.GalleryItemTyp
 }>
 
-const mapStateToSelectorProps = (state: Container.TypedState, ownProps: SelectorOwnProps) => {
-  const conversationIDKey: Types.ConversationIDKey = Container.getRouteProps(
-    ownProps,
-    'conversationIDKey',
-    Constants.noConversationIDKey
-  )
-  const meta = Constants.getMeta(state, conversationIDKey)
-  const selectedTab = Container.getRouteProps(ownProps, 'tab', null)
-  const selectedAttachmentView = Container.getRouteProps(
-    ownProps,
-    'attachmentview',
-    RPCChatTypes.GalleryItemTyp.media
-  )
-  return {
-    conversationIDKey,
-    selectedAttachmentView,
-    selectedTab,
-    shouldNavigateOut: meta.conversationIDKey === Constants.noConversationIDKey,
-  }
-}
-
-const mapDispatchToSelectorProps = (dispatch, {navigation}) => ({
-  // Used by HeaderHoc.
-  onBack: () => dispatch(Chat2Gen.createToggleInfoPanel()),
-  onGoToInbox: () => dispatch(Chat2Gen.createNavigateToInbox({findNewConversation: true})),
-  onSelectAttachmentView: view => navigation.setParams({attachmentview: view}),
-  onSelectTab: (tab: Panel) => navigation.setParams({tab}),
-})
-
-const mergeSelectorProps = (stateProps, dispatchProps, _: SelectorOwnProps) => ({
-  conversationIDKey: stateProps.conversationIDKey,
-  onBack: dispatchProps.onBack,
-  onGoToInbox: dispatchProps.onGoToInbox,
-  onSelectAttachmentView: dispatchProps.onSelectAttachmentView,
-  onSelectTab: dispatchProps.onSelectTab,
-  selectedAttachmentView: stateProps.selectedAttachmentView,
-  selectedTab: stateProps.selectedTab,
-  shouldNavigateOut: stateProps.shouldNavigateOut,
-})
-
 type Props = {
   conversationIDKey: Types.ConversationIDKey
+  initialTab: Panel | null
   onBack: () => void
   onGoToInbox: () => void
-  onSelectTab: (t: Panel) => void
-  selectedTab: Panel | null
-  onSelectAttachmentView: (typ: RPCChatTypes.GalleryItemTyp) => void
-  selectedAttachmentView: RPCChatTypes.GalleryItemTyp
   shouldNavigateOut: boolean
 }
 
-class InfoPanelSelector extends React.PureComponent<Props> {
-  componentDidUpdate(prevProps) {
-    if (!prevProps.shouldNavigateOut && this.props.shouldNavigateOut) {
-      this.props.onGoToInbox()
-    }
-  }
-  render() {
-    if (!this.props.conversationIDKey) {
-      return null
-    }
+const InfoPanelSelector = (props: Props) => {
+  const {shouldNavigateOut, onGoToInbox, onBack} = props
+  const prevShouldNavigateOut = Container.usePrevious(props.shouldNavigateOut)
+  React.useEffect(() => {
+    !prevShouldNavigateOut && shouldNavigateOut && onGoToInbox()
+  }, [prevShouldNavigateOut, shouldNavigateOut, onGoToInbox])
+  const [selectedTab, onSelectTab] = React.useState<Panel | null>(props.initialTab)
+  const [selectedAttachmentView, onSelectAttachmentView] = React.useState<RPCChatTypes.GalleryItemTyp>(
+    RPCChatTypes.GalleryItemTyp.media
+  )
+  const [show, setShow] = React.useState<boolean>(true)
+  const onDestroyed = React.useCallback(() => {
+    onBack()
+  }, [onBack])
 
-    return Container.isMobile ? (
-      <ConnectedInfoPanel
-        onBack={undefined}
-        onCancel={this.props.onBack}
-        conversationIDKey={this.props.conversationIDKey}
-        onSelectTab={this.props.onSelectTab}
-        selectedTab={this.props.selectedTab}
-        onSelectAttachmentView={this.props.onSelectAttachmentView}
-        selectedAttachmentView={this.props.selectedAttachmentView}
-      />
-    ) : (
-      <Box onClick={this.props.onBack} style={styles.clickCatcher}>
-        <Box style={styles.panelContainer} onClick={evt => evt.stopPropagation()}>
-          <ConnectedInfoPanel
-            onBack={this.props.onBack}
-            onSelectTab={this.props.onSelectTab}
-            conversationIDKey={this.props.conversationIDKey}
-            selectedTab={this.props.selectedTab}
-            onSelectAttachmentView={this.props.onSelectAttachmentView}
-            selectedAttachmentView={this.props.selectedAttachmentView}
-          />
-        </Box>
-      </Box>
-    )
+  if (!props.conversationIDKey) {
+    return null
   }
+
+  return Container.isMobile ? (
+    <ConnectedInfoPanel
+      onBack={undefined}
+      onCancel={props.onBack}
+      conversationIDKey={props.conversationIDKey}
+      onSelectTab={onSelectTab}
+      selectedTab={selectedTab}
+      onSelectAttachmentView={onSelectAttachmentView}
+      selectedAttachmentView={selectedAttachmentView}
+    />
+  ) : (
+    <Kb.Box onClick={() => setShow(false)} style={styles.clickCatcher}>
+      <Kb.Transition
+        items={show}
+        keys={item => (item ? 'showing' : 'hiding')}
+        config={(showing, state) => ({duration: showing && state == 'enter' ? 200 : 50})}
+        from={{...styles.panelContainer, right: -320}}
+        enter={{...styles.panelContainer, right: 0}}
+        leave={{...styles.panelContainer, right: -320}}
+        onDestroyed={onDestroyed}
+      >
+        {show => style => {
+          return show ? (
+            <Kb.animated.div style={style} onClick={(evt: React.BaseSyntheticEvent) => evt.stopPropagation()}>
+              <ConnectedInfoPanel
+                loadDelay={400}
+                onBack={() => setShow(false)}
+                onSelectTab={onSelectTab}
+                conversationIDKey={props.conversationIDKey}
+                selectedTab={selectedTab}
+                onSelectAttachmentView={onSelectAttachmentView}
+                selectedAttachmentView={selectedAttachmentView}
+              />
+            </Kb.animated.div>
+          ) : null
+        }}
+      </Kb.Transition>
+    </Kb.Box>
+  )
 }
 
 const styles = Styles.styleSheetCreate(
@@ -441,9 +421,30 @@ const styles = Styles.styleSheetCreate(
 )
 
 const InfoConnected = Container.connect(
-  mapStateToSelectorProps,
-  mapDispatchToSelectorProps,
-  mergeSelectorProps
+  (state, ownProps: SelectorOwnProps) => {
+    const conversationIDKey: Types.ConversationIDKey = Container.getRouteProps(
+      ownProps,
+      'conversationIDKey',
+      Constants.noConversationIDKey
+    )
+    const meta = Constants.getMeta(state, conversationIDKey)
+    return {
+      conversationIDKey,
+      shouldNavigateOut: meta.conversationIDKey === Constants.noConversationIDKey,
+    }
+  },
+  dispatch => ({
+    // Used by HeaderHoc.
+    onBack: () => dispatch(Chat2Gen.createToggleInfoPanel()),
+    onGoToInbox: () => dispatch(Chat2Gen.createNavigateToInbox()),
+  }),
+  (stateProps, dispatchProps, ownProps: SelectorOwnProps) => ({
+    conversationIDKey: stateProps.conversationIDKey,
+    initialTab: Container.getRouteProps(ownProps, 'tab', null),
+    onBack: dispatchProps.onBack,
+    onGoToInbox: dispatchProps.onGoToInbox,
+    shouldNavigateOut: stateProps.shouldNavigateOut,
+  })
 )(InfoPanelSelector)
 
 export default InfoConnected

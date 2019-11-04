@@ -5,6 +5,11 @@ import {RetentionPolicy} from './retention-policy'
 import * as RPCChatTypes from './rpc-chat-gen'
 import {TeamBuildingSubState} from './team-building'
 
+export type TeamID = string
+export const stringToTeamID = (s: string): TeamID => s
+export const teamIDToString = (t: TeamID): string => t
+export const noTeamID = 'NOTEAMID'
+
 export type TeamRoleType = 'reader' | 'writer' | 'admin' | 'owner' | 'bot' | 'restrictedbot'
 export type DisabledReasonsForRolePicker = {[K in TeamRoleType]?: string}
 export type MaybeTeamRoleType = 'none' | TeamRoleType
@@ -33,14 +38,8 @@ export type _PublicitySettings = {
   team: boolean
 }
 
-// Record types don't play well with $ReadOnly types, which
-// RPCTypes.TeamSettings is, so we want to extract the underlying
-// writeable type. Just spreading doesn't give us what we want, as
-// that makes all keys optional (see
-// https://github.com/facebook/flow/issues/3534 ), so use $Exact to
-// fix that.
 export type _TeamSettings = {} & RPCTypes.TeamSettings
-export type TeamSettings = I.RecordOf<_TeamSettings>
+export type TeamSettings = I.RecordOf<_TeamSettings> // TODO remove
 
 export type ChannelMembershipState = {[K in ConversationIDKey]: boolean}
 
@@ -71,14 +70,9 @@ export type _InviteInfo = {
   username: string
   id: string
 }
-export type InviteInfo = I.RecordOf<_InviteInfo>
+export type InviteInfo = I.RecordOf<_InviteInfo> // TODO remove
 
-export type _RequestInfo = {
-  username: string
-}
-export type RequestInfo = I.RecordOf<_RequestInfo>
-
-export type TabKey = 'members' | 'requests' | 'pending'
+export type TabKey = 'members' | 'invites' | 'subteams' | 'settings'
 
 export type _SubteamInfo = {
   key: string
@@ -103,51 +97,80 @@ export type _ResetUser = {
 }
 export type ResetUser = I.RecordOf<_ResetUser>
 
-export type _EmailInviteError = {
-  malformed: I.Set<string>
+export type EmailInviteError = {
+  malformed: Set<string>
   message: string
 }
-export type EmailInviteError = I.RecordOf<_EmailInviteError>
 
 export type AddUserToTeamsState = 'notStarted' | 'pending' | 'succeeded' | 'failed'
 
-export type _State = {
+export type TeamDetails = {
+  allowPromote: boolean
+  id: TeamID
+  isMember: boolean
+  isOpen: boolean
+  memberCount: number
+  role: MaybeTeamRoleType
+  showcasing: boolean
+  teamname: string
+
+  members?: Map<string, _MemberInfo>
+  settings?: _TeamSettings
+  invites?: Set<_InviteInfo>
+  subteams?: Set<TeamID>
+  requests?: Set<string>
+}
+
+export type TeamRoleAndDetails = {
+  implicitAdmin: boolean
+  role: MaybeTeamRoleType
+}
+
+export type TeamRoleMap = {
+  latestKnownVersion: number
+  loadedVersion: number
+  roles: Map<TeamID, TeamRoleAndDetails>
+}
+
+export type State = Readonly<{
   addUserToTeamsState: AddUserToTeamsState
   addUserToTeamsResults: string
+  canPerform: Map<TeamID, TeamOperations>
   channelCreationError: string
-  deletedTeams: I.List<RPCTypes.DeletedTeamInfo>
+  deletedTeams: Array<RPCTypes.DeletedTeamInfo>
   emailInviteError: EmailInviteError
-  teamsWithChosenChannels: I.Set<Teamname>
+  teamsWithChosenChannels: Set<Teamname>
   sawChatBanner: boolean
   sawSubteamsBanner: boolean
-  teamAccessRequestsPending: I.Set<Teamname>
+  teamAccessRequestsPending: Set<Teamname>
   teamInviteError: string
   teamJoinError: string
   teamJoinSuccess: boolean
   teamJoinSuccessTeamName: string
   teamCreationError: string
+  teamDetails: Map<TeamID, TeamDetails>
   teamNameToChannelInfos: I.Map<Teamname, I.Map<ConversationIDKey, ChannelInfo>>
   teamNameToID: I.Map<Teamname, string>
-  teamNameToInvites: I.Map<Teamname, I.Set<InviteInfo>>
-  teamNameToIsOpen: I.Map<Teamname, boolean>
+  teamNameToInvites: I.Map<Teamname, I.Set<InviteInfo>> // TODO remove
+  teamNameToIsOpen: I.Map<Teamname, boolean> // TODO remove
   teamNameToLoadingInvites: I.Map<Teamname, I.Map<string, boolean>>
-  teamNameToMembers: I.Map<Teamname, I.Map<string, MemberInfo>>
-  teamNameToRequests: I.Map<Teamname, I.Set<RequestInfo>>
+  teamNameToMembers: I.Map<Teamname, I.Map<string, MemberInfo>> // TODO remove
+  teamNameToRequests: I.Map<Teamname, I.Set<string>> // TODO remove
   teamNameToResetUsers: I.Map<Teamname, I.Set<ResetUser>>
   teamNameToRetentionPolicy: I.Map<Teamname, RetentionPolicy>
   teamNameToRole: I.Map<Teamname, MaybeTeamRoleType>
-  teamNameToSubteams: I.Map<Teamname, I.Set<Teamname>>
-  teamNameToCanPerform: I.Map<Teamname, TeamOperations>
+  teamNameToSubteams: I.Map<Teamname, I.Set<Teamname>> // TODO remove
+  teamNameToCanPerform: I.Map<Teamname, TeamOperations> // TODO remove
   teamNameToSettings: I.Map<Teamname, TeamSettings>
   teamNameToPublicitySettings: I.Map<Teamname, _PublicitySettings>
-  teamNameToAllowPromote: I.Map<Teamname, boolean>
-  teamNameToIsShowcasing: I.Map<Teamname, boolean>
-  teamnames: I.Set<Teamname>
+  teamNameToAllowPromote: I.Map<Teamname, boolean> // TODO remove
+  teamNameToIsShowcasing: I.Map<Teamname, boolean> // TODO remove
+  teamnames: Set<Teamname> // TODO remove
   teammembercounts: I.Map<Teamname, number>
-  teamProfileAddList: I.List<TeamProfileAddList>
-  newTeams: I.Set<string>
-  newTeamRequests: I.List<string>
+  teamProfileAddList: Array<TeamProfileAddList>
+  teamRoleMap: TeamRoleMap
+  newTeams: Set<TeamID>
+  newTeamRequests: Map<TeamID, number>
+  newTeamRequestsByName: Map<string, number> // TODO remove
   teamBuilding: TeamBuildingSubState
-}
-
-export type State = I.RecordOf<_State>
+}>

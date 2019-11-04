@@ -51,6 +51,15 @@
       "name": "DbValue",
       "fields": [],
       "typedef": "bytes"
+    },
+    {
+      "type": "enum",
+      "name": "OnLoginStartupStatus",
+      "symbols": [
+        "UNKNOWN_0",
+        "DISABLED_1",
+        "ENABLED_2"
+      ]
     }
   ],
   "messages": {
@@ -178,6 +187,19 @@
         null,
         "DbValue"
       ]
+    },
+    "setNixOnLoginStartup": {
+      "request": [
+        {
+          "name": "enabled",
+          "type": "boolean"
+        }
+      ],
+      "response": null
+    },
+    "getNixOnLoginStartup": {
+      "request": [],
+      "response": "OnLoginStartupStatus"
     }
   },
   "namespace": "keybase.1"

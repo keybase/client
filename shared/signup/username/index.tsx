@@ -17,8 +17,15 @@ type Props = {
 
 const EnterUsername = (props: Props) => {
   const [username, onChangeUsername] = React.useState(props.initialUsername || '')
-  const disabled = !username || username === props.usernameTaken
-  const onContinue = () => (disabled ? {} : props.onContinue(username))
+  const usernameTrimmed = username.trim()
+  const disabled = !usernameTrimmed || usernameTrimmed === props.usernameTaken
+  const onContinue = () => {
+    if (disabled) {
+      return
+    }
+    onChangeUsername(usernameTrimmed) // maybe trim the input
+    props.onContinue(usernameTrimmed)
+  }
   return (
     <SignupScreen
       banners={[

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
@@ -38,9 +37,8 @@ func SinkFromFilename(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	if err != nil || typ != chat1.MessageType_ATTACHMENT {
 		return "", nil, fmt.Errorf("invalid message type for download: %v", typ)
 	}
-	basepath := body.Attachment().Object.Filename
-	basename := path.Base(basepath)
-	safeBasename := libkb.GetSafeFilename(basename)
+	unsafeBasename := body.Attachment().Object.Filename
+	safeBasename := libkb.GetSafeFilename(unsafeBasename)
 
 	filePath, err := libkb.FindFilePathWithNumberSuffix(parentDir, safeBasename, useArbitraryName)
 	if err != nil {

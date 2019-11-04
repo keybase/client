@@ -18,6 +18,8 @@ type Tree struct {
 	cfg Config
 	eng StorageEngine
 
+	newRootVersion RootVersion
+
 	// step is an optimization parameter for GetKeyValuePairWithProof that
 	// controls how many path positions at a time the tree requests from the
 	// storage engine. Lower values result in more storage engine requests, but
@@ -30,7 +32,7 @@ type Tree struct {
 }
 
 // NewTree makes a new tree
-func NewTree(c Config, step int, e StorageEngine) (*Tree, error) {
+func NewTree(c Config, step int, e StorageEngine, v RootVersion) (*Tree, error) {
 	if c.UseBlindedValueHashes {
 		_, ok := e.(StorageEngineWithBlinding)
 		if !ok {
@@ -41,7 +43,7 @@ func NewTree(c Config, step int, e StorageEngine) (*Tree, error) {
 		return nil, fmt.Errorf("step must be a positive integer")
 	}
 
-	return &Tree{cfg: c, eng: e, step: step}, nil
+	return &Tree{cfg: c, eng: e, step: step, newRootVersion: v}, nil
 }
 
 // Hash is a byte-array, used to represent a full collision-resistant hash.
@@ -68,6 +70,20 @@ func (k Key) Cmp(k2 Key) int {
 
 // Seqno is an integer used to differentiate different versions of a merkle tree.
 type Seqno int64
+
+type SeqnoSortedAsInt []Seqno
+
+func (d SeqnoSortedAsInt) Len() int {
+	return len(d)
+}
+
+func (d SeqnoSortedAsInt) Swap(i, j int) {
+	d[i], d[j] = d[j], d[i]
+}
+
+func (d SeqnoSortedAsInt) Less(i, j int) bool {
+	return d[i] < d[j]
+}
 
 // ChildIndex specifies one of an iNode's child nodes.
 type ChildIndex int
@@ -124,15 +140,19 @@ var _ codec.Selfer = &Node{}
 func (n *Node) CodecEncodeSelf(e *codec.Encoder) {
 	if n.INodes != nil && n.LeafHashes != nil && len(n.INodes) > 0 && len(n.LeafHashes) > 0 {
 		panic("Cannot Encode a node with both Inodes and LeafHashes")
-	} else if n.INodes != nil && len(n.INodes) > 0 {
+	}
+
+	if n.INodes != nil && len(n.INodes) > 0 {
 		e.MustEncode(NodeTypeINode)
 		e.MustEncode(n.INodes)
-	} else if n.LeafHashes != nil && len(n.LeafHashes) > 0 {
-		e.MustEncode(NodeTypeLeaf)
-		e.MustEncode(n.LeafHashes)
-	} else {
-		e.MustEncode(nil)
+		return
 	}
+
+	// Note: we encode empty nodes (with empty or nil LeafHashes) as leaf nodes.
+	// This is so we can represent a tree with no values as a single (empty)
+	// leaf node.
+	e.MustEncode(NodeTypeLeaf)
+	e.MustEncode(n.LeafHashes)
 }
 
 func (n *Node) CodecDecodeSelf(d *codec.Decoder) {
@@ -154,19 +174,62 @@ type PositionHashPair struct {
 	Hash     Hash     `codec:"h"`
 }
 
+type RootVersion uint8
+
+const (
+	RootVersionV1      RootVersion = 1
+	CurrentRootVersion RootVersion = RootVersionV1
+)
+
 type RootMetadata struct {
-	// TODO Add timestamp, version.....
 	_struct          struct{} `codec:",toarray"` //nolint
-	Seqno            Seqno    `codec:"n"`
-	BareRootHash     Hash     `codec:"r"`
-	SkipPointersHash Hash     `codec:"s"`
+	RootVersion      RootVersion
+	EncodingType     EncodingType
+	Seqno            Seqno
+	BareRootHash     Hash
+	SkipPointersHash Hash
+
+	//  AddOnsHash is the (currently empty) hash of a (not yet defined) data
+	//  structure which will contain a map[string]Hash (or even
+	//  map[string]interface{}) which can contain arbitrary values. This AddOn
+	//  struct is not used in verifying proofs, and new elements can be added to
+	//  this map without bumping the RootVersion. Clients are expected to ignore
+	//  fields in this map which they do not understand.
+	AddOnsHash Hash
 }
 
-func (t *Tree) makeNextRootMetadata(curr *RootMetadata, newRootHash Hash) RootMetadata {
-	if curr == nil {
-		return RootMetadata{Seqno: 1, BareRootHash: newRootHash}
+func (t *Tree) makeNextRootMetadata(ctx logger.ContextInterface, tr Transaction, curr *RootMetadata, newRootHash Hash, addOnsHash Hash) (RootMetadata, error) {
+	root := RootMetadata{
+		RootVersion:  t.newRootVersion,
+		EncodingType: t.cfg.Encoder.GetEncodingType(),
+		BareRootHash: newRootHash,
+		AddOnsHash:   addOnsHash,
 	}
-	return RootMetadata{Seqno: curr.Seqno + 1, BareRootHash: newRootHash}
+
+	// If there is no previous root, we do not need to include any skips, so
+	// return early.
+	if curr == nil || curr.Seqno == 0 {
+		root.Seqno = 1
+		return root, nil
+	}
+
+	newSeqno := curr.Seqno + 1
+	skipSeqnos := SkipPointersForSeqno(newSeqno)
+
+	skips, err := t.eng.LookupRootHashes(ctx, tr, skipSeqnos)
+	if err != nil {
+		return RootMetadata{}, fmt.Errorf("makeNextRootMetadata: error retrieving previous hashes %+v: %v", skipSeqnos, err)
+	}
+
+	_, skipsHash, err := t.cfg.Encoder.EncodeAndHashGeneric(skips)
+	if err != nil {
+		return RootMetadata{}, fmt.Errorf("makeNextRootMetadata: error encoding %+v, err: %v", skips, err)
+	}
+
+	root.Seqno = curr.Seqno + 1
+	root.SkipPointersHash = skipsHash
+
+	return root, nil
 }
 
 func (t *Tree) GenerateAndStoreMasterSecret(
@@ -204,7 +267,7 @@ func (t *Tree) encodeKVPairs(sortedKVPairs []KeyValuePair) (kevPairs []KeyEncode
 // state. This function does not check the condition is true for efficiency
 // reasons.
 func (t *Tree) Build(
-	ctx logger.ContextInterface, tr Transaction, sortedKVPairs []KeyValuePair) (s Seqno, rootHash Hash, err error) {
+	ctx logger.ContextInterface, tr Transaction, sortedKVPairs []KeyValuePair, addOnsHash Hash) (s Seqno, rootHash Hash, err error) {
 	t.Lock()
 	defer t.Unlock()
 
@@ -244,13 +307,21 @@ func (t *Tree) Build(
 
 	var newBareRootHash Hash
 	if newBareRootHash, err = t.hashTreeRecursive(ctx, tr, newSeqno, ms,
-		t.cfg.getRootPosition(), sortedKEVPairs); err != nil {
+		t.cfg.GetRootPosition(), sortedKEVPairs); err != nil {
 		return 0, nil, err
 	}
 
-	newRootMetadata := t.makeNextRootMetadata(&rootMetadata, newBareRootHash)
+	newRootMetadata, err := t.makeNextRootMetadata(ctx, tr, &rootMetadata, newBareRootHash, addOnsHash)
+	if err != nil {
+		return 0, nil, err
+	}
 
-	if err = t.eng.StoreRootMetadata(ctx, tr, newRootMetadata); err != nil {
+	_, newRootHash, err := t.cfg.Encoder.EncodeAndHashGeneric(newRootMetadata)
+	if err != nil {
+		return 0, nil, err
+	}
+
+	if err = t.eng.StoreRootMetadata(ctx, tr, newRootMetadata, newRootHash); err != nil {
 		return 0, nil, err
 	}
 
@@ -276,10 +347,10 @@ func (t *Tree) hashTreeRecursive(ctx logger.ContextInterface, tr Transaction, s 
 
 	pairsNotYetSelected := sortedKEVPairs
 	var nextChild *Position
-	for i, child := ChildIndex(0), t.cfg.getChild(p, ChildIndex(0)); i < ChildIndex(t.cfg.ChildrenPerNode); i++ {
+	for i, child := ChildIndex(0), t.cfg.GetChild(p, ChildIndex(0)); i < ChildIndex(t.cfg.ChildrenPerNode); i++ {
 		var end int
 		if i+1 < ChildIndex(t.cfg.ChildrenPerNode) {
-			nextChild = t.cfg.getChild(p, i+1)
+			nextChild = t.cfg.GetChild(p, i+1)
 			maxKey := t.cfg.getMinKey(nextChild)
 
 			end = sort.Search(len(pairsNotYetSelected), func(n int) bool {
@@ -378,14 +449,43 @@ func (t *Tree) GetKeyValuePair(ctx logger.ContextInterface, tr Transaction, s Se
 	return t.GetKeyValuePairUnsafe(ctx, tr, s, k)
 }
 
+// A MerkleInclusionProof proves that a specific key value pair is stored in a
+// merkle tree, given the RootMetadata hash of such tree. It can also be used to
+// prove that a specific key is not part of the tree (we call this an exclusion
+// or absence proof)
 type MerkleInclusionProof struct {
 	_struct           struct{}          `codec:",toarray"` //nolint
 	KeySpecificSecret KeySpecificSecret `codec:"k"`
-	OtherPairsInLeaf  []KeyHashPair     `codec:"l"`
+	// When this struct is used as an exclusion proof, OtherPairsInLeaf is set
+	// to nil if the proof ends at an internal node, and set to a slice of
+	// length 0 or more if the proof ends at a (possibly empty) leaf node. In
+	// particular, a tree with no keys is encoded with the root being the only
+	// (empty leaf) node.
+	OtherPairsInLeaf []KeyHashPair `codec:"l"`
 	// SiblingHashesOnPath are ordered by level from the farthest to the closest
 	// to the root, and lexicographically within each level.
 	SiblingHashesOnPath []Hash       `codec:"s"`
 	RootMetadataNoHash  RootMetadata `codec:"e"`
+}
+
+// A MerkleExtensionProof proves, given the RootMetadata hashes of two merkle
+// trees and their respective Seqno values, that: - the two merkle trees have
+// the expected Seqno values, - the most recent merkle tree "points back" to the
+// least recent one through a chain of SkipPointers that refer to merkle trees
+// at intermediate Seqnos.
+type MerkleExtensionProof struct {
+	_struct              struct{}       `codec:",toarray"` //nolint
+	RootHashes           []Hash         `codec:"h"`
+	PreviousRootsNoSkips []RootMetadata `codec:"k"`
+}
+
+// An MerkleInclusionExtensionProof combines a MerkleInclusionProof and a
+// MerkleExtensionProof. The redundant fields are deleted so that sending a
+// combined proof is more efficient than sending both of them individually.
+type MerkleInclusionExtensionProof struct {
+	_struct              struct{} `codec:",toarray"` //nolint
+	MerkleInclusionProof MerkleInclusionProof
+	MerkleExtensionProof MerkleExtensionProof
 }
 
 // This type orders positionHashPairs by position, more specificelly first by
@@ -408,12 +508,42 @@ func (p PosHashPairsInMerkleProofOrder) Swap(i, j int) {
 
 var _ sort.Interface = PosHashPairsInMerkleProofOrder{}
 
-func (t *Tree) GetEncodedValueWithProof(ctx logger.ContextInterface, tr Transaction, s Seqno, k Key) (val EncodedValue, proof MerkleInclusionProof, err error) {
+// If the key is not in the tree at the root with the specified hash, this function returns a nil value, a proof
+// which certifies that and no error.
+func (t *Tree) GetEncodedValueWithInclusionOrExclusionProofFromRootHash(ctx logger.ContextInterface, tr Transaction, rootHash Hash, k Key) (val EncodedValue, proof MerkleInclusionProof, err error) {
+	// Lookup the appropriate root.
+	rootMetadata, err := t.eng.LookupRootFromHash(ctx, tr, rootHash)
+	if err != nil {
+		return nil, MerkleInclusionProof{}, err
+	}
+	return t.getEncodedValueWithInclusionProofOrExclusionProof(ctx, tr, rootMetadata, k)
+}
+
+// If the key is not in the tree at seqno s, this function returns a KeyNotFoundError and no absence proof.
+func (t *Tree) GetEncodedValueWithInclusionProof(ctx logger.ContextInterface, tr Transaction, s Seqno, k Key) (val EncodedValue, proof MerkleInclusionProof, err error) {
 	// Lookup the appropriate root.
 	rootMetadata, err := t.eng.LookupRoot(ctx, tr, s)
 	if err != nil {
 		return nil, MerkleInclusionProof{}, err
 	}
+	val, proof, err = t.getEncodedValueWithInclusionProofOrExclusionProof(ctx, tr, rootMetadata, k)
+	if err != nil {
+		return nil, MerkleInclusionProof{}, err
+	}
+	if val == nil {
+		return nil, MerkleInclusionProof{}, NewKeyNotFoundError()
+	}
+	return val, proof, nil
+}
+
+// if the key is not in the tree, this function returns a nil value, a proof
+// which certifies that and no error.
+func (t *Tree) getEncodedValueWithInclusionProofOrExclusionProof(ctx logger.ContextInterface, tr Transaction, rootMetadata RootMetadata, k Key) (val EncodedValue, proof MerkleInclusionProof, err error) {
+	if len(k) != t.cfg.KeysByteLength {
+		return nil, MerkleInclusionProof{}, fmt.Errorf("The supplied key has the wrong length: exp %v, got %v", t.cfg.KeysByteLength, len(k))
+	}
+
+	s := rootMetadata.Seqno
 	proof.RootMetadataNoHash = rootMetadata
 	// clear up hash to make the proof smaller.
 	proof.RootMetadataNoHash.BareRootHash = nil
@@ -481,38 +611,72 @@ func (t *Tree) GetEncodedValueWithProof(ctx logger.ContextInterface, tr Transact
 	}
 
 	var kevps []KeyEncodedValuePair
-	var seqnos []Seqno
-	if t.cfg.MaxValuesPerLeaf == 1 {
-		kevp, s, err := t.eng.LookupKEVPair(ctx, tr, s, k)
-		if err != nil {
+
+	// We have two cases: either the node at leafPos is actually a leaf
+	// (which might or not contain the key which we are trying to look up),
+	// or such node does not exists at all (which happens only if the key we
+	// are looking up is not part of the tree at that seqno).
+	_, err = t.eng.LookupNode(ctx, tr, s, leafPos)
+	if err != nil {
+		// NodeNotFoundError is ignored as the inclusion proof we
+		// produce will prove that the key is not in the tree.
+		if _, nodeNotFound := err.(NodeNotFoundError); !nodeNotFound {
 			return nil, MerkleInclusionProof{}, err
 		}
-		kevps = append(kevps, KeyEncodedValuePair{Key: k, Value: kevp})
-		seqnos = append(seqnos, s)
 	} else {
-		// Lookup hashes of key value pairs stored at the same leaf.
-		// These pairs are ordered by key.
-		kevps, seqnos, err = t.eng.LookupKEVPairsUnderPosition(ctx, tr, s, leafPos)
-		if err != nil {
-			return nil, MerkleInclusionProof{}, err
+		if t.cfg.MaxValuesPerLeaf == 1 {
+			// Try to avoid LookupKEVPairsUnderPosition if possible as it is a range
+			// query and thus more expensive.
+			kevp, _, err := t.eng.LookupKEVPair(ctx, tr, s, k)
+			if err != nil {
+				// KeyNotFoundError is ignored as the inclusion proof we
+				// produce will prove that the key is not in the tree.
+				if _, keyNotFound := err.(KeyNotFoundError); !keyNotFound {
+					return nil, MerkleInclusionProof{}, err
+				}
+			} else {
+				kevps = append(kevps, KeyEncodedValuePair{Key: k, Value: kevp})
+			}
+		}
+
+		// if len(kevps)>0, then MaxValuesPerLeaf == 1 and we found the key we
+		// are looking for, so there is no need to look for other keys under
+		// leafPos.
+		if len(kevps) == 0 {
+			// Lookup hashes of key value pairs stored at the same leaf.
+			// These pairs are ordered by key.
+			kevps, _, err = t.eng.LookupKEVPairsUnderPosition(ctx, tr, s, leafPos)
+			if err != nil {
+				// KeyNotFoundError is ignored. This would happen when we are
+				// trying to produce an absence proof on an empty tree: there
+				// would be a leaf node containing no keys.
+				if _, keyNotFound := err.(KeyNotFoundError); !keyNotFound {
+					return nil, MerkleInclusionProof{}, err
+				}
+				kevps = make([]KeyEncodedValuePair, 0)
+			}
 		}
 	}
 
-	var msMap map[Seqno]MasterSecret
-	if t.cfg.UseBlindedValueHashes {
-		msMap, err = t.eng.(StorageEngineWithBlinding).LookupMasterSecrets(ctx, tr, seqnos)
+	var ms MasterSecret
+	if t.cfg.UseBlindedValueHashes && len(kevps) > 0 {
+		msMap, err := t.eng.(StorageEngineWithBlinding).LookupMasterSecrets(ctx, tr, []Seqno{s})
 		if err != nil {
 			return nil, MerkleInclusionProof{}, err
 		}
+		ms = msMap[s]
 	}
 
-	proof.OtherPairsInLeaf = make([]KeyHashPair, len(kevps)-1)
-	j := 0
-	for i, kevpi := range kevps {
+	// OtherPairsInLeaf will have length equal to kevps - 1  in an inclusion
+	// proof, and kevps in an absence proof.
+	if kevps != nil {
+		proof.OtherPairsInLeaf = make([]KeyHashPair, 0, len(kevps))
+	}
+	for _, kevpi := range kevps {
 		if kevpi.Key.Equal(k) {
 			val = kevpi.Value
 			if t.cfg.UseBlindedValueHashes {
-				proof.KeySpecificSecret = t.cfg.Encoder.ComputeKeySpecificSecret(msMap[seqnos[i]], k)
+				proof.KeySpecificSecret = t.cfg.Encoder.ComputeKeySpecificSecret(ms, k)
 			} else {
 				proof.KeySpecificSecret = nil
 			}
@@ -520,24 +684,18 @@ func (t *Tree) GetEncodedValueWithProof(ctx logger.ContextInterface, tr Transact
 		}
 
 		var hash Hash
-		hash, err = t.cfg.Encoder.HashKeyEncodedValuePairWithKeySpecificSecret(kevpi, t.cfg.Encoder.ComputeKeySpecificSecret(msMap[seqnos[i]], kevpi.Key))
+		hash, err = t.cfg.Encoder.HashKeyEncodedValuePairWithKeySpecificSecret(kevpi, t.cfg.Encoder.ComputeKeySpecificSecret(ms, kevpi.Key))
 		if err != nil {
 			return nil, MerkleInclusionProof{}, err
 		}
-		if j == len(proof.OtherPairsInLeaf) {
-			// If we are attempting to overfill OtherPairsInLeaf, the key we are
-			// looking for must not be present
-			return nil, MerkleInclusionProof{}, NewKeyNotFoundError()
-		}
-		proof.OtherPairsInLeaf[j] = KeyHashPair{Key: kevpi.Key, Hash: hash}
-		j++
+		proof.OtherPairsInLeaf = append(proof.OtherPairsInLeaf, KeyHashPair{Key: kevpi.Key, Hash: hash})
 	}
 
 	return val, proof, nil
 }
 
 func (t *Tree) GetKeyValuePairWithProof(ctx logger.ContextInterface, tr Transaction, s Seqno, k Key) (kvp KeyValuePair, proof MerkleInclusionProof, err error) {
-	val, proof, err := t.GetEncodedValueWithProof(ctx, tr, s, k)
+	val, proof, err := t.GetEncodedValueWithInclusionProof(ctx, tr, s, k)
 	if err != nil {
 		return KeyValuePair{}, MerkleInclusionProof{}, err
 	}
@@ -546,6 +704,86 @@ func (t *Tree) GetKeyValuePairWithProof(ctx logger.ContextInterface, tr Transact
 	err = t.cfg.Encoder.Decode(&valContainer, val)
 	if err != nil {
 		return KeyValuePair{}, MerkleInclusionProof{}, err
+	}
+	kvp = KeyValuePair{Key: k, Value: valContainer}
+
+	return kvp, proof, nil
+}
+
+func (t *Tree) getExtensionProof(ctx logger.ContextInterface, tr Transaction, fromSeqno, toSeqno Seqno, isPartOfIncExtProof bool) (proof MerkleExtensionProof, err error) {
+	// Optimization: no proof is required to show something extends itself.
+	if fromSeqno == toSeqno {
+		return MerkleExtensionProof{}, nil
+	}
+
+	seqnos, err := ComputeRootHashSeqnosNeededInExtensionProof(fromSeqno, toSeqno)
+	if err != nil {
+		return MerkleExtensionProof{}, err
+	}
+	hashes, err := t.eng.LookupRootHashes(ctx, tr, seqnos)
+	if err != nil {
+		return MerkleExtensionProof{}, err
+	}
+
+	seqnos, err = ComputeRootMetadataSeqnosNeededInExtensionProof(fromSeqno, toSeqno, isPartOfIncExtProof)
+	if err != nil {
+		return MerkleExtensionProof{}, err
+	}
+	roots, err := t.eng.LookupRoots(ctx, tr, seqnos)
+	if err != nil {
+		return MerkleExtensionProof{}, err
+	}
+
+	proof.RootHashes = hashes
+	proof.PreviousRootsNoSkips = roots
+
+	return proof, nil
+}
+
+func (t *Tree) GetExtensionProof(ctx logger.ContextInterface, tr Transaction, fromSeqno, toSeqno Seqno) (proof MerkleExtensionProof, err error) {
+	return t.getExtensionProof(ctx, tr, fromSeqno, toSeqno, false)
+}
+
+func (t *Tree) GetEncodedValueWithInclusionExtensionProof(ctx logger.ContextInterface, tr Transaction, haveSeqno, wantSeqno Seqno, k Key) (val EncodedValue, proof MerkleInclusionExtensionProof, err error) {
+	val, incProof, err := t.GetEncodedValueWithInclusionProof(ctx, tr, wantSeqno, k)
+	if err != nil {
+		return nil, MerkleInclusionExtensionProof{}, err
+	}
+	proof.MerkleInclusionProof = incProof
+
+	if haveSeqno != wantSeqno {
+		// clear these fields to save bandwidth, they are redundant when an
+		// inclusion proof is paired with an extension proof. Note that if
+		// haveSeqno == wantSeqno, we don't do this optimization as the
+		// extension proof is skipped.
+		proof.MerkleInclusionProof.RootMetadataNoHash.SkipPointersHash = nil
+		proof.MerkleInclusionProof.RootMetadataNoHash.Seqno = Seqno(0)
+	}
+
+	extProof, err := t.getExtensionProof(ctx, tr, haveSeqno, wantSeqno, true)
+	if err != nil {
+		return nil, MerkleInclusionExtensionProof{}, err
+	}
+
+	// clear these fields to save bandwidth
+	for i := range extProof.PreviousRootsNoSkips {
+		extProof.PreviousRootsNoSkips[i].SkipPointersHash = nil
+	}
+
+	proof.MerkleExtensionProof = extProof
+	return val, proof, err
+}
+
+func (t *Tree) GetKeyValuePairWithInclusionExtensionProof(ctx logger.ContextInterface, tr Transaction, haveSeqno, wantSeqno Seqno, k Key) (kvp KeyValuePair, proof MerkleInclusionExtensionProof, err error) {
+	val, proof, err := t.GetEncodedValueWithInclusionExtensionProof(ctx, tr, haveSeqno, wantSeqno, k)
+	if err != nil {
+		return KeyValuePair{}, MerkleInclusionExtensionProof{}, err
+	}
+
+	valContainer := t.cfg.ConstructValueContainer()
+	err = t.cfg.Encoder.Decode(&valContainer, val)
+	if err != nil {
+		return KeyValuePair{}, MerkleInclusionExtensionProof{}, err
 	}
 	kvp = KeyValuePair{Key: k, Value: valContainer}
 

@@ -57,63 +57,85 @@ const UseNativeFrame = (props: Props) => {
   )
 }
 
-const Advanced = (props: Props) => {
-  const disabled = props.lockdownModeEnabled == null || props.hasRandomPW || props.settingLockdownMode
+const LockdownCheckbox = (props: Props) => {
+  const label =
+    'Enable account lockdown mode' + (props.hasRandomPW ? ' (you need to set a password first)' : '')
+  const checked = props.hasRandomPW || !!props.lockdownModeEnabled
+  const disabled = props.lockdownModeEnabled === null || props.hasRandomPW || props.settingLockdownMode
   return (
-    <Kb.ScrollView style={styles.scrollview}>
-      <Kb.Box style={styles.advancedContainer}>
-        <Kb.Box style={styles.progressContainer}>
-          {props.settingLockdownMode && <Kb.ProgressIndicator />}
-        </Kb.Box>
-        <Kb.Box style={styles.checkboxContainer}>
-          <Kb.Checkbox
-            checked={props.hasRandomPW || !!props.lockdownModeEnabled}
-            disabled={disabled}
-            label={
-              'Forbid account changes from the website' +
-              (props.hasRandomPW ? ' (you need to set a password first)' : '')
-            }
-            onCheck={props.onChangeLockdownMode}
-          />
-        </Kb.Box>
-        {!!props.setLockdownModeError && (
-          <Kb.Text type="BodySmall" style={styles.error}>
-            {props.setLockdownModeError}
+    <Kb.Checkbox
+      checked={checked}
+      disabled={disabled}
+      onCheck={props.onChangeLockdownMode}
+      labelComponent={
+        <Kb.Box2 direction="vertical" alignItems="flex-start" style={Styles.globalStyles.flexOne}>
+          <Kb.Text type="Body">{label}</Kb.Text>
+          <Kb.Text type="BodySmall">Prevent making account changes from the website.</Kb.Text>
+          <Kb.Text type="BodySmall">
+            With this setting on you will not be able to reset your account, even from the app. Protect your
+            account by installing Keybase on several devices, or by keeping a paper key in a safe place.
           </Kb.Text>
-        )}
-        {!props.hasRandomPW && (
-          <Kb.Box style={styles.checkboxContainer}>
-            <Kb.Checkbox
-              checked={props.rememberPassword}
-              labelComponent={
-                <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne}>
-                  <Kb.Text type="Body">Always stay logged in</Kb.Text>
-                  <Kb.Text type="BodySmall">
-                    You won't be asked for your password when restarting the app or your device.
-                  </Kb.Text>
-                </Kb.Box2>
-              }
-              onCheck={props.onChangeRememberPassword}
+          <Kb.Text type="BodySmallPrimaryLink" onClickURL="https://keybase.io/docs/lockdown/index">
+            Read more{' '}
+            <Kb.Icon
+              type="iconfont-open-browser"
+              sizeType="Tiny"
+              boxStyle={styles.displayInline}
+              color={Styles.globalColors.blueDark}
             />
-          </Kb.Box>
-        )}
-        {isLinux ? <UseNativeFrame {...props} /> : null}
-        {!Styles.isMobile && !isLinux && (
-          <Kb.Box style={styles.checkboxContainer}>
-            <Kb.Checkbox
-              label="Open Keybase on startup"
-              checked={props.openAtLogin}
-              onCheck={props.onSetOpenAtLogin}
-            />
-          </Kb.Box>
-        )}
-        <Kb.Divider style={styles.proxyDivider} />
-        <ProxySettings />
-        <Developer {...props} />
-      </Kb.Box>
-    </Kb.ScrollView>
+          </Kb.Text>
+        </Kb.Box2>
+      }
+    />
   )
 }
+
+const Advanced = (props: Props) => (
+  <Kb.ScrollView style={styles.scrollview}>
+    <Kb.Box style={styles.advancedContainer}>
+      <Kb.Box style={styles.progressContainer}>
+        {props.settingLockdownMode && <Kb.ProgressIndicator />}
+      </Kb.Box>
+      <Kb.Box style={styles.checkboxContainer}>
+        <LockdownCheckbox {...props} />
+      </Kb.Box>
+      {!!props.setLockdownModeError && (
+        <Kb.Text type="BodySmall" style={styles.error}>
+          {props.setLockdownModeError}
+        </Kb.Text>
+      )}
+      {!props.hasRandomPW && (
+        <Kb.Box style={styles.checkboxContainer}>
+          <Kb.Checkbox
+            checked={props.rememberPassword}
+            labelComponent={
+              <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne}>
+                <Kb.Text type="Body">Always stay logged in</Kb.Text>
+                <Kb.Text type="BodySmall">
+                  You won't be asked for your password when restarting the app or your device.
+                </Kb.Text>
+              </Kb.Box2>
+            }
+            onCheck={props.onChangeRememberPassword}
+          />
+        </Kb.Box>
+      )}
+      {isLinux ? <UseNativeFrame {...props} /> : null}
+      {!Styles.isMobile && (
+        <Kb.Box style={styles.checkboxContainer}>
+          <Kb.Checkbox
+            label="Open Keybase on startup"
+            checked={props.openAtLogin}
+            onCheck={props.onSetOpenAtLogin}
+          />
+        </Kb.Box>
+      )}
+      <Kb.Divider style={styles.proxyDivider} />
+      <ProxySettings />
+      <Developer {...props} />
+    </Kb.Box>
+  </Kb.ScrollView>
+)
 
 type StartButtonProps = {
   label: string
@@ -267,6 +289,7 @@ const styles = Styles.styleSheetCreate(() => ({
     paddingBottom: Styles.globalMargins.medium,
     paddingTop: Styles.globalMargins.xlarge,
   },
+  displayInline: Styles.platformStyles({isElectron: {display: 'inline'}}),
   divider: {
     marginTop: Styles.globalMargins.xsmall,
     width: '100%',

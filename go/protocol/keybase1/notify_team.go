@@ -1,9 +1,10 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/notify_team.avdl
 
 package keybase1
 
 import (
+	"fmt"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 	"time"
@@ -51,7 +52,7 @@ func (e AvatarUpdateType) String() string {
 	if v, ok := AvatarUpdateTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type TeamChangedByIDArg struct {
@@ -86,10 +87,17 @@ type NewlyAddedToTeamArg struct {
 	TeamID TeamID `codec:"teamID" json:"teamID"`
 }
 
+type TeamRoleMapChangedArg struct {
+	NewVersion UserTeamVersion `codec:"newVersion" json:"newVersion"`
+}
+
 type AvatarUpdatedArg struct {
 	Name    string           `codec:"name" json:"name"`
 	Formats []AvatarFormat   `codec:"formats" json:"formats"`
 	Typ     AvatarUpdateType `codec:"typ" json:"typ"`
+}
+
+type TeamMetadataUpdateArg struct {
 }
 
 type NotifyTeamInterface interface {
@@ -99,7 +107,9 @@ type NotifyTeamInterface interface {
 	TeamAbandoned(context.Context, TeamID) error
 	TeamExit(context.Context, TeamID) error
 	NewlyAddedToTeam(context.Context, TeamID) error
+	TeamRoleMapChanged(context.Context, UserTeamVersion) error
 	AvatarUpdated(context.Context, AvatarUpdatedArg) error
+	TeamMetadataUpdate(context.Context) error
 }
 
 func NotifyTeamProtocol(i NotifyTeamInterface) rpc.Protocol {
@@ -196,6 +206,21 @@ func NotifyTeamProtocol(i NotifyTeamInterface) rpc.Protocol {
 					return
 				},
 			},
+			"teamRoleMapChanged": {
+				MakeArg: func() interface{} {
+					var ret [1]TeamRoleMapChangedArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]TeamRoleMapChangedArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]TeamRoleMapChangedArg)(nil), args)
+						return
+					}
+					err = i.TeamRoleMapChanged(ctx, typedArgs[0].NewVersion)
+					return
+				},
+			},
 			"avatarUpdated": {
 				MakeArg: func() interface{} {
 					var ret [1]AvatarUpdatedArg
@@ -208,6 +233,16 @@ func NotifyTeamProtocol(i NotifyTeamInterface) rpc.Protocol {
 						return
 					}
 					err = i.AvatarUpdated(ctx, typedArgs[0])
+					return
+				},
+			},
+			"teamMetadataUpdate": {
+				MakeArg: func() interface{} {
+					var ret [1]TeamMetadataUpdateArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					err = i.TeamMetadataUpdate(ctx)
 					return
 				},
 			},
@@ -253,7 +288,18 @@ func (c NotifyTeamClient) NewlyAddedToTeam(ctx context.Context, teamID TeamID) (
 	return
 }
 
+func (c NotifyTeamClient) TeamRoleMapChanged(ctx context.Context, newVersion UserTeamVersion) (err error) {
+	__arg := TeamRoleMapChangedArg{NewVersion: newVersion}
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamRoleMapChanged", []interface{}{__arg}, 0*time.Millisecond)
+	return
+}
+
 func (c NotifyTeamClient) AvatarUpdated(ctx context.Context, __arg AvatarUpdatedArg) (err error) {
 	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.avatarUpdated", []interface{}{__arg}, 0*time.Millisecond)
+	return
+}
+
+func (c NotifyTeamClient) TeamMetadataUpdate(ctx context.Context) (err error) {
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamMetadataUpdate", []interface{}{TeamMetadataUpdateArg{}}, 0*time.Millisecond)
 	return
 }

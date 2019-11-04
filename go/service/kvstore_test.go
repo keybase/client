@@ -5,6 +5,8 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"regexp"
+	"sync"
 	"testing"
 
 	"github.com/keybase/client/go/chat/signencrypt"
@@ -47,6 +49,15 @@ func TestKvStoreSelfTeamPutGet(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "", getRes.EntryValue)
 	require.Equal(t, 0, getRes.Revision)
+	// and list
+	listNamespacesArg := keybase1.ListKVNamespacesArg{TeamName: teamName}
+	listNamespacesRes, err := handler.ListKVNamespaces(ctx, listNamespacesArg)
+	require.NoError(t, err)
+	require.EqualValues(t, listNamespacesRes.Namespaces, []string{})
+	listEntriesArg := keybase1.ListKVEntriesArg{TeamName: teamName, Namespace: namespace}
+	listEntriesRes, err := handler.ListKVEntries(ctx, listEntriesArg)
+	require.NoError(t, err)
+	require.EqualValues(t, []keybase1.KVListEntryKey{}, listEntriesRes.EntryKeys)
 
 	// put a secret
 	cleartextSecret := "lorem ipsum blah blah blah"
@@ -91,9 +102,18 @@ func TestKvStoreSelfTeamPutGet(t *testing.T) {
 	eveHandler := NewKVStoreHandler(nil, tcEve.G)
 	getRes, err = eveHandler.GetKVEntry(ctx, getArg)
 	require.Error(t, err)
-	require.IsType(t, teams.PrecheckAppendError{}, err)
+	require.Contains(t, err.Error(), "You are not a member of this team")
 	putRes, err = handler.PutKVEntry(ctx, putArg)
 	require.NoError(t, err)
+
+	// it lists correctly
+	listNamespacesRes, err = handler.ListKVNamespaces(ctx, listNamespacesArg)
+	require.NoError(t, err)
+	require.EqualValues(t, listNamespacesRes.Namespaces, []string{namespace})
+	listEntriesRes, err = handler.ListKVEntries(ctx, listEntriesArg)
+	require.NoError(t, err)
+	expectedKey := keybase1.KVListEntryKey{EntryKey: entryKey, Revision: 3}
+	require.EqualValues(t, []keybase1.KVListEntryKey{expectedKey}, listEntriesRes.EntryKeys)
 }
 
 func TestKvStoreMultiUserTeam(t *testing.T) {
@@ -121,6 +141,7 @@ func TestKvStoreMultiUserTeam(t *testing.T) {
 	require.NotNil(t, teamID)
 	_, err = teams.AddMember(context.Background(), tcAlice.G, teamName, bob.Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
+	t.Logf("%s created team %s:%s", alice.Username, teamName, teamID)
 
 	// Alice puts a secret
 	namespace := "myapp"
@@ -144,6 +165,7 @@ func TestKvStoreMultiUserTeam(t *testing.T) {
 	putRes, err := aliceHandler.PutKVEntry(ctx, putArg)
 	require.NoError(t, err)
 	require.Equal(t, 1, putRes.Revision)
+	t.Logf("alice successfully wrote an entry at revision 1")
 
 	// Bob can read it
 	getArg := keybase1.GetKVEntryArg{
@@ -155,25 +177,43 @@ func TestKvStoreMultiUserTeam(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, string(cleartextSecret), getRes.EntryValue)
 	require.Equal(t, 1, getRes.Revision)
+	listEntriesArg := keybase1.ListKVEntriesArg{TeamName: teamName, Namespace: namespace}
+	expectedKey := keybase1.KVListEntryKey{EntryKey: entryKey, Revision: 1}
+	listEntriesRes, err := bobHandler.ListKVEntries(ctx, listEntriesArg)
+	require.NoError(t, err)
+	require.EqualValues(t, listEntriesRes.EntryKeys, []keybase1.KVListEntryKey{expectedKey})
+	t.Logf("bob can GET and LIST it")
 
 	// Alice kicks bob out of the team.
 	err = teams.RemoveMember(ctx, tcAlice.G, teamName, bob.Username)
 	require.NoError(t, err)
 	err = teams.RotateKeyVisible(context.TODO(), tcAlice.G, *teamID)
 	require.NoError(t, err)
+	t.Logf("bob is no longer in the team")
 
 	// Bob cannot read the entry anymore.
 	getRes, err = bobHandler.GetKVEntry(ctx, getArg)
 	require.Error(t, err)
+	require.Contains(t, err.Error(), "user does not have access to this entry")
 	require.IsType(t, err, libkb.AppStatusError{})
 	aerr, _ := err.(libkb.AppStatusError)
 	if aerr.Code != libkb.SCTeamBadMembership {
 		t.Fatalf("expected an SCTeamBadMembership error but got %v", err)
 	}
+	listNamespacesArg := keybase1.ListKVNamespacesArg{TeamName: teamName}
+	_, err = bobHandler.ListKVNamespaces(ctx, listNamespacesArg)
+	require.Error(t, err)
+	require.IsType(t, err, libkb.AppStatusError{})
+	aerr, _ = err.(libkb.AppStatusError)
+	if aerr.Code != libkb.SCTeamBadMembership {
+		t.Fatalf("expected an SCTeamBadMembership error but got %v", err)
+	}
+	t.Logf("bob can no longer GET or LIST the entry")
 
 	// New user to the team can overwrite the existing entry without specifying a revision
 	_, err = teams.AddMember(ctx, tcAlice.G, teamName, charlie.Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
+	t.Logf("new user, charlie, is added to the team")
 	cleartextSecret = []byte("overwritten")
 	putArg = keybase1.PutKVEntryArg{
 		SessionID:  0,
@@ -185,16 +225,131 @@ func TestKvStoreMultiUserTeam(t *testing.T) {
 	putRes, err = charlieHandler.PutKVEntry(ctx, putArg)
 	require.NoError(t, err)
 	require.Equal(t, 2, putRes.Revision)
+	t.Logf("charlie can write to the entry")
 	getRes, err = charlieHandler.GetKVEntry(ctx, getArg)
 	require.NoError(t, err)
 	require.Equal(t, string(cleartextSecret), getRes.EntryValue)
 	require.Equal(t, 2, getRes.Revision)
+	listNamespacesRes, err := charlieHandler.ListKVNamespaces(ctx, listNamespacesArg)
+	require.NoError(t, err)
+	require.EqualValues(t, listNamespacesRes.Namespaces, []string{namespace})
+	listEntriesRes, err = charlieHandler.ListKVEntries(ctx, listEntriesArg)
+	require.NoError(t, err)
+	expectedKey = keybase1.KVListEntryKey{EntryKey: entryKey, Revision: 2}
+	require.EqualValues(t, []keybase1.KVListEntryKey{expectedKey}, listEntriesRes.EntryKeys)
+	t.Logf("charlie can fetch and list the entry")
+}
+
+func TestKVDelete(t *testing.T) {
+	tc := kvTestSetup(t)
+	defer tc.Cleanup()
+	mctx := libkb.NewMetaContextForTest(tc)
+	ctx := context.Background()
+	user, err := kbtest.CreateAndSignupFakeUser("kv", tc.G)
+	require.NoError(t, err)
+	handler := NewKVStoreHandler(nil, tc.G)
+	teamName := user.Username + "t"
+	teamID, err := teams.CreateRootTeam(context.Background(), tc.G, teamName, keybase1.TeamSettings{})
+	require.NoError(t, err)
+	require.NotNil(t, teamID)
+
+	namespace := "myapp"
+	entryKey := "entry-key-whatever"
+	// delete a non-existent entry
+	delArg := keybase1.DelKVEntryArg{
+		SessionID: 0,
+		TeamName:  teamName,
+		Namespace: namespace,
+		EntryKey:  entryKey,
+	}
+	_, err = handler.DelKVEntry(mctx.Ctx(), delArg)
+	require.Error(t, err)
+	require.IsType(t, err, libkb.AppStatusError{})
+	aerr, _ := err.(libkb.AppStatusError)
+	if aerr.Code != libkb.SCTeamStorageNotFound {
+		t.Fatalf("expected an SCTeamStorageNotFound error but got %v", err)
+	}
+	t.Logf("attempting to delete a non-existent entry errors")
+
+	// create the new entry
+	putArg := keybase1.PutKVEntryArg{
+		SessionID:  0,
+		TeamName:   teamName,
+		Namespace:  namespace,
+		EntryKey:   entryKey,
+		EntryValue: "secret value",
+	}
+	putRes, err := handler.PutKVEntry(ctx, putArg)
+	require.NoError(t, err)
+	require.Equal(t, 1, putRes.Revision)
+
+	// delete it
+	delRes, err := handler.DelKVEntry(mctx.Ctx(), delArg)
+	require.NoError(t, err)
+	require.Equal(t, 2, delRes.Revision)
+
+	t.Logf("deleting an entry returns the next revision")
+	getArg := keybase1.GetKVEntryArg{
+		TeamName:  teamName,
+		Namespace: namespace,
+		EntryKey:  entryKey,
+	}
+	getRes, err := handler.GetKVEntry(ctx, getArg)
+	require.NoError(t, err)
+	require.Equal(t, 2, getRes.Revision)
+	require.Equal(t, teamName, getRes.TeamName)
+	require.Equal(t, namespace, getRes.Namespace)
+	require.Equal(t, entryKey, getRes.EntryKey)
+	require.Equal(t, "", getRes.EntryValue)
+	t.Logf("fetching a deleted entry has the correct revision and empty value")
+
+	// delete it again
+	delRes, err = handler.DelKVEntry(mctx.Ctx(), delArg)
+	require.Error(t, err)
+	require.IsType(t, err, libkb.AppStatusError{})
+	aerr, _ = err.(libkb.AppStatusError)
+	if aerr.Code != libkb.SCTeamStorageNotFound {
+		t.Fatalf("expected an SCTeamStorageNotFound error but got %v", err)
+	}
+	t.Logf("attempting to delete a deleted entry errors")
+
+	// recreate it after deletion
+	putRes, err = handler.PutKVEntry(ctx, putArg)
+	require.NoError(t, err)
+	require.Equal(t, 3, putRes.Revision)
+	getRes, err = handler.GetKVEntry(ctx, getArg)
+	require.NoError(t, err)
+	require.Equal(t, 3, getRes.Revision)
+	require.Equal(t, "secret value", getRes.EntryValue)
+
+	// delete it again
+	delRes, err = handler.DelKVEntry(mctx.Ctx(), delArg)
+	require.NoError(t, err)
+	require.Equal(t, 4, delRes.Revision)
+}
+
+func assertRevisionError(t *testing.T, err error, expectedSource string) {
+	require.Error(t, err)
+	aerr, _ := err.(libkb.AppStatusError)
+	require.IsType(t, libkb.AppStatusError{}, aerr)
+	require.Equal(t, libkb.SCTeamStorageWrongRevision, aerr.Code)
+	require.Contains(t, err.Error(), "(error 2760)")
+	require.Contains(t, err.Error(), "revision")
+	switch expectedSource {
+	case "server":
+		require.Regexp(t, regexp.MustCompile("expected revision [0-9]+ but got [0-9]+"), err.Error())
+	case "cache":
+		require.Regexp(t, regexp.MustCompile("revision out of date"), err.Error())
+	default:
+		require.Fail(t, "revision error must come from the server or the cache")
+	}
 }
 
 func TestRevisionCache(t *testing.T) {
 	tc := kvTestSetup(t)
 	defer tc.Cleanup()
 	mctx := libkb.NewMetaContextForTest(tc)
+	ctx := mctx.Ctx()
 	user, err := kbtest.CreateAndSignupFakeUser("kv", tc.G)
 	require.NoError(t, err)
 	handler := NewKVStoreHandler(nil, tc.G)
@@ -205,7 +360,7 @@ func TestRevisionCache(t *testing.T) {
 
 	// create a new entry and other basic setup
 	namespace := "myapp"
-	entryKey := "entry-key-whatever"
+	entryKey := "messin-withtha-cache"
 	secretData := "supersecret"
 	putArg := keybase1.PutKVEntryArg{
 		SessionID:  0,
@@ -214,7 +369,7 @@ func TestRevisionCache(t *testing.T) {
 		EntryKey:   entryKey,
 		EntryValue: secretData,
 	}
-	putRes, err := handler.PutKVEntry(mctx.Ctx(), putArg)
+	putRes, err := handler.PutKVEntry(ctx, putArg)
 	require.NoError(t, err)
 	require.Equal(t, 1, putRes.Revision)
 	entryID := keybase1.KVEntryID{
@@ -231,49 +386,92 @@ func TestRevisionCache(t *testing.T) {
 	// Mutate the revision cache to simulate the cases where the server
 	// is lying to the client about the next fetched entry. First, fetch
 	// and assert some basic stuff about the revision cache.
-	revCache := tc.G.GetKVRevisionCache()
-	entryHash, generation, revision := revCache.Fetch(mctx, entryID)
+	kvRevCache := tc.G.GetKVRevisionCache().(*kvstore.KVRevisionCache)
+	entryHash, generation, revision := kvRevCache.Inspect(entryID)
 	require.NotEmpty(t, entryHash)
 	require.EqualValues(t, 1, generation)
 	require.Equal(t, 1, revision)
 
-	// bump the revision in the cache and verify error
+	// bump the revision in a new cache and verify error when going through the handler
 	tc.G.SetKVRevisionCache(kvstore.NewKVRevisionCache(tc.G))
-	revCache = tc.G.GetKVRevisionCache()
-	err = revCache.PutCheck(mctx, entryID, entryHash, generation, 2)
+	revCache := tc.G.GetKVRevisionCache()
+	err = revCache.Check(mctx, entryID, &secretData, generation, 2)
 	require.NoError(t, err)
-	_, err = handler.GetKVEntry(mctx.Ctx(), getArg)
+	err = revCache.Put(mctx, entryID, &secretData, generation, 2)
+	require.NoError(t, err)
+	_, err = handler.GetKVEntry(ctx, getArg)
 	require.Error(t, err)
-	require.IsType(t, kvstore.KVRevisionCacheError{}, err)
 	require.Contains(t, err.Error(), "revision")
 
-	// bump the team key generation and verify error
+	// bump the team key generation in a new cache and verify error
 	tc.G.SetKVRevisionCache(kvstore.NewKVRevisionCache(tc.G))
 	revCache = tc.G.GetKVRevisionCache()
-	err = revCache.PutCheck(mctx, entryID, entryHash, keybase1.PerTeamKeyGeneration(2), revision)
+	err = revCache.Check(mctx, entryID, &secretData, keybase1.PerTeamKeyGeneration(2), revision)
 	require.NoError(t, err)
-	_, err = handler.GetKVEntry(mctx.Ctx(), getArg)
+	err = revCache.Put(mctx, entryID, &secretData, keybase1.PerTeamKeyGeneration(2), revision)
+	require.NoError(t, err)
+	_, err = handler.GetKVEntry(ctx, getArg)
 	require.Error(t, err)
-	require.IsType(t, kvstore.KVRevisionCacheError{}, err)
 	require.Contains(t, err.Error(), "team key generation")
 
 	// mutate the entry hash and verify error
 	tc.G.SetKVRevisionCache(kvstore.NewKVRevisionCache(tc.G))
 	revCache = tc.G.GetKVRevisionCache()
-	err = revCache.PutCheck(mctx, entryID, "this-is-wrong", generation, revision)
+	differentCiphertext := "this-is-wrong"
+	err = revCache.Check(mctx, entryID, &differentCiphertext, generation, revision)
 	require.NoError(t, err)
-	_, err = handler.GetKVEntry(mctx.Ctx(), getArg)
+	err = revCache.Put(mctx, entryID, &differentCiphertext, generation, revision)
+	require.NoError(t, err)
+	_, err = handler.GetKVEntry(ctx, getArg)
 	require.Error(t, err)
-	require.IsType(t, kvstore.KVRevisionCacheError{}, err)
 	require.Contains(t, err.Error(), "hash of entry")
+	t.Logf("revision cache protects the client from the server lying in fetches")
 
-	// verify that it does not error with the right things in the cache
+	// convenience checks for PUT and DELETE
+	// set a new cache and put an update
 	tc.G.SetKVRevisionCache(kvstore.NewKVRevisionCache(tc.G))
-	revCache = tc.G.GetKVRevisionCache()
-	err = revCache.PutCheck(mctx, entryID, entryHash, generation, revision)
+	putArg = keybase1.PutKVEntryArg{
+		SessionID:  0,
+		TeamName:   teamName,
+		Namespace:  namespace,
+		EntryKey:   entryKey,
+		EntryValue: secretData,
+		Revision:   2,
+	}
+	putRes, err = handler.PutKVEntry(ctx, putArg)
 	require.NoError(t, err)
-	_, err = handler.GetKVEntry(mctx.Ctx(), getArg)
-	require.NoError(t, err)
+	require.Equal(t, 2, putRes.Revision)
+	// assert the revision cache is what we think
+	kvRevCache = tc.G.GetKVRevisionCache().(*kvstore.KVRevisionCache)
+	entryHash, generation, revision = kvRevCache.Inspect(entryID)
+	require.NotEmpty(t, entryHash)
+	require.EqualValues(t, 1, generation)
+	require.Equal(t, 2, revision)
+
+	// attempt a put with a revision that the cache knows is too low
+	putArg.Revision = 2
+	_, err = handler.PutKVEntry(ctx, putArg)
+	assertRevisionError(t, err, "cache")
+	// attempt a put with a revision that's too high, but the cache can't know that (so it's a server error)
+	putArg.Revision = 4
+	_, err = handler.PutKVEntry(ctx, putArg)
+	assertRevisionError(t, err, "server")
+	t.Logf("revision cache provides convenience checks (the server also catches these things too) on updates")
+
+	// and the same for deletes
+	delArg := keybase1.DelKVEntryArg{
+		SessionID: 0,
+		TeamName:  teamName,
+		Namespace: namespace,
+		EntryKey:  entryKey,
+	}
+	delArg.Revision = 2
+	_, err = handler.DelKVEntry(ctx, delArg)
+	assertRevisionError(t, err, "cache")
+	delArg.Revision = 4
+	_, err = handler.DelKVEntry(ctx, delArg)
+	assertRevisionError(t, err, "server")
+	t.Logf("revision cache also provides the convenience checks for deletes")
 }
 
 var _ kvstore.KVStoreBoxer = (*KVStoreTestBoxer)(nil)
@@ -306,7 +504,7 @@ func (b *KVStoreTestBoxer) Unbox(mctx libkb.MetaContext, entryID keybase1.KVEntr
 	return realBoxer.Unbox(mctx, entryID, revision, ciphertext, teamKeyGen, formatVersion, senderUID, senderEldestSeqno, senderDeviceID)
 }
 
-func TestEncryptionAndVerification(t *testing.T) {
+func TestKVEncryptionAndVerification(t *testing.T) {
 	ctx := context.TODO()
 	tc := kvTestSetup(t)
 	defer tc.Cleanup()
@@ -364,8 +562,6 @@ func TestEncryptionAndVerification(t *testing.T) {
 			return keybase1.PerTeamKeyGeneration(2)
 		},
 	}
-	_, err = handler.PutKVEntry(ctx, putArg)
-	require.NoError(t, err)
 	_, err = handler.GetKVEntry(ctx, getArg)
 	require.Error(t, err)
 	require.IsType(t, signencrypt.Error{}, err)
@@ -386,6 +582,31 @@ func TestEncryptionAndVerification(t *testing.T) {
 	t.Logf("verifying a signature with the wrong revision fails")
 
 	// should error if given the wrong nonce
+	handler.Boxer = &KVStoreTestBoxer{
+		Contextified: libkb.NewContextified(tc.G),
+		UnboxMutateCiphertext: func(currentCiphertext string) (newCiphertext string) {
+			decoded, err := base64.StdEncoding.DecodeString(currentCiphertext)
+			require.NoError(t, err)
+			var box keybase1.EncryptedKVEntry
+			err = msgpack.Decode(&box, decoded)
+			require.NoError(t, err)
+			require.Equal(t, len(box.N), 16, "there is an actual 16 byte nonce")
+			randBytes, err := libkb.RandBytes(16)
+			require.NoError(t, err)
+			box.N = randBytes
+			packed, err := msgpack.Encode(box)
+			require.NoError(t, err)
+			return base64.StdEncoding.EncodeToString(packed)
+		},
+	}
+	_, err = handler.GetKVEntry(ctx, getArg)
+	require.Error(t, err)
+	require.IsType(t, signencrypt.Error{}, err)
+	require.Equal(t, err.(signencrypt.Error).Type, signencrypt.BadSecretbox)
+	t.Logf("cannot decrypt with the wrong nonce")
+	// switch to a new, non-broken entry key to test that the nonce changes
+	putArg.EntryKey = "not-broken"
+	getArg.EntryKey = "not-broken"
 	var firstNonce, secondNonce [16]byte
 	handler.Boxer = &KVStoreTestBoxer{
 		Contextified: libkb.NewContextified(tc.G),
@@ -397,22 +618,14 @@ func TestEncryptionAndVerification(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, len(box.N), 16, "there is an actual 16 byte nonce")
 			copy(firstNonce[:], box.N)
-			randBytes, err := libkb.RandBytes(16)
-			require.NoError(t, err)
-			box.N = randBytes
-			packed, err := msgpack.Encode(box)
-			require.NoError(t, err)
-			return base64.StdEncoding.EncodeToString(packed)
+			return currentCiphertext
 		},
 	}
-	putRes, err = handler.PutKVEntry(ctx, putArg)
+	_, err = handler.PutKVEntry(ctx, putArg)
 	require.NoError(t, err)
 	_, err = handler.GetKVEntry(ctx, getArg)
-	require.Error(t, err)
-	require.IsType(t, signencrypt.Error{}, err)
-	require.Equal(t, err.(signencrypt.Error).Type, signencrypt.BadSecretbox)
-	t.Logf("cannot decrypt with the wrong nonce")
-	// push and fetch another entry to verify that the nonce changed
+	require.NoError(t, err)
+	require.Equal(t, len(firstNonce), 16, "firstNonce got populated")
 	handler.Boxer = &KVStoreTestBoxer{
 		Contextified: libkb.NewContextified(tc.G),
 		UnboxMutateCiphertext: func(ciphertext string) string {
@@ -431,6 +644,167 @@ func TestEncryptionAndVerification(t *testing.T) {
 	require.NoError(t, err)
 	_, err = handler.GetKVEntry(ctx, getArg)
 	require.NoError(t, err)
+	require.Equal(t, len(secondNonce), 16, "secondNonce got populated")
 	require.NotEqual(t, firstNonce, secondNonce)
 	t.Logf("two puts with identical data and keys use different nonces")
+}
+
+// TestManualControlOfRevisionWithoutCache tests the server erroring correctly
+// when fed the wrong revision, and that error bubbling up. This requires resetting
+// the cache before each request.
+func TestManualControlOfRevisionWithoutCache(t *testing.T) {
+	tc := kvTestSetup(t)
+	defer tc.Cleanup()
+	mctx := libkb.NewMetaContextForTest(tc)
+	ctx := mctx.Ctx()
+	user, err := kbtest.CreateAndSignupFakeUser("kv", tc.G)
+	require.NoError(t, err)
+	handler := NewKVStoreHandler(nil, tc.G)
+	teamName := user.Username + "t"
+	teamID, err := teams.CreateRootTeam(context.Background(), tc.G, teamName, keybase1.TeamSettings{})
+	require.NoError(t, err)
+	require.NotNil(t, teamID)
+
+	// create a new entry and other basic setup
+	namespace := "manually-controlled-namespace"
+	entryKey := "ye-new-key"
+	secretData := "supersecret"
+	basePutArg := keybase1.PutKVEntryArg{
+		SessionID:  0,
+		TeamName:   teamName,
+		Namespace:  namespace,
+		EntryKey:   entryKey,
+		EntryValue: secretData,
+	}
+
+	putItWithRev := func(revision int) (res keybase1.KVPutResult, err error) {
+		// reset the cache before each PUT to avoid additional errors from there
+		tc.G.SetKVRevisionCache(kvstore.NewKVRevisionCache(tc.G))
+		putArg := basePutArg
+		putArg.Revision = revision
+		return handler.PutKVEntry(ctx, putArg)
+	}
+
+	// errors if you specify a Revision > 1 for a new entry
+	_, err = putItWithRev(2)
+	assertRevisionError(t, err, "server")
+
+	// create it with revision 1
+	putRes, err := putItWithRev(1)
+	require.NoError(t, err)
+	require.Equal(t, putRes.Revision, 1)
+
+	// cannot update it again with revision 1
+	_, err = putItWithRev(1)
+	assertRevisionError(t, err, "server")
+
+	// updates correctly
+	putRes, err = putItWithRev(2)
+	require.NoError(t, err)
+	require.Equal(t, putRes.Revision, 2)
+
+	// cannot update with a revision that's too high
+	_, err = putItWithRev(4)
+	assertRevisionError(t, err, "server")
+
+	// cannot update with a revision that's too low
+	_, err = putItWithRev(2)
+	assertRevisionError(t, err, "server")
+
+	baseDelArg := keybase1.DelKVEntryArg{
+		SessionID: 0,
+		TeamName:  teamName,
+		Namespace: namespace,
+		EntryKey:  entryKey,
+	}
+
+	deleteItWithRev := func(revision int) (res keybase1.KVDeleteEntryResult, err error) {
+		// reset the cache before each request to avoid additional errors from there
+		tc.G.SetKVRevisionCache(kvstore.NewKVRevisionCache(tc.G))
+		delArg := baseDelArg
+		delArg.Revision = revision
+		return handler.DelKVEntry(ctx, delArg)
+	}
+
+	// cannot delete with a revision that's too low
+	_, err = deleteItWithRev(2)
+	assertRevisionError(t, err, "server")
+
+	// cannot delete with a revision that's too high
+	_, err = deleteItWithRev(4)
+	assertRevisionError(t, err, "server")
+
+	// deletes correctly
+	delRes, err := deleteItWithRev(3)
+	require.NoError(t, err)
+	require.Equal(t, delRes.Revision, 3)
+}
+
+// TestKVStoreLocalRace tests that multiple requests at the same time are caught by the server
+// and do not wreck the local revision cache.
+func TestKVStoreLocalRace(t *testing.T) {
+	tc := kvTestSetup(t)
+	defer tc.Cleanup()
+	mctx := libkb.NewMetaContextForTest(tc)
+	ctx := mctx.Ctx()
+	user, err := kbtest.CreateAndSignupFakeUser("kv", tc.G)
+	require.NoError(t, err)
+	handler := NewKVStoreHandler(nil, tc.G)
+	teamName := user.Username + "t"
+	teamID, err := teams.CreateRootTeam(context.Background(), tc.G, teamName, keybase1.TeamSettings{})
+	require.NoError(t, err)
+	require.NotNil(t, teamID)
+
+	namespace := "race-namespace"
+	entryKey := "race-key"
+	secretData := "supersecret"
+	putArg := keybase1.PutKVEntryArg{
+		SessionID:  0,
+		TeamName:   teamName,
+		Namespace:  namespace,
+		EntryKey:   entryKey,
+		EntryValue: secretData,
+	}
+	var sawTheRace bool
+	for attempt := 0; attempt < 5; attempt++ {
+		var wg sync.WaitGroup
+		errChan := make(chan error, 10)
+		for i := 0; i < 10; i++ {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				_, err = handler.PutKVEntry(ctx, putArg)
+				errChan <- err
+			}()
+		}
+		wg.Wait()
+		close(errChan)
+		for err := range errChan {
+			if err != nil {
+				require.Error(t, err)
+				aerr, _ := err.(libkb.AppStatusError)
+				if aerr.Code != libkb.SCTeamStorageWrongRevision {
+					t.Fatalf("expected only SCTeamStorageWrongRevision errors but got %v", err)
+				}
+				raceRegex := regexp.MustCompile("revision [0-9]+ already exists for this entry")
+				if raceRegex.MatchString(err.Error()) {
+					sawTheRace = true
+					break
+				}
+			}
+		}
+		if sawTheRace {
+			break
+		}
+	}
+	require.True(t, sawTheRace, "didn't generate a race")
+	// after the race, getting and putting should still work fine
+	_, err = handler.PutKVEntry(ctx, putArg)
+	require.NoError(t, err)
+	_, err = handler.GetKVEntry(ctx, keybase1.GetKVEntryArg{
+		TeamName:  teamName,
+		Namespace: namespace,
+		EntryKey:  entryKey,
+	})
+	require.NoError(t, err)
 }

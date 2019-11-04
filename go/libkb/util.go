@@ -1065,7 +1065,11 @@ func FindPreferredKBFSMountDirs() (mountDirs []string) {
 }
 
 var kbfsPathInnerRegExp = func() *regexp.Regexp {
-	const socialAssertion = `[-_a-zA-Z0-9.]+@[a-zA-Z.]+`
+	// e.g. alice@twitter
+	const regularAssertion = `[-_a-zA-Z0-9.+]+@[a-zA-Z.]+`
+	// e.g. [bob@keybase.io]@email
+	const atContainingAssertion = `\[[-_a-zA-Z0-9.]+@[-_a-zA-Z0-9.]+\]@[a-zA-Z.]+`
+	const socialAssertion = `(?:` + regularAssertion + `)|(?:` + atContainingAssertion + `)`
 	const user = `(?:(?:` + kbun.UsernameRE + `)|(?:` + socialAssertion + `))`
 	const usernames = user + `(?:,` + user + `)*`
 	const teamName = kbun.UsernameRE + `(?:\.` + kbun.UsernameRE + `)*`
@@ -1124,6 +1128,7 @@ func GetKBFSPathInfo(standardPath string) (pathInfo keybase1.KBFSPathInfo, err e
 }
 
 func GetSafeFilename(filename string) (safeFilename string) {
+	filename = filepath.Base(filename)
 	if !utf8.ValidString(filename) {
 		return url.PathEscape(filename)
 	}

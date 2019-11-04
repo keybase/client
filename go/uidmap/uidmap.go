@@ -352,9 +352,9 @@ func (u *UIDMap) InformOfEldestSeqno(ctx context.Context, g libkb.UIDMapperConte
 // lookup failed. A non-nil FullNamePackage means that some previous lookup
 // worked, but might be arbitrarily out of date (depending on the cachedAt
 // time). A non-nil FullNamePackage with an empty fullName field means that the
-// user just hasn't supplied a fullName.  FullNames can be cached bt the
-// UIDMap, but expire after networkTimeBudget duration. If that value is 0,
-// then infinitely stale names are allowed. If non-zero, and some names aren't
+// user just hasn't supplied a fullName. FullNames can be cached by the UIDMap,
+// but expire after networkTimeBudget duration. If that value is 0, then
+// infinitely stale names are allowed. If non-zero, and some names aren't
 // stale, we'll have to go to the network.
 //
 // *NOTE* that this function can return useful data and an error. In this

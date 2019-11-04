@@ -419,6 +419,10 @@
           "name": "deviceID"
         },
         {
+          "type": "int",
+          "name": "deviceNumberOfType"
+        },
+        {
           "type": "Time",
           "name": "cTime"
         },

@@ -1,10 +1,11 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/login_ui.avdl
 
 package keybase1
 
 import (
 	"errors"
+	"fmt"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 	"time"
@@ -39,7 +40,7 @@ func (e ResetPromptType) String() string {
 	if v, ok := ResetPromptTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type ResetPromptInfo struct {
@@ -104,6 +105,35 @@ func (o ResetPrompt) DeepCopy() ResetPrompt {
 	}
 }
 
+type ResetPromptResponse int
+
+const (
+	ResetPromptResponse_NOTHING       ResetPromptResponse = 0
+	ResetPromptResponse_CANCEL_RESET  ResetPromptResponse = 1
+	ResetPromptResponse_CONFIRM_RESET ResetPromptResponse = 2
+)
+
+func (o ResetPromptResponse) DeepCopy() ResetPromptResponse { return o }
+
+var ResetPromptResponseMap = map[string]ResetPromptResponse{
+	"NOTHING":       0,
+	"CANCEL_RESET":  1,
+	"CONFIRM_RESET": 2,
+}
+
+var ResetPromptResponseRevMap = map[ResetPromptResponse]string{
+	0: "NOTHING",
+	1: "CANCEL_RESET",
+	2: "CONFIRM_RESET",
+}
+
+func (e ResetPromptResponse) String() string {
+	if v, ok := ResetPromptResponseRevMap[e]; ok {
+		return v
+	}
+	return fmt.Sprintf("%v", int(e))
+}
+
 type PassphraseRecoveryPromptType int
 
 const (
@@ -124,7 +154,48 @@ func (e PassphraseRecoveryPromptType) String() string {
 	if v, ok := PassphraseRecoveryPromptTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
+}
+
+type ResetMessage int
+
+const (
+	ResetMessage_ENTERED_VERIFIED     ResetMessage = 0
+	ResetMessage_ENTERED_PASSWORDLESS ResetMessage = 1
+	ResetMessage_REQUEST_VERIFIED     ResetMessage = 2
+	ResetMessage_NOT_COMPLETED        ResetMessage = 3
+	ResetMessage_CANCELED             ResetMessage = 4
+	ResetMessage_COMPLETED            ResetMessage = 5
+	ResetMessage_RESET_LINK_SENT      ResetMessage = 6
+)
+
+func (o ResetMessage) DeepCopy() ResetMessage { return o }
+
+var ResetMessageMap = map[string]ResetMessage{
+	"ENTERED_VERIFIED":     0,
+	"ENTERED_PASSWORDLESS": 1,
+	"REQUEST_VERIFIED":     2,
+	"NOT_COMPLETED":        3,
+	"CANCELED":             4,
+	"COMPLETED":            5,
+	"RESET_LINK_SENT":      6,
+}
+
+var ResetMessageRevMap = map[ResetMessage]string{
+	0: "ENTERED_VERIFIED",
+	1: "ENTERED_PASSWORDLESS",
+	2: "REQUEST_VERIFIED",
+	3: "NOT_COMPLETED",
+	4: "CANCELED",
+	5: "COMPLETED",
+	6: "RESET_LINK_SENT",
+}
+
+func (e ResetMessage) String() string {
+	if v, ok := ResetMessageRevMap[e]; ok {
+		return v
+	}
+	return fmt.Sprintf("%v", int(e))
 }
 
 type GetEmailOrUsernameArg struct {
@@ -170,6 +241,16 @@ type PromptPassphraseRecoveryArg struct {
 	Kind      PassphraseRecoveryPromptType `codec:"kind" json:"kind"`
 }
 
+type ChooseDeviceToRecoverWithArg struct {
+	SessionID int      `codec:"sessionID" json:"sessionID"`
+	Devices   []Device `codec:"devices" json:"devices"`
+}
+
+type DisplayResetMessageArg struct {
+	SessionID int          `codec:"sessionID" json:"sessionID"`
+	Kind      ResetMessage `codec:"kind" json:"kind"`
+}
+
 type LoginUiInterface interface {
 	GetEmailOrUsername(context.Context, int) (string, error)
 	PromptRevokePaperKeys(context.Context, PromptRevokePaperKeysArg) (bool, error)
@@ -178,13 +259,17 @@ type LoginUiInterface interface {
 	// Called during login / provisioning flows to ask the user whether they
 	// would like to either enter the autoreset pipeline and perform the reset
 	// of the account.
-	PromptResetAccount(context.Context, PromptResetAccountArg) (bool, error)
+	PromptResetAccount(context.Context, PromptResetAccountArg) (ResetPromptResponse, error)
 	// In some flows the user will get notified of the reset progress
 	DisplayResetProgress(context.Context, DisplayResetProgressArg) error
 	// During recovery the service might want to explain to the user how they can change
 	// their password by using the "change password" functionality on other devices.
 	ExplainDeviceRecovery(context.Context, ExplainDeviceRecoveryArg) error
 	PromptPassphraseRecovery(context.Context, PromptPassphraseRecoveryArg) (bool, error)
+	// Different from ProvisionUI's chooseDevice due to phrasing in the UI.
+	ChooseDeviceToRecoverWith(context.Context, ChooseDeviceToRecoverWithArg) (DeviceID, error)
+	// Simply displays a message in the recovery flow.
+	DisplayResetMessage(context.Context, DisplayResetMessageArg) error
 }
 
 func LoginUiProtocol(i LoginUiInterface) rpc.Protocol {
@@ -311,6 +396,36 @@ func LoginUiProtocol(i LoginUiInterface) rpc.Protocol {
 					return
 				},
 			},
+			"chooseDeviceToRecoverWith": {
+				MakeArg: func() interface{} {
+					var ret [1]ChooseDeviceToRecoverWithArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ChooseDeviceToRecoverWithArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ChooseDeviceToRecoverWithArg)(nil), args)
+						return
+					}
+					ret, err = i.ChooseDeviceToRecoverWith(ctx, typedArgs[0])
+					return
+				},
+			},
+			"displayResetMessage": {
+				MakeArg: func() interface{} {
+					var ret [1]DisplayResetMessageArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]DisplayResetMessageArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]DisplayResetMessageArg)(nil), args)
+						return
+					}
+					err = i.DisplayResetMessage(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -343,7 +458,7 @@ func (c LoginUiClient) DisplayPrimaryPaperKey(ctx context.Context, __arg Display
 // Called during login / provisioning flows to ask the user whether they
 // would like to either enter the autoreset pipeline and perform the reset
 // of the account.
-func (c LoginUiClient) PromptResetAccount(ctx context.Context, __arg PromptResetAccountArg) (res bool, err error) {
+func (c LoginUiClient) PromptResetAccount(ctx context.Context, __arg PromptResetAccountArg) (res ResetPromptResponse, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.loginUi.promptResetAccount", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
@@ -363,5 +478,17 @@ func (c LoginUiClient) ExplainDeviceRecovery(ctx context.Context, __arg ExplainD
 
 func (c LoginUiClient) PromptPassphraseRecovery(ctx context.Context, __arg PromptPassphraseRecoveryArg) (res bool, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.loginUi.promptPassphraseRecovery", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+// Different from ProvisionUI's chooseDevice due to phrasing in the UI.
+func (c LoginUiClient) ChooseDeviceToRecoverWith(ctx context.Context, __arg ChooseDeviceToRecoverWithArg) (res DeviceID, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.loginUi.chooseDeviceToRecoverWith", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+// Simply displays a message in the recovery flow.
+func (c LoginUiClient) DisplayResetMessage(ctx context.Context, __arg DisplayResetMessageArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.loginUi.displayResetMessage", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }

@@ -73,6 +73,9 @@ module.exports = {
   get CopyableText() {
     return require('./copyable-text').default
   },
+  get DelayedMounting() {
+    return require('./delayed-mounting').default
+  },
   get DesktopStyle() {
     return require('./desktop-style').default
   },
@@ -301,6 +304,9 @@ module.exports = {
   get Toast() {
     return require('./toast').default
   },
+  get Transition() {
+    return require('./animated').Transition
+  },
   get UserCard() {
     return require('./user-card').default
   },
@@ -318,6 +324,9 @@ module.exports = {
   },
   get WithTooltip() {
     return require('./with-tooltip').default
+  },
+  get animated() {
+    return require('./animated').animated
   },
   get avatarCastPlatformStyles() {
     return require('./avatar').castPlatformStyles

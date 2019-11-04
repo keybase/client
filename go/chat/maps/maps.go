@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"image"
-	"image/color"
 	"image/png"
 	"io"
 	"io/ioutil"
@@ -16,6 +15,7 @@ import (
 
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/protocol/chat1"
+	"golang.org/x/image/draw"
 	"golang.org/x/net/context/ctxhttp"
 )
 
@@ -28,7 +28,7 @@ const scale = 2
 const locationMapWidth = 640
 const locationMapHeight = 350
 const liveMapWidth = 640
-const liveMapHeight = 270
+const liveMapHeight = 350
 const liveMapWidthScaled = liveMapWidth / scale
 const liveMapHeightScaled = liveMapHeight / scale
 
@@ -45,8 +45,8 @@ func GetCustomMapURL(ctx context.Context, apiKeySource types.ExternalAPIKeySourc
 	widthScaled := width / scale
 	heightScaled := height / scale
 	return fmt.Sprintf(
-		"https://%s/maps/api/staticmap?center=%f,%f&markers=color:red%%7C%f,%f&size=%dx%d&scale=%d&key=%s",
-		MapsProxy, lat, lon, lat, lon, widthScaled, heightScaled, scale,
+		"https://%s/maps/api/staticmap?zoom=18&center=%f,%f&size=%dx%d&scale=%d&key=%s",
+		MapsProxy, lat, lon, widthScaled, heightScaled, scale,
 		key.Googlemaps()), nil
 
 }
@@ -61,54 +61,19 @@ func GetLiveMapURL(ctx context.Context, apiKeySource types.ExternalAPIKeySource,
 	}
 	var pathStr, centerStr string
 	last := coords[len(coords)-1]
+	centerStr = fmt.Sprintf("center=%f,%f&", last.Lat, last.Lon)
 	if len(coords) > 1 {
-		pathStr = "path=color:0xff0000ff|weight:3"
+		pathStr = "path=color:0x4c8effff|weight:5"
 		for _, c := range coords {
 			pathStr += fmt.Sprintf("|%f,%f", c.Lat, c.Lon)
 		}
 		pathStr += "&"
-	} else {
-		centerStr = fmt.Sprintf("center=%f,%f&", last.Lat, last.Lon)
 	}
 	url := fmt.Sprintf(
-		"https://%s/maps/api/staticmap?%s%smarkers=color:red%%7Csize:tiny%%7C%f,%f&size=%dx%d&scale=%d&key=%s",
-		MapsProxy, centerStr, pathStr, last.Lat, last.Lon, liveMapWidthScaled,
+		"https://%s/maps/api/staticmap?zoom=18&%s%ssize=%dx%d&scale=%d&key=%s",
+		MapsProxy, centerStr, pathStr, liveMapWidthScaled,
 		liveMapHeightScaled, scale, key.Googlemaps())
 	return url, nil
-}
-
-func CombineMaps(ctx context.Context, locReader, liveReader io.Reader) (res io.ReadCloser, length int64, err error) {
-	sepHeight := 3
-	locPng, err := png.Decode(locReader)
-	if err != nil {
-		return res, length, err
-	}
-	livePng, err := png.Decode(liveReader)
-	if err != nil {
-		return res, length, err
-	}
-	combined := image.NewRGBA(image.Rect(0, 0, locationMapWidth, locationMapHeight+liveMapHeight+sepHeight))
-	for x := 0; x < locPng.Bounds().Dx(); x++ {
-		for y := 0; y < locPng.Bounds().Dy(); y++ {
-			combined.Set(x, y, locPng.At(x, y))
-		}
-	}
-	for x := 0; x < locPng.Bounds().Dx(); x++ {
-		for y := 0; y < sepHeight; y++ {
-			combined.Set(x, locationMapHeight+y, color.Black)
-		}
-	}
-	for x := 0; x < livePng.Bounds().Dx(); x++ {
-		for y := 0; y < livePng.Bounds().Dy(); y++ {
-			combined.Set(x, y+locationMapHeight+sepHeight, livePng.At(x, y))
-		}
-	}
-	var buf bytes.Buffer
-	err = png.Encode(&buf, combined)
-	if err != nil {
-		return res, length, err
-	}
-	return ioutil.NopCloser(bytes.NewReader(buf.Bytes())), int64(buf.Len()), nil
 }
 
 func GetExternalMapURL(ctx context.Context, lat, lon float64) string {
@@ -138,4 +103,32 @@ func MapReaderFromURL(ctx context.Context, url string) (res io.ReadCloser, lengt
 		return res, length, err
 	}
 	return resp.Body, resp.ContentLength, nil
+}
+
+func DecorateMap(ctx context.Context, avatarReader, mapReader io.Reader) (res io.ReadCloser, length int64, err error) {
+	avatarImg, _, err := image.Decode(avatarReader)
+	if err != nil {
+		return res, length, err
+	}
+	avatarRadius := avatarImg.Bounds().Dx() / 2
+
+	mapPng, err := png.Decode(mapReader)
+	if err != nil {
+		return res, length, err
+	}
+	bounds := mapPng.Bounds()
+
+	middle := image.Point{bounds.Max.X / 2, bounds.Max.Y / 2}
+	iconRect := image.Rect(middle.X-avatarRadius, middle.Y-avatarRadius, middle.X+avatarRadius, middle.Y+avatarRadius)
+
+	decorated := image.NewRGBA(bounds)
+	draw.Draw(decorated, bounds, mapPng, image.ZP, draw.Src)
+	draw.Draw(decorated, iconRect, avatarImg, image.ZP, draw.Over)
+
+	var buf bytes.Buffer
+	err = png.Encode(&buf, decorated)
+	if err != nil {
+		return res, length, err
+	}
+	return ioutil.NopCloser(bytes.NewReader(buf.Bytes())), int64(buf.Len()), nil
 }

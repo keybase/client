@@ -90,6 +90,7 @@ const BioLayout = (p: BioTeamProofsProps) => (
       avatarSize={avatarSize}
       size="huge"
       avatarImageOverride={p.sbsAvatarUrl}
+      withProfileCardPopup={false}
     />
     <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
       <Bio inTracker={false} username={p.username} />
@@ -336,6 +337,7 @@ class User extends React.Component<Props, State> {
     },
     headerTransparent: true,
     underNotch: true,
+    whatsNewIconColor: Styles.globalColors.white,
   })
 
   constructor(props: Props) {
@@ -534,7 +536,7 @@ export const styles = Styles.styleSheetCreate(() => ({
   followTab: Styles.platformStyles({
     common: {
       alignItems: 'center',
-      borderBottomColor: 'white',
+      borderBottomColor: Styles.globalColors.white,
       borderBottomWidth: 2,
       justifyContent: 'center',
     },

@@ -2,13 +2,14 @@ import * as Types from '../constants/types/people'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as Constants from '../constants/people'
 import * as PeopleGen from '../actions/people-gen'
+import * as SettingsGen from '../actions/settings-gen'
 import teamBuildingReducer from './team-building'
 
 const initialState: Types.State = Constants.makeState()
 
 export default function(
   state: Types.State = initialState,
-  action: PeopleGen.Actions | TeamBuildingGen.Actions
+  action: PeopleGen.Actions | TeamBuildingGen.Actions | SettingsGen.EmailVerifiedPayload
 ): Types.State {
   switch (action.type) {
     case PeopleGen.resetStore:
@@ -24,6 +25,10 @@ export default function(
     case PeopleGen.setResentEmail:
       return state.merge({
         resentEmail: action.payload.email,
+      })
+    case SettingsGen.emailVerified:
+      return state.merge({
+        resentEmail: '',
       })
     case PeopleGen.getPeopleData:
     case PeopleGen.markViewed:

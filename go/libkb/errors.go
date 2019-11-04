@@ -533,6 +533,25 @@ func IsAppStatusCode(err error, code keybase1.StatusCode) bool {
 	}
 }
 
+func IsEphemeralRetryableError(err error) bool {
+	switch err := err.(type) {
+	case AppStatusError:
+		switch keybase1.StatusCode(err.Code) {
+		case keybase1.StatusCode_SCSigWrongKey,
+			keybase1.StatusCode_SCSigOldSeqno,
+			keybase1.StatusCode_SCEphemeralKeyBadGeneration,
+			keybase1.StatusCode_SCEphemeralKeyUnexpectedBox,
+			keybase1.StatusCode_SCEphemeralKeyMissingBox,
+			keybase1.StatusCode_SCEphemeralKeyWrongNumberOfKeys:
+			return true
+		default:
+			return false
+		}
+	default:
+		return false
+	}
+}
+
 //=============================================================================
 
 type GpgError struct {
@@ -2102,6 +2121,9 @@ func (e ChatClientError) Error() string {
 }
 
 func (e ChatClientError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
+	if strings.HasPrefix(e.Msg, "Admins have set that you must be a team") {
+		return chat1.OutboxErrorType_MINWRITER, true
+	}
 	return chat1.OutboxErrorType_MISC, true
 }
 
@@ -2696,6 +2718,25 @@ func NewChainLinkBadUnstubError(s string) error {
 
 func (c ChainLinkBadUnstubError) Error() string {
 	return c.msg
+}
+
+//============================================================================
+
+// AppOutdatedError indicates that an operation failed because the client does
+// not support some necessary feature and needs to be updated.
+type AppOutdatedError struct {
+	cause error
+}
+
+func NewAppOutdatedError(cause error) AppOutdatedError {
+	return AppOutdatedError{cause: cause}
+}
+
+func (e AppOutdatedError) Error() string {
+	if e.cause != nil {
+		return fmt.Sprintf("AppOutdatedError: %v", e.cause.Error())
+	}
+	return fmt.Sprintf("AppOutdatedError")
 }
 
 //============================================================================

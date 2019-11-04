@@ -326,6 +326,8 @@ func (m MessageUnboxed) GetMessageID() MessageID {
 			return m.Placeholder().MessageID
 		case MessageUnboxedState_OUTBOX:
 			return m.Outbox().Msg.ClientHeader.OutboxInfo.Prev
+		case MessageUnboxedState_JOURNEYCARD:
+			return m.Journeycard().PrevID
 		default:
 			return 0
 		}
@@ -345,6 +347,8 @@ func (m MessageUnboxed) GetOutboxID() *OutboxID {
 		case MessageUnboxedState_OUTBOX:
 			obid := m.Outbox().OutboxID
 			return &obid
+		case MessageUnboxedState_JOURNEYCARD:
+			return nil
 		default:
 			return nil
 		}
@@ -363,6 +367,8 @@ func (m MessageUnboxed) GetTopicType() TopicType {
 			return m.Outbox().Msg.ClientHeader.Conv.TopicType
 		case MessageUnboxedState_PLACEHOLDER:
 			return TopicType_NONE
+		case MessageUnboxedState_JOURNEYCARD:
+			return TopicType_NONE
 		}
 	}
 	return TopicType_NONE
@@ -380,6 +386,8 @@ func (m MessageUnboxed) GetMessageType() MessageType {
 		case MessageUnboxedState_PLACEHOLDER:
 			// All we know about a place holder is the ID, so just
 			// call it type NONE
+			return MessageType_NONE
+		case MessageUnboxedState_JOURNEYCARD:
 			return MessageType_NONE
 		}
 	}
@@ -634,6 +642,10 @@ func (m MessageUnboxedError) ParseableVersion() bool {
 	return maxVersion >= version
 }
 
+func (m MessageUnboxedError) IsEphemeralError() bool {
+	return m.IsEphemeral && m.ErrType == MessageUnboxedErrorType_EPHEMERAL
+}
+
 func (m MessageUnboxedValid) AsDeleteHistory() (res MessageDeleteHistory, err error) {
 	if m.ClientHeader.MessageType != MessageType_DELETEHISTORY {
 		return res, fmt.Errorf("message is %v not %v", m.ClientHeader.MessageType, MessageType_DELETEHISTORY)
@@ -662,6 +674,34 @@ func (m *MsgEphemeralMetadata) String() string {
 		explodedBy = *m.ExplodedBy
 	}
 	return fmt.Sprintf("{ Lifetime: %v, Generation: %v, ExplodedBy: %v }", m.Lifetime.ToDuration(), m.Generation, explodedBy)
+}
+
+func (m MessagePlaintext) MessageType() MessageType {
+	typ, err := m.MessageBody.MessageType()
+	if err != nil {
+		return MessageType_NONE
+	}
+	return typ
+}
+
+func (m MessagePlaintext) IsVisible() bool {
+	typ := m.MessageType()
+	for _, visType := range VisibleChatMessageTypes() {
+		if typ == visType {
+			return true
+		}
+	}
+	return false
+}
+
+func (m MessagePlaintext) IsBadgableType() bool {
+	typ := m.MessageType()
+	switch typ {
+	case MessageType_TEXT, MessageType_ATTACHMENT:
+		return true
+	default:
+		return false
+	}
 }
 
 func (m MessagePlaintext) SearchableText() string {
@@ -1233,19 +1273,23 @@ func (c ConversationLocal) GetMaxDeletedUpTo() MessageID {
 	return maxDelHID
 }
 
-func (c ConversationLocal) MaxVisibleMsgID() MessageID {
+func maxVisibleMsgIDFromSummaries(maxMessages []MessageSummary) MessageID {
 	visibleTyps := VisibleChatMessageTypes()
 	visibleTypsMap := map[MessageType]bool{}
 	for _, typ := range visibleTyps {
 		visibleTypsMap[typ] = true
 	}
 	maxMsgID := MessageID(0)
-	for _, msg := range c.MaxMessages {
+	for _, msg := range maxMessages {
 		if _, ok := visibleTypsMap[msg.GetMessageType()]; ok && msg.GetMessageID() > maxMsgID {
 			maxMsgID = msg.GetMessageID()
 		}
 	}
 	return maxMsgID
+}
+
+func (c ConversationLocal) MaxVisibleMsgID() MessageID {
+	return maxVisibleMsgIDFromSummaries(c.MaxMessages)
 }
 
 func (c ConversationLocal) ConvNameNames() (res []string) {
@@ -1343,18 +1387,7 @@ func (c Conversation) IsSelfFinalized(username string) bool {
 }
 
 func (c Conversation) MaxVisibleMsgID() MessageID {
-	visibleTyps := VisibleChatMessageTypes()
-	visibleTypsMap := map[MessageType]bool{}
-	for _, typ := range visibleTyps {
-		visibleTypsMap[typ] = true
-	}
-	maxMsgID := MessageID(0)
-	for _, msg := range c.MaxMsgSummaries {
-		if _, ok := visibleTypsMap[msg.GetMessageType()]; ok && msg.GetMessageID() > maxMsgID {
-			maxMsgID = msg.GetMessageID()
-		}
-	}
-	return maxMsgID
+	return maxVisibleMsgIDFromSummaries(c.MaxMsgSummaries)
 }
 
 func (c Conversation) IsUnread() bool {
@@ -2522,6 +2555,13 @@ func (m MessageSystem) String() string {
 	}
 }
 
+func (m MessageHeadline) String() string {
+	if m.Headline == "" {
+		return "cleared the channel description"
+	}
+	return fmt.Sprintf("set the channel description: %v", m.Headline)
+}
+
 func isZero(v []byte) bool {
 	for _, b := range v {
 		if b != 0 {
@@ -2564,6 +2604,7 @@ func (b BotInfo) Hash() BotInfoHash {
 	for _, cconv := range b.CommandConvs {
 		hash.Write(cconv.ConvID)
 		hash.Write(cconv.Uid)
+		hash.Write([]byte(strconv.FormatUint(uint64(cconv.UntrustedTeamRole), 10)))
 		hash.Write([]byte(strconv.FormatUint(uint64(cconv.Vers), 10)))
 	}
 	return BotInfoHash(hash.Sum(nil))
@@ -2616,4 +2657,30 @@ func (r UIInboxReselectInfo) String() string {
 		newConvStr = *r.NewConvID
 	}
 	return fmt.Sprintf("[oldconv: %s newconv: %s]", r.OldConvID, newConvStr)
+}
+
+func (e OutboxErrorType) IsBadgableError() bool {
+	switch e {
+	case OutboxErrorType_MISC,
+		OutboxErrorType_OFFLINE,
+		OutboxErrorType_TOOLONG,
+		OutboxErrorType_EXPIRED,
+		OutboxErrorType_TOOMANYATTEMPTS,
+		OutboxErrorType_UPLOADFAILED:
+		return true
+	default:
+		return false
+	}
+}
+
+func (c UserBotCommandOutput) Matches(text string) bool {
+	return strings.HasPrefix(text, fmt.Sprintf("!%s ", c.Name))
+}
+
+func (m AssetMetadata) IsType(typ AssetMetadataType) bool {
+	mtyp, err := m.AssetType()
+	if err != nil {
+		return false
+	}
+	return mtyp == typ
 }

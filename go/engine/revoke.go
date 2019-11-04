@@ -118,9 +118,12 @@ func (e *RevokeEngine) explicitOrImplicitDeviceID(me *libkb.User) keybase1.Devic
 	return ""
 }
 
-func (e *RevokeEngine) Run(m libkb.MetaContext) error {
-	m.Debug("RevokeEngine#Run (mode:%v)", e.mode)
+func (e *RevokeEngine) Run(mctx libkb.MetaContext) (err error) {
+	defer mctx.Trace(fmt.Sprintf("RevokeEngine (mode:%v)", e.mode), func() error { return err })()
+	return retryOnEphemeralRace(mctx, e.run)
+}
 
+func (e *RevokeEngine) run(m libkb.MetaContext) error {
 	e.G().LocalSigchainGuard().Set(m.Ctx(), "RevokeEngine")
 	defer e.G().LocalSigchainGuard().Clear(m.Ctx(), "RevokeEngine")
 

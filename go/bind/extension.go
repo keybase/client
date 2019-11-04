@@ -159,6 +159,7 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 
 	// 10k uid -> FullName cache entries allowed
 	kbCtx.SetUIDMapper(uidmap.NewUIDMap(10000))
+	kbCtx.SetServiceSummaryMapper(uidmap.NewOfflineServiceSummaryMap())
 	usage := libkb.Usage{
 		Config:    true,
 		API:       true,

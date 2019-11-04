@@ -1,14 +1,16 @@
 import logger from '../logger'
-import {isEqual} from 'lodash'
+import isEqual from 'lodash/isEqual'
 import * as I from 'immutable'
 import * as FsGen from '../actions/fs-gen'
 import * as Constants from '../constants/fs'
 import * as ChatConstants from '../constants/chat2'
 import * as Types from '../constants/types/fs'
 import * as Container from '../util/container'
+import * as RPCTypes from '../constants/types/rpc-gen'
 import {produce, Draft} from 'immer'
 
 const initialState: Types.State = {
+  badge: RPCTypes.FilesTabBadge.none,
   destinationPicker: {
     destinationParentPath: [],
     source: {
@@ -37,6 +39,7 @@ const initialState: Types.State = {
   softErrors: Constants.makeSoftErrors(),
   tlfUpdates: I.List(),
   tlfs: {
+    additionalTlfs: new Map(),
     loaded: false,
     private: new Map(),
     public: new Map(),
@@ -149,15 +152,19 @@ const updateTlf = (oldTlf: Types.Tlf | undefined, newTlf: Types.Tlf): Types.Tlf 
         }
         const copiedNewTlf = {...newTlf}
         const {conflictState, resetParticipants, syncConfig} = oldTlf
-        if (!isEqual(syncConfig, copiedNewTlf.syncConfig)) {
+
+        // Compare object fields in new vs old and override equal ones in
+        // newTlf with the old references to avoid updating.
+        if (isEqual(syncConfig, copiedNewTlf.syncConfig)) {
           copiedNewTlf.syncConfig = syncConfig
         }
-        if (!isEqual(resetParticipants, copiedNewTlf.resetParticipants)) {
+        if (isEqual(resetParticipants, copiedNewTlf.resetParticipants)) {
           copiedNewTlf.resetParticipants = resetParticipants
         }
-        if (!isEqual(conflictState, copiedNewTlf.conflictState)) {
+        if (isEqual(conflictState, copiedNewTlf.conflictState)) {
           copiedNewTlf.conflictState = conflictState
         }
+
         return copiedNewTlf
       })
     : newTlf
@@ -261,6 +268,15 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
     draftState.tlfs.team = updateTlfList(draftState.tlfs.team, action.payload.team)
     draftState.tlfs.loaded = true
   },
+  [FsGen.loadedAdditionalTlf]: (draftState, action) => {
+    if (isEqual(draftState.tlfs.additionalTlfs.get(action.payload.tlfPath), action.payload.tlf)) {
+      return
+    }
+    draftState.tlfs.additionalTlfs = new Map([
+      ...draftState.tlfs.additionalTlfs,
+      [action.payload.tlfPath, action.payload.tlf],
+    ])
+  },
   [FsGen.setTlfsAsUnloaded]: draftState => {
     draftState.tlfs.loaded = false
   },
@@ -269,16 +285,39 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
   },
   [FsGen.tlfSyncConfigLoaded]: (draftState, action) => {
     const oldTlfList = draftState.tlfs[action.payload.tlfType]
-    draftState.tlfs[action.payload.tlfType] = new Map([
-      ...oldTlfList,
-      [
-        action.payload.tlfName,
-        {
-          ...(oldTlfList.get(action.payload.tlfName) || Constants.unknownTlf),
-          syncConfig: action.payload.syncConfig,
-        },
-      ],
-    ])
+    const oldTlfFromFavorites = oldTlfList.get(action.payload.tlfName) || Constants.unknownTlf
+    if (oldTlfFromFavorites !== Constants.unknownTlf) {
+      draftState.tlfs[action.payload.tlfType] = new Map([
+        ...oldTlfList,
+        [
+          action.payload.tlfName,
+          {
+            ...oldTlfFromFavorites,
+            syncConfig: action.payload.syncConfig,
+          },
+        ],
+      ])
+      return
+    }
+
+    const tlfPath = Types.pathConcat(
+      Types.pathConcat(Constants.defaultPath, action.payload.tlfType),
+      action.payload.tlfName
+    )
+    const oldTlfFromAdditional = draftState.tlfs.additionalTlfs.get(tlfPath) || Constants.unknownTlf
+    if (oldTlfFromAdditional !== Constants.unknownTlf) {
+      draftState.tlfs.additionalTlfs = new Map([
+        ...draftState.tlfs.additionalTlfs,
+        [
+          tlfPath,
+          {
+            ...oldTlfFromAdditional,
+            syncConfig: action.payload.syncConfig,
+          },
+        ],
+      ])
+      return
+    }
   },
   [FsGen.sortSetting]: (draftState, action) => {
     draftState.pathUserSettings = draftState.pathUserSettings.update(action.payload.path, setting =>
@@ -375,6 +414,13 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
     updateExistingEdit(draftState, action.payload.editID, draftEdit => {
       draftEdit.status = Types.EditStatusType.Saving
     })
+  },
+  [FsGen.editSuccess]: (draftState, action) => {
+    if (draftState.edits.has(action.payload.editID)) {
+      const edits = new Map(draftState.edits)
+      edits.delete(action.payload.editID)
+      draftState.edits = edits
+    }
   },
   [FsGen.discardEdit]: (draftState, action) => {
     if (draftState.edits.has(action.payload.editID)) {
@@ -596,5 +642,8 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
         [action.payload.path, action.payload.fileContext],
       ])
     }
+  },
+  [FsGen.loadedFilesTabBadge]: (draftState, action) => {
+    draftState.badge = action.payload.badge
   },
 })

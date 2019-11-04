@@ -107,6 +107,7 @@ export type TypedActionsMap = {
   'chat2:loadMessagesCentered': chat2.LoadMessagesCenteredPayload
   'chat2:desktopNotification': chat2.DesktopNotificationPayload
   'chat2:messageSend': chat2.MessageSendPayload
+  'chat2:messageSendByUsernames': chat2.MessageSendByUsernamesPayload
   'chat2:toggleLocalReaction': chat2.ToggleLocalReactionPayload
   'chat2:toggleMessageReaction': chat2.ToggleMessageReactionPayload
   'chat2:updateReactions': chat2.UpdateReactionsPayload
@@ -214,6 +215,11 @@ export type TypedActionsMap = {
   'chat2:updateLastCoord': chat2.UpdateLastCoordPayload
   'chat2:toggleGiphyPrefill': chat2.ToggleGiphyPrefillPayload
   'chat2:setChannelSearchText': chat2.SetChannelSearchTextPayload
+  'chat2:enableAudioRecording': chat2.EnableAudioRecordingPayload
+  'chat2:stopAudioRecording': chat2.StopAudioRecordingPayload
+  'chat2:lockAudioRecording': chat2.LockAudioRecordingPayload
+  'chat2:sendAudioRecording': chat2.SendAudioRecordingPayload
+  'chat2:setAudioRecordingPostInfo': chat2.SetAudioRecordingPostInfoPayload
   'config:startHandshake': config.StartHandshakePayload
   'config:restartHandshake': config.RestartHandshakePayload
   'config:daemonHandshake': config.DaemonHandshakePayload
@@ -221,6 +227,7 @@ export type TypedActionsMap = {
   'config:daemonHandshakeDone': config.DaemonHandshakeDonePayload
   'config:filePickerError': config.FilePickerErrorPayload
   'config:logout': config.LogoutPayload
+  'config:logoutAndTryToLogInAs': config.LogoutAndTryToLogInAsPayload
   'config:logoutHandshake': config.LogoutHandshakePayload
   'config:logoutHandshakeWait': config.LogoutHandshakeWaitPayload
   'config:installerRan': config.InstallerRanPayload
@@ -260,6 +267,9 @@ export type TypedActionsMap = {
   'config:remoteWindowWantsProps': config.RemoteWindowWantsPropsPayload
   'config:updateWindowState': config.UpdateWindowStatePayload
   'config:setUseNativeFrame': config.SetUseNativeFramePayload
+  'config:setWhatsNewLastSeenVersion': config.SetWhatsNewLastSeenVersionPayload
+  'config:loadNixOnLoginStartup': config.LoadNixOnLoginStartupPayload
+  'config:loadedNixOnLoginStartup': config.LoadedNixOnLoginStartupPayload
   'deeplinks:handleKeybaseLink': deeplinks.HandleKeybaseLinkPayload
   'deeplinks:link': deeplinks.LinkPayload
   'deeplinks:setKeybaseLinkError': deeplinks.SetKeybaseLinkErrorPayload
@@ -334,6 +344,7 @@ export type TypedActionsMap = {
   'engine-gen:chat1NotifyChatChatPaymentInfo': enginegen.Chat1NotifyChatChatPaymentInfoPayload
   'engine-gen:chat1NotifyChatChatRequestInfo': enginegen.Chat1NotifyChatChatRequestInfoPayload
   'engine-gen:chat1NotifyChatChatPromptUnfurl': enginegen.Chat1NotifyChatChatPromptUnfurlPayload
+  'engine-gen:chat1NotifyChatChatConvUpdate': enginegen.Chat1NotifyChatChatConvUpdatePayload
   'engine-gen:keybase1GpgUiWantToAddGPGKey': enginegen.Keybase1GpgUiWantToAddGPGKeyPayload
   'engine-gen:keybase1GpgUiConfirmDuplicateKeyChosen': enginegen.Keybase1GpgUiConfirmDuplicateKeyChosenPayload
   'engine-gen:keybase1GpgUiConfirmImportSecretToExistingKey': enginegen.Keybase1GpgUiConfirmImportSecretToExistingKeyPayload
@@ -376,6 +387,8 @@ export type TypedActionsMap = {
   'engine-gen:keybase1LoginUiDisplayResetProgress': enginegen.Keybase1LoginUiDisplayResetProgressPayload
   'engine-gen:keybase1LoginUiExplainDeviceRecovery': enginegen.Keybase1LoginUiExplainDeviceRecoveryPayload
   'engine-gen:keybase1LoginUiPromptPassphraseRecovery': enginegen.Keybase1LoginUiPromptPassphraseRecoveryPayload
+  'engine-gen:keybase1LoginUiChooseDeviceToRecoverWith': enginegen.Keybase1LoginUiChooseDeviceToRecoverWithPayload
+  'engine-gen:keybase1LoginUiDisplayResetMessage': enginegen.Keybase1LoginUiDisplayResetMessagePayload
   'engine-gen:keybase1LogsendPrepareLogsend': enginegen.Keybase1LogsendPrepareLogsendPayload
   'engine-gen:keybase1NotifyAppExit': enginegen.Keybase1NotifyAppExitPayload
   'engine-gen:keybase1NotifyAuditRootAuditError': enginegen.Keybase1NotifyAuditRootAuditErrorPayload
@@ -415,12 +428,13 @@ export type TypedActionsMap = {
   'engine-gen:keybase1NotifyTeamTeamAbandoned': enginegen.Keybase1NotifyTeamTeamAbandonedPayload
   'engine-gen:keybase1NotifyTeamTeamExit': enginegen.Keybase1NotifyTeamTeamExitPayload
   'engine-gen:keybase1NotifyTeamNewlyAddedToTeam': enginegen.Keybase1NotifyTeamNewlyAddedToTeamPayload
+  'engine-gen:keybase1NotifyTeamTeamRoleMapChanged': enginegen.Keybase1NotifyTeamTeamRoleMapChangedPayload
   'engine-gen:keybase1NotifyTeamAvatarUpdated': enginegen.Keybase1NotifyTeamAvatarUpdatedPayload
+  'engine-gen:keybase1NotifyTeamTeamMetadataUpdate': enginegen.Keybase1NotifyTeamTeamMetadataUpdatePayload
   'engine-gen:keybase1NotifyTeambotNewTeambotKey': enginegen.Keybase1NotifyTeambotNewTeambotKeyPayload
   'engine-gen:keybase1NotifyTeambotTeambotKeyNeeded': enginegen.Keybase1NotifyTeambotTeambotKeyNeededPayload
   'engine-gen:keybase1NotifyTrackingTrackingChanged': enginegen.Keybase1NotifyTrackingTrackingChangedPayload
   'engine-gen:keybase1NotifyTrackingTrackingInfo': enginegen.Keybase1NotifyTrackingTrackingInfoPayload
-  'engine-gen:keybase1NotifyUnverifiedTeamListTeamListUnverifiedChanged': enginegen.Keybase1NotifyUnverifiedTeamListTeamListUnverifiedChangedPayload
   'engine-gen:keybase1NotifyUsersUserChanged': enginegen.Keybase1NotifyUsersUserChangedPayload
   'engine-gen:keybase1NotifyUsersPasswordChanged': enginegen.Keybase1NotifyUsersPasswordChangedPayload
   'engine-gen:keybase1NotifyUsersIdentifyUpdate': enginegen.Keybase1NotifyUsersIdentifyUpdatePayload
@@ -567,6 +581,10 @@ export type TypedActionsMap = {
   'fs:finishedRegularDownload': fs.FinishedRegularDownloadPayload
   'fs:loadFileContext': fs.LoadFileContextPayload
   'fs:loadedFileContext': fs.LoadedFileContextPayload
+  'fs:loadAdditionalTlf': fs.LoadAdditionalTlfPayload
+  'fs:loadedAdditionalTlf': fs.LoadedAdditionalTlfPayload
+  'fs:loadFilesTabBadge': fs.LoadFilesTabBadgePayload
+  'fs:loadedFilesTabBadge': fs.LoadedFilesTabBadgePayload
   'fs:setDebugLevel': fs.SetDebugLevelPayload
   'git:loadGit': git.LoadGitPayload
   'git:loaded': git.LoadedPayload
@@ -588,8 +606,6 @@ export type TypedActionsMap = {
   'gregor:updateReachable': gregor.UpdateReachablePayload
   'gregor:updateCategory': gregor.UpdateCategoryPayload
   'login:login': login.LoginPayload
-  'login:launchAccountResetWebPage': login.LaunchAccountResetWebPagePayload
-  'login:launchForgotPasswordWebPage': login.LaunchForgotPasswordWebPagePayload
   'login:loginError': login.LoginErrorPayload
   'login:loadIsOnline': login.LoadIsOnlinePayload
   'login:loadedIsOnline': login.LoadedIsOnlinePayload
@@ -690,6 +706,10 @@ export type TypedActionsMap = {
   'recover-password:abortPaperKey': recoverpassword.AbortPaperKeyPayload
   'recover-password:setPasswordError': recoverpassword.SetPasswordErrorPayload
   'recover-password:submitPassword': recoverpassword.SubmitPasswordPayload
+  'recover-password:promptResetPassword': recoverpassword.PromptResetPasswordPayload
+  'recover-password:submitResetPassword': recoverpassword.SubmitResetPasswordPayload
+  'recover-password:completeResetPassword': recoverpassword.CompleteResetPasswordPayload
+  'recover-password:resetResetPasswordState': recoverpassword.ResetResetPasswordStatePayload
   'recover-password:displayError': recoverpassword.DisplayErrorPayload
   'route-tree:navigateAppend': routetree.NavigateAppendPayload
   'route-tree:navigateUp': routetree.NavigateUpPayload
@@ -710,6 +730,7 @@ export type TypedActionsMap = {
   'settings:editEmail': settings.EditEmailPayload
   'settings:editPhone': settings.EditPhonePayload
   'settings:sentVerificationEmail': settings.SentVerificationEmailPayload
+  'settings:emailVerified': settings.EmailVerifiedPayload
   'settings:loadContactImportEnabled': settings.LoadContactImportEnabledPayload
   'settings:loadedContactImportEnabled': settings.LoadedContactImportEnabledPayload
   'settings:loadedContactPermissions': settings.LoadedContactPermissionsPayload
@@ -751,7 +772,6 @@ export type TypedActionsMap = {
   'settings:onUpdatePGPSettings': settings.OnUpdatePGPSettingsPayload
   'settings:onUpdatePasswordError': settings.OnUpdatePasswordErrorPayload
   'settings:onUpdatedPGPSettings': settings.OnUpdatedPGPSettingsPayload
-  'settings:setAllowDeleteAccount': settings.SetAllowDeleteAccountPayload
   'settings:stop': settings.StopPayload
   'settings:trace': settings.TracePayload
   'settings:processorProfile': settings.ProcessorProfilePayload
@@ -811,7 +831,6 @@ export type TypedActionsMap = {
   'teams:getDetails': teams.GetDetailsPayload
   'teams:getMembers': teams.GetMembersPayload
   'teams:setMembers': teams.SetMembersPayload
-  'teams:getDetailsForAllTeams': teams.GetDetailsForAllTeamsPayload
   'teams:getTeamOperations': teams.GetTeamOperationsPayload
   'teams:getTeamProfileAddList': teams.GetTeamProfileAddListPayload
   'teams:getTeamPublicity': teams.GetTeamPublicityPayload
@@ -860,11 +879,12 @@ export type TypedActionsMap = {
   'teams:setUpdatedTopic': teams.SetUpdatedTopicPayload
   'teams:deleteChannelConfirmed': teams.DeleteChannelConfirmedPayload
   'teams:deleteChannelInfo': teams.DeleteChannelInfoPayload
-  'teams:badgeAppForTeams': teams.BadgeAppForTeamsPayload
   'teams:checkRequestedAccess': teams.CheckRequestedAccessPayload
   'teams:getTeamRetentionPolicy': teams.GetTeamRetentionPolicyPayload
   'teams:saveTeamRetentionPolicy': teams.SaveTeamRetentionPolicyPayload
   'teams:renameTeam': teams.RenameTeamPayload
+  'teams:setTeamRoleMapLatestKnownVersion': teams.SetTeamRoleMapLatestKnownVersionPayload
+  'teams:setTeamRoleMap': teams.SetTeamRoleMapPayload
   'tracker2:load': tracker2.LoadPayload
   'tracker2:updatedDetails': tracker2.UpdatedDetailsPayload
   'tracker2:updateResult': tracker2.UpdateResultPayload
@@ -927,9 +947,6 @@ export type TypedActionsMap = {
   'wallets:loadAssets': wallets.LoadAssetsPayload
   'wallets:loadAccounts': wallets.LoadAccountsPayload
   'wallets:loadExternalPartners': wallets.LoadExternalPartnersPayload
-  'wallets:loadInflationDestination': wallets.LoadInflationDestinationPayload
-  'wallets:setInflationDestination': wallets.SetInflationDestinationPayload
-  'wallets:inflationDestinationReceived': wallets.InflationDestinationReceivedPayload
   'wallets:loadMorePayments': wallets.LoadMorePaymentsPayload
   'wallets:loadPayments': wallets.LoadPaymentsPayload
   'wallets:loadPaymentDetail': wallets.LoadPaymentDetailPayload

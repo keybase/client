@@ -1,9 +1,10 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/user.avdl
 
 package keybase1
 
 import (
+	"fmt"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 	"time"
@@ -216,9 +217,10 @@ func (o UserSummary2Set) DeepCopy() UserSummary2Set {
 }
 
 type InterestingPerson struct {
-	Uid      UID    `codec:"uid" json:"uid"`
-	Username string `codec:"username" json:"username"`
-	Fullname string `codec:"fullname" json:"fullname"`
+	Uid        UID               `codec:"uid" json:"uid"`
+	Username   string            `codec:"username" json:"username"`
+	Fullname   string            `codec:"fullname" json:"fullname"`
+	ServiceMap map[string]string `codec:"serviceMap" json:"serviceMap"`
 }
 
 func (o InterestingPerson) DeepCopy() InterestingPerson {
@@ -226,6 +228,18 @@ func (o InterestingPerson) DeepCopy() InterestingPerson {
 		Uid:      o.Uid.DeepCopy(),
 		Username: o.Username,
 		Fullname: o.Fullname,
+		ServiceMap: (func(x map[string]string) map[string]string {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]string, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := v
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.ServiceMap),
 	}
 }
 
@@ -252,14 +266,15 @@ func (o ProofSuggestionsRes) DeepCopy() ProofSuggestionsRes {
 }
 
 type ProofSuggestion struct {
-	Key           string             `codec:"key" json:"key"`
-	BelowFold     bool               `codec:"belowFold" json:"belowFold"`
-	ProfileText   string             `codec:"profileText" json:"profileText"`
-	ProfileIcon   []SizedImage       `codec:"profileIcon" json:"profileIcon"`
-	PickerText    string             `codec:"pickerText" json:"pickerText"`
-	PickerSubtext string             `codec:"pickerSubtext" json:"pickerSubtext"`
-	PickerIcon    []SizedImage       `codec:"pickerIcon" json:"pickerIcon"`
-	Metas         []Identify3RowMeta `codec:"metas" json:"metas"`
+	Key              string             `codec:"key" json:"key"`
+	BelowFold        bool               `codec:"belowFold" json:"belowFold"`
+	ProfileText      string             `codec:"profileText" json:"profileText"`
+	ProfileIcon      []SizedImage       `codec:"profileIcon" json:"profileIcon"`
+	ProfileIconWhite []SizedImage       `codec:"profileIconWhite" json:"profileIconWhite"`
+	PickerText       string             `codec:"pickerText" json:"pickerText"`
+	PickerSubtext    string             `codec:"pickerSubtext" json:"pickerSubtext"`
+	PickerIcon       []SizedImage       `codec:"pickerIcon" json:"pickerIcon"`
+	Metas            []Identify3RowMeta `codec:"metas" json:"metas"`
 }
 
 func (o ProofSuggestion) DeepCopy() ProofSuggestion {
@@ -278,6 +293,17 @@ func (o ProofSuggestion) DeepCopy() ProofSuggestion {
 			}
 			return ret
 		})(o.ProfileIcon),
+		ProfileIconWhite: (func(x []SizedImage) []SizedImage {
+			if x == nil {
+				return nil
+			}
+			ret := make([]SizedImage, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.ProfileIconWhite),
 		PickerText:    o.PickerText,
 		PickerSubtext: o.PickerSubtext,
 		PickerIcon: (func(x []SizedImage) []SizedImage {
@@ -345,7 +371,7 @@ func (e PassphraseState) String() string {
 	if v, ok := PassphraseStateRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type CanLogoutRes struct {

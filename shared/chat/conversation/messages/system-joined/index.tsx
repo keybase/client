@@ -4,6 +4,7 @@ import * as Styles from '../../../../styles'
 import UserNotice from '../user-notice'
 import SystemMessageTimestamp from '../system-message-timestamp'
 import {formatTimeForChat} from '../../../../util/timestamp'
+import {getAddedUsernames} from '../system-users-added-to-conv'
 
 type Props = {
   author: string
@@ -27,28 +28,15 @@ const Joined = (props: Props) =>
   ) : (
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Text type="BodyTiny">{formatTimeForChat(props.timestamp)}</Kb.Text>
-      {props.joiners.length > 0 && (
-        <Kb.ConnectedUsernames
-          type="BodySmallSemibold"
-          suffixType="BodySmall"
-          onUsernameClicked="profile"
-          colorFollowing={true}
-          underline={true}
-          usernames={props.joiners}
-          suffix={` joined ${props.isBigTeam ? `#${props.channelname}.` : `${props.teamname}.`}`}
-        />
-      )}
-      {props.leavers.length > 0 && (
-        <Kb.ConnectedUsernames
-          type="BodySmallSemibold"
-          suffixType="BodySmall"
-          onUsernameClicked="profile"
-          colorFollowing={true}
-          underline={true}
-          usernames={props.leavers}
-          suffix={` left ${props.isBigTeam ? `#${props.channelname}.` : `${props.teamname}.`}`}
-        />
-      )}
+      <Kb.Text type="BodySmall">
+        {props.joiners.length > 0 && getAddedUsernames(props.joiners)}
+        {props.joiners.length > 0 &&
+          ` joined ${props.isBigTeam ? `#${props.channelname}.` : `${props.teamname}.`}`}
+        {props.leavers.length > 0 && props.joiners.length > 0 && ' '}
+        {props.leavers.length > 0 && getAddedUsernames(props.leavers)}
+        {props.leavers.length > 0 &&
+          ` left ${props.isBigTeam ? `#${props.channelname}.` : `${props.teamname}.`}`}
+      </Kb.Text>
     </Kb.Box2>
   )
 

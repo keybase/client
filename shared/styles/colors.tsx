@@ -17,6 +17,9 @@ export const colors = {
   },
   black_05_on_white: 'rgb(242,242,242)',
   black_10: 'rgba(0, 0, 0, 0.10)',
+  get black_10OrBlack() {
+    return this.black_10
+  },
   black_10_on_white: 'rgb(229,229,229)',
   black_20: 'rgba(0, 0, 0, 0.20)',
   get black_20OrBlack() {
@@ -26,6 +29,12 @@ export const colors = {
   black_35: 'rgba(0, 0, 0, 0.35)',
   black_40: 'rgba(0, 0, 0, 0.40)',
   black_50: 'rgba(0, 0, 0, 0.50)',
+  get black_50OrBlack_40() {
+    return this.black_50
+  },
+  get black_50OrBlack_50() {
+    return this.black_50
+  },
   get black_50OrBlack_60() {
     return this.black_50
   },
@@ -41,6 +50,9 @@ export const colors = {
   black_on_white: 'rgb(38,38,38)',
   blue: '#4C8EFF',
   blueDark: '#3663EA',
+  get blueDarkOrBlueLight() {
+    return this.blueDark
+  },
   get blueDarkOrGreyDarkest() {
     return this.blueDark
   },
@@ -48,6 +60,9 @@ export const colors = {
   blueDarker2: '#182D6E',
   blueDarker2_75: 'rgba(24, 45, 110, .75)',
   blueDarker2_75_on_white: 'rgb(82,98,147)',
+  get blueDarkerOrBlack() {
+    return this.blueDarker
+  },
   get blueDarkerOrBlack_60() {
     return this.blueDarker
   },
@@ -57,6 +72,9 @@ export const colors = {
   blueLighter: '#A8CCFF',
   blueLighter2: '#EBF2FC',
   blueLighter3: '#F7F9FC',
+  get blueLighterOrBlueLight() {
+    return this.blueLighter
+  },
   get blueLighterOrWhite() {
     return this.blueLighter
   },
@@ -72,16 +90,25 @@ export const colors = {
   blue_60_on_white: 'rgb(133,198,255)',
   brown: 'rgb(71, 31, 17)',
   brown_75: 'rgba(71, 31, 17, 0.75)',
+  get brown_75OrYellow() {
+    return this.brown_75
+  },
   brown_75_on_white: 'rgb(117,87,78)',
   fastBlank: isIOS ? '#FFFFFF' : undefined, // on iOS overdraw is eliminiated if we use white, on Android it's eliminated if it's transparent /shrug
   green: '#37BD99',
   greenDark: '#189e7a',
+  get greenDarkOrBlack() {
+    return this.greenDark
+  },
   get greenDarkOrWhite() {
     return this.greenDark
   },
   greenDarker: '#12785d',
   greenLight: '#B7EED9',
   greenLighter: '#E8FAF6',
+  get greenLighterOrGreen() {
+    return this.greenLighter
+  },
   get greenLighterOrGreenDark() {
     return this.greenLighter
   },
@@ -158,14 +185,16 @@ export const colors = {
     return this.white_40
   },
   white_40_on_white: '#FFFFFF',
+  white_60: 'rgba(255, 255, 255, 0.60)',
   white_75: 'rgba(255, 255, 255, 0.75)',
   white_75_on_white: '#FFFFFF',
   white_90: 'rgba(255, 255, 255, 0.90)',
   white_90_on_white: '#FFFFFF',
   yellow: '#FFF75A',
+  yellowAlt: '#e0d733',
   yellowDark: '#FFB800',
   yellowLight: '#FFFDCC',
-  get yellowOrYellowLight() {
+  get yellowOrYellowAlt() {
     return this.yellow
   },
 } as const
@@ -184,6 +213,9 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   },
   black_05_on_white: 'rgb(13, 13, 13)',
   black_10: 'rgba(255, 255, 255, 0.10)',
+  get black_10OrBlack() {
+    return colors.black
+  },
   black_10_on_white: 'rgb(26, 26, 26)',
   black_20: 'rgba(255, 255, 255, 0.20)',
   get black_20OrBlack() {
@@ -193,6 +225,12 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   black_35: 'rgba(255, 255, 255, 0.35)',
   black_40: 'rgba(255, 255, 255, 0.40)',
   black_50: 'rgba(255, 255, 255, 0.50)',
+  get black_50OrBlack_40() {
+    return colors.black_40
+  },
+  get black_50OrBlack_50() {
+    return colors.black_50
+  },
   get black_50OrBlack_60() {
     return colors.black_60
   },
@@ -208,6 +246,9 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   black_on_white: 'rgb(217, 217, 217)',
   blue: '#4C8EFF',
   blueDark: '#3663EA',
+  get blueDarkOrBlueLight() {
+    return colors.blueLight
+  },
   get blueDarkOrGreyDarkest() {
     return colors.greyDarkest
   },
@@ -215,6 +256,9 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   blueDarker2: '#182D6E',
   blueDarker2_75: 'rgba(24, 45, 110, .75)',
   blueDarker2_75_on_white: 'rgb(173, 157, 108)',
+  get blueDarkerOrBlack() {
+    return colors.black
+  },
   get blueDarkerOrBlack_60() {
     return colors.black_60
   },
@@ -224,6 +268,9 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   blueLighter: '#4C8EFF',
   blueLighter2: 'rgba(24, 45, 110, .5)',
   blueLighter3: '#101010',
+  get blueLighterOrBlueLight() {
+    return colors.blueLight
+  },
   get blueLighterOrWhite() {
     return colors.white
   },
@@ -239,16 +286,25 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   blue_60_on_white: 'rgb(133,198,255)',
   brown: 'rgb(71, 31, 17)',
   brown_75: 'rgba(71, 31, 17, 0.75)',
+  get brown_75OrYellow() {
+    return colors.yellow
+  },
   brown_75_on_white: 'rgb(117,87,78)',
   fastBlank: isIOS ? '#191919' : undefined, // on iOS overdraw is eliminated if we use solid color, on Android it's eliminated if it's transparent /shrug
   green: '#37BD99',
   greenDark: '#189e7a',
+  get greenDarkOrBlack() {
+    return colors.black
+  },
   get greenDarkOrWhite() {
     return colors.white
   },
   greenDarker: '#12785d',
   greenLight: '#B7EED9',
   greenLighter: '#E8FAF6',
+  get greenLighterOrGreen() {
+    return colors.green
+  },
   get greenLighterOrGreenDark() {
     return colors.greenDark
   },
@@ -259,7 +315,7 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   greyDark: '#666',
   greyDarker: '#999',
   greyDarkest: '#aaa',
-  greyLight: '#0F0F0F',
+  greyLight: '#444',
   orange: '#ff6f21',
   orange_90: 'rgba(255, 111, 33, 0.9)',
   purple: '#8852ff',
@@ -325,15 +381,17 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
     return colors.white_40
   },
   white_40_on_white: '#191919',
+  white_60: 'rgba(25, 25, 25, 0.60)',
   white_75: 'rgba(25, 25, 25, 0.75)',
   white_75_on_white: '#191919',
   white_90: 'rgba(25, 25, 25, 0.90)',
   white_90_on_white: '#191919',
   yellow: '#FFF75A',
+  yellowAlt: '#e0d733',
   yellowDark: '#FFB800',
   yellowLight: '#FFFDCC',
-  get yellowOrYellowLight() {
-    return colors.yellowLight
+  get yellowOrYellowAlt() {
+    return colors.yellowAlt
   },
 }
 

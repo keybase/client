@@ -159,6 +159,8 @@ type usernameLoginUI struct {
 	username string
 }
 
+var _ libkb.LoginUI = (*usernameLoginUI)(nil)
+
 func (s usernameLoginUI) GetEmailOrUsername(contextOld.Context, int) (string, error) {
 	return s.username, nil
 }
@@ -171,8 +173,8 @@ func (s usernameLoginUI) DisplayPaperKeyPhrase(contextOld.Context, keybase1.Disp
 func (s usernameLoginUI) DisplayPrimaryPaperKey(contextOld.Context, keybase1.DisplayPrimaryPaperKeyArg) error {
 	return nil
 }
-func (s usernameLoginUI) PromptResetAccount(_ context.Context, arg keybase1.PromptResetAccountArg) (bool, error) {
-	return false, nil
+func (s usernameLoginUI) PromptResetAccount(_ context.Context, arg keybase1.PromptResetAccountArg) (keybase1.ResetPromptResponse, error) {
+	return keybase1.ResetPromptResponse_NOTHING, nil
 }
 func (s usernameLoginUI) DisplayResetProgress(_ context.Context, arg keybase1.DisplayResetProgressArg) error {
 	return nil
@@ -182,6 +184,12 @@ func (s usernameLoginUI) ExplainDeviceRecovery(_ context.Context, arg keybase1.E
 }
 func (s usernameLoginUI) PromptPassphraseRecovery(_ context.Context, arg keybase1.PromptPassphraseRecoveryArg) (bool, error) {
 	return false, nil
+}
+func (s usernameLoginUI) ChooseDeviceToRecoverWith(_ context.Context, arg keybase1.ChooseDeviceToRecoverWithArg) (keybase1.DeviceID, error) {
+	return "", nil
+}
+func (s usernameLoginUI) DisplayResetMessage(_ context.Context, arg keybase1.DisplayResetMessageArg) error {
+	return nil
 }
 
 func (d *smuDeviceWrapper) popClone() *libkb.TestContext {
@@ -386,7 +394,28 @@ func (u *smuUser) registerForNotifications() {
 	}
 }
 
+func (u *smuUser) waitForNewlyAddedToTeamByID(teamID keybase1.TeamID) {
+	u.ctx.t.Logf("waiting for newly added to team %s", teamID)
+
+	// process 10 team rotations or 10s worth of time
+	for i := 0; i < 10; i++ {
+		select {
+		case tid := <-u.notifications.newlyAddedToTeam:
+			u.ctx.t.Logf("team newly added notification received: %v", tid)
+			if tid.Eq(teamID) {
+				u.ctx.t.Logf("notification matched!")
+				return
+			}
+			u.ctx.t.Logf("ignoring newly added message (expected teamID = %q)", teamID)
+		case <-time.After(1 * time.Second * libkb.CITimeMultiplier(u.getPrimaryGlobalContext())):
+		}
+	}
+	u.ctx.t.Fatalf("timed out waiting for team newly added %s", teamID)
+}
+
 func (u *smuUser) waitForTeamAbandoned(teamID keybase1.TeamID) {
+	u.ctx.t.Logf("waiting for team abandoned %s", teamID)
+
 	// process 10 team rotations or 10s worth of time
 	for i := 0; i < 10; i++ {
 		select {

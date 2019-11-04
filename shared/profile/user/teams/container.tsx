@@ -16,7 +16,7 @@ export default Container.namedConnect(
     return {
       _isYou: state.config.username === ownProps.username,
       _roles: state.teams.teamNameToRole,
-      _youAreInTeams: state.teams.teamnames.count() > 0,
+      _youAreInTeams: state.teams.teamnames.size > 0,
       teamShowcase: d.teamShowcase || noTeams,
     }
   },

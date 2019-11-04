@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as React from 'react'
 import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/chat2'
@@ -15,76 +14,6 @@ import {HeaderNewChatButton} from './new-chat-button'
 type OwnProps = Container.PropsWithSafeNavigation
 
 const smallTeamsCollapsedMaxShown = 5
-
-const mapStateToProps = (state: Container.TypedState) => {
-  const inboxLayout = state.chat2.inboxLayout
-  const neverLoaded = !state.chat2.inboxHasLoaded
-  const _canRefreshOnMount = neverLoaded && !Constants.anyChatWaitingKeys(state)
-  const allowShowFloatingButton = inboxLayout
-    ? (inboxLayout.smallTeams || []).length > smallTeamsCollapsedMaxShown &&
-      !!(inboxLayout.bigTeams || []).length
-    : false
-  return {
-    _badgeMap: state.chat2.badgeMap,
-    _canRefreshOnMount,
-    _hasLoadedTrusted: state.chat2.trustedInboxHasLoaded,
-    _inboxLayout: inboxLayout,
-    _selectedConversationIDKey: Constants.getSelectedConversation(state),
-    allowShowFloatingButton,
-    isLoading: isMobile ? Constants.anyChatWaitingKeys(state) : false, // desktop doesn't use isLoading so ignore it
-    isSearching: !!state.chat2.inboxSearch,
-    neverLoaded,
-    smallTeamsExpanded: state.chat2.smallTeamsExpanded,
-  }
-}
-
-const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
-  // a hack to have it check for marked as read when we mount as the focus events don't fire always
-  _onInitialLoad: (conversationIDKeys: Array<Types.ConversationIDKey>) =>
-    dispatch(Chat2Gen.createMetaNeedsUpdating({conversationIDKeys, reason: 'initialTrustedLoad'})),
-  _onMountedDesktop: () => {
-    dispatch(Chat2Gen.createTabSelected())
-  },
-  _onSelect: (conversationIDKey: Types.ConversationIDKey) =>
-    dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxFilterChanged'})),
-  _onSelectNext: (rows, selectedConversationIDKey, direction) => {
-    const goodRows: Array<RowItemSmall | RowItemBig> = rows.reduce((arr, row) => {
-      if (row.type === 'small' || row.type === 'big') {
-        arr.push(row)
-      }
-      return arr
-    }, [])
-    const idx = goodRows.findIndex(row => row.conversationIDKey === selectedConversationIDKey)
-    if (goodRows.length) {
-      const {conversationIDKey} = goodRows[(idx + direction + goodRows.length) % goodRows.length]
-      dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxFilterArrow'}))
-    }
-  },
-  _refreshInbox: () => dispatch(Chat2Gen.createInboxRefresh({reason: 'componentNeverLoaded'})),
-  onNewChat: () => dispatch(appendNewChatBuilder()),
-  onUntrustedInboxVisible: (conversationIDKeys: Array<Types.ConversationIDKey>) =>
-    dispatch(
-      Chat2Gen.createMetaNeedsUpdating({
-        conversationIDKeys,
-        reason: 'untrusted inbox visible',
-      })
-    ),
-  toggleSmallTeamsExpanded: () => dispatch(Chat2Gen.createToggleSmallTeamsExpanded()),
-})
-
-const makeSmallRows = (smallTeams: Array<RPCChatTypes.UIInboxSmallTeamRow>): Array<RowItemSmall> => {
-  return smallTeams.map(t => {
-    return {
-      conversationIDKey: Types.stringToConversationIDKey(t.convID),
-      isTeam: t.isTeam,
-      snippet: t.snippet || undefined,
-      snippetDecoration: t.snippetDecoration || undefined,
-      teamname: t.name,
-      time: t.time,
-      type: 'small',
-    }
-  })
-}
 
 const makeBigRows = (
   bigTeams: Array<RPCChatTypes.UIInboxBigTeamRow>
@@ -107,74 +36,18 @@ const makeBigRows = (
   })
 }
 
-// This merge props is not spreading on purpose so we never have any random props that might mutate and force a re-render
-const mergeProps = (
-  stateProps: ReturnType<typeof mapStateToProps>,
-  dispatchProps: ReturnType<typeof mapDispatchToProps>,
-  ownProps: OwnProps
-) => {
-  let bigTeams = stateProps._inboxLayout ? stateProps._inboxLayout.bigTeams || [] : []
-  const showAllSmallRows = stateProps.smallTeamsExpanded || !bigTeams.length
-  let smallTeams = stateProps._inboxLayout ? stateProps._inboxLayout.smallTeams || [] : []
-  const smallTeamsBelowTheFold = !showAllSmallRows && smallTeams.length > smallTeamsCollapsedMaxShown
-  if (!showAllSmallRows) {
-    smallTeams = smallTeams.slice(0, smallTeamsCollapsedMaxShown)
-  }
-  const smallRows = makeSmallRows(smallTeams)
-  const bigRows = makeBigRows(bigTeams)
-  const divider: Array<RowItemDivider> =
-    bigRows.length !== 0 ? [{showButton: smallTeamsBelowTheFold, type: 'divider'}] : []
-  const rows: Array<RowItem> = [...smallRows, ...divider, ...bigRows]
-
-  const unreadIndices: Array<number> = []
-  for (let i = rows.length - 1; i >= 0; i--) {
-    const row = rows[i]
-    if (!['big', 'bigHeader'].includes(row.type)) {
-      // only check big teams for large inbox perf
-      break
+const makeSmallRows = (smallTeams: Array<RPCChatTypes.UIInboxSmallTeamRow>): Array<RowItemSmall> => {
+  return smallTeams.map(t => {
+    return {
+      conversationIDKey: Types.stringToConversationIDKey(t.convID),
+      isTeam: t.isTeam,
+      snippet: t.snippet || undefined,
+      snippetDecoration: t.snippetDecoration || undefined,
+      teamname: t.name,
+      time: t.time,
+      type: 'small',
     }
-    if (
-      row.conversationIDKey &&
-      stateProps._badgeMap.get(row.conversationIDKey) &&
-      (isMobile || row.conversationIDKey !== stateProps._selectedConversationIDKey)
-    ) {
-      // on mobile include all convos, on desktop only not currently selected convo
-      unreadIndices.unshift(i)
-    }
-  }
-  return {
-    _canRefreshOnMount: stateProps._canRefreshOnMount,
-    _hasLoadedTrusted: stateProps._hasLoadedTrusted,
-    _onInitialLoad: dispatchProps._onInitialLoad,
-    _onMountedDesktop: dispatchProps._onMountedDesktop,
-    _refreshInbox: dispatchProps._refreshInbox,
-    allowShowFloatingButton: stateProps.allowShowFloatingButton,
-    isLoading: stateProps.isLoading,
-    isSearching: stateProps.isSearching,
-    navKey: ownProps.navKey,
-    neverLoaded: stateProps.neverLoaded,
-    onEnsureSelection: () => {
-      if (rows.find(r => r.conversationIDKey === stateProps._selectedConversationIDKey)) {
-        return
-      }
-      const first = rows[0]
-      if ((first && first.type === 'small') || first.type === 'big') {
-        dispatchProps._onSelect(first.conversationIDKey)
-      }
-    },
-    onNewChat: dispatchProps.onNewChat,
-    onSelectDown: () => dispatchProps._onSelectNext(rows, stateProps._selectedConversationIDKey, 1),
-    onSelectUp: () => dispatchProps._onSelectNext(rows, stateProps._selectedConversationIDKey, -1),
-    onUntrustedInboxVisible: dispatchProps.onUntrustedInboxVisible,
-    rows,
-    selectedConversationIDKey: isMobile
-      ? Constants.noConversationIDKey
-      : stateProps._selectedConversationIDKey, // unused on mobile so don't cause updates
-    smallTeamsExpanded: stateProps.smallTeamsExpanded,
-    title: 'Chats',
-    toggleSmallTeamsExpanded: dispatchProps.toggleSmallTeamsExpanded,
-    unreadIndices: I.List(unreadIndices),
-  }
+  })
 }
 
 type Props = {
@@ -197,8 +70,6 @@ class InboxWrapper extends React.PureComponent<Props> {
     ),
     title: 'Chats',
   }
-  _onSelectUp = () => this.props.onSelectUp()
-  _onSelectDown = () => this.props.onSelectDown()
 
   componentDidMount() {
     if (!isMobile) {
@@ -229,12 +100,102 @@ class InboxWrapper extends React.PureComponent<Props> {
       _onMountedDesktop,
       ...rest
     } = this.props
-    return <Inbox {...rest} onSelectUp={this._onSelectUp} onSelectDown={this._onSelectDown} />
+    return <Inbox {...rest} />
   }
 }
 
-const Connected = Container.withSafeNavigation(
-  Container.namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Inbox')(InboxWrapper)
-)
+const Connected = Container.namedConnect(
+  state => {
+    const inboxLayout = state.chat2.inboxLayout
+    const neverLoaded = !state.chat2.inboxHasLoaded
+    const _canRefreshOnMount = neverLoaded && !Constants.anyChatWaitingKeys(state)
+    const allowShowFloatingButton = inboxLayout
+      ? (inboxLayout.smallTeams || []).length > smallTeamsCollapsedMaxShown &&
+        !!(inboxLayout.bigTeams || []).length
+      : false
+    return {
+      _badgeMap: state.chat2.badgeMap,
+      _canRefreshOnMount,
+      _hasLoadedTrusted: state.chat2.trustedInboxHasLoaded,
+      _inboxLayout: inboxLayout,
+      _selectedConversationIDKey: state.chat2.selectedConversation,
+      allowShowFloatingButton,
+      isLoading: isMobile ? Constants.anyChatWaitingKeys(state) : false, // desktop doesn't use isLoading so ignore it
+      isSearching: !!state.chat2.inboxSearch,
+      neverLoaded,
+      smallTeamsExpanded: state.chat2.smallTeamsExpanded,
+    }
+  },
+  dispatch => ({
+    // a hack to have it check for marked as read when we mount as the focus events don't fire always
+    _onInitialLoad: (conversationIDKeys: Array<Types.ConversationIDKey>) =>
+      dispatch(Chat2Gen.createMetaNeedsUpdating({conversationIDKeys, reason: 'initialTrustedLoad'})),
+    _onMountedDesktop: () => {
+      dispatch(Chat2Gen.createTabSelected())
+    },
+    _refreshInbox: () => dispatch(Chat2Gen.createInboxRefresh({reason: 'componentNeverLoaded'})),
+    onNewChat: () => dispatch(appendNewChatBuilder()),
+    onUntrustedInboxVisible: (conversationIDKeys: Array<Types.ConversationIDKey>) =>
+      dispatch(
+        Chat2Gen.createMetaNeedsUpdating({
+          conversationIDKeys,
+          reason: 'untrusted inbox visible',
+        })
+      ),
+    toggleSmallTeamsExpanded: () => dispatch(Chat2Gen.createToggleSmallTeamsExpanded()),
+  }),
+  (stateProps, dispatchProps, ownProps: OwnProps) => {
+    const bigTeams = stateProps._inboxLayout ? stateProps._inboxLayout.bigTeams || [] : []
+    const showAllSmallRows = stateProps.smallTeamsExpanded || !bigTeams.length
+    let smallTeams = stateProps._inboxLayout ? stateProps._inboxLayout.smallTeams || [] : []
+    const smallTeamsBelowTheFold = !showAllSmallRows && smallTeams.length > smallTeamsCollapsedMaxShown
+    if (!showAllSmallRows) {
+      smallTeams = smallTeams.slice(0, smallTeamsCollapsedMaxShown)
+    }
+    const smallRows = makeSmallRows(smallTeams)
+    const bigRows = makeBigRows(bigTeams)
+    const divider: Array<RowItemDivider> =
+      bigRows.length !== 0 ? [{showButton: smallTeamsBelowTheFold, type: 'divider'}] : []
+    const rows: Array<RowItem> = [...smallRows, ...divider, ...bigRows]
 
-export default Connected
+    const unreadIndices: Array<number> = []
+    for (let i = rows.length - 1; i >= 0; i--) {
+      const row = rows[i]
+      if (!['big', 'bigHeader'].includes(row.type)) {
+        // only check big teams for large inbox perf
+        break
+      }
+      if (
+        row.conversationIDKey &&
+        stateProps._badgeMap.get(row.conversationIDKey) &&
+        row.conversationIDKey !== stateProps._selectedConversationIDKey
+      ) {
+        // on mobile include all convos, on desktop only not currently selected convo
+        unreadIndices.unshift(i)
+      }
+    }
+
+    return {
+      _canRefreshOnMount: stateProps._canRefreshOnMount,
+      _hasLoadedTrusted: stateProps._hasLoadedTrusted,
+      _onInitialLoad: dispatchProps._onInitialLoad,
+      _onMountedDesktop: dispatchProps._onMountedDesktop,
+      _refreshInbox: dispatchProps._refreshInbox,
+      allowShowFloatingButton: stateProps.allowShowFloatingButton,
+      isLoading: stateProps.isLoading,
+      isSearching: stateProps.isSearching,
+      navKey: ownProps.navKey,
+      neverLoaded: stateProps.neverLoaded,
+      onNewChat: dispatchProps.onNewChat,
+      onUntrustedInboxVisible: dispatchProps.onUntrustedInboxVisible,
+      rows,
+      smallTeamsExpanded: stateProps.smallTeamsExpanded,
+      title: 'Chats',
+      toggleSmallTeamsExpanded: dispatchProps.toggleSmallTeamsExpanded,
+      unreadIndices,
+    }
+  },
+  'Inbox'
+)(InboxWrapper)
+
+export default Container.withSafeNavigation(Connected)

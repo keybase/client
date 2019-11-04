@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/usersearch.avdl
 
 package keybase1
@@ -181,6 +181,7 @@ type NonUserDetails struct {
 	Service        *APIUserServiceResult `codec:"service,omitempty" json:"service,omitempty"`
 	SiteIcon       []SizedImage          `codec:"siteIcon" json:"siteIcon"`
 	SiteIconFull   []SizedImage          `codec:"siteIconFull" json:"siteIconFull"`
+	SiteIconWhite  []SizedImage          `codec:"siteIconWhite" json:"siteIconWhite"`
 }
 
 func (o NonUserDetails) DeepCopy() NonUserDetails {
@@ -225,6 +226,17 @@ func (o NonUserDetails) DeepCopy() NonUserDetails {
 			}
 			return ret
 		})(o.SiteIconFull),
+		SiteIconWhite: (func(x []SizedImage) []SizedImage {
+			if x == nil {
+				return nil
+			}
+			ret := make([]SizedImage, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.SiteIconWhite),
 	}
 }
 

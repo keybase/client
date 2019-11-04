@@ -1,10 +1,11 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/chat1/local.avdl
 
 package chat1
 
 import (
 	"errors"
+	"fmt"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	stellar1 "github.com/keybase/client/go/protocol/stellar1"
@@ -42,7 +43,7 @@ func (e TextPaymentResultTyp) String() string {
 	if v, ok := TextPaymentResultTypRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type TextPaymentResult struct {
@@ -433,7 +434,7 @@ func (e MessageSystemType) String() string {
 	if v, ok := MessageSystemTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type MessageSystemAddedToTeam struct {
@@ -441,6 +442,7 @@ type MessageSystemAddedToTeam struct {
 	Adder          string            `codec:"adder" json:"adder"`
 	Addee          string            `codec:"addee" json:"addee"`
 	Role           keybase1.TeamRole `codec:"role" json:"role"`
+	BulkAdds       []string          `codec:"bulkAdds" json:"bulkAdds"`
 	Owners         []string          `codec:"owners" json:"owners"`
 	Admins         []string          `codec:"admins" json:"admins"`
 	Writers        []string          `codec:"writers" json:"writers"`
@@ -455,6 +457,17 @@ func (o MessageSystemAddedToTeam) DeepCopy() MessageSystemAddedToTeam {
 		Adder: o.Adder,
 		Addee: o.Addee,
 		Role:  o.Role.DeepCopy(),
+		BulkAdds: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.BulkAdds),
 		Owners: (func(x []string) []string {
 			if x == nil {
 				return nil
@@ -1696,7 +1709,7 @@ func (e OutboxStateType) String() string {
 	if v, ok := OutboxStateTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type OutboxErrorType int
@@ -1712,6 +1725,7 @@ const (
 	OutboxErrorType_ALREADY_DELETED OutboxErrorType = 7
 	OutboxErrorType_UPLOADFAILED    OutboxErrorType = 8
 	OutboxErrorType_RESTRICTEDBOT   OutboxErrorType = 9
+	OutboxErrorType_MINWRITER       OutboxErrorType = 10
 )
 
 func (o OutboxErrorType) DeepCopy() OutboxErrorType { return o }
@@ -1727,26 +1741,28 @@ var OutboxErrorTypeMap = map[string]OutboxErrorType{
 	"ALREADY_DELETED": 7,
 	"UPLOADFAILED":    8,
 	"RESTRICTEDBOT":   9,
+	"MINWRITER":       10,
 }
 
 var OutboxErrorTypeRevMap = map[OutboxErrorType]string{
-	0: "MISC",
-	1: "OFFLINE",
-	2: "IDENTIFY",
-	3: "TOOLONG",
-	4: "DUPLICATE",
-	5: "EXPIRED",
-	6: "TOOMANYATTEMPTS",
-	7: "ALREADY_DELETED",
-	8: "UPLOADFAILED",
-	9: "RESTRICTEDBOT",
+	0:  "MISC",
+	1:  "OFFLINE",
+	2:  "IDENTIFY",
+	3:  "TOOLONG",
+	4:  "DUPLICATE",
+	5:  "EXPIRED",
+	6:  "TOOMANYATTEMPTS",
+	7:  "ALREADY_DELETED",
+	8:  "UPLOADFAILED",
+	9:  "RESTRICTEDBOT",
+	10: "MINWRITER",
 }
 
 func (e OutboxErrorType) String() string {
 	if v, ok := OutboxErrorTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type OutboxStateError struct {
@@ -1938,7 +1954,7 @@ func (e HeaderPlaintextVersion) String() string {
 	if v, ok := HeaderPlaintextVersionRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type HeaderPlaintextMetaInfo struct {
@@ -2414,7 +2430,7 @@ func (e BodyPlaintextVersion) String() string {
 	if v, ok := BodyPlaintextVersionRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type BodyPlaintextMetaInfo struct {
@@ -2815,6 +2831,7 @@ type MessageUnboxedValid struct {
 	Reactions             ReactionMap                 `codec:"reactions" json:"reactions"`
 	Unfurls               map[MessageID]UnfurlResult  `codec:"unfurls" json:"unfurls"`
 	ReplyTo               *MessageUnboxed             `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
+	BotUsername           string                      `codec:"botUsername" json:"botUsername"`
 }
 
 func (o MessageUnboxedValid) DeepCopy() MessageUnboxedValid {
@@ -2918,6 +2935,7 @@ func (o MessageUnboxedValid) DeepCopy() MessageUnboxedValid {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.ReplyTo),
+		BotUsername: o.BotUsername,
 	}
 }
 
@@ -2956,7 +2974,7 @@ func (e MessageUnboxedErrorType) String() string {
 	if v, ok := MessageUnboxedErrorTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type MessageUnboxedError struct {
@@ -2975,6 +2993,7 @@ type MessageUnboxedError struct {
 	IsEphemeral        bool                    `codec:"isEphemeral" json:"isEphemeral"`
 	IsEphemeralExpired bool                    `codec:"isEphemeralExpired" json:"isEphemeralExpired"`
 	Etime              gregor1.Time            `codec:"etime" json:"etime"`
+	BotUsername        string                  `codec:"botUsername" json:"botUsername"`
 }
 
 func (o MessageUnboxedError) DeepCopy() MessageUnboxedError {
@@ -2994,6 +3013,7 @@ func (o MessageUnboxedError) DeepCopy() MessageUnboxedError {
 		IsEphemeral:        o.IsEphemeral,
 		IsEphemeralExpired: o.IsEphemeralExpired,
 		Etime:              o.Etime.DeepCopy(),
+		BotUsername:        o.BotUsername,
 	}
 }
 
@@ -3009,12 +3029,73 @@ func (o MessageUnboxedPlaceholder) DeepCopy() MessageUnboxedPlaceholder {
 	}
 }
 
+type JourneycardType int
+
+const (
+	JourneycardType_WELCOME            JourneycardType = 0
+	JourneycardType_POPULAR_CHANNELS   JourneycardType = 1
+	JourneycardType_ADD_PEOPLE         JourneycardType = 2
+	JourneycardType_CREATE_CHANNELS    JourneycardType = 3
+	JourneycardType_MSG_ATTENTION      JourneycardType = 4
+	JourneycardType_USER_AWAY_FOR_LONG JourneycardType = 5
+	JourneycardType_CHANNEL_INACTIVE   JourneycardType = 6
+	JourneycardType_MSG_NO_ANSWER      JourneycardType = 7
+)
+
+func (o JourneycardType) DeepCopy() JourneycardType { return o }
+
+var JourneycardTypeMap = map[string]JourneycardType{
+	"WELCOME":            0,
+	"POPULAR_CHANNELS":   1,
+	"ADD_PEOPLE":         2,
+	"CREATE_CHANNELS":    3,
+	"MSG_ATTENTION":      4,
+	"USER_AWAY_FOR_LONG": 5,
+	"CHANNEL_INACTIVE":   6,
+	"MSG_NO_ANSWER":      7,
+}
+
+var JourneycardTypeRevMap = map[JourneycardType]string{
+	0: "WELCOME",
+	1: "POPULAR_CHANNELS",
+	2: "ADD_PEOPLE",
+	3: "CREATE_CHANNELS",
+	4: "MSG_ATTENTION",
+	5: "USER_AWAY_FOR_LONG",
+	6: "CHANNEL_INACTIVE",
+	7: "MSG_NO_ANSWER",
+}
+
+func (e JourneycardType) String() string {
+	if v, ok := JourneycardTypeRevMap[e]; ok {
+		return v
+	}
+	return fmt.Sprintf("%v", int(e))
+}
+
+type MessageUnboxedJourneycard struct {
+	PrevID         MessageID       `codec:"prevID" json:"prevID"`
+	Ordinal        int             `codec:"ordinal" json:"ordinal"`
+	CardType       JourneycardType `codec:"cardType" json:"cardType"`
+	HighlightMsgID MessageID       `codec:"highlightMsgID" json:"highlightMsgID"`
+}
+
+func (o MessageUnboxedJourneycard) DeepCopy() MessageUnboxedJourneycard {
+	return MessageUnboxedJourneycard{
+		PrevID:         o.PrevID.DeepCopy(),
+		Ordinal:        o.Ordinal,
+		CardType:       o.CardType.DeepCopy(),
+		HighlightMsgID: o.HighlightMsgID.DeepCopy(),
+	}
+}
+
 type MessageUnboxed struct {
 	State__       MessageUnboxedState        `codec:"state" json:"state"`
 	Valid__       *MessageUnboxedValid       `codec:"valid,omitempty" json:"valid,omitempty"`
 	Error__       *MessageUnboxedError       `codec:"error,omitempty" json:"error,omitempty"`
 	Outbox__      *OutboxRecord              `codec:"outbox,omitempty" json:"outbox,omitempty"`
 	Placeholder__ *MessageUnboxedPlaceholder `codec:"placeholder,omitempty" json:"placeholder,omitempty"`
+	Journeycard__ *MessageUnboxedJourneycard `codec:"journeycard,omitempty" json:"journeycard,omitempty"`
 }
 
 func (o *MessageUnboxed) State() (ret MessageUnboxedState, err error) {
@@ -3037,6 +3118,11 @@ func (o *MessageUnboxed) State() (ret MessageUnboxedState, err error) {
 	case MessageUnboxedState_PLACEHOLDER:
 		if o.Placeholder__ == nil {
 			err = errors.New("unexpected nil value for Placeholder__")
+			return ret, err
+		}
+	case MessageUnboxedState_JOURNEYCARD:
+		if o.Journeycard__ == nil {
+			err = errors.New("unexpected nil value for Journeycard__")
 			return ret, err
 		}
 	}
@@ -3083,6 +3169,16 @@ func (o MessageUnboxed) Placeholder() (res MessageUnboxedPlaceholder) {
 	return *o.Placeholder__
 }
 
+func (o MessageUnboxed) Journeycard() (res MessageUnboxedJourneycard) {
+	if o.State__ != MessageUnboxedState_JOURNEYCARD {
+		panic("wrong case accessed")
+	}
+	if o.Journeycard__ == nil {
+		return
+	}
+	return *o.Journeycard__
+}
+
 func NewMessageUnboxedWithValid(v MessageUnboxedValid) MessageUnboxed {
 	return MessageUnboxed{
 		State__: MessageUnboxedState_VALID,
@@ -3108,6 +3204,13 @@ func NewMessageUnboxedWithPlaceholder(v MessageUnboxedPlaceholder) MessageUnboxe
 	return MessageUnboxed{
 		State__:       MessageUnboxedState_PLACEHOLDER,
 		Placeholder__: &v,
+	}
+}
+
+func NewMessageUnboxedWithJourneycard(v MessageUnboxedJourneycard) MessageUnboxed {
+	return MessageUnboxed{
+		State__:       MessageUnboxedState_JOURNEYCARD,
+		Journeycard__: &v,
 	}
 }
 
@@ -3142,6 +3245,13 @@ func (o MessageUnboxed) DeepCopy() MessageUnboxed {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Placeholder__),
+		Journeycard__: (func(x *MessageUnboxedJourneycard) *MessageUnboxedJourneycard {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Journeycard__),
 	}
 }
 
@@ -3327,7 +3437,7 @@ func (e ConversationErrorType) String() string {
 	if v, ok := ConversationErrorTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type ConversationErrorLocal struct {
@@ -3639,7 +3749,7 @@ func (e MessageIDControlMode) String() string {
 	if v, ok := MessageIDControlModeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type MessageIDControl struct {
@@ -3773,7 +3883,7 @@ func (e GetThreadNonblockCbMode) String() string {
 	if v, ok := GetThreadNonblockCbModeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type GetThreadNonblockPgMode int
@@ -3799,7 +3909,7 @@ func (e GetThreadNonblockPgMode) String() string {
 	if v, ok := GetThreadNonblockPgModeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type UnreadlineRes struct {
@@ -4101,7 +4211,7 @@ func (e InboxLayoutReselectMode) String() string {
 	if v, ok := InboxLayoutReselectModeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type PostLocalRes struct {
@@ -4645,7 +4755,7 @@ func (e PreviewLocationTyp) String() string {
 	if v, ok := PreviewLocationTypRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type PreviewLocation struct {
@@ -5267,7 +5377,7 @@ func (e UnfurlPromptAction) String() string {
 	if v, ok := UnfurlPromptActionRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type UnfurlPromptResult struct {
@@ -5390,7 +5500,7 @@ func (e GalleryItemTyp) String() string {
 	if v, ok := GalleryItemTypRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type LoadGalleryRes struct {
@@ -5652,6 +5762,18 @@ func (o PinMessageRes) DeepCopy() PinMessageRes {
 			}
 			return ret
 		})(o.RateLimits),
+	}
+}
+
+type LocalMtimeUpdate struct {
+	ConvID ConversationID `codec:"convID" json:"convID"`
+	Mtime  gregor1.Time   `codec:"mtime" json:"mtime"`
+}
+
+func (o LocalMtimeUpdate) DeepCopy() LocalMtimeUpdate {
+	return LocalMtimeUpdate{
+		ConvID: o.ConvID.DeepCopy(),
+		Mtime:  o.Mtime.DeepCopy(),
 	}
 }
 
@@ -5919,6 +6041,11 @@ type MakePreviewArg struct {
 	SessionID int      `codec:"sessionID" json:"sessionID"`
 	Filename  string   `codec:"filename" json:"filename"`
 	OutboxID  OutboxID `codec:"outboxID" json:"outboxID"`
+}
+
+type MakeAudioPreviewArg struct {
+	Amps     []float64 `codec:"amps" json:"amps"`
+	Duration int       `codec:"duration" json:"duration"`
 }
 
 type GetUploadTempFileArg struct {
@@ -6245,6 +6372,7 @@ type LocalInterface interface {
 	DownloadFileAttachmentLocal(context.Context, DownloadFileAttachmentLocalArg) (DownloadFileAttachmentLocalRes, error)
 	ConfigureFileAttachmentDownloadLocal(context.Context, ConfigureFileAttachmentDownloadLocalArg) error
 	MakePreview(context.Context, MakePreviewArg) (MakePreviewRes, error)
+	MakeAudioPreview(context.Context, MakeAudioPreviewArg) (MakePreviewRes, error)
 	GetUploadTempFile(context.Context, GetUploadTempFileArg) (string, error)
 	MakeUploadTempFile(context.Context, MakeUploadTempFileArg) (string, error)
 	CancelPost(context.Context, OutboxID) error
@@ -6822,6 +6950,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.MakePreview(ctx, typedArgs[0])
+					return
+				},
+			},
+			"makeAudioPreview": {
+				MakeArg: func() interface{} {
+					var ret [1]MakeAudioPreviewArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]MakeAudioPreviewArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]MakeAudioPreviewArg)(nil), args)
+						return
+					}
+					ret, err = i.MakeAudioPreview(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -7784,6 +7927,11 @@ func (c LocalClient) ConfigureFileAttachmentDownloadLocal(ctx context.Context, _
 
 func (c LocalClient) MakePreview(ctx context.Context, __arg MakePreviewArg) (res MakePreviewRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.makePreview", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) MakeAudioPreview(ctx context.Context, __arg MakeAudioPreviewArg) (res MakePreviewRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.makeAudioPreview", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 

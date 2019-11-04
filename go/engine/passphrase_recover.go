@@ -43,7 +43,6 @@ func (e *PassphraseRecover) Prereqs() Prereqs {
 func (e *PassphraseRecover) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
 		libkb.LoginUIKind,
-		libkb.ProvisionUIKind,
 		libkb.SecretUIKind,
 	}
 }
@@ -71,18 +70,6 @@ func (e *PassphraseRecover) Run(mctx libkb.MetaContext) (err error) {
 	// Look up the passed username against the list of configured users
 	if err := e.processUsername(mctx); err != nil {
 		return err
-	}
-
-	// If the reset pipeline is not enabled, we'll want this to act exactly the same way as before
-	// Autoreset hardcoded on for now.
-	// TODO: Y2K-3 cleanup for autoreset.
-	autoresetEnabled := true
-	if !autoresetEnabled {
-		// The device has to be preprovisioned for this account in this flow
-		if !e.usernameFound {
-			return libkb.NotProvisionedError{}
-		}
-		return e.legacyRecovery(mctx)
 	}
 
 	// In the new flow we noop if we're already logged in
@@ -139,15 +126,6 @@ func (e *PassphraseRecover) processUsername(mctx libkb.MetaContext) error {
 	return nil
 }
 
-// TODO CORE-10851: Remove
-func (e *PassphraseRecover) legacyRecovery(mctx libkb.MetaContext) (err error) {
-	if loggedIn, _ := isLoggedIn(mctx); loggedIn {
-		return e.changePassword(mctx)
-	}
-
-	return e.loginWithPaperKey(mctx)
-}
-
 func (e *PassphraseRecover) chooseDevice(mctx libkb.MetaContext, ckf *libkb.ComputedKeyFamily) (err error) {
 	defer mctx.Trace("PassphraseRecover#chooseDevice", func() error { return err })()
 
@@ -157,18 +135,17 @@ func (e *PassphraseRecover) chooseDevice(mctx libkb.MetaContext, ckf *libkb.Comp
 
 	// Choose an existing device
 	expDevices := make([]keybase1.Device, 0, len(devices))
-	idMap := make(map[keybase1.DeviceID]*libkb.Device)
+	idMap := make(map[keybase1.DeviceID]libkb.DeviceWithDeviceNumber)
 	for _, d := range devices {
 		// Don't show paper keys if the user has not provisioned on this device
 		if !e.usernameFound && d.Type == libkb.DeviceTypePaper {
 			continue
 		}
-		expDevices = append(expDevices, *d.ProtExport())
+		expDevices = append(expDevices, *d.ProtExportWithDeviceNum())
 		idMap[d.ID] = d
 	}
-	id, err := mctx.UIs().ProvisionUI.ChooseDevice(mctx.Ctx(), keybase1.ChooseDeviceArg{
-		Devices:           expDevices,
-		CanSelectNoDevice: true,
+	id, err := mctx.UIs().LoginUI.ChooseDeviceToRecoverWith(mctx.Ctx(), keybase1.ChooseDeviceToRecoverWithArg{
+		Devices: expDevices,
 	})
 	if err != nil {
 		return err
@@ -205,7 +182,7 @@ func (e *PassphraseRecover) resetPassword(mctx libkb.MetaContext) (err error) {
 	if err != nil {
 		return err
 	}
-	if !enterReset {
+	if enterReset != keybase1.ResetPromptResponse_CONFIRM_RESET {
 		// Flow cancelled
 		return nil
 	}
@@ -225,7 +202,12 @@ func (e *PassphraseRecover) resetPassword(mctx libkb.MetaContext) (err error) {
 	if res.AppStatus.Code == libkb.SCBadLoginUserNotFound {
 		return libkb.NotFoundError{Msg: "User not found"}
 	}
-	mctx.Info("A reset link has been sent to primary email")
+	// done
+	if err := mctx.UIs().LoginUI.DisplayResetMessage(mctx.Ctx(), keybase1.DisplayResetMessageArg{
+		Kind: keybase1.ResetMessage_RESET_LINK_SENT,
+	}); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -236,8 +218,8 @@ func (e *PassphraseRecover) suggestReset(mctx libkb.MetaContext) (err error) {
 	if err != nil {
 		return err
 	}
-	if !enterReset {
-		// Cancel the engine as it successfully resulted in the user entering the reset pipeline.
+	if enterReset != keybase1.ResetPromptResponse_CONFIRM_RESET {
+		// Cancel the engine as the user elected not to reset their account
 		return nil
 	}
 
@@ -291,7 +273,6 @@ func (e *PassphraseRecover) changePassword(mctx libkb.MetaContext) (err error) {
 			return err
 		}
 		if !proceed {
-			mctx.Info("Password recovery canceled")
 			return libkb.NewCanceledError("Password recovery canceled")
 		}
 	}
@@ -317,7 +298,7 @@ func (e *PassphraseRecover) changePassword(mctx libkb.MetaContext) (err error) {
 	return nil
 }
 
-func (e *PassphraseRecover) explainChange(mctx libkb.MetaContext, device *libkb.Device) (err error) {
+func (e *PassphraseRecover) explainChange(mctx libkb.MetaContext, device libkb.DeviceWithDeviceNumber) (err error) {
 	var name string
 	if device.Description != nil {
 		name = *device.Description

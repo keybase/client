@@ -34,7 +34,7 @@ const cancelReset = async () => {
 
 const startAccountReset = (state: Container.TypedState, action: AutoresetGen.StartAccountResetPayload) => [
   AutoresetGen.createSetUsername({username: action.payload.username || state.recoverPassword.username}),
-  RouteTreeGen.createNavigateAppend({path: ['recoverPasswordPromptReset'], replace: true}),
+  RouteTreeGen.createNavigateAppend({path: ['recoverPasswordPromptResetAccount'], replace: true}),
 ]
 
 const finishedReset = (state: Container.TypedState) =>
@@ -54,7 +54,11 @@ function promptReset(
         RecoverPasswordGen.submitResetPrompt
       )
       response.result(action.payload.action)
-      yield Saga.put(AutoresetGen.createFinishedReset())
+      if (action.payload.action === RPCGen.ResetPromptResponse.confirmReset) {
+        yield Saga.put(AutoresetGen.createFinishedReset())
+      } else {
+        yield Saga.put(RouteTreeGen.createNavUpToScreen({routeName: 'login'}))
+      }
     } else {
       logger.info('Starting account reset process')
       yield Saga.put(AutoresetGen.createStartAccountReset({skipPassword: true}))

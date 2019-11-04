@@ -55,6 +55,7 @@ protocol chatUi {
     array<UIInboxSmallTeamRow> smallTeams;
     array<UIInboxBigTeamRow> bigTeams;
     union { null, UIInboxReselectInfo } reselectInfo;
+    array<UIInboxSmallTeamRow> widgetList;
   }
 
   record UnverifiedInboxUIItemMetadata {
@@ -69,6 +70,7 @@ protocol chatUi {
 
   record UnverifiedInboxUIItem {
     string convID;
+    string tlfID;
     TopicType topicType;
     boolean isPublic;
     string name;
@@ -124,6 +126,7 @@ protocol chatUi {
 
   record InboxUIItem {
     string convID;
+    string tlfID;
     TopicType topicType;
     boolean isPublic;
     boolean isEmpty;
@@ -265,8 +268,8 @@ protocol chatUi {
     boolean isEditable;
     union { null, UIMessage } replyTo;
     union { null, MessageID} pinnedMessageID;
-    // TODO HOTPOT-330 convert to bot username
-    union { null, gregor1.UID } botUID;
+    // Non-empty if this message is keyed for a bot
+    string botUsername;
   }
 
   record UIMessageOutbox {
@@ -287,11 +290,18 @@ protocol chatUi {
     union { null, MakePreviewRes } preview;
   }
 
+  record UIMessageJourneycard {
+    double ordinal; // Position in conversation. A float like {msgID:4,offset:1} -> "4.001"
+    JourneycardType cardType;
+    MessageID highlightMsgID; // Message ID to highlight in MSG_ATTENTION
+  }
+
   enum MessageUnboxedState {
     VALID_1,
     ERROR_2,
     OUTBOX_3,
-    PLACEHOLDER_4
+    PLACEHOLDER_4,
+    JOURNEYCARD_5
   }
 
   variant UIMessage switch (MessageUnboxedState state) {
@@ -299,6 +309,7 @@ protocol chatUi {
     case ERROR: MessageUnboxedError;
     case OUTBOX: UIMessageOutbox;
     case PLACEHOLDER: MessageUnboxedPlaceholder;
+    case JOURNEYCARD: UIMessageJourneycard;
   }
 
   record UIMessages {
@@ -335,6 +346,7 @@ protocol chatUi {
   record UILinkDecoration {
     string display;
     string url;
+    string punycode;
   }
 
   variant UIMaybeMentionInfo switch (UIMaybeMentionStatus status) {
@@ -358,9 +370,9 @@ protocol chatUi {
   void chatAttachmentDownloadProgress(int sessionID, long bytesComplete, long bytesTotal) oneway;
   void chatAttachmentDownloadDone(int sessionID);
 
-  void chatInboxLayout(int sessionID, string layout);
-  void chatInboxUnverified(int sessionID, string inbox);
-  void chatInboxConversation(int sessionID, string convs);
+  void chatInboxLayout(int sessionID, string layout); // layout is JSON of UIInboxLayout
+  void chatInboxUnverified(int sessionID, string inbox); // inbox is JSON of array<UnverifiedInboxUIItems>
+  void chatInboxConversation(int sessionID, string convs); // convs is JSON of array<InboxUIItem>
   void chatInboxFailed(int sessionID, ConversationID convID, InboxUIItemError error);
 
   enum UIChatThreadStatusTyp {
@@ -375,7 +387,7 @@ protocol chatUi {
     case VALIDATING: int;
     case VALIDATED: void;
   }
-  void chatThreadCached(int sessionID, union { null, string } thread);
+  void chatThreadCached(int sessionID, union { null, string } thread); // thread is JSON of UIMessages
   void chatThreadFull(int sessionID, string thread);
   void chatThreadStatus(int sessionID, UIChatThreadStatus status);
 

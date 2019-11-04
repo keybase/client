@@ -5,6 +5,7 @@ import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import {appendNewTeamBuilder} from '../../../../actions/typed-routes'
 import {teamsTab} from '../../../../constants/tabs'
 import openURL from '../../../../util/open-url'
+import * as Styles from '../../../../styles'
 
 type OwnProps = {
   attachTo?: () => React.Component<any> | null
@@ -21,9 +22,10 @@ export default Container.connect(
         dispatch(appendNewTeamBuilder(teamname))
       },
       onInvite: () => {
+        const selected = Styles.isMobile ? 'teamInviteByContact' : 'teamInviteByEmail'
         dispatch(
           RouteTreeGen.createNavigateAppend({
-            path: [{props: {teamname}, selected: 'team'}, {props: {teamname}, selected: 'teamInviteByEmail'}],
+            path: [{props: {teamname}, selected: 'team'}, {props: {teamname}, selected}],
           })
         )
         dispatch(RouteTreeGen.createNavigateAppend({path: [teamsTab]}))

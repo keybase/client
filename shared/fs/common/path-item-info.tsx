@@ -20,33 +20,36 @@ type Props = {
 const getNumberOfFilesAndFolders = (
   pathItems: Types.PathItems,
   path: Types.Path
-): {folders: number; files: number} => {
+): {folders: number; files: number; loaded: boolean} => {
   const pathItem = pathItems.get(path, Constants.unknownPathItem)
   return pathItem.type === Types.PathType.Folder
     ? pathItem.children.reduce(
-        ({folders, files}, p) => {
+        ({folders, files, loaded}, p) => {
           const item = pathItems.get(Types.pathConcat(path, p), Constants.unknownPathItem)
           const isFolder = item.type === Types.PathType.Folder
           const isFile = item.type !== Types.PathType.Folder && item !== Constants.unknownPathItem
           return {
             files: files + (isFile ? 1 : 0),
             folders: folders + (isFolder ? 1 : 0),
+            loaded,
           }
         },
-        {files: 0, folders: 0}
+        {files: 0, folders: 0, loaded: pathItem.progress === Types.ProgressType.Loaded}
       )
-    : {files: 0, folders: 0}
+    : {files: 0, folders: 0, loaded: false}
 }
 
 const FilesAndFoldersCount = (props: Props) => {
   useFsChildren(props.path)
   const pathItems = Container.useSelector(state => state.fs.pathItems)
-  const {files, folders} = getNumberOfFilesAndFolders(pathItems, props.path)
-  return (
+  const {files, folders, loaded} = getNumberOfFilesAndFolders(pathItems, props.path)
+  return loaded ? (
     <Kb.Text type="BodySmall">
       {folders ? `${folders} ${pluralize('Folder')}${files ? ', ' : ''}` : undefined}
       {files ? `${files} ${pluralize('File')}` : undefined}
     </Kb.Text>
+  ) : (
+    <Kb.ProgressIndicator />
   )
 }
 
@@ -110,7 +113,9 @@ const PathItemInfo = (props: Props) => {
         {pathItem.type === Types.PathType.File && (
           <Kb.Text type="BodySmall">{Constants.humanReadableFileSize(pathItem.size)}</Kb.Text>
         )}
-        {pathItem.type === Types.PathType.Folder && <FilesAndFoldersCount {...props} />}
+        {Constants.isInTlf(props.path) && Constants.isFolder(props.path, pathItem) && (
+          <FilesAndFoldersCount {...props} />
+        )}
         {getTlfInfoLineOrLastModifiedLine(props.path)}
       </Kb.Box2>
     </>
