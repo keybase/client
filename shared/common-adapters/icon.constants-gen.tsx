@@ -1576,13 +1576,7 @@ const iconMeta_ = {
       return require('../images/icons/icon-dark-fancy-encrypted-computer-mobile-226-96.png')
     },
   },
-  'icon-dark-fancy-encrypted-location-phone-desktop-150-72': {
-    extension: 'png',
-    isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-fancy-encrypted-location-phone-desktop-150-72.png')
-    },
-  },
+
   'icon-dark-fancy-encrypted-phone-mobile-226-96': {
     extension: 'png',
     isFont: false,
