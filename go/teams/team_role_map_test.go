@@ -29,7 +29,7 @@ func TestTeamRoleMap(t *testing.T) {
 
 	expected := keybase1.TeamRoleMapAndVersion{
 		Teams:   make(map[keybase1.TeamID]keybase1.TeamRolePair),
-		Version: keybase1.UserTeamVersion(1),
+		Version: keybase1.UserTeamVersion(2),
 	}
 	expected.Teams[teamID] = keybase1.TeamRolePair{
 		Role:         keybase1.TeamRole_ADMIN,
