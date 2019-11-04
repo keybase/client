@@ -1,4 +1,4 @@
-#include "TestBinding.h"
+#include "Binding.h"
 
 #include <dlfcn.h>
 // #include <forandroid.h>
@@ -7,6 +7,13 @@
 #include <jsi/JSIDynamic.h>
 #include <chrono>  // std::chrono::seconds
 #include <thread>
+#if __i386__
+#include <keybaselib-386.h>
+#elif __arm__
+#include <keybaselib-arm.h>
+#else
+#include <keybaselib-arm64.h>
+#endif
 
 // #ifndef __ANDROID_API__
 // #define __ANDROID_API__ 29
@@ -25,27 +32,25 @@ struct EventHandlerWrapper {
 extern "C" {
 JNIEXPORT void JNICALL Java_io_keybase_ossifrage_MainActivity_install(
     JNIEnv *env, jobject thiz, jlong runtimePtr) {
-  auto testBinding = std::make_shared<example::TestBinding>();
+  auto binding = std::make_shared<example::Binding>();
   jsi::Runtime *runtime = (jsi::Runtime *)runtimePtr;
 
-  example::TestBinding::install(*runtime, testBinding);
+  example::Binding::install(*runtime, binding);
 }
 }
 #endif
 
 namespace example {
 
-void TestBinding::install(jsi::Runtime &runtime,
-                          std::shared_ptr<TestBinding> testBinding) {
+void Binding::install(jsi::Runtime &runtime, std::shared_ptr<Binding> binding) {
   auto testModuleName = "nativeTest";
-  auto object = jsi::Object::createFromHostObject(runtime, testBinding);
+  auto object = jsi::Object::createFromHostObject(runtime, binding);
   runtime.global().setProperty(runtime, testModuleName, std::move(object));
 }
 
-TestBinding::TestBinding() {}
+Binding::Binding() {}
 
-jsi::Value TestBinding::get(jsi::Runtime &runtime,
-                            const jsi::PropNameID &name) {
+jsi::Value Binding::get(jsi::Runtime &runtime, const jsi::PropNameID &name) {
   auto methodName = name.utf8(runtime);
 
   if (methodName == "traceBeginSection") {
@@ -107,6 +112,14 @@ jsi::Value TestBinding::get(jsi::Runtime &runtime,
                               std::to_string(ms.count()).c_str());
           return 0;
         });
+  }
+
+  if (methodName == "testNum") {
+    return jsi::Function::createFromHostFunction(
+        runtime, name, 0,
+        [](jsi::Runtime &runtime, const jsi::Value &thisValue,
+           const jsi::Value *arguments,
+           size_t count) -> jsi::Value { return 123; });
   }
 
   if (methodName == "runTest") {

@@ -3,6 +3,7 @@
 
 package keybase
 
+import "C"
 import (
 	"encoding/base64"
 	"errors"
@@ -647,4 +648,31 @@ func startTrace(logFile string) {
 		time.Sleep(5 * time.Second)
 		fmt.Printf("Go: trace stopped\n")
 	}()
+}
+
+// WriteB64FromC is a wrapper for WriteB64
+//export WriteB64FromC
+func WriteB64FromC(str *C.char) *C.char {
+	var goStr = C.GoString(str)
+	var err = WriteB64(goStr)
+	if err != nil {
+		return C.CString(fmt.Sprintf("Read error: %s", err))
+	}
+	return C.CString("")
+}
+
+// ReadB64ForC is a wrapper. Returns a c_string
+//export ReadB64ForC
+func ReadB64ForC() (res *C.char, err *C.char) {
+	var goRes, goErr = ReadB64()
+	if err != nil {
+		return C.CString(""), C.CString(fmt.Sprintf("Read error: %s", goErr))
+	}
+	return C.CString(goRes), C.CString("")
+}
+
+// TestNum to test jsi
+//export TestNum
+func TestNum() int {
+	return 1337
 }

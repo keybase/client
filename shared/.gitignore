@@ -8,6 +8,7 @@ android/**/build/
 android/dist
 android/**/*.iml
 android/**/*.externalNativeBuild
+android/keybaselib/c-headers/**
 android/**/.classpath
 android/**/.project
 android/**/.settings/**

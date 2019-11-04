@@ -23,16 +23,15 @@ namespace example {
 /*
  * Exposes Test to JavaScript realm.
  */
-class TestBinding : public jsi::HostObject {
+class Binding : public jsi::HostObject {
  public:
   /*
-   * Installs TestBinding into JavaSctipt runtime.
+   * Installs Binding into JavaSctipt runtime.
    * Thread synchronization must be enforced externally.
    */
-  static void install(jsi::Runtime &runtime,
-                      std::shared_ptr<TestBinding> testBinding);
+  static void install(jsi::Runtime &runtime, std::shared_ptr<Binding> binding);
 
-  TestBinding();
+  Binding();
 
   /*
    * `jsi::HostObject` specific overloads.

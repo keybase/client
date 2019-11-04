@@ -7,6 +7,11 @@ cd $dir
 
 arg=${1:-}
 
+# Build C-Headers from the keybaselib for JSI
+if [[ "$arg" == "android" ]]; then
+  (cd ../android/keybaselib && ./build-c-headers.sh)
+fi
+
 if [[ "$arg" != "ios" && "$arg" != "android" ]]; then
   echo "Nothing to build, you need to specify 'ios' or 'android'"
   exit 1

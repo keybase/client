@@ -29,6 +29,7 @@ include_directories(
     ../../node_modules/react-native/third-party/boost_1_63_0
     ../../node_modules/react-native/third-party/glog-0.3.5/src
     ../../node_modules/react-native/ReactCommon/jsi
+    ../keybaselib/c-headers
 )
 
 add_definitions(
@@ -38,7 +39,7 @@ add_definitions(
 )
 
 add_library( # Sets the name of the library.
-        test_module_jni
+        keybase_jsi
 
         # Sets the library as a shared library.
         SHARED
@@ -46,9 +47,10 @@ add_library( # Sets the name of the library.
         # Provides a relative path to your source file(s).
         ../../node_modules/react-native/ReactCommon/jsi/jsi
         ../../node_modules/react-native/ReactCommon/jsi/jsi/jsi.cpp
-        ../c++/TestBinding.cpp
+        ../c++/Binding.cpp
         )
 
-target_link_libraries(test_module_jni
+target_link_libraries(keybase_jsi
                       android
+                     "${PROJECT_SOURCE_DIR}/build/exploded-aar/jni/${ANDROID_ABI}/libgojni.so"
                       log)

@@ -58,7 +58,7 @@ import static keybase.Keybase.initOnce;
 public class MainActivity extends ReactFragmentActivity implements ReactInstanceManager.ReactInstanceEventListener {
   static {
     // Load our jni
-    System.loadLibrary("test_module_jni");
+    System.loadLibrary("keybase_jsi");
   }
 
   @Override
