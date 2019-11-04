@@ -56,24 +56,12 @@ func GetAnnotatedTeam(ctx context.Context, g *libkb.GlobalContext, id keybase1.T
 	}
 
 	var members []keybase1.TeamMemberDetails
-	for _, u := range det.Members.Owners {
-		members = append(members, u)
-	}
-	for _, u := range det.Members.Admins {
-		members = append(members, u)
-	}
-	for _, u := range det.Members.Writers {
-		members = append(members, u)
-	}
-	for _, u := range det.Members.Readers {
-		members = append(members, u)
-	}
-	for _, u := range det.Members.Bots {
-		members = append(members, u)
-	}
-	for _, u := range det.Members.RestrictedBots {
-		members = append(members, u)
-	}
+	members = append(members, det.Members.Owners...)
+	members = append(members, det.Members.Admins...)
+	members = append(members, det.Members.Writers...)
+	members = append(members, det.Members.Readers...)
+	members = append(members, det.Members.Bots...)
+	members = append(members, det.Members.RestrictedBots...)
 
 	var invites []keybase1.AnnotatedTeamInvite
 	for _, invite := range det.AnnotatedActiveInvites {
