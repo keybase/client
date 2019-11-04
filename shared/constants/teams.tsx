@@ -333,15 +333,6 @@ export const getChannelInfoFromConvID = (
 export const getRole = (state: TypedState, teamname: Types.Teamname): Types.MaybeTeamRoleType =>
   state.teams.teamNameToRole.get(teamname, 'none')
 
-export const getCanPerform = (state: TypedState, teamname: Types.Teamname): Types.TeamOperations =>
-  state.teams.teamNameToCanPerform.get(teamname, initialCanUserPerform)
-
-export const hasCanPerform = (state: TypedState, teamname: Types.Teamname): boolean =>
-  state.teams.teamNameToCanPerform.has(teamname)
-
-export const getCanPerformByID = (state: TypedState, teamID: Types.TeamID): Types.TeamOperations =>
-  state.teams.canPerform.get(teamID) || initialCanUserPerform
-
 export const hasChannelInfos = (state: TypedState, teamname: Types.Teamname): boolean =>
   state.teams.teamNameToChannelInfos.has(teamname)
 
@@ -700,3 +691,58 @@ export const annotatedInvitesToInviteInfo = (
 
 export const getTeamDetails = (state: TypedState, teamID: Types.TeamID) =>
   state.teams.teamDetails.get(teamID) || emptyTeamDetails
+
+const cache: {[key: string]: Types.TeamOperations} = {}
+const cacheKey = (t: Types.TeamRoleAndDetails) => t.role + t.implicitAdmin
+const deriveCanPerform = (roleAndDetails?: Types.TeamRoleAndDetails): Types.TeamOperations => {
+  if (!roleAndDetails) {
+    // probably never happens
+    return initialCanUserPerform
+  }
+
+  const ck = cacheKey(roleAndDetails)
+  if (cache[ck]) return cache[ck]
+
+  const {role, implicitAdmin} = roleAndDetails
+  const isAdminOrAbove = role === 'admin' || role === 'owner'
+  const isWriterOrAbove = role === 'writer' || isAdminOrAbove
+  const isBotOrAbove = role === 'bot' || role === 'reader' || isWriterOrAbove
+
+  const canPerform = {
+    listFirst: implicitAdmin,
+    joinTeam: role === 'none' && implicitAdmin,
+    setPublicityAny: isAdminOrAbove || implicitAdmin,
+    manageMembers: isAdminOrAbove || implicitAdmin,
+    manageSubteams: isAdminOrAbove || implicitAdmin,
+    renameTeam: implicitAdmin,
+    setTeamShowcase: isAdminOrAbove,
+    changeOpenTeam: isAdminOrAbove || implicitAdmin,
+    changeTarsDisabled: isAdminOrAbove || implicitAdmin,
+    editTeamDescription: isAdminOrAbove || implicitAdmin,
+    setMemberShowcase: false, // TODO remove, depends on team publicity settings
+    deleteTeam: role === 'owner' || implicitAdmin, // role = owner for root teams, otherwise implicitAdmin
+    leaveTeam: false, // TODO remove, depends on whether has other owner
+    chat: isBotOrAbove,
+    createChannel: isWriterOrAbove,
+    renameChannel: isWriterOrAbove,
+    editChannelDescription: isWriterOrAbove,
+    deleteChannel: isAdminOrAbove,
+    setRetentionPolicy: isAdminOrAbove,
+    setMinWriterRole: isAdminOrAbove,
+    deleteChatHistory: isAdminOrAbove,
+    deleteOtherMessages: isAdminOrAbove,
+    pinMessage: isWriterOrAbove,
+  }
+  cache[ck] = canPerform
+  return canPerform
+}
+
+export const getCanPerform = (state: TypedState, teamname: Types.Teamname): Types.TeamOperations =>
+  getCanPerformByID(state, getTeamID(state, teamname))
+
+export const getCanPerformByID = (state: TypedState, teamID: Types.TeamID): Types.TeamOperations =>
+  deriveCanPerform(state.teams.teamRoleMap.roles.get(teamID))
+
+// TODO remove, we always have it 🎉
+export const hasCanPerform = (state: TypedState, teamname: Types.Teamname): boolean =>
+  state.teams.teamNameToCanPerform.has(teamname)

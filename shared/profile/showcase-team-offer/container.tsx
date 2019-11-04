@@ -13,7 +13,6 @@ type OwnProps = {}
 const mapStateToProps = (state: Container.TypedState) => {
   return {
     _teamNameToAllowPromote: state.teams.teamNameToAllowPromote || I.Map(),
-    _teamNameToCanPerform: state.teams.teamNameToCanPerform || I.Map(),
     _teamNameToIsOpen: state.teams.teamNameToIsOpen || I.Map(),
     _teamNameToIsShowcasing: state.teams.teamNameToIsShowcasing || I.Map(),
     _teamNameToPublicitySettings: state.teams.teamNameToPublicitySettings || I.Map(),
