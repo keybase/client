@@ -118,8 +118,10 @@ jsi::Value Binding::get(jsi::Runtime &runtime, const jsi::PropNameID &name) {
     return jsi::Function::createFromHostFunction(
         runtime, name, 0,
         [](jsi::Runtime &runtime, const jsi::Value &thisValue,
-           const jsi::Value *arguments,
-           size_t count) -> jsi::Value { return 123; });
+           const jsi::Value *arguments, size_t count) -> jsi::Value {
+          int num = TestNum();
+          return jsi::Value(num);
+        });
   }
 
   if (methodName == "runTest") {

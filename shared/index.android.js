@@ -2,6 +2,7 @@
 // React-native tooling assumes this file is here, so we just require our real entry point
 
 if (global.nativeTest) {
+  console.log('From Go:', global.nativeTest.testNum())
   global.nativeTest.timeMarker('User Code JS')
 }
 
