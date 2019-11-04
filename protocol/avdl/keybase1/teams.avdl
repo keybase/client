@@ -1424,4 +1424,20 @@ protocol teams {
     UserTeamVersion version;
   }
 
+  record AnnotatedTeam {
+    TeamID teamID;
+    string name;
+    SubteamListResult transitiveSubteamsUnverified;
+
+    array<TeamMemberDetails> members;
+    array<AnnotatedTeamInvite> invites;
+    array<TeamJoinRequest> joinRequests;
+
+    boolean userIsShowcasing;
+    boolean tarsDisabled;
+    TeamSettings settings;
+    TeamShowcase showcase;
+  }
+
+  AnnotatedTeam getAnnotatedTeam(TeamID teamID);
 }

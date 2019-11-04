@@ -1576,13 +1576,7 @@ const iconMeta_ = {
       return require('../images/icons/icon-dark-fancy-encrypted-computer-mobile-226-96.png')
     },
   },
-  'icon-dark-fancy-encrypted-location-phone-desktop-150-72': {
-    extension: 'png',
-    isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-fancy-encrypted-location-phone-desktop-150-72.png')
-    },
-  },
+
   'icon-dark-fancy-encrypted-phone-mobile-226-96': {
     extension: 'png',
     isFont: false,
@@ -3245,17 +3239,6 @@ const iconMeta_ = {
       return require('../images/icons/icon-dark-fancy-encrypted-computer-mobile-226-96.png')
     },
   },
-  'icon-fancy-encrypted-location-phone-desktop-150-72': {
-    extension: 'png',
-    isFont: false,
-    nameDark: 'icon-dark-fancy-encrypted-location-phone-desktop-150-72',
-    get require() {
-      return require('../images/icons/icon-fancy-encrypted-location-phone-desktop-150-72.png')
-    },
-    get requireDark() {
-      return require('../images/icons/icon-dark-fancy-encrypted-location-phone-desktop-150-72.png')
-    },
-  },
   'icon-fancy-encrypted-phone-desktop-150-72': {
     extension: 'png',
     isFont: false,
@@ -3315,6 +3298,20 @@ const iconMeta_ = {
     isFont: false,
     get require() {
       return require('../images/icons/icon-fancy-hellobot-hi-96.png')
+    },
+  },
+  'icon-fancy-location-phone-desktop-150-72': {
+    extension: 'png',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-fancy-location-phone-desktop-150-72.png')
+    },
+  },
+  'icon-fancy-location-phone-mobile-226-96': {
+    extension: 'png',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-fancy-location-phone-mobile-226-96.png')
     },
   },
   'icon-fancy-no-access-desktop-96-94': {

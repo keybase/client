@@ -2975,6 +2975,61 @@
           "name": "version"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "AnnotatedTeam",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "teamID"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "SubteamListResult",
+          "name": "transitiveSubteamsUnverified"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamMemberDetails"
+          },
+          "name": "members"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "AnnotatedTeamInvite"
+          },
+          "name": "invites"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamJoinRequest"
+          },
+          "name": "joinRequests"
+        },
+        {
+          "type": "boolean",
+          "name": "userIsShowcasing"
+        },
+        {
+          "type": "boolean",
+          "name": "tarsDisabled"
+        },
+        {
+          "type": "TeamSettings",
+          "name": "settings"
+        },
+        {
+          "type": "TeamShowcase",
+          "name": "showcase"
+        }
+      ]
     }
   ],
   "messages": {
@@ -3937,6 +3992,15 @@
     "getTeamRoleMap": {
       "request": [],
       "response": "TeamRoleMapAndVersion"
+    },
+    "getAnnotatedTeam": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "TeamID"
+        }
+      ],
+      "response": "AnnotatedTeam"
     }
   },
   "namespace": "keybase.1"
