@@ -2,11 +2,14 @@ import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as ChatTypes from '../../../../constants/types/chat2'
+import * as TeamTypes from '../../../../constants/types/teams'
 import {Avatars, TeamAvatar} from '../../../avatars'
 
 export type ConvProps = {
   fullname: string
   teamType: ChatTypes.TeamType
+  teamname: string
+  teamID: TeamTypes.TeamID
   ignored: boolean
   muted: boolean
   participants: Array<string>
@@ -16,15 +19,13 @@ export type Props = {
   attachTo?: () => React.Component<any> | null
   badgeSubscribe: boolean
   canAddPeople: boolean
-  convProps: ConvProps | null
+  convProps?: ConvProps
   isSmallTeam: boolean
   manageChannelsSubtitle: string
   manageChannelsTitle: string
   memberCount: number
   teamname?: string
   visible: boolean
-  hasCanPerform: boolean
-  loadOperations: () => void
   onAddPeople: () => void
   onHidden: () => void
   onInvite: () => void
@@ -90,12 +91,6 @@ const TeamHeader = (props: TeamHeaderProps) => {
 }
 
 class InfoPanelMenu extends React.Component<Props> {
-  componentDidUpdate(prevProps: Props) {
-    if (this.props.hasCanPerform && this.props.visible !== prevProps.visible) {
-      this.props.loadOperations()
-    }
-  }
-
   render() {
     const props = this.props
     const addPeopleItems = [

@@ -458,14 +458,9 @@ const propsInboxExpanded = {
 /*
  * Prop Providers
  */
-const teamMemberCounts = {
-  Keybase: 30,
-  'techtonica.long.team.name.with.ellipsis': 30,
-  stripe: 1337,
-}
 
 const provider = Sb.createPropProviderWithCommon({
-  ...Sb.PropProviders.TeamDropdownMenu(undefined, teamMemberCounts),
+  ...Sb.PropProviders.TeamDropdownMenu(),
   ChatInboxHeaderContainer: p => {
     return {
       focusFilter: () => {},

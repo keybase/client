@@ -8,7 +8,7 @@ type Props = {
   error?: string
   onCancel: () => void
   onRename: (newName: string) => void
-  onSuccess: (newName: string) => void
+  onSuccess: () => void
   teamname: string
   title: string
   waiting: boolean
@@ -38,7 +38,7 @@ class RenameTeam extends React.Component<
   componentDidUpdate(prevProps: Props) {
     if (!this.props.waiting && prevProps.waiting && !this.props.error) {
       // finished, go back
-      this.props.onSuccess(this._newFullName())
+      this.props.onSuccess()
     }
   }
 

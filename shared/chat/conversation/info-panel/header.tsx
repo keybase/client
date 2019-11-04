@@ -32,7 +32,6 @@ const _TeamHeader = (props: SmallProps) => {
           attachTo={props.getAttachmentRef}
           onHidden={props.toggleShowingMenu}
           isSmallTeam={props.isSmallTeam}
-          teamname={props.teamname}
           conversationIDKey={props.conversationIDKey}
           visible={props.showingMenu}
         />

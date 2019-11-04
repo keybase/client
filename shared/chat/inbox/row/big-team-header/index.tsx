@@ -22,7 +22,6 @@ class _BigTeamHeader extends React.PureComponent<Props> {
           attachTo={props.getAttachmentRef}
           visible={props.showingMenu}
           onHidden={props.toggleShowingMenu}
-          teamname={props.teamname}
           conversationIDKey={props.conversationIDKey}
           isSmallTeam={false}
         />
