@@ -128,7 +128,7 @@ func NewJourneyCardManagerSingleUser(g *globals.Context, uid gregor1.UID) *Journ
 		return g.LocalChatDb
 	}
 	keyFn := func(ctx context.Context) ([32]byte, error) {
-		return storage.GetSecretBoxKey(ctx, g.ExternalG(), storage.DefaultSecretUI)
+		return storage.GetSecretBoxKeyWithUID(ctx, g.ExternalG(), uid)
 	}
 	return &JourneyCardManagerSingleUser{
 		Contextified: globals.NewContextified(g),
