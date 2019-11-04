@@ -126,10 +126,10 @@ func TestPrepareBatchLowAmounts(t *testing.T) {
 	}
 }
 
-// TestBatchMulti does a batch payment with the multi flag on
+// TestBatchMultiDirect does a batch payment with the multi flag on
 // and ensures that it was successful and that the appropriate
-// chat messages were sent.
-func TestBatchMulti(t *testing.T) {
+// chat messages were sent.  All the recipients have stellar accounts.
+func TestBatchMultiDirect(t *testing.T) {
 	// sender test context
 	tc, cleanup := setupDesktopTest(t)
 	defer cleanup()
