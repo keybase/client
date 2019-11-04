@@ -16,7 +16,7 @@ import {TypedState, Dispatch} from '../util/container'
 
 // delay incoming to stop react from queueing too many setState calls and stopping rendering
 // only while debugging for now
-const DEFER_INCOMING_DURING_DEBUG = __DEV__ && true
+const DEFER_INCOMING_DURING_DEBUG = __DEV__ && false
 if (DEFER_INCOMING_DURING_DEBUG) {
   console.log(new Array(1000).fill('DEFER_INCOMING_DURING_DEBUG is On!!!!!!!!!!!!!!!!!!!!!').join('\n'))
 }
