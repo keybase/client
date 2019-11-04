@@ -159,8 +159,7 @@ type handler interface {
 }
 
 func (c *cmdAPI) runHandler(h handler) (err error) {
-	var r io.Reader
-	var w io.Writer
+	w := os.Stdout
 	defer func() {
 		if err != nil {
 			enc := json.NewEncoder(w)
@@ -168,7 +167,6 @@ func (c *cmdAPI) runHandler(h handler) (err error) {
 			err = enc.Encode(reply)
 		}
 	}()
-	w = os.Stdout
 	if len(c.outputFile) > 0 {
 		f, err := os.Create(c.outputFile)
 		if err != nil {
@@ -178,7 +176,7 @@ func (c *cmdAPI) runHandler(h handler) (err error) {
 		w = f
 	}
 
-	r = io.Reader(os.Stdin)
+	r := io.Reader(os.Stdin)
 	if len(c.message) > 0 {
 		r = strings.NewReader(c.message)
 	} else if len(c.inputFile) > 0 {
