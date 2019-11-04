@@ -329,6 +329,18 @@ class Input extends React.Component<InputProps, InputState> {
       return
     }
 
+    if (
+      prevProps.suggestBotCommands != this.props.suggestBotCommands ||
+      prevProps.suggestCommands != this.props.suggestCommands
+    ) {
+      // different commands so we need to recalculate max command length
+      // + 1 for '/'
+      this._maxCmdLength =
+        this.props.suggestCommands
+          .concat(this.props.suggestBotCommands)
+          .reduce((max, cmd) => (cmd.name.length > max ? cmd.name.length : max), 0) + 1
+    }
+
     // Otherwise, inject unsent text. This must come after quote
     // handling, so as to handle the 'Reply Privately' case.
     if (prevProps.conversationIDKey !== this.props.conversationIDKey) {
@@ -338,13 +350,6 @@ class Input extends React.Component<InputProps, InputState> {
       if (!this.props.isSearching) {
         this._inputFocus()
       }
-
-      // potentially different commands so we need to recalculate max command length
-      // + 1 for '/'
-      this._maxCmdLength =
-        this.props.suggestCommands
-          .concat(this.props.suggestBotCommands)
-          .reduce((max, cmd) => (cmd.name.length > max ? cmd.name.length : max), 0) + 1
     }
   }
 
@@ -362,6 +367,7 @@ class Input extends React.Component<InputProps, InputState> {
     if (this.props.showCommandMarkdown || this.props.showGiphySearch) {
       return {data: [], useSpaces: true}
     }
+
     const sel = this._input && this._input.getSelection()
     if (sel && this._lastText) {
       // a little messy. Check if the message starts with '/' and that the cursor is
