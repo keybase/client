@@ -162,6 +162,8 @@ public class MainActivity extends ReactFragmentActivity implements ReactInstance
   @TargetApi(Build.VERSION_CODES.KITKAT)
   protected void onCreate(Bundle savedInstanceState) {
     Log.d("Time Marker", "Start time: " + System.currentTimeMillis());
+    ReactInstanceManager instanceManager = this.getReactInstanceManager();
+    instanceManager.createReactContextInBackground();
     setupKBRuntime(this, true);
     super.onCreate(null);
 
