@@ -31,7 +31,9 @@ const nistExpirationMargin = 26 * time.Hour // I.e., half of the lifetime
 const nistLifetime = 52 * time.Hour         // A little longer than 2 days.
 const nistSessionIDLength = 16
 const nistShortHashLen = 19
+const nistWebsiteTokenLifetime = 24 * time.Hour // website tokens expire in a day
 
+type nistTokenType int
 type nistMode int
 type sessionVersion int
 
@@ -39,6 +41,11 @@ const (
 	nistVersion       sessionVersion = 34
 	nistModeSignature nistMode       = 1
 	nistModeHash      nistMode       = 2
+)
+
+const (
+	nistTokenClient nistTokenType = 0
+	nistTokenWeb    nistTokenType = 1
 )
 
 type NISTFactory struct {
@@ -52,8 +59,9 @@ type NISTFactory struct {
 
 type NISTToken []byte
 
-func (n NISTToken) Bytes() []byte  { return []byte(n) }
-func (n NISTToken) String() string { return base64.StdEncoding.EncodeToString(n.Bytes()) }
+func (n NISTToken) Bytes() []byte     { return []byte(n) }
+func (n NISTToken) String() string    { return base64.StdEncoding.EncodeToString(n.Bytes()) }
+func (n NISTToken) StringURL() string { return base64.RawURLEncoding.EncodeToString(n.Bytes()) }
 func (n NISTToken) Hash() []byte {
 	tmp := sha256.Sum256(n.Bytes())
 	return tmp[:]
@@ -117,7 +125,7 @@ func (f *NISTFactory) NIST(ctx context.Context) (ret *NIST, err error) {
 
 	if makeNew {
 		ret = newNIST(f.G())
-		err = ret.generate(ctx, f.uid, f.deviceID, f.key)
+		err = ret.generate(ctx, f.uid, f.deviceID, f.key, nistTokenClient)
 		if err != nil {
 			return nil, err
 		}
@@ -126,6 +134,12 @@ func (f *NISTFactory) NIST(ctx context.Context) (ret *NIST, err error) {
 	}
 
 	return f.nist, nil
+}
+
+func (f *NISTFactory) GenerateWebToken(ctx context.Context) (ret *NIST, err error) {
+	ret = newNIST(f.G())
+	err = ret.generate(ctx, f.uid, f.deviceID, f.key, nistTokenWeb)
+	return ret, err
 }
 
 func durationToSeconds(d time.Duration) int64 {
@@ -230,7 +244,7 @@ func (n nistPayload) abbreviate() nistPayloadShort {
 	}
 }
 
-func (n *NIST) generate(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID, key GenericKey) (err error) {
+func (n *NIST) generate(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID, key GenericKey, typ nistTokenType) (err error) {
 	defer n.G().CTrace(ctx, "NIST#generate", func() error { return err })()
 
 	n.Lock()
@@ -242,6 +256,10 @@ func (n *NIST) generate(ctx context.Context, uid keybase1.UID, deviceID keybase1
 	}
 
 	var generated time.Time
+	lifetime := nistLifetime
+	if typ == nistTokenWeb {
+		lifetime = nistWebsiteTokenLifetime
+	}
 
 	// For some tests we ignore the clock in n.G().Clock() and just use the standard
 	// time.Now() clock, because otherwise, the server would start to reject our
@@ -252,7 +270,7 @@ func (n *NIST) generate(ctx context.Context, uid keybase1.UID, deviceID keybase1
 		generated = n.G().Clock().Now()
 	}
 
-	expires := generated.Add(nistLifetime)
+	expires := generated.Add(lifetime)
 
 	payload := nistPayload{
 		Version:   nistVersion,
@@ -260,7 +278,7 @@ func (n *NIST) generate(ctx context.Context, uid keybase1.UID, deviceID keybase1
 		Hostname:  CanonicalHost,
 		UID:       uid.ToBytes(),
 		Generated: generated.Unix(),
-		Lifetime:  durationToSeconds(nistLifetime),
+		Lifetime:  durationToSeconds(lifetime),
 		KID:       key.GetBinaryKID(),
 	}
 	n.G().Log.CDebugf(ctx, "NIST: uid=%s; kid=%s; deviceID=%s", uid, key.GetKID().String(), deviceID)

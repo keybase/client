@@ -964,6 +964,9 @@ type AppendGUILogsArg struct {
 	Content string `codec:"content" json:"content"`
 }
 
+type GenerateWebAuthTokenArg struct {
+}
+
 type ConfigInterface interface {
 	GetCurrentStatus(context.Context, int) (CurrentStatus, error)
 	GetClientStatus(context.Context, int) ([]ClientStatus, error)
@@ -1000,6 +1003,7 @@ type ConfigInterface interface {
 	GetProxyData(context.Context) (ProxyData, error)
 	ToggleRuntimeStats(context.Context) error
 	AppendGUILogs(context.Context, string) error
+	GenerateWebAuthToken(context.Context) (string, error)
 }
 
 func ConfigProtocol(i ConfigInterface) rpc.Protocol {
@@ -1401,6 +1405,16 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 					return
 				},
 			},
+			"generateWebAuthToken": {
+				MakeArg: func() interface{} {
+					var ret [1]GenerateWebAuthTokenArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.GenerateWebAuthToken(ctx)
+					return
+				},
+			},
 		},
 	}
 }
@@ -1568,5 +1582,10 @@ func (c ConfigClient) ToggleRuntimeStats(ctx context.Context) (err error) {
 func (c ConfigClient) AppendGUILogs(ctx context.Context, content string) (err error) {
 	__arg := AppendGUILogsArg{Content: content}
 	err = c.Cli.Call(ctx, "keybase.1.config.appendGUILogs", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c ConfigClient) GenerateWebAuthToken(ctx context.Context) (res string, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.config.generateWebAuthToken", []interface{}{GenerateWebAuthTokenArg{}}, &res, 0*time.Millisecond)
 	return
 }
