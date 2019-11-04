@@ -418,31 +418,23 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 		upak, fresh = u.getCachedUPAK(ctx, arg.uid, arg.stubMode, info)
 	}
 
-	if upak != nil {
-		// Either there is no cached UPAK or forceReload is set.
+	if upak != nil && !arg.forcePoll && (fresh || arg.staleOK) {
+		return returnUPAK(upak, true)
+	}
 
+	if upak != nil && !arg.forcePoll && arg.cachedOnly {
+		// Stale cache not allowed but cache was stale.
+		return nil, nil, UserNotFoundError{UID: arg.uid, Msg: "cached user found, but it was stale, and cached only"}
+	}
+
+	if upak != nil {
 		// If we are not forced to repoll, we might be done here.
-		if !arg.forcePoll {
-			if fresh {
-				// Cache hit, not stale.
-				return returnUPAK(upak, true)
-			}
-			if arg.staleOK {
-				// Stale cache allowed.
-				return returnUPAK(upak, true)
-			}
-			if arg.cachedOnly {
-				// Stale cache not allowed but cache was stale.
-				return nil, nil, UserNotFoundError{UID: arg.uid, Msg: "cached user found, but it was stale, and cached only"}
-			}
-			// Else the cached UPAK is stale and we have to fall through and get a new one.
-		} else {
+		if arg.forcePoll {
 			g.VDL.CLogf(ctx, VLog0, "%s: force-poll required us to repoll (fresh=%v)", culDebug(arg.uid), fresh)
 		}
 
 		// At this point, we have a cached UPAK but we are not confident about whether we can return it.
 		// Ask the server whether it is fresh.
-
 		if info != nil {
 			info.TimedOut = true
 		}
