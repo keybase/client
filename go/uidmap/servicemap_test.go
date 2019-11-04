@@ -25,7 +25,7 @@ func TestServiceMapLookupKnown(t *testing.T) {
 	fakeClock := clockwork.NewFakeClockAt(time.Now())
 	tc.G.SetClock(fakeClock)
 
-	now := keybase1.ToTime(time.Now())
+	now := keybase1.ToTime(fakeClock.Now())
 
 	serviceMapper := NewServiceSummaryMap(10)
 	uids := []keybase1.UID{tKB, tAlice, tTracy}
