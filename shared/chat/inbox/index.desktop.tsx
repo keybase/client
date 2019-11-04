@@ -116,6 +116,7 @@ class Inbox extends React.Component<T.Props, State> {
           snippet: row.snippet,
           snippetDecoration: row.snippetDecoration,
           teamname,
+          teamID: (row.type === 'bigHeader' && row.teamID) || '',
           time: row.time || undefined,
           type: row.type,
         })}

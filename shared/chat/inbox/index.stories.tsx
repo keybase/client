@@ -18,7 +18,11 @@ const makeRowItemSmall = (conversationIDKey: string = ''): RowItemSmall => ({
   isTeam: false,
   time: 1569718345,
 })
-const makeRowItemBigHeader = (teamname: string = ''): RowItemBigHeader => ({type: 'bigHeader', teamname})
+const makeRowItemBigHeader = (teamname: string = ''): RowItemBigHeader => ({
+  type: 'bigHeader',
+  teamID: '',
+  teamname,
+})
 const makeRowItemBigChannel = (conversationIDKey, teamname, channelname): RowItemBig => ({
   type: 'big',
   teamname,

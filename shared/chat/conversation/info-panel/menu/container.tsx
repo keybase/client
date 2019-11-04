@@ -16,6 +16,7 @@ export type OwnProps = {
   attachTo?: () => React.Component<any> | null
   onHidden: () => void
   isSmallTeam: boolean
+  teamID?: TeamTypes.TeamID
   conversationIDKey: ChatTypes.ConversationIDKey
   visible: boolean
 }
@@ -40,7 +41,7 @@ const moreThanOneSubscribedChannel = (
 }
 
 export default Container.namedConnect(
-  (state, {conversationIDKey, isSmallTeam, visible}: OwnProps) => {
+  (state, {conversationIDKey, isSmallTeam, teamID: _teamID, visible}: OwnProps) => {
     let convProps: ConvProps | undefined
     let teamDetails: TeamTypes.TeamDetails | undefined
     if (conversationIDKey && conversationIDKey !== ChatConstants.noConversationIDKey) {
@@ -77,7 +78,11 @@ export default Container.namedConnect(
         teamname: '',
       }
     }
-    const teamID = (teamDetails && teamDetails.id) || ''
+    const teamID = (teamDetails && teamDetails.id) || _teamID || ''
+    if (teamID) {
+      // teamID was in OwnProps
+      teamDetails = TeamConstants.getTeamDetails(state, teamID)
+    }
     const teamname = (teamDetails && teamDetails.teamname) || ''
     const yourOperations = TeamConstants.getCanPerformByID(state, teamID)
     const badgeSubscribe = !TeamConstants.isTeamWithChosenChannels(state, teamname)
