@@ -6,6 +6,16 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
+type LoadUnlockedDeviceKeysMode int
+
+const (
+	// Normal checks the cache and polls if it is stale. StaleOK checks the cache
+	// and polls if it is empty. Offline uses the cache and errors if it is empty.
+	LoadUnlockedDeviceKeysModeNormal LoadUnlockedDeviceKeysMode = iota
+	LoadUnlockedDeviceKeysModeStaleOK
+	LoadUnlockedDeviceKeysModeOffline
+)
+
 func loadAndUnlockKey(m MetaContext, kr *SKBKeyringFile, secretStore SecretStore, uid keybase1.UID, kid keybase1.KID) (key GenericKey, err error) {
 	defer m.Trace(fmt.Sprintf("loadAndUnlockKey(%s)", kid), func() error { return err })()
 
@@ -78,7 +88,11 @@ func bootstrapActiveDeviceReturnRawError(m MetaContext, uid keybase1.UID, device
 		m.Debug("active device is current")
 		return nil
 	}
-	uv, sib, sub, deviceName, err := LoadUnlockedDeviceKeys(m, uid, deviceID, online, false)
+	mode := LoadUnlockedDeviceKeysModeNormal
+	if !online {
+		mode = LoadUnlockedDeviceKeysModeOffline
+	}
+	uv, sib, sub, deviceName, err := LoadUnlockedDeviceKeys(m, uid, deviceID, mode)
 	if err != nil {
 		return err
 	}
@@ -86,15 +100,16 @@ func bootstrapActiveDeviceReturnRawError(m MetaContext, uid keybase1.UID, device
 	return err
 }
 
-func LoadUnlockedDeviceKeys(m MetaContext, uid keybase1.UID, deviceID keybase1.DeviceID, online bool, staleOK bool) (uv keybase1.UserVersion, sib GenericKey, sub GenericKey, deviceName string, err error) {
+func LoadUnlockedDeviceKeys(m MetaContext, uid keybase1.UID, deviceID keybase1.DeviceID, mode LoadUnlockedDeviceKeysMode) (uv keybase1.UserVersion, sib GenericKey, sub GenericKey, deviceName string, err error) {
 	defer m.Trace("LoadUnlockedDeviceKeys", func() error { return err })()
 
 	// use the UPAKLoader with StaleOK, CachedOnly in order to get cached upak
 	arg := NewLoadUserArgWithMetaContext(m).WithUID(uid).WithPublicKeyOptional()
-	if !online {
+
+	if mode == LoadUnlockedDeviceKeysModeOffline {
 		arg = arg.WithStaleOK(true).WithCachedOnly()
-	} else if staleOK {
-		arg = arg.WithStaleOK(staleOK)
+	} else if mode == LoadUnlockedDeviceKeysModeStaleOK {
+		arg = arg.WithStaleOK(true)
 	}
 	upak, _, err := m.G().GetUPAKLoader().LoadV2(arg)
 	if err != nil {
@@ -150,7 +165,11 @@ func LoadUnlockedDeviceKeys(m MetaContext, uid keybase1.UID, deviceID keybase1.D
 
 func LoadProvisionalActiveDevice(m MetaContext, uid keybase1.UID, deviceID keybase1.DeviceID, online bool) (ret *ActiveDevice, err error) {
 	defer m.Trace("LoadProvisionalActiveDevice", func() error { return err })()
-	uv, sib, sub, deviceName, err := LoadUnlockedDeviceKeys(m, uid, deviceID, online, true)
+	mode := LoadUnlockedDeviceKeysModeStaleOK
+	if !online {
+		mode = LoadUnlockedDeviceKeysModeOffline
+	}
+	uv, sib, sub, deviceName, err := LoadUnlockedDeviceKeys(m, uid, deviceID, mode)
 	if err != nil {
 		return nil, err
 	}

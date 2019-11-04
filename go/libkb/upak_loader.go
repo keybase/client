@@ -435,6 +435,7 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 				// Stale cache not allowed but cache was stale.
 				return nil, nil, UserNotFoundError{UID: arg.uid, Msg: "cached user found, but it was stale, and cached only"}
 			}
+			// Else there's the cached UPAK is stale and we have to fall through and get a new one.
 		} else {
 			g.VDL.CLogf(ctx, VLog0, "%s: force-poll required us to repoll (fresh=%v)", culDebug(arg.uid), fresh)
 		}
