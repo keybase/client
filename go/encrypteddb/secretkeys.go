@@ -9,10 +9,10 @@ import (
 	"golang.org/x/net/context"
 )
 
-func GetSecretBoxKey(ctx context.Context, g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI,
+func GetSecretBoxKey(ctx context.Context, g *libkb.GlobalContext,
 	reason libkb.EncryptionReason, reasonStr string) (fkey [32]byte, err error) {
 	// Get secret device key
-	encKey, err := engine.GetMySecretKey(ctx, g, getSecretUI, libkb.DeviceEncryptionKeyType,
+	encKey, err := engine.GetMySecretKey(ctx, g, defaultSecretUI, libkb.DeviceEncryptionKeyType,
 		reasonStr)
 	if err != nil {
 		return fkey, err
@@ -42,4 +42,4 @@ func (d NoSecretUI) GetPassphrase(pinentry keybase1.GUIEntryArg, terminal *keyba
 	return keybase1.GetPassphraseRes{}, errors.New("no secret UI available")
 }
 
-var DefaultSecretUI = func() libkb.SecretUI { return NoSecretUI{} }
+var defaultSecretUI = func() libkb.SecretUI { return NoSecretUI{} }

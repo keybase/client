@@ -12,6 +12,6 @@ import (
 // ***
 const cryptoVersion = 1
 
-func GetSecretBoxKey(ctx context.Context, g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI) (fkey [32]byte, err error) {
-	return encrypteddb.GetSecretBoxKey(ctx, g, getSecretUI, libkb.EncryptionReasonChatLocalStorage, "encrypt chat message")
+func GetSecretBoxKey(ctx context.Context, g *libkb.GlobalContext) (fkey [32]byte, err error) {
+	return encrypteddb.GetSecretBoxKey(ctx, g, libkb.EncryptionReasonChatLocalStorage, "encrypt chat message")
 }

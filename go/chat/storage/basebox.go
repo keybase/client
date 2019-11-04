@@ -26,7 +26,7 @@ var DefaultSecretUI = func() libkb.SecretUI { return SecretUI{} }
 
 func newBaseBox(g *globals.Context) *baseBox {
 	keyFn := func(ctx context.Context) ([32]byte, error) {
-		return GetSecretBoxKey(ctx, g.ExternalG(), DefaultSecretUI)
+		return GetSecretBoxKey(ctx, g.ExternalG())
 	}
 	dbFn := func(g *libkb.GlobalContext) *libkb.JSONLocalDb {
 		return g.LocalChatDb
