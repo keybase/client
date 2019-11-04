@@ -5,7 +5,7 @@ import * as PushGen from '../../actions/push-gen'
 import {connect} from '../../util/container'
 
 type OwnProps = {}
-const notificationMonster = require('../../images/illustrations/illustration-turn-on-notifications-460-x-252.png')
+// const notificationMonster = require('../../images/illustrations/turn-on-notifications.png')
 
 export type Props = {
   onEnable: () => void
@@ -23,7 +23,7 @@ const TurnOnNotifications = (props: Props) => (
     }}
   >
     <Kb.Box style={{height: 270, left: globalMargins.medium, position: 'absolute', top: -20, width: 250}}>
-      <Kb.NativeImage resizeMode="contain" source={notificationMonster} />
+      <Kb.Icon type="illustration-turn-on-notifications" />
     </Kb.Box>
     <Kb.Text
       type="BodySemibold"

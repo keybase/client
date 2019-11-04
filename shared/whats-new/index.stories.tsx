@@ -8,8 +8,8 @@ import HeaderIcon from './icon/'
 import NewFeatureRow from './new-feature-row'
 import WhatsNew from '.'
 
-const darkModeImage = require('../images/releases/storybook/dark-mode.png')
-const keybaseFMImage = require('../images/releases/storybook/keybase-fm.png')
+const darkModeImage = require('../images/releases-storybook/dark-mode.png')
+const keybaseFMImage = require('../images/releases-storybook/keybase-fm.png')
 
 const commonNewFeatureProps = {
   primaryButtonText: undefined,
