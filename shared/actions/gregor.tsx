@@ -67,19 +67,8 @@ const startReachability = async () => {
   }
 }
 
-let _lastOnline: undefined | boolean
-const checkReachability = async (
-  _: Container.TypedState,
-  action: GregorGen.CheckReachabilityPayload | ConfigGen.OsNetworkStatusChangedPayload
-) => {
+const checkReachability = async () => {
   try {
-    if (action.type === ConfigGen.osNetworkStatusChanged) {
-      if (action.payload.online === _lastOnline) {
-        return false
-      }
-      _lastOnline = action.payload.online
-    }
-
     const reachability = await RPCTypes.reachabilityCheckReachabilityRpcPromise()
     return GregorGen.createUpdateReachable({reachable: reachability.reachable})
   } catch (_) {

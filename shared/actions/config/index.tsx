@@ -73,14 +73,6 @@ const onHTTPSrvInfoUpdated = (
     token: action.payload.params.info.token,
   })
 
-const getFollowerInfo = (state: Container.TypedState) => {
-  const {uid} = state.config
-  if (uid) {
-    // request follower info in the background
-    RPCTypes.configRequestFollowerInfoRpcPromise({uid: state.config.uid})
-  }
-}
-
 // set to true so we reget status when we're reachable again
 let wasUnreachable = false
 function* loadDaemonBootstrapStatus(
@@ -116,6 +108,8 @@ function* loadDaemonBootstrapStatus(
     })
     logger.info(`[Bootstrap] loggedIn: ${loadedAction.payload.loggedIn ? 1 : 0}`)
     yield Saga.put(loadedAction)
+    // request follower info in the background
+    yield RPCTypes.configRequestFollowerInfoRpcPromise({uid: s.uid})
     // set HTTP srv info
     if (s.httpSrvInfo) {
       yield Saga.put(
@@ -223,11 +217,6 @@ function* loadDaemonAccounts(
     | ConfigGen.LoggedOutPayload
     | ConfigGen.LoggedInPayload
 ) {
-  // ignore since we handle handshake
-  if (action.type === ConfigGen.loggedIn && action.payload.causedByStartup) {
-    return
-  }
-
   let handshakeWait = false
   let handshakeVersion = 0
 
@@ -285,7 +274,6 @@ function* loadDaemonAccounts(
       }
     }
   }
-  return
 }
 
 const showDeletedSelfRootPage = () => [
@@ -538,7 +526,6 @@ const newNavigation = (
 }
 
 function* criticalOutOfDateCheck() {
-  yield Saga.delay(2 * 60 * 1000) // don't bother checking during startup
   // check every hour
   while (true) {
     try {
@@ -643,15 +630,6 @@ const loadNixOnLoginStartup = async () => {
   }
 }
 
-const emitStartupFirstIdle = async () => {
-  await Saga.delay(1000)
-  return new Promise<ConfigGen.StartupFirstIdlePayload>(resolve => {
-    requestAnimationFrame(() => {
-      resolve(ConfigGen.createStartupFirstIdle())
-    })
-  })
-}
-
 function* configSaga() {
   // Start the handshake process. This means we tell all sagas we're handshaking with the daemon. If another
   // saga needs to do something before we leave the loading screen they should call daemonHandshakeWait
@@ -681,8 +659,6 @@ function* configSaga() {
   // Go to the correct starting screen
   yield* Saga.chainAction2([ConfigGen.daemonHandshakeDone, ConfigGen.setNavigator], routeToInitialScreen2)
 
-  yield* Saga.chainAction2(ConfigGen.daemonHandshakeDone, emitStartupFirstIdle)
-
   yield* Saga.chainAction2(ConfigGen.logoutAndTryToLogInAs, logoutAndTryToLogInAs, 'logoutAndTryToLogInAs')
 
   yield* Saga.chainAction2(
@@ -711,7 +687,7 @@ function* configSaga() {
   // When we're all done lets clean up
   yield* Saga.chainAction2(ConfigGen.loggedOut, resetGlobalStore)
   // Store per user server config info
-  yield* Saga.chainAction2(ConfigGen.startupFirstIdle, updateServerConfig)
+  yield* Saga.chainAction2(ConfigGen.loggedIn, updateServerConfig)
 
   yield* Saga.chainAction2(ConfigGen.setDeletedSelf, showDeletedSelfRootPage)
 
@@ -734,8 +710,6 @@ function* configSaga() {
       appColorSchemeChanged(state.config.darkModePreference)
     )
   }
-
-  yield* Saga.chainAction2(ConfigGen.startupFirstIdle, getFollowerInfo)
 
   // Kick off platform specific stuff
   yield Saga.spawn(PlatformSpecific.platformConfigSaga)
