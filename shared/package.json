@@ -121,7 +121,7 @@
     "@emotion/core": "10.0.14",
     "@emotion/native": "10.0.14",
     "@emotion/styled": "10.0.14",
-    "@msgpack/msgpack": "git://github.com/keybase/msgpack-javascript#nojima/keybase-fixes-off-191",
+    "@msgpack/msgpack": "1.9.3",
     "@react-native-community/cameraroll": "1.2.1",
     "@react-native-community/geolocation": "2.0.2",
     "@react-native-community/netinfo": "4.1.3",

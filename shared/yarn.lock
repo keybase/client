@@ -1268,9 +1268,10 @@
     call-me-maybe "^1.0.1"
     glob-to-regexp "^0.3.0"
 
-"@msgpack/msgpack@1.9.1", "@msgpack/msgpack@git://github.com/keybase/msgpack-javascript#nojima/keybase-fixes-off-191":
-  version "1.9.1"
-  resolved "git://github.com/keybase/msgpack-javascript#9931576abe9f49cd527c2da586d71eb1dff6e7f7"
+"@msgpack/msgpack@1.9.3":
+  version "1.9.3"
+  resolved "https://registry.yarnpkg.com/@msgpack/msgpack/-/msgpack-1.9.3.tgz#2196023f65a1d77261f950c356e3a4491faf1601"
+  integrity sha512-ciyjF3R0E+39yXO1B4lsRwWe0LvvvohFglhlmmrUZN696BdqGqnMmyPY9xFOwJnDjIt4gnozARok7xdpQvyFeg==
   dependencies:
     base64-js "^1.3.0"
 
@@ -6185,9 +6186,9 @@ fragment-cache@^0.2.1:
 
 "framed-msgpack-rpc@git://github.com/keybase/node-framed-msgpack-rpc#nojima/HOTPOT-msgpack-js-impl":
   version "1.1.18"
-  resolved "git://github.com/keybase/node-framed-msgpack-rpc#010828a48a77315cee4b354dc96a675435e9fc56"
+  resolved "git://github.com/keybase/node-framed-msgpack-rpc#875159e0a8092c9f673bc68a796a843e093400a0"
   dependencies:
-    "@msgpack/msgpack" "1.9.1"
+    "@msgpack/msgpack" "1.9.3"
     iced-error "0.0.9"
     iced-lock "^1.0.2"
     iced-runtime "^1.0.1"
