@@ -325,6 +325,11 @@ class RNApp extends React.PureComponent<Props> {
     }
   }
 
+  getNavState = () => {
+    const n = this.nav
+    return (n && n.state && n.state.nav) || null
+  }
+
   private setNav = (n: any) => {
     this.nav = n
   }
