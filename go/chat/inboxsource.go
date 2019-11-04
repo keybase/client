@@ -167,7 +167,7 @@ func (b *baseInboxSource) IsMember(ctx context.Context, uid gregor1.UID, convID 
 	}
 }
 
-func (b *baseInboxSource) Localize(ctx context.Context, uid gregor1.UID, convs []types.RemoteConversation,
+func (b *baseInboxSourcexxxyxzyxyzxyx) Localize(ctx context.Context, uid gregor1.UID, convs []types.RemoteConversation,
 	localizerTyp types.ConversationLocalizerTyp) ([]chat1.ConversationLocal, chan types.AsyncInboxResult, error) {
 	localizeCb := make(chan types.AsyncInboxResult, len(convs))
 	localizer := b.createConversationLocalizer(ctx, localizerTyp, localizeCb)
