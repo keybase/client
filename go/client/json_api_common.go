@@ -195,9 +195,14 @@ func (c *cmdAPI) runHandler(h handler) (err error) {
 
 func (c *cmdAPI) decode(ctx context.Context, r io.Reader, w io.Writer, h handler) (err error) {
 	dec := json.NewDecoder(r)
+	var call Call
+	defer func() {
+		if err != nil {
+			err = encodeErr(call, err, w, false)
+		}
+	}()
 	for {
-		var c Call
-		if err := dec.Decode(&c); err == io.EOF {
+		if err := dec.Decode(&call); err == io.EOF {
 			break
 		} else if err != nil {
 			if err == io.ErrUnexpectedEOF {
@@ -206,12 +211,7 @@ func (c *cmdAPI) decode(ctx context.Context, r io.Reader, w io.Writer, h handler
 			return err
 		}
 
-		defer func() {
-			if err != nil {
-				err = encodeErr(c, err, w, false)
-			}
-		}()
-		if err := h.handle(ctx, c, w); err != nil {
+		if err := h.handle(ctx, call, w); err != nil {
 			return err
 		}
 	}
