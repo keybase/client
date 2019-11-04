@@ -24,7 +24,7 @@ var getKeyMu sync.Mutex
 // have your device keys cached, or you aren't.
 //
 // If the key isn't found in the ActiveDevice cache, this will return LoginRequiredError.
-func GetMySecretKey(ctx context.Context, g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI, secretKeyType libkb.SecretKeyType, reason string) (libkb.GenericKey, error) {
+func GetMySecretKey(ctx context.Context, g *libkb.GlobalContext, secretKeyType libkb.SecretKeyType, reason string) (libkb.GenericKey, error) {
 	key, err := g.ActiveDevice.KeyByType(secretKeyType)
 	if err != nil {
 		if _, ok := err.(libkb.NotFoundError); ok {
@@ -38,7 +38,7 @@ func GetMySecretKey(ctx context.Context, g *libkb.GlobalContext, getSecretUI fun
 }
 
 // GetMySecretKeyWithUID is like GetMySecretKey but returns an error if uid is not active.
-func GetMySecretKeyWithUID(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID, getSecretUI func() libkb.SecretUI, secretKeyType libkb.SecretKeyType, reason string) (libkb.GenericKey, error) {
+func GetMySecretKeyWithUID(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID, secretKeyType libkb.SecretKeyType, reason string) (libkb.GenericKey, error) {
 	key, err := g.ActiveDevice.KeyByTypeWithUID(uid, secretKeyType)
 	if err != nil {
 		if _, ok := err.(libkb.NotFoundError); ok {
@@ -53,8 +53,8 @@ func GetMySecretKeyWithUID(ctx context.Context, g *libkb.GlobalContext, uid keyb
 
 // SignED25519 signs the given message with the current user's private
 // signing key.
-func SignED25519(ctx context.Context, g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI, arg keybase1.SignED25519Arg) (ret keybase1.ED25519SignatureInfo, err error) {
-	signingKey, err := GetMySecretKey(ctx, g, getSecretUI, libkb.DeviceSigningKeyType, arg.Reason)
+func SignED25519(ctx context.Context, g *libkb.GlobalContext, arg keybase1.SignED25519Arg) (ret keybase1.ED25519SignatureInfo, err error) {
+	signingKey, err := GetMySecretKey(ctx, g, libkb.DeviceSigningKeyType, arg.Reason)
 	if err != nil {
 		return
 	}
@@ -76,9 +76,9 @@ func SignED25519(ctx context.Context, g *libkb.GlobalContext, getSecretUI func()
 
 // SignED25519ForKBFS signs the given message with the current user's private
 // signing key on behalf of KBFS.
-func SignED25519ForKBFS(ctx context.Context, g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI, arg keybase1.SignED25519ForKBFSArg) (
+func SignED25519ForKBFS(ctx context.Context, g *libkb.GlobalContext, arg keybase1.SignED25519ForKBFSArg) (
 	ret keybase1.ED25519SignatureInfo, err error) {
-	signingKey, err := GetMySecretKey(ctx, g, getSecretUI, libkb.DeviceSigningKeyType, arg.Reason)
+	signingKey, err := GetMySecretKey(ctx, g, libkb.DeviceSigningKeyType, arg.Reason)
 	if err != nil {
 		return
 	}
@@ -104,8 +104,8 @@ func SignED25519ForKBFS(ctx context.Context, g *libkb.GlobalContext, getSecretUI
 
 // SignToString signs the given message with the current user's private
 // signing key and outputs the serialized NaclSigInfo string.
-func SignToString(ctx context.Context, g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI, arg keybase1.SignToStringArg) (sig string, err error) {
-	signingKey, err := GetMySecretKey(ctx, g, getSecretUI, libkb.DeviceSigningKeyType, arg.Reason)
+func SignToString(ctx context.Context, g *libkb.GlobalContext, arg keybase1.SignToStringArg) (sig string, err error) {
+	signingKey, err := GetMySecretKey(ctx, g, libkb.DeviceSigningKeyType, arg.Reason)
 	if err != nil {
 		return
 	}
@@ -122,8 +122,8 @@ func SignToString(ctx context.Context, g *libkb.GlobalContext, getSecretUI func(
 
 // UnboxBytes32 decrypts the given message with the current user's
 // private encryption key and the given nonce and peer public key.
-func UnboxBytes32(ctx context.Context, g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI, arg keybase1.UnboxBytes32Arg) (bytes32 keybase1.Bytes32, err error) {
-	encryptionKey, err := GetMySecretKey(ctx, g, getSecretUI, libkb.DeviceEncryptionKeyType, arg.Reason)
+func UnboxBytes32(ctx context.Context, g *libkb.GlobalContext, arg keybase1.UnboxBytes32Arg) (bytes32 keybase1.Bytes32, err error) {
+	encryptionKey, err := GetMySecretKey(ctx, g, libkb.DeviceEncryptionKeyType, arg.Reason)
 	if err != nil {
 		return
 	}
