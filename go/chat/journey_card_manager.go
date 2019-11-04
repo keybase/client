@@ -60,6 +60,13 @@ func (j *JourneyCardManager) PickCard(ctx context.Context, uid gregor1.UID,
 	convLocalOptional *chat1.ConversationLocal,
 	thread *chat1.ThreadView,
 ) (*chat1.MessageUnboxedJourneycard, error) {
+	start := j.G().GetClock().Now()
+	defer func() {
+		duration := j.G().GetClock().Since(start)
+		if duration > time.Millisecond*200 {
+			j.Debug(ctx, "PickCard took %s", duration)
+		}
+	}()
 	js, err := j.get(ctx, uid)
 	if err != nil {
 		return nil, err
@@ -288,21 +295,20 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 		chat1.JourneycardType_MSG_NO_ANSWER,      // C on design
 	}
 
+	// TODO WELCOME cards should not show for all existing teams. That would be a bad transition.
+
 	type cardCondition func(context.Context) bool
 	cardConditionTODO := func(ctx context.Context) bool { return false }
 	cardConditions := map[chat1.JourneycardType]cardCondition{
-		chat1.JourneycardType_WELCOME:            cardConditionTODO,
+		chat1.JourneycardType_WELCOME:            func(ctx context.Context) bool { return cc.cardWelcome(ctx, convID, conv, jcd) },
 		chat1.JourneycardType_POPULAR_CHANNELS:   func(ctx context.Context) bool { return cc.cardPopularChannels(ctx, convID, conv, jcd) },
 		chat1.JourneycardType_ADD_PEOPLE:         func(ctx context.Context) bool { return cc.cardAddPeople(ctx, conv, jcd, debugDebug) },
 		chat1.JourneycardType_CREATE_CHANNELS:    func(ctx context.Context) bool { return cc.cardCreateChannels(ctx, convID, jcd) },
 		chat1.JourneycardType_MSG_ATTENTION:      cardConditionTODO,
 		chat1.JourneycardType_USER_AWAY_FOR_LONG: cardConditionTODO,
-		chat1.JourneycardType_CHANNEL_INACTIVE:   cardConditionTODO,
-		chat1.JourneycardType_MSG_NO_ANSWER:      func(ctx context.Context) bool { return cc.cardMsgNoAnswer(ctx, conv, jcd, thread, debugDebug) },
+		chat1.JourneycardType_CHANNEL_INACTIVE:   func(ctx context.Context) bool { return cc.cardChannelInactive(ctx, jcd, thread, debugDebug) },
+		chat1.JourneycardType_MSG_NO_ANSWER:      func(ctx context.Context) bool { return cc.cardMsgNoAnswer(ctx, jcd, thread, debugDebug) },
 	}
-
-	// TODO card type: WELCOME (1) (interaction with existing system message)
-	// Condition: Only in #general channel
 
 	// Prefer showing cards later in the order.
 	checkForNeverBeforeSeenCards := func(ctx context.Context, types []chat1.JourneycardType, breakOnShown bool) *chat1.JourneycardType {
@@ -339,9 +345,6 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 	// TODO card type: USER_AWAY_FOR_LONG (A on design)
 	// Gist: "Long time no see.... Look at all the things you missed."
 
-	// TODO card type: CHANNEL_INACTIVE (B on design)
-	// Gist: "Zzz... This channel hasn't been very active... Revive it?"
-
 	// No new cards selected. Pick the already-shown card with the most recent prev message ID.
 	debugDebug(ctx, "no new cards selected")
 	var mostRecentCardType chat1.JourneycardType
@@ -363,6 +366,13 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 
 	debugDebug(ctx, "no card at end of checks")
 	return nil, nil
+}
+
+// Card type: WELCOME (1 on design)
+// TODO Welcome's interaction with existing system message
+// Condition: Only in #general channel
+func (cc *JourneyCardManagerSingleUser) cardWelcome(ctx context.Context, convID chat1.ConversationID, conv convForJourneycard, jcd journeyCardConvData) bool {
+	return conv.IsGeneralChannel
 }
 
 // Card type: POPULAR_CHANNELS (2 on design)
@@ -433,7 +443,7 @@ func (cc *JourneyCardManagerSingleUser) cardCreateChannels(ctx context.Context, 
 // Card type: MSG_NO_ANSWER (C)
 // Gist: "People haven't been talkative in a while. Perhaps post in another channel? <list of channels>"
 // Condition: The last visible message is old, was sent by the logged-in user, and was a long text message.
-func (cc *JourneyCardManagerSingleUser) cardMsgNoAnswer(ctx context.Context, conv convForJourneycard,
+func (cc *JourneyCardManagerSingleUser) cardMsgNoAnswer(ctx context.Context,
 	jcd journeyCardConvData, thread *chat1.ThreadView, debugDebug logFn) bool {
 	// If the latest message is eligible then show the card.
 	var eligibleMsg chat1.MessageID  // maximum eligible msg
@@ -449,7 +459,6 @@ func (cc *JourneyCardManagerSingleUser) cardMsgNoAnswer(ctx context.Context, con
 			}
 		}
 	}
-msgscan:
 	for _, msg := range thread.Messages {
 		state, err := msg.State()
 		if err != nil {
@@ -457,7 +466,6 @@ msgscan:
 		}
 		switch state {
 		case chat1.MessageUnboxedState_VALID:
-			msg.GetMessageID()
 			eligible := func() bool {
 				if !msg.IsValidFull() {
 					return false
@@ -486,9 +494,63 @@ msgscan:
 			save(msg.Error().MessageID, false)
 		case chat1.MessageUnboxedState_OUTBOX:
 			// If there's something in the outbox, don't show this card.
-			eligibleMsg = 0
-			preventerMsg = 9999
-			break msgscan
+			return false
+		case chat1.MessageUnboxedState_PLACEHOLDER:
+			save(msg.Placeholder().MessageID, false)
+		case chat1.MessageUnboxedState_JOURNEYCARD:
+			save(msg.Journeycard().PrevID, false)
+		default:
+			debugDebug(ctx, "unrecognized message state: %v", state)
+			continue
+		}
+	}
+	return eligibleMsg != 0 && eligibleMsg >= preventerMsg
+}
+
+// Card type: CHANNEL_INACTIVE (B on design)
+// Gist: "Zzz... This channel hasn't been very active... Revive it?"
+// Condition: The last visible message is old.
+func (cc *JourneyCardManagerSingleUser) cardChannelInactive(ctx context.Context,
+	jcd journeyCardConvData, thread *chat1.ThreadView, debugDebug logFn) bool {
+	// If the latest message is eligible then show the card.
+	var eligibleMsg chat1.MessageID  // maximum eligible msg
+	var preventerMsg chat1.MessageID // maximum preventer msg
+	save := func(msgID chat1.MessageID, eligible bool) {
+		if eligible {
+			if msgID > eligibleMsg {
+				eligibleMsg = msgID
+			}
+		} else {
+			if msgID > preventerMsg {
+				preventerMsg = msgID
+			}
+		}
+	}
+	for _, msg := range thread.Messages {
+		state, err := msg.State()
+		if err != nil {
+			continue
+		}
+		switch state {
+		case chat1.MessageUnboxedState_VALID:
+			eligible := func() bool {
+				if !msg.IsValidFull() {
+					return false
+				}
+				const howOldIsOld = time.Hour * 25 * 8
+				isOld := (cc.G().GetClock().Since(msg.Valid().ServerHeader.Ctime.Time()) >= howOldIsOld)
+				return isOld
+			}
+			if eligible() {
+				save(msg.GetMessageID(), true)
+			} else {
+				save(msg.GetMessageID(), false)
+			}
+		case chat1.MessageUnboxedState_ERROR:
+			save(msg.Error().MessageID, false)
+		case chat1.MessageUnboxedState_OUTBOX:
+			// If there's something in the outbox, don't show this card.
+			return false
 		case chat1.MessageUnboxedState_PLACEHOLDER:
 			save(msg.Placeholder().MessageID, false)
 		case chat1.MessageUnboxedState_JOURNEYCARD:
