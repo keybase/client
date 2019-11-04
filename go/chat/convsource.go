@@ -337,7 +337,6 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 
 func (s *RemoteConversationSource) PullLocalOnly(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination, maxPlaceholders int) (chat1.ThreadView, error) {
-	ctx = libkb.WithLogTag(ctx, "PUL")
 	return chat1.ThreadView{}, storage.MissError{Msg: "PullLocalOnly is unimplemented for RemoteConversationSource"}
 }
 
