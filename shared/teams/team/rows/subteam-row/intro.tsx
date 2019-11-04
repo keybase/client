@@ -49,7 +49,7 @@ const Banner = ({teamID}: Props) => {
           negative={true}
           type="BodySmallSemiboldPrimaryLink"
           className="underline"
-          onClickURL={'https://keybase.io/docs/teams/design'}
+          onClickURL="https://keybase.io/docs/teams/design"
           style={styles.readmore}
         >
           Read more about subteams
