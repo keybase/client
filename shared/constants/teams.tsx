@@ -430,11 +430,11 @@ const getTeamNameFromID = (state: TypedState, teamID: string): Types.Teamname | 
 const getTeamRetentionPolicy = (state: TypedState, teamname: Types.Teamname): RetentionPolicy | null =>
   state.teams.teamNameToRetentionPolicy.get(teamname, null)
 
-const getSelectedTeamNames = (): Types.Teamname[] => {
+export const getSelectedTeams = (): Types.TeamID[] => {
   const path = getFullRoute()
   return path.reduce<Array<string>>((names, curr) => {
     if (curr.routeName === 'team') {
-      curr.params && curr.params.teamname && names.push(curr.params.teamname)
+      curr.params && curr.params.teamID && names.push(curr.params.teamID)
     }
     return names
   }, [])
@@ -712,7 +712,6 @@ export {
   isInTeam,
   isInSomeTeam,
   isAccessRequestPending,
-  getSelectedTeamNames,
   getTeamSubteams,
   getTeamSettings,
   getTeamResetUsers,
