@@ -91,9 +91,14 @@ func (e *PassphraseRecover) Run(mctx libkb.MetaContext) (err error) {
 		return libkb.NewNotFoundError("Account missing key family")
 	}
 
-	if !ckf.HasActiveDevice() {
-		// Go directly to reset
+	// HasActiveKey rather than HasActiveDevice to handle PGP cases
+	if !ckf.HasActiveKey() {
+		// Go directly to password reset
 		return e.resetPassword(mctx)
+	}
+	if !ckf.HasActiveDevice() {
+		// No point in asking for device selection
+		return e.suggestReset(mctx)
 	}
 
 	return e.chooseDevice(mctx, ckf)
