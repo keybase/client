@@ -2136,16 +2136,13 @@ const sendAudioRecording = async (
   logger: Saga.SagaLogger
 ) => {
   // sit here for 400ms for animations
-  await Saga.delay(400)
-
+  if (!action.payload.fromStaged) {
+    await Saga.delay(400)
+  }
   const conversationIDKey = action.payload.conversationIDKey
-  const audioRecording = state.chat2.audioRecording.get(conversationIDKey)
+  const audioRecording = action.payload.info
   const clientPrev = Constants.getClientPrev(state, conversationIDKey)
   const ephemeralLifetime = Constants.getConversationExplodingMode(state, conversationIDKey)
-  if (!audioRecording) {
-    logger.info('sendAudioRecording: no audio info for send')
-    return
-  }
   const meta = state.chat2.metaMap.get(conversationIDKey)
   if (!meta) {
     logger.warn('sendAudioRecording: no meta for send')
@@ -2161,21 +2158,25 @@ const sendAudioRecording = async (
     })
   }
   const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
-  await RPCChatTypes.localPostFileAttachmentLocalNonblockRpcPromise({
-    arg: {
-      ...ephemeralData,
-      callerPreview,
-      conversationID: Types.keyToConversationID(conversationIDKey),
-      filename: audioRecording.path,
-      identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-      metadata: Buffer.from([]),
-      outboxID: audioRecording.outboxID,
-      title: '',
-      tlfName: meta.tlfname,
-      visibility: RPCTypes.TLFVisibility.private,
-    },
-    clientPrev,
-  })
+  try {
+    await RPCChatTypes.localPostFileAttachmentLocalNonblockRpcPromise({
+      arg: {
+        ...ephemeralData,
+        callerPreview,
+        conversationID: Types.keyToConversationID(conversationIDKey),
+        filename: audioRecording.path,
+        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+        metadata: Buffer.from([]),
+        outboxID: audioRecording.outboxID,
+        title: '',
+        tlfName: meta.tlfname,
+        visibility: RPCTypes.TLFVisibility.private,
+      },
+      clientPrev,
+    })
+  } catch (e) {
+    logger.warn('sendAudioRecording: failed to send attachment: ' + JSON.stringify(e))
+  }
 }
 
 // Upload an attachment

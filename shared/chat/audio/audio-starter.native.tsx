@@ -1,8 +1,10 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import * as React from 'react'
 import * as Kb from '../../common-adapters/mobile.native'
 import * as Types from '../../constants/types/chat2'
 import * as Styles from '../../styles'
 import flags from '../../util/feature-flags'
+import {Gateway} from 'react-gateway'
 
 type AudioStarterProps = {
   dragY: Kb.NativeAnimated.Value
@@ -17,9 +19,46 @@ type AudioStarterProps = {
 const maxCancelDrift = -20
 const maxLockDrift = -70
 
+type TooltipProps = {
+  shouldBeVisible: boolean
+}
+
+const Tooltip = (props: TooltipProps) => {
+  const opacity = React.useRef(new Kb.NativeAnimated.Value(0)).current
+  const [visible, setVisible] = React.useState(false)
+  React.useEffect(() => {
+    if (props.shouldBeVisible) {
+      setVisible(true)
+      Kb.NativeAnimated.timing(opacity, {
+        toValue: 1,
+        useNativeDriver: true,
+      }).start()
+    } else {
+      Kb.NativeAnimated.timing(opacity, {
+        toValue: 0,
+        useNativeDriver: true,
+      }).start(() => setVisible(false))
+    }
+  }, [props.shouldBeVisible])
+  return visible ? (
+    <Kb.NativeAnimated.View style={{opacity}}>
+      <Kb.Box2 direction="horizontal" style={styles.tooltipContainer}>
+        <Kb.Text type="BodySmall" style={{color: Styles.globalColors.white}}>
+          Hold the button to record audio.
+        </Kb.Text>
+      </Kb.Box2>
+    </Kb.NativeAnimated.View>
+  ) : null
+}
+
 const AudioStarter = (props: AudioStarterProps) => {
   let longPressTimer
   const locked = React.useRef<boolean>(false)
+  const tapLive = React.useRef<boolean>(false)
+  const [showToolTip, setShowToolTip] = React.useState(false)
+  const showToolTipFalseLater = Kb.useTimeout(() => {
+    setShowToolTip(false)
+  }, 2000)
   React.useEffect(() => {
     if (locked.current && !props.locked) {
       locked.current = false
@@ -45,74 +84,106 @@ const AudioStarter = (props: AudioStarterProps) => {
     props.stopRecording(stopType)
   }
   return (
-    <Kb.TapGestureHandler
-      onHandlerStateChange={({nativeEvent}) => {
-        if (!props.recording && nativeEvent.state === Kb.GestureState.BEGAN) {
-          if (!longPressTimer) {
-            longPressTimer = setTimeout(props.enableRecording, 200)
-          }
-        }
-        if (nativeEvent.state === Kb.GestureState.ACTIVE || nativeEvent.state === Kb.GestureState.END) {
-          clearTimeout(longPressTimer)
-          longPressTimer = null
-          if (props.recording && nativeEvent.state === Kb.GestureState.END) {
-            if (nativeEvent.x < maxCancelDrift) {
-              stopRecording(Types.AudioStopType.CANCEL)
-            } else if (nativeEvent.y < maxLockDrift) {
-              lockRecording()
-            } else {
-              stopRecording(Types.AudioStopType.RELEASE)
-            }
-          }
-        }
-      }}
-    >
-      <Kb.PanGestureHandler
-        minDeltaX={0}
-        minDeltaY={0}
-        onGestureEvent={({nativeEvent}) => {
-          if (locked.current) {
-            return
-          }
-          if (nativeEvent.translationY < maxLockDrift) {
-            locked.current = true
-            lockRecording()
-          }
-          if (nativeEvent.translationX < maxCancelDrift) {
-            clearTimeout(longPressTimer)
-            longPressTimer = null
-            stopRecording(Types.AudioStopType.CANCEL)
-          }
-          if (!locked.current && nativeEvent.translationY <= 0) {
-            props.dragY.setValue(nativeEvent.translationY)
-          }
-        }}
+    <>
+      <Gateway into="convOverlay">
+        <Tooltip shouldBeVisible={showToolTip} />
+      </Gateway>
+      <Kb.TapGestureHandler
         onHandlerStateChange={({nativeEvent}) => {
-          if (nativeEvent.state === Kb.GestureState.END) {
-            if (locked.current) {
-              return
+          if (!props.recording && nativeEvent.state === Kb.GestureState.BEGAN) {
+            tapLive.current = true
+            if (!longPressTimer) {
+              longPressTimer = setTimeout(() => {
+                if (tapLive.current) {
+                  props.enableRecording()
+                  setShowToolTip(false)
+                }
+              }, 200)
             }
-            if (nativeEvent.y < maxLockDrift) {
-              lockRecording()
+          }
+          if (
+            nativeEvent.state === Kb.GestureState.ACTIVE ||
+            nativeEvent.state === Kb.GestureState.END ||
+            nativeEvent.state === Kb.GestureState.CANCELLED ||
+            nativeEvent.state === Kb.GestureState.FAILED
+          ) {
+            clearTimeout(longPressTimer)
+            tapLive.current = false
+            longPressTimer = null
+            if (!props.recording) {
+              setShowToolTip(true)
+              showToolTipFalseLater()
             }
-            if (nativeEvent.x < maxCancelDrift) {
-              clearTimeout(longPressTimer)
-              longPressTimer = null
-              stopRecording(Types.AudioStopType.CANCEL)
-            } else {
-              clearTimeout(longPressTimer)
-              longPressTimer = null
-              stopRecording(Types.AudioStopType.RELEASE)
+            if (props.recording && nativeEvent.state === Kb.GestureState.END) {
+              if (nativeEvent.x < maxCancelDrift) {
+                stopRecording(Types.AudioStopType.CANCEL)
+              } else if (nativeEvent.y < maxLockDrift) {
+                lockRecording()
+              } else {
+                stopRecording(Types.AudioStopType.RELEASE)
+              }
             }
           }
         }}
       >
-        <Kb.NativeView>
-          <Kb.Icon type="iconfont-mic" style={Kb.iconCastPlatformStyles(props.iconStyle)} fontSize={22} />
-        </Kb.NativeView>
-      </Kb.PanGestureHandler>
-    </Kb.TapGestureHandler>
+        <Kb.PanGestureHandler
+          minDeltaX={0}
+          minDeltaY={0}
+          onGestureEvent={({nativeEvent}) => {
+            if (locked.current) {
+              return
+            }
+            if (nativeEvent.translationY < maxLockDrift) {
+              locked.current = true
+              lockRecording()
+            }
+            if (nativeEvent.translationX < maxCancelDrift) {
+              clearTimeout(longPressTimer)
+              longPressTimer = null
+              stopRecording(Types.AudioStopType.CANCEL)
+            }
+            if (!locked.current && nativeEvent.translationY <= 0) {
+              props.dragY.setValue(nativeEvent.translationY)
+            }
+          }}
+          onHandlerStateChange={({nativeEvent}) => {
+            if (nativeEvent.state === Kb.GestureState.END) {
+              if (locked.current) {
+                return
+              }
+              if (nativeEvent.y < maxLockDrift) {
+                lockRecording()
+              }
+              if (nativeEvent.x < maxCancelDrift) {
+                clearTimeout(longPressTimer)
+                longPressTimer = null
+                stopRecording(Types.AudioStopType.CANCEL)
+              } else {
+                clearTimeout(longPressTimer)
+                longPressTimer = null
+                stopRecording(Types.AudioStopType.RELEASE)
+              }
+            }
+          }}
+        >
+          <Kb.NativeView>
+            <Kb.Icon type="iconfont-mic" style={Kb.iconCastPlatformStyles(props.iconStyle)} fontSize={22} />
+          </Kb.NativeView>
+        </Kb.PanGestureHandler>
+      </Kb.TapGestureHandler>
+    </>
   )
 }
+
+const styles = Styles.styleSheetCreate(() => ({
+  tooltipContainer: {
+    backgroundColor: Styles.globalColors.black,
+    borderRadius: Styles.borderRadius,
+    bottom: 45,
+    padding: Styles.globalMargins.tiny,
+    position: 'absolute',
+    right: 20,
+  },
+}))
 
 export default AudioStarter

@@ -24,7 +24,9 @@ const AudioSend = (props: Props) => {
     dispatch(Chat2Gen.createStopAudioRecording({conversationIDKey, stopType: Types.AudioStopType.CANCEL}))
   }
   const onSend = () => {
-    dispatch(Chat2Gen.createSendAudioRecording({conversationIDKey}))
+    if (audioRecording) {
+      dispatch(Chat2Gen.createSendAudioRecording({conversationIDKey, fromStaged: true, info: audioRecording}))
+    }
   }
 
   // render

@@ -129,7 +129,6 @@ export const setThreadSearchQuery = 'chat2:setThreadSearchQuery'
 export const setThreadSearchStatus = 'chat2:setThreadSearchStatus'
 export const setUnsentText = 'chat2:setUnsentText'
 export const setWalletsOld = 'chat2:setWalletsOld'
-export const startAudioRecording = 'chat2:startAudioRecording'
 export const staticConfigLoaded = 'chat2:staticConfigLoaded'
 export const stopAudioRecording = 'chat2:stopAudioRecording'
 export const tabSelected = 'chat2:tabSelected'
@@ -235,7 +234,10 @@ type _DesktopNotificationPayload = {
   readonly body: string
 }
 type _DismissBottomBannerPayload = {readonly conversationIDKey: Types.ConversationIDKey}
-type _EnableAudioRecordingPayload = {readonly conversationIDKey: Types.ConversationIDKey}
+type _EnableAudioRecordingPayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly meteringCb: (amp: number) => void
+}
 type _GiphyGotSearchResultPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly results: RPCChatTypes.GiphySearchResults
@@ -525,7 +527,11 @@ type _SelectConversationPayload = {
     | 'teamMention'
   readonly navKey?: string
 }
-type _SendAudioRecordingPayload = {readonly conversationIDKey: Types.ConversationIDKey}
+type _SendAudioRecordingPayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly fromStaged: boolean
+  readonly info: Types.AudioRecordingInfo
+}
 type _SendTypingPayload = {readonly conversationIDKey: Types.ConversationIDKey; readonly typing: boolean}
 type _SetAttachmentViewStatusPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
@@ -598,10 +604,6 @@ type _SetUnsentTextPayload = {
   readonly text?: HiddenString
 }
 type _SetWalletsOldPayload = void
-type _StartAudioRecordingPayload = {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly meteringCb: (amp: number) => void
-}
 type _StaticConfigLoadedPayload = {readonly staticConfig: Types.StaticConfig}
 type _StopAudioRecordingPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
@@ -1409,9 +1411,6 @@ export const createSetAudioRecordingPostInfo = (
 export const createSetConversationOffline = (
   payload: _SetConversationOfflinePayload
 ): SetConversationOfflinePayload => ({payload, type: setConversationOffline})
-export const createStartAudioRecording = (
-  payload: _StartAudioRecordingPayload
-): StartAudioRecordingPayload => ({payload, type: startAudioRecording})
 export const createStopAudioRecording = (payload: _StopAudioRecordingPayload): StopAudioRecordingPayload => ({
   payload,
   type: stopAudioRecording,
@@ -1867,10 +1866,6 @@ export type SetWalletsOldPayload = {
   readonly payload: _SetWalletsOldPayload
   readonly type: typeof setWalletsOld
 }
-export type StartAudioRecordingPayload = {
-  readonly payload: _StartAudioRecordingPayload
-  readonly type: typeof startAudioRecording
-}
 export type StaticConfigLoadedPayload = {
   readonly payload: _StaticConfigLoadedPayload
   readonly type: typeof staticConfigLoaded
@@ -2105,7 +2100,6 @@ export type Actions =
   | SetThreadSearchStatusPayload
   | SetUnsentTextPayload
   | SetWalletsOldPayload
-  | StartAudioRecordingPayload
   | StaticConfigLoadedPayload
   | StopAudioRecordingPayload
   | TabSelectedPayload
