@@ -418,23 +418,30 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 		upak, fresh = u.getCachedUPAK(ctx, arg.uid, arg.stubMode, info)
 	}
 
+	// cached UPAK is fresh or allowed to be stale, and we're not forcing a poll.
 	if upak != nil && !arg.forcePoll && (fresh || arg.staleOK) {
 		return returnUPAK(upak, true)
 	}
 
-	if upak != nil && !arg.forcePoll && arg.cachedOnly {
-		// Stale cache not allowed but cache was stale.
-		return nil, nil, UserNotFoundError{UID: arg.uid, Msg: "cached user found, but it was stale, and cached only"}
+	// If we had a cached UPAK we could return, we'd have already returned it.
+	if arg.cachedOnly {
+		var message string
+		if upak == nil {
+			message = "no cached user found"
+		} else {
+			message = "cached user found, but it was stale, and cached only"
+		}
+		return nil, nil, UserNotFoundError{UID: arg.uid, Msg: message}
 	}
 
 	if upak != nil {
-		// If we are not forced to repoll, we might be done here.
+		// At this point, we have a cached UPAK but we are not confident about whether we can return it.
+		// Ask the server whether it is fresh.
+
 		if arg.forcePoll {
 			g.VDL.CLogf(ctx, VLog0, "%s: force-poll required us to repoll (fresh=%v)", culDebug(arg.uid), fresh)
 		}
 
-		// At this point, we have a cached UPAK but we are not confident about whether we can return it.
-		// Ask the server whether it is fresh.
 		if info != nil {
 			info.TimedOut = true
 		}
@@ -487,8 +494,6 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 		}
 		arg.sigHints = sigHints
 		arg.merkleLeaf = leaf
-	} else if arg.cachedOnly {
-		return nil, nil, UserNotFoundError{UID: arg.uid, Msg: "no cached user found"}
 	}
 
 	g.VDL.CLogf(ctx, VLog0, "%s: LoadUser", culDebug(arg.uid))
