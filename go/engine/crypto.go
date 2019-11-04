@@ -37,6 +37,20 @@ func GetMySecretKey(ctx context.Context, g *libkb.GlobalContext, getSecretUI fun
 	return key, nil
 }
 
+// GetMySecretKeyWithUID is like GetMySecretKey but returns an error if uid is not active.
+func GetMySecretKeyWithUID(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID, getSecretUI func() libkb.SecretUI, secretKeyType libkb.SecretKeyType, reason string) (libkb.GenericKey, error) {
+	key, err := g.ActiveDevice.KeyByTypeWithUID(uid, secretKeyType)
+	if err != nil {
+		if _, ok := err.(libkb.NotFoundError); ok {
+			g.Log.CDebugf(ctx, "GetMySecretKeyWithUID: no device key of type %s in ActiveDevice, returning LoginRequiredError", secretKeyType)
+			return nil, libkb.LoginRequiredError{Context: "GetMySecretKey"}
+		}
+		g.Log.CDebugf(ctx, "GetMySecretKeyWithUID(%s), unexpected error: %s", secretKeyType, err)
+		return nil, err
+	}
+	return key, nil
+}
+
 // SignED25519 signs the given message with the current user's private
 // signing key.
 func SignED25519(ctx context.Context, g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI, arg keybase1.SignED25519Arg) (ret keybase1.ED25519SignatureInfo, err error) {
