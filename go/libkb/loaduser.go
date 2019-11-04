@@ -46,10 +46,10 @@ type LoadUserArg struct {
 	publicKeyOptional        bool
 	noCacheResult            bool // currently ignore
 	self                     bool
-	forceReload              bool
-	forcePoll                bool // for cached user load, force a repoll
+	forceReload              bool // ignore the cache entirely, don't even bother polling if it is out of date; just fetch new data.
+	forcePoll                bool // for cached user load, force a repoll. If this and StaleOK are both set, we try a network call and if it fails return the cached data.
 	staleOK                  bool // if stale cached versions are OK (for immutable fields)
-	cachedOnly               bool // only return cached data (StaleOK should be true as well)
+	cachedOnly               bool // only return cached data (staleOK should be true and forcePoll must be false)
 	uider                    UIDer
 	abortIfSigchainUnchanged bool
 	resolveBody              *jsonw.Wrapper // some load paths plumb this through

@@ -417,19 +417,31 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 	if !arg.forceReload {
 		upak, fresh = u.getCachedUPAK(ctx, arg.uid, arg.stubMode, info)
 	}
-	if arg.forcePoll {
-		g.VDL.CLogf(ctx, VLog0, "%s: force-poll required us to repoll (fresh=%v)", culDebug(arg.uid), fresh)
-		fresh = false
-	}
 
 	if upak != nil {
-		g.VDL.CLogf(ctx, VLog0, "%s: cache-hit; fresh=%v", culDebug(arg.uid), fresh)
-		if fresh {
-			return returnUPAK(upak, true)
+		// Either there is no cached UPAK or forceReload is set.
+
+		// If we are not forced to repoll, we might be done here.
+		if !arg.forcePoll {
+			if fresh {
+				// Cache hit, not stale.
+				return returnUPAK(upak, true)
+			}
+			if arg.staleOK {
+				// Stale cache allowed.
+				return returnUPAK(upak, true)
+			}
+			if arg.cachedOnly {
+				// Stale cache not allowed but cache was stale.
+				return nil, nil, UserNotFoundError{UID: arg.uid, Msg: "cached user found, but it was stale, and cached only"}
+			}
+		} else {
+			g.VDL.CLogf(ctx, VLog0, "%s: force-poll required us to repoll (fresh=%v)", culDebug(arg.uid), fresh)
 		}
-		if arg.cachedOnly {
-			return nil, nil, UserNotFoundError{UID: arg.uid, Msg: "cached user found, but it was stale, and cached only"}
-		}
+
+		// At this point, we have a cached UPAK but we are not confident about whether we can return it.
+		// Ask the server whether it is fresh.
+
 		if info != nil {
 			info.TimedOut = true
 		}
@@ -439,6 +451,10 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 
 		sigHints, leaf, err = lookupSigHintsAndMerkleLeaf(m, arg.uid, true, arg.ToMerkleOpts())
 		if err != nil {
+			if arg.staleOK {
+				g.VDL.CLogf(ctx, VLog0, "Got error %+v when checking for staleness; using cached UPAK", err)
+				return returnUPAK(upak, true)
+			}
 			return nil, nil, err
 		}
 
