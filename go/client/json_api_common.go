@@ -158,8 +158,27 @@ type handler interface {
 	handle(ctx context.Context, c Call, w io.Writer) error
 }
 
-func (c *cmdAPI) runHandler(h handler) error {
-	r := io.Reader(os.Stdin)
+func (c *cmdAPI) runHandler(h handler) (err error) {
+	var r io.Reader
+	var w io.Writer
+	defer func() {
+		if err != nil {
+			enc := json.NewEncoder(w)
+			reply := Reply{Error: &CallError{Message: err.Error()}}
+			err = enc.Encode(reply)
+		}
+	}()
+	w = os.Stdout
+	if len(c.outputFile) > 0 {
+		f, err := os.Create(c.outputFile)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+		w = f
+	}
+
+	r = io.Reader(os.Stdin)
 	if len(c.message) > 0 {
 		r = strings.NewReader(c.message)
 	} else if len(c.inputFile) > 0 {
@@ -169,16 +188,6 @@ func (c *cmdAPI) runHandler(h handler) error {
 		}
 		defer f.Close()
 		r = f
-	}
-
-	w := os.Stdout
-	if len(c.outputFile) > 0 {
-		f, err := os.Create(c.outputFile)
-		if err != nil {
-			return err
-		}
-		defer f.Close()
-		w = f
 	}
 
 	return c.decode(context.Background(), r, w, h)
