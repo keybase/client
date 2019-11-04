@@ -21,7 +21,6 @@ type EngineActions =
 
 type Actions = Chat2Gen.Actions | TeamBuildingGen.Actions | EngineActions
 
-const badgeKey = String(isMobile ? RPCTypes.DeviceType.mobile : RPCTypes.DeviceType.desktop)
 const initialState: Types.State = Constants.makeState()
 
 // Backend gives us messageIDs sometimes so we need to find our ordinal
@@ -524,20 +523,20 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     draftState.focus = action.payload.nextFocus
   },
   [Chat2Gen.selectConversation]: (draftState, action) => {
+    const {conversationIDKey} = action.payload
+    const {selectedConversation, threadLoadStatus, containsLatestMessageMap, orangeLineMap} = draftState
+    const {metaMap, messageCenterOrdinals} = draftState
     // ignore non-changing
-    if (draftState.selectedConversation === action.payload.conversationIDKey) {
+    if (selectedConversation === conversationIDKey) {
       return
     }
 
-    const conversationIDKey = action.payload.conversationIDKey
     if (conversationIDKey) {
-      const {readMsgID, maxVisibleMsgID} =
-        draftState.metaMap.get(conversationIDKey) || Constants.makeConversationMeta()
+      const {readMsgID, maxVisibleMsgID} = metaMap.get(conversationIDKey) || Constants.makeConversationMeta()
 
       logger.info(
         `rootReducer: selectConversation: setting orange line: convID: ${conversationIDKey} maxVisible: ${maxVisibleMsgID} read: ${readMsgID}`
       )
-      const orangeLineMap = new Map(draftState.orangeLineMap)
       if (maxVisibleMsgID > readMsgID) {
         // Store the message ID that will display the orange line above it,
         // which is the first message after the last read message. We can't
@@ -561,27 +560,16 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
         // orange line so remove its entry from orangeLineMap
         orangeLineMap.delete(conversationIDKey)
       }
-      draftState.orangeLineMap = orangeLineMap
     }
-    const prevConvIDKey = draftState.selectedConversation
     // blank out draft so we don't flash old data when switching convs
-    const meta = draftState.metaMap.get(prevConvIDKey)
+    const meta = metaMap.get(selectedConversation)
     if (meta) {
-      const metaMap = new Map(draftState.metaMap)
-      metaMap.set(prevConvIDKey, {...meta, draft: ''})
-      draftState.metaMap = metaMap
+      meta.draft = ''
     }
-    const messageCenterOrdinals = new Map(draftState.messageCenterOrdinals)
     messageCenterOrdinals.delete(conversationIDKey)
-    draftState.messageCenterOrdinals = messageCenterOrdinals
-    const threadLoadStatus = new Map(draftState.threadLoadStatus)
     threadLoadStatus.delete(conversationIDKey)
-    draftState.threadLoadStatus = threadLoadStatus
-
-    const containsLatestMessageMap = new Map(draftState.containsLatestMessageMap)
     containsLatestMessageMap.set(conversationIDKey, true)
-    draftState.containsLatestMessageMap = containsLatestMessageMap
-    draftState.previousSelectedConversation = prevConvIDKey
+    draftState.previousSelectedConversation = selectedConversation
     draftState.selectedConversation = conversationIDKey
     if (Constants.isValidConversationIDKey(conversationIDKey)) {
       // If navigating away from error conversation to a valid conv - clear
@@ -593,29 +581,23 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     draftState.createConversationError = action.payload.message
   },
   [Chat2Gen.updateUnreadline]: (draftState, action) => {
-    const orangeLineMap = new Map(draftState.orangeLineMap)
-    if (action.payload.messageID > 0) {
-      orangeLineMap.set(action.payload.conversationIDKey, action.payload.messageID)
+    const {conversationIDKey, messageID} = action.payload
+    const {orangeLineMap} = draftState
+    if (messageID > 0) {
+      orangeLineMap.set(conversationIDKey, messageID)
     } else {
       orangeLineMap.delete(action.payload.conversationIDKey)
     }
-    draftState.orangeLineMap = orangeLineMap
   },
   [Chat2Gen.unfurlTogglePrompt]: (draftState, action) => {
     const {show, domain, conversationIDKey, messageID} = action.payload
     const {unfurlPromptMap} = draftState
 
-    let map = draftState.unfurlPromptMap.get(conversationIDKey)
-    if (!map) {
-      map = new Map()
-      unfurlPromptMap.set(conversationIDKey, map)
-    }
+    const map = unfurlPromptMap.get(conversationIDKey) || new Map()
+    unfurlPromptMap.set(conversationIDKey, map)
 
-    let prompts = map.get(messageID)
-    if (!prompts) {
-      prompts = new Set()
-      map.set(messageID, prompts)
-    }
+    const prompts = map.get(messageID) || new Set()
+    map.set(messageID, prompts)
 
     if (show) {
       prompts.add(domain)
@@ -624,78 +606,63 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     }
   },
   [Chat2Gen.updateCoinFlipStatus]: (draftState, action) => {
-    const flipStatusMap = draftState.flipStatusMap
-    action.payload.statuses.forEach(status => {
+    const {statuses} = action.payload
+    const {flipStatusMap} = draftState
+    statuses.forEach(status => {
       flipStatusMap.set(status.gameID, status)
     })
-    draftState.flipStatusMap = flipStatusMap
   },
   [Chat2Gen.messageSend]: (draftState, action) => {
-    const commandMarkdownMap = new Map(draftState.commandMarkdownMap)
-    commandMarkdownMap.delete(action.payload.conversationIDKey)
-    draftState.commandMarkdownMap = commandMarkdownMap
-    const replyToMap = new Map(draftState.replyToMap)
-    replyToMap.delete(action.payload.conversationIDKey)
-    draftState.replyToMap = replyToMap
+    const {conversationIDKey} = action.payload
+    const {commandMarkdownMap, replyToMap} = draftState
+    commandMarkdownMap.delete(conversationIDKey)
+    replyToMap.delete(conversationIDKey)
   },
   [Chat2Gen.setCommandMarkdown]: (draftState, action) => {
     const {conversationIDKey, md} = action.payload
-    const commandMarkdownMap = new Map(draftState.commandMarkdownMap)
+    const {commandMarkdownMap} = draftState
     if (md) {
       commandMarkdownMap.set(conversationIDKey, md)
     } else {
       commandMarkdownMap.delete(conversationIDKey)
     }
-    draftState.commandMarkdownMap = commandMarkdownMap
   },
   [Chat2Gen.setThreadLoadStatus]: (draftState, action) => {
-    const threadLoadStatus = new Map(draftState.threadLoadStatus)
-    threadLoadStatus.set(action.payload.conversationIDKey, action.payload.status)
-    draftState.threadLoadStatus = threadLoadStatus
+    const {conversationIDKey, status} = action.payload
+    const {threadLoadStatus} = draftState
+    threadLoadStatus.set(conversationIDKey, status)
   },
   [Chat2Gen.setCommandStatusInfo]: (draftState, action) => {
-    const commandStatusMap = new Map(draftState.commandStatusMap)
-    commandStatusMap.set(action.payload.conversationIDKey, action.payload.info)
-    draftState.commandStatusMap = commandStatusMap
+    const {conversationIDKey, info} = action.payload
+    const {commandStatusMap} = draftState
+    commandStatusMap.set(conversationIDKey, info)
   },
   [Chat2Gen.clearCommandStatusInfo]: (draftState, action) => {
     const {conversationIDKey} = action.payload
-    const commandStatusMap = new Map(draftState.commandStatusMap)
+    const {commandStatusMap} = draftState
     commandStatusMap.delete(conversationIDKey)
-    draftState.commandStatusMap = commandStatusMap
   },
   [Chat2Gen.updateLastCoord]: (draftState, action) => {
     draftState.lastCoord = action.payload.coord
   },
   [Chat2Gen.badgesUpdated]: (draftState, action) => {
-    const badgeMap = new Map<Types.ConversationIDKey, number>(
-      action.payload.conversations.map(({convID, badgeCounts}) => [
-        Types.conversationIDToKey(convID),
-        badgeCounts[badgeKey] || 0,
-      ])
-    )
-    if (!shallowEqual([...badgeMap.entries()], [...draftState.badgeMap.entries()])) {
-      draftState.badgeMap = badgeMap
-    }
-    const unreadMap = new Map<Types.ConversationIDKey, number>(
-      action.payload.conversations.map(({convID, unreadMessages}) => [
-        Types.conversationIDToKey(convID),
-        unreadMessages,
-      ])
-    )
-
-    if (!shallowEqual([...unreadMap.entries()], [...draftState.unreadMap.entries()])) {
-      draftState.unreadMap = unreadMap
-    }
+    const {conversations} = action.payload
+    const {badgeMap, unreadMap} = draftState
+    const badgeKey = String(isMobile ? RPCTypes.DeviceType.mobile : RPCTypes.DeviceType.desktop)
+    conversations.forEach(({convID, badgeCounts, unreadMessages}) => {
+      const key = Types.conversationIDToKey(convID)
+      const count = badgeCounts[badgeKey] || 0
+      badgeMap.set(key, count)
+      unreadMap.set(key, unreadMessages)
+    })
   },
   [Chat2Gen.messageSetEditing]: (draftState, action) => {
     const {conversationIDKey, editLastUser, ordinal} = action.payload
+    const {editingMap, messageOrdinals} = draftState
 
     // clearing
     if (!editLastUser && !ordinal) {
-      const editingMap = new Map(draftState.editingMap)
       editingMap.delete(conversationIDKey)
-      draftState.editingMap = editingMap
       return
     }
 
@@ -705,15 +672,13 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     if (ordinal) {
       const message = messageMap.get(ordinal)
       if (message && message.type === 'text') {
-        const editingMap = new Map(draftState.editingMap)
         editingMap.set(conversationIDKey, ordinal)
-        draftState.editingMap = editingMap
       }
       return
     }
 
     // Editing your last message
-    const ordinals = [...(draftState.messageOrdinals.get(conversationIDKey) || [])]
+    const ordinals = [...(messageOrdinals.get(conversationIDKey) || [])]
     const found = ordinals.reverse().find(o => {
       const message = messageMap.get(o)
       return !!(
@@ -725,9 +690,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       )
     })
     if (found) {
-      const editingMap = new Map(draftState.editingMap)
       editingMap.set(conversationIDKey, found)
-      draftState.editingMap = editingMap
     }
   },
   [Chat2Gen.messageSetQuoting]: (draftState, action) => {
@@ -745,8 +708,8 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     // pull out deletes and handle at the end
     const [messages, deletedMessages] = partition(action.payload.messages, m => m.type !== 'deleted')
     // we want the clear applied when we call findExisting
-    let messageOrdinals = new Map(draftState.messageOrdinals)
-    let oldPendingOutboxToOrdinal = new Map(draftState.pendingOutboxToOrdinal)
+    const messageOrdinals = new Map(draftState.messageOrdinals)
+    const oldPendingOutboxToOrdinal = new Map(draftState.pendingOutboxToOrdinal)
     let oldMessageMap = draftState.messageMap
 
     // so we can keep messages if they haven't mutated
@@ -970,68 +933,71 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     draftState.pendingOutboxToOrdinal = pendingOutboxToOrdinal
   },
   [Chat2Gen.jumpToRecent]: (draftState, action) => {
-    const messageCenterOrdinals = new Map(draftState.messageCenterOrdinals)
-    messageCenterOrdinals.delete(action.payload.conversationIDKey)
-    draftState.messageCenterOrdinals = messageCenterOrdinals
+    const {conversationIDKey} = action.payload
+    const {messageCenterOrdinals} = draftState
+    messageCenterOrdinals.delete(conversationIDKey)
   },
   [Chat2Gen.setContainsLastMessage]: (draftState, action) => {
-    const containsLatestMessageMap = draftState.containsLatestMessageMap
-    containsLatestMessageMap.set(action.payload.conversationIDKey, action.payload.contains)
-    draftState.containsLatestMessageMap = containsLatestMessageMap
+    const {conversationIDKey, contains} = action.payload
+    const {containsLatestMessageMap} = draftState
+    containsLatestMessageMap.set(conversationIDKey, contains)
   },
   [Chat2Gen.messageRetry]: (draftState, action) => {
     const {conversationIDKey, outboxID} = action.payload
-    const outToOrd = draftState.pendingOutboxToOrdinal.get(conversationIDKey)
+    const {pendingOutboxToOrdinal, messageMap} = draftState
+    const outToOrd = pendingOutboxToOrdinal.get(conversationIDKey)
     const ordinal = outToOrd && outToOrd.get(outboxID)
-    if (!ordinal) {
-      return
+    if (ordinal) {
+      draftState.messageMap = messageMap.updateIn([conversationIDKey, ordinal], m => {
+        if (m) {
+          if (m.type === 'text') {
+            return m.set('errorReason', null).set('submitState', 'pending')
+          }
+          if (m.type === 'attachment') {
+            return m.set('errorReason', null).set('submitState', 'pending')
+          }
+        }
+        return m
+      })
     }
-    draftState.messageMap = draftState.messageMap.updateIn([conversationIDKey, ordinal], message => {
-      if (message) {
-        if (message.type === 'text') {
-          return message.set('errorReason', null).set('submitState', 'pending')
-        }
-        if (message.type === 'attachment') {
-          return message.set('errorReason', null).set('submitState', 'pending')
-        }
-      }
-      return message
-    })
   },
   [Chat2Gen.messageErrored]: (draftState, action) => {
     const {conversationIDKey, errorTyp, outboxID, reason} = action.payload
-    const outToOrd = draftState.pendingOutboxToOrdinal.get(conversationIDKey)
+    const {pendingOutboxToOrdinal, messageMap} = draftState
+    const outToOrd = pendingOutboxToOrdinal.get(conversationIDKey)
     const ordinal = outToOrd && outToOrd.get(outboxID)
-    if (!ordinal) {
-      return
+    if (ordinal) {
+      draftState.messageMap = messageMap.updateIn([conversationIDKey, ordinal], m => {
+        if (m) {
+          if (m.type === 'text') {
+            return m
+              .set('errorReason', reason)
+              .set('submitState', 'failed')
+              .set('errorTyp', errorTyp)
+          }
+          if (m.type === 'attachment') {
+            return m
+              .set('errorReason', reason)
+              .set('submitState', 'failed')
+              .set('errorTyp', errorTyp)
+          }
+        }
+        return m
+      })
     }
-    draftState.messageMap = draftState.messageMap.updateIn([conversationIDKey, ordinal], message => {
-      if (message) {
-        if (message.type === 'text') {
-          return message
-            .set('errorReason', reason)
-            .set('submitState', 'failed')
-            .set('errorTyp', errorTyp)
-        }
-        if (message.type === 'attachment') {
-          return message
-            .set('errorReason', reason)
-            .set('submitState', 'failed')
-            .set('errorTyp', errorTyp)
-        }
-      }
-      return message
-    })
   },
   [EngineGen.chat1ChatUiChatInboxLayout]: (draftState, action) => {
     try {
-      const layout: RPCChatTypes.UIInboxLayout = JSON.parse(action.payload.params.layout)
-      if (!draftState.inboxHasLoaded) {
+      const {params} = action.payload
+      const {inboxHasLoaded, draftMap, mutedMap} = draftState
+      const layout: RPCChatTypes.UIInboxLayout = JSON.parse(params.layout)
+      draftState.inboxLayout = layout
+      draftState.inboxHasLoaded = true
+      if (!inboxHasLoaded) {
+        const smallTeams = layout.smallTeams || []
         // on first layout, initialize any drafts and muted status
         // After the first layout, any other updates will come in the form of meta updates.
-        const draftMap = new Map(draftState.draftMap)
-        const mutedMap = new Map(draftState.mutedMap)
-        ;(layout.smallTeams || []).forEach((t: RPCChatTypes.UIInboxSmallTeamRow) => {
+        smallTeams.forEach(t => {
           if (t.isMuted) {
             mutedMap.set(t.convID, true)
           } else {
@@ -1043,7 +1009,8 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
             draftMap.delete(t.convID)
           }
         })
-        ;(layout.bigTeams || []).forEach((t: RPCChatTypes.UIInboxBigTeamRow) => {
+        const bigTeams = layout.bigTeams || []
+        bigTeams.forEach(t => {
           if (t.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel) {
             if (t.channel.isMuted) {
               mutedMap.set(t.channel.convID, true)
@@ -1057,31 +1024,25 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
             }
           }
         })
-        draftState.draftMap = draftMap
-        draftState.mutedMap = mutedMap
       }
-      draftState.inboxLayout = layout
-      draftState.inboxHasLoaded = true
     } catch (e) {
       logger.info('failed to JSON parse inbox layout: ' + e)
     }
   },
   [EngineGen.chat1ChatUiChatBotCommandsUpdateStatus]: (draftState, action) => {
-    const botCommandsUpdateStatusMap = new Map(draftState.botCommandsUpdateStatusMap)
-    botCommandsUpdateStatusMap.set(
-      Types.stringToConversationIDKey(action.payload.params.convID),
-      action.payload.params.status
-    )
-    draftState.botCommandsUpdateStatusMap = botCommandsUpdateStatusMap
+    const {convID, status} = action.payload.params
+    const {botCommandsUpdateStatusMap} = draftState
+    botCommandsUpdateStatusMap.set(Types.stringToConversationIDKey(convID), status)
   },
   [EngineGen.chat1NotifyChatChatTypingUpdate]: (draftState, action) => {
     const {typingUpdates} = action.payload.params
-    const typingMap = new Map(
-      (typingUpdates || []).reduce<Array<[string, Set<string>]>>((arr, u) => {
-        arr.push([Types.conversationIDToKey(u.convID), new Set((u.typers || []).map(t => t.username))])
-        return arr
-      }, [])
-    )
+    const typingMap = new Map<string, Set<string>>()
+    const updates = typingUpdates || []
+    updates.forEach(u => {
+      const key = Types.conversationIDToKey(u.convID)
+      const set = new Set((u.typers || []).map(t => t.username))
+      typingMap.set(key, set)
+    })
     draftState.typingMap = typingMap
   },
   [Chat2Gen.toggleLocalReaction]: (draftState, action) => {
@@ -1120,17 +1081,18 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [Chat2Gen.updateReactions]: (draftState, action) => {
     const {conversationIDKey, updates} = action.payload
+    const {messageMap} = draftState
     const targetData = updates.map(u => ({
       reactions: u.reactions,
       targetMsgID: u.targetMsgID,
       targetOrdinal: messageIDToOrdinal(
-        draftState.messageMap,
+        messageMap,
         draftState.pendingOutboxToOrdinal,
         conversationIDKey,
         u.targetMsgID
       ),
     }))
-    draftState.messageMap = draftState.messageMap.update(
+    draftState.messageMap = messageMap.update(
       conversationIDKey,
       I.Map(),
       (map: I.Map<Types.Ordinal, Types.Message>) =>
@@ -1156,20 +1118,13 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     )
   },
   [Chat2Gen.messagesWereDeleted]: (draftState, action) => {
-    const {
-      conversationIDKey,
-      deletableMessageTypes = Constants.allMessageTypes,
-      messageIDs = [],
-      ordinals = [],
-      upToMessageID = null,
-    } = action.payload
+    const {deletableMessageTypes = Constants.allMessageTypes, messageIDs = [], ordinals = []} = action.payload
+    const {conversationIDKey, upToMessageID = null} = action.payload
+    const {messageMap, messageOrdinals} = draftState
 
     const upToOrdinals: Array<Types.Ordinal> = []
     if (upToMessageID) {
-      const ordinalToMessage = draftState.messageMap.get(
-        conversationIDKey,
-        I.Map<Types.Ordinal, Types.Message>()
-      )
+      const ordinalToMessage = messageMap.get(conversationIDKey, I.Map<Types.Ordinal, Types.Message>())
       ordinalToMessage.reduce((arr, m, ordinal) => {
         if (m.id < upToMessageID && deletableMessageTypes.has(m.type)) {
           arr.push(ordinal)
@@ -1182,12 +1137,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       [
         ...ordinals,
         ...messageIDs.map(messageID =>
-          messageIDToOrdinal(
-            draftState.messageMap,
-            draftState.pendingOutboxToOrdinal,
-            conversationIDKey,
-            messageID
-          )
+          messageIDToOrdinal(messageMap, draftState.pendingOutboxToOrdinal, conversationIDKey, messageID)
         ),
         ...upToOrdinals,
       ].reduce<Array<Types.Ordinal>>((arr, n) => {
@@ -1198,7 +1148,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       }, [])
     )
 
-    draftState.messageMap = draftState.messageMap.update(
+    draftState.messageMap = messageMap.update(
       conversationIDKey,
       I.Map(),
       (map: I.Map<Types.Ordinal, Types.Message>) =>
@@ -1220,25 +1170,21 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
         })
     )
 
-    const messageOrdinals = new Map(draftState.messageOrdinals)
-    const os = new Set(messageOrdinals.get(conversationIDKey))
-    allOrdinals.forEach(o => os.delete(o))
-    messageOrdinals.set(conversationIDKey, os)
-    draftState.messageOrdinals = messageOrdinals
+    const os = messageOrdinals.get(conversationIDKey)
+    os && allOrdinals.forEach(o => os.delete(o))
   },
   [Chat2Gen.updateMoreToLoad]: (draftState, action) => {
-    const moreToLoadMap = new Map(draftState.moreToLoadMap)
-    moreToLoadMap.set(action.payload.conversationIDKey, action.payload.moreToLoad)
-    draftState.moreToLoadMap = moreToLoadMap
+    const {conversationIDKey, moreToLoad} = action.payload
+    const {moreToLoadMap} = draftState
+    moreToLoadMap.set(conversationIDKey, moreToLoad)
   },
   [Chat2Gen.updateConvExplodingModes]: (draftState, action) => {
     const {modes} = action.payload
-    const explodingModes = new Map()
-    modes.forEach(mode =>
-      explodingModes.set(Types.conversationIDKeyToString(mode.conversationIDKey), mode.seconds)
+    draftState.explodingModes = new Map(
+      modes.map(mode => [Types.conversationIDKeyToString(mode.conversationIDKey), mode.seconds])
     )
-    draftState.explodingModes = explodingModes
   },
+  /// AAA <HERE
   [Chat2Gen.setExplodingModeLock]: (draftState, action) => {
     const {conversationIDKey, unset} = action.payload
     const mode = draftState.explodingModes.get(conversationIDKey) || 0
