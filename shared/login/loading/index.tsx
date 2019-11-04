@@ -3,7 +3,6 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
 type Props = {
-  allowFeedback?: boolean
   failed: string
   status: string
   onRetry: (() => void) | null
@@ -26,7 +25,6 @@ const Feedback = ({onFeedback}) =>
   )
 
 const Splash = (props: Props) => {
-  const {allowFeedback = true} = props
   const [showFeedback, setShowFeedback] = React.useState(false)
   const setShowFeedbackTrueLater = Kb.useTimeout(() => setShowFeedback(true), 7000)
   React.useEffect(() => {
@@ -51,7 +49,7 @@ const Splash = (props: Props) => {
           <Kb.Button label="Reload" onClick={props.onRetry} />
         </Kb.ButtonBar>
       )}
-      {(props.onRetry || showFeedback) && allowFeedback && <Feedback onFeedback={props.onFeedback} />}
+      {(props.onRetry || showFeedback) && <Feedback onFeedback={props.onFeedback} />}
     </Kb.Box2>
   )
 }
