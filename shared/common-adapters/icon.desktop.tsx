@@ -170,7 +170,7 @@ const imgName = (name: string, ext: string, mult: number, prefix?: string, postf
 function iconTypeToSrcSet(type: IconType) {
   const ext = Shared.typeExtension(type)
   const name: string = (Styles.isDarkMode() && iconMeta[type].nameDark) || type
-  return [1, 2].map(mult => imgName(name, ext, mult)).join(', ')
+  return [1, 2, 3].map(mult => imgName(name, ext, mult)).join(', ')
 }
 
 export function iconTypeToImgSet(imgMap: {[size: string]: string}, targetSize: number): any {
