@@ -13,19 +13,21 @@ import (
 type UnfurlType int
 
 const (
-	UnfurlType_GENERIC UnfurlType = 0
-	UnfurlType_YOUTUBE UnfurlType = 1
-	UnfurlType_GIPHY   UnfurlType = 2
-	UnfurlType_MAPS    UnfurlType = 3
+	UnfurlType_GENERIC    UnfurlType = 0
+	UnfurlType_YOUTUBE    UnfurlType = 1
+	UnfurlType_GIPHY      UnfurlType = 2
+	UnfurlType_MAPS       UnfurlType = 3
+	UnfurlType_MAPS_ENDED UnfurlType = 4
 )
 
 func (o UnfurlType) DeepCopy() UnfurlType { return o }
 
 var UnfurlTypeMap = map[string]UnfurlType{
-	"GENERIC": 0,
-	"YOUTUBE": 1,
-	"GIPHY":   2,
-	"MAPS":    3,
+	"GENERIC":    0,
+	"YOUTUBE":    1,
+	"GIPHY":      2,
+	"MAPS":       3,
+	"MAPS_ENDED": 4,
 }
 
 var UnfurlTypeRevMap = map[UnfurlType]string{
@@ -33,6 +35,7 @@ var UnfurlTypeRevMap = map[UnfurlType]string{
 	1: "YOUTUBE",
 	2: "GIPHY",
 	3: "MAPS",
+	4: "MAPS_ENDED",
 }
 
 func (e UnfurlType) String() string {
@@ -191,12 +194,23 @@ func (o UnfurlMapsRaw) DeepCopy() UnfurlMapsRaw {
 	}
 }
 
+type UnfurlMapsEndedRaw struct {
+	Time gregor1.Time `codec:"time" json:"time"`
+}
+
+func (o UnfurlMapsEndedRaw) DeepCopy() UnfurlMapsEndedRaw {
+	return UnfurlMapsEndedRaw{
+		Time: o.Time.DeepCopy(),
+	}
+}
+
 type UnfurlRaw struct {
-	UnfurlType__ UnfurlType        `codec:"unfurlType" json:"unfurlType"`
-	Generic__    *UnfurlGenericRaw `codec:"generic,omitempty" json:"generic,omitempty"`
-	Youtube__    *UnfurlYoutubeRaw `codec:"youtube,omitempty" json:"youtube,omitempty"`
-	Giphy__      *UnfurlGiphyRaw   `codec:"giphy,omitempty" json:"giphy,omitempty"`
-	Maps__       *UnfurlMapsRaw    `codec:"maps,omitempty" json:"maps,omitempty"`
+	UnfurlType__ UnfurlType          `codec:"unfurlType" json:"unfurlType"`
+	Generic__    *UnfurlGenericRaw   `codec:"generic,omitempty" json:"generic,omitempty"`
+	Youtube__    *UnfurlYoutubeRaw   `codec:"youtube,omitempty" json:"youtube,omitempty"`
+	Giphy__      *UnfurlGiphyRaw     `codec:"giphy,omitempty" json:"giphy,omitempty"`
+	Maps__       *UnfurlMapsRaw      `codec:"maps,omitempty" json:"maps,omitempty"`
+	MapsEnded__  *UnfurlMapsEndedRaw `codec:"mapsEnded,omitempty" json:"mapsEnded,omitempty"`
 }
 
 func (o *UnfurlRaw) UnfurlType() (ret UnfurlType, err error) {
@@ -219,6 +233,11 @@ func (o *UnfurlRaw) UnfurlType() (ret UnfurlType, err error) {
 	case UnfurlType_MAPS:
 		if o.Maps__ == nil {
 			err = errors.New("unexpected nil value for Maps__")
+			return ret, err
+		}
+	case UnfurlType_MAPS_ENDED:
+		if o.MapsEnded__ == nil {
+			err = errors.New("unexpected nil value for MapsEnded__")
 			return ret, err
 		}
 	}
@@ -265,6 +284,16 @@ func (o UnfurlRaw) Maps() (res UnfurlMapsRaw) {
 	return *o.Maps__
 }
 
+func (o UnfurlRaw) MapsEnded() (res UnfurlMapsEndedRaw) {
+	if o.UnfurlType__ != UnfurlType_MAPS_ENDED {
+		panic("wrong case accessed")
+	}
+	if o.MapsEnded__ == nil {
+		return
+	}
+	return *o.MapsEnded__
+}
+
 func NewUnfurlRawWithGeneric(v UnfurlGenericRaw) UnfurlRaw {
 	return UnfurlRaw{
 		UnfurlType__: UnfurlType_GENERIC,
@@ -290,6 +319,13 @@ func NewUnfurlRawWithMaps(v UnfurlMapsRaw) UnfurlRaw {
 	return UnfurlRaw{
 		UnfurlType__: UnfurlType_MAPS,
 		Maps__:       &v,
+	}
+}
+
+func NewUnfurlRawWithMapsEnded(v UnfurlMapsEndedRaw) UnfurlRaw {
+	return UnfurlRaw{
+		UnfurlType__: UnfurlType_MAPS_ENDED,
+		MapsEnded__:  &v,
 	}
 }
 
@@ -324,6 +360,13 @@ func (o UnfurlRaw) DeepCopy() UnfurlRaw {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Maps__),
+		MapsEnded__: (func(x *UnfurlMapsEndedRaw) *UnfurlMapsEndedRaw {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.MapsEnded__),
 	}
 }
 
@@ -346,6 +389,16 @@ func (o UnfurlGenericMapInfo) DeepCopy() UnfurlGenericMapInfo {
 			return &tmp
 		})(o.LiveLocationEndTime),
 		IsLiveLocationDone: o.IsLiveLocationDone,
+	}
+}
+
+type UnfurlGenericMapEnded struct {
+	Time gregor1.Time `codec:"time" json:"time"`
+}
+
+func (o UnfurlGenericMapEnded) DeepCopy() UnfurlGenericMapEnded {
+	return UnfurlGenericMapEnded{
+		Time: o.Time.DeepCopy(),
 	}
 }
 

@@ -19,7 +19,8 @@
         "GENERIC_0",
         "YOUTUBE_1",
         "GIPHY_2",
-        "MAPS_3"
+        "MAPS_3",
+        "MAPS_ENDED_4"
       ]
     },
     {
@@ -182,6 +183,16 @@
       ]
     },
     {
+      "type": "record",
+      "name": "UnfurlMapsEndedRaw",
+      "fields": [
+        {
+          "type": "gregor1.Time",
+          "name": "time"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "UnfurlRaw",
       "switch": {
@@ -216,6 +227,13 @@
             "def": false
           },
           "body": "UnfurlMapsRaw"
+        },
+        {
+          "label": {
+            "name": "MAPS_ENDED",
+            "def": false
+          },
+          "body": "UnfurlMapsEndedRaw"
         }
       ]
     },
@@ -241,6 +259,16 @@
         {
           "type": "boolean",
           "name": "isLiveLocationDone"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UnfurlGenericMapEnded",
+      "fields": [
+        {
+          "type": "gregor1.Time",
+          "name": "time"
         }
       ]
     },
