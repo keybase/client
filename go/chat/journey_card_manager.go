@@ -555,7 +555,7 @@ func (cc *JourneyCardManagerSingleUser) cardChannelInactive(ctx context.Context,
 				if !msg.IsValidFull() {
 					return false
 				}
-				const howOldIsOld = time.Hour * 25 * 8
+				const howOldIsOld = time.Hour * 24 * 8
 				isOld := (cc.G().GetClock().Since(msg.Valid().ServerHeader.Ctime.Time()) >= howOldIsOld)
 				return isOld
 			}
