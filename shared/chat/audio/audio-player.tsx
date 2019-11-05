@@ -114,7 +114,7 @@ const AudioPlayer = (props: Props) => {
       <Kb.ClickableBox onClick={props.url ? onClick : undefined} style={{justifyContent: 'center'}}>
         <Kb.Icon
           type={!paused ? 'iconfont-pause' : 'iconfont-play'}
-          fontSize={24}
+          fontSize={32}
           style={Kb.iconCastPlatformStyles(styles.play)}
         />
       </Kb.ClickableBox>
@@ -137,13 +137,14 @@ const styles = Styles.styleSheetCreate(() => ({
     width: 30,
   },
   container: {
-    ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.tiny),
+    ...Styles.padding(Styles.globalMargins.xxtiny, Styles.globalMargins.tiny),
     backgroundColor: Styles.globalColors.white,
     borderColor: Styles.globalColors.grey,
     borderRadius: Styles.borderRadius,
     borderStyle: 'solid',
     borderWidth: 1,
     marginTop: Styles.globalMargins.xtiny,
+    maxHeight: 40,
   },
   duration: {
     color: Styles.globalColors.black_50,
