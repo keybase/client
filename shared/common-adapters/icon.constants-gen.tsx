@@ -11,14 +11,6 @@ type IconMeta = {
 }
 
 const iconMeta_ = {
-  '.': {
-    extension: 'eep',
-    imagesDir: 'releases',
-    isFont: false,
-    get require() {
-      return require('../images/releases/.keep')
-    },
-  },
   'icon-GPG-export': {
     extension: 'png',
     imagesDir: 'icons',
