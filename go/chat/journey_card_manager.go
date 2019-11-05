@@ -146,6 +146,26 @@ func NewJourneyCardManagerSingleUser(g *globals.Context, uid gregor1.UID) *Journ
 	}
 }
 
+func (cc *JourneyCardManagerSingleUser) checkFeature(ctx context.Context) bool {
+	if cc.G().GetEnv().GetDebugJourneycard() {
+		return true
+	}
+	ogCtx := ctx
+	// G.FeatureFlags seems like the kind of system that might hang on a bad network.
+	// PickCard is supposed to be lightning fast, so impose a timeout on FeatureFlags.
+	ctx, cancel := context.WithTimeout(ctx, 100*time.Millisecond)
+	defer cancel()
+	enabled, err := cc.G().FeatureFlags.EnabledWithError(cc.MetaContext(ctx), libkb.FeatureJourneycardPreview)
+	if err != nil {
+		// Send one out in a goroutine to get the goods for next time.
+		ctx, cancel2 := context.WithTimeout(globals.BackgroundChatCtx(ogCtx, cc.G()), 10*time.Second)
+		defer cancel2()
+		go cc.G().FeatureFlags.Enabled(cc.MetaContext(ctx), libkb.FeatureJourneycardPreview)
+		return false
+	}
+	return enabled
+}
+
 // Choose a journey card to show in the conversation.
 // Called by postProcessThread so keep it snappy.
 func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
@@ -153,9 +173,9 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 	convLocalOptional *chat1.ConversationLocal,
 	thread *chat1.ThreadView,
 ) (*chat1.MessageUnboxedJourneycard, error) {
-	debug := cc.G().GetEnv().GetDebugJourneycard()
+	debug := cc.checkFeature(ctx)
 	if !debug {
-		// Journey cards are gated by the client-side flag KEYBASE_DEBUG_JOURNEYCARD
+		// Journey cards are gated by either client-side flag KEYBASE_DEBUG_JOURNEYCARD or server-driven flag 'journeycard_preview'.
 		return nil, nil
 	}
 	debugDebug := func(ctx context.Context, format string, args ...interface{}) {
