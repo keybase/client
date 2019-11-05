@@ -2,6 +2,7 @@ import * as React from 'react'
 // eslint-disable-next-line
 import {Draft as _Draft} from 'immer'
 import {TypedActions} from '../actions/typed-actions-gen'
+import {ActionHandler as _ActionHandler} from './make-reducer'
 import {TypedState} from '../constants/reducer'
 import {RouteProps as _RouteProps, GetRouteType} from '../route-tree/render-route'
 import {PropsWithSafeNavigation as _PropsWithSafeNavigation} from './safe-navigation'
@@ -86,3 +87,4 @@ export {produce} from 'immer'
 export type Draft<T> = _Draft<T>
 export {default as HiddenString} from './hidden-string'
 export {default as makeReducer} from './make-reducer'
+export type ActionHandler<S, A> = _ActionHandler<S, A>

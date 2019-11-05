@@ -3,14 +3,14 @@ import {produce, Draft} from 'immer'
 
 type GetTypes<A> = A extends {type: string} ? A['type'] : never
 
-function makeReducer<A, S>(
-  initialState: S,
-  map: {
-    [type in GetTypes<A>]?: type extends keyof TypedActionsMap
-      ? ((state: Draft<S>, action: TypedActionsMap[type]) => void | S)
-      : never
-  }
-) {
+// helper for making sub reducer helpers
+export type ActionHandler<A, S> = {
+  [type in GetTypes<A>]?: type extends keyof TypedActionsMap
+    ? ((state: Draft<S>, action: TypedActionsMap[type]) => void | S)
+    : never
+}
+
+function makeReducer<A, S>(initialState: S, map: ActionHandler<A, S>) {
   return (state: S = initialState, action: TypedActions): S =>
     // @ts-ignore
     produce(state, (draft: Draft<S>) => {
