@@ -764,7 +764,7 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 	outbox := storage.NewOutbox(s.G(), s.uid)
 	obrs, oerr := outbox.PullAllConversations(ctx, true /*includeErrors */, false /*remove*/)
 	if oerr != nil {
-		s.Debug(ctx, "ApplyLocalChatState: failed to get outbox: %v", err)
+		s.Debug(ctx, "ApplyLocalChatState: failed to get outbox: %v", oerr)
 	}
 
 	// convID -> unreadCount
