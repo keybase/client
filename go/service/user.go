@@ -691,13 +691,16 @@ func (h *UserHandler) GetUserBlocks(ctx context.Context, arg keybase1.GetUserBlo
 
 	var apiRes getBlockResult
 
-	err = mctx.G().API.PostDecode(mctx, apiArg, &apiRes)
+	err = mctx.G().API.GetDecode(mctx, apiArg, &apiRes)
 	if err != nil {
 		return nil, err
 	}
 
 	res = make([]keybase1.UserBlock, len(apiRes.Blocks))
 	for i, v := range apiRes.Blocks {
+		if err := libkb.AssertUsernameMatchesUID(h.G(), v.BlockUID, v.BlockUsername); err != nil {
+			return nil, err
+		}
 		res[i] = keybase1.UserBlock{
 			Username:      v.BlockUsername,
 			ChatBlocked:   v.Chat,
