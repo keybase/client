@@ -96,4 +96,19 @@ func TestUserBlocking(t *testing.T) {
 	require.Equal(t, false, blocks[0].FollowBlocked)
 	require.NotNil(t, blocks[0].CreateTime)
 	require.NotNil(t, blocks[0].ModifyTime)
+
+	// Try to get blocks with username filter.
+	blocks2, err := tc1.userHandler.GetUserBlocks(context.Background(), keybase1.GetUserBlocksArg{
+		Usernames: []string{tc2.user.Username},
+	})
+	require.NoError(t, err)
+	// Expect to see same things as in unfiltered call.
+	require.Equal(t, blocks, blocks2)
+
+	// Try to get blocks with username filter for different username than tc2.
+	blocks2, err = tc1.userHandler.GetUserBlocks(context.Background(), keybase1.GetUserBlocksArg{
+		Usernames: []string{tc1.user.Username},
+	})
+	require.NoError(t, err)
+	require.Len(t, blocks2, 0)
 }
