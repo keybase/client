@@ -8,7 +8,7 @@ import SystemMessageTimestamp from '../system-message-timestamp'
 type Props = {
   message: Types.MessageSystemSimpleToComplex
   onManageChannels: () => void
-  onViewTeam: (teamname: string) => void
+  onViewTeam: () => void
   you: string
 }
 
@@ -36,7 +36,7 @@ class ComplexTeamNotice extends React.PureComponent<Props> {
         style={{marginTop: globalMargins.small}}
         teamname={team || ''}
         bgColor={globalColors.blueLighter2}
-        onClickAvatar={() => onViewTeam(team)}
+        onClickAvatar={onViewTeam}
       >
         <SystemMessageTimestamp timestamp={timestamp} />
         <Kb.Box2 direction="vertical">
