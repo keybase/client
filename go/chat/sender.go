@@ -1133,7 +1133,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 					gregor1.FromTime(unboxedMsg.Valid().MessageBody.Text().LiveLocation.EndTime))
 			}
 		}
-		go s.G().JourneyCardManager.SentMessage(globals.BackgroundChatCtx(ctx, s.G()), convID)
+		go s.G().JourneyCardManager.SentMessage(globals.BackgroundChatCtx(ctx, s.G()), sender, convID)
 	}
 	return nil, boxed, nil
 }
