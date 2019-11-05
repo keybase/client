@@ -39,7 +39,7 @@ const rpcConflictStateToConflictState = (
       return Constants.makeConflictStateNormalView({
         localViewTlfPaths: ((nv && nv.localViews) || []).reduce<Array<Types.Path>>((arr, p) => {
           // @ts-ignore TODO fix p.kbfs.path is a path already
-          p.PathType === RPCTypes.PathType.kbfs && arr.push(Types.stringToPath(p.kbfs.path))
+          p.PathType === RPCTypes.PathType.kbfs && arr.push(Constants.rpcPathToPath(p.kbfs))
           return arr
         }, []),
         resolvingConflict: !!nv && nv.resolvingConflict,
@@ -51,10 +51,7 @@ const rpcConflictStateToConflictState = (
       return Constants.makeConflictStateManualResolvingLocalView({
         normalViewTlfPath:
           nv && nv.PathType === RPCTypes.PathType.kbfs
-            ? Types.stringToPath(
-                // @ts-ignore TODO fix p.kbfs.path is a path already
-                nv.kbfs.path
-              )
+            ? Constants.rpcPathToPath(nv.kbfs)
             : Constants.defaultPath,
       })
     }
@@ -95,7 +92,7 @@ const loadAdditionalTlf = async (state: TypedState, action: FsGen.LoadAdditional
       })
     )
   } catch (e) {
-    return makeRetriableErrorHandler(action)(e)
+    return makeRetriableErrorHandler(action, action.payload.tlfPath)(e)
   }
 }
 
@@ -824,6 +821,8 @@ const onNonPathChange = (_: TypedState, action: EngineGen.Keybase1NotifyFSFSSubs
       return FsGen.createLoadDownloadStatus()
     case RPCTypes.SubscriptionTopic.filesTabBadge:
       return FsGen.createLoadFilesTabBadge()
+    case RPCTypes.SubscriptionTopic.overallSyncStatus:
+      return undefined
   }
 }
 

@@ -140,10 +140,7 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
   },
   [FsGen.pathItemLoaded]: (draftState, action) => {
     const oldPathItem = Constants.getPathItem(draftState.pathItems, action.payload.path)
-    const newPathItem = updatePathItem(oldPathItem, action.payload.pathItem)
-    if (oldPathItem !== newPathItem) {
-      draftState.pathItems.set(action.payload.path, newPathItem)
-    }
+    draftState.pathItems.set(action.payload.path, updatePathItem(oldPathItem, action.payload.pathItem))
     draftState.softErrors = draftState.softErrors
       .removeIn(['pathErrors', action.payload.path])
       .removeIn(['tlfErrors', Constants.getTlfPath(action.payload.path)])
@@ -152,15 +149,13 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
     action.payload.pathItems.forEach((pathItemFromAction, path) => {
       const oldPathItem = Constants.getPathItem(draftState.pathItems, path)
       const newPathItem = updatePathItem(oldPathItem, pathItemFromAction)
-      if (oldPathItem !== newPathItem) {
-        oldPathItem.type === Types.PathType.Folder &&
-          oldPathItem.children.forEach(
-            name =>
-              (newPathItem.type !== Types.PathType.Folder || !newPathItem.children.has(name)) &&
-              draftState.pathItems.delete(Types.pathConcat(path, name))
-          )
-        draftState.pathItems.set(path, newPathItem)
-      }
+      oldPathItem.type === Types.PathType.Folder &&
+        oldPathItem.children.forEach(
+          name =>
+            (newPathItem.type !== Types.PathType.Folder || !newPathItem.children.has(name)) &&
+            draftState.pathItems.delete(Types.pathConcat(path, name))
+        )
+      draftState.pathItems.set(path, newPathItem)
     })
   },
   [FsGen.favoritesLoaded]: (draftState, action) => {

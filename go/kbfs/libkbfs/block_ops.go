@@ -31,6 +31,7 @@ type blockOpsConfig interface {
 	clockGetter
 	reporterGetter
 	settingsDBGetter
+	subscriptionManagerPublisherGetter
 }
 
 // BlockOpsStandard implements the BlockOps interface by relaying

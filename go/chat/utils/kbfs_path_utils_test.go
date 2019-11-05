@@ -82,6 +82,8 @@ var kbfsPathTests = map[string]chat1.KBFSPath{
 
 	`"/keybase/team/keybase/blahblah."`: makeKBFSPathForTest(`"/keybase/team/keybase/blahblah."`, strPointer("/keybase/team/keybase/blahblah.")),
 	`"K:\team\keybase\blahblah."`:       makeKBFSPathForTest(`"K:\team\keybase\blahblah."`, strPointer("/keybase/team/keybase/blahblah.")),
+
+	`"/keybase/team/keybase (local conflicted copy 2019-10-24 #2)"`: makeKBFSPathForTest(`"/keybase/team/keybase (local conflicted copy 2019-10-24 #2)"`, strPointer("/keybase/team/keybase (local conflicted copy 2019-10-24 #2)")),
 }
 
 func TestParseKBFSPathMatches(t *testing.T) {
