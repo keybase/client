@@ -93,9 +93,7 @@ const TeamJourneyContainer = (props: Props) => {
 
   return props.teamname ? (
     <TeamJourney actions={actions} image={image} loadTeam={loadTeam} teamname={props.teamname} text={text} />
-  ) : (
-    <Kb.Box2 direction="horizontal" />
-  )
+  ) : null
 }
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {

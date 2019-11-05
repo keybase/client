@@ -29,6 +29,19 @@ const load = () => {
         text="You are in #somechan. Some popular channels in this team:"
       />
     ))
+    .add('Popular long channels', () => (
+      <TeamJourney
+        actions={[
+          { label: '#1234567890123456789', onClick: Sb.action('onGoToChan') },
+          { label: '#2345678901234567890', onClick: Sb.action('onGoToChan') },
+          { label: '#3456789012345678901', onClick: Sb.action('onGoToChan') },
+        ]}
+        image={null}
+        loadTeam={null}
+        teamname="foo"
+        text="You are in #somechan. Some popular channels in this team:"
+      />
+    ))
     .add('Add people', () => (
       <TeamJourney
         actions={[{label: 'Add people to the team', onClick: Sb.action('onAddPeopleToTeam')}]}

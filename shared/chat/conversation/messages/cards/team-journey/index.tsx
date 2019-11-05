@@ -61,7 +61,7 @@ const TeamJourneyHeader = (props: HeaderProps) => (
         skipBackground={true}
         style={styles.avatar}
       />
-      <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
+      <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.bottomLine}>
         <Kb.Text style={styles.teamnameText} type="BodySmallBold">
           {props.teamname}
         </Kb.Text>
@@ -91,6 +91,9 @@ const styles = Styles.styleSheetCreate(
         },
         isMobile: {marginLeft: Styles.globalMargins.tiny},
       }),
+      bottomLine: {
+        alignItems: 'baseline',
+      },
       content: Styles.platformStyles({
         isElectron: {
           marginTop: -16,
