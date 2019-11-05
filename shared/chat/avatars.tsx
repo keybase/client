@@ -45,15 +45,6 @@ const MobileMutedIcon = (p: {
 }
 
 const StrokedIcon = Styles.styled(Kb.Icon)(props => ({
-  bottom: 1,
-  color:
-    props.isHovered && !props.isSelected
-      ? Styles.globalColors.black_20
-      : props.isSelected
-      ? Styles.globalColors.white
-      : Styles.globalColors.black_20,
-  position: 'absolute',
-  right: 1,
   '&.stroke': {
     '-webkit-text-stroke': `3px ${
       props.isHovered && !props.isSelected
@@ -71,6 +62,15 @@ const StrokedIcon = Styles.styled(Kb.Icon)(props => ({
         : Styles.globalColors.blueGrey,
     right: 0,
   },
+  bottom: 1,
+  color:
+    props.isHovered && !props.isSelected
+      ? Styles.globalColors.black_20
+      : props.isSelected
+      ? Styles.globalColors.white
+      : Styles.globalColors.black_20,
+  position: 'absolute',
+  right: 1,
 }))
 
 const DesktopMutedIcon = (p: {

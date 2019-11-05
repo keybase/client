@@ -342,16 +342,16 @@ class Inbox extends React.Component<T.Props, State> {
 
 const InboxHoverContainer = Styles.styled(Kb.Box)({
   '.grabLines': {
-    transition: 'opacity 0.25s ease-in-out',
     opacity: 0,
+    transition: 'opacity 0.25s ease-in-out',
   },
   '.grabLinesContainer': {
-    transition: 'opacity 0.25s ease-in-out',
     opacity: 0.5,
+    transition: 'opacity 0.25s ease-in-out',
   },
+  '.grabLinesContainer:hover .grabLines': {opacity: 1},
   ':hover .grabLines': {opacity: 0.25},
   ':hover .grabLinesContainer': {opacity: 1},
-  '.grabLinesContainer:hover .grabLines': {opacity: 1},
 })
 
 const styles = Styles.styleSheetCreate(
@@ -389,8 +389,8 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       fakeRemovingRowDivider: {
-        top: 0,
         position: 'absolute',
+        top: 0,
         width: '100%',
       },
       fakeRow: Styles.platformStyles({
