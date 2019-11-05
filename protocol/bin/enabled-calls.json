@@ -3,6 +3,7 @@
   "chat.1.local.CancelPost": {"promise": true},
   "chat.1.local.cancelActiveSearch": {"promise": true},
   "chat.1.local.cancelActiveInboxSearch": {"promise": true},
+  "chat.1.local.cancelUploadTempFile": {"promise": true},
   "chat.1.local.ConfigureFileAttachmentDownloadLocal": {"promise": true},
   "chat.1.local.DownloadFileAttachmentLocal": {"engineSaga": true},
   "chat.1.local.RetryPost": {"promise": true},

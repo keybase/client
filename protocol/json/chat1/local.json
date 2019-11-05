@@ -4585,6 +4585,15 @@
       ],
       "response": "string"
     },
+    "cancelUploadTempFile": {
+      "request": [
+        {
+          "name": "outboxID",
+          "type": "OutboxID"
+        }
+      ],
+      "response": null
+    },
     "CancelPost": {
       "request": [
         {
