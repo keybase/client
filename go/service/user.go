@@ -629,7 +629,7 @@ func (h *UserHandler) SetUserBlocks(ctx context.Context, arg keybase1.SetUserBlo
 
 	payloadBlocks := make([]setBlockArg, len(arg.Blocks))
 	for i, v := range arg.Blocks {
-		uid := libkb.UsernameToUIDPreserveCase(libkb.NewNormalizedUsername(v.Username).String())
+		uid := libkb.GetUIDByUsername(h.G(), v.Username)
 		payloadBlocks[i] = setBlockArg{
 			BlockUID: uid.String(),
 			Chat:     v.SetChatBlock,
@@ -666,7 +666,7 @@ func (h *UserHandler) GetUserBlocks(ctx context.Context, arg keybase1.GetUserBlo
 
 	uids := make([]keybase1.UID, len(arg.Usernames))
 	for i, v := range arg.Usernames {
-		uids[i] = libkb.UsernameToUIDPreserveCase(libkb.NewNormalizedUsername(v).String())
+		uids[i] = libkb.GetUIDByUsername(h.G(), v)
 	}
 
 	apiArg := libkb.APIArg{
