@@ -32,9 +32,9 @@ const load = () => {
     .add('Popular long channels', () => (
       <TeamJourney
         actions={[
-          { label: '#1234567890123456789', onClick: Sb.action('onGoToChan') },
-          { label: '#2345678901234567890', onClick: Sb.action('onGoToChan') },
-          { label: '#3456789012345678901', onClick: Sb.action('onGoToChan') },
+          {label: '#1234567890123456789', onClick: Sb.action('onGoToChan')},
+          {label: '#2345678901234567890', onClick: Sb.action('onGoToChan')},
+          {label: '#3456789012345678901', onClick: Sb.action('onGoToChan')},
         ]}
         image={null}
         loadTeam={null}
