@@ -334,13 +334,12 @@ function insertReleaseAssets(releaseFiles) {
 }
 
 function updateIconConstants() {
-  console.log('Generating icon constants')
-  console.log('Sourcing from the following directories:')
-  console.log('\n\t*' + pngAssetDirPaths.map(({assetDirPath}) => assetDirPath).join('\n\t*'))
+  console.log('Generating icon constants (from the following directories)')
+  console.log('\t*' + pngAssetDirPaths.map(({assetDirPath}) => assetDirPath).join('\n\t*'))
 
   // Build constants for the png assests.
   const icons = pngAssetDirPaths.reduce((prevIcons, {assetDirPath, insertFn}) => {
-    // Don't include @2x and @3x assets in icon.constants-gen.
+    // Don't include @2x and @3x assets in icon-constants-gen.
     // They are included later in srcSet generation by icon.*.tsx
     //
     // On macOS (10.12+) Finder.app will no longer display .DS_Store files. Make sure they are not included here.

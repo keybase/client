@@ -5,7 +5,6 @@ import * as PushGen from '../../actions/push-gen'
 import {connect} from '../../util/container'
 
 type OwnProps = {}
-// const notificationMonster = require('../../images/illustrations/turn-on-notifications.png')
 
 export type Props = {
   onEnable: () => void

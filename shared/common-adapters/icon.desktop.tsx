@@ -163,7 +163,6 @@ class Icon extends Component<Props, void> {
   }
 }
 
-// IconTypes can be from images/icons, images/illustrations, or images/releases
 const imgName = (
   name: string,
   ext: string,
