@@ -7,6 +7,7 @@ import Popup from '../popup.desktop'
 
 type Props = {
   color?: string
+  iconColor?: string
   badgeColor?: string
   style?: IconStyle
   className?: string
@@ -34,7 +35,7 @@ const Icon = (props: Props) => {
       <Kb.Icon
         type="iconfont-radio"
         onClick={props.onClick}
-        color={Styles.globalColors.blue}
+        color="blue"
         style={Styles.collapseStyles([{marginRight: Styles.globalMargins.small}, props.style])}
       />
     ) : (
@@ -74,7 +75,7 @@ const Icon = (props: Props) => {
   ) : Styles.isMobile ? (
     <Kb.Icon
       type="iconfont-radio"
-      color={Styles.globalColors.black_20}
+      color="black_20"
       style={Styles.collapseStyles([{marginRight: Styles.globalMargins.small}, props.style])}
     />
   ) : (
@@ -86,8 +87,7 @@ const Icon = (props: Props) => {
 export const IconWithPopup = (props: PopupProps) => {
   const {badgeColor, color, newRelease, attachToRef} = props
   const [popupVisible, setPopupVisible] = React.useState(false)
-  const baseColor = Styles.globalColors.black_50
-  const iconColor = color ? color : baseColor
+  const iconColor = popupVisible ? 'black' : props.iconColor ? props.iconColor : 'black_50'
   const popupVisibleColor = color || Styles.globalColors.black
   return (
     <>
@@ -106,7 +106,7 @@ export const IconWithPopup = (props: PopupProps) => {
           >
             <Icon
               badgeColor={badgeColor}
-              color={popupVisible ? popupVisibleColor : iconColor}
+              color={iconColor}
               className={Styles.classNames(
                 color ? `hover_contained_color_${color}` : 'hover_contained_color_black'
               )}

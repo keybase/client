@@ -125,7 +125,7 @@ export const Notifications = (props: Props) => (
         style={{
           marginLeft: Styles.globalMargins.xtiny,
         }}
-        color={Styles.globalColors.black_20}
+        color="black_20"
       />
     </Kb.Box>
     {!props.muted && <UnmutedNotificationPrefs {...props} />}

@@ -70,7 +70,7 @@ const headerIcon = (props: HeaderProps) =>
   props.status === 'pending' ? (
     <Kb.Icon
       type="iconfont-time"
-      color={Styles.globalColors.black_50}
+      color="black_50"
       fontSize={pendingIconSize}
       style={Kb.iconCastPlatformStyles(styles.pendingHeaderIcon)}
     />

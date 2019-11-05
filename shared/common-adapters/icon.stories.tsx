@@ -55,7 +55,7 @@ const load = () => {
           type="iconfont-add"
           {...commonProps}
           onClick={() => commonProps.onClick('iconfont-add')}
-          hoverColor={Styles.globalColors.red}
+          hoverColor="red"
         />
         <Text type="Body">Red due to inherit </Text>
         <Box style={Styles.isMobile ? {} : {color: 'red'}}>
@@ -64,7 +64,7 @@ const load = () => {
             type="iconfont-add"
             {...commonProps}
             onClick={() => commonProps.onClick('iconfont-add')}
-            inheritColor={true}
+            color="inherit"
           />
         </Box>
         {Object.keys(sizes).map(size => (

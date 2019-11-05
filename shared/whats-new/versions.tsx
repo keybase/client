@@ -82,7 +82,7 @@ export const Current = ({seen, onNavigate, onNavigateExternal}: VersionProps) =>
         {` `}
         <Kb.Icon
           type="iconfont-radio"
-          color={Styles.globalColors.black_50}
+          color="black_50"
           boxStyle={styles.inlineIcon}
           sizeType={Styles.isMobile ? 'Small' : 'Default'}
         />

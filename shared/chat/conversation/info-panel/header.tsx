@@ -148,7 +148,6 @@ const styles = Styles.styleSheetCreate(
         right: -50,
         top: Styles.isMobile ? 2 : 1,
       },
-      editIcon: {marginRight: Styles.globalMargins.xtiny},
       flexOne: {flex: 1},
       gear: Styles.platformStyles({
         common: {

@@ -5,7 +5,6 @@ import React, {Component} from 'react'
 import shallowEqual from 'shallowequal'
 import {iconMeta} from './icon.constants-gen'
 import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
-import invert from 'lodash/invert'
 import {Props, IconType} from './icon'
 
 class Icon extends Component<Props, void> {
@@ -22,8 +21,6 @@ class Icon extends Component<Props, void> {
   }
 
   render() {
-    let color = Shared.defaultColor(this.props.type)
-    let hoverColor = Shared.defaultHoverColor(this.props.type)
     const iconType = Shared.typeToIconMapper(this.props.type)
 
     if (!iconType) {
@@ -36,19 +33,8 @@ class Icon extends Component<Props, void> {
       throw new Error('Unknown icontype passed ' + iconType)
     }
 
-    if (this.props.inheritColor) {
-      color = 'inherit'
-      hoverColor = 'inherit'
-    } else {
-      color =
-        this.props.color ||
-        color ||
-        (this.props.opacity ? Styles.globalColors.greyLight : Styles.globalColors.black_50)
-      hoverColor =
-        this.props.hoverColor ||
-        hoverColor ||
-        (this.props.opacity ? Styles.globalColors.black : Styles.globalColors.black)
-    }
+    const color = this.props.color || (this.props.opacity ? 'greyLight' : 'black_50')
+    const hoverColor = this.props.hoverColor || (this.props.opacity ? 'black' : 'black')
 
     const isFontIcon = iconMeta[iconType].isFont
     let fontSizeHint: undefined | {fontSize: number}
@@ -81,7 +67,7 @@ class Icon extends Component<Props, void> {
         Styles.desktopStyles.noSelect,
         !hasContainer ? this.props.style : {},
         onClick ? Styles.desktopStyles.clickable : {},
-        this.props.color ? {color: color} : {},
+        this.props.color ? {color: Styles.globalColors[this.props.color]} : {},
       ])
 
       iconElement = (
@@ -97,32 +83,13 @@ class Icon extends Component<Props, void> {
     }
 
     if (hasContainer) {
-      let colorStyleName: undefined | string // Populated if using CSS
-      let hoverStyleName: undefined | string
-      let inheritStyle: undefined | {color: string; hoverColor: string}
-
-      // TODO get rid of this concept
-      if (this.props.inheritColor) {
-        inheritStyle = {
-          color: 'inherit',
-          hoverColor: 'inherit',
-        }
-      } else {
-        // invert the colors here so it reflects the colors in current theme
-        const invertedColors = invert(Styles.globalColors)
-        const hoverColorName = this.props.onClick ? invertedColors[hoverColor] : null
-        hoverStyleName = hoverColorName ? `hover_color_${hoverColorName}` : ''
-        const colorName = invertedColors[color]
-        if (colorName) {
-          colorStyleName = `color_${colorName}`
-        }
-      }
+      const colorStyleName = `color_${color}`
+      const hoverStyleName = `hover_color_${hoverColor}`
 
       const style = Styles.collapseStyles([
         fontSizeHint,
         onClick && Styles.desktopStyles.clickable,
-        inheritStyle,
-        this.props.colorOverride && {color: this.props.colorOverride},
+        this.props.colorOverride && {color: Styles.globalColors[this.props.colorOverride]},
         this.props.style,
       ])
 
@@ -140,7 +107,6 @@ class Icon extends Component<Props, void> {
             style={Styles.collapseStyles([
               style,
               this.props.padding && Shared.paddingStyles[this.props.padding],
-              typeof colorStyleName !== 'string' ? {color} : null, // For colors that are not in Styles.globalColors
             ])}
             className={Styles.classNames(
               'icon',

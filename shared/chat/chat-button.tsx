@@ -27,7 +27,7 @@ const ChatButton = ({small, style, username}: Props) => {
       small={small}
       style={style}
     >
-      <Kb.Icon type="iconfont-chat" color={Styles.globalColors.whiteOrWhite} style={styles.chatIcon} />
+      <Kb.Icon type="iconfont-chat" color="whiteOrWhite" style={styles.chatIcon} />
     </Kb.WaitingButton>
   )
 }

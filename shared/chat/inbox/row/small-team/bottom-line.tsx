@@ -94,7 +94,7 @@ const BottomLine = React.memo((props: Props) => {
       case '\u{1F4A3}': // Bomb emoji (💣)
         snippetDecoration = (
           <Kb.Icon
-            color={props.isSelected ? Styles.globalColors.white : Styles.globalColors.black_50}
+            color={props.isSelected ? 'white' : 'black_50'}
             type="iconfont-timer"
             fontSize={Styles.isMobile ? 16 : 12}
             style={{alignSelf: 'flex-start'}}

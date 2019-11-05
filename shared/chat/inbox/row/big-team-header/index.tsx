@@ -45,12 +45,7 @@ class _BigTeamHeader extends React.PureComponent<Props> {
           ref={props.setAttachmentRef}
           style={styles.showMenu}
         >
-          <Kb.Icon
-            className="Kb.icon"
-            type="iconfont-gear"
-            fontSize={iconFontSize}
-            color={Styles.globalColors.black_50}
-          />
+          <Kb.Icon className="Kb.icon" type="iconfont-gear" fontSize={iconFontSize} color="black_50" />
           <Kb.Box
             style={Styles.collapseStyles([styles.badge, props.badgeSubscribe && styles.badgeVisible])}
           />

@@ -213,7 +213,7 @@ class _RetentionPicker extends React.Component<PropsWithOverlay<Props>, State> {
           >
             {this._label()}
           </Kb.Box2>
-          <Kb.Icon type="iconfont-caret-down" inheritColor={true} fontSize={7} sizeType="Tiny" />
+          <Kb.Icon type="iconfont-caret-down" color="inherit" fontSize={7} sizeType="Tiny" />
         </Kb.ClickableBox>
         {this.props.policyIsExploding && (
           <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} gap="xtiny">

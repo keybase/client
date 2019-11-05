@@ -39,6 +39,18 @@ const textColor = (typ: RPCChatTypes.UICommandStatusDisplayTyp) => {
   return Styles.globalColors.black
 }
 
+const iconColor = (typ: RPCChatTypes.UICommandStatusDisplayTyp) => {
+  switch (typ) {
+    case RPCChatTypes.UICommandStatusDisplayTyp.error:
+      return 'white'
+    case RPCChatTypes.UICommandStatusDisplayTyp.warning:
+      return 'blackOrBlack'
+    case RPCChatTypes.UICommandStatusDisplayTyp.status:
+      return 'black'
+  }
+  return 'black'
+}
+
 const CommandStatus = (props: Props) => {
   return (
     <Kb.Box style={styles.outerContainer}>
@@ -52,7 +64,7 @@ const CommandStatus = (props: Props) => {
           onClick={props.onCancel}
           type="iconfont-remove"
           style={Kb.iconCastPlatformStyles(styles.close)}
-          color={textColor(props.displayType)}
+          color={iconColor(props.displayType)}
           boxStyle={styles.close}
         />
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.contentContainer} gap="tiny">

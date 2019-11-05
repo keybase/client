@@ -23,8 +23,8 @@ export const DropdownButton = (props: DropdownButtonProps) => (
     <ButtonBox inline={props.inline} disabled={props.disabled} ref={props.setAttachmentRef}>
       <Box style={Styles.collapseStyles([styles.selectedBox, props.selectedBoxStyle])}>{props.selected}</Box>
       <Icon
+        color="inherit"
         type="iconfont-caret-down"
-        inheritColor={true}
         sizeType="Tiny"
         style={{marginTop: Styles.isMobile ? 2 : -8}}
       />

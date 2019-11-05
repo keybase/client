@@ -77,14 +77,6 @@ const styles = Styles.styleSheetCreate(
         position: 'absolute',
         top: 32,
       },
-      backIcon: Styles.platformStyles({
-        common: {
-          marginRight: Styles.globalMargins.xtiny,
-        },
-        isElectron: {
-          display: 'block',
-        },
-      }),
       box: {
         ...Styles.globalStyles.flexBoxColumn,
         alignItems: 'center',

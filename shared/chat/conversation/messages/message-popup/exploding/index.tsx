@@ -140,11 +140,7 @@ class ExplodingPopupHeader extends React.Component<Props, State> {
             <ProgressIndicator white={true} style={{height: 17, width: 17}} />
           ) : (
             <Box2 direction="horizontal" gap="tiny" gapStart={true} gapEnd={true}>
-              <Icon
-                type="iconfont-timer"
-                fontSize={Styles.isMobile ? 20 : 16}
-                color={Styles.globalColors.white}
-              />
+              <Icon type="iconfont-timer" fontSize={Styles.isMobile ? 20 : 16} color="white" />
               <Text style={{alignSelf: 'center', color: Styles.globalColors.white}} type="BodySemibold">
                 {msToDHMS(this.props.explodesAt - Date.now())}
               </Text>

@@ -54,7 +54,7 @@ class _Fullscreen extends React.Component<Props & OverlayParentProps, State> {
                 common: {marginLeft: Styles.globalMargins.tiny},
                 isElectron: {cursor: 'pointer'},
               })}
-              color={Styles.globalColors.black_50}
+              color="black_50"
               onClick={this.props.toggleShowingMenu}
             />
             <MessagePopup

@@ -86,7 +86,7 @@ const TabBarIcon = ({badgeNumber, focused, routeName}) => (
       type={icons[routeName]}
       fontSize={32}
       style={tabStyles.tab}
-      color={focused ? Styles.globalColors.whiteOrWhite : Styles.globalColors.blueDarkerOrBlack}
+      color={focused ? 'whiteOrWhite' : 'blueDarkerOrBlack'}
     />
     {!!badgeNumber && <Kb.Badge badgeNumber={badgeNumber} badgeStyle={tabStyles.badge} />}
     {routeName === Tabs.fsTab && <FilesTabBadge />}

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {IconType} from './icon.constants-gen'
-import {StylesCrossPlatform, StylesCrossPlatformWithSomeDisallowed, Color, globalMargins} from '../styles'
+import * as Styles from '../styles'
 
 export type SizeType = 'Huge' | 'Bigger' | 'Big' | 'Default' | 'Small' | 'Tiny'
 
@@ -10,7 +10,7 @@ export type DisallowedStyles = {
   hoverColor?: never
   fontSize?: never
 }
-export type IconStyle = StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>
+export type IconStyle = Styles.StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>
 
 export type Props = {
   type: IconType
@@ -22,19 +22,17 @@ export type Props = {
   onMouseLeave?: (() => void) | null
   style?: IconStyle
   opacity?: boolean
-  inheritColor?: boolean
-  underlayColor?: string
   className?: string
   // Temporary hack that let's you override the color directly in the style instead of using css class names
-  colorOverride?: Color
-  color?: Color
-  hoverColor?: string | null
+  colorOverride?: keyof typeof Styles.globalColors
+  color?: keyof typeof Styles.globalColors
+  hoverColor?: keyof typeof Styles.globalColors
   fontSize?: number
   // TODO cleanup how this container stuff works, this is to allow you to style the box that sometimes exists
-  boxStyle?: StylesCrossPlatform
+  boxStyle?: Styles.StylesCrossPlatform
   // only applies to icon fonts
   sizeType?: SizeType
-  padding?: keyof typeof globalMargins
+  padding?: keyof typeof Styles.globalMargins
 }
 
 declare class Icon extends React.Component<Props> {
@@ -50,7 +48,7 @@ export declare function iconTypeToImgSet(imgMap: {[K in string]: IconType}, targ
 export declare function urlsToImgSet(imgMap: {[K in string]: string}, size: number): string | null
 
 export declare function castPlatformStyles(
-  styles: StylesCrossPlatform
-): StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>
+  styles: Styles.StylesCrossPlatform
+): Styles.StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>
 
 export {IconType} from './icon.constants-gen'

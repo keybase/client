@@ -181,14 +181,6 @@ const styles = Styles.styleSheetCreate(
           paddingRight: Styles.globalMargins.xsmall,
         },
       }),
-      newChatButtonText: {
-        color: Styles.globalColors.white,
-        marginRight: Styles.globalMargins.xtiny,
-      },
-      newIcon: {
-        position: 'relative',
-        top: 1,
-      },
       rainbowBorder: Styles.platformStyles({
         common: {
           padding: 2,

@@ -216,12 +216,12 @@ class ThreadSearchDesktop extends React.Component<SearchProps & Props> {
                       : `${this.props.selectedIndex + 1} of ${this.props.hits.length}`}
                   </Kb.Text>
                   <Kb.Icon
-                    color={noResults ? Styles.globalColors.black_35 : Styles.globalColors.black_50}
+                    color={noResults ? 'black_35' : 'black_50'}
                     onClick={!noResults ? this.props.onUp : null}
                     type="iconfont-arrow-up"
                   />
                   <Kb.Icon
-                    color={noResults ? Styles.globalColors.black_35 : Styles.globalColors.black_50}
+                    color={noResults ? 'black_35' : 'black_50'}
                     onClick={!noResults ? this.props.onDown : null}
                     type="iconfont-arrow-down"
                   />
@@ -283,12 +283,12 @@ class ThreadSearchMobile extends React.Component<SearchProps & Props> {
           </Kb.Box2>
           <Kb.Box2 direction="horizontal" gap="tiny">
             <Kb.Icon
-              color={this.props.hits.length > 0 ? Styles.globalColors.blue : Styles.globalColors.black_50}
+              color={this.props.hits.length > 0 ? 'blue' : 'black_50'}
               onClick={this.props.onUp}
               type="iconfont-arrow-up"
             />
             <Kb.Icon
-              color={this.props.hits.length > 0 ? Styles.globalColors.blue : Styles.globalColors.black_50}
+              color={this.props.hits.length > 0 ? 'blue' : 'black_50'}
               onClick={this.props.onDown}
               type="iconfont-arrow-down"
             />

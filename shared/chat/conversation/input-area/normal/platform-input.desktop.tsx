@@ -290,7 +290,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
                   type="iconfont-gif"
                 />
                 <Kb.Icon
-                  color={this.state.emojiPickerOpen ? Styles.globalColors.black : null}
+                  color={this.state.emojiPickerOpen ? 'black' : null}
                   onClick={this._emojiPickerToggle}
                   style={Kb.iconCastPlatformStyles(styles.icon)}
                   type="iconfont-emoji"

@@ -113,8 +113,8 @@ const ManageChannels = (props: Props) => {
             style={styles.createIcon}
             type="iconfont-new"
             onClick={props.onCreate}
-            hoverColor={Styles.globalColors.blueLight}
-            color={Styles.globalColors.blue}
+            hoverColor="blueLight"
+            color="blue"
           />
           <Kb.Text type="BodyBigLink" onClick={props.onCreate}>
             New chat channel

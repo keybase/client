@@ -24,7 +24,7 @@ const Participant = ({fullname, isAdmin, isOwner, username, onShowProfile}: Prop
                 <Kb.Box2 direction="horizontal" alignItems="center" gap="xxtiny">
                   <Kb.Text type="BodySmall">(</Kb.Text>
                   <Kb.Icon
-                    color={isOwner ? Styles.globalColors.yellowDark : Styles.globalColors.black_35}
+                    color={isOwner ? 'yellowDark' : 'black_35'}
                     fontSize={10}
                     type="iconfont-crown-owner"
                   />

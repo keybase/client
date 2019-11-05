@@ -128,7 +128,7 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
           type="iconfont-ellipsis"
           // @ts-ignore TODO fix styles
           style={styles.headerFooter}
-          color={Styles.globalColors.whiteOrBlueDark}
+          color="whiteOrBlueDark"
           onClick={this.props.toggleShowingMenu}
         />
         <MessagePopup

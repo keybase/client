@@ -50,9 +50,9 @@ export default Container.connect(() => ({}), mapDispatchToProps, (_, dispatchPro
   // similar meaning to desktop.
   const arrowColor = !Container.isMobile
     ? message.downloadPath
-      ? globalColors.green
+      ? 'green'
       : message.transferState === 'downloading'
-      ? globalColors.blue
+      ? 'blue'
       : ''
     : ''
   const buttonType = message.showPlayButton ? 'play' : null

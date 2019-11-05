@@ -3,35 +3,6 @@ import {IconType, SizeType} from './icon'
 import {iconMeta} from './icon.constants-gen'
 import './icon.css'
 
-export function defaultColor(type: IconType): string | null {
-  switch (type) {
-    case 'iconfont-crown-admin':
-      return Styles.globalColors.black_35
-    case 'iconfont-crown-owner':
-      return Styles.globalColors.yellowDark
-    case 'iconfont-proof-broken':
-      return Styles.globalColors.red
-    case 'iconfont-proof-pending':
-      return Styles.globalColors.black_50
-    case 'iconfont-close':
-      return Styles.globalColors.black_20
-    default:
-      return null
-  }
-}
-
-export function defaultHoverColor(type: IconType): string | null {
-  switch (type) {
-    case 'iconfont-proof-broken':
-    case 'iconfont-proof-pending':
-      return defaultColor(type)
-    case 'iconfont-close':
-      return Styles.globalColors.black_50
-    default:
-      return null
-  }
-}
-
 // Some types are the same underlying icon.
 export function typeToIconMapper(type: IconType): IconType {
   return type

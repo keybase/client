@@ -5,13 +5,7 @@ import {Props} from '.'
 
 const ShhIcon = props => (
   <Box style={{alignSelf: 'flex-start', height: 0, position: 'relative', width: 0}}>
-    <Icon
-      type="iconfont-shh"
-      style={styles.shh}
-      color={shhIconColor}
-      fontSize={shhIconFontSize}
-      onClick={props.onClick}
-    />
+    <Icon type="iconfont-shh" style={styles.shh} color="black_20" fontSize={20} onClick={props.onClick} />
   </Box>
 )
 
@@ -103,9 +97,5 @@ const styles = Styles.styleSheetCreate(
       shh: {marginLeft: Styles.globalMargins.xtiny},
     } as const)
 )
-
-const shhIconColor = Styles.globalColors.black_20
-
-const shhIconFontSize = 20
 
 export {ChannelHeader, UsernameHeader}

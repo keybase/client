@@ -6,6 +6,7 @@ import IconComponent, {IconWithPopup as IconWithPopupComponent} from './index'
 
 type OwnProps = {
   color?: string
+  iconColor?: string
   badgeColor?: string
   style?: IconStyle
 }
@@ -25,6 +26,7 @@ const IconContainer = Container.connect(
   (stateProps, _, ownProps: OwnProps) => ({
     badgeColor: ownProps.badgeColor,
     color: ownProps.color,
+    iconColor: ownProps.iconColor,
     newRelease: anyVersionsUnseen(stateProps.lastSeenVersion),
     style: ownProps.style,
   })
@@ -40,6 +42,7 @@ export const IconWithPopup = Container.connect(
       attachToRef: ownProps.attachToRef,
       badgeColor: ownProps.badgeColor,
       color: ownProps.color,
+      iconColor: ownProps.iconColor,
       newRelease,
       style: ownProps.style,
     }

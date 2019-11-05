@@ -39,7 +39,7 @@ const Item = (props: ItemProps) => {
       <Text type="Body" style={{flex: 1}}>
         {content}
       </Text>
-      {props.selected && <Icon type="iconfont-check" color={globalColors.blue} />}
+      {props.selected && <Icon type="iconfont-check" color="blue" />}
     </Box2>
   )
 }

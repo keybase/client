@@ -27,7 +27,7 @@ const NewCard = (_: Props) => (
             Read more
           </Kb.Text>
           <Kb.Icon
-            color={Styles.globalColors.blueLighterOrWhite}
+            color="blueLighterOrWhite"
             sizeType="Tiny"
             type="iconfont-arrow-right"
             className="hover_contained_color_white"

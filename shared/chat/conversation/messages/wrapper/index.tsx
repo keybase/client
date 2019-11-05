@@ -174,9 +174,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               {this.props.showCrowns && (this.props.authorIsOwner || this.props.authorIsAdmin) && (
                 <Kb.WithTooltip tooltip={this.props.authorIsOwner ? 'Owner' : 'Admin'}>
                   <Kb.Icon
-                    color={
-                      this.props.authorIsOwner ? Styles.globalColors.yellowDark : Styles.globalColors.black_35
-                    }
+                    color={this.props.authorIsOwner ? 'yellowDark' : 'black_35'}
                     fontSize={10}
                     type="iconfont-crown-owner"
                   />
@@ -216,7 +214,14 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
   _isEdited = () =>
     // @ts-ignore
     this.props.message.hasBeenEdited && (
-      <Kb.Text key="isEdited" type="BodyTiny" style={Styles.collapseStyles([styles.edited, this._showCenteredHighlight() && styles.editedHighlighted])}>
+      <Kb.Text
+        key="isEdited"
+        type="BodyTiny"
+        style={Styles.collapseStyles([
+          styles.edited,
+          this._showCenteredHighlight() && styles.editedHighlighted,
+        ])}
+      >
         EDITED
       </Kb.Text>
     )

@@ -110,7 +110,7 @@ const UnreadIcon = () => (
 
 const DraftIcon = ({isSelected}) => (
   <Kb.Box style={styles.unreadContainer}>
-    <Kb.Icon type="iconfont-edit" color={isSelected ? Styles.globalColors.white : undefined} />
+    <Kb.Icon type="iconfont-edit" color={isSelected ? 'white' : undefined} />
   </Kb.Box>
 )
 

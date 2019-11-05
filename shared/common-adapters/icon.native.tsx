@@ -14,7 +14,7 @@ const Kb = {
 
 type TextProps = {
   children: React.ReactNode
-  color?: Styles.Color
+  color?: keyof typeof Styles.globalColors
   fontSize?: number
   onClick?: ((event: React.BaseSyntheticEvent) => void) | null
   opacity?: boolean
@@ -31,11 +31,10 @@ const Text = React.forwardRef<NativeText, TextProps>((p, ref) => {
   const pStyle: any = p.style
 
   const color =
-    p.color ||
+    Styles.globalColors[p.color] ||
     // @ts-ignore TS is correct but we do actually pass in this color
     // sometimes. TODO remove this
     (pStyle && p.style.color) ||
-    Shared.defaultColor(p.type) ||
     (p.opacity && Styles.globalColors.greyLight)
   if (color) {
     style.color = color

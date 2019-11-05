@@ -144,8 +144,8 @@ class GlobalError extends Component<Props, State> {
           />
           {summary && (
             <Kb.Icon
-              color={Styles.globalColors.white_75}
-              hoverColor={Styles.globalColors.white}
+              color="white_75"
+              hoverColor="white"
               onClick={onDismiss}
               style={styles.closeIcon}
               type="iconfont-close"

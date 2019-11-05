@@ -88,12 +88,7 @@ const ManageChannels = (props: Props) => (
     <Kb.ScrollView style={{alignSelf: 'flex-start', width: '100%'}}>
       {props.canCreateChannels && (
         <Kb.Box style={styles.create}>
-          <Kb.Icon
-            style={styles.createIcon}
-            type="iconfont-new"
-            onClick={props.onCreate}
-            color={Styles.globalColors.blue}
-          />
+          <Kb.Icon style={styles.createIcon} type="iconfont-new" onClick={props.onCreate} color="blue" />
           <Kb.Text type="BodyBigLink" onClick={props.onCreate}>
             New chat channel
           </Kb.Text>

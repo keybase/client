@@ -356,7 +356,7 @@ const ExplodingIcon = ({explodingModeSeconds, isExploding, openExplodingPicker})
           </Kb.Box2>
         ) : (
           <Kb.Icon
-            color={isExploding ? Styles.globalColors.black : null}
+            color={isExploding ? 'black' : null}
             style={Kb.iconCastPlatformStyles(styles.nonExploding)}
             type="iconfont-timer"
             fontSize={22}

@@ -431,12 +431,7 @@ class Input extends React.Component<InputProps, InputState> {
         gap="tiny"
       >
         {Constants.isSpecialMention(username) ? (
-          <Kb.Icon
-            type="iconfont-people"
-            style={styles.paddingXTiny}
-            color={Styles.globalColors.blue}
-            fontSize={24}
-          />
+          <Kb.Icon type="iconfont-people" style={styles.paddingXTiny} color="blue" fontSize={24} />
         ) : (
           <Kb.Avatar username={username} size={32} />
         )}

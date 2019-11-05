@@ -33,9 +33,9 @@ export default Container.connect(
     const arrowColor = Container.isMobile
       ? ''
       : downloadPath
-      ? globalColors.green
+      ? 'green'
       : transferState === 'downloading'
-      ? globalColors.blue
+      ? 'blue'
       : ''
     const hasProgress =
       !!transferState && transferState !== 'remoteUploading' && transferState !== 'mobileSaving'

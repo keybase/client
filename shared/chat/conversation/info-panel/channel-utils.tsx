@@ -44,12 +44,13 @@ const CaptionedDangerIcon = ({
   onClick: () => void
   spinner?: boolean
 }) => {
-  const color = noDanger ? undefined : Styles.globalColors.redDark
+  const iconColor = noDanger ? undefined : 'redDark'
+  const textColor = noDanger ? undefined : Styles.globalColors.redDark
   let slot: React.ReactNode = null
   if (spinner) {
     slot = <Kb.ProgressIndicator type="Small" style={{marginRight: 10}} />
   } else if (icon) {
-    slot = <Kb.Icon type={icon} style={{marginRight: Styles.globalMargins.tiny}} color={color} />
+    slot = <Kb.Icon type={icon} style={{marginRight: Styles.globalMargins.tiny}} color={iconColor} />
   } else {
     // spacer so that spinner doesn't move the text
     slot = <Kb.Box style={{marginRight: 10, width: Styles.globalMargins.medium}} />
@@ -66,7 +67,7 @@ const CaptionedDangerIcon = ({
       onClick={onClick}
     >
       {slot}
-      <Kb.Text type="BodySemibold" style={{color: color}} className="hover-underline">
+      <Kb.Text type="BodySemibold" style={{color: textColor}} className="hover-underline">
         {caption}
       </Kb.Text>
       <Kb.Box style={{marginRight: 10, width: Styles.globalMargins.medium}} />

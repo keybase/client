@@ -41,7 +41,7 @@ export const SystemButtons = () => (
       style={styles.appIconBox}
     >
       <Kb.Icon
-        inheritColor={true}
+        color="inherit"
         onClick={Window.minimizeWindow}
         style={styles.appIcon}
         type="iconfont-app-minimize"
@@ -53,7 +53,7 @@ export const SystemButtons = () => (
       style={styles.appIconBox}
     >
       <Kb.Icon
-        inheritColor={true}
+        color="inherit"
         onClick={Window.toggleMaximizeWindow}
         style={styles.appIcon}
         type={Window.isMaximized() ? 'iconfont-app-un-maximize' : 'iconfont-app-maximize'}
@@ -65,7 +65,7 @@ export const SystemButtons = () => (
       style={styles.appIconBox}
     >
       <Kb.Icon
-        inheritColor={true}
+        color="inherit"
         onClick={Window.closeWindow}
         style={styles.appIcon}
         type="iconfont-app-close"

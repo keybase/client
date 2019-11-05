@@ -49,7 +49,7 @@ const renderRightActions = (
       {renderRightAction(
         props.isMuted ? 'Unmute' : 'Mute',
         Styles.globalColors.orange,
-        <Kb.Icon type="iconfont-shh" color={Styles.globalColors.white} />,
+        <Kb.Icon type="iconfont-shh" color="white" />,
         128,
         () => onPress(props.onMuteConversation, ref),
         progress
@@ -57,7 +57,7 @@ const renderRightActions = (
       {renderRightAction(
         'Hide',
         Styles.globalColors.greyDarker,
-        <Kb.Icon type="iconfont-hide" color={Styles.globalColors.white} />,
+        <Kb.Icon type="iconfont-hide" color="white" />,
         64,
         () => onPress(props.onHideConversation, ref),
         progress

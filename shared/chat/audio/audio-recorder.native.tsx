@@ -277,11 +277,7 @@ const AudioButton = (props: ButtonProps) => {
           >
             <Kb.ClickableBox onClick={props.sendRecording}>
               <Kb.Box2 direction="vertical" centerChildren={true}>
-                <Kb.Icon
-                  type="iconfont-arrow-full-up"
-                  color={Styles.globalColors.whiteOrWhite}
-                  fontSize={22}
-                />
+                <Kb.Icon type="iconfont-arrow-full-up" color="whiteOrWhite" fontSize={22} />
               </Kb.Box2>
             </Kb.ClickableBox>
           </Kb.NativeView>
@@ -296,7 +292,7 @@ const AudioButton = (props: ButtonProps) => {
             transform: [{translateY: Kb.NativeAnimated.add(micOffsetY, props.dragY)}],
           }}
         >
-          <Kb.Icon type="iconfont-mic" fontSize={22} color={Styles.globalColors.whiteOrWhite} />
+          <Kb.Icon type="iconfont-mic" fontSize={22} color="whiteOrWhite" />
         </Kb.NativeAnimated.View>
       ) : (
         <Kb.TapGestureHandler onHandlerStateChange={props.stageRecording}>

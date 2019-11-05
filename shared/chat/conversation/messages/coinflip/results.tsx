@@ -83,18 +83,22 @@ const suits = {
   clubs: {
     color: Styles.globalColors.blackOrBlack,
     icon: 'iconfont-club',
+    iconColor: 'blackOrBlack',
   },
   diamonds: {
     color: Styles.globalColors.redDark,
     icon: 'iconfont-diamond',
+    iconColor: 'redDark',
   },
   hearts: {
     color: Styles.globalColors.redDark,
     icon: 'iconfont-heart',
+    iconColor: 'redDark',
   },
   spades: {
     color: Styles.globalColors.blackOrBlack,
     icon: 'iconfont-spade',
+    iconColor: 'blackOrBlack',
   },
 }
 
@@ -118,7 +122,7 @@ const Card = (props: CardType) => (
       <Kb.Icon
         fontSize={Styles.isMobile ? 10 : 12}
         type={suits[cards[props.card].suit].icon}
-        color={suits[cards[props.card].suit].color}
+        color={suits[cards[props.card].suit].iconColor}
         style={styles.cardSuit}
       />
     </Kb.Box2>

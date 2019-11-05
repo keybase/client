@@ -146,7 +146,7 @@ const Header = (p: Props) => {
               <Kb.Icon
                 type="iconfont-shh"
                 style={styles.shhIconStyle}
-                color={Styles.globalColors.black_20}
+                color="black_20"
                 fontSize={20}
                 onClick={p.unMuteConversation}
               />
@@ -192,7 +192,7 @@ const Header = (p: Props) => {
                 style={styles.clickable}
                 type="iconfont-info"
                 onClick={p.onToggleInfoPanel}
-                color={p.infoPanelOpen ? Styles.globalColors.blue : undefined}
+                color={p.infoPanelOpen ? 'blue' : undefined}
               />
             </Kb.WithTooltip>
           </Kb.Box2>

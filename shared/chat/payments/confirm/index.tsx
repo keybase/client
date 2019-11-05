@@ -228,11 +228,6 @@ const styles = Styles.styleSheetCreate(
           height: Styles.globalMargins.large,
         },
       }),
-      submitIcon: Styles.platformStyles({
-        isElectron: {
-          paddingRight: Styles.globalMargins.tiny,
-        },
-      }),
       totalContainer: Styles.platformStyles({
         common: {
           alignItems: 'center',

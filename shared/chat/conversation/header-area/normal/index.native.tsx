@@ -12,9 +12,6 @@ import {assertionToDisplay} from '../../../../common-adapters/usernames'
 import * as Styles from '../../../../styles'
 import {Props} from '.'
 
-const shhIconColor = Styles.globalColors.black_20
-const shhIconFontSize = 24
-
 const Wrapper = (
   props: {
     children: React.ReactNode
@@ -39,8 +36,8 @@ const ShhIcon = props => (
   <Icon
     type="iconfont-shh"
     style={iconCastPlatformStyles(styles.shhIcon)}
-    color={shhIconColor}
-    fontSize={shhIconFontSize}
+    color="black_20"
+    fontSize={24}
     onClick={props.onClick}
   />
 )
