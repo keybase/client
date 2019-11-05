@@ -29,7 +29,7 @@ class Team extends React.Component<Props> {
   private renderItem = ({item}: {item: Row}) => {
     switch (item.type) {
       case 'header':
-        return <TeamHeader key="header" teamname={this.props.teamname} />
+        return <TeamHeader key="header" teamID={this.props.teamID} />
       case 'tabs': {
         return (
           <TeamTabs

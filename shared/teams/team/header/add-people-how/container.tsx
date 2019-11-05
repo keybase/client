@@ -1,5 +1,7 @@
 import * as React from 'react'
 import * as Container from '../../../../util/container'
+import * as Constants from '../../../../constants/teams'
+import * as Types from '../../../../constants/types/teams'
 import {AddPeopleHow} from '.'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import {appendNewTeamBuilder} from '../../../../actions/typed-routes'
@@ -10,18 +12,18 @@ import * as Styles from '../../../../styles'
 type OwnProps = {
   attachTo?: () => React.Component<any> | null
   onHidden: () => void
-  teamname: string
+  teamID: Types.TeamID
   visible: boolean
 }
 
 export default Container.connect(
-  () => ({}),
-  (dispatch, {teamname}: OwnProps) => {
+  (state, {teamID}: OwnProps) => ({teamname: Constants.getTeamNameFromID(state, teamID) || ''}),
+  dispatch => {
     return {
-      onAddPeople: () => {
+      _onAddPeople: (teamname: string) => {
         dispatch(appendNewTeamBuilder(teamname))
       },
-      onInvite: () => {
+      _onInvite: (teamname: string) => {
         const selected = Styles.isMobile ? 'teamInviteByContact' : 'teamInviteByEmail'
         dispatch(
           RouteTreeGen.createNavigateAppend({
@@ -30,8 +32,16 @@ export default Container.connect(
         )
         dispatch(RouteTreeGen.createNavigateAppend({path: [teamsTab]}))
       },
-      onSlackImport: () => openURL(`https://keybase.io/slack-importer/${teamname}`),
+      _onSlackImport: (teamname: string) => openURL(`https://keybase.io/slack-importer/${teamname}`),
     }
   },
-  (s, d, o: OwnProps) => ({...s, ...d, attachTo: o.attachTo, onHidden: o.onHidden, visible: o.visible})
+  (s, d, o: OwnProps) => ({
+    ...s,
+    attachTo: o.attachTo,
+    onAddPeople: () => d._onAddPeople(s.teamname),
+    onInvite: () => d._onInvite(s.teamname),
+    onHidden: o.onHidden,
+    onSlackImport: () => d._onSlackImport(s.teamname),
+    visible: o.visible,
+  })
 )(AddPeopleHow)

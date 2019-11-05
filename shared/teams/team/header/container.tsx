@@ -11,11 +11,11 @@ import {selfToUser} from '../../../constants/team-building'
 import * as ImagePicker from 'expo-image-picker'
 
 export type OwnProps = {
-  teamname: Types.Teamname
+  teamID: Types.TeamID
 }
 
-const mapStateToProps = (state: Container.TypedState, {teamname}: OwnProps) => {
-  const yourOperations = Constants.getCanPerform(state, teamname)
+const mapStateToProps = (state: Container.TypedState, {teamID}: OwnProps) => {
+  const yourOperations = Constants.getCanPerformByID(state, teamID)
   return {
     _canRenameTeam: yourOperations.renameTeam,
     _you: state.config.username,
