@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Styles from '../../../../../../styles'
 import * as Kb from '../../../../../../common-adapters'
-import {formatTimeForMessages} from '../../../../../../util/timestamp'
+import {formatTimeForChat} from '../../../../../../util/timestamp'
 
 type Props = {
   endTime?: number
@@ -9,10 +9,8 @@ type Props = {
 
 const UnfurlSharingEnded = (props: Props) => (
   <Kb.Box2 direction="vertical" style={styles.container}>
-    <Kb.Text type="BodyBig">Location sharing ended</Kb.Text>
-    {props.endTime && (
-      <Kb.Text type="BodySmallItalic">Last updated {formatTimeForMessages(props.endTime)}</Kb.Text>
-    )}
+    <Kb.Text type="BodySemibold">Location sharing ended</Kb.Text>
+    {props.endTime && <Kb.Text type="BodyTiny">Last updated {formatTimeForChat(props.endTime)}</Kb.Text>}
   </Kb.Box2>
 )
 
