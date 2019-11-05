@@ -25,6 +25,20 @@ type AvatarProps = {
   backgroundColor?: string
 }
 
+const StrokedIcon = Styles.styled(Kb.Icon)(props => ({
+  bottom: 1,
+  color: props.isHovered && !props.isSelected ? Styles.globalColors.black_20 : props.isSelected ? Styles.globalColors.white : Styles.globalColors.black_20,
+  position: 'absolute',
+  right: 1,
+  '&.stroke': {
+    '-webkit-text-stroke': `4px ${props.isHovered && !props.isSelected ? Styles.globalColors.blueGreyDark : props.isSelected ? Styles.globalColors.blue : Styles.globalColors.blueGrey}`,
+    color: props.isHovered && !props.isSelected ? Styles.globalColors.blueGreyDark : props.isSelected ? Styles.globalColors.blue : Styles.globalColors.blueGrey,
+    bottom: 0,
+    fontWeight: 'bolder',
+    right: 0,
+  },
+}))
+
 const MutedIcon = (p: {
   isHovered: boolean
   isMuted: boolean
@@ -37,9 +51,12 @@ const MutedIcon = (p: {
     if (Styles.isMobile) {
       type = isSelected ? 'icon-shh-active-26-21' : 'icon-shh-26-21'
     } else {
-      type = isSelected ? 'icon-shh-active-19-16' : isHovered ? 'icon-shh-hover-19-16' : 'icon-shh-19-16'
+      type = 'iconfont-shh'
     }
-    return <Kb.Icon type={type} style={avatarIconStyle} />
+    return (<Kb.Box style={Styles.collapseStyles([avatarIconStyle, {bottom: -4, right: -2}])}>
+      <StrokedIcon isSelected={isSelected} isHovered={isHovered} className="stroke" type={type} fontSize={Styles.isMobile ? 24 : 22} />
+      <StrokedIcon isSelected={isSelected} isHovered={isHovered} type={type} fontSize={20} />
+    </Kb.Box>)
   } else if (isLocked) {
     if (Styles.isMobile) {
       type = isSelected ? 'icon-addon-lock-active-22' : 'icon-addon-lock-22'

@@ -49,9 +49,8 @@ const styles = Styles.styleSheetCreate(
     ({
       button: {
         alignSelf: 'center',
-        borderColor: Styles.globalColors.blueGrey,
-        borderStyle: 'solid',
-        borderWidth: 2,
+        bottom: Styles.globalMargins.tiny,
+        position: 'relative',
         width: undefined,
       },
       containerButton: Styles.platformStyles({

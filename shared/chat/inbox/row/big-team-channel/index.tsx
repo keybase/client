@@ -89,10 +89,10 @@ const MutedIcon = ({isHovered, isSelected}) => (
           ? 'icon-shh-active-26-21'
           : 'icon-shh-26-21'
         : isSelected
-        ? 'icon-shh-active-19-16'
+        ? 'iconfont-shh'
         : isHovered
-        ? 'icon-shh-hover-19-16'
-        : 'icon-shh-19-16'
+        ? 'iconfont-shh'
+        : 'iconfont-shh'
     }
     style={mutedStyle}
   />

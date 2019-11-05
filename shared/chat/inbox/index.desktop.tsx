@@ -18,7 +18,6 @@ import {virtualListMarks} from '../../local-debug'
 import shallowEqual from 'shallowequal'
 
 type State = {
-  dragging: boolean
   dragY: number
   showFloating: boolean
   showUnread: boolean
@@ -27,7 +26,7 @@ type State = {
 const widths = [10, 80, 2, 66]
 const stableWidth = (idx: number) => 160 + -widths[idx % widths.length]
 
-const FakeRow = ({idx, last}) => (
+const FakeRow = ({idx}) => (
   <Kb.Box2 direction="horizontal" style={styles.fakeRow}>
     <Kb.Box2 direction="vertical" style={styles.fakeAvatar} />
     <Kb.Box2 direction="vertical" style={styles.fakeText}>
@@ -42,29 +41,15 @@ const FakeRow = ({idx, last}) => (
         alignSelf="flex-start"
       />
     </Kb.Box2>
-    {last && <Kb.Divider style={styles.fakeRowDivider} />}
   </Kb.Box2>
 )
 
-const HoverBox = Styles.styled(Kb.Box2)(() => ({
-  opacity: 0.25,
-  transition: 'opacity 0.25s ease-in-out',
-  '.hiddenGrabber': {
-    opacity: 0,
-    transition: 'opacity 0.25s ease-in-out',
-  },
-  ':hover, :hover .hiddenGrabber': {opacity: 1}
-}))
-
-const FakeRemovingRow = ({first}) => (
-  <Kb.Box2 direction="horizontal" style={styles.fakeRemovingRow}>
-    {first && <Kb.Divider style={styles.fakeRemovingRowDivider} />}
-  </Kb.Box2>
+const FakeRemovingRow = () => (
+  <Kb.Box2 direction="horizontal" style={styles.fakeRemovingRow} />
 )
 
 class Inbox extends React.Component<T.Props, State> {
   state = {
-    dragging: false,
     dragY: -1,
     showFloating: false,
     showUnread: false,
@@ -144,22 +129,16 @@ class Inbox extends React.Component<T.Props, State> {
         removingRows = new Array(-newSmallRows).fill('')
       }
       return (
-        <div style={{...divStyle, position: 'relative'}} draggable={true}>
-          <HoverBox
-            direction="vertical"
-            style={Styles.collapseStyles([
-              styles.grabberContainer,
-              {
-                cursor: this.state.dragging ? '-webkit-grabbing' : 'grab',
-              },
-            ])}
-            onMouseDown={() => this.setState({dragging: true})}
-            onMouseUp={() => this.setState({dragging: false})}
-          >
-            <div className="hiddenGrabber" style={styles.grabber} />
-            <div style={styles.grabber} />
-            <div className="hiddenGrabber" style={styles.grabber} />
-          </HoverBox>
+        <div style={{...divStyle, position: 'relative'}}>
+          {row.showButton && (
+            <Kb.Box className="grabLinesContainer" draggable={row.showButton} style={styles.grabber}>
+              <Kb.Box2 className="grabLines" direction="vertical" style={styles.grabberLineContainer}>
+                <Kb.Box2 direction="horizontal" style={styles.grabberLine} />
+                <Kb.Box2 direction="horizontal" style={styles.grabberLine} />
+                <Kb.Box2 direction="horizontal" style={styles.grabberLine} />
+              </Kb.Box2>
+            </Kb.Box>
+          )}
           {this.state.dragY !== -1 && (
             <Kb.Box2
               direction="vertical"
@@ -170,14 +149,15 @@ class Inbox extends React.Component<T.Props, State> {
               }])}
             >
               {expandingRows.map((_, idx) => (
-                <FakeRow idx={idx} key={idx} last={expandingRows.length - 1 === idx} />
+                <FakeRow idx={idx} key={idx} />
               ))}
               {removingRows.map((_, idx) => (
-                <FakeRemovingRow key={idx} first={idx === 0} />
+                <FakeRemovingRow key={idx} />
               ))}
             </Kb.Box2>
           )}
           <TeamsDivider
+            hiddenCountDelta={newSmallRows !== 0 ? -newSmallRows : 0}
             key="divider"
             toggle={this.props.toggleSmallTeamsExpanded}
             showButton={row.showButton}
@@ -319,7 +299,7 @@ class Inbox extends React.Component<T.Props, State> {
     )
     return (
       <Kb.ErrorBoundary>
-        <div style={styles.container}>
+        <InboxHoverContainer style={styles.container}>
           <div
             style={styles.list}
             onDragEnd={this.onDrop}
@@ -349,11 +329,25 @@ class Inbox extends React.Component<T.Props, State> {
           {this.state.showUnread && !this.state.showFloating && (
             <UnreadShortcut onClick={this.scrollToUnread} />
           )}
-        </div>
+        </InboxHoverContainer>
       </Kb.ErrorBoundary>
     )
   }
 }
+
+const InboxHoverContainer = Styles.styled(Kb.Box)({
+  '.grabLines': {
+    transition: 'opacity 0.25s ease-in-out',
+    opacity: 0,
+  },
+  '.grabLinesContainer': {
+    transition: 'opacity 0.25s ease-in-out',
+    opacity: 0.5,
+  },
+  ':hover .grabLines': {opacity: .25},
+  ':hover .grabLinesContainer': {opacity: 1},
+  '.grabLinesContainer:hover .grabLines': {opacity: 1},
+})
 
 const styles = Styles.styleSheetCreate(
   () =>
@@ -437,24 +431,35 @@ const styles = Styles.styleSheetCreate(
           width: '25%',
         },
       }),
-      grabber: {
-        backgroundColor: Styles.globalColors.black_10,
-        borderRadius: Styles.borderRadius,
-        boxShadow: Styles.desktopStyles.boxShadow,
-        height: 2,
+      grabber: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.flexBoxRow,
+          backgroundColor: Styles.globalColors.black_05,
+          bottom: 8,
+          height: Styles.globalMargins.tiny,
+          justifyContent: 'center',
+          position: 'absolute',
+          width: '100%',
+        },
+        isElectron: {
+          cursor: 'row-resize',
+        },
+      }),
+      grabberLine: {
+        backgroundColor: Styles.globalColors.black_35,
+        height: 1,
         marginBottom: 1,
-        marginLeft: 8,
-        marginRight: 8,
-        marginTop: 1,
-      },
-      grabberContainer: {
-        height: '100%',
-        justifyContent: 'center',
-        position: 'absolute',
         width: '100%',
+      },
+      grabberLineContainer: {
+        paddingTop: 1,
+        width: Styles.globalMargins.small,
       },
       hover: {backgroundColor: Styles.globalColors.blueGreyDark},
       list: {flex: 1},
+      rowWithDragger: {
+        height: 68,
+      },
     } as const)
 )
 
