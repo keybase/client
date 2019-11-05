@@ -3,15 +3,16 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 
 type Props = {
-  onBuildTeam: () => void
+  onCreateTeam: () => void
+  onJoinTeam: () => void
   showBuildATeam: boolean
 }
 
-const BuildTeam = ({showBuildATeam, onBuildTeam}: Props) =>
+const BuildTeam = ({showBuildATeam, onCreateTeam, onJoinTeam}: Props) =>
   showBuildATeam ? (
     <Kb.Box2 direction="vertical" gap="xtiny" style={styles.container}>
-      <Kb.Button fullWidth={true} label="Create a team" mode="Secondary" />
-      <Kb.Button fullWidth={true} label="Join a team" mode="Secondary" onClick={onBuildTeam} />
+      <Kb.Button fullWidth={true} label="Create a team" mode="Secondary" onClick={onCreateTeam} />
+      <Kb.Button fullWidth={true} label="Join a team" mode="Secondary" onClick={onJoinTeam} />
     </Kb.Box2>
   ) : null
 
