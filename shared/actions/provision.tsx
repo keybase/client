@@ -78,7 +78,10 @@ class ProvisioningManager {
   }
 
   // Choosing a device to use to provision
-  chooseDeviceHandler = (params, response) => {
+  chooseDeviceHandler = (
+    params: RPCTypes.MessageTypes['keybase.1.provisionUi.chooseDevice']['inParam'],
+    response
+  ) => {
     if (this._done) {
       logger.info('ProvisioningManager done, yet chooseDeviceHandler called')
       return
@@ -91,7 +94,7 @@ class ProvisioningManager {
     )
   }
 
-  submitDeviceSelect = state => {
+  submitDeviceSelect = (state: Container.TypedState) => {
     if (this._done) {
       logger.info('ProvisioningManager done, yet submitDeviceSelect called')
       return
@@ -101,12 +104,12 @@ class ProvisioningManager {
       throw new Error('Tried to submit a device choice but missing callback')
     }
 
-    if (!state.provision.codePageOtherDeviceId) {
+    if (!state.provision.codePageOtherDevice.id) {
       response.error()
       throw new Error('Tried to submit a device choice but missing device in store')
     }
 
-    response.result(state.provision.codePageOtherDeviceId)
+    response.result(state.provision.codePageOtherDevice.id)
   }
 
   // Telling the daemon the other device type when adding a new device
@@ -118,7 +121,7 @@ class ProvisioningManager {
     return Saga.callUntyped(function*() {
       const state: Container.TypedState = yield* Saga.selectState()
       let type
-      switch (state.provision.codePageOtherDeviceType) {
+      switch (state.provision.codePageOtherDevice.type) {
         case 'mobile':
           type = RPCTypes.DeviceType.mobile
           break
@@ -128,7 +131,7 @@ class ProvisioningManager {
         default:
           response.error()
           throw new Error(
-            'Tried to add a device but of unknown type' + state.provision.codePageOtherDeviceType
+            'Tried to add a device but of unknown type' + state.provision.codePageOtherDevice.type
           )
       }
 

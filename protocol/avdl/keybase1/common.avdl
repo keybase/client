@@ -178,6 +178,8 @@ protocol Common {
     string type;
     string name;
     DeviceID deviceID;
+    // For the GUI to display the correct icon for the device
+    int deviceNumberOfType;
     Time cTime;
     Time mTime;
     Time lastUsedTime;

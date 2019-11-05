@@ -1,3 +1,4 @@
+import * as I from 'immutable'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as FsGen from '../../../actions/fs-gen'
 import * as Constants from '../../../constants/chat2'
@@ -11,6 +12,7 @@ import * as Container from '../../../util/container'
 import {createShowUserProfile} from '../../../actions/profile-gen'
 import * as Kb from '../../../common-adapters'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
+import * as TeamTypes from '../../../constants/types/teams'
 
 // TODO this container does a ton of stuff for the various tabs. Really the tabs should be connected
 // and this thing is just a holder of tabs
@@ -65,13 +67,15 @@ const ConnectedInfoPanel = Container.connect(
     const m = state.chat2.attachmentViewMap.get(conversationIDKey)
     const attachmentInfo = (m && m.get(selectedAttachmentView)) || noAttachmentView
     const attachmentsLoading = selectedTab === 'attachments' && attachmentInfo.status === 'loading'
+    const _teamMembers =
+      state.teams.teamNameToMembers.get(meta.teamname) || I.Map<string, TeamTypes.MemberInfo>()
     return {
       _attachmentInfo: attachmentInfo,
       _fromMsgID: getFromMsgID(attachmentInfo),
       _infoMap: state.users.infoMap,
       _participantToContactName: meta.participantToContactName,
       _participants: meta.participants,
-      _teamMembers: state.teams.teamNameToMembers.get(meta.teamname),
+      _teamMembers,
       admin,
       attachmentsLoading,
       canDeleteHistory,
@@ -291,20 +295,10 @@ const ConnectedInfoPanel = Container.connect(
             stateProps._participantToContactName.get(p) ||
             '',
           isAdmin: stateProps.teamname
-            ? TeamConstants.userIsRoleInTeamWithInfo(
-                // @ts-ignore
-                teamMembers,
-                p,
-                'admin'
-              )
+            ? TeamConstants.userIsRoleInTeamWithInfo(teamMembers, p, 'admin')
             : false,
           isOwner: stateProps.teamname
-            ? TeamConstants.userIsRoleInTeamWithInfo(
-                // @ts-ignore
-                teamMembers,
-                p,
-                'owner'
-              )
+            ? TeamConstants.userIsRoleInTeamWithInfo(teamMembers, p, 'owner')
             : false,
           username: p,
         }))

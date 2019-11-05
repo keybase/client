@@ -107,7 +107,7 @@ export type TypedActionsMap = {
   'chat2:loadMessagesCentered': chat2.LoadMessagesCenteredPayload
   'chat2:desktopNotification': chat2.DesktopNotificationPayload
   'chat2:messageSend': chat2.MessageSendPayload
-  'chat2:messageSendByUsername': chat2.MessageSendByUsernamePayload
+  'chat2:messageSendByUsernames': chat2.MessageSendByUsernamesPayload
   'chat2:toggleLocalReaction': chat2.ToggleLocalReactionPayload
   'chat2:toggleMessageReaction': chat2.ToggleMessageReactionPayload
   'chat2:updateReactions': chat2.UpdateReactionsPayload
@@ -216,7 +216,6 @@ export type TypedActionsMap = {
   'chat2:toggleGiphyPrefill': chat2.ToggleGiphyPrefillPayload
   'chat2:setChannelSearchText': chat2.SetChannelSearchTextPayload
   'chat2:enableAudioRecording': chat2.EnableAudioRecordingPayload
-  'chat2:startAudioRecording': chat2.StartAudioRecordingPayload
   'chat2:stopAudioRecording': chat2.StopAudioRecordingPayload
   'chat2:lockAudioRecording': chat2.LockAudioRecordingPayload
   'chat2:sendAudioRecording': chat2.SendAudioRecordingPayload
@@ -429,12 +428,13 @@ export type TypedActionsMap = {
   'engine-gen:keybase1NotifyTeamTeamAbandoned': enginegen.Keybase1NotifyTeamTeamAbandonedPayload
   'engine-gen:keybase1NotifyTeamTeamExit': enginegen.Keybase1NotifyTeamTeamExitPayload
   'engine-gen:keybase1NotifyTeamNewlyAddedToTeam': enginegen.Keybase1NotifyTeamNewlyAddedToTeamPayload
+  'engine-gen:keybase1NotifyTeamTeamRoleMapChanged': enginegen.Keybase1NotifyTeamTeamRoleMapChangedPayload
   'engine-gen:keybase1NotifyTeamAvatarUpdated': enginegen.Keybase1NotifyTeamAvatarUpdatedPayload
+  'engine-gen:keybase1NotifyTeamTeamMetadataUpdate': enginegen.Keybase1NotifyTeamTeamMetadataUpdatePayload
   'engine-gen:keybase1NotifyTeambotNewTeambotKey': enginegen.Keybase1NotifyTeambotNewTeambotKeyPayload
   'engine-gen:keybase1NotifyTeambotTeambotKeyNeeded': enginegen.Keybase1NotifyTeambotTeambotKeyNeededPayload
   'engine-gen:keybase1NotifyTrackingTrackingChanged': enginegen.Keybase1NotifyTrackingTrackingChangedPayload
   'engine-gen:keybase1NotifyTrackingTrackingInfo': enginegen.Keybase1NotifyTrackingTrackingInfoPayload
-  'engine-gen:keybase1NotifyUnverifiedTeamListTeamListUnverifiedChanged': enginegen.Keybase1NotifyUnverifiedTeamListTeamListUnverifiedChangedPayload
   'engine-gen:keybase1NotifyUsersUserChanged': enginegen.Keybase1NotifyUsersUserChangedPayload
   'engine-gen:keybase1NotifyUsersPasswordChanged': enginegen.Keybase1NotifyUsersPasswordChangedPayload
   'engine-gen:keybase1NotifyUsersIdentifyUpdate': enginegen.Keybase1NotifyUsersIdentifyUpdatePayload
@@ -831,7 +831,6 @@ export type TypedActionsMap = {
   'teams:getDetails': teams.GetDetailsPayload
   'teams:getMembers': teams.GetMembersPayload
   'teams:setMembers': teams.SetMembersPayload
-  'teams:getDetailsForAllTeams': teams.GetDetailsForAllTeamsPayload
   'teams:getTeamOperations': teams.GetTeamOperationsPayload
   'teams:getTeamProfileAddList': teams.GetTeamProfileAddListPayload
   'teams:getTeamPublicity': teams.GetTeamPublicityPayload
@@ -884,6 +883,8 @@ export type TypedActionsMap = {
   'teams:getTeamRetentionPolicy': teams.GetTeamRetentionPolicyPayload
   'teams:saveTeamRetentionPolicy': teams.SaveTeamRetentionPolicyPayload
   'teams:renameTeam': teams.RenameTeamPayload
+  'teams:setTeamRoleMapLatestKnownVersion': teams.SetTeamRoleMapLatestKnownVersionPayload
+  'teams:setTeamRoleMap': teams.SetTeamRoleMapPayload
   'tracker2:load': tracker2.LoadPayload
   'tracker2:updatedDetails': tracker2.UpdatedDetailsPayload
   'tracker2:updateResult': tracker2.UpdateResultPayload

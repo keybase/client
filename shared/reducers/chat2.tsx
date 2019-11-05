@@ -84,22 +84,20 @@ const audioActions: Container.ActionHandler<Actions, Types.State> = {
     const {conversationIDKey} = action.payload
     draftState.audioRecording.set(conversationIDKey, Constants.makeAudioRecordingInfo())
   },
-  [Chat2Gen.startAudioRecording]: (draftState, action) => {
-    const {conversationIDKey} = action.payload
-    const info = draftState.audioRecording.get(conversationIDKey)
-    if (info && Constants.showAudioRecording(info)) {
-      info.status = Types.AudioRecordingStatus.RECORDING
-    }
-  },
   [Chat2Gen.stopAudioRecording]: (draftState, action) => {
     const {conversationIDKey, stopType, amps} = action.payload
     const info = draftState.audioRecording.get(conversationIDKey)
     if (info) {
-      let nextStatus = info.status
+      let nextStatus: Types.AudioRecordingStatus = info.status
+      if (nextStatus === Types.AudioRecordingStatus.CANCELLED) {
+        return
+      }
+      let nextPath = info.path
       if (info.isLocked) {
         switch (stopType) {
           case Types.AudioStopType.CANCEL:
             nextStatus = Types.AudioRecordingStatus.CANCELLED
+            nextPath = ''
             break
           case Types.AudioStopType.SEND:
             nextStatus = Types.AudioRecordingStatus.STOPPED
@@ -109,9 +107,18 @@ const audioActions: Container.ActionHandler<Actions, Types.State> = {
             break
         }
       } else {
-        nextStatus = Types.AudioRecordingStatus.STOPPED
+        switch (stopType) {
+          case Types.AudioStopType.CANCEL:
+            nextStatus = Types.AudioRecordingStatus.CANCELLED
+            nextPath = ''
+            break
+          default:
+            nextStatus = Types.AudioRecordingStatus.STOPPED
+        }
       }
-      info.amps = amps || []
+      info.amps = amps
+      info.path = nextPath
+      info.recordEnd = Constants.isStoppedAudioRecordingStatus(nextStatus) ? Date.now() : undefined
       info.status = nextStatus
     }
   },
@@ -125,17 +132,21 @@ const audioActions: Container.ActionHandler<Actions, Types.State> = {
   [Chat2Gen.sendAudioRecording]: (draftState, action) => {
     const {conversationIDKey} = action.payload
     const {audioRecording} = draftState
-    const info = audioRecording.get(conversationIDKey) || Constants.makeAudioRecordingInfo()
-    audioRecording.set(conversationIDKey, info)
-    info.status = Types.AudioRecordingStatus.STOPPED
+    audioRecording.delete(conversationIDKey)
   },
   [Chat2Gen.setAudioRecordingPostInfo]: (draftState, action) => {
     const {conversationIDKey, outboxID, path} = action.payload
     const {audioRecording} = draftState
-    const info = audioRecording.get(conversationIDKey) || Constants.makeAudioRecordingInfo()
-    audioRecording.set(conversationIDKey, info)
-    info.outboxID = outboxID
-    info.path = path
+    const info = audioRecording.get(conversationIDKey)
+    if (info) {
+      if (info.status !== Types.AudioRecordingStatus.INITIAL) {
+        return
+      }
+      audioRecording.set(conversationIDKey, info)
+      info.outboxID = outboxID
+      info.path = path
+      info.status = Types.AudioRecordingStatus.RECORDING
+    }
   },
 }
 

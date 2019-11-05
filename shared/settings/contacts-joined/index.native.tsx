@@ -22,7 +22,7 @@ const renderItem = (_: number, {username, contactLabel}: ResolvedContactEntry) =
       <Kb.Text type="BodySmall">{contactLabel}</Kb.Text>
       <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} style={styles.buttons}>
         <FollowButton username={username} small={true} />
-        <WaveButton username={username} small={true} />
+        <WaveButton usernames={username} small={true} />
       </Kb.Box2>
       <Kb.Divider style={styles.divider} />
     </Kb.Box2>

@@ -135,13 +135,13 @@ func (e *PassphraseRecover) chooseDevice(mctx libkb.MetaContext, ckf *libkb.Comp
 
 	// Choose an existing device
 	expDevices := make([]keybase1.Device, 0, len(devices))
-	idMap := make(map[keybase1.DeviceID]*libkb.Device)
+	idMap := make(map[keybase1.DeviceID]libkb.DeviceWithDeviceNumber)
 	for _, d := range devices {
 		// Don't show paper keys if the user has not provisioned on this device
 		if !e.usernameFound && d.Type == libkb.DeviceTypePaper {
 			continue
 		}
-		expDevices = append(expDevices, *d.ProtExport())
+		expDevices = append(expDevices, *d.ProtExportWithDeviceNum())
 		idMap[d.ID] = d
 	}
 	id, err := mctx.UIs().LoginUI.ChooseDeviceToRecoverWith(mctx.Ctx(), keybase1.ChooseDeviceToRecoverWithArg{
@@ -298,7 +298,7 @@ func (e *PassphraseRecover) changePassword(mctx libkb.MetaContext) (err error) {
 	return nil
 }
 
-func (e *PassphraseRecover) explainChange(mctx libkb.MetaContext, device *libkb.Device) (err error) {
+func (e *PassphraseRecover) explainChange(mctx libkb.MetaContext, device libkb.DeviceWithDeviceNumber) (err error) {
 	var name string
 	if device.Description != nil {
 		name = *device.Description

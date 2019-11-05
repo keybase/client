@@ -943,6 +943,8 @@ export const getMainBannerType = (
 export const isFolder = (path: Types.Path, pathItem: Types.PathItem) =>
   Types.getPathLevel(path) <= 3 || pathItem.type === Types.PathType.Folder
 
+export const isInTlf = (path: Types.Path) => Types.getPathLevel(path) > 2
+
 export const humanizeBytes = (n: number, numDecimals: number): string => {
   const kb = 1024
   const mb = kb * 1024

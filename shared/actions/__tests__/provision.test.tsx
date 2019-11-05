@@ -299,8 +299,8 @@ describe('other device happy path', () => {
   it('submit mobile', () => {
     const {response, getState, dispatch} = init
     dispatch(ProvisionGen.createSubmitDeviceSelect({name: mobile.name}))
-    expect(getState().provision.codePageOtherDeviceId).toEqual(mobile.deviceID)
-    expect(getState().provision.codePageOtherDeviceType).toEqual('mobile')
+    expect(getState().provision.codePageOtherDevice.id).toEqual(mobile.deviceID)
+    expect(getState().provision.codePageOtherDevice.type).toEqual('mobile')
     expect(getState().provision.error).toEqual(noError)
     expect(getState().config.globalError).toEqual(undefined)
     expect(response.result).toHaveBeenCalledWith(mobile.deviceID)
@@ -314,8 +314,8 @@ describe('other device happy path', () => {
   it('submit desktop', () => {
     const {response, getState, dispatch} = init
     dispatch(ProvisionGen.createSubmitDeviceSelect({name: desktop.name}))
-    expect(getState().provision.codePageOtherDeviceId).toEqual(desktop.deviceID)
-    expect(getState().provision.codePageOtherDeviceType).toEqual('desktop')
+    expect(getState().provision.codePageOtherDevice.id).toEqual(desktop.deviceID)
+    expect(getState().provision.codePageOtherDevice.type).toEqual('desktop')
     expect(getState().provision.error).toEqual(noError)
     expect(getState().config.globalError).toEqual(undefined)
     expect(response.result).toHaveBeenCalledWith(desktop.deviceID)
@@ -329,8 +329,8 @@ describe('other device happy path', () => {
   it('submit paperkey/backup', () => {
     const {response, getState, dispatch} = init
     dispatch(ProvisionGen.createSubmitDeviceSelect({name: backup.name}))
-    expect(getState().provision.codePageOtherDeviceId).toEqual(backup.deviceID)
-    expect(getState().provision.codePageOtherDeviceType).toEqual('mobile')
+    expect(getState().provision.codePageOtherDevice.id).toEqual(backup.deviceID)
+    expect(getState().provision.codePageOtherDevice.type).toEqual('backup')
     expect(getState().provision.error).toEqual(noError)
     expect(getState().config.globalError).toEqual(undefined)
     expect(response.result).toHaveBeenCalledWith(backup.deviceID)

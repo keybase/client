@@ -2444,6 +2444,10 @@
           "name": "name"
         },
         {
+          "type": "TeamID",
+          "name": "teamID"
+        },
+        {
           "type": "int",
           "name": "memberCount"
         }
@@ -2905,6 +2909,125 @@
         {
           "type": "string",
           "name": "role"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamRolePair",
+      "fields": [
+        {
+          "type": "TeamRole",
+          "name": "role"
+        },
+        {
+          "type": "TeamRole",
+          "name": "implicitRole",
+          "jsonkey": "implicit_role"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamRoleMapAndVersion",
+      "fields": [
+        {
+          "type": {
+            "type": "map",
+            "values": "TeamRolePair",
+            "keys": "TeamID"
+          },
+          "name": "teams"
+        },
+        {
+          "type": "UserTeamVersion",
+          "name": "version",
+          "jsonkey": "user_team_version"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamRoleMapStored",
+      "fields": [
+        {
+          "type": "TeamRoleMapAndVersion",
+          "name": "data"
+        },
+        {
+          "type": "Time",
+          "name": "cachedAt"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserTeamVersion",
+      "fields": [],
+      "typedef": "int"
+    },
+    {
+      "type": "record",
+      "name": "UserTeamVersionUpdate",
+      "fields": [
+        {
+          "type": "UserTeamVersion",
+          "name": "version"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AnnotatedTeam",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "teamID"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "SubteamListResult",
+          "name": "transitiveSubteamsUnverified"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamMemberDetails"
+          },
+          "name": "members"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "AnnotatedTeamInvite"
+          },
+          "name": "invites"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamJoinRequest"
+          },
+          "name": "joinRequests"
+        },
+        {
+          "type": "boolean",
+          "name": "userIsShowcasing"
+        },
+        {
+          "type": "boolean",
+          "name": "tarsDisabled"
+        },
+        {
+          "type": "TeamSettings",
+          "name": "settings"
+        },
+        {
+          "type": "TeamShowcase",
+          "name": "showcase"
         }
       ]
     }
@@ -3865,6 +3988,19 @@
         }
       ],
       "response": "FastTeamLoadRes"
+    },
+    "getTeamRoleMap": {
+      "request": [],
+      "response": "TeamRoleMapAndVersion"
+    },
+    "getAnnotatedTeam": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "TeamID"
+        }
+      ],
+      "response": "AnnotatedTeam"
     }
   },
   "namespace": "keybase.1"
