@@ -47,9 +47,9 @@ class _BigTeamHeader extends React.PureComponent<Props> {
         >
           <Kb.Icon
             className="Kb.icon"
+            color={Styles.globalColors.black_35}
             type="iconfont-gear"
-            fontSize={iconFontSize}
-            color={Styles.globalColors.black_50}
+            sizeType="Small"
           />
           <Kb.Box
             style={Styles.collapseStyles([styles.badge, props.badgeSubscribe && styles.badgeVisible])}
@@ -61,7 +61,6 @@ class _BigTeamHeader extends React.PureComponent<Props> {
 }
 
 const BigTeamHeader = Kb.OverlayParentHOC(_BigTeamHeader)
-const iconFontSize = Styles.isMobile ? 20 : 14
 
 const styles = Styles.styleSheetCreate(
   () =>
