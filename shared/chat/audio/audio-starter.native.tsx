@@ -167,7 +167,7 @@ const AudioStarter = (props: AudioStarterProps) => {
           }}
         >
           <Kb.NativeView>
-            <Kb.Icon type="iconfont-mic" style={Kb.iconCastPlatformStyles(props.iconStyle)} fontSize={22} />
+            <Kb.Icon type="iconfont-mic" style={Kb.iconCastPlatformStyles(props.iconStyle)} />
           </Kb.NativeView>
         </Kb.PanGestureHandler>
       </Kb.TapGestureHandler>

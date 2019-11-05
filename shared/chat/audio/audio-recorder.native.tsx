@@ -268,9 +268,9 @@ const AudioButton = (props: ButtonProps) => {
           }}
         >
           <Kb.NativeView>
-            <Kb.Box2 direction="vertical">
-              <Kb.Icon type="iconfont-arrow-up" fontSize={22} />
-              <Kb.Icon type="iconfont-lock" fontSize={22} />
+            <Kb.Box2 direction="vertical" gap="xtiny" centerChildren={true}>
+              <Kb.Icon type="iconfont-arrow-up" sizeType="Tiny" />
+              <Kb.Icon type="iconfont-lock" />
             </Kb.Box2>
           </Kb.NativeView>
         </Kb.NativeAnimated.View>
@@ -297,9 +297,9 @@ const AudioButton = (props: ButtonProps) => {
             <Kb.ClickableBox onClick={props.sendRecording}>
               <Kb.Box2 direction="vertical" centerChildren={true}>
                 <Kb.Icon
-                  type="iconfont-arrow-full-up"
                   color={Styles.globalColors.whiteOrWhite}
-                  fontSize={22}
+                  sizeType="Small"
+                  type="iconfont-arrow-full-up"
                 />
               </Kb.Box2>
             </Kb.ClickableBox>
@@ -315,7 +315,7 @@ const AudioButton = (props: ButtonProps) => {
             transform: [{translateY: Kb.NativeAnimated.add(micOffsetY, props.dragY)}],
           }}
         >
-          <Kb.Icon type="iconfont-mic" fontSize={22} color={Styles.globalColors.whiteOrWhite} />
+          <Kb.Icon type="iconfont-mic" color={Styles.globalColors.whiteOrWhite} />
         </Kb.NativeAnimated.View>
       ) : (
         <Kb.TapGestureHandler onHandlerStateChange={props.stageRecording}>
@@ -366,7 +366,7 @@ const AudioSlideToCancel = (props: CancelProps) => {
       style={{
         bottom: 35,
         position: 'absolute',
-        right: 150,
+        left: 100,
         transform: [
           {
             translateY: cancelTranslate.interpolate({
@@ -377,7 +377,7 @@ const AudioSlideToCancel = (props: CancelProps) => {
         ],
       }}
     >
-      <Kb.Text type="BodyPrimaryLink" onClick={props.onCancel} style={{marginLeft: 30}}>
+      <Kb.Text type="BodyBigLink" onClick={props.onCancel}>
         Cancel
       </Kb.Text>
     </Kb.NativeAnimated.View>
@@ -398,9 +398,9 @@ const AudioSlideToCancel = (props: CancelProps) => {
         ],
       }}
     >
-      <Kb.Box2 direction="horizontal" gap="tiny">
-        <Kb.Icon type="iconfont-arrow-left" fontSize={16} />
-        <Kb.Text type="BodySecondaryLink">Slide to cancel</Kb.Text>
+      <Kb.Box2 direction="horizontal" gap="tiny" centerChildren={true}>
+        <Kb.Icon sizeType="Tiny" type="iconfont-arrow-left" />
+        <Kb.Text type="BodySmall">Slide to cancel</Kb.Text>
       </Kb.Box2>
     </Kb.NativeAnimated.View>
   )
@@ -427,14 +427,6 @@ const AudioCounter = (props: CounterProps) => {
         left: 10,
         opacity: props.slideTranslate,
         position: 'absolute',
-        transform: [
-          {
-            translateX: props.slideTranslate.interpolate({
-              inputRange: [0, 1],
-              outputRange: [props.closeDown ? -50 : -20, 0],
-            }),
-          },
-        ],
       }}
     >
       <Kb.Text type="BodyBold">{formatAudioRecordDuration(seconds * 1000)}</Kb.Text>

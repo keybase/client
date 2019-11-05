@@ -46,7 +46,7 @@ const AudioSend = (props: Props) => {
   return (
     <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true}>
       <Kb.Box2 direction="horizontal" gap="medium" alignItems="center">
-        <Kb.Icon type="iconfont-remove" fontSize={22} onClick={onCancel} />
+        <Kb.Icon type="iconfont-remove" onClick={onCancel} />
         {player}
       </Kb.Box2>
       <Kb.Button type="Default" small={true} style={styles.send} onClick={onSend} label="Send" />
