@@ -44,7 +44,7 @@ const Tooltip = (props: TooltipProps) => {
     <Kb.NativeAnimated.View style={{opacity}}>
       <Kb.Box2 direction="horizontal" style={styles.tooltipContainer}>
         <Kb.Text type="BodySmall" style={{color: Styles.globalColors.white}}>
-          Hold the button to record audio.
+          Hold to record audio.
         </Kb.Text>
       </Kb.Box2>
     </Kb.NativeAnimated.View>
