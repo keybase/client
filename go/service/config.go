@@ -525,6 +525,6 @@ func (h ConfigHandler) GenerateWebAuthToken(ctx context.Context) (ret string, er
 	if nist == nil {
 		return ret, fmt.Errorf("cannot generate a token when you are logged off")
 	}
-	uri := libkb.SiteURILookup[h.G().Env.GetRunMode()] + libkb.APIURIPathPrefix + "/user/token.json?tok=" + nist.Token().StringURL()
+	uri := libkb.SiteURILookup[h.G().Env.GetRunMode()] + "/_/user/token?tok=" + nist.Token().StringURL()
 	return uri, nil
 }
