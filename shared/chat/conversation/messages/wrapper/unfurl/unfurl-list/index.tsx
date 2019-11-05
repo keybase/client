@@ -6,6 +6,7 @@ import {Box2} from '../../../../../../common-adapters/index'
 import UnfurlGeneric from '../generic/container'
 import UnfurlGiphy from '../giphy/container'
 import UnfurlMap from '../map'
+import UnfurlSharingEnded from '../map/ended'
 
 export type UnfurlListItem = {
   unfurl: RPCChatTypes.UnfurlDisplay
@@ -54,6 +55,8 @@ class Unfurl extends React.PureComponent<UnfurlProps> {
               toggleMessagePopup={this.props.toggleMessagePopup}
               url={this.props.unfurl.generic.url}
             />
+          ) : this.props.unfurl.generic.endedMapInfo ? (
+            <UnfurlSharingEnded endTime={this.props.unfurl.generic.endedMapInfo.endedTime} />
           ) : (
             <UnfurlGeneric
               unfurl={this.props.unfurl.generic}

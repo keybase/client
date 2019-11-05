@@ -266,6 +266,22 @@ func (p *Packager) packageGiphy(ctx context.Context, uid gregor1.UID, convID cha
 	return chat1.NewUnfurlWithGiphy(g), nil
 }
 
+func (p *Packager) packageMapsEnded(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	raw chat1.UnfurlRaw) (res chat1.Unfurl, err error) {
+	mapsEndedRaw := raw.MapsEnded()
+	g := chat1.UnfurlGeneric{
+		Title:       "Location share ended",
+		Url:         "",
+		SiteName:    "Live Location Share",
+		Description: nil,
+		EndedMapInfo: &chat1.UnfurlGenericMapEndedInfo{
+			EndedTime: mapsEndedRaw.EndedTime,
+		},
+	}
+
+	return chat1.NewUnfurlWithGeneric(g), nil
+}
+
 func (p *Packager) packageMaps(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	raw chat1.UnfurlRaw) (res chat1.Unfurl, err error) {
 	mapsRaw := raw.Maps()
@@ -359,6 +375,8 @@ func (p *Packager) Package(ctx context.Context, uid gregor1.UID, convID chat1.Co
 		return p.packageGiphy(ctx, uid, convID, raw)
 	case chat1.UnfurlType_MAPS:
 		return p.packageMaps(ctx, uid, convID, raw)
+	case chat1.UnfurlType_MAPS_ENDED:
+		return p.packageMapsEnded(ctx, uid, convID, raw)
 	default:
 		return res, errors.New("not implemented")
 	}

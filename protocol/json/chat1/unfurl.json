@@ -188,7 +188,7 @@
       "fields": [
         {
           "type": "gregor1.Time",
-          "name": "time"
+          "name": "endedTime"
         }
       ]
     },
@@ -264,11 +264,11 @@
     },
     {
       "type": "record",
-      "name": "UnfurlGenericMapEnded",
+      "name": "UnfurlGenericMapEndedInfo",
       "fields": [
         {
           "type": "gregor1.Time",
-          "name": "time"
+          "name": "endedTime"
         }
       ]
     },
@@ -322,6 +322,13 @@
             "UnfurlGenericMapInfo"
           ],
           "name": "mapInfo"
+        },
+        {
+          "type": [
+            null,
+            "UnfurlGenericMapEndedInfo"
+          ],
+          "name": "endedMapInfo"
         }
       ]
     },
@@ -474,6 +481,13 @@
             "UnfurlGenericMapInfo"
           ],
           "name": "mapInfo"
+        },
+        {
+          "type": [
+            null,
+            "UnfurlGenericMapEndedInfo"
+          ],
+          "name": "endedMapInfo"
         }
       ]
     },
