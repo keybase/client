@@ -480,6 +480,7 @@ type _PreviewConversationPayload = {
     | 'teamMention'
     | 'appLink'
     | 'search'
+    | 'journeyCardPopular'
 }
 type _ReplyJumpPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
