@@ -2,10 +2,8 @@ import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Types from '../../../../constants/types/chat2'
 import * as TeamTypes from '../../../../constants/types/teams'
 import {PlainInput} from '../../../../common-adapters'
-import {AmpTracker} from '../../../audio/amptracker'
 
 type CommonProps = {
-  audio?: Types.AudioRecordingInfo
   cannotWrite: boolean | null
   clearInboxFilter: () => void
   conversationIDKey: Types.ConversationIDKey
@@ -22,13 +20,10 @@ type CommonProps = {
   onCancelEditing: () => void
   onCancelReply: () => void
   onEditLastMessage: () => void
-  onEnableAudioRecording: () => void
   onFilePickerError: (error: Error) => void
   onGiphyToggle: () => void
-  onLockAudioRecording: () => void
   onRequestScrollDown: () => void
   onRequestScrollUp: () => void
-  onStopAudioRecording: (stopType: Types.AudioStopType, amps: AmpTracker) => void
   onSubmit: (text: string) => void
   prependText: string | null
   quoteCounter: number

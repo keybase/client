@@ -5,7 +5,6 @@ import conversationList from './conversation-list/index.stories'
 import createChannel from './create-channel/index.stories'
 import explodingMessageExplainer from './conversation/messages/exploding-explainer-dialog/index.stories'
 import giphy from './conversation/giphy/index.stories'
-import headerArea from './conversation/header-area/normal/index.stories'
 import inbox from './inbox/index.stories'
 import infoPanel from './conversation/info-panel/index.stories'
 import infoPanelNotifications from './conversation/info-panel/notifications/index.stories'
@@ -33,7 +32,6 @@ const load = () => {
     createChannel,
     explodingMessageExplainer,
     giphy,
-    headerArea,
     inbox,
     infoPanel,
     infoPanelNotifications,

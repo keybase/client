@@ -1369,3 +1369,11 @@ export const messageAttachmentTransferStateToProgressLabel = (
       return ''
   }
 }
+
+export const messageAttachmentHasProgress = (message: Types.MessageAttachment) => {
+  return (
+    !!message.transferState &&
+    message.transferState !== 'remoteUploading' &&
+    message.transferState !== 'mobileSaving'
+  )
+}

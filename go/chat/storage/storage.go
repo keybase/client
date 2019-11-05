@@ -404,7 +404,7 @@ func (s *Storage) MergeHelper(ctx context.Context,
 	s.Debug(ctx, "MergeHelper: convID: %s uid: %s num msgs: %d", convID, uid, len(msgs))
 
 	// Fetch secret key
-	key, ierr := GetSecretBoxKey(ctx, s.G().ExternalG(), DefaultSecretUI)
+	key, ierr := GetSecretBoxKey(ctx, s.G().ExternalG())
 	if ierr != nil {
 		return res, MiscError{Msg: "unable to get secret key: " + ierr.Error()}
 	}
@@ -855,7 +855,7 @@ func (s *Storage) applyExpunge(ctx context.Context, convID chat1.ConversationID,
 func (s *Storage) clearUpthrough(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 	upthrough chat1.MessageID) (err Error) {
 	defer s.Trace(ctx, func() error { return err }, "clearUpthrough")()
-	key, ierr := GetSecretBoxKey(ctx, s.G().ExternalG(), DefaultSecretUI)
+	key, ierr := GetSecretBoxKey(ctx, s.G().ExternalG())
 	if ierr != nil {
 		return MiscError{Msg: "unable to get secret key: " + ierr.Error()}
 	}
@@ -920,7 +920,7 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, rc ResultCollector,
 		return res, err
 	}
 	// Fetch secret key
-	key, ierr := GetSecretBoxKey(ctx, s.G().ExternalG(), DefaultSecretUI)
+	key, ierr := GetSecretBoxKey(ctx, s.G().ExternalG())
 	if ierr != nil {
 		return res, MiscError{Msg: "unable to get secret key: " + ierr.Error()}
 	}
@@ -1051,7 +1051,7 @@ func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID
 		return res, err
 	}
 	// Fetch secret key
-	key, ierr := GetSecretBoxKey(ctx, s.G().ExternalG(), DefaultSecretUI)
+	key, ierr := GetSecretBoxKey(ctx, s.G().ExternalG())
 	if ierr != nil {
 		return nil, MiscError{Msg: "unable to get secret key: " + ierr.Error()}
 	}
@@ -1082,7 +1082,7 @@ func (s *Storage) FetchUnreadlineID(ctx context.Context, convID chat1.Conversati
 		return nil, err
 	}
 	// Fetch secret key
-	key, ierr := GetSecretBoxKey(ctx, s.G().ExternalG(), DefaultSecretUI)
+	key, ierr := GetSecretBoxKey(ctx, s.G().ExternalG())
 	if ierr != nil {
 		return nil, MiscError{Msg: "unable to get secret key: " + ierr.Error()}
 	}

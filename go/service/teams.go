@@ -143,6 +143,13 @@ func (h *TeamsHandler) TeamGetByID(ctx context.Context, arg keybase1.TeamGetByID
 	return h.teamGet(ctx, res, arg.Id.String())
 }
 
+func (h *TeamsHandler) GetAnnotatedTeam(ctx context.Context, arg keybase1.TeamID) (res keybase1.AnnotatedTeam, err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("GetAnnotatedTeam(%s)", arg), func() error { return err })()
+
+	return teams.GetAnnotatedTeam(ctx, h.G().ExternalG(), arg)
+}
+
 func (h *TeamsHandler) teamGet(ctx context.Context, details keybase1.TeamDetails, teamDescriptor string) (keybase1.TeamDetails, error) {
 	if details.Settings.Open {
 		h.G().Log.CDebugf(ctx, "TeamGet: %q is an open team, filtering reset writers and readers", teamDescriptor)
@@ -742,4 +749,9 @@ func (h *TeamsHandler) GetTeamID(ctx context.Context, teamName string) (res keyb
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("GetTeamIDByName(%s)", teamName), func() error { return err })()
 	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
 	return teams.GetTeamIDByNameRPC(mctx, teamName)
+}
+
+func (h *TeamsHandler) GetTeamRoleMap(ctx context.Context) (res keybase1.TeamRoleMapAndVersion, err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
+	return mctx.G().GetTeamRoleMapManager().Get(mctx, true /* retry on fail */)
 }

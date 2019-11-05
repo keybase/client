@@ -1314,21 +1314,23 @@ func (o SimpleFSStats) DeepCopy() SimpleFSStats {
 type SubscriptionTopic int
 
 const (
-	SubscriptionTopic_FAVORITES       SubscriptionTopic = 0
-	SubscriptionTopic_JOURNAL_STATUS  SubscriptionTopic = 1
-	SubscriptionTopic_ONLINE_STATUS   SubscriptionTopic = 2
-	SubscriptionTopic_DOWNLOAD_STATUS SubscriptionTopic = 3
-	SubscriptionTopic_FILES_TAB_BADGE SubscriptionTopic = 4
+	SubscriptionTopic_FAVORITES           SubscriptionTopic = 0
+	SubscriptionTopic_JOURNAL_STATUS      SubscriptionTopic = 1
+	SubscriptionTopic_ONLINE_STATUS       SubscriptionTopic = 2
+	SubscriptionTopic_DOWNLOAD_STATUS     SubscriptionTopic = 3
+	SubscriptionTopic_FILES_TAB_BADGE     SubscriptionTopic = 4
+	SubscriptionTopic_OVERALL_SYNC_STATUS SubscriptionTopic = 5
 )
 
 func (o SubscriptionTopic) DeepCopy() SubscriptionTopic { return o }
 
 var SubscriptionTopicMap = map[string]SubscriptionTopic{
-	"FAVORITES":       0,
-	"JOURNAL_STATUS":  1,
-	"ONLINE_STATUS":   2,
-	"DOWNLOAD_STATUS": 3,
-	"FILES_TAB_BADGE": 4,
+	"FAVORITES":           0,
+	"JOURNAL_STATUS":      1,
+	"ONLINE_STATUS":       2,
+	"DOWNLOAD_STATUS":     3,
+	"FILES_TAB_BADGE":     4,
+	"OVERALL_SYNC_STATUS": 5,
 }
 
 var SubscriptionTopicRevMap = map[SubscriptionTopic]string{
@@ -1337,6 +1339,7 @@ var SubscriptionTopicRevMap = map[SubscriptionTopic]string{
 	2: "ONLINE_STATUS",
 	3: "DOWNLOAD_STATUS",
 	4: "FILES_TAB_BADGE",
+	5: "OVERALL_SYNC_STATUS",
 }
 
 func (e SubscriptionTopic) String() string {

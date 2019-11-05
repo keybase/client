@@ -57,27 +57,24 @@ const ConflictBanner = (props: Props) => {
             />
             <Kb.BannerParagraph
               bannerColor="red"
-              content={[
-                ...props.conflictState.localViewTlfPaths.map((tlfPath, idx) => ({
-                  onClick: () => props.onGoToSamePathInDifferentTlf(tlfPath),
-                  spaceBefore: true,
-                  text:
-                    'See local changes' +
-                    (localViewCount > 1 ? ` (version ${(idx + 1).toString()} of ${localViewCount}` : ''),
-                })),
-                feedbackAction,
-                helpAction,
-              ]}
+              content={props.conflictState.localViewTlfPaths.map((tlfPath, idx) => ({
+                onClick: () => props.onGoToSamePathInDifferentTlf(tlfPath),
+                text:
+                  ' See local changes' +
+                  (localViewCount > 1 ? ` (version ${(idx + 1).toString()} of ${localViewCount}) ` : ' '),
+              }))}
             />
+            <Kb.BannerParagraph bannerColor="red" content={[feedbackAction, helpAction]} />
           </Kb.Banner>
         )
       }
       return null
     }
     case Types.ConflictStateType.ManualResolvingLocalView: {
+      const conflictState = props.conflictState as Types.ConflictStateManualResolvingLocalView
       const {feedbackAction, finishRes, helpAction} = getActions(props)
       const onSeeGlobalView = {
-        onClick: () => props.onGoToSamePathInDifferentTlf(props.tlfPath),
+        onClick: () => props.onGoToSamePathInDifferentTlf(conflictState.normalViewTlfPath),
         spaceBefore: true,
         text: 'See the global view',
       }

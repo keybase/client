@@ -217,7 +217,7 @@ func (i *Inbox) sharedInboxFile(ctx context.Context, uid gregor1.UID) (*encrypte
 	}
 	return encrypteddb.NewFile(i.G().ExternalG(), filepath.Join(dir, "flatinbox.mpack"),
 		func(ctx context.Context) ([32]byte, error) {
-			return GetSecretBoxKey(ctx, i.G().ExternalG(), DefaultSecretUI)
+			return GetSecretBoxKey(ctx, i.G().ExternalG())
 		}), nil
 }
 
@@ -728,6 +728,12 @@ func (i *Inbox) queryExists(ctx context.Context, ibox inboxDiskData, query *chat
 			i.Debug(ctx, "Read: queryExists: single name query hit")
 			return true
 		}
+	}
+
+	// Normally a query that has not been seen before will return an error.
+	// With AllowUnseenQuery, an unfamiliar query is accepted.
+	if query != nil && query.AllowUnseenQuery {
+		return true
 	}
 
 	hquery, err := i.hashQuery(ctx, query)

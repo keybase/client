@@ -130,6 +130,8 @@ public class MainActivity extends ReactFragmentActivity {
   @Override
   @TargetApi(Build.VERSION_CODES.KITKAT)
   protected void onCreate(Bundle savedInstanceState) {
+    ReactInstanceManager instanceManager = this.getReactInstanceManager();
+    instanceManager.createReactContextInBackground();
     setupKBRuntime(this, true);
     super.onCreate(null);
 

@@ -158,7 +158,22 @@ type handler interface {
 	handle(ctx context.Context, c Call, w io.Writer) error
 }
 
-func (c *cmdAPI) runHandler(h handler) error {
+func (c *cmdAPI) runHandler(h handler) (err error) {
+	w := os.Stdout
+	defer func() {
+		if err != nil {
+			err = encodeErr(Call{}, err, w, false)
+		}
+	}()
+	if len(c.outputFile) > 0 {
+		f, err := os.Create(c.outputFile)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+		w = f
+	}
+
 	r := io.Reader(os.Stdin)
 	if len(c.message) > 0 {
 		r = strings.NewReader(c.message)
@@ -171,24 +186,19 @@ func (c *cmdAPI) runHandler(h handler) error {
 		r = f
 	}
 
-	w := os.Stdout
-	if len(c.outputFile) > 0 {
-		f, err := os.Create(c.outputFile)
-		if err != nil {
-			return err
-		}
-		defer f.Close()
-		w = f
-	}
-
 	return c.decode(context.Background(), r, w, h)
 }
 
-func (c *cmdAPI) decode(ctx context.Context, r io.Reader, w io.Writer, h handler) error {
+func (c *cmdAPI) decode(ctx context.Context, r io.Reader, w io.Writer, h handler) (err error) {
 	dec := json.NewDecoder(r)
+	var call Call
+	defer func() {
+		if err != nil {
+			err = encodeErr(call, err, w, false)
+		}
+	}()
 	for {
-		var c Call
-		if err := dec.Decode(&c); err == io.EOF {
+		if err := dec.Decode(&call); err == io.EOF {
 			break
 		} else if err != nil {
 			if err == io.ErrUnexpectedEOF {
@@ -197,7 +207,7 @@ func (c *cmdAPI) decode(ctx context.Context, r io.Reader, w io.Writer, h handler
 			return err
 		}
 
-		if err := h.handle(ctx, c, w); err != nil {
+		if err := h.handle(ctx, call, w); err != nil {
 			return err
 		}
 	}

@@ -139,9 +139,7 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
   }
 
   private loadAttachments = () => {
-    if (this.props.selectedTab === 'attachments') {
-      this.props.onAttachmentViewChange(this.props.selectedAttachmentView)
-    }
+    this.props.onAttachmentViewChange(this.props.selectedAttachmentView)
   }
 
   private getEntityType = (): EntityType => {

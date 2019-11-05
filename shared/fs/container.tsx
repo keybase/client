@@ -102,7 +102,7 @@ const Connected = Container.namedConnect(
   (state, ownProps: OwnProps) => {
     const path = Container.getRouteProps(ownProps, 'path', Constants.defaultPath)
     return {
-      _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
+      _pathItem: Constants.getPathItem(state.fs.pathItems, path),
       kbfsDaemonStatus: state.fs.kbfsDaemonStatus,
     }
   },

@@ -1802,12 +1802,12 @@ function* messageSend(state: TypedState, action: Chat2Gen.MessageSendPayload, lo
   // narrow down the places where the action can possibly stop.
   logger.info('non-empty text?', text.stringValue().length > 0)
 }
-const messageSendByUsername = async (
+const messageSendByUsernames = async (
   state: TypedState,
-  action: Chat2Gen.MessageSendByUsernamePayload,
+  action: Chat2Gen.MessageSendByUsernamesPayload,
   logger: Saga.SagaLogger
 ) => {
-  const tlfName = `${state.config.username},${action.payload.username}`
+  const tlfName = `${state.config.username},${action.payload.usernames}`
   try {
     const result = await RPCChatTypes.localNewConversationLocalRpcPromise(
       {
@@ -1832,7 +1832,7 @@ const messageSendByUsername = async (
       action.payload.waitingKey
     )
   } catch (e) {
-    logger.warn('Could not send in messageSendByUsername', e)
+    logger.warn('Could not send in messageSendByUsernames', e)
   }
 }
 
@@ -1955,9 +1955,6 @@ const previewConversationTeam = async (state: TypedState, action: Chat2Gen.Previ
     }
   }
 }
-
-const startupInboxLoad = (state: TypedState) =>
-  !!state.config.username && Chat2Gen.createInboxRefresh({reason: 'bootstrap'})
 
 const startupUserReacjisLoad = (_: TypedState, action: ConfigGen.BootstrapStatusLoadedPayload) =>
   Chat2Gen.createUpdateUserReacjis({userReacjis: action.payload.userReacjis})
@@ -2123,22 +2120,26 @@ const attachmentPasted = async (_: TypedState, action: Chat2Gen.AttachmentPasted
   })
 }
 
+const cancelAudioFromDeselect = (state: TypedState) => {
+  return Chat2Gen.createStopAudioRecording({
+    conversationIDKey: state.chat2.selectedConversation,
+    stopType: Types.AudioStopType.CANCEL,
+  })
+}
+
 const sendAudioRecording = async (
   state: TypedState,
   action: Chat2Gen.SendAudioRecordingPayload,
   logger: Saga.SagaLogger
 ) => {
   // sit here for 400ms for animations
-  await Saga.delay(400)
-
+  if (!action.payload.fromStaged) {
+    await Saga.delay(400)
+  }
   const conversationIDKey = action.payload.conversationIDKey
-  const audioRecording = state.chat2.audioRecording.get(conversationIDKey)
+  const audioRecording = action.payload.info
   const clientPrev = Constants.getClientPrev(state, conversationIDKey)
   const ephemeralLifetime = Constants.getConversationExplodingMode(state, conversationIDKey)
-  if (!audioRecording) {
-    logger.info('sendAudioRecording: no audio info for send')
-    return
-  }
   const meta = state.chat2.metaMap.get(conversationIDKey)
   if (!meta) {
     logger.warn('sendAudioRecording: no meta for send')
@@ -2154,21 +2155,25 @@ const sendAudioRecording = async (
     })
   }
   const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
-  await RPCChatTypes.localPostFileAttachmentLocalNonblockRpcPromise({
-    arg: {
-      ...ephemeralData,
-      callerPreview,
-      conversationID: Types.keyToConversationID(conversationIDKey),
-      filename: audioRecording.path,
-      identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-      metadata: Buffer.from([]),
-      outboxID: audioRecording.outboxID,
-      title: '',
-      tlfName: meta.tlfname,
-      visibility: RPCTypes.TLFVisibility.private,
-    },
-    clientPrev,
-  })
+  try {
+    await RPCChatTypes.localPostFileAttachmentLocalNonblockRpcPromise({
+      arg: {
+        ...ephemeralData,
+        callerPreview,
+        conversationID: Types.keyToConversationID(conversationIDKey),
+        filename: audioRecording.path,
+        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+        metadata: Buffer.from([]),
+        outboxID: audioRecording.outboxID,
+        title: '',
+        tlfName: meta.tlfname,
+        visibility: RPCTypes.TLFVisibility.private,
+      },
+      clientPrev,
+    })
+  } catch (e) {
+    logger.warn('sendAudioRecording: failed to send attachment: ' + JSON.stringify(e))
+  }
 }
 
 // Upload an attachment
@@ -3440,7 +3445,7 @@ function* chat2Saga() {
 
   yield* Saga.chainAction2(Chat2Gen.messageRetry, messageRetry, 'messageRetry')
   yield* Saga.chainGenerator<Chat2Gen.MessageSendPayload>(Chat2Gen.messageSend, messageSend, 'messageSend')
-  yield* Saga.chainAction2(Chat2Gen.messageSendByUsername, messageSendByUsername, 'messageSendByUsername')
+  yield* Saga.chainAction2(Chat2Gen.messageSendByUsernames, messageSendByUsernames, 'messageSendByUsernames')
   yield* Saga.chainGenerator<Chat2Gen.MessageEditPayload>(Chat2Gen.messageEdit, messageEdit, 'messageEdit')
   yield* Saga.chainAction2(Chat2Gen.messageEdit, clearMessageSetEditing, 'clearMessageSetEditing')
   yield* Saga.chainAction2(Chat2Gen.messageDelete, messageDelete, 'messageDelete')
@@ -3460,9 +3465,6 @@ function* chat2Saga() {
   yield* Saga.chainAction2(Chat2Gen.previewConversation, previewConversationTeam)
   yield* Saga.chainAction2(Chat2Gen.previewConversation, previewConversationPersonMakesAConversation)
   yield* Saga.chainAction2(Chat2Gen.openFolder, openFolder)
-
-  // On login lets load the untrusted inbox. This helps make some flows easier
-  yield* Saga.chainAction2(ConfigGen.bootstrapStatusLoaded, startupInboxLoad, 'startupInboxLoad')
 
   yield* Saga.chainAction2(ConfigGen.bootstrapStatusLoaded, startupUserReacjisLoad, 'startupUserReacjisLoad')
 
@@ -3690,6 +3692,7 @@ function* chat2Saga() {
   )
   yield* Saga.chainAction2(Chat2Gen.toggleThreadSearch, onToggleThreadSearch, 'onToggleThreadSearch')
   yield* Saga.chainAction2(Chat2Gen.selectConversation, hideThreadSearch)
+  yield* Saga.chainAction2(Chat2Gen.deselectConversation, cancelAudioFromDeselect, 'cancelAudioFromDeselect')
   yield* Saga.chainAction2(Chat2Gen.deselectConversation, deselectConversation)
 
   yield* Saga.chainAction2(Chat2Gen.resolveMaybeMention, resolveMaybeMention)

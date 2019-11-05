@@ -2,7 +2,6 @@ import * as Constants from '../../constants/fs'
 import * as EngineGen from '../engine-gen-gen'
 import * as FsGen from '../fs-gen'
 import * as ConfigGen from '../config-gen'
-import * as I from 'immutable'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
 import * as Flow from '../../util/flow'
@@ -40,7 +39,7 @@ const rpcConflictStateToConflictState = (
       return Constants.makeConflictStateNormalView({
         localViewTlfPaths: ((nv && nv.localViews) || []).reduce<Array<Types.Path>>((arr, p) => {
           // @ts-ignore TODO fix p.kbfs.path is a path already
-          p.PathType === RPCTypes.PathType.kbfs && arr.push(Types.stringToPath(p.kbfs.path))
+          p.PathType === RPCTypes.PathType.kbfs && arr.push(Constants.rpcPathToPath(p.kbfs))
           return arr
         }, []),
         resolvingConflict: !!nv && nv.resolvingConflict,
@@ -52,10 +51,7 @@ const rpcConflictStateToConflictState = (
       return Constants.makeConflictStateManualResolvingLocalView({
         normalViewTlfPath:
           nv && nv.PathType === RPCTypes.PathType.kbfs
-            ? Types.stringToPath(
-                // @ts-ignore TODO fix p.kbfs.path is a path already
-                nv.kbfs.path
-              )
+            ? Constants.rpcPathToPath(nv.kbfs)
             : Constants.defaultPath,
       })
     }
@@ -96,7 +92,7 @@ const loadAdditionalTlf = async (state: TypedState, action: FsGen.LoadAdditional
       })
     )
   } catch (e) {
-    return makeRetriableErrorHandler(action)(e)
+    return makeRetriableErrorHandler(action, action.payload.tlfPath)(e)
   }
 }
 
@@ -248,12 +244,13 @@ const getPrefetchStatusFromRPC = (
     case RPCTypes.PrefetchStatus.notStarted:
       return Constants.prefetchNotStarted
     case RPCTypes.PrefetchStatus.inProgress:
-      return Constants.makePrefetchInProgress({
+      return {
+        ...Constants.emptyPrefetchInProgress,
         bytesFetched: prefetchProgress.bytesFetched,
         bytesTotal: prefetchProgress.bytesTotal,
         endEstimate: prefetchProgress.endEstimate,
         startTime: prefetchProgress.start,
-      })
+      }
     case RPCTypes.PrefetchStatus.complete:
       return Constants.prefetchComplete
     default:
@@ -271,24 +268,27 @@ const direntToMetadata = (d: RPCTypes.Dirent) => ({
   writable: d.writable,
 })
 
-const makeEntry = (d: RPCTypes.Dirent, children?: Set<string>) => {
+const makeEntry = (d: RPCTypes.Dirent, children?: Set<string>): Types.PathItem => {
   switch (d.direntType) {
     case RPCTypes.DirentType.dir:
-      return Constants.makeFolder({
+      return {
+        ...Constants.emptyFolder,
         ...direntToMetadata(d),
-        children: I.Set(children || []) || I.Set(),
-        progress: children ? Types.ProgressType.Loaded : undefined,
-      })
+        children: new Set(children || []),
+        progress: children ? Types.ProgressType.Loaded : Types.ProgressType.Pending,
+      } as Types.PathItem
     case RPCTypes.DirentType.sym:
-      return Constants.makeSymlink({
+      return {
+        ...Constants.emptySymlink,
         ...direntToMetadata(d),
         // TODO: plumb link target
-      })
+      } as Types.PathItem
     case RPCTypes.DirentType.file:
     case RPCTypes.DirentType.exec:
-      return Constants.makeFile(direntToMetadata(d))
-    default:
-      return Constants.makeUnknownPathItem(direntToMetadata(d))
+      return {
+        ...Constants.emptyFile,
+        ...direntToMetadata(d),
+      } as Types.PathItem
   }
 }
 
@@ -348,7 +348,8 @@ function* folderList(_: TypedState, action: FsGen.FolderListLoadPayload) {
       if (entry.type === Types.PathType.Folder && isRecursive && d.name.indexOf('/') < 0) {
         // Since we are loading with a depth of 2, first level directories are
         // considered "loaded".
-        return [path, entry.set('progress', Types.ProgressType.Loaded)]
+        entry.progress = Types.ProgressType.Loaded
+        return [path, entry]
       }
       return [path, entry]
     }
@@ -356,20 +357,21 @@ function* folderList(_: TypedState, action: FsGen.FolderListLoadPayload) {
     // Get metadata fields of the directory that we just loaded from state to
     // avoid overriding them.
     const state: TypedState = yield* Saga.selectState()
-    const rootPathItem = state.fs.pathItems.get(rootPath, Constants.unknownPathItem)
-    const rootFolder: Types.FolderPathItem = (rootPathItem.type === Types.PathType.Folder
-      ? rootPathItem
-      : Constants.makeFolder({name: Types.getPathName(rootPath)})
-    ).withMutations(f =>
-      f.set('children', I.Set(childMap.get(rootPath))).set('progress', Types.ProgressType.Loaded)
-    )
+    const rootPathItem = Constants.getPathItem(state.fs.pathItems, rootPath)
+    const rootFolder: Types.FolderPathItem = {
+      ...(rootPathItem.type === Types.PathType.Folder
+        ? rootPathItem
+        : {...Constants.emptyFolder, name: Types.getPathName(rootPath)}),
+      children: new Set(childMap.get(rootPath)),
+      progress: Types.ProgressType.Loaded,
+    }
 
     // @ts-ignore TODO fix this
     const pathItems: Array<[Types.Path, Types.FolderPathItem]> = [
       ...(Types.getPathLevel(rootPath) > 2 ? [[rootPath, rootFolder]] : []),
       ...entries.map(direntToPathAndPathItem),
     ]
-    yield Saga.put(FsGen.createFolderListLoaded({path: rootPath, pathItems: I.Map(pathItems)}))
+    yield Saga.put(FsGen.createFolderListLoaded({path: rootPath, pathItems: new Map(pathItems)}))
   } catch (error) {
     yield makeRetriableErrorHandler(action, rootPath)(error).map(action => Saga.put(action))
   }
@@ -535,11 +537,10 @@ function* loadPathMetadata(_: TypedState, action: FsGen.LoadPathMetadataPayload)
       },
       Constants.statWaitingKey
     )
-    let pathItem = makeEntry(dirent)
     yield Saga.put(
       FsGen.createPathItemLoaded({
         path,
-        pathItem,
+        pathItem: makeEntry(dirent),
       })
     )
   } catch (err) {
@@ -612,19 +613,6 @@ const moveOrCopy = async (state: TypedState, action: FsGen.MovePayload | FsGen.C
 
 const showMoveOrCopy = () =>
   RouteTreeGen.createNavigateAppend({path: [{props: {index: 0}, selected: 'destinationPicker'}]})
-
-const closeDestinationPicker = () => {
-  const currentRoutes = I.List()
-  // const currentRoutes = getPathProps(state.routeTree.routeState)
-  const firstDestinationPickerIndex = currentRoutes.findIndex(({node}) => node === 'destinationPicker')
-  const newRoute = currentRoutes.reduce<Array<any>>(
-    (routes, {node, props}, i) =>
-      // node is never null
-      i < firstDestinationPickerIndex ? [...routes, {props, selected: node || ''}] : routes,
-    []
-  )
-  return [RouteTreeGen.createNavigateAppend({path: newRoute})]
-}
 
 // Can't rely on kbfsDaemonStatus.rpcStatus === 'waiting' as that's set by
 // reducer and happens before this.
@@ -724,7 +712,7 @@ const onNotifyFSOverallSyncSyncStatusChanged = (
   > = [
     FsGen.createOverallSyncStatusChanged({
       diskSpaceStatus,
-      progress: Constants.makeSyncingFoldersProgress(action.payload.params.status.prefetchProgress),
+      progress: action.payload.params.status.prefetchProgress,
     }),
   ]
   // Only notify about the disk space status if it has changed.
@@ -833,6 +821,8 @@ const onNonPathChange = (_: TypedState, action: EngineGen.Keybase1NotifyFSFSSubs
       return FsGen.createLoadDownloadStatus()
     case RPCTypes.SubscriptionTopic.filesTabBadge:
       return FsGen.createLoadFilesTabBadge()
+    case RPCTypes.SubscriptionTopic.overallSyncStatus:
+      return undefined
   }
 }
 
@@ -927,7 +917,6 @@ function* fsSaga() {
   )
   yield* Saga.chainAction2([FsGen.move, FsGen.copy], moveOrCopy)
   yield* Saga.chainAction2([FsGen.showMoveOrCopy, FsGen.showIncomingShare], showMoveOrCopy)
-  yield* Saga.chainAction2(FsGen.closeDestinationPicker, closeDestinationPicker)
   yield* Saga.chainAction2(
     [ConfigGen.installerRan, ConfigGen.loggedIn, FsGen.waitForKbfsDaemon],
     waitForKbfsDaemon

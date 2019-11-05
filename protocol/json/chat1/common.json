@@ -491,6 +491,10 @@
         {
           "type": "boolean",
           "name": "skipBgLoads"
+        },
+        {
+          "type": "boolean",
+          "name": "allowUnseenQuery"
         }
       ]
     },

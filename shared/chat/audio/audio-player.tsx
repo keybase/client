@@ -6,6 +6,7 @@ import {formatAudioRecordDuration} from '../../util/timestamp'
 
 type VisProps = {
   amps: Array<number>
+  ampsRemain: number
   height: number
   maxWidth?: number
 }
@@ -27,7 +28,12 @@ const AudioVis = (props: VisProps) => {
         alignSelf="flex-end"
         direction="vertical"
         key={index}
-        style={{backgroundColor: Styles.globalColors.black, height, marginRight: 2, width: 1}}
+        style={{
+          backgroundColor: index < props.ampsRemain ? Styles.globalColors.blue : Styles.globalColors.black,
+          height,
+          marginRight: 2,
+          width: 1,
+        }}
       />
     )
   })
@@ -60,14 +66,20 @@ const AudioPlayer = (props: Props) => {
   const vidRef = React.useRef<AudioVideo>(null)
   const [timeStart, setTimeStart] = React.useState(0)
   const [timeLeft, setTimeLeft] = React.useState(props.duration)
+  const [timePaused, setTimePaused] = React.useState(0)
+  const [timePauseButton, setTimePauseButton] = React.useState(0)
   const [paused, setPaused] = React.useState(true)
   const onClick = () => {
     if (paused) {
       if (timeStart === 0) {
         setTimeStart(Date.now())
+      } else if (timePauseButton > 0) {
+        setTimePaused(timePaused + (Date.now() - timePauseButton))
       }
       setPaused(false)
+      setTimePauseButton(0)
     } else {
+      setTimePauseButton(Date.now())
       setPaused(true)
     }
   }
@@ -76,23 +88,27 @@ const AudioPlayer = (props: Props) => {
       return
     }
     const timer = setTimeout(() => {
-      const newTimeLeft = props.duration - (Date.now() - timeStart)
+      const diff = Date.now() - timeStart - timePaused
+      const newTimeLeft = props.duration - diff
       if (newTimeLeft <= 0) {
         setTimeLeft(props.duration)
         setPaused(true)
         setTimeStart(0)
+        setTimePaused(0)
+        setTimePauseButton(0)
         if (vidRef.current) {
           vidRef.current.seek(0)
         }
       } else {
         setTimeLeft(newTimeLeft)
       }
-    }, 1000)
+    }, 100)
     return () => {
       clearTimeout(timer)
     }
-  }, [timeLeft, timeStart, paused, props.duration])
+  }, [timeLeft, timeStart, timePaused, paused, props.duration])
 
+  const ampsRemain = Math.floor((1 - timeLeft / props.duration) * props.visAmps.length)
   return (
     <Kb.Box2 direction="horizontal" style={styles.container} gap="tiny">
       <Kb.ClickableBox onClick={props.url ? onClick : undefined} style={{justifyContent: 'center'}}>
@@ -103,7 +119,7 @@ const AudioPlayer = (props: Props) => {
         />
       </Kb.ClickableBox>
       <Kb.Box2 direction="vertical" style={styles.visContainer} gap="xxtiny">
-        <AudioVis height={32} amps={props.visAmps} maxWidth={props.maxWidth} />
+        <AudioVis height={32} amps={props.visAmps} maxWidth={props.maxWidth} ampsRemain={ampsRemain} />
         <Kb.Text type="BodyTiny" style={styles.duration}>
           {formatAudioRecordDuration(timeLeft)}
         </Kb.Text>
