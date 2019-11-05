@@ -153,12 +153,18 @@ const VanillaTabNavigator = createBottomTabNavigator(
     {blank: {screen: BlankScreen}}
   ),
   {
-    defaultNavigationOptions: ({navigation}) => ({
-      tabBarButtonComponent: navigation.state.routeName === 'blank' ? BlankScreen : TabBarIconContainer,
-      tabBarIcon: ({focused}) => (
-        <ConnectedTabBarIcon focused={focused} routeName={navigation.state.routeName as Tabs.Tab} />
-      ),
-    }),
+    defaultNavigationOptions: ({navigation}) => {
+      const routeName = navigation.state.index && navigation.state.routes[navigation.state.index].routeName
+      const tabBarVisible = routeName !== 'chatConversation'
+
+      return {
+        tabBarButtonComponent: navigation.state.routeName === 'blank' ? BlankScreen : TabBarIconContainer,
+        tabBarIcon: ({focused}) => (
+          <ConnectedTabBarIcon focused={focused} routeName={navigation.state.routeName as Tabs.Tab} />
+        ),
+        tabBarVisible,
+      }
+    },
     order: ['blank', ...tabs],
     tabBarOptions: {
       get activeBackgroundColor() {
