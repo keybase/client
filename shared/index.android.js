@@ -92,4 +92,35 @@ if (__STORYBOOK__) {
   } catch (_) {}
   const {load} = require('./app/index.native')
   load()
+
+  let start = 0
+  let calls = 0
+
+  let log = (...l) => console._log(...l)
+
+  const NOJIMA_DONE = v => {
+    let diff = Date.now() - start
+    measureStop('ECHO' + calls++)
+    start = 0
+    log('aaa done', v, diff)
+  }
+  const NOJIMA = p => {
+    const RPCTypes = require('./constants/types/rpc-gen')
+    if (start) {
+      throw new Error('only one')
+    }
+    try {
+      start = Date.now()
+      measureStart('ECHO' + calls)
+      RPCTypes.testEchoRpcPromise(p).then(v => NOJIMA_DONE(v))
+    } catch (_) {
+      log('aaa call failed')
+      start = 0
+    }
+  }
+
+  window.NOJIMA = NOJIMA
+  window.CALL = () => NOJIMA({arg: {a: new Array(100000).fill({m: new Map([[1, 2]])}), m: new Map()}})
+  // setInterval(() => NOJIMA({arg: {a: new Array(100000).fill({m: new Map([[1, 2]])}), m: new Map()}}), 2000)
+  setInterval(() => CALL(), 5000)
 }
