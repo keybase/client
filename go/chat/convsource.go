@@ -4,12 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"time"
 
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	context "golang.org/x/net/context"
@@ -88,7 +90,10 @@ func (s *baseConversationSource) addPendingPreviews(ctx context.Context, thread 
 
 func (s *baseConversationSource) addConversationCards(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, convOptional *chat1.ConversationLocal, thread *chat1.ThreadView) {
-	card, err := s.G().JourneyCardManager.PickCard(ctx, uid, convID, convOptional, thread)
+	ctxShort, ctxShortCancel := context.WithTimeout(ctx, 2*time.Second)
+	defer ctxShortCancel()
+	card, err := s.G().JourneyCardManager.PickCard(ctxShort, uid, convID, convOptional, thread)
+	ctxShortCancel()
 	if err != nil {
 		s.Debug(ctx, "addConversationCards: error getting next conversation card: %s", err)
 		return
@@ -222,6 +227,7 @@ func (s *baseConversationSource) patchPaginationLast(ctx context.Context, conv t
 
 func (s *baseConversationSource) PullFull(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, reason chat1.GetThreadReason,
 	query *chat1.GetThreadQuery, maxPages *int) (res chat1.ThreadView, err error) {
+	ctx = libkb.WithLogTag(ctx, "PUL")
 	pagination := &chat1.Pagination{
 		Num: 300,
 	}
@@ -292,6 +298,7 @@ func (s *RemoteConversationSource) PushUnboxed(ctx context.Context, convID chat1
 
 func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, reason chat1.GetThreadReason, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, error) {
+	ctx = libkb.WithLogTag(ctx, "PUL")
 
 	if convID.IsNil() {
 		return chat1.ThreadView{}, errors.New("RemoteConversationSource.Pull called with empty convID")
@@ -489,7 +496,7 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 		return decmsg, continuousUpdate, err
 	}
 	if msg.ClientHeader.Sender.Eq(uid) {
-		go s.G().JourneyCardManager.SentMessage(globals.BackgroundChatCtx(ctx, s.G()), convID)
+		go s.G().JourneyCardManager.SentMessage(globals.BackgroundChatCtx(ctx, s.G()), uid, convID)
 	}
 	// Remove any pending previews from storage
 	s.completeAttachmentUpload(ctx, decmsg)
@@ -561,6 +568,7 @@ var maxHolesForPull = 50
 
 func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, reason chat1.GetThreadReason, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (thread chat1.ThreadView, err error) {
+	ctx = libkb.WithLogTag(ctx, "PUL")
 	defer s.Trace(ctx, func() error { return err }, "Pull(%s)", convID)()
 	if convID.IsNil() {
 		return chat1.ThreadView{}, errors.New("HybridConversationSource.Pull called with empty convID")
@@ -697,6 +705,7 @@ func newPullLocalResultCollector(baseRC storage.ResultCollector) *pullLocalResul
 
 func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination, maxPlaceholders int) (tv chat1.ThreadView, err error) {
+	ctx = libkb.WithLogTag(ctx, "PUL")
 	defer s.Trace(ctx, func() error { return err }, "PullLocalOnly")()
 	if _, err = s.lockTab.Acquire(ctx, uid, convID); err != nil {
 		return tv, err

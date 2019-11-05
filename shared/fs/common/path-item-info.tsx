@@ -21,11 +21,11 @@ const getNumberOfFilesAndFolders = (
   pathItems: Types.PathItems,
   path: Types.Path
 ): {folders: number; files: number; loaded: boolean} => {
-  const pathItem = pathItems.get(path, Constants.unknownPathItem)
+  const pathItem = Constants.getPathItem(pathItems, path)
   return pathItem.type === Types.PathType.Folder
-    ? pathItem.children.reduce(
+    ? [...pathItem.children].reduce(
         ({folders, files, loaded}, p) => {
-          const item = pathItems.get(Types.pathConcat(path, p), Constants.unknownPathItem)
+          const item = Constants.getPathItem(pathItems, Types.pathConcat(path, p))
           const isFolder = item.type === Types.PathType.Folder
           const isFile = item.type !== Types.PathType.Folder && item !== Constants.unknownPathItem
           return {
@@ -82,9 +82,7 @@ const SoftErrorBanner = ({path}: {path: Types.Path}) => {
 const PathItemInfo = (props: Props) => {
   useFsOnlineStatus() // when used in chat, we don't have this from Files tab
   useFsPathMetadata(props.path)
-  const pathItem = Container.useSelector(state =>
-    state.fs.pathItems.get(props.path, Constants.unknownPathItem)
-  )
+  const pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, props.path))
   const name = (
     <CommaSeparatedName
       center={true}
@@ -113,7 +111,9 @@ const PathItemInfo = (props: Props) => {
         {pathItem.type === Types.PathType.File && (
           <Kb.Text type="BodySmall">{Constants.humanReadableFileSize(pathItem.size)}</Kb.Text>
         )}
-        {Constants.isFolder(props.path, pathItem) && <FilesAndFoldersCount {...props} />}
+        {Constants.isInTlf(props.path) && Constants.isFolder(props.path, pathItem) && (
+          <FilesAndFoldersCount {...props} />
+        )}
         {getTlfInfoLineOrLastModifiedLine(props.path)}
       </Kb.Box2>
     </>

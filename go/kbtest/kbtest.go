@@ -177,10 +177,10 @@ func RotatePaper(tc libkb.TestContext, u *FakeUser) {
 	user, err := libkb.LoadUser(arg)
 	require.NoError(tc.T, err)
 
-	activeDevices := []*libkb.Device{}
+	activeDevices := make([]*libkb.Device, 0)
 	for _, device := range user.GetComputedKeyFamily().GetAllDevices() {
 		if device.Status != nil && *device.Status == libkb.DeviceStatusActive {
-			activeDevices = append(activeDevices, device)
+			activeDevices = append(activeDevices, device.Device)
 		}
 	}
 

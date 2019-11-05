@@ -128,9 +128,7 @@ const openPathInSystemFileManager = (state: TypedState, action: FsGen.OpenPathIn
         _rebaseKbfsPathToMountLocation(action.payload.path, state.fs.sfmi.directMountDir),
         ![Types.PathKind.InGroupTlf, Types.PathKind.InTeamTlf].includes(
           Constants.parsePath(action.payload.path).kind
-        ) ||
-          state.fs.pathItems.get(action.payload.path, Constants.unknownPathItem).type ===
-            Types.PathType.Folder
+        ) || Constants.getPathItem(state.fs.pathItems, action.payload.path).type === Types.PathType.Folder
       ).catch(makeRetriableErrorHandler(action, action.payload.path))
     : (new Promise((resolve, reject) => {
         if (state.fs.sfmi.driverStatus.type !== Types.DriverStatusType.Enabled) {

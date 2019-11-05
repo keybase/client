@@ -505,28 +505,30 @@ func (o User) DeepCopy() User {
 }
 
 type Device struct {
-	Type         string   `codec:"type" json:"type"`
-	Name         string   `codec:"name" json:"name"`
-	DeviceID     DeviceID `codec:"deviceID" json:"deviceID"`
-	CTime        Time     `codec:"cTime" json:"cTime"`
-	MTime        Time     `codec:"mTime" json:"mTime"`
-	LastUsedTime Time     `codec:"lastUsedTime" json:"lastUsedTime"`
-	EncryptKey   KID      `codec:"encryptKey" json:"encryptKey"`
-	VerifyKey    KID      `codec:"verifyKey" json:"verifyKey"`
-	Status       int      `codec:"status" json:"status"`
+	Type               string   `codec:"type" json:"type"`
+	Name               string   `codec:"name" json:"name"`
+	DeviceID           DeviceID `codec:"deviceID" json:"deviceID"`
+	DeviceNumberOfType int      `codec:"deviceNumberOfType" json:"deviceNumberOfType"`
+	CTime              Time     `codec:"cTime" json:"cTime"`
+	MTime              Time     `codec:"mTime" json:"mTime"`
+	LastUsedTime       Time     `codec:"lastUsedTime" json:"lastUsedTime"`
+	EncryptKey         KID      `codec:"encryptKey" json:"encryptKey"`
+	VerifyKey          KID      `codec:"verifyKey" json:"verifyKey"`
+	Status             int      `codec:"status" json:"status"`
 }
 
 func (o Device) DeepCopy() Device {
 	return Device{
-		Type:         o.Type,
-		Name:         o.Name,
-		DeviceID:     o.DeviceID.DeepCopy(),
-		CTime:        o.CTime.DeepCopy(),
-		MTime:        o.MTime.DeepCopy(),
-		LastUsedTime: o.LastUsedTime.DeepCopy(),
-		EncryptKey:   o.EncryptKey.DeepCopy(),
-		VerifyKey:    o.VerifyKey.DeepCopy(),
-		Status:       o.Status,
+		Type:               o.Type,
+		Name:               o.Name,
+		DeviceID:           o.DeviceID.DeepCopy(),
+		DeviceNumberOfType: o.DeviceNumberOfType,
+		CTime:              o.CTime.DeepCopy(),
+		MTime:              o.MTime.DeepCopy(),
+		LastUsedTime:       o.LastUsedTime.DeepCopy(),
+		EncryptKey:         o.EncryptKey.DeepCopy(),
+		VerifyKey:          o.VerifyKey.DeepCopy(),
+		Status:             o.Status,
 	}
 }
 

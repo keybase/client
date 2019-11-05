@@ -95,7 +95,7 @@ func (e *DeviceHistory) loadDevices(m libkb.MetaContext, user *libkb.User) error
 	}
 
 	for _, d := range ckf.GetAllDevices() {
-		exp := keybase1.DeviceDetail{Device: *(d.ProtExport())}
+		exp := keybase1.DeviceDetail{Device: *(d.ProtExportWithDeviceNum())}
 		cki, ok := ckis.Infos[d.Kid]
 		if !ok {
 			return fmt.Errorf("no ComputedKeyInfo for device %s, kid %s", d.ID, d.Kid)
@@ -159,7 +159,7 @@ func (e *DeviceHistory) loadDevices(m libkb.MetaContext, user *libkb.User) error
 	return nil
 }
 
-func (e *DeviceHistory) provisioner(m libkb.MetaContext, d *libkb.Device, ckis *libkb.ComputedKeyInfos, info *libkb.ComputedKeyInfo) (*libkb.Device, error) {
+func (e *DeviceHistory) provisioner(m libkb.MetaContext, d libkb.DeviceWithDeviceNumber, ckis *libkb.ComputedKeyInfos, info *libkb.ComputedKeyInfo) (*libkb.Device, error) {
 	for _, v := range info.Delegations {
 		if kbcrypto.AlgoType(v.GetKeyType()) != kbcrypto.KIDNaclEddsa {
 			// only concerned with device history, not pgp provisioners

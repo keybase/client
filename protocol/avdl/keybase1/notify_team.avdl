@@ -43,10 +43,15 @@ protocol NotifyTeam {
 
   void newlyAddedToTeam(TeamID teamID) oneway;
 
+  void teamRoleMapChanged(UserTeamVersion newVersion) oneway;
+
   enum AvatarUpdateType {
     NONE_0,
     USER_1,
     TEAM_2
   }
   void avatarUpdated(string name, array<AvatarFormat> formats, AvatarUpdateType typ) oneway;
+
+  // Sent when any information on the top-level teams tab changes
+  void teamMetadataUpdate() oneway;
 }

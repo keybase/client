@@ -31,7 +31,7 @@ func (s *ContactCacheStore) dbKey(uid keybase1.UID) libkb.DbKey {
 // store is used to securely store cached contact resolutions.
 func NewContactCacheStore(g *libkb.GlobalContext) *ContactCacheStore {
 	keyFn := func(ctx context.Context) ([32]byte, error) {
-		return encrypteddb.GetSecretBoxKey(ctx, g, encrypteddb.DefaultSecretUI,
+		return encrypteddb.GetSecretBoxKey(ctx, g,
 			libkb.EncryptionReasonContactsLocalStorage, "encrypting contact resolution cache")
 	}
 	dbFn := func(g *libkb.GlobalContext) *libkb.JSONLocalDb {

@@ -238,24 +238,21 @@ export enum PrefetchState {
   Complete = 'complete',
 }
 
-export type _PrefetchNotStarted = {
+export type PrefetchNotStarted = {
   state: PrefetchState.NotStarted
 }
-export type PrefetchNotStarted = I.RecordOf<_PrefetchNotStarted>
 
-export type _PrefetchInProgress = {
+export type PrefetchInProgress = {
   state: PrefetchState.InProgress
   startTime: number
   endEstimate: number
   bytesTotal: number
   bytesFetched: number
 }
-export type PrefetchInProgress = I.RecordOf<_PrefetchInProgress>
 
-export type _PrefetchComplete = {
+export type PrefetchComplete = {
   state: PrefetchState.Complete
 }
-export type PrefetchComplete = I.RecordOf<_PrefetchComplete>
 
 export type PrefetchStatus = PrefetchNotStarted | PrefetchInProgress | PrefetchComplete
 
@@ -268,28 +265,24 @@ type _PathItemMetadata = {
   prefetchStatus: PrefetchStatus
 }
 
-export type _FolderPathItem = {
+export type FolderPathItem = {
   type: PathType.Folder
-  children: I.Set<string>
+  children: Set<string>
   progress: ProgressType
 } & _PathItemMetadata
-export type FolderPathItem = I.RecordOf<_FolderPathItem>
 
-export type _SymlinkPathItem = {
+export type SymlinkPathItem = {
   type: PathType.Symlink
   linkTarget: string
 } & _PathItemMetadata
-export type SymlinkPathItem = I.RecordOf<_SymlinkPathItem>
 
-export type _FilePathItem = {
+export type FilePathItem = {
   type: PathType.File
 } & _PathItemMetadata
-export type FilePathItem = I.RecordOf<_FilePathItem>
 
-export type _UnknownPathItem = {
+export type UnknownPathItem = {
   type: PathType.Unknown
 } & _PathItemMetadata
-export type UnknownPathItem = I.RecordOf<_UnknownPathItem>
 
 export type PathItem = FolderPathItem | SymlinkPathItem | FilePathItem | UnknownPathItem
 
@@ -307,7 +300,9 @@ export enum NonUploadStaticSyncStatus {
   SyncError = 'sync-error', // uh oh
 }
 export type SyncStatusStatic = UploadIcon | NonUploadStaticSyncStatus
-export type SyncStatus = SyncStatusStatic | number // percentage<1. not uploading, and we're syncing down
+export const LocalConflictStatus = 'local-conflict'
+export type LocalConflictStatus = typeof LocalConflictStatus
+export type PathStatusIcon = LocalConflictStatus | SyncStatusStatic | number // percentage<1. not uploading, and we're syncing down
 
 export type EditID = string
 export enum EditType {
@@ -424,7 +419,7 @@ export type TlfUpdate = I.RecordOf<_TlfUpdate>
 
 export type UserTlfUpdates = I.List<TlfUpdate>
 
-export type PathItems = I.Map<Path, PathItem>
+export type PathItems = Map<Path, PathItem>
 
 export type Edits = Map<EditID, Edit>
 
@@ -480,13 +475,12 @@ export enum PathItemActionMenuView {
   ConfirmSaveMedia = 'confirm-save-media',
   ConfirmSendToOtherApp = 'confirm-send-to-other-app',
 }
-export type _PathItemActionMenu = {
+export type PathItemActionMenu = {
   downloadID: string | null
   downloadIntent: DownloadIntent | null
   previousView: PathItemActionMenuView
   view: PathItemActionMenuView
 }
-export type PathItemActionMenu = I.RecordOf<_PathItemActionMenu>
 
 export enum DriverStatusType {
   Unknown = 'unknown',
@@ -540,26 +534,24 @@ export enum KbfsDaemonOnlineStatus {
   Offline = 'offline',
   Online = 'online',
 }
-export type _KbfsDaemonStatus = {
+export type KbfsDaemonStatus = {
   rpcStatus: KbfsDaemonRpcStatus
   onlineStatus: KbfsDaemonOnlineStatus
 }
-export type KbfsDaemonStatus = I.RecordOf<_KbfsDaemonStatus>
 
-export type _SyncingFoldersProgress = {
+export type SyncingFoldersProgress = {
   bytesFetched: number
   bytesTotal: number
   endEstimate: number
   start: number
 }
-export type SyncingFoldersProgress = I.RecordOf<_SyncingFoldersProgress>
 
 export enum DiskSpaceStatus {
   Ok = 'ok',
   Warning = 'warning',
   Error = 'error',
 }
-export type _OverallSyncStatus = {
+export type OverallSyncStatus = {
   syncingFoldersProgress: SyncingFoldersProgress
   diskSpaceStatus: DiskSpaceStatus
   // showingBanner tracks whether we need to show the banner.
@@ -567,7 +559,6 @@ export type _OverallSyncStatus = {
   // in the state since the user can dismiss it.
   showingBanner: boolean
 }
-export type OverallSyncStatus = I.RecordOf<_OverallSyncStatus>
 
 export enum SoftError {
   NoAccess = 'no-access',

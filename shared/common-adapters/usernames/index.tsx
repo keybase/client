@@ -135,7 +135,9 @@ function UsernameText(props: Props) {
           </Text>
         )
         return props.withProfileCardPopup && WithProfileCardPopup ? (
-          <WithProfileCardPopup username={u.username}>{renderText}</WithProfileCardPopup>
+          <WithProfileCardPopup key={u.username} username={u.username}>
+            {renderText}
+          </WithProfileCardPopup>
         ) : (
           renderText()
         )

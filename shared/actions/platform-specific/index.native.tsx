@@ -270,15 +270,23 @@ function* persistRoute(state: Container.TypedState, action: ConfigGen.PersistRou
   )
 }
 
+// only send when different, we get called a bunch where this doesn't actually change
+let _lastNetworkType: ConfigGen.OsNetworkStatusChangedPayload['payload']['type'] | undefined
 const updateMobileNetState = async (
   _: Container.TypedState,
   action: ConfigGen.OsNetworkStatusChangedPayload
 ) => {
   try {
-    await RPCTypes.appStateUpdateMobileNetStateRpcPromise({state: action.payload.type})
+    const {type} = action.payload
+    if (type === _lastNetworkType) {
+      return false as const
+    }
+    _lastNetworkType = type
+    await RPCTypes.appStateUpdateMobileNetStateRpcPromise({state: type})
   } catch (err) {
     console.warn('Error sending mobileNetStateUpdate', err)
   }
+  return false as const
 }
 
 const initOsNetworkStatus = async () => {
@@ -711,39 +719,6 @@ const configureFileAttachmentDownloadForAndroid = () =>
     downloadDirOverride: require('rn-fetch-blob').default.fs.dirs.DownloadDir,
   })
 
-const startAudioRecording = async (
-  state: Container.TypedState,
-  action: Chat2Gen.StartAudioRecordingPayload,
-  logger: Saga.SagaLogger
-) => {
-  const conversationIDKey = action.payload.conversationIDKey
-  const audio = state.chat2.audioRecording.get(conversationIDKey)
-  if (!audio || ChatConstants.isCancelledAudioRecording(audio)) {
-    logger.info('startAudioRecording: no recording info set, bailing')
-    return false
-  }
-  const outboxID = ChatConstants.generateOutboxID()
-  await requestAudioPermission()
-  const audioPath = await RPCChatTypes.localGetUploadTempFileRpcPromise({filename: 'audio.m4a', outboxID})
-  AudioRecorder.prepareRecordingAtPath(audioPath, {
-    AudioEncoding: 'aac',
-    AudioEncodingBitRate: 32000,
-    AudioQuality: 'Low',
-    Channels: 1,
-    MeteringEnabled: true,
-    SampleRate: 22050,
-  })
-  AudioRecorder.onProgress = data => {
-    action.payload.meteringCb(data.currentMetering)
-  }
-  AudioRecorder.onFinished = () => {
-    logger.info('startAudioRecording: recording finished')
-  }
-  logger.info('startAudioRecording: beginning recording')
-  await AudioRecorder.startRecording()
-  return Chat2Gen.createSetAudioRecordingPostInfo({conversationIDKey, outboxID, path: audioPath})
-}
-
 const stopAudioRecording = async (
   state: Container.TypedState,
   action: Chat2Gen.StopAudioRecordingPayload,
@@ -761,12 +736,9 @@ const stopAudioRecording = async (
   try {
     AudioRecorder.stopRecording()
   } catch (e) {}
+  AudioRecorder.onProgress = null
 
   if (!state.chat2.audioRecording) {
-    return false
-  }
-  if (action.payload.stopType === Types.AudioStopType.CANCEL) {
-    logger.info('stopAudioRecording: recording canceled, not sending')
     return false
   }
   const audio = state.chat2.audioRecording.get(conversationIDKey)
@@ -774,19 +746,79 @@ const stopAudioRecording = async (
     logger.info('stopAudioRecording: no audio record, not sending')
     return false
   }
+  if (
+    audio.status === Types.AudioRecordingStatus.CANCELLED ||
+    action.payload.stopType === Types.AudioStopType.CANCEL
+  ) {
+    logger.info('stopAudioRecording: recording cancelled, bailing out')
+    await RPCChatTypes.localCancelUploadTempFileRpcPromise({outboxID: audio.outboxID})
+    return false
+  }
+  if (ChatConstants.audioRecordingDuration(audio) < 500 || audio.path.length === 0) {
+    logger.info('stopAudioRecording: recording too short, skipping')
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
+    return Chat2Gen.createStopAudioRecording({conversationIDKey, stopType: Types.AudioStopType.CANCEL})
+  }
+
   if (audio.status === Types.AudioRecordingStatus.STAGED) {
     logger.info('stopAudioRecording: in staged mode, not sending')
     return false
   }
-  return Chat2Gen.createSendAudioRecording({conversationIDKey})
+  return Chat2Gen.createSendAudioRecording({conversationIDKey, fromStaged: false, info: audio})
 }
 
-const onEnableAudioRecording = () => {
+const onEnableAudioRecording = async (
+  state: Container.TypedState,
+  action: Chat2Gen.EnableAudioRecordingPayload,
+  logger: Saga.SagaLogger
+) => {
+  const conversationIDKey = action.payload.conversationIDKey
+  const audio = state.chat2.audioRecording.get(conversationIDKey)
+  if (!audio || ChatConstants.isCancelledAudioRecording(audio)) {
+    logger.info('enableAudioRecording: no recording info set, bailing')
+    return false
+  }
+
   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+  const outboxID = ChatConstants.generateOutboxID()
+  await requestAudioPermission()
+  const audioPath = await RPCChatTypes.localGetUploadTempFileRpcPromise({filename: 'audio.m4a', outboxID})
+  AudioRecorder.prepareRecordingAtPath(audioPath, {
+    AudioEncoding: 'aac',
+    AudioEncodingBitRate: 32000,
+    AudioQuality: 'Low',
+    Channels: 1,
+    MeteringEnabled: true,
+    SampleRate: 22050,
+  })
+  AudioRecorder.onProgress = null
+  AudioRecorder.onFinished = () => {
+    logger.info('onEnableAudioRecording: recording finished')
+  }
+  AudioRecorder.onProgress = data => {
+    action.payload.meteringCb(data.currentMetering)
+  }
+  logger.info('onEnableAudioRecording: setting recording info')
+  return Chat2Gen.createSetAudioRecordingPostInfo({conversationIDKey, outboxID, path: audioPath})
 }
 
-const onSendAudioRecording = () => {
-  Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+const onSendAudioRecording = (_: Container.TypedState, action: Chat2Gen.SendAudioRecordingPayload) => {
+  if (!action.payload.fromStaged) {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+  }
+}
+
+const onSetAudioRecordingPostInfo = async (
+  state: Container.TypedState,
+  action: Chat2Gen.SetAudioRecordingPostInfoPayload,
+  logger: Saga.SagaLogger
+) => {
+  const audio = state.chat2.audioRecording.get(action.payload.conversationIDKey)
+  if (!audio || audio.status !== Types.AudioRecordingStatus.RECORDING) {
+    logger.info('onSetAudioRecordingPostInfo: not in recording mode anymore, bailing')
+    return
+  }
+  await AudioRecorder.startRecording()
 }
 
 export function* platformConfigSaga() {
@@ -832,10 +864,14 @@ export function* platformConfigSaga() {
   }
 
   // Audio
-  yield* Saga.chainAction2(Chat2Gen.startAudioRecording, startAudioRecording, 'startAudioRecording')
   yield* Saga.chainAction2(Chat2Gen.stopAudioRecording, stopAudioRecording, 'stopAudioRecording')
   yield* Saga.chainAction2(Chat2Gen.enableAudioRecording, onEnableAudioRecording, 'onEnableAudioRecording')
   yield* Saga.chainAction2(Chat2Gen.sendAudioRecording, onSendAudioRecording, 'onSendAudioRecording')
+  yield* Saga.chainAction2(
+    Chat2Gen.setAudioRecordingPostInfo,
+    onSetAudioRecordingPostInfo,
+    'onSetAudioRecordingPostInfo'
+  )
 
   // Start this immediately instead of waiting so we can do more things in parallel
   yield Saga.spawn(loadStartupDetails)

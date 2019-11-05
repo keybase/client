@@ -1,5 +1,4 @@
 import React from 'react'
-import * as I from 'immutable'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as RPCTypes from '../../constants/types/rpc-gen'
@@ -16,11 +15,12 @@ export const filepreviewProvider = {
     onSave: () => {},
     onShare: () => {},
     onShowInSystemFileManager: () => {},
-    pathItem: Constants.makeFile({
+    pathItem: {
+      ...Constants.emptyFile,
       lastWriter: 'foo',
       name: 'bar.jpg',
       size: 10240,
-    }),
+    },
     sfmiEnabled: false,
   }),
   FilePreviewHeader: ({path}: {path: Types.Path}) => ({
@@ -30,11 +30,12 @@ export const filepreviewProvider = {
     onBack: () => {},
     onShowInSystemFileManager: () => {},
     path,
-    pathItem: Constants.makeFile({
+    pathItem: {
+      ...Constants.emptyFile,
       lastWriter: 'foo',
       name: 'bar.jpg',
       size: 10240,
-    }),
+    },
   }),
 }
 
@@ -110,14 +111,22 @@ const store = {
         },
       ],
     ]),
-    pathItems:
-      // @ts-ignore
-      I.Map([
-        ['/keybase/private/foo/loading', Constants.makeFile()],
-        ...filenames
-          .filter(n => n !== 'loading')
-          .map(name => [`/keybase/private/foo/${name}`, Constants.makeFile({...fileCommon, name})]),
-      ]),
+    pathItems: new Map<Types.Path, Types.PathItem>([
+      [Types.stringToPath('/keybase/private/foo/loading'), Constants.emptyFile],
+      ...filenames
+        .filter(n => n !== 'loading')
+        .map(
+          name =>
+            [
+              Types.stringToPath(`/keybase/private/foo/${name}`),
+              {
+                ...Constants.emptyFile,
+                ...fileCommon,
+                name,
+              },
+            ] as const
+        ),
+    ]),
   },
 }
 

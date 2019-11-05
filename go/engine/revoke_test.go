@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func getActiveDevicesAndKeys(tc libkb.TestContext, u *FakeUser) ([]*libkb.Device, []libkb.GenericKey) {
+func getActiveDevicesAndKeys(tc libkb.TestContext, u *FakeUser) ([]libkb.DeviceWithDeviceNumber, []libkb.GenericKey) {
 	arg := libkb.NewLoadUserByNameArg(tc.G, u.Username).WithPublicKeyOptional()
 	user, err := libkb.LoadUser(arg)
 	require.NoError(tc.T, err)
@@ -22,7 +22,7 @@ func getActiveDevicesAndKeys(tc libkb.TestContext, u *FakeUser) ([]*libkb.Device
 	sibkeys := user.GetComputedKeyFamily().GetAllActiveSibkeys()
 	subkeys := user.GetComputedKeyFamily().GetAllActiveSubkeys()
 
-	activeDevices := []*libkb.Device{}
+	activeDevices := []libkb.DeviceWithDeviceNumber{}
 	for _, device := range user.GetComputedKeyFamily().GetAllDevices() {
 		if device.Status != nil && *device.Status == libkb.DeviceStatusActive {
 			activeDevices = append(activeDevices, device)
@@ -98,7 +98,7 @@ func testRevokeDevice(t *testing.T, upgradePerUserKey bool) {
 	assertNumDevicesAndKeys(tc, u, 2, 4)
 
 	devices, _ := getActiveDevicesAndKeys(tc, u)
-	var thisDevice *libkb.Device
+	var thisDevice libkb.DeviceWithDeviceNumber
 	for _, device := range devices {
 		if device.Type != libkb.DeviceTypePaper {
 			thisDevice = device
@@ -381,12 +381,9 @@ func TestSignAfterRevoke(t *testing.T) {
 
 	// Still logged in on tc1, a revoked device.
 
-	f := func() libkb.SecretUI {
-		return u.NewSecretUI()
-	}
 	// Test signing with (revoked) device key on tc1, which works...
 	msg := []byte("test message")
-	ret, err := SignED25519(context.TODO(), tc1.G, f, keybase1.SignED25519Arg{
+	ret, err := SignED25519(context.TODO(), tc1.G, keybase1.SignED25519Arg{
 		Msg: msg,
 	})
 	if err != nil {
@@ -406,7 +403,7 @@ func TestSignAfterRevoke(t *testing.T) {
 	require.NoError(t, err)
 
 	// And now this should fail.
-	ret, err = SignED25519(context.TODO(), tc1.G, f, keybase1.SignED25519Arg{
+	ret, err = SignED25519(context.TODO(), tc1.G, keybase1.SignED25519Arg{
 		Msg: msg,
 	})
 	if err == nil {
@@ -422,7 +419,7 @@ func TestLogoutAndDeprovisionIfRevokedNoop(t *testing.T) {
 	tc := SetupEngineTest(t, "rev")
 	defer tc.Cleanup()
 
-	u := CreateAndSignupFakeUser(tc, "rev")
+	CreateAndSignupFakeUser(tc, "rev")
 
 	err := AssertLoggedIn(tc)
 	require.NoError(t, err)
@@ -434,12 +431,8 @@ func TestLogoutAndDeprovisionIfRevokedNoop(t *testing.T) {
 	err = AssertLoggedIn(tc)
 	require.NoError(t, err)
 
-	f := func() libkb.SecretUI {
-		return u.NewSecretUI()
-	}
-
 	msg := []byte("test message")
-	ret, err := SignED25519(context.TODO(), tc.G, f, keybase1.SignED25519Arg{
+	ret, err := SignED25519(context.TODO(), tc.G, keybase1.SignED25519Arg{
 		Msg: msg,
 	})
 	if err != nil {
@@ -455,7 +448,7 @@ func revokeAnyPaperKey(tc libkb.TestContext, fu *FakeUser) *libkb.Device {
 	t := tc.T
 	t.Logf("revoke a paper key")
 	devices, _ := getActiveDevicesAndKeys(tc, fu)
-	var revokeDevice *libkb.Device
+	var revokeDevice libkb.DeviceWithDeviceNumber
 	for _, device := range devices {
 		if device.Type == libkb.DeviceTypePaper {
 			revokeDevice = device
@@ -465,7 +458,7 @@ func revokeAnyPaperKey(tc libkb.TestContext, fu *FakeUser) *libkb.Device {
 	t.Logf("revoke %s", revokeDevice.ID)
 	err := doRevokeDevice(tc, fu, revokeDevice.ID, false, false)
 	require.NoError(t, err)
-	return revokeDevice
+	return revokeDevice.Device
 }
 
 func TestRevokeLastDevice(t *testing.T) {

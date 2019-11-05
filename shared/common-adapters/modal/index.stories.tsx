@@ -181,6 +181,9 @@ const load = () => {
         {filler}
       </Modal>
     ))
+    .add('Icon', () => (
+      <Modal header={{icon: <Kb.Icon type="iconfont-gear" sizeType="Big" />}}>{filler}</Modal>
+    ))
 }
 
 const generateColorFromSeed = s => `rgba(${s * 4}, ${s * 4}, ${s * 4}, 0.7)`

@@ -279,3 +279,18 @@ func TestOfflineUIDMapNoCache(t *testing.T) {
 		require.Nil(t, v.FullName)
 	}
 }
+
+func TestDuplicateUids(t *testing.T) {
+	tc := libkb.SetupTest(t, "TestLookup", 1)
+	defer tc.Cleanup()
+
+	uidMap := NewUIDMap(10)
+	uids := []keybase1.UID{tAlice, tTracy, tAlice}
+	results, err := uidMap.MapUIDsToUsernamePackages(context.TODO(), tc.G, uids,
+		24*time.Hour, 10*time.Second, true)
+	require.NoError(t, err)
+
+	require.EqualValues(t, results[0].NormalizedUsername, "t_alice")
+	require.EqualValues(t, results[1].NormalizedUsername, "t_tracy")
+	require.Equal(t, results[0], results[2])
+}

@@ -34,7 +34,7 @@ export default ((ComposedComponent: React.ComponentType<any>) =>
   Container.connect(
     (state: Container.TypedState, {path}: OwnProps) => ({
       _downloads: state.fs.downloads,
-      _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
+      _pathItem: Constants.getPathItem(state.fs.pathItems, path),
       _pathItemActionMenu: state.fs.pathItemActionMenu,
       _uploads: state.fs.uploads,
     }),
@@ -49,7 +49,7 @@ export default ((ComposedComponent: React.ComponentType<any>) =>
         isEmpty:
           _pathItem.type === Types.PathType.Folder &&
           _pathItem.progress === Types.ProgressType.Loaded &&
-          _pathItem.children.isEmpty(),
+          !_pathItem.children.size,
         path,
         type: _pathItem.type,
         uploadErrorRetry: uploadRetriableAction

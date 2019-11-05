@@ -27,7 +27,7 @@ var _ libkb.SyncedContactListProvider = (*SavedContactsStore)(nil)
 // The store is used to securely store list of resolved contacts.
 func NewSavedContactsStore(g *libkb.GlobalContext) *SavedContactsStore {
 	keyFn := func(ctx context.Context) ([32]byte, error) {
-		return encrypteddb.GetSecretBoxKey(ctx, g, encrypteddb.DefaultSecretUI,
+		return encrypteddb.GetSecretBoxKey(ctx, g,
 			libkb.EncryptionReasonContactsLocalStorage, "encrypting local contact list")
 	}
 	dbFn := func(g *libkb.GlobalContext) *libkb.JSONLocalDb {

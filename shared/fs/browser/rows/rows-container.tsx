@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import {namedConnect} from '../../../util/container'
 import * as Types from '../../../constants/types/fs'
 import * as RowTypes from './types'
@@ -32,12 +31,12 @@ const getEditingRows = memoize(
 
 const getStillRows = memoize(
   (
-    pathItems: I.Map<Types.Path, Types.PathItem>,
+    pathItems: Map<Types.Path, Types.PathItem>,
     parentPath: Types.Path,
-    names: I.Set<string>
+    names: Set<string>
   ): Array<RowTypes.StillRowItem> =>
-    names.toArray().reduce<Array<RowTypes.StillRowItem>>((items, name) => {
-      const item = pathItems.get(Types.pathConcat(parentPath, name), Constants.unknownPathItem)
+    [...names].reduce<Array<RowTypes.StillRowItem>>((items, name) => {
+      const item = Constants.getPathItem(pathItems, Types.pathConcat(parentPath, name))
       const path = Types.pathConcat(parentPath, item.name)
       return [
         ...items,
@@ -65,7 +64,7 @@ const folderPlaceholderRows = _getPlaceholderRows(Types.PathType.Folder)
 const _makeInTlfRows = memoize((editingRows, amendedStillRows) => editingRows.concat(amendedStillRows))
 
 const getInTlfItemsFromStateProps = (stateProps, path: Types.Path): Array<RowTypes.NamedRowItem> => {
-  const _pathItem = stateProps._pathItems.get(path, Constants.unknownPathItem)
+  const _pathItem = Constants.getPathItem(stateProps._pathItems, path)
   if (_pathItem.type !== Types.PathType.Folder) {
     return filePlaceholderRows
   }
