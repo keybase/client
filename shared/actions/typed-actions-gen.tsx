@@ -543,7 +543,6 @@ export type TypedActionsMap = {
   'fs:showMoveOrCopy': fs.ShowMoveOrCopyPayload
   'fs:setIncomingShareLocalPath': fs.SetIncomingShareLocalPathPayload
   'fs:showIncomingShare': fs.ShowIncomingSharePayload
-  'fs:closeDestinationPicker': fs.CloseDestinationPickerPayload
   'fs:move': fs.MovePayload
   'fs:copy': fs.CopyPayload
   'fs:initSendAttachmentToChat': fs.InitSendAttachmentToChatPayload

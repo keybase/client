@@ -12,7 +12,7 @@ type OwnProps = {
 
 const mapStateToProps = (state: Container.TypedState, {path}: OwnProps) => ({
   _pathItemActionMenu: state.fs.pathItemActionMenu,
-  size: state.fs.pathItems.get(path, Constants.unknownPathItem).size,
+  size: Constants.getPathItem(state.fs.pathItems, path).size,
 })
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch, {path}: OwnProps) => ({

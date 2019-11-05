@@ -9,7 +9,7 @@ type OwnProps = {
 }
 
 const mapStateToProps = (state, {path}: OwnProps) => ({
-  pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
+  pathItem: Constants.getPathItem(state.fs.pathItems, path),
   sfmiEnabled: state.fs.sfmi.driverStatus === Types.DriverStatusType.Enabled,
 })
 

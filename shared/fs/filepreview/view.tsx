@@ -19,7 +19,7 @@ const textViewUpperLimit = 10 * 1024 * 1024 // 10MB
 
 const FilePreviewView = ({path, onLoadingStateChange}: Props) => {
   const pathItem = Container.useSelector(state => {
-    return state.fs.pathItems.get(path, Constants.unknownPathItem)
+    return Constants.getPathItem(state.fs.pathItems, path)
   })
   const [loadedLastModifiedTimestamp, setLoadedLastModifiedTimestamp] = React.useState(
     pathItem.lastModifiedTimestamp
