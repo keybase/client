@@ -300,7 +300,9 @@ export enum NonUploadStaticSyncStatus {
   SyncError = 'sync-error', // uh oh
 }
 export type SyncStatusStatic = UploadIcon | NonUploadStaticSyncStatus
-export type SyncStatus = SyncStatusStatic | number // percentage<1. not uploading, and we're syncing down
+export type LocalConflictStatus = 'local-conflict'
+export const LocalConflictStatus = 'local-conflict' as LocalConflictStatus
+export type PathStatusIcon = LocalConflictStatus | SyncStatusStatic | number // percentage<1. not uploading, and we're syncing down
 
 export type EditID = string
 export enum EditType {

@@ -45,6 +45,7 @@ type blockRetrievalPartialConfig interface {
 	clockGetter
 	reporterGetter
 	settingsDBGetter
+	subscriptionManagerPublisherGetter
 }
 
 type blockRetrievalConfig interface {

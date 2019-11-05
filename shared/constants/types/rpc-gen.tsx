@@ -2313,6 +2313,7 @@ export enum SubscriptionTopic {
   onlineStatus = 2,
   downloadStatus = 3,
   filesTabBadge = 4,
+  overallSyncStatus = 5,
 }
 
 export enum TLFIdentifyBehavior {

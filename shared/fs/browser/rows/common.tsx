@@ -2,7 +2,7 @@ import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/fs'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
-import {OpenInSystemFileManager, PathItemIcon, PathItemAction, SyncStatus} from '../../common'
+import {OpenInSystemFileManager, PathItemIcon, PathItemAction, PathStatusIcon} from '../../common'
 
 export type StillCommonProps = {
   path: Types.Path
@@ -20,7 +20,7 @@ export const StillCommon = (
 ) => (
   <Kb.ListItem2
     type="Small"
-    statusIcon={<SyncStatus path={props.path} />}
+    statusIcon={<PathStatusIcon path={props.path} />}
     icon={
       <PathItemIcon
         path={props.path}

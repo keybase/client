@@ -303,6 +303,8 @@ export const pathToRPCPath = (
   },
 })
 
+export const rpcPathToPath = (rpcPath: RPCTypes.KBFSPath) => Types.pathConcat(defaultPath, rpcPath.path)
+
 export const pathTypeToTextType = (type: Types.PathType) =>
   type === Types.PathType.Folder ? 'BodySemibold' : 'Body'
 
@@ -845,13 +847,18 @@ export const getUploadIconForFilesTab = (badge: RPCTypes.FilesTabBadge): Types.U
   }
 }
 
-export const getSyncStatusInMergeProps = (
+export const getPathStatusIconInMergeProps = (
   kbfsDaemonStatus: Types.KbfsDaemonStatus,
   tlf: Types.Tlf,
   pathItem: Types.PathItem,
   uploadingPaths: Set<Types.Path>,
   path: Types.Path
-): Types.SyncStatus => {
+): Types.PathStatusIcon => {
+  // There's no upload or sync for local conflict view.
+  if (tlf.conflictState.type === Types.ConflictStateType.ManualResolvingLocalView) {
+    return Types.LocalConflictStatus
+  }
+
   // uploading state has higher priority
   if (uploadingPaths.has(path)) {
     return tlf.conflictState.type === Types.ConflictStateType.NormalView && tlf.conflictState.stuckInConflict
