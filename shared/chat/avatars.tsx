@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
+import {Props as IconProps} from '../common-adapters/icon'
 import * as Styles from '../styles'
 import shallowEqual from 'shallowequal'
 import memoize from 'lodash/memoize'
@@ -31,7 +32,7 @@ const MobileMutedIcon = (p: {
   isSelected: boolean
   isLocked: boolean
 }): React.ReactElement<any> | null => {
-  const {isHovered, isMuted, isSelected, isLocked} = p
+  const {isMuted, isSelected, isLocked} = p
   const type = isMuted
     ? isSelected
       ? 'icon-shh-active-26-21'
@@ -44,7 +45,11 @@ const MobileMutedIcon = (p: {
   return type ? <Kb.Icon type={type} style={styles.mutedIcon} /> : null
 }
 
-const StrokedIcon = Styles.styled(Kb.Icon)(props => ({
+type StrokedIconProps = IconProps & {
+  isHovered: boolean
+  isSelected: boolean
+}
+const StrokedIcon = Styles.styled<typeof Kb.Icon, StrokedIconProps>(Kb.Icon)(props => ({
   '&.stroke': {
     '-webkit-text-stroke': `3px ${
       props.isHovered && !props.isSelected
