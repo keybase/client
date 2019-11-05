@@ -31,22 +31,48 @@ const nistExpirationMargin = 26 * time.Hour // I.e., half of the lifetime
 const nistLifetime = 52 * time.Hour         // A little longer than 2 days.
 const nistSessionIDLength = 16
 const nistShortHashLen = 19
-const nistWebsiteTokenLifetime = 24 * time.Hour // website tokens expire in a day
+const nistWebAuthTokenLifetime = 24 * time.Hour // website tokens expire in a day
 
-type nistTokenType int
+type nistType int
 type nistMode int
 type sessionVersion int
 
 const (
-	nistVersion       sessionVersion = 34
-	nistModeSignature nistMode       = 1
-	nistModeHash      nistMode       = 2
+	nistVersion             sessionVersion = 34
+	nistVersionWebAuthToken sessionVersion = 35
+	nistModeSignature       nistMode       = 1
+	nistModeHash            nistMode       = 2
+	nistClient              nistType       = 0
+	nistWebAuthToken        nistType       = 1
 )
 
-const (
-	nistTokenClient nistTokenType = 0
-	nistTokenWeb    nistTokenType = 1
-)
+func (t nistType) sessionVersion() sessionVersion {
+	if t == nistClient {
+		return nistVersion
+	}
+	return nistVersionWebAuthToken
+}
+
+func (t nistType) lifetime() time.Duration {
+	if t == nistClient {
+		return nistLifetime
+	}
+	return nistWebAuthTokenLifetime
+}
+
+func (t nistType) signaturePrefix() kbcrypto.SignaturePrefix {
+	if t == nistClient {
+		return kbcrypto.SignaturePrefixNIST
+	}
+	return kbcrypto.SignaturePrefixNISTWebAuthToken
+}
+
+func (t nistType) encoding() *base64.Encoding {
+	if t == nistClient {
+		return base64.StdEncoding
+	}
+	return base64.RawURLEncoding
+}
 
 type NISTFactory struct {
 	Contextified
@@ -57,11 +83,13 @@ type NISTFactory struct {
 	nist     *NIST
 }
 
-type NISTToken []byte
+type NISTToken struct {
+	b        []byte
+	nistType nistType
+}
 
-func (n NISTToken) Bytes() []byte     { return []byte(n) }
-func (n NISTToken) String() string    { return base64.StdEncoding.EncodeToString(n.Bytes()) }
-func (n NISTToken) StringURL() string { return base64.RawURLEncoding.EncodeToString(n.Bytes()) }
+func (n NISTToken) Bytes() []byte  { return []byte(n.b) }
+func (n NISTToken) String() string { return n.nistType.encoding().EncodeToString(n.Bytes()) }
 func (n NISTToken) Hash() []byte {
 	tmp := sha256.Sum256(n.Bytes())
 	return tmp[:]
@@ -76,8 +104,9 @@ type NIST struct {
 	expiresAt time.Time
 	failed    bool
 	succeeded bool
-	long      NISTToken
-	short     NISTToken
+	long      *NISTToken
+	short     *NISTToken
+	nistType  nistType
 }
 
 func NewNISTFactory(g *GlobalContext, uid keybase1.UID, deviceID keybase1.DeviceID, key GenericKey) *NISTFactory {
@@ -125,7 +154,7 @@ func (f *NISTFactory) NIST(ctx context.Context) (ret *NIST, err error) {
 
 	if makeNew {
 		ret = newNIST(f.G())
-		err = ret.generate(ctx, f.uid, f.deviceID, f.key, nistTokenClient)
+		err = ret.generate(ctx, f.uid, f.deviceID, f.key, nistClient)
 		if err != nil {
 			return nil, err
 		}
@@ -136,9 +165,9 @@ func (f *NISTFactory) NIST(ctx context.Context) (ret *NIST, err error) {
 	return f.nist, nil
 }
 
-func (f *NISTFactory) GenerateWebToken(ctx context.Context) (ret *NIST, err error) {
+func (f *NISTFactory) GenerateWebAuthToken(ctx context.Context) (ret *NIST, err error) {
 	ret = newNIST(f.G())
-	err = ret.generate(ctx, f.uid, f.deviceID, f.key, nistTokenWeb)
+	err = ret.generate(ctx, f.uid, f.deviceID, f.key, nistWebAuthToken)
 	return ret, err
 }
 
@@ -218,20 +247,20 @@ type nistHash struct {
 	Hash    []byte
 }
 
-func (h nistSig) pack() (NISTToken, error) {
+func (h nistSig) pack(t nistType) (*NISTToken, error) {
 	b, err := msgpack.Encode(h)
 	if err != nil {
 		return nil, err
 	}
-	return NISTToken(b), nil
+	return &NISTToken{b: b, nistType: t}, nil
 }
 
-func (h nistHash) pack() (NISTToken, error) {
+func (h nistHash) pack(t nistType) (*NISTToken, error) {
 	b, err := msgpack.Encode(h)
 	if err != nil {
 		return nil, err
 	}
-	return NISTToken(b), nil
+	return &NISTToken{b: b, nistType: t}, nil
 }
 
 func (n nistPayload) abbreviate() nistPayloadShort {
@@ -244,7 +273,7 @@ func (n nistPayload) abbreviate() nistPayloadShort {
 	}
 }
 
-func (n *NIST) generate(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID, key GenericKey, typ nistTokenType) (err error) {
+func (n *NIST) generate(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID, key GenericKey, typ nistType) (err error) {
 	defer n.G().CTrace(ctx, "NIST#generate", func() error { return err })()
 
 	n.Lock()
@@ -256,10 +285,6 @@ func (n *NIST) generate(ctx context.Context, uid keybase1.UID, deviceID keybase1
 	}
 
 	var generated time.Time
-	lifetime := nistLifetime
-	if typ == nistTokenWeb {
-		lifetime = nistWebsiteTokenLifetime
-	}
 
 	// For some tests we ignore the clock in n.G().Clock() and just use the standard
 	// time.Now() clock, because otherwise, the server would start to reject our
@@ -270,10 +295,12 @@ func (n *NIST) generate(ctx context.Context, uid keybase1.UID, deviceID keybase1
 		generated = n.G().Clock().Now()
 	}
 
+	lifetime := typ.lifetime()
 	expires := generated.Add(lifetime)
+	version := typ.sessionVersion()
 
 	payload := nistPayload{
-		Version:   nistVersion,
+		Version:   version,
 		Mode:      nistModeSignature,
 		Hostname:  CanonicalHost,
 		UID:       uid.ToBytes(),
@@ -296,28 +323,28 @@ func (n *NIST) generate(ctx context.Context, uid keybase1.UID, deviceID keybase1
 	if err != nil {
 		return err
 	}
-	sigInfo, err = naclKey.SignV2(payloadPacked, kbcrypto.SignaturePrefixNIST)
+	sigInfo, err = naclKey.SignV2(payloadPacked, typ.signaturePrefix())
 	if err != nil {
 		return err
 	}
 
-	var longTmp, shortTmp NISTToken
+	var longTmp, shortTmp *NISTToken
 
 	longTmp, err = (nistSig{
-		Version: nistVersion,
+		Version: version,
 		Mode:    nistModeSignature,
 		Sig:     sigInfo.Sig[:],
 		Payload: payload.abbreviate(),
-	}).pack()
+	}).pack(typ)
 	if err != nil {
 		return err
 	}
 
 	shortTmp, err = (nistHash{
-		Version: nistVersion,
+		Version: version,
 		Mode:    nistModeHash,
 		Hash:    longTmp.ShortHash(),
-	}).pack()
+	}).pack(typ)
 	if err != nil {
 		return err
 	}
@@ -325,11 +352,12 @@ func (n *NIST) generate(ctx context.Context, uid keybase1.UID, deviceID keybase1
 	n.long = longTmp
 	n.short = shortTmp
 	n.expiresAt = ForceWallClock(expires)
+	n.nistType = typ
 
 	return nil
 }
 
-func (n *NIST) Token() NISTToken {
+func (n *NIST) Token() *NISTToken {
 	n.RLock()
 	defer n.RUnlock()
 	if n.succeeded {

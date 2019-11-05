@@ -479,10 +479,10 @@ func (a *ActiveDevice) NIST(ctx context.Context) (*NIST, error) {
 	return a.nistLocked(ctx)
 }
 
-func (a *ActiveDevice) NISTWebToken(ctx context.Context) (*NIST, error) {
+func (a *ActiveDevice) NISTWebAuthToken(ctx context.Context) (*NIST, error) {
 	a.RLock()
 	defer a.RUnlock()
-	return a.nistFactory.NIST(ctx)
+	return a.nistFactory.GenerateWebAuthToken(ctx)
 }
 
 func (a *ActiveDevice) nistLocked(ctx context.Context) (*NIST, error) {
