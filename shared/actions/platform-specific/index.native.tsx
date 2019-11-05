@@ -738,7 +738,10 @@ const stopAudioRecording = async (
     logger.info('stopAudioRecording: no audio record, not sending')
     return false
   }
-  if (audio.status === Types.AudioRecordingStatus.CANCELLED) {
+  if (
+    audio.status === Types.AudioRecordingStatus.CANCELLED ||
+    action.payload.stopType === Types.AudioStopType.CANCEL
+  ) {
     logger.info('stopAudioRecording: recording cancelled, bailing out')
     await RPCChatTypes.localCancelUploadTempFileRpcPromise({outboxID: audio.outboxID})
     return false
