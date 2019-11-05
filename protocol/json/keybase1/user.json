@@ -378,6 +378,20 @@
         {
           "type": "boolean",
           "name": "followBlocked"
+        },
+        {
+          "type": [
+            null,
+            "Time"
+          ],
+          "name": "createTime"
+        },
+        {
+          "type": [
+            null,
+            "Time"
+          ],
+          "name": "modifyTime"
         }
       ]
     },
@@ -835,6 +849,24 @@
         "type": "array",
         "items": "UserBlock"
       }
+    },
+    "blockUser": {
+      "request": [
+        {
+          "name": "username",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "unblockUser": {
+      "request": [
+        {
+          "name": "username",
+          "type": "string"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"

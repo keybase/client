@@ -402,6 +402,8 @@ type UserBlock struct {
 	Username      string `codec:"username" json:"username"`
 	ChatBlocked   bool   `codec:"chatBlocked" json:"chatBlocked"`
 	FollowBlocked bool   `codec:"followBlocked" json:"followBlocked"`
+	CreateTime    *Time  `codec:"createTime,omitempty" json:"createTime,omitempty"`
+	ModifyTime    *Time  `codec:"modifyTime,omitempty" json:"modifyTime,omitempty"`
 }
 
 func (o UserBlock) DeepCopy() UserBlock {
@@ -409,6 +411,20 @@ func (o UserBlock) DeepCopy() UserBlock {
 		Username:      o.Username,
 		ChatBlocked:   o.ChatBlocked,
 		FollowBlocked: o.FollowBlocked,
+		CreateTime: (func(x *Time) *Time {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.CreateTime),
+		ModifyTime: (func(x *Time) *Time {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ModifyTime),
 	}
 }
 
@@ -593,6 +609,14 @@ type GetUserBlocksArg struct {
 	Usernames []string `codec:"usernames" json:"usernames"`
 }
 
+type BlockUserArg struct {
+	Username string `codec:"username" json:"username"`
+}
+
+type UnblockUserArg struct {
+	Username string `codec:"username" json:"username"`
+}
+
 type UserInterface interface {
 	// Load user summaries for the supplied uids.
 	// They are "unchecked" in that the client is not verifying the info from the server.
@@ -642,6 +666,8 @@ type UserInterface interface {
 	UserCard(context.Context, UserCardArg) (*UserCard, error)
 	SetUserBlocks(context.Context, SetUserBlocksArg) error
 	GetUserBlocks(context.Context, GetUserBlocksArg) ([]UserBlock, error)
+	BlockUser(context.Context, string) error
+	UnblockUser(context.Context, string) error
 }
 
 func UserProtocol(i UserInterface) rpc.Protocol {
@@ -1038,6 +1064,36 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 					return
 				},
 			},
+			"blockUser": {
+				MakeArg: func() interface{} {
+					var ret [1]BlockUserArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]BlockUserArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]BlockUserArg)(nil), args)
+						return
+					}
+					err = i.BlockUser(ctx, typedArgs[0].Username)
+					return
+				},
+			},
+			"unblockUser": {
+				MakeArg: func() interface{} {
+					var ret [1]UnblockUserArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]UnblockUserArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]UnblockUserArg)(nil), args)
+						return
+					}
+					err = i.UnblockUser(ctx, typedArgs[0].Username)
+					return
+				},
+			},
 		},
 	}
 }
@@ -1203,5 +1259,17 @@ func (c UserClient) SetUserBlocks(ctx context.Context, __arg SetUserBlocksArg) (
 
 func (c UserClient) GetUserBlocks(ctx context.Context, __arg GetUserBlocksArg) (res []UserBlock, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.user.getUserBlocks", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c UserClient) BlockUser(ctx context.Context, username string) (err error) {
+	__arg := BlockUserArg{Username: username}
+	err = c.Cli.Call(ctx, "keybase.1.user.blockUser", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c UserClient) UnblockUser(ctx context.Context, username string) (err error) {
+	__arg := UnblockUserArg{Username: username}
+	err = c.Cli.Call(ctx, "keybase.1.user.unblockUser", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }

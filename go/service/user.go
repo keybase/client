@@ -664,16 +664,18 @@ func (h *UserHandler) GetUserBlocks(ctx context.Context, arg keybase1.GetUserBlo
 		fmt.Sprintf("UserHandler#GetUserBlocks(%s)", usernameLog),
 		func() error { return err })()
 
-	uids := make([]keybase1.UID, len(arg.Usernames))
-	for i, v := range arg.Usernames {
-		uids[i] = libkb.GetUIDByUsername(h.G(), v)
+	httpArgs := libkb.HTTPArgs{}
+	if len(arg.Usernames) > 0 {
+		uids := make([]keybase1.UID, len(arg.Usernames))
+		for i, v := range arg.Usernames {
+			uids[i] = libkb.GetUIDByUsername(h.G(), v)
+		}
+		httpArgs["uids"] = libkb.S{Val: libkb.UidsToString(uids)}
 	}
 
 	apiArg := libkb.APIArg{
-		Endpoint: "user/get_blocks",
-		Args: libkb.HTTPArgs{
-			"uids": libkb.S{Val: libkb.UidsToString(uids)},
-		},
+		Endpoint:    "user/get_blocks",
+		Args:        httpArgs,
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
 
@@ -705,10 +707,26 @@ func (h *UserHandler) GetUserBlocks(ctx context.Context, arg keybase1.GetUserBlo
 			Username:      v.BlockUsername,
 			ChatBlocked:   v.Chat,
 			FollowBlocked: v.Follow,
+			CreateTime:    v.CTime,
+			ModifyTime:    v.MTime,
 		}
 	}
 
 	return res, nil
+}
+
+// Legacy RPC and API:
+
+func (h *UserHandler) BlockUser(ctx context.Context, username string) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed("UserHandler#BlockUser", func() error { return err })()
+	return h.setUserBlock(mctx, username, true)
+}
+
+func (h *UserHandler) UnblockUser(ctx context.Context, username string) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed("UserHandler#UnblockUser", func() error { return err })()
+	return h.setUserBlock(mctx, username, false)
 }
 
 func (h *UserHandler) setUserBlock(mctx libkb.MetaContext, username string, block bool) error {

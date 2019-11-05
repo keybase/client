@@ -22,35 +22,35 @@ func NewCmdBlocks(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 		Usage:        "Manage user and team blocks",
 		ArgumentHelp: "[arguments...]",
 		Subcommands: []cli.Command{
-			NewCmdBlocksListUser(cl, g),
+			NewCmdBlocksListUsers(cl, g),
 		},
 	}
 }
 
 // "keybase blocks list-user" command
 
-type CmdBlocksListUser struct {
+type CmdBlocksListUsers struct {
 	libkb.Contextified
 }
 
-func NewCmdBlocksListUser(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
-	cmd := &CmdBlocksListUser{
+func NewCmdBlocksListUsers(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	cmd := &CmdBlocksListUsers{
 		Contextified: libkb.NewContextified(g),
 	}
 	return cli.Command{
-		Name:  "list-user",
+		Name:  "list-users",
 		Usage: "Show blocked users.",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(cmd, "list-user", c)
+			cl.ChooseCommand(cmd, "list-uses", c)
 		},
 	}
 }
 
-func (c *CmdBlocksListUser) ParseArgv(ctx *cli.Context) error {
+func (c *CmdBlocksListUsers) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (c *CmdBlocksListUser) Run() (err error) {
+func (c *CmdBlocksListUsers) Run() (err error) {
 	cli, err := GetUserClient(c.G())
 	if err != nil {
 		return err
@@ -73,7 +73,7 @@ func (c *CmdBlocksListUser) Run() (err error) {
 	}
 
 	if !hasBlocks {
-		tui.Printf("No one user is currently blocked by you.\n")
+		tui.Printf("No user is currently blocked by you.\n")
 		return nil
 	}
 
@@ -81,27 +81,32 @@ func (c *CmdBlocksListUser) Run() (err error) {
 		return blocks[i].Username < blocks[j].Username
 	})
 
-	// NOTE: tabwriter does not handle padding correctly when we emit escape
-	// sequences for colours, so we do padding manually.
-
-	colorfulYesNo := func(val bool) string {
+	yesNoFmt := func(val bool) string {
 		if val {
-			// Red, angry, "yes-blocked".
-			return ColorString(c.G(), "red", fmt.Sprintf("%-13s", "yes"))
+			return "yes"
 		}
-		// Green, cheerful, "not blocked".
-		return ColorString(c.G(), "green", fmt.Sprintf("%-13s", "no"))
+		return "no"
+	}
+
+	timeFmt := func(vals ...*keybase1.Time) string {
+		for _, val := range vals {
+			if val != nil {
+				return keybase1.FromTime(*val).Format("2006-01-02 15:04 MST")
+			}
+		}
+		return ""
 	}
 
 	tabw := new(tabwriter.Writer)
 	tabw.Init(tui.OutputWriter(), 5, 0, 3, ' ', 0)
-	fmt.Fprintf(tabw, "Username:\tChat-blocked:    Follower-blocked:\n")
+	fmt.Fprintf(tabw, "Username:\tChat-blocked:\tFollower-blocked:\tTime:\n")
 	for _, v := range blocks {
 		if v.ChatBlocked || v.FollowBlocked {
-			fmt.Fprintf(tabw, "%s\t%s    %s\n",
+			fmt.Fprintf(tabw, "%s\t%s\t%s\t%s\n",
 				v.Username,
-				colorfulYesNo(v.ChatBlocked),
-				colorfulYesNo(v.FollowBlocked),
+				yesNoFmt(v.ChatBlocked),
+				yesNoFmt(v.FollowBlocked),
+				timeFmt(v.ModifyTime, v.CreateTime),
 			)
 		}
 	}
@@ -109,7 +114,7 @@ func (c *CmdBlocksListUser) Run() (err error) {
 	return nil
 }
 
-func (c *CmdBlocksListUser) GetUsage() libkb.Usage {
+func (c *CmdBlocksListUsers) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:    true,
 		API:       true,

@@ -213,6 +213,8 @@ protocol user {
     string username;
     boolean chatBlocked;
     boolean followBlocked;
+    union { null, Time } createTime;
+    union { null, Time } modifyTime;
   }
 
   record RecordInfoArg {
@@ -229,4 +231,8 @@ protocol user {
 
   void setUserBlocks(int sessionID, array<UserBlockArg> blocks);
   array<UserBlock> getUserBlocks(int sessionID, array<string> usernames);
+
+  // Legacy user blocking:
+  void blockUser(string username);
+  void unblockUser(string username);
 }
