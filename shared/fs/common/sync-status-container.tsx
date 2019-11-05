@@ -11,7 +11,7 @@ type OwnPropsPathItem = {
 const SyncStatusPathItem = Container.connect(
   (state: Container.TypedState, ownProps: OwnPropsPathItem) => ({
     _kbfsDaemonStatus: state.fs.kbfsDaemonStatus,
-    _pathItem: state.fs.pathItems.get(ownProps.path, Constants.unknownPathItem),
+    _pathItem: Constants.getPathItem(state.fs.pathItems, ownProps.path),
     _tlf: Constants.getTlfFromPath(state.fs.tlfs, ownProps.path),
     _uploads: state.fs.uploads.syncingPaths,
   }),

@@ -83,7 +83,7 @@ func newStore(g *globals.Context) *store {
 	ac, _ := lru.New(10000)
 	tc, _ := lru.New(3000)
 	keyFn := func(ctx context.Context) ([32]byte, error) {
-		return storage.GetSecretBoxKey(ctx, g.ExternalG(), storage.DefaultSecretUI)
+		return storage.GetSecretBoxKey(ctx, g.ExternalG())
 	}
 	dbFn := func(g *libkb.GlobalContext) *libkb.JSONLocalDb {
 		return g.LocalChatDb

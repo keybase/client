@@ -24,6 +24,7 @@ import debounce from 'lodash/debounce'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {useScreens} from 'react-native-screens'
 import {getPersistenceFunctions} from './persist.native'
+import Loading from '../login/loading'
 
 const {createStackNavigator} = Stack
 
@@ -236,21 +237,34 @@ const LoggedOutStackNavigator = createStackNavigator(
   }
 )
 
+const SimpleLoading = () => (
+  <Kb.Box2
+    direction="vertical"
+    fullHeight={true}
+    fullWidth={true}
+    style={{backgroundColor: Styles.globalColors.white}}
+  >
+    <Loading allowFeedback={false} failed="" status="" onRetry={null} onFeedback={null} />
+  </Kb.Box2>
+)
+
 const RootStackNavigator = createSwitchNavigator(
   {
+    loading: {screen: SimpleLoading},
     loggedIn: LoggedInStackNavigator,
     loggedOut: LoggedOutStackNavigator,
   },
-  {initialRouteName: 'loggedOut'}
+  {initialRouteName: 'loading'}
 )
 
 const AppContainer = createAppContainer(RootStackNavigator)
 
 class RNApp extends React.PureComponent<Props> {
-  _nav: any = null
+  private nav: any = null
+
   // TODO remove this eventually, just so we can handle the old style actions
   dispatchOldAction = (old: any) => {
-    const nav = this._nav
+    const nav = this.nav
     if (!nav) {
       throw new Error('Missing nav?')
     }
@@ -264,7 +278,7 @@ class RNApp extends React.PureComponent<Props> {
   }
 
   dispatch = (a: any) => {
-    const nav = this._nav
+    const nav = this.nav
     if (!nav) {
       throw new Error('Missing nav?')
     }
@@ -272,12 +286,12 @@ class RNApp extends React.PureComponent<Props> {
   }
 
   // debounce this so we don't persist a route that can crash and then keep them in some crash loop
-  _persistRoute = debounce(() => {
+  private persistRoute = debounce(() => {
     this.props.persistRoute(Constants.getVisiblePath())
   }, 3000)
 
-  _handleAndroidBack = () => {
-    const nav = this._nav
+  private handleAndroidBack = () => {
+    const nav = this.nav
     if (!nav) {
       return
     }
@@ -301,19 +315,36 @@ class RNApp extends React.PureComponent<Props> {
 
   componentDidMount() {
     if (Styles.isAndroid) {
-      Kb.NativeBackHandler.addEventListener('hardwareBackPress', this._handleAndroidBack)
+      Kb.NativeBackHandler.addEventListener('hardwareBackPress', this.handleAndroidBack)
     }
   }
 
   componentWillUnmount() {
     if (Styles.isAndroid) {
-      Kb.NativeBackHandler.removeEventListener('hardwareBackPress', this._handleAndroidBack)
+      Kb.NativeBackHandler.removeEventListener('hardwareBackPress', this.handleAndroidBack)
     }
   }
 
   getNavState = () => {
-    const n = this._nav
+    const n = this.nav
     return (n && n.state && n.state.nav) || null
+  }
+
+  private setNav = (n: any) => {
+    this.nav = n
+  }
+
+  private onNavigationStateChange = () => {
+    this.persistRoute()
+  }
+
+  // hmr messes up startup, so only set this after its rendered once
+  private hmrProps = () => {
+    if (this.nav) {
+      return getPersistenceFunctions()
+    } else {
+      return {}
+    }
   }
 
   render() {
@@ -323,10 +354,9 @@ class RNApp extends React.PureComponent<Props> {
           barStyle={Styles.isAndroid ? 'default' : this.props.isDarkMode ? 'light-content' : 'dark-content'}
         />
         <AppContainer
-          ref={nav => (this._nav = nav)}
-          onNavigationStateChange={this._persistRoute}
-          // HMR persistence
-          {...getPersistenceFunctions()}
+          ref={this.setNav}
+          onNavigationStateChange={this.onNavigationStateChange}
+          {...this.hmrProps()}
         />
         <GlobalError />
         <OutOfDate />

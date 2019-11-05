@@ -26,7 +26,7 @@ var _ libkb.TeambotBotKeyer = (*BotKeyer)(nil)
 
 func NewBotKeyer(mctx libkb.MetaContext) *BotKeyer {
 	keyFn := func(ctx context.Context) ([32]byte, error) {
-		return encrypteddb.GetSecretBoxKey(ctx, mctx.G(), encrypteddb.DefaultSecretUI,
+		return encrypteddb.GetSecretBoxKey(ctx, mctx.G(),
 			libkb.EncryptionReasonTeambotKeyLocalStorage, "encrypting teambot keys cache")
 	}
 	dbFn := func(g *libkb.GlobalContext) *libkb.JSONLocalDb {

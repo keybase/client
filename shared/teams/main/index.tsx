@@ -23,7 +23,7 @@ export type Props = {
   onManageChat: (arg0: string) => void
   onOpenFolder: (arg0: string) => void
   onReadMore: () => void
-  onViewTeam: (arg0: string) => void
+  onViewTeam: (teamID: Types.TeamID) => void
   sawChatBanner: boolean
   teamresetusers: {[K in string]: I.Set<string> | null}
   newTeamRequests: Map<Types.TeamID, number>
@@ -126,7 +126,7 @@ type State = {
 class Teams extends React.PureComponent<Props, State> {
   state = {sawChatBanner: this.props.sawChatBanner}
 
-  _teamsAndExtras = memoize(
+  private teamsAndExtras = memoize(
     (deletedTeams: Props['deletedTeams'], teams: Props['teams']): Array<Row> => [
       ...(this.state.sawChatBanner ? [] : [{key: '_banner', type: '_banner' as const}]),
       ...deletedTeams.map(dt => ({key: 'deletedTeam' + dt.teamName, team: dt, type: 'deletedTeam' as const})),
@@ -135,18 +135,18 @@ class Teams extends React.PureComponent<Props, State> {
     ]
   )
 
-  _onHideChatBanner = () => {
+  private onHideChatBanner = () => {
     this.setState({sawChatBanner: true})
     this.props.onHideChatBanner()
   }
-  _onOpenFolder = name => this.props.onOpenFolder(name)
-  _onManageChat = name => this.props.onManageChat(name)
-  _onViewTeam = name => this.props.onViewTeam(name)
+  private onOpenFolder = name => this.props.onOpenFolder(name)
+  private onManageChat = name => this.props.onManageChat(name)
+  private onViewTeam = (teamID: Types.TeamID) => this.props.onViewTeam(teamID)
 
-  _renderItem = (index: number, item: Row) => {
+  private renderItem = (index: number, item: Row) => {
     switch (item.type) {
       case '_banner':
-        return <Banner onReadMore={this.props.onReadMore} onHideChatBanner={this._onHideChatBanner} />
+        return <Banner onReadMore={this.props.onReadMore} onHideChatBanner={this.onHideChatBanner} />
       case '_placeholder':
         return <NoTeamsPlaceholder />
       case 'deletedTeam': {
@@ -173,9 +173,9 @@ class Teams extends React.PureComponent<Props, State> {
             isOpen={team.isOpen}
             newRequests={this.props.newTeamRequests.get(team.id) || 0}
             membercount={team.memberCount}
-            onOpenFolder={() => this._onOpenFolder(team.teamname)}
-            onManageChat={team.isMember ? () => this._onManageChat(team.teamname) : null}
-            onViewTeam={() => this._onViewTeam(team.teamname)}
+            onOpenFolder={() => this.onOpenFolder(team.teamname)}
+            onManageChat={team.isMember ? () => this.onManageChat(team.teamname) : null}
+            onViewTeam={() => this.onViewTeam(team.id)}
             resetUserCount={resetUserCount}
           />
         )
@@ -204,8 +204,8 @@ class Teams extends React.PureComponent<Props, State> {
           />
         )}
         <Kb.List
-          items={this._teamsAndExtras(this.props.deletedTeams, this.props.teams)}
-          renderItem={this._renderItem}
+          items={this.teamsAndExtras(this.props.deletedTeams, this.props.teams)}
+          renderItem={this.renderItem}
         />
       </Kb.Box2>
     )

@@ -1009,9 +1009,9 @@ func (h *Server) MakePreview(ctx context.Context, arg chat1.MakePreviewArg) (res
 	return attachments.NewSender(h.G()).MakePreview(ctx, arg.Filename, arg.OutboxID)
 }
 
-func (h *Server) MakeAudioPreview(ctx context.Context, amps []float64) (res chat1.MakePreviewRes, err error) {
+func (h *Server) MakeAudioPreview(ctx context.Context, arg chat1.MakeAudioPreviewArg) (res chat1.MakePreviewRes, err error) {
 	defer h.Trace(ctx, func() error { return err }, "MakeAudioPreview")()
-	return attachments.NewSender(h.G()).MakeAudioPreview(ctx, amps)
+	return attachments.NewSender(h.G()).MakeAudioPreview(ctx, arg.Amps, arg.Duration)
 }
 
 func (h *Server) GetUploadTempFile(ctx context.Context, arg chat1.GetUploadTempFileArg) (res string, err error) {
@@ -1025,6 +1025,11 @@ func (h *Server) MakeUploadTempFile(ctx context.Context, arg chat1.MakeUploadTem
 		return res, err
 	}
 	return res, ioutil.WriteFile(res, arg.Data, 0644)
+}
+
+func (h *Server) CancelUploadTempFile(ctx context.Context, outboxID chat1.OutboxID) (err error) {
+	defer h.Trace(ctx, func() error { return err }, "CancelUploadTempFile")()
+	return h.G().AttachmentUploader.CancelUploadTempFile(ctx, outboxID)
 }
 
 func (h *Server) PostFileAttachmentLocalNonblock(ctx context.Context,

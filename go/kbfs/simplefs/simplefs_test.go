@@ -1493,6 +1493,12 @@ func TestFavoriteConflicts(t *testing.T) {
 	for _, f := range favs.FavoriteFolders {
 		require.Nil(t, f.ConflictState)
 	}
+
+	t.Log("Try stat'ing the old local view, should get an error")
+	_, err = sfs.SimpleFSStat(ctx, keybase1.SimpleFSStatArg{
+		Path: pathLocalView,
+	})
+	require.Error(t, err)
 }
 
 func TestSyncConfigFavorites(t *testing.T) {

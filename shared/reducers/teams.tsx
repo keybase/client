@@ -90,8 +90,11 @@ export default (
         )
         details.settings = action.payload.settings
         details.invites = new Set(action.payload.invites)
-        details.subteams = new Set(action.payload.subteams)
+        details.subteams = new Set(action.payload.subteamIDs)
         details.requests = new Set(action.payload.requests.get(action.payload.teamname))
+        draftState.teamDetails = new Map(
+          draftState.teamDetails.set(action.payload.teamID, Constants.makeTeamDetails(details))
+        )
 
         return
       }
@@ -101,12 +104,16 @@ export default (
           action.payload.members
         )
         return
-      case TeamsGen.setTeamCanPerform:
+      case TeamsGen.setTeamCanPerform: {
         draftState.teamNameToCanPerform = draftState.teamNameToCanPerform.set(
           action.payload.teamname,
           action.payload.teamOperation
         )
+        const canPerform = new Map(draftState.canPerform)
+        canPerform.set(action.payload.teamID, action.payload.teamOperation)
+        draftState.canPerform = canPerform
         return
+      }
       case TeamsGen.setTeamPublicitySettings:
         draftState.teamNameToPublicitySettings = draftState.teamNameToPublicitySettings.set(
           action.payload.teamname,
@@ -146,7 +153,10 @@ export default (
         draftState.teamNameToRole = action.payload.teamNameToRole
         draftState.teammembercounts = action.payload.teammembercounts
         draftState.teamnames = action.payload.teamnames
-        draftState.teamDetails = action.payload.teamDetails
+        draftState.teamDetails = Constants.mergeTeamDetails(
+          draftState.teamDetails,
+          action.payload.teamDetails
+        )
         return
       case TeamsGen.setTeamAccessRequestsPending:
         draftState.teamAccessRequestsPending = action.payload.accessRequestsPending
@@ -217,6 +227,22 @@ export default (
           () => RPCChatTypes.ConversationMemberStatus.left
         )
         return
+      case TeamsGen.setTeamRoleMapLatestKnownVersion: {
+        draftState.teamRoleMap.latestKnownVersion = action.payload.version
+        return
+      }
+      case TeamsGen.setTeamRoleMap: {
+        draftState.teamRoleMap = {
+          latestKnownVersion: Math.max(
+            action.payload.map.latestKnownVersion,
+            draftState.teamRoleMap.latestKnownVersion
+          ),
+          loadedVersion: action.payload.map.loadedVersion,
+          roles: action.payload.map.roles,
+        }
+        return
+      }
+
       case TeamBuildingGen.resetStore:
       case TeamBuildingGen.cancelTeamBuilding:
       case TeamBuildingGen.addUsersToTeamSoFar:
@@ -252,7 +278,6 @@ export default (
       case TeamsGen.getChannelInfo:
       case TeamsGen.getChannels:
       case TeamsGen.getDetails:
-      case TeamsGen.getDetailsForAllTeams:
       case TeamsGen.getMembers:
       case TeamsGen.getTeamOperations:
       case TeamsGen.getTeamProfileAddList:

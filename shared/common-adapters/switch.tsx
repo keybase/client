@@ -18,7 +18,7 @@ const Kb = {
 
 type Props = {
   align?: 'left' | 'right' | null // default to 'left',
-  color?: 'blue' | 'green' | null // default to 'blue',
+  color?: 'blue' | 'green' | 'red' | null // default to 'blue',
   disabled?: boolean | null
   gapInBetween?: boolean | null // inserts flex:1 gap between toggle and text,
   gapSize?: number | null // inserts a gap of N pixels between toggle and text
@@ -65,6 +65,11 @@ const getContent = (props, ref) => (
       <LabelContainer {...props}>
         <Kb.Text type="BodySemibold">{props.label}</Kb.Text>
         {!!props.labelSubtitle && <Kb.Text type="BodySmall">{props.labelSubtitle}</Kb.Text>}
+      </LabelContainer>
+    ) : props.labelSubtitle ? (
+      <LabelContainer {...props}>
+        {props.label}
+        <Kb.Text type="BodySmall">{props.labelSubtitle}</Kb.Text>
       </LabelContainer>
     ) : (
       props.label

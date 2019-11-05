@@ -138,10 +138,12 @@ export type _MessageText = {
 } & _MessageCommonWithDeviceInfo
 export type MessageText = I.RecordOf<_MessageText>
 
-export type AttachmentType = 'image' | 'file'
+export type AttachmentType = 'image' | 'file' | 'audio'
 
 export type PreviewSpec = {
   attachmentType: AttachmentType
+  audioAmps: Array<number>
+  audioDuration: number
   height: number
   width: number
   showPlayButton: boolean
@@ -156,6 +158,8 @@ export type MessageAttachmentTransferState =
 
 export type _MessageAttachment = {
   attachmentType: AttachmentType
+  audioAmps: Array<number>
+  audioDuration: number
   showPlayButton: boolean
   fileURL: string
   fileURLCached: boolean

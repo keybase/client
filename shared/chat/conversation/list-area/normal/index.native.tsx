@@ -18,8 +18,8 @@ const debug = debugEnabled ? s => logger.debug('scroll: ' + s) : () => {}
 
 const targetHitArea = 1
 
-// Bookkeep whats animating so it finishes and isn't replaced
-const animatingMap = new Map<string, React.ReactElement<any>>()
+// Bookkeep whats animating so it finishes and isn't replaced, if we've animated it we keep the key and use null
+const animatingMap = new Map<string, null | React.ReactElement<any>>()
 
 type AnimatedChildProps = {
   animatingKey: string
@@ -28,6 +28,12 @@ type AnimatedChildProps = {
 const AnimatedChild = React.memo(({children, animatingKey}: AnimatedChildProps) => {
   const translateY = new Animated.Value(999)
   const opacity = new Animated.Value(0)
+  React.useEffect(() => {
+    // on unmount, mark it null
+    return () => {
+      animatingMap.set(animatingKey, null)
+    }
+  })
   return (
     <Animated.View
       style={{opacity, overflow: 'hidden', transform: [{translateY}], width: '100%'}}
@@ -46,7 +52,7 @@ const AnimatedChild = React.memo(({children, animatingKey}: AnimatedChildProps) 
             useNativeDriver: true,
           }),
         ]).start(() => {
-          animatingMap.delete(animatingKey)
+          animatingMap.set(animatingKey, null)
         })
       }}
     >
@@ -68,12 +74,14 @@ const Sent = React.memo(({children, conversationIDKey, ordinal}: SentProps) => {
   const youSent = message && message.author === you && message.ordinal !== message.id
   const key = `${conversationIDKey}:${ordinal}`
   const state = animatingMap.get(key)
+
   // if its animating always show it
   if (state) {
     return state
   }
 
-  if (youSent) {
+  // if state is null we already animated it
+  if (youSent && state === undefined) {
     const c = <AnimatedChild animatingKey={key}>{children}</AnimatedChild>
     animatingMap.set(key, c)
     return c

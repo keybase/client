@@ -1441,7 +1441,7 @@ func (vp *VerificationPath) verifyUsername(m MetaContext, userInfo merkleUserInf
 
 	if userInfo.usernameCased != userInfo.username && strings.ToLower(userInfo.usernameCased) == userInfo.username {
 		m.VLogf(VLog1, "| Checking cased username difference: %s v %s", userInfo.username, userInfo.usernameCased)
-		if CheckUIDAgainstCasedUsername(userInfo.uid, userInfo.usernameCased) == nil {
+		if checkUIDAgainstCasedUsername(userInfo.uid, userInfo.usernameCased) == nil {
 			m.VLogf(VLog1, "| Username %s mapped to %s via direct hash (w/ username casing)", userInfo.usernameCased, userInfo.uid)
 			username = userInfo.username
 			return

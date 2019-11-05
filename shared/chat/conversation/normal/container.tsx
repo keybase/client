@@ -24,12 +24,11 @@ const mapStateToProps = (state, {conversationIDKey}) => {
     Constants.waitingKeyInboxSyncStarted
   )
   const showThreadSearch = Constants.getThreadSearchInfo(state, conversationIDKey).visible
-  const meta = Constants.getMeta(state, conversationIDKey)
   return {
+    _meta: Constants.getMeta(state, conversationIDKey),
     conversationIDKey,
     showLoader,
     showThreadSearch,
-    threadLoadedOffline: meta.offline,
   }
 }
 
@@ -64,16 +63,23 @@ const hotkeys = [`${isDarwin ? 'command' : 'ctrl'}+f`]
 const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
   return {
     conversationIDKey: stateProps.conversationIDKey,
+    dragAndDropRejectReason: stateProps._meta.cannotWrite
+      ? `You must be at least ${'aeiou'.includes(stateProps._meta.minWriterRole[0]) ? 'an' : 'a'} ${
+          stateProps._meta.minWriterRole
+        } to post.`
+      : undefined,
     hotkeys,
     jumpToRecent: dispatchProps.jumpToRecent,
-    onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
+    onAttach: stateProps._meta.cannotWrite
+      ? null
+      : (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
     onHotkey: dispatchProps.onHotkey,
     onPaste: (data: Buffer) => dispatchProps._onPaste(stateProps.conversationIDKey, data),
     onShowTracker: dispatchProps.onShowTracker,
     onToggleInfoPanel: dispatchProps.onToggleInfoPanel,
     showLoader: stateProps.showLoader,
     showThreadSearch: stateProps.showThreadSearch,
-    threadLoadedOffline: stateProps.threadLoadedOffline,
+    threadLoadedOffline: stateProps._meta.threadLoadedOffline,
   }
 }
 

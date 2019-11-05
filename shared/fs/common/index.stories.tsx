@@ -63,12 +63,12 @@ export const commonProvider = {
   }),
   FolderViewFilter: (props: any) => ({
     onUpdate: Sb.action('onUpdate'),
-    pathItem: Constants.makeFolder(),
+    pathItem: Constants.emptyFolder,
     ...props,
   }),
   FolderViewFilterIcon: (props: any) => ({
     onUpdate: Sb.action('onUpdate'),
-    pathItem: Constants.makeFolder(),
+    pathItem: Constants.emptyFolder,
     ...props,
   }),
   LastModifiedLine: ({path, mode}: LastModifiedLineOwnProps) => ({
@@ -80,7 +80,7 @@ export const commonProvider = {
     loadPathMetadataWithRefreshTag: Sb.action('loadPathMetadataWithRefreshTag'),
     loadPathMetadataWithoutRefreshTag: Sb.action('loadPathMetadataWithoutRefreshTag'),
     path,
-    syncingFoldersProgress: Constants.makeSyncingFoldersProgress(),
+    syncingFoldersProgress: Constants.emptySyncingFoldersProgress,
   }),
   NewFolder: ({path}: {path: Types.Path}) => ({
     canCreateNewFolder: Types.getPathLevel(path) > 2,

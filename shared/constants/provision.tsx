@@ -15,11 +15,16 @@ export const cancelOnCallback = (_: any, response: CommonResponseHandler) => {
   response.error({code: RPCTypes.StatusCode.scinputcanceled, desc: 'Input canceled'})
 }
 
+export const makeDevice = I.Record<Types._Device>({
+  deviceNumberOfType: 0,
+  id: DeviceTypes.stringToDeviceID(''),
+  name: '',
+  type: 'mobile',
+})
+
 export const makeState = I.Record<Types._State>({
   codePageIncomingTextCode: new HiddenString(''),
-  codePageOtherDeviceId: '',
-  codePageOtherDeviceName: '',
-  codePageOtherDeviceType: 'mobile',
+  codePageOtherDevice: makeDevice(),
   codePageOutgoingTextCode: new HiddenString(''),
   deviceName: '',
   devices: I.List(),
@@ -33,12 +38,6 @@ export const makeState = I.Record<Types._State>({
   username: '',
 })
 
-const makeDevice = I.Record<Types._Device>({
-  id: DeviceTypes.stringToDeviceID(''),
-  name: '',
-  type: 'mobile',
-})
-
 export const rpcDeviceToDevice = (d: RPCTypes.Device) => {
   const type = d.type
   switch (type) {
@@ -46,6 +45,7 @@ export const rpcDeviceToDevice = (d: RPCTypes.Device) => {
     case 'desktop':
     case 'backup':
       return makeDevice({
+        deviceNumberOfType: d.deviceNumberOfType,
         id: DeviceTypes.stringToDeviceID(d.deviceID),
         name: d.name,
         type: type,
