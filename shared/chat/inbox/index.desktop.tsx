@@ -44,9 +44,7 @@ const FakeRow = ({idx}) => (
   </Kb.Box2>
 )
 
-const FakeRemovingRow = () => (
-  <Kb.Box2 direction="horizontal" style={styles.fakeRemovingRow} />
-)
+const FakeRemovingRow = () => <Kb.Box2 direction="horizontal" style={styles.fakeRemovingRow} />
 
 class Inbox extends React.Component<T.Props, State> {
   state = {
@@ -131,22 +129,29 @@ class Inbox extends React.Component<T.Props, State> {
       return (
         <div style={{...divStyle, position: 'relative'}}>
           {row.showButton && (
-            <Kb.Box className="grabLinesContainer" draggable={row.showButton} style={styles.grabber}>
-              <Kb.Box2 className="grabLines" direction="vertical" style={styles.grabberLineContainer}>
-                <Kb.Box2 direction="horizontal" style={styles.grabberLine} />
-                <Kb.Box2 direction="horizontal" style={styles.grabberLine} />
-                <Kb.Box2 direction="horizontal" style={styles.grabberLine} />
-              </Kb.Box2>
-            </Kb.Box>
+            <>
+              <Kb.Box className="grabLinesContainer" draggable={row.showButton} style={styles.grabber}>
+                <Kb.Box2 className="grabLines" direction="vertical" style={styles.grabberLineContainer}>
+                  <Kb.Box2 direction="horizontal" style={styles.grabberLine} />
+                  <Kb.Box2 direction="horizontal" style={styles.grabberLine} />
+                  <Kb.Box2 direction="horizontal" style={styles.grabberLine} />
+                </Kb.Box2>
+              </Kb.Box>
+              <Kb.Box style={styles.spacer} />
+            </>
           )}
           {this.state.dragY !== -1 && (
             <Kb.Box2
               direction="vertical"
-              style={Styles.collapseStyles([styles.fakeRowContainer, {
-                bottom: expandingRows.length ? undefined : dividerHeight(row.showButton),
-                height: (expandingRows.length ? expandingRows.length : removingRows.length) * smallRowHeight,
-                top: expandingRows.length ? 0 : undefined,
-              }])}
+              style={Styles.collapseStyles([
+                styles.fakeRowContainer,
+                {
+                  bottom: expandingRows.length ? undefined : dividerHeight(row.showButton),
+                  height:
+                    (expandingRows.length ? expandingRows.length : removingRows.length) * smallRowHeight,
+                  top: expandingRows.length ? 0 : undefined,
+                },
+              ])}
             >
               {expandingRows.map((_, idx) => (
                 <FakeRow idx={idx} key={idx} />
@@ -344,7 +349,7 @@ const InboxHoverContainer = Styles.styled(Kb.Box)({
     transition: 'opacity 0.25s ease-in-out',
     opacity: 0.5,
   },
-  ':hover .grabLines': {opacity: .25},
+  ':hover .grabLines': {opacity: 0.25},
   ':hover .grabLinesContainer': {opacity: 1},
   '.grabLinesContainer:hover .grabLines': {opacity: 1},
 })
@@ -355,7 +360,7 @@ const styles = Styles.styleSheetCreate(
       container: Styles.platformStyles({
         isElectron: {
           ...Styles.globalStyles.flexBoxColumn,
-          backgroundColor: Styles.globalColors.blueGrey,
+          backgroundColor: Styles.globalColors.blueGreyLight,
           contain: 'strict',
           height: '100%',
           maxWidth: inboxWidth,
@@ -383,7 +388,7 @@ const styles = Styles.styleSheetCreate(
           width: '100%',
         },
       }),
-      fakeRemovingRowDivider:{
+      fakeRemovingRowDivider: {
         top: 0,
         position: 'absolute',
         width: '100%',
@@ -459,6 +464,13 @@ const styles = Styles.styleSheetCreate(
       list: {flex: 1},
       rowWithDragger: {
         height: 68,
+      },
+      spacer: {
+        backgroundColor: Styles.globalColors.blueGreyLight,
+        bottom: 0,
+        height: 8,
+        position: 'absolute',
+        width: '100%',
       },
     } as const)
 )

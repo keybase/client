@@ -83,24 +83,11 @@ class BigTeamChannel extends PureComponent<Props, State> {
 
 const MutedIcon = ({isHovered, isSelected}) => (
   <Kb.Icon
-    type={
-      Styles.isMobile
-        ? isSelected
-          ? 'icon-shh-active-26-21'
-          : 'icon-shh-26-21'
-        : isSelected
-        ? 'iconfont-shh'
-        : isHovered
-        ? 'iconfont-shh'
-        : 'iconfont-shh'
-    }
-    style={mutedStyle}
+    color={isSelected ? Styles.globalColors.white : Styles.globalColors.black_20}
+    style={styles.muted}
+    type={Styles.isMobile ? (isSelected ? 'icon-shh-active-26-21' : 'icon-shh-26-21') : 'iconfont-shh'}
   />
 )
-
-const mutedStyle = {
-  marginLeft: Styles.globalMargins.xtiny,
-}
 
 const UnreadIcon = () => (
   <Kb.Box style={styles.unreadContainer}>
@@ -144,6 +131,9 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   container: {flexShrink: 0, height: RowSizes.bigRowHeight},
+  muted: {
+    marginLeft: Styles.globalMargins.xtiny,
+  },
   rowContainer: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxRow,

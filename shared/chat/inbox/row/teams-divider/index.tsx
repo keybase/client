@@ -61,6 +61,9 @@ const styles = Styles.styleSheetCreate(
           justifyContent: 'center',
           width: '100%',
         },
+        isElectron: {
+          backgroundColor: Styles.globalColors.blueGrey,
+        },
         isMobile: {
           paddingBottom: Styles.globalMargins.tiny,
           paddingTop: Styles.globalMargins.tiny,

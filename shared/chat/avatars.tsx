@@ -25,19 +25,75 @@ type AvatarProps = {
   backgroundColor?: string
 }
 
+const MobileMutedIcon = (p: {
+  isHovered: boolean
+  isMuted: boolean
+  isSelected: boolean
+  isLocked: boolean
+}): React.ReactElement<any> | null => {
+  const {isHovered, isMuted, isSelected, isLocked} = p
+  const type = isMuted
+    ? isSelected
+      ? 'icon-shh-active-26-21'
+      : 'icon-shh-26-21'
+    : isLocked
+    ? isSelected
+      ? 'icon-addon-lock-active-22'
+      : 'icon-addon-lock-22'
+    : null
+  return type ? <Kb.Icon type={type} style={styles.mutedIcon} /> : null
+}
+
 const StrokedIcon = Styles.styled(Kb.Icon)(props => ({
   bottom: 1,
-  color: props.isHovered && !props.isSelected ? Styles.globalColors.black_20 : props.isSelected ? Styles.globalColors.white : Styles.globalColors.black_20,
+  color:
+    props.isHovered && !props.isSelected
+      ? Styles.globalColors.black_20
+      : props.isSelected
+      ? Styles.globalColors.white
+      : Styles.globalColors.black_20,
   position: 'absolute',
   right: 1,
   '&.stroke': {
-    '-webkit-text-stroke': `4px ${props.isHovered && !props.isSelected ? Styles.globalColors.blueGreyDark : props.isSelected ? Styles.globalColors.blue : Styles.globalColors.blueGrey}`,
-    color: props.isHovered && !props.isSelected ? Styles.globalColors.blueGreyDark : props.isSelected ? Styles.globalColors.blue : Styles.globalColors.blueGrey,
+    '-webkit-text-stroke': `3px ${
+      props.isHovered && !props.isSelected
+        ? Styles.globalColors.blueGreyDark
+        : props.isSelected
+        ? Styles.globalColors.blue
+        : Styles.globalColors.blueGrey
+    }`,
     bottom: 0,
-    fontWeight: 'bolder',
+    color:
+      props.isHovered && !props.isSelected
+        ? Styles.globalColors.blueGreyDark
+        : props.isSelected
+        ? Styles.globalColors.blue
+        : Styles.globalColors.blueGrey,
     right: 0,
   },
 }))
+
+const DesktopMutedIcon = (p: {
+  isHovered: boolean
+  isMuted: boolean
+  isSelected: boolean
+  isLocked: boolean
+}): React.ReactElement<any> | null => {
+  const {isHovered, isMuted, isSelected, isLocked} = p
+  const type = isMuted ? 'iconfont-shh' : isLocked ? 'iconfont-lock' : null
+  return type ? (
+    <Kb.Box style={styles.mutedIcon}>
+      <StrokedIcon
+        isSelected={isSelected}
+        isHovered={isHovered}
+        className="stroke"
+        type={type}
+        fontSize={18}
+      />
+      <StrokedIcon isSelected={isSelected} isHovered={isHovered} type={type} fontSize={16} />
+    </Kb.Box>
+  ) : null
+}
 
 const MutedIcon = (p: {
   isHovered: boolean
@@ -45,31 +101,7 @@ const MutedIcon = (p: {
   isSelected: boolean
   isLocked: boolean
 }): React.ReactElement<any> | null => {
-  const {isHovered, isMuted, isSelected, isLocked} = p
-  let type: Kb.IconType
-  if (isMuted) {
-    if (Styles.isMobile) {
-      type = isSelected ? 'icon-shh-active-26-21' : 'icon-shh-26-21'
-    } else {
-      type = 'iconfont-shh'
-    }
-    return (<Kb.Box style={Styles.collapseStyles([avatarIconStyle, {bottom: -4, right: -2}])}>
-      <StrokedIcon isSelected={isSelected} isHovered={isHovered} className="stroke" type={type} fontSize={Styles.isMobile ? 24 : 22} />
-      <StrokedIcon isSelected={isSelected} isHovered={isHovered} type={type} fontSize={20} />
-    </Kb.Box>)
-  } else if (isLocked) {
-    if (Styles.isMobile) {
-      type = isSelected ? 'icon-addon-lock-active-22' : 'icon-addon-lock-22'
-    } else {
-      type = isSelected
-        ? 'icon-addon-lock-active-16'
-        : isHovered
-        ? 'icon-addon-lock-hover-16'
-        : 'icon-addon-lock-16'
-    }
-    return <Kb.Icon type={type} style={avatarIconStyle} />
-  }
-  return null
+  return Styles.isMobile ? MobileMutedIcon(p) : DesktopMutedIcon(p)
 }
 
 class Avatars extends React.Component<AvatarProps> {
@@ -143,6 +175,19 @@ const styles = Styles.styleSheetCreate(() => ({
     minWidth: 48,
     position: 'relative',
   },
+  mutedIcon: Styles.platformStyles({
+    common: {
+      position: 'absolute',
+    },
+    isElectron: {
+      bottom: -3,
+      right: -1,
+    },
+    isMobile: {
+      bottom: -1,
+      right: -1,
+    },
+  }),
 }))
 
 class TeamAvatar extends React.Component<{
@@ -165,12 +210,5 @@ class TeamAvatar extends React.Component<{
     )
   }
 }
-
-const offset = Styles.isMobile ? -1 : 0
-const avatarIconStyle = {
-  bottom: offset,
-  position: 'absolute',
-  right: offset,
-} as const
 
 export {Avatars, TeamAvatar}
