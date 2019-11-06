@@ -133,7 +133,7 @@ const TeamJourneyConnected = Container.connect(
       .toArray()
       .sort((x, y) => y.mtime - x.mtime)
       .map(info => info.channelname)
-      .slice(0, 3)
+      .slice(0, Container.isMobile ? 2 : 3)
 
     return {
       channelname,
