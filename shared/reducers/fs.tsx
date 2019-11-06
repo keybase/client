@@ -24,14 +24,13 @@ const initialState: Types.State = {
   edits: new Map(),
   errors: new Map(),
   fileContext: new Map(),
-  folderViewFilter: '',
   kbfsDaemonStatus: Constants.unknownKbfsDaemonStatus,
   lastPublicBannerClosedTlf: '',
   overallSyncStatus: Constants.emptyOverallSyncStatus,
   pathInfos: I.Map(),
   pathItemActionMenu: Constants.emptyPathItemActionMenu,
   pathItems: new Map(),
-  pathUserSettings: I.Map(),
+  pathUserSettings: new Map(),
   sendAttachmentToChat: Constants.makeSendAttachmentToChat(),
   settings: Constants.makeSettings(),
   sfmi: Constants.makeSystemFileManagerIntegration(),
@@ -170,9 +169,6 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
   [FsGen.setTlfsAsUnloaded]: draftState => {
     draftState.tlfs.loaded = false
   },
-  [FsGen.setFolderViewFilter]: (draftState, action) => {
-    draftState.folderViewFilter = action.payload.filter
-  },
   [FsGen.tlfSyncConfigLoaded]: (draftState, action) => {
     const oldTlfList = draftState.tlfs[action.payload.tlfType]
     const oldTlfFromFavorites = oldTlfList.get(action.payload.tlfName) || Constants.unknownTlf
@@ -209,10 +205,27 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
       return
     }
   },
-  [FsGen.sortSetting]: (draftState, action) => {
-    draftState.pathUserSettings = draftState.pathUserSettings.update(action.payload.path, setting =>
-      (setting || Constants.defaultPathUserSetting).set('sort', action.payload.sortSetting)
-    )
+  [FsGen.setSortSetting]: (draftState, action) => {
+    const setting = draftState.pathUserSettings.get(action.payload.path)
+    if (setting) {
+      setting.sortSetting = action.payload.sortSetting
+    } else {
+      draftState.pathUserSettings.set(action.payload.path, {
+        ...Constants.getDefaultPathUserSetting(action.payload.path),
+        sortSetting: action.payload.sortSetting,
+      })
+    }
+  },
+  [FsGen.setFolderViewFilter]: (draftState, action) => {
+    const setting = draftState.pathUserSettings.get(action.payload.path)
+    if (setting) {
+      setting.filter = action.payload.filter
+    } else {
+      draftState.pathUserSettings.set(action.payload.path, {
+        ...Constants.getDefaultPathUserSetting(action.payload.path),
+        filter: action.payload.filter,
+      })
+    }
   },
   [FsGen.uploadStarted]: (draftState, action) => {
     draftState.uploads.writingToJournal = new Set([

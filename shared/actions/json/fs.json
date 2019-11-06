@@ -32,8 +32,13 @@
       "public": "Types.TlfList",
       "team": "Types.TlfList"
     },
+    "setSortSetting": {
+      "path": "Types.Path",
+      "sortSetting": "Types.SortSetting"
+    },
     "setFolderViewFilter": {
-      "filter": "string"
+      "filter": "string | null",
+      "path": "Types.Path"
     },
     "tlfSyncConfigLoaded": {
       "tlfType": "Types.TlfType",
@@ -53,10 +58,6 @@
     },
     "loadPathMetadata": {
       "path": "Types.Path"
-    },
-    "sortSetting": {
-      "path": "Types.Path",
-      "sortSetting": "Types.SortSetting"
     },
     "shareNative": {
       "path": "Types.Path"

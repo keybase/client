@@ -331,10 +331,10 @@ export enum SortSetting {
   TimeDesc = 'time-desc',
 }
 
-export type _PathUserSetting = {
-  sort: SortSetting
+export type PathUserSetting = {
+  filter: string | null
+  sortSetting: SortSetting
 }
-export type PathUserSetting = I.RecordOf<_PathUserSetting>
 
 export type LocalPath = string
 
@@ -597,14 +597,13 @@ export type State = {
   edits: Edits
   errors: Map<string, FsError>
   fileContext: Map<Path, FileContext>
-  folderViewFilter: string
   kbfsDaemonStatus: KbfsDaemonStatus
   lastPublicBannerClosedTlf: string
   overallSyncStatus: OverallSyncStatus
   pathItemActionMenu: PathItemActionMenu
   pathItems: PathItems
   pathInfos: I.Map<Path, PathInfo>
-  pathUserSettings: I.Map<Path, PathUserSetting>
+  pathUserSettings: Map<Path, PathUserSetting>
   sendAttachmentToChat: SendAttachmentToChat
   settings: Settings
   sfmi: SystemFileManagerIntegration

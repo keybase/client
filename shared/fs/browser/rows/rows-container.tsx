@@ -76,7 +76,7 @@ const getInTlfItemsFromStateProps = (stateProps, path: Types.Path): Array<RowTyp
   const editingRows = getEditingRows(stateProps._edits, path)
   const stillRows = getStillRows(stateProps._pathItems, path, _pathItem.children)
 
-  return sortRowItems(_makeInTlfRows(editingRows, stillRows), stateProps._sortSetting, '')
+  return sortRowItems(_makeInTlfRows(editingRows, stillRows), stateProps._pathUserSetting.sortSetting, '')
 }
 
 const getTlfRowsFromTlfs = memoize(
@@ -104,7 +104,7 @@ const getTlfItemsFromStateProps = (stateProps, path): Array<RowTypes.NamedRowIte
   const {tlfList, tlfType} = Constants.getTlfListAndTypeFromPath(stateProps._tlfs, path)
   return sortRowItems(
     getTlfRowsFromTlfs(tlfList, tlfType),
-    stateProps._sortSetting,
+    stateProps._pathUserSetting.sortSetting,
     (Types.pathIsNonTeamTLFList(path) && stateProps._username) || ''
   )
 }
@@ -129,16 +129,15 @@ const filterRowItems = (rows, filter) =>
 export default namedConnect(
   (state, {path}: OwnProps) => ({
     _edits: state.fs.edits,
-    _filter: state.fs.folderViewFilter,
     _pathItems: state.fs.pathItems,
-    _sortSetting: Constants.getPathUserSetting(state.fs.pathUserSettings, path).sort,
+    _pathUserSetting: Constants.getPathUserSetting(state, path),
     _tlfs: state.fs.tlfs,
     _username: state.config.username,
   }),
   () => ({}),
   (s, _, o: OwnProps) => {
     const normalRowItems = getNormalRowItemsFromStateProps(s, o.path)
-    const filteredRowItems = filterRowItems(normalRowItems, s._filter)
+    const filteredRowItems = filterRowItems(normalRowItems, s._pathUserSetting.filter)
     return {
       destinationPickerIndex: o.destinationPickerIndex,
       emptyMode: !normalRowItems.length

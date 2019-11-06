@@ -3,8 +3,10 @@ import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as Constants from '../../constants/fs'
 import * as Types from '../../constants/types/fs'
-import Actions from './actions'
+import * as Container from '../../util/container'
 import * as Kbfs from '../common'
+import * as FsGen from '../../actions/fs-gen'
+import Actions from './actions'
 import MainBanner from './main-banner/container'
 
 type Props = {
@@ -12,56 +14,44 @@ type Props = {
   path: Types.Path
 }
 
-type State = {
-  filterExpanded: boolean
-}
-
 const MaybePublicTag = ({path}) =>
   Constants.hasPublicTag(path) ? <Kb.Meta title="public" backgroundColor={Styles.globalColors.green} /> : null
 
-class NavMobileHeader extends React.PureComponent<Props, State> {
-  state = {filterExpanded: false}
-  _triggerFilterMobile = () => {
-    this.setState({filterExpanded: true})
-  }
-  _filterDone = () => {
-    this.setState({filterExpanded: false})
-  }
-  componentDidUpdate(prevProps: Props) {
-    prevProps.path !== this.props.path && this.setState({filterExpanded: false})
-  }
-  render() {
-    return (
-      <Kb.Box2
-        direction="vertical"
-        fullWidth={true}
-        style={Styles.collapseStyles([styles.container, getHeightStyle(getHeight(this.props.path))])}
-      >
-        {this.state.filterExpanded ? (
-          <Kbfs.FolderViewFilter path={this.props.path} onCancel={this._filterDone} />
-        ) : (
-          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.expandedTopContainer}>
-            {this.props.onBack && (
-              <Kb.BackButton
-                badgeNumber={0 /* TODO KBFS-4109 */}
-                onClick={this.props.onBack}
-                style={styles.backButton}
-              />
-            )}
-            <Kb.Box style={styles.gap} />
-            <Actions path={this.props.path} onTriggerFilterMobile={this._triggerFilterMobile} />
-          </Kb.Box2>
-        )}
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.expandedTitleContainer}>
-          <Kb.Text type="BodyBig" lineClamp={1}>
-            {this.props.path === Constants.defaultPath ? 'Files' : Types.getPathName(this.props.path)}
-          </Kb.Text>
-          <MaybePublicTag path={this.props.path} />
+const NavMobileHeader = (props: Props) => {
+  const {filter} = Container.useSelector(state => Constants.getPathUserSetting(state, props.path))
+  const dispatch = Kbfs.useDispatchWhenKbfsIsConnected()
+  const triggerFilterMobile = () => dispatch(FsGen.createSetFolderViewFilter({filter: '', path: props.path}))
+  const filterDoneMobile = () => dispatch(FsGen.createSetFolderViewFilter({filter: null, path: props.path}))
+  return (
+    <Kb.Box2
+      direction="vertical"
+      fullWidth={true}
+      style={Styles.collapseStyles([styles.container, getHeightStyle(getHeight(props.path))])}
+    >
+      {filter === null ? (
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.expandedTopContainer}>
+          {props.onBack && (
+            <Kb.BackButton
+              badgeNumber={0 /* TODO KBFS-4109 */}
+              onClick={props.onBack}
+              style={styles.backButton}
+            />
+          )}
+          <Kb.Box style={styles.gap} />
+          <Actions path={props.path} onTriggerFilterMobile={triggerFilterMobile} />
         </Kb.Box2>
-        <MainBanner />
+      ) : (
+        <Kbfs.FolderViewFilter path={props.path} onCancel={filterDoneMobile} />
+      )}
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.expandedTitleContainer}>
+        <Kb.Text type="BodyBig" lineClamp={1}>
+          {props.path === Constants.defaultPath ? 'Files' : Types.getPathName(props.path)}
+        </Kb.Text>
+        <MaybePublicTag path={props.path} />
       </Kb.Box2>
-    )
-  }
+      <MainBanner />
+    </Kb.Box2>
+  )
 }
 
 export const getHeight = (path: Types.Path) =>

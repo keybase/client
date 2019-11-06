@@ -34,7 +34,7 @@ type Props = {
   placeholderCentered?: boolean
   style?: Styles.StylesCrossPlatform | null
   valueControlled?: boolean
-  value?: string
+  value?: string // for initial value. Also for actual value if valueControlled is true
   waiting?: boolean
   mobileCancelButton?: boolean // show "Cancel" on the left
   showXOverride?: boolean | null
@@ -73,7 +73,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
     // icon and clear button appear/disappearing
     focused: this.props.focusOnMount || false,
     hover: false,
-    text: '',
+    text: this.props.value || '',
   }
 
   private mounted = false
