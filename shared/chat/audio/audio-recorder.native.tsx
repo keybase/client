@@ -144,9 +144,9 @@ const AudioButton = (props: ButtonProps) => {
   const innerScale = React.useRef(new Kb.NativeAnimated.Value(0)).current
   const outerScale = React.useRef(new Kb.NativeAnimated.Value(0)).current
   const sendTranslate = React.useRef(new Kb.NativeAnimated.Value(0)).current
-  const innerOffsetY = React.useRef(new Kb.NativeAnimated.Value(-37)).current
-  const ampOffsetY = React.useRef(new Kb.NativeAnimated.Value(-35)).current
-  const micOffsetY = React.useRef(new Kb.NativeAnimated.Value(-35)).current
+  const innerOffsetY = React.useRef(new Kb.NativeAnimated.Value(-34)).current
+  const ampOffsetY = React.useRef(new Kb.NativeAnimated.Value(-31)).current
+  const micOffsetY = React.useRef(new Kb.NativeAnimated.Value(-34)).current
   // lifecycle
   React.useEffect(() => {
     Kb.NativeAnimated.parallel(
@@ -314,7 +314,6 @@ const AudioButton = (props: ButtonProps) => {
           style={{
             position: 'absolute',
             right: 48,
-            top: -1,
             transform: [{translateY: Kb.NativeAnimated.add(micOffsetY, props.dragY)}],
           }}
         >
