@@ -93,12 +93,14 @@ export const makePhoneNumbers = I.Record<Types._PhoneNumbersState>({
 })
 
 export const makeContacts = I.Record<Types._ContactsState>({
+  alreadyOnKeybase: I.List<RPCTypes.ProcessedContact>(),
   importEnabled: null,
   importError: '',
   importPromptDismissed: false,
   importedCount: null,
   permissionStatus: 'unknown',
   userCountryCode: null,
+  waitingToShowJoinedModal: false,
 })
 
 export const makeState = I.Record<Types._State>({

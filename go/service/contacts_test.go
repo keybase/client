@@ -91,10 +91,12 @@ func TestContactSyncAndSearch(t *testing.T) {
 	clock.Advance(72 * time.Hour)
 	all.contactsMock.PhoneNumbers["+48111222332"] = contacts.MakeMockLookupUser("alice", "")
 	all.contactsMock.PhoneNumbers["+48111222333"] = contacts.MakeMockLookupUser("alice", "")
-	newlyResolved, err := all.contactsHandler.SaveContactList(context.Background(), keybase1.SaveContactListArg{
+	result, err := all.contactsHandler.SaveContactList(context.Background(), keybase1.SaveContactListArg{
 		Contacts: rawContacts,
 	})
 	require.NoError(t, err)
+
+	newlyResolved := result.NewlyResolved
 	// We should only have 1 resolved, since we dedupe.
 	require.Len(t, newlyResolved, 1)
 	require.Equal(t, newlyResolved[0].ContactName, "Alice A")

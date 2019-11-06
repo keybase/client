@@ -108,7 +108,7 @@ const WithContacts = (props: WithContactsProps) => {
     // whether to dispatch `createRequestContactPermissions` so we never
     // dispatch more than once.
     if (permStatus === 'unknown' || permStatus === 'undetermined') {
-      dispatch(SettingsGen.createRequestContactPermissions({thenToggleImportOn: false}))
+      dispatch(SettingsGen.createRequestContactPermissions({fromSettings: false, thenToggleImportOn: false}))
     }
   }, [dispatch, permStatus])
 

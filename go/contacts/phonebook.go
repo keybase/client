@@ -70,10 +70,17 @@ type assertionToNameCache struct {
 
 const assertionToNameCurrentVer = 1
 
-func ResolveAndSaveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts []keybase1.Contact) (newlyResolved []keybase1.ProcessedContact, err error) {
+func ResolveAndSaveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts []keybase1.Contact) (res keybase1.ContactListResolutionResult, err error) {
 	resolveResults, err := ResolveContacts(mctx, provider, contacts)
 	if err != nil {
-		return nil, err
+		return res, err
+	}
+
+	// find resolved contacts
+	for _, contact := range resolveResults {
+		if contact.Resolved {
+			res.Resolved = append(res.Resolved, contact)
+		}
 	}
 
 	// find newly resolved
@@ -109,7 +116,7 @@ func ResolveAndSaveContacts(mctx libkb.MetaContext, provider ContactsProvider, c
 	}
 
 	if len(newlyResolvedMap) == 0 {
-		return newlyResolved, s.SaveProcessedContacts(mctx, resolveResults)
+		return res, s.SaveProcessedContacts(mctx, resolveResults)
 	}
 
 	resolutionsForPeoplePage := make([]ContactResolution, 0, len(newlyResolvedMap))
@@ -125,14 +132,14 @@ func ResolveAndSaveContacts(mctx libkb.MetaContext, provider ContactsProvider, c
 				Username: contact.Username,
 			},
 		})
-		newlyResolved = append(newlyResolved, contact)
+		res.NewlyResolved = append(res.NewlyResolved, contact)
 	}
 	err = SendEncryptedContactResolutionToServer(mctx, resolutionsForPeoplePage)
 	if err != nil {
 		mctx.Warning("Could not add resolved contacts to people page: %v; returning contacts anyway", err)
 	}
 
-	return newlyResolved, s.SaveProcessedContacts(mctx, resolveResults)
+	return res, s.SaveProcessedContacts(mctx, resolveResults)
 }
 
 func makeAssertionToName(contacts []keybase1.ProcessedContact) (res map[string]string) {

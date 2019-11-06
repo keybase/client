@@ -11,7 +11,7 @@ type ButtonProps = React.ComponentProps<typeof Button>
 
 export type OwnProps = {
   onlyDisable?: boolean // Must supply waiting key if this is true,
-  waitingKey: string | null
+  waitingKey: Array<string> | string | null
 } & ButtonProps
 
 export type Props = {
@@ -67,7 +67,10 @@ const ConnectedWaitingButton = namedConnect(
   (state, ownProps: OwnProps) => {
     const waitingKey = ownProps.waitingKey || ''
     return {
-      storeWaiting: WaitingConstants.anyWaiting(state, waitingKey),
+      storeWaiting:
+        typeof waitingKey === 'string'
+          ? WaitingConstants.anyWaiting(state, waitingKey)
+          : WaitingConstants.anyWaiting(state, ...waitingKey),
     }
   },
   () => ({}),

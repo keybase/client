@@ -736,6 +736,7 @@ export type TypedActionsMap = {
   'settings:loadedContactPermissions': settings.LoadedContactPermissionsPayload
   'settings:requestContactPermissions': settings.RequestContactPermissionsPayload
   'settings:editContactImportEnabled': settings.EditContactImportEnabledPayload
+  'settings:showContactsJoinedModal': settings.ShowContactsJoinedModalPayload
   'settings:importContactsLater': settings.ImportContactsLaterPayload
   'settings:setContactImportedCount': settings.SetContactImportedCountPayload
   'settings:loadedUserCountryCode': settings.LoadedUserCountryCodePayload
