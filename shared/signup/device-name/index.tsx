@@ -81,6 +81,9 @@ const styles = Styles.styleSheetCreate(() => ({
       // need to set width so subtext will wrap
       width: 368,
     },
+    isMobile: {
+      width: '100%',
+    },
   }),
   inputSub: {
     marginLeft: 2,
