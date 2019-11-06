@@ -368,7 +368,7 @@ func Reset() error {
 		conn.Close()
 	}
 	if !isInited() {
-		return errors.New("reset called before Init")
+		return nil
 	}
 
 	var err error
