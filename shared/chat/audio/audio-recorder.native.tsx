@@ -157,6 +157,8 @@ const AudioButton = (props: ButtonProps) => {
           useNativeDriver: true,
         }),
         Kb.NativeAnimated.timing(outerScale, {
+          duration: 200,
+          easing: Kb.NativeEasing.inOut(Kb.NativeEasing.ease),
           toValue: 15,
           useNativeDriver: true,
         }),
@@ -311,7 +313,8 @@ const AudioButton = (props: ButtonProps) => {
         <Kb.NativeAnimated.View
           style={{
             position: 'absolute',
-            right: 46,
+            right: 48,
+            top: 1,
             transform: [{translateY: Kb.NativeAnimated.add(micOffsetY, props.dragY)}],
           }}
         >
