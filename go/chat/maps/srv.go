@@ -80,7 +80,7 @@ func (s *Srv) serve(w http.ResponseWriter, req *http.Request) {
 
 	var reader io.ReadCloser
 	if username != "" {
-		avatarReader, _, err := avatars.GetBorderedCircleAvatar(ctx, s.G(), username, 96, 8)
+		avatarReader, _, err := avatars.GetBorderedCircleAvatar(ctx, s.G(), username, 48, 8, 8)
 		if err != nil {
 			s.makeError(w, http.StatusInternalServerError, "unable to get avatar: %s", err)
 			return

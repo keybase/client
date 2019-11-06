@@ -278,7 +278,7 @@ func (p *Packager) packageMaps(ctx context.Context, uid gregor1.UID, convID chat
 
 	// load user avatar for fancy maps
 	username := p.G().ExternalG().GetEnv().GetUsername().String()
-	avatarReader, _, err := avatars.GetBorderedCircleAvatar(ctx, p.G(), username, 96, 8)
+	avatarReader, _, err := avatars.GetBorderedCircleAvatar(ctx, p.G(), username, 48, 8, 8)
 	if err != nil {
 		return res, err
 	}
