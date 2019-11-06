@@ -32,8 +32,8 @@ export default connect(
   mapDispatchToProps,
   (stateProps, dispatchProps, ownProps) => {
     const unfurls = stateProps._unfurls
-      ? stateProps._unfurls
-          .toList()
+      ? [...stateProps._unfurls
+          .values()]
           .map(u => {
             return {
               isCollapsed: u.isCollapsed,
@@ -46,7 +46,6 @@ export default connect(
               url: u.url,
             }
           })
-          .toArray()
       : []
     return {
       author: stateProps.author,

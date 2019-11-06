@@ -14,7 +14,7 @@ import Text from '.'
 
 type OwnProps = {
   attachTo?: () => React.Component<any> | null
-  message: Types.MessageWithReactionPopup
+  message: Types.MessagesWithReactions
   onHidden: () => void
   position: Position
   style?: StylesCrossPlatform

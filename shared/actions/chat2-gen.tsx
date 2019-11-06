@@ -1,5 +1,5 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-import * as I from 'immutable'
+
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as Types from '../constants/types/chat2'
@@ -358,9 +358,9 @@ type _MessageWasEditedPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly messageID: RPCChatTypes.MessageID
   readonly text: HiddenString
-  readonly mentionsAt: I.Set<string>
+  readonly mentionsAt: Set<string>
   readonly mentionsChannel: 'none' | 'all' | 'here'
-  readonly mentionsChannelName: I.Map<string, Types.ConversationIDKey>
+  readonly mentionsChannelName: Map<string, Types.ConversationIDKey>
 }
 type _MessagesAddPayload = {
   readonly context:

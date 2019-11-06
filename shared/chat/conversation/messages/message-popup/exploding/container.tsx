@@ -6,7 +6,7 @@ import * as ConfigGen from '../../../../../actions/config-gen'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as FsGen from '../../../../../actions/fs-gen'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
-import {connect, TypedState, TypedDispatch, isMobile} from '../../../../../util/container'
+import * as Container from '../../../../../util/container'
 import {isIOS} from '../../../../../constants/platform'
 import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 import {StylesCrossPlatform} from '../../../../../styles/css'
@@ -23,7 +23,8 @@ export type OwnProps = {
   visible: boolean
 }
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+export default Container.connect(
+(state, ownProps: OwnProps) => {
   const yourMessage = ownProps.message.author === state.config.username
   const meta = Constants.getMeta(state, ownProps.message.conversationIDKey)
   const _canDeleteHistory =
@@ -52,9 +53,8 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
     timestamp: ownProps.message.timestamp,
     yourMessage,
   }
-}
-
-const mapDispatchToProps = (dispatch: TypedDispatch, ownProps: OwnProps) => ({
+},
+ (dispatch, ownProps: OwnProps) => ({
   _onAddReaction: () => {
     dispatch(
       RouteTreeGen.createNavigateAppend({
@@ -132,11 +132,7 @@ const mapDispatchToProps = (dispatch: TypedDispatch, ownProps: OwnProps) => ({
       ownProps.message.downloadPath &&
       dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: ownProps.message.downloadPath}))
   },
-})
-
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
+}),
   (stateProps, dispatchProps, ownProps) => {
     const items: MenuItems = []
     if (stateProps._canExplodeNow) {
@@ -146,7 +142,7 @@ export default connect(
         title: 'Explode now',
       })
     }
-    if (isMobile) {
+    if (Container.isMobile) {
       // 'Add a reaction' is an option on mobile
       items.push({
         onClick: dispatchProps._onAddReaction,
@@ -155,7 +151,7 @@ export default connect(
     }
     const message = ownProps.message
     if (message.type === 'attachment') {
-      if (isMobile) {
+      if (Container.isMobile) {
         if (message.attachmentType === 'image') {
           items.push({onClick: dispatchProps._onSaveAttachment, title: 'Save'})
         }

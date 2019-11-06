@@ -258,10 +258,9 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     )
 
   _unfurlList = () =>
-    // @ts-ignore
+  this.props.message.type === 'text' &&
     this.props.message.unfurls &&
-    // @ts-ignore
-    !this.props.message.unfurls.isEmpty() && (
+    this.props.message.unfurls.size && (
       <UnfurlList
         key="UnfurlList"
         conversationIDKey={this.props.conversationIDKey}
