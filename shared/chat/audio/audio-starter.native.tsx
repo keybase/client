@@ -30,11 +30,13 @@ const Tooltip = (props: TooltipProps) => {
     if (props.shouldBeVisible) {
       setVisible(true)
       Kb.NativeAnimated.timing(opacity, {
+        duration: 200,
         toValue: 1,
         useNativeDriver: true,
       }).start()
     } else {
       Kb.NativeAnimated.timing(opacity, {
+        duration: 200,
         toValue: 0,
         useNativeDriver: true,
       }).start(() => setVisible(false))
