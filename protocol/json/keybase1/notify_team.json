@@ -61,6 +61,10 @@
         {
           "name": "latestHiddenSeqno",
           "type": "Seqno"
+        },
+        {
+          "name": "latestOffchainSeqno",
+          "type": "Seqno"
         }
       ],
       "response": null,
@@ -86,6 +90,10 @@
         },
         {
           "name": "latestHiddenSeqno",
+          "type": "Seqno"
+        },
+        {
+          "name": "latestOffchainSeqno",
           "type": "Seqno"
         }
       ],
