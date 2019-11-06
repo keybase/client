@@ -279,6 +279,6 @@ func (h *AccountHandler) GuessCurrentLocation(ctx context.Context, arg keybase1.
 		mctx.Warning("Unable to retrieve the current location: %v", err)
 		return arg.DefaultCountry, nil
 	}
-	mctx.Info("Guessed this device's country to be %v", code)
+	mctx.Debug("Guessed this device's country to be %v", code)
 	return code, nil
 }
