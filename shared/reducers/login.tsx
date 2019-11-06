@@ -17,14 +17,14 @@ const clearErrors = (draftState: Container.Draft<Types.State>) => {
 }
 
 export default Container.makeReducer<Actions, Types.State>(initialState, {
-    [LoginGen.resetStore]: () => initialState,
-    [LoginGen.loginError]: (draftState, action) => {
-        draftState.error = action.payload.error
-    },
-    [LoginGen.loadedIsOnline]: (draftState, action) => {
-        draftState.isOnline = action.payload.isOnline
-    },
-    [SignupGen.requestAutoInvite]: (draftState) => clearErrors(draftState),
-    [LoginGen.login]: (draftState) => clearErrors(draftState),
-    [ProvisionGen.startProvision]: (draftState) => clearErrors(draftState),
+  [LoginGen.resetStore]: () => initialState,
+  [LoginGen.loginError]: (draftState, action) => {
+    draftState.error = action.payload.error
+  },
+  [LoginGen.loadedIsOnline]: (draftState, action) => {
+    draftState.isOnline = action.payload.isOnline
+  },
+  [SignupGen.requestAutoInvite]: draftState => clearErrors(draftState),
+  [LoginGen.login]: draftState => clearErrors(draftState),
+  [ProvisionGen.startProvision]: draftState => clearErrors(draftState),
 })
