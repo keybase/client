@@ -424,7 +424,7 @@ export const getTeamNameFromID = (state: TypedState, teamID: string): Types.Team
 export const getTeamRetentionPolicy = (state: TypedState, teamname: Types.Teamname): RetentionPolicy | null =>
   state.teams.teamNameToRetentionPolicy.get(teamname, null)
 
-const getSelectedTeamNames = (): Types.Teamname[] => {
+export const getSelectedTeamNames = (): Types.Teamname[] => {
   const path = getFullRoute()
   return path.reduce<Array<string>>((names, curr) => {
     if (curr.routeName === 'team') {
