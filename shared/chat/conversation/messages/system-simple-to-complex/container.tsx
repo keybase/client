@@ -1,7 +1,6 @@
 import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
-import * as TeamConstants from '../../../../constants/teams'
 import {TeamID} from '../../../../constants/types/teams'
 import SystemSimpleToComplex from '.'
 import {connect} from '../../../../util/container'
@@ -12,9 +11,9 @@ type OwnProps = {
 
 export default connect(
   (state, ownProps: OwnProps) => {
-    const teamname = Constants.getMeta(state, ownProps.message.conversationIDKey).teamname
+    const {teamID, teamname} = Constants.getMeta(state, ownProps.message.conversationIDKey)
     return {
-      teamID: TeamConstants.getTeamID(state, teamname),
+      teamID,
       teamname,
       you: state.config.username,
     }

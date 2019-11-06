@@ -12,8 +12,7 @@ type OwnProps = {
 
 export default connect(
   (state, ownProps: OwnProps) => {
-    const teamname = Constants.getMeta(state, ownProps.message.conversationIDKey).teamname
-    const teamID = TeamConstants.getTeamID(state, teamname)
+    const {teamID, teamname} = Constants.getMeta(state, ownProps.message.conversationIDKey)
     return {
       teamID,
       teamname,

@@ -12,8 +12,7 @@ type OwnProps = {
 }
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
-  const teamname = Constants.getMeta(state, ownProps.message.conversationIDKey).teamname
-  const teamID = TeamConstants.getTeamID(state, teamname)
+  const {teamID, teamname} = Constants.getMeta(state, ownProps.message.conversationIDKey)
   return {
     addee: ownProps.message.addee,
     adder: ownProps.message.adder,
