@@ -60,7 +60,6 @@
       "teamname": "string",
       "members": "I.Map<string, Types.MemberInfo>"
     },
-    "getDetailsForAllTeams": {},
     "getTeamOperations": {
       "teamname": "string"
     },
@@ -199,10 +198,12 @@
       "settings": "RPCTypes.TeamSettings",
       "invites": "Array<Types._InviteInfo>",
       "subteams": "Array<Types.Teamname>",
-      "requests": "Map<string, Array<string>>"
+      "requests": "Map<string, Array<string>>",
+      "subteamIDs": "Set<Types.TeamID>"
     },
     "setTeamCanPerform": {
       "teamname": "string",
+      "teamID": "Types.TeamID",
       "teamOperation": "Types.TeamOperations"
     },
     "setTeamPublicitySettings": {

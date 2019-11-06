@@ -2444,6 +2444,10 @@
           "name": "name"
         },
         {
+          "type": "TeamID",
+          "name": "teamID"
+        },
+        {
           "type": "int",
           "name": "memberCount"
         }
