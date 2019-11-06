@@ -447,8 +447,8 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
     ) {
       attachmentFullscreenSelection.message = {
         ...message,
-        transferState: 'downloading',
         transferProgress: action.payload.ratio,
+        transferState: 'downloading',
       }
     }
 

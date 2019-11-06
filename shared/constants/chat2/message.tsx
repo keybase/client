@@ -1384,12 +1384,12 @@ export const upgradeMessage = (old: Types.Message, m: Types.Message): Types.Mess
       ...m,
       // We got an attachment-uploaded message. Hold on to the old ID
       // because that's what the service expects to delete this message
+      downloadPath: old.downloadPath,
       id: old.id,
       ordinal: old.ordinal,
-      downloadPath: old.downloadPath,
       previewURL: old.previewURL && !m.previewURL ? old.previewURL : m.previewURL,
-      transferState: old.transferState === 'remoteUploading' ? null : old.transferState,
       transferProgress: old.transferProgress,
+      transferState: old.transferState === 'remoteUploading' ? null : old.transferState,
     }
   }
   return m
