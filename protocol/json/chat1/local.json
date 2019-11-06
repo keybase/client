@@ -4547,6 +4547,10 @@
             "type": "array",
             "items": "double"
           }
+        },
+        {
+          "name": "duration",
+          "type": "int"
         }
       ],
       "response": "MakePreviewRes"
@@ -4580,6 +4584,15 @@
         }
       ],
       "response": "string"
+    },
+    "cancelUploadTempFile": {
+      "request": [
+        {
+          "name": "outboxID",
+          "type": "OutboxID"
+        }
+      ],
+      "response": null
     },
     "CancelPost": {
       "request": [

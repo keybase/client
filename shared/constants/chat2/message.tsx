@@ -233,6 +233,8 @@ export const makeMessageAttachment = I.Record<MessageTypes._MessageAttachment>({
   ...makeMessageCommon,
   ...makeMessageExplodable,
   attachmentType: 'file',
+  audioAmps: [],
+  audioDuration: 0,
   downloadPath: null,
   fileName: '',
   fileSize: 0,
@@ -692,8 +694,10 @@ export const previewSpecs = (
   preview: RPCChatTypes.AssetMetadata | null,
   full: RPCChatTypes.AssetMetadata | null
 ) => {
-  const res = {
+  const res: Types.PreviewSpec = {
     attachmentType: 'file' as Types.AttachmentType,
+    audioAmps: [],
+    audioDuration: 0,
     height: 0,
     showPlayButton: false,
     width: 0,
@@ -704,11 +708,17 @@ export const previewSpecs = (
   if (preview.assetType === RPCChatTypes.AssetMetadataType.image && preview.image) {
     res.height = preview.image.height
     res.width = preview.image.width
-    res.attachmentType = 'image'
-    // full is a video but preview is an image?
-    if (full && full.assetType === RPCChatTypes.AssetMetadataType.video) {
-      res.showPlayButton = true
+    if (full && full.assetType === RPCChatTypes.AssetMetadataType.video && full.video && full.video.isAudio) {
+      res.attachmentType = 'audio'
+      res.audioDuration = full.video.durationMs
+    } else {
+      res.attachmentType = 'image'
+      // full is a video but preview is an image?
+      if (full && full.assetType === RPCChatTypes.AssetMetadataType.video) {
+        res.showPlayButton = true
+      }
     }
+    res.audioAmps = preview.image.audioAmps || []
   } else if (preview.assetType === RPCChatTypes.AssetMetadataType.video && preview.video) {
     res.height = preview.video.height
     res.width = preview.video.width
@@ -880,6 +890,8 @@ const validUIMessagetoMessage = (
         ...common,
         ...explodable,
         attachmentType: pre.attachmentType,
+        audioAmps: pre.audioAmps,
+        audioDuration: pre.audioDuration,
         fileName: filename,
         fileSize: size,
         fileType,
@@ -1168,6 +1180,8 @@ export const makePendingAttachmentMessage = (
   return makeMessageAttachment({
     ...explodeInfo,
     attachmentType: previewSpec.attachmentType,
+    audioAmps: previewSpec.audioAmps,
+    audioDuration: previewSpec.audioDuration,
     author: state.config.username,
     conversationIDKey,
     deviceName: '',
@@ -1354,4 +1368,12 @@ export const messageAttachmentTransferStateToProgressLabel = (
     default:
       return ''
   }
+}
+
+export const messageAttachmentHasProgress = (message: Types.MessageAttachment) => {
+  return (
+    !!message.transferState &&
+    message.transferState !== 'remoteUploading' &&
+    message.transferState !== 'mobileSaving'
+  )
 }

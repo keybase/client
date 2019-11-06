@@ -1,0 +1,481 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+import * as React from 'react'
+import * as Kb from '../../common-adapters/mobile.native'
+import * as Types from '../../constants/types/chat2'
+import * as Constants from '../../constants/chat2'
+import * as Styles from '../../styles'
+import * as Container from '../../util/container'
+import * as Chat2Gen from '../../actions/chat2-gen'
+import {formatAudioRecordDuration} from '../../util/timestamp'
+import {isIOS} from '../../constants/platform'
+import {AmpTracker} from './amptracker'
+import AudioStarter from './audio-starter.native'
+import {Gateway} from 'react-gateway'
+
+type Props = {
+  conversationIDKey: Types.ConversationIDKey
+  iconStyle?: Styles.StylesCrossPlatform
+}
+
+const minAmp = isIOS ? -40 : -60
+
+const AudioRecorder = (props: Props) => {
+  // props
+  const {conversationIDKey} = props
+  // state
+  const ampScale = React.useRef(new Kb.NativeAnimated.Value(0)).current
+  const dragY = React.useRef(new Kb.NativeAnimated.Value(0)).current
+  const slideTranslate = React.useRef(new Kb.NativeAnimated.Value(0)).current
+  const ampTracker = React.useRef(new AmpTracker()).current
+  const [visible, setVisible] = React.useState(false)
+  const [closingDown, setClosingDown] = React.useState(false)
+  const {audioRecording} = Container.useSelector(state => ({
+    audioRecording: state.chat2.audioRecording.get(conversationIDKey),
+  }))
+  const closingDownRef = React.useRef(false)
+
+  // dispatch
+  const dispatch = Container.useDispatch()
+  const meteringCb = (amp: number) => {
+    ampTracker.addAmp(amp)
+    if (!closingDownRef.current) {
+      Kb.NativeAnimated.timing(ampScale, {
+        duration: 100,
+        toValue: ampToScale(amp),
+        useNativeDriver: true,
+      }).start()
+    }
+  }
+  const onCancel = React.useCallback(() => {
+    dispatch(Chat2Gen.createStopAudioRecording({conversationIDKey, stopType: Types.AudioStopType.CANCEL}))
+  }, [dispatch, conversationIDKey])
+  const lockRecording = React.useCallback(() => {
+    dispatch(Chat2Gen.createLockAudioRecording({conversationIDKey}))
+  }, [dispatch, conversationIDKey])
+  const enableRecording = React.useCallback(() => {
+    ampTracker.reset()
+    dispatch(Chat2Gen.createEnableAudioRecording({conversationIDKey, meteringCb}))
+  }, [dispatch, conversationIDKey])
+  const stopRecording = (stopType: Types.AudioStopType) => {
+    dispatch(
+      Chat2Gen.createStopAudioRecording({
+        amps: ampTracker,
+        conversationIDKey,
+        stopType,
+      })
+    )
+  }
+  const sendRecording = React.useCallback(() => stopRecording(Types.AudioStopType.SEND), [stopRecording])
+  const stageRecording = React.useCallback(() => stopRecording(Types.AudioStopType.STOPBUTTON), [
+    stopRecording,
+  ])
+
+  // render
+  const noShow = !Constants.showAudioRecording(audioRecording)
+  if (!visible && !noShow) {
+    closingDownRef.current = false
+    setVisible(true)
+    setClosingDown(false)
+  } else if (visible && noShow && !closingDown) {
+    closingDownRef.current = true
+    setClosingDown(true)
+    setTimeout(() => setVisible(false), 500)
+  }
+  const locked = audioRecording ? audioRecording.isLocked : false
+  const recording =
+    !!audioRecording &&
+    (audioRecording.status === Types.AudioRecordingStatus.INITIAL ||
+      audioRecording.status === Types.AudioRecordingStatus.RECORDING)
+  return (
+    <>
+      <AudioStarter
+        dragY={dragY}
+        locked={locked}
+        lockRecording={lockRecording}
+        recording={recording}
+        enableRecording={enableRecording}
+        stopRecording={stopRecording}
+        iconStyle={props.iconStyle}
+      />
+      {!visible ? null : (
+        <Gateway into="convOverlay">
+          <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
+            <AudioButton
+              ampScale={ampScale}
+              closeDown={closingDown}
+              dragY={dragY}
+              locked={locked}
+              sendRecording={sendRecording}
+              slideTranslate={slideTranslate}
+              stageRecording={stageRecording}
+            />
+            <AudioSlideToCancel
+              closeDown={closingDown}
+              locked={locked}
+              onCancel={onCancel}
+              translate={slideTranslate}
+            />
+            <AudioCounter closeDown={closingDown} slideTranslate={slideTranslate} />
+          </Kb.Box2>
+        </Gateway>
+      )}
+    </>
+  )
+}
+
+type ButtonProps = {
+  ampScale: Kb.NativeAnimated.Value
+  closeDown: boolean
+  dragY: Kb.NativeAnimated.Value
+  locked: boolean
+  sendRecording: () => void
+  slideTranslate: Kb.NativeAnimated.Value
+  stageRecording: () => void
+}
+
+const maxScale = 8
+const minScale = 3
+const ampToScale = (amp: number) => {
+  const prop = Math.max(0, 1 - amp / minAmp)
+  return minScale + prop * (maxScale - minScale)
+}
+
+const AudioButton = (props: ButtonProps) => {
+  const innerScale = React.useRef(new Kb.NativeAnimated.Value(0)).current
+  const outerScale = React.useRef(new Kb.NativeAnimated.Value(0)).current
+  const sendTranslate = React.useRef(new Kb.NativeAnimated.Value(0)).current
+  const innerOffsetY = React.useRef(new Kb.NativeAnimated.Value(-37)).current
+  const ampOffsetY = React.useRef(new Kb.NativeAnimated.Value(-35)).current
+  const micOffsetY = React.useRef(new Kb.NativeAnimated.Value(-35)).current
+  // lifecycle
+  React.useEffect(() => {
+    Kb.NativeAnimated.parallel(
+      [
+        Kb.NativeAnimated.timing(innerScale, {
+          easing: Kb.NativeEasing.elastic(1),
+          toValue: 3,
+          useNativeDriver: true,
+        }),
+        Kb.NativeAnimated.timing(outerScale, {
+          toValue: 15,
+          useNativeDriver: true,
+        }),
+        Kb.NativeAnimated.timing(props.slideTranslate, {
+          easing: Kb.NativeEasing.elastic(1),
+          toValue: 1,
+          useNativeDriver: true,
+        }),
+      ],
+      {stopTogether: false}
+    ).start()
+  }, [])
+  React.useEffect(() => {
+    if (props.locked) {
+      Kb.NativeAnimated.timing(sendTranslate, {
+        easing: Kb.NativeEasing.elastic(1),
+        toValue: 1,
+        useNativeDriver: true,
+      }).start()
+    }
+  }, [props.locked])
+  React.useEffect(() => {
+    if (props.closeDown) {
+      Kb.NativeAnimated.parallel(
+        [
+          Kb.NativeAnimated.timing(outerScale, {
+            toValue: 0,
+            useNativeDriver: true,
+          }),
+          Kb.NativeAnimated.timing(innerScale, {
+            toValue: 0,
+            useNativeDriver: true,
+          }),
+          Kb.NativeAnimated.timing(props.slideTranslate, {
+            toValue: 0,
+            useNativeDriver: true,
+          }),
+          Kb.NativeAnimated.timing(sendTranslate, {
+            toValue: 0,
+            useNativeDriver: true,
+          }),
+          Kb.NativeAnimated.timing(props.ampScale, {
+            toValue: 0,
+            useNativeDriver: true,
+          }),
+        ],
+        {stopTogether: false}
+      ).start()
+    }
+  }, [props.closeDown])
+
+  const innerSize = 28
+  const ampSize = 34
+  const outerSize = 50
+  return (
+    <>
+      <Kb.NativeAnimated.View
+        style={{
+          backgroundColor: Styles.globalColors.white,
+          borderRadius: outerSize / 2,
+          bottom: 20,
+          height: outerSize,
+          opacity: 0.9,
+          position: 'absolute',
+          right: 30,
+          transform: [
+            {
+              scale: outerScale,
+            },
+          ],
+          width: outerSize,
+        }}
+      />
+      <Kb.NativeAnimated.View
+        style={{
+          backgroundColor: props.locked
+            ? Styles.globalColors.redLight
+            : Styles.globalColors.blueLighterOrBlueLight,
+          borderRadius: ampSize / 2,
+          height: ampSize,
+          position: 'absolute',
+          right: 40,
+          transform: [{translateY: Kb.NativeAnimated.add(ampOffsetY, props.dragY)}, {scale: props.ampScale}],
+          width: ampSize,
+        }}
+      />
+      <Kb.NativeAnimated.View
+        style={{
+          backgroundColor: props.locked ? Styles.globalColors.red : Styles.globalColors.blue,
+          borderRadius: innerSize / 2,
+          height: innerSize,
+          position: 'absolute',
+          right: 43,
+          transform: [{translateY: Kb.NativeAnimated.add(innerOffsetY, props.dragY)}, {scale: innerScale}],
+          width: innerSize,
+        }}
+      />
+
+      {!props.locked ? (
+        <>
+          <Kb.NativeAnimated.View
+            style={{
+              bottom: 155,
+              opacity: props.slideTranslate,
+              position: 'absolute',
+              right: 45,
+              transform: [
+                {
+                  translateY: props.slideTranslate.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [180, 0],
+                  }),
+                },
+              ],
+            }}
+          >
+            <Kb.NativeView>
+              <Kb.Icon type="iconfont-arrow-up" fontSize={22} />
+            </Kb.NativeView>
+          </Kb.NativeAnimated.View>
+          <Kb.NativeAnimated.View
+            style={{
+              bottom: 130,
+              opacity: props.slideTranslate,
+              position: 'absolute',
+              right: 45,
+              transform: [
+                {
+                  translateY: props.slideTranslate.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [180, 0],
+                  }),
+                },
+                {
+                  translateY: props.dragY.interpolate({
+                    inputRange: [-70, 0],
+                    outputRange: [-10, 0],
+                  }),
+                },
+              ],
+            }}
+          >
+            <Kb.Icon type="iconfont-lock" fontSize={22} />
+          </Kb.NativeAnimated.View>
+        </>
+      ) : (
+        <Kb.NativeAnimated.View
+          style={{
+            bottom: 130,
+            opacity: sendTranslate,
+            position: 'absolute',
+            right: 42,
+            transform: [{translateY: sendTranslate.interpolate({inputRange: [0, 1], outputRange: [180, 0]})}],
+          }}
+        >
+          <Kb.NativeView
+            style={{
+              alignItems: 'center',
+              backgroundColor: Styles.globalColors.blue,
+              borderRadius: 16,
+              height: 32,
+              justifyContent: 'center',
+              width: 32,
+            }}
+          >
+            <Kb.ClickableBox onClick={props.sendRecording}>
+              <Kb.Box2 direction="vertical" centerChildren={true}>
+                <Kb.Icon
+                  type="iconfont-arrow-full-up"
+                  color={Styles.globalColors.whiteOrWhite}
+                  fontSize={22}
+                />
+              </Kb.Box2>
+            </Kb.ClickableBox>
+          </Kb.NativeView>
+        </Kb.NativeAnimated.View>
+      )}
+
+      {!props.locked ? (
+        <Kb.NativeAnimated.View
+          style={{
+            position: 'absolute',
+            right: 46,
+            transform: [{translateY: Kb.NativeAnimated.add(micOffsetY, props.dragY)}],
+          }}
+        >
+          <Kb.Icon type="iconfont-mic" fontSize={22} color={Styles.globalColors.whiteOrWhite} />
+        </Kb.NativeAnimated.View>
+      ) : (
+        <Kb.TapGestureHandler onHandlerStateChange={props.stageRecording}>
+          <Kb.NativeView
+            style={{
+              bottom: 27,
+              height: 48,
+              justifyContent: 'center',
+              position: 'absolute',
+              right: 18,
+              width: 48,
+            }}
+          >
+            <Kb.Box
+              style={{
+                backgroundColor: Styles.globalColors.whiteOrWhite,
+                borderRadius: 2,
+                height: 18,
+                width: 18,
+              }}
+            />
+          </Kb.NativeView>
+        </Kb.TapGestureHandler>
+      )}
+    </>
+  )
+}
+
+type CancelProps = {
+  closeDown: boolean
+  locked: boolean
+  onCancel: () => void
+  translate: Kb.NativeAnimated.Value
+}
+
+const AudioSlideToCancel = (props: CancelProps) => {
+  const cancelTranslate = React.useRef(new Kb.NativeAnimated.Value(0)).current
+  React.useEffect(() => {
+    if (props.closeDown) {
+      Kb.NativeAnimated.timing(cancelTranslate, {
+        toValue: 1,
+        useNativeDriver: true,
+      }).start()
+    }
+  }, [props.closeDown])
+  return props.locked ? (
+    <Kb.NativeAnimated.View
+      style={{
+        bottom: 35,
+        position: 'absolute',
+        right: 150,
+        transform: [
+          {
+            translateY: cancelTranslate.interpolate({
+              inputRange: [0, 1],
+              outputRange: [0, 85],
+            }),
+          },
+        ],
+      }}
+    >
+      <Kb.Text type="BodyPrimaryLink" onClick={props.onCancel} style={{marginLeft: 30}}>
+        Cancel
+      </Kb.Text>
+    </Kb.NativeAnimated.View>
+  ) : (
+    <Kb.NativeAnimated.View
+      style={{
+        bottom: 35,
+        opacity: props.translate,
+        position: 'absolute',
+        right: 0,
+        transform: [
+          {
+            translateX: props.translate.interpolate({
+              inputRange: [0, 1],
+              outputRange: [-10, -125],
+            }),
+          },
+        ],
+      }}
+    >
+      <Kb.Box2 direction="horizontal" gap="tiny">
+        <Kb.Icon type="iconfont-arrow-left" fontSize={16} />
+        <Kb.Text type="BodySecondaryLink">Slide to cancel</Kb.Text>
+      </Kb.Box2>
+    </Kb.NativeAnimated.View>
+  )
+}
+
+type CounterProps = {
+  closeDown: boolean
+  slideTranslate: Kb.NativeAnimated.Value
+}
+
+const AudioCounter = (props: CounterProps) => {
+  const [seconds, setSeconds] = React.useState(0)
+  const [startTime] = React.useState(Date.now())
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setSeconds((Date.now() - startTime) / 1000)
+    }, 1000)
+    return () => clearTimeout(timer)
+  }, [seconds])
+  return (
+    <Kb.NativeAnimated.View
+      style={{
+        bottom: 35,
+        left: 10,
+        opacity: props.slideTranslate,
+        position: 'absolute',
+        transform: [
+          {
+            translateX: props.slideTranslate.interpolate({
+              inputRange: [0, 1],
+              outputRange: [props.closeDown ? -50 : -20, 0],
+            }),
+          },
+        ],
+      }}
+    >
+      <Kb.Text type="BodyBold">{formatAudioRecordDuration(seconds * 1000)}</Kb.Text>
+    </Kb.NativeAnimated.View>
+  )
+}
+
+const styles = Styles.styleSheetCreate(() => ({
+  container: {
+    ...Styles.globalStyles.fillAbsolute,
+    justifyContent: 'flex-end',
+    padding: Styles.globalMargins.tiny + 3,
+  },
+}))
+
+export default AudioRecorder

@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"runtime/debug"
+	"sort"
 	"time"
 
 	"github.com/keybase/client/go/kbcrypto"
@@ -1198,17 +1199,32 @@ func (ckf *ComputedKeyFamily) getDeviceForKidHelper(kid keybase1.KID) (ret *Devi
 	return
 }
 
-func (ckf *ComputedKeyFamily) GetAllDevices() []*Device {
-	devices := []*Device{}
+type byAge []*Device
+
+func (a byAge) Len() int           { return len(a) }
+func (a byAge) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a byAge) Less(i, j int) bool { return a[i].CTime < a[j].CTime }
+
+func (ckf *ComputedKeyFamily) GetAllDevices() []DeviceWithDeviceNumber {
+	devicesNoNum := make([]*Device, 0, len(ckf.cki.Devices))
 	for _, device := range ckf.cki.Devices {
-		devices = append(devices, device)
+		devicesNoNum = append(devicesNoNum, device)
+	}
+	sort.Sort(byAge(devicesNoNum))
+	devices := make([]DeviceWithDeviceNumber, 0, len(devicesNoNum))
+	deviceNumMap := make(map[string]int)
+	for _, device := range devicesNoNum {
+
+		devices = append(devices, DeviceWithDeviceNumber{device, deviceNumMap[device.Type]})
+
+		deviceNumMap[device.Type]++
 	}
 	return devices
 }
 
-func (ckf *ComputedKeyFamily) GetAllActiveDevices() []*Device {
-	devices := []*Device{}
-	for _, device := range ckf.cki.Devices {
+func (ckf *ComputedKeyFamily) GetAllActiveDevices() []DeviceWithDeviceNumber {
+	devices := make([]DeviceWithDeviceNumber, 0)
+	for _, device := range ckf.GetAllDevices() {
 		if device.IsActive() {
 			devices = append(devices, device)
 		}

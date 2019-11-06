@@ -52,7 +52,7 @@ const FollowNotification = (props: Props) => {
           props.type == 'contact'
             ? [
                 <FollowButton username={username} small={true} key="follow" />,
-                <WaveButton username={username} small={true} key="wave" />,
+                <WaveButton usernames={username} small={true} key="wave" />,
               ]
             : undefined
         }

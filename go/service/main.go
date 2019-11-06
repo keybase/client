@@ -459,6 +459,7 @@ func (d *Service) stopChatModules(m libkb.MetaContext) error {
 	<-d.ChatG().LiveLocationTracker.Stop(m.Ctx())
 	<-d.ChatG().BotCommandManager.Stop(m.Ctx())
 	<-d.ChatG().UIInboxLoader.Stop(m.Ctx())
+	<-d.ChatG().JourneyCardManager.Stop(m.Ctx())
 	return nil
 }
 
@@ -529,7 +530,8 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 		ri)
 	g.CommandsSource = commands.NewSource(g)
 	g.CoinFlipManager = chat.NewFlipManager(g, ri)
-	g.JourneyCardManager = chat.NewJourneyCardChecker(g)
+	g.JourneyCardManager = chat.NewJourneyCardManager(g)
+	g.AddDbNukeHook(g.JourneyCardManager, "JourneyCardManager")
 	g.TeamMentionLoader = chat.NewTeamMentionLoader(g)
 	g.ExternalAPIKeySource = chat.NewRemoteExternalAPIKeySource(g, ri)
 	g.LiveLocationTracker = maps.NewLiveLocationTracker(g)

@@ -143,6 +143,10 @@ type settingsDBGetter interface {
 	GetSettingsDB() *SettingsDB
 }
 
+type subscriptionManagerPublisherGetter interface {
+	SubscriptionManagerPublisher() SubscriptionManagerPublisher
+}
+
 // NodeID is a unique but transient ID for a Node. That is, two Node
 // objects in memory at the same time represent the same file or
 // directory if and only if their NodeIDs are equal (by pointer).

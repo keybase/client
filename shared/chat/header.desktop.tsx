@@ -76,7 +76,7 @@ const Header = (p: Props) => {
       : p.participants
 
   // if there is no description (and is not a 1-on-1), don't render the description box
-  const renderDescription = description || (withoutSelf && withoutSelf.length === 1)
+  const renderDescription = description || (p.fullName && withoutSelf && withoutSelf.length === 1)
 
   // trim() call makes sure that string is not just whitespace
   if (withoutSelf && withoutSelf.length === 1 && p.desc.trim()) {
@@ -118,9 +118,9 @@ const Header = (p: Props) => {
               <Kb.Text selectable={true} type="Header" lineClamp={1}>
                 {p.channel}
               </Kb.Text>
-            ) : withoutSelf && withoutSelf.length === 1 ? (
+            ) : p.fullName ? (
               <Kb.Text type="Header" lineClamp={1}>
-                {p.fullName || withoutSelf[0]}
+                {p.fullName}
               </Kb.Text>
             ) : withoutSelf ? (
               <Kb.Box2 direction="horizontal" style={Styles.globalStyles.flexOne}>
@@ -154,7 +154,7 @@ const Header = (p: Props) => {
           </Kb.Box2>
           {renderDescription && (
             <Kb.Box2 direction="vertical" style={styles.descriptionContainer} fullWidth={true}>
-              {withoutSelf && withoutSelf.length === 1 ? (
+              {p.fullName && withoutSelf && withoutSelf.length === 1 ? (
                 <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
                   <Kb.ConnectedUsernames
                     colorFollowing={true}

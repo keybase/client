@@ -551,7 +551,8 @@ protocol SimpleFS {
     JOURNAL_STATUS_1,
     ONLINE_STATUS_2,
     DOWNLOAD_STATUS_3,
-    FILES_TAB_BADGE_4
+    FILES_TAB_BADGE_4,
+    OVERALL_SYNC_STATUS_5
   }
   enum PathSubscriptionTopic {
     CHILDREN_0,

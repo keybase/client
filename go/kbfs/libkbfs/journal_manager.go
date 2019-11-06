@@ -263,11 +263,11 @@ func (j *JournalManager) getConflictIDForHandle(
 	// handle's TLF ID to reflect that.
 	ci := h.ConflictInfo()
 	if ci == nil {
-		return tlf.ID{}, false
+		return tlf.NullID, false
 	}
 
 	if ci.Type != tlf.HandleExtensionLocalConflict {
-		return tlf.ID{}, false
+		return tlf.NullID, false
 	}
 
 	key := clearedConflictKey{
@@ -276,8 +276,8 @@ func (j *JournalManager) getConflictIDForHandle(
 		num:   ci.Number,
 	}
 	val, ok := j.clearedConflictTlfs[key]
-	if !ok {
-		return tlf.ID{}, false
+	if !ok || val.fakeTlfID == tlf.NullID {
+		return tlf.NullID, false
 	}
 
 	return val.fakeTlfID, true

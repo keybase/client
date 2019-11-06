@@ -29,7 +29,7 @@ func newEncryptedDB(g *libkb.GlobalContext) *encrypteddb.EncryptedDB {
 		// function used to use chat/storage.GetSecretBoxKey in the past, and
 		// we didn't want users to lose encrypted data after we switched to
 		// more generic encrypteddb.GetSecretBoxKey.
-		return encrypteddb.GetSecretBoxKey(ctx, g, encrypteddb.DefaultSecretUI,
+		return encrypteddb.GetSecretBoxKey(ctx, g,
 			libkb.EncryptionReasonChatLocalStorage, "offline rpc cache")
 	}
 	dbFn := func(g *libkb.GlobalContext) *libkb.JSONLocalDb {

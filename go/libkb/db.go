@@ -21,6 +21,8 @@ const (
 	DBTeamChain         = 0x10
 	DBUserPlusAllKeysV1 = 0x19
 
+	DBChatJourney                    = 0xae
+	DBTeamRoleMap                    = 0xaf
 	DBMisc                           = 0xb0
 	DBTeamMerkleCheck                = 0xb1
 	DBUidToServiceMap                = 0xb2

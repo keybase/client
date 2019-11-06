@@ -6,6 +6,7 @@ import * as Types from '../constants/types/chat2'
 import * as TeamsTypes from '../constants/types/teams'
 import HiddenString from '../util/hidden-string'
 import {RetentionPolicy} from '../constants/types/retention-policy'
+import {AmpTracker} from '../chat/audio/amptracker'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of chat2 but is handled by every reducer. NEVER dispatch this
@@ -74,7 +75,7 @@ export const messageErrored = 'chat2:messageErrored'
 export const messageReplyPrivately = 'chat2:messageReplyPrivately'
 export const messageRetry = 'chat2:messageRetry'
 export const messageSend = 'chat2:messageSend'
-export const messageSendByUsername = 'chat2:messageSendByUsername'
+export const messageSendByUsernames = 'chat2:messageSendByUsernames'
 export const messageSetEditing = 'chat2:messageSetEditing'
 export const messageSetQuoting = 'chat2:messageSetQuoting'
 export const messageWasEdited = 'chat2:messageWasEdited'
@@ -128,7 +129,6 @@ export const setThreadSearchQuery = 'chat2:setThreadSearchQuery'
 export const setThreadSearchStatus = 'chat2:setThreadSearchStatus'
 export const setUnsentText = 'chat2:setUnsentText'
 export const setWalletsOld = 'chat2:setWalletsOld'
-export const startAudioRecording = 'chat2:startAudioRecording'
 export const staticConfigLoaded = 'chat2:staticConfigLoaded'
 export const stopAudioRecording = 'chat2:stopAudioRecording'
 export const tabSelected = 'chat2:tabSelected'
@@ -234,7 +234,10 @@ type _DesktopNotificationPayload = {
   readonly body: string
 }
 type _DismissBottomBannerPayload = {readonly conversationIDKey: Types.ConversationIDKey}
-type _EnableAudioRecordingPayload = {readonly conversationIDKey: Types.ConversationIDKey}
+type _EnableAudioRecordingPayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly meteringCb: (amp: number) => void
+}
 type _GiphyGotSearchResultPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly results: RPCChatTypes.GiphySearchResults
@@ -331,8 +334,8 @@ type _MessageRetryPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly outboxID: Types.OutboxID
 }
-type _MessageSendByUsernamePayload = {
-  readonly username: string
+type _MessageSendByUsernamesPayload = {
+  readonly usernames: string
   readonly text: HiddenString
   readonly waitingKey?: string
 }
@@ -477,6 +480,7 @@ type _PreviewConversationPayload = {
     | 'teamMention'
     | 'appLink'
     | 'search'
+    | 'journeyCardPopular'
 }
 type _ReplyJumpPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
@@ -524,7 +528,11 @@ type _SelectConversationPayload = {
     | 'teamMention'
   readonly navKey?: string
 }
-type _SendAudioRecordingPayload = {readonly conversationIDKey: Types.ConversationIDKey}
+type _SendAudioRecordingPayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly fromStaged: boolean
+  readonly info: Types.AudioRecordingInfo
+}
 type _SendTypingPayload = {readonly conversationIDKey: Types.ConversationIDKey; readonly typing: boolean}
 type _SetAttachmentViewStatusPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
@@ -597,15 +605,11 @@ type _SetUnsentTextPayload = {
   readonly text?: HiddenString
 }
 type _SetWalletsOldPayload = void
-type _StartAudioRecordingPayload = {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly meteringCb: (amp: number) => void
-}
 type _StaticConfigLoadedPayload = {readonly staticConfig: Types.StaticConfig}
 type _StopAudioRecordingPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly stopType: Types.AudioStopType
-  readonly amps?: Array<number>
+  readonly amps?: AmpTracker
 }
 type _TabSelectedPayload = void
 type _ThreadSearchPayload = {
@@ -1306,9 +1310,9 @@ export const createMessageSend = (payload: _MessageSendPayload): MessageSendPayl
   payload,
   type: messageSend,
 })
-export const createMessageSendByUsername = (
-  payload: _MessageSendByUsernamePayload
-): MessageSendByUsernamePayload => ({payload, type: messageSendByUsername})
+export const createMessageSendByUsernames = (
+  payload: _MessageSendByUsernamesPayload
+): MessageSendByUsernamesPayload => ({payload, type: messageSendByUsernames})
 export const createMessageSetEditing = (payload: _MessageSetEditingPayload): MessageSetEditingPayload => ({
   payload,
   type: messageSetEditing,
@@ -1408,9 +1412,6 @@ export const createSetAudioRecordingPostInfo = (
 export const createSetConversationOffline = (
   payload: _SetConversationOfflinePayload
 ): SetConversationOfflinePayload => ({payload, type: setConversationOffline})
-export const createStartAudioRecording = (
-  payload: _StartAudioRecordingPayload
-): StartAudioRecordingPayload => ({payload, type: startAudioRecording})
 export const createStopAudioRecording = (payload: _StopAudioRecordingPayload): StopAudioRecordingPayload => ({
   payload,
   type: stopAudioRecording,
@@ -1667,9 +1668,9 @@ export type MessageReplyPrivatelyPayload = {
   readonly type: typeof messageReplyPrivately
 }
 export type MessageRetryPayload = {readonly payload: _MessageRetryPayload; readonly type: typeof messageRetry}
-export type MessageSendByUsernamePayload = {
-  readonly payload: _MessageSendByUsernamePayload
-  readonly type: typeof messageSendByUsername
+export type MessageSendByUsernamesPayload = {
+  readonly payload: _MessageSendByUsernamesPayload
+  readonly type: typeof messageSendByUsernames
 }
 export type MessageSendPayload = {readonly payload: _MessageSendPayload; readonly type: typeof messageSend}
 export type MessageSetEditingPayload = {
@@ -1866,10 +1867,6 @@ export type SetWalletsOldPayload = {
   readonly payload: _SetWalletsOldPayload
   readonly type: typeof setWalletsOld
 }
-export type StartAudioRecordingPayload = {
-  readonly payload: _StartAudioRecordingPayload
-  readonly type: typeof startAudioRecording
-}
 export type StaticConfigLoadedPayload = {
   readonly payload: _StaticConfigLoadedPayload
   readonly type: typeof staticConfigLoaded
@@ -2049,7 +2046,7 @@ export type Actions =
   | MessageErroredPayload
   | MessageReplyPrivatelyPayload
   | MessageRetryPayload
-  | MessageSendByUsernamePayload
+  | MessageSendByUsernamesPayload
   | MessageSendPayload
   | MessageSetEditingPayload
   | MessageSetQuotingPayload
@@ -2104,7 +2101,6 @@ export type Actions =
   | SetThreadSearchStatusPayload
   | SetUnsentTextPayload
   | SetWalletsOldPayload
-  | StartAudioRecordingPayload
   | StaticConfigLoadedPayload
   | StopAudioRecordingPayload
   | TabSelectedPayload

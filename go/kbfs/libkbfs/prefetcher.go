@@ -38,6 +38,7 @@ type prefetcherConfig interface {
 	clockGetter
 	reporterGetter
 	settingsDBGetter
+	subscriptionManagerPublisherGetter
 }
 
 type prefetchRequest struct {
@@ -223,6 +224,8 @@ func (p *blockPrefetcher) sendOverallSyncStatusHelperLocked() {
 		p.config.DiskBlockCache())
 
 	p.config.Reporter().NotifyOverallSyncStatus(context.Background(), status)
+	p.config.SubscriptionManagerPublisher().PublishChange(
+		keybase1.SubscriptionTopic_OVERALL_SYNC_STATUS)
 	p.lastOverallSyncStatusSent = p.config.Clock().Now()
 
 }

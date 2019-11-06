@@ -291,6 +291,10 @@ export type MessageTypes = {
     inParam: void
     outParam: void
   }
+  'chat.1.local.cancelUploadTempFile': {
+    inParam: {readonly outboxID: OutboxID}
+    outParam: void
+  }
   'chat.1.local.deleteConversationLocal': {
     inParam: {readonly convID: ConversationID; readonly channelName: String; readonly confirmed: Boolean}
     outParam: DeleteConversationLocalRes
@@ -368,7 +372,7 @@ export type MessageTypes = {
     outParam: void
   }
   'chat.1.local.makeAudioPreview': {
-    inParam: {readonly amps?: Array<Double> | null}
+    inParam: {readonly amps?: Array<Double> | null; readonly duration: Int}
     outParam: MakePreviewRes
   }
   'chat.1.local.makePreview': {
@@ -509,7 +513,6 @@ export enum AssetMetadataType {
   none = 0,
   image = 1,
   video = 2,
-  audio = 3,
 }
 
 export enum AssetTag {
@@ -959,10 +962,9 @@ export type AdvertiseCommandAPIParam = {readonly typ: String; readonly commands?
 export type AdvertiseCommandsParam = {readonly typ: BotCommandsAdvertisementTyp; readonly commands?: Array<UserBotCommandInput> | null; readonly teamName?: String | null}
 export type AppNotificationSettingLocal = {readonly deviceType: Keybase1.DeviceType; readonly kind: NotificationKind; readonly enabled: Boolean}
 export type Asset = {readonly filename: String; readonly region: String; readonly endpoint: String; readonly bucket: String; readonly path: String; readonly size: Long; readonly mimeType: String; readonly encHash: Hash; readonly key: Bytes; readonly verifyKey: Bytes; readonly title: String; readonly nonce: Bytes; readonly metadata: AssetMetadata; readonly tag: AssetTag}
-export type AssetMetadata = {assetType: AssetMetadataType.image; image: AssetMetadataImage} | {assetType: AssetMetadataType.video; video: AssetMetadataVideo} | {assetType: AssetMetadataType.audio; audio: AssetMetadataAudio} | {assetType: AssetMetadataType.none}
-export type AssetMetadataAudio = {readonly durationMs: Int}
-export type AssetMetadataImage = {readonly width: Int; readonly height: Int}
-export type AssetMetadataVideo = {readonly width: Int; readonly height: Int; readonly durationMs: Int}
+export type AssetMetadata = {assetType: AssetMetadataType.image; image: AssetMetadataImage} | {assetType: AssetMetadataType.video; video: AssetMetadataVideo} | {assetType: AssetMetadataType.none}
+export type AssetMetadataImage = {readonly width: Int; readonly height: Int; readonly audioAmps?: Array<Double> | null}
+export type AssetMetadataVideo = {readonly width: Int; readonly height: Int; readonly durationMs: Int; readonly isAudio: Boolean}
 export type BodyPlaintext = {version: BodyPlaintextVersion.v1; v1: BodyPlaintextV1} | {version: BodyPlaintextVersion.v2; v2: BodyPlaintextV2} | {version: BodyPlaintextVersion.v3; v3: BodyPlaintextUnsupported} | {version: BodyPlaintextVersion.v4; v4: BodyPlaintextUnsupported} | {version: BodyPlaintextVersion.v5; v5: BodyPlaintextUnsupported} | {version: BodyPlaintextVersion.v6; v6: BodyPlaintextUnsupported} | {version: BodyPlaintextVersion.v7; v7: BodyPlaintextUnsupported} | {version: BodyPlaintextVersion.v8; v8: BodyPlaintextUnsupported} | {version: BodyPlaintextVersion.v9; v9: BodyPlaintextUnsupported} | {version: BodyPlaintextVersion.v10; v10: BodyPlaintextUnsupported}
 export type BodyPlaintextMetaInfo = {readonly crit: Boolean}
 export type BodyPlaintextUnsupported = {readonly mi: BodyPlaintextMetaInfo}
@@ -1051,7 +1053,7 @@ export type GetInboxAndUnboxLocalRes = {readonly conversations?: Array<Conversat
 export type GetInboxAndUnboxUILocalRes = {readonly conversations?: Array<InboxUIItem> | null; readonly pagination?: Pagination | null; readonly offline: Boolean; readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type GetInboxByTLFIDRemoteRes = {readonly convs?: Array<Conversation> | null; readonly rateLimit?: RateLimit | null}
 export type GetInboxLocalQuery = {readonly name?: NameQuery | null; readonly topicName?: String | null; readonly convIDs?: Array<ConversationID> | null; readonly topicType?: TopicType | null; readonly tlfVisibility?: Keybase1.TLFVisibility | null; readonly before?: Gregor1.Time | null; readonly after?: Gregor1.Time | null; readonly oneChatTypePerTLF?: Boolean | null; readonly status?: Array<ConversationStatus> | null; readonly memberStatus?: Array<ConversationMemberStatus> | null; readonly unreadOnly: Boolean; readonly readOnly: Boolean; readonly computeActiveList: Boolean}
-export type GetInboxQuery = {readonly convID?: ConversationID | null; readonly topicType?: TopicType | null; readonly tlfID?: TLFID | null; readonly tlfVisibility?: Keybase1.TLFVisibility | null; readonly before?: Gregor1.Time | null; readonly after?: Gregor1.Time | null; readonly oneChatTypePerTLF?: Boolean | null; readonly topicName?: String | null; readonly status?: Array<ConversationStatus> | null; readonly memberStatus?: Array<ConversationMemberStatus> | null; readonly existences?: Array<ConversationExistence> | null; readonly membersTypes?: Array<ConversationMembersType> | null; readonly convIDs?: Array<ConversationID> | null; readonly unreadOnly: Boolean; readonly readOnly: Boolean; readonly computeActiveList: Boolean; readonly summarizeMaxMsgs: Boolean; readonly skipBgLoads: Boolean}
+export type GetInboxQuery = {readonly convID?: ConversationID | null; readonly topicType?: TopicType | null; readonly tlfID?: TLFID | null; readonly tlfVisibility?: Keybase1.TLFVisibility | null; readonly before?: Gregor1.Time | null; readonly after?: Gregor1.Time | null; readonly oneChatTypePerTLF?: Boolean | null; readonly topicName?: String | null; readonly status?: Array<ConversationStatus> | null; readonly memberStatus?: Array<ConversationMemberStatus> | null; readonly existences?: Array<ConversationExistence> | null; readonly membersTypes?: Array<ConversationMembersType> | null; readonly convIDs?: Array<ConversationID> | null; readonly unreadOnly: Boolean; readonly readOnly: Boolean; readonly computeActiveList: Boolean; readonly summarizeMaxMsgs: Boolean; readonly skipBgLoads: Boolean; readonly allowUnseenQuery: Boolean}
 export type GetInboxRemoteRes = {readonly inbox: InboxView; readonly rateLimit?: RateLimit | null}
 export type GetInboxSummaryForCLILocalQuery = {readonly topicType: TopicType; readonly after: String; readonly before: String; readonly visibility: Keybase1.TLFVisibility; readonly status?: Array<ConversationStatus> | null; readonly convIDs?: Array<ConversationID> | null; readonly unreadFirst: Boolean; readonly unreadFirstLimit: UnreadFirstNumLimit; readonly activitySortedLimit: Int}
 export type GetInboxSummaryForCLILocalRes = {readonly conversations?: Array<ConversationLocal> | null; readonly offline: Boolean; readonly rateLimits?: Array<RateLimit> | null}
@@ -1418,6 +1420,7 @@ export const localBulkAddToConvRpcPromise = (params: MessageTypes['chat.1.local.
 export const localCancelActiveInboxSearchRpcPromise = (params: MessageTypes['chat.1.local.cancelActiveInboxSearch']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.cancelActiveInboxSearch']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.cancelActiveInboxSearch', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localCancelActiveSearchRpcPromise = (params: MessageTypes['chat.1.local.cancelActiveSearch']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.cancelActiveSearch']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.cancelActiveSearch', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localCancelPostRpcPromise = (params: MessageTypes['chat.1.local.CancelPost']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.CancelPost']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.CancelPost', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localCancelUploadTempFileRpcPromise = (params: MessageTypes['chat.1.local.cancelUploadTempFile']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.cancelUploadTempFile']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.cancelUploadTempFile', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localConfigureFileAttachmentDownloadLocalRpcPromise = (params: MessageTypes['chat.1.local.ConfigureFileAttachmentDownloadLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.ConfigureFileAttachmentDownloadLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.ConfigureFileAttachmentDownloadLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localDeleteConversationLocalRpcPromise = (params: MessageTypes['chat.1.local.deleteConversationLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.deleteConversationLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.deleteConversationLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localDownloadFileAttachmentLocalRpcSaga = (p: {params: MessageTypes['chat.1.local.DownloadFileAttachmentLocal']['inParam']; incomingCallMap: IncomingCallMapType; customResponseIncomingCallMap?: CustomResponseIncomingCallMap; waitingKey?: WaitingKey}) => call(getEngineSaga(), {method: 'chat.1.local.DownloadFileAttachmentLocal', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})

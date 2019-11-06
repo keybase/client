@@ -6,19 +6,12 @@ const initialState: Types.State = {
   keybaseLinkError: '',
 }
 
-export default (state: Types.State = initialState, action: DeeplinksGen.Actions): Types.State =>
-  Container.produce(state, (draftState: Container.Draft<Types.State>) => {
-    switch (action.type) {
-      case DeeplinksGen.resetStore:
-        return initialState
-      case DeeplinksGen.handleKeybaseLink:
-        draftState.keybaseLinkError = ''
-        return
-      case DeeplinksGen.setKeybaseLinkError:
-        draftState.keybaseLinkError = action.payload.error
-        return
-      // Saga only actions
-      case DeeplinksGen.link:
-        return
-    }
-  })
+export default Container.makeReducer<DeeplinksGen.Actions, Types.State>(initialState, {
+  [DeeplinksGen.resetStore]: () => initialState,
+  [DeeplinksGen.handleKeybaseLink]: draftState => {
+    draftState.keybaseLinkError = ''
+  },
+  [DeeplinksGen.setKeybaseLinkError]: (draftState, action) => {
+    draftState.keybaseLinkError = action.payload.error
+  },
+})

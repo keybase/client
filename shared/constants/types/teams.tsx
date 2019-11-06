@@ -72,7 +72,7 @@ export type _InviteInfo = {
 }
 export type InviteInfo = I.RecordOf<_InviteInfo> // TODO remove
 
-export type TabKey = 'members' | 'requests' | 'pending'
+export type TabKey = 'members' | 'invites' | 'subteams' | 'settings'
 
 export type _SubteamInfo = {
   key: string
@@ -117,13 +117,25 @@ export type TeamDetails = {
   members?: Map<string, _MemberInfo>
   settings?: _TeamSettings
   invites?: Set<_InviteInfo>
-  subteams?: Set<string>
+  subteams?: Set<TeamID>
   requests?: Set<string>
+}
+
+export type TeamRoleAndDetails = {
+  implicitAdmin: boolean
+  role: MaybeTeamRoleType
+}
+
+export type TeamRoleMap = {
+  latestKnownVersion: number
+  loadedVersion: number
+  roles: Map<TeamID, TeamRoleAndDetails>
 }
 
 export type State = Readonly<{
   addUserToTeamsState: AddUserToTeamsState
   addUserToTeamsResults: string
+  canPerform: Map<TeamID, TeamOperations>
   channelCreationError: string
   deletedTeams: Array<RPCTypes.DeletedTeamInfo>
   emailInviteError: EmailInviteError
@@ -148,7 +160,7 @@ export type State = Readonly<{
   teamNameToRetentionPolicy: I.Map<Teamname, RetentionPolicy>
   teamNameToRole: I.Map<Teamname, MaybeTeamRoleType>
   teamNameToSubteams: I.Map<Teamname, I.Set<Teamname>> // TODO remove
-  teamNameToCanPerform: I.Map<Teamname, TeamOperations>
+  teamNameToCanPerform: I.Map<Teamname, TeamOperations> // TODO remove
   teamNameToSettings: I.Map<Teamname, TeamSettings>
   teamNameToPublicitySettings: I.Map<Teamname, _PublicitySettings>
   teamNameToAllowPromote: I.Map<Teamname, boolean> // TODO remove
@@ -156,6 +168,7 @@ export type State = Readonly<{
   teamnames: Set<Teamname> // TODO remove
   teammembercounts: I.Map<Teamname, number>
   teamProfileAddList: Array<TeamProfileAddList>
+  teamRoleMap: TeamRoleMap
   newTeams: Set<TeamID>
   newTeamRequests: Map<TeamID, number>
   newTeamRequestsByName: Map<string, number> // TODO remove

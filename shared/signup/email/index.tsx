@@ -29,16 +29,6 @@ const EnterEmail = (props: Props) => {
           type: 'Success',
           waiting: props.waiting,
         },
-        ...(!Styles.isMobile && props.onSkip
-          ? [
-              {
-                disabled: props.waiting,
-                label: 'Skip for now',
-                onClick: props.onSkip,
-                type: 'Dim' as const,
-              },
-            ]
-          : []),
       ]}
       rightActionLabel="Skip"
       onRightAction={props.onSkip}

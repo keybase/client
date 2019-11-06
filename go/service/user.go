@@ -16,7 +16,6 @@ import (
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/externals"
-	"github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/offline"
 	"github.com/keybase/client/go/phonenumbers"
@@ -604,10 +603,7 @@ func (h *UserHandler) UserCard(ctx context.Context, arg keybase1.UserCardArg) (r
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.TraceTimed("UserHandler#UserCard", func() error { return err })()
 
-	uid := mctx.G().UIDMapper.MapHardcodedUsernameToUID(kbun.NewNormalizedUsername(arg.Username))
-	if !uid.Exists() {
-		uid = libkb.UsernameToUIDPreserveCase(arg.Username)
-	}
+	uid := libkb.GetUIDByUsername(h.G(), arg.Username)
 	if res, err = libkb.UserCard(mctx, uid, arg.UseSession); err != nil {
 		return res, err
 	}
