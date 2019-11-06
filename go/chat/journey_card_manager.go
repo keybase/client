@@ -223,7 +223,7 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 		return nil, nil
 	}
 
-	if len(thread.Messages) <= 0 {
+	if len(thread.Messages) == 0 {
 		cc.Debug(ctx, "skipping empty page")
 		return nil, nil
 	}
