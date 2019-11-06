@@ -89,8 +89,8 @@ function* login(_: Container.TypedState, action: LoginGen.LoginPayload) {
 
 const loadIsOnline = async () => {
   try {
-    const result = await RPCTypes.loginIsOnlineRpcPromise(undefined)
-    return LoginGen.createLoadedIsOnline({result: result})
+    const isOnline = await RPCTypes.loginIsOnlineRpcPromise(undefined)
+    return LoginGen.createLoadedIsOnline({isOnline})
   } catch (err) {
     logger.warn('Error in checking whether we are online', err)
     return false
