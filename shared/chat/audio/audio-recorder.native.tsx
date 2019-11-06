@@ -388,8 +388,8 @@ const AudioSlideToCancel = (props: CancelProps) => {
     <Kb.NativeAnimated.View
       style={{
         bottom: 35,
-        position: 'absolute',
         left: 100,
+        position: 'absolute',
         transform: [
           {
             translateY: cancelTranslate.interpolate({
