@@ -218,19 +218,15 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 	if !(conv.GetTopicType() == chat1.TopicType_CHAT &&
 		conv.GetMembersType() == chat1.ConversationMembersType_TEAM) {
 		// Cards only exist in team chats.
-		debugDebug(ctx, "conv not eligible for card: topicType:%v membersType:%v general:%v",
+		cc.Debug(ctx, "conv not eligible for card: topicType:%v membersType:%v general:%v",
 			conv.GetTopicType(), conv.GetMembersType(), conv.GetTopicName() == globals.DefaultTeamTopic)
 		return nil, nil
 	}
 
-	//  this isn't working:
-	/*
-		if !thread.Pagination.FirstPage() {
-			// only want cards for the initial conversation load
-			cc.Debug(ctx, "not first page: %+v", thread.Pagination)
-			return nil, nil
-		}
-	*/
+	if len(thread.Messages) <= 0 {
+		cc.Debug(ctx, "skipping empty page")
+		return nil, nil
+	}
 
 	jcd, err := cc.getConvData(ctx, convID)
 	if err != nil {
@@ -247,7 +243,7 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 			// Pick a message to use as the base for a frontend ordinal.
 			prevID := conv.MaxVisibleMsgID()
 			if prevID == 0 {
-				debugDebug(ctx, "no message found to use as base for ordinal")
+				cc.Debug(ctx, "no message found to use as base for ordinal")
 				return nil, nil
 			}
 			pos = &journeyCardPosition{
@@ -265,7 +261,7 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 			// If the message that is being used as a prev is not found, omit the card.
 			// So that the card isn't presented at the edge of a far away page.
 			if !foundPrev {
-				debugDebug(ctx, "omitting card missing prev: %v %v", pos.PrevID, cardType)
+				cc.Debug(ctx, "omitting card missing prev: %v %v", pos.PrevID, cardType)
 				return nil, nil
 			}
 		}
@@ -340,19 +336,36 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 				}
 			}
 			if cond, ok := cardConditions[cardType]; ok && cond(ctx) {
+				cc.Debug(ctx, "selected new card: %v", cardType)
 				return &cardType
 			}
 		}
 		return nil
 	}
 
-	// Prefer showing new "linear" cards. Do not show cards that are prior to one that has been shown.
-	if cardType := checkForNeverBeforeSeenCards(ctx, linearCardOrder, true); cardType != nil {
-		return makeCard(*cardType, 0, true)
+	var latestPage bool
+	if len(thread.Messages) > 0 && conv.MaxVisibleMsgID() > 0 {
+		end1 := thread.Messages[0].GetMessageID()
+		end2 := thread.Messages[len(thread.Messages)-1].GetMessageID()
+		leeway := chat1.MessageID(4) // Some fudge factor in case latest messages are not visible.
+		latestPage = (end1+leeway) >= conv.MaxVisibleMsgID() || (end2+leeway) >= conv.MaxVisibleMsgID()
+		if !latestPage {
+			cc.Debug(ctx, "non-latest page maxvis:%v end1:%v end2:%v", conv.MaxVisibleMsgID(), end1, end2)
+		}
 	}
-	// Show any new loose cards. It's fine to show A even in C has already been seen.
-	if cardType := checkForNeverBeforeSeenCards(ctx, looseCardOrder, false); cardType != nil {
-		return makeCard(*cardType, 0, true)
+	if latestPage != thread.Pagination.FirstPage() {
+		cc.Debug(ctx, "latestPage:%v != FirstPage:%v", latestPage, thread.Pagination.FirstPage())
+	}
+
+	if latestPage {
+		// Prefer showing new "linear" cards. Do not show cards that are prior to one that has been shown.
+		if cardType := checkForNeverBeforeSeenCards(ctx, linearCardOrder, true); cardType != nil {
+			return makeCard(*cardType, 0, true)
+		}
+		// Show any new loose cards. It's fine to show A even in C has already been seen.
+		if cardType := checkForNeverBeforeSeenCards(ctx, looseCardOrder, false); cardType != nil {
+			return makeCard(*cardType, 0, true)
+		}
 	}
 
 	// TODO card type: MSG_ATTENTION (5 on design)
@@ -522,7 +535,11 @@ func (cc *JourneyCardManagerSingleUser) cardMsgNoAnswer(ctx context.Context,
 			continue
 		}
 	}
-	return eligibleMsg != 0 && eligibleMsg >= preventerMsg
+	result := eligibleMsg != 0 && eligibleMsg >= preventerMsg
+	if result {
+		debugDebug(ctx, "cardMsgNoAnswer result:%v eligible:%v preventer:%v n:%v", result, eligibleMsg, preventerMsg, len(thread.Messages))
+	}
+	return result
 }
 
 // Card type: CHANNEL_INACTIVE (B on design)
@@ -574,11 +591,15 @@ func (cc *JourneyCardManagerSingleUser) cardChannelInactive(ctx context.Context,
 		case chat1.MessageUnboxedState_JOURNEYCARD:
 			save(msg.Journeycard().PrevID, false)
 		default:
-			debugDebug(ctx, "unrecognized message state: %v", state)
+			cc.Debug(ctx, "unrecognized message state: %v", state)
 			continue
 		}
 	}
-	return eligibleMsg != 0 && eligibleMsg >= preventerMsg
+	result := eligibleMsg != 0 && eligibleMsg >= preventerMsg
+	if result {
+		debugDebug(ctx, "cardChannelInactive result:%v eligible:%v preventer:%v n:%v", result, eligibleMsg, preventerMsg, len(thread.Messages))
+	}
+	return result
 }
 
 func (cc *JourneyCardManagerSingleUser) timeSinceJoined(ctx context.Context, convID chat1.ConversationID, jcd journeyCardConvData, duration time.Duration) bool {
