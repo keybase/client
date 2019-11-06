@@ -93,8 +93,8 @@ const _Connected = Container.connect(
     onReadMore: () => {
       openURL('https://keybase.io/blog/introducing-keybase-teams')
     },
-    onViewTeam: (teamID: Types.TeamID) =>
-      dispatch(ownProps.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'team'}]})),
+    onViewTeam: (teamname: Types.Teamname) =>
+      dispatch(ownProps.safeNavigateAppendPayload({path: [{props: {teamname}, selected: 'team'}]})),
   }),
   (stateProps, dispatchProps, _: OwnProps) => ({
     deletedTeams: stateProps.deletedTeams,

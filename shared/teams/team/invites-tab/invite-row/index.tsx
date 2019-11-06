@@ -1,8 +1,8 @@
 import * as React from 'react'
-import * as Kb from '../../../../../common-adapters'
-import * as Styles from '../../../../../styles'
-import {typeToLabel} from '../../../../../constants/teams'
-import {TeamRoleType} from '../../../../../constants/types/teams'
+import * as Kb from '../../../../common-adapters'
+import * as Styles from '../../../../styles'
+import {typeToLabel} from '../../../../constants/teams'
+import {TeamRoleType} from '../../../../constants/types/teams'
 
 export type Props = {
   label: string
