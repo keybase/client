@@ -291,6 +291,30 @@ func (h *Helper) UserReacjis(ctx context.Context, uid gregor1.UID) keybase1.User
 	return storage.NewReacjiStore(h.G()).UserReacjis(ctx, uid)
 }
 
+func (h *Helper) JourneycardTimeTravel(ctx context.Context, uid gregor1.UID, duration time.Duration) error {
+	j, ok := h.G().JourneyCardManager.(*JourneyCardManager)
+	if !ok {
+		return fmt.Errorf("could not get JourneyCardManager")
+	}
+	return j.TimeTravel(ctx, uid, duration)
+}
+
+func (h *Helper) JourneycardResetAllConvs(ctx context.Context, uid gregor1.UID) error {
+	j, ok := h.G().JourneyCardManager.(*JourneyCardManager)
+	if !ok {
+		return fmt.Errorf("could not get JourneyCardManager")
+	}
+	return j.ResetAllConvs(ctx, uid)
+}
+
+func (h *Helper) JourneycardDebugState(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (string, error) {
+	j, ok := h.G().JourneyCardManager.(*JourneyCardManager)
+	if !ok {
+		return "", fmt.Errorf("could not get JourneyCardManager")
+	}
+	return j.DebugState(ctx, uid, convID)
+}
+
 func GetMessage(ctx context.Context, g *globals.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msgID chat1.MessageID, resolveSupersedes bool, reason *chat1.GetThreadReason) (chat1.MessageUnboxed, error) {
 	msgs, err := GetMessages(ctx, g, uid, convID, []chat1.MessageID{msgID}, resolveSupersedes, reason)
