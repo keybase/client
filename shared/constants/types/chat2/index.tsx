@@ -1,6 +1,5 @@
 import * as RPCChatTypes from '../rpc-chat-gen'
 import * as RPCTypes from '../rpc-gen'
-import * as I from 'immutable'
 import * as Common from './common'
 import * as Meta from './meta'
 import * as Message from './message'
@@ -169,7 +168,7 @@ export type State = Readonly<{
   lastCoord?: Coordinate
   maybeMentionMap: Map<string, RPCChatTypes.UIMaybeMentionInfo>
   messageCenterOrdinals: Map<Common.ConversationIDKey, CenterOrdinal> // ordinals to center threads on,
-  messageMap: I.Map<Common.ConversationIDKey, I.Map<Message.Ordinal, Message.Message>> // messages in a thread,
+  messageMap: Map<Common.ConversationIDKey, Map<Message.Ordinal, Message.Message>> // messages in a thread,
   messageOrdinals: Map<Common.ConversationIDKey, Set<Message.Ordinal>> // ordered ordinals in a thread,
   metaMap: MetaMap // metadata about a thread, There is a special node for the pending conversation,
   moreToLoadMap: Map<Common.ConversationIDKey, boolean> // if we have more data to load,

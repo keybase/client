@@ -98,6 +98,7 @@ export type Props = {
   onKeyUp?: (event: React.KeyboardEvent, isComposingIME: boolean) => void
   // Mobile only
   children?: React.ReactNode
+  allowFontScaling?: boolean
   onKeyPress?: (event: {
     nativeEvent: {
       key: 'Enter' | 'Backspace' | string

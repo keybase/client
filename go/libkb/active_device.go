@@ -536,6 +536,12 @@ func (a *ActiveDevice) NIST(ctx context.Context) (*NIST, error) {
 	return a.nistLocked(ctx)
 }
 
+func (a *ActiveDevice) NISTWebAuthToken(ctx context.Context) (*NIST, error) {
+	a.RLock()
+	defer a.RUnlock()
+	return a.nistFactory.GenerateWebAuthToken(ctx)
+}
+
 func (a *ActiveDevice) nistLocked(ctx context.Context) (*NIST, error) {
 	nist, err := a.nistFactory.NIST(ctx)
 	if err != nil {

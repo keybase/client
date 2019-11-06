@@ -516,3 +516,15 @@ func (h ConfigHandler) AppendGUILogs(ctx context.Context, content string) error 
 	_, err := io.WriteString(wr, content)
 	return err
 }
+
+func (h ConfigHandler) GenerateWebAuthToken(ctx context.Context) (ret string, err error) {
+	nist, err := h.G().ActiveDevice.NISTWebAuthToken(ctx)
+	if err != nil {
+		return ret, err
+	}
+	if nist == nil {
+		return ret, fmt.Errorf("cannot generate a token when you are logged off")
+	}
+	uri := libkb.SiteURILookup[h.G().Env.GetRunMode()] + "/_/login/nist?tok=" + nist.Token().String()
+	return uri, nil
+}

@@ -1098,6 +1098,10 @@
         }
       ],
       "response": null
+    },
+    "generateWebAuthToken": {
+      "request": [],
+      "response": "string"
     }
   },
   "namespace": "keybase.1"

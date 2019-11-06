@@ -18,7 +18,12 @@ const placeholder = 'Search Keybase'
 const Search = (props: SearchProps) => (
   <ParticipantsRow heading={props.heading} style={styles.row} headingStyle={styles.rowHeading}>
     <Kb.Box2 direction="horizontal" fullWidth={true}>
-      <Kb.PlainInput placeholder={placeholder} style={styles.input} onFocus={props.onSearch} />
+      <Kb.PlainInput
+        placeholder={placeholder}
+        style={styles.input}
+        onFocus={props.onSearch}
+        allowFontScaling={false}
+      />
       {props.onScanQRCode && (
         <Kb.Icon
           color={Styles.globalColors.black_50}
