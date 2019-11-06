@@ -367,6 +367,9 @@ func Reset() error {
 	if conn != nil {
 		conn.Close()
 	}
+	if !isInited() {
+		return errors.New("reset called before Init")
+	}
 
 	var err error
 	conn, err = kbCtx.LoopbackListener.Dial()
