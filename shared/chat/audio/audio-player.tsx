@@ -120,7 +120,7 @@ const AudioPlayer = (props: Props) => {
       </Kb.ClickableBox>
       <Kb.Box2 direction="vertical" style={styles.visContainer} gap="xxtiny">
         <AudioVis height={32} amps={props.visAmps} maxWidth={props.maxWidth} ampsRemain={ampsRemain} />
-        <Kb.Text type="BodyTiny" style={styles.duration}>
+        <Kb.Text type="BodyTiny">
           {formatAudioRecordDuration(timeLeft)}
         </Kb.Text>
       </Kb.Box2>
@@ -144,10 +144,6 @@ const styles = Styles.styleSheetCreate(() => ({
     borderStyle: 'solid',
     borderWidth: 1,
     marginTop: Styles.globalMargins.xtiny,
-    maxHeight: 40,
-  },
-  duration: {
-    color: Styles.globalColors.black_50,
   },
   play: {
     color: Styles.globalColors.blue,

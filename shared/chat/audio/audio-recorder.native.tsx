@@ -261,7 +261,7 @@ const AudioButton = (props: ButtonProps) => {
         <>
           <Kb.NativeAnimated.View
             style={{
-              bottom: 155,
+              bottom: 160,
               opacity: props.slideTranslate,
               position: 'absolute',
               right: 50,
@@ -351,22 +351,15 @@ const AudioButton = (props: ButtonProps) => {
         <Kb.TapGestureHandler onHandlerStateChange={props.stageRecording}>
           <Kb.NativeView
             style={{
-              bottom: 27,
+              bottom: 22,
               height: 48,
               justifyContent: 'center',
               position: 'absolute',
-              right: 18,
+              right: 19,
               width: 48,
             }}
           >
-            <Kb.Box
-              style={{
-                backgroundColor: Styles.globalColors.whiteOrWhite,
-                borderRadius: 2,
-                height: 18,
-                width: 18,
-              }}
-            />
+            <Kb.Icon type="iconfont-stop" color={Styles.globalColors.whiteOrWhite} />
           </Kb.NativeView>
         </Kb.TapGestureHandler>
       )}
