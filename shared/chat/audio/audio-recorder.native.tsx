@@ -256,24 +256,52 @@ const AudioButton = (props: ButtonProps) => {
       />
 
       {!props.locked ? (
-        <Kb.NativeAnimated.View
-          style={{
-            bottom: 130,
-            opacity: props.slideTranslate,
-            position: 'absolute',
-            right: 45,
-            transform: [
-              {translateY: props.slideTranslate.interpolate({inputRange: [0, 1], outputRange: [180, 0]})},
-            ],
-          }}
-        >
-          <Kb.NativeView>
-            <Kb.Box2 direction="vertical">
+        <>
+          <Kb.NativeAnimated.View
+            style={{
+              bottom: 155,
+              opacity: props.slideTranslate,
+              position: 'absolute',
+              right: 45,
+              transform: [
+                {
+                  translateY: props.slideTranslate.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [180, 0],
+                  }),
+                },
+              ],
+            }}
+          >
+            <Kb.NativeView>
               <Kb.Icon type="iconfont-arrow-up" fontSize={22} />
-              <Kb.Icon type="iconfont-lock" fontSize={22} />
-            </Kb.Box2>
-          </Kb.NativeView>
-        </Kb.NativeAnimated.View>
+            </Kb.NativeView>
+          </Kb.NativeAnimated.View>
+          <Kb.NativeAnimated.View
+            style={{
+              bottom: 130,
+              opacity: props.slideTranslate,
+              position: 'absolute',
+              right: 45,
+              transform: [
+                {
+                  translateY: props.slideTranslate.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [180, 0],
+                  }),
+                },
+                {
+                  translateY: props.dragY.interpolate({
+                    inputRange: [-70, 0],
+                    outputRange: [-10, 0],
+                  }),
+                },
+              ],
+            }}
+          >
+            <Kb.Icon type="iconfont-lock" fontSize={22} />
+          </Kb.NativeAnimated.View>
+        </>
       ) : (
         <Kb.NativeAnimated.View
           style={{
