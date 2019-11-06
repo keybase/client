@@ -88,7 +88,7 @@ type NISTToken struct {
 	nistType nistType
 }
 
-func (n NISTToken) Bytes() []byte  { return []byte(n.b) }
+func (n NISTToken) Bytes() []byte  { return n.b }
 func (n NISTToken) String() string { return n.nistType.encoding().EncodeToString(n.Bytes()) }
 func (n NISTToken) Hash() []byte {
 	tmp := sha256.Sum256(n.Bytes())
