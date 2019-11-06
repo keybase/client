@@ -53,6 +53,8 @@ if (isAndroid) {
           // @ts-ignore This neets
           ref={this._setNativeRef}
           {...p}
+          // Default p.allowFontScaling will true from RNTextInput
+          allowFontScaling={p.allowFontScaling}
           mostRecentEventCount={0}
           text={p.value || p.defaultValue || ''}
           children={children}
