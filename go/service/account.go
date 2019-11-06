@@ -6,6 +6,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
@@ -259,4 +260,25 @@ func (h *AccountHandler) TimeTravelReset(ctx context.Context, arg keybase1.TimeT
 	})
 
 	return err
+}
+
+func (h *AccountHandler) GuessCurrentLocation(ctx context.Context, arg keybase1.GuessCurrentLocationArg) (string, error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	res, err := mctx.G().API.Get(mctx, libkb.APIArg{
+		Endpoint:       "account/location_suggest",
+		SessionType:    libkb.APISessionTypeNONE,
+		InitialTimeout: 5 * time.Second,
+		RetryCount:     3,
+	})
+	if err != nil {
+		mctx.Warning("Unable to retrieve the current location: %v", err)
+		return arg.DefaultCountry, nil
+	}
+	code, err := res.Body.AtKey("country_code").GetString()
+	if err != nil || code == "-" {
+		mctx.Warning("Unable to retrieve the current location: %v", err)
+		return arg.DefaultCountry, nil
+	}
+	mctx.Info("Guessed this device's country to be %v", code)
+	return code, nil
 }

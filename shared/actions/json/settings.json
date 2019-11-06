@@ -215,6 +215,11 @@
     "certificatePinningToggled": {
       "toggled": "boolean | null"
     },
-    "toggleRuntimeStats": {}
+    "toggleRuntimeStats": {},
+    "updateDefaultPhoneNumberCountry": {
+      "country": "string",
+      "openModal?": "boolean"
+    },
+    "openAddPhoneNumberModal": {}
   }
 }

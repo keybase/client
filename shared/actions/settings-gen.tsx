@@ -64,6 +64,7 @@ export const onUpdateEmailError = 'settings:onUpdateEmailError'
 export const onUpdatePGPSettings = 'settings:onUpdatePGPSettings'
 export const onUpdatePasswordError = 'settings:onUpdatePasswordError'
 export const onUpdatedPGPSettings = 'settings:onUpdatedPGPSettings'
+export const openAddPhoneNumberModal = 'settings:openAddPhoneNumberModal'
 export const processorProfile = 'settings:processorProfile'
 export const requestContactPermissions = 'settings:requestContactPermissions'
 export const resendVerificationForPhoneNumber = 'settings:resendVerificationForPhoneNumber'
@@ -78,6 +79,7 @@ export const unfurlSettingsError = 'settings:unfurlSettingsError'
 export const unfurlSettingsRefresh = 'settings:unfurlSettingsRefresh'
 export const unfurlSettingsRefreshed = 'settings:unfurlSettingsRefreshed'
 export const unfurlSettingsSaved = 'settings:unfurlSettingsSaved'
+export const updateDefaultPhoneNumberCountry = 'settings:updateDefaultPhoneNumberCountry'
 export const verifiedPhoneNumber = 'settings:verifiedPhoneNumber'
 export const verifyPhoneNumber = 'settings:verifyPhoneNumber'
 
@@ -151,6 +153,7 @@ type _OnUpdateEmailErrorPayload = {readonly error: Error}
 type _OnUpdatePGPSettingsPayload = void
 type _OnUpdatePasswordErrorPayload = {readonly error: Error}
 type _OnUpdatedPGPSettingsPayload = {readonly hasKeys: boolean}
+type _OpenAddPhoneNumberModalPayload = void
 type _ProcessorProfilePayload = {readonly durationSeconds: number}
 type _RequestContactPermissionsPayload = {readonly thenToggleImportOn?: boolean}
 type _ResendVerificationForPhoneNumberPayload = {readonly phoneNumber: string}
@@ -175,6 +178,7 @@ type _UnfurlSettingsSavedPayload = {
   readonly mode: RPCChatTypes.UnfurlMode
   readonly whitelist: I.List<string>
 }
+type _UpdateDefaultPhoneNumberCountryPayload = {readonly country: string; readonly openModal?: boolean}
 type _VerifiedPhoneNumberPayload = {readonly error?: string; readonly phoneNumber: string}
 type _VerifyPhoneNumberPayload = {readonly phoneNumber: string; readonly code: string}
 
@@ -439,6 +443,9 @@ export const createOnUpdatePasswordError = (
 export const createOnUpdatedPGPSettings = (
   payload: _OnUpdatedPGPSettingsPayload
 ): OnUpdatedPGPSettingsPayload => ({payload, type: onUpdatedPGPSettings})
+export const createOpenAddPhoneNumberModal = (
+  payload: _OpenAddPhoneNumberModalPayload
+): OpenAddPhoneNumberModalPayload => ({payload, type: openAddPhoneNumberModal})
 export const createProcessorProfile = (payload: _ProcessorProfilePayload): ProcessorProfilePayload => ({
   payload,
   type: processorProfile,
@@ -466,6 +473,9 @@ export const createToggleRuntimeStats = (payload: _ToggleRuntimeStatsPayload): T
   type: toggleRuntimeStats,
 })
 export const createTrace = (payload: _TracePayload): TracePayload => ({payload, type: trace})
+export const createUpdateDefaultPhoneNumberCountry = (
+  payload: _UpdateDefaultPhoneNumberCountryPayload
+): UpdateDefaultPhoneNumberCountryPayload => ({payload, type: updateDefaultPhoneNumberCountry})
 
 // Action Payloads
 export type AddEmailPayload = {readonly payload: _AddEmailPayload; readonly type: typeof addEmail}
@@ -665,6 +675,10 @@ export type OnUpdatedPGPSettingsPayload = {
   readonly payload: _OnUpdatedPGPSettingsPayload
   readonly type: typeof onUpdatedPGPSettings
 }
+export type OpenAddPhoneNumberModalPayload = {
+  readonly payload: _OpenAddPhoneNumberModalPayload
+  readonly type: typeof openAddPhoneNumberModal
+}
 export type ProcessorProfilePayload = {
   readonly payload: _ProcessorProfilePayload
   readonly type: typeof processorProfile
@@ -711,6 +725,10 @@ export type UnfurlSettingsRefreshedPayload = {
 export type UnfurlSettingsSavedPayload = {
   readonly payload: _UnfurlSettingsSavedPayload
   readonly type: typeof unfurlSettingsSaved
+}
+export type UpdateDefaultPhoneNumberCountryPayload = {
+  readonly payload: _UpdateDefaultPhoneNumberCountryPayload
+  readonly type: typeof updateDefaultPhoneNumberCountry
 }
 export type VerifiedPhoneNumberPayload = {
   readonly payload: _VerifiedPhoneNumberPayload
@@ -780,6 +798,7 @@ export type Actions =
   | OnUpdatePGPSettingsPayload
   | OnUpdatePasswordErrorPayload
   | OnUpdatedPGPSettingsPayload
+  | OpenAddPhoneNumberModalPayload
   | ProcessorProfilePayload
   | RequestContactPermissionsPayload
   | ResendVerificationForPhoneNumberPayload
@@ -794,6 +813,7 @@ export type Actions =
   | UnfurlSettingsRefreshPayload
   | UnfurlSettingsRefreshedPayload
   | UnfurlSettingsSavedPayload
+  | UpdateDefaultPhoneNumberCountryPayload
   | VerifiedPhoneNumberPayload
   | VerifyPhoneNumberPayload
   | {type: 'common:resetStore', payload: {}}

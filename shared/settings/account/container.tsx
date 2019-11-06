@@ -22,7 +22,7 @@ const mapStateToProps = (state: TypedState) => ({
 const mapDispatchToProps = (dispatch: TypedDispatch) => ({
   _onClearSupersededPhoneNumber: phone => dispatch(SettingsGen.createEditPhone({delete: true, phone})),
   onAddEmail: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsAddEmail']})),
-  onAddPhone: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsAddPhone']})),
+  onAddPhone: () => dispatch(SettingsGen.createOpenAddPhoneNumberModal()),
   onBack: isMobile ? () => dispatch(RouteTreeGen.createNavigateUp()) : undefined,
   onClearAddedEmail: () => dispatch(SettingsGen.createClearAddedEmail()),
   onClearAddedPhone: () => dispatch(SettingsGen.createClearAddedPhone()),

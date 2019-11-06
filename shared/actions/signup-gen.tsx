@@ -15,6 +15,7 @@ export const checkedInviteCode = 'signup:checkedInviteCode'
 export const checkedUsername = 'signup:checkedUsername'
 export const clearJustSignedUpEmail = 'signup:clearJustSignedUpEmail'
 export const goBackAndClearErrors = 'signup:goBackAndClearErrors'
+export const preparePhoneNumberPrompt = 'signup:preparePhoneNumberPrompt'
 export const requestAutoInvite = 'signup:requestAutoInvite'
 export const requestInvite = 'signup:requestInvite'
 export const requestedAutoInvite = 'signup:requestedAutoInvite'
@@ -37,6 +38,7 @@ type _CheckedUsernamePayload = {
 }
 type _ClearJustSignedUpEmailPayload = void
 type _GoBackAndClearErrorsPayload = void
+type _PreparePhoneNumberPromptPayload = void
 type _RequestAutoInvitePayload = void
 type _RequestInvitePayload = {readonly email: string; readonly name: string}
 type _RequestedAutoInvitePayload = {readonly inviteCode?: string; readonly error?: boolean}
@@ -85,6 +87,9 @@ export const createClearJustSignedUpEmail = (
 export const createGoBackAndClearErrors = (
   payload: _GoBackAndClearErrorsPayload
 ): GoBackAndClearErrorsPayload => ({payload, type: goBackAndClearErrors})
+export const createPreparePhoneNumberPrompt = (
+  payload: _PreparePhoneNumberPromptPayload
+): PreparePhoneNumberPromptPayload => ({payload, type: preparePhoneNumberPrompt})
 export const createRequestAutoInvite = (payload: _RequestAutoInvitePayload): RequestAutoInvitePayload => ({
   payload,
   type: requestAutoInvite,
@@ -149,6 +154,10 @@ export type GoBackAndClearErrorsPayload = {
   readonly payload: _GoBackAndClearErrorsPayload
   readonly type: typeof goBackAndClearErrors
 }
+export type PreparePhoneNumberPromptPayload = {
+  readonly payload: _PreparePhoneNumberPromptPayload
+  readonly type: typeof preparePhoneNumberPrompt
+}
 export type RequestAutoInvitePayload = {
   readonly payload: _RequestAutoInvitePayload
   readonly type: typeof requestAutoInvite
@@ -187,6 +196,7 @@ export type Actions =
   | CheckedUsernamePayload
   | ClearJustSignedUpEmailPayload
   | GoBackAndClearErrorsPayload
+  | PreparePhoneNumberPromptPayload
   | RequestAutoInvitePayload
   | RequestInvitePayload
   | RequestedAutoInvitePayload

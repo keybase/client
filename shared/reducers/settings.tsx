@@ -247,6 +247,10 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
     case SettingsGen.clearAddedPhone: {
       return state.mergeIn(['phoneNumbers'], {addedPhone: false})
     }
+    case SettingsGen.updateDefaultPhoneNumberCountry:
+      return state.merge({
+        defaultPhoneNumberCountry: action.payload.country,
+      })
     // Saga only actions
     case SettingsGen.dbNuke:
     case SettingsGen.deleteAccountForever:

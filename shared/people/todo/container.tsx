@@ -67,7 +67,7 @@ const AddPhoneNumberConnector = connect(
     onConfirm: () => {
       dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
       dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsTabs.accountTab]}))
-      dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsAddPhone']}))
+      dispatch(SettingsGen.createOpenAddPhoneNumberModal())
     },
     onDismiss: onSkipTodo('addPhoneNumber', dispatch),
   }),

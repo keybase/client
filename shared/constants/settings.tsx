@@ -106,6 +106,7 @@ export const makeState = I.Record<Types._State>({
   chat: makeChat(),
   checkPasswordIsCorrect: null,
   contacts: makeContacts(),
+  defaultPhoneNumberCountry: '',
   didToggleCertificatePinning: null,
   email: makeEmail(),
   feedback: makeFeedback(),

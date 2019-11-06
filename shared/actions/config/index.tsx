@@ -8,6 +8,7 @@ import * as ChatGen from '../chat2-gen'
 import * as EngineGen from '../engine-gen-gen'
 import * as DevicesGen from '../devices-gen'
 import * as ProfileGen from '../profile-gen'
+import * as SignupGen from '../signup-gen'
 import * as FsGen from '../fs-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/config'
@@ -463,10 +464,7 @@ const maybeLoadAppLink = (state: Container.TypedState) => {
   }
   maybeLoadAppLinkOnce = true
 
-  return [
-    RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}),
-    RouteTreeGen.createNavigateAppend({path: ['settingsAddPhone']}),
-  ]
+  return [RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}), SettingsGen.createOpenAddPhoneNumberModal()]
 }
 
 const emitInitialLoggedIn = (state: Container.TypedState) =>

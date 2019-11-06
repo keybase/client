@@ -375,6 +375,10 @@ export type MessageTypes = {
     inParam: void
     outParam: GetLockdownResponse
   }
+  'keybase.1.account.guessCurrentLocation': {
+    inParam: {readonly defaultCountry: String}
+    outParam: String
+  }
   'keybase.1.account.hasServerKeys': {
     inParam: void
     outParam: HasServerKeysRes
@@ -3289,6 +3293,7 @@ export const accountCancelResetRpcPromise = (params: MessageTypes['keybase.1.acc
 export const accountEmailChangeRpcPromise = (params: MessageTypes['keybase.1.account.emailChange']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.account.emailChange']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.account.emailChange', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const accountEnterResetPipelineRpcSaga = (p: {params: MessageTypes['keybase.1.account.enterResetPipeline']['inParam']; incomingCallMap: IncomingCallMapType; customResponseIncomingCallMap?: CustomResponseIncomingCallMap; waitingKey?: WaitingKey}) => call(getEngineSaga(), {method: 'keybase.1.account.enterResetPipeline', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
 export const accountGetLockdownModeRpcPromise = (params: MessageTypes['keybase.1.account.getLockdownMode']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.account.getLockdownMode']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.account.getLockdownMode', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const accountGuessCurrentLocationRpcPromise = (params: MessageTypes['keybase.1.account.guessCurrentLocation']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.account.guessCurrentLocation']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.account.guessCurrentLocation', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const accountHasServerKeysRpcPromise = (params: MessageTypes['keybase.1.account.hasServerKeys']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.account.hasServerKeys']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.account.hasServerKeys', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const accountPassphraseChangeRpcPromise = (params: MessageTypes['keybase.1.account.passphraseChange']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.account.passphraseChange']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.account.passphraseChange', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const accountPassphraseCheckRpcPromise = (params: MessageTypes['keybase.1.account.passphraseCheck']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.account.passphraseCheck']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.account.passphraseCheck', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))

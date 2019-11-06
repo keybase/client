@@ -30,6 +30,7 @@ class WatchForGoToVerify extends React.Component<WatcherProps> {
   render() {
     return (
       <EnterPhoneNumber
+        defaultCountry={this.props.defaultCountry}
         error={this.props.error}
         onContinue={this.props.onContinue}
         onSkip={this.props.onSkip}
@@ -41,6 +42,7 @@ class WatchForGoToVerify extends React.Component<WatcherProps> {
 
 const ConnectedEnterPhoneNumber = Container.namedConnect(
   state => ({
+    defaultCountry: state.settings.defaultPhoneNumberCountry,
     error: state.settings.phoneNumbers.error,
     pendingVerification: state.settings.phoneNumbers.pendingVerification,
     waiting: anyWaiting(state, SettingsConstants.addPhoneNumberWaitingKey),

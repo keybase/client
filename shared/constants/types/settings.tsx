@@ -130,6 +130,7 @@ export type ContactsState = I.RecordOf<_ContactsState>
 export type _State = {
   allowDeleteAccount: boolean
   contacts: ContactsState
+  defaultPhoneNumberCountry: string
   invites: InvitesState
   feedback: FeedbackState
   notifications: NotificationsState

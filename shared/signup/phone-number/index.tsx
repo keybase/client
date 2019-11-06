@@ -8,6 +8,7 @@ import {ButtonType} from '../../common-adapters/button'
 
 export type Props = {
   error: string
+  defaultCountry: string
   onContinue: (phoneNumber: string, searchable: boolean) => void
   onSkip: () => void
   waiting: boolean
@@ -42,9 +43,8 @@ const EnterPhoneNumber = (props: Props) => {
       showHeaderInfoicon={true}
     >
       <EnterPhoneNumberBody
-        // the push prompt might be overlaying us
-        // TODO Y2K-57 move phone number earlier and check that email won't have this problem
         autoFocus={!Styles.isMobile}
+        defaultCountry={props.defaultCountry}
         onChangeNumber={onChangeNumberCb}
         onContinue={onContinue}
         searchable={true}
@@ -56,6 +56,7 @@ const EnterPhoneNumber = (props: Props) => {
 
 type BodyProps = {
   autoFocus: boolean
+  defaultCountry: string
   onChangeNumber: (phoneNumber: string, valid: boolean) => void
   onContinue: () => void
   searchable: boolean
@@ -76,6 +77,7 @@ export const EnterPhoneNumberBody = (props: BodyProps) => {
       <Kb.Box2 direction="vertical" gap="tiny" style={styles.inputBox}>
         <PhoneInput
           autoFocus={props.autoFocus}
+          defaultCountry={props.defaultCountry}
           style={styles.input}
           onChangeNumber={props.onChangeNumber}
           onEnterKeyDown={props.onContinue}

@@ -105,6 +105,7 @@
   "keybase.1.account.emailChange": {"promise": true},
   "keybase.1.account.enterResetPipeline": {"engineSaga": true},
   "keybase.1.account.getLockdownMode": {"promise": true},
+  "keybase.1.account.guessCurrentLocation": {"promise": true},
   "keybase.1.account.hasServerKeys": {"promise": true},
   "keybase.1.account.passphraseChange": {"promise": true},
   "keybase.1.account.passphraseCheck": {"promise": true},

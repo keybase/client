@@ -125,6 +125,11 @@ type TimeTravelResetArg struct {
 	Duration  gregor1.DurationSec `codec:"duration" json:"duration"`
 }
 
+type GuessCurrentLocationArg struct {
+	SessionID      int    `codec:"sessionID" json:"sessionID"`
+	DefaultCountry string `codec:"defaultCountry" json:"defaultCountry"`
+}
+
 type AccountInterface interface {
 	// Change the passphrase from old to new. If old isn't set, and force is false,
 	// then prompt at the UI for it. If old isn't set and force is true, then
@@ -155,6 +160,7 @@ type AccountInterface interface {
 	// Aborts the reset process
 	CancelReset(context.Context, int) error
 	TimeTravelReset(context.Context, TimeTravelResetArg) error
+	GuessCurrentLocation(context.Context, GuessCurrentLocationArg) (string, error)
 }
 
 func AccountProtocol(i AccountInterface) rpc.Protocol {
@@ -356,6 +362,21 @@ func AccountProtocol(i AccountInterface) rpc.Protocol {
 					return
 				},
 			},
+			"guessCurrentLocation": {
+				MakeArg: func() interface{} {
+					var ret [1]GuessCurrentLocationArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GuessCurrentLocationArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GuessCurrentLocationArg)(nil), args)
+						return
+					}
+					ret, err = i.GuessCurrentLocation(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -445,5 +466,10 @@ func (c AccountClient) CancelReset(ctx context.Context, sessionID int) (err erro
 
 func (c AccountClient) TimeTravelReset(ctx context.Context, __arg TimeTravelResetArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.account.timeTravelReset", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c AccountClient) GuessCurrentLocation(ctx context.Context, __arg GuessCurrentLocationArg) (res string, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.account.guessCurrentLocation", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

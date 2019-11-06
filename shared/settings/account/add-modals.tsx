@@ -119,6 +119,8 @@ export const Phone = () => {
   const [searchable, onChangeSearchable] = React.useState(true)
   const disabled = !valid
 
+  const defaultCountry = Container.useSelector(state => state.settings.defaultPhoneNumberCountry)
+
   const error = Container.useSelector(state => state.settings.phoneNumbers.error)
   const pendingVerification = Container.useSelector(state => state.settings.phoneNumbers.pendingVerification)
   const waiting = Container.useAnyWaiting(Constants.addPhoneNumberWaitingKey)
@@ -186,6 +188,7 @@ export const Phone = () => {
         style={styles.body}
       >
         <EnterPhoneNumberBody
+          defaultCountry={defaultCountry}
           onChangeNumber={onChangeNumberCb}
           onContinue={onContinue}
           searchable={searchable}
