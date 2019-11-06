@@ -31,7 +31,8 @@ const messageIDToOrdinal = (
   messageID: Types.MessageID
 ) => {
   // A message we didn't send in this session?
-  let m = messageMap.getIn([conversationIDKey, Types.numberToOrdinal(messageID)])
+  const map = messageMap.get(conversationIDKey)
+  let m = map && map.get(Types.numberToOrdinal(messageID))
   if (m && m.id && m.id === messageID) {
     return m.ordinal
   }
@@ -39,7 +40,7 @@ const messageIDToOrdinal = (
   const pendingOrdinal = [
     ...(pendingOutboxToOrdinal.get(conversationIDKey) || new Map<Types.OutboxID, Types.Ordinal>()).values(),
   ].find(o => {
-    m = messageMap.getIn([conversationIDKey, o])
+    m = map && map.get(o)
     if (m && m.id && m.id === messageID) {
       return true
     }
@@ -366,53 +367,49 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
     const convMap = pendingOutboxToOrdinal.get(conversationIDKey)
     const ordinal = convMap && convMap.get(outboxID)
     if (ordinal) {
-      draftState.messageMap = messageMap.updateIn([conversationIDKey, ordinal], m => {
-        if (!m || m.type !== 'attachment') {
-          return m
-        }
-        return m.set('transferProgress', ratio).set('transferState', 'uploading')
-      })
+      const map = messageMap.get(conversationIDKey)
+      const m = map && map.get(ordinal)
+      if (map && m && m.type === 'attachment') {
+        map.set(ordinal, m.set('transferProgress', ratio).set('transferState', 'uploading'))
+      }
     }
   },
   [Chat2Gen.attachmentUploaded]: (draftState, action) => {
     const {conversationIDKey, ordinal} = action.payload
     const {messageMap} = draftState
-    draftState.messageMap = messageMap.updateIn([conversationIDKey, ordinal], m => {
-      if (!m || m.type !== 'attachment') {
-        return m
-      }
-      return m.set('transferProgress', 0).set('transferState', null)
-    })
+    const map = messageMap.get(conversationIDKey)
+    const m = map && map.get(ordinal)
+    if (map && m && m.type === 'attachment') {
+      map.set(ordinal, m.set('transferProgress', 0).set('transferState', null))
+    }
   },
   [Chat2Gen.attachmentMobileSave]: (draftState, action) => {
     const {conversationIDKey, ordinal} = action.payload
     const {messageMap} = draftState
-    draftState.messageMap = messageMap.updateIn([conversationIDKey, ordinal], m => {
-      if (!m || m.type !== 'attachment') {
-        return m
-      }
-      return m.set('transferState', 'mobileSaving').set('transferErrMsg', null)
-    })
+
+    const map = messageMap.get(conversationIDKey)
+    const m = map && map.get(ordinal)
+    if (map && m && m.type === 'attachment') {
+      map.set(ordinal, m.set('transferState', 'mobileSaving').set('transferErrMsg', null))
+    }
   },
   [Chat2Gen.attachmentMobileSaved]: (draftState, action) => {
     const {conversationIDKey, ordinal} = action.payload
     const {messageMap} = draftState
-    draftState.messageMap = messageMap.updateIn([conversationIDKey, ordinal], m => {
-      if (!m || m.type !== 'attachment') {
-        return m
-      }
-      return m.set('transferState', null).set('transferErrMsg', null)
-    })
+    const map = messageMap.get(conversationIDKey)
+    const m = map && map.get(ordinal)
+    if (map && m && m.type === 'attachment') {
+      map.set(ordinal, m.set('transferState', null).set('transferErrMsg', null))
+    }
   },
   [Chat2Gen.attachmentDownload]: (draftState, action) => {
     const {message} = action.payload
     const {messageMap} = draftState
-    draftState.messageMap = messageMap.updateIn([message.conversationIDKey, message.ordinal], m => {
-      if (!m || m.type !== 'attachment') {
-        return m
-      }
-      return m.set('transferState', 'downloading').set('transferErrMsg', null)
-    })
+    const map = messageMap.get(message.conversationIDKey)
+    const m = map && map.get(message.ordinal)
+    if (map && m && m.type === 'attachment') {
+      map.set(message.ordinal, m.set('transferState', 'downloading').set('transferErrMsg', null))
+    }
   },
   [Chat2Gen.messageAttachmentUploaded]: (draftState, action) => {
     const {conversationIDKey, message, placeholderID} = action.payload
@@ -424,9 +421,11 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
       placeholderID
     )
     if (ordinal) {
-      draftState.messageMap = messageMap.updateIn([conversationIDKey, ordinal], m =>
-        m ? Constants.upgradeMessage(m, message) : message
-      )
+      const map = messageMap.get(conversationIDKey) || new Map<Types.Ordinal, Types.Message>()
+      messageMap.set(conversationIDKey, map)
+
+      const m = map.get(ordinal)
+      map.set(ordinal, m ? Constants.upgradeMessage(m, message) : message)
     }
   },
   [Chat2Gen.attachmentFullscreenSelection]: (draftState, action) => {
@@ -460,17 +459,19 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
       messages[idx] = m.set('transferState', 'downloading').set('transferProgress', action.payload.ratio)
     }
 
-    draftState.messageMap = messageMap.updateIn([conversationIDKey, message.ordinal], m => {
-      if (!m || m.type !== 'attachment') {
-        return m
-      }
-      return isPreview
-        ? m.set('previewTransferState', 'downloading')
-        : m
-            .set('transferProgress', ratio)
-            .set('transferState', 'downloading')
-            .set('transferErrMsg', null)
-    })
+    const map = messageMap.get(conversationIDKey)
+    const m = map && map.get(message.ordinal)
+    if (map && m && m.type === 'attachment') {
+      map.set(
+        message.ordinal,
+        isPreview
+          ? m.set('previewTransferState', 'downloading')
+          : m
+              .set('transferProgress', ratio)
+              .set('transferState', 'downloading')
+              .set('transferErrMsg', null)
+      )
+    }
   },
   [Chat2Gen.attachmentDownloaded]: (draftState, action) => {
     const {message, path, error} = action.payload
@@ -506,17 +507,19 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
       })
     }
 
-    draftState.messageMap = messageMap.updateIn([conversationIDKey, ordinal], m => {
-      if (!m || m.type !== 'attachment') {
-        return m
-      }
-      return m
-        .set('downloadPath', (!error && path) || '')
-        .set('transferProgress', 0)
-        .set('transferState', null)
-        .set('transferErrMsg', error ? error || 'Error downloading attachment' : null)
-        .set('fileURLCached', true) // assume we have this on the service now
-    })
+    const map = messageMap.get(conversationIDKey)
+    const m = map && map.get(ordinal)
+    if (map && m && m.type === 'attachment') {
+      map.set(
+        ordinal,
+        m
+          .set('downloadPath', (!error && path) || '')
+          .set('transferProgress', 0)
+          .set('transferState', null)
+          .set('transferErrMsg', error ? error || 'Error downloading attachment' : null)
+          .set('fileURLCached', true) // assume we have this on the service now
+      )
+    }
   },
 }
 
@@ -554,13 +557,15 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
         // just increment `readMsgID` since that msgID might be a
         // non-visible (edit, delete, reaction...) message so we scan the
         // ordinals for the appropriate value.
-        const messageMap = draftState.messageMap.get(conversationIDKey, I.Map<Types.Ordinal, Types.Message>())
+        const messageMap = draftState.messageMap.get(conversationIDKey)
         const ordinals = [...(draftState.messageOrdinals.get(conversationIDKey) || [])]
-        const ord = ordinals.find(o => {
-          const message = messageMap.get(o)
-          return !!(message && message.id >= readMsgID + 1)
-        })
-        const message = ord && messageMap.get(ord)
+        const ord =
+          messageMap &&
+          ordinals.find(o => {
+            const message = messageMap.get(o)
+            return !!(message && message.id >= readMsgID + 1)
+          })
+        const message = ord && messageMap && messageMap.get(ord)
         if (message && message.id) {
           orangeLineMap.set(conversationIDKey, message.id)
         } else {
@@ -677,11 +682,11 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       return
     }
 
-    const messageMap = draftState.messageMap.get(conversationIDKey, I.Map<Types.Ordinal, Types.Message>())
+    const messageMap = draftState.messageMap.get(conversationIDKey)
 
     // editing a specific message
     if (ordinal) {
-      const message = messageMap.get(ordinal)
+      const message = messageMap && messageMap.get(ordinal)
       if (message && message.type === 'text') {
         editingMap.set(conversationIDKey, ordinal)
       }
@@ -691,7 +696,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     // Editing your last message
     const ordinals = [...(messageOrdinals.get(conversationIDKey) || [])]
     const found = ordinals.reverse().find(o => {
-      const message = messageMap.get(o)
+      const message = messageMap && messageMap.get(o)
       return !!(
         message &&
         message.type === 'text' &&
@@ -721,10 +726,10 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     // we want the clear applied when we call findExisting
     const messageOrdinals = new Map(draftState.messageOrdinals)
     const oldPendingOutboxToOrdinal = new Map(draftState.pendingOutboxToOrdinal)
-    let oldMessageMap = draftState.messageMap
+    const oldMessageMap = new Map(draftState.messageMap)
 
     // so we can keep messages if they haven't mutated
-    const previousMessageMap = draftState.messageMap
+    const previousMessageMap = new Map(draftState.messageMap)
 
     // first group into convoid
     const convoToMessages: {[K in string]: Array<Types.Message>} = messages.reduce((map: any, m) => {
@@ -752,9 +757,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       Object.keys(convoToMessages).forEach(cid =>
         oldPendingOutboxToOrdinal.delete(Types.stringToConversationIDKey(cid))
       )
-      oldMessageMap = oldMessageMap.withMutations(map => {
-        Object.keys(convoToMessages).forEach(cid => map.delete(Types.stringToConversationIDKey(cid)))
-      })
+      Object.keys(convoToMessages).forEach(cid => oldMessageMap.delete(Types.stringToConversationIDKey(cid)))
     }
 
     // Types we can send and have to deal with outbox ids
@@ -784,7 +787,8 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
         const outMap = oldPendingOutboxToOrdinal.get(conversationIDKey)
         const ordinal = outMap && outMap.get(m.outboxID)
         if (ordinal) {
-          return oldMessageMap.getIn([conversationIDKey, ordinal])
+          const map = oldMessageMap.get(conversationIDKey)
+          return map ? map.get(ordinal) : undefined
         }
       }
       const pendingOrdinal = messageIDToOrdinal(
@@ -794,7 +798,8 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
         m.id
       )
       if (pendingOrdinal) {
-        return oldMessageMap.getIn([conversationIDKey, pendingOrdinal])
+        const map = oldMessageMap.get(conversationIDKey)
+        return map ? map.get(pendingOrdinal) : undefined
       }
       return null
     }
@@ -820,10 +825,8 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
           // We might have a placeholder for this message in there with ordinal of its own ID, let's
           // get rid of it if that is the case
           if (m.id) {
-            const oldMsg: Types.Message = oldMessageMap.getIn([
-              conversationIDKey,
-              Types.numberToOrdinal(m.id),
-            ])
+            const map = oldMessageMap.get(conversationIDKey)
+            const oldMsg = map ? map.get(Types.numberToOrdinal(m.id)) : undefined
             if (oldMsg && oldMsg.type === 'placeholder' && oldMsg.ordinal !== m.ordinal) {
               removedOrdinals.push(oldMsg.ordinal)
             }
@@ -855,38 +858,33 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       messageOrdinals.set(conversationIDKey, new Set([...os, ...ordinals].sort((a, b) => a - b)))
     })
 
-    let messageMap = oldMessageMap.withMutations(
-      (map: I.Map<Types.ConversationIDKey, I.Map<Types.Ordinal, Types.Message>>) => {
-        Object.keys(convoToDeletedOrdinals).forEach(cid => {
-          const conversationIDKey = Types.stringToConversationIDKey(cid)
-          map.update(conversationIDKey, (m = I.Map()) =>
-            m.deleteAll(convoToDeletedOrdinals[conversationIDKey])
-          )
-        })
+    const messageMap = new Map(oldMessageMap)
+    Object.keys(convoToDeletedOrdinals).forEach(cid => {
+      const conversationIDKey = Types.stringToConversationIDKey(cid)
+      const map = messageMap.get(conversationIDKey)
+      if (map) {
+        convoToDeletedOrdinals[conversationIDKey].forEach(k => map.delete(k))
       }
-    )
-    messageMap = messageMap.withMutations(
-      (map: I.Map<Types.ConversationIDKey, I.Map<Types.Ordinal, Types.Message>>) => {
-        Object.keys(convoToMessages).forEach(cid => {
-          const conversationIDKey = Types.stringToConversationIDKey(cid)
-          const messages = convoToMessages[cid]
-          messages.forEach(message => {
-            const m = canSendType(message)
-            const oldSentOrPending = m ? findExistingSentOrPending(conversationIDKey, m) : null
-            let toSet
-            if (oldSentOrPending) {
-              toSet = Constants.upgradeMessage(oldSentOrPending, message)
-            } else {
-              toSet = Constants.mergeMessage(
-                m ? previousMessageMap.getIn([conversationIDKey, m.ordinal]) : null,
-                message
-              )
-            }
-            map.setIn([conversationIDKey, toSet.ordinal], toSet)
-          })
-        })
-      }
-    )
+    })
+
+    Object.keys(convoToMessages).forEach(cid => {
+      const conversationIDKey = Types.stringToConversationIDKey(cid)
+      const messages = convoToMessages[cid]
+      messages.forEach(message => {
+        const m = canSendType(message)
+        const oldSentOrPending = m ? findExistingSentOrPending(conversationIDKey, m) : null
+        let toSet
+        if (oldSentOrPending) {
+          toSet = Constants.upgradeMessage(oldSentOrPending, message)
+        } else {
+          const map = previousMessageMap.get(conversationIDKey)
+          toSet = Constants.mergeMessage((m && map && map.get(m.ordinal)) || null, message)
+        }
+        const map = messageMap.get(conversationIDKey) || new Map<Types.Ordinal, Types.Message>()
+        messageMap.set(conversationIDKey, map)
+        map.set(toSet.ordinal, toSet)
+      })
+    })
 
     const containsLatestMessageMap = new Map(draftState.containsLatestMessageMap)
     Object.keys(convoToMessages).forEach(cid => {
@@ -897,7 +895,8 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       const meta = draftState.metaMap.get(conversationIDKey)
       const ordinals = [...(messageOrdinals.get(conversationIDKey) || [])]
       let maxMsgID = 0
-      const convMsgMap = messageMap.get(conversationIDKey, I.Map<Types.Ordinal, Types.Message>())
+      const convMsgMap = messageMap.get(conversationIDKey) || new Map<Types.Ordinal, Types.Message>()
+      messageMap.set(conversationIDKey, convMsgMap)
       for (let i = ordinals.length - 1; i >= 0; i--) {
         const ordinal = ordinals[i]
         const message = convMsgMap.get(ordinal)
@@ -942,6 +941,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       draftState.messageOrdinals = messageOrdinals
     }
     draftState.pendingOutboxToOrdinal = pendingOutboxToOrdinal
+    draftState.messageMap = messageMap
   },
   [Chat2Gen.jumpToRecent]: (draftState, action) => {
     const {conversationIDKey} = action.payload
@@ -958,18 +958,22 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const {pendingOutboxToOrdinal, messageMap} = draftState
     const outToOrd = pendingOutboxToOrdinal.get(conversationIDKey)
     const ordinal = outToOrd && outToOrd.get(outboxID)
-    if (ordinal) {
-      draftState.messageMap = messageMap.updateIn([conversationIDKey, ordinal], m => {
-        if (m) {
-          if (m.type === 'text') {
-            return m.set('errorReason', null).set('submitState', 'pending')
-          }
-          if (m.type === 'attachment') {
-            return m.set('errorReason', null).set('submitState', 'pending')
-          }
-        }
-        return m
-      })
+    if (!ordinal) {
+      return
+    }
+    const map = messageMap.get(conversationIDKey)
+    if (!map) {
+      return
+    }
+    const m = map.get(ordinal)
+    if (!m) {
+      return
+    }
+    if (m.type === 'text') {
+      map.set(ordinal, m.set('errorReason', null).set('submitState', 'pending'))
+    }
+    if (m.type === 'attachment') {
+      map.set(ordinal, m.set('errorReason', null).set('submitState', 'pending'))
     }
   },
   [Chat2Gen.messageErrored]: (draftState, action) => {
@@ -977,24 +981,35 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const {pendingOutboxToOrdinal, messageMap} = draftState
     const outToOrd = pendingOutboxToOrdinal.get(conversationIDKey)
     const ordinal = outToOrd && outToOrd.get(outboxID)
-    if (ordinal) {
-      draftState.messageMap = messageMap.updateIn([conversationIDKey, ordinal], m => {
-        if (m) {
-          if (m.type === 'text') {
-            return m
-              .set('errorReason', reason)
-              .set('submitState', 'failed')
-              .set('errorTyp', errorTyp)
-          }
-          if (m.type === 'attachment') {
-            return m
-              .set('errorReason', reason)
-              .set('submitState', 'failed')
-              .set('errorTyp', errorTyp)
-          }
-        }
-        return m
-      })
+    if (!ordinal) {
+      return
+    }
+    const map = messageMap.get(conversationIDKey)
+    if (!map) {
+      return
+    }
+    const m = map.get(ordinal)
+    if (!m) {
+      return
+    }
+
+    if (m.type === 'text') {
+      map.set(
+        ordinal,
+        m
+          .set('errorReason', reason)
+          .set('submitState', 'failed')
+          .set('errorTyp', errorTyp)
+      )
+    }
+    if (m.type === 'attachment') {
+      map.set(
+        ordinal,
+        m
+          .set('errorReason', reason)
+          .set('submitState', 'failed')
+          .set('errorTyp', errorTyp)
+      )
     }
   },
   [EngineGen.chat1ChatUiChatInboxLayout]: (draftState, action) => {
@@ -1058,17 +1073,18 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [Chat2Gen.toggleLocalReaction]: (draftState, action) => {
     const {conversationIDKey, emoji, targetOrdinal, username} = action.payload
-    draftState.messageMap = draftState.messageMap.update(
-      conversationIDKey,
-      I.Map(),
-      (map: I.Map<Types.Ordinal, Types.Message>) => {
-        return map.update(targetOrdinal, message => {
-          if (!Constants.isDecoratedMessage(message)) {
-            return message
-          }
-          const reactions = message.reactions
-          // @ts-ignore thinks `message` is the inner type
-          return message.set(
+    const {messageMap} = draftState
+
+    const map = messageMap.get(conversationIDKey)
+    if (map) {
+      const m: any = map.get(targetOrdinal)
+      if (m && Constants.isDecoratedMessage(m)) {
+        const reactions = m.reactions
+        // @ts-ignore thinks `message` is the inner type
+        map.set(
+          targetOrdinal,
+          // @ts-ignore
+          m.set(
             'reactions',
             reactions.withMutations(reactionMap => {
               reactionMap.update(emoji, I.Set(), rs => {
@@ -1086,9 +1102,9 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
               }
             })
           )
-        })
+        )
       }
-    )
+    }
   },
   [Chat2Gen.updateReactions]: (draftState, action) => {
     const {conversationIDKey, updates} = action.payload
@@ -1103,30 +1119,25 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
         u.targetMsgID
       ),
     }))
-    draftState.messageMap = messageMap.update(
-      conversationIDKey,
-      I.Map(),
-      (map: I.Map<Types.Ordinal, Types.Message>) =>
-        map.withMutations(mm => {
-          targetData.forEach(td => {
-            if (!td.targetOrdinal) {
-              logger.info(
-                `updateReactions: couldn't find target ordinal for targetMsgID=${
-                  td.targetMsgID
-                } in convID=${conversationIDKey}`
-              )
-              return
-            }
-            mm.update(td.targetOrdinal, message => {
-              if (!message || message.type === 'deleted' || message.type === 'placeholder') {
-                return message
-              }
-              // @ts-ignore thinks `message` is the inner type
-              return message.set('reactions', td.reactions)
-            })
-          })
-        })
-    )
+
+    const map = messageMap.get(conversationIDKey)
+    if (map) {
+      targetData.forEach(td => {
+        if (!td.targetOrdinal) {
+          logger.info(
+            `updateReactions: couldn't find target ordinal for targetMsgID=${
+              td.targetMsgID
+            } in convID=${conversationIDKey}`
+          )
+          return
+        }
+        const m = map.get(td.targetOrdinal)
+        if (m && m.type !== 'deleted' && m.type !== 'placeholder') {
+          // @ts-ignore TODO fix type
+          map.set(td.targetOrdinal, m.set('reactions', td.reactions))
+        }
+      })
+    }
   },
   [Chat2Gen.messagesWereDeleted]: (draftState, action) => {
     const {deletableMessageTypes = Constants.allMessageTypes, messageIDs = [], ordinals = []} = action.payload
@@ -1135,13 +1146,14 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
 
     const upToOrdinals: Array<Types.Ordinal> = []
     if (upToMessageID) {
-      const ordinalToMessage = messageMap.get(conversationIDKey, I.Map<Types.Ordinal, Types.Message>())
-      ordinalToMessage.reduce((arr, m, ordinal) => {
-        if (m.id < upToMessageID && deletableMessageTypes.has(m.type)) {
-          arr.push(ordinal)
-        }
-        return arr
-      }, upToOrdinals)
+      const ordinalToMessage = messageMap.get(conversationIDKey)
+      ordinalToMessage &&
+        [...ordinalToMessage.entries()].reduce((arr, [ordinal, m]) => {
+          if (m.id < upToMessageID && deletableMessageTypes.has(m.type)) {
+            arr.push(ordinal)
+          }
+          return arr
+        }, upToOrdinals)
     }
 
     const allOrdinals = I.Set(
@@ -1159,27 +1171,24 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       }, [])
     )
 
-    draftState.messageMap = messageMap.update(
-      conversationIDKey,
-      I.Map(),
-      (map: I.Map<Types.Ordinal, Types.Message>) =>
-        map.withMutations(m => {
-          allOrdinals.forEach(ordinal => {
-            m.update(ordinal, message => {
-              if (!message) {
-                return message
-              }
-              return Constants.makeMessageDeleted({
-                author: message.author,
-                conversationIDKey: message.conversationIDKey,
-                id: message.id,
-                ordinal: message.ordinal,
-                timestamp: message.timestamp,
-              })
-            })
+    const map = messageMap.get(conversationIDKey) || new Map<Types.Ordinal, Types.Message>()
+    messageMap.set(conversationIDKey, map)
+
+    allOrdinals.forEach(ordinal => {
+      const m = map.get(ordinal)
+      if (m) {
+        map.set(
+          ordinal,
+          Constants.makeMessageDeleted({
+            author: m.author,
+            conversationIDKey: m.conversationIDKey,
+            id: m.id,
+            ordinal: m.ordinal,
+            timestamp: m.timestamp,
           })
-        })
-    )
+        )
+      }
+    })
 
     const os = messageOrdinals.get(conversationIDKey)
     os && allOrdinals.forEach(o => os.delete(o))
@@ -1296,16 +1305,22 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   [Chat2Gen.messageDelete]: (draftState, action) => {
     const {conversationIDKey, ordinal} = action.payload
     const {messageMap} = draftState
-    draftState.messageMap = messageMap.updateIn([conversationIDKey, ordinal], m =>
-      m && m.type === 'text' ? m.set('submitState', 'deleting') : m
-    )
+
+    const map = messageMap.get(conversationIDKey)
+    const m = map && map.get(ordinal)
+    if (map && m && m.type === 'text') {
+      map.set(ordinal, m.set('submitState', 'deleting'))
+    }
   },
   [Chat2Gen.messageEdit]: (draftState, action) => {
     const {conversationIDKey, ordinal} = action.payload
     const {messageMap} = draftState
-    draftState.messageMap = messageMap.updateIn([conversationIDKey, ordinal], m =>
-      m && m.type === 'text' ? m.set('submitState', 'editing') : m
-    )
+
+    const map = messageMap.get(conversationIDKey)
+    const m = map && map.get(ordinal)
+    if (map && m && m.type === 'text') {
+      map.set(ordinal, m.set('submitState', 'editing'))
+    }
   },
   [Chat2Gen.messageWasEdited]: (draftState, action) => {
     const {conversationIDKey, messageID, text} = action.payload
@@ -1319,25 +1334,31 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       messageID
     )
     if (ordinal) {
-      draftState.messageMap = messageMap.updateIn([conversationIDKey, ordinal], message =>
-        !message || message.type !== 'text'
-          ? message
-          : message.withMutations((m: any) => {
-              m.set('text', text)
-              m.set('hasBeenEdited', true)
-              m.set('submitState', null)
-              m.set('mentionsAt', mentionsAt)
-              m.set('mentionsChannel', mentionsChannel)
-              m.set('mentionsChannelName', mentionsChannelName)
-            })
-      )
+      const map = messageMap.get(conversationIDKey)
+      const m = map && map.get(ordinal)
+      if (map && m && m.type === 'text') {
+        map.set(
+          ordinal,
+          m
+            .set('text', text)
+            .set('hasBeenEdited', true)
+            .set('submitState', null)
+            .set('mentionsAt', mentionsAt)
+            .set('mentionsChannel', mentionsChannel)
+            .set('mentionsChannelName', mentionsChannelName)
+        )
+      }
     }
   },
   [Chat2Gen.pendingMessageWasEdited]: (draftState, action) => {
     const {conversationIDKey, ordinal, text} = action.payload
-    draftState.messageMap = draftState.messageMap.updateIn([conversationIDKey, ordinal], m =>
-      !m || m.type !== 'text' ? m : m.set('text', text)
-    )
+    const {messageMap} = draftState
+
+    const map = messageMap.get(conversationIDKey)
+    const m = map && map.get(ordinal)
+    if (map && m && m.type === 'text') {
+      map.set(ordinal, m.set('text', text))
+    }
   },
   [Chat2Gen.metaReceivedError]: (draftState, action) => {
     const {error, username, conversationIDKey} = action.payload
@@ -1405,7 +1426,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const {updateType, conversationIDKeys} = action.payload
     const {messageMap, messageOrdinals} = draftState
     if (updateType === RPCChatTypes.StaleUpdateType.clear) {
-      draftState.messageMap = messageMap.deleteAll(conversationIDKeys)
+      conversationIDKeys.forEach(k => messageMap.delete(k))
       conversationIDKeys.forEach(o => messageOrdinals.delete(o))
     }
   },
@@ -1449,18 +1470,23 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const {conversationIDKey, messageIDs, explodedBy} = action.payload
     const {messageMap} = draftState
     logger.info(`messagesExploded: exploding ${messageIDs.length} messages`)
-    const ordinals = messageIDs
-      .map(mid => messageIDToOrdinal(messageMap, draftState.pendingOutboxToOrdinal, conversationIDKey, mid))
-      .filter(Boolean)
+    const ordinals = messageIDs.reduce<Array<Types.Ordinal>>((arr, mid) => {
+      const ord = messageIDToOrdinal(messageMap, draftState.pendingOutboxToOrdinal, conversationIDKey, mid)
+      ord && arr.push(ord)
+      return arr
+    }, [])
     if (ordinals.length === 0) {
       // found nothing
       return
     }
-    draftState.messageMap = messageMap.updateIn([conversationIDKey], messages => {
-      return messages.withMutations((msgs: any) => {
-        ordinals.forEach(ordinal =>
-          msgs.updateIn([ordinal], (msg: any) =>
-            msg
+    const map = messageMap.get(conversationIDKey)
+    map &&
+      ordinals.forEach(ordinal => {
+        const m: any = map.get(ordinal) // TODO fix types
+        m &&
+          map.set(
+            ordinal,
+            m
               .set('exploded', true)
               .set('explodedBy', explodedBy || '')
               .set('text', new HiddenString(''))
@@ -1469,9 +1495,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
               .set('unfurls', I.Map())
               .set('flipGameID', '')
           )
-        )
       })
-    })
   },
   [Chat2Gen.saveMinWriterRole]: (draftState, action) => {
     const {cannotWrite, conversationIDKey, role} = action.payload
@@ -1498,19 +1522,13 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       const m: Types.Message = msg.message.set('ordinal', ordinal)
       return l.concat({msg: m, ordinal})
     }, [])
-    draftState.messageMap = messageMap.updateIn(
-      [conversationIDKey],
-      (messages: I.Map<number, Types.Message>) => {
-        if (!messages) {
-          return messages
-        }
-        return messages.withMutations(msgs => {
-          updateOrdinals.forEach(r => {
-            msgs.set(r.ordinal, r.msg)
-          })
-        })
-      }
-    )
+
+    const map = messageMap.get(conversationIDKey)
+    if (map) {
+      updateOrdinals.forEach(r => {
+        map.set(r.ordinal, r.msg)
+      })
+    }
   },
   [Chat2Gen.clearMessages]: draftState => {
     draftState.messageMap.clear()

@@ -38,49 +38,43 @@ const updateInfo = (map: Map<string, Types.UserInfo>, username: string, info: Pa
 export default Container.makeReducer<Actions, Types.State>(initialState, {
   [UsersGen.resetStore]: () => initialState,
   [UsersGen.updateFullnames]: (draftState, action) => {
-    const infoMap = new Map(draftState.infoMap)
+    const {infoMap} = draftState
     const {usernameToFullname} = action.payload
     for (const [username, fullname] of Object.entries(usernameToFullname)) {
       updateInfo(infoMap, username, {fullname})
     }
-    draftState.infoMap = infoMap
   },
   [UsersGen.updateBrokenState]: (draftState, action) => {
     const {newlyBroken, newlyFixed} = action.payload
-    const infoMap = new Map(draftState.infoMap)
+    const {infoMap} = draftState
     newlyFixed.forEach(username => updateInfo(infoMap, username, {broken: false}))
     newlyBroken.forEach(username => updateInfo(infoMap, username, {broken: true}))
-    draftState.infoMap = infoMap
   },
   [UsersGen.updateBio]: (draftState, action) => {
     const {username, userCard} = action.payload
     const {bioDecorated} = userCard // using bioDecorated to make links clickable and shruggies whole
-    const infoMap = new Map(draftState.infoMap)
+    const {infoMap} = draftState
     updateInfo(infoMap, username, {bio: bioDecorated})
-    draftState.infoMap = infoMap
   },
   [Tracker2Gen.updatedDetails]: (draftState, action) => {
     const {username, fullname} = action.payload
-    const infoMap = new Map(draftState.infoMap)
+    const {infoMap} = draftState
     updateInfo(infoMap, username, {fullname})
-    draftState.infoMap = infoMap
   },
   [Tracker2Gen.updateFollowers]: (draftState, action) => {
     const {followers, following} = action.payload
     const all = [...followers, ...following]
-    const infoMap = new Map(draftState.infoMap)
+    const {infoMap} = draftState
     all.forEach(({username, fullname}) => updateInfo(infoMap, username, {fullname}))
-    draftState.infoMap = infoMap
   },
   [ConfigGen.setAccounts]: (draftState, action) => {
     const {configuredAccounts} = action.payload
-    const infoMap = new Map(draftState.infoMap)
+    const {infoMap} = draftState
     configuredAccounts.forEach(({username, fullname}) => updateInfo(infoMap, username, {fullname}))
-    draftState.infoMap = infoMap
   },
   [TeamBuildingGen.searchResultsLoaded]: (draftState, action) => {
     const {users} = action.payload
-    const infoMap = new Map(draftState.infoMap)
+    const {infoMap} = draftState
     users.forEach(({serviceMap, prettyName}) => {
       const {keybase} = serviceMap
       if (!keybase) return
@@ -90,6 +84,5 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
         updateInfo(infoMap, keybase, {fullname: prettyName})
       }
     })
-    draftState.infoMap = infoMap
   },
 })

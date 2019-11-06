@@ -370,7 +370,7 @@ const onIncomingMessage = (
               !!messages &&
               messageIDs.some(_id => {
                 const id = Types.numberToOrdinal(_id)
-                const message = messages.get(id) || messages.find(msg => msg.id === id)
+                const message = messages.get(id) || [...messages.values()].find(msg => msg.id === id)
                 if (
                   message &&
                   (message.type === 'text' || message.type === 'attachment') &&
@@ -1347,7 +1347,8 @@ const messageDelete = async (
   logger: Saga.SagaLogger
 ) => {
   const {conversationIDKey, ordinal} = action.payload
-  const message = state.chat2.messageMap.getIn([conversationIDKey, ordinal])
+  const map = state.chat2.messageMap.get(conversationIDKey)
+  const message = map && map.get(ordinal)
   if (
     !message ||
     (message.type !== 'text' && message.type !== 'attachment' && message.type !== 'requestPayment')

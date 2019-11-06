@@ -12,52 +12,36 @@ const initialState: Types.State = {
   newPaperkey: new HiddenString(''),
 }
 
-export default (
-  state: Types.State = initialState,
-  action: DevicesGen.Actions | ProvisionGen.StartProvisionPayload
-): Types.State =>
-  Container.produce(state, (draftState: Container.Draft<Types.State>) => {
-    switch (action.type) {
-      case DevicesGen.resetStore:
-        return initialState
-      case DevicesGen.loaded:
-        draftState.deviceMap = new Map(action.payload.devices.map(d => [d.deviceID, d]))
-        return
-      case DevicesGen.endangeredTLFsLoaded: {
-        const endangeredTLFMap = new Map(draftState.endangeredTLFMap)
-        endangeredTLFMap.set(action.payload.deviceID, new Set(action.payload.tlfs))
-        draftState.endangeredTLFMap = endangeredTLFMap
-        return
-      }
-      case DevicesGen.showPaperKeyPage:
-        draftState.newPaperkey = initialState.newPaperkey
-        return
-      case DevicesGen.paperKeyCreated:
-        draftState.newPaperkey = action.payload.paperKey
-        return
-      case DevicesGen.revoked:
-        if (action.payload.wasCurrentDevice) {
-          draftState.justRevokedSelf = action.payload.deviceName
-        }
-        return
-      case DevicesGen.badgeAppForDevices: {
-        const isNew = new Set(state.isNew)
-        // We show our badges until we clear with the clearBadges call.
-        action.payload.ids.forEach(id => isNew.add(id))
-        draftState.isNew = isNew
-        return
-      }
-      case DevicesGen.clearBadges:
-        draftState.isNew = initialState.isNew
-        return
-      case ProvisionGen.startProvision:
-        draftState.justRevokedSelf = ''
-        return
-      // Saga only actions
-      case DevicesGen.revoke:
-      case DevicesGen.load:
-      case DevicesGen.showRevokePage:
-      case DevicesGen.showDevicePage:
-        return
+type Actions = DevicesGen.Actions | ProvisionGen.StartProvisionPayload
+export default Container.makeReducer<Actions, Types.State>(initialState, {
+  [DevicesGen.resetStore]: () => initialState,
+  [DevicesGen.loaded]: (draftState, action) => {
+    draftState.deviceMap = new Map(action.payload.devices.map(d => [d.deviceID, d]))
+  },
+  [DevicesGen.endangeredTLFsLoaded]: (draftState, action) => {
+    const {endangeredTLFMap} = draftState
+    endangeredTLFMap.set(action.payload.deviceID, new Set(action.payload.tlfs))
+  },
+  [DevicesGen.showPaperKeyPage]: draftState => {
+    draftState.newPaperkey = initialState.newPaperkey
+  },
+  [DevicesGen.paperKeyCreated]: (draftState, action) => {
+    draftState.newPaperkey = action.payload.paperKey
+  },
+  [DevicesGen.revoked]: (draftState, action) => {
+    if (action.payload.wasCurrentDevice) {
+      draftState.justRevokedSelf = action.payload.deviceName
     }
-  })
+  },
+  [DevicesGen.badgeAppForDevices]: (draftState, action) => {
+    const {isNew} = draftState
+    // We show our badges until we clear with the clearBadges call.
+    action.payload.ids.forEach(id => isNew.add(id))
+  },
+  [DevicesGen.clearBadges]: draftState => {
+    draftState.isNew = initialState.isNew
+  },
+  [ProvisionGen.startProvision]: draftState => {
+    draftState.justRevokedSelf = ''
+  },
+})
