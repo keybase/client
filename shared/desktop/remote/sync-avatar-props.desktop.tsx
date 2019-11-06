@@ -7,7 +7,7 @@ import {intersect} from '../../util/set'
 import {memoize} from '../../util/memoize'
 
 type OwnProps = {
-  usernamesRef: React.MutableRefObject<Set<string>>
+  usernames: Array<string>
   windowComponent: string
   windowParam: string
 }
@@ -17,7 +17,7 @@ type Props = {
   following: Set<string>
   httpSrvAddress: string
   httpSrvToken: string
-  usernamesRef: React.MutableRefObject<Set<string>>
+  usernames: Array<string>
   windowComponent: string
   windowParam: string
 }
@@ -60,18 +60,12 @@ function SyncAvatarProps(ComposedComponent: any) {
   }
 
   const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
-    const {
-      usernamesRef: {current: oldUsernames},
-    } = ownProps
-    const {
-      config: {followers, following},
-    } = state
-    const usernames = new Set([...oldUsernames, ...followers, ...following])
-    // Update local Set of all usernames sent over to the remote window
-    ownProps.usernamesRef.current = usernames
-
+    const {usernames} = ownProps
     return {
-      ...immutableCached(getRemoteFollowers(followers, usernames), getRemoteFollowing(following, usernames)),
+      ...immutableCached(
+        getRemoteFollowers(state.config.followers, usernames),
+        getRemoteFollowing(stat.config.following, usernames)
+      ),
       httpSrvAddress: state.config.httpSrvAddress,
       httpSrvToken: state.config.httpSrvToken,
     }
@@ -100,14 +94,13 @@ function SyncAvatarProps(ComposedComponent: any) {
   )(RemoteAvatarConnected)
 
   type WrapperProps = {
+    usernames: Array<string>
     windowComponent: string
     windowParam: string
   }
 
   const Wrapper = (props: WrapperProps) => {
-    // Using a ref here to cache all following and followers usernames that have been sent to the remote window
-    // Don't want to re-render based on this value
-    const usernamesRef = React.useRef(new Set<string>())
+    const usernames = new Set<string>(props.usernames)
     return <Connected {...props} usernamesRef={usernamesRef} />
   }
 

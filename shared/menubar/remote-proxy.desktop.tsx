@@ -147,7 +147,7 @@ let _lastClearCacheTrigger = 0
 
 // TODO better type
 const RenderExternalWindowBranch: any = (ComposedComponent: React.ComponentType<any>) =>
-  class extends React.PureComponent<{
+  class RemoteWindowComponent extends React.PureComponent<{
     externalRemoteWindow?: SafeElectron.BrowserWindowType
   }> {
     render() {
@@ -164,6 +164,12 @@ export default Container.namedConnect(
       _lastUsername = stateProps.username
       _lastClearCacheTrigger++
     }
+    // `sync-avatar-props` will attempt to parse out a subset of the following/follower lists
+    // in order to show the following status on usernames in the menubar widget.
+    //
+    // The list of usernames to show will need to be pre-parsed and passed to
+    // sync-avatar-props before serializing anything to the menubar widget
+    const usernamesForFollowingStatus =
     return {
       badgeKeys: stateProps._badgeInfo,
       badgeMap: stateProps._badgeInfo,
