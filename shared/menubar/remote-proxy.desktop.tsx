@@ -130,6 +130,7 @@ const mapStateToProps = (state: Container.TypedState) => ({
   darkMode: Styles.isDarkMode(),
   desktopAppBadgeCount: state.notifications.desktopAppBadgeCount,
   diskSpaceStatus: state.fs.overallSyncStatus.diskSpaceStatus,
+  following: state.config.following,
   kbfsDaemonStatus: state.fs.kbfsDaemonStatus,
   kbfsEnabled: state.fs.sfmi.driverStatus.type === 'enabled',
   loggedIn: state.config.loggedIn,
@@ -177,6 +178,7 @@ export default Container.namedConnect(
         ? SafeElectron.getRemote().BrowserWindow.fromId(stateProps._externalRemoteWindowID)
         : null,
       fileRows: {_tlfUpdates: stateProps._tlfUpdates, _uploads: stateProps._uploads},
+      following: stateProps.following,
       kbfsDaemonStatus: stateProps.kbfsDaemonStatus,
       kbfsEnabled: stateProps.kbfsEnabled,
       loggedIn: stateProps.loggedIn,
