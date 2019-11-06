@@ -169,6 +169,7 @@ func (h *Server) RequestInboxLayout(ctx context.Context, reselectMode chat1.Inbo
 
 func (h *Server) RequestInboxUnbox(ctx context.Context, convIDs []chat1.ConversationID) (err error) {
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
+	ctx = globals.CtxAddLocalizerCancelable(ctx)
 	defer h.Trace(ctx, func() error { return err }, "RequestInboxUnbox")()
 	if err := h.G().UIInboxLoader.UpdateConvs(ctx, convIDs); err != nil {
 		h.Debug(ctx, "RequestInboxUnbox: failed to update convs: %s", err)
