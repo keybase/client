@@ -88,7 +88,6 @@ export const IconWithPopup = (props: PopupProps) => {
   const {badgeColor, color, newRelease, attachToRef} = props
   const [popupVisible, setPopupVisible] = React.useState(false)
   const iconColor = popupVisible ? 'black' : props.iconColor ? props.iconColor : 'black_50'
-  const popupVisibleColor = color || Styles.globalColors.black
   return (
     <>
       <Kb.Box style={styles.iconContainerMargins}>

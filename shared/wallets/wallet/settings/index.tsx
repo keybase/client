@@ -54,12 +54,7 @@ type PartnerRowProps = {
 }
 const PartnerRow = (props: PartnerRowProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
-    <Kb.Icon
-      type={props.iconFilename}
-      colorOverride={Styles.globalColors.black}
-      fontSize={32}
-      style={styles.partnerIcon}
-    />
+    <Kb.Icon type={props.iconFilename} colorOverride="black" fontSize={32} style={styles.partnerIcon} />
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.yesShrink}>
       <Kb.ClickableBox
         className="hover-underline-container"

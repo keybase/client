@@ -225,7 +225,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
                 ) : (
                   <Kb.Icon
                     className="timer"
-                    colorOverride={this.props.cannotWrite ? Styles.globalColors.black_20 : null}
+                    colorOverride={this.props.cannotWrite ? 'black_20' : null}
                     onClick={this.props.cannotWrite ? undefined : this._toggleShowingMenu}
                     padding="xtiny"
                     type="iconfont-timer"
