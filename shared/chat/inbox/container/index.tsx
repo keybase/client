@@ -154,6 +154,7 @@ const Connected = Container.namedConnect(
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     const bigTeams = stateProps._inboxLayout ? stateProps._inboxLayout.bigTeams || [] : []
+    const hasBigTeams = bigTeams.length
     const showAllSmallRows = stateProps.smallTeamsExpanded || !bigTeams.length
     let smallTeams = stateProps._inboxLayout ? stateProps._inboxLayout.smallTeams || [] : []
     const smallTeamsBelowTheFold = !showAllSmallRows && smallTeams.length > smallTeamsCollapsedMaxShown
@@ -191,6 +192,7 @@ const Connected = Container.namedConnect(
       _onMountedDesktop: dispatchProps._onMountedDesktop,
       _refreshInbox: dispatchProps._refreshInbox,
       allowShowFloatingButton: stateProps.allowShowFloatingButton,
+      hasBigTeams,
       isLoading: stateProps.isLoading,
       isSearching: stateProps.isSearching,
       navKey: ownProps.navKey,

@@ -74,6 +74,7 @@ export type Props = {
   smallTeamsExpanded: boolean
   toggleSmallTeamsExpanded: () => void
   unreadIndices: Array<number>
+  hasBigTeams: boolean
   isSearching: boolean
   isLoading: boolean
 }

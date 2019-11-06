@@ -344,6 +344,7 @@ const getPropProviderProps = own => {
  */
 const propsInboxCommon = {
   allowShowFloatingButton: false,
+  hasBigTeams: false,
   isLoading: false,
   isSearching: false,
   navKey: 'nav',
@@ -383,6 +384,7 @@ const propsInboxSimple = {
 
 const propsInboxTeam = {
   ...propsInboxCommon,
+  hasBigTeams: true,
   rows: [
     makeRowItemBigHeader('bigTeamAHeader'),
     makeRowItemBigChannel('bigTeamAChannel1', 'Keybase', 'general'),
@@ -406,6 +408,7 @@ const propsInboxTeam = {
 
 const propsInboxDivider = {
   ...propsInboxCommon,
+  hasBigTeams: true,
   smallTeamsExpanded: false,
   rows: [
     // Small

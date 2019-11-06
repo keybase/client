@@ -19,10 +19,10 @@ const NoChats = (props: {onNewChat: () => void}) => (
   <Kb.Box2 direction="vertical" gap="small" style={styles.noChatsContainer}>
     <Kb.Icon type="icon-fancy-encrypted-phone-mobile-226-96" />
     <Kb.Box2 direction="vertical">
-      <Kb.Text type="BodySmall" style={{textAlign: 'center'}}>
+      <Kb.Text type="BodySmall" center={true}>
         All conversations are
       </Kb.Text>
-      <Kb.Text type="BodySmall" style={{textAlign: 'center'}}>
+      <Kb.Text type="BodySmall" center={true}>
         end-to-end encrypted.
       </Kb.Text>
     </Kb.Box2>
@@ -264,8 +264,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
             />
           )}
           {noChats}
-          {floatingDivider ||
-            ((this.props.rows.length === 0 || !this.props.allowShowFloatingButton) && <BuildTeam />)}
+          {floatingDivider || ((this.props.rows.length === 0 || !this.props.hasBigTeams) && <BuildTeam />)}
           {this.state.showUnread && !this.props.isSearching && !this.state.showFloating && (
             <UnreadShortcut onClick={this._scrollToUnread} />
           )}
