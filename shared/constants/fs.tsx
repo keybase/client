@@ -155,18 +155,17 @@ export const emptyOverallSyncStatus = {
   syncingFoldersProgress: emptySyncingFoldersProgress,
 }
 
-export const defaultPathUserSetting: Types.PathUserSetting = {
-  filter: null,
-  sortSetting: Types.SortSetting.NameAsc,
-}
+export const makePathUserSetting = I.Record<Types._PathUserSetting>({
+  sort: Types.SortSetting.NameAsc,
+})
 
-export const defaultTlfListPathUserSetting: Types.PathUserSetting = {
-  filter: null,
-  sortSetting: Types.SortSetting.TimeAsc,
-}
+export const defaultPathUserSetting = makePathUserSetting({
+  sort: Types.SortSetting.NameAsc,
+})
 
-export const getDefaultPathUserSetting = (path: Types.Path) =>
-  Types.getPathLevel(path) === 2 ? defaultTlfListPathUserSetting : defaultPathUserSetting
+export const defaultTlfListPathUserSetting = makePathUserSetting({
+  sort: Types.SortSetting.TimeAsc,
+})
 
 export const emptyDownloadState = {
   canceled: false,
@@ -988,8 +987,14 @@ export const hasPublicTag = (path: Types.Path): boolean => {
   return Types.pathToString(path).startsWith(publicPrefix)
 }
 
-export const getPathUserSetting = (state: TypedState, path: Types.Path): Types.PathUserSetting =>
-  state.fs.pathUserSettings.get(path) || getDefaultPathUserSetting(path)
+export const getPathUserSetting = (
+  pathUserSettings: I.Map<Types.Path, Types.PathUserSetting>,
+  path: Types.Path
+): Types.PathUserSetting =>
+  pathUserSettings.get(
+    path,
+    Types.getPathLevel(path) < 3 ? defaultTlfListPathUserSetting : defaultPathUserSetting
+  )
 
 export const showSortSetting = (
   path: Types.Path,

@@ -495,13 +495,13 @@ export type TypedActionsMap = {
   'fs:folderListLoaded': fs.FolderListLoadedPayload
   'fs:favoritesLoad': fs.FavoritesLoadPayload
   'fs:favoritesLoaded': fs.FavoritesLoadedPayload
-  'fs:setSortSetting': fs.SetSortSettingPayload
   'fs:setFolderViewFilter': fs.SetFolderViewFilterPayload
   'fs:tlfSyncConfigLoaded': fs.TlfSyncConfigLoadedPayload
   'fs:loadTlfSyncConfig': fs.LoadTlfSyncConfigPayload
   'fs:setTlfSyncConfig': fs.SetTlfSyncConfigPayload
   'fs:pathItemLoaded': fs.PathItemLoadedPayload
   'fs:loadPathMetadata': fs.LoadPathMetadataPayload
+  'fs:sortSetting': fs.SortSettingPayload
   'fs:shareNative': fs.ShareNativePayload
   'fs:saveMedia': fs.SaveMediaPayload
   'fs:upload': fs.UploadPayload

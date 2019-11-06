@@ -84,7 +84,6 @@ export const setPreferredMountDirs = 'fs:setPreferredMountDirs'
 export const setSendAttachmentToChatConvID = 'fs:setSendAttachmentToChatConvID'
 export const setSendAttachmentToChatFilter = 'fs:setSendAttachmentToChatFilter'
 export const setSendAttachmentToChatTitle = 'fs:setSendAttachmentToChatTitle'
-export const setSortSetting = 'fs:setSortSetting'
 export const setSpaceAvailableNotificationThreshold = 'fs:setSpaceAvailableNotificationThreshold'
 export const setTlfSoftError = 'fs:setTlfSoftError'
 export const setTlfSyncConfig = 'fs:setTlfSyncConfig'
@@ -95,6 +94,7 @@ export const showHideDiskSpaceBanner = 'fs:showHideDiskSpaceBanner'
 export const showIncomingShare = 'fs:showIncomingShare'
 export const showMoveOrCopy = 'fs:showMoveOrCopy'
 export const showSystemFileManagerIntegrationBanner = 'fs:showSystemFileManagerIntegrationBanner'
+export const sortSetting = 'fs:sortSetting'
 export const startManualConflictResolution = 'fs:startManualConflictResolution'
 export const subscribeNonPath = 'fs:subscribeNonPath'
 export const subscribePath = 'fs:subscribePath'
@@ -196,7 +196,7 @@ type _SetDebugLevelPayload = {readonly level: string}
 type _SetDestinationPickerParentPathPayload = {readonly index: number; readonly path: Types.Path}
 type _SetDirectMountDirPayload = {readonly directMountDir: string}
 type _SetDriverStatusPayload = {readonly driverStatus: Types.DriverStatus}
-type _SetFolderViewFilterPayload = {readonly filter: string | null; readonly path: Types.Path}
+type _SetFolderViewFilterPayload = {readonly filter: string}
 type _SetIncomingShareLocalPathPayload = {readonly localPath: Types.LocalPath}
 type _SetLastPublicBannerClosedTlfPayload = {readonly tlf: string}
 type _SetMoveOrCopySourcePayload = {readonly path: Types.Path}
@@ -210,7 +210,6 @@ type _SetPreferredMountDirsPayload = {readonly preferredMountDirs: I.List<string
 type _SetSendAttachmentToChatConvIDPayload = {readonly convID: ChatTypes.ConversationIDKey}
 type _SetSendAttachmentToChatFilterPayload = {readonly filter: string}
 type _SetSendAttachmentToChatTitlePayload = {readonly title: string}
-type _SetSortSettingPayload = {readonly path: Types.Path; readonly sortSetting: Types.SortSetting}
 type _SetSpaceAvailableNotificationThresholdPayload = {readonly spaceAvailableNotificationThreshold: number}
 type _SetTlfSoftErrorPayload = {readonly path: Types.Path; readonly softError: Types.SoftError | null}
 type _SetTlfSyncConfigPayload = {readonly enabled: boolean; readonly tlfPath: Types.Path}
@@ -221,6 +220,7 @@ type _ShowHideDiskSpaceBannerPayload = {readonly show: boolean}
 type _ShowIncomingSharePayload = {readonly initialDestinationParentPath: Types.Path}
 type _ShowMoveOrCopyPayload = {readonly initialDestinationParentPath: Types.Path}
 type _ShowSystemFileManagerIntegrationBannerPayload = void
+type _SortSettingPayload = {readonly path: Types.Path; readonly sortSetting: Types.SortSetting}
 type _StartManualConflictResolutionPayload = {readonly tlfPath: Types.Path}
 type _SubscribeNonPathPayload = {readonly subscriptionID: string; readonly topic: RPCTypes.SubscriptionTopic}
 type _SubscribePathPayload = {
@@ -504,10 +504,6 @@ export const createSetSendAttachmentToChatFilter = (
 export const createSetSendAttachmentToChatTitle = (
   payload: _SetSendAttachmentToChatTitlePayload
 ): SetSendAttachmentToChatTitlePayload => ({payload, type: setSendAttachmentToChatTitle})
-export const createSetSortSetting = (payload: _SetSortSettingPayload): SetSortSettingPayload => ({
-  payload,
-  type: setSortSetting,
-})
 export const createSetSpaceAvailableNotificationThreshold = (
   payload: _SetSpaceAvailableNotificationThresholdPayload
 ): SetSpaceAvailableNotificationThresholdPayload => ({payload, type: setSpaceAvailableNotificationThreshold})
@@ -544,6 +540,10 @@ export const createShowMoveOrCopy = (payload: _ShowMoveOrCopyPayload): ShowMoveO
 export const createShowSystemFileManagerIntegrationBanner = (
   payload: _ShowSystemFileManagerIntegrationBannerPayload
 ): ShowSystemFileManagerIntegrationBannerPayload => ({payload, type: showSystemFileManagerIntegrationBanner})
+export const createSortSetting = (payload: _SortSettingPayload): SortSettingPayload => ({
+  payload,
+  type: sortSetting,
+})
 export const createStartManualConflictResolution = (
   payload: _StartManualConflictResolutionPayload
 ): StartManualConflictResolutionPayload => ({payload, type: startManualConflictResolution})
@@ -855,10 +855,6 @@ export type SetSendAttachmentToChatTitlePayload = {
   readonly payload: _SetSendAttachmentToChatTitlePayload
   readonly type: typeof setSendAttachmentToChatTitle
 }
-export type SetSortSettingPayload = {
-  readonly payload: _SetSortSettingPayload
-  readonly type: typeof setSortSetting
-}
 export type SetSpaceAvailableNotificationThresholdPayload = {
   readonly payload: _SetSpaceAvailableNotificationThresholdPayload
   readonly type: typeof setSpaceAvailableNotificationThreshold
@@ -896,6 +892,7 @@ export type ShowSystemFileManagerIntegrationBannerPayload = {
   readonly payload: _ShowSystemFileManagerIntegrationBannerPayload
   readonly type: typeof showSystemFileManagerIntegrationBanner
 }
+export type SortSettingPayload = {readonly payload: _SortSettingPayload; readonly type: typeof sortSetting}
 export type StartManualConflictResolutionPayload = {
   readonly payload: _StartManualConflictResolutionPayload
   readonly type: typeof startManualConflictResolution
@@ -1019,7 +1016,6 @@ export type Actions =
   | SetSendAttachmentToChatConvIDPayload
   | SetSendAttachmentToChatFilterPayload
   | SetSendAttachmentToChatTitlePayload
-  | SetSortSettingPayload
   | SetSpaceAvailableNotificationThresholdPayload
   | SetTlfSoftErrorPayload
   | SetTlfSyncConfigPayload
@@ -1030,6 +1026,7 @@ export type Actions =
   | ShowIncomingSharePayload
   | ShowMoveOrCopyPayload
   | ShowSystemFileManagerIntegrationBannerPayload
+  | SortSettingPayload
   | StartManualConflictResolutionPayload
   | SubscribeNonPathPayload
   | SubscribePathPayload
