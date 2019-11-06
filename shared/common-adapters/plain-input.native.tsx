@@ -247,7 +247,6 @@ class PlainInput extends Component<InternalProps> {
 
   render() {
     const props = this._getProps()
-    console.log('JRY plaininput props', {props})
     if (props.value) {
       this._lastNativeText = props.value
     }
