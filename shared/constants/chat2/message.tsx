@@ -654,7 +654,7 @@ const uiMessageToSystemMessage = (
       const {user = '???'} = body.changeavatar || {}
       return makeMessageSystemText({
         reactions,
-        text: new HiddenString(`${user} changed team avatar`),
+        text: new HiddenString(`${user} changed the team's avatar.`),
         ...minimum,
       })
     }
