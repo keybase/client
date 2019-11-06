@@ -11,7 +11,7 @@ type Props = {
 const BuildTeam = ({isFloating, onCreateTeam, onJoinTeam}: Props) => (
   <Kb.Box2
     direction="vertical"
-    gap="xtiny"
+    gap={Styles.isMobile ? 'tiny' : 'xtiny'}
     style={Styles.collapseStyles([styles.container, isFloating && styles.floatingContainer])}
   >
     <Kb.Button fullWidth={true} label="Create a team" mode="Secondary" onClick={onCreateTeam} />
@@ -28,8 +28,10 @@ const styles = Styles.styleSheetCreate(() => ({
       width: '100%',
     },
     isMobile: {
+      ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
       backgroundColor: Styles.globalColors.fastBlank,
       flexShrink: 0,
+      width: '100%',
     },
   }),
   floatingContainer: Styles.platformStyles({

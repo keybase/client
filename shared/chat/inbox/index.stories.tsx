@@ -26,7 +26,7 @@ const makeRowItemBigChannel = (conversationIDKey, teamname, channelname): RowIte
   conversationIDKey: Types.stringToConversationIDKey(conversationIDKey),
 })
 const makeRowItemDivider = (showButton: boolean = false): RowItemDivider => ({type: 'divider', showButton})
-const makeRowItemTeamBuilder = (showButton: boolean = false): RowItemTeamBuilder => ({type: 'teamBuilder'})
+const makeRowItemTeamBuilder = (): RowItemTeamBuilder => ({type: 'teamBuilder'})
 
 /*
  * Component Prop Map
@@ -400,7 +400,7 @@ const propsInboxTeam = {
     makeRowItemBigChannel('bigTeamBChannel3', 'techtonica.long.team.name.with.ellipsis', 'random'),
     makeRowItemBigChannel('bigTeamBChannel4', 'techtonica.long.team.name.with.ellipsis', 'happy-hour'),
 
-    makeRowItemTeamBuilder()
+    makeRowItemTeamBuilder(),
   ],
 }
 
