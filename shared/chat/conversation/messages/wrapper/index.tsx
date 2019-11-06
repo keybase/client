@@ -214,7 +214,6 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
   }
 
   _isEdited = () =>
-    // @ts-ignore
     this.props.message.hasBeenEdited && (
       <Kb.Text key="isEdited" type="BodyTiny" style={styles.edited}>
         EDITED
@@ -258,9 +257,9 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     )
 
   _unfurlList = () =>
-  this.props.message.type === 'text' &&
+    this.props.message.type === 'text' &&
     this.props.message.unfurls &&
-    this.props.message.unfurls.size && (
+    !!this.props.message.unfurls.size && (
       <UnfurlList
         key="UnfurlList"
         conversationIDKey={this.props.conversationIDKey}
@@ -287,8 +286,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
   }
 
   _hasReactions = () =>
-    // @ts-ignore
-    (this.props.message.reactions && !this.props.message.reactions.isEmpty()) || this.props.isPendingPayment
+    (!!this.props.message.reactions && !!this.props.message.reactions.size) || this.props.isPendingPayment
 
   _reactionsRow = () =>
     this._hasReactions() && (

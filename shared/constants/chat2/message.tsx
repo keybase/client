@@ -17,6 +17,7 @@ import logger from '../../logger'
 import {ServiceId} from 'util/platforms'
 import {assertNever} from '../../util/container'
 import invert from 'lodash/invert'
+import shallowEqual from 'shallowequal'
 
 export const getMessageID = (m: RPCChatTypes.UIMessage) => {
   switch (m.state) {
@@ -167,8 +168,6 @@ const makeMessageCommon = {
   ...makeMessageMinimum,
   deviceName: '',
   deviceType: 'mobile' as DeviceTypes.DeviceType,
-  errorReason: null,
-  errorTyp: null,
   hasBeenEdited: false,
   outboxID: Types.stringToOutboxID(''),
 }
@@ -189,13 +188,17 @@ const makeMessageExplodable = {
 
 export const howLongBetweenTimestampsMs: number = 1000 * 60 * 15
 
-export const makeMessagePlaceholder = (m?: Partial<MessageTypes.MessagePlaceholder>): MessageTypes.MessagePlaceholder => ({
+export const makeMessagePlaceholder = (
+  m?: Partial<MessageTypes.MessagePlaceholder>
+): MessageTypes.MessagePlaceholder => ({
   ...makeMessageMinimum,
   type: 'placeholder',
-  ...m
+  ...m,
 })
 
-export const makeMessageJourneycard = (m?: Partial<MessageTypes.MessageJourneycard>): MessageTypes.MessageJourneycard => ({
+export const makeMessageJourneycard = (
+  m?: Partial<MessageTypes.MessageJourneycard>
+): MessageTypes.MessageJourneycard => ({
   ...makeMessageMinimum,
   cardType: RPCChatTypes.JourneycardType.welcome,
   highlightMsgID: Types.numberToMessageID(0),
@@ -203,10 +206,12 @@ export const makeMessageJourneycard = (m?: Partial<MessageTypes.MessageJourneyca
   ...m,
 })
 
-export const makeMessageDeleted = (m?: Partial<MessageTypes.MessageDeleted>): MessageTypes.MessageDeleted => ({
+export const makeMessageDeleted = (
+  m?: Partial<MessageTypes.MessageDeleted>
+): MessageTypes.MessageDeleted => ({
   ...makeMessageCommon,
   type: 'deleted',
-  ...m
+  ...m,
 })
 
 export const makeMessageText = (m?: Partial<MessageTypes.MessageText>): MessageTypes.MessageText => ({
@@ -224,14 +229,15 @@ export const makeMessageText = (m?: Partial<MessageTypes.MessageText>): MessageT
   paymentInfo: null,
   reactions: new Map(),
   replyTo: null,
-  submitState: null,
   text: new HiddenString(''),
   type: 'text',
   unfurls: new Map(),
-  ...m
+  ...m,
 })
 
-export const makeMessageAttachment = (m?: Partial<MessageTypes.MessageAttachment>): MessageTypes.MessageAttachment => ({
+export const makeMessageAttachment = (
+  m?: Partial<MessageTypes.MessageAttachment>
+): MessageTypes.MessageAttachment => ({
   ...makeMessageCommon,
   ...makeMessageExplodable,
   attachmentType: 'file',
@@ -253,17 +259,18 @@ export const makeMessageAttachment = (m?: Partial<MessageTypes.MessageAttachment
   previewWidth: 0,
   reactions: new Map(),
   showPlayButton: false,
-  submitState: null,
   title: '',
   transferErrMsg: null,
   transferProgress: 0,
   transferState: null,
   type: 'attachment',
   videoDuration: null,
-  ...m
+  ...m,
 })
 
-export const makeChatRequestInfo = (m?: Partial<MessageTypes.ChatRequestInfo>): MessageTypes.ChatRequestInfo => ({
+export const makeChatRequestInfo = (
+  m?: Partial<MessageTypes.ChatRequestInfo>
+): MessageTypes.ChatRequestInfo => ({
   amount: '',
   amountDescription: '',
   asset: 'native',
@@ -272,20 +279,24 @@ export const makeChatRequestInfo = (m?: Partial<MessageTypes.ChatRequestInfo>): 
   done: false,
   type: 'requestInfo',
   worthAtRequestTime: '',
-  ...m
+  ...m,
 })
 
-export const makeMessageRequestPayment = (m?: Partial<MessageTypes.MessageRequestPayment>): MessageTypes.MessageRequestPayment => ({
+export const makeMessageRequestPayment = (
+  m?: Partial<MessageTypes.MessageRequestPayment>
+): MessageTypes.MessageRequestPayment => ({
   ...makeMessageCommon,
   note: new HiddenString(''),
   reactions: new Map(),
   requestID: '',
   requestInfo: null,
   type: 'requestPayment',
-  ...m
+  ...m,
 })
 
-export const makeChatPaymentInfo = (m? : Partial<MessageTypes.ChatPaymentInfo>): MessageTypes.ChatPaymentInfo => ({
+export const makeChatPaymentInfo = (
+  m?: Partial<MessageTypes.ChatPaymentInfo>
+): MessageTypes.ChatPaymentInfo => ({
   accountID: WalletTypes.noAccountID,
   amountDescription: '',
   delta: 'none',
@@ -303,32 +314,40 @@ export const makeChatPaymentInfo = (m? : Partial<MessageTypes.ChatPaymentInfo>):
   type: 'paymentInfo',
   worth: '',
   worthAtSendTime: '',
-  ...m
+  ...m,
 })
 
-export const makeMessageSendPayment = (m?: Partial<MessageTypes.MessageSendPayment>): MessageTypes.MessageSendPayment => ({
+export const makeMessageSendPayment = (
+  m?: Partial<MessageTypes.MessageSendPayment>
+): MessageTypes.MessageSendPayment => ({
   ...makeMessageCommon,
   paymentInfo: null,
   reactions: new Map(),
   type: 'sendPayment',
-  ...m
+  ...m,
 })
 
-const makeMessageSystemJoined = (m?: Partial<MessageTypes.MessageSystemJoined>): MessageTypes.MessageSystemJoined => ({
+const makeMessageSystemJoined = (
+  m?: Partial<MessageTypes.MessageSystemJoined>
+): MessageTypes.MessageSystemJoined => ({
   ...makeMessageCommonNoDeleteNoEdit,
   joiners: [],
   leavers: [],
   type: 'systemJoined',
-  ...m
+  ...m,
 })
 
-const makeMessageSystemLeft = (m?: Partial<MessageTypes.MessageSystemLeft>): MessageTypes.MessageSystemLeft => ({
+const makeMessageSystemLeft = (
+  m?: Partial<MessageTypes.MessageSystemLeft>
+): MessageTypes.MessageSystemLeft => ({
   ...makeMessageCommonNoDeleteNoEdit,
   type: 'systemLeft',
-  ...m
+  ...m,
 })
 
-const makeMessageSystemAddedToTeam = (m?: Partial<MessageTypes.MessageSystemAddedToTeam>): MessageTypes.MessageSystemAddedToTeam => ({
+const makeMessageSystemAddedToTeam = (
+  m?: Partial<MessageTypes.MessageSystemAddedToTeam>
+): MessageTypes.MessageSystemAddedToTeam => ({
   ...makeMessageCommonNoDeleteNoEdit,
   addee: '',
   adder: '',
@@ -338,10 +357,12 @@ const makeMessageSystemAddedToTeam = (m?: Partial<MessageTypes.MessageSystemAdde
   role: 'none',
   team: '',
   type: 'systemAddedToTeam',
-  ...m
+  ...m,
 })
 
-const makeMessageSystemInviteAccepted = (m?: Partial<MessageTypes.MessageSystemInviteAccepted>): MessageTypes.MessageSystemInviteAccepted => ({
+const makeMessageSystemInviteAccepted = (
+  m?: Partial<MessageTypes.MessageSystemInviteAccepted>
+): MessageTypes.MessageSystemInviteAccepted => ({
   ...makeMessageCommonNoDeleteNoEdit,
   adder: '',
   author: '[Keybase]',
@@ -352,36 +373,44 @@ const makeMessageSystemInviteAccepted = (m?: Partial<MessageTypes.MessageSystemI
   role: 'none',
   team: '',
   type: 'systemInviteAccepted',
-  ...m
+  ...m,
 })
 
-export const makeMessageSystemSBSResolved = (m?: Partial<MessageTypes.MessageSystemSBSResolved>): MessageTypes.MessageSystemSBSResolved => ({
+export const makeMessageSystemSBSResolved = (
+  m?: Partial<MessageTypes.MessageSystemSBSResolved>
+): MessageTypes.MessageSystemSBSResolved => ({
   ...makeMessageCommonNoDeleteNoEdit,
   assertionService: null,
   assertionUsername: '',
   prover: '',
   reactions: new Map(),
   type: 'systemSBSResolved',
-  ...m
+  ...m,
 })
 
-const makeMessageSystemSimpleToComplex = (m?: Partial<MessageTypes.MessageSystemSimpleToComplex>): MessageTypes.MessageSystemSimpleToComplex => ({
+const makeMessageSystemSimpleToComplex = (
+  m?: Partial<MessageTypes.MessageSystemSimpleToComplex>
+): MessageTypes.MessageSystemSimpleToComplex => ({
   ...makeMessageCommonNoDeleteNoEdit,
   reactions: new Map(),
   team: '',
   type: 'systemSimpleToComplex',
-  ...m
+  ...m,
 })
 
-export const makeMessageSystemText = (m?: Partial<MessageTypes.MessageSystemText>): MessageTypes.MessageSystemText => ({
+export const makeMessageSystemText = (
+  m?: Partial<MessageTypes.MessageSystemText>
+): MessageTypes.MessageSystemText => ({
   ...makeMessageCommonNoDeleteNoEdit,
   reactions: new Map(),
   text: new HiddenString(''),
   type: 'systemText',
-  ...m
+  ...m,
 })
 
-export const makeMessageSystemGitPush = (m?: Partial<MessageTypes.MessageSystemGitPush>): MessageTypes.MessageSystemGitPush => ({
+export const makeMessageSystemGitPush = (
+  m?: Partial<MessageTypes.MessageSystemGitPush>
+): MessageTypes.MessageSystemGitPush => ({
   ...makeMessageCommonNoDeleteNoEdit,
   pushType: 0,
   pusher: '',
@@ -391,58 +420,66 @@ export const makeMessageSystemGitPush = (m?: Partial<MessageTypes.MessageSystemG
   repoID: '',
   team: '',
   type: 'systemGitPush',
-  ...m
+  ...m,
 })
 
-const makeMessageSetDescription = (m?: Partial<MessageTypes.MessageSetDescription>): MessageTypes.MessageSetDescription => ({
+const makeMessageSetDescription = (
+  m?: Partial<MessageTypes.MessageSetDescription>
+): MessageTypes.MessageSetDescription => ({
   ...makeMessageCommonNoDeleteNoEdit,
   newDescription: new HiddenString(''),
   reactions: new Map(),
   type: 'setDescription',
-  ...m
+  ...m,
 })
 
 const makeMessagePin = (m?: Partial<MessageTypes.MessagePin>): MessageTypes.MessagePin => ({
   ...makeMessageCommonNoDeleteNoEdit,
   pinnedMessageID: 0,
-  reactions:  new Map(),
+  reactions: new Map(),
   type: 'pin',
-  ...m
+  ...m,
 })
 
-const makeMessageSetChannelname = (m?: Partial<MessageTypes.MessageSetChannelname>): MessageTypes.MessageSetChannelname => ({
+const makeMessageSetChannelname = (
+  m?: Partial<MessageTypes.MessageSetChannelname>
+): MessageTypes.MessageSetChannelname => ({
   ...makeMessageCommonNoDeleteNoEdit,
   newChannelname: '',
   reactions: new Map(),
   type: 'setChannelname',
-  ...m
+  ...m,
 })
 
-const makeMessageSystemChangeRetention = (m?: Partial<MessageTypes.MessageSystemChangeRetention>): MessageTypes.MessageSystemChangeRetention => ({
+const makeMessageSystemChangeRetention = (
+  m?: Partial<MessageTypes.MessageSystemChangeRetention>
+): MessageTypes.MessageSystemChangeRetention => ({
   ...makeMessageCommonNoDeleteNoEdit,
   isInherit: false,
   isTeam: false,
   membersType: 0,
   policy: null,
-  reactions:  new Map(),
+  reactions: new Map(),
   type: 'systemChangeRetention',
   user: '',
   you: '',
-  ...m
+  ...m,
 })
 
-const makeMessageSystemUsersAddedToConversation = (m?: Partial< MessageTypes.MessageSystemUsersAddedToConversation >):  MessageTypes.MessageSystemUsersAddedToConversation  => ({
+const makeMessageSystemUsersAddedToConversation = (
+  m?: Partial<MessageTypes.MessageSystemUsersAddedToConversation>
+): MessageTypes.MessageSystemUsersAddedToConversation => ({
   ...makeMessageCommonNoDeleteNoEdit,
-  reactions:  new Map(),
+  reactions: new Map(),
   type: 'systemUsersAddedToConversation',
   usernames: [],
-  ...m
+  ...m,
 })
 
 export const makeReaction = (m?: Partial<MessageTypes.Reaction>): MessageTypes.Reaction => ({
   timestamp: 0,
   username: '',
-  ...m
+  ...m,
 })
 
 export const uiRequestInfoToChatRequestInfo = (
@@ -792,7 +829,7 @@ const validUIMessagetoMessage = (
     deviceName: m.senderDeviceName,
     deviceRevokedAt: m.senderDeviceRevokedAt || undefined,
     deviceType: DeviceTypes.stringToDeviceType(m.senderDeviceType),
-    outboxID: m.outboxID ? Types.stringToOutboxID(m.outboxID) : null,
+    outboxID: m.outboxID ? Types.stringToOutboxID(m.outboxID) : undefined,
     reactions,
   }
   const explodable = {
@@ -833,13 +870,13 @@ const validUIMessagetoMessage = (
         flipGameID: m.flipGameID,
         hasBeenEdited: m.superseded,
         inlinePaymentIDs: payments
-          ?  payments.reduce((arr: Array<string>, p) => {
-                if (p.result.resultTyp === RPCChatTypes.TextPaymentResultTyp.sent) {
-                  const s = WalletTypes.rpcPaymentIDToPaymentID(p.result.sent)
-                  s && arr.push(s)
-                }
-                return arr
-              }, [])
+          ? payments.reduce((arr: Array<string>, p) => {
+              if (p.result.resultTyp === RPCChatTypes.TextPaymentResultTyp.sent) {
+                const s = WalletTypes.rpcPaymentIDToPaymentID(p.result.sent)
+                s && arr.push(s)
+              }
+              return arr
+            }, [])
           : null,
         inlinePaymentSuccessful: m.paymentInfos
           ? m.paymentInfos.some(pi => successfulInlinePaymentStatuses.includes(pi.statusDescription))
@@ -1011,8 +1048,11 @@ const outboxUIMessagetoMessage = (
   o: RPCChatTypes.UIMessageOutbox
 ) => {
   const errorReason =
-    o.state && o.state.state === RPCChatTypes.OutboxStateType.error ? rpcErrorToString(o.state.error) : null
-  const errorTyp = o.state && o.state.state === RPCChatTypes.OutboxStateType.error ? o.state.error.typ : null
+    o.state && o.state.state === RPCChatTypes.OutboxStateType.error
+      ? rpcErrorToString(o.state.error)
+      : undefined
+  const errorTyp =
+    o.state && o.state.state === RPCChatTypes.OutboxStateType.error ? o.state.error.typ : undefined
 
   switch (o.messageType) {
     case RPCChatTypes.MessageType.attachment: {
@@ -1185,8 +1225,8 @@ export const makePendingAttachmentMessage = (
   previewSpec: Types.PreviewSpec,
   outboxID: Types.OutboxID,
   inOrdinal: Types.Ordinal | null,
-  errorReason: string | null,
-  errorTyp: number | null,
+  errorReason?: string,
+  errorTyp?: number,
   explodeTime?: number
 ) => {
   const lastOrdinal =
@@ -1220,7 +1260,10 @@ export const makePendingAttachmentMessage = (
   })
 }
 
-export const getClientPrev = (state: TypedState, conversationIDKey: Types.ConversationIDKey): Types.MessageID => {
+export const getClientPrev = (
+  state: TypedState,
+  conversationIDKey: Types.ConversationIDKey
+): Types.MessageID => {
   let clientPrev: undefined | Types.MessageID
 
   const mm = state.chat2.messageMap.get(conversationIDKey)
@@ -1246,7 +1289,7 @@ export const isSpecialMention = (s: string) => ['here', 'channel', 'everyone'].i
 
 export const specialMentions = ['here', 'channel', 'everyone']
 
-export const mergeMessage = (old: Types.Message | null, m: Types.Message) => {
+export const mergeMessage = (old: Types.Message | null, m: Types.Message): Types.Message => {
   if (!old) {
     return m
   }
@@ -1256,15 +1299,50 @@ export const mergeMessage = (old: Types.Message | null, m: Types.Message) => {
     return m
   }
 
-  // @ts-ignore doens't understand mergeWith
-  return old.mergeWith((oldVal, newVal, key) => {
-    if (key === 'mentionsAt' || key === 'reactions' || key === 'mentionsChannelName') {
-      return oldVal.equals(newVal) ? oldVal : newVal
-    } else if (key === 'text') {
-      return oldVal.stringValue() === newVal.stringValue() ? oldVal : newVal
+  const toRet: any = {...m}
+
+  Object.keys(old).forEach(key => {
+    switch (key) {
+      case 'mentionsAt':
+        if (
+          m.type === 'text' &&
+          old.type === 'text' &&
+          shallowEqual([...old.mentionsAt], [...m.mentionsAt])
+        ) {
+          toRet.mentionsAt = old.mentionsAt
+        }
+        break
+      case 'reactions':
+        if (
+          old.reactions &&
+          m.reactions &&
+          shallowEqual([...old.reactions.entries()], [...m.reactions.entries()])
+        ) {
+          toRet.reactions = old.reactions
+        }
+        break
+      case 'mentionsChannelName':
+        if (
+          m.type === 'text' &&
+          old.type === 'text' &&
+          shallowEqual([...old.mentionsChannelName.entries()], [...m.mentionsChannelName].entries())
+        ) {
+          toRet.mentionsChannelName = old.mentionsChannelName
+        }
+        break
+      case 'text':
+        if (m.type === 'text' && old.type === 'text' && old.text.stringValue() === m.text.stringValue()) {
+          toRet.text = old.text
+        }
+        break
+      default:
+        if (old[key] === m[key]) {
+          toRet[key] = old[key]
+        }
     }
-    return newVal === oldVal ? oldVal : newVal
-  }, m)
+  })
+
+  return toRet
 }
 
 export const upgradeMessage = (old: Types.Message, m: Types.Message): Types.Message => {
@@ -1297,21 +1375,21 @@ export const upgradeMessage = (old: Types.Message, m: Types.Message): Types.Mess
       // hold on to the previewURL so that we
       // don't show the gray box.
       return {
-          ...m,
+        ...m,
         ordinal: old.ordinal,
         previewURL: old.previewURL,
       }
     }
     return {
-        ...m,
+      ...m,
       // We got an attachment-uploaded message. Hold on to the old ID
       // because that's what the service expects to delete this message
       id: old.id,
       ordinal: old.ordinal,
       downloadPath: old.downloadPath,
-      previewURL:(old.previewURL && !m.previewURL) ? old.previewURL: m.previewURL,
-      transferState: (old.transferState === 'remoteUploading') ? null : old.transferState,
-      transferProgress: old.transferProgress
+      previewURL: old.previewURL && !m.previewURL ? old.previewURL : m.previewURL,
+      transferState: old.transferState === 'remoteUploading' ? null : old.transferState,
+      transferProgress: old.transferProgress,
     }
   }
   return m

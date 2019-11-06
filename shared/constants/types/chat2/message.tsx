@@ -56,13 +56,22 @@ export type PathAndOutboxID = {
   outboxID: RPCChatTypes.OutboxID | null
 }
 
+// optional props here may never get set depending on the type
 type _MessageCommon = {
   author: string
-  conversationIDKey: Common.ConversationIDKey
-  id: MessageID
-  ordinal: Ordinal
-  timestamp: number
   bodySummary: HiddenString
+  conversationIDKey: Common.ConversationIDKey
+  errorReason?: string
+  errorTyp?: number
+  hasBeenEdited?: boolean
+  id: MessageID
+  isDeleteable?: boolean
+  isEditable?: boolean
+  ordinal: Ordinal
+  outboxID?: OutboxID
+  reactions?: Reactions
+  submitState?: 'deleting' | 'editing' | 'pending' | 'failed'
+  timestamp: number
 }
 type _MessageWithDeviceInfo = {
   deviceName: string
@@ -87,7 +96,6 @@ export type MessagePlaceholder = {
   type: 'placeholder'
 } & _MessageCommon
 
-
 export type MessageJourneycard = {
   type: 'journeycard'
   cardType: RPCChatTypes.JourneycardType
@@ -96,38 +104,33 @@ export type MessageJourneycard = {
 
 // We keep deleted messages around so the bookkeeping is simpler
 export type MessageDeleted = {
-  hasBeenEdited: boolean
-  errorReason: string | null
-  errorTyp: number | null
-  outboxID: OutboxID | null
   type: 'deleted'
-} & _MessageCommon & _MessageWithDeviceInfo
+} & _MessageCommon &
+  _MessageWithDeviceInfo
 
 export type MessageText = {
   decoratedText: HiddenString | null
-  errorReason: string | null
-  errorTyp: number | null
   exploded: boolean
   explodedBy: string // only if 'explode now' happened,
   exploding: boolean
   explodingTime: number
   explodingUnreadable: boolean // if we can't read this message bc we have no keys,
-  hasBeenEdited: boolean
   inlinePaymentIDs: Array<WalletTypes.PaymentID> | null
   inlinePaymentSuccessful: boolean
   flipGameID: string | null
-  submitState: null | 'deleting' | 'editing' | 'pending' | 'failed'
   mentionsAt: MentionsAt
   mentionsChannel: MentionsChannel
   mentionsChannelName: MentionsChannelName
-  outboxID: OutboxID | null
   // eslint-disable-next-line no-use-before-define
   replyTo: Message | null
   text: HiddenString
   paymentInfo: ChatPaymentInfo | null // If null, we are waiting on this from the service,
   unfurls: UnfurlMap
   type: 'text'
-} & _MessageCommon & _MessageWithDeviceInfo & _MessageWithReactions &_MessageWithDeletableEditable
+} & _MessageCommon &
+  _MessageWithDeviceInfo &
+  _MessageWithReactions &
+  _MessageWithDeletableEditable
 
 export type AttachmentType = 'image' | 'file' | 'audio'
 
@@ -157,8 +160,6 @@ export type MessageAttachment = {
   previewURL: string
   fileType: string // MIME type,
   downloadPath: string | null // string if downloaded,
-  errorReason: string | null
-  errorTyp: number | null
   exploded: boolean
   explodedBy: string // only if 'explode now' happened,
   exploding: boolean
@@ -166,22 +167,22 @@ export type MessageAttachment = {
   explodingUnreadable: boolean // if we can't read this message bc we have no keys,
   fileName: string
   fileSize: number
-  hasBeenEdited: boolean
   // id: MessageID  that of first attachment message, not second attachment-uploaded message,
   inlineVideoPlayable: boolean
   isCollapsed: boolean
-  outboxID: OutboxID | null
   previewHeight: number
   previewWidth: number
   previewTransferState: 'downloading' | null // only for preview,
-  submitState: null | 'deleting' | 'pending' | 'failed'
   title: string
   transferProgress: number // 0-1 // only for the file,
   transferState: MessageAttachmentTransferState
   transferErrMsg: string | null
   type: 'attachment'
   videoDuration: string | null
-} & _MessageCommon & _MessageWithDeviceInfo & _MessageWithReactions &_MessageWithDeletableEditable
+} & _MessageCommon &
+  _MessageWithDeviceInfo &
+  _MessageWithReactions &
+  _MessageWithDeletableEditable
 
 export type ChatRequestInfo = {
   amount: string
@@ -195,15 +196,13 @@ export type ChatRequestInfo = {
 }
 
 export type MessageRequestPayment = {
-  errorReason: string | null
-  errorTyp: number | null
-  hasBeenEdited: boolean
   note: HiddenString
-  outboxID: OutboxID | null
   requestID: RPCStellarTypes.KeybaseRequestID
   requestInfo: ChatRequestInfo | null // If null, we are waiting on this from the service,
   type: 'requestPayment'
-} & _MessageCommon & _MessageWithDeviceInfo& _MessageWithReactions
+} & _MessageCommon &
+  _MessageWithDeviceInfo &
+  _MessageWithReactions
 
 export type ChatPaymentInfo = {
   accountID: WalletTypes.AccountID
@@ -226,13 +225,11 @@ export type ChatPaymentInfo = {
 }
 
 export type MessageSendPayment = {
-  errorReason: string | null
-  errorTyp: number | null
-  hasBeenEdited: boolean
-  outboxID: OutboxID | null
   paymentInfo: ChatPaymentInfo | null // If null, we are waiting on this from the service,
   type: 'sendPayment'
-} & _MessageCommon & _MessageWithDeviceInfo & _MessageWithReactions
+} & _MessageCommon &
+  _MessageWithDeviceInfo &
+  _MessageWithReactions
 
 // Note that all these MessageSystem* messages are generated by the sender's client
 // at the time that the message is sent. Associated message data that relates to
@@ -247,19 +244,28 @@ export type MessageSystemInviteAccepted = {
   team: string
   role: TeamTypes.MaybeTeamRoleType
   type: 'systemInviteAccepted'
-} & _MessageCommon & _MessageWithDeviceInfo & _MessageWithDeletableEditable & _MessageWithReactions
+} & _MessageCommon &
+  _MessageWithDeviceInfo &
+  _MessageWithDeletableEditable &
+  _MessageWithReactions
 
 export type MessageSystemSBSResolved = {
   assertionUsername: string
   assertionService: ServiceIdWithContact | null
   prover: string
   type: 'systemSBSResolved'
-} & _MessageCommon & _MessageWithDeviceInfo & _MessageWithDeletableEditable & _MessageWithReactions
+} & _MessageCommon &
+  _MessageWithDeviceInfo &
+  _MessageWithDeletableEditable &
+  _MessageWithReactions
 
 export type MessageSystemSimpleToComplex = {
   team: string
   type: 'systemSimpleToComplex'
-} & _MessageCommon & _MessageWithDeviceInfo & _MessageWithDeletableEditable & _MessageWithReactions
+} & _MessageCommon &
+  _MessageWithDeviceInfo &
+  _MessageWithDeletableEditable &
+  _MessageWithReactions
 
 export type MessageSystemGitPush = {
   pusher: string
@@ -269,7 +275,10 @@ export type MessageSystemGitPush = {
   repoID: string
   team: string
   type: 'systemGitPush'
-} & _MessageCommon & _MessageWithDeviceInfo & _MessageWithDeletableEditable & _MessageWithReactions
+} & _MessageCommon &
+  _MessageWithDeviceInfo &
+  _MessageWithDeletableEditable &
+  _MessageWithReactions
 
 export type MessageSystemAddedToTeam = {
   addee: string
@@ -279,39 +288,58 @@ export type MessageSystemAddedToTeam = {
   isAdmin: boolean
   team: string
   type: 'systemAddedToTeam'
-} & _MessageCommon & _MessageWithDeviceInfo & _MessageWithDeletableEditable & _MessageWithReactions
+} & _MessageCommon &
+  _MessageWithDeviceInfo &
+  _MessageWithDeletableEditable &
+  _MessageWithReactions
 
 export type MessageSystemJoined = {
   joiners: Array<string>
   leavers: Array<string>
   type: 'systemJoined'
-} & _MessageCommon & _MessageWithDeviceInfo & _MessageWithDeletableEditable
+} & _MessageCommon &
+  _MessageWithDeviceInfo &
+  _MessageWithDeletableEditable
 
 export type MessageSystemLeft = {
   type: 'systemLeft'
-} & _MessageCommon & _MessageWithDeviceInfo & _MessageWithDeletableEditable
+} & _MessageCommon &
+  _MessageWithDeviceInfo &
+  _MessageWithDeletableEditable
 
 export type MessageSystemText = {
   text: HiddenString
   type: 'systemText'
-} & _MessageCommon & _MessageWithDeviceInfo & _MessageWithDeletableEditable & _MessageWithReactions
+} & _MessageCommon &
+  _MessageWithDeviceInfo &
+  _MessageWithDeletableEditable &
+  _MessageWithReactions
 
 export type MessageSetDescription = {
   newDescription: HiddenString
   type: 'setDescription'
-} & _MessageCommon & _MessageWithDeviceInfo & _MessageWithDeletableEditable & _MessageWithReactions
+} & _MessageCommon &
+  _MessageWithDeviceInfo &
+  _MessageWithDeletableEditable &
+  _MessageWithReactions
 
 export type MessagePin = {
   bodySummary: HiddenString
   pinnedMessageID: MessageID
   timestamp: number
   type: 'pin'
-} & _MessageCommon & _MessageWithReactions &_MessageWithDeviceInfo &_MessageWithDeletableEditable
+} & _MessageCommon &
+  _MessageWithReactions &
+  _MessageWithDeviceInfo &
+  _MessageWithDeletableEditable
 
 export type MessageSetChannelname = {
   newChannelname: string
   type: 'setChannelname'
-} & _MessageCommon & _MessageWithDeviceInfo & _MessageWithDeletableEditable & _MessageWithReactions
+} & _MessageCommon &
+  _MessageWithDeviceInfo &
+  _MessageWithDeletableEditable &
+  _MessageWithReactions
 
 export type MessageSystemChangeRetention = {
   isInherit: boolean
@@ -321,13 +349,18 @@ export type MessageSystemChangeRetention = {
   type: 'systemChangeRetention'
   user: string
   you: string
-}& _MessageCommon & _MessageWithDeviceInfo & _MessageWithDeletableEditable & _MessageWithReactions
+} & _MessageCommon &
+  _MessageWithDeviceInfo &
+  _MessageWithDeletableEditable &
+  _MessageWithReactions
 
 export type MessageSystemUsersAddedToConversation = {
   usernames: Array<string>
   type: 'systemUsersAddedToConversation'
-} & _MessageCommon & _MessageWithDeviceInfo & _MessageWithDeletableEditable & _MessageWithReactions
-
+} & _MessageCommon &
+  _MessageWithDeviceInfo &
+  _MessageWithDeletableEditable &
+  _MessageWithReactions
 
 // If you add a message type here, you'll probably want to check
 // `deletableByDeleteHistory` stuff in constants/chat2/message
