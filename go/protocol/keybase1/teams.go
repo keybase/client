@@ -2850,14 +2850,12 @@ func (o TeamTreeEntry) DeepCopy() TeamTreeEntry {
 
 type SubteamListEntry struct {
 	Name        TeamName `codec:"name" json:"name"`
-	TeamID      TeamID   `codec:"teamID" json:"teamID"`
 	MemberCount int      `codec:"memberCount" json:"memberCount"`
 }
 
 func (o SubteamListEntry) DeepCopy() SubteamListEntry {
 	return SubteamListEntry{
 		Name:        o.Name.DeepCopy(),
-		TeamID:      o.TeamID.DeepCopy(),
 		MemberCount: o.MemberCount,
 	}
 }

@@ -72,7 +72,7 @@ export type _InviteInfo = {
 }
 export type InviteInfo = I.RecordOf<_InviteInfo> // TODO remove
 
-export type TabKey = 'members' | 'invites' | 'subteams' | 'settings'
+export type TabKey = 'members' | 'requests' | 'pending'
 
 export type _SubteamInfo = {
   key: string
@@ -117,7 +117,7 @@ export type TeamDetails = {
   members?: Map<string, _MemberInfo>
   settings?: _TeamSettings
   invites?: Set<_InviteInfo>
-  subteams?: Set<TeamID>
+  subteams?: Set<string>
   requests?: Set<string>
 }
 
@@ -135,7 +135,6 @@ export type TeamRoleMap = {
 export type State = Readonly<{
   addUserToTeamsState: AddUserToTeamsState
   addUserToTeamsResults: string
-  canPerform: Map<TeamID, TeamOperations>
   channelCreationError: string
   deletedTeams: Array<RPCTypes.DeletedTeamInfo>
   emailInviteError: EmailInviteError
@@ -160,7 +159,7 @@ export type State = Readonly<{
   teamNameToRetentionPolicy: I.Map<Teamname, RetentionPolicy>
   teamNameToRole: I.Map<Teamname, MaybeTeamRoleType>
   teamNameToSubteams: I.Map<Teamname, I.Set<Teamname>> // TODO remove
-  teamNameToCanPerform: I.Map<Teamname, TeamOperations> // TODO remove
+  teamNameToCanPerform: I.Map<Teamname, TeamOperations>
   teamNameToSettings: I.Map<Teamname, TeamSettings>
   teamNameToPublicitySettings: I.Map<Teamname, _PublicitySettings>
   teamNameToAllowPromote: I.Map<Teamname, boolean> // TODO remove
