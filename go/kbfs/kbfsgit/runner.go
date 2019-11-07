@@ -7,6 +7,7 @@ package kbfsgit
 import (
 	"bufio"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -54,12 +55,17 @@ const (
 	gitOptionPushcert  = "pushcert"
 	gitOptionIfAsked   = "if-asked"
 
+	gitLFSUploadEvent    = "upload"
+	gitLFSCompleteEvent  = "complete"
+	gitLFSTerminateEvent = "terminate"
+
 	// Debug tag ID for an individual git command passed to the process.
 	ctxCommandOpID = "GITCMDID"
 
 	kbfsgitPrefix = "keybase://"
 	repoSplitter  = "/"
 	kbfsRepoDir   = ".kbfs_git"
+	lfsSubdir     = "kbfs_lfs"
 
 	publicName  = "public"
 	privateName = "private"
@@ -105,18 +111,26 @@ const (
 	ctxCommandIDKey ctxCommandTagKey = iota
 )
 
+type runnerProcessType int
+
+const (
+	processGit runnerProcessType = iota
+	processLFS
+)
+
 type runner struct {
-	config libkbfs.Config
-	log    logger.Logger
-	h      *tlfhandle.Handle
-	remote string
-	repo   string
-	gitDir string
-	uniqID string
-	input  io.Reader
-	output io.Writer
-	errput io.Writer
-	gcDone bool
+	config      libkbfs.Config
+	log         logger.Logger
+	h           *tlfhandle.Handle
+	remote      string
+	repo        string
+	gitDir      string
+	uniqID      string
+	input       io.Reader
+	output      io.Writer
+	errput      io.Writer
+	gcDone      bool
+	processType runnerProcessType
 
 	verbosity int64
 	progress  bool
@@ -132,13 +146,9 @@ type runner struct {
 	stageCPUProfPath string
 }
 
-// newRunner creates a new runner for git commands.  It expects `repo`
-// to be in the form "keybase://private/user/reponame".  `remote`
-// is the local name assigned to that URL, while `gitDir` is the
-// filepath leading to the .git directory of the caller's local
-// on-disk repo
-func newRunner(ctx context.Context, config libkbfs.Config,
-	remote, repo, gitDir string, input io.Reader, output io.Writer, errput io.Writer) (
+func newRunnerWithType(ctx context.Context, config libkbfs.Config,
+	remote, repo, gitDir string, input io.Reader, output, errput io.Writer,
+	processType runnerProcessType) (
 	*runner, error) {
 	tlfAndRepo := strings.TrimPrefix(repo, kbfsgitPrefix)
 	parts := strings.Split(tlfAndRepo, repoSplitter)
@@ -176,19 +186,32 @@ func newRunner(ctx context.Context, config libkbfs.Config,
 	uniqID := fmt.Sprintf("%s-%d", session.VerifyingKey.String(), os.Getpid())
 
 	return &runner{
-		config:    config,
-		log:       config.MakeLogger(""),
-		h:         h,
-		remote:    remote,
-		repo:      parts[2],
-		gitDir:    gitDir,
-		uniqID:    uniqID,
-		input:     input,
-		output:    output,
-		errput:    errput,
-		verbosity: 1,
-		progress:  true,
+		config:      config,
+		log:         config.MakeLogger(""),
+		h:           h,
+		remote:      remote,
+		repo:        parts[2],
+		gitDir:      gitDir,
+		uniqID:      uniqID,
+		input:       input,
+		output:      output,
+		errput:      errput,
+		processType: processType,
+		verbosity:   1,
+		progress:    true,
 	}, nil
+}
+
+// newRunner creates a new runner for git commands.  It expects `repo`
+// to be in the form "keybase://private/user/reponame".  `remote`
+// is the local name assigned to that URL, while `gitDir` is the
+// filepath leading to the .git directory of the caller's local
+// on-disk repo.
+func newRunner(ctx context.Context, config libkbfs.Config,
+	remote, repo, gitDir string, input io.Reader, output, errput io.Writer) (
+	*runner, error) {
+	return newRunnerWithType(
+		ctx, config, remote, repo, gitDir, input, output, errput, processGit)
 }
 
 // handleCapabilities: from https://git-scm.com/docs/git-remote-helpers
@@ -287,6 +310,22 @@ func (r *runner) isManagedByApp() bool {
 	}
 }
 
+func (r *runner) makeFS(ctx context.Context) (fs *libfs.FS, err error) {
+	// Only allow lazy creates for TLFs that aren't managed by the
+	// Keybase app.
+	if r.isManagedByApp() {
+		fs, _, err = libgit.GetRepoAndID(
+			ctx, r.config, r.h, r.repo, r.uniqID)
+	} else {
+		fs, _, err = libgit.GetOrCreateRepoAndID(
+			ctx, r.config, r.h, r.repo, r.uniqID)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return fs, nil
+}
+
 func (r *runner) initRepoIfNeeded(ctx context.Context, forCmd string) (
 	repo *gogit.Repository, fs *libfs.FS, err error) {
 	// This function might be called multiple times per function, but
@@ -306,15 +345,7 @@ func (r *runner) initRepoIfNeeded(ctx context.Context, forCmd string) (
 		}()
 	}
 
-	// Only allow lazy creates for TLFs that aren't managed by the
-	// Keybase app.
-	if r.isManagedByApp() {
-		fs, _, err = libgit.GetRepoAndID(
-			ctx, r.config, r.h, r.repo, r.uniqID)
-	} else {
-		fs, _, err = libgit.GetOrCreateRepoAndID(
-			ctx, r.config, r.h, r.repo, r.uniqID)
-	}
+	fs, err = r.makeFS(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1889,6 +1920,55 @@ func (r *runner) handleOption(ctx context.Context, args []string) (err error) {
 	return err
 }
 
+func (r *runner) copyFileLFS(
+	ctx context.Context, from billy.Filesystem, to billy.Filesystem,
+	fromName string, toName string) (err error) {
+	f, err := from.Open(fromName)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	toF, err := to.Create(toName)
+	if err != nil {
+		return err
+	}
+	defer toF.Close()
+
+	// TODO: wrap the writer
+	var w io.Writer = toF
+	_, err = io.Copy(w, f)
+	return err
+}
+
+func (r *runner) handleLFSUpload(
+	ctx context.Context, oid string, localPath string) (err error) {
+	fs, err := r.makeFS(ctx)
+	if err != nil {
+		return err
+	}
+	err = fs.MkdirAll(lfsSubdir, 0600)
+	if err != nil {
+		return err
+	}
+	fs, err = fs.ChrootAsLibFS(lfsSubdir)
+	if err != nil {
+		return err
+	}
+
+	// Get an FS for the local directory.
+	dir, file := filepath.Split(localPath)
+	if dir == "" || file == "" {
+		return errors.Errorf("Invalid local path %s", localPath)
+	}
+
+	localFS := osfs.New(dir)
+	err = r.copyFileLFS(ctx, localFS, fs, file, oid)
+	if err != nil {
+		return err
+	}
+	return r.waitForJournal(ctx)
+}
+
 func (r *runner) processCommand(
 	ctx context.Context, commandChan <-chan string) (err error) {
 	var fetchBatch, pushBatch [][]string
@@ -1962,6 +2042,67 @@ func (r *runner) processCommand(
 	}
 }
 
+type lfsError struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+}
+
+type lfsRequest struct {
+	Event string `json:"event"`
+	Oid   string `json:"oid"`
+	Size  int    `json:"size,omitempty"`
+	Path  string `json:"path,omitempty"`
+}
+
+type lfsResponse struct {
+	Event string    `json:"event"`
+	Oid   string    `json:"oid"`
+	Error *lfsError `json:"error,omitempty"`
+}
+
+func (r *runner) processCommandLFS(
+	ctx context.Context, commandChan <-chan string) (err error) {
+	for {
+		select {
+		case cmd := <-commandChan:
+			ctx := libkbfs.CtxWithRandomIDReplayable(
+				ctx, ctxCommandIDKey, ctxCommandOpID, r.log)
+
+			var req lfsRequest
+			err := json.Unmarshal([]byte(cmd), &req)
+			if err != nil {
+				return err
+			}
+
+			resp := lfsResponse{
+				Event: gitLFSCompleteEvent,
+				Oid:   req.Oid,
+			}
+			switch req.Event {
+			case gitLFSUploadEvent:
+				r.log.CDebugf(ctx, "Handling upload, oid=%s", req.Oid)
+				err := r.handleLFSUpload(ctx, req.Oid, req.Path)
+				if err != nil {
+					resp.Error = &lfsError{Code: 1, Message: err.Error()}
+				}
+			case gitLFSTerminateEvent:
+				return nil
+			}
+
+			respBytes, err := json.Marshal(resp)
+			if err != nil {
+				return err
+			}
+			_, err = r.output.Write(append(respBytes, []byte("\n")...))
+			if err != nil {
+				return err
+			}
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	}
+}
+
 func (r *runner) processCommands(ctx context.Context) (err error) {
 	r.log.CDebugf(ctx, "Ready to process")
 	reader := bufio.NewReader(r.input)
@@ -1981,7 +2122,14 @@ func (r *runner) processCommands(ctx context.Context) (err error) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		processorErrChan <- r.processCommand(ctx, commandChan)
+		switch r.processType {
+		case processGit:
+			processorErrChan <- r.processCommand(ctx, commandChan)
+		case processLFS:
+			processorErrChan <- r.processCommandLFS(ctx, commandChan)
+		default:
+			panic(fmt.Sprintf("Unknown process type: %v", r.processType))
+		}
 	}()
 
 	for {
