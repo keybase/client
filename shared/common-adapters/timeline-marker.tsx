@@ -40,12 +40,12 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   circleOpen: {
+    borderColor: timeline_grey,
     borderRadius: circleSize / 2,
-    height: circleSize,
-    width: circleSize,
     borderStyle: 'solid',
     borderWidth: 2,
-    borderColor: timeline_grey,
+    height: circleSize,
+    width: circleSize,
   },
   line: Styles.platformStyles({
     common: {
