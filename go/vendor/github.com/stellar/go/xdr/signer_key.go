@@ -61,6 +61,15 @@ func (skey *SignerKey) Equals(other SignerKey) bool {
 	}
 }
 
+func MustSigner(address string) SignerKey {
+	aid := SignerKey{}
+	err := aid.SetAddress(address)
+	if err != nil {
+		panic(err)
+	}
+	return aid
+}
+
 // SetAddress modifies the receiver, setting it's value to the SignerKey form
 // of the provided address.
 func (skey *SignerKey) SetAddress(address string) error {

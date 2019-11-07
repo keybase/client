@@ -93,9 +93,7 @@ func RemoveTrust(code, issuer string, args ...interface{}) (result ChangeTrustBu
 		Limit("0"),
 	}
 
-	for _, mut := range args {
-		mutators = append(mutators, mut)
-	}
+	mutators = append(mutators, args...)
 
 	return ChangeTrust(mutators...)
 }

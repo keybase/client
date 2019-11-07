@@ -29,13 +29,13 @@ func (a Asset) ToXDR() (xdr.Asset, error) {
 	length := len(a.Code)
 	switch {
 	case length >= 1 && length <= 4:
-		var codeArray [4]byte
+		var codeArray xdr.AssetCode4
 		byteArray := []byte(a.Code)
 		copy(codeArray[:], byteArray[0:length])
 		asset := xdr.AssetAlphaNum4{AssetCode: codeArray, Issuer: issuer}
 		return xdr.NewAsset(xdr.AssetTypeAssetTypeCreditAlphanum4, asset)
 	case length >= 5 && length <= 12:
-		var codeArray [12]byte
+		var codeArray xdr.AssetCode12
 		byteArray := []byte(a.Code)
 		copy(codeArray[:], byteArray[0:length])
 		asset := xdr.AssetAlphaNum12{AssetCode: codeArray, Issuer: issuer}

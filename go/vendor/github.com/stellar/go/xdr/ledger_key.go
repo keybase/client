@@ -1,6 +1,9 @@
 package xdr
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 // LedgerKey implements the `Keyer` interface
 func (key *LedgerKey) LedgerKey() LedgerKey {
@@ -84,4 +87,62 @@ func (key *LedgerKey) SetTrustline(account AccountId, line Asset) error {
 
 	*key = nkey
 	return nil
+}
+
+// MarshalBinaryCompress marshals LedgerKey to []byte but unlike
+// MarshalBinary() it removes all unnecessary bytes, exploting the fact
+// that XDR is padding data to 4 bytes in union discriminants etc.
+// It's primary use is in ingest/io.StateReader that keep LedgerKeys in
+// memory so this function decrease memory requirements.
+//
+// Warning, do not use UnmarshalBinary() on data encoded using this method!
+//
+// Optimizations:
+// - Writes a single byte for union discriminants vs 4 bytes.
+// - Removes type and code padding for Asset.
+func (key LedgerKey) MarshalBinaryCompress() ([]byte, error) {
+	m := []byte{byte(key.Type)}
+
+	switch key.Type {
+	case LedgerEntryTypeAccount:
+		account, err := key.Account.AccountId.MarshalBinaryCompress()
+		if err != nil {
+			return nil, err
+		}
+		m = append(m, account...)
+	case LedgerEntryTypeTrustline:
+		account, err := key.TrustLine.AccountId.MarshalBinaryCompress()
+		if err != nil {
+			return nil, err
+		}
+		m = append(m, account...)
+		asset, err := key.TrustLine.Asset.MarshalBinaryCompress()
+		if err != nil {
+			return nil, err
+		}
+		m = append(m, asset...)
+	case LedgerEntryTypeOffer:
+		seller, err := key.Offer.SellerId.MarshalBinaryCompress()
+		if err != nil {
+			return nil, err
+		}
+		m = append(m, seller...)
+		offer, err := key.Offer.OfferId.MarshalBinary()
+		if err != nil {
+			return nil, err
+		}
+		m = append(m, offer...)
+	case LedgerEntryTypeData:
+		account, err := key.Data.AccountId.MarshalBinaryCompress()
+		if err != nil {
+			return nil, err
+		}
+		m = append(m, account...)
+		dataName := []byte(strings.TrimRight(string(key.Data.DataName), "\x00"))
+		m = append(m, dataName...)
+	default:
+		panic("Unknown type")
+	}
+
+	return m, nil
 }

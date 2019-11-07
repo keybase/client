@@ -982,11 +982,11 @@
 			"revisionTime": "2019-06-21T18:08:33Z"
 		},
 		{
-			"checksumSHA1": "atGxvhJl/hBdPcAxrvJdQQ9mT9k=",
+			"checksumSHA1": "hCs9aZuNW3dnVeBqQ5bjTcvdDe0=",
 			"origin": "github.com/keybase/stellar-org/build",
 			"path": "github.com/stellar/go/build",
-			"revision": "e43266cae98f292a11218decae91a277a8489da2",
-			"revisionTime": "2019-06-21T18:08:33Z"
+			"revision": "0fc3bfe3dfa7aba69074e417e7dd47101b44e219",
+			"revisionTime": "2019-10-10T20:56:48Z"
 		},
 		{
 			"checksumSHA1": "lNNS4mTZlbciLrs24+zR03+KyA0=",
@@ -1115,11 +1115,11 @@
 			"revisionTime": "2019-06-21T18:08:33Z"
 		},
 		{
-			"checksumSHA1": "J5AQ9Qbd4n9uu2UYSTBXxfkmlGc=",
+			"checksumSHA1": "mo133jQLSnQ/CGp8jJcGggw6dq0=",
 			"origin": "github.com/keybase/stellar-org/xdr",
 			"path": "github.com/stellar/go/xdr",
-			"revision": "e43266cae98f292a11218decae91a277a8489da2",
-			"revisionTime": "2019-06-21T18:08:33Z"
+			"revision": "0fc3bfe3dfa7aba69074e417e7dd47101b44e219",
+			"revisionTime": "2019-10-10T20:56:48Z"
 		},
 		{
 			"checksumSHA1": "IIsn0Wdi5rHU8xca+FzDd+YeYlc=",
