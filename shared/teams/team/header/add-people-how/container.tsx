@@ -27,7 +27,7 @@ export default Container.connect(
         const selected = Styles.isMobile ? 'teamInviteByContact' : 'teamInviteByEmail'
         dispatch(
           RouteTreeGen.createNavigateAppend({
-            path: [{props: {teamname}, selected: 'team'}, {props: {teamname}, selected}],
+            path: [{props: {teamname}, selected}],
           })
         )
         dispatch(RouteTreeGen.createNavigateAppend({path: [teamsTab]}))
@@ -39,8 +39,8 @@ export default Container.connect(
     ...s,
     attachTo: o.attachTo,
     onAddPeople: () => d._onAddPeople(s.teamname),
-    onInvite: () => d._onInvite(s.teamname),
     onHidden: o.onHidden,
+    onInvite: () => d._onInvite(s.teamname),
     onSlackImport: () => d._onSlackImport(s.teamname),
     visible: o.visible,
   })

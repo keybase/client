@@ -1,28 +1,22 @@
 import * as Types from '../../../constants/types/teams'
 import {getOrderedMemberArray, sortInvites} from './helpers'
 
-type HeaderRow = {type: 'header'} | {type: 'tabs'}
-
+type HeaderRow = {type: 'header'}
+type TabsRow = {type: 'tabs'}
 type MemberRow = {username: string; type: 'member'}
-
 type InviteRow =
   | {label: string; type: 'invites-divider'}
   | {username: string; type: 'invites-request'}
   | {id: string; type: 'invites-invite'}
   | {type: 'invites-none'}
-
 type SubteamRow =
   | {type: 'subteam-intro'}
   | {type: 'subteam-add'}
   | {teamID: Types.TeamID; type: 'subteam-subteam'}
   | {type: 'subteam-none'}
-
 type SettingsRow = {type: 'settings'}
-
 type LoadingRow = {type: 'loading'}
-
-export type BodyRow = MemberRow | InviteRow | SubteamRow | SettingsRow | LoadingRow
-export type Row = HeaderRow | BodyRow
+export type Row = HeaderRow | TabsRow | MemberRow | InviteRow | SubteamRow | SettingsRow | LoadingRow
 
 const makeRows = (
   details: Types.TeamDetails,

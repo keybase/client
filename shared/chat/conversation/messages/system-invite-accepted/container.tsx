@@ -2,7 +2,6 @@ import SystemInviteAccepted from '.'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
-import * as TeamConstants from '../../../../constants/teams'
 import {TeamID} from '../../../../constants/types/teams'
 import {connect} from '../../../../util/container'
 
