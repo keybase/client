@@ -10,7 +10,7 @@ export default function(
   state: Types.TeamBuildingSubState,
   action: TeamBuildingGen.Actions
 ): Types.TeamBuildingSubState {
-  if (action.type === TeamBuildingGen.resetStore) {
+  if (action.type === TeamBuildingGen.resetStore || action.type === TeamBuildingGen.tbResetStore) {
     return Constants.makeSubState()
   }
 

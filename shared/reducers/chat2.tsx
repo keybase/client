@@ -8,6 +8,7 @@ import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/chat2'
 import teamBuildingReducer from './team-building'
+import {teamBuilderReducerCreator} from '../team-building/reducer-helper'
 import {isMobile} from '../constants/platform'
 import logger from '../logger'
 import HiddenString from '../util/hidden-string'
@@ -52,32 +53,6 @@ const messageIDToOrdinal = (
   }
 
   return null
-}
-
-const passToTeamBuildingReducer = (
-  draftState: Container.Draft<Types.State>,
-  action: TeamBuildingGen.Actions
-) => {
-  draftState.teamBuilding = teamBuildingReducer(
-    'chat2',
-    draftState.teamBuilding as Types.State['teamBuilding'],
-    action
-  )
-}
-
-const teamActions: Container.ActionHandler<Actions, Types.State> = {
-  [TeamBuildingGen.resetStore]: passToTeamBuildingReducer,
-  [TeamBuildingGen.cancelTeamBuilding]: passToTeamBuildingReducer,
-  [TeamBuildingGen.addUsersToTeamSoFar]: passToTeamBuildingReducer,
-  [TeamBuildingGen.removeUsersFromTeamSoFar]: passToTeamBuildingReducer,
-  [TeamBuildingGen.searchResultsLoaded]: passToTeamBuildingReducer,
-  [TeamBuildingGen.finishedTeamBuilding]: passToTeamBuildingReducer,
-  [TeamBuildingGen.fetchedUserRecs]: passToTeamBuildingReducer,
-  [TeamBuildingGen.fetchUserRecs]: passToTeamBuildingReducer,
-  [TeamBuildingGen.search]: passToTeamBuildingReducer,
-  [TeamBuildingGen.selectRole]: passToTeamBuildingReducer,
-  [TeamBuildingGen.labelsSeen]: passToTeamBuildingReducer,
-  [TeamBuildingGen.changeSendNotification]: passToTeamBuildingReducer,
 }
 
 const audioActions: Container.ActionHandler<Actions, Types.State> = {
@@ -1540,12 +1515,20 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   [Chat2Gen.clearMetas]: draftState => {
     draftState.metaMap.clear()
   },
-  ...teamActions,
   ...audioActions,
   ...giphyActions,
   ...paymentActions,
   ...searchActions,
   ...attachmentActions,
+  ...teamBuilderReducerCreator<Actions, Types.State>(
+    (draftState: Container.Draft<Types.State>, action: TeamBuildingGen.Actions) => {
+      draftState.teamBuilding = teamBuildingReducer(
+        'chat2',
+        draftState.teamBuilding as Types.State['teamBuilding'],
+        action
+      )
+    }
+  ),
 })
 
 export default reducer
