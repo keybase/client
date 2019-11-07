@@ -58,9 +58,15 @@ const requestPermissionsToWrite = async () => {
 }
 
 export const requestAudioPermission = async () => {
+  let chargeForward = true
   if (isIOS) {
     const {Permissions} = require('react-native-unimodules')
-    const {status} = await Permissions.getAsync(Permissions.AUDIO_RECORDING)
+    let {status} = await Permissions.getAsync(Permissions.AUDIO_RECORDING)
+    if (status === Permissions.PermissionStatus.UNDETERMINED) {
+      const askRes = await Permissions.askAsync(Permissions.AUDIO_RECORDING)
+      status = askRes.status
+      chargeForward = false
+    }
     if (status === Permissions.PermissionStatus.DENIED) {
       throw new Error('Please allow Keybase to access the microphone in the phone settings.')
     }
@@ -76,6 +82,7 @@ export const requestAudioPermission = async () => {
       throw new Error('Unable to acquire record audio permissions')
     }
   }
+  return chargeForward
 }
 
 export const requestLocationPermission = async (mode: RPCChatTypes.UIWatchPositionPerm) => {
@@ -767,6 +774,30 @@ const stopAudioRecording = async (
   return Chat2Gen.createSendAudioRecording({conversationIDKey, fromStaged: false, info: audio})
 }
 
+const onAttemptAudioRecording = async (
+  _: Container.TypedState,
+  action: Chat2Gen.AttemptAudioRecordingPayload,
+  logger: Saga.SagaLogger
+) => {
+  let chargeForward = true
+  try {
+    chargeForward = await requestAudioPermission()
+  } catch (err) {
+    logger.info('failed to get audio perms: ' + err)
+    return setPermissionDeniedCommandStatus(
+      action.payload.conversationIDKey,
+      `Failed to access audio. ${err.message}`
+    )
+  }
+  if (!chargeForward) {
+    return false
+  }
+  return Chat2Gen.createEnableAudioRecording({
+    conversationIDKey: action.payload.conversationIDKey,
+    meteringCb: action.payload.meteringCb,
+  })
+}
+
 const onEnableAudioRecording = async (
   state: Container.TypedState,
   action: Chat2Gen.EnableAudioRecordingPayload,
@@ -873,6 +904,7 @@ export function* platformConfigSaga() {
 
   // Audio
   yield* Saga.chainAction2(Chat2Gen.stopAudioRecording, stopAudioRecording, 'stopAudioRecording')
+  yield* Saga.chainAction2(Chat2Gen.attemptAudioRecording, onAttemptAudioRecording, 'onAttemptAudioRecording')
   yield* Saga.chainAction2(Chat2Gen.enableAudioRecording, onEnableAudioRecording, 'onEnableAudioRecording')
   yield* Saga.chainAction2(Chat2Gen.sendAudioRecording, onSendAudioRecording, 'onSendAudioRecording')
   yield* Saga.chainAction2(
