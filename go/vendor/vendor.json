@@ -1003,12 +1003,6 @@
 			"revisionTime": "2019-10-10T20:56:48Z"
 		},
 		{
-			"checksumSHA1": "0jn8iXnc3HRM9AEkR6UvBelBElM=",
-			"path": "github.com/stellar/go/clients/horizonclient",
-			"revision": "ca8011d9aa2bdf61b41826f77d5cb2a74beccfdf",
-			"revisionTime": "2019-08-20T20:05:33Z"
-		},
-		{
 			"checksumSHA1": "l9TLJjKei63C+kYJU3bX1LJ0jdc=",
 			"origin": "github.com/keybase/stellar-org/clients/stellartoml",
 			"path": "github.com/stellar/go/clients/stellartoml",
