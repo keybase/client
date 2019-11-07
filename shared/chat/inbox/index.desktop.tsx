@@ -356,8 +356,7 @@ const InboxHoverContainer = Styles.styled(Kb.Box)({
     opacity: 0.5,
     transition: 'opacity 0.25s ease-in-out',
   },
-  '.grabLinesContainer:hover .grabLines': {opacity: 1},
-  ':hover .grabLines': {opacity: 0.25},
+  ':hover .grabLines': {opacity: 1},
   ':hover .grabLinesContainer': {opacity: 1},
 })
 
