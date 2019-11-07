@@ -2787,6 +2787,7 @@ export type Reachability = {readonly reachable: Reachable}
 export type ReacjiSkinTone = Int
 export type ReadArgs = {readonly opID: OpID; readonly path: Path; readonly offset: Long; readonly size: Int}
 export type ReaderKeyMask = {readonly application: TeamApplication; readonly generation: PerTeamKeyGeneration; readonly mask: MaskB64}
+export type RecordInfoArg = {readonly reportText: String; readonly attachMessages: Boolean}
 export type ReferenceCountRes = {readonly counts?: Array<BlockIdCount> | null}
 export type RegisterAddressRes = {readonly type: String; readonly family: String}
 export type RekeyEvent = {readonly eventType: RekeyEventType; readonly interruptType: Int}
@@ -2963,6 +2964,8 @@ export type UpdateInfo = {readonly status: UpdateInfoStatus; readonly message: S
 export type UpdateInfo2 = {status: UpdateInfoStatus2.ok} | {status: UpdateInfoStatus2.suggested; suggested: UpdateDetails} | {status: UpdateInfoStatus2.critical; critical: UpdateDetails}
 export type UpdaterStatus = {readonly log: String}
 export type User = {readonly uid: UID; readonly username: String}
+export type UserBlock = {readonly username: String; readonly chatBlocked: Boolean; readonly followBlocked: Boolean; readonly createTime?: Time | null; readonly modifyTime?: Time | null}
+export type UserBlockArg = {readonly username: String; readonly setChatBlock?: Boolean | null; readonly setFollowBlock?: Boolean | null; readonly report?: RecordInfoArg | null}
 export type UserCard = {readonly following: Int; readonly followers: Int; readonly uid: UID; readonly fullName: String; readonly location: String; readonly bio: String; readonly bioDecorated: String; readonly website: String; readonly twitter: String; readonly youFollowThem: Boolean; readonly theyFollowYou: Boolean; readonly teamShowcase?: Array<UserTeamShowcase> | null; readonly registeredForAirdrop: Boolean; readonly blocked: Boolean}
 export type UserEk = {readonly seed: Bytes32; readonly metadata: UserEkMetadata}
 export type UserEkBoxMetadata = {readonly box: String; readonly recipientGeneration: EkGeneration; readonly recipientDeviceID: DeviceID}
@@ -3862,3 +3865,5 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.user.getUPAKLite'
 // 'keybase.1.user.findNextMerkleRootAfterRevoke'
 // 'keybase.1.user.findNextMerkleRootAfterReset'
+// 'keybase.1.user.setUserBlocks'
+// 'keybase.1.user.getUserBlocks'
