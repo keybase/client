@@ -362,6 +362,83 @@
         }
       ],
       "lint": "ignore"
+    },
+    {
+      "type": "record",
+      "name": "UserBlock",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "boolean",
+          "name": "chatBlocked"
+        },
+        {
+          "type": "boolean",
+          "name": "followBlocked"
+        },
+        {
+          "type": [
+            null,
+            "Time"
+          ],
+          "name": "createTime"
+        },
+        {
+          "type": [
+            null,
+            "Time"
+          ],
+          "name": "modifyTime"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "RecordInfoArg",
+      "fields": [
+        {
+          "type": "string",
+          "name": "reportText"
+        },
+        {
+          "type": "boolean",
+          "name": "attachMessages"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserBlockArg",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": [
+            null,
+            "boolean"
+          ],
+          "name": "setChatBlock"
+        },
+        {
+          "type": [
+            null,
+            "boolean"
+          ],
+          "name": "setFollowBlock"
+        },
+        {
+          "type": [
+            null,
+            "RecordInfoArg"
+          ],
+          "name": "report"
+        }
+      ]
     }
   ],
   "messages": {
@@ -737,6 +814,41 @@
         null,
         "UserCard"
       ]
+    },
+    "setUserBlocks": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "blocks",
+          "type": {
+            "type": "array",
+            "items": "UserBlockArg"
+          }
+        }
+      ],
+      "response": null
+    },
+    "getUserBlocks": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "usernames",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "UserBlock"
+      }
     },
     "blockUser": {
       "request": [

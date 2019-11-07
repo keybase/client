@@ -16,6 +16,7 @@ import {delay} from 'redux-saga'
 import {isAndroidNewerThanN, isTestDevice, pprofDir, version} from '../constants/platform'
 import {writeLogLinesToFile} from '../util/forward-logs'
 import {TypedState} from '../util/container'
+import openURL from '../util/open-url'
 
 const onUpdatePGPSettings = async () => {
   try {
@@ -759,6 +760,11 @@ const emailAddressVerified = (
   return SettingsGen.createEmailVerified({email: action.payload.params.emailAddress})
 }
 
+const loginBrowserViaWebAuthToken = async (_: TypedState) => {
+  const link = await RPCTypes.configGenerateWebAuthTokenRpcPromise()
+  openURL(link)
+}
+
 function* settingsSaga() {
   yield* Saga.chainAction2(SettingsGen.invitesReclaim, reclaimInvite)
   yield* Saga.chainAction2(SettingsGen.invitesRefresh, refreshInvites)
@@ -828,6 +834,12 @@ function* settingsSaga() {
     EngineGen.keybase1NotifyEmailAddressEmailAddressVerified,
     emailAddressVerified,
     'emailAddressVerified'
+  )
+
+  yield* Saga.chainAction2(
+    SettingsGen.loginBrowserViaWebAuthToken,
+    loginBrowserViaWebAuthToken,
+    'loginBrowserViaWebAuthToken'
   )
 }
 
