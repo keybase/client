@@ -7,7 +7,15 @@ import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import {appendNewChatBuilder} from '../../../actions/typed-routes'
 import Inbox from '..'
 import {isMobile} from '../../../constants/platform'
-import {Props as _Props, RowItemSmall, RowItemBig, RowItemBigHeader, RowItemDivider, RowItem} from '..'
+import {
+  Props as _Props,
+  RowItemSmall,
+  RowItemBig,
+  RowItemBigHeader,
+  RowItemDivider,
+  RowItemTeamBuilder,
+  RowItem,
+} from '..'
 import * as Kb from '../../../common-adapters'
 import {HeaderNewChatButton} from './new-chat-button'
 
@@ -149,6 +157,7 @@ const Connected = Container.namedConnect(
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     const bigTeams = stateProps._inboxLayout ? stateProps._inboxLayout.bigTeams || [] : []
+    const hasBigTeams = bigTeams.length
     const showAllSmallRows = stateProps.smallTeamsExpanded || !bigTeams.length
     let smallTeams = stateProps._inboxLayout ? stateProps._inboxLayout.smallTeams || [] : []
     const smallTeamsBelowTheFold = !showAllSmallRows && smallTeams.length > stateProps.inboxNumSmallRows
@@ -159,7 +168,8 @@ const Connected = Container.namedConnect(
     const bigRows = makeBigRows(bigTeams)
     const divider: Array<RowItemDivider> =
       bigRows.length !== 0 ? [{showButton: smallTeamsBelowTheFold, type: 'divider'}] : []
-    const rows: Array<RowItem> = [...smallRows, ...divider, ...bigRows]
+    const teamBuilder: Array<RowItemTeamBuilder> = bigRows.length !== 0 ? [{type: 'teamBuilder'}] : []
+    const rows: Array<RowItem> = [...smallRows, ...divider, ...bigRows, ...teamBuilder]
 
     const unreadIndices: Array<number> = []
     for (let i = rows.length - 1; i >= 0; i--) {
@@ -185,6 +195,7 @@ const Connected = Container.namedConnect(
       _onMountedDesktop: dispatchProps._onMountedDesktop,
       _refreshInbox: dispatchProps._refreshInbox,
       allowShowFloatingButton: stateProps.allowShowFloatingButton,
+      hasBigTeams,
       inboxNumSmallRows: stateProps.inboxNumSmallRows,
       isLoading: stateProps.isLoading,
       isSearching: stateProps.isSearching,

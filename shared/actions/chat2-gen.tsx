@@ -25,6 +25,7 @@ export const attachmentPreviewSelect = 'chat2:attachmentPreviewSelect'
 export const attachmentUploaded = 'chat2:attachmentUploaded'
 export const attachmentUploading = 'chat2:attachmentUploading'
 export const attachmentsUpload = 'chat2:attachmentsUpload'
+export const attemptAudioRecording = 'chat2:attemptAudioRecording'
 export const badgesUpdated = 'chat2:badgesUpdated'
 export const blockConversation = 'chat2:blockConversation'
 export const changeFocus = 'chat2:changeFocus'
@@ -213,6 +214,10 @@ type _AttachmentsUploadPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly paths: Array<Types.PathAndOutboxID>
   readonly titles: Array<string>
+}
+type _AttemptAudioRecordingPayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly meteringCb: (amp: number) => void
 }
 type _BadgesUpdatedPayload = {readonly conversations: Array<RPCTypes.BadgeConversationInfo>}
 type _BlockConversationPayload = {
@@ -1214,6 +1219,9 @@ export const createAttachmentsUpload = (payload: _AttachmentsUploadPayload): Att
   payload,
   type: attachmentsUpload,
 })
+export const createAttemptAudioRecording = (
+  payload: _AttemptAudioRecordingPayload
+): AttemptAudioRecordingPayload => ({payload, type: attemptAudioRecording})
 export const createBadgesUpdated = (payload: _BadgesUpdatedPayload): BadgesUpdatedPayload => ({
   payload,
   type: badgesUpdated,
@@ -1500,6 +1508,10 @@ export type AttachmentUploadingPayload = {
 export type AttachmentsUploadPayload = {
   readonly payload: _AttachmentsUploadPayload
   readonly type: typeof attachmentsUpload
+}
+export type AttemptAudioRecordingPayload = {
+  readonly payload: _AttemptAudioRecordingPayload
+  readonly type: typeof attemptAudioRecording
 }
 export type BadgesUpdatedPayload = {
   readonly payload: _BadgesUpdatedPayload
@@ -2006,6 +2018,7 @@ export type Actions =
   | AttachmentUploadedPayload
   | AttachmentUploadingPayload
   | AttachmentsUploadPayload
+  | AttemptAudioRecordingPayload
   | BadgesUpdatedPayload
   | BlockConversationPayload
   | ChangeFocusPayload

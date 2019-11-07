@@ -6,7 +6,7 @@ import * as Sb from '../../stories/storybook'
 import {isDarwin} from '../../constants/platform'
 import {isMobile, globalColors, globalMargins} from '../../styles'
 import Inbox from '.'
-import {RowItemSmall, RowItemBigHeader, RowItemBig, RowItemDivider} from './index'
+import {RowItemSmall, RowItemBigHeader, RowItemBig, RowItemDivider, RowItemTeamBuilder} from './index'
 
 /*
  * Rows
@@ -26,6 +26,7 @@ const makeRowItemBigChannel = (conversationIDKey, teamname, channelname): RowIte
   conversationIDKey: Types.stringToConversationIDKey(conversationIDKey),
 })
 const makeRowItemDivider = (showButton: boolean = false): RowItemDivider => ({type: 'divider', showButton})
+const makeRowItemTeamBuilder = (): RowItemTeamBuilder => ({type: 'teamBuilder'})
 
 /*
  * Component Prop Map
@@ -343,6 +344,7 @@ const getPropProviderProps = own => {
  */
 const propsInboxCommon = {
   allowShowFloatingButton: false,
+  hasBigTeams: false,
   isLoading: false,
   isSearching: false,
   navKey: 'nav',
@@ -384,6 +386,7 @@ const propsInboxSimple = {
 
 const propsInboxTeam = {
   ...propsInboxCommon,
+  hasBigTeams: true,
   rows: [
     makeRowItemBigHeader('bigTeamAHeader'),
     makeRowItemBigChannel('bigTeamAChannel1', 'Keybase', 'general'),
@@ -400,11 +403,14 @@ const propsInboxTeam = {
     ),
     makeRowItemBigChannel('bigTeamBChannel3', 'techtonica.long.team.name.with.ellipsis', 'random'),
     makeRowItemBigChannel('bigTeamBChannel4', 'techtonica.long.team.name.with.ellipsis', 'happy-hour'),
+
+    makeRowItemTeamBuilder(),
   ],
 }
 
 const propsInboxDivider = {
   ...propsInboxCommon,
+  hasBigTeams: true,
   smallTeamsExpanded: false,
   rows: [
     // Small
@@ -435,6 +441,8 @@ const propsInboxDivider = {
     ),
     makeRowItemBigChannel('bigTeamBChannel3', 'techtonica.long.team.name.with.ellipsis', 'random'),
     makeRowItemBigChannel('bigTeamBChannel4', 'techtonica.long.team.name.with.ellipsis', 'happy-hour'),
+
+    makeRowItemTeamBuilder(),
   ],
 }
 

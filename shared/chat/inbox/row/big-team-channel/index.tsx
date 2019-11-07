@@ -15,18 +15,7 @@ type Props = {
   onSelectConversation: () => void
 }
 
-type State = {
-  isHovered: boolean
-}
-
-class BigTeamChannel extends PureComponent<Props, State> {
-  state = {
-    isHovered: false,
-  }
-
-  _onMouseLeave = () => this.setState({isHovered: false})
-  _onMouseOver = () => this.setState({isHovered: true})
-
+class BigTeamChannel extends PureComponent<Props> {
   render() {
     return (
       <Kb.ClickableBox onClick={this.props.onSelectConversation} style={styles.container}>
@@ -39,8 +28,6 @@ class BigTeamChannel extends PureComponent<Props, State> {
               styles.channelBackground,
               this.props.isSelected && styles.selectedChannelBackground,
             ])}
-            onMouseLeave={this._onMouseLeave}
-            onMouseOver={this._onMouseOver}
           >
             <Kb.Text
               lineClamp={1}
