@@ -3264,6 +3264,18 @@ const gregorPushState = (state: TypedState, action: GregorGen.PushStatePayload, 
   const isSearchNew = !items.some(i => i.item.category === Constants.inboxSearchNewKey)
   actions.push(Chat2Gen.createSetInboxShowIsNew({isNew: isSearchNew}))
 
+  const blockButtons = items.some(i => i.item.category.startsWith('blockButtons'))
+  if (blockButtons) {
+    const teamIDs = items
+      .filter(i => i.item.category.startsWith('blockButtons'))
+      .map(i => i.item.category.substr(13)) as Array<RPCTypes.TeamID>
+    teamIDs.forEach(teamID => {
+      if (!state.chat2.blockButtonsMap.get(teamID)) {
+        actions.push(Chat2Gen.createUpdateBlockButtons({teamID, show: true}))
+      }
+    })
+  }
+
   return actions
 }
 

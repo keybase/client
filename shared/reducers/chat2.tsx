@@ -1228,6 +1228,10 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         )
         return
       }
+      case Chat2Gen.updateBlockButtons: {
+        draftState.blockButtonsMap.set(action.payload.teamID, action.payload.show)
+        return
+      }
       case Chat2Gen.messagesWereDeleted: {
         const {
           conversationIDKey,
