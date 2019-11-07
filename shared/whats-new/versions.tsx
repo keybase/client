@@ -40,7 +40,7 @@ export const Current = ({seen, onNavigate, onNavigateExternal}: VersionProps) =>
       </NewFeatureRow>
       <NewFeatureRow
         seen={seen}
-        image={'release-4.7.0-dark-mode'}
+        image="release-4.7.0-dark-mode"
         primaryButtonText="Open display settings"
         onPrimaryButtonClick={() => {
           onNavigate({path: [{props: {}, selected: displayTab}]})
