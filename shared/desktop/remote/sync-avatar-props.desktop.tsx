@@ -7,7 +7,7 @@ import {intersect} from '../../util/set'
 import {memoize} from '../../util/memoize'
 
 type OwnProps = {
-  usernames: Array<string>
+  usernames: Set<string>
   windowComponent: string
   windowParam: string
 }
@@ -17,7 +17,7 @@ type Props = {
   following: Set<string>
   httpSrvAddress: string
   httpSrvToken: string
-  usernames: Array<string>
+  usernames: Set<string>
   windowComponent: string
   windowParam: string
 }
@@ -54,17 +54,14 @@ export const deserialize = (state: any = initialState, props: any) => {
 }
 
 function SyncAvatarProps(ComposedComponent: any) {
-  const RemoteAvatarConnected = (props: Props) => {
-    const {usernamesRef, ...rest} = props
-    return <ComposedComponent {...rest} />
-  }
+  const RemoteAvatarConnected = (props: Props) => <ComposedComponent {...props} />
 
   const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     const {usernames} = ownProps
     return {
       ...immutableCached(
         getRemoteFollowers(state.config.followers, usernames),
-        getRemoteFollowing(stat.config.following, usernames)
+        getRemoteFollowing(state.config.following, usernames)
       ),
       httpSrvAddress: state.config.httpSrvAddress,
       httpSrvToken: state.config.httpSrvToken,
@@ -100,8 +97,14 @@ function SyncAvatarProps(ComposedComponent: any) {
   }
 
   const Wrapper = (props: WrapperProps) => {
+    /*
+     * Usernames is the the subset of the following/follower usernames to select before serializing and sending to the remote window.
+     * For users with lots of followers/followees, we don't want to serialize and send lists with thousands of names over.
+     *
+     * In the case of the menubar widget, we only care about a subset of the uernames that have updated files.
+     */
     const usernames = new Set<string>(props.usernames)
-    return <Connected {...props} usernamesRef={usernamesRef} />
+    return <Connected {...props} usernames={usernames} />
   }
 
   return Wrapper

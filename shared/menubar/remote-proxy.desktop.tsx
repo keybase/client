@@ -9,6 +9,7 @@ import {conversationsToSend} from '../chat/inbox/container/remote'
 import {serialize} from './remote-serializer.desktop'
 import {uploadsToUploadCountdownHOCProps} from '../fs/footer/upload-container'
 import * as Constants from '../constants/config'
+import {TlfUpdate} from '../constants/types/fs'
 import {BadgeType} from '../constants/types/notifications'
 import {isDarwin, isWindows} from '../constants/platform'
 import {resolveImage} from '../desktop/app/resolve-root.desktop'
@@ -145,6 +146,9 @@ const mapStateToProps = (state: Container.TypedState) => ({
 let _lastUsername: string | undefined
 let _lastClearCacheTrigger = 0
 
+const getUsernamesFromTlfUpdate = (tlfUpdates: Array<TlfUpdate>): Array<string> =>
+  tlfUpdates.map(update => update.writer)
+
 // TODO better type
 const RenderExternalWindowBranch: any = (ComposedComponent: React.ComponentType<any>) =>
   class RemoteWindowComponent extends React.PureComponent<{
@@ -164,12 +168,13 @@ export default Container.namedConnect(
       _lastUsername = stateProps.username
       _lastClearCacheTrigger++
     }
-    // `sync-avatar-props` will attempt to parse out a subset of the following/follower lists
-    // in order to show the following status on usernames in the menubar widget.
-    //
-    // The list of usernames to show will need to be pre-parsed and passed to
-    // sync-avatar-props before serializing anything to the menubar widget
-    const usernamesForFollowingStatus =
+
+    // To show the following status of usernaems in the mebubar widget, we need to
+    // provide which users will appear in the menubar before rendering it.
+    // This is done for SyncAvatarProps which use the usernames to shorten the
+    // number of following/follwers that are sent to the remote window.
+    const usernamesForFollowingStatus = getUsernamesFromTlfUpdate(stateProps._tlfUpdates.toArray())
+
     return {
       badgeKeys: stateProps._badgeInfo,
       badgeMap: stateProps._badgeInfo,
@@ -193,6 +198,7 @@ export default Container.namedConnect(
       showingDiskSpaceBanner: stateProps.showingDiskSpaceBanner,
       userInfo: stateProps.userInfo,
       username: stateProps.username,
+      usernames: usernamesForFollowingStatus,
       widgetBadge: stateProps.widgetBadge,
       windowComponent: 'menubar',
       windowOpts: _windowOpts,

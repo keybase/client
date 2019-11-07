@@ -67,6 +67,7 @@ export const serialize: any = {
     return shallowEqual(toSend, old) ? undefined : toSend
   },
   username: (v: string) => v,
+  usernames: (v: Array<string>) => v,
   widgetBadge: (v: NotificationTypes.BadgeType) => v,
   windowComponent: (v: string) => v,
   windowOpts: (v: Object) => v,
