@@ -40,7 +40,6 @@ const AudioRecorder = (props: Props) => {
   const dispatch = Container.useDispatch()
   const meteringCb = (inamp: number) => {
     const amp = unifyAmp(inamp)
-    console.log('AMP', amp, inamp)
     ampTracker.addAmp(amp)
     if (!closingDownRef.current) {
       Kb.NativeAnimated.timing(ampScale, {
