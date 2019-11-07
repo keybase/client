@@ -663,14 +663,17 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [Chat2Gen.badgesUpdated]: (draftState, action) => {
     const {conversations} = action.payload
-    const {badgeMap, unreadMap} = draftState
     const badgeKey = String(isMobile ? RPCTypes.DeviceType.mobile : RPCTypes.DeviceType.desktop)
+    const badgeMap = new Map<Types.ConversationIDKey, number>()
+    const unreadMap = new Map<Types.ConversationIDKey, number>()
     conversations.forEach(({convID, badgeCounts, unreadMessages}) => {
       const key = Types.conversationIDToKey(convID)
       const count = badgeCounts[badgeKey] || 0
       badgeMap.set(key, count)
       unreadMap.set(key, unreadMessages)
     })
+    draftState.badgeMap = badgeMap
+    draftState.unreadMap = unreadMap
   },
   [Chat2Gen.messageSetEditing]: (draftState, action) => {
     const {conversationIDKey, editLastUser, ordinal} = action.payload
