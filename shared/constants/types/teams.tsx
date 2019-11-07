@@ -159,7 +159,7 @@ export type State = Readonly<{
   teamNameToRequests: I.Map<Teamname, I.Set<string>> // TODO remove
   teamNameToResetUsers: I.Map<Teamname, I.Set<ResetUser>>
   teamNameToRetentionPolicy: I.Map<Teamname, RetentionPolicy>
-  teamNameToRole: I.Map<Teamname, MaybeTeamRoleType>
+  teamNameToRole: I.Map<Teamname, MaybeTeamRoleType> // TODO remove
   teamNameToSubteams: I.Map<Teamname, I.Set<Teamname>> // TODO remove
   teamNameToCanPerform: I.Map<Teamname, TeamOperations> // TODO remove
   teamNameToSettings: I.Map<Teamname, TeamSettings>
@@ -167,7 +167,7 @@ export type State = Readonly<{
   teamNameToAllowPromote: I.Map<Teamname, boolean> // TODO remove
   teamNameToIsShowcasing: I.Map<Teamname, boolean> // TODO remove
   teamnames: Set<Teamname> // TODO remove
-  teammembercounts: I.Map<Teamname, number>
+  teammembercounts: I.Map<Teamname, number> // TODO remove
   teamProfileAddList: Array<TeamProfileAddList>
   teamRoleMap: TeamRoleMap
   newTeams: Set<TeamID>
