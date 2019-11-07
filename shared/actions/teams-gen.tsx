@@ -141,7 +141,7 @@ type _GetMembersPayload = {readonly teamname: string}
 type _GetTeamProfileAddListPayload = {readonly username: string}
 type _GetTeamPublicityPayload = {readonly teamname: string}
 type _GetTeamRetentionPolicyPayload = {readonly teamname: string}
-type _GetTeamsPayload = void
+type _GetTeamsPayload = {readonly forceReload?: boolean}
 type _IgnoreRequestPayload = {readonly teamname: string; readonly username: string}
 type _InviteToTeamByEmailPayload = {
   readonly destSubPath?: I.List<string>
@@ -297,6 +297,13 @@ export const createGetTeamRetentionPolicy = (
   payload: _GetTeamRetentionPolicyPayload
 ): GetTeamRetentionPolicyPayload => ({payload, type: getTeamRetentionPolicy})
 /**
+ * Load team list if we are stale.
+ */
+export const createGetTeams = (payload: _GetTeamsPayload = Object.freeze({})): GetTeamsPayload => ({
+  payload,
+  type: getTeams,
+})
+/**
  * Rename a subteam
  */
 export const createRenameTeam = (payload: _RenameTeamPayload): RenameTeamPayload => ({
@@ -383,7 +390,6 @@ export const createGetTeamPublicity = (payload: _GetTeamPublicityPayload): GetTe
   payload,
   type: getTeamPublicity,
 })
-export const createGetTeams = (payload: _GetTeamsPayload): GetTeamsPayload => ({payload, type: getTeams})
 export const createIgnoreRequest = (payload: _IgnoreRequestPayload): IgnoreRequestPayload => ({
   payload,
   type: ignoreRequest,

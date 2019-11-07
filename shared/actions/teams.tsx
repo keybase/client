@@ -746,13 +746,18 @@ const getChannels = async (_: TypedState, action: TeamsGen.GetChannelsPayload) =
 
 function* getTeams(
   state: TypedState,
-  _: ConfigGen.StartupFirstIdlePayload | TeamsGen.GetTeamsPayload | TeamsGen.LeftTeamPayload,
+  action: ConfigGen.StartupFirstIdlePayload | TeamsGen.GetTeamsPayload | TeamsGen.LeftTeamPayload,
   logger: Saga.SagaLogger
 ) {
   const username = state.config.username
   if (!username) {
     logger.warn('getTeams while logged out')
     return
+  }
+  if (action.type === TeamsGen.getTeams) {
+    if (!action.payload.forceReload && !state.teams.teamDetailsMetaStale) {
+      return
+    }
   }
   try {
     const results: Saga.RPCPromiseType<typeof RPCTypes.teamsTeamListUnverifiedRpcPromise> = yield RPCTypes.teamsTeamListUnverifiedRpcPromise(

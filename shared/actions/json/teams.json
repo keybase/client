@@ -48,7 +48,10 @@
       "_description": "Fetches the channel information for all channels in a team from the server. Should only be called for components that need the full list.",
       "teamname": "string"
     },
-    "getTeams": {},
+    "getTeams": {
+      "_description": "Load team list if we are stale.",
+      "forceReload?": "boolean"
+    },
     "getDetails": {
       "teamname": "string",
       "clearInviteLoadingKey?": "string"
