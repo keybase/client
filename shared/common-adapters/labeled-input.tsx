@@ -10,6 +10,7 @@ export type _Props = {
   containerStyle?: Styles.StylesCrossPlatform
   decoration?: React.ReactNode
   error?: boolean
+  hoverPlaceholder?: string
   placeholder: string
 }
 
@@ -44,11 +45,13 @@ const ReflessLabeledInput = (props: Props & RefProps) => {
   // Style is supposed to switch when there's any input or its focused
   const actualValue = value !== undefined ? value : uncontrolledValue
   const populated = !!actualValue && actualValue.length > 0
-  const collapsed = focused || populated
+  const multiline = !!props.rowsMax && props.rowsMax >= 2 && props.multiline
+  const collapsed = focused || populated || multiline
 
   // We're using fontSize to derive heights
   const textStyle = getTextStyle(props.textType || 'BodySemibold')
-  const computedHeight = textStyle.fontSize + (isMobile ? 48 : 38)
+  const computedHeight =
+    textStyle.fontSize * (props.rowsMax && multiline ? props.rowsMax * 1.3 : 1) + (isMobile ? 10 : 0)
 
   const {containerStyle, error, forwardedRef, placeholder, ...plainInputProps} = props
   return (
@@ -59,7 +62,7 @@ const ReflessLabeledInput = (props: Props & RefProps) => {
       gapEnd={false}
       style={Styles.collapseStyles([
         styles.container,
-        {height: textStyle.fontSize + (isMobile ? 48 : 38)},
+        {minHeight: textStyle.fontSize + (isMobile ? 48 : 38) + (multiline ? textStyle.fontSize : 0)},
         focused && styles.containerFocused,
         error && styles.containerError,
         containerStyle,
@@ -91,11 +94,12 @@ const ReflessLabeledInput = (props: Props & RefProps) => {
         onChangeText={_onChangeText}
         onFocus={_onFocus}
         onBlur={_onBlur}
+        placeholder={collapsed ? props.hoverPlaceholder : undefined}
         ref={props.forwardedRef}
         style={Styles.collapseStyles([
           styles.input,
           props.style,
-          {height: computedHeight, maxHeight: computedHeight},
+          {maxHeight: computedHeight},
           collapsed && styles.inputSmall,
         ])}
       />
@@ -147,6 +151,8 @@ const styles = Styles.styleSheetCreate(
       input: {
         backgroundColor: Styles.globalColors.transparent,
         height: '100%',
+        marginTop: 8,
+        paddingBottom: 3,
         paddingLeft: Styles.globalMargins.xsmall,
         paddingRight: Styles.globalMargins.xsmall,
         width: '100%',

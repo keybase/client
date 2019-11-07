@@ -38,14 +38,15 @@ const PaperKey = (props: Props) => {
           gap={Styles.isMobile ? 'tiny' : 'medium'}
         >
           <Kb.Box2 direction="vertical" gap="tiny" centerChildren={true} gapEnd={true}>
-            <Kb.Icon type="icon-paper-key-48" />
+            <Kb.Icon type="icon-paper-key-96" />
           </Kb.Box2>
           <Kb.Box2 direction="vertical" style={styles.inputContainer}>
-            <Kb.PlainInput
+            <Kb.LabeledInput
               autoFocus={true}
               multiline={true}
               rowsMax={3}
-              placeholder="Type in your paper key"
+              hoverPlaceholder="Ex: garage blue three..."
+              placeholder="Type your paper key"
               textType="Header"
               style={styles.input}
               onEnterKeyDown={onSubmit}
@@ -67,17 +68,11 @@ const styles = Styles.styleSheetCreate(() => ({
     width: '100%',
   },
   input: {
-    color: Styles.globalColors.black,
     ...Styles.globalStyles.fontTerminal,
+    color: Styles.globalColors.black,
+    marginTop: 10,
   },
   inputContainer: {
-    backgroundColor: Styles.globalColors.white,
-    borderColor: Styles.globalColors.black_10,
-    borderRadius: 4,
-    borderStyle: 'solid',
-    borderWidth: 1,
-    minHeight: 77,
-    padding: Styles.globalMargins.small,
     width: '100%',
   },
 }))
