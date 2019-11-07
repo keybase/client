@@ -424,6 +424,7 @@ type AttachmentUploader interface {
 	Cancel(ctx context.Context, outboxID chat1.OutboxID) error
 	Complete(ctx context.Context, outboxID chat1.OutboxID)
 	GetUploadTempFile(ctx context.Context, outboxID chat1.OutboxID, filename string) (string, error)
+	CancelUploadTempFile(ctx context.Context, outboxID chat1.OutboxID) error
 	OnDbNuke(mctx libkb.MetaContext) error
 }
 
@@ -570,8 +571,10 @@ type UIInboxLoader interface {
 }
 
 type JourneyCardManager interface {
+	Resumable
 	PickCard(context.Context, gregor1.UID, chat1.ConversationID, *chat1.ConversationLocal, *chat1.ThreadView) (*chat1.MessageUnboxedJourneycard, error)
-	SentMessage(context.Context, chat1.ConversationID) // Tell JourneyCardManager that the user has sent a message.
+	SentMessage(context.Context, gregor1.UID, chat1.ConversationID) // Tell JourneyCardManager that the user has sent a message.
+	OnDbNuke(libkb.MetaContext) error
 }
 
 type InternalError interface {

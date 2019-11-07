@@ -169,6 +169,7 @@ func (h *Server) RequestInboxLayout(ctx context.Context, reselectMode chat1.Inbo
 
 func (h *Server) RequestInboxUnbox(ctx context.Context, convIDs []chat1.ConversationID) (err error) {
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
+	ctx = globals.CtxAddLocalizerCancelable(ctx)
 	defer h.Trace(ctx, func() error { return err }, "RequestInboxUnbox")()
 	if err := h.G().UIInboxLoader.UpdateConvs(ctx, convIDs); err != nil {
 		h.Debug(ctx, "RequestInboxUnbox: failed to update convs: %s", err)
@@ -1025,6 +1026,11 @@ func (h *Server) MakeUploadTempFile(ctx context.Context, arg chat1.MakeUploadTem
 		return res, err
 	}
 	return res, ioutil.WriteFile(res, arg.Data, 0644)
+}
+
+func (h *Server) CancelUploadTempFile(ctx context.Context, outboxID chat1.OutboxID) (err error) {
+	defer h.Trace(ctx, func() error { return err }, "CancelUploadTempFile")()
+	return h.G().AttachmentUploader.CancelUploadTempFile(ctx, outboxID)
 }
 
 func (h *Server) PostFileAttachmentLocalNonblock(ctx context.Context,

@@ -68,7 +68,7 @@ export const EnterEmailBody = (props: BodyProps) => (
     >
       <Kb.Icon type={props.iconType} />
       <Kb.Box2 direction="vertical" gap="tiny" style={styles.inputBox}>
-        <Kb.NewInput
+        <Kb.LabeledInput
           autoFocus={true}
           containerStyle={styles.input}
           keyboardType="email-address"
@@ -94,21 +94,17 @@ export const EnterEmailBody = (props: BodyProps) => (
 const styles = Styles.styleSheetCreate(() => ({
   checkbox: {width: '100%'},
   input: Styles.platformStyles({
-    common: {},
     isElectron: {
-      ...Styles.padding(0, Styles.globalMargins.xsmall),
-      height: 38,
       width: 368,
-    },
-    isMobile: {
-      ...Styles.padding(0, Styles.globalMargins.small),
-      height: 48,
     },
   }),
   inputBox: Styles.platformStyles({
     isElectron: {
       // need to set width so subtext will wrap
       width: 368,
+    },
+    isMobile: {
+      width: '100%',
     },
   }),
 }))

@@ -8,10 +8,10 @@ import UploadIcon from './upload-icon'
 type Props = {
   isTlfType?: boolean
   isFolder: boolean
-  syncStatus?: Types.SyncStatus
+  statusIcon?: Types.PathStatusIcon
 }
 
-function getIcon(status: Types.NonUploadStaticSyncStatus): Kb.IconType {
+function getIcon(status: Types.LocalConflictStatus | Types.NonUploadStaticSyncStatus): Kb.IconType {
   switch (status) {
     case Types.NonUploadStaticSyncStatus.AwaitingToSync:
       return 'iconfont-time'
@@ -21,12 +21,14 @@ function getIcon(status: Types.NonUploadStaticSyncStatus): Kb.IconType {
       return 'iconfont-success'
     case Types.NonUploadStaticSyncStatus.SyncError:
       return 'iconfont-exclamation'
+    case Types.LocalConflictStatus:
+      return 'iconfont-exclamation'
     case Types.NonUploadStaticSyncStatus.Unknown:
       return 'iconfont-question-mark'
   }
 }
 
-function getColor(status: Types.NonUploadStaticSyncStatus) {
+function getColor(status: Types.LocalConflictStatus | Types.NonUploadStaticSyncStatus) {
   switch (status) {
     case Types.NonUploadStaticSyncStatus.AwaitingToSync:
     case Types.NonUploadStaticSyncStatus.OnlineOnly:
@@ -37,15 +39,17 @@ function getColor(status: Types.NonUploadStaticSyncStatus) {
       return Styles.globalColors.green
     case Types.NonUploadStaticSyncStatus.SyncError:
       return Styles.globalColors.red
+    case Types.LocalConflictStatus:
+      return Styles.globalColors.red
   }
 }
 
-function getTooltip(syncStatus: Types.SyncStatus, isFolder: boolean): string {
-  if (typeof syncStatus === 'number') {
-    return 'Syncing ' + Math.floor(syncStatus * 100) + '%...'
+function getTooltip(statusIcon: Types.PathStatusIcon, isFolder: boolean): string {
+  if (typeof statusIcon === 'number') {
+    return 'Syncing ' + Math.floor(statusIcon * 100) + '%...'
   }
 
-  switch (syncStatus) {
+  switch (statusIcon) {
     case Types.NonUploadStaticSyncStatus.AwaitingToSync:
       return 'Waiting to sync'
     case Types.UploadIcon.AwaitingToUpload:
@@ -60,28 +64,30 @@ function getTooltip(syncStatus: Types.SyncStatus, isFolder: boolean): string {
       return 'Synced'
     case Types.NonUploadStaticSyncStatus.SyncError:
       return (isFolder ? 'Folder' : 'File') + " couldn't sync"
+    case Types.LocalConflictStatus:
+      return 'Local view of a conflicted folder.'
     case Types.NonUploadStaticSyncStatus.Unknown:
       return 'Unknown sync state'
   }
 }
 
-const SyncStatus = (props: Props) =>
-  props.syncStatus ? (
-    <Kb.WithTooltip tooltip={getTooltip(props.syncStatus, props.isFolder)}>
-      {typeof props.syncStatus === 'number' ? (
+const PathStatusIcon = (props: Props) =>
+  props.statusIcon ? (
+    <Kb.WithTooltip tooltip={getTooltip(props.statusIcon, props.isFolder)}>
+      {typeof props.statusIcon === 'number' ? (
         <Kb.Box2 direction="horizontal" style={{margin: Styles.globalMargins.xtiny}}>
-          <PieSlice degrees={360 * props.syncStatus} animated={true} />
+          <PieSlice degrees={360 * props.statusIcon} animated={true} />
         </Kb.Box2>
-      ) : props.syncStatus === Types.UploadIcon.AwaitingToUpload ||
-        props.syncStatus === Types.UploadIcon.Uploading ||
-        props.syncStatus === Types.UploadIcon.UploadingStuck ? (
-        <UploadIcon uploadIcon={props.syncStatus} style={styles.iconNonFont} />
+      ) : props.statusIcon === Types.UploadIcon.AwaitingToUpload ||
+        props.statusIcon === Types.UploadIcon.Uploading ||
+        props.statusIcon === Types.UploadIcon.UploadingStuck ? (
+        <UploadIcon uploadIcon={props.statusIcon} style={styles.iconNonFont} />
       ) : (
         <Kb.Icon
-          type={getIcon(props.syncStatus)}
+          type={getIcon(props.statusIcon)}
           sizeType="Small"
           style={styles.iconFont}
-          color={getColor(props.syncStatus)}
+          color={getColor(props.statusIcon)}
         />
       )}
     </Kb.WithTooltip>
@@ -122,4 +128,4 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
 }))
 
-export default SyncStatus
+export default PathStatusIcon

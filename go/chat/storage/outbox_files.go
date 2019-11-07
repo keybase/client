@@ -37,7 +37,7 @@ func (s *outboxFilesStorage) getDir() string {
 func (s *outboxFilesStorage) getFile(ctx context.Context, path string) *encrypteddb.EncryptedFile {
 	return encrypteddb.NewFile(s.G().ExternalG(), path,
 		func(ctx context.Context) ([32]byte, error) {
-			return GetSecretBoxKey(ctx, s.G().ExternalG(), DefaultSecretUI)
+			return GetSecretBoxKey(ctx, s.G().ExternalG())
 		})
 }
 

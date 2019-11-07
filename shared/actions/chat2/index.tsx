@@ -370,7 +370,7 @@ const onIncomingMessage = (
               !!messages &&
               messageIDs.some(_id => {
                 const id = Types.numberToOrdinal(_id)
-                const message = messages.get(id) || messages.find(msg => msg.id === id)
+                const message = messages.get(id) || [...messages.values()].find(msg => msg.id === id)
                 if (
                   message &&
                   (message.type === 'text' || message.type === 'attachment') &&
@@ -1347,7 +1347,8 @@ const messageDelete = async (
   logger: Saga.SagaLogger
 ) => {
   const {conversationIDKey, ordinal} = action.payload
-  const message = state.chat2.messageMap.getIn([conversationIDKey, ordinal])
+  const map = state.chat2.messageMap.get(conversationIDKey)
+  const message = map && map.get(ordinal)
   if (
     !message ||
     (message.type !== 'text' && message.type !== 'attachment' && message.type !== 'requestPayment')
@@ -1956,9 +1957,6 @@ const previewConversationTeam = async (state: TypedState, action: Chat2Gen.Previ
   }
 }
 
-const startupInboxLoad = (state: TypedState) =>
-  !!state.config.username && Chat2Gen.createInboxRefresh({reason: 'bootstrap'})
-
 const startupUserReacjisLoad = (_: TypedState, action: ConfigGen.BootstrapStatusLoadedPayload) =>
   Chat2Gen.createUpdateUserReacjis({userReacjis: action.payload.userReacjis})
 
@@ -2136,16 +2134,13 @@ const sendAudioRecording = async (
   logger: Saga.SagaLogger
 ) => {
   // sit here for 400ms for animations
-  await Saga.delay(400)
-
+  if (!action.payload.fromStaged) {
+    await Saga.delay(400)
+  }
   const conversationIDKey = action.payload.conversationIDKey
-  const audioRecording = state.chat2.audioRecording.get(conversationIDKey)
+  const audioRecording = action.payload.info
   const clientPrev = Constants.getClientPrev(state, conversationIDKey)
   const ephemeralLifetime = Constants.getConversationExplodingMode(state, conversationIDKey)
-  if (!audioRecording) {
-    logger.info('sendAudioRecording: no audio info for send')
-    return
-  }
   const meta = state.chat2.metaMap.get(conversationIDKey)
   if (!meta) {
     logger.warn('sendAudioRecording: no meta for send')
@@ -2161,21 +2156,25 @@ const sendAudioRecording = async (
     })
   }
   const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
-  await RPCChatTypes.localPostFileAttachmentLocalNonblockRpcPromise({
-    arg: {
-      ...ephemeralData,
-      callerPreview,
-      conversationID: Types.keyToConversationID(conversationIDKey),
-      filename: audioRecording.path,
-      identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-      metadata: Buffer.from([]),
-      outboxID: audioRecording.outboxID,
-      title: '',
-      tlfName: meta.tlfname,
-      visibility: RPCTypes.TLFVisibility.private,
-    },
-    clientPrev,
-  })
+  try {
+    await RPCChatTypes.localPostFileAttachmentLocalNonblockRpcPromise({
+      arg: {
+        ...ephemeralData,
+        callerPreview,
+        conversationID: Types.keyToConversationID(conversationIDKey),
+        filename: audioRecording.path,
+        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+        metadata: Buffer.from([]),
+        outboxID: audioRecording.outboxID,
+        title: '',
+        tlfName: meta.tlfname,
+        visibility: RPCTypes.TLFVisibility.private,
+      },
+      clientPrev,
+    })
+  } catch (e) {
+    logger.warn('sendAudioRecording: failed to send attachment: ' + JSON.stringify(e))
+  }
 }
 
 // Upload an attachment
@@ -3495,9 +3494,6 @@ function* chat2Saga() {
   yield* Saga.chainAction2(Chat2Gen.previewConversation, previewConversationTeam)
   yield* Saga.chainAction2(Chat2Gen.previewConversation, previewConversationPersonMakesAConversation)
   yield* Saga.chainAction2(Chat2Gen.openFolder, openFolder)
-
-  // On login lets load the untrusted inbox. This helps make some flows easier
-  yield* Saga.chainAction2(ConfigGen.bootstrapStatusLoaded, startupInboxLoad, 'startupInboxLoad')
 
   yield* Saga.chainAction2(ConfigGen.bootstrapStatusLoaded, startupUserReacjisLoad, 'startupUserReacjisLoad')
 

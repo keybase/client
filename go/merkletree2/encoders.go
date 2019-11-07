@@ -33,10 +33,8 @@ func (e EncodingType) GetEncoder() Encoder {
 	}
 }
 
-// BlindedSHA512_256v1Encoder is not safe for concurrent use.
 type BlindedSHA512_256v1Encoder struct {
-	enc *codec.Encoder
-	dec *codec.Decoder
+	mh codec.MsgpackHandle
 }
 
 var _ Encoder = &BlindedSHA512_256v1Encoder{}
@@ -46,17 +44,15 @@ func NewBlindedSHA512_256v1Encoder() *BlindedSHA512_256v1Encoder {
 	mh.WriteExt = true
 	mh.Canonical = true
 
-	return &BlindedSHA512_256v1Encoder{enc: codec.NewEncoderBytes(nil, &mh), dec: codec.NewDecoderBytes(nil, &mh)}
+	return &BlindedSHA512_256v1Encoder{mh: mh}
 }
 
 func (e *BlindedSHA512_256v1Encoder) Encode(o interface{}) (out []byte, err error) {
-	e.enc.ResetBytes(&out)
-	return out, e.enc.Encode(o)
+	return out, codec.NewEncoderBytes(&out, &e.mh).Encode(o)
 }
 
 func (e *BlindedSHA512_256v1Encoder) Decode(dest interface{}, src []byte) error {
-	e.dec.ResetBytes(src)
-	return e.dec.Decode(dest)
+	return codec.NewDecoderBytes(src, &e.mh).Decode(dest)
 }
 
 func (e *BlindedSHA512_256v1Encoder) EncodeAndHashGeneric(o interface{}) ([]byte, Hash, error) {

@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as Types from '../types/chat2'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as RPCTypes from '../types/rpc-gen'
@@ -55,7 +54,7 @@ export const makeState = (): Types.State => ({
   lastCoord: undefined,
   maybeMentionMap: new Map(),
   messageCenterOrdinals: new Map(), // ordinals to center threads on,
-  messageMap: I.Map(), // messages in a thread,
+  messageMap: new Map(), // messages in a thread,
   messageOrdinals: new Map(), // ordered ordinals in a thread,
   metaMap: new Map(), // metadata about a thread, There is a special node for the pending conversation,
   moreToLoadMap: new Map(), // if we have more data to load,
@@ -124,6 +123,7 @@ export const makeAudioRecordingInfo = (): Types.AudioRecordingInfo => ({
 export const showAudioRecording = (audioRecording: Types.AudioRecordingInfo | undefined) => {
   return !(
     !audioRecording ||
+    audioRecording.status === Types.AudioRecordingStatus.INITIAL ||
     audioRecording.status === Types.AudioRecordingStatus.STOPPED ||
     audioRecording.status === Types.AudioRecordingStatus.STAGED ||
     audioRecording.status === Types.AudioRecordingStatus.CANCELLED
@@ -182,7 +182,10 @@ export const getMessage = (
   state: TypedState,
   id: Types.ConversationIDKey,
   ordinal: Types.Ordinal
-): Types.Message | null => state.chat2.messageMap.getIn([id, ordinal])
+): Types.Message | null => {
+  const map = state.chat2.messageMap.get(id)
+  return (map && map.get(ordinal)) || null
+}
 export const isDecoratedMessage = (message: Types.Message): message is Types.DecoratedMessage => {
   return !(
     message.type === 'placeholder' ||
@@ -455,6 +458,7 @@ export {
   makePendingTextMessage,
   makeReaction,
   messageExplodeDescriptions,
+  messageAttachmentHasProgress,
   messageAttachmentTransferStateToProgressLabel,
   nextFractionalOrdinal,
   pathToAttachmentType,

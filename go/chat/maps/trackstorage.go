@@ -35,7 +35,7 @@ type trackStorage struct {
 
 func newTrackStorage(g *globals.Context) *trackStorage {
 	keyFn := func(ctx context.Context) ([32]byte, error) {
-		return storage.GetSecretBoxKey(ctx, g.ExternalG(), storage.DefaultSecretUI)
+		return storage.GetSecretBoxKey(ctx, g.ExternalG())
 	}
 	dbFn := func(g *libkb.GlobalContext) *libkb.JSONLocalDb {
 		return g.LocalChatDb

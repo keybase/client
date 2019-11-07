@@ -8,12 +8,13 @@ import "bytes"
 type SignaturePrefix string
 
 const (
-	SignaturePrefixKBFS           SignaturePrefix = "Keybase-KBFS-1"
-	SignaturePrefixSigchain       SignaturePrefix = "Keybase-Sigchain-1"
-	SignaturePrefixSigchain3      SignaturePrefix = "Keybase-Sigchain-3"
-	SignaturePrefixChatAttachment SignaturePrefix = "Keybase-Chat-Attachment-1"
-	SignaturePrefixNIST           SignaturePrefix = "Keybase-Auth-NIST-1"
-	SignaturePrefixTeamStore      SignaturePrefix = "Keybase-TeamStore-1"
+	SignaturePrefixKBFS             SignaturePrefix = "Keybase-KBFS-1"
+	SignaturePrefixSigchain         SignaturePrefix = "Keybase-Sigchain-1"
+	SignaturePrefixSigchain3        SignaturePrefix = "Keybase-Sigchain-3"
+	SignaturePrefixChatAttachment   SignaturePrefix = "Keybase-Chat-Attachment-1"
+	SignaturePrefixNIST             SignaturePrefix = "Keybase-Auth-NIST-1"
+	SignaturePrefixTeamStore        SignaturePrefix = "Keybase-TeamStore-1"
+	SignaturePrefixNISTWebAuthToken SignaturePrefix = "Keybase-Auth-NIST-Web-Token-1"
 	// Chat prefixes for each MessageBoxedVersion.
 	SignaturePrefixChatMBv1 SignaturePrefix = "Keybase-Chat-1"
 	SignaturePrefixChatMBv2 SignaturePrefix = "Keybase-Chat-2"

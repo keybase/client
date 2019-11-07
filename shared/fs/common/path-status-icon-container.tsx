@@ -2,23 +2,23 @@ import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as Container from '../../util/container'
-import SyncStatus from './sync-status'
+import PathStatusIcon from './path-status-icon'
 
 type OwnPropsPathItem = {
   path: Types.Path
 }
 
-const SyncStatusPathItem = Container.connect(
+const PathStatusIconPathItem = Container.connect(
   (state: Container.TypedState, ownProps: OwnPropsPathItem) => ({
     _kbfsDaemonStatus: state.fs.kbfsDaemonStatus,
-    _pathItem: state.fs.pathItems.get(ownProps.path, Constants.unknownPathItem),
+    _pathItem: Constants.getPathItem(state.fs.pathItems, ownProps.path),
     _tlf: Constants.getTlfFromPath(state.fs.tlfs, ownProps.path),
     _uploads: state.fs.uploads.syncingPaths,
   }),
   () => ({}),
   (stateProps, _, ownProps: OwnPropsPathItem) => ({
     isFolder: stateProps._pathItem.type === Types.PathType.Folder,
-    syncStatus: Constants.getSyncStatusInMergeProps(
+    statusIcon: Constants.getPathStatusIconInMergeProps(
       stateProps._kbfsDaemonStatus,
       stateProps._tlf,
       stateProps._pathItem,
@@ -26,13 +26,13 @@ const SyncStatusPathItem = Container.connect(
       ownProps.path
     ),
   })
-)(SyncStatus)
+)(PathStatusIcon)
 
 type OwnPropsTlfType = {
   tlfType?: Types.TlfType
 }
 
-const SyncStatusTlfType = Container.connect(
+const PathStatusIconTlfType = Container.connect(
   (state: Container.TypedState, ownProps: OwnPropsTlfType) => ({
     _kbfsDaemonStatus: state.fs.kbfsDaemonStatus,
     _tlfList: ownProps.tlfType ? Constants.getTlfListFromType(state.fs.tlfs, ownProps.tlfType) : new Map(),
@@ -42,7 +42,7 @@ const SyncStatusTlfType = Container.connect(
   (stateProps, _, ownProps: OwnPropsTlfType) => ({
     isFolder: true,
     isTlfType: true,
-    syncStatus:
+    statusIcon:
       ownProps.tlfType &&
       Constants.getUploadIconForTlfType(
         stateProps._kbfsDaemonStatus,
@@ -51,17 +51,17 @@ const SyncStatusTlfType = Container.connect(
         ownProps.tlfType
       ),
   })
-)(SyncStatus)
+)(PathStatusIcon)
 
 type OwnProps = {
   path: Types.Path
 }
 
-const SyncStatusConnected = (props: OwnProps) =>
+const PathStatusIconConnected = (props: OwnProps) =>
   Types.getPathLevel(props.path) > 2 ? (
-    <SyncStatusPathItem path={props.path} />
+    <PathStatusIconPathItem path={props.path} />
   ) : (
-    <SyncStatusTlfType tlfType={Types.getTlfTypeFromPath(props.path)} />
+    <PathStatusIconTlfType tlfType={Types.getTlfTypeFromPath(props.path)} />
   )
 
-export default SyncStatusConnected
+export default PathStatusIconConnected

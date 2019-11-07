@@ -49,7 +49,7 @@ type OwnProps = Omit<Omit<Props, 'onUpdate'>, 'pathItem'>
 
 export default namedConnect(
   (state, {path}: OwnProps) => ({
-    pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
+    pathItem: Constants.getPathItem(state.fs.pathItems, path),
   }),
   dispatch => ({
     _onUpdate: (newFilter: string) => dispatch(FsGen.createSetFolderViewFilter({filter: newFilter})),

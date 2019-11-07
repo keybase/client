@@ -34,7 +34,7 @@ func (p *PendingPreviews) getPath(outboxID chat1.OutboxID) string {
 
 func (p *PendingPreviews) keyFn() encrypteddb.KeyFn {
 	return func(ctx context.Context) ([32]byte, error) {
-		return storage.GetSecretBoxKey(ctx, p.G().ExternalG(), storage.DefaultSecretUI)
+		return storage.GetSecretBoxKey(ctx, p.G().ExternalG())
 	}
 }
 

@@ -217,7 +217,6 @@ export type TypedActionsMap = {
   'chat2:setChannelSearchText': chat2.SetChannelSearchTextPayload
   'chat2:setInboxNumSmallRows': chat2.SetInboxNumSmallRowsPayload
   'chat2:enableAudioRecording': chat2.EnableAudioRecordingPayload
-  'chat2:startAudioRecording': chat2.StartAudioRecordingPayload
   'chat2:stopAudioRecording': chat2.StopAudioRecordingPayload
   'chat2:lockAudioRecording': chat2.LockAudioRecordingPayload
   'chat2:sendAudioRecording': chat2.SendAudioRecordingPayload
@@ -239,6 +238,7 @@ export type TypedActionsMap = {
   'config:changedActive': config.ChangedActivePayload
   'config:mobileAppState': config.MobileAppStatePayload
   'config:showMain': config.ShowMainPayload
+  'config:startupFirstIdle': config.StartupFirstIdlePayload
   'config:bootstrapStatusLoaded': config.BootstrapStatusLoadedPayload
   'config:followerInfoUpdated': config.FollowerInfoUpdatedPayload
   'config:daemonError': config.DaemonErrorPayload
@@ -545,7 +545,6 @@ export type TypedActionsMap = {
   'fs:showMoveOrCopy': fs.ShowMoveOrCopyPayload
   'fs:setIncomingShareLocalPath': fs.SetIncomingShareLocalPathPayload
   'fs:showIncomingShare': fs.ShowIncomingSharePayload
-  'fs:closeDestinationPicker': fs.CloseDestinationPickerPayload
   'fs:move': fs.MovePayload
   'fs:copy': fs.CopyPayload
   'fs:initSendAttachmentToChat': fs.InitSendAttachmentToChatPayload
@@ -792,6 +791,7 @@ export type TypedActionsMap = {
   'settings:saveProxyData': settings.SaveProxyDataPayload
   'settings:certificatePinningToggled': settings.CertificatePinningToggledPayload
   'settings:toggleRuntimeStats': settings.ToggleRuntimeStatsPayload
+  'settings:loginBrowserViaWebAuthToken': settings.LoginBrowserViaWebAuthTokenPayload
   'signup:goBackAndClearErrors': signup.GoBackAndClearErrorsPayload
   'signup:requestAutoInvite': signup.RequestAutoInvitePayload
   'signup:requestedAutoInvite': signup.RequestedAutoInvitePayload

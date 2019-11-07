@@ -34,23 +34,21 @@ export const emptyNewFolder = {
   type: Types.EditType.NewFolder,
 }
 
-const makePrefetchNotStarted = I.Record<Types._PrefetchNotStarted>({
+export const prefetchNotStarted = {
   state: Types.PrefetchState.NotStarted,
-})
-export const prefetchNotStarted: Types.PrefetchNotStarted = makePrefetchNotStarted()
+}
 
-const makePrefetchComplete = I.Record<Types._PrefetchComplete>({
+export const prefetchComplete = {
   state: Types.PrefetchState.Complete,
-})
-export const prefetchComplete: Types.PrefetchComplete = makePrefetchComplete()
+}
 
-export const makePrefetchInProgress = I.Record<Types._PrefetchInProgress>({
+export const emptyPrefetchInProgress = {
   bytesFetched: 0,
   bytesTotal: 0,
   endEstimate: 0,
   startTime: 0,
   state: Types.PrefetchState.InProgress,
-})
+}
 
 const pathItemMetadataDefault = {
   lastModifiedTimestamp: 0,
@@ -61,30 +59,28 @@ const pathItemMetadataDefault = {
   writable: false,
 }
 
-export const makeFolder = I.Record<Types._FolderPathItem>({
+export const emptyFolder = {
   ...pathItemMetadataDefault,
-  children: I.Set(),
+  children: new Set(),
   progress: Types.ProgressType.Pending,
   type: Types.PathType.Folder,
-})
+} as Types.FolderPathItem
 
-export const makeFile = I.Record<Types._FilePathItem>({
+export const emptyFile = {
   ...pathItemMetadataDefault,
   type: Types.PathType.File,
-})
+} as Types.FilePathItem
 
-export const makeSymlink = I.Record<Types._SymlinkPathItem>({
+export const emptySymlink = {
   ...pathItemMetadataDefault,
   linkTarget: '',
   type: Types.PathType.Symlink,
-})
+} as Types.SymlinkPathItem
 
-export const makeUnknownPathItem = I.Record<Types._UnknownPathItem>({
+export const unknownPathItem = {
   ...pathItemMetadataDefault,
   type: Types.PathType.Unknown,
-})
-
-export const unknownPathItem = makeUnknownPathItem()
+} as Types.UnknownPathItem
 
 export const tlfSyncEnabled: Types.TlfSyncEnabled = {
   mode: Types.TlfSyncMode.Enabled,
@@ -146,18 +142,18 @@ export const makeTlf = ({
   */
 })
 
-export const makeSyncingFoldersProgress = I.Record<Types._SyncingFoldersProgress>({
+export const emptySyncingFoldersProgress = {
   bytesFetched: 0,
   bytesTotal: 0,
   endEstimate: 0,
   start: 0,
-})
+}
 
-export const makeOverallSyncStatus = I.Record<Types._OverallSyncStatus>({
+export const emptyOverallSyncStatus = {
   diskSpaceStatus: Types.DiskSpaceStatus.Ok,
   showingBanner: false,
-  syncingFoldersProgress: makeSyncingFoldersProgress(),
-})
+  syncingFoldersProgress: emptySyncingFoldersProgress,
+}
 
 export const makePathUserSetting = I.Record<Types._PathUserSetting>({
   sort: Types.SortSetting.NameAsc,
@@ -215,12 +211,12 @@ export const makeSendAttachmentToChat = I.Record<Types._SendAttachmentToChat>({
   title: '',
 })
 
-export const makePathItemActionMenu = I.Record<Types._PathItemActionMenu>({
+export const emptyPathItemActionMenu = {
   downloadID: null,
   downloadIntent: null,
   previousView: Types.PathItemActionMenuView.Root,
   view: Types.PathItemActionMenuView.Root,
-})
+}
 
 export const makeDriverStatusUnknown = I.Record<Types._DriverStatusUnknown>({
   type: Types.DriverStatusType.Unknown,
@@ -250,10 +246,10 @@ export const makeSystemFileManagerIntegration = I.Record<Types._SystemFileManage
   showingBanner: false,
 })
 
-export const makeKbfsDaemonStatus = I.Record<Types._KbfsDaemonStatus>({
+export const unknownKbfsDaemonStatus = {
   onlineStatus: Types.KbfsDaemonOnlineStatus.Unknown,
   rpcStatus: Types.KbfsDaemonRpcStatus.Unknown,
-})
+}
 
 export const makeSoftErrors = I.Record<Types._SoftErrors>({
   pathErrors: I.Map(),
@@ -277,6 +273,9 @@ export const emptyFileContext = {
   url: '',
   viewType: RPCTypes.GUIViewType.default,
 }
+
+export const getPathItem = (pathItems: Map<Types.Path, Types.PathItem>, path: Types.Path): Types.PathItem =>
+  pathItems.get(path) || (unknownPathItem as Types.PathItem)
 
 // RPC expects a string that's interpreted as [16]byte on Go side and it has to
 // be unique among all ongoing ops at any given time. uuidv1 may exceed 16
@@ -303,6 +302,8 @@ export const pathToRPCPath = (
     path: Types.pathToString(path).substring('/keybase'.length) || '/',
   },
 })
+
+export const rpcPathToPath = (rpcPath: RPCTypes.KBFSPath) => Types.pathConcat(defaultPath, rpcPath.path)
 
 export const pathTypeToTextType = (type: Types.PathType) =>
   type === Types.PathType.Folder ? 'BodySemibold' : 'Body'
@@ -846,13 +847,18 @@ export const getUploadIconForFilesTab = (badge: RPCTypes.FilesTabBadge): Types.U
   }
 }
 
-export const getSyncStatusInMergeProps = (
+export const getPathStatusIconInMergeProps = (
   kbfsDaemonStatus: Types.KbfsDaemonStatus,
   tlf: Types.Tlf,
   pathItem: Types.PathItem,
   uploadingPaths: Set<Types.Path>,
   path: Types.Path
-): Types.SyncStatus => {
+): Types.PathStatusIcon => {
+  // There's no upload or sync for local conflict view.
+  if (tlf.conflictState.type === Types.ConflictStateType.ManualResolvingLocalView) {
+    return Types.LocalConflictStatus
+  }
+
   // uploading state has higher priority
   if (uploadingPaths.has(path)) {
     return tlf.conflictState.type === Types.ConflictStateType.NormalView && tlf.conflictState.stuckInConflict

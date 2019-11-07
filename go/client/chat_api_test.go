@@ -5,7 +5,6 @@ package client
 
 import (
 	"bytes"
-	"encoding/json"
 	"io"
 	"reflect"
 	"strings"
@@ -315,6 +314,7 @@ func (c *chatEcho) GetDeviceInfoV1(context.Context, getDeviceInfoOptionsV1) Repl
 
 type topTest struct {
 	input             string
+	output            string
 	err               error
 	listV1            int
 	readV1            int
@@ -337,10 +337,22 @@ type topTest struct {
 }
 
 var topTests = []topTest{
-	{input: "{}", err: ErrInvalidMethod{}},
-	{input: `{"params":{"version": 2}}`, err: ErrInvalidVersion{}},
-	{input: `{"params":{"version": 1}}`, err: ErrInvalidMethod{}},
-	{input: `{"method": "xxx", "params":{"version": 1}}`, err: ErrInvalidMethod{}},
+	{
+		input:  `{}`,
+		output: `{"error":{"code":0,"message":"invalid v1 method \"\""}}`,
+	},
+	{
+		input:  `{"params":{"version": 2}}`,
+		output: `{"error":{"code":0,"message":"invalid version 2"}}`,
+	},
+	{
+		input:  `{"params":{"version": 1}}`,
+		output: `{"error":{"code":0,"message":"invalid v1 method \"\""}}`,
+	},
+	{
+		input:  `{"method": "xxx", "params":{"version": 1}}`,
+		output: `{"error":{"code":0,"message":"invalid v1 method \"xxx\""}}`,
+	},
 	{input: `{"method": "list", "params":{"version": 1}}`, listV1: 1},
 	{input: `{"method": "read", "params":{"version": 1}}`, readV1: 1},
 	{input: `{"method": "send", "params":{"version": 1}}`, sendV1: 1},
@@ -444,274 +456,274 @@ func TestChatAPIVersionHandlerTop(t *testing.T) {
 			t.Errorf("test %d: input %s => getDeviceInfoV1 = %d, expected %d",
 				i, test.input, h.getDeviceInfoV1, test.getDeviceInfoV1)
 		}
+		if strings.TrimSpace(buf.String()) != strings.TrimSpace(test.output) {
+			t.Errorf("test %d: input %s => output %s, expected %s", i, test.input, strings.TrimSpace(buf.String()), strings.TrimSpace(test.output))
+		}
 	}
 }
 
 type optTest struct {
-	input string
-	err   error
+	input  string
+	output string
+	err    error
 }
 
 var optTests = []optTest{
 	{
-		input: `{"method": "list", "params":{"version": 1}}`,
+		input:  `{"method": "list", "params":{"version": 1}}`,
+		output: `{"result":{"status":"ok"}}`,
 	},
 	{
-		input: `{"method": "list", "params":{"version": 1, "options": {"topic_type": "boozle"}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"method": "list", "params":{"version": 1, "options": {"topic_type": "boozle"}}}`,
+		output: `{"error":{"code":0,"message":"invalid list v1 options: invalid topic type: 'boozle'"}}`,
 	},
 	{
-		input: `{"method": "read", "params":{"version": 1}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"method": "read", "params":{"version": 1}}`,
+		output: `{"error":{"code":0,"message":"invalid read v1 options: empty options"}}`,
 	},
 	{
-		input: `{"method": "read", "params":{"version": 1, "options": {}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"method": "read", "params":{"version": 1, "options": {}}}`,
+		output: `{"error":{"code":0,"message":"invalid read v1 options: need channel or conversation_id"}}`,
 	},
 	{
-		input: `{"method": "read", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}}}}`,
+		input:  `{"method": "read", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "conversation_id": "999111"}}}`,
+		output: `{"error":{"code":0,"message":"invalid read v1 options: include channel or conversation_id, not both"}}`,
 	},
 	{
-		input: `{"method": "read", "params":{"version": 1, "options": {"conversation_id": "123"}}}`,
+		input:  `{"method": "send", "params":{"version": 1}}`,
+		output: `{"error":{"code":0,"message":"invalid send v1 options: empty options"}}`,
 	},
 	{
-		input: `{"method": "read", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "conversation_id": "999111"}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"method": "send", "params":{"version": 1, "options": {} }}`,
+		output: `{"error":{"code":0,"message":"invalid send v1 options: need channel or conversation_id"}}`,
 	},
 	{
-		input: `{"method": "send", "params":{"version": 1}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"method": "send", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}}}}`,
+		output: `{"error":{"code":0,"message":"invalid send v1 options: invalid message"}}`,
 	},
 	{
-		input: `{"method": "send", "params":{"version": 1, "options": {} }}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"method": "send", "params":{"version": 1, "options": {"conversation_id": "222", "channel": {"name": "alice,bob"}, "message": {"body": "hi"}}}}`,
+		output: `{"error":{"code":0,"message":"invalid send v1 options: include channel or conversation_id, not both"}}`,
 	},
 	{
-		input: `{"method": "send", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"method": "send", "params":{"version": 1, "options": {"conversation_id": "123", "message": {"body": "hi"}, "exploding_lifetime": "1s"}}}`,
+		output: `{"error":{"code":0,"message":"invalid send v1 options: invalid ephemeral lifetime"}}`,
 	},
 	{
-		input: `{"method": "send", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message": {"body": "hi"}}}}`,
+		input:  `{"method": "list", "params":{"version": 1}}{"method": "list", "params":{"version": 1}}`,
+		output: `{"result":{"status":"ok"}}` + "\n" + `{"result":{"status":"ok"}}`,
 	},
 	{
-		input: `{"method": "send", "params":{"version": 1, "options": {"conversation_id": "123", "message": {"body": "hi"}}}}`,
+		input:  `{"method": "list", "params":{"version": 1, "options": {"topic_type": "dEv"}}}`,
+		output: `{"result":{"status":"ok"}}`,
 	},
 	{
-		input: `{"method": "send", "params":{"version": 1, "options": {"conversation_id": "222", "channel": {"name": "alice,bob"}, "message": {"body": "hi"}}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"method": "list", "params":{"version": 1}}{"method": "read", "params":{"version": 1, "options": {"conversation_id": "7777"}}}`,
+		output: `{"result":{"status":"ok"}}` + "\n" + `{"result":{"status":"ok"}}`,
 	},
 	{
-		input: `{"method": "send", "params":{"version": 1, "options": {"conversation_id": "123", "message": {"body": "hi"}, "exploding_lifetime": "5m"}}}`,
+		input:  `{"method": "read", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}}}`,
+		output: `{"error":{"code":0,"message":"invalid JSON: expected more JSON in input"}}`,
 	},
 	{
-		input: `{"method": "send", "params":{"version": 1, "options": {"conversation_id": "123", "message": {"body": "hi"}, "exploding_lifetime": "1s"}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"method": "read", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"`,
+		output: `{"error":{"code":0,"message":"invalid JSON: expected more JSON in input"}}`,
 	},
 	{
-		input: `{"method": "list", "params":{"version": 1}}{"method": "list", "params":{"version": 1}}`,
+		input:  `{"method": "read", "params":{'version': 1, "options": {"channel": {"name": "alice,bob"}}}`,
+		output: `{"error":{"code":0,"message":"invalid character '\\'' looking for beginning of object key string"}}`,
 	},
 	{
-		input: `{"method": "list", "params":{"version": 1, "options": {"topic_type": "dEv"}}}`,
+		input:  `{"method": "read", "params":{"version": 1, "options": "channel": {"name": "alice,bob"}}`,
+		output: `{"error":{"code":0,"message":"invalid character ':' after object key:value pair"}}`,
 	},
 	{
-		input: `{"method": "list", "params":{"version": 1}}{"method": "read", "params":{"version": 1, "options": {"conversation_id": "7777"}}}`,
+		input:  `{"id": 29, "method": "edit", "params":{"version": 1}}`,
+		output: `{"id":29,"error":{"code":0,"message":"invalid edit v1 options: empty options"}}`,
 	},
 	{
-		input: `{"method": "read", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}}}`, /* missing closing bracket at end */
-		err:   ErrInvalidJSON{},
+		input:  `{"id": 29, "method": "edit", "params":{"version": 1, "options": {}}}`,
+		output: `{"id":29,"error":{"code":0,"message":"invalid edit v1 options: need channel or conversation_id"}}`,
 	},
 	{
-		input: `{"method": "read", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"`, /* missing closing brackets at end */
-		err:   ErrInvalidJSON{},
+		input:  `{"id": 30, "method": "edit", "params":{"version": 1, "options": {"message_id": 0}}}`,
+		output: `{"id":30,"error":{"code":0,"message":"invalid edit v1 options: need channel or conversation_id"}}`,
 	},
 	{
-		input: `{"method": "read", "params":{'version': 1, "options": {"channel": {"name": "alice,bob"}}}`,
-		err:   &json.SyntaxError{},
+		input:  `{"id": 30, "method": "edit", "params":{"version": 1, "options": {"message_id": 19}}}`,
+		output: `{"id":30,"error":{"code":0,"message":"invalid edit v1 options: need channel or conversation_id"}}`,
 	},
 	{
-		input: `{"method": "read", "params":{"version": 1, "options": "channel": {"name": "alice,bob"}}`,
-		err:   &json.SyntaxError{},
+		input:  `{"id": 30, "method": "edit", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message_id": 123, "message": {"body": ""}}}}`,
+		output: `{"id":30,"error":{"code":0,"message":"invalid edit v1 options: invalid message"}}`,
 	},
 	{
-		input: `{"method": "read", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}}}}`,
+		input:  `{"id": 30, "method": "edit", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message": {"body": "edited"}}}}`,
+		output: `{"id":30,"error":{"code":0,"message":"invalid edit v1 options: invalid message id"}}`,
 	},
 	{
-		input: `{"id": 29, "method": "edit", "params":{"version": 1}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"id": 29, "method": "reaction", "params":{"version": 1}}`,
+		output: `{"id":29,"error":{"code":0,"message":"invalid reaction v1 options: empty options"}}`,
 	},
 	{
-		input: `{"id": 29, "method": "edit", "params":{"version": 1, "options": {}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"id": 29, "method": "reaction", "params":{"version": 1, "options": {}}}`,
+		output: `{"id":29,"error":{"code":0,"message":"invalid reaction v1 options: need channel or conversation_id"}}`,
 	},
 	{
-		input: `{"id": 30, "method": "edit", "params":{"version": 1, "options": {"message_id": 0}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"id": 30, "method": "reaction", "params":{"version": 1, "options": {"message_id": 0}}}`,
+		output: `{"id":30,"error":{"code":0,"message":"invalid reaction v1 options: need channel or conversation_id"}}`,
 	},
 	{
-		input: `{"id": 30, "method": "edit", "params":{"version": 1, "options": {"message_id": 19}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"id": 30, "method": "reaction", "params":{"version": 1, "options": {"message_id": 19}}}`,
+		output: `{"id":30,"error":{"code":0,"message":"invalid reaction v1 options: need channel or conversation_id"}}`,
 	},
 	{
-		input: `{"id": 30, "method": "edit", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message_id": 123, "message": {"body": ""}}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"id": 30, "method": "reaction", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message_id": 123, "message": {"body": ""}}}}`,
+		output: `{"id":30,"error":{"code":0,"message":"invalid reaction v1 options: invalid message"}}`,
 	},
 	{
-		input: `{"id": 30, "method": "edit", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message": {"body": "edited"}}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"id": 30, "method": "reaction", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message": {"body": ":+1:"}}}}`,
+		output: `{"id":30,"error":{"code":0,"message":"invalid reaction v1 options: invalid message id"}}`,
 	},
 	{
-		input: `{"id": 30, "method": "edit", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message_id": 123, "message": {"body": "edited"}}}}`,
+		input:  `{"id": 30, "method": "reaction", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message_id": 123, "message": {"body": ":+1:"}}}}`,
+		output: `{"id":30,"result":{"status":"ok"}}`,
 	},
 	{
-		input: `{"id": 30, "method": "edit", "params":{"version": 1, "options": {"conversation_id": "333", "message_id": 123, "message": {"body": "edited"}}}}`,
+		input:  `{"id": 30, "method": "reaction", "params":{"version": 1, "options": {"conversation_id": "333", "message_id": 123, "message": {"body": ":+1:"}}}}`,
+		output: `{"id":30,"result":{"status":"ok"}}`,
 	},
 	{
-		input: `{"id": 29, "method": "reaction", "params":{"version": 1}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"id": 30, "method": "delete", "params":{"version": 1}}`,
+		output: `{"id":30,"error":{"code":0,"message":"invalid delete v1 options: empty options"}}`,
 	},
 	{
-		input: `{"id": 29, "method": "reaction", "params":{"version": 1, "options": {}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"id": 30, "method": "delete", "params":{"version": 1, "options": {}}}`,
+		output: `{"id":30,"error":{"code":0,"message":"invalid delete v1 options: need channel or conversation_id"}}`,
 	},
 	{
-		input: `{"id": 30, "method": "reaction", "params":{"version": 1, "options": {"message_id": 0}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"id": 30, "method": "delete", "params":{"version": 1, "options": {"message_id": 0}}}`,
+		output: `{"id":30,"error":{"code":0,"message":"invalid delete v1 options: need channel or conversation_id"}}`,
 	},
 	{
-		input: `{"id": 30, "method": "reaction", "params":{"version": 1, "options": {"message_id": 19}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"id": 30, "method": "delete", "params":{"version": 1, "options": {"message_id": 19}}}`,
+		output: `{"id":30,"error":{"code":0,"message":"invalid delete v1 options: need channel or conversation_id"}}`,
 	},
 	{
-		input: `{"id": 30, "method": "reaction", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message_id": 123, "message": {"body": ""}}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"id": 30, "method": "delete", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message_id": 123}}}`,
+		output: `{"id":30,"result":{"status":"ok"}}`,
 	},
 	{
-		input: `{"id": 30, "method": "reaction", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message": {"body": ":+1:"}}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"method": "attach", "params":{"options": {"channel": {"name": "alice,bob"}, "filename": "photo.png"}}}`,
+		output: `{"result":{"status":"ok"}}`,
 	},
 	{
-		input: `{"id": 30, "method": "reaction", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message_id": 123, "message": {"body": ":+1:"}}}}`,
+		input:  `{"method": "attach", "params":{"options": {"channel": {"name": "alice,bob"}, "filename": "photo.png", "exploding_lifetime": "5m"}}}`,
+		output: `{"result":{"status":"ok"}}`,
 	},
 	{
-		input: `{"id": 30, "method": "reaction", "params":{"version": 1, "options": {"conversation_id": "333", "message_id": 123, "message": {"body": ":+1:"}}}}`,
+		input:  `{"method": "attach", "params":{"options": {"channel": {"name": "alice,bob"}, "filename": "photo.png", "exploding_lifetime": "1s"}}}`,
+		output: `{"error":{"code":0,"message":"invalid attach v1 options: invalid ephemeral lifetime"}}`,
 	},
 	{
-		input: `{"id": 30, "method": "delete", "params":{"version": 1}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"method": "attach", "params":{"options": {"filename": "photo.png"}}}`,
+		output: `{"error":{"code":0,"message":"invalid attach v1 options: need channel or conversation_id"}}`,
 	},
 	{
-		input: `{"id": 30, "method": "delete", "params":{"version": 1, "options": {}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"method": "attach", "params":{"options": {"channel": {"name": "alice,bob"}}}}`,
+		output: `{"error":{"code":0,"message":"invalid attach v1 options: empty filename"}}`,
 	},
 	{
-		input: `{"id": 30, "method": "delete", "params":{"version": 1, "options": {"message_id": 0}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"method": "download", "params":{"version": 1, "options": {"message_id": 34, "channel": {"name": "a123,nfnf,t_bob"}, "output": "/tmp/file"}}}`,
+		output: `{"result":{"status":"ok"}}`,
 	},
 	{
-		input: `{"id": 30, "method": "delete", "params":{"version": 1, "options": {"message_id": 19}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"method": "download", "params":{"version": 1, "options": {"message_id": 34, "channel": {"name": "a123,nfnf,t_bob"}, "preview": true, "output": "/tmp/file"}}}`,
+		output: `{"result":{"status":"ok"}}`,
 	},
 	{
-		input: `{"id": 30, "method": "delete", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message_id": 123}}}`,
+		input:  `{"method": "setstatus", "params":{"version": 1, "options": {"channel": {"name": "a123,nfnf,t_bob"}}}}`,
+		output: `{"error":{"code":0,"message":"invalid setstatus v1 options: unsupported status: ''"}}`,
 	},
 	{
-		input: `{"method": "attach", "params":{"options": {"channel": {"name": "alice,bob"}, "filename": "photo.png"}}}`,
+		input:  `{"method": "setstatus", "params":{"version": 1, "options": {"status": "ONTARIO", "channel": {"name": "a123,nfnf,t_bob"}}}}`,
+		output: `{"error":{"code":0,"message":"invalid setstatus v1 options: unsupported status: 'ONTARIO'"}}`,
 	},
 	{
-		input: `{"method": "attach", "params":{"options": {"channel": {"name": "alice,bob"}, "filename": "photo.png", "exploding_lifetime": "5m"}}}`,
+		input:  `{"method": "setstatus", "params":{"version": 1, "options": {"status": "ignored", "channel": {"name": "a123,nfnf,t_bob"}}}}`,
+		output: `{"result":{"status":"ok"}}`,
 	},
 	{
-		input: `{"method": "attach", "params":{"options": {"channel": {"name": "alice,bob"}, "filename": "photo.png", "exploding_lifetime": "1s"}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"id": 30, "method": "mark", "params":{"version": 1}}`,
+		output: `{"id":30,"error":{"code":0,"message":"invalid mark v1 options: empty options"}}`,
 	},
 	{
-		input: `{"method": "attach", "params":{"options": {"filename": "photo.png"}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"id": 30, "method": "mark", "params":{"version": 1, "options": {"message_id": 0}}}`,
+		output: `{"id":30,"error":{"code":0,"message":"invalid mark v1 options: need channel or conversation_id"}}`,
 	},
 	{
-		input: `{"method": "attach", "params":{"options": {"channel": {"name": "alice,bob"}}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"id": 30, "method": "mark", "params":{"version": 1, "options": {"message_id": 19}}}`,
+		output: `{"id":30,"error":{"code":0,"message":"invalid mark v1 options: need channel or conversation_id"}}`,
 	},
 	{
-		input: `{"method": "download", "params":{"version": 1, "options": {"message_id": 34, "channel": {"name": "a123,nfnf,t_bob"}, "output": "/tmp/file"}}}`,
+		input:  `{"id": 30, "method": "mark", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message_id": 123}}}`,
+		output: `{"id":30,"result":{"status":"ok"}}`,
 	},
 	{
-		input: `{"method": "download", "params":{"version": 1, "options": {"message_id": 34, "channel": {"name": "a123,nfnf,t_bob"}, "preview": true, "output": "/tmp/file"}}}`,
+		input:  `{"method": "join", "params":{"version": 1, "options": {} }}`,
+		output: `{"error":{"code":0,"message":"invalid newconv v1 options: need channel or conversation_id"}}`,
 	},
 	{
-		input: `{"method": "setstatus", "params":{"version": 1, "options": {"channel": {"name": "a123,nfnf,t_bob"}}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"method": "join", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}}}}`,
+		output: `{"result":{"status":"ok"}}`,
 	},
 	{
-		input: `{"method": "setstatus", "params":{"version": 1, "options": {"status": "ONTARIO", "channel": {"name": "a123,nfnf,t_bob"}}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"method": "join", "params":{"version": 1, "options": {"conversation_id": "123"}}}`,
+		output: `{"result":{"status":"ok"}}`,
 	},
 	{
-		input: `{"method": "setstatus", "params":{"version": 1, "options": {"status": "ignored", "channel": {"name": "a123,nfnf,t_bob"}}}}`,
+		input:  `{"method": "join", "params":{"version": 1, "options": {"conversation_id": "222", "channel": {"name": "alice,bob"}}}}`,
+		output: `{"error":{"code":0,"message":"invalid newconv v1 options: include channel or conversation_id, not both"}}`,
 	},
 	{
-		input: `{"id": 30, "method": "mark", "params":{"version": 1}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"method": "leave", "params":{"version": 1, "options": {} }}`,
+		output: `{"error":{"code":0,"message":"invalid newconv v1 options: need channel or conversation_id"}}`,
 	},
 	{
-		input: `{"id": 30, "method": "mark", "params":{"version": 1, "options": {"message_id": 0}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"method": "leave", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}}}}`,
+		output: `{"result":{"status":"ok"}}`,
 	},
 	{
-		input: `{"id": 30, "method": "mark", "params":{"version": 1, "options": {"message_id": 19}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"method": "leave", "params":{"version": 1, "options": {"conversation_id": "123"}}}`,
+		output: `{"result":{"status":"ok"}}`,
 	},
 	{
-		input: `{"id": 30, "method": "mark", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message_id": 123}}}`,
+		input:  `{"method": "leave", "params":{"version": 1, "options": {"conversation_id": "222", "channel": {"name": "alice,bob"}}}}`,
+		output: `{"error":{"code":0,"message":"invalid newconv v1 options: include channel or conversation_id, not both"}}`,
 	},
 	{
-		input: `{"method": "join", "params":{"version": 1, "options": {} }}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"method": "listconvsonname", "params":{"version": 1}}`,
+		output: `{"error":{"code":0,"message":"invalid listconvsonname v1 options: empty options"}}`,
 	},
 	{
-		input: `{"method": "join", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}}}}`,
+		input:  `{"method": "listconvsonname", "params":{"version": 1, "options": {"name": "alice,bob"}}}`,
+		output: `{"result":{"status":"ok"}}`,
 	},
 	{
-		input: `{"method": "join", "params":{"version": 1, "options": {"conversation_id": "123"}}}`,
+		input:  `{"method": "pin", "params":{"version": 1}}`,
+		output: `{"error":{"code":0,"message":"invalid pin v1 options: empty options"}}`,
 	},
 	{
-		input: `{"method": "join", "params":{"version": 1, "options": {"conversation_id": "222", "channel": {"name": "alice,bob"}}}}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"method": "pin", "params":{"version": 1, "options": {"channel": {"name": "alice,bob", "message_id": 1}}}}`,
+		output: `{"result":{"status":"ok"}}`,
 	},
 	{
-		input: `{"method": "leave", "params":{"version": 1, "options": {} }}`,
-		err:   ErrInvalidOptions{},
+		input:  `{"method": "unpin", "params":{"version": 1}}`,
+		output: `{"error":{"code":0,"message":"invalid unpin v1 options: empty options"}}`,
 	},
 	{
-		input: `{"method": "leave", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}}}}`,
-	},
-	{
-		input: `{"method": "leave", "params":{"version": 1, "options": {"conversation_id": "123"}}}`,
-	},
-	{
-		input: `{"method": "leave", "params":{"version": 1, "options": {"conversation_id": "222", "channel": {"name": "alice,bob"}}}}`,
-		err:   ErrInvalidOptions{},
-	},
-	{
-		input: `{"method": "listconvsonname", "params":{"version": 1}}`,
-		err:   ErrInvalidOptions{},
-	},
-	{
-		input: `{"method": "listconvsonname", "params":{"version": 1, "options": {"name": "alice,bob"}}}`,
-	},
-	{
-		input: `{"method": "pin", "params":{"version": 1}}`,
-		err:   ErrInvalidOptions{},
-	},
-	{
-		input: `{"method": "pin", "params":{"version": 1, "options": {"channel": {"name": "alice,bob", "message_id": 1}}}}`,
-	},
-	{
-		input: `{"method": "unpin", "params":{"version": 1}}`,
-		err:   ErrInvalidOptions{},
-	},
-	{
-		input: `{"method": "unpin", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}}}}`,
+		input:  `{"method": "unpin", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}}}}`,
+		output: `{"result":{"status":"ok"}}`,
 	},
 }
 
@@ -732,6 +744,10 @@ func TestChatAPIVersionHandlerOptions(t *testing.T) {
 		} else if err != nil {
 			t.Errorf("test %d: input %s => error %s", i, test.input, err)
 			continue
+		}
+		if strings.TrimSpace(buf.String()) != strings.TrimSpace(test.output) {
+			t.Errorf("test %d: input %s => output %s, expected %s", i, test.input, strings.TrimSpace(buf.String()), strings.TrimSpace(test.output))
+			// continue
 		}
 	}
 }

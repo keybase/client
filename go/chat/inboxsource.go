@@ -764,13 +764,14 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 	outbox := storage.NewOutbox(s.G(), s.uid)
 	obrs, oerr := outbox.PullAllConversations(ctx, true /*includeErrors */, false /*remove*/)
 	if oerr != nil {
-		s.Debug(ctx, "ApplyLocalChatState: failed to get outbox: %v", err)
+		s.Debug(ctx, "ApplyLocalChatState: failed to get outbox: %v", oerr)
 	}
 
 	// convID -> unreadCount
 	failedOutboxMap := make(map[string]int)
 	// convID -> mtime
 	localUpdates := make(map[string]chat1.LocalMtimeUpdate)
+	s.Debug(ctx, "ApplyLocalChatState: looking through %d outbox items for badgable errors", len(obrs))
 	for _, obr := range obrs {
 		if !(obr.Msg.IsBadgableType() && obr.Msg.ClientHeader.Conv.TopicType == chat1.TopicType_CHAT) {
 			continue
@@ -780,10 +781,14 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 			s.Debug(ctx, "ApplyLocalChatState: unknown state item: skipping: err: %v", err)
 			continue
 		}
-		if state == chat1.OutboxStateType_ERROR && obr.State.Error().Typ.IsBadgableError() {
-			s.Debug(ctx, "ApplyLocalChatState: found badgable outbox item ctime: %v, error: %v, messageType: %v",
-				obr.Ctime.Time(), obr.State.Error(), obr.Msg.MessageType())
+		if state == chat1.OutboxStateType_ERROR {
 			ctime := obr.Ctime
+			isBadgableError := obr.State.Error().Typ.IsBadgableError()
+			s.Debug(ctx, "ApplyLocalChatState: found errored outbox item ctime: %v, error: %v, messageType: %v, IsBadgableError: %v",
+				ctime.Time(), obr.State.Error(), obr.Msg.MessageType(), isBadgableError)
+			if !isBadgableError {
+				continue
+			}
 			if update, ok := localUpdates[obr.ConvID.String()]; ok {
 				if ctime.After(update.Mtime) {
 					localUpdates[obr.ConvID.String()] = update

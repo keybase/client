@@ -53,7 +53,9 @@ func FetchAvatar(ctx context.Context, g *globals.Context, username string) (res 
 	return avatarReader, nil
 }
 
-func GetBorderedCircleAvatar(ctx context.Context, g *globals.Context, username string, avatarSize, borderWidth int) (res io.ReadCloser, length int64, err error) {
+func GetBorderedCircleAvatar(ctx context.Context, g *globals.Context, username string, avatarSize, outerBorder, innerBorder int) (res io.ReadCloser, length int64, err error) {
+	white := color.RGBA{255, 255, 255, 255}
+	blue := color.RGBA{76, 142, 255, 255}
 	avatarReader, err := FetchAvatar(ctx, g, username)
 	if err != nil {
 		return res, length, err
@@ -65,17 +67,18 @@ func GetBorderedCircleAvatar(ctx context.Context, g *globals.Context, username s
 	scaledAvatar := image.NewRGBA(image.Rect(0, 0, avatarSize, avatarSize))
 	draw.BiLinear.Scale(scaledAvatar, scaledAvatar.Bounds(), avatarImg, avatarImg.Bounds(), draw.Over, nil)
 	avatarRadius := avatarSize / 2
-	borderedRadius := avatarRadius + borderWidth
+	borderedRadius := avatarRadius + outerBorder + innerBorder
 	resultSize := borderedRadius * 2
 
 	bounds := image.Rect(0, 0, resultSize, resultSize)
 	middle := image.Point{borderedRadius, borderedRadius}
 	iconRect := image.Rect(middle.X-avatarRadius, middle.Y-avatarRadius, middle.X+avatarRadius, middle.Y+avatarRadius)
-	mask := &circle{image.Point{avatarRadius, avatarRadius}, avatarRadius}
+	mask := &circleMask{image.Point{avatarRadius, avatarRadius}, avatarRadius}
 
 	result := image.NewRGBA(bounds)
 
-	draw.Draw(result, bounds, &circle{middle, borderedRadius}, image.ZP, draw.Over)
+	draw.Draw(result, bounds, &circle{middle, borderedRadius, blue}, image.ZP, draw.Over)
+	draw.Draw(result, bounds, &circle{middle, avatarRadius + innerBorder, white}, image.ZP, draw.Over)
 	draw.DrawMask(result, iconRect, scaledAvatar, image.ZP, mask, image.ZP, draw.Over)
 
 	var buf bytes.Buffer
@@ -86,13 +89,35 @@ func GetBorderedCircleAvatar(ctx context.Context, g *globals.Context, username s
 	return ioutil.NopCloser(bytes.NewReader(buf.Bytes())), int64(buf.Len()), nil
 }
 
-type circle struct {
+type circleMask struct {
 	p image.Point
 	r int
 }
 
-func (c *circle) ColorModel() color.Model {
+func (c *circleMask) ColorModel() color.Model {
 	return color.AlphaModel
+}
+
+func (c *circleMask) Bounds() image.Rectangle {
+	return image.Rect(c.p.X-c.r, c.p.Y-c.r, c.p.X+c.r, c.p.Y+c.r)
+}
+
+func (c *circleMask) At(x, y int) color.Color {
+	xx, yy, rr := float64(x-c.p.X)+1, float64(y-c.p.Y)+1, float64(c.r)
+	if xx*xx+yy*yy < rr*rr {
+		return color.Alpha{255}
+	}
+	return color.Alpha{0}
+}
+
+type circle struct {
+	p    image.Point
+	r    int
+	fill color.Color
+}
+
+func (c *circle) ColorModel() color.Model {
+	return color.RGBAModel
 }
 
 func (c *circle) Bounds() image.Rectangle {
@@ -102,7 +127,7 @@ func (c *circle) Bounds() image.Rectangle {
 func (c *circle) At(x, y int) color.Color {
 	xx, yy, rr := float64(x-c.p.X)+1, float64(y-c.p.Y)+1, float64(c.r)
 	if xx*xx+yy*yy < rr*rr {
-		return color.Alpha{255}
+		return c.fill
 	}
-	return color.Alpha{0}
+	return color.RGBA{0, 0, 0, 0}
 }

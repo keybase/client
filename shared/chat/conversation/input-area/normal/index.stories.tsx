@@ -109,13 +109,10 @@ const InputContainer = (props: Props) => {
     onCancelEditing: Sb.action('onCancelEditing'),
     onCancelReply: Sb.action('onCancelReply'),
     onEditLastMessage: Sb.action('onEditLastMessage'),
-    onEnableAudioRecording: Sb.action('onEnableAudioRecording'),
     onFilePickerError: Sb.action('onFilePickerError'),
     onGiphyToggle: Sb.action('onGiphyToggle'),
-    onLockAudioRecording: Sb.action('onLockAudioRecording'),
     onRequestScrollDown: Sb.action('onRequestScrollDown'),
     onRequestScrollUp: Sb.action('onRequestScrollUp'),
-    onStopAudioRecording: Sb.action('onStopAudioRecording'),
     onSubmit: (text: string) => {
       Sb.action('onSubmit')(text)
     },

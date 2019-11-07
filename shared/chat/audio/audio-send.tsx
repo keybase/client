@@ -24,7 +24,9 @@ const AudioSend = (props: Props) => {
     dispatch(Chat2Gen.createStopAudioRecording({conversationIDKey, stopType: Types.AudioStopType.CANCEL}))
   }
   const onSend = () => {
-    dispatch(Chat2Gen.createSendAudioRecording({conversationIDKey}))
+    if (audioRecording) {
+      dispatch(Chat2Gen.createSendAudioRecording({conversationIDKey, fromStaged: true, info: audioRecording}))
+    }
   }
 
   // render
@@ -43,8 +45,10 @@ const AudioSend = (props: Props) => {
   }
   return (
     <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true}>
-      <Kb.Box2 direction="horizontal" gap="medium" alignItems="center">
-        <Kb.Icon type="iconfont-remove" fontSize={22} onClick={onCancel} />
+      <Kb.Box2 direction="horizontal" alignItems="center">
+        <Kb.Box style={styles.icon}>
+          <Kb.Icon type="iconfont-remove" onClick={onCancel} />
+        </Kb.Box>
         {player}
       </Kb.Box2>
       <Kb.Button type="Default" small={true} style={styles.send} onClick={onSend} label="Send" />
@@ -60,6 +64,13 @@ const styles = Styles.styleSheetCreate(() => ({
     borderTopWidth: 1,
     justifyContent: 'space-between',
     padding: Styles.globalMargins.tiny,
+  },
+  icon: {
+    alignItems: 'center',
+    height: 32,
+    justifyContent: 'center',
+    marginRight: Styles.globalMargins.tiny,
+    width: 32,
   },
   send: {
     alignSelf: 'flex-end',

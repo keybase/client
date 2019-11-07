@@ -245,7 +245,7 @@ const policyMonth = makeRetentionPolicy({seconds: 30 * dayInS, title: '30 days',
 const policyThreeMonths = makeRetentionPolicy({seconds: 90 * dayInS, title: '90 days', type: 'expire'})
 const policySixMonths = makeRetentionPolicy({seconds: 180 * dayInS, title: '180 days', type: 'expire'})
 const policyYear = makeRetentionPolicy({seconds: 365 * dayInS, title: '365 days', type: 'expire'})
-const baseRetentionPolicies = [
+export const baseRetentionPolicies = [
   policyRetain,
   policyYear,
   policySixMonths,
@@ -265,7 +265,7 @@ const baseRetentionPoliciesTitleMap = baseRetentionPolicies.reduce<{[key: number
   return map
 }, {})
 
-const retentionPolicies = {
+export const retentionPolicies = {
   policyFiveMinutes,
   policyInherit,
   policyMonth,
@@ -306,12 +306,12 @@ export const userIsRoleInTeam = (
   )
 }
 
-const getEmailInviteError = (state: TypedState) => state.teams.emailInviteError
+export const getEmailInviteError = (state: TypedState) => state.teams.emailInviteError
 
-const isTeamWithChosenChannels = (state: TypedState, teamname: string): boolean =>
+export const isTeamWithChosenChannels = (state: TypedState, teamname: string): boolean =>
   state.teams.teamsWithChosenChannels.has(teamname)
 
-const getTeamChannelInfos = (
+export const getTeamChannelInfos = (
   state: TypedState,
   teamname: Types.Teamname
 ): I.Map<ChatTypes.ConversationIDKey, Types.ChannelInfo> => {
@@ -321,31 +321,31 @@ const getTeamChannelInfos = (
   )
 }
 
-const getChannelInfoFromConvID = (
+export const getChannelInfoFromConvID = (
   state: TypedState,
   teamname: Types.Teamname,
   conversationIDKey: ChatTypes.ConversationIDKey
 ): Types.ChannelInfo | null => getTeamChannelInfos(state, teamname).get(conversationIDKey) || null
 
-const getRole = (state: TypedState, teamname: Types.Teamname): Types.MaybeTeamRoleType =>
+export const getRole = (state: TypedState, teamname: Types.Teamname): Types.MaybeTeamRoleType =>
   state.teams.teamNameToRole.get(teamname, 'none')
 
-const getCanPerform = (state: TypedState, teamname: Types.Teamname): RPCTypes.TeamOperation =>
+export const getCanPerform = (state: TypedState, teamname: Types.Teamname): Types.TeamOperations =>
   state.teams.teamNameToCanPerform.get(teamname, initialCanUserPerform)
 
-const hasCanPerform = (state: TypedState, teamname: Types.Teamname): boolean =>
+export const hasCanPerform = (state: TypedState, teamname: Types.Teamname): boolean =>
   state.teams.teamNameToCanPerform.has(teamname)
 
-const hasChannelInfos = (state: TypedState, teamname: Types.Teamname): boolean =>
+export const hasChannelInfos = (state: TypedState, teamname: Types.Teamname): boolean =>
   state.teams.teamNameToChannelInfos.has(teamname)
 
-const getTeamMemberCount = (state: TypedState, teamname: Types.Teamname): number =>
+export const getTeamMemberCount = (state: TypedState, teamname: Types.Teamname): number =>
   state.teams.teammembercounts.get(teamname, 0)
 
-const isLastOwner = (state: TypedState, teamname: Types.Teamname): boolean =>
+export const isLastOwner = (state: TypedState, teamname: Types.Teamname): boolean =>
   isOwner(getRole(state, teamname)) && !isMultiOwnerTeam(state, teamname)
 
-const getDisabledReasonsForRolePicker = (
+export const getDisabledReasonsForRolePicker = (
   state: TypedState,
   teamname: Types.Teamname,
   memberToModify: string | null
@@ -415,16 +415,16 @@ const isMultiOwnerTeam = (state: TypedState, teamname: Types.Teamname): boolean 
   return moreThanOneOwner
 }
 
-const getTeamID = (state: TypedState, teamname: Types.Teamname): string =>
+export const getTeamID = (state: TypedState, teamname: Types.Teamname): string =>
   state.teams.teamNameToID.get(teamname, '')
 
-const getTeamNameFromID = (state: TypedState, teamID: string): Types.Teamname | null =>
+export const getTeamNameFromID = (state: TypedState, teamID: string): Types.Teamname | null =>
   state.teams.teamNameToID.findKey(value => value === teamID) || null
 
-const getTeamRetentionPolicy = (state: TypedState, teamname: Types.Teamname): RetentionPolicy | null =>
+export const getTeamRetentionPolicy = (state: TypedState, teamname: Types.Teamname): RetentionPolicy | null =>
   state.teams.teamNameToRetentionPolicy.get(teamname, null)
 
-const getSelectedTeamNames = (): Types.Teamname[] => {
+export const getSelectedTeamNames = (): Types.Teamname[] => {
   const path = getFullRoute()
   return path.reduce<Array<string>>((names, curr) => {
     if (curr.routeName === 'team') {
@@ -437,13 +437,14 @@ const getSelectedTeamNames = (): Types.Teamname[] => {
 /**
  *  Gets the number of channels you're subscribed to on a team
  */
-const getNumberOfSubscribedChannels = (state: TypedState, teamname: Types.Teamname): number =>
+export const getNumberOfSubscribedChannels = (state: TypedState, teamname: Types.Teamname): number =>
   [...state.chat2.metaMap.values()].reduce((count, c) => (count += c.teamname === teamname ? 1 : 0), 0)
 
 /**
  * Gets whether the team is big or small for teams you are a member of
  */
-const getTeamType = (state: TypedState, teamname: Types.Teamname): 'big' | 'small' | null => {
+export const getTeamType = (state: TypedState, teamname: Types.Teamname): 'big' | 'small' | null => {
+  // TODO do not use metaMap here. It's likely this team has no convos in the metaMap.
   const conv = [...state.chat2.metaMap.values()].find(c => c.teamname === teamname)
   if (conv) {
     if (conv.teamType === 'big' || conv.teamType === 'small') {
@@ -456,13 +457,19 @@ const getTeamType = (state: TypedState, teamname: Types.Teamname): 'big' | 'smal
 /**
  * Returns true if the team is big and you're a member
  */
-const isBigTeam = (state: TypedState, teamname: Types.Teamname): boolean =>
+export const isBigTeam = (state: TypedState, teamname: Types.Teamname): boolean =>
   getTeamType(state, teamname) === 'big'
 
-const getTeamMembers = (state: TypedState, teamname: Types.Teamname): I.Map<string, Types.MemberInfo> =>
+export const getTeamMembers = (
+  state: TypedState,
+  teamname: Types.Teamname
+): I.Map<string, Types.MemberInfo> =>
   state.teams.teamNameToMembers.get(teamname) || I.Map<string, Types.MemberInfo>()
 
-const getTeamPublicitySettings = (state: TypedState, teamname: Types.Teamname): Types._PublicitySettings =>
+export const getTeamPublicitySettings = (
+  state: TypedState,
+  teamname: Types.Teamname
+): Types._PublicitySettings =>
   state.teams.teamNameToPublicitySettings.get(teamname, {
     anyMemberShowcase: false,
     description: '',
@@ -471,33 +478,34 @@ const getTeamPublicitySettings = (state: TypedState, teamname: Types.Teamname): 
     team: false,
   })
 
-const getTeamInvites = (state: TypedState, teamname: Types.Teamname): I.Set<Types.InviteInfo> =>
+export const getTeamInvites = (state: TypedState, teamname: Types.Teamname): I.Set<Types.InviteInfo> =>
   state.teams.teamNameToInvites.get(teamname, I.Set())
 
 // Note that for isInTeam and isInSomeTeam, we don't use 'teamnames',
 // since that may contain subteams you're not a member of.
 
-const isInTeam = (state: TypedState, teamname: Types.Teamname): boolean => getRole(state, teamname) !== 'none'
+export const isInTeam = (state: TypedState, teamname: Types.Teamname): boolean =>
+  getRole(state, teamname) !== 'none'
 
-const isInSomeTeam = (state: TypedState): boolean =>
+export const isInSomeTeam = (state: TypedState): boolean =>
   !!state.teams.teamNameToRole.find(role => role !== 'none')
 
-const isAccessRequestPending = (state: TypedState, teamname: Types.Teamname): boolean =>
+export const isAccessRequestPending = (state: TypedState, teamname: Types.Teamname): boolean =>
   state.teams.teamAccessRequestsPending.has(teamname)
 
-const getTeamSubteams = (state: TypedState, teamname: Types.Teamname): I.Set<Types.Teamname> =>
+export const getTeamSubteams = (state: TypedState, teamname: Types.Teamname): I.Set<Types.Teamname> =>
   state.teams.teamNameToSubteams.get(teamname, I.Set())
 
-const getTeamSettings = (state: TypedState, teamname: Types.Teamname): Types.TeamSettings =>
+export const getTeamSettings = (state: TypedState, teamname: Types.Teamname): Types.TeamSettings =>
   state.teams.teamNameToSettings.get(teamname) || makeTeamSettings()
 
-const getTeamResetUsers = (state: TypedState, teamname: Types.Teamname): I.Set<Types.ResetUser> =>
+export const getTeamResetUsers = (state: TypedState, teamname: Types.Teamname): I.Set<Types.ResetUser> =>
   state.teams.teamNameToResetUsers.get(teamname, I.Set())
 
-const getTeamLoadingInvites = (state: TypedState, teamname: Types.Teamname): I.Map<string, boolean> =>
+export const getTeamLoadingInvites = (state: TypedState, teamname: Types.Teamname): I.Map<string, boolean> =>
   state.teams.teamNameToLoadingInvites.get(teamname) || I.Map<string, boolean>()
 
-const getTeamRequests = (state: TypedState, teamname: Types.Teamname): I.Set<string> =>
+export const getTeamRequests = (state: TypedState, teamname: Types.Teamname): I.Set<string> =>
   state.teams.teamNameToRequests.get(teamname, I.Set())
 
 // Sorts teamnames canonically.
@@ -514,20 +522,21 @@ function sortTeamnames(a: string, b: string) {
 }
 
 const _memoizedSorted = memoize((names: Set<Types.Teamname>) => [...names].sort(sortTeamnames))
-const getSortedTeamnames = (state: TypedState): Types.Teamname[] => _memoizedSorted(state.teams.teamnames)
+export const getSortedTeamnames = (state: TypedState): Types.Teamname[] =>
+  _memoizedSorted(state.teams.teamnames)
 
-const isAdmin = (type: Types.MaybeTeamRoleType) => type === 'admin'
-const isOwner = (type: Types.MaybeTeamRoleType) => type === 'owner'
+export const isAdmin = (type: Types.MaybeTeamRoleType) => type === 'admin'
+export const isOwner = (type: Types.MaybeTeamRoleType) => type === 'owner'
 
 // TODO make this check for only valid subteam names
-const isSubteam = (maybeTeamname: string) => {
+export const isSubteam = (maybeTeamname: string) => {
   const subteams = maybeTeamname.split('.')
   if (subteams.length <= 1) {
     return false
   }
   return true
 }
-const serviceRetentionPolicyToRetentionPolicy = (
+export const serviceRetentionPolicyToRetentionPolicy = (
   policy?: RPCChatTypes.RetentionPolicy | null
 ): RetentionPolicy => {
   // !policy implies a default policy of retainment
@@ -569,7 +578,9 @@ const serviceRetentionPolicyToRetentionPolicy = (
   return retentionPolicy
 }
 
-const retentionPolicyToServiceRetentionPolicy = (policy: RetentionPolicy): RPCChatTypes.RetentionPolicy => {
+export const retentionPolicyToServiceRetentionPolicy = (
+  policy: RetentionPolicy
+): RPCChatTypes.RetentionPolicy => {
   let res: RPCChatTypes.RetentionPolicy | null = null
   switch (policy.type) {
     case 'retain':
@@ -645,42 +656,32 @@ export const teamListToDetails = (
   )
 }
 
-export {
-  getNumberOfSubscribedChannels,
-  getRole,
-  getCanPerform,
-  getDisabledReasonsForRolePicker,
-  hasCanPerform,
-  hasChannelInfos,
-  getEmailInviteError,
-  getTeamMemberCount,
-  isLastOwner,
-  getTeamChannelInfos,
-  getChannelInfoFromConvID,
-  getTeamID,
-  getTeamRetentionPolicy,
-  getTeamMembers,
-  getTeamNameFromID,
-  getTeamPublicitySettings,
-  getTeamInvites,
-  isInTeam,
-  isInSomeTeam,
-  isAccessRequestPending,
-  getSelectedTeamNames,
-  getTeamSubteams,
-  getTeamSettings,
-  getTeamResetUsers,
-  getTeamLoadingInvites,
-  getTeamRequests,
-  getSortedTeamnames,
-  getTeamType,
-  isAdmin,
-  isBigTeam,
-  isOwner,
-  isSubteam,
-  isTeamWithChosenChannels,
-  serviceRetentionPolicyToRetentionPolicy,
-  retentionPolicyToServiceRetentionPolicy,
-  baseRetentionPolicies,
-  retentionPolicies,
-}
+export const annotatedInvitesToInviteInfo = (
+  invites: RPCTypes.TeamDetails['annotatedActiveInvites']
+): Array<Types._InviteInfo> =>
+  Object.values(invites).reduce<Array<Types._InviteInfo>>((arr, invite) => {
+    const role = teamRoleByEnum[invite.role]
+    if (!role || role === 'none') {
+      return arr
+    }
+
+    let username = ''
+    const t = invite.type
+    if (t.c === RPCTypes.TeamInviteCategory.sbs) {
+      const sbs: RPCTypes.TeamInviteSocialNetwork = t.sbs
+      username = `${invite.name}@${sbs}`
+    }
+    const {e164ToDisplay} = require('../util/phone-numbers')
+    arr.push({
+      email: invite.type.c === RPCTypes.TeamInviteCategory.email ? invite.name : '',
+      id: invite.id,
+      name: invite.type.c === RPCTypes.TeamInviteCategory.seitan ? invite.name : '',
+      phone: invite.type.c === RPCTypes.TeamInviteCategory.phone ? e164ToDisplay('+' + invite.name) : '',
+      role,
+      username,
+    })
+    return arr
+  }, [])
+
+export const getTeamDetails = (state: TypedState, teamID: Types.TeamID) =>
+  state.teams.teamDetails.get(teamID) || emptyTeamDetails

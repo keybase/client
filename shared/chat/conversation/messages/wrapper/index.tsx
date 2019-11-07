@@ -31,7 +31,7 @@ import SendIndicator from './send-indicator'
 import UnfurlList from './unfurl/unfurl-list/container'
 import UnfurlPromptList from './unfurl/prompt-list/container'
 import CoinFlip from '../coinflip/container'
-import TeamJourney from '../cards/team-journey'
+import TeamJourney from '../cards/team-journey/container'
 import {dismiss as dismissKeyboard} from '../../../../util/keyboard'
 import {formatTimeForChat} from '../../../../util/timestamp'
 
@@ -602,7 +602,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     return (
       <>
         <LongPressable
-          {...this._containerProps()}
+          {...this.props.message.type !== 'journeycard' && this._containerProps()}
           children={[
             this.props.message.type === 'journeycard' ? (
               <TeamJourney message={this.props.message} />

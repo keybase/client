@@ -65,6 +65,8 @@ export const AmountInput = (props: AmountInputProps) => {
   return (
     <Kb.NewInput
       autoFocus={true}
+      // Prevents text from clipping vertically due to Android fontScaling
+      allowFontScaling={false}
       type="text"
       keyboardType="numeric"
       decoration={

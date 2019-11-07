@@ -654,7 +654,7 @@ const uiMessageToSystemMessage = (
       const {user = '???'} = body.changeavatar || {}
       return makeMessageSystemText({
         reactions,
-        text: new HiddenString(`${user} changed team avatar`),
+        text: new HiddenString(`${user} changed the team's avatar.`),
         ...minimum,
       })
     }
@@ -1209,12 +1209,14 @@ export const getClientPrev = (state: TypedState, conversationIDKey: Types.Conver
   const mm = state.chat2.messageMap.get(conversationIDKey)
   if (mm) {
     // find last valid messageid we know about
-    const goodOrdinal = [...(state.chat2.messageOrdinals.get(conversationIDKey) || [])]
-      .reverse()
-      .find(o => mm.getIn([o, 'id']))
+    const goodOrdinal = [...(state.chat2.messageOrdinals.get(conversationIDKey) || [])].reverse().find(o => {
+      const m = mm.get(o)
+      return m && m.id
+    })
 
     if (goodOrdinal) {
-      clientPrev = mm.getIn([goodOrdinal, 'id'])
+      const message = mm.get(goodOrdinal)
+      clientPrev = message && message.id
     }
   }
 
@@ -1368,4 +1370,12 @@ export const messageAttachmentTransferStateToProgressLabel = (
     default:
       return ''
   }
+}
+
+export const messageAttachmentHasProgress = (message: Types.MessageAttachment) => {
+  return (
+    !!message.transferState &&
+    message.transferState !== 'remoteUploading' &&
+    message.transferState !== 'mobileSaving'
+  )
 }

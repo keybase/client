@@ -116,8 +116,8 @@ func TestPassphraseRecoverGuideAndReset(t *testing.T) {
 	require.Nil(t, assertAutoreset(tc, u2.UID(), libkb.AutoresetEventStart))
 }
 
-func TestPassphraseRecoverNoDevices(t *testing.T) {
-	tc := SetupEngineTest(t, "PassphraseRecoverNoDevices")
+func TestPassphraseRecoverPGPOnly(t *testing.T) {
+	tc := SetupEngineTest(t, "PassphraseRecoverPGPOnly")
 	defer tc.Cleanup()
 	u := createFakeUserWithPGPOnly(t, tc)
 
@@ -143,8 +143,39 @@ func TestPassphraseRecoverNoDevices(t *testing.T) {
 	require.NoError(t, NewPassphraseRecover(tc.G, arg).Run(m))
 	require.Nil(t, loginUI.lastExplain)
 
+	// Should be pending verification
+	require.Nil(t, assertAutoreset(tc, u.UID(), libkb.AutoresetEventStart))
+}
+
+func TestPassphraseRecoverNoDevices(t *testing.T) {
+	tc := SetupEngineTest(t, "PassphraseRecoverNoDevices")
+	defer tc.Cleanup()
+	username, passphrase := createFakeUserWithNoKeys(tc)
+
+	// If the only way to provision the account is to do it with a password,
+	// the flow should immediately go to autoreset.
+	loginUI := &TestLoginUIRecover{
+		TestLoginUI: libkb.TestLoginUI{
+			PassphraseRecovery: true,
+			ResetAccount:       keybase1.ResetPromptResponse_CONFIRM_RESET,
+		},
+	}
+	uis := libkb.UIs{
+		LogUI:       tc.G.UI.GetLogUI(),
+		LoginUI:     loginUI,
+		SecretUI:    &libkb.TestSecretUI{Passphrase: passphrase},
+		ProvisionUI: newTestProvisionUINoSecret(),
+	}
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+
+	arg := keybase1.RecoverPassphraseArg{
+		Username: username,
+	}
+	require.NoError(t, NewPassphraseRecover(tc.G, arg).Run(m))
+	require.Nil(t, loginUI.lastExplain)
+
 	// Should not be in the reset queue
-	require.Nil(t, assertAutoreset(tc, u.UID(), -1))
+	require.Nil(t, assertAutoreset(tc, libkb.UsernameToUID(username), -1))
 }
 
 func TestPassphraseRecoverChangeWithPaper(t *testing.T) {

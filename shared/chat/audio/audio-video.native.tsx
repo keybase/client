@@ -10,14 +10,14 @@ class AudioVideo extends React.Component<Props> {
     }
   }
   render() {
-    return (
+    return this.props.url.length > 0 ? (
       <RNVideo
         ref={this.vidRef}
         source={{uri: this.props.url}}
         style={{height: 0, width: 0}}
         paused={this.props.paused}
       />
-    )
+    ) : null
   }
 }
 

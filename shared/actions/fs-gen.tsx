@@ -8,7 +8,6 @@ import * as ChatTypes from '../constants/types/chat2'
 export const resetStore = 'common:resetStore' // not a part of fs but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'fs:'
 export const cancelDownload = 'fs:cancelDownload'
-export const closeDestinationPicker = 'fs:closeDestinationPicker'
 export const commitEdit = 'fs:commitEdit'
 export const copy = 'fs:copy'
 export const deleteFile = 'fs:deleteFile'
@@ -111,7 +110,6 @@ export const waitForKbfsDaemon = 'fs:waitForKbfsDaemon'
 
 // Payload Types
 type _CancelDownloadPayload = {readonly downloadID: string}
-type _CloseDestinationPickerPayload = void
 type _CommitEditPayload = {readonly editID: Types.EditID}
 type _CopyPayload = {readonly destinationParentPath: Types.Path}
 type _DeleteFilePayload = {readonly path: Types.Path}
@@ -142,7 +140,7 @@ type _FinishedRegularDownloadPayload = {readonly downloadID: string; readonly mi
 type _FolderListLoadPayload = {readonly recursive: boolean; readonly path: Types.Path}
 type _FolderListLoadedPayload = {
   readonly path: Types.Path
-  readonly pathItems: I.Map<Types.Path, Types.PathItem>
+  readonly pathItems: Map<Types.Path, Types.PathItem>
 }
 type _FsErrorPayload = {readonly error: Types.FsError; readonly expectedIfOffline: boolean}
 type _GetOnlineStatusPayload = void
@@ -249,9 +247,6 @@ export const createCancelDownload = (payload: _CancelDownloadPayload): CancelDow
   payload,
   type: cancelDownload,
 })
-export const createCloseDestinationPicker = (
-  payload: _CloseDestinationPickerPayload
-): CloseDestinationPickerPayload => ({payload, type: closeDestinationPicker})
 export const createCommitEdit = (payload: _CommitEditPayload): CommitEditPayload => ({
   payload,
   type: commitEdit,
@@ -594,10 +589,6 @@ export const createWaitForKbfsDaemon = (payload: _WaitForKbfsDaemonPayload): Wai
 export type CancelDownloadPayload = {
   readonly payload: _CancelDownloadPayload
   readonly type: typeof cancelDownload
-}
-export type CloseDestinationPickerPayload = {
-  readonly payload: _CloseDestinationPickerPayload
-  readonly type: typeof closeDestinationPicker
 }
 export type CommitEditPayload = {readonly payload: _CommitEditPayload; readonly type: typeof commitEdit}
 export type CopyPayload = {readonly payload: _CopyPayload; readonly type: typeof copy}
@@ -949,7 +940,6 @@ export type WaitForKbfsDaemonPayload = {
 // prettier-ignore
 export type Actions =
   | CancelDownloadPayload
-  | CloseDestinationPickerPayload
   | CommitEditPayload
   | CopyPayload
   | DeleteFilePayload

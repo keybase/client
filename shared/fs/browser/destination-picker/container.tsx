@@ -27,7 +27,7 @@ const getDestinationParentPath = (
 const canWrite = memoize(
   (dp: Types.DestinationPicker, pathItems: Types.PathItems, ownProps: OwnPropsWithSafeNavigation) =>
     Types.getPathLevel(getDestinationParentPath(dp, ownProps)) > 2 &&
-    pathItems.get(getDestinationParentPath(dp, ownProps), Constants.unknownPathItem).writable
+    Constants.getPathItem(pathItems, getDestinationParentPath(dp, ownProps)).writable
 )
 
 const canCopy = memoize(

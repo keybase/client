@@ -6,6 +6,7 @@ package service
 import (
 	"fmt"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/keybase/client/go/uidmap"
@@ -16,7 +17,6 @@ import (
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/externals"
-	"github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/offline"
 	"github.com/keybase/client/go/phonenumbers"
@@ -604,10 +604,7 @@ func (h *UserHandler) UserCard(ctx context.Context, arg keybase1.UserCardArg) (r
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.TraceTimed("UserHandler#UserCard", func() error { return err })()
 
-	uid := mctx.G().UIDMapper.MapHardcodedUsernameToUID(kbun.NewNormalizedUsername(arg.Username))
-	if !uid.Exists() {
-		uid = libkb.UsernameToUIDPreserveCase(arg.Username)
-	}
+	uid := libkb.GetUIDByUsername(h.G(), arg.Username)
 	if res, err = libkb.UserCard(mctx, uid, arg.UseSession); err != nil {
 		return res, err
 	}
@@ -617,6 +614,108 @@ func (h *UserHandler) UserCard(ctx context.Context, arg keybase1.UserCardArg) (r
 	}
 	return res, nil
 }
+
+func (h *UserHandler) SetUserBlocks(ctx context.Context, arg keybase1.SetUserBlocksArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed(
+		fmt.Sprintf("UserHandler#SetUserBlocks(len=%d)", len(arg.Blocks)),
+		func() error { return err })()
+
+	type setBlockArg struct {
+		BlockUID string `json:"block_uid"`
+		Chat     *bool  `json:"chat,omitempty"`
+		Follow   *bool  `json:"follow,omitempty"`
+	}
+
+	payloadBlocks := make([]setBlockArg, len(arg.Blocks))
+	for i, v := range arg.Blocks {
+		uid := libkb.GetUIDByUsername(h.G(), v.Username)
+		payloadBlocks[i] = setBlockArg{
+			BlockUID: uid.String(),
+			Chat:     v.SetChatBlock,
+			Follow:   v.SetFollowBlock,
+		}
+	}
+
+	payload := make(libkb.JSONPayload)
+	payload["blocks"] = payloadBlocks
+
+	apiArg := libkb.APIArg{
+		Endpoint:    "user/set_blocks",
+		JSONPayload: payload,
+		SessionType: libkb.APISessionTypeREQUIRED,
+	}
+
+	_, err = mctx.G().API.Post(mctx, apiArg)
+	return err
+
+}
+
+func (h *UserHandler) GetUserBlocks(ctx context.Context, arg keybase1.GetUserBlocksArg) (res []keybase1.UserBlock, err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+
+	var usernameLog string
+	if len(arg.Usernames) < 5 {
+		usernameLog = strings.Join(arg.Usernames, ",")
+	} else {
+		usernameLog = fmt.Sprintf("%s... %d total", strings.Join(arg.Usernames[:5], ","), len(arg.Usernames))
+	}
+	defer mctx.TraceTimed(
+		fmt.Sprintf("UserHandler#GetUserBlocks(%s)", usernameLog),
+		func() error { return err })()
+
+	httpArgs := libkb.HTTPArgs{}
+	if len(arg.Usernames) > 0 {
+		uids := make([]keybase1.UID, len(arg.Usernames))
+		for i, v := range arg.Usernames {
+			uids[i] = libkb.GetUIDByUsername(h.G(), v)
+		}
+		httpArgs["uids"] = libkb.S{Val: libkb.UidsToString(uids)}
+	}
+
+	apiArg := libkb.APIArg{
+		Endpoint:    "user/get_blocks",
+		Args:        httpArgs,
+		SessionType: libkb.APISessionTypeREQUIRED,
+	}
+
+	type getBlockResult struct {
+		libkb.AppStatusEmbed
+		Blocks []struct {
+			BlockUID      keybase1.UID   `json:"block_uid"`
+			BlockUsername string         `json:"block_username"`
+			CTime         *keybase1.Time `json:"ctime,omitempty"`
+			MTime         *keybase1.Time `json:"mtime,omitempty"`
+			Chat          bool           `json:"chat"`
+			Follow        bool           `json:"follow"`
+		} `json:"blocks"`
+	}
+
+	var apiRes getBlockResult
+
+	err = mctx.G().API.GetDecode(mctx, apiArg, &apiRes)
+	if err != nil {
+		return nil, err
+	}
+
+	res = make([]keybase1.UserBlock, len(apiRes.Blocks))
+	for i, v := range apiRes.Blocks {
+		if err := libkb.AssertUsernameMatchesUID(h.G(), v.BlockUID, v.BlockUsername); err != nil {
+			return nil, err
+		}
+		res[i] = keybase1.UserBlock{
+			Username:      v.BlockUsername,
+			ChatBlocked:   v.Chat,
+			FollowBlocked: v.Follow,
+			CreateTime:    v.CTime,
+			ModifyTime:    v.MTime,
+		}
+	}
+
+	return res, nil
+}
+
+// Legacy RPC and API:
 
 func (h *UserHandler) BlockUser(ctx context.Context, username string) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())

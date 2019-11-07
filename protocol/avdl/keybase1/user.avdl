@@ -200,13 +200,39 @@ protocol user {
 
   union { null, UserCard } userCard(int sessionID, string username, boolean useSession);
 
-  void blockUser(string username);
-  void unblockUser(string username);
-
   // user.passphrase_state gregor message body
   @lint("ignore")
   record UserPassphraseStateMsg {
     @jsonkey("state")
     PassphraseState passphraseState;
   }
+
+  // User Blocking
+
+  record UserBlock {
+    string username;
+    boolean chatBlocked;
+    boolean followBlocked;
+    union { null, Time } createTime;
+    union { null, Time } modifyTime;
+  }
+
+  record RecordInfoArg {
+    string reportText;
+    boolean attachMessages;
+  }
+
+  record UserBlockArg {
+    string username;
+    union { null, boolean } setChatBlock;
+    union { null, boolean } setFollowBlock;
+    union { null, RecordInfoArg } report;
+  }
+
+  void setUserBlocks(int sessionID, array<UserBlockArg> blocks);
+  array<UserBlock> getUserBlocks(int sessionID, array<string> usernames);
+
+  // Legacy user blocking:
+  void blockUser(string username);
+  void unblockUser(string username);
 }

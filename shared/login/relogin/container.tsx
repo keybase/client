@@ -42,7 +42,7 @@ const LoginWrapper = (props: Props) => {
 
   const selectedUserChange = React.useCallback(
     user => {
-      dispatch(LoginGen.createLoginError({error: null}))
+      dispatch(LoginGen.createLoginError({}))
       setPassword('')
       setSelectedUser(user)
       if (loggedInMap.get(user)) {
@@ -63,7 +63,7 @@ const LoginWrapper = (props: Props) => {
   }, [props.selectedUser, setSelectedUser])
   React.useEffect(() => {
     if (!prevPassword && !!password) {
-      dispatch(LoginGen.createLoginError({error: null}))
+      dispatch(LoginGen.createLoginError({}))
     }
   }, [password, prevPassword, dispatch])
 

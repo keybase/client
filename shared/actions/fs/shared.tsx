@@ -36,7 +36,11 @@ const makeErrorHandler = (
         return [FsGen.createSetTlfSoftError({path: tlfPath, softError: Types.SoftError.NoAccess})]
       }
     }
-    if (errorDesc.includes('file does not exist') || errorDesc.includes(" doesn't exist")) {
+    if (
+      errorDesc.includes('file does not exist') ||
+      errorDesc.includes(" doesn't exist") ||
+      errorDesc.includes("Couldn't find local conflict handle for")
+    ) {
       return [FsGen.createSetPathSoftError({path, softError: Types.SoftError.Nonexistent})]
     }
     if (errorDesc.includes('KBFS client not found.')) {

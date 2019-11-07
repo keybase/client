@@ -55,11 +55,18 @@ func GetAllProvisionedUsernames(mctx MetaContext) (current NormalizedUsername, a
 
 	resp := deviceForUsersRet{}
 	err = mctx.G().API.PostDecode(mctx, arg, &resp)
-	if err != nil {
+	var configsForReturn []deviceForUser
+	if _, ok := err.(*APINetError); ok {
+		// We got a network error but we can still return offline results.
+		mctx.Info("Failed to check server for revoked in GAPU: %+v", err)
+		configsForReturn = userConfigs
+	} else if err != nil {
 		return "", nil, err
+	} else {
+		configsForReturn = resp.UserConfigs
 	}
 
-	for _, userConfig := range resp.UserConfigs {
+	for _, userConfig := range configsForReturn {
 		if userConfig.OK {
 			nu := kbun.NewNormalizedUsername(userConfig.Username)
 			all = append(all, nu)

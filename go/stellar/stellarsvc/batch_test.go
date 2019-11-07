@@ -2,9 +2,12 @@ package stellarsvc
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/stellarnet"
@@ -121,4 +124,88 @@ func TestPrepareBatchLowAmounts(t *testing.T) {
 			t.Fatalf("unknown username in result: %s", p.Username)
 		}
 	}
+}
+
+// TestBatchMultiDirect does a batch payment with the multi flag on
+// and ensures that it was successful and that the appropriate
+// chat messages were sent.  All the recipients have stellar accounts.
+func TestBatchMultiDirect(t *testing.T) {
+	// sender test context
+	tc, cleanup := setupDesktopTest(t)
+	defer cleanup()
+	acceptDisclaimer(tc)
+
+	chatHelper := &testChatHelper{}
+	tc.G.ChatHelper = chatHelper
+
+	// recipient test contexts
+	const numRecips = 3
+	recipTC := make([]*TestContext, numRecips)
+	for i := 0; i < numRecips; i++ {
+		var c func()
+		recipTC[i], c = setupDesktopTest(t)
+		defer c()
+		acceptDisclaimer(recipTC[i])
+	}
+
+	// make the batch payment arg
+	arg := stellar1.BatchLocalArg{
+		BatchID:     "testbatchmulti",
+		TimeoutSecs: 10,
+		UseMulti:    true,
+		Payments:    make([]stellar1.BatchPaymentArg, numRecips),
+	}
+	for i, rc := range recipTC {
+		arg.Payments[i] = stellar1.BatchPaymentArg{
+			Recipient: rc.Fu.Username,
+			Amount:    "3.198",
+			Message:   "batch payment message",
+		}
+	}
+
+	res, err := tc.Srv.BatchLocal(context.Background(), arg)
+	require.NoError(t, err)
+	require.Len(t, res.Payments, numRecips)
+	for i, p := range res.Payments {
+		if p.Status != stellar1.PaymentStatus_COMPLETED {
+			if p.Status == stellar1.PaymentStatus_ERROR {
+				t.Logf("payment %d error: %s (%d)", i, p.Error.Message, p.Error.Code)
+			}
+			t.Errorf("payment %d not complete: %+v", i, p)
+		}
+
+		var msg *paymentMsg
+		convName := fmt.Sprintf("%s,%s", tc.Fu.Username, p.Username)
+		for _, m := range chatHelper.paymentMsgs {
+			if m.ConvName == convName {
+				msg = &m
+			}
+		}
+		if msg == nil {
+			t.Errorf("payment %d no chat message found: %+v", i, p)
+		}
+		if msg.PaymentID != stellar1.PaymentID(p.TxID) {
+			t.Errorf("payment %d chat msg tx id: %q, expected %q", i, msg.PaymentID, p.TxID)
+		}
+	}
+}
+
+type paymentMsg struct {
+	ConvName  string
+	PaymentID stellar1.PaymentID
+}
+
+// testChatHelper is used to see if chat messages are sent.
+type testChatHelper struct {
+	libkb.ChatHelper
+
+	paymentMsgs []paymentMsg
+}
+
+func (tch *testChatHelper) SendMsgByNameNonblock(ctx context.Context, name string, topicName *string, membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, body chat1.MessageBody, msgType chat1.MessageType, outboxID *chat1.OutboxID) (chat1.OutboxID, error) {
+	if msgType == chat1.MessageType_SENDPAYMENT {
+		tch.paymentMsgs = append(tch.paymentMsgs, paymentMsg{ConvName: name, PaymentID: body.Sendpayment().PaymentID})
+	}
+
+	return nil, nil
 }
