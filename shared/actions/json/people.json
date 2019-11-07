@@ -6,9 +6,9 @@
       "numFollowSuggestionsWanted": "number"
     },
     "peopleDataProcessed": {
-      "oldItems": "I.List<Types.PeopleScreenItem>",
-      "newItems": "I.List<Types.PeopleScreenItem>",
-      "followSuggestions": "I.List<Types.FollowSuggestion>",
+      "oldItems": "Array<Types.PeopleScreenItem>",
+      "newItems": "Array<Types.PeopleScreenItem>",
+      "followSuggestions": "Array<Types.FollowSuggestion>",
       "lastViewed": "Date",
       "version": "number"
     },

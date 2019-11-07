@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as Types from './types/people'
 import * as RPCTypes from './types/rpc-gen'
 import * as TeamBuildingConstants from './team-building'
@@ -150,9 +149,9 @@ export function extractMetaFromTodoItem(
 }
 
 export const reduceRPCItemToPeopleItem = (
-  list: I.List<Types.PeopleScreenItem>,
+  list: Array<Types.PeopleScreenItem>,
   item: RPCTypes.HomeScreenItem
-): I.List<Types.PeopleScreenItem> => {
+): Array<Types.PeopleScreenItem> => {
   const badged = item.badged
   if (item.data.t === RPCTypes.HomeScreenItemType.todo) {
     const todo = item.data.todo
@@ -161,7 +160,8 @@ export const reduceRPCItemToPeopleItem = (
 
     const todoType = todoTypeEnumToType[todo.t || 0]
     const metadata: Types.TodoMeta = extractMetaFromTodoItem(todo, todoExt)
-    return list.push(
+    return [
+      ...list,
       makeTodo({
         badged: badged,
         confirmLabel: todoTypeToConfirmLabel[todoType],
@@ -170,8 +170,8 @@ export const reduceRPCItemToPeopleItem = (
         metadata,
         todoType,
         type: 'todo',
-      })
-    )
+      }),
+    ]
   } else if (item.data.t === RPCTypes.HomeScreenItemType.people) {
     // Follow notification or contact resolution
     const notification = item.data.people
@@ -181,14 +181,15 @@ export const reduceRPCItemToPeopleItem = (
       if (!follow) {
         return list
       }
-      return list.push(
+      return [
+        ...list,
         makeFollowedNotificationItem({
           badged,
           newFollows: [makeFollowedNotification({username: follow.user.username})],
           notificationTime: new Date(follow.followTime),
           type: 'follow',
-        })
-      )
+        }),
+      ]
     } else if (notification.t === RPCTypes.HomeScreenPeopleNotificationType.followedMulti) {
       // Multiple follows notification
       const multiFollow = notification.followedMulti
@@ -199,7 +200,8 @@ export const reduceRPCItemToPeopleItem = (
       const notificationTimes = followers.map(follow => follow.followTime)
       const maxNotificationTime = Math.max(...notificationTimes)
       const notificationTime = new Date(maxNotificationTime)
-      return list.push(
+      return [
+        ...list,
         makeFollowedNotificationItem({
           badged,
           newFollows: followers.map(follow =>
@@ -210,12 +212,13 @@ export const reduceRPCItemToPeopleItem = (
           notificationTime,
           numAdditional: multiFollow.numOthers,
           type: 'follow',
-        })
-      )
+        }),
+      ]
     } else if (notification && notification.t === RPCTypes.HomeScreenPeopleNotificationType.contact) {
       // Single contact notification
       const follow = notification.contact
-      return list.push(
+      return [
+        ...list,
         makeFollowedNotificationItem({
           badged,
           newFollows: [
@@ -223,8 +226,8 @@ export const reduceRPCItemToPeopleItem = (
           ],
           notificationTime: new Date(follow.resolveTime),
           type: 'contact',
-        })
-      )
+        }),
+      ]
     } else if (notification && notification.t === RPCTypes.HomeScreenPeopleNotificationType.contactMulti) {
       // Multiple follows notification
       const multiContact = notification.contactMulti
@@ -235,7 +238,8 @@ export const reduceRPCItemToPeopleItem = (
       const notificationTimes = contacts.map(contact => contact.resolveTime)
       const maxNotificationTime = Math.max(...notificationTimes)
       const notificationTime = new Date(maxNotificationTime)
-      return list.push(
+      return [
+        ...list,
         makeFollowedNotificationItem({
           badged,
           newFollows: contacts.map(follow =>
@@ -247,12 +251,13 @@ export const reduceRPCItemToPeopleItem = (
           notificationTime,
           numAdditional: multiContact.numOthers,
           type: 'contact',
-        })
-      )
+        }),
+      ]
     }
   } else if (item.data.t === RPCTypes.HomeScreenItemType.announcement) {
     const a = item.data.announcement
-    return list.push(
+    return [
+      ...list,
       makeAnnouncement({
         appLink: a.appLink,
         badged,
@@ -262,14 +267,14 @@ export const reduceRPCItemToPeopleItem = (
         id: a.id,
         text: a.text,
         url: a.url,
-      })
-    )
+      }),
+    ]
   }
 
   return list
 }
 
-export const makeAnnouncement = I.Record<Types._Announcement>({
+export const makeAnnouncement = (a?: Partial<Types.Announcement>) => ({
   appLink: null,
   badged: false,
   confirmLabel: null,
@@ -279,9 +284,10 @@ export const makeAnnouncement = I.Record<Types._Announcement>({
   text: '',
   type: 'announcement',
   url: null,
+  ...a,
 })
 
-export const makeTodo = I.Record<Types._Todo>({
+export const makeTodo = (t?: Partial<Types.Todo>) => ({
   badged: false,
   confirmLabel: '',
   dismissable: false,
@@ -290,41 +296,37 @@ export const makeTodo = I.Record<Types._Todo>({
   metadata: null,
   todoType: 'none',
   type: 'todo',
+  ...t,
 })
 
-export const makeFollowedNotification = I.Record<Types._FollowedNotification>({
+export const makeFollowedNotification = (f?: Partial<Types.FollowedNotification>) => ({
   contactDescription: '',
   username: '',
+  ...f,
 })
 
-export const makeFollowedNotificationItem = I.Record<Types._FollowedNotificationItem>({
+export const makeFollowedNotificationItem = (f?: Partial<Types.FollowedNotificationItem>) => ({
   badged: false,
   newFollows: [],
   notificationTime: new Date(),
   numAdditional: 0,
   type: 'follow',
+  ...f,
 })
 
-export const makeFollowSuggestion = I.Record<Types._FollowSuggestion>({
+export const makeFollowSuggestion = (f?: Partial<Types.FollowSuggestion>) => ({
   followsMe: false,
   fullName: null,
   iFollow: false,
   username: '',
+  ...f,
 })
 
-export const makeState = I.Record<Types._State>({
-  followSuggestions: I.List(),
-  lastViewed: new Date(),
-  newItems: I.List(),
-  oldItems: I.List(),
-  resentEmail: '',
-  teamBuilding: TeamBuildingConstants.makeSubState(),
-  version: -1,
-})
-
-export const makeTodoMetaEmail = I.Record<Types._TodoMetaEmail>({
+export const makeTodoMetaEmail = (t?: Partial<Types.TodoMetaEmail>) => ({
   email: '',
   lastVerifyEmailDate: 0,
   type: 'email',
+  ...t,
 })
-export const makeTodoMetaPhone = I.Record<Types._TodoMetaPhone>({phone: '', type: 'phone'})
+
+export const makeTodoMetaPhone = (t?: Partial<Types.TodoMetaPhone>) => ({phone: '', type: 'phone', ...t})
