@@ -620,7 +620,7 @@ function* setupLocationUpdateLoop() {
   }
 }
 
-const setLocationDeniedCommandStatus = (conversationIDKey: Types.ConversationIDKey, text: string) =>
+const setPermissionDeniedCommandStatus = (conversationIDKey: Types.ConversationIDKey, text: string) =>
   Chat2Gen.createSetCommandStatusInfo({
     conversationIDKey,
     info: {
@@ -640,7 +640,7 @@ const onChatWatchPosition = async (
     await requestLocationPermission(action.payload.params.perm)
   } catch (err) {
     logger.info('failed to get location perms: ' + err)
-    return setLocationDeniedCommandStatus(
+    return setPermissionDeniedCommandStatus(
       Types.conversationIDToKey(action.payload.params.convID),
       `Failed to access location. ${err.message}`
     )
@@ -781,7 +781,15 @@ const onEnableAudioRecording = async (
 
   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
   const outboxID = ChatConstants.generateOutboxID()
-  await requestAudioPermission()
+  try {
+    await requestAudioPermission()
+  } catch (err) {
+    logger.info('failed to get audio perms: ' + err)
+    return setPermissionDeniedCommandStatus(
+      Types.conversationIDToKey(action.payload.conversationIDKey),
+      `Failed to access audio. ${err.message}`
+    )
+  }
   const audioPath = await RPCChatTypes.localGetUploadTempFileRpcPromise({filename: 'audio.m4a', outboxID})
   AudioRecorder.prepareRecordingAtPath(audioPath, {
     AudioEncoding: 'aac',
