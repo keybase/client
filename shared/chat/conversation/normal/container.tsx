@@ -7,6 +7,7 @@ import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {isDarwin} from '../../../constants/platform'
 import Normal from '.'
 import {compose, connect, isMobile, withStateHandlers} from '../../../util/container'
+import {indefiniteArticle} from '../../../util/string'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
@@ -64,7 +65,7 @@ const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
   return {
     conversationIDKey: stateProps.conversationIDKey,
     dragAndDropRejectReason: stateProps._meta.cannotWrite
-      ? `You must be at least ${'aeiou'.includes(stateProps._meta.minWriterRole[0]) ? 'an' : 'a'} ${
+      ? `You must be at least ${indefiniteArticle(stateProps._meta.minWriterRole)} ${
           stateProps._meta.minWriterRole
         } to post.`
       : undefined,
