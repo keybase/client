@@ -18,7 +18,7 @@ type Props = {
 }
 
 const unifyAmp = (amp: number) => {
-  return isIOS ? 10 ** (amp * 0.05) : amp / 32767
+  return isIOS ? 10 ** (amp * 0.02) : amp / 32767
 }
 
 const AudioRecorder = (props: Props) => {
