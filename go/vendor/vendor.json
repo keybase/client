@@ -1048,71 +1048,71 @@
 			"checksumSHA1": "EGDnhf+fQo0nfGaglM0TMBPMV0M=",
 			"origin": "github.com/keybase/stellar-org/protocols/federation",
 			"path": "github.com/stellar/go/protocols/federation",
-			"revision": "e43266cae98f292a11218decae91a277a8489da2",
-			"revisionTime": "2019-06-21T18:08:33Z"
+			"revision": "0fc3bfe3dfa7aba69074e417e7dd47101b44e219",
+			"revisionTime": "2019-10-10T20:56:48Z"
 		},
 		{
-			"checksumSHA1": "jSmECOL9t1B5sYZxCKYhOxMPlHc=",
+			"checksumSHA1": "eRJop2DUXcBU9mmymDFnbFRCD0A=",
 			"origin": "github.com/keybase/stellar-org/protocols/horizon",
 			"path": "github.com/stellar/go/protocols/horizon",
-			"revision": "e43266cae98f292a11218decae91a277a8489da2",
-			"revisionTime": "2019-06-21T18:08:33Z"
+			"revision": "0fc3bfe3dfa7aba69074e417e7dd47101b44e219",
+			"revisionTime": "2019-10-10T20:56:48Z"
 		},
 		{
 			"checksumSHA1": "b7jF5v9LJPYZzZf8VlnSBgqgAEI=",
 			"origin": "github.com/keybase/stellar-org/protocols/horizon/base",
 			"path": "github.com/stellar/go/protocols/horizon/base",
-			"revision": "e43266cae98f292a11218decae91a277a8489da2",
-			"revisionTime": "2019-06-21T18:08:33Z"
+			"revision": "0fc3bfe3dfa7aba69074e417e7dd47101b44e219",
+			"revisionTime": "2019-10-10T20:56:48Z"
 		},
 		{
-			"checksumSHA1": "T/ktj9MMn1BW0wi8DOkMXmm/VhQ=",
+			"checksumSHA1": "iv0ata6cwyaTSVyiRYu3FcewIKA=",
 			"origin": "github.com/keybase/stellar-org/strkey",
 			"path": "github.com/stellar/go/strkey",
-			"revision": "e43266cae98f292a11218decae91a277a8489da2",
-			"revisionTime": "2019-06-21T18:08:33Z"
+			"revision": "0fc3bfe3dfa7aba69074e417e7dd47101b44e219",
+			"revisionTime": "2019-10-10T20:56:48Z"
 		},
 		{
 			"checksumSHA1": "1J1gt9bAORNtJZcK2yPlB/q0ACk=",
 			"origin": "github.com/keybase/stellar-org/support/app",
 			"path": "github.com/stellar/go/support/app",
-			"revision": "e43266cae98f292a11218decae91a277a8489da2",
-			"revisionTime": "2019-06-21T18:08:33Z"
+			"revision": "0fc3bfe3dfa7aba69074e417e7dd47101b44e219",
+			"revisionTime": "2019-10-10T20:56:48Z"
 		},
 		{
 			"checksumSHA1": "RYWv9kXP4XcsZ1oMsJmXf8bWpYs=",
 			"origin": "github.com/keybase/stellar-org/support/errors",
 			"path": "github.com/stellar/go/support/errors",
-			"revision": "e43266cae98f292a11218decae91a277a8489da2",
-			"revisionTime": "2019-06-21T18:08:33Z"
+			"revision": "0fc3bfe3dfa7aba69074e417e7dd47101b44e219",
+			"revisionTime": "2019-10-10T20:56:48Z"
 		},
 		{
 			"checksumSHA1": "Z38vZVydNopKqc8prcdz/pDTDU0=",
 			"origin": "github.com/keybase/stellar-org/support/render/hal",
 			"path": "github.com/stellar/go/support/render/hal",
-			"revision": "e43266cae98f292a11218decae91a277a8489da2",
-			"revisionTime": "2019-06-21T18:08:33Z"
+			"revision": "0fc3bfe3dfa7aba69074e417e7dd47101b44e219",
+			"revisionTime": "2019-10-10T20:56:48Z"
 		},
 		{
-			"checksumSHA1": "j8dB+W4hSZ0S1XM2YqCDMYAlZMQ=",
+			"checksumSHA1": "tNZFtL6ONdcd00MiPZiGrJpQSxg=",
 			"origin": "github.com/keybase/stellar-org/support/render/httpjson",
 			"path": "github.com/stellar/go/support/render/httpjson",
-			"revision": "e43266cae98f292a11218decae91a277a8489da2",
-			"revisionTime": "2019-06-21T18:08:33Z"
+			"revision": "0fc3bfe3dfa7aba69074e417e7dd47101b44e219",
+			"revisionTime": "2019-10-10T20:56:48Z"
 		},
 		{
-			"checksumSHA1": "sb4PCji+XrMwFzeMdSqPivgQPUA=",
+			"checksumSHA1": "96drjIp36ajy28OPu/DVr5an8K8=",
 			"origin": "github.com/keybase/stellar-org/support/render/problem",
 			"path": "github.com/stellar/go/support/render/problem",
-			"revision": "e43266cae98f292a11218decae91a277a8489da2",
-			"revisionTime": "2019-06-21T18:08:33Z"
+			"revision": "0fc3bfe3dfa7aba69074e417e7dd47101b44e219",
+			"revisionTime": "2019-10-10T20:56:48Z"
 		},
 		{
 			"checksumSHA1": "aA7kiwk05rwCwvpUVqHgxBzs31M=",
 			"origin": "github.com/keybase/stellar-org/support/url",
 			"path": "github.com/stellar/go/support/url",
-			"revision": "e43266cae98f292a11218decae91a277a8489da2",
-			"revisionTime": "2019-06-21T18:08:33Z"
+			"revision": "0fc3bfe3dfa7aba69074e417e7dd47101b44e219",
+			"revisionTime": "2019-10-10T20:56:48Z"
 		},
 		{
 			"checksumSHA1": "mo133jQLSnQ/CGp8jJcGggw6dq0=",
