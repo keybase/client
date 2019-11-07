@@ -28,12 +28,3 @@ func decodeResponse(resp *http.Response, object interface{}) (err error) {
 	}
 	return
 }
-
-func loadMemo(p *Payment) error {
-	res, err := http.Get(p.Links.Transaction.Href)
-	if err != nil {
-		return err
-	}
-	defer res.Body.Close()
-	return json.NewDecoder(res.Body).Decode(&p.Memo)
-}

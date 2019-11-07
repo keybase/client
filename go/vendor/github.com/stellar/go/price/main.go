@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"math"
 	"math/big"
+	"math/bits"
 	"regexp"
 	"strconv"
 
@@ -23,6 +24,10 @@ var (
 	// Note: {1,20} because the biggest amount you can use in Stellar is:
 	// len("922337203685.4775807") = 20.
 	validAmountSimple = regexp.MustCompile("^-?[.0-9]{1,20}$")
+	// ErrDivisionByZero is returned when a price operation would result in a division by 0
+	ErrDivisionByZero = errors.New("division by 0")
+	// ErrOverflow is returned when a price operation would result in an integer overflow
+	ErrOverflow = errors.New("overflow")
 )
 
 // Parse  calculates and returns the best rational approximation of the given
@@ -111,4 +116,100 @@ func floor(n *big.Rat) *big.Rat {
 //StringFromFloat64 will format a float64 to decimal representation with 7 digits after the decimal point
 func StringFromFloat64(v float64) string {
 	return strconv.FormatFloat(v, 'f', 7, 64)
+}
+
+// ConvertToBuyingUnits uses special rounding logic to multiply the amount by the price and returns (buyingUnits, sellingUnits) that can be taken from the offer
+//
+// offerSellingBound = (offer.price.n > offer.price.d)
+// 	? offer.amount : ceil(floor(offer.amount * offer.price) / offer.price)
+// pathPaymentAmountBought = min(offerSellingBound, pathPaymentBuyingBound)
+// pathPaymentAmountSold = ceil(pathPaymentAmountBought * offer.price)
+//
+// offer.amount = amount selling
+// offerSellingBound = roundingCorrectedOffer
+// pathPaymentBuyingBound = needed
+// pathPaymentAmountBought = what we are consuming from offer
+// pathPaymentAmountSold = amount we are giving to the buyer
+// Sell units = pathPaymentAmountSold and buy units = pathPaymentAmountBought
+//
+// this is how we do floor and ceiling in stellar-core:
+// https://github.com/stellar/stellar-core/blob/9af27ef4e20b66f38ab148d52ba7904e74fe502f/src/util/types.cpp#L201
+func ConvertToBuyingUnits(sellingOfferAmount int64, sellingUnitsNeeded int64, pricen int64, priced int64) (int64, int64, error) {
+	var e error
+	// offerSellingBound
+	result := sellingOfferAmount
+	if pricen <= priced {
+		result, e = MulFractionRoundDown(sellingOfferAmount, pricen, priced)
+		if e != nil {
+			return 0, 0, e
+		}
+		result, e = mulFractionRoundUp(result, priced, pricen)
+		if e != nil {
+			return 0, 0, e
+		}
+	}
+
+	// pathPaymentAmountBought
+	result = min(result, sellingUnitsNeeded)
+	sellingUnitsExtracted := result
+
+	// pathPaymentAmountSold
+	result, e = mulFractionRoundUp(result, pricen, priced)
+	if e != nil {
+		return 0, 0, e
+	}
+
+	return result, sellingUnitsExtracted, nil
+}
+
+// MulFractionRoundDown sets x = (x * n) / d, which is a round-down operation
+// see https://github.com/stellar/stellar-core/blob/9af27ef4e20b66f38ab148d52ba7904e74fe502f/src/util/types.cpp#L201
+func MulFractionRoundDown(x int64, n int64, d int64) (int64, error) {
+	if d == 0 {
+		return 0, ErrDivisionByZero
+	}
+
+	hi, lo := bits.Mul64(uint64(x), uint64(n))
+
+	denominator := uint64(d)
+	if denominator <= hi {
+		return 0, ErrOverflow
+	}
+	q, _ := bits.Div64(hi, lo, denominator)
+	if q > math.MaxInt64 {
+		return 0, ErrOverflow
+	}
+
+	return int64(q), nil
+}
+
+// mulFractionRoundUp sets x = ((x * n) + d - 1) / d, which is a round-up operation
+// see https://github.com/stellar/stellar-core/blob/9af27ef4e20b66f38ab148d52ba7904e74fe502f/src/util/types.cpp#L201
+func mulFractionRoundUp(x int64, n int64, d int64) (int64, error) {
+	if d == 0 {
+		return 0, ErrDivisionByZero
+	}
+
+	hi, lo := bits.Mul64(uint64(x), uint64(n))
+	lo, carry := bits.Add64(lo, uint64(d-1), 0)
+	hi += carry
+
+	denominator := uint64(d)
+	if denominator <= hi {
+		return 0, ErrOverflow
+	}
+	q, _ := bits.Div64(hi, lo, denominator)
+	if q > math.MaxInt64 {
+		return 0, ErrOverflow
+	}
+
+	return int64(q), nil
+}
+
+// min impl for int64
+func min(x int64, y int64) int64 {
+	if x <= y {
+		return x
+	}
+	return y
 }
