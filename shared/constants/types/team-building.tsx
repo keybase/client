@@ -2,7 +2,8 @@ import * as I from 'immutable'
 import {TeamRoleType} from './teams'
 import {ServiceId} from '../../util/platforms'
 
-export type AllowedNamespace = 'chat2' | 'teams' | 'people' | 'wallets'
+export const allowedNamespace = ['chat2', 'teams', 'people', 'wallets'] as const
+export type AllowedNamespace = typeof allowedNamespace[number]
 export type FollowingState = 'Following' | 'NotFollowing' | 'NoState' | 'You'
 export type ServiceId = ServiceId
 

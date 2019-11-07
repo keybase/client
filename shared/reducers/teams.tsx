@@ -233,7 +233,7 @@ export default (
         return
       }
 
-      case TeamBuildingGen.resetStore:
+      case TeamBuildingGen.tbResetStore:
       case TeamBuildingGen.cancelTeamBuilding:
       case TeamBuildingGen.addUsersToTeamSoFar:
       case TeamBuildingGen.removeUsersFromTeamSoFar:
