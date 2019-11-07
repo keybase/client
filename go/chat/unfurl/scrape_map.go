@@ -23,6 +23,7 @@ func (s *Scraper) scrapeMap(ctx context.Context, uri string) (res chat1.UnfurlRa
 	slon := puri.Query().Get("lon")
 	sacc := puri.Query().Get("acc")
 	sdone := puri.Query().Get("done")
+	coord := new(chat1.Coordinate)
 	lat, err := strconv.ParseFloat(slat, 64)
 	if err != nil {
 		return res, err
@@ -65,24 +66,33 @@ func (s *Scraper) scrapeMap(ctx context.Context, uri string) (res chat1.UnfurlRa
 		timeStr = fmt.Sprintf("Posted %s.", now.Format("15:04:05 MST"))
 		siteName = "Live Location Share"
 		if liveLocationDone {
-			return chat1.NewUnfurlRawWithMapsEnded(chat1.UnfurlMapsEndedRaw{
-				EndedTime: gregor1.ToTime(now),
+			return chat1.NewUnfurlRawWithMaps(chat1.UnfurlMapsRaw{
+				Title:               "Location share ended",
+				Url:                 linkURL,
+				SiteName:            siteName,
+				ImageUrl:            mapURL,
+				HistoryImageUrl:     liveMapURL,
+				LiveLocationDone:    liveLocationDone,
+				LiveLocationEndTime: liveLocationEndTime,
+				Time:                gregor1.ToTime(now),
 			}), nil
 		}
 	}
+
+	*coord = chat1.Coordinate{
+		Lat:      lat,
+		Lon:      lon,
+		Accuracy: acc,
+	}
 	desc := fmt.Sprintf("Accurate to %dm. %s", int(acc), timeStr)
 	return chat1.NewUnfurlRawWithMaps(chat1.UnfurlMapsRaw{
-		Title:           "Open this location with Google Maps",
-		Url:             linkURL,
-		SiteName:        siteName,
-		ImageUrl:        mapURL,
-		Description:     desc,
-		HistoryImageUrl: liveMapURL,
-		Coord: chat1.Coordinate{
-			Lat:      lat,
-			Lon:      lon,
-			Accuracy: acc,
-		},
+		Title:               "Open this location with Google Maps",
+		Url:                 linkURL,
+		SiteName:            siteName,
+		ImageUrl:            mapURL,
+		Description:         desc,
+		HistoryImageUrl:     liveMapURL,
+		Coord:               coord,
 		LiveLocationDone:    liveLocationDone,
 		LiveLocationEndTime: liveLocationEndTime,
 		Time:                gregor1.ToTime(now),

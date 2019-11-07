@@ -10,8 +10,7 @@ protocol unfurl {
     GENERIC_0,
     YOUTUBE_1,
     GIPHY_2,
-    MAPS_3, // only from scrape, gets converted to generic in packager
-    MAPS_ENDED_4 // same as MAPS_3
+    MAPS_3 // only from scrape, gets converted to generic in packager
   }
 
   record UnfurlVideo {
@@ -49,14 +48,10 @@ protocol unfurl {
     string imageUrl;
     union { null, string } historyImageUrl;
     string description;
-    Coordinate coord;
+    union {null, Coordinate} coord;
     gregor1.Time time;
     union { null, gregor1.Time } liveLocationEndTime;
     boolean liveLocationDone;
-  }
-
-  record UnfurlMapsEndedRaw {
-    gregor1.Time endedTime;
   }
 
   variant UnfurlRaw switch (UnfurlType unfurlType) {
@@ -64,19 +59,15 @@ protocol unfurl {
     case YOUTUBE: UnfurlYoutubeRaw;
     case GIPHY: UnfurlGiphyRaw;
     case MAPS: UnfurlMapsRaw;
-    case MAPS_ENDED: UnfurlMapsEndedRaw;
   }
 
   record UnfurlGenericMapInfo {
-    Coordinate coord;
+    union {null, Coordinate} coord;
     gregor1.Time time;
     union { null, gregor1.Time } liveLocationEndTime;
     boolean isLiveLocationDone;
   }
 
-  record UnfurlGenericMapEndedInfo {
-    gregor1.Time endedTime;
-  }
 
   record UnfurlGeneric {
     string title;
@@ -87,7 +78,6 @@ protocol unfurl {
     union { null, int } publishTime;
     union { null, string } description;
     union { null, UnfurlGenericMapInfo } mapInfo;
-    union { null, UnfurlGenericMapEndedInfo } endedMapInfo;
   }
 
   record UnfurlYoutube {
@@ -127,7 +117,6 @@ protocol unfurl {
     union { null, int } publishTime;
     union { null, string } description;
     union { null, UnfurlGenericMapInfo } mapInfo;
-    union {null, UnfurlGenericMapEndedInfo} endedMapInfo;
   }
 
   record UnfurlYoutubeDisplay {

@@ -43,7 +43,6 @@ func displayUnfurlGeneric(ctx context.Context, srv types.AttachmentURLSrv, convI
 	res.PublishTime = unfurl.PublishTime
 	res.Description = unfurl.Description
 	res.MapInfo = unfurl.MapInfo
-	res.EndedMapInfo = unfurl.EndedMapInfo
 	if unfurl.Image != nil {
 		if media, err := assetToImageDisplay(ctx, convID, *unfurl.Image, srv); err == nil {
 			res.Media = &media

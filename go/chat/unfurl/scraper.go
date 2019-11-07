@@ -77,8 +77,6 @@ func (s *Scraper) Scrape(ctx context.Context, uri string, forceTyp *chat1.Unfurl
 		return s.scrapeGiphy(ctx, uri)
 	case chat1.UnfurlType_MAPS:
 		return s.scrapeMap(ctx, uri)
-	case chat1.UnfurlType_MAPS_ENDED:
-		return s.scrapeMap(ctx, uri)
 	default:
 		return s.scrapeGeneric(ctx, uri, domain)
 	}

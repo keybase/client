@@ -172,7 +172,7 @@ export default connect(
       items.push({onClick: dispatchProps._onReply, title: 'Reply'})
       items.push({onClick: dispatchProps._onPinMessage, title: 'Pin message'})
     } else {
-      if (stateProps._mapUnfurl) {
+      if (stateProps._mapUnfurl && stateProps._mapUnfurl.mapInfo && stateProps._mapUnfurl.mapInfo.coord) {
         const url = stateProps._mapUnfurl.url
         items.push({onClick: () => openURL(url), title: 'View on Google Maps'})
       }

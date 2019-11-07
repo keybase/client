@@ -19,8 +19,7 @@
         "GENERIC_0",
         "YOUTUBE_1",
         "GIPHY_2",
-        "MAPS_3",
-        "MAPS_ENDED_4"
+        "MAPS_3"
       ]
     },
     {
@@ -162,7 +161,10 @@
           "name": "description"
         },
         {
-          "type": "Coordinate",
+          "type": [
+            null,
+            "Coordinate"
+          ],
           "name": "coord"
         },
         {
@@ -179,16 +181,6 @@
         {
           "type": "boolean",
           "name": "liveLocationDone"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "UnfurlMapsEndedRaw",
-      "fields": [
-        {
-          "type": "gregor1.Time",
-          "name": "endedTime"
         }
       ]
     },
@@ -227,13 +219,6 @@
             "def": false
           },
           "body": "UnfurlMapsRaw"
-        },
-        {
-          "label": {
-            "name": "MAPS_ENDED",
-            "def": false
-          },
-          "body": "UnfurlMapsEndedRaw"
         }
       ]
     },
@@ -242,7 +227,10 @@
       "name": "UnfurlGenericMapInfo",
       "fields": [
         {
-          "type": "Coordinate",
+          "type": [
+            null,
+            "Coordinate"
+          ],
           "name": "coord"
         },
         {
@@ -259,16 +247,6 @@
         {
           "type": "boolean",
           "name": "isLiveLocationDone"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "UnfurlGenericMapEndedInfo",
-      "fields": [
-        {
-          "type": "gregor1.Time",
-          "name": "endedTime"
         }
       ]
     },
@@ -322,13 +300,6 @@
             "UnfurlGenericMapInfo"
           ],
           "name": "mapInfo"
-        },
-        {
-          "type": [
-            null,
-            "UnfurlGenericMapEndedInfo"
-          ],
-          "name": "endedMapInfo"
         }
       ]
     },
@@ -481,13 +452,6 @@
             "UnfurlGenericMapInfo"
           ],
           "name": "mapInfo"
-        },
-        {
-          "type": [
-            null,
-            "UnfurlGenericMapEndedInfo"
-          ],
-          "name": "endedMapInfo"
         }
       ]
     },

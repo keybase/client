@@ -434,7 +434,6 @@ func TestLiveMapScraper(t *testing.T) {
 	require.NoError(t, err)
 	typ, err = unfurl.UnfurlType()
 	require.NoError(t, err)
-	require.Equal(t, chat1.UnfurlType_MAPS_ENDED, typ)
 	require.Equal(t, "Location share ended", unfurl.Generic().Title)
 	require.Nil(t, unfurl.Generic().ImageUrl)
 }
