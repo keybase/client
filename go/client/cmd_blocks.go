@@ -73,7 +73,7 @@ func (c *CmdBlocksListUsers) Run() (err error) {
 	}
 
 	if !hasBlocks {
-		tui.Printf("No user is currently blocked by you.\n")
+		tui.Printf("You haven't blocked anyone yet.\n")
 		return nil
 	}
 
