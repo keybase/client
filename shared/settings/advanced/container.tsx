@@ -44,7 +44,7 @@ const mapDispatchToProps = dispatch => ({
   onDisableCertPinning: () =>
     dispatch(RouteTreeGen.createNavigateAppend({path: ['disableCertPinningModal']})),
   onEnableCertPinning: () => dispatch(SettingsGen.createCertificatePinningToggled({toggled: false})),
-  onExtraKBFSLogging: () => dispatch(FSGen.createSetDebugLevel({level: 'vlog1'})),
+  onExtraKBFSLogging: () => dispatch(FSGen.createSetDebugLevel({level: 'vlog2'})),
   onProcessorProfile: (durationSeconds: number) =>
     dispatch(SettingsGen.createProcessorProfile({durationSeconds})),
   onSetOpenAtLogin: (openAtLogin: boolean) => dispatch(ConfigGen.createSetOpenAtLogin({openAtLogin})),
