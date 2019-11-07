@@ -514,7 +514,6 @@ function* createNewTeamFromConversation(
 
 function* getDetails(_: TypedState, action: TeamsGen.GetDetailsPayload, logger: Saga.SagaLogger) {
   const {teamname} = action.payload
-  yield Saga.put(TeamsGen.createGetTeamOperations({teamname}))
   yield Saga.put(TeamsGen.createGetTeamPublicity({teamname}))
 
   const waitingKeys = [Constants.teamWaitingKey(teamname), Constants.teamGetWaitingKey(teamname)]
@@ -653,19 +652,6 @@ function* addUserToTeams(_: TypedState, action: TeamsGen.AddUserToTeamsPayload) 
       results: result,
     })
   )
-}
-
-const getTeamOperations = async (state: TypedState, action: TeamsGen.GetTeamOperationsPayload) => {
-  const {teamname} = action.payload
-  const teamOperation = await RPCTypes.teamsCanUserPerformRpcPromise(
-    {name: action.payload.teamname},
-    Constants.teamWaitingKey(action.payload.teamname)
-  )
-  return TeamsGen.createSetTeamCanPerform({
-    teamID: Constants.getTeamID(state, teamname),
-    teamOperation,
-    teamname,
-  })
 }
 
 function* getTeamPublicity(_: TypedState, action: TeamsGen.GetTeamPublicityPayload, logger: Saga.SagaLogger) {
@@ -1431,14 +1417,6 @@ function addThemToTeamFromTeamBuilder(
   )
 }
 
-const refreshCanUserPerform = (
-  _: TypedState,
-  action: EngineGen.Keybase1NotifyCanUserPerformCanUserPerformChangedPayload
-) => {
-  const {teamName} = action.payload.params
-  return TeamsGen.createGetTeamOperations({teamname: teamName})
-}
-
 function* teamBuildingSaga() {
   yield* commonTeamBuildingSaga('teams')
 
@@ -1462,7 +1440,6 @@ const teamsSaga = function*() {
     getTeamPublicity,
     'getTeamPublicity'
   )
-  yield* Saga.chainAction2(TeamsGen.getTeamOperations, getTeamOperations, 'getTeamOperations')
   yield* Saga.chainGenerator<TeamsGen.CreateNewTeamFromConversationPayload>(
     TeamsGen.createNewTeamFromConversation,
     createNewTeamFromConversation,
@@ -1558,11 +1535,6 @@ const teamsSaga = function*() {
   )
 
   yield* Saga.chainAction2(TeamsGen.clearNavBadges, clearNavBadges)
-  yield* Saga.chainAction2(
-    EngineGen.keybase1NotifyCanUserPerformCanUserPerformChanged,
-    refreshCanUserPerform,
-    'refreshCanUserPerform'
-  )
 
   // Hook up the team building sub saga
   yield* teamBuildingSaga()

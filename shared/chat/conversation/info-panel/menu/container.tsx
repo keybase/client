@@ -70,7 +70,6 @@ export default Container.namedConnect(
         badgeSubscribe: false,
         canAddPeople: false,
         convProps,
-        hasCanPerform: false,
         isSmallTeam: false,
         manageChannelsSubtitle: '',
         manageChannelsTitle: '',

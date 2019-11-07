@@ -281,7 +281,6 @@ export default (
       case TeamsGen.getChannels:
       case TeamsGen.getDetails:
       case TeamsGen.getMembers:
-      case TeamsGen.getTeamOperations:
       case TeamsGen.getTeamProfileAddList:
       case TeamsGen.getTeamPublicity:
       case TeamsGen.getTeamRetentionPolicy:

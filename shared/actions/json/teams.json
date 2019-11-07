@@ -60,9 +60,6 @@
       "teamname": "string",
       "members": "I.Map<string, Types.MemberInfo>"
     },
-    "getTeamOperations": {
-      "teamname": "string"
-    },
     "getTeamProfileAddList": {
       "username": "string"
     },
@@ -289,10 +286,10 @@
       "newName": "string"
     },
     "setTeamRoleMapLatestKnownVersion": {
-      "version" : "number"
+      "version": "number"
     },
     "setTeamRoleMap": {
-      "map" : "Types.TeamRoleMap"
+      "map": "Types.TeamRoleMap"
     }
   }
 }

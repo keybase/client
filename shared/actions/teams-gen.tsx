@@ -28,7 +28,6 @@ export const getChannelInfo = 'teams:getChannelInfo'
 export const getChannels = 'teams:getChannels'
 export const getDetails = 'teams:getDetails'
 export const getMembers = 'teams:getMembers'
-export const getTeamOperations = 'teams:getTeamOperations'
 export const getTeamProfileAddList = 'teams:getTeamProfileAddList'
 export const getTeamPublicity = 'teams:getTeamPublicity'
 export const getTeamRetentionPolicy = 'teams:getTeamRetentionPolicy'
@@ -139,7 +138,6 @@ type _GetChannelInfoPayload = {
 type _GetChannelsPayload = {readonly teamname: string}
 type _GetDetailsPayload = {readonly teamname: string; readonly clearInviteLoadingKey?: string}
 type _GetMembersPayload = {readonly teamname: string}
-type _GetTeamOperationsPayload = {readonly teamname: string}
 type _GetTeamProfileAddListPayload = {readonly username: string}
 type _GetTeamPublicityPayload = {readonly teamname: string}
 type _GetTeamRetentionPolicyPayload = {readonly teamname: string}
@@ -378,10 +376,6 @@ export const createGetMembers = (payload: _GetMembersPayload): GetMembersPayload
   payload,
   type: getMembers,
 })
-export const createGetTeamOperations = (payload: _GetTeamOperationsPayload): GetTeamOperationsPayload => ({
-  payload,
-  type: getTeamOperations,
-})
 export const createGetTeamProfileAddList = (
   payload: _GetTeamProfileAddListPayload
 ): GetTeamProfileAddListPayload => ({payload, type: getTeamProfileAddList})
@@ -593,10 +587,6 @@ export type GetChannelInfoPayload = {
 export type GetChannelsPayload = {readonly payload: _GetChannelsPayload; readonly type: typeof getChannels}
 export type GetDetailsPayload = {readonly payload: _GetDetailsPayload; readonly type: typeof getDetails}
 export type GetMembersPayload = {readonly payload: _GetMembersPayload; readonly type: typeof getMembers}
-export type GetTeamOperationsPayload = {
-  readonly payload: _GetTeamOperationsPayload
-  readonly type: typeof getTeamOperations
-}
 export type GetTeamProfileAddListPayload = {
   readonly payload: _GetTeamProfileAddListPayload
   readonly type: typeof getTeamProfileAddList
@@ -779,7 +769,6 @@ export type Actions =
   | GetChannelsPayload
   | GetDetailsPayload
   | GetMembersPayload
-  | GetTeamOperationsPayload
   | GetTeamProfileAddListPayload
   | GetTeamPublicityPayload
   | GetTeamRetentionPolicyPayload

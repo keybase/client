@@ -2,8 +2,7 @@ import {compose, connect, lifecycle} from '../../../../util/container'
 import * as ChatTypes from '../../../../constants/types/chat2'
 import {getMeta} from '../../../../constants/chat2'
 import {makeRetentionNotice} from '../../../../util/teams'
-import {getCanPerform, hasCanPerform} from '../../../../constants/teams'
-import {createGetTeamOperations} from '../../../../actions/teams-gen'
+import * as TeamConstants from '../../../../constants/teams'
 import RetentionNotice from '.'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 
@@ -15,27 +14,18 @@ type OwnProps = {
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const meta = getMeta(state, ownProps.conversationIDKey)
   let canChange = true
-  // We almost definitely already have the permissions, but check just in case something changes
-  let _permissionsNeedLoad = false
-  let _teamname = ''
   if (meta.teamType !== 'adhoc') {
-    // we need to check for permission
-    _teamname = meta.teamname
-    _permissionsNeedLoad = !hasCanPerform(state, _teamname)
-    canChange = getCanPerform(state, _teamname).setRetentionPolicy
+    canChange = TeamConstants.getCanPerformByID(state, meta.teamID).setRetentionPolicy
   }
   return {
-    _permissionsNeedLoad,
     _policy: meta.retentionPolicy,
     _teamPolicy: meta.teamRetentionPolicy,
     _teamType: meta.teamType,
-    _teamname,
     canChange,
   }
 }
 
 const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
-  _loadPermissions: (teamname: string) => dispatch(createGetTeamOperations({teamname})),
   onChange: () =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
@@ -65,9 +55,6 @@ export default compose(
     mergeProps
   ),
   lifecycle({
-    componentDidMount() {
-      this.props._permissionsNeedLoad && this.props._loadPermissions()
-    },
     componentDidUpdate(prevProps) {
       if (
         this.props.canChange !== prevProps.canChange ||
