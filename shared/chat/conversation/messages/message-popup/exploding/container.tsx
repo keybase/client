@@ -24,115 +24,118 @@ export type OwnProps = {
 }
 
 export default Container.connect(
-(state, ownProps: OwnProps) => {
-  const yourMessage = ownProps.message.author === state.config.username
-  const meta = Constants.getMeta(state, ownProps.message.conversationIDKey)
-  const _canDeleteHistory =
-    meta.teamType === 'adhoc' || TeamConstants.getCanPerform(state, meta.teamname).deleteChatHistory
-  const _canExplodeNow = (yourMessage || _canDeleteHistory) && ownProps.message.isDeleteable
-  const _canEdit = yourMessage && ownProps.message.isEditable
-  const _mapUnfurl = Constants.getMapUnfurl(ownProps.message)
-  // you can reply privately *if* text message, someone else's message, and not in a 1-on-1 chat
-  const _canReplyPrivately =
-    !yourMessage &&
-    ownProps.message.type === 'text' &&
-    (['small', 'big'].includes(meta.teamType) || meta.participants.length > 2)
+  (state, ownProps: OwnProps) => {
+    const yourMessage = ownProps.message.author === state.config.username
+    const meta = Constants.getMeta(state, ownProps.message.conversationIDKey)
+    const _canDeleteHistory =
+      meta.teamType === 'adhoc' || TeamConstants.getCanPerform(state, meta.teamname).deleteChatHistory
+    const _canExplodeNow = (yourMessage || _canDeleteHistory) && ownProps.message.isDeleteable
+    const _canEdit = yourMessage && ownProps.message.isEditable
+    const _mapUnfurl = Constants.getMapUnfurl(ownProps.message)
+    // you can reply privately *if* text message, someone else's message, and not in a 1-on-1 chat
+    const _canReplyPrivately =
+      !yourMessage &&
+      ownProps.message.type === 'text' &&
+      (['small', 'big'].includes(meta.teamType) || meta.participants.length > 2)
 
-  return {
-    _canDeleteHistory,
-    _canEdit,
-    _canExplodeNow,
-    _canReplyPrivately,
-    _mapUnfurl,
-    author: ownProps.message.author,
-    deviceName: ownProps.message.deviceName,
-    deviceRevokedAt: ownProps.message.deviceRevokedAt,
-    deviceType: ownProps.message.deviceType,
-    explodesAt: ownProps.message.explodingTime,
-    hideTimer: ownProps.message.submitState === 'pending' || ownProps.message.submitState === 'failed',
-    timestamp: ownProps.message.timestamp,
-    yourMessage,
-  }
-},
- (dispatch, ownProps: OwnProps) => ({
-  _onAddReaction: () => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {conversationIDKey: ownProps.message.conversationIDKey, ordinal: ownProps.message.ordinal},
-            selected: 'chatChooseEmoji',
-          },
-        ],
-      })
-    )
-  },
-  _onCopy: () => {
-    if (ownProps.message.type === 'text') {
-      dispatch(ConfigGen.createCopyToClipboard({text: ownProps.message.text.stringValue()}))
+    return {
+      _canDeleteHistory,
+      _canEdit,
+      _canExplodeNow,
+      _canReplyPrivately,
+      _mapUnfurl,
+      author: ownProps.message.author,
+      deviceName: ownProps.message.deviceName,
+      deviceRevokedAt: ownProps.message.deviceRevokedAt,
+      deviceType: ownProps.message.deviceType,
+      explodesAt: ownProps.message.explodingTime,
+      hideTimer: ownProps.message.submitState === 'pending' || ownProps.message.submitState === 'failed',
+      timestamp: ownProps.message.timestamp,
+      yourMessage,
     }
   },
-  _onDownload: () =>
-    dispatch(
-      Chat2Gen.createAttachmentDownload({
-        message: ownProps.message,
-      })
-    ),
-  _onEdit: () =>
-    dispatch(
-      Chat2Gen.createMessageSetEditing({
-        conversationIDKey: ownProps.message.conversationIDKey,
-        ordinal: ownProps.message.ordinal,
-      })
-    ),
-  _onExplodeNow: () =>
-    dispatch(
-      Chat2Gen.createMessageDelete({
-        conversationIDKey: ownProps.message.conversationIDKey,
-        ordinal: ownProps.message.ordinal,
-      })
-    ),
-  _onPinMessage: () => {
-    dispatch(
-      Chat2Gen.createPinMessage({
-        conversationIDKey: ownProps.message.conversationIDKey,
-        messageID: ownProps.message.id,
-      })
-    )
-  },
-  _onReply: () =>
-    dispatch(
-      Chat2Gen.createToggleReplyToMessage({
-        conversationIDKey: ownProps.message.conversationIDKey,
-        ordinal: ownProps.message.ordinal,
-      })
-    ),
-  _onReplyPrivately: () => {
-    dispatch(
-      Chat2Gen.createMessageReplyPrivately({
-        ordinal: ownProps.message.ordinal,
-        sourceConversationIDKey: ownProps.message.conversationIDKey,
-      })
-    )
-  },
-  _onSaveAttachment: () =>
-    dispatch(
-      Chat2Gen.createMessageAttachmentNativeSave({
-        message: ownProps.message,
-      })
-    ),
-  _onShareAttachment: () =>
-    dispatch(
-      Chat2Gen.createMessageAttachmentNativeShare({
-        message: ownProps.message,
-      })
-    ),
-  _onShowInFinder: () => {
-    ownProps.message.type === 'attachment' &&
-      ownProps.message.downloadPath &&
-      dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: ownProps.message.downloadPath}))
-  },
-}),
+  (dispatch, ownProps: OwnProps) => ({
+    _onAddReaction: () => {
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [
+            {
+              props: {
+                conversationIDKey: ownProps.message.conversationIDKey,
+                ordinal: ownProps.message.ordinal,
+              },
+              selected: 'chatChooseEmoji',
+            },
+          ],
+        })
+      )
+    },
+    _onCopy: () => {
+      if (ownProps.message.type === 'text') {
+        dispatch(ConfigGen.createCopyToClipboard({text: ownProps.message.text.stringValue()}))
+      }
+    },
+    _onDownload: () =>
+      dispatch(
+        Chat2Gen.createAttachmentDownload({
+          message: ownProps.message,
+        })
+      ),
+    _onEdit: () =>
+      dispatch(
+        Chat2Gen.createMessageSetEditing({
+          conversationIDKey: ownProps.message.conversationIDKey,
+          ordinal: ownProps.message.ordinal,
+        })
+      ),
+    _onExplodeNow: () =>
+      dispatch(
+        Chat2Gen.createMessageDelete({
+          conversationIDKey: ownProps.message.conversationIDKey,
+          ordinal: ownProps.message.ordinal,
+        })
+      ),
+    _onPinMessage: () => {
+      dispatch(
+        Chat2Gen.createPinMessage({
+          conversationIDKey: ownProps.message.conversationIDKey,
+          messageID: ownProps.message.id,
+        })
+      )
+    },
+    _onReply: () =>
+      dispatch(
+        Chat2Gen.createToggleReplyToMessage({
+          conversationIDKey: ownProps.message.conversationIDKey,
+          ordinal: ownProps.message.ordinal,
+        })
+      ),
+    _onReplyPrivately: () => {
+      dispatch(
+        Chat2Gen.createMessageReplyPrivately({
+          ordinal: ownProps.message.ordinal,
+          sourceConversationIDKey: ownProps.message.conversationIDKey,
+        })
+      )
+    },
+    _onSaveAttachment: () =>
+      dispatch(
+        Chat2Gen.createMessageAttachmentNativeSave({
+          message: ownProps.message,
+        })
+      ),
+    _onShareAttachment: () =>
+      dispatch(
+        Chat2Gen.createMessageAttachmentNativeShare({
+          message: ownProps.message,
+        })
+      ),
+    _onShowInFinder: () => {
+      ownProps.message.type === 'attachment' &&
+        ownProps.message.downloadPath &&
+        dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: ownProps.message.downloadPath}))
+    },
+  }),
   (stateProps, dispatchProps, ownProps) => {
     const items: MenuItems = []
     if (stateProps._canExplodeNow) {

@@ -12,12 +12,12 @@ const message = Constants.makeMessageSystemText({
 })
 
 const longMessage = {
-    ...message,
+  ...message,
   text: new HiddenString(new Array(100).fill('a word').join(' ')),
 }
 
 const longWordMessage = {
-...message,
+  ...message,
   text: new HiddenString(new Array(100).fill('tooLong').join('')),
 }
 
