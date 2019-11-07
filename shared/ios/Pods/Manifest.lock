@@ -146,6 +146,8 @@ PODS:
     - React
   - RNScreens (1.0.0-alpha.23):
     - React
+  - RNSVG (9.13.3):
+    - React
   - SDWebImage (5.1.1):
     - SDWebImage/Core (= 5.1.1)
   - SDWebImage/Core (5.1.1)
@@ -213,6 +215,7 @@ DEPENDENCIES:
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
+  - RNSVG (from `../node_modules/react-native-svg`)
   - UMBarCodeScannerInterface (from `../node_modules/unimodules-barcode-scanner-interface/ios`)
   - UMCameraInterface (from `../node_modules/unimodules-camera-interface/ios`)
   - UMConstantsInterface (from `../node_modules/unimodules-constants-interface/ios`)
@@ -330,6 +333,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-reanimated"
   RNScreens:
     :path: "../node_modules/react-native-screens"
+  RNSVG:
+    :path: "../node_modules/react-native-svg"
   UMBarCodeScannerInterface:
     :path: !ruby/object:Pathname
     path: "../node_modules/unimodules-barcode-scanner-interface/ios"
@@ -415,6 +420,7 @@ SPEC CHECKSUMS:
   RNGestureHandler: 5329a942fce3d41c68b84c2c2276ce06a696d8b0
   RNReanimated: 7a52c90473b5e81c13408d40d797b98387eaddde
   RNScreens: f28b48b8345f2f5f39ed6195518291515032a788
+  RNSVG: f6177f8d7c095fada7cfee2e4bb7388ba426064c
   SDWebImage: 96d7f03415ccb28d299d765f93557ff8a617abd8
   SDWebImageWebPCoder: cc72085bb20368b2f8dbb21b7e355c667e1309b7
   UMBarCodeScannerInterface: d5602e23de37f95bb4ee49ee3b2711e128058ae9
@@ -431,6 +437,6 @@ SPEC CHECKSUMS:
   UMTaskManagerInterface: 296793ab2a7e181fe5ebe2ba9b40ae208ab4b8fa
   yoga: 312528f5bbbba37b4dcea5ef00e8b4033fdd9411
 
-PODFILE CHECKSUM: 891aa8c0f6d168a6b5d0c50e5415c34cc2014ef8
+PODFILE CHECKSUM: 3882c9e3d57ebbd481f6b7706f897ab698ed53a2
 
 COCOAPODS: 1.8.4
