@@ -19,7 +19,7 @@ export type Props = {
 export type IconProps = {
   service: ServiceIdWithContact
   label: Array<string>
-  onClick: () => void
+  onClick: (s: ServiceIdWithContact) => void
   count: number | null
   showCount: boolean
   isActive: boolean
