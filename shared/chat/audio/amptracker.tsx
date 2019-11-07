@@ -17,22 +17,6 @@ export class AmpTracker {
     return Math.sqrt(v)
   }
 
-  private bucketPass = (amps: Array<number>, maxBuckets: number) => {
-    let consumed = 0
-    const res: Array<number> = []
-    for (let i = 0; i < amps.length; i++) {
-      if (amps.length - consumed > maxBuckets && i < amps.length - 1) {
-        res.push((amps[i] + amps[i + 1]) / 2)
-        consumed += 2
-        i++
-      } else {
-        res.push(amps[i])
-        consumed++
-      }
-    }
-    return res
-  }
-
   private getNumBars = (duration: number) => {
     const frac = (duration - snap0) / (snap1 - snap0)
     if (frac < 0) {
@@ -162,7 +146,7 @@ class BucketList {
   rescaleToNewBucketList = dt => {
     // return a new BucketList, where every bucket is dt
     // units long
-    if (this.buckets.length) {
+    if (!this.buckets.length) {
       return new BucketList()
     }
     const newBl = new BucketList()
