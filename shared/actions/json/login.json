@@ -8,10 +8,10 @@
       "username": "string",
       "password": "HiddenString"
     },
-    "loginError": {"error": "RPCError | null"},
+    "loginError": {"error?": "RPCError"},
     "loadIsOnline": {},
     "loadedIsOnline": {
-      "result": "boolean"
+      "isOnline": "boolean"
     }
   }
 }

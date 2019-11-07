@@ -1,13 +1,17 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import {FeatureWithSeenState} from '../constants/types/whats-new'
+import {IconType} from '../common-adapters/icon.constants-gen'
 
-type Props = FeatureWithSeenState & {
+type Props = {
   children?: React.ReactNode
+  seen: boolean
   noSeparator?: boolean
+  primaryButtonText?: string
+  secondaryButtonText?: string
   onPrimaryButtonClick?: () => void
   onSecondaryButtonClick?: () => void
+  image?: IconType
   imageStyle?: Styles.StylesCrossPlatform
 }
 
@@ -53,10 +57,7 @@ const NewFeature = (props: Props) => {
         </Kb.Text>
         {props.image && (
           <Kb.Box2 direction="vertical" style={styles.imageContainer}>
-            <Kb.RequireImage
-              src={props.image}
-              style={Styles.collapseStyles([styles.image, props.imageStyle])}
-            />
+            <Kb.Icon type={props.image} style={Styles.collapseStyles([styles.image, props.imageStyle])} />
           </Kb.Box2>
         )}
         <Kb.Box2 direction="horizontal" style={styles.buttonRowContainer} gap="xtiny">

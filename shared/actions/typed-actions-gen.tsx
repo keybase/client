@@ -792,6 +792,7 @@ export type TypedActionsMap = {
   'settings:toggleRuntimeStats': settings.ToggleRuntimeStatsPayload
   'settings:updateDefaultPhoneNumberCountry': settings.UpdateDefaultPhoneNumberCountryPayload
   'settings:openAddPhoneNumberModal': settings.OpenAddPhoneNumberModalPayload
+  'settings:loginBrowserViaWebAuthToken': settings.LoginBrowserViaWebAuthTokenPayload
   'signup:goBackAndClearErrors': signup.GoBackAndClearErrorsPayload
   'signup:requestAutoInvite': signup.RequestAutoInvitePayload
   'signup:requestedAutoInvite': signup.RequestedAutoInvitePayload
@@ -834,6 +835,7 @@ export type TypedActionsMap = {
   'teams:getDetails': teams.GetDetailsPayload
   'teams:getMembers': teams.GetMembersPayload
   'teams:setMembers': teams.SetMembersPayload
+  'teams:getDetailsForAllTeams': teams.GetDetailsForAllTeamsPayload
   'teams:getTeamOperations': teams.GetTeamOperationsPayload
   'teams:getTeamProfileAddList': teams.GetTeamProfileAddListPayload
   'teams:getTeamPublicity': teams.GetTeamPublicityPayload

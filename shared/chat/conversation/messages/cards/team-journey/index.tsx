@@ -76,6 +76,7 @@ const styles = Styles.styleSheetCreate(
     ({
       actionsBox: {
         marginTop: Styles.globalMargins.tiny,
+        minHeight: 50,
       },
       authorContainer: Styles.platformStyles({
         common: {
@@ -89,7 +90,7 @@ const styles = Styles.styleSheetCreate(
         isElectron: {
           marginLeft: Styles.globalMargins.small,
         },
-        isMobile: {marginLeft: Styles.globalMargins.tiny},
+        isMobile: {marginLeft: Styles.globalMargins.xtiny},
       }),
       bottomLine: {
         alignItems: 'baseline',
@@ -118,9 +119,14 @@ const styles = Styles.styleSheetCreate(
         left: '50%',
         position: 'absolute',
       },
-      teamnameText: {
-        color: Styles.globalColors.black,
-      },
+      teamnameText: Styles.platformStyles({
+        common: {
+          color: Styles.globalColors.black,
+        },
+        isMobile: {
+          marginLeft: Styles.globalMargins.xtiny,
+        },
+      }),
       text: {
         maxWidth: '45%',
       },

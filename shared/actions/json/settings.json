@@ -220,6 +220,7 @@
       "country": "string",
       "openModal?": "boolean"
     },
-    "openAddPhoneNumberModal": {}
+    "openAddPhoneNumberModal": {},
+    "loginBrowserViaWebAuthToken": {}
   }
 }

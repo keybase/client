@@ -1077,7 +1077,6 @@ protocol teams {
 
   record SubteamListEntry {
     TeamName name;
-    TeamID teamID;
     int memberCount;
   }
 
