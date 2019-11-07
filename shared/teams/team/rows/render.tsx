@@ -6,6 +6,7 @@ import {RequestRow, InviteRow, InvitesEmptyRow, DividerRow} from './invite-row'
 import {SubteamAddRow, SubteamIntroRow, SubteamNoneRow, SubteamTeamRow} from './subteam-row'
 import LoadingRow from './loading'
 import TeamHeaderRow from '../header/container'
+import SettingsRow from '../settings-tab/container'
 
 const renderRow = (row: Row, teamID: Types.TeamID) => {
   switch (row.type) {
@@ -29,9 +30,10 @@ const renderRow = (row: Row, teamID: Types.TeamID) => {
       return <SubteamNoneRow />
     case 'subteam-subteam':
       return <SubteamTeamRow teamID={row.teamID} />
+    case 'settings':
+      return <SettingsRow teamID={teamID} />
     case 'loading':
       return <LoadingRow />
-    case 'settings':
     case 'tabs':
       // Handled in team/index for now
       return null

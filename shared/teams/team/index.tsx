@@ -3,7 +3,6 @@ import * as Kb from '../../common-adapters'
 import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
 import * as Styles from '../../styles'
-import Settings from './settings-tab/container'
 import TeamTabs from './tabs/container'
 import {Row} from './rows'
 import renderRow from './rows/render'
@@ -36,7 +35,6 @@ class Team extends React.Component<Props> {
           />
         )
       case 'settings':
-        return <Settings teamname={this.props.teamname} />
       case 'header':
       case 'member':
       case 'invites-invite':
