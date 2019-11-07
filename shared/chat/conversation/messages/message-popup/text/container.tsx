@@ -125,7 +125,9 @@ export default Container.namedConnect(
     const isLocation = !!mapUnfurl
     // don't pass onViewMap if we don't have a coordinate (e.g. when a location share ends)
     const onViewMap =
-      mapUnfurl && mapUnfurl.mapInfo && mapUnfurl.mapInfo.coord ? () => openURL(mapUnfurl.url) : undefined
+      mapUnfurl && mapUnfurl.mapInfo && !mapUnfurl.mapInfo.isLiveLocationDone
+        ? () => openURL(mapUnfurl.url)
+        : undefined
     return {
       attachTo: ownProps.attachTo,
       author: message.author,
