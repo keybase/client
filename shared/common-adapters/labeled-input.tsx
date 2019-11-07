@@ -52,6 +52,8 @@ const ReflessLabeledInput = (props: Props & RefProps) => {
   const textStyle = getTextStyle(props.textType || 'BodySemibold')
   const computedHeight =
     textStyle.fontSize * (props.rowsMax && multiline ? props.rowsMax * 1.3 : 1) + (isMobile ? 10 : 0)
+  const computedContainerSize =
+    textStyle.fontSize + (isMobile ? 48 : 38) + (multiline ? textStyle.fontSize : 0)
 
   const {containerStyle, error, forwardedRef, placeholder, ...plainInputProps} = props
   return (
@@ -62,7 +64,7 @@ const ReflessLabeledInput = (props: Props & RefProps) => {
       gapEnd={false}
       style={Styles.collapseStyles([
         styles.container,
-        {minHeight: textStyle.fontSize + (isMobile ? 48 : 38) + (multiline ? textStyle.fontSize : 0)},
+        {minHeight: computedContainerSize, height: !multiline ? computedContainerSize : undefined},
         focused && styles.containerFocused,
         error && styles.containerError,
         containerStyle,
