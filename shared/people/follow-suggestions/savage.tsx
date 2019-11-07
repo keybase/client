@@ -29,7 +29,7 @@ import Svg, {
 // import { View, StyleSheet } from 'react-native';
 
 export const Savage = (props) => (
-  <Box2 direction="vertical">
+  <Box2 direction="vertical" style={styles.container}>
     <Svg height="50%" width="50%" viewBox="0 0 100 100">
       <Circle
         cx="50"
@@ -91,3 +91,10 @@ export default Savage
 //     );
 //   }
 // }
+
+const styles = Styles.styleSheetCreate(() => ({
+  container: {
+    width: 100,
+    height: 100,
+  },
+}))
