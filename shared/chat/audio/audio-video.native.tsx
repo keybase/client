@@ -16,6 +16,7 @@ class AudioVideo extends React.Component<Props> {
         source={{uri: this.props.url}}
         style={{height: 0, width: 0}}
         paused={this.props.paused}
+        ignoreSilentSwitch="ignore"
       />
     ) : null
   }
