@@ -1108,13 +1108,6 @@
 			"revisionTime": "2019-10-10T20:56:48Z"
 		},
 		{
-			"checksumSHA1": "OuQuak1u6xaH8sHM+31M9m4UZcY=",
-			"origin": "github.com/keybase/stellar-org/support/log",
-			"path": "github.com/stellar/go/support/log",
-			"revision": "0fc3bfe3dfa7aba69074e417e7dd47101b44e219",
-			"revisionTime": "2019-10-10T20:56:48Z"
-		},
-		{
 			"checksumSHA1": "Z38vZVydNopKqc8prcdz/pDTDU0=",
 			"origin": "github.com/keybase/stellar-org/support/render/hal",
 			"path": "github.com/stellar/go/support/render/hal",
