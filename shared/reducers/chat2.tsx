@@ -299,20 +299,24 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
   [Chat2Gen.loadAttachmentView]: (draftState, action) => {
     const {conversationIDKey, viewType} = action.payload
     const {attachmentViewMap} = draftState
-    const viewMap = attachmentViewMap.get(conversationIDKey) || new Map()
+    const viewMap =
+      attachmentViewMap.get(conversationIDKey) ||
+      new Map<RPCChatTypes.GalleryItemTyp, Types.AttachmentViewInfo>()
     attachmentViewMap.set(conversationIDKey, viewMap)
 
-    const info = viewMap.get(viewType) || Constants.initialAttachmentViewInfo
+    const info = viewMap.get(viewType) || Constants.makeAttachmentViewInfo()
     viewMap.set(viewType, info)
     info.status = 'loading'
   },
   [Chat2Gen.addAttachmentViewMessage]: (draftState, action) => {
     const {conversationIDKey, viewType, message} = action.payload
     const {attachmentViewMap} = draftState
-    const viewMap = attachmentViewMap.get(conversationIDKey) || new Map()
+    const viewMap =
+      attachmentViewMap.get(conversationIDKey) ||
+      new Map<RPCChatTypes.GalleryItemTyp, Types.AttachmentViewInfo>()
     attachmentViewMap.set(conversationIDKey, viewMap)
 
-    const info = viewMap.get(viewType) || Constants.initialAttachmentViewInfo
+    const info = viewMap.get(viewType) || Constants.makeAttachmentViewInfo()
     viewMap.set(viewType, info)
 
     if (info.messages.findIndex((item: any) => item.id === action.payload.message.id) < 0) {
@@ -322,10 +326,12 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
   [Chat2Gen.setAttachmentViewStatus]: (draftState, action) => {
     const {conversationIDKey, viewType, last, status} = action.payload
     const {attachmentViewMap} = draftState
-    const viewMap = attachmentViewMap.get(conversationIDKey) || new Map()
+    const viewMap =
+      attachmentViewMap.get(conversationIDKey) ||
+      new Map<RPCChatTypes.GalleryItemTyp, Types.AttachmentViewInfo>()
     attachmentViewMap.set(conversationIDKey, viewMap)
 
-    const info = viewMap.get(viewType) || Constants.initialAttachmentViewInfo
+    const info = viewMap.get(viewType) || Constants.makeAttachmentViewInfo()
     viewMap.set(viewType, info)
 
     info.last = !!last
