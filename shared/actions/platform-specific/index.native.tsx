@@ -786,7 +786,7 @@ const onEnableAudioRecording = async (
   } catch (err) {
     logger.info('failed to get audio perms: ' + err)
     return setPermissionDeniedCommandStatus(
-      Types.conversationIDToKey(action.payload.conversationIDKey),
+      action.payload.conversationIDKey,
       `Failed to access audio. ${err.message}`
     )
   }
