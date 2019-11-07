@@ -779,6 +779,10 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "meteringCb": "(amp: number) => void"
     },
+    "attemptAudioRecording": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "meteringCb": "(amp: number) => void"
+    },
     "stopAudioRecording": {
       "conversationIDKey": "Types.ConversationIDKey",
       "stopType": "Types.AudioStopType",

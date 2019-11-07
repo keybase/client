@@ -54,7 +54,7 @@ const AudioRecorder = (props: Props) => {
   }, [dispatch, conversationIDKey])
   const enableRecording = React.useCallback(() => {
     ampTracker.reset()
-    dispatch(Chat2Gen.createEnableAudioRecording({conversationIDKey, meteringCb}))
+    dispatch(Chat2Gen.createAttemptAudioRecording({conversationIDKey, meteringCb}))
   }, [dispatch, conversationIDKey])
   const stopRecording = (stopType: Types.AudioStopType) => {
     dispatch(

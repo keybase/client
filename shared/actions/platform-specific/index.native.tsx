@@ -58,24 +58,27 @@ const requestPermissionsToWrite = async () => {
 }
 
 export const requestAudioPermission = async () => {
-  if (isIOS) {
-    const {Permissions} = require('react-native-unimodules')
-    const {status} = await Permissions.getAsync(Permissions.AUDIO_RECORDING)
-    if (status === Permissions.PermissionStatus.DENIED) {
-      throw new Error('Please allow Keybase to access the microphone in the phone settings.')
+  let chargeForward = true
+  const {Permissions} = require('react-native-unimodules')
+  let {status} = await Permissions.getAsync(Permissions.AUDIO_RECORDING)
+  if (status === Permissions.PermissionStatus.UNDETERMINED) {
+    if (isIOS) {
+      const askRes = await Permissions.askAsync(Permissions.AUDIO_RECORDING)
+      status = askRes.status
+    } else {
+      const askRes = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.RECORD_AUDIO)
+      switch (askRes) {
+        case 'never_ask_again':
+        case 'denied':
+          status = Permissions.PermissionStatus.DENIED
+      }
     }
+    chargeForward = false
   }
-  if (isAndroid) {
-    const permissionStatus = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.RECORD_AUDIO, {
-      buttonNegative: 'Cancel',
-      buttonPositive: 'OK',
-      message: 'Keybase needs access to your microphone to send an audio attachment',
-      title: 'Keybase Record Audio Permission',
-    })
-    if (permissionStatus !== 'granted') {
-      throw new Error('Unable to acquire record audio permissions')
-    }
+  if (status === Permissions.PermissionStatus.DENIED) {
+    throw new Error('Please allow Keybase to access the microphone in the phone settings.')
   }
+  return chargeForward
 }
 
 export const requestLocationPermission = async (mode: RPCChatTypes.UIWatchPositionPerm) => {
@@ -620,7 +623,7 @@ function* setupLocationUpdateLoop() {
   }
 }
 
-const setLocationDeniedCommandStatus = (conversationIDKey: Types.ConversationIDKey, text: string) =>
+const setPermissionDeniedCommandStatus = (conversationIDKey: Types.ConversationIDKey, text: string) =>
   Chat2Gen.createSetCommandStatusInfo({
     conversationIDKey,
     info: {
@@ -640,7 +643,7 @@ const onChatWatchPosition = async (
     await requestLocationPermission(action.payload.params.perm)
   } catch (err) {
     logger.info('failed to get location perms: ' + err)
-    return setLocationDeniedCommandStatus(
+    return setPermissionDeniedCommandStatus(
       Types.conversationIDToKey(action.payload.params.convID),
       `Failed to access location. ${err.message}`
     )
@@ -659,7 +662,7 @@ const onChatWatchPosition = async (
       logger.warn(err.message)
       if (err.code && err.code === 1 && locationEmitter) {
         locationEmitter(
-          setLocationDeniedCommandStatus(
+          setPermissionDeniedCommandStatus(
             Types.conversationIDToKey(action.payload.params.convID),
             `Failed to access location. ${err.message}`
           )
@@ -767,6 +770,30 @@ const stopAudioRecording = async (
   return Chat2Gen.createSendAudioRecording({conversationIDKey, fromStaged: false, info: audio})
 }
 
+const onAttemptAudioRecording = async (
+  _: Container.TypedState,
+  action: Chat2Gen.AttemptAudioRecordingPayload,
+  logger: Saga.SagaLogger
+) => {
+  let chargeForward = true
+  try {
+    chargeForward = await requestAudioPermission()
+  } catch (err) {
+    logger.info('failed to get audio perms: ' + err)
+    return setPermissionDeniedCommandStatus(
+      action.payload.conversationIDKey,
+      `Failed to access audio. ${err.message}`
+    )
+  }
+  if (!chargeForward) {
+    return false
+  }
+  return Chat2Gen.createEnableAudioRecording({
+    conversationIDKey: action.payload.conversationIDKey,
+    meteringCb: action.payload.meteringCb,
+  })
+}
+
 const onEnableAudioRecording = async (
   state: Container.TypedState,
   action: Chat2Gen.EnableAudioRecordingPayload,
@@ -781,7 +808,15 @@ const onEnableAudioRecording = async (
 
   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
   const outboxID = ChatConstants.generateOutboxID()
-  await requestAudioPermission()
+  try {
+    await requestAudioPermission()
+  } catch (err) {
+    logger.info('failed to get audio perms: ' + err)
+    return setPermissionDeniedCommandStatus(
+      action.payload.conversationIDKey,
+      `Failed to access audio. ${err.message}`
+    )
+  }
   const audioPath = await RPCChatTypes.localGetUploadTempFileRpcPromise({filename: 'audio.m4a', outboxID})
   AudioRecorder.prepareRecordingAtPath(audioPath, {
     AudioEncoding: 'aac',
@@ -865,6 +900,7 @@ export function* platformConfigSaga() {
 
   // Audio
   yield* Saga.chainAction2(Chat2Gen.stopAudioRecording, stopAudioRecording, 'stopAudioRecording')
+  yield* Saga.chainAction2(Chat2Gen.attemptAudioRecording, onAttemptAudioRecording, 'onAttemptAudioRecording')
   yield* Saga.chainAction2(Chat2Gen.enableAudioRecording, onEnableAudioRecording, 'onEnableAudioRecording')
   yield* Saga.chainAction2(Chat2Gen.sendAudioRecording, onSendAudioRecording, 'onSendAudioRecording')
   yield* Saga.chainAction2(
