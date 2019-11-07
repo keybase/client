@@ -279,14 +279,12 @@ const Action = React.memo((props: ActionProps) => {
             onClick={insertMentionMarker}
             type="iconfont-mention"
             style={Kb.iconCastPlatformStyles(styles.actionButton)}
-            fontSize={22}
           />
           {smallGap}
           <Kb.Icon
             onClick={openFilePicker}
             type="iconfont-camera"
             style={Kb.iconCastPlatformStyles(styles.actionButton)}
-            fontSize={22}
           />
           {smallGap}
           <AudioRecorder conversationIDKey={conversationIDKey} iconStyle={styles.actionButton} />
@@ -295,7 +293,6 @@ const Action = React.memo((props: ActionProps) => {
             onClick={openMoreMenu}
             type="iconfont-add"
             style={Kb.iconCastPlatformStyles(styles.actionButton)}
-            fontSize={22}
           />
         </Kb.Box2>
       </Kb.NativeAnimated.View>
@@ -326,7 +323,7 @@ const ExplodingIcon = ({explodingModeSeconds, isExploding, openExplodingPicker})
   </Kb.Box2>
 )
 
-const containerPadding = 8
+const containerPadding = Styles.globalMargins.xsmall
 const styles = Styles.styleSheetCreate(
   () =>
     ({

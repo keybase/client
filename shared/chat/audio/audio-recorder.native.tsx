@@ -144,9 +144,9 @@ const AudioButton = (props: ButtonProps) => {
   const innerScale = React.useRef(new Kb.NativeAnimated.Value(0)).current
   const outerScale = React.useRef(new Kb.NativeAnimated.Value(0)).current
   const sendTranslate = React.useRef(new Kb.NativeAnimated.Value(0)).current
-  const innerOffsetY = React.useRef(new Kb.NativeAnimated.Value(-37)).current
-  const ampOffsetY = React.useRef(new Kb.NativeAnimated.Value(-35)).current
-  const micOffsetY = React.useRef(new Kb.NativeAnimated.Value(-35)).current
+  const innerOffsetY = React.useRef(new Kb.NativeAnimated.Value(-34)).current
+  const ampOffsetY = React.useRef(new Kb.NativeAnimated.Value(-31)).current
+  const micOffsetY = React.useRef(new Kb.NativeAnimated.Value(-34)).current
   // lifecycle
   React.useEffect(() => {
     Kb.NativeAnimated.parallel(
@@ -157,6 +157,8 @@ const AudioButton = (props: ButtonProps) => {
           useNativeDriver: true,
         }),
         Kb.NativeAnimated.timing(outerScale, {
+          duration: 200,
+          easing: Kb.NativeEasing.inOut(Kb.NativeEasing.ease),
           toValue: 15,
           useNativeDriver: true,
         }),
@@ -259,10 +261,10 @@ const AudioButton = (props: ButtonProps) => {
         <>
           <Kb.NativeAnimated.View
             style={{
-              bottom: 155,
+              bottom: 160,
               opacity: props.slideTranslate,
               position: 'absolute',
-              right: 45,
+              right: 50,
               transform: [
                 {
                   translateY: props.slideTranslate.interpolate({
@@ -274,7 +276,7 @@ const AudioButton = (props: ButtonProps) => {
             }}
           >
             <Kb.NativeView>
-              <Kb.Icon type="iconfont-arrow-up" fontSize={22} />
+              <Kb.Icon type="iconfont-arrow-up" sizeType="Tiny" />
             </Kb.NativeView>
           </Kb.NativeAnimated.View>
           <Kb.NativeAnimated.View
@@ -299,7 +301,7 @@ const AudioButton = (props: ButtonProps) => {
               ],
             }}
           >
-            <Kb.Icon type="iconfont-lock" fontSize={22} />
+            <Kb.Icon type="iconfont-lock" />
           </Kb.NativeAnimated.View>
         </>
       ) : (
@@ -325,9 +327,9 @@ const AudioButton = (props: ButtonProps) => {
             <Kb.ClickableBox onClick={props.sendRecording}>
               <Kb.Box2 direction="vertical" centerChildren={true}>
                 <Kb.Icon
-                  type="iconfont-arrow-full-up"
                   color={Styles.globalColors.whiteOrWhite}
-                  fontSize={22}
+                  sizeType="Small"
+                  type="iconfont-arrow-full-up"
                 />
               </Kb.Box2>
             </Kb.ClickableBox>
@@ -339,32 +341,25 @@ const AudioButton = (props: ButtonProps) => {
         <Kb.NativeAnimated.View
           style={{
             position: 'absolute',
-            right: 46,
+            right: 48,
             transform: [{translateY: Kb.NativeAnimated.add(micOffsetY, props.dragY)}],
           }}
         >
-          <Kb.Icon type="iconfont-mic" fontSize={22} color={Styles.globalColors.whiteOrWhite} />
+          <Kb.Icon type="iconfont-mic" color={Styles.globalColors.whiteOrWhite} />
         </Kb.NativeAnimated.View>
       ) : (
         <Kb.TapGestureHandler onHandlerStateChange={props.stageRecording}>
           <Kb.NativeView
             style={{
-              bottom: 27,
+              bottom: 22,
               height: 48,
               justifyContent: 'center',
               position: 'absolute',
-              right: 18,
+              right: 19,
               width: 48,
             }}
           >
-            <Kb.Box
-              style={{
-                backgroundColor: Styles.globalColors.whiteOrWhite,
-                borderRadius: 2,
-                height: 18,
-                width: 18,
-              }}
-            />
+            <Kb.Icon type="iconfont-stop" color={Styles.globalColors.whiteOrWhite} />
           </Kb.NativeView>
         </Kb.TapGestureHandler>
       )}
@@ -393,8 +388,8 @@ const AudioSlideToCancel = (props: CancelProps) => {
     <Kb.NativeAnimated.View
       style={{
         bottom: 35,
+        left: 100,
         position: 'absolute',
-        right: 150,
         transform: [
           {
             translateY: cancelTranslate.interpolate({
@@ -405,7 +400,7 @@ const AudioSlideToCancel = (props: CancelProps) => {
         ],
       }}
     >
-      <Kb.Text type="BodyPrimaryLink" onClick={props.onCancel} style={{marginLeft: 30}}>
+      <Kb.Text type="BodyBigLink" onClick={props.onCancel}>
         Cancel
       </Kb.Text>
     </Kb.NativeAnimated.View>
@@ -426,9 +421,9 @@ const AudioSlideToCancel = (props: CancelProps) => {
         ],
       }}
     >
-      <Kb.Box2 direction="horizontal" gap="tiny">
-        <Kb.Icon type="iconfont-arrow-left" fontSize={16} />
-        <Kb.Text type="BodySecondaryLink">Slide to cancel</Kb.Text>
+      <Kb.Box2 direction="horizontal" gap="tiny" centerChildren={true}>
+        <Kb.Icon sizeType="Tiny" type="iconfont-arrow-left" />
+        <Kb.Text type="BodySmall">Slide to cancel</Kb.Text>
       </Kb.Box2>
     </Kb.NativeAnimated.View>
   )
@@ -455,14 +450,6 @@ const AudioCounter = (props: CounterProps) => {
         left: 10,
         opacity: props.slideTranslate,
         position: 'absolute',
-        transform: [
-          {
-            translateX: props.slideTranslate.interpolate({
-              inputRange: [0, 1],
-              outputRange: [props.closeDown ? -50 : -20, 0],
-            }),
-          },
-        ],
       }}
     >
       <Kb.Text type="BodyBold">{formatAudioRecordDuration(seconds * 1000)}</Kb.Text>

@@ -30,11 +30,13 @@ const Tooltip = (props: TooltipProps) => {
     if (props.shouldBeVisible) {
       setVisible(true)
       Kb.NativeAnimated.timing(opacity, {
+        duration: 200,
         toValue: 1,
         useNativeDriver: true,
       }).start()
     } else {
       Kb.NativeAnimated.timing(opacity, {
+        duration: 200,
         toValue: 0,
         useNativeDriver: true,
       }).start(() => setVisible(false))
@@ -44,7 +46,7 @@ const Tooltip = (props: TooltipProps) => {
     <Kb.NativeAnimated.View style={{opacity}}>
       <Kb.Box2 direction="horizontal" style={styles.tooltipContainer}>
         <Kb.Text type="BodySmall" style={{color: Styles.globalColors.white}}>
-          Hold the button to record audio.
+          Hold to record audio.
         </Kb.Text>
       </Kb.Box2>
     </Kb.NativeAnimated.View>
@@ -167,7 +169,7 @@ const AudioStarter = (props: AudioStarterProps) => {
           }}
         >
           <Kb.NativeView>
-            <Kb.Icon type="iconfont-mic" style={Kb.iconCastPlatformStyles(props.iconStyle)} fontSize={22} />
+            <Kb.Icon type="iconfont-mic" style={Kb.iconCastPlatformStyles(props.iconStyle)} />
           </Kb.NativeView>
         </Kb.PanGestureHandler>
       </Kb.TapGestureHandler>
