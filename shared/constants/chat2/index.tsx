@@ -31,6 +31,7 @@ export const makeState = (): Types.State => ({
   attachmentViewMap: new Map(),
   audioRecording: new Map(),
   badgeMap: new Map(), // id to the badge count
+  blockButtonsMap: new Map(),
   botCommandsUpdateStatusMap: new Map(),
   channelSearchText: '',
   commandMarkdownMap: new Map(),
