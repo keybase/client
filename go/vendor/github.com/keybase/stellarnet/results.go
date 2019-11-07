@@ -29,7 +29,7 @@ func PathPaymentSourceAmount(resultXDR string, opIndex int) (string, error) {
 	if !ok {
 		return "", errors.New("could not get OperationResultTr out of operation")
 	}
-	pathResult, ok := tr.GetPathPaymentResult()
+	pathResult, ok := tr.GetPathPaymentStrictReceiveResult()
 	if !ok {
 		return "", errors.New("could not get PathPaymentResult out of tr")
 	}
@@ -54,10 +54,10 @@ func PathPaymentIntermediatePath(envelopeXDR string, opIndex int) ([]AssetMinima
 		return nil, errors.New("opIndex out of range")
 	}
 	op := tx.Tx.Operations[opIndex]
-	if op.Body.Type != xdr.OperationTypePathPayment {
+	if op.Body.Type != xdr.OperationTypePathPaymentStrictReceive {
 		return nil, errors.New("not a path payment")
 	}
-	pathOp, ok := op.Body.GetPathPaymentOp()
+	pathOp, ok := op.Body.GetPathPaymentStrictReceiveOp()
 	if !ok {
 		return nil, errors.New("not a path payment")
 	}

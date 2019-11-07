@@ -99,7 +99,7 @@ func (t *Tx) AddPathPaymentOp(to AddressStr, sendAsset AssetBase, sendAmountMax 
 		return
 	}
 
-	var op xdr.PathPaymentOp
+	var op xdr.PathPaymentStrictReceiveOp
 
 	op.SendAsset, t.err = assetBaseToXDR(sendAsset)
 	if t.err != nil {
@@ -133,7 +133,7 @@ func (t *Tx) AddPathPaymentOp(to AddressStr, sendAsset AssetBase, sendAmountMax 
 	}
 	op.Path = xdrPath
 
-	t.addOp(xdr.OperationTypePathPayment, op)
+	t.addOp(xdr.OperationTypePathPaymentStrictReceive, op)
 }
 
 // AddCreateAccountOp adds a create_account operation to the transaction.
