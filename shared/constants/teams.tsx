@@ -178,6 +178,7 @@ const emptyState: Types.State = {
   teamBuilding: TeamBuildingConstants.makeSubState(),
   teamCreationError: '',
   teamDetails: new Map(),
+  teamDetailsMetaStale: false,
   teamInviteError: '',
   teamJoinError: '',
   teamJoinSuccess: false,
