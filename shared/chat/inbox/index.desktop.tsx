@@ -101,6 +101,13 @@ class Inbox extends React.Component<T.Props, State> {
         </div>
       )
     }
+    if (row.type === 'teamBuilder') {
+      return (
+        <div style={divStyle}>
+          <BuildTeam />
+        </div>
+      )
+    }
 
     const conversationIDKey: Types.ConversationIDKey = row.conversationIDKey || Constants.noConversationIDKey
     const teamname = row.teamname || ''
@@ -230,7 +237,7 @@ class Inbox extends React.Component<T.Props, State> {
               )}
             </AutoSizer>
           </div>
-          {floatingDivider || <BuildTeam />}
+          {floatingDivider || ((this.props.rows.length === 0 || !this.props.hasBigTeams) && <BuildTeam />)}
           {this.state.showUnread && !this.state.showFloating && (
             <UnreadShortcut onClick={this.scrollToUnread} />
           )}

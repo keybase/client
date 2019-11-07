@@ -122,6 +122,7 @@ func BatchMulti(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.B
 		}
 
 		// send chat messages
+		// Note: the chat client does not like these messages currently...
 		g, ctx := errgroup.WithContext(mctx.Ctx())
 		recipients := make(chan string)
 		g.Go(func() error {

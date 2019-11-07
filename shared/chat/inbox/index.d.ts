@@ -46,8 +46,19 @@ export type RowItemDivider = {
   showButton: boolean
   type: 'divider'
 }
+export type RowItemTeamBuilder = {
+  conversationIDKey?: never
+  teamname?: never
+  type: 'teamBuilder'
+}
 
-export type RowItem = RowItemSmall | RowItemBigTeamsLabel | RowItemBigHeader | RowItemBig | RowItemDivider
+export type RowItem =
+  | RowItemSmall
+  | RowItemBigTeamsLabel
+  | RowItemBigHeader
+  | RowItemBig
+  | RowItemDivider
+  | RowItemTeamBuilder
 
 export type RouteState = I.RecordOf<{
   smallTeamsExpanded: boolean
@@ -63,6 +74,7 @@ export type Props = {
   smallTeamsExpanded: boolean
   toggleSmallTeamsExpanded: () => void
   unreadIndices: Array<number>
+  hasBigTeams: boolean
   isSearching: boolean
   isLoading: boolean
 }
