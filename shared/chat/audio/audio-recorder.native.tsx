@@ -17,7 +17,9 @@ type Props = {
   iconStyle?: Styles.StylesCrossPlatform
 }
 
-const minAmp = isIOS ? -40 : -60
+const unifyAmp = (amp: number) => {
+  return isIOS ? 10 ** (amp * 0.02) : amp / 32767
+}
 
 const AudioRecorder = (props: Props) => {
   // props
@@ -36,7 +38,8 @@ const AudioRecorder = (props: Props) => {
 
   // dispatch
   const dispatch = Container.useDispatch()
-  const meteringCb = (amp: number) => {
+  const meteringCb = (inamp: number) => {
+    const amp = unifyAmp(inamp)
     ampTracker.addAmp(amp)
     if (!closingDownRef.current) {
       Kb.NativeAnimated.timing(ampScale, {
@@ -136,8 +139,7 @@ type ButtonProps = {
 const maxScale = 8
 const minScale = 3
 const ampToScale = (amp: number) => {
-  const prop = Math.max(0, 1 - amp / minAmp)
-  return minScale + prop * (maxScale - minScale)
+  return minScale + amp * (maxScale - minScale)
 }
 
 const AudioButton = (props: ButtonProps) => {
@@ -387,7 +389,7 @@ const AudioSlideToCancel = (props: CancelProps) => {
   return props.locked ? (
     <Kb.NativeAnimated.View
       style={{
-        bottom: 35,
+        bottom: 27,
         left: 100,
         position: 'absolute',
         transform: [
@@ -400,9 +402,9 @@ const AudioSlideToCancel = (props: CancelProps) => {
         ],
       }}
     >
-      <Kb.Text type="BodyBigLink" onClick={props.onCancel}>
-        Cancel
-      </Kb.Text>
+      <Kb.ClickableBox onClick={props.onCancel} style={{alignItems: 'center', height: 30}}>
+        <Kb.Text type="BodyBigLink">Cancel</Kb.Text>
+      </Kb.ClickableBox>
     </Kb.NativeAnimated.View>
   ) : (
     <Kb.NativeAnimated.View
