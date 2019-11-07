@@ -7,8 +7,6 @@ import QRImage from './qr-image'
 import QRScan from './qr-scan/container'
 import {isAndroid} from '../../constants/platform'
 import Troubleshooting from '../troubleshooting'
-const blueBackground = require('../../images/illustrations/bg-provisioning-blue.png')
-const greenBackground = require('../../images/illustrations/bg-provisioning-green.png')
 import * as Types from '../../constants/types/provision'
 import DeviceIcon from '../../devices/device-icon'
 import * as DeviceTypes from '../../constants/types/devices'
@@ -140,8 +138,12 @@ class CodePage2 extends React.Component<Props, State> {
               : styles.imageContainerOnRight
           }
         >
-          <Kb.RequireImage
-            src={this.state.tab === 'QR' ? blueBackground : greenBackground}
+          <Kb.Icon
+            type={
+              this.state.tab === 'QR'
+                ? 'illustration-bg-provisioning-blue'
+                : 'illustration-bg-provisioning-green'
+            }
             style={
               this.props.currentDeviceAlreadyProvisioned ? styles.backgroundOnLeft : styles.backgroundOnRight
             }

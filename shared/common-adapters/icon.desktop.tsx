@@ -163,14 +163,22 @@ class Icon extends Component<Props, void> {
   }
 }
 
-const imgName = (name: string, ext: string, mult: number, prefix?: string, postfix?: string) =>
-  `${prefix || ''}${resolveImageAsURL('icons', name)}${mult > 1 ? `@${mult}x` : ''}.${ext}${postfix ||
+const imgName = (
+  name: string,
+  ext: string,
+  imagesDir: string,
+  mult: number,
+  prefix?: string,
+  postfix?: string
+) =>
+  `${prefix || ''}${resolveImageAsURL(imagesDir, name)}${mult > 1 ? `@${mult}x` : ''}.${ext}${postfix ||
     ''} ${mult}x`
 
 function iconTypeToSrcSet(type: IconType) {
   const ext = Shared.typeExtension(type)
   const name: string = (Styles.isDarkMode() && iconMeta[type].nameDark) || type
-  return [1, 2].map(mult => imgName(name, ext, mult)).join(', ')
+  const imagesDir = Shared.getImagesDir(type)
+  return [1, 2, 3].map(mult => imgName(name, ext, imagesDir, mult)).join(', ')
 }
 
 export function iconTypeToImgSet(imgMap: {[size: string]: string}, targetSize: number): any {

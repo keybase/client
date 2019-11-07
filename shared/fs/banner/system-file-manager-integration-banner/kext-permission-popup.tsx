@@ -9,11 +9,9 @@ type Props = {
   openSecurityPrefs: () => void
 }
 
-const securityPreferenceIllustration = require('../../../images/illustrations/security-preferences.png')
-
 const Illustration = () => (
   <Kb.Box style={styles.illustrationContainer}>
-    <Kb.Image style={styles.image} resizeMode="contain" src={securityPreferenceIllustration} />
+    <Kb.Icon style={styles.image} type="illustration-security-preferences" />
     <Kb.Box
       style={Styles.collapseStyles([styles.highlight, {bottom: 49, height: 24, left: 36, width: 136}])}
     />
