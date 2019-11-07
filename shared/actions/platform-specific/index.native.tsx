@@ -62,8 +62,17 @@ export const requestAudioPermission = async () => {
   const {Permissions} = require('react-native-unimodules')
   let {status} = await Permissions.getAsync(Permissions.AUDIO_RECORDING)
   if (status === Permissions.PermissionStatus.UNDETERMINED) {
-    const askRes = await Permissions.askAsync(Permissions.AUDIO_RECORDING)
-    status = askRes.status
+    if (isIOS) {
+      const askRes = await Permissions.askAsync(Permissions.AUDIO_RECORDING)
+      status = askRes.status
+    } else {
+      const askRes = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.RECORD_AUDIO)
+      switch (askRes) {
+        case 'never_ask_again':
+        case 'denied':
+          status = Permissions.PermissionStatus.DENIED
+      }
+    }
     chargeForward = false
   }
   if (status === Permissions.PermissionStatus.DENIED) {
