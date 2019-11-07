@@ -27,7 +27,7 @@ const AudioVis = (props: VisProps) => {
         style={{
           backgroundColor: index < props.ampsRemain ? Styles.globalColors.blue : Styles.globalColors.black,
           height,
-          marginRight: isMobile ? 6 * Styles.hairlineWidth : 2,
+          marginRight: isMobile ? 4 * Styles.hairlineWidth : 2,
           width: isMobile ? 3 * Styles.hairlineWidth : 1,
         }}
       />
