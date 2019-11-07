@@ -114,15 +114,13 @@ const AudioPlayer = (props: Props) => {
       <Kb.ClickableBox onClick={props.url ? onClick : undefined} style={{justifyContent: 'center'}}>
         <Kb.Icon
           type={!paused ? 'iconfont-pause' : 'iconfont-play'}
-          fontSize={24}
+          fontSize={32}
           style={Kb.iconCastPlatformStyles(styles.play)}
         />
       </Kb.ClickableBox>
       <Kb.Box2 direction="vertical" style={styles.visContainer} gap="xxtiny">
         <AudioVis height={32} amps={props.visAmps} maxWidth={props.maxWidth} ampsRemain={ampsRemain} />
-        <Kb.Text type="BodyTiny" style={styles.duration}>
-          {formatAudioRecordDuration(timeLeft)}
-        </Kb.Text>
+        <Kb.Text type="BodyTiny">{formatAudioRecordDuration(timeLeft)}</Kb.Text>
       </Kb.Box2>
       {props.url.length > 0 && <AudioVideo ref={vidRef} url={props.url} paused={paused} />}
     </Kb.Box2>
@@ -137,16 +135,13 @@ const styles = Styles.styleSheetCreate(() => ({
     width: 30,
   },
   container: {
-    ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.tiny),
+    ...Styles.padding(Styles.globalMargins.xxtiny, Styles.globalMargins.tiny),
     backgroundColor: Styles.globalColors.white,
     borderColor: Styles.globalColors.grey,
     borderRadius: Styles.borderRadius,
     borderStyle: 'solid',
     borderWidth: 1,
     marginTop: Styles.globalMargins.xtiny,
-  },
-  duration: {
-    color: Styles.globalColors.black_50,
   },
   play: {
     color: Styles.globalColors.blue,
