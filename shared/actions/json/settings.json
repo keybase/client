@@ -215,6 +215,7 @@
     "certificatePinningToggled": {
       "toggled": "boolean | null"
     },
-    "toggleRuntimeStats": {}
+    "toggleRuntimeStats": {},
+    "loginBrowserViaWebAuthToken": {}
   }
 }

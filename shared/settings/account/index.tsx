@@ -5,6 +5,8 @@ import * as Constants from '../../constants/settings'
 import EmailPhoneRow from './email-phone-row'
 import * as I from 'immutable'
 import {Props as HeaderHocProps} from '../../common-adapters/header-hoc/types'
+import * as SettingsGen from '../../actions/settings-gen'
+import * as Container from '../../util/container'
 
 export type Props = {
   addedEmail: string | null
@@ -116,6 +118,27 @@ const Password = (props: Props) => {
   )
 }
 
+const WebAuthTokenLogin = (_: Props) => {
+  const dispatch = Container.useDispatch()
+
+  return (
+    <SettingsSection>
+      <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
+        <Kb.Text type="Header">Website Login</Kb.Text>
+        <Kb.Text type="BodySmall">You can use your app to log your web browser into keybase.io.</Kb.Text>
+      </Kb.Box2>
+      <Kb.ButtonBar align="flex-start" style={styles.buttonBar}>
+        <Kb.Button
+          label={`Open keybase.io in web browser`}
+          onClick={() => dispatch(SettingsGen.createLoginBrowserViaWebAuthToken())}
+          mode="Secondary"
+          small={true}
+        />
+      </Kb.ButtonBar>
+    </SettingsSection>
+  )
+}
+
 const DeleteAccount = (props: Props) => (
   <SettingsSection>
     <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
@@ -183,6 +206,7 @@ const AccountSettings = (props: Props) => (
         <EmailPhone {...props} />
         <Kb.Divider />
         <Password {...props} />
+        <WebAuthTokenLogin {...props} />
         {!Styles.isMobile && (
           <>
             <Kb.Divider />
