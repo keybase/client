@@ -23,7 +23,6 @@ func (s *Scraper) scrapeMap(ctx context.Context, uri string) (res chat1.UnfurlRa
 	slon := puri.Query().Get("lon")
 	sacc := puri.Query().Get("acc")
 	sdone := puri.Query().Get("done")
-	coord := new(chat1.Coordinate)
 	lat, err := strconv.ParseFloat(slat, 64)
 	if err != nil {
 		return res, err
@@ -56,13 +55,11 @@ func (s *Scraper) scrapeMap(ctx context.Context, uri string) (res chat1.UnfurlRa
 		if liveLocationDone {
 			// if we're done sharing location, replace coordinates with false data
 			linkURL = "https://google.com/maps"
-			mapURL, err = maps.GetMapURL(ctx, s.G().ExternalAPIKeySource, 0, 0)
 			return chat1.NewUnfurlRawWithMaps(chat1.UnfurlMapsRaw{
 				Title:               "Location share ended",
 				Url:                 linkURL,
 				SiteName:            siteName,
 				ImageUrl:            mapURL,
-				HistoryImageUrl:     &mapURL,
 				LiveLocationDone:    liveLocationDone,
 				LiveLocationEndTime: liveLocationEndTime,
 				Time:                gregor1.ToTime(now),
@@ -82,20 +79,19 @@ func (s *Scraper) scrapeMap(ctx context.Context, uri string) (res chat1.UnfurlRa
 		timeStr = fmt.Sprintf("Posted %s.", now.Format("15:04:05 MST"))
 	}
 
-	*coord = chat1.Coordinate{
-		Lat:      lat,
-		Lon:      lon,
-		Accuracy: acc,
-	}
 	desc := fmt.Sprintf("Accurate to %dm. %s", int(acc), timeStr)
 	return chat1.NewUnfurlRawWithMaps(chat1.UnfurlMapsRaw{
-		Title:               "Open this location with Google Maps",
-		Url:                 linkURL,
-		SiteName:            siteName,
-		ImageUrl:            mapURL,
-		Description:         desc,
-		HistoryImageUrl:     liveMapURL,
-		Coord:               coord,
+		Title:           "Open this location with Google Maps",
+		Url:             linkURL,
+		SiteName:        siteName,
+		ImageUrl:        mapURL,
+		Description:     desc,
+		HistoryImageUrl: liveMapURL,
+		Coord: chat1.Coordinate{
+			Lat:      lat,
+			Lon:      lon,
+			Accuracy: acc,
+		},
 		LiveLocationDone:    liveLocationDone,
 		LiveLocationEndTime: liveLocationEndTime,
 		Time:                gregor1.ToTime(now),

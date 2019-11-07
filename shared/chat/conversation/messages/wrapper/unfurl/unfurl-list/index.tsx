@@ -41,7 +41,9 @@ class Unfurl extends React.PureComponent<UnfurlProps> {
       case RPCChatTypes.UnfurlType.generic:
         return this.props.unfurl.generic ? (
           this.props.unfurl.generic.mapInfo ? (
-            this.props.unfurl.generic.mapInfo.coord ? (
+            this.props.unfurl.generic.mapInfo.isLiveLocationDone ? (
+              <UnfurlSharingEnded endTime={this.props.unfurl.generic.mapInfo.time} />
+            ) : (
               <UnfurlMap
                 conversationIDKey={this.props.conversationIDKey}
                 coord={this.props.unfurl.generic.mapInfo.coord}
@@ -56,8 +58,6 @@ class Unfurl extends React.PureComponent<UnfurlProps> {
                 toggleMessagePopup={this.props.toggleMessagePopup}
                 url={this.props.unfurl.generic.url}
               />
-            ) : (
-              <UnfurlSharingEnded endTime={this.props.unfurl.generic.mapInfo.time} />
             )
           ) : (
             <UnfurlGeneric

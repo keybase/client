@@ -48,7 +48,7 @@ protocol unfurl {
     string imageUrl;
     union { null, string } historyImageUrl;
     string description;
-    union {null, Coordinate} coord;
+    Coordinate coord;
     gregor1.Time time;
     union { null, gregor1.Time } liveLocationEndTime;
     boolean liveLocationDone;
@@ -62,7 +62,7 @@ protocol unfurl {
   }
 
   record UnfurlGenericMapInfo {
-    union {null, Coordinate} coord;
+    Coordinate coord;
     gregor1.Time time;
     union { null, gregor1.Time } liveLocationEndTime;
     boolean isLiveLocationDone;

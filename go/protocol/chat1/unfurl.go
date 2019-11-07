@@ -158,7 +158,7 @@ type UnfurlMapsRaw struct {
 	ImageUrl            string        `codec:"imageUrl" json:"imageUrl"`
 	HistoryImageUrl     *string       `codec:"historyImageUrl,omitempty" json:"historyImageUrl,omitempty"`
 	Description         string        `codec:"description" json:"description"`
-	Coord               *Coordinate   `codec:"coord,omitempty" json:"coord,omitempty"`
+	Coord               Coordinate    `codec:"coord" json:"coord"`
 	Time                gregor1.Time  `codec:"time" json:"time"`
 	LiveLocationEndTime *gregor1.Time `codec:"liveLocationEndTime,omitempty" json:"liveLocationEndTime,omitempty"`
 	LiveLocationDone    bool          `codec:"liveLocationDone" json:"liveLocationDone"`
@@ -178,14 +178,8 @@ func (o UnfurlMapsRaw) DeepCopy() UnfurlMapsRaw {
 			return &tmp
 		})(o.HistoryImageUrl),
 		Description: o.Description,
-		Coord: (func(x *Coordinate) *Coordinate {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.Coord),
-		Time: o.Time.DeepCopy(),
+		Coord:       o.Coord.DeepCopy(),
+		Time:        o.Time.DeepCopy(),
 		LiveLocationEndTime: (func(x *gregor1.Time) *gregor1.Time {
 			if x == nil {
 				return nil
@@ -334,7 +328,7 @@ func (o UnfurlRaw) DeepCopy() UnfurlRaw {
 }
 
 type UnfurlGenericMapInfo struct {
-	Coord               *Coordinate   `codec:"coord,omitempty" json:"coord,omitempty"`
+	Coord               Coordinate    `codec:"coord" json:"coord"`
 	Time                gregor1.Time  `codec:"time" json:"time"`
 	LiveLocationEndTime *gregor1.Time `codec:"liveLocationEndTime,omitempty" json:"liveLocationEndTime,omitempty"`
 	IsLiveLocationDone  bool          `codec:"isLiveLocationDone" json:"isLiveLocationDone"`
@@ -342,14 +336,8 @@ type UnfurlGenericMapInfo struct {
 
 func (o UnfurlGenericMapInfo) DeepCopy() UnfurlGenericMapInfo {
 	return UnfurlGenericMapInfo{
-		Coord: (func(x *Coordinate) *Coordinate {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.Coord),
-		Time: o.Time.DeepCopy(),
+		Coord: o.Coord.DeepCopy(),
+		Time:  o.Time.DeepCopy(),
 		LiveLocationEndTime: (func(x *gregor1.Time) *gregor1.Time {
 			if x == nil {
 				return nil

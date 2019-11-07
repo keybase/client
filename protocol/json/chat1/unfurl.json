@@ -161,10 +161,7 @@
           "name": "description"
         },
         {
-          "type": [
-            null,
-            "Coordinate"
-          ],
+          "type": "Coordinate",
           "name": "coord"
         },
         {
@@ -227,10 +224,7 @@
       "name": "UnfurlGenericMapInfo",
       "fields": [
         {
-          "type": [
-            null,
-            "Coordinate"
-          ],
+          "type": "Coordinate",
           "name": "coord"
         },
         {
