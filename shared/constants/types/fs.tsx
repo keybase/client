@@ -597,7 +597,7 @@ export type State = {
   edits: Edits
   errors: Map<string, FsError>
   fileContext: Map<Path, FileContext>
-  folderViewFilter: string
+  folderViewFilter: string | null // on mobile, '' is exapnded empty, null is unexpanded
   kbfsDaemonStatus: KbfsDaemonStatus
   lastPublicBannerClosedTlf: string
   overallSyncStatus: OverallSyncStatus
