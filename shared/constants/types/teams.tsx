@@ -13,7 +13,7 @@ export const noTeamID = 'NOTEAMID'
 export type TeamRoleType = 'reader' | 'writer' | 'admin' | 'owner' | 'bot' | 'restrictedbot'
 export type DisabledReasonsForRolePicker = {[K in TeamRoleType]?: string}
 export type MaybeTeamRoleType = 'none' | TeamRoleType
-export type TeamOperations = RPCTypes.TeamOperation
+export type TeamOperations = Omit<RPCTypes.TeamOperation, 'leaveTeam' | 'setMemberShowcase'>
 export type PublicitySettings = {
   ignoreAccessRequests: boolean
   openTeam: boolean
