@@ -68,7 +68,6 @@ protocol unfurl {
     boolean isLiveLocationDone;
   }
 
-
   record UnfurlGeneric {
     string title;
     string url;
