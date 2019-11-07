@@ -216,7 +216,14 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
   _isEdited = () =>
     // @ts-ignore
     this.props.message.hasBeenEdited && (
-      <Kb.Text key="isEdited" type="BodyTiny" style={styles.edited}>
+      <Kb.Text
+        key="isEdited"
+        type="BodyTiny"
+        style={Styles.collapseStyles([
+          styles.edited,
+          this._showCenteredHighlight() && styles.editedHighlighted,
+        ])}
+      >
         EDITED
       </Kb.Text>
     )
@@ -690,6 +697,7 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       edited: {color: Styles.globalColors.black_20},
+      editedHighlighted: {color: Styles.globalColors.black_20OrBlack},
       ellipsis: {marginLeft: Styles.globalMargins.tiny},
       emojiRow: Styles.platformStyles({
         isElectron: {
