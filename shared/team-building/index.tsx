@@ -306,11 +306,13 @@ class TeamBuilding extends React.PureComponent<Props> {
         -1
       if (sectionIndex >= 0 && Styles.isMobile) {
         // @ts-ignore RN type not plumbed. see section-list.d.ts
-        ref.scrollToLocation({
-          animated: false,
-          itemIndex: 0,
-          sectionIndex,
-        })
+        const node = ref.getNode()
+        node &&
+          node.scrollToLocation({
+            animated: false,
+            itemIndex: 0,
+            sectionIndex,
+          })
       }
     }
   }
@@ -430,6 +432,7 @@ class TeamBuilding extends React.PureComponent<Props> {
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
             <SectionList
               ref={this.sectionListRef}
+              contentContainerStyle={{minHeight: '133%'}}
               keyboardDismissMode="on-drag"
               keyboardShouldPersistTaps="handled"
               stickySectionHeadersEnabled={false}
