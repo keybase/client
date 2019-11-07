@@ -93,7 +93,7 @@ export const rpcDetailsToMemberInfos = (
   return I.Map(infos)
 }
 
-export const emptyInviteInfo = Object.freeze<Types._InviteInfo>({
+export const makeInviteInfo = I.Record<Types._InviteInfo>({
   email: '',
   id: '',
   name: '',
@@ -101,8 +101,6 @@ export const emptyInviteInfo = Object.freeze<Types._InviteInfo>({
   role: 'writer',
   username: '',
 })
-
-export const makeInviteInfo = I.Record<Types._InviteInfo>(emptyInviteInfo)
 
 export const emptyEmailInviteError = Object.freeze<Types.EmailInviteError>({
   malformed: new Set<string>(),
@@ -165,7 +163,6 @@ export const makeRetentionPolicy = (r?: Partial<RetentionPolicy>): RetentionPoli
 const emptyState: Types.State = {
   addUserToTeamsResults: '',
   addUserToTeamsState: 'notStarted',
-  canPerform: new Map(),
   channelCreationError: '',
   deletedTeams: [],
   emailInviteError: emptyEmailInviteError,
@@ -208,7 +205,7 @@ const emptyState: Types.State = {
 export const makeState = (s?: Partial<Types.State>): Types.State =>
   s ? Object.assign({...emptyState}, s) : emptyState
 
-export const initialCanUserPerform = Object.freeze<Types.TeamOperations>({
+export const initialCanUserPerform: RPCTypes.TeamOperation = {
   changeOpenTeam: false,
   changeTarsDisabled: false,
   chat: false,
@@ -232,7 +229,7 @@ export const initialCanUserPerform = Object.freeze<Types.TeamOperations>({
   setPublicityAny: false,
   setRetentionPolicy: false,
   setTeamShowcase: false,
-})
+}
 
 const dayInS = 3600 * 24
 const policyInherit = makeRetentionPolicy({title: '', type: 'inherit'})
@@ -339,9 +336,6 @@ export const getCanPerform = (state: TypedState, teamname: Types.Teamname): Type
 export const hasCanPerform = (state: TypedState, teamname: Types.Teamname): boolean =>
   state.teams.teamNameToCanPerform.has(teamname)
 
-export const getCanPerformByID = (state: TypedState, teamID: Types.TeamID): Types.TeamOperations =>
-  state.teams.canPerform.get(teamID) || initialCanUserPerform
-
 export const hasChannelInfos = (state: TypedState, teamname: Types.Teamname): boolean =>
   state.teams.teamNameToChannelInfos.has(teamname)
 
@@ -430,11 +424,11 @@ export const getTeamNameFromID = (state: TypedState, teamID: string): Types.Team
 export const getTeamRetentionPolicy = (state: TypedState, teamname: Types.Teamname): RetentionPolicy | null =>
   state.teams.teamNameToRetentionPolicy.get(teamname, null)
 
-export const getSelectedTeams = (): Types.TeamID[] => {
+export const getSelectedTeamNames = (): Types.Teamname[] => {
   const path = getFullRoute()
   return path.reduce<Array<string>>((names, curr) => {
     if (curr.routeName === 'team') {
-      curr.params && curr.params.teamID && names.push(curr.params.teamID)
+      curr.params && curr.params.teamname && names.push(curr.params.teamname)
     }
     return names
   }, [])
@@ -626,15 +620,6 @@ export const chosenChannelsGregorKey = 'chosenChannelsForTeam'
 export const isOnTeamsTab = () => {
   const path = getFullRoute()
   return Array.isArray(path) ? path.some(p => p.routeName === teamsTab) : false
-}
-
-// Merge new teamDetails objs into old ones, removing any old teams that are not in the new map
-export const mergeTeamDetails = (oldMap: Types.State['teamDetails'], newMap: Types.State['teamDetails']) => {
-  const ret = new Map(newMap)
-  for (const [teamID, teamDetails] of newMap.entries()) {
-    ret.set(teamID, {...oldMap.get(teamID), ...teamDetails})
-  }
-  return ret
 }
 
 export const emptyTeamDetails = Object.freeze<Types.TeamDetails>({
