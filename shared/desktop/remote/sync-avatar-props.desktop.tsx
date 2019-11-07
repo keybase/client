@@ -53,6 +53,14 @@ export const deserialize = (state: any = initialState, props: any) => {
   }
 }
 
+// Prevent <Connected /> from re-rendering on new Sets when usernames
+const getUsernamesSet = memoize(
+  (usernames: Array<string>) => {
+    return new Set<string>(usernames)
+  },
+  ([oldUsernames], [newUsername]) => isEqual(oldUsernames, newUsername)
+)
+
 function SyncAvatarProps(ComposedComponent: any) {
   const RemoteAvatarConnected = (props: Props) => <ComposedComponent {...props} />
 
@@ -103,8 +111,8 @@ function SyncAvatarProps(ComposedComponent: any) {
      *
      * In the case of the menubar widget, we only care about a subset of the uernames that have updated files.
      */
-    const usernames = new Set<string>(props.usernames)
-    return <Connected {...props} usernames={usernames} />
+    const usernamesSet = getUsernamesSet(props.usernames)
+    return <Connected {...props} usernames={usernamesSet} />
   }
 
   return Wrapper
