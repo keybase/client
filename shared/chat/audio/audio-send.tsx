@@ -63,7 +63,8 @@ const styles = Styles.styleSheetCreate(() => ({
     borderTopColor: Styles.globalColors.black_10,
     borderTopWidth: 1,
     justifyContent: 'space-between',
-    padding: Styles.globalMargins.tiny,
+    paddingLeft: Styles.globalMargins.tiny,
+    paddingRight: Styles.globalMargins.tiny,
   },
   icon: {
     alignItems: 'center',

@@ -25,7 +25,7 @@ const AudioAttachment = (props: Props) => {
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start">
       <Kb.Box2 direction="vertical" gap="xtiny">
         <Kb.Box2 direction="horizontal" fullWidth={true}>
-          <AudioPlayer duration={message.audioDuration} url={url} visAmps={message.audioAmps} />
+          <AudioPlayer big={true} duration={message.audioDuration} url={url} visAmps={message.audioAmps} />
         </Kb.Box2>
         {!!progressLabel && (
           <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
