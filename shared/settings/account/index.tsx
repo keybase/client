@@ -125,11 +125,11 @@ const WebAuthTokenLogin = (_: Props) => {
     <SettingsSection>
       <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
         <Kb.Text type="Header">Website Login</Kb.Text>
-        <Kb.Text type="BodySmall">You can use your app to open Keybase.io in your browser window.</Kb.Text>
+        <Kb.Text type="BodySmall">You can use your app to log your web browser into keybase.io.</Kb.Text>
       </Kb.Box2>
       <Kb.ButtonBar align="flex-start" style={styles.buttonBar}>
         <Kb.Button
-          label={`Open Keybase.io In Web Browser`}
+          label={`Open Keybase.io in web browser`}
           onClick={() => dispatch(SettingsGen.createLoginBrowserViaWebAuthToken())}
           mode="Secondary"
           small={true}
