@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Types from '../../constants/types/people'
 import {Box, ConnectedNameWithIcon, ScrollView, Text} from '../../common-adapters'
 import * as Styles from '../../styles'
+import {Savage} from './savage'
 
 export type FollowSuggestion = Types.FollowSuggestion
 
@@ -14,6 +15,10 @@ export default (props: Props) => (
     <Text type="BodySmallSemibold" style={styles.text}>
       Consider following...
     </Text>
+    <Text type="BodySmallSemibold">
+      Consider narrowing...
+    </Text>
+    <Savage />
     <ScrollView
       {...(Styles.isMobile ? {alwaysBounceHorizontal: false, horizontal: true} : {})} // Causes error on desktop
       contentContainerStyle={styles.scrollViewContainer}
