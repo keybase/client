@@ -20,7 +20,7 @@ const AudioAttachment = (props: Props) => {
     message.downloadPath &&
       dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: message.downloadPath}))
   }
-  const url = message.fileURL.length > 0 ? `${message.fileURL}&contentforce=true` : ''
+  const url = !message.submitState && message.fileURL.length > 0 ? `${message.fileURL}&contentforce=true` : ''
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start">
       <Kb.Box2 direction="vertical" gap="xtiny">
