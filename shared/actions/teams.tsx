@@ -1162,6 +1162,9 @@ const teamListUnsubActions = [
   RouteTreeGen.switchLoggedIn,
 ] as const
 const teamListUnsubscribe = (state: TypedState, _, logger: Saga.SagaLogger) => {
+  // This is not an airtight listener, we may navigate away from a page that
+  // previously subscribed without getting here. The point is to _eventually_
+  // unsubscribe as users move around the app.
   if (state.teams.teamDetailsMetaSubscribed) {
     logger.info('unsubscribing')
     return TeamsGen.createUnsubscribeTeamList()
