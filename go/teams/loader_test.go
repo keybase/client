@@ -1216,6 +1216,7 @@ func TestLoaderCORE_10487(t *testing.T) {
 	require.True(t, ok)
 	require.NotNil(t, team.Data.ReaderKeyMasks)
 	if len(team.Data.ReaderKeyMasks[keybase1.TeamApplication_KBFS]) != 0 {
+		t.Logf("RKMs received. This is acceptable client behavior, but not suitable to test this particular regression.")
 		return
 	}
 
