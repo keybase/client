@@ -124,15 +124,17 @@ func start() (startErr *libfs.Error) {
 
 	remote := flag.Arg(0)
 	var repo string
+	lfs := false
 	if len(flag.Args()) > 1 {
 		repo = flag.Arg(1)
 	} else {
 		// For LFS invocation, the arguments actually come together in
 		// a single quoted argument for some reason.
 		s := strings.Split(remote, " ")
-		if len(s) > 1 {
-			remote = s[0]
-			repo = s[1]
+		if len(s) > 2 {
+			lfs = s[0] == "lfs"
+			remote = s[1]
+			repo = s[2]
 		}
 	}
 
@@ -146,11 +148,13 @@ func start() (startErr *libfs.Error) {
 		Remote:     remote,
 		Repo:       repo,
 		GitDir:     getLocalGitDir(),
+		LFS:        lfs,
 	}
 
 	ctx := context.Background()
 	return kbfsgit.Start(
-		ctx, options, kbCtx, defaultLogPath, os.Stdin, os.Stdout, stderrFile)
+		ctx, options, kbCtx, defaultLogPath, os.Stdin, os.Stdout,
+		stderrFile)
 }
 
 func main() {
