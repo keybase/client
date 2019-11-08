@@ -1196,6 +1196,11 @@ pathLoop:
 				fbo.vlog.CLogf(
 					ctx, libkb.VLog1, "Ignoring symlink path %s", p)
 				continue pathLoop
+			} else if currNode.EntryType() != data.Dir {
+				fbo.vlog.CLogf(
+					ctx, libkb.VLog1, "Ignoring non-dir path %s (%s)",
+					p, currNode.EntryType())
+				continue pathLoop
 			}
 
 			// Use `PrefetchTail` for directories, to make sure that
