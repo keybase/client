@@ -70,8 +70,6 @@ const Username = (props: Props) => {
       ]}
       onBack={props.onBack}
       title="Log in"
-      rightActionLabel="Create an account"
-      onRightAction={props.onGoToSignup}
       contentContainerStyle={styles.contentContainer}
     >
       <Kb.ScrollView
