@@ -27,14 +27,12 @@ const AudioAttachment = (props: Props) => {
         <Kb.Box2 direction="horizontal" fullWidth={true}>
           <AudioPlayer big={true} duration={message.audioDuration} url={url} visAmps={message.audioAmps} />
         </Kb.Box2>
-        {!!progressLabel && (
-          <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
-            <Kb.Text type="BodySmall" style={styles.progressLabelStyle}>
-              {progressLabel}
-            </Kb.Text>
-            {hasProgress && <Kb.ProgressBar ratio={message.transferProgress} />}
-          </Kb.Box2>
-        )}
+        <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
+          <Kb.Text type="BodySmall" style={styles.progressLabelStyle}>
+            {progressLabel || '\u00A0'}
+          </Kb.Text>
+          {hasProgress && <Kb.ProgressBar ratio={message.transferProgress} />}
+        </Kb.Box2>
         {!!message.transferErrMsg && (
           <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
             <Kb.Text type="BodySmall" style={styles.error}>
