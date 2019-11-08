@@ -47,6 +47,12 @@ export default Container.namedConnect(
     _onEditProfile: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['profileEdit']})),
     _onFollow: (guiID: string, follow: boolean) => dispatch(Tracker2Gen.createChangeFollow({follow, guiID})),
     _onIgnoreFor24Hours: (guiID: string) => dispatch(Tracker2Gen.createIgnore({guiID})),
+    _onManageBlocking: (username: string) =>
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {others: ['a', 'b'], team: 'x', username}, selected: 'chatBlockingModal'}],
+        })
+      ),
     _onOpenPrivateFolder: (myUsername: string, theirUsername: string) =>
       dispatch(
         FsConstants.makeActionForOpenPathInFilesTab(
@@ -75,6 +81,7 @@ export default Container.namedConnect(
     onEditProfile: stateProps._you === stateProps.username ? dispatchProps._onEditProfile : undefined,
     onFollow: () => dispatchProps._onFollow(stateProps._guiID, true),
     onIgnoreFor24Hours: () => dispatchProps._onIgnoreFor24Hours(stateProps._guiID),
+    onManageBlocking: () => dispatchProps._onManageBlocking(stateProps.username),
     onOpenPrivateFolder: () => dispatchProps._onOpenPrivateFolder(stateProps._you, stateProps.username),
     onReload: () => dispatchProps._onReload(stateProps.username),
     onRequestLumens: () => dispatchProps._onSendOrRequestLumens(stateProps.username, true, 'keybaseUser'),

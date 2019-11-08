@@ -85,4 +85,8 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       }
     })
   },
+  [UsersGen.updateBlockState]: (draftState, action) => {
+    const {username, chatBlocked, followBlocked} = action.payload
+    draftState.blockMap.set(username, {chatBlocked, followBlocked})
+  },
 })

@@ -44,9 +44,26 @@ const getBio = async (state: TypedState, action: UsersGen.GetBioPayload) => {
   }
 }
 
+const getBlockState = async (_: TypedState, action: UsersGen.GetBlockStatePayload) => {
+  const {usernames} = action.payload
+
+  const userBlocks = await RPCTypes.userGetUserBlocksRpcPromise({usernames})
+  if (userBlocks) {
+    return userBlocks.map(block =>
+      UsersGen.createUpdateBlockState({
+        chatBlocked: block.chatBlocked,
+        followBlocked: block.followBlocked,
+        username: block.username,
+      })
+    )
+  }
+  return
+}
+
 function* usersSaga() {
   yield* Saga.chainAction2(EngineGen.keybase1NotifyUsersIdentifyUpdate, onIdentifyUpdate, 'onIdentifyUpdate')
   yield* Saga.chainAction2(UsersGen.getBio, getBio)
+  yield* Saga.chainAction2(UsersGen.getBlockState, getBlockState)
 }
 
 export default usersSaga

@@ -910,11 +910,12 @@ export type TypedActionsMap = {
   'unlock-folders:onBackFromPaperKey': unlockfolders.OnBackFromPaperKeyPayload
   'unlock-folders:toPaperKeyInput': unlockfolders.ToPaperKeyInputPayload
   'unlock-folders:waiting': unlockfolders.WaitingPayload
-  'users:blockUser': users.BlockUserPayload
   'users:getBio': users.GetBioPayload
   'users:updateBrokenState': users.UpdateBrokenStatePayload
   'users:updateFullnames': users.UpdateFullnamesPayload
   'users:updateBio': users.UpdateBioPayload
+  'users:getBlockState': users.GetBlockStatePayload
+  'users:updateBlockState': users.UpdateBlockStatePayload
   'waiting:incrementWaiting': waiting.IncrementWaitingPayload
   'waiting:decrementWaiting': waiting.DecrementWaitingPayload
   'waiting:batchChangeWaiting': waiting.BatchChangeWaitingPayload

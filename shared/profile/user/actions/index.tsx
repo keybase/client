@@ -23,6 +23,7 @@ type Props = {
   onUnfollow: () => void
   onBlock: () => void
   onUnblock: () => void
+  onManageBlocking: () => void
   state: Types.DetailsState
   username: string
 }
@@ -36,6 +37,7 @@ type DropdownProps = Pick<
   | 'onRequestLumens'
   | 'onBlock'
   | 'onUnblock'
+  | 'onManageBlocking'
   | 'blocked'
 > & {onUnfollow?: () => void}
 
@@ -53,6 +55,7 @@ const Actions = (p: Props) => {
       onUnfollow={p.followThem && p.state !== 'valid' ? p.onUnfollow : undefined}
       onBlock={p.onBlock}
       onUnblock={p.onUnblock}
+      onManageBlocking={p.onManageBlocking}
       blocked={p.blocked}
     />
   )
@@ -144,6 +147,7 @@ const DropdownButton = Kb.OverlayParentHOC((p: Kb.PropsWithOverlay<DropdownProps
     p.blocked
       ? {danger: true, onClick: p.onUnblock, title: 'Unblock'}
       : {danger: true, onClick: p.onBlock, title: 'Block'},
+    {danger: true, onClick: p.onManageBlocking, title: 'Manage blocking'},
   ].reduce<Kb.MenuItems>((arr, i) => {
     i && arr.push(i)
     return arr
