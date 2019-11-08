@@ -431,7 +431,7 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
     const viewMap = attachmentViewMap.get(conversationIDKey) || new Map()
     attachmentViewMap.set(conversationIDKey, viewMap)
 
-    const info = viewMap.get(viewType) || Constants.makeinitialAttachmentViewInfo()
+    const info = viewMap.get(viewType) || Constants.makeAttachmentViewInfo()
     viewMap.set(viewType, info)
     const {messages} = info
     const idx = messages.findIndex(item => item.id === message.id)
@@ -473,7 +473,7 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
     attachmentViewMap.set(conversationIDKey, viewMap)
 
     const viewType = RPCChatTypes.GalleryItemTyp.doc
-    const info = viewMap.get(viewType) || Constants.makeinitialAttachmentViewInfo()
+    const info = viewMap.get(viewType) || Constants.makeAttachmentViewInfo()
     viewMap.set(viewType, info)
 
     const {messages} = info
