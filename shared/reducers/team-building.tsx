@@ -5,6 +5,8 @@ import * as Types from '../constants/types/team-building'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 import trim from 'lodash/trim'
 
+const noUsers = []
+
 export default function(
   namespace: string,
   state: Types.TeamBuildingSubState,
@@ -34,7 +36,9 @@ export default function(
     case TeamBuildingGen.searchResultsLoaded: {
       const {query, service, users} = action.payload
       // @ts-ignore tricky when we traverse into map types
-      return state.mergeIn(['teamBuildingSearchResults', query], {[service]: users})
+      return state.mergeIn(['teamBuildingSearchResults', query], {
+        [service]: users.length === 0 ? noUsers : users, // use the special empty list to we don't render thrash
+      })
     }
     case TeamBuildingGen.finishedTeamBuilding: {
       const initialState = Constants.makeSubState()
