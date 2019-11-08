@@ -38,6 +38,12 @@ export const Current = ({seen, onNavigate, onNavigateExternal}: VersionProps) =>
       <NewFeatureRow noSeparator={true} seen={seen} image={'release-4.7.0-fast-user-switching'}>
         You can now quickly switch between all your signed in accounts from the user menu.
       </NewFeatureRow>
+      <NewFeatureRow seen={seen} image="release-4.7.0-file-sync">
+        Files: sync your favorite folders and have them available offline.
+      </NewFeatureRow>
+      <NewFeatureRow seen={seen} image="release-4.7.0-audio-messages">
+        Chat: you can now send audio messages on mobile. Long press the mic and follow the magic. 🎙️
+      </NewFeatureRow>
       <NewFeatureRow
         seen={seen}
         image="release-4.7.0-dark-mode"
