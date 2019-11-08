@@ -37,7 +37,7 @@ const Unmoving = () => (
 
 const Moving = () => {
   const [angleTarget, setAngleTarget] = React.useState(0)
-  Kb.useInterval(() => setAngleTarget(angleTarget === 0 ? 60 : 0), 500)
+  Kb.useInterval(() => setAngleTarget(angleTarget === 0 ? 60 : 0), 1000)
   return (<Kb.Box2 direction="vertical" style={styles.container}>
     <Kb.Animated to={{angle: angleTarget}}>
       {({ angle }) =>
