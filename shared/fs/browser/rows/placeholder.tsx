@@ -13,13 +13,7 @@ export default ({type}: PlaceholderProps) => (
   <Kb.ListItem2
     type="Small"
     firstItem={true /* we add divider in Rows */}
-    statusIcon={
-      flags.kbfsOfflineMode ? (
-        <Kb.Icon type="iconfont-question-mark" sizeType="Small" padding="xtiny" />
-      ) : (
-        undefined
-      )
-    }
+    statusIcon={flags.kbfsOfflineMode ? <Kb.Box /> : undefined}
     icon={
       <Kb.Icon
         type={type === Types.PathType.Folder ? 'icon-folder-placeholder-32' : 'icon-file-placeholder-32'}
