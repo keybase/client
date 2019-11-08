@@ -57,6 +57,7 @@ const (
 
 	gitLFSInitEvent      = "init"
 	gitLFSUploadEvent    = "upload"
+	gitLFSDownloadEvent  = "download"
 	gitLFSCompleteEvent  = "complete"
 	gitLFSTerminateEvent = "terminate"
 
@@ -1970,6 +1971,34 @@ func (r *runner) handleLFSUpload(
 	return r.waitForJournal(ctx)
 }
 
+func (r *runner) handleLFSDownload(
+	ctx context.Context, oid string) (localPath string, err error) {
+	fs, err := r.makeFS(ctx)
+	if err != nil {
+		return "", err
+	}
+	err = fs.MkdirAll(lfsSubdir, 0600)
+	if err != nil {
+		return "", err
+	}
+	fs, err = fs.ChrootAsLibFS(lfsSubdir)
+	if err != nil {
+		return "", err
+	}
+
+	// Put the file in a temporary location; lfs will move it to the
+	// right location.
+	dir := "."
+	localFS := osfs.New(dir)
+	localFileName := ".kbfs_lfs_" + oid
+
+	err = r.copyFileLFS(ctx, fs, localFS, oid, localFileName)
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(dir, localFileName), nil
+}
+
 func (r *runner) processCommand(
 	ctx context.Context, commandChan <-chan string) (err error) {
 	var fetchBatch, pushBatch [][]string
@@ -2060,6 +2089,7 @@ type lfsRequest struct {
 type lfsResponse struct {
 	Event string    `json:"event"`
 	Oid   string    `json:"oid"`
+	Path  string    `json:"path,omitempty"`
 	Error *lfsError `json:"error,omitempty"`
 }
 
@@ -2097,6 +2127,14 @@ lfsLoop:
 				err := r.handleLFSUpload(ctx, req.Oid, req.Path)
 				if err != nil {
 					resp.Error = &lfsError{Code: 1, Message: err.Error()}
+				}
+			case gitLFSDownloadEvent:
+				r.log.CDebugf(ctx, "Handling download, oid=%s", req.Oid)
+				p, err := r.handleLFSDownload(ctx, req.Oid)
+				if err != nil {
+					resp.Error = &lfsError{Code: 1, Message: err.Error()}
+				} else {
+					resp.Path = filepath.ToSlash(p)
 				}
 			case gitLFSTerminateEvent:
 				return nil
