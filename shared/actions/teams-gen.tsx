@@ -72,6 +72,7 @@ export const setTeamSawSubteamsBanner = 'teams:setTeamSawSubteamsBanner'
 export const setTeamsWithChosenChannels = 'teams:setTeamsWithChosenChannels'
 export const setUpdatedChannelName = 'teams:setUpdatedChannelName'
 export const setUpdatedTopic = 'teams:setUpdatedTopic'
+export const unsubscribeTeamList = 'teams:unsubscribeTeamList'
 export const updateChannelName = 'teams:updateChannelName'
 export const updateTopic = 'teams:updateTopic'
 export const uploadTeamAvatar = 'teams:uploadTeamAvatar'
@@ -261,6 +262,7 @@ type _SetUpdatedTopicPayload = {
   readonly conversationIDKey: ChatTypes.ConversationIDKey
   readonly newTopic: string
 }
+type _UnsubscribeTeamListPayload = void
 type _UpdateChannelNamePayload = {
   readonly teamname: Types.Teamname
   readonly conversationIDKey: ChatTypes.ConversationIDKey
@@ -279,6 +281,12 @@ type _UploadTeamAvatarPayload = {
 }
 
 // Action Creators
+/**
+ * Don't eagerly reload team list anymore.
+ */
+export const createUnsubscribeTeamList = (
+  payload: _UnsubscribeTeamListPayload
+): UnsubscribeTeamListPayload => ({payload, type: unsubscribeTeamList})
 /**
  * Fetches the channel information for a single channel in a team from the server.
  */
@@ -745,6 +753,10 @@ export type SetUpdatedTopicPayload = {
   readonly payload: _SetUpdatedTopicPayload
   readonly type: typeof setUpdatedTopic
 }
+export type UnsubscribeTeamListPayload = {
+  readonly payload: _UnsubscribeTeamListPayload
+  readonly type: typeof unsubscribeTeamList
+}
 export type UpdateChannelNamePayload = {
   readonly payload: _UpdateChannelNamePayload
   readonly type: typeof updateChannelName
@@ -822,6 +834,7 @@ export type Actions =
   | SetTeamsWithChosenChannelsPayload
   | SetUpdatedChannelNamePayload
   | SetUpdatedTopicPayload
+  | UnsubscribeTeamListPayload
   | UpdateChannelNamePayload
   | UpdateTopicPayload
   | UploadTeamAvatarPayload

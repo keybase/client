@@ -53,6 +53,9 @@
       "forceReload?": "boolean",
       "subscribeReason?": ["'teamList'", "'gitNewRepo'", "'profileShowcaseTeams'"]
     },
+    "unsubscribeTeamList": {
+      "_description": "Don't eagerly reload team list anymore."
+    },
     "getDetails": {
       "teamname": "string",
       "clearInviteLoadingKey?": "string"

@@ -56,7 +56,7 @@ class Reloadable extends React.PureComponent<Props & {loadTeams: () => void; onC
   render() {
     const {loadTeams, ...rest} = this.props
     return (
-      <Kb.Reloadable waitingKeys={Constants.teamsLoadedWaitingKey} onReload={loadTeams} reloadOnMount={true}>
+      <Kb.Reloadable waitingKeys={Constants.teamsLoadedWaitingKey} onReload={loadTeams}>
         {Container.isMobile && (
           <Kb.NavigationEvents onDidFocus={this.onDidFocus} onWillBlur={this.onWillBlur} />
         )}

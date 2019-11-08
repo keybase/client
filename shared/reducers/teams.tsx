@@ -154,6 +154,9 @@ export default (
           draftState.teamDetailsMetaSubscribed = true
         }
         return
+      case TeamsGen.unsubscribeTeamList:
+        draftState.teamDetailsMetaSubscribed = false
+        return
       case TeamsGen.setTeamInfo:
         draftState.teamNameToAllowPromote = action.payload.teamNameToAllowPromote
         draftState.teamNameToID = action.payload.teamNameToID

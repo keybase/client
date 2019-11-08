@@ -759,7 +759,8 @@ function* getTeams(
     if (subscribeReason) {
       logger.info(`Subscribing to team updates because ${subscribeReason}`)
     }
-    if (forceReload && !state.teams.teamDetailsMetaStale) {
+    if (!forceReload && !state.teams.teamDetailsMetaStale) {
+      // bail
       return
     }
   }
@@ -1148,10 +1149,24 @@ const getLoadCalls = (teamname?: string) => (teamname ? [TeamsGen.createGetDetai
 
 const reloadTeamListIfSubscribed = (state: TypedState, _, logger: Saga.SagaLogger) => {
   if (state.teams.teamDetailsMetaSubscribed) {
-    logger.info('Eagerly reloading')
+    logger.info('eagerly reloading')
     return TeamsGen.createGetTeams()
   }
   return false
+}
+
+const teamListUnsubActions = [
+  RouteTreeGen.navigateAppend,
+  RouteTreeGen.navigateUp,
+  RouteTreeGen.switchTab,
+  RouteTreeGen.switchLoggedIn,
+] as const
+const teamListUnsubscribe = (state: TypedState, _, logger: Saga.SagaLogger) => {
+  if (state.teams.teamDetailsMetaSubscribed) {
+    logger.info('unsubscribing')
+    return TeamsGen.createUnsubscribeTeamList()
+  }
+  return
 }
 
 const updateTopic = async (_: TypedState, action: TeamsGen.UpdateTopicPayload) => {
@@ -1535,10 +1550,11 @@ const teamsSaga = function*() {
   )
 
   yield* Saga.chainAction2(
-    EngineGen.keybase1NotifyTeamTeamMetadataUpdate,
+    [EngineGen.keybase1NotifyTeamTeamMetadataUpdate, GregorGen.updateReachable],
     reloadTeamListIfSubscribed,
     'reloadTeamListIfSubscribed'
   )
+  yield* Saga.chainAction2(teamListUnsubActions, teamListUnsubscribe, 'teamListUnsubscribe')
 
   yield* Saga.chainAction2(TeamsGen.clearNavBadges, clearNavBadges)
 
