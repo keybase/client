@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/keybase/client/go/kbconst"
 	"github.com/keybase/client/go/kbfs/env"
@@ -125,6 +126,14 @@ func start() (startErr *libfs.Error) {
 	var repo string
 	if len(flag.Args()) > 1 {
 		repo = flag.Arg(1)
+	} else {
+		// For LFS invocation, the arguments actually come together in
+		// a single quoted argument for some reason.
+		s := strings.Split(remote, " ")
+		if len(s) > 1 {
+			remote = s[0]
+			repo = s[1]
+		}
 	}
 
 	if len(flag.Args()) > 2 {
