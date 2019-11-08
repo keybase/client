@@ -142,7 +142,7 @@ const BlockModal = (props: OwnProps) => {
       dispatch(
         UsersGen.createReportUser({
           comment: extraNotes,
-          convID: 'asd',
+          convID: (includeTranscript && convID) || null,
           includeTranscript: includeTranscript,
           reason: reportReason,
           username: adderUsername,
