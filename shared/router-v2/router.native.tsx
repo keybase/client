@@ -357,7 +357,8 @@ class RNApp extends React.PureComponent<Props> {
     return (
       <>
         <Kb.NativeStatusBar
-          barStyle={Styles.isAndroid ? 'default' : this.props.isDarkMode ? 'light-content' : 'dark-content'}
+          barStyle={this.props.isDarkMode ? 'light-content' : 'dark-content'}
+          backgroundColor={Styles.globalColors.white}
         />
         <AppContainer
           ref={this.setNav}
