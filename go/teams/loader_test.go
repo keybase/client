@@ -1215,7 +1215,10 @@ func TestLoaderCORE_10487(t *testing.T) {
 	_, ok = team.Data.PerTeamKeySeedsUnverified[1]
 	require.True(t, ok)
 	require.NotNil(t, team.Data.ReaderKeyMasks)
-	require.Len(t, team.Data.ReaderKeyMasks[keybase1.TeamApplication_KBFS], 0, "missing rkms")
+	if len(team.Data.ReaderKeyMasks[keybase1.TeamApplication_KBFS]) != 0 {
+		t.Logf("RKMs received. This is acceptable client behavior, but not suitable to test this particular regression.")
+		return
+	}
 
 	t.Logf("U1 loads A.B like KBFS")
 	_, err = LoadTeamPlusApplicationKeys(context.Background(), tcs[1].G, subBID,
