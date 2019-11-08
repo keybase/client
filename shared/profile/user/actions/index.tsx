@@ -5,6 +5,7 @@ import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/tracker2'
 import FollowButton from './follow-button'
 import ChatButton from '../../../chat/chat-button'
+import flags from '../../../util/feature-flags'
 
 type Props = {
   followThem: boolean
@@ -144,10 +145,11 @@ const DropdownButton = Kb.OverlayParentHOC((p: Kb.PropsWithOverlay<DropdownProps
     {onClick: p.onOpenPrivateFolder, title: 'Open private folder'},
     {onClick: p.onBrowsePublicFolder, title: 'Browse public folder'},
     p.onUnfollow && {onClick: p.onUnfollow && p.onUnfollow, title: 'Unfollow'},
-    p.blocked
-      ? {danger: true, onClick: p.onUnblock, title: 'Unblock'}
-      : {danger: true, onClick: p.onBlock, title: 'Block'},
-    {danger: true, onClick: p.onManageBlocking, title: 'Manage blocking'},
+    flags.userBlocking
+      ? p.blocked
+        ? {danger: true, onClick: p.onUnblock, title: 'Unblock'}
+        : {danger: true, onClick: p.onBlock, title: 'Block'}
+      : {danger: true, onClick: p.onManageBlocking, title: 'Manage blocking'},
   ].reduce<Kb.MenuItems>((arr, i) => {
     i && arr.push(i)
     return arr

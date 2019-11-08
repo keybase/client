@@ -49,7 +49,7 @@ const BlockModal = (props: OwnProps) => {
   // Route props
   const teamname = Container.getRouteProps(props, 'team', undefined)
   const adderUsername = Container.getRouteProps(props, 'username', '')
-  const otherUsernames = Container.getRouteProps(props, 'others', null)
+  const otherUsernames = Container.getRouteProps(props, 'others', undefined)
   // If we are coming from chat, we want to block `username` by default in this
   // form. But if we are managing blocking from user profile, we want to
   // display current block status.
