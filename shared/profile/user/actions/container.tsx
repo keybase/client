@@ -50,7 +50,7 @@ export default Container.namedConnect(
     _onManageBlocking: (username: string) =>
       dispatch(
         RouteTreeGen.createNavigateAppend({
-          path: [{props: {others: ['a', 'b'], team: 'x', username}, selected: 'chatBlockingModal'}],
+          path: [{props: {username}, selected: 'chatBlockingModal'}],
         })
       ),
     _onOpenPrivateFolder: (myUsername: string, theirUsername: string) =>

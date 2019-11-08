@@ -16,6 +16,10 @@
       "userCard": "RPCTypes.UserCard",
       "username": "string"
     },
+    "setUserBlocks": {
+      "_description": "Call RPC to set the following user blocks",
+      "blocks": "Array<RPCTypes.UserBlockArg>"
+    },
     "getBlockState": {
       "_description": "Call RPC to get block state for usernames",
       "usernames": "Array<string>"

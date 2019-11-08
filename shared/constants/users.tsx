@@ -23,3 +23,5 @@ export const makeState = (): Types.State => ({
   blockMap: new Map(),
   infoMap: new Map(),
 })
+
+export const setUserBlocksWaitingKey = 'users:setUserBlocks'

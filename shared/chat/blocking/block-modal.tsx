@@ -3,8 +3,8 @@ import * as Kb from '../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as UsersGen from '../../actions/users-gen'
+import * as TeamsGen from '../../actions/teams-gen'
 
-const todo = () => console.log('TODO')
 type OwnProps = Container.RouteProps<{
   blockByDefault?: boolean
   others?: Array<string>
@@ -49,7 +49,7 @@ const BlockModal = (props: OwnProps) => {
   // Route props
   const teamname = Container.getRouteProps(props, 'team', undefined)
   const adderUsername = Container.getRouteProps(props, 'username', '')
-  const otherUsernames = Container.getRouteProps(props, 'others', [])
+  const otherUsernames = Container.getRouteProps(props, 'others', null)
   // If we are coming from chat, we want to block `username` by default in this
   // form. But if we are managing blocking from user profile, we want to
   // display current block status.
@@ -82,7 +82,7 @@ const BlockModal = (props: OwnProps) => {
 
   // Set default checkbox block values for adder user. We don't care if they
   // are already blocked, setting a block is idempotent.
-  React.useLayoutEffect(() => {
+  React.useEffect(() => {
     if (blockByDefault) {
       setNewBlocks(n => {
         n.set(adderUsername, {chatBlocked: true, followBlocked: true})
@@ -102,7 +102,6 @@ const BlockModal = (props: OwnProps) => {
     }
     // Need to make a new object so the component re-renders.
     setNewBlocks(new Map(newBlocks))
-    console.log('zzz Blocks is now', newBlocks)
   }
 
   const getBlockFor = (username: string, which: blockType): boolean => {
@@ -121,7 +120,19 @@ const BlockModal = (props: OwnProps) => {
 
   // Button handlers
   const onCancel = () => dispatch(nav.safeNavigateUpPayload())
-  const onFinish = todo
+  const onFinish = () => {
+    if (teamname && blockTeam) {
+      dispatch(TeamsGen.createLeaveTeam({context: 'chat', teamname}))
+    }
+    if (newBlocks.size) {
+      const blocks = Array.from(newBlocks).map(([username, blocks]) => ({
+        setChatBlock: blocks.chatBlocked,
+        setFollowBlock: blocks.followBlocked,
+        username,
+      }))
+      dispatch(UsersGen.createSetUserBlocks({blocks}))
+    }
+  }
 
   const RadioButton = ({reason}: {reason: string}) => (
     // TODO: make it red

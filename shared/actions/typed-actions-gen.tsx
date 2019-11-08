@@ -914,6 +914,7 @@ export type TypedActionsMap = {
   'users:updateBrokenState': users.UpdateBrokenStatePayload
   'users:updateFullnames': users.UpdateFullnamesPayload
   'users:updateBio': users.UpdateBioPayload
+  'users:setUserBlocks': users.SetUserBlocksPayload
   'users:getBlockState': users.GetBlockStatePayload
   'users:updateBlockState': users.UpdateBlockStatePayload
   'waiting:incrementWaiting': waiting.IncrementWaitingPayload
