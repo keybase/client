@@ -770,6 +770,8 @@ protocol teams {
     Seqno latestSeqno;
     @jsonkey("latest_hidden_seqno")
     Seqno latestHiddenSeqno;
+    @jsonkey("latest_offchain_seqno")
+    Seqno latestOffchainSeqno;
     @jsonkey("implicit_team")
     boolean implicitTeam;
     @jsonkey("misc")

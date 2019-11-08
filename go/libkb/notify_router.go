@@ -1833,26 +1833,27 @@ func (n *NotifyRouter) HandleReachability(r keybase1.Reachability) {
 // teamID and teamName are not necessarily the same team
 func (n *NotifyRouter) HandleTeamChangedByBothKeys(ctx context.Context,
 	teamID keybase1.TeamID, teamName string, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet,
-	latestHiddenSeqno keybase1.Seqno) {
+	latestHiddenSeqno keybase1.Seqno, latestOffchainSeqno keybase1.Seqno) {
 
-	n.HandleTeamChangedByID(ctx, teamID, latestSeqno, implicitTeam, changes, latestHiddenSeqno)
-	n.HandleTeamChangedByName(ctx, teamName, latestSeqno, implicitTeam, changes, latestHiddenSeqno)
+	n.HandleTeamChangedByID(ctx, teamID, latestSeqno, implicitTeam, changes, latestHiddenSeqno, latestOffchainSeqno)
+	n.HandleTeamChangedByName(ctx, teamName, latestSeqno, implicitTeam, changes, latestHiddenSeqno, latestOffchainSeqno)
 }
 
 func (n *NotifyRouter) HandleTeamChangedByID(ctx context.Context,
 	teamID keybase1.TeamID, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet,
-	latestHiddenSeqno keybase1.Seqno) {
+	latestHiddenSeqno keybase1.Seqno, latestOffchainSeqno keybase1.Seqno) {
 
 	if n == nil {
 		return
 	}
 
 	arg := keybase1.TeamChangedByIDArg{
-		TeamID:            teamID,
-		LatestSeqno:       latestSeqno,
-		ImplicitTeam:      implicitTeam,
-		Changes:           changes,
-		LatestHiddenSeqno: latestHiddenSeqno,
+		TeamID:              teamID,
+		LatestSeqno:         latestSeqno,
+		ImplicitTeam:        implicitTeam,
+		Changes:             changes,
+		LatestHiddenSeqno:   latestHiddenSeqno,
+		LatestOffchainSeqno: latestOffchainSeqno,
 	}
 
 	var wg sync.WaitGroup
@@ -1880,18 +1881,19 @@ func (n *NotifyRouter) HandleTeamChangedByID(ctx context.Context,
 
 func (n *NotifyRouter) HandleTeamChangedByName(ctx context.Context,
 	teamName string, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet,
-	latestHiddenSeqno keybase1.Seqno) {
+	latestHiddenSeqno keybase1.Seqno, latestOffchainSeqno keybase1.Seqno) {
 
 	if n == nil {
 		return
 	}
 
 	arg := keybase1.TeamChangedByNameArg{
-		TeamName:          teamName,
-		LatestSeqno:       latestSeqno,
-		ImplicitTeam:      implicitTeam,
-		Changes:           changes,
-		LatestHiddenSeqno: latestHiddenSeqno,
+		TeamName:            teamName,
+		LatestSeqno:         latestSeqno,
+		ImplicitTeam:        implicitTeam,
+		Changes:             changes,
+		LatestHiddenSeqno:   latestHiddenSeqno,
+		LatestOffchainSeqno: latestOffchainSeqno,
 	}
 
 	var wg sync.WaitGroup
