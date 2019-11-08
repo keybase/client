@@ -44,6 +44,7 @@ class SendIndicator extends React.Component<Props, State> {
       // Only show the `encrypting` icon for messages once
       if (shownEncryptingSet.has(this.props.id)) {
         state.animationStatus = 'encrypting'
+        this.encryptingTimeoutID = this.props.setTimeout(() => this._setStatus('sending'), encryptingTimeout)
       } else {
         state.animationStatus = 'sending'
       }
@@ -91,7 +92,13 @@ class SendIndicator extends React.Component<Props, State> {
     if (!(this.props.sent || this.props.failed)) {
       // Only show the `encrypting` icon for messages once
       if (!shownEncryptingSet.has(this.props.id)) {
-        this.encryptingTimeoutID = this.props.setTimeout(() => this._setStatus('sending'), encryptingTimeout)
+        this._setStatus('encrypting')
+        if (!this.encryptingTimeoutID) {
+          this.encryptingTimeoutID = this.props.setTimeout(
+            () => this._setStatus('sending'),
+            encryptingTimeout
+          )
+        }
         shownEncryptingSet.add(this.props.id)
       }
     }
