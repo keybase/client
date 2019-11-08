@@ -50,7 +50,8 @@
     },
     "getTeams": {
       "_description": "Load team list if we are stale.",
-      "forceReload?": "boolean"
+      "forceReload?": "boolean",
+      "subscribeReason?": ["'teamList'", "'gitNewRepo'", "'profileShowcaseTeams'"]
     },
     "getDetails": {
       "teamname": "string",

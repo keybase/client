@@ -25,7 +25,7 @@ const mapStateToProps = (state: Container.TypedState) => {
 }
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
-  loadTeams: () => dispatch(TeamsGen.createGetTeams()),
+  loadTeams: () => dispatch(TeamsGen.createGetTeams({subscribeReason: 'profileShowcaseTeams'})),
   onCancel: (you: string) => {
     // sadly a little racy, doing this for now
     setTimeout(() => {

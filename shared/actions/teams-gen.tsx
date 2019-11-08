@@ -141,7 +141,10 @@ type _GetMembersPayload = {readonly teamname: string}
 type _GetTeamProfileAddListPayload = {readonly username: string}
 type _GetTeamPublicityPayload = {readonly teamname: string}
 type _GetTeamRetentionPolicyPayload = {readonly teamname: string}
-type _GetTeamsPayload = {readonly forceReload?: boolean}
+type _GetTeamsPayload = {
+  readonly forceReload?: boolean
+  readonly subscribeReason?: 'teamList' | 'gitNewRepo' | 'profileShowcaseTeams'
+}
 type _IgnoreRequestPayload = {readonly teamname: string; readonly username: string}
 type _InviteToTeamByEmailPayload = {
   readonly destSubPath?: I.List<string>

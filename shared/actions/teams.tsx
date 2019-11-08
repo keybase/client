@@ -755,7 +755,11 @@ function* getTeams(
     return
   }
   if (action.type === TeamsGen.getTeams) {
-    if (!action.payload.forceReload && !state.teams.teamDetailsMetaStale) {
+    const {forceReload, subscribeReason} = action.payload
+    if (subscribeReason) {
+      logger.info(`Subscribing to team updates because ${subscribeReason}`)
+    }
+    if (forceReload && !state.teams.teamDetailsMetaStale) {
       return
     }
   }
@@ -1142,6 +1146,14 @@ const teamDeletedOrExit = (
 
 const getLoadCalls = (teamname?: string) => (teamname ? [TeamsGen.createGetDetails({teamname})] : [])
 
+const reloadTeamListIfSubscribed = (state: TypedState, _, logger: Saga.SagaLogger) => {
+  if (state.teams.teamDetailsMetaSubscribed) {
+    logger.info('Eagerly reloading')
+    return TeamsGen.createGetTeams()
+  }
+  return false
+}
+
 const updateTopic = async (_: TypedState, action: TeamsGen.UpdateTopicPayload) => {
   const {teamname, conversationIDKey, newTopic} = action.payload
   const param = {
@@ -1520,6 +1532,12 @@ const teamsSaga = function*() {
     [EngineGen.keybase1NotifyTeamTeamDeleted, EngineGen.keybase1NotifyTeamTeamExit],
     teamDeletedOrExit,
     'teamDeletedOrExit'
+  )
+
+  yield* Saga.chainAction2(
+    EngineGen.keybase1NotifyTeamTeamMetadataUpdate,
+    reloadTeamListIfSubscribed,
+    'reloadTeamListIfSubscribed'
   )
 
   yield* Saga.chainAction2(TeamsGen.clearNavBadges, clearNavBadges)

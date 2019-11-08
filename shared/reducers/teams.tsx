@@ -149,6 +149,11 @@ export default (
         draftState.emailInviteError.malformed = new Set(action.payload.malformed)
         draftState.emailInviteError.message = action.payload.message
         return
+      case TeamsGen.getTeams:
+        if (action.payload.subscribeReason) {
+          draftState.teamDetailsMetaSubscribed = true
+        }
+        return
       case TeamsGen.setTeamInfo:
         draftState.teamNameToAllowPromote = action.payload.teamNameToAllowPromote
         draftState.teamNameToID = action.payload.teamNameToID
@@ -289,7 +294,6 @@ export default (
       case TeamsGen.getTeamProfileAddList:
       case TeamsGen.getTeamPublicity:
       case TeamsGen.getTeamRetentionPolicy:
-      case TeamsGen.getTeams:
       case TeamsGen.addTeamWithChosenChannels:
       case TeamsGen.ignoreRequest:
       case TeamsGen.inviteToTeamByEmail:

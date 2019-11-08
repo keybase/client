@@ -78,7 +78,7 @@ const _Connected = Container.connect(
   }),
   (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
     ...headerActions(dispatch, ownProps),
-    loadTeams: () => dispatch(TeamsGen.createGetTeams()),
+    loadTeams: () => dispatch(TeamsGen.createGetTeams({subscribeReason: 'teamList'})),
     onClearBadges: () => dispatch(TeamsGen.createClearNavBadges()),
     onHideChatBanner: () =>
       dispatch(GregorGen.createUpdateCategory({body: 'true', category: 'sawChatBanner'})),
