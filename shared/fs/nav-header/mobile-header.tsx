@@ -8,6 +8,7 @@ import * as FsGen from '../../actions/fs-gen'
 import * as Container from '../../util/container'
 import Actions from './actions'
 import MainBanner from './main-banner/container'
+import flags from '../../util/feature-flags'
 
 type Props = {
   onBack?: () => void
@@ -57,9 +58,10 @@ const NavMobileHeader = (props: Props) => {
         </Kb.Box2>
       )}
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.expandedTitleContainer}>
-        <Kb.Text type="BodyBig" lineClamp={1}>
-          {props.path === Constants.defaultPath ? 'Files' : Types.getPathName(props.path)}
-        </Kb.Text>
+        <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start" gap="xxtiny" gapStart={true}>
+          {flags.kbfsOfflineMode && <Kbfs.PathStatusIcon path={props.path} showTooltipOnPressMobile={true} />}
+          <Kbfs.Filename path={props.path} selectable={true} type="BodyBig" style={styles.filename} />
+        </Kb.Box2>
         <MaybePublicTag path={props.path} />
       </Kb.Box2>
       <MainBanner />
@@ -96,10 +98,7 @@ const styles = Styles.styleSheetCreate(
       },
       expandedTitleContainer: {
         backgroundColor: Styles.globalColors.white,
-        paddingBottom: Styles.globalMargins.tiny,
-        paddingLeft: Styles.globalMargins.small,
-        paddingRight: Styles.globalMargins.small,
-        paddingTop: Styles.globalMargins.tiny,
+        padding: Styles.globalMargins.tiny,
       },
       expandedTopContainer: Styles.platformStyles({
         common: {
@@ -113,6 +112,9 @@ const styles = Styles.styleSheetCreate(
           height: 44,
         },
       }),
+      filename: {
+        marginLeft: Styles.globalMargins.xtiny,
+      },
       gap: {
         flex: 1,
       },

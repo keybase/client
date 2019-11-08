@@ -4517,6 +4517,7 @@ const iconMeta_ = {
   },
   'icon-illustration-attention-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-illustration-attention-64.png')
@@ -4540,6 +4541,7 @@ const iconMeta_ = {
   },
   'icon-illustration-friends-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-illustration-friends-96.png')
@@ -4547,6 +4549,7 @@ const iconMeta_ = {
   },
   'icon-illustration-happy-chat-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-illustration-happy-chat-96.png')
@@ -4554,6 +4557,7 @@ const iconMeta_ = {
   },
   'icon-illustration-long-time-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-illustration-long-time-96.png')
@@ -4585,6 +4589,7 @@ const iconMeta_ = {
   },
   'icon-illustration-sleepy-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-illustration-sleepy-96.png')
@@ -4624,6 +4629,7 @@ const iconMeta_ = {
   },
   'icon-illustration-welcome-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-illustration-welcome-96.png')
