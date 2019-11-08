@@ -1155,12 +1155,6 @@ const reloadTeamListIfSubscribed = (state: TypedState, _, logger: Saga.SagaLogge
   return false
 }
 
-const teamListUnsubActions = [
-  RouteTreeGen.navigateAppend,
-  RouteTreeGen.navigateUp,
-  RouteTreeGen.switchTab,
-  RouteTreeGen.switchLoggedIn,
-] as const
 const teamListUnsubscribe = (state: TypedState, _, logger: Saga.SagaLogger) => {
   // This is not an airtight listener, we may navigate away from a page that
   // previously subscribed without getting here. The point is to _eventually_
@@ -1557,7 +1551,16 @@ const teamsSaga = function*() {
     reloadTeamListIfSubscribed,
     'reloadTeamListIfSubscribed'
   )
-  yield* Saga.chainAction2(teamListUnsubActions, teamListUnsubscribe, 'teamListUnsubscribe')
+  yield* Saga.chainAction2(
+    [
+      RouteTreeGen.navigateAppend,
+      RouteTreeGen.navigateUp,
+      RouteTreeGen.switchTab,
+      RouteTreeGen.switchLoggedIn,
+    ],
+    teamListUnsubscribe,
+    'teamListUnsubscribe'
+  )
 
   yield* Saga.chainAction2(TeamsGen.clearNavBadges, clearNavBadges)
 
