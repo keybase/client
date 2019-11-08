@@ -55,6 +55,7 @@ const (
 	gitOptionPushcert  = "pushcert"
 	gitOptionIfAsked   = "if-asked"
 
+	gitLFSInitEvent      = "init"
 	gitLFSUploadEvent    = "upload"
 	gitLFSCompleteEvent  = "complete"
 	gitLFSTerminateEvent = "terminate"
@@ -2048,10 +2049,12 @@ type lfsError struct {
 }
 
 type lfsRequest struct {
-	Event string `json:"event"`
-	Oid   string `json:"oid"`
-	Size  int    `json:"size,omitempty"`
-	Path  string `json:"path,omitempty"`
+	Event     string `json:"event"`
+	Oid       string `json:"oid"`
+	Size      int    `json:"size,omitempty"`
+	Path      string `json:"path,omitempty"`
+	Operation string `json:"operation,omitempty"`
+	Remote    string `json:"remote,omitempty"`
 }
 
 type lfsResponse struct {
@@ -2062,6 +2065,7 @@ type lfsResponse struct {
 
 func (r *runner) processCommandLFS(
 	ctx context.Context, commandChan <-chan string) (err error) {
+lfsLoop:
 	for {
 		select {
 		case cmd := <-commandChan:
@@ -2079,6 +2083,15 @@ func (r *runner) processCommandLFS(
 				Oid:   req.Oid,
 			}
 			switch req.Event {
+			case gitLFSInitEvent:
+				r.log.CDebugf(
+					ctx, "Initialize message, operation=%s, remote=%s",
+					req.Operation, req.Remote)
+				_, err := r.output.Write([]byte("{}\n"))
+				if err != nil {
+					return err
+				}
+				continue lfsLoop
 			case gitLFSUploadEvent:
 				r.log.CDebugf(ctx, "Handling upload, oid=%s", req.Oid)
 				err := r.handleLFSUpload(ctx, req.Oid, req.Path)
