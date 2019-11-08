@@ -7,6 +7,7 @@ export const resetStore = 'common:resetStore' // not a part of users but is hand
 export const typePrefix = 'users:'
 export const getBio = 'users:getBio'
 export const getBlockState = 'users:getBlockState'
+export const reportUser = 'users:reportUser'
 export const setUserBlocks = 'users:setUserBlocks'
 export const updateBio = 'users:updateBio'
 export const updateBlockState = 'users:updateBlockState'
@@ -16,6 +17,13 @@ export const updateFullnames = 'users:updateFullnames'
 // Payload Types
 type _GetBioPayload = {readonly username: string}
 type _GetBlockStatePayload = {readonly usernames: Array<string>}
+type _ReportUserPayload = {
+  readonly username: string
+  readonly reason: string
+  readonly comment: string
+  readonly includeTranscript: boolean
+  readonly convID: string | null
+}
 type _SetUserBlocksPayload = {readonly blocks: Array<RPCTypes.UserBlockArg>}
 type _UpdateBioPayload = {readonly userCard: RPCTypes.UserCard; readonly username: string}
 type _UpdateBlockStatePayload = {
@@ -40,6 +48,13 @@ export const createGetBlockState = (payload: _GetBlockStatePayload): GetBlockSta
 export const createSetUserBlocks = (payload: _SetUserBlocksPayload): SetUserBlocksPayload => ({
   payload,
   type: setUserBlocks,
+})
+/**
+ * Calls RPC to report user
+ */
+export const createReportUser = (payload: _ReportUserPayload): ReportUserPayload => ({
+  payload,
+  type: reportUser,
 })
 /**
  * Sets the block state for a user
@@ -68,6 +83,7 @@ export type GetBlockStatePayload = {
   readonly payload: _GetBlockStatePayload
   readonly type: typeof getBlockState
 }
+export type ReportUserPayload = {readonly payload: _ReportUserPayload; readonly type: typeof reportUser}
 export type SetUserBlocksPayload = {
   readonly payload: _SetUserBlocksPayload
   readonly type: typeof setUserBlocks
@@ -91,6 +107,7 @@ export type UpdateFullnamesPayload = {
 export type Actions =
   | GetBioPayload
   | GetBlockStatePayload
+  | ReportUserPayload
   | SetUserBlocksPayload
   | UpdateBioPayload
   | UpdateBlockStatePayload

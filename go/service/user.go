@@ -4,6 +4,7 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -713,6 +714,23 @@ func (h *UserHandler) GetUserBlocks(ctx context.Context, arg keybase1.GetUserBlo
 	}
 
 	return res, nil
+}
+
+func (h *UserHandler) ReportUser(ctx context.Context, arg keybase1.ReportUserArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	convIDStr := "nil"
+	if arg.ConvID != nil {
+		convIDStr = *arg.ConvID
+	}
+	defer mctx.TraceTimed(fmt.Sprintf(
+		"UserHandler#ReportUser(username=%q,transcript=%t,convId=%s)",
+		arg.Username, arg.IncludeTranscript, convIDStr),
+		func() error { return err })()
+
+	if arg.IncludeTranscript && arg.ConvID == nil {
+		return errors.New("invalid arguments: IncludeTranscript is true but ConvID == nil")
+	}
+	return errors.New("Not implemented")
 }
 
 // Legacy RPC and API:

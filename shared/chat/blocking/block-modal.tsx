@@ -10,6 +10,7 @@ type OwnProps = Container.RouteProps<{
   others?: Array<string>
   team?: string
   username: string
+  convID?: string
 }>
 
 type CheckboxRowProps = {
@@ -54,6 +55,10 @@ const BlockModal = (props: OwnProps) => {
   // form. But if we are managing blocking from user profile, we want to
   // display current block status.
   const blockByDefault = Container.getRouteProps(props, 'blockByDefault', false)
+  // If coming from chat, we may get conversation ID that we need for
+  // ReportUser RPC in order to get chat transcript (if that option was
+  // selected).
+  const convID = Container.getRouteProps(props, 'convID', undefined)
 
   // TODO: If there are "others" that are already blocked, exclude them from
   // the checkboxes
@@ -67,7 +72,7 @@ const BlockModal = (props: OwnProps) => {
   }, [dispatch, adderUsername, otherUsernames])
 
   const [blockTeam, setBlockTeam] = React.useState(true)
-  const [report, setReport] = React.useState(false)
+  const [shouldReport, setReport] = React.useState(false)
   const [includeTranscript, setIncludeTranscript] = React.useState(false)
   const [reportReason, setReportReason] = React.useState(reasons[0])
   const [extraNotes, setExtraNotes] = React.useState('')
@@ -82,7 +87,7 @@ const BlockModal = (props: OwnProps) => {
 
   // Set default checkbox block values for adder user. We don't care if they
   // are already blocked, setting a block is idempotent.
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     if (blockByDefault) {
       setNewBlocks(n => {
         n.set(adderUsername, {chatBlocked: true, followBlocked: true})
@@ -125,12 +130,24 @@ const BlockModal = (props: OwnProps) => {
       dispatch(TeamsGen.createLeaveTeam({context: 'chat', teamname}))
     }
     if (newBlocks.size) {
+      // Convert our state block array to action payload.
       const blocks = Array.from(newBlocks).map(([username, blocks]) => ({
         setChatBlock: blocks.chatBlocked,
         setFollowBlock: blocks.followBlocked,
         username,
       }))
       dispatch(UsersGen.createSetUserBlocks({blocks}))
+    }
+    if (shouldReport) {
+      dispatch(
+        UsersGen.createReportUser({
+          comment: extraNotes,
+          convID: 'asd',
+          includeTranscript: includeTranscript,
+          reason: reportReason,
+          username: adderUsername,
+        })
+      )
     }
   }
 
@@ -183,9 +200,9 @@ const BlockModal = (props: OwnProps) => {
         <CheckboxRow
           text={`Report ${adderUsername} to Keybase admins`}
           onCheck={setReport}
-          checked={report}
+          checked={shouldReport}
         />
-        {report && (
+        {shouldReport && (
           <>
             {reasons.map(reason => (
               <RadioButton reason={reason} key={reason} />
@@ -198,11 +215,13 @@ const BlockModal = (props: OwnProps) => {
                 value={extraNotes}
               />
             </Kb.Box>
-            <CheckboxRow
-              text="Include the transcript of this chat"
-              onCheck={setIncludeTranscript}
-              checked={includeTranscript}
-            />
+            {!!convID && (
+              <CheckboxRow
+                text="Include the transcript of this chat"
+                onCheck={setIncludeTranscript}
+                checked={includeTranscript}
+              />
+            )}
           </>
         )}
         {otherUsernames && (

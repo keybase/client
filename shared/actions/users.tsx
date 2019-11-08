@@ -66,11 +66,16 @@ const getBlockState = async (_: TypedState, action: UsersGen.GetBlockStatePayloa
   return
 }
 
+const reportUser = async (_: TypedState, action: UsersGen.ReportUserPayload) => {
+  await RPCTypes.userReportUserRpcPromise(action.payload)
+}
+
 function* usersSaga() {
   yield* Saga.chainAction2(EngineGen.keybase1NotifyUsersIdentifyUpdate, onIdentifyUpdate, 'onIdentifyUpdate')
   yield* Saga.chainAction2(UsersGen.getBio, getBio)
   yield* Saga.chainAction2(UsersGen.setUserBlocks, setUserBlocks)
   yield* Saga.chainAction2(UsersGen.getBlockState, getBlockState)
+  yield* Saga.chainAction2(UsersGen.reportUser, reportUser)
 }
 
 export default usersSaga

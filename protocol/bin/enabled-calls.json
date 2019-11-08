@@ -278,6 +278,7 @@
   "keybase.1.user.unblockUser": {"promise": true},
   "keybase.1.user.setUserBlocks": {"promise": true},
   "keybase.1.user.getUserBlocks": {"promise": true},
+  "keybase.1.user.reportUser": {"promise": true},
   "keybase.1.user.userCard": {"promise": true},
   "keybase.1.userSearch.getNonUserDetails": {"promise": true},
   "keybase.1.userSearch.userSearch": {"promise": true},

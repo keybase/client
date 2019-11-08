@@ -29,6 +29,14 @@
       "username": "string",
       "chatBlocked": "boolean",
       "followBlocked": "boolean"
+    },
+    "reportUser": {
+      "_description": "Calls RPC to report user",
+      "username": "string",
+      "reason": "string",
+      "comment": "string", 
+      "includeTranscript": "boolean",
+      "convID": "string | null"
     }
   }
 }
