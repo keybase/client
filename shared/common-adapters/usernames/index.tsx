@@ -130,7 +130,7 @@ function UsernameText(props: Props) {
                 ,
               </Text>
             )}
-            {i < props.users.length - 1 && (
+            {i !== props.users.length - 1 && (
               <Text type={props.type} negative={isNegative} style={derivedJoinerStyle}>
                 {space}
               </Text>
