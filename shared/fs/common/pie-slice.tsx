@@ -98,8 +98,8 @@ const styles = Styles.styleSheetCreate(
       },
       wholeUnfilled: {
         ...stylePieWhole,
-        overflow: 'hidden',
         borderRadius: pieHalfSize,
+        overflow: 'hidden',
       },
     } as const)
 )
