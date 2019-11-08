@@ -119,7 +119,7 @@ const AudioPlayer = (props: Props) => {
           style={Kb.iconCastPlatformStyles(styles.play)}
         />
       </Kb.ClickableBox>
-      <Kb.Box2 direction="vertical" style={styles.visContainer} gap="xxtiny">
+      <Kb.Box2 direction="vertical" style={styles.visContainer} gap="xxtiny" fullHeight={true}>
         <AudioVis
           height={props.big ? 32 : 18}
           amps={props.visAmps}
@@ -156,6 +156,7 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   visContainer: {
     alignItems: 'flex-start',
+    justifyContent: 'flex-end',
     minWidth: 40,
   },
 }))
