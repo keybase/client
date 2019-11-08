@@ -103,7 +103,6 @@ function UsernameText(props: Props) {
           <Text type={props.type} key={u.username}>
             {i !== 0 && i === props.users.length - 1 && props.showAnd && (
               <Text type={props.type} negative={isNegative} style={derivedJoinerStyle}>
-                {space}
                 {'and '}
               </Text>
             )}
@@ -128,7 +127,12 @@ function UsernameText(props: Props) {
             {/* Injecting the commas here so we never wrap and have newlines starting with a , */}
             {i !== props.users.length - 1 && (!props.inlineGrammar || props.users.length > 2) && (
               <Text type={props.type} negative={isNegative} style={derivedJoinerStyle}>
-                ,{props.users.length > 2 && i !== props.users.length - 1 ? space : null}
+                ,
+              </Text>
+            )}
+            {i < props.users.length - 1 && (
+              <Text type={props.type} negative={isNegative} style={derivedJoinerStyle}>
+                {space}
               </Text>
             )}
           </Text>
