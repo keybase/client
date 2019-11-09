@@ -134,77 +134,73 @@ const mapDispatchToProps = (dispatch: TypedDispatch, ownProps: OwnProps) => ({
   },
 })
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  (stateProps, dispatchProps, ownProps) => {
-    const items: MenuItems = []
-    if (stateProps._canExplodeNow) {
-      items.push({
-        danger: true,
-        onClick: dispatchProps._onExplodeNow,
-        title: 'Explode now',
-      })
-    }
-    if (isMobile) {
-      // 'Add a reaction' is an option on mobile
-      items.push({
-        onClick: dispatchProps._onAddReaction,
-        title: 'Add a reaction',
-      })
-    }
-    const message = ownProps.message
-    if (message.type === 'attachment') {
-      if (isMobile) {
-        if (message.attachmentType === 'image') {
-          items.push({onClick: dispatchProps._onSaveAttachment, title: 'Save'})
-        }
-        if (isIOS) {
-          items.push({onClick: dispatchProps._onShareAttachment, title: 'Share'})
-        }
-      } else {
-        items.push(
-          !message.downloadPath
-            ? {onClick: dispatchProps._onDownload, title: 'Download'}
-            : {onClick: dispatchProps._onShowInFinder, title: 'Show in finder'}
-        )
-      }
-      items.push({onClick: dispatchProps._onReply, title: 'Reply'})
-      items.push({onClick: dispatchProps._onPinMessage, title: 'Pin message'})
-    } else {
-      if (
-        stateProps._mapUnfurl &&
-        stateProps._mapUnfurl.mapInfo &&
-        !stateProps._mapUnfurl.mapInfo.isLiveLocationDone
-      ) {
-        const url = stateProps._mapUnfurl.url
-        items.push({onClick: () => openURL(url), title: 'View on Google Maps'})
-      }
-      if (stateProps._canEdit) {
-        items.push({onClick: dispatchProps._onEdit, title: 'Edit'})
-      }
-      items.push({onClick: dispatchProps._onCopy, title: 'Copy text'})
-      items.push({onClick: dispatchProps._onReply, title: 'Reply'})
-      if (stateProps._canReplyPrivately) {
-        items.push({onClick: dispatchProps._onReplyPrivately, title: 'Reply privately'})
-      }
-      items.push({onClick: dispatchProps._onPinMessage, title: 'Pin message'})
-    }
-    return {
-      attachTo: ownProps.attachTo,
-      author: stateProps.author,
-      deviceName: stateProps.deviceName,
-      deviceRevokedAt: stateProps.deviceRevokedAt,
-      deviceType: stateProps.deviceType,
-      explodesAt: stateProps.explodesAt,
-      hideTimer: stateProps.hideTimer,
-      items,
-      onHidden: ownProps.onHidden,
-      position: ownProps.position,
-      style: ownProps.style,
-      timestamp: stateProps.timestamp,
-      visible: ownProps.visible,
-      yourMessage: stateProps.yourMessage,
-    }
+export default connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps, ownProps) => {
+  const items: MenuItems = []
+  if (stateProps._canExplodeNow) {
+    items.push({
+      danger: true,
+      onClick: dispatchProps._onExplodeNow,
+      title: 'Explode now',
+    })
   }
-)(Exploding)
+  if (isMobile) {
+    // 'Add a reaction' is an option on mobile
+    items.push({
+      onClick: dispatchProps._onAddReaction,
+      title: 'Add a reaction',
+    })
+  }
+  const message = ownProps.message
+  if (message.type === 'attachment') {
+    if (isMobile) {
+      if (message.attachmentType === 'image') {
+        items.push({onClick: dispatchProps._onSaveAttachment, title: 'Save'})
+      }
+      if (isIOS) {
+        items.push({onClick: dispatchProps._onShareAttachment, title: 'Share'})
+      }
+    } else {
+      items.push(
+        !message.downloadPath
+          ? {onClick: dispatchProps._onDownload, title: 'Download'}
+          : {onClick: dispatchProps._onShowInFinder, title: 'Show in finder'}
+      )
+    }
+    items.push({onClick: dispatchProps._onReply, title: 'Reply'})
+    items.push({onClick: dispatchProps._onPinMessage, title: 'Pin message'})
+  } else {
+    if (
+      stateProps._mapUnfurl &&
+      stateProps._mapUnfurl.mapInfo &&
+      !stateProps._mapUnfurl.mapInfo.isLiveLocationDone
+    ) {
+      const url = stateProps._mapUnfurl.url
+      items.push({onClick: () => openURL(url), title: 'View on Google Maps'})
+    }
+    if (stateProps._canEdit) {
+      items.push({onClick: dispatchProps._onEdit, title: 'Edit'})
+    }
+    items.push({onClick: dispatchProps._onCopy, title: 'Copy text'})
+    items.push({onClick: dispatchProps._onReply, title: 'Reply'})
+    if (stateProps._canReplyPrivately) {
+      items.push({onClick: dispatchProps._onReplyPrivately, title: 'Reply privately'})
+    }
+    items.push({onClick: dispatchProps._onPinMessage, title: 'Pin message'})
+  }
+  return {
+    attachTo: ownProps.attachTo,
+    author: stateProps.author,
+    deviceName: stateProps.deviceName,
+    deviceRevokedAt: stateProps.deviceRevokedAt,
+    deviceType: stateProps.deviceType,
+    explodesAt: stateProps.explodesAt,
+    hideTimer: stateProps.hideTimer,
+    items,
+    onHidden: ownProps.onHidden,
+    position: ownProps.position,
+    style: ownProps.style,
+    timestamp: stateProps.timestamp,
+    visible: ownProps.visible,
+    yourMessage: stateProps.yourMessage,
+  }
+})(Exploding)

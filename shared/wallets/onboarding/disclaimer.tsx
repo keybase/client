@@ -359,9 +359,7 @@ const styles = Styles.styleSheetCreate(
       disclaimerContainer: {marginTop: Styles.globalMargins.small},
       gradient: Styles.platformStyles({
         isElectron: {
-          backgroundImage: `linear-gradient(to bottom, ${Styles.globalColors.purple_01}, ${
-            Styles.globalColors.purple
-          })`,
+          backgroundImage: `linear-gradient(to bottom, ${Styles.globalColors.purple_01}, ${Styles.globalColors.purple})`,
           bottom: 0,
           height: Styles.globalMargins.large,
           left: 0,

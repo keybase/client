@@ -316,9 +316,9 @@ function* folderList(_: TypedState, action: FsGen.FolderListLoadPayload) {
 
     yield RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID}, Constants.folderListWaitingKey)
 
-    const result: Saga.RPCPromiseType<
-      typeof RPCTypes.SimpleFSSimpleFSReadListRpcPromise
-    > = yield RPCTypes.SimpleFSSimpleFSReadListRpcPromise({opID})
+    const result: Saga.RPCPromiseType<typeof RPCTypes.SimpleFSSimpleFSReadListRpcPromise> = yield RPCTypes.SimpleFSSimpleFSReadListRpcPromise(
+      {opID}
+    )
     const entries = result.entries || []
     const childMap = entries.reduce((m, d) => {
       const [parent, child] = d.name.split('/')
@@ -445,11 +445,11 @@ function* pollJournalFlushStatusUntilDone() {
         syncingPaths,
         totalSyncingBytes,
         endEstimate,
-      }: Saga.RPCPromiseType<
-        typeof RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise
-      > = yield RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise({
-        filter: RPCTypes.ListFilter.filterSystemHidden,
-      })
+      }: Saga.RPCPromiseType<typeof RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise> = yield RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise(
+        {
+          filter: RPCTypes.ListFilter.filterSystemHidden,
+        }
+      )
       yield Saga.sequentially([
         Saga.put(
           FsGen.createJournalUpdate({
@@ -705,11 +705,9 @@ const onNotifyFSOverallSyncSyncStatusChanged = (
     ? Types.DiskSpaceStatus.Warning
     : Types.DiskSpaceStatus.Ok
   // We need to type this separately since otherwise we can't concat to it.
-  const actions: Array<
-    | NotificationsGen.BadgeAppPayload
-    | FsGen.OverallSyncStatusChangedPayload
-    | FsGen.ShowHideDiskSpaceBannerPayload
-  > = [
+  const actions: Array<| NotificationsGen.BadgeAppPayload
+  | FsGen.OverallSyncStatusChangedPayload
+  | FsGen.ShowHideDiskSpaceBannerPayload> = [
     FsGen.createOverallSyncStatusChanged({
       diskSpaceStatus,
       progress: action.payload.params.status.prefetchProgress,

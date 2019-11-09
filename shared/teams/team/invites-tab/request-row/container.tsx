@@ -92,8 +92,4 @@ class RequestRowStateWrapper extends React.Component<RowProps & ExtraProps, Stat
   }
 }
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
-)(RequestRowStateWrapper)
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(RequestRowStateWrapper)

@@ -6,7 +6,7 @@ type GetTypes<A> = A extends {type: string} ? A['type'] : never
 // helper for making sub reducer helpers
 export type ActionHandler<A, S> = {
   [type in GetTypes<A>]?: type extends keyof TypedActionsMap
-    ? ((state: Draft<S>, action: TypedActionsMap[type]) => void | S)
+    ? (state: Draft<S>, action: TypedActionsMap[type]) => void | S
     : never
 }
 

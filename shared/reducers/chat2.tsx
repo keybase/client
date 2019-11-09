@@ -1109,9 +1109,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       targetData.forEach(td => {
         if (!td.targetOrdinal) {
           logger.info(
-            `updateReactions: couldn't find target ordinal for targetMsgID=${
-              td.targetMsgID
-            } in convID=${conversationIDKey}`
+            `updateReactions: couldn't find target ordinal for targetMsgID=${td.targetMsgID} in convID=${conversationIDKey}`
           )
           return
         }

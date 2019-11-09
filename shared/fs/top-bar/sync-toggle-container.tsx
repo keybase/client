@@ -30,6 +30,6 @@ const mergeProps = (
   ...dispatchProps,
 })
 
-export default (flags.kbfsOfflineMode
+export default flags.kbfsOfflineMode
   ? namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'SyncToggle')(SyncToggle)
-  : () => null)
+  : () => null

@@ -270,9 +270,7 @@ const maybeChangeSelectedConv = (
     }
   } else {
     logger.info(
-      `maybeChangeSelectedConv: selected conv mismatch on reselect (ignoring): selected: ${
-        state.chat2.selectedConversation
-      } srvold: ${state.chat2.inboxLayout.reselectInfo.oldConvID}`
+      `maybeChangeSelectedConv: selected conv mismatch on reselect (ignoring): selected: ${state.chat2.selectedConversation} srvold: ${state.chat2.inboxLayout.reselectInfo.oldConvID}`
     )
     return false
   }
@@ -844,9 +842,7 @@ const onChatThreadStale = (
       // load the inbox instead
       if (key === 'convupdate') {
         logger.info(
-          `onChatThreadStale: dispatching inbox unbox actions for ${
-            conversationIDKeys.length
-          } convs of type ${key}`
+          `onChatThreadStale: dispatching inbox unbox actions for ${conversationIDKeys.length} convs of type ${key}`
         )
         actions = actions.concat([
           Chat2Gen.createMetaRequestTrusted({
@@ -857,9 +853,7 @@ const onChatThreadStale = (
         ])
       } else if (conversationIDKeys.length > 0) {
         logger.info(
-          `onChatThreadStale: dispatching thread reload actions for ${
-            conversationIDKeys.length
-          } convs of type ${key}`
+          `onChatThreadStale: dispatching thread reload actions for ${conversationIDKeys.length} convs of type ${key}`
         )
         actions = actions.concat([
           Chat2Gen.createMarkConversationsStale({
@@ -2074,15 +2068,15 @@ function* attachmentFullscreenNext(state: TypedState, action: Chat2Gen.Attachmen
   const currentSelection = state.chat2.attachmentFullscreenSelection
   const currentFullscreen = currentSelection ? currentSelection.message : blankMessage
   yield Saga.put(Chat2Gen.createAttachmentFullscreenSelection({autoPlay: false, message: blankMessage}))
-  const nextAttachmentRes: Saga.RPCPromiseType<
-    typeof RPCChatTypes.localGetNextAttachmentMessageLocalRpcPromise
-  > = yield RPCChatTypes.localGetNextAttachmentMessageLocalRpcPromise({
-    assetTypes: [RPCChatTypes.AssetMetadataType.image, RPCChatTypes.AssetMetadataType.video],
-    backInTime,
-    convID: Types.keyToConversationID(conversationIDKey),
-    identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-    messageID,
-  })
+  const nextAttachmentRes: Saga.RPCPromiseType<typeof RPCChatTypes.localGetNextAttachmentMessageLocalRpcPromise> = yield RPCChatTypes.localGetNextAttachmentMessageLocalRpcPromise(
+    {
+      assetTypes: [RPCChatTypes.AssetMetadataType.image, RPCChatTypes.AssetMetadataType.video],
+      backInTime,
+      convID: Types.keyToConversationID(conversationIDKey),
+      identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+      messageID,
+    }
+  )
 
   let nextMsg = currentFullscreen
   if (nextAttachmentRes.message) {
@@ -2744,9 +2738,7 @@ function* createConversation(
     return
   }
 
-  const result: Saga.RPCPromiseType<
-    typeof RPCChatTypes.localNewConversationLocalRpcPromise
-  > = yield RPCChatTypes.localNewConversationLocalRpcPromise(
+  const result: Saga.RPCPromiseType<typeof RPCChatTypes.localNewConversationLocalRpcPromise> = yield RPCChatTypes.localNewConversationLocalRpcPromise(
     {
       identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
       membersType: RPCChatTypes.ConversationMembersType.impteamnative,
@@ -2858,15 +2850,11 @@ function* setConvExplodingMode(
       const e: RPCError = _e
       if (seconds !== 0) {
         logger.error(
-          `Failed to set exploding mode for conversation ${conversationIDKey} to ${seconds}. Service responded with: ${
-            e.message
-          }`
+          `Failed to set exploding mode for conversation ${conversationIDKey} to ${seconds}. Service responded with: ${e.message}`
         )
       } else {
         logger.error(
-          `Failed to unset exploding mode for conversation ${conversationIDKey}. Service responded with: ${
-            e.message
-          }`
+          `Failed to unset exploding mode for conversation ${conversationIDKey}. Service responded with: ${e.message}`
         )
       }
       if (ignoreErrors.includes(e.code)) {
@@ -2882,9 +2870,7 @@ function* handleSeeingWallets(
   __: Chat2Gen.HandleSeeingWalletsPayload,
   logger: Saga.SagaLogger
 ) {
-  const gregorState: Saga.RPCPromiseType<
-    typeof RPCTypes.gregorGetStateRpcPromise
-  > = yield RPCTypes.gregorGetStateRpcPromise()
+  const gregorState: Saga.RPCPromiseType<typeof RPCTypes.gregorGetStateRpcPromise> = yield RPCTypes.gregorGetStateRpcPromise()
   const seenWallets =
     gregorState.items &&
     gregorState.items.some(i => i.item && i.item.category === Constants.seenWalletsGregorKey)
@@ -2902,9 +2888,7 @@ function* handleSeeingWallets(
     logger.info('handleSeeingWallets: successfully set seenWalletsGregorKey')
   } catch (err) {
     logger.error(
-      `handleSeeingWallets: failed to set seenWalletsGregorKey. Local state might not persist on restart. Error: ${
-        err.message
-      }`
+      `handleSeeingWallets: failed to set seenWalletsGregorKey. Local state might not persist on restart. Error: ${err.message}`
     )
   }
 }
@@ -2924,9 +2908,7 @@ function* loadStaticConfig(
       version: action.payload.version,
     })
   )
-  const res: Saga.RPCPromiseType<
-    typeof RPCChatTypes.localGetStaticConfigRpcPromise
-  > = yield RPCChatTypes.localGetStaticConfigRpcPromise()
+  const res: Saga.RPCPromiseType<typeof RPCChatTypes.localGetStaticConfigRpcPromise> = yield RPCChatTypes.localGetStaticConfigRpcPromise()
   if (!res.deletableByDeleteHistory) {
     logger.error('chat.loadStaticConfig: got no deletableByDeleteHistory in static config')
     return

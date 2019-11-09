@@ -54,6 +54,9 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
 const mapDispatchToProps = () => ({})
 const mergeProps = (stateProps, dispatchProps) => ({...stateProps, ...dispatchProps})
 
-export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'BottomMessage')(
-  BottomMessage
-) as any
+export default namedConnect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'BottomMessage'
+)(BottomMessage) as any

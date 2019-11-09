@@ -422,9 +422,9 @@ class User extends React.Component<Props, State> {
     const friends = this.state.selectedFollowing ? this.props.following : this.props.followers
     const {itemsInARow, itemWidth} = widthToDimentions(this.state.width)
     // TODO memoize?
-    let chunks: Array<
-      Array<string> | {type: 'noFriends'; text: string} | {type: 'loading'; text: string}
-    > = this.state.width ? chunk(friends, itemsInARow) : []
+    let chunks: Array<| Array<string>
+    | {type: 'noFriends'; text: string}
+    | {type: 'loading'; text: string}> = this.state.width ? chunk(friends, itemsInARow) : []
     if (chunks.length === 0) {
       if (this.props.following && this.props.followers) {
         chunks.push({

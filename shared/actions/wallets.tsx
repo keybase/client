@@ -227,9 +227,7 @@ function* requestPayment(state: TypedState, _: WalletsGen.RequestPaymentPayload,
   }
   if (!buildRes.readyToRequest) {
     logger.warn(
-      `invalid form submitted. amountErr: ${buildRes.amountErrMsg}; secretNoteErr: ${
-        buildRes.secretNoteErrMsg
-      }; toErrMsg: ${buildRes.toErrMsg}`
+      `invalid form submitted. amountErr: ${buildRes.amountErrMsg}; secretNoteErr: ${buildRes.secretNoteErrMsg}; toErrMsg: ${buildRes.toErrMsg}`
     )
     yield Saga.put(
       WalletsGen.createBuiltRequestReceived({
@@ -240,9 +238,7 @@ function* requestPayment(state: TypedState, _: WalletsGen.RequestPaymentPayload,
     return false
   }
 
-  const kbRqID: Saga.RPCPromiseType<
-    typeof RPCStellarTypes.localMakeRequestLocalRpcPromise
-  > = yield RPCStellarTypes.localMakeRequestLocalRpcPromise(
+  const kbRqID: Saga.RPCPromiseType<typeof RPCStellarTypes.localMakeRequestLocalRpcPromise> = yield RPCStellarTypes.localMakeRequestLocalRpcPromise(
     {
       amount: state.wallets.building.amount,
       // FIXME -- support other assets.
@@ -1660,9 +1656,7 @@ function* loadStaticConfig(state: TypedState, action: ConfigGen.DaemonHandshakeP
   )
 
   try {
-    const res: Saga.RPCPromiseType<
-      typeof RPCStellarTypes.localGetStaticConfigLocalRpcPromise
-    > = yield RPCStellarTypes.localGetStaticConfigLocalRpcPromise()
+    const res: Saga.RPCPromiseType<typeof RPCStellarTypes.localGetStaticConfigLocalRpcPromise> = yield RPCStellarTypes.localGetStaticConfigLocalRpcPromise()
     yield Saga.put(
       WalletsGen.createStaticConfigLoaded({
         staticConfig: I.Record(res)(),

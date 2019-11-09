@@ -39,11 +39,7 @@ const dataToProps = mapProps(
 )
 
 // Actions are handled by remote-container
-const RemotePinentry = compose(
-  dataToProps,
-  SyncBrowserWindow,
-  SyncProps(serialize)
-)(NullComponent)
+const RemotePinentry = compose(dataToProps, SyncBrowserWindow, SyncProps(serialize))(NullComponent)
 
 type Props = {
   darkMode: boolean

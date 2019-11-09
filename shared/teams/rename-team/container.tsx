@@ -47,6 +47,9 @@ const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   waiting: stateProps.waiting,
 })
 
-export default Container.namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'RenameTeam')(
-  RenameTeam
-)
+export default Container.namedConnect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'RenameTeam'
+)(RenameTeam)
