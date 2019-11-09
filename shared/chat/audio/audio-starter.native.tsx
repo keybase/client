@@ -177,7 +177,7 @@ const AudioStarter = (props: AudioStarterProps) => {
           ref={panRef}
           simultaneousHandlers={tapRef}
         >
-          <Kb.NativeView style={{height: 32, justifyContent: 'center', width: 32}}>
+          <Kb.NativeView>
             <Kb.Icon type="iconfont-mic" style={Kb.iconCastPlatformStyles(props.iconStyle)} />
           </Kb.NativeView>
         </Kb.PanGestureHandler>
