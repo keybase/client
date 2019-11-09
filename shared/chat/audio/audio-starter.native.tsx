@@ -57,6 +57,8 @@ const AudioStarter = (props: AudioStarterProps) => {
   let longPressTimer
   const locked = React.useRef<boolean>(false)
   const tapLive = React.useRef<boolean>(false)
+  const tapRef = React.useRef(null)
+  const panRef = React.useRef(null)
   const [showToolTip, setShowToolTip] = React.useState(false)
   const showToolTipFalseLater = Kb.useTimeout(() => {
     setShowToolTip(false)
@@ -91,6 +93,9 @@ const AudioStarter = (props: AudioStarterProps) => {
         <Tooltip shouldBeVisible={showToolTip} />
       </Gateway>
       <Kb.TapGestureHandler
+        maxDeltaX={100}
+        maxDeltaY={100}
+        maxDurationMs={1000}
         onHandlerStateChange={({nativeEvent}) => {
           if (!props.recording && nativeEvent.state === Kb.GestureState.BEGAN) {
             tapLive.current = true
@@ -100,7 +105,7 @@ const AudioStarter = (props: AudioStarterProps) => {
                   props.enableRecording()
                   setShowToolTip(false)
                 }
-              }, 200)
+              }, 100)
             }
           }
           if (
@@ -127,6 +132,8 @@ const AudioStarter = (props: AudioStarterProps) => {
             }
           }
         }}
+        ref={tapRef}
+        simultaneousHandlers={panRef}
       >
         <Kb.PanGestureHandler
           minDeltaX={0}
@@ -167,6 +174,8 @@ const AudioStarter = (props: AudioStarterProps) => {
               }
             }
           }}
+          ref={panRef}
+          simultaneousHandlers={tapRef}
         >
           <Kb.NativeView>
             <Kb.Icon type="iconfont-mic" style={Kb.iconCastPlatformStyles(props.iconStyle)} />
