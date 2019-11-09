@@ -7,7 +7,7 @@ export type Props = {
   onHidden: () => void
   selected: number
   onSelect: (arg0: number) => void
-  items: MessageExplodeDescription[]
+  items: ReadonlyArray<MessageExplodeDescription>
 }
 export declare class SetExplodingPopup extends React.Component<Props> {}
 export default SetExplodingPopup

@@ -20,7 +20,7 @@ export const rpcDeviceToDevice = (d: RPCTypes.DeviceDetail): Types.Device =>
     type: Types.stringToDeviceType(d.device.type),
   })
 
-const emptyDevice: Types.Device = {
+const emptyDevice: Types.Device = Object.freeze({
   created: 0,
   currentDevice: false,
   deviceID: Types.stringToDeviceID(''),
@@ -28,7 +28,7 @@ const emptyDevice: Types.Device = {
   lastUsed: 0,
   name: '',
   type: Types.stringToDeviceType('desktop'),
-}
+})
 
 export const makeDevice = (d?: Partial<Types.Device>): Types.Device =>
   d ? Object.assign({...emptyDevice}, d) : emptyDevice

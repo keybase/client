@@ -11,11 +11,11 @@ import * as TeamBuildingConstants from './team-building'
 import {RetentionPolicy} from './types/retention-policy'
 import {TypedState} from './reducer'
 
-export const teamRoleTypes = ['reader', 'writer', 'admin', 'owner']
+export const teamRoleTypes = Object.freeze(['reader', 'writer', 'admin', 'owner'])
 
-export const rpcMemberStatusToStatus = invert(RPCTypes.TeamMemberStatus) as {
+export const rpcMemberStatusToStatus = Object.freeze(invert(RPCTypes.TeamMemberStatus) as {
   [K in RPCTypes.TeamMemberStatus]: keyof typeof RPCTypes.TeamMemberStatus
-}
+})
 
 // Waiting keys
 // Add granularity as necessary
@@ -232,19 +232,39 @@ export const initialCanUserPerform: RPCTypes.TeamOperation = {
 }
 
 const dayInS = 3600 * 24
-const policyInherit = makeRetentionPolicy({title: '', type: 'inherit'})
-const policyRetain = makeRetentionPolicy({title: 'Never auto-delete', type: 'retain'})
-const policyThirtySeconds = makeRetentionPolicy({seconds: 30, title: '30 seconds', type: 'explode'})
-const policyFiveMinutes = makeRetentionPolicy({seconds: 5 * 60, title: '5 minutes', type: 'explode'})
-const policyOneHour = makeRetentionPolicy({seconds: 3600, title: '60 minutes', type: 'explode'})
-const policySixHours = makeRetentionPolicy({seconds: 3600 * 6, title: '6 hours', type: 'explode'})
-const policyOneDay = makeRetentionPolicy({seconds: dayInS, title: '24 hours', type: 'explode'})
-const policyThreeDays = makeRetentionPolicy({seconds: 3 * dayInS, title: '3 days', type: 'explode'})
-const policySevenDays = makeRetentionPolicy({seconds: 7 * dayInS, title: '7 days', type: 'explode'})
-const policyMonth = makeRetentionPolicy({seconds: 30 * dayInS, title: '30 days', type: 'expire'})
-const policyThreeMonths = makeRetentionPolicy({seconds: 90 * dayInS, title: '90 days', type: 'expire'})
-const policySixMonths = makeRetentionPolicy({seconds: 180 * dayInS, title: '180 days', type: 'expire'})
-const policyYear = makeRetentionPolicy({seconds: 365 * dayInS, title: '365 days', type: 'expire'})
+const policyInherit = Object.freeze(makeRetentionPolicy({title: '', type: 'inherit'}))
+const policyRetain = Object.freeze(makeRetentionPolicy({title: 'Never auto-delete', type: 'retain'}))
+const policyThirtySeconds = Object.freeze(
+  makeRetentionPolicy({seconds: 30, title: '30 seconds', type: 'explode'})
+)
+const policyFiveMinutes = Object.freeze(
+  makeRetentionPolicy({seconds: 5 * 60, title: '5 minutes', type: 'explode'})
+)
+const policyOneHour = Object.freeze(
+  makeRetentionPolicy({seconds: 3600, title: '60 minutes', type: 'explode'})
+)
+const policySixHours = Object.freeze(
+  makeRetentionPolicy({seconds: 3600 * 6, title: '6 hours', type: 'explode'})
+)
+const policyOneDay = Object.freeze(makeRetentionPolicy({seconds: dayInS, title: '24 hours', type: 'explode'}))
+const policyThreeDays = Object.freeze(
+  makeRetentionPolicy({seconds: 3 * dayInS, title: '3 days', type: 'explode'})
+)
+const policySevenDays = Object.freeze(
+  makeRetentionPolicy({seconds: 7 * dayInS, title: '7 days', type: 'explode'})
+)
+const policyMonth = Object.freeze(
+  makeRetentionPolicy({seconds: 30 * dayInS, title: '30 days', type: 'expire'})
+)
+const policyThreeMonths = Object.freeze(
+  makeRetentionPolicy({seconds: 90 * dayInS, title: '90 days', type: 'expire'})
+)
+const policySixMonths = Object.freeze(
+  makeRetentionPolicy({seconds: 180 * dayInS, title: '180 days', type: 'expire'})
+)
+const policyYear = Object.freeze(
+  makeRetentionPolicy({seconds: 365 * dayInS, title: '365 days', type: 'expire'})
+)
 export const baseRetentionPolicies = [
   policyRetain,
   policyYear,

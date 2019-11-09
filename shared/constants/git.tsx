@@ -3,7 +3,7 @@ import * as RPCTypes from './types/rpc-gen'
 import moment from 'moment'
 import {TypedState} from './reducer'
 
-const emptyInfo = {
+const emptyInfo = Object.freeze({
   canDelete: false,
   chatDisabled: false,
   devicename: '',
@@ -13,7 +13,8 @@ const emptyInfo = {
   name: '',
   repoID: '',
   url: '',
-}
+})
+
 export const makeGitInfo = (i?: Partial<Types.GitInfo>): Types.GitInfo =>
   i ? Object.assign({...emptyInfo}, i) : emptyInfo
 

@@ -114,11 +114,7 @@ const audioActions: Container.ActionHandler<Actions, Types.State> = {
     const {conversationIDKey, outboxID, path} = action.payload
     const {audioRecording} = draftState
     const info = audioRecording.get(conversationIDKey)
-    if (info) {
-      if (info.status !== Types.AudioRecordingStatus.INITIAL) {
-        return
-      }
-      audioRecording.set(conversationIDKey, info)
+    if (info && info.status !== Types.AudioRecordingStatus.INITIAL) {
       info.outboxID = outboxID
       info.path = path
       info.status = Types.AudioRecordingStatus.RECORDING

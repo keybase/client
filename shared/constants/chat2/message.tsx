@@ -121,26 +121,28 @@ export const serviceMessageTypeToMessageTypes = (t: RPCChatTypes.MessageType): A
       return []
   }
 }
-export const allMessageTypes: Set<Types.MessageType> = new Set([
-  'attachment',
-  'deleted',
-  'requestPayment',
-  'sendPayment',
-  'setChannelname',
-  'setDescription',
-  'systemAddedToTeam',
-  'systemChangeRetention',
-  'systemGitPush',
-  'systemInviteAccepted',
-  'systemJoined',
-  'systemLeft',
-  'systemSBSResolved',
-  'systemSimpleToComplex',
-  'systemText',
-  'systemUsersAddedToConversation',
-  'text',
-  'placeholder',
-])
+export const allMessageTypes = Object.freeze(
+  new Set<Types.MessageType>([
+    'attachment',
+    'deleted',
+    'requestPayment',
+    'sendPayment',
+    'setChannelname',
+    'setDescription',
+    'systemAddedToTeam',
+    'systemChangeRetention',
+    'systemGitPush',
+    'systemInviteAccepted',
+    'systemJoined',
+    'systemLeft',
+    'systemSBSResolved',
+    'systemSimpleToComplex',
+    'systemText',
+    'systemUsersAddedToConversation',
+    'text',
+    'placeholder',
+  ])
+)
 
 // The types here are askew. It confuses frontend MessageType with protocol MessageType.
 // Placeholder is an example where it doesn't make sense.
@@ -155,16 +157,16 @@ type Minimum = {
   timestamp: number
 }
 
-const makeMessageMinimum = {
+const makeMessageMinimum = Object.freeze({
   author: '',
   bodySummary: new HiddenString(''),
   conversationIDKey: noConversationIDKey,
   id: Types.numberToMessageID(0),
   ordinal: Types.numberToOrdinal(0),
   timestamp: 0,
-}
+})
 
-const makeMessageCommon = {
+const makeMessageCommon = Object.freeze({
   ...makeMessageMinimum,
   deviceName: '',
   deviceRevokedAt: null,
@@ -173,21 +175,21 @@ const makeMessageCommon = {
   errorTyp: null,
   hasBeenEdited: false,
   outboxID: Types.stringToOutboxID(''),
-}
+})
 
-const makeMessageCommonNoDeleteNoEdit = {
+const makeMessageCommonNoDeleteNoEdit = Object.freeze({
   ...makeMessageCommon,
   isDeleteable: false,
   isEditable: false,
-}
+})
 
-const makeMessageExplodable = {
+const makeMessageExplodable = Object.freeze({
   exploded: false,
   explodedBy: '',
   exploding: false,
   explodingTime: Date.now(),
   explodingUnreadable: false,
-}
+})
 
 export const howLongBetweenTimestampsMs: number = 1000 * 60 * 15
 
@@ -1083,9 +1085,9 @@ const errorUIMessagetoMessage = (
   })
 }
 
-export const journeyCardTypeToType = invert(RPCChatTypes.JourneycardType) as {
+export const journeyCardTypeToType = Object.freeze(invert(RPCChatTypes.JourneycardType) as {
   [K in RPCChatTypes.JourneycardType]: keyof typeof RPCChatTypes.JourneycardType
-}
+})
 
 const journeycardUIMessageToMessage = (
   conversationIDKey: Types.ConversationIDKey,
@@ -1227,7 +1229,7 @@ const imageFileNameRegex = /[^/]+\.(jpg|png|gif|jpeg|bmp)$/i
 export const pathToAttachmentType = (path: string) => (imageFileNameRegex.test(path) ? 'image' : 'file')
 export const isSpecialMention = (s: string) => ['here', 'channel', 'everyone'].includes(s)
 
-export const specialMentions = ['here', 'channel', 'everyone']
+export const specialMentions = Object.freeze(['here', 'channel', 'everyone'])
 
 export const mergeMessage = (old: Types.Message | null, m: Types.Message) => {
   if (!old) {
@@ -1344,16 +1346,18 @@ export const shouldShowPopup = (state: TypedState, message: Types.Message) => {
   }
 }
 
-export const messageExplodeDescriptions: Types.MessageExplodeDescription[] = [
-  {seconds: 30, text: '30 seconds'},
-  {seconds: 300, text: '5 minutes'},
-  {seconds: 3600, text: '60 minutes'},
-  {seconds: 3600 * 6, text: '6 hours'},
-  {seconds: 86400, text: '24 hours'},
-  {seconds: 86400 * 3, text: '3 days'},
-  {seconds: 86400 * 7, text: '7 days'},
-  {seconds: 0, text: 'Never explode (turn off)'},
-].reverse()
+export const messageExplodeDescriptions = Object.freeze(
+  new Array<Types.MessageExplodeDescription>(
+    {seconds: 30, text: '30 seconds'},
+    {seconds: 300, text: '5 minutes'},
+    {seconds: 3600, text: '60 minutes'},
+    {seconds: 3600 * 6, text: '6 hours'},
+    {seconds: 86400, text: '24 hours'},
+    {seconds: 86400 * 3, text: '3 days'},
+    {seconds: 86400 * 7, text: '7 days'},
+    {seconds: 0, text: 'Never explode (turn off)'}
+  ).reverse()
+)
 
 export const messageAttachmentTransferStateToProgressLabel = (
   transferState: Types.MessageAttachmentTransferState

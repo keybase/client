@@ -388,7 +388,7 @@ type _MessagesExplodedPayload = {
 }
 type _MessagesWereDeletedPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
-  readonly messageIDs?: Array<RPCChatTypes.MessageID>
+  readonly messageIDs?: ReadonlyArray<RPCChatTypes.MessageID>
   readonly upToMessageID?: RPCChatTypes.MessageID
   readonly deletableMessageTypes?: Set<Types.MessageType>
   readonly ordinals?: Array<Types.Ordinal>

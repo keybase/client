@@ -2,8 +2,8 @@ import * as Types from './types/tracker2'
 import * as RPCTypes from './types/rpc-gen'
 import {TypedState} from './reducer'
 
-const emptyArray: any = []
-const emptyMap: any = new Map()
+const emptyArray: any = Object.freeze([])
+const emptyMap: any = Object.freeze(new Map())
 
 export const makeState = (): Types.State => ({
   proofSuggestions: emptyArray,

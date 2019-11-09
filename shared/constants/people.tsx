@@ -9,9 +9,9 @@ import {isMobile} from './platform'
 export const defaultNumFollowSuggestions = 10
 export const getPeopleDataWaitingKey = 'getPeopleData'
 
-export const todoTypeEnumToType = invert(RPCTypes.HomeScreenTodoType) as {
+export const todoTypeEnumToType = Object.freeze(invert(RPCTypes.HomeScreenTodoType) as {
   [K in Types.TodoTypeEnum]: Types.TodoType
-}
+})
 
 export const todoTypes: {[K in Types.TodoType]: Types.TodoType} = {
   addEmail: 'addEmail',
@@ -35,7 +35,7 @@ export const todoTypes: {[K in Types.TodoType]: Types.TodoType} = {
   verifyAllPhoneNumber: 'verifyAllPhoneNumber',
 }
 
-export const todoTypeToInstructions: {[K in Types.TodoType]: string} = {
+export const todoTypeToInstructions: {[K in Types.TodoType]: string} = Object.freeze({
   addEmail: 'Add an email address for security purposes, and to get important notifications.',
   addPhoneNumber: 'Add your phone number so your friends can find you.',
   annoncementPlaceholder: '',
@@ -62,8 +62,8 @@ export const todoTypeToInstructions: {[K in Types.TodoType]: string} = {
   teamShowcase: `Tip: Keybase team chats are private, but you can choose to publish that you're an admin. Check out the team settings on any team you manage.`,
   verifyAllEmail: '',
   verifyAllPhoneNumber: '',
-}
-export const todoTypeToConfirmLabel: {[K in Types.TodoType]: string} = {
+})
+export const todoTypeToConfirmLabel: {[K in Types.TodoType]: string} = Object.freeze({
   addEmail: 'Add email',
   addPhoneNumber: 'Add number',
   annoncementPlaceholder: '',
@@ -83,9 +83,9 @@ export const todoTypeToConfirmLabel: {[K in Types.TodoType]: string} = {
   teamShowcase: 'Set publicity settings',
   verifyAllEmail: 'Verify',
   verifyAllPhoneNumber: 'Verify',
-}
+})
 
-export const todoTypeToIcon: {[K in Types.TodoType]: IconType} = {
+export const todoTypeToIcon: {[K in Types.TodoType]: IconType} = Object.freeze({
   addEmail: 'icon-onboarding-email-add-48',
   addPhoneNumber: 'icon-onboarding-number-new-48',
   annoncementPlaceholder: 'iconfont-close',
@@ -105,7 +105,7 @@ export const todoTypeToIcon: {[K in Types.TodoType]: IconType} = {
   teamShowcase: 'icon-onboarding-team-publicity-48',
   verifyAllEmail: 'icon-onboarding-email-verify-48',
   verifyAllPhoneNumber: 'icon-onboarding-number-verify-48',
-} as const
+} as const)
 
 export function makeDescriptionForTodoItem(todo: RPCTypes.HomeScreenTodo) {
   const T = RPCTypes.HomeScreenTodoType

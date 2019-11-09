@@ -228,7 +228,7 @@
     // Mark a message as deleted
     "messagesWereDeleted": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "messageIDs?": "Array<RPCChatTypes.MessageID>",
+      "messageIDs?": "ReadonlyArray<RPCChatTypes.MessageID>",
       "upToMessageID?": "RPCChatTypes.MessageID", // expunge calls give us a message we should delete up to (don't delete it)
       "deletableMessageTypes?": "Set<Types.MessageType>", // expunge calls don't delete _all_ messages, only these types
       "ordinals?": "Array<Types.Ordinal>"

@@ -4,22 +4,19 @@ import * as Types from './types/team-building'
 import * as RPCTypes from './types/rpc-gen'
 import {serviceIdFromString} from '../util/platforms'
 
-const searchServices: Array<Types.ServiceId> = [
-  'keybase',
-  'twitter',
-  'facebook',
-  'github',
-  'reddit',
-  'hackernews',
-]
+const searchServices = Object.freeze(
+  new Array<Types.ServiceId>('keybase', 'twitter', 'facebook', 'github', 'reddit', 'hackernews')
+)
 
 // Order here determines order of tabs in team building
-export const allServices: Array<Types.ServiceIdWithContact> = [
-  ...searchServices.slice(0, 1),
-  'phone',
-  'email',
-  ...searchServices.slice(1),
-]
+export const allServices = Object.freeze(
+  Array.from<Types.ServiceIdWithContact>([
+    ...searchServices.slice(0, 1),
+    'phone',
+    'email',
+    ...searchServices.slice(1),
+  ])
+)
 
 export function serviceIdToPrettyName(serviceId: Types.ServiceId): string {
   return {

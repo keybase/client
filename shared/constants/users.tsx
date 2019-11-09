@@ -12,7 +12,7 @@ export const makeUserInfo = () => ({
   broken: false,
   fullname: '',
 })
-export const emptyUserInfo = makeUserInfo()
+export const emptyUserInfo = Object.freeze(makeUserInfo())
 
 export const makeState = () => ({
   infoMap: new Map(),

@@ -36,16 +36,9 @@ export type AppTab =
   | typeof settingsTab
 
 // Canonical ordering for desktop tabs, used visually and for hotkeys
-const desktopTabOrder: Array<AppTab> = [
-  peopleTab,
-  chatTab,
-  fsTab,
-  teamsTab,
-  walletsTab,
-  gitTab,
-  devicesTab,
-  settingsTab,
-]
+const desktopTabOrder = Object.freeze(
+  new Array<AppTab>(peopleTab, chatTab, fsTab, teamsTab, walletsTab, gitTab, devicesTab, settingsTab)
+)
 
 function isValidInitialTab(tab: Tab | null) {
   return isValidInitialTabString(tab)

@@ -416,7 +416,7 @@ export const makeConversationMeta = (): Types.ConversationMeta => ({
   wasFinalizedBy: '',
 })
 
-const emptyMeta = makeConversationMeta()
+const emptyMeta = Object.freeze(makeConversationMeta())
 export const getMeta = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.metaMap.get(id) || emptyMeta
 
@@ -480,7 +480,7 @@ export const getChannelForTeam = (state: TypedState, teamname: string, channelna
   [...state.chat2.metaMap.values()].find(m => m.teamname === teamname && m.channelname === channelname) ||
   emptyMeta
 
-const blankCommands: Array<RPCChatTypes.ConversationCommand> = []
+const blankCommands = Object.freeze(new Array<RPCChatTypes.ConversationCommand>())
 
 export const getCommands = (state: TypedState, id: Types.ConversationIDKey) => {
   const {commands} = getMeta(state, id)
