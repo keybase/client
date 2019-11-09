@@ -1178,7 +1178,7 @@ func TestRunnerLFS(t *testing.T) {
 	var output bytes.Buffer
 	r, err := newRunnerWithType(
 		ctx, config, "origin", "keybase://private/user1/test", "", inputReader,
-		&output, testErrput{t}, processLFS)
+		&output, testErrput{t}, processLFSNoProgress)
 	require.NoError(t, err)
 	err = r.processCommands(ctx)
 	require.NoError(t, err)
@@ -1224,7 +1224,7 @@ func TestRunnerLFS(t *testing.T) {
 	var output2 bytes.Buffer
 	r2, err := newRunnerWithType(
 		ctx, config, "origin", "keybase://private/user1/test", "", inputReader2,
-		&output2, testErrput{t}, processLFS)
+		&output2, testErrput{t}, processLFSNoProgress)
 	require.NoError(t, err)
 	err = r2.processCommands(ctx)
 	require.NoError(t, err)
