@@ -93,8 +93,8 @@ const AudioStarter = (props: AudioStarterProps) => {
         <Tooltip shouldBeVisible={showToolTip} />
       </Gateway>
       <Kb.TapGestureHandler
-        maxDeltaX={50}
-        maxDeltaY={50}
+        maxDeltaX={100}
+        maxDeltaY={100}
         maxDurationMs={1000}
         onHandlerStateChange={({nativeEvent}) => {
           if (!props.recording && nativeEvent.state === Kb.GestureState.BEGAN) {
