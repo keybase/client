@@ -539,9 +539,8 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
             )}
             {this.props.isRevoked && (
               <Kb.Icon
-                type="iconfont-exclamation"
-                color={Styles.globalColors.blue}
-                fontSize={14}
+                type="iconfont-rip"
+                color={Styles.globalColors.black_20}
                 style={styles.marginLeftTiny}
               />
             )}
