@@ -991,6 +991,9 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 	sender := NewBlockingSender(h.G(), h.boxer, h.remoteClient)
 	nonblockSender := NewNonblockingSender(h.G(), sender)
 	prepareOpts.ReplyTo = arg.ReplyTo
+	if arg.Msg.ClientHeader.Conv.TopicType == chat1.TopicType_NONE {
+		arg.Msg.ClientHeader.Conv.TopicType = chat1.TopicType_CHAT
+	}
 	obid, _, err := nonblockSender.Send(ctx, arg.ConversationID, arg.Msg, arg.ClientPrev, arg.OutboxID,
 		nil, &prepareOpts)
 	if err != nil {
