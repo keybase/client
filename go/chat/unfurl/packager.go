@@ -282,6 +282,7 @@ func (p *Packager) packageMaps(ctx context.Context, uid gregor1.UID, convID chat
 	if err != nil {
 		return res, err
 	}
+	defer avatarReader.Close()
 
 	// load map
 	var reader io.ReadCloser
