@@ -1713,6 +1713,7 @@ func (s *Deliverer) deliverForConv(ctx context.Context, obrs []chat1.OutboxRecor
 	for _, obr := range obrs {
 		bctx := globals.ChatCtx(context.Background(), s.G(), obr.IdentifyBehavior, &breaks,
 			s.identNotifier)
+
 		if s.testingNameInfoSource != nil {
 			bctx = globals.CtxAddOverrideNameInfoSource(bctx, s.testingNameInfoSource)
 		}

@@ -767,32 +767,13 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 		s.Debug(ctx, "ApplyLocalChatState: failed to get outbox: %v", oerr)
 	}
 
-	convIDs = nil
-	for _, obr := range obrs {
-		convIDs = append(convIDs, obr.ConvID)
-	}
-
-	_, convs, _, err = s.createInbox().Read(ctx, s.uid, &chat1.GetInboxQuery{
-		ConvIDs: convIDs,
-	}, nil)
-	if err != nil {
-		s.Debug(ctx, "ApplyLocalChatState: failed to get convs: %v", err)
-	}
-
-	obrConvMap := make(map[string]types.RemoteConversation)
-	for _, conv := range convs {
-		obrConvMap[conv.GetConvID().String()] = conv
-	}
-
 	// convID -> unreadCount
 	failedOutboxMap := make(map[string]int)
 	// convID -> mtime
 	localUpdates := make(map[string]chat1.LocalMtimeUpdate)
 	s.Debug(ctx, "ApplyLocalChatState: looking through %d outbox items for badgable errors", len(obrs))
 	for _, obr := range obrs {
-		conv := obrConvMap[obr.ConvID.String()]
-		if !(obr.Msg.IsBadgableType() && conv.GetTopicType() == chat1.TopicType_CHAT) {
-			s.Debug(ctx, "ApplyLocalChatState: skipping msgTyp: %v, topicType: %v", obr.Msg.MessageType(), conv.GetTopicType())
+		if !(obr.Msg.IsBadgableType() && obr.Msg.ClientHeader.Conv.TopicType == chat1.TopicType_CHAT) {
 			continue
 		}
 		state, err := obr.State.State()
