@@ -3,6 +3,7 @@ package avatars
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"image"
 	"image/color"
 	"image/png"
@@ -19,12 +20,22 @@ import (
 	"golang.org/x/image/draw"
 )
 
+const avatarPlaceholdder = "iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAAAAAB3tzPbAAADwElEQVR4Ae3bB5ayWBDF8dn/mi6CqNgNnYzntYFGMAs8ljAnT57PUFQ9z6n/Dn4djHV/a548BZCkAAUoQAEKUIACFKAABShAAQpQgAIUoAAFKEABClCAAhSgAAUoQAEKOG2+R+/xcDAYxu+j783pqQB7k/j4W35i9s8BOEy7+I+604PrALuK8L9FK+swoF6E+GXhonYVkHZxVd3UScAxxtXFR/cAxsMNecYxQJXgxpLKJcA+xM2Fe3cAuY878nNXAKmHu/JSNwBr3N3aBcDGw915G3nAroMH6uykAecADxWchQEveLAXWcAUDzeVBBQgqJAD2AEIGlgxgAFJRgpw7oCkzlkIMAZRYxlA2QFRnVIEMANZMwlA7YMsvxYApCAsFQDEICzmB1xA2oUdsARpS3bAB0j7YAcEIC3gBhxA3IEZsAJxK2bADMTNmAFvIO6NGdAHcX1mgA/ifGYAyOMFVCCvYgVcQN6FFXACeSdWQAnySlaABXmWFdB4IM5reAEBiAuYAUMQN2QGfIG4L2aAAXGGGZCBuIwZUIG4ihnQRCAtargBE5A2YQfkIC1nB9gAhAWWHdBM6P+CeAF7ELYXADQR/esIXkAKsn5EAE2f/iMVXsAaRK1JAfz/BVEjBdiDpL0YoBmBoFEjByhDPFxYCgKanYcH83ayF1sGD2akj/7e8VDvjTSgfsUDvdbigKYc4O4GpQuXu5c+7qx/ceN2uhriroaVK9frdYI7Smp39gN2ipubWqcmKHmAmwpy1zY05wQ3lJwdnGFlPVxZL3NzR1bPA1xRMK+dnSJW5peEwFROj0Hr1Sv+p9dV7f4c92xePPxL3os5P8sgus5nSQ9/qpfM8vrZJun2UGTpcplmxcHqpl4BCng2QHna5lmarpbLVZpm+fZUPgfAnjbf4zjqevhHXjeKx9+bk3UVUBXmo4cr6n2YonIMUP6M+rip/uindAWQz+59TzzL5QHFKMADBaNCEnCcdPFw3clRBmDTGETFqWUHVKYLwrqmYgXUhv7kzNRsAGsCtFBgLA+g6KOl+gUD4PKJFvu8tA3IfLSan7UKsBO03sS2BzhHYCg6twU4hGApPLQD2AVgKti1Acg7YKuT0wMOPhjzD9SASwjWwgstwA7B3NCSAmZgb0YJ2Htgz9sTAiIIFNEBUoj0QwaIIFJEBSggVEEEGEGoEREghFAhDeAIsY4kgCXEWpIA5hBrTgIYQawRCeAdYr2TABKIlShAAf+WAhSgAAUoQAEKUIACFKAABShAAQpQgAIUoIDfAUJ3U+9hO4+uAAAAAElFTkSuQmCC"
+
+func getAvatarPlaceholder() io.ReadCloser {
+	dat, _ := base64.StdEncoding.DecodeString(avatarPlaceholdder)
+	return ioutil.NopCloser(bytes.NewBuffer(dat))
+}
+
 func FetchAvatar(ctx context.Context, g *globals.Context, username string) (res io.ReadCloser, err error) {
 	avMap, err := g.GetAvatarLoader().LoadUsers(libkb.NewMetaContext(ctx, g.ExternalG()), []string{username}, []keybase1.AvatarFormat{"square_192"})
 	if err != nil {
-		return
+		return res, err
 	}
 	avatarURL := avMap.Picmap[username]["square_192"].String()
+	if len(avatarURL) == 0 {
+		return getAvatarPlaceholder(), nil
+	}
 
 	var avatarReader io.ReadCloser
 	parsed, err := url.Parse(avatarURL)
@@ -38,7 +49,11 @@ func FetchAvatar(ctx context.Context, g *globals.Context, username string) (res 
 		if err != nil {
 			return res, err
 		}
-		avatarReader = avResp.Body
+		if avResp.StatusCode >= 400 {
+			avatarReader = getAvatarPlaceholder()
+		} else {
+			avatarReader = avResp.Body
+		}
 	case "file":
 		filePath := parsed.Path
 		if runtime.GOOS == "windows" && len(filePath) > 0 {
@@ -49,7 +64,6 @@ func FetchAvatar(ctx context.Context, g *globals.Context, username string) (res 
 			return res, err
 		}
 	}
-
 	return avatarReader, nil
 }
 
