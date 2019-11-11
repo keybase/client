@@ -296,6 +296,11 @@ func (m *ChainManager) Tombstone(mctx libkb.MetaContext, id keybase1.TeamID) (er
 		},
 	}
 	_, err = m.loadAndMutate(mctx, arg)
+	_, ok := err.(TombstonedError)
+	if ok {
+		// Already tombstoned; no-op
+		return nil
+	}
 	return err
 }
 
