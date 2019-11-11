@@ -53,7 +53,7 @@ export type PlaintextProps = {
 }
 
 // Mobile handles spaces correctly so don't insert anything
-const space = Styles.isMobile ? `` : <>&nbsp;</>
+const space = Styles.isMobile ? ` ` : <>&nbsp;</>
 
 // common-adapters/profile-card.tsx already imports this, so have it assign
 // this here instead of importing directly to avoid an import cycle.
