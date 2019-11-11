@@ -1902,12 +1902,6 @@ func TestTeamMetadataUpdateNotifications(t *testing.T) {
 	tt.users[0].addTeamMember(parentName.String(), tt.users[1].username, keybase1.TeamRole_ADMIN)
 	tt.users[1].waitForMetadataUpdateGregor("added to team")
 
-	tt.users[0].changeTeamMember(parentName.String(), tt.users[1].username, keybase1.TeamRole_WRITER)
-	tt.users[1].waitForMetadataUpdateGregor("no longer impadmin")
-
-	tt.users[0].changeTeamMember(parentName.String(), tt.users[1].username, keybase1.TeamRole_ADMIN)
-	tt.users[1].waitForMetadataUpdateGregor("back to admin")
-
 	subsubteamRename, err := subteamName.Append("cc2")
 	require.NoError(t, err)
 	err = teams.RenameSubteam(context.TODO(), tt.users[0].tc.G, subsubteamName, subsubteamRename)
