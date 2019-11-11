@@ -15,7 +15,7 @@ type VisProps = {
 const AudioVis = (props: VisProps) => {
   let maxHeight = 0
   const content = props.amps.map((amp, index) => {
-    const height = Math.min(1.0, Math.max(amp, 0.05)) * props.height
+    const height = Math.min(1.0, Math.max(Math.sqrt(amp), 0.05)) * props.height
     if (height >= maxHeight) {
       maxHeight = height
     }

@@ -10,7 +10,11 @@ class AudioVideo extends React.Component<Props> {
     }
   }
   render() {
-    return this.props.url.length > 0 ? (
+    if (this.props.url.length === 0 || !this.props.url.match(/^(file|https?):/)) {
+      // try not to crash out on iOS
+      return null
+    }
+    return (
       <RNVideo
         ref={this.vidRef}
         source={{uri: this.props.url}}
@@ -18,7 +22,7 @@ class AudioVideo extends React.Component<Props> {
         paused={this.props.paused}
         ignoreSilentSwitch="ignore"
       />
-    ) : null
+    )
   }
 }
 
