@@ -1,5 +1,5 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-import * as I from 'immutable'
+
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/fs'
 import * as ChatTypes from '../constants/types/chat2'
@@ -206,7 +206,7 @@ type _SetPathItemActionMenuDownloadPayload = {
 }
 type _SetPathItemActionMenuViewPayload = {readonly view: Types.PathItemActionMenuView}
 type _SetPathSoftErrorPayload = {readonly path: Types.Path; readonly softError: Types.SoftError | null}
-type _SetPreferredMountDirsPayload = {readonly preferredMountDirs: I.List<string>}
+type _SetPreferredMountDirsPayload = {readonly preferredMountDirs: Array<string>}
 type _SetSendAttachmentToChatConvIDPayload = {readonly convID: ChatTypes.ConversationIDKey}
 type _SetSendAttachmentToChatFilterPayload = {readonly filter: string}
 type _SetSendAttachmentToChatTitlePayload = {readonly title: string}

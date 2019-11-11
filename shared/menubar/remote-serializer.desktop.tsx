@@ -51,7 +51,7 @@ export const serialize: any = {
   fileRows: (v: FileRows, o: FileRows) =>
     o && v._tlfUpdates === o._tlfUpdates && v._uploads === o._uploads
       ? null
-      : v._tlfUpdates.map(t => GetRowsFromTlfUpdate(t, v._uploads)).toArray(),
+      : v._tlfUpdates.map(t => GetRowsFromTlfUpdate(t, v._uploads)),
   files: (v: number) => v,
   kbfsDaemonStatus: (v: FSTypes.KbfsDaemonStatus) => v,
   kbfsEnabled: (v: boolean) => v,

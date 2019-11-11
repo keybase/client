@@ -186,17 +186,17 @@ export const createStoreWithCommon = () => {
       pathInfos: I.Map([
         [
           '/keybase/private/meatball/folder/treat',
-          FsConstants.makePathInfo({
+          {
             deeplinkPath: 'keybase://private/meatball/folder/treat',
             platformAfterMountPath: '/private/meatball/folder/treat',
-          }),
+          },
         ],
       ]),
-      sfmi: FsConstants.makeSystemFileManagerIntegration({
+      sfmi: {
         directMountDir: '/Volumes/Keybase (meatball)',
-        driverStatus: FsConstants.makeDriverStatusEnabled(),
+        driverStatus: FsConstants.emptyDriverStatusEnabled,
         preferredMountDirs: I.List(['/Volumes/Keybase', '/Volumes/Keybase (meatball)']),
-      }),
+      },
     },
     tracker2: {
       ...root.tracker2,

@@ -217,9 +217,10 @@ const loadSettings = async () => {
   try {
     const settings = await RPCTypes.SimpleFSSimpleFSSettingsRpcPromise()
     return FsGen.createSettingsLoaded({
-      settings: Constants.makeSettings({
+      settings: {
+        ...Constants.emptySettings,
         spaceAvailableNotificationThreshold: settings.spaceAvailableNotificationThreshold,
-      }),
+      },
     })
   } catch (_) {
     return FsGen.createSettingsLoaded({})
@@ -834,10 +835,10 @@ const loadPathInfo = async (_: TypedState, action: FsGen.LoadPathInfoPayload) =>
   })
   return FsGen.createLoadedPathInfo({
     path: action.payload.path,
-    pathInfo: Constants.makePathInfo({
+    pathInfo: {
       deeplinkPath: pathInfo.deeplinkPath,
       platformAfterMountPath: pathInfo.platformAfterMountPath,
-    }),
+    },
   })
 }
 
