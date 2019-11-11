@@ -53,6 +53,9 @@ module.exports = {
   get ConfirmModal() {
     return require('./confirm-modal/index').default
   },
+  get ConnectedAvatarAnim() {
+    return require('./avataranim/container').default
+  },
   get ConnectedNameWithIcon() {
     // explicitly require this to make popup work if it's not been imported
     // explicitly

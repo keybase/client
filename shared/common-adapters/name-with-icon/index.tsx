@@ -12,6 +12,7 @@ type Size = 'smaller' | 'small' | 'default' | 'big' | 'huge'
 // Exposed style props for the top-level container and box around metadata arbitrarily
 export type NameWithIconProps = {
   avatarImageOverride?: string
+  avatarElement?: React.ReactNode
   avatarSize?: AvatarSize
   avatarStyle?: Styles.StylesCrossPlatform
   colorBroken?: boolean
@@ -63,7 +64,9 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
     const adapterProps = getAdapterProps(this.props.size || 'default')
 
     let avatarOrIcon
-    if (isAvatar) {
+    if (this.props.avatarElement) {
+      avatarOrIcon = this.props.avatarElement
+    } else if (isAvatar) {
       avatarOrIcon = (
         <Avatar
           imageOverrideUrl={this.props.avatarImageOverride}

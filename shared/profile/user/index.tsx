@@ -73,31 +73,35 @@ const SbsTitle = (p: SbsTitleProps) => (
     <Kb.Text type="HeaderBig">{p.sbsUsername}</Kb.Text>
   </Kb.Box2>
 )
-const BioLayout = (p: BioTeamProofsProps) => (
-  <Kb.Box2 direction="vertical" style={styles.bio}>
-    <Kb.ConnectedNameWithIcon
-      onClick={p.title === p.username ? 'profile' : noopOnClick}
-      title={
-        p.title !== p.username ? <SbsTitle sbsUsername={p.title} serviceIcon={p.serviceIcon} /> : undefined
-      }
-      username={p.username}
-      underline={false}
-      selectable={true}
-      colorFollowing={true}
-      notFollowingColorOverride={p.notAUser ? Styles.globalColors.black_50 : Styles.globalColors.orange}
-      editableIcon={!!p.onEditAvatar}
-      onEditIcon={p.onEditAvatar || undefined}
-      avatarSize={avatarSize}
-      size="huge"
-      avatarImageOverride={p.sbsAvatarUrl}
-      withProfileCardPopup={false}
-    />
-    <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
-      <Bio inTracker={false} username={p.username} />
-      <Actions username={p.username} />
+const BioLayout = (p: BioTeamProofsProps) => {
+  const avatar = (<Kb.ConnectedAvatarAnim username={p.username} size={128} />)
+  return (
+    <Kb.Box2 direction="vertical" style={styles.bio}>
+      <Kb.ConnectedNameWithIcon
+        onClick={p.title === p.username ? 'profile' : noopOnClick}
+        title={
+          p.title !== p.username ? <SbsTitle sbsUsername={p.title} serviceIcon={p.serviceIcon} /> : undefined
+        }
+        avatarElement={avatar}
+        username={p.username}
+        underline={false}
+        selectable={true}
+        colorFollowing={true}
+        notFollowingColorOverride={p.notAUser ? Styles.globalColors.black_50 : Styles.globalColors.orange}
+        editableIcon={!!p.onEditAvatar}
+        onEditIcon={p.onEditAvatar || undefined}
+        avatarSize={avatarSize}
+        size="huge"
+        avatarImageOverride={p.sbsAvatarUrl}
+        withProfileCardPopup={false}
+      />
+      <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
+        <Bio inTracker={false} username={p.username} />
+        <Actions username={p.username} />
+      </Kb.Box2>
     </Kb.Box2>
-  </Kb.Box2>
-)
+  )
+}
 
 const ProveIt = p => {
   let doWhat: string
