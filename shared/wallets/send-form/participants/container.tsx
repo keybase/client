@@ -12,7 +12,9 @@ import {appendWalletPersonBuilder} from '../../../actions/typed-routes'
 
 type OwnProps = {}
 
-const mapStateToPropsKeybaseUser = state => {
+
+const ConnectedParticipantsKeybaseUser = namedConnect(
+ state => {
   const build = state.wallets.building
   const built = build.isRequest ? state.wallets.builtRequest : state.wallets.builtPayment
 
@@ -22,9 +24,8 @@ const mapStateToPropsKeybaseUser = state => {
     isRequest: build.isRequest,
     recipientUsername: build.to,
   }
-}
-
-const mapDispatchToPropsKeybaseUser = dispatch => ({
+},
+ dispatch => ({
   onChangeRecipient: (to: string) => {
     dispatch(WalletsGen.createSetBuildingTo({to}))
   },
@@ -33,9 +34,8 @@ const mapDispatchToPropsKeybaseUser = dispatch => ({
   onRemoveProfile: () => dispatch(WalletsGen.createSetBuildingTo({to: ''})),
   onScanQRCode: isMobile ? () => dispatch(RouteTreeGen.createNavigateAppend({path: ['qrScan']})) : null,
   onSearch: () => dispatch(appendWalletPersonBuilder()),
-})
-
-const mergePropsKeybaseUser = (stateProps, dispatchProps, _: OwnProps) => {
+}),
+ (stateProps, dispatchProps, _: OwnProps) => {
   const onShowProfile = isMobile ? dispatchProps.onOpenUserProfile : dispatchProps.onOpenTracker
   return {
     ...stateProps,
@@ -45,16 +45,12 @@ const mergePropsKeybaseUser = (stateProps, dispatchProps, _: OwnProps) => {
     onSearch: dispatchProps.onSearch,
     onShowProfile,
   }
-}
-
-const ConnectedParticipantsKeybaseUser = namedConnect(
-  mapStateToPropsKeybaseUser,
-  mapDispatchToPropsKeybaseUser,
-  mergePropsKeybaseUser,
+},
   'ParticipantsKeybaseUser'
 )(ParticipantsKeybaseUser)
 
-const mapStateToPropsStellarPublicKey = state => {
+const ConnectedParticipantsStellarPublicKey = namedConnect(
+ state => {
   const build = state.wallets.building
   const built = build.isRequest ? state.wallets.builtRequest : state.wallets.builtPayment
 
@@ -62,9 +58,8 @@ const mapStateToPropsStellarPublicKey = state => {
     errorMessage: built.toErrMsg,
     recipientPublicKey: build.to,
   }
-}
-
-const mapDispatchToPropsStellarPublicKey = dispatch => ({
+},
+ dispatch => ({
   onChangeRecipient: (to: string) => {
     dispatch(WalletsGen.createSetBuildingTo({to}))
   },
@@ -72,12 +67,8 @@ const mapDispatchToPropsStellarPublicKey = dispatch => ({
   setReadyToReview: (readyToReview: boolean) => {
     dispatch(WalletsGen.createSetReadyToReview({readyToReview}))
   },
-})
-
-const ConnectedParticipantsStellarPublicKey = namedConnect(
-  mapStateToPropsStellarPublicKey,
-  mapDispatchToPropsStellarPublicKey,
-  (s, d, o) => ({...o, ...s, ...d}),
+}),
+  (s, d, o: OwnProps) => ({...o, ...s, ...d}),
   'ParticipantsStellarPublicKey'
 )(ParticipantsStellarPublicKey)
 
@@ -89,7 +80,8 @@ const makeAccount = (stateAccount: Types.Account) => ({
   unknown: stateAccount === Constants.unknownAccount,
 })
 
-const mapStateToPropsOtherAccount = state => {
+const ConnectedParticipantsOtherAccount = namedConnect(
+ state => {
   const build = state.wallets.building
 
   const fromAccount = makeAccount(Constants.getAccount(state, build.from))
@@ -111,9 +103,8 @@ const mapStateToPropsOtherAccount = state => {
     toAccount,
     user: state.config.username,
   }
-}
-
-const mapDispatchToPropsOtherAccount = dispatch => ({
+},
+dispatch => ({
   onChangeFromAccount: (from: Types.AccountID) => {
     dispatch(WalletsGen.createSetBuildingFrom({from}))
   },
@@ -132,19 +123,11 @@ const mapDispatchToPropsOtherAccount = dispatch => ({
         path: [{props: {fromSendForm: true}, selected: 'linkExisting'}],
       })
     ),
-})
-
-const ConnectedParticipantsOtherAccount = namedConnect(
-  mapStateToPropsOtherAccount,
-  mapDispatchToPropsOtherAccount,
-  (s, d, o) => ({...o, ...s, ...d}),
+}),
+  (s, d, o: OwnProps) => ({...o, ...s, ...d}),
   'ParticipantsOtherAccount'
 )(ParticipantsOtherAccount)
 
-const mapStateToPropsChooser = state => {
-  const recipientType = state.wallets.building.recipientType
-  return {recipientType}
-}
 
 const ParticipantsChooser = props => {
   switch (props.recipientType) {
@@ -164,9 +147,12 @@ const ParticipantsChooser = props => {
 }
 
 const ConnectedParticipantsChooser = namedConnect(
-  mapStateToPropsChooser,
+ state => {
+  const recipientType = state.wallets.building.recipientType
+  return {recipientType}
+},
   () => ({}),
-  (s, d, o) => ({...o, ...s, ...d}),
+  (s, d, o: OwnProps) => ({...o, ...s, ...d}),
   'Participants'
 )(ParticipantsChooser)
 

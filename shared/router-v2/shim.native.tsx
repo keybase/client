@@ -42,11 +42,11 @@ const shimNewRoute = (Original: any) => {
   return Container.connect(
     () => ({isDarkMode: Styles.isDarkMode()}),
     undefined,
-    (s, _, o) => ({
+    (s, _, o: Object) => ({
       ...s,
       ...o,
-      // @ts-ignore
     })
+      // @ts-ignore
   )(ShimmedNew)
 }
 const styles = Styles.styleSheetCreate(

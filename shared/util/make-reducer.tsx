@@ -14,6 +14,7 @@ function makeReducer<A, S>(initialState: S, map: ActionHandler<A, S>) {
   return (state: S = initialState, action: TypedActions): S =>
     // @ts-ignore
     produce(state, (draft: Draft<S>) => {
+      // @ts-ignore
       const actionReducer = map[action.type]
       return actionReducer ? actionReducer(draft, action) : undefined
     })

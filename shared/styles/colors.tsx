@@ -457,7 +457,7 @@ export const themed = names.reduce<Color>(
       get() {
         if (partyMode && isDarkMode()) {
           // sets all non-grayscale colors to magenta in dark mode when enabled
-          return partyFallbackColors[name] || '#FF00FF'
+          return (partyFallbackColors as any)[name] || '#FF00FF'
         }
 
         return isDarkMode() ? darkColors[name] : colors[name]

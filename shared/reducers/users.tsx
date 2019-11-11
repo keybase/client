@@ -21,12 +21,10 @@ const updateInfo = (map: Map<string, Types.UserInfo>, username: string, info: Pa
       ...info,
     }
 
-    // cleanup data structure so its not full of empty items
-  ;['fullname', 'broken', 'bio'].forEach(key => {
-    if (!next[key]) {
-      delete next[key]
-    }
-  })
+  // cleanup data structure so its not full of empty items
+  !next.fullname && delete next.fullname
+  !next.broken && delete next.broken
+  !next.bio && delete next.bio
 
   if (Object.keys(next).length) {
     map.set(username, next)
