@@ -1896,35 +1896,17 @@ func TestTeamMetadataUpdateNotifications(t *testing.T) {
 
 	t.Logf("Start testing metadata updates")
 
-	_, err = teams.Load(context.TODO(), tt.users[0].tc.G, keybase1.LoadTeamArg{Name: parentName.String(), ForceRepoll: true})
-	require.NoError(t, err)
 	tt.users[0].addTeamMember(subsubteamName.String(), tt.users[2].username, keybase1.TeamRole_ADMIN)
 	tt.users[2].waitForMetadataUpdateGregor("added to team")
 
-	_, err = teams.Load(context.TODO(), tt.users[0].tc.G, keybase1.LoadTeamArg{Name: parentName.String(), ForceRepoll: true})
-	require.NoError(t, err)
 	tt.users[0].addTeamMember(parentName.String(), tt.users[1].username, keybase1.TeamRole_ADMIN)
 	tt.users[1].waitForMetadataUpdateGregor("added to team")
 
-	_, err = teams.Load(context.TODO(), tt.users[0].tc.G, keybase1.LoadTeamArg{Name: parentName.String(), ForceRepoll: true})
-	require.NoError(t, err)
 	tt.users[0].changeTeamMember(parentName.String(), tt.users[1].username, keybase1.TeamRole_WRITER)
 	tt.users[1].waitForMetadataUpdateGregor("no longer impadmin")
 
-	_, err = teams.Load(context.TODO(), tt.users[0].tc.G, keybase1.LoadTeamArg{Name: parentName.String(), ForceRepoll: true})
-	require.NoError(t, err)
 	tt.users[0].changeTeamMember(parentName.String(), tt.users[1].username, keybase1.TeamRole_ADMIN)
 	tt.users[1].waitForMetadataUpdateGregor("back to admin")
-
-	_, err = teams.Load(context.TODO(), tt.users[0].tc.G, keybase1.LoadTeamArg{Name: parentName.String(), ForceRepoll: true})
-	require.NoError(t, err)
-	tt.users[0].removeTeamMember(parentName.String(), tt.users[1].username)
-	tt.users[1].waitForMetadataUpdateGregor("removed from team")
-
-	_, err = teams.Load(context.TODO(), tt.users[0].tc.G, keybase1.LoadTeamArg{Name: parentName.String(), ForceRepoll: true})
-	require.NoError(t, err)
-	tt.users[0].addTeamMember(parentName.String(), tt.users[1].username, keybase1.TeamRole_ADMIN)
-	tt.users[1].waitForMetadataUpdateGregor("added back")
 
 	subsubteamRename, err := subteamName.Append("cc2")
 	require.NoError(t, err)
@@ -1942,8 +1924,6 @@ func TestTeamMetadataUpdateNotifications(t *testing.T) {
 	tt.users[1].waitForMetadataUpdateGregor("team user was an implicit admin of changed name (subsubteam)")
 	tt.users[2].waitForMetadataUpdateGregor("parent team of subteam you're in changed name")
 
-	_, err = teams.Load(context.TODO(), tt.users[0].tc.G, keybase1.LoadTeamArg{Name: parentName.String(), ForceRepoll: true})
-	require.NoError(t, err)
 	tt.users[0].changeTeamMember(parentName.String(), tt.users[1].username, keybase1.TeamRole_OWNER)
 	tt.users[1].waitForMetadataUpdateGregor("now an owner")
 
@@ -1952,17 +1932,11 @@ func TestTeamMetadataUpdateNotifications(t *testing.T) {
 
 	newSubsubteamName, err := subteamRename.Append("cc2")
 	require.NoError(t, err)
-	_, err = teams.Load(context.TODO(), tt.users[0].tc.G, keybase1.LoadTeamArg{Name: newSubsubteamName.String(), ForceRepoll: true})
-	require.NoError(t, err)
 	tt.users[0].teamSetSettings(newSubsubteamName.String(), keybase1.TeamSettings{Open: true, JoinAs: keybase1.TeamRole_WRITER})
 	tt.users[1].waitForMetadataUpdateGregor("settings change of subsubteam")
-	_, err = teams.Load(context.TODO(), tt.users[0].tc.G, keybase1.LoadTeamArg{Name: newSubsubteamName.String(), ForceRepoll: true})
-	require.NoError(t, err)
 	tt.users[0].teamSetSettings(newSubsubteamName.String(), keybase1.TeamSettings{Open: true, JoinAs: keybase1.TeamRole_READER})
 	tt.users[1].waitForMetadataUpdateGregor("settings change of subsubteam")
 
-	_, err = teams.Load(context.TODO(), tt.users[0].tc.G, keybase1.LoadTeamArg{Name: newSubsubteamName.String(), ForceRepoll: true})
-	require.NoError(t, err)
 	val := true
 	err = tt.users[0].teamsClient.SetTeamShowcase(context.Background(), keybase1.SetTeamShowcaseArg{
 		Name:        newSubsubteamName.String(),
@@ -1971,8 +1945,6 @@ func TestTeamMetadataUpdateNotifications(t *testing.T) {
 	require.NoError(tt.users[0].tc.T, err)
 	tt.users[1].waitForMetadataUpdateGregor("change showcase")
 
-	_, err = teams.Load(context.TODO(), tt.users[0].tc.G, keybase1.LoadTeamArg{Name: newSubsubteamName.String(), ForceRepoll: true})
-	require.NoError(t, err)
 	desc := "desc"
 	err = tt.users[0].teamsClient.SetTeamShowcase(context.Background(), keybase1.SetTeamShowcaseArg{
 		Name:        newSubsubteamName.String(),
@@ -1982,8 +1954,6 @@ func TestTeamMetadataUpdateNotifications(t *testing.T) {
 	require.NoError(tt.users[0].tc.T, err)
 	tt.users[1].waitForMetadataUpdateGregor("change showcase")
 
-	_, err = teams.Load(context.TODO(), tt.users[0].tc.G, keybase1.LoadTeamArg{Name: newSubsubteamName.String(), ForceRepoll: true})
-	require.NoError(t, err)
 	err = tt.users[0].teamsClient.SetTeamShowcase(context.Background(), keybase1.SetTeamShowcaseArg{
 		Name:              newSubsubteamName.String(),
 		IsShowcased:       &val,
@@ -1993,12 +1963,6 @@ func TestTeamMetadataUpdateNotifications(t *testing.T) {
 	require.NoError(tt.users[0].tc.T, err)
 	tt.users[1].waitForMetadataUpdateGregor("change showcase")
 
-	tt.users[0].removeTeamMember(newSubsubteamName.String(), tt.users[2].username)
-	tt.users[1].waitForMetadataUpdateGregor("someone else removed from team")
-
-	tt.users[0].addTeamMember(newSubsubteamName.String(), tt.users[2].username, keybase1.TeamRole_ADMIN)
-	tt.users[1].waitForMetadataUpdateGregor("someone else added back")
-
 	newteam := tt.users[1].createTeam()
 	newteamName, err := keybase1.TeamNameFromString(newteam)
 	require.NoError(t, err)
@@ -2006,8 +1970,6 @@ func TestTeamMetadataUpdateNotifications(t *testing.T) {
 	tt.users[1].addTeamMember(newteam, tt.users[0].username, keybase1.TeamRole_OWNER)
 	tt.users[1].waitForMetadataUpdateGregor("added someone to team")
 
-	_, err = teams.Load(context.TODO(), tt.users[0].tc.G, keybase1.LoadTeamArg{Name: newteam, ForceRepoll: true})
-	require.NoError(t, err)
 	tui := &teamsUI{}
 	err = teams.Delete(context.Background(), tt.users[0].tc.G, tui, newteamName.String())
 	require.NoError(tt.users[0].tc.T, err)
