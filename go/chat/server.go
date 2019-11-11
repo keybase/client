@@ -1317,7 +1317,8 @@ func (h *Server) UpdateUnsentText(ctx context.Context, arg chat1.UpdateUnsentTex
 		fmt.Sprintf("UpdateUnsentText convID: %s", arg.ConversationID))()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
-		return err
+		h.Debug(ctx, "UpdateUnsentText: not logged in: %s", err)
+		return nil
 	}
 
 	// Save draft
