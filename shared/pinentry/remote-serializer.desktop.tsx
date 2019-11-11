@@ -3,28 +3,28 @@ import * as Container from '../util/container'
 import {WireProps} from './remote-proxy.desktop'
 
 export const serialize: Container.RemoteWindowSerializeProps<WireProps> = {
-  darkMode: (v: boolean) => v,
-  showTyping: (v: RPCTypes.Feature) => v,
   cancelLabel: (v?: string) => v,
+  darkMode: (v: boolean) => v,
   prompt: (v: string) => v,
   retryLabel: (v?: string) => v,
+  showTyping: (v: RPCTypes.Feature) => v,
   submitLabel: (v?: string) => v,
   type: (v: RPCTypes.PassphraseType) => v,
-  windowTitle: (v: string) => v,
-  windowOpts: (v: any) => v,
   windowComponent: (v: string) => v,
+  windowOpts: (v: any) => v,
   windowPositionBottomRight: (v: boolean) => v,
+  windowTitle: (v: string) => v,
 }
 
 const initialState: WireProps = {
   darkMode: false,
-  showTyping: {allow: false, defaultValue: false, readonly: false, label: ''},
   prompt: '',
+  showTyping: {allow: false, defaultValue: false, readonly: false, label: ''},
   type: RPCTypes.PassphraseType.none,
-  windowTitle: '',
-  windowOpts: {},
   windowComponent: '',
+  windowOpts: {},
   windowPositionBottomRight: false,
+  windowTitle: '',
 }
 
 export const deserialize = (state: WireProps = initialState, props: any): WireProps => {
