@@ -705,9 +705,11 @@ const onNotifyFSOverallSyncSyncStatusChanged = (
     ? Types.DiskSpaceStatus.Warning
     : Types.DiskSpaceStatus.Ok
   // We need to type this separately since otherwise we can't concat to it.
-  const actions: Array<| NotificationsGen.BadgeAppPayload
-  | FsGen.OverallSyncStatusChangedPayload
-  | FsGen.ShowHideDiskSpaceBannerPayload> = [
+  const actions: Array<
+    | NotificationsGen.BadgeAppPayload
+    | FsGen.OverallSyncStatusChangedPayload
+    | FsGen.ShowHideDiskSpaceBannerPayload
+  > = [
     FsGen.createOverallSyncStatusChanged({
       diskSpaceStatus,
       progress: action.payload.params.status.prefetchProgress,

@@ -279,7 +279,7 @@
     "msgpack": "git://github.com/keybase/nullModule",
     "net": "git://github.com/keybase/nullModule",
     "null-loader": "0.1.1",
-    "prettier": "1.19.0",
+    "prettier": "1.19.1",
     "randexp": "0.5.3",
     "react-hot-loader": "4.12.8",
     "react-native-v8": "git://github.com/keybase/react-native-v8",

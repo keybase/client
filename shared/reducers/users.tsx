@@ -17,9 +17,9 @@ type Actions =
 
 const updateInfo = (map: Map<string, Types.UserInfo>, username: string, info: Partial<Types.UserInfo>) => {
   const next = {
-      ...(map.get(username) || null),
-      ...info,
-    }
+    ...(map.get(username) || null),
+    ...info,
+  }
 
   // cleanup data structure so its not full of empty items
   !next.fullname && delete next.fullname

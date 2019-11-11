@@ -46,7 +46,7 @@ const shimNewRoute = (Original: any) => {
       ...s,
       ...o,
     })
-      // @ts-ignore
+    // @ts-ignore
   )(ShimmedNew)
 }
 const styles = Styles.styleSheetCreate(
