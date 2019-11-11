@@ -9,17 +9,15 @@ import * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
 import * as TeamConstants from '../../../../../constants/teams'
 import * as TeamsGen from '../../../../../actions/teams-gen'
 import {appendNewTeamBuilder} from '../../../../../actions/typed-routes'
-
-import * as I from 'immutable'
-import TeamJourney from './index'
+import TeamJourney from '.'
 
 type OwnProps = {
-  message: I.RecordOf<MessageTypes._MessageJourneycard>
+  message: MessageTypes.MessageJourneycard
 }
 
 type Props = {
   channelname: string
-  message: I.RecordOf<MessageTypes._MessageJourneycard>
+  message: MessageTypes.MessageJourneycard
   otherChannels: Array<string>
   onAddPeopleToTeam: () => void
   onBrowseChannels: () => void

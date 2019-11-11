@@ -32,21 +32,18 @@ export default connect(
   mapDispatchToProps,
   (stateProps, dispatchProps, ownProps) => {
     const unfurls = stateProps._unfurls
-      ? stateProps._unfurls
-          .toList()
-          .map(u => {
-            return {
-              isCollapsed: u.isCollapsed,
-              onClose: stateProps.showClose
-                ? () => dispatchProps.onClose(Types.numberToMessageID(u.unfurlMessageID))
-                : undefined,
-              onCollapse: () =>
-                dispatchProps.onCollapse(Types.numberToMessageID(u.unfurlMessageID), !u.isCollapsed),
-              unfurl: u.unfurl,
-              url: u.url,
-            }
-          })
-          .toArray()
+      ? [...stateProps._unfurls.values()].map(u => {
+          return {
+            isCollapsed: u.isCollapsed,
+            onClose: stateProps.showClose
+              ? () => dispatchProps.onClose(Types.numberToMessageID(u.unfurlMessageID))
+              : undefined,
+            onCollapse: () =>
+              dispatchProps.onCollapse(Types.numberToMessageID(u.unfurlMessageID), !u.isCollapsed),
+            unfurl: u.unfurl,
+            url: u.url,
+          }
+        })
       : []
     return {
       author: stateProps.author,

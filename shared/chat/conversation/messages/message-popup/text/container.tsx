@@ -14,7 +14,7 @@ import Text from '.'
 
 type OwnProps = {
   attachTo?: () => React.Component<any> | null
-  message: Types.MessageWithReactionPopup
+  message: Types.MessagesWithReactions
   onHidden: () => void
   position: Position
   style?: StylesCrossPlatform
@@ -118,8 +118,8 @@ export default Container.namedConnect(
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     const message = ownProps.message
     const yourMessage = message.author === stateProps._you
-    const isDeleteable = stateProps._isDeleteable && (yourMessage || stateProps._canAdminDelete)
-    const isEditable = stateProps._isEditable && yourMessage
+    const isDeleteable = !!(stateProps._isDeleteable && (yourMessage || stateProps._canAdminDelete))
+    const isEditable = !!(stateProps._isEditable && yourMessage)
     const canReplyPrivately = stateProps._canReplyPrivately
     const mapUnfurl = Constants.getMapUnfurl(message)
     const isLocation = !!mapUnfurl
