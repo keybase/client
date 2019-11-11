@@ -64,7 +64,7 @@ const ReflessLabeledInput = (props: Props & RefProps) => {
       gapEnd={false}
       style={Styles.collapseStyles([
         styles.container,
-        {minHeight: computedContainerSize, height: !multiline ? computedContainerSize : undefined},
+        {height: !multiline ? computedContainerSize : undefined, minHeight: computedContainerSize},
         focused && styles.containerFocused,
         error && styles.containerError,
         containerStyle,
@@ -152,13 +152,11 @@ const styles = Styles.styleSheetCreate(
       },
       input: {
         backgroundColor: Styles.globalColors.transparent,
-        height: '100%',
         marginTop: 8,
         paddingBottom: 3,
         paddingLeft: Styles.globalMargins.xsmall,
         paddingRight: Styles.globalMargins.xsmall,
         width: '100%',
-        zIndex: 0,
       },
       inputSmall: {
         paddingTop: 0,
