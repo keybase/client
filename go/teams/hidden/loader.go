@@ -2,7 +2,6 @@ package hidden
 
 import (
 	"fmt"
-	"github.com/davecgh/go-spew/spew"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -422,7 +421,6 @@ func (l *LoaderPackage) CheckUpdatesAgainstSeeds(mctx libkb.MetaContext, f func(
 		return nil
 	}
 	for _, update := range l.newData.Inner {
-		spew.Dump("UPDATE", update)
 		err = checkUpdateAgainstSeed(mctx, f, update)
 		if err != nil {
 			return err

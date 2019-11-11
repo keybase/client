@@ -8,7 +8,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/gregor"
@@ -861,7 +860,6 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	}
 
 	if !arg.skipSeedCheck {
-		spew.Dump("PTKSU@@@", ret.PerTeamKeySeedsUnverified)
 		err = hiddenPackage.CheckUpdatesAgainstSeedsWithMap(mctx, ret.PerTeamKeySeedsUnverified)
 		if err != nil {
 			return nil, err
