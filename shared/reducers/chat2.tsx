@@ -8,6 +8,7 @@ import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/chat2'
 import teamBuildingReducer from './team-building'
+import {teamBuilderReducerCreator} from '../team-building/reducer-helper'
 import {isMobile} from '../constants/platform'
 import logger from '../logger'
 import HiddenString from '../util/hidden-string'
@@ -52,32 +53,6 @@ const messageIDToOrdinal = (
   }
 
   return null
-}
-
-const passToTeamBuildingReducer = (
-  draftState: Container.Draft<Types.State>,
-  action: TeamBuildingGen.Actions
-) => {
-  draftState.teamBuilding = teamBuildingReducer(
-    'chat2',
-    draftState.teamBuilding as Types.State['teamBuilding'],
-    action
-  )
-}
-
-const teamActions: Container.ActionHandler<Actions, Types.State> = {
-  [TeamBuildingGen.resetStore]: passToTeamBuildingReducer,
-  [TeamBuildingGen.cancelTeamBuilding]: passToTeamBuildingReducer,
-  [TeamBuildingGen.addUsersToTeamSoFar]: passToTeamBuildingReducer,
-  [TeamBuildingGen.removeUsersFromTeamSoFar]: passToTeamBuildingReducer,
-  [TeamBuildingGen.searchResultsLoaded]: passToTeamBuildingReducer,
-  [TeamBuildingGen.finishedTeamBuilding]: passToTeamBuildingReducer,
-  [TeamBuildingGen.fetchedUserRecs]: passToTeamBuildingReducer,
-  [TeamBuildingGen.fetchUserRecs]: passToTeamBuildingReducer,
-  [TeamBuildingGen.search]: passToTeamBuildingReducer,
-  [TeamBuildingGen.selectRole]: passToTeamBuildingReducer,
-  [TeamBuildingGen.labelsSeen]: passToTeamBuildingReducer,
-  [TeamBuildingGen.changeSendNotification]: passToTeamBuildingReducer,
 }
 
 const audioActions: Container.ActionHandler<Actions, Types.State> = {
@@ -324,20 +299,24 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
   [Chat2Gen.loadAttachmentView]: (draftState, action) => {
     const {conversationIDKey, viewType} = action.payload
     const {attachmentViewMap} = draftState
-    const viewMap = attachmentViewMap.get(conversationIDKey) || new Map()
+    const viewMap =
+      attachmentViewMap.get(conversationIDKey) ||
+      new Map<RPCChatTypes.GalleryItemTyp, Types.AttachmentViewInfo>()
     attachmentViewMap.set(conversationIDKey, viewMap)
 
-    const info = viewMap.get(viewType) || Constants.initialAttachmentViewInfo
+    const info = viewMap.get(viewType) || Constants.makeAttachmentViewInfo()
     viewMap.set(viewType, info)
     info.status = 'loading'
   },
   [Chat2Gen.addAttachmentViewMessage]: (draftState, action) => {
     const {conversationIDKey, viewType, message} = action.payload
     const {attachmentViewMap} = draftState
-    const viewMap = attachmentViewMap.get(conversationIDKey) || new Map()
+    const viewMap =
+      attachmentViewMap.get(conversationIDKey) ||
+      new Map<RPCChatTypes.GalleryItemTyp, Types.AttachmentViewInfo>()
     attachmentViewMap.set(conversationIDKey, viewMap)
 
-    const info = viewMap.get(viewType) || Constants.initialAttachmentViewInfo
+    const info = viewMap.get(viewType) || Constants.makeAttachmentViewInfo()
     viewMap.set(viewType, info)
 
     if (info.messages.findIndex((item: any) => item.id === action.payload.message.id) < 0) {
@@ -347,10 +326,12 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
   [Chat2Gen.setAttachmentViewStatus]: (draftState, action) => {
     const {conversationIDKey, viewType, last, status} = action.payload
     const {attachmentViewMap} = draftState
-    const viewMap = attachmentViewMap.get(conversationIDKey) || new Map()
+    const viewMap =
+      attachmentViewMap.get(conversationIDKey) ||
+      new Map<RPCChatTypes.GalleryItemTyp, Types.AttachmentViewInfo>()
     attachmentViewMap.set(conversationIDKey, viewMap)
 
-    const info = viewMap.get(viewType) || Constants.initialAttachmentViewInfo
+    const info = viewMap.get(viewType) || Constants.makeAttachmentViewInfo()
     viewMap.set(viewType, info)
 
     info.last = !!last
@@ -450,7 +431,7 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
     const viewMap = attachmentViewMap.get(conversationIDKey) || new Map()
     attachmentViewMap.set(conversationIDKey, viewMap)
 
-    const info = viewMap.get(viewType) || Constants.initialAttachmentViewInfo
+    const info = viewMap.get(viewType) || Constants.makeAttachmentViewInfo()
     viewMap.set(viewType, info)
     const {messages} = info
     const idx = messages.findIndex(item => item.id === message.id)
@@ -492,7 +473,7 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
     attachmentViewMap.set(conversationIDKey, viewMap)
 
     const viewType = RPCChatTypes.GalleryItemTyp.doc
-    const info = viewMap.get(viewType) || Constants.initialAttachmentViewInfo
+    const info = viewMap.get(viewType) || Constants.makeAttachmentViewInfo()
     viewMap.set(viewType, info)
 
     const {messages} = info
@@ -663,14 +644,17 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [Chat2Gen.badgesUpdated]: (draftState, action) => {
     const {conversations} = action.payload
-    const {badgeMap, unreadMap} = draftState
     const badgeKey = String(isMobile ? RPCTypes.DeviceType.mobile : RPCTypes.DeviceType.desktop)
+    const badgeMap = new Map<Types.ConversationIDKey, number>()
+    const unreadMap = new Map<Types.ConversationIDKey, number>()
     conversations.forEach(({convID, badgeCounts, unreadMessages}) => {
       const key = Types.conversationIDToKey(convID)
       const count = badgeCounts[badgeKey] || 0
       badgeMap.set(key, count)
       unreadMap.set(key, unreadMessages)
     })
+    draftState.badgeMap = badgeMap
+    draftState.unreadMap = unreadMap
   },
   [Chat2Gen.messageSetEditing]: (draftState, action) => {
     const {conversationIDKey, editLastUser, ordinal} = action.payload
@@ -1549,6 +1533,15 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   ...paymentActions,
   ...searchActions,
   ...attachmentActions,
+  ...teamBuilderReducerCreator<Actions, Types.State>(
+    (draftState: Container.Draft<Types.State>, action: TeamBuildingGen.Actions) => {
+      draftState.teamBuilding = teamBuildingReducer(
+        'chat2',
+        draftState.teamBuilding as Types.State['teamBuilding'],
+        action
+      )
+    }
+  ),
 })
 
 export default reducer

@@ -1,13 +1,12 @@
 --- a/AudioRecorderManager.java
 +++ b/AudioRecorderManager.java
-@@ -315,10 +315,14 @@ class AudioRecorderManager extends ReactContextBaseJavaModule {
+@@ -315,10 +315,13 @@ class AudioRecorderManager extends ReactContextBaseJavaModule {
          if (!isPaused) {
            WritableMap body = Arguments.createMap();
            body.putDouble("currentTime", stopWatch.getTimeSeconds());
 +          int iraw = recorder.getMaxAmplitude();
-+                 double raw = iraw;
-+                 double val = (1.0 - Math.min(1, raw / 32767.0)) * -60;
-+          body.putDouble("currentMetering", val);
++          double raw = iraw;
++          body.putDouble("currentMetering", raw);
            sendEvent("recordingProgress", body);
          }
        }

@@ -10,6 +10,7 @@ export const topBarProvider = {
   SyncToggle: () => ({
     disableSync: Sb.action('disableSync'),
     enableSync: Sb.action('enableSyncisableSync'),
+    hideSyncToggle: false,
     syncConfig: Constants.tlfSyncEnabled,
     waiting: false,
   }),

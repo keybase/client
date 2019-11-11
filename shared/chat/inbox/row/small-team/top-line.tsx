@@ -103,7 +103,6 @@ class _SimpleTopLine extends React.Component<Props> {
             ref={this.props.setAttachmentRef}
             color={this.props.subColor}
             hoverColor={this.props.iconHoverColor}
-            fontSize={14}
             style={styles.icon}
           />
         )}

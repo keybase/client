@@ -174,7 +174,7 @@ const Connected = Container.namedConnect(
     const unreadIndices: Array<number> = []
     for (let i = rows.length - 1; i >= 0; i--) {
       const row = rows[i]
-      if (!['big', 'bigHeader'].includes(row.type)) {
+      if (!['big', 'bigHeader', 'teamBuilder'].includes(row.type)) {
         // only check big teams for large inbox perf
         break
       }

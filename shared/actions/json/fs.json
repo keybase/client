@@ -33,7 +33,7 @@
       "team": "Types.TlfList"
     },
     "setFolderViewFilter": {
-      "filter": "string"
+      "filter": "string|null"
     },
     "tlfSyncConfigLoaded": {
       "tlfType": "Types.TlfType",

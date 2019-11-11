@@ -22,6 +22,7 @@ type Props = {
   onReplyPrivately?: () => void
   onViewProfile?: () => void
   onViewMap?: () => void
+  isLocation?: boolean
   position: Position
   showDivider: boolean
   style?: StylesCrossPlatform
@@ -75,7 +76,7 @@ const TextPopupMenu = (props: Props) => {
         deviceRevokedAt={props.deviceRevokedAt}
         deviceType={props.deviceType}
         isLast={!items.length}
-        isLocation={!!props.onViewMap}
+        isLocation={!!props.isLocation}
         timestamp={props.timestamp}
         yourMessage={props.yourMessage}
       />

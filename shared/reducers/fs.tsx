@@ -24,7 +24,7 @@ const initialState: Types.State = {
   edits: new Map(),
   errors: new Map(),
   fileContext: new Map(),
-  folderViewFilter: '',
+  folderViewFilter: null,
   kbfsDaemonStatus: Constants.unknownKbfsDaemonStatus,
   lastPublicBannerClosedTlf: '',
   overallSyncStatus: Constants.emptyOverallSyncStatus,

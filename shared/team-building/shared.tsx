@@ -11,7 +11,7 @@ const serviceColors: {[K in ServiceIdWithContact]: string} = {
     return Styles.isDarkMode ? '#3B5998' : '#3B5998'
   },
   get github() {
-    return Styles.isDarkMode ? '#333' : '#333'
+    return Styles.isDarkMode ? '#9f7be1' : '#333'
   },
   get hackernews() {
     return Styles.isDarkMode ? '#FF6600' : '#FF6600'

@@ -110,8 +110,6 @@ export const makeAttachmentViewInfo = (): Types.AttachmentViewInfo => ({
   status: 'loading',
 })
 
-export const initialAttachmentViewInfo = makeAttachmentViewInfo()
-
 export const makeAudioRecordingInfo = (): Types.AudioRecordingInfo => ({
   isLocked: false,
   outboxID: new Buffer('hex'),
