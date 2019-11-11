@@ -44,7 +44,7 @@ func (m *ChainManager) Tail(mctx libkb.MetaContext, id keybase1.TeamID) (*keybas
 func (m *ChainManager) loadLocked(mctx libkb.MetaContext, arg loadArg) (ret *keybase1.HiddenTeamChain, frozen bool, err error) {
 	state, frozen, tombstoned := m.storage.Get(mctx, arg.id, arg.id.IsPublic())
 	if tombstoned {
-		return nil, false, NewManagerError("cannot load hidden chain for tombstoned team")
+		return nil, false, NewTombstonedError("cannot load hidden chain for tombstoned team")
 	}
 	return state, frozen, nil
 }
@@ -296,6 +296,11 @@ func (m *ChainManager) Tombstone(mctx libkb.MetaContext, id keybase1.TeamID) (er
 		},
 	}
 	_, err = m.loadAndMutate(mctx, arg)
+	_, ok := err.(TombstonedError)
+	if ok {
+		// Already tombstoned; no-op
+		return nil
+	}
 	return err
 }
 
