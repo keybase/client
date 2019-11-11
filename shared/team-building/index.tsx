@@ -210,6 +210,12 @@ const ContactsImportButton = (props: ContactProps) => {
   )
 }
 
+const SearchHintText = () => (
+  <Kb.Box2 direction="vertical" style={{padding: Styles.globalMargins.small}}>
+    <Kb.Text type="BodySmall">Search anyone on Keybase by typing a username or a full name.</Kb.Text>
+  </Kb.Box2>
+)
+
 const FilteredServiceTabBar = (
   props: Omit<React.ComponentPropsWithoutRef<typeof ServiceTabBar>, 'services'> & {
     filterServices?: Array<ServiceIdWithContact>
@@ -466,9 +472,7 @@ class TeamBuilding extends React.PureComponent<Props> {
                 result.isImportButton ? (
                   <ContactsImportButton {...this.props} />
                 ) : result.isSearchHint ? (
-                  <Kb.Text type="BodySmall">
-                    Search anyone on Keybase by typing a username or a full name.
-                  </Kb.Text>
+                  <SearchHintText />
                 ) : (
                   <ResultRow
                     resultForService={this.props.selectedService}
