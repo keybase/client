@@ -3357,6 +3357,34 @@ export function* chatTeamBuildingSaga() {
   )
 }
 
+const setInboxNumSmallRows = async (state: TypedState, action: Chat2Gen.SetInboxNumSmallRowsPayload) => {
+  const {ignoreWrite} = action.payload
+  if (ignoreWrite) {
+    return false as const
+  }
+  const {inboxNumSmallRows} = state.chat2
+  if (inboxNumSmallRows === undefined || inboxNumSmallRows <= 0) {
+    return false as const
+  }
+  try {
+    await RPCTypes.configGuiSetValueRpcPromise({
+      path: 'ui.inboxSmallRows',
+      value: {i: inboxNumSmallRows, isNull: false},
+    })
+  } catch (_) {}
+  return false as const
+}
+
+const getInboxNumSmallRows = async () => {
+  try {
+    const rows = await RPCTypes.configGuiGetValueRpcPromise({path: 'ui.inboxSmallRows'})
+    if (rows && rows.i && rows.i > 0) {
+      return Chat2Gen.createSetInboxNumSmallRows({ignoreWrite: true, rows: rows.i})
+    }
+  } catch (_) {}
+  return false as const
+}
+
 function* chat2Saga() {
   // Platform specific actions
   if (isMobile) {
@@ -3722,6 +3750,8 @@ function* chat2Saga() {
   yield* Saga.chainAction2(Chat2Gen.sendAudioRecording, sendAudioRecording, 'sendAudioRecording')
 
   yield* Saga.chainAction2(EngineGen.connected, onConnect, 'onConnect')
+  yield* Saga.chainAction2(Chat2Gen.setInboxNumSmallRows, setInboxNumSmallRows)
+  yield* Saga.chainAction2(ConfigGen.bootstrapStatusLoaded, getInboxNumSmallRows)
 
   yield* chatTeamBuildingSaga()
   yield* Saga.chainAction2(EngineGen.chat1NotifyChatChatConvUpdate, onChatConvUpdate, 'onChatConvUpdate')

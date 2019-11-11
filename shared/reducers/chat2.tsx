@@ -1521,6 +1521,12 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   [Chat2Gen.clearMetas]: draftState => {
     draftState.metaMap.clear()
   },
+  [Chat2Gen.setInboxNumSmallRows]: (draftState, action) => {
+    const {rows} = action.payload
+    if (rows > 0) {
+      draftState.inboxNumSmallRows = rows
+    }
+  },
   ...audioActions,
   ...giphyActions,
   ...paymentActions,

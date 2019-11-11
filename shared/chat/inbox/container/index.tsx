@@ -21,8 +21,6 @@ import {HeaderNewChatButton} from './new-chat-button'
 
 type OwnProps = Container.PropsWithSafeNavigation
 
-const smallTeamsCollapsedMaxShown = 5
-
 const makeBigRows = (
   bigTeams: Array<RPCChatTypes.UIInboxBigTeamRow>
 ): Array<RowItemBig | RowItemBigHeader> => {
@@ -114,12 +112,15 @@ class InboxWrapper extends React.PureComponent<Props> {
 
 const Connected = Container.namedConnect(
   state => {
-    const inboxLayout = state.chat2.inboxLayout
-    const neverLoaded = !state.chat2.inboxHasLoaded
+    const {inboxLayout, inboxHasLoaded} = state.chat2
+    let {inboxNumSmallRows} = state.chat2
+    if (inboxNumSmallRows === undefined) {
+      inboxNumSmallRows = 5
+    }
+    const neverLoaded = !inboxHasLoaded
     const _canRefreshOnMount = neverLoaded && !Constants.anyChatWaitingKeys(state)
     const allowShowFloatingButton = inboxLayout
-      ? (inboxLayout.smallTeams || []).length > smallTeamsCollapsedMaxShown &&
-        !!(inboxLayout.bigTeams || []).length
+      ? (inboxLayout.smallTeams || []).length > inboxNumSmallRows && !!(inboxLayout.bigTeams || []).length
       : false
     return {
       _badgeMap: state.chat2.badgeMap,
@@ -128,6 +129,7 @@ const Connected = Container.namedConnect(
       _inboxLayout: inboxLayout,
       _selectedConversationIDKey: state.chat2.selectedConversation,
       allowShowFloatingButton,
+      inboxNumSmallRows,
       isLoading: isMobile ? Constants.anyChatWaitingKeys(state) : false, // desktop doesn't use isLoading so ignore it
       isSearching: !!state.chat2.inboxSearch,
       neverLoaded,
@@ -150,6 +152,7 @@ const Connected = Container.namedConnect(
           reason: 'untrusted inbox visible',
         })
       ),
+    setInboxNumSmallRows: (rows: number) => dispatch(Chat2Gen.createSetInboxNumSmallRows({rows})),
     toggleSmallTeamsExpanded: () => dispatch(Chat2Gen.createToggleSmallTeamsExpanded()),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
@@ -157,9 +160,9 @@ const Connected = Container.namedConnect(
     const hasBigTeams = bigTeams.length
     const showAllSmallRows = stateProps.smallTeamsExpanded || !bigTeams.length
     let smallTeams = stateProps._inboxLayout ? stateProps._inboxLayout.smallTeams || [] : []
-    const smallTeamsBelowTheFold = !showAllSmallRows && smallTeams.length > smallTeamsCollapsedMaxShown
+    const smallTeamsBelowTheFold = !showAllSmallRows && smallTeams.length > stateProps.inboxNumSmallRows
     if (!showAllSmallRows) {
-      smallTeams = smallTeams.slice(0, smallTeamsCollapsedMaxShown)
+      smallTeams = smallTeams.slice(0, stateProps.inboxNumSmallRows)
     }
     const smallRows = makeSmallRows(smallTeams)
     const bigRows = makeBigRows(bigTeams)
@@ -193,6 +196,7 @@ const Connected = Container.namedConnect(
       _refreshInbox: dispatchProps._refreshInbox,
       allowShowFloatingButton: stateProps.allowShowFloatingButton,
       hasBigTeams,
+      inboxNumSmallRows: stateProps.inboxNumSmallRows,
       isLoading: stateProps.isLoading,
       isSearching: stateProps.isSearching,
       navKey: ownProps.navKey,
@@ -200,6 +204,7 @@ const Connected = Container.namedConnect(
       onNewChat: dispatchProps.onNewChat,
       onUntrustedInboxVisible: dispatchProps.onUntrustedInboxVisible,
       rows,
+      setInboxNumSmallRows: dispatchProps.setInboxNumSmallRows,
       smallTeamsExpanded: stateProps.smallTeamsExpanded,
       title: 'Chats',
       toggleSmallTeamsExpanded: dispatchProps.toggleSmallTeamsExpanded,
