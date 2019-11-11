@@ -1527,7 +1527,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       draftState.inboxNumSmallRows = rows
     }
   },
-  ...teamActions,
   ...audioActions,
   ...giphyActions,
   ...paymentActions,
