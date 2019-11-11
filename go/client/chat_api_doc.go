@@ -117,4 +117,10 @@ Unpin the message of chat:
 
 Get a user's device info from their username:
    {"method": "getdeviceinfo", "params": {"options": {"username": "cjb"}}}
+
+Get all reset members of conversations in your inbox:
+   {"method": "getresetconvmembers"}
+
+Readd a reset user back to a conversation:
+   {"method": "addresetconvmember", "params": {"options": {"username": "joshblum", "conversation_id": "..."}}}
 `
