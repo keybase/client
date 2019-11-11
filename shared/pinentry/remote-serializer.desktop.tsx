@@ -19,7 +19,12 @@ export const serialize: Container.RemoteWindowSerializeProps<WireProps> = {
 const initialState: WireProps = {
   darkMode: false,
   prompt: '',
-  showTyping: {allow: false, defaultValue: false, readonly: false, label: ''},
+  showTyping: {
+    allow: false,
+    defaultValue: false,
+    label: '',
+    readonly: false,
+  },
   type: RPCTypes.PassphraseType.none,
   windowComponent: '',
   windowOpts: {},
