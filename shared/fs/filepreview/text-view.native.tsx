@@ -3,16 +3,20 @@ import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import {Props} from './text-view'
 
-const TextView = (props: Props) => (
-  <Kb.Box2 fullHeight={true} fullWidth={true} direction="vertical">
-    <Kb.WebView
-      url={props.url}
-      style={styles.webview}
-      injections={injections}
-      onLoadingStateChange={props.onLoadingStateChange}
-    />
-  </Kb.Box2>
-)
+const TextView = (props: Props) => {
+  const url = props.url.replace(/:\d/, ':1')
+  return (
+    <Kb.Box2 fullHeight={true} fullWidth={true} direction="vertical">
+      <Kb.WebView
+        url={url}
+        style={styles.webview}
+        injections={injections}
+        onLoadingStateChange={props.onLoadingStateChange}
+        onError={props.onUrlError}
+      />
+    </Kb.Box2>
+  )
+}
 
 const styles = Styles.styleSheetCreate(
   () =>
