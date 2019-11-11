@@ -895,8 +895,14 @@ const loadFileContext = async (_: TypedState, action: FsGen.LoadFileContextPaylo
 }
 
 const loadFilesTabBadge = async () => {
-  const badge = await RPCTypes.SimpleFSSimpleFSGetFilesTabBadgeRpcPromise()
-  return FsGen.createLoadedFilesTabBadge({badge})
+  try {
+    const badge = await RPCTypes.SimpleFSSimpleFSGetFilesTabBadgeRpcPromise()
+    return FsGen.createLoadedFilesTabBadge({badge})
+  } catch {
+    // retry once HOTPOT-1226
+    const badge = await RPCTypes.SimpleFSSimpleFSGetFilesTabBadgeRpcPromise()
+    return FsGen.createLoadedFilesTabBadge({badge})
+  }
 }
 
 function* fsSaga() {
