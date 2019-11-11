@@ -118,13 +118,12 @@ const Connected = Container.namedConnect(
       inboxNumSmallRows = 5
     }
     const neverLoaded = !inboxHasLoaded
-    const _canRefreshOnMount = neverLoaded && !Constants.anyChatWaitingKeys(state)
     const allowShowFloatingButton = inboxLayout
       ? (inboxLayout.smallTeams || []).length > inboxNumSmallRows && !!(inboxLayout.bigTeams || []).length
       : false
     return {
       _badgeMap: state.chat2.badgeMap,
-      _canRefreshOnMount,
+      _canRefreshOnMount: neverLoaded,
       _hasLoadedTrusted: state.chat2.trustedInboxHasLoaded,
       _inboxLayout: inboxLayout,
       _selectedConversationIDKey: state.chat2.selectedConversation,
