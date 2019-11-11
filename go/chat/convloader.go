@@ -201,6 +201,7 @@ func (b *BackgroundConvLoader) monitorAppState() error {
 }
 
 func (b *BackgroundConvLoader) Start(ctx context.Context, uid gregor1.UID) {
+	defer b.Trace(ctx, func() error { return nil }, "Stop")()
 	b.Lock()
 	defer b.Unlock()
 
@@ -208,7 +209,6 @@ func (b *BackgroundConvLoader) Start(ctx context.Context, uid gregor1.UID) {
 		b.Debug(ctx, "BackgroundConvLoader disabled, aborting Start")
 		return
 	}
-	b.Debug(ctx, "Start")
 	if b.started {
 		close(b.stopCh)
 		b.stopCh = make(chan struct{})
@@ -221,9 +221,9 @@ func (b *BackgroundConvLoader) Start(ctx context.Context, uid gregor1.UID) {
 }
 
 func (b *BackgroundConvLoader) Stop(ctx context.Context) chan struct{} {
+	defer b.Trace(ctx, func() error { return nil }, "Stop")()
 	b.Lock()
 	defer b.Unlock()
-	b.Debug(ctx, "Stop")
 	b.cancelActiveLoadsLocked()
 	ch := make(chan struct{})
 	if b.started {
@@ -473,6 +473,7 @@ func (b *BackgroundConvLoader) load(ictx context.Context, task clTask, uid grego
 	ctx := al.Ctx
 	alKey := b.addActiveLoadLocked(al)
 	b.Unlock()
+	ctx = libkb.WithLogTag(ctx, "CHTCLL")
 	if b.testingNameInfoSource != nil {
 		ctx = globals.CtxAddOverrideNameInfoSource(ctx, b.testingNameInfoSource)
 		b.Debug(ctx, "setting testing nameinfo source: %T", b.testingNameInfoSource)
