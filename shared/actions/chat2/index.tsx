@@ -1957,6 +1957,9 @@ const previewConversationTeam = async (state: TypedState, action: Chat2Gen.Previ
   }
 }
 
+const startupInboxLoad = (state: TypedState) =>
+  !!state.config.username && Chat2Gen.createInboxRefresh({reason: 'bootstrap'})
+
 const startupUserReacjisLoad = (_: TypedState, action: ConfigGen.BootstrapStatusLoadedPayload) =>
   Chat2Gen.createUpdateUserReacjis({userReacjis: action.payload.userReacjis})
 
@@ -3466,6 +3469,8 @@ function* chat2Saga() {
   yield* Saga.chainAction2(Chat2Gen.previewConversation, previewConversationTeam)
   yield* Saga.chainAction2(Chat2Gen.previewConversation, previewConversationPersonMakesAConversation)
   yield* Saga.chainAction2(Chat2Gen.openFolder, openFolder)
+  // On login lets load the untrusted inbox. This helps make some flows easier
+  yield* Saga.chainAction2(ConfigGen.bootstrapStatusLoaded, startupInboxLoad, 'startupInboxLoad')
 
   yield* Saga.chainAction2(ConfigGen.bootstrapStatusLoaded, startupUserReacjisLoad, 'startupUserReacjisLoad')
 
