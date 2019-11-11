@@ -152,7 +152,8 @@ const styles = Styles.styleSheetCreate(
         flex: 1,
       },
       close: {
-        color: Styles.globalColors.whiteOrBlueDark,
+        color: Styles.globalColors.blueDark,
+        backgroundColor: Styles.globalColors.blackOrBlack,
         padding: Styles.globalMargins.small,
       },
       fastImage: {
@@ -182,7 +183,7 @@ const styles = Styles.styleSheetCreate(
         position: 'relative',
       },
       zoomableBox: {
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Styles.globalColors.blackOrBlack,
         height: '100%',
         overflow: 'hidden',
         position: 'relative',
