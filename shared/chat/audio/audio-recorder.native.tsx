@@ -326,14 +326,15 @@ const AudioButton = (props: ButtonProps) => {
               width: 32,
             }}
           >
-            <Kb.ClickableBox onClick={props.sendRecording}>
-              <Kb.Box2 direction="vertical" centerChildren={true}>
-                <Kb.Icon
-                  color={Styles.globalColors.whiteOrWhite}
-                  sizeType="Small"
-                  type="iconfont-arrow-full-up"
-                />
-              </Kb.Box2>
+            <Kb.ClickableBox
+              onClick={props.sendRecording}
+              style={{alignItems: 'center', height: 32, justifyContent: 'center', width: 32}}
+            >
+              <Kb.Icon
+                color={Styles.globalColors.whiteOrWhite}
+                sizeType="Small"
+                type="iconfont-arrow-full-up"
+              />
             </Kb.ClickableBox>
           </Kb.NativeView>
         </Kb.NativeAnimated.View>

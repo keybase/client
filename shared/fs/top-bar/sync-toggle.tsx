@@ -6,6 +6,7 @@ import * as Types from '../../constants/types/fs'
 export type Props = {
   disableSync: () => void
   enableSync: () => void
+  hideSyncToggle: boolean
   syncConfig?: Types.TlfSyncConfig | null
   waiting: boolean
 } & Kb.OverlayParentProps
@@ -59,7 +60,7 @@ const Confirm = props => (
 )
 
 const SyncToggle = (props: Props) =>
-  props.syncConfig ? (
+  props.syncConfig && !props.hideSyncToggle ? (
     <>
       <Kb.Switch
         align="right"

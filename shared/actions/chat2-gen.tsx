@@ -120,6 +120,7 @@ export const setConvExplodingMode = 'chat2:setConvExplodingMode'
 export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
 export const setConversationOffline = 'chat2:setConversationOffline'
 export const setExplodingModeLock = 'chat2:setExplodingModeLock'
+export const setInboxNumSmallRows = 'chat2:setInboxNumSmallRows'
 export const setInboxShowIsNew = 'chat2:setInboxShowIsNew'
 export const setMaybeMentionInfo = 'chat2:setMaybeMentionInfo'
 export const setMinWriterRole = 'chat2:setMinWriterRole'
@@ -579,6 +580,7 @@ type _SetExplodingModeLockPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly unset?: boolean
 }
+type _SetInboxNumSmallRowsPayload = {readonly ignoreWrite?: boolean; readonly rows: number}
 type _SetInboxShowIsNewPayload = {readonly isNew: boolean}
 type _SetMaybeMentionInfoPayload = {readonly name: string; readonly info: RPCChatTypes.UIMaybeMentionInfo}
 type _SetMinWriterRolePayload = {
@@ -1420,6 +1422,9 @@ export const createSetAudioRecordingPostInfo = (
 export const createSetConversationOffline = (
   payload: _SetConversationOfflinePayload
 ): SetConversationOfflinePayload => ({payload, type: setConversationOffline})
+export const createSetInboxNumSmallRows = (
+  payload: _SetInboxNumSmallRowsPayload
+): SetInboxNumSmallRowsPayload => ({payload, type: setInboxNumSmallRows})
 export const createStopAudioRecording = (payload: _StopAudioRecordingPayload): StopAudioRecordingPayload => ({
   payload,
   type: stopAudioRecording,
@@ -1839,6 +1844,10 @@ export type SetExplodingModeLockPayload = {
   readonly payload: _SetExplodingModeLockPayload
   readonly type: typeof setExplodingModeLock
 }
+export type SetInboxNumSmallRowsPayload = {
+  readonly payload: _SetInboxNumSmallRowsPayload
+  readonly type: typeof setInboxNumSmallRows
+}
 export type SetInboxShowIsNewPayload = {
   readonly payload: _SetInboxShowIsNewPayload
   readonly type: typeof setInboxShowIsNew
@@ -2104,6 +2113,7 @@ export type Actions =
   | SetConvRetentionPolicyPayload
   | SetConversationOfflinePayload
   | SetExplodingModeLockPayload
+  | SetInboxNumSmallRowsPayload
   | SetInboxShowIsNewPayload
   | SetMaybeMentionInfoPayload
   | SetMinWriterRolePayload

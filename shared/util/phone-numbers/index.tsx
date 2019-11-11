@@ -120,7 +120,7 @@ export const areaCodeIsCanadian = (input: string): boolean => {
 export const validateNumber = (rawNumber: string, region?: string | null) => {
   try {
     const phoneNumber = phoneUtil.parse(rawNumber, region || '')
-    const valid = phoneUtil.isValidNumber(phoneNumber)
+    const valid = phoneUtil.isPossibleNumber(phoneNumber)
     return {
       e164: phoneUtil.format(phoneNumber, PNF.E164),
       phoneNumber,

@@ -160,6 +160,7 @@ export type State = Readonly<{
   focus: Focus
   giphyResultMap: Map<Common.ConversationIDKey, RPCChatTypes.GiphySearchResults | undefined>
   giphyWindowMap: Map<Common.ConversationIDKey, boolean>
+  inboxNumSmallRows?: number
   inboxHasLoaded: boolean // if we've ever loaded,
   inboxLayout: RPCChatTypes.UIInboxLayout | null // layout of the inbox
   inboxSearch?: InboxSearchInfo

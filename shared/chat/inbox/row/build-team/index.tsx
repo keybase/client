@@ -22,7 +22,7 @@ const BuildTeam = ({isFloating, onCreateTeam, onJoinTeam}: Props) => (
 const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({
     isElectron: {
-      backgroundColor: Styles.globalColors.blueGrey,
+      backgroundColor: Styles.globalColors.blueGreyLight,
       flexShrink: 0,
       padding: Styles.globalMargins.small,
       width: '100%',

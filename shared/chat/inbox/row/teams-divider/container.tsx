@@ -7,6 +7,7 @@ import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Types from '../../../../constants/types/chat2'
 
 type OwnProps = {
+  hiddenCountDelta: number
   rows: Array<RowItem>
   showButton: boolean
   toggle: () => void
@@ -64,6 +65,8 @@ export default namedConnect(
       badgeCount += fromMeta.badgeCount
       hiddenCount += fromMeta.hiddenCount
     }
+
+    hiddenCount += ownProps.hiddenCountDelta
 
     return {
       badgeCount,

@@ -73,8 +73,14 @@ const onHTTPSrvInfoUpdated = (
     token: action.payload.params.info.token,
   })
 
-const getFollowerInfo = (state: Container.TypedState) => {
+const getFollowerInfo = (
+  state: Container.TypedState,
+  action: ConfigGen.LoggedInPayload | ConfigGen.StartupFirstIdlePayload
+) => {
   const {uid} = state.config
+  if (action.type === ConfigGen.loggedIn && action.payload.causedByStartup) {
+    return
+  }
   if (uid) {
     // request follower info in the background
     RPCTypes.configRequestFollowerInfoRpcPromise({uid: state.config.uid})
@@ -733,7 +739,7 @@ function* configSaga() {
     )
   }
 
-  yield* Saga.chainAction2(ConfigGen.startupFirstIdle, getFollowerInfo)
+  yield* Saga.chainAction2([ConfigGen.loggedIn, ConfigGen.startupFirstIdle], getFollowerInfo)
 
   // Kick off platform specific stuff
   yield Saga.spawn(PlatformSpecific.platformConfigSaga)

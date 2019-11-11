@@ -775,6 +775,10 @@
       "_description": "Set filter for channel search",
       "text": "string"
     },
+    "setInboxNumSmallRows": {
+        "ignoreWrite?": "boolean",
+        "rows": "number"
+    },
     "enableAudioRecording": {
       "conversationIDKey": "Types.ConversationIDKey",
       "meteringCb": "(amp: number) => void"

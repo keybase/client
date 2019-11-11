@@ -8644,6 +8644,22 @@ const iconMeta_ = {
     get require() {
       return require('../images/releases/release-4.7.0-pinned-messages.png')
     },
+  },
+  'release-4.8.0-audio-messages': {
+    extension: 'png',
+    imagesDir: 'releases',
+    isFont: false,
+    get require() {
+      return require('../images/releases/release-4.8.0-audio-messages.png')
+    },
+  },
+  'release-4.8.0-file-sync': {
+    extension: 'png',
+    imagesDir: 'releases',
+    isFont: false,
+    get require() {
+      return require('../images/releases/release-4.8.0-file-sync.png')
+    },
   } /* eslint-enable */,
 }
 
