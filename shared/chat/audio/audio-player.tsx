@@ -14,9 +14,10 @@ type VisProps = {
 
 const AudioVis = (props: VisProps) => {
   let maxHeight = 0
-  const content = props.amps.map((amp, index) => {
+  const content = props.amps.map((inamp, index) => {
+    const amp = isNaN(inamp) ? 0 : inamp
     const prop = Math.min(1.0, Math.max(Math.sqrt(amp), 0.05))
-    const height = isNaN(prop) ? 0 : Math.floor(prop * props.height)
+    const height = Math.floor(prop * props.height)
     if (height >= maxHeight) {
       maxHeight = height
     }
