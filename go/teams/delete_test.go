@@ -191,3 +191,21 @@ func (t *teamsUI) ConfirmRootTeamDelete(context.Context, keybase1.ConfirmRootTea
 func (t *teamsUI) ConfirmSubteamDelete(context.Context, keybase1.ConfirmSubteamDeleteArg) (bool, error) {
 	return true, nil
 }
+
+func TestDoubleTombstone(t *testing.T) {
+	tc, _, teamname := memberSetup(t)
+	defer tc.Cleanup()
+	name, err := keybase1.TeamNameFromString(teamname)
+	require.NoError(t, err)
+
+	id, err := ResolveNameToID(context.TODO(), tc.G, name)
+	require.NoError(t, err)
+
+	mctx := libkb.NewMetaContextForTest(tc)
+
+	err = TombstoneTeam(mctx, id)
+	require.NoError(t, err)
+
+	err = TombstoneTeam(mctx, id)
+	require.NoError(t, err, "errored on trying to tombstone a tombstoned team")
+}

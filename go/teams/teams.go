@@ -2664,14 +2664,23 @@ func TombstoneTeam(mctx libkb.MetaContext, teamID keybase1.TeamID) error {
 	err3 := mctx.G().GetHiddenTeamChainManager().Tombstone(mctx, teamID)
 	if err3 != nil {
 		mctx.Debug("error tombstoning in hidden team chain manager: %v", err3)
+		if _, ok := err3.(hidden.TombstonedError); ok {
+			err3 = nil
+		}
 	}
 	err1 := mctx.G().GetTeamLoader().Tombstone(mctx.Ctx(), teamID)
 	if err1 != nil {
 		mctx.Debug("error tombstoning in team cache: %v", err1)
+		if _, ok := err1.(TeamTombstonedError); ok {
+			err1 = nil
+		}
 	}
 	err2 := mctx.G().GetFastTeamLoader().Tombstone(mctx, teamID)
 	if err2 != nil {
 		mctx.Debug("error tombstoning in fast team cache: %v", err2)
+		if _, ok := err2.(TeamTombstonedError); ok {
+			err2 = nil
+		}
 	}
 	return libkb.CombineErrors(err1, err2, err3)
 }
