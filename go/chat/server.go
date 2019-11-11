@@ -210,7 +210,8 @@ func (h *Server) MarkAsReadLocal(ctx context.Context, arg chat1.MarkAsReadLocalA
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
-		return chat1.MarkAsReadLocalRes{}, err
+		h.Debug(ctx, "MarkAsRead: not logged in: %s", err)
+		return chat1.MarkAsReadLocalRes{}, nil
 	}
 	// Don't send remote mark as read if we somehow get this in the background.
 	if h.G().MobileAppState.State() != keybase1.MobileAppState_FOREGROUND {
@@ -1346,7 +1347,8 @@ func (h *Server) UpdateTyping(ctx context.Context, arg chat1.UpdateTypingArg) (e
 		fmt.Sprintf("UpdateTyping convID: %s", arg.ConversationID))()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
-		return err
+		h.Debug(ctx, "UpdateTyping: not logged in: %s", err)
+		return nil
 	}
 	// Just bail out if we are offline
 	if !h.G().Syncer.IsConnected(ctx) {
@@ -1354,7 +1356,8 @@ func (h *Server) UpdateTyping(ctx context.Context, arg chat1.UpdateTypingArg) (e
 	}
 	deviceID := make([]byte, libkb.DeviceIDLen)
 	if err := h.G().Env.GetDeviceID().ToBytes(deviceID); err != nil {
-		return err
+		h.Debug(ctx, "UpdateTyping: failed to get device: %s", err)
+		return nil
 	}
 	if err := h.remoteClient().UpdateTypingRemote(ctx, chat1.UpdateTypingRemoteArg{
 		Uid:      uid,
