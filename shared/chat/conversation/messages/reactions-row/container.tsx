@@ -9,17 +9,15 @@ const getOrderedReactions = (reactions: Types.Reactions | null) => {
     return []
   }
 
-  const scoreMap = new Map()
-  const entries = [...reactions.entries()]
-  entries.forEach(([key, value]) => {
-    const score = [...value].reduce(
-      (minTimestamp, reaction) => Math.min(minTimestamp, reaction.timestamp),
-      Infinity
-    )
-    scoreMap.set(key, score)
-  })
-
-  return [...reactions.keys()].sort((a, b) => scoreMap.get(a) - scoreMap.get(b))
+  const scoreMap = new Map(
+    [...reactions.entries()].map(([key, value]) => {
+      return [
+        key,
+        [...value].reduce((minTimestamp, reaction) => Math.min(minTimestamp, reaction.timestamp), Infinity),
+      ]
+    })
+  )
+  return [...reactions.keys()].sort((a, b) => scoreMap.get(a)! - scoreMap.get(b)!)
 }
 
 export type OwnProps = {

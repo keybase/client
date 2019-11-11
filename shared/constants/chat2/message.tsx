@@ -1312,15 +1312,6 @@ export const mergeMessage = (old: Types.Message | null, m: Types.Message): Types
           toRet.mentionsAt = old.mentionsAt
         }
         break
-      case 'reactions':
-        if (
-          old.reactions &&
-          m.reactions &&
-          shallowEqual([...old.reactions.entries()], [...m.reactions.entries()])
-        ) {
-          toRet.reactions = old.reactions
-        }
-        break
       case 'mentionsChannelName':
         if (
           m.type === 'text' &&
