@@ -8441,6 +8441,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-rip': {
+    charCode: 0xe9a5,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-root': {
     charCode: 0xe9a0,
     gridSize: 16,
