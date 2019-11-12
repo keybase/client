@@ -131,6 +131,7 @@ export default Container.namedConnect(
     return {
       attachTo: ownProps.attachTo,
       author: message.author,
+      botUsername: message.type === 'text' && message.botUsername,
       deviceName: message.deviceName,
       deviceRevokedAt: message.deviceRevokedAt || undefined,
       deviceType: message.deviceType,

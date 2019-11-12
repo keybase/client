@@ -8,6 +8,7 @@ import {StylesCrossPlatform} from '../../../../../styles/css'
 type Props = {
   attachTo?: () => React.Component<any> | null
   author: string
+  botUsername: string
   deviceName: string
   deviceRevokedAt?: number
   deviceType: DeviceType
@@ -72,6 +73,7 @@ const TextPopupMenu = (props: Props) => {
     view: (
       <MessagePopupHeader
         author={props.author}
+        botUsername={props.botUsername}
         deviceName={props.deviceName}
         deviceRevokedAt={props.deviceRevokedAt}
         deviceType={props.deviceType}
