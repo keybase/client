@@ -144,7 +144,7 @@ export default () => {
   filenames.forEach(fn =>
     s.add(fn, () => (
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
-        <NormalPreview path={Types.stringToPath(`/keybase/private/foo/${fn}`)} />
+        <NormalPreview path={Types.stringToPath(`/keybase/private/foo/${fn}`)} onUrlError={() => {}} />
       </Kb.Box2>
     ))
   )

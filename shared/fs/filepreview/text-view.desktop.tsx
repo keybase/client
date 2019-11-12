@@ -4,7 +4,7 @@ import * as Kb from '../../common-adapters'
 import {Props} from './text-view'
 
 const TextView = (props: Props) => {
-  const {url} = props
+  const {onUrlError, url} = props
   const [content, setContent] = React.useState('')
   React.useEffect(() => {
     const req = new XMLHttpRequest()
@@ -13,13 +13,15 @@ const TextView = (props: Props) => {
         if (req.readyState === XMLHttpRequest.DONE && req.status === 200) {
           setContent(req.responseText)
         }
-      } catch (e) {}
+      } catch (e) {
+        onUrlError && onUrlError('http request failed')
+      }
     }
     try {
       req.open('GET', url)
       req.send()
     } catch (e) {}
-  }, [url])
+  }, [onUrlError, url])
   return (
     <Kb.Box2 fullWidth={true} fullHeight={true} direction="vertical" style={styles.container}>
       <Kb.Box2 style={styles.innerContainer} direction="horizontal" alignItems="flex-start">
