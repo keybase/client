@@ -25,18 +25,18 @@ const AvatarAnim = (props: Props): React.ReactElement => {
     <Kb.Box2 direction="vertical" style={Styles.collapseStyles([styles.abs, {width: svg_dim.width, height: svg_dim.height, top: -buffer, left: -buffer}])}>
       <Kb.Animated to={{angle: angleTarget}}>
         {({ angle }) =>
-          <Svg.Svg height="100%" width="100%" viewBox={`${-svg_dim.width/2} ${-svg_dim.height/2} ${svg_dim.width} ${svg_dim.height}`}>
-            <Svg.Circle
+          <animated.svg height="100%" width="100%" viewBox={`${-svg_dim.width/2} ${-svg_dim.height/2} ${svg_dim.width} ${svg_dim.height}`}>
+            <animated.circle
               cx="0"
               cy="0"
               r={props.size/2}
-              stroke={Styles.globalColors.green}
+              stroke={Styles.globalColors.blue}
               strokeWidth="6"
               strokeDasharray="30, 8"
               // rotation={angle}
-              // transform={`rotate(${angle})`}
+              transform={`rotate(${angle})`}
             />
-          </Svg.Svg>
+          </animated.svg>
         }
       </Kb.Animated>
     </Kb.Box2>
