@@ -294,14 +294,49 @@ const load = () => {
     ))
     .add('TlfInfoLine', () => (
       <Kb.Box2 direction="vertical" gap="small" gapStart={true} fullWidth={true}>
+        <Kb.Text type="Body">mode=default reset=false isNew=true</Kb.Text>
+        <TlfInfoLine
+          isNew={false}
+          tlfMtime={1564784024580}
+          tlfType={Types.TlfType.Private}
+          mode="default"
+          reset={false}
+        />
         <Kb.Text type="Body">mode=default reset=false</Kb.Text>
-        <TlfInfoLine tlfMtime={1564784024580} tlfType={Types.TlfType.Private} mode="default" reset={false} />
+        <TlfInfoLine
+          isNew={true}
+          tlfMtime={1564784024580}
+          tlfType={Types.TlfType.Private}
+          mode="default"
+          reset={false}
+        />
+        <Kb.Text type="Body">mode=default reset=true isNew=true</Kb.Text>
+        <TlfInfoLine
+          isNew={true}
+          tlfMtime={1564784024580}
+          tlfType={Types.TlfType.Private}
+          mode="default"
+          reset={true}
+        />
         <Kb.Text type="Body">mode=default reset=true</Kb.Text>
-        <TlfInfoLine tlfMtime={1564784024580} tlfType={Types.TlfType.Private} mode="default" reset={true} />
+        <TlfInfoLine
+          isNew={false}
+          tlfMtime={1564784024580}
+          tlfType={Types.TlfType.Private}
+          mode="default"
+          reset={true}
+        />
         <Kb.Text type="Body">mode=row reset=Array(1)</Kb.Text>
-        <TlfInfoLine tlfMtime={1564784024580} tlfType={Types.TlfType.Private} mode="row" reset={['foo']} />
+        <TlfInfoLine
+          isNew={false}
+          tlfMtime={1564784024580}
+          tlfType={Types.TlfType.Private}
+          mode="row"
+          reset={['foo']}
+        />
         <Kb.Text type="Body">mode=default reset=Array(2)</Kb.Text>
         <TlfInfoLine
+          isNew={false}
           tlfMtime={1564784024580}
           tlfType={Types.TlfType.Private}
           mode="default"
@@ -309,6 +344,7 @@ const load = () => {
         />
         <Kb.Text type="Body">mode=row reset=Array(3)</Kb.Text>
         <TlfInfoLine
+          isNew={false}
           tlfMtime={1564784024580}
           tlfType={Types.TlfType.Private}
           mode="row"
@@ -316,6 +352,7 @@ const load = () => {
         />
         <Kb.Text type="Body">mode=row mixedMode=true reset=Array(3)</Kb.Text>
         <TlfInfoLine
+          isNew={false}
           mixedMode={true}
           tlfMtime={1564784024580}
           tlfType={Types.TlfType.Private}
@@ -324,6 +361,7 @@ const load = () => {
         />
         <Kb.Text type="Body">mode=row mixedMode=true reset=true</Kb.Text>
         <TlfInfoLine
+          isNew={false}
           mixedMode={true}
           tlfMtime={1564784024580}
           tlfType={Types.TlfType.Private}
@@ -332,6 +370,7 @@ const load = () => {
         />
         <Kb.Text type="Body">mode=row mixedMode=true reset=false</Kb.Text>
         <TlfInfoLine
+          isNew={false}
           mixedMode={true}
           tlfMtime={1564784024580}
           tlfType={Types.TlfType.Private}
