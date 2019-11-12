@@ -1,7 +1,6 @@
-Desktop:
-    • Switch between multiple accounts quickly
-    • Adjust how many small conversations to show in your inbox
-    • Sync KBFS files to your device for offline access
-    • Keybase FM: Learn about new features in each release in the app
-    • Better location sharing in chat
-    • Dark mode fixes
+• Switch between multiple accounts quickly
+• Adjust how many small conversations to show in your inbox
+• Sync KBFS files to your device for offline access
+• Keybase FM: Learn about new features in each release in the app
+• Better location sharing in chat
+• Dark mode fixes
