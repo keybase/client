@@ -812,11 +812,11 @@ const validUIMessagetoMessage = (
 ) => {
   const minimum = {
     author: m.senderUsername,
+    botUsername: m.botUsername || undefined,
     conversationIDKey,
     id: Types.numberToMessageID(m.messageID),
     ordinal: Types.numberToOrdinal(m.messageID),
     timestamp: m.ctime,
-    botUsername: m.botUsername || undefined,
   }
 
   const reactions = reactionMapToReactions(m.reactions)
@@ -1124,6 +1124,7 @@ const errorUIMessagetoMessage = (
 ) => {
   return makeMessageText({
     author: o.senderUsername,
+    botUsername: o.botUsername || undefined,
     conversationIDKey,
     deviceName: o.senderDeviceName,
     deviceType: DeviceTypes.stringToDeviceType(o.senderDeviceType),
@@ -1134,7 +1135,6 @@ const errorUIMessagetoMessage = (
     id: Types.numberToMessageID(o.messageID),
     ordinal: Types.numberToOrdinal(o.messageID),
     timestamp: o.ctime,
-    botUsername: o.botUsername || undefined,
   })
 }
 
