@@ -391,6 +391,7 @@ export const sortAndSplitRecommendations = memoize(
             },
           ]
         : []),
+
       {
         data: [],
         label: 'Recommendations',
@@ -434,6 +435,13 @@ export const sortAndSplitRecommendations = memoize(
         }
       }
     })
+    if (results.length < 5) {
+      sections.push({
+        data: [{isSearchHint: true as const}],
+        label: '',
+        shortcut: false,
+      })
+    }
     return sections.filter(s => s && s.data && s.data.length > 0)
   }
 )
@@ -447,7 +455,7 @@ export const sortAndSplitRecommendations = memoize(
 const flattenRecommendations = memoize((recommendations: Array<SearchRecSection>) => {
   const result: Array<SearchResult | null> = []
   for (const section of recommendations) {
-    result.push(...section.data.map(rec => ('isImportButton' in rec ? null : rec)))
+    result.push(...section.data.map(rec => ('isImportButton' in rec || 'isSearchHint' in rec ? null : rec)))
   }
   return result
 })
