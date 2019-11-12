@@ -21,6 +21,18 @@ const mapStateToProps = (state: Container.TypedState) => {
 }
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
+  _onAllMedia: (conversationIDKey: Types.ConversationIDKey) =>
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {conversationIDKey, tab: 'attachments'},
+            selected: 'chatInfoPanel',
+          },
+        ],
+      })
+    ),
+  onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
   _onDownloadAttachment: (message: Types.MessageAttachment) =>
     dispatch(Chat2Gen.createAttachmentDownload({message})),
   _onShowInFinder: (message: Types.MessageAttachment) => {
@@ -34,18 +46,6 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   ) => {
     dispatch(Chat2Gen.createAttachmentFullscreenNext({backInTime: prev, conversationIDKey, messageID}))
   },
-  _onAllMedia: (conversationIDKey: Types.ConversationIDKey) =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {conversationIDKey, tab: 'attachments'},
-            selected: 'chatInfoPanel',
-          },
-        ],
-      })
-    ),
-  onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
 const Connected = Container.connect(
@@ -62,6 +62,7 @@ const Connected = Container.connect(
       autoPlay: stateProps.autoPlay,
       isVideo: Constants.isVideoAttachment(message),
       message,
+      onAllMedia: () => dispatchProps._onAllMedia(message.conversationIDKey),
       onClose: dispatchProps.onClose,
       onDownloadAttachment: message.downloadPath
         ? undefined
@@ -69,7 +70,6 @@ const Connected = Container.connect(
       onNextAttachment: () => dispatchProps._onSwitchAttachment(message.conversationIDKey, message.id, false),
       onPreviousAttachment: () =>
         dispatchProps._onSwitchAttachment(message.conversationIDKey, message.id, true),
-      onAllMedia: () => dispatchProps._onAllMedia(message.conversationIDKey),
       onShowInFinder: message.downloadPath ? () => dispatchProps._onShowInFinder(message) : undefined,
       path: message.fileURL || message.previewURL,
       previewHeight: height,
