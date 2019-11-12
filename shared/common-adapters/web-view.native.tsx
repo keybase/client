@@ -20,7 +20,7 @@ const combineJavaScriptAndCSS = (injections?: WebViewInjections) =>
 `
 
 const KBWebView = (props: WebViewProps) => {
-  const {onLoadingStateChange} = props
+  const {onLoadingStateChange, onError} = props
   return (
     <NativeWebView
       allowsInlineMediaPlayback={true}
@@ -30,6 +30,7 @@ const KBWebView = (props: WebViewProps) => {
       style={props.style}
       onLoadStart={onLoadingStateChange && (() => onLoadingStateChange(true))}
       onLoadEnd={onLoadingStateChange && (() => onLoadingStateChange(false))}
+      onError={onError && (syntheticEvent => onError(syntheticEvent.nativeEvent.description))}
     />
   )
 }

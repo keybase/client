@@ -3,6 +3,7 @@ import * as Styles from '../styles'
 
 export type Props = {
   hideControls?: boolean | null
+  onUrlError?: (err: string) => void
   style?: Styles.StylesCrossPlatform | null
   url: string
 }

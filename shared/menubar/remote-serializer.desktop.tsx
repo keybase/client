@@ -66,6 +66,7 @@ export const serialize: any = {
     return shallowEqual(toSend, old) ? undefined : toSend
   },
   username: (v: string) => v,
+  usernames: (v: Array<string>) => v,
   widgetBadge: (v: NotificationTypes.BadgeType) => v,
   windowComponent: (v: string) => v,
   windowOpts: (v: Object) => v,
@@ -113,5 +114,6 @@ export const deserialize = (state: any = initialState, props: any) => {
     fileRows: props.fileRows || state.fileRows,
     userInfo,
   }
+
   return Avatar.deserialize(newState, props)
 }

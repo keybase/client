@@ -6,6 +6,7 @@ import * as FsGen from '../../actions/fs-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Kb from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
+import logger from '../../logger'
 
 const isPathItem = (path: Types.Path) => Types.getPathLevel(path) > 2 || Constants.hasSpecialFileElement(path)
 const noop = () => {}
@@ -149,7 +150,9 @@ export const useFsDownloadStatus = () => {
 export const useFsFileContext = (path: Types.Path) => {
   const dispatch = useDispatchWhenConnected()
   const pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, path))
+  const [urlError, setUrlError] = React.useState<string>('')
   React.useEffect(() => {
+    urlError && logger.error(`urlError: ${urlError}`)
     pathItem.type === Types.PathType.File && dispatch(FsGen.createLoadFileContext({path}))
   }, [
     dispatch,
@@ -157,7 +160,11 @@ export const useFsFileContext = (path: Types.Path) => {
     // Intentionally depend on pathItem instead of only pathItem.type so we
     // load when timestamp changes.
     pathItem,
+    // When url error happens it's possible that the URL of the item has
+    // changed due to HTTP server restarting. So reload in case of that.
+    urlError,
   ])
+  return setUrlError
 }
 
 export const useFsWatchDownloadForMobile = isMobile

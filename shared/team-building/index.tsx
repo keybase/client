@@ -49,14 +49,22 @@ export type ImportContactsEntry = {
   isImportButton: true
 }
 
+export type SearchHintEntry = {
+  isSearchHint: true
+}
+
+export type ResultData = SearchResult | ImportContactsEntry | SearchHintEntry
+
 export type SearchRecSection = {
   label: string
   shortcut: boolean
-  data: Array<SearchResult | ImportContactsEntry>
+  data: Array<ResultData>
 }
 
-const isImportContactsEntry = (x: SearchResult | ImportContactsEntry): x is ImportContactsEntry =>
+const isImportContactsEntry = (x: ResultData): x is ImportContactsEntry =>
   'isImportButton' in x && x.isImportButton
+
+const isSearchHintEntry = (x: ResultData): x is SearchHintEntry => 'isSearchHint' in x && x.isSearchHint
 
 export type RolePickerProps = {
   onSelectRole: (role: TeamRoleType) => void
@@ -202,6 +210,12 @@ const ContactsImportButton = (props: ContactProps) => {
   )
 }
 
+const SearchHintText = () => (
+  <Kb.Box2 direction="vertical" style={{padding: Styles.globalMargins.small}}>
+    <Kb.Text type="BodySmall">Search anyone on Keybase by typing a username or a full name.</Kb.Text>
+  </Kb.Box2>
+)
+
 const FilteredServiceTabBar = (
   props: Omit<React.ComponentPropsWithoutRef<typeof ServiceTabBar>, 'services'> & {
     filterServices?: Array<ServiceIdWithContact>
@@ -285,13 +299,15 @@ class TeamBuilding extends React.PureComponent<Props> {
       return null
     }
     return (
-      <AlphabetIndex
-        labels={labels}
-        showNumSection={showNumSection}
-        onScroll={this._onScrollToSection}
-        style={styles.alphabetIndex}
-        measureKey={!!this.props.teamSoFar.length}
-      />
+      <>
+        <AlphabetIndex
+          labels={labels}
+          showNumSection={showNumSection}
+          onScroll={this._onScrollToSection}
+          style={styles.alphabetIndex}
+          measureKey={!!this.props.teamSoFar.length}
+        />
+      </>
     )
   }
 
@@ -440,17 +456,23 @@ class TeamBuilding extends React.PureComponent<Props> {
               onScroll={this.onScroll}
               selectedIndex={Styles.isMobile ? undefined : this.props.highlightedIndex || 0}
               sections={this.props.recommendations}
-              keyExtractor={(item: SearchResult | ImportContactsEntry, index: number) => {
-                if (!isImportContactsEntry(item) && item.contact) {
+              keyExtractor={(item: ResultData, index: number) => {
+                if (!isImportContactsEntry(item) && !isSearchHintEntry(item) && item.contact) {
                   // Ids for contacts are not guaranteed to be unique
                   return item.userId + index
                 }
-                return isImportContactsEntry(item) ? 'Import Contacts' : item.userId
+                return isImportContactsEntry(item)
+                  ? 'Import Contacts'
+                  : isSearchHintEntry(item)
+                  ? 'New User Search Hint'
+                  : item.userId
               }}
               getItemLayout={this._getRecLayout}
               renderItem={({index, item: result, section}) =>
                 result.isImportButton ? (
                   <ContactsImportButton {...this.props} />
+                ) : result.isSearchHint ? (
+                  <SearchHintText />
                 ) : (
                   <ResultRow
                     resultForService={this.props.selectedService}
@@ -486,33 +508,35 @@ class TeamBuilding extends React.PureComponent<Props> {
     }
 
     return (
-      <Kb.List
-        reAnimated={true}
-        items={this.props.searchResults || []}
-        onScroll={this.onScroll}
-        selectedIndex={this.props.highlightedIndex || 0}
-        style={styles.list}
-        contentContainerStyle={styles.listContentContainer}
-        keyboardShouldPersistTaps="handled"
-        keyProperty="key"
-        onEndReached={this._onEndReached}
-        onEndReachedThreshold={0.1}
-        renderItem={(index, result) => (
-          <ResultRow
-            resultForService={this.props.selectedService}
-            username={result.username}
-            prettyName={result.prettyName}
-            displayLabel={result.displayLabel}
-            services={result.services}
-            inTeam={result.inTeam}
-            isPreExistingTeamMember={result.isPreExistingTeamMember}
-            followingState={result.followingState}
-            highlight={!Styles.isMobile && index === this.props.highlightedIndex}
-            onAdd={() => this.props.onAdd(result.userId)}
-            onRemove={() => this.props.onRemove(result.userId)}
-          />
-        )}
-      />
+      <>
+        <Kb.List
+          reAnimated={true}
+          items={this.props.searchResults || []}
+          onScroll={this.onScroll}
+          selectedIndex={this.props.highlightedIndex || 0}
+          style={styles.list}
+          contentContainerStyle={styles.listContentContainer}
+          keyboardShouldPersistTaps="handled"
+          keyProperty="key"
+          onEndReached={this._onEndReached}
+          onEndReachedThreshold={0.1}
+          renderItem={(index, result) => (
+            <ResultRow
+              resultForService={this.props.selectedService}
+              username={result.username}
+              prettyName={result.prettyName}
+              displayLabel={result.displayLabel}
+              services={result.services}
+              inTeam={result.inTeam}
+              isPreExistingTeamMember={result.isPreExistingTeamMember}
+              followingState={result.followingState}
+              highlight={!Styles.isMobile && index === this.props.highlightedIndex}
+              onAdd={() => this.props.onAdd(result.userId)}
+              onRemove={() => this.props.onRemove(result.userId)}
+            />
+          )}
+        />
+      </>
     )
   }
 

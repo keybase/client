@@ -145,7 +145,7 @@ const Badge = (props: Props) => {
     case Types.NonUploadPathItemBadgeType.Rekey:
       return <Kb.Meta title="rekey" backgroundColor={Styles.globalColors.red} style={badgeStyle.rekeyBadge} />
     case Types.NonUploadPathItemBadgeType.New:
-      return <Kb.Meta title="new" backgroundColor={Styles.globalColors.orange} style={badgeStyle.newBadge} />
+      return null // We show this in TLFInfoLine
     default:
       if (!props.badge) {
         return null
@@ -188,7 +188,7 @@ const badgeStyles = {
     () =>
       ({
         newBadge: {
-          left: 16,
+          left: 24,
           position: 'absolute',
           top: -36,
         },
