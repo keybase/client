@@ -745,6 +745,7 @@ export const getMapUnfurl = (message: Types.Message): RPCChatTypes.UnfurlGeneric
   const unfurls = message.type === 'text' && message.unfurls.size ? message.unfurls.toList().toArray() : null
   const mapInfo =
     !!unfurls &&
+    !!unfurls[0] &&
     unfurls[0].unfurl.unfurlType === RPCChatTypes.UnfurlType.generic &&
     unfurls[0].unfurl.generic &&
     unfurls[0].unfurl.generic.mapInfo
