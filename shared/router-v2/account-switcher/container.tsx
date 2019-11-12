@@ -7,7 +7,6 @@ import AccountSwitcher, {Props} from './index'
 import * as Container from '../../util/container'
 import * as ConfigGen from '../../actions/config-gen'
 import * as ProvisionGen from '../../actions/provision-gen'
-import * as SignupGen from '../../actions/signup-gen'
 import * as Constants from '../../constants/config'
 import HiddenString from '../../util/hidden-string'
 import * as LoginConstants from '../../constants/login'
@@ -26,7 +25,6 @@ export default Container.connect(
     _onProfileClick: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
     onAddAccount: () => dispatch(ProvisionGen.createStartProvision()),
     onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
-    onCreateAccount: () => dispatch(SignupGen.createRequestAutoInvite()),
     onSelectAccountLoggedIn: (username: string) => {
       dispatch(ConfigGen.createSetUserSwitching({userSwitching: true}))
       dispatch(LoginGen.createLogin({password: new HiddenString(''), username}))
@@ -46,7 +44,6 @@ export default Container.connect(
       fullname: stateProps.fullname,
       onAddAccount: dispatchProps.onAddAccount,
       onCancel: dispatchProps.onCancel,
-      onCreateAccount: dispatchProps.onCreateAccount,
       onProfileClick: () => dispatchProps._onProfileClick(stateProps.username),
       onSelectAccount: (username: string) => {
         const rows = accountRows.filter(account => account.username === username)

@@ -59,7 +59,6 @@ export default Container.connect(
       }
     },
     onAddAccount: () => dispatch(ProvisionGen.createStartProvision()),
-    onCreateAccount: () => dispatch(SignupGen.createRequestAutoInvite()), // TODO make this route
     onHelp: () => openURL('https://keybase.io/docs'),
     onQuit: () => {
       if (!__DEV__) {
@@ -85,7 +84,6 @@ export default Container.connect(
     fullname: stateProps.fullname,
     isWalletsNew: stateProps.isWalletsNew,
     onAddAccount: dispatchProps.onAddAccount,
-    onCreateAccount: dispatchProps.onCreateAccount,
     onHelp: dispatchProps.onHelp,
     onProfileClick: () => dispatchProps._onProfileClick(stateProps.username),
     onQuit: dispatchProps.onQuit,

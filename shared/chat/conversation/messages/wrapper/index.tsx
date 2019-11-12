@@ -214,7 +214,6 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
   }
 
   _isEdited = () =>
-    // @ts-ignore
     this.props.message.hasBeenEdited && (
       <Kb.Text
         key="isEdited"
@@ -265,10 +264,9 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     )
 
   _unfurlList = () =>
-    // @ts-ignore
+    this.props.message.type === 'text' &&
     this.props.message.unfurls &&
-    // @ts-ignore
-    !this.props.message.unfurls.isEmpty() && (
+    !!this.props.message.unfurls.size && (
       <UnfurlList
         key="UnfurlList"
         conversationIDKey={this.props.conversationIDKey}
@@ -295,8 +293,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
   }
 
   _hasReactions = () =>
-    // @ts-ignore
-    (this.props.message.reactions && !this.props.message.reactions.isEmpty()) || this.props.isPendingPayment
+    (!!this.props.message.reactions && !!this.props.message.reactions.size) || this.props.isPendingPayment
 
   _reactionsRow = () =>
     this._hasReactions() && (
@@ -539,9 +536,8 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
             )}
             {this.props.isRevoked && (
               <Kb.Icon
-                type="iconfont-exclamation"
-                color={Styles.globalColors.blue}
-                fontSize={14}
+                type="iconfont-rip"
+                color={Styles.globalColors.black_20}
                 style={styles.marginLeftTiny}
               />
             )}
