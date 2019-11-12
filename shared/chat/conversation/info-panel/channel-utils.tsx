@@ -66,7 +66,11 @@ const CaptionedDangerIcon = ({
       onClick={onClick}
     >
       {slot}
-      <Kb.Text type="BodySemibold" style={{color: color}} className="hover-underline">
+      <Kb.Text
+        type="BodySemibold"
+        style={{color: color ? color : Styles.globalColors.black}}
+        className="hover-underline"
+      >
         {caption}
       </Kb.Text>
       <Kb.Box style={{marginRight: 10, width: Styles.globalMargins.medium}} />
