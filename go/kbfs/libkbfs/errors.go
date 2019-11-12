@@ -588,10 +588,23 @@ type DisallowedPrefixError struct {
 	prefix string
 }
 
-// Error implements the error interface for NoChainFoundError.
+// Error implements the error interface for DisallowedPrefixError.
 func (e DisallowedPrefixError) Error() string {
 	return fmt.Sprintf("Cannot create %s because it has the prefix %s",
 		e.name, e.prefix)
+}
+
+// DisallowedNameError indicates that the user attempted to create an
+// entry using a disallowed name.  It includes the plaintext name on
+// purpose, for clarity in the error message.
+type DisallowedNameError struct {
+	name string
+}
+
+// Error implements the error interface for DisallowedNameError.
+func (e DisallowedNameError) Error() string {
+	return fmt.Sprintf("Cannot create \"%s\" because it is a disallowed name",
+		e.name)
 }
 
 // NameTooLongError indicates that the user tried to write a directory
