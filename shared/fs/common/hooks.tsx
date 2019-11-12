@@ -152,7 +152,7 @@ export const useFsFileContext = (path: Types.Path) => {
   const pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, path))
   const [urlError, setUrlError] = React.useState<string>('')
   React.useEffect(() => {
-    urlError && logger.error(`urlError: ${urlError}`)
+    urlError && logger.info(`urlError: ${urlError}`)
     pathItem.type === Types.PathType.File && dispatch(FsGen.createLoadFileContext({path}))
   }, [
     dispatch,
