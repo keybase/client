@@ -1,7 +1,7 @@
 /* eslint-disable sort-keys */
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
-import BlockModal from './block-modal'
+import BlockModal from './block-modal/container'
 import Invitation from './invitation-to-block'
 
 const others = ['max', 'patrick', 'strib']
