@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as _Avatar from '../common-adapters/avatar'
 import * as _Usernames from '../common-adapters/usernames'
 import {OwnProps as ReloadableOwnProps, Props as ReloadableProps} from '../common-adapters/reload'
@@ -183,7 +182,7 @@ export const createStoreWithCommon = () => {
     },
     fs: {
       ...root.fs,
-      pathInfos: I.Map([
+      pathInfos: new Map([
         [
           '/keybase/private/meatball/folder/treat',
           {
@@ -195,7 +194,7 @@ export const createStoreWithCommon = () => {
       sfmi: {
         directMountDir: '/Volumes/Keybase (meatball)',
         driverStatus: FsConstants.emptyDriverStatusEnabled,
-        preferredMountDirs: I.List(['/Volumes/Keybase', '/Volumes/Keybase (meatball)']),
+        preferredMountDirs: ['/Volumes/Keybase', '/Volumes/Keybase (meatball)'],
       },
     },
     tracker2: {
