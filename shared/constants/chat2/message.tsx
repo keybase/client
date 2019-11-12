@@ -816,6 +816,7 @@ const validUIMessagetoMessage = (
     id: Types.numberToMessageID(m.messageID),
     ordinal: Types.numberToOrdinal(m.messageID),
     timestamp: m.ctime,
+    botUsername: m.botUsername || undefined,
   }
 
   const reactions = reactionMapToReactions(m.reactions)
@@ -1133,6 +1134,7 @@ const errorUIMessagetoMessage = (
     id: Types.numberToMessageID(o.messageID),
     ordinal: Types.numberToOrdinal(o.messageID),
     timestamp: o.ctime,
+    botUsername: o.botUsername || undefined,
   })
 }
 
