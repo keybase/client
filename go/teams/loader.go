@@ -821,7 +821,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 			}
 			// Add the secrets.
 			// If it's a public team, there might not be secrets. (If we're not in the team)
-			// Restricted bots don't have any team secrets, so we alos short circuit.
+			// Restricted bots don't have any team secrets, so we also short circuit.
 			if !role.IsRestrictedBot() && (!ret.Chain.Public || (teamUpdate.Box != nil)) {
 				err = l.addSecrets(mctx, teamShim(), arg.me, teamUpdate.Box, teamUpdate.Prevs, teamUpdate.ReaderKeyMasks)
 				if err != nil {
