@@ -34,6 +34,17 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   ) => {
     dispatch(Chat2Gen.createAttachmentFullscreenNext({backInTime: prev, conversationIDKey, messageID}))
   },
+  _onAllMedia: (conversationIDKey: Types.ConversationIDKey) =>
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {conversationIDKey, tab: 'attachments'},
+            selected: 'chatInfoPanel',
+          },
+        ],
+      })
+    ),
   onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
@@ -58,6 +69,7 @@ const Connected = Container.connect(
       onNextAttachment: () => dispatchProps._onSwitchAttachment(message.conversationIDKey, message.id, false),
       onPreviousAttachment: () =>
         dispatchProps._onSwitchAttachment(message.conversationIDKey, message.id, true),
+      onAllMedia: () => dispatchProps._onAllMedia(message.conversationIDKey),
       onShowInFinder: message.downloadPath ? () => dispatchProps._onShowInFinder(message) : undefined,
       path: message.fileURL || message.previewURL,
       previewHeight: height,
