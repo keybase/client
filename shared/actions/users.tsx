@@ -53,15 +53,9 @@ const setUserBlocks = async (_: TypedState, action: UsersGen.SetUserBlocksPayloa
 const getBlockState = async (_: TypedState, action: UsersGen.GetBlockStatePayload) => {
   const {usernames} = action.payload
 
-  const userBlocks = await RPCTypes.userGetUserBlocksRpcPromise({usernames})
-  if (userBlocks) {
-    return userBlocks.map(block =>
-      UsersGen.createUpdateBlockState({
-        chatBlocked: block.chatBlocked,
-        followBlocked: block.followBlocked,
-        username: block.username,
-      })
-    )
+  const blocks = await RPCTypes.userGetUserBlocksRpcPromise({usernames})
+  if (blocks && blocks.length) {
+    return UsersGen.createUpdateBlockState({blocks})
   }
   return
 }

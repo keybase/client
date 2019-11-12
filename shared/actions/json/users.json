@@ -25,10 +25,8 @@
       "usernames": "Array<string>"
     },
     "updateBlockState": {
-      "_description": "Sets the block state for a user",
-      "username": "string",
-      "chatBlocked": "boolean",
-      "followBlocked": "boolean"
+      "_description": "Sets the block state for multiple users",
+      "blocks": "Array<{username: string, chatBlocked: boolean, followBlocked: boolean}>"
     },
     "reportUser": {
       "_description": "Calls RPC to report user",

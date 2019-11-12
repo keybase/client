@@ -27,9 +27,7 @@ type _ReportUserPayload = {
 type _SetUserBlocksPayload = {readonly blocks: Array<RPCTypes.UserBlockArg>}
 type _UpdateBioPayload = {readonly userCard: RPCTypes.UserCard; readonly username: string}
 type _UpdateBlockStatePayload = {
-  readonly username: string
-  readonly chatBlocked: boolean
-  readonly followBlocked: boolean
+  readonly blocks: Array<{username: string; chatBlocked: boolean; followBlocked: boolean}>
 }
 type _UpdateBrokenStatePayload = {readonly newlyBroken: Array<string>; readonly newlyFixed: Array<string>}
 type _UpdateFullnamesPayload = {readonly usernameToFullname: {[username: string]: string}}
@@ -57,7 +55,7 @@ export const createReportUser = (payload: _ReportUserPayload): ReportUserPayload
   type: reportUser,
 })
 /**
- * Sets the block state for a user
+ * Sets the block state for multiple users
  */
 export const createUpdateBlockState = (payload: _UpdateBlockStatePayload): UpdateBlockStatePayload => ({
   payload,

@@ -86,8 +86,10 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     })
   },
   [UsersGen.updateBlockState]: (draftState, action) => {
-    const {username, chatBlocked, followBlocked} = action.payload
-    // Make blockMap keys normalized usernames.
-    draftState.blockMap.set(username.toLowerCase(), {chatBlocked, followBlocked})
+    const {blocks} = action.payload
+    blocks.forEach(({username, chatBlocked, followBlocked}) => {
+      // Make blockMap keys normalized usernames.
+      draftState.blockMap.set(username.toLowerCase(), {chatBlocked, followBlocked})
+    })
   },
 })

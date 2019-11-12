@@ -146,10 +146,10 @@ const DropdownButton = Kb.OverlayParentHOC((p: Kb.PropsWithOverlay<DropdownProps
     {onClick: p.onBrowsePublicFolder, title: 'Browse public folder'},
     p.onUnfollow && {onClick: p.onUnfollow && p.onUnfollow, title: 'Unfollow'},
     flags.userBlocking
-      ? p.blocked
-        ? {danger: true, onClick: p.onUnblock, title: 'Unblock'}
-        : {danger: true, onClick: p.onBlock, title: 'Block'}
-      : {danger: true, onClick: p.onManageBlocking, title: 'Manage blocking'},
+      ? {danger: true, onClick: p.onManageBlocking, title: 'Manage blocking'}
+      : p.blocked
+      ? {danger: true, onClick: p.onUnblock, title: 'Unblock'}
+      : {danger: true, onClick: p.onBlock, title: 'Block'},
   ].reduce<Kb.MenuItems>((arr, i) => {
     i && arr.push(i)
     return arr
