@@ -32,16 +32,16 @@ const messageIDToOrdinal = (
 ) => {
   // A message we didn't send in this session?
   const map = messageMap.get(conversationIDKey)
-  let m = map && map.get(Types.numberToOrdinal(messageID))
+  let m = map?.get(Types.numberToOrdinal(messageID))
   if (m?.id === messageID) {
     return m.ordinal
   }
   // Search through our sent messages
   const pendingOrdinal = [
-    ...(pendingOutboxToOrdinal.get(conversationIDKey) || new Map<Types.OutboxID, Types.Ordinal>()).values(),
+    ...(pendingOutboxToOrdinal.get(conversationIDKey) ?? new Map<Types.OutboxID, Types.Ordinal>()).values(),
   ].find(o => {
-    m = map && map.get(o)
-    if (m && m.id && m.id === messageID) {
+    m = map?.get(o)
+    if (m?.id === messageID) {
       return true
     }
     return false
@@ -100,7 +100,7 @@ const audioActions: Container.ActionHandler<Actions, Types.State> = {
   [Chat2Gen.lockAudioRecording]: (draftState, action) => {
     const {conversationIDKey} = action.payload
     const {audioRecording} = draftState
-    const info = audioRecording.get(conversationIDKey) || Constants.makeAudioRecordingInfo()
+    const info = audioRecording.get(conversationIDKey) ?? Constants.makeAudioRecordingInfo()
     audioRecording.set(conversationIDKey, info)
     info.isLocked = true
   },
@@ -166,7 +166,7 @@ const paymentActions: Container.ActionHandler<Actions, Types.State> = {
   [Chat2Gen.paymentInfoReceived]: (draftState, action) => {
     const {conversationIDKey, messageID, paymentInfo} = action.payload
     const {accountsInfoMap, paymentStatusMap} = draftState
-    const convMap = accountsInfoMap.get(conversationIDKey) || new Map()
+    const convMap = accountsInfoMap.get(conversationIDKey) ?? new Map()
     accountsInfoMap.set(conversationIDKey, convMap)
     convMap.set(messageID, paymentInfo)
     paymentStatusMap.set(paymentInfo.paymentID, paymentInfo)
@@ -181,21 +181,21 @@ const searchActions: Container.ActionHandler<Actions, Types.State> = {
   [Chat2Gen.threadSearchResults]: (draftState, action) => {
     const {conversationIDKey, clear, messages} = action.payload
     const {threadSearchInfoMap} = draftState
-    const info = threadSearchInfoMap.get(conversationIDKey) || Constants.makeThreadSearchInfo()
+    const info = threadSearchInfoMap.get(conversationIDKey) ?? Constants.makeThreadSearchInfo()
     threadSearchInfoMap.set(conversationIDKey, info)
     info.hits = clear ? messages : [...info.hits, ...messages]
   },
   [Chat2Gen.setThreadSearchStatus]: (draftState, action) => {
     const {conversationIDKey, status} = action.payload
     const {threadSearchInfoMap} = draftState
-    const info = threadSearchInfoMap.get(conversationIDKey) || Constants.makeThreadSearchInfo()
+    const info = threadSearchInfoMap.get(conversationIDKey) ?? Constants.makeThreadSearchInfo()
     threadSearchInfoMap.set(conversationIDKey, info)
     info.status = status
   },
   [Chat2Gen.toggleThreadSearch]: (draftState, action) => {
     const {conversationIDKey} = action.payload
     const {threadSearchInfoMap, messageCenterOrdinals} = draftState
-    const info = threadSearchInfoMap.get(conversationIDKey) || Constants.makeThreadSearchInfo()
+    const info = threadSearchInfoMap.get(conversationIDKey) ?? Constants.makeThreadSearchInfo()
     threadSearchInfoMap.set(conversationIDKey, info)
     info.hits = []
     info.status = 'initial'
@@ -206,7 +206,7 @@ const searchActions: Container.ActionHandler<Actions, Types.State> = {
   [Chat2Gen.threadSearch]: (draftState, action) => {
     const {conversationIDKey} = action.payload
     const {threadSearchInfoMap} = draftState
-    const info = threadSearchInfoMap.get(action.payload.conversationIDKey) || Constants.makeThreadSearchInfo()
+    const info = threadSearchInfoMap.get(action.payload.conversationIDKey) ?? Constants.makeThreadSearchInfo()
     threadSearchInfoMap.set(conversationIDKey, info)
     info.hits = []
   },
@@ -217,14 +217,14 @@ const searchActions: Container.ActionHandler<Actions, Types.State> = {
   },
   [Chat2Gen.inboxSearchSetTextStatus]: (draftState, action) => {
     const {status} = action.payload
-    const inboxSearch = draftState.inboxSearch || Constants.makeInboxSearchInfo()
+    const inboxSearch = draftState.inboxSearch ?? Constants.makeInboxSearchInfo()
     draftState.inboxSearch = inboxSearch
     inboxSearch.textStatus = status
   },
   [Chat2Gen.inboxSearchSetIndexPercent]: (draftState, action) => {
     const {percent} = action.payload
     const {inboxSearch} = draftState
-    if (inboxSearch && inboxSearch.textStatus === 'inprogress') {
+    if (inboxSearch?.textStatus === 'inprogress') {
       inboxSearch.indexPercent = percent
     }
   },
@@ -258,7 +258,7 @@ const searchActions: Container.ActionHandler<Actions, Types.State> = {
   },
   [Chat2Gen.inboxSearchNameResults]: (draftState, action) => {
     const {inboxSearch} = draftState
-    if (inboxSearch && inboxSearch.nameStatus === 'inprogress') {
+    if (inboxSearch?.nameStatus === 'inprogress') {
       const {results, unread} = action.payload
       inboxSearch.nameResults = results
       inboxSearch.nameResultsUnread = unread
@@ -299,11 +299,11 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
     const {conversationIDKey, viewType} = action.payload
     const {attachmentViewMap} = draftState
     const viewMap =
-      attachmentViewMap.get(conversationIDKey) ||
+      attachmentViewMap.get(conversationIDKey) ??
       new Map<RPCChatTypes.GalleryItemTyp, Types.AttachmentViewInfo>()
     attachmentViewMap.set(conversationIDKey, viewMap)
 
-    const info = viewMap.get(viewType) || Constants.makeAttachmentViewInfo()
+    const info = viewMap.get(viewType) ?? Constants.makeAttachmentViewInfo()
     viewMap.set(viewType, info)
     info.status = 'loading'
   },
@@ -311,11 +311,11 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
     const {conversationIDKey, viewType, message} = action.payload
     const {attachmentViewMap} = draftState
     const viewMap =
-      attachmentViewMap.get(conversationIDKey) ||
+      attachmentViewMap.get(conversationIDKey) ??
       new Map<RPCChatTypes.GalleryItemTyp, Types.AttachmentViewInfo>()
     attachmentViewMap.set(conversationIDKey, viewMap)
 
-    const info = viewMap.get(viewType) || Constants.makeAttachmentViewInfo()
+    const info = viewMap.get(viewType) ?? Constants.makeAttachmentViewInfo()
     viewMap.set(viewType, info)
 
     if (info.messages.findIndex((item: any) => item.id === action.payload.message.id) < 0) {
@@ -326,11 +326,11 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
     const {conversationIDKey, viewType, last, status} = action.payload
     const {attachmentViewMap} = draftState
     const viewMap =
-      attachmentViewMap.get(conversationIDKey) ||
+      attachmentViewMap.get(conversationIDKey) ??
       new Map<RPCChatTypes.GalleryItemTyp, Types.AttachmentViewInfo>()
     attachmentViewMap.set(conversationIDKey, viewMap)
 
-    const info = viewMap.get(viewType) || Constants.makeAttachmentViewInfo()
+    const info = viewMap.get(viewType) ?? Constants.makeAttachmentViewInfo()
     viewMap.set(viewType, info)
 
     info.last = !!last
@@ -348,8 +348,8 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
     const ordinal = convMap && convMap.get(outboxID)
     if (ordinal) {
       const map = messageMap.get(conversationIDKey)
-      const m = map && map.get(ordinal)
-      if (m && m.type === 'attachment') {
+      const m = map?.get(ordinal)
+      if (m?.type === 'attachment') {
         m.transferProgress = ratio
         m.transferState = 'uploading'
       }
