@@ -59,6 +59,7 @@ const AudioStarter = (props: AudioStarterProps) => {
   const tapLive = React.useRef<boolean>(false)
   const tapRef = React.useRef(null)
   const panRef = React.useRef(null)
+  const recordTimeRef = React.useRef(0)
   const [showToolTip, setShowToolTip] = React.useState(false)
   const showToolTipFalseLater = Kb.useTimeout(() => {
     setShowToolTip(false)
@@ -97,6 +98,7 @@ const AudioStarter = (props: AudioStarterProps) => {
           if (!props.recording && nativeEvent.state === Kb.GestureState.BEGAN) {
             tapLive.current = true
             if (!longPressTimer) {
+              recordTimeRef.current = Date.now()
               longPressTimer = setTimeout(() => {
                 if (tapLive.current) {
                   props.enableRecording()
@@ -114,7 +116,7 @@ const AudioStarter = (props: AudioStarterProps) => {
             clearTimeout(longPressTimer)
             tapLive.current = false
             longPressTimer = null
-            if (!props.recording) {
+            if (!props.recording && Date.now() - recordTimeRef.current <= 100) {
               setShowToolTip(true)
               showToolTipFalseLater()
             }
