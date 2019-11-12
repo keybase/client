@@ -152,8 +152,8 @@ const styles = Styles.styleSheetCreate(
         flex: 1,
       },
       close: {
-        color: Styles.globalColors.blueDark,
         backgroundColor: Styles.globalColors.blackOrBlack,
+        color: Styles.globalColors.blueDark,
         padding: Styles.globalMargins.small,
       },
       fastImage: {
