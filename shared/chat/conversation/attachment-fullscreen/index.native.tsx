@@ -128,7 +128,7 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
           type="iconfont-ellipsis"
           // @ts-ignore TODO fix styles
           style={styles.headerFooter}
-          color={Styles.globalColors.whiteOrBlueDark}
+          color={Styles.globalColors.blueDark}
           onClick={this.props.toggleShowingMenu}
         />
         <MessagePopup
@@ -152,7 +152,8 @@ const styles = Styles.styleSheetCreate(
         flex: 1,
       },
       close: {
-        color: Styles.globalColors.whiteOrBlueDark,
+        backgroundColor: Styles.globalColors.blackOrBlack,
+        color: Styles.globalColors.blueDark,
         padding: Styles.globalMargins.small,
       },
       fastImage: {
@@ -182,7 +183,7 @@ const styles = Styles.styleSheetCreate(
         position: 'relative',
       },
       zoomableBox: {
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Styles.globalColors.blackOrBlack,
         height: '100%',
         overflow: 'hidden',
         position: 'relative',
