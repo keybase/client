@@ -5,6 +5,12 @@ import * as Styles from '../../../styles'
 export type BlockType = 'chatBlocked' | 'followBlocked'
 type BlocksForUser = {chatBlocked?: boolean; followBlocked?: boolean}
 
+export type ReportSettings = {
+  extraNotes: string
+  includeTranscript: boolean
+  reason: string
+}
+
 export type NewBlocksMap = Map<string, BlocksForUser>
 type State = {
   blockTeam: boolean
@@ -22,7 +28,7 @@ export type Props = {
   convID?: string
   isBlocked: (username: string, which: BlockType) => boolean
   onCancel: () => void
-  onFinish: (newBlocks: NewBlocksMap, blockTeam: boolean) => void
+  onFinish: (newBlocks: NewBlocksMap, blockTeam: boolean, report?: ReportSettings) => void
   otherUsernames?: Array<string>
   refreshBlocks: () => void
   teamname?: string
@@ -171,7 +177,15 @@ class BlockModal extends React.PureComponent<Props, State> {
   }
 
   onFinish() {
-    this.props.onFinish(this.state.newBlocks, this.state.blockTeam)
+    let report: ReportSettings | undefined = undefined
+    if (this.state.shouldReport) {
+      report = {
+        extraNotes: this.state.extraNotes,
+        includeTranscript: this.state.includeTranscript,
+        reason: this.state.reportReason,
+      }
+    }
+    this.props.onFinish(this.state.newBlocks, this.state.blockTeam, report)
     this.setState({finishClicked: true})
   }
 

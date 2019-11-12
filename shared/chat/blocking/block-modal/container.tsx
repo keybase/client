@@ -1,6 +1,6 @@
 import * as Container from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import BlockModal, {BlockType, NewBlocksMap} from '.'
+import BlockModal, {BlockType, NewBlocksMap, ReportSettings} from '.'
 import * as UsersGen from '../../../actions/users-gen'
 import * as TeamsGen from '../../../actions/teams-gen'
 
@@ -25,10 +25,9 @@ const Connect = Container.connect(
     teamname: Container.getRouteProps(ownProps, 'team', undefined),
   }),
   dispatch => ({
-    leaveTeamAndBlock: (teamname: string) => dispatch(TeamsGen.createLeaveTeam({context: 'chat', teamname})),
-    onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
-    refreshBlocksFor: (usernames: Array<string>) => dispatch(UsersGen.createGetBlockState({usernames})),
-    setUserBlocks: (newBlocks: NewBlocksMap) => {
+    _leaveTeamAndBlock: (teamname: string) => dispatch(TeamsGen.createLeaveTeam({context: 'chat', teamname})),
+    _refreshBlocksFor: (usernames: Array<string>) => dispatch(UsersGen.createGetBlockState({usernames})),
+    _setUserBlocks: (newBlocks: NewBlocksMap) => {
       // Convert our state block array to action payload.
       const blocks = Array.from(newBlocks).map(([username, blocks]) => ({
         setChatBlock: blocks.chatBlocked,
@@ -37,26 +36,41 @@ const Connect = Container.connect(
       }))
       dispatch(UsersGen.createSetUserBlocks({blocks}))
     },
+    _reportUser: (username: string, convID: string | undefined, report: ReportSettings) => {
+      dispatch(
+        UsersGen.createReportUser({
+          comment: report.extraNotes,
+          convID: (report.includeTranscript && convID) || null,
+          includeTranscript: report.includeTranscript,
+          reason: report.reason,
+          username: username,
+        })
+      )
+    },
+    onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
   }),
   (stateProps, dispatchProps, _: OwnProps) => {
     return {
       ...stateProps,
       onCancel: dispatchProps.onCancel,
-      onFinish: (newBlocks: NewBlocksMap, blockTeam: boolean) => {
+      onFinish: (newBlocks: NewBlocksMap, blockTeam: boolean, report?: ReportSettings) => {
         if (blockTeam) {
           const {teamname} = stateProps
           if (teamname) {
-            dispatchProps.leaveTeamAndBlock(teamname)
+            dispatchProps._leaveTeamAndBlock(teamname)
           }
         }
         if (newBlocks.size) {
-          dispatchProps.setUserBlocks(newBlocks)
+          dispatchProps._setUserBlocks(newBlocks)
+        }
+        if (report) {
+          dispatchProps._reportUser(stateProps.adderUsername, stateProps.convID, report)
         }
       },
       refreshBlocks: () => {
         const usernames = [stateProps.adderUsername].concat(stateProps.others || [])
         if (usernames.length) {
-          dispatchProps.refreshBlocksFor(usernames)
+          dispatchProps._refreshBlocksFor(usernames)
         }
       },
     }
