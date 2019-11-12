@@ -123,14 +123,14 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
               white={true}
             />
           )}
+          <Kb.Icon
+            type="iconfont-ellipsis"
+            // @ts-ignore TODO fix styles
+            style={styles.headerFooter}
+            color={Styles.globalColors.whiteOrBlueDark}
+            onClick={this.props.toggleShowingMenu}
+          />
         </Kb.Box2>
-        <Kb.Icon
-          type="iconfont-ellipsis"
-          // @ts-ignore TODO fix styles
-          style={styles.headerFooter}
-          color={Styles.globalColors.whiteOrBlueDark}
-          onClick={this.props.toggleShowingMenu}
-        />
         <MessagePopup
           attachTo={this.props.getAttachmentRef}
           message={this.props.message}
@@ -162,9 +162,12 @@ const styles = Styles.styleSheetCreate(
       headerFooter: {
         ...Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
+        bottom: 0,
         flexShrink: 0,
         height: 44,
-        paddingLeft: Styles.globalMargins.small,
+        left: Styles.globalMargins.small,
+        position: 'absolute',
+        zIndex: 3,
       },
       progressIndicator: {
         alignSelf: 'center',
