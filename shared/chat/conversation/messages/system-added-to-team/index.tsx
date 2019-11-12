@@ -7,6 +7,7 @@ import * as TeamTypes from '../../../../constants/types/teams'
 import {typeToLabel} from '../../../../constants/teams'
 import {formatTimeForChat} from '../../../../util/timestamp'
 import {getAddedUsernames} from '../system-users-added-to-conv'
+import {indefiniteArticle} from '../../../../util/string'
 
 type Props = {
   isAdmin: boolean
@@ -77,7 +78,7 @@ const AddedToTeam = (props: Props) => {
       <Kb.Text type="BodySmall" style={{flex: 1}}>
         was added by {youOrUsername({capitalize: false, username: props.adder, you: props.you})}
         {typeToLabel[props.role] &&
-          ` as ${'aeiou'.includes(props.role[0]) ? 'an' : 'a'} ${typeToLabel[props.role].toLowerCase()}`}
+          ` as ${indefiniteArticle(props.role)} ${typeToLabel[props.role].toLowerCase()}`}
         . <ManageComponent {...props} />
       </Kb.Text>
     )
@@ -123,7 +124,9 @@ const YouAddedToTeam = (props: Props) => {
               {teamname}
             </Kb.Text>
           )}
-          {typeToLabel[props.role] && ` as a ${typeToLabel[role].toLowerCase()}`}.{' '}
+          {typeToLabel[props.role] &&
+            ` as ${indefiniteArticle(props.role)} ${typeToLabel[role].toLowerCase()}`}
+          .{' '}
           <Kb.Text type="BodySmallSemibold">
             Say hi!{' '}
             <Kb.EmojiIfExists

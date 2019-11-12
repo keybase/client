@@ -216,9 +216,9 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "messageID": "RPCChatTypes.MessageID",
       "text": "HiddenString",
-      "mentionsAt": "I.Set<string>",
+      "mentionsAt": "Set<string>",
       "mentionsChannel": "'none' | 'all' | 'here'",
-      "mentionsChannelName": "I.Map<string, Types.ConversationIDKey>"
+      "mentionsChannelName": "Map<string, Types.ConversationIDKey>"
     },
     "pendingMessageWasEdited": {
       "conversationIDKey": "Types.ConversationIDKey",
@@ -774,6 +774,10 @@
     "setChannelSearchText": {
       "_description": "Set filter for channel search",
       "text": "string"
+    },
+    "setInboxNumSmallRows": {
+        "ignoreWrite?": "boolean",
+        "rows": "number"
     },
     "enableAudioRecording": {
       "conversationIDKey": "Types.ConversationIDKey",

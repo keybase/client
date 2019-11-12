@@ -6,6 +6,7 @@ import PathStatusIcon from './path-status-icon'
 
 type OwnPropsPathItem = {
   path: Types.Path
+  showTooltipOnPressMobile?: boolean
 }
 
 const PathStatusIconPathItem = Container.connect(
@@ -18,6 +19,7 @@ const PathStatusIconPathItem = Container.connect(
   () => ({}),
   (stateProps, _, ownProps: OwnPropsPathItem) => ({
     isFolder: stateProps._pathItem.type === Types.PathType.Folder,
+    showTooltipOnPressMobile: ownProps.showTooltipOnPressMobile,
     statusIcon: Constants.getPathStatusIconInMergeProps(
       stateProps._kbfsDaemonStatus,
       stateProps._tlf,
@@ -55,11 +57,12 @@ const PathStatusIconTlfType = Container.connect(
 
 type OwnProps = {
   path: Types.Path
+  showTooltipOnPressMobile?: boolean
 }
 
 const PathStatusIconConnected = (props: OwnProps) =>
   Types.getPathLevel(props.path) > 2 ? (
-    <PathStatusIconPathItem path={props.path} />
+    <PathStatusIconPathItem path={props.path} showTooltipOnPressMobile={props.showTooltipOnPressMobile} />
   ) : (
     <PathStatusIconTlfType tlfType={Types.getTlfTypeFromPath(props.path)} />
   )

@@ -28,7 +28,7 @@ export type Props = {
 export default (props: Props) => (
   <Kb.Box style={Styles.collapseStyles([styles.container, props.badged && styles.containerBadged])}>
     {!!props.icon && (
-      <Kb.Box style={Styles.collapseStyles([styles.iconContainer, props.iconContainerStyle])}>
+      <Kb.Box key="icon" style={Styles.collapseStyles([styles.iconContainer, props.iconContainerStyle])}>
         {props.icon}
       </Kb.Box>
     )}
@@ -42,9 +42,11 @@ export default (props: Props) => (
       <Kb.Box2 direction="horizontal" style={styles.actionContainer} alignItems="center" fullWidth={true}>
         {props.buttons &&
           props.buttons.length > 0 &&
-          props.buttons.map(b =>
+          props.buttons.map((b, idx) =>
             React.isValidElement(b) ? (
-              <Kb.Box style={styles.button}>{b}</Kb.Box>
+              <Kb.Box key={idx} style={styles.button}>
+                {b}
+              </Kb.Box>
             ) : (
               <Kb.Button key={b.label} small={true} style={styles.button} {...b} />
             )

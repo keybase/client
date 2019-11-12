@@ -1675,6 +1675,11 @@
           "jsonkey": "latest_hidden_seqno"
         },
         {
+          "type": "Seqno",
+          "name": "latestOffchainSeqno",
+          "jsonkey": "latest_offchain_seqno"
+        },
+        {
           "type": "boolean",
           "name": "implicitTeam",
           "jsonkey": "implicit_team"

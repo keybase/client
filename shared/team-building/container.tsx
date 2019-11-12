@@ -66,35 +66,32 @@ const initialState: LocalState = {
   showRolePicker: false,
 }
 
-const deriveSearchResults = memoize(
-  (
-    searchResults: Array<Types.User> | null,
-    teamSoFar: I.Set<Types.User>,
-    myUsername: string,
-    followingState: Set<string>,
-    preExistingTeamMembers: I.Map<string, MemberInfo>
-  ) =>
-    searchResults &&
-    searchResults.map(info => {
-      const label = info.label || ''
-      return {
-        contact: !!info.contact,
-        displayLabel: formatAnyPhoneNumbers(label),
-        followingState: Constants.followStateHelperWithId(
-          myUsername,
-          followingState,
-          info.serviceMap.keybase
-        ),
-        inTeam: teamSoFar.some(u => u.id === info.id),
-        isPreExistingTeamMember: preExistingTeamMembers.has(info.id),
-        key: [info.id, info.prettyName, info.label, String(!!info.contact)].join('&'),
-        prettyName: formatAnyPhoneNumbers(info.prettyName),
-        services: info.serviceMap,
-        userId: info.id,
-        username: info.username,
-      }
-    })
-)
+const expensiveDeriveResults = (
+  searchResults: Array<Types.User> | null,
+  teamSoFar: I.Set<Types.User>,
+  myUsername: string,
+  followingState: Set<string>,
+  preExistingTeamMembers: I.Map<string, MemberInfo>
+) =>
+  searchResults &&
+  searchResults.map(info => {
+    const label = info.label || ''
+    return {
+      contact: !!info.contact,
+      displayLabel: formatAnyPhoneNumbers(label),
+      followingState: Constants.followStateHelperWithId(myUsername, followingState, info.serviceMap.keybase),
+      inTeam: teamSoFar.some(u => u.id === info.id),
+      isPreExistingTeamMember: preExistingTeamMembers.has(info.id),
+      key: [info.id, info.prettyName, info.label, String(!!info.contact)].join('&'),
+      prettyName: formatAnyPhoneNumbers(info.prettyName),
+      services: info.serviceMap,
+      userId: info.id,
+      username: info.username,
+    }
+  })
+
+const deriveSearchResults = memoize(expensiveDeriveResults)
+const deriveRecommendation = memoize(expensiveDeriveResults)
 
 const deriveTeamSoFar = memoize(
   (teamSoFar: I.Set<Types.User>): Array<Types.SelectedUser> =>
@@ -170,7 +167,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   return {
     ...contactProps,
     disabledRoles,
-    recommendations: deriveSearchResults(
+    recommendations: deriveRecommendation(
       teamBuildingState.teamBuildingUserRecs,
       teamBuildingState.teamBuildingTeamSoFar,
       state.config.username,
@@ -394,6 +391,7 @@ export const sortAndSplitRecommendations = memoize(
             },
           ]
         : []),
+
       {
         data: [],
         label: 'Recommendations',
@@ -437,6 +435,13 @@ export const sortAndSplitRecommendations = memoize(
         }
       }
     })
+    if (results.length < 5) {
+      sections.push({
+        data: [{isSearchHint: true as const}],
+        label: '',
+        shortcut: false,
+      })
+    }
     return sections.filter(s => s && s.data && s.data.length > 0)
   }
 )
@@ -450,7 +455,7 @@ export const sortAndSplitRecommendations = memoize(
 const flattenRecommendations = memoize((recommendations: Array<SearchRecSection>) => {
   const result: Array<SearchResult | null> = []
   for (const section of recommendations) {
-    result.push(...section.data.map(rec => ('isImportButton' in rec ? null : rec)))
+    result.push(...section.data.map(rec => ('isImportButton' in rec || 'isSearchHint' in rec ? null : rec)))
   }
   return result
 })

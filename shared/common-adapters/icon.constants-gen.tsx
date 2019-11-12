@@ -4517,6 +4517,7 @@ const iconMeta_ = {
   },
   'icon-illustration-attention-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-illustration-attention-64.png')
@@ -4540,6 +4541,7 @@ const iconMeta_ = {
   },
   'icon-illustration-friends-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-illustration-friends-96.png')
@@ -4547,6 +4549,7 @@ const iconMeta_ = {
   },
   'icon-illustration-happy-chat-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-illustration-happy-chat-96.png')
@@ -4554,6 +4557,7 @@ const iconMeta_ = {
   },
   'icon-illustration-long-time-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-illustration-long-time-96.png')
@@ -4585,6 +4589,7 @@ const iconMeta_ = {
   },
   'icon-illustration-sleepy-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-illustration-sleepy-96.png')
@@ -4624,6 +4629,7 @@ const iconMeta_ = {
   },
   'icon-illustration-welcome-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-illustration-welcome-96.png')
@@ -8435,6 +8441,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-rip': {
+    charCode: 0xe9a5,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-root': {
     charCode: 0xe9a0,
     gridSize: 16,
@@ -8637,6 +8648,22 @@ const iconMeta_ = {
     isFont: false,
     get require() {
       return require('../images/releases/release-4.7.0-pinned-messages.png')
+    },
+  },
+  'release-4.8.0-audio-messages': {
+    extension: 'png',
+    imagesDir: 'releases',
+    isFont: false,
+    get require() {
+      return require('../images/releases/release-4.8.0-audio-messages.png')
+    },
+  },
+  'release-4.8.0-file-sync': {
+    extension: 'png',
+    imagesDir: 'releases',
+    isFont: false,
+    get require() {
+      return require('../images/releases/release-4.8.0-file-sync.png')
     },
   } /* eslint-enable */,
 }

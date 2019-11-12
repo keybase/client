@@ -316,9 +316,9 @@ function* folderList(_: TypedState, action: FsGen.FolderListLoadPayload) {
 
     yield RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID}, Constants.folderListWaitingKey)
 
-    const result: Saga.RPCPromiseType<
-      typeof RPCTypes.SimpleFSSimpleFSReadListRpcPromise
-    > = yield RPCTypes.SimpleFSSimpleFSReadListRpcPromise({opID})
+    const result: Saga.RPCPromiseType<typeof RPCTypes.SimpleFSSimpleFSReadListRpcPromise> = yield RPCTypes.SimpleFSSimpleFSReadListRpcPromise(
+      {opID}
+    )
     const entries = result.entries || []
     const childMap = entries.reduce((m, d) => {
       const [parent, child] = d.name.split('/')
@@ -445,11 +445,11 @@ function* pollJournalFlushStatusUntilDone() {
         syncingPaths,
         totalSyncingBytes,
         endEstimate,
-      }: Saga.RPCPromiseType<
-        typeof RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise
-      > = yield RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise({
-        filter: RPCTypes.ListFilter.filterSystemHidden,
-      })
+      }: Saga.RPCPromiseType<typeof RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise> = yield RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise(
+        {
+          filter: RPCTypes.ListFilter.filterSystemHidden,
+        }
+      )
       yield Saga.sequentially([
         Saga.put(
           FsGen.createJournalUpdate({
@@ -895,8 +895,14 @@ const loadFileContext = async (_: TypedState, action: FsGen.LoadFileContextPaylo
 }
 
 const loadFilesTabBadge = async () => {
-  const badge = await RPCTypes.SimpleFSSimpleFSGetFilesTabBadgeRpcPromise()
-  return FsGen.createLoadedFilesTabBadge({badge})
+  try {
+    const badge = await RPCTypes.SimpleFSSimpleFSGetFilesTabBadgeRpcPromise()
+    return FsGen.createLoadedFilesTabBadge({badge})
+  } catch {
+    // retry once HOTPOT-1226
+    const badge = await RPCTypes.SimpleFSSimpleFSGetFilesTabBadgeRpcPromise()
+    return FsGen.createLoadedFilesTabBadge({badge})
+  }
 }
 
 function* fsSaga() {

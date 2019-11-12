@@ -398,7 +398,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
         <>
           {overlay}
           <WrappedComponent
-            {...wrappedOP as WrappedOwnProps}
+            {...(wrappedOP as WrappedOwnProps)}
             suggestionsVisible={suggestionsVisible}
             ref={this._setAttachmentRef}
             inputRef={this._inputRef}

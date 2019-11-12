@@ -57,9 +57,7 @@ function decodeKBFSError(user: string, notification: FSNotification): DecodedKBF
 
     case FSErrorType.timeout:
       return {
-        body: `The ${
-          notification.params.mode
-        } operation took too long and failed. Please run 'keybase log send' so our admins can review.`,
+        body: `The ${notification.params.mode} operation took too long and failed. Please run 'keybase log send' so our admins can review.`,
         title: `Keybase: ${capitalize(notification.params.mode)} timeout in ${tlf}`,
       }
 

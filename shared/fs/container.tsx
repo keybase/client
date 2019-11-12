@@ -38,7 +38,7 @@ const ChooseComponent = (props: ChooseComponentProps) => {
   }, [isConnected, waitForKbfsDaemon])
 
   Kbfs.useFsPathMetadata(props.path)
-  Kbfs.useFsFileContext(props.path)
+  const onUrlError = Kbfs.useFsFileContext(props.path)
   Kbfs.useFsTlfs()
   Kbfs.useFsOnlineStatus()
   Kbfs.useFsTlf(props.path)
@@ -65,7 +65,7 @@ const ChooseComponent = (props: ChooseComponentProps) => {
         // doesn't matter here as we do a navigateAppend for bare views
         <SimpleScreens.Loading />
       ) : (
-        <NormalPreview path={props.path} />
+        <NormalPreview path={props.path} onUrlError={onUrlError} />
       )
   }
 }

@@ -602,6 +602,18 @@ func (bra BlockRequestAction) AddSync() BlockRequestAction {
 	return bra | blockRequestSync
 }
 
+// AddPrefetch returns a new action that adds prefetching in addition
+// to the original request.  For sync requests, it returns a
+// deep-sync request (unlike `Combine`, which just adds the regular
+// prefetch bit).
+func (bra BlockRequestAction) AddPrefetch() BlockRequestAction {
+	if bra.Sync() {
+		return BlockRequestWithDeepSync
+	}
+
+	return bra | blockRequestPrefetch | blockRequestTrackedInPrefetch
+}
+
 // CacheType returns the disk block cache type that should be used,
 // according to the type of action.
 func (bra BlockRequestAction) CacheType() DiskBlockCacheType {

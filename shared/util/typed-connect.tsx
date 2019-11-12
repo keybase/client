@@ -12,12 +12,7 @@ export const namedConnect = <TOwnProps, TStateProps, TDispatchProps, TMergedProp
   options?: RR.Options<TypedState, TStateProps, TOwnProps, TMergedProps>
 ) =>
   (compose(
-    connect(
-      mapStateToProps,
-      mapDispatchToProps,
-      mergeProps,
-      options
-    ),
+    connect(mapStateToProps, mapDispatchToProps, mergeProps, options),
     setDisplayName(displayName)
   ) as unknown) as RR.ConnectedComponentType<TMergedProps, TOwnProps>
 

@@ -21,7 +21,7 @@ import HiddenString from '../../util/hidden-string'
 export const defaultTopReacjis = [':+1:', ':-1:', ':tada:', ':joy:', ':sunglasses:']
 const defaultSkinTone = 1
 export const defaultUserReacjis = {skinTone: defaultSkinTone, topReacjis: defaultTopReacjis}
-const emptyArray = []
+const emptyArray: Array<unknown> = []
 const emptySet = new Set()
 
 export const makeState = (): Types.State => ({
@@ -47,6 +47,7 @@ export const makeState = (): Types.State => ({
   giphyWindowMap: new Map(),
   inboxHasLoaded: false,
   inboxLayout: null,
+  inboxNumSmallRows: 5,
   inboxSearch: undefined,
   inboxShowNew: false,
   isWalletsNew: true,
@@ -82,7 +83,7 @@ export const makeState = (): Types.State => ({
 })
 
 export const makeThreadSearchInfo = (): Types.ThreadSearchInfo => ({
-  hits: emptyArray,
+  hits: emptyArray as Types.ThreadSearchInfo['hits'],
   status: 'initial',
   visible: false,
 })
@@ -108,8 +109,6 @@ export const makeAttachmentViewInfo = (): Types.AttachmentViewInfo => ({
   messages: [],
   status: 'loading',
 })
-
-export const initialAttachmentViewInfo = makeAttachmentViewInfo()
 
 export const makeAudioRecordingInfo = (): Types.AudioRecordingInfo => ({
   isLocked: false,

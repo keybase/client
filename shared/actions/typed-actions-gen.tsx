@@ -215,6 +215,7 @@ export type TypedActionsMap = {
   'chat2:updateLastCoord': chat2.UpdateLastCoordPayload
   'chat2:toggleGiphyPrefill': chat2.ToggleGiphyPrefillPayload
   'chat2:setChannelSearchText': chat2.SetChannelSearchTextPayload
+  'chat2:setInboxNumSmallRows': chat2.SetInboxNumSmallRowsPayload
   'chat2:enableAudioRecording': chat2.EnableAudioRecordingPayload
   'chat2:attemptAudioRecording': chat2.AttemptAudioRecordingPayload
   'chat2:stopAudioRecording': chat2.StopAudioRecordingPayload
@@ -816,6 +817,7 @@ export type TypedActionsMap = {
   'team-building:selectRole': teambuilding.SelectRolePayload
   'team-building:changeSendNotification': teambuilding.ChangeSendNotificationPayload
   'team-building:labelsSeen': teambuilding.LabelsSeenPayload
+  'team-building:tbResetStore': teambuilding.TbResetStorePayload
   'teams:addUserToTeams': teams.AddUserToTeamsPayload
   'teams:clearNavBadges': teams.ClearNavBadgesPayload
   'teams:createNewTeam': teams.CreateNewTeamPayload

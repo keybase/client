@@ -357,16 +357,13 @@ const loadSettings = async (
       (settings.emails || []).map(row => [row.email, Constants.makeEmailRow(row)])
     )
     const phoneMap: I.Map<string, Types.PhoneRow> = I.Map(
-      (settings.phoneNumbers || []).reduce(
-        (map, row) => {
-          if (map[row.phoneNumber] && !map[row.phoneNumber].superseded) {
-            return map
-          }
-          map[row.phoneNumber] = Constants.toPhoneRow(row)
+      (settings.phoneNumbers || []).reduce((map, row) => {
+        if (map[row.phoneNumber] && !map[row.phoneNumber].superseded) {
           return map
-        },
-        {} as {[key: string]: Types.PhoneRow}
-      )
+        }
+        map[row.phoneNumber] = Constants.toPhoneRow(row)
+        return map
+      }, {} as {[key: string]: Types.PhoneRow})
     )
     return SettingsGen.createLoadedSettings({
       emails: emailMap,

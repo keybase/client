@@ -12,8 +12,12 @@ const mapDispatchToProps = dispatch => ({
   onFinish: () => dispatch(UnlockFoldersGen.createFinish()),
   toPaperKeyInput: () => dispatch(UnlockFoldersGen.createToPaperKeyInput()),
 })
-export default remoteConnect((state: any) => state, mapDispatchToProps, (s, d, o: OwnProps) => ({
-  ...o,
-  ...s,
-  ...d,
-}))(UnlockFolders)
+export default remoteConnect(
+  (state: any) => state,
+  mapDispatchToProps,
+  (s, d, o: OwnProps) => ({
+    ...o,
+    ...s,
+    ...d,
+  })
+)(UnlockFolders)

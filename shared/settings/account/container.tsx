@@ -47,29 +47,25 @@ const mapDispatchToProps = (dispatch: TypedDispatch) => ({
   },
 })
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  (stateProps, dispatchProps, _: OwnProps) => {
-    const supersededPhoneNumber = stateProps._phones && stateProps._phones.find(p => p.superseded)
-    const supersededKey = supersededPhoneNumber && supersededPhoneNumber.e164
-    return {
-      ...dispatchProps,
-      addedEmail: stateProps.addedEmail,
-      addedPhone: stateProps.addedPhone,
-      contactKeys: I.List([
-        ...(stateProps._emails ? stateProps._emails.keys() : []),
-        ...(stateProps._phones ? stateProps._phones.keys() : []),
-      ]),
-      hasPassword: stateProps.hasPassword,
-      moreThanOneEmail: stateProps._emails ? stateProps._emails.size > 1 : false,
-      onClearSupersededPhoneNumber: () =>
-        supersededKey && dispatchProps._onClearSupersededPhoneNumber(supersededKey),
-      supersededPhoneNumber: supersededPhoneNumber ? supersededPhoneNumber.displayNumber : undefined,
-      title: 'Your account',
-      tooManyEmails: !!stateProps._emails && stateProps._emails.size >= 10, // If you change this, also change in keybase/config/prod/email.iced
-      tooManyPhones: !!stateProps._phones && stateProps._phones.size >= 10, // If you change this, also change in keybase/config/prod/phone_numbers.iced
-      waiting: stateProps.waiting,
-    }
+export default connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps, _: OwnProps) => {
+  const supersededPhoneNumber = stateProps._phones && stateProps._phones.find(p => p.superseded)
+  const supersededKey = supersededPhoneNumber && supersededPhoneNumber.e164
+  return {
+    ...dispatchProps,
+    addedEmail: stateProps.addedEmail,
+    addedPhone: stateProps.addedPhone,
+    contactKeys: I.List([
+      ...(stateProps._emails ? stateProps._emails.keys() : []),
+      ...(stateProps._phones ? stateProps._phones.keys() : []),
+    ]),
+    hasPassword: stateProps.hasPassword,
+    moreThanOneEmail: stateProps._emails ? stateProps._emails.size > 1 : false,
+    onClearSupersededPhoneNumber: () =>
+      supersededKey && dispatchProps._onClearSupersededPhoneNumber(supersededKey),
+    supersededPhoneNumber: supersededPhoneNumber ? supersededPhoneNumber.displayNumber : undefined,
+    title: 'Your account',
+    tooManyEmails: !!stateProps._emails && stateProps._emails.size >= 10, // If you change this, also change in keybase/config/prod/email.iced
+    tooManyPhones: !!stateProps._phones && stateProps._phones.size >= 10, // If you change this, also change in keybase/config/prod/phone_numbers.iced
+    waiting: stateProps.waiting,
   }
-)(AccountSettings)
+})(AccountSettings)
