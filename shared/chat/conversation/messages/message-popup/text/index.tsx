@@ -8,7 +8,7 @@ import {StylesCrossPlatform} from '../../../../../styles/css'
 type Props = {
   attachTo?: () => React.Component<any> | null
   author: string
-  botUsername: string
+  botUsername?: string
   deviceName: string
   deviceRevokedAt?: number
   deviceType: DeviceType
