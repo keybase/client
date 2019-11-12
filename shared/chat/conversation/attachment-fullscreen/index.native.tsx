@@ -163,9 +163,12 @@ const styles = Styles.styleSheetCreate(
       headerFooter: {
         ...Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
+        bottom: 0,
         flexShrink: 0,
         height: 44,
-        paddingLeft: Styles.globalMargins.small,
+        left: Styles.globalMargins.small,
+        position: 'absolute',
+        zIndex: 3,
       },
       progressIndicator: {
         alignSelf: 'center',
