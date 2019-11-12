@@ -267,6 +267,7 @@ class OrientedImage extends React.Component<Props, State> {
           // @ts-ignore codemod issue
           <ImageRef
             ref={this.props.forwardedRef}
+            // @ts-ignore TODO type
             src={this.state.srcTransformed}
             style={this.props.style}
             onDragStart={this.props.onDragStart}

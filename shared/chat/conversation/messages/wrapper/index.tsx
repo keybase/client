@@ -605,7 +605,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     return (
       <>
         <LongPressable
-          {...this.props.message.type !== 'journeycard' && this._containerProps()}
+          {...(this.props.message.type !== 'journeycard' && this._containerProps())}
           children={[
             this.props.message.type === 'journeycard' ? (
               <TeamJourney message={this.props.message} />

@@ -40,16 +40,8 @@ const mergeProps = (stateProps, dispatchProps, _) => {
 }
 
 // Export the popup as the default export so it is easy to make a route pointing to it
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
-)(HeaderHoc(ProxySettingsPopup))
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(HeaderHoc(ProxySettingsPopup))
 
 // The proxy settings component used in the advanced settings screen
-const ProxySettings = connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
-)(ProxySettingsComponent)
+const ProxySettings = connect(mapStateToProps, mapDispatchToProps, mergeProps)(ProxySettingsComponent)
 export {ProxySettings}

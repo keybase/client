@@ -34,6 +34,9 @@ const mergeProps = (stateProps, dispatchProps) => ({
   teamname: stateProps.teamname,
 })
 
-export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'InboxBigTeamHeader')(
-  BigTeamHeader
-)
+export default namedConnect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'InboxBigTeamHeader'
+)(BigTeamHeader)

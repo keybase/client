@@ -53,7 +53,7 @@ for (let i = 0; i < 500; i++) {
   })
 }
 
-const customRow: Array<unknown> = [...small]
+const customRow: Array<any> = [...small]
 customRow[2] = {...customRow[2], renderItem: customRowRender}
 
 const load = () => {

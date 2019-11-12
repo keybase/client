@@ -53,11 +53,7 @@ const mapDispatchToProps = dispatch => ({
 })
 
 export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    (s, d, o: OwnProps) => ({...o, ...s, ...d})
-  ),
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o: OwnProps) => ({...o, ...s, ...d})),
   lifecycle({
     componentDidMount() {
       this.props._loadLockdownMode()

@@ -39,7 +39,7 @@ const DispatchNavUpHoc: any = connect(
   (dispatch, {navigateUp}) => ({
     connectedNavigateUp: () => dispatch(navigateUp ? navigateUp() : RouteTreeGen.createNavigateUp()),
   }),
-  (s, d, o) => ({...o, ...s, ...d})
+  (s, d, o: any) => ({...o, ...s, ...d})
 )
 
 // TODO properly type this

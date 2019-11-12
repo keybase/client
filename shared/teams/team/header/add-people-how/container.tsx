@@ -25,7 +25,10 @@ export default Container.connect(
         const selected = Styles.isMobile ? 'teamInviteByContact' : 'teamInviteByEmail'
         dispatch(
           RouteTreeGen.createNavigateAppend({
-            path: [{props: {teamname}, selected: 'team'}, {props: {teamname}, selected}],
+            path: [
+              {props: {teamname}, selected: 'team'},
+              {props: {teamname}, selected},
+            ],
           })
         )
         dispatch(RouteTreeGen.createNavigateAppend({path: [teamsTab]}))

@@ -59,11 +59,7 @@ const mergeProps = (stateProps, dispatchProps, _) => {
 }
 
 export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
     componentDidMount() {
       this.props._permissionsNeedLoad && this.props._loadPermissions()
