@@ -15,28 +15,23 @@ const Kb = {
 }
 
 const AvatarAnim = (props: Props): React.ReactElement => {
+  const buffer = props.size/16; // padding from the bounds of the avatar to the edge of the svg
+  const svg_dim = { width: props.size + buffer * 2, height: props.size + buffer * 2 }
   const [angleTarget, setAngleTarget] = React.useState(0)
   const avatarSizeClasName = `avatar-user-size-${props.size}`
   Kb.useInterval(() => setAngleTarget(angleTarget === 0 ? 60 : 0), 1000)
-  return (<Kb.Box2 direction="vertical" style={styles.container}>
-    <Kb.Box2 direction="vertical" style={Styles.collapseStyles([styles.abs, {width: props.size, height: props.size}])}>
+  return (<Kb.Box2 direction="vertical" style={Styles.collapseStyles([styles.container, {width: props.size, height: props.size}])}>
+    <Kb.Box2 direction="vertical" style={Styles.collapseStyles([styles.abs, {width: svg_dim.width, height: svg_dim.height, top: -buffer, left: -buffer}])}>
       <Kb.Animated to={{angle: angleTarget}}>
         {({ angle }) =>
-          <svg height="100%" width="100%" viewBox="-1 -1 2 2">
+          <svg height="100%" width="100%" viewBox={`${-svg_dim.width/2} ${-svg_dim.height/2} ${svg_dim.width} ${svg_dim.height}`}>
             <circle
               cx="0"
               cy="0"
-              r="1"
-              stroke="green"
-              strokeWidth=".05"
-              fill="blue"
-            />
-            <rect
-              x="0"
-              y="0"
-              width=".2"
-              height=".2"
-              fill="yellow"
+              r={props.size/2}
+              stroke={Styles.globalColors.blue}
+              strokeWidth="6"
+              strokeDasharray="30, 8"
               transform={`rotate(${angle})`}
             />
           </svg>
@@ -44,7 +39,8 @@ const AvatarAnim = (props: Props): React.ReactElement => {
       </Kb.Animated>
     </Kb.Box2>
     <div
-      style={Styles.collapseStyles([styles.abs, { backgroundImage: props.url, width: props.size, height: props.size, borderRadius: props.size/2, opacity: .7 }])}
+      className="avatar-user-image"
+      style={Styles.collapseStyles([styles.abs, { backgroundImage: props.url, width: props.size, height: props.size, borderRadius: props.size/2 }])}
     />
   </Kb.Box2>)
 }
