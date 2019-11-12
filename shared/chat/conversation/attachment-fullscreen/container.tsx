@@ -32,7 +32,6 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
         ],
       })
     ),
-  onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
   _onDownloadAttachment: (message: Types.MessageAttachment) =>
     dispatch(Chat2Gen.createAttachmentDownload({message})),
   _onShowInFinder: (message: Types.MessageAttachment) => {
@@ -46,6 +45,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   ) => {
     dispatch(Chat2Gen.createAttachmentFullscreenNext({backInTime: prev, conversationIDKey, messageID}))
   },
+  onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
 const Connected = Container.connect(

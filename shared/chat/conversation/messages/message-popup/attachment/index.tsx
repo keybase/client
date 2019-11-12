@@ -51,10 +51,10 @@ const AttachmentPopupMenu = (props: Props) => {
       ? [{disabled: props.pending, onClick: props.onSaveAttachment, title: 'Save'}]
       : []),
     ...(props.onDownload ? [{disabled: props.pending, onClick: props.onDownload, title: 'Download'}] : []),
-    ...[{disabled: props.pending, onClick: props.onAllMedia, title: 'All media'}],
     ...(props.onShareAttachment
       ? [{disabled: props.pending, onClick: props.onShareAttachment, title: 'Share'}]
       : []),
+    ...[{disabled: props.pending, onClick: props.onAllMedia, title: 'All media'}],
     ...(props.onAddReaction ? [{onClick: props.onAddReaction, title: 'Add a reaction'}] : []),
     ...(props.onReply ? [{onClick: props.onReply, title: 'Reply'}] : []),
     ...(props.onPinMessage ? [{onClick: props.onPinMessage, title: 'Pin message'}] : []),
