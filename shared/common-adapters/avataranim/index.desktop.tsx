@@ -2,9 +2,10 @@ import * as React from 'react'
 import * as Styles from '../../styles'
 import {Box2, Box} from '../box'
 import Text from '../text'
-import Animated from '../animated'
+import Animated, {animated} from '../animated'
 import {useTimeout, useInterval} from '../use-timers'
 import { Props } from '.'
+import * as Svg from 'react-native-svg';
 
 const Kb = {
   Box,
@@ -24,17 +25,18 @@ const AvatarAnim = (props: Props): React.ReactElement => {
     <Kb.Box2 direction="vertical" style={Styles.collapseStyles([styles.abs, {width: svg_dim.width, height: svg_dim.height, top: -buffer, left: -buffer}])}>
       <Kb.Animated to={{angle: angleTarget}}>
         {({ angle }) =>
-          <svg height="100%" width="100%" viewBox={`${-svg_dim.width/2} ${-svg_dim.height/2} ${svg_dim.width} ${svg_dim.height}`}>
-            <circle
+          <Svg.Svg height="100%" width="100%" viewBox={`${-svg_dim.width/2} ${-svg_dim.height/2} ${svg_dim.width} ${svg_dim.height}`}>
+            <Svg.Circle
               cx="0"
               cy="0"
               r={props.size/2}
-              stroke={Styles.globalColors.blue}
+              stroke={Styles.globalColors.green}
               strokeWidth="6"
               strokeDasharray="30, 8"
-              transform={`rotate(${angle})`}
+              // rotation={angle}
+              // transform={`rotate(${angle})`}
             />
-          </svg>
+          </Svg.Svg>
         }
       </Kb.Animated>
     </Kb.Box2>
