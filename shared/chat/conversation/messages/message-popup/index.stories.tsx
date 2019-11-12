@@ -24,6 +24,7 @@ const defaultProps = {
   attachTo: () => null,
   isDeleteable: true,
   onAddReaction: Sb.action('onAddReaction'),
+  onAllMedia: Sb.action('onAllMedia'),
   onCopy: Sb.action('onCopy'),
   onDelete: Sb.action('onDelete'),
   onDeleteMessageHistory: Sb.action('onDeleteMessageHistory'),

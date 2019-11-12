@@ -77,9 +77,14 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
       >
         <Kb.SafeAreaViewTop style={{backgroundColor: Styles.globalColors.blackOrBlack}} />
         <Kb.NativeStatusBar hidden={true} />
-        <Kb.Text type="Body" onClick={this.props.onClose} style={styles.close}>
-          Close
-        </Kb.Text>
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerWrapper}>
+          <Kb.Text type="Body" onClick={this.props.onClose} style={styles.close}>
+            Close
+          </Kb.Text>
+          <Kb.Text type="Body" onClick={this.props.onAllMedia} style={styles.allMedia}>
+            All media
+          </Kb.Text>
+        </Kb.Box2>
         <Kb.Box2 direction="vertical" fullWidth={true} style={Styles.globalStyles.flexGrow}>
           {!!this.props.path && this.props.isVideo ? (
             <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.videoWrapper}>
@@ -147,6 +152,12 @@ const Fullscreen = Kb.OverlayParentHOC(_Fullscreen)
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      allMedia: {
+        backgroundColor: Styles.globalColors.blackOrBlack,
+        color: Styles.globalColors.blueDark,
+        marginLeft: 'auto',
+        padding: Styles.globalMargins.small,
+      },
       assetWrapper: {
         ...Styles.globalStyles.flexBoxCenter,
         flex: 1,
@@ -170,6 +181,7 @@ const styles = Styles.styleSheetCreate(
         position: 'absolute',
         zIndex: 3,
       },
+      headerWrapper: {...Styles.globalStyles.flexGrow, backgroundColor: Styles.globalColors.blackOrBlack},
       progressIndicator: {
         alignSelf: 'center',
         margin: 'auto',
