@@ -191,6 +191,11 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               >
                 {formatTimeForChat(this.props.message.timestamp)}
               </Kb.Text>
+              {this._getKeyedBot() && (
+                <Kb.WithTooltip tooltip={`Encrypted for @${this._getKeyedBot()}`}>
+                  <Kb.Icon fontSize={14} color={Styles.globalColors.black} type="iconfont-nav-2-robot" />
+                </Kb.WithTooltip>
+              )}
             </Kb.Box2>
           </Kb.Box2>
           <Kb.Box2
@@ -405,7 +410,6 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     const iconSizes = [
       this.props.isRevoked ? 16 : 0, // revoked
       this.props.showCoinsIcon ? 16 : 0, // coin stack
-      this._getKeyedBot() ? 16 : 0, // keyed bot icon
       exploded || Styles.isMobile ? 0 : 16, // ... menu
       exploding ? (Styles.isMobile ? 57 : 46) : 0, // exploding
     ].filter(Boolean)
@@ -578,11 +582,6 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                 </Kb.Box>
               </Kb.Box>
             ) : null}
-            {this._getKeyedBot() && (
-              <Kb.WithTooltip tooltip={`Encrypted for @${this._getKeyedBot()}`}>
-                <Kb.Icon fontSize={14} color={Styles.globalColors.black} type="iconfont-nav-2-robot" />
-              </Kb.WithTooltip>
-            )}
           </Kb.Box2>
         </Kb.Box2>
       )
