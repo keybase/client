@@ -10,7 +10,7 @@ type OwnProps = {
   tlfPath: Types.Path
 }
 
-export default (flags.kbfsOfflineMode
+export default flags.kbfsOfflineMode
   ? Container.connect(
       (state: Container.TypedState, ownProps: OwnProps) => ({
         _tlfPathItem: Constants.getPathItem(state.fs.pathItems, ownProps.tlfPath),
@@ -37,4 +37,4 @@ export default (flags.kbfsOfflineMode
         }
       }
     )(SyncToggle)
-  : () => null)
+  : () => null

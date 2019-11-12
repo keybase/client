@@ -33,7 +33,7 @@ const messageIDToOrdinal = (
   // A message we didn't send in this session?
   const map = messageMap.get(conversationIDKey)
   let m = map && map.get(Types.numberToOrdinal(messageID))
-  if (m && m.id && m.id === messageID) {
+  if (m?.id === messageID) {
     return m.ordinal
   }
   // Search through our sent messages
@@ -1084,9 +1084,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       targetData.forEach(td => {
         if (!td.targetOrdinal) {
           logger.info(
-            `updateReactions: couldn't find target ordinal for targetMsgID=${
-              td.targetMsgID
-            } in convID=${conversationIDKey}`
+            `updateReactions: couldn't find target ordinal for targetMsgID=${td.targetMsgID} in convID=${conversationIDKey}`
           )
           return
         }

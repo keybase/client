@@ -178,9 +178,7 @@ const AccountSettings = (props: Props) => (
         <Kb.Banner color="yellow" onClose={props.onClearSupersededPhoneNumber}>
           <Kb.BannerParagraph
             bannerColor="yellow"
-            content={`Your phone number ${
-              props.supersededPhoneNumber
-            } is now associated with another Keybase user.`}
+            content={`Your phone number ${props.supersededPhoneNumber} is now associated with another Keybase user.`}
           />
           <Kb.Button
             onClick={props.onAddPhone}

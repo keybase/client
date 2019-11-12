@@ -54,8 +54,6 @@ const mapDispatchToProps = dispatch => ({
   onEnable: () => dispatch(PushGen.createRequestPermissions()),
 })
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  (s, d, o: OwnProps) => ({...o, ...s, ...d})
-)(TurnOnNotifications)
+export default connect(mapStateToProps, mapDispatchToProps, (s, d, o: OwnProps) => ({...o, ...s, ...d}))(
+  TurnOnNotifications
+)

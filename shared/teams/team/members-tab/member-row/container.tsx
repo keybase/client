@@ -86,8 +86,4 @@ const mergeProps = (stateProps, dispatchProps: DispatchProps, ownProps: OwnProps
   }
 }
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
-)(TeamMemberRow)
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(TeamMemberRow)

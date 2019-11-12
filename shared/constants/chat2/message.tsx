@@ -42,9 +42,7 @@ export const getRequestMessageInfo = (state: TypedState, message: Types.MessageR
     return maybeRequestInfo
   }
   throw new Error(
-    `Found impossible type ${maybeRequestInfo.type} in info meant for requestPayment message. convID: ${
-      message.conversationIDKey
-    } msgID: ${message.id}`
+    `Found impossible type ${maybeRequestInfo.type} in info meant for requestPayment message. convID: ${message.conversationIDKey} msgID: ${message.id}`
   )
 }
 
@@ -61,9 +59,7 @@ export const getPaymentMessageInfo = (
     return maybePaymentInfo
   }
   throw new Error(
-    `Found impossible type ${maybePaymentInfo.type} in info meant for sendPayment message. convID: ${
-      message.conversationIDKey
-    } msgID: ${message.id}`
+    `Found impossible type ${maybePaymentInfo.type} in info meant for sendPayment message. convID: ${message.conversationIDKey} msgID: ${message.id}`
   )
 }
 

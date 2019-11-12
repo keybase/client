@@ -93,18 +93,14 @@ const BlockModal = (props: Props) => {
           text={`Block ${props.adder}`}
           onCheck={setBlockAdder}
           checked={blockAdder}
-          info={`${
-            props.adder
-          } won't be able to start any new conversations with you, and they won't be able to add you to any teams.`}
+          info={`${props.adder} won't be able to start any new conversations with you, and they won't be able to add you to any teams.`}
         />
         <Kb.Divider />
         <CheckboxRow
           text={`Hide ${props.adder} from your followers`}
           onCheck={setHideAdder}
           checked={hideAdder}
-          info={`If ${
-            props.adder
-          } chooses to follow you on Keybase, they still won't show up in the list when someone views your profile.`}
+          info={`If ${props.adder} chooses to follow you on Keybase, they still won't show up in the list when someone views your profile.`}
         />
         <Kb.Divider />
         <CheckboxRow text={`Report ${props.adder} to Keybase admins`} onCheck={setReport} checked={report} />

@@ -227,7 +227,7 @@ function HeaderHoc<P extends {}>(WrappedComponent: React.ComponentType<P>) {
       <HeaderHocHeader {...props} />
       <Box style={styles.grow}>
         <Box style={styles.innerWrapper}>
-          <WrappedComponent {...props as P} />
+          <WrappedComponent {...(props as P)} />
         </Box>
       </Box>
       {!!props.customSafeAreaBottomStyle && <SafeAreaView style={props.customSafeAreaBottomStyle} />}

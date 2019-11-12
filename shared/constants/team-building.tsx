@@ -119,9 +119,7 @@ export const parseRawResultToUser = (
     if (result.service.serviceName !== service) {
       // This shouldn't happen
       logger.error(
-        `Search result's service_name is different than given service name. Expected: ${service} received ${
-          result.service.serviceName
-        }`
+        `Search result's service_name is different than given service name. Expected: ${service} received ${result.service.serviceName}`
       )
       return null
     }

@@ -140,7 +140,7 @@ const HighOrderDestinationPickerMobile = withProps(
   })
 )(Kb.HeaderHoc(DestinationPicker))
 
-export default (Styles.isMobile ? HighOrderDestinationPickerMobile : HighOrderDestinationPickerDesktop)
+export default Styles.isMobile ? HighOrderDestinationPickerMobile : HighOrderDestinationPickerDesktop
 
 const styles = Styles.styleSheetCreate(
   () =>

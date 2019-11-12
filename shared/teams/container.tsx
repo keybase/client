@@ -111,7 +111,11 @@ const Connected = Container.withSafeNavigation(_Connected)
 
 const ConnectedHeaderRightActions = Container.compose(
   Container.withSafeNavigation,
-  Container.connect(() => ({}), headerActions, (s, d, o) => ({...o, ...s, ...d}))
+  Container.connect(
+    () => ({}),
+    headerActions,
+    (s, d, o) => ({...o, ...s, ...d})
+  )
 )(HeaderRightActions as any)
 
 export default Connected

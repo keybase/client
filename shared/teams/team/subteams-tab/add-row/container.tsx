@@ -21,8 +21,4 @@ const mergeProps = (_, dispatchProps) => ({
   onCreateSubteam: dispatchProps.onCreateSubteam,
 })
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
-)(Add)
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Add)

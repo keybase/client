@@ -23,7 +23,7 @@ export function HeaderOrPopupWithHeader<P>(WrappedComponent: React.ComponentType
 function Popup<P>(Wrapped: React.ComponentType<P>) {
   const PopupWrapper = (props: P & Props) => (
     <PopupDialog onClose={props.onCancel}>
-      <Wrapped {...props as P} />
+      <Wrapped {...(props as P)} />
     </PopupDialog>
   )
   hoistNonReactStatic(PopupWrapper, Wrapped)
@@ -34,7 +34,7 @@ function PopupWithHeader<P>(Wrapped: React.ComponentType<P>) {
   const PopupWrapper = (props: P & Props) => (
     <PopupDialog onClose={props.onCancel} styleClipContainer={props.style}>
       {props.onBack && <HeaderHocHeader onBack={props.onBack} headerStyle={headerStyle} />}
-      <Wrapped {...props as P} />
+      <Wrapped {...(props as P)} />
     </PopupDialog>
   )
   hoistNonReactStatic(PopupWrapper, Wrapped)

@@ -56,9 +56,7 @@ function* joinTeam(_: TypedState, action: TeamsGen.JoinTeamPayload) {
     Saga.put(TeamsGen.createSetTeamJoinSuccess({success: false, teamname: ''})),
   ])
   try {
-    const result: Saga.RPCPromiseType<
-      typeof RPCTypes.teamsTeamAcceptInviteOrRequestAccessRpcPromise
-    > = yield Saga.callUntyped(
+    const result: Saga.RPCPromiseType<typeof RPCTypes.teamsTeamAcceptInviteOrRequestAccessRpcPromise> = yield Saga.callUntyped(
       RPCTypes.teamsTeamAcceptInviteOrRequestAccessRpcPromise,
       {tokenOrName: teamname},
       Constants.teamWaitingKey(teamname)
@@ -215,9 +213,7 @@ function* inviteByEmail(_: TypedState, action: TeamsGen.InviteToTeamByEmailPaylo
     yield Saga.put(TeamsGen.createSetTeamLoadingInvites({isLoading: true, loadingKey, teamname}))
   }
   try {
-    const res: Saga.RPCPromiseType<
-      typeof RPCTypes.teamsTeamAddEmailsBulkRpcPromise
-    > = yield RPCTypes.teamsTeamAddEmailsBulkRpcPromise(
+    const res: Saga.RPCPromiseType<typeof RPCTypes.teamsTeamAddEmailsBulkRpcPromise> = yield RPCTypes.teamsTeamAddEmailsBulkRpcPromise(
       {
         emails: invitees,
         name: teamname,
@@ -429,9 +425,7 @@ function* inviteToTeamByPhone(
     yield Saga.put(TeamsGen.createSetTeamLoadingInvites({isLoading: true, loadingKey, teamname}))
   }
   try {
-    const seitan: Saga.RPCPromiseType<
-      typeof RPCTypes.teamsTeamCreateSeitanTokenV2RpcPromise
-    > = yield RPCTypes.teamsTeamCreateSeitanTokenV2RpcPromise(
+    const seitan: Saga.RPCPromiseType<typeof RPCTypes.teamsTeamCreateSeitanTokenV2RpcPromise> = yield RPCTypes.teamsTeamCreateSeitanTokenV2RpcPromise(
       {
         label: {sms: {f: fullName || '', n: phoneNumber} as RPCTypes.SeitanKeyLabelSms, t: 1},
         name: teamname,
@@ -481,9 +475,7 @@ function* createNewTeamFromConversation(
   if (participants) {
     yield Saga.put(TeamsGen.createSetTeamCreationError({error: ''}))
     try {
-      const createRes: Saga.RPCPromiseType<
-        typeof RPCTypes.teamsTeamCreateRpcPromise
-      > = yield RPCTypes.teamsTeamCreateRpcPromise(
+      const createRes: Saga.RPCPromiseType<typeof RPCTypes.teamsTeamCreateRpcPromise> = yield RPCTypes.teamsTeamCreateRpcPromise(
         {joinSubteam: false, name: teamname},
         Constants.teamCreationWaitingKey
       )
@@ -520,9 +512,10 @@ function* getDetails(_: TypedState, action: TeamsGen.GetDetailsPayload, logger: 
   const waitingKeys = [Constants.teamWaitingKey(teamname), Constants.teamGetWaitingKey(teamname)]
 
   try {
-    const unsafeDetails: Saga.RPCPromiseType<
-      typeof RPCTypes.teamsTeamGetRpcPromise
-    > = yield RPCTypes.teamsTeamGetRpcPromise({name: teamname}, waitingKeys)
+    const unsafeDetails: Saga.RPCPromiseType<typeof RPCTypes.teamsTeamGetRpcPromise> = yield RPCTypes.teamsTeamGetRpcPromise(
+      {name: teamname},
+      waitingKeys
+    )
 
     // Don't allow the none default
     const details: RPCTypes.TeamDetails = {
@@ -592,9 +585,10 @@ function* getDetails(_: TypedState, action: TeamsGen.GetDetailsPayload, logger: 
     }
 
     // Get the subteam map for this team.
-    const subTeam: Saga.RPCPromiseType<
-      typeof RPCTypes.teamsTeamGetSubteamsRpcPromise
-    > = yield RPCTypes.teamsTeamGetSubteamsRpcPromise({name: {parts: teamname.split('.')}}, waitingKeys)
+    const subTeam: Saga.RPCPromiseType<typeof RPCTypes.teamsTeamGetSubteamsRpcPromise> = yield RPCTypes.teamsTeamGetSubteamsRpcPromise(
+      {name: {parts: teamname.split('.')}},
+      waitingKeys
+    )
     const {entries} = subTeam
     const subteams = (entries || []).reduce<Array<string>>((arr, {name}) => {
       name.parts && arr.push(name.parts.join('.'))
@@ -692,9 +686,7 @@ function* getTeamPublicity(_: TypedState, action: TeamsGen.GetTeamPublicityPaylo
   try {
     const teamname = action.payload.teamname
     // Get publicity settings for this team.
-    const publicity: Saga.RPCPromiseType<
-      typeof RPCTypes.teamsGetTeamAndMemberShowcaseRpcPromise
-    > = yield RPCTypes.teamsGetTeamAndMemberShowcaseRpcPromise(
+    const publicity: Saga.RPCPromiseType<typeof RPCTypes.teamsGetTeamAndMemberShowcaseRpcPromise> = yield RPCTypes.teamsGetTeamAndMemberShowcaseRpcPromise(
       {name: teamname},
       Constants.teamWaitingKey(teamname)
     )
@@ -797,9 +789,7 @@ function* getTeams(
     return
   }
   try {
-    const results: Saga.RPCPromiseType<
-      typeof RPCTypes.teamsTeamListUnverifiedRpcPromise
-    > = yield RPCTypes.teamsTeamListUnverifiedRpcPromise(
+    const results: Saga.RPCPromiseType<typeof RPCTypes.teamsTeamListUnverifiedRpcPromise> = yield RPCTypes.teamsTeamListUnverifiedRpcPromise(
       {includeImplicitTeams: false, userAssertion: username},
       Constants.teamsLoadedWaitingKey
     )
@@ -932,9 +922,7 @@ function* createChannel(_: TypedState, action: TeamsGen.CreateChannelPayload, lo
   const {channelname, description, teamname} = action.payload
   yield Saga.put(TeamsGen.createSetTeamCreationError({error: ''}))
   try {
-    const result: Saga.RPCPromiseType<
-      typeof RPCChatTypes.localNewConversationLocalRpcPromise
-    > = yield RPCChatTypes.localNewConversationLocalRpcPromise(
+    const result: Saga.RPCPromiseType<typeof RPCChatTypes.localNewConversationLocalRpcPromise> = yield RPCChatTypes.localNewConversationLocalRpcPromise(
       {
         identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
         membersType: RPCChatTypes.ConversationMembersType.team,
@@ -1245,9 +1233,7 @@ function* addTeamWithChosenChannels(
   if (existingTeams.size > teams.length) {
     // Bad - we don't have an accurate view of things. Log and bail
     logger.warn(
-      `${logPrefix} Existing list longer than list in gregor state, got list with length ${
-        teams.length
-      } when we have ${existingTeams.size} already. Bailing on update.`
+      `${logPrefix} Existing list longer than list in gregor state, got list with length ${teams.length} when we have ${existingTeams.size} already. Bailing on update.`
     )
     return
   }

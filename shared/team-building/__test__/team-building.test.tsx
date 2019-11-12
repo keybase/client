@@ -160,7 +160,11 @@ describe('team building list', () => {
       ['தமிழ்', 'T'],
       ['తెలుగు', 'T'],
     ])
-    const sections = sortAndSplitRecommendations(tests.map(t => t.result), false) || []
+    const sections =
+      sortAndSplitRecommendations(
+        tests.map(t => t.result),
+        false
+      ) || []
     const sectionMap = {}
     for (const s of sections) {
       sectionMap[s.label] = s.data
