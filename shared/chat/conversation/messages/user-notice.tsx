@@ -4,7 +4,6 @@ import * as Styles from '../../../styles'
 import {formatTimeForChat} from '../../../util/timestamp'
 
 export type Props = {
-  bgColor: string
   timestamp?: number
   username?: string
   teamname?: string
@@ -15,7 +14,7 @@ export type Props = {
 
 const AVATAR_SIZE = 32
 
-const UserNotice = ({bgColor, timestamp, username, teamname, children, style, onClickAvatar}: Props) => (
+const UserNotice = ({timestamp, username, teamname, children, style, onClickAvatar}: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true} className="WrapperMessage-author" style={style}>
     <Kb.Box2 key="author" direction="horizontal" style={styles.authorContainer} gap="tiny">
       <Kb.Avatar
