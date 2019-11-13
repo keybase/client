@@ -1,12 +1,19 @@
-import * as I from 'immutable'
 import * as UnlockFoldersGen from '../actions/unlock-folders-gen'
 import * as Constants from '../constants/unlock-folders'
 import * as Types from '../constants/types/unlock-folders'
 import * as DeviceTypes from '../constants/types/devices'
 
-const initialState = Constants.makeState()
+const initialState = {
+  devices: [],
+  paperkeyError: null,
+  phase: 'dead',
+  popupOpen: false,
+  sessionID: null,
+  waiting: false,
+}
 
-export default function(state: Types.State = initialState, action: UnlockFoldersGen.Actions): Types.State {
+export default Container.makeReducer<>
+function(state: Types.State = initialState, action: UnlockFoldersGen.Actions): Types.State {
   switch (action.type) {
     case UnlockFoldersGen.resetStore:
       return initialState
