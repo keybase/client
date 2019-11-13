@@ -1,10 +1,8 @@
 import logger from '../logger'
-import * as I from 'immutable'
 import * as SettingsGen from '../actions/settings-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as Types from '../constants/types/settings'
 import * as Constants from '../constants/settings'
-import * as Flow from '../util/flow'
 import {isValidEmail} from '../util/simple-validators'
 
 const initialState: Types.State = Constants.makeState()
@@ -14,17 +12,15 @@ type Actions =
   | EngineGen.Keybase1NotifyEmailAddressEmailsChangedPayload
   | EngineGen.Keybase1NotifyPhoneNumberPhoneNumbersChangedPayload
 
-function reducer(state: Types.State = initialState, action: Actions): Types.State {
-  switch (action.type) {
-    case SettingsGen.resetStore:
-      return initialState
-    case SettingsGen.notificationsToggle: {
-      if (!state.notifications.groups.get('email')) {
+  export default makeReducer<Actions, Types.State>(initialState, {
+      [ SettingsGen.resetStore]: () => initialState,
+      [ SettingsGen.notificationsToggle]: (draftState, action) => {
+      if (!draftState.notifications.groups.get('email')) {
         logger.warn('Trying to toggle while not loaded')
-        return state
-      } else if (!state.notifications.allowEdit) {
+        return 
+      } else if (!draftState.notifications.allowEdit) {
         logger.warn('Trying to toggle while allowEdit false')
-        return state
+        return 
       }
 
       const {group, name} = action.payload
@@ -45,51 +41,45 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
         }
       }
 
-      const groupMap = state.notifications.groups.get(group) || Constants.makeNotificationsGroup()
+      const groupMap = draftState.notifications.groups.get(group) ?? Constants.makeNotificationsGroup()
       const {settings, unsubscribedFromAll} = groupMap
       if (!settings) {
         logger.warn('Trying to toggle unknown settings')
-        return state
+        return 
       }
-      const changed = {
-        [group]: {
+
+      draftState.notifications.allowEdit = false
+      draftState.notifications.groups.set(group, {
           settings: settings.map(s => updateSubscribe(s, group)),
           // No name means toggle the unsubscribe option
           unsubscribedFromAll: !name && !unsubscribedFromAll,
-        },
-      }
-      return state.update('notifications', notifications =>
-        notifications.merge({
-          allowEdit: false,
-          groups: state.notifications.groups.merge(I.Map(changed)) as any,
-        })
-      )
-    }
-    case SettingsGen.notificationsSaved:
+      })
+    },
+    [ SettingsGen.notificationsSaved]: (draftState, action) => {
       return state.update('notifications', notifications => notifications.merge({allowEdit: true}))
-    case SettingsGen.notificationsRefreshed:
+      [ SettingsGen.notificationsRefreshed]: (draftState, action) => {
       return state.update('notifications', notifications =>
         notifications.merge({
           allowEdit: true,
           groups: action.payload.notifications,
         })
       )
-    case SettingsGen.invitesRefreshed:
+      [ SettingsGen.invitesRefreshed]: (draftState, action) => {
       return state.update('invites', invites => invites.merge(action.payload.invites))
-    case SettingsGen.invitesSent:
+      [ SettingsGen.invitesSent]: (draftState, action) => {
       return state.update('invites', invites => invites.merge({error: action.payload.error}))
-    case SettingsGen.invitesClearError:
+      [ SettingsGen.invitesClearError]: (draftState, action) => {
       return state.update('invites', invites => invites.merge({error: null}))
-    case SettingsGen.loadedSettings:
+      [ SettingsGen.loadedSettings]: (draftState, action) => {
       return state
         .setIn(['email', 'emails'], action.payload.emails)
         .setIn(['phoneNumbers', 'phones'], action.payload.phones)
-    case EngineGen.keybase1NotifyEmailAddressEmailsChanged:
+        [ EngineGen.keybase1NotifyEmailAddressEmailsChanged]: (draftState, action) => {
       return state.setIn(
         ['email', 'emails'],
         I.Map((action.payload.params.list || []).map(row => [row.email, Constants.makeEmailRow(row)]))
       )
-    case SettingsGen.emailVerified:
+      [ SettingsGen.emailVerified]: (draftState, action) => {
       return state
         .updateIn(
           ['email', 'emails'],
@@ -105,44 +95,44 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
               : undefined // unclear what we want to do here
         )
         .update('email', emailState => emailState.merge({addedEmail: null}))
-    case EngineGen.keybase1NotifyPhoneNumberPhoneNumbersChanged:
+        [ EngineGen.keybase1NotifyPhoneNumberPhoneNumbersChanged]: (draftState, action) => {
       return state.setIn(
         ['phoneNumbers', 'phones'],
         I.Map((action.payload.params.list || []).map(row => [row.phoneNumber, Constants.toPhoneRow(row)]))
       )
-    case SettingsGen.loadedRememberPassword:
-    case SettingsGen.onChangeRememberPassword:
+      [ SettingsGen.loadedRememberPassword]: (draftState, action) => { // fallthrough<<<<
+          [ SettingsGen.onChangeRememberPassword]: (draftState, action) => {
       return state.update('password', password => password.merge({rememberPassword: action.payload.remember}))
-    case SettingsGen.onChangeNewPassword:
+      [ SettingsGen.onChangeNewPassword]: (draftState, action) => {
       return state.update('password', password =>
         password.merge({error: null, newPassword: action.payload.password})
       )
-    case SettingsGen.loadedLockdownMode:
+      [ SettingsGen.loadedLockdownMode]: (draftState, action) => {
       return state.merge({lockdownModeEnabled: action.payload.status})
-    case SettingsGen.loadedProxyData:
+      [ SettingsGen.loadedProxyData]: (draftState, action) => {
       return state.merge({proxyData: action.payload.proxyData})
-    case SettingsGen.certificatePinningToggled:
+      [ SettingsGen.certificatePinningToggled]: (draftState, action) => {
       return state.merge({didToggleCertificatePinning: action.payload.toggled})
-    case SettingsGen.onChangeNewPasswordConfirm:
+      [ SettingsGen.onChangeNewPasswordConfirm]: (draftState, action) => {
       return state.update('password', password =>
         password.merge({error: null, newPasswordConfirm: action.payload.password})
       )
-    case SettingsGen.checkPassword:
+      [ SettingsGen.checkPassword]: (draftState, action) => {
       return state.merge({checkPasswordIsCorrect: null})
-    case SettingsGen.onUpdatedPGPSettings:
+      [ SettingsGen.onUpdatedPGPSettings]: (draftState, action) => {
       return state.update('password', password => password.merge({hasPGPKeyOnServer: action.payload.hasKeys}))
-    case SettingsGen.onUpdatePasswordError:
+      [ SettingsGen.onUpdatePasswordError]: (draftState, action) => {
       return state.update('password', password => password.merge({error: action.payload.error}))
-    case SettingsGen.onChangeNewEmail:
+      [ SettingsGen.onChangeNewEmail]: (draftState, action) => {
       return state.update('email', email => email.merge({error: '', newEmail: action.payload.email}))
-    case SettingsGen.onUpdateEmailError:
+      [ SettingsGen.onUpdateEmailError]: (draftState, action) => {
       return state.update('email', email => email.merge({error: action.payload.error.message}))
-    case SettingsGen.feedbackSent:
+      [ SettingsGen.feedbackSent]: (draftState, action) => {
       return state.update('feedback', feedback => feedback.set('error', action.payload.error))
-    case SettingsGen.sendFeedback:
-      return state.update('feedback', feedback => feedback.set('error', null))
-    case SettingsGen.unfurlSettingsRefreshed:
-    case SettingsGen.unfurlSettingsSaved:
+      [ SettingsGen.sendFeedback]: (draftState, action) => {
+          return state.update('feedback', feedback => feedback.set('error', null)) // 
+          [ SettingsGen.unfurlSettingsRefreshed]: (draftState, action) => { // fallthrough
+              [ SettingsGen.unfurlSettingsSaved]: (draftState, action) => {
       return state.merge({
         chat: state.chat.merge({
           unfurl: Constants.makeUnfurl({
@@ -152,15 +142,15 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
           }),
         }),
       })
-    case SettingsGen.unfurlSettingsError:
+      [ SettingsGen.unfurlSettingsError]: (draftState, action) => {
       return state.merge({
         chat: state.chat.merge({unfurl: state.chat.unfurl.merge({unfurlError: action.payload.error})}),
       })
-    case SettingsGen.loadedHasRandomPw:
+      [ SettingsGen.loadedHasRandomPw]: (draftState, action) => {
       return state.update('password', password => password.merge({randomPW: action.payload.randomPW}))
-    case SettingsGen.loadedCheckPassword:
+      [ SettingsGen.loadedCheckPassword]: (draftState, action) => {
       return state.merge({checkPasswordIsCorrect: action.payload.checkPasswordIsCorrect})
-    case SettingsGen.addedPhoneNumber:
+      [ SettingsGen.addedPhoneNumber]: (draftState, action) => {
       return state.update('phoneNumbers', pn =>
         pn.merge({
           error: action.payload.error || '',
@@ -168,13 +158,13 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
           verificationState: null,
         })
       )
-    case SettingsGen.resendVerificationForPhoneNumber:
+      [ SettingsGen.resendVerificationForPhoneNumber]: (draftState, action) => {
       return state.update('phoneNumbers', pn =>
         pn.merge({error: '', pendingVerification: action.payload.phoneNumber, verificationState: null})
       )
-    case SettingsGen.clearPhoneNumberErrors:
+      [ SettingsGen.clearPhoneNumberErrors]: (draftState, action) => {
       return state.update('phoneNumbers', pn => pn.merge({error: ''}))
-    case SettingsGen.clearPhoneNumberAdd:
+      [ SettingsGen.clearPhoneNumberAdd]: (draftState, action) => {
       return state.update('phoneNumbers', pn =>
         pn.merge({
           error: '',
@@ -182,7 +172,7 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
           verificationState: null,
         })
       )
-    case SettingsGen.verifiedPhoneNumber:
+      [ SettingsGen.verifiedPhoneNumber]: (draftState, action) => {
       if (action.payload.phoneNumber !== state.phoneNumbers.pendingVerification) {
         logger.warn("Got verifiedPhoneNumber but number doesn't match")
         return state
@@ -194,24 +184,24 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
           verificationState: action.payload.error ? 'error' : 'success',
         })
       )
-    case SettingsGen.loadedContactImportEnabled:
+      [ SettingsGen.loadedContactImportEnabled]: (draftState, action) => {
       return state.update('contacts', contacts => contacts.merge({importEnabled: action.payload.enabled}))
-    case SettingsGen.loadedContactPermissions:
+      [ SettingsGen.loadedContactPermissions]: (draftState, action) => {
       return state.update('contacts', contacts => contacts.merge({permissionStatus: action.payload.status}))
-    case SettingsGen.setContactImportedCount:
+      [ SettingsGen.setContactImportedCount]: (draftState, action) => {
       return state.update('contacts', contacts =>
         contacts.merge({importError: action.payload.error, importedCount: action.payload.count})
       )
-    case SettingsGen.importContactsLater:
+      [ SettingsGen.importContactsLater]: (draftState, action) => {
       return state.update('contacts', contacts => contacts.set('importPromptDismissed', true))
-    case SettingsGen.loadedUserCountryCode:
+      [ SettingsGen.loadedUserCountryCode]: (draftState, action) => {
       return state.update('contacts', contacts => contacts.set('userCountryCode', action.payload.code))
-    case SettingsGen.addEmail: {
+      [ SettingsGen.addEmail]: (draftState, action) => {
       const {email} = action.payload
       const emailError = isValidEmail(email)
       return state.update('email', emailState => emailState.merge({addingEmail: email, error: emailError}))
     }
-    case SettingsGen.addedEmail: {
+    [ SettingsGen.addedEmail]: (draftState, action) => {
       if (action.payload.email !== state.email.addingEmail) {
         logger.warn("addedEmail: doesn't match")
         return state
@@ -224,7 +214,7 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
         })
       )
     }
-    case SettingsGen.sentVerificationEmail: {
+    [ SettingsGen.sentVerificationEmail]: (draftState, action) => {
       return state.update('email', emailState =>
         emailState.merge({
           addedEmail: action.payload.email,
@@ -238,51 +228,14 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
         })
       )
     }
-    case SettingsGen.clearAddingEmail: {
+    [ SettingsGen.clearAddingEmail]: (draftState, action) => {
       return state.update('email', emailState => emailState.merge({addingEmail: null, error: ''}))
     }
-    case SettingsGen.clearAddedEmail: {
+    [ SettingsGen.clearAddedEmail]: (draftState, action) => {
       return state.update('email', emailState => emailState.merge({addedEmail: null}))
     }
-    case SettingsGen.clearAddedPhone: {
+    [ SettingsGen.clearAddedPhone]: (draftState, action) => {
       return state.mergeIn(['phoneNumbers'], {addedPhone: false})
     }
-    // Saga only actions
-    case SettingsGen.dbNuke:
-    case SettingsGen.deleteAccountForever:
-    case SettingsGen.editEmail:
-    case SettingsGen.editPhone:
-    case SettingsGen.invitesReclaim:
-    case SettingsGen.invitesRefresh:
-    case SettingsGen.invitesSend:
-    case SettingsGen.loadRememberPassword:
-    case SettingsGen.loadSettings:
-    case SettingsGen.loadLockdownMode:
-    case SettingsGen.notificationsRefresh:
-    case SettingsGen.onChangeShowPassword:
-    case SettingsGen.onSubmitNewEmail:
-    case SettingsGen.onSubmitNewPassword:
-    case SettingsGen.onUpdatePGPSettings:
-    case SettingsGen.onChangeLockdownMode:
-    case SettingsGen.stop:
-    case SettingsGen.trace:
-    case SettingsGen.processorProfile:
-    case SettingsGen.unfurlSettingsRefresh:
-    case SettingsGen.loadHasRandomPw:
-    case SettingsGen.addPhoneNumber:
-    case SettingsGen.verifyPhoneNumber:
-    case SettingsGen.loadProxyData:
-    case SettingsGen.saveProxyData:
-    case SettingsGen.loadContactImportEnabled:
-    case SettingsGen.editContactImportEnabled:
-    case SettingsGen.requestContactPermissions:
-    case SettingsGen.toggleRuntimeStats:
-    case SettingsGen.loginBrowserViaWebAuthToken:
-      return state
-    default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
-      return state
   }
 }
-
-export default reducer
