@@ -73,7 +73,7 @@ export const LeftAction = ({
 )
 
 function HeaderHoc<P extends {}>(WrappedComponent: React.ComponentType<P>) {
-  const HH = (props: P & Props) => <WrappedComponent {...props as P} />
+  const HH = (props: P & Props) => <WrappedComponent {...(props as P)} />
   hoistNonReactStatic(HH, WrappedComponent)
   return HH
 }

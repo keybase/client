@@ -26,7 +26,7 @@ type OwnProps = Omit<Props, 'pathItem'>
 
 export default namedConnect(
   (state, {path}: OwnProps) => ({
-    pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
+    pathItem: Constants.getPathItem(state.fs.pathItems, path),
   }),
   () => ({}),
   (s, _, o: OwnProps) => ({

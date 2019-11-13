@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as Types from '../types/chat2'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as RPCTypes from '../types/rpc-gen'
@@ -22,7 +21,7 @@ import HiddenString from '../../util/hidden-string'
 export const defaultTopReacjis = [':+1:', ':-1:', ':tada:', ':joy:', ':sunglasses:']
 const defaultSkinTone = 1
 export const defaultUserReacjis = {skinTone: defaultSkinTone, topReacjis: defaultTopReacjis}
-const emptyArray = []
+const emptyArray: Array<unknown> = []
 const emptySet = new Set()
 
 export const blockButtonsGregorPrefix = 'blockButtons.'
@@ -51,13 +50,14 @@ export const makeState = (): Types.State => ({
   giphyWindowMap: new Map(),
   inboxHasLoaded: false,
   inboxLayout: null,
+  inboxNumSmallRows: 5,
   inboxSearch: undefined,
   inboxShowNew: false,
   isWalletsNew: true,
   lastCoord: undefined,
   maybeMentionMap: new Map(),
   messageCenterOrdinals: new Map(), // ordinals to center threads on,
-  messageMap: I.Map(), // messages in a thread,
+  messageMap: new Map(), // messages in a thread,
   messageOrdinals: new Map(), // ordered ordinals in a thread,
   metaMap: new Map(), // metadata about a thread, There is a special node for the pending conversation,
   moreToLoadMap: new Map(), // if we have more data to load,
@@ -86,7 +86,7 @@ export const makeState = (): Types.State => ({
 })
 
 export const makeThreadSearchInfo = (): Types.ThreadSearchInfo => ({
-  hits: emptyArray,
+  hits: emptyArray as Types.ThreadSearchInfo['hits'],
   status: 'initial',
   visible: false,
 })
@@ -112,8 +112,6 @@ export const makeAttachmentViewInfo = (): Types.AttachmentViewInfo => ({
   messages: [],
   status: 'loading',
 })
-
-export const initialAttachmentViewInfo = makeAttachmentViewInfo()
 
 export const makeAudioRecordingInfo = (): Types.AudioRecordingInfo => ({
   isLocked: false,
@@ -185,7 +183,10 @@ export const getMessage = (
   state: TypedState,
   id: Types.ConversationIDKey,
   ordinal: Types.Ordinal
-): Types.Message | null => state.chat2.messageMap.getIn([id, ordinal])
+): Types.Message | null => {
+  const map = state.chat2.messageMap.get(id)
+  return (map && map.get(ordinal)) || null
+}
 export const isDecoratedMessage = (message: Types.Message): message is Types.DecoratedMessage => {
   return !(
     message.type === 'placeholder' ||
@@ -458,6 +459,7 @@ export {
   makePendingTextMessage,
   makeReaction,
   messageExplodeDescriptions,
+  messageAttachmentHasProgress,
   messageAttachmentTransferStateToProgressLabel,
   nextFractionalOrdinal,
   pathToAttachmentType,

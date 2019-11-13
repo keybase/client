@@ -764,7 +764,7 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 	outbox := storage.NewOutbox(s.G(), s.uid)
 	obrs, oerr := outbox.PullAllConversations(ctx, true /*includeErrors */, false /*remove*/)
 	if oerr != nil {
-		s.Debug(ctx, "ApplyLocalChatState: failed to get outbox: %v", err)
+		s.Debug(ctx, "ApplyLocalChatState: failed to get outbox: %v", oerr)
 	}
 
 	// convID -> unreadCount
@@ -773,7 +773,8 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 	localUpdates := make(map[string]chat1.LocalMtimeUpdate)
 	s.Debug(ctx, "ApplyLocalChatState: looking through %d outbox items for badgable errors", len(obrs))
 	for _, obr := range obrs {
-		if !(obr.Msg.IsBadgableType() && obr.Msg.ClientHeader.Conv.TopicType == chat1.TopicType_CHAT) {
+		if topicType := obr.Msg.ClientHeader.Conv.TopicType; !(obr.Msg.IsBadgableType() && topicType == chat1.TopicType_CHAT) {
+			s.Debug(ctx, "ApplyLocalChatState: skipping msgTyp: %v, topicType: %v", obr.Msg.MessageType(), topicType)
 			continue
 		}
 		state, err := obr.State.State()

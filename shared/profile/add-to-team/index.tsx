@@ -298,4 +298,4 @@ const PopupWrapped = (props: Props) => (
     <AddToTeam {...props} />
   </Kb.PopupDialog>
 )
-export default (Styles.isMobile ? AddToTeam : PopupWrapped)
+export default Styles.isMobile ? AddToTeam : PopupWrapped

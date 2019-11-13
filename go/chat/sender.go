@@ -884,7 +884,7 @@ func (s *BlockingSender) applyTeamBotSettings(ctx context.Context, uid gregor1.U
 		if err != nil {
 			return nil, err
 		}
-		s.Debug(ctx, "applying botSettings: %+v for botuid: %v, senderUID: %v, isMatch: %v",
+		s.Debug(ctx, "applyTeamBotSettings: applied settings for %+v for botuid: %v, senderUID: %v, isMatch: %v",
 			botSettings, uv.Uid, msg.ClientHeader.Sender, isMatch)
 		// If the bot is the sender encrypt only for them.
 		if msg.ClientHeader.Sender.Eq(botUID) {
@@ -1133,7 +1133,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 					gregor1.FromTime(unboxedMsg.Valid().MessageBody.Text().LiveLocation.EndTime))
 			}
 		}
-		go s.G().JourneyCardManager.SentMessage(globals.BackgroundChatCtx(ctx, s.G()), convID)
+		go s.G().JourneyCardManager.SentMessage(globals.BackgroundChatCtx(ctx, s.G()), sender, convID)
 	}
 	return nil, boxed, nil
 }

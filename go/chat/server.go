@@ -169,6 +169,7 @@ func (h *Server) RequestInboxLayout(ctx context.Context, reselectMode chat1.Inbo
 
 func (h *Server) RequestInboxUnbox(ctx context.Context, convIDs []chat1.ConversationID) (err error) {
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
+	ctx = globals.CtxAddLocalizerCancelable(ctx)
 	defer h.Trace(ctx, func() error { return err }, "RequestInboxUnbox")()
 	if err := h.G().UIInboxLoader.UpdateConvs(ctx, convIDs); err != nil {
 		h.Debug(ctx, "RequestInboxUnbox: failed to update convs: %s", err)
@@ -209,7 +210,8 @@ func (h *Server) MarkAsReadLocal(ctx context.Context, arg chat1.MarkAsReadLocalA
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
-		return chat1.MarkAsReadLocalRes{}, err
+		h.Debug(ctx, "MarkAsRead: not logged in: %s", err)
+		return chat1.MarkAsReadLocalRes{}, nil
 	}
 	// Don't send remote mark as read if we somehow get this in the background.
 	if h.G().MobileAppState.State() != keybase1.MobileAppState_FOREGROUND {
@@ -990,6 +992,9 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 	sender := NewBlockingSender(h.G(), h.boxer, h.remoteClient)
 	nonblockSender := NewNonblockingSender(h.G(), sender)
 	prepareOpts.ReplyTo = arg.ReplyTo
+	if arg.Msg.ClientHeader.Conv.TopicType == chat1.TopicType_NONE {
+		arg.Msg.ClientHeader.Conv.TopicType = chat1.TopicType_CHAT
+	}
 	obid, _, err := nonblockSender.Send(ctx, arg.ConversationID, arg.Msg, arg.ClientPrev, arg.OutboxID,
 		nil, &prepareOpts)
 	if err != nil {
@@ -1025,6 +1030,11 @@ func (h *Server) MakeUploadTempFile(ctx context.Context, arg chat1.MakeUploadTem
 		return res, err
 	}
 	return res, ioutil.WriteFile(res, arg.Data, 0644)
+}
+
+func (h *Server) CancelUploadTempFile(ctx context.Context, outboxID chat1.OutboxID) (err error) {
+	defer h.Trace(ctx, func() error { return err }, "CancelUploadTempFile")()
+	return h.G().AttachmentUploader.CancelUploadTempFile(ctx, outboxID)
 }
 
 func (h *Server) PostFileAttachmentLocalNonblock(ctx context.Context,
@@ -1307,7 +1317,8 @@ func (h *Server) UpdateUnsentText(ctx context.Context, arg chat1.UpdateUnsentTex
 		fmt.Sprintf("UpdateUnsentText convID: %s", arg.ConversationID))()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
-		return err
+		h.Debug(ctx, "UpdateUnsentText: not logged in: %s", err)
+		return nil
 	}
 
 	// Save draft
@@ -1337,7 +1348,8 @@ func (h *Server) UpdateTyping(ctx context.Context, arg chat1.UpdateTypingArg) (e
 		fmt.Sprintf("UpdateTyping convID: %s", arg.ConversationID))()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
-		return err
+		h.Debug(ctx, "UpdateTyping: not logged in: %s", err)
+		return nil
 	}
 	// Just bail out if we are offline
 	if !h.G().Syncer.IsConnected(ctx) {
@@ -1345,7 +1357,8 @@ func (h *Server) UpdateTyping(ctx context.Context, arg chat1.UpdateTypingArg) (e
 	}
 	deviceID := make([]byte, libkb.DeviceIDLen)
 	if err := h.G().Env.GetDeviceID().ToBytes(deviceID); err != nil {
-		return err
+		h.Debug(ctx, "UpdateTyping: failed to get device: %s", err)
+		return nil
 	}
 	if err := h.remoteClient().UpdateTypingRemote(ctx, chat1.UpdateTypingRemoteArg{
 		Uid:      uid,

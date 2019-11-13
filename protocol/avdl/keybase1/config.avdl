@@ -314,4 +314,6 @@ protocol config {
   void toggleRuntimeStats();
 
   void appendGUILogs(string content);
+
+  string generateWebAuthToken();
 }

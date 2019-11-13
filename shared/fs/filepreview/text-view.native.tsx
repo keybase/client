@@ -10,6 +10,7 @@ const TextView = (props: Props) => (
       style={styles.webview}
       injections={injections}
       onLoadingStateChange={props.onLoadingStateChange}
+      onError={props.onUrlError}
     />
   </Kb.Box2>
 )

@@ -30,11 +30,13 @@ const Tooltip = (props: TooltipProps) => {
     if (props.shouldBeVisible) {
       setVisible(true)
       Kb.NativeAnimated.timing(opacity, {
+        duration: 200,
         toValue: 1,
         useNativeDriver: true,
       }).start()
     } else {
       Kb.NativeAnimated.timing(opacity, {
+        duration: 200,
         toValue: 0,
         useNativeDriver: true,
       }).start(() => setVisible(false))
@@ -44,7 +46,7 @@ const Tooltip = (props: TooltipProps) => {
     <Kb.NativeAnimated.View style={{opacity}}>
       <Kb.Box2 direction="horizontal" style={styles.tooltipContainer}>
         <Kb.Text type="BodySmall" style={{color: Styles.globalColors.white}}>
-          Hold the button to record audio.
+          Hold to record audio.
         </Kb.Text>
       </Kb.Box2>
     </Kb.NativeAnimated.View>
@@ -55,6 +57,9 @@ const AudioStarter = (props: AudioStarterProps) => {
   let longPressTimer
   const locked = React.useRef<boolean>(false)
   const tapLive = React.useRef<boolean>(false)
+  const tapRef = React.useRef(null)
+  const panRef = React.useRef(null)
+  const recordTimeRef = React.useRef(0)
   const [showToolTip, setShowToolTip] = React.useState(false)
   const showToolTipFalseLater = Kb.useTimeout(() => {
     setShowToolTip(false)
@@ -93,12 +98,13 @@ const AudioStarter = (props: AudioStarterProps) => {
           if (!props.recording && nativeEvent.state === Kb.GestureState.BEGAN) {
             tapLive.current = true
             if (!longPressTimer) {
+              recordTimeRef.current = Date.now()
               longPressTimer = setTimeout(() => {
                 if (tapLive.current) {
                   props.enableRecording()
                   setShowToolTip(false)
                 }
-              }, 200)
+              }, 100)
             }
           }
           if (
@@ -110,7 +116,7 @@ const AudioStarter = (props: AudioStarterProps) => {
             clearTimeout(longPressTimer)
             tapLive.current = false
             longPressTimer = null
-            if (!props.recording) {
+            if (!props.recording && Date.now() - recordTimeRef.current <= 100) {
               setShowToolTip(true)
               showToolTipFalseLater()
             }
@@ -125,6 +131,8 @@ const AudioStarter = (props: AudioStarterProps) => {
             }
           }
         }}
+        ref={tapRef}
+        simultaneousHandlers={panRef}
       >
         <Kb.PanGestureHandler
           minDeltaX={0}
@@ -165,9 +173,11 @@ const AudioStarter = (props: AudioStarterProps) => {
               }
             }
           }}
+          ref={panRef}
+          simultaneousHandlers={tapRef}
         >
           <Kb.NativeView>
-            <Kb.Icon type="iconfont-mic" style={Kb.iconCastPlatformStyles(props.iconStyle)} fontSize={22} />
+            <Kb.Icon type="iconfont-mic" style={Kb.iconCastPlatformStyles(props.iconStyle)} />
           </Kb.NativeView>
         </Kb.PanGestureHandler>
       </Kb.TapGestureHandler>

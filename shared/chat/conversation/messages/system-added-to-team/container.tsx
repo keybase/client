@@ -62,8 +62,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   you: stateProps.you,
 })
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
-)(SystemAddedToTeam)
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(SystemAddedToTeam)

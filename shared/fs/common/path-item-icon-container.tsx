@@ -14,7 +14,7 @@ export type OwnProps = {
 
 export default namedConnect(
   (state, {path}: OwnProps) => ({
-    _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
+    _pathItem: Constants.getPathItem(state.fs.pathItems, path),
     username: state.config.username,
   }),
   () => ({}),

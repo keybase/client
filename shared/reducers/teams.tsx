@@ -90,11 +90,8 @@ export default (
         )
         details.settings = action.payload.settings
         details.invites = new Set(action.payload.invites)
-        details.subteams = new Set(action.payload.subteamIDs)
+        details.subteams = new Set(action.payload.subteams)
         details.requests = new Set(action.payload.requests.get(action.payload.teamname))
-        draftState.teamDetails = new Map(
-          draftState.teamDetails.set(action.payload.teamID, Constants.makeTeamDetails(details))
-        )
 
         return
       }
@@ -104,16 +101,12 @@ export default (
           action.payload.members
         )
         return
-      case TeamsGen.setTeamCanPerform: {
+      case TeamsGen.setTeamCanPerform:
         draftState.teamNameToCanPerform = draftState.teamNameToCanPerform.set(
           action.payload.teamname,
           action.payload.teamOperation
         )
-        const canPerform = new Map(draftState.canPerform)
-        canPerform.set(action.payload.teamID, action.payload.teamOperation)
-        draftState.canPerform = canPerform
         return
-      }
       case TeamsGen.setTeamPublicitySettings:
         draftState.teamNameToPublicitySettings = draftState.teamNameToPublicitySettings.set(
           action.payload.teamname,
@@ -153,10 +146,7 @@ export default (
         draftState.teamNameToRole = action.payload.teamNameToRole
         draftState.teammembercounts = action.payload.teammembercounts
         draftState.teamnames = action.payload.teamnames
-        draftState.teamDetails = Constants.mergeTeamDetails(
-          draftState.teamDetails,
-          action.payload.teamDetails
-        )
+        draftState.teamDetails = action.payload.teamDetails
         return
       case TeamsGen.setTeamAccessRequestsPending:
         draftState.teamAccessRequestsPending = action.payload.accessRequestsPending
@@ -243,7 +233,7 @@ export default (
         return
       }
 
-      case TeamBuildingGen.resetStore:
+      case TeamBuildingGen.tbResetStore:
       case TeamBuildingGen.cancelTeamBuilding:
       case TeamBuildingGen.addUsersToTeamSoFar:
       case TeamBuildingGen.removeUsersFromTeamSoFar:
@@ -278,6 +268,7 @@ export default (
       case TeamsGen.getChannelInfo:
       case TeamsGen.getChannels:
       case TeamsGen.getDetails:
+      case TeamsGen.getDetailsForAllTeams:
       case TeamsGen.getMembers:
       case TeamsGen.getTeamOperations:
       case TeamsGen.getTeamProfileAddList:

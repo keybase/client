@@ -40,12 +40,10 @@ class NativeLogger implements Logger {
 
   dump(levelPrefix: LogLevel) {
     return dump(this._tagPrefix).then((lines: any) =>
-      lines.map(
-        (l: string): any => {
-          const [ts, logLine] = parseLine(l)
-          return [levelPrefix, ts, logLine]
-        }
-      )
+      lines.map((l: string): any => {
+        const [ts, logLine] = parseLine(l)
+        return [levelPrefix, ts, logLine]
+      })
     )
   }
 

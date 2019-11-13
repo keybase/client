@@ -5,12 +5,12 @@ import {_setDarkModePreference} from '../styles/dark-mode'
 import DeviceList from './device-list.desktop'
 import PaperKeyInput from './paper-key-input.desktop'
 import Success from './success.desktop'
-import {State, _Device} from '../constants/types/unlock-folders'
+import {State, Device} from '../constants/types/unlock-folders'
 
 export type Props = {
   darkMode: boolean
   phase: State['phase']
-  devices: Array<_Device>
+  devices: Array<Device>
   onClose: () => void
   toPaperKeyInput: () => void
   onBackFromPaperKey: () => void

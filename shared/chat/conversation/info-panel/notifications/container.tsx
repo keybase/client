@@ -135,5 +135,4 @@ export default compose(
       }
     },
   } as any)
-  // @ts-ignore
 )(Notifications)

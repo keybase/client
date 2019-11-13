@@ -1,33 +1,26 @@
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
-import * as Styles from '../../styles'
+import {renderItem as renderInvitesItem} from './invites-tab/helper'
+import {renderItem as renderMemberItem} from './members-tab/helper'
+import {renderItem as renderSubteamsItem} from './subteams-tab/helper'
 import Settings from './settings-tab/container'
 import TeamHeader from './header/container'
 import TeamTabs from './tabs/container'
-import {Row} from './rows'
-import renderRow from './rows/render'
-
-export type Sections = Array<{data: Array<Row>; header?: Row; key: string}>
+import {Box} from '../../common-adapters'
+import List from './list'
+import {globalStyles} from '../../styles'
 
 export type Props = {
-  load: () => void
-  teamID: Types.TeamID
   teamname: Types.Teamname
   selectedTab: string
-  sections: Sections
+  // TODO better type
+  rows: Array<any>
   setSelectedTab: (arg0: Types.TabKey) => void
 }
 
 class Team extends React.Component<Props> {
-  componentDidUpdate(prevProps: Props) {
-    if (this.props.teamID !== prevProps.teamID) {
-      this.props.load()
-    }
-  }
-  private renderItem = ({item}: {item: Row}) => {
-    switch (item.type) {
+  _renderItem = (row: any) => {
+    switch (row.type) {
       case 'header':
         return <TeamHeader key="header" teamname={this.props.teamname} />
       case 'tabs': {
@@ -41,75 +34,42 @@ class Team extends React.Component<Props> {
         )
       }
       case 'member':
+        return renderMemberItem(this.props.teamname, row)
       case 'invites-invite':
       case 'invites-request':
       case 'invites-divider':
       case 'invites-none':
+        return renderInvitesItem(this.props.teamname, row)
       case 'subteam-intro':
       case 'subteam-add':
       case 'subteam-none':
       case 'subteam-subteam':
-      case 'loading':
-        return renderRow(item, this.props.teamID)
+        return renderSubteamsItem(this.props.teamname, row)
       case 'settings':
+        // @ts-ignore doesn't seem to understand connect here
         return <Settings key="settings" teamname={this.props.teamname} />
       default: {
-        throw new Error(`Impossible case encountered in team page list: ${item}`)
+        throw new Error(`Impossible case encountered in team page list: ${row}`)
       }
     }
   }
 
-  private renderSectionHeader = ({section}) =>
-    section.header ? this.renderItem({item: section.header}) : null
-
   render() {
     return (
-      <Kb.Reloadable
-        waitingKeys={Constants.teamGetWaitingKey(this.props.teamname)}
-        onReload={this.props.load}
-        reloadOnMount={true}
+      <Box
+        style={{
+          ...globalStyles.flexBoxColumn,
+          alignItems: 'stretch',
+          flex: 1,
+          height: '100%',
+          position: 'relative',
+          width: '100%',
+        }}
       >
-        <Kb.Box style={styles.container}>
-          <Kb.SectionList
-            alwaysVounceVertical={false}
-            renderItem={this.renderItem}
-            renderSectionHeader={this.renderSectionHeader}
-            stickySectionHeadersEnabled={Styles.isMobile}
-            sections={this.props.sections}
-            style={styles.list}
-            contentContainerStyle={styles.listContentContainer}
-          />
-        </Kb.Box>
-      </Kb.Reloadable>
+        <List rows={this.props.rows} renderRow={this._renderItem} />
+      </Box>
     )
   }
 }
-
-const styles = Styles.styleSheetCreate(() => ({
-  container: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'stretch',
-    flex: 1,
-    height: '100%',
-    position: 'relative',
-    width: '100%',
-  },
-  list: Styles.platformStyles({
-    isElectron: {
-      ...Styles.globalStyles.fillAbsolute,
-      ...Styles.globalStyles.flexBoxColumn,
-      alignItems: 'stretch',
-    },
-    isMobile: {
-      ...Styles.globalStyles.fillAbsolute,
-    },
-  }),
-  listContentContainer: Styles.platformStyles({
-    isMobile: {
-      display: 'flex',
-      flexGrow: 1,
-    },
-  }),
-}))
 
 export default Team

@@ -17,7 +17,9 @@ type Props = {
   iconStyle?: Styles.StylesCrossPlatform
 }
 
-const minAmp = isIOS ? -40 : -60
+const unifyAmp = (amp: number) => {
+  return isIOS ? 10 ** (amp * 0.05) : Math.min(1.0, amp / 22000)
+}
 
 const AudioRecorder = (props: Props) => {
   // props
@@ -36,7 +38,8 @@ const AudioRecorder = (props: Props) => {
 
   // dispatch
   const dispatch = Container.useDispatch()
-  const meteringCb = (amp: number) => {
+  const meteringCb = (inamp: number) => {
+    const amp = unifyAmp(inamp)
     ampTracker.addAmp(amp)
     if (!closingDownRef.current) {
       Kb.NativeAnimated.timing(ampScale, {
@@ -54,7 +57,7 @@ const AudioRecorder = (props: Props) => {
   }, [dispatch, conversationIDKey])
   const enableRecording = React.useCallback(() => {
     ampTracker.reset()
-    dispatch(Chat2Gen.createEnableAudioRecording({conversationIDKey, meteringCb}))
+    dispatch(Chat2Gen.createAttemptAudioRecording({conversationIDKey, meteringCb}))
   }, [dispatch, conversationIDKey])
   const stopRecording = (stopType: Types.AudioStopType) => {
     dispatch(
@@ -136,17 +139,16 @@ type ButtonProps = {
 const maxScale = 8
 const minScale = 3
 const ampToScale = (amp: number) => {
-  const prop = Math.max(0, 1 - amp / minAmp)
-  return minScale + prop * (maxScale - minScale)
+  return minScale + amp * (maxScale - minScale)
 }
 
 const AudioButton = (props: ButtonProps) => {
   const innerScale = React.useRef(new Kb.NativeAnimated.Value(0)).current
   const outerScale = React.useRef(new Kb.NativeAnimated.Value(0)).current
   const sendTranslate = React.useRef(new Kb.NativeAnimated.Value(0)).current
-  const innerOffsetY = React.useRef(new Kb.NativeAnimated.Value(-37)).current
-  const ampOffsetY = React.useRef(new Kb.NativeAnimated.Value(-35)).current
-  const micOffsetY = React.useRef(new Kb.NativeAnimated.Value(-35)).current
+  const innerOffsetY = React.useRef(new Kb.NativeAnimated.Value(-34)).current
+  const ampOffsetY = React.useRef(new Kb.NativeAnimated.Value(-31)).current
+  const micOffsetY = React.useRef(new Kb.NativeAnimated.Value(-34)).current
   // lifecycle
   React.useEffect(() => {
     Kb.NativeAnimated.parallel(
@@ -157,6 +159,8 @@ const AudioButton = (props: ButtonProps) => {
           useNativeDriver: true,
         }),
         Kb.NativeAnimated.timing(outerScale, {
+          duration: 200,
+          easing: Kb.NativeEasing.inOut(Kb.NativeEasing.ease),
           toValue: 15,
           useNativeDriver: true,
         }),
@@ -256,24 +260,52 @@ const AudioButton = (props: ButtonProps) => {
       />
 
       {!props.locked ? (
-        <Kb.NativeAnimated.View
-          style={{
-            bottom: 130,
-            opacity: props.slideTranslate,
-            position: 'absolute',
-            right: 45,
-            transform: [
-              {translateY: props.slideTranslate.interpolate({inputRange: [0, 1], outputRange: [180, 0]})},
-            ],
-          }}
-        >
-          <Kb.NativeView>
-            <Kb.Box2 direction="vertical">
-              <Kb.Icon type="iconfont-arrow-up" fontSize={22} />
-              <Kb.Icon type="iconfont-lock" fontSize={22} />
-            </Kb.Box2>
-          </Kb.NativeView>
-        </Kb.NativeAnimated.View>
+        <>
+          <Kb.NativeAnimated.View
+            style={{
+              bottom: 160,
+              opacity: props.slideTranslate,
+              position: 'absolute',
+              right: 50,
+              transform: [
+                {
+                  translateY: props.slideTranslate.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [180, 0],
+                  }),
+                },
+              ],
+            }}
+          >
+            <Kb.NativeView>
+              <Kb.Icon type="iconfont-arrow-up" sizeType="Tiny" />
+            </Kb.NativeView>
+          </Kb.NativeAnimated.View>
+          <Kb.NativeAnimated.View
+            style={{
+              bottom: 130,
+              opacity: props.slideTranslate,
+              position: 'absolute',
+              right: 45,
+              transform: [
+                {
+                  translateY: props.slideTranslate.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [180, 0],
+                  }),
+                },
+                {
+                  translateY: props.dragY.interpolate({
+                    inputRange: [-70, 0],
+                    outputRange: [-10, 0],
+                  }),
+                },
+              ],
+            }}
+          >
+            <Kb.Icon type="iconfont-lock" />
+          </Kb.NativeAnimated.View>
+        </>
       ) : (
         <Kb.NativeAnimated.View
           style={{
@@ -294,14 +326,15 @@ const AudioButton = (props: ButtonProps) => {
               width: 32,
             }}
           >
-            <Kb.ClickableBox onClick={props.sendRecording}>
-              <Kb.Box2 direction="vertical" centerChildren={true}>
-                <Kb.Icon
-                  type="iconfont-arrow-full-up"
-                  color={Styles.globalColors.whiteOrWhite}
-                  fontSize={22}
-                />
-              </Kb.Box2>
+            <Kb.ClickableBox
+              onClick={props.sendRecording}
+              style={{alignItems: 'center', height: 32, justifyContent: 'center', width: 32}}
+            >
+              <Kb.Icon
+                color={Styles.globalColors.whiteOrWhite}
+                sizeType="Small"
+                type="iconfont-arrow-full-up"
+              />
             </Kb.ClickableBox>
           </Kb.NativeView>
         </Kb.NativeAnimated.View>
@@ -311,32 +344,25 @@ const AudioButton = (props: ButtonProps) => {
         <Kb.NativeAnimated.View
           style={{
             position: 'absolute',
-            right: 46,
+            right: 48,
             transform: [{translateY: Kb.NativeAnimated.add(micOffsetY, props.dragY)}],
           }}
         >
-          <Kb.Icon type="iconfont-mic" fontSize={22} color={Styles.globalColors.whiteOrWhite} />
+          <Kb.Icon type="iconfont-mic" color={Styles.globalColors.whiteOrWhite} />
         </Kb.NativeAnimated.View>
       ) : (
         <Kb.TapGestureHandler onHandlerStateChange={props.stageRecording}>
           <Kb.NativeView
             style={{
-              bottom: 27,
+              bottom: 22,
               height: 48,
               justifyContent: 'center',
               position: 'absolute',
-              right: 18,
+              right: 19,
               width: 48,
             }}
           >
-            <Kb.Box
-              style={{
-                backgroundColor: Styles.globalColors.whiteOrWhite,
-                borderRadius: 2,
-                height: 18,
-                width: 18,
-              }}
-            />
+            <Kb.Icon type="iconfont-stop" color={Styles.globalColors.whiteOrWhite} />
           </Kb.NativeView>
         </Kb.TapGestureHandler>
       )}
@@ -364,9 +390,9 @@ const AudioSlideToCancel = (props: CancelProps) => {
   return props.locked ? (
     <Kb.NativeAnimated.View
       style={{
-        bottom: 35,
+        bottom: 27,
+        left: 100,
         position: 'absolute',
-        right: 150,
         transform: [
           {
             translateY: cancelTranslate.interpolate({
@@ -377,9 +403,9 @@ const AudioSlideToCancel = (props: CancelProps) => {
         ],
       }}
     >
-      <Kb.Text type="BodyPrimaryLink" onClick={props.onCancel} style={{marginLeft: 30}}>
-        Cancel
-      </Kb.Text>
+      <Kb.ClickableBox onClick={props.onCancel} style={{alignItems: 'center', height: 30}}>
+        <Kb.Text type="BodyBigLink">Cancel</Kb.Text>
+      </Kb.ClickableBox>
     </Kb.NativeAnimated.View>
   ) : (
     <Kb.NativeAnimated.View
@@ -398,9 +424,9 @@ const AudioSlideToCancel = (props: CancelProps) => {
         ],
       }}
     >
-      <Kb.Box2 direction="horizontal" gap="tiny">
-        <Kb.Icon type="iconfont-arrow-left" fontSize={16} />
-        <Kb.Text type="BodySecondaryLink">Slide to cancel</Kb.Text>
+      <Kb.Box2 direction="horizontal" gap="tiny" centerChildren={true}>
+        <Kb.Icon sizeType="Tiny" type="iconfont-arrow-left" />
+        <Kb.Text type="BodySmall">Slide to cancel</Kb.Text>
       </Kb.Box2>
     </Kb.NativeAnimated.View>
   )
@@ -427,14 +453,6 @@ const AudioCounter = (props: CounterProps) => {
         left: 10,
         opacity: props.slideTranslate,
         position: 'absolute',
-        transform: [
-          {
-            translateX: props.slideTranslate.interpolate({
-              inputRange: [0, 1],
-              outputRange: [props.closeDown ? -50 : -20, 0],
-            }),
-          },
-        ],
       }}
     >
       <Kb.Text type="BodyBold">{formatAudioRecordDuration(seconds * 1000)}</Kb.Text>

@@ -33,7 +33,10 @@ export const badgeStateToBadgeCounts = (state: Container.TypedState, bs: RPCType
     Tabs.chatTab,
     conversations.reduce<number>((total, c) => (c.badgeCounts ? total + c.badgeCounts[deviceType] : total), 0)
   )
-  counts.set(Tabs.walletsTab, unreadWalletAccounts.reduce<number>((total, a) => total + a.numUnread, 0))
+  counts.set(
+    Tabs.walletsTab,
+    unreadWalletAccounts.reduce<number>((total, a) => total + a.numUnread, 0)
+  )
   counts.set(Tabs.gitTab, newGitRepoGlobalUniqueIDs.length)
   counts.set(
     Tabs.teamsTab,

@@ -5,6 +5,8 @@ import * as Constants from '../../constants/settings'
 import EmailPhoneRow from './email-phone-row'
 import * as I from 'immutable'
 import {Props as HeaderHocProps} from '../../common-adapters/header-hoc/types'
+import * as SettingsGen from '../../actions/settings-gen'
+import * as Container from '../../util/container'
 
 export type Props = {
   addedEmail: string | null
@@ -98,9 +100,7 @@ const Password = (props: Props) => {
     <SettingsSection>
       <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
         <Kb.Text type="Header">Password</Kb.Text>
-        <Kb.Text type="BodySmall">
-          Allows you to log out and log back in, and use the keybase.io website.
-        </Kb.Text>
+        <Kb.Text type="BodySmall">Allows you to sign out and sign back in.</Kb.Text>
       </Kb.Box2>
       <Kb.Box2 direction="vertical" alignItems="flex-start" fullWidth={true}>
         {props.hasPassword && (
@@ -112,6 +112,27 @@ const Password = (props: Props) => {
           <Kb.Button mode="Secondary" onClick={props.onSetPassword} label={passwordLabel} small={true} />
         </Kb.ButtonBar>
       </Kb.Box2>
+    </SettingsSection>
+  )
+}
+
+const WebAuthTokenLogin = (_: Props) => {
+  const dispatch = Container.useDispatch()
+
+  return (
+    <SettingsSection>
+      <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
+        <Kb.Text type="Header">Website Login</Kb.Text>
+        <Kb.Text type="BodySmall">You can use your app to log your web browser into keybase.io.</Kb.Text>
+      </Kb.Box2>
+      <Kb.ButtonBar align="flex-start" style={styles.buttonBar}>
+        <Kb.Button
+          label={`Open keybase.io in web browser`}
+          onClick={() => dispatch(SettingsGen.createLoginBrowserViaWebAuthToken())}
+          mode="Secondary"
+          small={true}
+        />
+      </Kb.ButtonBar>
     </SettingsSection>
   )
 }
@@ -155,9 +176,7 @@ const AccountSettings = (props: Props) => (
         <Kb.Banner color="yellow" onClose={props.onClearSupersededPhoneNumber}>
           <Kb.BannerParagraph
             bannerColor="yellow"
-            content={`Your phone number ${
-              props.supersededPhoneNumber
-            } is now associated with another Keybase user.`}
+            content={`Your phone number ${props.supersededPhoneNumber} is now associated with another Keybase user.`}
           />
           <Kb.Button
             onClick={props.onAddPhone}
@@ -183,6 +202,7 @@ const AccountSettings = (props: Props) => (
         <EmailPhone {...props} />
         <Kb.Divider />
         <Password {...props} />
+        <WebAuthTokenLogin {...props} />
         {!Styles.isMobile && (
           <>
             <Kb.Divider />

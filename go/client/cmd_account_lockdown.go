@@ -149,9 +149,9 @@ func (c *CmdAccountLockdown) Run() error {
 	}
 	tui.Printf("Lockdown mode is: ")
 	if res.Status {
-		_, _ = tui.PrintfUnescaped("%s\n", ColorString(c.G(), "green", enabledGreen()))
+		_, _ = tui.PrintfUnescaped("%s\n", enabledGreen())
 	} else {
-		_, _ = tui.PrintfUnescaped("%s\n", ColorString(c.G(), "yellow", disabledYellow()))
+		_, _ = tui.PrintfUnescaped("%s\n", disabledYellow())
 	}
 
 	if c.History {

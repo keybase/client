@@ -5,6 +5,7 @@ type IconMeta = {
   extension?: string
   charCode?: number
   nameDark?: string
+  imagesDir?: string
   require?: string
   requireDark?: string
 }
@@ -12,6 +13,7 @@ type IconMeta = {
 const iconMeta_ = {
   'icon-GPG-export': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-GPG-export.png')
@@ -19,6 +21,7 @@ const iconMeta_ = {
   },
   'icon-addon-file-downloading': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-addon-file-downloading',
     get require() {
@@ -30,6 +33,7 @@ const iconMeta_ = {
   },
   'icon-addon-file-uploading': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-addon-file-uploading',
     get require() {
@@ -41,6 +45,7 @@ const iconMeta_ = {
   },
   'icon-addon-file-uploading-error': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-addon-file-uploading-error',
     get require() {
@@ -52,6 +57,7 @@ const iconMeta_ = {
   },
   'icon-addon-file-uploading-offline': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-addon-file-uploading-offline',
     get require() {
@@ -63,6 +69,7 @@ const iconMeta_ = {
   },
   'icon-addon-lock-16': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-addon-lock-16',
     get require() {
@@ -74,6 +81,7 @@ const iconMeta_ = {
   },
   'icon-addon-lock-22': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-addon-lock-22',
     get require() {
@@ -85,6 +93,7 @@ const iconMeta_ = {
   },
   'icon-addon-lock-active-16': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-addon-lock-active-16.png')
@@ -92,6 +101,7 @@ const iconMeta_ = {
   },
   'icon-addon-lock-active-22': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-addon-lock-active-22.png')
@@ -99,6 +109,7 @@ const iconMeta_ = {
   },
   'icon-addon-lock-hover-16': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-addon-lock-hover-16',
     get require() {
@@ -110,6 +121,7 @@ const iconMeta_ = {
   },
   'icon-airdrop-glowing-16': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-airdrop-glowing-16.png')
@@ -117,6 +129,7 @@ const iconMeta_ = {
   },
   'icon-airdrop-glowing-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-airdrop-glowing-32.png')
@@ -124,6 +137,7 @@ const iconMeta_ = {
   },
   'icon-airdrop-logo-16': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-airdrop-logo-16.png')
@@ -131,6 +145,7 @@ const iconMeta_ = {
   },
   'icon-airdrop-logo-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-airdrop-logo-32.png')
@@ -138,6 +153,7 @@ const iconMeta_ = {
   },
   'icon-airdrop-logo-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-airdrop-logo-48.png')
@@ -145,6 +161,7 @@ const iconMeta_ = {
   },
   'icon-airdrop-logo-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-airdrop-logo-64.png')
@@ -152,6 +169,7 @@ const iconMeta_ = {
   },
   'icon-bitcoin-logo-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-bitcoin-logo-48.png')
@@ -159,6 +177,7 @@ const iconMeta_ = {
   },
   'icon-bitcoin-logo-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-bitcoin-logo-64.png')
@@ -166,6 +185,7 @@ const iconMeta_ = {
   },
   'icon-coin-heads-48-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-coin-heads-48-48.png')
@@ -173,6 +193,7 @@ const iconMeta_ = {
   },
   'icon-coin-tails-48-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-coin-tails-48-48.png')
@@ -180,6 +201,7 @@ const iconMeta_ = {
   },
   'icon-computer-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-computer-32.png')
@@ -187,6 +209,7 @@ const iconMeta_ = {
   },
   'icon-computer-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-computer-48.png')
@@ -194,6 +217,7 @@ const iconMeta_ = {
   },
   'icon-computer-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-computer-64.png')
@@ -201,6 +225,7 @@ const iconMeta_ = {
   },
   'icon-computer-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-computer-96.png')
@@ -208,6 +233,7 @@ const iconMeta_ = {
   },
   'icon-computer-background-1-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-computer-background-1-32.png')
@@ -215,6 +241,7 @@ const iconMeta_ = {
   },
   'icon-computer-background-1-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-computer-background-1-48.png')
@@ -222,6 +249,7 @@ const iconMeta_ = {
   },
   'icon-computer-background-1-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-computer-background-1-64.png')
@@ -229,6 +257,7 @@ const iconMeta_ = {
   },
   'icon-computer-background-1-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-computer-background-1-96.png')
@@ -236,6 +265,7 @@ const iconMeta_ = {
   },
   'icon-computer-background-10-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-computer-background-10-32.png')
@@ -243,6 +273,7 @@ const iconMeta_ = {
   },
   'icon-computer-background-10-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-computer-background-10-48.png')
@@ -250,6 +281,7 @@ const iconMeta_ = {
   },
   'icon-computer-background-10-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-computer-background-10-64.png')
@@ -257,6 +289,7 @@ const iconMeta_ = {
   },
   'icon-computer-background-10-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-computer-background-10-96.png')
@@ -264,6 +297,7 @@ const iconMeta_ = {
   },
   'icon-computer-background-2-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-computer-background-2-32.png')
@@ -271,6 +305,7 @@ const iconMeta_ = {
   },
   'icon-computer-background-2-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-computer-background-2-48.png')
@@ -278,6 +313,7 @@ const iconMeta_ = {
   },
   'icon-computer-background-2-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-computer-background-2-64.png')
@@ -285,6 +321,7 @@ const iconMeta_ = {
   },
   'icon-computer-background-2-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-computer-background-2-96.png')
@@ -292,6 +329,7 @@ const iconMeta_ = {
   },
   'icon-computer-background-3-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-computer-background-3-32.png')
@@ -299,6 +337,7 @@ const iconMeta_ = {
   },
   'icon-computer-background-3-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-computer-background-3-48.png')
@@ -306,6 +345,7 @@ const iconMeta_ = {
   },
   'icon-computer-background-3-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-computer-background-3-64.png')
@@ -313,6 +353,7 @@ const iconMeta_ = {
   },
   'icon-computer-background-3-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-computer-background-3-96.png')
@@ -320,6 +361,7 @@ const iconMeta_ = {
   },
   'icon-computer-background-4-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-computer-background-4-32.png')
@@ -327,6 +369,7 @@ const iconMeta_ = {
   },
   'icon-computer-background-4-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-computer-background-4-48.png')
@@ -334,6 +377,7 @@ const iconMeta_ = {
   },
   'icon-computer-background-4-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-computer-background-4-64.png')
@@ -341,6 +385,7 @@ const iconMeta_ = {
   },
   'icon-computer-background-4-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-computer-background-4-96.png')
@@ -348,6 +393,7 @@ const iconMeta_ = {
   },
   'icon-computer-background-5-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-computer-background-5-32.png')
@@ -355,6 +401,7 @@ const iconMeta_ = {
   },
   'icon-computer-background-5-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-computer-background-5-48.png')
@@ -362,6 +409,7 @@ const iconMeta_ = {
   },
   'icon-computer-background-5-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-computer-background-5-64.png')
@@ -369,6 +417,7 @@ const iconMeta_ = {
   },
   'icon-computer-background-5-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-computer-background-5-96.png')
@@ -376,6 +425,7 @@ const iconMeta_ = {
   },
   'icon-computer-background-6-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-computer-background-6-32.png')
@@ -383,6 +433,7 @@ const iconMeta_ = {
   },
   'icon-computer-background-6-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-computer-background-6-48.png')
@@ -390,6 +441,7 @@ const iconMeta_ = {
   },
   'icon-computer-background-6-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-computer-background-6-64.png')
@@ -397,6 +449,7 @@ const iconMeta_ = {
   },
   'icon-computer-background-6-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-computer-background-6-96.png')
@@ -404,6 +457,7 @@ const iconMeta_ = {
   },
   'icon-computer-background-7-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-computer-background-7-32.png')
@@ -411,6 +465,7 @@ const iconMeta_ = {
   },
   'icon-computer-background-7-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-computer-background-7-48.png')
@@ -418,6 +473,7 @@ const iconMeta_ = {
   },
   'icon-computer-background-7-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-computer-background-7-64.png')
@@ -425,6 +481,7 @@ const iconMeta_ = {
   },
   'icon-computer-background-7-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-computer-background-7-96.png')
@@ -432,6 +489,7 @@ const iconMeta_ = {
   },
   'icon-computer-background-8-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-computer-background-8-32.png')
@@ -439,6 +497,7 @@ const iconMeta_ = {
   },
   'icon-computer-background-8-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-computer-background-8-48.png')
@@ -446,6 +505,7 @@ const iconMeta_ = {
   },
   'icon-computer-background-8-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-computer-background-8-64.png')
@@ -453,6 +513,7 @@ const iconMeta_ = {
   },
   'icon-computer-background-8-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-computer-background-8-96.png')
@@ -460,6 +521,7 @@ const iconMeta_ = {
   },
   'icon-computer-background-9-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-computer-background-9-32.png')
@@ -467,6 +529,7 @@ const iconMeta_ = {
   },
   'icon-computer-background-9-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-computer-background-9-48.png')
@@ -474,6 +537,7 @@ const iconMeta_ = {
   },
   'icon-computer-background-9-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-computer-background-9-64.png')
@@ -481,6 +545,7 @@ const iconMeta_ = {
   },
   'icon-computer-background-9-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-computer-background-9-96.png')
@@ -488,6 +553,7 @@ const iconMeta_ = {
   },
   'icon-computer-revoke-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-computer-revoke-48.png')
@@ -495,6 +561,7 @@ const iconMeta_ = {
   },
   'icon-computer-revoke-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-computer-revoke-64.png')
@@ -502,6 +569,7 @@ const iconMeta_ = {
   },
   'icon-computer-revoke-background-1-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-1-32',
     get require() {
@@ -513,6 +581,7 @@ const iconMeta_ = {
   },
   'icon-computer-revoke-background-1-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-1-48',
     get require() {
@@ -524,6 +593,7 @@ const iconMeta_ = {
   },
   'icon-computer-revoke-background-1-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-1-64',
     get require() {
@@ -535,6 +605,7 @@ const iconMeta_ = {
   },
   'icon-computer-revoke-background-10-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-10-32',
     get require() {
@@ -546,6 +617,7 @@ const iconMeta_ = {
   },
   'icon-computer-revoke-background-10-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-10-48',
     get require() {
@@ -557,6 +629,7 @@ const iconMeta_ = {
   },
   'icon-computer-revoke-background-10-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-10-64',
     get require() {
@@ -568,6 +641,7 @@ const iconMeta_ = {
   },
   'icon-computer-revoke-background-2-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-2-32',
     get require() {
@@ -579,6 +653,7 @@ const iconMeta_ = {
   },
   'icon-computer-revoke-background-2-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-2-48',
     get require() {
@@ -590,6 +665,7 @@ const iconMeta_ = {
   },
   'icon-computer-revoke-background-2-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-2-64',
     get require() {
@@ -601,6 +677,7 @@ const iconMeta_ = {
   },
   'icon-computer-revoke-background-3-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-3-32',
     get require() {
@@ -612,6 +689,7 @@ const iconMeta_ = {
   },
   'icon-computer-revoke-background-3-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-3-48',
     get require() {
@@ -623,6 +701,7 @@ const iconMeta_ = {
   },
   'icon-computer-revoke-background-3-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-3-64',
     get require() {
@@ -634,6 +713,7 @@ const iconMeta_ = {
   },
   'icon-computer-revoke-background-4-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-4-32',
     get require() {
@@ -645,6 +725,7 @@ const iconMeta_ = {
   },
   'icon-computer-revoke-background-4-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-4-48',
     get require() {
@@ -656,6 +737,7 @@ const iconMeta_ = {
   },
   'icon-computer-revoke-background-4-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-4-64',
     get require() {
@@ -667,6 +749,7 @@ const iconMeta_ = {
   },
   'icon-computer-revoke-background-5-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-5-32',
     get require() {
@@ -678,6 +761,7 @@ const iconMeta_ = {
   },
   'icon-computer-revoke-background-5-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-5-48',
     get require() {
@@ -689,6 +773,7 @@ const iconMeta_ = {
   },
   'icon-computer-revoke-background-5-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-5-64',
     get require() {
@@ -700,6 +785,7 @@ const iconMeta_ = {
   },
   'icon-computer-revoke-background-6-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-6-32',
     get require() {
@@ -711,6 +797,7 @@ const iconMeta_ = {
   },
   'icon-computer-revoke-background-6-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-6-48',
     get require() {
@@ -722,6 +809,7 @@ const iconMeta_ = {
   },
   'icon-computer-revoke-background-6-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-6-64',
     get require() {
@@ -733,6 +821,7 @@ const iconMeta_ = {
   },
   'icon-computer-revoke-background-7-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-7-32',
     get require() {
@@ -744,6 +833,7 @@ const iconMeta_ = {
   },
   'icon-computer-revoke-background-7-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-7-48',
     get require() {
@@ -755,6 +845,7 @@ const iconMeta_ = {
   },
   'icon-computer-revoke-background-7-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-7-64',
     get require() {
@@ -766,6 +857,7 @@ const iconMeta_ = {
   },
   'icon-computer-revoke-background-8-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-8-32',
     get require() {
@@ -777,6 +869,7 @@ const iconMeta_ = {
   },
   'icon-computer-revoke-background-8-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-8-48',
     get require() {
@@ -788,6 +881,7 @@ const iconMeta_ = {
   },
   'icon-computer-revoke-background-8-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-8-64',
     get require() {
@@ -799,6 +893,7 @@ const iconMeta_ = {
   },
   'icon-computer-revoke-background-9-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-9-32',
     get require() {
@@ -810,6 +905,7 @@ const iconMeta_ = {
   },
   'icon-computer-revoke-background-9-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-9-48',
     get require() {
@@ -821,6 +917,7 @@ const iconMeta_ = {
   },
   'icon-computer-revoke-background-9-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-revoke-background-9-64',
     get require() {
@@ -832,6 +929,7 @@ const iconMeta_ = {
   },
   'icon-computer-success-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-success-32',
     get require() {
@@ -843,6 +941,7 @@ const iconMeta_ = {
   },
   'icon-computer-success-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-success-48',
     get require() {
@@ -854,6 +953,7 @@ const iconMeta_ = {
   },
   'icon-computer-success-background-1-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-1-32',
     get require() {
@@ -865,6 +965,7 @@ const iconMeta_ = {
   },
   'icon-computer-success-background-1-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-1-48',
     get require() {
@@ -876,6 +977,7 @@ const iconMeta_ = {
   },
   'icon-computer-success-background-10-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-10-32',
     get require() {
@@ -887,6 +989,7 @@ const iconMeta_ = {
   },
   'icon-computer-success-background-10-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-10-48',
     get require() {
@@ -898,6 +1001,7 @@ const iconMeta_ = {
   },
   'icon-computer-success-background-2-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-2-32',
     get require() {
@@ -909,6 +1013,7 @@ const iconMeta_ = {
   },
   'icon-computer-success-background-2-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-2-48',
     get require() {
@@ -920,6 +1025,7 @@ const iconMeta_ = {
   },
   'icon-computer-success-background-3-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-3-32',
     get require() {
@@ -931,6 +1037,7 @@ const iconMeta_ = {
   },
   'icon-computer-success-background-3-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-3-48',
     get require() {
@@ -942,6 +1049,7 @@ const iconMeta_ = {
   },
   'icon-computer-success-background-4-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-4-32',
     get require() {
@@ -953,6 +1061,7 @@ const iconMeta_ = {
   },
   'icon-computer-success-background-4-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-4-48',
     get require() {
@@ -964,6 +1073,7 @@ const iconMeta_ = {
   },
   'icon-computer-success-background-5-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-5-32',
     get require() {
@@ -975,6 +1085,7 @@ const iconMeta_ = {
   },
   'icon-computer-success-background-5-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-5-48',
     get require() {
@@ -986,6 +1097,7 @@ const iconMeta_ = {
   },
   'icon-computer-success-background-6-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-6-32',
     get require() {
@@ -997,6 +1109,7 @@ const iconMeta_ = {
   },
   'icon-computer-success-background-6-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-6-48',
     get require() {
@@ -1008,6 +1121,7 @@ const iconMeta_ = {
   },
   'icon-computer-success-background-7-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-7-32',
     get require() {
@@ -1019,6 +1133,7 @@ const iconMeta_ = {
   },
   'icon-computer-success-background-7-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-7-48',
     get require() {
@@ -1030,6 +1145,7 @@ const iconMeta_ = {
   },
   'icon-computer-success-background-8-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-8-32',
     get require() {
@@ -1041,6 +1157,7 @@ const iconMeta_ = {
   },
   'icon-computer-success-background-8-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-8-48',
     get require() {
@@ -1052,6 +1169,7 @@ const iconMeta_ = {
   },
   'icon-computer-success-background-9-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-9-32',
     get require() {
@@ -1063,6 +1181,7 @@ const iconMeta_ = {
   },
   'icon-computer-success-background-9-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-computer-success-background-9-48',
     get require() {
@@ -1074,6 +1193,7 @@ const iconMeta_ = {
   },
   'icon-dark-addon-file-downloading': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-addon-file-downloading.png')
@@ -1081,6 +1201,7 @@ const iconMeta_ = {
   },
   'icon-dark-addon-file-uploading': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-addon-file-uploading.png')
@@ -1088,6 +1209,7 @@ const iconMeta_ = {
   },
   'icon-dark-addon-file-uploading-error': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-addon-file-uploading-error.png')
@@ -1095,6 +1217,7 @@ const iconMeta_ = {
   },
   'icon-dark-addon-file-uploading-offline': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-addon-file-uploading-offline.png')
@@ -1102,6 +1225,7 @@ const iconMeta_ = {
   },
   'icon-dark-addon-lock-16': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-addon-lock-16.png')
@@ -1109,6 +1233,7 @@ const iconMeta_ = {
   },
   'icon-dark-addon-lock-22': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-addon-lock-22.png')
@@ -1116,6 +1241,7 @@ const iconMeta_ = {
   },
   'icon-dark-addon-lock-hover-16': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-addon-lock-hover-16.png')
@@ -1123,6 +1249,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-revoke-background-1-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-revoke-background-1-32.png')
@@ -1130,6 +1257,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-revoke-background-1-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-revoke-background-1-48.png')
@@ -1137,6 +1265,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-revoke-background-1-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-revoke-background-1-64.png')
@@ -1144,6 +1273,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-revoke-background-10-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-revoke-background-10-32.png')
@@ -1151,6 +1281,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-revoke-background-10-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-revoke-background-10-48.png')
@@ -1158,6 +1289,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-revoke-background-10-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-revoke-background-10-64.png')
@@ -1165,6 +1297,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-revoke-background-2-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-revoke-background-2-32.png')
@@ -1172,6 +1305,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-revoke-background-2-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-revoke-background-2-48.png')
@@ -1179,6 +1313,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-revoke-background-2-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-revoke-background-2-64.png')
@@ -1186,6 +1321,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-revoke-background-3-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-revoke-background-3-32.png')
@@ -1193,6 +1329,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-revoke-background-3-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-revoke-background-3-48.png')
@@ -1200,6 +1337,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-revoke-background-3-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-revoke-background-3-64.png')
@@ -1207,6 +1345,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-revoke-background-4-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-revoke-background-4-32.png')
@@ -1214,6 +1353,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-revoke-background-4-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-revoke-background-4-48.png')
@@ -1221,6 +1361,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-revoke-background-4-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-revoke-background-4-64.png')
@@ -1228,6 +1369,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-revoke-background-5-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-revoke-background-5-32.png')
@@ -1235,6 +1377,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-revoke-background-5-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-revoke-background-5-48.png')
@@ -1242,6 +1385,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-revoke-background-5-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-revoke-background-5-64.png')
@@ -1249,6 +1393,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-revoke-background-6-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-revoke-background-6-32.png')
@@ -1256,6 +1401,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-revoke-background-6-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-revoke-background-6-48.png')
@@ -1263,6 +1409,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-revoke-background-6-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-revoke-background-6-64.png')
@@ -1270,6 +1417,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-revoke-background-7-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-revoke-background-7-32.png')
@@ -1277,6 +1425,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-revoke-background-7-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-revoke-background-7-48.png')
@@ -1284,6 +1433,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-revoke-background-7-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-revoke-background-7-64.png')
@@ -1291,6 +1441,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-revoke-background-8-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-revoke-background-8-32.png')
@@ -1298,6 +1449,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-revoke-background-8-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-revoke-background-8-48.png')
@@ -1305,6 +1457,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-revoke-background-8-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-revoke-background-8-64.png')
@@ -1312,6 +1465,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-revoke-background-9-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-revoke-background-9-32.png')
@@ -1319,6 +1473,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-revoke-background-9-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-revoke-background-9-48.png')
@@ -1326,6 +1481,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-revoke-background-9-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-revoke-background-9-64.png')
@@ -1333,6 +1489,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-success-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-success-32.png')
@@ -1340,6 +1497,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-success-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-success-48.png')
@@ -1347,6 +1505,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-success-background-1-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-success-background-1-32.png')
@@ -1354,6 +1513,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-success-background-1-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-success-background-1-48.png')
@@ -1361,6 +1521,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-success-background-10-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-success-background-10-32.png')
@@ -1368,6 +1529,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-success-background-10-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-success-background-10-48.png')
@@ -1375,6 +1537,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-success-background-2-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-success-background-2-32.png')
@@ -1382,6 +1545,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-success-background-2-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-success-background-2-48.png')
@@ -1389,6 +1553,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-success-background-3-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-success-background-3-32.png')
@@ -1396,6 +1561,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-success-background-3-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-success-background-3-48.png')
@@ -1403,6 +1569,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-success-background-4-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-success-background-4-32.png')
@@ -1410,6 +1577,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-success-background-4-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-success-background-4-48.png')
@@ -1417,6 +1585,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-success-background-5-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-success-background-5-32.png')
@@ -1424,6 +1593,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-success-background-5-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-success-background-5-48.png')
@@ -1431,6 +1601,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-success-background-6-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-success-background-6-32.png')
@@ -1438,6 +1609,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-success-background-6-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-success-background-6-48.png')
@@ -1445,6 +1617,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-success-background-7-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-success-background-7-32.png')
@@ -1452,6 +1625,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-success-background-7-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-success-background-7-48.png')
@@ -1459,6 +1633,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-success-background-8-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-success-background-8-32.png')
@@ -1466,6 +1641,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-success-background-8-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-success-background-8-48.png')
@@ -1473,6 +1649,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-success-background-9-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-success-background-9-32.png')
@@ -1480,6 +1657,7 @@ const iconMeta_ = {
   },
   'icon-dark-computer-success-background-9-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-computer-success-background-9-48.png')
@@ -1487,6 +1665,7 @@ const iconMeta_ = {
   },
   'icon-dark-dns-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-dns-48.png')
@@ -1494,6 +1673,7 @@ const iconMeta_ = {
   },
   'icon-dark-dns-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-dns-64.png')
@@ -1501,6 +1681,7 @@ const iconMeta_ = {
   },
   'icon-dark-email-remove-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-email-remove-48.png')
@@ -1508,6 +1689,7 @@ const iconMeta_ = {
   },
   'icon-dark-email-remove-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-email-remove-64.png')
@@ -1515,6 +1697,7 @@ const iconMeta_ = {
   },
   'icon-dark-email-remove-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-email-remove-96.png')
@@ -1522,6 +1705,7 @@ const iconMeta_ = {
   },
   'icon-dark-fancy-bomb-desktop-150-72': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-fancy-bomb-desktop-150-72.png')
@@ -1529,6 +1713,7 @@ const iconMeta_ = {
   },
   'icon-dark-fancy-bomb-mobile-226-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-fancy-bomb-mobile-226-96.png')
@@ -1536,6 +1721,7 @@ const iconMeta_ = {
   },
   'icon-dark-fancy-chat-103-x-75': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-fancy-chat-103-x-75.png')
@@ -1543,6 +1729,7 @@ const iconMeta_ = {
   },
   'icon-dark-fancy-chat-72-x-52': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-fancy-chat-72-x-52.png')
@@ -1550,6 +1737,7 @@ const iconMeta_ = {
   },
   'icon-dark-fancy-email-sent-144-x-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-fancy-email-sent-144-x-48.png')
@@ -1557,6 +1745,7 @@ const iconMeta_ = {
   },
   'icon-dark-fancy-email-sent-192-x-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-fancy-email-sent-192-x-64.png')
@@ -1564,6 +1753,7 @@ const iconMeta_ = {
   },
   'icon-dark-fancy-encrypted-computer-desktop-150-72': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-fancy-encrypted-computer-desktop-150-72.png')
@@ -1571,14 +1761,15 @@ const iconMeta_ = {
   },
   'icon-dark-fancy-encrypted-computer-mobile-226-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-fancy-encrypted-computer-mobile-226-96.png')
     },
   },
-
   'icon-dark-fancy-encrypted-phone-mobile-226-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-fancy-encrypted-phone-mobile-226-96.png')
@@ -1586,6 +1777,7 @@ const iconMeta_ = {
   },
   'icon-dark-fancy-finder-132-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-fancy-finder-132-96.png')
@@ -1593,6 +1785,7 @@ const iconMeta_ = {
   },
   'icon-dark-fancy-finder-enabled-132-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-fancy-finder-enabled-132-96.png')
@@ -1600,6 +1793,7 @@ const iconMeta_ = {
   },
   'icon-dark-fancy-revoked-computer-desktop-150-72': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-fancy-revoked-computer-desktop-150-72.png')
@@ -1607,6 +1801,7 @@ const iconMeta_ = {
   },
   'icon-dark-fancy-revoked-computer-mobile-226-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-fancy-revoked-computer-mobile-226-96.png')
@@ -1614,6 +1809,7 @@ const iconMeta_ = {
   },
   'icon-dark-fancy-revoked-phone-mobile-226-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-fancy-revoked-phone-mobile-226-96.png')
@@ -1621,6 +1817,7 @@ const iconMeta_ = {
   },
   'icon-dark-fancy-unfurl-preview-desktop-96-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-fancy-unfurl-preview-desktop-96-96.png')
@@ -1628,6 +1825,7 @@ const iconMeta_ = {
   },
   'icon-dark-fancy-unfurl-preview-mobile-128-128': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-fancy-unfurl-preview-mobile-128-128.png')
@@ -1635,6 +1833,7 @@ const iconMeta_ = {
   },
   'icon-dark-fancy-user-card-desktop-80-99': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-fancy-user-card-desktop-80-99.png')
@@ -1642,6 +1841,7 @@ const iconMeta_ = {
   },
   'icon-dark-fancy-user-card-desktop-airdrop-80-99': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-fancy-user-card-desktop-airdrop-80-99.png')
@@ -1649,6 +1849,7 @@ const iconMeta_ = {
   },
   'icon-dark-fancy-user-card-mobile-120-149': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-fancy-user-card-mobile-120-149.png')
@@ -1656,6 +1857,7 @@ const iconMeta_ = {
   },
   'icon-dark-fancy-user-card-mobile-airdrop-120-149': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-fancy-user-card-mobile-airdrop-120-149.png')
@@ -1663,6 +1865,7 @@ const iconMeta_ = {
   },
   'icon-dark-file-16': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-file-16.png')
@@ -1670,6 +1873,7 @@ const iconMeta_ = {
   },
   'icon-dark-file-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-file-32.png')
@@ -1677,6 +1881,7 @@ const iconMeta_ = {
   },
   'icon-dark-file-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-file-48.png')
@@ -1684,6 +1889,7 @@ const iconMeta_ = {
   },
   'icon-dark-file-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-file-64.png')
@@ -1691,6 +1897,7 @@ const iconMeta_ = {
   },
   'icon-dark-file-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-file-96.png')
@@ -1698,6 +1905,7 @@ const iconMeta_ = {
   },
   'icon-dark-file-delete-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-file-delete-48.png')
@@ -1705,6 +1913,7 @@ const iconMeta_ = {
   },
   'icon-dark-file-delete-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-file-delete-64.png')
@@ -1712,6 +1921,7 @@ const iconMeta_ = {
   },
   'icon-dark-file-placeholder-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-file-placeholder-32.png')
@@ -1719,6 +1929,7 @@ const iconMeta_ = {
   },
   'icon-dark-file-txt-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-file-txt-48.png')
@@ -1726,6 +1937,7 @@ const iconMeta_ = {
   },
   'icon-dark-file-txt-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-file-txt-64.png')
@@ -1733,6 +1945,7 @@ const iconMeta_ = {
   },
   'icon-dark-file-uploading-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-file-uploading-48.png')
@@ -1740,6 +1953,7 @@ const iconMeta_ = {
   },
   'icon-dark-file-uploading-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-file-uploading-64.png')
@@ -1747,6 +1961,7 @@ const iconMeta_ = {
   },
   'icon-dark-folder-16': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-folder-16.png')
@@ -1754,6 +1969,7 @@ const iconMeta_ = {
   },
   'icon-dark-folder-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-folder-32.png')
@@ -1761,6 +1977,7 @@ const iconMeta_ = {
   },
   'icon-dark-folder-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-folder-48.png')
@@ -1768,6 +1985,7 @@ const iconMeta_ = {
   },
   'icon-dark-folder-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-folder-64.png')
@@ -1775,6 +1993,7 @@ const iconMeta_ = {
   },
   'icon-dark-folder-copy-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-folder-copy-32.png')
@@ -1782,6 +2001,7 @@ const iconMeta_ = {
   },
   'icon-dark-folder-copy-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-folder-copy-48.png')
@@ -1789,6 +2009,7 @@ const iconMeta_ = {
   },
   'icon-dark-folder-default-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-folder-default-96.png')
@@ -1796,6 +2017,7 @@ const iconMeta_ = {
   },
   'icon-dark-folder-move-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-folder-move-32.png')
@@ -1803,6 +2025,7 @@ const iconMeta_ = {
   },
   'icon-dark-folder-move-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-folder-move-48.png')
@@ -1810,6 +2033,7 @@ const iconMeta_ = {
   },
   'icon-dark-folder-placeholder-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-folder-placeholder-32.png')
@@ -1817,6 +2041,7 @@ const iconMeta_ = {
   },
   'icon-dark-folder-private-16': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-folder-private-16.png')
@@ -1824,6 +2049,7 @@ const iconMeta_ = {
   },
   'icon-dark-folder-private-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-folder-private-32.png')
@@ -1831,6 +2057,7 @@ const iconMeta_ = {
   },
   'icon-dark-folder-private-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-folder-private-48.png')
@@ -1838,6 +2065,7 @@ const iconMeta_ = {
   },
   'icon-dark-folder-private-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-folder-private-64.png')
@@ -1845,6 +2073,7 @@ const iconMeta_ = {
   },
   'icon-dark-folder-private-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-folder-private-96.png')
@@ -1852,6 +2081,7 @@ const iconMeta_ = {
   },
   'icon-dark-folder-public-16': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-folder-public-16.png')
@@ -1859,6 +2089,7 @@ const iconMeta_ = {
   },
   'icon-dark-folder-public-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-folder-public-32.png')
@@ -1866,6 +2097,7 @@ const iconMeta_ = {
   },
   'icon-dark-folder-public-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-folder-public-48.png')
@@ -1873,6 +2105,7 @@ const iconMeta_ = {
   },
   'icon-dark-folder-public-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-folder-public-64.png')
@@ -1880,6 +2113,7 @@ const iconMeta_ = {
   },
   'icon-dark-folder-public-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-folder-public-96.png')
@@ -1887,6 +2121,7 @@ const iconMeta_ = {
   },
   'icon-dark-folder-success-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-folder-success-48.png')
@@ -1894,6 +2129,7 @@ const iconMeta_ = {
   },
   'icon-dark-folder-team-16': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-folder-team-16.png')
@@ -1901,6 +2137,7 @@ const iconMeta_ = {
   },
   'icon-dark-folder-team-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-folder-team-32.png')
@@ -1908,6 +2145,7 @@ const iconMeta_ = {
   },
   'icon-dark-folder-team-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-folder-team-48.png')
@@ -1915,6 +2153,7 @@ const iconMeta_ = {
   },
   'icon-dark-folder-team-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-folder-team-64.png')
@@ -1922,6 +2161,7 @@ const iconMeta_ = {
   },
   'icon-dark-folder-team-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-folder-team-96.png')
@@ -1929,6 +2169,7 @@ const iconMeta_ = {
   },
   'icon-dark-follow-me-21': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-follow-me-21.png')
@@ -1936,6 +2177,7 @@ const iconMeta_ = {
   },
   'icon-dark-follow-me-28': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-follow-me-28.png')
@@ -1943,6 +2185,7 @@ const iconMeta_ = {
   },
   'icon-dark-following-21': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-following-21.png')
@@ -1950,6 +2193,7 @@ const iconMeta_ = {
   },
   'icon-dark-following-28': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-following-28.png')
@@ -1957,6 +2201,7 @@ const iconMeta_ = {
   },
   'icon-dark-message-deletion-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-message-deletion-32.png')
@@ -1964,6 +2209,7 @@ const iconMeta_ = {
   },
   'icon-dark-message-deletion-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-message-deletion-48.png')
@@ -1971,6 +2217,7 @@ const iconMeta_ = {
   },
   'icon-dark-message-deletion-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-message-deletion-64.png')
@@ -1978,6 +2225,7 @@ const iconMeta_ = {
   },
   'icon-dark-message-retention-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-message-retention-32.png')
@@ -1985,6 +2233,7 @@ const iconMeta_ = {
   },
   'icon-dark-message-retention-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-message-retention-48.png')
@@ -1992,6 +2241,7 @@ const iconMeta_ = {
   },
   'icon-dark-message-retention-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-message-retention-64.png')
@@ -1999,6 +2249,7 @@ const iconMeta_ = {
   },
   'icon-dark-mutual-follow-21': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-mutual-follow-21.png')
@@ -2006,6 +2257,7 @@ const iconMeta_ = {
   },
   'icon-dark-mutual-follow-28': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-mutual-follow-28.png')
@@ -2013,6 +2265,7 @@ const iconMeta_ = {
   },
   'icon-dark-onboarding-chat-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-onboarding-chat-32.png')
@@ -2020,6 +2273,7 @@ const iconMeta_ = {
   },
   'icon-dark-onboarding-chat-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-onboarding-chat-48.png')
@@ -2027,6 +2281,7 @@ const iconMeta_ = {
   },
   'icon-dark-onboarding-computer-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-onboarding-computer-48.png')
@@ -2034,6 +2289,7 @@ const iconMeta_ = {
   },
   'icon-dark-onboarding-email-add-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-onboarding-email-add-32.png')
@@ -2041,6 +2297,7 @@ const iconMeta_ = {
   },
   'icon-dark-onboarding-email-add-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-onboarding-email-add-48.png')
@@ -2048,6 +2305,7 @@ const iconMeta_ = {
   },
   'icon-dark-onboarding-email-searchable-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-onboarding-email-searchable-48.png')
@@ -2055,6 +2313,7 @@ const iconMeta_ = {
   },
   'icon-dark-onboarding-email-verify-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-onboarding-email-verify-32.png')
@@ -2062,6 +2321,7 @@ const iconMeta_ = {
   },
   'icon-dark-onboarding-email-verify-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-onboarding-email-verify-48.png')
@@ -2069,6 +2329,7 @@ const iconMeta_ = {
   },
   'icon-dark-onboarding-folder-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-onboarding-folder-32.png')
@@ -2076,6 +2337,7 @@ const iconMeta_ = {
   },
   'icon-dark-onboarding-folder-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-onboarding-folder-48.png')
@@ -2083,6 +2345,7 @@ const iconMeta_ = {
   },
   'icon-dark-onboarding-follow-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-onboarding-follow-32.png')
@@ -2090,6 +2353,7 @@ const iconMeta_ = {
   },
   'icon-dark-onboarding-follow-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-onboarding-follow-48.png')
@@ -2097,6 +2361,7 @@ const iconMeta_ = {
   },
   'icon-dark-onboarding-git-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-onboarding-git-32.png')
@@ -2104,6 +2369,7 @@ const iconMeta_ = {
   },
   'icon-dark-onboarding-git-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-onboarding-git-48.png')
@@ -2111,6 +2377,7 @@ const iconMeta_ = {
   },
   'icon-dark-onboarding-number-new-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-onboarding-number-new-32.png')
@@ -2118,6 +2385,7 @@ const iconMeta_ = {
   },
   'icon-dark-onboarding-number-new-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-onboarding-number-new-48.png')
@@ -2125,6 +2393,7 @@ const iconMeta_ = {
   },
   'icon-dark-onboarding-number-verify-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-onboarding-number-verify-32.png')
@@ -2132,6 +2401,7 @@ const iconMeta_ = {
   },
   'icon-dark-onboarding-number-verify-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-onboarding-number-verify-48.png')
@@ -2139,6 +2409,7 @@ const iconMeta_ = {
   },
   'icon-dark-onboarding-paper-key-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-onboarding-paper-key-32.png')
@@ -2146,6 +2417,7 @@ const iconMeta_ = {
   },
   'icon-dark-onboarding-paper-key-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-onboarding-paper-key-48.png')
@@ -2153,6 +2425,7 @@ const iconMeta_ = {
   },
   'icon-dark-onboarding-phone-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-onboarding-phone-32.png')
@@ -2160,6 +2433,7 @@ const iconMeta_ = {
   },
   'icon-dark-onboarding-proofs-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-onboarding-proofs-32.png')
@@ -2167,6 +2441,7 @@ const iconMeta_ = {
   },
   'icon-dark-onboarding-proofs-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-onboarding-proofs-48.png')
@@ -2174,6 +2449,7 @@ const iconMeta_ = {
   },
   'icon-dark-onboarding-team-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-onboarding-team-32.png')
@@ -2181,6 +2457,7 @@ const iconMeta_ = {
   },
   'icon-dark-onboarding-team-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-onboarding-team-48.png')
@@ -2188,6 +2465,7 @@ const iconMeta_ = {
   },
   'icon-dark-onboarding-team-avatar-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-onboarding-team-avatar-32.png')
@@ -2195,6 +2473,7 @@ const iconMeta_ = {
   },
   'icon-dark-onboarding-team-avatar-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-onboarding-team-avatar-48.png')
@@ -2202,6 +2481,7 @@ const iconMeta_ = {
   },
   'icon-dark-onboarding-team-publicity-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-onboarding-team-publicity-32.png')
@@ -2209,6 +2489,7 @@ const iconMeta_ = {
   },
   'icon-dark-onboarding-team-publicity-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-onboarding-team-publicity-48.png')
@@ -2216,6 +2497,7 @@ const iconMeta_ = {
   },
   'icon-dark-onboarding-user-avatar-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-onboarding-user-avatar-32.png')
@@ -2223,6 +2505,7 @@ const iconMeta_ = {
   },
   'icon-dark-onboarding-user-avatar-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-onboarding-user-avatar-48.png')
@@ -2230,6 +2513,7 @@ const iconMeta_ = {
   },
   'icon-dark-onboarding-user-info-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-onboarding-user-info-32.png')
@@ -2237,6 +2521,7 @@ const iconMeta_ = {
   },
   'icon-dark-onboarding-user-info-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-onboarding-user-info-48.png')
@@ -2244,6 +2529,7 @@ const iconMeta_ = {
   },
   'icon-dark-paper-key-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-paper-key-32.png')
@@ -2251,6 +2537,7 @@ const iconMeta_ = {
   },
   'icon-dark-paper-key-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-paper-key-48.png')
@@ -2258,6 +2545,7 @@ const iconMeta_ = {
   },
   'icon-dark-paper-key-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-paper-key-64.png')
@@ -2265,6 +2553,7 @@ const iconMeta_ = {
   },
   'icon-dark-paper-key-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-paper-key-96.png')
@@ -2272,6 +2561,7 @@ const iconMeta_ = {
   },
   'icon-dark-paper-key-revoke-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-paper-key-revoke-48.png')
@@ -2279,6 +2569,7 @@ const iconMeta_ = {
   },
   'icon-dark-paper-key-revoke-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-paper-key-revoke-64.png')
@@ -2286,6 +2577,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-number-remove-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-number-remove-48.png')
@@ -2293,6 +2585,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-number-remove-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-number-remove-64.png')
@@ -2300,6 +2593,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-number-remove-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-number-remove-96.png')
@@ -2307,6 +2601,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-revoke-background-1-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-revoke-background-1-32.png')
@@ -2314,6 +2609,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-revoke-background-1-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-revoke-background-1-48.png')
@@ -2321,6 +2617,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-revoke-background-1-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-revoke-background-1-64.png')
@@ -2328,6 +2625,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-revoke-background-10-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-revoke-background-10-32.png')
@@ -2335,6 +2633,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-revoke-background-10-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-revoke-background-10-48.png')
@@ -2342,6 +2641,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-revoke-background-10-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-revoke-background-10-64.png')
@@ -2349,6 +2649,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-revoke-background-2-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-revoke-background-2-32.png')
@@ -2356,6 +2657,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-revoke-background-2-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-revoke-background-2-48.png')
@@ -2363,6 +2665,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-revoke-background-2-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-revoke-background-2-64.png')
@@ -2370,6 +2673,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-revoke-background-3-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-revoke-background-3-32.png')
@@ -2377,6 +2681,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-revoke-background-3-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-revoke-background-3-48.png')
@@ -2384,6 +2689,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-revoke-background-3-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-revoke-background-3-64.png')
@@ -2391,6 +2697,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-revoke-background-4-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-revoke-background-4-32.png')
@@ -2398,6 +2705,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-revoke-background-4-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-revoke-background-4-48.png')
@@ -2405,6 +2713,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-revoke-background-4-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-revoke-background-4-64.png')
@@ -2412,6 +2721,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-revoke-background-5-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-revoke-background-5-32.png')
@@ -2419,6 +2729,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-revoke-background-5-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-revoke-background-5-48.png')
@@ -2426,6 +2737,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-revoke-background-5-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-revoke-background-5-64.png')
@@ -2433,6 +2745,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-revoke-background-6-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-revoke-background-6-32.png')
@@ -2440,6 +2753,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-revoke-background-6-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-revoke-background-6-48.png')
@@ -2447,6 +2761,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-revoke-background-6-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-revoke-background-6-64.png')
@@ -2454,6 +2769,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-revoke-background-7-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-revoke-background-7-32.png')
@@ -2461,6 +2777,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-revoke-background-7-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-revoke-background-7-48.png')
@@ -2468,6 +2785,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-revoke-background-7-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-revoke-background-7-64.png')
@@ -2475,6 +2793,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-revoke-background-8-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-revoke-background-8-32.png')
@@ -2482,6 +2801,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-revoke-background-8-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-revoke-background-8-48.png')
@@ -2489,6 +2809,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-revoke-background-8-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-revoke-background-8-64.png')
@@ -2496,6 +2817,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-revoke-background-9-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-revoke-background-9-32.png')
@@ -2503,6 +2825,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-revoke-background-9-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-revoke-background-9-48.png')
@@ -2510,6 +2833,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-revoke-background-9-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-revoke-background-9-64.png')
@@ -2517,6 +2841,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-success-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-success-32.png')
@@ -2524,6 +2849,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-success-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-success-48.png')
@@ -2531,6 +2857,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-success-background-1-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-success-background-1-32.png')
@@ -2538,6 +2865,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-success-background-1-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-success-background-1-48.png')
@@ -2545,6 +2873,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-success-background-10-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-success-background-10-32.png')
@@ -2552,6 +2881,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-success-background-10-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-success-background-10-48.png')
@@ -2559,6 +2889,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-success-background-2-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-success-background-2-32.png')
@@ -2566,6 +2897,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-success-background-2-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-success-background-2-48.png')
@@ -2573,6 +2905,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-success-background-3-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-success-background-3-32.png')
@@ -2580,6 +2913,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-success-background-3-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-success-background-3-48.png')
@@ -2587,6 +2921,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-success-background-4-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-success-background-4-32.png')
@@ -2594,6 +2929,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-success-background-4-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-success-background-4-48.png')
@@ -2601,6 +2937,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-success-background-5-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-success-background-5-32.png')
@@ -2608,6 +2945,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-success-background-5-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-success-background-5-48.png')
@@ -2615,6 +2953,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-success-background-6-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-success-background-6-32.png')
@@ -2622,6 +2961,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-success-background-6-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-success-background-6-48.png')
@@ -2629,6 +2969,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-success-background-7-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-success-background-7-32.png')
@@ -2636,6 +2977,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-success-background-7-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-success-background-7-48.png')
@@ -2643,6 +2985,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-success-background-8-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-success-background-8-32.png')
@@ -2650,6 +2993,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-success-background-8-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-success-background-8-48.png')
@@ -2657,6 +3001,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-success-background-9-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-success-background-9-32.png')
@@ -2664,6 +3009,7 @@ const iconMeta_ = {
   },
   'icon-dark-phone-success-background-9-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-phone-success-background-9-48.png')
@@ -2671,6 +3017,7 @@ const iconMeta_ = {
   },
   'icon-dark-placeholder-avatar-192': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-placeholder-avatar-192.png')
@@ -2678,6 +3025,7 @@ const iconMeta_ = {
   },
   'icon-dark-placeholder-avatar-256': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-placeholder-avatar-256.png')
@@ -2685,6 +3033,7 @@ const iconMeta_ = {
   },
   'icon-dark-placeholder-avatar-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-placeholder-avatar-32.png')
@@ -2692,6 +3041,7 @@ const iconMeta_ = {
   },
   'icon-dark-placeholder-avatar-960': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-placeholder-avatar-960.png')
@@ -2699,6 +3049,7 @@ const iconMeta_ = {
   },
   'icon-dark-placeholder-avatar-circular-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-placeholder-avatar-circular-32.png')
@@ -2706,6 +3057,7 @@ const iconMeta_ = {
   },
   'icon-dark-placeholder-avatar-circular-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-placeholder-avatar-circular-48.png')
@@ -2713,6 +3065,7 @@ const iconMeta_ = {
   },
   'icon-dark-placeholder-avatar-circular-reversed-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-placeholder-avatar-circular-reversed-32.png')
@@ -2720,6 +3073,7 @@ const iconMeta_ = {
   },
   'icon-dark-placeholder-avatar-circular-reversed-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-placeholder-avatar-circular-reversed-48.png')
@@ -2727,6 +3081,7 @@ const iconMeta_ = {
   },
   'icon-dark-placeholder-avatar-lighter-192': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-placeholder-avatar-lighter-192.png')
@@ -2734,6 +3089,7 @@ const iconMeta_ = {
   },
   'icon-dark-placeholder-avatar-lighter-256': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-placeholder-avatar-lighter-256.png')
@@ -2741,6 +3097,7 @@ const iconMeta_ = {
   },
   'icon-dark-placeholder-avatar-lighter-960': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-placeholder-avatar-lighter-960.png')
@@ -2748,6 +3105,7 @@ const iconMeta_ = {
   },
   'icon-dark-placeholder-secret-user-16': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-placeholder-secret-user-16.png')
@@ -2755,6 +3113,7 @@ const iconMeta_ = {
   },
   'icon-dark-placeholder-secret-user-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-placeholder-secret-user-32.png')
@@ -2762,6 +3121,7 @@ const iconMeta_ = {
   },
   'icon-dark-placeholder-secret-user-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-placeholder-secret-user-48.png')
@@ -2769,6 +3129,7 @@ const iconMeta_ = {
   },
   'icon-dark-placeholder-secret-user-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-placeholder-secret-user-64.png')
@@ -2776,6 +3137,7 @@ const iconMeta_ = {
   },
   'icon-dark-proof-pending': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-proof-pending.png')
@@ -2783,6 +3145,7 @@ const iconMeta_ = {
   },
   'icon-dark-proof-published': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-proof-published.png')
@@ -2790,6 +3153,7 @@ const iconMeta_ = {
   },
   'icon-dark-proof-success': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-proof-success.png')
@@ -2797,6 +3161,7 @@ const iconMeta_ = {
   },
   'icon-dark-proof-unfinished': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-proof-unfinished.png')
@@ -2804,6 +3169,7 @@ const iconMeta_ = {
   },
   'icon-dark-repo-personal-add-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-repo-personal-add-48.png')
@@ -2811,6 +3177,7 @@ const iconMeta_ = {
   },
   'icon-dark-repo-personal-delete-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-repo-personal-delete-48.png')
@@ -2818,6 +3185,7 @@ const iconMeta_ = {
   },
   'icon-dark-repo-team-add-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-repo-team-add-48.png')
@@ -2825,6 +3193,7 @@ const iconMeta_ = {
   },
   'icon-dark-repo-team-delete-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-repo-team-delete-48.png')
@@ -2832,6 +3201,7 @@ const iconMeta_ = {
   },
   'icon-dark-shh-19-16': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-shh-19-16.png')
@@ -2839,6 +3209,7 @@ const iconMeta_ = {
   },
   'icon-dark-shh-26-21': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-shh-26-21.png')
@@ -2846,6 +3217,7 @@ const iconMeta_ = {
   },
   'icon-dark-shh-active-19-16': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-shh-active-19-16.png')
@@ -2853,6 +3225,7 @@ const iconMeta_ = {
   },
   'icon-dark-shh-hover-19-16': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-shh-hover-19-16.png')
@@ -2860,6 +3233,7 @@ const iconMeta_ = {
   },
   'icon-dark-stellar-coins-stacked-inflation-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-stellar-coins-stacked-inflation-48.png')
@@ -2867,6 +3241,7 @@ const iconMeta_ = {
   },
   'icon-dark-stellar-coins-stacked-inflation-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-stellar-coins-stacked-inflation-64.png')
@@ -2874,6 +3249,7 @@ const iconMeta_ = {
   },
   'icon-dark-team-delete-28': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-team-delete-28.png')
@@ -2881,6 +3257,7 @@ const iconMeta_ = {
   },
   'icon-dark-team-git-16': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-team-git-16.png')
@@ -2888,6 +3265,7 @@ const iconMeta_ = {
   },
   'icon-dark-team-leave-28': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-team-leave-28.png')
@@ -2895,6 +3273,7 @@ const iconMeta_ = {
   },
   'icon-dark-team-placeholder-avatar-112': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-team-placeholder-avatar-112.png')
@@ -2902,6 +3281,7 @@ const iconMeta_ = {
   },
   'icon-dark-team-placeholder-avatar-16': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-team-placeholder-avatar-16.png')
@@ -2909,6 +3289,7 @@ const iconMeta_ = {
   },
   'icon-dark-team-placeholder-avatar-192': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-team-placeholder-avatar-192.png')
@@ -2916,6 +3297,7 @@ const iconMeta_ = {
   },
   'icon-dark-team-placeholder-avatar-256': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-team-placeholder-avatar-256.png')
@@ -2923,6 +3305,7 @@ const iconMeta_ = {
   },
   'icon-dark-team-placeholder-avatar-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-team-placeholder-avatar-32.png')
@@ -2930,6 +3313,7 @@ const iconMeta_ = {
   },
   'icon-dark-team-placeholder-avatar-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-team-placeholder-avatar-48.png')
@@ -2937,6 +3321,7 @@ const iconMeta_ = {
   },
   'icon-dark-team-placeholder-avatar-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-team-placeholder-avatar-64.png')
@@ -2944,6 +3329,7 @@ const iconMeta_ = {
   },
   'icon-dark-team-placeholder-avatar-80': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-team-placeholder-avatar-80.png')
@@ -2951,6 +3337,7 @@ const iconMeta_ = {
   },
   'icon-dark-team-placeholder-avatar-960': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-team-placeholder-avatar-960.png')
@@ -2958,6 +3345,7 @@ const iconMeta_ = {
   },
   'icon-dark-wallet-add-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-wallet-add-48.png')
@@ -2965,6 +3353,7 @@ const iconMeta_ = {
   },
   'icon-dark-wallet-add-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-wallet-add-64.png')
@@ -2972,6 +3361,7 @@ const iconMeta_ = {
   },
   'icon-dark-wallet-placeholder-add-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-wallet-placeholder-add-32.png')
@@ -2979,6 +3369,7 @@ const iconMeta_ = {
   },
   'icon-dark-wallet-remove-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-wallet-remove-48.png')
@@ -2986,6 +3377,7 @@ const iconMeta_ = {
   },
   'icon-dark-wallet-remove-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-wallet-remove-64.png')
@@ -2993,6 +3385,7 @@ const iconMeta_ = {
   },
   'icon-dns-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-dns-48',
     get require() {
@@ -3004,6 +3397,7 @@ const iconMeta_ = {
   },
   'icon-dns-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-dns-64',
     get require() {
@@ -3015,6 +3409,7 @@ const iconMeta_ = {
   },
   'icon-email-add-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-email-add-48.png')
@@ -3022,6 +3417,7 @@ const iconMeta_ = {
   },
   'icon-email-add-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-email-add-64.png')
@@ -3029,6 +3425,7 @@ const iconMeta_ = {
   },
   'icon-email-add-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-email-add-96.png')
@@ -3036,6 +3433,7 @@ const iconMeta_ = {
   },
   'icon-email-remove-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-email-remove-48',
     get require() {
@@ -3047,6 +3445,7 @@ const iconMeta_ = {
   },
   'icon-email-remove-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-email-remove-64',
     get require() {
@@ -3058,6 +3457,7 @@ const iconMeta_ = {
   },
   'icon-email-remove-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-email-remove-96',
     get require() {
@@ -3069,6 +3469,7 @@ const iconMeta_ = {
   },
   'icon-facebook-continue': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-facebook-continue.png')
@@ -3076,6 +3477,7 @@ const iconMeta_ = {
   },
   'icon-facebook-logo-16': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-facebook-logo-16.png')
@@ -3083,6 +3485,7 @@ const iconMeta_ = {
   },
   'icon-facebook-logo-24': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-facebook-logo-24.png')
@@ -3090,6 +3493,7 @@ const iconMeta_ = {
   },
   'icon-facebook-logo-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-facebook-logo-32.png')
@@ -3097,6 +3501,7 @@ const iconMeta_ = {
   },
   'icon-facebook-logo-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-facebook-logo-48.png')
@@ -3104,6 +3509,7 @@ const iconMeta_ = {
   },
   'icon-facebook-logo-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-facebook-logo-64.png')
@@ -3111,6 +3517,7 @@ const iconMeta_ = {
   },
   'icon-fancy-airdrop-faded-120': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-fancy-airdrop-faded-120.png')
@@ -3118,6 +3525,7 @@ const iconMeta_ = {
   },
   'icon-fancy-airdrop-shining-120': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-fancy-airdrop-shining-120.png')
@@ -3125,6 +3533,7 @@ const iconMeta_ = {
   },
   'icon-fancy-airdrop-shining-80': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-fancy-airdrop-shining-80.png')
@@ -3132,6 +3541,7 @@ const iconMeta_ = {
   },
   'icon-fancy-airdrop-star-faded-120': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-fancy-airdrop-star-faded-120.png')
@@ -3139,6 +3549,7 @@ const iconMeta_ = {
   },
   'icon-fancy-airdrop-star-shining-120': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-fancy-airdrop-star-shining-120.png')
@@ -3146,6 +3557,7 @@ const iconMeta_ = {
   },
   'icon-fancy-airdrop-star-shining-80': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-fancy-airdrop-star-shining-80.png')
@@ -3153,6 +3565,7 @@ const iconMeta_ = {
   },
   'icon-fancy-bomb-desktop-150-72': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-fancy-bomb-desktop-150-72',
     get require() {
@@ -3164,6 +3577,7 @@ const iconMeta_ = {
   },
   'icon-fancy-bomb-mobile-226-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-fancy-bomb-mobile-226-96',
     get require() {
@@ -3175,6 +3589,7 @@ const iconMeta_ = {
   },
   'icon-fancy-chat-103-x-75': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-fancy-chat-103-x-75',
     get require() {
@@ -3186,6 +3601,7 @@ const iconMeta_ = {
   },
   'icon-fancy-chat-72-x-52': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-fancy-chat-72-x-52',
     get require() {
@@ -3197,6 +3613,7 @@ const iconMeta_ = {
   },
   'icon-fancy-email-sent-144-x-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-fancy-email-sent-144-x-48',
     get require() {
@@ -3208,6 +3625,7 @@ const iconMeta_ = {
   },
   'icon-fancy-email-sent-192-x-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-fancy-email-sent-192-x-64',
     get require() {
@@ -3219,6 +3637,7 @@ const iconMeta_ = {
   },
   'icon-fancy-encrypted-computer-desktop-150-72': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-fancy-encrypted-computer-desktop-150-72',
     get require() {
@@ -3230,6 +3649,7 @@ const iconMeta_ = {
   },
   'icon-fancy-encrypted-computer-mobile-226-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-fancy-encrypted-computer-mobile-226-96',
     get require() {
@@ -3241,6 +3661,7 @@ const iconMeta_ = {
   },
   'icon-fancy-encrypted-phone-desktop-150-72': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-fancy-encrypted-phone-desktop-150-72.png')
@@ -3248,6 +3669,7 @@ const iconMeta_ = {
   },
   'icon-fancy-encrypted-phone-mobile-226-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-fancy-encrypted-phone-mobile-226-96',
     get require() {
@@ -3259,6 +3681,7 @@ const iconMeta_ = {
   },
   'icon-fancy-finder-132-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-fancy-finder-132-96',
     get require() {
@@ -3270,6 +3693,7 @@ const iconMeta_ = {
   },
   'icon-fancy-finder-enabled-132-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-fancy-finder-enabled-132-96',
     get require() {
@@ -3281,6 +3705,7 @@ const iconMeta_ = {
   },
   'icon-fancy-folder-file-inexistant-desktop-153-94': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-fancy-folder-file-inexistant-desktop-153-94.png')
@@ -3288,6 +3713,7 @@ const iconMeta_ = {
   },
   'icon-fancy-folder-file-inexistant-mobile-188-120': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-fancy-folder-file-inexistant-mobile-188-120.png')
@@ -3295,6 +3721,7 @@ const iconMeta_ = {
   },
   'icon-fancy-hellobot-hi-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-fancy-hellobot-hi-96.png')
@@ -3302,6 +3729,7 @@ const iconMeta_ = {
   },
   'icon-fancy-location-phone-desktop-150-72': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-fancy-location-phone-desktop-150-72.png')
@@ -3309,6 +3737,7 @@ const iconMeta_ = {
   },
   'icon-fancy-location-phone-mobile-226-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-fancy-location-phone-mobile-226-96.png')
@@ -3316,6 +3745,7 @@ const iconMeta_ = {
   },
   'icon-fancy-no-access-desktop-96-94': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-fancy-no-access-desktop-96-94.png')
@@ -3323,6 +3753,7 @@ const iconMeta_ = {
   },
   'icon-fancy-no-access-mobile-128-125': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-fancy-no-access-mobile-128-125.png')
@@ -3330,6 +3761,7 @@ const iconMeta_ = {
   },
   'icon-fancy-revoked-computer-desktop-150-72': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-fancy-revoked-computer-desktop-150-72',
     get require() {
@@ -3341,6 +3773,7 @@ const iconMeta_ = {
   },
   'icon-fancy-revoked-computer-mobile-226-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-fancy-revoked-computer-mobile-226-96',
     get require() {
@@ -3352,6 +3785,7 @@ const iconMeta_ = {
   },
   'icon-fancy-revoked-phone-desktop-150-72': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-fancy-revoked-phone-desktop-150-72.png')
@@ -3359,6 +3793,7 @@ const iconMeta_ = {
   },
   'icon-fancy-revoked-phone-mobile-226-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-fancy-revoked-phone-mobile-226-96',
     get require() {
@@ -3370,6 +3805,7 @@ const iconMeta_ = {
   },
   'icon-fancy-stellar-receiving-desktop-98-86': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-fancy-stellar-receiving-desktop-98-86.png')
@@ -3377,6 +3813,7 @@ const iconMeta_ = {
   },
   'icon-fancy-stellar-receiving-mobile-149-129': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-fancy-stellar-receiving-mobile-149-129.png')
@@ -3384,6 +3821,7 @@ const iconMeta_ = {
   },
   'icon-fancy-stellar-sending-desktop-98-86': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-fancy-stellar-sending-desktop-98-86.png')
@@ -3391,6 +3829,7 @@ const iconMeta_ = {
   },
   'icon-fancy-stellar-sending-mobile-149-129': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-fancy-stellar-sending-mobile-149-129.png')
@@ -3398,6 +3837,7 @@ const iconMeta_ = {
   },
   'icon-fancy-unfurl-preview-desktop-96-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-fancy-unfurl-preview-desktop-96-96',
     get require() {
@@ -3409,6 +3849,7 @@ const iconMeta_ = {
   },
   'icon-fancy-unfurl-preview-mobile-128-128': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-fancy-unfurl-preview-mobile-128-128',
     get require() {
@@ -3420,6 +3861,7 @@ const iconMeta_ = {
   },
   'icon-fancy-user-card-desktop-80-99': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-fancy-user-card-desktop-80-99',
     get require() {
@@ -3431,6 +3873,7 @@ const iconMeta_ = {
   },
   'icon-fancy-user-card-desktop-airdrop-80-99': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-fancy-user-card-desktop-airdrop-80-99',
     get require() {
@@ -3442,6 +3885,7 @@ const iconMeta_ = {
   },
   'icon-fancy-user-card-mobile-120-149': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-fancy-user-card-mobile-120-149',
     get require() {
@@ -3453,6 +3897,7 @@ const iconMeta_ = {
   },
   'icon-fancy-user-card-mobile-airdrop-120-149': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-fancy-user-card-mobile-airdrop-120-149',
     get require() {
@@ -3464,6 +3909,7 @@ const iconMeta_ = {
   },
   'icon-file-16': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-file-16',
     get require() {
@@ -3475,6 +3921,7 @@ const iconMeta_ = {
   },
   'icon-file-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-file-32',
     get require() {
@@ -3486,6 +3933,7 @@ const iconMeta_ = {
   },
   'icon-file-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-file-48',
     get require() {
@@ -3497,6 +3945,7 @@ const iconMeta_ = {
   },
   'icon-file-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-file-64',
     get require() {
@@ -3508,6 +3957,7 @@ const iconMeta_ = {
   },
   'icon-file-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-file-96',
     get require() {
@@ -3519,6 +3969,7 @@ const iconMeta_ = {
   },
   'icon-file-delete-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-file-delete-48',
     get require() {
@@ -3530,6 +3981,7 @@ const iconMeta_ = {
   },
   'icon-file-delete-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-file-delete-64',
     get require() {
@@ -3541,6 +3993,7 @@ const iconMeta_ = {
   },
   'icon-file-placeholder-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-file-placeholder-32',
     get require() {
@@ -3552,6 +4005,7 @@ const iconMeta_ = {
   },
   'icon-file-txt-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-file-txt-48',
     get require() {
@@ -3563,6 +4017,7 @@ const iconMeta_ = {
   },
   'icon-file-txt-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-file-txt-64',
     get require() {
@@ -3574,6 +4029,7 @@ const iconMeta_ = {
   },
   'icon-file-uploading-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-file-uploading-48',
     get require() {
@@ -3585,6 +4041,7 @@ const iconMeta_ = {
   },
   'icon-file-uploading-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-file-uploading-64',
     get require() {
@@ -3596,6 +4053,7 @@ const iconMeta_ = {
   },
   'icon-film-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-film-64.png')
@@ -3603,6 +4061,7 @@ const iconMeta_ = {
   },
   'icon-folder-16': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-16',
     get require() {
@@ -3614,6 +4073,7 @@ const iconMeta_ = {
   },
   'icon-folder-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-32',
     get require() {
@@ -3625,6 +4085,7 @@ const iconMeta_ = {
   },
   'icon-folder-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-48',
     get require() {
@@ -3636,6 +4097,7 @@ const iconMeta_ = {
   },
   'icon-folder-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-64',
     get require() {
@@ -3647,6 +4109,7 @@ const iconMeta_ = {
   },
   'icon-folder-copy-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-copy-32',
     get require() {
@@ -3658,6 +4121,7 @@ const iconMeta_ = {
   },
   'icon-folder-copy-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-copy-48',
     get require() {
@@ -3669,6 +4133,7 @@ const iconMeta_ = {
   },
   'icon-folder-default-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-default-96',
     get require() {
@@ -3680,6 +4145,7 @@ const iconMeta_ = {
   },
   'icon-folder-move-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-move-32',
     get require() {
@@ -3691,6 +4157,7 @@ const iconMeta_ = {
   },
   'icon-folder-move-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-move-48',
     get require() {
@@ -3702,6 +4169,7 @@ const iconMeta_ = {
   },
   'icon-folder-placeholder-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-placeholder-32',
     get require() {
@@ -3713,6 +4181,7 @@ const iconMeta_ = {
   },
   'icon-folder-private-16': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-private-16',
     get require() {
@@ -3724,6 +4193,7 @@ const iconMeta_ = {
   },
   'icon-folder-private-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-private-32',
     get require() {
@@ -3735,6 +4205,7 @@ const iconMeta_ = {
   },
   'icon-folder-private-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-private-48',
     get require() {
@@ -3746,6 +4217,7 @@ const iconMeta_ = {
   },
   'icon-folder-private-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-private-64',
     get require() {
@@ -3757,6 +4229,7 @@ const iconMeta_ = {
   },
   'icon-folder-private-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-private-96',
     get require() {
@@ -3768,6 +4241,7 @@ const iconMeta_ = {
   },
   'icon-folder-public-16': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-public-16',
     get require() {
@@ -3779,6 +4253,7 @@ const iconMeta_ = {
   },
   'icon-folder-public-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-public-32',
     get require() {
@@ -3790,6 +4265,7 @@ const iconMeta_ = {
   },
   'icon-folder-public-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-public-48',
     get require() {
@@ -3801,6 +4277,7 @@ const iconMeta_ = {
   },
   'icon-folder-public-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-public-64',
     get require() {
@@ -3812,6 +4289,7 @@ const iconMeta_ = {
   },
   'icon-folder-public-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-public-96',
     get require() {
@@ -3823,6 +4301,7 @@ const iconMeta_ = {
   },
   'icon-folder-success-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-success-48',
     get require() {
@@ -3834,6 +4313,7 @@ const iconMeta_ = {
   },
   'icon-folder-team-16': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-team-16',
     get require() {
@@ -3845,6 +4325,7 @@ const iconMeta_ = {
   },
   'icon-folder-team-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-team-32',
     get require() {
@@ -3856,6 +4337,7 @@ const iconMeta_ = {
   },
   'icon-folder-team-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-team-48',
     get require() {
@@ -3867,6 +4349,7 @@ const iconMeta_ = {
   },
   'icon-folder-team-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-team-64',
     get require() {
@@ -3878,6 +4361,7 @@ const iconMeta_ = {
   },
   'icon-folder-team-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-folder-team-96',
     get require() {
@@ -3889,6 +4373,7 @@ const iconMeta_ = {
   },
   'icon-follow-me-21': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-follow-me-21',
     get require() {
@@ -3900,6 +4385,7 @@ const iconMeta_ = {
   },
   'icon-follow-me-28': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-follow-me-28',
     get require() {
@@ -3911,6 +4397,7 @@ const iconMeta_ = {
   },
   'icon-follow-me-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-follow-me-32.png')
@@ -3918,6 +4405,7 @@ const iconMeta_ = {
   },
   'icon-following-21': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-following-21',
     get require() {
@@ -3929,6 +4417,7 @@ const iconMeta_ = {
   },
   'icon-following-28': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-following-28',
     get require() {
@@ -3940,6 +4429,7 @@ const iconMeta_ = {
   },
   'icon-following-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-following-32.png')
@@ -3947,6 +4437,7 @@ const iconMeta_ = {
   },
   'icon-github-logo-16': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-github-logo-16.png')
@@ -3954,6 +4445,7 @@ const iconMeta_ = {
   },
   'icon-github-logo-24': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-github-logo-24.png')
@@ -3961,6 +4453,7 @@ const iconMeta_ = {
   },
   'icon-github-logo-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-github-logo-32.png')
@@ -3968,6 +4461,7 @@ const iconMeta_ = {
   },
   'icon-github-logo-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-github-logo-48.png')
@@ -3975,6 +4469,7 @@ const iconMeta_ = {
   },
   'icon-github-logo-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-github-logo-64.png')
@@ -3982,6 +4477,7 @@ const iconMeta_ = {
   },
   'icon-hacker-news-logo-16': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-hacker-news-logo-16.png')
@@ -3989,6 +4485,7 @@ const iconMeta_ = {
   },
   'icon-hacker-news-logo-24': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-hacker-news-logo-24.png')
@@ -3996,6 +4493,7 @@ const iconMeta_ = {
   },
   'icon-hacker-news-logo-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-hacker-news-logo-32.png')
@@ -4003,6 +4501,7 @@ const iconMeta_ = {
   },
   'icon-hacker-news-logo-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-hacker-news-logo-48.png')
@@ -4010,13 +4509,23 @@ const iconMeta_ = {
   },
   'icon-hacker-news-logo-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-hacker-news-logo-64.png')
     },
   },
+  'icon-illustration-attention-64': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-illustration-attention-64.png')
+    },
+  },
   'icon-illustration-encrypted-116-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-illustration-encrypted-116-96.png')
@@ -4024,13 +4533,39 @@ const iconMeta_ = {
   },
   'icon-illustration-exploding-messages-240': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-illustration-exploding-messages-240.png')
     },
   },
+  'icon-illustration-friends-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-illustration-friends-96.png')
+    },
+  },
+  'icon-illustration-happy-chat-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-illustration-happy-chat-96.png')
+    },
+  },
+  'icon-illustration-long-time-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-illustration-long-time-96.png')
+    },
+  },
   'icon-illustration-mars-rover': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-illustration-mars-rover.png')
@@ -4038,6 +4573,7 @@ const iconMeta_ = {
   },
   'icon-illustration-mars-rover-background': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-illustration-mars-rover-background.png')
@@ -4045,13 +4581,23 @@ const iconMeta_ = {
   },
   'icon-illustration-mars-rover-foreground': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-illustration-mars-rover-foreground.png')
     },
   },
+  'icon-illustration-sleepy-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-illustration-sleepy-96.png')
+    },
+  },
   'icon-illustration-stellar-payments-200-188': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-illustration-stellar-payments-200-188.png')
@@ -4059,6 +4605,7 @@ const iconMeta_ = {
   },
   'icon-illustration-subteams-380': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-illustration-subteams-380.png')
@@ -4066,6 +4613,7 @@ const iconMeta_ = {
   },
   'icon-illustration-teams-180': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-illustration-teams-180.png')
@@ -4073,13 +4621,23 @@ const iconMeta_ = {
   },
   'icon-illustration-teams-216': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-illustration-teams-216.png')
     },
   },
+  'icon-illustration-welcome-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-illustration-welcome-96.png')
+    },
+  },
   'icon-illustration-zen-240-180': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-illustration-zen-240-180.png')
@@ -4087,6 +4645,7 @@ const iconMeta_ = {
   },
   'icon-invite-link-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-invite-link-48.png')
@@ -4094,6 +4653,7 @@ const iconMeta_ = {
   },
   'icon-keybase-logo-128': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-keybase-logo-128.png')
@@ -4101,6 +4661,7 @@ const iconMeta_ = {
   },
   'icon-keybase-logo-16': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-keybase-logo-16.png')
@@ -4108,6 +4669,7 @@ const iconMeta_ = {
   },
   'icon-keybase-logo-24': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-keybase-logo-24.png')
@@ -4115,6 +4677,7 @@ const iconMeta_ = {
   },
   'icon-keybase-logo-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-keybase-logo-32.png')
@@ -4122,6 +4685,7 @@ const iconMeta_ = {
   },
   'icon-keybase-logo-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-keybase-logo-64.png')
@@ -4129,6 +4693,7 @@ const iconMeta_ = {
   },
   'icon-keybase-logo-80': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-keybase-logo-80.png')
@@ -4136,6 +4701,7 @@ const iconMeta_ = {
   },
   'icon-keybase-logo-logged-out-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-keybase-logo-logged-out-64.png')
@@ -4143,6 +4709,7 @@ const iconMeta_ = {
   },
   'icon-keybase-logo-logged-out-80': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-keybase-logo-logged-out-80.png')
@@ -4150,6 +4717,7 @@ const iconMeta_ = {
   },
   'icon-keybase-wordmark-128-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-keybase-wordmark-128-48.png')
@@ -4157,6 +4725,7 @@ const iconMeta_ = {
   },
   'icon-message-deletion-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-message-deletion-32',
     get require() {
@@ -4168,6 +4737,7 @@ const iconMeta_ = {
   },
   'icon-message-deletion-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-message-deletion-48',
     get require() {
@@ -4179,6 +4749,7 @@ const iconMeta_ = {
   },
   'icon-message-deletion-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-message-deletion-64',
     get require() {
@@ -4190,6 +4761,7 @@ const iconMeta_ = {
   },
   'icon-message-exploding-260': {
     extension: 'gif',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-message-exploding-260.gif')
@@ -4197,6 +4769,7 @@ const iconMeta_ = {
   },
   'icon-message-retention-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-message-retention-32',
     get require() {
@@ -4208,6 +4781,7 @@ const iconMeta_ = {
   },
   'icon-message-retention-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-message-retention-48',
     get require() {
@@ -4219,6 +4793,7 @@ const iconMeta_ = {
   },
   'icon-message-retention-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-message-retention-64',
     get require() {
@@ -4230,6 +4805,7 @@ const iconMeta_ = {
   },
   'icon-mutual-follow-21': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-mutual-follow-21',
     get require() {
@@ -4241,6 +4817,7 @@ const iconMeta_ = {
   },
   'icon-mutual-follow-28': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-mutual-follow-28',
     get require() {
@@ -4252,6 +4829,7 @@ const iconMeta_ = {
   },
   'icon-mutual-follow-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-mutual-follow-32.png')
@@ -4259,6 +4837,7 @@ const iconMeta_ = {
   },
   'icon-nav-chat-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-nav-chat-32.png')
@@ -4266,6 +4845,7 @@ const iconMeta_ = {
   },
   'icon-nav-chat-40': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-nav-chat-40.png')
@@ -4273,6 +4853,7 @@ const iconMeta_ = {
   },
   'icon-nav-chat-selected-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-nav-chat-selected-32.png')
@@ -4280,6 +4861,7 @@ const iconMeta_ = {
   },
   'icon-nav-chat-selected-40': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-nav-chat-selected-40.png')
@@ -4287,6 +4869,7 @@ const iconMeta_ = {
   },
   'icon-nav-devices-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-nav-devices-32.png')
@@ -4294,6 +4877,7 @@ const iconMeta_ = {
   },
   'icon-nav-devices-selected-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-nav-devices-selected-32.png')
@@ -4301,6 +4885,7 @@ const iconMeta_ = {
   },
   'icon-nav-folders-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-nav-folders-32.png')
@@ -4308,6 +4893,7 @@ const iconMeta_ = {
   },
   'icon-nav-folders-40': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-nav-folders-40.png')
@@ -4315,6 +4901,7 @@ const iconMeta_ = {
   },
   'icon-nav-folders-selected-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-nav-folders-selected-32.png')
@@ -4322,6 +4909,7 @@ const iconMeta_ = {
   },
   'icon-nav-folders-selected-40': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-nav-folders-selected-40.png')
@@ -4329,6 +4917,7 @@ const iconMeta_ = {
   },
   'icon-nav-people-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-nav-people-32.png')
@@ -4336,6 +4925,7 @@ const iconMeta_ = {
   },
   'icon-nav-people-40': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-nav-people-40.png')
@@ -4343,6 +4933,7 @@ const iconMeta_ = {
   },
   'icon-nav-people-selected-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-nav-people-selected-32.png')
@@ -4350,6 +4941,7 @@ const iconMeta_ = {
   },
   'icon-nav-people-selected-40': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-nav-people-selected-40.png')
@@ -4357,6 +4949,7 @@ const iconMeta_ = {
   },
   'icon-nav-settings-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-nav-settings-32.png')
@@ -4364,6 +4957,7 @@ const iconMeta_ = {
   },
   'icon-nav-settings-40': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-nav-settings-40.png')
@@ -4371,6 +4965,7 @@ const iconMeta_ = {
   },
   'icon-nav-settings-selected-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-nav-settings-selected-32.png')
@@ -4378,6 +4973,7 @@ const iconMeta_ = {
   },
   'icon-nav-settings-selected-40': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-nav-settings-selected-40.png')
@@ -4385,6 +4981,7 @@ const iconMeta_ = {
   },
   'icon-onboarding-chat-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-chat-32',
     get require() {
@@ -4396,6 +4993,7 @@ const iconMeta_ = {
   },
   'icon-onboarding-chat-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-chat-48',
     get require() {
@@ -4407,6 +5005,7 @@ const iconMeta_ = {
   },
   'icon-onboarding-computer-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-computer-48',
     get require() {
@@ -4418,6 +5017,7 @@ const iconMeta_ = {
   },
   'icon-onboarding-email-add-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-email-add-32',
     get require() {
@@ -4429,6 +5029,7 @@ const iconMeta_ = {
   },
   'icon-onboarding-email-add-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-email-add-48',
     get require() {
@@ -4440,6 +5041,7 @@ const iconMeta_ = {
   },
   'icon-onboarding-email-searchable-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-email-searchable-48',
     get require() {
@@ -4451,6 +5053,7 @@ const iconMeta_ = {
   },
   'icon-onboarding-email-verify-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-email-verify-32',
     get require() {
@@ -4462,6 +5065,7 @@ const iconMeta_ = {
   },
   'icon-onboarding-email-verify-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-email-verify-48',
     get require() {
@@ -4473,6 +5077,7 @@ const iconMeta_ = {
   },
   'icon-onboarding-folder-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-folder-32',
     get require() {
@@ -4484,6 +5089,7 @@ const iconMeta_ = {
   },
   'icon-onboarding-folder-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-folder-48',
     get require() {
@@ -4495,6 +5101,7 @@ const iconMeta_ = {
   },
   'icon-onboarding-follow-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-follow-32',
     get require() {
@@ -4506,6 +5113,7 @@ const iconMeta_ = {
   },
   'icon-onboarding-follow-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-follow-48',
     get require() {
@@ -4517,6 +5125,7 @@ const iconMeta_ = {
   },
   'icon-onboarding-git-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-git-32',
     get require() {
@@ -4528,6 +5137,7 @@ const iconMeta_ = {
   },
   'icon-onboarding-git-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-git-48',
     get require() {
@@ -4539,6 +5149,7 @@ const iconMeta_ = {
   },
   'icon-onboarding-number-new-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-number-new-32',
     get require() {
@@ -4550,6 +5161,7 @@ const iconMeta_ = {
   },
   'icon-onboarding-number-new-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-number-new-48',
     get require() {
@@ -4561,6 +5173,7 @@ const iconMeta_ = {
   },
   'icon-onboarding-number-verify-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-number-verify-32',
     get require() {
@@ -4572,6 +5185,7 @@ const iconMeta_ = {
   },
   'icon-onboarding-number-verify-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-number-verify-48',
     get require() {
@@ -4583,6 +5197,7 @@ const iconMeta_ = {
   },
   'icon-onboarding-paper-key-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-paper-key-32',
     get require() {
@@ -4594,6 +5209,7 @@ const iconMeta_ = {
   },
   'icon-onboarding-paper-key-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-paper-key-48',
     get require() {
@@ -4605,6 +5221,7 @@ const iconMeta_ = {
   },
   'icon-onboarding-phone-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-phone-32',
     get require() {
@@ -4616,6 +5233,7 @@ const iconMeta_ = {
   },
   'icon-onboarding-phone-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-onboarding-phone-48.png')
@@ -4623,6 +5241,7 @@ const iconMeta_ = {
   },
   'icon-onboarding-proofs-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-proofs-32',
     get require() {
@@ -4634,6 +5253,7 @@ const iconMeta_ = {
   },
   'icon-onboarding-proofs-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-proofs-48',
     get require() {
@@ -4645,6 +5265,7 @@ const iconMeta_ = {
   },
   'icon-onboarding-team-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-team-32',
     get require() {
@@ -4656,6 +5277,7 @@ const iconMeta_ = {
   },
   'icon-onboarding-team-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-team-48',
     get require() {
@@ -4667,6 +5289,7 @@ const iconMeta_ = {
   },
   'icon-onboarding-team-avatar-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-team-avatar-32',
     get require() {
@@ -4678,6 +5301,7 @@ const iconMeta_ = {
   },
   'icon-onboarding-team-avatar-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-team-avatar-48',
     get require() {
@@ -4689,6 +5313,7 @@ const iconMeta_ = {
   },
   'icon-onboarding-team-publicity-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-team-publicity-32',
     get require() {
@@ -4700,6 +5325,7 @@ const iconMeta_ = {
   },
   'icon-onboarding-team-publicity-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-team-publicity-48',
     get require() {
@@ -4711,6 +5337,7 @@ const iconMeta_ = {
   },
   'icon-onboarding-user-avatar-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-user-avatar-32',
     get require() {
@@ -4722,6 +5349,7 @@ const iconMeta_ = {
   },
   'icon-onboarding-user-avatar-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-user-avatar-48',
     get require() {
@@ -4733,6 +5361,7 @@ const iconMeta_ = {
   },
   'icon-onboarding-user-info-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-user-info-32',
     get require() {
@@ -4744,6 +5373,7 @@ const iconMeta_ = {
   },
   'icon-onboarding-user-info-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-onboarding-user-info-48',
     get require() {
@@ -4755,6 +5385,7 @@ const iconMeta_ = {
   },
   'icon-paper-key-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-paper-key-32',
     get require() {
@@ -4766,6 +5397,7 @@ const iconMeta_ = {
   },
   'icon-paper-key-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-paper-key-48',
     get require() {
@@ -4777,6 +5409,7 @@ const iconMeta_ = {
   },
   'icon-paper-key-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-paper-key-64',
     get require() {
@@ -4788,6 +5421,7 @@ const iconMeta_ = {
   },
   'icon-paper-key-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-paper-key-96',
     get require() {
@@ -4799,6 +5433,7 @@ const iconMeta_ = {
   },
   'icon-paper-key-revoke-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-paper-key-revoke-48',
     get require() {
@@ -4810,6 +5445,7 @@ const iconMeta_ = {
   },
   'icon-paper-key-revoke-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-paper-key-revoke-64',
     get require() {
@@ -4821,6 +5457,7 @@ const iconMeta_ = {
   },
   'icon-pgp-key-16': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-pgp-key-16.png')
@@ -4828,6 +5465,7 @@ const iconMeta_ = {
   },
   'icon-pgp-key-24': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-pgp-key-24.png')
@@ -4835,6 +5473,7 @@ const iconMeta_ = {
   },
   'icon-pgp-key-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-pgp-key-32.png')
@@ -4842,6 +5481,7 @@ const iconMeta_ = {
   },
   'icon-pgp-key-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-pgp-key-48.png')
@@ -4849,6 +5489,7 @@ const iconMeta_ = {
   },
   'icon-pgp-key-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-pgp-key-64.png')
@@ -4856,6 +5497,7 @@ const iconMeta_ = {
   },
   'icon-pgp-key-import-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-pgp-key-import-48.png')
@@ -4863,6 +5505,7 @@ const iconMeta_ = {
   },
   'icon-pgp-key-import-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-pgp-key-import-64.png')
@@ -4870,6 +5513,7 @@ const iconMeta_ = {
   },
   'icon-pgp-key-new-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-pgp-key-new-48.png')
@@ -4877,6 +5521,7 @@ const iconMeta_ = {
   },
   'icon-pgp-key-new-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-pgp-key-new-64.png')
@@ -4884,6 +5529,7 @@ const iconMeta_ = {
   },
   'icon-phone-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-32.png')
@@ -4891,6 +5537,7 @@ const iconMeta_ = {
   },
   'icon-phone-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-48.png')
@@ -4898,6 +5545,7 @@ const iconMeta_ = {
   },
   'icon-phone-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-64.png')
@@ -4905,6 +5553,7 @@ const iconMeta_ = {
   },
   'icon-phone-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-96.png')
@@ -4912,6 +5561,7 @@ const iconMeta_ = {
   },
   'icon-phone-background-1-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-background-1-32.png')
@@ -4919,6 +5569,7 @@ const iconMeta_ = {
   },
   'icon-phone-background-1-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-background-1-48.png')
@@ -4926,6 +5577,7 @@ const iconMeta_ = {
   },
   'icon-phone-background-1-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-background-1-64.png')
@@ -4933,6 +5585,7 @@ const iconMeta_ = {
   },
   'icon-phone-background-1-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-background-1-96.png')
@@ -4940,6 +5593,7 @@ const iconMeta_ = {
   },
   'icon-phone-background-10-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-background-10-32.png')
@@ -4947,6 +5601,7 @@ const iconMeta_ = {
   },
   'icon-phone-background-10-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-background-10-48.png')
@@ -4954,6 +5609,7 @@ const iconMeta_ = {
   },
   'icon-phone-background-10-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-background-10-64.png')
@@ -4961,6 +5617,7 @@ const iconMeta_ = {
   },
   'icon-phone-background-10-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-background-10-96.png')
@@ -4968,6 +5625,7 @@ const iconMeta_ = {
   },
   'icon-phone-background-2-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-background-2-32.png')
@@ -4975,6 +5633,7 @@ const iconMeta_ = {
   },
   'icon-phone-background-2-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-background-2-48.png')
@@ -4982,6 +5641,7 @@ const iconMeta_ = {
   },
   'icon-phone-background-2-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-background-2-64.png')
@@ -4989,6 +5649,7 @@ const iconMeta_ = {
   },
   'icon-phone-background-2-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-background-2-96.png')
@@ -4996,6 +5657,7 @@ const iconMeta_ = {
   },
   'icon-phone-background-3-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-background-3-32.png')
@@ -5003,6 +5665,7 @@ const iconMeta_ = {
   },
   'icon-phone-background-3-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-background-3-48.png')
@@ -5010,6 +5673,7 @@ const iconMeta_ = {
   },
   'icon-phone-background-3-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-background-3-64.png')
@@ -5017,6 +5681,7 @@ const iconMeta_ = {
   },
   'icon-phone-background-3-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-background-3-96.png')
@@ -5024,6 +5689,7 @@ const iconMeta_ = {
   },
   'icon-phone-background-4-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-background-4-32.png')
@@ -5031,6 +5697,7 @@ const iconMeta_ = {
   },
   'icon-phone-background-4-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-background-4-48.png')
@@ -5038,6 +5705,7 @@ const iconMeta_ = {
   },
   'icon-phone-background-4-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-background-4-64.png')
@@ -5045,6 +5713,7 @@ const iconMeta_ = {
   },
   'icon-phone-background-4-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-background-4-96.png')
@@ -5052,6 +5721,7 @@ const iconMeta_ = {
   },
   'icon-phone-background-5-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-background-5-32.png')
@@ -5059,6 +5729,7 @@ const iconMeta_ = {
   },
   'icon-phone-background-5-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-background-5-48.png')
@@ -5066,6 +5737,7 @@ const iconMeta_ = {
   },
   'icon-phone-background-5-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-background-5-64.png')
@@ -5073,6 +5745,7 @@ const iconMeta_ = {
   },
   'icon-phone-background-5-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-background-5-96.png')
@@ -5080,6 +5753,7 @@ const iconMeta_ = {
   },
   'icon-phone-background-6-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-background-6-32.png')
@@ -5087,6 +5761,7 @@ const iconMeta_ = {
   },
   'icon-phone-background-6-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-background-6-48.png')
@@ -5094,6 +5769,7 @@ const iconMeta_ = {
   },
   'icon-phone-background-6-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-background-6-64.png')
@@ -5101,6 +5777,7 @@ const iconMeta_ = {
   },
   'icon-phone-background-6-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-background-6-96.png')
@@ -5108,6 +5785,7 @@ const iconMeta_ = {
   },
   'icon-phone-background-7-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-background-7-32.png')
@@ -5115,6 +5793,7 @@ const iconMeta_ = {
   },
   'icon-phone-background-7-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-background-7-48.png')
@@ -5122,6 +5801,7 @@ const iconMeta_ = {
   },
   'icon-phone-background-7-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-background-7-64.png')
@@ -5129,6 +5809,7 @@ const iconMeta_ = {
   },
   'icon-phone-background-7-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-background-7-96.png')
@@ -5136,6 +5817,7 @@ const iconMeta_ = {
   },
   'icon-phone-background-8-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-background-8-32.png')
@@ -5143,6 +5825,7 @@ const iconMeta_ = {
   },
   'icon-phone-background-8-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-background-8-48.png')
@@ -5150,6 +5833,7 @@ const iconMeta_ = {
   },
   'icon-phone-background-8-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-background-8-64.png')
@@ -5157,6 +5841,7 @@ const iconMeta_ = {
   },
   'icon-phone-background-8-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-background-8-96.png')
@@ -5164,6 +5849,7 @@ const iconMeta_ = {
   },
   'icon-phone-background-9-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-background-9-32.png')
@@ -5171,6 +5857,7 @@ const iconMeta_ = {
   },
   'icon-phone-background-9-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-background-9-48.png')
@@ -5178,6 +5865,7 @@ const iconMeta_ = {
   },
   'icon-phone-background-9-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-background-9-64.png')
@@ -5185,6 +5873,7 @@ const iconMeta_ = {
   },
   'icon-phone-background-9-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-background-9-96.png')
@@ -5192,6 +5881,7 @@ const iconMeta_ = {
   },
   'icon-phone-number-add-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-number-add-48.png')
@@ -5199,6 +5889,7 @@ const iconMeta_ = {
   },
   'icon-phone-number-add-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-number-add-64.png')
@@ -5206,6 +5897,7 @@ const iconMeta_ = {
   },
   'icon-phone-number-add-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-number-add-96.png')
@@ -5213,6 +5905,7 @@ const iconMeta_ = {
   },
   'icon-phone-number-remove-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-number-remove-48',
     get require() {
@@ -5224,6 +5917,7 @@ const iconMeta_ = {
   },
   'icon-phone-number-remove-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-number-remove-64',
     get require() {
@@ -5235,6 +5929,7 @@ const iconMeta_ = {
   },
   'icon-phone-number-remove-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-number-remove-96',
     get require() {
@@ -5246,6 +5941,7 @@ const iconMeta_ = {
   },
   'icon-phone-revoke-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-revoke-48.png')
@@ -5253,6 +5949,7 @@ const iconMeta_ = {
   },
   'icon-phone-revoke-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-phone-revoke-64.png')
@@ -5260,6 +5957,7 @@ const iconMeta_ = {
   },
   'icon-phone-revoke-background-1-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-1-32',
     get require() {
@@ -5271,6 +5969,7 @@ const iconMeta_ = {
   },
   'icon-phone-revoke-background-1-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-1-48',
     get require() {
@@ -5282,6 +5981,7 @@ const iconMeta_ = {
   },
   'icon-phone-revoke-background-1-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-1-64',
     get require() {
@@ -5293,6 +5993,7 @@ const iconMeta_ = {
   },
   'icon-phone-revoke-background-10-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-10-32',
     get require() {
@@ -5304,6 +6005,7 @@ const iconMeta_ = {
   },
   'icon-phone-revoke-background-10-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-10-48',
     get require() {
@@ -5315,6 +6017,7 @@ const iconMeta_ = {
   },
   'icon-phone-revoke-background-10-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-10-64',
     get require() {
@@ -5326,6 +6029,7 @@ const iconMeta_ = {
   },
   'icon-phone-revoke-background-2-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-2-32',
     get require() {
@@ -5337,6 +6041,7 @@ const iconMeta_ = {
   },
   'icon-phone-revoke-background-2-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-2-48',
     get require() {
@@ -5348,6 +6053,7 @@ const iconMeta_ = {
   },
   'icon-phone-revoke-background-2-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-2-64',
     get require() {
@@ -5359,6 +6065,7 @@ const iconMeta_ = {
   },
   'icon-phone-revoke-background-3-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-3-32',
     get require() {
@@ -5370,6 +6077,7 @@ const iconMeta_ = {
   },
   'icon-phone-revoke-background-3-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-3-48',
     get require() {
@@ -5381,6 +6089,7 @@ const iconMeta_ = {
   },
   'icon-phone-revoke-background-3-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-3-64',
     get require() {
@@ -5392,6 +6101,7 @@ const iconMeta_ = {
   },
   'icon-phone-revoke-background-4-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-4-32',
     get require() {
@@ -5403,6 +6113,7 @@ const iconMeta_ = {
   },
   'icon-phone-revoke-background-4-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-4-48',
     get require() {
@@ -5414,6 +6125,7 @@ const iconMeta_ = {
   },
   'icon-phone-revoke-background-4-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-4-64',
     get require() {
@@ -5425,6 +6137,7 @@ const iconMeta_ = {
   },
   'icon-phone-revoke-background-5-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-5-32',
     get require() {
@@ -5436,6 +6149,7 @@ const iconMeta_ = {
   },
   'icon-phone-revoke-background-5-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-5-48',
     get require() {
@@ -5447,6 +6161,7 @@ const iconMeta_ = {
   },
   'icon-phone-revoke-background-5-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-5-64',
     get require() {
@@ -5458,6 +6173,7 @@ const iconMeta_ = {
   },
   'icon-phone-revoke-background-6-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-6-32',
     get require() {
@@ -5469,6 +6185,7 @@ const iconMeta_ = {
   },
   'icon-phone-revoke-background-6-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-6-48',
     get require() {
@@ -5480,6 +6197,7 @@ const iconMeta_ = {
   },
   'icon-phone-revoke-background-6-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-6-64',
     get require() {
@@ -5491,6 +6209,7 @@ const iconMeta_ = {
   },
   'icon-phone-revoke-background-7-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-7-32',
     get require() {
@@ -5502,6 +6221,7 @@ const iconMeta_ = {
   },
   'icon-phone-revoke-background-7-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-7-48',
     get require() {
@@ -5513,6 +6233,7 @@ const iconMeta_ = {
   },
   'icon-phone-revoke-background-7-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-7-64',
     get require() {
@@ -5524,6 +6245,7 @@ const iconMeta_ = {
   },
   'icon-phone-revoke-background-8-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-8-32',
     get require() {
@@ -5535,6 +6257,7 @@ const iconMeta_ = {
   },
   'icon-phone-revoke-background-8-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-8-48',
     get require() {
@@ -5546,6 +6269,7 @@ const iconMeta_ = {
   },
   'icon-phone-revoke-background-8-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-8-64',
     get require() {
@@ -5557,6 +6281,7 @@ const iconMeta_ = {
   },
   'icon-phone-revoke-background-9-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-9-32',
     get require() {
@@ -5568,6 +6293,7 @@ const iconMeta_ = {
   },
   'icon-phone-revoke-background-9-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-9-48',
     get require() {
@@ -5579,6 +6305,7 @@ const iconMeta_ = {
   },
   'icon-phone-revoke-background-9-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-revoke-background-9-64',
     get require() {
@@ -5590,6 +6317,7 @@ const iconMeta_ = {
   },
   'icon-phone-success-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-success-32',
     get require() {
@@ -5601,6 +6329,7 @@ const iconMeta_ = {
   },
   'icon-phone-success-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-success-48',
     get require() {
@@ -5612,6 +6341,7 @@ const iconMeta_ = {
   },
   'icon-phone-success-background-1-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-1-32',
     get require() {
@@ -5623,6 +6353,7 @@ const iconMeta_ = {
   },
   'icon-phone-success-background-1-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-1-48',
     get require() {
@@ -5634,6 +6365,7 @@ const iconMeta_ = {
   },
   'icon-phone-success-background-10-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-10-32',
     get require() {
@@ -5645,6 +6377,7 @@ const iconMeta_ = {
   },
   'icon-phone-success-background-10-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-10-48',
     get require() {
@@ -5656,6 +6389,7 @@ const iconMeta_ = {
   },
   'icon-phone-success-background-2-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-2-32',
     get require() {
@@ -5667,6 +6401,7 @@ const iconMeta_ = {
   },
   'icon-phone-success-background-2-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-2-48',
     get require() {
@@ -5678,6 +6413,7 @@ const iconMeta_ = {
   },
   'icon-phone-success-background-3-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-3-32',
     get require() {
@@ -5689,6 +6425,7 @@ const iconMeta_ = {
   },
   'icon-phone-success-background-3-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-3-48',
     get require() {
@@ -5700,6 +6437,7 @@ const iconMeta_ = {
   },
   'icon-phone-success-background-4-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-4-32',
     get require() {
@@ -5711,6 +6449,7 @@ const iconMeta_ = {
   },
   'icon-phone-success-background-4-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-4-48',
     get require() {
@@ -5722,6 +6461,7 @@ const iconMeta_ = {
   },
   'icon-phone-success-background-5-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-5-32',
     get require() {
@@ -5733,6 +6473,7 @@ const iconMeta_ = {
   },
   'icon-phone-success-background-5-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-5-48',
     get require() {
@@ -5744,6 +6485,7 @@ const iconMeta_ = {
   },
   'icon-phone-success-background-6-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-6-32',
     get require() {
@@ -5755,6 +6497,7 @@ const iconMeta_ = {
   },
   'icon-phone-success-background-6-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-6-48',
     get require() {
@@ -5766,6 +6509,7 @@ const iconMeta_ = {
   },
   'icon-phone-success-background-7-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-7-32',
     get require() {
@@ -5777,6 +6521,7 @@ const iconMeta_ = {
   },
   'icon-phone-success-background-7-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-7-48',
     get require() {
@@ -5788,6 +6533,7 @@ const iconMeta_ = {
   },
   'icon-phone-success-background-8-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-8-32',
     get require() {
@@ -5799,6 +6545,7 @@ const iconMeta_ = {
   },
   'icon-phone-success-background-8-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-8-48',
     get require() {
@@ -5810,6 +6557,7 @@ const iconMeta_ = {
   },
   'icon-phone-success-background-9-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-9-32',
     get require() {
@@ -5821,6 +6569,7 @@ const iconMeta_ = {
   },
   'icon-phone-success-background-9-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-phone-success-background-9-48',
     get require() {
@@ -5832,6 +6581,7 @@ const iconMeta_ = {
   },
   'icon-placeholder-avatar-192': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-placeholder-avatar-192',
     get require() {
@@ -5843,6 +6593,7 @@ const iconMeta_ = {
   },
   'icon-placeholder-avatar-256': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-placeholder-avatar-256',
     get require() {
@@ -5854,6 +6605,7 @@ const iconMeta_ = {
   },
   'icon-placeholder-avatar-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-placeholder-avatar-32',
     get require() {
@@ -5865,6 +6617,7 @@ const iconMeta_ = {
   },
   'icon-placeholder-avatar-960': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-placeholder-avatar-960',
     get require() {
@@ -5876,6 +6629,7 @@ const iconMeta_ = {
   },
   'icon-placeholder-avatar-circular-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-placeholder-avatar-circular-32',
     get require() {
@@ -5887,6 +6641,7 @@ const iconMeta_ = {
   },
   'icon-placeholder-avatar-circular-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-placeholder-avatar-circular-48',
     get require() {
@@ -5898,6 +6653,7 @@ const iconMeta_ = {
   },
   'icon-placeholder-avatar-circular-reversed-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-placeholder-avatar-circular-reversed-32',
     get require() {
@@ -5909,6 +6665,7 @@ const iconMeta_ = {
   },
   'icon-placeholder-avatar-circular-reversed-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-placeholder-avatar-circular-reversed-48',
     get require() {
@@ -5920,6 +6677,7 @@ const iconMeta_ = {
   },
   'icon-placeholder-avatar-lighter-192': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-placeholder-avatar-lighter-192',
     get require() {
@@ -5931,6 +6689,7 @@ const iconMeta_ = {
   },
   'icon-placeholder-avatar-lighter-256': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-placeholder-avatar-lighter-256',
     get require() {
@@ -5942,6 +6701,7 @@ const iconMeta_ = {
   },
   'icon-placeholder-avatar-lighter-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-placeholder-avatar-lighter-32.png')
@@ -5949,6 +6709,7 @@ const iconMeta_ = {
   },
   'icon-placeholder-avatar-lighter-960': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-placeholder-avatar-lighter-960',
     get require() {
@@ -5960,6 +6721,7 @@ const iconMeta_ = {
   },
   'icon-placeholder-secret-user-16': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-placeholder-secret-user-16',
     get require() {
@@ -5971,6 +6733,7 @@ const iconMeta_ = {
   },
   'icon-placeholder-secret-user-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-placeholder-secret-user-32',
     get require() {
@@ -5982,6 +6745,7 @@ const iconMeta_ = {
   },
   'icon-placeholder-secret-user-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-placeholder-secret-user-48',
     get require() {
@@ -5993,6 +6757,7 @@ const iconMeta_ = {
   },
   'icon-placeholder-secret-user-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-placeholder-secret-user-64',
     get require() {
@@ -6004,6 +6769,7 @@ const iconMeta_ = {
   },
   'icon-play-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-play-64.png')
@@ -6011,6 +6777,7 @@ const iconMeta_ = {
   },
   'icon-powered-by-giphy-120-26': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-powered-by-giphy-120-26.png')
@@ -6018,6 +6785,7 @@ const iconMeta_ = {
   },
   'icon-proof-broken': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-proof-broken.png')
@@ -6025,6 +6793,7 @@ const iconMeta_ = {
   },
   'icon-proof-pending': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-proof-pending',
     get require() {
@@ -6036,6 +6805,7 @@ const iconMeta_ = {
   },
   'icon-proof-published': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-proof-published',
     get require() {
@@ -6047,6 +6817,7 @@ const iconMeta_ = {
   },
   'icon-proof-success': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-proof-success',
     get require() {
@@ -6058,6 +6829,7 @@ const iconMeta_ = {
   },
   'icon-proof-unfinished': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-proof-unfinished',
     get require() {
@@ -6069,6 +6841,7 @@ const iconMeta_ = {
   },
   'icon-reddit-logo-16': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-reddit-logo-16.png')
@@ -6076,6 +6849,7 @@ const iconMeta_ = {
   },
   'icon-reddit-logo-24': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-reddit-logo-24.png')
@@ -6083,6 +6857,7 @@ const iconMeta_ = {
   },
   'icon-reddit-logo-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-reddit-logo-32.png')
@@ -6090,6 +6865,7 @@ const iconMeta_ = {
   },
   'icon-reddit-logo-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-reddit-logo-48.png')
@@ -6097,6 +6873,7 @@ const iconMeta_ = {
   },
   'icon-reddit-logo-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-reddit-logo-64.png')
@@ -6104,6 +6881,7 @@ const iconMeta_ = {
   },
   'icon-repo-personal-add-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-repo-personal-add-48',
     get require() {
@@ -6115,6 +6893,7 @@ const iconMeta_ = {
   },
   'icon-repo-personal-delete-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-repo-personal-delete-48',
     get require() {
@@ -6126,6 +6905,7 @@ const iconMeta_ = {
   },
   'icon-repo-team-add-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-repo-team-add-48',
     get require() {
@@ -6137,6 +6917,7 @@ const iconMeta_ = {
   },
   'icon-repo-team-delete-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-repo-team-delete-48',
     get require() {
@@ -6148,6 +6929,7 @@ const iconMeta_ = {
   },
   'icon-search-facebook-active-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-search-facebook-active-32.png')
@@ -6155,6 +6937,7 @@ const iconMeta_ = {
   },
   'icon-search-facebook-active-40': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-search-facebook-active-40.png')
@@ -6162,6 +6945,7 @@ const iconMeta_ = {
   },
   'icon-search-facebook-inactive-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-search-facebook-inactive-32.png')
@@ -6169,6 +6953,7 @@ const iconMeta_ = {
   },
   'icon-search-facebook-inactive-40': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-search-facebook-inactive-40.png')
@@ -6176,6 +6961,7 @@ const iconMeta_ = {
   },
   'icon-search-github-active-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-search-github-active-32.png')
@@ -6183,6 +6969,7 @@ const iconMeta_ = {
   },
   'icon-search-github-active-40': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-search-github-active-40.png')
@@ -6190,6 +6977,7 @@ const iconMeta_ = {
   },
   'icon-search-github-inactive-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-search-github-inactive-32.png')
@@ -6197,6 +6985,7 @@ const iconMeta_ = {
   },
   'icon-search-github-inactive-40': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-search-github-inactive-40.png')
@@ -6204,6 +6993,7 @@ const iconMeta_ = {
   },
   'icon-search-hacker-news-active-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-search-hacker-news-active-32.png')
@@ -6211,6 +7001,7 @@ const iconMeta_ = {
   },
   'icon-search-hacker-news-active-40': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-search-hacker-news-active-40.png')
@@ -6218,6 +7009,7 @@ const iconMeta_ = {
   },
   'icon-search-hacker-news-inactive-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-search-hacker-news-inactive-32.png')
@@ -6225,6 +7017,7 @@ const iconMeta_ = {
   },
   'icon-search-hacker-news-inactive-40': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-search-hacker-news-inactive-40.png')
@@ -6232,6 +7025,7 @@ const iconMeta_ = {
   },
   'icon-search-keybase-active-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-search-keybase-active-32.png')
@@ -6239,6 +7033,7 @@ const iconMeta_ = {
   },
   'icon-search-keybase-active-40': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-search-keybase-active-40.png')
@@ -6246,6 +7041,7 @@ const iconMeta_ = {
   },
   'icon-search-keybase-inactive-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-search-keybase-inactive-32.png')
@@ -6253,6 +7049,7 @@ const iconMeta_ = {
   },
   'icon-search-keybase-inactive-40': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-search-keybase-inactive-40.png')
@@ -6260,6 +7057,7 @@ const iconMeta_ = {
   },
   'icon-search-reddit-active-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-search-reddit-active-32.png')
@@ -6267,6 +7065,7 @@ const iconMeta_ = {
   },
   'icon-search-reddit-active-40': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-search-reddit-active-40.png')
@@ -6274,6 +7073,7 @@ const iconMeta_ = {
   },
   'icon-search-reddit-inactive-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-search-reddit-inactive-32.png')
@@ -6281,6 +7081,7 @@ const iconMeta_ = {
   },
   'icon-search-reddit-inactive-40': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-search-reddit-inactive-40.png')
@@ -6288,6 +7089,7 @@ const iconMeta_ = {
   },
   'icon-search-twitter-active-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-search-twitter-active-32.png')
@@ -6295,6 +7097,7 @@ const iconMeta_ = {
   },
   'icon-search-twitter-active-40': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-search-twitter-active-40.png')
@@ -6302,6 +7105,7 @@ const iconMeta_ = {
   },
   'icon-search-twitter-inactive-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-search-twitter-inactive-32.png')
@@ -6309,6 +7113,7 @@ const iconMeta_ = {
   },
   'icon-search-twitter-inactive-40': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-search-twitter-inactive-40.png')
@@ -6316,6 +7121,7 @@ const iconMeta_ = {
   },
   'icon-shh-19-16': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-shh-19-16',
     get require() {
@@ -6327,6 +7133,7 @@ const iconMeta_ = {
   },
   'icon-shh-26-21': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-shh-26-21',
     get require() {
@@ -6338,6 +7145,7 @@ const iconMeta_ = {
   },
   'icon-shh-active-19-16': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-shh-active-19-16',
     get require() {
@@ -6349,6 +7157,7 @@ const iconMeta_ = {
   },
   'icon-shh-active-26-21': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-shh-active-26-21.png')
@@ -6356,6 +7165,7 @@ const iconMeta_ = {
   },
   'icon-shh-hover-19-16': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-shh-hover-19-16',
     get require() {
@@ -6367,6 +7177,7 @@ const iconMeta_ = {
   },
   'icon-skull-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-skull-32.png')
@@ -6374,6 +7185,7 @@ const iconMeta_ = {
   },
   'icon-skull-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-skull-48.png')
@@ -6381,6 +7193,7 @@ const iconMeta_ = {
   },
   'icon-skull-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-skull-64.png')
@@ -6388,6 +7201,7 @@ const iconMeta_ = {
   },
   'icon-skull-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-skull-96.png')
@@ -6395,6 +7209,7 @@ const iconMeta_ = {
   },
   'icon-stellar-coins-receiving-16': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-stellar-coins-receiving-16.png')
@@ -6402,6 +7217,7 @@ const iconMeta_ = {
   },
   'icon-stellar-coins-receiving-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-stellar-coins-receiving-32.png')
@@ -6409,6 +7225,7 @@ const iconMeta_ = {
   },
   'icon-stellar-coins-receiving-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-stellar-coins-receiving-48.png')
@@ -6416,6 +7233,7 @@ const iconMeta_ = {
   },
   'icon-stellar-coins-receiving-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-stellar-coins-receiving-64.png')
@@ -6423,6 +7241,7 @@ const iconMeta_ = {
   },
   'icon-stellar-coins-sending-16': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-stellar-coins-sending-16.png')
@@ -6430,6 +7249,7 @@ const iconMeta_ = {
   },
   'icon-stellar-coins-sending-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-stellar-coins-sending-32.png')
@@ -6437,6 +7257,7 @@ const iconMeta_ = {
   },
   'icon-stellar-coins-sending-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-stellar-coins-sending-48.png')
@@ -6444,6 +7265,7 @@ const iconMeta_ = {
   },
   'icon-stellar-coins-sending-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-stellar-coins-sending-64.png')
@@ -6451,6 +7273,7 @@ const iconMeta_ = {
   },
   'icon-stellar-coins-stacked-16': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-stellar-coins-stacked-16.png')
@@ -6458,6 +7281,7 @@ const iconMeta_ = {
   },
   'icon-stellar-coins-stacked-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-stellar-coins-stacked-32.png')
@@ -6465,6 +7289,7 @@ const iconMeta_ = {
   },
   'icon-stellar-coins-stacked-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-stellar-coins-stacked-48.png')
@@ -6472,6 +7297,7 @@ const iconMeta_ = {
   },
   'icon-stellar-coins-stacked-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-stellar-coins-stacked-64.png')
@@ -6479,6 +7305,7 @@ const iconMeta_ = {
   },
   'icon-stellar-coins-stacked-inflation-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-stellar-coins-stacked-inflation-48',
     get require() {
@@ -6490,6 +7317,7 @@ const iconMeta_ = {
   },
   'icon-stellar-coins-stacked-inflation-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-stellar-coins-stacked-inflation-64',
     get require() {
@@ -6501,6 +7329,7 @@ const iconMeta_ = {
   },
   'icon-team-delete-28': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-team-delete-28',
     get require() {
@@ -6512,6 +7341,7 @@ const iconMeta_ = {
   },
   'icon-team-git-16': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-team-git-16',
     get require() {
@@ -6523,6 +7353,7 @@ const iconMeta_ = {
   },
   'icon-team-leave-28': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-team-leave-28',
     get require() {
@@ -6534,6 +7365,7 @@ const iconMeta_ = {
   },
   'icon-team-placeholder-avatar-112': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-team-placeholder-avatar-112',
     get require() {
@@ -6545,6 +7377,7 @@ const iconMeta_ = {
   },
   'icon-team-placeholder-avatar-16': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-team-placeholder-avatar-16',
     get require() {
@@ -6556,6 +7389,7 @@ const iconMeta_ = {
   },
   'icon-team-placeholder-avatar-176': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-team-placeholder-avatar-176.png')
@@ -6563,6 +7397,7 @@ const iconMeta_ = {
   },
   'icon-team-placeholder-avatar-192': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-team-placeholder-avatar-192',
     get require() {
@@ -6574,6 +7409,7 @@ const iconMeta_ = {
   },
   'icon-team-placeholder-avatar-256': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-team-placeholder-avatar-256',
     get require() {
@@ -6585,6 +7421,7 @@ const iconMeta_ = {
   },
   'icon-team-placeholder-avatar-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-team-placeholder-avatar-32',
     get require() {
@@ -6596,6 +7433,7 @@ const iconMeta_ = {
   },
   'icon-team-placeholder-avatar-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-team-placeholder-avatar-48',
     get require() {
@@ -6607,6 +7445,7 @@ const iconMeta_ = {
   },
   'icon-team-placeholder-avatar-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-team-placeholder-avatar-64',
     get require() {
@@ -6618,6 +7457,7 @@ const iconMeta_ = {
   },
   'icon-team-placeholder-avatar-80': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-team-placeholder-avatar-80',
     get require() {
@@ -6629,6 +7469,7 @@ const iconMeta_ = {
   },
   'icon-team-placeholder-avatar-960': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-team-placeholder-avatar-960',
     get require() {
@@ -6640,6 +7481,7 @@ const iconMeta_ = {
   },
   'icon-team-sparkles-64-40': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-team-sparkles-64-40.png')
@@ -6647,6 +7489,7 @@ const iconMeta_ = {
   },
   'icon-terminal-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-terminal-32.png')
@@ -6654,6 +7497,7 @@ const iconMeta_ = {
   },
   'icon-terminal-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-terminal-48.png')
@@ -6661,6 +7505,7 @@ const iconMeta_ = {
   },
   'icon-twitter-logo-16': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-twitter-logo-16.png')
@@ -6668,6 +7513,7 @@ const iconMeta_ = {
   },
   'icon-twitter-logo-24': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-twitter-logo-24.png')
@@ -6675,6 +7521,7 @@ const iconMeta_ = {
   },
   'icon-twitter-logo-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-twitter-logo-32.png')
@@ -6682,6 +7529,7 @@ const iconMeta_ = {
   },
   'icon-twitter-logo-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-twitter-logo-48.png')
@@ -6689,6 +7537,7 @@ const iconMeta_ = {
   },
   'icon-twitter-logo-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-twitter-logo-64.png')
@@ -6696,6 +7545,7 @@ const iconMeta_ = {
   },
   'icon-user-add-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-user-add-32.png')
@@ -6703,6 +7553,7 @@ const iconMeta_ = {
   },
   'icon-wallet-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-wallet-32.png')
@@ -6710,6 +7561,7 @@ const iconMeta_ = {
   },
   'icon-wallet-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-wallet-48.png')
@@ -6717,6 +7569,7 @@ const iconMeta_ = {
   },
   'icon-wallet-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-wallet-64.png')
@@ -6724,6 +7577,7 @@ const iconMeta_ = {
   },
   'icon-wallet-add-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-wallet-add-48',
     get require() {
@@ -6735,6 +7589,7 @@ const iconMeta_ = {
   },
   'icon-wallet-add-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-wallet-add-64',
     get require() {
@@ -6746,6 +7601,7 @@ const iconMeta_ = {
   },
   'icon-wallet-open-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-wallet-open-32.png')
@@ -6753,6 +7609,7 @@ const iconMeta_ = {
   },
   'icon-wallet-open-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-wallet-open-48.png')
@@ -6760,6 +7617,7 @@ const iconMeta_ = {
   },
   'icon-wallet-open-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-wallet-open-64.png')
@@ -6767,6 +7625,7 @@ const iconMeta_ = {
   },
   'icon-wallet-placeholder-add-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-wallet-placeholder-add-32',
     get require() {
@@ -6778,6 +7637,7 @@ const iconMeta_ = {
   },
   'icon-wallet-receive-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-wallet-receive-48.png')
@@ -6785,6 +7645,7 @@ const iconMeta_ = {
   },
   'icon-wallet-receive-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-wallet-receive-64.png')
@@ -6792,6 +7653,7 @@ const iconMeta_ = {
   },
   'icon-wallet-remove-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-wallet-remove-48',
     get require() {
@@ -6803,6 +7665,7 @@ const iconMeta_ = {
   },
   'icon-wallet-remove-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     nameDark: 'icon-dark-wallet-remove-64',
     get require() {
@@ -6814,6 +7677,7 @@ const iconMeta_ = {
   },
   'icon-wallet-secret-key-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-wallet-secret-key-48.png')
@@ -6821,6 +7685,7 @@ const iconMeta_ = {
   },
   'icon-wallet-secret-key-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-wallet-secret-key-64.png')
@@ -6828,6 +7693,7 @@ const iconMeta_ = {
   },
   'icon-wallet-to-wallet-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-wallet-to-wallet-32.png')
@@ -6835,6 +7701,7 @@ const iconMeta_ = {
   },
   'icon-wallet-to-wallet-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-wallet-to-wallet-48.png')
@@ -6842,6 +7709,7 @@ const iconMeta_ = {
   },
   'icon-website-16': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-website-16.png')
@@ -6849,6 +7717,7 @@ const iconMeta_ = {
   },
   'icon-website-24': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-website-24.png')
@@ -6856,6 +7725,7 @@ const iconMeta_ = {
   },
   'icon-website-32': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-website-32.png')
@@ -6863,6 +7733,7 @@ const iconMeta_ = {
   },
   'icon-website-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-website-48.png')
@@ -6870,6 +7741,7 @@ const iconMeta_ = {
   },
   'icon-website-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-website-64.png')
@@ -6877,6 +7749,7 @@ const iconMeta_ = {
   },
   'icon-windows-badge': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-windows-badge.png')
@@ -6884,6 +7757,7 @@ const iconMeta_ = {
   },
   'icon-zcash-logo-48': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-zcash-logo-48.png')
@@ -6891,6 +7765,7 @@ const iconMeta_ = {
   },
   'icon-zcash-logo-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-zcash-logo-64.png')
@@ -7566,6 +8441,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-rip': {
+    charCode: 0xe9a5,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-root': {
     charCode: 0xe9a0,
     gridSize: 16,
@@ -7705,6 +8585,86 @@ const iconMeta_ = {
     charCode: 0xe969,
     gridSize: 16,
     isFont: true,
+  },
+  'illustration-bg-provisioning-blue': {
+    extension: 'png',
+    imagesDir: 'illustrations',
+    isFont: false,
+    get require() {
+      return require('../images/illustrations/illustration-bg-provisioning-blue.png')
+    },
+  },
+  'illustration-bg-provisioning-green': {
+    extension: 'png',
+    imagesDir: 'illustrations',
+    isFont: false,
+    get require() {
+      return require('../images/illustrations/illustration-bg-provisioning-green.png')
+    },
+  },
+  'illustration-security-preferences': {
+    extension: 'png',
+    imagesDir: 'illustrations',
+    isFont: false,
+    get require() {
+      return require('../images/illustrations/illustration-security-preferences.png')
+    },
+  },
+  'illustration-turn-on-notifications': {
+    extension: 'png',
+    imagesDir: 'illustrations',
+    isFont: false,
+    get require() {
+      return require('../images/illustrations/illustration-turn-on-notifications.png')
+    },
+  },
+  'release-4.7.0-dark-mode': {
+    extension: 'png',
+    imagesDir: 'releases',
+    isFont: false,
+    get require() {
+      return require('../images/releases/release-4.7.0-dark-mode.png')
+    },
+  },
+  'release-4.7.0-fast-user-switching': {
+    extension: 'png',
+    imagesDir: 'releases',
+    isFont: false,
+    get require() {
+      return require('../images/releases/release-4.7.0-fast-user-switching.png')
+    },
+  },
+  'release-4.7.0-keybase-fm': {
+    extension: 'png',
+    imagesDir: 'releases',
+    isFont: false,
+    get require() {
+      return require('../images/releases/release-4.7.0-keybase-fm.png')
+    },
+  },
+  'release-4.7.0-pinned-messages': {
+    extension: 'png',
+    imagesDir: 'releases',
+    isFont: false,
+    get require() {
+      return require('../images/releases/release-4.7.0-pinned-messages.png')
+    },
+  },
+  'release-4.8.0-audio-messages': {
+    extension: 'png',
+    imagesDir: 'releases',
+    isFont: false,
+    get require() {
+      return require('../images/releases/release-4.8.0-audio-messages.png')
+    },
+  },
+  'release-4.8.0-file-sync': {
+    extension: 'png',
+    imagesDir: 'releases',
+    isFont: false,
+    get require() {
+      return require('../images/releases/release-4.8.0-file-sync.png')
+    },
   } /* eslint-enable */,
 }
 

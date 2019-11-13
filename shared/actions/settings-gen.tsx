@@ -48,6 +48,7 @@ export const loadedProxyData = 'settings:loadedProxyData'
 export const loadedRememberPassword = 'settings:loadedRememberPassword'
 export const loadedSettings = 'settings:loadedSettings'
 export const loadedUserCountryCode = 'settings:loadedUserCountryCode'
+export const loginBrowserViaWebAuthToken = 'settings:loginBrowserViaWebAuthToken'
 export const notificationsRefresh = 'settings:notificationsRefresh'
 export const notificationsRefreshed = 'settings:notificationsRefreshed'
 export const notificationsSaved = 'settings:notificationsSaved'
@@ -136,6 +137,7 @@ type _LoadedSettingsPayload = {
   readonly phones: I.Map<string, Types.PhoneRow> | null
 }
 type _LoadedUserCountryCodePayload = {readonly code: string | null}
+type _LoginBrowserViaWebAuthTokenPayload = void
 type _NotificationsRefreshPayload = void
 type _NotificationsRefreshedPayload = {readonly notifications: I.Map<string, Types.NotificationsGroupState>}
 type _NotificationsSavedPayload = void
@@ -392,6 +394,9 @@ export const createLoadedSettings = (payload: _LoadedSettingsPayload): LoadedSet
 export const createLoadedUserCountryCode = (
   payload: _LoadedUserCountryCodePayload
 ): LoadedUserCountryCodePayload => ({payload, type: loadedUserCountryCode})
+export const createLoginBrowserViaWebAuthToken = (
+  payload: _LoginBrowserViaWebAuthTokenPayload
+): LoginBrowserViaWebAuthTokenPayload => ({payload, type: loginBrowserViaWebAuthToken})
 export const createNotificationsRefresh = (
   payload: _NotificationsRefreshPayload
 ): NotificationsRefreshPayload => ({payload, type: notificationsRefresh})
@@ -609,6 +614,10 @@ export type LoadedUserCountryCodePayload = {
   readonly payload: _LoadedUserCountryCodePayload
   readonly type: typeof loadedUserCountryCode
 }
+export type LoginBrowserViaWebAuthTokenPayload = {
+  readonly payload: _LoginBrowserViaWebAuthTokenPayload
+  readonly type: typeof loginBrowserViaWebAuthToken
+}
 export type NotificationsRefreshPayload = {
   readonly payload: _NotificationsRefreshPayload
   readonly type: typeof notificationsRefresh
@@ -776,6 +785,7 @@ export type Actions =
   | LoadedRememberPasswordPayload
   | LoadedSettingsPayload
   | LoadedUserCountryCodePayload
+  | LoginBrowserViaWebAuthTokenPayload
   | NotificationsRefreshPayload
   | NotificationsRefreshedPayload
   | NotificationsSavedPayload

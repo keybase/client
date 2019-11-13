@@ -36,6 +36,7 @@ const AudioSend = (props: Props) => {
     const duration = Constants.audioRecordingDuration(audioRecording)
     player = (
       <AudioPlayer
+        big={false}
         duration={duration}
         maxWidth={120}
         url={audioUrl}
@@ -45,8 +46,10 @@ const AudioSend = (props: Props) => {
   }
   return (
     <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true}>
-      <Kb.Box2 direction="horizontal" gap="medium" alignItems="center">
-        <Kb.Icon type="iconfont-remove" fontSize={22} onClick={onCancel} />
+      <Kb.Box2 direction="horizontal" alignItems="center">
+        <Kb.Box style={styles.icon}>
+          <Kb.Icon type="iconfont-remove" onClick={onCancel} />
+        </Kb.Box>
         {player}
       </Kb.Box2>
       <Kb.Button type="Default" small={true} style={styles.send} onClick={onSend} label="Send" />
@@ -61,7 +64,15 @@ const styles = Styles.styleSheetCreate(() => ({
     borderTopColor: Styles.globalColors.black_10,
     borderTopWidth: 1,
     justifyContent: 'space-between',
-    padding: Styles.globalMargins.tiny,
+    paddingLeft: Styles.globalMargins.tiny,
+    paddingRight: Styles.globalMargins.tiny,
+  },
+  icon: {
+    alignItems: 'center',
+    height: 32,
+    justifyContent: 'center',
+    marginRight: Styles.globalMargins.tiny,
+    width: 32,
   },
   send: {
     alignSelf: 'flex-end',

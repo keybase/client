@@ -1,6 +1,5 @@
 import * as RPCChatTypes from '../rpc-chat-gen'
 import * as RPCTypes from '../rpc-gen'
-import * as I from 'immutable'
 import * as Common from './common'
 import * as Meta from './meta'
 import * as Message from './message'
@@ -162,6 +161,7 @@ export type State = Readonly<{
   focus: Focus
   giphyResultMap: Map<Common.ConversationIDKey, RPCChatTypes.GiphySearchResults | undefined>
   giphyWindowMap: Map<Common.ConversationIDKey, boolean>
+  inboxNumSmallRows?: number
   inboxHasLoaded: boolean // if we've ever loaded,
   inboxLayout: RPCChatTypes.UIInboxLayout | null // layout of the inbox
   inboxSearch?: InboxSearchInfo
@@ -170,7 +170,7 @@ export type State = Readonly<{
   lastCoord?: Coordinate
   maybeMentionMap: Map<string, RPCChatTypes.UIMaybeMentionInfo>
   messageCenterOrdinals: Map<Common.ConversationIDKey, CenterOrdinal> // ordinals to center threads on,
-  messageMap: I.Map<Common.ConversationIDKey, I.Map<Message.Ordinal, Message.Message>> // messages in a thread,
+  messageMap: Map<Common.ConversationIDKey, Map<Message.Ordinal, Message.Message>> // messages in a thread,
   messageOrdinals: Map<Common.ConversationIDKey, Set<Message.Ordinal>> // ordered ordinals in a thread,
   metaMap: MetaMap // metadata about a thread, There is a special node for the pending conversation,
   moreToLoadMap: Map<Common.ConversationIDKey, boolean> // if we have more data to load,
@@ -221,8 +221,8 @@ export type TeamType = Meta.TeamType
 export type AttachmentType = Message.AttachmentType
 export type ChatPaymentInfo = Message.ChatPaymentInfo
 export type ChatRequestInfo = Message.ChatRequestInfo
-export type MessageWithReactionPopup = Message.MessageWithReactionPopup
 export type DecoratedMessage = Message.DecoratedMessage
+export type MessagesWithReactions = Message.MessagesWithReactions
 export type MentionsAt = Message.MentionsAt
 export type MentionsChannel = Message.MentionsChannel
 export type MentionsChannelName = Message.MentionsChannelName

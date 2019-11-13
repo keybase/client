@@ -60,8 +60,11 @@ const mergeProps = (
   }
 }
 
-const ConnectedNameWithIcon = namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'NameWithIcon')(
-  NameWithIcon
-)
+const ConnectedNameWithIcon = namedConnect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'NameWithIcon'
+)(NameWithIcon)
 
 export default ConnectedNameWithIcon

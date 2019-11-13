@@ -96,9 +96,12 @@ if (__DEV__) {
   global.DEBUGSagaMiddleware = sagaMiddleware
 }
 
+const freezeMiddleware = _store => next => action => next(Object.freeze(action))
+
 const middlewares = [
   errorCatching,
   sagaMiddleware,
+  ...(__DEV__ ? [freezeMiddleware] : []),
   ...(enableStoreLogging && loggerMiddleware ? [loggerMiddleware] : []),
   ...(enableActionLogging ? [actionLogger] : []),
 ]

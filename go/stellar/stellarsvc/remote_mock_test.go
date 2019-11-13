@@ -441,7 +441,7 @@ func (r *RemoteClientMock) SubmitRelayPayment(ctx context.Context, post stellar1
 }
 
 func (r *RemoteClientMock) SubmitMultiPayment(ctx context.Context, post stellar1.PaymentMultiPost) (stellar1.SubmitMultiRes, error) {
-	return stellar1.SubmitMultiRes{}, errors.New("SubmitMultiPayment not mocked")
+	return r.Backend.SubmitMultiPayment(ctx, r.Tc, post)
 }
 
 func (r *RemoteClientMock) SubmitRelayClaim(ctx context.Context, post stellar1.RelayClaimPost) (stellar1.RelayClaimResult, error) {
@@ -950,6 +950,23 @@ func (r *BackendMock) NextAutoClaim(ctx context.Context, tc *TestContext) (*stel
 		}, nil
 	}
 	return nil, nil
+}
+
+func (r *BackendMock) SubmitMultiPayment(ctx context.Context, tc *TestContext, post stellar1.PaymentMultiPost) (stellar1.SubmitMultiRes, error) {
+	r.Lock()
+	defer r.Unlock()
+
+	// doing as little as possible here (i.e. just returning the
+	// transaction id and not storing any of these operations in the mock)
+
+	_, txID, err := unpackTx(post.SignedTransaction)
+	if err != nil {
+		return stellar1.SubmitMultiRes{}, err
+	}
+
+	return stellar1.SubmitMultiRes{
+		TxID: stellar1.TransactionID(txID),
+	}, nil
 }
 
 func (r *BackendMock) RecentPayments(ctx context.Context, tc *TestContext, accountID stellar1.AccountID, cursor *stellar1.PageCursor, limit int, skipPending bool) (res stellar1.PaymentsPage, err error) {

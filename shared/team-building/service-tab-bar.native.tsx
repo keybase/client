@@ -24,7 +24,7 @@ const smallWidth = serviceMinWidthWhenSmall(Styles.dimensionWidth)
 const bigWidth = Math.max(smallWidth, 92)
 const AnimatedBox2 = Kb.ReAnimated.createAnimatedComponent(Kb.Box2)
 
-const ServiceIcon = (props: IconProps) => {
+const ServiceIcon = React.memo((props: IconProps) => {
   const color = props.isActive ? serviceIdToAccentColor(props.service) : Styles.globalColors.black
 
   const opacity = Kb.ReAnimated.interpolate(props.offset, {
@@ -41,7 +41,7 @@ const ServiceIcon = (props: IconProps) => {
   })
 
   return (
-    <Kb.ClickableBox onClick={props.onClick} style={{position: 'relative'}}>
+    <Kb.ClickableBox onClick={() => props.onClick(props.service)} style={{position: 'relative'}}>
       <AnimatedBox2 direction="vertical" style={[styles.serviceIconContainer, {width}]}>
         <Kb.Box2 direction="vertical" style={{position: 'relative'}}>
           {serviceIdToBadge(props.service) && (
@@ -90,7 +90,7 @@ const ServiceIcon = (props: IconProps) => {
       />
     </Kb.ClickableBox>
   )
-}
+})
 
 const undefToNull = (n: number | undefined | null): number | null => (n === undefined ? null : n)
 
@@ -132,7 +132,7 @@ const initialBounce = () => {
   )
 }
 
-export class ServiceTabBar extends React.Component<Props> {
+export class ServiceTabBar extends React.PureComponent<Props> {
   private onClick = service => {
     this.props.onChangeService(service)
   }
@@ -173,7 +173,7 @@ export class ServiceTabBar extends React.Component<Props> {
             offset={props.offset}
             service={service}
             label={serviceIdToLongLabel(service)}
-            onClick={() => this.onClick(service)}
+            onClick={this.onClick}
             count={undefToNull(props.serviceResultCount[service])}
             showCount={props.showServiceResultCount}
             isActive={props.selectedService === service}

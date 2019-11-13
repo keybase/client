@@ -27,6 +27,7 @@ export const editTeamDescription = 'teams:editTeamDescription'
 export const getChannelInfo = 'teams:getChannelInfo'
 export const getChannels = 'teams:getChannels'
 export const getDetails = 'teams:getDetails'
+export const getDetailsForAllTeams = 'teams:getDetailsForAllTeams'
 export const getMembers = 'teams:getMembers'
 export const getTeamOperations = 'teams:getTeamOperations'
 export const getTeamProfileAddList = 'teams:getTeamProfileAddList'
@@ -137,6 +138,7 @@ type _GetChannelInfoPayload = {
   readonly teamname: string
 }
 type _GetChannelsPayload = {readonly teamname: string}
+type _GetDetailsForAllTeamsPayload = void
 type _GetDetailsPayload = {readonly teamname: string; readonly clearInviteLoadingKey?: string}
 type _GetMembersPayload = {readonly teamname: string}
 type _GetTeamOperationsPayload = {readonly teamname: string}
@@ -196,11 +198,7 @@ type _SetNewTeamInfoPayload = {
 }
 type _SetPublicityPayload = {readonly teamname: string; readonly settings: Types.PublicitySettings}
 type _SetTeamAccessRequestsPendingPayload = {readonly accessRequestsPending: Set<Types.Teamname>}
-type _SetTeamCanPerformPayload = {
-  readonly teamname: string
-  readonly teamID: Types.TeamID
-  readonly teamOperation: Types.TeamOperations
-}
+type _SetTeamCanPerformPayload = {readonly teamname: string; readonly teamOperation: Types.TeamOperations}
 type _SetTeamChannelInfoPayload = {
   readonly teamname: string
   readonly conversationIDKey: ChatTypes.ConversationIDKey
@@ -219,7 +217,6 @@ type _SetTeamDetailsPayload = {
   readonly invites: Array<Types._InviteInfo>
   readonly subteams: Array<Types.Teamname>
   readonly requests: Map<string, Array<string>>
-  readonly subteamIDs: Set<Types.TeamID>
 }
 type _SetTeamInfoPayload = {
   readonly teamnames: Set<Types.Teamname>
@@ -374,6 +371,9 @@ export const createGetDetails = (payload: _GetDetailsPayload): GetDetailsPayload
   payload,
   type: getDetails,
 })
+export const createGetDetailsForAllTeams = (
+  payload: _GetDetailsForAllTeamsPayload
+): GetDetailsForAllTeamsPayload => ({payload, type: getDetailsForAllTeams})
 export const createGetMembers = (payload: _GetMembersPayload): GetMembersPayload => ({
   payload,
   type: getMembers,
@@ -591,6 +591,10 @@ export type GetChannelInfoPayload = {
   readonly type: typeof getChannelInfo
 }
 export type GetChannelsPayload = {readonly payload: _GetChannelsPayload; readonly type: typeof getChannels}
+export type GetDetailsForAllTeamsPayload = {
+  readonly payload: _GetDetailsForAllTeamsPayload
+  readonly type: typeof getDetailsForAllTeams
+}
 export type GetDetailsPayload = {readonly payload: _GetDetailsPayload; readonly type: typeof getDetails}
 export type GetMembersPayload = {readonly payload: _GetMembersPayload; readonly type: typeof getMembers}
 export type GetTeamOperationsPayload = {
@@ -777,6 +781,7 @@ export type Actions =
   | EditTeamDescriptionPayload
   | GetChannelInfoPayload
   | GetChannelsPayload
+  | GetDetailsForAllTeamsPayload
   | GetDetailsPayload
   | GetMembersPayload
   | GetTeamOperationsPayload

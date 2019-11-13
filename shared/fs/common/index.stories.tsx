@@ -17,7 +17,7 @@ import OpenInSystemFileManager from './open-in-system-file-manager'
 import {OwnProps as PathItemIconOwnProps} from './path-item-icon-container'
 import {OwnProps as LastModifiedLineOwnProps} from './last-modified-line-container'
 import {OwnProps as TlfInfoLineOwnProps} from './tlf-info-line-container'
-import SyncStatus from './sync-status'
+import PathStatusIcon from './path-status-icon'
 import PieSlice from './pie-slice'
 import ConfirmDelete from './path-item-action/confirm-delete'
 
@@ -63,12 +63,12 @@ export const commonProvider = {
   }),
   FolderViewFilter: (props: any) => ({
     onUpdate: Sb.action('onUpdate'),
-    pathItem: Constants.makeFolder(),
+    pathItem: Constants.emptyFolder,
     ...props,
   }),
   FolderViewFilterIcon: (props: any) => ({
     onUpdate: Sb.action('onUpdate'),
-    pathItem: Constants.makeFolder(),
+    pathItem: Constants.emptyFolder,
     ...props,
   }),
   LastModifiedLine: ({path, mode}: LastModifiedLineOwnProps) => ({
@@ -80,7 +80,7 @@ export const commonProvider = {
     loadPathMetadataWithRefreshTag: Sb.action('loadPathMetadataWithRefreshTag'),
     loadPathMetadataWithoutRefreshTag: Sb.action('loadPathMetadataWithoutRefreshTag'),
     path,
-    syncingFoldersProgress: Constants.makeSyncingFoldersProgress(),
+    syncingFoldersProgress: Constants.emptySyncingFoldersProgress,
   }),
   NewFolder: ({path}: {path: Types.Path}) => ({
     canCreateNewFolder: Types.getPathLevel(path) > 2,
@@ -101,15 +101,15 @@ export const commonProvider = {
     type: Types.getPathElements(ownProps.path).length > 4 ? Types.PathType.File : Types.PathType.Folder,
     username: 'songgao_test',
   }),
+  PathStatusIcon: () => ({
+    isFolder: false,
+    statusIcon: 'online-only',
+  }),
   RefreshDriverStatusOnMount: () => ({
     refresh: Sb.action('refresh'),
   }),
   RefreshSettings: () => ({
     refresh: Sb.action('refresh'),
-  }),
-  SyncStatus: () => ({
-    isFolder: false,
-    syncStatus: 'online-only',
   }),
   SyncingFolders: () => ({
     progress: 0.67,
@@ -124,7 +124,7 @@ export const commonProvider = {
   }),
   TryEnableDriverOnFocus: () => ({
     appFocusedCount: 1,
-    driverStatus: Constants.makeDriverStatusEnabled(),
+    driverStatus: Constants.emptyDriverStatusEnabled,
     onEnabled: Sb.action('onEnabled'),
     refreshDriverStatus: Sb.action('refreshDriverStatus'),
   }),
@@ -294,14 +294,49 @@ const load = () => {
     ))
     .add('TlfInfoLine', () => (
       <Kb.Box2 direction="vertical" gap="small" gapStart={true} fullWidth={true}>
+        <Kb.Text type="Body">mode=default reset=false isNew=true</Kb.Text>
+        <TlfInfoLine
+          isNew={false}
+          tlfMtime={1564784024580}
+          tlfType={Types.TlfType.Private}
+          mode="default"
+          reset={false}
+        />
         <Kb.Text type="Body">mode=default reset=false</Kb.Text>
-        <TlfInfoLine tlfMtime={1564784024580} tlfType={Types.TlfType.Private} mode="default" reset={false} />
+        <TlfInfoLine
+          isNew={true}
+          tlfMtime={1564784024580}
+          tlfType={Types.TlfType.Private}
+          mode="default"
+          reset={false}
+        />
+        <Kb.Text type="Body">mode=default reset=true isNew=true</Kb.Text>
+        <TlfInfoLine
+          isNew={true}
+          tlfMtime={1564784024580}
+          tlfType={Types.TlfType.Private}
+          mode="default"
+          reset={true}
+        />
         <Kb.Text type="Body">mode=default reset=true</Kb.Text>
-        <TlfInfoLine tlfMtime={1564784024580} tlfType={Types.TlfType.Private} mode="default" reset={true} />
+        <TlfInfoLine
+          isNew={false}
+          tlfMtime={1564784024580}
+          tlfType={Types.TlfType.Private}
+          mode="default"
+          reset={true}
+        />
         <Kb.Text type="Body">mode=row reset=Array(1)</Kb.Text>
-        <TlfInfoLine tlfMtime={1564784024580} tlfType={Types.TlfType.Private} mode="row" reset={['foo']} />
+        <TlfInfoLine
+          isNew={false}
+          tlfMtime={1564784024580}
+          tlfType={Types.TlfType.Private}
+          mode="row"
+          reset={['foo']}
+        />
         <Kb.Text type="Body">mode=default reset=Array(2)</Kb.Text>
         <TlfInfoLine
+          isNew={false}
           tlfMtime={1564784024580}
           tlfType={Types.TlfType.Private}
           mode="default"
@@ -309,6 +344,7 @@ const load = () => {
         />
         <Kb.Text type="Body">mode=row reset=Array(3)</Kb.Text>
         <TlfInfoLine
+          isNew={false}
           tlfMtime={1564784024580}
           tlfType={Types.TlfType.Private}
           mode="row"
@@ -316,6 +352,7 @@ const load = () => {
         />
         <Kb.Text type="Body">mode=row mixedMode=true reset=Array(3)</Kb.Text>
         <TlfInfoLine
+          isNew={false}
           mixedMode={true}
           tlfMtime={1564784024580}
           tlfType={Types.TlfType.Private}
@@ -324,6 +361,7 @@ const load = () => {
         />
         <Kb.Text type="Body">mode=row mixedMode=true reset=true</Kb.Text>
         <TlfInfoLine
+          isNew={false}
           mixedMode={true}
           tlfMtime={1564784024580}
           tlfType={Types.TlfType.Private}
@@ -332,6 +370,7 @@ const load = () => {
         />
         <Kb.Text type="Body">mode=row mixedMode=true reset=false</Kb.Text>
         <TlfInfoLine
+          isNew={false}
           mixedMode={true}
           tlfMtime={1564784024580}
           tlfType={Types.TlfType.Private}
@@ -368,14 +407,15 @@ const load = () => {
     ))
     .add('Sync Status', () => (
       <Kb.Box2 direction="vertical" gap="large" gapStart={true} fullWidth={false} alignItems="center">
-        <SyncStatus syncStatus={Types.NonUploadStaticSyncStatus.AwaitingToSync} isFolder={false} />
-        <SyncStatus syncStatus={Types.UploadIcon.AwaitingToUpload} isFolder={false} />
-        <SyncStatus syncStatus={Types.NonUploadStaticSyncStatus.OnlineOnly} isFolder={false} />
-        <SyncStatus syncStatus={Types.NonUploadStaticSyncStatus.Synced} isFolder={false} />
-        <SyncStatus syncStatus={Types.NonUploadStaticSyncStatus.SyncError} isFolder={true} />
-        <SyncStatus syncStatus={Types.UploadIcon.Uploading} isFolder={false} />
-        <SyncStatus syncStatus={Types.UploadIcon.UploadingStuck} isFolder={false} />
-        <SyncStatus syncStatus={0.3} isFolder={false} />
+        <PathStatusIcon statusIcon={Types.NonUploadStaticSyncStatus.AwaitingToSync} isFolder={false} />
+        <PathStatusIcon statusIcon={Types.UploadIcon.AwaitingToUpload} isFolder={false} />
+        <PathStatusIcon statusIcon={Types.NonUploadStaticSyncStatus.OnlineOnly} isFolder={false} />
+        <PathStatusIcon statusIcon={Types.NonUploadStaticSyncStatus.Synced} isFolder={false} />
+        <PathStatusIcon statusIcon={Types.NonUploadStaticSyncStatus.SyncError} isFolder={true} />
+        <PathStatusIcon statusIcon={Types.UploadIcon.Uploading} isFolder={false} />
+        <PathStatusIcon statusIcon={Types.UploadIcon.UploadingStuck} isFolder={false} />
+        <PathStatusIcon statusIcon={Types.LocalConflictStatus} isFolder={false} />
+        <PathStatusIcon statusIcon={0.3} isFolder={false} />
       </Kb.Box2>
     ))
     .add('Pie Loaders', () => (

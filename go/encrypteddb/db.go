@@ -2,6 +2,7 @@ package encrypteddb
 
 import (
 	"fmt"
+
 	"github.com/go-errors/errors"
 
 	"github.com/keybase/client/go/libkb"

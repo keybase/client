@@ -99,4 +99,4 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export default (Styles.isMobile ? Mobile : Desktop)
+export default Styles.isMobile ? Mobile : Desktop

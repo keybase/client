@@ -27,14 +27,17 @@ const provider = Sb.createPropProviderWithCommon({
 const load = () => {
   Sb.storiesOf('Settings/Files', module)
     .addDecorator(provider)
-    .add('Unknown', () => <Files {...actions} driverStatus={Constants.makeDriverStatusUnknown()} />)
-    .add('Enabled', () => <Files {...actions} driverStatus={Constants.makeDriverStatusEnabled()} />)
-    .add('Disabled', () => <Files {...actions} driverStatus={Constants.makeDriverStatusDisabled()} />)
+    .add('Unknown', () => <Files {...actions} driverStatus={Constants.driverStatusUnknown} />)
+    .add('Enabled', () => <Files {...actions} driverStatus={Constants.emptyDriverStatusEnabled} />)
+    .add('Disabled', () => <Files {...actions} driverStatus={Constants.emptyDriverStatusDisabled} />)
     .add('Disabled - kext permission error', () => (
-      <Files {...actions} driverStatus={Constants.makeDriverStatusDisabled({kextPermissionError: true})} />
+      <Files
+        {...actions}
+        driverStatus={{...Constants.emptyDriverStatusDisabled, kextPermissionError: true}}
+      />
     ))
     .add('Disabled - Enabling', () => (
-      <Files {...actions} driverStatus={Constants.makeDriverStatusDisabled({isEnabling: true})} />
+      <Files {...actions} driverStatus={{...Constants.emptyDriverStatusDisabled, isEnabling: true}} />
     ))
 }
 

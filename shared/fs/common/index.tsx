@@ -9,7 +9,7 @@ export {default as NewFolder} from './new-folder'
 export {default as UploadButton} from './upload-button'
 export {default as FolderViewFilter} from './folder-view-filter'
 export {default as FolderViewFilterIcon} from './folder-view-filter-icon'
-export {default as SyncStatus} from './sync-status-container'
+export {default as PathStatusIcon} from './path-status-icon-container'
 export {default as Filename} from './filename'
 export {default as UploadIcon} from './upload-icon'
 

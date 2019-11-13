@@ -157,8 +157,12 @@ func mustGetChatFlags(keys ...string) (flags []cli.Flag) {
 	return flags
 }
 
+func getInboxResolverFlags() []cli.Flag {
+	return mustGetChatFlags("topic-type", "public", "private")
+}
+
 func getConversationResolverFlags() []cli.Flag {
-	return mustGetChatFlags("topic-type", "channel", "public", "private")
+	return append(getInboxResolverFlags(), mustGetChatFlags("channel")...)
 }
 
 func getMessageFetcherFlags() []cli.Flag {
@@ -166,11 +170,11 @@ func getMessageFetcherFlags() []cli.Flag {
 }
 
 func getInboxFetcherUnreadFirstFlags() []cli.Flag {
-	return append(mustGetChatFlags("at-least", "at-most", "since", "show-device-name"), getConversationResolverFlags()...)
+	return append(mustGetChatFlags("at-least", "at-most", "since", "show-device-name"), getInboxResolverFlags()...)
 }
 
 func getInboxFetcherActivitySortedFlags() []cli.Flag {
-	return append(mustGetChatFlags("number", "since", "include-hidden"), getConversationResolverFlags()...)
+	return append(mustGetChatFlags("number", "since", "include-hidden"), getInboxResolverFlags()...)
 }
 
 func parseConversationTopicType(ctx *cli.Context) (topicType chat1.TopicType, err error) {

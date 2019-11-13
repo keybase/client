@@ -64,6 +64,14 @@ func GetUIDByUsername(g *GlobalContext, username string) keybase1.UID {
 	return GetUIDByNormalizedUsername(g, NewNormalizedUsername(username))
 }
 
+func AssertUsernameMatchesUID(g *GlobalContext, uid keybase1.UID, username string) error {
+	u2 := GetUIDByUsername(g, username)
+	if uid.NotEqual(u2) {
+		return UIDMismatchError{fmt.Sprintf("%s != %s (via %s)", uid, u2, username)}
+	}
+	return nil
+}
+
 // NOTE: Use the high level API above instead of any of the following. The
 // hilvl API handles both UIDS for old, potentially incorrectly hashed
 // usernames, as well as new, correct UIDs.
@@ -77,6 +85,8 @@ func UsernameToUID(s string) keybase1.UID {
 }
 
 func CheckUIDAgainstUsername(uid keybase1.UID, username string) (err error) {
+	// Note: does not handle pre-Feb-2015 UIDs. You might want to use
+	// `AssertUsernameMatchesUID` instead.
 	u2 := UsernameToUID(username)
 	if uid.NotEqual(u2) {
 		err = UIDMismatchError{fmt.Sprintf("%s != %s (via %s)", uid, u2, username)}

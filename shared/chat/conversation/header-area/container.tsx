@@ -38,4 +38,4 @@ const Connected = connect(
 )(HeaderArea)
 
 const Empty = () => null
-export default (!isMobile ? Empty : Connected)
+export default !isMobile ? Empty : Connected

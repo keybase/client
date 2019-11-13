@@ -235,12 +235,14 @@ func (b *CachingBotCommandManager) ListCommands(ctx context.Context, convID chat
 		return nil, nil
 	}
 	if s.Version != storageVersion {
+		b.Debug(ctx, "ListCommands: deleting old version %d vs %d", s.Version, storageVersion)
 		if err := b.edb.Delete(ctx, dbKey); err != nil {
 			b.Debug(ctx, "edb.Delete: %v", err)
 		}
 		return nil, nil
 	}
 	cmdDedup := make(map[string]bool)
+
 	for _, ad := range s.Advertisements {
 		// If the advertisement is by a restricted bot that will not be keyed
 		// for commands, filter the advertisement out.
@@ -250,6 +252,7 @@ func (b *CachingBotCommandManager) ListCommands(ctx context.Context, convID chat
 				return nil, err
 			}
 			if !teamBotSettings[keybase1.UID(ad.UID.String())].Cmds {
+				b.Debug(ctx, "ListCommands: skipping commands from %v, a restricted bot without cmds", ad.UID)
 				continue
 			}
 		}
@@ -348,6 +351,7 @@ func (b *CachingBotCommandManager) queueCommandUpdate(ctx context.Context, job c
 }
 
 func (b *CachingBotCommandManager) getBotInfo(ctx context.Context, job commandUpdaterJob) (botInfo chat1.BotInfo, doUpdate bool, err error) {
+	defer b.Trace(ctx, func() error { return err }, fmt.Sprintf("getBotInfo: %v", job.convID))()
 	if job.info != nil {
 		return *job.info, true, nil
 	}

@@ -1,22 +1,38 @@
-export const serialize = {
-  cancelLabel: (v: any) => v,
-  darkMode: (v: any) => v,
-  prompt: (v: any) => v,
-  retryLabel: (v: any) => v,
-  sessionID: (v: any) => v,
-  showTyping: (v: any) => v,
-  submitLabel: (v: any) => v,
-  submitted: (v: any) => v,
-  type: (v: any) => v,
-  windowComponent: (v: any) => v,
-  windowOpts: (v: any) => v,
-  windowParam: (v: any) => v,
-  windowPositionBottomRight: (v: any) => v,
-  windowTitle: (v: any) => v,
-}
-const initialState = {}
+import * as RPCTypes from '../constants/types/rpc-gen'
+import * as Container from '../util/container'
+import {WireProps} from './remote-proxy.desktop'
 
-export const deserialize = (state: any = initialState, props: any) => {
+export const serialize: Container.RemoteWindowSerializeProps<WireProps> = {
+  cancelLabel: (v?: string) => v,
+  darkMode: (v: boolean) => v,
+  prompt: (v: string) => v,
+  retryLabel: (v?: string) => v,
+  showTyping: (v: RPCTypes.Feature) => v,
+  submitLabel: (v?: string) => v,
+  type: (v: RPCTypes.PassphraseType) => v,
+  windowComponent: (v: string) => v,
+  windowOpts: (v: any) => v,
+  windowPositionBottomRight: (v: boolean) => v,
+  windowTitle: (v: string) => v,
+}
+
+const initialState: WireProps = {
+  darkMode: false,
+  prompt: '',
+  showTyping: {
+    allow: false,
+    defaultValue: false,
+    label: '',
+    readonly: false,
+  },
+  type: RPCTypes.PassphraseType.none,
+  windowComponent: '',
+  windowOpts: {},
+  windowPositionBottomRight: false,
+  windowTitle: '',
+}
+
+export const deserialize = (state: WireProps = initialState, props: any): WireProps => {
   if (!props) return state
 
   return {

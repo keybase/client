@@ -41,11 +41,6 @@ func (c *cmdChatListUnread) Run() error {
 		return err
 	}
 
-	if len(conversations) == 0 {
-		ui.Printf("no conversations\n")
-		return nil
-	}
-
 	err = conversationListView(conversations).show(c.G(), string(c.G().Env.GetUsername()), c.showDeviceName)
 	if err != nil {
 		return err

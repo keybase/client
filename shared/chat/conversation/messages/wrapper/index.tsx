@@ -31,7 +31,7 @@ import SendIndicator from './send-indicator'
 import UnfurlList from './unfurl/unfurl-list/container'
 import UnfurlPromptList from './unfurl/prompt-list/container'
 import CoinFlip from '../coinflip/container'
-import TeamJourney from '../cards/team-journey'
+import TeamJourney from '../cards/team-journey/container'
 import {dismiss as dismissKeyboard} from '../../../../util/keyboard'
 import {formatTimeForChat} from '../../../../util/timestamp'
 
@@ -191,6 +191,11 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               >
                 {formatTimeForChat(this.props.message.timestamp)}
               </Kb.Text>
+              {this._getKeyedBot() && (
+                <Kb.WithTooltip tooltip={`Encrypted for @${this._getKeyedBot()}`}>
+                  <Kb.Icon fontSize={14} color={Styles.globalColors.black} type="iconfont-nav-2-robot" />
+                </Kb.WithTooltip>
+              )}
             </Kb.Box2>
           </Kb.Box2>
           <Kb.Box2
@@ -214,9 +219,15 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
   }
 
   _isEdited = () =>
-    // @ts-ignore
     this.props.message.hasBeenEdited && (
-      <Kb.Text key="isEdited" type="BodyTiny" style={styles.edited}>
+      <Kb.Text
+        key="isEdited"
+        type="BodyTiny"
+        style={Styles.collapseStyles([
+          styles.edited,
+          this._showCenteredHighlight() && styles.editedHighlighted,
+        ])}
+      >
         EDITED
       </Kb.Text>
     )
@@ -258,10 +269,9 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     )
 
   _unfurlList = () =>
-    // @ts-ignore
+    this.props.message.type === 'text' &&
     this.props.message.unfurls &&
-    // @ts-ignore
-    !this.props.message.unfurls.isEmpty() && (
+    !!this.props.message.unfurls.size && (
       <UnfurlList
         key="UnfurlList"
         conversationIDKey={this.props.conversationIDKey}
@@ -288,8 +298,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
   }
 
   _hasReactions = () =>
-    // @ts-ignore
-    (this.props.message.reactions && !this.props.message.reactions.isEmpty()) || this.props.isPendingPayment
+    (!!this.props.message.reactions && !!this.props.message.reactions.size) || this.props.isPendingPayment
 
   _reactionsRow = () =>
     this._hasReactions() && (
@@ -301,6 +310,8 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         ordinal={this.props.message.ordinal}
       />
     )
+
+  _getKeyedBot = () => this.props.message.type === 'text' && this.props.message.botUsername
 
   _popup = () =>
     (this.props.message.type === 'text' ||
@@ -532,9 +543,8 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
             )}
             {this.props.isRevoked && (
               <Kb.Icon
-                type="iconfont-exclamation"
-                color={Styles.globalColors.blue}
-                fontSize={14}
+                type="iconfont-rip"
+                color={Styles.globalColors.black_20}
                 style={styles.marginLeftTiny}
               />
             )}
@@ -602,7 +612,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     return (
       <>
         <LongPressable
-          {...this._containerProps()}
+          {...(this.props.message.type !== 'journeycard' && this._containerProps())}
           children={[
             this.props.message.type === 'journeycard' ? (
               <TeamJourney message={this.props.message} />
@@ -690,6 +700,7 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       edited: {color: Styles.globalColors.black_20},
+      editedHighlighted: {color: Styles.globalColors.black_20OrBlack},
       ellipsis: {marginLeft: Styles.globalMargins.tiny},
       emojiRow: Styles.platformStyles({
         isElectron: {

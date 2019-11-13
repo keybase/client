@@ -602,6 +602,18 @@ func (bra BlockRequestAction) AddSync() BlockRequestAction {
 	return bra | blockRequestSync
 }
 
+// AddPrefetch returns a new action that adds prefetching in addition
+// to the original request.  For sync requests, it returns a
+// deep-sync request (unlike `Combine`, which just adds the regular
+// prefetch bit).
+func (bra BlockRequestAction) AddPrefetch() BlockRequestAction {
+	if bra.Sync() {
+		return BlockRequestWithDeepSync
+	}
+
+	return bra | blockRequestPrefetch | blockRequestTrackedInPrefetch
+}
+
 // CacheType returns the disk block cache type that should be used,
 // according to the type of action.
 func (bra BlockRequestAction) CacheType() DiskBlockCacheType {
@@ -726,9 +738,16 @@ func (p *parsedPath) getRootNode(ctx context.Context, config Config) (Node, erro
 	if err != nil {
 		return nil, err
 	}
+	branch := data.MasterBranch
+	if tlfHandle.IsLocalConflict() {
+		b, ok := data.MakeConflictBranchName(tlfHandle)
+		if ok {
+			branch = b
+		}
+	}
 	// Get the root node first to initialize the TLF.
 	node, _, err := config.KBFSOps().GetRootNode(
-		ctx, tlfHandle, data.MasterBranch)
+		ctx, tlfHandle, branch)
 	if err != nil {
 		return nil, err
 	}

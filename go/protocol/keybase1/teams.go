@@ -2021,28 +2021,30 @@ func (o TeamMemberOutFromReset) DeepCopy() TeamMemberOutFromReset {
 }
 
 type TeamChangeRow struct {
-	Id                TeamID `codec:"id" json:"id"`
-	Name              string `codec:"name" json:"name"`
-	KeyRotated        bool   `codec:"keyRotated" json:"key_rotated"`
-	MembershipChanged bool   `codec:"membershipChanged" json:"membership_changed"`
-	LatestSeqno       Seqno  `codec:"latestSeqno" json:"latest_seqno"`
-	LatestHiddenSeqno Seqno  `codec:"latestHiddenSeqno" json:"latest_hidden_seqno"`
-	ImplicitTeam      bool   `codec:"implicitTeam" json:"implicit_team"`
-	Misc              bool   `codec:"misc" json:"misc"`
-	RemovedResetUsers bool   `codec:"removedResetUsers" json:"removed_reset_users"`
+	Id                  TeamID `codec:"id" json:"id"`
+	Name                string `codec:"name" json:"name"`
+	KeyRotated          bool   `codec:"keyRotated" json:"key_rotated"`
+	MembershipChanged   bool   `codec:"membershipChanged" json:"membership_changed"`
+	LatestSeqno         Seqno  `codec:"latestSeqno" json:"latest_seqno"`
+	LatestHiddenSeqno   Seqno  `codec:"latestHiddenSeqno" json:"latest_hidden_seqno"`
+	LatestOffchainSeqno Seqno  `codec:"latestOffchainSeqno" json:"latest_offchain_seqno"`
+	ImplicitTeam        bool   `codec:"implicitTeam" json:"implicit_team"`
+	Misc                bool   `codec:"misc" json:"misc"`
+	RemovedResetUsers   bool   `codec:"removedResetUsers" json:"removed_reset_users"`
 }
 
 func (o TeamChangeRow) DeepCopy() TeamChangeRow {
 	return TeamChangeRow{
-		Id:                o.Id.DeepCopy(),
-		Name:              o.Name,
-		KeyRotated:        o.KeyRotated,
-		MembershipChanged: o.MembershipChanged,
-		LatestSeqno:       o.LatestSeqno.DeepCopy(),
-		LatestHiddenSeqno: o.LatestHiddenSeqno.DeepCopy(),
-		ImplicitTeam:      o.ImplicitTeam,
-		Misc:              o.Misc,
-		RemovedResetUsers: o.RemovedResetUsers,
+		Id:                  o.Id.DeepCopy(),
+		Name:                o.Name,
+		KeyRotated:          o.KeyRotated,
+		MembershipChanged:   o.MembershipChanged,
+		LatestSeqno:         o.LatestSeqno.DeepCopy(),
+		LatestHiddenSeqno:   o.LatestHiddenSeqno.DeepCopy(),
+		LatestOffchainSeqno: o.LatestOffchainSeqno.DeepCopy(),
+		ImplicitTeam:        o.ImplicitTeam,
+		Misc:                o.Misc,
+		RemovedResetUsers:   o.RemovedResetUsers,
 	}
 }
 
@@ -2850,14 +2852,12 @@ func (o TeamTreeEntry) DeepCopy() TeamTreeEntry {
 
 type SubteamListEntry struct {
 	Name        TeamName `codec:"name" json:"name"`
-	TeamID      TeamID   `codec:"teamID" json:"teamID"`
 	MemberCount int      `codec:"memberCount" json:"memberCount"`
 }
 
 func (o SubteamListEntry) DeepCopy() SubteamListEntry {
 	return SubteamListEntry{
 		Name:        o.Name.DeepCopy(),
-		TeamID:      o.TeamID.DeepCopy(),
 		MemberCount: o.MemberCount,
 	}
 }
