@@ -210,7 +210,9 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
         })
       )
     case SettingsGen.editContactImportEnabled:
-      return state.update('contacts', contacts => contacts.set('waitingToShowJoinedModal', true))
+      return action.payload.fromSettings
+        ? state.update('contacts', contacts => contacts.set('waitingToShowJoinedModal', true))
+        : state
     case SettingsGen.importContactsLater:
       return state.update('contacts', contacts => contacts.set('importPromptDismissed', true))
     case SettingsGen.loadedUserCountryCode:

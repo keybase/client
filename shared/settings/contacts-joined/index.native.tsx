@@ -7,7 +7,9 @@ import {FollowButton, WaveButton} from './buttons'
 import * as Tracker2Constants from '../../constants/tracker2'
 type Props = {}
 
-const renderItem = (_: number, item: RPCTypes.ProcessedContact) => {
+const renderItem = (_: number, item: RPCTypes.ProcessedContact) => <Item item={item} />
+
+const Item = ({item}: {item: RPCTypes.ProcessedContact}) => {
   const username = item.username
   const label =
     item.contactName || (item.component && (item.component.phoneNumber || item.component.email)) || ''

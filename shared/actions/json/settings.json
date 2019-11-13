@@ -68,11 +68,11 @@
     },
     "requestContactPermissions": {
       "thenToggleImportOn?": "boolean",
-      "fromSettings": "boolean"
+      "fromSettings?": "boolean"
     },
     "editContactImportEnabled": {
       "enable": "boolean",
-      "fromSettings": "boolean"
+      "fromSettings?": "boolean"
     },
     "showContactsJoinedModal": {
       "newlyResolved": "Array<RPCTypes.ProcessedContact>"
