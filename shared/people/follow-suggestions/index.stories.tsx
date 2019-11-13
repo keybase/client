@@ -67,9 +67,10 @@ const props2 = {
 }
 
 const props3 = {
-  suggestions: props2.suggestions.concat(
-    props2.suggestions.map(suggestion => suggestion.set('username', suggestion.username + '1'))
-  ),
+  suggestions: [
+    ...props2.suggestions,
+    ...props2.suggestions.map(suggestion => ({...suggestion, username: suggestion.username + '1'})),
+  ],
 }
 
 const load = () => {
