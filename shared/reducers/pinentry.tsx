@@ -1,36 +1,24 @@
 import * as Types from '../constants/types/pinentry'
-import * as Constants from '../constants/pinentry'
+import * as RPCTypes from '../constants/types/rpc-gen'
 import * as PinentryGen from '../actions/pinentry-gen'
+import * as Container from '../util/container'
 
-const initialState: Types.State = Constants.makeState()
-
-export default function(state: Types.State = initialState, action: PinentryGen.Actions): Types.State {
-  switch (action.type) {
-    case PinentryGen.resetStore:
-      return initialState
-    case PinentryGen.deleteEntity: {
-      const {keyPath, ids} = action.payload
-      return state.updateIn(keyPath, map => map.deleteAll(ids))
-    }
-    case PinentryGen.mergeEntity: {
-      const {keyPath, entities} = action.payload
-      return state.mergeDeepIn(keyPath, entities)
-    }
-    case PinentryGen.replaceEntity: {
-      const {keyPath, entities} = action.payload
-      // @ts-ignore
-      return state.mergeIn(keyPath, entities)
-    }
-    case PinentryGen.subtractEntity: {
-      const {keyPath, entities} = action.payload
-      return state.updateIn(keyPath, set => set.subtract(entities))
-    }
-    // Saga only actions
-    case PinentryGen.newPinentry:
-    case PinentryGen.onCancel:
-    case PinentryGen.onSubmit:
-      return state
-    default:
-      return state
-  }
+const initialState: Types.State = {
+  prompt: '',
+  type: RPCTypes.PassphraseType.none,
+  windowTitle: '',
 }
+
+export default Container.makeReducer<PinentryGen.Actions, Types.State>(initialState, {
+  [PinentryGen.resetStore]: () => initialState,
+  [PinentryGen.close]: () => initialState,
+  [PinentryGen.newPinentry]: (draftState, action) => {
+    draftState.cancelLabel = action.payload.cancelLabel
+    draftState.prompt = action.payload.prompt
+    draftState.retryLabel = action.payload.retryLabel
+    draftState.showTyping = action.payload.showTyping
+    draftState.submitLabel = action.payload.submitLabel
+    draftState.type = action.payload.type
+    draftState.windowTitle = action.payload.windowTitle
+  },
+})
