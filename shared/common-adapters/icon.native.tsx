@@ -74,7 +74,6 @@ const Text = React.forwardRef<NativeText, TextProps>((p, ref) => {
       // @ts-ignore TODO fix styles
       style={[styles.text, style, fontSizeStyle, p.style]}
       allowFontScaling={false}
-      type={p.type}
       ref={ref}
       onPress={p.onClick || undefined}
       suppressHighlighting={true}

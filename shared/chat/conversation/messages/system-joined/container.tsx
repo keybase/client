@@ -52,8 +52,4 @@ const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
   }
 }
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
-)(Joined)
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Joined)

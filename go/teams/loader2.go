@@ -186,8 +186,9 @@ var whitelistedTeamLinkSigs = []keybase1.SigID{
 
 func (l *TeamLoader) addProofsForKeyInUserSigchain(ctx context.Context, teamID keybase1.TeamID, link *ChainLinkUnpacked, uid keybase1.UID, key *keybase1.PublicKeyV2NaCl, userLinkMap linkMapT, proofSet *proofSetT) {
 	for _, okSigID := range whitelistedTeamLinkSigs {
-		if link.SigID().Equal(okSigID) {
+		if link.SigID().EqualIgnoreLastByte(okSigID) {
 			// This proof is whitelisted, so don't check it.
+			l.G().Log.CDebugf(ctx, "addProofsForKeyInUserSigchain: skipping exceptional link: %v", link.SigID())
 			return
 		}
 	}

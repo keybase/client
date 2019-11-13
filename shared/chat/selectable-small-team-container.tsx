@@ -72,6 +72,9 @@ const mergeProps = (stateProps, _, ownProps) => {
   }
 }
 
-export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'SelectableSmallTeam')(
-  SelectableSmallTeam
-)
+export default namedConnect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'SelectableSmallTeam'
+)(SelectableSmallTeam)

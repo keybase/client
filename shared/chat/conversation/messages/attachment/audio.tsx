@@ -20,17 +20,18 @@ const AudioAttachment = (props: Props) => {
     message.downloadPath &&
       dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: message.downloadPath}))
   }
-  const url = message.fileURL.length > 0 ? `${message.fileURL}&contentforce=true` : ''
+  const url = !message.submitState && message.fileURL.length > 0 ? `${message.fileURL}&contentforce=true` : ''
+  const showInFinder = !!message.downloadPath && !Styles.isMobile
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start">
       <Kb.Box2 direction="vertical" gap="xtiny">
         <Kb.Box2 direction="horizontal" fullWidth={true}>
-          <AudioPlayer duration={message.audioDuration} url={url} visAmps={message.audioAmps} />
+          <AudioPlayer big={true} duration={message.audioDuration} url={url} visAmps={message.audioAmps} />
         </Kb.Box2>
-        {!!progressLabel && (
+        {!showInFinder && (
           <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
             <Kb.Text type="BodySmall" style={styles.progressLabelStyle}>
-              {progressLabel}
+              {progressLabel || '\u00A0'}
             </Kb.Text>
             {hasProgress && <Kb.ProgressBar ratio={message.transferProgress} />}
           </Kb.Box2>
@@ -42,7 +43,7 @@ const AudioAttachment = (props: Props) => {
             </Kb.Text>
           </Kb.Box2>
         )}
-        {!!message.downloadPath && !Styles.isMobile && (
+        {showInFinder && (
           <Kb.Text type="BodySmallPrimaryLink" onClick={onShowInFinder} style={styles.linkStyle}>
             Show in {Styles.fileUIName}
           </Kb.Text>

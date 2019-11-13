@@ -45,13 +45,15 @@ const apiSearchOne = async (
   query: string,
   service: TeamBuildingTypes.ServiceIdWithContact
 ): Promise<TeamBuildingTypes.User | undefined> =>
-  (await apiSearch(
-    query,
-    service,
-    1 /* maxResults */,
-    true /* serviceSummaries */,
-    false /* includeContacts */
-  ))[0]
+  (
+    await apiSearch(
+      query,
+      service,
+      1 /* maxResults */,
+      true /* serviceSummaries */,
+      false /* includeContacts */
+    )
+  )[0]
 
 // If the query is a well-formatted phone number or email, do additional search
 // and if the result is not already in the list, insert at the beginning.
@@ -141,7 +143,11 @@ export function filterForNs<S, A, L, R>(
   }
 }
 
+const makeCustomResetStore = () =>
+  TeamBuildingTypes.allowedNamespace.map(namespace => TeamBuildingGen.createTbResetStore({namespace}))
+
 export default function* commonSagas(namespace: TeamBuildingTypes.AllowedNamespace) {
+  yield* Saga.chainAction2(TeamBuildingGen.resetStore, makeCustomResetStore)
   yield* Saga.chainAction2(TeamBuildingGen.search, filterForNs(namespace, search))
   yield* Saga.chainAction2(TeamBuildingGen.fetchUserRecs, filterForNs(namespace, fetchUserRecs))
   // Navigation, before creating

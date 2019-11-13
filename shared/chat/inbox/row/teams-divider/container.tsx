@@ -1,16 +1,17 @@
 import {TeamsDivider} from '.'
 import {namedConnect, TypedState} from '../../../../util/container'
-import {StylesCrossPlatform} from '../../../../styles'
+import * as Styles from '../../../../styles'
 import {RowItem} from '../..'
 import {memoize} from '../../../../util/memoize'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Types from '../../../../constants/types/chat2'
 
 type OwnProps = {
+  hiddenCountDelta: number
   rows: Array<RowItem>
   showButton: boolean
   toggle: () => void
-  style?: StylesCrossPlatform
+  style?: Styles.StylesCrossPlatform
 }
 
 const mapStateToProps = (state: TypedState) => ({
@@ -63,6 +64,10 @@ export default namedConnect(
       const fromMeta = getMetaCounts(stateProps._badges, stateProps._inboxLayout)
       badgeCount += fromMeta.badgeCount
       hiddenCount += fromMeta.hiddenCount
+    }
+
+    if (!Styles.isMobile) {
+      hiddenCount += ownProps.hiddenCountDelta
     }
 
     return {

@@ -3,7 +3,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import CommonResult, {ResultProps} from './common-result'
 
-const UserResult = (props: ResultProps) => {
+const UserResult = React.memo((props: ResultProps) => {
   return (
     <CommonResult
       {...props}
@@ -15,7 +15,7 @@ const UserResult = (props: ResultProps) => {
       }
     />
   )
-}
+})
 const actionButtonSize = Styles.isMobile ? 22 : Styles.globalMargins.small
 
 const ActionButton = (props: {inTeam: boolean; onAdd: () => void; onRemove: () => void}) => {

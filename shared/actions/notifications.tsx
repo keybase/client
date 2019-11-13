@@ -77,9 +77,7 @@ const receivedBoxAuditError = (
 ) =>
   ConfigGen.createGlobalError({
     globalError: new Error(
-      `Keybase had a problem loading a team, please report this with \`keybase log send\`: ${
-        action.payload.params.message
-      }`
+      `Keybase had a problem loading a team, please report this with \`keybase log send\`: ${action.payload.params.message}`
     ),
   })
 

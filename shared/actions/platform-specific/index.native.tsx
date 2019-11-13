@@ -25,6 +25,7 @@ import {
   ActionSheetIOS,
   PermissionsAndroid,
   Clipboard,
+  Vibration,
 } from 'react-native'
 import CameraRoll from '@react-native-community/cameraroll'
 import NetInfo from '@react-native-community/netinfo'
@@ -806,17 +807,12 @@ const onEnableAudioRecording = async (
     return false
   }
 
-  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-  const outboxID = ChatConstants.generateOutboxID()
-  try {
-    await requestAudioPermission()
-  } catch (err) {
-    logger.info('failed to get audio perms: ' + err)
-    return setPermissionDeniedCommandStatus(
-      action.payload.conversationIDKey,
-      `Failed to access audio. ${err.message}`
-    )
+  if (isIOS) {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+  } else {
+    Vibration.vibrate(50)
   }
+  const outboxID = ChatConstants.generateOutboxID()
   const audioPath = await RPCChatTypes.localGetUploadTempFileRpcPromise({filename: 'audio.m4a', outboxID})
   AudioRecorder.prepareRecordingAtPath(audioPath, {
     AudioEncoding: 'aac',
@@ -839,7 +835,11 @@ const onEnableAudioRecording = async (
 
 const onSendAudioRecording = (_: Container.TypedState, action: Chat2Gen.SendAudioRecordingPayload) => {
   if (!action.payload.fromStaged) {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+    if (isIOS) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+    } else {
+      Vibration.vibrate(50)
+    }
   }
 }
 

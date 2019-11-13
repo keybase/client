@@ -86,8 +86,11 @@ const mapDispatchToProps = dispatch => ({
 const mergeProps = (stateProps, dispatchProps, ownProps: ConnectedProps) =>
   connectedPropsToProps(stateProps, dispatchProps, ownProps, userDataFromState)
 
-const ConnectedUsernames = namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Usernames')(
-  Usernames
-)
+const ConnectedUsernames = namedConnect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'Usernames'
+)(Usernames)
 
 export default ConnectedUsernames

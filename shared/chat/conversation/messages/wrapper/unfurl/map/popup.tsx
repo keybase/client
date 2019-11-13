@@ -53,9 +53,7 @@ const UnfurlMapPopup = (props: Props) => {
   // render
   const width = Math.ceil(Styles.dimensionWidth)
   const height = Math.ceil(Styles.dimensionHeight)
-  const mapSrc = `http://${httpSrvAddress}/map?lat=${coord.lat}&lon=${
-    coord.lon
-  }&width=${width}&height=${height}&token=${httpSrvToken}&username=${author}`
+  const mapSrc = `http://${httpSrvAddress}/map?lat=${coord.lat}&lon=${coord.lon}&width=${width}&height=${height}&token=${httpSrvToken}&username=${author}`
   return (
     <Kb.Modal
       header={{

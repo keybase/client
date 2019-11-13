@@ -1033,6 +1033,18 @@ func getSenderPrefix(mvalid chat1.MessageUnboxedValid, conv chat1.ConversationLo
 	return senderPrefix
 }
 
+func formatDuration(dur time.Duration) string {
+	h := dur / time.Hour
+	dur -= h * time.Hour
+	m := dur / time.Minute
+	dur -= m * time.Minute
+	s := dur / time.Second
+	if h > 0 {
+		return fmt.Sprintf("%02d:%02d:%02d", h, m, s)
+	}
+	return fmt.Sprintf("%02d:%02d", m, s)
+}
+
 func GetMsgSnippetBody(msg chat1.MessageUnboxed) (snippet string) {
 	defer func() {
 		snippet = EscapeShrugs(context.TODO(), snippet)
@@ -1061,10 +1073,11 @@ func GetMsgSnippetBody(msg chat1.MessageUnboxed) (snippet string) {
 			case chat1.AssetMetadataType_IMAGE:
 				title = "📷 attachment"
 			case chat1.AssetMetadataType_VIDEO:
+				dur := formatDuration(time.Duration(obj.Metadata.Video().DurationMs) * time.Millisecond)
 				if obj.Metadata.Video().IsAudio {
-					title = "🔊 attachment"
+					title = fmt.Sprintf("🔊 attachment (%s)", dur)
 				} else {
-					title = "🎞 attachment"
+					title = fmt.Sprintf("🎞 attachment (%s)", dur)
 				}
 			default:
 				title = obj.Filename

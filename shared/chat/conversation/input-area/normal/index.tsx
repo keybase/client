@@ -185,11 +185,13 @@ class Input extends React.Component<InputProps, InputState> {
       users: this._transformUserSuggestion,
     }
 
-    // + 1 for '/'
-    this._maxCmdLength =
-      this.props.suggestCommands
-        .concat(this.props.suggestBotCommands)
-        .reduce((max, cmd) => (cmd.name.length > max ? cmd.name.length : max), 0) + 1
+    if (this.props.suggestCommands) {
+      // + 1 for '/'
+      this._maxCmdLength =
+        this.props.suggestCommands
+          .concat(this.props.suggestBotCommands || [])
+          .reduce((max, cmd) => (cmd.name.length > max ? cmd.name.length : max), 0) + 1
+    }
   }
 
   _inputSetRef = (input: null | Kb.PlainInput) => {
@@ -333,12 +335,14 @@ class Input extends React.Component<InputProps, InputState> {
       prevProps.suggestBotCommands != this.props.suggestBotCommands ||
       prevProps.suggestCommands != this.props.suggestCommands
     ) {
-      // different commands so we need to recalculate max command length
-      // + 1 for '/'
-      this._maxCmdLength =
-        this.props.suggestCommands
-          .concat(this.props.suggestBotCommands)
-          .reduce((max, cmd) => (cmd.name.length > max ? cmd.name.length : max), 0) + 1
+      if (this.props.suggestCommands) {
+        // different commands so we need to recalculate max command length
+        // + 1 for '/'
+        this._maxCmdLength =
+          this.props.suggestCommands
+            .concat(this.props.suggestBotCommands || [])
+            .reduce((max, cmd) => (cmd.name.length > max ? cmd.name.length : max), 0) + 1
+      }
     }
 
     // Otherwise, inject unsent text. This must come after quote

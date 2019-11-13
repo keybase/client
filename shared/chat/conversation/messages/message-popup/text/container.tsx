@@ -14,7 +14,7 @@ import Text from '.'
 
 type OwnProps = {
   attachTo?: () => React.Component<any> | null
-  message: Types.MessageWithReactionPopup
+  message: Types.MessagesWithReactions
   onHidden: () => void
   position: Position
   style?: StylesCrossPlatform
@@ -118,11 +118,16 @@ export default Container.namedConnect(
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     const message = ownProps.message
     const yourMessage = message.author === stateProps._you
-    const isDeleteable = stateProps._isDeleteable && (yourMessage || stateProps._canAdminDelete)
-    const isEditable = stateProps._isEditable && yourMessage
+    const isDeleteable = !!(stateProps._isDeleteable && (yourMessage || stateProps._canAdminDelete))
+    const isEditable = !!(stateProps._isEditable && yourMessage)
     const canReplyPrivately = stateProps._canReplyPrivately
     const mapUnfurl = Constants.getMapUnfurl(message)
-    const onViewMap = mapUnfurl ? () => openURL(mapUnfurl.url) : undefined
+    const isLocation = !!mapUnfurl
+    // don't pass onViewMap if we don't have a coordinate (e.g. when a location share ends)
+    const onViewMap =
+      mapUnfurl && mapUnfurl.mapInfo && !mapUnfurl.mapInfo.isLiveLocationDone
+        ? () => openURL(mapUnfurl.url)
+        : undefined
     return {
       attachTo: ownProps.attachTo,
       author: message.author,
@@ -131,6 +136,7 @@ export default Container.namedConnect(
       deviceType: message.deviceType,
       isDeleteable,
       isEditable,
+      isLocation,
       onAddReaction: Container.isMobile ? () => dispatchProps._onAddReaction(message) : undefined,
       onCopy: message.type === 'text' ? () => dispatchProps._onCopy(message) : undefined,
       onDelete: isDeleteable ? () => dispatchProps._onDelete(message) : undefined,

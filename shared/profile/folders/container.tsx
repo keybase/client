@@ -113,4 +113,4 @@ const noFolders: typeof hasFolders = namedConnect(
   'ConnectedFolders'
 )(Folders)
 
-export default (flags.foldersInProfileTab ? hasFolders : noFolders)
+export default flags.foldersInProfileTab ? hasFolders : noFolders

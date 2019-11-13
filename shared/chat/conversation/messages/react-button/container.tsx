@@ -78,7 +78,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   if (!reaction) {
     return noEmoji
   }
-  const active = reaction.some(r => r.username === me)
+  const active = [...reaction].some(r => r.username === me)
   return {
     active,
     count: reaction.size,

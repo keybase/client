@@ -5,7 +5,6 @@ import * as Styles from '../styles'
 import {useVideoSizer, CheckURL} from './video.shared'
 import RNVideo from 'react-native-video'
 import {StatusBar} from 'react-native'
-import logger from '../logger'
 
 const Kb = {
   Box,
@@ -45,7 +44,7 @@ const Video = (props: Props) => {
           <RNVideo
             source={{uri: props.url}}
             onError={e => {
-              logger.error(`Error loading vid: ${JSON.stringify(e)}`)
+              props.onUrlError && props.onUrlError(JSON.stringify(e))
             }}
             controls={true}
             onFullscreenPlayerDidDismiss={() => {

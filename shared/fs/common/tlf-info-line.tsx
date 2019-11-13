@@ -5,6 +5,7 @@ import * as Types from '../../constants/types/fs'
 import {formatTimeForFS} from '../../util/timestamp'
 
 export type Props = {
+  isNew: boolean
   mixedMode?: boolean
   mode: 'row' | 'default'
   reset: boolean | Array<string>
@@ -20,6 +21,15 @@ const getOtherResetText = (names: Array<string>): string => {
   }
   return `${names.slice(0, -1).join(', ')}, and ${names[names.length - 1]} have reset their accounts.`
 }
+
+const newMetaMaybe = (props: Props) =>
+  props.mode === 'row' && props.isNew === true ? (
+    <Kb.Meta
+      title="new"
+      backgroundColor={Styles.globalColors.orange}
+      style={Styles.collapseStyles([styles.meta, {marginRight: Styles.globalMargins.xtiny}])}
+    />
+  ) : null
 
 const resetMetaMaybe = (props: Props) =>
   props.mode === 'row' && props.reset === true ? (
@@ -44,7 +54,7 @@ const resetText = (props: Props) => {
   ) : null
 }
 
-const PrefixText = (props: Props) =>
+const getPrefixText = (props: Props) =>
   props.mixedMode && props.tlfType ? (
     <Kb.Box2 direction="horizontal" gap="xtiny" gapEnd={true}>
       <Kb.Text
@@ -85,7 +95,7 @@ const getText = (props: Props) => {
 }
 
 const TlfInfoLine = (props: Props) => {
-  const prefix = <PrefixText {...props} />
+  const prefix = getPrefixText(props)
   const dot = (
     <Kb.Text
       type="BodySmall"
@@ -96,7 +106,8 @@ const TlfInfoLine = (props: Props) => {
     </Kb.Text>
   )
 
-  const reset = resetMetaMaybe(props)
+  const newMeta = newMetaMaybe(props)
+  const resetMeta = resetMetaMaybe(props)
   const text = getText(props)
   return (
     <Kb.Box2
@@ -105,9 +116,10 @@ const TlfInfoLine = (props: Props) => {
       centerChildren={props.mode === 'default'}
       alignItems="center"
     >
+      {newMeta}
       {prefix}
-      {prefix && (reset || text) ? dot : null}
-      {reset}
+      {prefix && (resetMeta || text) ? dot : null}
+      {resetMeta}
       {text}
     </Kb.Box2>
   )
@@ -121,6 +133,7 @@ const styles = Styles.styleSheetCreate(
         marginRight: Styles.globalMargins.xtiny,
       },
       textDefault: {
+        flexShrink: 1,
         textAlign: 'center',
       },
       textRow: Styles.platformStyles({
@@ -128,6 +141,9 @@ const styles = Styles.styleSheetCreate(
           overflow: 'hidden',
           textOverflow: 'ellipsis',
           whiteSpace: 'nowrap',
+        },
+        isMobile: {
+          flexShrink: 1,
         },
       }),
     } as const)

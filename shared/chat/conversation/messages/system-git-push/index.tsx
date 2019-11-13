@@ -208,14 +208,17 @@ const styles = Styles.styleSheetCreate(
         padding: 2,
       },
       grow: {
-        flexGrow: 1,
+        flex: 1,
       },
       hashAndMessage: {
-        flexGrow: 1,
         paddingBottom: Styles.globalMargins.xtiny,
         paddingTop: Styles.globalMargins.xtiny,
       },
-      marker: {marginRight: Styles.globalMargins.xtiny, ...(Styles.isMobile ? {marginTop: -3} : null)},
+      marker: {
+        marginRight: Styles.globalMargins.xtiny,
+        ...(Styles.isMobile ? {marginTop: -3} : null),
+        minWidth: 0,
+      },
       repoText: {color: Styles.globalColors.black_50},
       textLeft: {textAlign: 'left'},
     } as const)
