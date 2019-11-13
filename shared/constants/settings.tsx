@@ -13,24 +13,6 @@ export const makeNotificationsGroup = (): Types.NotificationsGroupState => ({
   unsubscribedFromAll: false,
 })
 
-export const makeNotifications = (): Types.NotificationsState => ({
-  allowEdit: false,
-  groups: new Map(),
-})
-
-export const makeUnfurl = (): Types.ChatUnfurlState => ({
-  unfurlWhitelist: [],
-})
-
-export const makeChat = (): Types.ChatState => ({
-  unfurl: makeUnfurl(),
-})
-
-export const makeEmail = (): Types.EmailState => ({
-  error: '',
-  newEmail: '',
-})
-
 export const makeEmailRow = (): Types.EmailRow => ({
   email: '',
   isPrimary: false,
@@ -59,41 +41,41 @@ export const toPhoneRow = (p: RPCTypes.UserPhoneNumber) => {
   }
 }
 
-export const makeFeedback = (): Types.FeedbackState => ({})
-
-export const makeInvites = (): Types.InvitesState => ({
-  acceptedInvites: [],
-  pendingInvites: [],
-})
-
-export const makePassword = (): Types.PasswordState => ({
-  newPassword: new HiddenString(''),
-  newPasswordConfirm: new HiddenString(''),
-  rememberPassword: true,
-})
-
-export const makePhoneNumbers = (): Types.PhoneNumbersState => ({
-  addedPhone: false,
-  error: '',
-  pendingVerification: '',
-})
-
-export const makeContacts = (): Types.ContactsState => ({
-  importError: '',
-  importPromptDismissed: false,
-  permissionStatus: 'unknown',
-})
-
 export const makeState = (): Types.State => ({
   allowDeleteAccount: false,
-  chat: makeChat(),
-  contacts: makeContacts(),
-  email: makeEmail(),
-  feedback: makeFeedback(),
-  invites: makeInvites(),
-  notifications: makeNotifications(),
-  password: makePassword(),
-  phoneNumbers: makePhoneNumbers(),
+  chat: {
+    unfurl: {
+      unfurlWhitelist: [],
+    },
+  },
+  contacts: {
+    importError: '',
+    importPromptDismissed: false,
+    permissionStatus: 'unknown',
+  },
+  email: {
+    error: '',
+    newEmail: '',
+  },
+  feedback: {},
+  invites: {
+    acceptedInvites: [],
+    pendingInvites: [],
+  },
+  notifications: {
+    allowEdit: false,
+    groups: new Map(),
+  },
+  password: {
+    newPassword: new HiddenString(''),
+    newPasswordConfirm: new HiddenString(''),
+    rememberPassword: true,
+  },
+  phoneNumbers: {
+    addedPhone: false,
+    error: '',
+    pendingVerification: '',
+  },
 })
 
 export const getPushTokenForLogSend = (state: TypedState) => ({pushToken: state.push.token})

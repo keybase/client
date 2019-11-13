@@ -61,7 +61,9 @@ export type PasswordState = {
   randomPW?: boolean
 }
 
-export type EmailRow = RPCTypes.Email
+type Writeable<T> = {-readonly [P in keyof T]: T[P]}
+
+export type EmailRow = Writeable<RPCTypes.Email>
 
 export type EmailState = {
   addingEmail?: string

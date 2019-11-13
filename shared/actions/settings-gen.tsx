@@ -1,5 +1,5 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-import * as I from 'immutable'
+
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as Types from '../constants/types/settings'
@@ -91,7 +91,7 @@ type _AddedPhoneNumberPayload = {
   readonly error?: string
   readonly phoneNumber: string
 }
-type _CertificatePinningToggledPayload = {readonly toggled: boolean | null}
+type _CertificatePinningToggledPayload = {readonly toggled?: boolean}
 type _CheckPasswordPayload = {readonly password: HiddenString}
 type _ClearAddedEmailPayload = void
 type _ClearAddedPhonePayload = void
@@ -105,18 +105,18 @@ type _EditEmailPayload = {
   readonly email: string
   readonly delete?: boolean
   readonly makePrimary?: boolean
-  readonly makeSearchable?: boolean | null
+  readonly makeSearchable?: boolean
   readonly verify?: boolean
 }
 type _EditPhonePayload = {readonly phone: string; readonly delete?: boolean; readonly setSearchable?: boolean}
 type _EmailVerifiedPayload = {readonly email: string}
-type _FeedbackSentPayload = {readonly error: Error | null}
+type _FeedbackSentPayload = {readonly error?: Error}
 type _ImportContactsLaterPayload = void
 type _InvitesClearErrorPayload = void
 type _InvitesReclaimPayload = {readonly inviteId: string}
 type _InvitesRefreshPayload = void
 type _InvitesRefreshedPayload = {readonly invites: Types.InvitesState}
-type _InvitesSendPayload = {readonly email: string; readonly message: string | null}
+type _InvitesSendPayload = {readonly email: string; readonly message?: string}
 type _InvitesSentPayload = {readonly error?: Error}
 type _LoadContactImportEnabledPayload = void
 type _LoadHasRandomPwPayload = void
@@ -124,23 +124,23 @@ type _LoadLockdownModePayload = void
 type _LoadProxyDataPayload = void
 type _LoadRememberPasswordPayload = void
 type _LoadSettingsPayload = void
-type _LoadedCheckPasswordPayload = {readonly checkPasswordIsCorrect: boolean | null}
+type _LoadedCheckPasswordPayload = {readonly checkPasswordIsCorrect?: boolean}
 type _LoadedContactImportEnabledPayload = {readonly enabled: boolean}
 type _LoadedContactPermissionsPayload = {readonly status: 'granted' | 'never_ask_again' | 'undetermined'}
 type _LoadedHasRandomPwPayload = {readonly randomPW: boolean}
-type _LoadedLockdownModePayload = {readonly status: boolean | null}
+type _LoadedLockdownModePayload = {readonly status?: boolean}
 type _LoadedProxyDataPayload = {readonly proxyData: RPCTypes.ProxyData}
 type _LoadedRememberPasswordPayload = {readonly remember: boolean}
 type _LoadedSettingsPayload = {
-  readonly emails: I.Map<string, Types.EmailRow> | null
-  readonly phones: I.Map<string, Types.PhoneRow> | null
+  readonly emails?: Map<string, Types.EmailRow>
+  readonly phones?: Map<string, Types.PhoneRow>
 }
-type _LoadedUserCountryCodePayload = {readonly code: string | null}
+type _LoadedUserCountryCodePayload = {readonly code?: string}
 type _LoginBrowserViaWebAuthTokenPayload = void
 type _NotificationsRefreshPayload = void
-type _NotificationsRefreshedPayload = {readonly notifications: I.Map<string, Types.NotificationsGroupState>}
+type _NotificationsRefreshedPayload = {readonly notifications: Map<string, Types.NotificationsGroupState>}
 type _NotificationsSavedPayload = void
-type _NotificationsTogglePayload = {readonly group: string; readonly name?: string | null}
+type _NotificationsTogglePayload = {readonly group: string; readonly name?: string}
 type _OnChangeLockdownModePayload = {readonly enabled: boolean}
 type _OnChangeNewEmailPayload = {readonly email: string}
 type _OnChangeNewPasswordConfirmPayload = {readonly password: HiddenString}
@@ -163,7 +163,7 @@ type _SendFeedbackPayload = {
   readonly sendMaxBytes: boolean
 }
 type _SentVerificationEmailPayload = {readonly email: string}
-type _SetContactImportedCountPayload = {readonly count: number | null; readonly error?: string}
+type _SetContactImportedCountPayload = {readonly count?: number; readonly error?: string}
 type _StopPayload = {readonly exitCode: RPCTypes.ExitCode}
 type _ToggleRuntimeStatsPayload = void
 type _TracePayload = {readonly durationSeconds: number}
@@ -171,12 +171,9 @@ type _UnfurlSettingsErrorPayload = {readonly error: string}
 type _UnfurlSettingsRefreshPayload = void
 type _UnfurlSettingsRefreshedPayload = {
   readonly mode: RPCChatTypes.UnfurlMode
-  readonly whitelist: I.List<string>
+  readonly whitelist: Array<string>
 }
-type _UnfurlSettingsSavedPayload = {
-  readonly mode: RPCChatTypes.UnfurlMode
-  readonly whitelist: I.List<string>
-}
+type _UnfurlSettingsSavedPayload = {readonly mode: RPCChatTypes.UnfurlMode; readonly whitelist: Array<string>}
 type _VerifiedPhoneNumberPayload = {readonly error?: string; readonly phoneNumber: string}
 type _VerifyPhoneNumberPayload = {readonly phoneNumber: string; readonly code: string}
 
@@ -204,10 +201,9 @@ export const createUnfurlSettingsError = (
 /**
  * An error occurred while trying to send feedback to Keybase
  */
-export const createFeedbackSent = (payload: _FeedbackSentPayload): FeedbackSentPayload => ({
-  payload,
-  type: feedbackSent,
-})
+export const createFeedbackSent = (
+  payload: _FeedbackSentPayload = Object.freeze({})
+): FeedbackSentPayload => ({payload, type: feedbackSent})
 /**
  * Cancel adding a phone number.
  */
@@ -297,7 +293,7 @@ export const createAddedEmail = (payload: _AddedEmailPayload): AddedEmailPayload
   type: addedEmail,
 })
 export const createCertificatePinningToggled = (
-  payload: _CertificatePinningToggledPayload
+  payload: _CertificatePinningToggledPayload = Object.freeze({})
 ): CertificatePinningToggledPayload => ({payload, type: certificatePinningToggled})
 export const createCheckPassword = (payload: _CheckPasswordPayload): CheckPasswordPayload => ({
   payload,
@@ -359,7 +355,7 @@ export const createLoadSettings = (payload: _LoadSettingsPayload): LoadSettingsP
   type: loadSettings,
 })
 export const createLoadedCheckPassword = (
-  payload: _LoadedCheckPasswordPayload
+  payload: _LoadedCheckPasswordPayload = Object.freeze({})
 ): LoadedCheckPasswordPayload => ({payload, type: loadedCheckPassword})
 export const createLoadedContactImportEnabled = (
   payload: _LoadedContactImportEnabledPayload
@@ -371,10 +367,9 @@ export const createLoadedHasRandomPw = (payload: _LoadedHasRandomPwPayload): Loa
   payload,
   type: loadedHasRandomPw,
 })
-export const createLoadedLockdownMode = (payload: _LoadedLockdownModePayload): LoadedLockdownModePayload => ({
-  payload,
-  type: loadedLockdownMode,
-})
+export const createLoadedLockdownMode = (
+  payload: _LoadedLockdownModePayload = Object.freeze({})
+): LoadedLockdownModePayload => ({payload, type: loadedLockdownMode})
 export const createLoadedProxyData = (payload: _LoadedProxyDataPayload): LoadedProxyDataPayload => ({
   payload,
   type: loadedProxyData,
@@ -382,12 +377,11 @@ export const createLoadedProxyData = (payload: _LoadedProxyDataPayload): LoadedP
 export const createLoadedRememberPassword = (
   payload: _LoadedRememberPasswordPayload
 ): LoadedRememberPasswordPayload => ({payload, type: loadedRememberPassword})
-export const createLoadedSettings = (payload: _LoadedSettingsPayload): LoadedSettingsPayload => ({
-  payload,
-  type: loadedSettings,
-})
+export const createLoadedSettings = (
+  payload: _LoadedSettingsPayload = Object.freeze({})
+): LoadedSettingsPayload => ({payload, type: loadedSettings})
 export const createLoadedUserCountryCode = (
-  payload: _LoadedUserCountryCodePayload
+  payload: _LoadedUserCountryCodePayload = Object.freeze({})
 ): LoadedUserCountryCodePayload => ({payload, type: loadedUserCountryCode})
 export const createLoginBrowserViaWebAuthToken = (
   payload: _LoginBrowserViaWebAuthTokenPayload
@@ -463,7 +457,7 @@ export const createSentVerificationEmail = (
   payload: _SentVerificationEmailPayload
 ): SentVerificationEmailPayload => ({payload, type: sentVerificationEmail})
 export const createSetContactImportedCount = (
-  payload: _SetContactImportedCountPayload
+  payload: _SetContactImportedCountPayload = Object.freeze({})
 ): SetContactImportedCountPayload => ({payload, type: setContactImportedCount})
 export const createStop = (payload: _StopPayload): StopPayload => ({payload, type: stop})
 export const createToggleRuntimeStats = (payload: _ToggleRuntimeStatsPayload): ToggleRuntimeStatsPayload => ({
