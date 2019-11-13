@@ -12,7 +12,7 @@ import EnterEmail, {Props} from '.'
 type OwnProps = {}
 
 type WatcherProps = Props & {
-  addedEmail: string | null
+  addedEmail?: string
   onSuccess: (email: string) => void
 }
 const WatchForSuccess = (props: WatcherProps) => {
@@ -39,7 +39,7 @@ const WatchForSuccess = (props: WatcherProps) => {
   )
 }
 
-const ConnectedEnterEmail = Container.connect(
+const ConnectedEnterEmail = Container.connectDEBUG(
   (state: Container.TypedState) => ({
     _showPushPrompt: Platform.isMobile && !state.push.hasPermissions && state.push.showPushPrompt,
     addedEmail: state.settings.email.addedEmail,

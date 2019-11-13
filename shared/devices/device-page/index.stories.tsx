@@ -53,7 +53,7 @@ const storeNOPW = Container.produce(common, draftState => {
   const deviceMap = new Map(draftState.devices.deviceMap)
   deviceMap.set('desktop last nopw', makeDevice({deviceID: 'desktop last nopw', type: 'desktop'}))
   draftState.devices.deviceMap = deviceMap
-  draftState.settings = draftState.settings.mergeDeep(I.Map({password: {randomPW: true}}))
+  draftState.settings = draftState.settings.password.randomPW = true
 })
 
 const load = () => {

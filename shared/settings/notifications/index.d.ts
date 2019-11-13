@@ -5,7 +5,7 @@ export type Props = {
   allowEdit: boolean
   groups: {
     [K in string]: {
-      settings: Array<Types._NotificationsSettingsState>
+      settings: Array<Types.NotificationsSettingsState>
       unsubscribedFromAll: boolean
     }
   }
