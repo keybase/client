@@ -13,6 +13,7 @@ import logger from '../logger'
 import HiddenString from '../util/hidden-string'
 import partition from 'lodash/partition'
 import shallowEqual from 'shallowequal'
+import {mapGetEnsureValue} from '../util/map'
 
 type EngineActions =
   | EngineGen.Chat1NotifyChatChatTypingUpdatePayload
@@ -100,8 +101,7 @@ const audioActions: Container.ActionHandler<Actions, Types.State> = {
   [Chat2Gen.lockAudioRecording]: (draftState, action) => {
     const {conversationIDKey} = action.payload
     const {audioRecording} = draftState
-    const info = audioRecording.get(conversationIDKey) ?? Constants.makeAudioRecordingInfo()
-    audioRecording.set(conversationIDKey, info)
+    const info = mapGetEnsureValue(audioRecording, conversationIDKey, Constants.makeAudioRecordingInfo())
     info.isLocked = true
   },
   [Chat2Gen.sendAudioRecording]: (draftState, action) => {
@@ -166,8 +166,7 @@ const paymentActions: Container.ActionHandler<Actions, Types.State> = {
   [Chat2Gen.paymentInfoReceived]: (draftState, action) => {
     const {conversationIDKey, messageID, paymentInfo} = action.payload
     const {accountsInfoMap, paymentStatusMap} = draftState
-    const convMap = accountsInfoMap.get(conversationIDKey) ?? new Map()
-    accountsInfoMap.set(conversationIDKey, convMap)
+    const convMap = mapGetEnsureValue(accountsInfoMap, conversationIDKey, new Map())
     convMap.set(messageID, paymentInfo)
     paymentStatusMap.set(paymentInfo.paymentID, paymentInfo)
   },
@@ -181,22 +180,19 @@ const searchActions: Container.ActionHandler<Actions, Types.State> = {
   [Chat2Gen.threadSearchResults]: (draftState, action) => {
     const {conversationIDKey, clear, messages} = action.payload
     const {threadSearchInfoMap} = draftState
-    const info = threadSearchInfoMap.get(conversationIDKey) ?? Constants.makeThreadSearchInfo()
-    threadSearchInfoMap.set(conversationIDKey, info)
+    const info = mapGetEnsureValue(threadSearchInfoMap, conversationIDKey, Constants.makeThreadSearchInfo())
     info.hits = clear ? messages : [...info.hits, ...messages]
   },
   [Chat2Gen.setThreadSearchStatus]: (draftState, action) => {
     const {conversationIDKey, status} = action.payload
     const {threadSearchInfoMap} = draftState
-    const info = threadSearchInfoMap.get(conversationIDKey) ?? Constants.makeThreadSearchInfo()
-    threadSearchInfoMap.set(conversationIDKey, info)
+    const info = mapGetEnsureValue(threadSearchInfoMap, conversationIDKey, Constants.makeThreadSearchInfo())
     info.status = status
   },
   [Chat2Gen.toggleThreadSearch]: (draftState, action) => {
     const {conversationIDKey} = action.payload
     const {threadSearchInfoMap, messageCenterOrdinals} = draftState
-    const info = threadSearchInfoMap.get(conversationIDKey) ?? Constants.makeThreadSearchInfo()
-    threadSearchInfoMap.set(conversationIDKey, info)
+    const info = mapGetEnsureValue(threadSearchInfoMap, conversationIDKey, Constants.makeThreadSearchInfo())
     info.hits = []
     info.status = 'initial'
     info.visible = !info.visible
@@ -206,8 +202,7 @@ const searchActions: Container.ActionHandler<Actions, Types.State> = {
   [Chat2Gen.threadSearch]: (draftState, action) => {
     const {conversationIDKey} = action.payload
     const {threadSearchInfoMap} = draftState
-    const info = threadSearchInfoMap.get(action.payload.conversationIDKey) ?? Constants.makeThreadSearchInfo()
-    threadSearchInfoMap.set(conversationIDKey, info)
+    const info = mapGetEnsureValue(threadSearchInfoMap, conversationIDKey, Constants.makeThreadSearchInfo())
     info.hits = []
   },
   [Chat2Gen.setThreadSearchQuery]: (draftState, action) => {
@@ -298,24 +293,15 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
   [Chat2Gen.loadAttachmentView]: (draftState, action) => {
     const {conversationIDKey, viewType} = action.payload
     const {attachmentViewMap} = draftState
-    const viewMap =
-      attachmentViewMap.get(conversationIDKey) ??
-      new Map<RPCChatTypes.GalleryItemTyp, Types.AttachmentViewInfo>()
-    attachmentViewMap.set(conversationIDKey, viewMap)
-
-    const info = viewMap.get(viewType) ?? Constants.makeAttachmentViewInfo()
-    viewMap.set(viewType, info)
+    const viewMap = mapGetEnsureValue(attachmentViewMap, conversationIDKey, new Map())
+    const info = mapGetEnsureValue(viewMap, viewType, Constants.makeAttachmentViewInfo())
     info.status = 'loading'
   },
   [Chat2Gen.addAttachmentViewMessage]: (draftState, action) => {
     const {conversationIDKey, viewType, message} = action.payload
     const {attachmentViewMap} = draftState
-    const viewMap =
-      attachmentViewMap.get(conversationIDKey) ??
-      new Map<RPCChatTypes.GalleryItemTyp, Types.AttachmentViewInfo>()
-    attachmentViewMap.set(conversationIDKey, viewMap)
-
-    const info = viewMap.get(viewType) ?? Constants.makeAttachmentViewInfo()
+    const viewMap = mapGetEnsureValue(attachmentViewMap, conversationIDKey, new Map())
+    const info = mapGetEnsureValue(viewMap, viewType, Constants.makeAttachmentViewInfo())
     viewMap.set(viewType, info)
 
     if (info.messages.findIndex((item: any) => item.id === action.payload.message.id) < 0) {
@@ -325,14 +311,8 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
   [Chat2Gen.setAttachmentViewStatus]: (draftState, action) => {
     const {conversationIDKey, viewType, last, status} = action.payload
     const {attachmentViewMap} = draftState
-    const viewMap =
-      attachmentViewMap.get(conversationIDKey) ??
-      new Map<RPCChatTypes.GalleryItemTyp, Types.AttachmentViewInfo>()
-    attachmentViewMap.set(conversationIDKey, viewMap)
-
-    const info = viewMap.get(viewType) ?? Constants.makeAttachmentViewInfo()
-    viewMap.set(viewType, info)
-
+    const viewMap = mapGetEnsureValue(attachmentViewMap, conversationIDKey, new Map())
+    const info = mapGetEnsureValue(viewMap, viewType, Constants.makeAttachmentViewInfo())
     info.last = !!last
     info.status = status
   },
@@ -359,8 +339,8 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
     const {conversationIDKey, ordinal} = action.payload
     const {messageMap} = draftState
     const map = messageMap.get(conversationIDKey)
-    const m = map && map.get(ordinal)
-    if (m && m.type === 'attachment') {
+    const m = map?.get(ordinal)
+    if (m?.type === 'attachment') {
       m.transferProgress = 0
       m.transferState = null
     }
@@ -370,8 +350,8 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
     const {messageMap} = draftState
 
     const map = messageMap.get(conversationIDKey)
-    const m = map && map.get(ordinal)
-    if (m && m.type === 'attachment') {
+    const m = map?.get(ordinal)
+    if (m?.type === 'attachment') {
       m.transferState = 'mobileSaving'
       m.transferErrMsg = null
     }
@@ -380,8 +360,8 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
     const {conversationIDKey, ordinal} = action.payload
     const {messageMap} = draftState
     const map = messageMap.get(conversationIDKey)
-    const m = map && map.get(ordinal)
-    if (m && m.type === 'attachment') {
+    const m = map?.get(ordinal)
+    if (m?.type === 'attachment') {
       m.transferState = null
       m.transferErrMsg = null
     }
@@ -390,8 +370,8 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
     const {message} = action.payload
     const {messageMap} = draftState
     const map = messageMap.get(message.conversationIDKey)
-    const m = map && map.get(message.ordinal)
-    if (m && m.type === 'attachment') {
+    const m = map?.get(message.ordinal)
+    if (m?.type === 'attachment') {
       m.transferState = 'downloading'
       m.transferErrMsg = null
     }
@@ -406,9 +386,7 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
       placeholderID
     )
     if (ordinal) {
-      const map = messageMap.get(conversationIDKey) || new Map<Types.Ordinal, Types.Message>()
-      messageMap.set(conversationIDKey, map)
-
+      const map = mapGetEnsureValue(messageMap, conversationIDKey, new Map())
       const m = map.get(ordinal)
       map.set(ordinal, m ? Constants.upgradeMessage(m, message) : message)
     }
@@ -421,26 +399,20 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
     const {conversationIDKey, message, isPreview, ratio} = action.payload
     const {attachmentFullscreenSelection, attachmentViewMap, messageMap} = draftState
     if (
-      attachmentFullscreenSelection &&
-      attachmentFullscreenSelection.message.conversationIDKey === message.conversationIDKey &&
-      attachmentFullscreenSelection.message.id === message.id &&
+      attachmentFullscreenSelection?.message.conversationIDKey === message.conversationIDKey &&
+      attachmentFullscreenSelection?.message.id === message.id &&
       message.type === 'attachment'
     ) {
       attachmentFullscreenSelection.message = {
         ...message,
-        transferProgress: action.payload.ratio,
+        transferProgress: ratio,
         transferState: 'downloading',
       }
     }
 
     const viewType = RPCChatTypes.GalleryItemTyp.doc
-    const viewMap =
-      attachmentViewMap.get(conversationIDKey) ||
-      new Map<RPCChatTypes.GalleryItemTyp, Types.AttachmentViewInfo>()
-    attachmentViewMap.set(conversationIDKey, viewMap)
-
-    const info = viewMap.get(viewType) || Constants.makeAttachmentViewInfo()
-    viewMap.set(viewType, info)
+    const viewMap = mapGetEnsureValue(attachmentViewMap, conversationIDKey, new Map())
+    const info = mapGetEnsureValue(viewMap, viewType, Constants.makeAttachmentViewInfo())
     const {messages} = info
     const idx = messages.findIndex(item => item.id === message.id)
     if (idx !== -1) {
@@ -452,8 +424,8 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
     }
 
     const map = messageMap.get(conversationIDKey)
-    const m = map && map.get(message.ordinal)
-    if (m && m.type === 'attachment') {
+    const m = map?.get(message.ordinal)
+    if (m?.type === 'attachment') {
       if (isPreview) {
         m.previewTransferState = 'downloading'
       } else {
@@ -469,30 +441,24 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
     const {attachmentFullscreenSelection, messageMap} = draftState
     if (
       !error &&
-      attachmentFullscreenSelection &&
-      attachmentFullscreenSelection.message.conversationIDKey === message.conversationIDKey &&
-      attachmentFullscreenSelection.message.id === message.id &&
+      attachmentFullscreenSelection?.message.conversationIDKey === message.conversationIDKey &&
+      attachmentFullscreenSelection?.message.id === message.id &&
       message.type === 'attachment'
     ) {
-      attachmentFullscreenSelection.message = {...message, downloadPath: path || null}
+      attachmentFullscreenSelection.message = {...message, downloadPath: path ?? null}
     }
 
     const {attachmentViewMap} = draftState
-    const viewMap =
-      attachmentViewMap.get(conversationIDKey) ||
-      new Map<RPCChatTypes.GalleryItemTyp, Types.AttachmentViewInfo>()
-    attachmentViewMap.set(conversationIDKey, viewMap)
-
+    const viewMap = mapGetEnsureValue(attachmentViewMap, conversationIDKey, new Map())
     const viewType = RPCChatTypes.GalleryItemTyp.doc
-    const info = viewMap.get(viewType) || Constants.makeAttachmentViewInfo()
-    viewMap.set(viewType, info)
+    const info = mapGetEnsureValue(viewMap, viewType, Constants.makeAttachmentViewInfo())
 
     const {messages} = info
     const idx = messages.findIndex(item => item.id === message.id)
     if (idx !== -1) {
       const m = messages[idx]
       if (m.type === 'attachment') {
-        m.downloadPath = path || null
+        m.downloadPath = path ?? null
         m.fileURLCached = true
         m.transferProgress = 0
         m.transferState = null
@@ -500,12 +466,12 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
     }
 
     const map = messageMap.get(conversationIDKey)
-    const m = map && map.get(ordinal)
-    if (m && m.type === 'attachment') {
+    const m = map?.get(ordinal)
+    if (m?.type === 'attachment') {
       m.downloadPath = (!error && path) || ''
       m.transferProgress = 0
       m.transferState = null
-      m.transferErrMsg = error ? error || 'Error downloading attachment' : null
+      m.transferErrMsg = error ? error ?? 'Error downloading attachment' : null
       m.fileURLCached = true // assume we have this on the service now
     }
   },
@@ -534,7 +500,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     }
 
     if (conversationIDKey) {
-      const {readMsgID, maxVisibleMsgID} = metaMap.get(conversationIDKey) || Constants.makeConversationMeta()
+      const {readMsgID, maxVisibleMsgID} = metaMap.get(conversationIDKey) ?? Constants.makeConversationMeta()
 
       logger.info(
         `rootReducer: selectConversation: setting orange line: convID: ${conversationIDKey} maxVisible: ${maxVisibleMsgID} read: ${readMsgID}`
@@ -553,8 +519,8 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
             const message = messageMap.get(o)
             return !!(message && message.id >= readMsgID + 1)
           })
-        const message = ord && messageMap && messageMap.get(ord)
-        if (message && message.id) {
+        const message = ord ? messageMap?.get(ord) : null
+        if (message?.id) {
           orangeLineMap.set(conversationIDKey, message.id)
         } else {
           orangeLineMap.delete(conversationIDKey)
@@ -597,11 +563,8 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const {show, domain, conversationIDKey, messageID} = action.payload
     const {unfurlPromptMap} = draftState
 
-    const map = unfurlPromptMap.get(conversationIDKey) || new Map()
-    unfurlPromptMap.set(conversationIDKey, map)
-
-    const prompts = map.get(messageID) || new Set()
-    map.set(messageID, prompts)
+    const map = mapGetEnsureValue(unfurlPromptMap, conversationIDKey, new Map())
+    const prompts = mapGetEnsureValue(map, messageID, new Set())
 
     if (show) {
       prompts.add(domain)
@@ -616,6 +579,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       flipStatusMap.set(status.gameID, status)
     })
   },
+  /// AAAA here
   [Chat2Gen.messageSend]: (draftState, action) => {
     const {conversationIDKey} = action.payload
     const {commandMarkdownMap, replyToMap} = draftState
