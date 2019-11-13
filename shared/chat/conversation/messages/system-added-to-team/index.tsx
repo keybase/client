@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import UserNotice from '../user-notice'
-import SystemMessageTimestamp from '../system-message-timestamp'
 import * as TeamTypes from '../../../../constants/types/teams'
 import {typeToLabel} from '../../../../constants/teams'
 import {formatTimeForChat} from '../../../../util/timestamp'
@@ -84,13 +83,12 @@ const AddedToTeam = (props: Props) => {
     )
   }
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.Text type="BodyTiny">{formatTimeForChat(props.timestamp)}</Kb.Text>
+    <UserNotice username={props.adder} timestamp={props.timestamp}>
       <Kb.Text type="BodySmall">
         {youOrUsername({capitalize: true, username: props.adder, you: props.you})} added{' '}
         {getAddedUsernames(props.bulkAdds)}. <ManageComponent {...props} />
       </Kb.Text>
-    </Kb.Box2>
+    </UserNotice>
   )
 }
 
@@ -100,7 +98,6 @@ const YouAddedToTeam = (props: Props) => {
     <UserNotice
       style={{marginTop: Styles.globalMargins.small}}
       teamname={teamname}
-      bgColor={Styles.globalColors.blueLighter2}
       onClickAvatar={onViewTeam}
       timestamp={timestamp}
     >
