@@ -6,16 +6,13 @@ import {rowStyles, StillCommon, StillCommonProps} from './common'
 import * as Kb from '../../../common-adapters'
 import {PathType} from '../../../constants/types/fs'
 
-type TlfTypeProps = StillCommonProps & {
-  badgeCount: number
-}
+type TlfTypeProps = StillCommonProps
 
 const TlfType = (props: TlfTypeProps) => (
   <StillCommon
     path={props.path}
     onOpen={props.onOpen}
     inDestinationPicker={props.inDestinationPicker}
-    badge={props.badgeCount}
     writingToJournal={false}
   >
     <Kb.Box style={rowStyles.itemBox}>

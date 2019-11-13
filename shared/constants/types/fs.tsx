@@ -6,8 +6,6 @@ import * as TeamsTypes from './teams'
 // TODO importing FsGen causes an import loop
 import * as FsGen from '../../actions/fs-gen'
 import * as EngineGen from '../../actions/engine-gen-gen'
-import {IconType} from '../../common-adapters/icon.constants-gen'
-import {TextType} from '../../common-adapters/text'
 import {isWindows} from '../platform'
 import {memoize} from '../../util/memoize'
 // lets not create cycles in flow, lets discuss how to fix this
@@ -730,38 +728,6 @@ export const getLocalPathDir = (p: LocalPath): string => p.slice(0, p.lastIndexO
 export const getNormalizedLocalPath = (p: LocalPath): LocalPath =>
   localSep === '\\' ? p.replace(/\\/g, '/') : p
 
-export enum PathItemIconType {
-  TeamAvatar = 'team-avatar',
-  Avatar = 'avatar',
-  Avatars = 'avatars',
-  Basic = 'basic',
-}
-
-export type PathItemIconSpec =
-  | {
-      type: PathItemIconType.TeamAvatar
-      teamName: string
-    }
-  | {
-      type: PathItemIconType.Avatar
-      username: string
-    }
-  | {
-      type: PathItemIconType.Avatars
-      usernames: Array<string>
-    }
-  | {
-      type: PathItemIconType.Basic
-      iconType: IconType
-      iconColor: string
-    }
-
-export type ItemStyles = {
-  iconSpec: PathItemIconSpec
-  textColor: string
-  textType: TextType
-}
-
 export type PathBreadcrumbItem = {
   isTeamTlf: boolean
   isLastItem: boolean
@@ -811,8 +777,6 @@ export type ResetMetadata = {
 
 export enum NonUploadPathItemBadgeType {
   Download = 'download',
-  New = 'new',
-  Rekey = 'rekey',
 }
 export type PathItemBadge = UploadIcon | NonUploadPathItemBadgeType | number
 
