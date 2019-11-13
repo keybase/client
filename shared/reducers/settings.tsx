@@ -42,7 +42,11 @@ const notificationActions: Container.ActionHandler<Actions, Types.State> = {
       }
     }
 
-    const groupMap = notifications.groups.get(group) ?? Constants.makeNotificationsGroup()
+    const groupMap = notifications.groups.get(group) ?? {
+      settings: [],
+      unsubscribedFromAll: false,
+    }
+
     const {settings, unsubscribedFromAll} = groupMap
     if (!settings) {
       logger.warn('Trying to toggle unknown settings')

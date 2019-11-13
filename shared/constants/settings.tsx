@@ -8,11 +8,6 @@ import * as RPCTypes from './types/rpc-gen'
 import {RPCError} from 'util/errors'
 import {ContactResponse} from 'expo-contacts'
 
-export const makeNotificationsGroup = (): Types.NotificationsGroupState => ({
-  settings: [],
-  unsubscribedFromAll: false,
-})
-
 export const makeEmailRow = (): Types.EmailRow => ({
   email: '',
   isPrimary: false,
