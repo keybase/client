@@ -2574,12 +2574,8 @@ const updateNotificationSettings = async (
   _: TypedState,
   action: Chat2Gen.UpdateNotificationSettingsPayload
 ) => {
-  const {
-    notificationsGlobalIgnoreMentions,
-    notificationsMobile,
-    notificationsDesktop,
-    conversationIDKey,
-  } = action.payload
+  const {notificationsGlobalIgnoreMentions, notificationsMobile, notificationsDesktop} = action.payload
+  const {conversationIDKey} = action.payload
   await RPCChatTypes.localSetAppNotificationSettingsLocalRpcPromise({
     channelWide: notificationsGlobalIgnoreMentions,
     convID: Types.keyToConversationID(conversationIDKey),
