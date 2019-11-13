@@ -78,7 +78,9 @@ func ResolveAndSaveContacts(mctx libkb.MetaContext, provider ContactsProvider, c
 
 	// find resolved contacts
 	for _, contact := range resolveResults {
-		if contact.Resolved {
+		// Strip out the user and anyone they follow.
+		if contact.Resolved && !contact.Following &&
+			libkb.NewNormalizedUsername(contact.Username) != mctx.CurrentUsername() {
 			res.Resolved = append(res.Resolved, contact)
 		}
 	}

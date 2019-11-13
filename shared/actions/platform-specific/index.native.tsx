@@ -558,7 +558,7 @@ const manageContactsCache = async (
       })
     }
     if (state.settings.contacts.waitingToShowJoinedModal && resolved) {
-      actions.push(SettingsGen.createShowContactsJoinedModal({newlyResolved: resolved}))
+      actions.push(SettingsGen.createShowContactsJoinedModal({resolved}))
     }
   } catch (e) {
     logger.error('Error saving contacts list: ', e.message)
@@ -568,7 +568,7 @@ const manageContactsCache = async (
 }
 
 const showContactsJoinedModal = (_, action: SettingsGen.ShowContactsJoinedModalPayload) =>
-  action.payload.newlyResolved.length && RouteTreeGen.createNavigateAppend({path: ['settingsContactsJoined']})
+  action.payload.resolved.length && RouteTreeGen.createNavigateAppend({path: ['settingsContactsJoined']})
 
 function* setupDarkMode() {
   const NativeAppearance = NativeModules.Appearance

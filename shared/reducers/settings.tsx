@@ -205,7 +205,7 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
     case SettingsGen.showContactsJoinedModal:
       return state.update('contacts', contacts =>
         contacts.merge({
-          alreadyOnKeybase: I.List(action.payload.newlyResolved),
+          alreadyOnKeybase: I.List(action.payload.resolved),
           waitingToShowJoinedModal: false,
         })
       )

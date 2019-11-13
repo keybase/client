@@ -100,7 +100,7 @@ type _ClearPhoneNumberAddPayload = void
 type _ClearPhoneNumberErrorsPayload = void
 type _DbNukePayload = void
 type _DeleteAccountForeverPayload = void
-type _EditContactImportEnabledPayload = {readonly enable: boolean; readonly fromSettings: boolean}
+type _EditContactImportEnabledPayload = {readonly enable: boolean; readonly fromSettings?: boolean}
 type _EditEmailPayload = {
   readonly email: string
   readonly delete?: boolean
@@ -155,7 +155,7 @@ type _OnUpdatedPGPSettingsPayload = {readonly hasKeys: boolean}
 type _ProcessorProfilePayload = {readonly durationSeconds: number}
 type _RequestContactPermissionsPayload = {
   readonly thenToggleImportOn?: boolean
-  readonly fromSettings: boolean
+  readonly fromSettings?: boolean
 }
 type _ResendVerificationForPhoneNumberPayload = {readonly phoneNumber: string}
 type _SaveProxyDataPayload = {readonly proxyData: RPCTypes.ProxyData}
@@ -166,7 +166,7 @@ type _SendFeedbackPayload = {
 }
 type _SentVerificationEmailPayload = {readonly email: string}
 type _SetContactImportedCountPayload = {readonly count: number | null; readonly error?: string}
-type _ShowContactsJoinedModalPayload = {readonly newlyResolved: Array<RPCTypes.ProcessedContact>}
+type _ShowContactsJoinedModalPayload = {readonly resolved: Array<RPCTypes.ProcessedContact>}
 type _StopPayload = {readonly exitCode: RPCTypes.ExitCode}
 type _ToggleRuntimeStatsPayload = void
 type _TracePayload = {readonly durationSeconds: number}
@@ -449,7 +449,7 @@ export const createProcessorProfile = (payload: _ProcessorProfilePayload): Proce
   type: processorProfile,
 })
 export const createRequestContactPermissions = (
-  payload: _RequestContactPermissionsPayload
+  payload: _RequestContactPermissionsPayload = Object.freeze({})
 ): RequestContactPermissionsPayload => ({payload, type: requestContactPermissions})
 export const createSaveProxyData = (payload: _SaveProxyDataPayload): SaveProxyDataPayload => ({
   payload,

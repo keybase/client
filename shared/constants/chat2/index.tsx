@@ -25,6 +25,8 @@ export const defaultUserReacjis = {skinTone: defaultSkinTone, topReacjis: defaul
 const emptyArray = []
 const emptySet = new Set()
 
+export const blockButtonsGregorPrefix = 'blockButtons.'
+
 export const makeState = (): Types.State => ({
   accountsInfoMap: new Map(),
   attachmentFullscreenSelection: undefined,

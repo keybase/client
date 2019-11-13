@@ -75,7 +75,7 @@
       "fromSettings?": "boolean"
     },
     "showContactsJoinedModal": {
-      "newlyResolved": "Array<RPCTypes.ProcessedContact>"
+      "resolved": "Array<RPCTypes.ProcessedContact>"
     },
     "importContactsLater": {},
     "setContactImportedCount": {
