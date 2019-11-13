@@ -50,6 +50,7 @@ var PublicUID = UID(PUBLIC_UID)
 const (
 	SIG_ID_LEN         = 32
 	SIG_ID_SUFFIX      = 0x0f
+	SIG_ID_SUFFIX_2    = 0x22
 	SIG_SHORT_ID_BYTES = 27
 	SigIDQueryMin      = 8
 )
@@ -644,11 +645,35 @@ func (s SigID) Equal(t SigID) bool {
 	return s == t
 }
 
-func (s SigID) EqualIgnoreLastByte(t SigID) bool {
-	if len(s) != len(t) || len(s) < 2 {
-		return false
+func (s SigID) EqualTrimSuffix(t SigID) bool {
+	sTrimmed := s.TrimSuffix()
+	tTrimmed := t.TrimSuffix()
+	return !sTrimmed.IsNil() && !tTrimmed.IsNil() && sTrimmed.Equal(tTrimmed)
+}
+
+type SigIDSuffixless string
+
+func (s SigID) TrimSuffix() (ret SigIDSuffixless) {
+	hexLen := SIG_ID_LEN * 2
+	if len(s) == hexLen {
+		return SigIDSuffixless(s)
 	}
-	return s[:len(s)-2] == t[:len(t)-2]
+	if len(s) != hexLen+2 {
+		return ret
+	}
+	sffx := string(s[hexLen:])
+	if sffx != fmt.Sprintf("%02x", SIG_ID_SUFFIX) && sffx != fmt.Sprintf("%02x", SIG_ID_SUFFIX_2) {
+		return ret
+	}
+	return SigIDSuffixless(s[0:hexLen])
+}
+
+func (s SigIDSuffixless) IsNil() bool {
+	return len(s) == 0
+}
+
+func (s SigIDSuffixless) Equal(t SigIDSuffixless) bool {
+	return s == t
 }
 
 func (s SigID) Match(q string, exact bool) bool {

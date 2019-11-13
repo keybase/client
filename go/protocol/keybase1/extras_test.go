@@ -7,6 +7,8 @@ import (
 	"errors"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestTime(t *testing.T) {
@@ -132,4 +134,83 @@ func TestTeamNameFromString(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestSigIDCompare(t *testing.T) {
+	tests := []struct {
+		x   string
+		y   string
+		res bool
+	}{
+		{
+			"c641d1246493cf04ec2c6141acdb569a457c02d577b392d4eb1872118c563c2822",
+			"c641d1246493cf04ec2c6141acdb569a457c02d577b392d4eb1872118c563c2822",
+			true,
+		},
+		{
+			"c641d1246493cf04ec2c6141acdb569a457c02d577b392d4eb1872118c563c2822",
+			"c641d1246493cf04ec2c6141acdb569a457c02d577b392d4eb1872118c563c280f",
+			true,
+		},
+		{
+			"c641d1246493cf04ec2c6141acdb569a457c02d577b392d4eb1872118c563c28",
+			"c641d1246493cf04ec2c6141acdb569a457c02d577b392d4eb1872118c563c280f",
+			true,
+		},
+		{
+			"c641d1246493cf04ec2c6141acdb569a457c02d577b392d4eb1872118c563c28",
+			"c641d1246493cf04ec2c6141acdb569a457c02d577b392d4eb1872118c563c28",
+			true,
+		},
+		{
+			"b641d1246493cf04ec2c6141acdb569a457c02d577b392d4eb1872118c563c2822",
+			"c641d1246493cf04ec2c6141acdb569a457c02d577b392d4eb1872118c563c2822",
+			false,
+		},
+		{
+			"b641d1246493cf04ec2c6141acdb569a457c02d577b392d4eb1872118c563c2822",
+			"c641d1246493cf04ec2c6141acdb569a457c02d577b392d4eb1872118c563c280f",
+			false,
+		},
+		{
+			"b641d1246493cf04ec2c6141acdb569a457c02d577b392d4eb1872118c563c28",
+			"c641d1246493cf04ec2c6141acdb569a457c02d577b392d4eb1872118c563c280f",
+			false,
+		},
+		{
+			"b641d1246493cf04ec2c6141acdb569a457c02d577b392d4eb1872118c563c28",
+			"c641d1246493cf04ec2c6141acdb569a457c02d577b392d4eb1872118c563c28",
+			false,
+		},
+		{
+			"c641d1246493cf04ec2c6141acdb569a457c02d577b392d4eb1872118c563c2823",
+			"c641d1246493cf04ec2c6141acdb569a457c02d577b392d4eb1872118c563c280f",
+			false,
+		},
+		{
+			"c641d1246493cf04ec2c6141acdb569a457c02d577b392d4eb1872118c563c2823",
+			"c641d1246493cf04ec2c6141acdb569a457c02d577b392d4eb1872118c563c28",
+			false,
+		},
+		{
+			"c641d1246493cf04ec2c6141acdb569a457c02d577b392d4eb1872118c563c2",
+			"c641d1246493cf04ec2c6141acdb569a457c02d577b392d4eb1872118c563c2",
+			false,
+		},
+		{
+			"c641d1246493cf04ec2c6141acdb569a457c02d577b392d4eb1872118c563c2822",
+			"",
+			false,
+		},
+		{
+			"",
+			"",
+			false,
+		},
+	}
+
+	for _, tc := range tests {
+		require.Equal(t, tc.res, SigID(tc.x).EqualTrimSuffix(SigID(tc.y)))
+	}
+
 }
