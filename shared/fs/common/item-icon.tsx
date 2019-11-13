@@ -85,6 +85,7 @@ const TlfTypeIcon = (props: TlfTypeIconProps) => {
       {props.badgeOverride ? (
         <Kb.Box style={styles.badgeContainer}>
           <Kb.Icon type={props.badgeOverride} style={badgeStyle.rightBottomBadge} />
+          color={Styles.globalColors.greyDarker}
         </Kb.Box>
       ) : (
         !!badgeCount && (
@@ -116,6 +117,7 @@ const TlfIcon = (props: TlfIconProps) => (
         <Kb.Icon
           type={props.badgeOverride}
           style={badgeStyles[getIconSizeString(props.size)].rightBottomBadge}
+          color={Styles.globalColors.greyDarker}
         />
       </Kb.Box>
     )}
@@ -150,7 +152,11 @@ const InTlfIcon = (props: InTlfItemIconProps) => {
       )}
       {badgeIcon && (
         <Kb.Box style={styles.badgeContainer}>
-          <Kb.Icon type={badgeIcon} style={badgeStyle.rightBottomBadge} />
+          <Kb.Icon
+            type={badgeIcon}
+            style={badgeStyle.rightBottomBadge}
+            color={Styles.globalColors.greyDarker}
+          />
         </Kb.Box>
       )}
     </Kb.Box>
@@ -289,7 +295,7 @@ const badgeStyles = {
         },
         rightBottomBadge: {
           height: Styles.globalMargins.small,
-          left: Styles.globalMargins.mediumLarge,
+          left: Styles.globalMargins.mediumLarge - Styles.globalMargins.xxtiny,
           position: 'absolute',
           top: -Styles.globalMargins.small - Styles.globalMargins.xtiny,
           width: Styles.globalMargins.small,

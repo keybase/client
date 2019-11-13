@@ -595,6 +595,17 @@ const load = () => {
             />
           ))}
         </Kb.Box2>
+        <Kb.Box2 direction="horizontal" gap="small" gapStart={true} centerChildren={true}>
+          <Kb.Text type="Header">public file with badgeOverride</Kb.Text>
+          {pathItemIconSizes.map(size => (
+            <ItemIcon
+              badgeOverride="iconfont-attachment"
+              key={size.toString()}
+              path={Types.stringToPath('/keybase/public/foo,bar/file')}
+              size={size}
+            />
+          ))}
+        </Kb.Box2>
       </Kb.Box2>
     ))
 }

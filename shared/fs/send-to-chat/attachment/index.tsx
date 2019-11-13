@@ -50,7 +50,7 @@ const DesktopSendAttachmentToChat = (props: Props) => (
           style={desktopStyles.pathItem}
           gap="tiny"
         >
-          <Kbfs.ItemIcon size={48} path={props.path} badgeOverride="icon-addon-file-uploading" />
+          <Kbfs.ItemIcon size={48} path={props.path} badgeOverride="iconfont-attachment" />
           <Kb.Text type="BodySmall">{Types.getPathName(props.path)}</Kb.Text>
         </Kb.Box2>
         <DesktopConversationDropdown dropdownButtonStyle={desktopStyles.dropdown} />
