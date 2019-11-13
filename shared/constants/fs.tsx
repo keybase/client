@@ -112,9 +112,9 @@ export const tlfNormalViewWithNoConflict = makeConflictStateNormalView({})
 
 export const makeConflictStateManualResolvingLocalView = ({
   normalViewTlfPath,
-}: Partial<Types.ConflictStateManualResolvingLocalView>): Readonly<
+}: Partial<
   Types.ConflictStateManualResolvingLocalView
-> => ({
+>): Readonly<Types.ConflictStateManualResolvingLocalView> => ({
   normalViewTlfPath: normalViewTlfPath || defaultPath,
   type: Types.ConflictStateType.ManualResolvingLocalView,
 })
