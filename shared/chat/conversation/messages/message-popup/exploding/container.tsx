@@ -70,6 +70,17 @@ export default Container.connect(
         })
       )
     },
+    _onAllMedia: () =>
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [
+            {
+              props: {conversationIDKey: ownProps.message.conversationIDKey, tab: 'attachments'},
+              selected: 'chatInfoPanel',
+            },
+          ],
+        })
+      ),
     _onCopy: () => {
       if (ownProps.message.type === 'text') {
         dispatch(ConfigGen.createCopyToClipboard({text: ownProps.message.text.stringValue()}))
@@ -168,6 +179,7 @@ export default Container.connect(
             : {onClick: dispatchProps._onShowInFinder, title: 'Show in finder'}
         )
       }
+      items.push({onClick: dispatchProps._onAllMedia, title: 'All media'})
       items.push({onClick: dispatchProps._onReply, title: 'Reply'})
       items.push({onClick: dispatchProps._onPinMessage, title: 'Pin message'})
     } else {

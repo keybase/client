@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as React from 'react'
 import * as Constants from '../constants/people'
 import * as Types from '../constants/types/people'
@@ -27,9 +26,9 @@ const ConnectedHeader = Container.connect(
 )(Header)
 
 type Props = {
-  oldItems: I.List<Types.PeopleScreenItem>
-  newItems: I.List<Types.PeopleScreenItem>
-  followSuggestions: I.List<Types.FollowSuggestion>
+  oldItems: Array<Types.PeopleScreenItem>
+  newItems: Array<Types.PeopleScreenItem>
+  followSuggestions: Array<Types.FollowSuggestion>
   getData: (markViewed?: boolean) => void
   onClickUser: (username: string) => void
   signupEmail: string
@@ -59,9 +58,9 @@ class LoadOnMount extends React.PureComponent<Props> {
         reloadOnMount={true}
       >
         <People
-          newItems={this.props.newItems.toArray()}
-          oldItems={this.props.oldItems.toArray()}
-          followSuggestions={this.props.followSuggestions.toArray()}
+          newItems={this.props.newItems}
+          oldItems={this.props.oldItems}
+          followSuggestions={this.props.followSuggestions}
           myUsername={this.props.myUsername}
           waiting={this.props.waiting}
           getData={this._getData}

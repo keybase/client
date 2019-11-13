@@ -6,7 +6,6 @@ import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as DeeplinksConstants from '../../constants/deeplinks'
 import * as DeeplinksGen from '../../actions/deeplinks-gen'
 import * as Styles from '../../styles'
-import * as FsConstants from '../../constants/fs'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {toByteArray} from 'base64-js'
 import PaymentStatus from '../../chat/payments/status/container'
@@ -215,10 +214,10 @@ const ServiceDecoration = (props: Props) => {
   } else if (parsed.typ === RPCChatTypes.UITextDecorationTyp.kbfspath) {
     return (
       <KbfsPath
-        knownPathInfo={FsConstants.makePathInfo({
+        knownPathInfo={{
           deeplinkPath: parsed.kbfspath.pathInfo.deeplinkPath,
           platformAfterMountPath: parsed.kbfspath.pathInfo.platformAfterMountPath,
-        })}
+        }}
         rawPath={parsed.kbfspath.rawPath}
         standardPath={parsed.kbfspath.standardPath}
       />

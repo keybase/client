@@ -331,10 +331,9 @@ export enum SortSetting {
   TimeDesc = 'time-desc',
 }
 
-export type _PathUserSetting = {
+export type PathUserSetting = {
   sort: SortSetting
 }
-export type PathUserSetting = I.RecordOf<_PathUserSetting>
 
 export type LocalPath = string
 
@@ -386,12 +385,6 @@ export enum MobilePickType {
   Mixed = 'mixed',
 }
 
-export type _LocalHTTPServer = {
-  address: string
-  token: string
-}
-export type LocalHTTPServer = I.RecordOf<_LocalHTTPServer>
-
 export enum FileEditType {
   Created = 'created',
   Modified = 'modified',
@@ -400,24 +393,20 @@ export enum FileEditType {
   Unknown = 'unknown',
 }
 
-export type _TlfEdit = {
+export type TlfEdit = {
   filename: string
   serverTime: number
   editType: FileEditType
 }
 
-export type TlfEdit = I.RecordOf<_TlfEdit>
-
-export type _TlfUpdate = {
+export type TlfUpdate = {
   path: Path
   writer: string
   serverTime: number
-  history: I.List<TlfEdit>
+  history: Array<TlfEdit>
 }
 
-export type TlfUpdate = I.RecordOf<_TlfUpdate>
-
-export type UserTlfUpdates = I.List<TlfUpdate>
+export type UserTlfUpdates = Array<TlfUpdate>
 
 export type PathItems = Map<Path, PathItem>
 
@@ -460,14 +449,13 @@ export enum SendAttachmentToChatState {
   Sent = 'sent',
 }
 
-export type _SendAttachmentToChat = {
+export type SendAttachmentToChat = {
   convID: ChatTypes.ConversationIDKey
   filter: string
   path: Path
   state: SendAttachmentToChatState
   title: string
 }
-export type SendAttachmentToChat = I.RecordOf<_SendAttachmentToChat>
 
 export enum PathItemActionMenuView {
   Root = 'root',
@@ -487,21 +475,19 @@ export enum DriverStatusType {
   Disabled = 'disabled',
   Enabled = 'enabled',
 }
-export type _DriverStatusUnknown = {
+export type DriverStatusUnknown = {
   type: DriverStatusType.Unknown
 }
-export type DriverStatusUnknown = I.RecordOf<_DriverStatusUnknown>
 
-export type _DriverStatusDisabled = {
+export type DriverStatusDisabled = {
   type: DriverStatusType.Disabled
   isEnabling: boolean
   isDismissed: boolean
   // macOS only
   kextPermissionError: boolean
 }
-export type DriverStatusDisabled = I.RecordOf<_DriverStatusDisabled>
 
-export type _DriverStatusEnabled = {
+export type DriverStatusEnabled = {
   type: DriverStatusType.Enabled
   isDisabling: boolean
   isNew: boolean
@@ -509,19 +495,17 @@ export type _DriverStatusEnabled = {
   dokanOutdated: boolean
   dokanUninstallExecPath?: string | null
 }
-export type DriverStatusEnabled = I.RecordOf<_DriverStatusEnabled>
 
 export type DriverStatus = DriverStatusUnknown | DriverStatusDisabled | DriverStatusEnabled
 
-export type _SystemFileManagerIntegration = {
+export type SystemFileManagerIntegration = {
   directMountDir: string
   driverStatus: DriverStatus
-  preferredMountDirs: I.List<string>
+  preferredMountDirs: Array<string>
   // This only controls if system-file-manager-integration-banner is shown in
   // Folders view. The banner always shows in Settings/Files screen.
   showingBanner: boolean
 }
-export type SystemFileManagerIntegration = I.RecordOf<_SystemFileManagerIntegration>
 
 export enum KbfsDaemonRpcStatus {
   Unknown = 'unknown',
@@ -565,24 +549,20 @@ export enum SoftError {
   Nonexistent = 'non-existent',
 }
 
-export type _SoftErrors = {
-  pathErrors: I.Map<Path, SoftError>
-  tlfErrors: I.Map<Path, SoftError>
+export type SoftErrors = {
+  pathErrors: Map<Path, SoftError>
+  tlfErrors: Map<Path, SoftError>
 }
-export type SoftErrors = I.RecordOf<_SoftErrors>
 
-export type _Settings = {
+export type Settings = {
   spaceAvailableNotificationThreshold: number
   isLoading: boolean
 }
 
-export type Settings = I.RecordOf<_Settings>
-
-export type _PathInfo = {
+export type PathInfo = {
   deeplinkPath: string
   platformAfterMountPath: string
 }
-export type PathInfo = I.RecordOf<_PathInfo>
 
 export type FileContext = {
   contentType: string
@@ -603,8 +583,8 @@ export type State = {
   overallSyncStatus: OverallSyncStatus
   pathItemActionMenu: PathItemActionMenu
   pathItems: PathItems
-  pathInfos: I.Map<Path, PathInfo>
-  pathUserSettings: I.Map<Path, PathUserSetting>
+  pathInfos: Map<Path, PathInfo>
+  pathUserSettings: Map<Path, PathUserSetting>
   sendAttachmentToChat: SendAttachmentToChat
   settings: Settings
   sfmi: SystemFileManagerIntegration

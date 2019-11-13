@@ -109,6 +109,7 @@ export type MessageDeleted = {
   _MessageWithDeviceInfo
 
 export type MessageText = {
+  botUsername?: string
   decoratedText: HiddenString | null
   exploded: boolean
   explodedBy: string // only if 'explode now' happened,

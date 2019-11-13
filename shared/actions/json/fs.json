@@ -231,7 +231,7 @@
     "placeholderAction": {},
     "refreshMountDirsAfter10s": {},
     "setDirectMountDir": {"directMountDir": "string"},
-    "setPreferredMountDirs": {"preferredMountDirs": "I.List<string>"},
+    "setPreferredMountDirs": {"preferredMountDirs": "Array<string>"},
     "loadPathInfo": {"path": "Types.Path"},
     "loadedPathInfo": {"path": "Types.Path", "pathInfo": "Types.PathInfo"},
     "download": {"path": "Types.Path"},

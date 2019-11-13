@@ -38,6 +38,7 @@ const headerIconHeight = Styles.isMobile ? 96 : 72
 
 const MessagePopupHeader = (props: {
   author: string
+  botUsername?: string
   deviceName: string
   deviceRevokedAt?: number
   deviceType: DeviceType
@@ -46,7 +47,17 @@ const MessagePopupHeader = (props: {
   timestamp: number
   yourMessage: boolean
 }) => {
-  const {author, deviceName, deviceRevokedAt, deviceType, isLast, isLocation, timestamp, yourMessage} = props
+  const {
+    author,
+    botUsername,
+    deviceName,
+    deviceRevokedAt,
+    deviceType,
+    isLast,
+    isLocation,
+    timestamp,
+    yourMessage,
+  } = props
   const iconName = iconNameForDeviceType(deviceType, !!deviceRevokedAt, isLocation)
   const whoRevoked = yourMessage ? 'You' : author
   return (
@@ -88,6 +99,22 @@ const MessagePopupHeader = (props: {
           <Kb.Text type="BodySmallSemibold">{deviceName}</Kb.Text>
         </Kb.Text>
       </Kb.Box>
+      {botUsername && (
+        <Kb.Box2 direction="horizontal">
+          <Kb.Text type="BodySmall">also encrypted for</Kb.Text>
+          <Kb.Box2 direction="horizontal" gap="xtiny" gapStart={true} style={styles.alignItemsCenter}>
+            <Kb.Avatar username={botUsername} size={16} onClick="profile" />
+            <Kb.ConnectedUsernames
+              onUsernameClicked="profile"
+              colorFollowing={true}
+              colorYou={true}
+              usernames={[botUsername]}
+              underline={true}
+              type="BodySmallSemibold"
+            />
+          </Kb.Box2>
+        </Kb.Box2>
+      )}
       <Kb.Text center={true} type="BodySmall">
         {formatTimeForPopup(timestamp)}
       </Kb.Text>

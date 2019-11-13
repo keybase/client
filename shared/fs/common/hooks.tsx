@@ -107,7 +107,7 @@ export const useFsOnlineStatus = () => {
 }
 
 export const useFsPathInfo = (path: Types.Path, knownPathInfo: Types.PathInfo): Types.PathInfo => {
-  const pathInfo = Container.useSelector(state => state.fs.pathInfos.get(path, Constants.emptyPathInfo))
+  const pathInfo = Container.useSelector(state => state.fs.pathInfos.get(path) || Constants.emptyPathInfo)
   const dispatch = useDispatchWhenConnected()
   const alreadyKnown = knownPathInfo !== Constants.emptyPathInfo
   React.useEffect(() => {
@@ -152,7 +152,7 @@ export const useFsFileContext = (path: Types.Path) => {
   const pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, path))
   const [urlError, setUrlError] = React.useState<string>('')
   React.useEffect(() => {
-    urlError && logger.error(`urlError: ${urlError}`)
+    urlError && logger.info(`urlError: ${urlError}`)
     pathItem.type === Types.PathType.File && dispatch(FsGen.createLoadFileContext({path}))
   }, [
     dispatch,

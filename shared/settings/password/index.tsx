@@ -144,7 +144,7 @@ class UpdatePassword extends Component<Props, State> {
       >
         <Kb.Box2 centerChildren={true} direction="vertical" fullHeight={true} style={styles.container}>
           <Kb.Text type="Body" style={styles.bodyText} center={true}>
-            A password is required for you to sign out and sign back in, and use the keybase.io website.
+            A password is required for you to sign out and sign back in.
           </Kb.Text>
           <Kb.RoundedBox side="top">
             <Kb.PlainInput

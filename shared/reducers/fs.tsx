@@ -1,5 +1,4 @@
 import logger from '../logger'
-import * as I from 'immutable'
 import * as FsGen from '../actions/fs-gen'
 import * as Constants from '../constants/fs'
 import * as ChatConstants from '../constants/chat2'
@@ -28,15 +27,23 @@ const initialState: Types.State = {
   kbfsDaemonStatus: Constants.unknownKbfsDaemonStatus,
   lastPublicBannerClosedTlf: '',
   overallSyncStatus: Constants.emptyOverallSyncStatus,
-  pathInfos: I.Map(),
+  pathInfos: new Map(),
   pathItemActionMenu: Constants.emptyPathItemActionMenu,
   pathItems: new Map(),
-  pathUserSettings: I.Map(),
-  sendAttachmentToChat: Constants.makeSendAttachmentToChat(),
-  settings: Constants.makeSettings(),
-  sfmi: Constants.makeSystemFileManagerIntegration(),
-  softErrors: Constants.makeSoftErrors(),
-  tlfUpdates: I.List(),
+  pathUserSettings: new Map(),
+  sendAttachmentToChat: Constants.emptySendAttachmentToChat,
+  settings: Constants.emptySettings,
+  sfmi: {
+    directMountDir: '',
+    driverStatus: Constants.defaultDriverStatus,
+    preferredMountDirs: [],
+    showingBanner: false,
+  },
+  softErrors: {
+    pathErrors: new Map(),
+    tlfErrors: new Map(),
+  },
+  tlfUpdates: [],
   tlfs: {
     additionalTlfs: new Map(),
     loaded: false,
@@ -141,9 +148,8 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
   [FsGen.pathItemLoaded]: (draftState, action) => {
     const oldPathItem = Constants.getPathItem(draftState.pathItems, action.payload.path)
     draftState.pathItems.set(action.payload.path, updatePathItem(oldPathItem, action.payload.pathItem))
-    draftState.softErrors = draftState.softErrors
-      .removeIn(['pathErrors', action.payload.path])
-      .removeIn(['tlfErrors', Constants.getTlfPath(action.payload.path)])
+    draftState.softErrors.pathErrors.delete(action.payload.path)
+    draftState.softErrors.tlfErrors.delete(action.payload.path)
   },
   [FsGen.folderListLoaded]: (draftState, action) => {
     action.payload.pathItems.forEach((pathItemFromAction, path) => {
@@ -210,9 +216,10 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
     }
   },
   [FsGen.sortSetting]: (draftState, action) => {
-    draftState.pathUserSettings = draftState.pathUserSettings.update(action.payload.path, setting =>
-      (setting || Constants.defaultPathUserSetting).set('sort', action.payload.sortSetting)
-    )
+    const pathUserSetting =
+      draftState.pathUserSettings.get(action.payload.path) || Constants.defaultPathUserSetting
+    pathUserSetting.sort = action.payload.sortSetting
+    draftState.pathUserSettings.set(action.payload.path, pathUserSetting)
   },
   [FsGen.uploadStarted]: (draftState, action) => {
     draftState.uploads.writingToJournal = new Set([
@@ -365,33 +372,27 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
     } as const
   },
   [FsGen.initSendAttachmentToChat]: (draftState, action) => {
-    draftState.sendAttachmentToChat = Constants.makeSendAttachmentToChat({
+    draftState.sendAttachmentToChat = {
+      ...Constants.emptySendAttachmentToChat,
       path: action.payload.path,
       state: Types.SendAttachmentToChatState.PendingSelectConversation,
       title: Types.getPathName(action.payload.path),
-    })
+    }
   },
   [FsGen.setSendAttachmentToChatConvID]: (draftState, action) => {
-    draftState.sendAttachmentToChat = draftState.sendAttachmentToChat
-      .set('convID', action.payload.convID)
-      .set(
-        'state',
-        ChatConstants.isValidConversationIDKey(action.payload.convID)
-          ? Types.SendAttachmentToChatState.ReadyToSend
-          : Types.SendAttachmentToChatState.PendingSelectConversation
-      )
+    draftState.sendAttachmentToChat.convID = action.payload.convID
+    draftState.sendAttachmentToChat.state = ChatConstants.isValidConversationIDKey(action.payload.convID)
+      ? Types.SendAttachmentToChatState.ReadyToSend
+      : Types.SendAttachmentToChatState.PendingSelectConversation
   },
   [FsGen.setSendAttachmentToChatFilter]: (draftState, action) => {
-    draftState.sendAttachmentToChat = draftState.sendAttachmentToChat.set('filter', action.payload.filter)
+    draftState.sendAttachmentToChat.filter = action.payload.filter
   },
   [FsGen.setSendAttachmentToChatTitle]: (draftState, action) => {
-    draftState.sendAttachmentToChat = draftState.sendAttachmentToChat.set('title', action.payload.title)
+    draftState.sendAttachmentToChat.title = action.payload.title
   },
   [FsGen.sentAttachmentToChat]: draftState => {
-    draftState.sendAttachmentToChat = draftState.sendAttachmentToChat.set(
-      'state',
-      Types.SendAttachmentToChatState.Sent
-    )
+    draftState.sendAttachmentToChat.state = Types.SendAttachmentToChatState.Sent
   },
   [FsGen.setPathItemActionMenuView]: (draftState, action) => {
     draftState.pathItemActionMenu.previousView = draftState.pathItemActionMenu.view
@@ -423,63 +424,62 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
     draftState.overallSyncStatus.showingBanner = action.payload.show
   },
   [FsGen.setDriverStatus]: (draftState, action) => {
-    draftState.sfmi = draftState.sfmi.set('driverStatus', action.payload.driverStatus)
+    draftState.sfmi.driverStatus = action.payload.driverStatus
   },
   [FsGen.showSystemFileManagerIntegrationBanner]: draftState => {
-    draftState.sfmi = draftState.sfmi.set('showingBanner', true)
+    draftState.sfmi.showingBanner = true
   },
   [FsGen.hideSystemFileManagerIntegrationBanner]: draftState => {
-    draftState.sfmi = draftState.sfmi.set('showingBanner', false)
+    draftState.sfmi.showingBanner = false
   },
   [FsGen.driverEnable]: draftState => {
-    draftState.sfmi = draftState.sfmi.update('driverStatus', driverStatus =>
-      driverStatus.type === Types.DriverStatusType.Disabled
-        ? driverStatus.set('isEnabling', true)
-        : driverStatus
-    )
+    if (draftState.sfmi.driverStatus.type === Types.DriverStatusType.Disabled) {
+      draftState.sfmi.driverStatus.isEnabling = true
+    }
   },
   [FsGen.driverKextPermissionError]: draftState => {
-    draftState.sfmi = draftState.sfmi.update('driverStatus', driverStatus =>
-      driverStatus.type === Types.DriverStatusType.Disabled
-        ? driverStatus.set('kextPermissionError', true).set('isEnabling', false)
-        : driverStatus
-    )
+    if (draftState.sfmi.driverStatus.type === Types.DriverStatusType.Disabled) {
+      draftState.sfmi.driverStatus.kextPermissionError = true
+      draftState.sfmi.driverStatus.isEnabling = false
+    }
   },
   [FsGen.driverDisabling]: draftState => {
-    draftState.sfmi = draftState.sfmi.update('driverStatus', driverStatus =>
-      driverStatus.type === Types.DriverStatusType.Enabled
-        ? driverStatus.set('isDisabling', true)
-        : driverStatus
-    )
+    if (draftState.sfmi.driverStatus.type === Types.DriverStatusType.Enabled) {
+      draftState.sfmi.driverStatus.isDisabling = true
+    }
   },
   [FsGen.setDirectMountDir]: (draftState, action) => {
-    draftState.sfmi = draftState.sfmi.set('directMountDir', action.payload.directMountDir)
+    draftState.sfmi.directMountDir = action.payload.directMountDir
   },
   [FsGen.setPreferredMountDirs]: (draftState, action) => {
-    draftState.sfmi = draftState.sfmi.set('preferredMountDirs', action.payload.preferredMountDirs)
+    draftState.sfmi.preferredMountDirs = action.payload.preferredMountDirs
   },
   [FsGen.setPathSoftError]: (draftState, action) => {
-    draftState.softErrors = draftState.softErrors.update('pathErrors', pathErrors =>
-      action.payload.softError
-        ? pathErrors.set(action.payload.path, action.payload.softError)
-        : pathErrors.remove(action.payload.path)
-    )
+    if (action.payload.softError) {
+      draftState.softErrors.pathErrors.set(action.payload.path, action.payload.softError)
+    } else {
+      draftState.softErrors.pathErrors.delete(action.payload.path)
+    }
   },
   [FsGen.setTlfSoftError]: (draftState, action) => {
-    draftState.softErrors = draftState.softErrors.update('tlfErrors', tlfErrors =>
-      action.payload.softError
-        ? tlfErrors.set(action.payload.path, action.payload.softError)
-        : tlfErrors.remove(action.payload.path)
-    )
+    if (action.payload.softError) {
+      draftState.softErrors.tlfErrors.set(action.payload.path, action.payload.softError)
+    } else {
+      draftState.softErrors.tlfErrors.delete(action.payload.path)
+    }
   },
   [FsGen.setLastPublicBannerClosedTlf]: (draftState, action) => {
     draftState.lastPublicBannerClosedTlf = action.payload.tlf
   },
   [FsGen.settingsLoaded]: (draftState, action) => {
-    draftState.settings = action.payload.settings || draftState.settings.set('isLoading', false)
+    if (action.payload.settings) {
+      draftState.settings = action.payload.settings
+    } else {
+      draftState.settings.isLoading = false
+    }
   },
   [FsGen.loadSettings]: draftState => {
-    draftState.settings = draftState.settings.set('isLoading', true)
+    draftState.settings.isLoading = true
   },
   [FsGen.loadedPathInfo]: (draftState, action) => {
     draftState.pathInfos = draftState.pathInfos.set(action.payload.path, action.payload.pathInfo)
