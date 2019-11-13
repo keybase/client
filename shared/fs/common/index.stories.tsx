@@ -124,7 +124,7 @@ export const commonProvider = {
   }),
   TryEnableDriverOnFocus: () => ({
     appFocusedCount: 1,
-    driverStatus: Constants.makeDriverStatusEnabled(),
+    driverStatus: Constants.emptyDriverStatusEnabled,
     onEnabled: Sb.action('onEnabled'),
     refreshDriverStatus: Sb.action('refreshDriverStatus'),
   }),
