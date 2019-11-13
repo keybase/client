@@ -23,13 +23,16 @@ export type OwnProps = {
 
 // can be expensive, don't run if not visible
 const moreThanOneSubscribedChannel = (
-  metaMap: Container.TypedState['chat2']['metaMap'],
+  inboxLayout: Container.TypedState['chat2']['inboxLayout'],
   teamname?: string
 ) => {
-  // TODO don't use metamap here, it only has a subset of your convs
+  if (!inboxLayout || !inboxLayout.bigTeams) {
+    return false
+  }
+  const bigTeams = inboxLayout.bigTeams
   let found = 0
-  return [...metaMap.values()].some(c => {
-    if (c.teamname === teamname) {
+  return bigTeams.some(c => {
+    if (c.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel && c.channel.teamname === teamname) {
       found++
     }
     // got enough
@@ -88,7 +91,7 @@ export default Container.namedConnect(
 
     const manageChannelsTitle = isSmallTeam
       ? 'Create chat channels...'
-      : moreThanOneSubscribedChannel(state.chat2.metaMap, teamname)
+      : moreThanOneSubscribedChannel(state.chat2.inboxLayout, teamname)
       ? 'Manage chat channels'
       : 'Subscribe to channels...'
     const manageChannelsSubtitle = isSmallTeam ? 'Turns this into a big team' : ''
