@@ -46,8 +46,8 @@ export const newModalRoutes = {
     getScreen: (): typeof ProfileProveWebsiteChoice => require('./prove-website-choice/container').default,
   },
   profileRevoke: {getScreen: (): typeof ProfileRevoke => require('./revoke/container').default},
-  // TODO broken connect
   profileShowcaseTeamOffer: {
+    // @ts-ignore HeaderOrPopup typing busted
     getScreen: (): typeof ProfileShowcaseTeamOffer => require('./showcase-team-offer/container').default,
   },
   ...PGPRoutes,

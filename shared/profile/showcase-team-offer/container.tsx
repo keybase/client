@@ -25,7 +25,6 @@ const mapStateToProps = (state: Container.TypedState) => {
 }
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
-  loadTeams: () => dispatch(TeamsGen.createGetTeams({subscribeReason: 'profileShowcaseTeams'})),
   onCancel: (you: string) => {
     // sadly a little racy, doing this for now
     setTimeout(() => {
@@ -45,10 +44,11 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
     dispatch(TeamsGen.createSetMemberPublicity({showcase, teamname})),
 })
 
-export default Container.compose(
-  Container.connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps, _: OwnProps) => {
+export default Container.connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (stateProps, dispatchProps, _: OwnProps) => {
     return {
-      ...stateProps,
       ...dispatchProps,
       customCancelText: 'Close',
       onCancel: () => dispatchProps.onCancel(stateProps._you),
@@ -57,13 +57,9 @@ export default Container.compose(
       teamNameToIsShowcasing: stateProps._teamNameToIsShowcasing.toObject(),
       teamNameToRole: stateProps._teamNameToRole.toObject(),
       teammembercounts: stateProps._teammembercounts.toObject(),
+      teamnames: stateProps.teamnames,
       title: 'Publish your teams',
       waiting: stateProps._waiting,
     }
-  }),
-  Container.lifecycle({
-    componentDidMount() {
-      this.props.loadTeams()
-    },
-  } as any)
+  }
 )(HeaderOrPopup(Render))

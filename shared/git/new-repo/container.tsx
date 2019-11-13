@@ -17,7 +17,7 @@ export default Container.connect(
     waitingKey: Constants.loadingWaitingKey,
   }),
   (dispatch, ownProps: OwnProps) => ({
-    loadTeams: () => dispatch(TeamsGen.createGetTeams({subscribeReason: 'gitNewRepo'})),
+    loadTeams: () => dispatch(TeamsGen.createGetTeams()),
     onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
     onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
     onCreate: (name: string, teamname: string | null, notifyTeam: boolean) => {
