@@ -4,7 +4,6 @@ import * as Types from '../../../../constants/types/chat2'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import UserNotice from '../user-notice'
-import SystemMessageTimestamp from '../system-message-timestamp'
 
 const branchRefPrefix = 'refs/heads/'
 
@@ -14,14 +13,6 @@ type Props = {
   onClickUserAvatar: (username: string) => void
   onViewGitRepo: (repoID: string, teamname: string) => void
 }
-
-const connectedUsernamesProps = {
-  colorFollowing: true,
-  inline: true,
-  onUsernameClicked: 'profile',
-  type: 'BodySmallSemibold',
-  underline: true,
-} as const
 
 type CreateProps = {
   pusher: string
@@ -33,20 +24,17 @@ type CreateProps = {
 const GitPushCreate = (props: CreateProps) => {
   const {pusher, repo, repoID, team, onViewGitRepo} = props
   return (
-    <Kb.Box2 direction="vertical" gap="xtiny">
-      <Kb.Text center={true} type="BodySmallSemibold">
-        <Kb.ConnectedUsernames {...connectedUsernamesProps} usernames={[pusher]} />
-        {` `}created a new team repository called{` `}
-        <Kb.Text
-          type="BodySmallSemibold"
-          style={repoID ? styles.repoText : undefined}
-          onClick={repoID ? () => onViewGitRepo(repoID, team) : undefined}
-        >
-          {repo}
-        </Kb.Text>
-        .
+    <Kb.Text type="BodySmall">
+      {` `}created a new team repository called{` `}
+      <Kb.Text
+        type="BodySmall"
+        style={repoID ? styles.repoText : undefined}
+        onClick={repoID ? () => onViewGitRepo(repoID, team) : undefined}
+      >
+        {repo}
       </Kb.Text>
-    </Kb.Box2>
+      .
+    </Kb.Text>
   )
 }
 
@@ -63,19 +51,18 @@ type PushDefaultProps = {
 const GitPushDefault = (props: PushDefaultProps) => {
   const {pusher, commitRef, repo, repoID, team, branchName, onViewGitRepo, onClickCommit} = props
   return (
-    <Kb.Box2 direction="vertical" gap="xtiny">
-      <Kb.Text center={true} type="BodySmallSemibold">
-        <Kb.ConnectedUsernames {...connectedUsernamesProps} usernames={[pusher]} /> pushed{' '}
-        {!!commitRef.commits && commitRef.commits.length}{' '}
+    <Kb.Box2 direction="vertical" gap="xtiny" alignSelf="flex-start">
+      <Kb.Text type="BodySmall">
+        pushed {!!commitRef.commits && commitRef.commits.length}{' '}
         {`commit${!!commitRef.commits && commitRef.commits.length !== 1 ? 's' : ''}`} to
         <Kb.Text
-          type="BodySmallSemibold"
+          type="BodySmall"
           style={repoID ? styles.repoText : undefined}
           onClick={repoID ? () => onViewGitRepo(repoID, team) : undefined}
         >{` ${repo}/${branchName}`}</Kb.Text>
         :
       </Kb.Text>
-      <Kb.Box2 direction="vertical">
+      <Kb.Box2 direction="vertical" alignSelf="flex-start">
         {(commitRef.commits || []).map((commit, i) => (
           <Kb.Box2 direction="horizontal" key={commit.commitHash} alignSelf="flex-start">
             <Kb.TimelineMarker
@@ -114,20 +101,14 @@ type PushCommonProps = {
 }
 
 const GitPushCommon = ({children, pusher, timestamp, onClickUserAvatar}: PushCommonProps) => (
-  <Kb.Box2 direction="vertical" fullWidth={true}>
-    <UserNotice
-      username={pusher}
-      style={{marginTop: Styles.globalMargins.small}}
-      bgColor={Styles.globalColors.blueLighter2}
-      onClickAvatar={() => onClickUserAvatar(pusher)}
-    >
-      {!Styles.isMobile && (
-        <Kb.Icon type="icon-team-git-16" style={{marginLeft: 20, marginTop: -12, zIndex: 999}} />
-      )}
-      <SystemMessageTimestamp timestamp={timestamp} />
-      {children}
-    </UserNotice>
-  </Kb.Box2>
+  <UserNotice
+    username={pusher}
+    bgColor={Styles.globalColors.blueLighter2}
+    onClickAvatar={() => onClickUserAvatar(pusher)}
+    timestamp={timestamp}
+  >
+    {children}
+  </UserNotice>
 )
 
 class GitPush extends React.PureComponent<Props> {

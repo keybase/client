@@ -8,19 +8,20 @@ type Props = {
 }
 
 const CreateTeamNotice = ({onShowNewTeamDialog}: Props) => (
-  <UserNotice username="" bgColor={globalColors.blueLighter2}>
-    <Text type="BodySmallSemibold" center={true}>
-      Make it a team? You'll be able to add and delete members as you wish.{' '}
-      <Text
-        type="BodySmallPrimaryLink"
-        className="hover-underline"
-        style={{fontWeight: '600'}}
-        onClick={onShowNewTeamDialog}
-      >
-        Enter a team name
-      </Text>
+  // <UserNotice username="" bgColor={globalColors.blueLighter2}>
+  // TODO: make this match dz3
+  <Text type="BodySmallSemibold" center={true}>
+    Make it a team? You'll be able to add and delete members as you wish.{' '}
+    <Text
+      type="BodySmallPrimaryLink"
+      className="hover-underline"
+      style={{fontWeight: '600'}}
+      onClick={onShowNewTeamDialog}
+    >
+      Enter a team name
     </Text>
-  </UserNotice>
+  </Text>
+  // </UserNotice>
 )
 
 export default CreateTeamNotice
