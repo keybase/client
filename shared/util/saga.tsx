@@ -44,9 +44,13 @@ function* sequentially(effects: Array<any>): Generator<any, Array<any>, any> {
 export type MaybeAction = void | boolean | TypedActions | TypedActions[] | null
 
 type ActionTypes = keyof TypedActionsMap
-type ChainActionReturnInner = void | false | TypedActions | null
-type ChainActionReturnInPromise = ChainActionReturnInner | Array<ChainActionReturnInner>
-export type ChainActionReturn = ChainActionReturnInPromise | Promise<ChainActionReturnInPromise>
+export type ChainActionReturn =
+  | void
+  | TypedActions
+  | null
+  | boolean
+  | Array<ChainActionReturn>
+  | Promise<ChainActionReturn>
 //
 // Get the values of an Array. i.e. ValuesOf<["FOO", "BAR"]> => "FOO" | "BAR"
 type ValuesOf<T extends any[]> = T[number]
