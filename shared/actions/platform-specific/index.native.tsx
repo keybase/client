@@ -567,8 +567,13 @@ const manageContactsCache = async (
   return actions
 }
 
-const showContactsJoinedModal = (_, action: SettingsGen.ShowContactsJoinedModalPayload) =>
-  action.payload.resolved.length && RouteTreeGen.createNavigateAppend({path: ['settingsContactsJoined']})
+const showContactsJoinedModal = (
+  _: Container.TypedState,
+  action: SettingsGen.ShowContactsJoinedModalPayload
+) =>
+  action.payload.resolved.length
+    ? [RouteTreeGen.createNavigateAppend({path: ['settingsContactsJoined']})]
+    : []
 
 function* setupDarkMode() {
   const NativeAppearance = NativeModules.Appearance

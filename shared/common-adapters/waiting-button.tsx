@@ -17,7 +17,7 @@ export type OwnProps = {
 export type Props = {
   onlyDisable?: boolean
   storeWaiting: boolean
-  waitingKey: string | null
+  waitingKey: Array<string> | string | null
 } & ButtonProps
 
 /* Waiting button is a <Kb.Button /> with handling of waiting states.
