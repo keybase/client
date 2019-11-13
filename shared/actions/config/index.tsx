@@ -636,6 +636,12 @@ const gregorPushState = (_: Container.TypedState, action: GregorGen.PushStatePay
         lastSeenVersion,
       })
     )
+  } else {
+    actions.push(
+      ConfigGen.createSetWhatsNewLastSeenVersion({
+        lastSeenVersion: noVersion,
+      })
+    )
   }
   return actions
 }
