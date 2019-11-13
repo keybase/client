@@ -482,7 +482,10 @@ export const getChannelForTeam = (state: TypedState, teamname: string, channelna
 
 const blankCommands: Array<RPCChatTypes.ConversationCommand> = []
 
-export const getCommands = (state: TypedState, id: Types.ConversationIDKey) => {
+export const getCommands = (
+  state: TypedState,
+  id: Types.ConversationIDKey
+): Array<RPCChatTypes.ConversationCommand> => {
   const {commands} = getMeta(state, id)
   if (commands.typ === RPCChatTypes.ConversationCommandGroupsTyp.builtin) {
     return state.chat2.staticConfig
