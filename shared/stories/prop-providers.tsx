@@ -75,8 +75,8 @@ export const TeamDropdownMenu = () => ({
       muted: false,
       participants: [],
       teamID: '',
-      teamname: '',
       teamType: ownProps.isSmallTeam ? 'small' : 'big',
+      teamname: '',
     },
 
     isSmallTeam: ownProps.isSmallTeam,
