@@ -3,7 +3,6 @@ import * as TeamBuildingGen from './team-building-gen'
 import * as PeopleGen from './people-gen'
 import * as ProfileGen from './profile-gen'
 import * as Saga from '../util/saga'
-import * as I from 'immutable'
 import * as Constants from '../constants/people'
 import * as Types from '../constants/types/people'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -39,12 +38,12 @@ const getPeopleData = async (state: Container.TypedState, action: PeopleGen.GetP
     )
     const following = state.config.following
     const followers = state.config.followers
-    const oldItems: I.List<Types.PeopleScreenItem> = (data.items || [])
+    const oldItems: Array<Types.PeopleScreenItem> = (data.items ?? [])
       .filter(item => !item.badged && item.data.t !== RPCTypes.HomeScreenItemType.todo)
-      .reduce(Constants.reduceRPCItemToPeopleItem, I.List())
-    let newItems: I.List<Types.PeopleScreenItem> = (data.items || [])
+      .reduce(Constants.reduceRPCItemToPeopleItem, [])
+    let newItems: Array<Types.PeopleScreenItem> = (data.items ?? [])
       .filter(item => item.badged || item.data.t === RPCTypes.HomeScreenItemType.todo)
-      .reduce(Constants.reduceRPCItemToPeopleItem, I.List())
+      .reduce(Constants.reduceRPCItemToPeopleItem, [])
 
     if (debugTodo) {
       const allTodos = Object.values(RPCTypes.HomeScreenTodoType).reduce<Array<RPCTypes.HomeScreenTodoType>>(
@@ -78,7 +77,7 @@ const getPeopleData = async (state: Container.TypedState, action: PeopleGen.GetP
             phone: '+1555000111',
           })
         }
-        newItems = newItems.push(
+        newItems.push(
           Constants.makeTodo({
             badged: true,
             confirmLabel: Constants.todoTypeToConfirmLabel[todoType],
@@ -90,7 +89,7 @@ const getPeopleData = async (state: Container.TypedState, action: PeopleGen.GetP
           })
         )
       })
-      newItems = newItems.unshift(
+      newItems.unshift(
         Constants.makeFollowedNotificationItem({
           badged: true,
           newFollows: [
@@ -105,11 +104,11 @@ const getPeopleData = async (state: Container.TypedState, action: PeopleGen.GetP
       )
     }
 
-    const followSuggestions: I.List<Types.FollowSuggestion> = (data.followSuggestions || []).reduce(
+    const followSuggestions = (data.followSuggestions ?? []).reduce<Array<Types.FollowSuggestion>>(
       (list, suggestion) => {
         const followsMe = followers.has(suggestion.username)
         const iFollow = following.has(suggestion.username)
-        return list.push(
+        list.push(
           Constants.makeFollowSuggestion({
             followsMe,
             fullName: suggestion.fullName,
@@ -117,8 +116,9 @@ const getPeopleData = async (state: Container.TypedState, action: PeopleGen.GetP
             username: suggestion.username,
           })
         )
+        return list
       },
-      I.List()
+      []
     )
 
     return PeopleGen.createPeopleDataProcessed({

@@ -1,56 +1,47 @@
 import * as Types from '../constants/types/people'
 import * as TeamBuildingGen from '../actions/team-building-gen'
-import * as Constants from '../constants/people'
+import * as TeamBuildingConstants from '../constants/team-building'
 import * as PeopleGen from '../actions/people-gen'
+import * as Container from '../util/container'
 import * as SettingsGen from '../actions/settings-gen'
+import {teamBuilderReducerCreator} from '../team-building/reducer-helper'
 import teamBuildingReducer from './team-building'
 
-const initialState: Types.State = Constants.makeState()
-
-export default function(
-  state: Types.State = initialState,
-  action: PeopleGen.Actions | TeamBuildingGen.Actions | SettingsGen.EmailVerifiedPayload
-): Types.State {
-  switch (action.type) {
-    case PeopleGen.resetStore:
-      return initialState
-    case PeopleGen.peopleDataProcessed:
-      return state.merge({
-        followSuggestions: action.payload.followSuggestions,
-        lastViewed: action.payload.lastViewed,
-        newItems: action.payload.newItems,
-        oldItems: action.payload.oldItems,
-        version: action.payload.version,
-      })
-    case PeopleGen.setResentEmail:
-      return state.merge({
-        resentEmail: action.payload.email,
-      })
-    case SettingsGen.emailVerified:
-      return state.merge({
-        resentEmail: '',
-      })
-    case PeopleGen.getPeopleData:
-    case PeopleGen.markViewed:
-    case PeopleGen.skipTodo:
-    case PeopleGen.dismissAnnouncement:
-      return state
-    case TeamBuildingGen.resetStore:
-    case TeamBuildingGen.cancelTeamBuilding:
-    case TeamBuildingGen.addUsersToTeamSoFar:
-    case TeamBuildingGen.removeUsersFromTeamSoFar:
-    case TeamBuildingGen.searchResultsLoaded:
-    case TeamBuildingGen.finishedTeamBuilding:
-    case TeamBuildingGen.fetchedUserRecs:
-    case TeamBuildingGen.fetchUserRecs:
-    case TeamBuildingGen.search:
-    case TeamBuildingGen.selectRole:
-    case TeamBuildingGen.labelsSeen:
-    case TeamBuildingGen.changeSendNotification:
-      return state.merge({
-        teamBuilding: teamBuildingReducer('people', state.teamBuilding, action),
-      })
-    default:
-      return state
-  }
+const initialState: Types.State = {
+  followSuggestions: [],
+  lastViewed: new Date(),
+  newItems: [],
+  oldItems: [],
+  resentEmail: '',
+  teamBuilding: TeamBuildingConstants.makeSubState(),
+  version: -1,
 }
+
+type Actions = PeopleGen.Actions | TeamBuildingGen.Actions | SettingsGen.EmailVerifiedPayload
+
+export default Container.makeReducer<Actions, Types.State>(initialState, {
+  [PeopleGen.resetStore]: () => initialState,
+  [PeopleGen.peopleDataProcessed]: (draftState, action) => {
+    const {payload} = action
+    draftState.followSuggestions = payload.followSuggestions
+    draftState.lastViewed = payload.lastViewed
+    draftState.newItems = payload.newItems
+    draftState.oldItems = payload.oldItems
+    draftState.version = payload.version
+  },
+  [PeopleGen.setResentEmail]: (draftState, action) => {
+    draftState.resentEmail = action.payload.email
+  },
+  [SettingsGen.emailVerified]: draftState => {
+    draftState.resentEmail = ''
+  },
+  ...teamBuilderReducerCreator<Actions, Types.State>(
+    (draftState: Container.Draft<Types.State>, action: TeamBuildingGen.Actions) => {
+      draftState.teamBuilding = teamBuildingReducer(
+        'people',
+        draftState.teamBuilding as Types.State['teamBuilding'],
+        action
+      )
+    }
+  ),
+})
