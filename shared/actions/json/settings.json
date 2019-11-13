@@ -99,7 +99,7 @@
     },
     "invitesRefresh": {},
     "invitesRefreshed": {
-      "invites": "Types._InvitesState"
+      "invites": "Types.InvitesState"
     },
     "invitesSend": {
       "email": "string",

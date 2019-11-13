@@ -3,6 +3,7 @@ import * as SettingsGen from '../actions/settings-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as Types from '../constants/types/settings'
 import * as Constants from '../constants/settings'
+import * as Container from '../util/container'
 import {isValidEmail} from '../util/simple-validators'
 
 const initialState: Types.State = Constants.makeState()
@@ -12,7 +13,7 @@ type Actions =
   | EngineGen.Keybase1NotifyEmailAddressEmailsChangedPayload
   | EngineGen.Keybase1NotifyPhoneNumberPhoneNumbersChangedPayload
 
-  export default makeReducer<Actions, Types.State>(initialState, {
+  export default Container.makeReducer<Actions, Types.State>(initialState, {
       [ SettingsGen.resetStore]: () => initialState,
       [ SettingsGen.notificationsToggle]: (draftState, action) => {
       if (!draftState.notifications.groups.get('email')) {
@@ -55,30 +56,31 @@ type Actions =
           unsubscribedFromAll: !name && !unsubscribedFromAll,
       })
     },
-    [ SettingsGen.notificationsSaved]: (draftState, action) => {
-      return state.update('notifications', notifications => notifications.merge({allowEdit: true}))
+    [ SettingsGen.notificationsSaved]: (draftState) => {
+        draftState.notifications.allowEdit = true 
+    },
       [ SettingsGen.notificationsRefreshed]: (draftState, action) => {
-      return state.update('notifications', notifications =>
-        notifications.merge({
-          allowEdit: true,
-          groups: action.payload.notifications,
-        })
-      )
+          draftState.notifications.allowEdit = true
+          draftState.notifications.groups = action.payload.notifications
+      },
       [ SettingsGen.invitesRefreshed]: (draftState, action) => {
-      return state.update('invites', invites => invites.merge(action.payload.invites))
+          draftState.invites = action.payload.invites
+      },
       [ SettingsGen.invitesSent]: (draftState, action) => {
-      return state.update('invites', invites => invites.merge({error: action.payload.error}))
+          draftState.invites.error = action.payload.error
+      },
       [ SettingsGen.invitesClearError]: (draftState, action) => {
-      return state.update('invites', invites => invites.merge({error: null}))
+          draftState.invites.error = undefind
+      },
       [ SettingsGen.loadedSettings]: (draftState, action) => {
-      return state
-        .setIn(['email', 'emails'], action.payload.emails)
-        .setIn(['phoneNumbers', 'phones'], action.payload.phones)
+          const {emails, phones} = action.payload
+          draftState.email.emails = emails
+          draftState.phoneNumbers.phones = phones
+      },
         [ EngineGen.keybase1NotifyEmailAddressEmailsChanged]: (draftState, action) => {
-      return state.setIn(
-        ['email', 'emails'],
-        I.Map((action.payload.params.list || []).map(row => [row.email, Constants.makeEmailRow(row)]))
-      )
+            const {list} = action.payload.params
+            draftState.email.emails = new Map((list || []).map(row => [row.email, Constants.makeEmailRow(row)]))
+        },
       [ SettingsGen.emailVerified]: (draftState, action) => {
       return state
         .updateIn(

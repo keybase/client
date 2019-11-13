@@ -84,20 +84,16 @@ export const makeContacts = (): Types.ContactsState => ({
   permissionStatus: 'unknown',
 })
 
-export const makeState = () => ({
+export const makeState = (): Types.State => ({
   allowDeleteAccount: false,
   chat: makeChat(),
-  checkPasswordIsCorrect: null,
   contacts: makeContacts(),
-  didToggleCertificatePinning: null,
   email: makeEmail(),
   feedback: makeFeedback(),
   invites: makeInvites(),
-  lockdownModeEnabled: null,
   notifications: makeNotifications(),
   password: makePassword(),
   phoneNumbers: makePhoneNumbers(),
-  proxyData: null,
 })
 
 export const getPushTokenForLogSend = (state: TypedState) => ({pushToken: state.push.token})
