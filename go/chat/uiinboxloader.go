@@ -377,7 +377,12 @@ func (h *UIInboxLoader) Query() chat1.GetInboxLocalQuery {
 
 type bigTeam struct {
 	name  string
+	id    string
 	convs []types.RemoteConversation
+}
+
+func newBigTeam(name, id string) *bigTeam {
+	return &bigTeam{name: name, id: id}
 }
 
 func (b *bigTeam) sort() {
@@ -401,7 +406,7 @@ func (c *bigTeamCollector) appendConv(conv types.RemoteConversation) {
 	name := utils.GetRemoteConvTLFName(conv)
 	bt, ok := c.teams[name]
 	if !ok {
-		bt = &bigTeam{name: name}
+		bt = newBigTeam(name, conv.Conv.Metadata.IdTriple.Tlfid.String())
 		c.teams[name] = bt
 	}
 	bt.convs = append(bt.convs, conv)
@@ -417,7 +422,7 @@ func (c *bigTeamCollector) finalize(ctx context.Context) (res []chat1.UIInboxBig
 		return strings.Compare(bts[i].name, bts[j].name) < 0
 	})
 	for _, bt := range bts {
-		res = append(res, chat1.NewUIInboxBigTeamRowWithLabel(bt.name))
+		res = append(res, chat1.NewUIInboxBigTeamRowWithLabel(chat1.UIInboxBigTeamLabelRow{Name: bt.name, Id: bt.id}))
 		for _, conv := range bt.convs {
 			row := utils.PresentRemoteConversationAsBigTeamChannelRow(ctx, conv)
 			res = append(res, chat1.NewUIInboxBigTeamRowWithChannel(row))

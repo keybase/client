@@ -40,8 +40,13 @@ protocol chatUi {
     boolean isMuted;
   }
 
+  record UIInboxBigTeamLabelRow {
+    string name;
+    string id;
+  }
+
   variant UIInboxBigTeamRow switch (UIInboxBigTeamRowTyp state) {
-    case LABEL: string;
+    case LABEL: UIInboxBigTeamLabelRow;
     case CHANNEL: UIInboxBigTeamChannelRow;
   }
 

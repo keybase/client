@@ -22,6 +22,9 @@ export default (
       case TeamsGen.setChannelCreationError:
         draftState.channelCreationError = action.payload.error
         return
+      case TeamsGen.createNewTeam:
+        draftState.teamCreationError = ''
+        return
       case TeamsGen.setTeamCreationError:
         draftState.teamCreationError = action.payload.error
         return
@@ -268,7 +271,6 @@ export default (
       case TeamsGen.checkRequestedAccess:
       case TeamsGen.clearNavBadges:
       case TeamsGen.createChannel:
-      case TeamsGen.createNewTeam:
       case TeamsGen.createNewTeamFromConversation:
       case TeamsGen.deleteChannelConfirmed:
       case TeamsGen.deleteTeam:
@@ -279,7 +281,6 @@ export default (
       case TeamsGen.getChannels:
       case TeamsGen.getDetails:
       case TeamsGen.getMembers:
-      case TeamsGen.getTeamOperations:
       case TeamsGen.getTeamProfileAddList:
       case TeamsGen.getTeamPublicity:
       case TeamsGen.getTeamRetentionPolicy:

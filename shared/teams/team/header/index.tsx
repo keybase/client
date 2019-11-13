@@ -18,6 +18,7 @@ export type Props = {
   openTeam: boolean
   role: Types.MaybeTeamRoleType
   showingMenu: boolean
+  teamID: Types.TeamID
   teamname: Types.Teamname
   onAddSelf: () => void
   onChat: () => void
@@ -126,7 +127,7 @@ const _TeamHeader = (props: Props) => (
       <AddPeopleHow
         attachTo={props.getAttachmentRef}
         visible={props.showingMenu}
-        teamname={props.teamname}
+        teamID={props.teamID}
         onHidden={props.toggleShowingMenu}
       />
 
