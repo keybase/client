@@ -139,7 +139,7 @@ protocol constants {
     SCTeamExists_2619,
     SCTeamReadError_2623,
     SCTeamWritePermDenied_2625,
-    SCTeamBadGeneration_2636,
+    SCTeamBadGeneration_2634,
     SCNoOp_2638,
     SCTeamInviteBadCancel_2645,
     SCTeamInviteBadToken_2646,
