@@ -65,7 +65,7 @@ const youOrUsername = (props: {username: string; you: string; capitalize: boolea
   if (props.username === props.you) {
     return props.capitalize ? 'You' : 'you'
   }
-  return <Kb.ConnectedUsernames {...connectedUsernamesProps} usernames={[props.username]} />
+  return ''
 }
 
 const AddedToTeam = (props: Props) => {
