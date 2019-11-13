@@ -1455,7 +1455,7 @@ func testCreateEntryFailKBFSPrefix(t *testing.T, et data.EntryType) {
 	}
 	if err == nil {
 		t.Errorf("Got no expected error on create")
-	} else if err != expectedErr {
+	} else if errors.Cause(err) != expectedErr {
 		t.Errorf("Got unexpected error on create: %+v", err)
 	}
 }

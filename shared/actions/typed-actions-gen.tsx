@@ -622,11 +622,8 @@ export type TypedActionsMap = {
   'people:markViewed': people.MarkViewedPayload
   'people:skipTodo': people.SkipTodoPayload
   'people:setResentEmail': people.SetResentEmailPayload
-  'pinentry:deleteEntity': pinentry.DeleteEntityPayload
-  'pinentry:mergeEntity': pinentry.MergeEntityPayload
-  'pinentry:replaceEntity': pinentry.ReplaceEntityPayload
-  'pinentry:subtractEntity': pinentry.SubtractEntityPayload
   'pinentry:newPinentry': pinentry.NewPinentryPayload
+  'pinentry:close': pinentry.ClosePayload
   'pinentry:onSubmit': pinentry.OnSubmitPayload
   'pinentry:onCancel': pinentry.OnCancelPayload
   'profile:addProof': profile.AddProofPayload
@@ -912,7 +909,6 @@ export type TypedActionsMap = {
   'unlock-folders:newRekeyPopup': unlockfolders.NewRekeyPopupPayload
   'unlock-folders:onBackFromPaperKey': unlockfolders.OnBackFromPaperKeyPayload
   'unlock-folders:toPaperKeyInput': unlockfolders.ToPaperKeyInputPayload
-  'unlock-folders:waiting': unlockfolders.WaitingPayload
   'users:blockUser': users.BlockUserPayload
   'users:getBio': users.GetBioPayload
   'users:updateBrokenState': users.UpdateBrokenStatePayload

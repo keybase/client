@@ -191,6 +191,11 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               >
                 {formatTimeForChat(this.props.message.timestamp)}
               </Kb.Text>
+              {this._getKeyedBot() && (
+                <Kb.WithTooltip tooltip={`Encrypted for @${this._getKeyedBot()}`}>
+                  <Kb.Icon fontSize={14} color={Styles.globalColors.black} type="iconfont-nav-2-robot" />
+                </Kb.WithTooltip>
+              )}
             </Kb.Box2>
           </Kb.Box2>
           <Kb.Box2
@@ -305,6 +310,8 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         ordinal={this.props.message.ordinal}
       />
     )
+
+  _getKeyedBot = () => this.props.message.type === 'text' && this.props.message.botUsername
 
   _popup = () =>
     (this.props.message.type === 'text' ||
