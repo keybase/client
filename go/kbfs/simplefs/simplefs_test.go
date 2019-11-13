@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -187,6 +188,34 @@ func TestStatNonExistent(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.False(t, de.Writable)
+}
+
+func TestSymlink(t *testing.T) {
+	ctx := context.Background()
+	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
+	sfs := newSimpleFS(env.EmptyAppStateUpdater{}, config)
+
+	t.Logf("Make a file and then symlink it")
+	p := keybase1.NewPathWithKbfsPath(`/private/jdoe`)
+	target := pathAppend(p, `test1.txt`)
+	writeRemoteFile(ctx, t, sfs, target, []byte(`foo`))
+	link := pathAppend(p, `link`)
+	err := sfs.SimpleFSSymlink(ctx, keybase1.SimpleFSSymlinkArg{
+		Target: path.Base(target.String()),
+		Link:   link,
+	})
+	require.NoError(t, err)
+	require.Equal(t, "foo",
+		string(readRemoteFile(ctx, t, sfs, link)))
+
+	// Regression for HOTPOT-1276
+	t.Log("Make sure a link called . will fail")
+	badLink := pathAppend(p, `.`)
+	err = sfs.SimpleFSSymlink(ctx, keybase1.SimpleFSSymlinkArg{
+		Target: path.Base(target.String()),
+		Link:   badLink,
+	})
+	require.Error(t, err)
 }
 
 func TestList(t *testing.T) {
@@ -654,7 +683,9 @@ func readRemoteFile(ctx context.Context, t *testing.T, sfs *SimpleFS, path keyba
 		Size:   de.Size * 2, // Check that reading past the end works.
 	})
 	require.NoError(t, err)
-	require.Len(t, data.Data, de.Size)
+	if de.DirentType != keybase1.DirentType_SYM {
+		require.Len(t, data.Data, de.Size)
+	}
 
 	// Starting the read past the end shouldn't matter either.
 	dataPastEnd, err := sfs.SimpleFSRead(ctx, keybase1.SimpleFSReadArg{

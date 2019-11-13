@@ -810,6 +810,7 @@ const validUIMessagetoMessage = (
 ) => {
   const minimum = {
     author: m.senderUsername,
+    botUsername: m.botUsername || undefined,
     conversationIDKey,
     id: Types.numberToMessageID(m.messageID),
     ordinal: Types.numberToOrdinal(m.messageID),
@@ -1121,6 +1122,7 @@ const errorUIMessagetoMessage = (
 ) => {
   return makeMessageText({
     author: o.senderUsername,
+    botUsername: o.botUsername || undefined,
     conversationIDKey,
     deviceName: o.senderDeviceName,
     deviceType: DeviceTypes.stringToDeviceType(o.senderDeviceType),

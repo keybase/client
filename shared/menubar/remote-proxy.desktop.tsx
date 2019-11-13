@@ -172,7 +172,7 @@ export default Container.namedConnect(
     // provide which users will appear in the menubar before rendering it.
     // This is done for SyncAvatarProps which use the usernames to shorten the
     // number of following/follwers that are sent to the remote window.
-    const usernamesForFollowingStatus = getUsernamesFromTlfUpdate(stateProps._tlfUpdates.toArray())
+    const usernamesForFollowingStatus = getUsernamesFromTlfUpdate(stateProps._tlfUpdates)
 
     return {
       badgeKeys: stateProps._badgeInfo,

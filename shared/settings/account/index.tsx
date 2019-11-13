@@ -100,9 +100,7 @@ const Password = (props: Props) => {
     <SettingsSection>
       <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
         <Kb.Text type="Header">Password</Kb.Text>
-        <Kb.Text type="BodySmall">
-          Allows you to log out and log back in, and use the keybase.io website.
-        </Kb.Text>
+        <Kb.Text type="BodySmall">Allows you to sign out and sign back in.</Kb.Text>
       </Kb.Box2>
       <Kb.Box2 direction="vertical" alignItems="flex-start" fullWidth={true}>
         {props.hasPassword && (
