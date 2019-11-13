@@ -8,7 +8,7 @@ import * as Container from '../../util/container'
 
 type OwnProps = {}
 
-export default Container.connect(
+export default Container.connectDEBUG(
   state => ({
     acceptedInvites: state.settings.invites.acceptedInvites,
     error: state.settings.invites.error,
@@ -32,7 +32,7 @@ export default Container.connect(
       ),
     onSelectUser: (username: string) => dispatch(createShowUserProfile({username})),
   }),
-  (stateProps, dispatchProps, ownProps: OwnProps) => ({
+  (stateProps, dispatchProps, _: OwnProps) => ({
     ...stateProps,
     ...dispatchProps,
     acceptedInvites: stateProps.acceptedInvites,

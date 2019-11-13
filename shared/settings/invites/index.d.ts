@@ -14,7 +14,7 @@ export type Props = {
   onClearError: () => void
   onSelectPendingInvite: (invite: Types.PendingInvite) => void
   waitingForResponse: boolean
-  error: Error | null
+  error?: Error
 }
 
 export default class Invites extends Component<Props> {}
