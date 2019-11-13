@@ -1909,14 +1909,13 @@ func (i *Inbox) ConversationsUpdate(ctx context.Context, uid gregor1.UID, vers c
 
 func (i *Inbox) UpdateLocalMtime(ctx context.Context, uid gregor1.UID,
 	convUpdates []chat1.LocalMtimeUpdate) (err Error) {
+	if len(convUpdates) == 0 {
+		return nil
+	}
 	defer i.Trace(ctx, func() error { return err }, "UpdateLocalMtime")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
-
-	if len(convUpdates) == 0 {
-		return nil
-	}
 
 	defer i.layoutNotifier.UpdateLayout(ctx, chat1.InboxLayoutReselectMode_DEFAULT, "local conversations update")
 
