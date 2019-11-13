@@ -37,7 +37,7 @@ export const isVersionValid = (version: string) => {
 
 export const anyVersionsUnseen = (lastSeenVersion: string): boolean =>
   // On first load of what's new, lastSeenVersion == noVersion so everything is unseen
-  lastLastVersion && lastSeenVersion === noVersion
+  (lastLastVersion && lastSeenVersion === noVersion) || !lastSeenVersion
     ? true
     : Object.values(getSeenVersions(lastSeenVersion)).some(seen => !seen)
 
