@@ -68,10 +68,10 @@ const YouInviteAddedToTeamNotice = (props: Props) => {
       teamname={teamname}
       bgColor={Styles.globalColors.blueLighter2}
       onClickAvatar={props.onViewTeam}
+      timestamp={timestamp}
     >
       <Kb.Icon type="icon-team-sparkles-64-40" style={{height: 40, marginTop: -36, width: 64}} />
-      <SystemMessageTimestamp timestamp={timestamp} />
-      <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, alignItems: 'center'}}>{copy}</Kb.Box>
+      {copy}
     </UserNotice>
   )
 }

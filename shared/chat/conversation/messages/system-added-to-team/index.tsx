@@ -102,42 +102,39 @@ const YouAddedToTeam = (props: Props) => {
       teamname={teamname}
       bgColor={Styles.globalColors.blueLighter2}
       onClickAvatar={onViewTeam}
+      timestamp={timestamp}
     >
       <Kb.Icon type="icon-team-sparkles-64-40" style={{height: 40, marginTop: -36, width: 64}} />
-      <SystemMessageTimestamp timestamp={timestamp} />
-      <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, alignItems: 'center'}}>
-        <Kb.Text
-          type="BodySmallSemibold"
-          center={true}
-          negative={true}
-          style={{color: Styles.globalColors.black_50}}
-        >
-          {youOrUsername({capitalize: true, username: adder, you})} added{' '}
-          {youOrUsername({adder, capitalize: false, username: addee, you})}
-          {teamname && ` to `}
-          {teamname && (
-            <Kb.Text
-              onClick={onViewTeam}
-              style={{color: Styles.globalColors.black_50}}
-              type="BodySmallSemiboldSecondaryLink"
-            >
-              {teamname}
-            </Kb.Text>
-          )}
-          {typeToLabel[props.role] &&
-            ` as ${indefiniteArticle(props.role)} ${typeToLabel[role].toLowerCase()}`}
-          .{' '}
-          <Kb.Text type="BodySmallSemibold">
-            Say hi!{' '}
-            <Kb.EmojiIfExists
-              style={Styles.isMobile ? {display: 'inline-block'} : null}
-              emojiName=":wave:"
-              size={14}
-            />
+      <Kb.Text
+        type="BodySmallSemibold"
+        center={true}
+        negative={true}
+        style={{color: Styles.globalColors.black_50}}
+      >
+        {youOrUsername({capitalize: true, username: adder, you})} added{' '}
+        {youOrUsername({adder, capitalize: false, username: addee, you})}
+        {teamname && ` to `}
+        {teamname && (
+          <Kb.Text
+            onClick={onViewTeam}
+            style={{color: Styles.globalColors.black_50}}
+            type="BodySmallSemiboldSecondaryLink"
+          >
+            {teamname}
           </Kb.Text>
+        )}
+        {typeToLabel[props.role] && ` as ${indefiniteArticle(props.role)} ${typeToLabel[role].toLowerCase()}`}
+        .{' '}
+        <Kb.Text type="BodySmallSemibold">
+          Say hi!{' '}
+          <Kb.EmojiIfExists
+            style={Styles.isMobile ? {display: 'inline-block'} : null}
+            emojiName=":wave:"
+            size={14}
+          />
         </Kb.Text>
-        <ManageComponent {...props} />
-      </Kb.Box>
+      </Kb.Text>
+      <ManageComponent {...props} />
     </UserNotice>
   )
 }
