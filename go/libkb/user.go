@@ -926,16 +926,23 @@ func (u UserForSignatures) ToUserVersion() keybase1.UserVersion {
 }
 func (u UserForSignatures) GetLatestPerUserKey() *keybase1.PerUserKey { return u.latestPUK }
 
-func (u *User) ToUserForSignatures() (ret UserForSignatures) {
+func (u *User) ToUserForSignatures() (ret UserForSignatures, err error) {
 	if u == nil {
-		return ret
+		return ret, fmt.Errorf("ToUserForSignatures missing user object")
+	}
+	ckf := u.GetComputedKeyFamily()
+	if ckf == nil {
+		return ret, fmt.Errorf("ToUserForSignatures missing ckf")
+	}
+	if ckf.cki == nil {
+		return ret, fmt.Errorf("ToUserForSignatures missing cki")
 	}
 	ret.uid = u.GetUID()
 	ret.name = u.GetNormalizedName()
 	ret.eldestKID = u.GetEldestKID()
 	ret.eldestSeqno = u.GetCurrentEldestSeqno()
 	ret.latestPUK = u.GetComputedKeyFamily().GetLatestPerUserKey()
-	return ret
+	return ret, nil
 }
 
 var _ UserBasic = UserForSignatures{}
