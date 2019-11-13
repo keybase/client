@@ -29,7 +29,7 @@ const ReloadableNotifications = (props: Props & ExtraProps) => {
   )
 }
 
-export default Container.connect(
+export default Container.connectDEBUG(
   state => ({
     _groups: state.settings.notifications.groups,
     allowEdit: state.settings.notifications.allowEdit,

@@ -3,12 +3,7 @@ import * as Types from '../../constants/types/settings'
 
 export type Props = {
   allowEdit: boolean
-  groups: {
-    [K in string]: {
-      settings: Array<Types.NotificationsSettingsState>
-      unsubscribedFromAll: boolean
-    }
-  }
+  groups: Map<string, Types.NotificationsGroupState>
   onBack?: () => void
   onClickYourAccount: () => void
   onToggle: (groupName: string, name: string) => void
