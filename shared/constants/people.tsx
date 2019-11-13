@@ -1,6 +1,5 @@
 import * as Types from './types/people'
 import * as RPCTypes from './types/rpc-gen'
-import * as TeamBuildingConstants from './team-building'
 import invert from 'lodash/invert'
 import {IconType} from '../common-adapters/icon.constants-gen' // do NOT pull in all of common-adapters
 import {isMobile} from './platform'
@@ -274,7 +273,7 @@ export const reduceRPCItemToPeopleItem = (
   return list
 }
 
-export const makeAnnouncement = (a?: Partial<Types.Announcement>) => ({
+export const makeAnnouncement = (a?: Partial<Types.Announcement>): Types.Announcement => ({
   appLink: null,
   badged: false,
   confirmLabel: null,
@@ -287,7 +286,7 @@ export const makeAnnouncement = (a?: Partial<Types.Announcement>) => ({
   ...a,
 })
 
-export const makeTodo = (t?: Partial<Types.Todo>) => ({
+export const makeTodo = (t?: Partial<Types.Todo>): Types.Todo => ({
   badged: false,
   confirmLabel: '',
   dismissable: false,
@@ -299,13 +298,17 @@ export const makeTodo = (t?: Partial<Types.Todo>) => ({
   ...t,
 })
 
-export const makeFollowedNotification = (f?: Partial<Types.FollowedNotification>) => ({
+export const makeFollowedNotification = (
+  f?: Partial<Types.FollowedNotification>
+): Types.FollowedNotification => ({
   contactDescription: '',
   username: '',
   ...f,
 })
 
-export const makeFollowedNotificationItem = (f?: Partial<Types.FollowedNotificationItem>) => ({
+export const makeFollowedNotificationItem = (
+  f?: Partial<Types.FollowedNotificationItem>
+): Types.FollowedNotificationItem => ({
   badged: false,
   newFollows: [],
   notificationTime: new Date(),
@@ -314,7 +317,7 @@ export const makeFollowedNotificationItem = (f?: Partial<Types.FollowedNotificat
   ...f,
 })
 
-export const makeFollowSuggestion = (f?: Partial<Types.FollowSuggestion>) => ({
+export const makeFollowSuggestion = (f?: Partial<Types.FollowSuggestion>): Types.FollowSuggestion => ({
   followsMe: false,
   fullName: null,
   iFollow: false,
@@ -322,11 +325,15 @@ export const makeFollowSuggestion = (f?: Partial<Types.FollowSuggestion>) => ({
   ...f,
 })
 
-export const makeTodoMetaEmail = (t?: Partial<Types.TodoMetaEmail>) => ({
+export const makeTodoMetaEmail = (t?: Partial<Types.TodoMetaEmail>): Types.TodoMetaEmail => ({
   email: '',
   lastVerifyEmailDate: 0,
   type: 'email',
   ...t,
 })
 
-export const makeTodoMetaPhone = (t?: Partial<Types.TodoMetaPhone>) => ({phone: '', type: 'phone', ...t})
+export const makeTodoMetaPhone = (t?: Partial<Types.TodoMetaPhone>): Types.TodoMetaPhone => ({
+  phone: '',
+  type: 'phone',
+  ...t,
+})
