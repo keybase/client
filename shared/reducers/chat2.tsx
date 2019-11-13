@@ -579,7 +579,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       flipStatusMap.set(status.gameID, status)
     })
   },
-  /// AAAA here
   [Chat2Gen.messageSend]: (draftState, action) => {
     const {conversationIDKey} = action.payload
     const {commandMarkdownMap, replyToMap} = draftState
