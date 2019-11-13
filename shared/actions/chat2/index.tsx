@@ -3271,7 +3271,7 @@ const gregorPushState = (state: TypedState, action: GregorGen.PushStatePayload, 
       .map(i => i.item.category.substr(13)) as Array<RPCTypes.TeamID>
     teamIDs.forEach(teamID => {
       if (!state.chat2.blockButtonsMap.get(teamID)) {
-        actions.push(Chat2Gen.createUpdateBlockButtons({teamID, show: true}))
+        actions.push(Chat2Gen.createUpdateBlockButtons({show: true, teamID}))
       }
     })
   }
