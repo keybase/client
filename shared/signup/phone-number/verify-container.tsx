@@ -38,8 +38,8 @@ class WatchForSuccess extends React.Component<WatcherProps> {
   }
 }
 
-export default Container.connect(
-  (state: Container.TypedState) => ({
+export default Container.namedConnect(
+  state => ({
     error: state.settings.phoneNumbers.verificationState === 'error' ? state.settings.phoneNumbers.error : '',
     phoneNumber: state.settings.phoneNumbers.pendingVerification,
     resendWaiting: anyWaiting(
@@ -50,7 +50,7 @@ export default Container.connect(
     verificationStatus: state.settings.phoneNumbers.verificationState,
     verifyWaiting: anyWaiting(state, SettingsConstants.verifyPhoneNumberWaitingKey),
   }),
-  (dispatch: Container.TypedDispatch) => ({
+  dispatch => ({
     _onContinue: (phoneNumber: string, code: string) =>
       dispatch(SettingsGen.createVerifyPhoneNumber({code, phoneNumber})),
     _onResend: (phoneNumber: string) =>
@@ -59,14 +59,17 @@ export default Container.connect(
     onCleanup: () => dispatch(SettingsGen.createClearPhoneNumberAdd()),
     onSuccess: () => dispatch(RouteTreeGen.createClearModals()),
   }),
-  (s, d, o: OwnProps) => ({
-    ...o,
-    ...s,
-    onBack: d.onBack,
-    onCleanup: d.onCleanup,
-    onContinue: (code: string) => d._onContinue(s.phoneNumber, code),
-    onResend: () => d._onResend(s.phoneNumber),
-    onSuccess: d.onSuccess,
+  (stateProps, dispatchProps, _: OwnProps) => ({
+    error: stateProps.error,
+    onBack: dispatchProps.onBack,
+    onCleanup: dispatchProps.onCleanup,
+    onContinue: (code: string) => dispatchProps._onContinue(stateProps.phoneNumber, code),
+    onResend: () => dispatchProps._onResend(stateProps.phoneNumber),
+    onSuccess: dispatchProps.onSuccess,
+    phoneNumber: stateProps.phoneNumber,
+    resendWaiting: stateProps.resendWaiting,
+    verificationStatus: stateProps.verificationStatus,
+    verifyWaiting: stateProps.verifyWaiting,
   }),
   'ConnectedVerifyPhoneNumber'
 )(WatchForSuccess)
