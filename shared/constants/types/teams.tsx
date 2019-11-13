@@ -150,7 +150,7 @@ export type State = Readonly<{
   teamCreationError: string
   teamDetails: Map<TeamID, TeamDetails>
   teamDetailsMetaStale: boolean // if we've received an update since we last loaded team list
-  teamDetailsMetaSubscribed: boolean // if we are eagerly reloading team list
+  teamDetailsMetaSubscribeCount: number // if >0 we are eagerly reloading team list
   teamNameToChannelInfos: I.Map<Teamname, I.Map<ConversationIDKey, ChannelInfo>>
   teamNameToID: I.Map<Teamname, string>
   teamNameToInvites: I.Map<Teamname, I.Set<InviteInfo>> // TODO remove

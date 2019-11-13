@@ -49,9 +49,9 @@
       "teamname": "string"
     },
     "getTeams": {
-      "_description": "Load team list if we are stale.",
-      "forceReload?": "boolean",
-      "subscribeReason?": ["'teamList'", "'gitNewRepo'", "'profileShowcaseTeams'"]
+      "_description": "Load team list if we are stale. _subscribe is for use by teams/subscriber only.",
+      "_subscribe?": "boolean",
+      "forceReload?": "boolean"
     },
     "unsubscribeTeamList": {
       "_description": "Don't eagerly reload team list anymore."

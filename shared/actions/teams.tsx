@@ -755,10 +755,7 @@ function* getTeams(
     return
   }
   if (action.type === TeamsGen.getTeams) {
-    const {forceReload, subscribeReason} = action.payload
-    if (subscribeReason) {
-      logger.info(`Subscribing to team updates because ${subscribeReason}`)
-    }
+    const {forceReload} = action.payload
     if (!forceReload && !state.teams.teamDetailsMetaStale) {
       // bail
       return
@@ -1148,22 +1145,13 @@ const teamDeletedOrExit = (
 const getLoadCalls = (teamname?: string) => (teamname ? [TeamsGen.createGetDetails({teamname})] : [])
 
 const reloadTeamListIfSubscribed = (state: TypedState, _, logger: Saga.SagaLogger) => {
-  if (state.teams.teamDetailsMetaSubscribed) {
+  if (state.teams.teamDetailsMetaSubscribeCount > 0) {
     logger.info('eagerly reloading')
     return TeamsGen.createGetTeams()
+  } else {
+    logger.info('skipping')
   }
   return false
-}
-
-const teamListUnsubscribe = (state: TypedState, _, logger: Saga.SagaLogger) => {
-  // This is not an airtight listener, we may navigate away from a page that
-  // previously subscribed without getting here. The point is to _eventually_
-  // unsubscribe as users move around the app.
-  if (state.teams.teamDetailsMetaSubscribed) {
-    logger.info('unsubscribing')
-    return TeamsGen.createUnsubscribeTeamList()
-  }
-  return
 }
 
 const updateTopic = async (_: TypedState, action: TeamsGen.UpdateTopicPayload) => {
@@ -1550,16 +1538,6 @@ const teamsSaga = function*() {
     [EngineGen.keybase1NotifyTeamTeamMetadataUpdate, GregorGen.updateReachable],
     reloadTeamListIfSubscribed,
     'reloadTeamListIfSubscribed'
-  )
-  yield* Saga.chainAction2(
-    [
-      RouteTreeGen.navigateAppend,
-      RouteTreeGen.navigateUp,
-      RouteTreeGen.switchTab,
-      RouteTreeGen.switchLoggedIn,
-    ],
-    teamListUnsubscribe,
-    'teamListUnsubscribe'
   )
 
   yield* Saga.chainAction2(TeamsGen.clearNavBadges, clearNavBadges)

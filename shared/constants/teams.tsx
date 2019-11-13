@@ -179,7 +179,7 @@ const emptyState: Types.State = {
   teamCreationError: '',
   teamDetails: new Map(),
   teamDetailsMetaStale: true, // start out true, we have not loaded
-  teamDetailsMetaSubscribed: false,
+  teamDetailsMetaSubscribeCount: 0,
   teamInviteError: '',
   teamJoinError: '',
   teamJoinSuccess: false,

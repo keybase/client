@@ -150,12 +150,14 @@ export default (
         draftState.emailInviteError.message = action.payload.message
         return
       case TeamsGen.getTeams:
-        if (action.payload.subscribeReason) {
-          draftState.teamDetailsMetaSubscribed = true
+        if (action.payload._subscribe) {
+          draftState.teamDetailsMetaSubscribeCount++
         }
         return
       case TeamsGen.unsubscribeTeamList:
-        draftState.teamDetailsMetaSubscribed = false
+        if (draftState.teamDetailsMetaSubscribeCount > 0) {
+          draftState.teamDetailsMetaSubscribeCount--
+        }
         return
       case TeamsGen.setTeamInfo:
         draftState.teamNameToAllowPromote = action.payload.teamNameToAllowPromote
