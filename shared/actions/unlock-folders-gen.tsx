@@ -14,7 +14,6 @@ export const newRekeyPopup = 'unlock-folders:newRekeyPopup'
 export const onBackFromPaperKey = 'unlock-folders:onBackFromPaperKey'
 export const openPopup = 'unlock-folders:openPopup'
 export const toPaperKeyInput = 'unlock-folders:toPaperKeyInput'
-export const waiting = 'unlock-folders:waiting'
 
 // Payload Types
 type _CheckPaperKeyDonePayload = {readonly error?: string}
@@ -30,7 +29,6 @@ type _NewRekeyPopupPayload = {
 type _OnBackFromPaperKeyPayload = void
 type _OpenPopupPayload = void
 type _ToPaperKeyInputPayload = void
-type _WaitingPayload = {readonly waiting: boolean}
 
 // Action Creators
 export const createCheckPaperKey = (payload: _CheckPaperKeyPayload): CheckPaperKeyPayload => ({
@@ -59,7 +57,6 @@ export const createToPaperKeyInput = (payload: _ToPaperKeyInputPayload): ToPaper
   payload,
   type: toPaperKeyInput,
 })
-export const createWaiting = (payload: _WaitingPayload): WaitingPayload => ({payload, type: waiting})
 
 // Action Payloads
 export type CheckPaperKeyDonePayload = {
@@ -86,7 +83,6 @@ export type ToPaperKeyInputPayload = {
   readonly payload: _ToPaperKeyInputPayload
   readonly type: typeof toPaperKeyInput
 }
-export type WaitingPayload = {readonly payload: _WaitingPayload; readonly type: typeof waiting}
 
 // All Actions
 // prettier-ignore
@@ -100,5 +96,4 @@ export type Actions =
   | OnBackFromPaperKeyPayload
   | OpenPopupPayload
   | ToPaperKeyInputPayload
-  | WaitingPayload
   | {type: 'common:resetStore', payload: {}}
