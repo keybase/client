@@ -5,7 +5,7 @@ import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import LastModifiedLine from './last-modified-line-container'
 import TlfInfoLine from './tlf-info-line-container'
-import PathItemIcon from './path-item-icon-container'
+import ItemIcon from './item-icon'
 import CommaSeparatedName from './comma-separated-name'
 import * as Container from '../../util/container'
 import {pluralize} from '../../util/string'
@@ -95,7 +95,7 @@ const PathItemInfo = (props: Props) => {
     <>
       <SoftErrorBanner path={props.path} />
       <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={props.containerStyle}>
-        <PathItemIcon path={props.path} size={48} style={styles.pathItemIcon} />
+        <ItemIcon path={props.path} size={48} style={styles.pathItemIcon} />
         {props.showTooltipOnName ? (
           <Kb.WithTooltip
             containerStyle={styles.nameTextBox}

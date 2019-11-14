@@ -36,7 +36,6 @@ const Still = (props: StillProps) => (
     onOpen={props.onOpen}
     inDestinationPicker={props.inDestinationPicker}
     writingToJournal={props.writingToJournal}
-    badge={props.intentIfDownloading ? Types.NonUploadPathItemBadgeType.Download : undefined}
   >
     <Kb.Box style={Styles.collapseStyles([rowStyles.itemBox, props.writingToJournal && rowStyles.opacity30])}>
       <Kb.Box2 direction="horizontal" fullWidth={true}>
