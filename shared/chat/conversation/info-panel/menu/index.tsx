@@ -62,6 +62,7 @@ const AdhocHeader = (props: AdhocHeaderProps) => (
         type="BodyBig"
         underline={false}
         usernames={props.participants}
+        onUsernameClicked="profile"
       />
       {!!props.fullname && <Kb.Text type="BodySmall">{props.fullname}</Kb.Text>}
     </Kb.Box2>
@@ -130,15 +131,16 @@ class InfoPanelMenu extends React.Component<Props> {
         }
 
     const isAdhoc = !!(props.convProps && props.convProps.teamType === 'adhoc')
-    const adhocItems = [this.hideItem(), this.muteItem()]
-    const teamItems = [
-      ...(props.canAddPeople ? addPeopleItems : []),
-      {onClick: props.onViewTeam, style: {borderTopWidth: 0}, title: 'View team'},
-      this.hideItem(),
-      this.muteItem(),
-      channelItem,
-      {danger: true, onClick: props.onLeaveTeam, title: 'Leave team'},
-    ].filter(item => item !== null)
+    const items = isAdhoc
+      ? [this.hideItem(), this.muteItem()]
+      : [
+          ...(props.canAddPeople ? addPeopleItems : []),
+          {onClick: props.onViewTeam, style: {borderTopWidth: 0}, title: 'View team'},
+          this.hideItem(),
+          this.muteItem(),
+          channelItem,
+          {danger: true, onClick: props.onLeaveTeam, title: 'Leave team'},
+        ].filter(item => item !== null)
 
     const header = {
       title: 'header',
@@ -164,7 +166,7 @@ class InfoPanelMenu extends React.Component<Props> {
       <Kb.FloatingMenu
         attachTo={props.attachTo}
         visible={props.visible}
-        items={isAdhoc ? adhocItems : teamItems}
+        items={items}
         header={header}
         onHidden={props.onHidden}
         position="bottom left"
