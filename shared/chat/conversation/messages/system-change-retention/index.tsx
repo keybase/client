@@ -87,31 +87,19 @@ const ChangeRetention = (props: Props) => {
   const manageText = props.canManage ? 'Manage this' : ''
   return (
     <UserNotice
-      style={styles.userNotice}
       username={props.user}
-      bgColor={Styles.globalColors.blueLighter2}
       onClickAvatar={() => props.onClickUserAvatar()}
       timestamp={props.timestamp}
     >
-      <Kb.Box2 direction="vertical">
-        <Kb.Text type="BodySmallSemibold" negative={true} style={styles.text} selectable={true}>
-          {changedBy} changed the {convType} retention policy{inheritDescription}. Messages will{' '}
-          {policySummary}.
-        </Kb.Text>
-        <Kb.Text onClick={props.onManageRetention} type="BodySmallSemiboldPrimaryLink">
-          {manageText}
-        </Kb.Text>
-      </Kb.Box2>
+      <Kb.Text type="BodySmall" selectable={true}>
+        {changedBy} changed the {convType} retention policy{inheritDescription}. Messages will {policySummary}
+        .
+      </Kb.Text>
+      <Kb.Text onClick={props.onManageRetention} type="BodySmallSemiboldPrimaryLink">
+        {manageText}
+      </Kb.Text>
     </UserNotice>
   )
 }
-
-const styles = Styles.styleSheetCreate(
-  () =>
-    ({
-      text: {color: Styles.globalColors.black_50},
-      userNotice: {marginTop: Styles.globalMargins.small},
-    } as const)
-)
 
 export default ChangeRetention
