@@ -382,7 +382,7 @@ const Instructions = (p: Props) => (
       </Kb.Box2>
     ) : (
       <>
-        <Kb.Box2 direction="horizontal" centerChildren={true}>
+        <Kb.Text type={textType} style={styles.instructionsContainer}>
           <Kb.Text
             type={textType}
             style={Styles.collapseStyles([styles.instructions, styles.instructionsUpper])}
@@ -404,7 +404,7 @@ const Instructions = (p: Props) => (
             {', '}
             navigate to:
           </Kb.Text>
-        </Kb.Box2>
+        </Kb.Text>
         <Kb.Box2
           direction="horizontal"
           centerChildren={true}
@@ -549,8 +549,7 @@ const styles = Styles.styleSheetCreate(
       },
       instructions: {color: Styles.globalColors.white},
       instructionsContainer: {
-        alignItems: 'center',
-        flexWrap: 'wrap',
+        padding: Styles.globalMargins.tiny,
       },
       instructionsItalic: {
         ...Styles.globalStyles.italic,
