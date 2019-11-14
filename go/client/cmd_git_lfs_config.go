@@ -77,6 +77,7 @@ func (c *CmdGitLFSConfig) getRepo() (string, error) {
 		return c.repo, nil
 	}
 
+	// Use the first keybase:// link by default.
 	output, err := c.gitExec("remote", "-v")
 	if err != nil {
 		return "", err
@@ -85,7 +86,7 @@ func (c *CmdGitLFSConfig) getRepo() (string, error) {
 	for {
 		line, err := reader.ReadString('\n')
 		if err == io.EOF {
-			return "", errors.New("No keybase repo found")
+			return "", errors.New("No keybase remote found")
 		} else if err != nil {
 			return "", err
 		}
@@ -103,7 +104,7 @@ func (c *CmdGitLFSConfig) getRepo() (string, error) {
 func (c *CmdGitLFSConfig) Run() error {
 	dui := c.G().UI.GetDumbOutputUI()
 
-	// Find the repo URL -- use the first keybase:// link.
+	// Find the repo URL.
 	repo, err := c.getRepo()
 	if err != nil {
 		return err
