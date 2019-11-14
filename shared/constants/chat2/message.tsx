@@ -598,6 +598,7 @@ export const uiMessageEditToMessage = (
 }
 
 const uiMessageToSystemMessage = (
+  state: TypedState,
   minimum: Minimum,
   body: RPCChatTypes.MessageSystem,
   reactions: Map<string, Set<MessageTypes.Reaction>>
@@ -684,7 +685,9 @@ const uiMessageToSystemMessage = (
       const {team = '???', creator = '????'} = body.createteam || {}
       return makeMessageSystemText({
         reactions,
-        text: new HiddenString(`${creator} created a new team ${team}.`),
+        text: new HiddenString(
+          `${creator === state.config.username ? 'You' : creator} created the team ${team}.`
+        ),
         ...minimum,
       })
     }
@@ -971,7 +974,7 @@ const validUIMessagetoMessage = (
       })
     case RPCChatTypes.MessageType.system:
       return m.messageBody.system
-        ? uiMessageToSystemMessage(common, m.messageBody.system, common.reactions)
+        ? uiMessageToSystemMessage(state, common, m.messageBody.system, common.reactions)
         : null
     case RPCChatTypes.MessageType.headline:
       return makeMessageSetDescription({

@@ -22,15 +22,11 @@ type CreateProps = {
   onViewGitRepo: Props['onViewGitRepo']
 }
 const GitPushCreate = (props: CreateProps) => {
-  const {pusher, repo, repoID, team, onViewGitRepo} = props
+  const {repo, repoID, team, onViewGitRepo} = props
   return (
     <Kb.Text type="BodySmall">
       {` `}created a new team repository called{` `}
-      <Kb.Text
-        type="BodySmall"
-        style={repoID ? styles.repoText : undefined}
-        onClick={repoID ? () => onViewGitRepo(repoID, team) : undefined}
-      >
+      <Kb.Text type="BodySmallPrimaryLink" onClick={repoID ? () => onViewGitRepo(repoID, team) : undefined}>
         {repo}
       </Kb.Text>
       .
@@ -101,12 +97,7 @@ type PushCommonProps = {
 }
 
 const GitPushCommon = ({children, pusher, timestamp, onClickUserAvatar}: PushCommonProps) => (
-  <UserNotice
-    username={pusher}
-    bgColor={Styles.globalColors.blueLighter2}
-    onClickAvatar={() => onClickUserAvatar(pusher)}
-    timestamp={timestamp}
-  >
+  <UserNotice username={pusher} onClickAvatar={() => onClickUserAvatar(pusher)} timestamp={timestamp}>
     {children}
   </UserNotice>
 )

@@ -12,8 +12,8 @@ class SystemText extends React.PureComponent<Props> {
   render() {
     const {author, timestamp, text} = this.props.message
     return (
-      <UserNotice username={author} bgColor={Styles.globalColors.blueLighter2} timestamp={timestamp}>
-        <Kb.Text type="BodySmallSemibold" negative={true} style={styles.text}>
+      <UserNotice username={author} timestamp={timestamp}>
+        <Kb.Text type="BodySmall" style={styles.text}>
           {text.stringValue()}
         </Kb.Text>
       </UserNotice>
@@ -25,7 +25,6 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       text: Styles.platformStyles({
-        common: {color: Styles.globalColors.black_50},
         isElectron: {wordBreak: 'break-word'} as const,
       }),
     } as const)
