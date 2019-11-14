@@ -21,13 +21,19 @@ const CreateNewTeam = (props: Props) => {
   const waiting = Container.useAnyWaiting(Constants.teamCreationWaitingKey)
 
   const {baseTeam, onSubmit} = props
-  const isSubteam = baseTeam
+  const isSubteam = !!baseTeam
 
   const onSubmitCb = React.useCallback(
     () => (isSubteam ? onSubmit(baseTeam + '.' + name, joinSubteam) : onSubmit(name, false)),
     [isSubteam, baseTeam, onSubmit, name, joinSubteam]
   )
   const disabled = name.length < 2
+
+  // clear error we may have hit on unmount
+  const {onSetTeamCreationError} = props
+  React.useEffect(() => () => onSetTeamCreationError(''), [onSetTeamCreationError])
+
+  const modalHeader = Kb.useModalHeaderTitleAndCancel('Create a team', props.onCancel)
 
   return (
     <Kb.Modal
@@ -62,7 +68,7 @@ const CreateNewTeam = (props: Props) => {
           />
         ),
       }}
-      header={{title: 'Create a team'}}
+      header={modalHeader}
       onClose={props.onCancel}
     >
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container} gap="tiny">
@@ -73,21 +79,18 @@ const CreateNewTeam = (props: Props) => {
           maxLength={16}
           disabled={waiting}
           onEnterKeyDown={disabled ? undefined : onSubmitCb}
+          autoFocus={!Styles.isMobile /* keyboard can cover the "join subteam" box on mobile */}
         />
         {isSubteam && (
           <Kb.Text type="BodySmall" style={!name && Styles.globalStyles.opacity0}>
             This team will be named{' '}
-            <Kb.Text type="BodySmallSemibold">
+            <Kb.Text type="BodySmallSemibold" style={styles.wordBreak}>
               {props.baseTeam}.{name}
             </Kb.Text>
           </Kb.Text>
         )}
         {isSubteam && (
-          <Kb.Checkbox
-            checked={joinSubteam}
-            onCheck={setJoinSubteam}
-            label="Join this subteam after creating it."
-          />
+          <Kb.Checkbox checked={joinSubteam} onCheck={setJoinSubteam} label="Join this subteam." />
         )}
       </Kb.Box2>
     </Kb.Modal>
@@ -98,6 +101,11 @@ const styles = Styles.styleSheetCreate(() => ({
   container: {
     padding: Styles.globalMargins.small,
   },
+  wordBreak: Styles.platformStyles({
+    isElectron: {
+      wordBreak: 'break-all',
+    },
+  }),
 }))
 
 export default CreateNewTeam
