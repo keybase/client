@@ -56,9 +56,11 @@ export default Container.makeReducer<ProfileGen.Actions, Types.State>(initialSta
   [ProfileGen.resetStore]: () => initialState,
   [ProfileGen.updatePlatform]: (draftState, action) => {
     draftState.platform = action.payload.platform
+    updateUsername(draftState)
   },
   [ProfileGen.updateUsername]: (draftState, action) => {
     draftState.username = action.payload.username
+    updateUsername(draftState)
   },
   [ProfileGen.cleanupUsername]: draftState => {
     updateUsername(draftState)
@@ -94,7 +96,10 @@ export default Container.makeReducer<ProfileGen.Actions, Types.State>(initialSta
     draftState.pgpErrorEmail2 = !!valid2
     draftState.pgpErrorEmail3 = !!valid3
     draftState.pgpErrorText = Validators.isValidName(draftState.pgpFullName) || valid1 || valid2 || valid3
-    draftState.pgpFullName = action.payload.pgpFullName ?? ''
+    draftState.pgpFullName = action.payload.pgpFullName ?? draftState.pgpFullName
+    draftState.pgpEmail1 = action.payload.pgpEmail1 ?? draftState.pgpEmail1
+    draftState.pgpEmail2 = action.payload.pgpEmail2 ?? draftState.pgpEmail2
+    draftState.pgpEmail3 = action.payload.pgpEmail3 ?? draftState.pgpEmail3
   },
   [ProfileGen.updatePgpPublicKey]: (draftState, action) => {
     draftState.pgpPublicKey = action.payload.publicKey
@@ -112,7 +117,12 @@ export default Container.makeReducer<ProfileGen.Actions, Types.State>(initialSta
     updateUsername(draftState)
   },
   [ProfileGen.proofParamsReceived]: (draftState, action) => {
-    draftState.platformGenericParams = action.payload.params
+    const {params} = action.payload
+    draftState.platformGenericParams = {
+      ...params,
+      logoBlack: [...params.logoBlack],
+      logoFull: [...params.logoFull],
+    }
   },
   [ProfileGen.updatePlatformGenericURL]: (draftState, action) => {
     draftState.platformGenericURL = action.payload.url

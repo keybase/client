@@ -27,7 +27,7 @@ type CustomResp<T extends ValidCallback> = {
   result: (res: RPCTypes.MessageTypes[T]['outParam']) => void
 }
 
-const checkProof = async (state: TypedState, _: ProfileGen.CheckProofPayload) => {
+const checkProof = async (state: TypedState) => {
   const sigID = state.profile.sigID
   const isGeneric = !!state.profile.platformGeneric
   if (!sigID) {
@@ -93,32 +93,30 @@ function* addProof(state: TypedState, action: ProfileGen.AddProofPayload) {
     return
   }
   addProofInProgress = true
-  let _promptUsernameResponse
-  let _outputInstructionsResponse
+  let _promptUsernameResponse: CustomResp<'keybase.1.proveUi.promptUsername'> | undefined
+  let _outputInstructionsResponse: CustomResp<'keybase.1.proveUi.outputInstructions'> | undefined
 
   const inputCancelError = {
     code: RPCTypes.StatusCode.scinputcanceled,
     desc: 'Cancel Add Proof',
   }
 
-  yield Saga.put(ProfileGen.createUpdateSigID({sigID: null}))
+  yield Saga.put(ProfileGen.createUpdateSigID({}))
 
   let canceled = false
-  // TODO maybe remove engine cancelrpc?
-  const cancelResponse = r => r.error(inputCancelError)
 
   // We fork off some tasks for watch for events that come from the ui
   const cancelTask = yield Saga._fork(function*() {
     yield Saga.take(ProfileGen.cancelAddProof)
     canceled = true
     if (_promptUsernameResponse) {
-      cancelResponse(_promptUsernameResponse)
-      _promptUsernameResponse = null
+      _promptUsernameResponse.error(inputCancelError)
+      _promptUsernameResponse = undefined
     }
 
     if (_outputInstructionsResponse) {
-      cancelResponse(_outputInstructionsResponse)
-      _outputInstructionsResponse = null
+      _outputInstructionsResponse.error(inputCancelError)
+      _outputInstructionsResponse = undefined
     }
   })
 
@@ -127,7 +125,7 @@ function* addProof(state: TypedState, action: ProfileGen.AddProofPayload) {
       yield Saga.take(ProfileGen.checkProof)
       if (_outputInstructionsResponse) {
         _outputInstructionsResponse.result()
-        _outputInstructionsResponse = null
+        _outputInstructionsResponse = undefined
       }
     }
   })
@@ -147,15 +145,18 @@ function* addProof(state: TypedState, action: ProfileGen.AddProofPayload) {
         _promptUsernameResponse.result(state.profile.username)
         // eslint is confused i think
         // eslint-disable-next-line require-atomic-updates
-        _promptUsernameResponse = null
+        _promptUsernameResponse = undefined
       }
     }
   })
 
-  const promptUsername = (args, response) => {
+  const promptUsername = (
+    args: CustomParam<'keybase.1.proveUi.promptUsername'>,
+    response: CustomResp<'keybase.1.proveUi.promptUsername'>
+  ) => {
     const {parameters, prevError} = args
     if (canceled) {
-      cancelResponse(response)
+      response.error(inputCancelError)
       return
     }
 
@@ -177,9 +178,12 @@ function* addProof(state: TypedState, action: ProfileGen.AddProofPayload) {
     return actions
   }
 
-  const outputInstructions = ({instructions, proof}, response) => {
+  const outputInstructions = (
+    {instructions, proof}: CustomParam<'keybase.1.proveUi.outputInstructions'>,
+    response: CustomResp<'keybase.1.proveUi.outputInstructions'>
+  ) => {
     if (canceled) {
-      cancelResponse(response)
+      response.error(inputCancelError)
       return
     }
 
@@ -210,9 +214,12 @@ function* addProof(state: TypedState, action: ProfileGen.AddProofPayload) {
     return actions
   }
 
-  const checking = (_, response) => {
+  const checking = (
+    _: CustomParam<'keybase.1.proveUi.checking'>,
+    response: CustomResp<'keybase.1.proveUi.checking'>
+  ) => {
     if (canceled) {
-      cancelResponse(response)
+      response.error(inputCancelError)
       return
     }
     response.result()
@@ -220,9 +227,10 @@ function* addProof(state: TypedState, action: ProfileGen.AddProofPayload) {
   }
 
   // service calls in when it polls to give us an opportunity to cancel
-  const continueChecking = (_, response) => (canceled ? response.result(false) : response.result(true))
-
-  const responseYes = (_, response) => response.result(true)
+  const continueChecking = (
+    _: CustomParam<'keybase.1.proveUi.continueChecking'>,
+    response: CustomResp<'keybase.1.proveUi.continueChecking'>
+  ) => (canceled ? response.result(false) : response.result(true))
 
   const loadAfter = Tracker2Gen.createLoad({
     assertion: state.config.username,
@@ -232,14 +240,13 @@ function* addProof(state: TypedState, action: ProfileGen.AddProofPayload) {
   })
   try {
     const {sigID} = yield RPCTypes.proveStartProofRpcSaga({
-      // @ts-ignore TODO fix
       customResponseIncomingCallMap: {
         'keybase.1.proveUi.checking': checking,
         'keybase.1.proveUi.continueChecking': continueChecking,
-        'keybase.1.proveUi.okToCheck': responseYes,
+        'keybase.1.proveUi.okToCheck': (_, response) => response.result(true),
         'keybase.1.proveUi.outputInstructions': outputInstructions,
-        'keybase.1.proveUi.preProofWarning': responseYes,
-        'keybase.1.proveUi.promptOverwrite': responseYes,
+        'keybase.1.proveUi.preProofWarning': (_, response) => response.result(true),
+        'keybase.1.proveUi.promptOverwrite': (_, response) => response.result(true),
         'keybase.1.proveUi.promptUsername': promptUsername,
       },
       incomingCallMap: {
