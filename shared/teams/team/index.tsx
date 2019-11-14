@@ -30,7 +30,7 @@ class Team extends React.Component<Props> {
       case 'tabs':
         return (
           <TeamTabs
-            teamname={this.props.teamname}
+            teamID={this.props.teamID}
             selectedTab={this.props.selectedTab}
             setSelectedTab={this.props.setSelectedTab}
           />
