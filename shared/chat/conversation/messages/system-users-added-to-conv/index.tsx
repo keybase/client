@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import UserNotice from '../user-notice'
-import SystemMessageTimestamp from '../system-message-timestamp'
 
 type YouAddedProps = {
   author: string
@@ -12,8 +11,8 @@ type YouAddedProps = {
 }
 
 const YouAdded = (props: YouAddedProps) => (
-  <UserNotice username={props.author} bgColor={Styles.globalColors.blueLighter2} timestamp={props.timestamp}>
-    <Kb.Text center={true} type="BodySmallSemibold">
+  <UserNotice username={props.author} timestamp={props.timestamp}>
+    <Kb.Text type="BodySmall">
       <Kb.ConnectedUsernames
         inline={true}
         type="BodySmallSemibold"
