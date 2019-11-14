@@ -131,12 +131,12 @@ func (u *uploaderTaskStorage) getTask(ctx context.Context, outboxID chat1.Outbox
 	return res, nil
 }
 
-func (u *uploaderTaskStorage) removeTask(ctx context.Context, outboxID chat1.OutboxID) {
+func (u *uploaderTaskStorage) completeTask(ctx context.Context, outboxID chat1.OutboxID) {
 	if err := os.Remove(u.taskOutboxIDPath(outboxID)); err != nil {
-		u.Debug(ctx, "removeTask: failed to remove task file: outboxID: %s err: %s", outboxID, err)
+		u.Debug(ctx, "completeTask: failed to remove task file: outboxID: %s err: %s", outboxID, err)
 	}
 	if err := os.Remove(u.statusOutboxIDPath(outboxID)); err != nil {
-		u.Debug(ctx, "removeTask: failed to remove status file: outboxID: %s err: %s", outboxID, err)
+		u.Debug(ctx, "completeTask: failed to remove status file: outboxID: %s err: %s", outboxID, err)
 	}
 }
 
@@ -215,7 +215,7 @@ func (u *Uploader) Complete(ctx context.Context, outboxID chat1.OutboxID) {
 		u.Debug(ctx, "Complete: called on uploading attachment, ignoring: outboxID: %s", outboxID)
 		return
 	}
-	u.taskStorage.removeTask(ctx, outboxID)
+	u.taskStorage.completeTask(ctx, outboxID)
 	NewPendingPreviews(u.G()).Remove(ctx, outboxID)
 	// just always attempt to remove the upload temp dir for this outbox ID, even if it might not be there
 	u.clearTempDirFromOutboxID(outboxID)
