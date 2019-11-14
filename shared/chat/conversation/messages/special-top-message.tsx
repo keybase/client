@@ -1,7 +1,6 @@
 import * as Constants from '../../../constants/chat2'
 import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
-import CreateTeamNotice from './system-create-team-notice/container'
 import ProfileResetNotice from './system-profile-reset-notice/container'
 import RetentionNotice from './retention-notice/container'
 import shallowEqual from 'shallowequal'
@@ -75,7 +74,7 @@ class TopMessage extends React.PureComponent<Props> {
           )}
         {this.props.showTeamOffer && (
           <Kb.Box style={styles.more}>
-            <MakeTeamCard />
+            <MakeTeamCard conversationIDKey={this.props.conversationIDKey} />
           </Kb.Box>
         )}
         {this.props.loadMoreType === 'moreToLoad' && (
