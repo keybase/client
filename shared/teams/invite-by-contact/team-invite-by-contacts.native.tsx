@@ -3,7 +3,7 @@ import * as Container from '../../util/container'
 import * as React from 'react'
 import * as SettingsConstants from '../../constants/settings'
 import * as TeamsGen from '../../actions/teams-gen'
-import {TeamRoleType} from '../../constants/types/teams'
+import * as Types from '../../constants/types/teams'
 
 import {ContactProps, ContactRowProps, InviteByContact} from './index.native'
 
@@ -19,11 +19,11 @@ const extractPhoneNumber = (name: string, region: string): string | null => {
 // contacts and show whether the contact is invited already or not. Returns a
 // mapping of potential contact values to invite IDs.
 const mapExistingInvitesToValues = (
-  invites: ReturnType<typeof Constants.getTeamInvites>,
+  invites: Types.TeamDetails['invites'],
   region: string
 ): Map<string, string> => {
   const ret = new Map<string, string>()
-  invites.forEach(invite => {
+  invites?.forEach(invite => {
     if (invite.email) {
       // Email invite - just use email as the key.
       ret.set(invite.email, invite.id)
@@ -40,21 +40,22 @@ const mapExistingInvitesToValues = (
 }
 
 type TeamInviteByContactProps = {
-  teamname: string
+  teamID: string
   contacts: Array<ContactProps>
   region: string
   errorMessage: string | null
 }
 
 const TeamInviteByContact = (props: TeamInviteByContactProps) => {
-  const {teamname, contacts, region, errorMessage} = props
+  const {teamID, contacts, region, errorMessage} = props
+  const teamDetails = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
+  const {teamname, invites} = teamDetails
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
-  const [selectedRole, setSelectedRole] = React.useState('writer' as TeamRoleType)
+  const [selectedRole, setSelectedRole] = React.useState('writer' as Types.TeamRoleType)
 
-  const teamInvites = Container.useSelector(s => Constants.getTeamInvites(s, teamname))
   const loadingInvites = Container.useSelector(s => Constants.getTeamLoadingInvites(s, teamname))
 
   const onBack = React.useCallback(() => {
@@ -63,7 +64,7 @@ const TeamInviteByContact = (props: TeamInviteByContactProps) => {
   }, [dispatch, nav])
 
   const onRoleChange = React.useCallback(
-    (role: TeamRoleType) => {
+    (role: Types.TeamRoleType) => {
       setSelectedRole(role)
     },
     [setSelectedRole]
@@ -114,7 +115,7 @@ const TeamInviteByContact = (props: TeamInviteByContactProps) => {
 
   // ----
 
-  const teamAlreadyInvited = mapExistingInvitesToValues(teamInvites, region)
+  const teamAlreadyInvited = mapExistingInvitesToValues(invites, region)
 
   const listItems: Array<ContactRowProps> = contacts.map(contact => {
     // `id` is the key property for Kb.List

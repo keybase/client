@@ -108,10 +108,10 @@ export default Container.namedConnect(
   },
   (dispatch, {conversationIDKey}: OwnProps) => ({
     _onAddPeople: (teamname?: string) => teamname && dispatch(appendNewTeamBuilder(teamname)),
-    _onInvite: (teamname?: string) => {
+    _onInvite: (teamID?: TeamTypes.TeamID) => {
       const selected = Styles.isMobile ? 'teamInviteByContact' : 'teamInviteByEmail'
-      if (!teamname) return
-      return dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected}]}))
+      if (!teamID) return
+      return dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected}]}))
     },
     _onLeaveTeam: (teamname?: string) =>
       teamname &&
@@ -145,7 +145,7 @@ export default Container.namedConnect(
     onAddPeople: () => d._onAddPeople(s.teamname),
     onHidden: o.onHidden,
     onHideConv: d.onHideConv,
-    onInvite: () => d._onInvite(s.teamname),
+    onInvite: () => d._onInvite(s.convProps && s.convProps.teamID),
     onLeaveTeam: () => d._onLeaveTeam(s.teamname),
     onManageChannels: () => d._onManageChannels(s.teamname),
     onMuteConv: d.onMuteConv,
