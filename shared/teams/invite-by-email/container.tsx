@@ -24,7 +24,6 @@ export default Container.connect(
     onInvite: (invitees: string, role: Types.TeamRoleType) => {
       const teamname = Container.getRouteProps(ownProps, 'teamname', '')
       dispatch(TeamsGen.createInviteToTeamByEmail({invitees, role, teamname}))
-      dispatch(TeamsGen.createGetTeams())
     },
   }),
   (s, d, o: OwnProps) => ({...o, ...s, ...d})

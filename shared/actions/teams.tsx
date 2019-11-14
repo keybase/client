@@ -746,13 +746,20 @@ const getChannels = async (_: TypedState, action: TeamsGen.GetChannelsPayload) =
 
 function* getTeams(
   state: TypedState,
-  _: ConfigGen.StartupFirstIdlePayload | TeamsGen.GetTeamsPayload | TeamsGen.LeftTeamPayload,
+  action: ConfigGen.StartupFirstIdlePayload | TeamsGen.GetTeamsPayload | TeamsGen.LeftTeamPayload,
   logger: Saga.SagaLogger
 ) {
   const username = state.config.username
   if (!username) {
     logger.warn('getTeams while logged out')
     return
+  }
+  if (action.type === TeamsGen.getTeams) {
+    const {forceReload} = action.payload
+    if (!forceReload && !state.teams.teamDetailsMetaStale) {
+      // bail
+      return
+    }
   }
   try {
     const results: Saga.RPCPromiseType<typeof RPCTypes.teamsTeamListUnverifiedRpcPromise> = yield RPCTypes.teamsTeamListUnverifiedRpcPromise(
@@ -955,14 +962,14 @@ const setMemberPublicity = async (_: TypedState, action: TeamsGen.SetMemberPubli
     return [
       TeamsGen.createGetDetails({teamname}),
       // The profile showcasing page gets this data from teamList rather than teamGet, so trigger one of those too.
-      TeamsGen.createGetTeams(),
+      // TeamsGen.createGetTeams(), // TODO Y2K-974 probably broken
     ]
   } catch (_) {
     // TODO handle error, but for now make sure loading is unset
     return [
       TeamsGen.createGetDetails({teamname}),
       // The profile showcasing page gets this data from teamList rather than teamGet, so trigger one of those too.
-      TeamsGen.createGetTeams(),
+      // TeamsGen.createGetTeams(), // TODO Y2K-974 probably broken
     ]
   }
 }
@@ -1088,7 +1095,7 @@ const teamChangedByID = (state: TypedState, action: EngineGen.Keybase1NotifyTeam
   if (selectedTeams.includes(teamID) && _wasOnTeamsTab()) {
     // only reload if that team is selected
     const teamname = Constants.getTeamNameFromID(state, teamID)
-    return [TeamsGen.createGetTeams(), !!teamname && TeamsGen.createGetDetails({teamname})]
+    return [!!teamname && TeamsGen.createGetDetails({teamname})]
   }
   return getLoadCalls()
 }
@@ -1135,10 +1142,17 @@ const teamDeletedOrExit = (
   return getLoadCalls()
 }
 
-const getLoadCalls = (teamname?: string) => [
-  ...(_wasOnTeamsTab() ? [TeamsGen.createGetTeams()] : []),
-  ...(teamname ? [TeamsGen.createGetDetails({teamname})] : []),
-]
+const getLoadCalls = (teamname?: string) => (teamname ? [TeamsGen.createGetDetails({teamname})] : [])
+
+const reloadTeamListIfSubscribed = (state: TypedState, _, logger: Saga.SagaLogger) => {
+  if (state.teams.teamDetailsMetaSubscribeCount > 0) {
+    logger.info('eagerly reloading')
+    return TeamsGen.createGetTeams()
+  } else {
+    logger.info('skipping')
+  }
+  return false
+}
 
 const updateTopic = async (_: TypedState, action: TeamsGen.UpdateTopicPayload) => {
   const {teamname, conversationIDKey, newTopic} = action.payload
@@ -1277,7 +1291,7 @@ const badgeAppForTeams = (state: TypedState, action: NotificationsGen.ReceivedBa
   }
   const {badgeState} = action.payload
 
-  let actions: Array<TypedActions> = []
+  const actions: Array<TypedActions> = []
   const deletedTeams = badgeState.deletedTeams || []
   const newTeams = new Set<string>(badgeState.newTeams || [])
   const newTeamRequests = badgeState.newTeamAccessRequests || []
@@ -1333,7 +1347,7 @@ const badgeAppForTeams = (state: TypedState, action: NotificationsGen.ReceivedBa
   return actions
 }
 
-let _wasOnTeamsTab = () => Constants.isOnTeamsTab()
+const _wasOnTeamsTab = () => Constants.isOnTeamsTab()
 
 const gregorPushState = (_: TypedState, action: GregorGen.PushStatePayload) => {
   const actions: Array<TypedActions> = []
@@ -1518,6 +1532,12 @@ const teamsSaga = function*() {
     [EngineGen.keybase1NotifyTeamTeamDeleted, EngineGen.keybase1NotifyTeamTeamExit],
     teamDeletedOrExit,
     'teamDeletedOrExit'
+  )
+
+  yield* Saga.chainAction2(
+    [EngineGen.keybase1NotifyTeamTeamMetadataUpdate, GregorGen.updateReachable],
+    reloadTeamListIfSubscribed,
+    'reloadTeamListIfSubscribed'
   )
 
   yield* Saga.chainAction2(TeamsGen.clearNavBadges, clearNavBadges)

@@ -72,6 +72,7 @@ export const setTeamSawSubteamsBanner = 'teams:setTeamSawSubteamsBanner'
 export const setTeamsWithChosenChannels = 'teams:setTeamsWithChosenChannels'
 export const setUpdatedChannelName = 'teams:setUpdatedChannelName'
 export const setUpdatedTopic = 'teams:setUpdatedTopic'
+export const unsubscribeTeamList = 'teams:unsubscribeTeamList'
 export const updateChannelName = 'teams:updateChannelName'
 export const updateTopic = 'teams:updateTopic'
 export const uploadTeamAvatar = 'teams:uploadTeamAvatar'
@@ -141,7 +142,7 @@ type _GetMembersPayload = {readonly teamname: string}
 type _GetTeamProfileAddListPayload = {readonly username: string}
 type _GetTeamPublicityPayload = {readonly teamname: string}
 type _GetTeamRetentionPolicyPayload = {readonly teamname: string}
-type _GetTeamsPayload = void
+type _GetTeamsPayload = {readonly _subscribe?: boolean; readonly forceReload?: boolean}
 type _IgnoreRequestPayload = {readonly teamname: string; readonly username: string}
 type _InviteToTeamByEmailPayload = {
   readonly destSubPath?: I.List<string>
@@ -258,6 +259,7 @@ type _SetUpdatedTopicPayload = {
   readonly conversationIDKey: ChatTypes.ConversationIDKey
   readonly newTopic: string
 }
+type _UnsubscribeTeamListPayload = void
 type _UpdateChannelNamePayload = {
   readonly teamname: Types.Teamname
   readonly conversationIDKey: ChatTypes.ConversationIDKey
@@ -276,6 +278,12 @@ type _UploadTeamAvatarPayload = {
 }
 
 // Action Creators
+/**
+ * Don't eagerly reload team list anymore.
+ */
+export const createUnsubscribeTeamList = (
+  payload: _UnsubscribeTeamListPayload
+): UnsubscribeTeamListPayload => ({payload, type: unsubscribeTeamList})
 /**
  * Fetches the channel information for a single channel in a team from the server.
  */
@@ -296,6 +304,13 @@ export const createGetChannels = (payload: _GetChannelsPayload): GetChannelsPayl
 export const createGetTeamRetentionPolicy = (
   payload: _GetTeamRetentionPolicyPayload
 ): GetTeamRetentionPolicyPayload => ({payload, type: getTeamRetentionPolicy})
+/**
+ * Load team list if we are stale. _subscribe is for use by teams/subscriber only.
+ */
+export const createGetTeams = (payload: _GetTeamsPayload = Object.freeze({})): GetTeamsPayload => ({
+  payload,
+  type: getTeams,
+})
 /**
  * Rename a subteam
  */
@@ -383,7 +398,6 @@ export const createGetTeamPublicity = (payload: _GetTeamPublicityPayload): GetTe
   payload,
   type: getTeamPublicity,
 })
-export const createGetTeams = (payload: _GetTeamsPayload): GetTeamsPayload => ({payload, type: getTeams})
 export const createIgnoreRequest = (payload: _IgnoreRequestPayload): IgnoreRequestPayload => ({
   payload,
   type: ignoreRequest,
@@ -736,6 +750,10 @@ export type SetUpdatedTopicPayload = {
   readonly payload: _SetUpdatedTopicPayload
   readonly type: typeof setUpdatedTopic
 }
+export type UnsubscribeTeamListPayload = {
+  readonly payload: _UnsubscribeTeamListPayload
+  readonly type: typeof unsubscribeTeamList
+}
 export type UpdateChannelNamePayload = {
   readonly payload: _UpdateChannelNamePayload
   readonly type: typeof updateChannelName
@@ -813,6 +831,7 @@ export type Actions =
   | SetTeamsWithChosenChannelsPayload
   | SetUpdatedChannelNamePayload
   | SetUpdatedTopicPayload
+  | UnsubscribeTeamListPayload
   | UpdateChannelNamePayload
   | UpdateTopicPayload
   | UploadTeamAvatarPayload

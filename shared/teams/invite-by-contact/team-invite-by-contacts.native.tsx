@@ -92,7 +92,6 @@ const TeamInviteByContact = (props: TeamInviteByContactProps) => {
           })
         )
       }
-      dispatch(TeamsGen.createGetTeams())
     },
     [dispatch, selectedRole, teamname]
   )
@@ -117,7 +116,7 @@ const TeamInviteByContact = (props: TeamInviteByContactProps) => {
 
   const teamAlreadyInvited = mapExistingInvitesToValues(teamInvites, region)
 
-  let listItems: Array<ContactRowProps> = contacts.map(contact => {
+  const listItems: Array<ContactRowProps> = contacts.map(contact => {
     // `id` is the key property for Kb.List
     const id = [contact.type, contact.value, contact.name].join('+')
     const inviteID = teamAlreadyInvited.get(contact.value)

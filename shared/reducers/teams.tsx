@@ -1,9 +1,10 @@
 import * as TeamsGen from '../actions/teams-gen'
+import * as TeamBuildingGen from '../actions/team-building-gen'
+import * as EngineGen from '../actions/engine-gen-gen'
 import * as Constants from '../constants/teams'
 import * as I from 'immutable'
 import * as Types from '../constants/types/teams'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
-import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as Container from '../util/container'
 import {TeamBuildingSubState} from '../constants/types/team-building'
 import teamBuildingReducer from './team-building'
@@ -13,7 +14,7 @@ const initialState: Types.State = Constants.makeState()
 
 export default (
   state: Types.State = initialState,
-  action: TeamsGen.Actions | TeamBuildingGen.Actions
+  action: TeamsGen.Actions | TeamBuildingGen.Actions | EngineGen.Keybase1NotifyTeamTeamMetadataUpdatePayload
 ): Types.State =>
   Container.produce(state, (draftState: Container.Draft<Types.State>) => {
     switch (action.type) {
@@ -148,6 +149,16 @@ export default (
         draftState.emailInviteError.malformed = new Set(action.payload.malformed)
         draftState.emailInviteError.message = action.payload.message
         return
+      case TeamsGen.getTeams:
+        if (action.payload._subscribe) {
+          draftState.teamDetailsMetaSubscribeCount++
+        }
+        return
+      case TeamsGen.unsubscribeTeamList:
+        if (draftState.teamDetailsMetaSubscribeCount > 0) {
+          draftState.teamDetailsMetaSubscribeCount--
+        }
+        return
       case TeamsGen.setTeamInfo:
         draftState.teamNameToAllowPromote = action.payload.teamNameToAllowPromote
         draftState.teamNameToID = action.payload.teamNameToID
@@ -160,6 +171,10 @@ export default (
           draftState.teamDetails,
           action.payload.teamDetails
         )
+        draftState.teamDetailsMetaStale = false
+        return
+      case EngineGen.keybase1NotifyTeamTeamMetadataUpdate:
+        draftState.teamDetailsMetaStale = true
         return
       case TeamsGen.setTeamAccessRequestsPending:
         draftState.teamAccessRequestsPending = action.payload.accessRequestsPending
@@ -284,7 +299,6 @@ export default (
       case TeamsGen.getTeamProfileAddList:
       case TeamsGen.getTeamPublicity:
       case TeamsGen.getTeamRetentionPolicy:
-      case TeamsGen.getTeams:
       case TeamsGen.addTeamWithChosenChannels:
       case TeamsGen.ignoreRequest:
       case TeamsGen.inviteToTeamByEmail:

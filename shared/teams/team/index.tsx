@@ -6,6 +6,7 @@ import * as Styles from '../../styles'
 import TeamTabs from './tabs/container'
 import {Row} from './rows'
 import renderRow from './rows/render'
+import {TeamSubscriber} from '../subscriber'
 
 export type Sections = Array<{data: Array<Row>; header?: Row; key: string}>
 
@@ -63,6 +64,7 @@ class Team extends React.Component<Props> {
         onReload={this.props.load}
         reloadOnMount={true}
       >
+        <TeamSubscriber />
         <Kb.Box style={styles.container}>
           <Kb.SectionList
             alwaysVounceVertical={false}
