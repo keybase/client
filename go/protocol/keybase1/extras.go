@@ -49,11 +49,18 @@ var PublicUID = UID(PUBLIC_UID)
 
 const (
 	SIG_ID_LEN         = 32
-	SIG_ID_SUFFIX      = 0x0f // Most signatures use this signagure ID
-	SIG_ID_SUFFIX_2    = 0x22 // Some older clients generate this signature ID, but it's now deprecated
+	SIG_ID_SUFFIX      = 0x0f // Server-assigned SigID suffix for v0 and v1 signatures; has no cryptographic meaning
 	SIG_SHORT_ID_BYTES = 27
 	SigIDQueryMin      = 8
 )
+
+// Known server-assigned sigID suffix bytes. It's fine to strip them off for comparing sigIDs,
+// since the sigIDs themselves are hashes over the version #.
+var sigIDSuffixBytes = map[byte]bool{
+	0x0f: true, // For v0 and v1 signatures
+	0x22: true, // For v2 signatures
+	0x38: true, // Reserved for v3 signatures
+}
 
 const (
 	DeviceIDLen       = 16
@@ -661,8 +668,12 @@ func (s SigID) TrimSuffix() (ret SigIDSuffixless) {
 	if len(s) != hexLen+2 {
 		return ret
 	}
-	sffx := string(s[hexLen:])
-	if sffx != fmt.Sprintf("%02x", SIG_ID_SUFFIX) && sffx != fmt.Sprintf("%02x", SIG_ID_SUFFIX_2) {
+	b, err := hex.DecodeString(string(s[hexLen:]))
+	if err != nil || len(b) != 1 {
+		return ret
+	}
+	sffxByte := b[0]
+	if !sigIDSuffixBytes[sffxByte] {
 		return ret
 	}
 	return SigIDSuffixless(s[0:hexLen])
