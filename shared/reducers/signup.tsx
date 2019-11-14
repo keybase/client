@@ -5,33 +5,9 @@ import HiddenString from '../util/hidden-string'
 import trim from 'lodash/trim'
 import {isValidEmail, isValidName, isValidUsername} from '../util/simple-validators'
 import * as Container from '../util/container'
-import * as Platforms from '../constants/platform'
+import * as Constants from '../constants/signup'
 
-const defaultDevicename =
-  (Platforms.isAndroid && 'My Android Device') ||
-  (Platforms.isIOS && 'My iOS Device') ||
-  (Platforms.isDarwin && 'My Mac Device') ||
-  (Platforms.isWindows && 'My Windows Device') ||
-  (Platforms.isLinux && 'My Linux Device') ||
-  (Platforms.isMobile ? 'Mobile Device' : 'Home Computer')
-
-const initialState: Types.State = {
-  devicename: defaultDevicename,
-  devicenameError: '',
-  email: '',
-  emailError: '',
-  emailVisible: false,
-  inviteCode: '',
-  inviteCodeError: '',
-  justSignedUpEmail: '',
-  name: '',
-  nameError: '',
-  password: new HiddenString(''),
-  passwordError: new HiddenString(''),
-  username: '',
-  usernameError: '',
-  usernameTaken: '',
-}
+const initialState = Constants.makeState()
 
 type Actions = SignupGen.Actions | SettingsGen.EmailVerifiedPayload
 
