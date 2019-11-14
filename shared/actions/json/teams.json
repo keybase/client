@@ -200,7 +200,7 @@
       "teamname": "string",
       "members": "RPCTypes.TeamMembersDetails",
       "settings": "RPCTypes.TeamSettings",
-      "invites": "Array<Types._InviteInfo>",
+      "invites": "Array<Types.InviteInfo>",
       "subteams": "Array<Types.Teamname>",
       "requests": "Map<string, Array<string>>",
       "subteamIDs": "Set<Types.TeamID>"

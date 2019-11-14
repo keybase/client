@@ -93,7 +93,7 @@ export const rpcDetailsToMemberInfos = (
   return I.Map(infos)
 }
 
-export const emptyInviteInfo = Object.freeze<Types._InviteInfo>({
+export const emptyInviteInfo = Object.freeze<Types.InviteInfo>({
   email: '',
   id: '',
   name: '',
@@ -102,7 +102,7 @@ export const emptyInviteInfo = Object.freeze<Types._InviteInfo>({
   username: '',
 })
 
-export const makeInviteInfo = I.Record<Types._InviteInfo>(emptyInviteInfo)
+export const makeInviteInfo = I.Record<Types.InviteInfo>(emptyInviteInfo)
 
 export const emptyEmailInviteError = Object.freeze<Types.EmailInviteError>({
   malformed: new Set<string>(),
@@ -188,7 +188,6 @@ const emptyState: Types.State = {
   teamNameToCanPerform: I.Map(),
   teamNameToChannelInfos: I.Map(),
   teamNameToID: I.Map(),
-  teamNameToInvites: I.Map(),
   teamNameToIsOpen: I.Map(),
   teamNameToIsShowcasing: I.Map(),
   teamNameToLoadingInvites: I.Map(),
@@ -475,9 +474,6 @@ export const getTeamPublicitySettings = (
     team: false,
   })
 
-export const getTeamInvites = (state: TypedState, teamname: Types.Teamname): I.Set<Types.InviteInfo> =>
-  state.teams.teamNameToInvites.get(teamname, I.Set())
-
 // Note that for isInTeam and isInSomeTeam, we don't use 'teamnames',
 // since that may contain subteams you're not a member of.
 
@@ -664,8 +660,8 @@ export const teamListToDetails = (
 
 export const annotatedInvitesToInviteInfo = (
   invites: RPCTypes.TeamDetails['annotatedActiveInvites']
-): Array<Types._InviteInfo> =>
-  Object.values(invites).reduce<Array<Types._InviteInfo>>((arr, invite) => {
+): Array<Types.InviteInfo> =>
+  Object.values(invites).reduce<Array<Types.InviteInfo>>((arr, invite) => {
     const role = teamRoleByEnum[invite.role]
     if (!role || role === 'none') {
       return arr

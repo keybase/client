@@ -73,10 +73,6 @@ export default (
           action.payload.teamname,
           Constants.makeTeamSettings(action.payload.settings)
         )
-        draftState.teamNameToInvites = draftState.teamNameToInvites.set(
-          action.payload.teamname,
-          I.Set(action.payload.invites.map(i => Constants.makeInviteInfo(i)))
-        )
         draftState.teamNameToSubteams = draftState.teamNameToSubteams.set(
           action.payload.teamname,
           I.Set(action.payload.subteams)
