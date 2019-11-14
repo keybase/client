@@ -11,7 +11,7 @@ type Props = {
   baseTeam?: string // if set we're creating a subteam of this teamname
   errorText: string
   onCancel: () => void
-  onSetTeamCreationError: (err: string) => void
+  onClearError: () => void
   onSubmit: (fullName: string, joinSubteam: boolean) => void
 }
 
@@ -30,8 +30,8 @@ const CreateNewTeam = (props: Props) => {
   const disabled = name.length < 2
 
   // clear error we may have hit on unmount
-  const {onSetTeamCreationError} = props
-  React.useEffect(() => () => onSetTeamCreationError(''), [onSetTeamCreationError])
+  const {onClearError} = props
+  React.useEffect(() => () => onClearError(), [onClearError])
 
   const modalHeader = Kb.useModalHeaderTitleAndCancel('Create a team', props.onCancel)
 

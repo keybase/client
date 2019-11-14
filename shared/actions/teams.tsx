@@ -473,7 +473,6 @@ function* createNewTeamFromConversation(
   participants = meta.participants
 
   if (participants) {
-    yield Saga.put(TeamsGen.createSetTeamCreationError({error: ''}))
     try {
       const createRes: Saga.RPCPromiseType<typeof RPCTypes.teamsTeamCreateRpcPromise> = yield RPCTypes.teamsTeamCreateRpcPromise(
         {joinSubteam: false, name: teamname},
@@ -893,7 +892,6 @@ function* saveChannelMembership(_: TypedState, action: TeamsGen.SaveChannelMembe
 
 function* createChannel(_: TypedState, action: TeamsGen.CreateChannelPayload, logger: Saga.SagaLogger) {
   const {channelname, description, teamname} = action.payload
-  yield Saga.put(TeamsGen.createSetTeamCreationError({error: ''}))
   try {
     const result: Saga.RPCPromiseType<typeof RPCChatTypes.localNewConversationLocalRpcPromise> = yield RPCChatTypes.localNewConversationLocalRpcPromise(
       {

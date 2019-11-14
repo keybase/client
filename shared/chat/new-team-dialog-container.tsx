@@ -15,7 +15,7 @@ export default Container.connect(
   }),
   (dispatch, ownProps: OwnProps) => ({
     onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
-    onSetTeamCreationError: (error: string) => dispatch(TeamsGen.createSetTeamCreationError({error})),
+    onClearError: () => dispatch(TeamsGen.createSetTeamCreationError({error: ''})),
     onSubmit: (teamname: string) => {
       dispatch(
         TeamsGen.createCreateNewTeamFromConversation({

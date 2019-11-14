@@ -5,7 +5,7 @@ import CreateNewTeam from '.'
 const commonProps = {
   errorText: '',
   onCancel: Sb.action('onCancel'),
-  onSetTeamCreationError: Sb.action('onSetTeamCreationError'),
+  onClearError: Sb.action('onClearError'),
   onSubmit: Sb.action('onSubmit'),
 }
 
