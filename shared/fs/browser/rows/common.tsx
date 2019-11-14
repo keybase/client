@@ -2,19 +2,18 @@ import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/fs'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
-import {OpenInSystemFileManager, PathItemIcon, PathItemAction, PathStatusIcon} from '../../common'
+import {OpenInSystemFileManager, ItemIcon, PathItemAction, PathStatusIcon} from '../../common'
 import flags from '../../../util/feature-flags'
 
 export type StillCommonProps = {
   path: Types.Path
   inDestinationPicker?: boolean
   onOpen?: () => void
-  showTlfTypeIcon?: boolean
+  mixedMode?: boolean
 }
 
 export const StillCommon = (
   props: StillCommonProps & {
-    badge?: Types.PathItemBadge
     children: React.ReactNode
     writingToJournal: boolean
   }
@@ -23,12 +22,11 @@ export const StillCommon = (
     type="Small"
     statusIcon={flags.kbfsOfflineMode ? <PathStatusIcon path={props.path} /> : undefined}
     icon={
-      <PathItemIcon
+      <ItemIcon
         path={props.path}
         size={32}
         style={Styles.collapseStyles([rowStyles.pathItemIcon, props.writingToJournal && rowStyles.opacity30])}
-        badge={props.badge}
-        showTlfTypeIcon={props.showTlfTypeIcon}
+        mixedMode={props.mixedMode}
       />
     }
     firstItem={true /* we add divider in Rows */}

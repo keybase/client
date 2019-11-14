@@ -7,6 +7,7 @@ package kbfsgit
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -1138,7 +1139,7 @@ func TestRunnerSubmodule(t *testing.T) {
 	require.True(t, strings.HasPrefix(string(data), "git submodule"))
 }
 
-func TestRunnerLFSUpload(t *testing.T) {
+func TestRunnerLFS(t *testing.T) {
 	ctx, config, tempdir := initConfigForRunner(t)
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 	defer os.RemoveAll(tempdir)
@@ -1177,7 +1178,7 @@ func TestRunnerLFSUpload(t *testing.T) {
 	var output bytes.Buffer
 	r, err := newRunnerWithType(
 		ctx, config, "origin", "keybase://private/user1/test", "", inputReader,
-		&output, testErrput{t}, processLFS)
+		&output, testErrput{t}, processLFSNoProgress)
 	require.NoError(t, err)
 	err = r.processCommands(ctx)
 	require.NoError(t, err)
@@ -1194,6 +1195,52 @@ func TestRunnerLFSUpload(t *testing.T) {
 	require.NoError(t, err)
 	defer oidF.Close()
 	buf, err := ioutil.ReadAll(oidF)
+	require.NoError(t, err)
+	require.Equal(t, lfsData, buf)
+
+	t.Log("Download and check the file")
+	inputReader2, inputWriter2 := io.Pipe()
+	defer inputWriter2.Close()
+	go func() {
+		_, _ = inputWriter2.Write([]byte("{\"event\": \"download\", \"oid\": \"" + oid + "\"}\n{\"event\": \"terminate\"}\n"))
+	}()
+	oldWd, err := os.Getwd()
+	oldWdExists := true
+	if err != nil {
+		if os.IsNotExist(err) {
+			oldWdExists = false
+		} else {
+			require.NoError(t, err)
+		}
+	}
+	err = os.Chdir(tempdir)
+	require.NoError(t, err)
+	if oldWdExists {
+		defer func() {
+			err = os.Chdir(oldWd)
+			require.NoError(t, err)
+		}()
+	}
+	var output2 bytes.Buffer
+	r2, err := newRunnerWithType(
+		ctx, config, "origin", "keybase://private/user1/test", "", inputReader2,
+		&output2, testErrput{t}, processLFSNoProgress)
+	require.NoError(t, err)
+	err = r2.processCommands(ctx)
+	require.NoError(t, err)
+	outbuf := output2.Bytes()
+	var resp lfsResponse
+	err = json.Unmarshal(outbuf, &resp)
+	require.NoError(t, err)
+	p := resp.Path
+	require.Equal(
+		t, "{\"event\":\"complete\",\"oid\":\""+oid+"\",\"path\":\""+p+"\"}\n",
+		output2.String())
+
+	pF, err := os.Open(p)
+	require.NoError(t, err)
+	defer pF.Close()
+	buf, err = ioutil.ReadAll(pF)
 	require.NoError(t, err)
 	require.Equal(t, lfsData, buf)
 }

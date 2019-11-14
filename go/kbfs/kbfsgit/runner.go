@@ -57,8 +57,10 @@ const (
 
 	gitLFSInitEvent      = "init"
 	gitLFSUploadEvent    = "upload"
+	gitLFSDownloadEvent  = "download"
 	gitLFSCompleteEvent  = "complete"
 	gitLFSTerminateEvent = "terminate"
+	gitLFSProgressEvent  = "progress"
 
 	// Debug tag ID for an individual git command passed to the process.
 	ctxCommandOpID = "GITCMDID"
@@ -117,6 +119,7 @@ type runnerProcessType int
 const (
 	processGit runnerProcessType = iota
 	processLFS
+	processLFSNoProgress
 )
 
 type runner struct {
@@ -501,11 +504,45 @@ func (r *runner) printStageStart(ctx context.Context,
 	r.needPrintDone = true
 }
 
+func (r *runner) printGitJournalStart(ctx context.Context) {
+	adj := "encrypted"
+	if r.h.Type() == tlf.Public {
+		adj = "signed"
+	}
+	if r.verbosity >= 1 {
+		r.printStageStart(ctx,
+			[]byte(fmt.Sprintf("Syncing %s data to Keybase: ", adj)),
+			"mem.flush.prof", "")
+	}
+}
+
+func (r *runner) printGitJournalMessage(
+	ctx context.Context, lastByteCount int, totalSize, sizeLeft int64) int {
+	const bytesFmt string = "(%.2f%%) %s... "
+	eraseStr := strings.Repeat("\b", lastByteCount)
+	flushed := totalSize - sizeLeft
+	if flushed < 0 {
+		flushed = 0
+	}
+	str := fmt.Sprintf(
+		bytesFmt, percent(flushed, totalSize),
+		humanizeBytes(flushed, totalSize))
+	if r.verbosity >= 1 && r.progress {
+		_, err := r.errput.Write([]byte(eraseStr + str))
+		if err != nil {
+			r.log.CDebugf(ctx, "Couldn't write: %+v", err)
+		}
+	}
+	return len(str)
+}
+
 // caller should make sure doneCh is closed when journal is all flushed.
 func (r *runner) printJournalStatus(
 	ctx context.Context, jManager *libkbfs.JournalManager, tlfID tlf.ID,
-	doneCh <-chan struct{}) {
-	r.printStageEndIfNeeded(ctx)
+	doneCh <-chan struct{}, printStart func(context.Context),
+	printProgress func(context.Context, int, int64, int64) int,
+	printEnd func(context.Context)) {
+	printEnd(ctx)
 	// Note: the "first" status here gets us the number of unflushed
 	// bytes left at the time we started printing.  However, we don't
 	// have the total number of bytes being flushed to the server
@@ -520,28 +557,12 @@ func (r *runner) printJournalStatus(
 	if firstStatus.UnflushedBytes == 0 {
 		return
 	}
-	adj := "encrypted"
-	if r.h.Type() == tlf.Public {
-		adj = "signed"
-	}
-	if r.verbosity >= 1 {
-		r.printStageStart(ctx,
-			[]byte(fmt.Sprintf("Syncing %s data to Keybase: ", adj)),
-			"mem.flush.prof", "")
-	}
+	printStart(ctx)
+	lastByteCount := printProgress(
+		ctx, 0, firstStatus.UnflushedBytes, firstStatus.UnflushedBytes)
+
 	r.log.CDebugf(ctx, "Waiting for %d journal bytes to flush",
 		firstStatus.UnflushedBytes)
-
-	bytesFmt := "(%.2f%%) %s... "
-	str := fmt.Sprintf(
-		bytesFmt, float64(0), humanizeBytes(0, firstStatus.UnflushedBytes))
-	lastByteCount := len(str)
-	if r.progress {
-		_, err := r.errput.Write([]byte(str))
-		if err != nil {
-			r.log.CDebugf(ctx, "Couldn't write: %+v", err)
-		}
-	}
 
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
@@ -554,42 +575,25 @@ func (r *runner) printJournalStatus(
 				return
 			}
 
-			if r.verbosity >= 1 && r.progress {
-				eraseStr := strings.Repeat("\b", lastByteCount)
-				flushed := firstStatus.UnflushedBytes - status.UnflushedBytes
-				str := fmt.Sprintf(
-					bytesFmt, percent(flushed, firstStatus.UnflushedBytes),
-					humanizeBytes(flushed, firstStatus.UnflushedBytes))
-				lastByteCount = len(str)
-				_, err := r.errput.Write([]byte(eraseStr + str))
-				if err != nil {
-					r.log.CDebugf(ctx, "Couldn't write: %+v", err)
-				}
-			}
+			lastByteCount = printProgress(
+				ctx, lastByteCount, firstStatus.UnflushedBytes,
+				status.UnflushedBytes)
 		case <-doneCh:
-			if r.verbosity >= 1 && r.progress {
-				eraseStr := strings.Repeat("\b", lastByteCount)
-				// doneCh is closed. So assume journal flushing is done and
-				// take the shortcut.
-				flushed := firstStatus.UnflushedBytes
-				str := fmt.Sprintf(
-					bytesFmt, percent(flushed, firstStatus.UnflushedBytes),
-					humanizeBytes(flushed, firstStatus.UnflushedBytes))
-				_, err := r.errput.Write([]byte(eraseStr + str))
-				if err != nil {
-					r.log.CDebugf(ctx, "Couldn't write: %+v", err)
-				}
-			}
+			// doneCh is closed. So assume journal flushing is done and
+			// take the shortcut.
+			_ = printProgress(
+				ctx, lastByteCount, firstStatus.UnflushedBytes, 0)
 
-			if r.verbosity >= 1 {
-				r.printStageEndIfNeeded(ctx)
-			}
+			printEnd(ctx)
 			return
 		}
 	}
 }
 
-func (r *runner) waitForJournal(ctx context.Context) error {
+func (r *runner) waitForJournalWithPrinters(
+	ctx context.Context, printStart func(context.Context),
+	printProgress func(context.Context, int, int64, int64) int,
+	printEnd func(context.Context)) error {
 	// See if there are any deleted repos to clean up before we flush
 	// the journal.
 	err := libgit.CleanOldDeletedReposTimeLimited(ctx, r.config, r.h)
@@ -624,7 +628,8 @@ func (r *runner) waitForJournal(ctx context.Context) error {
 	waitDoneCh := make(chan struct{})
 	go func() {
 		r.printJournalStatus(
-			ctx, jManager, rootNode.GetFolderBranch().Tlf, waitDoneCh)
+			ctx, jManager, rootNode.GetFolderBranch().Tlf, waitDoneCh,
+			printStart, printProgress, printEnd)
 		close(printDoneCh)
 	}()
 
@@ -651,6 +656,12 @@ func (r *runner) waitForJournal(ctx context.Context) error {
 		return errors.New("Journal is non-empty after a wait")
 	}
 	return nil
+}
+
+func (r *runner) waitForJournal(ctx context.Context) error {
+	return r.waitForJournalWithPrinters(
+		ctx, r.printGitJournalStart, r.printGitJournalMessage,
+		r.printStageEndIfNeeded)
 }
 
 // handleList: From https://git-scm.com/docs/git-remote-helpers
@@ -794,7 +805,9 @@ func (r *runner) printJournalStatusUntilFlushed(
 	}
 
 	r.printJournalStatus(
-		ctx, jManager, rootNode.GetFolderBranch().Tlf, doneCh)
+		ctx, jManager, rootNode.GetFolderBranch().Tlf, doneCh,
+		r.printGitJournalStart, r.printGitJournalMessage,
+		r.printStageEndIfNeeded)
 }
 
 func (r *runner) processGogitStatus(ctx context.Context,
@@ -1921,9 +1934,92 @@ func (r *runner) handleOption(ctx context.Context, args []string) (err error) {
 	return err
 }
 
+type lfsProgress struct {
+	Event          string `json:"event"`
+	Oid            string `json:"oid"`
+	BytesSoFar     int    `json:"bytesSoFar"`
+	BytesSinceLast int    `json:"bytesSinceLast"`
+}
+
+// lfsProgressWriter is a simple io.Writer shim that writes progress
+// messages to `r.output` for LFS.  Its `printOne` function can also
+// be passed to `runner.waitForJournalWithPrinters` in order to print
+// periodic progress messages.
+type lfsProgressWriter struct {
+	r             *runner
+	output        io.Writer
+	soFar         int
+	oid           string
+	plaintextSize int
+}
+
+var _ io.Writer = (*lfsProgressWriter)(nil)
+
+func (lpw *lfsProgressWriter) Write(p []byte) (n int, err error) {
+	n, err = lpw.output.Write(p)
+	if err != nil {
+		return n, err
+	}
+
+	if lpw.r.processType == processLFSNoProgress {
+		return n, nil
+	}
+
+	lpw.soFar += n
+	prog := lfsProgress{
+		Event:          gitLFSProgressEvent,
+		Oid:            lpw.oid,
+		BytesSoFar:     lpw.soFar,
+		BytesSinceLast: n,
+	}
+
+	progBytes, err := json.Marshal(prog)
+	if err != nil {
+		return n, err
+	}
+	_, err = lpw.r.output.Write(append(progBytes, []byte("\n")...))
+	if err != nil {
+		return n, err
+	}
+	return n, nil
+}
+
+func (lpw *lfsProgressWriter) printOne(
+	ctx context.Context, _ int, totalSize, sizeLeft int64) int {
+	if lpw.r.processType == processLFSNoProgress {
+		return 0
+	}
+
+	last := lpw.soFar
+	lpw.soFar = int(totalSize - sizeLeft)
+
+	// We need to scale the reported bytes based on the plaintext size
+	// expected by LFS, since the in-journal size will be slightly
+	// different.
+	f := float64(lpw.plaintextSize) / float64(totalSize)
+
+	prog := lfsProgress{
+		Event:          gitLFSProgressEvent,
+		Oid:            lpw.oid,
+		BytesSoFar:     int(float64(lpw.soFar) * f),
+		BytesSinceLast: int(float64(lpw.soFar-last) * f),
+	}
+
+	progBytes, err := json.Marshal(prog)
+	if err != nil {
+		lpw.r.log.CDebugf(ctx, "Error while json marshaling: %+v", err)
+		return 0
+	}
+	_, err = lpw.r.output.Write(append(progBytes, []byte("\n")...))
+	if err != nil {
+		lpw.r.log.CDebugf(ctx, "Error while writing: %+v", err)
+	}
+	return 0
+}
+
 func (r *runner) copyFileLFS(
 	ctx context.Context, from billy.Filesystem, to billy.Filesystem,
-	fromName string, toName string) (err error) {
+	fromName, toName, oid string, doProgress bool) (err error) {
 	f, err := from.Open(fromName)
 	if err != nil {
 		return err
@@ -1935,14 +2031,20 @@ func (r *runner) copyFileLFS(
 	}
 	defer toF.Close()
 
-	// TODO: wrap the writer
 	var w io.Writer = toF
+	if doProgress {
+		w = &lfsProgressWriter{
+			r:      r,
+			oid:    oid,
+			output: toF,
+		}
+	}
 	_, err = io.Copy(w, f)
 	return err
 }
 
 func (r *runner) handleLFSUpload(
-	ctx context.Context, oid string, localPath string) (err error) {
+	ctx context.Context, oid string, localPath string, size int) (err error) {
 	fs, err := r.makeFS(ctx)
 	if err != nil {
 		return err
@@ -1963,11 +2065,56 @@ func (r *runner) handleLFSUpload(
 	}
 
 	localFS := osfs.New(dir)
-	err = r.copyFileLFS(ctx, localFS, fs, file, oid)
+	// Copy the file without progress, because for KBFS uploads
+	// proceed in two stages -- one copying it into the journal, and
+	// one flushing it from the journal.  LFS only lets us have one
+	// progress-reporting stage, so we choose the journal flush.
+	// TODO: start the journal progress reporting in parallel with
+	// this copy, since some of the journal will be flushed in
+	// parallel with this copy.  Right now the CLI progress messages
+	// don't start until after the copy fully finishes.  The tricky
+	// part there is that we don't yet know the full journal size
+	// until the file copy completes...
+	err = r.copyFileLFS(ctx, localFS, fs, file, oid, oid, false)
 	if err != nil {
 		return err
 	}
-	return r.waitForJournal(ctx)
+	printNothing := func(_ context.Context) {}
+	w := &lfsProgressWriter{
+		r:             r,
+		oid:           oid,
+		plaintextSize: size,
+	}
+	return r.waitForJournalWithPrinters(
+		ctx, printNothing, w.printOne, printNothing)
+}
+
+func (r *runner) handleLFSDownload(
+	ctx context.Context, oid string) (localPath string, err error) {
+	fs, err := r.makeFS(ctx)
+	if err != nil {
+		return "", err
+	}
+	err = fs.MkdirAll(lfsSubdir, 0600)
+	if err != nil {
+		return "", err
+	}
+	fs, err = fs.ChrootAsLibFS(lfsSubdir)
+	if err != nil {
+		return "", err
+	}
+
+	// Put the file in a temporary location; lfs will move it to the
+	// right location.
+	dir := "."
+	localFS := osfs.New(dir)
+	localFileName := ".kbfs_lfs_" + oid
+
+	err = r.copyFileLFS(ctx, fs, localFS, oid, localFileName, oid, true)
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(dir, localFileName), nil
 }
 
 func (r *runner) processCommand(
@@ -2060,6 +2207,7 @@ type lfsRequest struct {
 type lfsResponse struct {
 	Event string    `json:"event"`
 	Oid   string    `json:"oid"`
+	Path  string    `json:"path,omitempty"`
 	Error *lfsError `json:"error,omitempty"`
 }
 
@@ -2094,9 +2242,17 @@ lfsLoop:
 				continue lfsLoop
 			case gitLFSUploadEvent:
 				r.log.CDebugf(ctx, "Handling upload, oid=%s", req.Oid)
-				err := r.handleLFSUpload(ctx, req.Oid, req.Path)
+				err := r.handleLFSUpload(ctx, req.Oid, req.Path, req.Size)
 				if err != nil {
 					resp.Error = &lfsError{Code: 1, Message: err.Error()}
+				}
+			case gitLFSDownloadEvent:
+				r.log.CDebugf(ctx, "Handling download, oid=%s", req.Oid)
+				p, err := r.handleLFSDownload(ctx, req.Oid)
+				if err != nil {
+					resp.Error = &lfsError{Code: 1, Message: err.Error()}
+				} else {
+					resp.Path = filepath.ToSlash(p)
 				}
 			case gitLFSTerminateEvent:
 				return nil
@@ -2138,7 +2294,7 @@ func (r *runner) processCommands(ctx context.Context) (err error) {
 		switch r.processType {
 		case processGit:
 			processorErrChan <- r.processCommand(ctx, commandChan)
-		case processLFS:
+		case processLFS, processLFSNoProgress:
 			processorErrChan <- r.processCommandLFS(ctx, commandChan)
 		default:
 			panic(fmt.Sprintf("Unknown process type: %v", r.processType))

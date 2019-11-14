@@ -803,7 +803,7 @@ func (d *Dealer) handleMessage(ctx context.Context, msg *GameMessageWrapped) err
 	if err != nil {
 		return err
 	}
-	err = d.dh.SendChat(ctx, msg.Msg.Md.ConversationID, msg.Msg.Md.GameID, emsg)
+	err = d.dh.SendChat(ctx, msg.Msg.Md.Initiator.U, msg.Msg.Md.ConversationID, msg.Msg.Md.GameID, emsg)
 	if err != nil {
 		return err
 	}
