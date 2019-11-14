@@ -14,13 +14,10 @@ type OwnProps = Container.RouteProps<{
 
 const Connect = Container.connect(
   (state, ownProps: OwnProps) => ({
+    _allKnownBlocks: state.users.blockMap,
     adderUsername: Container.getRouteProps(ownProps, 'username', ''),
     blockByDefault: Container.getRouteProps(ownProps, 'blockByDefault', false),
     convID: Container.getRouteProps(ownProps, 'convID', undefined),
-    isBlocked: (username: string, which: BlockType) => {
-      const blockObj = state.users.blockMap.get(username)
-      return blockObj ? blockObj[which] : false
-    },
     others: Container.getRouteProps(ownProps, 'others', undefined),
     teamname: Container.getRouteProps(ownProps, 'team', undefined),
   }),
@@ -52,6 +49,10 @@ const Connect = Container.connect(
   (stateProps, dispatchProps, _: OwnProps) => {
     return {
       ...stateProps,
+      isBlocked: (username: string, which: BlockType) => {
+        const blockObj = stateProps._allKnownBlocks.get(username)
+        return blockObj ? blockObj[which] : false
+      },
       onCancel: dispatchProps.onCancel,
       onFinish: (newBlocks: NewBlocksMap, blockTeam: boolean, report?: ReportSettings) => {
         if (blockTeam) {
