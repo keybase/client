@@ -193,7 +193,6 @@ const emptyState: Types.State = {
   teamNameToLoadingInvites: I.Map(),
   teamNameToMembers: I.Map(),
   teamNameToPublicitySettings: I.Map(),
-  teamNameToRequests: I.Map(),
   teamNameToResetUsers: I.Map(),
   teamNameToRetentionPolicy: I.Map(),
   teamNameToRole: I.Map(),
@@ -497,9 +496,6 @@ export const getTeamResetUsers = (state: TypedState, teamname: Types.Teamname): 
 
 export const getTeamLoadingInvites = (state: TypedState, teamname: Types.Teamname): I.Map<string, boolean> =>
   state.teams.teamNameToLoadingInvites.get(teamname) || I.Map<string, boolean>()
-
-export const getTeamRequests = (state: TypedState, teamname: Types.Teamname): I.Set<string> =>
-  state.teams.teamNameToRequests.get(teamname, I.Set())
 
 // Sorts teamnames canonically.
 function sortTeamnames(a: string, b: string) {

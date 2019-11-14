@@ -192,9 +192,6 @@
       "loadingKey": "string",
       "isLoading": "boolean"
     },
-    "clearTeamRequests": {
-      "teamname": "string"
-    },
     "setTeamDetails": {
       "teamID": "Types.TeamID",
       "teamname": "string",
