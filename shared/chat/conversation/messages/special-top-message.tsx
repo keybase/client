@@ -10,6 +10,7 @@ import * as Container from '../../../util/container'
 import * as Styles from '../../../styles'
 import NewChatCard from './cards/new-chat'
 import HelloBotCard from './cards/hello-bot'
+import MakeTeamCard from './cards/make-team'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
@@ -74,7 +75,7 @@ class TopMessage extends React.PureComponent<Props> {
           )}
         {this.props.showTeamOffer && (
           <Kb.Box style={styles.more}>
-            <CreateTeamNotice />
+            <MakeTeamCard />
           </Kb.Box>
         )}
         {this.props.loadMoreType === 'moreToLoad' && (
