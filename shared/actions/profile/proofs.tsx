@@ -12,6 +12,21 @@ import * as Tracker2Constants from '../../constants/tracker2'
 import openURL from '../../util/open-url'
 import {TypedState} from '../../util/container'
 
+type ValidCallback =
+  | 'keybase.1.proveUi.checking'
+  | 'keybase.1.proveUi.continueChecking'
+  | 'keybase.1.proveUi.okToCheck'
+  | 'keybase.1.proveUi.outputInstructions'
+  | 'keybase.1.proveUi.preProofWarning'
+  | 'keybase.1.proveUi.promptOverwrite'
+  | 'keybase.1.proveUi.promptUsername'
+
+type CustomParam<T extends ValidCallback> = RPCTypes.MessageTypes[T]['inParam']
+type CustomResp<T extends ValidCallback> = {
+  error: RPCTypes.IncomingErrorCallback
+  result: (res: RPCTypes.MessageTypes[T]['outParam']) => void
+}
+
 const checkProof = async (state: TypedState, _: ProfileGen.CheckProofPayload) => {
   const sigID = state.profile.sigID
   const isGeneric = !!state.profile.platformGeneric
@@ -24,13 +39,11 @@ const checkProof = async (state: TypedState, _: ProfileGen.CheckProofPayload) =>
     // Values higher than baseHardError are hard errors, below are soft errors (could eventually be resolved by doing nothing)
     if (!found && status >= RPCTypes.ProofStatus.baseHardError) {
       return ProfileGen.createUpdateErrorText({
-        errorCode: null,
         errorText: "We couldn't find your proof. Please retry!",
       })
     } else {
       return [
         ProfileGen.createUpdateErrorText({
-          errorCode: null,
           errorText: '',
         }),
         ProfileGen.createUpdateProofStatus({found, status}),
@@ -46,7 +59,6 @@ const checkProof = async (state: TypedState, _: ProfileGen.CheckProofPayload) =>
   } catch (_) {
     logger.warn('Error getting proof update')
     return ProfileGen.createUpdateErrorText({
-      errorCode: null,
       errorText: "We couldn't verify your proof. Please retry!",
     })
   }
@@ -128,7 +140,6 @@ function* addProof(state: TypedState, action: ProfileGen.AddProofPayload) {
       if (_promptUsernameResponse) {
         yield Saga.put(
           ProfileGen.createUpdateErrorText({
-            errorCode: null,
             errorText: '',
           })
         )

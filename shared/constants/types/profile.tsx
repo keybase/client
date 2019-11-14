@@ -12,14 +12,14 @@ export type FriendshipUserInfo = {
   following: boolean
 }
 
-export type ProveGenericParams = {
+export type ProveGenericParams = Readonly<{
   logoBlack: SiteIconSet
   logoFull: SiteIconSet
   title: string
   subtext: string
   suffix: string
   buttonLabel: string
-}
+}>
 
 export type State = Readonly<{
   errorCode?: number

@@ -35,7 +35,7 @@ export const makeProveGenericParams = (): Types.ProveGenericParams => ({
   title: '',
 })
 
-export const toProveGenericParams = (p: RPCGen.ProveParameters) => ({
+export const toProveGenericParams = (p: RPCGen.ProveParameters): Types.ProveGenericParams => ({
   ...makeProveGenericParams(),
   buttonLabel: p.buttonLabel,
   logoBlack: p.logoBlack || [],

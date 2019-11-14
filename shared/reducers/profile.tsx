@@ -5,18 +5,18 @@ import * as Container from '../util/container'
 import * as Constants from '../constants/profile'
 import * as Validators from '../util/simple-validators'
 
-const updateUsername = (state: Types.State) => {
-  let username = state.username || ''
+const updateUsername = (draftState: Container.Draft<Types.State>) => {
+  let username = draftState.username ?? ''
   let usernameValid = true
 
-  switch (state.platform) {
+  switch (draftState.platform) {
     case 'http': // fallthrough
     case 'https':
       // Ensure that only the hostname is getting returned, with no
       // protocol, port, or path information
       username =
-        state.username &&
-        state.username
+        username &&
+        username
           // Remove protocol information (if present)
           .replace(/^.*?:\/\//, '')
           // Remove port information (if present)
@@ -36,118 +36,108 @@ const updateUsername = (state: Types.State) => {
       break
   }
 
-  return state.merge({username, usernameValid})
+  draftState.username = username
+  draftState.usernameValid = usernameValid
+}
+
+const clearErrors = (draftState: Container.Draft<Types.State>) => {
+  draftState.errorCode = undefined
+  draftState.errorText = ''
+  draftState.platformGeneric = undefined
+  draftState.platformGenericChecking = false
+  draftState.platformGenericParams = undefined
+  draftState.platformGenericURL = undefined
+  draftState.username = ''
 }
 
 const initialState = Constants.makeInitialState()
 
 export default Container.makeReducer<ProfileGen.Actions, Types.State>(initialState, {
-  [ProfileGen.resetStore]: (draftState, actions) => {
-    return initialState
+  [ProfileGen.resetStore]: () => initialState,
+  [ProfileGen.updatePlatform]: (draftState, action) => {
+    draftState.platform = action.payload.platform
   },
-  [ProfileGen.updatePlatform]: (draftState, actions) => {
-    return updateUsername(state.merge({platform: action.payload.platform}))
+  [ProfileGen.updateUsername]: (draftState, action) => {
+    draftState.username = action.payload.username
   },
-  [ProfileGen.updateUsername]: (draftState, actions) => {
-    return updateUsername(state.merge({username: action.payload.username}))
+  [ProfileGen.cleanupUsername]: draftState => {
+    updateUsername(draftState)
   },
-  [ProfileGen.cleanupUsername]: (draftState, actions) => {
-    return updateUsername(state)
+  [ProfileGen.revokeFinish]: (draftState, action) => {
+    draftState.revokeError = action.payload.error ?? ''
   },
-  [ProfileGen.revokeFinish]: (draftState, actions) => {
-    return state.merge({revokeError: action.payload.error ? action.payload.error : ''})
+  [ProfileGen.submitBlockUser]: draftState => {
+    draftState.blockUserModal = 'waiting'
   },
-  [ProfileGen.submitBlockUser]: (draftState, actions) => {
-    return state.merge({blockUserModal: 'waiting'})
+  [ProfileGen.finishBlockUser]: (draftState, action) => {
+    draftState.blockUserModal = action.payload.error ? {error: action.payload.error} : undefined
   },
-  [ProfileGen.finishBlockUser]: (draftState, actions) => {
-    return state.merge({blockUserModal: action.payload.error ? {error: action.payload.error} : null})
+  [ProfileGen.updateProofText]: (draftState, action) => {
+    draftState.proofText = action.payload.proof
   },
-  [ProfileGen.updateProofText]: (draftState, actions) => {
-    return state.merge({proofText: action.payload.proof})
+  [ProfileGen.updateProofStatus]: (draftState, action) => {
+    draftState.proofFound = action.payload.found
+    draftState.proofStatus = action.payload.status
   },
-  [ProfileGen.updateProofStatus]: (draftState, actions) => {
-    return state.merge({
-      proofFound: action.payload.found,
-      proofStatus: action.payload.status,
-    })
+  [ProfileGen.updateErrorText]: (draftState, action) => {
+    draftState.errorCode = action.payload.errorCode
+    draftState.errorText = action.payload.errorText
   },
-  [ProfileGen.updateErrorText]: (draftState, actions) => {
-    const {errorCode, errorText} = action.payload
-    return state.merge({errorCode, errorText})
+  [ProfileGen.updateSigID]: (draftState, action) => {
+    draftState.sigID = action.payload.sigID
   },
-  [ProfileGen.updateSigID]: (draftState, actions) => {
-    return state.merge({sigID: action.payload.sigID})
+  [ProfileGen.updatePgpInfo]: (draftState, action) => {
+    const valid1 = Validators.isValidEmail(draftState.pgpEmail1)
+    const valid2 = draftState.pgpEmail2 && Validators.isValidEmail(draftState.pgpEmail2)
+    const valid3 = draftState.pgpEmail3 && Validators.isValidEmail(draftState.pgpEmail3)
+    draftState.pgpErrorEmail1 = !!valid1
+    draftState.pgpErrorEmail2 = !!valid2
+    draftState.pgpErrorEmail3 = !!valid3
+    draftState.pgpErrorText = Validators.isValidName(draftState.pgpFullName) || valid1 || valid2 || valid3
+    draftState.pgpFullName = action.payload.pgpFullName ?? ''
   },
-  [ProfileGen.updatePgpInfo]: (draftState, actions) => {
-    const valid1 = Validators.isValidEmail(state.pgpEmail1)
-    const valid2 = state.pgpEmail2 && Validators.isValidEmail(state.pgpEmail2)
-    const valid3 = state.pgpEmail3 && Validators.isValidEmail(state.pgpEmail3)
-    return state.merge({
-      ...action.payload,
-      pgpErrorEmail1: !!valid1,
-      pgpErrorEmail2: !!valid2,
-      pgpErrorEmail3: !!valid3,
-      pgpErrorText: Validators.isValidName(state.pgpFullName) || valid1 || valid2 || valid3,
-    })
+  [ProfileGen.updatePgpPublicKey]: (draftState, action) => {
+    draftState.pgpPublicKey = action.payload.publicKey
   },
-  [ProfileGen.updatePgpPublicKey]: (draftState, actions) => {
-    return state.merge({pgpPublicKey: action.payload.publicKey})
+  [ProfileGen.updatePromptShouldStoreKeyOnServer]: (draftState, action) => {
+    draftState.promptShouldStoreKeyOnServer = action.payload.promptShouldStoreKeyOnServer
   },
-  [ProfileGen.updatePromptShouldStoreKeyOnServer]: (draftState, actions) => {
-    return state.merge({promptShouldStoreKeyOnServer: action.payload.promptShouldStoreKeyOnServer})
-  },
-  [ProfileGen.addProof]: (draftState, actions) => {
-    const platform = action.payload.platform
+  [ProfileGen.addProof]: (draftState, action) => {
+    const {platform} = action.payload
     const maybeNotGeneric = More.asPlatformsExpandedType(platform)
-    return updateUsername(
-      state.merge({
-        errorCode: null,
-        errorText: '',
-        platform: maybeNotGeneric,
-        platformGeneric: maybeNotGeneric ? null : platform,
-      })
-    )
+    draftState.errorCode = undefined
+    draftState.errorText = ''
+    draftState.platform = maybeNotGeneric ?? undefined
+    draftState.platformGeneric = maybeNotGeneric ? undefined : platform
+    updateUsername(draftState)
   },
-  [ProfileGen.proofParamsReceived]: (draftState, actions) => {
-    return state.merge({
-      platformGenericParams: action.payload.params,
-    })
+  [ProfileGen.proofParamsReceived]: (draftState, action) => {
+    draftState.platformGenericParams = action.payload.params
   },
-  [ProfileGen.updatePlatformGenericURL]: (draftState, actions) => {
-    return state.merge({
-      platformGenericURL: action.payload.url,
-    })
+  [ProfileGen.updatePlatformGenericURL]: (draftState, action) => {
+    draftState.platformGenericURL = action.payload.url
   },
-  [ProfileGen.updatePlatformGenericChecking]: (draftState, actions) => {
-    return state.merge({
-      platformGenericChecking: action.payload.checking,
-    })
+  [ProfileGen.updatePlatformGenericChecking]: (draftState, action) => {
+    draftState.platformGenericChecking = action.payload.checking
   },
-  [ProfileGen.cancelAddProof]: (draftState, actions) => {
-    // fall
+  [ProfileGen.cancelAddProof]: draftState => {
+    clearErrors(draftState)
   },
-  [ProfileGen.clearPlatformGeneric]: (draftState, actions) => {
-    return state.merge({
-      errorCode: null,
-      errorText: '',
-      platformGeneric: null,
-      platformGenericChecking: false,
-      platformGenericParams: null,
-      platformGenericURL: null,
-      username: '',
-    })
+  [ProfileGen.clearPlatformGeneric]: draftState => {
+    clearErrors(draftState)
   },
-  [ProfileGen.recheckProof]: (draftState, actions) => {
-    // fall
+  [ProfileGen.recheckProof]: draftState => {
+    draftState.errorCode = undefined
+    draftState.errorText = ''
   },
-  [ProfileGen.checkProof]: (draftState, actions) => {
-    return state.merge({errorCode: null, errorText: ''})
+  [ProfileGen.checkProof]: draftState => {
+    draftState.errorCode = undefined
+    draftState.errorText = ''
   },
-  [ProfileGen.submitBTCAddress]: (draftState, actions) => {
-    // fall
+  [ProfileGen.submitBTCAddress]: draftState => {
+    updateUsername(draftState)
   },
-  [ProfileGen.submitZcashAddress]: (draftState, actions) => {
-    return updateUsername(state)
+  [ProfileGen.submitZcashAddress]: draftState => {
+    updateUsername(draftState)
   },
 })
