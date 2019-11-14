@@ -341,7 +341,7 @@ const Qr = (props: Props) =>
   )
 
 const EnterText = (props: Props & {code: string; setCode: (code: string) => void}) => {
-  const {code, setCode, waiting} = props
+  const {code, setCode} = props
   const {onSubmitTextCode} = props
   const onSubmit = React.useCallback(
     e => {

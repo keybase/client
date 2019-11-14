@@ -346,10 +346,7 @@ class ProvisioningManager {
     response.result({passphrase: password, storeSecret: false})
   }
 
-  displaySecretExchanged = (
-    params: CustomParam<'keybase.1.provisionUi.DisplaySecretExchanged'>,
-    response: CustomResp<'keybase.1.provisionUi.DisplaySecretExchanged'>
-  ) => {
+  displaySecretExchanged = (_params: CustomParam<'keybase.1.provisionUi.DisplaySecretExchanged'>) => {
     // special case, we actually aren't waiting when we get this so our count goes negative. This is very unusual and a one-off
     return Saga.put(
       WaitingGen.createBatchChangeWaiting({changes: [{increment: true, key: Constants.waitingKey}]})
