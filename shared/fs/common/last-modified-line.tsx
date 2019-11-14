@@ -14,7 +14,7 @@ const Username = ({mode, lastWriter}) =>
     <Kb.Text type="BodySmall">{lastWriter}</Kb.Text>
   ) : (
     <Kb.ConnectedUsernames
-      type="BodyTinyLink"
+      type={mode === 'menu' ? 'BodyTinyLink' : 'BodySmallSecondaryLink'}
       usernames={[lastWriter]}
       inline={true}
       onUsernameClicked="profile"
