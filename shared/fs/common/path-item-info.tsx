@@ -13,7 +13,6 @@ import {useFsChildren, useFsPathMetadata, useFsOnlineStatus, useFsSoftError} fro
 
 type Props = {
   containerStyle?: Styles.StylesCrossPlatform
-  showTooltipOnName: boolean
   path: Types.Path
 }
 
@@ -96,18 +95,7 @@ const PathItemInfo = (props: Props) => {
       <SoftErrorBanner path={props.path} />
       <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={props.containerStyle}>
         <ItemIcon path={props.path} size={48} style={styles.pathItemIcon} />
-        {props.showTooltipOnName ? (
-          <Kb.WithTooltip
-            containerStyle={styles.nameTextBox}
-            tooltip={Types.pathToString(props.path)}
-            multiline={true}
-            showOnPressMobile={true}
-          >
-            {name}
-          </Kb.WithTooltip>
-        ) : (
-          <Kb.Box style={styles.nameTextBox}>{name}</Kb.Box>
-        )}
+        <Kb.Box style={styles.nameTextBox}>{name}</Kb.Box>
         {pathItem.type === Types.PathType.File && (
           <Kb.Text type="BodySmall">{Constants.humanReadableFileSize(pathItem.size)}</Kb.Text>
         )}
