@@ -1946,14 +1946,35 @@ type lfsProgress struct {
 // be passed to `runner.waitForJournalWithPrinters` in order to print
 // periodic progress messages.
 type lfsProgressWriter struct {
-	r             *runner
-	output        io.Writer
-	soFar         int
-	oid           string
-	plaintextSize int
+	r                     *runner
+	output                io.Writer
+	oid                   string
+	start                 int
+	soFar                 int     // how much in absolute bytes has been copied
+	totalForCopy          int     // how much in absolue bytes will be copied
+	plaintextSize         int     // how much LFS expects to be copied
+	factorOfPlaintextSize float64 // what frac of the above size is this copy?
 }
 
 var _ io.Writer = (*lfsProgressWriter)(nil)
+
+func (lpw *lfsProgressWriter) getProgress(newSoFar int) lfsProgress {
+	last := lpw.soFar
+	lpw.soFar = newSoFar
+
+	f := 1.0
+	if lpw.plaintextSize > 0 {
+		f = lpw.factorOfPlaintextSize *
+			(float64(lpw.plaintextSize) / float64(lpw.totalForCopy))
+	}
+
+	return lfsProgress{
+		Event:          gitLFSProgressEvent,
+		Oid:            lpw.oid,
+		BytesSoFar:     lpw.start + int(float64(lpw.soFar)*f),
+		BytesSinceLast: int(float64(lpw.soFar-last) * f),
+	}
+}
 
 func (lpw *lfsProgressWriter) Write(p []byte) (n int, err error) {
 	n, err = lpw.output.Write(p)
@@ -1965,13 +1986,7 @@ func (lpw *lfsProgressWriter) Write(p []byte) (n int, err error) {
 		return n, nil
 	}
 
-	lpw.soFar += n
-	prog := lfsProgress{
-		Event:          gitLFSProgressEvent,
-		Oid:            lpw.oid,
-		BytesSoFar:     lpw.soFar,
-		BytesSinceLast: n,
-	}
+	prog := lpw.getProgress(lpw.soFar + n)
 
 	progBytes, err := json.Marshal(prog)
 	if err != nil {
@@ -1990,20 +2005,11 @@ func (lpw *lfsProgressWriter) printOne(
 		return 0
 	}
 
-	last := lpw.soFar
-	lpw.soFar = int(totalSize - sizeLeft)
-
-	// We need to scale the reported bytes based on the plaintext size
-	// expected by LFS, since the in-journal size will be slightly
-	// different.
-	f := float64(lpw.plaintextSize) / float64(totalSize)
-
-	prog := lfsProgress{
-		Event:          gitLFSProgressEvent,
-		Oid:            lpw.oid,
-		BytesSoFar:     int(float64(lpw.soFar) * f),
-		BytesSinceLast: int(float64(lpw.soFar-last) * f),
+	if lpw.totalForCopy == 0 {
+		lpw.totalForCopy = int(totalSize)
 	}
+
+	prog := lpw.getProgress(int(totalSize - sizeLeft))
 
 	progBytes, err := json.Marshal(prog)
 	if err != nil {
@@ -2019,7 +2025,8 @@ func (lpw *lfsProgressWriter) printOne(
 
 func (r *runner) copyFileLFS(
 	ctx context.Context, from billy.Filesystem, to billy.Filesystem,
-	fromName, toName, oid string, doProgress bool) (err error) {
+	fromName, toName, oid string, totalSize int,
+	progressScale float64) (err error) {
 	f, err := from.Open(fromName)
 	if err != nil {
 		return err
@@ -2031,13 +2038,14 @@ func (r *runner) copyFileLFS(
 	}
 	defer toF.Close()
 
-	var w io.Writer = toF
-	if doProgress {
-		w = &lfsProgressWriter{
-			r:      r,
-			oid:    oid,
-			output: toF,
-		}
+	// Scale the progress by the given factor.
+	w := &lfsProgressWriter{
+		r:                     r,
+		oid:                   oid,
+		output:                toF,
+		totalForCopy:          totalSize,
+		plaintextSize:         totalSize,
+		factorOfPlaintextSize: progressScale,
 	}
 	_, err = io.Copy(w, f)
 	return err
@@ -2065,32 +2073,26 @@ func (r *runner) handleLFSUpload(
 	}
 
 	localFS := osfs.New(dir)
-	// Copy the file without progress, because for KBFS uploads
-	// proceed in two stages -- one copying it into the journal, and
-	// one flushing it from the journal.  LFS only lets us have one
-	// progress-reporting stage, so we choose the journal flush.
-	// TODO: start the journal progress reporting in parallel with
-	// this copy, since some of the journal will be flushed in
-	// parallel with this copy.  Right now the CLI progress messages
-	// don't start until after the copy fully finishes.  The tricky
-	// part there is that we don't yet know the full journal size
-	// until the file copy completes...
-	err = r.copyFileLFS(ctx, localFS, fs, file, oid, oid, false)
+	// Have the copy count for 40% of the overall upload (arbitrary).
+	err = r.copyFileLFS(ctx, localFS, fs, file, oid, oid, size, 0.4)
 	if err != nil {
 		return err
 	}
 	printNothing := func(_ context.Context) {}
+	// Have the flush count for 60% of the overall upload (arbitrary).
 	w := &lfsProgressWriter{
-		r:             r,
-		oid:           oid,
-		plaintextSize: size,
+		r:                     r,
+		oid:                   oid,
+		start:                 int(float64(size) * 0.4),
+		plaintextSize:         size,
+		factorOfPlaintextSize: 0.60,
 	}
 	return r.waitForJournalWithPrinters(
 		ctx, printNothing, w.printOne, printNothing)
 }
 
 func (r *runner) handleLFSDownload(
-	ctx context.Context, oid string) (localPath string, err error) {
+	ctx context.Context, oid string, size int) (localPath string, err error) {
 	fs, err := r.makeFS(ctx)
 	if err != nil {
 		return "", err
@@ -2110,7 +2112,7 @@ func (r *runner) handleLFSDownload(
 	localFS := osfs.New(dir)
 	localFileName := ".kbfs_lfs_" + oid
 
-	err = r.copyFileLFS(ctx, fs, localFS, oid, localFileName, oid, true)
+	err = r.copyFileLFS(ctx, fs, localFS, oid, localFileName, oid, size, 1.0)
 	if err != nil {
 		return "", err
 	}
@@ -2248,7 +2250,7 @@ lfsLoop:
 				}
 			case gitLFSDownloadEvent:
 				r.log.CDebugf(ctx, "Handling download, oid=%s", req.Oid)
-				p, err := r.handleLFSDownload(ctx, req.Oid)
+				p, err := r.handleLFSDownload(ctx, req.Oid, req.Size)
 				if err != nil {
 					resp.Error = &lfsError{Code: 1, Message: err.Error()}
 				} else {

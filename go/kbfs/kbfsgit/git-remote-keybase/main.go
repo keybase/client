@@ -130,7 +130,7 @@ func start() (startErr *libfs.Error) {
 	} else {
 		// For LFS invocation, the arguments actually come together in
 		// a single quoted argument for some reason.
-		s := strings.Split(remote, " ")
+		s := strings.Fields(remote)
 		if len(s) > 2 {
 			lfs = s[0] == "lfs"
 			remote = s[1]
