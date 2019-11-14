@@ -1473,6 +1473,8 @@ func (m *FlipManager) sendNonblock(ctx context.Context, initiatorUID gregor1.UID
 			Conv: chat1.ConversationIDTriple{
 				TopicType: topicType,
 			},
+			// Prefill this value in case a restricted bot is running the flip
+			// so bot keys are used instead of regular team keys.
 			BotUID: &initiatorUID,
 		},
 	}, 0, &outboxID, nil, nil)

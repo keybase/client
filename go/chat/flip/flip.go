@@ -71,7 +71,7 @@ type DealersHelper interface {
 	ReplayHelper
 	Clock() clockwork.Clock
 	ServerTime(context.Context) (time.Time, error)
-	SendChat(ctx context.Context, inititorUID gregor1.UID, ch chat1.ConversationID, gameID chat1.FlipGameID, msg GameMessageEncoded) error
+	SendChat(ctx context.Context, initiatorUID gregor1.UID, ch chat1.ConversationID, gameID chat1.FlipGameID, msg GameMessageEncoded) error
 	Me() UserDevice
 	ShouldCommit(ctx context.Context) bool // Whether to send new commitments for games.
 }
