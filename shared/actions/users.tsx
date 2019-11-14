@@ -53,7 +53,7 @@ const setUserBlocks = async (_: TypedState, action: UsersGen.SetUserBlocksPayloa
 const getBlockState = async (_: TypedState, action: UsersGen.GetBlockStatePayload) => {
   const {usernames} = action.payload
 
-  const blocks = await RPCTypes.userGetUserBlocksRpcPromise({usernames})
+  const blocks = await RPCTypes.userGetUserBlocksRpcPromise({usernames}, Constants.getUserBlocksWaitingKey)
   if (blocks && blocks.length) {
     return UsersGen.createUpdateBlockState({blocks})
   }

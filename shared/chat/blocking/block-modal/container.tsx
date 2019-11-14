@@ -44,7 +44,7 @@ const Connect = Container.connect(
         })
       )
     },
-    onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
+    _close: () => dispatch(RouteTreeGen.createNavigateUp()),
   }),
   (stateProps, dispatchProps, _: OwnProps) => {
     return {
@@ -53,7 +53,7 @@ const Connect = Container.connect(
         const blockObj = stateProps._allKnownBlocks.get(username)
         return blockObj ? blockObj[which] : false
       },
-      onCancel: dispatchProps.onCancel,
+      onCancel: dispatchProps._close,
       onFinish: (newBlocks: NewBlocksMap, blockTeam: boolean, report?: ReportSettings) => {
         if (blockTeam) {
           const {teamname} = stateProps
@@ -67,6 +67,7 @@ const Connect = Container.connect(
         if (report) {
           dispatchProps._reportUser(stateProps.adderUsername, stateProps.convID, report)
         }
+        dispatchProps._close()
       },
       refreshBlocks: () => {
         const usernames = [stateProps.adderUsername].concat(stateProps.others || [])

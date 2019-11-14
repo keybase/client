@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
+import * as Constants from '../../../constants/users'
 
 export type BlockType = 'chatBlocked' | 'followBlocked'
 type BlocksForUser = {chatBlocked?: boolean; followBlocked?: boolean}
@@ -86,7 +87,12 @@ const ReportOptions = (props: ReportOptionsProps) => {
           style={styles.radioButton}
         />
       ))}
-      <Kb.Box style={styles.feedback}>
+      <Kb.Box
+        style={Styles.collapseStyles([
+          styles.feedback,
+          !props.showIncludeTranscript && styles.feedbackPaddingBottom,
+        ])}
+      >
         <Kb.NewInput
           multiline={true}
           placeholder="Extra notes"
@@ -204,7 +210,15 @@ class BlockModal extends React.PureComponent<Props, State> {
           title: <Kb.Icon type="iconfont-block-user" sizeType="Big" color="red" />,
         }}
         footer={{
-          content: <Kb.Button label="Finish" onClick={this.onFinish} fullWidth={true} type="Danger" />,
+          content: (
+            <Kb.WaitingButton
+              label="Finish"
+              onClick={this.onFinish}
+              fullWidth={true}
+              type="Danger"
+              waitingKey={Constants.setUserBlocksWaitingKey}
+            />
+          ),
         }}
       >
         {!!teamname && (
@@ -280,6 +294,7 @@ export default BlockModal
 const styles = Styles.styleSheetCreate(() => ({
   checkBoxRow: Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
   feedback: Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small, 0),
+  feedbackPaddingBottom: {paddingBottom: Styles.globalMargins.small},
   greyBox: {
     backgroundColor: Styles.globalColors.blueGrey,
     color: Styles.globalColors.black_50,
