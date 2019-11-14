@@ -26,7 +26,7 @@ export default Container.connect(
   mapStateToProps,
   mapDispatchToProps,
   (stateProps, dispatchProps, _: OwnProps) => ({
-    devices: stateProps.devices.toArray(),
+    devices: stateProps.devices,
     onBack: dispatchProps.onBack,
     onResetAccount: () => dispatchProps.onResetAccount(stateProps.username),
     onSelect: dispatchProps.onSelect,

@@ -26,80 +26,82 @@ type ValidCallback =
   | 'keybase.1.provisionUi.ProvisioneeSuccess'
   | 'keybase.1.provisionUi.ProvisionerSuccess'
   | 'keybase.1.provisionUi.chooseDevice'
+  | 'keybase.1.provisionUi.chooseDeviceType'
   | 'keybase.1.provisionUi.chooseGPGMethod'
   | 'keybase.1.provisionUi.switchToGPGSignOK'
   | 'keybase.1.secretUi.getPassphrase'
 
 const ignoreCallback = (_: any) => {}
 
+type CustomParam<T extends ValidCallback> = RPCTypes.MessageTypes[T]['inParam']
+type CustomResp<T extends ValidCallback> = {
+  error: RPCTypes.IncomingErrorCallback
+  result: (res: RPCTypes.MessageTypes[T]['outParam']) => void
+}
+
 // The provisioning flow is very stateful so we use a class to handle bookkeeping
 // We only allow one manager to be alive at a time
 // Can be made for a regular provision or if we're adding a device
 class ProvisioningManager {
-  static singleton: ProvisioningManager | null = null
+  static singleton: ProvisioningManager | undefined
   static getSingleton = (): ProvisioningManager => {
     if (!ProvisioningManager.singleton) {
       throw new Error('No ProvisioningManager')
     }
     return ProvisioningManager.singleton
   }
-  _stashedResponse: any = null
-  _stashedResponseKey: ValidCallback | null = null
-  _addingANewDevice: boolean
-  _done: boolean = false
-  _canceled: boolean = false
+  private stashedResponse: {[K in ValidCallback]?: CustomResp<K>} = {}
+  private addingANewDevice: boolean
+  private done: boolean = false
+  private canceled: boolean = false
+
+  _testing = () => ({
+    stashedResponse: this.stashedResponse,
+  })
 
   constructor(addingANewDevice: boolean, _: 'ONLY_CALL_THIS_FROM_HELPER') {
-    this._addingANewDevice = addingANewDevice
+    this.addingANewDevice = addingANewDevice
     ProvisioningManager.singleton = this
   }
 
-  isCanceled = () => this._canceled
+  isCanceled = () => this.canceled
 
-  done = (reason: string) => {
+  setDone = (reason: string) => {
     logger.info('ProvisioningManager.done', reason)
-    this._done = true
+    this.done = true
   }
 
-  _stashResponse = (key: ValidCallback, response: any) => {
-    this._stashedResponse = response
-    this._stashedResponseKey = key
-  }
-
-  _getAndClearResponse = (key: ValidCallback) => {
-    if (this._stashedResponseKey !== key) {
-      logger.info('ProvisioningManager._getAndClearResponse error', key, this._stashedResponseKey)
-      throw new Error(`Invalid response key used wants: ${key} has: ${this._stashedResponseKey || ''}`)
+  checkNoStashedResponses = () => {
+    if (Object.keys(this.stashedResponse).length) {
+      logger.info('Extra responses?', Object.keys(this.stashedResponse))
     }
-    logger.info('ProvisioningManager._getAndClearResponse success', key)
-    const response = this._stashedResponse
-    this._stashedResponse = null
-    return response
   }
 
   // Choosing a device to use to provision
   chooseDeviceHandler = (
-    params: RPCTypes.MessageTypes['keybase.1.provisionUi.chooseDevice']['inParam'],
-    response
+    params: CustomParam<'keybase.1.provisionUi.chooseDevice'>,
+    response: CustomResp<'keybase.1.provisionUi.chooseDevice'>
   ) => {
-    if (this._done) {
+    if (this.done) {
       logger.info('ProvisioningManager done, yet chooseDeviceHandler called')
       return
     }
-    this._stashResponse('keybase.1.provisionUi.chooseDevice', response)
+    this.checkNoStashedResponses()
+    this.stashedResponse['keybase.1.provisionUi.chooseDevice'] = response
     return Saga.put(
       ProvisionGen.createShowDeviceListPage({
-        devices: (params.devices || []).map(d => Constants.rpcDeviceToDevice(d)),
+        devices: (params.devices ?? []).map(d => Constants.rpcDeviceToDevice(d)),
       })
     )
   }
 
   submitDeviceSelect = (state: Container.TypedState) => {
-    if (this._done) {
+    if (this.done) {
       logger.info('ProvisioningManager done, yet submitDeviceSelect called')
       return
     }
-    const response = this._getAndClearResponse('keybase.1.provisionUi.chooseDevice')
+    const response = this.stashedResponse['keybase.1.provisionUi.chooseDevice']
+    this.stashedResponse = {}
     if (!response || !response.result) {
       throw new Error('Tried to submit a device choice but missing callback')
     }
@@ -113,20 +115,22 @@ class ProvisioningManager {
   }
 
   // Telling the daemon the other device type when adding a new device
-  chooseDeviceTypeHandler = (_, response) => {
-    if (this._done) {
+  chooseDeviceTypeHandler = (
+    _: CustomParam<'keybase.1.provisionUi.chooseDeviceType'>,
+    response: CustomResp<'keybase.1.provisionUi.chooseDeviceType'>
+  ) => {
+    if (this.done) {
       logger.info('ProvisioningManager done, yet chooseDeviceTypeHandler called')
       return
     }
     return Saga.callUntyped(function*() {
       const state: Container.TypedState = yield* Saga.selectState()
-      let type
       switch (state.provision.codePageOtherDevice.type) {
         case 'mobile':
-          type = RPCTypes.DeviceType.mobile
+          response.result(RPCTypes.DeviceType.mobile)
           break
         case 'desktop':
-          type = RPCTypes.DeviceType.desktop
+          response.result(RPCTypes.DeviceType.desktop)
           break
         default:
           response.error()
@@ -134,28 +138,30 @@ class ProvisioningManager {
             'Tried to add a device but of unknown type' + state.provision.codePageOtherDevice.type
           )
       }
-
-      response.result(type)
     })
   }
 
   // Choosing a name for this new device
-  promptNewDeviceNameHandler = (params, response) => {
-    if (this._done) {
+  promptNewDeviceNameHandler = (
+    params: CustomParam<'keybase.1.provisionUi.PromptNewDeviceName'>,
+    response: CustomResp<'keybase.1.provisionUi.PromptNewDeviceName'>
+  ) => {
+    if (this.done) {
       logger.info('ProvisioningManager done, yet promptNewDeviceNameHandler called')
       return
     }
-    this._stashResponse('keybase.1.provisionUi.PromptNewDeviceName', response)
+    this.checkNoStashedResponses()
+    this.stashedResponse['keybase.1.provisionUi.PromptNewDeviceName'] = response
     return Saga.put(
       ProvisionGen.createShowNewDeviceNamePage({
         error: params.errorMessage ? new HiddenString(params.errorMessage) : null,
-        existingDevices: params.existingDevices || [],
+        existingDevices: params.existingDevices ?? [],
       })
     )
   }
 
   submitDeviceName = (state: Container.TypedState) => {
-    if (this._done) {
+    if (this.done) {
       logger.info('ProvisioningManager done, yet submitDeviceName called')
       return
     }
@@ -165,7 +171,8 @@ class ProvisioningManager {
       return
     }
 
-    const response = this._getAndClearResponse('keybase.1.provisionUi.PromptNewDeviceName')
+    const response = this.stashedResponse['keybase.1.provisionUi.PromptNewDeviceName']
+    this.stashedResponse = {}
     if (!response || !response.result) {
       throw new Error('Tried to submit a device name but missing callback')
     }
@@ -179,12 +186,16 @@ class ProvisioningManager {
   }
 
   // We now need to exchange a secret sentence. Either side can move the process forward
-  displayAndPromptSecretHandler = (params, response) => {
-    if (this._done) {
+  displayAndPromptSecretHandler = (
+    params: CustomParam<'keybase.1.provisionUi.DisplayAndPromptSecret'>,
+    response: CustomResp<'keybase.1.provisionUi.DisplayAndPromptSecret'>
+  ) => {
+    if (this.done) {
       logger.info('ProvisioningManager done, yet displayAndPromptSecretHandler called')
       return
     }
-    this._stashResponse('keybase.1.provisionUi.DisplayAndPromptSecret', response)
+    this.checkNoStashedResponses()
+    this.stashedResponse['keybase.1.provisionUi.DisplayAndPromptSecret'] = response
     return Saga.put(
       ProvisionGen.createShowCodePage({
         code: new HiddenString(params.phrase),
@@ -194,7 +205,7 @@ class ProvisioningManager {
   }
 
   submitTextCode = (state: Container.TypedState) => {
-    if (this._done) {
+    if (this.done) {
       logger.info('ProvisioningManager done, yet submitTextCode called')
       return
     }
@@ -203,7 +214,8 @@ class ProvisioningManager {
       return
     }
 
-    const response = this._getAndClearResponse('keybase.1.provisionUi.DisplayAndPromptSecret')
+    const response = this.stashedResponse['keybase.1.provisionUi.DisplayAndPromptSecret']
+    this.stashedResponse = {}
     if (!response || !response.result) {
       throw new Error('Tried to submit a code but missing callback')
     }
@@ -213,21 +225,25 @@ class ProvisioningManager {
       throw new Error('Tried to submit a code but missing in store')
     }
 
-    response.result({code: null, phrase: state.provision.codePageOutgoingTextCode.stringValue()})
+    response.result({phrase: state.provision.codePageOutgoingTextCode.stringValue(), secret: null as any})
   }
 
   // Trying to use gpg flow
-  chooseGPGMethodHandler = (_, response) => {
-    if (this._done) {
+  chooseGPGMethodHandler = (
+    _: CustomParam<'keybase.1.provisionUi.chooseGPGMethod'>,
+    response: CustomResp<'keybase.1.provisionUi.chooseGPGMethod'>
+  ) => {
+    if (this.done) {
       logger.info('ProvisioningManager done, yet chooseGPGMethodHandler called')
       return
     }
-    this._stashResponse('keybase.1.provisionUi.chooseGPGMethod', response)
+    this.checkNoStashedResponses()
+    this.stashedResponse['keybase.1.provisionUi.chooseGPGMethod'] = response
     return Saga.put(ProvisionGen.createShowGPGPage())
   }
 
-  submitGPGMethod = (state, action) => {
-    if (this._done) {
+  submitGPGMethod = (state: Container.TypedState, action: ProvisionGen.SubmitGPGMethodPayload) => {
+    if (this.done) {
       logger.info('ProvisioningManager done, yet submitGPGMethod called')
       return
     }
@@ -236,7 +252,8 @@ class ProvisioningManager {
       return
     }
 
-    const response = this._getAndClearResponse('keybase.1.provisionUi.chooseGPGMethod')
+    const response = this.stashedResponse['keybase.1.provisionUi.chooseGPGMethod']
+    this.stashedResponse = {}
     if (!response || !response.result) {
       throw new Error('Tried to submit gpg export but missing callback')
     }
@@ -244,24 +261,29 @@ class ProvisioningManager {
     response.result(action.payload.exportKey ? RPCTypes.GPGMethod.gpgImport : RPCTypes.GPGMethod.gpgSign)
   }
 
-  switchToGPGSignOKHandler = (params, response) => {
-    if (this._done) {
+  switchToGPGSignOKHandler = (
+    params: CustomParam<'keybase.1.provisionUi.switchToGPGSignOK'>,
+    response: CustomResp<'keybase.1.provisionUi.switchToGPGSignOK'>
+  ) => {
+    if (this.done) {
       logger.info('ProvisioningManager done, yet switchToGPGSignOKHandler called')
       return
     }
-    this._stashResponse('keybase.1.provisionUi.switchToGPGSignOK', response)
+    this.checkNoStashedResponses()
+    this.stashedResponse['keybase.1.provisionUi.switchToGPGSignOK'] = response
     return Saga.all([
       Saga.put(ProvisionGen.createSwitchToGPGSignOnly({importError: params.importError})),
       Saga.put(ProvisionGen.createShowGPGPage()),
     ])
   }
 
-  submitGPGSignOK = (_, action) => {
-    if (this._done) {
+  submitGPGSignOK = (_: Container.TypedState, action: ProvisionGen.SubmitGPGSignOKPayload) => {
+    if (this.done) {
       logger.info('ProvisioningManager done, yet submitGPGSignOK called')
       return
     }
-    const response = this._getAndClearResponse('keybase.1.provisionUi.switchToGPGSignOK')
+    const response = this.stashedResponse['keybase.1.provisionUi.switchToGPGSignOK']
+    this.stashedResponse = {}
     if (!response || !response.result) {
       throw new Error('Tried to respond to gpg sign ok but missing callback')
     }
@@ -270,12 +292,16 @@ class ProvisioningManager {
   }
 
   // User has an uploaded key so we can use a password OR they selected a paperkey
-  getPasswordHandler = (params, response) => {
-    if (this._done) {
+  getPasswordHandler = (
+    params: CustomParam<'keybase.1.secretUi.getPassphrase'>,
+    response: CustomResp<'keybase.1.secretUi.getPassphrase'>
+  ) => {
+    if (this.done) {
       logger.info('ProvisioningManager done, yet getPasswordHandler called')
       return
     }
-    this._stashResponse('keybase.1.secretUi.getPassphrase', response)
+    this.checkNoStashedResponses()
+    this.stashedResponse['keybase.1.secretUi.getPassphrase'] = response
 
     // Service asking us again due to an error?
     const error =
@@ -296,7 +322,7 @@ class ProvisioningManager {
     state: Container.TypedState,
     action: ProvisionGen.SubmitPasswordPayload | ProvisionGen.SubmitPaperkeyPayload
   ) => {
-    if (this._done) {
+    if (this.done) {
       logger.info('ProvisioningManager done, yet submitPasswordOrPaperkey called')
       return
     }
@@ -305,7 +331,8 @@ class ProvisioningManager {
       return
     }
 
-    const response = this._getAndClearResponse('keybase.1.secretUi.getPassphrase')
+    const response = this.stashedResponse['keybase.1.secretUi.getPassphrase']
+    this.stashedResponse = {}
     if (!response || !response.result) {
       throw new Error('Tried to submit password but missing callback')
     }
@@ -319,7 +346,7 @@ class ProvisioningManager {
   }
 
   getCustomResponseIncomingCallMap = () =>
-    this._addingANewDevice
+    this.addingANewDevice
       ? {
           'keybase.1.provisionUi.DisplayAndPromptSecret': this.displayAndPromptSecretHandler,
           'keybase.1.provisionUi.chooseDeviceType': this.chooseDeviceTypeHandler,
@@ -336,7 +363,7 @@ class ProvisioningManager {
         }
 
   getIncomingCallMap = () =>
-    this._addingANewDevice
+    this.addingANewDevice
       ? {
           'keybase.1.provisionUi.DisplaySecretExchanged': ignoreCallback,
           'keybase.1.provisionUi.ProvisioneeSuccess': ignoreCallback,
@@ -357,23 +384,21 @@ class ProvisioningManager {
 
   maybeCancelProvision = () => {
     logger.info('ProvisioningManager.maybeCancelProvision')
-    if (this._done) {
+    if (this.done) {
       logger.info('But provisioning is already done, nothing to do')
       return false
-    } else if (this._canceled) {
+    } else if (this.canceled) {
       // Unexpected - that means cancel action was called multiple times.
       logger.warn('But provisioning is already canceled')
       return false
     }
 
-    if (this._stashedResponse && this._stashedResponseKey) {
+    Object.keys(this.stashedResponse).forEach(key => {
       logger.info('ProvisioningManager - canceling ongoing stashed response')
-      Constants.cancelOnCallback(null, this._stashedResponse)
-      this._stashedResponse = null
-      this._stashedResponseKey = null
-    }
-
-    this._canceled = true
+      Constants.cancelOnCallback(null, this.stashedResponse[key])
+    })
+    this.stashedResponse = {}
+    this.canceled = true
     return true
   }
 }
@@ -406,9 +431,9 @@ function* startProvisioning(state: Container.TypedState) {
       },
       waitingKey: Constants.waitingKey,
     })
-    ProvisioningManager.getSingleton().done('provision call done w/ success')
+    ProvisioningManager.getSingleton().setDone('provision call done w/ success')
   } catch (finalError) {
-    manager.done(
+    manager.setDone(
       'startProvisioning call done w/ error ' + (finalError ? finalError.message : ' unknown error')
     )
 
@@ -452,13 +477,13 @@ function* addNewDevice() {
       params: undefined,
       waitingKey: Constants.waitingKey,
     })
-    ProvisioningManager.getSingleton().done('add device success')
+    ProvisioningManager.getSingleton().setDone('add device success')
     // Now refresh and nav back
     yield Saga.put(DevicesGen.createLoad())
     yield Saga.put(RouteTreeGen.createNavigateAppend({path: devicesRoot}))
     yield Saga.put(RouteTreeGen.createClearModals())
   } catch (finalError) {
-    manager.done('addNewDevice call done w/ error ' + (finalError ? finalError.message : ' unknown error'))
+    manager.setDone('addNewDevice call done w/ error ' + (finalError ? finalError.message : ' unknown error'))
 
     if (ProvisioningManager.getSingleton() !== manager) {
       // Another provisioning session has started while this one was active.

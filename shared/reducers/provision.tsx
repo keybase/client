@@ -8,8 +8,8 @@ const initialState = Constants.makeState()
 
 export default Container.makeReducer<ProvisionGen.Actions, Types.State>(initialState, {
   [ProvisionGen.resetStore]: () => initialState,
-  [ProvisionGen.startProvision]: (draftState, action) => {
-    draftState.initialUsername = action.payload.initUsername ?? ''
+  [ProvisionGen.startProvision]: (_, action) => {
+    return {...initialState, initialUsername: action.payload.initUsername ?? initialState.initialUsername}
   },
   [ProvisionGen.provisionError]: (draftState, action) => {
     draftState.error = action.payload.error ?? initialState.error
