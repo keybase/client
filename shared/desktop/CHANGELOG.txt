@@ -1,6 +1,9 @@
 • Switch between multiple accounts quickly
-• Adjust how many small conversations to show in your inbox
+• Send short audio snippets in chat
 • Sync KBFS files to your device for offline access
 • Keybase FM: Learn about new features in each release in the app
 • Better location sharing in chat
+• Removed navigation while in chat 
 • Dark mode fixes
+• Faster startup time
+• Improved animations
