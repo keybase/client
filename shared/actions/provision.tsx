@@ -4,6 +4,7 @@ import * as ConfigConstants from '../constants/config'
 import * as RouteTreeGen from './route-tree-gen'
 import * as DevicesGen from './devices-gen'
 import * as ProvisionGen from './provision-gen'
+import * as WaitingGen from './waiting-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import * as Tabs from '../constants/tabs'
@@ -349,11 +350,10 @@ class ProvisioningManager {
     params: CustomParam<'keybase.1.provisionUi.DisplaySecretExchanged'>,
     response: CustomResp<'keybase.1.provisionUi.DisplaySecretExchanged'>
   ) => {
-    console.log('aaa display secretexchanged')
-    return Saga.callUntyped(function*() {
-      const state: Container.TypedState = yield* Saga.selectState()
-      console.log('aaa display secretexchanged untyped', state.waiting)
-    })
+    // special case, we actually aren't waiting when we get this so our count goes negative. This is very unusual and a one-off
+    return Saga.put(
+      WaitingGen.createBatchChangeWaiting({changes: [{increment: true, key: Constants.waitingKey}]})
+    )
   }
 
   getCustomResponseIncomingCallMap = () =>
