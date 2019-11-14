@@ -576,6 +576,7 @@ type InboxUIItem struct {
 	SupersededBy      []ConversationMetadata        `codec:"supersededBy" json:"supersededBy"`
 	Commands          ConversationCommandGroups     `codec:"commands" json:"commands"`
 	BotCommands       ConversationCommandGroups     `codec:"botCommands" json:"botCommands"`
+	BotAliases        map[string]string             `codec:"botAliases" json:"botAliases"`
 	PinnedMsg         *UIPinnedMessage              `codec:"pinnedMsg,omitempty" json:"pinnedMsg,omitempty"`
 }
 
@@ -698,6 +699,18 @@ func (o InboxUIItem) DeepCopy() InboxUIItem {
 		})(o.SupersededBy),
 		Commands:    o.Commands.DeepCopy(),
 		BotCommands: o.BotCommands.DeepCopy(),
+		BotAliases: (func(x map[string]string) map[string]string {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]string, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := v
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.BotAliases),
 		PinnedMsg: (func(x *UIPinnedMessage) *UIPinnedMessage {
 			if x == nil {
 				return nil

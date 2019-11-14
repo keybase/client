@@ -223,23 +223,24 @@ func (b *CachingBotCommandManager) dbCommandsKey(convID chat1.ConversationID) li
 	}
 }
 
-func (b *CachingBotCommandManager) ListCommands(ctx context.Context, convID chat1.ConversationID) (res []chat1.UserBotCommandOutput, err error) {
+func (b *CachingBotCommandManager) ListCommands(ctx context.Context, convID chat1.ConversationID) (res []chat1.UserBotCommandOutput, alias map[string]string, err error) {
 	defer b.Trace(ctx, func() error { return err }, "ListCommands")()
+	alias = make(map[string]string)
 	dbKey := b.dbCommandsKey(convID)
 	var s commandsStorage
 	found, err := b.edb.Get(ctx, dbKey, &s)
 	if err != nil {
-		return res, err
+		return res, alias, err
 	}
 	if !found {
-		return nil, nil
+		return res, alias, nil
 	}
 	if s.Version != storageVersion {
 		b.Debug(ctx, "ListCommands: deleting old version %d vs %d", s.Version, storageVersion)
 		if err := b.edb.Delete(ctx, dbKey); err != nil {
 			b.Debug(ctx, "edb.Delete: %v", err)
 		}
-		return nil, nil
+		return res, alias, nil
 	}
 	cmdDedup := make(map[string]bool)
 
@@ -249,7 +250,7 @@ func (b *CachingBotCommandManager) ListCommands(ctx context.Context, convID chat
 		if ad.UntrustedTeamRole.IsRestrictedBot() {
 			teamBotSettings, err := b.G().InboxSource.TeamBotSettingsForConv(ctx, b.uid, convID)
 			if err != nil {
-				return nil, err
+				return res, alias, err
 			}
 			if !teamBotSettings[keybase1.UID(ad.UID.String())].Cmds {
 				b.Debug(ctx, "ListCommands: skipping commands from %v, a restricted bot without cmds", ad.UID)
@@ -257,6 +258,9 @@ func (b *CachingBotCommandManager) ListCommands(ctx context.Context, convID chat
 			}
 		}
 		ad.Username = libkb.NewNormalizedUsername(ad.Username).String()
+		if ad.Advertisement.Alias != nil {
+			alias[ad.Username] = *ad.Advertisement.Alias
+		}
 		for _, cmd := range ad.Advertisement.Commands {
 			key := cmd.Name + ad.Username
 			if !cmdDedup[key] {
@@ -276,7 +280,7 @@ func (b *CachingBotCommandManager) ListCommands(ctx context.Context, convID chat
 			return l.Name < r.Name
 		}
 	})
-	return res, nil
+	return res, alias, nil
 }
 
 func (b *CachingBotCommandManager) UpdateCommands(ctx context.Context, convID chat1.ConversationID,

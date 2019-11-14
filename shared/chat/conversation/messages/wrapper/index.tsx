@@ -43,6 +43,7 @@ import {formatTimeForChat} from '../../../../util/timestamp'
 export type Props = {
   authorIsAdmin?: boolean
   authorIsOwner?: boolean
+  botAlias: string
   centeredOrdinal: Types.CenterOrdinalHighlightMode
   conversationIDKey: Types.ConversationIDKey
   decorate: boolean
@@ -148,6 +149,19 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
 
   _authorAndContent = children => {
     let result
+    const username = (
+      <Kb.ConnectedUsernames
+        colorBroken={true}
+        colorFollowing={true}
+        colorYou={true}
+        onUsernameClicked={this._onAuthorClick}
+        style={Styles.collapseStyles([
+          this._showCenteredHighlight() && this.props.youAreAuthor && styles.usernameHighlighted,
+        ])}
+        type="BodySmallBold"
+        usernames={[this.props.showUsername]}
+      />
+    )
     if (this.props.showUsername) {
       result = (
         <React.Fragment key="authorAndContent">
@@ -160,17 +174,19 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               style={styles.avatar}
             />
             <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.usernameCrown}>
-              <Kb.ConnectedUsernames
-                colorBroken={true}
-                colorFollowing={true}
-                colorYou={true}
-                onUsernameClicked={this._onAuthorClick}
-                style={Styles.collapseStyles([
-                  this._showCenteredHighlight() && this.props.youAreAuthor && styles.usernameHighlighted,
-                ])}
-                type="BodySmallBold"
-                usernames={[this.props.showUsername]}
-              />
+              {this.props.botAlias ? (
+                <Kb.Box2 direction="horizontal">
+                  <Kb.Text type="BodySmallBold" style={{color: Styles.globalColors.black}}>
+                    {this.props.botAlias} (
+                  </Kb.Text>
+                  {username}
+                  <Kb.Text type="BodySmallBold" style={{color: Styles.globalColors.black}}>
+                    )
+                  </Kb.Text>
+                </Kb.Box2>
+              ) : (
+                username
+              )}
               {this.props.showCrowns && (this.props.authorIsOwner || this.props.authorIsAdmin) && (
                 <Kb.WithTooltip tooltip={this.props.authorIsOwner ? 'Owner' : 'Admin'}>
                   <Kb.Icon
