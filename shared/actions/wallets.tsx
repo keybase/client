@@ -374,7 +374,21 @@ const clearBuilding = () => WalletsGen.createClearBuilding()
 
 const clearErrors = () => WalletsGen.createClearErrors()
 
-const loadWalletDisclaimer = async (state: TypedState) => {
+const loadWalletDisclaimer = async (
+  state: TypedState,
+  action:
+    | ConfigGen.LoggedInPayload
+    | ConfigGen.StartupFirstIdlePayload
+    | WalletsGen.LoadAccountsPayload
+    | WalletsGen.LoadWalletDisclaimerPayload
+) => {
+  // We want to load disclaimer status for the new user when you switch users,
+  // so we listen to loggedIn. But we don't want to slow down app startup: in
+  // that case, do nothing on initial login and wait for startupFirstIdle.
+  if (action.type === ConfigGen.loggedIn && action.payload.causedByStartup) {
+    return false
+  }
+
   if (!state.config.username) {
     return false
   }
@@ -1845,7 +1859,12 @@ function* walletsSaga() {
   yield* Saga.chainAction2(NotificationsGen.receivedBadgeState, receivedBadgeState, 'receivedBadgeState')
 
   yield* Saga.chainAction2(
-    [WalletsGen.loadAccounts, ConfigGen.startupFirstIdle, WalletsGen.loadWalletDisclaimer],
+    [
+      ConfigGen.loggedIn,
+      ConfigGen.startupFirstIdle,
+      WalletsGen.loadAccounts,
+      WalletsGen.loadWalletDisclaimer,
+    ],
     loadWalletDisclaimer,
     'loadWalletDisclaimer'
   )
