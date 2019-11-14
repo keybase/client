@@ -6,13 +6,18 @@ import UserNotice from '../user-notice'
 
 type Props = {
   message: Types.MessageSystemText
+  onClickUserAvatar: (username: string) => void
 }
 
 class SystemText extends React.PureComponent<Props> {
   render() {
     const {author, timestamp, text} = this.props.message
     return (
-      <UserNotice username={author} timestamp={timestamp}>
+      <UserNotice
+        username={author}
+        timestamp={timestamp}
+        onClickAvatar={() => this.props.onClickUserAvatar(author)}
+      >
         <Kb.Text type="BodySmall" style={styles.text}>
           {text.stringValue()}
         </Kb.Text>
