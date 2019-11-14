@@ -448,6 +448,7 @@ const (
 	blockRequestPrefetch
 	blockRequestSync
 	blockRequestStopIfFull
+	blockRequestStopPrefetchIfFull
 	blockRequestDeepSync
 	blockRequestDelayCacheCheck
 
@@ -505,7 +506,9 @@ func (bra BlockRequestAction) String() string {
 		attrs = append(attrs, "sync")
 	}
 
-	if bra.StopIfFull() {
+	if bra.StopPrefetchIfFull() {
+		attrs = append(attrs, "stop-prefetch-if-full")
+	} else if bra.StopIfFull() {
 		attrs = append(attrs, "stop-if-full")
 	}
 
@@ -579,6 +582,12 @@ func (bra BlockRequestAction) ChildAction(block data.Block) BlockRequestAction {
 	if bra.DeepPrefetch() || (block.IsIndirect() && bra.Sync()) {
 		return bra
 	}
+	// If it's been configured for stop-prefetch-if-full, move to the
+	// stop-if-full action for the child actions.
+	if bra&blockRequestStopPrefetchIfFull > 0 {
+		bra &^= blockRequestStopPrefetchIfFull
+		bra |= blockRequestStopIfFull
+	}
 	return bra &^ (blockRequestPrefetch | blockRequestSync)
 }
 
@@ -629,10 +638,24 @@ func (bra BlockRequestAction) StopIfFull() bool {
 	return bra&blockRequestStopIfFull > 0
 }
 
+// StopPrefetchIfFull returns true if prefetching _after this request_
+// should stop for good (i.e., not get rescheduled) when the
+// corresponding disk cache is full.  This request, however, will be
+// processed even when the cache is full.
+func (bra BlockRequestAction) StopPrefetchIfFull() bool {
+	return bra&blockRequestStopPrefetchIfFull > 0
+}
+
 // AddStopIfFull returns a new action that adds the "stop-if-full"
 // behavior in addition to the original request.
 func (bra BlockRequestAction) AddStopIfFull() BlockRequestAction {
 	return bra | blockRequestStopIfFull
+}
+
+// AddStopPrefetchIfFull returns a new action that adds the
+// "stop-prefetch-if-full" behavior in addition to the original request.
+func (bra BlockRequestAction) AddStopPrefetchIfFull() BlockRequestAction {
+	return bra | blockRequestStopPrefetchIfFull
 }
 
 // DelayedCacheCheckAction returns a new action that adds the
