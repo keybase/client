@@ -1,6 +1,7 @@
 import * as ProfileGen from '../actions/profile-gen'
 import * as Types from '../constants/types/profile'
 import * as More from '../constants/types/more'
+import * as Container from '../util/container'
 import * as Constants from '../constants/profile'
 import * as Validators from '../util/simple-validators'
 
@@ -40,106 +41,113 @@ const updateUsername = (state: Types.State) => {
 
 const initialState = Constants.makeInitialState()
 
-export default function(state: Types.State = initialState, action: ProfileGen.Actions): Types.State {
-  switch (action.type) {
-    case ProfileGen.resetStore:
-      return initialState
-    case ProfileGen.updatePlatform:
-      return updateUsername(state.merge({platform: action.payload.platform}))
-    case ProfileGen.updateUsername:
-      return updateUsername(state.merge({username: action.payload.username}))
-    case ProfileGen.cleanupUsername:
-      return updateUsername(state)
-    case ProfileGen.revokeFinish:
-      return state.merge({revokeError: action.payload.error ? action.payload.error : ''})
-    case ProfileGen.submitBlockUser:
-      return state.merge({blockUserModal: 'waiting'})
-    case ProfileGen.finishBlockUser:
-      return state.merge({blockUserModal: action.payload.error ? {error: action.payload.error} : null})
-    case ProfileGen.updateProofText:
-      return state.merge({proofText: action.payload.proof})
-    case ProfileGen.updateProofStatus:
-      return state.merge({
-        proofFound: action.payload.found,
-        proofStatus: action.payload.status,
-      })
-    case ProfileGen.updateErrorText: {
-      const {errorCode, errorText} = action.payload
-      return state.merge({errorCode, errorText})
-    }
-    case ProfileGen.updateSigID:
-      return state.merge({sigID: action.payload.sigID})
-    case ProfileGen.updatePgpInfo: {
-      const valid1 = Validators.isValidEmail(state.pgpEmail1)
-      const valid2 = state.pgpEmail2 && Validators.isValidEmail(state.pgpEmail2)
-      const valid3 = state.pgpEmail3 && Validators.isValidEmail(state.pgpEmail3)
-      return state.merge({
-        ...action.payload,
-        pgpErrorEmail1: !!valid1,
-        pgpErrorEmail2: !!valid2,
-        pgpErrorEmail3: !!valid3,
-        pgpErrorText: Validators.isValidName(state.pgpFullName) || valid1 || valid2 || valid3,
-      })
-    }
-    case ProfileGen.updatePgpPublicKey:
-      return state.merge({pgpPublicKey: action.payload.publicKey})
-    case ProfileGen.updatePromptShouldStoreKeyOnServer:
-      return state.merge({promptShouldStoreKeyOnServer: action.payload.promptShouldStoreKeyOnServer})
-    case ProfileGen.addProof: {
-      const platform = action.payload.platform
-      const maybeNotGeneric = More.asPlatformsExpandedType(platform)
-      return updateUsername(
-        state.merge({
-          errorCode: null,
-          errorText: '',
-          platform: maybeNotGeneric,
-          platformGeneric: maybeNotGeneric ? null : platform,
-        })
-      )
-    }
-    case ProfileGen.proofParamsReceived:
-      return state.merge({
-        platformGenericParams: action.payload.params,
-      })
-    case ProfileGen.updatePlatformGenericURL:
-      return state.merge({
-        platformGenericURL: action.payload.url,
-      })
-    case ProfileGen.updatePlatformGenericChecking:
-      return state.merge({
-        platformGenericChecking: action.payload.checking,
-      })
-    case ProfileGen.cancelAddProof: // fallthrough
-    case ProfileGen.clearPlatformGeneric:
-      return state.merge({
+export default Container.makeReducer<ProfileGen.Actions, Types.State>(initialState, {
+  [ProfileGen.resetStore]: (draftState, actions) => {
+    return initialState
+  },
+  [ProfileGen.updatePlatform]: (draftState, actions) => {
+    return updateUsername(state.merge({platform: action.payload.platform}))
+  },
+  [ProfileGen.updateUsername]: (draftState, actions) => {
+    return updateUsername(state.merge({username: action.payload.username}))
+  },
+  [ProfileGen.cleanupUsername]: (draftState, actions) => {
+    return updateUsername(state)
+  },
+  [ProfileGen.revokeFinish]: (draftState, actions) => {
+    return state.merge({revokeError: action.payload.error ? action.payload.error : ''})
+  },
+  [ProfileGen.submitBlockUser]: (draftState, actions) => {
+    return state.merge({blockUserModal: 'waiting'})
+  },
+  [ProfileGen.finishBlockUser]: (draftState, actions) => {
+    return state.merge({blockUserModal: action.payload.error ? {error: action.payload.error} : null})
+  },
+  [ProfileGen.updateProofText]: (draftState, actions) => {
+    return state.merge({proofText: action.payload.proof})
+  },
+  [ProfileGen.updateProofStatus]: (draftState, actions) => {
+    return state.merge({
+      proofFound: action.payload.found,
+      proofStatus: action.payload.status,
+    })
+  },
+  [ProfileGen.updateErrorText]: (draftState, actions) => {
+    const {errorCode, errorText} = action.payload
+    return state.merge({errorCode, errorText})
+  },
+  [ProfileGen.updateSigID]: (draftState, actions) => {
+    return state.merge({sigID: action.payload.sigID})
+  },
+  [ProfileGen.updatePgpInfo]: (draftState, actions) => {
+    const valid1 = Validators.isValidEmail(state.pgpEmail1)
+    const valid2 = state.pgpEmail2 && Validators.isValidEmail(state.pgpEmail2)
+    const valid3 = state.pgpEmail3 && Validators.isValidEmail(state.pgpEmail3)
+    return state.merge({
+      ...action.payload,
+      pgpErrorEmail1: !!valid1,
+      pgpErrorEmail2: !!valid2,
+      pgpErrorEmail3: !!valid3,
+      pgpErrorText: Validators.isValidName(state.pgpFullName) || valid1 || valid2 || valid3,
+    })
+  },
+  [ProfileGen.updatePgpPublicKey]: (draftState, actions) => {
+    return state.merge({pgpPublicKey: action.payload.publicKey})
+  },
+  [ProfileGen.updatePromptShouldStoreKeyOnServer]: (draftState, actions) => {
+    return state.merge({promptShouldStoreKeyOnServer: action.payload.promptShouldStoreKeyOnServer})
+  },
+  [ProfileGen.addProof]: (draftState, actions) => {
+    const platform = action.payload.platform
+    const maybeNotGeneric = More.asPlatformsExpandedType(platform)
+    return updateUsername(
+      state.merge({
         errorCode: null,
         errorText: '',
-        platformGeneric: null,
-        platformGenericChecking: false,
-        platformGenericParams: null,
-        platformGenericURL: null,
-        username: '',
+        platform: maybeNotGeneric,
+        platformGeneric: maybeNotGeneric ? null : platform,
       })
-    case ProfileGen.recheckProof: // fallthrough
-    case ProfileGen.checkProof:
-      return state.merge({errorCode: null, errorText: ''})
-    case ProfileGen.submitBTCAddress:
-    case ProfileGen.submitZcashAddress:
-      return updateUsername(state)
-    // Saga only actions
-    case ProfileGen.backToProfile:
-    case ProfileGen.cancelPgpGen:
-    case ProfileGen.editProfile:
-    case ProfileGen.finishRevoking:
-    case ProfileGen.finishedWithKeyGen:
-    case ProfileGen.generatePgp:
-    case ProfileGen.onClickAvatar:
-    case ProfileGen.showUserProfile:
-    case ProfileGen.submitRevokeProof:
-    case ProfileGen.submitUsername:
-    case ProfileGen.uploadAvatar:
-    case ProfileGen.editAvatar:
-    default:
-      return state
-  }
-}
+    )
+  },
+  [ProfileGen.proofParamsReceived]: (draftState, actions) => {
+    return state.merge({
+      platformGenericParams: action.payload.params,
+    })
+  },
+  [ProfileGen.updatePlatformGenericURL]: (draftState, actions) => {
+    return state.merge({
+      platformGenericURL: action.payload.url,
+    })
+  },
+  [ProfileGen.updatePlatformGenericChecking]: (draftState, actions) => {
+    return state.merge({
+      platformGenericChecking: action.payload.checking,
+    })
+  },
+  [ProfileGen.cancelAddProof]: (draftState, actions) => {
+    // fall
+  },
+  [ProfileGen.clearPlatformGeneric]: (draftState, actions) => {
+    return state.merge({
+      errorCode: null,
+      errorText: '',
+      platformGeneric: null,
+      platformGenericChecking: false,
+      platformGenericParams: null,
+      platformGenericURL: null,
+      username: '',
+    })
+  },
+  [ProfileGen.recheckProof]: (draftState, actions) => {
+    // fall
+  },
+  [ProfileGen.checkProof]: (draftState, actions) => {
+    return state.merge({errorCode: null, errorText: ''})
+  },
+  [ProfileGen.submitBTCAddress]: (draftState, actions) => {
+    // fall
+  },
+  [ProfileGen.submitZcashAddress]: (draftState, actions) => {
+    return updateUsername(state)
+  },
+})

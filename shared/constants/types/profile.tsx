@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as RPCTypes from './rpc-gen'
 import {PlatformsExpandedType} from './more'
 import {SiteIconSet} from './tracker2'
@@ -13,7 +12,7 @@ export type FriendshipUserInfo = {
   following: boolean
 }
 
-export type _ProveGenericParams = {
+export type ProveGenericParams = {
   logoBlack: SiteIconSet
   logoFull: SiteIconSet
   title: string
@@ -21,10 +20,9 @@ export type _ProveGenericParams = {
   suffix: string
   buttonLabel: string
 }
-export type ProveGenericParams = I.RecordOf<_ProveGenericParams>
 
-export type _State = {
-  errorCode: number | null
+export type State = Readonly<{
+  errorCode?: number
   errorText: string
   pgpErrorText: string
   pgpEmail1: string
@@ -35,21 +33,19 @@ export type _State = {
   pgpErrorEmail3: boolean
   pgpFullName: string
   pgpPublicKey: string
-  platform: PlatformsExpandedType | null
-  platformGeneric: string | null
+  platform?: PlatformsExpandedType
+  platformGeneric?: string
   platformGenericChecking: boolean
-  platformGenericParams: ProveGenericParams | null
-  platformGenericURL: string | null
+  platformGenericParams?: ProveGenericParams
+  platformGenericURL?: string
   promptShouldStoreKeyOnServer: boolean
   proofFound: boolean
-  proofStatus: RPCTypes.ProofStatus | null
+  proofStatus?: RPCTypes.ProofStatus
   proofText: string
   revokeError: string
-  blockUserModal: null | 'waiting' | {error: string}
-  sigID: RPCTypes.SigID | null
+  blockUserModal?: 'waiting' | {error: string}
+  sigID?: RPCTypes.SigID
   username: string
   usernameValid: boolean
   searchShowingSuggestions: boolean
-}
-
-export type State = I.RecordOf<_State>
+}>
