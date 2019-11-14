@@ -34,7 +34,7 @@ const getTeams = memoize((layout: RPCChatTypes.UIInboxLayout | null) => {
   const smallTeams = (layout && layout.smallTeams) || []
   const bigTeamNames = bigTeams.reduce<Array<string>>((arr, l) => {
     if (l.state === RPCChatTypes.UIInboxBigTeamRowTyp.label) {
-      arr.push(l.label)
+      arr.push(l.label.name)
     }
     return arr
   }, [])

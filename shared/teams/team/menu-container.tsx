@@ -19,7 +19,6 @@ const mapStateToProps = (state: Container.TypedState, {teamname}: OwnProps) => {
   return {
     canCreateSubteam: yourOperations.manageSubteams,
     canDeleteTeam: yourOperations.deleteTeam && Constants.getTeamSubteams(state, teamname).count() === 0,
-    canLeaveTeam: yourOperations.leaveTeam,
     canManageChat: yourOperations.renameChannel,
     canViewFolder: !yourOperations.joinTeam,
     isBigTeam,
@@ -90,15 +89,13 @@ export default Container.connect(
         title: stateProps.isBigTeam ? 'Manage chat channels' : 'Make chat channels...',
       })
     }
-    if (stateProps.canLeaveTeam) {
-      items.push({danger: true, onClick: dispatchProps.onLeaveTeam, title: 'Leave team'})
-    }
     if (stateProps.canCreateSubteam) {
       items.push({onClick: dispatchProps.onCreateSubteam, title: 'Create subteam'})
     }
     if (stateProps.canViewFolder) {
       items.push({onClick: dispatchProps.onOpenFolder, title: 'Open folder'})
     }
+    items.push({danger: true, onClick: dispatchProps.onLeaveTeam, title: 'Leave team'})
     if (stateProps.canDeleteTeam) {
       items.push({danger: true, onClick: dispatchProps.onDeleteTeam, title: 'Delete team'})
     }

@@ -13,7 +13,7 @@ export const noTeamID = 'NOTEAMID'
 export type TeamRoleType = 'reader' | 'writer' | 'admin' | 'owner' | 'bot' | 'restrictedbot'
 export type DisabledReasonsForRolePicker = {[K in TeamRoleType]?: string}
 export type MaybeTeamRoleType = 'none' | TeamRoleType
-export type TeamOperations = RPCTypes.TeamOperation
+export type TeamOperations = Omit<RPCTypes.TeamOperation, 'leaveTeam' | 'setMemberShowcase'>
 export type PublicitySettings = {
   ignoreAccessRequests: boolean
   openTeam: boolean
@@ -72,7 +72,7 @@ export type _InviteInfo = {
 }
 export type InviteInfo = I.RecordOf<_InviteInfo> // TODO remove
 
-export type TabKey = 'members' | 'requests' | 'pending'
+export type TabKey = 'members' | 'invites' | 'subteams' | 'settings'
 
 export type _SubteamInfo = {
   key: string
@@ -117,7 +117,7 @@ export type TeamDetails = {
   members?: Map<string, _MemberInfo>
   settings?: _TeamSettings
   invites?: Set<_InviteInfo>
-  subteams?: Set<string>
+  subteams?: Set<TeamID>
   requests?: Set<string>
 }
 
@@ -135,6 +135,7 @@ export type TeamRoleMap = {
 export type State = Readonly<{
   addUserToTeamsState: AddUserToTeamsState
   addUserToTeamsResults: string
+  canPerform: Map<TeamID, TeamOperations>
   channelCreationError: string
   deletedTeams: Array<RPCTypes.DeletedTeamInfo>
   emailInviteError: EmailInviteError
@@ -148,6 +149,8 @@ export type State = Readonly<{
   teamJoinSuccessTeamName: string
   teamCreationError: string
   teamDetails: Map<TeamID, TeamDetails>
+  teamDetailsMetaStale: boolean // if we've received an update since we last loaded team list
+  teamDetailsMetaSubscribeCount: number // if >0 we are eagerly reloading team list
   teamNameToChannelInfos: I.Map<Teamname, I.Map<ConversationIDKey, ChannelInfo>>
   teamNameToID: I.Map<Teamname, string>
   teamNameToInvites: I.Map<Teamname, I.Set<InviteInfo>> // TODO remove
@@ -157,15 +160,15 @@ export type State = Readonly<{
   teamNameToRequests: I.Map<Teamname, I.Set<string>> // TODO remove
   teamNameToResetUsers: I.Map<Teamname, I.Set<ResetUser>>
   teamNameToRetentionPolicy: I.Map<Teamname, RetentionPolicy>
-  teamNameToRole: I.Map<Teamname, MaybeTeamRoleType>
+  teamNameToRole: I.Map<Teamname, MaybeTeamRoleType> // TODO remove
   teamNameToSubteams: I.Map<Teamname, I.Set<Teamname>> // TODO remove
-  teamNameToCanPerform: I.Map<Teamname, TeamOperations>
+  teamNameToCanPerform: I.Map<Teamname, TeamOperations> // TODO remove
   teamNameToSettings: I.Map<Teamname, TeamSettings>
   teamNameToPublicitySettings: I.Map<Teamname, _PublicitySettings>
   teamNameToAllowPromote: I.Map<Teamname, boolean> // TODO remove
   teamNameToIsShowcasing: I.Map<Teamname, boolean> // TODO remove
   teamnames: Set<Teamname> // TODO remove
-  teammembercounts: I.Map<Teamname, number>
+  teammembercounts: I.Map<Teamname, number> // TODO remove
   teamProfileAddList: Array<TeamProfileAddList>
   teamRoleMap: TeamRoleMap
   newTeams: Set<TeamID>

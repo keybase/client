@@ -192,6 +192,7 @@ class Inbox extends React.Component<T.Props, State> {
           navKey: this.props.navKey,
           snippet: row.snippet,
           snippetDecoration: row.snippetDecoration,
+          teamID: (row.type === 'bigHeader' && row.teamID) || '',
           teamname,
           time: row.time || undefined,
           type: row.type,

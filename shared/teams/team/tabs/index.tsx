@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/teams'
-import * as RPCTypes from '../../../constants/types/rpc-gen'
 import {
   iconCastPlatformStyles,
   Badge,
@@ -31,7 +30,7 @@ type TeamTabsProps = {
   loading: boolean
   selectedTab?: string
   setSelectedTab: (arg0: Types.TabKey) => void
-  yourOperations: RPCTypes.TeamOperation
+  yourOperations: Types.TeamOperations
 }
 
 const TabText = ({selected, text}: {selected: boolean; text: string}) => (

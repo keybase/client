@@ -1,8 +1,16 @@
 import * as React from 'react'
-import * as Types from '../../../../constants/types/teams'
-import {Avatar, Box, Button, ClickableBox, Icon, Meta, ConnectedUsernames} from '../../../../common-adapters'
-import {FloatingRolePicker} from '../../../role-picker'
-import * as Styles from '../../../../styles'
+import * as Types from '../../../../../constants/types/teams'
+import {
+  Avatar,
+  Box,
+  Button,
+  ClickableBox,
+  Icon,
+  Meta,
+  ConnectedUsernames,
+} from '../../../../../common-adapters'
+import {FloatingRolePicker} from '../../../../role-picker'
+import * as Styles from '../../../../../styles'
 
 export type RowProps = {
   disabledReasonsForRolePicker: Types.DisabledReasonsForRolePicker

@@ -57,6 +57,7 @@ export type ConversationMeta = {
   teamRetentionPolicy: RetentionPolicy
   teamType: TeamType
   teamname: string
+  teamID: TeamTypes.TeamID
   timestamp: number
   tlfname: string // just used for rpc calls,
   trustedState: MetaTrustedState

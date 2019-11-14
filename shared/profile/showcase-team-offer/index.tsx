@@ -3,6 +3,7 @@ import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import {teamWaitingKey} from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
+import {useTeamsSubscribe} from '../../teams/subscriber'
 
 export type RowProps = {
   canShowcase: boolean
@@ -95,31 +96,34 @@ const ShowcaseTeamOfferHeader = () => (
   </Kb.Box>
 )
 
-const ShowcaseTeamOffer = (props: Props) => (
-  <Kb.Box2 direction="vertical" style={styles.container}>
-    {!Styles.isMobile && <ShowcaseTeamOfferHeader />}
-    <Kb.ScrollView>
-      {Styles.isMobile && <ShowcaseTeamOfferHeader />}
-      {props.teamnames &&
-        props.teamnames.map(name => (
-          <TeamRow
-            canShowcase={
-              (props.teamNameToRole[name] !== 'none' && props.teamNameToAllowPromote[name]) ||
-              ['admin', 'owner'].indexOf(props.teamNameToRole[name]) !== -1
-            }
-            isExplicitMember={props.teamNameToRole[name] !== 'none'}
-            key={name}
-            name={name}
-            isOpen={props.teamNameToIsOpen[name]}
-            membercount={props.teammembercounts[name]}
-            onPromote={promoted => props.onPromote(name, promoted)}
-            showcased={props.teamNameToIsShowcasing[name]}
-            waiting={!!props.waiting[teamWaitingKey(name)]}
-          />
-        ))}
-    </Kb.ScrollView>
-  </Kb.Box2>
-)
+const ShowcaseTeamOffer = (props: Props) => {
+  useTeamsSubscribe()
+  return (
+    <Kb.Box2 direction="vertical" style={styles.container}>
+      {!Styles.isMobile && <ShowcaseTeamOfferHeader />}
+      <Kb.ScrollView>
+        {Styles.isMobile && <ShowcaseTeamOfferHeader />}
+        {props.teamnames &&
+          props.teamnames.map(name => (
+            <TeamRow
+              canShowcase={
+                (props.teamNameToRole[name] !== 'none' && props.teamNameToAllowPromote[name]) ||
+                ['admin', 'owner'].indexOf(props.teamNameToRole[name]) !== -1
+              }
+              isExplicitMember={props.teamNameToRole[name] !== 'none'}
+              key={name}
+              name={name}
+              isOpen={props.teamNameToIsOpen[name]}
+              membercount={props.teammembercounts[name]}
+              onPromote={promoted => props.onPromote(name, promoted)}
+              showcased={props.teamNameToIsShowcasing[name]}
+              waiting={!!props.waiting[teamWaitingKey(name)]}
+            />
+          ))}
+      </Kb.ScrollView>
+    </Kb.Box2>
+  )
+}
 
 const styles = Styles.styleSheetCreate(
   () =>

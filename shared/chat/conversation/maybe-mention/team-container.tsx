@@ -5,6 +5,7 @@ import * as Types from '../../../constants/types/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as Container from '../../../util/container'
+import {TeamID} from '../../../constants/types/teams'
 import {StylesTextCrossPlatform} from '../../../common-adapters/text'
 import TeamMention from './team'
 
@@ -26,6 +27,7 @@ export default Container.namedConnect(
         : null
     return {
       _convID: mentionInfo ? mentionInfo.convID : undefined,
+      _teamNameToID: state.teams.teamNameToID, // TODO come back after fixing profile's
       allowFontScaling: !!allowFontScaling,
       channel,
       description: (mentionInfo && mentionInfo.description) || '',
@@ -41,11 +43,11 @@ export default Container.namedConnect(
   dispatch => ({
     _onChat: (conversationIDKey: Types.ConversationIDKey) =>
       dispatch(Chat2Gen.createPreviewConversation({conversationIDKey, reason: 'teamMention'})),
-    onJoinTeam: (teamname: string) => dispatch(TeamsGen.createJoinTeam({teamname})),
-    onViewTeam: (teamname: string) => {
+    _onViewTeam: (teamID: TeamID) => {
       dispatch(RouteTreeGen.createClearModals())
-      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'team'}]}))
+      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]}))
     },
+    onJoinTeam: (teamname: string) => dispatch(TeamsGen.createJoinTeam({teamname})),
   }),
   (stateProps, dispatchProps, _: OwnProps) => {
     const convID = stateProps._convID ? Types.stringToConversationIDKey(stateProps._convID) : undefined
@@ -59,7 +61,7 @@ export default Container.namedConnect(
       numMembers: stateProps.numMembers,
       onChat: convID ? () => dispatchProps._onChat(convID) : undefined,
       onJoinTeam: dispatchProps.onJoinTeam,
-      onViewTeam: dispatchProps.onViewTeam,
+      onViewTeam: () => dispatchProps._onViewTeam(stateProps._teamNameToID.get(stateProps.name) || ''),
       publicAdmins: stateProps.publicAdmins,
       resolved: stateProps.resolved,
       style: stateProps.style,
