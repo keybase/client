@@ -4,7 +4,6 @@ import * as Styles from '../../../../styles'
 import UserNotice from '../user-notice'
 import * as TeamTypes from '../../../../constants/types/teams'
 import {typeToLabel} from '../../../../constants/teams'
-import {formatTimeForChat} from '../../../../util/timestamp'
 import {getAddedUsernames} from '../system-users-added-to-conv'
 import {indefiniteArticle} from '../../../../util/string'
 
@@ -21,14 +20,6 @@ type Props = {
   timestamp: number
   you: string
 }
-
-const connectedUsernamesProps = {
-  colorFollowing: true,
-  inline: true,
-  onUsernameClicked: 'profile',
-  type: 'BodySmallSemibold',
-  underline: true,
-} as const
 
 const ManageComponent = (props: Props) => {
   const textType = 'BodySmallSemiboldPrimaryLink'
@@ -74,12 +65,14 @@ const AddedToTeam = (props: Props) => {
   }
   if (props.bulkAdds.length === 0) {
     return (
-      <Kb.Text type="BodySmall" style={{flex: 1}}>
-        was added by {youOrUsername({capitalize: false, username: props.adder, you: props.you})}
-        {typeToLabel[props.role] &&
-          ` as ${indefiniteArticle(props.role)} ${typeToLabel[props.role].toLowerCase()}`}
-        . <ManageComponent {...props} />
-      </Kb.Text>
+      <UserNotice username={props.adder} timestamp={props.timestamp}>
+        <Kb.Text type="BodySmall">
+          was added by {youOrUsername({capitalize: false, username: props.adder, you: props.you})}
+          {typeToLabel[props.role] &&
+            ` as ${indefiniteArticle(props.role)} ${typeToLabel[props.role].toLowerCase()}`}
+          . <ManageComponent {...props} />
+        </Kb.Text>
+      </UserNotice>
     )
   }
   return (
@@ -97,17 +90,11 @@ const YouAddedToTeam = (props: Props) => {
   return (
     <UserNotice
       style={{marginTop: Styles.globalMargins.small}}
-      teamname={teamname}
-      onClickAvatar={onViewTeam}
+      username={adder}
+      onClickAvatar={() => null} // TODO: view user
       timestamp={timestamp}
     >
-      <Kb.Icon type="icon-team-sparkles-64-40" style={{height: 40, marginTop: -36, width: 64}} />
-      <Kb.Text
-        type="BodySmallSemibold"
-        center={true}
-        negative={true}
-        style={{color: Styles.globalColors.black_50}}
-      >
+      <Kb.Text type="BodySmall">
         {youOrUsername({capitalize: true, username: adder, you})} added{' '}
         {youOrUsername({adder, capitalize: false, username: addee, you})}
         {teamname && ` to `}
@@ -122,7 +109,7 @@ const YouAddedToTeam = (props: Props) => {
         )}
         {typeToLabel[props.role] && ` as ${indefiniteArticle(props.role)} ${typeToLabel[role].toLowerCase()}`}
         .{' '}
-        <Kb.Text type="BodySmallSemibold">
+        <Kb.Text type="BodySmall">
           Say hi!{' '}
           <Kb.EmojiIfExists
             style={Styles.isMobile ? {display: 'inline-block'} : null}
