@@ -4,7 +4,7 @@ import * as WaitingGen from '../actions/waiting-gen'
 import {RPCError} from '../util/errors'
 
 // set to true to see helpful debug info
-const debugWaiting = false && __DEV__
+const debugWaiting = true && __DEV__
 
 const changeHelper = (
   counts: Map<string, number>,
@@ -31,7 +31,7 @@ const changeHelper = (
     }
   })
 
-  debugWaiting && console.log('DebugWaiting:', keys, counts, errors)
+  debugWaiting && console.log('DebugWaiting:', keys, new Map(counts), new Map(errors))
 }
 
 const initialState: Types.State = {
@@ -57,6 +57,7 @@ export default Container.makeReducer<WaitingGen.Actions, Types.State>(initialSta
   },
   [WaitingGen.clearWaiting]: (draftState, action) => {
     const {counts, errors} = draftState
+    debugWaiting && console.log('DebugWaiting: clear', action.payload.key)
     getKeys(action.payload.key).forEach(key => {
       counts.delete(key)
       errors.delete(key)
@@ -64,6 +65,7 @@ export default Container.makeReducer<WaitingGen.Actions, Types.State>(initialSta
   },
   [WaitingGen.batchChangeWaiting]: (draftState, action) => {
     action.payload.changes.forEach(({key, increment, error}) => {
+      debugWaiting && console.log('DebugWaiting: batch')
       changeHelper(draftState.counts, draftState.errors, key, increment ? 1 : -1, error)
     })
   },

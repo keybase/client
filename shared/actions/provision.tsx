@@ -345,6 +345,17 @@ class ProvisioningManager {
     response.result({passphrase: password, storeSecret: false})
   }
 
+  displaySecretExchanged = (
+    params: CustomParam<'keybase.1.provisionUi.DisplaySecretExchanged'>,
+    response: CustomResp<'keybase.1.provisionUi.DisplaySecretExchanged'>
+  ) => {
+    console.log('aaa display secretexchanged')
+    return Saga.callUntyped(function*() {
+      const state: Container.TypedState = yield* Saga.selectState()
+      console.log('aaa display secretexchanged untyped', state.waiting)
+    })
+  }
+
   getCustomResponseIncomingCallMap = () =>
     this.addingANewDevice
       ? {
@@ -365,13 +376,13 @@ class ProvisioningManager {
   getIncomingCallMap = () =>
     this.addingANewDevice
       ? {
-          'keybase.1.provisionUi.DisplaySecretExchanged': ignoreCallback,
+          'keybase.1.provisionUi.DisplaySecretExchanged': this.displaySecretExchanged,
           'keybase.1.provisionUi.ProvisioneeSuccess': ignoreCallback,
           'keybase.1.provisionUi.ProvisionerSuccess': ignoreCallback,
         }
       : {
           'keybase.1.loginUi.displayPrimaryPaperKey': ignoreCallback,
-          'keybase.1.provisionUi.DisplaySecretExchanged': ignoreCallback,
+          'keybase.1.provisionUi.DisplaySecretExchanged': this.displaySecretExchanged,
           'keybase.1.provisionUi.ProvisioneeSuccess': ignoreCallback,
           'keybase.1.provisionUi.ProvisionerSuccess': ignoreCallback,
         }

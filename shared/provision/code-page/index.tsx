@@ -27,6 +27,7 @@ type Props = {
   onBack: () => void
   onClose: () => void
   onSubmitTextCode: (code: string) => void
+  waiting: boolean
 }
 
 type State = {
@@ -200,7 +201,7 @@ class CodePage2 extends React.Component<Props, State> {
               backgroundColor={this._buttonBackground()}
               label="Continue"
               onClick={this._onSubmitTextCode}
-              disabled={!this.state.code}
+              disabled={!this.state.code || this.props.waiting}
               style={styles.enterTextButton}
               waitingKey={Constants.waitingKey}
             />
@@ -340,9 +341,15 @@ const Qr = (props: Props) =>
   )
 
 const EnterText = (props: Props & {code: string; setCode: (code: string) => void}) => {
-  const {code, setCode} = props
+  const {code, setCode, waiting} = props
   const {onSubmitTextCode} = props
-  const onSubmit = React.useCallback(() => onSubmitTextCode(code), [code, onSubmitTextCode])
+  const onSubmit = React.useCallback(
+    e => {
+      e.preventDefault()
+      onSubmitTextCode(code)
+    },
+    [code, onSubmitTextCode]
+  )
   return (
     <Kb.Box2 direction="vertical" style={styles.enterTextContainer} gap="small">
       <Kb.PlainInput
