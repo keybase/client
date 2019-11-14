@@ -79,6 +79,12 @@ coverclean:
 gen-deps:
 	./gen_deps.pl
 
+linux-clear-devel-secrets:
+	secret-tool clear service-base keybase-devel
+
+linux-clear-test-secrets:
+	secret-tool clear service-base keybase-devel-test
+
 shavendorstellar:
 	echo "expecting f3a7d9906dab5c481669b5b4f852bf447388bd3d:"
 	find vendor/github.com/stellar -type f -print0 | sort -z | xargs -0 shasum | shasum
