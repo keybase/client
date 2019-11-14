@@ -49,8 +49,8 @@ var PublicUID = UID(PUBLIC_UID)
 
 const (
 	SIG_ID_LEN         = 32
-	SIG_ID_SUFFIX      = 0x0f
-	SIG_ID_SUFFIX_2    = 0x22
+	SIG_ID_SUFFIX      = 0x0f // Most signatures use this signagure ID
+	SIG_ID_SUFFIX_2    = 0x22 // Some older clients generate this signature ID, but it's now deprecated
 	SIG_SHORT_ID_BYTES = 27
 	SigIDQueryMin      = 8
 )
