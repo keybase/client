@@ -41,12 +41,7 @@ const Joined = (props: Props) =>
   )
 
 const JoinedUserNotice = (props: Props) => (
-  <UserNotice
-    style={{marginTop: Styles.globalMargins.small}}
-    username={props.author}
-    bgColor={Styles.globalColors.blueLighter2}
-    timestamp={props.timestamp}
-  >
+  <>
     <Kb.Text type="BodySmallSemibold" negative={true} style={{color: Styles.globalColors.black_50}}>
       {props.authorIsYou ? (
         'You'
@@ -80,7 +75,7 @@ const JoinedUserNotice = (props: Props) => (
         </Kb.Text>
       </Kb.Box>
     )}
-  </UserNotice>
+  </>
 )
 
 export default Joined

@@ -45,7 +45,7 @@ type PushDefaultProps = {
   onClickCommit: Props['onClickCommit']
 }
 const GitPushDefault = (props: PushDefaultProps) => {
-  const {pusher, commitRef, repo, repoID, team, branchName, onViewGitRepo, onClickCommit} = props
+  const {commitRef, repo, repoID, team, branchName, onViewGitRepo, onClickCommit} = props
   return (
     <Kb.Box2 direction="vertical" gap="xtiny" alignSelf="flex-start">
       <Kb.Text type="BodySmall">
@@ -77,7 +77,7 @@ const GitPushDefault = (props: PushDefaultProps) => {
                 </Kb.Text>
               </Kb.Box2>
               <Kb.Box2 direction="vertical" style={styles.grow}>
-                <Kb.Text type="BodySmall" selectable={true} style={styles.textLeft} lineClamp={2}>
+                <Kb.Text type="BodySmall" selectable={true} style={styles.textLeft} lineClamp={1}>
                   {commit.message}
                 </Kb.Text>
               </Kb.Box2>
@@ -91,20 +91,13 @@ const GitPushDefault = (props: PushDefaultProps) => {
 
 type PushCommonProps = {
   children: React.ReactNode
-  pusher: string
-  timestamp: number
-  onClickUserAvatar: (arg0: string) => void
 }
 
-const GitPushCommon = ({children, pusher, timestamp, onClickUserAvatar}: PushCommonProps) => (
-  <UserNotice username={pusher} onClickAvatar={() => onClickUserAvatar(pusher)} timestamp={timestamp}>
-    {children}
-  </UserNotice>
-)
+const GitPushCommon = ({children}: PushCommonProps) => <UserNotice>{children}</UserNotice>
 
 class GitPush extends React.PureComponent<Props> {
   render() {
-    const {timestamp, repo, repoID, refs, pushType, pusher, team} = this.props.message
+    const {repo, repoID, refs, pushType, pusher, team} = this.props.message
     const gitType = RPCTypes.GitPushType[pushType]
 
     switch (gitType) {
@@ -117,12 +110,7 @@ class GitPush extends React.PureComponent<Props> {
                 branchName = branchName.substring(branchRefPrefix.length)
               } // else show full ref
               return (
-                <GitPushCommon
-                  key={branchName}
-                  timestamp={timestamp}
-                  pusher={pusher}
-                  onClickUserAvatar={this.props.onClickUserAvatar}
-                >
+                <GitPushCommon key={branchName}>
                   <GitPushDefault
                     commitRef={ref}
                     branchName={branchName}
@@ -140,11 +128,7 @@ class GitPush extends React.PureComponent<Props> {
         )
       case 'createrepo':
         return (
-          <GitPushCommon
-            timestamp={timestamp}
-            pusher={pusher}
-            onClickUserAvatar={this.props.onClickUserAvatar}
-          >
+          <GitPushCommon>
             <GitPushCreate
               pusher={pusher}
               repo={repo}

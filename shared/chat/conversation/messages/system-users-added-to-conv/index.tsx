@@ -11,25 +11,23 @@ type YouAddedProps = {
 }
 
 const YouAdded = (props: YouAddedProps) => (
-  <UserNotice username={props.author} timestamp={props.timestamp}>
-    <Kb.Text type="BodySmall">
-      <Kb.ConnectedUsernames
-        inline={true}
-        type="BodySmallSemibold"
-        onUsernameClicked="profile"
-        colorFollowing={true}
-        underline={true}
-        usernames={[props.author]}
-      />{' '}
-      added you
-      {!!props.otherUsers.length && [
-        props.otherUsers.length === 1 ? ' and ' : ', ',
-        ...getAddedUsernames(props.otherUsers),
-      ]}
-      {!props.otherUsers.length && ' '}
-      to #{props.channelname}.
-    </Kb.Text>
-  </UserNotice>
+  <Kb.Text type="BodySmall">
+    <Kb.ConnectedUsernames
+      inline={true}
+      type="BodySmallSemibold"
+      onUsernameClicked="profile"
+      colorFollowing={true}
+      underline={true}
+      usernames={[props.author]}
+    />{' '}
+    added you
+    {!!props.otherUsers.length && [
+      props.otherUsers.length === 1 ? ' and ' : ', ',
+      ...getAddedUsernames(props.otherUsers),
+    ]}
+    {!props.otherUsers.length && ' '}
+    to #{props.channelname}.
+  </Kb.Text>
 )
 
 const maxUsernamesToShow = 3
