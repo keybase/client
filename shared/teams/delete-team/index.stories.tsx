@@ -7,6 +7,7 @@ const commonProps = {
   deleteWaiting: false,
   onBack: Sb.action('onBack'),
   onDelete: Sb.action('onDelete'),
+  teamID: 'keybaseid',
   teamname: 'keybase',
   title: 'Delete team',
 }

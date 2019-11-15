@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Constants from '../../constants/teams'
+import * as Types from '../../constants/types/teams'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
 import * as Styles from '../../styles'
@@ -9,6 +10,7 @@ export type Props = {
   deleteWaiting: boolean
   onBack: () => void
   onDelete: () => void
+  teamID: Types.TeamID
   teamname: string
 }
 
@@ -61,7 +63,7 @@ const ReallyDeleteTeam = (props: Props) => {
   const onCheck = (which: keyof typeof checks) => (enable: boolean) => setChecks({...checks, [which]: enable})
   const disabled = !checkChats || !checkFolder || !checkNotify
   const {deleteWaiting, onBack, clearWaiting} = props
-  const error = Container.useAnyErrors(Constants.deleteTeamWaitingKey(props.teamname))
+  const error = Container.useAnyErrors(Constants.deleteTeamWaitingKey(props.teamID))
   const prevDeleteWaiting = Container.usePrevious(deleteWaiting)
   React.useEffect(() => {
     if (prevDeleteWaiting !== undefined && !deleteWaiting && prevDeleteWaiting && !error) {
@@ -94,7 +96,7 @@ const ReallyDeleteTeam = (props: Props) => {
       onCancel={props.onBack}
       onConfirm={disabled ? undefined : props.onDelete}
       prompt={`Are you sure you want to delete ${props.teamname}?`}
-      waitingKey={Constants.deleteTeamWaitingKey(props.teamname)}
+      waitingKey={Constants.deleteTeamWaitingKey(props.teamID)}
     />
   )
 }

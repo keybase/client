@@ -20,16 +20,17 @@ export default Container.connect(
     }
   },
   dispatch => ({
-    clearError: (teamname: string) =>
-      dispatch(WaitingGen.createClearWaiting({key: Constants.deleteTeamWaitingKey(teamname)})),
+    clearError: (teamID: Types.TeamID) =>
+      dispatch(WaitingGen.createClearWaiting({key: Constants.deleteTeamWaitingKey(teamID)})),
     onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
     onDelete: (teamID: string) => dispatch(TeamsGen.createDeleteTeam({teamID})),
   }),
   (stateProps, dispatchProps, _: OwnProps) => ({
-    clearWaiting: () => dispatchProps.clearError(stateProps.teamname),
+    clearWaiting: () => dispatchProps.clearError(stateProps.teamID),
     deleteWaiting: stateProps.deleteWaiting,
     onBack: stateProps.deleteWaiting ? () => {} : dispatchProps.onBack,
     onDelete: () => dispatchProps.onDelete(stateProps.teamID),
+    teamID: stateProps.teamID,
     teamname: stateProps.teamname,
   })
 )(Container.safeSubmit(['onDelete'], ['deleteWaiting'])(ReallyDeleteTeam))

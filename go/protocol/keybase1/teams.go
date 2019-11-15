@@ -3600,7 +3600,7 @@ type TeamGetSubteamsArg struct {
 
 type TeamDeleteArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Name      string `codec:"name" json:"name"`
+	TeamID    TeamID `codec:"teamID" json:"teamID"`
 }
 
 type TeamSetSettingsArg struct {

@@ -105,9 +105,9 @@ function* deleteTeam(_: TypedState, action: TeamsGen.DeleteTeamPayload, logger: 
       },
       incomingCallMap: {},
       params: {
-        name: action.payload.teamname,
+        teamID: action.payload.teamID,
       },
-      waitingKey: Constants.deleteTeamWaitingKey(action.payload.teamname),
+      waitingKey: Constants.deleteTeamWaitingKey(action.payload.teamID),
     })
   } catch (e) {
     // handled through waiting store
