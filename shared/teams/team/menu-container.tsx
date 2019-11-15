@@ -10,49 +10,50 @@ import * as Kb from '../../common-adapters'
 type OwnProps = {
   attachTo?: () => React.Component<any> | null
   onHidden: () => void
-  teamname: string
+  teamID: Types.TeamID
   visible: boolean
 }
 
-const mapStateToProps = (state: Container.TypedState, {teamname}: OwnProps) => {
-  const yourOperations = Constants.getCanPerform(state, teamname)
-  const isBigTeam = Constants.isBigTeam(state, teamname)
+const mapStateToProps = (state: Container.TypedState, {teamID}: OwnProps) => {
+  const teamDetails = Constants.getTeamDetails(state, teamID)
+  const yourOperations = Constants.getCanPerformByID(state, teamID)
+  const isBigTeam = Constants.isBigTeam(state, teamID)
   return {
-    _teamID: Constants.getTeamID(state, teamname), // TODO this component should take teamID
     canCreateSubteam: yourOperations.manageSubteams,
-    canDeleteTeam: yourOperations.deleteTeam && Constants.getTeamSubteams(state, teamname).count() === 0,
+    canDeleteTeam: yourOperations.deleteTeam && teamDetails.subteams?.size === 0,
     canManageChat: yourOperations.renameChannel,
     canViewFolder: !yourOperations.joinTeam,
     isBigTeam,
+    teamname: teamDetails.teamname,
   }
 }
 
-const mapDispatchToProps = (dispatch: Container.TypedDispatch, {teamname}: OwnProps) => ({
-  _onCreateSubteam: (subteamOf: Types.TeamID) =>
+const mapDispatchToProps = (dispatch: Container.TypedDispatch, {teamID}: OwnProps) => ({
+  onCreateSubteam: () =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [{props: {subteamOf}, selected: 'teamNewTeamDialog'}],
+        path: [{props: {subteamOf: teamID}, selected: 'teamNewTeamDialog'}],
       })
     ),
   onDeleteTeam: () =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [{props: {teamname}, selected: 'teamDeleteTeam'}],
+        path: [{props: {teamID}, selected: 'teamDeleteTeam'}],
       })
     ),
   onLeaveTeam: () =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [{props: {teamname}, selected: 'teamReallyLeaveTeam'}],
+        path: [{props: {teamID}, selected: 'teamReallyLeaveTeam'}],
       })
     ),
-  onManageChat: () =>
+  onManageChat: (teamname: string) =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
         path: [{props: {teamname}, selected: 'chatManageChannels'}],
       })
     ),
-  onOpenFolder: () =>
+  onOpenFolder: (teamname: string) =>
     dispatch(FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/team/${teamname}`))),
 })
 
@@ -86,16 +87,16 @@ export default Container.connect(
     const items: Kb.MenuItems = []
     if (stateProps.canManageChat) {
       items.push({
-        onClick: dispatchProps.onManageChat,
+        onClick: () => dispatchProps.onManageChat(stateProps.teamname),
         subTitle: stateProps.isBigTeam ? undefined : 'Turns this into a big team',
         title: stateProps.isBigTeam ? 'Manage chat channels' : 'Make chat channels...',
       })
     }
     if (stateProps.canCreateSubteam) {
-      items.push({onClick: () => dispatchProps._onCreateSubteam(stateProps._teamID), title: 'Create subteam'})
+      items.push({onClick: dispatchProps.onCreateSubteam, title: 'Create subteam'})
     }
     if (stateProps.canViewFolder) {
-      items.push({onClick: dispatchProps.onOpenFolder, title: 'Open folder'})
+      items.push({onClick: () => dispatchProps.onOpenFolder(stateProps.teamname), title: 'Open folder'})
     }
     items.push({danger: true, onClick: dispatchProps.onLeaveTeam, title: 'Leave team'})
     if (stateProps.canDeleteTeam) {
