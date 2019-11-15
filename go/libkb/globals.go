@@ -822,7 +822,6 @@ func (g *GlobalContext) Shutdown(mctx MetaContext) error {
 		if g.GUILogFile != nil {
 			epick.Push(g.GUILogFile.Close())
 		}
-		<-g.Identify3State.Shutdown()
 
 		err = epick.Error()
 

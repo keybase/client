@@ -6,6 +6,7 @@ import (
 	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	context "golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -100,8 +101,8 @@ func (s *Identify3Session) SetOutcome(o *IdentifyOutcome) {
 type Identify3State struct {
 	sync.Mutex
 
+	cancelFunc context.CancelFunc
 	expireCh   chan<- struct{}
-	shutdownCh chan struct{}
 	eg         errgroup.Group
 
 	// Table of keybase1.Identify3GUIID -> *identify3Session's
@@ -130,52 +131,48 @@ func NewIdentify3StateForTest(g *GlobalContext) (*Identify3State, <-chan time.Ti
 
 func newIdentify3State(g *GlobalContext, testCompletionCh chan<- time.Time) *Identify3State {
 	expireCh := make(chan struct{})
-	shutdownCh := make(chan struct{})
+	mctx, cancelFunc := NewMetaContextBackground(g).WithContextCancel()
 	ret := &Identify3State{
+		cancelFunc:       cancelFunc,
 		expireCh:         expireCh,
-		shutdownCh:       shutdownCh,
 		cache:            make(map[keybase1.Identify3GUIID](*Identify3Session)),
 		defaultWaitTime:  time.Hour,
 		expireTime:       24 * time.Hour,
 		testCompletionCh: testCompletionCh,
+		shutdown:         false,
 	}
 	ret.makeNewCache()
-	ret.eg.Go(func() error { return ret.runExpireThread(g, expireCh, shutdownCh) })
+	ret.eg.Go(func() error { return ret.runExpireThread(mctx, expireCh) })
+	g.PushShutdownHook(ret.Shutdown)
 	ret.pokeExpireThread()
+
 	return ret
 }
 
-func (s *Identify3State) Shutdown() chan struct{} {
-	ch := make(chan struct{})
-	if s.markShutdown() {
-		go func() {
-			_ = s.eg.Wait()
-			close(ch)
-		}()
-	} else {
-		close(ch)
+func (s *Identify3State) Shutdown(mctx MetaContext) (err error) {
+	defer mctx.Trace("Identify3State#Shutdown", func() error { return err })()
+	s.shutdownMu.Lock()
+	defer s.shutdownMu.Unlock()
+
+	if s.isShutdownLocked() {
+		return nil
 	}
-	return ch
+	s.cancelFunc()
+	// block until runExpireThread has exited
+	mctx.Debug("waiting on runExpireThread to complete")
+	err = s.eg.Wait()
+	s.shutdown = true
+	return err
 }
 
 func (s *Identify3State) isShutdown() bool {
 	s.shutdownMu.Lock()
 	defer s.shutdownMu.Unlock()
-	return s.shutdown
+	return s.isShutdownLocked()
 }
 
-// markShutdown marks this state as having shutdown. Will return true the first
-// time through, and false every other time.
-func (s *Identify3State) markShutdown() bool {
-	s.shutdownMu.Lock()
-	defer s.shutdownMu.Unlock()
-	if s.shutdown {
-		return false
-	}
-	close(s.shutdownCh)
-	s.shutdownCh = nil
-	s.shutdown = true
-	return true
+func (s *Identify3State) isShutdownLocked() bool {
+	return s.shutdown
 }
 
 func (s *Identify3State) makeNewCache() {
@@ -190,10 +187,7 @@ func (s *Identify3State) OnLogout() {
 	s.pokeExpireThread()
 }
 
-func (s *Identify3State) runExpireThread(g *GlobalContext, expireCh <-chan struct{},
-	shutdownCh chan struct{}) error {
-
-	mctx := NewMetaContextBackground(g)
+func (s *Identify3State) runExpireThread(mctx MetaContext, expireCh <-chan struct{}) error {
 	wait := s.defaultWaitTime
 
 	nowFn := func() time.Time { return mctx.G().Clock().Now() }
@@ -202,8 +196,13 @@ func (s *Identify3State) runExpireThread(g *GlobalContext, expireCh <-chan struc
 
 	for {
 		select {
-		case <-shutdownCh:
-			mctx.Debug("identify3State#runExpireThread: exiting on shutdown")
+		case <-mctx.Ctx().Done():
+			mctx.Debug("identify3State#runExpireThread: exiting on canceled context")
+			if s.testCompletionCh != nil {
+				// signal to tests that this thing really shut down
+				close(s.testCompletionCh)
+				s.testCompletionCh = nil
+			}
 			return nil
 		case <-expireCh:
 		case <-mctx.G().Clock().AfterTime(wakeupTime):
@@ -268,7 +267,12 @@ func (s *Identify3State) expireSessions(mctx MetaContext, now time.Time) time.Du
 
 func (s *Identify3State) doExpireSessions(mctx MetaContext, toExpire []*Identify3Session) {
 	for _, sess := range toExpire {
-		sess.doExpireSession(mctx)
+		select {
+		case <-mctx.Ctx().Done():
+			return
+		default:
+			sess.doExpireSession(mctx)
+		}
 	}
 }
 
@@ -277,6 +281,12 @@ func (s *Identify3State) getSessionsToExpire(mctx MetaContext, now time.Time) (r
 	defer s.Unlock()
 
 	for {
+		select {
+		case <-mctx.Ctx().Done():
+			return []*Identify3Session{}, diff
+		default:
+		}
+
 		if len(s.expirationQueue) == 0 {
 			return ret, s.defaultWaitTime
 		}
