@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
 import * as Kb from '../../../../common-adapters'
 import {globalColors, globalMargins} from '../../../../styles'
+import UserNotice from '../user-notice'
 
 type Props = {
   message: Types.MessageSystemSimpleToComplex
@@ -30,7 +31,7 @@ class ComplexTeamNotice extends React.PureComponent<Props> {
         />
       )
     return (
-      <Kb.Box2 direction="vertical">
+      <UserNotice>
         <Kb.Text type="BodySmallSemibold">
           {authorComponent} made {team} a big team!
         </Kb.Text>
@@ -62,7 +63,7 @@ class ComplexTeamNotice extends React.PureComponent<Props> {
             </Kb.Text>
           </Kb.Box2>
         </Kb.Box2>
-      </Kb.Box2>
+      </UserNotice>
     )
   }
 }

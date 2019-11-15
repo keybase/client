@@ -25,8 +25,8 @@ const ManageComponent = (props: Props) => {
   const textType = 'BodySmallSemiboldPrimaryLink'
   if (props.addee === props.you) {
     return (
-      <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, alignItems: 'center'}}>
-        <Kb.Text onClick={props.onManageNotifications} type={textType} center={true}>
+      <Kb.Box style={{...Styles.globalStyles.flexBoxColumn}}>
+        <Kb.Text onClick={props.onManageNotifications} type={textType}>
           Manage phone and computer notifications
         </Kb.Text>
         {!!props.teamname && (
@@ -65,12 +65,14 @@ const AddedToTeam = (props: Props) => {
   }
   if (props.bulkAdds.length === 0) {
     return (
-      <Kb.Text type="BodySmall">
-        was added by {youOrUsername({capitalize: false, username: props.adder, you: props.you})}
-        {typeToLabel[props.role] &&
-          `as ${indefiniteArticle(props.role)} ${typeToLabel[props.role].toLowerCase()}`}
-        . <ManageComponent {...props} />
-      </Kb.Text>
+      <UserNotice>
+        <Kb.Text type="BodySmall">
+          was added by {youOrUsername({capitalize: false, username: props.adder, you: props.you})}
+          {typeToLabel[props.role] &&
+            `as ${indefiniteArticle(props.role)} ${typeToLabel[props.role].toLowerCase()}`}
+          . <ManageComponent {...props} />
+        </Kb.Text>
+      </UserNotice>
     )
   }
   return (

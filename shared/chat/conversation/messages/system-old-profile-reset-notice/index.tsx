@@ -9,7 +9,7 @@ type Props = {
 }
 
 const OldProfileResetNotice = ({username, onOpenNewerConversation}: Props) => (
-  <>
+  <UserNotice>
     <Text type="BodySmallSemibold" negative={true}>
       {username} reset their profile
     </Text>
@@ -19,7 +19,7 @@ const OldProfileResetNotice = ({username, onOpenNewerConversation}: Props) => (
     <Text type="BodySmallPrimaryLink" negative={true} onClick={onOpenNewerConversation}>
       Jump to new conversation
     </Text>
-  </>
+  </UserNotice>
 )
 
 export default OldProfileResetNotice

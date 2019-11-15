@@ -685,9 +685,7 @@ const uiMessageToSystemMessage = (
       const {team = '???', creator = '????'} = body.createteam || {}
       return makeMessageSystemText({
         reactions,
-        text: new HiddenString(
-          `${creator === state.config.username ? 'You' : creator} created the team ${team}.`
-        ),
+        text: new HiddenString(`${creator === state.config.username ? 'You ' : ''}created the team ${team}.`),
         ...minimum,
       })
     }
@@ -709,7 +707,7 @@ const uiMessageToSystemMessage = (
       const {user = '???'} = body.changeavatar || {}
       return makeMessageSystemText({
         reactions,
-        text: new HiddenString(`${user} changed the team's avatar.`),
+        text: new HiddenString(`${user === state.config.username ? 'You ' : ''}changed the team's avatar.`),
         ...minimum,
       })
     }

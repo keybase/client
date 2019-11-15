@@ -31,28 +31,28 @@ const InviteAddedToTeamNotice = (props: Props) => {
   // There's not a lot of space to explain the adder / inviter situation,
   // just pretend they were added by the inviter for now.
   return (
-    <Kb.Text type="BodySmall">
-      was added by{' '}
-      {props.you === inviter ? (
-        'you'
-      ) : (
-        <Kb.ConnectedUsernames {...connectedUsernamesProps} usernames={[inviter]} />
-      )}
-      {typeToLabel[props.role] && ` as a "${typeToLabel[props.role].toLowerCase()}"`}.{' '}
-    </Kb.Text>
+    <UserNotice>
+      <Kb.Text type="BodySmall">
+        was added by{' '}
+        {props.you === inviter ? (
+          'you'
+        ) : (
+          <Kb.ConnectedUsernames {...connectedUsernamesProps} usernames={[inviter]} />
+        )}
+        {typeToLabel[props.role] && ` as a "${typeToLabel[props.role].toLowerCase()}"`}.{' '}
+      </Kb.Text>
+    </UserNotice>
   )
 }
 
 const YouInviteAddedToTeamNotice = (props: Props) => {
-  const {timestamp} = props.message
-
   return (
-    <>
+    <UserNotice>
       <Kb.Text type="BodySmall">You joined the team.</Kb.Text>
       <Kb.Text type="BodySmallPrimaryLink" onClick={props.onViewTeam}>
         View all members
       </Kb.Text>
-    </>
+    </UserNotice>
   )
 }
 
