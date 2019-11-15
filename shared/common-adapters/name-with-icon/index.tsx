@@ -14,7 +14,6 @@ export type NameWithIconProps = {
   avatarImageOverride?: string
   avatarSize?: AvatarSize
   avatarStyle?: Styles.StylesCrossPlatform
-  botAlias?: string
   colorBroken?: boolean
   colorFollowing?: boolean
   notFollowingColorOverride?: string
@@ -98,7 +97,13 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
     }
     const username = this.props.username || ''
     const title = this.props.title || ''
-    const usernameComponent = (
+    const usernameOrTitle = title ? (
+      <TextOrComponent
+        textType={this.props.horizontal ? 'BodySemibold' : adapterProps.titleType}
+        style={this.props.horizontal ? undefined : this.props.titleStyle}
+        val={this.props.title || ''}
+      />
+    ) : (
       <ConnectedUsernames
         onUsernameClicked={this.props.clickType === 'onClick' ? this.props.onClick : 'profile'}
         type={this.props.horizontal ? 'BodySemibold' : adapterProps.titleType}
@@ -118,26 +123,6 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
         withProfileCardPopup={this.props.withProfileCardPopup}
       />
     )
-    const usernameOrTitle = title ? (
-      <TextOrComponent
-        textType={this.props.horizontal ? 'BodySemibold' : adapterProps.titleType}
-        style={this.props.horizontal ? undefined : this.props.titleStyle}
-        val={this.props.title || ''}
-      />
-    ) : this.props.botAlias ? (
-      <Box2 direction="horizontal">
-        <Text type="BodySemibold" style={{color: Styles.globalColors.black}}>
-          {this.props.botAlias} (
-        </Text>
-        {usernameComponent}
-        <Text type="BodySemibold" style={{color: Styles.globalColors.black}}>
-          )
-        </Text>
-      </Box2>
-    ) : (
-      usernameComponent
-    )
-
     const metaOne = (
       <TextOrComponent
         textType={this.props.horizontal ? 'BodySmall' : adapterProps.metaOneType}

@@ -29,17 +29,22 @@ const Participant = ({botAlias, fullname, isAdmin, isOwner, username, onShowProf
       )}
     </Kb.Box2>
   )
+  const botComp = botAlias ? (
+    <Kb.Box2 direction="horizontal" fullWidth={true}>
+      <Kb.Text type="BodySmall">{botAlias}</Kb.Text>
+    </Kb.Box2>
+  ) : null
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
       <Kb.ClickableBox key={username} onClick={() => onShowProfile(username)}>
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.rowContainer}>
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.row}>
             <Kb.NameWithIcon
-              botAlias={botAlias}
               horizontal={true}
               colorFollowing={true}
               username={username}
               metaOne={lower}
+              metaTwo={botComp || undefined}
             />
           </Kb.Box2>
         </Kb.Box2>
