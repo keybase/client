@@ -245,7 +245,7 @@ export const makeTrustline = I.Record<Types._Trustline>({
 })
 export const emptyTrustline = makeTrustline()
 
-export const makeState = I.Record<Types._State>({
+export const makeState = (): Types.State => ({
   acceptedDisclaimer: false,
   acceptingDisclaimerDelay: false,
   accountMap: I.OrderedMap(),
@@ -277,7 +277,6 @@ export const makeState = I.Record<Types._State>({
   paymentOldestUnreadMap: I.Map(),
   paymentsMap: I.Map(),
   reviewCounter: 0,
-  reviewLastSeqno: null,
   secretKey: new HiddenString(''),
   secretKeyError: '',
   secretKeyMap: I.Map(),
@@ -287,11 +286,9 @@ export const makeState = I.Record<Types._State>({
   sep6Error: false,
   sep6Message: '',
   sep7ConfirmError: '',
-  sep7ConfirmInfo: null,
   sep7ConfirmPath: emptyBuiltPaymentAdvanced,
   sep7ConfirmURI: '',
   sep7SendError: '',
-  staticConfig: null,
   teamBuilding: TeamBuildingConstants.makeSubState(),
   trustline: emptyTrustline,
   unreadPaymentsMap: I.Map(),

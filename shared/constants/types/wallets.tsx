@@ -378,7 +378,7 @@ export type Trustline = I.RecordOf<_Trustline>
 
 export type StaticConfig = I.RecordOf<StellarRPCTypes.StaticConfig>
 
-export type _State = {
+export type State = Readonly<{
   acceptedDisclaimer: boolean
   acceptingDisclaimerDelay: boolean
   accountMap: I.OrderedMap<AccountID, Account>
@@ -410,7 +410,7 @@ export type _State = {
   paymentOldestUnreadMap: I.Map<AccountID, PaymentID>
   paymentsMap: I.Map<AccountID, I.Map<PaymentID, Payment>>
   reviewCounter: number // increments when we call reviewPayment,
-  reviewLastSeqno: number | null // last UIPaymentReviewed.seqno received from the active review,
+  reviewLastSeqno?: number // last UIPaymentReviewed.seqno received from the active review,
   secretKey: HiddenString
   secretKeyError: string
   secretKeyMap: I.Map<AccountID, HiddenString>
@@ -420,14 +420,12 @@ export type _State = {
   sep6Error: boolean
   sep6Message: string
   sep7ConfirmError: string
-  sep7ConfirmInfo: SEP7ConfirmInfo | null
+  sep7ConfirmInfo?: SEP7ConfirmInfo
   sep7ConfirmPath: BuiltPaymentAdvanced
   sep7ConfirmURI: string
   sep7SendError: string
-  staticConfig: StaticConfig | null
+  staticConfig?: StaticConfig
   teamBuilding: TeamBuildingTypes.TeamBuildingSubState
   trustline: Trustline
   unreadPaymentsMap: I.Map<string, number>
-}
-
-export type State = I.RecordOf<_State>
+}>
