@@ -123,7 +123,7 @@ type _DeleteChannelInfoPayload = {
   readonly teamname: Types.Teamname
   readonly conversationIDKey: ChatTypes.ConversationIDKey
 }
-type _DeleteTeamPayload = {readonly teamname: string}
+type _DeleteTeamPayload = {readonly teamID: Types.TeamID}
 type _EditMembershipPayload = {
   readonly teamname: string
   readonly username: string
