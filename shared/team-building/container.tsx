@@ -1,4 +1,5 @@
 import logger from '../logger'
+import * as I from 'immutable'
 import * as React from 'react'
 import unidecode from 'unidecode'
 import debounce from 'lodash/debounce'
@@ -66,11 +67,11 @@ const initialState: LocalState = {
 }
 
 const expensiveDeriveResults = (
-  searchResults: Array<Types.User> | null,
+  searchResults: Array<Types.User> | undefined,
   teamSoFar: Set<Types.User>,
   myUsername: string,
   followingState: Set<string>,
-  preExistingTeamMembers: Map<string, MemberInfo>
+  preExistingTeamMembers: I.Map<string, MemberInfo>
 ) =>
   searchResults &&
   searchResults.map(info => {
@@ -132,7 +133,7 @@ const deriveServiceResultCount = memoize((searchResults: Types.SearchResults, qu
 const deriveShowResults = memoize(searchString => !!searchString)
 
 const deriveUserFromUserIdFn = memoize(
-  (searchResults: Array<Types.User> | null, recommendations: Array<Types.User> | null) => (
+  (searchResults: Array<Types.User> | undefined, recommendations: Array<Types.User> | undefined) => (
     userId: string
   ): Types.User | null =>
     (searchResults || []).filter(u => u.id === userId)[0] ||
@@ -144,12 +145,12 @@ const emptyObj = {}
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const teamBuildingState = state[ownProps.namespace].teamBuilding
-  const searchResults = teamBuildingState.searchResults
+  const teamBuildingSearchResults = teamBuildingState.searchResults
   const userResults: Array<Types.User> =
     teamBuildingState.searchResults.get(trim(ownProps.searchString))?.get(ownProps.selectedService) ?? []
 
-  const preExistingTeamMembers: Map<string, MemberInfo> =
-    (ownProps.teamname && state.teams.teamNameToMembers.get(ownProps.teamname)) || new Map()
+  const preExistingTeamMembers: I.Map<string, MemberInfo> =
+    (ownProps.teamname && state.teams.teamNameToMembers.get(ownProps.teamname)) || I.Map<string, MemberInfo>()
 
   const disabledRoles = ownProps.teamname
     ? getDisabledReasonsForRolePicker(state, ownProps.teamname, null)

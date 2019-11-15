@@ -1460,11 +1460,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   ...attachmentActions,
   ...teamBuilderReducerCreator<Actions, Types.State>(
     (draftState: Container.Draft<Types.State>, action: TeamBuildingGen.Actions) => {
-      draftState.teamBuilding = teamBuildingReducer(
-        'chat2',
-        draftState.teamBuilding as Types.State['teamBuilding'],
-        action
-      )
+      teamBuildingReducer('chat2', draftState.teamBuilding, action)
     }
   ),
 })

@@ -37,11 +37,7 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   },
   ...teamBuilderReducerCreator<Actions, Types.State>(
     (draftState: Container.Draft<Types.State>, action: TeamBuildingGen.Actions) => {
-      draftState.teamBuilding = teamBuildingReducer(
-        'people',
-        draftState.teamBuilding as Types.State['teamBuilding'],
-        action
-      )
+      teamBuildingReducer('people', draftState.teamBuilding, action)
     }
   ),
 })
