@@ -51,8 +51,10 @@ const Connected = Container.compose(
       stateProps.yourOperations
     )
     const sections: Sections = [
-      ...(Container.isMobile ? [{data: [{type: 'header' as const}], key: 'header'}] : []),
-      {data: rows, header: {type: 'tabs'}, key: 'body'},
+      ...(Container.isMobile
+        ? [{data: [{key: 'header-inner', type: 'header' as const}], key: 'header'}]
+        : []),
+      {data: rows, header: {key: 'tabs', type: 'tabs'}, key: 'body'},
     ]
     const customComponent = <CustomTitle teamname={stateProps._teamnameTodoRemove} />
     return {

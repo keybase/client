@@ -437,6 +437,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	g.TeamChannelSource = NewTeamChannelSource(g)
 	g.AttachmentURLSrv = types.DummyAttachmentHTTPSrv{}
 	g.ActivityNotifier = NewNotifyRouterActivityRouter(g)
+	g.AttachmentUploader = types.DummyAttachmentUploader{}
 	g.Unfurler = types.DummyUnfurler{}
 	g.StellarLoader = types.DummyStellarLoader{}
 	g.StellarSender = types.DummyStellarSender{}

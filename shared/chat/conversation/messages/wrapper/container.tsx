@@ -35,6 +35,15 @@ const getUsernameToShow = (
     authorIsCollapsible(message) &&
     authorIsCollapsible(previous)
 
+  const sequentialBotKeyed =
+    previous &&
+    previous.author === message.author &&
+    previous.type === 'text' &&
+    message.type === 'text' &&
+    previous.botUsername === message.botUsername &&
+    authorIsCollapsible(message) &&
+    authorIsCollapsible(previous)
+
   const enoughTimeBetween = MessageConstants.enoughTimeBetweenMessages(message, previous)
   const timestamp = orangeLineAbove || !previous || enoughTimeBetween ? message.timestamp : null
   switch (message.type) {
@@ -42,7 +51,7 @@ const getUsernameToShow = (
     case 'requestPayment':
     case 'sendPayment':
     case 'text':
-      return !previous || !sequentialUserMessages || !!timestamp ? message.author : ''
+      return !sequentialBotKeyed || !previous || !sequentialUserMessages || !!timestamp ? message.author : ''
     case 'setChannelname':
       // suppress this message for the #general channel, it is redundant.
       return (!previous || !sequentialUserMessages || !!timestamp) && message.newChannelname !== 'general'

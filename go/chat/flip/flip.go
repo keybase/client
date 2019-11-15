@@ -8,6 +8,7 @@ import (
 	"time"
 
 	chat1 "github.com/keybase/client/go/protocol/chat1"
+	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	clockwork "github.com/keybase/clockwork"
 )
 
@@ -70,7 +71,7 @@ type DealersHelper interface {
 	ReplayHelper
 	Clock() clockwork.Clock
 	ServerTime(context.Context) (time.Time, error)
-	SendChat(ctx context.Context, ch chat1.ConversationID, gameID chat1.FlipGameID, msg GameMessageEncoded) error
+	SendChat(ctx context.Context, initiatorUID gregor1.UID, ch chat1.ConversationID, gameID chat1.FlipGameID, msg GameMessageEncoded) error
 	Me() UserDevice
 	ShouldCommit(ctx context.Context) bool // Whether to send new commitments for games.
 }
