@@ -1188,7 +1188,7 @@ func TestRunnerLFS(t *testing.T) {
 	t.Log("Make sure the file has been fully uploaded")
 	fs, err := libfs.NewFS(
 		ctx, config, h, data.MasterBranch,
-		fmt.Sprintf("%s/test/%s", kbfsRepoDir, lfsSubdir), "",
+		fmt.Sprintf("%s/test/%s", kbfsRepoDir, libgit.LFSSubdir), "",
 		keybase1.MDPriorityGit)
 	require.NoError(t, err)
 	oidF, err := fs.Open(oid)
