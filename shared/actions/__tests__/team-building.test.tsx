@@ -1,5 +1,4 @@
 /* eslint-env jest */
-import * as I from 'immutable'
 import * as TeamBuildingGen from '../team-building-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import {chatTeamBuildingSaga} from '../chat2'
@@ -137,12 +136,14 @@ const expectedKeybase: Array<Types.User> = [
 
 const parsedSearchResults = {
   marcopolo: {
-    github: I.Map().mergeIn(['marcopolo'], {
-      github: expectedGithub,
-    }),
-    keybase: I.Map().mergeIn(['marcopolo'], {
-      keybase: expectedKeybase,
-    }),
+    github: {marcopolo: {github: expectedGithub}},
+    keybase: {marcopolo: {keybase: expectedKeybase}},
+  },
+}
+const parsedSearchResultsMap = {
+  marcopolo: {
+    github: new Map([['marcopolo', new Map([['github', expectedGithub]])]]),
+    keybase: new Map([['marcopolo', new Map([['keybase', expectedKeybase]])]]),
   },
 }
 
@@ -188,7 +189,7 @@ describe('Search Actions', () => {
     expect(getState().chat2.teamBuilding.searchQuery).toEqual('marcopolo')
     expect(getState().chat2.teamBuilding.selectedService).toEqual('keybase')
     return Testing.flushPromises().then(() => {
-      expect(getState().chat2.teamBuilding.searchResults).toEqual(parsedSearchResults[query][service])
+      expect(getState().chat2.teamBuilding.searchResults).toEqual(parsedSearchResultsMap[query][service])
     })
   })
 
@@ -208,48 +209,48 @@ describe('Search Actions', () => {
     expect(getState().chat2.teamBuilding.searchQuery).toEqual('marcopolo')
     expect(getState().chat2.teamBuilding.selectedService).toEqual('github')
     return Testing.flushPromises().then(() => {
-      expect(getState().chat2.teamBuilding.searchResults).toEqual(parsedSearchResults[query][service])
+      expect(getState().chat2.teamBuilding.searchResults).toEqual(parsedSearchResultsMap[query][service])
     })
   })
 
   it('Adds users to the team so far', () => {
     const {dispatch, getState} = init
-    const userToAdd = parsedSearchResults['marcopolo']['keybase'].getIn(['marcopolo', 'keybase'], [])[0]
+    const userToAdd = parsedSearchResults.marcopolo.keybase.marcopolo.keybase[0]
     dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace: testNamespace, users: [userToAdd]}))
     return Testing.flushPromises().then(() => {
-      expect(getState().chat2.teamBuilding.teamSoFar).toEqual(I.OrderedSet([userToAdd]))
+      expect(getState().chat2.teamBuilding.teamSoFar).toEqual(new Set([userToAdd]))
     })
   })
 
   it('Remove users to the team so far', () => {
     const {dispatch, getState} = init
-    const userToAdd = parsedSearchResults['marcopolo']['keybase'].getIn(['marcopolo', 'keybase'], [])[0]
+    const userToAdd = parsedSearchResults.marcopolo.keybase.marcopolo.keybase[0]
     dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace: testNamespace, users: [userToAdd]}))
     dispatch(TeamBuildingGen.createRemoveUsersFromTeamSoFar({namespace: testNamespace, users: ['marcopolo']}))
     return Testing.flushPromises().then(() => {
-      expect(getState().chat2.teamBuilding.teamSoFar).toEqual(I.OrderedSet())
+      expect(getState().chat2.teamBuilding.teamSoFar).toEqual(new Set())
     })
   })
 
   it('Moves finished team over and clears the teamSoFar on finished', () => {
     const {dispatch, getState} = init
-    const userToAdd = parsedSearchResults['marcopolo']['keybase'].getIn(['marcopolo', 'keybase'], [])[0]
+    const userToAdd = parsedSearchResults.marcopolo.keybase.marcopolo.keybase[0]
     dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace: testNamespace, users: [userToAdd]}))
     dispatch(TeamBuildingGen.createFinishedTeamBuilding({namespace: testNamespace}))
     return Testing.flushPromises().then(() => {
-      expect(getState().chat2.teamBuilding.teamSoFar).toEqual(I.OrderedSet())
-      expect(getState().chat2.teamBuilding.finishedTeam).toEqual(I.OrderedSet([userToAdd]))
+      expect(getState().chat2.teamBuilding.teamSoFar).toEqual(new Set())
+      expect(getState().chat2.teamBuilding.finishedTeam).toEqual(new Set([userToAdd]))
     })
   })
 
   it('Cancel team building clears the state', () => {
     const {dispatch, getState} = init
-    const userToAdd = parsedSearchResults['marcopolo']['keybase'].getIn(['marcopolo', 'keybase'], [])[0]
+    const userToAdd = parsedSearchResults.marcopolo.keybase.marcopolo.keybase[0]
     dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace: testNamespace, users: [userToAdd]}))
     dispatch(TeamBuildingGen.createCancelTeamBuilding({namespace: testNamespace}))
     return Testing.flushPromises().then(() => {
-      expect(getState().chat2.teamBuilding.teamSoFar).toEqual(I.OrderedSet())
-      expect(getState().chat2.teamBuilding.finishedTeam).toEqual(I.OrderedSet())
+      expect(getState().chat2.teamBuilding.teamSoFar).toEqual(new Set())
+      expect(getState().chat2.teamBuilding.finishedTeam).toEqual(new Set())
     })
   })
 })
@@ -322,22 +323,27 @@ describe('Extra search', () => {
       await Testing.flushPromises()
     }
     const results = getState().chat2.teamBuilding.searchResults
-    const expected = I.Map()
-      .mergeIn(['michal@keyba.se'], {
-        keybase: [],
-      })
-      .mergeIn(['marco@keyba.se'], {
-        keybase: [
-          {
-            id: '[marco@keyba.se]@email',
-            label: '',
-            prettyName: 'marco@keyba.se',
-            serviceId: 'phone',
-            serviceMap: {keybase: ''},
-            username: 'marco@keyba.se',
-          },
-        ],
-      })
+    const expected = new Map([
+      ['michal@keyba.se', new Map([['keybase', []]])],
+      [
+        'marco@keyba.se',
+        new Map([
+          [
+            'keybase',
+            [
+              {
+                id: '[marco@keyba.se]@email',
+                label: '',
+                prettyName: 'marco@keyba.se',
+                serviceId: 'phone',
+                serviceMap: {keybase: ''},
+                username: 'marco@keyba.se',
+              },
+            ],
+          ],
+        ]),
+      ],
+    ])
     expect(results).toEqual(expected)
   })
 })
