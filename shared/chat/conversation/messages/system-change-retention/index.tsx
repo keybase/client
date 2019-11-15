@@ -86,11 +86,7 @@ const ChangeRetention = (props: Props) => {
   const policySummary = getPolicySummary(props)
   const manageText = props.canManage ? 'Manage this' : ''
   return (
-    <UserNotice
-      username={props.user}
-      onClickAvatar={() => props.onClickUserAvatar()}
-      timestamp={props.timestamp}
-    >
+    <UserNotice>
       <Kb.Text type="BodySmall" selectable={true}>
         {changedBy} changed the {convType} retention policy{inheritDescription}. Messages will {policySummary}
         .

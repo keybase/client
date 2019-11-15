@@ -52,9 +52,9 @@ const ManageComponent = (props: Props) => {
 }
 
 const youOrUsername = (props: {username: string; you: string; capitalize: boolean; adder?: string}) => {
-  if (props.adder === props.you) return 'yourself'
+  if (props.adder === props.you) return 'yourself '
   if (props.username === props.you) {
-    return props.capitalize ? 'You' : 'you'
+    return props.capitalize ? 'You ' : 'you '
   }
   return ''
 }
@@ -68,15 +68,15 @@ const AddedToTeam = (props: Props) => {
       <Kb.Text type="BodySmall">
         was added by {youOrUsername({capitalize: false, username: props.adder, you: props.you})}
         {typeToLabel[props.role] &&
-          ` as ${indefiniteArticle(props.role)} ${typeToLabel[props.role].toLowerCase()}`}
+          `as ${indefiniteArticle(props.role)} ${typeToLabel[props.role].toLowerCase()}`}
         . <ManageComponent {...props} />
       </Kb.Text>
     )
   }
   return (
-    <UserNotice username={props.adder} timestamp={props.timestamp}>
+    <UserNotice>
       <Kb.Text type="BodySmall">
-        {youOrUsername({capitalize: true, username: props.adder, you: props.you})} added{' '}
+        {youOrUsername({capitalize: true, username: props.adder, you: props.you})}added{' '}
         {getAddedUsernames(props.bulkAdds)}. <ManageComponent {...props} />
       </Kb.Text>
     </UserNotice>
@@ -84,16 +84,11 @@ const AddedToTeam = (props: Props) => {
 }
 
 const YouAddedToTeam = (props: Props) => {
-  const {teamname, you, onViewTeam, adder, addee, role, timestamp} = props
+  const {teamname, you, onViewTeam, adder, addee, role} = props
   return (
-    <UserNotice
-      style={{marginTop: Styles.globalMargins.small}}
-      username={adder}
-      onClickAvatar={() => null} // TODO: view user
-      timestamp={timestamp}
-    >
+    <UserNotice>
       <Kb.Text type="BodySmall">
-        {youOrUsername({capitalize: true, username: adder, you})} added{' '}
+        {youOrUsername({capitalize: true, username: adder, you})}added{' '}
         {youOrUsername({adder, capitalize: false, username: addee, you})}
         {teamname && ` to `}
         {teamname && (
