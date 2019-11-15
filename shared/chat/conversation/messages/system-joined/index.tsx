@@ -41,7 +41,7 @@ const Joined = (props: Props) =>
   )
 
 const JoinedUserNotice = (props: Props) => (
-  <>
+  <UserNotice>
     <Kb.Text type="BodySmallSemibold" negative={true} style={{color: Styles.globalColors.black_50}}>
       {props.authorIsYou ? (
         'You'
@@ -75,7 +75,7 @@ const JoinedUserNotice = (props: Props) => (
         </Kb.Text>
       </Kb.Box>
     )}
-  </>
+  </UserNotice>
 )
 
 export default Joined

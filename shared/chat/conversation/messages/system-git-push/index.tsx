@@ -9,6 +9,7 @@ const branchRefPrefix = 'refs/heads/'
 
 type Props = {
   message: Types.MessageSystemGitPush
+  you?: string
   onClickCommit: (commitHash: string) => void
   onClickUserAvatar: (username: string) => void
   onViewGitRepo: (repoID: string, teamname: string) => void
@@ -20,12 +21,13 @@ type CreateProps = {
   repoID: string
   team: string
   onViewGitRepo: Props['onViewGitRepo']
+  you: Props['you']
 }
 const GitPushCreate = (props: CreateProps) => {
-  const {repo, repoID, team, onViewGitRepo} = props
+  const {you, pusher, repo, repoID, team, onViewGitRepo} = props
   return (
     <Kb.Text type="BodySmall">
-      {` `}created a new team repository called{` `}
+      {pusher === you ? 'You ' : ''}created a new team repository called{` `}
       <Kb.Text type="BodySmallPrimaryLink" onClick={repoID ? () => onViewGitRepo(repoID, team) : undefined}>
         {repo}
       </Kb.Text>
@@ -43,13 +45,14 @@ type PushDefaultProps = {
   branchName: string
   onViewGitRepo: Props['onViewGitRepo']
   onClickCommit: Props['onClickCommit']
+  you: Props['you']
 }
 const GitPushDefault = (props: PushDefaultProps) => {
-  const {commitRef, repo, repoID, team, branchName, onViewGitRepo, onClickCommit} = props
+  const {pusher, you, commitRef, repo, repoID, team, branchName, onViewGitRepo, onClickCommit} = props
   return (
     <Kb.Box2 direction="vertical" gap="xtiny" alignSelf="flex-start">
       <Kb.Text type="BodySmall">
-        pushed {!!commitRef.commits && commitRef.commits.length}{' '}
+        {pusher === you ? 'You ' : ''}pushed {!!commitRef.commits && commitRef.commits.length}{' '}
         {`commit${!!commitRef.commits && commitRef.commits.length !== 1 ? 's' : ''}`} to
         <Kb.Text
           type="BodySmall"
@@ -120,6 +123,7 @@ class GitPush extends React.PureComponent<Props> {
                     team={team}
                     onViewGitRepo={this.props.onViewGitRepo}
                     onClickCommit={this.props.onClickCommit}
+                    you={this.props.you}
                   />
                 </GitPushCommon>
               )
@@ -135,6 +139,7 @@ class GitPush extends React.PureComponent<Props> {
               repoID={repoID}
               team={team}
               onViewGitRepo={this.props.onViewGitRepo}
+              you={this.props.you}
             />
           </GitPushCommon>
         )

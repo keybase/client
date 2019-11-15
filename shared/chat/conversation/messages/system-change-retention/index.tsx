@@ -64,19 +64,7 @@ const getPolicySummary = props => {
 }
 
 const ChangeRetention = (props: Props) => {
-  const changedBy =
-    props.you === props.user ? (
-      'You'
-    ) : (
-      <Kb.ConnectedUsernames
-        colorFollowing={true}
-        inline={true}
-        onUsernameClicked="profile"
-        type="BodySmallSemibold"
-        underline={true}
-        usernames={[props.user]}
-      />
-    )
+  const changedBy = props.you === props.user ? 'You ' : ''
   let convType = 'conversation'
   switch (props.membersType) {
     case RPCChatTypes.ConversationMembersType.team:
@@ -88,12 +76,13 @@ const ChangeRetention = (props: Props) => {
   return (
     <UserNotice>
       <Kb.Text type="BodySmall" selectable={true}>
-        {changedBy} changed the {convType} retention policy{inheritDescription}. Messages will {policySummary}
-        .
+        {changedBy}changed the {convType} retention policy{inheritDescription}. Messages will {policySummary}.
       </Kb.Text>
-      <Kb.Text onClick={props.onManageRetention} type="BodySmallSemiboldPrimaryLink">
-        {manageText}
-      </Kb.Text>
+      {manageText ? (
+        <Kb.Text onClick={props.onManageRetention} type="BodySmallSemiboldPrimaryLink">
+          {manageText}
+        </Kb.Text>
+      ) : null}
     </UserNotice>
   )
 }
