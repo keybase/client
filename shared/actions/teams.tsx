@@ -1404,10 +1404,10 @@ function addThemToTeamFromTeamBuilder(
     return
   }
 
-  const role = state.teams.teamBuilding.teamBuildingFinishedSelectedRole
-  const sendChatNotification = state.teams.teamBuilding.teamBuildingFinishedSendNotification
+  const role = state.teams.teamBuilding.finishedSelectedRole
+  const sendChatNotification = state.teams.teamBuilding.finishedSendNotification
 
-  return state.teams.teamBuilding.teamBuildingFinishedTeam.toArray().map(user =>
+  return [...state.teams.teamBuilding.finishedTeam].map(user =>
     TeamsGen.createAddToTeam({
       role,
       sendChatNotification,

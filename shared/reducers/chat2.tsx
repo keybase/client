@@ -6,7 +6,7 @@ import * as Container from '../util/container'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/chat2'
-import teamBuildingReducer from './team-building'
+import {editTeambuildingDraft} from './team-building'
 import {teamBuilderReducerCreator} from '../team-building/reducer-helper'
 import {isMobile} from '../constants/platform'
 import logger from '../logger'
@@ -1460,7 +1460,10 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   ...attachmentActions,
   ...teamBuilderReducerCreator<Actions, Types.State>(
     (draftState: Container.Draft<Types.State>, action: TeamBuildingGen.Actions) => {
-      teamBuildingReducer('chat2', draftState.teamBuilding, action)
+      const val = editTeambuildingDraft('chat2', draftState.teamBuilding, action)
+      if (val !== undefined) {
+        draftState.teamBuilding = val
+      }
     }
   ),
 })

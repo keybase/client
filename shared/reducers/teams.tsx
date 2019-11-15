@@ -6,7 +6,7 @@ import * as I from 'immutable'
 import * as Types from '../constants/types/teams'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as Container from '../util/container'
-import teamBuildingReducer from './team-building'
+import {editTeambuildingDraft} from './team-building'
 import {ifTSCComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch} from '../util/switch'
 
 const initialState: Types.State = Constants.makeState()
@@ -271,9 +271,13 @@ export default (
       case TeamBuildingGen.search:
       case TeamBuildingGen.selectRole:
       case TeamBuildingGen.labelsSeen:
-      case TeamBuildingGen.changeSendNotification:
-        teamBuildingReducer('teams', draftState.teamBuilding, action)
+      case TeamBuildingGen.changeSendNotification: {
+        const val = editTeambuildingDraft('teams', draftState.teamBuilding, action)
+        if (val !== undefined) {
+          draftState.teamBuilding = val
+        }
         return
+      }
       // Saga-only actions
       case TeamsGen.addUserToTeams:
       case TeamsGen.addToTeam:

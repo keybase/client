@@ -185,12 +185,10 @@ describe('Search Actions', () => {
         service,
       })
     )
-    expect(getState().chat2.teamBuilding.teamBuildingSearchQuery).toEqual('marcopolo')
-    expect(getState().chat2.teamBuilding.teamBuildingSelectedService).toEqual('keybase')
+    expect(getState().chat2.teamBuilding.searchQuery).toEqual('marcopolo')
+    expect(getState().chat2.teamBuilding.selectedService).toEqual('keybase')
     return Testing.flushPromises().then(() => {
-      expect(getState().chat2.teamBuilding.teamBuildingSearchResults).toEqual(
-        parsedSearchResults[query][service]
-      )
+      expect(getState().chat2.teamBuilding.searchResults).toEqual(parsedSearchResults[query][service])
     })
   })
 
@@ -207,12 +205,10 @@ describe('Search Actions', () => {
         service,
       })
     )
-    expect(getState().chat2.teamBuilding.teamBuildingSearchQuery).toEqual('marcopolo')
-    expect(getState().chat2.teamBuilding.teamBuildingSelectedService).toEqual('github')
+    expect(getState().chat2.teamBuilding.searchQuery).toEqual('marcopolo')
+    expect(getState().chat2.teamBuilding.selectedService).toEqual('github')
     return Testing.flushPromises().then(() => {
-      expect(getState().chat2.teamBuilding.teamBuildingSearchResults).toEqual(
-        parsedSearchResults[query][service]
-      )
+      expect(getState().chat2.teamBuilding.searchResults).toEqual(parsedSearchResults[query][service])
     })
   })
 
@@ -221,7 +217,7 @@ describe('Search Actions', () => {
     const userToAdd = parsedSearchResults['marcopolo']['keybase'].getIn(['marcopolo', 'keybase'], [])[0]
     dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace: testNamespace, users: [userToAdd]}))
     return Testing.flushPromises().then(() => {
-      expect(getState().chat2.teamBuilding.teamBuildingTeamSoFar).toEqual(I.OrderedSet([userToAdd]))
+      expect(getState().chat2.teamBuilding.teamSoFar).toEqual(I.OrderedSet([userToAdd]))
     })
   })
 
@@ -231,7 +227,7 @@ describe('Search Actions', () => {
     dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace: testNamespace, users: [userToAdd]}))
     dispatch(TeamBuildingGen.createRemoveUsersFromTeamSoFar({namespace: testNamespace, users: ['marcopolo']}))
     return Testing.flushPromises().then(() => {
-      expect(getState().chat2.teamBuilding.teamBuildingTeamSoFar).toEqual(I.OrderedSet())
+      expect(getState().chat2.teamBuilding.teamSoFar).toEqual(I.OrderedSet())
     })
   })
 
@@ -241,8 +237,8 @@ describe('Search Actions', () => {
     dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace: testNamespace, users: [userToAdd]}))
     dispatch(TeamBuildingGen.createFinishedTeamBuilding({namespace: testNamespace}))
     return Testing.flushPromises().then(() => {
-      expect(getState().chat2.teamBuilding.teamBuildingTeamSoFar).toEqual(I.OrderedSet())
-      expect(getState().chat2.teamBuilding.teamBuildingFinishedTeam).toEqual(I.OrderedSet([userToAdd]))
+      expect(getState().chat2.teamBuilding.teamSoFar).toEqual(I.OrderedSet())
+      expect(getState().chat2.teamBuilding.finishedTeam).toEqual(I.OrderedSet([userToAdd]))
     })
   })
 
@@ -252,8 +248,8 @@ describe('Search Actions', () => {
     dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace: testNamespace, users: [userToAdd]}))
     dispatch(TeamBuildingGen.createCancelTeamBuilding({namespace: testNamespace}))
     return Testing.flushPromises().then(() => {
-      expect(getState().chat2.teamBuilding.teamBuildingTeamSoFar).toEqual(I.OrderedSet())
-      expect(getState().chat2.teamBuilding.teamBuildingFinishedTeam).toEqual(I.OrderedSet())
+      expect(getState().chat2.teamBuilding.teamSoFar).toEqual(I.OrderedSet())
+      expect(getState().chat2.teamBuilding.finishedTeam).toEqual(I.OrderedSet())
     })
   })
 })
@@ -325,7 +321,7 @@ describe('Extra search', () => {
       )
       await Testing.flushPromises()
     }
-    const results = getState().chat2.teamBuilding.teamBuildingSearchResults
+    const results = getState().chat2.teamBuilding.searchResults
     const expected = I.Map()
       .mergeIn(['michal@keyba.se'], {
         keybase: [],
