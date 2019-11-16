@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Styles from '../../styles'
 import Avatar, {AvatarSize} from '../avatar'
-import {Box, Box2} from '../box'
+import {Box} from '../box'
 import ClickableBox from '../clickable-box'
 import Icon, {castPlatformStyles, IconType} from '../icon'
 import Text, {TextType, StylesTextCrossPlatform} from '../text'
@@ -14,6 +14,7 @@ export type NameWithIconProps = {
   avatarImageOverride?: string
   avatarSize?: AvatarSize
   avatarStyle?: Styles.StylesCrossPlatform
+  botAlias?: string | React.ReactNode
   colorBroken?: boolean
   colorFollowing?: boolean
   notFollowingColorOverride?: string
@@ -137,6 +138,13 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
         style={this.props.horizontal ? undefined : styles.fullWidthText}
       />
     )
+    const botAlias = (
+      <TextOrComponent
+        textType="BodySmall"
+        val={this.props.botAlias || null}
+        style={this.props.horizontal ? undefined : styles.fullWidthText}
+      />
+    )
     const metas = this.props.horizontal ? (
       <Box style={styles.metasBox}>
         {metaOne}
@@ -177,6 +185,7 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
         >
           {usernameOrTitle}
           {metas}
+          {botAlias}
         </Box>
       </BoxComponent>
     )

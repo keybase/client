@@ -177,11 +177,11 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               {this.props.botAlias ? (
                 <Kb.Box2 direction="horizontal">
                   <Kb.Text type="BodySmallBold" style={{color: Styles.globalColors.black}}>
-                    {this.props.botAlias} (
+                    {this.props.botAlias} [
                   </Kb.Text>
                   {username}
                   <Kb.Text type="BodySmallBold" style={{color: Styles.globalColors.black}}>
-                    )
+                    ]
                   </Kb.Text>
                 </Kb.Box2>
               ) : (
