@@ -248,10 +248,6 @@ const StaticDisclaimer = () => (
     </Kb.Text>
 
     <Kb.Text type="Body" style={Styles.collapseStyles([styles.bodyText, styles.bodyBullet])}>
-      • it doesn't burn more electricity than small nations
-    </Kb.Text>
-
-    <Kb.Text type="Body" style={Styles.collapseStyles([styles.bodyText, styles.bodyBullet])}>
       But there are a few things you must agree to understand before using Stellar on Keybase:
     </Kb.Text>
 
