@@ -1,7 +1,7 @@
 import logger from '../logger'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as I from 'immutable'
-import * as Constants from '../constants/wallets'
+import * as Constants from '../constants/wallets-old'
 import * as Types from '../constants/types/wallets-old'
 import * as WalletsGen from '../actions/wallets-gen'
 import HiddenString from '../util/hidden-string'
