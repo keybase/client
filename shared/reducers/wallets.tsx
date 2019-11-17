@@ -7,6 +7,11 @@ import * as WalletsGen from '../actions/wallets-gen'
 import HiddenString from '../util/hidden-string'
 import teamBuildingReducer from './team-building'
 
+import reducerOLD from './wallets-old'
+import * as ConstantsOLD from '../constants/wallets-old'
+import * as TypesOLD from '../constants/types/wallets-old'
+
+
 const initialState: Types.State = Constants.makeState()
 
 const reduceAssetMap = (
@@ -21,10 +26,10 @@ const reduceAssetMap = (
     )
   )
 
-export default function(
+const newReducer = (
   state: Types.State = initialState,
   action: WalletsGen.Actions | TeamBuildingGen.Actions
-): Types.State {
+): Types.State => {
   switch (action.type) {
     case WalletsGen.resetStore:
       return {...initialState, staticConfig: state.staticConfig}
@@ -614,3 +619,25 @@ export default function(
       return state
   }
 }
+
+if (__DEV__) {
+    console.log(new Array(100).fill('wallets reducer double check').join('\n'))
+}
+
+const doubleCheck = (
+  state: Types.State = initialState,
+  action: WalletsGen.Actions | TeamBuildingGen.Actions
+): Types.State => {
+    const nextState = newReducer(state, action)
+
+    if (__DEV__) {
+        // TODO transform
+        const s = ConstantsOLD.makeState(state)
+        const nextStateOLD   = reducerOLD(s,action)
+        // TODO compare
+    }
+
+    return nextState
+}
+
+export default doubleCheck
