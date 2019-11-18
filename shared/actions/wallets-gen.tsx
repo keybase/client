@@ -189,7 +189,7 @@ type _CreateNewAccountPayload = {
   readonly setBuildingTo?: boolean
 }
 type _CreatedNewAccountPayload = {
-  readonly accountID?: Types.AccountID
+  readonly accountID: Types.AccountID
   readonly showOnCreation?: boolean
   readonly setBuildingTo?: boolean
   readonly name?: string
@@ -216,7 +216,7 @@ type _LinkExistingAccountPayload = {
   readonly setBuildingTo?: boolean
 }
 type _LinkedExistingAccountPayload = {
-  readonly accountID?: Types.AccountID
+  readonly accountID: Types.AccountID
   readonly showOnCreation?: boolean
   readonly setBuildingTo?: boolean
   readonly name?: string
@@ -860,14 +860,15 @@ export const createValidatedAccountName = (
 /**
  * The service responded with an error or that the create new account operation succeeded
  */
-export const createCreatedNewAccount = (
-  payload: _CreatedNewAccountPayload = Object.freeze({})
-): CreatedNewAccountPayload => ({payload, type: createdNewAccount})
+export const createCreatedNewAccount = (payload: _CreatedNewAccountPayload): CreatedNewAccountPayload => ({
+  payload,
+  type: createdNewAccount,
+})
 /**
  * The service responded with an error or that the link existing operation succeeded
  */
 export const createLinkedExistingAccount = (
-  payload: _LinkedExistingAccountPayload = Object.freeze({})
+  payload: _LinkedExistingAccountPayload
 ): LinkedExistingAccountPayload => ({payload, type: linkedExistingAccount})
 /**
  * The service responded with an error or that the secret key is valid.

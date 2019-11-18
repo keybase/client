@@ -245,6 +245,7 @@ export const makeTrustline = I.Record<Types._Trustline>({
 })
 export const emptyTrustline = makeTrustline()
 
+// @ts-ignore
 export const makeState = I.Record<Types._State>({
   acceptedDisclaimer: false,
   acceptingDisclaimerDelay: false,

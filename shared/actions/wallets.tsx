@@ -143,7 +143,7 @@ const createNewAccount = async (
     })
   } catch (err) {
     logger.warn(`Error: ${err.desc}`)
-    return WalletsGen.createCreatedNewAccount({error: err.desc, name})
+    return WalletsGen.createCreatedNewAccount({accountID: Types.noAccountID, error: err.desc, name})
   }
 }
 
@@ -740,7 +740,12 @@ const linkExistingAccount = async (
     })
   } catch (err) {
     logger.warn(`Error: ${err.desc}`)
-    return WalletsGen.createLinkedExistingAccount({error: err.desc, name, secretKey})
+    return WalletsGen.createLinkedExistingAccount({
+      accountID: Types.noAccountID,
+      error: err.desc,
+      name,
+      secretKey,
+    })
   }
 }
 

@@ -9,8 +9,6 @@ import teamBuildingReducer from './team-building'
 
 import reducerOLD from './wallets-old'
 import * as ConstantsOLD from '../constants/wallets-old'
-import * as TypesOLD from '../constants/types/wallets-old'
-
 
 const initialState: Types.State = Constants.makeState()
 
@@ -621,23 +619,47 @@ const newReducer = (
 }
 
 if (__DEV__) {
-    console.log(new Array(100).fill('wallets reducer double check').join('\n'))
+  console.log(new Array(100).fill('wallets reducer double check').join('\n'))
 }
 
 const doubleCheck = (
   state: Types.State = initialState,
   action: WalletsGen.Actions | TeamBuildingGen.Actions
 ): Types.State => {
-    const nextState = newReducer(state, action)
+  const nextState = newReducer(state, action)
 
-    if (__DEV__) {
-        // TODO transform
-        const s = ConstantsOLD.makeState(state)
-        const nextStateOLD   = reducerOLD(s,action)
-        // TODO compare
+  if (__DEV__) {
+    const s = ConstantsOLD.makeState(state)
+    const nextStateOLD = reducerOLD(s, action)
+    const o: any = {
+      ...nextStateOLD.toJS(),
+      reviewLastSeqno: nextStateOLD.reviewLastSeqno || null,
+      sep7ConfirmInfo: nextStateOLD.sep7ConfirmInfo || null,
+      staticConfig: nextStateOLD.staticConfig || null,
     }
 
-    return nextState
+    const n: any = {
+      ...nextState,
+      reviewLastSeqno: nextState.reviewLastSeqno || null,
+      sep7ConfirmInfo: nextState.sep7ConfirmInfo || null,
+      staticConfig: nextState.staticConfig || null,
+    }
+
+    let same = true
+    Object.keys(o).forEach(k => {
+      const so = JSON.stringify(o[k])
+      const sn = JSON.stringify(n[k])
+      if (so !== sn) {
+        same = false
+        console.log('aaa diff', k, so, sn)
+      }
+    })
+    if (same) {
+      console.log('aaa same')
+    }
+  }
+
+  return nextState
 }
 
 export default doubleCheck

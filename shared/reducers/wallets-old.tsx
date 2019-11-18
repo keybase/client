@@ -1,3 +1,4 @@
+// @ts-
 import logger from '../logger'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as I from 'immutable'
@@ -75,7 +76,9 @@ export default function(
           currency:
             action.payload.currency || // explicitly set
             (state.lastSentXLM && 'XLM') || // lastSentXLM override
+            // @ts-ignore
             (action.payload.from && Constants.getDisplayCurrencyInner(state, action.payload.from).code) || // display currency of explicitly set 'from' account
+            // @ts-ignore
             Constants.getDefaultDisplayCurrencyInner(state).code || // display currency of default account
             '', // Empty string -> not loaded
           from: action.payload.from || Types.noAccountID,
@@ -148,6 +151,7 @@ export default function(
     case WalletsGen.displayCurrenciesReceived:
       return state.merge({currencies: I.List(action.payload.currencies)})
     case WalletsGen.displayCurrencyReceived: {
+      // @ts-ignore
       const account = Constants.getAccountInner(state, action.payload.accountID || Types.noAccountID)
       if (account.accountID === Types.noAccountID) {
         return state

@@ -106,7 +106,7 @@
     },
     "createdNewAccount": {
       "_description": "The service responded with an error or that the create new account operation succeeded",
-      "accountID?": "Types.AccountID",
+      "accountID": "Types.AccountID",
       "showOnCreation?": "boolean",
       "setBuildingTo?": "boolean",
       "name?": "string",
@@ -383,7 +383,7 @@
     },
     "linkedExistingAccount": {
       "_description": "The service responded with an error or that the link existing operation succeeded",
-      "accountID?": "Types.AccountID",
+      "accountID": "Types.AccountID",
       "showOnCreation?": "boolean",
       "setBuildingTo?": "boolean",
       "name?": "string",
