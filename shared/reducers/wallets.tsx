@@ -243,168 +243,135 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [WalletsGen.setBuildingAmount]: (draftState, action) => {
     const {amount} = action.payload
-      draftState.building= state.building.merge({amount})
-      draftState.builtPayment= state.builtPayment.merge({amountErrMsg: '', worthDescription: '', worthInfo: ''})
-      draftState.builtRequest= state.builtRequest.merge({amountErrMsg: '', worthDescription: '', worthInfo: ''})
+    draftState.building = draftState.building.merge({amount})
+    draftState.builtPayment = draftState.builtPayment.merge({
+      amountErrMsg: '',
+      worthDescription: '',
+      worthInfo: '',
+    })
+    draftState.builtRequest = draftState.builtRequest.merge({
+      amountErrMsg: '',
+      worthDescription: '',
+      worthInfo: '',
+    })
   },
   [WalletsGen.setBuildingCurrency]: (draftState, action) => {
     const {currency} = action.payload
-    return {
-      ...state,
-      building: state.building.merge({currency}),
-      builtPayment: Constants.makeBuiltPayment(),
-    }
+    draftState.building = draftState.building.merge({currency})
+    draftState.builtPayment = Constants.makeBuiltPayment()
   },
   [WalletsGen.setBuildingFrom]: (draftState, action) => {
     const {from} = action.payload
-    return {...state, building: state.building.merge({from}), builtPayment: Constants.makeBuiltPayment()}
+    draftState.building = draftState.building.merge({from})
+    draftState.builtPayment = Constants.makeBuiltPayment()
   },
   [WalletsGen.setBuildingIsRequest]: (draftState, action) => {
     const {isRequest} = action.payload
-    return {
-      ...state,
-      building: state.building.merge({isRequest}),
-      builtPayment: Constants.makeBuiltPayment(),
-      builtRequest: Constants.makeBuiltRequest(),
-    }
+    draftState.building = draftState.building.merge({isRequest})
+    draftState.builtPayment = Constants.makeBuiltPayment()
+    draftState.builtRequest = Constants.makeBuiltRequest()
   },
   [WalletsGen.setBuildingPublicMemo]: (draftState, action) => {
     const {publicMemo} = action.payload
-    return {
-      ...state,
-      building: state.building.merge({publicMemo}),
-      builtPayment: state.builtPayment.merge({publicMemoErrMsg: new HiddenString('')}),
-    }
+    draftState.building = draftState.building.merge({publicMemo})
+    draftState.builtPayment = draftState.builtPayment.merge({publicMemoErrMsg: new HiddenString('')})
   },
   [WalletsGen.setBuildingRecipientType]: (draftState, action) => {
     const {recipientType} = action.payload
-    return {
-      ...state,
-      building: state.building.merge({recipientType}),
-      builtPayment: Constants.makeBuiltPayment(),
-    }
+    draftState.building = draftState.building.merge({recipientType})
+    draftState.builtPayment = Constants.makeBuiltPayment()
   },
   [WalletsGen.setBuildingSecretNote]: (draftState, action) => {
     const {secretNote} = action.payload
-    return {
-      ...state,
-      building: state.building.merge({secretNote}),
-      builtPayment: state.builtPayment.merge({secretNoteErrMsg: new HiddenString('')}),
-      builtRequest: state.builtRequest.merge({secretNoteErrMsg: new HiddenString('')}),
-    }
+    draftState.building = draftState.building.merge({secretNote})
+    draftState.builtPayment = draftState.builtPayment.merge({secretNoteErrMsg: new HiddenString('')})
+    draftState.builtRequest = draftState.builtRequest.merge({secretNoteErrMsg: new HiddenString('')})
   },
   [WalletsGen.setBuildingTo]: (draftState, action) => {
     const {to} = action.payload
-    return {
-      ...state,
-      building: state.building.merge({to}),
-      builtPayment: state.builtPayment.merge({toErrMsg: ''}),
-      builtRequest: state.builtRequest.merge({toErrMsg: ''}),
-    }
+    draftState.building = draftState.building.merge({to})
+    draftState.builtPayment = draftState.builtPayment.merge({toErrMsg: ''})
+    draftState.builtRequest = draftState.builtRequest.merge({toErrMsg: ''})
   },
-  [WalletsGen.clearBuildingAdvanced]: (draftState, action) => {
-    return {
-      ...state,
-      buildingAdvanced: Constants.emptyBuildingAdvanced,
-      builtPaymentAdvanced: Constants.emptyBuiltPaymentAdvanced,
-    }
+  [WalletsGen.clearBuildingAdvanced]: draftState => {
+    draftState.buildingAdvanced = Constants.emptyBuildingAdvanced
+    draftState.builtPaymentAdvanced = Constants.emptyBuiltPaymentAdvanced
   },
   [WalletsGen.setBuildingAdvancedRecipient]: (draftState, action) => {
-    return {...state, buildingAdvanced: state.buildingAdvanced.set('recipient', action.payload.recipient)}
+    draftState.buildingAdvanced = draftState.buildingAdvanced.set('recipient', action.payload.recipient)
   },
   [WalletsGen.setBuildingAdvancedRecipientAmount]: (draftState, action) => {
-    return {
-      ...state,
-      buildingAdvanced: state.buildingAdvanced.set('recipientAmount', action.payload.recipientAmount),
-      builtPaymentAdvanced: Constants.emptyBuiltPaymentAdvanced,
-    }
+    draftState.buildingAdvanced = draftState.buildingAdvanced.set(
+      'recipientAmount',
+      action.payload.recipientAmount
+    )
+    draftState.builtPaymentAdvanced = Constants.emptyBuiltPaymentAdvanced
   },
   [WalletsGen.setBuildingAdvancedRecipientAsset]: (draftState, action) => {
-    return {
-      ...state,
-      buildingAdvanced: state.buildingAdvanced.set('recipientAsset', action.payload.recipientAsset),
-      builtPaymentAdvanced: Constants.emptyBuiltPaymentAdvanced,
-    }
+    draftState.buildingAdvanced = draftState.buildingAdvanced.set(
+      'recipientAsset',
+      action.payload.recipientAsset
+    )
+    draftState.builtPaymentAdvanced = Constants.emptyBuiltPaymentAdvanced
   },
   [WalletsGen.setBuildingAdvancedRecipientType]: (draftState, action) => {
-    return {
-      ...state,
-      buildingAdvanced: state.buildingAdvanced.set('recipientType', action.payload.recipientType),
-    }
+      draftState.buildingAdvanced= draftState.buildingAdvanced.set('recipientType', action.payload.recipientType)
   },
   [WalletsGen.setBuildingAdvancedPublicMemo]: (draftState, action) => {
-    return {
-      ...state,
-      buildingAdvanced: state.buildingAdvanced.set('publicMemo', action.payload.publicMemo),
+      draftState.buildingAdvanced= draftState.buildingAdvanced.set('publicMemo', action.payload.publicMemo)
       // TODO PICNIC-142 clear error when we have that
-    }
   },
   [WalletsGen.setBuildingAdvancedSenderAccountID]: (draftState, action) => {
-    return {
-      ...state,
-      buildingAdvanced: state.buildingAdvanced.set('senderAccountID', action.payload.senderAccountID),
-    }
+      draftState.buildingAdvanced= draftState.buildingAdvanced.set('senderAccountID', action.payload.senderAccountID)
   },
   [WalletsGen.setBuildingAdvancedSenderAsset]: (draftState, action) => {
-    return {
-      ...state,
-      buildingAdvanced: state.buildingAdvanced.set('senderAsset', action.payload.senderAsset),
-      builtPaymentAdvanced: Constants.emptyBuiltPaymentAdvanced,
-    }
+      draftState.buildingAdvanced= draftState.buildingAdvanced.set('senderAsset', action.payload.senderAsset)
+      draftState.builtPaymentAdvanced= Constants.emptyBuiltPaymentAdvanced
   },
   [WalletsGen.setBuildingAdvancedSecretNote]: (draftState, action) => {
-    return {
-      ...state,
-      buildingAdvanced: state.buildingAdvanced.set('secretNote', action.payload.secretNote),
+      draftState.buildingAdvanced= draftState.buildingAdvanced.set('secretNote', action.payload.secretNote)
       // TODO PICNIC-142 clear error when we have that
-    }
   },
   [WalletsGen.sendAssetChoicesReceived]: (draftState, action) => {
     const {sendAssetChoices} = action.payload
-    return {...state, building: state.building.merge({sendAssetChoices})}
+    draftState. building= draftState.building.merge({sendAssetChoices})
   },
   [WalletsGen.buildingPaymentIDReceived]: (draftState, action) => {
     const {bid} = action.payload
-    return {...state, building: state.building.merge({bid})}
+    draftState. building= draftState.building.merge({bid})
   },
   [WalletsGen.setLastSentXLM]: (draftState, action) => {
-    return {...state, lastSentXLM: action.payload.lastSentXLM}
+    draftState. lastSentXLM= action.payload.lastSentXLM
   },
   [WalletsGen.setReadyToReview]: (draftState, action) => {
-    return {...state, builtPayment: state.builtPayment.merge({readyToReview: action.payload.readyToReview})}
+    draftState. builtPayment= draftState.builtPayment.merge({readyToReview: action.payload.readyToReview})
   },
   [WalletsGen.validateAccountName]: (draftState, action) => {
-    return {...state, accountName: action.payload.name, accountNameValidationState: 'waiting'}
+    draftState. accountName= action.payload.name, accountNameValidationState: 'waiting'
   },
   [WalletsGen.validatedAccountName]: (draftState, action) => {
-    if (action.payload.name !== state.accountName) {
+    if (action.payload.name !== draftState.accountName) {
       // this wasn't from the most recent call
-      return state
+      return 
     }
-    return {
-      ...state,
-      accountName: '',
-      accountNameError: action.payload.error ? action.payload.error : '',
-      accountNameValidationState: action.payload.error ? 'error' : 'valid',
-    }
+      draftState.accountName= ''
+      draftState.accountNameError= action.payload.error ? action.payload.error : ''
+      draftState.accountNameValidationState= action.payload.error ? 'error' : 'valid'
   },
   [WalletsGen.validateSecretKey]: (draftState, action) => {
-    return {...state, secretKey: action.payload.secretKey, secretKeyValidationState: 'waiting'}
+    draftState. secretKey= action.payload.secretKey, secretKeyValidationState: 'waiting'
   },
   [WalletsGen.validatedSecretKey]: (draftState, action) => {
-    if (action.payload.secretKey.stringValue() !== state.secretKey.stringValue()) {
+    if (action.payload.secretKey.stringValue() !== draftState.secretKey.stringValue()) {
       // this wasn't from the most recent call
-      return state
+      return 
     }
-    return {
-      ...state,
-      secretKey: new HiddenString(''),
-      secretKeyError: action.payload.error ? action.payload.error : '',
-      secretKeyValidationState: action.payload.error ? 'error' : 'valid',
-    }
+      draftState.secretKey= new HiddenString('')
+      draftState.secretKeyError= action.payload.error ? action.payload.error : ''
+      draftState.secretKeyValidationState= action.payload.error ? 'error' : 'valid'
   },
   [WalletsGen.changedTrustline]: (draftState, action) => {
-    return {...state, changeTrustlineError: action.payload.error || ''}
+    draftState. changeTrustlineError= action.payload.error || ''
   },
   [WalletsGen.clearErrors]: (draftState, action) => {
     return {
@@ -412,7 +379,7 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
       accountName: '',
       accountNameError: '',
       accountNameValidationState: 'none',
-      builtPayment: state.builtPayment.merge({readyToSend: 'spinning'}),
+      builtPayment: draftState.builtPayment.merge({readyToSend: 'spinning'}),
       changeTrustlineError: '',
       createNewAccountError: '',
       linkExistingAccountError: '',
@@ -460,7 +427,7 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [WalletsGen.loadMorePayments]: (draftState, action) => {
     return state.paymentCursorMap.get(action.payload.accountID)
-      ? {...state, paymentLoadingMoreMap: state.paymentLoadingMoreMap.set(action.payload.accountID, true)}
+      ? {...state, paymentLoadingMoreMap: draftState.paymentLoadingMoreMap.set(action.payload.accountID, true)}
       : state
   },
   [WalletsGen.badgesUpdated]: (draftState, action) => {
@@ -483,7 +450,7 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
   [WalletsGen.loadedMobileOnlyMode]: (draftState, action) => {
     return {
       ...state,
-      mobileOnlyMap: state.mobileOnlyMap.set(action.payload.accountID, action.payload.enabled),
+      mobileOnlyMap: draftState.mobileOnlyMap.set(action.payload.accountID, action.payload.enabled),
     }
   },
   [WalletsGen.updatedAirdropState]: (draftState, action) => {
@@ -527,7 +494,7 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
   [WalletsGen.setTrustlineExpanded]: (draftState, action) => {
     return {
       ...state,
-      trustline: state.trustline.update('expandedAssets', expandedAssets =>
+      trustline: draftState.trustline.update('expandedAssets', expandedAssets =>
         action.payload.expanded
           ? expandedAssets.add(action.payload.assetID)
           : expandedAssets.delete(action.payload.assetID)
@@ -565,7 +532,7 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
   [WalletsGen.setTrustlinePopularAssets]: (draftState, action) => {
     return {
       ...state,
-      trustline: state.trustline.withMutations(trustline =>
+      trustline: draftState.trustline.withMutations(trustline =>
         trustline
           .set(
             'popularAssets',
@@ -580,12 +547,12 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
   [WalletsGen.setTrustlineSearchText]: (draftState, action) => {
     return action.payload.text
       ? state
-      : {...state, trustline: state.trustline.set('searchingAssets', I.List())}
+      : {...state, trustline: draftState.trustline.set('searchingAssets', I.List())}
   },
   [WalletsGen.setTrustlineSearchResults]: (draftState, action) => {
     return {
       ...state,
-      trustline: state.trustline
+      trustline: draftState.trustline
         .set(
           'searchingAssets',
           I.List(action.payload.assets.map(asset => Types.assetDescriptionToAssetID(asset)))
@@ -594,7 +561,7 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
     }
   },
   [WalletsGen.clearTrustlineSearchResults]: (draftState, action) => {
-    return {...state, trustline: state.trustline.set('searchingAssets', undefined)}
+    return {...state, trustline: draftState.trustline.set('searchingAssets', undefined)}
   },
   [WalletsGen.setBuiltPaymentAdvanced]: (draftState, action) => {
     return action.payload.forSEP7
