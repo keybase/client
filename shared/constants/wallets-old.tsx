@@ -1,5 +1,5 @@
 import * as I from 'immutable'
-import * as Types from './types/wallets'
+import * as Types from './types/wallets-old'
 import * as RPCTypes from './types/rpc-stellar-gen'
 import * as Styles from '../styles'
 import {AllowedColors} from '../common-adapters/text'
@@ -8,10 +8,14 @@ import * as Tabs from './tabs'
 import * as Flow from '../util/flow'
 import * as SettingsConstants from './settings'
 import invert from 'lodash/invert'
-import {TypedState} from './reducer'
+import {TypedState as _TypedState} from './reducer'
 import HiddenString from '../util/hidden-string'
 import flags from '../util/feature-flags'
 import * as TeamBuildingConstants from './team-building'
+
+type TypedState = _TypedState & {
+  wallets: Types.State
+}
 
 export const balanceDeltaToString = invert(RPCTypes.BalanceDelta) as {
   [K in RPCTypes.BalanceDelta]: keyof typeof RPCTypes.BalanceDelta

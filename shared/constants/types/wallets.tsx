@@ -398,7 +398,7 @@ export type State = Readonly<{
   builtRequest: BuiltRequest
   changeTrustlineError: string
   createNewAccountError: string
-  currencies: I.List<Currency>
+  currencies: Array<Currency>
   exportedSecretKey: HiddenString
   exportedSecretKeyAccountID: AccountID
   externalPartners: I.List<PartnerUrl>

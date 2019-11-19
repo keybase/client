@@ -184,7 +184,7 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
     )
   },
   [WalletsGen.displayCurrenciesReceived]: (draftState, action) => {
-    draftState.currencies = I.List(action.payload.currencies)
+    draftState.currencies = action.payload.currencies
   },
   [WalletsGen.displayCurrencyReceived]: (draftState, action) => {
     const account = Constants.getAccountInner(
@@ -600,6 +600,8 @@ const doubleCheck = (
   if (__DEV__) {
     const s = ConstantsOLD.makeState({
       ...state,
+      currencies: state ? I.List(state.currencies) : undefined,
+      mobileOnlyMap: state ? I.Map(mapToObject(state.mobileOnlyMap) as any) : undefined,
       unreadPaymentsMap: state ? I.Map(mapToObject(state.unreadPaymentsMap) as any) : undefined,
     })
     const nextStateOLD = reducerOLD(s, action)

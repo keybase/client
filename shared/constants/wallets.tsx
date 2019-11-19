@@ -265,7 +265,7 @@ export const makeState = (): Types.State => ({
   builtRequest: makeBuiltRequest(),
   changeTrustlineError: '',
   createNewAccountError: '',
-  currencies: I.List(),
+  currencies: [],
   exportedSecretKey: new HiddenString(''),
   exportedSecretKeyAccountID: Types.noAccountID,
   externalPartners: I.List(),
@@ -808,7 +808,7 @@ export const isAccountLoaded = (state: TypedState, accountID: Types.AccountID) =
 
 export const isFederatedAddress = (address: string | null) => (address ? address.includes('*') : false)
 
-export const displayCurrenciesLoaded = (state: TypedState) => state.wallets.currencies.size > 0
+export const displayCurrenciesLoaded = (state: TypedState) => state.wallets.currencies.length > 0
 
 export const getCurrencyAndSymbol = (state: TypedState, code: string) => {
   if (!state.wallets.currencies || !code) {
