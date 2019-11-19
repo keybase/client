@@ -29,7 +29,7 @@ const reduceAssetMap = (
 type Actions = WalletsGen.Actions | TeamBuildingGen.Actions
 const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
   [WalletsGen.resetStore]: draftState => {
-    return {...initialState, staticConfig: draftState.staticConfig}
+    return {...initialState, staticConfig: draftState.staticConfig} as Types.State
   },
   [WalletsGen.didSetAccountAsDefault]: (draftState, action) => {
     const accountMap: I.OrderedMap<Types.AccountID, Types.Account> = I.OrderedMap(
