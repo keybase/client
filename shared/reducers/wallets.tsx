@@ -67,7 +67,7 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
       const {accountID} = account
       const old = draftState.accountMap.get(accountID)
       if (old) {
-        draftState.accountMap.set(accountID, old.merge(account))
+        draftState.accountMap = draftState.accountMap.set(accountID, old.merge(account))
       }
     }
   },
