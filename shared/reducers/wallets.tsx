@@ -600,7 +600,7 @@ const doubleCheck = (
   if (__DEV__) {
     const s = ConstantsOLD.makeState({
       ...state,
-      unreadPaymentsMap: state ? I.Map(mapToObject(state.unreadPaymentsMap)) : undefined,
+      unreadPaymentsMap: state ? I.Map(mapToObject(state.unreadPaymentsMap) as any) : undefined,
     })
     const nextStateOLD = reducerOLD(s, action)
     const o: any = {
