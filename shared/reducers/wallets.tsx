@@ -72,7 +72,7 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
     }
   },
   [WalletsGen.assetsReceived]: (draftState, action) => {
-    draftState.assetsMap.set(action.payload.accountID, I.List(action.payload.assets))
+    draftState.assetsMap = draftState.assetsMap.set(action.payload.accountID, I.List(action.payload.assets))
   },
   [WalletsGen.buildPayment]: draftState => {
     draftState.buildCounter++
@@ -606,7 +606,7 @@ const doubleCheck = (
       const sn = JSON.stringify(n[k])
       if (so !== sn) {
         same = false
-        console.log('aaa diff', k, so, sn)
+        console.log('aaa diff', k, so, sn, action)
       }
     })
     if (same) {
