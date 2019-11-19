@@ -281,7 +281,6 @@ export const makeState = I.Record<Types._State>({
   reviewLastSeqno: null,
   secretKey: new HiddenString(''),
   secretKeyError: '',
-  secretKeyMap: I.Map(),
   secretKeyValidationState: 'none',
   selectedAccount: Types.noAccountID,
   sentPaymentError: '',

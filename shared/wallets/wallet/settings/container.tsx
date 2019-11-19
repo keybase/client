@@ -60,7 +60,7 @@ const mapStateToProps = (state: Container.TypedState) => {
   const saveCurrencyWaiting = anyWaiting(state, Constants.changeDisplayCurrencyWaitingKey)
   const thisDeviceIsLockedOut = account.deviceReadOnly
   const secretKey = !thisDeviceIsLockedOut ? Constants.getSecretKey(state, accountID).stringValue() : ''
-  const mobileOnlyMode = state.wallets.mobileOnlyMap.get(accountID, false)
+  const mobileOnlyMode = state.wallets.mobileOnlyMap.get(accountID) ?? false
   const mobileOnlyWaiting = anyWaiting(state, Constants.setAccountMobileOnlyWaitingKey(accountID))
   const canSubmitTx = account.canSubmitTx
   const externalPartners = Constants.getExternalPartners(state)

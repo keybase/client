@@ -404,7 +404,7 @@ export type State = Readonly<{
   externalPartners: I.List<PartnerUrl>
   lastSentXLM: boolean
   linkExistingAccountError: string
-  mobileOnlyMap: I.Map<AccountID, boolean>
+  mobileOnlyMap: Map<AccountID, boolean>
   paymentCursorMap: I.Map<AccountID, StellarRPCTypes.PageCursor | null>
   paymentLoadingMoreMap: I.Map<AccountID, boolean>
   paymentOldestUnreadMap: I.Map<AccountID, PaymentID>
@@ -413,7 +413,6 @@ export type State = Readonly<{
   reviewLastSeqno?: number // last UIPaymentReviewed.seqno received from the active review,
   secretKey: HiddenString
   secretKeyError: string
-  secretKeyMap: I.Map<AccountID, HiddenString>
   secretKeyValidationState: ValidationState
   selectedAccount: AccountID
   sentPaymentError: string

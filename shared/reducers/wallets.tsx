@@ -438,8 +438,8 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
     }
   },
   [WalletsGen.badgesUpdated]: (draftState, action) => {
-    draftState.unreadPaymentsMap = new Map(
-      action.payload.accounts.map(({accountID, numUnread}) => [accountID, numUnread])
+    action.payload.accounts.forEach(({accountID, numUnread}) =>
+      draftState.unreadPaymentsMap.set(accountID, numUnread)
     )
   },
   [WalletsGen.walletDisclaimerReceived]: (draftState, action) => {
@@ -452,7 +452,7 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
     draftState.acceptingDisclaimerDelay = false
   },
   [WalletsGen.loadedMobileOnlyMode]: (draftState, action) => {
-    draftState.mobileOnlyMap = draftState.mobileOnlyMap.set(action.payload.accountID, action.payload.enabled)
+    draftState.mobileOnlyMap.set(action.payload.accountID, action.payload.enabled)
   },
   [WalletsGen.updatedAirdropState]: (draftState, action) => {
     draftState.airdropQualifications = I.List(action.payload.airdropQualifications)
@@ -578,19 +578,37 @@ if (__DEV__) {
 }
 
 const doubleCheck = (
-  state: Types.State = initialState,
+  state: Types.State | undefined,
   action: WalletsGen.Actions | TeamBuildingGen.Actions
 ): Types.State => {
   const nextState = newReducer(state, action)
 
+  const sortObject = (o: Object) =>
+    Object.keys(o)
+      .sort()
+      .reduce<Object>((obj, k) => {
+        obj[k] = o[k]
+        return obj
+      }, {})
+
+  const mapToObject = (m: Map<any, any>) =>
+    [...m.entries()].reduce<Object>((obj, [k, v]) => {
+      obj[k] = v
+      return obj
+    }, {})
+
   if (__DEV__) {
-    const s = ConstantsOLD.makeState(state)
+    const s = ConstantsOLD.makeState({
+      ...state,
+      unreadPaymentsMap: state ? I.Map(mapToObject(state.unreadPaymentsMap)) : undefined,
+    })
     const nextStateOLD = reducerOLD(s, action)
     const o: any = {
       ...nextStateOLD.toJS(),
       reviewLastSeqno: nextStateOLD.reviewLastSeqno || null,
       sep7ConfirmInfo: nextStateOLD.sep7ConfirmInfo || null,
       staticConfig: nextStateOLD.staticConfig || null,
+      unreadPaymentsMap: sortObject(nextStateOLD.unreadPaymentsMap.toJS()),
     }
 
     const n: any = {
@@ -598,6 +616,7 @@ const doubleCheck = (
       reviewLastSeqno: nextState.reviewLastSeqno || null,
       sep7ConfirmInfo: nextState.sep7ConfirmInfo || null,
       staticConfig: nextState.staticConfig || null,
+      unreadPaymentsMap: sortObject(mapToObject(nextState.unreadPaymentsMap)),
     }
 
     let same = true

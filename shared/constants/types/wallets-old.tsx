@@ -413,7 +413,6 @@ export type _State = {
   reviewLastSeqno: number | null // last UIPaymentReviewed.seqno received from the active review,
   secretKey: HiddenString
   secretKeyError: string
-  secretKeyMap: I.Map<AccountID, HiddenString>
   secretKeyValidationState: ValidationState
   selectedAccount: AccountID
   sentPaymentError: string
