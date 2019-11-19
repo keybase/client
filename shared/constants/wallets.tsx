@@ -291,7 +291,7 @@ export const makeState = (): Types.State => ({
   sep7SendError: '',
   teamBuilding: TeamBuildingConstants.makeSubState(),
   trustline: emptyTrustline,
-  unreadPaymentsMap: I.Map(),
+  unreadPaymentsMap: new Map(),
 })
 
 export const buildPaymentResultToBuiltPayment = (b: RPCTypes.BuildPaymentResLocal) =>

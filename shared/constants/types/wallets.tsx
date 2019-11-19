@@ -427,5 +427,5 @@ export type State = Readonly<{
   staticConfig?: StaticConfig
   teamBuilding: TeamBuildingTypes.TeamBuildingSubState
   trustline: Trustline
-  unreadPaymentsMap: I.Map<string, number>
+  unreadPaymentsMap: Map<string, number>
 }>

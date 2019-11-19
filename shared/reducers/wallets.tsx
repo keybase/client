@@ -438,7 +438,7 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
     }
   },
   [WalletsGen.badgesUpdated]: (draftState, action) => {
-    draftState.unreadPaymentsMap = I.Map(
+    draftState.unreadPaymentsMap = new Map(
       action.payload.accounts.map(({accountID, numUnread}) => [accountID, numUnread])
     )
   },

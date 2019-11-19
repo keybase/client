@@ -21,7 +21,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     keybaseUser,
     name,
     selectedAccount,
-    unreadPayments: state.wallets.unreadPaymentsMap.get(ownProps.accountID, 0),
+    unreadPayments: state.wallets.unreadPaymentsMap.get(ownProps.accountID) ?? 0,
   }
 }
 
