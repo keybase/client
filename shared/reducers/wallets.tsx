@@ -132,22 +132,20 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
     draftState.externalPartners = action.payload.externalPartners
   },
   [WalletsGen.paymentDetailReceived]: (draftState, action) => {
-    draftState.paymentsMap = draftState.paymentsMap.update(
+    const old = draftState.paymentsMap.get(action.payload.accountID) ?? new Map()
+    draftState.paymentsMap.set(
       action.payload.accountID,
-      (paymentsMap = I.Map()) => Constants.updatePaymentDetail(paymentsMap, action.payload.payment)
+      Constants.updatePaymentDetail(old, action.payload.payment)
     )
   },
   [WalletsGen.paymentsReceived]: (draftState, action) => {
-    draftState.paymentsMap = draftState.paymentsMap.update(
+    const old = draftState.paymentsMap.get(action.payload.accountID) ?? new Map()
+    draftState.paymentsMap.set(
       action.payload.accountID,
-      (paymentsMap = I.Map()) =>
-        Constants.updatePaymentsReceived(paymentsMap, [...action.payload.payments, ...action.payload.pending])
+      Constants.updatePaymentsReceived(old, [...action.payload.payments, ...action.payload.pending])
     )
-    draftState.paymentCursorMap = draftState.paymentCursorMap.set(
-      action.payload.accountID,
-      action.payload.paymentCursor
-    )
-    draftState.paymentLoadingMoreMap = draftState.paymentLoadingMoreMap.set(action.payload.accountID, false)
+    draftState.paymentCursorMap.set(action.payload.accountID, action.payload.paymentCursor)
+    draftState.paymentLoadingMoreMap.set(action.payload.accountID, false)
     // allowClearOldestUnread dictates whether this action is allowed to delete the value of oldestUnread.
     // GetPaymentsLocal can erroneously return an empty oldestUnread value when a non-latest page is requested
     // and oldestUnread points into the latest page.
@@ -155,33 +153,27 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
       action.payload.allowClearOldestUnread ||
       (action.payload.oldestUnread || Types.noPaymentID) !== Types.noPaymentID
     ) {
-      draftState.paymentOldestUnreadMap = draftState.paymentOldestUnreadMap.set(
-        action.payload.accountID,
-        action.payload.oldestUnread
-      )
+      draftState.paymentOldestUnreadMap.set(action.payload.accountID, action.payload.oldestUnread)
     }
   },
   [WalletsGen.pendingPaymentsReceived]: (draftState, action) => {
-    const newPending = I.Map(action.payload.pending.map(p => [p.id, Constants.makePayment().merge(p)]))
-    draftState.paymentsMap = draftState.paymentsMap.update(
-      action.payload.accountID,
-      (paymentsMap = I.Map()) => paymentsMap.filter((p: any) => p.section !== 'pending').merge(newPending)
-    )
+    const newPending = action.payload.pending.map(p => [p.id, Constants.makePayment(p)])
+    const oldFiltered = [
+      ...(draftState.paymentsMap.get(action.payload.accountID) ?? new Map()).entries(),
+    ].filter(([_k, v]) => v.section !== 'pending')
+    const val = new Map([...oldFiltered, ...newPending])
+    draftState.paymentsMap.set(action.payload.accountID, val)
   },
   [WalletsGen.recentPaymentsReceived]: (draftState, action) => {
-    const newPayments = I.Map(action.payload.payments.map(p => [p.id, Constants.makePayment().merge(p)]))
-    draftState.paymentsMap = draftState.paymentsMap.update(
+    const newPayments = action.payload.payments.map(p => [p.id, Constants.makePayment().merge(p)])
+    const old = (draftState.paymentsMap.get(action.payload.accountID) ?? new Map()).entries()
+
+    draftState.paymentsMap.set(action.payload.accountID, [...old, ...newPayments])
+    draftState.paymentCursorMap.set(
       action.payload.accountID,
-      (paymentsMap = I.Map()) => paymentsMap.merge(newPayments)
+      draftState.paymentCursorMap.get(action.payload.accountID) || action.payload.paymentCursor
     )
-    draftState.paymentCursorMap = draftState.paymentCursorMap.update(
-      action.payload.accountID,
-      cursor => cursor || action.payload.paymentCursor
-    )
-    draftState.paymentOldestUnreadMap = draftState.paymentOldestUnreadMap.set(
-      action.payload.accountID,
-      action.payload.oldestUnread
-    )
+    draftState.paymentOldestUnreadMap.set(action.payload.accountID, action.payload.oldestUnread)
   },
   [WalletsGen.displayCurrenciesReceived]: (draftState, action) => {
     draftState.currencies = action.payload.currencies
@@ -242,8 +234,8 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
       return
     }
 
-    draftState.paymentCursorMap = draftState.paymentCursorMap.delete(old)
-    draftState.paymentsMap = draftState.paymentsMap.delete(old)
+    draftState.paymentCursorMap.delete(old)
+    draftState.paymentsMap.delete(old)
   },
   [WalletsGen.setBuildingAmount]: (draftState, action) => {
     const {amount} = action.payload
@@ -434,7 +426,7 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [WalletsGen.loadMorePayments]: (draftState, action) => {
     if (draftState.paymentCursorMap.get(action.payload.accountID)) {
-      draftState.paymentLoadingMoreMap = draftState.paymentLoadingMoreMap.set(action.payload.accountID, true)
+      draftState.paymentLoadingMoreMap.set(action.payload.accountID, true)
     }
   },
   [WalletsGen.badgesUpdated]: (draftState, action) => {
@@ -604,6 +596,7 @@ const doubleCheck = (
       assetsMap: state ? I.Map(mapToObject(state.assetsMap) as any) : undefined,
       currencies: state ? I.List(state.currencies) : undefined,
       mobileOnlyMap: state ? I.Map(mapToObject(state.mobileOnlyMap) as any) : undefined,
+      paymentCursorMap: state ? I.Map(mapToObject(state.paymentCursorMap) as any) : undefined,
       unreadPaymentsMap: state ? I.Map(mapToObject(state.unreadPaymentsMap) as any) : undefined,
     })
     const nextStateOLD = reducerOLD(s, action)
@@ -611,6 +604,7 @@ const doubleCheck = (
       ...nextStateOLD.toJS(),
       assetsMap: sortObject(nextStateOLD.assetsMap.toJS()),
       mobileOnlyMap: sortObject(nextStateOLD.mobileOnlyMap.toJS()),
+      paymentCursorMap: sortObject(nextStateOLD.paymentCursorMap.toJS()),
       reviewLastSeqno: nextStateOLD.reviewLastSeqno || null,
       sep7ConfirmInfo: nextStateOLD.sep7ConfirmInfo || null,
       staticConfig: nextStateOLD.staticConfig || null,
@@ -621,6 +615,7 @@ const doubleCheck = (
       ...nextState,
       assetsMap: sortObject(mapToObject(nextState.assetsMap)),
       mobileOnlyMap: sortObject(mapToObject(nextState.mobileOnlyMap)),
+      paymentCursorMap: sortObject(mapToObject(nextState.paymentCursorMap)),
       reviewLastSeqno: nextState.reviewLastSeqno || null,
       sep7ConfirmInfo: nextState.sep7ConfirmInfo || null,
       staticConfig: nextState.staticConfig || null,

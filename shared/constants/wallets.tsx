@@ -273,10 +273,10 @@ export const makeState = (): Types.State => ({
   lastSentXLM: false,
   linkExistingAccountError: '',
   mobileOnlyMap: new Map(),
-  paymentCursorMap: I.Map(),
-  paymentLoadingMoreMap: I.Map(),
-  paymentOldestUnreadMap: I.Map(),
-  paymentsMap: I.Map(),
+  paymentCursorMap: new Map(),
+  paymentLoadingMoreMap: new Map(),
+  paymentOldestUnreadMap: new Map(),
+  paymentsMap: new Map(),
   reviewCounter: 0,
   secretKey: new HiddenString(''),
   secretKeyError: '',
@@ -436,7 +436,7 @@ const _defaultPaymentDetail = {
   ..._defaultPaymentCommon,
   externalTxURL: '',
   feeChargedDescription: '',
-  pathIntermediate: I.List(),
+  pathIntermediate: [],
   publicMemo: new HiddenString(''),
   publicMemoType: '',
   txID: '',
@@ -447,11 +447,17 @@ const _defaultPayment = {
   ..._defaultPaymentDetail,
 }
 
-export const makePaymentResult = I.Record<Types._PaymentResult>(_defaultPaymentResult)
+export const makePaymentResult = (p?: Partial<Types.PaymentResult>): Types.PaymentResult => ({
+  ..._defaultPaymentResult,
+  ...p,
+})
 
-export const makePaymentDetail = I.Record<Types._PaymentDetail>(_defaultPaymentDetail)
+export const makePaymentDetail = (p?: Partial<Types.PaymentDetail>): Types.PaymentDetail => ({
+  ..._defaultPaymentDetail,
+  ...p,
+})
 
-export const makePayment = I.Record<Types._Payment>(_defaultPayment)
+export const makePayment = (p?: Partial<Types.Payment>): Types.Payment => ({..._defaultPayment, ...p})
 
 export const makeCurrency = I.Record<Types._LocalCurrency>({
   code: '',

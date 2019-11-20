@@ -218,7 +218,7 @@ export type _PaymentCommon = {
   trustline: StellarRPCTypes.PaymentTrustlineLocal | null
 }
 
-export type _PaymentResult = {
+export type PaymentResult = {
   // Ideally the section field would be in _PaymentCommon. We can
   // derive it from statusDescription, which is either "pending",
   // "completed", or "error", or once
@@ -227,16 +227,16 @@ export type _PaymentResult = {
   section: PaymentSection
 } & _PaymentCommon
 
-export type _PaymentDetail = {
+export type PaymentDetail = {
   externalTxURL: string
-  pathIntermediate: I.List<AssetDescription>
+  pathIntermediate: Array<AssetDescription>
   publicMemo: HiddenString
   publicMemoType: string
   txID: string
   feeChargedDescription: string
 } & _PaymentCommon
 
-export type _Payment = {} & _PaymentResult & _PaymentDetail
+export type Payment = {} & PaymentResult & PaymentDetail
 
 export type _AssetDescription = {
   code: string
@@ -275,10 +275,6 @@ export type BuiltPaymentAdvanced = I.RecordOf<_BuiltPaymentAdvanced>
 export type BuiltPayment = I.RecordOf<_BuiltPayment>
 
 export type BuiltRequest = I.RecordOf<_BuiltRequest>
-
-export type PaymentResult = I.RecordOf<_PaymentResult>
-export type PaymentDetail = I.RecordOf<_PaymentDetail>
-export type Payment = I.RecordOf<_Payment>
 
 export type Currency = I.RecordOf<_LocalCurrency>
 
@@ -401,10 +397,10 @@ export type State = Readonly<{
   lastSentXLM: boolean
   linkExistingAccountError: string
   mobileOnlyMap: Map<AccountID, boolean>
-  paymentCursorMap: I.Map<AccountID, StellarRPCTypes.PageCursor | null>
-  paymentLoadingMoreMap: I.Map<AccountID, boolean>
-  paymentOldestUnreadMap: I.Map<AccountID, PaymentID>
-  paymentsMap: I.Map<AccountID, I.Map<PaymentID, Payment>>
+  paymentCursorMap: Map<AccountID, StellarRPCTypes.PageCursor | null>
+  paymentLoadingMoreMap: Map<AccountID, boolean>
+  paymentOldestUnreadMap: Map<AccountID, PaymentID>
+  paymentsMap: Map<AccountID, Map<PaymentID, Payment>>
   reviewCounter: number // increments when we call reviewPayment,
   reviewLastSeqno?: number // last UIPaymentReviewed.seqno received from the active review,
   secretKey: HiddenString

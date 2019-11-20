@@ -33,7 +33,7 @@ export default Container.connect(
       accountID,
       airdropSelected: Constants.getAirdropSelected(state),
       assets: Constants.getAssets(state, accountID),
-      loadingMore: state.wallets.paymentLoadingMoreMap.get(accountID, false),
+      loadingMore: state.wallets.paymentLoadingMoreMap.get(accountID) ?? false,
       payments: Constants.getPayments(state, accountID),
       thisDeviceIsLockedOut: Constants.getAccount(state, accountID).deviceReadOnly,
     }
