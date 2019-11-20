@@ -60,9 +60,6 @@ export default (
             inviteToLoading.set(action.payload.loadingKey, action.payload.isLoading)
         )
         return
-      case TeamsGen.clearTeamRequests:
-        draftState.teamNameToRequests = draftState.teamNameToRequests.set(action.payload.teamname, I.Set())
-        return
       case TeamsGen.setTeamDetails: {
         const members = Constants.rpcDetailsToMemberInfos(action.payload.members)
         draftState.teamNameToMembers = draftState.teamNameToMembers.set(
@@ -73,18 +70,10 @@ export default (
           action.payload.teamname,
           Constants.makeTeamSettings(action.payload.settings)
         )
-        draftState.teamNameToInvites = draftState.teamNameToInvites.set(
-          action.payload.teamname,
-          I.Set(action.payload.invites.map(i => Constants.makeInviteInfo(i)))
-        )
         draftState.teamNameToSubteams = draftState.teamNameToSubteams.set(
           action.payload.teamname,
           I.Set(action.payload.subteams)
         )
-        const immRequests = I.Map(
-          [...action.payload.requests.entries()].map(([teamname, reqArr]) => [teamname, I.Set(reqArr)])
-        )
-        draftState.teamNameToRequests = draftState.teamNameToRequests.merge(immRequests)
 
         const details =
           draftState.teamDetails.get(action.payload.teamID) ||

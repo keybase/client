@@ -15,7 +15,6 @@ export const addUserToTeams = 'teams:addUserToTeams'
 export const checkRequestedAccess = 'teams:checkRequestedAccess'
 export const clearAddUserToTeamsResults = 'teams:clearAddUserToTeamsResults'
 export const clearNavBadges = 'teams:clearNavBadges'
-export const clearTeamRequests = 'teams:clearTeamRequests'
 export const createChannel = 'teams:createChannel'
 export const createNewTeam = 'teams:createNewTeam'
 export const createNewTeamFromConversation = 'teams:createNewTeamFromConversation'
@@ -97,7 +96,6 @@ type _AddUserToTeamsPayload = {
 type _CheckRequestedAccessPayload = {readonly teamname: string}
 type _ClearAddUserToTeamsResultsPayload = void
 type _ClearNavBadgesPayload = void
-type _ClearTeamRequestsPayload = {readonly teamname: string}
 type _CreateChannelPayload = {
   readonly teamname: string
   readonly channelname: string
@@ -215,7 +213,7 @@ type _SetTeamDetailsPayload = {
   readonly teamname: string
   readonly members: RPCTypes.TeamMembersDetails
   readonly settings: RPCTypes.TeamSettings
-  readonly invites: Array<Types._InviteInfo>
+  readonly invites: Array<Types.InviteInfo>
   readonly subteams: Array<Types.Teamname>
   readonly requests: Map<string, Array<string>>
   readonly subteamIDs: Set<Types.TeamID>
@@ -349,10 +347,6 @@ export const createClearAddUserToTeamsResults = (
 export const createClearNavBadges = (payload: _ClearNavBadgesPayload): ClearNavBadgesPayload => ({
   payload,
   type: clearNavBadges,
-})
-export const createClearTeamRequests = (payload: _ClearTeamRequestsPayload): ClearTeamRequestsPayload => ({
-  payload,
-  type: clearTeamRequests,
 })
 export const createCreateChannel = (payload: _CreateChannelPayload): CreateChannelPayload => ({
   payload,
@@ -560,10 +554,6 @@ export type ClearAddUserToTeamsResultsPayload = {
 export type ClearNavBadgesPayload = {
   readonly payload: _ClearNavBadgesPayload
   readonly type: typeof clearNavBadges
-}
-export type ClearTeamRequestsPayload = {
-  readonly payload: _ClearTeamRequestsPayload
-  readonly type: typeof clearTeamRequests
 }
 export type CreateChannelPayload = {
   readonly payload: _CreateChannelPayload
@@ -774,7 +764,6 @@ export type Actions =
   | CheckRequestedAccessPayload
   | ClearAddUserToTeamsResultsPayload
   | ClearNavBadgesPayload
-  | ClearTeamRequestsPayload
   | CreateChannelPayload
   | CreateNewTeamFromConversationPayload
   | CreateNewTeamPayload

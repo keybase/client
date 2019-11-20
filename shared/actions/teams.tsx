@@ -553,11 +553,6 @@ function* getDetails(_: TypedState, action: TeamsGen.GetDetailsPayload, logger: 
 
     const invites = Constants.annotatedInvitesToInviteInfo(details.annotatedActiveInvites)
 
-    // if we have no requests for this team, make sure we don't hold on to any old ones
-    if (!requestMap.get(teamname)) {
-      yield Saga.put(TeamsGen.createClearTeamRequests({teamname}))
-    }
-
     // Get the subteam map for this team.
     const subTeam: Saga.RPCPromiseType<typeof RPCTypes.teamsTeamGetSubteamsRpcPromise> = yield RPCTypes.teamsTeamGetSubteamsRpcPromise(
       {name: {parts: teamname.split('.')}},
