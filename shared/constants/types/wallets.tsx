@@ -386,7 +386,7 @@ export type State = Readonly<{
   accountNameError: string
   accountNameValidationState: ValidationState
   airdropDetails: AirdropDetails
-  airdropQualifications: I.List<AirdropQualification>
+  airdropQualifications: Array<AirdropQualification>
   airdropShowBanner: boolean
   airdropState: AirdropState
   assetsMap: I.Map<AccountID, I.List<Assets>>

@@ -253,7 +253,7 @@ export const makeState = (): Types.State => ({
   accountNameError: '',
   accountNameValidationState: 'none',
   airdropDetails: makeStellarDetails(),
-  airdropQualifications: I.List(),
+  airdropQualifications: [],
   airdropShowBanner: false,
   airdropState: 'loading',
   assetsMap: I.Map(),

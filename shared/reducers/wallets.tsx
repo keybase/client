@@ -455,7 +455,7 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
     draftState.mobileOnlyMap.set(action.payload.accountID, action.payload.enabled)
   },
   [WalletsGen.updatedAirdropState]: (draftState, action) => {
-    draftState.airdropQualifications = I.List(action.payload.airdropQualifications)
+    draftState.airdropQualifications = action.payload.airdropQualifications
     draftState.airdropState = action.payload.airdropState
   },
   [WalletsGen.validateSEP7Link]: draftState => {
@@ -600,6 +600,7 @@ const doubleCheck = (
   if (__DEV__) {
     const s = ConstantsOLD.makeState({
       ...state,
+      airdropQualifications: state ? I.List(state.airdropQualifications) : undefined,
       currencies: state ? I.List(state.currencies) : undefined,
       mobileOnlyMap: state ? I.Map(mapToObject(state.mobileOnlyMap) as any) : undefined,
       unreadPaymentsMap: state ? I.Map(mapToObject(state.unreadPaymentsMap) as any) : undefined,
@@ -619,6 +620,7 @@ const doubleCheck = (
       sep7ConfirmInfo: nextState.sep7ConfirmInfo || null,
       staticConfig: nextState.staticConfig || null,
       unreadPaymentsMap: sortObject(mapToObject(nextState.unreadPaymentsMap)),
+      mobileOnlyMap: sortObject(mapToObject(nextState.mobileOnlyMap)),
     }
 
     let same = true
