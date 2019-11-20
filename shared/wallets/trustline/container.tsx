@@ -39,11 +39,8 @@ const mergeProps = (s, d, o: OwnProps) => {
   return {
     acceptedAssets: acceptedAssets.keySeq().toArray(),
     accountID,
-    balanceAvailableToSend: s.accountAssets.find(
-      ({assetCode}) => assetCode === 'XLM',
-      undefined,
-      emptyAccountAsset
-    ).balanceAvailableToSend,
+    balanceAvailableToSend: (s.accountAssets.find(({assetCode}) => assetCode === 'XLM') ?? emptyAccountAsset)
+      .balanceAvailableToSend,
     canAddTrustline: s.canAddTrustline,
     clearTrustlineModal: d.clearTrustlineModal,
     error: s.error,

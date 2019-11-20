@@ -11,7 +11,7 @@ type OwnProps = {
 }
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => ({
-  _asset: Constants.getAssets(state, ownProps.accountID).get(ownProps.index, Constants.makeAssets()),
+  _asset: Constants.getAssets(state, ownProps.accountID)[ownProps.index] ?? Constants.makeAssets(),
 })
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({

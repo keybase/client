@@ -15,12 +15,10 @@ export type Role = 'airdrop' | 'senderOnly' | 'receiverOnly' | 'senderAndReceive
 export type CounterpartyType = 'airdrop' | 'keybaseUser' | 'stellarPublicKey' | 'otherAccount'
 
 // Reserves held against an account's XLM balance
-export type _Reserve = {
+export type Reserve = {
   amount: string
   description: string // e.g. 'account' or 'KEYZ/keybase.io trust line'
 }
-export type Reserve = I.RecordOf<_Reserve>
-
 export type _SEP7Summary = StellarRPCTypes.TxDisplaySummary
 export type SEP7Summary = I.RecordOf<_SEP7Summary>
 
@@ -58,7 +56,7 @@ export const paymentIDToRPCPaymentID = (id: PaymentID): StellarRPCTypes.PaymentI
 export const paymentIDToString = (id: PaymentID): string => id
 export const paymentIDIsEqual = (p1: PaymentID, p2: PaymentID) => p1 === p2
 
-export type _Assets = {
+export type Assets = {
   assetCode: string
   availableToSendWorth: string
   balanceAvailableToSend: string
@@ -71,7 +69,7 @@ export type _Assets = {
   issuerName: string
   issuerVerifiedDomain: string
   name: string
-  reserves: I.List<Reserve>
+  reserves: Array<Reserve>
   showDepositButton: boolean
   showWithdrawButton: boolean
   withdrawButtonText: string
@@ -258,8 +256,6 @@ export type AssetDescriptionOrNative = AssetDescription | 'native'
 
 export type Asset = 'native' | 'currency' | AssetDescription
 
-export type Assets = I.RecordOf<_Assets>
-
 export type BannerBackground = 'Announcements' | 'HighRisk' | 'Information'
 
 export type Banner = {
@@ -389,7 +385,7 @@ export type State = Readonly<{
   airdropQualifications: Array<AirdropQualification>
   airdropShowBanner: boolean
   airdropState: AirdropState
-  assetsMap: I.Map<AccountID, I.List<Assets>>
+  assetsMap: Map<AccountID, Array<Assets>>
   buildCounter: number // increments when we call buildPayment / buildRequest,
   building: Building
   buildingAdvanced: BuildingAdvanced

@@ -10,28 +10,6 @@ import Wallet, {Props, AssetSectionTitle} from '.'
 
 type OwnProps = {}
 
-const mapStateToProps = (state: Container.TypedState) => {
-  const accountID = Constants.getSelectedAccount(state)
-  return {
-    acceptedDisclaimer: state.wallets.acceptedDisclaimer,
-    accountID,
-    airdropSelected: Constants.getAirdropSelected(state),
-    assets: Constants.getAssets(state, accountID),
-    loadingMore: state.wallets.paymentLoadingMoreMap.get(accountID, false),
-    payments: Constants.getPayments(state, accountID),
-    thisDeviceIsLockedOut: Constants.getAccount(state, accountID).deviceReadOnly,
-  }
-}
-
-const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
-  _onLoadMore: accountID => dispatch(WalletsGen.createLoadMorePayments({accountID})),
-  _onMarkAsRead: (accountID, mostRecentID) =>
-    dispatch(WalletsGen.createMarkAsRead({accountID, mostRecentID})),
-  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-  onSetupTrustline: accountID =>
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {accountID}, selected: 'trustline'}]})),
-})
-
 const sortAndStripTimestamps = (
   p: Array<{
     paymentID: Types.PaymentID
@@ -48,8 +26,26 @@ const WalletOrOnboarding = (props: Props) =>
   !props.acceptedDisclaimer ? <Onboarding nextScreen="openWallet" /> : <Wallet {...props} />
 
 export default Container.connect(
-  mapStateToProps,
-  mapDispatchToProps,
+  state => {
+    const accountID = Constants.getSelectedAccount(state)
+    return {
+      acceptedDisclaimer: state.wallets.acceptedDisclaimer,
+      accountID,
+      airdropSelected: Constants.getAirdropSelected(state),
+      assets: Constants.getAssets(state, accountID),
+      loadingMore: state.wallets.paymentLoadingMoreMap.get(accountID, false),
+      payments: Constants.getPayments(state, accountID),
+      thisDeviceIsLockedOut: Constants.getAccount(state, accountID).deviceReadOnly,
+    }
+  },
+  dispatch => ({
+    _onLoadMore: accountID => dispatch(WalletsGen.createLoadMorePayments({accountID})),
+    _onMarkAsRead: (accountID, mostRecentID) =>
+      dispatch(WalletsGen.createMarkAsRead({accountID, mostRecentID})),
+    onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+    onSetupTrustline: accountID =>
+      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {accountID}, selected: 'trustline'}]})),
+  }),
   (stateProps, dispatchProps, _: OwnProps) => {
     const sections: Props['sections'] = []
     // layout is
@@ -57,7 +53,7 @@ export default Container.connect(
     // 2. transactions header and transactions
     // Formatted in a SectionList
     const assets =
-      stateProps.assets.count() > 0 ? stateProps.assets.map((_, index) => index).toArray() : ['notLoadedYet']
+      stateProps.assets.length > 0 ? stateProps.assets.map((_, index) => index) : ['notLoadedYet']
     sections.push({
       data: assets,
       kind: 'assets',

@@ -102,7 +102,7 @@ export const makeStellarDetails = I.Record<Types._StellarDetails>({
   isPromoted: false,
 })
 
-export const makeReserve = I.Record<Types._Reserve>({
+export const makeReserve = (): Types.Reserve => ({
   amount: '',
   description: '',
 })
@@ -256,7 +256,7 @@ export const makeState = (): Types.State => ({
   airdropQualifications: [],
   airdropShowBanner: false,
   airdropState: 'loading',
-  assetsMap: I.Map(),
+  assetsMap: new Map(),
   buildCounter: 0,
   building: makeBuilding(),
   buildingAdvanced: emptyBuildingAdvanced,
@@ -781,8 +781,8 @@ export const getDefaultAccount = (state: TypedState) => {
 
 export const getExternalPartners = (state: TypedState) => state.wallets.externalPartners
 
-export const getAssets = (state: TypedState, accountID: Types.AccountID): I.List<Types.Assets> =>
-  state.wallets.assetsMap.get(accountID, I.List())
+export const getAssets = (state: TypedState, accountID: Types.AccountID): Array<Types.Assets> =>
+  state.wallets.assetsMap.get(accountID) ?? []
 
 export const getFederatedAddress = (state: TypedState, accountID: Types.AccountID) => {
   const account = state.wallets.accountMap.get(accountID, unknownAccount)

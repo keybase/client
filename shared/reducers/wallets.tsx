@@ -72,7 +72,7 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
     }
   },
   [WalletsGen.assetsReceived]: (draftState, action) => {
-    draftState.assetsMap = draftState.assetsMap.set(action.payload.accountID, I.List(action.payload.assets))
+    draftState.assetsMap.set(action.payload.accountID, action.payload.assets)
   },
   [WalletsGen.buildPayment]: draftState => {
     draftState.buildCounter++
@@ -601,6 +601,7 @@ const doubleCheck = (
     const s = ConstantsOLD.makeState({
       ...state,
       airdropQualifications: state ? I.List(state.airdropQualifications) : undefined,
+      assetsMap: state ? I.Map(mapToObject(state.assetsMap) as any) : undefined,
       currencies: state ? I.List(state.currencies) : undefined,
       mobileOnlyMap: state ? I.Map(mapToObject(state.mobileOnlyMap) as any) : undefined,
       unreadPaymentsMap: state ? I.Map(mapToObject(state.unreadPaymentsMap) as any) : undefined,
@@ -608,6 +609,7 @@ const doubleCheck = (
     const nextStateOLD = reducerOLD(s, action)
     const o: any = {
       ...nextStateOLD.toJS(),
+      mobileOnlyMap: sortObject(nextStateOLD.mobileOnlyMap.toJS()),
       reviewLastSeqno: nextStateOLD.reviewLastSeqno || null,
       sep7ConfirmInfo: nextStateOLD.sep7ConfirmInfo || null,
       staticConfig: nextStateOLD.staticConfig || null,
@@ -616,11 +618,12 @@ const doubleCheck = (
 
     const n: any = {
       ...nextState,
+      assetsMap: sortObject(mapToObject(nextState.assetsMap)),
+      mobileOnlyMap: sortObject(mapToObject(nextState.mobileOnlyMap)),
       reviewLastSeqno: nextState.reviewLastSeqno || null,
       sep7ConfirmInfo: nextState.sep7ConfirmInfo || null,
       staticConfig: nextState.staticConfig || null,
       unreadPaymentsMap: sortObject(mapToObject(nextState.unreadPaymentsMap)),
-      mobileOnlyMap: sortObject(mapToObject(nextState.mobileOnlyMap)),
     }
 
     let same = true
