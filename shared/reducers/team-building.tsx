@@ -4,18 +4,9 @@ import * as Constants from '../constants/team-building'
 import * as Types from '../constants/types/team-building'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 import {ActionHandler} from '../util/make-reducer'
-// import {TypedActionsMap, TypedActions} from '../actions/typed-actions-gen'
 import trim from 'lodash/trim'
 
 const initialState = Constants.makeSubState()
-
-// type GetTypes<A> = A extends {type: string} ? A['type'] : never
-
-// export type ActionHandler<A, S> = {
-// [type in GetTypes<A>]?: type extends keyof TypedActionsMap
-// ? (state: Container.Draft<S>, action: TypedActionsMap[type]) => void | S
-// : never
-// }
 
 export const editTeambuildingDraft = (
   namespace: string,
