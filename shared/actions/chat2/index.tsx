@@ -3264,7 +3264,7 @@ const createConversationFromTeamBuilder = (
     reason: 'justCreated',
   }),
   Chat2Gen.createCreateConversation({
-    participants: state[namespace].teamBuilding.teamBuildingFinishedTeam.toArray().map(u => u.id),
+    participants: [...state[namespace].teamBuilding.finishedTeam].map(u => u.id),
   }),
 ]
 

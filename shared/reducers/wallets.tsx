@@ -1,11 +1,12 @@
 import logger from '../logger'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as I from 'immutable'
+import * as Container from '../util/container'
 import * as Constants from '../constants/wallets'
 import * as Types from '../constants/types/wallets'
 import * as WalletsGen from '../actions/wallets-gen'
 import HiddenString from '../util/hidden-string'
-import teamBuildingReducer from './team-building'
+import {editTeambuildingDraft} from './team-building'
 
 const initialState: Types.State = Constants.makeState()
 
@@ -557,7 +558,9 @@ export default function(
     case TeamBuildingGen.labelsSeen:
     case TeamBuildingGen.changeSendNotification:
       return state.merge({
-        teamBuilding: teamBuildingReducer('wallets', state.teamBuilding, action),
+        teamBuilding: Container.produce(state.teamBuilding, draftState =>
+          editTeambuildingDraft('wallets', draftState, action)
+        ),
       })
     // Saga only actions
     case WalletsGen.updateAirdropDetails:
