@@ -609,6 +609,7 @@ const doubleCheck = (
     const nextStateOLD = reducerOLD(s, action)
     const o: any = {
       ...nextStateOLD.toJS(),
+      assetsMap: sortObject(nextStateOLD.assetsMap.toJS()),
       mobileOnlyMap: sortObject(nextStateOLD.mobileOnlyMap.toJS()),
       reviewLastSeqno: nextStateOLD.reviewLastSeqno || null,
       sep7ConfirmInfo: nextStateOLD.sep7ConfirmInfo || null,

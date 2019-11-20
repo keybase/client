@@ -102,9 +102,10 @@ export const makeStellarDetails = I.Record<Types._StellarDetails>({
   isPromoted: false,
 })
 
-export const makeReserve = (): Types.Reserve => ({
+export const makeReserve = (r?: Partial<Types.Reserve>): Types.Reserve => ({
   amount: '',
   description: '',
+  ...r,
 })
 
 export const makeAssetDescription = I.Record<Types._AssetDescription>({
@@ -340,7 +341,7 @@ export const accountResultToAccount = (w: RPCTypes.WalletAccountLocal) =>
     name: w.name,
   })
 
-export const makeAssets = I.Record<Types._Assets>({
+export const makeAssets = (a?: Partial<Types.Assets>): Types.Assets => ({
   assetCode: '',
   availableToSendWorth: '',
   balanceAvailableToSend: '',
@@ -353,12 +354,13 @@ export const makeAssets = I.Record<Types._Assets>({
   issuerName: '',
   issuerVerifiedDomain: '',
   name: '',
-  reserves: I.List(),
+  reserves: [],
   showDepositButton: false,
   showWithdrawButton: false,
   withdrawButtonText: '',
   worth: '',
   worthCurrency: '',
+  ...a,
 })
 
 export const assetsResultToAssets = (w: RPCTypes.AccountAssetLocal) =>
@@ -374,7 +376,7 @@ export const assetsResultToAssets = (w: RPCTypes.AccountAssetLocal) =>
     issuerName: w.issuerName,
     issuerVerifiedDomain: w.issuerVerifiedDomain,
     name: w.name,
-    reserves: I.List((w.reserves || []).map(makeReserve)),
+    reserves: (w.reserves ?? []).map(makeReserve),
     showDepositButton: w.showDepositButton,
     showWithdrawButton: w.showWithdrawButton,
     withdrawButtonText: w.withdrawButtonText,
