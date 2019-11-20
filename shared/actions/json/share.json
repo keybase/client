@@ -1,0 +1,11 @@
+{
+  "prelude": ["import * as Types from '../constants/types/share'"],
+  "actions": {
+    "shareDataIntent": {
+      "localPath": "Types.LocalPath"
+    },
+    "shareText": {
+      "text": "string"
+    }
+  }
+}

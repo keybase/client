@@ -2,6 +2,7 @@ import * as Chat2Gen from '../chat2-gen'
 import * as ConfigGen from '../config-gen'
 import * as Constants from '../../constants/push'
 import * as FsGen from '../fs-gen'
+import * as ShareGen from '../share-gen'
 import * as Types from '../../constants/types/push'
 import * as FsTypes from '../../constants/types/fs'
 import * as NotificationsGen from '../notifications-gen'
@@ -60,18 +61,12 @@ const listenForNativeAndroidIntentNotifications = (emitter: (action: Container.T
     notification && emitter(PushGen.createNotification({notification}))
   })
 
-  // TODO: move this out of this file.
   // FIXME: sometimes this doubles up on a cold start--we've already executed the previous code.
-  // TODO: fixme this is buggy. See: TRIAGE-462
-  RNEmitter.addListener('onShareData', evt => {
-    logger.debug('[ShareDataIntent]', evt)
-    emitter(RouteTreeGen.createSwitchLoggedIn({loggedIn: true}))
-    emitter(FsGen.createSetIncomingShareLocalPath({localPath: FsTypes.stringToLocalPath(evt.localPath)}))
-    emitter(FsGen.createShowIncomingShare({initialDestinationParentPath: FsTypes.stringToPath('/keybase')}))
+  RNEmitter.addListener('onShareData', (evt: {localPath: string}) => {
+    emitter(ShareGen.createShareDataIntent(evt))
   })
-  RNEmitter.addListener('onShareText', evt => {
-    logger.debug('[ShareTextIntent]', evt)
-    // TODO: implement
+  RNEmitter.addListener('onShareText', (evt: {text: string}) => {
+    emitter(ShareGen.createShareText(evt))
   })
 }
 

@@ -20,6 +20,7 @@ import * as push from './push-gen'
 import * as recoverpassword from './recover-password-gen'
 import * as routetree from './route-tree-gen'
 import * as settings from './settings-gen'
+import * as share from './share-gen'
 import * as signup from './signup-gen'
 import * as teambuilding from './team-building-gen'
 import * as teams from './teams-gen'
@@ -50,6 +51,7 @@ export type TypedActions =
   | recoverpassword.Actions
   | routetree.Actions
   | settings.Actions
+  | share.Actions
   | signup.Actions
   | teambuilding.Actions
   | teams.Actions
@@ -792,6 +794,8 @@ export type TypedActionsMap = {
   'settings:certificatePinningToggled': settings.CertificatePinningToggledPayload
   'settings:toggleRuntimeStats': settings.ToggleRuntimeStatsPayload
   'settings:loginBrowserViaWebAuthToken': settings.LoginBrowserViaWebAuthTokenPayload
+  'share:shareDataIntent': share.ShareDataIntentPayload
+  'share:shareText': share.ShareTextPayload
   'signup:goBackAndClearErrors': signup.GoBackAndClearErrorsPayload
   'signup:requestAutoInvite': signup.RequestAutoInvitePayload
   'signup:requestedAutoInvite': signup.RequestedAutoInvitePayload
