@@ -829,11 +829,10 @@ export type TypedActionsMap = {
   'teams:getChannelInfo': teams.GetChannelInfoPayload
   'teams:getChannels': teams.GetChannelsPayload
   'teams:getTeams': teams.GetTeamsPayload
+  'teams:unsubscribeTeamList': teams.UnsubscribeTeamListPayload
   'teams:getDetails': teams.GetDetailsPayload
   'teams:getMembers': teams.GetMembersPayload
   'teams:setMembers': teams.SetMembersPayload
-  'teams:getDetailsForAllTeams': teams.GetDetailsForAllTeamsPayload
-  'teams:getTeamOperations': teams.GetTeamOperationsPayload
   'teams:getTeamProfileAddList': teams.GetTeamProfileAddListPayload
   'teams:getTeamPublicity': teams.GetTeamPublicityPayload
   'teams:addTeamWithChosenChannels': teams.AddTeamWithChosenChannelsPayload
@@ -863,7 +862,6 @@ export type TypedActionsMap = {
   'teams:setTeamJoinSuccess': teams.SetTeamJoinSuccessPayload
   'teams:setTeamRetentionPolicy': teams.SetTeamRetentionPolicyPayload
   'teams:setTeamLoadingInvites': teams.SetTeamLoadingInvitesPayload
-  'teams:clearTeamRequests': teams.ClearTeamRequestsPayload
   'teams:setTeamDetails': teams.SetTeamDetailsPayload
   'teams:setTeamCanPerform': teams.SetTeamCanPerformPayload
   'teams:setTeamPublicitySettings': teams.SetTeamPublicitySettingsPayload

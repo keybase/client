@@ -233,7 +233,6 @@
   "keybase.1.signup.getInvitationCode": {"promise": true},
   "keybase.1.signup.inviteRequest": {"promise": true},
   "keybase.1.signup.signup": {"engineSaga": true},
-  "keybase.1.teams.canUserPerform": {"promise": true},
   "keybase.1.teams.getTarsDisabled": {"promise": true},
   "keybase.1.teams.getTeamAndMemberShowcase": {"promise": true},
   "keybase.1.teams.setTarsDisabled": {"promise": true},

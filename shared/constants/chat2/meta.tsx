@@ -99,6 +99,7 @@ export const unverifiedInboxUIItemToConversationMeta = (
     status: i.status,
     supersededBy: supersededBy ? Types.stringToConversationIDKey(supersededBy) : noConversationIDKey,
     supersedes: supersedes ? Types.stringToConversationIDKey(supersedes) : noConversationIDKey,
+    teamID: i.tlfID,
     teamRetentionPolicy,
     teamType: getTeamType(i),
     teamname,
@@ -318,6 +319,7 @@ export const inboxUIItemToConversationMeta = (
   const participants = i.participants || []
   return {
     ...makeConversationMeta(),
+    botAliases: i.botAliases,
     botCommands: i.botCommands,
     cannotWrite,
     channelname: (isTeam && i.channel) || '',
@@ -363,6 +365,7 @@ export const inboxUIItemToConversationMeta = (
     status: i.status,
     supersededBy: supersededBy ? Types.stringToConversationIDKey(supersededBy) : noConversationIDKey,
     supersedes: supersedes ? Types.stringToConversationIDKey(supersedes) : noConversationIDKey,
+    teamID: i.tlfID,
     teamRetentionPolicy,
     teamType: getTeamType(i),
     teamname: (isTeam && i.name) || '',
@@ -374,6 +377,7 @@ export const inboxUIItemToConversationMeta = (
 }
 
 export const makeConversationMeta = (): Types.ConversationMeta => ({
+  botAliases: {},
   botCommands: {} as RPCChatTypes.ConversationCommandGroups,
   cannotWrite: false,
   channelname: '',
@@ -407,6 +411,7 @@ export const makeConversationMeta = (): Types.ConversationMeta => ({
   status: RPCChatTypes.ConversationStatus.unfiled as RPCChatTypes.ConversationStatus,
   supersededBy: noConversationIDKey,
   supersedes: noConversationIDKey,
+  teamID: '',
   teamRetentionPolicy: TeamConstants.makeRetentionPolicy(),
   teamType: 'adhoc' as Types.TeamType,
   teamname: '',

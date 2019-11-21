@@ -331,6 +331,9 @@ export const editTypeToPathType = (type: Types.EditType): Types.PathType => {
   }
 }
 
+export const downloadIsOngoing = (dlState: Types.DownloadState) =>
+  dlState !== emptyDownloadState && !dlState.error && !dlState.done && !dlState.canceled
+
 export const getDownloadIntentFromAction = (
   action: FsGen.DownloadPayload | FsGen.ShareNativePayload | FsGen.SaveMediaPayload
 ): Types.DownloadIntent =>
@@ -339,6 +342,26 @@ export const getDownloadIntentFromAction = (
     : action.type === FsGen.shareNative
     ? Types.DownloadIntent.Share
     : Types.DownloadIntent.CameraRoll
+
+export const getDownloadIntent = (
+  path: Types.Path,
+  downloads: Types.Downloads,
+  pathItemActionMenu: Types.PathItemActionMenu
+): Types.DownloadIntent | null => {
+  const found = [...downloads.info].find(([_, info]) => info.path === path)
+  if (!found) {
+    return null
+  }
+  const [downloadID] = found
+  const dlState = downloads.state.get(downloadID) || emptyDownloadState
+  if (!downloadIsOngoing(dlState)) {
+    return null
+  }
+  if (pathItemActionMenu.downloadID === downloadID) {
+    return pathItemActionMenu.downloadIntent
+  }
+  return Types.DownloadIntent.None
+}
 
 export const emptyTlfUpdate: Readonly<Types.TlfUpdate> = {
   history: [],
@@ -1000,9 +1023,6 @@ export const getSoftError = (softErrors: Types.SoftErrors, path: Types.Path): Ty
 
 export const hasSpecialFileElement = (path: Types.Path): boolean =>
   Types.getPathElements(path).some(elem => elem.startsWith('.kbfs'))
-
-export const downloadIsOngoing = (dlState: Types.DownloadState) =>
-  dlState !== emptyDownloadState && !dlState.error && !dlState.done && !dlState.canceled
 
 export const erroredActionToMessage = (action: FsGen.Actions | EngineGen.Actions, error: string): string => {
   // We have FsError.expectedIfOffline now to take care of real offline

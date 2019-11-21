@@ -18,7 +18,11 @@ const makeRowItemSmall = (conversationIDKey: string = ''): RowItemSmall => ({
   isTeam: false,
   time: 1569718345,
 })
-const makeRowItemBigHeader = (teamname: string = ''): RowItemBigHeader => ({type: 'bigHeader', teamname})
+const makeRowItemBigHeader = (teamname: string = ''): RowItemBigHeader => ({
+  type: 'bigHeader',
+  teamID: '',
+  teamname,
+})
 const makeRowItemBigChannel = (conversationIDKey, teamname, channelname): RowItemBig => ({
   type: 'big',
   teamname,
@@ -468,14 +472,9 @@ const propsInboxExpanded = {
 /*
  * Prop Providers
  */
-const teamMemberCounts = {
-  Keybase: 30,
-  'techtonica.long.team.name.with.ellipsis': 30,
-  stripe: 1337,
-}
 
 const provider = Sb.createPropProviderWithCommon({
-  ...Sb.PropProviders.TeamDropdownMenu(undefined, teamMemberCounts),
+  ...Sb.PropProviders.TeamDropdownMenu(),
   ChatInboxHeaderContainer: p => {
     return {
       focusFilter: () => {},

@@ -110,7 +110,7 @@ class _EditChannel extends React.Component<Props, State> {
               hintText={
                 this.props.waitingForGetInfo
                   ? 'Loading channel description...'
-                  : 'Description or topic (optional)'
+                  : 'Add a description or topic...'
               }
               value={this.state.newTopic}
               multiline={true}

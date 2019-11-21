@@ -1,6 +1,6 @@
 import * as React from 'react'
-import {Box, Text} from '../../../common-adapters'
-import {globalColors, globalMargins, globalStyles} from '../../../styles'
+import {Box, Text} from '../../../../common-adapters'
+import {globalColors, globalMargins, globalStyles} from '../../../../styles'
 
 const Divider = ({label}: {label: string}) => (
   <Box

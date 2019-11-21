@@ -9,7 +9,7 @@ import ManageChannels, {RowProps} from '.'
 import {ChannelMembershipState} from '../../constants/types/teams'
 import {anyWaiting} from '../../constants/waiting'
 import {formatTimeRelativeToNow} from '../../util/timestamp'
-import {getChannelsWaitingKey, getCanPerform, getTeamChannelInfos, hasCanPerform} from '../../constants/teams'
+import {getChannelsWaitingKey, getCanPerform, getTeamChannelInfos} from '../../constants/teams'
 import isEqual from 'lodash/isEqual'
 import {makeInsertMatcher} from '../../util/string'
 
@@ -21,9 +21,6 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const waitingForGet = anyWaiting(state, waitingKey)
   const channelInfos = getTeamChannelInfos(state, teamname)
   const yourOperations = getCanPerform(state, teamname)
-  // We can get here without loading team operations
-  // if we manage channels on mobile without loading the conversation first
-  const _hasOperations = hasCanPerform(state, teamname)
 
   const canEditChannels =
     yourOperations.editChannelDescription || yourOperations.renameChannel || yourOperations.deleteChannel
@@ -62,7 +59,6 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const selectedChatID = state.chat2.selectedConversation
 
   return {
-    _hasOperations,
     canCreateChannels,
     canEditChannels,
     channels,
@@ -78,7 +74,6 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
   const teamname = Container.getRouteProps(ownProps, 'teamname', '')
   return {
     _loadChannels: () => dispatch(TeamsGen.createGetChannels({teamname})),
-    _loadOperations: () => dispatch(TeamsGen.createGetTeamOperations({teamname})),
     _onView: (
       oldChannelState: ChannelMembershipState,
       nextChannelState: ChannelMembershipState,
@@ -139,9 +134,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
 type Props = {
   onBack?: () => void
   selectedChatID: ChatTypes.ConversationIDKey
-  _hasOperations: () => void
   _loadChannels: () => void
-  _loadOperations: () => void
   _onView: (
     oldChannelState: ChannelMembershipState,
     nextChannelState: ChannelMembershipState,
@@ -166,16 +159,7 @@ type Props = {
 }
 
 const Wrapper = (p: Props) => {
-  const {
-    _hasOperations,
-    _loadOperations,
-    _loadChannels,
-    _onView,
-    _saveSubscriptions,
-    channels,
-    selectedChatID,
-    ...rest
-  } = p
+  const {_loadChannels, _onView, _saveSubscriptions, channels, selectedChatID, ...rest} = p
   const oldChannelState = React.useMemo(
     () =>
       channels.reduce<{[key: string]: boolean}>((acc, c) => {
@@ -212,7 +196,6 @@ const Wrapper = (p: Props) => {
 
   React.useEffect(() => {
     _loadChannels()
-    !_hasOperations && _loadOperations()
     // eslint-disable-next-line
   }, [])
 

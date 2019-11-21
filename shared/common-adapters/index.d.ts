@@ -65,7 +65,7 @@ export {MaybePopup, MaybePopupHoc} from './maybe-popup'
 
 export {default as MultiAvatar} from './multi-avatar'
 export {default as Meta} from './meta'
-export {default as Modal, Header as ModalHeader} from './modal'
+export {default as Modal, Header as ModalHeader, useModalHeaderTitleAndCancel} from './modal'
 export {default as NameWithIcon} from './name-with-icon'
 export {default as ConnectedNameWithIcon} from './name-with-icon/container'
 export {default as NewInput} from './new-input'

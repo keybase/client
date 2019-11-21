@@ -35,9 +35,11 @@ func setupCommonTest(t testing.TB, name string) kbtest.ChatTestContext {
 	ctc := kbtest.ChatTestContext{
 		TestContext: tc,
 		ChatG: &globals.ChatContext{
-			EphemeralPurger: types.DummyEphemeralPurger{},
-			Indexer:         types.DummyIndexer{},
-			CtxFactory:      dummyContextFactory{},
+			AttachmentUploader: types.DummyAttachmentUploader{},
+			Unfurler:           types.DummyUnfurler{},
+			EphemeralPurger:    types.DummyEphemeralPurger{},
+			Indexer:            types.DummyIndexer{},
+			CtxFactory:         dummyContextFactory{},
 		},
 	}
 	ctc.Context().ServerCacheVersions = NewServerVersions(ctc.Context())

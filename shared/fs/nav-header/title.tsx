@@ -51,7 +51,7 @@ const Breadcrumb = Kb.OverlayParentHOC(
                 title: Types.getPathName(path),
                 view: (
                   <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
-                    <Kbfs.PathItemIcon path={path} size={16} />
+                    <Kbfs.ItemIcon path={path} size={16} />
                     <Kb.Text type="Body" lineClamp={1}>
                       {Types.getPathName(path)}
                     </Kb.Text>

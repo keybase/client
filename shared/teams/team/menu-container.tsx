@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Constants from '../../constants/teams'
+import * as Types from '../../constants/types/teams'
 import * as FsConstants from '../../constants/fs'
 import * as FsTypes from '../../constants/types/fs'
 import * as Container from '../../util/container'
@@ -17,9 +18,9 @@ const mapStateToProps = (state: Container.TypedState, {teamname}: OwnProps) => {
   const yourOperations = Constants.getCanPerform(state, teamname)
   const isBigTeam = Constants.isBigTeam(state, teamname)
   return {
+    _teamID: Constants.getTeamID(state, teamname), // TODO this component should take teamID
     canCreateSubteam: yourOperations.manageSubteams,
     canDeleteTeam: yourOperations.deleteTeam && Constants.getTeamSubteams(state, teamname).count() === 0,
-    canLeaveTeam: yourOperations.leaveTeam,
     canManageChat: yourOperations.renameChannel,
     canViewFolder: !yourOperations.joinTeam,
     isBigTeam,
@@ -27,10 +28,10 @@ const mapStateToProps = (state: Container.TypedState, {teamname}: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch, {teamname}: OwnProps) => ({
-  onCreateSubteam: () =>
+  _onCreateSubteam: (subteamOf: Types.TeamID) =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [{props: {makeSubteam: true, name: teamname}, selected: 'teamNewTeamDialog'}],
+        path: [{props: {subteamOf}, selected: 'teamNewTeamDialog'}],
       })
     ),
   onDeleteTeam: () =>
@@ -90,15 +91,13 @@ export default Container.connect(
         title: stateProps.isBigTeam ? 'Manage chat channels' : 'Make chat channels...',
       })
     }
-    if (stateProps.canLeaveTeam) {
-      items.push({danger: true, onClick: dispatchProps.onLeaveTeam, title: 'Leave team'})
-    }
     if (stateProps.canCreateSubteam) {
-      items.push({onClick: dispatchProps.onCreateSubteam, title: 'Create subteam'})
+      items.push({onClick: () => dispatchProps._onCreateSubteam(stateProps._teamID), title: 'Create subteam'})
     }
     if (stateProps.canViewFolder) {
       items.push({onClick: dispatchProps.onOpenFolder, title: 'Open folder'})
     }
+    items.push({danger: true, onClick: dispatchProps.onLeaveTeam, title: 'Leave team'})
     if (stateProps.canDeleteTeam) {
       items.push({danger: true, onClick: dispatchProps.onDeleteTeam, title: 'Delete team'})
     }

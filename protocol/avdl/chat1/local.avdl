@@ -677,6 +677,7 @@ protocol local {
     // Commands for auto complete and bot comm
     ConversationCommandGroups commands;
     ConversationCommandGroups botCommands;
+    map<string, string> botAliases;
   }
 
   record NonblockFetchRes {
