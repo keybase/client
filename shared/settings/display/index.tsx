@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {DarkModePreference, isDarkModeSystemSupported} from '../../styles/dark-mode'
+import {isMobile, isLinux} from '../../constants/platform'
 
 type Props = {
   darkModePreference: DarkModePreference
@@ -66,6 +67,13 @@ const Display = (props: Props) => (
 )
 
 const styles = Styles.styleSheetCreate(() => ({
+  checkboxContainer: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+    paddingBottom: Styles.globalMargins.tiny,
+    paddingTop: Styles.globalMargins.tiny,
+    width: '100%',
+  },
   container: {
     ...Styles.globalStyles.flexBoxColumn,
     ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.medium),
@@ -74,6 +82,9 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   scrollview: {
     width: '100%',
+  },
+  error: {
+    color: Styles.globalColors.redDark,
   },
 }))
 
