@@ -676,7 +676,7 @@ type _UnsentTextChangedPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly text: HiddenString
 }
-type _UpdateBlockButtonsPayload = {readonly teamID: RPCTypes.TeamID; readonly show: boolean}
+type _UpdateBlockButtonsPayload = {readonly teamID: RPCTypes.TeamID; readonly adder: string}
 type _UpdateCoinFlipStatusPayload = {readonly statuses: Array<RPCChatTypes.UICoinFlipStatus>}
 type _UpdateConvExplodingModesPayload = {
   readonly modes: Array<{conversationIDKey: Types.ConversationIDKey; seconds: number}>
