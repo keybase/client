@@ -412,6 +412,10 @@
         {
           "type": "boolean",
           "name": "blocked"
+        },
+        {
+          "type": "boolean",
+          "name": "hidFromFollowers"
         }
       ]
     },
