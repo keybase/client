@@ -865,7 +865,7 @@
         }
       ],
       "response": "GetInboxRemoteRes",
-      "timeout_msec": 30000
+      "timeout_msec": 300000
     },
     "getThreadRemote": {
       "request": [
