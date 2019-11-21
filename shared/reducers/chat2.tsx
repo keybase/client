@@ -1027,8 +1027,8 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
         }
       }
     }
-  }, 
-  [updateBlockButtons]: (draftState, action) => {
+  },
+  [Chat2Gen.updateBlockButtons]: (draftState, action) => {
     draftState.blockButtonsMap.set(action.payload.teamID, action.payload.show)
   },
   [Chat2Gen.updateReactions]: (draftState, action) => {
