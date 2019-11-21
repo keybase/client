@@ -33,7 +33,8 @@ const JoinedUserNotice = (props: Props) => (
   <UserNotice>
     <Kb.Text type="BodySmall">
       {props.authorIsYou ? 'You ' : ''}
-      joined {props.isBigTeam ? `#${props.channelname}` : 'the team'}.
+      {props.leavers.length > props.joiners.length ? 'left' : 'joined'}{' '}
+      {props.isBigTeam ? `#${props.channelname}` : 'the team'}.
     </Kb.Text>
     {props.authorIsYou && props.isBigTeam && (
       <Kb.Text type="BodySmall">
