@@ -3,6 +3,7 @@ import * as Container from '../../util/container'
 import * as React from 'react'
 import * as SettingsConstants from '../../constants/settings'
 import * as SettingsGen from '../../actions/settings-gen'
+import * as Types from '../../constants/types/teams'
 import {ContactProps} from './index.native'
 import {e164ToDisplay} from '../../util/phone-numbers'
 import {NativeModules} from 'react-native'
@@ -74,7 +75,7 @@ const fetchContacts = async (regionFromState: string): Promise<[Array<ContactPro
 }
 
 type WithContactsProps = {
-  teamname: string
+  teamID: Types.TeamID
 }
 const WithContacts = (props: WithContactsProps) => {
   const dispatch = Container.useDispatch()
@@ -114,7 +115,7 @@ const WithContacts = (props: WithContactsProps) => {
 
   return (
     <TeamInviteByContact
-      teamname={props.teamname}
+      teamID={props.teamID}
       contacts={contacts}
       region={region}
       errorMessage={errorMessage}

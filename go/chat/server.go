@@ -2679,7 +2679,7 @@ func (h *Server) ListBotCommandsLocal(ctx context.Context, convID chat1.Conversa
 	if err := <-completeCh; err != nil {
 		h.Debug(ctx, "ListBotCommandsLocal: failed to update commands, list might be stale: %s", err)
 	}
-	lres, err := h.G().BotCommandManager.ListCommands(ctx, convID)
+	lres, _, err := h.G().BotCommandManager.ListCommands(ctx, convID)
 	if err != nil {
 		return res, err
 	}

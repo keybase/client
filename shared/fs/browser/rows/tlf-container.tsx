@@ -20,13 +20,11 @@ const mapStateToProps = (state, {tlfType, name}: OwnProps) => ({
 })
 
 const mergeProps = (stateProps, _, {tlfType, name, mixedMode, destinationPickerIndex}: OwnProps) => {
-  const shouldBadge = Constants.tlfIsBadged(stateProps._tlf)
   const path = Constants.tlfTypeAndNameToPath(tlfType, name)
   const usernames = Constants.getUsernamesFromTlfName(name).filter(name => name !== stateProps._username)
   return {
     destinationPickerIndex,
     isIgnored: stateProps._tlf.isIgnored,
-    isNew: shouldBadge && stateProps._tlf.isNew,
     loadPathMetadata:
       flags.kbfsOfflineMode &&
       stateProps._tlf.syncConfig &&

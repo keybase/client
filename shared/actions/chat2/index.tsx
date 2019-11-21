@@ -2296,20 +2296,6 @@ const deleteMessageHistory = async (
   })
 }
 
-// Get the rights a user has on certain actions in a team
-const loadCanUserPerform = (state: TypedState, action: Chat2Gen.SelectConversationPayload) => {
-  const {conversationIDKey} = action.payload
-  const meta = Constants.getMeta(state, conversationIDKey)
-  const teamname = meta.teamname
-  if (!teamname) {
-    return
-  }
-  if (!TeamsConstants.hasCanPerform(state, teamname)) {
-    return TeamsGen.createGetTeamOperations({teamname})
-  }
-  return false
-}
-
 // Get the full channel names/descs for a team if we don't already have them.
 function* loadChannelInfos(state: TypedState, action: Chat2Gen.SelectConversationPayload) {
   const {conversationIDKey} = action.payload
@@ -3278,7 +3264,7 @@ const createConversationFromTeamBuilder = (
     reason: 'justCreated',
   }),
   Chat2Gen.createCreateConversation({
-    participants: state[namespace].teamBuilding.teamBuildingFinishedTeam.toArray().map(u => u.id),
+    participants: [...state[namespace].teamBuilding.finishedTeam].map(u => u.id),
   }),
 ]
 
@@ -3419,8 +3405,6 @@ function* chat2Saga() {
   yield* Saga.chainAction2(Chat2Gen.messageDelete, messageDelete, 'messageDelete')
   yield* Saga.chainAction2(Chat2Gen.messageDeleteHistory, deleteMessageHistory, 'deleteMessageHistory')
   yield* Saga.chainAction2(Chat2Gen.confirmScreenResponse, confirmScreenResponse, 'confirmScreenResponse')
-
-  yield* Saga.chainAction2(Chat2Gen.selectConversation, loadCanUserPerform, 'loadCanUserPerform')
 
   // Giphy
   yield* Saga.chainAction2(Chat2Gen.unsentTextChanged, unsentTextChanged, 'unsentTextChanged')

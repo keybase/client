@@ -17,7 +17,7 @@ const Header = (props: Props) => (
       event => event.stopPropagation()
     }
   >
-    <PathItemInfo path={props.path} showTooltipOnName={true} containerStyle={styles.container} />
+    <PathItemInfo path={props.path} containerStyle={styles.container} />
     <Kb.Divider />
     <PathInfo path={props.path} containerStyle={styles.container} />
   </Kb.Box>

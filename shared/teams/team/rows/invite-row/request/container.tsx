@@ -1,26 +1,32 @@
 import * as React from 'react'
-import * as TeamsGen from '../../../../actions/teams-gen'
-import * as Types from '../../../../constants/types/teams'
-import {getDisabledReasonsForRolePicker, getTeamType} from '../../../../constants/teams'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
-import {sendNotificationFooter} from '../../../role-picker'
+import * as TeamsGen from '../../../../../actions/teams-gen'
+import * as Types from '../../../../../constants/types/teams'
+import * as Constants from '../../../../../constants/teams'
+import * as Chat2Gen from '../../../../../actions/chat2-gen'
+import {sendNotificationFooter} from '../../../../role-picker'
 import {TeamRequestRow, RowProps} from '.'
-import {createShowUserProfile} from '../../../../actions/profile-gen'
-import {connect} from '../../../../util/container'
+import {createShowUserProfile} from '../../../../../actions/profile-gen'
+import {connect} from '../../../../../util/container'
 
 type OwnProps = {
   username: string
-  teamname: string
+  teamID: Types.TeamID
 }
 
-const mapStateToProps = (state, {username, teamname}) => ({
-  _notifLabel:
-    getTeamType(state, teamname) === 'big' ? `Announce them in #general` : `Announce them in team chat`,
-  disabledReasonsForRolePicker: getDisabledReasonsForRolePicker(state, teamname, username),
-})
+const mapStateToProps = (state, {username, teamID}) => {
+  const {teamname} = Constants.getTeamDetails(state, teamID)
+  return {
+    _notifLabel:
+      Constants.getTeamType(state, teamname) === 'big'
+        ? `Announce them in #general`
+        : `Announce them in team chat`,
+    disabledReasonsForRolePicker: Constants.getDisabledReasonsForRolePicker(state, teamname, username),
+    teamname,
+  }
+}
 
-const mapDispatchToProps = (dispatch, {username, teamname}) => ({
-  letIn: (sendNotification: boolean, role: Types.TeamRoleType) => {
+const mapDispatchToProps = (dispatch, {username}) => ({
+  _letIn: (teamname: string, sendNotification: boolean, role: Types.TeamRoleType) => {
     dispatch(
       TeamsGen.createAddToTeam({
         role,
@@ -30,10 +36,10 @@ const mapDispatchToProps = (dispatch, {username, teamname}) => ({
       })
     )
   },
+  _onIgnoreRequest: (teamname: string) => dispatch(TeamsGen.createIgnoreRequest({teamname, username})),
   onChat: () => {
     username && dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'teamInvite'}))
   },
-  onIgnoreRequest: () => dispatch(TeamsGen.createIgnoreRequest({teamname, username})),
   onOpenProfile: () => dispatch(createShowUserProfile({username})),
 })
 
@@ -41,11 +47,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   return {
     _notifLabel: stateProps._notifLabel,
     disabledReasonsForRolePicker: stateProps.disabledReasonsForRolePicker,
-    letIn: dispatchProps.letIn,
+    letIn: (sendNotification: boolean, role: Types.TeamRoleType) =>
+      dispatchProps._letIn(stateProps.teamname, sendNotification, role),
     onChat: dispatchProps.onChat,
-    onIgnoreRequest: dispatchProps.onIgnoreRequest,
+    onIgnoreRequest: () => dispatchProps._onIgnoreRequest(stateProps.teamname),
     onOpenProfile: dispatchProps.onOpenProfile,
-    teamname: ownProps.teamname,
+    teamname: stateProps.teamname,
     username: ownProps.username,
   }
 }

@@ -40,8 +40,13 @@ protocol chatUi {
     boolean isMuted;
   }
 
+  record UIInboxBigTeamLabelRow {
+    string name;
+    string id;
+  }
+
   variant UIInboxBigTeamRow switch (UIInboxBigTeamRowTyp state) {
-    case LABEL: string;
+    case LABEL: UIInboxBigTeamLabelRow;
     case CHANNEL: UIInboxBigTeamChannelRow;
   }
 
@@ -164,6 +169,7 @@ protocol chatUi {
     // Command support
     ConversationCommandGroups commands;
     ConversationCommandGroups botCommands;
+    map<string, string> botAliases;
 
     // Pinned message
     union { null, UIPinnedMessage} pinnedMsg;

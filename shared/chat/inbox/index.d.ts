@@ -25,6 +25,7 @@ export type RowItemBigHeader = {
   type: 'bigHeader'
   isTeam?: boolean
   teamname: string
+  teamID: string
   conversationIDKey?: never
   snippet?: string
   snippetDecoration?: string

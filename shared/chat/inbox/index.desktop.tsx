@@ -46,6 +46,8 @@ const FakeRow = ({idx}) => (
 
 const FakeRemovingRow = () => <Kb.Box2 direction="horizontal" style={styles.fakeRemovingRow} />
 
+const dragKey = '__keybase_inbox'
+
 class Inbox extends React.Component<T.Props, State> {
   state = {
     dragY: -1,
@@ -109,6 +111,10 @@ class Inbox extends React.Component<T.Props, State> {
     return getRowHeight(row.type, row.type === 'divider' && row.showButton)
   }
 
+  private onDragStart = ev => {
+    ev.dataTransfer.setData(dragKey, dragKey)
+  }
+
   private itemRenderer = (index, style) => {
     const row = this.props.rows[index]
     if (!row) {
@@ -130,7 +136,12 @@ class Inbox extends React.Component<T.Props, State> {
         <div style={{...divStyle, position: 'relative'}}>
           {row.showButton && (
             <>
-              <Kb.Box className="grabLinesContainer" draggable={row.showButton} style={styles.grabber}>
+              <Kb.Box
+                className="grabLinesContainer"
+                draggable={row.showButton}
+                onDragStart={this.onDragStart}
+                style={styles.grabber}
+              >
                 <Kb.Box2 className="grabLines" direction="vertical" style={styles.grabberLineContainer}>
                   <Kb.Box2 direction="horizontal" style={styles.grabberLine} />
                   <Kb.Box2 direction="horizontal" style={styles.grabberLine} />
@@ -192,6 +203,7 @@ class Inbox extends React.Component<T.Props, State> {
           navKey: this.props.navKey,
           snippet: row.snippet,
           snippetDecoration: row.snippetDecoration,
+          teamID: (row.type === 'bigHeader' && row.teamID) || '',
           teamname,
           time: row.time || undefined,
           type: row.type,
@@ -282,7 +294,7 @@ class Inbox extends React.Component<T.Props, State> {
   private listChild = ({index, style}) => this.itemRenderer(index, style)
 
   private onDragOver = e => {
-    if (this.scrollDiv.current) {
+    if (this.scrollDiv.current && e.dataTransfer.types.length > 0 && e.dataTransfer.types[0] === dragKey) {
       this.setState({
         dragY:
           e.clientY - this.scrollDiv.current.getBoundingClientRect().top + this.scrollDiv.current.scrollTop,

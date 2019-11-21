@@ -1062,13 +1062,16 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	if err != nil {
 		s.Debug(ctx, "localizeConversation: failed to list commands: %s", err)
 	}
-	botCommands, err := s.G().BotCommandManager.ListCommands(ctx, conversationLocal.GetConvID())
+	botCommands, alias, err := s.G().BotCommandManager.ListCommands(ctx, conversationLocal.GetConvID())
 	if err != nil {
 		s.Debug(ctx, "localizeConversation: failed to list bot commands: %s", err)
-	} else if len(botCommands) > 0 {
-		conversationLocal.BotCommands = bots.MakeConversationCommandGroups(botCommands)
 	} else {
-		conversationLocal.BotCommands = chat1.NewConversationCommandGroupsWithNone()
+		conversationLocal.BotAliases = alias
+		if len(botCommands) > 0 {
+			conversationLocal.BotCommands = bots.MakeConversationCommandGroups(botCommands)
+		} else {
+			conversationLocal.BotCommands = chat1.NewConversationCommandGroupsWithNone()
+		}
 	}
 	return conversationLocal
 }

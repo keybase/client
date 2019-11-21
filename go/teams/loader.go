@@ -859,7 +859,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		return nil, err
 	}
 
-	if !arg.skipSeedCheck {
+	if !arg.skipSeedCheck && arg.readSubteamID == nil {
 		err = hiddenPackage.CheckUpdatesAgainstSeedsWithMap(mctx, ret.PerTeamKeySeedsUnverified)
 		if err != nil {
 			return nil, err

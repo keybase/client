@@ -122,9 +122,21 @@ func (o UIInboxBigTeamChannelRow) DeepCopy() UIInboxBigTeamChannelRow {
 	}
 }
 
+type UIInboxBigTeamLabelRow struct {
+	Name string `codec:"name" json:"name"`
+	Id   string `codec:"id" json:"id"`
+}
+
+func (o UIInboxBigTeamLabelRow) DeepCopy() UIInboxBigTeamLabelRow {
+	return UIInboxBigTeamLabelRow{
+		Name: o.Name,
+		Id:   o.Id,
+	}
+}
+
 type UIInboxBigTeamRow struct {
 	State__   UIInboxBigTeamRowTyp      `codec:"state" json:"state"`
-	Label__   *string                   `codec:"label,omitempty" json:"label,omitempty"`
+	Label__   *UIInboxBigTeamLabelRow   `codec:"label,omitempty" json:"label,omitempty"`
 	Channel__ *UIInboxBigTeamChannelRow `codec:"channel,omitempty" json:"channel,omitempty"`
 }
 
@@ -144,7 +156,7 @@ func (o *UIInboxBigTeamRow) State() (ret UIInboxBigTeamRowTyp, err error) {
 	return o.State__, nil
 }
 
-func (o UIInboxBigTeamRow) Label() (res string) {
+func (o UIInboxBigTeamRow) Label() (res UIInboxBigTeamLabelRow) {
 	if o.State__ != UIInboxBigTeamRowTyp_LABEL {
 		panic("wrong case accessed")
 	}
@@ -164,7 +176,7 @@ func (o UIInboxBigTeamRow) Channel() (res UIInboxBigTeamChannelRow) {
 	return *o.Channel__
 }
 
-func NewUIInboxBigTeamRowWithLabel(v string) UIInboxBigTeamRow {
+func NewUIInboxBigTeamRowWithLabel(v UIInboxBigTeamLabelRow) UIInboxBigTeamRow {
 	return UIInboxBigTeamRow{
 		State__: UIInboxBigTeamRowTyp_LABEL,
 		Label__: &v,
@@ -181,11 +193,11 @@ func NewUIInboxBigTeamRowWithChannel(v UIInboxBigTeamChannelRow) UIInboxBigTeamR
 func (o UIInboxBigTeamRow) DeepCopy() UIInboxBigTeamRow {
 	return UIInboxBigTeamRow{
 		State__: o.State__.DeepCopy(),
-		Label__: (func(x *string) *string {
+		Label__: (func(x *UIInboxBigTeamLabelRow) *UIInboxBigTeamLabelRow {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x)
+			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Label__),
 		Channel__: (func(x *UIInboxBigTeamChannelRow) *UIInboxBigTeamChannelRow {
@@ -564,6 +576,7 @@ type InboxUIItem struct {
 	SupersededBy      []ConversationMetadata        `codec:"supersededBy" json:"supersededBy"`
 	Commands          ConversationCommandGroups     `codec:"commands" json:"commands"`
 	BotCommands       ConversationCommandGroups     `codec:"botCommands" json:"botCommands"`
+	BotAliases        map[string]string             `codec:"botAliases" json:"botAliases"`
 	PinnedMsg         *UIPinnedMessage              `codec:"pinnedMsg,omitempty" json:"pinnedMsg,omitempty"`
 }
 
@@ -686,6 +699,18 @@ func (o InboxUIItem) DeepCopy() InboxUIItem {
 		})(o.SupersededBy),
 		Commands:    o.Commands.DeepCopy(),
 		BotCommands: o.BotCommands.DeepCopy(),
+		BotAliases: (func(x map[string]string) map[string]string {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]string, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := v
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.BotAliases),
 		PinnedMsg: (func(x *UIPinnedMessage) *UIPinnedMessage {
 			if x == nil {
 				return nil
