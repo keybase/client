@@ -8,7 +8,7 @@ import * as Container from '../../util/container'
 
 type OwnProps = {}
 
-export default Container.connect(
+export default Container.connectDEBUG(
   state => ({
     acceptedInvites: state.settings.invites.acceptedInvites,
     error: state.settings.invites.error,
@@ -24,7 +24,7 @@ export default Container.connect(
       dispatch(SettingsGen.createInvitesSend({email, message})),
     onReclaimInvitation: (inviteId: string) => dispatch(SettingsGen.createInvitesReclaim({inviteId})),
     onRefresh: () => dispatch(SettingsGen.createInvitesRefresh()),
-    onSelectPendingInvite: (invite: Types.Invitation) =>
+    onSelectPendingInvite: (invite: Types.PendingInvite) =>
       dispatch(
         RouteTreeGen.createNavigateAppend({
           path: [{props: {email: invite.email, link: invite.url}, selected: 'inviteSent'}],
@@ -33,9 +33,18 @@ export default Container.connect(
     onSelectUser: (username: string) => dispatch(createShowUserProfile({username})),
   }),
   (stateProps, dispatchProps, _: OwnProps) => ({
-    ...stateProps,
-    ...dispatchProps,
     acceptedInvites: stateProps.acceptedInvites,
+    error: stateProps.error,
+    inviteEmail: stateProps.inviteEmail,
+    inviteMessage: stateProps.inviteMessage,
+    onClearError: dispatchProps.onClearError,
+    onGenerateInvitation: dispatchProps.onGenerateInvitation,
+    onReclaimInvitation: dispatchProps.onReclaimInvitation,
+    onRefresh: dispatchProps.onRefresh,
+    onSelectPendingInvite: dispatchProps.onSelectPendingInvite,
+    onSelectUser: dispatchProps.onSelectUser,
     pendingInvites: stateProps.pendingInvites,
+    showMessageField: stateProps.showMessageField,
+    waitingForResponse: stateProps.waitingForResponse,
   })
 )(Invites)
