@@ -618,7 +618,12 @@ const doubleCheck = (
             mapToObject(
               new Map(
                 [...state.paymentsMap.entries()].map(([k, v]) => {
-                  return [k, I.Map(mapToObject(v)).map((v: any) => ({...v, trustline: v.trustline || null}))]
+                  return [
+                    k,
+                    I.Map(mapToObject(v)).map((v: any) =>
+                      ConstantsOLD.makePayment({...v, trustline: v.trustline || null})
+                    ),
+                  ]
                 })
               )
             )
