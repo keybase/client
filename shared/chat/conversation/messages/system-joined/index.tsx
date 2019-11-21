@@ -27,11 +27,7 @@ const Joined = (props: Props) =>
   )
 
 const MultiUserJoinedNotice = (props: Props) => (
-  <Kb.Box2
-    direction="vertical"
-    alignSelf="flex-start"
-    style={{marginLeft: Styles.globalMargins.small, paddingTop: Styles.globalMargins.xtiny}}
-  >
+  <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.container}>
     {props.timestamp && (
       <Kb.Text type="BodyTiny" style={styles.timestamp}>
         {formatTimeForChat(props.timestamp)}
@@ -79,6 +75,18 @@ const styles = Styles.styleSheetCreate(
     ({
       timestamp: Styles.platformStyles({
         isElectron: {lineHeight: 19},
+      }),
+      container: Styles.platformStyles({
+        common: {
+          paddingTop: Styles.globalMargins.xtiny,
+          paddingBottom: Styles.globalMargins.xtiny,
+        },
+        isElectron: {
+          marginLeft: Styles.globalMargins.small,
+        },
+        isMobile: {
+          marginLeft: Styles.globalMargins.tiny,
+        },
       }),
     } as const)
 )
