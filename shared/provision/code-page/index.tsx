@@ -346,7 +346,7 @@ const EnterText = (props: Props & {code: string; setCode: (code: string) => void
   const onSubmit = React.useCallback(
     e => {
       e.preventDefault()
-      onSubmitTextCode(code)
+      code && onSubmitTextCode(code)
     },
     [code, onSubmitTextCode]
   )

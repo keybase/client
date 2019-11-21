@@ -24,7 +24,7 @@ export type State = Readonly<{
   username: string
   initialUsername: string
   deviceName: string
-  devices: Array<Device>
+  devices: ReadonlyArray<Device>
   gpgImportError?: string
   existingDevices: Array<string>
 }>

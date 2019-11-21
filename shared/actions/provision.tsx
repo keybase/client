@@ -222,7 +222,8 @@ class ProvisioningManager {
     }
 
     if (!state.provision.codePageOutgoingTextCode.stringValue()) {
-      response.error()
+      // actually submit so we get an error plumbed back
+      response.result({phrase: 'invalid', secret: null as any})
       throw new Error('Tried to submit a code but missing in store')
     }
 
