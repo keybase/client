@@ -2296,10 +2296,11 @@ func RetryIfPossible(ctx context.Context, g *libkb.GlobalContext, post func(ctx 
 	for i := 0; i < nRetries; i++ {
 		mctx.Debug("| RetryIfPossible(%v)", i)
 		err = post(mctx.Ctx(), i)
-		mctx.Warning("| @@@@ ERR %s", err)
 		switch {
 		case isSigOldSeqnoError(err):
 			mctx.Debug("| retrying due to SigOldSeqnoError %d", i)
+		case isStaleBoxError(err):
+			mctx.Debug("| retrying due to StaleBoxError %d", i)
 		case isTeamBadGenerationError(err):
 			mctx.Debug("| retrying due to Bad Generation Error (%s) %d", err, i)
 		case isSigBadTotalOrder(err):

@@ -2015,7 +2015,6 @@ func TestTeamHiddenGenerationRotateRace(t *testing.T) {
 	alice := tt.users[0]
 	bob := tt.users[1]
 	charlie := tt.users[2]
-	fmt.Println(charlie)
 
 	team := alice.createTeam()
 	parentName, err := keybase1.TeamNameFromString(team)
@@ -2028,7 +2027,6 @@ func TestTeamHiddenGenerationRotateRace(t *testing.T) {
 	require.NoError(t, err)
 	subsubteamName, err := subteamName.Append("cc")
 	require.NoError(t, err)
-	fmt.Println(subsubteamName)
 
 	t.Logf("Start testing")
 
