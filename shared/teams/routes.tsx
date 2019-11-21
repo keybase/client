@@ -47,7 +47,6 @@ export const newModalRoutes = {
   teamJoinTeamDialog: {getScreen: (): typeof TeamJoinTeamDialog => require('./join-team/container').default},
   // TODO connect broken
   teamNewTeamDialog: {getScreen: (): typeof TeamNewTeamDialog => require('./new-team/container').default},
-  // TODO connect broken
   teamReallyLeaveTeam: {
     getScreen: (): typeof TeamReallyLeaveTeam => require('./really-leave-team/container').default,
   },
