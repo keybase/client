@@ -63,23 +63,12 @@ const AddedToTeam = (props: Props) => {
   if (props.addee === props.you) {
     return <YouAddedToTeam {...props} />
   }
-  if (props.bulkAdds.length === 0) {
-    return (
-      <UserNotice>
-        <Kb.Text type="BodySmall">
-          was added by {youOrUsername({capitalize: false, username: props.adder, you: props.you})}
-          {typeToLabel[props.role] &&
-            `as ${indefiniteArticle(props.role)} ${typeToLabel[props.role].toLowerCase()}`}
-          . <ManageComponent {...props} />
-        </Kb.Text>
-      </UserNotice>
-    )
-  }
   return (
     <UserNotice>
       <Kb.Text type="BodySmall">
         {youOrUsername({capitalize: true, username: props.adder, you: props.you})}added{' '}
-        {getAddedUsernames(props.bulkAdds)}. <ManageComponent {...props} />
+        {getAddedUsernames(props.bulkAdds.length === 0 ? [props.addee] : props.bulkAdds)} to the team.{' '}
+        <ManageComponent {...props} />
       </Kb.Text>
     </UserNotice>
   )
