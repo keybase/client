@@ -1,15 +1,12 @@
-import * as I from 'immutable'
 import {RPCError} from '../../util/errors'
 
-export type _State = {
+export type State = Readonly<{
   // TODO remove
-  forgotPasswordError: Error | null
+  forgotPasswordError?: Error
   forgotPasswordSubmitting: boolean
   forgotPasswordSuccess: boolean
   // shared by all errors, we only ever want one error
-  error: RPCError | null
+  error?: RPCError
   registerUserPassLoading: boolean
-  isOnline: boolean | null
-}
-
-export type State = I.RecordOf<_State>
+  isOnline?: boolean
+}>

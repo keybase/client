@@ -25,10 +25,10 @@ export const prepareAccountRows = <T extends {username: string; hasStoredSecret:
   accountRows: Array<T>,
   myUsername: string
 ): Array<T> =>
-  sortBy(accountRows.filter(account => account.username !== myUsername), [
-    a => !a.hasStoredSecret,
-    'username',
-  ])
+  sortBy(
+    accountRows.filter(account => account.username !== myUsername),
+    [a => !a.hasStoredSecret, 'username']
+  )
 
 type Url = {
   protocol: string

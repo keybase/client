@@ -16,7 +16,6 @@ export type Props = {
   fullname: string
   isWalletsNew?: boolean
   onAddAccount: () => void
-  onCreateAccount: () => void
   onHelp: () => void
   onProfileClick: () => void
   onQuit: () => void
@@ -89,10 +88,7 @@ class TabBar extends React.PureComponent<Props, State> {
   })
   private menuItems = (): Kb.MenuItems => [
     ...(flags.fastAccountSwitch
-      ? [
-          {onClick: this.props.onAddAccount, title: 'Log in as another user'},
-          {onClick: this.props.onCreateAccount, title: 'Create a new account'},
-        ]
+      ? [{onClick: this.props.onAddAccount, title: 'Log in as another user'}]
       : [{onClick: this.props.onProfileClick, title: 'View profile'}, 'Divider' as const]),
     {onClick: this.props.onSettings, title: 'Settings'},
     {onClick: this.props.onHelp, title: 'Help'},

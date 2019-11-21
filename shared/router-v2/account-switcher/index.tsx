@@ -14,7 +14,6 @@ export type Props = {
   fullname: string
   onAddAccount: () => void
   onCancel: () => void
-  onCreateAccount: () => void
   onProfileClick: () => void
   onSelectAccount: (username: string) => void
   username: string
@@ -50,13 +49,6 @@ const MobileHeader = (props: Props) => (
         mode="Primary"
         fullWidth={true}
         waitingKey={Constants.loginAsOtherUserWaitingKey}
-      />
-      <Kb.WaitingButton
-        onClick={props.onCreateAccount}
-        label="Create a new account"
-        mode="Secondary"
-        fullWidth={true}
-        waitingKey={Constants.createOtherAccountWaitingKey}
       />
     </Kb.Box2>
   </>

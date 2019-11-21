@@ -55,6 +55,7 @@ func GetTeamAndMemberShowcase(ctx context.Context, g *libkb.GlobalContext, teamn
 
 	arg := apiArg("team/get")
 	arg.Args.Add("id", libkb.S{Val: t.ID.String()})
+	arg.Args.Add("showcase_only", libkb.B{Val: true})
 
 	var teamRet rawTeam
 	mctx := libkb.NewMetaContext(ctx, g)

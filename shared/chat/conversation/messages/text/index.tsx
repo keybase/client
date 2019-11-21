@@ -4,7 +4,7 @@ import * as Constants from '../../../../constants/chat2'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 
-type ReplyProps = {
+export type ReplyProps = {
   deleted: boolean
   edited: boolean
   imageHeight?: number

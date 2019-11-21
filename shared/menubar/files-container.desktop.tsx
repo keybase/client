@@ -54,6 +54,8 @@ const mergeProps = (stateProps, dispatchProps) => ({
       }),
 })
 
-export default remoteConnect(mapStateToProps, mapDispatchToProps, mergeProps)(
-  setDisplayName('FilesPreview')(FilesPreview)
-)
+export default remoteConnect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(setDisplayName('FilesPreview')(FilesPreview))

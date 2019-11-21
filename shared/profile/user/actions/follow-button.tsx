@@ -3,9 +3,10 @@ import WaitingButton from '../../../common-adapters/waiting-button'
 import * as Styles from '../../../styles'
 
 type Props = {
+  disabled?: boolean
   following?: boolean
   followsYou?: boolean
-  waitingKey: string
+  waitingKey: string | Array<string>
   small?: boolean
   style?: Object
   onFollow?: () => void

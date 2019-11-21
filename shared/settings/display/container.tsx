@@ -19,11 +19,7 @@ const mapDispatchToProps = dispatch => ({
 })
 
 export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    (s, d, o: OwnProps) => ({...o, ...s, ...d})
-  ),
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o: OwnProps) => ({...o, ...s, ...d})),
   HeaderHoc
   // @ts-ignore
 )(Display)

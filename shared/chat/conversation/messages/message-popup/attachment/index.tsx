@@ -12,6 +12,7 @@ type Props = {
   deviceType: DeviceType
   deviceRevokedAt?: number
   onAddReaction?: () => void
+  onAllMedia: () => void
   onDelete?: () => void
   onDownload?: () => void
   onHidden: () => void
@@ -49,10 +50,11 @@ const AttachmentPopupMenu = (props: Props) => {
     ...(props.onSaveAttachment
       ? [{disabled: props.pending, onClick: props.onSaveAttachment, title: 'Save'}]
       : []),
+    ...(props.onDownload ? [{disabled: props.pending, onClick: props.onDownload, title: 'Download'}] : []),
     ...(props.onShareAttachment
       ? [{disabled: props.pending, onClick: props.onShareAttachment, title: 'Share'}]
       : []),
-    ...(props.onDownload ? [{disabled: props.pending, onClick: props.onDownload, title: 'Download'}] : []),
+    ...[{disabled: props.pending, onClick: props.onAllMedia, title: 'All media'}],
     ...(props.onAddReaction ? [{onClick: props.onAddReaction, title: 'Add a reaction'}] : []),
     ...(props.onReply ? [{onClick: props.onReply, title: 'Reply'}] : []),
     ...(props.onPinMessage ? [{onClick: props.onPinMessage, title: 'Pin message'}] : []),

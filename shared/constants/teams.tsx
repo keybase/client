@@ -41,7 +41,7 @@ export const addInviteWaitingKey = (teamname: Types.Teamname, value: string) =>
 export const removeMemberWaitingKey = (teamname: Types.Teamname, id: string) => `teamRemove:${teamname};${id}`
 export const addToTeamSearchKey = 'addToTeamSearch'
 export const teamProfileAddListWaitingKey = 'teamProfileAddList'
-export const deleteTeamWaitingKey = (teamname: Types.Teamname) => `teamDelete:${teamname}`
+export const deleteTeamWaitingKey = (teamID: Types.TeamID) => `teamDelete:${teamID}`
 export const leaveTeamWaitingKey = (teamname: Types.Teamname) => `teamLeave:${teamname}`
 export const teamRenameWaitingKey = 'teams:rename'
 
@@ -93,7 +93,7 @@ export const rpcDetailsToMemberInfos = (
   return I.Map(infos)
 }
 
-export const makeInviteInfo = I.Record<Types._InviteInfo>({
+export const emptyInviteInfo = Object.freeze<Types.InviteInfo>({
   email: '',
   id: '',
   name: '',
@@ -101,6 +101,8 @@ export const makeInviteInfo = I.Record<Types._InviteInfo>({
   role: 'writer',
   username: '',
 })
+
+export const makeInviteInfo = I.Record<Types.InviteInfo>(emptyInviteInfo)
 
 export const emptyEmailInviteError = Object.freeze<Types.EmailInviteError>({
   malformed: new Set<string>(),
@@ -163,6 +165,7 @@ export const makeRetentionPolicy = (r?: Partial<RetentionPolicy>): RetentionPoli
 const emptyState: Types.State = {
   addUserToTeamsResults: '',
   addUserToTeamsState: 'notStarted',
+  canPerform: new Map(),
   channelCreationError: '',
   deletedTeams: [],
   emailInviteError: emptyEmailInviteError,
@@ -175,6 +178,8 @@ const emptyState: Types.State = {
   teamBuilding: TeamBuildingConstants.makeSubState(),
   teamCreationError: '',
   teamDetails: new Map(),
+  teamDetailsMetaStale: true, // start out true, we have not loaded
+  teamDetailsMetaSubscribeCount: 0,
   teamInviteError: '',
   teamJoinError: '',
   teamJoinSuccess: false,
@@ -183,13 +188,11 @@ const emptyState: Types.State = {
   teamNameToCanPerform: I.Map(),
   teamNameToChannelInfos: I.Map(),
   teamNameToID: I.Map(),
-  teamNameToInvites: I.Map(),
   teamNameToIsOpen: I.Map(),
   teamNameToIsShowcasing: I.Map(),
   teamNameToLoadingInvites: I.Map(),
   teamNameToMembers: I.Map(),
   teamNameToPublicitySettings: I.Map(),
-  teamNameToRequests: I.Map(),
   teamNameToResetUsers: I.Map(),
   teamNameToRetentionPolicy: I.Map(),
   teamNameToRole: I.Map(),
@@ -205,7 +208,7 @@ const emptyState: Types.State = {
 export const makeState = (s?: Partial<Types.State>): Types.State =>
   s ? Object.assign({...emptyState}, s) : emptyState
 
-export const initialCanUserPerform: RPCTypes.TeamOperation = {
+export const initialCanUserPerform = Object.freeze<Types.TeamOperations>({
   changeOpenTeam: false,
   changeTarsDisabled: false,
   chat: false,
@@ -217,19 +220,17 @@ export const initialCanUserPerform: RPCTypes.TeamOperation = {
   editChannelDescription: false,
   editTeamDescription: false,
   joinTeam: false,
-  leaveTeam: false,
   listFirst: false,
   manageMembers: false,
   manageSubteams: false,
   pinMessage: false,
   renameChannel: false,
   renameTeam: false,
-  setMemberShowcase: false,
   setMinWriterRole: false,
   setPublicityAny: false,
   setRetentionPolicy: false,
   setTeamShowcase: false,
-}
+})
 
 const dayInS = 3600 * 24
 const policyInherit = makeRetentionPolicy({title: '', type: 'inherit'})
@@ -330,12 +331,6 @@ export const getChannelInfoFromConvID = (
 export const getRole = (state: TypedState, teamname: Types.Teamname): Types.MaybeTeamRoleType =>
   state.teams.teamNameToRole.get(teamname, 'none')
 
-export const getCanPerform = (state: TypedState, teamname: Types.Teamname): Types.TeamOperations =>
-  state.teams.teamNameToCanPerform.get(teamname, initialCanUserPerform)
-
-export const hasCanPerform = (state: TypedState, teamname: Types.Teamname): boolean =>
-  state.teams.teamNameToCanPerform.has(teamname)
-
 export const hasChannelInfos = (state: TypedState, teamname: Types.Teamname): boolean =>
   state.teams.teamNameToChannelInfos.has(teamname)
 
@@ -424,11 +419,11 @@ export const getTeamNameFromID = (state: TypedState, teamID: string): Types.Team
 export const getTeamRetentionPolicy = (state: TypedState, teamname: Types.Teamname): RetentionPolicy | null =>
   state.teams.teamNameToRetentionPolicy.get(teamname, null)
 
-export const getSelectedTeamNames = (): Types.Teamname[] => {
+export const getSelectedTeams = (): Types.TeamID[] => {
   const path = getFullRoute()
   return path.reduce<Array<string>>((names, curr) => {
     if (curr.routeName === 'team') {
-      curr.params && curr.params.teamname && names.push(curr.params.teamname)
+      curr.params && curr.params.teamID && names.push(curr.params.teamID)
     }
     return names
   }, [])
@@ -478,9 +473,6 @@ export const getTeamPublicitySettings = (
     team: false,
   })
 
-export const getTeamInvites = (state: TypedState, teamname: Types.Teamname): I.Set<Types.InviteInfo> =>
-  state.teams.teamNameToInvites.get(teamname, I.Set())
-
 // Note that for isInTeam and isInSomeTeam, we don't use 'teamnames',
 // since that may contain subteams you're not a member of.
 
@@ -504,9 +496,6 @@ export const getTeamResetUsers = (state: TypedState, teamname: Types.Teamname): 
 
 export const getTeamLoadingInvites = (state: TypedState, teamname: Types.Teamname): I.Map<string, boolean> =>
   state.teams.teamNameToLoadingInvites.get(teamname) || I.Map<string, boolean>()
-
-export const getTeamRequests = (state: TypedState, teamname: Types.Teamname): I.Set<string> =>
-  state.teams.teamNameToRequests.get(teamname, I.Set())
 
 // Sorts teamnames canonically.
 function sortTeamnames(a: string, b: string) {
@@ -622,6 +611,15 @@ export const isOnTeamsTab = () => {
   return Array.isArray(path) ? path.some(p => p.routeName === teamsTab) : false
 }
 
+// Merge new teamDetails objs into old ones, removing any old teams that are not in the new map
+export const mergeTeamDetails = (oldMap: Types.State['teamDetails'], newMap: Types.State['teamDetails']) => {
+  const ret = new Map(newMap)
+  for (const [teamID, teamDetails] of newMap.entries()) {
+    ret.set(teamID, {...oldMap.get(teamID), ...teamDetails})
+  }
+  return ret
+}
+
 export const emptyTeamDetails = Object.freeze<Types.TeamDetails>({
   allowPromote: false,
   id: Types.noTeamID,
@@ -658,8 +656,8 @@ export const teamListToDetails = (
 
 export const annotatedInvitesToInviteInfo = (
   invites: RPCTypes.TeamDetails['annotatedActiveInvites']
-): Array<Types._InviteInfo> =>
-  Object.values(invites).reduce<Array<Types._InviteInfo>>((arr, invite) => {
+): Array<Types.InviteInfo> =>
+  Object.values(invites).reduce<Array<Types.InviteInfo>>((arr, invite) => {
     const role = teamRoleByEnum[invite.role]
     if (!role || role === 'none') {
       return arr
@@ -685,3 +683,53 @@ export const annotatedInvitesToInviteInfo = (
 
 export const getTeamDetails = (state: TypedState, teamID: Types.TeamID) =>
   state.teams.teamDetails.get(teamID) || emptyTeamDetails
+
+const _canUserPerformCache: {[key: string]: Types.TeamOperations} = {}
+const _canUserPerformCacheKey = (t: Types.TeamRoleAndDetails) => t.role + t.implicitAdmin
+const deriveCanPerform = (roleAndDetails?: Types.TeamRoleAndDetails): Types.TeamOperations => {
+  if (!roleAndDetails) {
+    // can happen if an empty teamID was passed to a getter
+    return initialCanUserPerform
+  }
+
+  const ck = _canUserPerformCacheKey(roleAndDetails)
+  if (_canUserPerformCache[ck]) return _canUserPerformCache[ck]
+
+  const {role, implicitAdmin} = roleAndDetails
+  const isAdminOrAbove = role === 'admin' || role === 'owner'
+  const isWriterOrAbove = role === 'writer' || isAdminOrAbove
+  const isBotOrAbove = role === 'bot' || role === 'reader' || isWriterOrAbove
+
+  const canPerform = {
+    changeOpenTeam: isAdminOrAbove || implicitAdmin,
+    changeTarsDisabled: isAdminOrAbove || implicitAdmin,
+    chat: isBotOrAbove,
+    createChannel: isWriterOrAbove,
+    deleteChannel: isAdminOrAbove,
+    deleteChatHistory: isAdminOrAbove,
+    deleteOtherMessages: isAdminOrAbove,
+    deleteTeam: role === 'owner' || implicitAdmin, // role = owner for root teams, otherwise implicitAdmin
+    editChannelDescription: isWriterOrAbove,
+    editTeamDescription: isAdminOrAbove || implicitAdmin,
+    joinTeam: role === 'none' && implicitAdmin,
+    listFirst: implicitAdmin,
+    manageMembers: isAdminOrAbove || implicitAdmin,
+    manageSubteams: isAdminOrAbove || implicitAdmin,
+    pinMessage: isWriterOrAbove,
+    renameChannel: isWriterOrAbove,
+    renameTeam: implicitAdmin,
+    setMemberShowcase: false, // TODO remove, depends on team publicity settings
+    setMinWriterRole: isAdminOrAbove,
+    setPublicityAny: isAdminOrAbove || implicitAdmin,
+    setRetentionPolicy: isAdminOrAbove,
+    setTeamShowcase: isAdminOrAbove,
+  }
+  _canUserPerformCache[ck] = canPerform
+  return canPerform
+}
+
+export const getCanPerform = (state: TypedState, teamname: Types.Teamname): Types.TeamOperations =>
+  getCanPerformByID(state, getTeamID(state, teamname))
+
+export const getCanPerformByID = (state: TypedState, teamID: Types.TeamID): Types.TeamOperations =>
+  deriveCanPerform(state.teams.teamRoleMap.roles.get(teamID))

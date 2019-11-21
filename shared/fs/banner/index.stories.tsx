@@ -49,7 +49,7 @@ export const bannerProvider = {
   SystemFileManagerIntegrationBanner: ({alwaysShow}: any) => ({
     alwaysShow,
     ...commonSystemFileManagerIntegrationBannerActions,
-    driverStatus: Constants.makeDriverStatusUnknown(),
+    driverStatus: Constants.driverStatusUnknown,
   }),
 }
 
@@ -71,56 +71,58 @@ export default () => {
     .add('SystemFileManagerIntegrationBanner - disabled', () => (
       <SystemFileManagerIntegrationBanner
         {...commonSystemFileManagerIntegrationBannerActions}
-        driverStatus={Constants.makeDriverStatusDisabled()}
+        driverStatus={Constants.emptyDriverStatusDisabled}
       />
     ))
     .add('SystemFileManagerIntegrationBanner - disabled, enabling', () => (
       <SystemFileManagerIntegrationBanner
         {...commonSystemFileManagerIntegrationBannerActions}
-        driverStatus={Constants.makeDriverStatusDisabled({isEnabling: true})}
+        driverStatus={{...Constants.emptyDriverStatusDisabled, isEnabling: true}}
       />
     ))
     .add('SystemFileManagerIntegrationBanner - enabled, new', () => (
       <SystemFileManagerIntegrationBanner
         {...commonSystemFileManagerIntegrationBannerActions}
-        driverStatus={Constants.makeDriverStatusEnabled({isNew: true})}
+        driverStatus={{...Constants.emptyDriverStatusEnabled, isNew: true}}
       />
     ))
     .add('SystemFileManagerIntegrationBanner - enabled, disabling', () => (
       <SystemFileManagerIntegrationBanner
         {...commonSystemFileManagerIntegrationBannerActions}
-        driverStatus={Constants.makeDriverStatusEnabled({isDisabling: true})}
+        driverStatus={{...Constants.emptyDriverStatusEnabled, isDisabling: true}}
       />
     ))
     .add('SystemFileManagerIntegrationBanner - enabled, dokanOutdated', () => (
       <SystemFileManagerIntegrationBanner
         {...commonSystemFileManagerIntegrationBannerActions}
-        driverStatus={Constants.makeDriverStatusEnabled({
+        driverStatus={{
+          ...Constants.emptyDriverStatusEnabled,
           dokanOutdated: true,
           dokanUninstallExecPath: 'c:\\blah',
-        })}
+        }}
       />
     ))
     .add('SystemFileManagerIntegrationBanner - enabled, dokanOutdated, diabling', () => (
       <SystemFileManagerIntegrationBanner
         {...commonSystemFileManagerIntegrationBannerActions}
-        driverStatus={Constants.makeDriverStatusEnabled({
+        driverStatus={{
+          ...Constants.emptyDriverStatusEnabled,
           dokanOutdated: true,
           dokanUninstallExecPath: 'c:\\blah',
           isDisabling: true,
-        })}
+        }}
       />
     ))
     .add('SystemFileManagerIntegrationBanner - kext permissiion popup', () => (
       <KextPermissionPopup
-        driverStatus={Constants.makeDriverStatusDisabled({isEnabling: false})}
+        driverStatus={{...Constants.emptyDriverStatusDisabled, isEnabling: false}}
         onCancel={Sb.action('onCancel')}
         openSecurityPrefs={Sb.action('openSecurityPrefs')}
       />
     ))
     .add('SystemFileManagerIntegrationBanner - kext permissiion popup - enabling', () => (
       <KextPermissionPopup
-        driverStatus={Constants.makeDriverStatusDisabled({isEnabling: true})}
+        driverStatus={{...Constants.emptyDriverStatusDisabled, isEnabling: true}}
         onCancel={Sb.action('onCancel')}
         openSecurityPrefs={Sb.action('openSecurityPrefs')}
       />

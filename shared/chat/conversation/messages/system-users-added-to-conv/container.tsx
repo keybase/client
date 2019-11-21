@@ -38,7 +38,10 @@ const UsersAddedToConversation = (props: SwitcherProps) => {
   let otherUsers
   if (props.added.includes(props.you)) {
     otherUsers = props.added.slice()
-    otherUsers.splice(otherUsers.findIndex(u => u === props.you), 1)
+    otherUsers.splice(
+      otherUsers.findIndex(u => u === props.you),
+      1
+    )
   }
   return otherUsers ? (
     <YouAdded {...common} otherUsers={otherUsers} />

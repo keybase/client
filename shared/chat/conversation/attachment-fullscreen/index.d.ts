@@ -8,6 +8,7 @@ export type Props = {
   message: MessageAttachment
   progress: number
   progressLabel: string | null
+  onAllMedia: () => void
   onNextAttachment: () => void
   onPreviousAttachment: () => void
   onClose: () => void

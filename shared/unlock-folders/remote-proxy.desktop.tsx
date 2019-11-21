@@ -31,7 +31,7 @@ const UnlockFolder = compose(
     () => ({}),
     (stateProps, _, __) => ({
       darkMode: stateProps.darkMode,
-      devices: stateProps.devices.toJS(), // Never send immutable over the wire
+      devices: stateProps.devices,
       paperkeyError: stateProps.paperkeyError,
       phase: stateProps.phase,
       remoteWindowNeedsProps: stateProps.remoteWindowNeedsProps,
@@ -51,11 +51,7 @@ type Props = {
   show: boolean
 }
 
-class UnlockFolders extends React.PureComponent<Props> {
-  render() {
-    return this.props.show ? <UnlockFolder /> : null
-  }
-}
+const UnlockFolders = (props: Props) => (props.show ? <UnlockFolder /> : null)
 
 export default connect(
   state => ({show: state.unlockFolders.popupOpen}),

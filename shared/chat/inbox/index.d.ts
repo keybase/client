@@ -25,6 +25,7 @@ export type RowItemBigHeader = {
   type: 'bigHeader'
   isTeam?: boolean
   teamname: string
+  teamID: string
   conversationIDKey?: never
   snippet?: string
   snippetDecoration?: string
@@ -46,8 +47,19 @@ export type RowItemDivider = {
   showButton: boolean
   type: 'divider'
 }
+export type RowItemTeamBuilder = {
+  conversationIDKey?: never
+  teamname?: never
+  type: 'teamBuilder'
+}
 
-export type RowItem = RowItemSmall | RowItemBigTeamsLabel | RowItemBigHeader | RowItemBig | RowItemDivider
+export type RowItem =
+  | RowItemSmall
+  | RowItemBigTeamsLabel
+  | RowItemBigHeader
+  | RowItemBig
+  | RowItemDivider
+  | RowItemTeamBuilder
 
 export type RouteState = I.RecordOf<{
   smallTeamsExpanded: boolean
@@ -55,16 +67,19 @@ export type RouteState = I.RecordOf<{
 
 export type Props = {
   allowShowFloatingButton: boolean
+  inboxNumSmallRows: number
+  hasBigTeams: boolean
+  isLoading: boolean
+  isSearching: boolean
   navKey: string
   neverLoaded: boolean
   onNewChat: () => void
   onUntrustedInboxVisible: (conversationIDKeys: Array<ConversationIDKey>) => void
   rows: Array<RowItem>
+  setInboxNumSmallRows: (rows: number) => void
   smallTeamsExpanded: boolean
   toggleSmallTeamsExpanded: () => void
   unreadIndices: Array<number>
-  isSearching: boolean
-  isLoading: boolean
 }
 
 export default class Inbox extends React.Component<Props> {}

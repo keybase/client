@@ -8,6 +8,7 @@ import (
 	"time"
 
 	chat1 "github.com/keybase/client/go/protocol/chat1"
+	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	clockwork "github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
 )
@@ -42,7 +43,7 @@ func (t *testDealersHelper) Me() UserDevice {
 	return t.me
 }
 
-func (t *testDealersHelper) SendChat(ctx context.Context, conversationID chat1.ConversationID,
+func (t *testDealersHelper) SendChat(ctx context.Context, initiatorUID gregor1.UID, conversationID chat1.ConversationID,
 	gameID chat1.FlipGameID, msg GameMessageEncoded) error {
 	t.ch <- GameMessageWrappedEncoded{Body: msg, GameID: gameID, Sender: t.me}
 	return nil

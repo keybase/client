@@ -227,9 +227,7 @@ function* requestPayment(state: TypedState, _: WalletsGen.RequestPaymentPayload,
   }
   if (!buildRes.readyToRequest) {
     logger.warn(
-      `invalid form submitted. amountErr: ${buildRes.amountErrMsg}; secretNoteErr: ${
-        buildRes.secretNoteErrMsg
-      }; toErrMsg: ${buildRes.toErrMsg}`
+      `invalid form submitted. amountErr: ${buildRes.amountErrMsg}; secretNoteErr: ${buildRes.secretNoteErrMsg}; toErrMsg: ${buildRes.toErrMsg}`
     )
     yield Saga.put(
       WalletsGen.createBuiltRequestReceived({
@@ -240,9 +238,7 @@ function* requestPayment(state: TypedState, _: WalletsGen.RequestPaymentPayload,
     return false
   }
 
-  const kbRqID: Saga.RPCPromiseType<
-    typeof RPCStellarTypes.localMakeRequestLocalRpcPromise
-  > = yield RPCStellarTypes.localMakeRequestLocalRpcPromise(
+  const kbRqID: Saga.RPCPromiseType<typeof RPCStellarTypes.localMakeRequestLocalRpcPromise> = yield RPCStellarTypes.localMakeRequestLocalRpcPromise(
     {
       amount: state.wallets.building.amount,
       // FIXME -- support other assets.
@@ -374,7 +370,21 @@ const clearBuilding = () => WalletsGen.createClearBuilding()
 
 const clearErrors = () => WalletsGen.createClearErrors()
 
-const loadWalletDisclaimer = async (state: TypedState) => {
+const loadWalletDisclaimer = async (
+  state: TypedState,
+  action:
+    | ConfigGen.LoggedInPayload
+    | ConfigGen.StartupFirstIdlePayload
+    | WalletsGen.LoadAccountsPayload
+    | WalletsGen.LoadWalletDisclaimerPayload
+) => {
+  // We want to load disclaimer status for the new user when you switch users,
+  // so we listen to loggedIn. But we don't want to slow down app startup: in
+  // that case, do nothing on initial login and wait for startupFirstIdle.
+  if (action.type === ConfigGen.loggedIn && action.payload.causedByStartup) {
+    return false
+  }
+
   if (!state.config.username) {
     return false
   }
@@ -1660,9 +1670,7 @@ function* loadStaticConfig(state: TypedState, action: ConfigGen.DaemonHandshakeP
   )
 
   try {
-    const res: Saga.RPCPromiseType<
-      typeof RPCStellarTypes.localGetStaticConfigLocalRpcPromise
-    > = yield RPCStellarTypes.localGetStaticConfigLocalRpcPromise()
+    const res: Saga.RPCPromiseType<typeof RPCStellarTypes.localGetStaticConfigLocalRpcPromise> = yield RPCStellarTypes.localGetStaticConfigLocalRpcPromise()
     yield Saga.put(
       WalletsGen.createStaticConfigLoaded({
         staticConfig: I.Record(res)(),
@@ -1845,7 +1853,12 @@ function* walletsSaga() {
   yield* Saga.chainAction2(NotificationsGen.receivedBadgeState, receivedBadgeState, 'receivedBadgeState')
 
   yield* Saga.chainAction2(
-    [WalletsGen.loadAccounts, ConfigGen.startupFirstIdle, WalletsGen.loadWalletDisclaimer],
+    [
+      ConfigGen.loggedIn,
+      ConfigGen.startupFirstIdle,
+      WalletsGen.loadAccounts,
+      WalletsGen.loadWalletDisclaimer,
+    ],
     loadWalletDisclaimer,
     'loadWalletDisclaimer'
   )

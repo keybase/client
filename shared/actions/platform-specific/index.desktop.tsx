@@ -305,11 +305,11 @@ const saveUseNativeFrame = async (state: Container.TypedState) => {
 
 function* initializeUseNativeFrame() {
   try {
-    const val: Saga.RPCPromiseType<
-      typeof RPCTypes.configGuiGetValueRpcPromise
-    > = yield RPCTypes.configGuiGetValueRpcPromise({
-      path: nativeFrameKey,
-    })
+    const val: Saga.RPCPromiseType<typeof RPCTypes.configGuiGetValueRpcPromise> = yield RPCTypes.configGuiGetValueRpcPromise(
+      {
+        path: nativeFrameKey,
+      }
+    )
     const useNativeFrame = val.b === undefined || val.b === null ? defaultUseNativeFrame : val.b
     yield Saga.put(ConfigGen.createSetUseNativeFrame({useNativeFrame}))
   } catch (_) {}
@@ -330,11 +330,11 @@ const saveWindowState = async (state: Container.TypedState) => {
 const notifySoundKey = 'notifySound'
 function* initializeNotifySound() {
   try {
-    const val: Saga.RPCPromiseType<
-      typeof RPCTypes.configGuiGetValueRpcPromise
-    > = yield RPCTypes.configGuiGetValueRpcPromise({
-      path: notifySoundKey,
-    })
+    const val: Saga.RPCPromiseType<typeof RPCTypes.configGuiGetValueRpcPromise> = yield RPCTypes.configGuiGetValueRpcPromise(
+      {
+        path: notifySoundKey,
+      }
+    )
     const notifySound: boolean | undefined = val.b || undefined
     const state: Container.TypedState = yield Saga.selectState()
     if (notifySound !== undefined && notifySound !== state.config.notifySound) {
@@ -357,11 +357,11 @@ const setNotifySound = async (state: Container.TypedState) => {
 const openAtLoginKey = 'openAtLogin'
 function* initializeOpenAtLogin() {
   try {
-    const val: Saga.RPCPromiseType<
-      typeof RPCTypes.configGuiGetValueRpcPromise
-    > = yield RPCTypes.configGuiGetValueRpcPromise({
-      path: openAtLoginKey,
-    })
+    const val: Saga.RPCPromiseType<typeof RPCTypes.configGuiGetValueRpcPromise> = yield RPCTypes.configGuiGetValueRpcPromise(
+      {
+        path: openAtLoginKey,
+      }
+    )
 
     const openAtLogin: boolean | undefined = val.b || undefined
     const state: Container.TypedState = yield Saga.selectState()

@@ -22,6 +22,13 @@ import (
 	"gopkg.in/src-d/go-git.v4/storage"
 )
 
+const (
+	// LFSSubdir is the prefix for the LFS directory under .kbfs_git
+	LFSSubdir       = "kbfs_lfs"
+	lfsEntryMinSize = 120
+	lfsEntryMaxSize = 150
+)
+
 func translateGitError(err *error) {
 	if *err == nil {
 		return
@@ -42,6 +49,7 @@ type Browser struct {
 	root       string
 	mtime      time.Time
 	commitHash plumbing.Hash
+	lfsFS      billy.Filesystem
 
 	sharedCache sharedInBrowserCache
 }
@@ -113,12 +121,20 @@ func NewBrowser(
 		return nil, err
 	}
 
+	lfsFS, err := repoFS.Chroot(LFSSubdir)
+	if os.IsNotExist(err) {
+		lfsFS = nil
+	} else if err != nil {
+		return nil, err
+	}
+
 	return &Browser{
 		repo:        repo,
 		tree:        tree,
 		root:        string(gitBranchName),
 		mtime:       c.Author.When,
 		commitHash:  c.Hash,
+		lfsFS:       lfsFS,
 		sharedCache: sharedCache,
 	}, nil
 }
@@ -196,6 +212,11 @@ func (b *Browser) Open(filename string) (f billy.File, err error) {
 			return sfi.sf, nil
 		}
 
+		// Check if this is LFS.
+		if lfsFI, ok := fi.(*lfsFileInfo); ok {
+			return b.lfsFS.Open(lfsFI.oid)
+		}
+
 		// If it's not a symlink, we can return right away.
 		if fi.Mode()&os.ModeSymlink == 0 {
 			f, err := b.tree.File(filename)
@@ -225,6 +246,31 @@ func (b *Browser) OpenFile(filename string, flag int, _ os.FileMode) (
 	}
 
 	return b.Open(filename)
+}
+
+func (b *Browser) fileInfoForLFS(
+	filename string, oidLine string, fi os.FileInfo) (
+	newFi os.FileInfo, err error) {
+	fields := strings.Fields(oidLine)
+	// An OID line looks like:
+	//     oid sha256:588b3683...
+	if len(fields) < 2 || fields[0] != "oid" {
+		return fi, nil
+	}
+
+	s := strings.Split(fields[1], ":")
+	if len(s) < 2 {
+		return fi, nil
+	}
+
+	oid := s[1]
+	// Now look that OID up and make sure it exists.
+	lfsFI, err := b.lfsFS.Stat(oid)
+	if err != nil {
+		return nil, err
+	}
+	return &lfsFileInfo{
+		filename, oid, lfsFI.Size(), b.mtime}, nil
 }
 
 // Lstat implements the billy.Filesystem interface for Browser.
@@ -265,6 +311,26 @@ func (b *Browser) Lstat(filename string) (fi os.FileInfo, err error) {
 		fi = sf.GetInfo()
 	default:
 		return nil, errors.WithStack(err)
+	}
+
+	// If this repo has an LFS subdirectory, check and see if the size
+	// of this file is within the size bounds for an LFS object.  If
+	// so, read the object and see if it points to LFS or not.
+	if b.lfsFS != nil && size >= lfsEntryMinSize && size <= lfsEntryMaxSize {
+		f, err := b.tree.File(filename)
+		if err != nil {
+			return nil, err
+		}
+		lines, err := f.Lines()
+		if err != nil {
+			return nil, err
+		}
+		if len(lines) >= 2 {
+			fi, err = b.fileInfoForLFS(filename, lines[1], fi)
+			if err != nil {
+				return nil, err
+			}
+		}
 	}
 
 	b.sharedCache.setFileInfo(b.commitHash, cachePath, fi)

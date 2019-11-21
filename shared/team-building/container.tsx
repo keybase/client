@@ -1,6 +1,6 @@
 import logger from '../logger'
-import * as React from 'react'
 import * as I from 'immutable'
+import * as React from 'react'
 import unidecode from 'unidecode'
 import debounce from 'lodash/debounce'
 import trim from 'lodash/trim'
@@ -66,39 +66,36 @@ const initialState: LocalState = {
   showRolePicker: false,
 }
 
-const deriveSearchResults = memoize(
-  (
-    searchResults: Array<Types.User> | null,
-    teamSoFar: I.Set<Types.User>,
-    myUsername: string,
-    followingState: Set<string>,
-    preExistingTeamMembers: I.Map<string, MemberInfo>
-  ) =>
-    searchResults &&
-    searchResults.map(info => {
-      const label = info.label || ''
-      return {
-        contact: !!info.contact,
-        displayLabel: formatAnyPhoneNumbers(label),
-        followingState: Constants.followStateHelperWithId(
-          myUsername,
-          followingState,
-          info.serviceMap.keybase
-        ),
-        inTeam: teamSoFar.some(u => u.id === info.id),
-        isPreExistingTeamMember: preExistingTeamMembers.has(info.id),
-        key: [info.id, info.prettyName, info.label, String(!!info.contact)].join('&'),
-        prettyName: formatAnyPhoneNumbers(info.prettyName),
-        services: info.serviceMap,
-        userId: info.id,
-        username: info.username,
-      }
-    })
-)
+const expensiveDeriveResults = (
+  searchResults: Array<Types.User> | undefined,
+  teamSoFar: Set<Types.User>,
+  myUsername: string,
+  followingState: Set<string>,
+  preExistingTeamMembers: I.Map<string, MemberInfo>
+) =>
+  searchResults &&
+  searchResults.map(info => {
+    const label = info.label || ''
+    return {
+      contact: !!info.contact,
+      displayLabel: formatAnyPhoneNumbers(label),
+      followingState: Constants.followStateHelperWithId(myUsername, followingState, info.serviceMap.keybase),
+      inTeam: [...teamSoFar].some(u => u.id === info.id),
+      isPreExistingTeamMember: preExistingTeamMembers.has(info.id),
+      key: [info.id, info.prettyName, info.label, String(!!info.contact)].join('&'),
+      prettyName: formatAnyPhoneNumbers(info.prettyName),
+      services: info.serviceMap,
+      userId: info.id,
+      username: info.username,
+    }
+  })
+
+const deriveSearchResults = memoize(expensiveDeriveResults)
+const deriveRecommendation = memoize(expensiveDeriveResults)
 
 const deriveTeamSoFar = memoize(
-  (teamSoFar: I.Set<Types.User>): Array<Types.SelectedUser> =>
-    teamSoFar.toArray().map(userInfo => {
+  (teamSoFar: Set<Types.User>): Array<Types.SelectedUser> =>
+    [...teamSoFar].map(userInfo => {
       let username = ''
       let serviceId: Types.ServiceIdWithContact
       if (userInfo.contact && userInfo.serviceMap.keybase) {
@@ -125,16 +122,18 @@ const deriveTeamSoFar = memoize(
 )
 
 const deriveServiceResultCount = memoize((searchResults: Types.SearchResults, query: string) =>
-  searchResults
-    .get(trim(query), I.Map<Types.ServiceIdWithContact, Array<Types.User>>())
-    .map(results => results.length)
-    .toObject()
+  [...(searchResults.get(trim(query)) ?? new Map<Types.ServiceIdWithContact, Array<Types.User>>()).entries()]
+    .map(([key, results]) => [key, results.length])
+    .reduce<Object>((o, [key, num]) => {
+      o[key] = num
+      return o
+    }, {})
 )
 
 const deriveShowResults = memoize(searchString => !!searchString)
 
 const deriveUserFromUserIdFn = memoize(
-  (searchResults: Array<Types.User> | null, recommendations: Array<Types.User> | null) => (
+  (searchResults: Array<Types.User> | undefined, recommendations: Array<Types.User> | undefined) => (
     userId: string
   ): Types.User | null =>
     (searchResults || []).filter(u => u.id === userId)[0] ||
@@ -146,15 +145,12 @@ const emptyObj = {}
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const teamBuildingState = state[ownProps.namespace].teamBuilding
-  const teamBuildingSearchResults = teamBuildingState.teamBuildingSearchResults
-  const userResults = teamBuildingState.teamBuildingSearchResults.getIn([
-    trim(ownProps.searchString),
-    ownProps.selectedService,
-  ])
+  const teamBuildingSearchResults = teamBuildingState.searchResults
+  const userResults: Array<Types.User> =
+    teamBuildingState.searchResults.get(trim(ownProps.searchString))?.get(ownProps.selectedService) ?? []
 
-  const preExistingTeamMembers: I.Map<string, MemberInfo> = ownProps.teamname
-    ? state.teams.teamNameToMembers.get(ownProps.teamname) || I.Map()
-    : I.Map()
+  const preExistingTeamMembers: I.Map<string, MemberInfo> =
+    (ownProps.teamname && state.teams.teamNameToMembers.get(ownProps.teamname)) || I.Map<string, MemberInfo>()
 
   const disabledRoles = ownProps.teamname
     ? getDisabledReasonsForRolePicker(state, ownProps.teamname, null)
@@ -170,31 +166,28 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   return {
     ...contactProps,
     disabledRoles,
-    recommendations: deriveSearchResults(
-      teamBuildingState.teamBuildingUserRecs,
-      teamBuildingState.teamBuildingTeamSoFar,
+    recommendations: deriveRecommendation(
+      teamBuildingState.userRecs,
+      teamBuildingState.teamSoFar,
       state.config.username,
       state.config.following,
       preExistingTeamMembers
     ),
     searchResults: deriveSearchResults(
       userResults,
-      teamBuildingState.teamBuildingTeamSoFar,
+      teamBuildingState.teamSoFar,
       state.config.username,
       state.config.following,
       preExistingTeamMembers
     ),
-    selectedRole: filterRole(teamBuildingState.teamBuildingSelectedRole),
-    sendNotification: teamBuildingState.teamBuildingSendNotification,
-    serviceResultCount: deriveServiceResultCount(
-      teamBuildingState.teamBuildingSearchResults,
-      ownProps.searchString
-    ),
+    selectedRole: filterRole(teamBuildingState.selectedRole),
+    sendNotification: teamBuildingState.sendNotification,
+    serviceResultCount: deriveServiceResultCount(teamBuildingState.searchResults, ownProps.searchString),
     showResults: deriveShowResults(ownProps.searchString),
     showServiceResultCount: !isMobile && deriveShowResults(ownProps.searchString),
     teamBuildingSearchResults,
-    teamSoFar: deriveTeamSoFar(teamBuildingState.teamBuildingTeamSoFar),
-    userFromUserId: deriveUserFromUserIdFn(userResults, teamBuildingState.teamBuildingUserRecs),
+    teamSoFar: deriveTeamSoFar(teamBuildingState.teamSoFar),
+    userFromUserId: deriveUserFromUserIdFn(userResults, teamBuildingState.userRecs),
     waitingForCreate: WaitingConstants.anyWaiting(state, ChatConstants.waitingKeyCreating),
   }
 }
@@ -231,9 +224,9 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {namespace, teamn
     dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace, users: [user]})),
   _onCancelTeamBuilding: () => dispatch(TeamBuildingGen.createCancelTeamBuilding({namespace})),
   _onImportContactsPermissionsGranted: () =>
-    dispatch(SettingsGen.createEditContactImportEnabled({enable: true})),
+    dispatch(SettingsGen.createEditContactImportEnabled({enable: true, fromSettings: false})),
   _onImportContactsPermissionsNotGranted: () =>
-    dispatch(SettingsGen.createRequestContactPermissions({thenToggleImportOn: true})),
+    dispatch(SettingsGen.createRequestContactPermissions({fromSettings: false, thenToggleImportOn: true})),
   _search: (query: string, service: Types.ServiceIdWithContact, limit?: number) => {
     const func = service === 'keybase' ? debouncedSearchKeybase : debouncedSearch
     return func(dispatch, namespace, query, service, namespace === 'chat2', limit)
@@ -394,6 +387,7 @@ export const sortAndSplitRecommendations = memoize(
             },
           ]
         : []),
+
       {
         data: [],
         label: 'Recommendations',
@@ -437,6 +431,13 @@ export const sortAndSplitRecommendations = memoize(
         }
       }
     })
+    if (results.length < 5) {
+      sections.push({
+        data: [{isSearchHint: true as const}],
+        label: '',
+        shortcut: false,
+      })
+    }
     return sections.filter(s => s && s.data && s.data.length > 0)
   }
 )
@@ -450,7 +451,7 @@ export const sortAndSplitRecommendations = memoize(
 const flattenRecommendations = memoize((recommendations: Array<SearchRecSection>) => {
   const result: Array<SearchResult | null> = []
   for (const section of recommendations) {
-    result.push(...section.data.map(rec => ('isImportButton' in rec ? null : rec)))
+    result.push(...section.data.map(rec => ('isImportButton' in rec || 'isSearchHint' in rec ? null : rec)))
   }
   return result
 })
@@ -663,7 +664,7 @@ const mergeProps = (
     showRecs,
     showResults: stateProps.showResults,
     showServiceResultCount: showServiceResultCount && ownProps.showServiceResultCount,
-    teamBuildingSearchResults: stateProps.teamBuildingSearchResults.toJS(),
+    teamBuildingSearchResults: stateProps.teamBuildingSearchResults,
     teamSoFar,
     teamname: ownProps.teamname,
     title,

@@ -7,6 +7,7 @@ import {BigTeamsLabel} from './big-teams-label'
 import {Box} from '../../../common-adapters'
 import {globalStyles, globalMargins, isMobile} from '../../../styles'
 import * as Types from '../../../constants/types/chat2'
+import * as TeamTypes from '../../../constants/types/teams'
 
 type MakeRowOptions = {
   channelname: string
@@ -16,6 +17,7 @@ type MakeRowOptions = {
   snippet?: string
   snippetDecoration?: string
   teamname: string
+  teamID: TeamTypes.TeamID
   time?: number
   type: 'small' | 'bigHeader' | 'bigTeamsLabel' | 'big'
 }
@@ -34,6 +36,7 @@ const makeRow = (options: MakeRowOptions) => {
         <BigTeamHeader
           key={options.teamname}
           teamname={options.teamname}
+          teamID={options.teamID}
           conversationIDKey={options.conversationIDKey}
           navKey={options.navKey}
         />

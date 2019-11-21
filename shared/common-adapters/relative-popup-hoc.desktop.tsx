@@ -378,10 +378,10 @@ function ModalPositionRelative<PP>(
           <Kb.Box style={this.state.style}>
             {this.props.onClosePopup && (
               <EscapeHandler onESC={this.props.onClosePopup}>
-                <WrappedComponent {...this.props as PP} />
+                <WrappedComponent {...(this.props as PP)} />
               </EscapeHandler>
             )}
-            {!this.props.onClosePopup && <WrappedComponent {...this.props as PP} />}
+            {!this.props.onClosePopup && <WrappedComponent {...(this.props as PP)} />}
           </Kb.Box>
         </Modal>
       )

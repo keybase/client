@@ -4,11 +4,13 @@ import TeamMenu from '../../../conversation/info-panel/menu/container'
 import * as Styles from '../../../../styles'
 import * as RowSizes from '../sizes'
 import * as ChatTypes from '../../../../constants/types/chat2'
+import * as TeamTypes from '../../../../constants/types/teams'
 
 type Props = {
   badgeSubscribe: boolean
   onClick: () => void
   teamname: string
+  teamID: TeamTypes.TeamID
   conversationIDKey: ChatTypes.ConversationIDKey
 } & Kb.OverlayParentProps
 
@@ -22,8 +24,8 @@ class _BigTeamHeader extends React.PureComponent<Props> {
           attachTo={props.getAttachmentRef}
           visible={props.showingMenu}
           onHidden={props.toggleShowingMenu}
-          teamname={props.teamname}
           conversationIDKey={props.conversationIDKey}
+          teamID={props.teamID}
           isSmallTeam={false}
         />
         <Kb.Avatar onClick={props.onClick} teamname={props.teamname} size={32} />
@@ -41,15 +43,15 @@ class _BigTeamHeader extends React.PureComponent<Props> {
           </Kb.Box2>
         </Kb.BoxGrow>
         <Kb.ClickableBox
+          className="hover_container"
           onClick={props.toggleShowingMenu}
           ref={props.setAttachmentRef}
           style={styles.showMenu}
         >
           <Kb.Icon
-            className="Kb.icon"
+            className="hover_contained_color_black"
             color={Styles.globalColors.black_35}
             type="iconfont-gear"
-            sizeType="Small"
           />
           <Kb.Box
             style={Styles.collapseStyles([styles.badge, props.badgeSubscribe && styles.badgeVisible])}
@@ -83,6 +85,7 @@ const styles = Styles.styleSheetCreate(
         ...Styles.globalStyles.flexBoxRow,
         padding: 6,
         position: 'relative',
+        top: Styles.globalMargins.xxtiny,
       },
       team: Styles.platformStyles({
         common: {

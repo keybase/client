@@ -210,7 +210,8 @@ func (h *Server) MarkAsReadLocal(ctx context.Context, arg chat1.MarkAsReadLocalA
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
-		return chat1.MarkAsReadLocalRes{}, err
+		h.Debug(ctx, "MarkAsRead: not logged in: %s", err)
+		return chat1.MarkAsReadLocalRes{}, nil
 	}
 	// Don't send remote mark as read if we somehow get this in the background.
 	if h.G().MobileAppState.State() != keybase1.MobileAppState_FOREGROUND {
@@ -991,6 +992,9 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 	sender := NewBlockingSender(h.G(), h.boxer, h.remoteClient)
 	nonblockSender := NewNonblockingSender(h.G(), sender)
 	prepareOpts.ReplyTo = arg.ReplyTo
+	if arg.Msg.ClientHeader.Conv.TopicType == chat1.TopicType_NONE {
+		arg.Msg.ClientHeader.Conv.TopicType = chat1.TopicType_CHAT
+	}
 	obid, _, err := nonblockSender.Send(ctx, arg.ConversationID, arg.Msg, arg.ClientPrev, arg.OutboxID,
 		nil, &prepareOpts)
 	if err != nil {
@@ -1313,7 +1317,8 @@ func (h *Server) UpdateUnsentText(ctx context.Context, arg chat1.UpdateUnsentTex
 		fmt.Sprintf("UpdateUnsentText convID: %s", arg.ConversationID))()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
-		return err
+		h.Debug(ctx, "UpdateUnsentText: not logged in: %s", err)
+		return nil
 	}
 
 	// Save draft
@@ -1343,7 +1348,8 @@ func (h *Server) UpdateTyping(ctx context.Context, arg chat1.UpdateTypingArg) (e
 		fmt.Sprintf("UpdateTyping convID: %s", arg.ConversationID))()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
-		return err
+		h.Debug(ctx, "UpdateTyping: not logged in: %s", err)
+		return nil
 	}
 	// Just bail out if we are offline
 	if !h.G().Syncer.IsConnected(ctx) {
@@ -1351,7 +1357,8 @@ func (h *Server) UpdateTyping(ctx context.Context, arg chat1.UpdateTypingArg) (e
 	}
 	deviceID := make([]byte, libkb.DeviceIDLen)
 	if err := h.G().Env.GetDeviceID().ToBytes(deviceID); err != nil {
-		return err
+		h.Debug(ctx, "UpdateTyping: failed to get device: %s", err)
+		return nil
 	}
 	if err := h.remoteClient().UpdateTypingRemote(ctx, chat1.UpdateTypingRemoteArg{
 		Uid:      uid,
@@ -2672,7 +2679,7 @@ func (h *Server) ListBotCommandsLocal(ctx context.Context, convID chat1.Conversa
 	if err := <-completeCh; err != nil {
 		h.Debug(ctx, "ListBotCommandsLocal: failed to update commands, list might be stale: %s", err)
 	}
-	lres, err := h.G().BotCommandManager.ListCommands(ctx, convID)
+	lres, _, err := h.G().BotCommandManager.ListCommands(ctx, convID)
 	if err != nil {
 		return res, err
 	}

@@ -39,19 +39,14 @@ const styles = Styles.styleSheetCreate(() => ({
       borderColor: Styles.globalColors.white,
     },
   }),
-  circleOpen: Styles.platformStyles({
-    common: {
-      borderRadius: circleSize / 2,
-      height: circleSize,
-      width: circleSize,
-    },
-    isElectron: {
-      border: `solid 2px ${timeline_grey}`,
-    },
-    isMobile: {
-      borderColor: timeline_grey,
-    },
-  }),
+  circleOpen: {
+    borderColor: timeline_grey,
+    borderRadius: circleSize / 2,
+    borderStyle: 'solid',
+    borderWidth: 2,
+    height: circleSize,
+    width: circleSize,
+  },
   line: Styles.platformStyles({
     common: {
       backgroundColor: timeline_grey,

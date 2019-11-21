@@ -178,8 +178,7 @@ func TestTeamSigChainHighLinks(t *testing.T) {
 
 	t.Logf("deleting subteam...")
 	// Deleting a subteam will not create a high link.
-	subteamName := teamName + "." + sub
-	err = Delete(ctx, tc.G, &teamsUI{}, subteamName)
+	err = Delete(ctx, tc.G, &teamsUI{}, *subteamID)
 	require.NoError(t, err)
 	assertHighSeqForTeam(t, tc, teamID, 10)
 }

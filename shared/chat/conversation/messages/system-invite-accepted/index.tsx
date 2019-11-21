@@ -10,7 +10,7 @@ import {typeToLabel} from '../../../../constants/teams'
 type Props = {
   message: Types.MessageSystemInviteAccepted
   onViewTeam: () => void
-  role: TeamTypes.TeamRoleType
+  role: TeamTypes.MaybeTeamRoleType
   teamname: string
   you: string
 }

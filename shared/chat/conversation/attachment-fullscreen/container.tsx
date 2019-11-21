@@ -21,6 +21,17 @@ const mapStateToProps = (state: Container.TypedState) => {
 }
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
+  _onAllMedia: (conversationIDKey: Types.ConversationIDKey) =>
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {conversationIDKey, tab: 'attachments'},
+            selected: 'chatInfoPanel',
+          },
+        ],
+      })
+    ),
   _onDownloadAttachment: (message: Types.MessageAttachment) =>
     dispatch(Chat2Gen.createAttachmentDownload({message})),
   _onShowInFinder: (message: Types.MessageAttachment) => {
@@ -51,6 +62,7 @@ const Connected = Container.connect(
       autoPlay: stateProps.autoPlay,
       isVideo: Constants.isVideoAttachment(message),
       message,
+      onAllMedia: () => dispatchProps._onAllMedia(message.conversationIDKey),
       onClose: dispatchProps.onClose,
       onDownloadAttachment: message.downloadPath
         ? undefined

@@ -96,3 +96,17 @@ func newParentPointerError(q keybase1.Seqno, msg string) ParentPointerError {
 func (e ParentPointerError) Error() string {
 	return fmt.Sprintf("hidden team parent pointer error (to visible %d): %s", e.q, e.msg)
 }
+
+type TombstonedError struct {
+	note string
+}
+
+func (e TombstonedError) Error() string {
+	return fmt.Sprintf("hidden team tombstoned error: %s", e.note)
+}
+
+func NewTombstonedError(format string, args ...interface{}) TombstonedError {
+	return TombstonedError{fmt.Sprintf(format, args...)}
+}
+
+var _ error = TombstonedError{}

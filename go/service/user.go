@@ -265,11 +265,21 @@ func (h *UserHandler) InterestingPeople(ctx context.Context, maxUsers int) (res 
 		return res, nil
 	}
 
+	fallbackFn := func(uid keybase1.UID) (uids []keybase1.UID, err error) {
+		uids = []keybase1.UID{
+			libkb.GetUIDByNormalizedUsername(h.G(), "hellobot"),
+			h.G().GetEnv().GetUID(),
+		}
+
+		return uids, nil
+	}
+
 	ip := newInterestingPeople(h.G())
 
 	// Add sources of interesting people
-	ip.AddSource(chatFn, 0.9)
-	ip.AddSource(followerFn, 0.1)
+	ip.AddSource(chatFn, 0.7)
+	ip.AddSource(followerFn, 0.2)
+	ip.AddSource(fallbackFn, 0.1)
 
 	uids, err := ip.Get(ctx, maxUsers)
 	if err != nil {

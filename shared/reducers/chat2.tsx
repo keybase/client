@@ -3,16 +3,17 @@ import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as Constants from '../constants/chat2'
 import * as Container from '../util/container'
-import * as I from 'immutable'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/chat2'
-import teamBuildingReducer from './team-building'
+import {editTeambuildingDraft} from './team-building'
+import {teamBuilderReducerCreator} from '../team-building/reducer-helper'
 import {isMobile} from '../constants/platform'
 import logger from '../logger'
 import HiddenString from '../util/hidden-string'
 import partition from 'lodash/partition'
 import shallowEqual from 'shallowequal'
+import {mapGetEnsureValue} from '../util/map'
 
 type EngineActions =
   | EngineGen.Chat1NotifyChatChatTypingUpdatePayload
@@ -32,16 +33,16 @@ const messageIDToOrdinal = (
 ) => {
   // A message we didn't send in this session?
   const map = messageMap.get(conversationIDKey)
-  let m = map && map.get(Types.numberToOrdinal(messageID))
-  if (m && m.id && m.id === messageID) {
+  let m = map?.get(Types.numberToOrdinal(messageID))
+  if (m?.id === messageID) {
     return m.ordinal
   }
   // Search through our sent messages
   const pendingOrdinal = [
-    ...(pendingOutboxToOrdinal.get(conversationIDKey) || new Map<Types.OutboxID, Types.Ordinal>()).values(),
+    ...(pendingOutboxToOrdinal.get(conversationIDKey) ?? new Map<Types.OutboxID, Types.Ordinal>()).values(),
   ].find(o => {
-    m = map && map.get(o)
-    if (m && m.id && m.id === messageID) {
+    m = map?.get(o)
+    if (m?.id === messageID) {
       return true
     }
     return false
@@ -52,32 +53,6 @@ const messageIDToOrdinal = (
   }
 
   return null
-}
-
-const passToTeamBuildingReducer = (
-  draftState: Container.Draft<Types.State>,
-  action: TeamBuildingGen.Actions
-) => {
-  draftState.teamBuilding = teamBuildingReducer(
-    'chat2',
-    draftState.teamBuilding as Types.State['teamBuilding'],
-    action
-  )
-}
-
-const teamActions: Container.ActionHandler<Actions, Types.State> = {
-  [TeamBuildingGen.resetStore]: passToTeamBuildingReducer,
-  [TeamBuildingGen.cancelTeamBuilding]: passToTeamBuildingReducer,
-  [TeamBuildingGen.addUsersToTeamSoFar]: passToTeamBuildingReducer,
-  [TeamBuildingGen.removeUsersFromTeamSoFar]: passToTeamBuildingReducer,
-  [TeamBuildingGen.searchResultsLoaded]: passToTeamBuildingReducer,
-  [TeamBuildingGen.finishedTeamBuilding]: passToTeamBuildingReducer,
-  [TeamBuildingGen.fetchedUserRecs]: passToTeamBuildingReducer,
-  [TeamBuildingGen.fetchUserRecs]: passToTeamBuildingReducer,
-  [TeamBuildingGen.search]: passToTeamBuildingReducer,
-  [TeamBuildingGen.selectRole]: passToTeamBuildingReducer,
-  [TeamBuildingGen.labelsSeen]: passToTeamBuildingReducer,
-  [TeamBuildingGen.changeSendNotification]: passToTeamBuildingReducer,
 }
 
 const audioActions: Container.ActionHandler<Actions, Types.State> = {
@@ -126,8 +101,7 @@ const audioActions: Container.ActionHandler<Actions, Types.State> = {
   [Chat2Gen.lockAudioRecording]: (draftState, action) => {
     const {conversationIDKey} = action.payload
     const {audioRecording} = draftState
-    const info = audioRecording.get(conversationIDKey) || Constants.makeAudioRecordingInfo()
-    audioRecording.set(conversationIDKey, info)
+    const info = mapGetEnsureValue(audioRecording, conversationIDKey, Constants.makeAudioRecordingInfo())
     info.isLocked = true
   },
   [Chat2Gen.sendAudioRecording]: (draftState, action) => {
@@ -192,8 +166,7 @@ const paymentActions: Container.ActionHandler<Actions, Types.State> = {
   [Chat2Gen.paymentInfoReceived]: (draftState, action) => {
     const {conversationIDKey, messageID, paymentInfo} = action.payload
     const {accountsInfoMap, paymentStatusMap} = draftState
-    const convMap = accountsInfoMap.get(conversationIDKey) || new Map()
-    accountsInfoMap.set(conversationIDKey, convMap)
+    const convMap = mapGetEnsureValue(accountsInfoMap, conversationIDKey, new Map())
     convMap.set(messageID, paymentInfo)
     paymentStatusMap.set(paymentInfo.paymentID, paymentInfo)
   },
@@ -207,22 +180,19 @@ const searchActions: Container.ActionHandler<Actions, Types.State> = {
   [Chat2Gen.threadSearchResults]: (draftState, action) => {
     const {conversationIDKey, clear, messages} = action.payload
     const {threadSearchInfoMap} = draftState
-    const info = threadSearchInfoMap.get(conversationIDKey) || Constants.makeThreadSearchInfo()
-    threadSearchInfoMap.set(conversationIDKey, info)
+    const info = mapGetEnsureValue(threadSearchInfoMap, conversationIDKey, Constants.makeThreadSearchInfo())
     info.hits = clear ? messages : [...info.hits, ...messages]
   },
   [Chat2Gen.setThreadSearchStatus]: (draftState, action) => {
     const {conversationIDKey, status} = action.payload
     const {threadSearchInfoMap} = draftState
-    const info = threadSearchInfoMap.get(conversationIDKey) || Constants.makeThreadSearchInfo()
-    threadSearchInfoMap.set(conversationIDKey, info)
+    const info = mapGetEnsureValue(threadSearchInfoMap, conversationIDKey, Constants.makeThreadSearchInfo())
     info.status = status
   },
   [Chat2Gen.toggleThreadSearch]: (draftState, action) => {
     const {conversationIDKey} = action.payload
     const {threadSearchInfoMap, messageCenterOrdinals} = draftState
-    const info = threadSearchInfoMap.get(conversationIDKey) || Constants.makeThreadSearchInfo()
-    threadSearchInfoMap.set(conversationIDKey, info)
+    const info = mapGetEnsureValue(threadSearchInfoMap, conversationIDKey, Constants.makeThreadSearchInfo())
     info.hits = []
     info.status = 'initial'
     info.visible = !info.visible
@@ -232,8 +202,7 @@ const searchActions: Container.ActionHandler<Actions, Types.State> = {
   [Chat2Gen.threadSearch]: (draftState, action) => {
     const {conversationIDKey} = action.payload
     const {threadSearchInfoMap} = draftState
-    const info = threadSearchInfoMap.get(action.payload.conversationIDKey) || Constants.makeThreadSearchInfo()
-    threadSearchInfoMap.set(conversationIDKey, info)
+    const info = mapGetEnsureValue(threadSearchInfoMap, conversationIDKey, Constants.makeThreadSearchInfo())
     info.hits = []
   },
   [Chat2Gen.setThreadSearchQuery]: (draftState, action) => {
@@ -243,14 +212,14 @@ const searchActions: Container.ActionHandler<Actions, Types.State> = {
   },
   [Chat2Gen.inboxSearchSetTextStatus]: (draftState, action) => {
     const {status} = action.payload
-    const inboxSearch = draftState.inboxSearch || Constants.makeInboxSearchInfo()
+    const inboxSearch = draftState.inboxSearch ?? Constants.makeInboxSearchInfo()
     draftState.inboxSearch = inboxSearch
     inboxSearch.textStatus = status
   },
   [Chat2Gen.inboxSearchSetIndexPercent]: (draftState, action) => {
     const {percent} = action.payload
     const {inboxSearch} = draftState
-    if (inboxSearch && inboxSearch.textStatus === 'inprogress') {
+    if (inboxSearch?.textStatus === 'inprogress') {
       inboxSearch.indexPercent = percent
     }
   },
@@ -284,7 +253,7 @@ const searchActions: Container.ActionHandler<Actions, Types.State> = {
   },
   [Chat2Gen.inboxSearchNameResults]: (draftState, action) => {
     const {inboxSearch} = draftState
-    if (inboxSearch && inboxSearch.nameStatus === 'inprogress') {
+    if (inboxSearch?.nameStatus === 'inprogress') {
       const {results, unread} = action.payload
       inboxSearch.nameResults = results
       inboxSearch.nameResultsUnread = unread
@@ -324,20 +293,15 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
   [Chat2Gen.loadAttachmentView]: (draftState, action) => {
     const {conversationIDKey, viewType} = action.payload
     const {attachmentViewMap} = draftState
-    const viewMap = attachmentViewMap.get(conversationIDKey) || new Map()
-    attachmentViewMap.set(conversationIDKey, viewMap)
-
-    const info = viewMap.get(viewType) || Constants.initialAttachmentViewInfo
-    viewMap.set(viewType, info)
+    const viewMap = mapGetEnsureValue(attachmentViewMap, conversationIDKey, new Map())
+    const info = mapGetEnsureValue(viewMap, viewType, Constants.makeAttachmentViewInfo())
     info.status = 'loading'
   },
   [Chat2Gen.addAttachmentViewMessage]: (draftState, action) => {
     const {conversationIDKey, viewType, message} = action.payload
     const {attachmentViewMap} = draftState
-    const viewMap = attachmentViewMap.get(conversationIDKey) || new Map()
-    attachmentViewMap.set(conversationIDKey, viewMap)
-
-    const info = viewMap.get(viewType) || Constants.initialAttachmentViewInfo
+    const viewMap = mapGetEnsureValue(attachmentViewMap, conversationIDKey, new Map())
+    const info = mapGetEnsureValue(viewMap, viewType, Constants.makeAttachmentViewInfo())
     viewMap.set(viewType, info)
 
     if (info.messages.findIndex((item: any) => item.id === action.payload.message.id) < 0) {
@@ -347,12 +311,8 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
   [Chat2Gen.setAttachmentViewStatus]: (draftState, action) => {
     const {conversationIDKey, viewType, last, status} = action.payload
     const {attachmentViewMap} = draftState
-    const viewMap = attachmentViewMap.get(conversationIDKey) || new Map()
-    attachmentViewMap.set(conversationIDKey, viewMap)
-
-    const info = viewMap.get(viewType) || Constants.initialAttachmentViewInfo
-    viewMap.set(viewType, info)
-
+    const viewMap = mapGetEnsureValue(attachmentViewMap, conversationIDKey, new Map())
+    const info = mapGetEnsureValue(viewMap, viewType, Constants.makeAttachmentViewInfo())
     info.last = !!last
     info.status = status
   },
@@ -368,9 +328,10 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
     const ordinal = convMap && convMap.get(outboxID)
     if (ordinal) {
       const map = messageMap.get(conversationIDKey)
-      const m = map && map.get(ordinal)
-      if (map && m && m.type === 'attachment') {
-        map.set(ordinal, m.set('transferProgress', ratio).set('transferState', 'uploading'))
+      const m = map?.get(ordinal)
+      if (m?.type === 'attachment') {
+        m.transferProgress = ratio
+        m.transferState = 'uploading'
       }
     }
   },
@@ -378,9 +339,10 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
     const {conversationIDKey, ordinal} = action.payload
     const {messageMap} = draftState
     const map = messageMap.get(conversationIDKey)
-    const m = map && map.get(ordinal)
-    if (map && m && m.type === 'attachment') {
-      map.set(ordinal, m.set('transferProgress', 0).set('transferState', null))
+    const m = map?.get(ordinal)
+    if (m?.type === 'attachment') {
+      m.transferProgress = 0
+      m.transferState = null
     }
   },
   [Chat2Gen.attachmentMobileSave]: (draftState, action) => {
@@ -388,27 +350,30 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
     const {messageMap} = draftState
 
     const map = messageMap.get(conversationIDKey)
-    const m = map && map.get(ordinal)
-    if (map && m && m.type === 'attachment') {
-      map.set(ordinal, m.set('transferState', 'mobileSaving').set('transferErrMsg', null))
+    const m = map?.get(ordinal)
+    if (m?.type === 'attachment') {
+      m.transferState = 'mobileSaving'
+      m.transferErrMsg = null
     }
   },
   [Chat2Gen.attachmentMobileSaved]: (draftState, action) => {
     const {conversationIDKey, ordinal} = action.payload
     const {messageMap} = draftState
     const map = messageMap.get(conversationIDKey)
-    const m = map && map.get(ordinal)
-    if (map && m && m.type === 'attachment') {
-      map.set(ordinal, m.set('transferState', null).set('transferErrMsg', null))
+    const m = map?.get(ordinal)
+    if (m?.type === 'attachment') {
+      m.transferState = null
+      m.transferErrMsg = null
     }
   },
   [Chat2Gen.attachmentDownload]: (draftState, action) => {
     const {message} = action.payload
     const {messageMap} = draftState
     const map = messageMap.get(message.conversationIDKey)
-    const m = map && map.get(message.ordinal)
-    if (map && m && m.type === 'attachment') {
-      map.set(message.ordinal, m.set('transferState', 'downloading').set('transferErrMsg', null))
+    const m = map?.get(message.ordinal)
+    if (m?.type === 'attachment') {
+      m.transferState = 'downloading'
+      m.transferErrMsg = null
     }
   },
   [Chat2Gen.messageAttachmentUploaded]: (draftState, action) => {
@@ -421,9 +386,7 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
       placeholderID
     )
     if (ordinal) {
-      const map = messageMap.get(conversationIDKey) || new Map<Types.Ordinal, Types.Message>()
-      messageMap.set(conversationIDKey, map)
-
+      const map = mapGetEnsureValue(messageMap, conversationIDKey, new Map())
       const m = map.get(ordinal)
       map.set(ordinal, m ? Constants.upgradeMessage(m, message) : message)
     }
@@ -436,41 +399,40 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
     const {conversationIDKey, message, isPreview, ratio} = action.payload
     const {attachmentFullscreenSelection, attachmentViewMap, messageMap} = draftState
     if (
-      attachmentFullscreenSelection &&
-      attachmentFullscreenSelection.message.conversationIDKey === message.conversationIDKey &&
-      attachmentFullscreenSelection.message.id === message.id &&
+      attachmentFullscreenSelection?.message.conversationIDKey === message.conversationIDKey &&
+      attachmentFullscreenSelection?.message.id === message.id &&
       message.type === 'attachment'
     ) {
-      attachmentFullscreenSelection.message = message
-        .set('transferState', 'downloading')
-        .set('transferProgress', action.payload.ratio)
+      attachmentFullscreenSelection.message = {
+        ...message,
+        transferProgress: ratio,
+        transferState: 'downloading',
+      }
     }
 
     const viewType = RPCChatTypes.GalleryItemTyp.doc
-    const viewMap = attachmentViewMap.get(conversationIDKey) || new Map()
-    attachmentViewMap.set(conversationIDKey, viewMap)
-
-    const info = viewMap.get(viewType) || Constants.initialAttachmentViewInfo
-    viewMap.set(viewType, info)
+    const viewMap = mapGetEnsureValue(attachmentViewMap, conversationIDKey, new Map())
+    const info = mapGetEnsureValue(viewMap, viewType, Constants.makeAttachmentViewInfo())
     const {messages} = info
     const idx = messages.findIndex(item => item.id === message.id)
     if (idx !== -1) {
-      const m: Types.MessageAttachment = messages[idx] as any // TODO don't cast
-      messages[idx] = m.set('transferState', 'downloading').set('transferProgress', action.payload.ratio)
+      const m = messages[idx]
+      if (m.type === 'attachment') {
+        m.transferState = 'downloading'
+        m.transferProgress = action.payload.ratio
+      }
     }
 
     const map = messageMap.get(conversationIDKey)
-    const m = map && map.get(message.ordinal)
-    if (map && m && m.type === 'attachment') {
-      map.set(
-        message.ordinal,
-        isPreview
-          ? m.set('previewTransferState', 'downloading')
-          : m
-              .set('transferProgress', ratio)
-              .set('transferState', 'downloading')
-              .set('transferErrMsg', null)
-      )
+    const m = map?.get(message.ordinal)
+    if (m?.type === 'attachment') {
+      if (isPreview) {
+        m.previewTransferState = 'downloading'
+      } else {
+        m.transferProgress = ratio
+        m.transferState = 'downloading'
+        m.transferErrMsg = null
+      }
     }
   },
   [Chat2Gen.attachmentDownloaded]: (draftState, action) => {
@@ -479,46 +441,38 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
     const {attachmentFullscreenSelection, messageMap} = draftState
     if (
       !error &&
-      attachmentFullscreenSelection &&
-      attachmentFullscreenSelection.message.conversationIDKey === message.conversationIDKey &&
-      attachmentFullscreenSelection.message.id === message.id &&
+      attachmentFullscreenSelection?.message.conversationIDKey === message.conversationIDKey &&
+      attachmentFullscreenSelection?.message.id === message.id &&
       message.type === 'attachment'
     ) {
-      attachmentFullscreenSelection.message = message.set('downloadPath', path || null)
+      attachmentFullscreenSelection.message = {...message, downloadPath: path ?? null}
     }
 
     const {attachmentViewMap} = draftState
-    const viewMap = attachmentViewMap.get(conversationIDKey) || new Map()
-    attachmentViewMap.set(conversationIDKey, viewMap)
-
+    const viewMap = mapGetEnsureValue(attachmentViewMap, conversationIDKey, new Map())
     const viewType = RPCChatTypes.GalleryItemTyp.doc
-    const info = viewMap.get(viewType) || Constants.initialAttachmentViewInfo
-    viewMap.set(viewType, info)
+    const info = mapGetEnsureValue(viewMap, viewType, Constants.makeAttachmentViewInfo())
 
     const {messages} = info
     const idx = messages.findIndex(item => item.id === message.id)
     if (idx !== -1) {
-      const m: Types.MessageAttachment = messages[idx] as any // TODO don't cast
-      messages[idx] = m.merge({
-        downloadPath: path,
-        fileURLCached: true,
-        transferProgress: 0,
-        transferState: null,
-      })
+      const m = messages[idx]
+      if (m.type === 'attachment') {
+        m.downloadPath = path ?? null
+        m.fileURLCached = true
+        m.transferProgress = 0
+        m.transferState = null
+      }
     }
 
     const map = messageMap.get(conversationIDKey)
-    const m = map && map.get(ordinal)
-    if (map && m && m.type === 'attachment') {
-      map.set(
-        ordinal,
-        m
-          .set('downloadPath', (!error && path) || '')
-          .set('transferProgress', 0)
-          .set('transferState', null)
-          .set('transferErrMsg', error ? error || 'Error downloading attachment' : null)
-          .set('fileURLCached', true) // assume we have this on the service now
-      )
+    const m = map?.get(ordinal)
+    if (m?.type === 'attachment') {
+      m.downloadPath = (!error && path) || ''
+      m.transferProgress = 0
+      m.transferState = null
+      m.transferErrMsg = error ? error ?? 'Error downloading attachment' : null
+      m.fileURLCached = true // assume we have this on the service now
     }
   },
 }
@@ -546,7 +500,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     }
 
     if (conversationIDKey) {
-      const {readMsgID, maxVisibleMsgID} = metaMap.get(conversationIDKey) || Constants.makeConversationMeta()
+      const {readMsgID, maxVisibleMsgID} = metaMap.get(conversationIDKey) ?? Constants.makeConversationMeta()
 
       logger.info(
         `rootReducer: selectConversation: setting orange line: convID: ${conversationIDKey} maxVisible: ${maxVisibleMsgID} read: ${readMsgID}`
@@ -565,8 +519,8 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
             const message = messageMap.get(o)
             return !!(message && message.id >= readMsgID + 1)
           })
-        const message = ord && messageMap && messageMap.get(ord)
-        if (message && message.id) {
+        const message = ord ? messageMap?.get(ord) : null
+        if (message?.id) {
           orangeLineMap.set(conversationIDKey, message.id)
         } else {
           orangeLineMap.delete(conversationIDKey)
@@ -609,11 +563,8 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const {show, domain, conversationIDKey, messageID} = action.payload
     const {unfurlPromptMap} = draftState
 
-    const map = unfurlPromptMap.get(conversationIDKey) || new Map()
-    unfurlPromptMap.set(conversationIDKey, map)
-
-    const prompts = map.get(messageID) || new Set()
-    map.set(messageID, prompts)
+    const map = mapGetEnsureValue(unfurlPromptMap, conversationIDKey, new Map())
+    const prompts = mapGetEnsureValue(map, messageID, new Set())
 
     if (show) {
       prompts.add(domain)
@@ -663,14 +614,17 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [Chat2Gen.badgesUpdated]: (draftState, action) => {
     const {conversations} = action.payload
-    const {badgeMap, unreadMap} = draftState
     const badgeKey = String(isMobile ? RPCTypes.DeviceType.mobile : RPCTypes.DeviceType.desktop)
+    const badgeMap = new Map<Types.ConversationIDKey, number>()
+    const unreadMap = new Map<Types.ConversationIDKey, number>()
     conversations.forEach(({convID, badgeCounts, unreadMessages}) => {
       const key = Types.conversationIDToKey(convID)
       const count = badgeCounts[badgeKey] || 0
       badgeMap.set(key, count)
       unreadMap.set(key, unreadMessages)
     })
+    draftState.badgeMap = badgeMap
+    draftState.unreadMap = unreadMap
   },
   [Chat2Gen.messageSetEditing]: (draftState, action) => {
     const {conversationIDKey, editLastUser, ordinal} = action.payload
@@ -741,9 +695,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const convoToDeletedOrdinals: {[K in string]: Set<Types.Ordinal>} = deletedMessages.reduce(
       (map: any, m) => {
         const key = String(m.conversationIDKey)
-        // @ts-ignore
         map[key] = map[key] || new Set()
-        // @ts-ignore
         map[key].add(m.ordinal)
         return map
       },
@@ -969,12 +921,8 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     if (!m) {
       return
     }
-    if (m.type === 'text') {
-      map.set(ordinal, m.set('errorReason', null).set('submitState', 'pending'))
-    }
-    if (m.type === 'attachment') {
-      map.set(ordinal, m.set('errorReason', null).set('submitState', 'pending'))
-    }
+    m.errorReason = undefined
+    m.submitState = 'pending'
   },
   [Chat2Gen.messageErrored]: (draftState, action) => {
     const {conversationIDKey, errorTyp, outboxID, reason} = action.payload
@@ -993,24 +941,9 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       return
     }
 
-    if (m.type === 'text') {
-      map.set(
-        ordinal,
-        m
-          .set('errorReason', reason)
-          .set('submitState', 'failed')
-          .set('errorTyp', errorTyp)
-      )
-    }
-    if (m.type === 'attachment') {
-      map.set(
-        ordinal,
-        m
-          .set('errorReason', reason)
-          .set('submitState', 'failed')
-          .set('errorTyp', errorTyp)
-      )
-    }
+    m.errorReason = reason
+    m.submitState = 'failed'
+    m.errorTyp = errorTyp || undefined
   },
   [EngineGen.chat1ChatUiChatInboxLayout]: (draftState, action) => {
     try {
@@ -1080,31 +1013,23 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       const m: any = map.get(targetOrdinal)
       if (m && Constants.isDecoratedMessage(m)) {
         const reactions = m.reactions
-        // @ts-ignore thinks `message` is the inner type
-        map.set(
-          targetOrdinal,
-          // @ts-ignore
-          m.set(
-            'reactions',
-            reactions.withMutations(reactionMap => {
-              reactionMap.update(emoji, I.Set(), rs => {
-                const existing = rs.find(r => r.username === username)
-                if (existing) {
-                  // found an existing reaction. remove it from our list
-                  return rs.delete(existing)
-                }
-                // no existing reaction. add this one to the map
-                return rs.add(Constants.makeReaction({timestamp: Date.now(), username}))
-              })
-              const newSet = reactionMap.get(emoji)
-              if (newSet && newSet.size === 0) {
-                reactionMap.delete(emoji)
-              }
-            })
-          )
-        )
+        const rs = reactions.get(emoji) || new Set()
+        reactions.set(emoji, rs)
+        const existing = [...rs].find(r => r.username === username)
+        if (existing) {
+          // found an existing reaction. remove it from our list
+          rs.delete(existing)
+        }
+        // no existing reaction. add this one to the map
+        rs.add(Constants.makeReaction({timestamp: Date.now(), username}))
+        if (rs.size === 0) {
+          reactions.delete(emoji)
+        }
       }
     }
+  },
+  [Chat2Gen.updateBlockButtons]: (draftState, action) => {
+    draftState.blockButtonsMap.set(action.payload.teamID, action.payload.show)
   },
   [Chat2Gen.updateReactions]: (draftState, action) => {
     const {conversationIDKey, updates} = action.payload
@@ -1125,16 +1050,13 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       targetData.forEach(td => {
         if (!td.targetOrdinal) {
           logger.info(
-            `updateReactions: couldn't find target ordinal for targetMsgID=${
-              td.targetMsgID
-            } in convID=${conversationIDKey}`
+            `updateReactions: couldn't find target ordinal for targetMsgID=${td.targetMsgID} in convID=${conversationIDKey}`
           )
           return
         }
         const m = map.get(td.targetOrdinal)
         if (m && m.type !== 'deleted' && m.type !== 'placeholder') {
-          // @ts-ignore TODO fix type
-          map.set(td.targetOrdinal, m.set('reactions', td.reactions))
+          m.reactions = td.reactions
         }
       })
     }
@@ -1156,7 +1078,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
         }, upToOrdinals)
     }
 
-    const allOrdinals = I.Set(
+    const allOrdinals = new Set(
       [
         ...ordinals,
         ...messageIDs.map(messageID =>
@@ -1308,8 +1230,8 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
 
     const map = messageMap.get(conversationIDKey)
     const m = map && map.get(ordinal)
-    if (map && m && m.type === 'text') {
-      map.set(ordinal, m.set('submitState', 'deleting'))
+    if (m && m.type === 'text') {
+      m.submitState = 'deleting'
     }
   },
   [Chat2Gen.messageEdit]: (draftState, action) => {
@@ -1318,8 +1240,8 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
 
     const map = messageMap.get(conversationIDKey)
     const m = map && map.get(ordinal)
-    if (map && m && m.type === 'text') {
-      map.set(ordinal, m.set('submitState', 'editing'))
+    if (m && m.type === 'text') {
+      m.submitState = 'editing'
     }
   },
   [Chat2Gen.messageWasEdited]: (draftState, action) => {
@@ -1336,17 +1258,13 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     if (ordinal) {
       const map = messageMap.get(conversationIDKey)
       const m = map && map.get(ordinal)
-      if (map && m && m.type === 'text') {
-        map.set(
-          ordinal,
-          m
-            .set('text', text)
-            .set('hasBeenEdited', true)
-            .set('submitState', null)
-            .set('mentionsAt', mentionsAt)
-            .set('mentionsChannel', mentionsChannel)
-            .set('mentionsChannelName', mentionsChannelName)
-        )
+      if (m && m.type === 'text') {
+        m.text = text
+        m.hasBeenEdited = true
+        m.submitState = undefined
+        m.mentionsAt = mentionsAt
+        m.mentionsChannel = mentionsChannel
+        m.mentionsChannelName = mentionsChannelName
       }
     }
   },
@@ -1356,8 +1274,8 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
 
     const map = messageMap.get(conversationIDKey)
     const m = map && map.get(ordinal)
-    if (map && m && m.type === 'text') {
-      map.set(ordinal, m.set('text', text))
+    if (m && m.type === 'text') {
+      m.text = text
     }
   },
   [Chat2Gen.metaReceivedError]: (draftState, action) => {
@@ -1483,18 +1401,13 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     map &&
       ordinals.forEach(ordinal => {
         const m: any = map.get(ordinal) // TODO fix types
-        m &&
-          map.set(
-            ordinal,
-            m
-              .set('exploded', true)
-              .set('explodedBy', explodedBy || '')
-              .set('text', new HiddenString(''))
-              .set('mentionsAt', I.Set())
-              .set('reactions', I.Map())
-              .set('unfurls', I.Map())
-              .set('flipGameID', '')
-          )
+        m.exploded = true
+        m.explodedBy = explodedBy || ''
+        m.text = new HiddenString('')
+        m.mentionsAt = new Set()
+        m.reactions = new Map()
+        m.unfurls = new Map()
+        m.flipGameID = ''
       })
   },
   [Chat2Gen.saveMinWriterRole]: (draftState, action) => {
@@ -1508,27 +1421,27 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   [Chat2Gen.updateMessages]: (draftState, action) => {
     const {messages, conversationIDKey} = action.payload
     const {messageMap} = draftState
-    const updateOrdinals = messages.reduce<Array<{msg: Types.Message; ordinal: Types.Ordinal}>>((l, msg) => {
+    messages.forEach(({messageID, message}) => {
       const ordinal = messageIDToOrdinal(
         messageMap,
         draftState.pendingOutboxToOrdinal,
-        action.payload.conversationIDKey,
-        msg.messageID
+        conversationIDKey,
+        messageID
       )
       if (!ordinal) {
-        return l
+        return
       }
-      // @ts-ignore TODO Fix not sure whats up
-      const m: Types.Message = msg.message.set('ordinal', ordinal)
-      return l.concat({msg: m, ordinal})
-    }, [])
+      const map = messageMap.get(conversationIDKey)
+      if (!map) {
+        return
+      }
 
-    const map = messageMap.get(conversationIDKey)
-    if (map) {
-      updateOrdinals.forEach(r => {
-        map.set(r.ordinal, r.msg)
-      })
-    }
+      let m = message
+      if (m.ordinal !== ordinal) {
+        m = {...message, ordinal}
+      }
+      map.set(ordinal, m)
+    })
   },
   [Chat2Gen.clearMessages]: draftState => {
     draftState.messageMap.clear()
@@ -1537,12 +1450,25 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   [Chat2Gen.clearMetas]: draftState => {
     draftState.metaMap.clear()
   },
-  ...teamActions,
+  [Chat2Gen.setInboxNumSmallRows]: (draftState, action) => {
+    const {rows} = action.payload
+    if (rows > 0) {
+      draftState.inboxNumSmallRows = rows
+    }
+  },
   ...audioActions,
   ...giphyActions,
   ...paymentActions,
   ...searchActions,
   ...attachmentActions,
+  ...teamBuilderReducerCreator<Actions, Types.State>(
+    (draftState: Container.Draft<Types.State>, action: TeamBuildingGen.Actions) => {
+      const val = editTeambuildingDraft('chat2', draftState.teamBuilding, action)
+      if (val !== undefined) {
+        draftState.teamBuilding = val
+      }
+    }
+  ),
 })
 
 export default reducer

@@ -5,7 +5,7 @@ import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import LastModifiedLine from './last-modified-line-container'
 import TlfInfoLine from './tlf-info-line-container'
-import PathItemIcon from './path-item-icon-container'
+import ItemIcon from './item-icon'
 import CommaSeparatedName from './comma-separated-name'
 import * as Container from '../../util/container'
 import {pluralize} from '../../util/string'
@@ -13,7 +13,6 @@ import {useFsChildren, useFsPathMetadata, useFsOnlineStatus, useFsSoftError} fro
 
 type Props = {
   containerStyle?: Styles.StylesCrossPlatform
-  showTooltipOnName: boolean
   path: Types.Path
 }
 
@@ -95,19 +94,8 @@ const PathItemInfo = (props: Props) => {
     <>
       <SoftErrorBanner path={props.path} />
       <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={props.containerStyle}>
-        <PathItemIcon path={props.path} size={48} style={styles.pathItemIcon} />
-        {props.showTooltipOnName ? (
-          <Kb.WithTooltip
-            containerStyle={styles.nameTextBox}
-            tooltip={Types.pathToString(props.path)}
-            multiline={true}
-            showOnPressMobile={true}
-          >
-            {name}
-          </Kb.WithTooltip>
-        ) : (
-          <Kb.Box style={styles.nameTextBox}>{name}</Kb.Box>
-        )}
+        <ItemIcon path={props.path} size={48} style={styles.pathItemIcon} />
+        <Kb.Box style={styles.nameTextBox}>{name}</Kb.Box>
         {pathItem.type === Types.PathType.File && (
           <Kb.Text type="BodySmall">{Constants.humanReadableFileSize(pathItem.size)}</Kb.Text>
         )}

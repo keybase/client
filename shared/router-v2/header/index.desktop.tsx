@@ -347,7 +347,7 @@ const mapStateToProps = (state: Container.TypedState) => ({
 
 const mapDispatchToProps = () => ({})
 
-export default Container.connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({
+export default Container.connect(mapStateToProps, mapDispatchToProps, (s, d, o: any) => ({
   ...s,
   ...d,
   ...o,
