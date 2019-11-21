@@ -74,7 +74,7 @@ func TestBotCommandManager(t *testing.T) {
 		},
 	}
 	require.NoError(t, tc.Context().BotCommandManager.Advertise(ctx, &alias, commands))
-	cmds, err := tc.Context().BotCommandManager.ListCommands(ctx, impConv.Id)
+	cmds, _, err := tc.Context().BotCommandManager.ListCommands(ctx, impConv.Id)
 	require.NoError(t, err)
 	require.Zero(t, len(cmds))
 	errCh, err := tc.Context().BotCommandManager.UpdateCommands(ctx, impConv.Id, nil)
@@ -105,12 +105,12 @@ func TestBotCommandManager(t *testing.T) {
 	require.Equal(t, 1, len(impConvLocal.BotCommands.Custom().Commands))
 	require.Equal(t, "status", impConvLocal.BotCommands.Custom().Commands[0].Name)
 	require.NoError(t, readErrCh(errCh))
-	cmds, err = tc.Context().BotCommandManager.ListCommands(ctx, impConv.Id)
+	cmds, _, err = tc.Context().BotCommandManager.ListCommands(ctx, impConv.Id)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(cmds))
 	require.Equal(t, "status", cmds[0].Name)
 	require.NoError(t, readErrCh(errCh1))
-	cmds, err = tc1.Context().BotCommandManager.ListCommands(ctx1, impConv1.Id)
+	cmds, _, err = tc1.Context().BotCommandManager.ListCommands(ctx1, impConv1.Id)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(cmds))
 	require.Equal(t, "status", cmds[0].Name)
@@ -158,13 +158,13 @@ func TestBotCommandManager(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, readErrCh(errCh1))
 
-	cmds, err = tc.Context().BotCommandManager.ListCommands(ctx, impConv.Id)
+	cmds, _, err = tc.Context().BotCommandManager.ListCommands(ctx, impConv.Id)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(cmds))
-	cmds, err = tc.Context().BotCommandManager.ListCommands(ctx, teamConv.Id)
+	cmds, _, err = tc.Context().BotCommandManager.ListCommands(ctx, teamConv.Id)
 	require.NoError(t, err)
 	require.Equal(t, 3, len(cmds))
-	cmds, err = tc1.Context().BotCommandManager.ListCommands(ctx1, impConv1.Id)
+	cmds, _, err = tc1.Context().BotCommandManager.ListCommands(ctx1, impConv1.Id)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(cmds))
 
@@ -184,7 +184,7 @@ func TestBotCommandManager(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, readErrCh(errChT))
 
-	cmds, err = tc.Context().BotCommandManager.ListCommands(ctx, teamConv.Id)
+	cmds, _, err = tc.Context().BotCommandManager.ListCommands(ctx, teamConv.Id)
 	require.NoError(t, err)
 	require.Equal(t, 6, len(cmds))
 
@@ -204,7 +204,7 @@ func TestBotCommandManager(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, readErrCh(errChT))
 
-	cmds, err = tc.Context().BotCommandManager.ListCommands(ctx, teamConv.Id)
+	cmds, _, err = tc.Context().BotCommandManager.ListCommands(ctx, teamConv.Id)
 	require.NoError(t, err)
 	require.Equal(t, 3, len(cmds))
 
@@ -224,7 +224,7 @@ func TestBotCommandManager(t *testing.T) {
 		require.NoError(t, err)
 		require.NoError(t, readErrCh(errChT))
 
-		cmds, err = tc.Context().BotCommandManager.ListCommands(ctx, teamConv.Id)
+		cmds, _, err = tc.Context().BotCommandManager.ListCommands(ctx, teamConv.Id)
 		require.NoError(t, err)
 		if len(cmds) == 6 {
 			break

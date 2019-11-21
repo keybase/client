@@ -592,8 +592,8 @@ func (d DummyBotCommandManager) PublicCommandsConv(ctx context.Context, username
 	return nil, nil
 }
 
-func (d DummyBotCommandManager) ListCommands(ctx context.Context, convID chat1.ConversationID) ([]chat1.UserBotCommandOutput, error) {
-	return nil, nil
+func (d DummyBotCommandManager) ListCommands(ctx context.Context, convID chat1.ConversationID) ([]chat1.UserBotCommandOutput, map[string]string, error) {
+	return nil, make(map[string]string), nil
 }
 
 func (d DummyBotCommandManager) UpdateCommands(ctx context.Context, convID chat1.ConversationID,

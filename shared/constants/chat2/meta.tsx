@@ -319,6 +319,7 @@ export const inboxUIItemToConversationMeta = (
   const participants = i.participants || []
   return {
     ...makeConversationMeta(),
+    botAliases: i.botAliases,
     botCommands: i.botCommands,
     cannotWrite,
     channelname: (isTeam && i.channel) || '',
@@ -376,6 +377,7 @@ export const inboxUIItemToConversationMeta = (
 }
 
 export const makeConversationMeta = (): Types.ConversationMeta => ({
+  botAliases: {},
   botCommands: {} as RPCChatTypes.ConversationCommandGroups,
   cannotWrite: false,
   channelname: '',

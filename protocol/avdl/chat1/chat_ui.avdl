@@ -169,6 +169,7 @@ protocol chatUi {
     // Command support
     ConversationCommandGroups commands;
     ConversationCommandGroups botCommands;
+    map<string, string> botAliases;
 
     // Pinned message
     union { null, UIPinnedMessage} pinnedMsg;

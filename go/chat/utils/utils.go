@@ -1351,6 +1351,7 @@ func PresentConversationLocal(ctx context.Context, g *globals.Context, uid grego
 	res.ConvSettings = rawConv.ConvSettings
 	res.Commands = rawConv.Commands
 	res.BotCommands = rawConv.BotCommands
+	res.BotAliases = rawConv.BotAliases
 	res.Draft = rawConv.Info.Draft
 	if rawConv.Info.PinnedMsg != nil {
 		res.PinnedMsg = new(chat1.UIPinnedMessage)
