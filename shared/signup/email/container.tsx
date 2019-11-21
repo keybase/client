@@ -39,7 +39,7 @@ const WatchForSuccess = (props: WatcherProps) => {
   )
 }
 
-const ConnectedEnterEmail = Container.connectDEBUG(
+const ConnectedEnterEmail = Container.connect(
   (state: Container.TypedState) => ({
     _showPushPrompt: Platform.isMobile && !state.push.hasPermissions && state.push.showPushPrompt,
     addedEmail: state.settings.email.addedEmail,

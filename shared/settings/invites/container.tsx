@@ -8,7 +8,7 @@ import * as Container from '../../util/container'
 
 type OwnProps = {}
 
-export default Container.connectDEBUG(
+export default Container.connect(
   state => ({
     acceptedInvites: state.settings.invites.acceptedInvites,
     error: state.settings.invites.error,

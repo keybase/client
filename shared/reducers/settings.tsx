@@ -95,6 +95,8 @@ const emailActions: Container.ActionHandler<Actions, Types.State> = {
     const old = map?.get(email)
     if (old) {
       old.isVerified = true
+    } else {
+      logger.warn('emailVerified on unknown email?')
     }
     draftState.email.addedEmail = undefined
   },
