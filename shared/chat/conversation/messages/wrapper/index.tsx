@@ -347,7 +347,6 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       const props = {
         style: Styles.collapseStyles([
           styles.container,
-          !this.props.showUsername && styles.containerNoUsername,
           !this._isExploding() && styles.containerNoExploding, // extra right padding to line up with infopane / input icons
           this._showCenteredHighlight() && styles.centeredOrdinal,
         ]),
