@@ -24,7 +24,6 @@ const mapStateToProps = (state: TypedState) => {
     setLockdownModeError: (setLockdownModeError && setLockdownModeError.message) || '',
     settingLockdownMode,
     traceInProgress: Constants.traceInProgress(state),
-    useNativeFrame: state.config.useNativeFrame,
   }
 }
 
@@ -38,8 +37,6 @@ const mapDispatchToProps = dispatch => ({
     dispatch(SettingsGen.createOnChangeLockdownMode({enabled: checked})),
   onChangeRememberPassword: (checked: boolean) =>
     dispatch(SettingsGen.createOnChangeRememberPassword({remember: checked})),
-  onChangeUseNativeFrame: (useNativeFrame: boolean) =>
-    dispatch(ConfigGen.createSetUseNativeFrame({useNativeFrame})),
   onDBNuke: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['dbNukeConfirm']})),
   onDisableCertPinning: () =>
     dispatch(RouteTreeGen.createNavigateAppend({path: ['disableCertPinningModal']})),

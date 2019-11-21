@@ -24,37 +24,11 @@ type Props = {
   traceInProgress: boolean
   processorProfileInProgress: boolean
   hasRandomPW: boolean
-  useNativeFrame: boolean
-  onChangeUseNativeFrame: (use: boolean) => void
   onEnableCertPinning: () => void
   allowTlsMitmToggle: boolean
   rememberPassword: boolean
   onChangeRememberPassword: (checked: boolean) => void
   onToggleRuntimeStats: () => void
-}
-
-let initialUseNativeFrame: boolean | undefined
-
-const UseNativeFrame = (props: Props) => {
-  if (initialUseNativeFrame === undefined) {
-    initialUseNativeFrame = props.useNativeFrame
-  }
-  return isMobile ? null : (
-    <>
-      <Kb.Box style={styles.checkboxContainer}>
-        <Kb.Checkbox
-          checked={!props.useNativeFrame}
-          label="Hide system window frame"
-          onCheck={x => props.onChangeUseNativeFrame(!x)}
-        />
-      </Kb.Box>
-      {initialUseNativeFrame !== props.useNativeFrame && (
-        <Kb.Text type="BodySmall" style={styles.error}>
-          Keybase needs to restart for this change to take effect.
-        </Kb.Text>
-      )}
-    </>
-  )
 }
 
 const LockdownCheckbox = (props: Props) => {
@@ -120,7 +94,6 @@ const Advanced = (props: Props) => (
           />
         </Kb.Box>
       )}
-      {isLinux ? <UseNativeFrame {...props} /> : null}
       {!Styles.isMobile && (
         <Kb.Box style={styles.checkboxContainer}>
           <Kb.Checkbox

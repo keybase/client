@@ -7,6 +7,32 @@ type Props = {
   darkModePreference: DarkModePreference
   onBack: () => void
   onSetDarkModePreference: (pref: DarkModePreference) => void
+  useNativeFrame: boolean
+  onChangeUseNativeFrame: (use: boolean) => void
+}
+
+let initialUseNativeFrame: boolean | undefined
+
+const UseNativeFrame = (props: Props) => {
+  if (initialUseNativeFrame === undefined) {
+    initialUseNativeFrame = props.useNativeFrame
+  }
+  return isMobile ? null : (
+    <>
+      <Kb.Box style={styles.checkboxContainer}>
+        <Kb.Checkbox
+          checked={!props.useNativeFrame}
+          label="Hide system window frame"
+          onCheck={x => props.onChangeUseNativeFrame(!x)}
+        />
+      </Kb.Box>
+      {initialUseNativeFrame !== props.useNativeFrame && (
+        <Kb.Text type="BodySmall" style={styles.error}>
+          Keybase needs to restart for this change to take effect.
+        </Kb.Text>
+      )}
+    </>
+  )
 }
 
 const Display = (props: Props) => (
@@ -34,6 +60,7 @@ const Display = (props: Props) => (
           />
         </Kb.Box2>
       </Kb.Box2>
+      {isLinux ? <UseNativeFrame {...props} /> : null}
     </Kb.Box>
   </Kb.ScrollView>
 )
