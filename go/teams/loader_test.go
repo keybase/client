@@ -1359,7 +1359,7 @@ func TestTombstoneViaDelete(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = Delete(context.TODO(), tcs[0].G, &teamsUI{}, rootName.String())
+	err = Delete(context.TODO(), tcs[0].G, &teamsUI{}, rootID)
 	require.NoError(t, err)
 
 	st := getStorageFromG(tcs[0].G)

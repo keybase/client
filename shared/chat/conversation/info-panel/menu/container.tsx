@@ -113,10 +113,10 @@ export default Container.namedConnect(
       if (!teamID) return
       return dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected}]}))
     },
-    _onLeaveTeam: (teamname?: string) =>
-      teamname &&
+    _onLeaveTeam: (teamID?: TeamTypes.TeamID) =>
+      teamID &&
       dispatch(
-        RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamReallyLeaveTeam'}]})
+        RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'teamReallyLeaveTeam'}]})
       ),
     _onManageChannels: (teamname?: string) => {
       teamname &&
@@ -146,7 +146,7 @@ export default Container.namedConnect(
     onHidden: o.onHidden,
     onHideConv: d.onHideConv,
     onInvite: () => d._onInvite(s.convProps && s.convProps.teamID),
-    onLeaveTeam: () => d._onLeaveTeam(s.teamname),
+    onLeaveTeam: () => d._onLeaveTeam(s.convProps && s.convProps.teamID),
     onManageChannels: () => d._onManageChannels(s.teamname),
     onMuteConv: d.onMuteConv,
     onUnhideConv: d.onUnhideConv,

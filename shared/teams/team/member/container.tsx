@@ -38,11 +38,6 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
   },
   _onEditRole: (teamname: string, username: string, role: Types.TeamRoleType) =>
     dispatch(TeamsGen.createEditMembership({role, teamname, username})),
-  _onLeaveTeam: (teamname: string) => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamReallyLeaveTeam'}]})
-    )
-  },
   _onRemoveMember: (teamname: string, username: string) => {
     dispatch(
       RouteTreeGen.createNavigateAppend({
@@ -51,6 +46,18 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
     )
   },
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+  onLeaveTeam: () => {
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {teamID: Container.getRouteProps(ownProps, 'teamID', Types.noTeamID)},
+            selected: 'teamReallyLeaveTeam',
+          },
+        ],
+      })
+    )
+  },
   onOpenProfile: () =>
     dispatch(createShowUserProfile({username: Container.getRouteProps(ownProps, 'username', '')})),
 })
@@ -121,7 +128,7 @@ export default Container.connect(
       onOpenProfile: dispatchProps.onOpenProfile,
       onRemoveMember: () => {
         if (stateProps._username === stateProps._you) {
-          dispatchProps._onLeaveTeam(stateProps.teamname)
+          dispatchProps.onLeaveTeam()
         } else {
           dispatchProps._onRemoveMember(stateProps.teamname, stateProps._username)
         }

@@ -1256,7 +1256,7 @@ export type MessageTypes = {
     outParam: SeitanIKeyV2
   }
   'keybase.1.teams.teamDelete': {
-    inParam: {readonly name: String}
+    inParam: {readonly teamID: TeamID}
     outParam: void
   }
   'keybase.1.teams.teamEditMember': {

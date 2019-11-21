@@ -1226,7 +1226,7 @@ protocol teams {
   // This list is generated without loading each team, and is therefore server-trust.
   SubteamListResult teamGetSubteams(int sessionID, TeamName name);
 
-  void teamDelete(int sessionID, string name);
+  void teamDelete(int sessionID, TeamID teamID);
 
   void teamSetSettings(int sessionID, string name, TeamSettings settings);
 

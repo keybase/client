@@ -1,30 +1,32 @@
 import * as Constants from '../../../constants/teams'
+import * as Types from '../../../constants/types/teams'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import Title from '.'
 import {connect} from '../../../util/container'
 import {anyWaiting} from '../../../constants/waiting'
 
 type OwnProps = {
-  teamname: string
+  teamID: Types.TeamID
 }
 
-const mapStateToProps = (state, {teamname}) => {
-  const yourOperations = Constants.getCanPerform(state, teamname)
-  return {
-    canChat: !yourOperations.joinTeam,
-    loading: anyWaiting(state, Constants.teamWaitingKey(teamname)),
-  }
-}
-
-const mapDispatchToProps = (dispatch, {teamname}) => ({
-  onChat: () => dispatch(Chat2Gen.createPreviewConversation({reason: 'teamHeader', teamname})),
-})
-
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
-  canChat: stateProps.canChat,
-  loading: stateProps.loading,
-  onChat: dispatchProps.onChat,
-  teamname: ownProps.teamname,
-})
-
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Title)
+export default connect(
+  (state, {teamID}: OwnProps) => {
+    const {teamname} = Constants.getTeamDetails(state, teamID)
+    const yourOperations = Constants.getCanPerformByID(state, teamID)
+    return {
+      canChat: !yourOperations.joinTeam,
+      loading: anyWaiting(state, Constants.teamWaitingKey(teamname)),
+      teamname,
+    }
+  },
+  dispatch => ({
+    onChat: (teamname: string) =>
+      dispatch(Chat2Gen.createPreviewConversation({reason: 'teamHeader', teamname})),
+  }),
+  (stateProps, dispatchProps, ownProps) => ({
+    canChat: stateProps.canChat,
+    loading: stateProps.loading,
+    onChat: () => dispatchProps.onChat(stateProps.teamname),
+    teamID: ownProps.teamID,
+  })
+)(Title)
