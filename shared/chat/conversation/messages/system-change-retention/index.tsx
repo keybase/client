@@ -72,17 +72,18 @@ const ChangeRetention = (props: Props) => {
   }
   const inheritDescription = props.isInherit ? ' to inherit from the team policy' : ''
   const policySummary = getPolicySummary(props)
-  const manageText = props.canManage ? 'Manage this' : ''
+  const manageText = props.canManage ? 'Team retention settings' : ''
   return (
     <UserNotice>
       <Kb.Text type="BodySmall" selectable={true}>
         {changedBy}changed the {convType} retention policy{inheritDescription}. Messages will {policySummary}.
+        {` `}
+        {manageText ? (
+          <Kb.Text onClick={props.onManageRetention} type="BodySmallSemiboldPrimaryLink">
+            {manageText}
+          </Kb.Text>
+        ) : null}
       </Kb.Text>
-      {manageText ? (
-        <Kb.Text onClick={props.onManageRetention} type="BodySmallSemiboldPrimaryLink">
-          {manageText}
-        </Kb.Text>
-      ) : null}
     </UserNotice>
   )
 }
