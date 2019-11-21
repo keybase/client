@@ -73,7 +73,7 @@ const ReallyDeleteTeam = (props: Props) => {
   }, [deleteWaiting, prevDeleteWaiting, onBack, error])
   React.useEffect(
     () => () => clearWaiting(),
-    // only once on mount
+    // only once on unmount
     // eslint-disable-next-line
     []
   )

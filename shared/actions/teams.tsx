@@ -117,12 +117,18 @@ function* deleteTeam(_: TypedState, action: TeamsGen.DeleteTeamPayload, logger: 
 const leaveTeam = async (_: TypedState, action: TeamsGen.LeaveTeamPayload, logger: Saga.SagaLogger) => {
   const {context, teamname} = action.payload
   logger.info(`leaveTeam: Leaving ${teamname} from context ${context}`)
-  await RPCTypes.teamsTeamLeaveRpcPromise(
-    {name: teamname, permanent: false},
-    Constants.leaveTeamWaitingKey(teamname)
-  )
-  logger.info(`leaveTeam: left ${teamname} successfully`)
-  return TeamsGen.createLeftTeam({context, teamname})
+  try {
+    await RPCTypes.teamsTeamLeaveRpcPromise(
+      {name: teamname, permanent: false},
+      Constants.leaveTeamWaitingKey(teamname)
+    )
+    logger.info(`leaveTeam: left ${teamname} successfully`)
+    return TeamsGen.createLeftTeam({context, teamname})
+  } catch (e) {
+    // handled through waiting store
+    logger.warn('error:', e.message)
+    return
+  }
 }
 
 const leftTeam = () => RouteTreeGen.createNavUpToScreen({routeName: 'teamsRoot'})

@@ -2320,7 +2320,6 @@ const navigateToInbox = (
   action:
     | Chat2Gen.NavigateToInboxPayload
     | Chat2Gen.LeaveConversationPayload
-    | TeamsGen.LeaveTeamPayload
     | TeamsGen.LeftTeamPayload
     | TeamsGen.DeleteChannelConfirmedPayload
 ) => {
@@ -3465,12 +3464,12 @@ function* chat2Saga() {
     'markThreadAsRead'
   )
   yield* Saga.chainAction2(
-    [Chat2Gen.leaveConversation, TeamsGen.leaveTeam, TeamsGen.leftTeam, TeamsGen.deleteChannelConfirmed],
+    [Chat2Gen.leaveConversation, TeamsGen.leftTeam, TeamsGen.deleteChannelConfirmed],
     clearModalsFromConvEvent,
     'clearModalsFromConvEvent'
   )
   yield* Saga.chainAction2(
-    [Chat2Gen.navigateToInbox, Chat2Gen.leaveConversation, TeamsGen.leaveTeam, TeamsGen.leftTeam],
+    [Chat2Gen.navigateToInbox, Chat2Gen.leaveConversation, TeamsGen.leftTeam],
     navigateToInbox,
     'navigateToInbox'
   )
