@@ -1,6 +1,9 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
+import * as Styles from '../../../../styles'
 import UserNotice from '../user-notice'
+import {getAddedUsernames} from '../system-users-added-to-conv'
+import {formatTimeForChat} from '../../../../util/timestamp'
 type Props = {
   author: string
   authorIsYou: boolean
@@ -11,23 +14,43 @@ type Props = {
   onManageChannels: () => void
   onManageNotifications: () => void
   teamname: string
+  timestamp: number
 }
 
 const textType = 'BodySmallSemiboldPrimaryLink'
 
-const Joined = (props: Props) => <JoinedUserNotice {...props} />
-// Bring more attention to the current user joining
-// props.joiners.length < 1 ? (
-//   <JoinedUserNotice {...props} />
-// ) : (
-//     <Kb.Box2 direction="vertical" fullWidth={true}>
-//       <Kb.Text type="BodySmall">
-//         {props.joiners.length > 0 && getAddedUsernames(props.joiners)}
-//         {props.joiners.length > 0 &&
-//           ` joined ${props.isBigTeam ? `#${props.channelname}.` : `${props.teamname}.`}`}
-//       </Kb.Text>
-//     </Kb.Box2>
-//   )
+const Joined = (props: Props) =>
+  props.joiners.length + props.leavers.length < 2 ? (
+    <JoinedUserNotice {...props} />
+  ) : (
+    <MultiUserJoinedNotice {...props} />
+  )
+
+const MultiUserJoinedNotice = (props: Props) => (
+  <Kb.Box2
+    direction="vertical"
+    alignSelf="flex-start"
+    style={{marginLeft: Styles.globalMargins.small, paddingTop: Styles.globalMargins.xtiny}}
+  >
+    {props.timestamp && (
+      <Kb.Text type="BodyTiny" style={styles.timestamp}>
+        {formatTimeForChat(props.timestamp)}
+      </Kb.Text>
+    )}
+    <Kb.Text type="BodySmall" style={{paddingBottom: Styles.globalMargins.xxtiny}}>
+      {props.joiners.length > 0 && getAddedUsernames(props.joiners)}
+      {props.joiners.length > 0 &&
+        ` joined ${props.isBigTeam ? `#${props.channelname}.` : `${props.teamname}.`}`}
+    </Kb.Text>
+    <Kb.AvatarLine
+      usernames={props.joiners}
+      maxShown={4}
+      size={32}
+      layout="horizontal"
+      alignSelf="flex-start"
+    />
+  </Kb.Box2>
+)
 
 const JoinedUserNotice = (props: Props) => (
   <UserNotice>
@@ -49,6 +72,15 @@ const JoinedUserNotice = (props: Props) => (
       </Kb.Text>
     )}
   </UserNotice>
+)
+
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      timestamp: Styles.platformStyles({
+        isElectron: {lineHeight: 19},
+      }),
+    } as const)
 )
 
 export default Joined
