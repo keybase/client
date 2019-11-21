@@ -32,16 +32,10 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
     return {...initialState, staticConfig: draftState.staticConfig} as Types.State
   },
   [WalletsGen.didSetAccountAsDefault]: (draftState, action) => {
-    const accountMap: I.OrderedMap<Types.AccountID, Types.Account> = I.OrderedMap(
-      action.payload.accounts.map(account => [account.accountID, account])
-    )
-    draftState.accountMap = accountMap
+    draftState.accountMap = new Map(action.payload.accounts.map(account => [account.accountID, account]))
   },
   [WalletsGen.accountsReceived]: (draftState, action) => {
-    const accountMap: I.OrderedMap<Types.AccountID, Types.Account> = I.OrderedMap(
-      action.payload.accounts.map(account => [account.accountID, account])
-    )
-    draftState.accountMap = accountMap
+    draftState.accountMap = new Map(action.payload.accounts.map(account => [account.accountID, account]))
   },
   [WalletsGen.changedAccountName]: (draftState, action) => {
     const {account} = action.payload
@@ -67,7 +61,7 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
       const {accountID} = account
       const old = draftState.accountMap.get(accountID)
       if (old) {
-        draftState.accountMap = draftState.accountMap.set(accountID, old.merge(account))
+        draftState.accountMap.set(accountID, old.merge(account))
       }
     }
   },
@@ -200,10 +194,7 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
     if (account.accountID === Types.noAccountID) {
       return
     }
-    draftState.accountMap = draftState.accountMap.set(
-      account.accountID,
-      account.merge({displayCurrency: action.payload.currency})
-    )
+    draftState.accountMap.set(account.accountID, account.merge({displayCurrency: action.payload.currency}))
   },
   [WalletsGen.reviewPayment]: draftState => {
     draftState.builtPayment = draftState.builtPayment.set('reviewBanners', [])
@@ -607,6 +598,7 @@ const doubleCheck = (
     const s = ConstantsOLD.makeState({
       ...state,
       airdropQualifications: state ? I.List(state.airdropQualifications) : undefined,
+      accountMap: state ? I.Map(mapToObject(state.accountMap)) : undefined,
       assetsMap: state ? I.Map(mapToObject(state.assetsMap)) : undefined,
       currencies: state ? I.List(state.currencies) : undefined,
       mobileOnlyMap: state ? I.Map(mapToObject(state.mobileOnlyMap)) : undefined,
@@ -634,6 +626,7 @@ const doubleCheck = (
     const nextStateOLD = reducerOLD(s, action)
     const o: any = {
       ...nextStateOLD.toJS(),
+      accountMap: sortObject(nextStateOLD.accountMap.toJS()),
       assetsMap: sortObject(nextStateOLD.assetsMap.toJS()),
       mobileOnlyMap: sortObject(nextStateOLD.mobileOnlyMap.toJS()),
       paymentCursorMap: sortObject(nextStateOLD.paymentCursorMap.toJS()),
@@ -656,6 +649,7 @@ const doubleCheck = (
 
     const n: any = {
       ...nextState,
+      accountMap: sortObject(mapToObject(nextState.accountMap)),
       assetsMap: sortObject(mapToObject(nextState.assetsMap)),
       mobileOnlyMap: sortObject(mapToObject(nextState.mobileOnlyMap)),
       paymentCursorMap: sortObject(mapToObject(nextState.paymentCursorMap)),

@@ -374,7 +374,7 @@ export type StaticConfig = I.RecordOf<StellarRPCTypes.StaticConfig>
 export type State = Readonly<{
   acceptedDisclaimer: boolean
   acceptingDisclaimerDelay: boolean
-  accountMap: I.OrderedMap<AccountID, Account>
+  accountMap: Map<AccountID, Account>
   accountName: string
   accountNameError: string
   accountNameValidationState: ValidationState

@@ -249,7 +249,7 @@ export const emptyTrustline = makeTrustline()
 export const makeState = (): Types.State => ({
   acceptedDisclaimer: false,
   acceptingDisclaimerDelay: false,
-  accountMap: I.OrderedMap(),
+  accountMap: new Map(),
   accountName: '',
   accountNameError: '',
   accountNameValidationState: 'none',
@@ -717,9 +717,9 @@ export const searchTrustlineAssetsWaitingKey = 'wallets:searchTrustlineAssets'
 export const calculateBuildingAdvancedWaitingKey = 'wallets:calculateBuildingAdvanced'
 export const sendPaymentAdvancedWaitingKey = 'wallets:sendPaymentAdvanced'
 
-export const getAccountIDs = (state: TypedState) => state.wallets.accountMap.keySeq().toList()
+export const getAccountIDs = (state: TypedState) => [...state.wallets.accountMap.keys()]
 
-export const getAccounts = (state: TypedState) => state.wallets.accountMap.valueSeq().toList()
+export const getAccounts = (state: TypedState) => [...state.wallets.accountMap.values()]
 
 export const getAirdropSelected = (state: TypedState) =>
   state.wallets.selectedAccount === Types.airdropAccountID
@@ -727,7 +727,7 @@ export const getAirdropSelected = (state: TypedState) =>
 export const getSelectedAccount = (state: TypedState) => state.wallets.selectedAccount
 
 export const getSelectedAccountData = (state: TypedState) =>
-  state.wallets.accountMap.get(getSelectedAccount(state), unknownAccount)
+  state.wallets.accountMap.get(getSelectedAccount(state)) ?? unknownAccount
 
 export const getDisplayCurrencies = (state: TypedState) => state.wallets.currencies
 
@@ -741,7 +741,8 @@ export const getPayment = (state: TypedState, accountID: Types.AccountID, paymen
   state.wallets.paymentsMap.get(accountID)?.get(paymentID) ?? makePayment()
 
 export const getAccountInner = (state: Types.State, accountID: Types.AccountID) =>
-  state.accountMap.get(accountID, unknownAccount)
+  state.accountMap.get(accountID) ?? unknownAccount
+
 export const getAccount = (state: TypedState, accountID: Types.AccountID) =>
   getAccountInner(state.wallets, accountID)
 
@@ -751,18 +752,18 @@ export const getDisplayCurrency = (state: TypedState, accountID: Types.AccountID
   getDisplayCurrencyInner(state.wallets, accountID)
 
 export const getDefaultDisplayCurrencyInner = (state: Types.State) => {
-  const defaultAccount = state.accountMap.find(a => a.isDefault)
-  return defaultAccount ? defaultAccount.displayCurrency : unknownCurrency
+  const defaultAccount = getDefaultAccount(state)
+  return defaultAccount === unknownAccount ? unknownCurrency : defaultAccount.displayCurrency
 }
-export const getDefaultDisplayCurrency = (state: TypedState) => getDefaultDisplayCurrencyInner(state.wallets)
+export const getDefaultDisplayCurrency = (state: Types.State) => getDefaultDisplayCurrencyInner(state)
 
-export const getDefaultAccountID = (state: TypedState) => {
-  const defaultAccount = state.wallets.accountMap.find(a => a.isDefault)
-  return defaultAccount ? defaultAccount.accountID : null
+export const getDefaultAccountID = (state: Types.State) => {
+  const defaultAccount = getDefaultAccount(state)
+  return defaultAccount === unknownAccount ? null : defaultAccount.accountID
 }
 
-export const getDefaultAccount = (state: TypedState) => {
-  const defaultAccount = state.wallets.accountMap.find(a => a.isDefault)
+export const getDefaultAccount = (state: Types.State) => {
+  const defaultAccount = [...state.accountMap.values()].find(a => a.isDefault)
   return defaultAccount || unknownAccount
 }
 
@@ -772,7 +773,7 @@ export const getAssets = (state: TypedState, accountID: Types.AccountID): Array<
   state.wallets.assetsMap.get(accountID) ?? []
 
 export const getFederatedAddress = (state: TypedState, accountID: Types.AccountID) => {
-  const account = state.wallets.accountMap.get(accountID, unknownAccount)
+  const account = state.wallets.accountMap.get(accountID) ?? unknownAccount
   const {username} = state.config
   return username && account.isDefault ? `${username}*keybase.io` : ''
 }
