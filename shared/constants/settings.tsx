@@ -48,6 +48,7 @@ export const makeState = (): Types.State => ({
     importError: '',
     importPromptDismissed: false,
     permissionStatus: 'unknown',
+    waitingToShowJoinedModal: false,
   },
   email: {
     error: '',

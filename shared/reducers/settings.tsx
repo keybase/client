@@ -263,8 +263,8 @@ const contactsActions: Container.ActionHandler<Actions, Types.State> = {
     draftState.contacts.userCountryCode = action.payload.code
   },
   [SettingsGen.showContactsJoinedModal]: (draftState, action) => {
-    state.contacts.alreadyOnKeybase = action.payload.resolved
-    state.contacts.waitingToShowJoinedModal = false
+    draftState.contacts.alreadyOnKeybase = action.payload.resolved
+    draftState.contacts.waitingToShowJoinedModal = false
   },
   [SettingsGen.editContactImportEnabled]: (draftState, action) => {
     if (action.payload.fromSettings) {
