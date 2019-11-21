@@ -58,19 +58,32 @@ export const WaveButton = (props: WaveProps) => {
 }
 
 export const FollowButton = (props: FollowProps) => {
+  const dispatch = Container.useDispatch()
   const userDetails = Container.useSelector(state => Tracker2Constants.getDetails(state, props.username))
   const followThem = Container.useSelector(state => Tracker2Constants.followThem(state, props.username))
   const followsYou = Container.useSelector(state => Tracker2Constants.followsYou(state, props.username))
 
-  const dispatch = Container.useDispatch()
+  React.useEffect(() => {
+    if (!userDetails.guiID) {
+      dispatch(
+        Tracker2Gen.createShowUser({
+          asTracker: false,
+          skipNav: true,
+          username: props.username,
+        })
+      )
+    }
+  }, [props.username, userDetails.guiID, dispatch])
+
   const onChangeFollow = (follow: boolean) =>
     dispatch(Tracker2Gen.createChangeFollow({follow, guiID: userDetails.guiID}))
 
   return (
     <UnconnectedFollowButton
+      disabled={userDetails.username !== props.username}
       following={followThem}
       followsYou={followsYou}
-      waitingKey={getFollowWaitingKey(props.username)}
+      waitingKey={[getFollowWaitingKey(props.username), Tracker2Constants.profileLoadWaitingKey]}
       small={props.small}
       onFollow={() => onChangeFollow(true)}
       onUnfollow={() => onChangeFollow(false)}
@@ -83,11 +96,7 @@ const styles = Styles.styleSheetCreate(
     ({
       blueText: {color: Styles.globalColors.blueDark, paddingRight: Styles.globalMargins.xtiny},
       waved: {
-        ...Styles.padding(
-          Styles.globalMargins.tiny + Styles.globalMargins.xxtiny,
-          Styles.globalMargins.small,
-          Styles.globalMargins.xxtiny
-        ),
+        ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small, Styles.globalMargins.xtiny),
         minWidth: 94,
       },
     } as const)
