@@ -75,7 +75,6 @@ export default Container.compose(
         amountUser: tx.worth,
         amountXLM: tx.amountDescription,
         approxWorth: tx.worthAtSendTime,
-        // @ts-ignore TODO this error is correct!
         assetCode: tx.assetCode,
         counterpartyMeta: stateProps.counterpartyMeta,
         feeChargedDescription: tx.feeChargedDescription,

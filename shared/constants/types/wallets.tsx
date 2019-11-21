@@ -184,6 +184,7 @@ export type PaymentSection = 'pending' | 'history' | 'none' // where does the pa
 
 export type _PaymentCommon = {
   amountDescription: string
+  assetCode: string
   delta: PaymentDelta
   fromAirdrop: boolean
   error: string | null
