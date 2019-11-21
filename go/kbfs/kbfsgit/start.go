@@ -25,6 +25,9 @@ type StartOptions struct {
 	// GitDir is the filepath leading to the .git directory of the
 	// caller's local on-disk repo.
 	GitDir string
+	// LFS indicates whether we should listen for LFS commands instead
+	// of normal git commands.
+	LFS bool
 }
 
 // Start starts the kbfsgit logic, and begins listening for git
@@ -61,9 +64,13 @@ func Start(ctx context.Context, options StartOptions,
 		return libfs.InitError(err.Error())
 	}
 
-	r, err := newRunner(
+	t := processGit
+	if options.LFS {
+		t = processLFS
+	}
+	r, err := newRunnerWithType(
 		ctx, config, options.Remote, options.Repo, options.GitDir,
-		input, output, errput)
+		input, output, errput, t)
 	if err != nil {
 		return libfs.InitError(err.Error())
 	}

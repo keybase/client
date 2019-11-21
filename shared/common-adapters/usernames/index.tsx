@@ -53,7 +53,7 @@ export type PlaintextProps = {
 }
 
 // Mobile handles spaces correctly so don't insert anything
-const space = Styles.isMobile ? `` : <>&nbsp;</>
+const space = Styles.isMobile ? ` ` : <>&nbsp;</>
 
 // common-adapters/profile-card.tsx already imports this, so have it assign
 // this here instead of importing directly to avoid an import cycle.
@@ -103,7 +103,6 @@ function UsernameText(props: Props) {
           <Text type={props.type} key={u.username}>
             {i !== 0 && i === props.users.length - 1 && props.showAnd && (
               <Text type={props.type} negative={isNegative} style={derivedJoinerStyle}>
-                {space}
                 {'and '}
               </Text>
             )}
@@ -128,12 +127,17 @@ function UsernameText(props: Props) {
             {/* Injecting the commas here so we never wrap and have newlines starting with a , */}
             {i !== props.users.length - 1 && (!props.inlineGrammar || props.users.length > 2) && (
               <Text type={props.type} negative={isNegative} style={derivedJoinerStyle}>
-                ,{props.users.length > 2 && i !== props.users.length - 2 ? space : null}
+                ,
               </Text>
             )}
-            {i !== props.users.length - 1 && ' '}
+            {i !== props.users.length - 1 && (
+              <Text type={props.type} negative={isNegative} style={derivedJoinerStyle}>
+                {space}
+              </Text>
+            )}
           </Text>
         )
+
         return props.withProfileCardPopup && WithProfileCardPopup ? (
           <WithProfileCardPopup key={u.username} username={u.username}>
             {renderText}

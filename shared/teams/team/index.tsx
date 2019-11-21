@@ -3,11 +3,10 @@ import * as Kb from '../../common-adapters'
 import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
 import * as Styles from '../../styles'
-import Settings from './settings-tab/container'
-import TeamHeader from './header/container'
 import TeamTabs from './tabs/container'
 import {Row} from './rows'
 import renderRow from './rows/render'
+import {TeamSubscriber} from '../subscriber'
 
 export type Sections = Array<{data: Array<Row>; header?: Row; key: string}>
 
@@ -28,18 +27,16 @@ class Team extends React.Component<Props> {
   }
   private renderItem = ({item}: {item: Row}) => {
     switch (item.type) {
-      case 'header':
-        return <TeamHeader key="header" teamname={this.props.teamname} />
-      case 'tabs': {
+      case 'tabs':
         return (
           <TeamTabs
-            key="tabs"
-            teamname={this.props.teamname}
+            teamID={this.props.teamID}
             selectedTab={this.props.selectedTab}
             setSelectedTab={this.props.setSelectedTab}
           />
         )
-      }
+      case 'settings':
+      case 'header':
       case 'member':
       case 'invites-invite':
       case 'invites-request':
@@ -51,8 +48,6 @@ class Team extends React.Component<Props> {
       case 'subteam-subteam':
       case 'loading':
         return renderRow(item, this.props.teamID)
-      case 'settings':
-        return <Settings key="settings" teamname={this.props.teamname} />
       default: {
         throw new Error(`Impossible case encountered in team page list: ${item}`)
       }
@@ -69,6 +64,7 @@ class Team extends React.Component<Props> {
         onReload={this.props.load}
         reloadOnMount={true}
       >
+        <TeamSubscriber />
         <Kb.Box style={styles.container}>
           <Kb.SectionList
             alwaysVounceVertical={false}

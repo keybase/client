@@ -450,9 +450,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
             containerStyle={styles.statusBox}
             tooltip={
               props.status === 'claimable'
-                ? `${
-                    props.counterparty
-                  } hasn't generated a Stellar account yet. This payment will automatically complete when they create one.`
+                ? `${props.counterparty} hasn't generated a Stellar account yet. This payment will automatically complete when they create one.`
                 : ''
             }
             textStyle={styles.tooltipText}

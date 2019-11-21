@@ -104,11 +104,4 @@ const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
   }
 }
 
-export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
-  Bootstrapable
-)(Landing)
+export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), Bootstrapable)(Landing)

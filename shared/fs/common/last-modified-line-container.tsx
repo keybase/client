@@ -9,7 +9,7 @@ export type OwnProps = {
 }
 
 const mapStateToProps = (state, {path}) => ({
-  _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
+  _pathItem: Constants.getPathItem(state.fs.pathItems, path),
 })
 
 const mergeProps = (stateProps, _, {mode}: OwnProps) => ({

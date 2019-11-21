@@ -78,7 +78,8 @@
         "'requestedPayment'",
         "'teamMention'",
         "'appLink'",
-        "'search'"
+        "'search'",
+        "'journeyCardPopular'"
       ]
     },
     "createConversation": {
@@ -215,9 +216,9 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "messageID": "RPCChatTypes.MessageID",
       "text": "HiddenString",
-      "mentionsAt": "I.Set<string>",
+      "mentionsAt": "Set<string>",
       "mentionsChannel": "'none' | 'all' | 'here'",
-      "mentionsChannelName": "I.Map<string, Types.ConversationIDKey>"
+      "mentionsChannelName": "Map<string, Types.ConversationIDKey>"
     },
     "pendingMessageWasEdited": {
       "conversationIDKey": "Types.ConversationIDKey",
@@ -779,7 +780,15 @@
       "teamID": "RPCTypes.TeamID",
       "show": "boolean"
     },
+    "setInboxNumSmallRows": {
+      "ignoreWrite?": "boolean",
+      "rows": "number"
+    },
     "enableAudioRecording": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "meteringCb": "(amp: number) => void"
+    },
+    "attemptAudioRecording": {
       "conversationIDKey": "Types.ConversationIDKey",
       "meteringCb": "(amp: number) => void"
     },

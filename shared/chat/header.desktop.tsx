@@ -81,20 +81,15 @@ const Header = (p: Props) => {
   // trim() call makes sure that string is not just whitespace
   if (withoutSelf && withoutSelf.length === 1 && p.desc.trim()) {
     description = (
-      <>
-        <Kb.Text type="BodySmall" style={styles.desc}>
-          &nbsp;•&nbsp;
-        </Kb.Text>
-        <Kb.Markdown
-          smallStandaloneEmoji={true}
-          style={{...styles.desc, flex: 1}}
-          styleOverride={descStyleOverride}
-          lineClamp={1}
-          selectable={true}
-        >
-          {p.desc}
-        </Kb.Markdown>
-      </>
+      <Kb.Markdown
+        smallStandaloneEmoji={true}
+        style={{...styles.desc, flex: 1}}
+        styleOverride={descStyleOverride}
+        lineClamp={1}
+        selectable={true}
+      >
+        {p.desc}
+      </Kb.Markdown>
     )
   }
   return (
@@ -165,6 +160,9 @@ const Header = (p: Props) => {
                     usernames={[withoutSelf[0]]}
                     onUsernameClicked="profile"
                   />
+                  <Kb.Text type="BodySmall" style={styles.desc}>
+                    &nbsp;•&nbsp;
+                  </Kb.Text>
                   {description}
                 </Kb.Box2>
               ) : (

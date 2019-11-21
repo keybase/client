@@ -48,7 +48,14 @@
       "_description": "Fetches the channel information for all channels in a team from the server. Should only be called for components that need the full list.",
       "teamname": "string"
     },
-    "getTeams": {},
+    "getTeams": {
+      "_description": "Load team list if we are stale. _subscribe is for use by teams/subscriber only.",
+      "_subscribe?": "boolean",
+      "forceReload?": "boolean"
+    },
+    "unsubscribeTeamList": {
+      "_description": "Don't eagerly reload team list anymore."
+    },
     "getDetails": {
       "teamname": "string",
       "clearInviteLoadingKey?": "string"
@@ -59,9 +66,6 @@
     "setMembers": {
       "teamname": "string",
       "members": "I.Map<string, Types.MemberInfo>"
-    },
-    "getTeamOperations": {
-      "teamname": "string"
     },
     "getTeamProfileAddList": {
       "username": "string"
@@ -188,15 +192,12 @@
       "loadingKey": "string",
       "isLoading": "boolean"
     },
-    "clearTeamRequests": {
-      "teamname": "string"
-    },
     "setTeamDetails": {
       "teamID": "Types.TeamID",
       "teamname": "string",
       "members": "RPCTypes.TeamMembersDetails",
       "settings": "RPCTypes.TeamSettings",
-      "invites": "Array<Types._InviteInfo>",
+      "invites": "Array<Types.InviteInfo>",
       "subteams": "Array<Types.Teamname>",
       "requests": "Map<string, Array<string>>",
       "subteamIDs": "Set<Types.TeamID>"
@@ -289,10 +290,10 @@
       "newName": "string"
     },
     "setTeamRoleMapLatestKnownVersion": {
-      "version" : "number"
+      "version": "number"
     },
     "setTeamRoleMap": {
-      "map" : "Types.TeamRoleMap"
+      "map": "Types.TeamRoleMap"
     }
   }
 }

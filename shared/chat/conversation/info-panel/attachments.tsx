@@ -205,7 +205,10 @@ export class MediaView {
   }
 
   _formRows = (thumbs: Array<Thumb>): Array<Array<ThumbSizing>> => {
-    return chunk(thumbs.map(thumb => ({sizing: this._resize(thumb), thumb})), rowSize)
+    return chunk(
+      thumbs.map(thumb => ({sizing: this._resize(thumb), thumb})),
+      rowSize
+    )
   }
 
   _monthToSection = (month: Month): Section => {

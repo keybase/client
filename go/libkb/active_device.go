@@ -536,6 +536,12 @@ func (a *ActiveDevice) NIST(ctx context.Context) (*NIST, error) {
 	return a.nistLocked(ctx)
 }
 
+func (a *ActiveDevice) NISTWebAuthToken(ctx context.Context) (*NIST, error) {
+	a.RLock()
+	defer a.RUnlock()
+	return a.nistFactory.GenerateWebAuthToken(ctx)
+}
+
 func (a *ActiveDevice) nistLocked(ctx context.Context) (*NIST, error) {
 	nist, err := a.nistFactory.NIST(ctx)
 	if err != nil {
@@ -594,7 +600,7 @@ func (a *ActiveDevice) SyncSecretsForce(m MetaContext) (ret *SecretSyncer, err e
 	return a.SyncSecretsForUID(m, zed, true /* force */)
 }
 
-func (a *ActiveDevice) CheckForUsername(m MetaContext, n NormalizedUsername) (err error) {
+func (a *ActiveDevice) CheckForUsername(m MetaContext, n NormalizedUsername, suppressNetworkErrors bool) (err error) {
 	a.RLock()
 	uid := a.uv.Uid
 	deviceID := a.deviceID
@@ -603,7 +609,7 @@ func (a *ActiveDevice) CheckForUsername(m MetaContext, n NormalizedUsername) (er
 	if !valid {
 		return NoActiveDeviceError{}
 	}
-	return m.G().GetUPAKLoader().CheckDeviceForUIDAndUsername(m.Ctx(), uid, deviceID, n)
+	return m.G().GetUPAKLoader().CheckDeviceForUIDAndUsername(m.Ctx(), uid, deviceID, n, suppressNetworkErrors)
 }
 
 func (a *ActiveDevice) ProvisioningKeyWrapper(m MetaContext) *SelfDestructingDeviceWithKeys {

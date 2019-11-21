@@ -3,6 +3,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import AudioVideo from './audio-video'
 import {formatAudioRecordDuration} from '../../util/timestamp'
+import {isMobile} from '../../constants/platform'
 
 type VisProps = {
   amps: Array<number>
@@ -11,15 +12,12 @@ type VisProps = {
   maxWidth?: number
 }
 
-const ampHeightProp = (amp: number) => {
-  return Math.max(0.05, Math.min(1.0, 1 - amp / -50))
-}
-
 const AudioVis = (props: VisProps) => {
   let maxHeight = 0
-  const content = props.amps.map((amp, index) => {
-    const heightProp = ampHeightProp(amp)
-    const height = heightProp * props.height
+  const content = props.amps.map((inamp, index) => {
+    const amp = isNaN(inamp) || inamp < 0 ? 0 : inamp
+    const prop = Math.min(1.0, Math.max(Math.sqrt(amp), 0.05))
+    const height = Math.floor(prop * props.height)
     if (height >= maxHeight) {
       maxHeight = height
     }
@@ -31,8 +29,8 @@ const AudioVis = (props: VisProps) => {
         style={{
           backgroundColor: index < props.ampsRemain ? Styles.globalColors.blue : Styles.globalColors.black,
           height,
-          marginRight: 2,
-          width: 1,
+          marginRight: isMobile ? 4 * Styles.hairlineWidth : 2,
+          width: isMobile ? 3 * Styles.hairlineWidth : 1,
         }}
       />
     )
@@ -56,6 +54,7 @@ const AudioVis = (props: VisProps) => {
 }
 
 type Props = {
+  big: boolean
   duration: number
   maxWidth?: number
   url: string
@@ -110,19 +109,28 @@ const AudioPlayer = (props: Props) => {
 
   const ampsRemain = Math.floor((1 - timeLeft / props.duration) * props.visAmps.length)
   return (
-    <Kb.Box2 direction="horizontal" style={styles.container} gap="tiny">
+    <Kb.Box2
+      direction="horizontal"
+      style={Styles.collapseStyles([styles.container, {height: props.big ? 56 : 40}])}
+      gap="tiny"
+    >
       <Kb.ClickableBox onClick={props.url ? onClick : undefined} style={{justifyContent: 'center'}}>
         <Kb.Icon
           type={!paused ? 'iconfont-pause' : 'iconfont-play'}
-          fontSize={24}
-          style={Kb.iconCastPlatformStyles(styles.play)}
+          fontSize={32}
+          style={Kb.iconCastPlatformStyles({
+            color: props.url ? Styles.globalColors.blue : Styles.globalColors.grey,
+          })}
         />
       </Kb.ClickableBox>
-      <Kb.Box2 direction="vertical" style={styles.visContainer} gap="xxtiny">
-        <AudioVis height={32} amps={props.visAmps} maxWidth={props.maxWidth} ampsRemain={ampsRemain} />
-        <Kb.Text type="BodyTiny" style={styles.duration}>
-          {formatAudioRecordDuration(timeLeft)}
-        </Kb.Text>
+      <Kb.Box2 direction="vertical" style={styles.visContainer} gap="xxtiny" fullHeight={true}>
+        <AudioVis
+          height={props.big ? 32 : 18}
+          amps={props.visAmps}
+          maxWidth={props.maxWidth}
+          ampsRemain={ampsRemain}
+        />
+        <Kb.Text type="BodyTiny">{formatAudioRecordDuration(timeLeft)}</Kb.Text>
       </Kb.Box2>
       {props.url.length > 0 && <AudioVideo ref={vidRef} url={props.url} paused={paused} />}
     </Kb.Box2>
@@ -137,25 +145,19 @@ const styles = Styles.styleSheetCreate(() => ({
     width: 30,
   },
   container: {
-    ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.tiny),
+    ...Styles.padding(Styles.globalMargins.xxtiny, Styles.globalMargins.tiny),
     backgroundColor: Styles.globalColors.white,
     borderColor: Styles.globalColors.grey,
     borderRadius: Styles.borderRadius,
     borderStyle: 'solid',
     borderWidth: 1,
-    marginTop: Styles.globalMargins.xtiny,
-  },
-  duration: {
-    color: Styles.globalColors.black_50,
-  },
-  play: {
-    color: Styles.globalColors.blue,
   },
   vis: {
     alignSelf: 'flex-start',
   },
   visContainer: {
     alignItems: 'flex-start',
+    justifyContent: 'flex-end',
     minWidth: 40,
   },
 }))

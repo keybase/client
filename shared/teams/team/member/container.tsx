@@ -26,8 +26,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     disabledReasonsForRolePicker,
     follower: state.config.followers.has(username),
     following: state.config.following.has(username),
-    loading:
-      anyWaiting(state, Constants.teamWaitingKey(teamname)) || !Constants.hasCanPerform(state, teamname),
+    loading: anyWaiting(state, Constants.teamWaitingKey(teamname)),
     teamname: teamname,
     yourOperations: Constants.getCanPerform(state, teamname),
   }

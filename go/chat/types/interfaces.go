@@ -424,6 +424,7 @@ type AttachmentUploader interface {
 	Cancel(ctx context.Context, outboxID chat1.OutboxID) error
 	Complete(ctx context.Context, outboxID chat1.OutboxID)
 	GetUploadTempFile(ctx context.Context, outboxID chat1.OutboxID, filename string) (string, error)
+	CancelUploadTempFile(ctx context.Context, outboxID chat1.OutboxID) error
 	OnDbNuke(mctx libkb.MetaContext) error
 }
 
@@ -545,7 +546,7 @@ type BotCommandManager interface {
 	Advertise(ctx context.Context, alias *string, ads []chat1.AdvertiseCommandsParam) error
 	Clear(ctx context.Context) error
 	PublicCommandsConv(ctx context.Context, username string) (chat1.ConversationID, error)
-	ListCommands(ctx context.Context, convID chat1.ConversationID) ([]chat1.UserBotCommandOutput, error)
+	ListCommands(ctx context.Context, convID chat1.ConversationID) ([]chat1.UserBotCommandOutput, map[string]string, error)
 	UpdateCommands(ctx context.Context, convID chat1.ConversationID, info *chat1.BotInfo) (chan error, error)
 }
 
@@ -570,8 +571,10 @@ type UIInboxLoader interface {
 }
 
 type JourneyCardManager interface {
+	Resumable
 	PickCard(context.Context, gregor1.UID, chat1.ConversationID, *chat1.ConversationLocal, *chat1.ThreadView) (*chat1.MessageUnboxedJourneycard, error)
-	SentMessage(context.Context, chat1.ConversationID) // Tell JourneyCardManager that the user has sent a message.
+	SentMessage(context.Context, gregor1.UID, chat1.ConversationID) // Tell JourneyCardManager that the user has sent a message.
+	OnDbNuke(libkb.MetaContext) error
 }
 
 type InternalError interface {

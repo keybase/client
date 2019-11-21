@@ -275,12 +275,12 @@ func (m *CachedFullSelf) OnLogin(mctx MetaContext) error {
 }
 
 func LoadSelfForTeamSignatures(ctx context.Context, g *GlobalContext) (ret UserForSignatures, err error) {
-	err = g.GetFullSelfer().WithSelf(ctx, func(u *User) error {
+	err = g.GetFullSelfer().WithSelf(ctx, func(u *User) (err error) {
 		if u == nil {
 			return LoginRequiredError{"no self in FullSelfCacher"}
 		}
-		ret = u.ToUserForSignatures()
-		return nil
+		ret, err = u.ToUserForSignatures()
+		return err
 	})
 	return ret, err
 }

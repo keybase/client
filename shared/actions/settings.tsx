@@ -16,6 +16,7 @@ import {delay} from 'redux-saga'
 import {isAndroidNewerThanN, isTestDevice, pprofDir, version} from '../constants/platform'
 import {writeLogLinesToFile} from '../util/forward-logs'
 import {TypedState} from '../util/container'
+import openURL from '../util/open-url'
 
 const onUpdatePGPSettings = async () => {
   try {
@@ -356,16 +357,13 @@ const loadSettings = async (
       (settings.emails || []).map(row => [row.email, Constants.makeEmailRow(row)])
     )
     const phoneMap: I.Map<string, Types.PhoneRow> = I.Map(
-      (settings.phoneNumbers || []).reduce(
-        (map, row) => {
-          if (map[row.phoneNumber] && !map[row.phoneNumber].superseded) {
-            return map
-          }
-          map[row.phoneNumber] = Constants.toPhoneRow(row)
+      (settings.phoneNumbers || []).reduce((map, row) => {
+        if (map[row.phoneNumber] && !map[row.phoneNumber].superseded) {
           return map
-        },
-        {} as {[key: string]: Types.PhoneRow}
-      )
+        }
+        map[row.phoneNumber] = Constants.toPhoneRow(row)
+        return map
+      }, {} as {[key: string]: Types.PhoneRow})
     )
     return SettingsGen.createLoadedSettings({
       emails: emailMap,
@@ -684,10 +682,10 @@ const verifyPhoneNumber = async (
 
 const loadContactImportEnabled = async (
   state: TypedState,
-  action: SettingsGen.LoadContactImportEnabledPayload | ConfigGen.BootstrapStatusLoadedPayload,
+  action: SettingsGen.LoadContactImportEnabledPayload | ConfigGen.StartupFirstIdlePayload,
   logger: Saga.SagaLogger
 ) => {
-  if (action.type === ConfigGen.bootstrapStatusLoaded && !action.payload.loggedIn) {
+  if (action.type === ConfigGen.startupFirstIdle && !state.config.loggedIn) {
     return
   }
   if (!state.config.username) {
@@ -759,6 +757,11 @@ const emailAddressVerified = (
   return SettingsGen.createEmailVerified({email: action.payload.params.emailAddress})
 }
 
+const loginBrowserViaWebAuthToken = async (_: TypedState) => {
+  const link = await RPCTypes.configGenerateWebAuthTokenRpcPromise()
+  openURL(link)
+}
+
 function* settingsSaga() {
   yield* Saga.chainAction2(SettingsGen.invitesReclaim, reclaimInvite)
   yield* Saga.chainAction2(SettingsGen.invitesRefresh, refreshInvites)
@@ -810,7 +813,7 @@ function* settingsSaga() {
 
   // Contacts
   yield* Saga.chainAction2(
-    [SettingsGen.loadContactImportEnabled, ConfigGen.bootstrapStatusLoaded],
+    [SettingsGen.loadContactImportEnabled, ConfigGen.startupFirstIdle],
     loadContactImportEnabled,
     'loadContactImportEnabled'
   )
@@ -828,6 +831,12 @@ function* settingsSaga() {
     EngineGen.keybase1NotifyEmailAddressEmailAddressVerified,
     emailAddressVerified,
     'emailAddressVerified'
+  )
+
+  yield* Saga.chainAction2(
+    SettingsGen.loginBrowserViaWebAuthToken,
+    loginBrowserViaWebAuthToken,
+    'loginBrowserViaWebAuthToken'
   )
 }
 

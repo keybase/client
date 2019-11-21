@@ -94,4 +94,4 @@ const useSafeNavigationStorybook: () => PropsWithSafeNavigation = () => {
 
 export const useSafeNavigation = __STORYBOOK__ ? useSafeNavigationStorybook : useSafeNavigationReal
 
-export default (__STORYBOOK__ ? withSafeNavigationStorybook : withSafeNavigation)
+export default __STORYBOOK__ ? withSafeNavigationStorybook : withSafeNavigation

@@ -137,6 +137,20 @@
       ]
     },
     {
+      "type": "record",
+      "name": "UIInboxBigTeamLabelRow",
+      "fields": [
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "string",
+          "name": "id"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "UIInboxBigTeamRow",
       "switch": {
@@ -149,7 +163,7 @@
             "name": "LABEL",
             "def": false
           },
-          "body": "string"
+          "body": "UIInboxBigTeamLabelRow"
         },
         {
           "label": {
@@ -637,6 +651,14 @@
         {
           "type": "ConversationCommandGroups",
           "name": "botCommands"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "string",
+            "keys": "string"
+          },
+          "name": "botAliases"
         },
         {
           "type": [

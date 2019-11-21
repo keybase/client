@@ -73,6 +73,20 @@ const onHTTPSrvInfoUpdated = (
     token: action.payload.params.info.token,
   })
 
+const getFollowerInfo = (
+  state: Container.TypedState,
+  action: ConfigGen.LoggedInPayload | ConfigGen.StartupFirstIdlePayload
+) => {
+  const {uid} = state.config
+  if (action.type === ConfigGen.loggedIn && action.payload.causedByStartup) {
+    return
+  }
+  if (uid) {
+    // request follower info in the background
+    RPCTypes.configRequestFollowerInfoRpcPromise({uid: state.config.uid})
+  }
+}
+
 // set to true so we reget status when we're reachable again
 let wasUnreachable = false
 function* loadDaemonBootstrapStatus(
@@ -93,9 +107,7 @@ function* loadDaemonBootstrapStatus(
   }
 
   function* makeCall() {
-    const s: Saga.RPCPromiseType<
-      typeof RPCTypes.configGetBootstrapStatusRpcPromise
-    > = yield RPCTypes.configGetBootstrapStatusRpcPromise()
+    const s: Saga.RPCPromiseType<typeof RPCTypes.configGetBootstrapStatusRpcPromise> = yield RPCTypes.configGetBootstrapStatusRpcPromise()
     const loadedAction = ConfigGen.createBootstrapStatusLoaded({
       deviceID: s.deviceID,
       deviceName: s.deviceName,
@@ -108,8 +120,6 @@ function* loadDaemonBootstrapStatus(
     })
     logger.info(`[Bootstrap] loggedIn: ${loadedAction.payload.loggedIn ? 1 : 0}`)
     yield Saga.put(loadedAction)
-    // request follower info in the background
-    yield RPCTypes.configRequestFollowerInfoRpcPromise({uid: s.uid})
     // set HTTP srv info
     if (s.httpSrvInfo) {
       yield Saga.put(
@@ -217,6 +227,11 @@ function* loadDaemonAccounts(
     | ConfigGen.LoggedOutPayload
     | ConfigGen.LoggedInPayload
 ) {
+  // ignore since we handle handshake
+  if (action.type === ConfigGen.loggedIn && action.payload.causedByStartup) {
+    return
+  }
+
   let handshakeWait = false
   let handshakeVersion = 0
 
@@ -239,9 +254,7 @@ function* loadDaemonAccounts(
       )
     }
 
-    const configuredAccounts: Array<
-      RPCTypes.ConfiguredAccount
-    > = yield RPCTypes.loginGetConfiguredAccountsRpcPromise()
+    const configuredAccounts: Array<RPCTypes.ConfiguredAccount> = yield RPCTypes.loginGetConfiguredAccountsRpcPromise()
     const loadedAction = ConfigGen.createSetAccounts({configuredAccounts})
     yield Saga.put(loadedAction)
 
@@ -274,6 +287,7 @@ function* loadDaemonAccounts(
       }
     }
   }
+  return
 }
 
 const showDeletedSelfRootPage = () => [
@@ -528,12 +542,13 @@ const newNavigation = (
 }
 
 function* criticalOutOfDateCheck() {
+  yield Saga.delay(2 * 60 * 1000) // don't bother checking during startup
   // check every hour
   while (true) {
     try {
-      const s: Saga.RPCPromiseType<
-        typeof RPCTypes.configGetUpdateInfo2RpcPromise
-      > = yield RPCTypes.configGetUpdateInfo2RpcPromise({})
+      const s: Saga.RPCPromiseType<typeof RPCTypes.configGetUpdateInfo2RpcPromise> = yield RPCTypes.configGetUpdateInfo2RpcPromise(
+        {}
+      )
       let status: ConfigGen.UpdateCriticalCheckStatusPayload['payload']['status'] = 'ok'
       let message: string | null = null
       switch (s.status) {
@@ -617,6 +632,12 @@ const gregorPushState = (_: Container.TypedState, action: GregorGen.PushStatePay
         lastSeenVersion,
       })
     )
+  } else {
+    actions.push(
+      ConfigGen.createSetWhatsNewLastSeenVersion({
+        lastSeenVersion: noVersion,
+      })
+    )
   }
   return actions
 }
@@ -630,6 +651,15 @@ const loadNixOnLoginStartup = async () => {
     logger.warn('Error in loading proxy data', err)
     return null
   }
+}
+
+const emitStartupFirstIdle = async () => {
+  await Saga.delay(1000)
+  return new Promise<ConfigGen.StartupFirstIdlePayload>(resolve => {
+    requestAnimationFrame(() => {
+      resolve(ConfigGen.createStartupFirstIdle())
+    })
+  })
 }
 
 function* configSaga() {
@@ -661,6 +691,8 @@ function* configSaga() {
   // Go to the correct starting screen
   yield* Saga.chainAction2([ConfigGen.daemonHandshakeDone, ConfigGen.setNavigator], routeToInitialScreen2)
 
+  yield* Saga.chainAction2(ConfigGen.daemonHandshakeDone, emitStartupFirstIdle)
+
   yield* Saga.chainAction2(ConfigGen.logoutAndTryToLogInAs, logoutAndTryToLogInAs, 'logoutAndTryToLogInAs')
 
   yield* Saga.chainAction2(
@@ -689,7 +721,7 @@ function* configSaga() {
   // When we're all done lets clean up
   yield* Saga.chainAction2(ConfigGen.loggedOut, resetGlobalStore)
   // Store per user server config info
-  yield* Saga.chainAction2(ConfigGen.loggedIn, updateServerConfig)
+  yield* Saga.chainAction2(ConfigGen.startupFirstIdle, updateServerConfig)
 
   yield* Saga.chainAction2(ConfigGen.setDeletedSelf, showDeletedSelfRootPage)
 
@@ -712,6 +744,8 @@ function* configSaga() {
       appColorSchemeChanged(state.config.darkModePreference)
     )
   }
+
+  yield* Saga.chainAction2([ConfigGen.loggedIn, ConfigGen.startupFirstIdle], getFollowerInfo)
 
   // Kick off platform specific stuff
   yield Saga.spawn(PlatformSpecific.platformConfigSaga)

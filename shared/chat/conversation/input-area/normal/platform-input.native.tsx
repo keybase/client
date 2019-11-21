@@ -19,6 +19,7 @@ import AddSuggestors, {standardTransformer} from '../suggestors'
 import {parseUri, launchCameraAsync, launchImageLibraryAsync} from '../../../../util/expo-image-picker'
 import {BotCommandUpdateStatus} from './shared'
 import {formatDurationShort} from '../../../../util/timestamp'
+import {indefiniteArticle} from '../../../../util/string'
 import AudioRecorder from '../../../audio/audio-recorder.native'
 
 type menuType = 'exploding' | 'filepickerpopup' | 'moremenu'
@@ -120,7 +121,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
     } else if (this.props.isEditing) {
       hintText = 'Edit your message'
     } else if (this.props.cannotWrite) {
-      hintText = `You must be at least ${'aeiou'.includes(this.props.minWriterRole[0]) ? 'an' : 'a'} ${
+      hintText = `You must be at least ${indefiniteArticle(this.props.minWriterRole)} ${
         this.props.minWriterRole
       } to post.`
     }
@@ -279,14 +280,12 @@ const Action = React.memo((props: ActionProps) => {
             onClick={insertMentionMarker}
             type="iconfont-mention"
             style={Kb.iconCastPlatformStyles(styles.actionButton)}
-            fontSize={22}
           />
           {smallGap}
           <Kb.Icon
             onClick={openFilePicker}
             type="iconfont-camera"
             style={Kb.iconCastPlatformStyles(styles.actionButton)}
-            fontSize={22}
           />
           {smallGap}
           <AudioRecorder conversationIDKey={conversationIDKey} iconStyle={styles.actionButton} />
@@ -295,7 +294,6 @@ const Action = React.memo((props: ActionProps) => {
             onClick={openMoreMenu}
             type="iconfont-add"
             style={Kb.iconCastPlatformStyles(styles.actionButton)}
-            fontSize={22}
           />
         </Kb.Box2>
       </Kb.NativeAnimated.View>
@@ -326,7 +324,7 @@ const ExplodingIcon = ({explodingModeSeconds, isExploding, openExplodingPicker})
   </Kb.Box2>
 )
 
-const containerPadding = 8
+const containerPadding = Styles.globalMargins.xsmall
 const styles = Styles.styleSheetCreate(
   () =>
     ({

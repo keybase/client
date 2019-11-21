@@ -1,5 +1,5 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-import * as I from 'immutable'
+
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as Types from '../constants/types/chat2'
@@ -25,6 +25,7 @@ export const attachmentPreviewSelect = 'chat2:attachmentPreviewSelect'
 export const attachmentUploaded = 'chat2:attachmentUploaded'
 export const attachmentUploading = 'chat2:attachmentUploading'
 export const attachmentsUpload = 'chat2:attachmentsUpload'
+export const attemptAudioRecording = 'chat2:attemptAudioRecording'
 export const badgesUpdated = 'chat2:badgesUpdated'
 export const blockConversation = 'chat2:blockConversation'
 export const changeFocus = 'chat2:changeFocus'
@@ -119,6 +120,7 @@ export const setConvExplodingMode = 'chat2:setConvExplodingMode'
 export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
 export const setConversationOffline = 'chat2:setConversationOffline'
 export const setExplodingModeLock = 'chat2:setExplodingModeLock'
+export const setInboxNumSmallRows = 'chat2:setInboxNumSmallRows'
 export const setInboxShowIsNew = 'chat2:setInboxShowIsNew'
 export const setMaybeMentionInfo = 'chat2:setMaybeMentionInfo'
 export const setMinWriterRole = 'chat2:setMinWriterRole'
@@ -213,6 +215,10 @@ type _AttachmentsUploadPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly paths: Array<Types.PathAndOutboxID>
   readonly titles: Array<string>
+}
+type _AttemptAudioRecordingPayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly meteringCb: (amp: number) => void
 }
 type _BadgesUpdatedPayload = {readonly conversations: Array<RPCTypes.BadgeConversationInfo>}
 type _BlockConversationPayload = {
@@ -359,9 +365,9 @@ type _MessageWasEditedPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly messageID: RPCChatTypes.MessageID
   readonly text: HiddenString
-  readonly mentionsAt: I.Set<string>
+  readonly mentionsAt: Set<string>
   readonly mentionsChannel: 'none' | 'all' | 'here'
-  readonly mentionsChannelName: I.Map<string, Types.ConversationIDKey>
+  readonly mentionsChannelName: Map<string, Types.ConversationIDKey>
 }
 type _MessagesAddPayload = {
   readonly context:
@@ -481,6 +487,7 @@ type _PreviewConversationPayload = {
     | 'teamMention'
     | 'appLink'
     | 'search'
+    | 'journeyCardPopular'
 }
 type _ReplyJumpPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
@@ -574,6 +581,7 @@ type _SetExplodingModeLockPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly unset?: boolean
 }
+type _SetInboxNumSmallRowsPayload = {readonly ignoreWrite?: boolean; readonly rows: number}
 type _SetInboxShowIsNewPayload = {readonly isNew: boolean}
 type _SetMaybeMentionInfoPayload = {readonly name: string; readonly info: RPCChatTypes.UIMaybeMentionInfo}
 type _SetMinWriterRolePayload = {
@@ -1220,6 +1228,9 @@ export const createAttachmentsUpload = (payload: _AttachmentsUploadPayload): Att
   payload,
   type: attachmentsUpload,
 })
+export const createAttemptAudioRecording = (
+  payload: _AttemptAudioRecordingPayload
+): AttemptAudioRecordingPayload => ({payload, type: attemptAudioRecording})
 export const createBadgesUpdated = (payload: _BadgesUpdatedPayload): BadgesUpdatedPayload => ({
   payload,
   type: badgesUpdated,
@@ -1420,6 +1431,9 @@ export const createSetAudioRecordingPostInfo = (
 export const createSetConversationOffline = (
   payload: _SetConversationOfflinePayload
 ): SetConversationOfflinePayload => ({payload, type: setConversationOffline})
+export const createSetInboxNumSmallRows = (
+  payload: _SetInboxNumSmallRowsPayload
+): SetInboxNumSmallRowsPayload => ({payload, type: setInboxNumSmallRows})
 export const createStopAudioRecording = (payload: _StopAudioRecordingPayload): StopAudioRecordingPayload => ({
   payload,
   type: stopAudioRecording,
@@ -1503,6 +1517,10 @@ export type AttachmentUploadingPayload = {
 export type AttachmentsUploadPayload = {
   readonly payload: _AttachmentsUploadPayload
   readonly type: typeof attachmentsUpload
+}
+export type AttemptAudioRecordingPayload = {
+  readonly payload: _AttemptAudioRecordingPayload
+  readonly type: typeof attemptAudioRecording
 }
 export type BadgesUpdatedPayload = {
   readonly payload: _BadgesUpdatedPayload
@@ -1835,6 +1853,10 @@ export type SetExplodingModeLockPayload = {
   readonly payload: _SetExplodingModeLockPayload
   readonly type: typeof setExplodingModeLock
 }
+export type SetInboxNumSmallRowsPayload = {
+  readonly payload: _SetInboxNumSmallRowsPayload
+  readonly type: typeof setInboxNumSmallRows
+}
 export type SetInboxShowIsNewPayload = {
   readonly payload: _SetInboxShowIsNewPayload
   readonly type: typeof setInboxShowIsNew
@@ -2009,6 +2031,7 @@ export type Actions =
   | AttachmentUploadedPayload
   | AttachmentUploadingPayload
   | AttachmentsUploadPayload
+  | AttemptAudioRecordingPayload
   | BadgesUpdatedPayload
   | BlockConversationPayload
   | ChangeFocusPayload
@@ -2103,6 +2126,7 @@ export type Actions =
   | SetConvRetentionPolicyPayload
   | SetConversationOfflinePayload
   | SetExplodingModeLockPayload
+  | SetInboxNumSmallRowsPayload
   | SetInboxShowIsNewPayload
   | SetMaybeMentionInfoPayload
   | SetMinWriterRolePayload

@@ -41,6 +41,10 @@ export function typeExtension(type: IconType): string {
   return iconMeta[type].extension || 'png'
 }
 
+export function getImagesDir(type: IconType): string {
+  return iconMeta[type].imagesDir || 'icons'
+}
+
 export function fontSize(type: IconType): {fontSize: number} | null {
   const meta = iconMeta[type]
   if (!meta) {

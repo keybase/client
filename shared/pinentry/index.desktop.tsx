@@ -49,7 +49,7 @@ class Pinentry extends React.Component<Props, State> {
   }
 
   componentDidMount() {
-    autoResize()
+    setTimeout(() => autoResize(), 500)
   }
 
   render() {

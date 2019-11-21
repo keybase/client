@@ -67,10 +67,13 @@ type SentProps = {
   ordinal: Types.Ordinal
 }
 const Sent = React.memo(({children, conversationIDKey, ordinal}: SentProps) => {
-  const {message, you} = Container.useSelector(state => ({
-    message: state.chat2.messageMap.getIn([conversationIDKey, ordinal]),
-    you: state.config.username,
-  }))
+  const {message, you} = Container.useSelector(state => {
+    const map = state.chat2.messageMap.get(conversationIDKey)
+    return {
+      message: map ? map.get(ordinal) : undefined,
+      you: state.config.username,
+    }
+  })
   const youSent = message && message.author === you && message.ordinal !== message.id
   const key = `${conversationIDKey}:${ordinal}`
   const state = animatingMap.get(key)

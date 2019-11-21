@@ -2785,7 +2785,12 @@ func (k *SimpleFS) SimpleFSAreWeConnectedToMDServer(ctx context.Context) (bool, 
 // SimpleFSCheckReachability implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSCheckReachability(ctx context.Context) error {
 	ctx = k.makeContext(ctx)
-	k.config.MDServer().CheckReachability(ctx)
+	mdServer := k.config.MDServer()
+	if mdServer != nil {
+		// KeybaseService (which holds SimpleFS service) gets init'ed before
+		// MDServer is set. HOTPOT-1269
+		mdServer.CheckReachability(ctx)
+	}
 	return nil
 }
 

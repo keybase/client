@@ -180,7 +180,7 @@ const Enabled = (props: Props) => {
 type JustEnabledProps = {onDismiss: null | (() => void)}
 const JustEnabled = ({onDismiss}: JustEnabledProps) => {
   const preferredMountDirs = Container.useSelector(state => state.fs.sfmi.preferredMountDirs)
-  const displayingMountDir = preferredMountDirs.get(0) || ''
+  const displayingMountDir = preferredMountDirs[0] || ''
   const dispatch = Container.useDispatch()
   const open = displayingMountDir
     ? () => dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: displayingMountDir}))

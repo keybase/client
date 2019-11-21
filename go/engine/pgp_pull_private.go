@@ -5,6 +5,7 @@ package engine
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -45,7 +46,7 @@ func (e *PGPPullPrivate) read(m libkb.MetaContext, fs *keybase1.SimpleFSClient, 
 		Flags: keybase1.OpenFlags_READ | keybase1.OpenFlags_EXISTING,
 	})
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("pgp key not found; you may need to run `keybase pgp push-private` first (error: %s)", err)
 	}
 	defer fs.SimpleFSClose(m.Ctx(), opid)
 	var offset int64

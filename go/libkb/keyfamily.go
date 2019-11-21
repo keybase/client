@@ -1277,6 +1277,12 @@ func (ckf ComputedKeyFamily) GetSaltpackSenderTypeIfInactive(kid keybase1.KID) (
 func (ckf *ComputedKeyFamily) GetLatestPerUserKey() *keybase1.PerUserKey {
 	var currentGeneration keybase1.PerUserKeyGeneration
 	var ret *keybase1.PerUserKey
+	if ckf == nil {
+		panic("nil ckf") // with a nil ckf, we can't log and this method will crash anyway.
+	}
+	if ckf.cki == nil {
+		ckf.G().Log.Debug("ComputedKeyFamily#GetLatestPerUserKey: nil cki")
+	}
 	for generation, key := range ckf.cki.PerUserKeys {
 		if generation > currentGeneration {
 			currentGeneration = generation

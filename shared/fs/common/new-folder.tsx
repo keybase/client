@@ -33,7 +33,7 @@ const styles = Styles.styleSheetCreate(
 )
 
 const mapStateToProps = (state, {path}) => ({
-  _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
+  _pathItem: Constants.getPathItem(state.fs.pathItems, path),
 })
 
 const mapDispatchToProps = (dispatch, {path}) => ({

@@ -188,7 +188,7 @@ class PaymentPopupMoved extends React.Component<Props, State> {
           style={{left: 20, position: 'absolute', top: 20}}
           ref={ref => this.setState(s => (s.ref ? null : {ref}))}
         />
-        <PaymentPopup {...this.props as Props} attachTo={() => this.state.ref} />
+        <PaymentPopup {...(this.props as Props)} attachTo={() => this.state.ref} />
       </>
     )
   }

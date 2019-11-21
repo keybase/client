@@ -48,6 +48,7 @@ export const loadedProxyData = 'settings:loadedProxyData'
 export const loadedRememberPassword = 'settings:loadedRememberPassword'
 export const loadedSettings = 'settings:loadedSettings'
 export const loadedUserCountryCode = 'settings:loadedUserCountryCode'
+export const loginBrowserViaWebAuthToken = 'settings:loginBrowserViaWebAuthToken'
 export const notificationsRefresh = 'settings:notificationsRefresh'
 export const notificationsRefreshed = 'settings:notificationsRefreshed'
 export const notificationsSaved = 'settings:notificationsSaved'
@@ -71,6 +72,7 @@ export const saveProxyData = 'settings:saveProxyData'
 export const sendFeedback = 'settings:sendFeedback'
 export const sentVerificationEmail = 'settings:sentVerificationEmail'
 export const setContactImportedCount = 'settings:setContactImportedCount'
+export const showContactsJoinedModal = 'settings:showContactsJoinedModal'
 export const stop = 'settings:stop'
 export const toggleRuntimeStats = 'settings:toggleRuntimeStats'
 export const trace = 'settings:trace'
@@ -99,7 +101,7 @@ type _ClearPhoneNumberAddPayload = void
 type _ClearPhoneNumberErrorsPayload = void
 type _DbNukePayload = void
 type _DeleteAccountForeverPayload = void
-type _EditContactImportEnabledPayload = {readonly enable: boolean}
+type _EditContactImportEnabledPayload = {readonly enable: boolean; readonly fromSettings?: boolean}
 type _EditEmailPayload = {
   readonly email: string
   readonly delete?: boolean
@@ -135,6 +137,7 @@ type _LoadedSettingsPayload = {
   readonly phones: I.Map<string, Types.PhoneRow> | null
 }
 type _LoadedUserCountryCodePayload = {readonly code: string | null}
+type _LoginBrowserViaWebAuthTokenPayload = void
 type _NotificationsRefreshPayload = void
 type _NotificationsRefreshedPayload = {readonly notifications: I.Map<string, Types.NotificationsGroupState>}
 type _NotificationsSavedPayload = void
@@ -152,7 +155,10 @@ type _OnUpdatePGPSettingsPayload = void
 type _OnUpdatePasswordErrorPayload = {readonly error: Error}
 type _OnUpdatedPGPSettingsPayload = {readonly hasKeys: boolean}
 type _ProcessorProfilePayload = {readonly durationSeconds: number}
-type _RequestContactPermissionsPayload = {readonly thenToggleImportOn?: boolean}
+type _RequestContactPermissionsPayload = {
+  readonly thenToggleImportOn?: boolean
+  readonly fromSettings?: boolean
+}
 type _ResendVerificationForPhoneNumberPayload = {readonly phoneNumber: string}
 type _SaveProxyDataPayload = {readonly proxyData: RPCTypes.ProxyData}
 type _SendFeedbackPayload = {
@@ -162,6 +168,7 @@ type _SendFeedbackPayload = {
 }
 type _SentVerificationEmailPayload = {readonly email: string}
 type _SetContactImportedCountPayload = {readonly count: number | null; readonly error?: string}
+type _ShowContactsJoinedModalPayload = {readonly resolved: Array<RPCTypes.ProcessedContact>}
 type _StopPayload = {readonly exitCode: RPCTypes.ExitCode}
 type _ToggleRuntimeStatsPayload = void
 type _TracePayload = {readonly durationSeconds: number}
@@ -387,6 +394,9 @@ export const createLoadedSettings = (payload: _LoadedSettingsPayload): LoadedSet
 export const createLoadedUserCountryCode = (
   payload: _LoadedUserCountryCodePayload
 ): LoadedUserCountryCodePayload => ({payload, type: loadedUserCountryCode})
+export const createLoginBrowserViaWebAuthToken = (
+  payload: _LoginBrowserViaWebAuthTokenPayload
+): LoginBrowserViaWebAuthTokenPayload => ({payload, type: loginBrowserViaWebAuthToken})
 export const createNotificationsRefresh = (
   payload: _NotificationsRefreshPayload
 ): NotificationsRefreshPayload => ({payload, type: notificationsRefresh})
@@ -460,6 +470,9 @@ export const createSentVerificationEmail = (
 export const createSetContactImportedCount = (
   payload: _SetContactImportedCountPayload
 ): SetContactImportedCountPayload => ({payload, type: setContactImportedCount})
+export const createShowContactsJoinedModal = (
+  payload: _ShowContactsJoinedModalPayload
+): ShowContactsJoinedModalPayload => ({payload, type: showContactsJoinedModal})
 export const createStop = (payload: _StopPayload): StopPayload => ({payload, type: stop})
 export const createToggleRuntimeStats = (payload: _ToggleRuntimeStatsPayload): ToggleRuntimeStatsPayload => ({
   payload,
@@ -601,6 +614,10 @@ export type LoadedUserCountryCodePayload = {
   readonly payload: _LoadedUserCountryCodePayload
   readonly type: typeof loadedUserCountryCode
 }
+export type LoginBrowserViaWebAuthTokenPayload = {
+  readonly payload: _LoginBrowserViaWebAuthTokenPayload
+  readonly type: typeof loginBrowserViaWebAuthToken
+}
 export type NotificationsRefreshPayload = {
   readonly payload: _NotificationsRefreshPayload
   readonly type: typeof notificationsRefresh
@@ -690,6 +707,10 @@ export type SetContactImportedCountPayload = {
   readonly payload: _SetContactImportedCountPayload
   readonly type: typeof setContactImportedCount
 }
+export type ShowContactsJoinedModalPayload = {
+  readonly payload: _ShowContactsJoinedModalPayload
+  readonly type: typeof showContactsJoinedModal
+}
 export type StopPayload = {readonly payload: _StopPayload; readonly type: typeof stop}
 export type ToggleRuntimeStatsPayload = {
   readonly payload: _ToggleRuntimeStatsPayload
@@ -764,6 +785,7 @@ export type Actions =
   | LoadedRememberPasswordPayload
   | LoadedSettingsPayload
   | LoadedUserCountryCodePayload
+  | LoginBrowserViaWebAuthTokenPayload
   | NotificationsRefreshPayload
   | NotificationsRefreshedPayload
   | NotificationsSavedPayload
@@ -787,6 +809,7 @@ export type Actions =
   | SendFeedbackPayload
   | SentVerificationEmailPayload
   | SetContactImportedCountPayload
+  | ShowContactsJoinedModalPayload
   | StopPayload
   | ToggleRuntimeStatsPayload
   | TracePayload

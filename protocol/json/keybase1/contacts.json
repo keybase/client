@@ -105,6 +105,26 @@
           "name": "displayLabel"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "ContactListResolutionResult",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "ProcessedContact"
+          },
+          "name": "newlyResolved"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ProcessedContact"
+          },
+          "name": "resolved"
+        }
+      ]
     }
   ],
   "messages": {
@@ -141,10 +161,7 @@
           }
         }
       ],
-      "response": {
-        "type": "array",
-        "items": "ProcessedContact"
-      }
+      "response": "ContactListResolutionResult"
     },
     "lookupSavedContactsList": {
       "request": [

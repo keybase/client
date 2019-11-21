@@ -32,11 +32,12 @@ export const HeaderRightActions = Container.connect(
     onChat: (teamname: string) =>
       dispatch(Chat2Gen.createPreviewConversation({reason: 'teamHeader', teamname})),
   }),
-  (stateProps, dispatchProps, _: OwnProps) => ({
+  (stateProps, dispatchProps, ownProps: OwnProps) => ({
     canAddPeople: stateProps.canAddPeople,
     canChat: stateProps.canChat,
     loading: stateProps.loading,
     onChat: () => dispatchProps.onChat(stateProps.teamname),
+    teamID: ownProps.teamID,
     teamname: stateProps.teamname,
   })
 )(_HeaderRightActions)

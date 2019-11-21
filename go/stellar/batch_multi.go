@@ -102,8 +102,8 @@ func BatchMulti(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.B
 	submitRes, err := walletState.SubmitMultiPayment(mctx.Ctx(), post)
 	if err != nil {
 		// make all the results have an error
-		for _, r := range results {
-			makeResultError(&r, err)
+		for i := 0; i < len(results); i++ {
+			makeResultError(&results[i], err)
 		}
 	} else {
 		// make all ther results have success
@@ -122,6 +122,7 @@ func BatchMulti(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.B
 		}
 
 		// send chat messages
+		// Note: the chat client does not like these messages currently...
 		g, ctx := errgroup.WithContext(mctx.Ctx())
 		recipients := make(chan string)
 		g.Go(func() error {

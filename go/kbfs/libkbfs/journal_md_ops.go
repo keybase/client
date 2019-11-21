@@ -250,6 +250,13 @@ func (j journalMDOps) GetIDForHandle(
 	if ok {
 		id = newID
 		handle.SetTlfID(id)
+	} else {
+		ci := handle.ConflictInfo()
+		if ci != nil && ci.Type == tlf.HandleExtensionLocalConflict {
+			return tlf.NullID, errors.Errorf(
+				"Couldn't find local conflict handle for %s",
+				handle.GetCanonicalPath())
+		}
 	}
 
 	// Create the journal if needed, while we have access to `handle`.

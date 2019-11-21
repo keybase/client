@@ -466,6 +466,7 @@ func (o *Outbox) CancelMessagesWithPredicate(ctx context.Context, shouldCancel f
 	numCancelled := 0
 	for _, obr := range obox.Records {
 		if shouldCancel(obr) {
+			o.cleanupOutboxItem(ctx, obr)
 			numCancelled++
 		} else {
 			recs = append(recs, obr)
@@ -493,9 +494,11 @@ func (o *Outbox) RemoveMessage(ctx context.Context, obid chat1.OutboxID) (err er
 	// Scan to find the message and don't include it
 	var recs []chat1.OutboxRecord
 	for _, obr := range obox.Records {
-		if !obr.OutboxID.Eq(&obid) {
-			recs = append(recs, obr)
+		if obr.OutboxID.Eq(&obid) {
+			o.cleanupOutboxItem(ctx, obr)
+			continue
 		}
+		recs = append(recs, obr)
 	}
 	obox.Records = recs
 
@@ -581,12 +584,14 @@ func (o *Outbox) OutboxPurge(ctx context.Context) (ephemeralPurged []chat1.Outbo
 		st, err := obr.State.State()
 		if err != nil {
 			o.Debug(ctx, "purging message from outbox with error getting state: %v", err)
+			o.cleanupOutboxItem(ctx, obr)
 			continue
 		}
 		if st == chat1.OutboxStateType_ERROR {
 			if obr.Msg.IsEphemeral() && obr.Ctime.Time().Add(ephemeralPurgeCutoff).Before(o.clock.Now()) {
 				o.Debug(ctx, "purging ephemeral message from outbox with error state that was older than %v: %s",
 					ephemeralPurgeCutoff, obr.OutboxID)
+				o.cleanupOutboxItem(ctx, obr)
 				ephemeralPurged = append(ephemeralPurged, obr)
 				continue
 			}
@@ -594,6 +599,7 @@ func (o *Outbox) OutboxPurge(ctx context.Context) (ephemeralPurged []chat1.Outbo
 			if !obr.Msg.IsEphemeral() && obr.Ctime.Time().Add(errorPurgeCutoff).Before(o.clock.Now()) {
 				o.Debug(ctx, "purging message from outbox with error state that was older than %v: %s",
 					errorPurgeCutoff, obr.OutboxID)
+				o.cleanupOutboxItem(ctx, obr)
 				continue
 			}
 		}
@@ -607,4 +613,13 @@ func (o *Outbox) OutboxPurge(ctx context.Context) (ephemeralPurged []chat1.Outbo
 		return ephemeralPurged, err
 	}
 	return ephemeralPurged, nil
+}
+
+// cleanupOutboxItem clears any external stores when an outbox item is deleted.
+// Currently this includes:
+//   - upload tasks/temp files/pending previews
+//   - unfurls
+func (o *Outbox) cleanupOutboxItem(ctx context.Context, obr chat1.OutboxRecord) {
+	o.G().AttachmentUploader.Complete(ctx, obr.OutboxID)
+	o.G().Unfurler.Complete(ctx, obr.OutboxID)
 }

@@ -35,6 +35,15 @@ const getUsernameToShow = (
     authorIsCollapsible(message) &&
     authorIsCollapsible(previous)
 
+  const sequentialBotKeyed =
+    previous &&
+    previous.author === message.author &&
+    previous.type === 'text' &&
+    message.type === 'text' &&
+    previous.botUsername === message.botUsername &&
+    authorIsCollapsible(message) &&
+    authorIsCollapsible(previous)
+
   const enoughTimeBetween = MessageConstants.enoughTimeBetweenMessages(message, previous)
   const timestamp = orangeLineAbove || !previous || enoughTimeBetween ? message.timestamp : null
   switch (message.type) {
@@ -42,7 +51,7 @@ const getUsernameToShow = (
     case 'requestPayment':
     case 'sendPayment':
     case 'text':
-      return !previous || !sequentialUserMessages || !!timestamp ? message.author : ''
+      return !sequentialBotKeyed || !previous || !sequentialUserMessages || !!timestamp ? message.author : ''
     case 'setChannelname':
       // suppress this message for the #general channel, it is redundant.
       return (!previous || !sequentialUserMessages || !!timestamp) && message.newChannelname !== 'general'
@@ -136,10 +145,12 @@ export default Container.namedConnect(
       ? TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'owner')
       : false
     const ordinals = [...Constants.getMessageOrdinals(state, ownProps.conversationIDKey)]
+    const botAlias = meta.botAliases[message.author] ?? ''
     return {
       _you: state.config.username,
       authorIsAdmin,
       authorIsOwner,
+      botAlias,
       centeredOrdinal,
       conversationIDKey: ownProps.conversationIDKey,
       hasUnfurlPrompts,
@@ -195,6 +206,7 @@ export default Container.namedConnect(
     return {
       authorIsAdmin: stateProps.authorIsAdmin,
       authorIsOwner: stateProps.authorIsOwner,
+      botAlias: stateProps.botAlias,
       centeredOrdinal: stateProps.centeredOrdinal,
       conversationIDKey: stateProps.conversationIDKey,
       decorate,

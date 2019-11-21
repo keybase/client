@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/keybase/client/go/kbconst"
 	"github.com/keybase/client/go/kbfs/env"
@@ -123,8 +124,18 @@ func start() (startErr *libfs.Error) {
 
 	remote := flag.Arg(0)
 	var repo string
+	lfs := false
 	if len(flag.Args()) > 1 {
 		repo = flag.Arg(1)
+	} else {
+		// For LFS invocation, the arguments actually come together in
+		// a single quoted argument for some reason.
+		s := strings.Fields(remote)
+		if len(s) > 2 {
+			lfs = s[0] == "lfs"
+			remote = s[1]
+			repo = s[2]
+		}
 	}
 
 	if len(flag.Args()) > 2 {
@@ -137,11 +148,13 @@ func start() (startErr *libfs.Error) {
 		Remote:     remote,
 		Repo:       repo,
 		GitDir:     getLocalGitDir(),
+		LFS:        lfs,
 	}
 
 	ctx := context.Background()
 	return kbfsgit.Start(
-		ctx, options, kbCtx, defaultLogPath, os.Stdin, os.Stdout, stderrFile)
+		ctx, options, kbCtx, defaultLogPath, os.Stdin, os.Stdout,
+		stderrFile)
 }
 
 func main() {

@@ -32,6 +32,7 @@ const ff: FeatureFlags = {
 const inAdmin: {[K in keyof FeatureFlags]?: boolean} = {
   audioAttachments: false,
   chatIndexProfilingEnabled: true,
+  conflictResolution: true,
   dbCleanEnabled: true,
   kbfsOfflineMode: true,
   moveOrCopy: true,

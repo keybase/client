@@ -202,6 +202,17 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
       return state.update('contacts', contacts =>
         contacts.merge({importError: action.payload.error, importedCount: action.payload.count})
       )
+    case SettingsGen.showContactsJoinedModal:
+      return state.update('contacts', contacts =>
+        contacts.merge({
+          alreadyOnKeybase: I.List(action.payload.resolved),
+          waitingToShowJoinedModal: false,
+        })
+      )
+    case SettingsGen.editContactImportEnabled:
+      return action.payload.fromSettings
+        ? state.update('contacts', contacts => contacts.set('waitingToShowJoinedModal', true))
+        : state
     case SettingsGen.importContactsLater:
       return state.update('contacts', contacts => contacts.set('importPromptDismissed', true))
     case SettingsGen.loadedUserCountryCode:
@@ -274,9 +285,9 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
     case SettingsGen.loadProxyData:
     case SettingsGen.saveProxyData:
     case SettingsGen.loadContactImportEnabled:
-    case SettingsGen.editContactImportEnabled:
     case SettingsGen.requestContactPermissions:
     case SettingsGen.toggleRuntimeStats:
+    case SettingsGen.loginBrowserViaWebAuthToken:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

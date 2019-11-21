@@ -10,31 +10,11 @@ type OwnProps = {
   path: Types.Path
 }
 
-const getDownloadIntent = (
-  path: Types.Path,
-  downloads: Types.Downloads,
-  pathItemActionMenu: Types.PathItemActionMenu
-): Types.DownloadIntent | null => {
-  const found = [...downloads.info].find(([_, info]) => info.path === path)
-  if (!found) {
-    return null
-  }
-  const [downloadID] = found
-  const dlState = downloads.state.get(downloadID) || Constants.emptyDownloadState
-  if (!Constants.downloadIsOngoing(dlState)) {
-    return null
-  }
-  if (pathItemActionMenu.downloadID === downloadID) {
-    return pathItemActionMenu.downloadIntent
-  }
-  return Types.DownloadIntent.None
-}
-
 export default ((ComposedComponent: React.ComponentType<any>) =>
   Container.connect(
     (state: Container.TypedState, {path}: OwnProps) => ({
       _downloads: state.fs.downloads,
-      _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
+      _pathItem: Constants.getPathItem(state.fs.pathItems, path),
       _pathItemActionMenu: state.fs.pathItemActionMenu,
       _uploads: state.fs.uploads,
     }),
@@ -45,11 +25,11 @@ export default ((ComposedComponent: React.ComponentType<any>) =>
         .retriableAction
       return {
         destinationPickerIndex,
-        intentIfDownloading: getDownloadIntent(path, _downloads, _pathItemActionMenu),
+        intentIfDownloading: Constants.getDownloadIntent(path, _downloads, _pathItemActionMenu),
         isEmpty:
           _pathItem.type === Types.PathType.Folder &&
           _pathItem.progress === Types.ProgressType.Loaded &&
-          _pathItem.children.isEmpty(),
+          !_pathItem.children.size,
         path,
         type: _pathItem.type,
         uploadErrorRetry: uploadRetriableAction

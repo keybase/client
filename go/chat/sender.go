@@ -808,7 +808,7 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 		id := conv.GetConvID()
 		convID = &id
 	}
-	botUIDs, err := s.applyTeamBotSettings(ctx, uid, msg, convID, membersType, atMentions, opts)
+	botUIDs, err := s.applyTeamBotSettings(ctx, uid, &msg, convID, membersType, atMentions, opts)
 	if err != nil {
 		return res, err
 	}
@@ -816,6 +816,7 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 		// TODO HOTPOT-330 Add support for "hidden" messages for multiple bots
 		msg.ClientHeader.BotUID = &botUIDs[0]
 	}
+	s.Debug(ctx, "applyTeamBotSettings: matched %d bots, applied %v", len(botUIDs), msg.ClientHeader.BotUID)
 
 	encInfo, err := s.boxer.GetEncryptionInfo(ctx, &msg, membersType, skp)
 	if err != nil {
@@ -836,7 +837,7 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 }
 
 func (s *BlockingSender) applyTeamBotSettings(ctx context.Context, uid gregor1.UID,
-	msg chat1.MessagePlaintext, convID *chat1.ConversationID, membersType chat1.ConversationMembersType,
+	msg *chat1.MessagePlaintext, convID *chat1.ConversationID, membersType chat1.ConversationMembersType,
 	atMentions []gregor1.UID, opts chat1.SenderPrepareOptions) ([]gregor1.UID, error) {
 	// no bots in KBFS convs
 	if membersType == chat1.ConversationMembersType_KBFS {
@@ -845,7 +846,24 @@ func (s *BlockingSender) applyTeamBotSettings(ctx context.Context, uid gregor1.U
 
 	// Skip checks if botUID already set
 	if msg.ClientHeader.BotUID != nil {
-		return nil, nil
+		s.Debug(ctx, "applyTeamBotSettings: found existing botUID %v", msg.ClientHeader.BotUID)
+		// verify this value is actually a restricted bot of the team.
+		teamBotSettings, err := CreateNameInfoSource(ctx, s.G(), membersType).TeamBotSettings(ctx,
+			msg.ClientHeader.TlfName, msg.ClientHeader.Conv.Tlfid, membersType, msg.ClientHeader.TlfPublic)
+		if err != nil {
+			return nil, err
+		}
+		for uv := range teamBotSettings {
+			botUID := gregor1.UID(uv.Uid.ToBytes())
+			if botUID.Eq(*msg.ClientHeader.BotUID) {
+				s.Debug(ctx, "applyTeamBotSettings: existing botUID matches, short circuiting.")
+				return nil, nil
+			}
+		}
+		s.Debug(ctx, "applyTeamBotSettings: existing botUID %v does not match any bot, clearing")
+		// Caller was mistaken, this uid is not actually a bot so we unset the
+		// value.
+		msg.ClientHeader.BotUID = nil
 	}
 
 	// Check if we are superseding a bot message. If so, just take what the
@@ -879,12 +897,12 @@ func (s *BlockingSender) applyTeamBotSettings(ctx context.Context, uid gregor1.U
 	var botUIDs []gregor1.UID
 	for uv, botSettings := range teamBotSettings {
 		botUID := gregor1.UID(uv.Uid.ToBytes())
-		isMatch, err := bots.ApplyTeamBotSettings(ctx, s.G(), botUID, botSettings, msg,
+		isMatch, err := bots.ApplyTeamBotSettings(ctx, s.G(), botUID, botSettings, *msg,
 			convID, mentionMap, s.DebugLabeler)
 		if err != nil {
 			return nil, err
 		}
-		s.Debug(ctx, "applying botSettings: %+v for botuid: %v, senderUID: %v, isMatch: %v",
+		s.Debug(ctx, "applyTeamBotSettings: applied settings for %+v for botuid: %v, senderUID: %v, isMatch: %v",
 			botSettings, uv.Uid, msg.ClientHeader.Sender, isMatch)
 		// If the bot is the sender encrypt only for them.
 		if msg.ClientHeader.Sender.Eq(botUID) {
@@ -1133,7 +1151,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 					gregor1.FromTime(unboxedMsg.Valid().MessageBody.Text().LiveLocation.EndTime))
 			}
 		}
-		go s.G().JourneyCardManager.SentMessage(globals.BackgroundChatCtx(ctx, s.G()), convID)
+		go s.G().JourneyCardManager.SentMessage(globals.BackgroundChatCtx(ctx, s.G()), sender, convID)
 	}
 	return nil, boxed, nil
 }
