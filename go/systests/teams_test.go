@@ -1957,15 +1957,14 @@ func TestTeamMetadataUpdateNotifications(t *testing.T) {
 	require.NoError(tt.users[0].tc.T, err)
 	tt.users[1].waitForMetadataUpdateGregor("change showcase")
 
-	newteam := tt.users[1].createTeam()
-	newteamName, err := keybase1.TeamNameFromString(newteam)
+	newTeamID, newteamName := tt.users[1].createTeam2()
 	require.NoError(t, err)
 	tt.users[1].waitForMetadataUpdateGregor("new team")
-	tt.users[1].addTeamMember(newteam, tt.users[0].username, keybase1.TeamRole_OWNER)
+	tt.users[1].addTeamMember(newteamName.String(), tt.users[0].username, keybase1.TeamRole_OWNER)
 	tt.users[1].waitForMetadataUpdateGregor("added someone to team")
 
 	tui := &teamsUI{}
-	err = teams.Delete(context.Background(), tt.users[0].tc.G, tui, newteamName.String())
+	err = teams.Delete(context.Background(), tt.users[0].tc.G, tui, newTeamID)
 	require.NoError(tt.users[0].tc.T, err)
 	tt.users[1].waitForMetadataUpdateGregor("team deleted")
 
