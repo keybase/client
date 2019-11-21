@@ -67,6 +67,8 @@ const getUsernameToShow = (
       return message.author
     case 'systemUsersAddedToConversation':
       return message.usernames.includes(you) ? '' : message.author
+    case 'systemJoined':
+      return message.joiners.length > 1 ? '' : message.author
   }
   return message.author
 }
