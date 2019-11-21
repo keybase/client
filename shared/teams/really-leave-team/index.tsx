@@ -15,7 +15,6 @@ export type Props = {
   onBack: () => void
   onLeave: () => void
   name: string
-  title: string
 }
 
 const _Spinner = (props: Props) => (
