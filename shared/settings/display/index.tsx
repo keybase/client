@@ -80,11 +80,11 @@ const styles = Styles.styleSheetCreate(() => ({
     flex: 1,
     width: '100%',
   },
-  scrollview: {
-    width: '100%',
-  },
   error: {
     color: Styles.globalColors.redDark,
+  },
+  scrollview: {
+    width: '100%',
   },
 }))
 
