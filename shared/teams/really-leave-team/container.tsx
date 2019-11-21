@@ -21,7 +21,7 @@ export default Container.connect(
     const {teamname} = Constants.getTeamDetails(state, teamID)
     const lastOwner = Constants.isLastOwner(state, teamname)
     return {
-      _leaving: anyWaiting(state, Constants.leaveTeamWaitingKey(name)),
+      _leaving: anyWaiting(state, Constants.leaveTeamWaitingKey(teamname)),
       lastOwner,
       name: teamname,
     }
