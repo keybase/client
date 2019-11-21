@@ -523,17 +523,15 @@ export const rpcPaymentDetailToPaymentDetail = (p: RPCTypes.PaymentDetailsLocal)
     ...rpcPaymentToPaymentCommon(p.summary),
     externalTxURL: p.details.externalTxURL,
     feeChargedDescription: p.details.feeChargedDescription,
-    pathIntermediate: I.List(
-      (p.details.pathIntermediate || []).map(rpcAsset =>
-        makeAssetDescription({
-          code: rpcAsset.code,
-          infoUrl: rpcAsset.infoUrl,
-          infoUrlText: rpcAsset.infoUrlText,
-          issuerAccountID: rpcAsset.issuer,
-          issuerName: rpcAsset.issuerName,
-          issuerVerifiedDomain: rpcAsset.verifiedDomain,
-        })
-      )
+    pathIntermediate: (p.details.pathIntermediate || []).map(rpcAsset =>
+      makeAssetDescription({
+        code: rpcAsset.code,
+        infoUrl: rpcAsset.infoUrl,
+        infoUrlText: rpcAsset.infoUrlText,
+        issuerAccountID: rpcAsset.issuer,
+        issuerName: rpcAsset.issuerName,
+        issuerVerifiedDomain: rpcAsset.verifiedDomain,
+      })
     ),
     publicMemo: new HiddenString(p.details.publicNote),
     publicMemoType: p.details.publicNoteType,
@@ -680,24 +678,6 @@ export const paymentToYourInfoAndCounterparty = (
   }
 }
 
-export const updatePaymentDetail = (
-  map: I.Map<Types.PaymentID, Types.Payment>,
-  paymentDetail: Types.PaymentDetail
-): I.Map<Types.PaymentID, Types.Payment> => {
-  return map.update(paymentDetail.id, (oldPayment = makePayment()) => oldPayment.merge(paymentDetail))
-}
-
-export const updatePaymentsReceived = (
-  map: I.Map<Types.PaymentID, Types.Payment>,
-  paymentResults: Array<Types.PaymentResult>
-): I.Map<Types.PaymentID, Types.Payment> => {
-  return map.withMutations(mapMutable =>
-    paymentResults.forEach(paymentResult =>
-      mapMutable.update(paymentResult.id, (oldPayment = makePayment()) => oldPayment.merge(paymentResult))
-    )
-  )
-}
-
 export const airdropWaitingKey = 'wallets:airdrop'
 export const assetDepositWaitingKey = (issuerAccountID: Types.AccountID, assetCode: string) =>
   `wallets:assetDeposit:${Types.makeAssetID(issuerAccountID, assetCode)}`
@@ -752,14 +732,13 @@ export const getSelectedAccountData = (state: TypedState) =>
 export const getDisplayCurrencies = (state: TypedState) => state.wallets.currencies
 
 export const getPayments = (state: TypedState, accountID: Types.AccountID) =>
-  state.wallets.paymentsMap.get(accountID, null)
+  state.wallets.paymentsMap.get(accountID) ?? null
 
 export const getOldestUnread = (state: TypedState, accountID: Types.AccountID) =>
-  state.wallets.paymentOldestUnreadMap.get(accountID, Types.noPaymentID)
+  state.wallets.paymentOldestUnreadMap.get(accountID) ?? Types.noPaymentID
 
 export const getPayment = (state: TypedState, accountID: Types.AccountID, paymentID: Types.PaymentID) =>
-  state.wallets.paymentsMap.get(accountID, I.Map<Types.PaymentID, Types.Payment>()).get(paymentID) ||
-  makePayment()
+  state.wallets.paymentsMap.get(accountID)?.get(paymentID) ?? makePayment()
 
 export const getAccountInner = (state: Types.State, accountID: Types.AccountID) =>
   state.accountMap.get(accountID, unknownAccount)

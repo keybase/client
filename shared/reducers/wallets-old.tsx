@@ -104,7 +104,7 @@ export default function(
       return state.merge({externalPartners: action.payload.externalPartners})
     case WalletsGen.paymentDetailReceived:
       return state.updateIn(['paymentsMap', action.payload.accountID], (paymentsMap = I.Map()) =>
-        Constants.updatePaymentDetail(paymentsMap, action.payload.payment)
+        Constants.updatePaymentDetail(paymentsMap, action.payload.payment as any)
       )
     case WalletsGen.paymentsReceived: {
       let newState = state
@@ -112,7 +112,7 @@ export default function(
           Constants.updatePaymentsReceived(paymentsMap, [
             ...action.payload.payments,
             ...action.payload.pending,
-          ])
+          ] as any)
         )
         .setIn(['paymentCursorMap', action.payload.accountID], action.payload.paymentCursor)
         .setIn(['paymentLoadingMoreMap', action.payload.accountID], false)

@@ -132,18 +132,30 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
     draftState.externalPartners = action.payload.externalPartners
   },
   [WalletsGen.paymentDetailReceived]: (draftState, action) => {
-    const old = draftState.paymentsMap.get(action.payload.accountID) ?? new Map()
-    draftState.paymentsMap.set(
-      action.payload.accountID,
-      Constants.updatePaymentDetail(old, action.payload.payment)
-    )
+    const emptyMap: Map<Types.PaymentID, Types.Payment> = new Map()
+    const map = draftState.paymentsMap.get(action.payload.accountID) ?? emptyMap
+
+    const paymentDetail = action.payload.payment
+    map.set(paymentDetail.id, {
+      ...(map.get(paymentDetail.id) ?? Constants.makePayment()),
+      ...action.payload.payment,
+    })
+
+    draftState.paymentsMap.set(action.payload.accountID, map)
   },
   [WalletsGen.paymentsReceived]: (draftState, action) => {
-    const old = draftState.paymentsMap.get(action.payload.accountID) ?? new Map()
-    draftState.paymentsMap.set(
-      action.payload.accountID,
-      Constants.updatePaymentsReceived(old, [...action.payload.payments, ...action.payload.pending])
-    )
+    const emptyMap: Map<Types.PaymentID, Types.Payment> = new Map()
+    const map = draftState.paymentsMap.get(action.payload.accountID) ?? emptyMap
+
+    const paymentResults = [...action.payload.payments, ...action.payload.pending]
+    paymentResults.forEach(paymentResult => {
+      map.set(paymentResult.id, {
+        ...(map.get(paymentResult.id) ?? Constants.makePayment()),
+        ...paymentResult,
+      })
+    })
+    draftState.paymentsMap.set(action.payload.accountID, map)
+
     draftState.paymentCursorMap.set(action.payload.accountID, action.payload.paymentCursor)
     draftState.paymentLoadingMoreMap.set(action.payload.accountID, false)
     // allowClearOldestUnread dictates whether this action is allowed to delete the value of oldestUnread.
@@ -157,18 +169,20 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
     }
   },
   [WalletsGen.pendingPaymentsReceived]: (draftState, action) => {
-    const newPending = action.payload.pending.map(p => [p.id, Constants.makePayment(p)])
+    const newPending = action.payload.pending.map(p => [p.id, Constants.makePayment(p)] as const)
+    const emptyMap: Map<Types.PaymentID, Types.Payment> = new Map()
     const oldFiltered = [
-      ...(draftState.paymentsMap.get(action.payload.accountID) ?? new Map()).entries(),
+      ...(draftState.paymentsMap.get(action.payload.accountID) ?? emptyMap).entries(),
     ].filter(([_k, v]) => v.section !== 'pending')
     const val = new Map([...oldFiltered, ...newPending])
     draftState.paymentsMap.set(action.payload.accountID, val)
   },
   [WalletsGen.recentPaymentsReceived]: (draftState, action) => {
-    const newPayments = action.payload.payments.map(p => [p.id, Constants.makePayment().merge(p)])
-    const old = (draftState.paymentsMap.get(action.payload.accountID) ?? new Map()).entries()
+    const newPayments = action.payload.payments.map(p => [p.id, Constants.makePayment(p)] as const)
+    const emptyMap: Map<Types.PaymentID, Types.Payment> = new Map()
+    const old = (draftState.paymentsMap.get(action.payload.accountID) ?? emptyMap).entries()
 
-    draftState.paymentsMap.set(action.payload.accountID, [...old, ...newPayments])
+    draftState.paymentsMap.set(action.payload.accountID, new Map([...old, ...newPayments]))
     draftState.paymentCursorMap.set(
       action.payload.accountID,
       draftState.paymentCursorMap.get(action.payload.accountID) || action.payload.paymentCursor
@@ -583,7 +597,7 @@ const doubleCheck = (
         return obj
       }, {})
 
-  const mapToObject = (m: Map<any, any>) =>
+  const mapToObject = (m: Map<any, any>): any =>
     [...m.entries()].reduce<Object>((obj, [k, v]) => {
       obj[k] = v
       return obj
@@ -593,11 +607,24 @@ const doubleCheck = (
     const s = ConstantsOLD.makeState({
       ...state,
       airdropQualifications: state ? I.List(state.airdropQualifications) : undefined,
-      assetsMap: state ? I.Map(mapToObject(state.assetsMap) as any) : undefined,
+      assetsMap: state ? I.Map(mapToObject(state.assetsMap)) : undefined,
       currencies: state ? I.List(state.currencies) : undefined,
-      mobileOnlyMap: state ? I.Map(mapToObject(state.mobileOnlyMap) as any) : undefined,
-      paymentCursorMap: state ? I.Map(mapToObject(state.paymentCursorMap) as any) : undefined,
-      unreadPaymentsMap: state ? I.Map(mapToObject(state.unreadPaymentsMap) as any) : undefined,
+      mobileOnlyMap: state ? I.Map(mapToObject(state.mobileOnlyMap)) : undefined,
+      paymentCursorMap: state ? I.Map(mapToObject(state.paymentCursorMap)) : undefined,
+      paymentLoadingMoreMap: state ? I.Map(mapToObject(state.paymentLoadingMoreMap)) : undefined,
+      paymentOldestUnreadMap: state ? I.Map(mapToObject(state.paymentOldestUnreadMap)) : undefined,
+      paymentsMap: state
+        ? I.Map(
+            mapToObject(
+              new Map(
+                [...state.paymentsMap.entries()].map(([k, v]) => {
+                  return [k, I.Map(mapToObject(v)).map((v: any) => ({...v, trustline: v.trustline || null}))]
+                })
+              )
+            )
+          )
+        : undefined,
+      unreadPaymentsMap: state ? I.Map(mapToObject(state.unreadPaymentsMap)) : undefined,
     })
     const nextStateOLD = reducerOLD(s, action)
     const o: any = {
@@ -605,6 +632,17 @@ const doubleCheck = (
       assetsMap: sortObject(nextStateOLD.assetsMap.toJS()),
       mobileOnlyMap: sortObject(nextStateOLD.mobileOnlyMap.toJS()),
       paymentCursorMap: sortObject(nextStateOLD.paymentCursorMap.toJS()),
+      paymentLoadingMoreMap: sortObject(nextStateOLD.paymentLoadingMoreMap.toJS()),
+      paymentOldestUnreadMap: sortObject(nextStateOLD.paymentOldestUnreadMap.toJS()),
+      paymentsMap: sortObject(
+        mapToObject(
+          new Map(
+            [...nextStateOLD.paymentsMap.entries()]
+              .sort((a, b) => a[0].localeCompare(b[0]))
+              .map(([k, v]) => [k, sortObject(v.toJS())])
+          )
+        )
+      ),
       reviewLastSeqno: nextStateOLD.reviewLastSeqno || null,
       sep7ConfirmInfo: nextStateOLD.sep7ConfirmInfo || null,
       staticConfig: nextStateOLD.staticConfig || null,
@@ -616,6 +654,26 @@ const doubleCheck = (
       assetsMap: sortObject(mapToObject(nextState.assetsMap)),
       mobileOnlyMap: sortObject(mapToObject(nextState.mobileOnlyMap)),
       paymentCursorMap: sortObject(mapToObject(nextState.paymentCursorMap)),
+      paymentLoadingMoreMap: sortObject(mapToObject(nextState.paymentLoadingMoreMap)),
+      paymentOldestUnreadMap: sortObject(mapToObject(nextState.paymentOldestUnreadMap)),
+      paymentsMap: sortObject(
+        mapToObject(
+          new Map(
+            [...nextState.paymentsMap.entries()]
+              .sort((a, b) => a[0].localeCompare(b[0]))
+              .map(([k, v]) => {
+                const obj = sortObject(mapToObject(v))
+                Object.keys(obj).forEach(k => {
+                  obj[k] = {
+                    ...obj[k],
+                    trustline: obj[k].trustline || null,
+                  }
+                })
+                return [k, obj]
+              })
+          )
+        )
+      ),
       reviewLastSeqno: nextState.reviewLastSeqno || null,
       sep7ConfirmInfo: nextState.sep7ConfirmInfo || null,
       staticConfig: nextState.staticConfig || null,
@@ -624,9 +682,11 @@ const doubleCheck = (
 
     let same = true
     Object.keys(o).forEach(k => {
-      const so = JSON.stringify(o[k])
-      const sn = JSON.stringify(n[k])
+      const so = JSON.stringify(o[k], null, 2)
+      const sn = JSON.stringify(n[k], null, 2)
       if (so !== sn) {
+        console.log('aaa', o[k])
+        console.log('aaa', n[k])
         same = false
         console.log('aaa diff', k, so, sn, action)
       }

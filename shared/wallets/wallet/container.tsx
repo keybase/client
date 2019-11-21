@@ -67,7 +67,7 @@ export default Container.connect(
 
     // split into pending & history
     let mostRecentID
-    const paymentsList = stateProps.payments && stateProps.payments.toList().toArray()
+    const paymentsList = stateProps.payments && [...stateProps.payments.values()]
     const [_history, _pending] = partition(paymentsList, p => p.section === 'history')
     const mapItem = p => ({paymentID: p.id, timestamp: p.time})
     let history: any = _history.map(mapItem)
