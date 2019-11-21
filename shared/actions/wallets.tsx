@@ -1678,11 +1678,7 @@ function* loadStaticConfig(state: TypedState, action: ConfigGen.DaemonHandshakeP
 
   try {
     const res: Saga.RPCPromiseType<typeof RPCStellarTypes.localGetStaticConfigLocalRpcPromise> = yield RPCStellarTypes.localGetStaticConfigLocalRpcPromise()
-    yield Saga.put(
-      WalletsGen.createStaticConfigLoaded({
-        staticConfig: I.Record(res)(),
-      })
-    )
+    yield Saga.put(WalletsGen.createStaticConfigLoaded({staticConfig: res}))
   } finally {
     yield Saga.put(
       ConfigGen.createDaemonHandshakeWait({

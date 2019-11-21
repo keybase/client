@@ -625,9 +625,11 @@ const doubleCheck = (
             )
           )
         : undefined,
-      sep7ConfirmInfo: state ? ConstantsOLD.makeSEP7ConfirmInfo(state.sep7ConfirmInfo) : null,
+      sep7ConfirmInfo: state?.sep7ConfirmInfo
+        ? ConstantsOLD.makeSEP7ConfirmInfo(state.sep7ConfirmInfo)
+        : null,
       sep7ConfirmPath: ConstantsOLD.makeBuiltPaymentAdvanced(state?.sep7ConfirmPath as any),
-      staticConfig: state ? I.Record(state.staticConfig as any)() : undefined,
+      staticConfig: state && state.staticConfig ? I.Record(state.staticConfig as any)() : null,
       trustline: ConstantsOLD.makeTrustline(state?.trustline),
       unreadPaymentsMap: state ? I.Map(mapToObject(state.unreadPaymentsMap)) : undefined,
     })
