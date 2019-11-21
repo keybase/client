@@ -625,7 +625,7 @@ const loadDisplayCurrency = async (_: TypedState, action: WalletsGen.LoadDisplay
 
 const loadExternalPartners = async () => {
   const partners = await RPCStellarTypes.localGetPartnerUrlsLocalRpcPromise()
-  return WalletsGen.createExternalPartnersReceived({externalPartners: I.List(partners || [])})
+  return WalletsGen.createExternalPartnersReceived({externalPartners: partners ?? []})
 }
 
 const refreshAssets = (_: TypedState, action: WalletsGen.DisplayCurrencyReceivedPayload) =>

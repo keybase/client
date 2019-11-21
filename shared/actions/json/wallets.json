@@ -114,7 +114,7 @@
     },
     "externalPartnersReceived": {
       "_description": "Update our list of external tools and partners",
-      "externalPartners": "I.List<Types.PartnerUrl>"
+      "externalPartners": "Array<Types.PartnerUrl>"
     },
     "exitFailedPayment": {
       "_description": "Close the send form and show the user their transactions so they can review."

@@ -19,11 +19,8 @@ export type Reserve = {
   amount: string
   description: string // e.g. 'account' or 'KEYZ/keybase.io trust line'
 }
-export type _SEP7Summary = StellarRPCTypes.TxDisplaySummary
-export type SEP7Summary = I.RecordOf<_SEP7Summary>
-
-export type _SEP7ConfirmInfo = StellarRPCTypes.ValidateStellarURIResultLocal
-export type SEP7ConfirmInfo = I.RecordOf<_SEP7ConfirmInfo>
+export type SEP7Summary = StellarRPCTypes.TxDisplaySummary
+export type SEP7ConfirmInfo = StellarRPCTypes.ValidateStellarURIResultLocal
 
 export type AccountID = string
 export const stringToAccountID = __DEV__
@@ -79,7 +76,7 @@ export type Assets = {
 
 export type CurrencyCode = StellarRPCTypes.OutsideCurrencyCode
 
-export type _LocalCurrency = {
+export type Currency = {
   description: string
   code: CurrencyCode
   symbol: string
@@ -239,7 +236,7 @@ export type PaymentDetail = {
 
 export type Payment = {} & PaymentResult & PaymentDetail
 
-export type _AssetDescription = {
+export type AssetDescription = {
   code: string
   depositButtonText: string
   infoUrl: string
@@ -252,7 +249,6 @@ export type _AssetDescription = {
   withdrawButtonText: string
 }
 
-export type AssetDescription = I.RecordOf<_AssetDescription>
 export type AssetDescriptionOrNative = AssetDescription | 'native'
 
 export type Asset = 'native' | 'currency' | AssetDescription
@@ -277,9 +273,7 @@ export type BuiltPayment = I.RecordOf<_BuiltPayment>
 
 export type BuiltRequest = I.RecordOf<_BuiltRequest>
 
-export type Currency = I.RecordOf<_LocalCurrency>
-
-export type _Account = {
+export type Account = {
   accountID: AccountID
   balanceDescription: string
   canAddTrustline: boolean
@@ -290,7 +284,6 @@ export type _Account = {
   mobileOnlyEditable: boolean
   name: string
 }
-export type Account = I.RecordOf<_Account>
 
 export type ValidationState = 'none' | 'waiting' | 'error' | 'valid'
 
@@ -369,7 +362,7 @@ export type _Trustline = {
 }
 export type Trustline = I.RecordOf<_Trustline>
 
-export type StaticConfig = I.RecordOf<StellarRPCTypes.StaticConfig>
+export type StaticConfig = StellarRPCTypes.StaticConfig
 
 export type State = Readonly<{
   acceptedDisclaimer: boolean
@@ -394,7 +387,7 @@ export type State = Readonly<{
   currencies: Array<Currency>
   exportedSecretKey: HiddenString
   exportedSecretKeyAccountID: AccountID
-  externalPartners: I.List<PartnerUrl>
+  externalPartners: Array<PartnerUrl>
   lastSentXLM: boolean
   linkExistingAccountError: string
   mobileOnlyMap: Map<AccountID, boolean>

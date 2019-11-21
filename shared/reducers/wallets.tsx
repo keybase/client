@@ -8,6 +8,7 @@ import * as WalletsGen from '../actions/wallets-gen'
 import HiddenString from '../util/hidden-string'
 import teamBuildingReducer from './team-building'
 import {teamBuilderReducerCreator} from '../team-building/reducer-helper'
+import shallowEqual from 'shallowequal'
 
 import reducerOLD from './wallets-old'
 import * as ConstantsOLD from '../constants/wallets-old'
@@ -21,7 +22,7 @@ const reduceAssetMap = (
   assetMap.withMutations(assetMapMutable =>
     assets.forEach(asset =>
       assetMapMutable.update(Types.assetDescriptionToAssetID(asset), oldAsset =>
-        asset.equals(oldAsset) ? oldAsset : asset
+        shallowEqual(asset, oldAsset) ? oldAsset : asset
       )
     )
   )
@@ -47,7 +48,7 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
       const {accountID} = account
       const old = draftState.accountMap.get(accountID)
       if (old) {
-        draftState.accountMap.set(accountID, old.merge(account))
+        draftState.accountMap.set(accountID, {...old, ...account})
       }
     }
   },
@@ -61,7 +62,7 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
       const {accountID} = account
       const old = draftState.accountMap.get(accountID)
       if (old) {
-        draftState.accountMap.set(accountID, old.merge(account))
+        draftState.accountMap.set(accountID, {...old, ...account})
       }
     }
   },
@@ -194,7 +195,7 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
     if (account.accountID === Types.noAccountID) {
       return
     }
-    draftState.accountMap.set(account.accountID, account.merge({displayCurrency: action.payload.currency}))
+    draftState.accountMap.set(account.accountID, {...account, displayCurrency: action.payload.currency})
   },
   [WalletsGen.reviewPayment]: draftState => {
     draftState.builtPayment = draftState.builtPayment.set('reviewBanners', [])
@@ -600,7 +601,10 @@ const doubleCheck = (
       accountMap: state ? I.Map(mapToObject(state.accountMap)) : undefined,
       airdropQualifications: state ? I.List(state.airdropQualifications) : undefined,
       assetsMap: state ? I.Map(mapToObject(state.assetsMap)) : undefined,
-      currencies: state ? I.List(state.currencies) : undefined,
+      buildingAdvanced: ConstantsOLD.makeBuildingAdvanced(state?.buildingAdvanced as any),
+      builtPaymentAdvanced: ConstantsOLD.makeBuiltPaymentAdvanced(state?.builtPaymentAdvanced as any),
+      currencies: I.List(state?.currencies.map(c => Constants.makeCurrency(c as any)) || []) as any,
+      externalPartners: state ? I.List(state.externalPartners) : undefined,
       mobileOnlyMap: state ? I.Map(mapToObject(state.mobileOnlyMap)) : undefined,
       paymentCursorMap: state ? I.Map(mapToObject(state.paymentCursorMap)) : undefined,
       paymentLoadingMoreMap: state ? I.Map(mapToObject(state.paymentLoadingMoreMap)) : undefined,
@@ -621,6 +625,10 @@ const doubleCheck = (
             )
           )
         : undefined,
+      sep7ConfirmInfo: state ? ConstantsOLD.makeSEP7ConfirmInfo(state.sep7ConfirmInfo) : null,
+      sep7ConfirmPath: ConstantsOLD.makeBuiltPaymentAdvanced(state?.sep7ConfirmPath as any),
+      staticConfig: state ? I.Record(state.staticConfig as any)() : undefined,
+      trustline: ConstantsOLD.makeTrustline(state?.trustline),
       unreadPaymentsMap: state ? I.Map(mapToObject(state.unreadPaymentsMap)) : undefined,
     })
     const nextStateOLD = reducerOLD(s, action)

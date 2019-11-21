@@ -207,7 +207,7 @@ type _DisplayCurrencyReceivedPayload = {
 }
 type _ExitFailedPaymentPayload = void
 type _ExportSecretKeyPayload = {readonly accountID: Types.AccountID}
-type _ExternalPartnersReceivedPayload = {readonly externalPartners: I.List<Types.PartnerUrl>}
+type _ExternalPartnersReceivedPayload = {readonly externalPartners: Array<Types.PartnerUrl>}
 type _HideAirdropBannerPayload = void
 type _LinkExistingAccountPayload = {
   readonly name: string

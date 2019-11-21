@@ -108,7 +108,7 @@ export const makeReserve = (r?: Partial<Types.Reserve>): Types.Reserve => ({
   ...r,
 })
 
-export const makeAssetDescription = I.Record<Types._AssetDescription>({
+export const makeAssetDescription = (a?: Partial<Types.AssetDescription>): Types.AssetDescription => ({
   code: '',
   depositButtonText: '',
   infoUrl: '',
@@ -119,6 +119,7 @@ export const makeAssetDescription = I.Record<Types._AssetDescription>({
   showDepositButton: false,
   showWithdrawButton: false,
   withdrawButtonText: '',
+  ...a,
 })
 export const emptyAssetDescription = makeAssetDescription()
 
@@ -192,15 +193,16 @@ export const makeBuiltPayment = I.Record<Types._BuiltPayment>({
   worthInfo: '',
 })
 
-export const makeSEP7Summary = I.Record<Types._SEP7Summary>({
+export const makeSEP7Summary = (s?: Partial<Types.SEP7Summary>): Types.SEP7Summary => ({
   fee: -1,
   memo: '',
   memoType: '',
   operations: null,
   source: '',
+  ...s,
 })
 
-export const makeSEP7ConfirmInfo = I.Record<Types._SEP7ConfirmInfo>({
+export const makeSEP7ConfirmInfo = (s?: Partial<Types.SEP7ConfirmInfo>): Types.SEP7ConfirmInfo => ({
   amount: '',
   assetCode: '',
   assetIssuer: '',
@@ -217,6 +219,7 @@ export const makeSEP7ConfirmInfo = I.Record<Types._SEP7ConfirmInfo>({
   signed: false,
   summary: makeSEP7Summary(),
   xdr: '',
+  ...s,
 })
 
 export const makeBuiltRequest = I.Record<Types._BuiltRequest>({
@@ -269,7 +272,7 @@ export const makeState = (): Types.State => ({
   currencies: [],
   exportedSecretKey: new HiddenString(''),
   exportedSecretKeyAccountID: Types.noAccountID,
-  externalPartners: I.List(),
+  externalPartners: [],
   lastSentXLM: false,
   linkExistingAccountError: '',
   mobileOnlyMap: new Map(),
@@ -459,15 +462,16 @@ export const makePaymentDetail = (p?: Partial<Types.PaymentDetail>): Types.Payme
 
 export const makePayment = (p?: Partial<Types.Payment>): Types.Payment => ({..._defaultPayment, ...p})
 
-export const makeCurrency = I.Record<Types._LocalCurrency>({
+export const makeCurrency = (c?: Partial<Types.Currency>): Types.Currency => ({
   code: '',
   description: '',
   name: '',
   symbol: '',
+  ...c,
 })
 export const unknownCurrency = makeCurrency()
 
-export const makeAccount = I.Record<Types._Account>({
+export const makeAccount = (a?: Partial<Types.Account>): Types.Account => ({
   accountID: Types.noAccountID,
   balanceDescription: '',
   canAddTrustline: false,
@@ -477,6 +481,7 @@ export const makeAccount = I.Record<Types._Account>({
   isDefault: false,
   mobileOnlyEditable: false,
   name: '',
+  ...a,
 })
 export const unknownAccount = makeAccount()
 
