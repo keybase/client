@@ -597,8 +597,8 @@ const doubleCheck = (
   if (__DEV__) {
     const s = ConstantsOLD.makeState({
       ...state,
-      airdropQualifications: state ? I.List(state.airdropQualifications) : undefined,
       accountMap: state ? I.Map(mapToObject(state.accountMap)) : undefined,
+      airdropQualifications: state ? I.List(state.airdropQualifications) : undefined,
       assetsMap: state ? I.Map(mapToObject(state.assetsMap)) : undefined,
       currencies: state ? I.List(state.currencies) : undefined,
       mobileOnlyMap: state ? I.Map(mapToObject(state.mobileOnlyMap)) : undefined,
