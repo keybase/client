@@ -349,7 +349,6 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
           styles.container,
           !this.props.showUsername && styles.containerNoUsername,
           !this._isExploding() && styles.containerNoExploding, // extra right padding to line up with infopane / input icons
-          this.props.isJoinLeave && styles.containerJoinLeave,
           this._showCenteredHighlight() && styles.centeredOrdinal,
         ]),
       }
@@ -380,7 +379,6 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         onMouseOver: this._onMouseOver,
         // attach popups to the message itself
         ref: this.props.setAttachmentRef,
-        style: Styles.collapseStyles([this.props.isJoinLeave && styles.containerJoinLeave]),
       }
     }
   }
@@ -661,11 +659,6 @@ const styles = Styles.styleSheetCreate(
         backgroundColor: Styles.globalColors.yellowOrYellowAlt,
       },
       container: Styles.platformStyles({isMobile: {overflow: 'hidden'}}),
-      containerJoinLeave: Styles.platformStyles({
-        isMobile: {
-          paddingLeft: Styles.globalMargins.tiny,
-        },
-      }),
       containerNoExploding: Styles.platformStyles({isMobile: {paddingRight: Styles.globalMargins.tiny}}),
       containerNoUsername: Styles.platformStyles({
         isMobile: {
