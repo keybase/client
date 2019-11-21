@@ -1,27 +1,28 @@
+import * as I from 'immutable'
+import * as Saga from '../../util/saga'
+import {ifTSCComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch} from '../../util/switch'
+import * as Constants from '../../constants/chat2'
+import * as FsConstants from '../../constants/fs'
+import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
+import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as Types from '../../constants/types/chat2'
+import * as FsTypes from '../../constants/types/fs'
+import * as WalletTypes from '../../constants/types/wallets'
 import * as Chat2Gen from '../chat2-gen'
 import * as ConfigGen from '../config-gen'
 import * as DeeplinksGen from '../deeplinks-gen'
 import * as EngineGen from '../engine-gen-gen'
-import * as TeamBuildingGen from '../team-building-gen'
-import * as Constants from '../../constants/chat2'
 import * as GregorGen from '../gregor-gen'
-import * as I from 'immutable'
-import * as FsConstants from '../../constants/fs'
-import * as Flow from '../../util/flow'
 import * as NotificationsGen from '../notifications-gen'
-import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
-import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RouteTreeGen from '../route-tree-gen'
-import * as WalletsGen from '../wallets-gen'
-import * as Saga from '../../util/saga'
+import * as ShareGen from '../share-gen'
+import * as TeamBuildingGen from '../team-building-gen'
 import * as TeamsGen from '../teams-gen'
-import * as Types from '../../constants/types/chat2'
-import * as FsTypes from '../../constants/types/fs'
-import * as WalletTypes from '../../constants/types/wallets'
-import * as Tabs from '../../constants/tabs'
 import * as UsersGen from '../users-gen'
 import * as WaitingGen from '../waiting-gen'
+import * as WalletsGen from '../wallets-gen'
 import * as Router2Constants from '../../constants/router2'
+import * as Tabs from '../../constants/tabs'
 import commonTeamBuildingSaga, {filterForNs} from '../team-building'
 import * as TeamsConstants from '../../constants/teams'
 import logger from '../../logger'
@@ -89,7 +90,7 @@ const inboxRefresh = (
       reason = 'inboxStale'
       break
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
+      ifTSCComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action.type)
   }
 
   logger.info(`Inbox refresh due to ${reason ?? '???'}`)
@@ -167,7 +168,7 @@ const rpcMetaRequestConversationIDKeys = (
       keys = [action.payload.conversationIDKey].filter(Constants.isValidConversationIDKey)
       break
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
+      ifTSCComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action.type)
       throw new Error('Invalid action passed to unboxRows')
   }
   return Constants.getConversationIDKeyMetasToLoad(keys, state.chat2.metaMap)
@@ -1061,7 +1062,7 @@ function* loadMoreMessages(
       forceClear = true
       break
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
+      ifTSCComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action.type)
   }
 
   if (!key || !Constants.isValidConversationIDKey(key)) {
@@ -1212,7 +1213,7 @@ function* getUnreadline(
       key = action.payload.conversationIDKey
       break
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action.type)
+      ifTSCComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action.type)
       key = action.payload.conversationIDKey
   }
 
@@ -3308,6 +3309,16 @@ const setInboxNumSmallRows = async (
   return false
 }
 
+const shareTextWithSelectedConv = (state: TypedState, action: ShareGen.ShareTextPayload) => {
+  const selectedConv = state.chat2.selectedConversation
+  if (Constants.isValidConversationIDKey(selectedConv) && action.payload.text) {
+    return Chat2Gen.createSetUnsentText({
+      conversationIDKey: selectedConv,
+      text: new HiddenString(action.payload.text),
+    })
+  }
+}
+
 const getInboxNumSmallRows = async () => {
   try {
     const rows = await RPCTypes.configGuiGetValueRpcPromise({path: 'ui.inboxSmallRows'})
@@ -3683,6 +3694,9 @@ function* chat2Saga() {
   yield* Saga.chainAction2(EngineGen.connected, onConnect, 'onConnect')
   yield* Saga.chainAction2(Chat2Gen.setInboxNumSmallRows, setInboxNumSmallRows)
   yield* Saga.chainAction2(ConfigGen.bootstrapStatusLoaded, getInboxNumSmallRows)
+
+  // Sharing features
+  yield* Saga.chainAction2(ShareGen.shareText, shareTextWithSelectedConv)
 
   yield* chatTeamBuildingSaga()
   yield* Saga.chainAction2(EngineGen.chat1NotifyChatChatConvUpdate, onChatConvUpdate, 'onChatConvUpdate')
