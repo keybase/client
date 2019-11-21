@@ -32,17 +32,13 @@ const Joined = (props: Props) =>
         {props.joiners.length > 0 && getAddedUsernames(props.joiners)}
         {props.joiners.length > 0 &&
           ` joined ${props.isBigTeam ? `#${props.channelname}.` : `${props.teamname}.`}`}
-        {props.leavers.length > 0 && props.joiners.length > 0 && ' '}
-        {props.leavers.length > 0 && getAddedUsernames(props.leavers)}
-        {props.leavers.length > 0 &&
-          ` left ${props.isBigTeam ? `#${props.channelname}.` : `${props.teamname}.`}`}
       </Kb.Text>
     </Kb.Box2>
   )
 
 const JoinedUserNotice = (props: Props) => (
   <UserNotice>
-    <Kb.Text type="BodySmallSemibold" negative={true} style={{color: Styles.globalColors.black_50}}>
+    <Kb.Text type="BodySmall">
       {props.authorIsYou ? (
         'You'
       ) : (
@@ -55,25 +51,19 @@ const JoinedUserNotice = (props: Props) => (
           usernames={[props.author]}
         />
       )}{' '}
-      joined{' '}
-      {props.isBigTeam ? (
-        `#${props.channelname}`
-      ) : (
-        <Kb.Text type="BodySmallSemibold" style={{color: Styles.globalColors.black_50}}>
-          {props.teamname}
-        </Kb.Text>
-      )}
-      .
+      joined {props.isBigTeam ? `#${props.channelname}` : 'the team'}.
     </Kb.Text>
     {props.authorIsYou && props.isBigTeam && (
-      <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, alignItems: 'center'}}>
+      <Kb.Text type="BodySmall">
         <Kb.Text onClick={props.onManageNotifications} type={textType} center={true}>
-          Manage phone and computer notifications
+          Manage your notifications
         </Kb.Text>
+        {` or `}
         <Kb.Text onClick={props.onManageChannels} type={textType}>
-          Browse other channels
+          browse other channels
         </Kb.Text>
-      </Kb.Box>
+        .
+      </Kb.Text>
     )}
   </UserNotice>
 )
