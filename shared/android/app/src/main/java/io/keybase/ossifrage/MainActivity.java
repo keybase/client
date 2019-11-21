@@ -131,7 +131,10 @@ public class MainActivity extends ReactFragmentActivity {
   @TargetApi(Build.VERSION_CODES.KITKAT)
   protected void onCreate(Bundle savedInstanceState) {
     ReactInstanceManager instanceManager = this.getReactInstanceManager();
-    instanceManager.createReactContextInBackground();
+    if (!instanceManager.hasStartedCreatingInitialContext()) {
+      // Construct it in the background
+      instanceManager.createReactContextInBackground();
+    }
     setupKBRuntime(this, true);
     super.onCreate(null);
 

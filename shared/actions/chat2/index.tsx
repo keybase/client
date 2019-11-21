@@ -3319,6 +3319,24 @@ const shareTextWithSelectedConv = (state: TypedState, action: ShareGen.ShareText
   }
 }
 
+const shareAttachmentWithSelectedConv = (state: TypedState, action: ShareGen.ShareDataIntentPayload) => {
+  const selectedConv = state.chat2.selectedConversation
+  const {localPath} = action.payload
+  if (Constants.isValidConversationIDKey(selectedConv) && localPath) {
+    const pathAndOutboxIDs = [
+      {
+        outboxID: null,
+        path: localPath,
+      },
+    ]
+    return RouteTreeGen.createNavigateAppend({
+      path: [
+        {props: {conversationIDKey: selectedConv, pathAndOutboxIDs}, selected: 'chatAttachmentGetTitles'},
+      ],
+    })
+  }
+}
+
 const getInboxNumSmallRows = async () => {
   try {
     const rows = await RPCTypes.configGuiGetValueRpcPromise({path: 'ui.inboxSmallRows'})
@@ -3697,6 +3715,7 @@ function* chat2Saga() {
 
   // Sharing features
   yield* Saga.chainAction2(ShareGen.shareText, shareTextWithSelectedConv)
+  yield* Saga.chainAction2(ShareGen.shareDataIntent, shareAttachmentWithSelectedConv)
 
   yield* chatTeamBuildingSaga()
   yield* Saga.chainAction2(EngineGen.chat1NotifyChatChatConvUpdate, onChatConvUpdate, 'onChatConvUpdate')
