@@ -67,10 +67,15 @@
       "status": ["'granted'", "'never_ask_again'", "'undetermined'"]
     },
     "requestContactPermissions": {
-      "thenToggleImportOn?": "boolean"
+      "thenToggleImportOn?": "boolean",
+      "fromSettings?": "boolean"
     },
     "editContactImportEnabled": {
-      "enable": "boolean"
+      "enable": "boolean",
+      "fromSettings?": "boolean"
+    },
+    "showContactsJoinedModal": {
+      "resolved": "Array<RPCTypes.ProcessedContact>"
     },
     "importContactsLater": {},
     "setContactImportedCount": {

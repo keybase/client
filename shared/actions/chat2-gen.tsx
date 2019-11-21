@@ -151,6 +151,7 @@ export const unfurlTogglePrompt = 'chat2:unfurlTogglePrompt'
 export const unhideConversation = 'chat2:unhideConversation'
 export const unpinMessage = 'chat2:unpinMessage'
 export const unsentTextChanged = 'chat2:unsentTextChanged'
+export const updateBlockButtons = 'chat2:updateBlockButtons'
 export const updateCoinFlipStatus = 'chat2:updateCoinFlipStatus'
 export const updateConvExplodingModes = 'chat2:updateConvExplodingModes'
 export const updateConvRetentionPolicy = 'chat2:updateConvRetentionPolicy'
@@ -675,6 +676,7 @@ type _UnsentTextChangedPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly text: HiddenString
 }
+type _UpdateBlockButtonsPayload = {readonly teamID: RPCTypes.TeamID; readonly show: boolean}
 type _UpdateCoinFlipStatusPayload = {readonly statuses: Array<RPCChatTypes.UICoinFlipStatus>}
 type _UpdateConvExplodingModesPayload = {
   readonly modes: Array<{conversationIDKey: Types.ConversationIDKey; seconds: number}>
@@ -1034,6 +1036,13 @@ export const createSetUnsentText = (payload: _SetUnsentTextPayload): SetUnsentTe
 export const createSetConvRetentionPolicy = (
   payload: _SetConvRetentionPolicyPayload
 ): SetConvRetentionPolicyPayload => ({payload, type: setConvRetentionPolicy})
+/**
+ * Show or hide invitation to block for a given team ID
+ */
+export const createUpdateBlockButtons = (payload: _UpdateBlockButtonsPayload): UpdateBlockButtonsPayload => ({
+  payload,
+  type: updateBlockButtons,
+})
 /**
  * Static configuration info was loaded from the service.
  */
@@ -1956,6 +1965,10 @@ export type UnsentTextChangedPayload = {
   readonly payload: _UnsentTextChangedPayload
   readonly type: typeof unsentTextChanged
 }
+export type UpdateBlockButtonsPayload = {
+  readonly payload: _UpdateBlockButtonsPayload
+  readonly type: typeof updateBlockButtons
+}
 export type UpdateCoinFlipStatusPayload = {
   readonly payload: _UpdateCoinFlipStatusPayload
   readonly type: typeof updateCoinFlipStatus
@@ -2144,6 +2157,7 @@ export type Actions =
   | UnhideConversationPayload
   | UnpinMessagePayload
   | UnsentTextChangedPayload
+  | UpdateBlockButtonsPayload
   | UpdateCoinFlipStatusPayload
   | UpdateConvExplodingModesPayload
   | UpdateConvRetentionPolicyPayload

@@ -105,6 +105,7 @@ export type PhoneNumbersState = {
 
 export type PermissionStatus = 'granted' | 'never_ask_again' | 'undetermined' | 'unknown'
 export type ContactsState = {
+  alreadyOnKeybase: Array<RPCTypes.ProcessedContact>
   importEnabled?: boolean
   importError: string
   importPromptDismissed: boolean
@@ -112,6 +113,7 @@ export type ContactsState = {
   // OS permissions. 'undetermined' -> we can show the prompt; 'unknown' -> we haven't checked
   permissionStatus: PermissionStatus
   userCountryCode?: string
+  waitingToShowJoinedModal: boolean
 }
 
 export type State = Readonly<{

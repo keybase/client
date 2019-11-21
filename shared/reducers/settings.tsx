@@ -262,6 +262,15 @@ const contactsActions: Container.ActionHandler<Actions, Types.State> = {
   [SettingsGen.loadedUserCountryCode]: (draftState, action) => {
     draftState.contacts.userCountryCode = action.payload.code
   },
+  [SettingsGen.showContactsJoinedModal]: (draftState, action) => {
+    state.contacts.alreadyOnKeybase = action.payload.resolved
+    state.contacts.waitingToShowJoinedModal = false
+  },
+  [SettingsGen.editContactImportEnabled]: (draftState, action) => {
+    if (action.payload.fromSettings) {
+      draftState.contacts.waitingToShowJoinedModal = true
+    }
+  },
 }
 
 export default Container.makeReducer<Actions, Types.State>(initialState, {

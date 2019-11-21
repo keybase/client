@@ -224,9 +224,9 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {namespace, teamn
     dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace, users: [user]})),
   _onCancelTeamBuilding: () => dispatch(TeamBuildingGen.createCancelTeamBuilding({namespace})),
   _onImportContactsPermissionsGranted: () =>
-    dispatch(SettingsGen.createEditContactImportEnabled({enable: true})),
+    dispatch(SettingsGen.createEditContactImportEnabled({enable: true, fromSettings: false})),
   _onImportContactsPermissionsNotGranted: () =>
-    dispatch(SettingsGen.createRequestContactPermissions({thenToggleImportOn: true})),
+    dispatch(SettingsGen.createRequestContactPermissions({fromSettings: false, thenToggleImportOn: true})),
   _search: (query: string, service: Types.ServiceIdWithContact, limit?: number) => {
     const func = service === 'keybase' ? debouncedSearchKeybase : debouncedSearch
     return func(dispatch, namespace, query, service, namespace === 'chat2', limit)

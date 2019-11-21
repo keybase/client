@@ -24,12 +24,15 @@ export const defaultUserReacjis = {skinTone: defaultSkinTone, topReacjis: defaul
 const emptyArray: Array<unknown> = []
 const emptySet = new Set()
 
+export const blockButtonsGregorPrefix = 'blockButtons.'
+
 export const makeState = (): Types.State => ({
   accountsInfoMap: new Map(),
   attachmentFullscreenSelection: undefined,
   attachmentViewMap: new Map(),
   audioRecording: new Map(),
   badgeMap: new Map(), // id to the badge count
+  blockButtonsMap: new Map(),
   botCommandsUpdateStatusMap: new Map(),
   channelSearchText: '',
   commandMarkdownMap: new Map(),

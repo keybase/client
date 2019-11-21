@@ -72,6 +72,7 @@ export const saveProxyData = 'settings:saveProxyData'
 export const sendFeedback = 'settings:sendFeedback'
 export const sentVerificationEmail = 'settings:sentVerificationEmail'
 export const setContactImportedCount = 'settings:setContactImportedCount'
+export const showContactsJoinedModal = 'settings:showContactsJoinedModal'
 export const stop = 'settings:stop'
 export const toggleRuntimeStats = 'settings:toggleRuntimeStats'
 export const trace = 'settings:trace'
@@ -100,7 +101,7 @@ type _ClearPhoneNumberAddPayload = void
 type _ClearPhoneNumberErrorsPayload = void
 type _DbNukePayload = void
 type _DeleteAccountForeverPayload = void
-type _EditContactImportEnabledPayload = {readonly enable: boolean}
+type _EditContactImportEnabledPayload = {readonly enable: boolean; readonly fromSettings?: boolean}
 type _EditEmailPayload = {
   readonly email: string
   readonly delete?: boolean
@@ -154,7 +155,10 @@ type _OnUpdatePGPSettingsPayload = void
 type _OnUpdatePasswordErrorPayload = {readonly error: Error}
 type _OnUpdatedPGPSettingsPayload = {readonly hasKeys: boolean}
 type _ProcessorProfilePayload = {readonly durationSeconds: number}
-type _RequestContactPermissionsPayload = {readonly thenToggleImportOn?: boolean}
+type _RequestContactPermissionsPayload = {
+  readonly thenToggleImportOn?: boolean
+  readonly fromSettings?: boolean
+}
 type _ResendVerificationForPhoneNumberPayload = {readonly phoneNumber: string}
 type _SaveProxyDataPayload = {readonly proxyData: RPCTypes.ProxyData}
 type _SendFeedbackPayload = {
@@ -164,6 +168,7 @@ type _SendFeedbackPayload = {
 }
 type _SentVerificationEmailPayload = {readonly email: string}
 type _SetContactImportedCountPayload = {readonly count?: number; readonly error?: string}
+type _ShowContactsJoinedModalPayload = {readonly resolved: Array<RPCTypes.ProcessedContact>}
 type _StopPayload = {readonly exitCode: RPCTypes.ExitCode}
 type _ToggleRuntimeStatsPayload = void
 type _TracePayload = {readonly durationSeconds: number}
@@ -459,6 +464,9 @@ export const createSentVerificationEmail = (
 export const createSetContactImportedCount = (
   payload: _SetContactImportedCountPayload = Object.freeze({})
 ): SetContactImportedCountPayload => ({payload, type: setContactImportedCount})
+export const createShowContactsJoinedModal = (
+  payload: _ShowContactsJoinedModalPayload
+): ShowContactsJoinedModalPayload => ({payload, type: showContactsJoinedModal})
 export const createStop = (payload: _StopPayload): StopPayload => ({payload, type: stop})
 export const createToggleRuntimeStats = (payload: _ToggleRuntimeStatsPayload): ToggleRuntimeStatsPayload => ({
   payload,
@@ -693,6 +701,10 @@ export type SetContactImportedCountPayload = {
   readonly payload: _SetContactImportedCountPayload
   readonly type: typeof setContactImportedCount
 }
+export type ShowContactsJoinedModalPayload = {
+  readonly payload: _ShowContactsJoinedModalPayload
+  readonly type: typeof showContactsJoinedModal
+}
 export type StopPayload = {readonly payload: _StopPayload; readonly type: typeof stop}
 export type ToggleRuntimeStatsPayload = {
   readonly payload: _ToggleRuntimeStatsPayload
@@ -791,6 +803,7 @@ export type Actions =
   | SendFeedbackPayload
   | SentVerificationEmailPayload
   | SetContactImportedCountPayload
+  | ShowContactsJoinedModalPayload
   | StopPayload
   | ToggleRuntimeStatsPayload
   | TracePayload

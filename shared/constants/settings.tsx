@@ -44,6 +44,7 @@ export const makeState = (): Types.State => ({
     },
   },
   contacts: {
+    alreadyOnKeybase: [],
     importError: '',
     importPromptDismissed: false,
     permissionStatus: 'unknown',
