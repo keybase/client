@@ -1185,7 +1185,7 @@ func (s *HybridInboxSource) getDeviceType() keybase1.DeviceType {
 }
 
 func (s *HybridInboxSource) fullNamesForSearch(ctx context.Context, conv types.RemoteConversation,
-	convName, username string) (res []string) {
+	myuid gregor1.UID, convName, username string) (res []string) {
 	switch conv.GetMembersType() {
 	case chat1.ConversationMembersType_TEAM:
 		return nil
@@ -1194,6 +1194,9 @@ func (s *HybridInboxSource) fullNamesForSearch(ctx context.Context, conv types.R
 
 	var kuids []keybase1.UID
 	for _, uid := range conv.Conv.Metadata.AllList {
+		if uid.Eq(myuid) && convName != username {
+			continue
+		}
 		kuids = append(kuids, keybase1.UID(uid.String()))
 	}
 	pkgs, err := s.G().UIDMapper.MapUIDsToUsernamePackagesOffline(ctx, s.G(), kuids, 24*time.Hour)
@@ -1201,10 +1204,6 @@ func (s *HybridInboxSource) fullNamesForSearch(ctx context.Context, conv types.R
 		s.Debug(ctx, "unable to map uid packages: %v", err)
 	}
 	for _, pkg := range pkgs {
-		// skip our own full name except for our self chat
-		if pkg.NormalizedUsername.String() == username && convName != username {
-			continue
-		}
 		if pkg.FullName != nil {
 			fullname := strings.ToLower(pkg.FullName.FullName.String())
 			res = append(res, strings.Split(fullname, " ")...)
@@ -1214,7 +1213,7 @@ func (s *HybridInboxSource) fullNamesForSearch(ctx context.Context, conv types.R
 }
 
 func (s *HybridInboxSource) isConvSearchHit(ctx context.Context, conv types.RemoteConversation,
-	queryToks []string, username string) (res convSearchHit) {
+	uid gregor1.UID, queryToks []string, username string) (res convSearchHit) {
 	var convToks []string
 	res.conv = conv
 	res.queryToks = queryToks
@@ -1236,7 +1235,7 @@ func (s *HybridInboxSource) isConvSearchHit(ctx context.Context, conv types.Remo
 		convToks = strings.Split(convName, ",")
 	}
 	res.convToks = convToks
-	res.nameToks = s.fullNamesForSearch(ctx, conv, convName, username)
+	//res.nameToks = s.fullNamesForSearch(ctx, conv, uid, convName, username)
 	convToks = append(convToks, res.nameToks...)
 	for _, queryTok := range queryToks {
 		curHit := nameContainsQueryNone
@@ -1276,6 +1275,7 @@ func (s *HybridInboxSource) Search(ctx context.Context, uid gregor1.UID, query s
 			queryToks = append(queryToks, tok)
 		}
 	}
+
 	var hits []convSearchHit
 	for _, conv := range convs {
 		if conv.Conv.GetTopicType() != chat1.TopicType_CHAT ||
@@ -1284,7 +1284,7 @@ func (s *HybridInboxSource) Search(ctx context.Context, uid gregor1.UID, query s
 			!s.searchMemberStatusMap[conv.Conv.ReaderInfo.Status] {
 			continue
 		}
-		hit := s.isConvSearchHit(ctx, conv, queryToks, username)
+		hit := s.isConvSearchHit(ctx, conv, uid, queryToks, username)
 		if !hit.valid() {
 			continue
 		}

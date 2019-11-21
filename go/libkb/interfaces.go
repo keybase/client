@@ -1006,6 +1006,8 @@ type UIDMapper interface {
 	// unresolved usernames (caller should check with `IsNil()`).
 	MapUIDsToUsernamePackagesOffline(ctx context.Context, g UIDMapperContext,
 		uids []keybase1.UID, fullNameFreshness time.Duration) ([]UsernamePackage, error)
+	MapUIDsToFullnamesOffline(ctx context.Context, g UIDMapperContext,
+		uids []keybase1.UID, fullNameFreshness time.Duration) (res []keybase1.FullNamePackage, err error)
 }
 
 type UserServiceSummary map[string]string // service -> username

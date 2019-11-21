@@ -510,6 +510,29 @@ func (u *UIDMap) MapUIDsToUsernamePackagesOffline(ctx context.Context, g libkb.U
 	return res, nil
 }
 
+func (u *UIDMap) MapUIDsToFullnamesOffline(ctx context.Context, g libkb.UIDMapperContext,
+	uids []keybase1.UID, fullNameFreshness time.Duration) (res []keybase1.FullNamePackage, err error) {
+	// Like MapUIDsToUsernamePackages, but never makes any network calls,
+	// returns only cached values. UIDs that were not cached at all result in
+	// default UsernamePackage, caller has to check if the result is present
+	// using `res[i].NormalizedUsername.IsNil()`.
+	defer libkb.CTrace(ctx, g.GetLog(),
+		fmt.Sprintf("MapUIDsToFullnamesOffline(%s)", uidsToStringForLog(uids)), func() error { return err })()
+
+	u.Lock()
+	defer u.Unlock()
+
+	for _, uid := range uids {
+		fn, _ := u.findFullNameLocally(ctx, g, uid, fullNameFreshness)
+		// If we successfully looked up some of the user, set the return slot here.
+		if fn != nil {
+			res = append(res, *fn)
+		}
+	}
+
+	return res, nil
+}
+
 func MapUIDsReturnMap(ctx context.Context, u libkb.UIDMapper, g libkb.UIDMapperContext, uids []keybase1.UID, fullNameFreshness time.Duration,
 	networkTimeBudget time.Duration, forceNetworkForFullNames bool) (res map[keybase1.UID]libkb.UsernamePackage, err error) {
 
