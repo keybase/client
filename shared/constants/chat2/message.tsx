@@ -92,6 +92,7 @@ export const serviceMessageTypeToMessageTypes = (t: RPCChatTypes.MessageType): A
       return [
         'systemAddedToTeam',
         'systemChangeRetention',
+        'systemCreateTeam',
         'systemGitPush',
         'systemInviteAccepted',
         'systemSBSResolved',
@@ -404,6 +405,17 @@ export const makeMessageSystemText = (
   ...m,
 })
 
+export const makeMessageSystemCreateTeam = (
+  m?: Partial<MessageTypes.MessageSystemCreateTeam>
+): MessageTypes.MessageSystemCreateTeam => ({
+  ...makeMessageCommonNoDeleteNoEdit,
+  reactions: new Map(),
+  creator: '',
+  team: '',
+  type: 'systemCreateTeam',
+  ...m,
+})
+
 export const makeMessageSystemGitPush = (
   m?: Partial<MessageTypes.MessageSystemGitPush>
 ): MessageTypes.MessageSystemGitPush => ({
@@ -683,9 +695,10 @@ const uiMessageToSystemMessage = (
     }
     case RPCChatTypes.MessageSystemType.createteam: {
       const {team = '???', creator = '????'} = body.createteam || {}
-      return makeMessageSystemText({
+      return makeMessageSystemCreateTeam({
+        creator,
         reactions,
-        text: new HiddenString(`${creator === state.config.username ? 'You ' : ''}created the team ${team}.`),
+        team,
         ...minimum,
       })
     }
