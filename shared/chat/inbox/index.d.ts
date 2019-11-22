@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as I from 'immutable'
 import {ConversationIDKey} from '../../constants/types/chat2'
+import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 
 export type RowItemSmall = {
   type: 'small'
@@ -9,7 +10,7 @@ export type RowItemSmall = {
   conversationIDKey: ConversationIDKey
   time: number
   snippet?: string
-  snippetDecoration?: string
+  snippetDecoration: RPCChatTypes.SnippetDecoration
 }
 export type RowItemBigTeamsLabel = {
   type: 'bigTeamsLabel'
@@ -18,7 +19,7 @@ export type RowItemBigTeamsLabel = {
   teamname?: never
   conversationIDKey?: never
   snippet?: string
-  snippetDecoration?: string
+  snippetDecoration: RPCChatTypes.SnippetDecoration
   time?: number
 }
 export type RowItemBigHeader = {
@@ -28,7 +29,7 @@ export type RowItemBigHeader = {
   teamID: string
   conversationIDKey?: never
   snippet?: string
-  snippetDecoration?: string
+  snippetDecoration: RPCChatTypes.SnippetDecoration
   time?: number
 }
 export type RowItemBig = {
@@ -38,7 +39,7 @@ export type RowItemBig = {
   teamname: string
   channelname: string
   snippet?: string
-  snippetDecoration?: string
+  snippetDecoration: RPCChatTypes.SnippetDecoration
   time?: number
 }
 export type RowItemDivider = {

@@ -2,13 +2,14 @@ import React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import {AllowedColors} from '../../../../common-adapters/text'
+import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 
 type Props = {
   backgroundColor?: string
   participantNeedToRekey: boolean
   showBold: boolean
   snippet: string | null
-  snippetDecoration: string | null
+  snippetDecoration: RPCChatTypes.SnippetDecoration
   subColor: AllowedColors
   youNeedToRekey: boolean
   youAreReset: boolean
@@ -17,6 +18,17 @@ type Props = {
   isDecryptingSnippet: boolean
   isTypingSnippet: boolean
   draft?: string
+}
+
+const SnippetDecoration = (type: Kb.IconType, color: string) => {
+  return (
+    <Kb.Icon
+      color={color}
+      type={type}
+      fontSize={Styles.isMobile ? 16 : 12}
+      style={{alignSelf: 'flex-start'}}
+    />
+  )
 }
 
 const BottomLine = React.memo((props: Props) => {
@@ -74,16 +86,27 @@ const BottomLine = React.memo((props: Props) => {
   } else if (props.snippet) {
     let snippetDecoration: React.ReactNode
     let exploded = false
+    const defaultIconColor = props.isSelected ? Styles.globalColors.white : Styles.globalColors.black_20
 
-    // `snippetDecoration` will either be an explosion emoji, bomb emoji, or empty string.
-    // We want to use these emojis to render the correct custom icon.
     switch (props.snippetDecoration) {
-      case '\u{1F4A5}': // Explosion (Collision) emoji (💥)
+      case RPCChatTypes.SnippetDecoration.pendingMessage:
+        snippetDecoration = SnippetDecoration('iconfont-hourglass', defaultIconColor)
+        break
+      case RPCChatTypes.SnippetDecoration.failedPendingMessage:
+        snippetDecoration = SnippetDecoration(
+          'iconfont-exclamation',
+          props.isSelected ? Styles.globalColors.white : Styles.globalColors.red
+        )
+        break
+      case RPCChatTypes.SnippetDecoration.explodingMessage:
+        snippetDecoration = SnippetDecoration('iconfont-timer', defaultIconColor)
+        break
+      case RPCChatTypes.SnippetDecoration.explodedMessage:
         snippetDecoration = (
           <Kb.Text
             type="BodySmall"
             style={{
-              color: props.isSelected ? Styles.globalColors.white : Styles.globalColors.black_50,
+              color: props.isSelected ? Styles.globalColors.white : Styles.globalColors.black_20,
             }}
           >
             Message exploded.
@@ -91,21 +114,29 @@ const BottomLine = React.memo((props: Props) => {
         )
         exploded = true
         break
-      case '\u{1F4A3}': // Bomb emoji (💣)
-        snippetDecoration = (
-          <Kb.Icon
-            color={props.isSelected ? Styles.globalColors.white : Styles.globalColors.black_50}
-            type="iconfont-timer"
-            fontSize={Styles.isMobile ? 16 : 12}
-            style={{alignSelf: 'flex-start'}}
-          />
-        )
+      case RPCChatTypes.SnippetDecoration.audioAttachment:
+        snippetDecoration = SnippetDecoration('iconfont-mic', defaultIconColor)
+        break
+      case RPCChatTypes.SnippetDecoration.videoAttachment:
+        snippetDecoration = SnippetDecoration('iconfont-film', defaultIconColor)
+        break
+      case RPCChatTypes.SnippetDecoration.photoAttachment:
+        snippetDecoration = SnippetDecoration('iconfont-camera', defaultIconColor)
+        break
+      case RPCChatTypes.SnippetDecoration.fileAttachment:
+        snippetDecoration = SnippetDecoration('iconfont-file', defaultIconColor)
+        break
+      case RPCChatTypes.SnippetDecoration.stellarReceived:
+        snippetDecoration = SnippetDecoration('iconfont-stellar-request', defaultIconColor)
+        break
+      case RPCChatTypes.SnippetDecoration.stellarSent:
+        snippetDecoration = SnippetDecoration('iconfont-stellar-send', defaultIconColor)
+        break
+      case RPCChatTypes.SnippetDecoration.pinnedMessage:
+        snippetDecoration = SnippetDecoration('iconfont-pin', defaultIconColor)
         break
       default:
-        snippetDecoration =
-          !!props.snippetDecoration && !props.isTypingSnippet ? (
-            <Kb.Text type="BodySmall">{props.snippetDecoration}</Kb.Text>
-          ) : null
+        snippetDecoration = null
     }
     content = (
       <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.contentBox}>

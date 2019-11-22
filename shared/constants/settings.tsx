@@ -7,6 +7,7 @@ import {getMeta} from './chat2/meta'
 import * as RPCTypes from './types/rpc-gen'
 import {RPCError} from 'util/errors'
 import {ContactResponse} from 'expo-contacts'
+import * as RPCChatTypes from './types/rpc-chat-gen'
 
 export const makeEmailRow = (): Types.EmailRow => ({
   email: '',
@@ -110,7 +111,7 @@ export const getExtraChatLogsForLogSend = (state: TypedState) => {
         resetParticipants: metaMap.resetParticipants && metaMap.resetParticipants.size,
         retentionPolicy: metaMap.retentionPolicy,
         snippet: 'x',
-        snippetDecoration: 'x',
+        snippetDecoration: RPCChatTypes.SnippetDecoration.none,
         supersededBy: metaMap.supersededBy,
         supersedes: metaMap.supersedes,
         teamRetentionPolicy: metaMap.teamRetentionPolicy,

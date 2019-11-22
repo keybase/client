@@ -1311,14 +1311,14 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
           participants,
           rekeyers,
           snippet: error.message,
-          snippetDecoration: '',
+          snippetDecoration: RPCChatTypes.SnippetDecoration.none,
           trustedState: 'error' as const,
         })
       } else {
         const old = draftState.metaMap.get(conversationIDKey)
         if (old) {
           old.snippet = error.message
-          old.snippetDecoration = ''
+          old.snippetDecoration = RPCChatTypes.SnippetDecoration.none
           old.trustedState = 'error'
         }
       }

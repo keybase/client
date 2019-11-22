@@ -79,14 +79,14 @@ const (
 )
 
 type RemoteConversationMetadata struct {
-	Name               string   `codec:"n"`
-	TopicName          string   `codec:"t"`
-	Snippet            string   `codec:"s"`
-	SnippetDecoration  string   `codec:"d"`
-	Headline           string   `codec:"h"`
-	WriterNames        []string `codec:"w"`
-	FullNamesForSearch []string `codec:"f"`
-	ResetParticipants  []string `codec:"r"`
+	Name               string                  `codec:"n"`
+	TopicName          string                  `codec:"t"`
+	Snippet            string                  `codec:"s"`
+	SnippetDecoration  chat1.SnippetDecoration `codec:"d"`
+	Headline           string                  `codec:"h"`
+	WriterNames        []string                `codec:"w"`
+	FullNamesForSearch []string                `codec:"f"`
+	ResetParticipants  []string                `codec:"r"`
 }
 
 type RemoteConversation struct {
