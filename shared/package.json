@@ -51,7 +51,6 @@
     "rn-storybook": "cross-env-shell node_modules/@storybook/react-native-server/bin/index.js -p 7007",
     "tsc": "node --max-old-space-size=4096 ./node_modules/.bin/tsc --project ./tsconfig.json ",
     "tsc-strict": "node --max-old-space-size=4096 ./node_modules/.bin/tsc --project ./tsconfig.strict.json ",
-    "tsc-slow": "node --max-old-space-size=4096 ./node_modules/.bin/tsc --project ./tsconfig.slow.json ",
     "build-storybook": "build-storybook",
     "modules": "yarn install --pure-lockfile --ignore-optional",
     "log-to-trace": "yarn _node desktop/yarn-helper/log-to-trace"
