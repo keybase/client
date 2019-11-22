@@ -8,6 +8,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/sig3"
+
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/gregor"
@@ -573,20 +575,39 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	var lastLinkID keybase1.LinkID
 	var hiddenIsFresh bool
 
+	// hiddenResp will be nill iff we do not make the merkleLookupWithHidden
+	// call. If the server does not return any hidden data, we will encode that
+	// as a non nil response whose RespType is MerkleHiddenResponseTypeNONE.
+	var hiddenResp *libkb.MerkleHiddenResponse
+
 	if (ret == nil) || repoll {
 		mctx.Debug("TeamLoader looking up merkle leaf (force:%v)", arg.forceRepoll)
-		// Request also, without an additional RTT, freshness information about the hidden chain;
-		// we're going to send up information we know about the visible and hidden chains to both prove
-		// membership and show what we know about.
-		harg, err := hiddenPackage.MerkleLoadArg(mctx)
-		if err != nil {
-			return nil, err
-		}
+
 		// Reference the merkle tree to fetch the sigchain tail leaf for the team.
-		lastSeqno, lastLinkID, hiddenIsFresh, err = l.world.merkleLookupWithHidden(ctx, arg.teamID, arg.public, harg)
+		lastSeqno, lastLinkID, hiddenResp, err = l.world.merkleLookupWithHidden(ctx, arg.teamID, arg.public)
 		if err != nil {
 			return nil, err
 		}
+
+		if hiddenResp.CommittedHiddenTail != nil {
+			mctx.Debug("lastSeqno %v, lastLinkID %v, hiddenResp: %+v uncS %+v cS %v err %v", lastSeqno, lastLinkID, hiddenResp, hiddenResp.UncommittedSeqno, hiddenResp.CommittedHiddenTail.Seqno, err)
+
+		} else {
+			mctx.Debug("lastSeqno %v, lastLinkID %v, hiddenResp: %+v uncS %+v err %v", lastSeqno, lastLinkID, hiddenResp, hiddenResp.UncommittedSeqno, err)
+		}
+
+		switch hiddenResp.RespType {
+		case libkb.MerkleHiddenResponseTypeNONE:
+			mctx.Debug("Skipping CheckHiddenMerklePathResponseAndAddRatchets as no hidden data was received. If the server had to show us the hidden chain and didn't, we will error out later (once we can establish our role in the team).")
+		case libkb.MerkleHiddenResponseTypeFLAGOFF:
+			mctx.Debug("Skipping CheckHiddenMerklePathResponseAndAddRatchets as the hidden flag is off.")
+		default:
+			hiddenIsFresh, err = hiddenPackage.CheckHiddenMerklePathResponseAndAddRatchets(mctx, hiddenResp)
+			if err != nil {
+				return nil, err
+			}
+		}
+
 		didRepoll = true
 	} else {
 		lastSeqno = ret.Chain.LastSeqno
@@ -732,6 +753,14 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	if err != nil {
 		return nil, err
 	}
+
+	// If we did get an update from the server (hiddenResp != nil) are not a
+	// restricted bot AND this is not a recursive load (arg.readSubteamID == nil),
+	// then the server should have given us hidden chain data.
+	if hiddenResp != nil && hiddenResp.RespType == libkb.MerkleHiddenResponseTypeNONE && !role.IsRestrictedBot() && arg.readSubteamID == nil {
+		return nil, libkb.NewHiddenChainDataMissingError("Not a restricted bot or recursive load, but the server did not return merkle hidden chain data")
+	}
+
 	// Update the hidden package with team metadata once we process all of the
 	// links. This is necessary since we need the role to be up to date to know
 	// if we should skip seed checks on the hidden chain if we are loading as a
@@ -741,13 +770,25 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	// Be sure to update the hidden chain after the main chain, since the latter can "ratchet" the former
 	if teamUpdate != nil {
 		err = hiddenPackage.Update(mctx, teamUpdate.GetHiddenChain())
-		if err != nil {
-			return nil, err
-		}
-		err = hiddenPackage.CheckPTKsForDuplicates(mctx, func(g keybase1.PerTeamKeyGeneration) bool {
-			_, ok := ret.Chain.PerTeamKeys[g]
-			return ok
-		})
+	} else {
+		err = hiddenPackage.Update(mctx, []sig3.ExportJSON{})
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	err = hiddenPackage.CheckPTKsForDuplicates(mctx, func(g keybase1.PerTeamKeyGeneration) bool {
+		_, ok := ret.Chain.PerTeamKeys[g]
+		return ok
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// Ensure that the state of the hidden chain is consistent with
+	// what we got from the merkle/path endpoint.
+	if hiddenResp != nil && hiddenResp.RespType != libkb.MerkleHiddenResponseTypeFLAGOFF && hiddenResp.RespType != libkb.MerkleHiddenResponseTypeNONE {
+		err = hiddenPackage.CheckChainHasMinLength(mctx, hiddenResp.UncommittedSeqno)
 		if err != nil {
 			return nil, err
 		}

@@ -3144,6 +3144,11 @@ func (d *HiddenTeamChain) Merge(newData HiddenTeamChain) (updated bool, err erro
 		d.Last = newData.Last
 	}
 
+	if newData.LastCommittedSeqno > d.LastCommittedSeqno {
+		d.LastCommittedSeqno = newData.LastCommittedSeqno
+		updated = true
+	}
+
 	for k, v := range newData.LastPerTeamKeys {
 		existing, ok := d.LastPerTeamKeys[k]
 		if !ok || existing < v {
@@ -3165,6 +3170,25 @@ func (d *HiddenTeamChain) Merge(newData HiddenTeamChain) (updated bool, err erro
 
 	if d.RatchetSet.Merge(newData.RatchetSet) {
 		updated = true
+	}
+
+	for k := range d.LinkReceiptTimes {
+		if k <= newData.LastCommittedSeqno {
+			// This link has been committed to the blind tree, no need to keep
+			// track of it any more
+			delete(d.LinkReceiptTimes, k)
+			updated = true
+		}
+	}
+
+	for k, v := range newData.LinkReceiptTimes {
+		if _, found := d.LinkReceiptTimes[k]; !found {
+			if d.LinkReceiptTimes == nil {
+				d.LinkReceiptTimes = make(map[Seqno]Time)
+			}
+			d.LinkReceiptTimes[k] = v
+			updated = true
+		}
 	}
 
 	return updated, nil

@@ -2,6 +2,7 @@ package hidden
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -12,16 +13,17 @@ import (
 // It additionally can have new chain links loaded from the server, since it might need to be queried
 // in the process of loading the team as if the new links were already committed to the data store.
 type LoaderPackage struct {
-	id             keybase1.TeamID
-	encKID         keybase1.KID
-	encKIDGen      keybase1.PerTeamKeyGeneration
-	data           *keybase1.HiddenTeamChain
-	newData        *keybase1.HiddenTeamChain
-	expectedPrev   *keybase1.LinkTriple
-	rbks           *RatchetBlindingKeySet
-	allNewRatchets map[keybase1.Seqno]keybase1.LinkTripleAndTime
-	newRatchetSet  keybase1.HiddenTeamChainRatchetSet
-	role           keybase1.TeamRole
+	id                 keybase1.TeamID
+	encKID             keybase1.KID
+	encKIDGen          keybase1.PerTeamKeyGeneration
+	data               *keybase1.HiddenTeamChain
+	newData            *keybase1.HiddenTeamChain
+	expectedPrev       *keybase1.LinkTriple
+	rbks               *RatchetBlindingKeySet
+	allNewRatchets     map[keybase1.Seqno]keybase1.LinkTripleAndTime
+	newRatchetSet      keybase1.HiddenTeamChainRatchetSet
+	role               keybase1.TeamRole
+	lastCommittedSeqno keybase1.Seqno
 }
 
 // NewLoaderPackage creates a loader package that can work in the FTL of slow team loading settings. As a preliminary,
@@ -72,23 +74,6 @@ func (l *LoaderPackage) Load(mctx libkb.MetaContext) (err error) {
 	cp := tmp.DeepCopy()
 	l.data = &cp
 	return err
-}
-
-// MerkleLoadArg is the argument to pass to merkle/path.json so that the state of the hidden
-// chain can be queried along with the main team chain. If we've ever loaded this chain, we pass
-// up the last known chain tail and the server replies with a bit saying whether it's the latest
-// or not (this save the server from having to auth us and check if we're in the team). If we've
-// never loaded the hidden chain for this team, we pass up a team encryption KID from the team's
-// main chain, to prove we had access to it. The server returns one bit in that case, saying
-// whether or not the team chain exists.
-func (l *LoaderPackage) MerkleLoadArg(mctx libkb.MetaContext) (ret *libkb.LookupTeamHiddenArg, err error) {
-	if tail := l.lastReaderPerTeamKeyLinkID(); !tail.IsNil() {
-		return &libkb.LookupTeamHiddenArg{LastKnownHidden: tail}, nil
-	}
-	if !l.encKID.IsNil() && l.encKIDGen > keybase1.PerTeamKeyGeneration(0) {
-		return &libkb.LookupTeamHiddenArg{PTKEncryptionKID: l.encKID, PTKGeneration: l.encKIDGen}, nil
-	}
-	return nil, nil
 }
 
 func (l *LoaderPackage) lastReaderPerTeamKeyLinkID() (ret keybase1.LinkID) {
@@ -234,6 +219,21 @@ func (l *LoaderPackage) Update(mctx libkb.MetaContext, update []sig3.ExportJSON)
 		return err
 	}
 
+	if l.newData != nil && l.lastCommittedSeqno > l.newData.LastCommittedSeqno {
+		l.newData.LastCommittedSeqno = l.lastCommittedSeqno
+	}
+
+	// If we received a new uncommitted link.
+	if l.newData != nil && l.newData.Last > 0 {
+		if l.newData.LinkReceiptTimes == nil {
+			l.newData.LinkReceiptTimes = make(map[keybase1.Seqno]keybase1.Time)
+		}
+		if _, found := l.newData.LinkReceiptTimes[l.data.Last]; !found && l.newData.Last > l.LastCommittedSeqno() {
+			mctx.Debug("Adding seqno %v to LinkReceiptTimes", l.newData.Last)
+			l.newData.LinkReceiptTimes[l.newData.Last] = keybase1.ToTime(mctx.G().Clock().Now())
+		}
+	}
+
 	mctx.Debug("LoaderPackage#Update post: %s", l.data.LinkAndKeySummary())
 	return nil
 }
@@ -261,6 +261,25 @@ func (l *LoaderPackage) checkNewLinksAgainstNewRatchets(mctx libkb.MetaContext, 
 		err := l.checkNewLinkAgainstNewRatchets(mctx, k, v)
 		if err != nil {
 			return err
+		}
+	}
+	return nil
+}
+
+// This function checks that uncommitted links which we previously got from the
+// server have indeed been included in the blind tree (the server has a short
+// grace period to do this to account for potential downtime)
+func (l *LoaderPackage) VerifyOldChainLinksAreCommitted(mctx libkb.MetaContext, newCommittedSeqno keybase1.Seqno) error {
+	mctx.Debug("VerifyOldChainLinksAreCommitted at time %v", mctx.G().Clock().Now())
+	if l.data == nil || l.data.LinkReceiptTimes == nil {
+		return nil
+	}
+	for s, t := range l.data.LinkReceiptTimes {
+		if s <= newCommittedSeqno {
+			continue
+		}
+		if mctx.G().Clock().Since(t.Time()) > 48*time.Hour {
+			return fmt.Errorf("Link for seqno %v was added %v ago and has not been included in the blind tree yet.", s, mctx.G().Clock().Since(t.Time()))
 		}
 	}
 	return nil
@@ -341,12 +360,17 @@ func (l *LoaderPackage) LastReaderKeyRotator(mctx libkb.MetaContext) *keybase1.S
 // from local storage. The result is just in memory, not stored to disk yet. That happens in Commit().
 func (l *LoaderPackage) mergeData(mctx libkb.MetaContext, newData *keybase1.HiddenTeamChain) (err error) {
 
-	if newData == nil && !l.newRatchetSet.IsEmpty() {
+	if newData == nil && (!l.newRatchetSet.IsEmpty() || l.lastCommittedSeqno > 0) {
 		newData = keybase1.NewHiddenTeamChain(l.id)
 	}
 	if !l.newRatchetSet.IsEmpty() {
 		newData.RatchetSet.Merge(l.newRatchetSet)
 	}
+
+	if l.lastCommittedSeqno > 0 && newData.LastCommittedSeqno < l.lastCommittedSeqno {
+		newData.LastCommittedSeqno = l.lastCommittedSeqno
+	}
+
 	l.newData = newData
 
 	if l.data == nil {
@@ -459,6 +483,103 @@ func (l *LoaderPackage) MaxRatchet() (ret keybase1.Seqno) {
 	return ret
 }
 
+// LastCommittedSeqno returns the greatest sequence number which we have seen
+// committed by the server, to prevent rollbacks to the blind tree sigchain. It
+// does not include the seqno in the update which was recently received from the
+// server. It returns 0 if we have never seen a non empty link committed to the
+// blind tree before.
+func (l *LoaderPackage) LastCommittedSeqno() (ret keybase1.Seqno) {
+	if l.newData != nil && l.newData.LastCommittedSeqno > ret {
+		ret = l.newData.LastCommittedSeqno
+	}
+	if l.lastCommittedSeqno > ret {
+		ret = l.lastCommittedSeqno
+	}
+	if l.data != nil && l.data.LastCommittedSeqno > ret {
+		ret = l.data.LastCommittedSeqno
+	}
+	return ret
+}
+
+func (l *LoaderPackage) SetLastCommittedSeqno(mctx libkb.MetaContext, lcs keybase1.Seqno) error {
+	last := l.LastCommittedSeqno()
+	if lcs >= last {
+		l.lastCommittedSeqno = lcs
+		return nil
+	}
+	return fmt.Errorf("Tries to set a LastCommittedSeqno %v smaller than the one we know about: %v", lcs, last)
+}
+
+func (l *LoaderPackage) CheckChainHasMinLength(mctx libkb.MetaContext, minSeqno keybase1.Seqno) error {
+	if minSeqno == keybase1.Seqno(0) {
+		return nil
+	}
+	if l.data == nil {
+		return fmt.Errorf("Data is nil and so the chain deos not have seqno %v", minSeqno)
+	}
+
+	if !l.data.HasSeqno(minSeqno) {
+		return fmt.Errorf("Seqno %v is not part of this chain (last is %v)", minSeqno, l.data.Last)
+	}
+	return nil
+}
+
+func (l *LoaderPackage) CheckHiddenMerklePathResponseAndAddRatchets(mctx libkb.MetaContext, hiddenResp *libkb.MerkleHiddenResponse) (hiddenIsFresh bool, err error) {
+
+	oldHiddenTailSeqno := l.LastSeqno()
+	oldCommittedHiddenTailSeqno := l.LastCommittedSeqno()
+	lastCommittedHiddenTailSeqno := oldCommittedHiddenTailSeqno
+
+	switch hiddenResp.RespType {
+	case libkb.MerkleHiddenResponseTypeNONE:
+		return false, fmt.Errorf("Logic error in CheckHiddenMerklePathResponseAndAddRatchets: should not call this function with a NONE response.")
+	case libkb.MerkleHiddenResponseTypeFLAGOFF:
+		mctx.Debug("Skipping CheckHiddenMerklePathResponseAndAddRatchets as feature flag is off")
+	case libkb.MerkleHiddenResponseTypeOK:
+		newCommittedHiddenTail := hiddenResp.CommittedHiddenTail
+		newCommittedHiddenTailSeqno := newCommittedHiddenTail.Seqno
+		lastCommittedHiddenTailSeqno = newCommittedHiddenTailSeqno
+
+		// ensure the server is self consistent in its answer
+		if hiddenResp.UncommittedSeqno < newCommittedHiddenTailSeqno {
+			return false, fmt.Errorf("The server claims that the lastHiddenSeqno for this team (seqno %v) is smaller than the one in the blind merkle update it sent (%v)", hiddenResp.UncommittedSeqno, newCommittedHiddenTailSeqno)
+		}
+		// prevent rollbacks in the blind tree
+		if newCommittedHiddenTailSeqno < oldCommittedHiddenTailSeqno {
+			return false, fmt.Errorf("Server rollback of the blind merkle tree leaf: we had previously seen a leaf at seqno %v, but this update contains a leaf at seqno %v", oldCommittedHiddenTailSeqno, newCommittedHiddenTailSeqno)
+		}
+		// add ratchet to ensure consistency
+		err = l.AddUnblindedRatchet(mctx, newCommittedHiddenTail, 0 /*int(mctx.G().Clock().Now().Unix())*/, keybase1.RatchetType_BLINDED)
+		if err != nil {
+			return false, err
+		}
+		err = l.SetLastCommittedSeqno(mctx, newCommittedHiddenTailSeqno)
+		if err != nil {
+			return false, err
+		}
+	case libkb.MerkleHiddenResponseTypeABSENCEPROOF:
+		if oldCommittedHiddenTailSeqno > 0 {
+			return false, fmt.Errorf("Server claimed (and proved) there are no committed hidden chain links in the chain, but we had previously seen a committed link with seqno %v", oldCommittedHiddenTailSeqno)
+		}
+	default:
+		return false, fmt.Errorf("Unrecognized response type: %v", hiddenResp.RespType)
+	}
+
+	if err := l.VerifyOldChainLinksAreCommitted(mctx, lastCommittedHiddenTailSeqno); err != nil {
+		return false, err
+	}
+
+	if oldHiddenTailSeqno == hiddenResp.UncommittedSeqno {
+		hiddenIsFresh = true
+	} else if oldHiddenTailSeqno < hiddenResp.UncommittedSeqno {
+		hiddenIsFresh = false
+	} else {
+		return false, fmt.Errorf("The server indicated that the last hidden link has Seqno %v, but we knew of a link with seqno %v already!", hiddenResp.UncommittedSeqno, oldHiddenTailSeqno)
+	}
+
+	return hiddenIsFresh, nil
+}
+
 // HasReaderPerTeamKeyAtGeneration returns true if the LoaderPackage has a sigchain entry for
 // the PTK at the given generation. Whether in the preloaded data or the update.
 func (l *LoaderPackage) HasReaderPerTeamKeyAtGeneration(gen keybase1.PerTeamKeyGeneration) bool {
@@ -525,6 +646,10 @@ func (l *LoaderPackage) AddRatchet(mctx libkb.MetaContext, r SCTeamRatchet, ctim
 	if tail == nil {
 		return NewLoaderError("missing unblind for ratchet %s", r.String())
 	}
+	return l.AddUnblindedRatchet(mctx, tail, ctime, typ)
+}
+
+func (l *LoaderPackage) AddUnblindedRatchet(mctx libkb.MetaContext, tail *sig3.Tail, ctime int, typ keybase1.RatchetType) (err error) {
 	ratchet := keybase1.LinkTripleAndTime{
 		Triple: tail.Export(),
 		Time:   keybase1.TimeFromSeconds(int64(ctime)),

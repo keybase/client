@@ -216,9 +216,10 @@ func (f *FastTeamChainLoader) verifyTeamNameViaParentLoad(m libkb.MetaContext, i
 			Public:       isPublic,
 			ForceRefresh: forceRefresh,
 		},
-		downPointersNeeded: []keybase1.Seqno{parent.ParentSeqno},
-		needLatestName:     true,
-		readSubteamID:      bottomSubteam,
+		downPointersNeeded:    []keybase1.Seqno{parent.ParentSeqno},
+		needLatestName:        true,
+		readSubteamID:         bottomSubteam,
+		hiddenChainIsOptional: true, // we do not need to see the hidden chain for the parent
 	})
 	if err != nil {
 		return res, err
@@ -249,10 +250,11 @@ type fastLoadRes struct {
 // around the keybase1.FastTeamLoadArg that's passed through to the public #Load() call.
 type fastLoadArg struct {
 	keybase1.FastTeamLoadArg
-	downPointersNeeded []keybase1.Seqno
-	readSubteamID      keybase1.TeamID
-	needLatestName     bool
-	forceReset         bool
+	downPointersNeeded    []keybase1.Seqno
+	readSubteamID         keybase1.TeamID
+	needLatestName        bool
+	forceReset            bool
+	hiddenChainIsOptional bool
 }
 
 // needChainTail returns true if the argument mandates that we need a reasonably up-to-date chain tail,
@@ -591,11 +593,12 @@ type shoppingList struct {
 
 // groceries are what we get back from the server.
 type groceries struct {
-	newLinks       []*ChainLinkUnpacked
-	rkms           []keybase1.ReaderKeyMask
-	latestKeyGen   keybase1.PerTeamKeyGeneration
-	seeds          []keybase1.PerTeamKeySeed
-	newHiddenLinks []sig3.ExportJSON
+	newLinks          []*ChainLinkUnpacked
+	rkms              []keybase1.ReaderKeyMask
+	latestKeyGen      keybase1.PerTeamKeyGeneration
+	seeds             []keybase1.PerTeamKeySeed
+	newHiddenLinks    []sig3.ExportJSON
+	expMaxHiddenSeqno keybase1.Seqno
 }
 
 // isEmpty returns true if our shopping list is empty. In this case, we have no need to go to the
@@ -772,24 +775,33 @@ func (f *FastTeamChainLoader) loadFromServerOnce(m libkb.MetaContext, arg fastLo
 
 	defer m.Trace("FastTeamChainLoader#loadFromServerOnce", func() error { return err })()
 
-	var lastSeqno keybase1.Seqno
-	var lastLinkID keybase1.LinkID
 	var teamUpdate rawTeam
 	var links []*ChainLinkUnpacked
 	var lastSecretGen keybase1.PerTeamKeyGeneration
 	var seeds []keybase1.PerTeamKeySeed
-	var harg *libkb.LookupTeamHiddenArg
 	var hiddenIsFresh bool
 
-	harg, err = hp.MerkleLoadArg(m)
+	lastSeqno, lastLinkID, hiddenResp, err := f.world.merkleLookupWithHidden(m.Ctx(), arg.ID, arg.Public)
 	if err != nil {
 		return nil, err
 	}
+	if hiddenResp.CommittedHiddenTail != nil {
+		err = hp.SetLastCommittedSeqno(m, hiddenResp.CommittedHiddenTail.Seqno)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if !arg.hiddenChainIsOptional && hiddenResp.RespType == libkb.MerkleHiddenResponseTypeNONE {
+		return nil, libkb.NewHiddenChainDataMissingError("the server did not return the necessary hidden chain data")
+	}
 
-	lastSeqno, lastLinkID, hiddenIsFresh, err = f.world.merkleLookupWithHidden(m.Ctx(), arg.ID, arg.Public, harg)
-
-	if err != nil {
-		return nil, err
+	if hiddenResp.RespType != libkb.MerkleHiddenResponseTypeFLAGOFF && hiddenResp.RespType != libkb.MerkleHiddenResponseTypeNONE {
+		hiddenIsFresh, err = hp.CheckHiddenMerklePathResponseAndAddRatchets(m, hiddenResp)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		hiddenIsFresh = true
 	}
 
 	if shoppingList.onlyNeedsRefresh() && state != nil && state.Chain.Last != nil && state.Chain.Last.Seqno == lastSeqno && hiddenIsFresh {
@@ -843,11 +855,12 @@ func (f *FastTeamChainLoader) loadFromServerOnce(m libkb.MetaContext, arg fastLo
 	m.Debug("loadFromServerOnce: got back %d new links; %d stubbed; %d RKMs; %d prevs; box=%v; lastSecretGen=%d; %d hidden chainlinks", len(links), numStubbed, len(teamUpdate.ReaderKeyMasks), len(teamUpdate.Prevs), teamUpdate.Box != nil, lastSecretGen, len(teamUpdate.HiddenChain))
 
 	return &groceries{
-		newLinks:       links,
-		latestKeyGen:   lastSecretGen,
-		rkms:           teamUpdate.ReaderKeyMasks,
-		seeds:          seeds,
-		newHiddenLinks: teamUpdate.HiddenChain,
+		newLinks:          links,
+		latestKeyGen:      lastSecretGen,
+		rkms:              teamUpdate.ReaderKeyMasks,
+		seeds:             seeds,
+		newHiddenLinks:    teamUpdate.HiddenChain,
+		expMaxHiddenSeqno: hiddenResp.UncommittedSeqno,
 	}, nil
 }
 
@@ -1334,6 +1347,10 @@ func (f *FastTeamChainLoader) processHidden(m libkb.MetaContext, arg fastLoadArg
 		return err
 	}
 	err = hp.CheckParentPointersOnFastLoad(m, state)
+	if err != nil {
+		return err
+	}
+	err = hp.CheckChainHasMinLength(m, groceries.expMaxHiddenSeqno)
 	if err != nil {
 		return err
 	}

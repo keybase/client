@@ -950,23 +950,26 @@ func (o FastTeamData) DeepCopy() FastTeamData {
 type RatchetType int
 
 const (
-	RatchetType_MAIN    RatchetType = 0
-	RatchetType_BLINDED RatchetType = 1
-	RatchetType_SELF    RatchetType = 2
+	RatchetType_MAIN        RatchetType = 0
+	RatchetType_BLINDED     RatchetType = 1
+	RatchetType_SELF        RatchetType = 2
+	RatchetType_UNCOMMITTED RatchetType = 3
 )
 
 func (o RatchetType) DeepCopy() RatchetType { return o }
 
 var RatchetTypeMap = map[string]RatchetType{
-	"MAIN":    0,
-	"BLINDED": 1,
-	"SELF":    2,
+	"MAIN":        0,
+	"BLINDED":     1,
+	"SELF":        2,
+	"UNCOMMITTED": 3,
 }
 
 var RatchetTypeRevMap = map[RatchetType]string{
 	0: "MAIN",
 	1: "BLINDED",
 	2: "SELF",
+	3: "UNCOMMITTED",
 }
 
 func (e RatchetType) String() string {
@@ -998,34 +1001,49 @@ func (o HiddenTeamChainRatchetSet) DeepCopy() HiddenTeamChainRatchetSet {
 }
 
 type HiddenTeamChain struct {
-	Id                TeamID                         `codec:"id" json:"id"`
-	Subversion        int                            `codec:"subversion" json:"subversion"`
-	Public            bool                           `codec:"public" json:"public"`
-	Frozen            bool                           `codec:"frozen" json:"frozen"`
-	Tombstoned        bool                           `codec:"tombstoned" json:"tombstoned"`
-	Last              Seqno                          `codec:"last" json:"last"`
-	LastFull          Seqno                          `codec:"lastFull" json:"lastFull"`
-	LatestSeqnoHint   Seqno                          `codec:"latestSeqnoHint" json:"latestSeqnoHint"`
-	LastPerTeamKeys   map[PTKType]Seqno              `codec:"lastPerTeamKeys" json:"lastPerTeamKeys"`
-	Outer             map[Seqno]LinkID               `codec:"outer" json:"outer"`
-	Inner             map[Seqno]HiddenTeamChainLink  `codec:"inner" json:"inner"`
-	ReaderPerTeamKeys map[PerTeamKeyGeneration]Seqno `codec:"readerPerTeamKeys" json:"readerPerTeamKeys"`
-	RatchetSet        HiddenTeamChainRatchetSet      `codec:"ratchetSet" json:"ratchetSet"`
-	CachedAt          Time                           `codec:"cachedAt" json:"cachedAt"`
-	NeedRotate        bool                           `codec:"needRotate" json:"needRotate"`
-	MerkleRoots       map[Seqno]MerkleRootV2         `codec:"merkleRoots" json:"merkleRoots"`
+	Id                 TeamID                         `codec:"id" json:"id"`
+	Subversion         int                            `codec:"subversion" json:"subversion"`
+	Public             bool                           `codec:"public" json:"public"`
+	Frozen             bool                           `codec:"frozen" json:"frozen"`
+	Tombstoned         bool                           `codec:"tombstoned" json:"tombstoned"`
+	Last               Seqno                          `codec:"last" json:"last"`
+	LastFull           Seqno                          `codec:"lastFull" json:"lastFull"`
+	LatestSeqnoHint    Seqno                          `codec:"latestSeqnoHint" json:"latestSeqnoHint"`
+	LastCommittedSeqno Seqno                          `codec:"lastCommittedSeqno" json:"lastCommittedSeqno"`
+	LinkReceiptTimes   map[Seqno]Time                 `codec:"linkReceiptTimes" json:"linkReceiptTimes"`
+	LastPerTeamKeys    map[PTKType]Seqno              `codec:"lastPerTeamKeys" json:"lastPerTeamKeys"`
+	Outer              map[Seqno]LinkID               `codec:"outer" json:"outer"`
+	Inner              map[Seqno]HiddenTeamChainLink  `codec:"inner" json:"inner"`
+	ReaderPerTeamKeys  map[PerTeamKeyGeneration]Seqno `codec:"readerPerTeamKeys" json:"readerPerTeamKeys"`
+	RatchetSet         HiddenTeamChainRatchetSet      `codec:"ratchetSet" json:"ratchetSet"`
+	CachedAt           Time                           `codec:"cachedAt" json:"cachedAt"`
+	NeedRotate         bool                           `codec:"needRotate" json:"needRotate"`
+	MerkleRoots        map[Seqno]MerkleRootV2         `codec:"merkleRoots" json:"merkleRoots"`
 }
 
 func (o HiddenTeamChain) DeepCopy() HiddenTeamChain {
 	return HiddenTeamChain{
-		Id:              o.Id.DeepCopy(),
-		Subversion:      o.Subversion,
-		Public:          o.Public,
-		Frozen:          o.Frozen,
-		Tombstoned:      o.Tombstoned,
-		Last:            o.Last.DeepCopy(),
-		LastFull:        o.LastFull.DeepCopy(),
-		LatestSeqnoHint: o.LatestSeqnoHint.DeepCopy(),
+		Id:                 o.Id.DeepCopy(),
+		Subversion:         o.Subversion,
+		Public:             o.Public,
+		Frozen:             o.Frozen,
+		Tombstoned:         o.Tombstoned,
+		Last:               o.Last.DeepCopy(),
+		LastFull:           o.LastFull.DeepCopy(),
+		LatestSeqnoHint:    o.LatestSeqnoHint.DeepCopy(),
+		LastCommittedSeqno: o.LastCommittedSeqno.DeepCopy(),
+		LinkReceiptTimes: (func(x map[Seqno]Time) map[Seqno]Time {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[Seqno]Time, len(x))
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.LinkReceiptTimes),
 		LastPerTeamKeys: (func(x map[PTKType]Seqno) map[PTKType]Seqno {
 			if x == nil {
 				return nil
