@@ -28,7 +28,7 @@ const TeamJourney = (props: Props) => {
       <Kb.Box2 key="content" direction="vertical" fullWidth={true} style={styles.content}>
         <Kb.Box2 direction="horizontal" fullWidth={true}>
           <Kb.Box2 direction="horizontal" style={props.image ? styles.text : undefined}>
-            <Kb.Text type="BodySmall">{props.text}</Kb.Text>
+            <Kb.Markdown styleOverride={markdownOverride}>{props.text}</Kb.Markdown>
           </Kb.Box2>
           {!!props.image && <Kb.Icon style={styles.image} type={props.image} />}
         </Kb.Box2>
@@ -71,6 +71,22 @@ const TeamJourneyHeader = (props: HeaderProps) => (
     </Kb.Box2>
   </>
 )
+
+const markdownOverride = {
+  paragraph: Styles.platformStyles({
+    common: {
+      color: Styles.globalColors.black_50,
+      fontWeight: '400',
+    },
+    isElectron: {fontSize: 13, lineHeight: '17px'},
+    isMobile: {fontSize: 14, lineHeight: 18},
+  }),
+  strong: Styles.platformStyles({
+    common: Styles.globalStyles.fontExtrabold,
+    isElectron: {fontSize: 13, lineHeight: '17px'},
+    isMobile: {fontSize: 14, lineHeight: 18},
+  }),
+}
 
 const styles = Styles.styleSheetCreate(
   () =>
