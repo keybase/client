@@ -28,7 +28,7 @@ import {
   ServiceIdWithContact,
   FollowingState,
   SelectedUser,
-  User,
+  SearchResults,
 } from '../constants/types/team-building'
 
 export const numSectionLabel = '0-9'
@@ -115,7 +115,7 @@ export type Props = ContactProps & {
   showRecs: boolean
   showResults: boolean
   showServiceResultCount: boolean
-  teamBuildingSearchResults: {[query: string]: {[service in ServiceIdWithContact]: Array<User>}}
+  teamBuildingSearchResults: SearchResults
   teamSoFar: Array<SelectedUser>
   teamname: string
   waitingForCreate: boolean

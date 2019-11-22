@@ -5,7 +5,7 @@ import * as Styles from '../styles'
 import * as Constants from '../constants/team-building'
 import * as Container from '../util/container'
 import * as TeamBuildingGen from '../actions/team-building-gen'
-import {ServiceIdWithContact, User} from 'constants/types/team-building'
+import * as Types from 'constants/types/team-building'
 import {AllowedNamespace} from '../constants/types/team-building'
 import ContinueButton from './continue-button'
 
@@ -13,7 +13,7 @@ type PhoneSearchProps = {
   continueLabel: string
   namespace: AllowedNamespace
   search: (query: string, service: 'phone') => void
-  teamBuildingSearchResults: {[query: string]: {[service in ServiceIdWithContact]: Array<User>}}
+  teamBuildingSearchResults: Types.SearchResults
 }
 
 const PhoneSearch = (props: PhoneSearchProps) => {
@@ -32,16 +32,9 @@ const PhoneSearch = (props: PhoneSearchProps) => {
     }
   }
 
-  let user: User | null = null
-  if (
-    isPhoneValid &&
-    props.teamBuildingSearchResults &&
-    props.teamBuildingSearchResults[phoneNumber] &&
-    props.teamBuildingSearchResults[phoneNumber].phone &&
-    props.teamBuildingSearchResults[phoneNumber].phone[0]
-  ) {
-    user = props.teamBuildingSearchResults[phoneNumber].phone[0]
-  }
+  const user: Types.User | undefined = isPhoneValid
+    ? props.teamBuildingSearchResults.get(phoneNumber)?.get('phone')?.[0]
+    : undefined
 
   const canSubmit = !!user && !waiting && isPhoneValid
 
