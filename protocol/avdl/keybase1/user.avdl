@@ -207,6 +207,21 @@ protocol user {
     PassphraseState passphraseState;
   }
 
+  record UserBlockedRow {
+    @jsonkey("block_uid")
+    UID uid;
+    @jsonkey("chat")
+    union { null, boolean } chat;
+    @jsonkey("follow")
+    union { null, boolean } follow;
+  }
+
+  // user.blocked gregor message body
+  record UserBlockedGregorBody {
+    @jsonkey("blocks")
+    array<UserBlockedRow> blocks;
+  }
+
   // User Blocking
 
   record UserBlock {
