@@ -93,16 +93,14 @@ export const SubHeader = Container.namedConnect(
     _teamname: Constants.getTeamDetails(state, teamID).teamname,
     _you: state.config.username,
   }),
-  dispatch => ({
-    onAddSelf: (you: string, teamname: string) => {
-      dispatch(appendNewTeamBuilder(teamname))
+  (dispatch, {teamID}) => ({
+    onAddSelf: (you: string) => {
+      dispatch(appendNewTeamBuilder(teamID))
       dispatch(createAddUsersToTeamSoFar({namespace: 'teams', users: [selfToUser(you)]}))
     },
   }),
   (stateProps, dispatchProps) => ({
-    onAddSelf: stateProps._canAddSelf
-      ? () => dispatchProps.onAddSelf(stateProps._you, stateProps._teamname)
-      : null,
+    onAddSelf: stateProps._canAddSelf ? () => dispatchProps.onAddSelf(stateProps._you) : null,
   }),
   'TeamSubHeader'
 )(_SubHeader)
