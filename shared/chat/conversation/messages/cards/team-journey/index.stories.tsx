@@ -38,7 +38,7 @@ Some popular channels in this team:`}
         image={null}
         teamname="foo"
         text={`You are in *#somechan*.
-        Some popular channels in this team:`}
+Some popular channels in this team:`}
       />
     ))
     .add('Add people', () => (
