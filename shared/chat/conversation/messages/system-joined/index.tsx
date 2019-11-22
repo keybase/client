@@ -28,7 +28,7 @@ const Joined = (props: Props) =>
 
 const MultiUserJoinedNotice = (props: Props) => (
   <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.container}>
-    {props.timestamp && (
+    {!!props.timestamp && (
       <Kb.Text type="BodyTiny" style={styles.timestamp}>
         {formatTimeForChat(props.timestamp)}
       </Kb.Text>

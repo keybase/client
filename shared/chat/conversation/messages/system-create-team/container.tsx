@@ -13,8 +13,7 @@ type OwnProps = {
 
 export default Container.connect(
   (state, ownProps: OwnProps) => {
-    const {teamID, teamname} = Constants.getMeta(state, ownProps.message.conversationIDKey)
-    console.warn(teamname, teamID)
+    const {teamID} = Constants.getMeta(state, ownProps.message.conversationIDKey)
     return {
       isAdmin: TeamConstants.isAdmin(TeamConstants.getRole(state, ownProps.message.team)),
       teamID,
