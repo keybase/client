@@ -413,11 +413,22 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 	return res, nil
 }
 
-func (h *Server) limitConvResults(convs []chat1.ConversationLocal, num int) []chat1.ConversationLocal {
-	if len(convs) <= num {
-		return convs
+func (h *Server) limitConvResults(ctx context.Context, uid gregor1.UID, allConvs []types.RemoteConversation,
+	num int) ([]chat1.ConversationLocal, error) {
+	var convs []types.RemoteConversation
+	sort.Slice(allConvs, func(i, j int) bool {
+		return utils.GetConvMtime(allConvs[i]) > utils.GetConvMtime(allConvs[j])
+	})
+	if len(allConvs) <= num {
+		convs = allConvs
+	} else {
+		convs = allConvs[:num]
 	}
-	return convs[:num]
+	locals, _, err := h.G().InboxSource.Localize(ctx, uid, convs, types.ConversationLocalizerBlocking)
+	if err != nil {
+		return nil, err
+	}
+	return locals, nil
 }
 
 func (h *Server) GetInboxSummaryForCLILocal(ctx context.Context, arg chat1.GetInboxSummaryForCLILocalQuery) (res chat1.GetInboxSummaryForCLILocalRes, err error) {
@@ -427,7 +438,8 @@ func (h *Server) GetInboxSummaryForCLILocal(ctx context.Context, arg chat1.GetIn
 	defer h.Trace(ctx, func() error { return err }, "GetInboxSummaryForCLILocal")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
-	if _, err = utils.AssertLoggedInUID(ctx, h.G()); err != nil {
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
 		return chat1.GetInboxSummaryForCLILocalRes{}, err
 	}
 
@@ -446,7 +458,7 @@ func (h *Server) GetInboxSummaryForCLILocal(ctx context.Context, arg chat1.GetIn
 		}
 	}
 
-	var queryBase chat1.GetInboxLocalQuery
+	var queryBase chat1.GetInboxQuery
 	queryBase.ComputeActiveList = true
 	queryBase.OneChatTypePerTLF = new(bool)
 	*queryBase.OneChatTypePerTLF = true
@@ -477,13 +489,15 @@ func (h *Server) GetInboxSummaryForCLILocal(ctx context.Context, arg chat1.GetIn
 		}
 		query := queryBase
 		query.UnreadOnly, query.ReadOnly = true, false
-		if gires, err = h.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
-			Query:            &query,
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-		}); err != nil {
+		ib, err := h.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll, &query)
+		if err != nil {
 			return chat1.GetInboxSummaryForCLILocalRes{}, err
 		}
-		res.Conversations = h.limitConvResults(gires.Conversations, arg.UnreadFirstLimit.AtMost)
+		res.Conversations, err = h.limitConvResults(ctx, uid, ib.ConvsUnverified,
+			arg.UnreadFirstLimit.AtMost)
+		if err != nil {
+			return chat1.GetInboxSummaryForCLILocalRes{}, err
+		}
 
 		more := utils.Collar(
 			arg.UnreadFirstLimit.AtLeast-len(res.Conversations),
@@ -493,12 +507,15 @@ func (h *Server) GetInboxSummaryForCLILocal(ctx context.Context, arg chat1.GetIn
 		if more > 0 {
 			query := queryBase
 			query.UnreadOnly, query.ReadOnly = false, true
-			if gires, err = h.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
-				Query: &query,
-			}); err != nil {
+			ib, err := h.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll, &query)
+			if err != nil {
 				return chat1.GetInboxSummaryForCLILocalRes{}, err
 			}
-			res.Conversations = append(h.limitConvResults(res.Conversations, more), gires.Conversations...)
+			locals, err := h.limitConvResults(ctx, uid, ib.ConvsUnverified, more)
+			if err != nil {
+				return chat1.GetInboxSummaryForCLILocalRes{}, err
+			}
+			res.Conversations = append(locals, gires.Conversations...)
 		}
 	} else {
 		if arg.ActivitySortedLimit <= 0 {
@@ -506,13 +523,14 @@ func (h *Server) GetInboxSummaryForCLILocal(ctx context.Context, arg chat1.GetIn
 		}
 		query := queryBase
 		query.UnreadOnly, query.ReadOnly = false, false
-		if gires, err = h.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
-			Query:            &query,
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-		}); err != nil {
+		ib, err := h.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll, &query)
+		if err != nil {
 			return chat1.GetInboxSummaryForCLILocalRes{}, err
 		}
-		res.Conversations = h.limitConvResults(gires.Conversations, arg.ActivitySortedLimit)
+		res.Conversations, err = h.limitConvResults(ctx, uid, ib.ConvsUnverified, arg.ActivitySortedLimit)
+		if err != nil {
+			return chat1.GetInboxSummaryForCLILocalRes{}, err
+		}
 	}
 	res.Offline = gires.Offline
 	return res, nil
