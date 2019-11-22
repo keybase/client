@@ -11,7 +11,7 @@ const Group = (props: {
   label?: string
   onToggle: (groupName: string, name: string) => void
   onToggleUnsubscribeAll?: () => void
-  settings: Array<Types._NotificationsSettingsState> | null
+  settings: Array<Types.NotificationsSettingsState> | null
   title: string
   unsub?: string
   unsubscribedFromAll: boolean
@@ -65,8 +65,8 @@ const EmailSection = (props: Props) => (
     onToggleUnsubscribeAll={() => props.onToggleUnsubscribeAll('email')}
     title="Email notifications"
     unsub="mail"
-    settings={props.groups.email && props.groups.email.settings}
-    unsubscribedFromAll={props.groups.email && props.groups.email.unsubscribedFromAll}
+    settings={props.groups.get('email')!.settings}
+    unsubscribedFromAll={props.groups.get('email')!.unsubscribedFromAll}
   />
 )
 const PhoneSection = (props: Props) => (
@@ -78,12 +78,12 @@ const PhoneSection = (props: Props) => (
     onToggleUnsubscribeAll={() => props.onToggleUnsubscribeAll('app_push')}
     title="Phone notifications"
     unsub="phone"
-    settings={props.groups.app_push.settings}
-    unsubscribedFromAll={props.groups.app_push.unsubscribedFromAll}
+    settings={props.groups.get('app_push')!.settings}
+    unsubscribedFromAll={props.groups.get('app_push')!.unsubscribedFromAll}
   />
 )
 const Notifications = (props: Props) =>
-  !props.groups || !props.groups.email || !props.groups.email.settings ? (
+  !props.groups || !props.groups.get('email')?.settings ? (
     <Kb.Box2 direction="vertical" style={styles.loading}>
       <Kb.ProgressIndicator type="Small" style={{width: Styles.globalMargins.medium}} />
     </Kb.Box2>
@@ -104,9 +104,7 @@ const Notifications = (props: Props) =>
         </Kb.Box2>
       )}
       <Kb.Divider style={styles.divider} />
-      {(!Styles.isMobile || props.mobileHasPermissions) &&
-      !!props.groups.app_push &&
-      !!props.groups.app_push.settings ? (
+      {(!Styles.isMobile || props.mobileHasPermissions) && !!props.groups.get('app_push')?.settings ? (
         <>
           <PhoneSection {...props} />
           <Kb.Divider style={styles.divider} />
@@ -121,18 +119,16 @@ const Notifications = (props: Props) =>
         )
       )}
 
-      {(!Styles.isMobile || props.mobileHasPermissions) &&
-        !!props.groups.security &&
-        !!props.groups.security.settings && (
-          <Group
-            allowEdit={props.allowEdit}
-            groupName="security"
-            onToggle={props.onToggle}
-            title="Security"
-            settings={props.groups.security.settings}
-            unsubscribedFromAll={false}
-          />
-        )}
+      {(!Styles.isMobile || props.mobileHasPermissions) && !!props.groups.get('security')?.settings && (
+        <Group
+          allowEdit={props.allowEdit}
+          groupName="security"
+          onToggle={props.onToggle}
+          title="Security"
+          settings={props.groups.get('security')!.settings}
+          unsubscribedFromAll={false}
+        />
+      )}
 
       {!Styles.isMobile && !isLinux && (
         <Kb.Box2 direction="vertical" fullWidth={true}>

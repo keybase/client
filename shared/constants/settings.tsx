@@ -8,35 +8,7 @@ import * as RPCTypes from './types/rpc-gen'
 import {RPCError} from 'util/errors'
 import {ContactResponse} from 'expo-contacts'
 
-export const makeNotificationsGroup = I.Record<Types._NotificationsGroupState>({
-  settings: I.List(),
-  unsubscribedFromAll: false,
-})
-
-export const makeNotifications = I.Record<Types._NotificationsState>({
-  allowEdit: false,
-  groups: I.Map(),
-})
-
-export const makeUnfurl = I.Record<Types._ChatUnfurlState>({
-  unfurlError: undefined,
-  unfurlMode: undefined,
-  unfurlWhitelist: I.List(),
-})
-
-export const makeChat = I.Record<Types._ChatState>({
-  unfurl: makeUnfurl(),
-})
-
-export const makeEmail = I.Record<Types._EmailState>({
-  addedEmail: null,
-  addingEmail: null,
-  emails: null,
-  error: '',
-  newEmail: '',
-})
-
-export const makeEmailRow = I.Record<Types._EmailRow>({
+export const makeEmailRow = (): Types.EmailRow => ({
   email: '',
   isPrimary: false,
   isVerified: false,
@@ -44,7 +16,7 @@ export const makeEmailRow = I.Record<Types._EmailRow>({
   visibility: 0,
 })
 
-export const makePhoneRow = I.Record<Types._PhoneRow>({
+export const makePhoneRow = (): Types.PhoneRow => ({
   displayNumber: '',
   e164: '',
   searchable: false,
@@ -54,69 +26,53 @@ export const makePhoneRow = I.Record<Types._PhoneRow>({
 
 export const toPhoneRow = (p: RPCTypes.UserPhoneNumber) => {
   const {e164ToDisplay} = require('../util/phone-numbers')
-  return makePhoneRow({
+  return {
+    ...makePhoneRow(),
     displayNumber: e164ToDisplay(p.phoneNumber),
     e164: p.phoneNumber,
     searchable: p.visibility === RPCTypes.IdentityVisibility.public,
     superseded: p.superseded,
     verified: p.verified,
-  })
+  }
 }
 
-export const makeFeedback = I.Record<Types._FeedbackState>({
-  error: null,
-})
-
-export const makeInvites = I.Record<Types._InvitesState>({
-  acceptedInvites: I.List(),
-  error: null,
-  pendingInvites: I.List(),
-})
-
-export const makePassword = I.Record<Types._PasswordState>({
-  error: null,
-  hasPGPKeyOnServer: null,
-  newPassword: new HiddenString(''),
-  newPasswordConfirm: new HiddenString(''),
-  newPasswordConfirmError: null,
-  newPasswordError: null,
-  randomPW: null,
-  rememberPassword: true,
-})
-
-export const makePhoneNumbers = I.Record<Types._PhoneNumbersState>({
-  addedPhone: false,
-  error: '',
-  pendingVerification: '',
-  phones: null,
-  verificationState: null,
-})
-
-export const makeContacts = I.Record<Types._ContactsState>({
-  alreadyOnKeybase: I.List<RPCTypes.ProcessedContact>(),
-  importEnabled: null,
-  importError: '',
-  importPromptDismissed: false,
-  importedCount: null,
-  permissionStatus: 'unknown',
-  userCountryCode: null,
-  waitingToShowJoinedModal: false,
-})
-
-export const makeState = I.Record<Types._State>({
+export const makeState = (): Types.State => ({
   allowDeleteAccount: false,
-  chat: makeChat(),
-  checkPasswordIsCorrect: null,
-  contacts: makeContacts(),
-  didToggleCertificatePinning: null,
-  email: makeEmail(),
-  feedback: makeFeedback(),
-  invites: makeInvites(),
-  lockdownModeEnabled: null,
-  notifications: makeNotifications(),
-  password: makePassword(),
-  phoneNumbers: makePhoneNumbers(),
-  proxyData: null,
+  chat: {
+    unfurl: {
+      unfurlWhitelist: [],
+    },
+  },
+  contacts: {
+    alreadyOnKeybase: [],
+    importError: '',
+    importPromptDismissed: false,
+    permissionStatus: 'unknown',
+    waitingToShowJoinedModal: false,
+  },
+  email: {
+    error: '',
+    newEmail: '',
+  },
+  feedback: {},
+  invites: {
+    acceptedInvites: [],
+    pendingInvites: [],
+  },
+  notifications: {
+    allowEdit: false,
+    groups: new Map(),
+  },
+  password: {
+    newPassword: new HiddenString(''),
+    newPasswordConfirm: new HiddenString(''),
+    rememberPassword: true,
+  },
+  phoneNumbers: {
+    addedPhone: false,
+    error: '',
+    pendingVerification: '',
+  },
 })
 
 export const getPushTokenForLogSend = (state: TypedState) => ({pushToken: state.push.token})
