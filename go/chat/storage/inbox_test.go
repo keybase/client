@@ -73,14 +73,12 @@ func makeInboxMsg(id chat1.MessageID, typ chat1.MessageType) chat1.MessageBoxed 
 func convListCompare(t *testing.T, ref []types.RemoteConversation, res []types.RemoteConversation,
 	name string) {
 	require.Equal(t, len(ref), len(res), name+" size mismatch")
-	refMap := make(map[string]bool)
+	refMap := make(map[string]types.RemoteConversation)
 	for _, conv := range ref {
-		t.Logf("REF: %s", conv.GetConvID())
-		refMap[conv.GetConvID().String()] = true
+		refMap[conv.GetConvID().String()] = conv
 	}
 	for _, conv := range res {
-		t.Logf("RES: %s", conv.GetConvID())
-		require.True(t, refMap[conv.GetConvID().String()])
+		require.Equal(t, refMap[conv.GetConvID().String()], conv)
 	}
 }
 
