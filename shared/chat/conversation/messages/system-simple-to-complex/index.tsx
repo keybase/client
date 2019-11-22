@@ -39,7 +39,7 @@ class ComplexTeamNotice extends React.PureComponent<Props> {
           direction="vertical"
           alignSelf="flex-start"
           gap="tiny"
-          style={{marginTop: Styles.globalMargins.xtiny, marginLeft: Styles.globalMargins.tiny}}
+          style={{marginLeft: Styles.globalMargins.tiny, marginTop: Styles.globalMargins.xtiny}}
         >
           <Kb.Text type="BodySmall">
             <Kb.Text type="BodySmall" style={styles.bullet}>

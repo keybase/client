@@ -6,7 +6,6 @@ import UserNotice from '../user-notice'
 
 type Props = {
   message: Types.MessageSystemText
-  onClickUserAvatar: (username: string) => void
 }
 
 class SystemText extends React.PureComponent<Props> {

@@ -409,8 +409,8 @@ export const makeMessageSystemCreateTeam = (
   m?: Partial<MessageTypes.MessageSystemCreateTeam>
 ): MessageTypes.MessageSystemCreateTeam => ({
   ...makeMessageCommonNoDeleteNoEdit,
-  reactions: new Map(),
   creator: '',
+  reactions: new Map(),
   team: '',
   type: 'systemCreateTeam',
   ...m,

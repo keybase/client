@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
 import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
 import * as TeamTypes from '../../../../constants/types/teams'
 import UserNotice from '../user-notice'
 import {typeToLabel} from '../../../../constants/teams'
@@ -10,7 +9,6 @@ type Props = {
   message: Types.MessageSystemInviteAccepted
   onViewTeam: () => void
   role: TeamTypes.MaybeTeamRoleType
-  onClickUserAvatar: () => void
   teamname: string
   you: string
 }

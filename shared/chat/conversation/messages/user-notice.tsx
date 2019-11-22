@@ -1,7 +1,5 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
-import {formatTimeForChat} from '../../../util/timestamp'
 
 export type Props = {
   children?: React.ReactNode
