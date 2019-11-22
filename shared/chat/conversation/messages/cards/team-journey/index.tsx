@@ -10,7 +10,7 @@ type Action = {
 type Props = {
   actions: Array<Action>
   image: Kb.IconType | null
-  loadTeam: () => void
+  loadTeam?: () => void
   teamname: string
   text: string
 }
@@ -20,7 +20,9 @@ const TeamJourney = (props: Props) => {
   const {loadTeam, teamname} = props
   // eslint-disable-next-line react-hooks/exhaustive-deps
   React.useEffect(() => {
-    loadTeam()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    !!loadTeam && loadTeam()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
   return (
     <>
