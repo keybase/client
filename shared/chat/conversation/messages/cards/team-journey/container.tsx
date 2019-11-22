@@ -136,8 +136,8 @@ const TeamJourneyConnected = Container.connect(
     const otherChannels = stateProps._channelInfos
       .valueSeq()
       .toArray()
-      .sort((x, y) => y.mtime - x.mtime)
       .filter(info => info.memberStatus !== RPCChatTypes.ConversationMemberStatus.active)
+      .sort((x, y) => y.mtime - x.mtime)
       .map(info => info.channelname)
       .slice(0, Container.isMobile ? 2 : 3)
 

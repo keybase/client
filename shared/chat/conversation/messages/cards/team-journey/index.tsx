@@ -78,12 +78,12 @@ const markdownOverride = {
       color: Styles.globalColors.black_50,
       fontWeight: '400',
     },
-    isElectron: {fontSize: 13, lineHeight: '17px'},
+    isElectron: {fontSize: 13, lineHeight: 17},
     isMobile: {fontSize: 14, lineHeight: 18},
   }),
   strong: Styles.platformStyles({
     common: Styles.globalStyles.fontExtrabold,
-    isElectron: {fontSize: 13, lineHeight: '17px'},
+    isElectron: {fontSize: 13, lineHeight: 17},
     isMobile: {fontSize: 14, lineHeight: 18},
   }),
 }
