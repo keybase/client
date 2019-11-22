@@ -58,7 +58,7 @@ type _FinishBlockUserPayload = {readonly error?: string}
 type _FinishRevokingPayload = void
 type _FinishedWithKeyGenPayload = {readonly shouldStoreKeyOnServer: boolean}
 type _GeneratePgpPayload = void
-type _OnClickAvatarPayload = {readonly username: string; readonly openWebsite?: boolean | null}
+type _OnClickAvatarPayload = {readonly username: string; readonly openWebsite?: boolean}
 type _ProofParamsReceivedPayload = {readonly params: Types.ProveGenericParams}
 type _RecheckProofPayload = {readonly sigID: string}
 type _RevokeFinishPayload = {readonly error?: string}
@@ -69,7 +69,7 @@ type _SubmitRevokeProofPayload = {readonly proofId: string}
 type _SubmitUnblockUserPayload = {readonly username: string; readonly guiID: string}
 type _SubmitUsernamePayload = void
 type _SubmitZcashAddressPayload = void
-type _UpdateErrorTextPayload = {readonly errorText: string; readonly errorCode: number | null}
+type _UpdateErrorTextPayload = {readonly errorText: string; readonly errorCode?: number}
 type _UpdatePgpInfoPayload = {
   readonly pgpEmail1?: string
   readonly pgpEmail2?: string
@@ -84,7 +84,7 @@ type _UpdatePlatformPayload = {readonly platform: More.PlatformsExpandedType}
 type _UpdatePromptShouldStoreKeyOnServerPayload = {readonly promptShouldStoreKeyOnServer: boolean}
 type _UpdateProofStatusPayload = {readonly found: boolean; readonly status: RPCTypes.ProofStatus}
 type _UpdateProofTextPayload = {readonly proof: string}
-type _UpdateSigIDPayload = {readonly sigID: RPCTypes.SigID | null}
+type _UpdateSigIDPayload = {readonly sigID?: RPCTypes.SigID}
 type _UpdateUsernamePayload = {readonly username: string}
 type _UploadAvatarPayload = {readonly filename: string; readonly crop?: RPCTypes.ImageCropRect}
 
@@ -213,7 +213,7 @@ export const createUpdateProofText = (payload: _UpdateProofTextPayload): UpdateP
   payload,
   type: updateProofText,
 })
-export const createUpdateSigID = (payload: _UpdateSigIDPayload): UpdateSigIDPayload => ({
+export const createUpdateSigID = (payload: _UpdateSigIDPayload = Object.freeze({})): UpdateSigIDPayload => ({
   payload,
   type: updateSigID,
 })
