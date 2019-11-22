@@ -513,16 +513,16 @@ func (h *UIInboxLoader) flushLayout(reselectMode chat1.InboxLayoutReselectMode) 
 			h.G().FetchRetrier.Failure(ctx, h.uid, NewFullInboxRetry(h.G(), &q, nil))
 		}
 	}()
-	inbox, err := h.getInboxFromQuery(ctx)
-	if err != nil {
-		return err
-	}
-	layout := h.buildLayout(ctx, inbox, reselectMode)
 	ui, err := h.getChatUI(ctx)
 	if err != nil {
 		h.Debug(ctx, "flushLayout: no chat UI available, skipping send")
 		return nil
 	}
+	inbox, err := h.getInboxFromQuery(ctx)
+	if err != nil {
+		return err
+	}
+	layout := h.buildLayout(ctx, inbox, reselectMode)
 	dat, err := json.Marshal(layout)
 	if err != nil {
 		return err
