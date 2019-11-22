@@ -1231,6 +1231,14 @@ func (h *Server) downloadAttachmentLocal(ctx context.Context, uid gregor1.UID, a
 	}, nil
 }
 
+func (h *Server) presentUIItem(ctx context.Context, uid gregor1.UID, conv *chat1.ConversationLocal) (res *chat1.InboxUIItem) {
+	if conv != nil {
+		pc := utils.PresentConversationLocal(ctx, h.G(), uid, *conv)
+		res = &pc
+	}
+	return res
+}
+
 func (h *Server) CancelPost(ctx context.Context, outboxID chat1.OutboxID) (err error) {
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "CancelPost(%s)", outboxID)()
@@ -1239,13 +1247,24 @@ func (h *Server) CancelPost(ctx context.Context, outboxID chat1.OutboxID) (err e
 		return err
 	}
 	outbox := storage.NewOutbox(h.G(), uid)
-	if err := outbox.RemoveMessage(ctx, outboxID); err != nil {
+	obr, err := outbox.RemoveMessage(ctx, outboxID)
+	if err != nil {
 		return err
 	}
 	// Alert the attachment uploader as well, in case this outboxID corresponds to an attachment upload
 	if err := h.G().AttachmentUploader.Cancel(ctx, outboxID); err != nil {
 		return err
 	}
+	convLocal, err := h.G().InboxSource.IncrementLocalConvVersion(ctx, uid, obr.ConvID)
+	if err != nil {
+		h.Debug(ctx, "CancelPost: failed to get IncrementLocalConvVersion")
+	}
+	act := chat1.NewChatActivityWithFailedMessage(chat1.FailedMessageInfo{
+		OutboxRecords: []chat1.OutboxRecord{obr},
+		Conv:          h.presentUIItem(ctx, uid, convLocal),
+	})
+	h.G().ActivityNotifier.Activity(context.Background(), uid, chat1.TopicType_NONE, &act,
+		chat1.ChatActivitySource_LOCAL)
 	return h.G().Badger.Send(ctx)
 }
 

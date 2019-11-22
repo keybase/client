@@ -177,6 +177,7 @@ type InboxSource interface {
 		msgID *chat1.MessageID) error
 	Draft(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, text *string) error
 	NotifyUpdate(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID)
+	IncrementLocalConvVersion(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (*chat1.ConversationLocal, error)
 	MergeLocalMetadata(ctx context.Context, uid gregor1.UID, convs []chat1.ConversationLocal) error
 
 	Sync(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convs []chat1.Conversation) (InboxSyncRes, error)
