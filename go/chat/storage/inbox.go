@@ -1092,7 +1092,7 @@ func (i *Inbox) NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.Inbo
 	}
 
 	// Find conversation
-	index, conv := i.getConv(convID, ibox.Conversations)
+	_, conv := i.getConv(convID, ibox.Conversations)
 	if conv == nil {
 		i.Debug(ctx, "NewMessage: no conversation found: convID: %s", convID)
 		// Write out to disk
@@ -1160,11 +1160,6 @@ func (i *Inbox) NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.Inbo
 	if mconv.GetTopicType() == chat1.TopicType_CHAT {
 		defer i.layoutNotifier.UpdateLayoutFromNewMessage(ctx, mconv)
 	}
-	i.Debug(ctx, "NewMessage: promoting convID: %s to the top of %d convs", convID,
-		len(ibox.Conversations))
-	ibox.Conversations = append(ibox.Conversations[:index], ibox.Conversations[index+1:]...)
-	ibox.Conversations = append([]types.RemoteConversation{mconv}, ibox.Conversations...)
-
 	// Write out to disk
 	ibox.InboxVersion = vers
 	return i.writeDiskInbox(ctx, uid, ibox)
