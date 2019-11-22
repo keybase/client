@@ -7,7 +7,7 @@ import * as AutoresetGen from '../../actions/autoreset-gen'
 
 type OwnProps = {}
 
-export default Container.connect(
+export default Container.connectDEBUG(
   (state: Container.TypedState) => ({
     devices: state.provision.devices,
     username: state.provision.username,

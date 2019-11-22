@@ -2,12 +2,12 @@ import * as DeviceTypes from './devices'
 import HiddenString from '../../util/hidden-string'
 import {RPCError} from '../../util/errors'
 
-export type Device = {
+export type Device = Readonly<{
   deviceNumberOfType: number
   id: DeviceTypes.DeviceID
   name: string
   type: DeviceTypes.DeviceType
-}
+}>
 
 export type State = Readonly<{
   codePageOtherDevice: Device
@@ -24,7 +24,7 @@ export type State = Readonly<{
   username: string
   initialUsername: string
   deviceName: string
-  devices: ReadonlyArray<Device>
+  devices: Array<Device>
   gpgImportError?: string
   existingDevices: Array<string>
 }>
