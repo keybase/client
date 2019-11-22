@@ -429,9 +429,6 @@ func (i *Inbox) MergeLocalMetadata(ctx context.Context, uid gregor1.UID, convs [
 		}
 	}
 
-	// Make sure that the inbox is in the write order before writing out
-	sort.Sort(ByDatabaseOrder(ibox.Conversations))
-
 	// Write out new inbox
 	return i.writeDiskInbox(ctx, uid, ibox)
 }
@@ -485,9 +482,6 @@ func (i *Inbox) Merge(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers
 		Conversations: i.mergeConvs(utils.RemoteConvs(convs), ibox.Conversations),
 		Queries:       append(ibox.Queries, qp),
 	}
-
-	// Make sure that the inbox is in the write order before writing out
-	sort.Sort(ByDatabaseOrder(data.Conversations))
 
 	// Write out new inbox
 	return i.writeDiskInbox(ctx, uid, data)
@@ -620,6 +614,7 @@ func (i *Inbox) applyPagination(ctx context.Context, convs []types.RemoteConvers
 	hasnext := len(p.Next) > 0
 	hasprev := len(p.Previous) > 0
 	i.Debug(ctx, "applyPagination: num: %d", num)
+	sort.Sort(ByDatabaseOrder(convs))
 	if hasnext {
 		if err := decode(p.Next, &pnext); err != nil {
 			return nil, nil, RemoteError{Msg: "applyPagination: failed to decode pager: " + err.Error()}
@@ -1687,7 +1682,6 @@ func (i *Inbox) Sync(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 			Conv: conv,
 		})
 	}
-	sort.Sort(ByDatabaseOrder(ibox.Conversations))
 
 	i.Debug(ctx, "Sync: old vers: %v new vers: %v convs: %d", oldVers, ibox.InboxVersion, len(convs))
 	if err = i.writeDiskInbox(ctx, uid, ibox); err != nil {
@@ -1789,7 +1783,6 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 		}
 		ibox.Conversations = append(ibox.Conversations, conv)
 	}
-	sort.Sort(ByDatabaseOrder(ibox.Conversations))
 
 	// Update all lists with other people joining and leaving
 	convMap := make(map[string]*types.RemoteConversation)
