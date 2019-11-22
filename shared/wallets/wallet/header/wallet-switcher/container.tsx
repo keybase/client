@@ -7,7 +7,7 @@ import * as Types from '../../../../constants/types/wallets'
 import {WalletSwitcher} from '.'
 
 type OwnProps = {
-  getAttachmentRef?: (() => React.Component<any>) | null
+  getAttachmentRef?: () => React.Component<any> | null
   showingMenu: boolean
   hideMenu: () => void
 }
@@ -54,5 +54,4 @@ export default Container.connect(
     onWhatIsStellar: dispatchProps.onWhatIsStellar,
     ...ownProps,
   })
-  // TODO fix
-)(WalletSwitcher) as any
+)(WalletSwitcher)
