@@ -118,11 +118,7 @@ export default Container.makeReducer<ProfileGen.Actions, Types.State>(initialSta
   },
   [ProfileGen.proofParamsReceived]: (draftState, action) => {
     const {params} = action.payload
-    draftState.platformGenericParams = {
-      ...params,
-      logoBlack: [...params.logoBlack],
-      logoFull: [...params.logoFull],
-    }
+    draftState.platformGenericParams = params
   },
   [ProfileGen.updatePlatformGenericURL]: (draftState, action) => {
     draftState.platformGenericURL = action.payload.url
