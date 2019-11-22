@@ -15,8 +15,8 @@ const bullet = '\u2022 '
 
 class ComplexTeamNotice extends React.PureComponent<Props> {
   render() {
-    const {team, author} = this.props.message
-    const {you, onManageChannels} = this.props
+    const {you, onManageChannels, message} = this.props
+    const {team, author} = message
     const authorComponent =
       author === you ? (
         'You'

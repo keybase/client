@@ -23,20 +23,15 @@ const ManageComponent = (props: Props) => {
   }
 }
 
-const youOrUsername = (props: {creator: string; you: string}) => {
-  if (props.creator === props.you) return 'You '
-  return ''
-}
+const youOrUsername = (props: {creator: string; you: string}) => (props.creator === props.you ? 'You ' : '')
 
-const CreateTeam = (props: Props) => {
-  return (
-    <UserNotice>
-      <Kb.Text type="BodySmall">
-        {youOrUsername(props)}created the team <Kb.Text type="BodySmallBold">{props.team}</Kb.Text>
-      </Kb.Text>
-      <ManageComponent {...props} />
-    </UserNotice>
-  )
-}
+const CreateTeam = (props: Props) => (
+  <UserNotice>
+    <Kb.Text type="BodySmall">
+      {youOrUsername(props)}created the team <Kb.Text type="BodySmallBold">{props.team}</Kb.Text>
+    </Kb.Text>
+    <ManageComponent {...props} />
+  </UserNotice>
+)
 
 export default CreateTeam
