@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import HiddenString from '../../util/hidden-string'
 import * as StellarRPCTypes from './rpc-stellar-gen'
 import * as TeamBuildingTypes from './team-building'
@@ -83,7 +82,7 @@ export type Currency = {
   name: string
 }
 
-export type _Building = {
+export type Building = {
   amount: string
   bid: string
   currency: string
@@ -96,7 +95,7 @@ export type _Building = {
   to: string
 }
 
-export type _BuildingAdvanced = {
+export type BuildingAdvanced = {
   recipient: string
   recipientAmount: string
   recipientAsset: AssetDescriptionOrNative
@@ -107,17 +106,17 @@ export type _BuildingAdvanced = {
   secretNote: HiddenString
 }
 
-export type _PaymentPath = {
+export type PaymentPath = {
   sourceAmount: string
   sourceAmountMax: string
   sourceAsset: AssetDescriptionOrNative
   sourceInsufficientBalance: string // empty if sufficient
-  path: I.List<AssetDescriptionOrNative>
+  path: Array<AssetDescriptionOrNative>
   destinationAmount: string
   destinationAsset: AssetDescriptionOrNative
 }
 
-export type _BuiltPaymentAdvanced = {
+export type BuiltPaymentAdvanced = {
   amountError: string
   destinationAccount: AccountID
   destinationDisplay: string
@@ -129,7 +128,7 @@ export type _BuiltPaymentAdvanced = {
   sourceMaxDisplay: string
 }
 
-export type _BuiltPayment = {
+export type BuiltPayment = {
   amountAvailable: string
   amountErrMsg: string
   builtBanners: Array<StellarRPCTypes.SendBannerLocal> | null
@@ -150,7 +149,7 @@ export type _BuiltPayment = {
   sendingIntentionXLM: boolean
 }
 
-export type _BuiltRequest = {
+export type BuiltRequest = {
   amountErrMsg: string
   builtBanners?: Array<StellarRPCTypes.SendBannerLocal> | null
   readyToRequest: boolean
@@ -263,15 +262,6 @@ export type Banner = {
   sendFailed?: boolean
   offerAdvancedSendForm?: StellarRPCTypes.AdvancedBanner
 }
-
-export type Building = I.RecordOf<_Building>
-export type BuildingAdvanced = I.RecordOf<_BuildingAdvanced>
-export type PaymentPath = I.RecordOf<_PaymentPath>
-export type BuiltPaymentAdvanced = I.RecordOf<_BuiltPaymentAdvanced>
-
-export type BuiltPayment = I.RecordOf<_BuiltPayment>
-
-export type BuiltRequest = I.RecordOf<_BuiltRequest>
 
 export type Account = {
   accountID: AccountID

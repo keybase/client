@@ -589,11 +589,11 @@ export default function(
       return action.payload.forSEP7
         ? state.set(
             'sep7ConfirmPath',
-            Constants.makeBuiltPaymentAdvanced(action.payload.builtPaymentAdvanced)
+            Constants.makeBuiltPaymentAdvanced(action.payload.builtPaymentAdvanced as any)
           )
         : state.set(
             'builtPaymentAdvanced',
-            Constants.makeBuiltPaymentAdvanced(action.payload.builtPaymentAdvanced)
+            Constants.makeBuiltPaymentAdvanced(action.payload.builtPaymentAdvanced as any)
           )
     case WalletsGen.staticConfigLoaded:
       return state.set('staticConfig', I.Record(action.payload.staticConfig)())

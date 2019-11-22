@@ -75,24 +75,26 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [WalletsGen.builtPaymentReceived]: (draftState, action) => {
     if (action.payload.forBuildCounter === draftState.buildCounter) {
-      draftState.builtPayment = draftState.builtPayment.merge(
-        Constants.makeBuiltPayment(action.payload.build)
-      )
+      draftState.builtPayment = {
+        ...draftState.builtPayment,
+        ...Constants.makeBuiltPayment(action.payload.build),
+      }
     }
   },
   [WalletsGen.builtRequestReceived]: (draftState, action) => {
     if (action.payload.forBuildCounter === draftState.buildCounter) {
-      draftState.builtRequest = draftState.builtRequest.merge(
-        Constants.makeBuiltRequest(action.payload.build)
-      )
+      draftState.builtRequest = {
+        ...draftState.builtRequest,
+        ...Constants.makeBuiltRequest(action.payload.build),
+      }
     }
   },
   [WalletsGen.openSendRequestForm]: (draftState, action) => {
     if (!draftState.acceptedDisclaimer) {
       return
     }
-    const initialBuilding = Constants.makeBuilding()
-    draftState.building = initialBuilding.merge({
+    draftState.building = {
+      ...Constants.makeBuilding(),
       amount: action.payload.amount || '',
       currency:
         action.payload.currency || // explicitly set
@@ -107,7 +109,7 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
       recipientType: action.payload.recipientType || 'keybaseUser',
       secretNote: action.payload.secretNote || new HiddenString(''),
       to: action.payload.to || '',
-    })
+    }
     draftState.builtPayment = Constants.makeBuiltPayment()
     draftState.builtRequest = Constants.makeBuiltRequest()
     draftState.sentPaymentError = ''
@@ -199,7 +201,7 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
     draftState.accountMap.set(account.accountID, {...account, displayCurrency: action.payload.currency})
   },
   [WalletsGen.reviewPayment]: draftState => {
-    draftState.builtPayment = draftState.builtPayment.set('reviewBanners', [])
+    draftState.builtPayment.reviewBanners = []
     draftState.reviewCounter++
     draftState.reviewLastSeqno = undefined
   },
@@ -215,10 +217,8 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
       return
     }
 
-    draftState.builtPayment = draftState.builtPayment.merge({
-      readyToSend: nextButton,
-      reviewBanners: banners,
-    })
+    draftState.builtPayment.readyToSend = nextButton
+    draftState.builtPayment.reviewBanners = banners ?? null
     draftState.reviewLastSeqno = seqno
   },
   [WalletsGen.secretKeyReceived]: (draftState, action) => {
@@ -245,115 +245,91 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
     draftState.paymentsMap.delete(old)
   },
   [WalletsGen.setBuildingAmount]: (draftState, action) => {
-    const {amount} = action.payload
-    draftState.building = draftState.building.merge({amount})
-    draftState.builtPayment = draftState.builtPayment.merge({
-      amountErrMsg: '',
-      worthDescription: '',
-      worthInfo: '',
-    })
-    draftState.builtRequest = draftState.builtRequest.merge({
-      amountErrMsg: '',
-      worthDescription: '',
-      worthInfo: '',
-    })
+    draftState.building.amount = action.payload.amount
+    draftState.builtPayment.amountErrMsg = ''
+    draftState.builtPayment.worthDescription = ''
+    draftState.builtPayment.worthInfo = ''
+    draftState.builtRequest.amountErrMsg = ''
+    draftState.builtRequest.worthDescription = ''
+    draftState.builtRequest.worthInfo = ''
   },
   [WalletsGen.setBuildingCurrency]: (draftState, action) => {
-    const {currency} = action.payload
-    draftState.building = draftState.building.merge({currency})
+    draftState.building.currency = action.payload.currency
     draftState.builtPayment = Constants.makeBuiltPayment()
   },
   [WalletsGen.setBuildingFrom]: (draftState, action) => {
-    const {from} = action.payload
-    draftState.building = draftState.building.merge({from})
+    draftState.building.from = action.payload.from
     draftState.builtPayment = Constants.makeBuiltPayment()
   },
   [WalletsGen.setBuildingIsRequest]: (draftState, action) => {
-    const {isRequest} = action.payload
-    draftState.building = draftState.building.merge({isRequest})
+    draftState.building.isRequest = action.payload.isRequest
     draftState.builtPayment = Constants.makeBuiltPayment()
     draftState.builtRequest = Constants.makeBuiltRequest()
   },
   [WalletsGen.setBuildingPublicMemo]: (draftState, action) => {
-    const {publicMemo} = action.payload
-    draftState.building = draftState.building.merge({publicMemo})
-    draftState.builtPayment = draftState.builtPayment.merge({publicMemoErrMsg: new HiddenString('')})
+    draftState.building.publicMemo = action.payload.publicMemo
+    draftState.builtPayment.publicMemoErrMsg = new HiddenString('')
   },
   [WalletsGen.setBuildingRecipientType]: (draftState, action) => {
-    const {recipientType} = action.payload
-    draftState.building = draftState.building.merge({recipientType})
+    draftState.building.recipientType = action.payload.recipientType
     draftState.builtPayment = Constants.makeBuiltPayment()
   },
   [WalletsGen.setBuildingSecretNote]: (draftState, action) => {
-    const {secretNote} = action.payload
-    draftState.building = draftState.building.merge({secretNote})
-    draftState.builtPayment = draftState.builtPayment.merge({secretNoteErrMsg: new HiddenString('')})
-    draftState.builtRequest = draftState.builtRequest.merge({secretNoteErrMsg: new HiddenString('')})
+    draftState.building.secretNote = action.payload.secretNote
+    draftState.builtPayment.secretNoteErrMsg = new HiddenString('')
+    draftState.builtRequest.secretNoteErrMsg = new HiddenString('')
   },
   [WalletsGen.setBuildingTo]: (draftState, action) => {
-    const {to} = action.payload
-    draftState.building = draftState.building.merge({to})
-    draftState.builtPayment = draftState.builtPayment.merge({toErrMsg: ''})
-    draftState.builtRequest = draftState.builtRequest.merge({toErrMsg: ''})
+    draftState.building.to = action.payload.to
+    draftState.builtPayment.toErrMsg = ''
+    draftState.builtRequest.toErrMsg = ''
   },
   [WalletsGen.clearBuildingAdvanced]: draftState => {
     draftState.buildingAdvanced = Constants.emptyBuildingAdvanced
     draftState.builtPaymentAdvanced = Constants.emptyBuiltPaymentAdvanced
   },
   [WalletsGen.setBuildingAdvancedRecipient]: (draftState, action) => {
-    draftState.buildingAdvanced = draftState.buildingAdvanced.set('recipient', action.payload.recipient)
+    draftState.buildingAdvanced.recipient = action.payload.recipient
   },
   [WalletsGen.setBuildingAdvancedRecipientAmount]: (draftState, action) => {
-    draftState.buildingAdvanced = draftState.buildingAdvanced.set(
-      'recipientAmount',
-      action.payload.recipientAmount
-    )
+    draftState.buildingAdvanced.recipientAmount = action.payload.recipientAmount
     draftState.builtPaymentAdvanced = Constants.emptyBuiltPaymentAdvanced
   },
   [WalletsGen.setBuildingAdvancedRecipientAsset]: (draftState, action) => {
-    draftState.buildingAdvanced = draftState.buildingAdvanced.set(
-      'recipientAsset',
-      action.payload.recipientAsset
-    )
+    draftState.buildingAdvanced.recipientAsset = action.payload.recipientAsset
     draftState.builtPaymentAdvanced = Constants.emptyBuiltPaymentAdvanced
   },
   [WalletsGen.setBuildingAdvancedRecipientType]: (draftState, action) => {
-    draftState.buildingAdvanced = draftState.buildingAdvanced.set(
-      'recipientType',
-      action.payload.recipientType
-    )
+    draftState.buildingAdvanced.recipientType = action.payload.recipientType
   },
   [WalletsGen.setBuildingAdvancedPublicMemo]: (draftState, action) => {
-    draftState.buildingAdvanced = draftState.buildingAdvanced.set('publicMemo', action.payload.publicMemo)
+    draftState.buildingAdvanced.publicMemo = action.payload.publicMemo
     // TODO PICNIC-142 clear error when we have that
   },
   [WalletsGen.setBuildingAdvancedSenderAccountID]: (draftState, action) => {
-    draftState.buildingAdvanced = draftState.buildingAdvanced.set(
-      'senderAccountID',
-      action.payload.senderAccountID
-    )
+    draftState.buildingAdvanced.senderAccountID = action.payload.senderAccountID
   },
   [WalletsGen.setBuildingAdvancedSenderAsset]: (draftState, action) => {
-    draftState.buildingAdvanced = draftState.buildingAdvanced.set('senderAsset', action.payload.senderAsset)
+    draftState.buildingAdvanced.senderAsset = action.payload.senderAsset
     draftState.builtPaymentAdvanced = Constants.emptyBuiltPaymentAdvanced
   },
   [WalletsGen.setBuildingAdvancedSecretNote]: (draftState, action) => {
-    draftState.buildingAdvanced = draftState.buildingAdvanced.set('secretNote', action.payload.secretNote)
+    draftState.buildingAdvanced.secretNote = action.payload.secretNote
     // TODO PICNIC-142 clear error when we have that
   },
   [WalletsGen.sendAssetChoicesReceived]: (draftState, action) => {
     const {sendAssetChoices} = action.payload
-    draftState.building = draftState.building.merge({sendAssetChoices})
+    draftState.building.sendAssetChoices = sendAssetChoices
   },
   [WalletsGen.buildingPaymentIDReceived]: (draftState, action) => {
     const {bid} = action.payload
-    draftState.building = draftState.building.merge({bid})
+    draftState.building.bid = bid
   },
   [WalletsGen.setLastSentXLM]: (draftState, action) => {
     draftState.lastSentXLM = action.payload.lastSentXLM
   },
   [WalletsGen.setReadyToReview]: (draftState, action) => {
-    draftState.builtPayment = draftState.builtPayment.merge({readyToReview: action.payload.readyToReview})
+    draftState.builtPayment.readyToReview = action.payload.readyToReview
   },
   [WalletsGen.validateAccountName]: (draftState, action) => {
     draftState.accountName = action.payload.name
@@ -388,7 +364,7 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
     draftState.accountName = ''
     draftState.accountNameError = ''
     draftState.accountNameValidationState = 'none'
-    draftState.builtPayment = draftState.builtPayment.merge({readyToSend: 'spinning'})
+    draftState.builtPayment.readyToSend = 'spinning'
     draftState.changeTrustlineError = ''
     draftState.createNewAccountError = ''
     draftState.linkExistingAccountError = ''
@@ -668,8 +644,11 @@ const doubleCheck = (
         ? I.List(state.airdropQualifications.map(q => ConstantsOLD.makeAirdropQualification(q)))
         : undefined,
       assetsMap: state ? I.Map(mapToObject(state.assetsMap)) : undefined,
+      building: ConstantsOLD.makeBuilding(state?.building),
       buildingAdvanced: ConstantsOLD.makeBuildingAdvanced(state?.buildingAdvanced as any),
+      builtPayment: ConstantsOLD.makeBuiltPayment(state?.builtPayment),
       builtPaymentAdvanced: ConstantsOLD.makeBuiltPaymentAdvanced(state?.builtPaymentAdvanced as any),
+      builtRequest: ConstantsOLD.makeBuiltRequest(state?.builtRequest),
       currencies: I.List(state?.currencies.map(c => Constants.makeCurrency(c as any)) || []) as any,
       externalPartners: state ? I.List(state.externalPartners) : undefined,
       mobileOnlyMap: state ? I.Map(mapToObject(state.mobileOnlyMap)) : undefined,
