@@ -19,7 +19,7 @@ const TeamJourney = (props: Props) => {
   // Load the team once on mount for its channel list if required.
   const {loadTeam, teamname} = props
   React.useEffect(() => {
-    !!loadTeam && loadTeam()
+    loadTeam?.()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
   return (

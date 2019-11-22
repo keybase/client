@@ -38,7 +38,7 @@ const TeamJourneyContainer = (props: Props) => {
   let text = ''
   let image: Kb.IconType | null = null
   let actions: Array<Action> = []
-  let loadTeam: (() => void) | undefined = undefined
+  let loadTeam: (() => void) | undefined
 
   switch (props.message.cardType) {
     case RPCChatTypes.JourneycardType.welcome:
