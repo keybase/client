@@ -4,7 +4,13 @@ import * as React from 'react'
 import unidecode from 'unidecode'
 import debounce from 'lodash/debounce'
 import trim from 'lodash/trim'
-import TeamBuilding, {RolePickerProps, SearchResult, SearchRecSection, numSectionLabel} from '.'
+import TeamBuilding, {
+  RolePickerProps,
+  SearchResult,
+  SearchRecSection,
+  numSectionLabel,
+  Props as TeamBuildingProps,
+} from '.'
 import RolePickerHeaderAction from './role-picker-header-action'
 import * as WaitingConstants from '../constants/waiting'
 import * as ChatConstants from '../constants/chat2'
@@ -456,11 +462,14 @@ const flattenRecommendations = memoize((recommendations: Array<SearchRecSection>
   return result
 })
 
+type TeamBuildingPropsPlusSome = TeamBuildingProps & {
+  [key: string]: any
+}
 const mergeProps = (
   stateProps: ReturnType<typeof mapStateToProps>,
   dispatchProps: ReturnType<typeof mapDispatchToProps>,
   ownProps: OwnProps
-) => {
+): TeamBuildingPropsPlusSome => {
   const {
     teamSoFar,
     searchResults,
@@ -481,11 +490,11 @@ const mergeProps = (
     contactsImported: stateProps.contactsImported,
     contactsPermissionStatus: stateProps.contactsPermissionStatus,
     isImportPromptDismissed: stateProps.isImportPromptDismissed,
-    numContactsImported: stateProps.numContactsImported,
+    numContactsImported: stateProps.numContactsImported || 0,
     onAskForContactsLater: dispatchProps.onAskForContactsLater,
     onImportContacts:
       stateProps.contactsPermissionStatus === 'never_ask_again'
-        ? null
+        ? undefined
         : stateProps.contactsPermissionStatus === 'granted'
         ? dispatchProps._onImportContactsPermissionsGranted
         : dispatchProps._onImportContactsPermissionsNotGranted,
@@ -522,7 +531,7 @@ const mergeProps = (
     ownProps.incFocusInputCounter
   )
 
-  const rolePickerProps: RolePickerProps | null =
+  const rolePickerProps: RolePickerProps | undefined =
     ownProps.namespace === 'teams'
       ? {
           changeSendNotification: dispatchProps.onChangeSendNotification,
@@ -533,7 +542,7 @@ const mergeProps = (
           sendNotification: stateProps.sendNotification,
           showRolePicker: ownProps.showRolePicker,
         }
-      : null
+      : undefined
 
   // TODO this should likely live with the role picker if we need this
   // functionality elsewhere. Right now it's easier to keep here since the input

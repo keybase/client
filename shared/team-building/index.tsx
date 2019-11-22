@@ -77,12 +77,12 @@ export type RolePickerProps = {
 }
 
 type ContactProps = {
-  contactsImported: boolean | null
+  contactsImported: boolean | undefined
   contactsPermissionStatus: string
   isImportPromptDismissed: boolean
   numContactsImported: number
   onAskForContactsLater: () => void
-  onImportContacts: () => void
+  onImportContacts: (() => void) | undefined
   onLoadContactsSetting: () => void
   selectedService: ServiceIdWithContact
 }
@@ -109,7 +109,7 @@ export type Props = ContactProps & {
   onClose: () => void
   recommendations: Array<SearchRecSection> | null
   search: (query: string, service: ServiceIdWithContact) => void
-  searchResults: Array<SearchResult> | null
+  searchResults: Array<SearchResult> | undefined
   searchString: string
   serviceResultCount: {[K in ServiceIdWithContact]?: number | null}
   showRecs: boolean
@@ -117,7 +117,7 @@ export type Props = ContactProps & {
   showServiceResultCount: boolean
   teamBuildingSearchResults: SearchResults
   teamSoFar: Array<SelectedUser>
-  teamname: string
+  teamname: string | undefined
   waitingForCreate: boolean
   rolePickerProps?: RolePickerProps
   title: string
@@ -137,7 +137,7 @@ const ContactsBanner = (props: ContactProps & {onRedoSearch: () => void; onRedoR
   // Ensure that we know whether contacts are loaded, and if not, that we load
   // the current config setting.
   React.useEffect(() => {
-    if (props.contactsImported === null) {
+    if (props.contactsImported === undefined) {
       props.onLoadContactsSetting()
     }
   }, [props, props.contactsImported, props.onLoadContactsSetting])
@@ -145,11 +145,12 @@ const ContactsBanner = (props: ContactProps & {onRedoSearch: () => void; onRedoR
   // If we've imported contacts already, or the user has dismissed the message,
   // then there's nothing for us to do.
   if (
-    props.contactsImported === null ||
+    props.contactsImported === undefined ||
     props.selectedService !== 'keybase' ||
     props.contactsImported ||
     props.isImportPromptDismissed ||
-    props.contactsPermissionStatus === 'never_ask_again'
+    props.contactsPermissionStatus === 'never_ask_again' ||
+    !props.onImportContacts
   )
     return null
 
@@ -184,7 +185,7 @@ const ContactsBanner = (props: ContactProps & {onRedoSearch: () => void; onRedoR
 const ContactsImportButton = (props: ContactProps) => {
   // If we've imported contacts already, then there's nothing for us to do.
   if (
-    props.contactsImported === null ||
+    props.contactsImported === undefined ||
     props.contactsImported ||
     !props.isImportPromptDismissed ||
     props.contactsPermissionStatus === 'never_ask_again'
