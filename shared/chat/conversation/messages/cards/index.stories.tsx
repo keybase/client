@@ -8,7 +8,7 @@ import MakeTeam from './make-team'
 const load = () => {
   Sb.storiesOf('Chat/Conversation/Cards', module)
     .addDecorator(story => (
-      <Kb.Box2 direction="vertical" style={{ backgroundColor: 'lightGrey', padding: 20, width: 500 }}>
+      <Kb.Box2 direction="vertical" style={{backgroundColor: 'lightGrey', padding: 20, width: 500}}>
         {story()}
       </Kb.Box2>
     ))
