@@ -140,7 +140,7 @@ const getTeamRetentionPolicy = async (
 ) => {
   const {teamname} = action.payload
   const teamID = Constants.getTeamID(state, teamname)
-  if (!teamID) {
+  if (teamID === Types.noTeamID) {
     const errMsg = `getTeamRetentionPolicy: Unable to find teamID for teamname ${teamname}`
     logger.error(errMsg)
     return
@@ -174,7 +174,7 @@ const saveTeamRetentionPolicy = (
 
   // get teamID
   const teamID = Constants.getTeamID(state, teamname)
-  if (!teamID) {
+  if (teamID === Types.noTeamID) {
     const errMsg = `saveTeamRetentionPolicy: Unable to find teamID for teamname ${teamname}`
     logger.error(errMsg)
     throw new Error(errMsg)
@@ -281,15 +281,16 @@ const addReAddErrorHandler = (username, e) => {
   return undefined
 }
 
-const addToTeam = async (_: TypedState, action: TeamsGen.AddToTeamPayload) => {
+const addToTeam = async (state: TypedState, action: TeamsGen.AddToTeamPayload) => {
   const {teamname, username, role, sendChatNotification} = action.payload
+  const teamID = Constants.getTeamID(state, teamname) // TODO get this from action
   try {
     await RPCTypes.teamsTeamAddMemberRpcPromise(
       {
         email: '',
-        name: teamname,
         role: role ? RPCTypes.TeamRole[role] : RPCTypes.TeamRole.none,
         sendChatNotification,
+        teamID,
         username,
       },
       addToTeamWaitingKeys(teamname, username)
@@ -489,9 +490,9 @@ function* createNewTeamFromConversation(
           yield RPCTypes.teamsTeamAddMemberRpcPromise(
             {
               email: '',
-              name: teamname,
               role: username === me ? RPCTypes.TeamRole.admin : RPCTypes.TeamRole.writer,
               sendChatNotification: true,
+              teamID: createRes.teamID,
               username,
             },
             Constants.teamCreationWaitingKey
@@ -592,18 +593,24 @@ function* getDetails(_: TypedState, action: TeamsGen.GetDetailsPayload, logger: 
   }
 }
 
-function* addUserToTeams(_: TypedState, action: TeamsGen.AddUserToTeamsPayload) {
+function* addUserToTeams(state: TypedState, action: TeamsGen.AddUserToTeamsPayload, logger: Saga.SagaLogger) {
   const {role, teams, user} = action.payload
   const teamsAddedTo: Array<string> = []
   const errorAddingTo: Array<string> = []
   for (const team of teams) {
     try {
+      const teamID = Constants.getTeamID(state, team)
+      if (teamID === Types.noTeamID) {
+        logger.warn(`no team ID found for ${team}`)
+        errorAddingTo.push(team)
+        continue
+      }
       yield RPCTypes.teamsTeamAddMemberRpcPromise(
         {
           email: '',
-          name: team,
           role: RPCTypes.TeamRole[role],
           sendChatNotification: true,
+          teamID,
           username: user,
         },
         [Constants.teamWaitingKey(team), Constants.addUserToTeamsWaitingKey(user)]
