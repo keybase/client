@@ -1,12 +1,12 @@
 {
   "prelude": [
     "import * as Types from '../constants/types/team-building'",
-    "import {TeamRoleType} from '../constants/types/teams'"
+    "import {TeamRoleType, TeamID} from '../constants/types/teams'"
   ],
   "actions": {
     "fetchedUserRecs": {"namespace": "Types.AllowedNamespace", "users": "Array<Types.User>"},
     "fetchUserRecs": {"includeContacts": "boolean", "namespace": "Types.AllowedNamespace"},
-    "finishedTeamBuilding": {"namespace": "Types.AllowedNamespace", "teamname?": "string"},
+    "finishedTeamBuilding": {"namespace": "Types.AllowedNamespace", "teamID?": "TeamID"},
     "cancelTeamBuilding": {"namespace": "Types.AllowedNamespace"},
     "search": {
       "includeContacts": "boolean",
@@ -36,8 +36,8 @@
     },
     "labelsSeen": {"namespace": "Types.AllowedNamespace"},
     "tbResetStore": {
-        "namespace": "Types.AllowedNamespace",
-        "_description": "our own reset store so we don't have conflicts with parent reducers"
+      "namespace": "Types.AllowedNamespace",
+      "_description": "our own reset store so we don't have conflicts with parent reducers"
     }
   }
 }

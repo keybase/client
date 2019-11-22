@@ -1,7 +1,7 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 
 import * as Types from '../constants/types/team-building'
-import {TeamRoleType} from '../constants/types/teams'
+import {TeamRoleType, TeamID} from '../constants/types/teams'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of team-building but is handled by every reducer. NEVER dispatch this
@@ -28,7 +28,7 @@ type _CancelTeamBuildingPayload = {readonly namespace: Types.AllowedNamespace}
 type _ChangeSendNotificationPayload = {readonly namespace: 'teams'; readonly sendNotification: boolean}
 type _FetchUserRecsPayload = {readonly includeContacts: boolean; readonly namespace: Types.AllowedNamespace}
 type _FetchedUserRecsPayload = {readonly namespace: Types.AllowedNamespace; readonly users: Array<Types.User>}
-type _FinishedTeamBuildingPayload = {readonly namespace: Types.AllowedNamespace; readonly teamname?: string}
+type _FinishedTeamBuildingPayload = {readonly namespace: Types.AllowedNamespace; readonly teamID?: TeamID}
 type _LabelsSeenPayload = {readonly namespace: Types.AllowedNamespace}
 type _RemoveUsersFromTeamSoFarPayload = {
   readonly namespace: Types.AllowedNamespace
