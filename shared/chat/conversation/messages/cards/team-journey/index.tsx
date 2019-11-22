@@ -18,10 +18,10 @@ type Props = {
 const TeamJourney = (props: Props) => {
   // Load the team once on mount for its channel list if required.
   const {loadTeam, teamname} = props
-  const loadTeamCb = React.useCallback(loadTeam, [teamname])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   React.useEffect(() => {
-    loadTeamCb()
-  }, [loadTeamCb])
+    loadTeam()
+  }, [])
   return (
     <>
       <TeamJourneyHeader teamname={teamname} />
