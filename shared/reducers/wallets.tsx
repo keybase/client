@@ -629,6 +629,17 @@ const doubleCheck = (
         : undefined
     )
 
+    const sortIMapIMap = (m: any) =>
+      sortObject(
+        mapToObject(
+          new Map(
+            [...m.entries()]
+              .sort((a, b) => a[0].localeCompare(b[0]))
+              .map(([k, v]) => [k, sortObject(v.toJS())])
+          )
+        )
+      )
+
     const s = ConstantsOLD.makeState({
       ...state,
       accountMap: state ? I.Map(mapToObject(state.accountMap)) : undefined,
@@ -660,21 +671,19 @@ const doubleCheck = (
       paymentCursorMap: sortObject(nextStateOLD.paymentCursorMap.toJS()),
       paymentLoadingMoreMap: sortObject(nextStateOLD.paymentLoadingMoreMap.toJS()),
       paymentOldestUnreadMap: sortObject(nextStateOLD.paymentOldestUnreadMap.toJS()),
-      paymentsMap: sortObject(
-        mapToObject(
-          new Map(
-            [...nextStateOLD.paymentsMap.entries()]
-              .sort((a, b) => a[0].localeCompare(b[0]))
-              .map(([k, v]) => [k, sortObject(v.toJS())])
-          )
-        )
-      ),
+      paymentsMap: sortIMapIMap(nextStateOLD.paymentsMap),
       reviewLastSeqno: nextStateOLD.reviewLastSeqno || null,
       sep7ConfirmInfo: nextStateOLD.sep7ConfirmInfo || null,
       staticConfig: nextStateOLD.staticConfig || null,
       trustline: {
-        ...nextStateOLD.trustline.toJS(),
+        acceptedAssets: sortIMapIMap(nextStateOLD.trustline.acceptedAssets),
+        acceptedAssetsByUsername: sortIMapIMap(nextStateOLD.trustline.acceptedAssetsByUsername),
+        assetMap: sortObject(nextStateOLD.trustline.assetMap.toJS()),
+        expandedAssets: nextStateOLD.trustline.expandedAssets.toJS(),
+        loaded: nextStateOLD.trustline.loaded,
+        popularAssets: nextStateOLD.trustline.popularAssets.toJS(),
         searchingAssets: nextStateOLD.trustline.searchingAssets ?? [],
+        totalAssetsCount: nextStateOLD.trustline.totalAssetsCount,
       },
       unreadPaymentsMap: sortObject(nextStateOLD.unreadPaymentsMap.toJS()),
     }
