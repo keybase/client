@@ -464,6 +464,7 @@ export default function(
     case WalletsGen.loadedMobileOnlyMode:
       return state.setIn(['mobileOnlyMap', action.payload.accountID], action.payload.enabled)
     case WalletsGen.updatedAirdropState:
+      // @ts-ignore
       return state.merge({
         airdropQualifications: I.List(action.payload.airdropQualifications),
         airdropState: action.payload.airdropState,
@@ -493,6 +494,7 @@ export default function(
       return state.merge({airdropShowBanner: action.payload.show})
     case WalletsGen.updatedAirdropDetails: {
       const {details, disclaimer, isPromoted} = action.payload
+      // @ts-ignore
       return state.set('airdropDetails', Constants.makeStellarDetails({details, disclaimer, isPromoted}))
     }
     case WalletsGen.setTrustlineExpanded:

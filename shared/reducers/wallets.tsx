@@ -640,10 +640,33 @@ const doubleCheck = (
         )
       )
 
+    const newToOldDetailsResponse = (d: any) =>
+      ConstantsOLD.makeStellarDetailsResponse({
+        header: ConstantsOLD.makeStellarDetailsHeader(d.header),
+        sections: I.List(
+          d.sections.map(s =>
+            ConstantsOLD.makeStellarDetailsSection({
+              icon: s.icon,
+              lines: I.List(s.lines.map(l => ConstantsOLD.makeStellarDetailsLine(l))),
+              section: s.section,
+            })
+          )
+        ),
+      })
+
     const s = ConstantsOLD.makeState({
       ...state,
       accountMap: state ? I.Map(mapToObject(state.accountMap)) : undefined,
-      airdropQualifications: state ? I.List(state.airdropQualifications) : undefined,
+      airdropDetails: state
+        ? ConstantsOLD.makeStellarDetails({
+            details: newToOldDetailsResponse(state.airdropDetails.details),
+            disclaimer: newToOldDetailsResponse(state.airdropDetails.disclaimer),
+            isPromoted: state.airdropDetails.isPromoted,
+          })
+        : undefined,
+      airdropQualifications: state
+        ? I.List(state.airdropQualifications.map(q => ConstantsOLD.makeAirdropQualification(q)))
+        : undefined,
       assetsMap: state ? I.Map(mapToObject(state.assetsMap)) : undefined,
       buildingAdvanced: ConstantsOLD.makeBuildingAdvanced(state?.buildingAdvanced as any),
       builtPaymentAdvanced: ConstantsOLD.makeBuiltPaymentAdvanced(state?.builtPaymentAdvanced as any),

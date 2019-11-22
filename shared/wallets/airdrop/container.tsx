@@ -5,12 +5,18 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Container from '../../util/container'
 import Onboarding from '../onboarding/container'
 
-const mapStateToProps = (state: Container.TypedState) => ({
-  _details: state.wallets.airdropDetails.details,
-  acceptedDisclaimer: state.wallets.acceptedDisclaimer,
-  loading: state.wallets.airdropState === 'loading',
-  signedUp: state.wallets.airdropState === 'accepted',
-})
+const mapStateToProps = (state: Container.TypedState) => {
+  const {acceptedDisclaimer, airdropDetails, airdropState} = state.wallets
+  const {details} = airdropDetails
+  return {
+    acceptedDisclaimer,
+    headerBody: details.header.body,
+    headerTitle: details.header.title,
+    loading: airdropState === 'loading',
+    sections: details.sections,
+    signedUp: airdropState === 'accepted',
+  }
+}
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
@@ -31,21 +37,14 @@ const ConnectedAirdrop = Container.connect(
   mapDispatchToProps,
   (stateProps, dispatchProps) => ({
     acceptedDisclaimer: stateProps.acceptedDisclaimer,
-    headerBody: stateProps._details.header.body,
-    headerTitle: stateProps._details.header.title,
+    headerBody: stateProps.headerBody,
+    headerTitle: stateProps.headerTitle,
     loading: stateProps.loading,
     onBack: dispatchProps.onBack,
     onCheckQualify: dispatchProps.onCheckQualify,
     onLoad: dispatchProps.onLoad,
     onReject: dispatchProps.onReject,
-    sections: stateProps._details.sections.toArray().map(s => ({
-      icon: s.icon,
-      lines: s.lines.toArray().map(l => ({
-        bullet: l.bullet,
-        text: l.text,
-      })),
-      section: s.section,
-    })),
+    sections: stateProps.sections,
     signedUp: stateProps.signedUp,
     title: 'Airdrop',
   })

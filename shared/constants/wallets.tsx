@@ -30,31 +30,44 @@ export const confirmFormRouteKey = 'confirmForm'
 export const sendRequestFormRoutes = [sendRequestFormRouteKey, confirmFormRouteKey]
 export const airdropBannerKey = 'stellarHideAirdropBanner'
 
-export const makeAirdropQualification = I.Record<Types._AirdropQualification>({
+export const makeAirdropQualification = (
+  a?: Partial<Types.AirdropQualification>
+): Types.AirdropQualification => ({
   subTitle: '',
   title: '',
   valid: false,
+  ...a,
 })
 
-export const makeStellarDetailsLine = I.Record<Types._StellarDetailsLine>({
+export const makeStellarDetailsLine = (d?: Partial<Types.StellarDetailsLine>): Types.StellarDetailsLine => ({
   bullet: false,
   text: '',
+  ...d,
 })
 
-export const makeStellarDetailsHeader = I.Record<Types._StellarDetailsHeader>({
+export const makeStellarDetailsHeader = (
+  d?: Partial<Types.StellarDetailsHeader>
+): Types.StellarDetailsHeader => ({
   body: '',
   title: '',
+  ...d,
 })
 
-export const makeStellarDetailsSection = I.Record<Types._StellarDetailsSection>({
+export const makeStellarDetailsSection = (
+  d?: Partial<Types.StellarDetailsSection>
+): Types.StellarDetailsSection => ({
   icon: '',
-  lines: I.List(),
+  lines: [],
   section: '',
+  ...d,
 })
 
-export const makeStellarDetailsResponse = I.Record<Types._StellarDetailsResponse>({
+export const makeStellarDetailsResponse = (
+  r?: Partial<Types.StellarDetailsResponse>
+): Types.StellarDetailsResponse => ({
   header: makeStellarDetailsHeader({}),
-  sections: I.List(),
+  sections: [],
+  ...r,
 })
 
 export type StellarDetailsJSONType = {
@@ -78,28 +91,25 @@ export const makeStellarDetailsFromJSON = (json: StellarDetailsJSONType) =>
       body: (json && json.header && json.header.body) || '',
       title: (json && json.header && json.header.title) || '',
     }),
-    sections: I.List(
-      ((json && json.sections) || []).map(section =>
-        makeStellarDetailsSection({
-          icon: (section && section.icon) || '',
-          lines: I.List(
-            ((section && section.lines) || []).map(l =>
-              makeStellarDetailsLine({
-                bullet: (l && l.bullet) || false,
-                text: (l && l.text) || '',
-              })
-            )
-          ),
-          section: (section && section.section) || '',
-        })
-      )
+    sections: ((json && json.sections) || []).map(section =>
+      makeStellarDetailsSection({
+        icon: (section && section.icon) || '',
+        lines: ((section && section.lines) || []).map(l =>
+          makeStellarDetailsLine({
+            bullet: (l && l.bullet) || false,
+            text: (l && l.text) || '',
+          })
+        ),
+        section: (section && section.section) || '',
+      })
     ),
   })
 
-export const makeStellarDetails = I.Record<Types._StellarDetails>({
+export const makeStellarDetails = (d?: Partial<Types.AirdropDetails>): Types.AirdropDetails => ({
   details: makeStellarDetailsResponse(),
   disclaimer: makeStellarDetailsResponse(),
   isPromoted: false,
+  ...d,
 })
 
 export const makeReserve = (r?: Partial<Types.Reserve>): Types.Reserve => ({
