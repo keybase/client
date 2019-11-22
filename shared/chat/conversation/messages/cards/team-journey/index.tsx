@@ -90,6 +90,7 @@ const styles = Styles.styleSheetCreate(
       avatar: Styles.platformStyles({
         isElectron: {
           marginLeft: Styles.globalMargins.small,
+          marginTop: Styles.globalMargins.xtiny,
         },
         isMobile: {marginLeft: Styles.globalMargins.xtiny},
       }),

@@ -50,9 +50,13 @@ const TeamJourneyContainer = (props: Props) => {
       text = 'Welcome to the team! Say hi to everyone and introduce yourself.'
       break
     case RPCChatTypes.JourneycardType.popularChannels:
-      actions = props.otherChannels.map(chan => ({label: chan, onClick: () => props.onGoToChannel(chan)}))
+      actions = props.otherChannels.map(chan => ({
+        label: `#${chan}`,
+        onClick: () => props.onGoToChannel(chan),
+      }))
       loadTeam = props.onLoadTeam
-      text = `You are in ${props.channelname}. Some popular channels in this team:`
+      text = `You are in #${props.channelname}.
+      Some popular channels in this team:`
       break
     case RPCChatTypes.JourneycardType.addPeople:
       actions = [{label: 'Add people to the team', onClick: props.onAddPeopleToTeam}]
@@ -80,7 +84,10 @@ const TeamJourneyContainer = (props: Props) => {
       text = 'Zzz… This channel hasn’t been very active…. Revive it?'
       break
     case RPCChatTypes.JourneycardType.msgNoAnswer:
-      actions = props.otherChannels.map(chan => ({label: chan, onClick: () => props.onGoToChannel(chan)}))
+      actions = props.otherChannels.map(chan => ({
+        label: `#${chan}`,
+        onClick: () => props.onGoToChannel(chan),
+      }))
       loadTeam = props.onLoadTeam
       text = 'People haven’t been talkative in a while. Perhaps post in another channel?'
       break
@@ -130,6 +137,7 @@ const TeamJourneyConnected = Container.connect(
       .valueSeq()
       .toArray()
       .sort((x, y) => y.mtime - x.mtime)
+      .filter(info => info.memberStatus !== RPCChatTypes.ConversationMemberStatus.active)
       .map(info => info.channelname)
       .slice(0, Container.isMobile ? 2 : 3)
 
