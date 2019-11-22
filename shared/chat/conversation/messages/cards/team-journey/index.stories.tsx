@@ -11,7 +11,7 @@ const load = () => {
           {label: 'Browse channels', onClick: Sb.action('onBrowseChannels')},
         ]}
         image="icon-illustration-welcome-96"
-        loadTeam={null}
+        loadTeam={() => {}}
         teamname="foo"
         text="Welcome to the team! Say hi to everyone and introduce yourself."
       />
@@ -24,7 +24,7 @@ const load = () => {
           {label: '#three', onClick: Sb.action('onGoToChan')},
         ]}
         image={null}
-        loadTeam={null}
+        loadTeam={() => {}}
         teamname="foo"
         text="You are in #somechan. Some popular channels in this team:"
       />
@@ -37,7 +37,7 @@ const load = () => {
           {label: '#3456789012345678901', onClick: Sb.action('onGoToChan')},
         ]}
         image={null}
-        loadTeam={null}
+        loadTeam={() => {}}
         teamname="foo"
         text="You are in #somechan. Some popular channels in this team:"
       />
@@ -46,7 +46,7 @@ const load = () => {
       <TeamJourney
         actions={[{label: 'Add people to the team', onClick: Sb.action('onAddPeopleToTeam')}]}
         image="icon-illustration-friends-96"
-        loadTeam={null}
+        loadTeam={() => {}}
         teamname="foo"
         text="Do you know people interested in joining? Foo is open to anyone."
       />
@@ -55,7 +55,7 @@ const load = () => {
       <TeamJourney
         actions={[{label: 'Create chat channels', onClick: Sb.action('onCreateChatChannels')}]}
         image="icon-illustration-happy-chat-96"
-        loadTeam={null}
+        loadTeam={() => {}}
         teamname="foo"
         text="Go ahead and create #channels around topics you think are missing."
       />
@@ -64,7 +64,7 @@ const load = () => {
       <TeamJourney
         actions={[]}
         image="icon-illustration-attention-64"
-        loadTeam={null}
+        loadTeam={() => {}}
         teamname="foo"
         text="One of your messages is getting lots of attention!"
       />
@@ -73,7 +73,7 @@ const load = () => {
       <TeamJourney
         actions={[]}
         image="icon-illustration-sleepy-96"
-        loadTeam={null}
+        loadTeam={() => {}}
         teamname="foo"
         text="Zzz… This channel hasn’t been very active…. Revive it?"
       />
@@ -82,7 +82,7 @@ const load = () => {
       <TeamJourney
         actions={[{label: 'Scroll back in time', onClick: Sb.action('onBackInTime')}]}
         image="icon-illustration-long-time-96"
-        loadTeam={null}
+        loadTeam={() => {}}
         teamname="foo"
         text="Long time no see… Look at all the things you missed."
       />
@@ -95,7 +95,7 @@ const load = () => {
           {label: '#three', onClick: Sb.action('onGoToChan')},
         ]}
         image={null}
-        loadTeam={null}
+        loadTeam={() => {}}
         teamname="foo"
         text="People haven't been talkative in a while. Perhaps post in another channel?"
       />

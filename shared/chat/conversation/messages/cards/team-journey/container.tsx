@@ -34,11 +34,13 @@ type Action = {
   onClick: () => void
 }
 
+const loadTeamNoop = () => {}
+
 const TeamJourneyContainer = (props: Props) => {
   let text = ''
   let image: Kb.IconType | null = null
   let actions: Array<Action> = []
-  let loadTeam: (() => void) | null = null
+  let loadTeam: () => void = loadTeamNoop
 
   switch (props.message.cardType) {
     case RPCChatTypes.JourneycardType.welcome:
