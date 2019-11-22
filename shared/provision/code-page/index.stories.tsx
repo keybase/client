@@ -27,9 +27,10 @@ const derivedProps = (
     onBack: Sb.action('onBack'),
     onClose: Sb.action('onClose'),
     onSubmitTextCode: Sb.action('onSubmitTextCode'),
-    otherDevice: Constants.makeDevice({name: otherDeviceName, type: otherDeviceType}),
+    otherDevice: {...Constants.makeDevice(), name: otherDeviceName, type: otherDeviceType},
     setHeaderBackgroundColor: Sb.action('setHeaderBackgroundColor'),
     textCode: otherDeviceType === 'mobile' || currentDeviceType === 'mobile' ? textCodeLong : textCodeShort,
+    waiting: false,
   }
 }
 

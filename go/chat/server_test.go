@@ -5902,7 +5902,7 @@ func TestChatSrvDeleteConversation(t *testing.T) {
 		_, lconvs, err = storage.NewInbox(g).Read(context.TODO(), uid, &chat1.GetInboxQuery{
 			ConvID:       &channelConvID,
 			MemberStatus: []chat1.ConversationMemberStatus{chat1.ConversationMemberStatus_LEFT},
-			Existences:   []chat1.ConversationExistence{chat1.ConversationExistence_ARCHIVED},
+			Existences:   []chat1.ConversationExistence{chat1.ConversationExistence_DELETED},
 		})
 		require.NoError(t, err)
 		require.Equal(t, 1, len(lconvs))
