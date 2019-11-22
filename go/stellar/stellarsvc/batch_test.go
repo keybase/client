@@ -202,6 +202,15 @@ type testChatHelper struct {
 	paymentMsgs []paymentMsg
 }
 
+func (tch *testChatHelper) SendMsgByName(ctx context.Context, name string, topicName *string,
+	membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, body chat1.MessageBody,
+	msgType chat1.MessageType) error {
+	if msgType == chat1.MessageType_SENDPAYMENT {
+		tch.paymentMsgs = append(tch.paymentMsgs, paymentMsg{ConvName: name, PaymentID: body.Sendpayment().PaymentID})
+	}
+	return nil
+}
+
 func (tch *testChatHelper) SendMsgByNameNonblock(ctx context.Context, name string, topicName *string, membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, body chat1.MessageBody, msgType chat1.MessageType, outboxID *chat1.OutboxID) (chat1.OutboxID, error) {
 	if msgType == chat1.MessageType_SENDPAYMENT {
 		tch.paymentMsgs = append(tch.paymentMsgs, paymentMsg{ConvName: name, PaymentID: body.Sendpayment().PaymentID})
