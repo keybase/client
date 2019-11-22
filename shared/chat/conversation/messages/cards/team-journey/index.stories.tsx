@@ -24,7 +24,8 @@ const load = () => {
         ]}
         image={null}
         teamname="foo"
-        text="You are in #somechan. Some popular channels in this team:"
+        text={`You are in *#somechan*.
+Some popular channels in this team:`}
       />
     ))
     .add('Popular long channels', () => (
@@ -36,7 +37,8 @@ const load = () => {
         ]}
         image={null}
         teamname="foo"
-        text="You are in #somechan. Some popular channels in this team:"
+        text={`You are in *#somechan*.
+Some popular channels in this team:`}
       />
     ))
     .add('Add people', () => (
@@ -52,7 +54,7 @@ const load = () => {
         actions={[{label: 'Create chat channels', onClick: Sb.action('onCreateChatChannels')}]}
         image="icon-illustration-happy-chat-96"
         teamname="foo"
-        text="Go ahead and create #channels around topics you think are missing."
+        text="Go ahead and create *#channels* around topics you think are missing."
       />
     ))
     .add('Lots of attention', () => (
