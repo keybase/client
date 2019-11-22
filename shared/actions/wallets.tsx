@@ -1409,7 +1409,7 @@ const refreshTrustlinePopularAssets = async () => {
 }
 
 const addTrustline = async (state: TypedState, {payload: {accountID, assetID}}) => {
-  const asset = state.wallets.trustline.assetMap.get(assetID, Constants.emptyAssetDescription)
+  const asset = state.wallets.trustline.assetMap.get(assetID) ?? Constants.emptyAssetDescription
   const refresh = WalletsGen.createRefreshTrustlineAcceptedAssets({accountID})
   if (asset === Constants.emptyAssetDescription) {
     return false
@@ -1431,7 +1431,7 @@ const addTrustline = async (state: TypedState, {payload: {accountID, assetID}}) 
 }
 
 const deleteTrustline = async (state: TypedState, {payload: {accountID, assetID}}) => {
-  const asset = state.wallets.trustline.assetMap.get(assetID, Constants.emptyAssetDescription)
+  const asset = state.wallets.trustline.assetMap.get(assetID) ?? Constants.emptyAssetDescription
   const refresh = WalletsGen.createRefreshTrustlineAcceptedAssets({accountID})
   if (asset === Constants.emptyAssetDescription) {
     return false

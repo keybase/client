@@ -508,9 +508,9 @@ export default function(
         trustline
           .update('acceptedAssets', acceptedAssets =>
             acceptedAssets.update(action.payload.accountID, accountAcceptedAssets =>
-              action.payload.limits.equals(accountAcceptedAssets)
+              I.Map([...action.payload.limits.entries()]).equals(accountAcceptedAssets)
                 ? accountAcceptedAssets
-                : action.payload.limits
+                : I.Map([...action.payload.limits.entries()])
             )
           )
           .update('assetMap', assetMap =>
@@ -525,9 +525,9 @@ export default function(
         trustline
           .update('acceptedAssetsByUsername', acceptedAssetsByUsername =>
             acceptedAssetsByUsername.update(action.payload.username, accountAcceptedAssets =>
-              action.payload.limits.equals(accountAcceptedAssets)
+              I.Map([...action.payload.limits.entries()]).equals(accountAcceptedAssets)
                 ? accountAcceptedAssets
-                : action.payload.limits
+                : I.Map([...action.payload.limits.entries()])
             )
           )
           .update('assetMap', assetMap =>

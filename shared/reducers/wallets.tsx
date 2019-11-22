@@ -672,6 +672,10 @@ const doubleCheck = (
       reviewLastSeqno: nextStateOLD.reviewLastSeqno || null,
       sep7ConfirmInfo: nextStateOLD.sep7ConfirmInfo || null,
       staticConfig: nextStateOLD.staticConfig || null,
+      trustline: {
+        ...nextStateOLD.trustline.toJS(),
+        searchingAssets: nextStateOLD.trustline.searchingAssets ?? [],
+      },
       unreadPaymentsMap: sortObject(nextStateOLD.unreadPaymentsMap.toJS()),
     }
 
@@ -704,6 +708,16 @@ const doubleCheck = (
       reviewLastSeqno: nextState.reviewLastSeqno || null,
       sep7ConfirmInfo: nextState.sep7ConfirmInfo || null,
       staticConfig: nextState.staticConfig || null,
+      trustline: {
+        acceptedAssets: sortObject(mapToObject(nextState.trustline.acceptedAssets)),
+        acceptedAssetsByUsername: sortObject(mapToObject(nextState.trustline.acceptedAssetsByUsername)),
+        assetMap: sortObject(mapToObject(nextState.trustline.assetMap)),
+        expandedAssets: [...nextState.trustline.expandedAssets],
+        loaded: nextState.trustline.loaded,
+        popularAssets: nextState.trustline.popularAssets,
+        searchingAssets: nextState.trustline.searchingAssets ?? [],
+        totalAssetsCount: nextState.trustline.totalAssetsCount,
+      },
       unreadPaymentsMap: sortObject(mapToObject(nextState.unreadPaymentsMap)),
     }
 
