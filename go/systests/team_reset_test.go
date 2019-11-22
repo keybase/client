@@ -534,7 +534,7 @@ func TestTeamTryAddDeletedUser(t *testing.T) {
 	divDebug(ctx, "team created (%s)", team.name)
 
 	_, err := cli.TeamAddMember(context.Background(), keybase1.TeamAddMemberArg{
-		Name:     team.name,
+		TeamID:   team.ID,
 		Username: bob.username,
 		Role:     keybase1.TeamRole_READER,
 	})
@@ -570,7 +570,7 @@ func TestTeamAddAfterReset(t *testing.T) {
 
 	cli := ann.getTeamsClient()
 	_, err := cli.TeamAddMember(context.TODO(), keybase1.TeamAddMemberArg{
-		Name:     team.name,
+		TeamID:   team.ID,
 		Username: bob.username,
 		// Note: any role would do! Does not have to be the same as before
 		// reset. This does not apply to imp-teams though, it requires the
