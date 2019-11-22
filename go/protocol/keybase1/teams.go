@@ -2588,13 +2588,14 @@ func (o LoadTeamArg) DeepCopy() LoadTeamArg {
 }
 
 type FastTeamLoadArg struct {
-	ID                   TeamID                 `codec:"ID" json:"ID"`
-	Public               bool                   `codec:"public" json:"public"`
-	AssertTeamName       *TeamName              `codec:"assertTeamName,omitempty" json:"assertTeamName,omitempty"`
-	Applications         []TeamApplication      `codec:"applications" json:"applications"`
-	KeyGenerationsNeeded []PerTeamKeyGeneration `codec:"keyGenerationsNeeded" json:"keyGenerationsNeeded"`
-	NeedLatestKey        bool                   `codec:"needLatestKey" json:"needLatestKey"`
-	ForceRefresh         bool                   `codec:"forceRefresh" json:"forceRefresh"`
+	ID                    TeamID                 `codec:"ID" json:"ID"`
+	Public                bool                   `codec:"public" json:"public"`
+	AssertTeamName        *TeamName              `codec:"assertTeamName,omitempty" json:"assertTeamName,omitempty"`
+	Applications          []TeamApplication      `codec:"applications" json:"applications"`
+	KeyGenerationsNeeded  []PerTeamKeyGeneration `codec:"keyGenerationsNeeded" json:"keyGenerationsNeeded"`
+	NeedLatestKey         bool                   `codec:"needLatestKey" json:"needLatestKey"`
+	ForceRefresh          bool                   `codec:"forceRefresh" json:"forceRefresh"`
+	HiddenChainIsOptional bool                   `codec:"hiddenChainIsOptional" json:"hiddenChainIsOptional"`
 }
 
 func (o FastTeamLoadArg) DeepCopy() FastTeamLoadArg {
@@ -2630,8 +2631,9 @@ func (o FastTeamLoadArg) DeepCopy() FastTeamLoadArg {
 			}
 			return ret
 		})(o.KeyGenerationsNeeded),
-		NeedLatestKey: o.NeedLatestKey,
-		ForceRefresh:  o.ForceRefresh,
+		NeedLatestKey:         o.NeedLatestKey,
+		ForceRefresh:          o.ForceRefresh,
+		HiddenChainIsOptional: o.HiddenChainIsOptional,
 	}
 }
 

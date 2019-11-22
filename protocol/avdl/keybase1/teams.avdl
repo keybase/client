@@ -995,6 +995,8 @@ protocol teams {
     // Specify this flag if you want to force past the time-based cache,
     // currently set to one hour.
     boolean forceRefresh;
+
+    boolean hiddenChainIsOptional;
   }
 
   record FastTeamLoadRes {

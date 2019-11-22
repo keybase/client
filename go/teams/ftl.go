@@ -161,10 +161,11 @@ func (f *FastTeamChainLoader) VerifyTeamName(m libkb.MetaContext, id keybase1.Te
 	m = m.WithLogTag("FTL")
 	defer m.Trace(fmt.Sprintf("FastTeamChainLoader#VerifyTeamName(%v,%s)", id, name.String()), func() error { return err })()
 	_, err = f.Load(m, keybase1.FastTeamLoadArg{
-		ID:             id,
-		Public:         id.IsPublic(),
-		AssertTeamName: &name,
-		ForceRefresh:   forceRefresh,
+		ID:                    id,
+		Public:                id.IsPublic(),
+		AssertTeamName:        &name,
+		ForceRefresh:          forceRefresh,
+		HiddenChainIsOptional: true,
 	})
 	return err
 }
@@ -212,14 +213,14 @@ func (f *FastTeamChainLoader) verifyTeamNameViaParentLoad(m libkb.MetaContext, i
 
 	parentRes, err := f.load(m, fastLoadArg{
 		FastTeamLoadArg: keybase1.FastTeamLoadArg{
-			ID:           parent.ParentID,
-			Public:       isPublic,
-			ForceRefresh: forceRefresh,
+			ID:                    parent.ParentID,
+			Public:                isPublic,
+			ForceRefresh:          forceRefresh,
+			HiddenChainIsOptional: true, // we do not need to see the hidden chain for the parent
 		},
-		downPointersNeeded:    []keybase1.Seqno{parent.ParentSeqno},
-		needLatestName:        true,
-		readSubteamID:         bottomSubteam,
-		hiddenChainIsOptional: true, // we do not need to see the hidden chain for the parent
+		downPointersNeeded: []keybase1.Seqno{parent.ParentSeqno},
+		needLatestName:     true,
+		readSubteamID:      bottomSubteam,
 	})
 	if err != nil {
 		return res, err
@@ -250,11 +251,10 @@ type fastLoadRes struct {
 // around the keybase1.FastTeamLoadArg that's passed through to the public #Load() call.
 type fastLoadArg struct {
 	keybase1.FastTeamLoadArg
-	downPointersNeeded    []keybase1.Seqno
-	readSubteamID         keybase1.TeamID
-	needLatestName        bool
-	forceReset            bool
-	hiddenChainIsOptional bool
+	downPointersNeeded []keybase1.Seqno
+	readSubteamID      keybase1.TeamID
+	needLatestName     bool
+	forceReset         bool
 }
 
 // needChainTail returns true if the argument mandates that we need a reasonably up-to-date chain tail,
@@ -791,7 +791,7 @@ func (f *FastTeamChainLoader) loadFromServerOnce(m libkb.MetaContext, arg fastLo
 			return nil, err
 		}
 	}
-	if !arg.hiddenChainIsOptional && hiddenResp.RespType == libkb.MerkleHiddenResponseTypeNONE {
+	if !arg.HiddenChainIsOptional && hiddenResp.RespType == libkb.MerkleHiddenResponseTypeNONE {
 		return nil, libkb.NewHiddenChainDataMissingError("the server did not return the necessary hidden chain data")
 	}
 

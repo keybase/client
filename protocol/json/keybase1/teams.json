@@ -2177,6 +2177,10 @@
         {
           "type": "boolean",
           "name": "forceRefresh"
+        },
+        {
+          "type": "boolean",
+          "name": "hiddenChainIsOptional"
         }
       ]
     },
