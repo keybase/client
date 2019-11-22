@@ -494,7 +494,9 @@ function* requestContactPermissions(
   yield Saga.put(WaitingGen.createIncrementWaiting({key: SettingsConstants.importContactsWaitingKey}))
   const result: Saga.RPCPromiseType<typeof askForContactPermissions> = yield askForContactPermissions()
   if (result === 'granted' && thenToggleImportOn) {
-    yield Saga.put(SettingsGen.createEditContactImportEnabled({enable: true}))
+    yield Saga.put(
+      SettingsGen.createEditContactImportEnabled({enable: true, fromSettings: action.payload.fromSettings})
+    )
   }
   yield Saga.sequentially([
     Saga.put(SettingsGen.createLoadedContactPermissions({status: result})),
@@ -556,7 +558,7 @@ const manageContactsCache = async (
   logger.info(`Importing ${mapped.length} contacts.`)
   const actions: Array<Container.TypedActions> = []
   try {
-    const newlyResolved = await RPCTypes.contactsSaveContactListRpcPromise({contacts: mapped})
+    const {newlyResolved, resolved} = await RPCTypes.contactsSaveContactListRpcPromise({contacts: mapped})
     logger.info(`Success`)
     actions.push(
       SettingsGen.createSetContactImportedCount({count: mapped.length}),
@@ -567,12 +569,23 @@ const manageContactsCache = async (
         message: PushConstants.makeContactsResolvedMessage(newlyResolved),
       })
     }
+    if (state.settings.contacts.waitingToShowJoinedModal && resolved) {
+      actions.push(SettingsGen.createShowContactsJoinedModal({resolved}))
+    }
   } catch (e) {
     logger.error('Error saving contacts list: ', e.message)
     actions.push(SettingsGen.createSetContactImportedCount({count: null, error: e.message}))
   }
   return actions
 }
+
+const showContactsJoinedModal = (
+  _: Container.TypedState,
+  action: SettingsGen.ShowContactsJoinedModalPayload
+) =>
+  action.payload.resolved.length
+    ? [RouteTreeGen.createNavigateAppend({path: ['settingsContactsJoined']})]
+    : []
 
 function* setupDarkMode() {
   const NativeAppearance = NativeModules.Appearance
@@ -870,6 +883,8 @@ export function* platformConfigSaga() {
   yield* Saga.chainAction2(ProfileGen.editAvatar, editAvatar)
   yield* Saga.chainAction2(ConfigGen.loggedIn, initOsNetworkStatus)
   yield* Saga.chainAction2(ConfigGen.osNetworkStatusChanged, updateMobileNetState)
+
+  // Contacts
   yield* Saga.chainAction2(
     [SettingsGen.loadedContactImportEnabled, ConfigGen.mobileAppState],
     loadContactPermissions,
@@ -884,6 +899,11 @@ export function* platformConfigSaga() {
     [SettingsGen.loadedContactImportEnabled, EngineGen.chat1ChatUiTriggerContactSync],
     manageContactsCache,
     'manageContactsCache'
+  )
+  yield* Saga.chainAction2(
+    SettingsGen.showContactsJoinedModal,
+    showContactsJoinedModal,
+    'showContactsJoinedModal'
   )
 
   // Location

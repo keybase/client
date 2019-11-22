@@ -1,162 +1,111 @@
 import React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Constants from '../../constants/teams'
-import {globalColors, globalMargins, globalStyles, isMobile} from '../../styles'
-import {validTeamnamePart} from '../../constants/teamname'
+import * as Container from '../../util/container'
+import openUrl from '../../util/open-url'
+import * as Styles from '../../styles'
+
+const openSubteamInfo = () => openUrl('https://keybase.io/docs/teams/design')
 
 type Props = {
-  baseTeam: string
+  baseTeam?: string // if set we're creating a subteam of this teamname
   errorText: string
-  isSubteam: boolean
-  joinSubteam: boolean
-  name: string
   onCancel: () => void
-  onJoinSubteamChange: () => void
-  onNameChange: (n: string) => void
-  onSetTeamCreationError: (err: string) => void
-  onSubmit: (fullName: string) => void
-  pending: boolean
+  onClearError: () => void
+  onSubmit: (fullName: string, joinSubteam: boolean) => void
 }
 
-class Contents extends React.Component<Props> {
-  _onSubmit = () => {
-    if (!validTeamnamePart(this.props.name)) {
-      this.props.onSetTeamCreationError(
-        'Teamnames must be between 2 and 16 characters long, can only contain letters and underscores, and cannot begin with an underscore.'
-      )
-      return
-    }
-    this.props.onSubmit(this._fullName())
-  }
+const CreateNewTeam = (props: Props) => {
+  const [name, setName] = React.useState('')
+  const [joinSubteam, setJoinSubteam] = React.useState(true)
+  const waiting = Container.useAnyWaiting(Constants.teamCreationWaitingKey)
 
-  _headerText = () => {
-    if (this.props.isSubteam) {
-      return `You are creating a subteam of ${this.props.baseTeam}. `
-    }
-    return "For security reasons, team names are unique and can't be changed, so choose carefully."
-  }
+  const {baseTeam, onSubmit} = props
+  const isSubteam = !!baseTeam
 
-  _fullName = () =>
-    this.props.isSubteam ? this.props.baseTeam.concat(`.${this.props.name}`) : this.props.name
+  const onSubmitCb = React.useCallback(
+    () => (isSubteam ? onSubmit(baseTeam + '.' + name, joinSubteam) : onSubmit(name, false)),
+    [isSubteam, baseTeam, onSubmit, name, joinSubteam]
+  )
+  const disabled = name.length < 2
 
-  render() {
-    const {isSubteam, joinSubteam, name, onJoinSubteamChange, onNameChange, pending} = this.props
-    const errorText = this.props.errorText
-    return (
-      <Kb.ScrollView>
-        <Kb.Box style={globalStyles.flexBoxColumn}>
-          <Kb.Box
-            style={{
-              ...styleContainer,
-              backgroundColor: globalColors.blue,
-            }}
-          >
-            <Kb.Text center={true} type="BodySmallSemibold" negative={true}>
-              {this._headerText()}
-              {this.props.isSubteam && (
-                <Kb.Text
-                  type="BodySmallSemiboldPrimaryLink"
-                  style={{...globalStyles.fontSemibold}}
-                  negative={true}
-                  onClickURL="https://keybase.io/docs/teams/design"
-                >
-                  Learn more
-                </Kb.Text>
-              )}
+  // clear error we may have hit on unmount
+  const {onClearError} = props
+  React.useEffect(() => () => onClearError(), [onClearError])
+
+  const modalHeader = Kb.useModalHeaderTitleAndCancel('Create a team', props.onCancel)
+
+  return (
+    <Kb.Modal
+      banners={[
+        !isSubteam && (
+          <Kb.Banner color="blue">
+            For security reasons, teamnames are unique and can't be changed, so choose carefully.
+          </Kb.Banner>
+        ),
+        isSubteam && (
+          <Kb.Banner color="blue">
+            <Kb.BannerParagraph
+              bannerColor="blue"
+              content={[`You are creating a subteam of ${props.baseTeam}.`]}
+            />
+            <Kb.BannerParagraph
+              bannerColor="blue"
+              content={[{onClick: openSubteamInfo, text: 'Learn more'}]}
+            />
+          </Kb.Banner>
+        ),
+        !!props.errorText && <Kb.Banner color="red">{props.errorText}</Kb.Banner>,
+      ]}
+      footer={{
+        content: (
+          <Kb.Button
+            waiting={waiting}
+            fullWidth={true}
+            label="Create team"
+            onClick={onSubmitCb}
+            disabled={disabled}
+          />
+        ),
+      }}
+      header={modalHeader}
+      onClose={props.onCancel}
+    >
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container} gap="tiny">
+        <Kb.LabeledInput
+          placeholder="Name your team"
+          value={name}
+          onChangeText={setName}
+          maxLength={16}
+          disabled={waiting}
+          onEnterKeyDown={disabled ? undefined : onSubmitCb}
+          autoFocus={!Styles.isMobile /* keyboard can cover the "join subteam" box on mobile */}
+        />
+        {isSubteam && (
+          <Kb.Text type="BodySmall" style={!name && Styles.globalStyles.opacity0}>
+            This team will be named{' '}
+            <Kb.Text type="BodySmallSemibold" style={styles.wordBreak}>
+              {props.baseTeam}.{name}
             </Kb.Text>
-          </Kb.Box>
-          {!!errorText && (
-            <Kb.Box
-              style={{
-                ...styleContainer,
-                backgroundColor: globalColors.red,
-                borderTopLeftRadius: 0,
-                borderTopRightRadius: 0,
-              }}
-            >
-              <Kb.Text center={true} style={{width: '100%'}} type="BodySmallSemibold" negative={true}>
-                {errorText}
-              </Kb.Text>
-            </Kb.Box>
-          )}
-
-          <Kb.Box
-            style={{
-              ...globalStyles.flexBoxColumn,
-              ...stylePadding,
-              alignItems: 'center',
-              backgroundColor: globalColors.white,
-              justifyContent: 'center',
-            }}
-          >
-            <Kb.Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.medium}}>
-              <Kb.Input
-                autoFocus={true}
-                editable={!pending}
-                hintText="Name your team"
-                value={name}
-                onChangeText={onNameChange}
-                onEnterKeyDown={this._onSubmit}
-              />
-            </Kb.Box>
-
-            {isSubteam && (
-              <Kb.Box
-                style={{...globalStyles.flexBoxRow, marginTop: globalMargins.medium, opacity: name ? 1 : 0}}
-              >
-                <Kb.Text type="Body">
-                  This team will be named <Kb.Text type="BodySemibold">{this._fullName()}</Kb.Text>
-                </Kb.Text>
-              </Kb.Box>
-            )}
-
-            {isSubteam && (
-              <Kb.Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.medium}}>
-                <Kb.Checkbox
-                  checked={joinSubteam}
-                  label="Join this subteam after creating it"
-                  onCheck={onJoinSubteamChange}
-                />
-              </Kb.Box>
-            )}
-
-            <Kb.Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.large}}>
-              <Kb.WaitingButton
-                style={{marginLeft: globalMargins.tiny}}
-                onClick={this._onSubmit}
-                label="Create team"
-                waitingKey={Constants.teamCreationWaitingKey}
-              />
-            </Kb.Box>
-          </Kb.Box>
-        </Kb.Box>
-      </Kb.ScrollView>
-    )
-  }
+          </Kb.Text>
+        )}
+        {isSubteam && (
+          <Kb.Checkbox checked={joinSubteam} onCheck={setJoinSubteam} label="Join this subteam." />
+        )}
+      </Kb.Box2>
+    </Kb.Modal>
+  )
 }
 
-const styleContainer = {
-  ...globalStyles.flexBoxColumn,
-  ...globalStyles.flexBoxCenter,
-  ...(isMobile ? {} : {cursor: 'default'}),
-  borderTopLeftRadius: isMobile ? 0 : 4,
-  borderTopRightRadius: isMobile ? 0 : 4,
-  minHeight: 40,
-  paddingBottom: globalMargins.tiny,
-  paddingLeft: globalMargins.medium,
-  paddingRight: globalMargins.medium,
-  paddingTop: globalMargins.tiny,
-}
+const styles = Styles.styleSheetCreate(() => ({
+  container: {
+    padding: Styles.globalMargins.small,
+  },
+  wordBreak: Styles.platformStyles({
+    isElectron: {
+      wordBreak: 'break-all',
+    },
+  }),
+}))
 
-const stylePadding = isMobile
-  ? {
-      paddingTop: globalMargins.xlarge,
-    }
-  : {
-      marginBottom: 80,
-      marginLeft: 80,
-      marginRight: 80,
-      marginTop: 90,
-    }
-
-export default Kb.HeaderOrPopup(Contents)
+export default CreateNewTeam

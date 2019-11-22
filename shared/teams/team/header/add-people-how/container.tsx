@@ -18,21 +18,21 @@ type OwnProps = {
 
 export default Container.connect(
   (state, {teamID}: OwnProps) => ({teamname: Constants.getTeamNameFromID(state, teamID) || ''}),
-  dispatch => {
+  (dispatch, {teamID}: OwnProps) => {
     return {
       _onAddPeople: (teamname: string) => {
         dispatch(appendNewTeamBuilder(teamname))
       },
-      _onInvite: (teamname: string) => {
+      _onSlackImport: (teamname: string) => openURL(`https://keybase.io/slack-importer/${teamname}`),
+      onInvite: () => {
         const selected = Styles.isMobile ? 'teamInviteByContact' : 'teamInviteByEmail'
         dispatch(
           RouteTreeGen.createNavigateAppend({
-            path: [{props: {teamname}, selected}],
+            path: [{props: {teamID}, selected}],
           })
         )
         dispatch(RouteTreeGen.createNavigateAppend({path: [teamsTab]}))
       },
-      _onSlackImport: (teamname: string) => openURL(`https://keybase.io/slack-importer/${teamname}`),
     }
   },
   (s, d, o: OwnProps) => ({
@@ -40,7 +40,7 @@ export default Container.connect(
     attachTo: o.attachTo,
     onAddPeople: () => d._onAddPeople(s.teamname),
     onHidden: o.onHidden,
-    onInvite: () => d._onInvite(s.teamname),
+    onInvite: d.onInvite,
     onSlackImport: () => d._onSlackImport(s.teamname),
     visible: o.visible,
   })

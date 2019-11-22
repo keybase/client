@@ -653,6 +653,14 @@
           "name": "botCommands"
         },
         {
+          "type": {
+            "type": "map",
+            "values": "string",
+            "keys": "string"
+          },
+          "name": "botAliases"
+        },
+        {
           "type": [
             null,
             "UIPinnedMessage"

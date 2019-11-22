@@ -215,6 +215,7 @@ export type TypedActionsMap = {
   'chat2:updateLastCoord': chat2.UpdateLastCoordPayload
   'chat2:toggleGiphyPrefill': chat2.ToggleGiphyPrefillPayload
   'chat2:setChannelSearchText': chat2.SetChannelSearchTextPayload
+  'chat2:updateBlockButtons': chat2.UpdateBlockButtonsPayload
   'chat2:setInboxNumSmallRows': chat2.SetInboxNumSmallRowsPayload
   'chat2:enableAudioRecording': chat2.EnableAudioRecordingPayload
   'chat2:attemptAudioRecording': chat2.AttemptAudioRecordingPayload
@@ -735,6 +736,7 @@ export type TypedActionsMap = {
   'settings:loadedContactPermissions': settings.LoadedContactPermissionsPayload
   'settings:requestContactPermissions': settings.RequestContactPermissionsPayload
   'settings:editContactImportEnabled': settings.EditContactImportEnabledPayload
+  'settings:showContactsJoinedModal': settings.ShowContactsJoinedModalPayload
   'settings:importContactsLater': settings.ImportContactsLaterPayload
   'settings:setContactImportedCount': settings.SetContactImportedCountPayload
   'settings:loadedUserCountryCode': settings.LoadedUserCountryCodePayload
@@ -862,7 +864,6 @@ export type TypedActionsMap = {
   'teams:setTeamJoinSuccess': teams.SetTeamJoinSuccessPayload
   'teams:setTeamRetentionPolicy': teams.SetTeamRetentionPolicyPayload
   'teams:setTeamLoadingInvites': teams.SetTeamLoadingInvitesPayload
-  'teams:clearTeamRequests': teams.ClearTeamRequestsPayload
   'teams:setTeamDetails': teams.SetTeamDetailsPayload
   'teams:setTeamCanPerform': teams.SetTeamCanPerformPayload
   'teams:setTeamPublicitySettings': teams.SetTeamPublicitySettingsPayload

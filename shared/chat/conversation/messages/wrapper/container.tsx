@@ -145,10 +145,12 @@ export default Container.namedConnect(
       ? TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'owner')
       : false
     const ordinals = [...Constants.getMessageOrdinals(state, ownProps.conversationIDKey)]
+    const botAlias = meta.botAliases[message.author] ?? ''
     return {
       _you: state.config.username,
       authorIsAdmin,
       authorIsOwner,
+      botAlias,
       centeredOrdinal,
       conversationIDKey: ownProps.conversationIDKey,
       hasUnfurlPrompts,
@@ -204,6 +206,7 @@ export default Container.namedConnect(
     return {
       authorIsAdmin: stateProps.authorIsAdmin,
       authorIsOwner: stateProps.authorIsOwner,
+      botAlias: stateProps.botAlias,
       centeredOrdinal: stateProps.centeredOrdinal,
       conversationIDKey: stateProps.conversationIDKey,
       decorate,

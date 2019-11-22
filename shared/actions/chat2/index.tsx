@@ -2320,7 +2320,6 @@ const navigateToInbox = (
   action:
     | Chat2Gen.NavigateToInboxPayload
     | Chat2Gen.LeaveConversationPayload
-    | TeamsGen.LeaveTeamPayload
     | TeamsGen.LeftTeamPayload
     | TeamsGen.DeleteChannelConfirmedPayload
 ) => {
@@ -3184,6 +3183,18 @@ const gregorPushState = (state: TypedState, action: GregorGen.PushStatePayload, 
   const isSearchNew = !items.some(i => i.item.category === Constants.inboxSearchNewKey)
   actions.push(Chat2Gen.createSetInboxShowIsNew({isNew: isSearchNew}))
 
+  const blockButtons = items.some(i => i.item.category.startsWith(Constants.blockButtonsGregorPrefix))
+  if (blockButtons) {
+    const teamIDs = items
+      .filter(i => i.item.category.startsWith(Constants.blockButtonsGregorPrefix))
+      .map(i => i.item.category.substr(Constants.blockButtonsGregorPrefix.length)) as Array<RPCTypes.TeamID>
+    teamIDs.forEach(teamID => {
+      if (!state.chat2.blockButtonsMap.get(teamID)) {
+        actions.push(Chat2Gen.createUpdateBlockButtons({show: true, teamID}))
+      }
+    })
+  }
+
   return actions
 }
 
@@ -3264,7 +3275,7 @@ const createConversationFromTeamBuilder = (
     reason: 'justCreated',
   }),
   Chat2Gen.createCreateConversation({
-    participants: state[namespace].teamBuilding.teamBuildingFinishedTeam.toArray().map(u => u.id),
+    participants: [...state[namespace].teamBuilding.finishedTeam].map(u => u.id),
   }),
 ]
 
@@ -3465,12 +3476,12 @@ function* chat2Saga() {
     'markThreadAsRead'
   )
   yield* Saga.chainAction2(
-    [Chat2Gen.leaveConversation, TeamsGen.leaveTeam, TeamsGen.leftTeam, TeamsGen.deleteChannelConfirmed],
+    [Chat2Gen.leaveConversation, TeamsGen.leftTeam, TeamsGen.deleteChannelConfirmed],
     clearModalsFromConvEvent,
     'clearModalsFromConvEvent'
   )
   yield* Saga.chainAction2(
-    [Chat2Gen.navigateToInbox, Chat2Gen.leaveConversation, TeamsGen.leaveTeam, TeamsGen.leftTeam],
+    [Chat2Gen.navigateToInbox, Chat2Gen.leaveConversation, TeamsGen.leftTeam],
     navigateToInbox,
     'navigateToInbox'
   )

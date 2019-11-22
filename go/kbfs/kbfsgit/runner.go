@@ -68,7 +68,6 @@ const (
 	kbfsgitPrefix = "keybase://"
 	repoSplitter  = "/"
 	kbfsRepoDir   = ".kbfs_git"
-	lfsSubdir     = "kbfs_lfs"
 
 	publicName  = "public"
 	privateName = "private"
@@ -2057,11 +2056,11 @@ func (r *runner) handleLFSUpload(
 	if err != nil {
 		return err
 	}
-	err = fs.MkdirAll(lfsSubdir, 0600)
+	err = fs.MkdirAll(libgit.LFSSubdir, 0600)
 	if err != nil {
 		return err
 	}
-	fs, err = fs.ChrootAsLibFS(lfsSubdir)
+	fs, err = fs.ChrootAsLibFS(libgit.LFSSubdir)
 	if err != nil {
 		return err
 	}
@@ -2097,11 +2096,11 @@ func (r *runner) handleLFSDownload(
 	if err != nil {
 		return "", err
 	}
-	err = fs.MkdirAll(lfsSubdir, 0600)
+	err = fs.MkdirAll(libgit.LFSSubdir, 0600)
 	if err != nil {
 		return "", err
 	}
-	fs, err = fs.ChrootAsLibFS(lfsSubdir)
+	fs, err = fs.ChrootAsLibFS(libgit.LFSSubdir)
 	if err != nil {
 		return "", err
 	}

@@ -1957,22 +1957,21 @@ func TestTeamMetadataUpdateNotifications(t *testing.T) {
 	require.NoError(tt.users[0].tc.T, err)
 	tt.users[1].waitForMetadataUpdateGregor("change showcase")
 
-	newteam := tt.users[1].createTeam()
-	newteamName, err := keybase1.TeamNameFromString(newteam)
+	newTeamID, newteamName := tt.users[1].createTeam2()
 	require.NoError(t, err)
 	tt.users[1].waitForMetadataUpdateGregor("new team")
-	tt.users[1].addTeamMember(newteam, tt.users[0].username, keybase1.TeamRole_OWNER)
+	tt.users[1].addTeamMember(newteamName.String(), tt.users[0].username, keybase1.TeamRole_OWNER)
 	tt.users[1].waitForMetadataUpdateGregor("added someone to team")
 
 	tui := &teamsUI{}
-	err = teams.Delete(context.Background(), tt.users[0].tc.G, tui, newteamName.String())
+	err = teams.Delete(context.Background(), tt.users[0].tc.G, tui, newTeamID)
 	require.NoError(tt.users[0].tc.T, err)
 	tt.users[1].waitForMetadataUpdateGregor("team deleted")
 
 	tt.users[1].waitForNoMetadataUpdatesGregor()
 }
 
-func TestTeamLoadParentAfterRotate(t *testing.T) {
+func TestTeamLoadParentAfterRotateRace(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
@@ -2002,4 +2001,43 @@ func TestTeamLoadParentAfterRotate(t *testing.T) {
 
 	_, err = teams.Load(context.Background(), tt.users[1].tc.G, keybase1.LoadTeamArg{Name: parentName.String()})
 	require.NoError(t, err)
+}
+
+func TestTeamHiddenGenerationRotateRace(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	tt.addUser("alf")
+	tt.addUser("bra")
+	tt.addUser("cha")
+
+	alice := tt.users[0]
+	bob := tt.users[1]
+	charlie := tt.users[2]
+
+	team := alice.createTeam()
+	parentName, err := keybase1.TeamNameFromString(team)
+	require.NoError(t, err)
+	_, err = teams.CreateSubteam(context.TODO(), alice.tc.G, "bb", parentName, keybase1.TeamRole_NONE /* addSelfAs */)
+	require.NoError(t, err)
+	subteamName, err := parentName.Append("bb")
+	require.NoError(t, err)
+	_, err = teams.CreateSubteam(context.TODO(), alice.tc.G, "cc", subteamName, keybase1.TeamRole_NONE /* addSelfAs */)
+	require.NoError(t, err)
+	subsubteamName, err := subteamName.Append("cc")
+	require.NoError(t, err)
+
+	t.Logf("Start testing")
+
+	alice.addTeamMember(subsubteamName.String(), charlie.username, keybase1.TeamRole_ADMIN)
+	charlie.waitForMetadataUpdateGregor("added to team")
+
+	alice.addTeamMember(parentName.String(), bob.username, keybase1.TeamRole_ADMIN)
+	bob.waitForMetadataUpdateGregor("added to team")
+
+	alice.removeTeamMember(parentName.String(), bob.username)
+	bob.waitForMetadataUpdateGregor("removed from team")
+
+	alice.addTeamMember(parentName.String(), bob.username, keybase1.TeamRole_ADMIN)
+	bob.waitForMetadataUpdateGregor("added back")
 }

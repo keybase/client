@@ -90,7 +90,7 @@
       "conversationIDKey": "ChatTypes.ConversationIDKey"
     },
     "deleteTeam": {
-      "teamname": "string"
+      "teamID": "Types.TeamID"
     },
     "inviteToTeamByEmail": {
       "destSubPath?": "I.List<string>",
@@ -192,15 +192,12 @@
       "loadingKey": "string",
       "isLoading": "boolean"
     },
-    "clearTeamRequests": {
-      "teamname": "string"
-    },
     "setTeamDetails": {
       "teamID": "Types.TeamID",
       "teamname": "string",
       "members": "RPCTypes.TeamMembersDetails",
       "settings": "RPCTypes.TeamSettings",
-      "invites": "Array<Types._InviteInfo>",
+      "invites": "Array<Types.InviteInfo>",
       "subteams": "Array<Types.Teamname>",
       "requests": "Map<string, Array<string>>",
       "subteamIDs": "Set<Types.TeamID>"
