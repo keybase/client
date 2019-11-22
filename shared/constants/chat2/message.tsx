@@ -794,13 +794,13 @@ export const hasSuccessfulInlinePayments = (state: TypedState, message: Types.Me
 }
 
 export const getMapUnfurl = (message: Types.Message): RPCChatTypes.UnfurlGenericDisplay | null => {
-  const unfurls = message.type === 'text' && message.unfurls.size ? message.unfurls.values() : null
+  const unfurls = message.type === 'text' && message.unfurls.size ? [...message.unfurls.values()] : null
   const mapInfo = unfurls?.[0]?.unfurl
     ? unfurls[0].unfurl.unfurlType === RPCChatTypes.UnfurlType.generic &&
       unfurls[0].unfurl.generic?.mapInfo &&
       unfurls[0].unfurl.generic
     : null
-  return mapInfo
+  return mapInfo || null
 }
 
 const validUIMessagetoMessage = (
@@ -1323,7 +1323,9 @@ export const mergeMessage = (old: Types.Message | null, m: Types.Message): Types
         }
         break
       default:
+        // @ts-ignore key is just a string here so TS doesn't like it
         if (old[key] === m[key]) {
+          // @ts-ignore
           toRet[key] = old[key]
         }
     }
