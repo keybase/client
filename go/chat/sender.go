@@ -562,7 +562,7 @@ func (s *BlockingSender) getParticipantsForMentions(ctx context.Context, uid gre
 				},
 				TopicName: &globals.DefaultTeamTopic,
 				TopicType: &topicType,
-			}, nil)
+			})
 		if err != nil {
 			return nil, err
 		}

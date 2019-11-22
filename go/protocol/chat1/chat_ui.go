@@ -437,9 +437,8 @@ func (o UnverifiedInboxUIItem) DeepCopy() UnverifiedInboxUIItem {
 }
 
 type UnverifiedInboxUIItems struct {
-	Items      []UnverifiedInboxUIItem `codec:"items" json:"items"`
-	Pagination *UIPagination           `codec:"pagination,omitempty" json:"pagination,omitempty"`
-	Offline    bool                    `codec:"offline" json:"offline"`
+	Items   []UnverifiedInboxUIItem `codec:"items" json:"items"`
+	Offline bool                    `codec:"offline" json:"offline"`
 }
 
 func (o UnverifiedInboxUIItems) DeepCopy() UnverifiedInboxUIItems {
@@ -455,13 +454,6 @@ func (o UnverifiedInboxUIItems) DeepCopy() UnverifiedInboxUIItems {
 			}
 			return ret
 		})(o.Items),
-		Pagination: (func(x *UIPagination) *UIPagination {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.Pagination),
 		Offline: o.Offline,
 	}
 }
@@ -746,9 +738,8 @@ func (o InboxUIItemError) DeepCopy() InboxUIItemError {
 }
 
 type InboxUIItems struct {
-	Items      []InboxUIItem `codec:"items" json:"items"`
-	Pagination *UIPagination `codec:"pagination,omitempty" json:"pagination,omitempty"`
-	Offline    bool          `codec:"offline" json:"offline"`
+	Items   []InboxUIItem `codec:"items" json:"items"`
+	Offline bool          `codec:"offline" json:"offline"`
 }
 
 func (o InboxUIItems) DeepCopy() InboxUIItems {
@@ -764,13 +755,6 @@ func (o InboxUIItems) DeepCopy() InboxUIItems {
 			}
 			return ret
 		})(o.Items),
-		Pagination: (func(x *UIPagination) *UIPagination {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.Pagination),
 		Offline: o.Offline,
 	}
 }

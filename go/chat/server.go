@@ -191,7 +191,7 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 	}()
 	defer h.suspendBgConvLoads(ctx)()
 
-	if err := h.G().UIInboxLoader.LoadNonblock(ctx, arg.Query, arg.Pagination, arg.MaxUnbox,
+	if err := h.G().UIInboxLoader.LoadNonblock(ctx, arg.Query, arg.MaxUnbox,
 		arg.SkipUnverified); err != nil {
 		return res, err
 	}
@@ -259,12 +259,11 @@ func (h *Server) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.GetInboxAn
 
 	// Read inbox from the source
 	ib, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
-		types.InboxSourceDataSourceAll, nil, arg.Query, arg.Pagination)
+		types.InboxSourceDataSourceAll, nil, arg.Query)
 	if err != nil {
 		if _, ok := err.(UnknownTLFNameError); ok {
 			h.Debug(ctx, "GetInboxAndUnboxLocal: got unknown TLF name error, returning blank results")
 			ib.Convs = nil
-			ib.Pagination = nil
 		} else {
 			return res, err
 		}
@@ -272,7 +271,6 @@ func (h *Server) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.GetInboxAn
 
 	return chat1.GetInboxAndUnboxLocalRes{
 		Conversations:    ib.Convs,
-		Pagination:       ib.Pagination,
 		Offline:          h.G().InboxSource.IsOffline(ctx),
 		IdentifyFailures: identBreaks,
 	}, nil
@@ -290,19 +288,17 @@ func (h *Server) GetInboxAndUnboxUILocal(ctx context.Context, arg chat1.GetInbox
 	}
 	// Read inbox from the source
 	ib, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
-		types.InboxSourceDataSourceAll, nil, arg.Query, arg.Pagination)
+		types.InboxSourceDataSourceAll, nil, arg.Query)
 	if err != nil {
 		if _, ok := err.(UnknownTLFNameError); ok {
 			h.Debug(ctx, "GetInboxAndUnboxUILocal: got unknown TLF name error, returning blank results")
 			ib.Convs = nil
-			ib.Pagination = nil
 		} else {
 			return res, err
 		}
 	}
 	return chat1.GetInboxAndUnboxUILocalRes{
 		Conversations:    utils.PresentConversationLocals(ctx, h.G(), uid, ib.Convs),
-		Pagination:       ib.Pagination,
 		IdentifyFailures: identBreaks,
 	}, nil
 }
@@ -417,6 +413,13 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 	return res, nil
 }
 
+func (h *Server) limitConvResults(convs []chat1.ConversationLocal, num int) []chat1.ConversationLocal {
+	if len(convs) <= num {
+		return convs
+	}
+	return convs[:num]
+}
+
 func (h *Server) GetInboxSummaryForCLILocal(ctx context.Context, arg chat1.GetInboxSummaryForCLILocalQuery) (res chat1.GetInboxSummaryForCLILocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_CLI, &identBreaks,
@@ -475,13 +478,12 @@ func (h *Server) GetInboxSummaryForCLILocal(ctx context.Context, arg chat1.GetIn
 		query := queryBase
 		query.UnreadOnly, query.ReadOnly = true, false
 		if gires, err = h.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
-			Pagination:       &chat1.Pagination{Num: arg.UnreadFirstLimit.AtMost},
 			Query:            &query,
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		}); err != nil {
 			return chat1.GetInboxSummaryForCLILocalRes{}, err
 		}
-		res.Conversations = gires.Conversations
+		res.Conversations = h.limitConvResults(gires.Conversations, arg.UnreadFirstLimit.AtMost)
 
 		more := utils.Collar(
 			arg.UnreadFirstLimit.AtLeast-len(res.Conversations),
@@ -492,12 +494,11 @@ func (h *Server) GetInboxSummaryForCLILocal(ctx context.Context, arg chat1.GetIn
 			query := queryBase
 			query.UnreadOnly, query.ReadOnly = false, true
 			if gires, err = h.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
-				Pagination: &chat1.Pagination{Num: more},
-				Query:      &query,
+				Query: &query,
 			}); err != nil {
 				return chat1.GetInboxSummaryForCLILocalRes{}, err
 			}
-			res.Conversations = append(res.Conversations, gires.Conversations...)
+			res.Conversations = append(h.limitConvResults(res.Conversations, more), gires.Conversations...)
 		}
 	} else {
 		if arg.ActivitySortedLimit <= 0 {
@@ -506,13 +507,12 @@ func (h *Server) GetInboxSummaryForCLILocal(ctx context.Context, arg chat1.GetIn
 		query := queryBase
 		query.UnreadOnly, query.ReadOnly = false, false
 		if gires, err = h.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
-			Pagination:       &chat1.Pagination{Num: arg.ActivitySortedLimit},
 			Query:            &query,
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		}); err != nil {
 			return chat1.GetInboxSummaryForCLILocalRes{}, err
 		}
-		res.Conversations = gires.Conversations
+		res.Conversations = h.limitConvResults(gires.Conversations, arg.ActivitySortedLimit)
 	}
 	res.Offline = gires.Offline
 	return res, nil
@@ -1661,7 +1661,7 @@ func (h *Server) AddTeamMemberAfterReset(ctx context.Context,
 		types.InboxSourceDataSourceAll, nil,
 		&chat1.GetInboxLocalQuery{
 			ConvIDs: []chat1.ConversationID{arg.ConvID},
-		}, nil)
+		})
 	if err != nil {
 		return err
 	}
@@ -1695,34 +1695,26 @@ func (h *Server) GetAllResetConvMembers(ctx context.Context) (res chat1.GetAllRe
 	if err != nil {
 		return res, err
 	}
-	p := &chat1.Pagination{Num: 10000}
-	for {
-		h.Debug(ctx, "GetAllResetConvMembers: p: %s", p)
-		ib, err := h.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll, nil, p)
-		if err != nil {
-			return res, err
+	ib, err := h.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll, nil)
+	if err != nil {
+		return res, err
+	}
+	for _, conv := range ib.ConvsUnverified {
+		switch conv.GetMembersType() {
+		case chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_IMPTEAMUPGRADE:
+		default:
+			continue
 		}
-		for _, conv := range ib.ConvsUnverified {
-			switch conv.GetMembersType() {
-			case chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_IMPTEAMUPGRADE:
-			default:
-				continue
+		for _, ru := range conv.Conv.Metadata.ResetList {
+			username, err := h.G().GetUPAKLoader().LookupUsername(ctx, keybase1.UID(ru.String()))
+			if err != nil {
+				return res, err
 			}
-			for _, ru := range conv.Conv.Metadata.ResetList {
-				username, err := h.G().GetUPAKLoader().LookupUsername(ctx, keybase1.UID(ru.String()))
-				if err != nil {
-					return res, err
-				}
-				res.Members = append(res.Members, chat1.ResetConvMember{
-					Uid:      ru,
-					Conv:     conv.GetConvID(),
-					Username: username.String(),
-				})
-			}
-		}
-		p = ib.Pagination
-		if p.Last {
-			break
+			res.Members = append(res.Members, chat1.ResetConvMember{
+				Uid:      ru,
+				Conv:     conv.GetConvID(),
+				Username: username.String(),
+			})
 		}
 	}
 	return res, nil
@@ -1847,15 +1839,14 @@ func (h *Server) GetTeamRetentionLocal(ctx context.Context, teamID keybase1.Team
 	if err != nil {
 		return res, err
 	}
-	p := chat1.Pagination{Num: 1}
 	ib, err := h.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll,
 		&chat1.GetInboxQuery{
 			TlfID: &tlfID,
-		}, &p)
+		})
 	if err != nil {
 		return res, err
 	}
-	if len(ib.ConvsUnverified) != 1 {
+	if len(ib.ConvsUnverified) == 0 {
 		return res, errors.New("no conversations found")
 	}
 	return ib.ConvsUnverified[0].Conv.TeamRetention, nil
@@ -1879,7 +1870,7 @@ func (h *Server) UpgradeKBFSConversationToImpteam(ctx context.Context, convID ch
 		types.InboxSourceDataSourceAll, nil,
 		&chat1.GetInboxLocalQuery{
 			ConvIDs: []chat1.ConversationID{convID},
-		}, nil)
+		})
 	if err != nil {
 		return err
 	}

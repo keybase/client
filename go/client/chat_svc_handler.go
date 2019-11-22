@@ -97,7 +97,6 @@ func (c *chatServiceHandler) exportUIConv(ctx context.Context, uiconv chat1.Inbo
 func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Reply {
 	var cl chat1.ChatList
 	var rlimits []chat1.RateLimit
-	var pagination *chat1.Pagination
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
 		return c.errReply(err)
@@ -113,13 +112,11 @@ func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Rep
 			UnreadOnly:        opts.UnreadOnly,
 			OneChatTypePerTLF: new(bool),
 		},
-		Pagination:       opts.Pagination,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	})
 	if err != nil {
 		return c.errReply(err)
 	}
-	pagination = res.Pagination
 	rlimits = utils.AggRateLimits(res.RateLimits)
 	if opts.FailOffline && res.Offline {
 		return c.errReply(chat.OfflineError{})
@@ -131,7 +128,6 @@ func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Rep
 	for _, conv := range res.Conversations {
 		cl.Conversations = append(cl.Conversations, c.exportUIConv(ctx, conv))
 	}
-	cl.Pagination = pagination
 	cl.RateLimits = c.aggRateLimits(rlimits)
 	return Reply{Result: cl}
 }

@@ -68,7 +68,7 @@ func newConv(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext, uid 
 	ib, _, err := tc.Context().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
 		types.InboxSourceDataSourceAll, nil, &chat1.GetInboxLocalQuery{
 			ConvIDs: []chat1.ConversationID{convID},
-		}, nil)
+		})
 	require.NoError(t, err)
 	require.Equal(t, 1, len(ib.Convs))
 	require.Equal(t, 1, len(ib.ConvsUnverified))
@@ -156,7 +156,7 @@ func TestSyncerConnected(t *testing.T) {
 	_, cerr := tc.ChatG.ConvSource.Pull(ctx, mconv.GetConvID(), uid, chat1.GetThreadReason_GENERAL, nil, nil)
 	require.NoError(t, cerr)
 	_, _, serr := tc.ChatG.InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
-		types.InboxSourceDataSourceAll, nil, nil, nil)
+		types.InboxSourceDataSourceAll, nil, nil)
 	require.NoError(t, serr)
 	_, iconvs, err := ibox.ReadAll(ctx, uid, true)
 	require.NoError(t, err)
@@ -227,7 +227,7 @@ func TestSyncerConnected(t *testing.T) {
 	require.Error(t, cerr)
 	require.IsType(t, storage.MissError{}, cerr)
 	_, _, serr = tc.Context().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
-		types.InboxSourceDataSourceAll, nil, nil, nil)
+		types.InboxSourceDataSourceAll, nil, nil)
 	require.NoError(t, serr)
 	_, iconvs, err = ibox.ReadAll(ctx, uid, true)
 	require.NoError(t, err)
@@ -527,7 +527,7 @@ func TestSyncerRetentionExpunge(t *testing.T) {
 	require.NoError(t, cerr)
 	require.Equal(t, 2, len(tv.Messages))
 	_, _, serr := tc.ChatG.InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
-		types.InboxSourceDataSourceAll, nil, nil, nil)
+		types.InboxSourceDataSourceAll, nil, nil)
 	require.NoError(t, serr)
 	select {
 	case cid := <-list.bgConvLoads:
@@ -604,7 +604,7 @@ func TestSyncerTeamFilter(t *testing.T) {
 		chat1.ConversationMembersType_TEAM)
 
 	_, _, err := tc.ChatG.InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
-		types.InboxSourceDataSourceAll, nil, nil, nil)
+		types.InboxSourceDataSourceAll, nil, nil)
 	require.NoError(t, err)
 	_, iconvs, err := ibox.ReadAll(ctx, uid, true)
 	require.NoError(t, err)

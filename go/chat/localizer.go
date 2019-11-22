@@ -144,7 +144,6 @@ func (b *nonBlockingLocalizer) filterInboxRes(ctx context.Context, inbox types.I
 		Version:         inbox.Version,
 		ConvsUnverified: res,
 		Convs:           inbox.Convs,
-		Pagination:      inbox.Pagination,
 	}, nil
 }
 

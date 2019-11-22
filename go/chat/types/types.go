@@ -160,7 +160,6 @@ type Inbox struct {
 	Version         chat1.InboxVers
 	ConvsUnverified []RemoteConversation
 	Convs           []chat1.ConversationLocal
-	Pagination      *chat1.Pagination
 }
 
 type InboxSyncRes struct {
@@ -620,7 +619,7 @@ func (d DummyUIInboxLoader) Stop(ctx context.Context) chan struct{} {
 }
 
 func (d DummyUIInboxLoader) LoadNonblock(ctx context.Context, query *chat1.GetInboxLocalQuery,
-	pagination *chat1.Pagination, maxUnbox *int, skipUnverified bool) error {
+	maxUnbox *int, skipUnverified bool) error {
 	return nil
 }
 

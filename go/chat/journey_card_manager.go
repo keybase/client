@@ -435,20 +435,21 @@ func (cc *JourneyCardManagerSingleUser) cardAddPeople(ctx context.Context, conv 
 	}
 	// Figure whether the user is in other channels.
 	topicType := chat1.TopicType_CHAT
-	inbox, err := cc.G().InboxSource.ReadUnverified(ctx, cc.uid, types.InboxSourceDataSourceLocalOnly, &chat1.GetInboxQuery{
-		TlfID:     &conv.TlfID,
-		TopicType: &topicType,
-		MemberStatus: []chat1.ConversationMemberStatus{
-			chat1.ConversationMemberStatus_ACTIVE,
-			chat1.ConversationMemberStatus_REMOVED,
-			chat1.ConversationMemberStatus_LEFT,
-			chat1.ConversationMemberStatus_PREVIEW,
-		},
-		MembersTypes:     []chat1.ConversationMembersType{chat1.ConversationMembersType_TEAM},
-		SummarizeMaxMsgs: true,
-		SkipBgLoads:      true,
-		AllowUnseenQuery: true, // Make an effort, it's ok if convs are missed.
-	}, nil)
+	inbox, err := cc.G().InboxSource.ReadUnverified(ctx, cc.uid, types.InboxSourceDataSourceLocalOnly,
+		&chat1.GetInboxQuery{
+			TlfID:     &conv.TlfID,
+			TopicType: &topicType,
+			MemberStatus: []chat1.ConversationMemberStatus{
+				chat1.ConversationMemberStatus_ACTIVE,
+				chat1.ConversationMemberStatus_REMOVED,
+				chat1.ConversationMemberStatus_LEFT,
+				chat1.ConversationMemberStatus_PREVIEW,
+			},
+			MembersTypes:     []chat1.ConversationMembersType{chat1.ConversationMembersType_TEAM},
+			SummarizeMaxMsgs: true,
+			SkipBgLoads:      true,
+			AllowUnseenQuery: true, // Make an effort, it's ok if convs are missed.
+		})
 	if err != nil {
 		debugDebug(ctx, "ReadUnverified error: %v", err)
 		return false

@@ -477,7 +477,6 @@ type ChatList struct {
 	Conversations    []ConvSummary                 `codec:"conversations" json:"conversations"`
 	Offline          bool                          `codec:"offline" json:"offline"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures,omitempty" json:"identify_failures,omitempty"`
-	Pagination       *Pagination                   `codec:"pagination,omitempty" json:"pagination,omitempty"`
 	RateLimits       []RateLimitRes                `codec:"rateLimits,omitempty" json:"ratelimits,omitempty"`
 }
 
@@ -506,13 +505,6 @@ func (o ChatList) DeepCopy() ChatList {
 			}
 			return ret
 		})(o.IdentifyFailures),
-		Pagination: (func(x *Pagination) *Pagination {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.Pagination),
 		RateLimits: (func(x []RateLimitRes) []RateLimitRes {
 			if x == nil {
 				return nil
