@@ -36,7 +36,7 @@ export default Container.connect(
   }),
   (dispatch, ownProps: OwnProps) => ({
     _onProfileClick: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
-    _onTabClick: (tab: Tabs.Tab, justSignedUpEmail: string, settingsEmailBanner: string | null) => {
+    _onTabClick: (tab: Tabs.Tab, justSignedUpEmail: string, settingsEmailBanner?: string) => {
       if (ownProps.selectedTab === Tabs.peopleTab && tab !== Tabs.peopleTab) {
         dispatch(PeopleGen.createMarkViewed())
       }

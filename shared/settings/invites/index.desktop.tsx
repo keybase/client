@@ -24,6 +24,11 @@ class Invites extends Component<Props, State> {
       showMessageField: props.showMessageField,
     }
   }
+
+  componentDidMount() {
+    this.props.onRefresh()
+  }
+
   componentWillUnmount() {
     if (this.props.error) this.props.onClearError()
   }

@@ -54,7 +54,7 @@ const ContactsJoinedModal = (_: Props) => {
       <Kb.Text type="Body" style={styles.woot} center={true}>
         Woot! Some of your contacts are already on Keybase.
       </Kb.Text>
-      <Kb.List items={people.toArray()} renderItem={renderItem} indexAsKey={true} />
+      <Kb.List items={people} renderItem={renderItem} indexAsKey={true} />
     </Kb.Modal>
   )
 }

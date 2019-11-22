@@ -93,7 +93,7 @@ const search = async (state: TypedState, {payload: {namespace, includeContacts}}
   if (selectedService === 'keybase') {
     // If we are on Keybase tab, do additional search if query is phone/email.
     const userRegion = state.settings.contacts.userCountryCode
-    users = await specialContactSearch(users, searchQuery, userRegion)
+    users = await specialContactSearch(users, searchQuery, userRegion ?? null)
   }
   return TeamBuildingGen.createSearchResultsLoaded({
     namespace,

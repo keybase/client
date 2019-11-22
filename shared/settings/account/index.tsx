@@ -9,7 +9,7 @@ import * as SettingsGen from '../../actions/settings-gen'
 import * as Container from '../../util/container'
 
 export type Props = {
-  addedEmail: string | null
+  addedEmail?: string
   addedPhone: boolean
   contactKeys: I.List<string>
   hasPassword: boolean

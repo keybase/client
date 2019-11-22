@@ -12,7 +12,7 @@ import EnterEmail, {Props} from '.'
 type OwnProps = {}
 
 type WatcherProps = Props & {
-  addedEmail: string | null
+  addedEmail?: string
   onSuccess: (email: string) => void
 }
 const WatchForSuccess = (props: WatcherProps) => {
