@@ -10,7 +10,7 @@ type Action = {
 type Props = {
   actions: Array<Action>
   image: Kb.IconType | null
-  loadTeam: (() => void) | null
+  loadTeam?: () => void
   teamname: string
   text: string
 }
@@ -19,11 +19,12 @@ const TeamJourney = (props: Props) => {
   // Load the team once on mount for its channel list if required.
   const {loadTeam, teamname} = props
   React.useEffect(() => {
-    loadTeam !== null && loadTeam()
-  }, [loadTeam, teamname])
+    loadTeam?.()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   return (
     <>
-      <TeamJourneyHeader teamname={props.teamname} />
+      <TeamJourneyHeader teamname={teamname} />
       <Kb.Box2 key="content" direction="vertical" fullWidth={true} style={styles.content}>
         <Kb.Box2 direction="horizontal" fullWidth={true}>
           <Kb.Box2 direction="horizontal" style={props.image ? styles.text : undefined}>
