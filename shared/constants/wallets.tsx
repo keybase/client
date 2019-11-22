@@ -237,16 +237,18 @@ export const makeBuiltRequest = I.Record<Types._BuiltRequest>({
 
 export const emptyAccountAcceptedAssets: I.Map<Types.AssetID, number> = I.Map()
 
-export const makeTrustline = I.Record<Types._Trustline>({
-  acceptedAssets: I.Map(),
-  acceptedAssetsByUsername: I.Map(),
-  assetMap: I.Map(),
-  expandedAssets: I.Set(),
+export const makeTrustline = (t?: Partial<Types.Trustline>): Types.Trustline => ({
+  acceptedAssets: new Map(),
+  acceptedAssetsByUsername: new Map(),
+  assetMap: new Map(),
+  expandedAssets: new Set(),
   loaded: false,
-  popularAssets: I.List(),
+  popularAssets: [],
   searchingAssets: undefined,
   totalAssetsCount: 0,
+  ...t,
 })
+
 export const emptyTrustline = makeTrustline()
 
 export const makeState = (): Types.State => ({

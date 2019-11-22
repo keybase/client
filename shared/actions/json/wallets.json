@@ -475,12 +475,12 @@
     "setTrustlineAcceptedAssets": {
       "accountID": "Types.AccountID",
       "assets": "Array<Types.AssetDescription>",
-      "limits": "I.Map<Types.AssetID, number>"
+      "limits": "Map<Types.AssetID, number>"
     },
     "setTrustlineAcceptedAssetsByUsername": {
       "username": "string",
       "assets": "Array<Types.AssetDescription>",
-      "limits": "I.Map<Types.AssetID, number>"
+      "limits": "Map<Types.AssetID, number>"
     },
     "setTrustlinePopularAssets": {
       "assets": "Array<Types.AssetDescription>",

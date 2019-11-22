@@ -1,5 +1,5 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-import * as I from 'immutable'
+
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/wallets'
 import * as ChatTypes from '../constants/types/chat2'
@@ -337,12 +337,12 @@ type _SetSEP7TxPayload = {readonly confirmURI: string; readonly tx: Types.SEP7Co
 type _SetTrustlineAcceptedAssetsByUsernamePayload = {
   readonly username: string
   readonly assets: Array<Types.AssetDescription>
-  readonly limits: I.Map<Types.AssetID, number>
+  readonly limits: Map<Types.AssetID, number>
 }
 type _SetTrustlineAcceptedAssetsPayload = {
   readonly accountID: Types.AccountID
   readonly assets: Array<Types.AssetDescription>
-  readonly limits: I.Map<Types.AssetID, number>
+  readonly limits: Map<Types.AssetID, number>
 }
 type _SetTrustlineExpandedPayload = {readonly expanded: boolean; readonly assetID: Types.AssetID}
 type _SetTrustlinePopularAssetsPayload = {

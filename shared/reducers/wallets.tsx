@@ -9,23 +9,24 @@ import HiddenString from '../util/hidden-string'
 import teamBuildingReducer from './team-building'
 import {teamBuilderReducerCreator} from '../team-building/reducer-helper'
 import shallowEqual from 'shallowequal'
+import {mapEqual} from '../util/map'
 
 import reducerOLD from './wallets-old'
 import * as ConstantsOLD from '../constants/wallets-old'
 
 const initialState: Types.State = Constants.makeState()
 
-const reduceAssetMap = (
-  assetMap: I.Map<Types.AssetID, Types.AssetDescription>,
+const updateAssetMap = (
+  assetMap: Map<Types.AssetID, Types.AssetDescription>,
   assets: Array<Types.AssetDescription>
-): I.Map<Types.AssetID, Types.AssetDescription> =>
-  assetMap.withMutations(assetMapMutable =>
-    assets.forEach(asset =>
-      assetMapMutable.update(Types.assetDescriptionToAssetID(asset), oldAsset =>
-        shallowEqual(asset, oldAsset) ? oldAsset : asset
-      )
-    )
-  )
+) =>
+  assets.forEach(asset => {
+    const key = Types.assetDescriptionToAssetID(asset)
+    const oldAsset = assetMap.get(key)
+    if (!shallowEqual(asset, oldAsset)) {
+      assetMap.set(key, asset)
+    }
+  })
 
 type Actions = WalletsGen.Actions | TeamBuildingGen.Actions
 const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
@@ -486,57 +487,49 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
     draftState.airdropDetails = Constants.makeStellarDetails({details, disclaimer, isPromoted})
   },
   [WalletsGen.setTrustlineExpanded]: (draftState, action) => {
-    draftState.trustline = draftState.trustline.update('expandedAssets', expandedAssets =>
-      action.payload.expanded
-        ? expandedAssets.add(action.payload.assetID)
-        : expandedAssets.delete(action.payload.assetID)
-    )
+    if (action.payload.expanded) {
+      draftState.trustline.expandedAssets.add(action.payload.assetID)
+    } else {
+      draftState.trustline.expandedAssets.delete(action.payload.assetID)
+    }
   },
   [WalletsGen.setTrustlineAcceptedAssets]: (draftState, action) => {
-    draftState.trustline = draftState.trustline
-      .update('acceptedAssets', acceptedAssets =>
-        acceptedAssets.update(action.payload.accountID, accountAcceptedAssets =>
-          action.payload.limits.equals(accountAcceptedAssets) ? accountAcceptedAssets : action.payload.limits
-        )
-      )
-      .update('assetMap', assetMap => reduceAssetMap(assetMap, action.payload.assets))
+    const {accountID, limits} = action.payload
+    const accountAcceptedAssets = draftState.trustline.acceptedAssets.get(accountID)
+    if (!accountAcceptedAssets || !mapEqual(limits, accountAcceptedAssets)) {
+      draftState.trustline.acceptedAssets.set(accountID, limits)
+    }
+    updateAssetMap(draftState.trustline.assetMap, action.payload.assets)
   },
   [WalletsGen.setTrustlineAcceptedAssetsByUsername]: (draftState, action) => {
-    draftState.trustline = draftState.trustline
-      .update('acceptedAssetsByUsername', acceptedAssetsByUsername =>
-        acceptedAssetsByUsername.update(action.payload.username, accountAcceptedAssets =>
-          action.payload.limits.equals(accountAcceptedAssets) ? accountAcceptedAssets : action.payload.limits
-        )
-      )
-      .update('assetMap', assetMap => reduceAssetMap(assetMap, action.payload.assets))
+    const {username, limits, assets} = action.payload
+    const accountAcceptedAssets = draftState.trustline.acceptedAssetsByUsername.get(username)
+    if (!accountAcceptedAssets || !mapEqual(limits, accountAcceptedAssets)) {
+      draftState.trustline.acceptedAssetsByUsername.set(username, limits)
+    }
+    updateAssetMap(draftState.trustline.assetMap, assets)
   },
   [WalletsGen.setTrustlinePopularAssets]: (draftState, action) => {
-    draftState.trustline = draftState.trustline.withMutations(trustline =>
-      trustline
-        .set(
-          'popularAssets',
-          I.List(action.payload.assets.map(asset => Types.assetDescriptionToAssetID(asset)))
-        )
-        .update('assetMap', assetMap => reduceAssetMap(assetMap, action.payload.assets))
-        .set('totalAssetsCount', action.payload.totalCount)
-        .set('loaded', true)
+    draftState.trustline.popularAssets = action.payload.assets.map(asset =>
+      Types.assetDescriptionToAssetID(asset)
     )
+    updateAssetMap(draftState.trustline.assetMap, action.payload.assets)
+    draftState.trustline.totalAssetsCount = action.payload.totalCount
+    draftState.trustline.loaded = true
   },
   [WalletsGen.setTrustlineSearchText]: (draftState, action) => {
     if (!action.payload.text) {
-      draftState.trustline = draftState.trustline.set('searchingAssets', I.List())
+      draftState.trustline.searchingAssets = []
     }
   },
   [WalletsGen.setTrustlineSearchResults]: (draftState, action) => {
-    draftState.trustline = draftState.trustline
-      .set(
-        'searchingAssets',
-        I.List(action.payload.assets.map(asset => Types.assetDescriptionToAssetID(asset)))
-      )
-      .update('assetMap', assetMap => reduceAssetMap(assetMap, action.payload.assets))
+    draftState.trustline.searchingAssets = action.payload.assets.map(asset =>
+      Types.assetDescriptionToAssetID(asset)
+    )
+    updateAssetMap(draftState.trustline.assetMap, action.payload.assets)
   },
   [WalletsGen.clearTrustlineSearchResults]: draftState => {
-    draftState.trustline = draftState.trustline.set('searchingAssets', undefined)
+    draftState.trustline.searchingAssets = undefined
   },
   [WalletsGen.setBuiltPaymentAdvanced]: (draftState, action) => {
     if (action.payload.forSEP7) {
@@ -596,6 +589,46 @@ const doubleCheck = (
     }, {})
 
   if (__DEV__) {
+    const paymentsMap: any = state
+      ? I.Map(
+          mapToObject(
+            new Map(
+              [...state.paymentsMap.entries()].map(([k, v]) => {
+                return [
+                  k,
+                  I.Map(mapToObject(v)).map((v: any) =>
+                    ConstantsOLD.makePayment({...v, trustline: v.trustline || null})
+                  ),
+                ]
+              })
+            )
+          )
+        )
+      : undefined
+
+    const trustline = ConstantsOLD.makeTrustline(
+      state?.trustline
+        ? {
+            acceptedAssets: I.Map(
+              [...state.trustline.acceptedAssets.entries()].map(([k, v]) => {
+                return [k, I.Map([...v.entries()])]
+              })
+            ),
+            acceptedAssetsByUsername: I.Map(
+              [...state.trustline.acceptedAssetsByUsername.entries()].map(([k, v]) => {
+                return [k, I.Map([...v.entries()])]
+              })
+            ),
+            assetMap: I.Map(mapToObject(state.trustline.assetMap)),
+            expandedAssets: I.Set([...state.trustline.expandedAssets]),
+            loaded: state.trustline.loaded,
+            popularAssets: I.List(state.trustline.popularAssets),
+            searchingAssets: I.List(state.trustline.searchingAssets || []),
+            totalAssetsCount: state.trustline.totalAssetsCount,
+          }
+        : undefined
+    )
+
     const s = ConstantsOLD.makeState({
       ...state,
       accountMap: state ? I.Map(mapToObject(state.accountMap)) : undefined,
@@ -609,28 +642,13 @@ const doubleCheck = (
       paymentCursorMap: state ? I.Map(mapToObject(state.paymentCursorMap)) : undefined,
       paymentLoadingMoreMap: state ? I.Map(mapToObject(state.paymentLoadingMoreMap)) : undefined,
       paymentOldestUnreadMap: state ? I.Map(mapToObject(state.paymentOldestUnreadMap)) : undefined,
-      paymentsMap: state
-        ? I.Map(
-            mapToObject(
-              new Map(
-                [...state.paymentsMap.entries()].map(([k, v]) => {
-                  return [
-                    k,
-                    I.Map(mapToObject(v)).map((v: any) =>
-                      ConstantsOLD.makePayment({...v, trustline: v.trustline || null})
-                    ),
-                  ]
-                })
-              )
-            )
-          )
-        : undefined,
+      paymentsMap,
       sep7ConfirmInfo: state?.sep7ConfirmInfo
         ? ConstantsOLD.makeSEP7ConfirmInfo(state.sep7ConfirmInfo)
         : null,
       sep7ConfirmPath: ConstantsOLD.makeBuiltPaymentAdvanced(state?.sep7ConfirmPath as any),
       staticConfig: state && state.staticConfig ? I.Record(state.staticConfig as any)() : null,
-      trustline: ConstantsOLD.makeTrustline(state?.trustline),
+      trustline,
       unreadPaymentsMap: state ? I.Map(mapToObject(state.unreadPaymentsMap)) : undefined,
     })
     const nextStateOLD = reducerOLD(s, action)
