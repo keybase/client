@@ -115,8 +115,8 @@ describe('text code happy path', () => {
   it('submit text code empty throws', () => {
     const {dispatch, response} = init
     dispatch(ProvisionGen.createSubmitTextCode({phrase: new HiddenString('')}))
-    expect(response.result).not.toHaveBeenCalled()
-    expect(response.error).toHaveBeenCalled()
+    expect(response.result).toHaveBeenCalledWith({phrase: 'invalid', secret: null})
+    expect(response.error).not.toHaveBeenCalled()
   })
 
   it('submit text code', () => {
