@@ -1,7 +1,6 @@
 import * as React from 'react'
 import {Text} from '../../../../common-adapters'
 import UserNotice from '../user-notice'
-import {globalColors, globalMargins} from '../../../../styles'
 
 type Props = {
   username: string

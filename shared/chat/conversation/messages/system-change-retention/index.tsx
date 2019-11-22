@@ -1,10 +1,8 @@
 import moment from 'moment'
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
 import UserNotice from '../user-notice'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
-import SystemMessageTimestamp from '../system-message-timestamp'
 
 type Props = {
   canManage: boolean

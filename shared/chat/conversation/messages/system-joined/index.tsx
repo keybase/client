@@ -73,13 +73,10 @@ const JoinedUserNotice = (props: Props) => (
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      timestamp: Styles.platformStyles({
-        isElectron: {lineHeight: 19},
-      }),
       container: Styles.platformStyles({
         common: {
-          paddingTop: Styles.globalMargins.xtiny,
           paddingBottom: Styles.globalMargins.xtiny,
+          paddingTop: Styles.globalMargins.xtiny,
         },
         isElectron: {
           marginLeft: Styles.globalMargins.small,
@@ -87,6 +84,9 @@ const styles = Styles.styleSheetCreate(
         isMobile: {
           marginLeft: Styles.globalMargins.tiny,
         },
+      }),
+      timestamp: Styles.platformStyles({
+        isElectron: {lineHeight: 19},
       }),
     } as const)
 )
