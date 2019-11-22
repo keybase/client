@@ -471,11 +471,11 @@ func TestInboxNewMessage(t *testing.T) {
 	msg := makeInboxMsg(2, chat1.MessageType_TEXT)
 	msg.ClientHeader.Sender = uid1
 	require.NoError(t, inbox.Merge(context.TODO(), uid, 1, utils.PluckConvs(convs), nil, nil))
-	_, res, _, err := inbox.Read(context.TODO(), uid, nil, nil)
-	require.NoError(t, err)
-	require.Equal(t, convs[0].GetConvID(), res[0].GetConvID(), "conv not promoted")
+	convID := conv.GetConvID()
 	require.NoError(t, inbox.NewMessage(context.TODO(), uid, 2, conv.GetConvID(), msg, nil))
-	_, res, _, err = inbox.Read(context.TODO(), uid, nil, nil)
+	_, res, _, err := inbox.Read(context.TODO(), uid, &chat1.GetInboxQuery{
+		ConvID: &convID,
+	}, nil)
 	require.NoError(t, err)
 	require.Equal(t, conv.GetConvID(), res[0].GetConvID(), "conv not promoted")
 	require.Equal(t, chat1.MessageID(2), res[0].Conv.ReaderInfo.MaxMsgid, "wrong max msgid")
@@ -487,16 +487,22 @@ func TestInboxNewMessage(t *testing.T) {
 
 	// Test incomplete active list
 	conv = convs[6]
+	convID = conv.GetConvID()
 	require.NoError(t, inbox.NewMessage(context.TODO(), uid, 3, conv.GetConvID(), msg, nil))
-	_, res, _, err = inbox.Read(context.TODO(), uid, nil, nil)
+	_, res, _, err = inbox.Read(context.TODO(), uid, &chat1.GetInboxQuery{
+		ConvID: &convID,
+	}, nil)
 	require.NoError(t, err)
 	require.Equal(t, []gregor1.UID{uid1, uid2, uid3}, res[0].Conv.Metadata.ActiveList, "active list")
 
 	// Send another one from a diff User
 	msg = makeInboxMsg(3, chat1.MessageType_TEXT)
 	msg.ClientHeader.Sender = uid2
+	convID = conv.GetConvID()
 	require.NoError(t, inbox.NewMessage(context.TODO(), uid, 4, conv.GetConvID(), msg, nil))
-	_, res, _, err = inbox.Read(context.TODO(), uid, nil, nil)
+	_, res, _, err = inbox.Read(context.TODO(), uid, &chat1.GetInboxQuery{
+		ConvID: &convID,
+	}, nil)
 	require.NoError(t, err)
 	require.Equal(t, chat1.MessageID(3), res[0].Conv.ReaderInfo.MaxMsgid, "wrong max msgid")
 	require.Equal(t, chat1.MessageID(2), res[0].Conv.ReaderInfo.ReadMsgid, "wrong read msgid")
@@ -508,7 +514,9 @@ func TestInboxNewMessage(t *testing.T) {
 	// Test delete mechanics
 	delMsg := makeInboxMsg(4, chat1.MessageType_TEXT)
 	require.NoError(t, inbox.NewMessage(context.TODO(), uid, 5, conv.GetConvID(), delMsg, nil))
-	_, res, _, err = inbox.Read(context.TODO(), uid, nil, nil)
+	_, res, _, err = inbox.Read(context.TODO(), uid, &chat1.GetInboxQuery{
+		ConvID: &convID,
+	}, nil)
 	require.NoError(t, err)
 	maxMsg, err = res[0].Conv.GetMaxMessage(chat1.MessageType_TEXT)
 	require.NoError(t, err)
@@ -517,7 +525,9 @@ func TestInboxNewMessage(t *testing.T) {
 	require.NoError(t, inbox.NewMessage(context.TODO(), uid, 0, conv.GetConvID(), delete, nil))
 	require.NoError(t, inbox.NewMessage(context.TODO(), uid, 6, conv.GetConvID(), delete,
 		[]chat1.MessageSummary{msg.Summary()}))
-	_, res, _, err = inbox.Read(context.TODO(), uid, nil, nil)
+	_, res, _, err = inbox.Read(context.TODO(), uid, &chat1.GetInboxQuery{
+		ConvID: &convID,
+	}, nil)
 	require.NoError(t, err)
 	maxMsg, err = res[0].Conv.GetMaxMessage(chat1.MessageType_TEXT)
 	require.NoError(t, err)
@@ -551,15 +561,20 @@ func TestInboxReadMessage(t *testing.T) {
 	require.NoError(t, err)
 
 	conv := convs[5]
+	convID := conv.GetConvID()
 	msg := makeInboxMsg(2, chat1.MessageType_TEXT)
 	msg.ClientHeader.Sender = uid2
 	require.NoError(t, inbox.NewMessage(context.TODO(), uid, 2, conv.GetConvID(), msg, nil))
-	_, res, _, err := inbox.Read(context.TODO(), uid, nil, nil)
+	_, res, _, err := inbox.Read(context.TODO(), uid, &chat1.GetInboxQuery{
+		ConvID: &convID,
+	}, nil)
 	require.NoError(t, err)
 	require.Equal(t, chat1.MessageID(2), res[0].Conv.ReaderInfo.MaxMsgid, "wrong max msgid")
 	require.Equal(t, chat1.MessageID(1), res[0].Conv.ReaderInfo.ReadMsgid, "wrong read msgid")
 	require.NoError(t, inbox.ReadMessage(context.TODO(), uid, 3, conv.GetConvID(), 2))
-	_, res, _, err = inbox.Read(context.TODO(), uid, nil, nil)
+	_, res, _, err = inbox.Read(context.TODO(), uid, &chat1.GetInboxQuery{
+		ConvID: &convID,
+	}, nil)
 	require.NoError(t, err)
 	require.Equal(t, chat1.MessageID(2), res[0].Conv.ReaderInfo.MaxMsgid, "wrong max msgid")
 	require.Equal(t, chat1.MessageID(2), res[0].Conv.ReaderInfo.ReadMsgid, "wrong read msgid")
