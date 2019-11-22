@@ -295,39 +295,33 @@ export type AirdropState =
   | 'needDisclaimer'
   | 'rejected'
 
-export type _AirdropQualification = {
+export type AirdropQualification = {
   title: string
   subTitle: string
   valid: boolean
 }
-export type AirdropQualification = I.RecordOf<_AirdropQualification>
 
-export type _StellarDetailsLine = {
+export type StellarDetailsLine = {
   bullet: boolean
   text: string
 }
-type StellarDetailsLine = I.RecordOf<_StellarDetailsLine>
 
-export type _StellarDetailsSection = {
-  lines: I.List<StellarDetailsLine>
+export type StellarDetailsSection = {
+  lines: Array<StellarDetailsLine>
   section: string
   icon: string
 }
-type StellarDetailsSection = I.RecordOf<_StellarDetailsSection>
 
-export type _StellarDetailsHeader = {
+export type StellarDetailsHeader = {
   body: string
   title: string
 }
-type StellarDetailsHeader = I.RecordOf<_StellarDetailsHeader>
 
-export type _StellarDetailsResponse = {
+export type StellarDetailsResponse = {
   header: StellarDetailsHeader
-  sections: I.List<StellarDetailsSection>
+  sections: Array<StellarDetailsSection>
 }
-export type StellarDetailsResponse = I.RecordOf<_StellarDetailsResponse>
-
-export type _StellarDetails = {
+export type AirdropDetails = {
   details: StellarDetailsResponse
   disclaimer: StellarDetailsResponse
   isPromoted: boolean
@@ -341,8 +335,6 @@ export type StellarDetailsSections = ReadonlyArray<{
   section: string
   icon: string | null
 }>
-
-export type AirdropDetails = I.RecordOf<_StellarDetails>
 
 export type AssetID = string
 export const makeAssetID = (issuerAccountID: string, assetCode: string): AssetID =>
