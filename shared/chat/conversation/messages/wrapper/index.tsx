@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Styles from '../../../../styles'
 import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
+import SystemCreateTeam from '../system-create-team/container'
 import SystemAddedToTeam from '../system-added-to-team/container'
 import SystemChangeRetention from '../system-change-retention/container'
 import SystemGitPush from '../system-git-push/container'
@@ -485,6 +486,9 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         break
       case 'systemGitPush':
         child = <SystemGitPush key="systemGitPush" message={message} />
+        break
+      case 'systemCreateTeam':
+        child = <SystemCreateTeam key="systemCreateTeam" message={message} />
         break
       case 'systemAddedToTeam':
         child = <SystemAddedToTeam key="systemAddedToTeam" message={message} />
