@@ -207,7 +207,7 @@ func TestFlipManagerStartFlip(t *testing.T) {
 				types.ConversationLocalizerBlocking, types.InboxSourceDataSourceAll, nil,
 				&chat1.GetInboxLocalQuery{
 					TopicType: &ttype,
-				}, nil)
+				})
 			require.NoError(t, err)
 			numConvs := 0
 			for _, conv := range ibox.Convs {

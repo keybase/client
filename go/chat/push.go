@@ -315,7 +315,7 @@ func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage)
 			types.InboxSourceDataSourceAll, nil,
 			&chat1.GetInboxLocalQuery{
 				ConvIDs: []chat1.ConversationID{update.ConvID},
-			}, nil)
+			})
 		if err != nil {
 			g.Debug(ctx, "resolve: unable to read conversation: %v", err.Error())
 			return
@@ -686,7 +686,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 					nil, &chat1.GetInboxLocalQuery{
 						ConvIDs:      []chat1.ConversationID{nm.ConvID},
 						MemberStatus: chat1.AllConversationMemberStatuses(),
-					}, nil); err != nil {
+					}); err != nil {
 					g.Debug(ctx, "chat activity: unable to read conversation: %v", err)
 					return
 				}
@@ -696,7 +696,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 					&chat1.GetInboxQuery{
 						ConvIDs:      []chat1.ConversationID{nm.ConvID},
 						MemberStatus: chat1.AllConversationMemberStatuses(),
-					}, nil); err != nil {
+					}); err != nil {
 					g.Debug(ctx, "chat activity: unable to read unverified conversation: %v", err)
 					return
 				}
@@ -1213,7 +1213,7 @@ func (g *PushHandler) SubteamRename(ctx context.Context, m gregor.OutOfBandMessa
 		ib, _, err := g.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
 			types.InboxSourceDataSourceAll, nil, &chat1.GetInboxLocalQuery{
 				ConvIDs: update.ConvIDs,
-			}, nil)
+			})
 		if err != nil {
 			g.Debug(ctx, "SubteamRename: unable to read conversation: %v", err)
 			return

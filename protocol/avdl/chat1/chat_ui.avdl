@@ -105,7 +105,6 @@ protocol chatUi {
 
   record UnverifiedInboxUIItems {
     array<UnverifiedInboxUIItem> items;
-    union { null, UIPagination } pagination;
     boolean offline;
   }
 
@@ -186,7 +185,6 @@ protocol chatUi {
 
   record InboxUIItems {
     array<InboxUIItem> items;
-    union { null, UIPagination } pagination;
     boolean offline;
   }
 

@@ -425,7 +425,6 @@ func (idx *Indexer) SearchableConvs(ctx context.Context, uid gregor1.UID, convID
 
 func (idx *Indexer) allConvs(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID) (map[string]types.RemoteConversation, error) {
 	// Find all conversations in our inbox
-	pagination := &chat1.Pagination{Num: idx.pageSize}
 	topicType := chat1.TopicType_CHAT
 	inboxQuery := &chat1.GetInboxQuery{
 		ConvID:            convID,
@@ -444,36 +443,30 @@ func (idx *Indexer) allConvs(ctx context.Context, uid gregor1.UID, convID *chat1
 	}
 	// convID -> remoteConv
 	convMap := map[string]types.RemoteConversation{}
-	for !pagination.Last {
-		select {
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		default:
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	default:
+	}
+	inbox, err := idx.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll,
+		inboxQuery)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, conv := range inbox.ConvsUnverified {
+		if conv.Conv.GetFinalizeInfo() != nil {
+			continue
 		}
-		inbox, err := idx.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll,
-			inboxQuery, pagination)
-		if err != nil {
-			return nil, err
+		// Don't index any conversation if we are a RESTRICTEDBOT member,
+		// we won't have full access to the messages. We use
+		// UntrustedTeamRole here since the server could just deny serving
+		// us instead of lying about the role.
+		if conv.Conv.ReaderInfo != nil && conv.Conv.ReaderInfo.UntrustedTeamRole == keybase1.TeamRole_RESTRICTEDBOT {
+			continue
 		}
-		if inbox.Pagination != nil {
-			pagination = inbox.Pagination
-			pagination.Num = idx.pageSize
-			pagination.Previous = nil
-		}
-		for _, conv := range inbox.ConvsUnverified {
-			if conv.Conv.GetFinalizeInfo() != nil {
-				continue
-			}
-			// Don't index any conversation if we are a RESTRICTEDBOT member,
-			// we won't have full access to the messages. We use
-			// UntrustedTeamRole here since the server could just deny serving
-			// us instead of lying about the role.
-			if conv.Conv.ReaderInfo != nil && conv.Conv.ReaderInfo.UntrustedTeamRole == keybase1.TeamRole_RESTRICTEDBOT {
-				continue
-			}
-			convID := conv.GetConvID()
-			convMap[convID.String()] = conv
-		}
+		convID := conv.GetConvID()
+		convMap[convID.String()] = conv
 	}
 	return convMap, nil
 }

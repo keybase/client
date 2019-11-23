@@ -2522,7 +2522,7 @@ func GetUnverifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 			chat1.ConversationMemberStatus_RESET,
 			chat1.ConversationMemberStatus_NEVER_JOINED,
 		},
-	}, nil)
+	})
 	if err != nil {
 		return res, err
 	}
@@ -2576,7 +2576,7 @@ func GetVerifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 				chat1.ConversationMemberStatus_RESET,
 				chat1.ConversationMemberStatus_NEVER_JOINED,
 			},
-		}, nil)
+		})
 	if err != nil {
 		return res, err
 	}

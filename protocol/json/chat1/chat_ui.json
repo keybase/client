@@ -407,13 +407,6 @@
           "name": "items"
         },
         {
-          "type": [
-            null,
-            "UIPagination"
-          ],
-          "name": "pagination"
-        },
-        {
           "type": "boolean",
           "name": "offline"
         }
@@ -708,13 +701,6 @@
             "items": "InboxUIItem"
           },
           "name": "items"
-        },
-        {
-          "type": [
-            null,
-            "UIPagination"
-          ],
-          "name": "pagination"
         },
         {
           "type": "boolean",

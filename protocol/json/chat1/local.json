@@ -2431,13 +2431,6 @@
           "name": "conversations"
         },
         {
-          "type": [
-            null,
-            "Pagination"
-          ],
-          "name": "pagination"
-        },
-        {
           "type": "boolean",
           "name": "offline"
         },
@@ -2467,13 +2460,6 @@
             "items": "InboxUIItem"
           },
           "name": "conversations"
-        },
-        {
-          "type": [
-            null,
-            "Pagination"
-          ],
-          "name": "pagination"
         },
         {
           "type": "boolean",
@@ -3772,13 +3758,6 @@
           ]
         },
         {
-          "name": "pagination",
-          "type": [
-            null,
-            "Pagination"
-          ]
-        },
-        {
           "name": "identifyBehavior",
           "type": "keybase1.TLFIdentifyBehavior"
         }
@@ -3792,13 +3771,6 @@
           "type": [
             null,
             "GetInboxLocalQuery"
-          ]
-        },
-        {
-          "name": "pagination",
-          "type": [
-            null,
-            "Pagination"
           ]
         },
         {
@@ -3851,13 +3823,6 @@
           "type": [
             null,
             "GetInboxLocalQuery"
-          ]
-        },
-        {
-          "name": "pagination",
-          "type": [
-            null,
-            "Pagination"
           ]
         },
         {
