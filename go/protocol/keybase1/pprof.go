@@ -15,6 +15,11 @@ type ProcessorProfileArg struct {
 	ProfileDurationSeconds DurationSec `codec:"profileDurationSeconds" json:"profileDurationSeconds"`
 }
 
+type HeapProfileArg struct {
+	SessionID   int    `codec:"sessionID" json:"sessionID"`
+	ProfileFile string `codec:"profileFile" json:"profileFile"`
+}
+
 type LogProcessorProfileArg struct {
 	SessionID              int         `codec:"sessionID" json:"sessionID"`
 	LogDirForMobile        string      `codec:"logDirForMobile" json:"logDirForMobile"`
@@ -35,6 +40,7 @@ type LogTraceArg struct {
 
 type PprofInterface interface {
 	ProcessorProfile(context.Context, ProcessorProfileArg) error
+	HeapProfile(context.Context, HeapProfileArg) error
 	LogProcessorProfile(context.Context, LogProcessorProfileArg) error
 	Trace(context.Context, TraceArg) error
 	LogTrace(context.Context, LogTraceArg) error
@@ -56,6 +62,21 @@ func PprofProtocol(i PprofInterface) rpc.Protocol {
 						return
 					}
 					err = i.ProcessorProfile(ctx, typedArgs[0])
+					return
+				},
+			},
+			"heapProfile": {
+				MakeArg: func() interface{} {
+					var ret [1]HeapProfileArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]HeapProfileArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]HeapProfileArg)(nil), args)
+						return
+					}
+					err = i.HeapProfile(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -114,6 +135,11 @@ type PprofClient struct {
 
 func (c PprofClient) ProcessorProfile(ctx context.Context, __arg ProcessorProfileArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.pprof.processorProfile", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c PprofClient) HeapProfile(ctx context.Context, __arg HeapProfileArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.pprof.heapProfile", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
