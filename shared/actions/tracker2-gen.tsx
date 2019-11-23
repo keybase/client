@@ -18,6 +18,7 @@ export const updateAssertion = 'tracker2:updateAssertion'
 export const updateFollowers = 'tracker2:updateFollowers'
 export const updateResult = 'tracker2:updateResult'
 export const updatedDetails = 'tracker2:updatedDetails'
+export const userBlocked = 'tracker2:userBlocked'
 
 // Payload Types
 type _ChangeFollowPayload = {readonly guiID: string; readonly follow: boolean}
@@ -75,6 +76,7 @@ type _UpdatedDetailsPayload = {
   readonly teamShowcase: Array<Types.TeamShowcase>
   readonly blocked: boolean
 }
+type _UserBlockedPayload = {readonly blocker: string; readonly blocked: Array<string>}
 
 // Action Creators
 /**
@@ -120,6 +122,10 @@ export const createUpdatedDetails = (payload: _UpdatedDetailsPayload): UpdatedDe
   payload,
   type: updatedDetails,
 })
+export const createUserBlocked = (payload: _UserBlockedPayload): UserBlockedPayload => ({
+  payload,
+  type: userBlocked,
+})
 
 // Action Payloads
 export type ChangeFollowPayload = {readonly payload: _ChangeFollowPayload; readonly type: typeof changeFollow}
@@ -156,6 +162,7 @@ export type UpdatedDetailsPayload = {
   readonly payload: _UpdatedDetailsPayload
   readonly type: typeof updatedDetails
 }
+export type UserBlockedPayload = {readonly payload: _UserBlockedPayload; readonly type: typeof userBlocked}
 
 // All Actions
 // prettier-ignore
@@ -173,4 +180,5 @@ export type Actions =
   | UpdateFollowersPayload
   | UpdateResultPayload
   | UpdatedDetailsPayload
+  | UserBlockedPayload
   | {type: 'common:resetStore', payload: {}}

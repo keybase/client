@@ -92,6 +92,8 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     const d = getDetails(draftState, username)
     d.followers = new Set(followers.map(f => f.username))
     d.following = new Set(following.map(f => f.username))
+    d.followersCount = d.followers.size
+    d.followingCount = d.following.size
   },
   [Tracker2Gen.proofSuggestionsUpdated]: (draftState, action) => {
     type ReadonlyProofSuggestions = Readonly<Types.State['proofSuggestions']>
@@ -105,5 +107,15 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       ...old,
       ...rest,
     })
+  },
+  [Tracker2Gen.userBlocked]: (draftState, action) => {
+    const {blocker, blocked} = action.payload
+    const d = getDetails(draftState, blocker)
+    const followers = d.followers || new Set()
+    blocked.forEach(e => {
+      followers.delete(e)
+    })
+    d.followers = followers
+    d.followersCount = followers.size
   },
 })

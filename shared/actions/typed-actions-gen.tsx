@@ -439,6 +439,7 @@ export type TypedActionsMap = {
   'engine-gen:keybase1NotifyTeambotTeambotKeyNeeded': enginegen.Keybase1NotifyTeambotTeambotKeyNeededPayload
   'engine-gen:keybase1NotifyTrackingTrackingChanged': enginegen.Keybase1NotifyTrackingTrackingChangedPayload
   'engine-gen:keybase1NotifyTrackingTrackingInfo': enginegen.Keybase1NotifyTrackingTrackingInfoPayload
+  'engine-gen:keybase1NotifyTrackingNotifyUserBlocked': enginegen.Keybase1NotifyTrackingNotifyUserBlockedPayload
   'engine-gen:keybase1NotifyUsersUserChanged': enginegen.Keybase1NotifyUsersUserChangedPayload
   'engine-gen:keybase1NotifyUsersPasswordChanged': enginegen.Keybase1NotifyUsersPasswordChangedPayload
   'engine-gen:keybase1NotifyUsersIdentifyUpdate': enginegen.Keybase1NotifyUsersIdentifyUpdatePayload
@@ -900,6 +901,7 @@ export type TypedActionsMap = {
   'tracker2:showUser': tracker2.ShowUserPayload
   'tracker2:loadNonUserProfile': tracker2.LoadNonUserProfilePayload
   'tracker2:loadedNonUserProfile': tracker2.LoadedNonUserProfilePayload
+  'tracker2:userBlocked': tracker2.UserBlockedPayload
   'unlock-folders:checkPaperKey': unlockfolders.CheckPaperKeyPayload
   'unlock-folders:openPopup': unlockfolders.OpenPopupPayload
   'unlock-folders:closePopup': unlockfolders.ClosePopupPayload

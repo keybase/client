@@ -373,6 +373,11 @@
           "jsonkey": "block_uid"
         },
         {
+          "type": "string",
+          "name": "username",
+          "jsonkey": "block_username"
+        },
+        {
           "type": [
             null,
             "boolean"
@@ -392,7 +397,7 @@
     },
     {
       "type": "record",
-      "name": "UserBlockedGregorBody",
+      "name": "UserBlockedBody",
       "fields": [
         {
           "type": {
@@ -401,6 +406,16 @@
           },
           "name": "blocks",
           "jsonkey": "blocks"
+        },
+        {
+          "type": "UID",
+          "name": "uid",
+          "jsonkey": "blocker_uid"
+        },
+        {
+          "type": "string",
+          "name": "username",
+          "jsonkey": "blocker_username"
         }
       ]
     },

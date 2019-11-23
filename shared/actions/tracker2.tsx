@@ -241,6 +241,18 @@ const refreshSelf = (state: Container.TypedState, action: EngineGen.Keybase1Noti
     Tracker2Gen.createGetProofSuggestions(),
   ]
 
+const userBlocked = async (
+  _: Container.TypedState,
+  action: EngineGen.Keybase1NotifyTrackingNotifyUserBlockedPayload
+) => {
+  const blocker = action.payload.params.b.username
+  const blocked = (action.payload.params.b.blocks || []).reduce<Array<string>>((res, block) => {
+    ;(block.chat || block.follow) && res.push(block.username)
+    return res
+  }, [])
+  return Tracker2Gen.createUserBlocked({blocker, blocked})
+}
+
 const loadNonUserProfile = async (_: Container.TypedState, action: Tracker2Gen.LoadNonUserProfilePayload) => {
   const {assertion} = action.payload
   try {
@@ -299,6 +311,7 @@ function* tracker2Saga() {
   yield* Saga.chainAction2(Tracker2Gen.showUser, showUser)
   yield* Saga.chainAction2(EngineGen.keybase1NotifyUsersUserChanged, refreshSelf)
   yield* Saga.chainAction2(Tracker2Gen.loadNonUserProfile, loadNonUserProfile)
+  yield* Saga.chainAction2(EngineGen.keybase1NotifyTrackingNotifyUserBlocked, userBlocked)
 }
 
 export default tracker2Saga

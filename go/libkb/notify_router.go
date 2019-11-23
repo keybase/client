@@ -73,6 +73,7 @@ type NotifyListener interface {
 	TeamChangedByName(teamName string, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet, latestHiddenSeqno keybase1.Seqno)
 	TeamDeleted(teamID keybase1.TeamID)
 	TeamRoleMapChanged(version keybase1.UserTeamVersion)
+	UserBlocked(b keybase1.UserBlockedBody)
 	TeamExit(teamID keybase1.TeamID)
 	NewlyAddedToTeam(teamID keybase1.TeamID)
 	NewTeamEK(teamID keybase1.TeamID, generation keybase1.EkGeneration)
@@ -227,7 +228,8 @@ func (n *NoopNotifyListener) RuntimeStatsUpdate(*keybase1.RuntimeStats) {}
 func (n *NoopNotifyListener) HTTPSrvInfoUpdate(keybase1.HttpSrvInfo)    {}
 func (n *NoopNotifyListener) IdentifyUpdate(okUsernames []string, brokenUsernames []string) {
 }
-func (n *NoopNotifyListener) Reachability(keybase1.Reachability) {}
+func (n *NoopNotifyListener) Reachability(keybase1.Reachability)   {}
+func (n *NoopNotifyListener) UserBlocked(keybase1.UserBlockedBody) {}
 
 type NotifyListenerID string
 
@@ -2057,6 +2059,33 @@ func (n *NotifyRouter) HandleTeamRoleMapChanged(ctx context.Context, version key
 		listener.TeamRoleMapChanged(version)
 	})
 	n.G().Log.CDebugf(ctx, "- Sent TeamRoleMapChanged notification (version %d)", version)
+}
+
+func (n *NotifyRouter) HandleUserBlocked(ctx context.Context, b keybase1.UserBlockedBody) {
+	if n == nil {
+		return
+	}
+
+	var wg sync.WaitGroup
+	n.G().Log.CDebugf(ctx, "+ Sending UserBlocked notification: %+v", b)
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Tracking {
+			wg.Add(1)
+			go func() {
+				_ = (keybase1.NotifyTrackingClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).NotifyUserBlocked(context.Background(), b)
+				wg.Done()
+			}()
+		}
+		return true
+	})
+	wg.Wait()
+
+	n.runListeners(func(listener NotifyListener) {
+		listener.UserBlocked(b)
+	})
+	n.G().Log.CDebugf(ctx, "- Sent UserBlocked notification")
 }
 
 func (n *NotifyRouter) HandleTeamAbandoned(ctx context.Context, teamID keybase1.TeamID) {

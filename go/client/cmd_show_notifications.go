@@ -173,6 +173,9 @@ func (d *notificationDisplay) TrackingInfo(_ context.Context, arg keybase1.Track
 	return d.printf("Tracking info for %s followers: %v followees: %v\n", arg.Uid, arg.Followers,
 		arg.Followees)
 }
+func (d *notificationDisplay) NotifyUserBlocked(_ context.Context, arg keybase1.UserBlockedBody) error {
+	return d.printf("User blocked: %+v\n", arg)
+}
 
 func (d *notificationDisplay) RootAuditError(_ context.Context, msg string) (err error) {
 	return d.printf("Merkle root audit error: %s\n", msg)
