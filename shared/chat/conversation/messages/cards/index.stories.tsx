@@ -3,7 +3,6 @@ import * as Sb from '../../../../stories/storybook'
 import * as Kb from '../../../../common-adapters'
 import NewChat from './new-chat'
 import HelloBot from './hello-bot'
-import MakeTeam from './make-team'
 
 const load = () => {
   Sb.storiesOf('Chat/Conversation/Cards', module)
@@ -14,7 +13,6 @@ const load = () => {
     ))
     .add('New Chat', () => <NewChat />)
     .add('Hello Bot', () => <HelloBot />)
-    .add('Make Team', () => <MakeTeam conversationIDKey="" />)
 }
 
 export default load

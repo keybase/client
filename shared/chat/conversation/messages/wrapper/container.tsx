@@ -58,7 +58,10 @@ const getUsernameToShow = (
         ? message.author
         : ''
     case 'systemAddedToTeam':
-      return message.adder
+      return message.addee === you ? '' : message.addee
+    case 'systemLeft':
+    case 'systemJoined':
+      return ''
     case 'systemInviteAccepted':
       return message.invitee === you ? '' : message.invitee
     case 'setDescription':
@@ -67,10 +70,8 @@ const getUsernameToShow = (
       return message.author
     case 'systemUsersAddedToConversation':
       return message.usernames.includes(you) ? '' : message.author
-    case 'systemJoined':
-      return message.joiners.length > 1 ? '' : message.author
   }
-  return message.author
+  return ''
 }
 
 const getFailureDescriptionAllowCancel = (message, you) => {
@@ -160,7 +161,7 @@ export default Container.namedConnect(
       previous,
       shouldShowPopup: Constants.shouldShowPopup(state, message),
       showCoinsIcon: Constants.hasSuccessfulInlinePayments(state, message),
-      showCrowns: true,
+      showCrowns: message.type !== 'systemAddedToTeam' && message.type !== 'systemInviteAccepted',
     }
   },
   (dispatch: Container.TypedDispatch) => ({

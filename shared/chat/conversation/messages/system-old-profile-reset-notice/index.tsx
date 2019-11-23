@@ -1,6 +1,7 @@
 import * as React from 'react'
 import {Text} from '../../../../common-adapters'
 import UserNotice from '../user-notice'
+import {globalColors, globalMargins} from '../../../../styles'
 
 type Props = {
   username: string
@@ -8,7 +9,7 @@ type Props = {
 }
 
 const OldProfileResetNotice = ({username, onOpenNewerConversation}: Props) => (
-  <UserNotice>
+  <UserNotice style={{marginBottom: globalMargins.small}} username={username} bgColor={globalColors.red}>
     <Text type="BodySmallSemibold" negative={true}>
       {username} reset their profile
     </Text>

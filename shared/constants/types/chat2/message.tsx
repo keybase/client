@@ -268,15 +268,6 @@ export type MessageSystemSimpleToComplex = {
   _MessageWithDeletableEditable &
   _MessageWithReactions
 
-export type MessageSystemCreateTeam = {
-  creator: string
-  team: string
-  type: 'systemCreateTeam'
-} & _MessageCommon &
-  _MessageWithDeviceInfo &
-  _MessageWithDeletableEditable &
-  _MessageWithReactions
-
 export type MessageSystemGitPush = {
   pusher: string
   pushType: RPCTypes.GitPushType
@@ -391,7 +382,6 @@ export type Message =
   | MessageSystemSimpleToComplex
   | MessageSystemText
   | MessageSystemUsersAddedToConversation
-  | MessageSystemCreateTeam
   | MessageText
   | MessagePlaceholder
   | MessagePin

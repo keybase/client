@@ -2,8 +2,10 @@ import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import UserNotice from '../user-notice'
-import {getAddedUsernames} from '../system-users-added-to-conv'
+import SystemMessageTimestamp from '../system-message-timestamp'
 import {formatTimeForChat} from '../../../../util/timestamp'
+import {getAddedUsernames} from '../system-users-added-to-conv'
+
 type Props = {
   author: string
   authorIsYou: boolean
@@ -20,75 +22,65 @@ type Props = {
 const textType = 'BodySmallSemiboldPrimaryLink'
 
 const Joined = (props: Props) =>
-  props.joiners.length + props.leavers.length < 2 ? (
+  // Bring more attention to the current user joining
+  props.authorIsYou ? (
     <JoinedUserNotice {...props} />
   ) : (
-    <MultiUserJoinedNotice {...props} />
+    <Kb.Box2 direction="vertical" fullWidth={true}>
+      <Kb.Text type="BodyTiny">{formatTimeForChat(props.timestamp)}</Kb.Text>
+      <Kb.Text type="BodySmall">
+        {props.joiners.length > 0 && getAddedUsernames(props.joiners)}
+        {props.joiners.length > 0 &&
+          ` joined ${props.isBigTeam ? `#${props.channelname}.` : `${props.teamname}.`}`}
+        {props.leavers.length > 0 && props.joiners.length > 0 && ' '}
+        {props.leavers.length > 0 && getAddedUsernames(props.leavers)}
+        {props.leavers.length > 0 &&
+          ` left ${props.isBigTeam ? `#${props.channelname}.` : `${props.teamname}.`}`}
+      </Kb.Text>
+    </Kb.Box2>
   )
 
-const MultiUserJoinedNotice = (props: Props) => (
-  <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.container}>
-    {!!props.timestamp && (
-      <Kb.Text type="BodyTiny" style={styles.timestamp}>
-        {formatTimeForChat(props.timestamp)}
-      </Kb.Text>
-    )}
-    <Kb.Text type="BodySmall" style={{paddingBottom: Styles.globalMargins.xxtiny}}>
-      {props.joiners.length > 0 && getAddedUsernames(props.joiners)}
-      {props.joiners.length > 0 &&
-        ` joined ${props.isBigTeam ? `#${props.channelname}.` : `${props.teamname}.`}`}
-    </Kb.Text>
-    <Kb.AvatarLine
-      usernames={props.joiners}
-      maxShown={4}
-      size={32}
-      layout="horizontal"
-      alignSelf="flex-start"
-    />
-  </Kb.Box2>
-)
-
 const JoinedUserNotice = (props: Props) => (
-  <UserNotice>
-    <Kb.Text type="BodySmall">
-      {props.authorIsYou ? 'You ' : ''}
-      {props.leavers.length > props.joiners.length ? 'left' : 'joined'}{' '}
-      {props.isBigTeam ? `#${props.channelname}` : 'the team'}.
+  <UserNotice
+    style={{marginTop: Styles.globalMargins.small}}
+    username={props.author}
+    bgColor={Styles.globalColors.blueLighter2}
+  >
+    <SystemMessageTimestamp timestamp={props.timestamp} />
+    <Kb.Text type="BodySmallSemibold" negative={true} style={{color: Styles.globalColors.black_50}}>
+      {props.authorIsYou ? (
+        'You'
+      ) : (
+        <Kb.ConnectedUsernames
+          inline={true}
+          type="BodySmallSemibold"
+          onUsernameClicked="profile"
+          colorFollowing={true}
+          underline={true}
+          usernames={[props.author]}
+        />
+      )}{' '}
+      joined{' '}
+      {props.isBigTeam ? (
+        `#${props.channelname}`
+      ) : (
+        <Kb.Text type="BodySmallSemibold" style={{color: Styles.globalColors.black_50}}>
+          {props.teamname}
+        </Kb.Text>
+      )}
+      .
     </Kb.Text>
     {props.authorIsYou && props.isBigTeam && (
-      <Kb.Text type="BodySmall">
+      <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, alignItems: 'center'}}>
         <Kb.Text onClick={props.onManageNotifications} type={textType} center={true}>
-          Manage your notifications
+          Manage phone and computer notifications
         </Kb.Text>
-        {` or `}
         <Kb.Text onClick={props.onManageChannels} type={textType}>
-          browse other channels
+          Browse other channels
         </Kb.Text>
-        .
-      </Kb.Text>
+      </Kb.Box>
     )}
   </UserNotice>
-)
-
-const styles = Styles.styleSheetCreate(
-  () =>
-    ({
-      container: Styles.platformStyles({
-        common: {
-          paddingBottom: Styles.globalMargins.xtiny,
-          paddingTop: Styles.globalMargins.xtiny,
-        },
-        isElectron: {
-          marginLeft: Styles.globalMargins.small,
-        },
-        isMobile: {
-          marginLeft: Styles.globalMargins.tiny,
-        },
-      }),
-      timestamp: Styles.platformStyles({
-        isElectron: {lineHeight: 19},
-      }),
-    } as const)
 )
 
 export default Joined
