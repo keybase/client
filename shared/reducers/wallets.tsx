@@ -1,6 +1,5 @@
 import logger from '../logger'
 import * as TeamBuildingGen from '../actions/team-building-gen'
-import * as I from 'immutable'
 import * as Constants from '../constants/wallets'
 import * as Container from '../util/container'
 import * as Types from '../constants/types/wallets'
@@ -10,9 +9,6 @@ import teamBuildingReducer from './team-building'
 import {teamBuilderReducerCreator} from '../team-building/reducer-helper'
 import shallowEqual from 'shallowequal'
 import {mapEqual} from '../util/map'
-
-import reducerOLD from './wallets-old'
-import * as ConstantsOLD from '../constants/wallets-old'
 
 const initialState: Types.State = Constants.makeState()
 
@@ -29,7 +25,7 @@ const updateAssetMap = (
   })
 
 type Actions = WalletsGen.Actions | TeamBuildingGen.Actions
-const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
+export default Container.makeReducer<Actions, Types.State>(initialState, {
   [WalletsGen.resetStore]: draftState => {
     return {...initialState, staticConfig: draftState.staticConfig} as Types.State
   },
@@ -539,216 +535,3 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
     }
   ),
 })
-
-if (__DEV__) {
-  console.log(new Array(100).fill('wallets reducer double check').join('\n'))
-}
-
-const doubleCheck = (
-  state: Types.State | undefined,
-  action: WalletsGen.Actions | TeamBuildingGen.Actions
-): Types.State => {
-  const nextState = newReducer(state, action)
-
-  const sortObject = (o: Object) =>
-    Object.keys(o)
-      .sort()
-      .reduce<Object>((obj, k) => {
-        obj[k] = o[k]
-        return obj
-      }, {})
-
-  const mapToObject = (m: Map<any, any>): any =>
-    [...m.entries()].reduce<Object>((obj, [k, v]) => {
-      obj[k] = v
-      return obj
-    }, {})
-
-  if (__DEV__) {
-    const paymentsMap: any = state
-      ? I.Map(
-          mapToObject(
-            new Map(
-              [...state.paymentsMap.entries()].map(([k, v]) => {
-                return [
-                  k,
-                  I.Map(mapToObject(v)).map((v: any) =>
-                    ConstantsOLD.makePayment({...v, trustline: v.trustline || null})
-                  ),
-                ]
-              })
-            )
-          )
-        )
-      : undefined
-
-    const trustline = ConstantsOLD.makeTrustline(
-      state?.trustline
-        ? {
-            acceptedAssets: I.Map(
-              [...state.trustline.acceptedAssets.entries()].map(([k, v]) => {
-                return [k, I.Map([...v.entries()])]
-              })
-            ),
-            acceptedAssetsByUsername: I.Map(
-              [...state.trustline.acceptedAssetsByUsername.entries()].map(([k, v]) => {
-                return [k, I.Map([...v.entries()])]
-              })
-            ),
-            assetMap: I.Map(mapToObject(state.trustline.assetMap)),
-            expandedAssets: I.Set([...state.trustline.expandedAssets]),
-            loaded: state.trustline.loaded,
-            popularAssets: I.List(state.trustline.popularAssets),
-            searchingAssets: I.List(state.trustline.searchingAssets || []),
-            totalAssetsCount: state.trustline.totalAssetsCount,
-          }
-        : undefined
-    )
-
-    const sortIMapIMap = (m: any) =>
-      sortObject(
-        mapToObject(
-          new Map(
-            [...m.entries()]
-              .sort((a, b) => a[0].localeCompare(b[0]))
-              .map(([k, v]) => [k, sortObject(v.toJS())])
-          )
-        )
-      )
-
-    const newToOldDetailsResponse = (d: any) =>
-      ConstantsOLD.makeStellarDetailsResponse({
-        header: ConstantsOLD.makeStellarDetailsHeader(d.header),
-        sections: I.List(
-          d.sections.map(s =>
-            ConstantsOLD.makeStellarDetailsSection({
-              icon: s.icon,
-              lines: I.List(s.lines.map(l => ConstantsOLD.makeStellarDetailsLine(l))),
-              section: s.section,
-            })
-          )
-        ),
-      })
-
-    const s = ConstantsOLD.makeState({
-      ...state,
-      accountMap: state ? I.Map(mapToObject(state.accountMap)) : undefined,
-      airdropDetails: state
-        ? ConstantsOLD.makeStellarDetails({
-            details: newToOldDetailsResponse(state.airdropDetails.details),
-            disclaimer: newToOldDetailsResponse(state.airdropDetails.disclaimer),
-            isPromoted: state.airdropDetails.isPromoted,
-          })
-        : undefined,
-      airdropQualifications: state
-        ? I.List(state.airdropQualifications.map(q => ConstantsOLD.makeAirdropQualification(q)))
-        : undefined,
-      assetsMap: state ? I.Map(mapToObject(state.assetsMap)) : undefined,
-      building: ConstantsOLD.makeBuilding(state?.building),
-      buildingAdvanced: ConstantsOLD.makeBuildingAdvanced(state?.buildingAdvanced as any),
-      builtPayment: ConstantsOLD.makeBuiltPayment(state?.builtPayment),
-      builtPaymentAdvanced: ConstantsOLD.makeBuiltPaymentAdvanced(state?.builtPaymentAdvanced as any),
-      builtRequest: ConstantsOLD.makeBuiltRequest(state?.builtRequest),
-      currencies: I.List(state?.currencies.map(c => Constants.makeCurrency(c as any)) || []) as any,
-      externalPartners: state ? I.List(state.externalPartners) : undefined,
-      mobileOnlyMap: state ? I.Map(mapToObject(state.mobileOnlyMap)) : undefined,
-      paymentCursorMap: state ? I.Map(mapToObject(state.paymentCursorMap)) : undefined,
-      paymentLoadingMoreMap: state ? I.Map(mapToObject(state.paymentLoadingMoreMap)) : undefined,
-      paymentOldestUnreadMap: state ? I.Map(mapToObject(state.paymentOldestUnreadMap)) : undefined,
-      paymentsMap,
-      sep7ConfirmInfo: state?.sep7ConfirmInfo
-        ? ConstantsOLD.makeSEP7ConfirmInfo(state.sep7ConfirmInfo)
-        : null,
-      sep7ConfirmPath: ConstantsOLD.makeBuiltPaymentAdvanced(state?.sep7ConfirmPath as any),
-      staticConfig: state && state.staticConfig ? I.Record(state.staticConfig as any)() : null,
-      trustline,
-      unreadPaymentsMap: state ? I.Map(mapToObject(state.unreadPaymentsMap)) : undefined,
-    })
-    const nextStateOLD = reducerOLD(s, action)
-    const o: any = {
-      ...nextStateOLD.toJS(),
-      accountMap: sortObject(nextStateOLD.accountMap.toJS()),
-      assetsMap: sortObject(nextStateOLD.assetsMap.toJS()),
-      mobileOnlyMap: sortObject(nextStateOLD.mobileOnlyMap.toJS()),
-      paymentCursorMap: sortObject(nextStateOLD.paymentCursorMap.toJS()),
-      paymentLoadingMoreMap: sortObject(nextStateOLD.paymentLoadingMoreMap.toJS()),
-      paymentOldestUnreadMap: sortObject(nextStateOLD.paymentOldestUnreadMap.toJS()),
-      paymentsMap: sortIMapIMap(nextStateOLD.paymentsMap),
-      reviewLastSeqno: nextStateOLD.reviewLastSeqno || null,
-      sep7ConfirmInfo: nextStateOLD.sep7ConfirmInfo || null,
-      staticConfig: nextStateOLD.staticConfig || null,
-      trustline: {
-        acceptedAssets: sortIMapIMap(nextStateOLD.trustline.acceptedAssets),
-        acceptedAssetsByUsername: sortIMapIMap(nextStateOLD.trustline.acceptedAssetsByUsername),
-        assetMap: sortObject(nextStateOLD.trustline.assetMap.toJS()),
-        expandedAssets: nextStateOLD.trustline.expandedAssets.toJS(),
-        loaded: nextStateOLD.trustline.loaded,
-        popularAssets: nextStateOLD.trustline.popularAssets.toJS(),
-        searchingAssets: nextStateOLD.trustline.searchingAssets ?? [],
-        totalAssetsCount: nextStateOLD.trustline.totalAssetsCount,
-      },
-      unreadPaymentsMap: sortObject(nextStateOLD.unreadPaymentsMap.toJS()),
-    }
-
-    const n: any = {
-      ...nextState,
-      accountMap: sortObject(mapToObject(nextState.accountMap)),
-      assetsMap: sortObject(mapToObject(nextState.assetsMap)),
-      mobileOnlyMap: sortObject(mapToObject(nextState.mobileOnlyMap)),
-      paymentCursorMap: sortObject(mapToObject(nextState.paymentCursorMap)),
-      paymentLoadingMoreMap: sortObject(mapToObject(nextState.paymentLoadingMoreMap)),
-      paymentOldestUnreadMap: sortObject(mapToObject(nextState.paymentOldestUnreadMap)),
-      paymentsMap: sortObject(
-        mapToObject(
-          new Map(
-            [...nextState.paymentsMap.entries()]
-              .sort((a, b) => a[0].localeCompare(b[0]))
-              .map(([k, v]) => {
-                const obj = sortObject(mapToObject(v))
-                Object.keys(obj).forEach(k => {
-                  obj[k] = {
-                    ...obj[k],
-                    trustline: obj[k].trustline || null,
-                  }
-                })
-                return [k, obj]
-              })
-          )
-        )
-      ),
-      reviewLastSeqno: nextState.reviewLastSeqno || null,
-      sep7ConfirmInfo: nextState.sep7ConfirmInfo || null,
-      staticConfig: nextState.staticConfig || null,
-      trustline: {
-        acceptedAssets: sortObject(mapToObject(nextState.trustline.acceptedAssets)),
-        acceptedAssetsByUsername: sortObject(mapToObject(nextState.trustline.acceptedAssetsByUsername)),
-        assetMap: sortObject(mapToObject(nextState.trustline.assetMap)),
-        expandedAssets: [...nextState.trustline.expandedAssets],
-        loaded: nextState.trustline.loaded,
-        popularAssets: nextState.trustline.popularAssets,
-        searchingAssets: nextState.trustline.searchingAssets ?? [],
-        totalAssetsCount: nextState.trustline.totalAssetsCount,
-      },
-      unreadPaymentsMap: sortObject(mapToObject(nextState.unreadPaymentsMap)),
-    }
-
-    let same = true
-    Object.keys(o).forEach(k => {
-      const so = JSON.stringify(o[k], null, 2)
-      const sn = JSON.stringify(n[k], null, 2)
-      if (so !== sn) {
-        console.log('aaa', o[k])
-        console.log('aaa', n[k])
-        same = false
-        console.log('aaa diff', k, so, sn, action)
-      }
-    })
-    if (same) {
-      console.log('aaa same')
-    }
-  }
-
-  return nextState
-}
-
-export default doubleCheck
