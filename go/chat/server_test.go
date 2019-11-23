@@ -1793,15 +1793,16 @@ func TestChatSrvGetInboxSummaryForCLILocal(t *testing.T) {
 			t.Fatalf("unexpected response from GetInboxSummaryForCLILocal . expected 2 items, got %d\n", len(res.Conversations))
 		}
 
-		res, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxSummaryForCLILocal(ctx, chat1.GetInboxSummaryForCLILocalQuery{
-			UnreadFirst: true,
-			UnreadFirstLimit: chat1.UnreadFirstNumLimit{
-				AtLeast: 0,
-				AtMost:  1000,
-				NumRead: 1,
-			},
-			TopicType: chat1.TopicType_CHAT,
-		})
+		res, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxSummaryForCLILocal(ctx,
+			chat1.GetInboxSummaryForCLILocalQuery{
+				UnreadFirst: true,
+				UnreadFirstLimit: chat1.UnreadFirstNumLimit{
+					AtLeast: 0,
+					AtMost:  1000,
+					NumRead: 1,
+				},
+				TopicType: chat1.TopicType_CHAT,
+			})
 		if err != nil {
 			t.Fatalf("GetInboxSummaryForCLILocal error: %v", err)
 		}

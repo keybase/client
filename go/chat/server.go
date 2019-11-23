@@ -511,11 +511,11 @@ func (h *Server) GetInboxSummaryForCLILocal(ctx context.Context, arg chat1.GetIn
 			if err != nil {
 				return chat1.GetInboxSummaryForCLILocalRes{}, err
 			}
-			res.Conversations, err = h.limitConvResults(ctx, uid, ib.ConvsUnverified, more)
+			moreConvs, err := h.limitConvResults(ctx, uid, ib.ConvsUnverified, more)
 			if err != nil {
 				return chat1.GetInboxSummaryForCLILocalRes{}, err
 			}
-			res.Conversations = append(res.Conversations, gires.Conversations...)
+			res.Conversations = append(res.Conversations, moreConvs...)
 		}
 	} else {
 		if arg.ActivitySortedLimit <= 0 {
