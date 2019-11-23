@@ -11,7 +11,7 @@ type Props = {
 
 type CheckboxRowProps = {
   text: React.ReactNode
-  onCheck: (boolean) => void
+  onCheck: (check: boolean) => void
   more?: React.ReactNode
   info?: string
   checked: boolean
