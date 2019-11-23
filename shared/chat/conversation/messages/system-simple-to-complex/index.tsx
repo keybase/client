@@ -1,9 +1,8 @@
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
-import UserNotice from '../user-notice'
 import * as Kb from '../../../../common-adapters'
-import {globalColors, globalMargins} from '../../../../styles'
-import SystemMessageTimestamp from '../system-message-timestamp'
+import * as Styles from '../../../../styles'
+import UserNotice from '../user-notice'
 
 type Props = {
   message: Types.MessageSystemSimpleToComplex
@@ -12,12 +11,12 @@ type Props = {
   you: string
 }
 
-const bullet = '\u2022'
+const bullet = '\u2022 '
 
 class ComplexTeamNotice extends React.PureComponent<Props> {
   render() {
-    const {team, author, timestamp} = this.props.message
-    const {you, onManageChannels, onViewTeam} = this.props
+    const {you, onManageChannels, message} = this.props
+    const {team, author} = message
     const authorComponent =
       author === you ? (
         'You'
@@ -32,49 +31,46 @@ class ComplexTeamNotice extends React.PureComponent<Props> {
         />
       )
     return (
-      <UserNotice
-        style={{marginTop: globalMargins.small}}
-        teamname={team || ''}
-        bgColor={globalColors.blueLighter2}
-        onClickAvatar={onViewTeam}
-      >
-        <SystemMessageTimestamp timestamp={timestamp} />
-        <Kb.Box2 direction="vertical">
-          <Kb.Text center={true} type="BodySmallSemibold">
-            {authorComponent} made {team} a big team!
+      <UserNotice>
+        <Kb.Text type="BodySmall">
+          {authorComponent} made <Kb.Text type="BodySmallBold">{team}</Kb.Text> a big team! Note that:
+        </Kb.Text>
+        <Kb.Box2
+          direction="vertical"
+          alignSelf="flex-start"
+          gap="tiny"
+          style={{marginLeft: Styles.globalMargins.tiny, marginTop: Styles.globalMargins.xtiny}}
+        >
+          <Kb.Text type="BodySmall">
+            <Kb.Text type="BodySmall" style={styles.bullet}>
+              {bullet}
+            </Kb.Text>
+            Your team channels will now appear in the "Big teams" section of the inbox.
           </Kb.Text>
-          <Kb.Text center={true} type="BodySmallSemibold" style={{marginTop: globalMargins.tiny}}>
-            Note that:
+
+          <Kb.Text type="BodySmall">
+            <Kb.Text type="BodySmall" style={styles.bullet}>
+              {bullet}
+            </Kb.Text>
+            Everyone can now create and join channels.{' '}
+            <Kb.Text
+              onClick={onManageChannels}
+              type="BodySmallSemiboldSecondaryLink"
+              style={{color: Styles.globalColors.blueDark}}
+            >
+              Browse other channels
+            </Kb.Text>
           </Kb.Text>
-          <Kb.Box2 direction="vertical">
-            <Kb.Box2 direction="horizontal" alignSelf="flex-start">
-              <Kb.Text type="BodySmallSemibold" style={{marginRight: globalMargins.tiny}}>
-                {bullet}
-              </Kb.Text>
-              <Kb.Text type="BodySmallSemibold">
-                Your team channels will now appear in the "Big teams" section of the inbox.
-              </Kb.Text>
-            </Kb.Box2>
-            <Kb.Box2 direction="horizontal" alignSelf="flex-start">
-              <Kb.Text type="BodySmallSemibold" style={{marginRight: globalMargins.tiny}}>
-                {bullet}
-              </Kb.Text>
-              <Kb.Text type="BodySmallSemibold">
-                Everyone can now create and join channels.{' '}
-                <Kb.Text
-                  onClick={onManageChannels}
-                  type="BodySmallSemiboldSecondaryLink"
-                  style={{color: globalColors.blueDark}}
-                >
-                  Browse other channels
-                </Kb.Text>
-              </Kb.Text>
-            </Kb.Box2>
-          </Kb.Box2>
         </Kb.Box2>
       </UserNotice>
     )
   }
 }
+
+const styles = Styles.styleSheetCreate(() => ({
+  bullet: {
+    marginRight: Styles.globalMargins.small,
+  },
+}))
 
 export default ComplexTeamNotice

@@ -42,7 +42,7 @@ export type Props = {
   username: string
   name: string // assertion value
   service: string // assertion key (if SBS)
-  serviceIcon?: readonly Types.SiteIcon[]
+  serviceIcon?: Array<Types.SiteIcon>
   fullName?: string // full name from external profile
   title: string
 }
@@ -64,7 +64,7 @@ const colorTypeToStyle = (type: 'red' | 'green' | 'blue') => {
 const noopOnClick = () => {}
 
 type SbsTitleProps = {
-  serviceIcon?: readonly Types.SiteIcon[]
+  serviceIcon?: Array<Types.SiteIcon>
   sbsUsername: string
 }
 const SbsTitle = (p: SbsTitleProps) => (
@@ -233,7 +233,7 @@ export type BioTeamProofsProps = {
   name: string
   sbsAvatarUrl?: string
   service: string
-  serviceIcon?: readonly Types.SiteIcon[]
+  serviceIcon?: Array<Types.SiteIcon>
   fullName?: string
   title: string
 }
