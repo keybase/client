@@ -34,7 +34,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
 })
 
 export default Container.connect(
-  state => ({you: state.config.username}),
+  () => ({}),
   mapDispatchToProps,
   (s, d, o: OwnProps) => ({...o, ...s, ...d})
 )(Git)

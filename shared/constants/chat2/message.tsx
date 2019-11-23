@@ -92,7 +92,6 @@ export const serviceMessageTypeToMessageTypes = (t: RPCChatTypes.MessageType): A
       return [
         'systemAddedToTeam',
         'systemChangeRetention',
-        'systemCreateTeam',
         'systemGitPush',
         'systemInviteAccepted',
         'systemSBSResolved',
@@ -405,17 +404,6 @@ export const makeMessageSystemText = (
   ...m,
 })
 
-export const makeMessageSystemCreateTeam = (
-  m?: Partial<MessageTypes.MessageSystemCreateTeam>
-): MessageTypes.MessageSystemCreateTeam => ({
-  ...makeMessageCommonNoDeleteNoEdit,
-  creator: '',
-  reactions: new Map(),
-  team: '',
-  type: 'systemCreateTeam',
-  ...m,
-})
-
 export const makeMessageSystemGitPush = (
   m?: Partial<MessageTypes.MessageSystemGitPush>
 ): MessageTypes.MessageSystemGitPush => ({
@@ -610,7 +598,6 @@ export const uiMessageEditToMessage = (
 }
 
 const uiMessageToSystemMessage = (
-  state: TypedState,
   minimum: Minimum,
   body: RPCChatTypes.MessageSystem,
   reactions: Map<string, Set<MessageTypes.Reaction>>
@@ -695,10 +682,9 @@ const uiMessageToSystemMessage = (
     }
     case RPCChatTypes.MessageSystemType.createteam: {
       const {team = '???', creator = '????'} = body.createteam || {}
-      return makeMessageSystemCreateTeam({
-        creator,
+      return makeMessageSystemText({
         reactions,
-        team,
+        text: new HiddenString(`${creator} created a new team ${team}.`),
         ...minimum,
       })
     }
@@ -720,7 +706,7 @@ const uiMessageToSystemMessage = (
       const {user = '???'} = body.changeavatar || {}
       return makeMessageSystemText({
         reactions,
-        text: new HiddenString(`${user === state.config.username ? 'You ' : ''}changed the team's avatar.`),
+        text: new HiddenString(`${user} changed the team's avatar.`),
         ...minimum,
       })
     }
@@ -985,7 +971,7 @@ const validUIMessagetoMessage = (
       })
     case RPCChatTypes.MessageType.system:
       return m.messageBody.system
-        ? uiMessageToSystemMessage(state, common, m.messageBody.system, common.reactions)
+        ? uiMessageToSystemMessage(common, m.messageBody.system, common.reactions)
         : null
     case RPCChatTypes.MessageType.headline:
       return makeMessageSetDescription({

@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Sb from '../../../stories/storybook'
 import {Box2, Text} from '../../../common-adapters'
+import {globalColors} from '../../../styles'
 import chooseEmoji from './react-button/emoji-picker/index.stories'
 import emojiRow from './react-button/emoji-row/index.stories'
 import placeholder from './placeholder/index.stories'
@@ -41,17 +42,17 @@ const load = () => {
       </Box2>
     ))
     .add('UserNotice blank', () => (
-      <UserNotice>
+      <UserNotice bgColor={globalColors.blueLighter2}>
         <Text type="BodySmall">Some generic notice</Text>
       </UserNotice>
     ))
     .add('UserNotice blank team', () => (
-      <UserNotice>
+      <UserNotice bgColor={globalColors.blueLighter2} teamname="">
         <Text type="BodySmall">Some team notice</Text>
       </UserNotice>
     ))
     .add('UserNotice blank user', () => (
-      <UserNotice>
+      <UserNotice bgColor={globalColors.blueLighter2} username="">
         <Text type="BodySmall">Some user notice</Text>
       </UserNotice>
     ))
