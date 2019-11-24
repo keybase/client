@@ -534,77 +534,20 @@ func findBadUserInUsers(m libkb.MetaContext, l []keybase1.HomeUserSummary, badUI
 	return false
 }
 
-func findBadUserInItems(m libkb.MetaContext, items []keybase1.HomeScreenItem, badUIDs map[keybase1.UID]bool) bool {
-
-	for _, i := range items {
-		typ, err := i.Data.T()
-		if err != nil || typ != keybase1.HomeScreenItemType_PEOPLE {
-			continue
-		}
-		ppl := i.Data.People()
-		ptyp, err := ppl.T()
-		if err != nil {
-			continue
-		}
-		switch ptyp {
-		case keybase1.HomeScreenPeopleNotificationType_FOLLOWED:
-			f := ppl.Followed()
-			if badUIDs[f.User.Uid] {
-				m.Debug("found bad UID in a singleton follow: %s", f.User.Uid)
-				return true
-			}
-		case keybase1.HomeScreenPeopleNotificationType_FOLLOWED_MULTI:
-			for _, f := range ppl.FollowedMulti().Followers {
-				if badUIDs[f.User.Uid] {
-					m.Debug("found bad UID in a follower batch: %s", f.User.Uid)
-					return true
-				}
-			}
-		}
-	}
-
-	return false
-
-}
-
-func (h *homeCache) hasBadUser(m libkb.MetaContext, badUIDs map[keybase1.UID]bool) bool {
-	if h == nil {
-		m.Debug("no home cache, nothing to check")
-		return false
-	}
-	if findBadUserInUsers(m, h.obj.FollowSuggestions, badUIDs) {
-		m.Debug("found blocked user in followSuggestions")
-		return true
-	}
-	if findBadUserInItems(m, h.obj.Items, badUIDs) {
-		m.Debug("found blocked user in items")
-		return true
-	}
-	return false
-}
-
 func (h *Home) UserBlocked(m libkb.MetaContext, badUIDs map[keybase1.UID]bool) (err error) {
 	h.Lock()
 	defer h.Unlock()
 
-	var refresh bool
-
-	if h.peopleCache.hasBadUser(m, badUIDs) {
-		h.peopleCache = nil
-		refresh = true
+	if !h.peopleCache.hasBadUser(m, badUIDs) {
+		m.Debug("UserBlocked didn't result in any home user suggestions getting blocked, so no-op")
+		return nil
 	}
 
-	if h.homeCache.hasBadUser(m, badUIDs) {
-		h.homeCache = nil
-		refresh = true
-	}
-
-	if refresh {
-		m.Debug("home changed, updating UI")
-		tmp := h.updateUI(m.Ctx())
-		if tmp != nil {
-			m.Debug("error updating home UI, but ignoring: %s", tmp)
-		}
+	h.peopleCache = nil
+	m.Debug("UserBlocked forced home change, updating UI")
+	tmp := h.updateUI(m.Ctx())
+	if tmp != nil {
+		m.Debug("error updating home UI, but ignoring: %s", tmp)
 	}
 	return nil
 }
