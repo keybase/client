@@ -6,16 +6,14 @@ type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
 }
 
-const mapStateToProps = (state, ownProps: OwnProps) => {
-  const md = state.chat2.commandMarkdownMap.get(ownProps.conversationIDKey)
-  return {
-    body: md ? md.body : '',
-    title: md ? md.title : null,
-  }
-}
-
 export default namedConnect(
-  mapStateToProps,
+  (state, ownProps: OwnProps) => {
+    const md = state.chat2.commandMarkdownMap.get(ownProps.conversationIDKey)
+    return {
+      body: md ? md.body : '',
+      title: md ? md.title : null,
+    }
+  },
   () => ({}),
   s => s,
   'CommandMarkdown'
