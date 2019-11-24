@@ -10,7 +10,7 @@ export class Story {
 
 export declare function storiesOf(name: string, module: any): Story
 export declare function action(name: string): any
-export declare function perfDecorator(copiesToRender?: number): Function
+export declare function perfDecorator(copiesToRender?: number): () => React.ReactNode
 export declare function scrollViewDecorator(): Function
 export declare function createNavigator(props: Object): any
 export declare function createStoreWithCommon(): TypedState
