@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import * as Constants from '../../../constants/users'
 
 export type BlockType = 'chatBlocked' | 'followBlocked'
 type BlocksForUser = {chatBlocked?: boolean; followBlocked?: boolean}
@@ -27,8 +26,10 @@ export type Props = {
   adderUsername: string
   blockByDefault?: boolean
   convID?: string
+  finishWaiting: boolean
   isBlocked: (username: string, which: BlockType) => boolean
-  onCancel: () => void
+  loadingWaiting: boolean
+  onClose: () => void
   onFinish: (newBlocks: NewBlocksMap, blockTeam: boolean, report?: ReportSettings) => void
   otherUsernames?: Array<string>
   refreshBlocks: () => void
@@ -138,6 +139,12 @@ class BlockModal extends React.PureComponent<Props, State> {
     }
   }
 
+  componentDidUpdate(prevProps: Props) {
+    if (this.state.finishClicked && this.props.finishWaiting && !prevProps.finishWaiting) {
+      this.props.onClose()
+    }
+  }
+
   getBlockFor(username: string, which: BlockType) {
     // First get a current setting from a checkbox, if user has checked anything.
     const {newBlocks} = this.state
@@ -183,6 +190,13 @@ class BlockModal extends React.PureComponent<Props, State> {
   }
 
   onFinish = () => {
+    if (this.state.newBlocks.size === 0 && this.state.blockTeam && !this.state.shouldReport) {
+      // Nothing to do, just close the modal.
+      this.props.onClose()
+      return
+    }
+
+    this.setState({finishClicked: true})
     let report: ReportSettings | undefined = undefined
     if (this.state.shouldReport) {
       report = {
@@ -192,7 +206,6 @@ class BlockModal extends React.PureComponent<Props, State> {
       }
     }
     this.props.onFinish(this.state.newBlocks, this.state.blockTeam, report)
-    this.setState({finishClicked: true})
   }
 
   render() {
@@ -203,7 +216,7 @@ class BlockModal extends React.PureComponent<Props, State> {
         mode="Default"
         header={{
           leftButton: (
-            <Kb.Text onClick={this.props.onCancel} type="BodyPrimaryLink">
+            <Kb.Text onClick={this.props.onClose} type="BodyPrimaryLink">
               Cancel
             </Kb.Text>
           ),
@@ -216,7 +229,7 @@ class BlockModal extends React.PureComponent<Props, State> {
               onClick={this.onFinish}
               fullWidth={true}
               type="Danger"
-              waitingKey={Constants.setUserBlocksWaitingKey}
+              waitingKey={null}
             />
           ),
         }}

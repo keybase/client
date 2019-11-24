@@ -127,7 +127,7 @@ const BlockModal = (props: OwnProps) => {
   const onCancel = () => dispatch(nav.safeNavigateUpPayload())
   const onFinish = () => {
     if (teamname && blockTeam) {
-      dispatch(TeamsGen.createLeaveTeam({context: 'chat', teamname}))
+      dispatch(TeamsGen.createLeaveTeam({context: 'chat', permanent: true, teamname}))
     }
     if (newBlocks.size) {
       // Convert our state block array to action payload.
