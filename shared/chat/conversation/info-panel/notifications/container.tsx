@@ -8,53 +8,49 @@ type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
 }
 
-const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
-  const meta = Constants.getMeta(state, conversationIDKey)
-
-  return {
-    channelWide: meta.notificationsGlobalIgnoreMentions,
-    conversationIDKey,
-    desktop: meta.notificationsDesktop,
-    mobile: meta.notificationsMobile,
-    muted: meta.isMuted,
-  }
-}
-
-const mapDispatchToProps = (dispatch, {conversationIDKey}: OwnProps) => ({
-  _onMuteConversation: (muted: boolean) =>
-    dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted})),
-  _updateNotifications: (
-    desktop: Types.NotificationsType,
-    mobile: Types.NotificationsType,
-    channelWide: boolean
-  ) =>
-    dispatch(
-      Chat2Gen.createUpdateNotificationSettings({
-        conversationIDKey,
-        notificationsDesktop: desktop,
-        notificationsGlobalIgnoreMentions: channelWide,
-        notificationsMobile: mobile,
-      })
-    ),
-})
-
-const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
-  return {
-    _muteConversation: (muted: boolean) => dispatchProps._onMuteConversation(muted),
-    _storeChannelWide: stateProps.channelWide,
-    _storeDesktop: stateProps.desktop,
-    _storeMobile: stateProps.mobile,
-    _storeMuted: stateProps.muted,
-    _updateNotifications: (
-      desktop: Types.NotificationsType,
-      mobile: Types.NotificationsType,
-      channelWide: boolean
-    ) => dispatchProps._updateNotifications(desktop, mobile, channelWide),
-  }
-}
-
 export default compose(
-  namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'LifecycleNotifications'),
+  namedConnect(
+    (state, {conversationIDKey}: OwnProps) => {
+      const meta = Constants.getMeta(state, conversationIDKey)
+      return {
+        channelWide: meta.notificationsGlobalIgnoreMentions,
+        conversationIDKey,
+        desktop: meta.notificationsDesktop,
+        mobile: meta.notificationsMobile,
+        muted: meta.isMuted,
+      }
+    },
+    (dispatch, {conversationIDKey}: OwnProps) => ({
+      _onMuteConversation: (muted: boolean) =>
+        dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted})),
+      _updateNotifications: (
+        desktop: Types.NotificationsType,
+        mobile: Types.NotificationsType,
+        channelWide: boolean
+      ) =>
+        dispatch(
+          Chat2Gen.createUpdateNotificationSettings({
+            conversationIDKey,
+            notificationsDesktop: desktop,
+            notificationsGlobalIgnoreMentions: channelWide,
+            notificationsMobile: mobile,
+          })
+        ),
+    }),
+    (stateProps, dispatchProps, _: OwnProps) => ({
+      _muteConversation: (muted: boolean) => dispatchProps._onMuteConversation(muted),
+      _storeChannelWide: stateProps.channelWide,
+      _storeDesktop: stateProps.desktop,
+      _storeMobile: stateProps.mobile,
+      _storeMuted: stateProps.muted,
+      _updateNotifications: (
+        desktop: Types.NotificationsType,
+        mobile: Types.NotificationsType,
+        channelWide: boolean
+      ) => dispatchProps._updateNotifications(desktop, mobile, channelWide),
+    }),
+    'LifecycleNotifications'
+  ),
   withStateHandlers(
     // don't use recompose
     (props: any): any => ({

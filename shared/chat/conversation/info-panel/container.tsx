@@ -110,7 +110,7 @@ const ConnectedInfoPanel = Container.connect(
           path: [{props: {conversationIDKey, teamname}, selected: 'chatEditChannel'}],
         })
       ),
-    _onLoadMore: (viewType: RPCChatTypes.GalleryItemTyp, fromMsgID: Types.MessageID | null) =>
+    _onLoadMore: (viewType: RPCChatTypes.GalleryItemTyp, fromMsgID?: Types.MessageID) =>
       dispatch(Chat2Gen.createLoadAttachmentView({conversationIDKey, fromMsgID, viewType})),
     _onMediaClick: (message: Types.MessageAttachment) =>
       dispatch(Chat2Gen.createAttachmentPreviewSelect({message})),
@@ -215,7 +215,11 @@ const ConnectedInfoPanel = Container.connect(
                   progress: m.transferProgress,
                 })),
               onLoadMore: stateProps._fromMsgID
-                ? () => dispatchProps._onLoadMore(RPCChatTypes.GalleryItemTyp.doc, stateProps._fromMsgID)
+                ? () =>
+                    dispatchProps._onLoadMore(
+                      RPCChatTypes.GalleryItemTyp.doc,
+                      stateProps._fromMsgID ?? undefined
+                    )
                 : null,
               status: stateProps._attachmentInfo.status,
             }
@@ -253,7 +257,11 @@ const ConnectedInfoPanel = Container.connect(
                 return l
               }, []),
               onLoadMore: stateProps._fromMsgID
-                ? () => dispatchProps._onLoadMore(RPCChatTypes.GalleryItemTyp.link, stateProps._fromMsgID)
+                ? () =>
+                    dispatchProps._onLoadMore(
+                      RPCChatTypes.GalleryItemTyp.link,
+                      stateProps._fromMsgID ?? undefined
+                    )
                 : null,
               status: stateProps._attachmentInfo.status,
             }
@@ -263,7 +271,11 @@ const ConnectedInfoPanel = Container.connect(
         stateProps.selectedAttachmentView === RPCChatTypes.GalleryItemTyp.media
           ? {
               onLoadMore: stateProps._fromMsgID
-                ? () => dispatchProps._onLoadMore(RPCChatTypes.GalleryItemTyp.media, stateProps._fromMsgID)
+                ? () =>
+                    dispatchProps._onLoadMore(
+                      RPCChatTypes.GalleryItemTyp.media,
+                      stateProps._fromMsgID ?? undefined
+                    )
                 : null,
               status: stateProps._attachmentInfo.status,
               thumbs: (stateProps._attachmentInfo.messages as Array<Types.MessageAttachment>) // TODO dont use this cast
