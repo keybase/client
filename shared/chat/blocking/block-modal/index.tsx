@@ -211,17 +211,29 @@ class BlockModal extends React.PureComponent<Props, State> {
   render() {
     const {teamname, adderUsername} = this.props
 
+    const header = {
+      leftButton: (
+        <Kb.Text onClick={this.props.onClose} type="BodyPrimaryLink">
+          Cancel
+        </Kb.Text>
+      ),
+      title: <Kb.Icon type="iconfont-block-user" sizeType="Big" color="red" />,
+    }
+
+    if (this.props.loadingWaiting) {
+      return (
+        <Kb.Modal mode="Default" header={header}>
+          <Kb.Box style={styles.loadingAnimationBox}>
+            <Kb.Animation animationType="spinner" style={styles.loadingAnimation} />
+          </Kb.Box>
+        </Kb.Modal>
+      )
+    }
+
     return (
       <Kb.Modal
         mode="Default"
-        header={{
-          leftButton: (
-            <Kb.Text onClick={this.props.onClose} type="BodyPrimaryLink">
-              Cancel
-            </Kb.Text>
-          ),
-          title: <Kb.Icon type="iconfont-block-user" sizeType="Big" color="red" />,
-        }}
+        header={header}
         footer={{
           content: (
             <Kb.WaitingButton
@@ -315,6 +327,19 @@ const styles = Styles.styleSheetCreate(() => ({
     ...Styles.padding(Styles.globalMargins.xsmall),
   },
   iconBox: {flex: 1, paddingLeft: Styles.globalMargins.tiny},
+  loadingAnimation: Styles.platformStyles({
+    isElectron: {
+      height: 32,
+      width: 32,
+    },
+    isMobile: {
+      height: 48,
+      width: 48,
+    },
+  }),
+  loadingAnimationBox: {
+    padding: Styles.globalMargins.medium,
+  },
   radioButton: {marginLeft: Styles.globalMargins.large},
   scroll: {width: '100%'},
   shrink: {flexShrink: 1},

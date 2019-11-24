@@ -4,7 +4,7 @@ import BlockModal, {BlockType, NewBlocksMap, ReportSettings} from '.'
 import * as UsersGen from '../../../actions/users-gen'
 import * as TeamsGen from '../../../actions/teams-gen'
 import * as Constants from '../../../constants/users'
-import * as TeamConstants from '../../../constants/teams'
+import {leaveTeamWaitingKey} from '../../../constants/teams'
 
 type OwnProps = Container.RouteProps<{
   blockByDefault?: boolean
@@ -17,9 +17,7 @@ type OwnProps = Container.RouteProps<{
 const Connect = Container.connect(
   (state, ownProps: OwnProps) => {
     const teamname = Container.getRouteProps(ownProps, 'team', undefined)
-    const waitingForLeave = teamname
-      ? Container.anyWaiting(state, TeamConstants.leaveTeamWaitingKey(teamname))
-      : false
+    const waitingForLeave = teamname ? Container.anyWaiting(state, leaveTeamWaitingKey(teamname)) : false
     const waitingForBlocking = Container.anyWaiting(state, Constants.setUserBlocksWaitingKey)
 
     return {
