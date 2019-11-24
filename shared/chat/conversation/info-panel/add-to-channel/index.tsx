@@ -4,16 +4,18 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import {pluralize} from '../../../../util/string'
 
+type User = {
+  alreadyAdded: boolean
+  fullname: string
+  username: string
+}
+
 type Props = {
   error: string | null
   onCancel: () => void
   onSubmit: (usernames: Array<string>) => void
   title: string
-  users: Array<{
-    alreadyAdded: boolean
-    fullname: string
-    username: string
-  }>
+  users: Array<User>
   waitingKey: string
 }
 
@@ -28,12 +30,12 @@ class AddToChannel extends React.Component<Props, State> {
     type: 'fixed',
   } as const
 
-  _toggleSelected = username =>
+  _toggleSelected = (username: string) =>
     this.setState(s => ({
       selected: s.selected.includes(username) ? s.selected.remove(username) : s.selected.add(username),
     }))
 
-  _renderItem = (idx, user) => (
+  _renderItem = (idx: number, user: User & {selected: boolean}) => (
     <Kb.ListItem2
       {...(user.alreadyAdded ? {} : {onClick: () => this._toggleSelected(user.username)})}
       firstItem={idx === 0}

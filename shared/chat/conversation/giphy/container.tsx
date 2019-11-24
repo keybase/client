@@ -6,33 +6,29 @@ import GiphySearch from '.'
 
 type OwnProps = {conversationIDKey: Types.ConversationIDKey}
 
-const mapStateToProps = (state, ownProps: OwnProps) => {
-  const {conversationIDKey} = ownProps
-  const giphy = state.chat2.giphyResultMap.get(conversationIDKey) || null
-  return {
-    // Auto generated from flowToTs. Please clean me!
-    galleryURL:
-      // Auto generated from flowToTs. Please clean me!
-      (giphy === null || giphy === undefined ? undefined : giphy.galleryUrl) !== null && // Auto generated from flowToTs. Please clean me!
-      (giphy === null || giphy === undefined ? undefined : giphy.galleryUrl) !== undefined // Auto generated from flowToTs. Please clean me!
-        ? giphy === null || giphy === undefined
-          ? undefined
-          : giphy.galleryUrl
-        : '',
-    // Auto generated from flowToTs. Please clean me!
-    previews: giphy === null || giphy === undefined ? undefined : giphy.results,
-  }
-}
-
-const mapDispatchToProps = (dispatch, {conversationIDKey}: OwnProps) => ({
-  onClick: (url: string) => {
-    dispatch(Chat2Gen.createGiphySend({conversationIDKey, url: new HiddenString(url)}))
-  },
-})
-
 export default namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
+  (state, ownProps: OwnProps) => {
+    const {conversationIDKey} = ownProps
+    const giphy = state.chat2.giphyResultMap.get(conversationIDKey) || null
+    return {
+      // Auto generated from flowToTs. Please clean me!
+      galleryURL:
+        // Auto generated from flowToTs. Please clean me!
+        (giphy === null || giphy === undefined ? undefined : giphy.galleryUrl) !== null && // Auto generated from flowToTs. Please clean me!
+        (giphy === null || giphy === undefined ? undefined : giphy.galleryUrl) !== undefined // Auto generated from flowToTs. Please clean me!
+          ? giphy === null || giphy === undefined
+            ? undefined
+            : giphy.galleryUrl
+          : '',
+      // Auto generated from flowToTs. Please clean me!
+      previews: giphy === null || giphy === undefined ? undefined : giphy.results,
+    }
+  },
+  (dispatch, {conversationIDKey}: OwnProps) => ({
+    onClick: (url: string) => {
+      dispatch(Chat2Gen.createGiphySend({conversationIDKey, url: new HiddenString(url)}))
+    },
+  }),
   (s, d) => ({...s, ...d}),
   'GiphySearch'
 )(GiphySearch)
