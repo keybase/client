@@ -1068,6 +1068,22 @@ func (o *OutboxInfo) Eq(r *OutboxInfo) bool {
 	return (o == nil) && (r == nil)
 }
 
+func (o OutboxRecord) IsError() bool {
+	state, err := o.State.State()
+	if err != nil {
+		return false
+	}
+	return state == OutboxStateType_ERROR
+}
+
+func (o OutboxRecord) IsSending() bool {
+	state, err := o.State.State()
+	if err != nil {
+		return false
+	}
+	return state == OutboxStateType_SENDING
+}
+
 func (o OutboxRecord) IsAttachment() bool {
 	return o.Msg.ClientHeader.MessageType == MessageType_ATTACHMENT
 }

@@ -548,7 +548,11 @@ func (s *RemoteInboxSource) MergeLocalMetadata(ctx context.Context, uid gregor1.
 }
 
 func (s *RemoteInboxSource) NotifyUpdate(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) {
+}
 
+func (s *RemoteInboxSource) IncrementLocalConvVersion(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID) (conv *chat1.ConversationLocal, err error) {
+	return nil, nil
 }
 
 func (s *RemoteInboxSource) UpdateLocalMtime(ctx context.Context, uid gregor1.UID, updates []chat1.LocalMtimeUpdate) error {
@@ -878,6 +882,15 @@ func (s *HybridInboxSource) NotifyUpdate(ctx context.Context, uid gregor1.UID, c
 	}
 	s.G().ActivityNotifier.ConvUpdate(ctx, uid, convID,
 		topicType, inboxUIItem)
+}
+
+func (s *HybridInboxSource) IncrementLocalConvVersion(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID) (conv *chat1.ConversationLocal, err error) {
+	defer s.Trace(ctx, func() error { return err }, "IncrementLocalConvVersion")()
+	if err := s.createInbox().IncrementLocalConvVersion(ctx, uid, convID); err != nil {
+		s.Debug(ctx, "IncrementLocalConvVersion: unable to IncrementLocalConvVersion, err", err)
+	}
+	return s.getConvLocal(ctx, uid, convID)
 }
 
 func (s *HybridInboxSource) MarkAsRead(ctx context.Context, convID chat1.ConversationID,
