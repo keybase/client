@@ -33,7 +33,7 @@ let config = {
   allowMultipleInstances: false,
   enableActionLogging: true, // Log actions to the log
   enableStoreLogging: false, // Log full store changes
-  featureFlagsOverride: 'whatsNew', // Override feature flags
+  featureFlagsOverride: '', // Override feature flags
   filterActionLogs: null, // Filter actions in log
   forceImmediateLogging: false, // Don't wait for idle to log
   ignoreDisconnectOverlay: false,
