@@ -115,9 +115,10 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [EngineGen.keybase1NotifyTrackingNotifyUserBlocked]: (draftState, action) => {
     const {blocker, blocked} = action.payload.params.b
     const d = getDetails(draftState, blocker)
-    const followers = d.followers || new Set()
+    const followers = d.followers ?? new Set()
     d.followers = followers
-    ;(blocked || []).forEach(e => {
+    const toProcess = blocked ?? []
+    toProcess.forEach(e => {
       followers.delete(e)
       const dBlocked = getDetails(draftState, e)
       dBlocked.blocked = true
