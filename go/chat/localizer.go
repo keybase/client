@@ -908,9 +908,13 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	obrs, err := storage.NewOutbox(s.G(), uid).PullForConversation(ctx, conversationRemote.GetConvID())
 	if err != nil {
 		s.G().GetLog().CDebugf(ctx, "unable to get outbox records: %v", err)
-	} else if len(obrs) > 0 {
-		msg := chat1.NewMessageUnboxedWithOutbox(obrs[len(obrs)-1])
-		conversationLocal.Info.SnippetMsg = &msg
+	}
+	for _, obr := range obrs {
+		msg := chat1.NewMessageUnboxedWithOutbox(obr)
+		if msg.IsVisible() {
+			conversationLocal.Info.SnippetMsg = &msg
+			break
+		}
 	}
 
 	// Resolve edits/deletes on snippet message
