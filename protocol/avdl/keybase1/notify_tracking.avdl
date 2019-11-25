@@ -8,5 +8,5 @@ protocol NotifyTracking {
 
   void trackingInfo(UID uid, array<string> followers, array<string> followees) oneway;
 
-  void notifyUserBlocked(UserBlockedBody b) oneway;
+  void notifyUserBlocked(UserBlockedSummary b) oneway;
 }

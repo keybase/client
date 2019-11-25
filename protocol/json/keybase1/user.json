@@ -421,6 +421,23 @@
     },
     {
       "type": "record",
+      "name": "UserBlockedSummary",
+      "fields": [
+        {
+          "type": "string",
+          "name": "blocker"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "blocked"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UserBlock",
       "fields": [
         {

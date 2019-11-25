@@ -54,7 +54,7 @@
       "request": [
         {
           "name": "b",
-          "type": "UserBlockedBody"
+          "type": "UserBlockedSummary"
         }
       ],
       "response": null,

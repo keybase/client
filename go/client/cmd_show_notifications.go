@@ -173,7 +173,7 @@ func (d *notificationDisplay) TrackingInfo(_ context.Context, arg keybase1.Track
 	return d.printf("Tracking info for %s followers: %v followees: %v\n", arg.Uid, arg.Followers,
 		arg.Followees)
 }
-func (d *notificationDisplay) NotifyUserBlocked(_ context.Context, arg keybase1.UserBlockedBody) error {
+func (d *notificationDisplay) NotifyUserBlocked(_ context.Context, arg keybase1.UserBlockedSummary) error {
 	return d.printf("User blocked: %+v\n", arg)
 }
 

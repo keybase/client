@@ -5,6 +5,7 @@ import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as Tracker2Gen from '../actions/tracker2-gen'
 import * as Types from '../constants/types/users'
 import * as UsersGen from '../actions/users-gen'
+import * as EngineGen from '../actions/engine-gen-gen'
 
 const initialState: Types.State = Constants.makeState()
 
@@ -14,6 +15,7 @@ type Actions =
   | Tracker2Gen.UpdatedDetailsPayload
   | ConfigGen.SetAccountsPayload
   | TeamBuildingGen.SearchResultsLoadedPayload
+  | EngineGen.Keybase1NotifyTrackingNotifyUserBlockedPayload
 
 const updateInfo = (map: Map<string, Types.UserInfo>, username: string, info: Partial<Types.UserInfo>) => {
   const next = {
@@ -81,6 +83,13 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       if (!old || !old.fullname) {
         updateInfo(infoMap, keybase, {fullname: prettyName})
       }
+    })
+  },
+  [EngineGen.keybase1NotifyTrackingNotifyUserBlocked]: (draftState, action) => {
+    const {blocked} = action.payload.params.b
+    const {infoMap} = draftState
+    ;(blocked || []).forEach(e => {
+      updateInfo(infoMap, e, {blocked: true})
     })
   },
 })

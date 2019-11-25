@@ -204,7 +204,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.NotifyTracking.notifyUserBlocked': {
-    inParam: {readonly b: UserBlockedBody}
+    inParam: {readonly b: UserBlockedSummary}
     outParam: void
   }
   'keybase.1.NotifyTracking.trackingChanged': {
@@ -2977,6 +2977,7 @@ export type UserBlock = {readonly username: String; readonly chatBlocked: Boolea
 export type UserBlockArg = {readonly username: String; readonly setChatBlock?: Boolean | null; readonly setFollowBlock?: Boolean | null; readonly report?: RecordInfoArg | null}
 export type UserBlockedBody = {readonly blocks?: Array<UserBlockedRow> | null; readonly uid: UID; readonly username: String}
 export type UserBlockedRow = {readonly uid: UID; readonly username: String; readonly chat?: Boolean | null; readonly follow?: Boolean | null}
+export type UserBlockedSummary = {readonly blocker: String; readonly blocked?: Array<String> | null}
 export type UserCard = {readonly following: Int; readonly followers: Int; readonly uid: UID; readonly fullName: String; readonly location: String; readonly bio: String; readonly bioDecorated: String; readonly website: String; readonly twitter: String; readonly youFollowThem: Boolean; readonly theyFollowYou: Boolean; readonly teamShowcase?: Array<UserTeamShowcase> | null; readonly registeredForAirdrop: Boolean; readonly blocked: Boolean}
 export type UserEk = {readonly seed: Bytes32; readonly metadata: UserEkMetadata}
 export type UserEkBoxMetadata = {readonly box: String; readonly recipientGeneration: EkGeneration; readonly recipientDeviceID: DeviceID}

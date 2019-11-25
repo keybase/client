@@ -3,6 +3,7 @@ import * as Types from '../constants/types/tracker2'
 import * as ConfigGen from '../actions/config-gen'
 import * as Tracker2Gen from '../actions/tracker2-gen'
 import * as Container from '../util/container'
+import * as EngineGen from '../actions/engine-gen-gen'
 import logger from '../logger'
 
 const initialState: Types.State = Constants.makeState()
@@ -19,7 +20,10 @@ const getDetails = (state: Types.State, username: string) => {
   return d
 }
 
-type Actions = Tracker2Gen.Actions | ConfigGen.BootstrapStatusLoadedPayload
+type Actions =
+  | Tracker2Gen.Actions
+  | ConfigGen.BootstrapStatusLoadedPayload
+  | EngineGen.Keybase1NotifyTrackingNotifyUserBlockedPayload
 
 export default Container.makeReducer<Actions, Types.State>(initialState, {
   [Tracker2Gen.resetStore]: () => initialState,
@@ -108,11 +112,11 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       ...rest,
     })
   },
-  [Tracker2Gen.userBlocked]: (draftState, action) => {
-    const {blocker, blocked} = action.payload
+  [EngineGen.keybase1NotifyTrackingNotifyUserBlocked]: (draftState, action) => {
+    const {blocker, blocked} = action.payload.params.b
     const d = getDetails(draftState, blocker)
     const followers = d.followers || new Set()
-    blocked.forEach(e => {
+    ;(blocked || []).forEach(e => {
       followers.delete(e)
     })
     d.followers = followers

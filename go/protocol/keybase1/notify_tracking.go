@@ -22,13 +22,13 @@ type TrackingInfoArg struct {
 }
 
 type NotifyUserBlockedArg struct {
-	B UserBlockedBody `codec:"b" json:"b"`
+	B UserBlockedSummary `codec:"b" json:"b"`
 }
 
 type NotifyTrackingInterface interface {
 	TrackingChanged(context.Context, TrackingChangedArg) error
 	TrackingInfo(context.Context, TrackingInfoArg) error
-	NotifyUserBlocked(context.Context, UserBlockedBody) error
+	NotifyUserBlocked(context.Context, UserBlockedSummary) error
 }
 
 func NotifyTrackingProtocol(i NotifyTrackingInterface) rpc.Protocol {
@@ -98,7 +98,7 @@ func (c NotifyTrackingClient) TrackingInfo(ctx context.Context, __arg TrackingIn
 	return
 }
 
-func (c NotifyTrackingClient) NotifyUserBlocked(ctx context.Context, b UserBlockedBody) (err error) {
+func (c NotifyTrackingClient) NotifyUserBlocked(ctx context.Context, b UserBlockedSummary) (err error) {
 	__arg := NotifyUserBlockedArg{B: b}
 	err = c.Cli.Notify(ctx, "keybase.1.NotifyTracking.notifyUserBlocked", []interface{}{__arg}, 0*time.Millisecond)
 	return

@@ -2066,6 +2066,8 @@ func (n *NotifyRouter) HandleUserBlocked(ctx context.Context, b keybase1.UserBlo
 		return
 	}
 
+	summary := b.Summarize()
+
 	var wg sync.WaitGroup
 	n.G().Log.CDebugf(ctx, "+ Sending UserBlocked notification: %+v", b)
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
@@ -2074,7 +2076,7 @@ func (n *NotifyRouter) HandleUserBlocked(ctx context.Context, b keybase1.UserBlo
 			go func() {
 				_ = (keybase1.NotifyTrackingClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).NotifyUserBlocked(context.Background(), b)
+				}).NotifyUserBlocked(context.Background(), summary)
 				wg.Done()
 			}()
 		}
