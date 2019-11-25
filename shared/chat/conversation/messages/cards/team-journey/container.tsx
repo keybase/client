@@ -144,8 +144,8 @@ const TeamJourneyConnected = Container.connect(
       .toArray()
       .filter(info => joinableStatuses.has(info.memberStatus))
       .sort((x, y) => y.mtime - x.mtime)
-      .map(info => info.channelname)
       .slice(0, Container.isMobile ? 2 : 3)
+      .map(info => info.channelname)
 
     return {
       channelname,

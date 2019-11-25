@@ -486,13 +486,13 @@ func (cc *JourneyCardManagerSingleUser) cardPopularChannels(ctx context.Context,
 // Condition: A few days on top of POPULAR_CHANNELS have passed since the user joined the channel. In order to space it out from POPULAR_CHANNELS.
 func (cc *JourneyCardManagerSingleUser) cardAddPeople(ctx context.Context, conv convForJourneycard, jcd journeyCardConvData,
 	debugDebug logFn) bool {
-	if !conv.UntrustedTeamRole.IsAdminOrAbove() {
+	if !conv.IsGeneralChannel || !conv.UntrustedTeamRole.IsAdminOrAbove() {
 		return false
 	}
 	if !cc.timeSinceJoined(ctx, conv.ConvID, jcd, time.Hour*24*4) {
 		return false
 	}
-	if jcd.SentMessage || !conv.IsGeneralChannel {
+	if jcd.SentMessage {
 		return true
 	}
 	// Figure whether the user is in other channels.
