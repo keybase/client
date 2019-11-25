@@ -563,9 +563,13 @@ func (p *peopleCache) hasBadUser(m libkb.MetaContext, badUIDs map[keybase1.UID]b
 		return true
 	}
 
+	// @maxtaco 2019.11.25: As @jzila points out, there isn't a way for the blocked user to be
+	// in this list, but not the all list above. But let's play it safe and check anyways,
+	// to err on the side of forcing a refresh.
 	if findBadUserInUsers(m, p.lastShown, badUIDs) {
 		m.Debug("Found blocked user in people cache (lastShown)")
 		return true
 	}
+
 	return false
 }
