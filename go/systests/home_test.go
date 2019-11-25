@@ -272,8 +272,11 @@ func TestHomeBlockSpammer(t *testing.T) {
 	probeUserInAliceHome(bob, true)
 	probeUserInAliceHome(charlie, true)
 
-	alice.block(bob.username, true /*chat*/, true /*follow*/)
-
+	alice.block(bob.username, true /*chat*/, false /*follow*/)
 	probeUserInAliceHome(charlie, true)
+	probeUserInAliceHome(bob, false)
+
+	alice.block(charlie.username, false /*chat*/, true /*follow*/)
+	probeUserInAliceHome(charlie, false)
 	probeUserInAliceHome(bob, false)
 }
