@@ -47,7 +47,7 @@ func (b *baseLocalizer) filterSelfFinalized(ctx context.Context, inbox types.Inb
 	res.ConvsUnverified = nil
 	for _, conv := range inbox.ConvsUnverified {
 		if conv.Conv.IsSelfFinalized(username) {
-			b.Debug(ctx, "baseLocalizer: skipping own finalized convo: %s name: %s", conv.GetConvID())
+			b.Debug(ctx, "baseLocalizer: skipping own finalized convo: %s name: %s", conv.ConvIDStr)
 			continue
 		}
 		res.ConvsUnverified = append(res.ConvsUnverified, conv)
@@ -94,7 +94,7 @@ func (b *blockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, inbox
 	res = make([]chat1.ConversationLocal, len(convs))
 	indexMap := make(map[string]int)
 	for index, c := range convs {
-		indexMap[c.GetConvID().String()] = index
+		indexMap[c.ConvIDStr] = index
 	}
 	for ar := range b.localizeCb {
 		res[indexMap[ar.ConvLocal.GetConvID().String()]] = ar.ConvLocal
@@ -529,7 +529,7 @@ func (s *localizerPipeline) localizeConversations(localizeJob *localizerPipeline
 		eg.Go(func() error {
 			for conv := range convCh {
 				s.gateCheck(ctx, localizeJob.gateCh, index)
-				s.Debug(ctx, "localizeConversations: localizing: %d convID: %s", index, conv.GetConvID())
+				s.Debug(ctx, "localizeConversations: localizing: %d convID: %s", index, conv.ConvIDStr)
 				convLocal := s.localizeConversation(ctx, uid, conv)
 				select {
 				case <-ctx.Done():
@@ -540,13 +540,13 @@ func (s *localizerPipeline) localizeConversations(localizeJob *localizerPipeline
 				retCh <- conv.GetConvID()
 				if convLocal.Error != nil {
 					s.Debug(ctx, "localizeConversations: error localizing: convID: %s err: %s",
-						conv.GetConvID(), convLocal.Error.Message)
+						conv.ConvIDStr, convLocal.Error.Message)
 				}
 				localizeJob.retCh <- types.AsyncInboxResult{
 					ConvLocal: convLocal,
 					Conv:      conv,
 				}
-				s.Debug(ctx, "localizeConversations: localized: %d convID: %s", index, conv.GetConvID())
+				s.Debug(ctx, "localizeConversations: localized: %d convID: %s", index, conv.ConvIDStr)
 			}
 			return nil
 		})

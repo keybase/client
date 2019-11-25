@@ -758,7 +758,7 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 	readConvMap := make(map[string]bool)
 	for _, conv := range convs {
 		if conv.IsLocallyRead() {
-			readConvMap[conv.GetConvID().String()] = true
+			readConvMap[conv.ConvIDStr] = true
 		}
 	}
 

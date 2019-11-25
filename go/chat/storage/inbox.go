@@ -236,11 +236,11 @@ func (i *Inbox) writeMobileSharedInbox(ctx context.Context, ibox inboxDiskData, 
 		}
 		name := utils.GetRemoteConvDisplayName(rc)
 		if len(name) == 0 {
-			i.Debug(ctx, "writeMobileSharedInbox: skipping convID: %s, no name", rc.GetConvID())
+			i.Debug(ctx, "writeMobileSharedInbox: skipping convID: %s, no name", rc.ConvIDStr)
 			continue
 		}
 		writable = append(writable, SharedInboxItem{
-			ConvID:      rc.GetConvID().String(),
+			ConvID:      rc.ConvIDStr,
 			Name:        name,
 			Public:      rc.Conv.IsPublic(),
 			MembersType: rc.Conv.GetMembersType(),
@@ -340,10 +340,10 @@ func (i *Inbox) summarizeConvs(convs []types.RemoteConversation) {
 func (i *Inbox) mergeConvs(l []types.RemoteConversation, r []types.RemoteConversation) (res []types.RemoteConversation) {
 	m := make(map[string]types.RemoteConversation)
 	for _, conv := range l {
-		m[conv.GetConvID().String()] = conv
+		m[conv.ConvIDStr] = conv
 	}
 	for _, conv := range r {
-		key := conv.GetConvID().String()
+		key := conv.ConvIDStr
 		if m[key].GetVersion() <= conv.GetVersion() {
 			res = append(res, conv)
 			delete(m, key)
@@ -396,7 +396,7 @@ func (i *Inbox) MergeLocalMetadata(ctx context.Context, uid gregor1.UID, convs [
 		convMap[conv.GetConvID().String()] = conv
 	}
 	for index, rc := range ibox.Conversations {
-		if convLocal, ok := convMap[rc.GetConvID().String()]; ok {
+		if convLocal, ok := convMap[rc.ConvIDStr]; ok {
 			// Don't write this out for error convos
 			if convLocal.Error != nil || convLocal.GetTopicType() != chat1.TopicType_CHAT {
 				continue
@@ -826,7 +826,7 @@ func (i *Inbox) NewConversation(ctx context.Context, uid gregor1.UID, vers chat1
 			for _, super := range conv.Metadata.Supersedes {
 				if iconv.GetConvID().Eq(super.ConversationID) {
 					i.Debug(ctx, "NewConversation: setting supersededBy: target: %s superseder: %s",
-						iconv.GetConvID(), conv.GetConvID())
+						iconv.ConvIDStr, conv.GetConvID())
 					iconv.Conv.Metadata.SupersededBy = append(iconv.Conv.Metadata.SupersededBy, conv.Metadata)
 					iconv.Conv.Metadata.Version = vers.ToConvVers()
 				}
@@ -1566,7 +1566,7 @@ func (i *Inbox) Sync(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 		convMap[conv.GetConvID().String()] = conv
 	}
 	for index, conv := range ibox.Conversations {
-		if newConv, ok := convMap[conv.GetConvID().String()]; ok {
+		if newConv, ok := convMap[conv.ConvIDStr]; ok {
 			oldConv := ibox.Conversations[index].Conv
 			if oldConv.Metadata.TeamType != newConv.Metadata.TeamType {
 				// Changing the team type might be hard for clients of the inbox system to process,
@@ -1590,7 +1590,7 @@ func (i *Inbox) Sync(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 			}
 
 			ibox.Conversations[index].Conv = newConv
-			delete(convMap, conv.GetConvID().String())
+			delete(convMap, conv.ConvIDStr)
 		}
 	}
 	i.Debug(ctx, "Sync: adding %d new conversations", len(convMap))
@@ -1673,7 +1673,7 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 			roleUpdates = append(roleUpdates, conv.GetConvID())
 		}
 
-		if removedMap[conv.GetConvID().String()] {
+		if removedMap[conv.ConvIDStr] {
 			conv.Conv.ReaderInfo.Status = chat1.ConversationMemberStatus_LEFT
 			conv.Conv.Metadata.Version = vers.ToConvVers()
 			var newAllList []gregor1.UID
@@ -1683,7 +1683,7 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 				}
 			}
 			conv.Conv.Metadata.AllList = newAllList
-		} else if resetMap[conv.GetConvID().String()] {
+		} else if resetMap[conv.ConvIDStr] {
 			conv.Conv.ReaderInfo.Status = chat1.ConversationMemberStatus_RESET
 			conv.Conv.Metadata.Version = vers.ToConvVers()
 			// Double check this user isn't already in here
@@ -1704,7 +1704,7 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 	// Update all lists with other people joining and leaving
 	convMap := make(map[string]*types.RemoteConversation)
 	for index, c := range ibox.Conversations {
-		convMap[c.GetConvID().String()] = &ibox.Conversations[index]
+		convMap[c.ConvIDStr] = &ibox.Conversations[index]
 	}
 	for _, oj := range othersJoined {
 		if cp, ok := convMap[oj.ConvID.String()]; ok {
@@ -1799,7 +1799,7 @@ func (i *Inbox) ConversationsUpdate(ctx context.Context, uid gregor1.UID, vers c
 	}
 
 	for idx, conv := range ibox.Conversations {
-		if update, ok := updateMap[conv.GetConvID().String()]; ok {
+		if update, ok := updateMap[conv.ConvIDStr]; ok {
 			i.Debug(ctx, "ConversationsUpdate: changed conv: %v", update)
 			if ibox.Conversations[idx].Conv.Metadata.Existence != update.Existence {
 				layoutChanged = true
@@ -1840,7 +1840,7 @@ func (i *Inbox) UpdateLocalMtime(ctx context.Context, uid gregor1.UID,
 	}
 
 	for idx, conv := range ibox.Conversations {
-		if update, ok := updateMap[conv.GetConvID().String()]; ok {
+		if update, ok := updateMap[conv.ConvIDStr]; ok {
 			i.Debug(ctx, "UpdateLocalMtime: applying conv update: %v", update)
 			ibox.Conversations[idx].LocalMtime = update.Mtime
 			ibox.Conversations[idx].Conv.Metadata.LocalVersion++

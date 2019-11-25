@@ -465,8 +465,7 @@ func (idx *Indexer) allConvs(ctx context.Context, uid gregor1.UID, convID *chat1
 		if conv.Conv.ReaderInfo != nil && conv.Conv.ReaderInfo.UntrustedTeamRole == keybase1.TeamRole_RESTRICTEDBOT {
 			continue
 		}
-		convID := conv.GetConvID()
-		convMap[convID.String()] = conv
+		convMap[conv.ConvIDStr] = conv
 	}
 	return convMap, nil
 }
@@ -486,11 +485,11 @@ func (idx *Indexer) convsByMTime(ctx context.Context, uid gregor1.UID,
 	}
 	sortMap := make(map[string]gregor1.Time)
 	for _, conv := range ib {
-		sortMap[conv.GetConvID().String()] = utils.GetConvMtime(conv)
+		sortMap[conv.ConvIDStr] = utils.GetConvMtime(conv)
 	}
 	sort.Slice(res, func(i, j int) bool {
-		imtime := sortMap[res[i].GetConvID().String()]
-		jmtime := sortMap[res[j].GetConvID().String()]
+		imtime := sortMap[res[i].ConvIDStr]
+		jmtime := sortMap[res[j].ConvIDStr]
 		return imtime.After(jmtime)
 	})
 	return res
