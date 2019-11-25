@@ -118,7 +118,11 @@ const Notifications = (props: Props) => {
   const [muted, _setMuted] = React.useState(meta.isMuted)
   const [saving, setSaving] = React.useState(false)
   const delayUnsave = Kb.useTimeout(() => setSaving(false), 100)
-  const updateNotifications = React.useCallback(() => {
+
+  // TODO submitting current state vs next.
+  // Container.usePrevious({})
+
+  const writeNotifications = React.useCallback(() => {
     setSaving(true)
     dispatch(
       Chat2Gen.createUpdateNotificationSettings({
@@ -130,34 +134,39 @@ const Notifications = (props: Props) => {
     )
     delayUnsave()
   }, [dispatch, conversationIDKey, desktop, channelWide, mobile, delayUnsave])
+  const writeMuted = React.useCallback(() => {
+    setSaving(true)
+    dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted}))
+    delayUnsave()
+  }, [dispatch, conversationIDKey, muted, delayUnsave])
 
   const setChannelWide = React.useCallback(
     (c: boolean) => {
       _setChannelWide(c)
-      updateNotifications()
+      writeNotifications()
     },
-    [_setChannelWide, updateNotifications]
+    [_setChannelWide, writeNotifications]
   )
   const setDesktop = React.useCallback(
     (d: Types.NotificationsType) => {
       _setDesktop(d)
-      updateNotifications()
+      writeNotifications()
     },
-    [_setDesktop, updateNotifications]
+    [_setDesktop, writeNotifications]
   )
   const setMobile = React.useCallback(
     (m: Types.NotificationsType) => {
       _setMobile(m)
-      updateNotifications()
+      writeNotifications()
     },
-    [_setMobile, updateNotifications]
+    [_setMobile, writeNotifications]
   )
   const setMuted = React.useCallback(
     (m: boolean) => {
       _setMuted(m)
-      updateNotifications()
+      writeMuted()
     },
-    [_setMuted, updateNotifications]
+    [_setMuted, writeMuted]
   )
 
   return (
