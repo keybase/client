@@ -766,6 +766,20 @@ func (u *userPlusDevice) track(username string) {
 	require.NoError(u.tc.T, err)
 }
 
+func (u *userPlusDevice) block(username string, chat bool, follow bool) {
+	arg := keybase1.SetUserBlocksArg{
+		Blocks: []keybase1.UserBlockArg{
+			{
+				Username:       username,
+				SetChatBlock:   &chat,
+				SetFollowBlock: &follow,
+			},
+		},
+	}
+	err := u.device.userClient.SetUserBlocks(context.TODO(), arg)
+	require.NoError(u.tc.T, err)
+}
+
 func (u *userPlusDevice) untrack(username string) {
 	untrackCmd := client.NewCmdUntrackRunner(u.tc.G)
 	untrackCmd.SetUser(username)

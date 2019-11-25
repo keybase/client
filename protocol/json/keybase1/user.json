@@ -365,6 +365,47 @@
     },
     {
       "type": "record",
+      "name": "UserBlockedRow",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "uid",
+          "jsonkey": "block_uid"
+        },
+        {
+          "type": [
+            null,
+            "boolean"
+          ],
+          "name": "chat",
+          "jsonkey": "chat"
+        },
+        {
+          "type": [
+            null,
+            "boolean"
+          ],
+          "name": "follow",
+          "jsonkey": "follow"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserBlockedGregorBody",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "UserBlockedRow"
+          },
+          "name": "blocks",
+          "jsonkey": "blocks"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UserBlock",
       "fields": [
         {

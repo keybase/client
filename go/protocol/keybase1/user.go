@@ -398,6 +398,52 @@ func (o UserPassphraseStateMsg) DeepCopy() UserPassphraseStateMsg {
 	}
 }
 
+type UserBlockedRow struct {
+	Uid    UID   `codec:"uid" json:"block_uid"`
+	Chat   *bool `codec:"chat,omitempty" json:"chat,omitempty"`
+	Follow *bool `codec:"follow,omitempty" json:"follow,omitempty"`
+}
+
+func (o UserBlockedRow) DeepCopy() UserBlockedRow {
+	return UserBlockedRow{
+		Uid: o.Uid.DeepCopy(),
+		Chat: (func(x *bool) *bool {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Chat),
+		Follow: (func(x *bool) *bool {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Follow),
+	}
+}
+
+type UserBlockedGregorBody struct {
+	Blocks []UserBlockedRow `codec:"blocks" json:"blocks"`
+}
+
+func (o UserBlockedGregorBody) DeepCopy() UserBlockedGregorBody {
+	return UserBlockedGregorBody{
+		Blocks: (func(x []UserBlockedRow) []UserBlockedRow {
+			if x == nil {
+				return nil
+			}
+			ret := make([]UserBlockedRow, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Blocks),
+	}
+}
+
 type UserBlock struct {
 	Username      string `codec:"username" json:"username"`
 	ChatBlocked   bool   `codec:"chatBlocked" json:"chatBlocked"`
