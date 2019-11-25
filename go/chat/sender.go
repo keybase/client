@@ -1352,6 +1352,10 @@ func (s *Deliverer) Queue(ctx context.Context, convID chat1.ConversationID, msg 
 
 	// Alert the deliver loop it should wake up
 	s.msgSentCh <- struct{}{}
+	update := []chat1.LocalMtimeUpdate{{ConvID: convID, Mtime: obr.Ctime}}
+	if err := s.G().InboxSource.UpdateLocalMtime(ctx, s.outbox.GetUID(), update); err != nil {
+		s.Debug(ctx, "Queue: unable to update local mtime", obr.Ctime)
+	}
 	s.G().InboxSource.NotifyUpdate(ctx, s.outbox.GetUID(), convID)
 	return obr, nil
 }
