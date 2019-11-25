@@ -21,7 +21,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-const inboxVersion = 25
+const inboxVersion = 26
 
 var defaultMemberStatusFilter = []chat1.ConversationMemberStatus{
 	chat1.ConversationMemberStatus_ACTIVE,
@@ -552,7 +552,7 @@ func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, rcs 
 			continue
 		}
 		// Basic checks
-		if queryConvIDMap != nil && !queryConvIDMap[conv.GetConvID().String()] {
+		if queryConvIDMap != nil && !queryConvIDMap[rc.ConvIDStr] {
 			continue
 		}
 		if query.After != nil && !conv.ReaderInfo.Mtime.After(*query.After) {
@@ -601,7 +601,7 @@ func (i *Inbox) queryConvIDsExist(ctx context.Context, ibox inboxDiskData,
 	convIDs []chat1.ConversationID) bool {
 	m := make(map[string]bool)
 	for _, conv := range ibox.Conversations {
-		m[conv.GetConvID().String()] = true
+		m[conv.ConvIDStr] = true
 	}
 	for _, convID := range convIDs {
 		if !m[convID.String()] {

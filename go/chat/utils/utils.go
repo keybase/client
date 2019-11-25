@@ -1979,7 +1979,8 @@ func DecodeBase64(enc []byte) ([]byte, error) {
 
 func RemoteConv(conv chat1.Conversation) types.RemoteConversation {
 	return types.RemoteConversation{
-		Conv: conv,
+		Conv:      conv,
+		ConvIDStr: conv.GetConvID().String(),
 	}
 }
 

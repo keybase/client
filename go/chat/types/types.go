@@ -90,6 +90,7 @@ type RemoteConversationMetadata struct {
 
 type RemoteConversation struct {
 	Conv           chat1.Conversation          `codec:"c"`
+	ConvIDStr      string                      `codec:"i"`
 	LocalMetadata  *RemoteConversationMetadata `codec:"l"`
 	LocalReadMsgID chat1.MessageID             `codec:"r"`
 	LocalDraft     *string                     `codec:"d"`
