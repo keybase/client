@@ -37,10 +37,10 @@ const makeBigRows = (
         }
       case RPCChatTypes.UIInboxBigTeamRowTyp.label:
         return {
+          snippetDecoration: RPCChatTypes.SnippetDecoration.none,
           teamID: t.label.id,
           teamname: t.label.name,
           type: 'bigHeader',
-          snippetDecoration: RPCChatTypes.SnippetDecoration.none,
         }
       default:
         throw new Error('unknown row typ')
