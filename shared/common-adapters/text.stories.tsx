@@ -91,7 +91,10 @@ const groups: Array<Array<{label: string; action?: boolean; type: TextType; norm
     {label: 'Body small success Body small success', normalOnly: true, type: 'BodySmallSuccess'},
     {label: 'Body small wallet Body small wallet', normalOnly: true, type: 'BodySmallWallet'},
   ],
-  [{label: 'Body tiny Body tiny', type: 'BodyTiny'}, {label: 'Body tiny semibold', type: 'BodyTinySemibold'}],
+  [
+    {label: 'Body tiny Body tiny', type: 'BodyTiny'},
+    {label: 'Body tiny semibold', type: 'BodyTinySemibold'},
+  ],
 ]
 
 const mapText = (secondary: boolean) => {

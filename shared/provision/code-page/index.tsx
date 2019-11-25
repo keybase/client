@@ -7,8 +7,9 @@ import QRImage from './qr-image'
 import QRScan from './qr-scan/container'
 import {isAndroid} from '../../constants/platform'
 import Troubleshooting from '../troubleshooting'
-const blueBackground = require('../../images/illustrations/bg-provisioning-blue.png')
-const greenBackground = require('../../images/illustrations/bg-provisioning-green.png')
+import * as Types from '../../constants/types/provision'
+import DeviceIcon from '../../devices/device-icon'
+import * as DeviceTypes from '../../constants/types/devices'
 
 export type DeviceType = 'mobile' | 'desktop'
 export type Tab = 'QR' | 'enterText' | 'viewText'
@@ -17,15 +18,16 @@ const currentDeviceType: DeviceType = Styles.isMobile ? 'mobile' : 'desktop'
 
 type Props = {
   error: string
+  currentDevice: DeviceTypes.Device
   currentDeviceAlreadyProvisioned: boolean
   currentDeviceName: string
-  otherDeviceName: string
-  otherDeviceType: DeviceType
+  otherDevice: Types.Device
   tabOverride?: Tab
   textCode: string
   onBack: () => void
   onClose: () => void
   onSubmitTextCode: (code: string) => void
+  waiting: boolean
 }
 
 type State = {
@@ -83,7 +85,7 @@ class CodePage2 extends React.Component<Props, State> {
     if (currentDeviceType === 'mobile') {
       return getTabOrOpposite('QR')
     } else if (currentDeviceType === 'desktop') {
-      return props.otherDeviceType === 'desktop' ? getTabOrOpposite('viewText') : getTabOrOpposite('QR')
+      return props.otherDevice.type === 'desktop' ? getTabOrOpposite('viewText') : getTabOrOpposite('QR')
     }
 
     throw new Error('Impossible defaultTab')
@@ -137,8 +139,12 @@ class CodePage2 extends React.Component<Props, State> {
               : styles.imageContainerOnRight
           }
         >
-          <Kb.RequireImage
-            src={this.state.tab === 'QR' ? blueBackground : greenBackground}
+          <Kb.Icon
+            type={
+              this.state.tab === 'QR'
+                ? 'illustration-bg-provisioning-blue'
+                : 'illustration-bg-provisioning-green'
+            }
             style={
               this.props.currentDeviceAlreadyProvisioned ? styles.backgroundOnLeft : styles.backgroundOnRight
             }
@@ -195,7 +201,7 @@ class CodePage2 extends React.Component<Props, State> {
               backgroundColor={this._buttonBackground()}
               label="Continue"
               onClick={this._onSubmitTextCode}
-              disabled={!this.state.code}
+              disabled={!this.state.code || this.props.waiting}
               style={styles.enterTextButton}
               waitingKey={Constants.waitingKey}
             />
@@ -225,7 +231,7 @@ class CodePage2 extends React.Component<Props, State> {
         <Kb.BannerParagraph
           bannerColor="yellow"
           content={[
-            `Are you on that ${this.props.otherDeviceType === 'mobile' ? 'phone' : 'computer'} now? `,
+            `Are you on that ${this.props.otherDevice.type === 'mobile' ? 'phone' : 'computer'} now? `,
             {onClick: () => this.setState({troubleshooting: true}), text: 'Resolve'},
           ]}
         />
@@ -237,7 +243,7 @@ class CodePage2 extends React.Component<Props, State> {
     <Troubleshooting
       mode={this.state.tab === 'QR' ? 'QR' : 'text'}
       onCancel={() => this.setState({troubleshooting: false})}
-      otherDeviceType={this.props.otherDeviceType}
+      otherDeviceType={this.props.otherDevice.type}
     />
   )
   // We're in a modal unless this is a desktop being newly provisioned.
@@ -275,7 +281,7 @@ const SwitchTab = (
     onSelect: (tab: Tab) => void
   } & Props
 ) => {
-  if (currentDeviceType === 'desktop' && props.otherDeviceType === 'desktop') {
+  if (currentDeviceType === 'desktop' && props.otherDevice.type === 'desktop') {
     return null
   }
 
@@ -284,7 +290,7 @@ const SwitchTab = (
 
   if (props.selected === 'QR') {
     label = 'Type secret instead'
-    if (currentDeviceType === 'mobile' && props.otherDeviceType === 'mobile') {
+    if (currentDeviceType === 'mobile' && props.otherDevice.type === 'mobile') {
       tab = (props.currentDeviceAlreadyProvisioned
       ? Styles.isMobile
       : !Styles.isMobile)
@@ -337,7 +343,13 @@ const Qr = (props: Props) =>
 const EnterText = (props: Props & {code: string; setCode: (code: string) => void}) => {
   const {code, setCode} = props
   const {onSubmitTextCode} = props
-  const onSubmit = React.useCallback(() => onSubmitTextCode(code), [code, onSubmitTextCode])
+  const onSubmit = React.useCallback(
+    e => {
+      e.preventDefault()
+      code && onSubmitTextCode(code)
+    },
+    [code, onSubmitTextCode]
+  )
   return (
     <Kb.Box2 direction="vertical" style={styles.enterTextContainer} gap="small">
       <Kb.PlainInput
@@ -346,7 +358,7 @@ const EnterText = (props: Props & {code: string; setCode: (code: string) => void
         onChangeText={setCode}
         onEnterKeyDown={onSubmit}
         rowsMin={3}
-        placeholder={`Type the ${props.otherDeviceType === 'mobile' ? '9' : '8'}-word secret code`}
+        placeholder={`Type the ${props.otherDevice.type === 'mobile' ? '9' : '8'}-word secret code`}
         textType="Terminal"
         style={styles.enterTextInput}
         value={code}
@@ -366,26 +378,39 @@ const ViewText = (props: Props) => (
 const Instructions = (p: Props) => (
   <Kb.Box2 direction="vertical">
     {p.currentDeviceAlreadyProvisioned ? (
-      <>
+      <Kb.Box2 direction="horizontal" centerChildren={true}>
         <Kb.Text center={true} type={textType} style={styles.instructions}>
-          Ready to authorize using
+          Ready to authorize using{' '}
         </Kb.Text>
+        <DeviceIcon size={32} device={p.currentDevice} style={styles.deviceIcon} />
         <Kb.Text center={true} type={textType} style={styles.instructionsItalic}>
           {p.currentDeviceName}.
         </Kb.Text>
-      </>
+      </Kb.Box2>
     ) : (
       <>
-        <Kb.Text
-          center={true}
-          type={textType}
-          style={Styles.collapseStyles([styles.instructions, styles.instructionsUpper])}
-        >
-          In the Keybase app on{' '}
-          <Kb.Text center={true} type={textType} style={styles.instructionsItalic}>
-            {p.otherDeviceName}
-          </Kb.Text>{' '}
-          navigate to:
+        <Kb.Text type={textType} style={styles.instructionsContainer}>
+          <Kb.Text
+            type={textType}
+            style={Styles.collapseStyles([styles.instructions, styles.instructionsUpper])}
+          >
+            In the Keybase app on{' '}
+          </Kb.Text>
+          <DeviceIcon size={32} device={p.otherDevice} style={styles.deviceIcon} />
+          <Kb.Text
+            center={true}
+            type={textType}
+            style={Styles.collapseStyles([styles.instructionsItalic, styles.instructionsUpper])}
+          >
+            {p.otherDevice.name}
+          </Kb.Text>
+          <Kb.Text
+            type={textType}
+            style={Styles.collapseStyles([styles.instructions, styles.instructionsUpper])}
+          >
+            {', '}
+            navigate to:
+          </Kb.Text>
         </Kb.Text>
         <Kb.Box2
           direction="horizontal"
@@ -394,7 +419,7 @@ const Instructions = (p: Props) => (
           fullWidth={true}
           style={Styles.globalStyles.flexWrap}
         >
-          {p.otherDeviceType === 'mobile' && (
+          {p.otherDevice.type === 'mobile' && (
             <>
               <Kb.Icon
                 type="iconfont-nav-2-hamburger"
@@ -476,6 +501,10 @@ const styles = Styles.styleSheetCreate(
           paddingTop: Styles.globalMargins.small,
         },
       }),
+      deviceIcon: {
+        marginLeft: Styles.globalMargins.xtiny,
+        marginRight: Styles.globalMargins.xxtiny,
+      },
       enterTextButton: {
         marginLeft: Styles.globalMargins.small,
         marginRight: Styles.globalMargins.small,
@@ -527,8 +556,7 @@ const styles = Styles.styleSheetCreate(
       },
       instructions: {color: Styles.globalColors.white},
       instructionsContainer: {
-        alignItems: 'center',
-        flexWrap: 'wrap',
+        padding: Styles.globalMargins.tiny,
       },
       instructionsItalic: {
         ...Styles.globalStyles.italic,

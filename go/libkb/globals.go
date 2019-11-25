@@ -80,6 +80,7 @@ type GlobalContext struct {
 	teamLoader             TeamLoader      // Play back teams for id/name properties
 	fastTeamLoader         FastTeamLoader  // Play back team in "fast" mode for keys and names only
 	hiddenTeamChainManager HiddenTeamChainManager
+	TeamRoleMapManager     TeamRoleMapManager
 	IDLocktab              *LockTable
 	loadUserLockTab        *LockTable
 	teamAuditor            TeamAuditor
@@ -168,6 +169,8 @@ type GlobalContext struct {
 	SyncedContactList SyncedContactListProvider
 
 	GUIConfig *JSONFile
+
+	avatarLoader AvatarLoaderSource
 }
 
 type GlobalTestOptions struct {
@@ -190,6 +193,7 @@ func (g *GlobalContext) GetEKLib() EKLib                               { return 
 func (g *GlobalContext) GetTeambotBotKeyer() TeambotBotKeyer           { return g.teambotBotKeyer }
 func (g *GlobalContext) GetTeambotMemberKeyer() TeambotMemberKeyer     { return g.teambotMemberKeyer }
 func (g *GlobalContext) GetProofServices() ExternalServicesCollector   { return g.proofServices }
+func (g *GlobalContext) GetAvatarLoader() AvatarLoaderSource           { return g.avatarLoader }
 
 type LogGetter func() logger.Logger
 
@@ -256,6 +260,7 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.teamLoader = newNullTeamLoader(g)
 	g.fastTeamLoader = newNullFastTeamLoader()
 	g.hiddenTeamChainManager = newNullHiddenTeamChainManager()
+	g.TeamRoleMapManager = newNullTeamRoleMapManager()
 	g.teamAuditor = newNullTeamAuditor()
 	g.teamBoxAuditor = newNullTeamBoxAuditor()
 	g.stellar = newNullStellar(g)
@@ -303,6 +308,10 @@ func (g *GlobalContext) SetDNSNameServerFetcher(d DNSNameServerFetcher) {
 
 func (g *GlobalContext) SetUPAKLoader(u UPAKLoader) {
 	g.upakLoader = u
+}
+
+func (g *GlobalContext) SetAvatarLoader(a AvatarLoaderSource) {
+	g.avatarLoader = a
 }
 
 // simulateServiceRestart simulates what happens when a service restarts for the
@@ -584,6 +593,7 @@ func (g *GlobalContext) FlushCaches() {
 	g.cacheMu.Lock()
 	defer g.cacheMu.Unlock()
 	g.configureMemCachesLocked(true)
+	g.TeamRoleMapManager.FlushCache()
 }
 
 func (g *GlobalContext) configureDiskCachesLocked() error {
@@ -626,6 +636,18 @@ func (g *GlobalContext) GetHiddenTeamChainManager() HiddenTeamChainManager {
 	g.cacheMu.RLock()
 	defer g.cacheMu.RUnlock()
 	return g.hiddenTeamChainManager
+}
+
+func (g *GlobalContext) GetTeamRoleMapManager() TeamRoleMapManager {
+	g.cacheMu.RLock()
+	defer g.cacheMu.RUnlock()
+	return g.TeamRoleMapManager
+}
+
+func (g *GlobalContext) SetTeamRoleMapManager(r TeamRoleMapManager) {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	g.TeamRoleMapManager = r
 }
 
 func (g *GlobalContext) SetHiddenTeamChainManager(h HiddenTeamChainManager) {

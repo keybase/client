@@ -821,7 +821,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 			}
 			// Add the secrets.
 			// If it's a public team, there might not be secrets. (If we're not in the team)
-			// Restricted bots don't have any team secrets, so we alos short circuit.
+			// Restricted bots don't have any team secrets, so we also short circuit.
 			if !role.IsRestrictedBot() && (!ret.Chain.Public || (teamUpdate.Box != nil)) {
 				err = l.addSecrets(mctx, teamShim(), arg.me, teamUpdate.Box, teamUpdate.Prevs, teamUpdate.ReaderKeyMasks)
 				if err != nil {
@@ -859,7 +859,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		return nil, err
 	}
 
-	if !arg.skipSeedCheck {
+	if !arg.skipSeedCheck && arg.readSubteamID == nil {
 		err = hiddenPackage.CheckUpdatesAgainstSeedsWithMap(mctx, ret.PerTeamKeySeedsUnverified)
 		if err != nil {
 			return nil, err
@@ -942,11 +942,11 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		// Send a notification if we used to have the name cached and it has changed at all.
 		changeSet := keybase1.TeamChangeSet{Renamed: true}
 		go l.G().NotifyRouter.HandleTeamChangedByID(context.Background(),
-			chain.GetID(), chain.GetLatestSeqno(), chain.IsImplicit(), changeSet, chain.GetLatestHiddenSeqno())
+			chain.GetID(), chain.GetLatestSeqno(), chain.IsImplicit(), changeSet, chain.GetLatestHiddenSeqno(), keybase1.Seqno(0))
 		go l.G().NotifyRouter.HandleTeamChangedByName(context.Background(),
-			cachedName.String(), chain.GetLatestSeqno(), chain.IsImplicit(), changeSet, chain.GetLatestHiddenSeqno())
+			cachedName.String(), chain.GetLatestSeqno(), chain.IsImplicit(), changeSet, chain.GetLatestHiddenSeqno(), keybase1.Seqno(0))
 		go l.G().NotifyRouter.HandleTeamChangedByName(context.Background(),
-			newName.String(), chain.GetLatestSeqno(), chain.IsImplicit(), changeSet, chain.GetLatestHiddenSeqno())
+			newName.String(), chain.GetLatestSeqno(), chain.IsImplicit(), changeSet, chain.GetLatestHiddenSeqno(), keybase1.Seqno(0))
 	}
 
 	// Check request constraints

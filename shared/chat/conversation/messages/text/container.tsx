@@ -1,7 +1,7 @@
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import TextMessage, {Props, ClaimProps} from '.'
+import TextMessage, {Props, ClaimProps, ReplyProps} from '.'
 import * as Container from '../../../../util/container'
 import * as WalletConstants from '../../../../constants/wallets'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
@@ -13,7 +13,10 @@ type OwnProps = {
 
 const replyNoop = () => {}
 
-const getReplyProps = (replyTo: Types.Message | undefined, onReplyClick: (m: Types.MessageID) => void) => {
+const getReplyProps = (
+  replyTo: Types.Message | undefined,
+  onReplyClick: (m: Types.MessageID) => void
+): ReplyProps | undefined => {
   if (!replyTo) {
     return undefined
   }
@@ -33,7 +36,7 @@ const getReplyProps = (replyTo: Types.Message | undefined, onReplyClick: (m: Typ
         ? deletedProps
         : {
             deleted: false,
-            edited: replyTo.hasBeenEdited,
+            edited: !!replyTo.hasBeenEdited,
             imageHeight: attachment ? attachment.previewHeight : undefined,
             imageURL: attachment ? attachment.previewURL : undefined,
             imageWidth: attachment ? attachment.previewWidth : undefined,

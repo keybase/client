@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
 export type Props = {
   conversationIDKey: Types.ConversationIDKey
+  dragAndDropRejectReason?: string
   focusInputCounter: number
   jumpToRecent: () => void
   scrollListDownCounter: number
@@ -9,7 +10,7 @@ export type Props = {
   scrollListUpCounter: number
   showLoader: boolean
   onPaste: (data: Buffer) => void
-  onAttach: (paths: Array<string>) => void
+  onAttach: ((paths: Array<string>) => void) | null
   onFocusInput: () => void
   onRequestScrollDown: () => void
   onRequestScrollToBottom: () => void

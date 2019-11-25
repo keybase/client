@@ -208,8 +208,7 @@ func (h *Helper) FindConversationsByID(ctx context.Context, convIDs []chat1.Conv
 		ConvIDs: convIDs,
 	}
 	inbox, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
-		types.InboxSourceDataSourceAll, nil, query,
-		nil)
+		types.InboxSourceDataSourceAll, nil, query)
 	if err != nil {
 		return nil, err
 	}
@@ -234,7 +233,7 @@ func (h *Helper) GetChannelTopicName(ctx context.Context, teamID keybase1.TeamID
 		ConvIDs: []chat1.ConversationID{convID},
 	}
 	inbox, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
-		types.InboxSourceDataSourceAll, nil, query, nil)
+		types.InboxSourceDataSourceAll, nil, query)
 	if err != nil {
 		return topicName, err
 	}
@@ -558,7 +557,7 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 		}
 
 		inbox, _, err := g.InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, dataSource, nil,
-			query, nil)
+			query)
 		if err != nil {
 			acceptableErr := false
 			// if we fail to load the team for some kind of rekey reason, treat as a complete miss
@@ -737,7 +736,7 @@ func postJoinLeave(ctx context.Context, g *globals.Context, ri func() chat1.Remo
 		ConvIDs: []chat1.ConversationID{convID},
 	}
 	ib, _, err := g.InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
-		types.InboxSourceDataSourceAll, nil, &query, nil)
+		types.InboxSourceDataSourceAll, nil, &query)
 	if err != nil {
 		return fmt.Errorf("inbox read error: %s", err)
 	}
@@ -978,7 +977,7 @@ func (n *newConversationHelper) findExisting(ctx context.Context, tlfID chat1.TL
 				TlfVisibility: &n.vis,
 				TopicName:     &topicName,
 				TopicType:     &n.topicType,
-			}, nil)
+			})
 		if err != nil {
 			return res, err
 		}
@@ -1184,7 +1183,7 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 			types.InboxSourceDataSourceRemoteOnly, nil,
 			&chat1.GetInboxLocalQuery{
 				ConvIDs: []chat1.ConversationID{convID},
-			}, nil)
+			})
 		if err != nil {
 			return res, err
 		}

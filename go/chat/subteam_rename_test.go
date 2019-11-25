@@ -148,7 +148,7 @@ func TestChatSubteamRename(t *testing.T) {
 			types.ConversationLocalizerBlocking, types.InboxSourceDataSourceAll, nil,
 			&chat1.GetInboxLocalQuery{
 				ConvIDs: u1ExpectedUpdates,
-			}, nil)
+			})
 		require.NoError(t, err)
 		require.True(t, len(ib.Convs) >= len(u1ExpectedUpdates))
 

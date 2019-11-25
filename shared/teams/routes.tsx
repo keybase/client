@@ -28,7 +28,6 @@ export const newModalRoutes = {
     getScreen: (): typeof RetentionWarning =>
       require('./team/settings-tab/retention/warning/container').default,
   },
-  // TODO connect broken
   teamDeleteTeam: {getScreen: (): typeof TeamDeleteTeam => require('./delete-team/container').default},
   teamEditTeamAvatar: {
     getScreen: (): typeof TeamEditTeamAvatar => require('../profile/edit-avatar/container').default,
@@ -48,7 +47,6 @@ export const newModalRoutes = {
   teamJoinTeamDialog: {getScreen: (): typeof TeamJoinTeamDialog => require('./join-team/container').default},
   // TODO connect broken
   teamNewTeamDialog: {getScreen: (): typeof TeamNewTeamDialog => require('./new-team/container').default},
-  // TODO connect broken
   teamReallyLeaveTeam: {
     getScreen: (): typeof TeamReallyLeaveTeam => require('./really-leave-team/container').default,
   },

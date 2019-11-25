@@ -176,4 +176,7 @@
 .icon-gen-iconfont-root::before {content: "\e9a0";}
 .icon-gen-iconfont-coin-flip::before {content: "\e9a1";}
 .icon-gen-iconfont-location::before {content: "\e9a2";}
+.icon-gen-iconfont-pause::before {content: "\e9a3";}
+.icon-gen-iconfont-block-user::before {content: "\e9a4";}
+.icon-gen-iconfont-rip::before {content: "\e9a5";}
 

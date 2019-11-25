@@ -31,9 +31,13 @@ func NewSecretStoreRevokableSecretService() *SecretStoreRevokableSecretService {
 }
 
 func (s *SecretStoreRevokableSecretService) makeServiceAttributes(mctx MetaContext) secsrv.Attributes {
-	return secsrv.Attributes{
+	attrs := secsrv.Attributes{
 		"service": mctx.G().Env.GetStoredSecretServiceName(),
 	}
+	if mctx.G().Env.GetRunMode() == DevelRunMode {
+		attrs["service-base"] = mctx.G().Env.GetStoredSecretServiceBaseName()
+	}
+	return attrs
 }
 
 func (s *SecretStoreRevokableSecretService) makeAttributes(mctx MetaContext, username NormalizedUsername, instanceIdentifier []byte) secsrv.Attributes {

@@ -27,6 +27,9 @@ class Component extends React.PureComponent<Props> {
   }
 }
 
-export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'RefreshDriverStatusOnMount')(
-  Component
-)
+export default namedConnect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'RefreshDriverStatusOnMount'
+)(Component)

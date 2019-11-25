@@ -326,6 +326,8 @@ func (m MessageUnboxed) GetMessageID() MessageID {
 			return m.Placeholder().MessageID
 		case MessageUnboxedState_OUTBOX:
 			return m.Outbox().Msg.ClientHeader.OutboxInfo.Prev
+		case MessageUnboxedState_JOURNEYCARD:
+			return m.Journeycard().PrevID
 		default:
 			return 0
 		}
@@ -345,6 +347,8 @@ func (m MessageUnboxed) GetOutboxID() *OutboxID {
 		case MessageUnboxedState_OUTBOX:
 			obid := m.Outbox().OutboxID
 			return &obid
+		case MessageUnboxedState_JOURNEYCARD:
+			return nil
 		default:
 			return nil
 		}
@@ -363,6 +367,8 @@ func (m MessageUnboxed) GetTopicType() TopicType {
 			return m.Outbox().Msg.ClientHeader.Conv.TopicType
 		case MessageUnboxedState_PLACEHOLDER:
 			return TopicType_NONE
+		case MessageUnboxedState_JOURNEYCARD:
+			return TopicType_NONE
 		}
 	}
 	return TopicType_NONE
@@ -380,6 +386,8 @@ func (m MessageUnboxed) GetMessageType() MessageType {
 		case MessageUnboxedState_PLACEHOLDER:
 			// All we know about a place holder is the ID, so just
 			// call it type NONE
+			return MessageType_NONE
+		case MessageUnboxedState_JOURNEYCARD:
 			return MessageType_NONE
 		}
 	}
@@ -632,6 +640,10 @@ func (m MessageUnboxedError) ParseableVersion() bool {
 		return false
 	}
 	return maxVersion >= version
+}
+
+func (m MessageUnboxedError) IsEphemeralError() bool {
+	return m.IsEphemeral && m.ErrType == MessageUnboxedErrorType_EPHEMERAL
 }
 
 func (m MessageUnboxedValid) AsDeleteHistory() (res MessageDeleteHistory, err error) {
@@ -1054,6 +1066,22 @@ func (o *OutboxInfo) Eq(r *OutboxInfo) bool {
 		return *o == *r
 	}
 	return (o == nil) && (r == nil)
+}
+
+func (o OutboxRecord) IsError() bool {
+	state, err := o.State.State()
+	if err != nil {
+		return false
+	}
+	return state == OutboxStateType_ERROR
+}
+
+func (o OutboxRecord) IsSending() bool {
+	state, err := o.State.State()
+	if err != nil {
+		return false
+	}
+	return state == OutboxStateType_SENDING
 }
 
 func (o OutboxRecord) IsAttachment() bool {
@@ -2663,4 +2691,12 @@ func (e OutboxErrorType) IsBadgableError() bool {
 
 func (c UserBotCommandOutput) Matches(text string) bool {
 	return strings.HasPrefix(text, fmt.Sprintf("!%s ", c.Name))
+}
+
+func (m AssetMetadata) IsType(typ AssetMetadataType) bool {
+	mtyp, err := m.AssetType()
+	if err != nil {
+		return false
+	}
+	return mtyp == typ
 }

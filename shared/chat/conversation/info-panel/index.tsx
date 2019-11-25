@@ -15,6 +15,7 @@ export type ParticipantTyp = {
   fullname: string
   isAdmin: boolean
   isOwner: boolean
+  botAlias: string
 }
 export type EntityType = 'adhoc' | 'small team' | 'channel'
 export type Section = {
@@ -139,9 +140,7 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
   }
 
   private loadAttachments = () => {
-    if (this.props.selectedTab === 'attachments') {
-      this.props.onAttachmentViewChange(this.props.selectedAttachmentView)
-    }
+    this.props.onAttachmentViewChange(this.props.selectedAttachmentView)
   }
 
   private getEntityType = (): EntityType => {
@@ -336,6 +335,7 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
           } else {
             return (
               <Participant
+                botAlias={item.botAlias}
                 fullname={item.fullname}
                 isAdmin={item.isAdmin}
                 isOwner={item.isOwner}

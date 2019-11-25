@@ -14,7 +14,7 @@ type EmailSearchProps = {
   continueLabel: string
   namespace: AllowedNamespace
   search: (query: string, service: 'email') => void
-  teamBuildingSearchResults: {[query: string]: {[service in Types.ServiceIdWithContact]: Array<Types.User>}}
+  teamBuildingSearchResults: Types.SearchResults
 }
 
 const EmailSearch = ({continueLabel, namespace, search, teamBuildingSearchResults}: EmailSearchProps) => {
@@ -23,15 +23,7 @@ const EmailSearch = ({continueLabel, namespace, search, teamBuildingSearchResult
   const waiting = Container.useAnyWaiting(Constants.searchWaitingKey)
   const dispatch = Container.useDispatch()
 
-  let user: Types.User | undefined
-  if (
-    teamBuildingSearchResults &&
-    teamBuildingSearchResults[emailString] &&
-    teamBuildingSearchResults[emailString].email &&
-    teamBuildingSearchResults[emailString].email[0]
-  ) {
-    user = teamBuildingSearchResults[emailString].email[0]
-  }
+  const user: Types.User | undefined = teamBuildingSearchResults.get(emailString)?.get('email')?.[0]
   const canSubmit = !!user && !waiting && isEmailValid
 
   const onChange = React.useCallback(

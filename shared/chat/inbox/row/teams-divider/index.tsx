@@ -49,6 +49,8 @@ const styles = Styles.styleSheetCreate(
     ({
       button: {
         alignSelf: 'center',
+        bottom: Styles.globalMargins.tiny,
+        position: 'relative',
         width: undefined,
       },
       containerButton: Styles.platformStyles({
@@ -58,6 +60,9 @@ const styles = Styles.styleSheetCreate(
           height: RowSizes.dividerHeight(true),
           justifyContent: 'center',
           width: '100%',
+        },
+        isElectron: {
+          backgroundColor: Styles.globalColors.blueGrey,
         },
         isMobile: {
           paddingBottom: Styles.globalMargins.tiny,

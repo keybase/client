@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as RPCTypes from './rpc-gen'
 import * as TeamBuildingTypes from './team-building'
 
@@ -14,18 +13,16 @@ export const stringToItemID: (id: string) => ItemID = id => id
 export type TodoTypeEnum = RPCTypes.HomeScreenTodoType
 export type TodoType = keyof typeof RPCTypes.HomeScreenTodoType
 
-export type _TodoMetaEmail = {
+export type TodoMetaEmail = {
   type: 'email'
   email: string
   lastVerifyEmailDate: number // unix time in seconds
 }
-export type _TodoMetaPhone = {type: 'phone'; phone: string}
+export type TodoMetaPhone = {type: 'phone'; phone: string}
 
-export type TodoMetaEmail = I.RecordOf<_TodoMetaEmail>
-export type TodoMetaPhone = I.RecordOf<_TodoMetaPhone>
 export type TodoMeta = TodoMetaEmail | TodoMetaPhone | null
 
-export type _Todo = {
+export type Todo = {
   type: 'todo'
   badged: boolean
   todoType: TodoType
@@ -35,24 +32,21 @@ export type _Todo = {
   icon: IconType
   metadata: TodoMeta
 }
-export type Todo = I.RecordOf<_Todo>
 
-export type _FollowedNotification = {
+export type FollowedNotification = {
   contactDescription?: string
   username: string
 }
-export type FollowedNotification = I.RecordOf<_FollowedNotification>
 
-export type _FollowedNotificationItem = {
+export type FollowedNotificationItem = {
   type: 'follow' | 'contact'
   newFollows: Array<FollowedNotification>
   notificationTime: Date
   badged: boolean
   numAdditional?: number
 }
-export type FollowedNotificationItem = I.RecordOf<_FollowedNotificationItem>
 
-export type _Announcement = {
+export type Announcement = {
   appLink: RPCTypes.AppLinkType | null
   badged: boolean
   confirmLabel: string | null
@@ -64,26 +58,21 @@ export type _Announcement = {
   url: string | null
 }
 
-export type Announcement = I.RecordOf<_Announcement>
-
 export type PeopleScreenItem = Todo | FollowedNotificationItem | Announcement
 
-export type _FollowSuggestion = {
+export type FollowSuggestion = {
   username: string
   fullName: string | null
   followsMe: boolean
   iFollow: boolean
 }
-export type FollowSuggestion = I.RecordOf<_FollowSuggestion>
 
-export type _State = {
+export type State = Readonly<{
   lastViewed: Date
   version: number
-  newItems: I.List<PeopleScreenItem>
-  oldItems: I.List<PeopleScreenItem>
-  followSuggestions: I.List<FollowSuggestion>
+  newItems: Array<PeopleScreenItem>
+  oldItems: Array<PeopleScreenItem>
+  followSuggestions: Array<FollowSuggestion>
   resentEmail: string
   teamBuilding: TeamBuildingTypes.TeamBuildingSubState
-}
-
-export type State = I.RecordOf<_State>
+}>

@@ -22,7 +22,6 @@ const props: Props = {
   fullname: 'Alice Keybaseuser',
   onAddAccount: Sb.action('onAddAccount'),
   onCancel: Sb.action('onCancel'),
-  onCreateAccount: Sb.action('onCreateAccount'),
   onProfileClick: Sb.action('onProfileClick'),
   onSelectAccount: Sb.action('onSelectAccount'),
   rightActions: [

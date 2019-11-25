@@ -9,7 +9,7 @@ type OwnProps = {
 }
 
 const mapStateToProps = (state, {path}: OwnProps) => ({
-  _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
+  _pathItem: Constants.getPathItem(state.fs.pathItems, path),
 })
 
 const mapDispatchToProps = dispatch => ({

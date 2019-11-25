@@ -160,7 +160,6 @@ type Inbox struct {
 	Version         chat1.InboxVers
 	ConvsUnverified []RemoteConversation
 	Convs           []chat1.ConversationLocal
-	Pagination      *chat1.Pagination
 }
 
 type InboxSyncRes struct {
@@ -592,8 +591,8 @@ func (d DummyBotCommandManager) PublicCommandsConv(ctx context.Context, username
 	return nil, nil
 }
 
-func (d DummyBotCommandManager) ListCommands(ctx context.Context, convID chat1.ConversationID) ([]chat1.UserBotCommandOutput, error) {
-	return nil, nil
+func (d DummyBotCommandManager) ListCommands(ctx context.Context, convID chat1.ConversationID) ([]chat1.UserBotCommandOutput, map[string]string, error) {
+	return nil, make(map[string]string), nil
 }
 
 func (d DummyBotCommandManager) UpdateCommands(ctx context.Context, convID chat1.ConversationID,
@@ -620,7 +619,7 @@ func (d DummyUIInboxLoader) Stop(ctx context.Context) chan struct{} {
 }
 
 func (d DummyUIInboxLoader) LoadNonblock(ctx context.Context, query *chat1.GetInboxLocalQuery,
-	pagination *chat1.Pagination, maxUnbox *int, skipUnverified bool) error {
+	maxUnbox *int, skipUnverified bool) error {
 	return nil
 }
 
@@ -637,3 +636,30 @@ func (d DummyUIInboxLoader) UpdateLayoutFromNewMessage(ctx context.Context, conv
 
 func (d DummyUIInboxLoader) UpdateLayoutFromSubteamRename(ctx context.Context, convs []RemoteConversation) {
 }
+
+type DummyAttachmentUploader struct{}
+
+var _ AttachmentUploader = (*DummyAttachmentUploader)(nil)
+
+func (d DummyAttachmentUploader) Register(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	outboxID chat1.OutboxID, title, filename string, metadata []byte,
+	callerPreview *chat1.MakePreviewRes) (AttachmentUploaderResultCb, error) {
+	return nil, nil
+}
+func (d DummyAttachmentUploader) Status(ctx context.Context, outboxID chat1.OutboxID) (AttachmentUploaderTaskStatus, AttachmentUploadResult, error) {
+	return 0, AttachmentUploadResult{}, nil
+}
+func (d DummyAttachmentUploader) Retry(ctx context.Context, outboxID chat1.OutboxID) (AttachmentUploaderResultCb, error) {
+	return nil, nil
+}
+func (d DummyAttachmentUploader) Cancel(ctx context.Context, outboxID chat1.OutboxID) error {
+	return nil
+}
+func (d DummyAttachmentUploader) Complete(ctx context.Context, outboxID chat1.OutboxID) {}
+func (d DummyAttachmentUploader) GetUploadTempFile(ctx context.Context, outboxID chat1.OutboxID, filename string) (string, error) {
+	return "", nil
+}
+func (d DummyAttachmentUploader) CancelUploadTempFile(ctx context.Context, outboxID chat1.OutboxID) error {
+	return nil
+}
+func (d DummyAttachmentUploader) OnDbNuke(mctx libkb.MetaContext) error { return nil }

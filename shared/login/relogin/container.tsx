@@ -10,6 +10,8 @@ import sortBy from 'lodash/sortBy'
 import * as Container from '../../util/container'
 import * as ConfigTypes from '../../constants/types/config'
 
+const needPasswordError = 'passphrase cannot be empty'
+
 type OwnProps = {}
 
 type Props = {
@@ -32,6 +34,8 @@ const LoginWrapper = (props: Props) => {
   const prevPassword = Container.usePrevious(password)
   const prevError = Container.usePrevious(props.error)
 
+  const [gotNeedPasswordError, setGotNeedPasswordError] = React.useState(false)
+
   const dispatch = Container.useDispatch()
 
   const {onLogin, loggedInMap} = props
@@ -42,7 +46,7 @@ const LoginWrapper = (props: Props) => {
 
   const selectedUserChange = React.useCallback(
     user => {
-      dispatch(LoginGen.createLoginError({error: null}))
+      dispatch(LoginGen.createLoginError({}))
       setPassword('')
       setSelectedUser(user)
       if (loggedInMap.get(user)) {
@@ -63,14 +67,19 @@ const LoginWrapper = (props: Props) => {
   }, [props.selectedUser, setSelectedUser])
   React.useEffect(() => {
     if (!prevPassword && !!password) {
-      dispatch(LoginGen.createLoginError({error: null}))
+      dispatch(LoginGen.createLoginError({}))
     }
   }, [password, prevPassword, dispatch])
+  React.useEffect(() => {
+    if (props.error === needPasswordError) {
+      setGotNeedPasswordError(true)
+    }
+  }, [props.error, setGotNeedPasswordError])
 
   return (
     <Login
       error={props.error}
-      needPassword={!loggedInMap.get(selectedUser)}
+      needPassword={!loggedInMap.get(selectedUser) || gotNeedPasswordError}
       onFeedback={props.onFeedback}
       onForgotPassword={() => props.onForgotPassword(selectedUser)}
       onLogin={onLogin}

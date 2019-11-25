@@ -605,14 +605,6 @@
           "optional": true
         },
         {
-          "type": [
-            null,
-            "Pagination"
-          ],
-          "name": "pagination",
-          "jsonkey": "pagination"
-        },
-        {
           "type": {
             "type": "array",
             "items": "RateLimitRes"

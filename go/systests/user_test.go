@@ -28,6 +28,19 @@ type signupInfo struct {
 	displayedPaperKey string
 }
 
+type teamsUI struct {
+	baseNullUI
+	libkb.Contextified
+}
+
+func (t teamsUI) ConfirmRootTeamDelete(context.Context, keybase1.ConfirmRootTeamDeleteArg) (bool, error) {
+	return true, nil
+}
+
+func (t teamsUI) ConfirmSubteamDelete(context.Context, keybase1.ConfirmSubteamDeleteArg) (bool, error) {
+	return true, nil
+}
+
 type signupUI struct {
 	baseNullUI
 	info *signupInfo

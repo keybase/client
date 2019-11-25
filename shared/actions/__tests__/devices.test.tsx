@@ -77,6 +77,7 @@ const details = [
     device: {
       cTime: 1234,
       deviceID: '123',
+      deviceNumberOfType: 0,
       encryptKey: 0,
       lastUsedTime: 4567,
       mTime: 2345,
@@ -92,6 +93,7 @@ const details = [
     device: {
       cTime: 1234,
       deviceID: '456',
+      deviceNumberOfType: 0,
       encryptKey: 0,
       lastUsedTime: 4567,
       mTime: 2345,
@@ -107,6 +109,7 @@ const details = [
     device: {
       cTime: 1234,
       deviceID: '789',
+      deviceNumberOfType: 0,
       encryptKey: 0,
       lastUsedTime: 4567,
       mTime: 2345,

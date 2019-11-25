@@ -113,7 +113,7 @@ func (h *UIInboxLoader) getChatUI(ctx context.Context) (libkb.ChatUI, error) {
 }
 
 func (h *UIInboxLoader) presentUnverifiedInbox(ctx context.Context, convs []types.RemoteConversation,
-	p *chat1.Pagination, offline bool) (res chat1.UnverifiedInboxUIItems, err error) {
+	offline bool) (res chat1.UnverifiedInboxUIItems, err error) {
 	for _, rawConv := range convs {
 		if len(rawConv.Conv.MaxMsgSummaries) == 0 {
 			h.Debug(ctx, "presentUnverifiedInbox: invalid convo, no max msg summaries, skipping: %s",
@@ -122,7 +122,6 @@ func (h *UIInboxLoader) presentUnverifiedInbox(ctx context.Context, convs []type
 		}
 		res.Items = append(res.Items, utils.PresentRemoteConversation(ctx, h.G(), rawConv))
 	}
-	res.Pagination = utils.PresentPagination(p)
 	res.Offline = offline
 	return res, err
 }
@@ -189,11 +188,11 @@ func (h *UIInboxLoader) flushUnverified(r unverifiedResponse) (err error) {
 	defer func() {
 		if err != nil {
 			h.Debug(ctx, "flushUnverified: failed to transmit, retrying: %s", err)
-			h.G().FetchRetrier.Failure(ctx, h.uid, NewFullInboxRetry(h.G(), r.Query, r.Pagination))
+			h.G().FetchRetrier.Failure(ctx, h.uid, NewFullInboxRetry(h.G(), r.Query))
 		}
 	}()
 	start := time.Now()
-	uires, err := h.presentUnverifiedInbox(ctx, r.Convs, r.Pagination, h.G().InboxSource.IsOffline(ctx))
+	uires, err := h.presentUnverifiedInbox(ctx, r.Convs, h.G().InboxSource.IsOffline(ctx))
 	if err != nil {
 		h.Debug(ctx, "flushUnverified: failed to present untrusted inbox, failing: %s", err.Error())
 		return err
@@ -271,12 +270,12 @@ func (h *UIInboxLoader) transmitLoop(shutdownCh chan struct{}) error {
 }
 
 func (h *UIInboxLoader) LoadNonblock(ctx context.Context, query *chat1.GetInboxLocalQuery,
-	pagination *chat1.Pagination, maxUnbox *int, skipUnverified bool) (err error) {
+	maxUnbox *int, skipUnverified bool) (err error) {
 	defer h.Trace(ctx, func() error { return err }, "LoadNonblock")()
 	uid := h.uid
 	// Retry helpers
 	retryInboxLoad := func() {
-		h.G().FetchRetrier.Failure(ctx, uid, NewFullInboxRetry(h.G(), query, pagination))
+		h.G().FetchRetrier.Failure(ctx, uid, NewFullInboxRetry(h.G(), query))
 	}
 	retryConvLoad := func(convID chat1.ConversationID, tlfID *chat1.TLFID) {
 		h.G().FetchRetrier.Failure(ctx, uid, NewConversationRetry(h.G(), convID, tlfID, InboxLoad))
@@ -300,7 +299,7 @@ func (h *UIInboxLoader) LoadNonblock(ctx context.Context, query *chat1.GetInboxL
 	// Invoke nonblocking inbox read and get remote inbox version to send back
 	// as our result
 	_, localizeCb, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerNonblocking,
-		types.InboxSourceDataSourceAll, maxUnbox, query, pagination)
+		types.InboxSourceDataSourceAll, maxUnbox, query)
 	if err != nil {
 		return err
 	}
@@ -324,9 +323,8 @@ func (h *UIInboxLoader) LoadNonblock(ctx context.Context, query *chat1.GetInboxL
 				return fmt.Errorf("invalid conversation localize callback received")
 			}
 			h.transmitCh <- unverifiedResponse{
-				Convs:      lres.InboxRes.ConvsUnverified,
-				Query:      query,
-				Pagination: pagination,
+				Convs: lres.InboxRes.ConvsUnverified,
+				Query: query,
 			}
 		case <-time.After(time.Minute):
 			return fmt.Errorf("timeout waiting for inbox result")
@@ -377,7 +375,12 @@ func (h *UIInboxLoader) Query() chat1.GetInboxLocalQuery {
 
 type bigTeam struct {
 	name  string
+	id    string
 	convs []types.RemoteConversation
+}
+
+func newBigTeam(name, id string) *bigTeam {
+	return &bigTeam{name: name, id: id}
 }
 
 func (b *bigTeam) sort() {
@@ -401,7 +404,7 @@ func (c *bigTeamCollector) appendConv(conv types.RemoteConversation) {
 	name := utils.GetRemoteConvTLFName(conv)
 	bt, ok := c.teams[name]
 	if !ok {
-		bt = &bigTeam{name: name}
+		bt = newBigTeam(name, conv.Conv.Metadata.IdTriple.Tlfid.String())
 		c.teams[name] = bt
 	}
 	bt.convs = append(bt.convs, conv)
@@ -417,7 +420,7 @@ func (c *bigTeamCollector) finalize(ctx context.Context) (res []chat1.UIInboxBig
 		return strings.Compare(bts[i].name, bts[j].name) < 0
 	})
 	for _, bt := range bts {
-		res = append(res, chat1.NewUIInboxBigTeamRowWithLabel(bt.name))
+		res = append(res, chat1.NewUIInboxBigTeamRowWithLabel(chat1.UIInboxBigTeamLabelRow{Name: bt.name, Id: bt.id}))
 		for _, conv := range bt.convs {
 			row := utils.PresentRemoteConversationAsBigTeamChannelRow(ctx, conv)
 			res = append(res, chat1.NewUIInboxBigTeamRowWithChannel(row))
@@ -495,7 +498,7 @@ func (h *UIInboxLoader) getInboxFromQuery(ctx context.Context) (inbox types.Inbo
 	if err != nil {
 		return inbox, err
 	}
-	return h.G().InboxSource.ReadUnverified(ctx, h.uid, types.InboxSourceDataSourceAll, rquery, nil)
+	return h.G().InboxSource.ReadUnverified(ctx, h.uid, types.InboxSourceDataSourceAll, rquery)
 }
 
 func (h *UIInboxLoader) flushLayout(reselectMode chat1.InboxLayoutReselectMode) (err error) {
@@ -505,19 +508,19 @@ func (h *UIInboxLoader) flushLayout(reselectMode chat1.InboxLayoutReselectMode) 
 		if err != nil {
 			h.Debug(ctx, "flushLayout: failed to transmit, retrying: %s", err)
 			q := h.Query()
-			h.G().FetchRetrier.Failure(ctx, h.uid, NewFullInboxRetry(h.G(), &q, nil))
+			h.G().FetchRetrier.Failure(ctx, h.uid, NewFullInboxRetry(h.G(), &q))
 		}
 	}()
-	inbox, err := h.getInboxFromQuery(ctx)
-	if err != nil {
-		return err
-	}
-	layout := h.buildLayout(ctx, inbox, reselectMode)
 	ui, err := h.getChatUI(ctx)
 	if err != nil {
 		h.Debug(ctx, "flushLayout: no chat UI available, skipping send")
 		return nil
 	}
+	inbox, err := h.getInboxFromQuery(ctx)
+	if err != nil {
+		return err
+	}
+	layout := h.buildLayout(ctx, inbox, reselectMode)
 	dat, err := json.Marshal(layout)
 	if err != nil {
 		return err
@@ -656,5 +659,5 @@ func (h *UIInboxLoader) UpdateConvs(ctx context.Context, convIDs []chat1.Convers
 		ComputeActiveList: true,
 		ConvIDs:           convIDs,
 	}
-	return h.LoadNonblock(ctx, &query, nil, nil, true)
+	return h.LoadNonblock(ctx, &query, nil, true)
 }

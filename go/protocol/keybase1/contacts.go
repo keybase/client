@@ -100,6 +100,38 @@ func (o ProcessedContact) DeepCopy() ProcessedContact {
 	}
 }
 
+type ContactListResolutionResult struct {
+	NewlyResolved []ProcessedContact `codec:"newlyResolved" json:"newlyResolved"`
+	Resolved      []ProcessedContact `codec:"resolved" json:"resolved"`
+}
+
+func (o ContactListResolutionResult) DeepCopy() ContactListResolutionResult {
+	return ContactListResolutionResult{
+		NewlyResolved: (func(x []ProcessedContact) []ProcessedContact {
+			if x == nil {
+				return nil
+			}
+			ret := make([]ProcessedContact, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.NewlyResolved),
+		Resolved: (func(x []ProcessedContact) []ProcessedContact {
+			if x == nil {
+				return nil
+			}
+			ret := make([]ProcessedContact, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Resolved),
+	}
+}
+
 type LookupContactListArg struct {
 	SessionID int       `codec:"sessionID" json:"sessionID"`
 	Contacts  []Contact `codec:"contacts" json:"contacts"`
@@ -120,7 +152,7 @@ type GetContactsForUserRecommendationsArg struct {
 
 type ContactsInterface interface {
 	LookupContactList(context.Context, LookupContactListArg) ([]ProcessedContact, error)
-	SaveContactList(context.Context, SaveContactListArg) ([]ProcessedContact, error)
+	SaveContactList(context.Context, SaveContactListArg) (ContactListResolutionResult, error)
 	LookupSavedContactsList(context.Context, int) ([]ProcessedContact, error)
 	GetContactsForUserRecommendations(context.Context, int) ([]ProcessedContact, error)
 }
@@ -202,7 +234,7 @@ func (c ContactsClient) LookupContactList(ctx context.Context, __arg LookupConta
 	return
 }
 
-func (c ContactsClient) SaveContactList(ctx context.Context, __arg SaveContactListArg) (res []ProcessedContact, err error) {
+func (c ContactsClient) SaveContactList(ctx context.Context, __arg SaveContactListArg) (res ContactListResolutionResult, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.contacts.saveContactList", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

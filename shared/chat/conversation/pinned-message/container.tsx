@@ -70,22 +70,18 @@ const mapDispatchToProps = (dispatch: TypedDispatch, {conversationIDKey}: OwnPro
   _onUnpin: () => dispatch(Chat2Gen.createUnpinMessage({conversationIDKey})),
 })
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  (stateProps, dispatchProps) => {
-    const yourMessage = stateProps._pinnerUsername === stateProps._you
-    const dismissUnpins = yourMessage || stateProps._canAdminDelete
-    return {
-      author: stateProps.author,
-      dismissUnpins,
-      imageHeight: stateProps.imageHeight,
-      imageURL: stateProps.imageURL,
-      imageWidth: stateProps.imageWidth,
-      onClick: () => dispatchProps._onClick(stateProps._messageID),
-      onDismiss: dismissUnpins ? dispatchProps._onUnpin : dispatchProps._onIgnore,
-      text: stateProps.text,
-      unpinning: stateProps.unpinning,
-    }
+export default connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps) => {
+  const yourMessage = stateProps._pinnerUsername === stateProps._you
+  const dismissUnpins = yourMessage || stateProps._canAdminDelete
+  return {
+    author: stateProps.author,
+    dismissUnpins,
+    imageHeight: stateProps.imageHeight,
+    imageURL: stateProps.imageURL,
+    imageWidth: stateProps.imageWidth,
+    onClick: () => dispatchProps._onClick(stateProps._messageID),
+    onDismiss: dismissUnpins ? dispatchProps._onUnpin : dispatchProps._onIgnore,
+    text: stateProps.text,
+    unpinning: stateProps.unpinning,
   }
-)(PinnedMessage)
+})(PinnedMessage)

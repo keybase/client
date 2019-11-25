@@ -33,9 +33,7 @@ const Username = (props: Props) => {
               <Kb.Banner color="green" key="resetBanner">
                 <Kb.BannerParagraph
                   bannerColor="green"
-                  content={`You have successfully reset your account, ${
-                    props.resetBannerUser
-                  }. You can now log in as usual.`}
+                  content={`You have successfully reset your account, ${props.resetBannerUser}. You can now log in as usual.`}
                 />
               </Kb.Banner>,
             ]
@@ -70,9 +68,6 @@ const Username = (props: Props) => {
       ]}
       onBack={props.onBack}
       title="Log in"
-      rightActionComponent={
-        <Kb.Button type="Default" mode="Secondary" label="Create an account" onClick={props.onGoToSignup} />
-      }
       contentContainerStyle={styles.contentContainer}
     >
       <Kb.ScrollView

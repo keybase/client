@@ -20,7 +20,7 @@ import CommonResult, {ResultProps} from './common-result'
  * a bunch of React hooks to handle all the stateful logic needed to make the menu and chat button work.
  */
 
-const PeopleResult = (props: ResultProps) => {
+const PeopleResult = React.memo((props: ResultProps) => {
   const keybaseUsername: string | null = props.services['keybase'] || null
   const serviceUsername = props.services[props.resultForService]
 
@@ -131,7 +131,7 @@ const PeopleResult = (props: ResultProps) => {
   const rightButtons = Styles.isMobile ? [] : [chatButton, dropdown] // don't show action buttons on mobile for space reasons
 
   return <CommonResult {...props} rowStyle={styles.rowContainer} rightButtons={rightButtons} />
-}
+})
 type DropdownProps = {
   onAddToTeam?: () => void
   onOpenPrivateFolder?: () => void

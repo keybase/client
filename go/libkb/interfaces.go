@@ -755,6 +755,12 @@ type HiddenTeamChainManager interface {
 	HintLatestSeqno(m MetaContext, id keybase1.TeamID, seqno keybase1.Seqno) error
 }
 
+type TeamRoleMapManager interface {
+	Get(m MetaContext, retryOnFail bool) (res keybase1.TeamRoleMapAndVersion, err error)
+	Update(m MetaContext, version keybase1.UserTeamVersion) (err error)
+	FlushCache()
+}
+
 type TeamAuditor interface {
 	AuditTeam(m MetaContext, id keybase1.TeamID, isPublic bool, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno, auditMode keybase1.AuditMode) (err error)
 }
@@ -1129,4 +1135,15 @@ type KVRevisionCacher interface {
 	Put(mctx MetaContext, entryID keybase1.KVEntryID, ciphertext *string, teamKeyGen keybase1.PerTeamKeyGeneration, revision int) (err error)
 	CheckForUpdate(mctx MetaContext, entryID keybase1.KVEntryID, revision int) (err error)
 	MarkDeleted(mctx MetaContext, entryID keybase1.KVEntryID, revision int) (err error)
+}
+
+type AvatarLoaderSource interface {
+	LoadUsers(MetaContext, []string, []keybase1.AvatarFormat) (keybase1.LoadAvatarsRes, error)
+	LoadTeams(MetaContext, []string, []keybase1.AvatarFormat) (keybase1.LoadAvatarsRes, error)
+
+	ClearCacheForName(MetaContext, string, []keybase1.AvatarFormat) error
+	OnDbNuke(MetaContext) error // Called after leveldb data goes away after db nuke
+
+	StartBackgroundTasks(MetaContext)
+	StopBackgroundTasks(MetaContext)
 }

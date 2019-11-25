@@ -770,6 +770,8 @@ protocol teams {
     Seqno latestSeqno;
     @jsonkey("latest_hidden_seqno")
     Seqno latestHiddenSeqno;
+    @jsonkey("latest_offchain_seqno")
+    Seqno latestOffchainSeqno;
     @jsonkey("implicit_team")
     boolean implicitTeam;
     @jsonkey("misc")
@@ -1077,6 +1079,7 @@ protocol teams {
 
   record SubteamListEntry {
     TeamName name;
+    TeamID teamID;
     int memberCount;
   }
 
@@ -1223,7 +1226,7 @@ protocol teams {
   // This list is generated without loading each team, and is therefore server-trust.
   SubteamListResult teamGetSubteams(int sessionID, TeamName name);
 
-  void teamDelete(int sessionID, string name);
+  void teamDelete(int sessionID, TeamID teamID);
 
   void teamSetSettings(int sessionID, string name, TeamSettings settings);
 
@@ -1387,7 +1390,6 @@ protocol teams {
 
   FastTeamLoadRes ftl(FastTeamLoadArg arg);
 
-
   record MemberEmail {
     string email;
     string role;
@@ -1397,4 +1399,47 @@ protocol teams {
     string username;
     string role;
   }
+
+  record TeamRolePair {
+    TeamRole role;
+    @jsonkey("implicit_role")
+    TeamRole implicitRole;
+  }
+
+  record TeamRoleMapAndVersion {
+    map<TeamID, TeamRolePair> teams;
+    @jsonkey("user_team_version")
+    UserTeamVersion version;
+  }
+
+  record TeamRoleMapStored {
+    TeamRoleMapAndVersion data;
+    Time cachedAt;
+  }
+
+  TeamRoleMapAndVersion getTeamRoleMap();
+
+  @typedef("int")
+  record UserTeamVersion {}
+
+  record UserTeamVersionUpdate {
+    UserTeamVersion version;
+  }
+
+  record AnnotatedTeam {
+    TeamID teamID;
+    string name;
+    SubteamListResult transitiveSubteamsUnverified;
+
+    array<TeamMemberDetails> members;
+    array<AnnotatedTeamInvite> invites;
+    array<TeamJoinRequest> joinRequests;
+
+    boolean userIsShowcasing;
+    boolean tarsDisabled;
+    TeamSettings settings;
+    TeamShowcase showcase;
+  }
+
+  AnnotatedTeam getAnnotatedTeam(TeamID teamID);
 }

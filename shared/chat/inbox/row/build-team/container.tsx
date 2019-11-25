@@ -1,21 +1,32 @@
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import * as Container from '../../../../util/container'
 import {teamsTab} from '../../../../constants/tabs'
-import {namedConnect} from '../../../../util/container'
 import BuildTeam from '.'
 
-type OwnProps = {}
+type OwnProps = Container.PropsWithSafeNavigation<{}>
 
-export default namedConnect(
-  state => ({
-    showBuildATeam: ((state.chat2.inboxLayout && state.chat2.inboxLayout.bigTeams) || []).length === 0,
-  }),
-  dispatch => ({
-    // Route to the teams tab and open the NewTeamDialog component
-    _onBuildTeam: () => dispatch(RouteTreeGen.createSwitchTab({tab: teamsTab})),
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => ({
-    onBuildTeam: dispatchProps._onBuildTeam,
-    showBuildATeam: stateProps.showBuildATeam,
-  }),
-  'BuildTeam'
-)(BuildTeam)
+export default Container.withSafeNavigation(
+  Container.namedConnect(
+    state => ({
+      isFloating: ((state.chat2.inboxLayout && state.chat2.inboxLayout.bigTeams) || []).length === 0,
+    }),
+    (dispatch, {safeNavigateAppendPayload}: OwnProps) => ({
+      // Route to the teams tab and open the NewTeamDialog component
+      _onCreateTeam: () => {
+        dispatch(RouteTreeGen.createSwitchTab({tab: teamsTab}))
+        dispatch(safeNavigateAppendPayload({path: ['teamNewTeamDialog']}))
+      },
+      // Route to the teams tab and open the JoinTeamDialog component
+      _onJoinTeam: () => {
+        dispatch(RouteTreeGen.createSwitchTab({tab: teamsTab}))
+        dispatch(safeNavigateAppendPayload({path: ['teamJoinTeamDialog']}))
+      },
+    }),
+    (stateProps, dispatchProps, _: OwnProps) => ({
+      isFloating: stateProps.isFloating,
+      onCreateTeam: dispatchProps._onCreateTeam,
+      onJoinTeam: dispatchProps._onJoinTeam,
+    }),
+    'BuildTeam'
+  )(BuildTeam)
+)

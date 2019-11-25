@@ -18,7 +18,7 @@ type URLCachingSource struct {
 	staleFetchCh chan struct{}
 }
 
-var _ Source = (*URLCachingSource)(nil)
+var _ libkb.AvatarLoaderSource = (*URLCachingSource)(nil)
 
 func NewURLCachingSource(staleThreshold time.Duration, size int) *URLCachingSource {
 	return &URLCachingSource{

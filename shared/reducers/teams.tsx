@@ -1,19 +1,19 @@
 import * as TeamsGen from '../actions/teams-gen'
+import * as TeamBuildingGen from '../actions/team-building-gen'
+import * as EngineGen from '../actions/engine-gen-gen'
 import * as Constants from '../constants/teams'
 import * as I from 'immutable'
 import * as Types from '../constants/types/teams'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
-import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as Container from '../util/container'
-import {TeamBuildingSubState} from '../constants/types/team-building'
-import teamBuildingReducer from './team-building'
+import {editTeambuildingDraft} from './team-building'
 import {ifTSCComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch} from '../util/switch'
 
 const initialState: Types.State = Constants.makeState()
 
 export default (
   state: Types.State = initialState,
-  action: TeamsGen.Actions | TeamBuildingGen.Actions
+  action: TeamsGen.Actions | TeamBuildingGen.Actions | EngineGen.Keybase1NotifyTeamTeamMetadataUpdatePayload
 ): Types.State =>
   Container.produce(state, (draftState: Container.Draft<Types.State>) => {
     switch (action.type) {
@@ -21,6 +21,10 @@ export default (
         return initialState
       case TeamsGen.setChannelCreationError:
         draftState.channelCreationError = action.payload.error
+        return
+      case TeamsGen.createNewTeam:
+      case TeamsGen.createNewTeamFromConversation:
+        draftState.teamCreationError = ''
         return
       case TeamsGen.setTeamCreationError:
         draftState.teamCreationError = action.payload.error
@@ -56,9 +60,6 @@ export default (
             inviteToLoading.set(action.payload.loadingKey, action.payload.isLoading)
         )
         return
-      case TeamsGen.clearTeamRequests:
-        draftState.teamNameToRequests = draftState.teamNameToRequests.set(action.payload.teamname, I.Set())
-        return
       case TeamsGen.setTeamDetails: {
         const members = Constants.rpcDetailsToMemberInfos(action.payload.members)
         draftState.teamNameToMembers = draftState.teamNameToMembers.set(
@@ -69,18 +70,10 @@ export default (
           action.payload.teamname,
           Constants.makeTeamSettings(action.payload.settings)
         )
-        draftState.teamNameToInvites = draftState.teamNameToInvites.set(
-          action.payload.teamname,
-          I.Set(action.payload.invites.map(i => Constants.makeInviteInfo(i)))
-        )
         draftState.teamNameToSubteams = draftState.teamNameToSubteams.set(
           action.payload.teamname,
           I.Set(action.payload.subteams)
         )
-        const immRequests = I.Map(
-          [...action.payload.requests.entries()].map(([teamname, reqArr]) => [teamname, I.Set(reqArr)])
-        )
-        draftState.teamNameToRequests = draftState.teamNameToRequests.merge(immRequests)
 
         const details =
           draftState.teamDetails.get(action.payload.teamID) ||
@@ -90,8 +83,11 @@ export default (
         )
         details.settings = action.payload.settings
         details.invites = new Set(action.payload.invites)
-        details.subteams = new Set(action.payload.subteams)
+        details.subteams = new Set(action.payload.subteamIDs)
         details.requests = new Set(action.payload.requests.get(action.payload.teamname))
+        draftState.teamDetails = new Map(
+          draftState.teamDetails.set(action.payload.teamID, Constants.makeTeamDetails(details))
+        )
 
         return
       }
@@ -101,12 +97,16 @@ export default (
           action.payload.members
         )
         return
-      case TeamsGen.setTeamCanPerform:
+      case TeamsGen.setTeamCanPerform: {
         draftState.teamNameToCanPerform = draftState.teamNameToCanPerform.set(
           action.payload.teamname,
           action.payload.teamOperation
         )
+        const canPerform = new Map(draftState.canPerform)
+        canPerform.set(action.payload.teamID, action.payload.teamOperation)
+        draftState.canPerform = canPerform
         return
+      }
       case TeamsGen.setTeamPublicitySettings:
         draftState.teamNameToPublicitySettings = draftState.teamNameToPublicitySettings.set(
           action.payload.teamname,
@@ -138,6 +138,16 @@ export default (
         draftState.emailInviteError.malformed = new Set(action.payload.malformed)
         draftState.emailInviteError.message = action.payload.message
         return
+      case TeamsGen.getTeams:
+        if (action.payload._subscribe) {
+          draftState.teamDetailsMetaSubscribeCount++
+        }
+        return
+      case TeamsGen.unsubscribeTeamList:
+        if (draftState.teamDetailsMetaSubscribeCount > 0) {
+          draftState.teamDetailsMetaSubscribeCount--
+        }
+        return
       case TeamsGen.setTeamInfo:
         draftState.teamNameToAllowPromote = action.payload.teamNameToAllowPromote
         draftState.teamNameToID = action.payload.teamNameToID
@@ -146,7 +156,14 @@ export default (
         draftState.teamNameToRole = action.payload.teamNameToRole
         draftState.teammembercounts = action.payload.teammembercounts
         draftState.teamnames = action.payload.teamnames
-        draftState.teamDetails = action.payload.teamDetails
+        draftState.teamDetails = Constants.mergeTeamDetails(
+          draftState.teamDetails,
+          action.payload.teamDetails
+        )
+        draftState.teamDetailsMetaStale = false
+        return
+      case EngineGen.keybase1NotifyTeamTeamMetadataUpdate:
+        draftState.teamDetailsMetaStale = true
         return
       case TeamsGen.setTeamAccessRequestsPending:
         draftState.teamAccessRequestsPending = action.payload.accessRequestsPending
@@ -217,7 +234,23 @@ export default (
           () => RPCChatTypes.ConversationMemberStatus.left
         )
         return
-      case TeamBuildingGen.resetStore:
+      case TeamsGen.setTeamRoleMapLatestKnownVersion: {
+        draftState.teamRoleMap.latestKnownVersion = action.payload.version
+        return
+      }
+      case TeamsGen.setTeamRoleMap: {
+        draftState.teamRoleMap = {
+          latestKnownVersion: Math.max(
+            action.payload.map.latestKnownVersion,
+            draftState.teamRoleMap.latestKnownVersion
+          ),
+          loadedVersion: action.payload.map.loadedVersion,
+          roles: action.payload.map.roles,
+        }
+        return
+      }
+
+      case TeamBuildingGen.tbResetStore:
       case TeamBuildingGen.cancelTeamBuilding:
       case TeamBuildingGen.addUsersToTeamSoFar:
       case TeamBuildingGen.removeUsersFromTeamSoFar:
@@ -228,13 +261,13 @@ export default (
       case TeamBuildingGen.search:
       case TeamBuildingGen.selectRole:
       case TeamBuildingGen.labelsSeen:
-      case TeamBuildingGen.changeSendNotification:
-        draftState.teamBuilding = teamBuildingReducer(
-          'teams',
-          draftState.teamBuilding as TeamBuildingSubState,
-          action
-        )
+      case TeamBuildingGen.changeSendNotification: {
+        const val = editTeambuildingDraft('teams', draftState.teamBuilding, action)
+        if (val !== undefined) {
+          draftState.teamBuilding = val
+        }
         return
+      }
       // Saga-only actions
       case TeamsGen.addUserToTeams:
       case TeamsGen.addToTeam:
@@ -242,8 +275,6 @@ export default (
       case TeamsGen.checkRequestedAccess:
       case TeamsGen.clearNavBadges:
       case TeamsGen.createChannel:
-      case TeamsGen.createNewTeam:
-      case TeamsGen.createNewTeamFromConversation:
       case TeamsGen.deleteChannelConfirmed:
       case TeamsGen.deleteTeam:
       case TeamsGen.editMembership:
@@ -252,13 +283,10 @@ export default (
       case TeamsGen.getChannelInfo:
       case TeamsGen.getChannels:
       case TeamsGen.getDetails:
-      case TeamsGen.getDetailsForAllTeams:
       case TeamsGen.getMembers:
-      case TeamsGen.getTeamOperations:
       case TeamsGen.getTeamProfileAddList:
       case TeamsGen.getTeamPublicity:
       case TeamsGen.getTeamRetentionPolicy:
-      case TeamsGen.getTeams:
       case TeamsGen.addTeamWithChosenChannels:
       case TeamsGen.ignoreRequest:
       case TeamsGen.inviteToTeamByEmail:

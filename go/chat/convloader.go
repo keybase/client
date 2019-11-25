@@ -433,6 +433,7 @@ func (b *BackgroundConvLoader) loadLoop(uid gregor1.UID, stopCh chan struct{}) e
 			}
 			b.clock.Sleep(b.loadWait)
 		case <-stopCh:
+			b.Debug(bgctx, "loadLoop: shutting down for %s", uid)
 			return nil
 		}
 	}

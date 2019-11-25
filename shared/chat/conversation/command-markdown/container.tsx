@@ -14,4 +14,9 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   }
 }
 
-export default namedConnect(mapStateToProps, () => ({}), s => s, 'CommandMarkdown')(CommandMarkdown)
+export default namedConnect(
+  mapStateToProps,
+  () => ({}),
+  s => s,
+  'CommandMarkdown'
+)(CommandMarkdown)

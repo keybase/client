@@ -5,7 +5,7 @@ import Normal from './normal/container'
 import Preview from './preview/container'
 import {connect, isMobile} from '../../../util/container'
 import ThreadSearch from '../search/container'
-import {AudioSend} from './audio'
+import AudioSend from '../../audio/audio-send'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey

@@ -57,7 +57,7 @@ const Actions = (p: Props) => {
     />
   )
 
-  const chatButton = <ChatButton username={p.username} />
+  const chatButton = <ChatButton key="Chat" username={p.username} />
 
   if (p.state === 'notAUserYet') {
     buttons = [
@@ -73,7 +73,7 @@ const Actions = (p: Props) => {
     if (p.state === 'valid') {
       buttons = [
         <FollowButton
-          key="unfollow"
+          key="Unfollow"
           following={true}
           onUnfollow={p.onUnfollow}
           waitingKey={Constants.waitingKey}
@@ -90,8 +90,8 @@ const Actions = (p: Props) => {
           onClick={p.onReload}
         />,
         <Kb.WaitingButton
-          type="Success"
           key="Accept"
+          type="Success"
           label="Accept"
           waitingKey={Constants.waitingKey}
           onClick={p.onAccept}
@@ -114,7 +114,7 @@ const Actions = (p: Props) => {
     } else {
       buttons = [
         <FollowButton
-          key="follow"
+          key="Follow"
           following={false}
           followsYou={p.followsYou}
           onFollow={p.onFollow}

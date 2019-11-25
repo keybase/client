@@ -101,8 +101,8 @@ describe('text code happy path', () => {
 
   it('init', () => {
     const {manager, response, getState} = init
-    expect(manager._stashedResponse).toEqual(response)
-    expect(manager._stashedResponseKey).toEqual('keybase.1.provisionUi.DisplayAndPromptSecret')
+    const _testing = manager._testing()
+    expect(_testing.stashedResponse['keybase.1.provisionUi.DisplayAndPromptSecret']).toEqual(response)
     expect(getState().provision.codePageIncomingTextCode).toEqual(incoming)
     expect(getState().provision.error).toEqual(noError)
   })
@@ -115,14 +115,14 @@ describe('text code happy path', () => {
   it('submit text code empty throws', () => {
     const {dispatch, response} = init
     dispatch(ProvisionGen.createSubmitTextCode({phrase: new HiddenString('')}))
-    expect(response.result).not.toHaveBeenCalled()
-    expect(response.error).toHaveBeenCalled()
+    expect(response.result).toHaveBeenCalledWith({phrase: 'invalid', secret: null})
+    expect(response.error).not.toHaveBeenCalled()
   })
 
   it('submit text code', () => {
     const {response, dispatch, getState} = init
     dispatch(ProvisionGen.createSubmitTextCode({phrase: outgoing}))
-    expect(response.result).toHaveBeenCalledWith({code: null, phrase: outgoing.stringValue()})
+    expect(response.result).toHaveBeenCalledWith({phrase: outgoing.stringValue(), secret: null})
     expect(response.error).not.toHaveBeenCalled()
     expect(getState().provision.codePageOutgoingTextCode).toEqual(outgoing)
     expect(getState().provision.error).toEqual(noError)
@@ -147,8 +147,8 @@ describe('text code error path', () => {
 
   it('init', () => {
     const {manager, response, getState} = init
-    expect(manager._stashedResponse).toEqual(response)
-    expect(manager._stashedResponseKey).toEqual('keybase.1.provisionUi.DisplayAndPromptSecret')
+    const _testing = manager._testing()
+    expect(_testing.stashedResponse['keybase.1.provisionUi.DisplayAndPromptSecret']).toEqual(response)
     expect(getState().provision.codePageIncomingTextCode).toEqual(phrase)
     expect(getState().provision.error).toEqual(error)
   })
@@ -164,7 +164,7 @@ describe('text code error path', () => {
     dispatch(ProvisionGen.createSubmitTextCode({phrase: reply}))
     expect(getState().provision.error).toEqual(noError)
 
-    expect(response.result).toHaveBeenCalledWith({code: null, phrase: reply.stringValue()})
+    expect(response.result).toHaveBeenCalledWith({phrase: reply.stringValue(), secret: null})
     expect(response.error).not.toHaveBeenCalled()
     expect(getState().config.globalError).toEqual(undefined)
 
@@ -179,16 +179,17 @@ describe('reply with device type', () => {
   it('init with mobile', () => {
     const {manager, response} = makeInit({
       initialStore: {
-        provision: Constants.makeState({
-          codePageOtherDeviceType: 'mobile',
-        }),
+        provision: {
+          ...Constants.makeState(),
+          codePageOtherDevice: {...Constants.makeDevice(), type: 'mobile'},
+        },
       },
       method: 'keybase.1.provisionUi.chooseDeviceType',
       payload: {},
     })
     // we don't stash we reply immediately
-    expect(manager._stashedResponse).toEqual(null)
-    expect(manager._stashedResponseKey).toEqual(null)
+    const _testing = manager._testing()
+    expect(_testing.stashedResponse).toEqual({})
     expect(response.result).toHaveBeenCalledWith(RPCTypes.DeviceType.mobile)
     expect(response.error).not.toHaveBeenCalled()
   })
@@ -196,16 +197,17 @@ describe('reply with device type', () => {
   it('init with desktop', () => {
     const {manager, response} = makeInit({
       initialStore: {
-        provision: Constants.makeState({
-          codePageOtherDeviceType: 'desktop',
-        }),
+        provision: {
+          ...Constants.makeState(),
+          codePageOtherDevice: {...Constants.makeDevice(), type: 'desktop'},
+        },
       },
       method: 'keybase.1.provisionUi.chooseDeviceType',
       payload: {},
     })
     // we don't stash we reply immediately
-    expect(manager._stashedResponse).toEqual(null)
-    expect(manager._stashedResponseKey).toEqual(null)
+    const _testing = manager._testing()
+    expect(_testing.stashedResponse).toEqual({})
     expect(response.result).toHaveBeenCalledWith(RPCTypes.DeviceType.desktop)
     expect(response.error).not.toHaveBeenCalled()
   })
@@ -214,9 +216,10 @@ describe('reply with device type', () => {
     expect(() =>
       makeInit({
         initialStore: {
-          provision: Constants.makeState({
-            codePageOtherDeviceType: 'backup',
-          } as any),
+          provision: {
+            ...Constants.makeState(),
+            codePageOtherDevice: {...Constants.makeDevice(), type: 'backup'},
+          },
         },
         method: 'keybase.1.provisionUi.chooseDeviceType',
         payload: {},

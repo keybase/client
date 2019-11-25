@@ -28,7 +28,7 @@ function keyHandlerHOC<P extends {}>(
 
     render() {
       const {hotkeys, onHotkey, ...rest} = this.props
-      return <Component {...rest as P} />
+      return <Component {...(rest as P)} />
     }
   }
 }

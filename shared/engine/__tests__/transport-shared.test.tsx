@@ -9,7 +9,12 @@ describe('TransportShared', () => {
     lastMessage: SendArg | null
 
     constructor() {
-      super({}, () => {}, () => {}, () => {})
+      super(
+        {},
+        () => {},
+        () => {},
+        () => {}
+      )
       this.connected = false
       this.lastMessage = null
     }

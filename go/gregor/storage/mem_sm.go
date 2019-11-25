@@ -220,7 +220,7 @@ func (t timeOrOffset) Before(t2 time.Time) bool {
 	return time.Time(t).Before(t2)
 }
 func (t timeOrOffset) IsZero() bool {
-	return t.IsZero()
+	return time.Time(t).IsZero()
 }
 
 var _ gregor.TimeOrOffset = timeOrOffset{}

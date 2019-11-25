@@ -58,10 +58,12 @@ type unfurlData struct {
 
 type mockUnfurler struct {
 	globals.Contextified
-	types.Unfurler
+	types.DummyUnfurler
 	t        *testing.T
 	unfurlCh chan unfurlData
 }
+
+var _ types.Unfurler = (*mockUnfurler)(nil)
 
 func newMockUnfurler(g *globals.Context, t *testing.T) *mockUnfurler {
 	return &mockUnfurler{

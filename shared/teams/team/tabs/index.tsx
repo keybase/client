@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/teams'
-import * as RPCTypes from '../../../constants/types/rpc-gen'
 import {
   iconCastPlatformStyles,
   Badge,
@@ -22,7 +21,6 @@ import {
 type TeamTabsProps = {
   admin: boolean
   memberCount: number
-  teamname: Types.Teamname
   newRequests: number
   numInvites: number
   numRequests: number
@@ -31,7 +29,7 @@ type TeamTabsProps = {
   loading: boolean
   selectedTab?: string
   setSelectedTab: (arg0: Types.TabKey) => void
-  yourOperations: RPCTypes.TeamOperation
+  showSubteams: boolean
 }
 
 const TabText = ({selected, text}: {selected: boolean; text: string}) => (
@@ -62,7 +60,7 @@ const TeamTabs = (props: TeamTabsProps) => {
     )
   }
 
-  if (props.numSubteams > 0 || props.yourOperations.manageSubteams) {
+  if (props.numSubteams > 0 || props.showSubteams) {
     tabs.push(
       <TabText
         key="subteams"

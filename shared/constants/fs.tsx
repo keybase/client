@@ -26,7 +26,7 @@ export const ExitCodeFuseKextPermissionError = 5
 // See Installer.m: KBExitAuthCanceledError
 export const ExitCodeAuthCanceledError = 6
 
-export const emptyNewFolder = {
+export const emptyNewFolder: Readonly<Types.NewFolder> = {
   hint: 'New Folder',
   name: 'New Folder',
   parentPath: Types.stringToPath('/keybase'),
@@ -34,23 +34,21 @@ export const emptyNewFolder = {
   type: Types.EditType.NewFolder,
 }
 
-const makePrefetchNotStarted = I.Record<Types._PrefetchNotStarted>({
+export const prefetchNotStarted: Readonly<Types.PrefetchNotStarted> = {
   state: Types.PrefetchState.NotStarted,
-})
-export const prefetchNotStarted: Types.PrefetchNotStarted = makePrefetchNotStarted()
+}
 
-const makePrefetchComplete = I.Record<Types._PrefetchComplete>({
+export const prefetchComplete: Readonly<Types.PrefetchComplete> = {
   state: Types.PrefetchState.Complete,
-})
-export const prefetchComplete: Types.PrefetchComplete = makePrefetchComplete()
+}
 
-export const makePrefetchInProgress = I.Record<Types._PrefetchInProgress>({
+export const emptyPrefetchInProgress: Readonly<Types.PrefetchInProgress> = {
   bytesFetched: 0,
   bytesTotal: 0,
   endEstimate: 0,
   startTime: 0,
   state: Types.PrefetchState.InProgress,
-})
+}
 
 const pathItemMetadataDefault = {
   lastModifiedTimestamp: 0,
@@ -61,40 +59,40 @@ const pathItemMetadataDefault = {
   writable: false,
 }
 
-export const makeFolder = I.Record<Types._FolderPathItem>({
+export const emptyFolder: Readonly<Types.FolderPathItem> = {
   ...pathItemMetadataDefault,
-  children: I.Set(),
+  children: new Set(),
   progress: Types.ProgressType.Pending,
   type: Types.PathType.Folder,
-})
+}
 
-export const makeFile = I.Record<Types._FilePathItem>({
+export const emptyFile: Readonly<Types.FilePathItem> = {
   ...pathItemMetadataDefault,
   type: Types.PathType.File,
-})
+}
 
-export const makeSymlink = I.Record<Types._SymlinkPathItem>({
+export const emptySymlink: Readonly<Types.SymlinkPathItem> = {
   ...pathItemMetadataDefault,
   linkTarget: '',
   type: Types.PathType.Symlink,
-})
+}
 
-export const makeUnknownPathItem = I.Record<Types._UnknownPathItem>({
+export const unknownPathItem: Readonly<Types.UnknownPathItem> = {
   ...pathItemMetadataDefault,
   type: Types.PathType.Unknown,
-})
+}
 
-export const unknownPathItem = makeUnknownPathItem()
-
-export const tlfSyncEnabled: Types.TlfSyncEnabled = {
+export const tlfSyncEnabled: Readonly<Types.TlfSyncEnabled> = {
   mode: Types.TlfSyncMode.Enabled,
 }
 
-export const tlfSyncDisabled: Types.TlfSyncDisabled = {
+export const tlfSyncDisabled: Readonly<Types.TlfSyncDisabled> = {
   mode: Types.TlfSyncMode.Disabled,
 }
 
-export const makeTlfSyncPartial = ({enabledPaths}: Partial<Types.TlfSyncPartial>): Types.TlfSyncPartial => ({
+export const makeTlfSyncPartial = ({
+  enabledPaths,
+}: Partial<Types.TlfSyncPartial>): Readonly<Types.TlfSyncPartial> => ({
   enabledPaths: [...(enabledPaths || [])],
   mode: Types.TlfSyncMode.Partial,
 })
@@ -103,7 +101,7 @@ export const makeConflictStateNormalView = ({
   localViewTlfPaths,
   resolvingConflict,
   stuckInConflict,
-}: Partial<Types.ConflictStateNormalView>): Types.ConflictStateNormalView => ({
+}: Partial<Types.ConflictStateNormalView>): Readonly<Types.ConflictStateNormalView> => ({
   localViewTlfPaths: [...(localViewTlfPaths || [])],
   resolvingConflict: resolvingConflict || false,
   stuckInConflict: stuckInConflict || false,
@@ -114,7 +112,9 @@ export const tlfNormalViewWithNoConflict = makeConflictStateNormalView({})
 
 export const makeConflictStateManualResolvingLocalView = ({
   normalViewTlfPath,
-}: Partial<Types.ConflictStateManualResolvingLocalView>): Types.ConflictStateManualResolvingLocalView => ({
+}: Partial<
+  Types.ConflictStateManualResolvingLocalView
+>): Readonly<Types.ConflictStateManualResolvingLocalView> => ({
   normalViewTlfPath: normalViewTlfPath || defaultPath,
   type: Types.ConflictStateType.ManualResolvingLocalView,
 })
@@ -129,7 +129,7 @@ export const makeTlf = ({
   syncConfig,
   teamId,
   tlfMtime,
-}: Partial<Types.Tlf>): Types.Tlf => ({
+}: Partial<Types.Tlf>): Readonly<Types.Tlf> => ({
   conflictState: conflictState || tlfNormalViewWithNoConflict,
   isFavorite: isFavorite || false,
   isIgnored: isIgnored || false,
@@ -146,32 +146,28 @@ export const makeTlf = ({
   */
 })
 
-export const makeSyncingFoldersProgress = I.Record<Types._SyncingFoldersProgress>({
+export const emptySyncingFoldersProgress: Readonly<Types.SyncingFoldersProgress> = {
   bytesFetched: 0,
   bytesTotal: 0,
   endEstimate: 0,
   start: 0,
-})
+}
 
-export const makeOverallSyncStatus = I.Record<Types._OverallSyncStatus>({
+export const emptyOverallSyncStatus: Readonly<Types.OverallSyncStatus> = {
   diskSpaceStatus: Types.DiskSpaceStatus.Ok,
   showingBanner: false,
-  syncingFoldersProgress: makeSyncingFoldersProgress(),
-})
+  syncingFoldersProgress: emptySyncingFoldersProgress,
+}
 
-export const makePathUserSetting = I.Record<Types._PathUserSetting>({
+export const defaultPathUserSetting: Readonly<Types.PathUserSetting> = {
   sort: Types.SortSetting.NameAsc,
-})
+}
 
-export const defaultPathUserSetting = makePathUserSetting({
-  sort: Types.SortSetting.NameAsc,
-})
-
-export const defaultTlfListPathUserSetting = makePathUserSetting({
+export const defaultTlfListPathUserSetting: Readonly<Types.PathUserSetting> = {
   sort: Types.SortSetting.TimeAsc,
-})
+}
 
-export const emptyDownloadState = {
+export const emptyDownloadState: Readonly<Types.DownloadState> = {
   canceled: false,
   done: false,
   endEstimate: 0,
@@ -180,7 +176,7 @@ export const emptyDownloadState = {
   progress: 0,
 }
 
-export const emptyDownloadInfo = {
+export const emptyDownloadInfo: Readonly<Types.DownloadInfo> = {
   filename: '',
   isRegularDownload: false,
   path: defaultPath,
@@ -195,7 +191,7 @@ type _MakeErrorArgs = {
   erroredAction: FsGen.Actions | EngineGen.Actions
   retriableAction?: FsGen.Actions | EngineGen.Actions
 }
-export const makeError = (args?: _MakeErrorArgs): Types.FsError => {
+export const makeError = (args?: _MakeErrorArgs): Readonly<Types.FsError> => {
   // TS Issue: https://github.com/microsoft/TypeScript/issues/26235
   const {time, error, erroredAction, retriableAction} = (args || {}) as Partial<NonNullable<_MakeErrorArgs>>
   return {
@@ -207,76 +203,67 @@ export const makeError = (args?: _MakeErrorArgs): Types.FsError => {
 }
 export const emptyError = makeError()
 
-export const makeSendAttachmentToChat = I.Record<Types._SendAttachmentToChat>({
+export const emptySendAttachmentToChat: Readonly<Types.SendAttachmentToChat> = {
   convID: ChatConstants.noConversationIDKey,
   filter: '',
   path: Types.stringToPath('/keybase'),
   state: Types.SendAttachmentToChatState.None,
   title: '',
-})
+}
 
-export const makePathItemActionMenu = I.Record<Types._PathItemActionMenu>({
+export const emptyPathItemActionMenu: Readonly<Types.PathItemActionMenu> = {
   downloadID: null,
   downloadIntent: null,
   previousView: Types.PathItemActionMenuView.Root,
   view: Types.PathItemActionMenuView.Root,
-})
+}
 
-export const makeDriverStatusUnknown = I.Record<Types._DriverStatusUnknown>({
+export const driverStatusUnknown: Readonly<Types.DriverStatusUnknown> = {
   type: Types.DriverStatusType.Unknown,
-})
+} as const
 
-export const makeDriverStatusEnabled = I.Record<Types._DriverStatusEnabled>({
+export const emptyDriverStatusEnabled: Readonly<Types.DriverStatusEnabled> = {
   dokanOutdated: false,
   dokanUninstallExecPath: null,
   isDisabling: false,
   isNew: false,
   type: Types.DriverStatusType.Enabled,
-})
+} as const
 
-export const makeDriverStatusDisabled = I.Record<Types._DriverStatusDisabled>({
+export const emptyDriverStatusDisabled: Readonly<Types.DriverStatusDisabled> = {
   isDismissed: false,
   isEnabling: false,
   kextPermissionError: false,
   type: Types.DriverStatusType.Disabled,
-})
+} as const
 
-export const defaultDriverStatus = isLinux ? makeDriverStatusEnabled() : makeDriverStatusUnknown()
+export const defaultDriverStatus: Readonly<Types.DriverStatus> = isLinux
+  ? emptyDriverStatusEnabled
+  : driverStatusUnknown
 
-export const makeSystemFileManagerIntegration = I.Record<Types._SystemFileManagerIntegration>({
-  directMountDir: '',
-  driverStatus: defaultDriverStatus,
-  preferredMountDirs: I.List(),
-  showingBanner: false,
-})
-
-export const makeKbfsDaemonStatus = I.Record<Types._KbfsDaemonStatus>({
+export const unknownKbfsDaemonStatus: Readonly<Types.KbfsDaemonStatus> = {
   onlineStatus: Types.KbfsDaemonOnlineStatus.Unknown,
   rpcStatus: Types.KbfsDaemonRpcStatus.Unknown,
-})
+}
 
-export const makeSoftErrors = I.Record<Types._SoftErrors>({
-  pathErrors: I.Map(),
-  tlfErrors: I.Map(),
-})
-
-export const makeSettings = I.Record<Types._Settings>({
+export const emptySettings: Readonly<Types.Settings> = {
   isLoading: false,
   spaceAvailableNotificationThreshold: 0,
-})
+}
 
-export const makePathInfo = I.Record<Types._PathInfo>({
+export const emptyPathInfo: Readonly<Types.PathInfo> = {
   deeplinkPath: '',
   platformAfterMountPath: '',
-})
+}
 
-export const emptyPathInfo = makePathInfo()
-
-export const emptyFileContext = {
+export const emptyFileContext: Readonly<Types.FileContext> = {
   contentType: '',
   url: '',
   viewType: RPCTypes.GUIViewType.default,
 }
+
+export const getPathItem = (pathItems: Map<Types.Path, Types.PathItem>, path: Types.Path): Types.PathItem =>
+  pathItems.get(path) || (unknownPathItem as Types.PathItem)
 
 // RPC expects a string that's interpreted as [16]byte on Go side and it has to
 // be unique among all ongoing ops at any given time. uuidv1 may exceed 16
@@ -303,6 +290,8 @@ export const pathToRPCPath = (
     path: Types.pathToString(path).substring('/keybase'.length) || '/',
   },
 })
+
+export const rpcPathToPath = (rpcPath: RPCTypes.KBFSPath) => Types.pathConcat(defaultPath, rpcPath.path)
 
 export const pathTypeToTextType = (type: Types.PathType) =>
   type === Types.PathType.Folder ? 'BodySemibold' : 'Body'
@@ -342,6 +331,9 @@ export const editTypeToPathType = (type: Types.EditType): Types.PathType => {
   }
 }
 
+export const downloadIsOngoing = (dlState: Types.DownloadState) =>
+  dlState !== emptyDownloadState && !dlState.error && !dlState.done && !dlState.canceled
+
 export const getDownloadIntentFromAction = (
   action: FsGen.DownloadPayload | FsGen.ShareNativePayload | FsGen.SaveMediaPayload
 ): Types.DownloadIntent =>
@@ -351,18 +343,38 @@ export const getDownloadIntentFromAction = (
     ? Types.DownloadIntent.Share
     : Types.DownloadIntent.CameraRoll
 
-export const makeTlfUpdate = I.Record<Types._TlfUpdate>({
-  history: I.List(),
+export const getDownloadIntent = (
+  path: Types.Path,
+  downloads: Types.Downloads,
+  pathItemActionMenu: Types.PathItemActionMenu
+): Types.DownloadIntent | null => {
+  const found = [...downloads.info].find(([_, info]) => info.path === path)
+  if (!found) {
+    return null
+  }
+  const [downloadID] = found
+  const dlState = downloads.state.get(downloadID) || emptyDownloadState
+  if (!downloadIsOngoing(dlState)) {
+    return null
+  }
+  if (pathItemActionMenu.downloadID === downloadID) {
+    return pathItemActionMenu.downloadIntent
+  }
+  return Types.DownloadIntent.None
+}
+
+export const emptyTlfUpdate: Readonly<Types.TlfUpdate> = {
+  history: [],
   path: Types.stringToPath(''),
   serverTime: 0,
   writer: '',
-})
+}
 
-export const makeTlfEdit = I.Record<Types._TlfEdit>({
+export const emptyTlfEdit: Readonly<Types.TlfEdit> = {
   editType: Types.FileEditType.Unknown,
   filename: '',
   serverTime: 0,
-})
+}
 
 const fsNotificationTypeToEditType = (fsNotificationType: number): Types.FileEditType => {
   switch (fsNotificationType) {
@@ -387,28 +399,22 @@ export const userTlfHistoryRPCToState = (
     const updateServerTime = folder.serverTime
     const path = pathFromFolderRPC(folder.folder)
     const tlfUpdates = folder.history
-      ? folder.history.map(({writerName, edits}) =>
-          makeTlfUpdate({
-            history: I.List(
-              edits
-                ? edits.map(({filename, notificationType, serverTime}) =>
-                    makeTlfEdit({
-                      editType: fsNotificationTypeToEditType(notificationType),
-                      filename,
-                      serverTime,
-                    })
-                  )
-                : []
-            ),
-            path,
-            serverTime: updateServerTime,
-            writer: writerName,
-          })
-        )
+      ? folder.history.map(({writerName, edits}) => ({
+          history: edits
+            ? edits.map(({filename, notificationType, serverTime}) => ({
+                editType: fsNotificationTypeToEditType(notificationType),
+                filename,
+                serverTime,
+              }))
+            : [],
+          path,
+          serverTime: updateServerTime,
+          writer: writerName,
+        }))
       : []
     updates = updates.concat(tlfUpdates)
   })
-  return I.List(updates)
+  return updates
 }
 
 export const canSaveMedia = (pathItem: Types.PathItem, fileContext: Types.FileContext): boolean => {
@@ -846,13 +852,18 @@ export const getUploadIconForFilesTab = (badge: RPCTypes.FilesTabBadge): Types.U
   }
 }
 
-export const getSyncStatusInMergeProps = (
+export const getPathStatusIconInMergeProps = (
   kbfsDaemonStatus: Types.KbfsDaemonStatus,
   tlf: Types.Tlf,
   pathItem: Types.PathItem,
   uploadingPaths: Set<Types.Path>,
   path: Types.Path
-): Types.SyncStatus => {
+): Types.PathStatusIcon => {
+  // There's no upload or sync for local conflict view.
+  if (tlf.conflictState.type === Types.ConflictStateType.ManualResolvingLocalView) {
+    return Types.LocalConflictStatus
+  }
+
   // uploading state has higher priority
   if (uploadingPaths.has(path)) {
     return tlf.conflictState.type === Types.ConflictStateType.NormalView && tlf.conflictState.stuckInConflict
@@ -943,6 +954,8 @@ export const getMainBannerType = (
 export const isFolder = (path: Types.Path, pathItem: Types.PathItem) =>
   Types.getPathLevel(path) <= 3 || pathItem.type === Types.PathType.Folder
 
+export const isInTlf = (path: Types.Path) => Types.getPathLevel(path) > 2
+
 export const humanizeBytes = (n: number, numDecimals: number): string => {
   const kb = 1024
   const mb = kb * 1024
@@ -980,13 +993,11 @@ export const hasPublicTag = (path: Types.Path): boolean => {
 }
 
 export const getPathUserSetting = (
-  pathUserSettings: I.Map<Types.Path, Types.PathUserSetting>,
+  pathUserSettings: Map<Types.Path, Types.PathUserSetting>,
   path: Types.Path
 ): Types.PathUserSetting =>
-  pathUserSettings.get(
-    path,
-    Types.getPathLevel(path) < 3 ? defaultTlfListPathUserSetting : defaultPathUserSetting
-  )
+  pathUserSettings.get(path) ||
+  (Types.getPathLevel(path) < 3 ? defaultTlfListPathUserSetting : defaultPathUserSetting)
 
 export const showSortSetting = (
   path: Types.Path,
@@ -1012,9 +1023,6 @@ export const getSoftError = (softErrors: Types.SoftErrors, path: Types.Path): Ty
 
 export const hasSpecialFileElement = (path: Types.Path): boolean =>
   Types.getPathElements(path).some(elem => elem.startsWith('.kbfs'))
-
-export const downloadIsOngoing = (dlState: Types.DownloadState) =>
-  dlState !== emptyDownloadState && !dlState.error && !dlState.done && !dlState.canceled
 
 export const erroredActionToMessage = (action: FsGen.Actions | EngineGen.Actions, error: string): string => {
   // We have FsError.expectedIfOffline now to take care of real offline

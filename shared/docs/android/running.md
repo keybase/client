@@ -69,6 +69,18 @@ Same as below.
 `yarn rn-build-clean-android`
 
 
+## `$HOME/.../Android/sdk/ndk-bundle` Does not point to an Android NDK
+
+### macOS
+
+If you're hitting this issue, it is because you either do not have an NDK installed or installed an NDK with an older version of Android Studio that created an old directory path.
+
+Android Studio 3.5.0 and later seem to install ndk versions at the following path: `~/Library/Android/sdk/ndk/{version}`
+
+To resolve this issue, use the `sdkmanager` to re-install `ndk-bundle` at the correct directory path. 
+
+[Instuctions can be found here](./setup.md)
+
 ## Hot reloading / File Watching
 
 ### Linux
@@ -89,11 +101,17 @@ adb reverse tcp:8081 tcp:8081
 adb reverse tcp:7007 tcp:7007
 ```
 
-Then open the [react native debug
-menu](https://facebook.github.io/react-native/docs/debugging.html#accessing-the-in-app-developer-menu),
-tap "Dev settings" and set "Debug server host & port for device" to
-`127.0.0.1:8081`
+## Remote Debugging with React Dev Tools
+
+1. Open the [react native debug menu](https://facebook.github.io/react-native/docs/debugging.html#accessing-the-in-app-developer-menu) and select **Enabled Remote Debugging**
+2. Next, in the react native debug menu, select **Dev Settings** and set **Debug server host & port for device** to `127.0.0.1:8081`
+3. Open launch the standalone [react-devtools](https://facebook.github.io/react-native/docs/debugging.html#react-developer-tools) electron application
+4. Loopback which ever port `react-devtools` is running on:
+
+```sh
+# React devtools standalone port
+adb reverse tcp:8097 tcp:8097
+```
 
 ## Also see general react-native troubleshooting
 [Here](../react-native/troubleshooting.md)
-

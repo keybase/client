@@ -13,6 +13,7 @@ import * as Constants from '../constants/teams'
 import * as WaitingConstants from '../constants/waiting'
 import * as Types from '../constants/types/teams'
 import {memoize} from '../util/memoize'
+import {useTeamsSubscribe} from './subscriber'
 
 type OwnProps = Container.PropsWithSafeNavigation<{}>
 
@@ -21,7 +22,7 @@ const headerActions = (dispatch: Container.TypedDispatch, ownProps: OwnProps) =>
   onCreateTeam: () => {
     dispatch(
       ownProps.safeNavigateAppendPayload({
-        path: [{props: {}, selected: 'teamNewTeamDialog'}],
+        path: ['teamNewTeamDialog'],
       })
     )
   },
@@ -34,36 +35,22 @@ const orderTeams = memoize((teams: Types.State['teamDetails']) =>
   [...teams.values()].sort((a, b) => a.teamname.localeCompare(b.teamname))
 )
 
-class Reloadable extends React.PureComponent<Props & {loadTeams: () => void; onClearBadges: () => void}> {
-  static navigationOptions = {
-    header: undefined,
-    headerRightActions: () => <ConnectedHeaderRightActions />,
-    title: 'Teams',
-  }
-
-  private onWillBlur = () => {
-    this.props.onClearBadges()
-  }
-  private onDidFocus = () => {
-    this.props.loadTeams()
-  }
-  componentWillUnmount() {
-    this.onWillBlur()
-  }
-  componentDidMount() {
-    this.onDidFocus()
-  }
-  render() {
-    const {loadTeams, ...rest} = this.props
-    return (
-      <Kb.Reloadable waitingKeys={Constants.teamsLoadedWaitingKey} onReload={loadTeams} reloadOnMount={true}>
-        {Container.isMobile && (
-          <Kb.NavigationEvents onDidFocus={this.onDidFocus} onWillBlur={this.onWillBlur} />
-        )}
-        <Teams {...rest} />
-      </Kb.Reloadable>
-    )
-  }
+const Reloadable = (props: Props & {loadTeams: () => void; onClearBadges: () => void}) => {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  React.useEffect(() => () => props.onClearBadges(), [])
+  // subscribe to teams changes
+  useTeamsSubscribe()
+  const {loadTeams, onClearBadges, ...rest} = props
+  return (
+    <Kb.Reloadable waitingKeys={Constants.teamsLoadedWaitingKey} onReload={loadTeams}>
+      <Teams {...rest} />
+    </Kb.Reloadable>
+  )
+}
+Reloadable.navigationOptions = {
+  header: undefined,
+  headerRightActions: () => <ConnectedHeaderRightActions />,
+  title: 'Teams',
 }
 
 const _Connected = Container.connect(
@@ -93,8 +80,8 @@ const _Connected = Container.connect(
     onReadMore: () => {
       openURL('https://keybase.io/blog/introducing-keybase-teams')
     },
-    onViewTeam: (teamname: Types.Teamname) =>
-      dispatch(ownProps.safeNavigateAppendPayload({path: [{props: {teamname}, selected: 'team'}]})),
+    onViewTeam: (teamID: Types.TeamID) =>
+      dispatch(ownProps.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'team'}]})),
   }),
   (stateProps, dispatchProps, _: OwnProps) => ({
     deletedTeams: stateProps.deletedTeams,
@@ -111,7 +98,11 @@ const Connected = Container.withSafeNavigation(_Connected)
 
 const ConnectedHeaderRightActions = Container.compose(
   Container.withSafeNavigation,
-  Container.connect(() => ({}), headerActions, (s, d, o) => ({...o, ...s, ...d}))
+  Container.connect(
+    () => ({}),
+    headerActions,
+    (s, d, o) => ({...o, ...s, ...d})
+  )
 )(HeaderRightActions as any)
 
 export default Connected

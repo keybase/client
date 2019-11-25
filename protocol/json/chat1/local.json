@@ -2099,6 +2099,14 @@
         {
           "type": "ConversationCommandGroups",
           "name": "botCommands"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "string",
+            "keys": "string"
+          },
+          "name": "botAliases"
         }
       ]
     },
@@ -2423,13 +2431,6 @@
           "name": "conversations"
         },
         {
-          "type": [
-            null,
-            "Pagination"
-          ],
-          "name": "pagination"
-        },
-        {
           "type": "boolean",
           "name": "offline"
         },
@@ -2459,13 +2460,6 @@
             "items": "InboxUIItem"
           },
           "name": "conversations"
-        },
-        {
-          "type": [
-            null,
-            "Pagination"
-          ],
-          "name": "pagination"
         },
         {
           "type": "boolean",
@@ -3764,13 +3758,6 @@
           ]
         },
         {
-          "name": "pagination",
-          "type": [
-            null,
-            "Pagination"
-          ]
-        },
-        {
           "name": "identifyBehavior",
           "type": "keybase1.TLFIdentifyBehavior"
         }
@@ -3784,13 +3771,6 @@
           "type": [
             null,
             "GetInboxLocalQuery"
-          ]
-        },
-        {
-          "name": "pagination",
-          "type": [
-            null,
-            "Pagination"
           ]
         },
         {
@@ -3843,13 +3823,6 @@
           "type": [
             null,
             "GetInboxLocalQuery"
-          ]
-        },
-        {
-          "name": "pagination",
-          "type": [
-            null,
-            "Pagination"
           ]
         },
         {
@@ -4547,6 +4520,10 @@
             "type": "array",
             "items": "double"
           }
+        },
+        {
+          "name": "duration",
+          "type": "int"
         }
       ],
       "response": "MakePreviewRes"
@@ -4580,6 +4557,15 @@
         }
       ],
       "response": "string"
+    },
+    "cancelUploadTempFile": {
+      "request": [
+        {
+          "name": "outboxID",
+          "type": "OutboxID"
+        }
+      ],
+      "response": null
     },
     "CancelPost": {
       "request": [

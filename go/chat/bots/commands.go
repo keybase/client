@@ -69,7 +69,7 @@ type CachingBotCommandManager struct {
 
 func NewCachingBotCommandManager(g *globals.Context, ri func() chat1.RemoteInterface) *CachingBotCommandManager {
 	keyFn := func(ctx context.Context) ([32]byte, error) {
-		return storage.GetSecretBoxKey(ctx, g.ExternalG(), storage.DefaultSecretUI)
+		return storage.GetSecretBoxKey(ctx, g.ExternalG())
 	}
 	dbFn := func(g *libkb.GlobalContext) *libkb.JSONLocalDb {
 		return g.LocalChatDb
@@ -223,37 +223,44 @@ func (b *CachingBotCommandManager) dbCommandsKey(convID chat1.ConversationID) li
 	}
 }
 
-func (b *CachingBotCommandManager) ListCommands(ctx context.Context, convID chat1.ConversationID) (res []chat1.UserBotCommandOutput, err error) {
+func (b *CachingBotCommandManager) ListCommands(ctx context.Context, convID chat1.ConversationID) (res []chat1.UserBotCommandOutput, alias map[string]string, err error) {
 	defer b.Trace(ctx, func() error { return err }, "ListCommands")()
+	alias = make(map[string]string)
 	dbKey := b.dbCommandsKey(convID)
 	var s commandsStorage
 	found, err := b.edb.Get(ctx, dbKey, &s)
 	if err != nil {
-		return res, err
+		return res, alias, err
 	}
 	if !found {
-		return nil, nil
+		return res, alias, nil
 	}
 	if s.Version != storageVersion {
+		b.Debug(ctx, "ListCommands: deleting old version %d vs %d", s.Version, storageVersion)
 		if err := b.edb.Delete(ctx, dbKey); err != nil {
 			b.Debug(ctx, "edb.Delete: %v", err)
 		}
-		return nil, nil
+		return res, alias, nil
 	}
 	cmdDedup := make(map[string]bool)
+
 	for _, ad := range s.Advertisements {
 		// If the advertisement is by a restricted bot that will not be keyed
 		// for commands, filter the advertisement out.
 		if ad.UntrustedTeamRole.IsRestrictedBot() {
 			teamBotSettings, err := b.G().InboxSource.TeamBotSettingsForConv(ctx, b.uid, convID)
 			if err != nil {
-				return nil, err
+				return res, alias, err
 			}
 			if !teamBotSettings[keybase1.UID(ad.UID.String())].Cmds {
+				b.Debug(ctx, "ListCommands: skipping commands from %v, a restricted bot without cmds", ad.UID)
 				continue
 			}
 		}
 		ad.Username = libkb.NewNormalizedUsername(ad.Username).String()
+		if ad.Advertisement.Alias != nil {
+			alias[ad.Username] = *ad.Advertisement.Alias
+		}
 		for _, cmd := range ad.Advertisement.Commands {
 			key := cmd.Name + ad.Username
 			if !cmdDedup[key] {
@@ -273,7 +280,7 @@ func (b *CachingBotCommandManager) ListCommands(ctx context.Context, convID chat
 			return l.Name < r.Name
 		}
 	})
-	return res, nil
+	return res, alias, nil
 }
 
 func (b *CachingBotCommandManager) UpdateCommands(ctx context.Context, convID chat1.ConversationID,
@@ -348,6 +355,7 @@ func (b *CachingBotCommandManager) queueCommandUpdate(ctx context.Context, job c
 }
 
 func (b *CachingBotCommandManager) getBotInfo(ctx context.Context, job commandUpdaterJob) (botInfo chat1.BotInfo, doUpdate bool, err error) {
+	defer b.Trace(ctx, func() error { return err }, fmt.Sprintf("getBotInfo: %v", job.convID))()
 	if job.info != nil {
 		return *job.info, true, nil
 	}

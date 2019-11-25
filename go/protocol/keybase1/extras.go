@@ -644,6 +644,13 @@ func (s SigID) Equal(t SigID) bool {
 	return s == t
 }
 
+func (s SigID) EqualIgnoreLastByte(t SigID) bool {
+	if len(s) != len(t) || len(s) < 2 {
+		return false
+	}
+	return s[:len(s)-2] == t[:len(t)-2]
+}
+
 func (s SigID) Match(q string, exact bool) bool {
 	if s.IsNil() {
 		return false

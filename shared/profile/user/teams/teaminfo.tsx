@@ -27,8 +27,8 @@ type Props = {
   name: string
   onChat?: () => void
   onHidden: () => void
-  onJoinTeam: (arg0: string) => void
-  onViewTeam: (arg0: string) => void
+  onJoinTeam: (teamname: string) => void
+  onViewTeam: () => void
   publicAdmins: Array<string>
   visible: boolean
 }
@@ -43,7 +43,7 @@ class TeamInfo extends React.Component<Props, {requested: boolean}> {
     this.setState({requested: true})
   }
   _onViewTeam = () => {
-    this.props.onViewTeam(this.props.name)
+    this.props.onViewTeam()
     this.props.onHidden()
   }
   _onChat = () => {

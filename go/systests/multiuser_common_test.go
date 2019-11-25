@@ -394,7 +394,28 @@ func (u *smuUser) registerForNotifications() {
 	}
 }
 
+func (u *smuUser) waitForNewlyAddedToTeamByID(teamID keybase1.TeamID) {
+	u.ctx.t.Logf("waiting for newly added to team %s", teamID)
+
+	// process 10 team rotations or 10s worth of time
+	for i := 0; i < 10; i++ {
+		select {
+		case tid := <-u.notifications.newlyAddedToTeam:
+			u.ctx.t.Logf("team newly added notification received: %v", tid)
+			if tid.Eq(teamID) {
+				u.ctx.t.Logf("notification matched!")
+				return
+			}
+			u.ctx.t.Logf("ignoring newly added message (expected teamID = %q)", teamID)
+		case <-time.After(1 * time.Second * libkb.CITimeMultiplier(u.getPrimaryGlobalContext())):
+		}
+	}
+	u.ctx.t.Fatalf("timed out waiting for team newly added %s", teamID)
+}
+
 func (u *smuUser) waitForTeamAbandoned(teamID keybase1.TeamID) {
+	u.ctx.t.Logf("waiting for team abandoned %s", teamID)
+
 	// process 10 team rotations or 10s worth of time
 	for i := 0; i < 10; i++ {
 		select {

@@ -17,6 +17,7 @@ export type PinnedMessageInfo = {
 }
 
 export type ConversationMeta = {
+  botAliases: {[key: string]: string}
   botCommands: RPCChatTypes.ConversationCommandGroups
   cannotWrite: boolean
   channelname: string
@@ -57,6 +58,7 @@ export type ConversationMeta = {
   teamRetentionPolicy: RetentionPolicy
   teamType: TeamType
   teamname: string
+  teamID: TeamTypes.TeamID
   timestamp: number
   tlfname: string // just used for rpc calls,
   trustedState: MetaTrustedState

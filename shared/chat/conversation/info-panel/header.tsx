@@ -32,7 +32,6 @@ const _TeamHeader = (props: SmallProps) => {
           attachTo={props.getAttachmentRef}
           onHidden={props.toggleShowingMenu}
           isSmallTeam={props.isSmallTeam}
-          teamname={props.teamname}
           conversationIDKey={props.conversationIDKey}
           visible={props.showingMenu}
         />
@@ -84,6 +83,7 @@ const TeamHeader = Kb.OverlayParentHOC(_TeamHeader)
 type AdhocProps = {
   onShowNewTeamDialog: () => void
   participants: ReadonlyArray<{
+    botAlias: string
     username: string
     fullname: string
   }>
@@ -102,6 +102,7 @@ export const AdhocHeader = (props: AdhocProps) => {
               horizontal={true}
               username={p.username}
               metaOne={p.fullname}
+              botAlias={p.botAlias}
             />
           )
         })}

@@ -6,7 +6,7 @@ import * as FsGen from '../../actions/fs-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Kb from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
-import flags from '../../util/feature-flags'
+import logger from '../../logger'
 
 const isPathItem = (path: Types.Path) => Types.getPathLevel(path) > 2 || Constants.hasSpecialFileElement(path)
 const noop = () => {}
@@ -18,17 +18,6 @@ export const useDispatchWhenConnected = () => {
   const dispatch = Container.useDispatch()
   return kbfsDaemonConnected ? dispatch : noop
 }
-
-const useDispatchWhenConnectedAndOnline = flags.kbfsOfflineMode
-  ? () => {
-      const kbfsDaemonStatus = Container.useSelector(state => state.fs.kbfsDaemonStatus)
-      const dispatch = Container.useDispatch()
-      return kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected &&
-        kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Online
-        ? dispatch
-        : noop
-    }
-  : useDispatchWhenConnected
 
 const useFsPathSubscriptionEffect = (path: Types.Path, topic: RPCTypes.PathSubscriptionTopic) => {
   const dispatch = useDispatchWhenConnected()
@@ -54,7 +43,7 @@ const useFsNonPathSubscriptionEffect = (topic: RPCTypes.SubscriptionTopic) => {
 
 export const useFsPathMetadata = (path: Types.Path) => {
   useFsPathSubscriptionEffect(path, RPCTypes.PathSubscriptionTopic.stat)
-  const dispatch = useDispatchWhenConnectedAndOnline()
+  const dispatch = useDispatchWhenConnected()
   React.useEffect(() => {
     isPathItem(path) && dispatch(FsGen.createLoadPathMetadata({path}))
   }, [dispatch, path])
@@ -62,7 +51,7 @@ export const useFsPathMetadata = (path: Types.Path) => {
 
 export const useFsChildren = (path: Types.Path, initialLoadRecursive?: boolean) => {
   useFsPathSubscriptionEffect(path, RPCTypes.PathSubscriptionTopic.children)
-  const dispatch = useDispatchWhenConnectedAndOnline()
+  const dispatch = useDispatchWhenConnected()
   React.useEffect(() => {
     isPathItem(path) && dispatch(FsGen.createFolderListLoad({path, recursive: initialLoadRecursive || false}))
   }, [dispatch, path, initialLoadRecursive])
@@ -118,7 +107,7 @@ export const useFsOnlineStatus = () => {
 }
 
 export const useFsPathInfo = (path: Types.Path, knownPathInfo: Types.PathInfo): Types.PathInfo => {
-  const pathInfo = Container.useSelector(state => state.fs.pathInfos.get(path, Constants.emptyPathInfo))
+  const pathInfo = Container.useSelector(state => state.fs.pathInfos.get(path) || Constants.emptyPathInfo)
   const dispatch = useDispatchWhenConnected()
   const alreadyKnown = knownPathInfo !== Constants.emptyPathInfo
   React.useEffect(() => {
@@ -160,8 +149,10 @@ export const useFsDownloadStatus = () => {
 
 export const useFsFileContext = (path: Types.Path) => {
   const dispatch = useDispatchWhenConnected()
-  const pathItem = Container.useSelector(state => state.fs.pathItems.get(path, Constants.unknownPathItem))
+  const pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, path))
+  const [urlError, setUrlError] = React.useState<string>('')
   React.useEffect(() => {
+    urlError && logger.info(`urlError: ${urlError}`)
     pathItem.type === Types.PathType.File && dispatch(FsGen.createLoadFileContext({path}))
   }, [
     dispatch,
@@ -169,7 +160,11 @@ export const useFsFileContext = (path: Types.Path) => {
     // Intentionally depend on pathItem instead of only pathItem.type so we
     // load when timestamp changes.
     pathItem,
+    // When url error happens it's possible that the URL of the item has
+    // changed due to HTTP server restarting. So reload in case of that.
+    urlError,
   ])
+  return setUrlError
 }
 
 export const useFsWatchDownloadForMobile = isMobile

@@ -683,7 +683,7 @@ func savedConvFile() *encrypteddb.EncryptedFile {
 	path := filepath.Join(kbCtx.GetEnv().GetDataDir(), "saveconv.mpack")
 	return encrypteddb.NewFile(kbCtx, path,
 		func(ctx context.Context) ([32]byte, error) {
-			return storage.GetSecretBoxKey(ctx, kbCtx, storage.DefaultSecretUI)
+			return storage.GetSecretBoxKey(ctx, kbCtx)
 		})
 }
 

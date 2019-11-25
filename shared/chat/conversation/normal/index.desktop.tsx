@@ -41,7 +41,12 @@ class Conversation extends React.PureComponent<Props> {
   render() {
     return (
       <Kb.Box className="conversation" style={styles.container} onPaste={this._onPaste}>
-        <Kb.DragAndDrop onAttach={this.props.onAttach}>
+        <Kb.DragAndDrop
+          onAttach={this.props.onAttach}
+          fullHeight={true}
+          fullWidth={true}
+          rejectReason={this.props.dragAndDropRejectReason}
+        >
           {this.props.threadLoadedOffline && <Offline />}
           <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.innerContainer}>
             <ThreadLoadStatus conversationIDKey={this.props.conversationIDKey} />
@@ -64,6 +69,7 @@ class Conversation extends React.PureComponent<Props> {
             )}
             {this.props.showLoader && <Kb.LoadingLine />}
           </Kb.Box2>
+          {/* TODO: put the block buttons in here */}
           <Banner conversationIDKey={this.props.conversationIDKey} />
           <InputArea
             focusInputCounter={this.props.focusInputCounter}

@@ -30,6 +30,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 	context "golang.org/x/net/context"
+	"golang.org/x/net/idna"
 )
 
 func AssertLoggedInUID(ctx context.Context, g *globals.Context) (uid gregor1.UID, err error) {
@@ -987,6 +988,7 @@ func GetRemoteConvDisplayName(rc types.RemoteConversation) string {
 }
 
 func GetConvSnippet(conv chat1.ConversationLocal, currentUsername string) (snippet, decoration string) {
+
 	if conv.Info.SnippetMsg == nil {
 		return "", ""
 	}
@@ -1008,7 +1010,7 @@ func GetMsgSummaryByType(msgs []chat1.MessageSummary, typ chat1.MessageType) (ch
 	return chat1.MessageSummary{}, errors.New("not found")
 }
 
-func showSenderPrefix(mvalid chat1.MessageUnboxedValid, conv chat1.ConversationLocal) (showPrefix bool) {
+func showSenderPrefix(conv chat1.ConversationLocal) (showPrefix bool) {
 	switch conv.GetMembersType() {
 	case chat1.ConversationMembersType_TEAM:
 		showPrefix = true
@@ -1020,36 +1022,53 @@ func showSenderPrefix(mvalid chat1.MessageUnboxedValid, conv chat1.ConversationL
 
 // Sender prefix for msg snippets. Will show if a conversation has > 2 members
 // or is of type TEAM
-func getSenderPrefix(mvalid chat1.MessageUnboxedValid, conv chat1.ConversationLocal, currentUsername string) (senderPrefix string) {
-	if showSenderPrefix(mvalid, conv) {
-		sender := mvalid.SenderUsername
-		if sender == currentUsername {
+func getSenderPrefix(conv chat1.ConversationLocal, currentUsername, senderUsername string) (senderPrefix string) {
+	if showSenderPrefix(conv) {
+		if senderUsername == currentUsername {
 			senderPrefix = "You: "
 		} else {
-			senderPrefix = fmt.Sprintf("%s: ", sender)
+			senderPrefix = fmt.Sprintf("%s: ", senderUsername)
 		}
 	}
 	return senderPrefix
+}
+
+func formatDuration(dur time.Duration) string {
+	h := dur / time.Hour
+	dur -= h * time.Hour
+	m := dur / time.Minute
+	dur -= m * time.Minute
+	s := dur / time.Second
+	if h > 0 {
+		return fmt.Sprintf("%02d:%02d:%02d", h, m, s)
+	}
+	return fmt.Sprintf("%02d:%02d", m, s)
 }
 
 func GetMsgSnippetBody(msg chat1.MessageUnboxed) (snippet string) {
 	defer func() {
 		snippet = EscapeShrugs(context.TODO(), snippet)
 	}()
-	if !msg.IsValidFull() {
+	if !(msg.IsValidFull() || msg.IsOutbox()) {
 		return ""
+	}
+	var msgBody chat1.MessageBody
+	if msg.IsValid() {
+		msgBody = msg.Valid().MessageBody
+	} else {
+		msgBody = msg.Outbox().Msg.MessageBody
 	}
 	switch msg.GetMessageType() {
 	case chat1.MessageType_TEXT:
-		return msg.Valid().MessageBody.Text().Body
+		return msgBody.Text().Body
 	case chat1.MessageType_EDIT:
-		return msg.Valid().MessageBody.Edit().Body
+		return msgBody.Edit().Body
 	case chat1.MessageType_FLIP:
-		return msg.Valid().MessageBody.Flip().Text
+		return msgBody.Flip().Text
 	case chat1.MessageType_PIN:
 		return "📌 new pinned message"
 	case chat1.MessageType_ATTACHMENT:
-		obj := msg.Valid().MessageBody.Attachment().Object
+		obj := msgBody.Attachment().Object
 		title := obj.Title
 		if len(title) == 0 {
 			atyp, err := obj.Metadata.AssetType()
@@ -1060,40 +1079,60 @@ func GetMsgSnippetBody(msg chat1.MessageUnboxed) (snippet string) {
 			case chat1.AssetMetadataType_IMAGE:
 				title = "📷 attachment"
 			case chat1.AssetMetadataType_VIDEO:
-				title = "🎞 attachment"
+				dur := formatDuration(time.Duration(obj.Metadata.Video().DurationMs) * time.Millisecond)
+				if obj.Metadata.Video().IsAudio {
+					title = fmt.Sprintf("🔊 attachment (%s)", dur)
+				} else {
+					title = fmt.Sprintf("🎞 attachment (%s)", dur)
+				}
 			default:
 				title = obj.Filename
 			}
 		}
 		return title
 	case chat1.MessageType_SYSTEM:
-		return msg.Valid().MessageBody.System().String()
+		return msgBody.System().String()
 	case chat1.MessageType_REQUESTPAYMENT:
 		return "🚀 payment request"
 	case chat1.MessageType_SENDPAYMENT:
 		return "🚀 payment sent"
 	case chat1.MessageType_HEADLINE:
-		return msg.Valid().MessageBody.Headline().String()
+		return msgBody.Headline().String()
 	}
 	return ""
 }
 
 func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, currentUsername string) (snippet, decoration string) {
-	if !msg.IsValid() {
+	if !(msg.IsValid() || msg.IsOutbox()) {
 		return "", ""
 	}
 
-	mvalid := msg.Valid()
-	senderPrefix := getSenderPrefix(mvalid, conv, currentUsername)
-	if !msg.IsValidFull() {
-		if mvalid.IsEphemeral() && mvalid.IsEphemeralExpired(time.Now()) {
+	var senderUsername string
+	if msg.IsValid() {
+		senderUsername = msg.Valid().SenderUsername
+	} else {
+		senderUsername = currentUsername
+	}
+
+	senderPrefix := getSenderPrefix(conv, currentUsername, senderUsername)
+	// does not apply to outbox messages, ephemeral timer starts once the server
+	// assigns a ctime.
+	if msg.IsValid() && !msg.IsValidFull() {
+		if msg.Valid().IsEphemeral() && msg.Valid().IsEphemeralExpired(time.Now()) {
 			return fmt.Sprintf("%s ----------------------------", senderPrefix), "💥"
 		}
 		return "", ""
 	}
-	if mvalid.IsEphemeral() {
+
+	if msg.IsOutbox() {
+		decoration = "📤"
+		if msg.Outbox().IsError() {
+			decoration = "⚠️"
+		}
+	} else if msg.Valid().IsEphemeral() {
 		decoration = "💣"
 	}
+
 	return senderPrefix + GetMsgSnippetBody(msg), decoration
 }
 
@@ -1139,7 +1178,7 @@ func GetDesktopNotificationSnippet(conv *chat1.ConversationLocal, currentUsernam
 			snippet = ""
 		} else {
 			var prefix string
-			if showSenderPrefix(mvalid, *conv) {
+			if showSenderPrefix(*conv) {
 				prefix = mvalid.SenderUsername + " "
 			}
 			snippet = emoji.Sprintf("%sreacted to your message with %v", prefix, reaction)
@@ -1333,6 +1372,7 @@ func PresentConversationLocal(ctx context.Context, g *globals.Context, uid grego
 	res.ConvSettings = rawConv.ConvSettings
 	res.Commands = rawConv.Commands
 	res.BotCommands = rawConv.BotCommands
+	res.BotAliases = rawConv.BotAliases
 	res.Draft = rawConv.Info.Draft
 	if rawConv.Info.PinnedMsg != nil {
 		res.PinnedMsg = new(chat1.UIPinnedMessage)
@@ -1774,8 +1814,9 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			msgBody := rawMsg.Outbox().Msg.MessageBody
 			btyp, err := msgBody.MessageType()
 			if err == nil && btyp == chat1.MessageType_ATTACHMENT {
-				title = msgBody.Attachment().Object.Title
-				filename = msgBody.Attachment().Object.Filename
+				asset := msgBody.Attachment().Object
+				title = asset.Title
+				filename = asset.Filename
 			}
 		}
 		var replyTo *chat1.UIMessage
@@ -2352,16 +2393,21 @@ func DecorateWithLinks(ctx context.Context, body string) string {
 
 		bodyMatch := origBody[match[lowhit]:match[highhit]]
 		url := bodyMatch
+		var punycode string
 		if shouldSkipLink(bodyMatch) {
 			continue
 		}
 		if !(strings.HasPrefix(bodyMatch, "http://") || strings.HasPrefix(bodyMatch, "https://")) {
 			url = "http://" + bodyMatch
 		}
+		if encoded, err := idna.ToASCII(url); err == nil && encoded != url {
+			punycode = encoded
+		}
 		body, added = DecorateBody(ctx, body, match[lowhit]+offset, match[highhit]-match[lowhit],
 			chat1.NewUITextDecorationWithLink(chat1.UILinkDecoration{
-				Display: bodyMatch,
-				Url:     url,
+				Display:  bodyMatch,
+				Url:      url,
+				Punycode: punycode,
 			}))
 		offset += added
 	}
@@ -2497,7 +2543,7 @@ func GetUnverifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 			chat1.ConversationMemberStatus_RESET,
 			chat1.ConversationMemberStatus_NEVER_JOINED,
 		},
-	}, nil)
+	})
 	if err != nil {
 		return res, err
 	}
@@ -2551,7 +2597,7 @@ func GetVerifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 				chat1.ConversationMemberStatus_RESET,
 				chat1.ConversationMemberStatus_NEVER_JOINED,
 			},
-		}, nil)
+		})
 	if err != nil {
 		return res, err
 	}

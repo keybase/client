@@ -4,7 +4,8 @@
     "import * as Types from '../constants/types/chat2'",
     "import * as TeamsTypes from '../constants/types/teams'",
     "import HiddenString from '../util/hidden-string'",
-    "import {RetentionPolicy} from '../constants/types/retention-policy'"
+    "import {RetentionPolicy} from '../constants/types/retention-policy'",
+    "import {AmpTracker} from '../chat/audio/amptracker'"
   ],
   "actions": {
     "toggleSmallTeamsExpanded": {},
@@ -77,7 +78,8 @@
         "'requestedPayment'",
         "'teamMention'",
         "'appLink'",
-        "'search'"
+        "'search'",
+        "'journeyCardPopular'"
       ]
     },
     "createConversation": {
@@ -214,9 +216,9 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "messageID": "RPCChatTypes.MessageID",
       "text": "HiddenString",
-      "mentionsAt": "I.Set<string>",
+      "mentionsAt": "Set<string>",
       "mentionsChannel": "'none' | 'all' | 'here'",
-      "mentionsChannelName": "I.Map<string, Types.ConversationIDKey>"
+      "mentionsChannelName": "Map<string, Types.ConversationIDKey>"
     },
     "pendingMessageWasEdited": {
       "conversationIDKey": "Types.ConversationIDKey",
@@ -269,6 +271,11 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "text": "HiddenString",
       "replyTo?": "Types.MessageID"
+    },
+    "messageSendByUsernames": {
+      "usernames": "string",
+      "text": "HiddenString",
+      "waitingKey?": "string"
     },
     "toggleLocalReaction": {
       "_description": "Toggle a reaction in the store.",
@@ -768,23 +775,35 @@
       "_description": "Set filter for channel search",
       "text": "string"
     },
-    "enableAudioRecording": {
-      "conversationIDKey": "Types.ConversationIDKey"
+    "updateBlockButtons": {
+      "_description": "Show or hide invitation to block for a given team ID",
+      "teamID": "RPCTypes.TeamID",
+      "show": "boolean"
     },
-    "startAudioRecording": {
+    "setInboxNumSmallRows": {
+      "ignoreWrite?": "boolean",
+      "rows": "number"
+    },
+    "enableAudioRecording": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "meteringCb": "(amp: number) => void"
+    },
+    "attemptAudioRecording": {
       "conversationIDKey": "Types.ConversationIDKey",
       "meteringCb": "(amp: number) => void"
     },
     "stopAudioRecording": {
       "conversationIDKey": "Types.ConversationIDKey",
       "stopType": "Types.AudioStopType",
-      "amps?": "Array<number>"
+      "amps?": "AmpTracker"
     },
     "lockAudioRecording": {
       "conversationIDKey": "Types.ConversationIDKey"
     },
     "sendAudioRecording": {
-      "conversationIDKey": "Types.ConversationIDKey"
+      "conversationIDKey": "Types.ConversationIDKey",
+      "fromStaged": "boolean",
+      "info": "Types.AudioRecordingInfo"
     },
     "setAudioRecordingPostInfo": {
       "conversationIDKey": "Types.ConversationIDKey",

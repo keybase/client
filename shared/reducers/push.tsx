@@ -8,28 +8,20 @@ const initialState: Types.State = {
   token: '',
 }
 
-export default (state: Types.State = initialState, action: PushGen.Actions): Types.State =>
-  Container.produce(state, (draftState: Container.Draft<Types.State>) => {
-    switch (action.type) {
-      case PushGen.resetStore:
-        // when you sign out we need to keep all this info as its per device
-        return
-      case PushGen.rejectPermissions:
-        draftState.hasPermissions = false
-        draftState.showPushPrompt = false
-        return
-      case PushGen.updateHasPermissions:
-        draftState.hasPermissions = action.payload.hasPermissions
-        return
-      case PushGen.showPermissionsPrompt:
-        draftState.showPushPrompt = action.payload.show
-        return
-      case PushGen.updatePushToken:
-        draftState.token = action.payload.token
-        return
-      // Saga only actions
-      case PushGen.requestPermissions:
-      case PushGen.notification:
-        return
-    }
-  })
+export default Container.makeReducer<PushGen.Actions, Types.State>(initialState, {
+  // when you sign out we need to keep all this info as its per device
+  [PushGen.resetStore]: () => {},
+  [PushGen.rejectPermissions]: draftState => {
+    draftState.hasPermissions = false
+    draftState.showPushPrompt = false
+  },
+  [PushGen.updateHasPermissions]: (draftState, action) => {
+    draftState.hasPermissions = action.payload.hasPermissions
+  },
+  [PushGen.showPermissionsPrompt]: (draftState, action) => {
+    draftState.showPushPrompt = action.payload.show
+  },
+  [PushGen.updatePushToken]: (draftState, action) => {
+    draftState.token = action.payload.token
+  },
+})

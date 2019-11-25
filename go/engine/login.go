@@ -262,7 +262,7 @@ func (e *Login) checkLoggedInAndNotRevoked(m libkb.MetaContext) (bool, error) {
 	// and sees if it matches the given username, and isn't revoked. If all goes
 	// well, we return `true,nil`. It could be we're already logged in but for
 	// someone else, in which case we return true and an error.
-	err := m.ActiveDevice().CheckForUsername(m, username)
+	err := m.ActiveDevice().CheckForUsername(m, username, e.doUserSwitch)
 
 	switch err := err.(type) {
 	case nil:

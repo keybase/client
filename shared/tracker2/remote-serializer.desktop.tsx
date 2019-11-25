@@ -25,6 +25,7 @@ export const serialize = {
   teamShowcase: (v?: Array<Types.TeamShowcase>, o?: Array<Types.TeamShowcase>) =>
     o && shallowEqual(v, o) ? undefined : v,
   username: (v: string) => v,
+  usernames: (v: Array<string>) => v,
   waiting: (v: boolean) => v,
   windowComponent: (v: string) => v,
   windowOpts: (v: Object) => v,
@@ -37,6 +38,7 @@ export const serialize = {
 const initialState = {
   assertions: new Map(),
   config: {following: new Set()},
+  teams: {teamNameToID: I.Map()},
   users: {infoMap: I.Map()},
   waiting: {counts: new Map()},
 }
