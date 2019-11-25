@@ -289,7 +289,7 @@ func (i *Inbox) writeDiskInbox(ctx context.Context, uid gregor1.UID, ibox inboxD
 	}
 	ibox.ServerVersion = vers.InboxVers
 	ibox.Version = inboxVersion
-	ibox.Conversations = i.summarizeConvs(ibox.Conversations)
+	i.summarizeConvs(ibox.Conversations)
 	i.Debug(ctx, "writeDiskInbox: uid: %s version: %d disk version: %d server version: %d convs: %d",
 		uid, ibox.InboxVersion, ibox.Version, ibox.ServerVersion, len(ibox.Conversations))
 	inboxMemCache.Put(uid, &ibox)
@@ -331,12 +331,10 @@ func (i *Inbox) summarizeConv(rc *types.RemoteConversation) {
 	}
 }
 
-func (i *Inbox) summarizeConvs(convs []types.RemoteConversation) (res []types.RemoteConversation) {
-	for _, conv := range convs {
-		i.summarizeConv(&conv)
-		res = append(res, conv)
+func (i *Inbox) summarizeConvs(convs []types.RemoteConversation) {
+	for index := range convs {
+		i.summarizeConv(&convs[index])
 	}
-	return res
 }
 
 func (i *Inbox) mergeConvs(l []types.RemoteConversation, r []types.RemoteConversation) (res []types.RemoteConversation) {
