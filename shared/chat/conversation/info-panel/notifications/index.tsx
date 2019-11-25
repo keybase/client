@@ -1,35 +1,39 @@
 import * as React from 'react'
+import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Types from '../../../../constants/types/chat2'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import SaveIndicator from '../../../../common-adapters/save-indicator'
+import * as Container from '../../../../util/container'
+import * as Constants from '../../../../constants/chat2'
 
 export type SaveStateType = 'same' | 'saving' | 'justSaved'
 export type Props = {
+  conversationIDKey: Types.ConversationIDKey
+}
+
+type UnmutedProps = {
   channelWide: boolean
   desktop: Types.NotificationsType
   mobile: Types.NotificationsType
-  muted: boolean
-  saving: boolean
-  toggleMuted: () => void
-  updateDesktop: (arg0: Types.NotificationsType) => void
-  updateMobile: (arg0: Types.NotificationsType) => void
+  setDesktop: (n: Types.NotificationsType) => void
+  setMobile: (n: Types.NotificationsType) => void
   toggleChannelWide: () => void
 }
 
-const UnmutedNotificationPrefs = (props: Props) => {
-  const allNotifsEnabled = props.desktop === 'onAnyActivity' && props.mobile === 'onAnyActivity'
+const UnmutedNotificationPrefs = (props: UnmutedProps) => {
+  const {desktop, setDesktop, mobile, setMobile, channelWide, toggleChannelWide} = props
+  const allNotifsEnabled = desktop === 'onAnyActivity' && mobile === 'onAnyActivity'
   let ignoreMentionsSuffix = ''
-  if (props.desktop === 'onAnyActivity' && props.mobile !== 'onAnyActivity') {
+  if (desktop === 'onAnyActivity' && mobile !== 'onAnyActivity') {
     ignoreMentionsSuffix = '(mobile)'
-  } else if (props.mobile === 'onAnyActivity' && props.desktop !== 'onAnyActivity') {
+  } else if (mobile === 'onAnyActivity' && desktop !== 'onAnyActivity') {
     ignoreMentionsSuffix = '(desktop)'
   }
   return (
     <>
       {!allNotifsEnabled && (
         <Kb.Checkbox
-          checked={!props.channelWide}
+          checked={!channelWide}
           label=""
           labelComponent={
             <Kb.Box2 direction="vertical" style={{flex: 1}}>
@@ -39,7 +43,7 @@ const UnmutedNotificationPrefs = (props: Props) => {
               </Kb.Text>
             </Kb.Box2>
           }
-          onCheck={props.toggleChannelWide}
+          onCheck={toggleChannelWide}
         />
       )}
 
@@ -50,24 +54,24 @@ const UnmutedNotificationPrefs = (props: Props) => {
       <Kb.Box style={styles.radioButton}>
         <Kb.RadioButton
           style={{marginTop: Styles.globalMargins.xtiny}}
-          onSelect={() => props.updateDesktop('onAnyActivity')}
-          selected={props.desktop === 'onAnyActivity'}
+          onSelect={() => setDesktop('onAnyActivity')}
+          selected={desktop === 'onAnyActivity'}
           label="On any activity"
         />
       </Kb.Box>
       <Kb.Box style={styles.radioButton}>
         <Kb.RadioButton
           style={{marginTop: Styles.globalMargins.xtiny}}
-          onSelect={() => props.updateDesktop('onWhenAtMentioned')}
-          selected={props.desktop === 'onWhenAtMentioned'}
+          onSelect={() => setDesktop('onWhenAtMentioned')}
+          selected={desktop === 'onWhenAtMentioned'}
           label="Only when @mentioned"
         />
       </Kb.Box>
       <Kb.Box style={styles.radioButton}>
         <Kb.RadioButton
           style={{marginTop: Styles.globalMargins.xtiny}}
-          onSelect={() => props.updateDesktop('never')}
-          selected={props.desktop === 'never'}
+          onSelect={() => setDesktop('never')}
+          selected={desktop === 'never'}
           label="Never"
         />
       </Kb.Box>
@@ -79,24 +83,24 @@ const UnmutedNotificationPrefs = (props: Props) => {
       <Kb.Box style={styles.radioButton}>
         <Kb.RadioButton
           style={{marginTop: Styles.globalMargins.xtiny}}
-          onSelect={() => props.updateMobile('onAnyActivity')}
-          selected={props.mobile === 'onAnyActivity'}
+          onSelect={() => setMobile('onAnyActivity')}
+          selected={mobile === 'onAnyActivity'}
           label="On any activity"
         />
       </Kb.Box>
       <Kb.Box style={styles.radioButton}>
         <Kb.RadioButton
           style={{marginTop: Styles.globalMargins.xtiny}}
-          onSelect={() => props.updateMobile('onWhenAtMentioned')}
-          selected={props.mobile === 'onWhenAtMentioned'}
+          onSelect={() => setMobile('onWhenAtMentioned')}
+          selected={mobile === 'onWhenAtMentioned'}
           label="Only when @mentioned"
         />
       </Kb.Box>
       <Kb.Box style={styles.radioButton}>
         <Kb.RadioButton
           style={{marginTop: Styles.globalMargins.xtiny}}
-          onSelect={() => props.updateMobile('never')}
-          selected={props.mobile === 'never'}
+          onSelect={() => setMobile('never')}
+          selected={mobile === 'never'}
           label="Never"
         />
       </Kb.Box>
@@ -104,38 +108,87 @@ const UnmutedNotificationPrefs = (props: Props) => {
   )
 }
 
-export const Notifications = (props: Props) => (
-  <Kb.Box
-    style={{
-      ...Styles.globalStyles.flexBoxColumn,
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
-    }}
-  >
-    <Kb.Box
-      style={{
-        ...Styles.globalStyles.flexBoxRow,
-        alignItems: 'center',
-        marginBottom: Styles.globalMargins.xtiny,
-      }}
-    >
-      <Kb.Checkbox checked={props.muted} onCheck={props.toggleMuted} label="Mute all notifications" />
-      <Kb.Icon
-        type="iconfont-shh"
-        style={{
-          marginLeft: Styles.globalMargins.xtiny,
-        }}
-        color={Styles.globalColors.black_20}
-      />
+const Notifications = (props: Props) => {
+  const {conversationIDKey} = props
+  const dispatch = Container.useDispatch()
+  const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
+  const [channelWide, _setChannelWide] = React.useState(meta.notificationsGlobalIgnoreMentions)
+  const [desktop, _setDesktop] = React.useState(meta.notificationsDesktop)
+  const [mobile, _setMobile] = React.useState(meta.notificationsMobile)
+  const [muted, _setMuted] = React.useState(meta.isMuted)
+  const [saving, setSaving] = React.useState(false)
+  const delayUnsave = Kb.useTimeout(() => setSaving(false), 100)
+  const updateNotifications = React.useCallback(() => {
+    setSaving(true)
+    dispatch(
+      Chat2Gen.createUpdateNotificationSettings({
+        conversationIDKey,
+        notificationsDesktop: desktop,
+        notificationsGlobalIgnoreMentions: channelWide,
+        notificationsMobile: mobile,
+      })
+    )
+    delayUnsave()
+  }, [dispatch, conversationIDKey, desktop, channelWide, mobile, delayUnsave])
+
+  const setChannelWide = React.useCallback(
+    (c: boolean) => {
+      _setChannelWide(c)
+      updateNotifications()
+    },
+    [_setChannelWide, updateNotifications]
+  )
+  const setDesktop = React.useCallback(
+    (d: Types.NotificationsType) => {
+      _setDesktop(d)
+      updateNotifications()
+    },
+    [_setDesktop, updateNotifications]
+  )
+  const setMobile = React.useCallback(
+    (m: Types.NotificationsType) => {
+      _setMobile(m)
+      updateNotifications()
+    },
+    [_setMobile, updateNotifications]
+  )
+  const setMuted = React.useCallback(
+    (m: boolean) => {
+      _setMuted(m)
+      updateNotifications()
+    },
+    [_setMuted, updateNotifications]
+  )
+
+  return (
+    <Kb.Box style={styles.container}>
+      <Kb.Box style={styles.top}>
+        <Kb.Checkbox checked={muted} onCheck={() => setMuted(!muted)} label="Mute all notifications" />
+        <Kb.Icon type="iconfont-shh" style={styles.icon} color={Styles.globalColors.black_20} />
+      </Kb.Box>
+      {!muted && (
+        <UnmutedNotificationPrefs
+          channelWide={channelWide}
+          setDesktop={setDesktop}
+          desktop={desktop}
+          setMobile={setMobile}
+          mobile={mobile}
+          toggleChannelWide={() => setChannelWide(!channelWide)}
+        />
+      )}
+      <Kb.SaveIndicator saving={saving} minSavingTimeMs={300} savedTimeoutMs={2500} />
     </Kb.Box>
-    {!props.muted && <UnmutedNotificationPrefs {...props} />}
-    <SaveIndicator saving={props.saving} minSavingTimeMs={300} savedTimeoutMs={2500} />
-  </Kb.Box>
-)
+  )
+}
 
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      container: {
+        ...Styles.globalStyles.flexBoxColumn,
+        paddingLeft: Styles.globalMargins.small,
+        paddingRight: Styles.globalMargins.small,
+      },
       header: Styles.platformStyles({
         common: {
           ...Styles.globalStyles.flexBoxRow,
@@ -146,9 +199,17 @@ const styles = Styles.styleSheetCreate(
           paddingTop: Styles.globalMargins.medium,
         },
       }),
+      icon: {marginLeft: Styles.globalMargins.xtiny},
       radioButton: {
         ...Styles.globalStyles.flexBoxRow,
         marginLeft: Styles.globalMargins.tiny,
       },
+      top: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+        marginBottom: Styles.globalMargins.xtiny,
+      },
     } as const)
 )
+
+export default Notifications
