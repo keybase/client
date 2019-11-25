@@ -366,6 +366,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
           styles.container,
           !this._isExploding() && styles.containerNoExploding, // extra right padding to line up with infopane / input icons
           this._showCenteredHighlight() && styles.centeredOrdinal,
+          !this.props.showUsername && styles.containerNoUsername,
         ]),
       }
       return this.props.decorate

@@ -27,7 +27,7 @@ const Joined = (props: Props) =>
   )
 
 const MultiUserJoinedNotice = (props: Props) => (
-  <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.container}>
+  <UserNotice hideAvatar={true}>
     {!!props.timestamp && (
       <Kb.Text type="BodyTiny" style={styles.timestamp}>
         {formatTimeForChat(props.timestamp)}
@@ -38,6 +38,7 @@ const MultiUserJoinedNotice = (props: Props) => (
       {props.joiners.length > 0 &&
         ` joined ${props.isBigTeam ? `#${props.channelname}.` : `${props.teamname}.`}`}
     </Kb.Text>
+    {/* <Kb.Box2 direction="horizontal" style={{ marginLeft: -Styles.globalMargins.tiny, justifyContent: "flex-start" }} > */}
     <Kb.AvatarLine
       usernames={props.joiners}
       maxShown={4}
@@ -45,7 +46,8 @@ const MultiUserJoinedNotice = (props: Props) => (
       layout="horizontal"
       alignSelf="flex-start"
     />
-  </Kb.Box2>
+    {/* </Kb.Box2> */}
+  </UserNotice>
 )
 
 const JoinedUserNotice = (props: Props) => (
@@ -73,18 +75,6 @@ const JoinedUserNotice = (props: Props) => (
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      container: Styles.platformStyles({
-        common: {
-          paddingBottom: Styles.globalMargins.xtiny,
-          paddingTop: Styles.globalMargins.xtiny,
-        },
-        isElectron: {
-          marginLeft: Styles.globalMargins.small,
-        },
-        isMobile: {
-          marginLeft: Styles.globalMargins.tiny,
-        },
-      }),
       timestamp: Styles.platformStyles({
         isElectron: {lineHeight: 19},
       }),
