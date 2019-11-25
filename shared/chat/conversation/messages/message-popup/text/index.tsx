@@ -66,8 +66,8 @@ const TextPopupMenu = (props: Props) => {
     ...(props.onCopy ? [{icon: 'iconfont-clipboard', onClick: props.onCopy, title: 'Copy text'}] : []),
     ...(props.onReply ? [{icon: 'iconfont-reply', onClick: props.onReply, title: 'Reply'}] : []),
     ...(props.onReplyPrivately ? [{icon: 'iconfont-reply', onClick: props.onReplyPrivately, title: 'Reply privately'}] : []),
-    ...(props.onPinMessage ? [{icon: 'iconfont-pin', onClick: props.onPinMessage, subTitle:'testing', title: 'Pin message'}] : []),
-    ...(props.onViewProfile ? [{onClick: props.onViewProfile, title: 'View profile'}] : []),
+    ...(props.onPinMessage ? [{icon: 'iconfont-pin', onClick: props.onPinMessage, title: 'Pin message'}] : []),
+    ...(props.onViewProfile ? [{icon: 'iconfont-person', onClick: props.onViewProfile, title: 'View profile'}] : []),
   ]
 
   const header = {

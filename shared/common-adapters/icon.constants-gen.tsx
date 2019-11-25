@@ -8033,6 +8033,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-film': {
+    charCode: 0xe9a9,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-filter': {
     charCode: 0xe986,
     gridSize: 16,
@@ -8368,8 +8373,18 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-person': {
+    charCode: 0xe9a7,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-phone-contact': {
     charCode: 0xe97b,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-pin': {
+    charCode: 0xe9a8,
     gridSize: 16,
     isFont: true,
   },
