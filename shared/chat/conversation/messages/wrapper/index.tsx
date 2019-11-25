@@ -431,6 +431,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     const padding = Styles.globalMargins.tiny
     const width =
       iconSizes.length <= 0 ? 0 : iconSizes.reduce((total, size) => total + size, iconSizes.length * padding)
+    const marginRight = Styles.isMobile && !this.props.showUsername ? 0 : -Styles.globalMargins.tiny
 
     const key = `${width}:${this.props.showUsername ? 1 : 0}:${exploding ? 1 : 0}:${exploded ? 1 : 0}`
 
@@ -439,6 +440,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         styles.menuButtons,
         !exploded && {width},
         !!this.props.showUsername && styles.menuButtonsWithAuthor,
+        {marginRight},
       ])
     }
     return this._cachedMenuStyles[key]
@@ -559,13 +561,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                 ordinal={message.ordinal}
               />
             )}
-            {this.props.isRevoked && (
-              <Kb.Icon
-                type="iconfont-rip"
-                color={Styles.globalColors.black_20}
-                style={styles.marginLeftTiny}
-              />
-            )}
+            {this.props.isRevoked && <Kb.Icon type="iconfont-rip" color={Styles.globalColors.black_20} />}
             {this.props.showCoinsIcon && (
               <Kb.Icon type="icon-stellar-coins-stacked-16" style={styles.marginLeftTiny} />
             )}
