@@ -336,7 +336,7 @@ func TestLoginWithPassphraseNoStore(t *testing.T) {
 
 // Signup followed by logout clears the stored secret
 func TestSignupWithStoreThenLogout(t *testing.T) {
-	tc := SetupEngineTest(t, "signup with store then login")
+	tc := SetupEngineTest(t, "signup with store then logout")
 	defer tc.Cleanup()
 
 	fu := NewFakeUserOrBust(tc.T, "lssl")
@@ -348,6 +348,42 @@ func TestSignupWithStoreThenLogout(t *testing.T) {
 	arg := MakeTestSignupEngineRunArg(fu)
 	arg.StoreSecret = true
 	_ = SignupFakeUserWithArg(tc, fu, arg)
+
+	Logout(tc)
+
+	if userHasStoredSecret(&tc, fu.Username) {
+		t.Errorf("User %s unexpectedly has a stored secret", fu.Username)
+	}
+}
+
+type timeoutAPI struct {
+	*libkb.APIArgRecorder
+}
+
+func (r *timeoutAPI) GetDecode(mctx libkb.MetaContext, arg libkb.APIArg, w libkb.APIResponseWrapper) error {
+	return errors.New("timed out")
+}
+
+func (r *timeoutAPI) Get(mctx libkb.MetaContext, arg libkb.APIArg) (*libkb.APIRes, error) {
+	return nil, errors.New("timed out")
+}
+
+// Signup followed by logout clears the stored secret
+func TestSignupWithStoreThenOfflineLogout(t *testing.T) {
+	tc := SetupEngineTest(t, "signup with store then offline logout")
+	defer tc.Cleanup()
+
+	fu := NewFakeUserOrBust(tc.T, "lssol")
+
+	if userHasStoredSecret(&tc, fu.Username) {
+		t.Errorf("User %s unexpectedly has a stored secret", fu.Username)
+	}
+
+	arg := MakeTestSignupEngineRunArg(fu)
+	arg.StoreSecret = true
+	_ = SignupFakeUserWithArg(tc, fu, arg)
+
+	tc.G.API = &timeoutAPI{}
 
 	Logout(tc)
 
