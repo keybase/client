@@ -120,9 +120,15 @@ const Notifications = (props: Props) => {
   const delayUnsave = Kb.useTimeout(() => setSaving(false), 100)
 
   // TODO submitting current state vs next.
-  // Container.usePrevious({})
+  // TODO in container
+  const isInitialMount = React.useRef(true)
 
-  const writeNotifications = React.useCallback(() => {
+  React.useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false
+      return
+    }
+
     setSaving(true)
     dispatch(
       Chat2Gen.createUpdateNotificationSettings({
@@ -134,6 +140,8 @@ const Notifications = (props: Props) => {
     )
     delayUnsave()
   }, [dispatch, conversationIDKey, desktop, channelWide, mobile, delayUnsave])
+
+  const writeNotifications = React.useCallback(() => {}, [])
   const writeMuted = React.useCallback(() => {
     setSaving(true)
     dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted}))
