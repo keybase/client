@@ -27,7 +27,7 @@ const Connect = Container.connect(
       convID: Container.getRouteProps(ownProps, 'convID', undefined),
       finishWaiting: waitingForLeave || waitingForBlocking,
       loadingWaiting: Container.anyWaiting(state, Constants.getUserBlocksWaitingKey),
-      others: Container.getRouteProps(ownProps, 'others', undefined),
+      otherUsernames: Container.getRouteProps(ownProps, 'others', undefined),
       teamname,
     }
   },
@@ -86,7 +86,7 @@ const Connect = Container.connect(
         }
       },
       refreshBlocks: () => {
-        const usernames = [stateProps.adderUsername].concat(stateProps.others || [])
+        const usernames = [stateProps.adderUsername].concat(stateProps.otherUsernames || [])
         if (usernames.length) {
           dispatchProps._refreshBlocksFor(usernames)
         }
