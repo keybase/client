@@ -311,6 +311,11 @@ func (a ByDatabaseOrder) Less(i, j int) bool {
 }
 
 func (i *Inbox) summarizeConv(rc *types.RemoteConversation) {
+	if len(rc.Conv.MaxMsgs) == 0 {
+		// early out here since we don't do anything if this is empty
+		return
+	}
+
 	summaries := make(map[chat1.MessageType]chat1.MessageSummary)
 
 	// Collect the existing summaries
