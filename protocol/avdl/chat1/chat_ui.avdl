@@ -21,7 +21,7 @@ protocol chatUi {
     string name;
     gregor1.Time time;
     union { null, string } snippet;
-    union { null, string } snippetDecoration;
+    SnippetDecoration snippetDecoration;
     union { null, string } draft;
     boolean isMuted;
     boolean isTeam;
@@ -68,7 +68,7 @@ protocol chatUi {
     string headline;
     string headlineDecorated;
     string snippet;
-    string snippetDecoration; // One of: "", "💣" (bomb), "💥" (exploded)
+    SnippetDecoration snippetDecoration;
     array<string> writerNames;
     array<string> resetParticipants;
   }
@@ -136,7 +136,7 @@ protocol chatUi {
     boolean isEmpty;
     string name;
     string snippet;
-    string snippetDecoration; // One of: "", "💣" (bomb), "💥" (exploded)
+    SnippetDecoration snippetDecoration;
     string channel;
     string headline;
     string headlineDecorated;

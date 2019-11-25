@@ -3623,6 +3623,24 @@
           "name": "mtime"
         }
       ]
+    },
+    {
+      "type": "enum",
+      "name": "SnippetDecoration",
+      "symbols": [
+        "NONE_0",
+        "PENDING_MESSAGE_1",
+        "FAILED_PENDING_MESSAGE_2",
+        "EXPLODING_MESSAGE_3",
+        "EXPLODED_MESSAGE_4",
+        "AUDIO_ATTACHMENT_5",
+        "VIDEO_ATTACHMENT_6",
+        "PHOTO_ATTACHMENT_7",
+        "FILE_ATTACHMENT_8",
+        "STELLAR_RECEIVED_9",
+        "STELLAR_SENT_10",
+        "PINNED_MESSAGE_11"
+      ]
     }
   ],
   "messages": {

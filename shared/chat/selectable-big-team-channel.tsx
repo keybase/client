@@ -5,6 +5,7 @@ import * as Constants from '../constants/chat2'
 import {TeamAvatar} from './avatars'
 import {pluralize} from '../util/string'
 import {BottomLine} from './inbox/row/small-team/bottom-line'
+import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 
 type Props = {
   isSelected: boolean
@@ -16,7 +17,7 @@ type Props = {
   showBadge: boolean
   showBold: boolean
   snippet: string | null
-  snippetDecoration: string | null
+  snippetDecoration: RPCChatTypes.SnippetDecoration
 }
 
 type State = {

@@ -7,6 +7,7 @@ import {isDarwin} from '../../constants/platform'
 import {isMobile, globalColors, globalMargins} from '../../styles'
 import Inbox from '.'
 import {RowItemSmall, RowItemBigHeader, RowItemBig, RowItemDivider, RowItemTeamBuilder} from './index'
+import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 
 /*
  * Rows
@@ -14,11 +15,13 @@ import {RowItemSmall, RowItemBigHeader, RowItemBig, RowItemDivider, RowItemTeamB
 const makeRowItemSmall = (conversationIDKey: string = ''): RowItemSmall => ({
   type: 'small',
   conversationIDKey: Types.stringToConversationIDKey(conversationIDKey),
+  snippetDecoration: RPCChatTypes.SnippetDecoration.none,
   teamname: 'mikem',
   isTeam: false,
   time: 1569718345,
 })
 const makeRowItemBigHeader = (teamname: string = ''): RowItemBigHeader => ({
+  snippetDecoration: RPCChatTypes.SnippetDecoration.none,
   type: 'bigHeader',
   teamID: '',
   teamname,
@@ -28,6 +31,7 @@ const makeRowItemBigChannel = (conversationIDKey, teamname, channelname): RowIte
   teamname,
   channelname,
   conversationIDKey: Types.stringToConversationIDKey(conversationIDKey),
+  snippetDecoration: RPCChatTypes.SnippetDecoration.none,
 })
 const makeRowItemDivider = (showButton: boolean = false): RowItemDivider => ({type: 'divider', showButton})
 const makeRowItemTeamBuilder = (): RowItemTeamBuilder => ({type: 'teamBuilder'})
@@ -54,7 +58,7 @@ const commonSmallTeam = {
   rekeyInfo: null,
   showBold: false,
   snippet: 'snippet',
-  snippetDecoration: '',
+  snippetDecoration: RPCChatTypes.SnippetDecoration.none,
   subColor: globalColors.black_50,
   teamname: '',
   timestamp: '1:23 pm',
@@ -170,14 +174,14 @@ const mapPropProviderProps = {
     participants: ['nathunsmitty'],
     snippet: 'whoops',
     timestamp: '11:06 am',
-    snippetDecoration: '💣',
+    snippetDecoration: RPCChatTypes.SnippetDecoration.explodingMessage,
   },
   smallTeamH: {
     conversationIDKey: '8',
     participants: ['ayoubd'],
     snippet: 'lol',
     timestamp: '1:37 pm',
-    snippetDecoration: '💥',
+    snippetDecoration: RPCChatTypes.SnippetDecoration.explodedMessage,
   },
   smallTeamI: {
     ...commonSmallTeam,
@@ -185,7 +189,7 @@ const mapPropProviderProps = {
     participants: ['cnojima'],
     snippet: 'rip',
     timestamp: '12:08 am',
-    snippetDecoration: '',
+    snippetDecoration: RPCChatTypes.SnippetDecoration.none,
   },
   smallTeamJ: {
     ...commonSmallTeam,
@@ -193,7 +197,7 @@ const mapPropProviderProps = {
     participants: ['max'],
     snippet: 'foo bar',
     timestamp: '2:56 pm',
-    snippetDecoration: '',
+    snippetDecoration: RPCChatTypes.SnippetDecoration.none,
   },
   smallTeamK: {
     ...commonSmallTeam,
@@ -201,7 +205,7 @@ const mapPropProviderProps = {
     participants: ['nathunsmitty'],
     snippet: 'scoop die whoop',
     timestamp: '1:05 pm',
-    snippetDecoration: '',
+    snippetDecoration: RPCChatTypes.SnippetDecoration.none,
   },
   smallTeamL: {
     ...commonSmallTeam,
