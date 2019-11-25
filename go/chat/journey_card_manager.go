@@ -449,16 +449,17 @@ func (cc *JourneyCardManagerSingleUser) cardPopularChannels(ctx context.Context,
 	// Don't get the actual names, since for NEVER_JOINED convs LocalMetadata,
 	// which has the name, is not generally available. The gui will fetch the names async.
 	topicType := chat1.TopicType_CHAT
+	joinableStatuses := []chat1.ConversationMemberStatus{ // keep in sync with cards/team-journey/container.tsx
+		chat1.ConversationMemberStatus_REMOVED,
+		chat1.ConversationMemberStatus_LEFT,
+		chat1.ConversationMemberStatus_RESET,
+		chat1.ConversationMemberStatus_NEVER_JOINED,
+	}
 	inbox, err := cc.G().InboxSource.ReadUnverified(ctx, cc.uid, types.InboxSourceDataSourceLocalOnly,
 		&chat1.GetInboxQuery{
-			TlfID:     &conv.TlfID,
-			TopicType: &topicType,
-			MemberStatus: []chat1.ConversationMemberStatus{
-				chat1.ConversationMemberStatus_REMOVED,
-				chat1.ConversationMemberStatus_LEFT,
-				chat1.ConversationMemberStatus_RESET,
-				chat1.ConversationMemberStatus_NEVER_JOINED,
-			},
+			TlfID:            &conv.TlfID,
+			TopicType:        &topicType,
+			MemberStatus:     joinableStatuses,
 			MembersTypes:     []chat1.ConversationMembersType{chat1.ConversationMembersType_TEAM},
 			SummarizeMaxMsgs: true,
 			SkipBgLoads:      true,

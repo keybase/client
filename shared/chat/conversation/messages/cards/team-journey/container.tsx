@@ -133,10 +133,16 @@ const TeamJourneyConnected = Container.connect(
   (stateProps, dispatchProps, ownProps) => {
     const {channelname, teamname} = stateProps
     // Take the top three channels with most recent activity.
+    const joinableStatuses = new Set([ // keep in sync with journey_card_manager.go
+				RPCChatTypes.ConversationMemberStatus.removed,
+				RPCChatTypes.ConversationMemberStatus.left,
+				RPCChatTypes.ConversationMemberStatus.reset,
+				RPCChatTypes.ConversationMemberStatus.neverJoined,
+    ])
     const otherChannels = stateProps._channelInfos
       .valueSeq()
       .toArray()
-      .filter(info => info.memberStatus !== RPCChatTypes.ConversationMemberStatus.active)
+      .filter(info => joinableStatuses.has(info.memberStatus))
       .sort((x, y) => y.mtime - x.mtime)
       .map(info => info.channelname)
       .slice(0, Container.isMobile ? 2 : 3)
