@@ -55,6 +55,7 @@ import static keybase.Keybase.initOnce;
 public class MainActivity extends ReactFragmentActivity {
   private static final String TAG = MainActivity.class.getName();
   private PermissionListener listener;
+  static boolean createdReact = false;
 
   private static void createDummyFile(Context context) {
     final File dummyFile = new File(context.getFilesDir(), "dummy.txt");
@@ -131,7 +132,11 @@ public class MainActivity extends ReactFragmentActivity {
   @TargetApi(Build.VERSION_CODES.KITKAT)
   protected void onCreate(Bundle savedInstanceState) {
     ReactInstanceManager instanceManager = this.getReactInstanceManager();
-    instanceManager.createReactContextInBackground();
+    if (!this.createdReact) {
+      this.createdReact = true;
+      instanceManager.createReactContextInBackground();
+    }
+
     setupKBRuntime(this, true);
     super.onCreate(null);
 
