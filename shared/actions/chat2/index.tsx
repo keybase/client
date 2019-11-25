@@ -878,7 +878,10 @@ const onNewChatActivity = (
       const {failedMessage} = activity
       const {outboxRecords} = failedMessage
       if (outboxRecords) {
-        actions = onErrorMessage(outboxRecords)
+        actions = [
+          ...(onErrorMessage(outboxRecords) as any),
+          ...(chatActivityToMetasAction(state, failedMessage) as any),
+        ]
       }
       break
     }

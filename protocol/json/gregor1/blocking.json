@@ -1,0 +1,24 @@
+{
+  "protocol": "blocking",
+  "imports": [],
+  "types": [],
+  "messages": {
+    "blockConversations": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "UID"
+        },
+        {
+          "name": "tlfIDs",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
+        }
+      ],
+      "response": null
+    }
+  },
+  "namespace": "gregor.1"
+}

@@ -4,6 +4,7 @@ import CodePage2 from '.'
 import * as Container from '../../util/container'
 import HiddenString from '../../util/hidden-string'
 import * as DevicesConstants from '../../constants/devices'
+import * as Constants from '../../constants/provision'
 
 type OwnProps = Container.RouteProps<{}>
 
@@ -19,6 +20,7 @@ const prov = Container.connect(
       error: state.provision.error.stringValue(),
       otherDevice: state.provision.codePageOtherDevice,
       textCode: state.provision.codePageIncomingTextCode.stringValue(),
+      waiting: Container.anyWaiting(state, Constants.waitingKey),
     }
   },
   (dispatch: Container.TypedDispatch) => ({
@@ -34,9 +36,10 @@ const prov = Container.connect(
     error: stateProps.error,
     onBack: dispatchProps.onBack,
     onClose: dispatchProps.onClose,
-    onSubmitTextCode: dispatchProps.onSubmitTextCode,
+    onSubmitTextCode: (code: string) => !stateProps.waiting && dispatchProps.onSubmitTextCode(code),
     otherDevice: stateProps.otherDevice,
     textCode: stateProps.textCode,
+    waiting: stateProps.waiting,
   })
 )(Container.safeSubmit(['onBack', 'onSubmitTextCode'], ['error'])(CodePage2))
 export default prov

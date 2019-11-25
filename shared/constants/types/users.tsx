@@ -3,6 +3,7 @@ export type UserInfo = {
   bio?: string
   broken?: boolean
   fullname?: string
+  blocked?: boolean
 }
 
 export type BlockState = {

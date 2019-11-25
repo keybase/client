@@ -481,20 +481,21 @@ func (o *Outbox) CancelMessagesWithPredicate(ctx context.Context, shouldCancel f
 	return numCancelled, nil
 }
 
-func (o *Outbox) RemoveMessage(ctx context.Context, obid chat1.OutboxID) (err error) {
+func (o *Outbox) RemoveMessage(ctx context.Context, obid chat1.OutboxID) (res chat1.OutboxRecord, err error) {
 	locks.Outbox.Lock()
 	defer locks.Outbox.Unlock()
 
 	// Read outbox for the user
 	obox, err := o.readStorage(ctx)
 	if err != nil {
-		return err
+		return res, err
 	}
 
 	// Scan to find the message and don't include it
 	var recs []chat1.OutboxRecord
 	for _, obr := range obox.Records {
 		if obr.OutboxID.Eq(&obid) {
+			res = obr
 			o.cleanupOutboxItem(ctx, obr)
 			continue
 		}
@@ -503,7 +504,7 @@ func (o *Outbox) RemoveMessage(ctx context.Context, obid chat1.OutboxID) (err er
 	obox.Records = recs
 
 	// Write out box
-	return o.writeStorage(ctx, obox)
+	return res, o.writeStorage(ctx, obox)
 }
 
 func (o *Outbox) AppendToThread(ctx context.Context, convID chat1.ConversationID,
@@ -576,7 +577,7 @@ func (o *Outbox) OutboxPurge(ctx context.Context) (ephemeralPurged []chat1.Outbo
 	// Read outbox for the user
 	obox, err := o.readStorage(ctx)
 	if err != nil {
-		return ephemeralPurged, err
+		return nil, err
 	}
 
 	var recs []chat1.OutboxRecord
@@ -610,7 +611,7 @@ func (o *Outbox) OutboxPurge(ctx context.Context) (ephemeralPurged []chat1.Outbo
 
 	// Write out diskbox
 	if err := o.writeStorage(ctx, obox); err != nil {
-		return ephemeralPurged, err
+		return nil, err
 	}
 	return ephemeralPurged, nil
 }
@@ -622,4 +623,24 @@ func (o *Outbox) OutboxPurge(ctx context.Context) (ephemeralPurged []chat1.Outbo
 func (o *Outbox) cleanupOutboxItem(ctx context.Context, obr chat1.OutboxRecord) {
 	o.G().AttachmentUploader.Complete(ctx, obr.OutboxID)
 	o.G().Unfurler.Complete(ctx, obr.OutboxID)
+}
+
+func (o *Outbox) PullForConversation(ctx context.Context, convID chat1.ConversationID) ([]chat1.OutboxRecord, error) {
+	locks.Outbox.Lock()
+	defer locks.Outbox.Unlock()
+
+	// Read outbox for the user
+	obox, err := o.readStorage(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var recs []chat1.OutboxRecord
+	for _, obr := range obox.Records {
+		if !obr.ConvID.Eq(convID) {
+			continue
+		}
+		recs = append(recs, obr)
+	}
+	return recs, nil
 }

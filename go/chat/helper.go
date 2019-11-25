@@ -208,8 +208,7 @@ func (h *Helper) FindConversationsByID(ctx context.Context, convIDs []chat1.Conv
 		ConvIDs: convIDs,
 	}
 	inbox, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
-		types.InboxSourceDataSourceAll, nil, query,
-		nil)
+		types.InboxSourceDataSourceAll, nil, query)
 	if err != nil {
 		return nil, err
 	}
@@ -234,7 +233,7 @@ func (h *Helper) GetChannelTopicName(ctx context.Context, teamID keybase1.TeamID
 		ConvIDs: []chat1.ConversationID{convID},
 	}
 	inbox, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
-		types.InboxSourceDataSourceAll, nil, query, nil)
+		types.InboxSourceDataSourceAll, nil, query)
 	if err != nil {
 		return topicName, err
 	}
@@ -290,6 +289,30 @@ func (h *Helper) GetMessage(ctx context.Context, uid gregor1.UID, convID chat1.C
 
 func (h *Helper) UserReacjis(ctx context.Context, uid gregor1.UID) keybase1.UserReacjis {
 	return storage.NewReacjiStore(h.G()).UserReacjis(ctx, uid)
+}
+
+func (h *Helper) JourneycardTimeTravel(ctx context.Context, uid gregor1.UID, duration time.Duration) error {
+	j, ok := h.G().JourneyCardManager.(*JourneyCardManager)
+	if !ok {
+		return fmt.Errorf("could not get JourneyCardManager")
+	}
+	return j.TimeTravel(ctx, uid, duration)
+}
+
+func (h *Helper) JourneycardResetAllConvs(ctx context.Context, uid gregor1.UID) error {
+	j, ok := h.G().JourneyCardManager.(*JourneyCardManager)
+	if !ok {
+		return fmt.Errorf("could not get JourneyCardManager")
+	}
+	return j.ResetAllConvs(ctx, uid)
+}
+
+func (h *Helper) JourneycardDebugState(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (string, error) {
+	j, ok := h.G().JourneyCardManager.(*JourneyCardManager)
+	if !ok {
+		return "", fmt.Errorf("could not get JourneyCardManager")
+	}
+	return j.DebugState(ctx, uid, convID)
 }
 
 func GetMessage(ctx context.Context, g *globals.Context, uid gregor1.UID, convID chat1.ConversationID,
@@ -476,18 +499,16 @@ func RecentConversationParticipants(ctx context.Context, g *globals.Context, myU
 }
 
 func PresentConversationLocalWithFetchRetry(ctx context.Context, g *globals.Context,
-	uid gregor1.UID, conv chat1.ConversationLocal) (res *chat1.InboxUIItem) {
+	uid gregor1.UID, conv chat1.ConversationLocal) *chat1.InboxUIItem {
 	if conv.Error != nil {
 		// If we get a transient failure, add this to the retrier queue
 		if conv.Error.Typ == chat1.ConversationErrorType_TRANSIENT {
 			g.FetchRetrier.Failure(ctx, uid,
 				NewConversationRetry(g, conv.GetConvID(), &conv.Info.Triple.Tlfid, InboxLoad))
 		}
-	} else {
-		pc := utils.PresentConversationLocal(ctx, g, uid, conv)
-		res = &pc
 	}
-	return res
+	pc := utils.PresentConversationLocal(ctx, g, uid, conv)
+	return &pc
 }
 
 func GetTopicNameState(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
@@ -558,7 +579,7 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 		}
 
 		inbox, _, err := g.InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, dataSource, nil,
-			query, nil)
+			query)
 		if err != nil {
 			acceptableErr := false
 			// if we fail to load the team for some kind of rekey reason, treat as a complete miss
@@ -737,7 +758,7 @@ func postJoinLeave(ctx context.Context, g *globals.Context, ri func() chat1.Remo
 		ConvIDs: []chat1.ConversationID{convID},
 	}
 	ib, _, err := g.InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
-		types.InboxSourceDataSourceAll, nil, &query, nil)
+		types.InboxSourceDataSourceAll, nil, &query)
 	if err != nil {
 		return fmt.Errorf("inbox read error: %s", err)
 	}
@@ -978,7 +999,7 @@ func (n *newConversationHelper) findExisting(ctx context.Context, tlfID chat1.TL
 				TlfVisibility: &n.vis,
 				TopicName:     &topicName,
 				TopicType:     &n.topicType,
-			}, nil)
+			})
 		if err != nil {
 			return res, err
 		}
@@ -1184,7 +1205,7 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 			types.InboxSourceDataSourceRemoteOnly, nil,
 			&chat1.GetInboxLocalQuery{
 				ConvIDs: []chat1.ConversationID{convID},
-			}, nil)
+			})
 		if err != nil {
 			return res, err
 		}

@@ -36,7 +36,7 @@ func (c *TeamChannelSource) getTLFConversations(ctx context.Context, uid gregor1
 			MemberStatus:     chat1.AllConversationMemberStatuses(),
 			Existences:       []chat1.ConversationExistence{chat1.ConversationExistence_ACTIVE},
 			SkipBgLoads:      true,
-		}, nil /* pagination */)
+		})
 	return inbox.ConvsUnverified, err
 }
 

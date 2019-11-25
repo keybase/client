@@ -23,7 +23,7 @@ func newCmdScript(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 	return cli.Command{
 		Name:         "script",
 		ArgumentHelp: "<script> [<args>]",
-		Usage:        "Run a dev debug script",
+		Usage:        "Run a dev debug script. See debugging_devel.go",
 		Action: func(c *cli.Context) {
 			cmd := NewCmdScriptRunner(g)
 			cl.ChooseCommand(cmd, "script", c)

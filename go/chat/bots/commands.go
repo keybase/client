@@ -230,7 +230,11 @@ func (b *CachingBotCommandManager) ListCommands(ctx context.Context, convID chat
 	var s commandsStorage
 	found, err := b.edb.Get(ctx, dbKey, &s)
 	if err != nil {
-		return res, alias, err
+		b.Debug(ctx, "ListCommands: failed to read cache: %s", err)
+		if err := b.edb.Delete(ctx, dbKey); err != nil {
+			b.Debug(ctx, "edb.Delete: %v", err)
+		}
+		found = false
 	}
 	if !found {
 		return res, alias, nil
@@ -362,7 +366,8 @@ func (b *CachingBotCommandManager) getBotInfo(ctx context.Context, job commandUp
 	convID := job.convID
 	found, err := b.edb.Get(ctx, b.dbInfoKey(convID), &botInfo)
 	if err != nil {
-		return botInfo, false, err
+		b.Debug(ctx, "getBotInfo: failed to read cache: %s", err)
+		found = false
 	}
 	var infoHash chat1.BotInfoHash
 	if found {

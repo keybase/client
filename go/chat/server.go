@@ -191,7 +191,7 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 	}()
 	defer h.suspendBgConvLoads(ctx)()
 
-	if err := h.G().UIInboxLoader.LoadNonblock(ctx, arg.Query, arg.Pagination, arg.MaxUnbox,
+	if err := h.G().UIInboxLoader.LoadNonblock(ctx, arg.Query, arg.MaxUnbox,
 		arg.SkipUnverified); err != nil {
 		return res, err
 	}
@@ -259,12 +259,11 @@ func (h *Server) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.GetInboxAn
 
 	// Read inbox from the source
 	ib, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
-		types.InboxSourceDataSourceAll, nil, arg.Query, arg.Pagination)
+		types.InboxSourceDataSourceAll, nil, arg.Query)
 	if err != nil {
 		if _, ok := err.(UnknownTLFNameError); ok {
 			h.Debug(ctx, "GetInboxAndUnboxLocal: got unknown TLF name error, returning blank results")
 			ib.Convs = nil
-			ib.Pagination = nil
 		} else {
 			return res, err
 		}
@@ -272,7 +271,6 @@ func (h *Server) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.GetInboxAn
 
 	return chat1.GetInboxAndUnboxLocalRes{
 		Conversations:    ib.Convs,
-		Pagination:       ib.Pagination,
 		Offline:          h.G().InboxSource.IsOffline(ctx),
 		IdentifyFailures: identBreaks,
 	}, nil
@@ -290,19 +288,17 @@ func (h *Server) GetInboxAndUnboxUILocal(ctx context.Context, arg chat1.GetInbox
 	}
 	// Read inbox from the source
 	ib, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
-		types.InboxSourceDataSourceAll, nil, arg.Query, arg.Pagination)
+		types.InboxSourceDataSourceAll, nil, arg.Query)
 	if err != nil {
 		if _, ok := err.(UnknownTLFNameError); ok {
 			h.Debug(ctx, "GetInboxAndUnboxUILocal: got unknown TLF name error, returning blank results")
 			ib.Convs = nil
-			ib.Pagination = nil
 		} else {
 			return res, err
 		}
 	}
 	return chat1.GetInboxAndUnboxUILocalRes{
 		Conversations:    utils.PresentConversationLocals(ctx, h.G(), uid, ib.Convs),
-		Pagination:       ib.Pagination,
 		IdentifyFailures: identBreaks,
 	}, nil
 }
@@ -417,6 +413,24 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 	return res, nil
 }
 
+func (h *Server) limitConvResults(ctx context.Context, uid gregor1.UID, allConvs []types.RemoteConversation,
+	num int) ([]chat1.ConversationLocal, error) {
+	var convs []types.RemoteConversation
+	sort.Slice(allConvs, func(i, j int) bool {
+		return utils.GetConvMtime(allConvs[i]) > utils.GetConvMtime(allConvs[j])
+	})
+	if len(allConvs) <= num {
+		convs = allConvs
+	} else {
+		convs = allConvs[:num]
+	}
+	locals, _, err := h.G().InboxSource.Localize(ctx, uid, convs, types.ConversationLocalizerBlocking)
+	if err != nil {
+		return nil, err
+	}
+	return locals, nil
+}
+
 func (h *Server) GetInboxSummaryForCLILocal(ctx context.Context, arg chat1.GetInboxSummaryForCLILocalQuery) (res chat1.GetInboxSummaryForCLILocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_CLI, &identBreaks,
@@ -424,7 +438,8 @@ func (h *Server) GetInboxSummaryForCLILocal(ctx context.Context, arg chat1.GetIn
 	defer h.Trace(ctx, func() error { return err }, "GetInboxSummaryForCLILocal")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
-	if _, err = utils.AssertLoggedInUID(ctx, h.G()); err != nil {
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
 		return chat1.GetInboxSummaryForCLILocalRes{}, err
 	}
 
@@ -443,7 +458,7 @@ func (h *Server) GetInboxSummaryForCLILocal(ctx context.Context, arg chat1.GetIn
 		}
 	}
 
-	var queryBase chat1.GetInboxLocalQuery
+	var queryBase chat1.GetInboxQuery
 	queryBase.ComputeActiveList = true
 	queryBase.OneChatTypePerTLF = new(bool)
 	*queryBase.OneChatTypePerTLF = true
@@ -474,14 +489,15 @@ func (h *Server) GetInboxSummaryForCLILocal(ctx context.Context, arg chat1.GetIn
 		}
 		query := queryBase
 		query.UnreadOnly, query.ReadOnly = true, false
-		if gires, err = h.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
-			Pagination:       &chat1.Pagination{Num: arg.UnreadFirstLimit.AtMost},
-			Query:            &query,
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-		}); err != nil {
+		ib, err := h.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll, &query)
+		if err != nil {
 			return chat1.GetInboxSummaryForCLILocalRes{}, err
 		}
-		res.Conversations = gires.Conversations
+		res.Conversations, err = h.limitConvResults(ctx, uid, ib.ConvsUnverified,
+			arg.UnreadFirstLimit.AtMost)
+		if err != nil {
+			return chat1.GetInboxSummaryForCLILocalRes{}, err
+		}
 
 		more := utils.Collar(
 			arg.UnreadFirstLimit.AtLeast-len(res.Conversations),
@@ -491,13 +507,15 @@ func (h *Server) GetInboxSummaryForCLILocal(ctx context.Context, arg chat1.GetIn
 		if more > 0 {
 			query := queryBase
 			query.UnreadOnly, query.ReadOnly = false, true
-			if gires, err = h.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
-				Pagination: &chat1.Pagination{Num: more},
-				Query:      &query,
-			}); err != nil {
+			ib, err := h.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll, &query)
+			if err != nil {
 				return chat1.GetInboxSummaryForCLILocalRes{}, err
 			}
-			res.Conversations = append(res.Conversations, gires.Conversations...)
+			moreConvs, err := h.limitConvResults(ctx, uid, ib.ConvsUnverified, more)
+			if err != nil {
+				return chat1.GetInboxSummaryForCLILocalRes{}, err
+			}
+			res.Conversations = append(res.Conversations, moreConvs...)
 		}
 	} else {
 		if arg.ActivitySortedLimit <= 0 {
@@ -505,14 +523,14 @@ func (h *Server) GetInboxSummaryForCLILocal(ctx context.Context, arg chat1.GetIn
 		}
 		query := queryBase
 		query.UnreadOnly, query.ReadOnly = false, false
-		if gires, err = h.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
-			Pagination:       &chat1.Pagination{Num: arg.ActivitySortedLimit},
-			Query:            &query,
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-		}); err != nil {
+		ib, err := h.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll, &query)
+		if err != nil {
 			return chat1.GetInboxSummaryForCLILocalRes{}, err
 		}
-		res.Conversations = gires.Conversations
+		res.Conversations, err = h.limitConvResults(ctx, uid, ib.ConvsUnverified, arg.ActivitySortedLimit)
+		if err != nil {
+			return chat1.GetInboxSummaryForCLILocalRes{}, err
+		}
 	}
 	res.Offline = gires.Offline
 	return res, nil
@@ -1231,6 +1249,14 @@ func (h *Server) downloadAttachmentLocal(ctx context.Context, uid gregor1.UID, a
 	}, nil
 }
 
+func (h *Server) presentUIItem(ctx context.Context, uid gregor1.UID, conv *chat1.ConversationLocal) (res *chat1.InboxUIItem) {
+	if conv != nil {
+		pc := utils.PresentConversationLocal(ctx, h.G(), uid, *conv)
+		res = &pc
+	}
+	return res
+}
+
 func (h *Server) CancelPost(ctx context.Context, outboxID chat1.OutboxID) (err error) {
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "CancelPost(%s)", outboxID)()
@@ -1239,13 +1265,24 @@ func (h *Server) CancelPost(ctx context.Context, outboxID chat1.OutboxID) (err e
 		return err
 	}
 	outbox := storage.NewOutbox(h.G(), uid)
-	if err := outbox.RemoveMessage(ctx, outboxID); err != nil {
+	obr, err := outbox.RemoveMessage(ctx, outboxID)
+	if err != nil {
 		return err
 	}
 	// Alert the attachment uploader as well, in case this outboxID corresponds to an attachment upload
 	if err := h.G().AttachmentUploader.Cancel(ctx, outboxID); err != nil {
 		return err
 	}
+	convLocal, err := h.G().InboxSource.IncrementLocalConvVersion(ctx, uid, obr.ConvID)
+	if err != nil {
+		h.Debug(ctx, "CancelPost: failed to get IncrementLocalConvVersion")
+	}
+	act := chat1.NewChatActivityWithFailedMessage(chat1.FailedMessageInfo{
+		OutboxRecords: []chat1.OutboxRecord{obr},
+		Conv:          h.presentUIItem(ctx, uid, convLocal),
+	})
+	h.G().ActivityNotifier.Activity(context.Background(), uid, chat1.TopicType_NONE, &act,
+		chat1.ChatActivitySource_LOCAL)
 	return h.G().Badger.Send(ctx)
 }
 
@@ -1661,7 +1698,7 @@ func (h *Server) AddTeamMemberAfterReset(ctx context.Context,
 		types.InboxSourceDataSourceAll, nil,
 		&chat1.GetInboxLocalQuery{
 			ConvIDs: []chat1.ConversationID{arg.ConvID},
-		}, nil)
+		})
 	if err != nil {
 		return err
 	}
@@ -1695,34 +1732,26 @@ func (h *Server) GetAllResetConvMembers(ctx context.Context) (res chat1.GetAllRe
 	if err != nil {
 		return res, err
 	}
-	p := &chat1.Pagination{Num: 10000}
-	for {
-		h.Debug(ctx, "GetAllResetConvMembers: p: %s", p)
-		ib, err := h.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll, nil, p)
-		if err != nil {
-			return res, err
+	ib, err := h.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll, nil)
+	if err != nil {
+		return res, err
+	}
+	for _, conv := range ib.ConvsUnverified {
+		switch conv.GetMembersType() {
+		case chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_IMPTEAMUPGRADE:
+		default:
+			continue
 		}
-		for _, conv := range ib.ConvsUnverified {
-			switch conv.GetMembersType() {
-			case chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_IMPTEAMUPGRADE:
-			default:
-				continue
+		for _, ru := range conv.Conv.Metadata.ResetList {
+			username, err := h.G().GetUPAKLoader().LookupUsername(ctx, keybase1.UID(ru.String()))
+			if err != nil {
+				return res, err
 			}
-			for _, ru := range conv.Conv.Metadata.ResetList {
-				username, err := h.G().GetUPAKLoader().LookupUsername(ctx, keybase1.UID(ru.String()))
-				if err != nil {
-					return res, err
-				}
-				res.Members = append(res.Members, chat1.ResetConvMember{
-					Uid:      ru,
-					Conv:     conv.GetConvID(),
-					Username: username.String(),
-				})
-			}
-		}
-		p = ib.Pagination
-		if p.Last {
-			break
+			res.Members = append(res.Members, chat1.ResetConvMember{
+				Uid:      ru,
+				Conv:     conv.GetConvID(),
+				Username: username.String(),
+			})
 		}
 	}
 	return res, nil
@@ -1847,15 +1876,14 @@ func (h *Server) GetTeamRetentionLocal(ctx context.Context, teamID keybase1.Team
 	if err != nil {
 		return res, err
 	}
-	p := chat1.Pagination{Num: 1}
 	ib, err := h.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll,
 		&chat1.GetInboxQuery{
 			TlfID: &tlfID,
-		}, &p)
+		})
 	if err != nil {
 		return res, err
 	}
-	if len(ib.ConvsUnverified) != 1 {
+	if len(ib.ConvsUnverified) == 0 {
 		return res, errors.New("no conversations found")
 	}
 	return ib.ConvsUnverified[0].Conv.TeamRetention, nil
@@ -1879,7 +1907,7 @@ func (h *Server) UpgradeKBFSConversationToImpteam(ctx context.Context, convID ch
 		types.InboxSourceDataSourceAll, nil,
 		&chat1.GetInboxLocalQuery{
 			ConvIDs: []chat1.ConversationID{convID},
-		}, nil)
+		})
 	if err != nil {
 		return err
 	}
