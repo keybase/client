@@ -975,6 +975,9 @@ func TestUpdateLocalMtime(t *testing.T) {
 	diskIbox, err := inbox.readDiskInbox(context.TODO(), uid, true)
 	require.NoError(t, err)
 
+	sort.Slice(diskIbox.Conversations, func(i, j int) bool {
+		return diskIbox.Conversations[i].GetMtime() > diskIbox.Conversations[j].GetMtime()
+	})
 	require.Equal(t, mtime1, diskIbox.Conversations[0].GetMtime())
 	require.Equal(t, mtime2, diskIbox.Conversations[1].GetMtime())
 }
