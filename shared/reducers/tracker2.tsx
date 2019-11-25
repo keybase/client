@@ -120,7 +120,7 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     const toProcess = blocked ?? []
     toProcess.forEach(e => {
       followers.delete(e)
-      dBlocked = getDetails(draftState, e).blocked = true
+      getDetails(draftState, e).blocked = true
     })
     d.followersCount = followers.size
   },
