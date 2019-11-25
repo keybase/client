@@ -21,7 +21,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-const inboxVersion = 25
+const inboxVersion = 26
 
 var defaultMemberStatusFilter = []chat1.ConversationMemberStatus{
 	chat1.ConversationMemberStatus_ACTIVE,
@@ -376,7 +376,8 @@ func (i *Inbox) hashQuery(ctx context.Context, query *chat1.GetInboxQuery) (quer
 func (i *Inbox) MergeLocalMetadata(ctx context.Context, uid gregor1.UID, convs []chat1.ConversationLocal) (err Error) {
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
-	defer i.Trace(ctx, func() error { return err }, fmt.Sprintf("MergeLocalMetadata: num convs: %d", len(convs)))()
+	defer i.Trace(ctx, func() error { return err }, fmt.Sprintf("MergeLocalMetadata: num convs: %d",
+		len(convs)))()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 	if len(convs) == 0 {
 		return nil
@@ -402,7 +403,8 @@ func (i *Inbox) MergeLocalMetadata(ctx context.Context, uid gregor1.UID, convs [
 				continue
 			}
 			topicName := convLocal.Info.TopicName
-			snippet, snippetDecoration := utils.GetConvSnippet(convLocal, i.G().GetEnv().GetUsername().String())
+			snippet, snippetDecoration := utils.GetConvSnippet(convLocal,
+				i.G().GetEnv().GetUsername().String())
 			rcm := &types.RemoteConversationMetadata{
 				Name:              convLocal.Info.TlfName,
 				TopicName:         topicName,
@@ -419,6 +421,7 @@ func (i *Inbox) MergeLocalMetadata(ctx context.Context, uid gregor1.UID, convs [
 				}
 			default:
 				rcm.WriterNames = convLocal.AllNames()
+				rcm.FullNamesForSearch = convLocal.FullNamesForSearch()
 				rcm.ResetParticipants = convLocal.Info.ResetNames
 			}
 			ibox.Conversations[index].LocalMetadata = rcm
