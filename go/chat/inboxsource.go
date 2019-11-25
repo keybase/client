@@ -1197,24 +1197,14 @@ func (s *HybridInboxSource) fullNamesForSearch(ctx context.Context, conv types.R
 		return nil
 	default:
 	}
-
-	var kuids []keybase1.UID
-	for _, uid := range conv.Conv.Metadata.AllList {
-		kuids = append(kuids, keybase1.UID(uid.String()))
+	if conv.LocalMetadata == nil {
+		return nil
 	}
-	pkgs, err := s.G().UIDMapper.MapUIDsToUsernamePackagesOffline(ctx, s.G(), kuids, 24*time.Hour)
-	if err != nil {
-		s.Debug(ctx, "unable to map uid packages: %v", err)
-	}
-	for _, pkg := range pkgs {
-		// skip our own full name except for our self chat
-		if pkg.NormalizedUsername.String() == username && convName != username {
+	for _, name := range conv.LocalMetadata.FullNamesForSearch {
+		if name == username && convName != username {
 			continue
 		}
-		if pkg.FullName != nil {
-			fullname := strings.ToLower(pkg.FullName.FullName.String())
-			res = append(res, strings.Split(fullname, " ")...)
-		}
+		res = append(res, strings.Split(strings.ToLower(name), " ")...)
 	}
 	return res
 }

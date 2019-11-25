@@ -1324,6 +1324,15 @@ func (c ConversationLocal) AllNames() (res []string) {
 	return res
 }
 
+func (c ConversationLocal) FullNamesForSearch() (res []string) {
+	for _, p := range c.Info.Participants {
+		if p.Fullname != nil {
+			res = append(res, *p.Fullname)
+		}
+	}
+	return res
+}
+
 func (c Conversation) GetMtime() gregor1.Time {
 	return c.ReaderInfo.Mtime
 }
