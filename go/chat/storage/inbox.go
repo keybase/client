@@ -1600,9 +1600,7 @@ func (i *Inbox) Sync(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	}
 	i.Debug(ctx, "Sync: adding %d new conversations", len(convMap))
 	for _, conv := range convMap {
-		ibox.Conversations = append(ibox.Conversations, types.RemoteConversation{
-			Conv: conv,
-		})
+		ibox.Conversations = append(ibox.Conversations, utils.RemoteConv(conv))
 	}
 
 	i.Debug(ctx, "Sync: old vers: %v new vers: %v convs: %d", oldVers, ibox.InboxVersion, len(convs))
@@ -1653,9 +1651,7 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 	var ujs []types.RemoteConversation
 	for _, uj := range userJoined {
 		i.Debug(ctx, "MembershipUpdate: joined conv: %s", uj.GetConvID())
-		ujs = append(ujs, types.RemoteConversation{
-			Conv: uj,
-		})
+		ujs = append(ujs, utils.RemoteConv(uj))
 		layoutChanged = layoutChanged || uj.GetTopicType() == chat1.TopicType_CHAT
 	}
 	convs := i.mergeConvs(ujs, ibox.Conversations)
