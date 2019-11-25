@@ -140,7 +140,7 @@ class BlockModal extends React.PureComponent<Props, State> {
   }
 
   componentDidUpdate(prevProps: Props) {
-    if (this.state.finishClicked && this.props.finishWaiting && !prevProps.finishWaiting) {
+    if (this.state.finishClicked && prevProps.finishWaiting && !this.props.finishWaiting) {
       this.props.onClose()
     }
   }
