@@ -71,9 +71,5 @@
       "siteIconFull": "Array<Types.SiteIcon>",
       "siteIconWhite": "Array<Types.SiteIcon>"
     },
-    "userBlocked": {
-      "blocker" : "string",
-      "blocked" : "Array<string>"
-    }
   }
 }
