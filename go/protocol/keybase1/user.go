@@ -399,14 +399,16 @@ func (o UserPassphraseStateMsg) DeepCopy() UserPassphraseStateMsg {
 }
 
 type UserBlockedRow struct {
-	Uid    UID   `codec:"uid" json:"block_uid"`
-	Chat   *bool `codec:"chat,omitempty" json:"chat,omitempty"`
-	Follow *bool `codec:"follow,omitempty" json:"follow,omitempty"`
+	Uid      UID    `codec:"uid" json:"block_uid"`
+	Username string `codec:"username" json:"block_username"`
+	Chat     *bool  `codec:"chat,omitempty" json:"chat,omitempty"`
+	Follow   *bool  `codec:"follow,omitempty" json:"follow,omitempty"`
 }
 
 func (o UserBlockedRow) DeepCopy() UserBlockedRow {
 	return UserBlockedRow{
-		Uid: o.Uid.DeepCopy(),
+		Uid:      o.Uid.DeepCopy(),
+		Username: o.Username,
 		Chat: (func(x *bool) *bool {
 			if x == nil {
 				return nil
@@ -424,12 +426,14 @@ func (o UserBlockedRow) DeepCopy() UserBlockedRow {
 	}
 }
 
-type UserBlockedGregorBody struct {
-	Blocks []UserBlockedRow `codec:"blocks" json:"blocks"`
+type UserBlockedBody struct {
+	Blocks   []UserBlockedRow `codec:"blocks" json:"blocks"`
+	Uid      UID              `codec:"uid" json:"blocker_uid"`
+	Username string           `codec:"username" json:"blocker_username"`
 }
 
-func (o UserBlockedGregorBody) DeepCopy() UserBlockedGregorBody {
-	return UserBlockedGregorBody{
+func (o UserBlockedBody) DeepCopy() UserBlockedBody {
+	return UserBlockedBody{
 		Blocks: (func(x []UserBlockedRow) []UserBlockedRow {
 			if x == nil {
 				return nil
@@ -441,6 +445,30 @@ func (o UserBlockedGregorBody) DeepCopy() UserBlockedGregorBody {
 			}
 			return ret
 		})(o.Blocks),
+		Uid:      o.Uid.DeepCopy(),
+		Username: o.Username,
+	}
+}
+
+type UserBlockedSummary struct {
+	Blocker string   `codec:"blocker" json:"blocker"`
+	Blocked []string `codec:"blocked" json:"blocked"`
+}
+
+func (o UserBlockedSummary) DeepCopy() UserBlockedSummary {
+	return UserBlockedSummary{
+		Blocker: o.Blocker,
+		Blocked: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Blocked),
 	}
 }
 

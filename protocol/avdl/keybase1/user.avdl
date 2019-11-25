@@ -210,6 +210,8 @@ protocol user {
   record UserBlockedRow {
     @jsonkey("block_uid")
     UID uid;
+    @jsonkey("block_username")
+    string username;
     @jsonkey("chat")
     union { null, boolean } chat;
     @jsonkey("follow")
@@ -217,9 +219,19 @@ protocol user {
   }
 
   // user.blocked gregor message body
-  record UserBlockedGregorBody {
+  record UserBlockedBody {
     @jsonkey("blocks")
     array<UserBlockedRow> blocks;
+    // The user who blocked (should be the currently logged-in user).
+    @jsonkey("blocker_uid")
+    UID uid;
+    @jsonkey("blocker_username")
+    string username;
+  }
+
+  record UserBlockedSummary {
+    string blocker;
+    array<string> blocked;
   }
 
   // User Blocking

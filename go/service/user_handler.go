@@ -90,7 +90,7 @@ func (r *userHandler) passphraseStateUpdate(m libkb.MetaContext, cli gregor1.Inc
 
 func (r *userHandler) userBlocked(m libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
 	m.Debug("userHandler: %s received", category)
-	var msg keybase1.UserBlockedGregorBody
+	var msg keybase1.UserBlockedBody
 	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
 		m.Warning("error unmarshaling user.blocked item: %s", err)
 		return err
@@ -109,6 +109,7 @@ func (r *userHandler) userBlocked(m libkb.MetaContext, cli gregor1.IncomingInter
 			m.Warning("Error handling UserBlocked message: %s", tmp)
 		}
 	}
+	r.G().NotifyRouter.HandleUserBlocked(m.Ctx(), msg)
 	return nil
 }
 
