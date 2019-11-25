@@ -142,7 +142,7 @@ func (b *Badger) State() *BadgeState {
 func (b *Badger) log(ctx context.Context, state1 keybase1.BadgeState) {
 	state2 := state1
 	state2.Conversations = nil
-	for _, c1 := range state1.Conversations {
+	for index, c1 := range state1.Conversations {
 		if c1.IsEmpty() {
 			continue
 		}
@@ -159,6 +159,10 @@ func (b *Badger) log(ctx context.Context, state1 keybase1.BadgeState) {
 			BadgeCounts:    c1.BadgeCounts,
 		}
 		state2.Conversations = append(state2.Conversations, c2)
+		if index >= 100 {
+			b.G().Log.CDebugf(ctx, "Badger send: cutting off debug, too many convs")
+			break
+		}
 	}
 	b.G().Log.CDebugf(ctx, "Badger send: %+v", state2)
 }
