@@ -68,6 +68,7 @@ export type CustomResponseIncomingCallMap = {}
 // 'gregor.1.auth.authenticateSessionToken'
 // 'gregor.1.authInternal.createGregorSuperUserSessionToken'
 // 'gregor.1.authUpdate.revokeSessionIDs'
+// 'gregor.1.blocking.blockConversations'
 // 'gregor.1.incoming.sync'
 // 'gregor.1.incoming.consumeMessage'
 // 'gregor.1.incoming.consumePublishMessage'
