@@ -361,11 +361,14 @@ type timeoutAPI struct {
 }
 
 func (r *timeoutAPI) GetDecode(mctx libkb.MetaContext, arg libkb.APIArg, w libkb.APIResponseWrapper) error {
-	return errors.New("timed out")
+	return libkb.APINetError{}
+}
+func (r *timeoutAPI) PostDecode(mctx libkb.MetaContext, arg libkb.APIArg, w libkb.APIResponseWrapper) error {
+	return libkb.APINetError{}
 }
 
 func (r *timeoutAPI) Get(mctx libkb.MetaContext, arg libkb.APIArg) (*libkb.APIRes, error) {
-	return nil, errors.New("timed out")
+	return nil, libkb.APINetError{}
 }
 
 // Signup followed by logout clears the stored secret
@@ -383,6 +386,13 @@ func TestSignupWithStoreThenOfflineLogout(t *testing.T) {
 	arg.StoreSecret = true
 	_ = SignupFakeUserWithArg(tc, fu, arg)
 
+	// Hack: log out and back in so passphrase state is stored. With a real user, this would happen
+	// when the passphrase is set, but the passphrase is set by signup instead of manually in test.
+	Logout(tc)
+	err := fu.Login(tc.G)
+	require.NoError(t, err)
+
+	// Go offline
 	tc.G.API = &timeoutAPI{}
 
 	Logout(tc)
