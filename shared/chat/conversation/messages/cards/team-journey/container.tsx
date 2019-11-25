@@ -55,8 +55,8 @@ const TeamJourneyContainer = (props: Props) => {
         onClick: () => props.onGoToChannel(chan),
       }))
       loadTeam = props.onLoadTeam
-      text = `You are in *#${props.channelname}*.
-Some popular channels in this team:`
+      text = `You are in *#${props.channelname}*.\n`
+      text += props.otherChannels.length ? `Some other channels in this team:` : `And you're in all the other channels, nice.`
       break
     case RPCChatTypes.JourneycardType.addPeople:
       actions = [{label: 'Add people to the team', onClick: props.onAddPeopleToTeam}]
