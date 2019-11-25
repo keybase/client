@@ -1197,7 +1197,7 @@ func StripUsernameFromConvName(name string, username string) (res string) {
 
 func PresentRemoteConversationAsSmallTeamRow(ctx context.Context, rc types.RemoteConversation,
 	username string, useSnippet bool) (res chat1.UIInboxSmallTeamRow) {
-	res.ConvID = rc.GetConvID().String()
+	res.ConvID = rc.ConvIDStr
 	res.IsTeam = rc.GetTeamType() != chat1.TeamType_NONE
 	res.Name = StripUsernameFromConvName(GetRemoteConvDisplayName(rc), username)
 	res.Time = GetConvMtime(rc)
@@ -1211,7 +1211,7 @@ func PresentRemoteConversationAsSmallTeamRow(ctx context.Context, rc types.Remot
 }
 
 func PresentRemoteConversationAsBigTeamChannelRow(ctx context.Context, rc types.RemoteConversation) (res chat1.UIInboxBigTeamChannelRow) {
-	res.ConvID = rc.GetConvID().String()
+	res.ConvID = rc.ConvIDStr
 	res.Channelname = rc.GetTopicName()
 	res.Teamname = GetRemoteConvTLFName(rc)
 	res.Draft = rc.LocalDraft
@@ -1228,7 +1228,7 @@ func PresentRemoteConversation(ctx context.Context, g *globals.Context, rc types
 	} else {
 		tlfName = latest.TlfName
 	}
-	res.ConvID = rawConv.GetConvID().String()
+	res.ConvID = rc.ConvIDStr
 	res.TlfID = rawConv.Metadata.IdTriple.Tlfid.String()
 	res.TopicType = rawConv.GetTopicType()
 	res.IsPublic = rawConv.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC
@@ -1288,7 +1288,7 @@ func SearchableRemoteConversationName(conv types.RemoteConversation, username st
 
 func PresentRemoteConversationAsSearchHit(conv types.RemoteConversation, username string) chat1.UIChatSearchConvHit {
 	return chat1.UIChatSearchConvHit{
-		ConvID:   conv.GetConvID().String(),
+		ConvID:   conv.ConvIDStr,
 		TeamType: conv.GetTeamType(),
 		Name:     SearchableRemoteConversationName(conv, username),
 		Mtime:    conv.GetMtime(),
@@ -1979,7 +1979,8 @@ func DecodeBase64(enc []byte) ([]byte, error) {
 
 func RemoteConv(conv chat1.Conversation) types.RemoteConversation {
 	return types.RemoteConversation{
-		Conv: conv,
+		Conv:      conv,
+		ConvIDStr: conv.GetConvID().String(),
 	}
 }
 
@@ -2552,7 +2553,7 @@ func GetUnverifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	}
 	if !inbox.ConvsUnverified[0].GetConvID().Eq(convID) {
 		return res, fmt.Errorf("GetUnverifiedConv: convID mismatch: %s != %s",
-			inbox.ConvsUnverified[0].GetConvID(), convID)
+			inbox.ConvsUnverified[0].ConvIDStr, convID)
 	}
 	return inbox.ConvsUnverified[0], nil
 }

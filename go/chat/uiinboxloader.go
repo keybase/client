@@ -339,7 +339,7 @@ func (h *UIInboxLoader) LoadNonblock(ctx context.Context, query *chat1.GetInboxL
 		go func(convRes types.AsyncInboxResult) {
 			if convRes.ConvLocal.Error != nil {
 				h.Debug(ctx, "LoadNonblock: *** error conv: id: %s err: %s",
-					convRes.Conv.GetConvID(), convRes.ConvLocal.Error.Message)
+					convRes.Conv.ConvIDStr, convRes.ConvLocal.Error.Message)
 				h.transmitCh <- failedResponse{
 					Conv: convRes.ConvLocal,
 				}
@@ -630,7 +630,7 @@ func (h *UIInboxLoader) UpdateLayout(ctx context.Context, reselectMode chat1.Inb
 }
 
 func (h *UIInboxLoader) UpdateLayoutFromNewMessage(ctx context.Context, conv types.RemoteConversation) {
-	defer h.Trace(ctx, func() error { return nil }, "UpdateLayoutFromNewMessage: %s", conv.GetConvID())()
+	defer h.Trace(ctx, func() error { return nil }, "UpdateLayoutFromNewMessage: %s", conv.ConvIDStr)()
 	if h.isTopSmallTeamInLastLayout(conv.GetConvID()) {
 		h.Debug(ctx, "UpdateLayoutFromNewMessage: skipping layout, conv top small team in last layout")
 	} else if conv.GetTeamType() == chat1.TeamType_COMPLEX {
