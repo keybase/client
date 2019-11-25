@@ -14,7 +14,7 @@ type OwnProps = {
 const emptyProps = {
   canSetMinWriterRole: false,
   minWriterRole: 'reader',
-}
+} as const
 
 export default Container.namedConnect(
   (state, ownProps: OwnProps) => {
