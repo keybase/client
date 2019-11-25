@@ -38,15 +38,15 @@ const MultiUserJoinedNotice = (props: Props) => (
       {props.joiners.length > 0 &&
         ` joined ${props.isBigTeam ? `#${props.channelname}.` : `${props.teamname}.`}`}
     </Kb.Text>
-    {/* <Kb.Box2 direction="horizontal" style={{ marginLeft: -Styles.globalMargins.tiny, justifyContent: "flex-start" }} > */}
-    <Kb.AvatarLine
-      usernames={props.joiners}
-      maxShown={4}
-      size={32}
-      layout="horizontal"
-      alignSelf="flex-start"
-    />
-    {/* </Kb.Box2> */}
+    <Kb.Box2 direction="horizontal" alignSelf="flex-start" style={styles.avatarLine}>
+      <Kb.AvatarLine
+        usernames={props.joiners}
+        maxShown={4}
+        size={32}
+        layout="horizontal"
+        alignSelf="flex-start"
+      />
+    </Kb.Box2>
   </UserNotice>
 )
 
@@ -75,6 +75,14 @@ const JoinedUserNotice = (props: Props) => (
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      avatarLine: Styles.platformStyles({
+        isElectron: {
+          marginLeft: -2,
+        },
+        isMobile: {
+          marginLeft: -Styles.globalMargins.xsmall - 2,
+        },
+      }),
       timestamp: Styles.platformStyles({
         isElectron: {lineHeight: 19},
       }),
