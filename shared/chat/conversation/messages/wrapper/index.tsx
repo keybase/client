@@ -33,8 +33,8 @@ import UnfurlList from './unfurl/unfurl-list/container'
 import UnfurlPromptList from './unfurl/prompt-list/container'
 import CoinFlip from '../coinflip/container'
 import TeamJourney from '../cards/team-journey/container'
-import { dismiss as dismissKeyboard } from '../../../../util/keyboard'
-import { formatTimeForChat } from '../../../../util/timestamp'
+import {dismiss as dismissKeyboard} from '../../../../util/keyboard'
+import {formatTimeForChat} from '../../../../util/timestamp'
 
 /**
  * WrapperMessage adds the orange line, menu button, menu, reacji
@@ -112,24 +112,24 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
   _updateHighlightMode = () => {
     switch (this.props.centeredOrdinal) {
       case 'flash':
-        this.setState({ disableCenteredHighlight: false })
+        this.setState({disableCenteredHighlight: false})
         setTimeout(() => {
           if (this._mounted) {
-            this.setState({ disableCenteredHighlight: true })
+            this.setState({disableCenteredHighlight: true})
           }
         }, 2000)
         break
       case 'always':
-        this.setState({ disableCenteredHighlight: false })
+        this.setState({disableCenteredHighlight: false})
         break
     }
   }
   _showCenteredHighlight = () => {
     return !this.state.disableCenteredHighlight && this.props.centeredOrdinal !== 'none'
   }
-  _onMouseOver = () => this.setState(o => (o.showMenuButton ? null : { showMenuButton: true }))
+  _onMouseOver = () => this.setState(o => (o.showMenuButton ? null : {showMenuButton: true}))
   _setShowingPicker = (showingPicker: boolean) =>
-    this.setState(s => (s.showingPicker === showingPicker ? null : { showingPicker }))
+    this.setState(s => (s.showingPicker === showingPicker ? null : {showingPicker}))
   _dismissKeyboard = () => dismissKeyboard()
   _orangeLine = () =>
     this.props.orangeLineAbove && (
@@ -176,17 +176,17 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
             <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.usernameCrown}>
               {this.props.botAlias ? (
                 <Kb.Box2 direction="horizontal">
-                  <Kb.Text type="BodySmallBold" style={{ color: Styles.globalColors.black }}>
+                  <Kb.Text type="BodySmallBold" style={{color: Styles.globalColors.black}}>
                     {this.props.botAlias} [
                   </Kb.Text>
                   {username}
-                  <Kb.Text type="BodySmallBold" style={{ color: Styles.globalColors.black }}>
+                  <Kb.Text type="BodySmallBold" style={{color: Styles.globalColors.black}}>
                     ]
                   </Kb.Text>
                 </Kb.Box2>
               ) : (
-                  username
-                )}
+                username
+              )}
               {this.props.showCrowns && (this.props.authorIsOwner || this.props.authorIsAdmin) && (
                 <Kb.WithTooltip tooltip={this.props.authorIsOwner ? 'Owner' : 'Admin'}>
                   <Kb.Icon
@@ -230,8 +230,8 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     return this.props.isPendingPayment ? (
       <PendingPaymentBackground key="pendingBackground">{result}</PendingPaymentBackground>
     ) : (
-        result
-      )
+      result
+    )
   }
 
   _isEdited = () =>
@@ -369,12 +369,12 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       }
       return this.props.decorate
         ? {
-          ...props,
-          onLongPress: this.props.toggleShowingMenu,
-          onPress: this._dismissKeyboard,
-          onSwipeLeft: this.props.onSwipeLeft,
-          underlayColor: Styles.globalColors.blueLighter3,
-        }
+            ...props,
+            onLongPress: this.props.toggleShowingMenu,
+            onPress: this._dismissKeyboard,
+            onSwipeLeft: this.props.onSwipeLeft,
+            underlayColor: Styles.globalColors.blueLighter3,
+          }
         : props
     } else {
       return {
@@ -435,7 +435,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     if (!this._cachedMenuStyles[key]) {
       this._cachedMenuStyles[key] = Styles.collapseStyles([
         styles.menuButtons,
-        !exploded && { width },
+        !exploded && {width},
         !!this.props.showUsername && styles.menuButtonsWithAuthor,
       ])
     }
@@ -536,8 +536,8 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         {child}
       </ExplodingHeightRetainer>
     ) : (
-        child
-      )
+      child
+    )
 
     // We defer mounting the menu buttons since they are expensive and only show up on hover on desktop and not at all on mobile
     // but this creates complexity as we can't use box2 gap stuff since we can either
@@ -633,16 +633,16 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
             this.props.message.type === 'journeycard' ? (
               <TeamJourney message={this.props.message} />
             ) : (
-                this._authorAndContent([
-                  this._messageAndButtons(),
-                  this._isEdited(),
-                  this._isFailed(),
-                  this._unfurlPrompts(),
-                  this._unfurlList(),
-                  this._coinFlip(),
-                  this._reactionsRow(),
-                ])
-              ),
+              this._authorAndContent([
+                this._messageAndButtons(),
+                this._isEdited(),
+                this._isFailed(),
+                this._unfurlPrompts(),
+                this._unfurlList(),
+                this._coinFlip(),
+                this._reactionsRow(),
+              ])
+            ),
             this._orangeLine(),
             this._sendIndicator(),
           ]}
@@ -655,7 +655,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
 
 const WrapperMessage = Kb.OverlayParentHOC(_WrapperMessage)
 
-const fast = { backgroundColor: Styles.globalColors.fastBlank }
+const fast = {backgroundColor: Styles.globalColors.fastBlank}
 const styles = Styles.styleSheetCreate(
   () =>
     ({
@@ -665,18 +665,18 @@ const styles = Styles.styleSheetCreate(
           alignSelf: 'flex-start',
           height: Styles.globalMargins.mediumLarge,
         },
-        isMobile: { marginTop: 8 },
+        isMobile: {marginTop: 8},
       }),
       avatar: Styles.platformStyles({
         isElectron: {
           marginLeft: Styles.globalMargins.small,
         },
-        isMobile: { marginLeft: Styles.globalMargins.tiny },
+        isMobile: {marginLeft: Styles.globalMargins.tiny},
       }),
       centeredOrdinal: {
         backgroundColor: Styles.globalColors.yellowOrYellowAlt,
       },
-      container: Styles.platformStyles({ isMobile: { overflow: 'hidden' } }),
+      container: Styles.platformStyles({isMobile: {overflow: 'hidden'}}),
       containerNoUsername: Styles.platformStyles({
         isMobile: {
           paddingBottom: 3,
@@ -709,9 +709,9 @@ const styles = Styles.styleSheetCreate(
           paddingRight: Styles.globalMargins.tiny,
         },
       }),
-      edited: { color: Styles.globalColors.black_20 },
-      editedHighlighted: { color: Styles.globalColors.black_20OrBlack },
-      ellipsis: { marginLeft: Styles.globalMargins.tiny },
+      edited: {color: Styles.globalColors.black_20},
+      editedHighlighted: {color: Styles.globalColors.black_20OrBlack},
+      ellipsis: {marginLeft: Styles.globalMargins.tiny},
       emojiRow: Styles.platformStyles({
         isElectron: {
           borderBottomLeftRadius: Styles.borderRadius,
@@ -745,8 +745,8 @@ const styles = Styles.styleSheetCreate(
           top: -Styles.globalMargins.mediumLarge + 1, // compensation for the orange line
         },
       }),
-      fail: { color: Styles.globalColors.redDark },
-      failUnderline: { color: Styles.globalColors.redDark, textDecorationLine: 'underline' },
+      fail: {color: Styles.globalColors.redDark},
+      failUnderline: {color: Styles.globalColors.redDark, textDecorationLine: 'underline'},
       fast,
       menuButtons: Styles.platformStyles({
         common: {
@@ -755,10 +755,10 @@ const styles = Styles.styleSheetCreate(
           justifyContent: 'flex-end',
           overflow: 'hidden',
         },
-        isElectron: { height: 16 },
-        isMobile: { height: 21 },
+        isElectron: {height: 16},
+        isMobile: {height: 21},
       }),
-      menuButtonsWithAuthor: { marginTop: -16 },
+      menuButtonsWithAuthor: {marginTop: -16},
       messagePopupContainer: {
         marginRight: Styles.globalMargins.small,
       },
@@ -777,7 +777,7 @@ const styles = Styles.styleSheetCreate(
           left: -Styles.globalMargins.mediumLarge, // compensate for containerNoUsername's padding
         },
       }),
-      paddingLeftTiny: { paddingLeft: Styles.globalMargins.tiny },
+      paddingLeftTiny: {paddingLeft: Styles.globalMargins.tiny},
       send: Styles.platformStyles({
         common: {
           position: 'absolute',
@@ -793,8 +793,8 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       timestamp: Styles.platformStyles({
-        common: { paddingLeft: Styles.globalMargins.xtiny },
-        isElectron: { lineHeight: 19 },
+        common: {paddingLeft: Styles.globalMargins.xtiny},
+        isElectron: {lineHeight: 19},
       }),
       timestampHighlighted: {
         color: Styles.globalColors.black_50OrBlack_40,
@@ -805,7 +805,7 @@ const styles = Styles.styleSheetCreate(
           position: 'relative',
           top: -2,
         },
-        isMobile: { alignItems: 'center' },
+        isMobile: {alignItems: 'center'},
       }),
       usernameHighlighted: {
         color: Styles.globalColors.blackOrBlack,
