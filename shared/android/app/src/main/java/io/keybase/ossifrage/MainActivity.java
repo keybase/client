@@ -57,6 +57,11 @@ public class MainActivity extends ReactFragmentActivity {
   private PermissionListener listener;
   static boolean createdReact = false;
 
+  @Override
+  public void invokeDefaultOnBackPressed() {
+    moveTaskToBack(true);
+  }
+
   private static void createDummyFile(Context context) {
     final File dummyFile = new File(context.getFilesDir(), "dummy.txt");
     try {
