@@ -1,6 +1,5 @@
 import logger from '../logger'
 import * as TeamBuildingGen from '../actions/team-building-gen'
-import * as I from 'immutable'
 import * as Constants from '../constants/wallets'
 import * as Container from '../util/container'
 import * as Types from '../constants/types/wallets'
@@ -8,40 +7,33 @@ import * as WalletsGen from '../actions/wallets-gen'
 import HiddenString from '../util/hidden-string'
 import teamBuildingReducer from './team-building'
 import {teamBuilderReducerCreator} from '../team-building/reducer-helper'
-
-import reducerOLD from './wallets-old'
-import * as ConstantsOLD from '../constants/wallets-old'
+import shallowEqual from 'shallowequal'
+import {mapEqual} from '../util/map'
 
 const initialState: Types.State = Constants.makeState()
 
-const reduceAssetMap = (
-  assetMap: I.Map<Types.AssetID, Types.AssetDescription>,
+const updateAssetMap = (
+  assetMap: Map<Types.AssetID, Types.AssetDescription>,
   assets: Array<Types.AssetDescription>
-): I.Map<Types.AssetID, Types.AssetDescription> =>
-  assetMap.withMutations(assetMapMutable =>
-    assets.forEach(asset =>
-      assetMapMutable.update(Types.assetDescriptionToAssetID(asset), oldAsset =>
-        asset.equals(oldAsset) ? oldAsset : asset
-      )
-    )
-  )
+) =>
+  assets.forEach(asset => {
+    const key = Types.assetDescriptionToAssetID(asset)
+    const oldAsset = assetMap.get(key)
+    if (!shallowEqual(asset, oldAsset)) {
+      assetMap.set(key, asset)
+    }
+  })
 
 type Actions = WalletsGen.Actions | TeamBuildingGen.Actions
-const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
+export default Container.makeReducer<Actions, Types.State>(initialState, {
   [WalletsGen.resetStore]: draftState => {
     return {...initialState, staticConfig: draftState.staticConfig} as Types.State
   },
   [WalletsGen.didSetAccountAsDefault]: (draftState, action) => {
-    const accountMap: I.OrderedMap<Types.AccountID, Types.Account> = I.OrderedMap(
-      action.payload.accounts.map(account => [account.accountID, account])
-    )
-    draftState.accountMap = accountMap
+    draftState.accountMap = new Map(action.payload.accounts.map(account => [account.accountID, account]))
   },
   [WalletsGen.accountsReceived]: (draftState, action) => {
-    const accountMap: I.OrderedMap<Types.AccountID, Types.Account> = I.OrderedMap(
-      action.payload.accounts.map(account => [account.accountID, account])
-    )
-    draftState.accountMap = accountMap
+    draftState.accountMap = new Map(action.payload.accounts.map(account => [account.accountID, account]))
   },
   [WalletsGen.changedAccountName]: (draftState, action) => {
     const {account} = action.payload
@@ -53,7 +45,7 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
       const {accountID} = account
       const old = draftState.accountMap.get(accountID)
       if (old) {
-        draftState.accountMap.set(accountID, old.merge(account))
+        draftState.accountMap.set(accountID, {...old, ...account})
       }
     }
   },
@@ -67,36 +59,38 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
       const {accountID} = account
       const old = draftState.accountMap.get(accountID)
       if (old) {
-        draftState.accountMap = draftState.accountMap.set(accountID, old.merge(account))
+        draftState.accountMap.set(accountID, {...old, ...account})
       }
     }
   },
   [WalletsGen.assetsReceived]: (draftState, action) => {
-    draftState.assetsMap = draftState.assetsMap.set(action.payload.accountID, I.List(action.payload.assets))
+    draftState.assetsMap.set(action.payload.accountID, action.payload.assets)
   },
   [WalletsGen.buildPayment]: draftState => {
     draftState.buildCounter++
   },
   [WalletsGen.builtPaymentReceived]: (draftState, action) => {
     if (action.payload.forBuildCounter === draftState.buildCounter) {
-      draftState.builtPayment = draftState.builtPayment.merge(
-        Constants.makeBuiltPayment(action.payload.build)
-      )
+      draftState.builtPayment = {
+        ...draftState.builtPayment,
+        ...Constants.makeBuiltPayment(action.payload.build),
+      }
     }
   },
   [WalletsGen.builtRequestReceived]: (draftState, action) => {
     if (action.payload.forBuildCounter === draftState.buildCounter) {
-      draftState.builtRequest = draftState.builtRequest.merge(
-        Constants.makeBuiltRequest(action.payload.build)
-      )
+      draftState.builtRequest = {
+        ...draftState.builtRequest,
+        ...Constants.makeBuiltRequest(action.payload.build),
+      }
     }
   },
   [WalletsGen.openSendRequestForm]: (draftState, action) => {
     if (!draftState.acceptedDisclaimer) {
       return
     }
-    const initialBuilding = Constants.makeBuilding()
-    draftState.building = initialBuilding.merge({
+    draftState.building = {
+      ...Constants.makeBuilding(),
       amount: action.payload.amount || '',
       currency:
         action.payload.currency || // explicitly set
@@ -111,7 +105,7 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
       recipientType: action.payload.recipientType || 'keybaseUser',
       secretNote: action.payload.secretNote || new HiddenString(''),
       to: action.payload.to || '',
-    })
+    }
     draftState.builtPayment = Constants.makeBuiltPayment()
     draftState.builtRequest = Constants.makeBuiltRequest()
     draftState.sentPaymentError = ''
@@ -132,22 +126,32 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
     draftState.externalPartners = action.payload.externalPartners
   },
   [WalletsGen.paymentDetailReceived]: (draftState, action) => {
-    draftState.paymentsMap = draftState.paymentsMap.update(
-      action.payload.accountID,
-      (paymentsMap = I.Map()) => Constants.updatePaymentDetail(paymentsMap, action.payload.payment)
-    )
+    const emptyMap: Map<Types.PaymentID, Types.Payment> = new Map()
+    const map = draftState.paymentsMap.get(action.payload.accountID) ?? emptyMap
+
+    const paymentDetail = action.payload.payment
+    map.set(paymentDetail.id, {
+      ...(map.get(paymentDetail.id) ?? Constants.makePayment()),
+      ...action.payload.payment,
+    })
+
+    draftState.paymentsMap.set(action.payload.accountID, map)
   },
   [WalletsGen.paymentsReceived]: (draftState, action) => {
-    draftState.paymentsMap = draftState.paymentsMap.update(
-      action.payload.accountID,
-      (paymentsMap = I.Map()) =>
-        Constants.updatePaymentsReceived(paymentsMap, [...action.payload.payments, ...action.payload.pending])
-    )
-    draftState.paymentCursorMap = draftState.paymentCursorMap.set(
-      action.payload.accountID,
-      action.payload.paymentCursor
-    )
-    draftState.paymentLoadingMoreMap = draftState.paymentLoadingMoreMap.set(action.payload.accountID, false)
+    const emptyMap: Map<Types.PaymentID, Types.Payment> = new Map()
+    const map = draftState.paymentsMap.get(action.payload.accountID) ?? emptyMap
+
+    const paymentResults = [...action.payload.payments, ...action.payload.pending]
+    paymentResults.forEach(paymentResult => {
+      map.set(paymentResult.id, {
+        ...(map.get(paymentResult.id) ?? Constants.makePayment()),
+        ...paymentResult,
+      })
+    })
+    draftState.paymentsMap.set(action.payload.accountID, map)
+
+    draftState.paymentCursorMap.set(action.payload.accountID, action.payload.paymentCursor)
+    draftState.paymentLoadingMoreMap.set(action.payload.accountID, false)
     // allowClearOldestUnread dictates whether this action is allowed to delete the value of oldestUnread.
     // GetPaymentsLocal can erroneously return an empty oldestUnread value when a non-latest page is requested
     // and oldestUnread points into the latest page.
@@ -155,36 +159,32 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
       action.payload.allowClearOldestUnread ||
       (action.payload.oldestUnread || Types.noPaymentID) !== Types.noPaymentID
     ) {
-      draftState.paymentOldestUnreadMap = draftState.paymentOldestUnreadMap.set(
-        action.payload.accountID,
-        action.payload.oldestUnread
-      )
+      draftState.paymentOldestUnreadMap.set(action.payload.accountID, action.payload.oldestUnread)
     }
   },
   [WalletsGen.pendingPaymentsReceived]: (draftState, action) => {
-    const newPending = I.Map(action.payload.pending.map(p => [p.id, Constants.makePayment().merge(p)]))
-    draftState.paymentsMap = draftState.paymentsMap.update(
-      action.payload.accountID,
-      (paymentsMap = I.Map()) => paymentsMap.filter((p: any) => p.section !== 'pending').merge(newPending)
-    )
+    const newPending = action.payload.pending.map(p => [p.id, Constants.makePayment(p)] as const)
+    const emptyMap: Map<Types.PaymentID, Types.Payment> = new Map()
+    const oldFiltered = [
+      ...(draftState.paymentsMap.get(action.payload.accountID) ?? emptyMap).entries(),
+    ].filter(([_k, v]) => v.section !== 'pending')
+    const val = new Map([...oldFiltered, ...newPending])
+    draftState.paymentsMap.set(action.payload.accountID, val)
   },
   [WalletsGen.recentPaymentsReceived]: (draftState, action) => {
-    const newPayments = I.Map(action.payload.payments.map(p => [p.id, Constants.makePayment().merge(p)]))
-    draftState.paymentsMap = draftState.paymentsMap.update(
+    const newPayments = action.payload.payments.map(p => [p.id, Constants.makePayment(p)] as const)
+    const emptyMap: Map<Types.PaymentID, Types.Payment> = new Map()
+    const old = (draftState.paymentsMap.get(action.payload.accountID) ?? emptyMap).entries()
+
+    draftState.paymentsMap.set(action.payload.accountID, new Map([...old, ...newPayments]))
+    draftState.paymentCursorMap.set(
       action.payload.accountID,
-      (paymentsMap = I.Map()) => paymentsMap.merge(newPayments)
+      draftState.paymentCursorMap.get(action.payload.accountID) || action.payload.paymentCursor
     )
-    draftState.paymentCursorMap = draftState.paymentCursorMap.update(
-      action.payload.accountID,
-      cursor => cursor || action.payload.paymentCursor
-    )
-    draftState.paymentOldestUnreadMap = draftState.paymentOldestUnreadMap.set(
-      action.payload.accountID,
-      action.payload.oldestUnread
-    )
+    draftState.paymentOldestUnreadMap.set(action.payload.accountID, action.payload.oldestUnread)
   },
   [WalletsGen.displayCurrenciesReceived]: (draftState, action) => {
-    draftState.currencies = I.List(action.payload.currencies)
+    draftState.currencies = action.payload.currencies
   },
   [WalletsGen.displayCurrencyReceived]: (draftState, action) => {
     const account = Constants.getAccountInner(
@@ -194,13 +194,10 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
     if (account.accountID === Types.noAccountID) {
       return
     }
-    draftState.accountMap = draftState.accountMap.set(
-      account.accountID,
-      account.merge({displayCurrency: action.payload.currency})
-    )
+    draftState.accountMap.set(account.accountID, {...account, displayCurrency: action.payload.currency})
   },
   [WalletsGen.reviewPayment]: draftState => {
-    draftState.builtPayment = draftState.builtPayment.set('reviewBanners', [])
+    draftState.builtPayment.reviewBanners = []
     draftState.reviewCounter++
     draftState.reviewLastSeqno = undefined
   },
@@ -216,10 +213,8 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
       return
     }
 
-    draftState.builtPayment = draftState.builtPayment.merge({
-      readyToSend: nextButton,
-      reviewBanners: banners,
-    })
+    draftState.builtPayment.readyToSend = nextButton
+    draftState.builtPayment.reviewBanners = banners ?? null
     draftState.reviewLastSeqno = seqno
   },
   [WalletsGen.secretKeyReceived]: (draftState, action) => {
@@ -242,119 +237,95 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
       return
     }
 
-    draftState.paymentCursorMap = draftState.paymentCursorMap.delete(old)
-    draftState.paymentsMap = draftState.paymentsMap.delete(old)
+    draftState.paymentCursorMap.delete(old)
+    draftState.paymentsMap.delete(old)
   },
   [WalletsGen.setBuildingAmount]: (draftState, action) => {
-    const {amount} = action.payload
-    draftState.building = draftState.building.merge({amount})
-    draftState.builtPayment = draftState.builtPayment.merge({
-      amountErrMsg: '',
-      worthDescription: '',
-      worthInfo: '',
-    })
-    draftState.builtRequest = draftState.builtRequest.merge({
-      amountErrMsg: '',
-      worthDescription: '',
-      worthInfo: '',
-    })
+    draftState.building.amount = action.payload.amount
+    draftState.builtPayment.amountErrMsg = ''
+    draftState.builtPayment.worthDescription = ''
+    draftState.builtPayment.worthInfo = ''
+    draftState.builtRequest.amountErrMsg = ''
+    draftState.builtRequest.worthDescription = ''
+    draftState.builtRequest.worthInfo = ''
   },
   [WalletsGen.setBuildingCurrency]: (draftState, action) => {
-    const {currency} = action.payload
-    draftState.building = draftState.building.merge({currency})
+    draftState.building.currency = action.payload.currency
     draftState.builtPayment = Constants.makeBuiltPayment()
   },
   [WalletsGen.setBuildingFrom]: (draftState, action) => {
-    const {from} = action.payload
-    draftState.building = draftState.building.merge({from})
+    draftState.building.from = action.payload.from
     draftState.builtPayment = Constants.makeBuiltPayment()
   },
   [WalletsGen.setBuildingIsRequest]: (draftState, action) => {
-    const {isRequest} = action.payload
-    draftState.building = draftState.building.merge({isRequest})
+    draftState.building.isRequest = action.payload.isRequest
     draftState.builtPayment = Constants.makeBuiltPayment()
     draftState.builtRequest = Constants.makeBuiltRequest()
   },
   [WalletsGen.setBuildingPublicMemo]: (draftState, action) => {
-    const {publicMemo} = action.payload
-    draftState.building = draftState.building.merge({publicMemo})
-    draftState.builtPayment = draftState.builtPayment.merge({publicMemoErrMsg: new HiddenString('')})
+    draftState.building.publicMemo = action.payload.publicMemo
+    draftState.builtPayment.publicMemoErrMsg = new HiddenString('')
   },
   [WalletsGen.setBuildingRecipientType]: (draftState, action) => {
-    const {recipientType} = action.payload
-    draftState.building = draftState.building.merge({recipientType})
+    draftState.building.recipientType = action.payload.recipientType
     draftState.builtPayment = Constants.makeBuiltPayment()
   },
   [WalletsGen.setBuildingSecretNote]: (draftState, action) => {
-    const {secretNote} = action.payload
-    draftState.building = draftState.building.merge({secretNote})
-    draftState.builtPayment = draftState.builtPayment.merge({secretNoteErrMsg: new HiddenString('')})
-    draftState.builtRequest = draftState.builtRequest.merge({secretNoteErrMsg: new HiddenString('')})
+    draftState.building.secretNote = action.payload.secretNote
+    draftState.builtPayment.secretNoteErrMsg = new HiddenString('')
+    draftState.builtRequest.secretNoteErrMsg = new HiddenString('')
   },
   [WalletsGen.setBuildingTo]: (draftState, action) => {
-    const {to} = action.payload
-    draftState.building = draftState.building.merge({to})
-    draftState.builtPayment = draftState.builtPayment.merge({toErrMsg: ''})
-    draftState.builtRequest = draftState.builtRequest.merge({toErrMsg: ''})
+    draftState.building.to = action.payload.to
+    draftState.builtPayment.toErrMsg = ''
+    draftState.builtRequest.toErrMsg = ''
   },
   [WalletsGen.clearBuildingAdvanced]: draftState => {
     draftState.buildingAdvanced = Constants.emptyBuildingAdvanced
     draftState.builtPaymentAdvanced = Constants.emptyBuiltPaymentAdvanced
   },
   [WalletsGen.setBuildingAdvancedRecipient]: (draftState, action) => {
-    draftState.buildingAdvanced = draftState.buildingAdvanced.set('recipient', action.payload.recipient)
+    draftState.buildingAdvanced.recipient = action.payload.recipient
   },
   [WalletsGen.setBuildingAdvancedRecipientAmount]: (draftState, action) => {
-    draftState.buildingAdvanced = draftState.buildingAdvanced.set(
-      'recipientAmount',
-      action.payload.recipientAmount
-    )
+    draftState.buildingAdvanced.recipientAmount = action.payload.recipientAmount
     draftState.builtPaymentAdvanced = Constants.emptyBuiltPaymentAdvanced
   },
   [WalletsGen.setBuildingAdvancedRecipientAsset]: (draftState, action) => {
-    draftState.buildingAdvanced = draftState.buildingAdvanced.set(
-      'recipientAsset',
-      action.payload.recipientAsset
-    )
+    draftState.buildingAdvanced.recipientAsset = action.payload.recipientAsset
     draftState.builtPaymentAdvanced = Constants.emptyBuiltPaymentAdvanced
   },
   [WalletsGen.setBuildingAdvancedRecipientType]: (draftState, action) => {
-    draftState.buildingAdvanced = draftState.buildingAdvanced.set(
-      'recipientType',
-      action.payload.recipientType
-    )
+    draftState.buildingAdvanced.recipientType = action.payload.recipientType
   },
   [WalletsGen.setBuildingAdvancedPublicMemo]: (draftState, action) => {
-    draftState.buildingAdvanced = draftState.buildingAdvanced.set('publicMemo', action.payload.publicMemo)
+    draftState.buildingAdvanced.publicMemo = action.payload.publicMemo
     // TODO PICNIC-142 clear error when we have that
   },
   [WalletsGen.setBuildingAdvancedSenderAccountID]: (draftState, action) => {
-    draftState.buildingAdvanced = draftState.buildingAdvanced.set(
-      'senderAccountID',
-      action.payload.senderAccountID
-    )
+    draftState.buildingAdvanced.senderAccountID = action.payload.senderAccountID
   },
   [WalletsGen.setBuildingAdvancedSenderAsset]: (draftState, action) => {
-    draftState.buildingAdvanced = draftState.buildingAdvanced.set('senderAsset', action.payload.senderAsset)
+    draftState.buildingAdvanced.senderAsset = action.payload.senderAsset
     draftState.builtPaymentAdvanced = Constants.emptyBuiltPaymentAdvanced
   },
   [WalletsGen.setBuildingAdvancedSecretNote]: (draftState, action) => {
-    draftState.buildingAdvanced = draftState.buildingAdvanced.set('secretNote', action.payload.secretNote)
+    draftState.buildingAdvanced.secretNote = action.payload.secretNote
     // TODO PICNIC-142 clear error when we have that
   },
   [WalletsGen.sendAssetChoicesReceived]: (draftState, action) => {
     const {sendAssetChoices} = action.payload
-    draftState.building = draftState.building.merge({sendAssetChoices})
+    draftState.building.sendAssetChoices = sendAssetChoices
   },
   [WalletsGen.buildingPaymentIDReceived]: (draftState, action) => {
     const {bid} = action.payload
-    draftState.building = draftState.building.merge({bid})
+    draftState.building.bid = bid
   },
   [WalletsGen.setLastSentXLM]: (draftState, action) => {
     draftState.lastSentXLM = action.payload.lastSentXLM
   },
   [WalletsGen.setReadyToReview]: (draftState, action) => {
-    draftState.builtPayment = draftState.builtPayment.merge({readyToReview: action.payload.readyToReview})
+    draftState.builtPayment.readyToReview = action.payload.readyToReview
   },
   [WalletsGen.validateAccountName]: (draftState, action) => {
     draftState.accountName = action.payload.name
@@ -389,7 +360,7 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
     draftState.accountName = ''
     draftState.accountNameError = ''
     draftState.accountNameValidationState = 'none'
-    draftState.builtPayment = draftState.builtPayment.merge({readyToSend: 'spinning'})
+    draftState.builtPayment.readyToSend = 'spinning'
     draftState.changeTrustlineError = ''
     draftState.createNewAccountError = ''
     draftState.linkExistingAccountError = ''
@@ -434,12 +405,12 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [WalletsGen.loadMorePayments]: (draftState, action) => {
     if (draftState.paymentCursorMap.get(action.payload.accountID)) {
-      draftState.paymentLoadingMoreMap = draftState.paymentLoadingMoreMap.set(action.payload.accountID, true)
+      draftState.paymentLoadingMoreMap.set(action.payload.accountID, true)
     }
   },
   [WalletsGen.badgesUpdated]: (draftState, action) => {
-    draftState.unreadPaymentsMap = I.Map(
-      action.payload.accounts.map(({accountID, numUnread}) => [accountID, numUnread])
+    action.payload.accounts.forEach(({accountID, numUnread}) =>
+      draftState.unreadPaymentsMap.set(accountID, numUnread)
     )
   },
   [WalletsGen.walletDisclaimerReceived]: (draftState, action) => {
@@ -452,10 +423,10 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
     draftState.acceptingDisclaimerDelay = false
   },
   [WalletsGen.loadedMobileOnlyMode]: (draftState, action) => {
-    draftState.mobileOnlyMap = draftState.mobileOnlyMap.set(action.payload.accountID, action.payload.enabled)
+    draftState.mobileOnlyMap.set(action.payload.accountID, action.payload.enabled)
   },
   [WalletsGen.updatedAirdropState]: (draftState, action) => {
-    draftState.airdropQualifications = I.List(action.payload.airdropQualifications)
+    draftState.airdropQualifications = action.payload.airdropQualifications
     draftState.airdropState = action.payload.airdropState
   },
   [WalletsGen.validateSEP7Link]: draftState => {
@@ -488,57 +459,49 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
     draftState.airdropDetails = Constants.makeStellarDetails({details, disclaimer, isPromoted})
   },
   [WalletsGen.setTrustlineExpanded]: (draftState, action) => {
-    draftState.trustline = draftState.trustline.update('expandedAssets', expandedAssets =>
-      action.payload.expanded
-        ? expandedAssets.add(action.payload.assetID)
-        : expandedAssets.delete(action.payload.assetID)
-    )
+    if (action.payload.expanded) {
+      draftState.trustline.expandedAssets.add(action.payload.assetID)
+    } else {
+      draftState.trustline.expandedAssets.delete(action.payload.assetID)
+    }
   },
   [WalletsGen.setTrustlineAcceptedAssets]: (draftState, action) => {
-    draftState.trustline = draftState.trustline
-      .update('acceptedAssets', acceptedAssets =>
-        acceptedAssets.update(action.payload.accountID, accountAcceptedAssets =>
-          action.payload.limits.equals(accountAcceptedAssets) ? accountAcceptedAssets : action.payload.limits
-        )
-      )
-      .update('assetMap', assetMap => reduceAssetMap(assetMap, action.payload.assets))
+    const {accountID, limits} = action.payload
+    const accountAcceptedAssets = draftState.trustline.acceptedAssets.get(accountID)
+    if (!accountAcceptedAssets || !mapEqual(limits, accountAcceptedAssets)) {
+      draftState.trustline.acceptedAssets.set(accountID, limits)
+    }
+    updateAssetMap(draftState.trustline.assetMap, action.payload.assets)
   },
   [WalletsGen.setTrustlineAcceptedAssetsByUsername]: (draftState, action) => {
-    draftState.trustline = draftState.trustline
-      .update('acceptedAssetsByUsername', acceptedAssetsByUsername =>
-        acceptedAssetsByUsername.update(action.payload.username, accountAcceptedAssets =>
-          action.payload.limits.equals(accountAcceptedAssets) ? accountAcceptedAssets : action.payload.limits
-        )
-      )
-      .update('assetMap', assetMap => reduceAssetMap(assetMap, action.payload.assets))
+    const {username, limits, assets} = action.payload
+    const accountAcceptedAssets = draftState.trustline.acceptedAssetsByUsername.get(username)
+    if (!accountAcceptedAssets || !mapEqual(limits, accountAcceptedAssets)) {
+      draftState.trustline.acceptedAssetsByUsername.set(username, limits)
+    }
+    updateAssetMap(draftState.trustline.assetMap, assets)
   },
   [WalletsGen.setTrustlinePopularAssets]: (draftState, action) => {
-    draftState.trustline = draftState.trustline.withMutations(trustline =>
-      trustline
-        .set(
-          'popularAssets',
-          I.List(action.payload.assets.map(asset => Types.assetDescriptionToAssetID(asset)))
-        )
-        .update('assetMap', assetMap => reduceAssetMap(assetMap, action.payload.assets))
-        .set('totalAssetsCount', action.payload.totalCount)
-        .set('loaded', true)
+    draftState.trustline.popularAssets = action.payload.assets.map(asset =>
+      Types.assetDescriptionToAssetID(asset)
     )
+    updateAssetMap(draftState.trustline.assetMap, action.payload.assets)
+    draftState.trustline.totalAssetsCount = action.payload.totalCount
+    draftState.trustline.loaded = true
   },
   [WalletsGen.setTrustlineSearchText]: (draftState, action) => {
     if (!action.payload.text) {
-      draftState.trustline = draftState.trustline.set('searchingAssets', I.List())
+      draftState.trustline.searchingAssets = []
     }
   },
   [WalletsGen.setTrustlineSearchResults]: (draftState, action) => {
-    draftState.trustline = draftState.trustline
-      .set(
-        'searchingAssets',
-        I.List(action.payload.assets.map(asset => Types.assetDescriptionToAssetID(asset)))
-      )
-      .update('assetMap', assetMap => reduceAssetMap(assetMap, action.payload.assets))
+    draftState.trustline.searchingAssets = action.payload.assets.map(asset =>
+      Types.assetDescriptionToAssetID(asset)
+    )
+    updateAssetMap(draftState.trustline.assetMap, action.payload.assets)
   },
   [WalletsGen.clearTrustlineSearchResults]: draftState => {
-    draftState.trustline = draftState.trustline.set('searchingAssets', undefined)
+    draftState.trustline.searchingAssets = undefined
   },
   [WalletsGen.setBuiltPaymentAdvanced]: (draftState, action) => {
     if (action.payload.forSEP7) {
@@ -572,49 +535,3 @@ const newReducer = Container.makeReducer<Actions, Types.State>(initialState, {
     }
   ),
 })
-
-if (__DEV__) {
-  console.log(new Array(100).fill('wallets reducer double check').join('\n'))
-}
-
-const doubleCheck = (
-  state: Types.State = initialState,
-  action: WalletsGen.Actions | TeamBuildingGen.Actions
-): Types.State => {
-  const nextState = newReducer(state, action)
-
-  if (__DEV__) {
-    const s = ConstantsOLD.makeState(state)
-    const nextStateOLD = reducerOLD(s, action)
-    const o: any = {
-      ...nextStateOLD.toJS(),
-      reviewLastSeqno: nextStateOLD.reviewLastSeqno || null,
-      sep7ConfirmInfo: nextStateOLD.sep7ConfirmInfo || null,
-      staticConfig: nextStateOLD.staticConfig || null,
-    }
-
-    const n: any = {
-      ...nextState,
-      reviewLastSeqno: nextState.reviewLastSeqno || null,
-      sep7ConfirmInfo: nextState.sep7ConfirmInfo || null,
-      staticConfig: nextState.staticConfig || null,
-    }
-
-    let same = true
-    Object.keys(o).forEach(k => {
-      const so = JSON.stringify(o[k])
-      const sn = JSON.stringify(n[k])
-      if (so !== sn) {
-        same = false
-        console.log('aaa diff', k, so, sn, action)
-      }
-    })
-    if (same) {
-      console.log('aaa same')
-    }
-  }
-
-  return nextState
-}
-
-export default doubleCheck
