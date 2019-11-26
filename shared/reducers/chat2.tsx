@@ -42,7 +42,7 @@ const messageIDToOrdinal = (
     ...(pendingOutboxToOrdinal.get(conversationIDKey) ?? new Map<Types.OutboxID, Types.Ordinal>()).values(),
   ].find(o => {
     m = map?.get(o)
-    if (m && m.id && m.id === messageID) {
+    if (m?.id !== 0 && m.id === messageID) {
       return true
     }
     return false
