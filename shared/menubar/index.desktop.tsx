@@ -362,7 +362,7 @@ class MenubarRender extends React.Component<Props, State> {
             endEstimate={this.props.endEstimate}
             isOnline={
               !flags.kbfsOfflineMode ||
-              this.props.kbfsDaemonStatus.onlineStatus === FsTypes.KbfsDaemonOnlineStatus.Online
+              this.props.kbfsDaemonStatus.onlineStatus !== FsTypes.KbfsDaemonOnlineStatus.Offline
             }
             files={this.props.files}
             fileName={this.props.fileName}

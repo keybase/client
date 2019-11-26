@@ -915,9 +915,9 @@ export const getMainBannerType = (
   overallSyncStatus: Types.OverallSyncStatus
 ): Types.MainBannerType =>
   kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Offline
-    ? flags.kbfsOfflineMode
-      ? Types.MainBannerType.Offline
-      : Types.MainBannerType.None
+    ? Types.MainBannerType.Offline
+    : kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Trying
+    ? Types.MainBannerType.TryingToConnect
     : overallSyncStatus.diskSpaceStatus === 'error'
     ? Types.MainBannerType.OutOfSpace
     : Types.MainBannerType.None

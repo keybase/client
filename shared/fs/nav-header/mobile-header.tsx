@@ -10,6 +10,14 @@ import Actions from './actions'
 import MainBanner from './main-banner/container'
 import flags from '../../util/feature-flags'
 
+/*
+ *
+ * If layout changes in this file cause mobile header height change, it's
+ * important to update getBaseHeight otherwise KeyboardAvoidingView won't work
+ * properly (in router-v2/shim.native.tsx).
+ *
+ */
+
 type Props = {
   onBack?: () => void
   path: Types.Path
@@ -36,12 +44,20 @@ const NavMobileHeader = (props: Props) => {
     dispatch(FsGen.createSetFolderViewFilter({filter: null}))
   }, [dispatch, props.path])
 
-  return (
-    <Kb.Box2
-      direction="vertical"
-      fullWidth={true}
-      style={Styles.collapseStyles([styles.container, getHeightStyle(getHeight(props.path))])}
-    >
+  return props.path === Constants.defaultPath ? (
+    <>
+      <Kb.Box2
+        direction="vertical"
+        fullWidth={true}
+        style={Styles.collapseStyles([styles.headerContainer, getHeightStyle(getBaseHeight(props.path))])}
+        centerChildren={true}
+      >
+        <Kb.Text type="BodyBig">Files</Kb.Text>
+      </Kb.Box2>
+      <MainBanner />
+    </>
+  ) : (
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.headerContainer}>
       {expanded ? (
         <Kbfs.FolderViewFilter path={props.path} onCancel={filterDone} />
       ) : (
@@ -69,8 +85,31 @@ const NavMobileHeader = (props: Props) => {
   )
 }
 
-export const getHeight = (path: Types.Path) =>
-  Styles.statusBarHeight + 44 + (Styles.isAndroid ? 56 : 44) + (Constants.hasPublicTag(path) ? 7 : 0)
+const getBaseHeight = (path: Types.Path) => {
+  return (
+    Styles.statusBarHeight +
+    44 +
+    (path === Constants.defaultPath
+      ? 0
+      : (Styles.isAndroid ? 56 : 44) + (Constants.hasPublicTag(path) ? 7 : 0))
+  )
+}
+
+export const useHeaderHeight = (path: Types.Path) => {
+  const bannerType = Container.useSelector(state =>
+    Constants.getMainBannerType(state.fs.kbfsDaemonStatus, state.fs.overallSyncStatus)
+  )
+  const base = getBaseHeight(path)
+  switch (bannerType) {
+    case Types.MainBannerType.None:
+    case Types.MainBannerType.TryingToConnect:
+      return base
+    case Types.MainBannerType.Offline:
+      return base + 40
+    case Types.MainBannerType.OutOfSpace:
+      return base + 73
+  }
+}
 
 const getHeightStyle = (height: number) => ({height, maxHeight: height, minHeight: height})
 
@@ -89,16 +128,10 @@ const styles = Styles.styleSheetCreate(
           paddingRight: Styles.globalMargins.small,
         },
       }),
-      container: {
-        backgroundColor: Styles.globalColors.white,
-        borderBottomColor: Styles.globalColors.black_10,
-        borderBottomWidth: 1,
-        borderStyle: 'solid',
-        paddingTop: Styles.isAndroid ? undefined : Styles.statusBarHeight,
-      },
       expandedTitleContainer: {
         backgroundColor: Styles.globalColors.white,
         padding: Styles.globalMargins.tiny,
+        paddingBottom: Styles.globalMargins.xsmall + Styles.globalMargins.xxtiny,
       },
       expandedTopContainer: Styles.platformStyles({
         common: {
@@ -117,6 +150,13 @@ const styles = Styles.styleSheetCreate(
       },
       gap: {
         flex: 1,
+      },
+      headerContainer: {
+        backgroundColor: Styles.globalColors.white,
+        borderBottomColor: Styles.globalColors.black_10,
+        borderBottomWidth: 1,
+        borderStyle: 'solid',
+        paddingTop: Styles.isAndroid ? undefined : Styles.statusBarHeight,
       },
     } as const)
 )

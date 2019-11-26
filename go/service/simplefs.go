@@ -498,16 +498,16 @@ func (s *SimpleFSHandler) SimpleFSForceStuckConflict(
 	return cli.SimpleFSForceStuckConflict(ctx, path)
 }
 
-// SimpleFSAreWeConnectedToMDServer implements the SimpleFSInterface.
-func (s *SimpleFSHandler) SimpleFSAreWeConnectedToMDServer(
-	ctx context.Context) (bool, error) {
+// SimpleFSGetOnlineStatus implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSGetOnlineStatus(
+	ctx context.Context) (keybase1.KbfsOnlineStatus, error) {
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	cli, err := s.client()
 	if err != nil {
-		return false, err
+		return keybase1.KbfsOnlineStatus_OFFLINE, err
 	}
-	return cli.SimpleFSAreWeConnectedToMDServer(ctx)
+	return cli.SimpleFSGetOnlineStatus(ctx)
 }
 
 // SimpleFSCheckReachability implements the SimpleFSInterface.

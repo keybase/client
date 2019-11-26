@@ -512,6 +512,7 @@ export enum KbfsDaemonRpcStatus {
 export enum KbfsDaemonOnlineStatus {
   Unknown = 'unknown',
   Offline = 'offline',
+  Trying = 'trying',
   Online = 'online',
 }
 export type KbfsDaemonStatus = Readonly<{
@@ -786,5 +787,6 @@ export type ResetBannerType = ResetBannerNoOthersType | number
 export enum MainBannerType {
   None = 'none',
   Offline = 'offline',
+  TryingToConnect = 'trying-to-connect',
   OutOfSpace = 'out-of-space',
 }

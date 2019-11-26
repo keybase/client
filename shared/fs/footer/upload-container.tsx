@@ -68,7 +68,7 @@ const mergeProps = ({_kbfsDaemonStatus, _pathItems, _uploads}, {debugToggleShow}
     ...uploadsToUploadCountdownHOCProps(_pathItems, _uploads),
     debugToggleShow,
     isOnline:
-      !flags.kbfsOfflineMode || _kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Online,
+      !flags.kbfsOfflineMode || _kbfsDaemonStatus.onlineStatus !== Types.KbfsDaemonOnlineStatus.Offline,
   } as UploadCountdownHOCProps)
 
 export default compose(

@@ -94,6 +94,109 @@ type pathSubscriptionRef struct {
 	path         cleanInTlfPath
 }
 
+type onlineStatusTracker struct {
+	cancel   func()
+	config   Config
+	onChange func()
+
+	lock          sync.RWMutex
+	currentStatus keybase1.KbfsOnlineStatus
+}
+
+const onlineStatusTryingStateTimeout = 4 * time.Second
+
+func (ost *onlineStatusTracker) updateOnlineStatus(
+	currentStatus keybase1.KbfsOnlineStatus) {
+	ost.lock.Lock()
+	defer ost.lock.Unlock()
+	if ost.currentStatus == currentStatus {
+		return
+	}
+	ost.currentStatus = currentStatus
+	ost.onChange()
+}
+
+func (ost *onlineStatusTracker) updateOnlineStatusIfCurrentIs(
+	expected keybase1.KbfsOnlineStatus,
+	currentStatus keybase1.KbfsOnlineStatus) (updated bool) {
+	ost.lock.Lock()
+	defer ost.lock.Unlock()
+	if ost.currentStatus == expected {
+		ost.currentStatus = currentStatus
+		ost.onChange()
+		return true
+	}
+	return false
+}
+
+// GetOnlineStatus implements the OnlineStatusTracker interface.
+func (ost *onlineStatusTracker) GetOnlineStatus() keybase1.KbfsOnlineStatus {
+	ost.lock.RLock()
+	defer ost.lock.RUnlock()
+	return ost.currentStatus
+}
+
+func (ost *onlineStatusTracker) myWatchBegins(ctx context.Context) {
+	go func() {
+		for ost.config.KBFSOps() == nil {
+			time.Sleep(100 * time.Millisecond)
+		}
+
+		var serviceErrors map[string]error
+		invalidateChan := make(chan StatusUpdate)
+		close(invalidateChan)
+
+		var t *time.Timer
+		for {
+			select {
+			case <-invalidateChan:
+				serviceErrors, invalidateChan = ost.config.KBFSOps().
+					StatusOfServices()
+				connected := serviceErrors[MDServiceName] == nil
+				if connected {
+					ost.updateOnlineStatus(keybase1.KbfsOnlineStatus_ONLINE)
+					if t != nil {
+						t.Stop()
+					}
+				} else {
+					if ost.updateOnlineStatusIfCurrentIs(
+						keybase1.KbfsOnlineStatus_ONLINE,
+						keybase1.KbfsOnlineStatus_TRYING) {
+						if t != nil {
+							t.Stop()
+						}
+						t = time.AfterFunc(
+							onlineStatusTryingStateTimeout, func() {
+								ost.updateOnlineStatusIfCurrentIs(
+									keybase1.KbfsOnlineStatus_TRYING,
+									keybase1.KbfsOnlineStatus_OFFLINE)
+							})
+					}
+				}
+			case <-ctx.Done():
+				return
+			}
+		}
+	}()
+}
+
+func newOnlineStatusTracker(
+	config Config, onChange func()) *onlineStatusTracker {
+	ctx, cancel := context.WithCancel(context.Background())
+	ost := &onlineStatusTracker{
+		cancel:        cancel,
+		config:        config,
+		onChange:      onChange,
+		currentStatus: keybase1.KbfsOnlineStatus_ONLINE,
+	}
+	ost.myWatchBegins(ctx)
+	return ost
+}
+
+func (ost *onlineStatusTracker) shutdown() {
+	ost.cancel()
+}
+
 // subscriptionManager manages subscriptions. There are two types of
 // subscriptions: path and non-path. Path subscriptions are for changes related
 // to a specific path, such as file content change, dir children change, and
@@ -104,8 +207,8 @@ type pathSubscriptionRef struct {
 type subscriptionManager struct {
 	config Config
 
-	shutdownOnlineStatusWatcher func()
-	lock                        sync.RWMutex
+	onlineStatusTracker *onlineStatusTracker
+	lock                sync.RWMutex
 	// TODO HOTPOT-416: add another layer here to reference by topics, and
 	// actually check topics in LocalChange and BatchChanges.
 	pathSubscriptions               map[pathSubscriptionRef]map[SubscriptionID]debouncedNotify
@@ -132,25 +235,6 @@ func (sm *subscriptionManager) notifyOnlineStatus() {
 	}
 }
 
-func (sm *subscriptionManager) watchOnlineStatus() func() {
-	ctx, shutdown := context.WithCancel(context.Background())
-	go func() {
-		for sm.config.KBFSOps() == nil {
-			time.Sleep(100 * time.Millisecond)
-		}
-		for {
-			_, invalidateChan := sm.config.KBFSOps().StatusOfServices()
-			select {
-			case <-invalidateChan:
-				sm.notifyOnlineStatus()
-			case <-ctx.Done():
-				return
-			}
-		}
-	}()
-	return shutdown
-}
-
 func newSubscriptionManager(config Config) (SubscriptionManager, SubscriptionManagerPublisher) {
 	sm := &subscriptionManager{
 		pathSubscriptions:               make(map[pathSubscriptionRef]map[SubscriptionID]debouncedNotify),
@@ -161,12 +245,12 @@ func newSubscriptionManager(config Config) (SubscriptionManager, SubscriptionMan
 		subscriptionIDs:                 make(map[SubscriptionID]bool),
 		subscriptionCountByFolderBranch: make(map[data.FolderBranch]int),
 	}
-	sm.shutdownOnlineStatusWatcher = sm.watchOnlineStatus()
+	sm.onlineStatusTracker = newOnlineStatusTracker(config, sm.notifyOnlineStatus)
 	return sm, sm
 }
 
 func (sm *subscriptionManager) Shutdown(ctx context.Context) {
-	sm.shutdownOnlineStatusWatcher()
+	sm.onlineStatusTracker.shutdown()
 	pathSids := make([]SubscriptionID, 0, len(sm.pathSubscriptionIDToRef))
 	nonPathSids := make([]SubscriptionID, 0, len(sm.nonPathSubscriptionIDToTopic))
 	for sid := range sm.pathSubscriptionIDToRef {
@@ -185,6 +269,10 @@ func (sm *subscriptionManager) Shutdown(ctx context.Context) {
 
 func (sm *subscriptionManager) Subscriber(notifier SubscriptionNotifier) Subscriber {
 	return subscriber{sm: sm, notifier: notifier}
+}
+
+func (sm *subscriptionManager) OnlineStatusTracker() OnlineStatusTracker {
+	return sm.onlineStatusTracker
 }
 
 func (sm *subscriptionManager) checkSubscriptionIDLocked(sid SubscriptionID) (setter func(), err error) {

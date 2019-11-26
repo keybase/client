@@ -667,8 +667,8 @@ const finishManualCR = async (_: TypedState, action) => {
 // and we deserve a black bar.
 const checkIfWeReConnectedToMDServerUpToNTimes = async (n: number) => {
   try {
-    const connectedToMDServer = await RPCTypes.SimpleFSSimpleFSAreWeConnectedToMDServerRpcPromise()
-    return FsGen.createKbfsDaemonOnlineStatusChanged({online: connectedToMDServer})
+    const onlineStatus = await RPCTypes.SimpleFSSimpleFSGetOnlineStatusRpcPromise()
+    return FsGen.createKbfsDaemonOnlineStatusChanged({onlineStatus})
   } catch (error) {
     if (n > 0) {
       logger.warn(`failed to check if we are connected to MDServer: ${error}; n=${n}`)
