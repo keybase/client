@@ -103,7 +103,7 @@ const makeTimestampGen = (days: number = 7, threshold: number = 10) => {
 
 const generateTimestamp = makeTimestampGen()
 
-const ordinalToMessageCache = {}
+const ordinalToMessageCache: {[key: number]: Types.Message} = {}
 const ordinalToMessage = (o: Types.Ordinal) => {
   if (ordinalToMessageCache[o]) {
     return ordinalToMessageCache[o]

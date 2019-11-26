@@ -2,18 +2,18 @@ import React from 'react'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as Constants from '../../../constants/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
+import * as Container from '../../../util/container'
 import Text, {StylesTextCrossPlatform} from '../../../common-adapters/text'
-import {namedConnect} from '../../../util/container'
 import Mention from '../../../common-adapters/mention-container'
 import TeamMention from './team-container'
 import UnknownMention from './unknown'
 
-const Kb = {Text}
+const Kb = {Mention, Text}
 
 type Props = {
   allowFontScaling?: boolean
   channel: string
-  info: RPCChatTypes.UIMaybeMentionInfo | null
+  info?: RPCChatTypes.UIMaybeMentionInfo
   name: string
   onResolve: () => void
   style?: StylesTextCrossPlatform
@@ -43,7 +43,7 @@ const MaybeMention = (props: Props) => {
         />
       )
     case RPCChatTypes.UIMaybeMentionStatus.user:
-      return <Mention username={props.name} />
+      return <Kb.Mention username={props.name} />
     case RPCChatTypes.UIMaybeMentionStatus.team:
       return (
         <TeamMention
@@ -63,20 +63,21 @@ type OwnProps = {
   style?: StylesTextCrossPlatform
 }
 
-export default namedConnect(
-  (state, ownProps: OwnProps) => {
-    const info = state.chat2.maybeMentionMap.get(
-      Constants.getTeamMentionName(ownProps.name, ownProps.channel)
-    )
-    return {
-      ...ownProps,
-      info,
-    }
-  },
+export default Container.namedConnect(
+  (state, ownProps: OwnProps) => ({
+    info: state.chat2.maybeMentionMap.get(Constants.getTeamMentionName(ownProps.name, ownProps.channel)),
+  }),
   (dispatch, ownProps: OwnProps) => ({
     onResolve: () =>
       dispatch(Chat2Gen.createResolveMaybeMention({channel: ownProps.channel, name: ownProps.name})),
   }),
-  (s, d) => ({...s, ...d}),
+  (stateProps, dispatchProps, ownProps: OwnProps) => ({
+    allowFontScaling: ownProps.allowFontScaling,
+    channel: ownProps.channel,
+    info: stateProps.info,
+    name: ownProps.name,
+    onResolve: dispatchProps.onResolve,
+    style: ownProps.style,
+  }),
   'MaybeMention'
 )(MaybeMention)
