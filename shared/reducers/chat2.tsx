@@ -34,7 +34,7 @@ const messageIDToOrdinal = (
   // A message we didn't send in this session?
   const map = messageMap.get(conversationIDKey)
   let m = map?.get(Types.numberToOrdinal(messageID))
-  if (m && m.id && m.id === messageID) {
+  if (m?.id !== 0 && m?.id === messageID) {
     return m.ordinal
   }
   // Search through our sent messages
@@ -42,7 +42,7 @@ const messageIDToOrdinal = (
     ...(pendingOutboxToOrdinal.get(conversationIDKey) ?? new Map<Types.OutboxID, Types.Ordinal>()).values(),
   ].find(o => {
     m = map?.get(o)
-    if (m?.id !== 0 && m.id === messageID) {
+    if (m?.id !== 0 && m?.id === messageID) {
       return true
     }
     return false
