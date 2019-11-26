@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import HiddenString from '../../util/hidden-string'
 import * as StellarRPCTypes from './rpc-stellar-gen'
 import * as TeamBuildingTypes from './team-building'
@@ -83,7 +82,7 @@ export type Currency = {
   name: string
 }
 
-export type _Building = {
+export type Building = {
   amount: string
   bid: string
   currency: string
@@ -96,7 +95,7 @@ export type _Building = {
   to: string
 }
 
-export type _BuildingAdvanced = {
+export type BuildingAdvanced = {
   recipient: string
   recipientAmount: string
   recipientAsset: AssetDescriptionOrNative
@@ -107,17 +106,17 @@ export type _BuildingAdvanced = {
   secretNote: HiddenString
 }
 
-export type _PaymentPath = {
+export type PaymentPath = {
   sourceAmount: string
   sourceAmountMax: string
   sourceAsset: AssetDescriptionOrNative
   sourceInsufficientBalance: string // empty if sufficient
-  path: I.List<AssetDescriptionOrNative>
+  path: Array<AssetDescriptionOrNative>
   destinationAmount: string
   destinationAsset: AssetDescriptionOrNative
 }
 
-export type _BuiltPaymentAdvanced = {
+export type BuiltPaymentAdvanced = {
   amountError: string
   destinationAccount: AccountID
   destinationDisplay: string
@@ -129,7 +128,7 @@ export type _BuiltPaymentAdvanced = {
   sourceMaxDisplay: string
 }
 
-export type _BuiltPayment = {
+export type BuiltPayment = {
   amountAvailable: string
   amountErrMsg: string
   builtBanners: Array<StellarRPCTypes.SendBannerLocal> | null
@@ -150,7 +149,7 @@ export type _BuiltPayment = {
   sendingIntentionXLM: boolean
 }
 
-export type _BuiltRequest = {
+export type BuiltRequest = {
   amountErrMsg: string
   builtBanners?: Array<StellarRPCTypes.SendBannerLocal> | null
   readyToRequest: boolean
@@ -264,15 +263,6 @@ export type Banner = {
   offerAdvancedSendForm?: StellarRPCTypes.AdvancedBanner
 }
 
-export type Building = I.RecordOf<_Building>
-export type BuildingAdvanced = I.RecordOf<_BuildingAdvanced>
-export type PaymentPath = I.RecordOf<_PaymentPath>
-export type BuiltPaymentAdvanced = I.RecordOf<_BuiltPaymentAdvanced>
-
-export type BuiltPayment = I.RecordOf<_BuiltPayment>
-
-export type BuiltRequest = I.RecordOf<_BuiltRequest>
-
 export type Account = {
   accountID: AccountID
   balanceDescription: string
@@ -295,39 +285,33 @@ export type AirdropState =
   | 'needDisclaimer'
   | 'rejected'
 
-export type _AirdropQualification = {
+export type AirdropQualification = {
   title: string
   subTitle: string
   valid: boolean
 }
-export type AirdropQualification = I.RecordOf<_AirdropQualification>
 
-export type _StellarDetailsLine = {
+export type StellarDetailsLine = {
   bullet: boolean
   text: string
 }
-type StellarDetailsLine = I.RecordOf<_StellarDetailsLine>
 
-export type _StellarDetailsSection = {
-  lines: I.List<StellarDetailsLine>
+export type StellarDetailsSection = {
+  lines: Array<StellarDetailsLine>
   section: string
   icon: string
 }
-type StellarDetailsSection = I.RecordOf<_StellarDetailsSection>
 
-export type _StellarDetailsHeader = {
+export type StellarDetailsHeader = {
   body: string
   title: string
 }
-type StellarDetailsHeader = I.RecordOf<_StellarDetailsHeader>
 
-export type _StellarDetailsResponse = {
+export type StellarDetailsResponse = {
   header: StellarDetailsHeader
-  sections: I.List<StellarDetailsSection>
+  sections: Array<StellarDetailsSection>
 }
-export type StellarDetailsResponse = I.RecordOf<_StellarDetailsResponse>
-
-export type _StellarDetails = {
+export type AirdropDetails = {
   details: StellarDetailsResponse
   disclaimer: StellarDetailsResponse
   isPromoted: boolean
@@ -341,8 +325,6 @@ export type StellarDetailsSections = ReadonlyArray<{
   section: string
   icon: string | null
 }>
-
-export type AirdropDetails = I.RecordOf<_StellarDetails>
 
 export type AssetID = string
 export const makeAssetID = (issuerAccountID: string, assetCode: string): AssetID =>

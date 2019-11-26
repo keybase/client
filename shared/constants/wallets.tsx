@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as Types from './types/wallets'
 import * as RPCTypes from './types/rpc-stellar-gen'
 import * as Styles from '../styles'
@@ -30,31 +29,44 @@ export const confirmFormRouteKey = 'confirmForm'
 export const sendRequestFormRoutes = [sendRequestFormRouteKey, confirmFormRouteKey]
 export const airdropBannerKey = 'stellarHideAirdropBanner'
 
-export const makeAirdropQualification = I.Record<Types._AirdropQualification>({
+export const makeAirdropQualification = (
+  a?: Partial<Types.AirdropQualification>
+): Types.AirdropQualification => ({
   subTitle: '',
   title: '',
   valid: false,
+  ...a,
 })
 
-export const makeStellarDetailsLine = I.Record<Types._StellarDetailsLine>({
+export const makeStellarDetailsLine = (d?: Partial<Types.StellarDetailsLine>): Types.StellarDetailsLine => ({
   bullet: false,
   text: '',
+  ...d,
 })
 
-export const makeStellarDetailsHeader = I.Record<Types._StellarDetailsHeader>({
+export const makeStellarDetailsHeader = (
+  d?: Partial<Types.StellarDetailsHeader>
+): Types.StellarDetailsHeader => ({
   body: '',
   title: '',
+  ...d,
 })
 
-export const makeStellarDetailsSection = I.Record<Types._StellarDetailsSection>({
+export const makeStellarDetailsSection = (
+  d?: Partial<Types.StellarDetailsSection>
+): Types.StellarDetailsSection => ({
   icon: '',
-  lines: I.List(),
+  lines: [],
   section: '',
+  ...d,
 })
 
-export const makeStellarDetailsResponse = I.Record<Types._StellarDetailsResponse>({
+export const makeStellarDetailsResponse = (
+  r?: Partial<Types.StellarDetailsResponse>
+): Types.StellarDetailsResponse => ({
   header: makeStellarDetailsHeader({}),
-  sections: I.List(),
+  sections: [],
+  ...r,
 })
 
 export type StellarDetailsJSONType = {
@@ -78,28 +90,25 @@ export const makeStellarDetailsFromJSON = (json: StellarDetailsJSONType) =>
       body: (json && json.header && json.header.body) || '',
       title: (json && json.header && json.header.title) || '',
     }),
-    sections: I.List(
-      ((json && json.sections) || []).map(section =>
-        makeStellarDetailsSection({
-          icon: (section && section.icon) || '',
-          lines: I.List(
-            ((section && section.lines) || []).map(l =>
-              makeStellarDetailsLine({
-                bullet: (l && l.bullet) || false,
-                text: (l && l.text) || '',
-              })
-            )
-          ),
-          section: (section && section.section) || '',
-        })
-      )
+    sections: ((json && json.sections) || []).map(section =>
+      makeStellarDetailsSection({
+        icon: (section && section.icon) || '',
+        lines: ((section && section.lines) || []).map(l =>
+          makeStellarDetailsLine({
+            bullet: (l && l.bullet) || false,
+            text: (l && l.text) || '',
+          })
+        ),
+        section: (section && section.section) || '',
+      })
     ),
   })
 
-export const makeStellarDetails = I.Record<Types._StellarDetails>({
+export const makeStellarDetails = (d?: Partial<Types.AirdropDetails>): Types.AirdropDetails => ({
   details: makeStellarDetailsResponse(),
   disclaimer: makeStellarDetailsResponse(),
   isPromoted: false,
+  ...d,
 })
 
 export const makeReserve = (r?: Partial<Types.Reserve>): Types.Reserve => ({
@@ -123,7 +132,7 @@ export const makeAssetDescription = (a?: Partial<Types.AssetDescription>): Types
 })
 export const emptyAssetDescription = makeAssetDescription()
 
-export const makeBuilding = I.Record<Types._Building>({
+export const makeBuilding = (b?: Partial<Types.Building>): Types.Building => ({
   amount: '',
   bid: '',
   currency: 'XLM', // FIXME: Use default currency?
@@ -134,9 +143,10 @@ export const makeBuilding = I.Record<Types._Building>({
   secretNote: new HiddenString(''),
   sendAssetChoices: null,
   to: '',
+  ...b,
 })
 
-export const makeBuildingAdvanced = I.Record<Types._BuildingAdvanced>({
+export const makeBuildingAdvanced = (b?: Partial<Types.BuildingAdvanced>): Types.BuildingAdvanced => ({
   publicMemo: new HiddenString(''),
   recipient: '',
   recipientAmount: '',
@@ -145,21 +155,25 @@ export const makeBuildingAdvanced = I.Record<Types._BuildingAdvanced>({
   secretNote: new HiddenString(''),
   senderAccountID: Types.noAccountID,
   senderAsset: emptyAssetDescription,
+  ...b,
 })
 export const emptyBuildingAdvanced = makeBuildingAdvanced()
 
-export const makePaymentPath = I.Record<Types._PaymentPath>({
+export const makePaymentPath = (b?: Partial<Types.PaymentPath>): Types.PaymentPath => ({
   destinationAmount: '',
   destinationAsset: emptyAssetDescription,
-  path: I.List(),
+  path: [],
   sourceAmount: '',
   sourceAmountMax: '',
   sourceAsset: emptyAssetDescription,
   sourceInsufficientBalance: '',
+  ...b,
 })
 export const emptyPaymentPath = makePaymentPath()
 
-export const makeBuiltPaymentAdvanced = I.Record<Types._BuiltPaymentAdvanced>({
+export const makeBuiltPaymentAdvanced = (
+  b?: Partial<Types.BuiltPaymentAdvanced>
+): Types.BuiltPaymentAdvanced => ({
   amountError: '',
   destinationAccount: Types.noAccountID,
   destinationDisplay: '',
@@ -169,10 +183,11 @@ export const makeBuiltPaymentAdvanced = I.Record<Types._BuiltPaymentAdvanced>({
   readyToSend: false,
   sourceDisplay: '',
   sourceMaxDisplay: '',
+  ...b,
 })
 export const emptyBuiltPaymentAdvanced = makeBuiltPaymentAdvanced()
 
-export const makeBuiltPayment = I.Record<Types._BuiltPayment>({
+export const makeBuiltPayment = (b?: Partial<Types.BuiltPayment>): Types.BuiltPayment => ({
   amountAvailable: '',
   amountErrMsg: '',
   builtBanners: null,
@@ -191,6 +206,7 @@ export const makeBuiltPayment = I.Record<Types._BuiltPayment>({
   worthCurrency: '',
   worthDescription: '',
   worthInfo: '',
+  ...b,
 })
 
 export const makeSEP7Summary = (s?: Partial<Types.SEP7Summary>): Types.SEP7Summary => ({
@@ -222,7 +238,7 @@ export const makeSEP7ConfirmInfo = (s?: Partial<Types.SEP7ConfirmInfo>): Types.S
   ...s,
 })
 
-export const makeBuiltRequest = I.Record<Types._BuiltRequest>({
+export const makeBuiltRequest = (b?: Partial<Types.BuiltRequest>): Types.BuiltRequest => ({
   amountErrMsg: '',
   builtBanners: null,
   displayAmountFiat: '',
@@ -233,9 +249,10 @@ export const makeBuiltRequest = I.Record<Types._BuiltRequest>({
   toErrMsg: '',
   worthDescription: '',
   worthInfo: '',
+  ...b,
 })
 
-export const emptyAccountAcceptedAssets: I.Map<Types.AssetID, number> = I.Map()
+export const emptyAccountAcceptedAssets: Map<Types.AssetID, number> = new Map()
 
 export const makeTrustline = (t?: Partial<Types.Trustline>): Types.Trustline => ({
   acceptedAssets: new Map(),
