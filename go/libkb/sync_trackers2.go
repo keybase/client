@@ -117,6 +117,33 @@ func (t *Tracker2Syncer) needsLogin(m MetaContext) bool {
 	return false
 }
 
+func (t *Tracker2Syncer) Block(m MetaContext, badUIDs map[keybase1.UID]bool) (err error) {
+	defer m.Trace(fmt.Sprintf("Tracker2Syncer#Block(%+v)", badUIDs), func() error { return err })()
+	t.Lock()
+	defer t.Unlock()
+	if t.res == nil {
+		m.Debug("No followers loaded, so nothing to do")
+		return nil
+	}
+
+	err = t.loadFromStorage(m, t.callerUID, true)
+	if err != nil {
+		return err
+	}
+
+	var newUsers []keybase1.UserSummary2
+	for _, userSummary := range t.res.Users {
+		if badUIDs[userSummary.Uid] {
+			m.Debug("Filtering bad user out of state: %s", userSummary.Uid)
+			t.dirty = true
+		} else {
+			newUsers = append(newUsers, userSummary)
+		}
+	}
+	err = t.store(m, t.callerUID)
+	return err
+}
+
 func (t *Tracker2Syncer) Result() keybase1.UserSummary2Set {
 	if t.res == nil {
 		return keybase1.UserSummary2Set{}
