@@ -1409,7 +1409,7 @@ const refreshTrustlinePopularAssets = async () => {
 }
 
 const addTrustline = async (state: TypedState, {payload: {accountID, assetID}}) => {
-  const asset = state.wallets.trustline.assetMap.get(assetID, Constants.emptyAssetDescription)
+  const asset = state.wallets.trustline.assetMap.get(assetID) ?? Constants.emptyAssetDescription
   const refresh = WalletsGen.createRefreshTrustlineAcceptedAssets({accountID})
   if (asset === Constants.emptyAssetDescription) {
     return false
@@ -1431,7 +1431,7 @@ const addTrustline = async (state: TypedState, {payload: {accountID, assetID}}) 
 }
 
 const deleteTrustline = async (state: TypedState, {payload: {accountID, assetID}}) => {
-  const asset = state.wallets.trustline.assetMap.get(assetID, Constants.emptyAssetDescription)
+  const asset = state.wallets.trustline.assetMap.get(assetID) ?? Constants.emptyAssetDescription
   const refresh = WalletsGen.createRefreshTrustlineAcceptedAssets({accountID})
   if (asset === Constants.emptyAssetDescription) {
     return false
@@ -1476,7 +1476,7 @@ const searchTrustlineAssets = async (_: TypedState, {payload: {text}}) => {
 const paymentPathToRpcPaymentPath = (paymentPath: Types.PaymentPath): RPCStellarTypes.PaymentPath => ({
   destinationAmount: paymentPath.destinationAmount,
   destinationAsset: assetDescriptionOrNativeToRpcAsset(paymentPath.destinationAsset),
-  path: paymentPath.path.toArray().map(ad => assetDescriptionOrNativeToRpcAsset(ad)),
+  path: paymentPath.path.map(ad => assetDescriptionOrNativeToRpcAsset(ad)),
   sourceAmount: paymentPath.sourceAmount,
   sourceAmountMax: paymentPath.sourceAmountMax,
   sourceAsset: assetDescriptionOrNativeToRpcAsset(paymentPath.sourceAsset),
@@ -1487,11 +1487,9 @@ const rpcPaymentPathToPaymentPath = (rpcPaymentPath: RPCStellarTypes.PaymentPath
   Constants.makePaymentPath({
     destinationAmount: rpcPaymentPath.destinationAmount,
     destinationAsset: rpcAssetToAssetDescriptionOrNative(rpcPaymentPath.destinationAsset),
-    path: I.List(
-      rpcPaymentPath.path
-        ? rpcPaymentPath.path.map(rpcAsset => rpcAssetToAssetDescriptionOrNative(rpcAsset))
-        : []
-    ),
+    path: rpcPaymentPath.path
+      ? rpcPaymentPath.path.map(rpcAsset => rpcAssetToAssetDescriptionOrNative(rpcAsset))
+      : [],
     sourceAmount: rpcPaymentPath.sourceAmount,
     sourceAmountMax: rpcPaymentPath.sourceAmountMax,
     sourceAsset: rpcAssetToAssetDescriptionOrNative(rpcPaymentPath.sourceAsset),

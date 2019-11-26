@@ -4,7 +4,7 @@ import * as WalletsGen from '../../../actions/wallets-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Container from '../../../util/container'
 
-const injectSmile = (rows: Array<Types._AirdropQualification>) =>
+const injectSmile = (rows: Array<Types.AirdropQualification>) =>
   rows.length ? [...rows, {subTitle: '', title: 'A beautiful smile', valid: true}] : rows
 
 export default Container.connect(
@@ -18,7 +18,7 @@ export default Container.connect(
     onSubmit: () => dispatch(WalletsGen.createChangeAirdrop({accept: true})),
   }),
   (stateProps, dispatchProps) => ({
-    rows: injectSmile(stateProps._rows.map(r => r.toObject())),
+    rows: injectSmile(stateProps._rows),
     state: stateProps.state,
     ...dispatchProps,
   })
