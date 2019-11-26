@@ -38,6 +38,7 @@ const AttachmentPopupMenu = (props: Props) => {
           {
             danger: true,
             disabled: !props.onDelete,
+            icon: 'iconfont-trash',
             onClick: props.onDelete,
             subTitle: 'Deletes this attachment for everyone',
             title: 'Delete',
@@ -46,18 +47,18 @@ const AttachmentPopupMenu = (props: Props) => {
       : []),
 
     'Divider' as const,
-    ...(props.onShowInFinder ? [{onClick: props.onShowInFinder, title: `Show in ${fileUIName}`}] : []),
+    ...(props.onShowInFinder ? [{icon: 'iconfont-finder', onClick: props.onShowInFinder, title: `Show in ${fileUIName}`}] : []),
     ...(props.onSaveAttachment
-      ? [{disabled: props.pending, onClick: props.onSaveAttachment, title: 'Save'}]
+      ? [{disabled: props.pending, icon: 'iconfont-download-2', onClick: props.onSaveAttachment, title: 'Save'}]
       : []),
-    ...(props.onDownload ? [{disabled: props.pending, onClick: props.onDownload, title: 'Download'}] : []),
+    ...(props.onDownload ? [{disabled: props.pending, icon: 'iconfont-download-2', onClick: props.onDownload, title: 'Download'}] : []),
     ...(props.onShareAttachment
-      ? [{disabled: props.pending, onClick: props.onShareAttachment, title: 'Share'}]
+      ? [{disabled: props.pending, icon: 'iconfont-share', onClick: props.onShareAttachment, title: 'Share'}]
       : []),
-    ...[{disabled: props.pending, onClick: props.onAllMedia, title: 'All media'}],
-    ...(props.onAddReaction ? [{onClick: props.onAddReaction, title: 'Add a reaction'}] : []),
-    ...(props.onReply ? [{onClick: props.onReply, title: 'Reply'}] : []),
-    ...(props.onPinMessage ? [{onClick: props.onPinMessage, title: 'Pin message'}] : []),
+    ...[{disabled: props.pending, icon: 'iconfont-camera', onClick: props.onAllMedia, title: 'All media'}],
+    ...(props.onAddReaction ? [{icon: 'iconfont-reacji', onClick: props.onAddReaction, title: 'Add a reaction'}] : []),
+    ...(props.onReply ? [{icon: 'iconfont-reply', onClick: props.onReply, title: 'Reply'}] : []),
+    ...(props.onPinMessage ? [{icon: 'iconfont-pin', onClick: props.onPinMessage, title: 'Pin message'}] : []),
   ]
 
   const header = {

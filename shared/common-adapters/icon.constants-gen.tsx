@@ -8493,6 +8493,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-share': {
+    charCode: 0xe9aa,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-shh': {
     charCode: 0xe959,
     gridSize: 16,
