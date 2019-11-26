@@ -141,13 +141,7 @@ function* requestMeta(state: TypedState, _: Chat2Gen.MetaHandleQueuePayload) {
     : []
   const unboxSomeMoreActions = metaQueue.size ? [Saga.put(Chat2Gen.createMetaHandleQueue())] : []
   const delayBeforeUnboxingMoreActions =
-    toUnboxActions.length && unboxSomeMoreActions.length
-      ? [
-          Saga.callUntyped(function*() {
-            yield Saga.delay(100)
-          }),
-        ]
-      : []
+    toUnboxActions.length && unboxSomeMoreActions.length ? [Saga.delay(100)] : []
 
   const nextActions = [...toUnboxActions, ...delayBeforeUnboxingMoreActions, ...unboxSomeMoreActions]
 
