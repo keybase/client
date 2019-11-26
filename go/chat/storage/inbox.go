@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"time"
 
 	"github.com/keybase/client/go/encrypteddb"
@@ -220,12 +221,16 @@ func (i *Inbox) sharedInboxFile(ctx context.Context, uid gregor1.UID) (*encrypte
 }
 
 func (i *Inbox) writeMobileSharedInbox(ctx context.Context, ibox inboxDiskData, uid gregor1.UID) {
+	defer i.Trace(ctx, func() error { return nil }, fmt.Sprintf("writeMobileSharedInbox(%s)", uid))()
 	// Bail out if we are an extension or we aren't also writing into a mobile shared directory
 	if i.G().GetEnv().IsMobileExtension() || i.G().GetEnv().GetMobileSharedHome() == "" ||
 		i.G().GetAppType() != libkb.MobileAppType {
 		return
 	}
 	var writable []SharedInboxItem
+	sort.Slice(ibox.Conversations, func(i, j int) bool {
+		return utils.GetConvMtime(ibox.Conversations[i]) > utils.GetConvMtime(ibox.Conversations[j])
+	})
 	for _, rc := range ibox.Conversations {
 		if rc.Conv.GetTopicType() != chat1.TopicType_CHAT {
 			continue
@@ -259,13 +264,14 @@ func (i *Inbox) writeMobileSharedInbox(ctx context.Context, ibox inboxDiskData, 
 	}
 }
 
-func (i *Inbox) flushLocked(ctx context.Context, uid gregor1.UID) Error {
+func (i *Inbox) flushLocked(ctx context.Context, uid gregor1.UID) (err Error) {
+	defer i.Trace(ctx, func() error { return err }, fmt.Sprintf("flushLocked(%s)", uid))()
 	ibox := inboxMemCache.Get(uid)
 	if ibox == nil {
-		i.Debug(ctx, "Flush: no inbox in memory, not doing anything")
+		i.Debug(ctx, "flushLocked: no inbox in memory, not doing anything")
 		return nil
 	}
-	i.Debug(ctx, "Flush: version: %d disk version: %d server version: %d convs: %d",
+	i.Debug(ctx, "flushLocked: version: %d disk version: %d server version: %d convs: %d",
 		ibox.InboxVersion, ibox.Version, ibox.ServerVersion, len(ibox.Conversations))
 	if ierr := i.writeDiskBox(ctx, i.dbKey(uid), ibox); ierr != nil {
 		return NewInternalError(ctx, i.DebugLabeler, "failed to write inbox: uid: %s err: %s", uid, ierr)
