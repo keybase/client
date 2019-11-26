@@ -24,7 +24,7 @@ export default Container.namedConnect(
     const youAreReset = _meta.membershipType === 'youAreReset'
     const typers = state.chat2.typingMap.get(_conversationIDKey)
     let snippet = state.chat2.metaMap.get(_conversationIDKey) ? _meta.snippet : ownProps.snippet || ''
-    const snippetDecoration = _meta.snippetDecoration || ownProps.snippetDecoration
+    const snippetDecoration = _meta.snippetDecoration ?? ownProps.snippetDecoration
     let isTypingSnippet = false
     if (typers && typers.size > 0) {
       isTypingSnippet = true
