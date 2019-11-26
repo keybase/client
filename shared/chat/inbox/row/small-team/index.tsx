@@ -157,7 +157,7 @@ class SmallTeam extends React.PureComponent<Props, State> {
                     youAreReset={props.youAreReset}
                     showBold={props.showBold}
                     snippet={props.snippet || props.layoutSnippet || ''}
-                    snippetDecoration={props.snippetDecoration || props.layoutSnippetDecoration}
+                    snippetDecoration={props.snippetDecoration ?? props.layoutSnippetDecoration}
                     subColor={props.subColor}
                     hasResetUsers={props.hasResetUsers}
                     youNeedToRekey={props.youNeedToRekey}
