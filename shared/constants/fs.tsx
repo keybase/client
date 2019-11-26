@@ -25,7 +25,7 @@ export const ExitCodeFuseKextPermissionError = 5
 // See Installer.m: KBExitAuthCanceledError
 export const ExitCodeAuthCanceledError = 6
 
-export const emptyNewFolder: Readonly<Types.NewFolder> = {
+export const emptyNewFolder: Types.NewFolder = {
   hint: 'New Folder',
   name: 'New Folder',
   parentPath: Types.stringToPath('/keybase'),
@@ -33,15 +33,15 @@ export const emptyNewFolder: Readonly<Types.NewFolder> = {
   type: Types.EditType.NewFolder,
 }
 
-export const prefetchNotStarted: Readonly<Types.PrefetchNotStarted> = {
+export const prefetchNotStarted: Types.PrefetchNotStarted = {
   state: Types.PrefetchState.NotStarted,
 }
 
-export const prefetchComplete: Readonly<Types.PrefetchComplete> = {
+export const prefetchComplete: Types.PrefetchComplete = {
   state: Types.PrefetchState.Complete,
 }
 
-export const emptyPrefetchInProgress: Readonly<Types.PrefetchInProgress> = {
+export const emptyPrefetchInProgress: Types.PrefetchInProgress = {
   bytesFetched: 0,
   bytesTotal: 0,
   endEstimate: 0,
@@ -58,40 +58,38 @@ const pathItemMetadataDefault = {
   writable: false,
 }
 
-export const emptyFolder: Readonly<Types.FolderPathItem> = {
+export const emptyFolder: Types.FolderPathItem = {
   ...pathItemMetadataDefault,
   children: new Set(),
   progress: Types.ProgressType.Pending,
   type: Types.PathType.Folder,
 }
 
-export const emptyFile: Readonly<Types.FilePathItem> = {
+export const emptyFile: Types.FilePathItem = {
   ...pathItemMetadataDefault,
   type: Types.PathType.File,
 }
 
-export const emptySymlink: Readonly<Types.SymlinkPathItem> = {
+export const emptySymlink: Types.SymlinkPathItem = {
   ...pathItemMetadataDefault,
   linkTarget: '',
   type: Types.PathType.Symlink,
 }
 
-export const unknownPathItem: Readonly<Types.UnknownPathItem> = {
+export const unknownPathItem: Types.UnknownPathItem = {
   ...pathItemMetadataDefault,
   type: Types.PathType.Unknown,
 }
 
-export const tlfSyncEnabled: Readonly<Types.TlfSyncEnabled> = {
+export const tlfSyncEnabled: Types.TlfSyncEnabled = {
   mode: Types.TlfSyncMode.Enabled,
 }
 
-export const tlfSyncDisabled: Readonly<Types.TlfSyncDisabled> = {
+export const tlfSyncDisabled: Types.TlfSyncDisabled = {
   mode: Types.TlfSyncMode.Disabled,
 }
 
-export const makeTlfSyncPartial = ({
-  enabledPaths,
-}: Partial<Types.TlfSyncPartial>): Readonly<Types.TlfSyncPartial> => ({
+export const makeTlfSyncPartial = ({enabledPaths}: Partial<Types.TlfSyncPartial>): Types.TlfSyncPartial => ({
   enabledPaths: [...(enabledPaths || [])],
   mode: Types.TlfSyncMode.Partial,
 })
@@ -100,7 +98,7 @@ export const makeConflictStateNormalView = ({
   localViewTlfPaths,
   resolvingConflict,
   stuckInConflict,
-}: Partial<Types.ConflictStateNormalView>): Readonly<Types.ConflictStateNormalView> => ({
+}: Partial<Types.ConflictStateNormalView>): Types.ConflictStateNormalView => ({
   localViewTlfPaths: [...(localViewTlfPaths || [])],
   resolvingConflict: resolvingConflict || false,
   stuckInConflict: stuckInConflict || false,
@@ -111,9 +109,7 @@ export const tlfNormalViewWithNoConflict = makeConflictStateNormalView({})
 
 export const makeConflictStateManualResolvingLocalView = ({
   normalViewTlfPath,
-}: Partial<
-  Types.ConflictStateManualResolvingLocalView
->): Readonly<Types.ConflictStateManualResolvingLocalView> => ({
+}: Partial<Types.ConflictStateManualResolvingLocalView>): Types.ConflictStateManualResolvingLocalView => ({
   normalViewTlfPath: normalViewTlfPath || defaultPath,
   type: Types.ConflictStateType.ManualResolvingLocalView,
 })
@@ -128,7 +124,7 @@ export const makeTlf = ({
   syncConfig,
   teamId,
   tlfMtime,
-}: Partial<Types.Tlf>): Readonly<Types.Tlf> => ({
+}: Partial<Types.Tlf>): Types.Tlf => ({
   conflictState: conflictState || tlfNormalViewWithNoConflict,
   isFavorite: isFavorite || false,
   isIgnored: isIgnored || false,
@@ -145,28 +141,28 @@ export const makeTlf = ({
   */
 })
 
-export const emptySyncingFoldersProgress: Readonly<Types.SyncingFoldersProgress> = {
+export const emptySyncingFoldersProgress: Types.SyncingFoldersProgress = {
   bytesFetched: 0,
   bytesTotal: 0,
   endEstimate: 0,
   start: 0,
 }
 
-export const emptyOverallSyncStatus: Readonly<Types.OverallSyncStatus> = {
+export const emptyOverallSyncStatus: Types.OverallSyncStatus = {
   diskSpaceStatus: Types.DiskSpaceStatus.Ok,
   showingBanner: false,
   syncingFoldersProgress: emptySyncingFoldersProgress,
 }
 
-export const defaultPathUserSetting: Readonly<Types.PathUserSetting> = {
+export const defaultPathUserSetting: Types.PathUserSetting = {
   sort: Types.SortSetting.NameAsc,
 }
 
-export const defaultTlfListPathUserSetting: Readonly<Types.PathUserSetting> = {
+export const defaultTlfListPathUserSetting: Types.PathUserSetting = {
   sort: Types.SortSetting.TimeAsc,
 }
 
-export const emptyDownloadState: Readonly<Types.DownloadState> = {
+export const emptyDownloadState: Types.DownloadState = {
   canceled: false,
   done: false,
   endEstimate: 0,
@@ -175,7 +171,7 @@ export const emptyDownloadState: Readonly<Types.DownloadState> = {
   progress: 0,
 }
 
-export const emptyDownloadInfo: Readonly<Types.DownloadInfo> = {
+export const emptyDownloadInfo: Types.DownloadInfo = {
   filename: '',
   isRegularDownload: false,
   path: defaultPath,
@@ -190,7 +186,7 @@ type _MakeErrorArgs = {
   erroredAction: FsGen.Actions | EngineGen.Actions
   retriableAction?: FsGen.Actions | EngineGen.Actions
 }
-export const makeError = (args?: _MakeErrorArgs): Readonly<Types.FsError> => {
+export const makeError = (args?: _MakeErrorArgs): Types.FsError => {
   // TS Issue: https://github.com/microsoft/TypeScript/issues/26235
   const {time, error, erroredAction, retriableAction} = (args || {}) as Partial<NonNullable<_MakeErrorArgs>>
   return {
@@ -202,7 +198,7 @@ export const makeError = (args?: _MakeErrorArgs): Readonly<Types.FsError> => {
 }
 export const emptyError = makeError()
 
-export const emptySendAttachmentToChat: Readonly<Types.SendAttachmentToChat> = {
+export const emptySendAttachmentToChat: Types.SendAttachmentToChat = {
   convID: ChatConstants.noConversationIDKey,
   filter: '',
   path: Types.stringToPath('/keybase'),
@@ -210,18 +206,18 @@ export const emptySendAttachmentToChat: Readonly<Types.SendAttachmentToChat> = {
   title: '',
 }
 
-export const emptyPathItemActionMenu: Readonly<Types.PathItemActionMenu> = {
+export const emptyPathItemActionMenu: Types.PathItemActionMenu = {
   downloadID: null,
   downloadIntent: null,
   previousView: Types.PathItemActionMenuView.Root,
   view: Types.PathItemActionMenuView.Root,
 }
 
-export const driverStatusUnknown: Readonly<Types.DriverStatusUnknown> = {
+export const driverStatusUnknown: Types.DriverStatusUnknown = {
   type: Types.DriverStatusType.Unknown,
 } as const
 
-export const emptyDriverStatusEnabled: Readonly<Types.DriverStatusEnabled> = {
+export const emptyDriverStatusEnabled: Types.DriverStatusEnabled = {
   dokanOutdated: false,
   dokanUninstallExecPath: null,
   isDisabling: false,
@@ -229,33 +225,33 @@ export const emptyDriverStatusEnabled: Readonly<Types.DriverStatusEnabled> = {
   type: Types.DriverStatusType.Enabled,
 } as const
 
-export const emptyDriverStatusDisabled: Readonly<Types.DriverStatusDisabled> = {
+export const emptyDriverStatusDisabled: Types.DriverStatusDisabled = {
   isDismissed: false,
   isEnabling: false,
   kextPermissionError: false,
   type: Types.DriverStatusType.Disabled,
 } as const
 
-export const defaultDriverStatus: Readonly<Types.DriverStatus> = isLinux
+export const defaultDriverStatus: Types.DriverStatus = isLinux
   ? emptyDriverStatusEnabled
   : driverStatusUnknown
 
-export const unknownKbfsDaemonStatus: Readonly<Types.KbfsDaemonStatus> = {
+export const unknownKbfsDaemonStatus: Types.KbfsDaemonStatus = {
   onlineStatus: Types.KbfsDaemonOnlineStatus.Unknown,
   rpcStatus: Types.KbfsDaemonRpcStatus.Unknown,
 }
 
-export const emptySettings: Readonly<Types.Settings> = {
+export const emptySettings: Types.Settings = {
   isLoading: false,
   spaceAvailableNotificationThreshold: 0,
 }
 
-export const emptyPathInfo: Readonly<Types.PathInfo> = {
+export const emptyPathInfo: Types.PathInfo = {
   deeplinkPath: '',
   platformAfterMountPath: '',
 }
 
-export const emptyFileContext: Readonly<Types.FileContext> = {
+export const emptyFileContext: Types.FileContext = {
   contentType: '',
   url: '',
   viewType: RPCTypes.GUIViewType.default,
@@ -362,14 +358,14 @@ export const getDownloadIntent = (
   return Types.DownloadIntent.None
 }
 
-export const emptyTlfUpdate: Readonly<Types.TlfUpdate> = {
+export const emptyTlfUpdate: Types.TlfUpdate = {
   history: [],
   path: Types.stringToPath(''),
   serverTime: 0,
   writer: '',
 }
 
-export const emptyTlfEdit: Readonly<Types.TlfEdit> = {
+export const emptyTlfEdit: Types.TlfEdit = {
   editType: Types.FileEditType.Unknown,
   filename: '',
   serverTime: 0,
