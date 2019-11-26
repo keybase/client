@@ -228,9 +228,7 @@ func (i *Inbox) writeMobileSharedInbox(ctx context.Context, ibox inboxDiskData, 
 		return
 	}
 	var writable []SharedInboxItem
-	sort.Slice(ibox.Conversations, func(i, j int) bool {
-		return utils.GetConvMtime(ibox.Conversations[i]) > utils.GetConvMtime(ibox.Conversations[j])
-	})
+	sort.Sort(utils.RemoteConvByMtime(ibox.Conversations))
 	for _, rc := range ibox.Conversations {
 		if rc.Conv.GetTopicType() != chat1.TopicType_CHAT {
 			continue

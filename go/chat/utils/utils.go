@@ -1946,6 +1946,14 @@ func (c RemoteConvByConvID) Less(i, j int) bool {
 	return c[i].GetConvID().Less(c[j].GetConvID())
 }
 
+type RemoteConvByMtime []types.RemoteConversation
+
+func (c RemoteConvByMtime) Len() int      { return len(c) }
+func (c RemoteConvByMtime) Swap(i, j int) { c[i], c[j] = c[j], c[i] }
+func (c RemoteConvByMtime) Less(i, j int) bool {
+	return GetConvMtime(c[i]) > GetConvMtime(c[j])
+}
+
 type ConvLocalByTopicName []chat1.ConversationLocal
 
 func (c ConvLocalByTopicName) Len() int      { return len(c) }
