@@ -220,6 +220,7 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 		untrustedTeamRole = convLocalOptional.ReaderInfo.UntrustedTeamRole
 		if convLocalOptional.ReaderInfo.Journeycard != nil {
 			welcomeEligible = convLocalOptional.ReaderInfo.Journeycard.WelcomeEligible
+			debugDebug(ctx, "xxx convLocalOptional has ReaderInfo.Journeycard: %v", welcomeEligible)
 		}
 	} else {
 		convFromCache, err := utils.GetUnverifiedConv(ctx, cc.G(), cc.uid, convID, types.InboxSourceDataSourceLocalOnly)
@@ -236,6 +237,7 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 			untrustedTeamRole = convFromCache.Conv.ReaderInfo.UntrustedTeamRole
 			if convFromCache.Conv.ReaderInfo.Journeycard != nil {
 				welcomeEligible = convFromCache.Conv.ReaderInfo.Journeycard.WelcomeEligible
+				debugDebug(ctx, "xxx convFromCache has ReaderInfo.Journeycard: %v", welcomeEligible)
 			}
 		}
 	}
@@ -387,9 +389,8 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 			cc.Debug(ctx, "non-latest page maxvis:%v end1:%v end2:%v", conv.MaxVisibleMsgID(), end1, end2)
 		}
 	}
-	if latestPage != thread.Pagination.FirstPage() {
-		cc.Debug(ctx, "latestPage:%v != FirstPage:%v", latestPage, thread.Pagination.FirstPage())
-	}
+	// One might expect thread.Pagination.FirstPage() to be used instead of latestPage.
+	// But FirstPage seems to return false often when latestPage is true.
 
 	if latestPage {
 		// Prefer showing new "linear" cards. Do not show cards that are prior to one that has been shown.
@@ -439,9 +440,13 @@ func (cc *JourneyCardManagerSingleUser) cardWelcome(ctx context.Context, convID 
 	// TODO PICNIC-593 Welcome's interaction with existing system message
 	// Welcome cards show not show for all pre-existing teams when a client upgrades to first support journey cards. That would be a bad transition.
 	// The server gates whether welcome cards are allowed for a conv. After MarkAsRead-ing a conv, welcome cards are banned.
-	if !conv.WelcomeEligible {
-		debugDebug(ctx, "not welcomeEligible")
+	// if !conv.WelcomeEligible {
+	// 	debugDebug(ctx, "not welcomeEligible")
+	// }
+	if !conv.IsGeneralChannel {
+		return false
 	}
+	debugDebug(ctx, "cardWelcome: welcomeEligible: %v", conv.WelcomeEligible)
 	return conv.IsGeneralChannel && conv.WelcomeEligible
 }
 
