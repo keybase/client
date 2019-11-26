@@ -346,6 +346,7 @@ func (b *CachingBotCommandManager) queueCommandUpdate(ctx context.Context, job c
 	defer b.queuedUpdatedMu.Unlock()
 	if b.queuedUpdates[job.convID.String()] {
 		b.Debug(ctx, "queueCommandUpdate: skipping already queued: %s", job.convID)
+		job.completeCh <- nil
 		return nil
 	}
 	select {
