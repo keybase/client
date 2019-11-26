@@ -244,20 +244,17 @@ protocol user {
     union { null, Time } modifyTime;
   }
 
-  record RecordInfoArg {
-    string reportText;
-    boolean attachMessages;
-  }
-
   record UserBlockArg {
     string username;
     union { null, boolean } setChatBlock;
     union { null, boolean } setFollowBlock;
-    union { null, RecordInfoArg } report;
   }
 
   void setUserBlocks(int sessionID, array<UserBlockArg> blocks);
   array<UserBlock> getUserBlocks(int sessionID, array<string> usernames);
+
+  void reportUser(int sessionID, string username, string reason, string comment,
+    boolean includeTranscript, union { null, string } convID);
 
   // Legacy user blocking:
   void blockUser(string username);

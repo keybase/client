@@ -5,6 +5,7 @@ import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/tracker2'
 import FollowButton from './follow-button'
 import ChatButton from '../../../chat/chat-button'
+import flags from '../../../util/feature-flags'
 
 type Props = {
   followThem: boolean
@@ -23,6 +24,7 @@ type Props = {
   onUnfollow: () => void
   onBlock: () => void
   onUnblock: () => void
+  onManageBlocking: () => void
   state: Types.DetailsState
   username: string
 }
@@ -36,6 +38,7 @@ type DropdownProps = Pick<
   | 'onRequestLumens'
   | 'onBlock'
   | 'onUnblock'
+  | 'onManageBlocking'
   | 'blocked'
 > & {onUnfollow?: () => void}
 
@@ -53,6 +56,7 @@ const Actions = (p: Props) => {
       onUnfollow={p.followThem && p.state !== 'valid' ? p.onUnfollow : undefined}
       onBlock={p.onBlock}
       onUnblock={p.onUnblock}
+      onManageBlocking={p.onManageBlocking}
       blocked={p.blocked}
     />
   )
@@ -141,7 +145,9 @@ const DropdownButton = Kb.OverlayParentHOC((p: Kb.PropsWithOverlay<DropdownProps
     {onClick: p.onOpenPrivateFolder, title: 'Open private folder'},
     {onClick: p.onBrowsePublicFolder, title: 'Browse public folder'},
     p.onUnfollow && {onClick: p.onUnfollow && p.onUnfollow, title: 'Unfollow'},
-    p.blocked
+    flags.userBlocking
+      ? {danger: true, onClick: p.onManageBlocking, title: 'Manage blocking'}
+      : p.blocked
       ? {danger: true, onClick: p.onUnblock, title: 'Unblock'}
       : {danger: true, onClick: p.onBlock, title: 'Block'},
   ].reduce<Kb.MenuItems>((arr, i) => {

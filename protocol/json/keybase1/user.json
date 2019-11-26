@@ -470,20 +470,6 @@
     },
     {
       "type": "record",
-      "name": "RecordInfoArg",
-      "fields": [
-        {
-          "type": "string",
-          "name": "reportText"
-        },
-        {
-          "type": "boolean",
-          "name": "attachMessages"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "UserBlockArg",
       "fields": [
         {
@@ -503,13 +489,6 @@
             "boolean"
           ],
           "name": "setFollowBlock"
-        },
-        {
-          "type": [
-            null,
-            "RecordInfoArg"
-          ],
-          "name": "report"
         }
       ]
     }
@@ -922,6 +901,38 @@
         "type": "array",
         "items": "UserBlock"
       }
+    },
+    "reportUser": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "reason",
+          "type": "string"
+        },
+        {
+          "name": "comment",
+          "type": "string"
+        },
+        {
+          "name": "includeTranscript",
+          "type": "boolean"
+        },
+        {
+          "name": "convID",
+          "type": [
+            null,
+            "string"
+          ]
+        }
+      ],
+      "response": null
     },
     "blockUser": {
       "request": [
