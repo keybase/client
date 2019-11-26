@@ -1801,10 +1801,14 @@ func (i *Inbox) ConversationsUpdate(ctx context.Context, uid gregor1.UID, vers c
 	for idx, conv := range ibox.Conversations {
 		if update, ok := updateMap[conv.GetConvID().String()]; ok {
 			i.Debug(ctx, "ConversationsUpdate: changed conv: %v", update)
-			if ibox.Conversations[idx].Conv.Metadata.Existence != update.Existence {
+			if (ibox.Conversations[idx].Conv.Metadata.Existence != update.Existence) ||
+				(update.Status != nil && *update.Status != ibox.Conversations[idx].Conv.Metadata.Status) {
 				layoutChanged = true
 			}
 			ibox.Conversations[idx].Conv.Metadata.Existence = update.Existence
+			if update.Status != nil {
+				ibox.Conversations[idx].Conv.Metadata.Status = *update.Status
+			}
 		}
 	}
 

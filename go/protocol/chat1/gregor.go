@@ -421,12 +421,20 @@ func (o UpdateConversationMembership) DeepCopy() UpdateConversationMembership {
 type ConversationUpdate struct {
 	ConvID    ConversationID        `codec:"convID" json:"convID"`
 	Existence ConversationExistence `codec:"existence" json:"existence"`
+	Status    *ConversationStatus   `codec:"status,omitempty" json:"status,omitempty"`
 }
 
 func (o ConversationUpdate) DeepCopy() ConversationUpdate {
 	return ConversationUpdate{
 		ConvID:    o.ConvID.DeepCopy(),
 		Existence: o.Existence.DeepCopy(),
+		Status: (func(x *ConversationStatus) *ConversationStatus {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Status),
 	}
 }
 

@@ -137,6 +137,7 @@ protocol gregor {
     record ConversationUpdate {
       ConversationID convID;
       ConversationExistence existence;
+      union { null, ConversationStatus } status;
     }
 
     record UpdateConversations {

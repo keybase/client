@@ -468,6 +468,13 @@
         {
           "type": "ConversationExistence",
           "name": "existence"
+        },
+        {
+          "type": [
+            null,
+            "ConversationStatus"
+          ],
+          "name": "status"
         }
       ]
     },
