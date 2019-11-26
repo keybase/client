@@ -26,6 +26,7 @@ export default Container.namedConnect(
       blocked: d.blocked,
       followThem,
       followsYou,
+      hidFromFollowers: d.hidFromFollowers,
       state: d.state,
       username,
     }
@@ -74,6 +75,7 @@ export default Container.namedConnect(
     blocked: stateProps.blocked,
     followThem: stateProps.followThem,
     followsYou: stateProps.followsYou,
+    hidFromFollowers: stateProps.hidFromFollowers,
     onAccept: () => dispatchProps._onFollow(stateProps._guiID, true),
     onAddToTeam: () => dispatchProps._onAddToTeam(stateProps.username),
     onBlock: () => dispatchProps._onBlock(stateProps.username),

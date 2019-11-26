@@ -11,6 +11,7 @@ type Props = {
   followThem: boolean
   followsYou: boolean
   blocked: boolean
+  hidFromFollowers: boolean
   onAccept: () => void
   onAddToTeam: () => void
   onBrowsePublicFolder: () => void
@@ -36,13 +37,24 @@ type DropdownProps = Pick<
   | 'onBrowsePublicFolder'
   | 'onSendLumens'
   | 'onRequestLumens'
-  | 'onBlock'
-  | 'onUnblock'
   | 'onManageBlocking'
-  | 'blocked'
 > & {onUnfollow?: () => void}
 
 const Actions = (p: Props) => {
+  if (p.blocked) {
+    return (
+      <Kb.Box2 gap="tiny" centerChildren={true} direction="horizontal" fullWidth={true}>
+        <Kb.Button
+          key="Manage blocking"
+          mode="Secondary"
+          type="Danger"
+          label="Manage blocking"
+          onClick={p.onManageBlocking}
+        />
+      </Kb.Box2>
+    )
+  }
+
   let buttons: Array<React.ReactNode> = []
 
   const dropdown = (
@@ -54,10 +66,7 @@ const Actions = (p: Props) => {
       onSendLumens={p.onSendLumens}
       onRequestLumens={p.onRequestLumens}
       onUnfollow={p.followThem && p.state !== 'valid' ? p.onUnfollow : undefined}
-      onBlock={p.onBlock}
-      onUnblock={p.onUnblock}
       onManageBlocking={p.onManageBlocking}
-      blocked={p.blocked}
     />
   )
 
@@ -145,11 +154,7 @@ const DropdownButton = Kb.OverlayParentHOC((p: Kb.PropsWithOverlay<DropdownProps
     {onClick: p.onOpenPrivateFolder, title: 'Open private folder'},
     {onClick: p.onBrowsePublicFolder, title: 'Browse public folder'},
     p.onUnfollow && {onClick: p.onUnfollow && p.onUnfollow, title: 'Unfollow'},
-    flags.userBlocking
-      ? {danger: true, onClick: p.onManageBlocking, title: 'Manage blocking'}
-      : p.blocked
-      ? {danger: true, onClick: p.onUnblock, title: 'Unblock'}
-      : {danger: true, onClick: p.onBlock, title: 'Block'},
+    flags.userBlocking && {danger: true, onClick: p.onManageBlocking, title: 'Manage blocking'},
   ].reduce<Kb.MenuItems>((arr, i) => {
     i && arr.push(i)
     return arr

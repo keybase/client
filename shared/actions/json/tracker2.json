@@ -22,7 +22,8 @@
       "registeredForAirdrop": "boolean",
       "username": "string",
       "teamShowcase": "Array<Types.TeamShowcase>",
-      "blocked": "boolean"
+      "blocked": "boolean",
+      "hidFromFollowers": "boolean",
     },
     "updateResult": {
       "guiID": "string",
