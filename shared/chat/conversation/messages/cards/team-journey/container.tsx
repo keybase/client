@@ -55,8 +55,10 @@ const TeamJourneyContainer = (props: Props) => {
         onClick: () => props.onGoToChannel(chan),
       }))
       loadTeam = props.onLoadTeam
-      text = `You are in *#${props.channelname}*.
-Some popular channels in this team:`
+      text = `You are in *#${props.channelname}*.\n`
+      text += props.otherChannels.length
+        ? `Some other channels in this team:`
+        : `And you're in all the other channels, nice.`
       break
     case RPCChatTypes.JourneycardType.addPeople:
       actions = [{label: 'Add people to the team', onClick: props.onAddPeopleToTeam}]
@@ -133,13 +135,20 @@ const TeamJourneyConnected = Container.connect(
   (stateProps, dispatchProps, ownProps) => {
     const {channelname, teamname} = stateProps
     // Take the top three channels with most recent activity.
+    const joinableStatuses = new Set([
+      // keep in sync with journey_card_manager.go
+      RPCChatTypes.ConversationMemberStatus.removed,
+      RPCChatTypes.ConversationMemberStatus.left,
+      RPCChatTypes.ConversationMemberStatus.reset,
+      RPCChatTypes.ConversationMemberStatus.neverJoined,
+    ])
     const otherChannels = stateProps._channelInfos
       .valueSeq()
       .toArray()
-      .filter(info => info.memberStatus !== RPCChatTypes.ConversationMemberStatus.active)
+      .filter(info => joinableStatuses.has(info.memberStatus))
       .sort((x, y) => y.mtime - x.mtime)
-      .map(info => info.channelname)
       .slice(0, Container.isMobile ? 2 : 3)
+      .map(info => info.channelname)
 
     return {
       channelname,

@@ -341,7 +341,7 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 	cardConditionTODO := func(ctx context.Context) bool { return false }
 	cardConditions := map[chat1.JourneycardType]cardCondition{
 		chat1.JourneycardType_WELCOME:            func(ctx context.Context) bool { return cc.cardWelcome(ctx, convID, conv, jcd) },
-		chat1.JourneycardType_POPULAR_CHANNELS:   func(ctx context.Context) bool { return cc.cardPopularChannels(ctx, convID, conv, jcd) },
+		chat1.JourneycardType_POPULAR_CHANNELS:   func(ctx context.Context) bool { return cc.cardPopularChannels(ctx, convID, conv, jcd, debugDebug) },
 		chat1.JourneycardType_ADD_PEOPLE:         func(ctx context.Context) bool { return cc.cardAddPeople(ctx, conv, jcd, debugDebug) },
 		chat1.JourneycardType_CREATE_CHANNELS:    func(ctx context.Context) bool { return cc.cardCreateChannels(ctx, convID, jcd) },
 		chat1.JourneycardType_MSG_ATTENTION:      cardConditionTODO,
@@ -436,11 +436,47 @@ func (cc *JourneyCardManagerSingleUser) cardWelcome(ctx context.Context, convID 
 // Card type: POPULAR_CHANNELS (2 on design)
 // Gist: "You are in #general. Other popular channels in this team: diplomacy, sportsball"
 // Condition: Only in #general channel
-// Condition: The team has channels besides general.
+// Condition: The team has channels besides general that the user could join.
 // Condition: User has sent a first message OR a few days have passed since they joined the channel.
-func (cc *JourneyCardManagerSingleUser) cardPopularChannels(ctx context.Context, convID chat1.ConversationID, conv convForJourneycard, jcd journeyCardConvData) bool {
+func (cc *JourneyCardManagerSingleUser) cardPopularChannels(ctx context.Context, convID chat1.ConversationID, conv convForJourneycard,
+	jcd journeyCardConvData, debugDebug logFn) bool {
 	otherChannelsExist := conv.GetTeamType() == chat1.TeamType_COMPLEX
-	return conv.IsGeneralChannel && otherChannelsExist && (jcd.SentMessage || cc.timeSinceJoined(ctx, conv.ConvID, jcd, time.Hour*24*2))
+	simpleQualified := conv.IsGeneralChannel && otherChannelsExist && (jcd.SentMessage || cc.timeSinceJoined(ctx, conv.ConvID, jcd, time.Hour*24*2))
+	if !simpleQualified {
+		return false
+	}
+	// Figure out whether there are other channels that the user is not in.
+	// Don't get the actual names, since for NEVER_JOINED convs LocalMetadata,
+	// which has the name, is not generally available. The gui will fetch the names async.
+	topicType := chat1.TopicType_CHAT
+	joinableStatuses := []chat1.ConversationMemberStatus{ // keep in sync with cards/team-journey/container.tsx
+		chat1.ConversationMemberStatus_REMOVED,
+		chat1.ConversationMemberStatus_LEFT,
+		chat1.ConversationMemberStatus_RESET,
+		chat1.ConversationMemberStatus_NEVER_JOINED,
+	}
+	inbox, err := cc.G().InboxSource.ReadUnverified(ctx, cc.uid, types.InboxSourceDataSourceLocalOnly,
+		&chat1.GetInboxQuery{
+			TlfID:            &conv.TlfID,
+			TopicType:        &topicType,
+			MemberStatus:     joinableStatuses,
+			MembersTypes:     []chat1.ConversationMembersType{chat1.ConversationMembersType_TEAM},
+			SummarizeMaxMsgs: true,
+			SkipBgLoads:      true,
+			AllowUnseenQuery: true, // Make an effort, it's ok if convs are missed.
+		})
+	if err != nil {
+		debugDebug(ctx, "cardPopularChannels ReadUnverified error: %v", err)
+		return false
+	}
+	debugDebug(ctx, "cardPopularChannels ReadUnverified found %v convs", len(inbox.ConvsUnverified))
+	for _, convOther := range inbox.ConvsUnverified {
+		if !convOther.GetConvID().Eq(conv.ConvID) {
+			debugDebug(ctx, "cardPopularChannels ReadUnverified found alternate conv: %v", convOther.GetConvID())
+			return true
+		}
+	}
+	return false
 }
 
 // Card type: ADD_PEOPLE (3 on design)
@@ -450,13 +486,13 @@ func (cc *JourneyCardManagerSingleUser) cardPopularChannels(ctx context.Context,
 // Condition: A few days on top of POPULAR_CHANNELS have passed since the user joined the channel. In order to space it out from POPULAR_CHANNELS.
 func (cc *JourneyCardManagerSingleUser) cardAddPeople(ctx context.Context, conv convForJourneycard, jcd journeyCardConvData,
 	debugDebug logFn) bool {
-	if !conv.UntrustedTeamRole.IsAdminOrAbove() {
+	if !conv.IsGeneralChannel || !conv.UntrustedTeamRole.IsAdminOrAbove() {
 		return false
 	}
 	if !cc.timeSinceJoined(ctx, conv.ConvID, jcd, time.Hour*24*4) {
 		return false
 	}
-	if jcd.SentMessage || !conv.IsGeneralChannel {
+	if jcd.SentMessage {
 		return true
 	}
 	// Figure whether the user is in other channels.
