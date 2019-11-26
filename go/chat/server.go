@@ -416,9 +416,7 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 func (h *Server) limitConvResults(ctx context.Context, uid gregor1.UID, allConvs []types.RemoteConversation,
 	num int) ([]chat1.ConversationLocal, error) {
 	var convs []types.RemoteConversation
-	sort.Slice(allConvs, func(i, j int) bool {
-		return utils.GetConvMtime(allConvs[i]) > utils.GetConvMtime(allConvs[j])
-	})
+	sort.Sort(utils.RemoteConvByMtime(allConvs))
 	if len(allConvs) <= num {
 		convs = allConvs
 	} else {
