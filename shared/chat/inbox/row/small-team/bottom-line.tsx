@@ -106,7 +106,7 @@ const BottomLine = React.memo((props: Props) => {
           <Kb.Text
             type="BodySmall"
             style={{
-              color: props.isSelected ? Styles.globalColors.white : Styles.globalColors.black_20,
+              color: props.isSelected ? Styles.globalColors.white : Styles.globalColors.black_50,
             }}
           >
             Message exploded.
