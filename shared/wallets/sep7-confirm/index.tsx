@@ -32,7 +32,7 @@ type Props = {
   onLookupPath: () => void
   operation: 'pay' | 'tx'
   originDomain: string
-  path: Types._BuiltPaymentAdvanced
+  path: Types.BuiltPaymentAdvanced
   readyToSend: boolean
   recipient: string | null
   sendError: string
