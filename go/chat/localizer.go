@@ -744,7 +744,8 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		FinalizeInfo: conversationRemote.Metadata.FinalizeInfo,
 		Draft:        rc.LocalDraft,
 	}
-
+	conversationLocal.BotAliases = make(map[string]string)
+	conversationLocal.BotCommands = chat1.NewConversationCommandGroupsWithNone()
 	conversationLocal.Supersedes = append(
 		conversationLocal.Supersedes, conversationRemote.Metadata.Supersedes...)
 	conversationLocal.SupersededBy = append(
@@ -907,7 +908,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	// see if we should override the snippet message with the latest outbox record
 	obrs, err := storage.NewOutbox(s.G(), uid).PullForConversation(ctx, conversationRemote.GetConvID())
 	if err != nil {
-		s.G().GetLog().CDebugf(ctx, "unable to get outbox records: %v", err)
+		s.Debug(ctx, "unable to get outbox records: %v", err)
 	}
 	for _, obr := range obrs {
 		msg := chat1.NewMessageUnboxedWithOutbox(obr)
@@ -983,6 +984,25 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		return conversationLocal
 	}
 	conversationLocal.Info.TlfName = info.CanonicalName
+
+	// Get conversation commands
+	conversationLocal.Commands, err = s.G().CommandsSource.ListCommands(ctx, uid, conversationLocal)
+	if err != nil {
+		s.Debug(ctx, "localizeConversation: failed to list commands: %s", err)
+	}
+	botCommands, alias, err := s.G().BotCommandManager.ListCommands(ctx, conversationLocal.GetConvID())
+	if err != nil {
+		s.Debug(ctx, "localizeConversation: failed to list bot commands: %s", err)
+		conversationLocal.BotAliases = make(map[string]string)
+		conversationLocal.BotCommands = chat1.NewConversationCommandGroupsWithNone()
+	} else {
+		conversationLocal.BotAliases = alias
+		if len(botCommands) > 0 {
+			conversationLocal.BotCommands = bots.MakeConversationCommandGroups(botCommands)
+		} else {
+			conversationLocal.BotCommands = chat1.NewConversationCommandGroupsWithNone()
+		}
+	}
 
 	// Form the writers name list, either from the active list + TLF name, or from the
 	// channel information for a team chat
@@ -1067,25 +1087,6 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 			"unknown members type", conversationRemote, unverifiedTLFName,
 			chat1.ConversationErrorType_PERMANENT, nil)
 		return conversationLocal
-	}
-
-	// Get conversation commands
-	conversationLocal.Commands, err = s.G().CommandsSource.ListCommands(ctx, uid, conversationLocal)
-	if err != nil {
-		s.Debug(ctx, "localizeConversation: failed to list commands: %s", err)
-	}
-	botCommands, alias, err := s.G().BotCommandManager.ListCommands(ctx, conversationLocal.GetConvID())
-	if err != nil {
-		s.Debug(ctx, "localizeConversation: failed to list bot commands: %s", err)
-		conversationLocal.BotAliases = make(map[string]string)
-		conversationLocal.BotCommands = chat1.NewConversationCommandGroupsWithNone()
-	} else {
-		conversationLocal.BotAliases = alias
-		if len(botCommands) > 0 {
-			conversationLocal.BotCommands = bots.MakeConversationCommandGroups(botCommands)
-		} else {
-			conversationLocal.BotCommands = chat1.NewConversationCommandGroupsWithNone()
-		}
 	}
 	return conversationLocal
 }
