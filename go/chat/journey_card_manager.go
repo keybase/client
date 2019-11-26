@@ -348,7 +348,7 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 	type cardCondition func(context.Context) bool
 	cardConditionTODO := func(ctx context.Context) bool { return false }
 	cardConditions := map[chat1.JourneycardType]cardCondition{
-		chat1.JourneycardType_WELCOME:            func(ctx context.Context) bool { return cc.cardWelcome(ctx, convID, conv, jcd) },
+		chat1.JourneycardType_WELCOME:            func(ctx context.Context) bool { return cc.cardWelcome(ctx, convID, conv, jcd, debugDebug) },
 		chat1.JourneycardType_POPULAR_CHANNELS:   func(ctx context.Context) bool { return cc.cardPopularChannels(ctx, convID, conv, jcd, debugDebug) },
 		chat1.JourneycardType_ADD_PEOPLE:         func(ctx context.Context) bool { return cc.cardAddPeople(ctx, conv, jcd, debugDebug) },
 		chat1.JourneycardType_CREATE_CHANNELS:    func(ctx context.Context) bool { return cc.cardCreateChannels(ctx, convID, jcd) },
@@ -435,10 +435,13 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 
 // Card type: WELCOME (1 on design)
 // Condition: Only in #general channel
-func (cc *JourneyCardManagerSingleUser) cardWelcome(ctx context.Context, convID chat1.ConversationID, conv convForJourneycard, jcd journeyCardConvData) bool {
+func (cc *JourneyCardManagerSingleUser) cardWelcome(ctx context.Context, convID chat1.ConversationID, conv convForJourneycard, jcd journeyCardConvData, debugDebug logFn) bool {
 	// TODO PICNIC-593 Welcome's interaction with existing system message
 	// Welcome cards show not show for all pre-existing teams when a client upgrades to first support journey cards. That would be a bad transition.
 	// The server gates whether welcome cards are allowed for a conv. After MarkAsRead-ing a conv, welcome cards are banned.
+	if !conv.WelcomeEligible {
+		debugDebug(ctx, "not welcomeEligible")
+	}
 	return conv.IsGeneralChannel && conv.WelcomeEligible
 }
 
