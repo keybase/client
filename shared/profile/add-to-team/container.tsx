@@ -109,7 +109,7 @@ class AddToTeamStateWrapper extends React.Component<ExtraProps & AddToTeamProps,
   }
 }
 
-export default Container.connectDEBUG(
+export default Container.connect(
   (state, ownProps: OwnProps) => ({
     _teamNameToRole: state.teams.teamNameToRole,
     _them: Container.getRouteProps(ownProps, 'username', ''),
