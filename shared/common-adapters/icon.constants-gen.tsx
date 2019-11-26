@@ -8113,6 +8113,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-hash': {
+    charCode: 0xe9ab,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-heart': {
     charCode: 0xe978,
     gridSize: 16,

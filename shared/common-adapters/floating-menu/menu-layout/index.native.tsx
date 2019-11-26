@@ -45,7 +45,16 @@ const MenuRow = (props: MenuRowProps) => (
           fullHeight={true}
           style={Styles.collapseStyles([!props.centered && styles.iconContainer])}
         >
-          {props.icon && (<Icon color={Styles.globalColors.black_40} fontSize={16} type={props.icon}/>)}
+          {props.icon &&
+            (props.inProgress ? (
+              <ProgressIndicator />
+            ) : (
+              <Icon
+                color={props.danger ? Styles.globalColors.redDark : Styles.globalColors.black_40}
+                fontSize={16}
+                type={props.icon}
+              />
+            ))}
         </Box2>
         <Box2 direction="horizontal">
           <Box2 direction="vertical" fullHeight={true}>

@@ -179,9 +179,15 @@ class InfoPanelMenu extends React.Component<Props> {
     const convProps = this.props.convProps
     if (convProps.teamType === 'adhoc' || convProps.teamType === 'small') {
       if (convProps.ignored) {
-        return {onClick: this.props.onUnhideConv, style: {borderTopWidth: 0}, title: 'Unhide conversation'}
+        return {
+          icon: 'iconfont-unhide',
+          onClick: this.props.onUnhideConv,
+          style: {borderTopWidth: 0},
+          title: 'Unhide conversation',
+        }
       } else {
         return {
+          icon: 'iconfont-hide',
           onClick: this.props.onHideConv,
           style: {borderTopWidth: 0},
           subTitle: 'Until next message',
@@ -200,18 +206,9 @@ class InfoPanelMenu extends React.Component<Props> {
     const convProps = this.props.convProps
     const title = `${convProps.muted ? 'Unmute' : 'Mute all'} notifications`
     return {
+      icon: 'iconfont-shh',
       onClick: () => this.props.onMuteConv(!convProps.muted),
       title,
-      view: (
-        <Kb.Box style={styles.muteAction}>
-          <Kb.Text style={styles.text} type={Styles.isMobile ? 'BodyBig' : 'Body'}>
-            {title}
-          </Kb.Text>
-          {!convProps.muted && (
-            <Kb.Icon color={Styles.globalColors.black_20} style={styles.icon} type="iconfont-shh" />
-          )}
-        </Kb.Box>
-      ),
     }
   }
 }
@@ -256,9 +253,6 @@ const styles = Styles.styleSheetCreate(
         },
         isMobile: {paddingBottom: 24, paddingTop: 40},
       }),
-      icon: {
-        marginLeft: Styles.globalMargins.tiny,
-      },
       maybeLongText: Styles.platformStyles({
         common: {
           ...Styles.padding(0, Styles.globalMargins.tiny),
