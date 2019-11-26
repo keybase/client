@@ -54,7 +54,6 @@ const MaybeMention = (props: Props) => {
         />
       )
   }
-  return null
 }
 
 type OwnProps = {
@@ -64,22 +63,20 @@ type OwnProps = {
   style?: StylesTextCrossPlatform
 }
 
-const mapStateToProps = (state, ownProps: OwnProps) => {
-  const info = state.chat2.maybeMentionMap.get(Constants.getTeamMentionName(ownProps.name, ownProps.channel))
-  return {
-    ...ownProps,
-    info,
-  }
-}
-
-const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
-  onResolve: () =>
-    dispatch(Chat2Gen.createResolveMaybeMention({channel: ownProps.channel, name: ownProps.name})),
-})
-
 export default namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
+  (state, ownProps: OwnProps) => {
+    const info = state.chat2.maybeMentionMap.get(
+      Constants.getTeamMentionName(ownProps.name, ownProps.channel)
+    )
+    return {
+      ...ownProps,
+      info,
+    }
+  },
+  (dispatch, ownProps: OwnProps) => ({
+    onResolve: () =>
+      dispatch(Chat2Gen.createResolveMaybeMention({channel: ownProps.channel, name: ownProps.name})),
+  }),
   (s, d) => ({...s, ...d}),
   'MaybeMention'
 )(MaybeMention)
