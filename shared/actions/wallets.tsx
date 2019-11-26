@@ -112,7 +112,7 @@ const openSendRequestForm = (state: TypedState, _: WalletsGen.OpenSendRequestFor
   }
 
   // load accounts for default display currency
-  const accountsLoaded = Constants.getAccounts(state).size > 0
+  const accountsLoaded = Constants.getAccounts(state).length > 0
   return [
     !accountsLoaded && WalletsGen.createLoadAccounts({reason: 'open-send-req-form'}),
     RouteTreeGen.createNavigateAppend({path: [Constants.sendRequestFormRouteKey]}),
@@ -121,7 +121,9 @@ const openSendRequestForm = (state: TypedState, _: WalletsGen.OpenSendRequestFor
 
 const maybePopulateBuildingCurrency = (state: TypedState, _: WalletsGen.AccountsReceivedPayload) =>
   (state.wallets.building.bid || state.wallets.building.isRequest) && !state.wallets.building.currency // building a payment and haven't set currency yet
-    ? WalletsGen.createSetBuildingCurrency({currency: Constants.getDefaultDisplayCurrency(state).code})
+    ? WalletsGen.createSetBuildingCurrency({
+        currency: Constants.getDefaultDisplayCurrency(state.wallets).code,
+      })
     : null
 
 const createNewAccount = async (
@@ -143,7 +145,7 @@ const createNewAccount = async (
     })
   } catch (err) {
     logger.warn(`Error: ${err.desc}`)
-    return WalletsGen.createCreatedNewAccount({error: err.desc, name})
+    return WalletsGen.createCreatedNewAccount({accountID: Types.noAccountID, error: err.desc, name})
   }
 }
 
@@ -623,7 +625,7 @@ const loadDisplayCurrency = async (_: TypedState, action: WalletsGen.LoadDisplay
 
 const loadExternalPartners = async () => {
   const partners = await RPCStellarTypes.localGetPartnerUrlsLocalRpcPromise()
-  return WalletsGen.createExternalPartnersReceived({externalPartners: I.List(partners || [])})
+  return WalletsGen.createExternalPartnersReceived({externalPartners: partners ?? []})
 }
 
 const refreshAssets = (_: TypedState, action: WalletsGen.DisplayCurrencyReceivedPayload) =>
@@ -740,7 +742,12 @@ const linkExistingAccount = async (
     })
   } catch (err) {
     logger.warn(`Error: ${err.desc}`)
-    return WalletsGen.createLinkedExistingAccount({error: err.desc, name, secretKey})
+    return WalletsGen.createLinkedExistingAccount({
+      accountID: Types.noAccountID,
+      error: err.desc,
+      name,
+      secretKey,
+    })
   }
 }
 
@@ -781,9 +788,9 @@ const validateSecretKey = async (
 }
 
 const deletedAccount = (state: TypedState) => {
-  const a = state.wallets.accountMap.find(account => account.isDefault)
+  const a = Constants.getDefaultAccount(state.wallets)
   return (
-    a &&
+    a !== Constants.unknownAccount &&
     WalletsGen.createSelectAccount({
       accountID: a.accountID,
       reason: 'auto-selected',
@@ -873,8 +880,8 @@ const maybeSelectDefaultAccount = (
     return false
   }
   if (state.wallets.selectedAccount === Types.noAccountID) {
-    const maybeDefaultAccount = state.wallets.accountMap.find(account => account.isDefault)
-    if (maybeDefaultAccount) {
+    const maybeDefaultAccount = Constants.getDefaultAccount(state.wallets)
+    if (maybeDefaultAccount !== Constants.unknownAccount) {
       return WalletsGen.createSelectAccount({
         accountID: maybeDefaultAccount.accountID,
         reason: 'auto-selected',
@@ -1402,7 +1409,7 @@ const refreshTrustlinePopularAssets = async () => {
 }
 
 const addTrustline = async (state: TypedState, {payload: {accountID, assetID}}) => {
-  const asset = state.wallets.trustline.assetMap.get(assetID, Constants.emptyAssetDescription)
+  const asset = state.wallets.trustline.assetMap.get(assetID) ?? Constants.emptyAssetDescription
   const refresh = WalletsGen.createRefreshTrustlineAcceptedAssets({accountID})
   if (asset === Constants.emptyAssetDescription) {
     return false
@@ -1424,7 +1431,7 @@ const addTrustline = async (state: TypedState, {payload: {accountID, assetID}}) 
 }
 
 const deleteTrustline = async (state: TypedState, {payload: {accountID, assetID}}) => {
-  const asset = state.wallets.trustline.assetMap.get(assetID, Constants.emptyAssetDescription)
+  const asset = state.wallets.trustline.assetMap.get(assetID) ?? Constants.emptyAssetDescription
   const refresh = WalletsGen.createRefreshTrustlineAcceptedAssets({accountID})
   if (asset === Constants.emptyAssetDescription) {
     return false
@@ -1469,7 +1476,7 @@ const searchTrustlineAssets = async (_: TypedState, {payload: {text}}) => {
 const paymentPathToRpcPaymentPath = (paymentPath: Types.PaymentPath): RPCStellarTypes.PaymentPath => ({
   destinationAmount: paymentPath.destinationAmount,
   destinationAsset: assetDescriptionOrNativeToRpcAsset(paymentPath.destinationAsset),
-  path: paymentPath.path.toArray().map(ad => assetDescriptionOrNativeToRpcAsset(ad)),
+  path: paymentPath.path.map(ad => assetDescriptionOrNativeToRpcAsset(ad)),
   sourceAmount: paymentPath.sourceAmount,
   sourceAmountMax: paymentPath.sourceAmountMax,
   sourceAsset: assetDescriptionOrNativeToRpcAsset(paymentPath.sourceAsset),
@@ -1480,11 +1487,9 @@ const rpcPaymentPathToPaymentPath = (rpcPaymentPath: RPCStellarTypes.PaymentPath
   Constants.makePaymentPath({
     destinationAmount: rpcPaymentPath.destinationAmount,
     destinationAsset: rpcAssetToAssetDescriptionOrNative(rpcPaymentPath.destinationAsset),
-    path: I.List(
-      rpcPaymentPath.path
-        ? rpcPaymentPath.path.map(rpcAsset => rpcAssetToAssetDescriptionOrNative(rpcAsset))
-        : []
-    ),
+    path: rpcPaymentPath.path
+      ? rpcPaymentPath.path.map(rpcAsset => rpcAssetToAssetDescriptionOrNative(rpcAsset))
+      : [],
     sourceAmount: rpcPaymentPath.sourceAmount,
     sourceAmountMax: rpcPaymentPath.sourceAmountMax,
     sourceAsset: rpcAssetToAssetDescriptionOrNative(rpcPaymentPath.sourceAsset),
@@ -1671,11 +1676,7 @@ function* loadStaticConfig(state: TypedState, action: ConfigGen.DaemonHandshakeP
 
   try {
     const res: Saga.RPCPromiseType<typeof RPCStellarTypes.localGetStaticConfigLocalRpcPromise> = yield RPCStellarTypes.localGetStaticConfigLocalRpcPromise()
-    yield Saga.put(
-      WalletsGen.createStaticConfigLoaded({
-        staticConfig: I.Record(res)(),
-      })
-    )
+    yield Saga.put(WalletsGen.createStaticConfigLoaded({staticConfig: res}))
   } finally {
     yield Saga.put(
       ConfigGen.createDaemonHandshakeWait({

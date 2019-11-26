@@ -91,9 +91,7 @@ const ConnectedParticipantsOtherAccount = namedConnect(
       ? toAccount.unknown
       : anyWaiting(state, Constants.linkExistingWaitingKey, Constants.createNewAccountWaitingKey)
 
-    const allAccounts = Constants.getAccounts(state)
-      .map(makeAccount)
-      .toArray()
+    const allAccounts = Constants.getAccounts(state).map(makeAccount)
 
     return {
       allAccounts,

@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as I from 'immutable'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/wallets'
@@ -16,7 +15,7 @@ export type SettingsProps = {
   isDefault: boolean
   currencyWaiting: boolean
   currency: Types.Currency
-  currencies: I.List<Types.Currency>
+  currencies: Array<Types.Currency>
   canSubmitTx: boolean
   externalPartners: Array<Types.PartnerUrl & {showDivider: boolean}>
   mobileOnlyMode: boolean

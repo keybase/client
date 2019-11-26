@@ -14,49 +14,43 @@ type OwnProps = {
   firstItem: boolean
 }
 
-const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => ({
-  acceptedAssets: state.wallets.trustline.acceptedAssets.get(
-    ownProps.accountID,
-    Constants.emptyAccountAcceptedAssets
-  ),
-  asset: state.wallets.trustline.assetMap.get(ownProps.assetID, Constants.emptyAssetDescription),
-  expandedAssets: state.wallets.trustline.expandedAssets,
-  thisDeviceIsLockedOut: Constants.getAccount(state, ownProps.accountID).deviceReadOnly,
-  waitingRefresh: Waiting.anyWaiting(
-    state,
-    Constants.refreshTrustlineAcceptedAssetsWaitingKey(ownProps.accountID)
-  ),
-})
-
-const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
-  onAccept: () =>
-    dispatch(WalletsGen.createAddTrustline({accountID: ownProps.accountID, assetID: ownProps.assetID})),
-  onCollapse: () =>
-    dispatch(
-      WalletsGen.createSetTrustlineExpanded({
-        assetID: ownProps.assetID,
-        expanded: false,
-      })
-    ),
-  onDone: RouteTreeGen.createNavigateUp(),
-  onExpand: () =>
-    dispatch(
-      WalletsGen.createSetTrustlineExpanded({
-        assetID: ownProps.assetID,
-        expanded: true,
-      })
-    ),
-  onRemove: () =>
-    dispatch(WalletsGen.createDeleteTrustline({accountID: ownProps.accountID, assetID: ownProps.assetID})),
-})
-
 export default Container.namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
-  (s, d, o) => ({
+  (state, ownProps: OwnProps) => ({
+    acceptedAssets:
+      state.wallets.trustline.acceptedAssets.get(ownProps.accountID) ?? Constants.emptyAccountAcceptedAssets,
+    asset: state.wallets.trustline.assetMap.get(ownProps.assetID) ?? Constants.emptyAssetDescription,
+    expandedAssets: state.wallets.trustline.expandedAssets,
+    thisDeviceIsLockedOut: Constants.getAccount(state, ownProps.accountID).deviceReadOnly,
+    waitingRefresh: Waiting.anyWaiting(
+      state,
+      Constants.refreshTrustlineAcceptedAssetsWaitingKey(ownProps.accountID)
+    ),
+  }),
+  (dispatch, ownProps: OwnProps) => ({
+    onAccept: () =>
+      dispatch(WalletsGen.createAddTrustline({accountID: ownProps.accountID, assetID: ownProps.assetID})),
+    onCollapse: () =>
+      dispatch(
+        WalletsGen.createSetTrustlineExpanded({
+          assetID: ownProps.assetID,
+          expanded: false,
+        })
+      ),
+    onDone: RouteTreeGen.createNavigateUp(),
+    onExpand: () =>
+      dispatch(
+        WalletsGen.createSetTrustlineExpanded({
+          assetID: ownProps.assetID,
+          expanded: true,
+        })
+      ),
+    onRemove: () =>
+      dispatch(WalletsGen.createDeleteTrustline({accountID: ownProps.accountID, assetID: ownProps.assetID})),
+  }),
+  (s, d, o: OwnProps) => ({
     cannotAccept: o.cannotAccept,
     code: s.asset.code,
-    expanded: s.expandedAssets.includes(o.assetID),
+    expanded: s.expandedAssets.has(o.assetID),
     firstItem: o.firstItem,
     infoUrlText: s.asset.infoUrlText,
     issuerAccountID: s.asset.issuerAccountID,
@@ -67,7 +61,7 @@ export default Container.namedConnect(
     onOpenInfoUrl: s.asset.infoUrl ? () => openUrl(s.asset.infoUrl) : undefined,
     onRemove: d.onRemove,
     thisDeviceIsLockedOut: s.thisDeviceIsLockedOut,
-    trusted: !!s.acceptedAssets.get(o.assetID, 0),
+    trusted: !!s.acceptedAssets.get(o.assetID) ?? 0,
     waitingKeyAdd: Constants.addTrustlineWaitingKey(o.accountID, o.assetID),
     waitingKeyDelete: Constants.deleteTrustlineWaitingKey(o.accountID, o.assetID),
     waitingRefresh: s.waitingRefresh,
