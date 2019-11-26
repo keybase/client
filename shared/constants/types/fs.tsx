@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as RPCTypes from './rpc-gen'
 import * as ChatTypes from './chat2'
 import * as Devices from './devices'
@@ -175,52 +174,46 @@ export enum PathKind {
   InTeamTlf = 'in-team-tlf',
 }
 
-export type _ParsedPathRoot = {
+export type ParsedPathRoot = Readonly<{
   kind: PathKind.Root
-}
-export type ParsedPathRoot = I.RecordOf<_ParsedPathRoot>
+}>
 
-export type _ParsedPathTlfList = {
+export type ParsedPathTlfList = Readonly<{
   kind: PathKind.TlfList
   tlfType: TlfType
-}
-export type ParsedPathTlfList = I.RecordOf<_ParsedPathTlfList>
+}>
 
-export type _ParsedPathGroupTlf = {
+export type ParsedPathGroupTlf = Readonly<{
   kind: PathKind.GroupTlf
   tlfName: string
   tlfType: TlfType.Private | TlfType.Public
-  writers: I.List<string>
-  readers: I.List<string> | null
-}
-export type ParsedPathGroupTlf = I.RecordOf<_ParsedPathGroupTlf>
+  writers: Array<string>
+  readers?: Array<string>
+}>
 
-export type _ParsedPathTeamTlf = {
+export type ParsedPathTeamTlf = Readonly<{
   kind: PathKind.TeamTlf
   tlfName: string
   tlfType: TlfType.Team
   team: string
-}
-export type ParsedPathTeamTlf = I.RecordOf<_ParsedPathTeamTlf>
+}>
 
-export type _ParsedPathInGroupTlf = {
+export type ParsedPathInGroupTlf = Readonly<{
   kind: PathKind.InGroupTlf
   tlfName: string
   tlfType: TlfType.Private | TlfType.Public
-  writers: I.List<string>
-  readers: I.List<string> | null
-  rest: I.List<string>
-}
-export type ParsedPathInGroupTlf = I.RecordOf<_ParsedPathInGroupTlf>
+  writers: Array<string>
+  readers?: Array<string>
+  rest: Array<string>
+}>
 
-export type _ParsedPathInTeamTlf = {
+export type ParsedPathInTeamTlf = Readonly<{
   kind: PathKind.InTeamTlf
   tlfName: string
   tlfType: TlfType.Team
   team: string
-  rest: I.List<string>
-}
-export type ParsedPathInTeamTlf = I.RecordOf<_ParsedPathInTeamTlf>
+  rest: Array<string>
+}>
 
 export type ParsedPath =
   | ParsedPathRoot
