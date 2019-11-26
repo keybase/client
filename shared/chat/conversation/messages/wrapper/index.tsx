@@ -421,8 +421,8 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
   _cachedMenuStyles = {}
   _menuAreaStyle = (exploded, exploding) => {
     const iconSizes = [
-      this.props.isRevoked ? 16 : 0, // revoked
-      this.props.showCoinsIcon ? 16 : 0, // coin stack
+      this.props.isRevoked ? 24 : 0, // revoked
+      this.props.showCoinsIcon ? 24 : 0, // coin stack
       exploded || Styles.isMobile ? 0 : 16, // ... menu
       exploding ? (Styles.isMobile ? 57 : 46) : 0, // exploding
     ].filter(Boolean)
@@ -557,8 +557,16 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                 ordinal={message.ordinal}
               />
             )}
-            {this.props.isRevoked && <Kb.Icon type="iconfont-rip" color={Styles.globalColors.black_20} />}
-            {this.props.showCoinsIcon && <Kb.Icon type="icon-stellar-coins-stacked-16" />}
+            {this.props.isRevoked && (
+              <Kb.Icon
+                type="iconfont-rip"
+                style={styles.paddingLeftTiny}
+                color={Styles.globalColors.black_20}
+              />
+            )}
+            {this.props.showCoinsIcon && (
+              <Kb.Icon type="icon-stellar-coins-stacked-16" style={styles.paddingLeftTiny} />
+            )}
             {showMenuButton ? (
               <Kb.Box className="WrapperMessage-buttons">
                 {!this._hasReactions() &&
@@ -740,7 +748,6 @@ const styles = Styles.styleSheetCreate(
       fail: { color: Styles.globalColors.redDark },
       failUnderline: { color: Styles.globalColors.redDark, textDecorationLine: 'underline' },
       fast,
-      marginLeftTiny: { marginLeft: Styles.globalMargins.tiny },
       menuButtons: Styles.platformStyles({
         common: {
           alignSelf: 'flex-start',
@@ -770,6 +777,7 @@ const styles = Styles.styleSheetCreate(
           left: -Styles.globalMargins.mediumLarge, // compensate for containerNoUsername's padding
         },
       }),
+      paddingLeftTiny: { paddingLeft: Styles.globalMargins.tiny },
       send: Styles.platformStyles({
         common: {
           position: 'absolute',
