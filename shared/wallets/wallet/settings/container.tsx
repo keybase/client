@@ -1,7 +1,6 @@
 import Settings from '.'
 import * as Container from '../../../util/container'
 import {anyWaiting} from '../../../constants/waiting'
-import * as I from 'immutable'
 import * as Constants from '../../../constants/wallets'
 import {IconType} from '../../../common-adapters/icon.constants-gen'
 import * as IconUtils from '../../../common-adapters/icon.shared'
@@ -27,21 +26,19 @@ const toIconType = (iconFilename: string): IconType => {
 }
 
 const prepareExternalPartners = (
-  externalPartners: I.List<Types.PartnerUrl>,
+  externalPartners: Array<Types.PartnerUrl>,
   accountID: string,
   username: string
 ): Array<Types.PartnerUrl & {showDivider: boolean}> =>
-  externalPartners
-    .map((partner, index) => ({
-      adminOnly: partner.adminOnly,
-      description: partner.description,
-      extra: partner.extra,
-      iconFilename: toIconType(partner.iconFilename),
-      showDivider: index > 0,
-      title: partner.title,
-      url: transformUrl(accountID, partner.url, username),
-    }))
-    .toArray()
+  externalPartners.map((partner, index) => ({
+    adminOnly: partner.adminOnly,
+    description: partner.description,
+    extra: partner.extra,
+    iconFilename: toIconType(partner.iconFilename),
+    showDivider: index > 0,
+    title: partner.title,
+    url: transformUrl(accountID, partner.url, username),
+  }))
 
 const mapStateToProps = (state: Container.TypedState) => {
   const accountID = Constants.getSelectedAccount(state)

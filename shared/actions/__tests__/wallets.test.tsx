@@ -17,10 +17,10 @@ const initialStore = {
   config: {loggedIn: true, username: 'user'},
   wallets: {
     ...blankStore.wallets,
-    accountMap: blankStore.wallets.accountMap.set(
-      Types.stringToAccountID('fake account ID'),
-      Constants.makeAccount()
-    ),
+    accountMap: new Map([
+      ...blankStore.wallets.accountMap.entries(),
+      [Types.stringToAccountID('fake account ID'), Constants.makeAccount()],
+    ]),
   },
 }
 
