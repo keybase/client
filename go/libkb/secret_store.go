@@ -299,11 +299,15 @@ func (s *SecretStoreLocked) GetUsersWithStoredSecrets(m MetaContext) ([]string, 
 	s.Lock()
 	defer s.Unlock()
 	users := make(map[string]struct{})
+
 	memUsers, memErr := s.mem.GetUsersWithStoredSecrets(m)
 	if memErr == nil {
 		for _, memUser := range memUsers {
 			users[memUser] = struct{}{}
 		}
+	}
+	if s.disk == nil {
+		return memUsers, memErr
 	}
 	diskUsers, diskErr := s.disk.GetUsersWithStoredSecrets(m)
 	if diskErr == nil {
