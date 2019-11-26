@@ -67,7 +67,7 @@ function SyncAvatarProps(ComposedComponent: any) {
   const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     const {usernames} = ownProps
     return {
-      ...immutableCached(
+      ...immerCached(
         getRemoteFollowers(state.config.followers, usernames),
         getRemoteFollowing(state.config.following, usernames)
       ),
@@ -84,7 +84,7 @@ function SyncAvatarProps(ComposedComponent: any) {
   )
 
   // use an immutable equals to not rerender if its the same
-  const immutableCached = memoize(
+  const immerCached = memoize(
     (followers: Set<string>, following: Set<string>) => ({followers, following}),
     (
       [newFollowers, newFollowing]: [Set<string>, Set<string>],
