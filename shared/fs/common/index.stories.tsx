@@ -277,9 +277,7 @@ const load = () => {
       </Kb.Box>
     ))
     .add('PathInfo', () => <PathInfo path="/keybase/private/meatball/folder/treat" />)
-    .add('PathItemInfo', () => (
-      <PathItemInfo path="/keybase/private/meatball/folder/treat" showTooltipOnName={true} />
-    ))
+    .add('PathItemInfo', () => <PathItemInfo path="/keybase/private/meatball/folder/treat" />)
     .add('PathItemAction', () => (
       <Kb.Box2
         direction="vertical"

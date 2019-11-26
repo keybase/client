@@ -2,7 +2,7 @@ import * as TeamsGen from '../../../../../actions/teams-gen'
 import * as Constants from '../../../../../constants/teams'
 import {TeamInviteRow} from '.'
 import {connect} from '../../../../../util/container'
-import {_InviteInfo, TeamID} from '../../../../../constants/types/teams'
+import {InviteInfo, TeamID} from '../../../../../constants/types/teams'
 
 type OwnProps = {
   id: string
@@ -23,7 +23,7 @@ export default connect(
     },
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
-    const user: _InviteInfo | undefined =
+    const user: InviteInfo | undefined =
       [...(stateProps._invites || [])].find(invite => invite.id === ownProps.id) || Constants.emptyInviteInfo
     if (!user) {
       // loading

@@ -19,8 +19,8 @@ var mockCmdOutput []chat1.UserBotCommandOutput
 
 type MockBotCommandManager struct{ types.DummyBotCommandManager }
 
-func (m MockBotCommandManager) ListCommands(context.Context, chat1.ConversationID) ([]chat1.UserBotCommandOutput, error) {
-	return mockCmdOutput, nil
+func (m MockBotCommandManager) ListCommands(context.Context, chat1.ConversationID) ([]chat1.UserBotCommandOutput, map[string]string, error) {
+	return mockCmdOutput, make(map[string]string), nil
 }
 
 type mockUPAKLoader struct {

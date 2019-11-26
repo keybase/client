@@ -88,8 +88,13 @@ func (f *File) ReadAt(p []byte, off int64) (n int, err error) {
 		return 0, err
 	}
 	if int(readBytes) < len(p) {
-		// ReadAt is more strict than Read.
-		return 0, errors.Errorf("Could only read %d bytes", readBytes)
+		// ReadAt is more strict than Read; it requires a real error
+		// if someone tries to read such that it won't fill the
+		// buffer.  But just wrap an io.EOF in the error so that
+		// folderBranchOps can figure it out, when calling from a
+		// `Read()` implementation.
+		return 0, errors.Wrapf(
+			io.EOF, "Could only read %d (not %d) bytes", readBytes, len(p))
 	}
 
 	return int(readBytes), nil

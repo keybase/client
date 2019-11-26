@@ -239,8 +239,6 @@ protocol api {
     @jsonkey("identify_failures")
     @optional(true)
     array<keybase1.TLFIdentifyFailure> identifyFailures;
-    @jsonkey("pagination")
-    union { null, Pagination } pagination;
     @jsonkey("ratelimits")
     @optional(true)
     array<RateLimitRes> rateLimits;

@@ -6,8 +6,7 @@ import * as I from 'immutable'
 import * as Types from '../constants/types/teams'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as Container from '../util/container'
-import {TeamBuildingSubState} from '../constants/types/team-building'
-import teamBuildingReducer from './team-building'
+import {editTeambuildingDraft} from './team-building'
 import {ifTSCComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch} from '../util/switch'
 
 const initialState: Types.State = Constants.makeState()
@@ -24,6 +23,7 @@ export default (
         draftState.channelCreationError = action.payload.error
         return
       case TeamsGen.createNewTeam:
+      case TeamsGen.createNewTeamFromConversation:
         draftState.teamCreationError = ''
         return
       case TeamsGen.setTeamCreationError:
@@ -60,9 +60,6 @@ export default (
             inviteToLoading.set(action.payload.loadingKey, action.payload.isLoading)
         )
         return
-      case TeamsGen.clearTeamRequests:
-        draftState.teamNameToRequests = draftState.teamNameToRequests.set(action.payload.teamname, I.Set())
-        return
       case TeamsGen.setTeamDetails: {
         const members = Constants.rpcDetailsToMemberInfos(action.payload.members)
         draftState.teamNameToMembers = draftState.teamNameToMembers.set(
@@ -73,18 +70,10 @@ export default (
           action.payload.teamname,
           Constants.makeTeamSettings(action.payload.settings)
         )
-        draftState.teamNameToInvites = draftState.teamNameToInvites.set(
-          action.payload.teamname,
-          I.Set(action.payload.invites.map(i => Constants.makeInviteInfo(i)))
-        )
         draftState.teamNameToSubteams = draftState.teamNameToSubteams.set(
           action.payload.teamname,
           I.Set(action.payload.subteams)
         )
-        const immRequests = I.Map(
-          [...action.payload.requests.entries()].map(([teamname, reqArr]) => [teamname, I.Set(reqArr)])
-        )
-        draftState.teamNameToRequests = draftState.teamNameToRequests.merge(immRequests)
 
         const details =
           draftState.teamDetails.get(action.payload.teamID) ||
@@ -272,13 +261,13 @@ export default (
       case TeamBuildingGen.search:
       case TeamBuildingGen.selectRole:
       case TeamBuildingGen.labelsSeen:
-      case TeamBuildingGen.changeSendNotification:
-        draftState.teamBuilding = teamBuildingReducer(
-          'teams',
-          draftState.teamBuilding as TeamBuildingSubState,
-          action
-        )
+      case TeamBuildingGen.changeSendNotification: {
+        const val = editTeambuildingDraft('teams', draftState.teamBuilding, action)
+        if (val !== undefined) {
+          draftState.teamBuilding = val
+        }
         return
+      }
       // Saga-only actions
       case TeamsGen.addUserToTeams:
       case TeamsGen.addToTeam:
@@ -286,7 +275,6 @@ export default (
       case TeamsGen.checkRequestedAccess:
       case TeamsGen.clearNavBadges:
       case TeamsGen.createChannel:
-      case TeamsGen.createNewTeamFromConversation:
       case TeamsGen.deleteChannelConfirmed:
       case TeamsGen.deleteTeam:
       case TeamsGen.editMembership:

@@ -1423,6 +1423,18 @@ func (m *MockChatHelper) UserReacjis(ctx context.Context, uid gregor1.UID) keyba
 	return keybase1.UserReacjis{}
 }
 
+func (m *MockChatHelper) JourneycardTimeTravel(ctx context.Context, uid gregor1.UID, duration time.Duration) error {
+	return fmt.Errorf("JourneycardTimeTravel not implemented on mock")
+}
+
+func (m *MockChatHelper) JourneycardResetAllConvs(ctx context.Context, uid gregor1.UID) error {
+	return fmt.Errorf("JourneycardResetAllConvs not implemented on mock")
+}
+
+func (m *MockChatHelper) JourneycardDebugState(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (string, error) {
+	return "", fmt.Errorf("JourneycardDebugState not implemented on mock")
+}
+
 func (m *MockChatHelper) NewConversation(ctx context.Context, uid gregor1.UID, tlfName string,
 	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
 	vis keybase1.TLFVisibility) (chat1.ConversationLocal, error) {

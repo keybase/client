@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"sync"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
@@ -72,6 +74,30 @@ func (j *JourneyCardManager) PickCard(ctx context.Context, uid gregor1.UID,
 		return nil, err
 	}
 	return js.PickCard(ctx, convID, convLocalOptional, thread)
+}
+
+func (j *JourneyCardManager) TimeTravel(ctx context.Context, uid gregor1.UID, duration time.Duration) (err error) {
+	js, err := j.get(ctx, uid)
+	if err != nil {
+		return err
+	}
+	return js.TimeTravel(ctx, duration)
+}
+
+func (j *JourneyCardManager) ResetAllConvs(ctx context.Context, uid gregor1.UID) (err error) {
+	js, err := j.get(ctx, uid)
+	if err != nil {
+		return err
+	}
+	return js.ResetAllConvs(ctx)
+}
+
+func (j *JourneyCardManager) DebugState(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (summary string, err error) {
+	js, err := j.get(ctx, uid)
+	if err != nil {
+		return "", err
+	}
+	return js.DebugState(ctx, convID)
 }
 
 func (j *JourneyCardManager) SentMessage(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) {
@@ -321,7 +347,7 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 		chat1.JourneycardType_MSG_ATTENTION:      cardConditionTODO,
 		chat1.JourneycardType_USER_AWAY_FOR_LONG: cardConditionTODO,
 		chat1.JourneycardType_CHANNEL_INACTIVE:   func(ctx context.Context) bool { return cc.cardChannelInactive(ctx, jcd, thread, debugDebug) },
-		chat1.JourneycardType_MSG_NO_ANSWER:      func(ctx context.Context) bool { return cc.cardMsgNoAnswer(ctx, jcd, thread, debugDebug) },
+		chat1.JourneycardType_MSG_NO_ANSWER:      func(ctx context.Context) bool { return cc.cardMsgNoAnswer(ctx, conv, jcd, thread, debugDebug) },
 	}
 
 	// Prefer showing cards later in the order.
@@ -435,20 +461,21 @@ func (cc *JourneyCardManagerSingleUser) cardAddPeople(ctx context.Context, conv 
 	}
 	// Figure whether the user is in other channels.
 	topicType := chat1.TopicType_CHAT
-	inbox, err := cc.G().InboxSource.ReadUnverified(ctx, cc.uid, types.InboxSourceDataSourceLocalOnly, &chat1.GetInboxQuery{
-		TlfID:     &conv.TlfID,
-		TopicType: &topicType,
-		MemberStatus: []chat1.ConversationMemberStatus{
-			chat1.ConversationMemberStatus_ACTIVE,
-			chat1.ConversationMemberStatus_REMOVED,
-			chat1.ConversationMemberStatus_LEFT,
-			chat1.ConversationMemberStatus_PREVIEW,
-		},
-		MembersTypes:     []chat1.ConversationMembersType{chat1.ConversationMembersType_TEAM},
-		SummarizeMaxMsgs: true,
-		SkipBgLoads:      true,
-		AllowUnseenQuery: true, // Make an effort, it's ok if convs are missed.
-	}, nil)
+	inbox, err := cc.G().InboxSource.ReadUnverified(ctx, cc.uid, types.InboxSourceDataSourceLocalOnly,
+		&chat1.GetInboxQuery{
+			TlfID:     &conv.TlfID,
+			TopicType: &topicType,
+			MemberStatus: []chat1.ConversationMemberStatus{
+				chat1.ConversationMemberStatus_ACTIVE,
+				chat1.ConversationMemberStatus_REMOVED,
+				chat1.ConversationMemberStatus_LEFT,
+				chat1.ConversationMemberStatus_PREVIEW,
+			},
+			MembersTypes:     []chat1.ConversationMembersType{chat1.ConversationMembersType_TEAM},
+			SummarizeMaxMsgs: true,
+			SkipBgLoads:      true,
+			AllowUnseenQuery: true, // Make an effort, it's ok if convs are missed.
+		})
 	if err != nil {
 		debugDebug(ctx, "ReadUnverified error: %v", err)
 		return false
@@ -473,9 +500,14 @@ func (cc *JourneyCardManagerSingleUser) cardCreateChannels(ctx context.Context, 
 
 // Card type: MSG_NO_ANSWER (C)
 // Gist: "People haven't been talkative in a while. Perhaps post in another channel? <list of channels>"
+// Condition: The team has channels besides general.
 // Condition: The last visible message is old, was sent by the logged-in user, and was a long text message.
-func (cc *JourneyCardManagerSingleUser) cardMsgNoAnswer(ctx context.Context,
+func (cc *JourneyCardManagerSingleUser) cardMsgNoAnswer(ctx context.Context, conv convForJourneycard,
 	jcd journeyCardConvData, thread *chat1.ThreadView, debugDebug logFn) bool {
+	otherChannelsExist := conv.GetTeamType() == chat1.TeamType_COMPLEX
+	if !otherChannelsExist {
+		return false
+	}
 	// If the latest message is eligible then show the card.
 	var eligibleMsg chat1.MessageID  // maximum eligible msg
 	var preventerMsg chat1.MessageID // maximum preventer msg
@@ -729,6 +761,14 @@ func (cc *JourneyCardManagerSingleUser) saveJoinedTime(ctx context.Context, conv
 		return
 	}
 	defer cc.storageLock.Unlock()
+	cc.saveJoinedTimeWithLock(ctx, convID, t)
+}
+
+func (cc *JourneyCardManagerSingleUser) saveJoinedTimeWithLock(ctx context.Context, convID chat1.ConversationID, t time.Time) {
+	cc.saveJoinedTimeWithLockInner(ctx, convID, t, false)
+}
+
+func (cc *JourneyCardManagerSingleUser) saveJoinedTimeWithLockInner(ctx context.Context, convID chat1.ConversationID, t time.Time, acceptUpdate bool) {
 	if convID.IsNil() {
 		return
 	}
@@ -737,7 +777,7 @@ func (cc *JourneyCardManagerSingleUser) saveJoinedTime(ctx context.Context, conv
 		cc.Debug(ctx, "storage get error: %v", err)
 		return
 	}
-	if jcd.JoinedTime != nil {
+	if jcd.JoinedTime != nil && !acceptUpdate {
 		return
 	}
 	jcd = jcd.CloneSemi()
@@ -748,6 +788,94 @@ func (cc *JourneyCardManagerSingleUser) saveJoinedTime(ctx context.Context, conv
 	if err != nil {
 		cc.Debug(ctx, "storage put error: %v", err)
 	}
+}
+
+// TimeTravel simulates moving all known conversations forward in time.
+// For use simulating a user experience without the need to wait hours for cards to appear.
+func (cc *JourneyCardManagerSingleUser) TimeTravel(ctx context.Context, duration time.Duration) (err error) {
+	err = libkb.AcquireWithContextAndTimeout(ctx, &cc.storageLock, 10*time.Second)
+	if err != nil {
+		return err
+	}
+	defer cc.storageLock.Unlock()
+	convIDs, err := cc.getKnownConvsForDebuggingWithLock(ctx)
+	if err != nil {
+		return err
+	}
+	for _, convID := range convIDs {
+		jcd, err := cc.getConvDataWithLock(ctx, convID)
+		if err != nil {
+			return fmt.Errorf("convID:%v err:%v", convID, err)
+		}
+		jcd = jcd.CloneSemi()
+		if jcd.JoinedTime != nil {
+			cc.Debug(ctx, "time travel convID:%v", convID)
+			cc.saveJoinedTimeWithLockInner(ctx, convID, jcd.JoinedTime.Time().Add(-duration), true)
+		}
+	}
+	return nil
+}
+
+// ResetAllConvs deletes storage for all conversations.
+// For use simulating a fresh user experience without the need to switch accounts.
+func (cc *JourneyCardManagerSingleUser) ResetAllConvs(ctx context.Context) (err error) {
+	err = libkb.AcquireWithContextAndTimeout(ctx, &cc.storageLock, 10*time.Second)
+	if err != nil {
+		return err
+	}
+	defer cc.storageLock.Unlock()
+	convIDs, err := cc.getKnownConvsForDebuggingWithLock(ctx)
+	if err != nil {
+		return err
+	}
+	cc.lru.Purge()
+	for _, convID := range convIDs {
+		err = cc.encryptedDB.Delete(ctx, cc.dbKey(convID))
+		if err != nil {
+			return fmt.Errorf("convID:%v err:%v", convID, err)
+		}
+	}
+	return nil
+}
+
+func (cc *JourneyCardManagerSingleUser) DebugState(ctx context.Context, convID chat1.ConversationID) (summary string, err error) {
+	jcd, err := cc.getConvData(ctx, convID)
+	if err != nil {
+		return "", err
+	}
+	summary = spew.Sdump(jcd)
+	if jcd.JoinedTime != nil {
+		since := cc.G().GetClock().Since(jcd.JoinedTime.Time())
+		summary += fmt.Sprintf("Since joined: %v (%.1f days)", since, float64(since)/float64(time.Hour*24))
+	}
+	return summary, nil
+}
+
+func (cc *JourneyCardManagerSingleUser) getKnownConvsForDebuggingWithLock(ctx context.Context) (convs []chat1.ConversationID, err error) {
+	levelDbTableKv := "kv"
+	innerKeyPrefix := fmt.Sprintf("jc|uid:%s|convID:", cc.uid)
+	prefix := libkb.DbKey{
+		Typ: libkb.DBChatJourney,
+		Key: fmt.Sprintf("jc|uid:%s|convID:", cc.uid),
+	}.ToBytes(levelDbTableKv)
+	leveldb, ok := cc.G().LocalChatDb.GetEngine().(*libkb.LevelDb)
+	if !ok {
+		return nil, fmt.Errorf("could not get leveldb")
+	}
+	dbKeys, err := leveldb.KeysWithPrefixes(prefix)
+	if err != nil {
+		return nil, err
+	}
+	for dbKey := range dbKeys {
+		if dbKey.Typ == libkb.DBChatJourney && strings.HasPrefix(dbKey.Key, innerKeyPrefix) {
+			convID, err := chat1.MakeConvID(dbKey.Key[len(innerKeyPrefix):])
+			if err != nil {
+				return nil, err
+			}
+			convs = append(convs, convID)
+		}
+	}
+	return convs, nil
 }
 
 type journeyCardPosition struct {

@@ -62,7 +62,7 @@ export type _MemberInfo = {
 }
 export type MemberInfo = I.RecordOf<_MemberInfo>
 
-export type _InviteInfo = {
+export type InviteInfo = {
   email: string
   phone: string
   name: string
@@ -70,7 +70,6 @@ export type _InviteInfo = {
   username: string
   id: string
 }
-export type InviteInfo = I.RecordOf<_InviteInfo> // TODO remove
 
 export type TabKey = 'members' | 'invites' | 'subteams' | 'settings'
 
@@ -116,7 +115,7 @@ export type TeamDetails = {
 
   members?: Map<string, _MemberInfo>
   settings?: _TeamSettings
-  invites?: Set<_InviteInfo>
+  invites?: Set<InviteInfo>
   subteams?: Set<TeamID>
   requests?: Set<string>
 }
@@ -153,11 +152,9 @@ export type State = Readonly<{
   teamDetailsMetaSubscribeCount: number // if >0 we are eagerly reloading team list
   teamNameToChannelInfos: I.Map<Teamname, I.Map<ConversationIDKey, ChannelInfo>>
   teamNameToID: I.Map<Teamname, string>
-  teamNameToInvites: I.Map<Teamname, I.Set<InviteInfo>> // TODO remove
   teamNameToIsOpen: I.Map<Teamname, boolean> // TODO remove
   teamNameToLoadingInvites: I.Map<Teamname, I.Map<string, boolean>>
   teamNameToMembers: I.Map<Teamname, I.Map<string, MemberInfo>> // TODO remove
-  teamNameToRequests: I.Map<Teamname, I.Set<string>> // TODO remove
   teamNameToResetUsers: I.Map<Teamname, I.Set<ResetUser>>
   teamNameToRetentionPolicy: I.Map<Teamname, RetentionPolicy>
   teamNameToRole: I.Map<Teamname, MaybeTeamRoleType> // TODO remove

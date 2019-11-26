@@ -41,7 +41,7 @@
     "generatePgp": {},
     "onClickAvatar": {
       "username": "string",
-      "openWebsite?": "boolean | null"
+      "openWebsite?": "boolean"
     },
     "showUserProfile": {"username": "string"},
     "submitZcashAddress": {},
@@ -58,7 +58,7 @@
     },
     "updateErrorText": {
       "errorText": "string",
-      "errorCode": "number | null"
+      "errorCode?": "number"
     },
     "updatePgpInfo": {
       "_description": "Update any fields",
@@ -76,7 +76,7 @@
       "status": "RPCTypes.ProofStatus"
     },
     "updateProofText": {"proof": "string"},
-    "updateSigID": {"sigID": "RPCTypes.SigID | null"},
+    "updateSigID": {"sigID?": "RPCTypes.SigID"},
     "updateUsername": {"username": "string"}
   }
 }

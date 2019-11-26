@@ -206,6 +206,7 @@
   "keybase.1.login.recoverPassphrase": {"engineSaga": true},
   "keybase.1.login.isOnline": {"promise": true},
   "keybase.1.notifyCtl.setNotifications": {"promise": true},
+  "keybase.1.notifyTracking.notifyUserBlocked": {"promise": true},
   "keybase.1.pgp.pgpKeyGenDefault": {"engineSaga": true},
   "keybase.1.pgp.pgpStorageDismiss": {"promise": true},
   "keybase.1.phoneNumbers.addPhoneNumber": {"promise": true},

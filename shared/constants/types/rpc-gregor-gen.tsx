@@ -15,7 +15,7 @@ export type String = string
 export type Uint = number
 export type Uint64 = number
 type WaitingKey = string | Array<string>
-export type IncomingErrorCallback = (err: {code?: number; desc?: string} | null) => void
+export type IncomingErrorCallback = (err?: {code?: number; desc?: string} | null) => void
 type IncomingReturn = Effect | null | void | false | Array<Effect | null | void | false>
 
 // Dummy calls to avoid undelcared warnings in TS strict mode
@@ -68,6 +68,7 @@ export type CustomResponseIncomingCallMap = {}
 // 'gregor.1.auth.authenticateSessionToken'
 // 'gregor.1.authInternal.createGregorSuperUserSessionToken'
 // 'gregor.1.authUpdate.revokeSessionIDs'
+// 'gregor.1.blocking.blockConversations'
 // 'gregor.1.incoming.sync'
 // 'gregor.1.incoming.consumeMessage'
 // 'gregor.1.incoming.consumePublishMessage'

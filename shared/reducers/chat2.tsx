@@ -6,7 +6,7 @@ import * as Container from '../util/container'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/chat2'
-import teamBuildingReducer from './team-building'
+import {editTeambuildingDraft} from './team-building'
 import {teamBuilderReducerCreator} from '../team-building/reducer-helper'
 import {isMobile} from '../constants/platform'
 import logger from '../logger'
@@ -1028,6 +1028,9 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       }
     }
   },
+  [Chat2Gen.updateBlockButtons]: (draftState, action) => {
+    draftState.blockButtonsMap.set(action.payload.teamID, action.payload.show)
+  },
   [Chat2Gen.updateReactions]: (draftState, action) => {
     const {conversationIDKey, updates} = action.payload
     const {messageMap} = draftState
@@ -1308,14 +1311,14 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
           participants,
           rekeyers,
           snippet: error.message,
-          snippetDecoration: '',
+          snippetDecoration: RPCChatTypes.SnippetDecoration.none,
           trustedState: 'error' as const,
         })
       } else {
         const old = draftState.metaMap.get(conversationIDKey)
         if (old) {
           old.snippet = error.message
-          old.snippetDecoration = ''
+          old.snippetDecoration = RPCChatTypes.SnippetDecoration.none
           old.trustedState = 'error'
         }
       }
@@ -1460,11 +1463,10 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   ...attachmentActions,
   ...teamBuilderReducerCreator<Actions, Types.State>(
     (draftState: Container.Draft<Types.State>, action: TeamBuildingGen.Actions) => {
-      draftState.teamBuilding = teamBuildingReducer(
-        'chat2',
-        draftState.teamBuilding as Types.State['teamBuilding'],
-        action
-      )
+      const val = editTeambuildingDraft('chat2', draftState.teamBuilding, action)
+      if (val !== undefined) {
+        draftState.teamBuilding = val
+      }
     }
   ),
 })

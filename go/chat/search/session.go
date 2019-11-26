@@ -291,7 +291,7 @@ func (s *searchSession) searchConvWithUIUpdate(ctx context.Context, convID chat1
 	}
 	if len(msgIDs) != hits.Size() {
 		s.indexer.Debug(ctx, "Search: hit mismatch, found %d msgIDs in index, %d hits in conv: %v, %v",
-			len(msgIDs), hits.Size(), utils.GetRemoteConvDisplayName(conv), conv.GetConvID())
+			len(msgIDs), hits.Size(), utils.GetRemoteConvDisplayName(conv), conv.ConvIDStr)
 	}
 	if hits == nil {
 		return nil
@@ -425,7 +425,7 @@ func (s *searchSession) postSearch(ctx context.Context) (err error) {
 		}
 		if err := s.reindexConvWithUIUpdate(ctx, conv); err != nil {
 			s.indexer.Debug(ctx, "Search: postSearch: error reindexing: conv: %v convID: %v err: %v",
-				utils.GetRemoteConvDisplayName(conv), conv.GetConvID(), err)
+				utils.GetRemoteConvDisplayName(conv), conv.ConvIDStr, err)
 			s.inboxIndexStatus.rmConv(conv.Conv)
 			continue
 		}

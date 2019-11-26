@@ -22,7 +22,7 @@ const headerActions = (dispatch: Container.TypedDispatch, ownProps: OwnProps) =>
   onCreateTeam: () => {
     dispatch(
       ownProps.safeNavigateAppendPayload({
-        path: [{props: {}, selected: 'teamNewTeamDialog'}],
+        path: ['teamNewTeamDialog'],
       })
     )
   },

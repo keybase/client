@@ -57,7 +57,7 @@ class RemoteComponentLoader extends React.Component<Props> {
   render() {
     return (
       <div id="RemoteComponentRoot" style={this.props.style || styles.container}>
-        <ErrorBoundary closeOnClick={this._onClose}>
+        <ErrorBoundary closeOnClick={this._onClose} fallbackStyle={styles.errorFallback}>
           <Root store={this._store}>{this.props.children}</Root>
         </ErrorBoundary>
       </div>
@@ -75,6 +75,9 @@ const styles = Styles.styleSheetCreate(() => ({
       width: '100%',
     },
   }),
+  errorFallback: {
+    backgroundColor: Styles.globalColors.white,
+  },
   loading: {
     backgroundColor: Styles.globalColors.greyDark,
   },

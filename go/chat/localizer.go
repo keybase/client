@@ -47,7 +47,7 @@ func (b *baseLocalizer) filterSelfFinalized(ctx context.Context, inbox types.Inb
 	res.ConvsUnverified = nil
 	for _, conv := range inbox.ConvsUnverified {
 		if conv.Conv.IsSelfFinalized(username) {
-			b.Debug(ctx, "baseLocalizer: skipping own finalized convo: %s name: %s", conv.GetConvID())
+			b.Debug(ctx, "baseLocalizer: skipping own finalized convo: %s name: %s", conv.ConvIDStr)
 			continue
 		}
 		res.ConvsUnverified = append(res.ConvsUnverified, conv)
@@ -94,7 +94,7 @@ func (b *blockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, inbox
 	res = make([]chat1.ConversationLocal, len(convs))
 	indexMap := make(map[string]int)
 	for index, c := range convs {
-		indexMap[c.GetConvID().String()] = index
+		indexMap[c.ConvIDStr] = index
 	}
 	for ar := range b.localizeCb {
 		res[indexMap[ar.ConvLocal.GetConvID().String()]] = ar.ConvLocal
@@ -144,7 +144,6 @@ func (b *nonBlockingLocalizer) filterInboxRes(ctx context.Context, inbox types.I
 		Version:         inbox.Version,
 		ConvsUnverified: res,
 		Convs:           inbox.Convs,
-		Pagination:      inbox.Pagination,
 	}, nil
 }
 
@@ -530,7 +529,7 @@ func (s *localizerPipeline) localizeConversations(localizeJob *localizerPipeline
 		eg.Go(func() error {
 			for conv := range convCh {
 				s.gateCheck(ctx, localizeJob.gateCh, index)
-				s.Debug(ctx, "localizeConversations: localizing: %d convID: %s", index, conv.GetConvID())
+				s.Debug(ctx, "localizeConversations: localizing: %d convID: %s", index, conv.ConvIDStr)
 				convLocal := s.localizeConversation(ctx, uid, conv)
 				select {
 				case <-ctx.Done():
@@ -541,13 +540,13 @@ func (s *localizerPipeline) localizeConversations(localizeJob *localizerPipeline
 				retCh <- conv.GetConvID()
 				if convLocal.Error != nil {
 					s.Debug(ctx, "localizeConversations: error localizing: convID: %s err: %s",
-						conv.GetConvID(), convLocal.Error.Message)
+						conv.ConvIDStr, convLocal.Error.Message)
 				}
 				localizeJob.retCh <- types.AsyncInboxResult{
 					ConvLocal: convLocal,
 					Conv:      conv,
 				}
-				s.Debug(ctx, "localizeConversations: localized: %d convID: %s", index, conv.GetConvID())
+				s.Debug(ctx, "localizeConversations: localized: %d convID: %s", index, conv.ConvIDStr)
 			}
 			return nil
 		})
@@ -872,7 +871,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 			typ, err := body.MessageType()
 			if err != nil {
 				s.Debug(ctx, "failed to get message type: convID: %s id: %d",
-					conversationRemote.Metadata.ConversationID, mm.GetMessageID())
+					conversationRemote.GetConvID(), mm.GetMessageID())
 				continue
 			}
 			switch typ {
@@ -905,6 +904,19 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 			s.Debug(ctx, "skipping invalid max msg: state: %v", err)
 		}
 	}
+	// see if we should override the snippet message with the latest outbox record
+	obrs, err := storage.NewOutbox(s.G(), uid).PullForConversation(ctx, conversationRemote.GetConvID())
+	if err != nil {
+		s.G().GetLog().CDebugf(ctx, "unable to get outbox records: %v", err)
+	}
+	for _, obr := range obrs {
+		msg := chat1.NewMessageUnboxedWithOutbox(obr)
+		if msg.IsVisible() {
+			conversationLocal.Info.SnippetMsg = &msg
+			break
+		}
+	}
+
 	// Resolve edits/deletes on snippet message
 	if conversationLocal.Info.SnippetMsg != nil {
 		superXform := newBasicSupersedesTransform(s.G(), basicSupersedesTransformOpts{})
@@ -1062,13 +1074,18 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	if err != nil {
 		s.Debug(ctx, "localizeConversation: failed to list commands: %s", err)
 	}
-	botCommands, err := s.G().BotCommandManager.ListCommands(ctx, conversationLocal.GetConvID())
+	botCommands, alias, err := s.G().BotCommandManager.ListCommands(ctx, conversationLocal.GetConvID())
 	if err != nil {
 		s.Debug(ctx, "localizeConversation: failed to list bot commands: %s", err)
-	} else if len(botCommands) > 0 {
-		conversationLocal.BotCommands = bots.MakeConversationCommandGroups(botCommands)
-	} else {
+		conversationLocal.BotAliases = make(map[string]string)
 		conversationLocal.BotCommands = chat1.NewConversationCommandGroupsWithNone()
+	} else {
+		conversationLocal.BotAliases = alias
+		if len(botCommands) > 0 {
+			conversationLocal.BotCommands = bots.MakeConversationCommandGroups(botCommands)
+		} else {
+			conversationLocal.BotCommands = chat1.NewConversationCommandGroupsWithNone()
+		}
 	}
 	return conversationLocal
 }

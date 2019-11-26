@@ -47,5 +47,5 @@ export const getOrderedMemberArray = (
       })
     : []
 
-export const sortInvites = (a: Types._InviteInfo, b: Types._InviteInfo) =>
+export const sortInvites = (a: Types.InviteInfo, b: Types.InviteInfo) =>
   (a.email || a.username || a.name || a.id || '').localeCompare(b.email || b.username || b.name || b.id || '')

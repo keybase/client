@@ -21,6 +21,7 @@ const mapStateToProps = (state, {username, teamID}) => {
         ? `Announce them in #general`
         : `Announce them in team chat`,
     disabledReasonsForRolePicker: Constants.getDisabledReasonsForRolePicker(state, teamname, username),
+    teamname,
   }
 }
 
@@ -49,7 +50,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     letIn: (sendNotification: boolean, role: Types.TeamRoleType) =>
       dispatchProps._letIn(stateProps.teamname, sendNotification, role),
     onChat: dispatchProps.onChat,
-    onIgnoreRequest: () => dispatchProps.onIgnoreRequest(stateProps.teamname),
+    onIgnoreRequest: () => dispatchProps._onIgnoreRequest(stateProps.teamname),
     onOpenProfile: dispatchProps.onOpenProfile,
     teamname: stateProps.teamname,
     username: ownProps.username,

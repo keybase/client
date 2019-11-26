@@ -70,6 +70,6 @@
       "siteIcon": "Array<Types.SiteIcon>",
       "siteIconFull": "Array<Types.SiteIcon>",
       "siteIconWhite": "Array<Types.SiteIcon>"
-    }
+    },
   }
 }

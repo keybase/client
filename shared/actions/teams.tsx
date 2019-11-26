@@ -105,9 +105,9 @@ function* deleteTeam(_: TypedState, action: TeamsGen.DeleteTeamPayload, logger: 
       },
       incomingCallMap: {},
       params: {
-        name: action.payload.teamname,
+        teamID: action.payload.teamID,
       },
-      waitingKey: Constants.deleteTeamWaitingKey(action.payload.teamname),
+      waitingKey: Constants.deleteTeamWaitingKey(action.payload.teamID),
     })
   } catch (e) {
     // handled through waiting store
@@ -117,12 +117,18 @@ function* deleteTeam(_: TypedState, action: TeamsGen.DeleteTeamPayload, logger: 
 const leaveTeam = async (_: TypedState, action: TeamsGen.LeaveTeamPayload, logger: Saga.SagaLogger) => {
   const {context, teamname} = action.payload
   logger.info(`leaveTeam: Leaving ${teamname} from context ${context}`)
-  await RPCTypes.teamsTeamLeaveRpcPromise(
-    {name: teamname, permanent: false},
-    Constants.leaveTeamWaitingKey(teamname)
-  )
-  logger.info(`leaveTeam: left ${teamname} successfully`)
-  return TeamsGen.createLeftTeam({context, teamname})
+  try {
+    await RPCTypes.teamsTeamLeaveRpcPromise(
+      {name: teamname, permanent: false},
+      Constants.leaveTeamWaitingKey(teamname)
+    )
+    logger.info(`leaveTeam: left ${teamname} successfully`)
+    return TeamsGen.createLeftTeam({context, teamname})
+  } catch (e) {
+    // handled through waiting store
+    logger.warn('error:', e.message)
+    return
+  }
 }
 
 const leftTeam = () => RouteTreeGen.createNavUpToScreen({routeName: 'teamsRoot'})
@@ -473,7 +479,6 @@ function* createNewTeamFromConversation(
   participants = meta.participants
 
   if (participants) {
-    yield Saga.put(TeamsGen.createSetTeamCreationError({error: ''}))
     try {
       const createRes: Saga.RPCPromiseType<typeof RPCTypes.teamsTeamCreateRpcPromise> = yield RPCTypes.teamsTeamCreateRpcPromise(
         {joinSubteam: false, name: teamname},
@@ -552,11 +557,6 @@ function* getDetails(_: TypedState, action: TeamsGen.GetDetailsPayload, logger: 
     })
 
     const invites = Constants.annotatedInvitesToInviteInfo(details.annotatedActiveInvites)
-
-    // if we have no requests for this team, make sure we don't hold on to any old ones
-    if (!requestMap.get(teamname)) {
-      yield Saga.put(TeamsGen.createClearTeamRequests({teamname}))
-    }
 
     // Get the subteam map for this team.
     const subTeam: Saga.RPCPromiseType<typeof RPCTypes.teamsTeamGetSubteamsRpcPromise> = yield RPCTypes.teamsTeamGetSubteamsRpcPromise(
@@ -893,7 +893,6 @@ function* saveChannelMembership(_: TypedState, action: TeamsGen.SaveChannelMembe
 
 function* createChannel(_: TypedState, action: TeamsGen.CreateChannelPayload, logger: Saga.SagaLogger) {
   const {channelname, description, teamname} = action.payload
-  yield Saga.put(TeamsGen.createSetTeamCreationError({error: ''}))
   try {
     const result: Saga.RPCPromiseType<typeof RPCChatTypes.localNewConversationLocalRpcPromise> = yield RPCChatTypes.localNewConversationLocalRpcPromise(
       {
@@ -1404,10 +1403,10 @@ function addThemToTeamFromTeamBuilder(
     return
   }
 
-  const role = state.teams.teamBuilding.teamBuildingFinishedSelectedRole
-  const sendChatNotification = state.teams.teamBuilding.teamBuildingFinishedSendNotification
+  const role = state.teams.teamBuilding.finishedSelectedRole
+  const sendChatNotification = state.teams.teamBuilding.finishedSendNotification
 
-  return state.teams.teamBuilding.teamBuildingFinishedTeam.toArray().map(user =>
+  return [...state.teams.teamBuilding.finishedTeam].map(user =>
     TeamsGen.createAddToTeam({
       role,
       sendChatNotification,

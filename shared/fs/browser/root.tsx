@@ -111,12 +111,14 @@ const Root = ({destinationPickerIndex}: Props) => {
   ]
   const renderItem = React.useMemo(() => getRenderItem(destinationPickerIndex), [destinationPickerIndex])
   return (
-    <Kb.SectionList
-      sections={sections}
-      renderItem={renderItem}
-      renderSectionHeader={renderSectionHeader}
-      stickySectionHeadersEnabled={false}
-    />
+    <Kb.BoxGrow>
+      <Kb.SectionList
+        sections={sections}
+        renderItem={renderItem}
+        renderSectionHeader={renderSectionHeader}
+        stickySectionHeadersEnabled={false}
+      />
+    </Kb.BoxGrow>
   )
 }
 

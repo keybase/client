@@ -8,7 +8,7 @@ import {Box2, Button, Icon, Text, Markdown} from '../../common-adapters'
 import {styleSheetCreate, globalStyles, globalMargins, isMobile} from '../../styles'
 
 type Props = {
-  error: RPCError | null
+  error?: RPCError
   onAccountReset: () => void
   onBack: () => void
   onKBHome: () => void

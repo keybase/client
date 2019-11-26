@@ -26,7 +26,6 @@ const props = {
       username: 'chromakode',
     },
   ],
-  error: null,
   inviteEmail: 'tcook@apple.com',
   inviteMessage: 'Hey Tim! I heard you like end-to-end encryption...',
   onClearError: Sb.action('onClearError'),
