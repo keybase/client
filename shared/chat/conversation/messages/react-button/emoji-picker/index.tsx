@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {EmojiData} from './data'
+import * as Data from './data'
 import {ClickableBox, Box2, Emoji, SectionList, Text} from '../../../../../common-adapters'
 import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../../../../styles'
 import {isAndroid} from '../../../../../constants/platform'
@@ -8,7 +8,9 @@ import {memoize} from '../../../../../util/memoize'
 
 // defer loading this until we need to, very expensive
 const _getData = memoize(() => {
-  const {categories, emojiIndex, emojiNameMap} = require('./data')
+  const categories: typeof Data.categories = require('./data')
+  const emojiIndex: typeof Data.emojiIndex = require('./data')
+  const emojiNameMap: typeof Data.emojiNameMap = require('./data')
   return {categories, emojiIndex, emojiNameMap}
 })
 
@@ -35,12 +37,13 @@ const getData = memoize((topReacjis: Array<string>) => {
 
   // Get emoji results for a query and map
   // to full emoji data
-  const getFilterResults = filter =>
+  const getFilterResults = (filter: string): Array<Data.EmojiData> =>
     emojiIndex
+      // @ts-ignore type wrong?
       .search(filter, {maxResults: maxEmojiSearchResults})
-      .map(res => emojiNameMap[res.id])
+      .map((res: {id: string}) => emojiNameMap[res.id])
       // MUST sort this so its stable
-      .sort((a, b) => a.sort_order - b.sort_order)
+      .sort((a: any, b: any) => a.sort_order - b.sort_order)
 
   return {
     emojiIndex,
@@ -69,7 +72,7 @@ const cacheSections = (width: number, sections: Array<Section>, topReacjis: Arra
 type Section = {
   category: string
   data: Array<{
-    emojis: Array<EmojiData>
+    emojis: Array<Data.EmojiData>
     key: string
   }>
   key: string
@@ -78,7 +81,7 @@ type Section = {
 type Props = {
   topReacjis: Array<string>
   filter?: string
-  onChoose: (emoji: EmojiData) => void
+  onChoose: (emoji: Data.EmojiData) => void
   width: number
 }
 
@@ -101,7 +104,7 @@ class EmojiPicker extends React.Component<Props, State> {
 
     const {emojiSections} = getData(this.props.topReacjis)
     // width is different from cached. make new sections & cache for next time
-    let sections = []
+    let sections: Array<Section> = []
     const emojisPerLine = Math.floor(this.props.width / emojiWidthWithPadding)
     sections = emojiSections.map(c => ({
       category: c.category,
@@ -161,7 +164,10 @@ class EmojiPicker extends React.Component<Props, State> {
         initialNumToRender={14}
         sections={this.state.sections}
         stickySectionHeadersEnabled={true}
-        renderItem={item => <EmojiRow key={item.index} {...item} onChoose={this.props.onChoose} />}
+        renderItem={(item: {index: number; emojis: Array<Data.EmojiData>; key: string}) => (
+          // @ts-ignore
+          <EmojiRow key={item.index} {...item} onChoose={this.props.onChoose} />
+        )}
         renderSectionHeader={HeaderRow}
       />
     ) : null
@@ -170,10 +176,10 @@ class EmojiPicker extends React.Component<Props, State> {
 
 const EmojiRow = (props: {
   item: {
-    emojis: Array<EmojiData>
+    emojis: Array<Data.EmojiData>
     key: string
   }
-  onChoose: (emojiData: EmojiData) => void
+  onChoose: (emojiData: Data.EmojiData) => void
 }) => (
   <Box2 key={props.item.key} fullWidth={true} style={styles.alignItemsCenter} direction="horizontal">
     {props.item.emojis.map(e => (
@@ -182,7 +188,13 @@ const EmojiRow = (props: {
   </Box2>
 )
 
-const EmojiRender = ({emoji, onChoose}: {emoji: EmojiData; onChoose: (emojiData: EmojiData) => void}) => (
+const EmojiRender = ({
+  emoji,
+  onChoose,
+}: {
+  emoji: Data.EmojiData
+  onChoose: (emojiData: Data.EmojiData) => void
+}) => (
   <ClickableBox onClick={() => onChoose(emoji)} style={styles.emoji} key={emoji.short_name}>
     <Emoji size={isAndroid ? singleEmojiWidth - 5 : singleEmojiWidth} emojiName={`:${emoji.short_name}:`} />
   </ClickableBox>

@@ -36,7 +36,7 @@ class HoverEmoji extends React.Component<{name: string; onClick: () => void}, {h
 class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
   state = {showingPicker: false}
   _attachmentRef = React.createRef<Kb.Box2>()
-  _setShowingPicker = showingPicker => {
+  _setShowingPicker = (showingPicker: boolean) => {
     this.props.onShowingEmojiPicker && this.props.onShowingEmojiPicker(showingPicker)
     this.setState(s => (s.showingPicker === showingPicker ? null : {showingPicker}))
   }

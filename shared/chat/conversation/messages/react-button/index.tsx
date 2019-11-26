@@ -30,7 +30,8 @@ export type Props = {
   style?: Styles.StylesCrossPlatform
 }
 
-let bounceIn, bounceOut
+let bounceIn: any
+let bounceOut: any
 if (!Styles.isMobile) {
   bounceIn = Styles.styledKeyframes({
     from: {transform: 'translateX(-30px)'},
@@ -155,7 +156,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
   _nextIcon = () =>
     this.setState(s => ({applyClasses: true, iconIndex: (s.iconIndex + 1) % iconCycle.length}))
 
-  _getClass = iconIndex => {
+  _getClass = (iconIndex: number) => {
     if (!this.state.applyClasses) {
       return ''
     }
