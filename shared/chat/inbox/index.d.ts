@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as I from 'immutable'
 import {ConversationIDKey} from '../../constants/types/chat2'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 
@@ -61,10 +60,6 @@ export type RowItem =
   | RowItemBig
   | RowItemDivider
   | RowItemTeamBuilder
-
-export type RouteState = I.RecordOf<{
-  smallTeamsExpanded: boolean
-}>
 
 export type Props = {
   allowShowFloatingButton: boolean

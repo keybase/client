@@ -83,7 +83,7 @@ function SyncAvatarProps(ComposedComponent: any) {
     intersect(following, usernames)
   )
 
-  // use an immutable equals to not rerender if its the same
+  // use an immer equals to not rerender if its the same
   const immerCached = memoize(
     (followers: Set<string>, following: Set<string>) => ({followers, following}),
     (
