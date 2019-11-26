@@ -108,6 +108,33 @@ func (bldbr *bleveLevelDBReader) Close() error {
 	return nil
 }
 
+type bleveLevelDBWriter struct {
+	db *leveldb.DB
+}
+
+var _ store.KVWriter = (*bleveLevelDBWriter)(nil)
+
+// NewBatch implements the store.KVReader interface for bleveLevelDBWriter.
+func (bldbw *bleveLevelDBWriter) NewBatch() store.KVBatch {
+	return nil
+}
+
+// NewBatchEx implements the store.KVReader interface for bleveLevelDBWriter.
+func (bldbw *bleveLevelDBWriter) NewBatchEx(store.KVBatchOptions) (
+	[]byte, store.KVBatch, error) {
+	return nil, nil, nil
+}
+
+// ExecuteBatch implements the store.KVReader interface for bleveLevelDBWriter.
+func (bldbw *bleveLevelDBWriter) ExecuteBatch(batch store.KVBatch) error {
+	return nil
+}
+
+// Close implements the store.KVReader interface for bleveLevelDBWriter.
+func (bldbw *bleveLevelDBWriter) Close() error {
+	return nil
+}
+
 type bleveLevelDBStore struct {
 	db *leveldb.DB
 }
