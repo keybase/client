@@ -34,7 +34,10 @@ export default function(
     case WalletsGen.didSetAccountAsDefault:
     case WalletsGen.accountsReceived: {
       const accountMap: I.OrderedMap<Types.AccountID, Types.Account> = I.OrderedMap(
-        action.payload.accounts.map(account => [account.accountID, account])
+        action.payload.accounts.map(account => [
+          account.accountID,
+          Constants.makeAccount(account as Types._Account),
+        ])
       )
       return state.merge({accountMap: accountMap})
     }
@@ -45,7 +48,9 @@ export default function(
       // this is because we get the sort order from the full accounts load,
       // and can't figure it out from these notifications alone.
       if (account && state.accountMap.get(account.accountID)) {
-        return state.update('accountMap', am => am.update(account.accountID, acc => acc.merge(account)))
+        return state.update('accountMap', am =>
+          am.update(account.accountID, acc => acc.merge(Constants.makeAccount(account as Types._Account)))
+        )
       }
       return state
     }
@@ -101,7 +106,7 @@ export default function(
     case WalletsGen.clearBuiltRequest:
       return state.merge({builtRequest: Constants.makeBuiltRequest()})
     case WalletsGen.externalPartnersReceived:
-      return state.merge({externalPartners: action.payload.externalPartners})
+      return state.merge({externalPartners: I.List(action.payload.externalPartners)})
     case WalletsGen.paymentDetailReceived:
       return state.updateIn(['paymentsMap', action.payload.accountID], (paymentsMap = I.Map()) =>
         Constants.updatePaymentDetail(paymentsMap, action.payload.payment as any)
@@ -149,7 +154,11 @@ export default function(
         .setIn(['paymentOldestUnreadMap', action.payload.accountID], action.payload.oldestUnread)
     }
     case WalletsGen.displayCurrenciesReceived:
-      return state.merge({currencies: I.List(action.payload.currencies)})
+      return state.merge({
+        currencies: I.List(
+          action.payload.currencies.map(c => Constants.makeCurrency(c as Types._LocalCurrency))
+        ),
+      })
     case WalletsGen.displayCurrencyReceived: {
       // @ts-ignore
       const account = Constants.getAccountInner(state, action.payload.accountID || Types.noAccountID)
@@ -159,7 +168,9 @@ export default function(
       return state.merge({
         accountMap: state.accountMap.set(
           account.accountID,
-          account.merge({displayCurrency: action.payload.currency})
+          account.merge({
+            displayCurrency: Constants.makeCurrency(action.payload.currency as Types._LocalCurrency),
+          })
         ),
       })
     }
@@ -295,7 +306,12 @@ export default function(
     case WalletsGen.setBuildingAdvancedRecipientAsset:
       return state
         .update('buildingAdvanced', buildingAdvanced =>
-          buildingAdvanced.set('recipientAsset', action.payload.recipientAsset)
+          buildingAdvanced.set(
+            'recipientAsset',
+            action.payload.recipientAsset === 'native'
+              ? 'native'
+              : Constants.makeAssetDescription(action.payload.recipientAsset)
+          )
         )
         .set('builtPaymentAdvanced', Constants.emptyBuiltPaymentAdvanced)
     case WalletsGen.setBuildingAdvancedRecipientType:
@@ -315,7 +331,12 @@ export default function(
     case WalletsGen.setBuildingAdvancedSenderAsset:
       return state
         .update('buildingAdvanced', buildingAdvanced =>
-          buildingAdvanced.set('senderAsset', action.payload.senderAsset)
+          buildingAdvanced.set(
+            'senderAsset',
+            action.payload.senderAsset === 'native'
+              ? 'native'
+              : Constants.makeAssetDescription(action.payload.senderAsset)
+          )
         )
         .set('builtPaymentAdvanced', Constants.emptyBuiltPaymentAdvanced)
     case WalletsGen.setBuildingAdvancedSecretNote:
@@ -443,6 +464,7 @@ export default function(
     case WalletsGen.loadedMobileOnlyMode:
       return state.setIn(['mobileOnlyMap', action.payload.accountID], action.payload.enabled)
     case WalletsGen.updatedAirdropState:
+      // @ts-ignore
       return state.merge({
         airdropQualifications: I.List(action.payload.airdropQualifications),
         airdropState: action.payload.airdropState,
@@ -461,7 +483,10 @@ export default function(
     case WalletsGen.validateSEP7LinkError:
       return state.merge({sep7ConfirmError: action.payload.error})
     case WalletsGen.setSEP7Tx:
-      return state.merge({sep7ConfirmInfo: action.payload.tx, sep7ConfirmURI: action.payload.confirmURI})
+      return state.merge({
+        sep7ConfirmInfo: Constants.makeSEP7ConfirmInfo(action.payload.tx),
+        sep7ConfirmURI: action.payload.confirmURI,
+      })
     case WalletsGen.hideAirdropBanner:
       // set this immediately so it goes away immediately
       return state.merge({airdropShowBanner: false})
@@ -469,6 +494,7 @@ export default function(
       return state.merge({airdropShowBanner: action.payload.show})
     case WalletsGen.updatedAirdropDetails: {
       const {details, disclaimer, isPromoted} = action.payload
+      // @ts-ignore
       return state.set('airdropDetails', Constants.makeStellarDetails({details, disclaimer, isPromoted}))
     }
     case WalletsGen.setTrustlineExpanded:
@@ -484,24 +510,34 @@ export default function(
         trustline
           .update('acceptedAssets', acceptedAssets =>
             acceptedAssets.update(action.payload.accountID, accountAcceptedAssets =>
-              action.payload.limits.equals(accountAcceptedAssets)
+              I.Map([...action.payload.limits.entries()]).equals(accountAcceptedAssets)
                 ? accountAcceptedAssets
-                : action.payload.limits
+                : I.Map([...action.payload.limits.entries()])
             )
           )
-          .update('assetMap', assetMap => reduceAssetMap(assetMap, action.payload.assets))
+          .update('assetMap', assetMap =>
+            reduceAssetMap(
+              assetMap,
+              action.payload.assets.map(a => Constants.makeAssetDescription(a))
+            )
+          )
       )
     case WalletsGen.setTrustlineAcceptedAssetsByUsername:
       return state.update('trustline', trustline =>
         trustline
           .update('acceptedAssetsByUsername', acceptedAssetsByUsername =>
             acceptedAssetsByUsername.update(action.payload.username, accountAcceptedAssets =>
-              action.payload.limits.equals(accountAcceptedAssets)
+              I.Map([...action.payload.limits.entries()]).equals(accountAcceptedAssets)
                 ? accountAcceptedAssets
-                : action.payload.limits
+                : I.Map([...action.payload.limits.entries()])
             )
           )
-          .update('assetMap', assetMap => reduceAssetMap(assetMap, action.payload.assets))
+          .update('assetMap', assetMap =>
+            reduceAssetMap(
+              assetMap,
+              action.payload.assets.map(a => Constants.makeAssetDescription(a))
+            )
+          )
       )
     case WalletsGen.setTrustlinePopularAssets:
       return state.update('trustline', trustline =>
@@ -509,9 +545,18 @@ export default function(
           trustline
             .set(
               'popularAssets',
-              I.List(action.payload.assets.map(asset => Types.assetDescriptionToAssetID(asset)))
+              I.List(
+                action.payload.assets.map(asset =>
+                  Types.assetDescriptionToAssetID(Constants.makeAssetDescription(asset))
+                )
+              )
             )
-            .update('assetMap', assetMap => reduceAssetMap(assetMap, action.payload.assets))
+            .update('assetMap', assetMap =>
+              reduceAssetMap(
+                assetMap,
+                action.payload.assets.map(a => Constants.makeAssetDescription(a))
+              )
+            )
             .set('totalAssetsCount', action.payload.totalCount)
             .set('loaded', true)
         )
@@ -525,18 +570,33 @@ export default function(
         trustline
           .set(
             'searchingAssets',
-            I.List(action.payload.assets.map(asset => Types.assetDescriptionToAssetID(asset)))
+            I.List(
+              action.payload.assets.map(asset =>
+                Types.assetDescriptionToAssetID(Constants.makeAssetDescription(asset))
+              )
+            )
           )
-          .update('assetMap', assetMap => reduceAssetMap(assetMap, action.payload.assets))
+          .update('assetMap', assetMap =>
+            reduceAssetMap(
+              assetMap,
+              action.payload.assets.map(a => Constants.makeAssetDescription(a))
+            )
+          )
       )
     case WalletsGen.clearTrustlineSearchResults:
       return state.update('trustline', trustline => trustline.set('searchingAssets', undefined))
     case WalletsGen.setBuiltPaymentAdvanced:
       return action.payload.forSEP7
-        ? state.set('sep7ConfirmPath', action.payload.builtPaymentAdvanced)
-        : state.set('builtPaymentAdvanced', action.payload.builtPaymentAdvanced)
+        ? state.set(
+            'sep7ConfirmPath',
+            Constants.makeBuiltPaymentAdvanced(action.payload.builtPaymentAdvanced as any)
+          )
+        : state.set(
+            'builtPaymentAdvanced',
+            Constants.makeBuiltPaymentAdvanced(action.payload.builtPaymentAdvanced as any)
+          )
     case WalletsGen.staticConfigLoaded:
-      return state.set('staticConfig', action.payload.staticConfig)
+      return state.set('staticConfig', I.Record(action.payload.staticConfig)())
     case WalletsGen.assetDeposit:
     case WalletsGen.assetWithdraw:
       return state.merge({
