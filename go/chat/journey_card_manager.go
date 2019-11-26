@@ -213,10 +213,14 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 	var convInner convForJourneycardInner
 	var untrustedTeamRole keybase1.TeamRole
 	var tlfID chat1.TLFID
+	var welcomeEligible bool
 	if convLocalOptional != nil {
 		convInner = convLocalOptional
 		tlfID = convLocalOptional.Info.Triple.Tlfid
 		untrustedTeamRole = convLocalOptional.ReaderInfo.UntrustedTeamRole
+		if convLocalOptional.ReaderInfo.Journeycard != nil {
+			welcomeEligible = convLocalOptional.ReaderInfo.Journeycard.WelcomeEligible
+		}
 	} else {
 		convFromCache, err := utils.GetUnverifiedConv(ctx, cc.G(), cc.uid, convID, types.InboxSourceDataSourceLocalOnly)
 		if err != nil {
@@ -230,6 +234,9 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 		tlfID = convFromCache.Conv.Metadata.IdTriple.Tlfid
 		if convFromCache.Conv.ReaderInfo != nil {
 			untrustedTeamRole = convFromCache.Conv.ReaderInfo.UntrustedTeamRole
+			if convFromCache.Conv.ReaderInfo.Journeycard != nil {
+				welcomeEligible = convFromCache.Conv.ReaderInfo.Journeycard.WelcomeEligible
+			}
 		}
 	}
 
@@ -239,6 +246,7 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 		IsGeneralChannel:        convInner.GetTopicName() == globals.DefaultTeamTopic,
 		UntrustedTeamRole:       untrustedTeamRole,
 		TlfID:                   tlfID,
+		WelcomeEligible:         welcomeEligible,
 	}
 
 	if !(conv.GetTopicType() == chat1.TopicType_CHAT &&
@@ -429,8 +437,9 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 // Condition: Only in #general channel
 func (cc *JourneyCardManagerSingleUser) cardWelcome(ctx context.Context, convID chat1.ConversationID, conv convForJourneycard, jcd journeyCardConvData) bool {
 	// TODO PICNIC-593 Welcome's interaction with existing system message
-	// TODO PICNIC-593 Welcome cards should not show for all pre-existing teams when a client upgrades. That would be a bad transition. May require server support.
-	return conv.IsGeneralChannel && false
+	// Welcome cards show not show for all pre-existing teams when a client upgrades to first support journey cards. That would be a bad transition.
+	// The server gates whether welcome cards are allowed for a conv. After MarkAsRead-ing a conv, welcome cards are banned.
+	return conv.IsGeneralChannel && conv.WelcomeEligible
 }
 
 // Card type: POPULAR_CHANNELS (2 on design)
@@ -967,4 +976,5 @@ type convForJourneycard struct {
 	IsGeneralChannel  bool
 	UntrustedTeamRole keybase1.TeamRole
 	TlfID             chat1.TLFID
+	WelcomeEligible   bool
 }
