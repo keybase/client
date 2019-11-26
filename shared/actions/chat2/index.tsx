@@ -141,7 +141,7 @@ function* requestMeta(state: TypedState, _: Chat2Gen.MetaHandleQueuePayload) {
     : []
   const unboxSomeMoreActions = metaQueue.size ? [Saga.put(Chat2Gen.createMetaHandleQueue())] : []
   const delayBeforeUnboxingMoreActions =
-    toUnboxActions.length && unboxSomeMoreActions.length ? [Saga.callUntyped(Saga.delay, 100)] : []
+    toUnboxActions.length && unboxSomeMoreActions.length ? [Saga.delay(100)] : []
 
   const nextActions = [...toUnboxActions, ...delayBeforeUnboxingMoreActions, ...unboxSomeMoreActions]
 
@@ -1388,7 +1388,7 @@ function* messageEdit(state: TypedState, action: Chat2Gen.MessageEditPayload, lo
       messageID: message.id,
       outboxID: message.outboxID ? Types.outboxIDToRpcOutboxID(message.outboxID) : null,
     }
-    let actions: Array<Saga.Effect> = [
+    let actions: Array<Saga.Effect<any>> = [
       Saga.callUntyped(
         RPCChatTypes.localPostEditNonblockRpcPromise,
         {
@@ -2308,7 +2308,7 @@ function* loadChannelInfos(state: TypedState, action: Chat2Gen.SelectConversatio
     return
   }
   if (!TeamsConstants.hasChannelInfos(state, teamname)) {
-    yield Saga.callUntyped(Saga.delay, 4000)
+    yield Saga.delay(4000)
     yield Saga.put(TeamsGen.createGetChannels({teamname}))
   }
 }
