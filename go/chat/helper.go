@@ -499,16 +499,23 @@ func RecentConversationParticipants(ctx context.Context, g *globals.Context, myU
 }
 
 func PresentConversationLocalWithFetchRetry(ctx context.Context, g *globals.Context,
-	uid gregor1.UID, conv chat1.ConversationLocal) *chat1.InboxUIItem {
+	uid gregor1.UID, conv chat1.ConversationLocal) (pc *chat1.InboxUIItem) {
+	shouldPresent := true
 	if conv.Error != nil {
 		// If we get a transient failure, add this to the retrier queue
 		if conv.Error.Typ == chat1.ConversationErrorType_TRANSIENT {
 			g.FetchRetrier.Failure(ctx, uid,
 				NewConversationRetry(g, conv.GetConvID(), &conv.Info.Triple.Tlfid, InboxLoad))
+		} else {
+			// If this is a permanent error, then we don't send anything to the frontend yet.
+			shouldPresent = false
 		}
 	}
-	pc := utils.PresentConversationLocal(ctx, g, uid, conv)
-	return &pc
+	if shouldPresent {
+		pc = new(chat1.InboxUIItem)
+		*pc = utils.PresentConversationLocal(ctx, g, uid, conv)
+	}
+	return pc
 }
 
 func GetTopicNameState(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
