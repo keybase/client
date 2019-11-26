@@ -140,6 +140,7 @@ func (t *Tracker2Syncer) Block(m MetaContext, badUIDs map[keybase1.UID]bool) (er
 			newUsers = append(newUsers, userSummary)
 		}
 	}
+	t.res.Users = newUsers
 	err = t.store(m, t.callerUID)
 	return err
 }
