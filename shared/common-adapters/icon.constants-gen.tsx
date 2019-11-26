@@ -4639,6 +4639,14 @@ const iconMeta_ = {
       return require('../images/icons/icon-illustration-teams-216.png')
     },
   },
+  'icon-illustration-teams-80': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-illustration-teams-80.png')
+    },
+  },
   'icon-illustration-welcome-96': {
     extension: 'png',
     imagesDir: 'icons',
