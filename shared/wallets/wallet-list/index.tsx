@@ -14,8 +14,12 @@ const rowHeight = 48
 
 const _AddWallet = (props: AddProps & Kb.OverlayParentProps) => {
   const menuItems = [
-    {onClick: () => props.onAddNew(), title: 'Create a new account'},
-    {onClick: () => props.onLinkExisting(), title: 'Link an existing Stellar account'},
+    {icon: 'iconfont-new', onClick: () => props.onAddNew(), title: 'Create a new account'},
+    {
+      icon: 'iconfont-identity-stellar',
+      onClick: () => props.onLinkExisting(),
+      title: 'Link an existing Stellar account',
+    },
   ]
 
   return (

@@ -25,13 +25,17 @@ const styles = Styles.styleSheetCreate(
 class FilePickerPopup extends React.Component<Props> {
   render() {
     const iosItems = [
-      {onClick: () => this.props.onSelect('mixed', 'camera'), title: 'Take Photo or Video'},
+      {
+        icon: 'iconfont-camera',
+        onClick: () => this.props.onSelect('mixed', 'camera'),
+        title: 'Take Photo or Video',
+      },
       {onClick: () => this.props.onSelect('mixed', 'library'), title: 'Choose from Library'},
     ]
 
     const androidItems = [
-      {onClick: () => this.props.onSelect('photo', 'camera'), title: 'Take Photo'},
-      {onClick: () => this.props.onSelect('video', 'camera'), title: 'Take video'},
+      {icon: 'iconfont-camera', onClick: () => this.props.onSelect('photo', 'camera'), title: 'Take Photo'},
+      {icon: 'iconfont-film', onClick: () => this.props.onSelect('video', 'camera'), title: 'Take video'},
       {onClick: () => this.props.onSelect('photo', 'library'), title: 'Photo from Library'},
       {onClick: () => this.props.onSelect('video', 'library'), title: 'Video from Library'},
     ]

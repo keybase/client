@@ -146,16 +146,28 @@ type DropdownProps = {
 
 const DropdownButton = Kb.OverlayParentHOC((p: Kb.PropsWithOverlay<DropdownProps>) => {
   const items = [
-    p.onAddToTeam && {onClick: p.onAddToTeam, title: 'Add to team...'},
-    p.onSendLumens && {onClick: p.onSendLumens, title: 'Send Lumens (XLM)'},
-    p.onRequestLumens && {onClick: p.onRequestLumens, title: 'Request Lumens (XLM)'},
-    p.onOpenPrivateFolder && {onClick: p.onOpenPrivateFolder, title: 'Open private folder'},
-    p.onBrowsePublicFolder && {onClick: p.onBrowsePublicFolder, title: 'Browse public folder'},
+    p.onAddToTeam && {icon: 'iconfont-add', onClick: p.onAddToTeam, title: 'Add to team...'},
+    p.onSendLumens && {icon: 'iconfont-stellar-send', onClick: p.onSendLumens, title: 'Send Lumens (XLM)'},
+    p.onRequestLumens && {
+      icon: 'iconfont-stellar-request',
+      onClick: p.onRequestLumens,
+      title: 'Request Lumens (XLM)',
+    },
+    p.onOpenPrivateFolder && {
+      icon: 'iconfont-folder-open',
+      onClick: p.onOpenPrivateFolder,
+      title: 'Open private folder',
+    },
+    p.onBrowsePublicFolder && {
+      icon: 'iconfont-folder-public',
+      onClick: p.onBrowsePublicFolder,
+      title: 'Browse public folder',
+    },
     p.onUnblock &&
       p.onBlock &&
       (p.blocked
-        ? {danger: true, onClick: p.onUnblock, title: 'Unblock'}
-        : {danger: true, onClick: p.onBlock, title: 'Block'}),
+        ? {danger: true, icon: 'iconfont-add', onClick: p.onUnblock, title: 'Unblock'}
+        : {danger: true, icon: 'iconfont-remove', onClick: p.onBlock, title: 'Block'}),
   ].reduce<Kb.MenuItems>((arr, i) => {
     i && arr.push(i)
     return arr

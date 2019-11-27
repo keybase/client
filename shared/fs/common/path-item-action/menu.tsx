@@ -109,6 +109,7 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => {
     ...(props.sendAttachmentToChat
       ? [
           {
+            icon: 'iconfont-chat',
             onClick: () => {
               props.floatingMenuProps.hide()
               props.sendAttachmentToChat && props.sendAttachmentToChat()

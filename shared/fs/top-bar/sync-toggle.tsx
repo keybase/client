@@ -91,6 +91,8 @@ const SyncToggle = (props: Props) =>
                   {
                     danger: true,
                     disabled: props.waiting,
+                    icon: 'iconfont-cloud',
+                    inProgress: props.waiting,
                     onClick: props.disableSync,
                     style: props.waiting ? {opacity: 0.3} : null,
                     title: props.waiting ? 'Unsyncing' : 'Yes, unsync',

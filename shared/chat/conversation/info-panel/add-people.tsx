@@ -20,8 +20,8 @@ const _AddPeople = (props: Props) => {
   if (!props.isGeneralChannel) {
     // general channel & small teams don't need a menu
     const items = [
-      {onClick: props.onAddPeople, title: 'To team'},
-      {onClick: props.onAddToChannel, title: 'To channel'},
+      {icon: 'iconfont-people', onClick: props.onAddPeople, title: 'To team'},
+      {icon: 'iconfont-hash', onClick: props.onAddToChannel, title: 'To channel'},
     ]
     menu = (
       <FloatingMenu

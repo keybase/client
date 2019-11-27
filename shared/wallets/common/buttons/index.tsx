@@ -13,9 +13,13 @@ type SendProps = {
 
 const _SendButton = (props: Kb.PropsWithOverlay<SendProps>) => {
   const menuItems = [
-    {onClick: props.onSendToKeybaseUser, title: 'To a Keybase user'},
-    {onClick: props.onSendToStellarAddress, title: 'To a Stellar address'},
-    {onClick: props.onSendToAnotherAccount, title: 'To one of your other Stellar accounts'},
+    {icon: 'iconfont-mention', onClick: props.onSendToKeybaseUser, title: 'To a Keybase user'},
+    {icon: 'iconfont-identity-stellar', onClick: props.onSendToStellarAddress, title: 'To a Stellar address'},
+    {
+      icon: 'iconfont-wallet-transfer',
+      onClick: props.onSendToAnotherAccount,
+      title: 'To one of your other Stellar accounts',
+    },
   ]
   const button = (
     <>
@@ -60,11 +64,13 @@ class _DropdownButton extends React.PureComponent<DropdownProps & Kb.OverlayPare
     const _menuItems = [
       onShowSecretKey
         ? {
+            icon: 'iconfont-identity-stellar',
             onClick: onShowSecretKey,
             title: 'Show secret key',
           }
         : null,
       {
+        icon: 'iconfont-gear',
         onClick: this.props.onSettings,
         title: 'Settings',
       },
