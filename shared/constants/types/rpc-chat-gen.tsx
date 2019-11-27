@@ -1504,6 +1504,7 @@ export const localUnpinMessageRpcPromise = (params: MessageTypes['chat.1.local.u
 export const localUpdateTypingRpcPromise = (params: MessageTypes['chat.1.local.updateTyping']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.updateTyping']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.updateTyping', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.local.updateUnsentText']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.updateUnsentText']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.updateUnsentText', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 // Not enabled calls. To enable add to enabled-calls.json:
+// 'chat.1.blocking.blockConversations'
 // 'chat.1.chatUi.chatAttachmentDownloadStart'
 // 'chat.1.chatUi.chatAttachmentDownloadProgress'
 // 'chat.1.chatUi.chatAttachmentDownloadDone'
