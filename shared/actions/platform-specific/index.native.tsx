@@ -329,7 +329,7 @@ function* loadStartupDetails() {
   })
   const linkTask = yield Saga._fork(Linking.getInitialURL)
   const initialPush = yield Saga._fork(getStartupDetailsFromInitialPush)
-  const [routeState, link, push] = yield Saga.join(routeStateTask, linkTask, initialPush)
+  const [routeState, link, push] = yield Saga.join([routeStateTask, linkTask, initialPush])
 
   // Clear last value to be extra safe bad things don't hose us forever
   yield Saga._fork(async () => {
@@ -511,7 +511,7 @@ const manageContactsCache = async (
 ) => {
   if (state.settings.contacts.importEnabled === false) {
     await RPCTypes.contactsSaveContactListRpcPromise({contacts: []})
-    return SettingsGen.createSetContactImportedCount({count: null})
+    return SettingsGen.createSetContactImportedCount({})
   }
 
   // get permissions if we haven't loaded them for some reason
@@ -540,7 +540,7 @@ const manageContactsCache = async (
     })
   } catch (e) {
     logger.error(`error loading contacts: ${e.message}`)
-    return SettingsGen.createSetContactImportedCount({count: null, error: e.message})
+    return SettingsGen.createSetContactImportedCount({error: e.message})
   }
   let defaultCountryCode: string = ''
   try {
@@ -574,7 +574,7 @@ const manageContactsCache = async (
     }
   } catch (e) {
     logger.error('Error saving contacts list: ', e.message)
-    actions.push(SettingsGen.createSetContactImportedCount({count: null, error: e.message}))
+    actions.push(SettingsGen.createSetContactImportedCount({error: e.message}))
   }
   return actions
 }

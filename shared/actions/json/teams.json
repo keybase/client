@@ -90,7 +90,7 @@
       "conversationIDKey": "ChatTypes.ConversationIDKey"
     },
     "deleteTeam": {
-      "teamname": "string"
+      "teamID": "Types.TeamID"
     },
     "inviteToTeamByEmail": {
       "destSubPath?": "I.List<string>",
@@ -113,6 +113,7 @@
     },
     "leaveTeam": {
       "teamname": "string",
+      "permanent": "boolean",
       "context": "'teams' | 'chat'"
     },
     "leftTeam": {

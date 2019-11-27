@@ -6,7 +6,6 @@ import {ConfirmDeleteAddress} from './confirm-delete'
 import * as I from 'immutable'
 
 const props = {
-  addedEmail: null,
   addedPhone: false,
   contactKeys: I.List(),
   hasPassword: false,

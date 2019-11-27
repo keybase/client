@@ -222,7 +222,7 @@ const load = () => {
             username: 'chrisnojima',
           },
         ]}
-        teamBuildingSearchResults={{}}
+        teamBuildingSearchResults={new Map()}
       />
     ))
     .add('Team Building - No search string', () => (
@@ -319,7 +319,7 @@ const load = () => {
             username: 'chrisnojima',
           },
         ]}
-        teamBuildingSearchResults={{}}
+        teamBuildingSearchResults={new Map()}
       />
     ))
     .add('Team Building - Show role picker', () => (
@@ -360,7 +360,7 @@ const load = () => {
         highlightedIndex={1}
         search={Sb.action('search')}
         searchResults={[]}
-        teamBuildingSearchResults={{}}
+        teamBuildingSearchResults={new Map()}
       />
     ))
     .add('Team Building - No search string or results', () => (
@@ -382,7 +382,7 @@ const load = () => {
         teamSoFar={[]}
         search={Sb.action('search')}
         searchResults={[]}
-        teamBuildingSearchResults={{}}
+        teamBuildingSearchResults={new Map()}
         serviceResultCount={{}}
         onAdd={Sb.action('onAdd')}
         highlightedIndex={1}
@@ -463,7 +463,7 @@ const load = () => {
             username: 'chrisnojima',
           },
         ]}
-        teamBuildingSearchResults={{}}
+        teamBuildingSearchResults={new Map()}
       />
     ))
     .add('Team Building - One line of users + 1', () => (
@@ -541,7 +541,7 @@ const load = () => {
             username: 'chrisnojima',
           },
         ]}
-        teamBuildingSearchResults={{}}
+        teamBuildingSearchResults={new Map()}
       />
     ))
     .add('Team Building - Lotsa users', () => (
@@ -619,7 +619,7 @@ const load = () => {
             username: 'chrisnojima',
           },
         ]}
-        teamBuildingSearchResults={{}}
+        teamBuildingSearchResults={new Map()}
       />
     ))
 
@@ -1474,7 +1474,7 @@ const load = () => {
       continueLabel="Continue"
       namespace="chat2"
       search={Sb.action('search')}
-      teamBuildingSearchResults={{}}
+      teamBuildingSearchResults={new Map()}
     />
   ))
 

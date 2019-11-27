@@ -141,7 +141,7 @@ function* requestMeta(state: TypedState, _: Chat2Gen.MetaHandleQueuePayload) {
     : []
   const unboxSomeMoreActions = metaQueue.size ? [Saga.put(Chat2Gen.createMetaHandleQueue())] : []
   const delayBeforeUnboxingMoreActions =
-    toUnboxActions.length && unboxSomeMoreActions.length ? [Saga.callUntyped(Saga.delay, 100)] : []
+    toUnboxActions.length && unboxSomeMoreActions.length ? [Saga.delay(100)] : []
 
   const nextActions = [...toUnboxActions, ...delayBeforeUnboxingMoreActions, ...unboxSomeMoreActions]
 
@@ -878,7 +878,10 @@ const onNewChatActivity = (
       const {failedMessage} = activity
       const {outboxRecords} = failedMessage
       if (outboxRecords) {
-        actions = onErrorMessage(outboxRecords)
+        actions = [
+          ...(onErrorMessage(outboxRecords) as any),
+          ...(chatActivityToMetasAction(state, failedMessage) as any),
+        ]
       }
       break
     }
@@ -1385,7 +1388,7 @@ function* messageEdit(state: TypedState, action: Chat2Gen.MessageEditPayload, lo
       messageID: message.id,
       outboxID: message.outboxID ? Types.outboxIDToRpcOutboxID(message.outboxID) : null,
     }
-    let actions: Array<Saga.Effect> = [
+    let actions: Array<Saga.Effect<any>> = [
       Saga.callUntyped(
         RPCChatTypes.localPostEditNonblockRpcPromise,
         {
@@ -2305,7 +2308,7 @@ function* loadChannelInfos(state: TypedState, action: Chat2Gen.SelectConversatio
     return
   }
   if (!TeamsConstants.hasChannelInfos(state, teamname)) {
-    yield Saga.callUntyped(Saga.delay, 4000)
+    yield Saga.delay(4000)
     yield Saga.put(TeamsGen.createGetChannels({teamname}))
   }
 }
@@ -2320,7 +2323,6 @@ const navigateToInbox = (
   action:
     | Chat2Gen.NavigateToInboxPayload
     | Chat2Gen.LeaveConversationPayload
-    | TeamsGen.LeaveTeamPayload
     | TeamsGen.LeftTeamPayload
     | TeamsGen.DeleteChannelConfirmedPayload
 ) => {
@@ -3479,12 +3481,12 @@ function* chat2Saga() {
     'markThreadAsRead'
   )
   yield* Saga.chainAction2(
-    [Chat2Gen.leaveConversation, TeamsGen.leaveTeam, TeamsGen.leftTeam, TeamsGen.deleteChannelConfirmed],
+    [Chat2Gen.leaveConversation, TeamsGen.leftTeam, TeamsGen.deleteChannelConfirmed],
     clearModalsFromConvEvent,
     'clearModalsFromConvEvent'
   )
   yield* Saga.chainAction2(
-    [Chat2Gen.navigateToInbox, Chat2Gen.leaveConversation, TeamsGen.leaveTeam, TeamsGen.leftTeam],
+    [Chat2Gen.navigateToInbox, Chat2Gen.leaveConversation, TeamsGen.leftTeam],
     navigateToInbox,
     'navigateToInbox'
   )

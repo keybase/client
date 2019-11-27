@@ -15,8 +15,6 @@ export declare const printRPC: boolean
 export declare const printRPCBytes: boolean
 export declare const printRPCWaitingSession: boolean
 export declare const printRPCStats: boolean
-export declare const reduxSagaLogger: boolean
-export declare const reduxSagaLoggerMasked: boolean
 export declare const showDevTools: boolean
 export declare const skipSecondaryDevtools: boolean
 export declare const skipAppFocusActions: boolean

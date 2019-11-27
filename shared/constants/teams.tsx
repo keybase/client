@@ -41,7 +41,7 @@ export const addInviteWaitingKey = (teamname: Types.Teamname, value: string) =>
 export const removeMemberWaitingKey = (teamname: Types.Teamname, id: string) => `teamRemove:${teamname};${id}`
 export const addToTeamSearchKey = 'addToTeamSearch'
 export const teamProfileAddListWaitingKey = 'teamProfileAddList'
-export const deleteTeamWaitingKey = (teamname: Types.Teamname) => `teamDelete:${teamname}`
+export const deleteTeamWaitingKey = (teamID: Types.TeamID) => `teamDelete:${teamID}`
 export const leaveTeamWaitingKey = (teamname: Types.Teamname) => `teamLeave:${teamname}`
 export const teamRenameWaitingKey = 'teams:rename'
 

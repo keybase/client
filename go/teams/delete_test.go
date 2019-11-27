@@ -24,11 +24,14 @@ func TestDeleteRoot(t *testing.T) {
 	assertRole(tc, teamname, u.Username, keybase1.TeamRole_OWNER)
 
 	assertCanUserPerformTeamDelete(t, tc.G, teamname)
-	if err := Delete(context.Background(), tc.G, &teamsUI{}, teamname); err != nil {
+	team, err := GetTeamByNameForTest(context.Background(), tc.G, teamname, false, false)
+	require.NoError(t, err, "error getting team before delete")
+
+	if err := Delete(context.Background(), tc.G, &teamsUI{}, team.ID); err != nil {
 		t.Fatal(err)
 	}
 
-	_, err := GetTeamByNameForTest(context.Background(), tc.G, teamname, false, false)
+	_, err = GetTeamByNameForTest(context.Background(), tc.G, teamname, false, false)
 	require.Error(t, err, "no error getting deleted team")
 	_, ok := err.(*TeamTombstonedError)
 	require.True(t, ok) // ensure server cannot temporarily pretend a team was deleted
@@ -56,7 +59,10 @@ func TestDeleteSubteamAdmin(t *testing.T) {
 	}
 
 	assertCanUserPerformTeamDelete(t, tc.G, sub)
-	if err := Delete(context.Background(), tc.G, &teamsUI{}, sub); err != nil {
+	team, err := GetTeamByNameForTest(context.Background(), tc.G, sub, false, false)
+	require.NoError(t, err, "error getting team before delete")
+
+	if err := Delete(context.Background(), tc.G, &teamsUI{}, team.ID); err != nil {
 		t.Fatal(err)
 	}
 
@@ -90,7 +96,10 @@ func TestDeleteSubteamImpliedAdmin(t *testing.T) {
 	}
 
 	assertCanUserPerformTeamDelete(t, tc.G, sub)
-	if err := Delete(context.Background(), tc.G, &teamsUI{}, sub); err != nil {
+	team, err := GetTeamByNameForTest(context.Background(), tc.G, sub, false, false)
+	require.NoError(t, err, "error getting team before delete")
+
+	if err := Delete(context.Background(), tc.G, &teamsUI{}, team.ID); err != nil {
 		t.Fatal(err)
 	}
 
@@ -119,7 +128,10 @@ func TestRecreateSubteam(t *testing.T) {
 	}
 
 	assertCanUserPerformTeamDelete(t, tc.G, sub)
-	if err := Delete(context.Background(), tc.G, &teamsUI{}, sub); err != nil {
+	team, err := GetTeamByNameForTest(context.Background(), tc.G, sub, false, false)
+	require.NoError(t, err, "error getting team before delete")
+
+	if err := Delete(context.Background(), tc.G, &teamsUI{}, team.ID); err != nil {
 		t.Fatal(err)
 	}
 
@@ -157,7 +169,9 @@ func TestDeleteTwoSubteams(t *testing.T) {
 
 	t.Logf("U0 deletes A.B")
 	assertCanUserPerformTeamDelete(t, tcs[0].G, subteamName1.String())
-	err = Delete(context.Background(), tcs[0].G, &teamsUI{}, subteamName1.String())
+	team, err := GetTeamByNameForTest(context.Background(), tcs[0].G, subteamName1.String(), false, false)
+	require.NoError(t, err, "error getting team before delete")
+	err = Delete(context.Background(), tcs[0].G, &teamsUI{}, team.ID)
 	require.NoError(t, err)
 
 	t.Logf("U0 creates A.C")
@@ -166,7 +180,9 @@ func TestDeleteTwoSubteams(t *testing.T) {
 
 	t.Logf("U0 deletes A.C")
 	assertCanUserPerformTeamDelete(t, tcs[0].G, subteamName2.String())
-	err = Delete(context.Background(), tcs[0].G, &teamsUI{}, subteamName2.String())
+	team, err = GetTeamByNameForTest(context.Background(), tcs[0].G, subteamName2.String(), false, false)
+	require.NoError(t, err, "error getting team before delete")
+	err = Delete(context.Background(), tcs[0].G, &teamsUI{}, team.ID)
 	require.NoError(t, err)
 
 	t.Logf("U0 adds U1 to A")
@@ -174,7 +190,7 @@ func TestDeleteTwoSubteams(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("U1 loads A")
-	team, err := Load(context.TODO(), tcs[1].G, keybase1.LoadTeamArg{
+	team, err = Load(context.TODO(), tcs[1].G, keybase1.LoadTeamArg{
 		ID: parentID,
 	})
 	require.NoError(t, err, "load team")

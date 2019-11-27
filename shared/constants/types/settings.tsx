@@ -1,6 +1,5 @@
 import * as RPCChatTypes from './rpc-chat-gen'
 import HiddenString from '../../util/hidden-string'
-import * as I from 'immutable'
 import * as RPCTypes from './rpc-gen'
 
 type InviteBase = {
@@ -10,7 +9,7 @@ type InviteBase = {
 
 export type PendingInvite = {
   url: string
-  email: string | null
+  email?: string
 } & InviteBase
 
 export type AcceptedInvite = {
@@ -19,7 +18,7 @@ export type AcceptedInvite = {
 
 export type Invitation = {
   created: number
-  email: string | null
+  email?: string
   id: string
   type: string
   username: string
@@ -27,109 +26,97 @@ export type Invitation = {
   url: string
 }
 
-export type _InvitesState = {
-  pendingInvites: I.List<PendingInvite>
-  acceptedInvites: I.List<AcceptedInvite>
-  error: Error | null
+export type InvitesState = {
+  pendingInvites: Array<PendingInvite>
+  acceptedInvites: Array<AcceptedInvite>
+  error?: Error
 }
-export type InvitesState = I.RecordOf<_InvitesState>
 
-export type _NotificationsSettingsState = {
+export type NotificationsSettingsState = {
   name: string
   subscribed: boolean
   description: string
 }
-export type NotificationsSettingsState = I.RecordOf<_NotificationsSettingsState>
 
-export type _NotificationsGroupState = {
-  settings: I.List<NotificationsSettingsState>
+export type NotificationsGroupState = {
+  settings: Array<NotificationsSettingsState>
   unsubscribedFromAll: boolean
 }
-export type NotificationsGroupState = I.RecordOf<_NotificationsGroupState>
 
-export type NotificationSettingsStateGroups = I.Map<string, NotificationsGroupState>
+export type NotificationSettingsStateGroups = Map<string, NotificationsGroupState>
 
-export type _NotificationsState = {
+export type NotificationsState = {
   allowEdit: boolean
-  groups: I.Map<string, NotificationsGroupState>
+  groups: Map<string, NotificationsGroupState>
 }
 
-export type NotificationsState = I.RecordOf<_NotificationsState>
-
-export type _PasswordState = {
+export type PasswordState = {
   newPassword: HiddenString
   newPasswordConfirm: HiddenString
-  error: Error | null
-  newPasswordError: HiddenString | null
-  newPasswordConfirmError: HiddenString | null
-  hasPGPKeyOnServer: boolean | null
+  error?: Error
+  newPasswordError?: HiddenString
+  newPasswordConfirmError?: HiddenString
+  hasPGPKeyOnServer?: boolean
   rememberPassword: boolean
-  randomPW: boolean | null
+  randomPW?: boolean
 }
-export type PasswordState = I.RecordOf<_PasswordState>
 
-export type _EmailRow = RPCTypes.Email
-export type EmailRow = I.RecordOf<_EmailRow>
+type Writeable<T> = {-readonly [P in keyof T]: T[P]}
 
-export type _EmailState = {
-  addingEmail: string | null
-  addedEmail: string | null // show banner with dismiss on account settings
-  emails: I.Map<string, EmailRow> | null
+export type EmailRow = Writeable<RPCTypes.Email>
+
+export type EmailState = {
+  addingEmail?: string
+  addedEmail?: string // show banner with dismiss on account settings
+  emails?: Map<string, EmailRow>
   newEmail: string
   error: string
 }
-export type EmailState = I.RecordOf<_EmailState>
 
-export type _PhoneRow = {
+export type PhoneRow = {
   displayNumber: string
   e164: string
   searchable: boolean
   superseded: boolean
   verified: boolean
 }
-export type PhoneRow = I.RecordOf<_PhoneRow>
 
-export type _FeedbackState = {
-  error: Error | null
+export type FeedbackState = {
+  error?: Error
 }
-export type FeedbackState = I.RecordOf<_FeedbackState>
 
-export type _ChatUnfurlState = {
+export type ChatUnfurlState = {
   unfurlMode?: RPCChatTypes.UnfurlMode
-  unfurlWhitelist?: I.List<string>
+  unfurlWhitelist?: Array<string>
   unfurlError?: string
 }
-export type ChatUnfurlState = I.RecordOf<_ChatUnfurlState>
 
-export type _ChatState = {
+export type ChatState = {
   unfurl: ChatUnfurlState
 }
-export type ChatState = I.RecordOf<_ChatState>
 
-export type _PhoneNumbersState = {
+export type PhoneNumbersState = {
   addedPhone: boolean
   error: string
   pendingVerification: string
-  phones: I.Map<string, PhoneRow> | null
-  verificationState: 'success' | 'error' | null
+  phones?: Map<string, PhoneRow>
+  verificationState?: 'success' | 'error'
 }
-export type PhoneNumbersState = I.RecordOf<_PhoneNumbersState>
 
 export type PermissionStatus = 'granted' | 'never_ask_again' | 'undetermined' | 'unknown'
-export type _ContactsState = {
-  alreadyOnKeybase: I.List<RPCTypes.ProcessedContact>
-  importEnabled: boolean | null
+export type ContactsState = {
+  alreadyOnKeybase: Array<RPCTypes.ProcessedContact>
+  importEnabled?: boolean
   importError: string
   importPromptDismissed: boolean
-  importedCount: number | null
+  importedCount?: number
   // OS permissions. 'undetermined' -> we can show the prompt; 'unknown' -> we haven't checked
   permissionStatus: PermissionStatus
-  userCountryCode: string | null
+  userCountryCode?: string
   waitingToShowJoinedModal: boolean
 }
-export type ContactsState = I.RecordOf<_ContactsState>
 
-export type _State = {
+export type State = Readonly<{
   allowDeleteAccount: boolean
   contacts: ContactsState
   invites: InvitesState
@@ -138,12 +125,11 @@ export type _State = {
   email: EmailState
   password: PasswordState
   phoneNumbers: PhoneNumbersState
-  lockdownModeEnabled: boolean | null
+  lockdownModeEnabled?: boolean
   chat: ChatState
-  checkPasswordIsCorrect: boolean | null
-  proxyData: RPCTypes.ProxyData | null
-  didToggleCertificatePinning: boolean | null
-}
-export type State = I.RecordOf<_State>
+  checkPasswordIsCorrect?: boolean
+  proxyData?: RPCTypes.ProxyData
+  didToggleCertificatePinning?: boolean
+}>
 
 export type PlanLevel = string

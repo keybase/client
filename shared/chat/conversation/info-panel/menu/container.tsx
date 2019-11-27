@@ -96,6 +96,7 @@ export default Container.namedConnect(
       : 'Subscribe to channels...'
     const manageChannelsSubtitle = isSmallTeam ? 'Turns this into a big team' : ''
     return {
+      _teamID: convProps?.teamID ?? teamID,
       badgeSubscribe,
       canAddPeople: yourOperations.manageMembers,
       convProps,
@@ -113,10 +114,10 @@ export default Container.namedConnect(
       if (!teamID) return
       return dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected}]}))
     },
-    _onLeaveTeam: (teamname?: string) =>
-      teamname &&
+    _onLeaveTeam: (teamID?: TeamTypes.TeamID) =>
+      teamID &&
       dispatch(
-        RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamReallyLeaveTeam'}]})
+        RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'teamReallyLeaveTeam'}]})
       ),
     _onManageChannels: (teamname?: string) => {
       teamname &&
@@ -145,12 +146,12 @@ export default Container.namedConnect(
     onAddPeople: () => d._onAddPeople(s.teamname),
     onHidden: o.onHidden,
     onHideConv: d.onHideConv,
-    onInvite: () => d._onInvite(s.convProps && s.convProps.teamID),
-    onLeaveTeam: () => d._onLeaveTeam(s.teamname),
+    onInvite: () => d._onInvite(s._teamID),
+    onLeaveTeam: () => d._onLeaveTeam(s._teamID),
     onManageChannels: () => d._onManageChannels(s.teamname),
     onMuteConv: d.onMuteConv,
     onUnhideConv: d.onUnhideConv,
-    onViewTeam: () => d._onViewTeam((s.convProps && s.convProps.teamID) || undefined),
+    onViewTeam: () => d._onViewTeam(s._teamID || undefined),
     teamname: s.teamname,
     visible: o.visible,
   }),

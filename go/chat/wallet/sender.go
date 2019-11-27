@@ -33,7 +33,7 @@ func (s *Sender) getConv(ctx context.Context, uid gregor1.UID, convID chat1.Conv
 		types.InboxSourceDataSourceAll, nil,
 		&chat1.GetInboxLocalQuery{
 			ConvIDs: []chat1.ConversationID{convID},
-		}, nil)
+		})
 	if err != nil {
 		return res, err
 	}

@@ -10,11 +10,14 @@ type OwnProps = {
 }
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
+  const d = Constants.getDetails(state, ownProps.username)
   const common = {
     airdropIsLive: state.wallets.airdropDetails.isPromoted,
+    blocked: d.blocked,
+    hidFromFollowers: d.hidFromFollowers,
+    username: ownProps.username,
     youAreInAirdrop: state.wallets.airdropState === 'accepted',
   }
-  const d = Constants.getDetails(state, ownProps.username)
   if (d.state === 'notAUserYet') {
     const nonUser = Constants.getNonUserDetails(state, ownProps.username)
     return {

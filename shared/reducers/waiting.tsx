@@ -31,7 +31,7 @@ const changeHelper = (
     }
   })
 
-  debugWaiting && console.log('DebugWaiting:', keys, counts, errors)
+  debugWaiting && console.log('DebugWaiting:', keys, new Map(counts), new Map(errors))
 }
 
 const initialState: Types.State = {
@@ -57,12 +57,14 @@ export default Container.makeReducer<WaitingGen.Actions, Types.State>(initialSta
   },
   [WaitingGen.clearWaiting]: (draftState, action) => {
     const {counts, errors} = draftState
+    debugWaiting && console.log('DebugWaiting: clear', action.payload.key)
     getKeys(action.payload.key).forEach(key => {
       counts.delete(key)
       errors.delete(key)
     })
   },
   [WaitingGen.batchChangeWaiting]: (draftState, action) => {
+    debugWaiting && console.log('DebugWaiting: batch', action.payload.changes)
     action.payload.changes.forEach(({key, increment, error}) => {
       changeHelper(draftState.counts, draftState.errors, key, increment ? 1 : -1, error)
     })

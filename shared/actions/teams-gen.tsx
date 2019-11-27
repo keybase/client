@@ -123,7 +123,7 @@ type _DeleteChannelInfoPayload = {
   readonly teamname: Types.Teamname
   readonly conversationIDKey: ChatTypes.ConversationIDKey
 }
-type _DeleteTeamPayload = {readonly teamname: string}
+type _DeleteTeamPayload = {readonly teamID: Types.TeamID}
 type _EditMembershipPayload = {
   readonly teamname: string
   readonly username: string
@@ -159,7 +159,11 @@ type _InviteToTeamByPhonePayload = {
   readonly loadingKey?: string
 }
 type _JoinTeamPayload = {readonly teamname: string}
-type _LeaveTeamPayload = {readonly teamname: string; readonly context: 'teams' | 'chat'}
+type _LeaveTeamPayload = {
+  readonly teamname: string
+  readonly permanent: boolean
+  readonly context: 'teams' | 'chat'
+}
 type _LeftTeamPayload = {readonly teamname: string; readonly context: 'teams' | 'chat'}
 type _ReAddToTeamPayload = {readonly teamname: string; readonly username: string}
 type _RemoveMemberOrPendingInvitePayload = {

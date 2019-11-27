@@ -1,5 +1,4 @@
 import logger from '../logger'
-import * as I from 'immutable'
 import * as ChatTypes from '../constants/types/rpc-chat-gen'
 import * as Saga from '../util/saga'
 import * as Types from '../constants/types/settings'
@@ -10,9 +9,7 @@ import * as RouteTreeGen from './route-tree-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as SettingsGen from './settings-gen'
 import * as WaitingGen from './waiting-gen'
-import mapValues from 'lodash/mapValues'
 import trim from 'lodash/trim'
-import {delay} from 'redux-saga'
 import {isAndroidNewerThanN, isTestDevice, pprofDir, version} from '../constants/platform'
 import {writeLogLinesToFile} from '../util/forward-logs'
 import {TypedState} from '../util/container'
@@ -67,8 +64,8 @@ const toggleNotifications = async (state: TypedState) => {
     throw new Error('No notifications loaded yet')
   }
 
-  let JSONPayload: Array<{key: string; value: string}> = []
-  let chatGlobalArg = {}
+  const JSONPayload: Array<{key: string; value: string}> = []
+  const chatGlobalArg = {}
   current.groups.forEach((group, groupName) => {
     if (groupName === Constants.securityGroup) {
       // Special case this since it will go to chat settings endpoint
@@ -149,7 +146,7 @@ const refreshInvites = async () => {
       uid: string
       username: string
     }>
-  } = JSON.parse((json && json.body) || '')
+  } = JSON.parse((json && json.body) ?? '')
 
   const acceptedInvites: Array<Types.Invitation> = []
   const pendingInvites: Array<Types.Invitation> = []
@@ -182,9 +179,8 @@ const refreshInvites = async () => {
   })
   return SettingsGen.createInvitesRefreshed({
     invites: {
-      acceptedInvites: I.List(acceptedInvites),
-      error: null,
-      pendingInvites: I.List(pendingInvites),
+      acceptedInvites: acceptedInvites,
+      pendingInvites: pendingInvites,
     },
   })
 }
@@ -224,8 +220,8 @@ const sendInvite = async (_: TypedState, action: SettingsGen.InvitesSendPayload)
 function* refreshNotifications() {
   // If the rpc is fast don't clear it out first
   const delayThenEmptyTask = yield Saga._fork(function*(): Iterable<any> {
-    yield Saga.callUntyped(delay, 500)
-    yield Saga.put(SettingsGen.createNotificationsRefreshed({notifications: I.Map()}))
+    yield Saga.delay(500)
+    yield Saga.put(SettingsGen.createNotificationsRefreshed({notifications: new Map()}))
   })
 
   let body = ''
@@ -316,14 +312,25 @@ function* refreshNotifications() {
     } || [])
 
   const groups = results.notifications
-  const notifications: {[key: string]: Types.NotificationsGroupState} = mapValues(groups, group => ({
-    settings: group.settings.map(settingsToPayload),
-    unsubscribedFromAll: group.unsub,
-  })) as any // TODO fix
 
   yield Saga.put(
     SettingsGen.createNotificationsRefreshed({
-      notifications: I.Map(notifications),
+      notifications: new Map([
+        [
+          'email',
+          {
+            settings: groups.email.settings.map(settingsToPayload),
+            unsubscribedFromAll: groups.email.unsub,
+          },
+        ],
+        [
+          'security',
+          {
+            settings: groups.security.settings.map(settingsToPayload),
+            unsubscribedFromAll: groups.security.unsub,
+          },
+        ],
+      ]),
     })
   )
 }
@@ -353,18 +360,16 @@ const loadSettings = async (
   }
   try {
     const settings = await RPCTypes.userLoadMySettingsRpcPromise(undefined, Constants.loadSettingsWaitingKey)
-    const emailMap: I.Map<string, Types.EmailRow> = I.Map(
-      (settings.emails || []).map(row => [row.email, Constants.makeEmailRow(row)])
+    const emailMap = new Map(
+      (settings.emails ?? []).map(row => [row.email, {...Constants.makeEmailRow(), ...row}])
     )
-    const phoneMap: I.Map<string, Types.PhoneRow> = I.Map(
-      (settings.phoneNumbers || []).reduce((map, row) => {
-        if (map[row.phoneNumber] && !map[row.phoneNumber].superseded) {
-          return map
-        }
-        map[row.phoneNumber] = Constants.toPhoneRow(row)
+    const phoneMap = (settings.phoneNumbers ?? []).reduce<Map<string, Types.PhoneRow>>((map, row) => {
+      if (map[row.phoneNumber] && !map[row.phoneNumber].superseded) {
         return map
-      }, {} as {[key: string]: Types.PhoneRow})
-    )
+      }
+      map.set(row.phoneNumber, Constants.toPhoneRow(row))
+      return map
+    }, new Map())
     return SettingsGen.createLoadedSettings({
       emails: emailMap,
       phones: phoneMap,
@@ -474,7 +479,7 @@ const loadLockdownMode = async (state: TypedState) => {
     )
     return SettingsGen.createLoadedLockdownMode({status: result.status})
   } catch (_) {
-    return SettingsGen.createLoadedLockdownMode({status: null})
+    return SettingsGen.createLoadedLockdownMode({})
   }
 }
 
@@ -559,7 +564,7 @@ const unfurlSettingsRefresh = async (state: TypedState) => {
     const result = await ChatTypes.localGetUnfurlSettingsRpcPromise(undefined, Constants.chatUnfurlWaitingKey)
     return SettingsGen.createUnfurlSettingsRefreshed({
       mode: result.mode,
-      whitelist: I.List(result.whitelist || []),
+      whitelist: result.whitelist ?? [],
     })
   } catch (_) {
     return SettingsGen.createUnfurlSettingsError({
@@ -575,7 +580,7 @@ const unfurlSettingsSaved = async (state: TypedState, action: SettingsGen.Unfurl
 
   try {
     await ChatTypes.localSaveUnfurlSettingsRpcPromise(
-      {mode: action.payload.mode, whitelist: action.payload.whitelist.toArray()},
+      {mode: action.payload.mode, whitelist: action.payload.whitelist},
       Constants.chatUnfurlWaitingKey
     )
     return SettingsGen.createUnfurlSettingsRefresh()

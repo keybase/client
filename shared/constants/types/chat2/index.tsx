@@ -241,6 +241,7 @@ export type MessageSetChannelname = Message.MessageSetChannelname
 export type MessageSetDescription = Message.MessageSetDescription
 export type MessagePin = Message.MessagePin
 export type MessageSystemAddedToTeam = Message.MessageSystemAddedToTeam
+export type MessageSystemCreateTeam = Message.MessageSystemCreateTeam
 export type MessageSystemChangeRetention = Message.MessageSystemChangeRetention
 export type MessageSystemGitPush = Message.MessageSystemGitPush
 export type MessageSystemInviteAccepted = Message.MessageSystemInviteAccepted
