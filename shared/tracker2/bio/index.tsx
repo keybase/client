@@ -4,20 +4,23 @@ import * as Styles from '../../styles'
 import flags from '../../util/feature-flags'
 
 export type Props = {
-  airdropIsLive: boolean | null
-  bio: string | null
-  followThem: boolean | null
-  followersCount: number | null
-  followingCount: number | null
-  followsYou: boolean | null
-  fullname: string | null
+  airdropIsLive?: boolean
+  bio?: string
+  blocked: boolean
+  followThem?: boolean
+  followersCount?: number
+  followingCount?: number
+  followsYou?: boolean
+  fullname?: string
+  hidFromFollowers: boolean
   inTracker: boolean
-  location: string | null
+  location?: string
   onBack?: () => void
   onLearnMore?: () => void
-  registeredForAirdrop: boolean | null
-  youAreInAirdrop: boolean | null
-  sbsDescription: string | null
+  registeredForAirdrop?: boolean
+  username: string
+  youAreInAirdrop?: boolean
+  sbsDescription?: string
 }
 
 // Here we're using FloatingMenu, but we want to customize the button to match
@@ -177,6 +180,24 @@ const Bio = (p: Props) => (
         {p.sbsDescription}
       </Kb.Text>
     )}
+    {p.blocked ? (
+      <Kb.Text type="BodySmallError" center={true} style={styles.blockedBackgroundText}>
+        <Kb.Text type="BodySmallError" center={true} style={styles.text} selectable={true}>
+          You blocked them.
+        </Kb.Text>
+        <Kb.Text type="BodySmallError" center={true} style={styles.text} selectable={true}>
+          {p.username} won’t be able to chat with you or add you to teams.
+        </Kb.Text>
+      </Kb.Text>
+    ) : (
+      p.hidFromFollowers && (
+        <Kb.Text type="BodySmallError" center={true} style={styles.blockedBackgroundText}>
+          <Kb.Text type="BodySmallError" center={true} style={styles.text} selectable={true}>
+            You hid them from your followers.
+          </Kb.Text>
+        </Kb.Text>
+      )
+    )}
   </Kb.Box2>
 )
 
@@ -187,6 +208,11 @@ const styles = Styles.styleSheetCreate(
         common: {color: Styles.globalColors.white},
         isElectron: {textAlign: 'center'},
       }),
+      blockedBackgroundText: {
+        backgroundColor: Styles.globalColors.red_20,
+        borderRadius: Styles.borderRadius,
+        padding: Styles.globalMargins.tiny,
+      },
       bold: {...Styles.globalStyles.fontBold},
       container: {backgroundColor: Styles.globalColors.white, flexShrink: 0},
       floatingContainer: Styles.platformStyles({

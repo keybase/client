@@ -1,5 +1,4 @@
 import * as Constants from '../../constants/chat2'
-import * as I from 'immutable'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as T from './index.d'
@@ -9,63 +8,101 @@ import BigTeamsDivider from './row/big-teams-divider/container'
 import BuildTeam from './row/build-team/container'
 import TeamsDivider from './row/teams-divider/container'
 import UnreadShortcut from './unread-shortcut'
-import {ErrorBoundary} from '../../common-adapters'
+import * as Kb from '../../common-adapters'
 import {VariableSizeList} from 'react-window'
-import {debounce, throttle} from 'lodash-es'
-import {inboxWidth, getRowHeight} from './row/sizes'
+import debounce from 'lodash/debounce'
+import throttle from 'lodash/throttle'
+import {inboxWidth, getRowHeight, smallRowHeight, dividerHeight} from './row/sizes'
 import {makeRow} from './row'
 import {virtualListMarks} from '../../local-debug'
+import shallowEqual from 'shallowequal'
 
 type State = {
+  dragY: number
   showFloating: boolean
   showUnread: boolean
 }
 
-class Inbox extends React.PureComponent<T.Props, State> {
+const widths = [10, 80, 2, 66]
+const stableWidth = (idx: number) => 160 + -widths[idx % widths.length]
+
+const FakeRow = ({idx}) => (
+  <Kb.Box2 direction="horizontal" style={styles.fakeRow}>
+    <Kb.Box2 direction="vertical" style={styles.fakeAvatar} />
+    <Kb.Box2 direction="vertical" style={styles.fakeText}>
+      <Kb.Box2
+        direction="vertical"
+        style={Styles.collapseStyles([styles.fakeTextTop, {width: stableWidth(idx) / 4}])}
+        alignSelf="flex-start"
+      />
+      <Kb.Box2
+        direction="vertical"
+        style={Styles.collapseStyles([styles.fakeTextBottom, {width: stableWidth(idx)}])}
+        alignSelf="flex-start"
+      />
+    </Kb.Box2>
+  </Kb.Box2>
+)
+
+const FakeRemovingRow = () => <Kb.Box2 direction="horizontal" style={styles.fakeRemovingRow} />
+
+const dragKey = '__keybase_inbox'
+
+class Inbox extends React.Component<T.Props, State> {
   state = {
+    dragY: -1,
     showFloating: false,
     showUnread: false,
   }
 
-  _mounted: boolean = false
-  _list: VariableSizeList | null = null
-  _selectedVisible: boolean = false
+  private mounted: boolean = false
+  private list: VariableSizeList | null = null
+
+  private dragList = React.createRef<HTMLDivElement>()
 
   // stuff for UnreadShortcut
-  _firstOffscreenIdx: number = -1
-  _lastVisibleIdx: number = -1
-  _scrollDiv = React.createRef<HTMLDivElement>()
+  private firstOffscreenIdx: number = -1
+  private lastVisibleIdx: number = -1
+  private scrollDiv = React.createRef<HTMLDivElement>()
 
-  componentDidUpdate(prevProps: T.Props) {
+  shouldComponentUpdate(nextProps: T.Props, nextState: State) {
     let listRowsResized = false
-    if (prevProps.smallTeamsExpanded !== this.props.smallTeamsExpanded) {
+    if (nextProps.smallTeamsExpanded !== this.props.smallTeamsExpanded) {
       listRowsResized = true
     }
 
     // list changed
-    if (this.props.rows.length !== prevProps.rows.length) {
-      this._calculateShowFloating()
+    if (this.props.rows.length !== nextProps.rows.length) {
       listRowsResized = true
     }
 
-    if (listRowsResized) {
-      this._list && this._list.resetAfterIndex(0, true)
+    if (listRowsResized && this.list) {
+      this.list.resetAfterIndex(0, true)
+      // ^ this will force an update so just do it once instead of twice
+      return false
     }
+    return !shallowEqual(this.props, nextProps) || !shallowEqual(this.state, nextState)
+  }
 
-    if (!I.is(this.props.unreadIndices, prevProps.unreadIndices)) {
-      this._calculateShowUnreadShortcut()
+  componentDidUpdate(prevProps: T.Props) {
+    // list changed
+    if (this.props.rows.length !== prevProps.rows.length) {
+      this.calculateShowFloating()
+    }
+    if (!shallowEqual(this.props.unreadIndices, prevProps.unreadIndices)) {
+      this.calculateShowUnreadShortcut()
     }
   }
 
   componentDidMount() {
-    this._mounted = true
+    this.mounted = true
   }
 
   componentWillUnmount() {
-    this._mounted = false
+    this.mounted = false
   }
 
-  _itemSizeGetter = index => {
+  private itemSizeGetter = index => {
     const row = this.props.rows[index]
     if (!row) {
       return 0
@@ -74,13 +111,69 @@ class Inbox extends React.PureComponent<T.Props, State> {
     return getRowHeight(row.type, row.type === 'divider' && row.showButton)
   }
 
-  _itemRenderer = (index, style) => {
+  private onDragStart = ev => {
+    ev.dataTransfer.setData(dragKey, dragKey)
+  }
+
+  private itemRenderer = (index, style) => {
     const row = this.props.rows[index]
+    if (!row) {
+      // likely small teams were just collapsed
+      return null
+    }
     const divStyle = Styles.collapseStyles([style, virtualListMarks && styles.divider])
     if (row.type === 'divider') {
+      const newSmallRows = this.deltaNewSmallRows()
+      let expandingRows: Array<string> = []
+      let removingRows: Array<string> = []
+      if (newSmallRows === 0) {
+      } else if (newSmallRows > 0) {
+        expandingRows = new Array(newSmallRows).fill('')
+      } else {
+        removingRows = new Array(-newSmallRows).fill('')
+      }
       return (
-        <div style={divStyle}>
+        <div style={{...divStyle, position: 'relative'}}>
+          {row.showButton && (
+            <>
+              <Kb.Box
+                className="grabLinesContainer"
+                draggable={row.showButton}
+                onDragStart={this.onDragStart}
+                style={styles.grabber}
+              >
+                <Kb.Box2 className="grabLines" direction="vertical" style={styles.grabberLineContainer}>
+                  <Kb.Box2 direction="horizontal" style={styles.grabberLine} />
+                  <Kb.Box2 direction="horizontal" style={styles.grabberLine} />
+                  <Kb.Box2 direction="horizontal" style={styles.grabberLine} />
+                </Kb.Box2>
+              </Kb.Box>
+              <Kb.Box style={styles.spacer} />
+            </>
+          )}
+          {this.state.dragY !== -1 && (
+            <Kb.Box2
+              direction="vertical"
+              style={Styles.collapseStyles([
+                styles.fakeRowContainer,
+                {
+                  bottom: expandingRows.length ? undefined : dividerHeight(row.showButton),
+                  height:
+                    (expandingRows.length ? expandingRows.length : removingRows.length) * smallRowHeight,
+                  top: expandingRows.length ? 0 : undefined,
+                },
+              ])}
+            >
+              {expandingRows.map((_, idx) => (
+                <FakeRow idx={idx} key={idx} />
+              ))}
+              {removingRows.map((_, idx) => (
+                <FakeRemovingRow key={idx} />
+              ))}
+            </Kb.Box2>
+          )}
           <TeamsDivider
+            hiddenCountDelta={newSmallRows !== 0 ? -newSmallRows : 0}
             key="divider"
             toggle={this.props.toggleSmallTeamsExpanded}
             showButton={row.showButton}
@@ -89,67 +182,86 @@ class Inbox extends React.PureComponent<T.Props, State> {
         </div>
       )
     }
+    if (row.type === 'teamBuilder') {
+      return (
+        <div style={divStyle}>
+          <BuildTeam />
+        </div>
+      )
+    }
 
     const conversationIDKey: Types.ConversationIDKey = row.conversationIDKey || Constants.noConversationIDKey
     const teamname = row.teamname || ''
-    const isHighlighted = index === 0 && !this._selectedVisible
 
     // pointer events on so you can click even right after a scroll
     return (
-      <div style={Styles.collapseStyles([divStyle, {pointerEvents: 'auto'}, isHighlighted && styles.hover])}>
+      <div style={Styles.collapseStyles([divStyle, {pointerEvents: 'auto'}])}>
         {makeRow({
           channelname: (row.type === 'big' && row.channelname) || '',
           conversationIDKey,
+          isTeam: row.isTeam || false,
           navKey: this.props.navKey,
+          snippet: row.snippet,
+          snippetDecoration: row.snippetDecoration,
+          teamID: (row.type === 'bigHeader' && row.teamID) || '',
           teamname,
+          time: row.time || undefined,
           type: row.type,
         })}
       </div>
     )
   }
 
-  _calculateShowUnreadShortcut = () => {
-    if (!this._mounted) {
+  private calculateShowUnreadShortcut = () => {
+    if (!this.mounted) {
       return
     }
-    if (!this.props.unreadIndices.size || this._lastVisibleIdx < 0) {
-      this.setState(s => (s.showUnread ? {showUnread: false} : null))
+    if (!this.props.unreadIndices.length || this.lastVisibleIdx < 0) {
+      if (this.state.showUnread) {
+        this.setState({showUnread: false})
+      }
       return
     }
 
-    const firstOffscreenIdx = this.props.unreadIndices.find(idx => idx > this._lastVisibleIdx)
+    const firstOffscreenIdx = this.props.unreadIndices.find(idx => idx > this.lastVisibleIdx)
     if (firstOffscreenIdx) {
-      this.setState(s => (s.showUnread ? null : {showUnread: true}))
-      this._firstOffscreenIdx = firstOffscreenIdx
+      if (!this.state.showUnread) {
+        this.setState({showUnread: true})
+      }
+      this.firstOffscreenIdx = firstOffscreenIdx
     } else {
-      this.setState(s => (s.showUnread ? {showUnread: false} : null))
-      this._firstOffscreenIdx = -1
+      if (this.state.showUnread) {
+        this.setState({showUnread: false})
+      }
+      this.firstOffscreenIdx = -1
     }
   }
 
-  _calculateShowUnreadShortcutThrottled = throttle(this._calculateShowUnreadShortcut, 100)
+  private calculateShowUnreadShortcutThrottled = throttle(this.calculateShowUnreadShortcut, 100)
 
-  _calculateShowFloating = () => {
-    if (this._lastVisibleIdx < 0) {
+  private calculateShowFloating = () => {
+    if (this.lastVisibleIdx < 0) {
       return
     }
     let showFloating = true
-    const row = this.props.rows[this._lastVisibleIdx]
+    const row = this.props.rows[this.lastVisibleIdx]
     if (!row || row.type !== 'small') {
       showFloating = false
     }
 
-    this.setState(old => (old.showFloating !== showFloating ? {showFloating} : null))
+    if (this.state.showFloating !== showFloating) {
+      this.setState({showFloating})
+    }
   }
 
-  _onItemsRendered = ({visibleStartIndex, visibleStopIndex}) => {
-    this._lastVisibleIdx = visibleStopIndex
-    this._calculateShowUnreadShortcutThrottled()
-    this._onItemsRenderedDebounced({visibleStartIndex, visibleStopIndex})
+  private onItemsRendered = ({visibleStartIndex, visibleStopIndex}) => {
+    this.lastVisibleIdx = visibleStopIndex
+    this.calculateShowUnreadShortcutThrottled()
+    this.onItemsRenderedDebounced({visibleStartIndex, visibleStopIndex})
   }
 
-  _onItemsRenderedDebounced = debounce(({visibleStartIndex, visibleStopIndex}) => {
-    if (!this._mounted) {
+  private onItemsRenderedDebounced = debounce(({visibleStartIndex, visibleStopIndex}) => {
+    if (!this.mounted) {
       return
     }
     const toUnbox = this.props.rows
@@ -160,91 +272,226 @@ class Inbox extends React.PureComponent<T.Props, State> {
         }
         return arr
       }, [])
-    this._calculateShowFloating()
+    this.calculateShowFloating()
     this.props.onUntrustedInboxVisible(toUnbox)
   }, 200)
 
-  _scrollToUnread = () => {
-    if (this._firstOffscreenIdx <= 0 || !this._scrollDiv.current) {
+  private scrollToUnread = () => {
+    if (this.firstOffscreenIdx <= 0 || !this.scrollDiv.current) {
       return
     }
     let top = 100 // give it some space below
-    for (let i = this._lastVisibleIdx; i <= this._firstOffscreenIdx; i++) {
-      top += this._itemSizeGetter(i)
+    for (let i = this.lastVisibleIdx; i <= this.firstOffscreenIdx; i++) {
+      top += this.itemSizeGetter(i)
     }
-    this._scrollDiv.current.scrollBy({behavior: 'smooth', top})
+    this.scrollDiv.current.scrollBy({behavior: 'smooth', top})
   }
 
-  _setRef = (list: VariableSizeList | null) => {
-    this._list = list
+  private setRef = (list: VariableSizeList | null) => {
+    this.list = list
   }
 
-  _prepareNewChat = () => {
-    this._list && this._list.scrollTo(0)
-    this.props.onNewChat()
+  private listChild = ({index, style}) => this.itemRenderer(index, style)
+
+  private onDragOver = e => {
+    if (this.scrollDiv.current && e.dataTransfer.types.length > 0 && e.dataTransfer.types[0] === dragKey) {
+      this.setState({
+        dragY:
+          e.clientY - this.scrollDiv.current.getBoundingClientRect().top + this.scrollDiv.current.scrollTop,
+      })
+    }
   }
 
-  _onEnsureSelection = () => this.props.onEnsureSelection()
-  _onSelectUp = () => this.props.onSelectUp()
-  _onSelectDown = () => this.props.onSelectDown()
+  private deltaNewSmallRows = () => {
+    if (this.state.dragY === -1) {
+      return 0
+    }
+    return Math.max(0, Math.floor(this.state.dragY / smallRowHeight)) - this.props.inboxNumSmallRows
+  }
+
+  private onDrop = () => {
+    const delta = this.deltaNewSmallRows()
+    if (delta !== 0) {
+      this.props.setInboxNumSmallRows(this.props.inboxNumSmallRows + delta)
+    }
+    this.setState({dragY: -1})
+  }
 
   render() {
-    this._selectedVisible = !!this.props.rows.find(
-      r => r.conversationIDKey && r.conversationIDKey === this.props.selectedConversationIDKey
-    )
     const floatingDivider = this.state.showFloating && this.props.allowShowFloatingButton && (
       <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
     )
     return (
-      <ErrorBoundary>
-        <div style={styles.container}>
-          <div style={styles.list}>
+      <Kb.ErrorBoundary>
+        <InboxHoverContainer style={styles.container}>
+          <div
+            style={styles.list}
+            onDragEnd={this.onDrop}
+            onDragOver={this.onDragOver}
+            onDrop={this.onDrop}
+            ref={this.dragList}
+          >
             <AutoSizer>
               {({height, width}) => (
                 <VariableSizeList
                   height={height}
                   width={width}
-                  ref={this._setRef}
-                  outerRef={this._scrollDiv}
-                  onItemsRendered={this._onItemsRendered}
+                  ref={this.setRef}
+                  outerRef={this.scrollDiv}
+                  onItemsRendered={this.onItemsRendered}
                   itemCount={this.props.rows.length}
-                  itemSize={this._itemSizeGetter}
+                  itemSize={this.itemSizeGetter}
                   estimatedItemSize={56}
+                  itemData={this.state.dragY === -1 ? this.props.rows : this.state.dragY}
                 >
-                  {({index, style}) => this._itemRenderer(index, style)}
+                  {this.listChild}
                 </VariableSizeList>
               )}
             </AutoSizer>
           </div>
-          {floatingDivider || <BuildTeam />}
+          {floatingDivider || ((this.props.rows.length === 0 || !this.props.hasBigTeams) && <BuildTeam />)}
           {this.state.showUnread && !this.state.showFloating && (
-            <UnreadShortcut onClick={this._scrollToUnread} />
+            <UnreadShortcut onClick={this.scrollToUnread} />
           )}
-        </div>
-      </ErrorBoundary>
+        </InboxHoverContainer>
+      </Kb.ErrorBoundary>
     )
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: Styles.platformStyles({
-    isElectron: {
-      ...Styles.globalStyles.flexBoxColumn,
-      backgroundColor: Styles.globalColors.blueGrey,
-      contain: 'strict',
-      height: '100%',
-      maxWidth: inboxWidth,
-      minWidth: inboxWidth,
-      position: 'relative',
-    },
-  }),
-  divider: {
-    backgroundColor: 'purple',
-    overflow: 'hidden',
+const InboxHoverContainer = Styles.styled(Kb.Box)({
+  '.grabLines': {
+    opacity: 0,
+    transition: 'opacity 0.25s ease-in-out',
   },
-  hover: {backgroundColor: Styles.globalColors.blueGreyDark},
-  list: {flex: 1},
-}))
+  '.grabLinesContainer': {
+    opacity: 0.5,
+    transition: 'opacity 0.25s ease-in-out',
+  },
+  ':hover .grabLines': {opacity: 1},
+  ':hover .grabLinesContainer': {opacity: 1},
+})
+
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: Styles.platformStyles({
+        isElectron: {
+          ...Styles.globalStyles.flexBoxColumn,
+          backgroundColor: Styles.globalColors.blueGreyLight,
+          contain: 'strict',
+          height: '100%',
+          maxWidth: inboxWidth,
+          minWidth: inboxWidth,
+          position: 'relative',
+        },
+      }),
+      divider: {
+        backgroundColor: 'purple',
+        overflow: 'hidden',
+      },
+      fakeAvatar: Styles.platformStyles({
+        isElectron: {
+          backgroundColor: Styles.globalColors.black_10,
+          borderRadius: '50%',
+          height: 48,
+          marginLeft: 8,
+          width: 48,
+        },
+      }),
+      fakeRemovingRow: Styles.platformStyles({
+        isElectron: {
+          height: 56,
+          position: 'relative',
+          width: '100%',
+        },
+      }),
+      fakeRemovingRowDivider: {
+        position: 'absolute',
+        top: 0,
+        width: '100%',
+      },
+      fakeRow: Styles.platformStyles({
+        isElectron: {
+          backgroundColor: Styles.globalColors.blueGrey,
+          height: 56,
+          position: 'relative',
+          width: '100%',
+        },
+      }),
+      fakeRowContainer: {
+        backgroundColor: Styles.globalColors.blueGrey,
+        left: 0,
+        position: 'absolute',
+        right: 0,
+        zIndex: 9999,
+      },
+      fakeRowDivider: {
+        bottom: 0,
+        position: 'absolute',
+        width: '100%',
+      },
+      fakeText: {
+        flexGrow: 1,
+        height: '100%',
+        justifyContent: 'space-around',
+        padding: 8,
+        paddingLeft: 16,
+      },
+      fakeTextBottom: Styles.platformStyles({
+        isElectron: {
+          backgroundColor: Styles.globalColors.black_10,
+          borderRadius: 8,
+          height: 10,
+          width: '75%',
+        },
+      }),
+      fakeTextTop: Styles.platformStyles({
+        isElectron: {
+          backgroundColor: Styles.globalColors.black_10,
+          borderRadius: 8,
+          height: 10,
+          width: '25%',
+        },
+      }),
+      grabber: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.flexBoxRow,
+          backgroundColor: Styles.globalColors.black_05,
+          bottom: 8,
+          height: Styles.globalMargins.tiny,
+          justifyContent: 'center',
+          position: 'absolute',
+          width: '100%',
+        },
+        isElectron: {
+          cursor: 'row-resize',
+        },
+      }),
+      grabberLine: {
+        backgroundColor: Styles.globalColors.black_35,
+        height: 1,
+        marginBottom: 1,
+        width: '100%',
+      },
+      grabberLineContainer: {
+        paddingTop: 1,
+        width: Styles.globalMargins.small,
+      },
+      hover: {backgroundColor: Styles.globalColors.blueGreyDark},
+      list: {flex: 1},
+      rowWithDragger: {
+        height: 68,
+      },
+      spacer: {
+        backgroundColor: Styles.globalColors.blueGreyLight,
+        bottom: 0,
+        height: 8,
+        position: 'absolute',
+        width: '100%',
+      },
+    } as const)
+)
 
 export type RowItem = T.RowItem
 export type RowItemSmall = T.RowItemSmall

@@ -1,13 +1,14 @@
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../../styles'
-import {throttle} from 'lodash-es'
+import throttle from 'lodash/throttle'
 import {Props} from '.'
 import SharedTimer, {SharedTimerID} from '../../../../../util/shared-timers'
 
 // If this image changes, some hard coded dimensions
 // in this file also need to change.
 const explodedIllustrationURL = require('../../../../../images/icons/pattern-ashes-mobile-400-80.png')
+const explodedIllustrationDarkURL = require('../../../../../images/icons/dark-pattern-ashes-mobile-400-80.png')
 
 export const animationDuration = 1500
 
@@ -200,7 +201,13 @@ class EmojiTower extends React.Component<
 const AshTower = (props: {explodedBy?: string; numImages: number; showExploded: boolean}) => {
   const children: Array<React.ReactNode> = []
   for (let i = 0; i < props.numImages; i++) {
-    children.push(<Kb.NativeImage key={i} source={explodedIllustrationURL} style={styles.ashes} />)
+    children.push(
+      <Kb.NativeImage
+        key={i}
+        source={Styles.isDarkMode ? explodedIllustrationDarkURL : explodedIllustrationURL}
+        style={styles.ashes}
+      />
+    )
   }
   let exploded: React.ReactNode = null
   if (props.showExploded) {

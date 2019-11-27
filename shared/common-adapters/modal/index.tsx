@@ -93,7 +93,7 @@ const Header = (props: HeaderProps) => {
         setMeasuredLater()
       }
     },
-    [measured, widerWidth]
+    [measured, widerWidth, setMeasuredLater]
   )
   const sideWidth = widerWidth + headerSidePadding * 2
   // end mobile only
@@ -110,7 +110,11 @@ const Header = (props: HeaderProps) => {
       ])}
       fullWidth={true}
     >
-      {!!props.icon && props.icon}
+      {!!props.icon && (
+        <Kb.Box2 direction="vertical" centerChildren={true}>
+          {props.icon}
+        </Kb.Box2>
+      )}
       <Kb.Box2
         direction="horizontal"
         alignItems="center"
@@ -152,6 +156,19 @@ const Header = (props: HeaderProps) => {
     </Kb.Box2>
   )
 }
+
+export const useModalHeaderTitleAndCancel = (title: string, onCancel: () => void): HeaderProps =>
+  React.useMemo(
+    () => ({
+      leftButton: (
+        <Kb.Text type="BodyBigLink" onClick={onCancel}>
+          Cancel
+        </Kb.Text>
+      ),
+      title,
+    }),
+    [title, onCancel]
+  )
 
 const Footer = (props: FooterProps & {fullscreen: boolean; wide: boolean}) => (
   <Kb.Box2

@@ -16,76 +16,84 @@ const provider = Sb.createPropProviderWithCommon(footerProvider)
 const storeCommon = Sb.createStoreWithCommon()
 const store = {
   ...storeCommon,
-  fs: storeCommon.fs.set(
-    'downloads',
-    Constants.makeDownloads({
-      info: I.Map([
+  fs: {
+    ...storeCommon.fs,
+    downloads: {
+      info: new Map([
         [
           'id0',
-          Constants.makeDownloadInfo({
+          {
+            ...Constants.emptyDownloadInfo,
             filename: 'file 1',
             isRegularDownload: true,
             path: '/keybase/team/kbkbfstest/file 1',
             startTime: 0,
-          }),
+          },
         ],
         [
           'id1',
-          Constants.makeDownloadInfo({
+          {
+            ...Constants.emptyDownloadInfo,
             filename: 'file 2',
             isRegularDownload: true,
             path: '/keybase/team/kbkbfstest/file 2',
             startTime: 1,
-          }),
+          },
         ],
         [
           'id2',
-          Constants.makeDownloadInfo({
+          {
+            ...Constants.emptyDownloadInfo,
             filename: 'fijweopfjewoajfaeowfjoaweijf',
             isRegularDownload: true,
             path: '/keybase/team/kbkbfstest/fijweopfjewoajfaeowfjoaweijf',
             startTime: 2,
-          }),
+          },
         ],
         [
           'id3',
-          Constants.makeDownloadInfo({
+          {
+            ...Constants.emptyDownloadInfo,
             filename: 'aaa',
             isRegularDownload: true,
             path: '/keybase/team/kbkbfstest/aaa',
             startTime: 3,
-          }),
+          },
         ],
       ]),
       regularDownloads: I.List(['id3', 'id2', 'id1', 'id0']),
-      state: I.Map([
+      state: new Map([
         [
           'id0',
-          Constants.makeDownloadState({
+          {
+            ...Constants.emptyDownloadState,
             progress: 0.5,
-          }),
+          },
         ],
         [
           'id1',
-          Constants.makeDownloadState({
+          {
+            ...Constants.emptyDownloadState,
             canceled: true,
-          }),
+          },
         ],
         [
           'id2',
-          Constants.makeDownloadState({
+          {
+            ...Constants.emptyDownloadState,
             error: 'this is an error',
-          }),
+          },
         ],
         [
           'id3',
-          Constants.makeDownloadState({
+          {
+            ...Constants.emptyDownloadState,
             done: true,
-          }),
+          },
         ],
       ]),
-    })
-  ),
+    },
+  },
 }
 
 const load = () =>

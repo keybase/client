@@ -36,6 +36,10 @@ func (r DummyChatUI) ChatInboxUnverified(ctx context.Context, arg chat1.ChatInbo
 	return nil
 }
 
+func (r DummyChatUI) ChatInboxLayout(ctx context.Context, arg chat1.ChatInboxLayoutArg) error {
+	return nil
+}
+
 func (r DummyChatUI) ChatThreadCached(ctx context.Context, arg chat1.ChatThreadCachedArg) error {
 	return nil
 }
@@ -212,5 +216,8 @@ func (d DummyChatNotifications) ChatRequestInfo(context.Context, chat1.ChatReque
 	return nil
 }
 func (d DummyChatNotifications) ChatPromptUnfurl(context.Context, chat1.ChatPromptUnfurlArg) error {
+	return nil
+}
+func (d DummyChatNotifications) ChatConvUpdate(context.Context, chat1.ChatConvUpdateArg) error {
 	return nil
 }

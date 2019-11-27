@@ -1,0 +1,65 @@
+@namespace("keybase.1")
+
+protocol kvstore {
+  import idl "common.avdl";
+
+  record KVGetResult {
+    string teamName;
+    string namespace;
+    string entryKey;
+    string entryValue;
+    int revision;
+  }
+
+  record KVPutResult {
+    string teamName;
+    string namespace;
+    string entryKey;
+    int revision; // this is the server-confirmed revision of the entry after the request
+  }
+
+  // for passing around internally
+  record KVEntryID {
+    TeamID teamID;
+    string namespace;
+    string entryKey;
+  }
+
+  record EncryptedKVEntry {
+    int v;                    // version
+    bytes e;                  // encrypted data
+    bytes n;                  // nonce
+  }
+
+  KVGetResult getKVEntry(int sessionID, string teamName, string namespace, string entryKey);
+  KVPutResult putKVEntry(int sessionID, string teamName, string namespace, string entryKey, int revision, string entryValue);
+
+  record KVListNamespaceResult {
+    string teamName;
+    array<string> namespaces;
+  }
+
+  KVListNamespaceResult listKVNamespaces(int sessionID, string teamName);
+
+  record KVListEntryKey {
+    string entryKey;
+    int revision;
+  }
+
+  record KVListEntryResult {
+    string teamName;
+    string namespace;
+    array<KVListEntryKey> entryKeys;
+  }
+
+  KVListEntryResult listKVEntries(int sessionID, string teamName, string namespace);
+
+  record KVDeleteEntryResult {
+    string teamName;
+    string namespace;
+    string entryKey;
+    int revision; // this is the revision at which the entry was deleted, and a future GET will have
+  }
+
+  KVDeleteEntryResult delKVEntry(int sessionID, string teamName, string namespace, string entryKey, int revision);
+}

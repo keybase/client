@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"io"
 	"regexp"
-	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	stellar1 "github.com/keybase/client/go/protocol/stellar1"
@@ -873,127 +872,6 @@ func (u *User) IsCachedIdentifyFresh(upk *keybase1.UserPlusKeysV2AllIncarnations
 	return true
 }
 
-func LoadHasRandomPw(mctx MetaContext, arg keybase1.LoadHasRandomPwArg) (res bool, err error) {
-	mctx = mctx.WithLogTag("HASRPW")
-	defer mctx.TraceTimed(fmt.Sprintf("User#LoadHasRandomPw(forceRepoll=%t)", arg.ForceRepoll), func() error { return err })()
-
-	currentUID := mctx.CurrentUID()
-	cacheKey := DbKey{
-		Typ: DBHasRandomPW,
-		Key: currentUID.String(),
-	}
-
-	var cachedValue, hasCache bool
-	if !arg.ForceRepoll {
-		if hasCache, err = mctx.G().GetKVStore().GetInto(&cachedValue, cacheKey); err == nil {
-			if hasCache && !cachedValue {
-				mctx.Debug("Returning HasRandomPW=false from KVStore cache")
-				return false, nil
-			}
-			// If it was never cached or user *IS* RandomPW right now, pass through
-			// and call the API.
-		} else {
-			mctx.Debug("Unable to get cached value for HasRandomPW: %v", err)
-		}
-	}
-
-	var initialTimeout time.Duration
-	if !arg.ForceRepoll && !arg.NoShortTimeout {
-		// If we are do not need accurate response from the API server, make
-		// the request with a timeout for quicker overall RPC response time
-		// if network is bad/unavailable.
-		initialTimeout = 3 * time.Second
-	}
-
-	var ret struct {
-		AppStatusEmbed
-		RandomPW bool `json:"random_pw"`
-	}
-	err = mctx.G().API.GetDecode(mctx, APIArg{
-		Endpoint:       "user/has_random_pw",
-		SessionType:    APISessionTypeREQUIRED,
-		InitialTimeout: initialTimeout,
-	}, &ret)
-	if err != nil {
-		if !arg.ForceRepoll {
-			if hasCache {
-				// We are allowed to return cache if we have any.
-				mctx.Warning("Unable to make a network request to has_random_pw. Returning cached value: %t. Error: %s.", cachedValue, err)
-				return cachedValue, nil
-			}
-
-			mctx.Warning("Unable to make a network request to has_random_pw and there is no cache. Erroring out: %s.", err)
-		}
-		return res, err
-	}
-
-	if !hasCache || cachedValue != ret.RandomPW {
-		// Cache current state. If we put `randomPW=false` in the cache, we will never
-		// ever have to call to the network from this device, because it's not possible
-		// to become `randomPW=true` again. If we cache `randomPW=true` we are going to
-		// keep asking the network, but we will be resilient to bad network conditions
-		// because we will have this cached state to fall back on.
-		if err := mctx.G().GetKVStore().PutObj(cacheKey, nil, ret.RandomPW); err == nil {
-			mctx.Debug("Adding HasRandomPW=%t to KVStore", ret.RandomPW)
-		} else {
-			mctx.Debug("Unable to add HasRandomPW state to KVStore")
-		}
-	}
-
-	return ret.RandomPW, err
-}
-
-func CanLogout(mctx MetaContext) (res keybase1.CanLogoutRes) {
-
-	if !mctx.G().ActiveDevice.Valid() {
-		mctx.Debug("CanLogout: looks like user is not logged in")
-		res.CanLogout = true
-		return res
-	}
-
-	if mctx.G().ActiveDevice.KeychainMode() == KeychainModeNone {
-		mctx.Debug("CanLogout: ok to logout since the key used doesn't user the keychain")
-		res.CanLogout = true
-		return res
-	}
-
-	if err := CheckCurrentUIDDeviceID(mctx); err != nil {
-		switch err.(type) {
-		case DeviceNotFoundError, UserNotFoundError,
-			KeyRevokedError, NoDeviceError, NoUIDError:
-			mctx.Debug("CanLogout: allowing logout because of CheckCurrentUIDDeviceID returning: %s", err.Error())
-			return keybase1.CanLogoutRes{CanLogout: true}
-		default:
-			// Unexpected error like network connectivity issue, fall through.
-			// Even if we are offline here, we may be able to get cached value
-			// `false` from LoadHasRandomPw and be allowed to log out.
-			mctx.Debug("CanLogout: CheckCurrentUIDDeviceID returned: %q, falling through", err.Error())
-		}
-	}
-
-	hasRandomPW, err := LoadHasRandomPw(mctx, keybase1.LoadHasRandomPwArg{
-		ForceRepoll: false,
-	})
-
-	if err != nil {
-		return keybase1.CanLogoutRes{
-			CanLogout: false,
-			Reason:    fmt.Sprintf("We couldn't ensure that your account has a passphrase: %s", err.Error()),
-		}
-	}
-
-	if hasRandomPW {
-		return keybase1.CanLogoutRes{
-			CanLogout:     false,
-			SetPassphrase: true,
-			Reason:        "You signed up without a password and need to set a password first",
-		}
-	}
-
-	res.CanLogout = true
-	return res
-}
-
 // PartialCopy copies some fields of the User object, but not all.
 // For instance, it doesn't copy the SigChain or IDTable, and it only
 // makes a shallow copy of the ComputedKeyFamily.
@@ -1048,16 +926,55 @@ func (u UserForSignatures) ToUserVersion() keybase1.UserVersion {
 }
 func (u UserForSignatures) GetLatestPerUserKey() *keybase1.PerUserKey { return u.latestPUK }
 
-func (u *User) ToUserForSignatures() (ret UserForSignatures) {
+func (u *User) ToUserForSignatures() (ret UserForSignatures, err error) {
 	if u == nil {
-		return ret
+		return ret, fmt.Errorf("ToUserForSignatures missing user object")
+	}
+	ckf := u.GetComputedKeyFamily()
+	if ckf == nil {
+		return ret, fmt.Errorf("ToUserForSignatures missing ckf")
+	}
+	if ckf.cki == nil {
+		return ret, fmt.Errorf("ToUserForSignatures missing cki")
 	}
 	ret.uid = u.GetUID()
 	ret.name = u.GetNormalizedName()
 	ret.eldestKID = u.GetEldestKID()
 	ret.eldestSeqno = u.GetCurrentEldestSeqno()
 	ret.latestPUK = u.GetComputedKeyFamily().GetLatestPerUserKey()
-	return ret
+	return ret, nil
 }
 
 var _ UserBasic = UserForSignatures{}
+
+// VID gets the VID that corresponds to the given UID. A VID is a pseudonymous UID.
+// Should never error.
+func VID(mctx MetaContext, uid keybase1.UID) (ret keybase1.VID) {
+	mctx.G().vidMu.Lock()
+	defer mctx.G().vidMu.Unlock()
+
+	// Construct the key from the given uid passed in.
+	strKey := "vid" + ":" + string(uid)
+
+	key := DbKey{DBMisc, strKey}
+	found, err := mctx.G().LocalDb.GetInto(&ret, key)
+	if found {
+		return ret
+	}
+	if err != nil {
+		// It's ok, we will just rerandomize in this case.
+		mctx.Debug("VID: failure to get: %s", err.Error())
+	}
+	b, err := RandBytesWithSuffix(16, keybase1.UID_SUFFIX_2)
+	if err != nil {
+		// This should never happen.
+		mctx.Debug("VID: random bytes failed: %s", err.Error())
+	}
+	ret = keybase1.VID(hex.EncodeToString(b))
+	err = mctx.G().LocalDb.PutObj(key, nil, ret)
+	if err != nil {
+		// It's ok, we will just rerandomize in this case.
+		mctx.Debug("VID: store failed: %s", err.Error())
+	}
+	return ret
+}

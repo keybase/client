@@ -7,6 +7,7 @@ export type Device = {
   created: number
   currentDevice: boolean
   deviceID: DeviceID
+  deviceNumberOfType: number
   lastUsed: number
   name: string
   provisionedAt?: number
@@ -22,7 +23,6 @@ export type State = {
   isNew: Set<string>
   justRevokedSelf: string
   newPaperkey: HiddenString
-  selectedDeviceID?: DeviceID
 }
 
 // Converts a string to the DeviceType enum, logging an error if it doesn't match

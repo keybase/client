@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Styles from '../styles'
 
 export type Props = {
-  color: 'green' | 'blue'
+  color: 'green' | 'blue' | 'red'
   on: boolean
   style?: Styles.StylesCrossPlatform | null
 }

@@ -1,5 +1,6 @@
 import * as React from 'react'
-import {toUpper, upperFirst} from 'lodash-es'
+import toUpper from 'lodash/toUpper'
+import upperFirst from 'lodash/upperFirst'
 import * as Styles from '../../../../../styles'
 
 import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'

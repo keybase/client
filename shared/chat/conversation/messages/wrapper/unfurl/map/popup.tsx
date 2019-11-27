@@ -13,6 +13,7 @@ type Props = Container.RouteProps<{
   conversationIDKey: Types.ConversationIDKey
   coord: Types.Coordinate
   isAuthor: boolean
+  author?: string
   isLiveLocation: boolean
   url: string
 }>
@@ -21,6 +22,7 @@ const UnfurlMapPopup = (props: Props) => {
   const conversationIDKey = Container.getRouteProps(props, 'conversationIDKey', Constants.noConversationIDKey)
   const coord = Container.getRouteProps(props, 'coord', {accuracy: 0, lat: 0, lon: 0})
   const isAuthor = Container.getRouteProps(props, 'isAuthor', false)
+  const author = Container.getRouteProps(props, 'author', '')
   const isLiveLocation = Container.getRouteProps(props, 'isLiveLocation', false)
   const url = Container.getRouteProps(props, 'url', '')
   // state
@@ -51,9 +53,7 @@ const UnfurlMapPopup = (props: Props) => {
   // render
   const width = Math.ceil(Styles.dimensionWidth)
   const height = Math.ceil(Styles.dimensionHeight)
-  const mapSrc = `http://${httpSrvAddress}/map?lat=${coord.lat}&lon=${
-    coord.lon
-  }&width=${width}&height=${height}&token=${httpSrvToken}`
+  const mapSrc = `http://${httpSrvAddress}/map?lat=${coord.lat}&lon=${coord.lon}&width=${width}&height=${height}&token=${httpSrvToken}&username=${author}`
   return (
     <Kb.Modal
       header={{
@@ -66,7 +66,7 @@ const UnfurlMapPopup = (props: Props) => {
       }}
       footer={{
         content: (
-          <Kb.Box2 direction="vertical" gap="small" fullWidth={true}>
+          <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
             <Kb.Button fullWidth={true} onClick={onViewURL} label="View on Google Maps" type="Default" />
             {isAuthor && isLiveLocation && (
               <Kb.Button

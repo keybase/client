@@ -1,11 +1,10 @@
 // Metadata about a conversation.
-import * as I from 'immutable'
 import * as Common from './common'
 import * as Message from './message'
 import * as RPCChatTypes from '../rpc-chat-gen'
+import * as TeamTypes from '../teams'
 import {RetentionPolicy} from '../retention-policy'
 
-export type TeamRoleType = 'reader' | 'writer' | 'admin' | 'owner'
 export type MembershipType = 'active' | 'youArePreviewing' | 'youAreReset'
 export type TeamType = 'small' | 'big' | 'adhoc'
 
@@ -17,7 +16,8 @@ export type PinnedMessageInfo = {
   pinnerUsername: string
 }
 
-export type _ConversationMeta = {
+export type ConversationMeta = {
+  botAliases: {[key: string]: string}
   botCommands: RPCChatTypes.ConversationCommandGroups
   cannotWrite: boolean
   channelname: string
@@ -33,20 +33,21 @@ export type _ConversationMeta = {
   maxMsgID: number
   maxVisibleMsgID: number
   membershipType: MembershipType
-  minWriterRole: TeamRoleType // minimum role to be able to write into a channel,
+  minWriterRole: TeamTypes.TeamRoleType // minimum role to be able to write into a channel,
+  nameParticipants: Array<string> // participants used for the conv name
   notificationsDesktop: NotificationsType
   notificationsGlobalIgnoreMentions: boolean
   notificationsMobile: NotificationsType
   offline: boolean
-  participantToContactName: I.Map<string, string>
-  participants: I.List<string> // was OrderedSet but is quite slow,
-  pinnedMsg: PinnedMessageInfo | null
+  participantToContactName: Map<string, string>
+  participants: Array<string> // participants to show in the info panel
+  pinnedMsg?: PinnedMessageInfo
   readMsgID: number
-  rekeyers: I.Set<string>
-  resetParticipants: I.Set<string>
+  rekeyers: Set<string>
+  resetParticipants: Set<string>
   retentionPolicy: RetentionPolicy
   snippet: string
-  snippetDecoration: string
+  snippetDecoration: RPCChatTypes.SnippetDecoration
   status: RPCChatTypes.ConversationStatus
   supersededBy: Common.ConversationIDKey
   supersedes: Common.ConversationIDKey
@@ -57,10 +58,9 @@ export type _ConversationMeta = {
   teamRetentionPolicy: RetentionPolicy
   teamType: TeamType
   teamname: string
+  teamID: TeamTypes.TeamID
   timestamp: number
   tlfname: string // just used for rpc calls,
   trustedState: MetaTrustedState
   wasFinalizedBy: string // a conversation can be finalized but not superseded,
 }
-
-export type ConversationMeta = I.RecordOf<_ConversationMeta>

@@ -1,11 +1,13 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/ctl.avdl
 
 package keybase1
 
 import (
+	"fmt"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type ExitCode int
@@ -34,7 +36,7 @@ func (e ExitCode) String() string {
 	if v, ok := ExitCodeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type DbType int
@@ -72,7 +74,7 @@ func (e DbType) String() string {
 	if v, ok := DbTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type DbKey struct {
@@ -98,6 +100,35 @@ func (o DbValue) DeepCopy() DbValue {
 		}
 		return append([]byte{}, x...)
 	})(o)
+}
+
+type OnLoginStartupStatus int
+
+const (
+	OnLoginStartupStatus_UNKNOWN  OnLoginStartupStatus = 0
+	OnLoginStartupStatus_DISABLED OnLoginStartupStatus = 1
+	OnLoginStartupStatus_ENABLED  OnLoginStartupStatus = 2
+)
+
+func (o OnLoginStartupStatus) DeepCopy() OnLoginStartupStatus { return o }
+
+var OnLoginStartupStatusMap = map[string]OnLoginStartupStatus{
+	"UNKNOWN":  0,
+	"DISABLED": 1,
+	"ENABLED":  2,
+}
+
+var OnLoginStartupStatusRevMap = map[OnLoginStartupStatus]string{
+	0: "UNKNOWN",
+	1: "DISABLED",
+	2: "ENABLED",
+}
+
+func (e OnLoginStartupStatus) String() string {
+	if v, ok := OnLoginStartupStatusRevMap[e]; ok {
+		return v
+	}
+	return fmt.Sprintf("%v", int(e))
 }
 
 type StopArg struct {
@@ -148,6 +179,13 @@ type DbGetArg struct {
 	Key       DbKey `codec:"key" json:"key"`
 }
 
+type SetNixOnLoginStartupArg struct {
+	Enabled bool `codec:"enabled" json:"enabled"`
+}
+
+type GetNixOnLoginStartupArg struct {
+}
+
 type CtlInterface interface {
 	Stop(context.Context, StopArg) error
 	StopService(context.Context, StopServiceArg) error
@@ -159,6 +197,8 @@ type CtlInterface interface {
 	DbDelete(context.Context, DbDeleteArg) error
 	DbPut(context.Context, DbPutArg) error
 	DbGet(context.Context, DbGetArg) (*DbValue, error)
+	SetNixOnLoginStartup(context.Context, bool) error
+	GetNixOnLoginStartup(context.Context) (OnLoginStartupStatus, error)
 }
 
 func CtlProtocol(i CtlInterface) rpc.Protocol {
@@ -315,6 +355,31 @@ func CtlProtocol(i CtlInterface) rpc.Protocol {
 					return
 				},
 			},
+			"setNixOnLoginStartup": {
+				MakeArg: func() interface{} {
+					var ret [1]SetNixOnLoginStartupArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SetNixOnLoginStartupArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SetNixOnLoginStartupArg)(nil), args)
+						return
+					}
+					err = i.SetNixOnLoginStartup(ctx, typedArgs[0].Enabled)
+					return
+				},
+			},
+			"getNixOnLoginStartup": {
+				MakeArg: func() interface{} {
+					var ret [1]GetNixOnLoginStartupArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.GetNixOnLoginStartup(ctx)
+					return
+				},
+			},
 		},
 	}
 }
@@ -324,55 +389,66 @@ type CtlClient struct {
 }
 
 func (c CtlClient) Stop(ctx context.Context, __arg StopArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.ctl.stop", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.ctl.stop", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c CtlClient) StopService(ctx context.Context, __arg StopServiceArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.ctl.stopService", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.ctl.stopService", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c CtlClient) LogRotate(ctx context.Context, sessionID int) (err error) {
 	__arg := LogRotateArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.ctl.logRotate", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.ctl.logRotate", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c CtlClient) Reload(ctx context.Context, sessionID int) (err error) {
 	__arg := ReloadArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.ctl.reload", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.ctl.reload", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c CtlClient) DbNuke(ctx context.Context, sessionID int) (err error) {
 	__arg := DbNukeArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.ctl.dbNuke", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.ctl.dbNuke", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c CtlClient) DbClean(ctx context.Context, __arg DbCleanArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.ctl.dbClean", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.ctl.dbClean", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c CtlClient) AppExit(ctx context.Context, sessionID int) (err error) {
 	__arg := AppExitArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.ctl.appExit", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.ctl.appExit", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c CtlClient) DbDelete(ctx context.Context, __arg DbDeleteArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.ctl.dbDelete", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.ctl.dbDelete", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c CtlClient) DbPut(ctx context.Context, __arg DbPutArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.ctl.dbPut", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.ctl.dbPut", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c CtlClient) DbGet(ctx context.Context, __arg DbGetArg) (res *DbValue, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.ctl.dbGet", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.ctl.dbGet", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c CtlClient) SetNixOnLoginStartup(ctx context.Context, enabled bool) (err error) {
+	__arg := SetNixOnLoginStartupArg{Enabled: enabled}
+	err = c.Cli.Call(ctx, "keybase.1.ctl.setNixOnLoginStartup", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c CtlClient) GetNixOnLoginStartup(ctx context.Context) (res OnLoginStartupStatus, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.ctl.getNixOnLoginStartup", []interface{}{GetNixOnLoginStartupArg{}}, &res, 0*time.Millisecond)
 	return
 }

@@ -30,7 +30,7 @@ const CreateChannel = (props: Props) => (
           rowsMax={2}
           // From go/chat/msgchecker/constants.go#HeadlineMaxLength
           maxLength={280}
-          hintText="Description or topic (optional)"
+          hintText="Add a description or topic..."
           value={props.description}
           onChangeText={description => props.onDescriptionChange(description)}
         />

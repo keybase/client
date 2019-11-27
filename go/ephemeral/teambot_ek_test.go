@@ -36,10 +36,6 @@ func TestNewTeambotEK(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, botua.Username, res.User.Username)
 
-	merkleRootPtr, err := mctx.G().GetMerkleClient().FetchRootFromServer(mctx, libkb.EphemeralKeyMerkleFreshness)
-	require.NoError(t, err)
-	merkleRoot := *merkleRootPtr
-
 	ek, _, err := mctx.G().GetEKLib().GetOrCreateLatestTeambotEK(mctx, teamID, botuaUID.ToBytes())
 	require.NoError(t, err)
 	typ, err := ek.KeyType()
@@ -62,11 +58,6 @@ func TestNewTeambotEK(t *testing.T) {
 
 	// bot users don't have access to team secrets so they can't get the teamEK
 	_, _, err = mctx2.G().GetEKLib().GetOrCreateLatestTeamEK(mctx2, teamID)
-	require.Error(t, err)
-
-	// this fails as well since bots can't sign things on behalf of the team
-	// either, even if we pass a valid teamEK from the non-bot
-	_, err = publishNewTeambotEK(mctx2, teamID, botuaUID, teamEK, merkleRoot)
 	require.Error(t, err)
 
 	keyer := NewTeambotEphemeralKeyer()

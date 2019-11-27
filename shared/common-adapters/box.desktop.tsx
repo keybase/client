@@ -55,7 +55,9 @@ const box2 = (props: Box2Props, ref: React.Ref<HTMLDivElement>) => {
       onDragLeave={props.onDragLeave}
       onDragOver={props.onDragOver}
       onDrop={props.onDrop}
+      onMouseDown={props.onMouseDown}
       onMouseLeave={props.onMouseLeave}
+      onMouseUp={props.onMouseUp}
       onMouseOver={props.onMouseOver}
       onCopyCapture={props.onCopyCapture}
       className={className}

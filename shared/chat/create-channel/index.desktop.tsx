@@ -49,7 +49,7 @@ const CreateChannel = (props: Props) => (
           // From go/chat/msgchecker/constants.go#HeadlineMaxLength
           maxLength={280}
           style={{minWidth: 450}}
-          hintText="Description or topic (optional)"
+          hintText="Add a description or topic..."
           value={props.description}
           onEnterKeyDown={props.onSubmit}
           onChangeText={description => props.onDescriptionChange(description)}

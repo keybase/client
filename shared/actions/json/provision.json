@@ -5,7 +5,7 @@
     "import {RPCError} from '../util/errors'"
   ],
   "actions": {
-    "startProvision": {"initUsername?": "string"},
+    "startProvision": {"fromReset?": "boolean", "initUsername?": "string"},
     "provisionError": {"error": "HiddenString | null"},
     "submitUsername": {"username": "string"},
     "submitPassword": {"password": "HiddenString"},
@@ -51,6 +51,10 @@
     "forgotUsernameResult": {
       "result": "string"
     },
-    "cancelProvision": {}
+    "cancelProvision": {},
+    "backToDeviceList": {"username": "string"},
+    "provisionDone": {
+      "_description": "We're no longer holding an open provisioning session; it is safe to start another."
+    }
   }
 }

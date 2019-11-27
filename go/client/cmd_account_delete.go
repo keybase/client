@@ -55,11 +55,11 @@ func (c *CmdAccountDelete) promptToConfirm() error {
 	if err != nil {
 		return err
 	}
-	randomPW, err := cli.LoadHasRandomPw(context.Background(), keybase1.LoadHasRandomPwArg{})
+	passphraseState, err := cli.LoadPassphraseState(context.Background(), 0)
 	if err != nil {
 		return err
 	}
-	if randomPW {
+	if passphraseState == keybase1.PassphraseState_RANDOM {
 		expected := fmt.Sprintf("I want to delete my account %s", c.G().Env.GetUsername().String())
 		promptStr := fmt.Sprintf("Please type '%s' to confirm: ", expected)
 		ret, err := ui.Prompt(PromptDescriptorAccountDeleteConfirmation, promptStr)

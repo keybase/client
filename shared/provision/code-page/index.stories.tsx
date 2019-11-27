@@ -2,15 +2,16 @@ import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import CodePage2 from '.'
 import {Box2, QRNotAuthorized} from '../../common-adapters'
-
+import * as Constants from '../../constants/provision'
+import * as DevicesConstants from '../../constants/devices'
 const textCodeShort = 'scrub disagree sheriff holiday cabin habit mushroom member'
 const textCodeLong = textCodeShort + ' four'
 // Not using the container on purpose since i want every variant
 const derivedProps = (
-  currentDeviceAlreadyProvisioned,
-  currentDeviceType,
-  otherDeviceName,
-  otherDeviceType
+  currentDeviceAlreadyProvisioned: boolean,
+  currentDeviceType: 'desktop' | 'mobile',
+  otherDeviceName: string,
+  otherDeviceType: 'desktop' | 'mobile'
 ) => {
   const currentDeviceName = currentDeviceAlreadyProvisioned
     ? currentDeviceType === 'mobile'
@@ -18,6 +19,7 @@ const derivedProps = (
       : 'oldMacMini'
     : ''
   return {
+    currentDevice: DevicesConstants.makeDevice({deviceNumberOfType: 3, type: currentDeviceType}),
     currentDeviceAlreadyProvisioned,
     currentDeviceName,
     currentDeviceType,
@@ -25,10 +27,10 @@ const derivedProps = (
     onBack: Sb.action('onBack'),
     onClose: Sb.action('onClose'),
     onSubmitTextCode: Sb.action('onSubmitTextCode'),
-    otherDeviceName,
-    otherDeviceType,
+    otherDevice: {...Constants.makeDevice(), name: otherDeviceName, type: otherDeviceType},
     setHeaderBackgroundColor: Sb.action('setHeaderBackgroundColor'),
     textCode: otherDeviceType === 'mobile' || currentDeviceType === 'mobile' ? textCodeLong : textCodeShort,
+    waiting: false,
   }
 }
 
@@ -46,7 +48,11 @@ const load = () => {
   )
 
   // make it easy to see both sides of the provisioning
-  const variants = [
+  const variants: Array<{
+    current: 'desktop' | 'mobile'
+    otherType: 'desktop' | 'mobile'
+    provisioned: boolean
+  }> = [
     {current: 'desktop', otherType: 'desktop', provisioned: true},
     {current: 'desktop', otherType: 'desktop', provisioned: false},
     {current: 'mobile', otherType: 'mobile', provisioned: true},
@@ -86,7 +92,7 @@ const load = () => {
     const n2 = provisioned ? otherType : currentTypeName
     const storyName = `${n1} adding ${n2}`
 
-    const tabs = [null, ...CodePage2._validTabs(current as 'desktop' | 'mobile', otherType)]
+    const tabs = [null, ...CodePage2._validTabs(current, otherType)]
     tabs.forEach(
       tab =>
         (s = s.add(`${storyName} (tab: ${tab || 'defaultTab'})`, () => (

@@ -6,7 +6,7 @@ apply from: '../../node_modules/react-native-unimodules/gradle.groovy'
 import com.android.build.OutputFile
 
 // KB: app version
-def VERSION_NAME = "4.6.0"
+def VERSION_NAME = "5.1.0"
 
 /**
  * The react.gradle file registers a task for each build variant (e.g. bundleDebugJsAndAssets
@@ -86,6 +86,7 @@ project.ext.react = [
     // the root of your project, i.e. where "package.json" lives
     root: "../../",
     enableHermes: false,  // clean and rebuild if changing
+    enableV8: KB_USEV8 == 'true',  // clean and rebuild if changing
 ]
 
 
@@ -115,6 +116,7 @@ def jscFlavor = 'org.webkit:android-jsc:+'
  * and the benefits of using Hermes will therefore be sharply reduced.
  */
 def enableHermes = project.ext.react.get("enableHermes", false);
+def enableV8 = project.ext.react.get("enableV8", false);
 
 // KB: Number of commits, like ios
 def Integer getVersionCode() {
@@ -123,7 +125,7 @@ def Integer getVersionCode() {
         commandLine 'git', 'rev-list', 'HEAD', '--count'
         standardOutput = stdout
     }
-    return Integer.parseInt(stdout.toString().trim()) + 10316799 // plus bump it so its above the old version code
+    return Integer.parseInt(stdout.toString().trim()) + 10516799 // plus bump it so its above the old version code
 }
 
 project.logger.lifecycle('Version code: ' + getVersionCode().toString())
@@ -205,6 +207,13 @@ android {
             output.versionCodeOverride = getVersionCode()
         }
     }
+
+    packagingOptions {
+        if (enableV8) {
+            // Make sure libjsc.so does not packed in APK
+            exclude "**/libjsc.so"
+        }
+    }
 }
 
 // KB:
@@ -221,8 +230,11 @@ dependencies {
         def hermesPath = "../../node_modules/hermes-engine/android/";
         debugImplementation files(hermesPath + "hermes-debug.aar")
         releaseImplementation files(hermesPath + "hermes-release.aar")
+     } else if (enableV8) {
+        // Add v8-android - prebuilt libv8.so into APK
+        implementation 'org.chromium:v8-android:+'
     } else {
-      implementation jscFlavor
+        implementation jscFlavor
     }
 
     implementation 'androidx.multidex:multidex:2.0.1'

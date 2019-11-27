@@ -17,7 +17,7 @@ const Generate = props => (
         <br />
         This could take as long as a couple of minutes.
       </Kb.Text>
-      <Kb.Icon type="icon-loader-infinity-64" />
+      <Kb.Animation animationType="loadingInfinity" height={100} width={100} />
     </Kb.Box2>
   </Modal>
 )

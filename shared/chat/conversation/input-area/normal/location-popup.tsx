@@ -15,10 +15,11 @@ type Props = Container.RouteProps<{conversationIDKey: Types.ConversationIDKey}>
 const LocationPopup = (props: Props) => {
   // state
   const conversationIDKey = Container.getRouteProps(props, 'conversationIDKey', Constants.noConversationIDKey)
-  const {httpSrvAddress, httpSrvToken, location} = Container.useSelector(state => ({
+  const {httpSrvAddress, httpSrvToken, location, username} = Container.useSelector(state => ({
     httpSrvAddress: state.config.httpSrvAddress,
     httpSrvToken: state.config.httpSrvToken,
     location: state.chat2.lastCoord,
+    username: state.config.username,
   }))
   const [mapLoaded, setMapLoaded] = React.useState(false)
   const [locationDenied, setLocationDenied] = React.useState(false)
@@ -57,9 +58,7 @@ const LocationPopup = (props: Props) => {
   const width = Math.ceil(Styles.dimensionWidth)
   const height = Math.ceil(Styles.dimensionHeight - 320)
   const mapSrc = location
-    ? `http://${httpSrvAddress}/map?lat=${location.lat}&lon=${
-        location.lon
-      }&width=${width}&height=${height}&token=${httpSrvToken}`
+    ? `http://${httpSrvAddress}/map?lat=${location.lat}&lon=${location.lon}&width=${width}&height=${height}&username=${username}&token=${httpSrvToken}`
     : ''
   return (
     <Kb.Modal
@@ -87,7 +86,7 @@ const LocationPopup = (props: Props) => {
             <Kb.Button
               disabled={locationDenied}
               fullWidth={true}
-              label="Share location for 1 hours"
+              label="Share location for 1 hour"
               onClick={() => onLocationShare('1h')}
               mode="Secondary"
               type="Default"
@@ -104,7 +103,6 @@ const LocationPopup = (props: Props) => {
               style={styles.liveButton}
               subLabel="Live location"
             />
-            <Kb.Divider />
             <Kb.Button
               disabled={locationDenied}
               fullWidth={true}

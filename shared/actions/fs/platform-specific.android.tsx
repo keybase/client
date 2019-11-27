@@ -4,7 +4,6 @@ import * as FsGen from '../fs-gen'
 import * as Constants from '../../constants/fs'
 import * as Types from '../../constants/types/fs'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import RNFetchBlob from 'rn-fetch-blob'
 import {TypedState} from '../../util/container'
 import {PermissionsAndroid} from 'react-native'
 import nativeSaga from './common.native'
@@ -28,8 +27,8 @@ export const ensureDownloadPermissionPromise = async () => {
 
 const finishedRegularDownload = async (state: TypedState, action: FsGen.FinishedRegularDownloadPayload) => {
   const {downloadID, mimeType} = action.payload
-  const downloadState = state.fs.downloads.state.get(downloadID, Constants.emptyDownloadState)
-  const downloadInfo = state.fs.downloads.info.get(downloadID, Constants.emptyDownloadInfo)
+  const downloadState = state.fs.downloads.state.get(downloadID) || Constants.emptyDownloadState
+  const downloadInfo = state.fs.downloads.info.get(downloadID) || Constants.emptyDownloadInfo
   if (downloadState === Constants.emptyDownloadState || downloadInfo === Constants.emptyDownloadInfo) {
     logger.warn('missing download', downloadID)
     return null
@@ -38,7 +37,7 @@ const finishedRegularDownload = async (state: TypedState, action: FsGen.Finished
     return null
   }
   // @ts-ignore codemod-issue
-  await RNFetchBlob.android.addCompleteDownload({
+  await require('rn-fetch-blob').default.android.addCompleteDownload({
     description: `Keybase downloaded ${downloadInfo.filename}`,
     mime: mimeType,
     path: downloadState.localPath,
@@ -54,8 +53,8 @@ const configureDownload = (state: TypedState) =>
   RPCTypes.SimpleFSSimpleFSConfigureDownloadRpcPromise({
     // Android's cache dir is (when I tried) [app]/cache but Go side uses
     // [app]/.cache by default, which can't be used for sharing to other apps.
-    cacheDirOverride: RNFetchBlob.fs.dirs.CacheDir,
-    downloadDirOverride: RNFetchBlob.fs.dirs.DownloadDir,
+    cacheDirOverride: require('rn-fetch-blob').default.fs.dirs.CacheDir,
+    downloadDirOverride: require('rn-fetch-blob').default.fs.dirs.DownloadDir,
   })
 
 export default function* platformSpecificSaga() {

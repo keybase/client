@@ -20,11 +20,11 @@ type State = {
 type Props = {
   _loadProxyData: () => void
   _resetCertPinningToggle: () => void
-  allowTlsMitmToggle: boolean | null
+  allowTlsMitmToggle?: boolean
   onBack: () => void
   onDisableCertPinning: () => void
   onEnableCertPinning: () => void
-  proxyData: RPCTypes.ProxyData
+  proxyData?: RPCTypes.ProxyData
   saveProxyData: (proxyData: RPCTypes.ProxyData) => void
 }
 
@@ -37,7 +37,11 @@ class ProxySettings extends React.Component<Props, State> {
 
   componentDidUpdate(prevProps: Props) {
     if (prevProps.proxyData !== this.props.proxyData) {
+      if (!this.props.proxyData) {
+        return
+      }
       const addressPort = this.props.proxyData.addressWithPort.split(':')
+      if (!addressPort) return
       const address = addressPort.slice(0, addressPort.length - 1).join(':')
       var port = '8080'
       if (addressPort.length >= 2) {
@@ -131,8 +135,8 @@ class ProxySettings extends React.Component<Props, State> {
   render() {
     return (
       <Kb.Box style={styles.proxyContainer}>
-        <Kb.Text type="BodyBig" style={styles.text}>
-          Proxy Settings
+        <Kb.Text type="Header" style={styles.text}>
+          Proxy settings
         </Kb.Text>
         <Kb.Box style={styles.flexButtons}>
           {proxyTypeList.map(proxyType => (

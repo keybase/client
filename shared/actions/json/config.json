@@ -36,6 +36,10 @@
     "logout": {
       "_description": "someone wants to log out"
     },
+    "logoutAndTryToLogInAs": {
+      "_description": "Log out the current user, keeping secrets stored. Then prefill the username for provisioned another user to log in.",
+      "username": "string"
+    },
     "logoutHandshake": {
       "_description": "starting the logout process. Things that need to happen before we see the app should call logoutHandshakeWait",
       "version": "number"
@@ -57,6 +61,9 @@
     "changedActive": {"userActive": "boolean"},
     "mobileAppState": {"nextAppState": ["'active'", "'background'", "'inactive'"]},
     "showMain": {},
+    "startupFirstIdle": {
+        "_description": "emitted when we have some idle time after loading. useful to load thing but not slow down startup"
+    },
     "bootstrapStatusLoaded": {
       "deviceID": "string",
       "deviceName": "string",
@@ -73,8 +80,8 @@
       "followees": "Array<string>"
     },
     "daemonError": {"daemonError?": "Error"},
-    "setAccounts": { "configuredAccounts": "Array<RPCTypes.ConfiguredAccount>" },
-    "setDefaultUsername": { "username": "string" },
+    "setAccounts": {"configuredAccounts": "Array<RPCTypes.ConfiguredAccount>"},
+    "setDefaultUsername": {"username": "string"},
     "globalError": {"globalError?": "Error | RPCError"},
     "pushLoaded": {"pushLoaded": "boolean"},
     "setStartupDetails": {
@@ -85,16 +92,19 @@
       "startupFollowUser": "string",
       "startupSharePath?": "FsTypes.LocalPath"
     },
-    "setOpenAtLogin": { "openAtLogin": "boolean", },
-    "setNotifySound": { "notifySound": "boolean", },
+    "setOpenAtLogin": {"openAtLogin": "boolean"},
+    "setNotifySound": {"notifySound": "boolean"},
     "setDeletedSelf": {"deletedUsername": "string"},
-    "persistRoute": {"path": "Array<any>"},
+    "persistRoute": {"path?": "Array<any>"},
     "setNavigator": {"navigator": "any"},
     "loggedOut": {},
     "loggedIn": {
       "_description": "Used internally to know we were logged in. if you want to react to being logged in likely you want bootstrapStatusLoaded",
       "causedBySignup": "boolean",
       "causedByStartup": "boolean"
+    },
+    "setUserSwitching": {
+      "userSwitching": "boolean"
     },
     "updateMenubarWindowID": {"id": "number"},
     "copyToClipboard": {"text": "string"},
@@ -117,7 +127,7 @@
     "setDarkModePreference": {
       "preference": ["'system'", "'alwaysDark'", "'alwaysLight'", "undefined"]
     },
-    "setSystemDarkMode": { "dark": "boolean" },
+    "setSystemDarkMode": {"dark": "boolean"},
     "updateHTTPSrvInfo": {
       "address": "string",
       "token": "string"
@@ -129,10 +139,18 @@
     },
     "updateWindowState": {
       "_description": "main electron window wants to store its state",
-      "windowState": "Types.WindowState",
+      "windowState": "Types.WindowState"
     },
     "setUseNativeFrame": {
       "useNativeFrame": "boolean"
+    },
+    "setWhatsNewLastSeenVersion": {
+      "_description": "Set the latest version number that a user has seen from Gregor. This is used to set the badged state of the 'What's New' radio icon",
+      "lastSeenVersion": "string"
+    },
+    "loadNixOnLoginStartup": {},
+    "loadedNixOnLoginStartup": {
+      "status": "boolean | null"
     }
   }
 }

@@ -2,7 +2,7 @@
 import Badge from './badge'
 import {Box, Box2} from './box'
 import ClickableBox from './clickable-box'
-import Icon, {castPlatformStyles} from './icon'
+import Icon from './icon'
 import * as React from 'react'
 import Text from './text'
 import * as Styles from '../styles'
@@ -42,14 +42,17 @@ export type Props = {
   className?: string
 }
 
-const Progress = ({small, white}) => (
-  <Kb.Box style={styles.progressContainer}>
-    <Kb.Icon
-      style={castPlatformStyles(small ? styles.progressSmall : styles.progressNormal)}
-      type={white ? 'icon-progress-white-animated' : 'icon-progress-grey-animated'}
-    />
-  </Kb.Box>
-)
+const Progress = ({small, white}) => {
+  const Animation = require('./animation').default
+  return (
+    <Kb.Box style={styles.progressContainer}>
+      <Animation
+        animationType={white ? 'spinnerWhite' : 'spinner'}
+        style={small ? styles.progressSmall : styles.progressNormal}
+      />
+    </Kb.Box>
+  )
+}
 
 const Button = React.forwardRef<ClickableBox, Props>((props: Props, ref: React.Ref<ClickableBox>) => {
   const {mode = 'Primary', type = 'Default'} = props
@@ -250,7 +253,7 @@ const containerStyles = Styles.styleSheetCreate(() => {
 const commonLabel = () =>
   Styles.platformStyles({
     common: {
-      color: Styles.globalColors.white,
+      color: Styles.globalColors.whiteOrWhite,
       textAlign: 'center',
     },
     isElectron: {whiteSpace: 'pre'},
@@ -260,7 +263,7 @@ const commonLabel = () =>
 const labelStyles = Styles.styleSheetCreate(() => {
   const primaryWhiteBgLabel = {
     ...commonLabel(),
-    color: Styles.globalColors.white,
+    color: Styles.globalColors.whiteOrWhite,
   }
   return {
     PrimaryDefault: primaryWhiteBgLabel,
@@ -291,7 +294,7 @@ const backgroundColorLabelStyles = Styles.styleSheetCreate(() => ({
   Primarygreen: {...commonLabel(), color: Styles.globalColors.greenDark},
   Primarypurple: {...commonLabel(), color: Styles.globalColors.purpleDark},
   Primaryblack: {...commonLabel(), color: Styles.globalColors.black},
-  Primaryyellow: {...commonLabel(), color: Styles.globalColors.brown_75},
+  Primaryyellow: {...commonLabel(), color: Styles.globalColors.brown_75OrYellow},
   Secondary: {...commonLabel(), color: Styles.globalColors.white},
 }))
 

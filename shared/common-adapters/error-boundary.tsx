@@ -4,7 +4,7 @@ import ScrollView from './scroll-view'
 import Text from './text'
 import Icon from './icon'
 import logger from '../logger'
-import {globalStyles, globalColors, isMobile, globalMargins, platformStyles} from '../styles'
+import * as Styles from '../styles'
 
 // Although not mentioned in
 // https://reactjs.org/blog/2017/07/26/error-handling-in-react-16.html ,
@@ -23,6 +23,7 @@ type AllErrorInfo = {
 type FallbackProps = {
   closeOnClick?: () => void
   info: AllErrorInfo
+  style?: Styles.StylesCrossPlatform
 }
 
 const detailHeaderStyle = {
@@ -36,26 +37,43 @@ const detailContainerStyle = {
   padding: 10,
 }
 
-const detailStyle = platformStyles({
+const detailStyle = Styles.platformStyles({
   isElectron: {
     whiteSpace: 'pre',
   },
 })
 
-const Fallback = ({closeOnClick, info: {name, message, stack, componentStack}}: FallbackProps) => {
+const Fallback = ({closeOnClick, info: {name, message, stack, componentStack}, style}: FallbackProps) => {
   return (
-    <ScrollView style={{height: '100%', padding: globalMargins.medium, position: 'relative', width: '100%'}}>
-      <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, justifyContent: 'center'}}>
+    <ScrollView
+      style={Styles.collapseStyles([
+        {
+          height: '100%',
+          padding: Styles.globalMargins.medium,
+          position: 'relative',
+          width: '100%',
+        },
+        style,
+      ])}
+    >
+      <Box
+        style={{
+          ...Styles.globalStyles.flexBoxColumn,
+          alignItems: 'center',
+          flex: 1,
+          justifyContent: 'center',
+        }}
+      >
         <Text type="Header">Something went wrong...</Text>
         <Text type="Body" style={{marginBottom: 10, marginTop: 10}}>
           Please submit a bug report by
-          {isMobile ? ' going into Settings / Feedback' : ' running this command in your terminal:'}
+          {Styles.isMobile ? ' going into Settings / Feedback' : ' running this command in your terminal:'}
         </Text>
-        {!isMobile && (
+        {!Styles.isMobile && (
           <Box
             style={{
-              ...globalStyles.flexBoxColumn,
-              backgroundColor: globalColors.blueDarker2,
+              ...Styles.globalStyles.flexBoxColumn,
+              backgroundColor: Styles.globalColors.blueDarker2,
               borderRadius: 4,
               minWidth: 100,
               padding: 10,
@@ -91,7 +109,7 @@ const Fallback = ({closeOnClick, info: {name, message, stack, componentStack}}: 
       {closeOnClick && (
         <Icon
           type="iconfont-close"
-          style={{position: 'absolute', right: globalMargins.tiny, top: globalMargins.tiny}}
+          style={{position: 'absolute', right: Styles.globalMargins.tiny, top: Styles.globalMargins.tiny}}
           onClick={closeOnClick}
         />
       )}
@@ -102,6 +120,7 @@ const Fallback = ({closeOnClick, info: {name, message, stack, componentStack}}: 
 type Props = {
   children: React.ReactNode
   closeOnClick?: () => void
+  fallbackStyle?: Styles.StylesCrossPlatform
 }
 
 type State = {
@@ -112,7 +131,7 @@ class ErrorBoundary extends React.PureComponent<Props, State> {
   state = {info: null}
 
   componentDidUpdate(prevProps: Props) {
-    if (this.props.children !== prevProps.children) {
+    if (this.props.children !== prevProps.children && this.state.info) {
       this.setState(p => (p.info ? {info: null} : null))
     }
   }
@@ -131,7 +150,7 @@ class ErrorBoundary extends React.PureComponent<Props, State> {
   render() {
     const info = this.state.info
     if (info) {
-      return <Fallback info={info} closeOnClick={this.props.closeOnClick} />
+      return <Fallback info={info} closeOnClick={this.props.closeOnClick} style={this.props.fallbackStyle} />
     }
     return this.props.children
   }

@@ -9,7 +9,7 @@ import path from 'path'
 import {NotifyPopup} from '../../native/notifications'
 import {execFile} from 'child_process'
 import {getEngine} from '../../engine'
-import {isWindows, socketPath, defaultUseNativeFrame} from '../../constants/platform.desktop'
+import {isLinux, isWindows, socketPath, defaultUseNativeFrame} from '../../constants/platform.desktop'
 import {kbfsNotification} from '../../util/kbfs-notifications'
 import {quit} from '../../desktop/app/ctl.desktop'
 import {writeLogLinesToFile} from '../../util/forward-logs'
@@ -17,10 +17,7 @@ import InputMonitor from './input-monitor.desktop'
 import {skipAppFocusActions} from '../../local-debug.desktop'
 import * as Container from '../../util/container'
 
-export function showShareActionSheetFromURL() {
-  throw new Error('Show Share Action - unsupported on this platform')
-}
-export function showShareActionSheetFromFile() {
+export function showShareActionSheet() {
   throw new Error('Show Share Action - unsupported on this platform')
 }
 export function saveAttachmentDialog() {
@@ -308,11 +305,11 @@ const saveUseNativeFrame = async (state: Container.TypedState) => {
 
 function* initializeUseNativeFrame() {
   try {
-    const val: Saga.RPCPromiseType<
-      typeof RPCTypes.configGuiGetValueRpcPromise
-    > = yield RPCTypes.configGuiGetValueRpcPromise({
-      path: nativeFrameKey,
-    })
+    const val: Saga.RPCPromiseType<typeof RPCTypes.configGuiGetValueRpcPromise> = yield RPCTypes.configGuiGetValueRpcPromise(
+      {
+        path: nativeFrameKey,
+      }
+    )
     const useNativeFrame = val.b === undefined || val.b === null ? defaultUseNativeFrame : val.b
     yield Saga.put(ConfigGen.createSetUseNativeFrame({useNativeFrame}))
   } catch (_) {}
@@ -333,11 +330,11 @@ const saveWindowState = async (state: Container.TypedState) => {
 const notifySoundKey = 'notifySound'
 function* initializeNotifySound() {
   try {
-    const val: Saga.RPCPromiseType<
-      typeof RPCTypes.configGuiGetValueRpcPromise
-    > = yield RPCTypes.configGuiGetValueRpcPromise({
-      path: notifySoundKey,
-    })
+    const val: Saga.RPCPromiseType<typeof RPCTypes.configGuiGetValueRpcPromise> = yield RPCTypes.configGuiGetValueRpcPromise(
+      {
+        path: notifySoundKey,
+      }
+    )
     const notifySound: boolean | undefined = val.b || undefined
     const state: Container.TypedState = yield Saga.selectState()
     if (notifySound !== undefined && notifySound !== state.config.notifySound) {
@@ -360,11 +357,11 @@ const setNotifySound = async (state: Container.TypedState) => {
 const openAtLoginKey = 'openAtLogin'
 function* initializeOpenAtLogin() {
   try {
-    const val: Saga.RPCPromiseType<
-      typeof RPCTypes.configGuiGetValueRpcPromise
-    > = yield RPCTypes.configGuiGetValueRpcPromise({
-      path: openAtLoginKey,
-    })
+    const val: Saga.RPCPromiseType<typeof RPCTypes.configGuiGetValueRpcPromise> = yield RPCTypes.configGuiGetValueRpcPromise(
+      {
+        path: openAtLoginKey,
+      }
+    )
 
     const openAtLogin: boolean | undefined = val.b || undefined
     const state: Container.TypedState = yield Saga.selectState()
@@ -384,13 +381,27 @@ const setOpenAtLogin = async (state: Container.TypedState) => {
     },
   })
 
-  if (!__DEV__ && SafeElectron.getApp().getLoginItemSettings().openAtLogin !== openAtLogin) {
-    logger.info(`Login item settings changed! now ${openAtLogin}`)
-    SafeElectron.getApp().setLoginItemSettings({openAtLogin})
+  if (__DEV__) return
+  if (isLinux) {
+    const enabled =
+      (await RPCTypes.ctlGetNixOnLoginStartupRpcPromise()) === RPCTypes.OnLoginStartupStatus.enabled
+    if (enabled !== openAtLogin) await setNixOnLoginStartup(openAtLogin)
+  } else {
+    if (SafeElectron.getApp().getLoginItemSettings().openAtLogin !== openAtLogin) {
+      logger.info(`Login item settings changed! now ${openAtLogin}`)
+      SafeElectron.getApp().setLoginItemSettings({openAtLogin})
+    }
   }
 }
 
+const setNixOnLoginStartup = async (enabled: boolean) => {
+  RPCTypes.ctlSetNixOnLoginStartupRpcPromise({enabled}).catch(err => {
+    logger.warn(`Error in sending ctlSetNixOnLoginStartup: ${err.message}`)
+  })
+}
+
 export const requestLocationPermission = () => Promise.resolve()
+export const requestAudioPermission = () => Promise.resolve()
 export const clearWatchPosition = () => {}
 export const watchPositionForMap = () => Promise.resolve(0)
 

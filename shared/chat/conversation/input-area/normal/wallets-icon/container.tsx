@@ -11,44 +11,43 @@ type OwnProps = {
   style?: Styles.StylesCrossPlatform
 }
 
-const mapStateToProps = state => ({
-  _meta: Constants.getMeta(state, Constants.getSelectedConversation(state)),
-  _you: state.config.username,
-  isNew: state.chat2.isWalletsNew,
-})
-
-const mapDispatchToProps = dispatch => ({
-  _onClick: (to: string, wasNew: boolean, isRequest: boolean) => {
-    if (wasNew) {
-      dispatch(Chat2Gen.createHandleSeeingWallets())
+const WalletsIcon = Container.namedConnect(
+  state => {
+    const meta = Constants.getMeta(state, Constants.getSelectedConversation(state))
+    const otherParticipants = meta.participants.filter(u => u !== state.config.username)
+    if (otherParticipants.length !== 1) {
+      logger.warn('WalletsIcon: conversation has more than 1 other user. selecting first')
     }
-    dispatch(
-      WalletsGen.createOpenSendRequestForm({
-        isRequest,
-        recipientType: 'keybaseUser',
-        to,
-      })
-    )
+    const _to = otherParticipants[0]
+    return {
+      _to,
+      isNew: state.chat2.isWalletsNew,
+    }
   },
-})
-
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
-  const otherParticipants = stateProps._meta.participants.filter(u => u !== stateProps._you)
-  if (otherParticipants.size !== 1) {
-    logger.warn('WalletsIcon: conversation has more than 1 other user. selecting first')
-  }
-  const to = otherParticipants.first()
-  return {
-    isNew: stateProps.isNew,
-    onRequest: () => dispatchProps._onClick(to, stateProps.isNew, true),
-    onSend: () => dispatchProps._onClick(to, stateProps.isNew, false),
-    size: ownProps.size,
-    style: ownProps.style,
-  }
-}
-
-const WalletsIcon = Container.namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'WalletsIcon')(
-  WalletsIconRender
-)
+  dispatch => ({
+    _onClick: (to: string, wasNew: boolean, isRequest: boolean) => {
+      if (wasNew) {
+        dispatch(Chat2Gen.createHandleSeeingWallets())
+      }
+      dispatch(
+        WalletsGen.createOpenSendRequestForm({
+          isRequest,
+          recipientType: 'keybaseUser',
+          to,
+        })
+      )
+    },
+  }),
+  (stateProps, dispatchProps, ownProps: OwnProps) => {
+    return {
+      isNew: stateProps.isNew,
+      onRequest: () => dispatchProps._onClick(stateProps._to, stateProps.isNew, true),
+      onSend: () => dispatchProps._onClick(stateProps._to, stateProps.isNew, false),
+      size: ownProps.size,
+      style: ownProps.style,
+    }
+  },
+  'WalletsIcon'
+)(WalletsIconRender)
 
 export default WalletsIcon

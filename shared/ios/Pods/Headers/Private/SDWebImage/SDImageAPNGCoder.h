@@ -1,1 +1,1 @@
-../../../SDWebImage/SDWebImage/SDImageAPNGCoder.h
+../../../SDWebImage/SDWebImage/Core/SDImageAPNGCoder.h

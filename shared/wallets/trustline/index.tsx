@@ -106,6 +106,7 @@ const Body = (props: BodyProps) => {
   React.useEffect(() => {
     props.refresh()
     return () => props.clearTrustlineModal()
+    // eslint-disable-next-line
   }, [])
   const {onFocusChange} = props
   return (
@@ -131,11 +132,7 @@ const Body = (props: BodyProps) => {
             <Kb.Banner color="red">
               <Kb.BannerParagraph
                 bannerColor="red"
-                content={`Stellar holds ${
-                  Constants.trustlineHoldingBalance
-                } XLM per trustline, and your available Lumens balance is ${
-                  props.balanceAvailableToSend
-                } XLM.`}
+                content={`Stellar holds ${Constants.trustlineHoldingBalance} XLM per trustline, and your available Lumens balance is ${props.balanceAvailableToSend} XLM.`}
               />
             </Kb.Banner>
           )}
@@ -155,7 +152,7 @@ const Body = (props: BodyProps) => {
         </>
       ) : (
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.grow} centerChildren={true}>
-          <Kb.ProgressIndicator />
+          <Kb.ProgressIndicator type="Large" />
         </Kb.Box2>
       )}
     </Kb.Box2>

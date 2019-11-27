@@ -58,8 +58,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   you: stateProps.you,
 })
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
-)(SystemChangeRetention)
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(SystemChangeRetention)

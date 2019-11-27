@@ -1,11 +1,13 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/user.avdl
 
 package keybase1
 
 import (
+	"fmt"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type TrackProof struct {
@@ -215,9 +217,10 @@ func (o UserSummary2Set) DeepCopy() UserSummary2Set {
 }
 
 type InterestingPerson struct {
-	Uid      UID    `codec:"uid" json:"uid"`
-	Username string `codec:"username" json:"username"`
-	Fullname string `codec:"fullname" json:"fullname"`
+	Uid        UID               `codec:"uid" json:"uid"`
+	Username   string            `codec:"username" json:"username"`
+	Fullname   string            `codec:"fullname" json:"fullname"`
+	ServiceMap map[string]string `codec:"serviceMap" json:"serviceMap"`
 }
 
 func (o InterestingPerson) DeepCopy() InterestingPerson {
@@ -225,6 +228,18 @@ func (o InterestingPerson) DeepCopy() InterestingPerson {
 		Uid:      o.Uid.DeepCopy(),
 		Username: o.Username,
 		Fullname: o.Fullname,
+		ServiceMap: (func(x map[string]string) map[string]string {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]string, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := v
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.ServiceMap),
 	}
 }
 
@@ -251,14 +266,15 @@ func (o ProofSuggestionsRes) DeepCopy() ProofSuggestionsRes {
 }
 
 type ProofSuggestion struct {
-	Key           string             `codec:"key" json:"key"`
-	BelowFold     bool               `codec:"belowFold" json:"belowFold"`
-	ProfileText   string             `codec:"profileText" json:"profileText"`
-	ProfileIcon   []SizedImage       `codec:"profileIcon" json:"profileIcon"`
-	PickerText    string             `codec:"pickerText" json:"pickerText"`
-	PickerSubtext string             `codec:"pickerSubtext" json:"pickerSubtext"`
-	PickerIcon    []SizedImage       `codec:"pickerIcon" json:"pickerIcon"`
-	Metas         []Identify3RowMeta `codec:"metas" json:"metas"`
+	Key              string             `codec:"key" json:"key"`
+	BelowFold        bool               `codec:"belowFold" json:"belowFold"`
+	ProfileText      string             `codec:"profileText" json:"profileText"`
+	ProfileIcon      []SizedImage       `codec:"profileIcon" json:"profileIcon"`
+	ProfileIconWhite []SizedImage       `codec:"profileIconWhite" json:"profileIconWhite"`
+	PickerText       string             `codec:"pickerText" json:"pickerText"`
+	PickerSubtext    string             `codec:"pickerSubtext" json:"pickerSubtext"`
+	PickerIcon       []SizedImage       `codec:"pickerIcon" json:"pickerIcon"`
+	Metas            []Identify3RowMeta `codec:"metas" json:"metas"`
 }
 
 func (o ProofSuggestion) DeepCopy() ProofSuggestion {
@@ -277,6 +293,17 @@ func (o ProofSuggestion) DeepCopy() ProofSuggestion {
 			}
 			return ret
 		})(o.ProfileIcon),
+		ProfileIconWhite: (func(x []SizedImage) []SizedImage {
+			if x == nil {
+				return nil
+			}
+			ret := make([]SizedImage, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.ProfileIconWhite),
 		PickerText:    o.PickerText,
 		PickerSubtext: o.PickerSubtext,
 		PickerIcon: (func(x []SizedImage) []SizedImage {
@@ -320,17 +347,184 @@ func (o NextMerkleRootRes) DeepCopy() NextMerkleRootRes {
 	}
 }
 
+// PassphraseState values are used in .config.json, so should not be changed without a migration strategy
+type PassphraseState int
+
+const (
+	PassphraseState_KNOWN  PassphraseState = 0
+	PassphraseState_RANDOM PassphraseState = 1
+)
+
+func (o PassphraseState) DeepCopy() PassphraseState { return o }
+
+var PassphraseStateMap = map[string]PassphraseState{
+	"KNOWN":  0,
+	"RANDOM": 1,
+}
+
+var PassphraseStateRevMap = map[PassphraseState]string{
+	0: "KNOWN",
+	1: "RANDOM",
+}
+
+func (e PassphraseState) String() string {
+	if v, ok := PassphraseStateRevMap[e]; ok {
+		return v
+	}
+	return fmt.Sprintf("%v", int(e))
+}
+
 type CanLogoutRes struct {
-	CanLogout     bool   `codec:"canLogout" json:"canLogout"`
-	Reason        string `codec:"reason" json:"reason"`
-	SetPassphrase bool   `codec:"setPassphrase" json:"setPassphrase"`
+	CanLogout       bool            `codec:"canLogout" json:"canLogout"`
+	Reason          string          `codec:"reason" json:"reason"`
+	PassphraseState PassphraseState `codec:"passphraseState" json:"passphraseState"`
 }
 
 func (o CanLogoutRes) DeepCopy() CanLogoutRes {
 	return CanLogoutRes{
-		CanLogout:     o.CanLogout,
-		Reason:        o.Reason,
-		SetPassphrase: o.SetPassphrase,
+		CanLogout:       o.CanLogout,
+		Reason:          o.Reason,
+		PassphraseState: o.PassphraseState.DeepCopy(),
+	}
+}
+
+type UserPassphraseStateMsg struct {
+	PassphraseState PassphraseState `codec:"passphraseState" json:"state"`
+}
+
+func (o UserPassphraseStateMsg) DeepCopy() UserPassphraseStateMsg {
+	return UserPassphraseStateMsg{
+		PassphraseState: o.PassphraseState.DeepCopy(),
+	}
+}
+
+type UserBlockedRow struct {
+	Uid      UID    `codec:"uid" json:"block_uid"`
+	Username string `codec:"username" json:"block_username"`
+	Chat     *bool  `codec:"chat,omitempty" json:"chat,omitempty"`
+	Follow   *bool  `codec:"follow,omitempty" json:"follow,omitempty"`
+}
+
+func (o UserBlockedRow) DeepCopy() UserBlockedRow {
+	return UserBlockedRow{
+		Uid:      o.Uid.DeepCopy(),
+		Username: o.Username,
+		Chat: (func(x *bool) *bool {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Chat),
+		Follow: (func(x *bool) *bool {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Follow),
+	}
+}
+
+type UserBlockedBody struct {
+	Blocks   []UserBlockedRow `codec:"blocks" json:"blocks"`
+	Uid      UID              `codec:"uid" json:"blocker_uid"`
+	Username string           `codec:"username" json:"blocker_username"`
+}
+
+func (o UserBlockedBody) DeepCopy() UserBlockedBody {
+	return UserBlockedBody{
+		Blocks: (func(x []UserBlockedRow) []UserBlockedRow {
+			if x == nil {
+				return nil
+			}
+			ret := make([]UserBlockedRow, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Blocks),
+		Uid:      o.Uid.DeepCopy(),
+		Username: o.Username,
+	}
+}
+
+type UserBlockedSummary struct {
+	Blocker string   `codec:"blocker" json:"blocker"`
+	Blocked []string `codec:"blocked" json:"blocked"`
+}
+
+func (o UserBlockedSummary) DeepCopy() UserBlockedSummary {
+	return UserBlockedSummary{
+		Blocker: o.Blocker,
+		Blocked: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Blocked),
+	}
+}
+
+type UserBlock struct {
+	Username      string `codec:"username" json:"username"`
+	ChatBlocked   bool   `codec:"chatBlocked" json:"chatBlocked"`
+	FollowBlocked bool   `codec:"followBlocked" json:"followBlocked"`
+	CreateTime    *Time  `codec:"createTime,omitempty" json:"createTime,omitempty"`
+	ModifyTime    *Time  `codec:"modifyTime,omitempty" json:"modifyTime,omitempty"`
+}
+
+func (o UserBlock) DeepCopy() UserBlock {
+	return UserBlock{
+		Username:      o.Username,
+		ChatBlocked:   o.ChatBlocked,
+		FollowBlocked: o.FollowBlocked,
+		CreateTime: (func(x *Time) *Time {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.CreateTime),
+		ModifyTime: (func(x *Time) *Time {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ModifyTime),
+	}
+}
+
+type UserBlockArg struct {
+	Username       string `codec:"username" json:"username"`
+	SetChatBlock   *bool  `codec:"setChatBlock,omitempty" json:"setChatBlock,omitempty"`
+	SetFollowBlock *bool  `codec:"setFollowBlock,omitempty" json:"setFollowBlock,omitempty"`
+}
+
+func (o UserBlockArg) DeepCopy() UserBlockArg {
+	return UserBlockArg{
+		Username: o.Username,
+		SetChatBlock: (func(x *bool) *bool {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.SetChatBlock),
+		SetFollowBlock: (func(x *bool) *bool {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.SetFollowBlock),
 	}
 }
 
@@ -445,13 +639,11 @@ type FindNextMerkleRootAfterResetArg struct {
 	Prev       ResetMerkleRoot `codec:"prev" json:"prev"`
 }
 
-type LoadHasRandomPwArg struct {
-	SessionID      int  `codec:"sessionID" json:"sessionID"`
-	ForceRepoll    bool `codec:"forceRepoll" json:"forceRepoll"`
-	NoShortTimeout bool `codec:"noShortTimeout" json:"noShortTimeout"`
+type CanLogoutArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
-type CanLogoutArg struct {
+type LoadPassphraseStateArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
@@ -459,6 +651,25 @@ type UserCardArg struct {
 	SessionID  int    `codec:"sessionID" json:"sessionID"`
 	Username   string `codec:"username" json:"username"`
 	UseSession bool   `codec:"useSession" json:"useSession"`
+}
+
+type SetUserBlocksArg struct {
+	SessionID int            `codec:"sessionID" json:"sessionID"`
+	Blocks    []UserBlockArg `codec:"blocks" json:"blocks"`
+}
+
+type GetUserBlocksArg struct {
+	SessionID int      `codec:"sessionID" json:"sessionID"`
+	Usernames []string `codec:"usernames" json:"usernames"`
+}
+
+type ReportUserArg struct {
+	SessionID         int     `codec:"sessionID" json:"sessionID"`
+	Username          string  `codec:"username" json:"username"`
+	Reason            string  `codec:"reason" json:"reason"`
+	Comment           string  `codec:"comment" json:"comment"`
+	IncludeTranscript bool    `codec:"includeTranscript" json:"includeTranscript"`
+	ConvID            *string `codec:"convID,omitempty" json:"convID,omitempty"`
 }
 
 type BlockUserArg struct {
@@ -513,9 +724,12 @@ type UserInterface interface {
 	// at resetSeqno. You should pass it prev, which was the last known Merkle root at the time of
 	// the reset. Usually, we'll just turn up the next Merkle root, but not always.
 	FindNextMerkleRootAfterReset(context.Context, FindNextMerkleRootAfterResetArg) (NextMerkleRootRes, error)
-	LoadHasRandomPw(context.Context, LoadHasRandomPwArg) (bool, error)
 	CanLogout(context.Context, int) (CanLogoutRes, error)
+	LoadPassphraseState(context.Context, int) (PassphraseState, error)
 	UserCard(context.Context, UserCardArg) (*UserCard, error)
+	SetUserBlocks(context.Context, SetUserBlocksArg) error
+	GetUserBlocks(context.Context, GetUserBlocksArg) ([]UserBlock, error)
+	ReportUser(context.Context, ReportUserArg) error
 	BlockUser(context.Context, string) error
 	UnblockUser(context.Context, string) error
 }
@@ -839,21 +1053,6 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 					return
 				},
 			},
-			"loadHasRandomPw": {
-				MakeArg: func() interface{} {
-					var ret [1]LoadHasRandomPwArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]LoadHasRandomPwArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]LoadHasRandomPwArg)(nil), args)
-						return
-					}
-					ret, err = i.LoadHasRandomPw(ctx, typedArgs[0])
-					return
-				},
-			},
 			"canLogout": {
 				MakeArg: func() interface{} {
 					var ret [1]CanLogoutArg
@@ -869,6 +1068,21 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 					return
 				},
 			},
+			"loadPassphraseState": {
+				MakeArg: func() interface{} {
+					var ret [1]LoadPassphraseStateArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]LoadPassphraseStateArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]LoadPassphraseStateArg)(nil), args)
+						return
+					}
+					ret, err = i.LoadPassphraseState(ctx, typedArgs[0].SessionID)
+					return
+				},
+			},
 			"userCard": {
 				MakeArg: func() interface{} {
 					var ret [1]UserCardArg
@@ -881,6 +1095,51 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.UserCard(ctx, typedArgs[0])
+					return
+				},
+			},
+			"setUserBlocks": {
+				MakeArg: func() interface{} {
+					var ret [1]SetUserBlocksArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SetUserBlocksArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SetUserBlocksArg)(nil), args)
+						return
+					}
+					err = i.SetUserBlocks(ctx, typedArgs[0])
+					return
+				},
+			},
+			"getUserBlocks": {
+				MakeArg: func() interface{} {
+					var ret [1]GetUserBlocksArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetUserBlocksArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetUserBlocksArg)(nil), args)
+						return
+					}
+					ret, err = i.GetUserBlocks(ctx, typedArgs[0])
+					return
+				},
+			},
+			"reportUser": {
+				MakeArg: func() interface{} {
+					var ret [1]ReportUserArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ReportUserArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ReportUserArg)(nil), args)
+						return
+					}
+					err = i.ReportUser(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -926,49 +1185,49 @@ type UserClient struct {
 // They are "unchecked" in that the client is not verifying the info from the server.
 // If len(uids) > 500, the first 500 will be returned.
 func (c UserClient) LoadUncheckedUserSummaries(ctx context.Context, __arg LoadUncheckedUserSummariesArg) (res []UserSummary, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.loadUncheckedUserSummaries", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.user.loadUncheckedUserSummaries", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // Load a user from the server.
 func (c UserClient) LoadUser(ctx context.Context, __arg LoadUserArg) (res User, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.loadUser", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.user.loadUser", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c UserClient) LoadUserByName(ctx context.Context, __arg LoadUserByNameArg) (res User, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.loadUserByName", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.user.loadUserByName", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // Load a user + device keys from the server.
 func (c UserClient) LoadUserPlusKeys(ctx context.Context, __arg LoadUserPlusKeysArg) (res UserPlusKeys, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.loadUserPlusKeys", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.user.loadUserPlusKeys", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c UserClient) LoadUserPlusKeysV2(ctx context.Context, __arg LoadUserPlusKeysV2Arg) (res UserPlusKeysV2AllIncarnations, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.loadUserPlusKeysV2", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.user.loadUserPlusKeysV2", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // Load public keys for a user.
 func (c UserClient) LoadPublicKeys(ctx context.Context, __arg LoadPublicKeysArg) (res []PublicKey, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.loadPublicKeys", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.user.loadPublicKeys", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // Load my public keys (for logged in user).
 func (c UserClient) LoadMyPublicKeys(ctx context.Context, sessionID int) (res []PublicKey, err error) {
 	__arg := LoadMyPublicKeysArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.user.loadMyPublicKeys", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.user.loadMyPublicKeys", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // Load user settings (for logged in user).
 func (c UserClient) LoadMySettings(ctx context.Context, sessionID int) (res UserSettings, err error) {
 	__arg := LoadMySettingsArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.user.loadMySettings", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.user.loadMySettings", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -977,65 +1236,65 @@ func (c UserClient) LoadMySettings(ctx context.Context, sessionID int) (res User
 //
 // If assertion is empty, it will use the current logged in user.
 func (c UserClient) ListTracking(ctx context.Context, __arg ListTrackingArg) (res []UserSummary, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.listTracking", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.user.listTracking", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c UserClient) ListTrackingJSON(ctx context.Context, __arg ListTrackingJSONArg) (res string, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.listTrackingJSON", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.user.listTrackingJSON", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // Load all the user's public keys (even those in reset key families)
 // from the server with no verification
 func (c UserClient) LoadAllPublicKeysUnverified(ctx context.Context, __arg LoadAllPublicKeysUnverifiedArg) (res []PublicKey, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.loadAllPublicKeysUnverified", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.user.loadAllPublicKeysUnverified", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c UserClient) ListTrackers2(ctx context.Context, __arg ListTrackers2Arg) (res UserSummary2Set, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.listTrackers2", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.user.listTrackers2", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c UserClient) ProfileEdit(ctx context.Context, __arg ProfileEditArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.profileEdit", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.user.profileEdit", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c UserClient) InterestingPeople(ctx context.Context, maxUsers int) (res []InterestingPerson, err error) {
 	__arg := InterestingPeopleArg{MaxUsers: maxUsers}
-	err = c.Cli.Call(ctx, "keybase.1.user.interestingPeople", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.user.interestingPeople", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c UserClient) MeUserVersion(ctx context.Context, __arg MeUserVersionArg) (res UserVersion, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.meUserVersion", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.user.meUserVersion", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // getUPAK returns a UPAK. Used mainly for debugging.
 func (c UserClient) GetUPAK(ctx context.Context, uid UID) (res UPAKVersioned, err error) {
 	__arg := GetUPAKArg{Uid: uid}
-	err = c.Cli.Call(ctx, "keybase.1.user.getUPAK", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.user.getUPAK", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // getUPAKLite returns a UPKLiteV1AllIncarnations. Used mainly for debugging.
 func (c UserClient) GetUPAKLite(ctx context.Context, uid UID) (res UPKLiteV1AllIncarnations, err error) {
 	__arg := GetUPAKLiteArg{Uid: uid}
-	err = c.Cli.Call(ctx, "keybase.1.user.getUPAKLite", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.user.getUPAKLite", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c UserClient) UploadUserAvatar(ctx context.Context, __arg UploadUserAvatarArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.uploadUserAvatar", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.user.uploadUserAvatar", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c UserClient) ProofSuggestions(ctx context.Context, sessionID int) (res ProofSuggestionsRes, err error) {
 	__arg := ProofSuggestionsArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.user.proofSuggestions", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.user.proofSuggestions", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -1043,7 +1302,7 @@ func (c UserClient) ProofSuggestions(ctx context.Context, sessionID int) (res Pr
 // revocation at the given SigChainLocataion. The MerkleRootV2 prev is a hint as to where
 // we'll start our search. Usually it's the next one, but not always
 func (c UserClient) FindNextMerkleRootAfterRevoke(ctx context.Context, __arg FindNextMerkleRootAfterRevokeArg) (res NextMerkleRootRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.findNextMerkleRootAfterRevoke", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.user.findNextMerkleRootAfterRevoke", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -1051,34 +1310,50 @@ func (c UserClient) FindNextMerkleRootAfterRevoke(ctx context.Context, __arg Fin
 // at resetSeqno. You should pass it prev, which was the last known Merkle root at the time of
 // the reset. Usually, we'll just turn up the next Merkle root, but not always.
 func (c UserClient) FindNextMerkleRootAfterReset(ctx context.Context, __arg FindNextMerkleRootAfterResetArg) (res NextMerkleRootRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.findNextMerkleRootAfterReset", []interface{}{__arg}, &res)
-	return
-}
-
-func (c UserClient) LoadHasRandomPw(ctx context.Context, __arg LoadHasRandomPwArg) (res bool, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.loadHasRandomPw", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.user.findNextMerkleRootAfterReset", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c UserClient) CanLogout(ctx context.Context, sessionID int) (res CanLogoutRes, err error) {
 	__arg := CanLogoutArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.user.canLogout", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.user.canLogout", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c UserClient) LoadPassphraseState(ctx context.Context, sessionID int) (res PassphraseState, err error) {
+	__arg := LoadPassphraseStateArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.user.loadPassphraseState", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c UserClient) UserCard(ctx context.Context, __arg UserCardArg) (res *UserCard, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.userCard", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.user.userCard", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c UserClient) SetUserBlocks(ctx context.Context, __arg SetUserBlocksArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.user.setUserBlocks", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c UserClient) GetUserBlocks(ctx context.Context, __arg GetUserBlocksArg) (res []UserBlock, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.user.getUserBlocks", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c UserClient) ReportUser(ctx context.Context, __arg ReportUserArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.user.reportUser", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c UserClient) BlockUser(ctx context.Context, username string) (err error) {
 	__arg := BlockUserArg{Username: username}
-	err = c.Cli.Call(ctx, "keybase.1.user.blockUser", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.user.blockUser", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c UserClient) UnblockUser(ctx context.Context, username string) (err error) {
 	__arg := UnblockUserArg{Username: username}
-	err = c.Cli.Call(ctx, "keybase.1.user.unblockUser", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.user.unblockUser", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }

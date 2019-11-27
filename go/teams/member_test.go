@@ -26,6 +26,8 @@ func memberSetup(t *testing.T) (libkb.TestContext, *kbtest.FakeUser, string) {
 
 	name := createTeam(tc)
 
+	t.Logf("User name is: %s", u.Username)
+	t.Logf("Team name is: %s", name)
 	return tc, u, name
 }
 
@@ -495,25 +497,18 @@ func TestMemberAddSocial(t *testing.T) {
 
 	tc.G.SetProofServices(externals.NewProofServices(tc.G))
 
-	res, err := AddMember(context.TODO(), tc.G, name, "not_on_kb_yet@twitter", keybase1.TeamRole_OWNER, nil)
-	if err == nil {
-		t.Fatal("should not be able to invite a social user as an owner")
-	}
+	_, err := AddMember(context.TODO(), tc.G, name, "not_on_kb_yet@twitter", keybase1.TeamRole_OWNER, nil)
+	require.Error(t, err, "should not be able to invite a social user as an owner")
 
-	res, err = AddMember(context.TODO(), tc.G, name, "not_on_kb_yet@twitter", keybase1.TeamRole_READER, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !res.Invited {
-		t.Fatal("res.Invited should be set")
-	}
+	res, err := AddMember(context.TODO(), tc.G, name, "not_on_kb_yet@twitter", keybase1.TeamRole_READER, nil)
+	require.NoError(t, err)
+	require.True(t, res.Invited)
 
 	assertInvite(tc, name, "not_on_kb_yet", "twitter", keybase1.TeamRole_READER)
 
 	// second AddMember should return err
-	if _, err := AddMember(context.TODO(), tc.G, name, "not_on_kb_yet@twitter", keybase1.TeamRole_WRITER, nil); err == nil {
-		t.Errorf("second AddMember succeeded, should have failed since user already invited")
-	}
+	_, err = AddMember(context.TODO(), tc.G, name, "not_on_kb_yet@twitter", keybase1.TeamRole_WRITER, nil)
+	require.Error(t, err, "second AddMember should fail since user already invited")
 
 	// existing invite should be untouched
 	assertInvite(tc, name, "not_on_kb_yet", "twitter", keybase1.TeamRole_READER)
@@ -1076,9 +1071,7 @@ func assertInvite(tc libkb.TestContext, name, username, typ string, role keybase
 	tc.T.Logf("looking for invite for %s/%s w/ role %s in team %s", username, typ, role, name)
 	iname := keybase1.TeamInviteName(username)
 	itype, err := TeamInviteTypeFromString(tc.MetaContext(), typ)
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
 	invite, err := memberInvite(context.TODO(), tc.G, name, iname, itype)
 	require.NoError(tc.T, err)
 	require.NotNil(tc.T, invite)
@@ -1222,14 +1215,15 @@ func TestMemberCancelInviteEmail(t *testing.T) {
 	}
 	assertInvite(tc, name, address, "email", keybase1.TeamRole_READER)
 
-	if err := CancelEmailInvite(context.TODO(), tc.G, name, address); err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, CancelEmailInvite(context.TODO(), tc.G, name, address, false))
+	require.NoError(t, CancelEmailInvite(context.TODO(), tc.G, name, address, true))
+	require.NoError(t, CancelEmailInvite(context.TODO(), tc.G, name, address, true), "doesnt error when canceling a canceled invite with allowInaction")
+	require.Error(t, CancelEmailInvite(context.TODO(), tc.G, name, address, false), "errors when canceling a canceled invite without allowInaction")
 
 	assertNoInvite(tc, name, address, "email")
 
 	// check error type for an email address with no invite
-	err := CancelEmailInvite(context.TODO(), tc.G, name, "nope@keybase.io")
+	err := CancelEmailInvite(context.TODO(), tc.G, name, "nope@keybase.io", false)
 	if err == nil {
 		t.Fatal("expected error canceling email invite for unknown email address")
 	}
@@ -1238,7 +1232,7 @@ func TestMemberCancelInviteEmail(t *testing.T) {
 	}
 
 	// check error type for unknown team
-	err = CancelEmailInvite(context.TODO(), tc.G, "notateam", address)
+	err = CancelEmailInvite(context.TODO(), tc.G, "notateam", address, false)
 	if err == nil {
 		t.Fatal("expected error canceling email invite for unknown team")
 	}

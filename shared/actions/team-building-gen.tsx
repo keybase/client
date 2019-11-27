@@ -17,6 +17,7 @@ export const removeUsersFromTeamSoFar = 'team-building:removeUsersFromTeamSoFar'
 export const search = 'team-building:search'
 export const searchResultsLoaded = 'team-building:searchResultsLoaded'
 export const selectRole = 'team-building:selectRole'
+export const tbResetStore = 'team-building:tbResetStore'
 
 // Payload Types
 type _AddUsersToTeamSoFarPayload = {
@@ -47,8 +48,16 @@ type _SearchResultsLoadedPayload = {
   readonly service: Types.ServiceIdWithContact
 }
 type _SelectRolePayload = {readonly namespace: 'teams'; readonly role: TeamRoleType}
+type _TbResetStorePayload = {readonly namespace: Types.AllowedNamespace}
 
 // Action Creators
+/**
+ * our own reset store so we don't have conflicts with parent reducers
+ */
+export const createTbResetStore = (payload: _TbResetStorePayload): TbResetStorePayload => ({
+  payload,
+  type: tbResetStore,
+})
 export const createAddUsersToTeamSoFar = (
   payload: _AddUsersToTeamSoFarPayload
 ): AddUsersToTeamSoFarPayload => ({payload, type: addUsersToTeamSoFar})
@@ -122,6 +131,7 @@ export type SearchResultsLoadedPayload = {
   readonly type: typeof searchResultsLoaded
 }
 export type SelectRolePayload = {readonly payload: _SelectRolePayload; readonly type: typeof selectRole}
+export type TbResetStorePayload = {readonly payload: _TbResetStorePayload; readonly type: typeof tbResetStore}
 
 // All Actions
 // prettier-ignore
@@ -137,4 +147,5 @@ export type Actions =
   | SearchPayload
   | SearchResultsLoadedPayload
   | SelectRolePayload
+  | TbResetStorePayload
   | {type: 'common:resetStore', payload: {}}

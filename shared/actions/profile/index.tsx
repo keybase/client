@@ -3,7 +3,6 @@ import * as ProfileGen from '../profile-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Saga from '../../util/saga'
-import * as SearchConstants from '../../constants/search'
 import * as TrackerConstants from '../../constants/tracker2'
 import * as Tracker2Gen from '../tracker2-gen'
 import logger from '../../logger'
@@ -53,14 +52,8 @@ const finishRevoking = (state: TypedState) => [
   ProfileGen.createRevokeFinish(),
 ]
 
-const showUserProfile = (state: TypedState, action: ProfileGen.ShowUserProfilePayload) => {
-  const {username: userId} = action.payload
-  // TODO search itself should handle this
-  const username = SearchConstants.maybeUpgradeSearchResultIdToKeybaseId(
-    state.entities.search.searchResults,
-    userId
-  )
-
+const showUserProfile = (_: TypedState, action: ProfileGen.ShowUserProfilePayload) => {
+  const {username} = action.payload
   return [
     RouteTreeGen.createClearModals(),
     RouteTreeGen.createNavigateAppend({path: [{props: {username}, selected: 'profile'}]}),
@@ -83,7 +76,7 @@ const onClickAvatar = (_: TypedState, action: ProfileGen.OnClickAvatarPayload) =
 const submitRevokeProof = async (state: TypedState, action: ProfileGen.SubmitRevokeProofPayload) => {
   const you = TrackerConstants.getDetails(state, state.config.username)
   if (!you || !you.assertions) return null
-  const proof = you.assertions.find(a => a.sigID === action.payload.proofId)
+  const proof = [...you.assertions.values()].find(a => a.sigID === action.payload.proofId)
   if (!proof) return null
 
   if (proof.type === 'pgp') {
@@ -92,7 +85,7 @@ const submitRevokeProof = async (state: TypedState, action: ProfileGen.SubmitRev
       return false
     } catch (e) {
       logger.info('error in dropping pgp key', e)
-      return ProfileGen.createRevokeFinishError({error: `Error in dropping Pgp Key: ${e}`})
+      return ProfileGen.createRevokeFinish({error: `Error in dropping Pgp Key: ${e}`})
     }
   } else {
     try {
@@ -103,7 +96,7 @@ const submitRevokeProof = async (state: TypedState, action: ProfileGen.SubmitRev
       return ProfileGen.createFinishRevoking()
     } catch (error) {
       logger.warn(`Error when revoking proof ${action.payload.proofId}`, error)
-      return ProfileGen.createRevokeFinishError({
+      return ProfileGen.createRevokeFinish({
         error: 'There was an error revoking your proof. You can click the button to try again.',
       })
     }
@@ -125,7 +118,7 @@ const submitBlockUser = async (_: TypedState, action: ProfileGen.SubmitBlockUser
   } catch (e) {
     const error: RPCError = e
     logger.warn(`Error blocking user ${action.payload.username}`, error)
-    return ProfileGen.createFinishBlockUserError({
+    return ProfileGen.createFinishBlockUser({
       error: error.desc || `There was an error blocking ${action.payload.username}.`,
     })
   }
@@ -160,8 +153,8 @@ const editAvatar = () =>
     : RouteTreeGen.createNavigateAppend({path: [{props: {image: null}, selected: 'profileEditAvatar'}]})
 
 const backToProfile = (state: TypedState) => [
+  RouteTreeGen.createNavigateUp(),
   Tracker2Gen.createShowUser({asTracker: false, username: state.config.username}),
-  RouteTreeGen.createNavigateAppend({path: ['profile']}),
 ]
 
 function* _profileSaga() {

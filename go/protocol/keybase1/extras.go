@@ -15,6 +15,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
 	"regexp"
 	"sort"
 	"strconv"
@@ -87,6 +88,10 @@ func (b BinaryKID) ToKID() KID {
 
 func (k KID) ToBinaryKID() BinaryKID {
 	return BinaryKID(k.ToBytes())
+}
+
+func (b BinaryKID) Equal(c BinaryKID) bool {
+	return bytes.Equal([]byte(b), []byte(c))
 }
 
 func KIDFromStringChecked(s string) (KID, error) {
@@ -637,6 +642,13 @@ func (s SigID) String() string { return string(s) }
 
 func (s SigID) Equal(t SigID) bool {
 	return s == t
+}
+
+func (s SigID) EqualIgnoreLastByte(t SigID) bool {
+	if len(s) != len(t) || len(s) < 2 {
+		return false
+	}
+	return s[:len(s)-2] == t[:len(t)-2]
 }
 
 func (s SigID) Match(q string, exact bool) bool {
@@ -1634,6 +1646,9 @@ func (u UserPlusKeysV2AllIncarnations) IsOlderThan(v UserPlusKeysV2AllIncarnatio
 	if u.Uvv.Id < v.Uvv.Id {
 		return true
 	}
+	if u.Uvv.CachedAt < v.Uvv.CachedAt {
+		return true
+	}
 	return false
 }
 
@@ -2086,6 +2101,7 @@ func validatePart(s string) (err error) {
 func TeamNameFromString(s string) (TeamName, error) {
 	ret := TeamName{}
 
+	s = strings.ToLower(s)
 	parts := strings.Split(s, ".")
 	if len(parts) == 0 {
 		return ret, errors.New("team names cannot be empty")
@@ -2386,6 +2402,13 @@ func (r TeamRole) teamRoleForOrderingOnly() int {
 
 func (r TeamRole) IsOrAbove(min TeamRole) bool {
 	return r.teamRoleForOrderingOnly() >= min.teamRoleForOrderingOnly()
+}
+
+func (r TeamRole) HumanString() string {
+	if r.IsRestrictedBot() {
+		return "restricted bot"
+	}
+	return strings.ToLower(r.String())
 }
 
 type idSchema struct {
@@ -3459,4 +3482,26 @@ func NewBotToken(s string) (BotToken, error) {
 		return BotToken(""), errors.New("bad bot token")
 	}
 	return BotToken(s), nil
+}
+
+func (b BadgeConversationInfo) IsEmpty() bool {
+	return (b.UnreadMessages == 0 &&
+		b.BadgeCounts[DeviceType_DESKTOP] == 0 &&
+		b.BadgeCounts[DeviceType_MOBILE] == 0)
+}
+
+func (s *TeamBotSettings) Eq(o *TeamBotSettings) bool {
+	return reflect.DeepEqual(s, o)
+}
+
+func (b UserBlockedBody) Summarize() UserBlockedSummary {
+	ret := UserBlockedSummary{
+		Blocker: b.Username,
+	}
+	for _, block := range b.Blocks {
+		if (block.Chat != nil && *block.Chat) || (block.Follow != nil && *block.Follow) {
+			ret.Blocked = append(ret.Blocked, block.Username)
+		}
+	}
+	return ret
 }

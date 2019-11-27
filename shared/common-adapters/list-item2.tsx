@@ -46,7 +46,7 @@ const ListItem = (props: Props) => (
           direction="vertical"
           style={getStatusIconStyle(props)}
           alignSelf="flex-start"
-          alignItems="flex-end"
+          alignItems="center"
         >
           {props.statusIcon}
         </Kb.Box2>
@@ -96,7 +96,8 @@ export const smallHeight = Styles.isMobile ? 56 : 48
 export const largeHeight = Styles.isMobile ? 64 : 56
 const smallIconWidth = Styles.isMobile ? 56 : 56
 const largeIconWidth = Styles.isMobile ? 72 : 72
-const statusIconWidth = Styles.isMobile ? 32 : 32
+const statusIconWidth = Styles.isMobile ? 44 : 44
+const afterStatusIconItemLeftDistance = statusIconWidth - (Styles.isMobile ? 10 : 14)
 
 const styles = Styles.styleSheetCreate(() => {
   const _styles = {
@@ -151,11 +152,11 @@ const styles = Styles.styleSheetCreate(() => {
     } as const,
     iconLarge: {
       minHeight: largeHeight,
-      width: Styles.isMobile ? 75 : 72,
+      width: largeIconWidth,
     } as const,
     iconSmall: {
       minHeight: smallHeight,
-      width: Styles.isMobile ? 60 : 56,
+      width: smallIconWidth,
     } as const,
     rowLarge: {
       alignItems: 'center',
@@ -193,7 +194,7 @@ const styles = Styles.styleSheetCreate(() => {
     iconLargeWithStatusIcon: {
       ..._styles.icon,
       ..._styles.iconLarge,
-      left: statusIconWidth,
+      left: afterStatusIconItemLeftDistance,
     },
     iconSmallWithNoStatusIcon: {
       ..._styles.icon,
@@ -202,7 +203,7 @@ const styles = Styles.styleSheetCreate(() => {
     iconSmallWithStatusIcon: {
       ..._styles.icon,
       ..._styles.iconSmall,
-      left: statusIconWidth,
+      left: afterStatusIconItemLeftDistance,
     },
   }
 
@@ -222,12 +223,12 @@ const styles = Styles.styleSheetCreate(() => {
     containerLargeWithStatusIconNoIcon: {
       ..._styles.contentContainer,
       ..._styles.heightLarge,
-      marginLeft: statusIconWidth,
+      marginLeft: afterStatusIconItemLeftDistance,
     },
     containerLargeWithStatusIconWithIcon: {
       ..._styles.contentContainer,
       ..._styles.heightLarge,
-      marginLeft: largeIconWidth + statusIconWidth,
+      marginLeft: largeIconWidth + afterStatusIconItemLeftDistance,
     },
     containerSmallNoStatusIconNoIcon: {
       ..._styles.contentContainer,
@@ -242,12 +243,12 @@ const styles = Styles.styleSheetCreate(() => {
     containerSmallWithStatusIconNoIcon: {
       ..._styles.contentContainer,
       ..._styles.heightSmall,
-      marginLeft: statusIconWidth,
+      marginLeft: afterStatusIconItemLeftDistance,
     },
     containerSmallWithStatusIconWithIcon: {
       ..._styles.contentContainer,
       ..._styles.heightSmall,
-      marginLeft: smallIconWidth + statusIconWidth,
+      marginLeft: smallIconWidth + afterStatusIconItemLeftDistance,
     },
   }
 

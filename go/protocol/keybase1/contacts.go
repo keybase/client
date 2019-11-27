@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/contacts.avdl
 
 package keybase1
@@ -6,6 +6,7 @@ package keybase1
 import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type ContactComponent struct {
@@ -99,6 +100,38 @@ func (o ProcessedContact) DeepCopy() ProcessedContact {
 	}
 }
 
+type ContactListResolutionResult struct {
+	NewlyResolved []ProcessedContact `codec:"newlyResolved" json:"newlyResolved"`
+	Resolved      []ProcessedContact `codec:"resolved" json:"resolved"`
+}
+
+func (o ContactListResolutionResult) DeepCopy() ContactListResolutionResult {
+	return ContactListResolutionResult{
+		NewlyResolved: (func(x []ProcessedContact) []ProcessedContact {
+			if x == nil {
+				return nil
+			}
+			ret := make([]ProcessedContact, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.NewlyResolved),
+		Resolved: (func(x []ProcessedContact) []ProcessedContact {
+			if x == nil {
+				return nil
+			}
+			ret := make([]ProcessedContact, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Resolved),
+	}
+}
+
 type LookupContactListArg struct {
 	SessionID int       `codec:"sessionID" json:"sessionID"`
 	Contacts  []Contact `codec:"contacts" json:"contacts"`
@@ -119,7 +152,7 @@ type GetContactsForUserRecommendationsArg struct {
 
 type ContactsInterface interface {
 	LookupContactList(context.Context, LookupContactListArg) ([]ProcessedContact, error)
-	SaveContactList(context.Context, SaveContactListArg) ([]ProcessedContact, error)
+	SaveContactList(context.Context, SaveContactListArg) (ContactListResolutionResult, error)
 	LookupSavedContactsList(context.Context, int) ([]ProcessedContact, error)
 	GetContactsForUserRecommendations(context.Context, int) ([]ProcessedContact, error)
 }
@@ -197,23 +230,23 @@ type ContactsClient struct {
 }
 
 func (c ContactsClient) LookupContactList(ctx context.Context, __arg LookupContactListArg) (res []ProcessedContact, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.contacts.lookupContactList", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.contacts.lookupContactList", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
-func (c ContactsClient) SaveContactList(ctx context.Context, __arg SaveContactListArg) (res []ProcessedContact, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.contacts.saveContactList", []interface{}{__arg}, &res)
+func (c ContactsClient) SaveContactList(ctx context.Context, __arg SaveContactListArg) (res ContactListResolutionResult, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.contacts.saveContactList", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ContactsClient) LookupSavedContactsList(ctx context.Context, sessionID int) (res []ProcessedContact, err error) {
 	__arg := LookupSavedContactsListArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.contacts.lookupSavedContactsList", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.contacts.lookupSavedContactsList", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ContactsClient) GetContactsForUserRecommendations(ctx context.Context, sessionID int) (res []ProcessedContact, err error) {
 	__arg := GetContactsForUserRecommendationsArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.contacts.getContactsForUserRecommendations", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.contacts.getContactsForUserRecommendations", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

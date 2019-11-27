@@ -1,22 +1,21 @@
 import * as React from 'react'
 // eslint-disable-next-line
 import {Draft as _Draft} from 'immer'
-import {TypedActions} from '../actions/typed-actions-gen'
-import {TypedState} from '../constants/reducer'
+import {TypedActions as _TypedActions} from '../actions/typed-actions-gen'
+import {ActionHandler as _ActionHandler} from './make-reducer'
+import {TypedState as _TypedState} from '../constants/reducer'
 import {RouteProps as _RouteProps, GetRouteType} from '../route-tree/render-route'
 import {PropsWithSafeNavigation as _PropsWithSafeNavigation} from './safe-navigation'
 import {StatusCode} from '../constants/types/rpc-gen'
 import {anyWaiting, anyErrors} from '../constants/waiting'
 import {useSelector} from 'react-redux'
+import flowRight from 'lodash/flowRight'
 
 // to keep fallback objects static for react
 export const emptyArray: Array<any> = []
 export const emptySet = new Set<any>()
 export const emptyMap = new Map<any, any>()
 export const NullComponent = () => null
-export const actionHasError = <NoError extends {}, HasError extends {error: boolean}>(
-  a: NoError | HasError
-): a is HasError => Object.prototype.hasOwnProperty.call(a, 'error')
 
 export const networkErrorCodes = [
   StatusCode.scgenericapierror,
@@ -35,7 +34,9 @@ export function getRouteProps<O extends _RouteProps<any>, R extends GetRouteType
   return val === undefined ? notSetVal : val
 }
 
-export type TypedDispatch = (action: TypedActions) => void
+export type RemoteWindowSerializeProps<P> = {[K in keyof P]-?: (val: P[K], old?: P[K]) => any}
+
+export type TypedDispatch = (action: _TypedActions) => void
 export type Dispatch = TypedDispatch
 
 export const useAnyWaiting = (...waitingKeys: string[]) =>
@@ -78,13 +79,14 @@ export {anyWaiting, anyErrors} from '../constants/waiting'
 export {safeSubmit, safeSubmitPerMount} from './safe-submit'
 export {default as withSafeNavigation, useSafeNavigation} from './safe-navigation'
 export type RouteProps<P = {}> = _RouteProps<P>
-export type TypedActions = TypedActions
-export type TypedState = TypedState
+export type TypedActions = _TypedActions
+export type TypedState = _TypedState
 export type PropsWithSafeNavigation<P = {}> = _PropsWithSafeNavigation<P>
 export {useSelector, useDispatch} from 'react-redux'
-export {flowRight as compose} from 'lodash-es'
+export const compose = flowRight
 export {default as hoistNonReactStatic} from 'hoist-non-react-statics'
 export {produce} from 'immer'
 export type Draft<T> = _Draft<T>
 export {default as HiddenString} from './hidden-string'
 export {default as makeReducer} from './make-reducer'
+export type ActionHandler<S, A> = _ActionHandler<S, A>

@@ -56,13 +56,13 @@ func (c *CmdAccountResetStart) Run() error {
 	}
 	dui := c.G().UI.GetDumbOutputUI()
 	err = cli.EnterResetPipeline(context.Background(), keybase1.EnterResetPipelineArg{
+		Interactive:     true,
 		UsernameOrEmail: c.usernameOrEmail,
 	})
 	if err != nil {
-		dui.Printf("Unable to start account reset process: %v\n", err)
+		dui.Printf("Error in account reset: %v\n", err)
 		return err
 	}
-	dui.Printf("Account reset started.\n")
 	return nil
 
 }

@@ -26,7 +26,9 @@ export type Box2Props = {
       }
     }
   }) => void // mobile only
+  onMouseDown?: (syntheticEvent: React.SyntheticEvent) => void // desktop only
   onMouseLeave?: (syntheticEvent: React.SyntheticEvent) => void // desktop only
+  onMouseUp?: (syntheticEvent: React.SyntheticEvent) => void // desktop only
   onMouseOver?: (syntheticEvent: React.SyntheticEvent) => void // desktop only
   onCopyCapture?: (syntheticEvent: React.SyntheticEvent) => void // desktop only
   pointerEvents?: 'none'

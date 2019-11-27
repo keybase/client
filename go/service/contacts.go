@@ -16,9 +16,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-type bulkLookupContactsProvider struct {
-	serviceMapper libkb.ServiceSummaryMapper
-}
+type bulkLookupContactsProvider struct{}
 
 var _ contacts.ContactsProvider = (*bulkLookupContactsProvider)(nil)
 
@@ -119,7 +117,7 @@ func (c *bulkLookupContactsProvider) FindServiceMaps(mctx libkb.MetaContext,
 
 	const serviceMapFreshness = 12 * time.Hour
 	const networkTimeBudget = uidmap.DefaultNetworkBudget
-	pkgs := c.serviceMapper.MapUIDsToServiceSummaries(mctx.Ctx(), mctx.G(),
+	pkgs := mctx.G().ServiceMapper.MapUIDsToServiceSummaries(mctx.Ctx(), mctx.G(),
 		uids, serviceMapFreshness, networkTimeBudget)
 	res = make(map[keybase1.UID]libkb.UserServiceSummary, len(pkgs))
 	for uid, pkg := range pkgs {
@@ -139,10 +137,8 @@ type ContactsHandler struct {
 
 func NewCachedContactsProvider(g *libkb.GlobalContext) *contacts.CachedContactsProvider {
 	return &contacts.CachedContactsProvider{
-		Provider: &bulkLookupContactsProvider{
-			serviceMapper: uidmap.NewServiceSummaryMap(500),
-		},
-		Store: contacts.NewContactCacheStore(g),
+		Provider: &bulkLookupContactsProvider{},
+		Store:    contacts.NewContactCacheStore(g),
 	}
 }
 
@@ -164,7 +160,7 @@ func (h *ContactsHandler) LookupContactList(ctx context.Context, arg keybase1.Lo
 	return contacts.ResolveContacts(mctx, h.contactsProvider, arg.Contacts)
 }
 
-func (h *ContactsHandler) SaveContactList(ctx context.Context, arg keybase1.SaveContactListArg) (res []keybase1.ProcessedContact, err error) {
+func (h *ContactsHandler) SaveContactList(ctx context.Context, arg keybase1.SaveContactListArg) (res keybase1.ContactListResolutionResult, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("SAVECON")
 	defer mctx.TraceTimed(fmt.Sprintf("ContactsHandler#SaveContactList(len=%d)", len(arg.Contacts)),
 		func() error { return err })()

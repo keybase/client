@@ -6,15 +6,18 @@ import * as Styles from '../../styles'
 import SelectableSmallTeam from '../selectable-small-team-container'
 import SelectableBigTeamChannel from '../selectable-big-team-channel-container'
 import {inboxWidth} from '../inbox/row/sizes'
+import Rover from './background'
 
 type NameResult = {
   conversationIDKey: Types.ConversationIDKey
+  name: string
   type: 'big' | 'small'
 }
 
 type TextResult = {
   conversationIDKey: Types.ConversationIDKey
   type: 'big' | 'small'
+  name: string
   numHits: number
   query: string
 }
@@ -47,6 +50,7 @@ class InboxSearch extends React.Component<Props, State> {
       <SelectableBigTeamChannel
         conversationIDKey={item.conversationIDKey}
         isSelected={!Styles.isMobile && this.props.selectedIndex === realIndex}
+        name={item.name}
         numSearchHits={
           // Auto generated from flowToTs. Please clean me!
           // Auto generated from flowToTs. Please clean me!
@@ -64,6 +68,7 @@ class InboxSearch extends React.Component<Props, State> {
       <SelectableSmallTeam
         conversationIDKey={item.conversationIDKey}
         isSelected={!Styles.isMobile && this.props.selectedIndex === realIndex}
+        name={item.name}
         numSearchHits={
           // Auto generated from flowToTs. Please clean me!
           // Auto generated from flowToTs. Please clean me!
@@ -182,6 +187,7 @@ class InboxSearch extends React.Component<Props, State> {
     }
     return (
       <Kb.Box2 style={styles.container} direction="vertical" fullWidth={true}>
+        <Rover />
         <Kb.SectionList
           ListHeaderComponent={this.props.header}
           stickySectionHeadersEnabled={true}
@@ -207,6 +213,10 @@ const styles = Styles.styleSheetCreate(
           maxWidth: inboxWidth,
           minWidth: inboxWidth,
           position: 'relative',
+        },
+        isMobile: {
+          height: '100%',
+          width: '100%',
         },
       }),
       errorText: {

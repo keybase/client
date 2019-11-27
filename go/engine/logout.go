@@ -5,51 +5,80 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-type LogoutEngine struct{}
+type LogoutEngine struct {
+	options libkb.LogoutOptions
+}
 
-func NewLogout() *LogoutEngine                           { return &LogoutEngine{} }
+func NewLogout(options libkb.LogoutOptions) *LogoutEngine {
+	return &LogoutEngine{options: options}
+}
 func (e *LogoutEngine) Name() string                     { return "Logout" }
 func (e *LogoutEngine) Prereqs() Prereqs                 { return Prereqs{} }
 func (e *LogoutEngine) RequiredUIs() []libkb.UIKind      { return []libkb.UIKind{} }
 func (e *LogoutEngine) SubConsumers() []libkb.UIConsumer { return []libkb.UIConsumer{} }
 
-func (e *LogoutEngine) findLoggedInAccount(mctx libkb.MetaContext, accounts []keybase1.ConfiguredAccount) (ret libkb.NormalizedUsername) {
+func (e *LogoutEngine) filterLoggedIn(accounts []keybase1.
+	ConfiguredAccount) (ret []libkb.NormalizedUsername) {
 	for _, acct := range accounts {
 		if acct.HasStoredSecret {
-			return libkb.NewNormalizedUsername(acct.Username)
+			ret = append(ret, libkb.NewNormalizedUsername(acct.Username))
 		}
 	}
 	return ret
 }
 
-func (e *LogoutEngine) doSwitch(mctx libkb.MetaContext) (err error) {
-	defer mctx.Trace("Logout#doSwitch", func() error { return err })()
+// Tell the user what accounts they still have secrets stored for,
+// so they don't think they are fully logged out of everything.
+func (e *LogoutEngine) printSwitchInfo(mctx libkb.MetaContext) (err error) {
+	defer mctx.Trace("Logout#printSwitchInfo", func() error { return err })()
 	accounts, err := mctx.G().GetConfiguredAccounts(mctx.Ctx())
 	if err != nil {
 		return err
 	}
-	acct := e.findLoggedInAccount(mctx, accounts)
-	if acct.IsNil() {
-		mctx.Debug("Failed to find a logged in account")
-		return nil
-	}
-	mctx.Debug("Switching to another logged in account: %s", acct)
+	loggedInAccounts := e.filterLoggedIn(accounts)
 
-	eng := NewLoginProvisionedDevice(mctx.G(), acct.String())
-	eng.SecretStoreOnly = true
-	return RunEngine2(mctx, eng)
+	if len(loggedInAccounts) > 0 {
+		maybePlural := ""
+		if len(loggedInAccounts) > 1 {
+			maybePlural = "s"
+		}
+		accountsList := ""
+		for idx, acct := range loggedInAccounts {
+			accountsList += string(acct)
+			if idx < len(loggedInAccounts)-2 {
+				accountsList += ", "
+			}
+			if idx == len(loggedInAccounts)-2 {
+				accountsList += " and "
+			}
+
+		}
+		mctx.Info(
+			"You can still sign in to keybase account%s %s"+
+				" without a password.", maybePlural, accountsList)
+	}
+	return nil
 }
 
 func (e *LogoutEngine) Run(mctx libkb.MetaContext) (err error) {
 	defer mctx.Trace("Logout#Run", func() error { return err })()
-	err = mctx.Logout()
+	err = mctx.LogoutWithOptions(e.options)
 	if err != nil {
 		return err
 	}
-	if err := e.doSwitch(mctx); err != nil {
-		// We don't care if user switching doesn't work here - user is logged
+
+	if e.options.KeepSecrets {
+		err = mctx.G().Env.GetConfigWriter().SetStayLoggedOut(true)
+		if err != nil {
+			mctx.Warning("Could not save logged out state to config.json: %v", err)
+		}
+	}
+
+	if err := e.printSwitchInfo(mctx); err != nil {
+		// We don't care if this doesn't work here - user is logged
 		// out at this point. LogoutEngine is considered successful.
-		mctx.Debug("Cannot user-switch after Logout: %s", err)
+		mctx.Info("You may still have secrets stored for one or more accounts"+
+			": %s", err)
 	}
 	return nil
 }

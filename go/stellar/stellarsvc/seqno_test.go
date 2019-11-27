@@ -29,7 +29,7 @@ func TestSeqno(t *testing.T) {
 
 	acceptDisclaimer(tcs[0])
 	rm := tcs[0].Backend
-	accountID1 := rm.AddAccount()
+	accountID1 := rm.AddAccount(tcs[0].Fu.GetUID())
 	err := tcs[0].Srv.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
 		SecretKey:   rm.SecretKey(accountID1),
 		MakePrimary: true,
@@ -76,7 +76,7 @@ func TestSeqnoConcurrent(t *testing.T) {
 
 	acceptDisclaimer(tcs[0])
 	rm := tcs[0].Backend
-	accountID1 := rm.AddAccount()
+	accountID1 := rm.AddAccount(tcs[0].Fu.GetUID())
 	err := tcs[0].Srv.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
 		SecretKey:   rm.SecretKey(accountID1),
 		MakePrimary: true,

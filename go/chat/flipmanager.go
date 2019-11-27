@@ -973,11 +973,15 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 		var err error
 		topicName := m.gameTopicNameFromGameID(gameID)
 		membersType := hostConv.GetMembersType()
-		if membersType == chat1.ConversationMembersType_IMPTEAMUPGRADE {
+		switch membersType {
+		case chat1.ConversationMembersType_IMPTEAMUPGRADE:
 			// just override this to use native
 			membersType = chat1.ConversationMembersType_IMPTEAMNATIVE
+			fallthrough
+		case chat1.ConversationMembersType_IMPTEAMNATIVE:
 			tlfName = utils.AddUserToTLFName(m.G(), tlfName, keybase1.TLFVisibility_PRIVATE,
 				membersType)
+		default:
 		}
 		conv, err = NewConversationWithMemberSourceConv(ctx, m.G(), uid, tlfName, &topicName,
 			chat1.TopicType_DEV, membersType,
@@ -987,7 +991,7 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 
 	listener := newSentMessageListener(m.G(), outboxID)
 	nid := m.G().NotifyRouter.AddListener(listener)
-	if err := m.sendNonblock(ctx, hostConvID, text, tlfName, outboxID, gameID, chat1.TopicType_CHAT); err != nil {
+	if err := m.sendNonblock(ctx, uid, hostConvID, text, tlfName, outboxID, gameID, chat1.TopicType_CHAT); err != nil {
 		m.Debug(ctx, "StartFlip: failed to send flip message: %s", err)
 		m.setStartFlipSendStatus(ctx, outboxID, types.FlipSendStatusError, nil)
 		m.G().NotifyRouter.RemoveListener(nid)
@@ -1454,8 +1458,9 @@ func (m *FlipManager) ServerTime(ctx context.Context) (res time.Time, err error)
 	return sres.Now.Time(), nil
 }
 
-func (m *FlipManager) sendNonblock(ctx context.Context, convID chat1.ConversationID, text, tlfName string,
-	outboxID chat1.OutboxID, gameID chat1.FlipGameID, topicType chat1.TopicType) error {
+func (m *FlipManager) sendNonblock(ctx context.Context, initiatorUID gregor1.UID,
+	convID chat1.ConversationID, text, tlfName string, outboxID chat1.OutboxID,
+	gameID chat1.FlipGameID, topicType chat1.TopicType) error {
 	sender := NewNonblockingSender(m.G(), NewBlockingSender(m.G(), NewBoxer(m.G()), m.ri))
 	_, _, err := sender.Send(ctx, convID, chat1.MessagePlaintext{
 		MessageBody: chat1.NewMessageBodyWithFlip(chat1.MessageFlip{
@@ -1468,6 +1473,9 @@ func (m *FlipManager) sendNonblock(ctx context.Context, convID chat1.Conversatio
 			Conv: chat1.ConversationIDTriple{
 				TopicType: topicType,
 			},
+			// Prefill this value in case a restricted bot is running the flip
+			// so bot keys are used instead of regular team keys.
+			BotUID: &initiatorUID,
 		},
 	}, 0, &outboxID, nil, nil)
 	return err
@@ -1498,7 +1506,7 @@ func (m *FlipManager) registerSentOutboxID(ctx context.Context, gameID chat1.Fli
 }
 
 // SendChat implements the flip.DealersHelper interface
-func (m *FlipManager) SendChat(ctx context.Context, convID chat1.ConversationID, gameID chat1.FlipGameID,
+func (m *FlipManager) SendChat(ctx context.Context, initatorUID gregor1.UID, convID chat1.ConversationID, gameID chat1.FlipGameID,
 	msg flip.GameMessageEncoded) (err error) {
 	ctx = globals.ChatCtx(ctx, m.G(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, nil)
 	defer m.Trace(ctx, func() error { return err }, "SendChat: convID: %s", convID)()
@@ -1515,7 +1523,7 @@ func (m *FlipManager) SendChat(ctx context.Context, convID chat1.ConversationID,
 		return err
 	}
 	m.registerSentOutboxID(ctx, gameID, outboxID)
-	return m.sendNonblock(ctx, convID, msg.String(), conv.Info.TlfName, outboxID, gameID,
+	return m.sendNonblock(ctx, initatorUID, convID, msg.String(), conv.Info.TlfName, outboxID, gameID,
 		chat1.TopicType_DEV)
 }
 

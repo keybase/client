@@ -1,7 +1,7 @@
 import * as React from 'react'
 import {storiesOf, action} from '../../stories/storybook'
-import {Task, TaskButton} from '.'
-import {Provider as SearchBarProvider} from '../../profile/search/index.stories'
+import {Task} from '.'
+import {TaskButton} from '../item'
 
 const defaultButtons = (label, dismissLabel?) => {
   const ret = [
@@ -60,7 +60,7 @@ const followTaskProps = {
   badged: true,
   buttons: [
     {
-      label: 'Follow later',
+      label: 'Skip',
       mode: 'Secondary',
       onClick: action('onDismiss'),
     },
@@ -187,14 +187,12 @@ const legacyEmailVisibilityProps = {
 
 const load = () => {
   storiesOf('People/Todos', module)
-    .addDecorator(SearchBarProvider)
     .add('Edit team avatar', () => <Task {...avatarTeamTaskProps} />)
     .add('Edit avatar', () => <Task {...avatarUserTaskProps} />)
     .add('Fill out bio', () => <Task {...bioTaskProps} />)
     .add('Prove something', () => <Task {...proofTaskProps} />)
     .add('Install on phone', () => <Task {...installTaskProps} />)
-    .add('Follow someone', () => <Task {...followTaskProps} />)
-    .add('Follow someone with search', () => <Task {...followTaskProps} showSearchBar={true} />)
+    .add('Follow people', () => <Task {...followTaskProps} />)
     .add('Chat', () => <Task {...chatTaskProps} />)
     .add('Make a paper key', () => <Task {...paperKeyTaskProps} />)
     .add('Make a team', () => <Task {...teamTaskProps} />)

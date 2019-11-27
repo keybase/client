@@ -17,15 +17,17 @@ import (
 
 type errorClient struct{}
 
-func (e errorClient) CallCompressed(ctx context.Context, method string, arg interface{}, res interface{}, ctype rpc.CompressionType) error {
+func (e errorClient) Call(ctx context.Context, method string, arg interface{},
+	res interface{}, timeout time.Duration) error {
 	return fmt.Errorf("errorClient: Call %s", method)
 }
 
-func (e errorClient) Call(ctx context.Context, method string, arg interface{}, res interface{}) error {
+func (e errorClient) CallCompressed(ctx context.Context, method string, arg interface{},
+	res interface{}, ctype rpc.CompressionType, timeout time.Duration) error {
 	return fmt.Errorf("errorClient: Call %s", method)
 }
 
-func (e errorClient) Notify(ctx context.Context, method string, arg interface{}) error {
+func (e errorClient) Notify(ctx context.Context, method string, arg interface{}, timeout time.Duration) error {
 	return fmt.Errorf("errorClient: Notify %s", method)
 }
 
@@ -65,7 +67,7 @@ func TestFetchRetry(t *testing.T) {
 		types.InboxSourceDataSourceAll, nil,
 		&chat1.GetInboxLocalQuery{
 			ConvIDs: convIDs,
-		}, nil)
+		})
 	require.NoError(t, err)
 	require.NotNil(t, inbox.Convs[2].Error)
 	require.Nil(t, inbox.Convs[0].Error)
@@ -106,7 +108,7 @@ func TestFetchRetry(t *testing.T) {
 	tc.Context().FetchRetrier.Failure(ctx, uid,
 		NewFullInboxRetry(tc.Context(), &chat1.GetInboxLocalQuery{
 			TopicType: &ttype,
-		}, &chat1.Pagination{Num: 10}))
+		}))
 	tc.Context().FetchRetrier.Force(ctx)
 	select {
 	case <-list.inboxStale:

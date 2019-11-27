@@ -28,6 +28,19 @@ type signupInfo struct {
 	displayedPaperKey string
 }
 
+type teamsUI struct {
+	baseNullUI
+	libkb.Contextified
+}
+
+func (t teamsUI) ConfirmRootTeamDelete(context.Context, keybase1.ConfirmRootTeamDeleteArg) (bool, error) {
+	return true, nil
+}
+
+func (t teamsUI) ConfirmSubteamDelete(context.Context, keybase1.ConfirmSubteamDeleteArg) (bool, error) {
+	return true, nil
+}
+
 type signupUI struct {
 	baseNullUI
 	info *signupInfo
@@ -243,7 +256,7 @@ func (h *notifyHandler) UserChanged(_ context.Context, uid keybase1.UID) error {
 	return nil
 }
 
-func (h *notifyHandler) PasswordChanged(_ context.Context) error {
+func (h *notifyHandler) PasswordChanged(_ context.Context, _ keybase1.PassphraseState) error {
 	return nil
 }
 
@@ -473,18 +486,16 @@ func TestNoPasswordCliSignup(t *testing.T) {
 	require.Equal(t, expectedPrompts, sui.terminalPrompts)
 
 	ucli := keybase1.UserClient{Cli: user.primaryDevice().rpcClient()}
-	res, err := ucli.LoadHasRandomPw(context.Background(), keybase1.LoadHasRandomPwArg{
-		ForceRepoll: true,
-	})
+	res, err := ucli.LoadPassphraseState(context.Background(), 0)
 	require.NoError(t, err)
-	require.True(t, res)
+	require.Equal(t, res, keybase1.PassphraseState_RANDOM)
 
 	err = G.ConfigureConfig()
 	require.NoError(t, err)
 	logout := client.NewCmdLogoutRunner(G)
 	err = logout.Run()
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "Cannot logout")
+	require.Contains(t, err.Error(), "Cannot log out")
 
 	logout = client.NewCmdLogoutRunner(G)
 	logout.Force = true

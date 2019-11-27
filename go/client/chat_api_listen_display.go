@@ -227,3 +227,6 @@ func (d *chatNotificationDisplay) ChatRequestInfo(context.Context, chat1.ChatReq
 func (d *chatNotificationDisplay) ChatPromptUnfurl(context.Context, chat1.ChatPromptUnfurlArg) error {
 	return nil
 }
+func (d *chatNotificationDisplay) ChatConvUpdate(context.Context, chat1.ChatConvUpdateArg) error {
+	return nil
+}

@@ -16,18 +16,66 @@ protocol chatUi {
     boolean last;
   }
 
+  record UIInboxSmallTeamRow {
+    string convID;
+    string name;
+    gregor1.Time time;
+    union { null, string } snippet;
+    SnippetDecoration snippetDecoration;
+    union { null, string } draft;
+    boolean isMuted;
+    boolean isTeam;
+  }
+
+  enum UIInboxBigTeamRowTyp {
+    LABEL_1,
+    CHANNEL_2
+  }
+
+  record UIInboxBigTeamChannelRow {
+    string convID;
+    string teamname;
+    string channelname;
+    union { null, string } draft;
+    boolean isMuted;
+  }
+
+  record UIInboxBigTeamLabelRow {
+    string name;
+    string id;
+  }
+
+  variant UIInboxBigTeamRow switch (UIInboxBigTeamRowTyp state) {
+    case LABEL: UIInboxBigTeamLabelRow;
+    case CHANNEL: UIInboxBigTeamChannelRow;
+  }
+
+  record UIInboxReselectInfo {
+     // we use this to defeat any race conditions, the UI can double check it actually has this selected
+    string oldConvID;
+    union { null, string } newConvID;
+  }
+
+  record UIInboxLayout {
+    array<UIInboxSmallTeamRow> smallTeams;
+    array<UIInboxBigTeamRow> bigTeams;
+    union { null, UIInboxReselectInfo } reselectInfo;
+    array<UIInboxSmallTeamRow> widgetList;
+  }
+
   record UnverifiedInboxUIItemMetadata {
     string channelName;
     string headline;
     string headlineDecorated;
     string snippet;
-    string snippetDecoration; // One of: "", "💣" (bomb), "💥" (exploded)
+    SnippetDecoration snippetDecoration;
     array<string> writerNames;
     array<string> resetParticipants;
   }
 
   record UnverifiedInboxUIItem {
     string convID;
+    string tlfID;
     TopicType topicType;
     boolean isPublic;
     string name;
@@ -57,11 +105,10 @@ protocol chatUi {
 
   record UnverifiedInboxUIItems {
     array<UnverifiedInboxUIItem> items;
-    union { null, UIPagination } pagination;
     boolean offline;
   }
 
-    enum UIParticipantType {
+  enum UIParticipantType {
     NONE_0,
     USER_1, // Keybase or SBS
     PHONENO_2,
@@ -71,6 +118,7 @@ protocol chatUi {
   record UIParticipant {
     UIParticipantType type;
     string assertion;
+    boolean inConvName;
     union { null, string } fullName;
     union { null, string } contactName; // if set this is an imptofu conversation with someone in our contacts
   }
@@ -82,12 +130,13 @@ protocol chatUi {
 
   record InboxUIItem {
     string convID;
+    string tlfID;
     TopicType topicType;
     boolean isPublic;
     boolean isEmpty;
     string name;
     string snippet;
-    string snippetDecoration; // One of: "", "💣" (bomb), "💥" (exploded)
+    SnippetDecoration snippetDecoration;
     string channel;
     string headline;
     string headlineDecorated;
@@ -119,6 +168,7 @@ protocol chatUi {
     // Command support
     ConversationCommandGroups commands;
     ConversationCommandGroups botCommands;
+    map<string, string> botAliases;
 
     // Pinned message
     union { null, UIPinnedMessage} pinnedMsg;
@@ -135,7 +185,6 @@ protocol chatUi {
 
   record InboxUIItems {
     array<InboxUIItem> items;
-    union { null, UIPagination } pagination;
     boolean offline;
   }
 
@@ -223,8 +272,8 @@ protocol chatUi {
     boolean isEditable;
     union { null, UIMessage } replyTo;
     union { null, MessageID} pinnedMessageID;
-    // TODO HOTPOT-330 convert to bot username
-    union { null, gregor1.UID } botUID;
+    // Non-empty if this message is keyed for a bot
+    string botUsername;
   }
 
   record UIMessageOutbox {
@@ -245,11 +294,18 @@ protocol chatUi {
     union { null, MakePreviewRes } preview;
   }
 
+  record UIMessageJourneycard {
+    double ordinal; // Position in conversation. A float like {msgID:4,offset:1} -> "4.001"
+    JourneycardType cardType;
+    MessageID highlightMsgID; // Message ID to highlight in MSG_ATTENTION
+  }
+
   enum MessageUnboxedState {
     VALID_1,
     ERROR_2,
     OUTBOX_3,
-    PLACEHOLDER_4
+    PLACEHOLDER_4,
+    JOURNEYCARD_5
   }
 
   variant UIMessage switch (MessageUnboxedState state) {
@@ -257,6 +313,7 @@ protocol chatUi {
     case ERROR: MessageUnboxedError;
     case OUTBOX: UIMessageOutbox;
     case PLACEHOLDER: MessageUnboxedPlaceholder;
+    case JOURNEYCARD: UIMessageJourneycard;
   }
 
   record UIMessages {
@@ -293,6 +350,7 @@ protocol chatUi {
   record UILinkDecoration {
     string display;
     string url;
+    string punycode;
   }
 
   variant UIMaybeMentionInfo switch (UIMaybeMentionStatus status) {
@@ -316,8 +374,9 @@ protocol chatUi {
   void chatAttachmentDownloadProgress(int sessionID, long bytesComplete, long bytesTotal) oneway;
   void chatAttachmentDownloadDone(int sessionID);
 
-  void chatInboxUnverified(int sessionID, string inbox);
-  void chatInboxConversation(int sessionID, string convs);
+  void chatInboxLayout(int sessionID, string layout); // layout is JSON of UIInboxLayout
+  void chatInboxUnverified(int sessionID, string inbox); // inbox is JSON of array<UnverifiedInboxUIItems>
+  void chatInboxConversation(int sessionID, string convs); // convs is JSON of array<InboxUIItem>
   void chatInboxFailed(int sessionID, ConversationID convID, InboxUIItemError error);
 
   enum UIChatThreadStatusTyp {
@@ -332,7 +391,7 @@ protocol chatUi {
     case VALIDATING: int;
     case VALIDATED: void;
   }
-  void chatThreadCached(int sessionID, union { null, string } thread);
+  void chatThreadCached(int sessionID, union { null, string } thread); // thread is JSON of UIMessages
   void chatThreadFull(int sessionID, string thread);
   void chatThreadStatus(int sessionID, UIChatThreadStatus status);
 

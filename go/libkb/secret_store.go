@@ -124,14 +124,9 @@ func GetConfiguredAccountsFromProvisionedUsernames(m MetaContext, s SecretStoreA
 	}
 
 	// Get the full names
-
 	uids := make([]keybase1.UID, len(allUsernames))
 	for idx, username := range allUsernames {
-		uid := m.G().UIDMapper.MapHardcodedUsernameToUID(username)
-		if !uid.Exists() {
-			uid = UsernameToUIDPreserveCase(username.String())
-		}
-		uids[idx] = uid
+		uids[idx] = GetUIDByNormalizedUsername(m.G(), username)
 	}
 	usernamePackages, err := m.G().UIDMapper.MapUIDsToUsernamePackages(m.Ctx(), m.G(),
 		uids, time.Hour*24, time.Second*10, false)
@@ -209,22 +204,11 @@ type SecretStoreLocked struct {
 }
 
 func NewSecretStoreLocked(m MetaContext) *SecretStoreLocked {
-	var disk SecretStoreAll
-
-	mem := NewSecretStoreMem()
-
-	if m.G().Env.RememberPassphrase() {
-		// use os-specific secret store
-		m.Debug("NewSecretStoreLocked: using os-specific SecretStore")
-		disk = NewSecretStoreAll(m)
-	} else {
-		// config or command line flag said to use in-memory secret store
-		m.Debug("NewSecretStoreLocked: using memory-only SecretStore")
-	}
-
+	// We always make an on-disk secret store, but if the user has opted not
+	// to remember their passphrase, we don't store it on-disk.
 	return &SecretStoreLocked{
-		mem:  mem,
-		disk: disk,
+		mem:  NewSecretStoreMem(),
+		disk: NewSecretStoreAll(m),
 	}
 }
 
@@ -276,6 +260,10 @@ func (s *SecretStoreLocked) StoreSecret(m MetaContext, username NormalizedUserna
 		m.Debug("SecretStoreLocked#StoreSecret: failed to store secret in memory: %s", err.Error())
 	}
 	if s.disk == nil {
+		return err
+	}
+	if !m.G().Env.GetRememberPassphrase(username) {
+		m.Debug("SecretStoreLocked: should not remember passphrase for %s; not storing on disk", username)
 		return err
 	}
 	return s.disk.StoreSecret(m, username, secret)

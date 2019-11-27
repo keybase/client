@@ -1,12 +1,14 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/simple_fs.avdl
 
 package keybase1
 
 import (
 	"errors"
+	"fmt"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type OpID [16]byte
@@ -52,7 +54,7 @@ func (e KBFSArchivedType) String() string {
 	if v, ok := KBFSArchivedTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type KBFSArchivedParam struct {
@@ -255,7 +257,7 @@ func (e PathType) String() string {
 	if v, ok := PathTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type Path struct {
@@ -393,7 +395,7 @@ func (e DirentType) String() string {
 	if v, ok := DirentTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type PrefetchStatus int
@@ -422,7 +424,7 @@ func (e PrefetchStatus) String() string {
 	if v, ok := PrefetchStatusRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type PrefetchProgress struct {
@@ -500,7 +502,7 @@ func (e RevisionSpanType) String() string {
 	if v, ok := RevisionSpanTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type ErrorNum int
@@ -544,7 +546,7 @@ func (e OpenFlags) String() string {
 	if v, ok := OpenFlagsRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type Progress int
@@ -636,7 +638,7 @@ func (e AsyncOps) String() string {
 	if v, ok := AsyncOpsRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type ListFilter int
@@ -665,7 +667,7 @@ func (e ListFilter) String() string {
 	if v, ok := ListFilterRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type ListArgs struct {
@@ -1164,7 +1166,7 @@ func (e FolderSyncMode) String() string {
 	if v, ok := FolderSyncModeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type FolderSyncConfig struct {
@@ -1237,6 +1239,22 @@ func (o SyncConfigAndStatusRes) DeepCopy() SyncConfigAndStatusRes {
 	}
 }
 
+type FolderWithFavFlags struct {
+	Folder     Folder `codec:"folder" json:"folder"`
+	IsFavorite bool   `codec:"isFavorite" json:"isFavorite"`
+	IsIgnored  bool   `codec:"isIgnored" json:"isIgnored"`
+	IsNew      bool   `codec:"isNew" json:"isNew"`
+}
+
+func (o FolderWithFavFlags) DeepCopy() FolderWithFavFlags {
+	return FolderWithFavFlags{
+		Folder:     o.Folder.DeepCopy(),
+		IsFavorite: o.IsFavorite,
+		IsIgnored:  o.IsIgnored,
+		IsNew:      o.IsNew,
+	}
+}
+
 type FSSettings struct {
 	SpaceAvailableNotificationThreshold int64 `codec:"spaceAvailableNotificationThreshold" json:"spaceAvailableNotificationThreshold"`
 }
@@ -1296,19 +1314,23 @@ func (o SimpleFSStats) DeepCopy() SimpleFSStats {
 type SubscriptionTopic int
 
 const (
-	SubscriptionTopic_FAVORITES       SubscriptionTopic = 0
-	SubscriptionTopic_JOURNAL_STATUS  SubscriptionTopic = 1
-	SubscriptionTopic_ONLINE_STATUS   SubscriptionTopic = 2
-	SubscriptionTopic_DOWNLOAD_STATUS SubscriptionTopic = 3
+	SubscriptionTopic_FAVORITES           SubscriptionTopic = 0
+	SubscriptionTopic_JOURNAL_STATUS      SubscriptionTopic = 1
+	SubscriptionTopic_ONLINE_STATUS       SubscriptionTopic = 2
+	SubscriptionTopic_DOWNLOAD_STATUS     SubscriptionTopic = 3
+	SubscriptionTopic_FILES_TAB_BADGE     SubscriptionTopic = 4
+	SubscriptionTopic_OVERALL_SYNC_STATUS SubscriptionTopic = 5
 )
 
 func (o SubscriptionTopic) DeepCopy() SubscriptionTopic { return o }
 
 var SubscriptionTopicMap = map[string]SubscriptionTopic{
-	"FAVORITES":       0,
-	"JOURNAL_STATUS":  1,
-	"ONLINE_STATUS":   2,
-	"DOWNLOAD_STATUS": 3,
+	"FAVORITES":           0,
+	"JOURNAL_STATUS":      1,
+	"ONLINE_STATUS":       2,
+	"DOWNLOAD_STATUS":     3,
+	"FILES_TAB_BADGE":     4,
+	"OVERALL_SYNC_STATUS": 5,
 }
 
 var SubscriptionTopicRevMap = map[SubscriptionTopic]string{
@@ -1316,13 +1338,15 @@ var SubscriptionTopicRevMap = map[SubscriptionTopic]string{
 	1: "JOURNAL_STATUS",
 	2: "ONLINE_STATUS",
 	3: "DOWNLOAD_STATUS",
+	4: "FILES_TAB_BADGE",
+	5: "OVERALL_SYNC_STATUS",
 }
 
 func (e SubscriptionTopic) String() string {
 	if v, ok := SubscriptionTopicRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type PathSubscriptionTopic int
@@ -1348,7 +1372,7 @@ func (e PathSubscriptionTopic) String() string {
 	if v, ok := PathSubscriptionTopicRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type DownloadInfo struct {
@@ -1423,6 +1447,38 @@ func (o DownloadStatus) DeepCopy() DownloadStatus {
 	}
 }
 
+type FilesTabBadge int
+
+const (
+	FilesTabBadge_NONE            FilesTabBadge = 0
+	FilesTabBadge_UPLOADING_STUCK FilesTabBadge = 1
+	FilesTabBadge_AWAITING_UPLOAD FilesTabBadge = 2
+	FilesTabBadge_UPLOADING       FilesTabBadge = 3
+)
+
+func (o FilesTabBadge) DeepCopy() FilesTabBadge { return o }
+
+var FilesTabBadgeMap = map[string]FilesTabBadge{
+	"NONE":            0,
+	"UPLOADING_STUCK": 1,
+	"AWAITING_UPLOAD": 2,
+	"UPLOADING":       3,
+}
+
+var FilesTabBadgeRevMap = map[FilesTabBadge]string{
+	0: "NONE",
+	1: "UPLOADING_STUCK",
+	2: "AWAITING_UPLOAD",
+	3: "UPLOADING",
+}
+
+func (e FilesTabBadge) String() string {
+	if v, ok := FilesTabBadgeRevMap[e]; ok {
+		return v
+	}
+	return fmt.Sprintf("%v", int(e))
+}
+
 type GUIViewType int
 
 const (
@@ -1458,7 +1514,7 @@ func (e GUIViewType) String() string {
 	if v, ok := GUIViewTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type GUIFileContext struct {
@@ -1649,6 +1705,10 @@ type SimpleFSSyncConfigAndStatusArg struct {
 	IdentifyBehavior *TLFIdentifyBehavior `codec:"identifyBehavior,omitempty" json:"identifyBehavior,omitempty"`
 }
 
+type SimpleFSGetFolderArg struct {
+	Path KBFSPath `codec:"path" json:"path"`
+}
+
 type SimpleFSAreWeConnectedToMDServerArg struct {
 }
 
@@ -1720,6 +1780,9 @@ type SimpleFSDismissDownloadArg struct {
 type SimpleFSConfigureDownloadArg struct {
 	CacheDirOverride    string `codec:"cacheDirOverride" json:"cacheDirOverride"`
 	DownloadDirOverride string `codec:"downloadDirOverride" json:"downloadDirOverride"`
+}
+
+type SimpleFSGetFilesTabBadgeArg struct {
 }
 
 type SimpleFSGetGUIFileContextArg struct {
@@ -1826,6 +1889,7 @@ type SimpleFSInterface interface {
 	SimpleFSFolderSyncConfigAndStatus(context.Context, Path) (FolderSyncConfigAndStatus, error)
 	SimpleFSSetFolderSyncConfig(context.Context, SimpleFSSetFolderSyncConfigArg) error
 	SimpleFSSyncConfigAndStatus(context.Context, *TLFIdentifyBehavior) (SyncConfigAndStatusRes, error)
+	SimpleFSGetFolder(context.Context, KBFSPath) (FolderWithFavFlags, error)
 	SimpleFSAreWeConnectedToMDServer(context.Context) (bool, error)
 	SimpleFSCheckReachability(context.Context) error
 	SimpleFSSetDebugLevel(context.Context, string) error
@@ -1843,6 +1907,7 @@ type SimpleFSInterface interface {
 	SimpleFSCancelDownload(context.Context, string) error
 	SimpleFSDismissDownload(context.Context, string) error
 	SimpleFSConfigureDownload(context.Context, SimpleFSConfigureDownloadArg) error
+	SimpleFSGetFilesTabBadge(context.Context) (FilesTabBadge, error)
 	SimpleFSGetGUIFileContext(context.Context, KBFSPath) (GUIFileContext, error)
 }
 
@@ -2375,6 +2440,21 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return
 				},
 			},
+			"simpleFSGetFolder": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSGetFolderArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleFSGetFolderArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSGetFolderArg)(nil), args)
+						return
+					}
+					ret, err = i.SimpleFSGetFolder(ctx, typedArgs[0].Path)
+					return
+				},
+			},
 			"simpleFSAreWeConnectedToMDServer": {
 				MakeArg: func() interface{} {
 					var ret [1]SimpleFSAreWeConnectedToMDServerArg
@@ -2605,6 +2685,16 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return
 				},
 			},
+			"simpleFSGetFilesTabBadge": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSGetFilesTabBadgeArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.SimpleFSGetFilesTabBadge(ctx)
+					return
+				},
+			},
 			"simpleFSGetGUIFileContext": {
 				MakeArg: func() interface{} {
 					var ret [1]SimpleFSGetGUIFileContextArg
@@ -2636,7 +2726,7 @@ type SimpleFSClient struct {
 // corresponding TLF, until another call refreshes the subscription on a
 // different TLF.
 func (c SimpleFSClient) SimpleFSList(ctx context.Context, __arg SimpleFSListArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSList", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSList", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
@@ -2646,13 +2736,13 @@ func (c SimpleFSClient) SimpleFSList(ctx context.Context, __arg SimpleFSListArg)
 // corresponding TLF, until another call refreshes the subscription on a
 // different TLF.
 func (c SimpleFSClient) SimpleFSListRecursive(ctx context.Context, __arg SimpleFSListRecursiveArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSListRecursive", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSListRecursive", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // Begin recursive list of items in directory at path up to a given depth
 func (c SimpleFSClient) SimpleFSListRecursiveToDepth(ctx context.Context, __arg SimpleFSListRecursiveToDepthArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSListRecursiveToDepth", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSListRecursiveToDepth", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
@@ -2660,37 +2750,37 @@ func (c SimpleFSClient) SimpleFSListRecursiveToDepth(ctx context.Context, __arg 
 // to get more entries.
 func (c SimpleFSClient) SimpleFSReadList(ctx context.Context, opID OpID) (res SimpleFSListResult, err error) {
 	__arg := SimpleFSReadListArg{OpID: opID}
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSReadList", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSReadList", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // Begin copy of file or directory
 func (c SimpleFSClient) SimpleFSCopy(ctx context.Context, __arg SimpleFSCopyArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSCopy", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSCopy", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // Make a symlink of file or directory
 func (c SimpleFSClient) SimpleFSSymlink(ctx context.Context, __arg SimpleFSSymlinkArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSymlink", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSymlink", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // Begin recursive copy of directory
 func (c SimpleFSClient) SimpleFSCopyRecursive(ctx context.Context, __arg SimpleFSCopyRecursiveArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSCopyRecursive", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSCopyRecursive", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // Begin move of file or directory, from/to KBFS only
 func (c SimpleFSClient) SimpleFSMove(ctx context.Context, __arg SimpleFSMoveArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSMove", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSMove", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // Rename file or directory, KBFS side only
 func (c SimpleFSClient) SimpleFSRename(ctx context.Context, __arg SimpleFSRenameArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSRename", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSRename", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
@@ -2698,13 +2788,13 @@ func (c SimpleFSClient) SimpleFSRename(ctx context.Context, __arg SimpleFSRename
 // or create a directory
 // Files must be closed afterwards.
 func (c SimpleFSClient) SimpleFSOpen(ctx context.Context, __arg SimpleFSOpenArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSOpen", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSOpen", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // Set/clear file bits - only executable for now
 func (c SimpleFSClient) SimpleFSSetStat(ctx context.Context, __arg SimpleFSSetStatArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSetStat", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSetStat", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
@@ -2713,32 +2803,32 @@ func (c SimpleFSClient) SimpleFSSetStat(ctx context.Context, __arg SimpleFSSetSt
 // Repeat until zero bytes are returned or error.
 // If size is zero, read an arbitrary amount.
 func (c SimpleFSClient) SimpleFSRead(ctx context.Context, __arg SimpleFSReadArg) (res FileContent, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSRead", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSRead", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // Append content to opened file.
 // May be repeated until OpID is closed.
 func (c SimpleFSClient) SimpleFSWrite(ctx context.Context, __arg SimpleFSWriteArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSWrite", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSWrite", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // Remove file or directory from filesystem
 func (c SimpleFSClient) SimpleFSRemove(ctx context.Context, __arg SimpleFSRemoveArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSRemove", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSRemove", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // Get info about file
 func (c SimpleFSClient) SimpleFSStat(ctx context.Context, __arg SimpleFSStatArg) (res Dirent, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSStat", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSStat", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // Get revision info for a directory entry
 func (c SimpleFSClient) SimpleFSGetRevisions(ctx context.Context, __arg SimpleFSGetRevisionsArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetRevisions", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetRevisions", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
@@ -2746,13 +2836,13 @@ func (c SimpleFSClient) SimpleFSGetRevisions(ctx context.Context, __arg SimpleFS
 // to get more revisions.
 func (c SimpleFSClient) SimpleFSReadRevisions(ctx context.Context, opID OpID) (res GetRevisionsResult, err error) {
 	__arg := SimpleFSReadRevisionsArg{OpID: opID}
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSReadRevisions", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSReadRevisions", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // Convenience helper for generating new random value
 func (c SimpleFSClient) SimpleFSMakeOpid(ctx context.Context) (res OpID, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSMakeOpid", []interface{}{SimpleFSMakeOpidArg{}}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSMakeOpid", []interface{}{SimpleFSMakeOpidArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -2760,66 +2850,66 @@ func (c SimpleFSClient) SimpleFSMakeOpid(ctx context.Context) (res OpID, err err
 // Must be called after list/copy/remove
 func (c SimpleFSClient) SimpleFSClose(ctx context.Context, opID OpID) (err error) {
 	__arg := SimpleFSCloseArg{OpID: opID}
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSClose", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSClose", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // Cancels a running operation, like copy.
 func (c SimpleFSClient) SimpleFSCancel(ctx context.Context, opID OpID) (err error) {
 	__arg := SimpleFSCancelArg{OpID: opID}
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSCancel", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSCancel", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // Check progress of pending operation
 func (c SimpleFSClient) SimpleFSCheck(ctx context.Context, opID OpID) (res OpProgress, err error) {
 	__arg := SimpleFSCheckArg{OpID: opID}
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSCheck", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSCheck", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // Get all the outstanding operations
 func (c SimpleFSClient) SimpleFSGetOps(ctx context.Context) (res []OpDescription, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetOps", []interface{}{SimpleFSGetOpsArg{}}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetOps", []interface{}{SimpleFSGetOpsArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 // Blocking wait for the pending operation to finish
 func (c SimpleFSClient) SimpleFSWait(ctx context.Context, opID OpID) (err error) {
 	__arg := SimpleFSWaitArg{OpID: opID}
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSWait", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSWait", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // Instructs KBFS to dump debugging info into its logs.
 func (c SimpleFSClient) SimpleFSDumpDebuggingInfo(ctx context.Context) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSDumpDebuggingInfo", []interface{}{SimpleFSDumpDebuggingInfoArg{}}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSDumpDebuggingInfo", []interface{}{SimpleFSDumpDebuggingInfoArg{}}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c SimpleFSClient) SimpleFSClearConflictState(ctx context.Context, path Path) (err error) {
 	__arg := SimpleFSClearConflictStateArg{Path: path}
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSClearConflictState", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSClearConflictState", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c SimpleFSClient) SimpleFSFinishResolvingConflict(ctx context.Context, path Path) (err error) {
 	__arg := SimpleFSFinishResolvingConflictArg{Path: path}
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSFinishResolvingConflict", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSFinishResolvingConflict", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // Force a TLF into a stuck conflict state (for testing).
 func (c SimpleFSClient) SimpleFSForceStuckConflict(ctx context.Context, path Path) (err error) {
 	__arg := SimpleFSForceStuckConflictArg{Path: path}
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSForceStuckConflict", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSForceStuckConflict", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // Get sync status.
 func (c SimpleFSClient) SimpleFSSyncStatus(ctx context.Context, filter ListFilter) (res FSSyncStatus, err error) {
 	__arg := SimpleFSSyncStatusArg{Filter: filter}
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSyncStatus", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSyncStatus", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -2828,7 +2918,7 @@ func (c SimpleFSClient) SimpleFSSyncStatus(ctx context.Context, filter ListFilte
 // writer-TLF pair.  They are in descending order by the modification time
 // (as recorded by the server) of the most recent edit in each history.
 func (c SimpleFSClient) SimpleFSUserEditHistory(ctx context.Context) (res []FSFolderEditHistory, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSUserEditHistory", []interface{}{SimpleFSUserEditHistoryArg{}}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSUserEditHistory", []interface{}{SimpleFSUserEditHistoryArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -2838,21 +2928,21 @@ func (c SimpleFSClient) SimpleFSUserEditHistory(ctx context.Context) (res []FSFo
 // recorded by the server) of their most recent edit.
 func (c SimpleFSClient) SimpleFSFolderEditHistory(ctx context.Context, path Path) (res FSFolderEditHistory, err error) {
 	__arg := SimpleFSFolderEditHistoryArg{Path: path}
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSFolderEditHistory", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSFolderEditHistory", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // simpleFSListFavorites gets the current favorites, ignored folders, and new
 // folders from the KBFS cache.
 func (c SimpleFSClient) SimpleFSListFavorites(ctx context.Context) (res FavoritesResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSListFavorites", []interface{}{SimpleFSListFavoritesArg{}}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSListFavorites", []interface{}{SimpleFSListFavoritesArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 // simpleFSGetUserQuotaUsage returns the quota usage for the logged-in
 // user.  Any usage includes local journal usage as well.
 func (c SimpleFSClient) SimpleFSGetUserQuotaUsage(ctx context.Context) (res SimpleFSQuotaUsage, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetUserQuotaUsage", []interface{}{SimpleFSGetUserQuotaUsageArg{}}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetUserQuotaUsage", []interface{}{SimpleFSGetUserQuotaUsageArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -2861,128 +2951,139 @@ func (c SimpleFSClient) SimpleFSGetUserQuotaUsage(ctx context.Context) (res Simp
 // local journal usage as well.
 func (c SimpleFSClient) SimpleFSGetTeamQuotaUsage(ctx context.Context, teamName TeamName) (res SimpleFSQuotaUsage, err error) {
 	__arg := SimpleFSGetTeamQuotaUsageArg{TeamName: teamName}
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetTeamQuotaUsage", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetTeamQuotaUsage", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // simpleFSReset completely resets the KBFS folder referenced in `path`.
 // It should only be called after explicit user confirmation.
 func (c SimpleFSClient) SimpleFSReset(ctx context.Context, __arg SimpleFSResetArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSReset", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSReset", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c SimpleFSClient) SimpleFSFolderSyncConfigAndStatus(ctx context.Context, path Path) (res FolderSyncConfigAndStatus, err error) {
 	__arg := SimpleFSFolderSyncConfigAndStatusArg{Path: path}
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c SimpleFSClient) SimpleFSSetFolderSyncConfig(ctx context.Context, __arg SimpleFSSetFolderSyncConfigArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSetFolderSyncConfig", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSetFolderSyncConfig", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c SimpleFSClient) SimpleFSSyncConfigAndStatus(ctx context.Context, identifyBehavior *TLFIdentifyBehavior) (res SyncConfigAndStatusRes, err error) {
 	__arg := SimpleFSSyncConfigAndStatusArg{IdentifyBehavior: identifyBehavior}
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSyncConfigAndStatus", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSyncConfigAndStatus", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSGetFolder(ctx context.Context, path KBFSPath) (res FolderWithFavFlags, err error) {
+	__arg := SimpleFSGetFolderArg{Path: path}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetFolder", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c SimpleFSClient) SimpleFSAreWeConnectedToMDServer(ctx context.Context) (res bool, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSAreWeConnectedToMDServer", []interface{}{SimpleFSAreWeConnectedToMDServerArg{}}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSAreWeConnectedToMDServer", []interface{}{SimpleFSAreWeConnectedToMDServerArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c SimpleFSClient) SimpleFSCheckReachability(ctx context.Context) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSCheckReachability", []interface{}{SimpleFSCheckReachabilityArg{}}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSCheckReachability", []interface{}{SimpleFSCheckReachabilityArg{}}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c SimpleFSClient) SimpleFSSetDebugLevel(ctx context.Context, level string) (err error) {
 	__arg := SimpleFSSetDebugLevelArg{Level: level}
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSetDebugLevel", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSetDebugLevel", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c SimpleFSClient) SimpleFSSettings(ctx context.Context) (res FSSettings, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSettings", []interface{}{SimpleFSSettingsArg{}}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSettings", []interface{}{SimpleFSSettingsArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c SimpleFSClient) SimpleFSSetNotificationThreshold(ctx context.Context, threshold int64) (err error) {
 	__arg := SimpleFSSetNotificationThresholdArg{Threshold: threshold}
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSetNotificationThreshold", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSetNotificationThreshold", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c SimpleFSClient) SimpleFSObfuscatePath(ctx context.Context, path Path) (res string, err error) {
 	__arg := SimpleFSObfuscatePathArg{Path: path}
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSObfuscatePath", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSObfuscatePath", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c SimpleFSClient) SimpleFSDeobfuscatePath(ctx context.Context, path Path) (res []string, err error) {
 	__arg := SimpleFSDeobfuscatePathArg{Path: path}
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSDeobfuscatePath", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSDeobfuscatePath", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c SimpleFSClient) SimpleFSGetStats(ctx context.Context) (res SimpleFSStats, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetStats", []interface{}{SimpleFSGetStatsArg{}}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetStats", []interface{}{SimpleFSGetStatsArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c SimpleFSClient) SimpleFSSubscribePath(ctx context.Context, __arg SimpleFSSubscribePathArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSubscribePath", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSubscribePath", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c SimpleFSClient) SimpleFSSubscribeNonPath(ctx context.Context, __arg SimpleFSSubscribeNonPathArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSubscribeNonPath", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSubscribeNonPath", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c SimpleFSClient) SimpleFSUnsubscribe(ctx context.Context, __arg SimpleFSUnsubscribeArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSUnsubscribe", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSUnsubscribe", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c SimpleFSClient) SimpleFSStartDownload(ctx context.Context, __arg SimpleFSStartDownloadArg) (res string, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSStartDownload", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSStartDownload", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c SimpleFSClient) SimpleFSGetDownloadInfo(ctx context.Context, downloadID string) (res DownloadInfo, err error) {
 	__arg := SimpleFSGetDownloadInfoArg{DownloadID: downloadID}
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetDownloadInfo", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetDownloadInfo", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c SimpleFSClient) SimpleFSGetDownloadStatus(ctx context.Context) (res DownloadStatus, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetDownloadStatus", []interface{}{SimpleFSGetDownloadStatusArg{}}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetDownloadStatus", []interface{}{SimpleFSGetDownloadStatusArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c SimpleFSClient) SimpleFSCancelDownload(ctx context.Context, downloadID string) (err error) {
 	__arg := SimpleFSCancelDownloadArg{DownloadID: downloadID}
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSCancelDownload", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSCancelDownload", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c SimpleFSClient) SimpleFSDismissDownload(ctx context.Context, downloadID string) (err error) {
 	__arg := SimpleFSDismissDownloadArg{DownloadID: downloadID}
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSDismissDownload", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSDismissDownload", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c SimpleFSClient) SimpleFSConfigureDownload(ctx context.Context, __arg SimpleFSConfigureDownloadArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSConfigureDownload", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSConfigureDownload", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSGetFilesTabBadge(ctx context.Context) (res FilesTabBadge, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetFilesTabBadge", []interface{}{SimpleFSGetFilesTabBadgeArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c SimpleFSClient) SimpleFSGetGUIFileContext(ctx context.Context, path KBFSPath) (res GUIFileContext, err error) {
 	__arg := SimpleFSGetGUIFileContextArg{Path: path}
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetGUIFileContext", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetGUIFileContext", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

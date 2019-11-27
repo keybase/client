@@ -77,6 +77,9 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
     dispatch(Chat2Gen.createResolveMaybeMention({channel: ownProps.channel, name: ownProps.name})),
 })
 
-export default namedConnect(mapStateToProps, mapDispatchToProps, (s, d) => ({...s, ...d}), 'MaybeMention')(
-  MaybeMention
-)
+export default namedConnect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d) => ({...s, ...d}),
+  'MaybeMention'
+)(MaybeMention)

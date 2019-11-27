@@ -1,5 +1,5 @@
 import {SendBody as SendBodyComponent, RequestBody as RequestBodyComponent} from '.'
-import {namedConnect} from '../../../util/container'
+import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/wallets'
 import * as Types from '../../../constants/types/wallets'
 import * as WalletsGen from '../../../actions/wallets-gen'
@@ -7,7 +7,7 @@ import * as RouteTreeGen from '../../../actions/route-tree-gen'
 
 type OwnProps = {}
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state: Container.TypedState) => ({
   _accountMap: state.wallets.accountMap,
   _building: state.wallets.building,
   _failed: !!state.wallets.sentPaymentError,
@@ -16,7 +16,7 @@ const mapStateToProps = state => ({
     : state.wallets.builtPayment.builtBanners,
 })
 
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   _onGoAdvanced: (recipient, recipientType, senderAccountID) => {
     dispatch(WalletsGen.createClearBuildingAdvanced())
     dispatch(WalletsGen.createSetBuildingAdvancedRecipient({recipient}))
@@ -29,32 +29,43 @@ const mapDispatchToProps = dispatch => ({
   _onReviewPayments: () => dispatch(WalletsGen.createExitFailedPayment()),
 })
 
-const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
-  banners: (stateProps.banners || []).map(banner => ({
-    action: () =>
-      dispatchProps._onGoAdvanced(
-        stateProps._building.to,
-        stateProps._building.recipientType,
-        // This can happen when sending from chat. The normal payment path
-        // goes through buildPayment to get the sender AccountID so we don't
-        // have it here.
-        stateProps._building.from === Types.noAccountID
-          ? stateProps._accountMap.find(account => account.isDefault, null, Constants.unknownAccount)
-              .accountID
-          : stateProps._building.from
-      ),
-    bannerBackground: Constants.bannerLevelToBackground(banner.level),
-    bannerText: banner.message,
-    offerAdvancedSendForm: banner.offerAdvancedSendForm,
-  })),
+const mergeProps = (
+  stateProps: ReturnType<typeof mapStateToProps>,
+  dispatchProps: ReturnType<typeof mapDispatchToProps>,
+  _: OwnProps
+) => ({
+  banners: (stateProps.banners || []).map(
+    (banner): Types.Banner => ({
+      action: () =>
+        dispatchProps._onGoAdvanced(
+          stateProps._building.to,
+          stateProps._building.recipientType,
+          // This can happen when sending from chat. The normal payment path
+          // goes through buildPayment to get the sender AccountID so we don't
+          // have it here.
+          stateProps._building.from === Types.noAccountID
+            ? (
+                [...stateProps._accountMap.values()].find(account => account.isDefault) ??
+                Constants.unknownAccount
+              ).accountID
+            : stateProps._building.from
+        ),
+      bannerBackground: Constants.bannerLevelToBackground(banner.level),
+      bannerText: banner.message,
+      offerAdvancedSendForm: banner.offerAdvancedSendForm,
+    })
+  ),
   onReviewPayments: stateProps._failed ? dispatchProps._onReviewPayments : null,
 })
 
-export const SendBody = namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedSendBody')(
-  SendBodyComponent
-)
+export const SendBody = Container.namedConnect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'ConnectedSendBody'
+)(SendBodyComponent)
 
-export const RequestBody = namedConnect(
+export const RequestBody = Container.namedConnect(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps,

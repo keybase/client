@@ -17,7 +17,7 @@ import {quit} from './ctl.desktop'
 import logger from '../../logger'
 import {resolveRootAsURL} from './resolve-root.desktop'
 
-let mainWindow: (ReturnType<typeof MainWindow>) | null = null
+let mainWindow: ReturnType<typeof MainWindow> | null = null
 let appStartedUp = false
 let startupURL: string | null = null
 

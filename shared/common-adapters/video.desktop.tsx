@@ -43,6 +43,7 @@ export default class extends React.PureComponent<Props, State> {
   }
 
   render() {
+    const {onUrlError} = this.props
     return (
       <CheckURL url={this.props.url}>
         <Measure bounds={true} onResize={this._onContainerResize}>
@@ -59,6 +60,7 @@ export default class extends React.PureComponent<Props, State> {
                 autoPlay={true}
                 preload="metadata"
                 onLoadedMetadata={this._onVideoLoadedmetadata}
+                onError={onUrlError && (() => onUrlError('video loading error'))}
               />
             </div>
           )}

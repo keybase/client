@@ -74,8 +74,8 @@ class Chat extends React.Component<Props, State> {
     return (
       <Kb.Box2 direction="vertical" fullHeight={true} gap="tiny" style={styles.container}>
         <Kb.Box2 direction="vertical" fullWidth={true}>
-          <Kb.Text type="BodyBig">Post Link Previews?</Kb.Text>
-          <Kb.Text type="Body">
+          <Kb.Text type="Header">Post link previews?</Kb.Text>
+          <Kb.Text type="BodySmall">
             Your Keybase app will visit the links you share and automatically post previews.
           </Kb.Text>
         </Kb.Box2>
@@ -110,7 +110,7 @@ class Chat extends React.Component<Props, State> {
                     <Kb.Text type="BodySemibold">{w}</Kb.Text>
                     <Kb.Text
                       type="BodyPrimaryLink"
-                      style={wlremoved ? {color: Styles.globalColors.white} : undefined}
+                      style={wlremoved ? {color: Styles.globalColors.whiteOrWhite} : undefined}
                       onClick={() => this._toggleUnfurlWhitelist(w)}
                     >
                       {wlremoved ? 'Restore' : 'Remove'}
@@ -152,8 +152,8 @@ class Chat extends React.Component<Props, State> {
 const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({
     isElectron: {
-      marginLeft: 28,
-      paddingTop: 20,
+      padding: Styles.globalMargins.small,
+      width: '100%',
     },
     isMobile: {
       padding: 20,

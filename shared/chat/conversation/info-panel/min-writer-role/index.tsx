@@ -3,7 +3,8 @@ import * as Kb from '../../../../common-adapters'
 import * as TeamTypes from '../../../../constants/types/teams'
 import * as TeamConstants from '../../../../constants/teams'
 import * as Style from '../../../../styles'
-import {upperFirst} from 'lodash-es'
+import upperFirst from 'lodash/upperFirst'
+import {indefiniteArticle} from '../../../../util/string'
 
 type Props = {
   canSetMinWriterRole: boolean
@@ -113,7 +114,7 @@ const Dropdown = Kb.OverlayParentHOC(_Dropdown)
 
 const Display = ({minWriterRole}) => (
   <Kb.Text type="BodySmall">
-    You must be at least {'aeiou'.includes(minWriterRole[0]) ? 'an' : 'a'}{' '}
+    You must be at least {indefiniteArticle(minWriterRole)}{' '}
     <Kb.Text type="BodySmallSemibold">“{minWriterRole}”</Kb.Text> to post in this channel.
   </Kb.Text>
 )

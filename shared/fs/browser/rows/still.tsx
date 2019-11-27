@@ -11,16 +11,19 @@ type StillProps = StillCommonProps & {
   intentIfDownloading?: Types.DownloadIntent | null
   isEmpty: boolean
   type: Types.PathType
+  uploadErrorRetry?: () => void
+  uploading: boolean
+  writingToJournal: boolean
 }
 
 const getDownloadingText = (intent: Types.DownloadIntent) => {
   switch (intent) {
     case Types.DownloadIntent.None:
-      return 'Downloading ...'
+      return 'Downloading...'
     case Types.DownloadIntent.CameraRoll:
-      return 'Saving ...'
+      return 'Saving...'
     case Types.DownloadIntent.Share:
-      return 'Preparing to send to other app ...'
+      return 'Preparing...'
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(intent)
       return ''
@@ -29,13 +32,12 @@ const getDownloadingText = (intent: Types.DownloadIntent) => {
 
 const Still = (props: StillProps) => (
   <StillCommon
-    name={props.name}
     path={props.path}
     onOpen={props.onOpen}
     inDestinationPicker={props.inDestinationPicker}
-    badge={props.intentIfDownloading ? Types.PathItemBadgeType.Download : null}
+    writingToJournal={props.writingToJournal}
   >
-    <Kb.Box style={rowStyles.itemBox}>
+    <Kb.Box style={Styles.collapseStyles([rowStyles.itemBox, props.writingToJournal && rowStyles.opacity30])}>
       <Kb.Box2 direction="horizontal" fullWidth={true}>
         <Filename
           path={props.path}
@@ -50,8 +52,19 @@ const Still = (props: StillProps) => (
           />
         )}
       </Kb.Box2>
-      {props.intentIfDownloading ? (
+      {props.uploadErrorRetry ? (
+        <Kb.Text type="BodySmallError">
+          Upload has failed.{' '}
+          <Kb.Text type="BodySmallError" onClick={props.uploadErrorRetry} underline={true}>
+            Retry
+          </Kb.Text>
+        </Kb.Text>
+      ) : props.intentIfDownloading ? (
         <Kb.Text type="BodySmall">{getDownloadingText(props.intentIfDownloading)}</Kb.Text>
+      ) : props.writingToJournal ? (
+        <Kb.Meta title="Encrypting" backgroundColor={Styles.globalColors.blue} />
+      ) : props.uploading ? (
+        <Kb.Text type="BodySmall">Uploading ...</Kb.Text>
       ) : (
         props.type !== Types.PathType.Folder && <LastModifiedLine path={props.path} mode="row" />
       )}

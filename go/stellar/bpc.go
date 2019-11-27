@@ -109,7 +109,6 @@ func (c *buildPaymentCache) AvailableXLMToSend(mctx libkb.MetaContext,
 		return "", err
 	}
 	if details.Available == "" {
-		// This is what stellard does if the account is not funded.
 		return "0", nil
 	}
 	return details.Available, nil

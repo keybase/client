@@ -5,13 +5,13 @@ import * as Constants from '../../constants/settings'
 import UpdatePassword from '../password'
 
 export type Props = {
-  checkPasswordIsCorrect: boolean | null
-  hasRandomPW: boolean | null
+  checkPasswordIsCorrect?: boolean
+  hasRandomPW?: boolean
   onBootstrap: () => void
   onCancel: () => void
   onCheckPassword: (password: string) => void
   onLogout: () => void
-  onSavePassword: (password: string, passwordConfirm: string) => void
+  onSavePassword: (password: string) => void
   waitingForResponse: boolean
 }
 
@@ -131,7 +131,9 @@ class LogOut extends React.Component<Props, State> {
             <Kb.PlainInput
               keyboardType={keyboardType}
               onEnterKeyDown={() => {
-                this.props.onCheckPassword(this.state.password)
+                this.props.checkPasswordIsCorrect
+                  ? this.logOut()
+                  : this.props.onCheckPassword(this.state.password)
               }}
               onChangeText={password => this.setState({password})}
               placeholder="Your password"

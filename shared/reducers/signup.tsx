@@ -1,110 +1,107 @@
 import * as Types from '../constants/types/signup'
-import * as Constants from '../constants/signup'
 import * as SignupGen from '../actions/signup-gen'
-import * as EngineGen from '../actions/engine-gen-gen'
+import * as SettingsGen from '../actions/settings-gen'
 import HiddenString from '../util/hidden-string'
-import {actionHasError} from '../util/container'
-import {trim} from 'lodash-es'
+import trim from 'lodash/trim'
 import {isValidEmail, isValidName, isValidUsername} from '../util/simple-validators'
+import * as Container from '../util/container'
+import * as Constants from '../constants/signup'
 
-const initialState: Types.State = Constants.makeState()
+const initialState = Constants.makeState()
 
-type Actions = SignupGen.Actions | EngineGen.Keybase1NotifyEmailAddressEmailAddressVerifiedPayload
+type Actions = SignupGen.Actions | SettingsGen.EmailVerifiedPayload
 
-export default function(state: Types.State = initialState, action: Actions): Types.State {
-  switch (action.type) {
-    case SignupGen.resetStore: // fallthrough
-    case SignupGen.restartSignup:
-      return initialState.merge({
-        justSignedUpEmail: state.email,
-      })
-    case SignupGen.goBackAndClearErrors:
-      return state.merge({
-        devicenameError: '',
-        emailError: '',
-        inviteCodeError: '',
-        nameError: '',
-        passwordError: new HiddenString(''),
-        signupError: null,
-        usernameError: '',
-        usernameTaken: '',
-      })
-    case SignupGen.requestedAutoInvite:
-      return state.merge({inviteCode: actionHasError(action) ? '' : action.payload.inviteCode})
-    case SignupGen.checkInviteCode:
-      return state.merge({inviteCode: action.payload.inviteCode})
-    case SignupGen.checkedInviteCode:
-      return action.payload.inviteCode === state.inviteCode
-        ? state.merge({inviteCodeError: actionHasError(action) ? action.payload.error : ''})
-        : state
-    case SignupGen.checkUsername: {
-      const {username} = action.payload
-      const usernameError = isValidUsername(username)
-      return state.merge({username, usernameError, usernameTaken: ''})
+export default Container.makeReducer<Actions, Types.State>(initialState, {
+  [SignupGen.resetStore]: draftState => ({
+    ...initialState,
+    justSignedUpEmail: draftState.email,
+  }),
+  [SignupGen.restartSignup]: draftState => ({
+    ...initialState,
+    justSignedUpEmail: draftState.email,
+  }),
+  [SignupGen.goBackAndClearErrors]: draftState => {
+    draftState.devicenameError = ''
+    draftState.emailError = ''
+    draftState.inviteCodeError = ''
+    draftState.nameError = ''
+    draftState.passwordError = new HiddenString('')
+    draftState.signupError = undefined
+    draftState.usernameError = ''
+    draftState.usernameTaken = ''
+  },
+  [SignupGen.requestedAutoInvite]: (draftState, action) => {
+    draftState.inviteCode = action.payload.error ? '' : action.payload.inviteCode ?? ''
+  },
+  [SignupGen.checkInviteCode]: (draftState, action) => {
+    draftState.inviteCode = action.payload.inviteCode
+  },
+  [SignupGen.checkedInviteCode]: (draftState, action) => {
+    if (action.payload.inviteCode === draftState.inviteCode) {
+      draftState.inviteCodeError = action.payload.error ? action.payload.error : ''
     }
-    case SignupGen.checkedUsername: {
-      const {username, usernameTaken = '', error: usernameError} = action.payload
-      return username === state.username ? state.merge({usernameError, usernameTaken}) : state
+  },
+  [SignupGen.checkUsername]: (draftState, action) => {
+    const {username} = action.payload
+    draftState.username = username
+    draftState.usernameError = isValidUsername(username)
+    draftState.usernameTaken = ''
+  },
+  [SignupGen.checkedUsername]: (draftState, action) => {
+    const {username, usernameTaken = '', error: usernameError} = action.payload
+    if (username === draftState.username) {
+      draftState.usernameError = usernameError
+      draftState.usernameTaken = usernameTaken
     }
-    case SignupGen.requestInvite: {
-      const {email, name} = action.payload
-      const emailError = isValidEmail(email)
-      const nameError = isValidName(name)
-      return state.merge({
-        email: action.payload.email,
-        emailError,
-        name: action.payload.name,
-        nameError,
-      })
+  },
+  [SignupGen.requestInvite]: (draftState, action) => {
+    const {email, name} = action.payload
+    draftState.email = email
+    draftState.emailError = isValidEmail(email)
+    draftState.name = name
+    draftState.nameError = isValidName(name)
+  },
+  [SignupGen.requestedInvite]: (draftState, action) => {
+    if (action.payload.email === draftState.email && action.payload.name === draftState.name) {
+      draftState.emailError = action.payload.emailError || ''
+      draftState.nameError = action.payload.nameError || ''
     }
-    case SignupGen.requestedInvite:
-      return action.payload.email === state.email && action.payload.name === state.name
-        ? state.merge({
-            emailError: actionHasError(action) ? action.payload.emailError : '',
-            nameError: actionHasError(action) ? action.payload.nameError : '',
-          })
-        : state
-    case SignupGen.checkPassword: {
-      const {pass1, pass2} = action.payload
-      const p1 = pass1.stringValue()
-      const p2 = pass2.stringValue()
-      let passwordError = new HiddenString('')
-      if (!p1 || !p2) {
-        passwordError = new HiddenString('Fields cannot be blank')
-      } else if (p1 !== p2) {
-        passwordError = new HiddenString('Passwords must match')
-      } else if (p1.length < 8) {
-        passwordError = new HiddenString('Password must be at least 8 characters long')
-      }
-      return state.merge({
-        password: action.payload.pass1,
-        passwordError,
-      })
+  },
+  [SignupGen.checkPassword]: (draftState, action) => {
+    const {pass1, pass2} = action.payload
+    const p1 = pass1.stringValue()
+    const p2 = pass2.stringValue()
+    let passwordError = new HiddenString('')
+    if (!p1 || !p2) {
+      passwordError = new HiddenString('Fields cannot be blank')
+    } else if (p1 !== p2) {
+      passwordError = new HiddenString('Passwords must match')
+    } else if (p1.length < 8) {
+      passwordError = new HiddenString('Password must be at least 8 characters long')
     }
-    case SignupGen.checkDevicename: {
-      const devicename = trim(action.payload.devicename)
-      const devicenameError = devicename.length === 0 ? 'Device name must not be empty.' : ''
-      return state.merge({devicename, devicenameError})
+    draftState.password = pass1
+    draftState.passwordError = passwordError
+  },
+  [SignupGen.checkDevicename]: (draftState, action) => {
+    const devicename = trim(action.payload.devicename)
+    draftState.devicename = devicename
+    draftState.devicenameError = devicename.length === 0 ? 'Device name must not be empty.' : ''
+  },
+  [SignupGen.checkedDevicename]: (draftState, action) => {
+    if (action.payload.devicename === draftState.devicename) {
+      draftState.devicenameError = action.payload.error ?? ''
     }
-    case SignupGen.checkedDevicename:
-      return action.payload.devicename === state.devicename
-        ? state.merge({devicenameError: actionHasError(action) ? action.payload.error : ''})
-        : state
-    case SignupGen.signedup:
-      return state.merge({
-        signupError: actionHasError(action) ? action.payload.error : null,
-      })
-    case SignupGen.setJustSignedUpEmail:
-      return state.merge({
-        justSignedUpEmail: action.payload.email,
-      })
-    case SignupGen.clearJustSignedUpEmail:
-    case EngineGen.keybase1NotifyEmailAddressEmailAddressVerified:
-      return state.merge({justSignedUpEmail: ''})
-    // Saga only actions
-    case SignupGen.requestAutoInvite:
-      return state
-    default:
-      return state
-  }
-}
+  },
+  [SignupGen.signedup]: (draftState, action) => {
+    draftState.signupError = action.payload.error
+  },
+  [SignupGen.setJustSignedUpEmail]: (draftState, action) => {
+    draftState.justSignedUpEmail = action.payload.email
+  },
+  [SignupGen.clearJustSignedUpEmail]: draftState => {
+    draftState.justSignedUpEmail = ''
+  },
+  [SettingsGen.emailVerified]: draftState => {
+    draftState.justSignedUpEmail = ''
+  },
+})

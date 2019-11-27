@@ -1,4 +1,5 @@
 import moment from 'moment'
+import {pluralize} from './string'
 
 export function formatTimeForChat(time: number): string | null {
   const m = moment(time)
@@ -36,9 +37,11 @@ export function formatTimeForConversationList(time: number, nowOverride?: number
     return m.format('h:mm A')
   } else if (m.isAfter(weekOld)) {
     return m.format('ddd')
+  } else if (m.isSame(today, 'year')) {
+    return m.format('MMM D')
   }
 
-  return m.format('MMM D')
+  return m.format('D MMM YY')
 }
 
 export function formatTimeForMessages(time: number, nowOverride?: number): string {
@@ -102,6 +105,40 @@ export const formatDuration = (duration: number): string => {
   }
   const d = moment.duration(duration)
   return d.hours() ? `${d.hours()} hr` : d.minutes() ? `${d.minutes()} min` : `${d.seconds()} s`
+}
+
+export const formatAudioRecordDuration = (duration: number): string => {
+  const d = moment.duration(duration)
+  return moment.utc(d.as('milliseconds')).format('mm:ss')
+}
+
+export const formatDurationForAutoreset = (duration: number): string => {
+  if (!duration) {
+    return ''
+  }
+  if (duration < 0) {
+    // This shouldn't happen but can help us find bugs more easily.
+    return 'no time'
+  }
+  // This +1 / -1 is so that the timer says "7 days" when there are between 6 and 7 days left, "1 second" between 0 and 1 seconds, and so on.
+  const d = moment.duration(duration - 1)
+  let label: string
+  let amt: number
+  if (d.days()) {
+    amt = d.days()
+    label = 'day'
+  } else if (d.hours()) {
+    amt = d.hours()
+    label = 'hour'
+  } else if (d.minutes()) {
+    amt = d.minutes()
+    label = 'minute'
+  } else {
+    amt = d.seconds()
+    label = 'second'
+  }
+  amt += 1
+  return `${amt} ${pluralize(label, amt)}`
 }
 
 export const formatDurationForLocation = (duration: number): string => {

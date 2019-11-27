@@ -423,7 +423,8 @@ declare module 'react-navigation' {
     // Only works on stack navigator
     // Future versions of react-navigation will use reanimated, so we can define
     // the background color as an animated value. And remove this value.
-    bgOnlyDuringTransition?: boolean
+    // Return the color to show during transitions.
+    bgOnlyDuringTransition?: () => string
     cardShadowEnabled?: boolean
     cardOverlayEnabled?: boolean
     cardStyle?: StyleProp<ViewStyle>

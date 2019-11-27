@@ -61,6 +61,10 @@
         {
           "name": "latestHiddenSeqno",
           "type": "Seqno"
+        },
+        {
+          "name": "latestOffchainSeqno",
+          "type": "Seqno"
         }
       ],
       "response": null,
@@ -86,6 +90,10 @@
         },
         {
           "name": "latestHiddenSeqno",
+          "type": "Seqno"
+        },
+        {
+          "name": "latestOffchainSeqno",
           "type": "Seqno"
         }
       ],
@@ -132,6 +140,16 @@
       "response": null,
       "oneway": true
     },
+    "teamRoleMapChanged": {
+      "request": [
+        {
+          "name": "newVersion",
+          "type": "UserTeamVersion"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    },
     "avatarUpdated": {
       "request": [
         {
@@ -150,6 +168,11 @@
           "type": "AvatarUpdateType"
         }
       ],
+      "response": null,
+      "oneway": true
+    },
+    "teamMetadataUpdate": {
+      "request": [],
       "response": null,
       "oneway": true
     }

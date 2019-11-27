@@ -62,6 +62,7 @@ const markdownStyles = Styles.styleSheetCreate(
       codeSnippetBlockTextStyle: Styles.platformStyles({
         isMobile: {
           ...Styles.globalStyles.fontTerminal,
+          backgroundColor: Styles.globalColors.redLighter,
           color: Styles.globalColors.black,
           fontSize: 15,
         },
@@ -72,7 +73,7 @@ const markdownStyles = Styles.styleSheetCreate(
           ...Styles.globalStyles.fontTerminal,
           ...Styles.globalStyles.rounded,
           backgroundColor: Styles.globalColors.redLighter,
-          color: Styles.globalColors.blueDark,
+          color: Styles.globalColors.blueDarkOrBlueLight,
           paddingLeft: Styles.globalMargins.xtiny,
           paddingRight: Styles.globalMargins.xtiny,
         },
@@ -141,34 +142,30 @@ const markdownStyles = Styles.styleSheetCreate(
 )
 
 // TODO kill this when we remove the old markdown parser. This check is done at the parsing level.
-class EmojiIfExists extends React.PureComponent<
-  EmojiProps & {
-    style?: any
-    allowFontScaling?: boolean
-    lineClamp?: number
-  }
-> {
-  render() {
-    const emojiNameLower = this.props.emojiName.toLowerCase()
+const EmojiIfExists = React.memo(
+  (
+    props: EmojiProps & {
+      style?: any
+      allowFontScaling?: boolean
+      lineClamp?: number
+    }
+  ) => {
+    const emojiNameLower = props.emojiName.toLowerCase()
     const exists = !!emojiIndexByName[emojiNameLower]
     return exists ? (
-      <Emoji
-        emojiName={emojiNameLower}
-        size={this.props.size}
-        allowFontScaling={this.props.allowFontScaling}
-      />
+      <Emoji emojiName={emojiNameLower} size={props.size} allowFontScaling={props.allowFontScaling} />
     ) : (
       <Text
         type="Body"
-        style={this.props.style}
-        lineClamp={this.props.lineClamp}
-        allowFontScaling={this.props.allowFontScaling}
+        style={props.style}
+        lineClamp={props.lineClamp}
+        allowFontScaling={props.allowFontScaling}
       >
-        {this.props.emojiName}
+        {props.emojiName}
       </Text>
     )
   }
-}
+)
 
 const reactComponentsForMarkdownType = {
   // On mobile we can't have raw text without a Text tag. So we make sure we are in a paragraph or we return a new text tag. If it's not mobile we can short circuit and just return the string
@@ -350,20 +347,15 @@ const previewOutput = SimpleMarkdown.reactFor(
       case 'newline':
         return ' '
       case 'blockQuote':
-        return (
-          <>
-            {output([{content: '> ', type: 'text'}], state)}
-            {output(ast.content, state)}
-          </>
-        )
+        return React.Children.toArray([
+          output([{content: '> ', type: 'text'}], state),
+          output(ast.content, state),
+        ])
       case 'codeBlock':
-        return (
-          <>
-            {output([{content: ' ', type: 'text'}], state)}
-            {output(ast.content, state)}
-          </>
-        )
-
+        return React.Children.toArray([
+          output([{content: ' ', type: 'text'}], state),
+          output(ast.content, state),
+        ])
       default:
         return output(ast.content, state)
     }

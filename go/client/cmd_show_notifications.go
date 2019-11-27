@@ -125,8 +125,8 @@ func (d *notificationDisplay) UserChanged(_ context.Context, uid keybase1.UID) e
 	return d.printf("User %s changed\n", uid)
 }
 
-func (d *notificationDisplay) PasswordChanged(_ context.Context) error {
-	return d.printf("Password changed\n")
+func (d *notificationDisplay) PasswordChanged(_ context.Context, state keybase1.PassphraseState) error {
+	return d.printf("Password changed:%+v\n", state)
 }
 
 func (d *notificationDisplay) FSOnlineStatusChanged(_ context.Context, online bool) error {
@@ -172,6 +172,9 @@ func (d *notificationDisplay) TrackingChanged(_ context.Context, arg keybase1.Tr
 func (d *notificationDisplay) TrackingInfo(_ context.Context, arg keybase1.TrackingInfoArg) error {
 	return d.printf("Tracking info for %s followers: %v followees: %v\n", arg.Uid, arg.Followers,
 		arg.Followees)
+}
+func (d *notificationDisplay) NotifyUserBlocked(_ context.Context, arg keybase1.UserBlockedSummary) error {
+	return d.printf("User blocked: %+v\n", arg)
 }
 
 func (d *notificationDisplay) RootAuditError(_ context.Context, msg string) (err error) {

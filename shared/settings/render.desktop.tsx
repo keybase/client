@@ -12,7 +12,7 @@ const SettingsRender = (props: Props) => {
   }, [loadHasRandomPW])
   return (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1, height: '100%'}}>
-      <Box style={{...globalStyles.flexBoxRow, flex: 1}}>
+      <Box style={{...globalStyles.flexBoxRow, flex: 1, height: '100%'}}>
         <SettingsNav
           badgeNumbers={props.badgeNumbers}
           contactsLabel={props.contactsLabel}

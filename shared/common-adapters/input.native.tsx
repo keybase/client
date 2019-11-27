@@ -311,6 +311,7 @@ class Input extends Component<Props, State> {
       onSelectionChange: this._onSelectionChange,
       onSubmitEditing: this.props.onEnterKeyDown,
       placeholder: this.props.hintText,
+      placeholderTextColor: Styles.globalColors.black_40,
       ref: this._input,
       returnKeyType: this.props.returnKeyType,
       secureTextEntry: this.props.type === 'password',

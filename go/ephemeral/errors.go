@@ -33,6 +33,7 @@ const (
 	EphemeralKeyErrorKind_MEMBERAFTEREK
 	EphemeralKeyErrorKind_DEVICESTALE
 	EphemeralKeyErrorKind_USERSTALE
+	EphemeralKeyErrorKind_UNKNOWN
 )
 
 type EphemeralKeyError struct {
@@ -82,10 +83,15 @@ func newTransientEphemeralKeyError(err EphemeralKeyError) EphemeralKeyError {
 
 const (
 	DefaultHumanErrMsg                          = "This exploding message is not available to you"
+	DefaultPluralHumanErrMsg                    = "%d exploding messages are not available to you"
 	DeviceProvisionedAfterContentCreationErrMsg = "this device was created after the message was sent"
-	MemberAddedAfterContentCreationErrMsg       = "you were added to the team after this message was sent"
+	MemberAddedAfterContentCreationErrMsg       = "you were added to the team after the message was sent"
 	DeviceCloneErrMsg                           = "cloned devices do not support exploding messages"
 	DeviceCloneWithOneshotErrMsg                = "to support exploding messages in `oneshot` mode, you need a separate paper key for each running instance"
+	DeviceAfterEKErrMsg                         = "this device was provisioned after the message was sent"
+	MemberAfterEKErrMsg                         = "you were added to the team after the message was sent"
+	DeviceStaleErrMsg                           = "this device wasn't online to generate an exploding key"
+	UserStaleErrMsg                             = "you weren't online to generate new exploding keys"
 )
 
 type IncorrectTeamEphemeralKeyTypeError struct {
@@ -191,22 +197,28 @@ func newEphemeralKeyError(debugMsg, humanMsg string, errKind EphemeralKeyErrorKi
 	}
 }
 func newEphemeralKeyErrorFromStatus(e libkb.AppStatusError) EphemeralKeyError {
-	humanMsg := humanMsgWithPrefix(e.Desc)
 	var errKind EphemeralKeyErrorKind
 	var ekKind EphemeralKeyKind
+	var humanMsg string
 	switch e.Code {
 	case libkb.SCEphemeralDeviceAfterEK:
 		errKind = EphemeralKeyErrorKind_DEVICEAFTEREK
 		ekKind = DeviceEKKind
+		humanMsg = DeviceAfterEKErrMsg
 	case libkb.SCEphemeralMemberAfterEK:
 		ekKind = TeamEKKind
+		humanMsg = MemberAfterEKErrMsg
 	case libkb.SCEphemeralDeviceStale:
 		errKind = EphemeralKeyErrorKind_DEVICESTALE
 		ekKind = DeviceEKKind
+		humanMsg = DeviceStaleErrMsg
 	case libkb.SCEphemeralUserStale:
 		errKind = EphemeralKeyErrorKind_USERSTALE
 		ekKind = UserEKKind
+		humanMsg = UserStaleErrMsg
 	}
+
+	humanMsg = humanMsgWithPrefix(humanMsg)
 	return EphemeralKeyError{
 		DebugMsg:   e.Desc,
 		HumanMsg:   humanMsg,
@@ -252,4 +264,16 @@ func deviceIsCloned(mctx libkb.MetaContext) bool {
 		return false
 	}
 	return cloneState.IsClone()
+}
+
+func PluralizeErrorMessage(msg string, count int) string {
+	if count <= 1 {
+		return msg
+	}
+	msg = strings.Replace(msg, DefaultHumanErrMsg, fmt.Sprintf(DefaultPluralHumanErrMsg, count), 1)
+	// Backwards compatibility with old server based message which clients may
+	// have in cache.
+	msg = strings.Replace(msg, "this message was", "the messages were", 1)
+	msg = strings.Replace(msg, "the message was", "the messages were", 1)
+	return msg
 }

@@ -1,15 +1,15 @@
-import * as I from 'immutable'
 import {TeamRoleType} from './teams'
-import {ServiceId} from '../../util/platforms'
+import {ServiceId as _ServiceId} from '../../util/platforms'
 
-export type AllowedNamespace = 'chat2' | 'teams' | 'people'
+export const allowedNamespace = ['chat2', 'teams', 'people', 'wallets'] as const
+export type AllowedNamespace = typeof allowedNamespace[number]
 export type FollowingState = 'Following' | 'NotFollowing' | 'NoState' | 'You'
-export type ServiceId = ServiceId
+export type ServiceId = _ServiceId
 
 export type ContactServiceId = 'email' | 'phone'
 // These are the possible tabs in team building, and also consts that can be
 // passed as `service` to search RPC (`userSearch.UserSearch`).
-export type ServiceIdWithContact = ServiceId | ContactServiceId
+export type ServiceIdWithContact = _ServiceId | ContactServiceId
 
 export const isContactServiceId = (id: string): id is ContactServiceId => id === 'email' || id === 'phone'
 
@@ -29,32 +29,29 @@ export type User = {
 }
 
 // Treating this as a tuple
-export type SearchKey = I.List<SearchString | ServiceIdWithContact>
+export type SearchKey = Array<SearchString | ServiceIdWithContact>
 
 // This is what should be kept in the reducer
 // Keyed so that we never get results that don't match the user's input (e.g. outdated results)
 type Query = string
 
-export type SearchResults = I.Map<Query, I.Map<ServiceIdWithContact, Array<User>>>
-export type ServiceResultCount = I.Map<SearchString, I.Map<ServiceIdWithContact, number>>
+export type SearchResults = Map<Query, Map<ServiceIdWithContact, Array<User>>>
+export type ServiceResultCount = Map<SearchString, Map<ServiceIdWithContact, number>>
 
-// TODO remove teamBuilding prefix
-export type _TeamBuildingSubState = {
-  teamBuildingTeamSoFar: I.OrderedSet<User>
-  teamBuildingSearchResults: SearchResults
-  teamBuildingServiceResultCount: ServiceResultCount
-  teamBuildingFinishedTeam: I.OrderedSet<User>
-  teamBuildingFinishedSelectedRole: TeamRoleType
-  teamBuildingFinishedSendNotification: boolean
-  teamBuildingSearchQuery: Query
-  teamBuildingSelectedService: ServiceIdWithContact
-  teamBuildingSearchLimit: number
-  teamBuildingUserRecs: Array<User> | null
-  teamBuildingSelectedRole: TeamRoleType
-  teamBuildingSendNotification: boolean
-}
-
-export type TeamBuildingSubState = I.RecordOf<_TeamBuildingSubState>
+export type TeamBuildingSubState = Readonly<{
+  teamSoFar: Set<User>
+  searchResults: SearchResults
+  serviceResultCount: ServiceResultCount
+  finishedTeam: Set<User>
+  finishedSelectedRole: TeamRoleType
+  finishedSendNotification: boolean
+  searchQuery: Query
+  selectedService: ServiceIdWithContact
+  searchLimit: number
+  userRecs?: Array<User>
+  selectedRole: TeamRoleType
+  sendNotification: boolean
+}>
 
 export type SelectedUser = {
   userId: string

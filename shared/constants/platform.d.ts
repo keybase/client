@@ -1,3 +1,5 @@
+import {DarkModePreference} from 'styles/dark-mode'
+
 export const runMode: string
 
 export const isMobile: boolean
@@ -14,9 +16,11 @@ export const isMac: boolean
 export const isAndroidNewerThanN: boolean
 export const defaultUseNativeFrame: boolean
 export const isTestDevice: boolean
+export const isRemoteDebuggerAttached: boolean
 
 export declare const fileUIName: string
 export declare const version: string
 export declare const pprofDir: string
 export declare const serverConfigFileName: string
 export declare const shortcutSymbol: string
+export const appColorSchemeChanged: (pref: DarkModePreference) => void

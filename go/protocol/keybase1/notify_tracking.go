@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/notify_tracking.avdl
 
 package keybase1
@@ -6,6 +6,7 @@ package keybase1
 import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type TrackingChangedArg struct {
@@ -20,9 +21,14 @@ type TrackingInfoArg struct {
 	Followees []string `codec:"followees" json:"followees"`
 }
 
+type NotifyUserBlockedArg struct {
+	B UserBlockedSummary `codec:"b" json:"b"`
+}
+
 type NotifyTrackingInterface interface {
 	TrackingChanged(context.Context, TrackingChangedArg) error
 	TrackingInfo(context.Context, TrackingInfoArg) error
+	NotifyUserBlocked(context.Context, UserBlockedSummary) error
 }
 
 func NotifyTrackingProtocol(i NotifyTrackingInterface) rpc.Protocol {
@@ -59,6 +65,21 @@ func NotifyTrackingProtocol(i NotifyTrackingInterface) rpc.Protocol {
 					return
 				},
 			},
+			"notifyUserBlocked": {
+				MakeArg: func() interface{} {
+					var ret [1]NotifyUserBlockedArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]NotifyUserBlockedArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]NotifyUserBlockedArg)(nil), args)
+						return
+					}
+					err = i.NotifyUserBlocked(ctx, typedArgs[0].B)
+					return
+				},
+			},
 		},
 	}
 }
@@ -68,11 +89,17 @@ type NotifyTrackingClient struct {
 }
 
 func (c NotifyTrackingClient) TrackingChanged(ctx context.Context, __arg TrackingChangedArg) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyTracking.trackingChanged", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyTracking.trackingChanged", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyTrackingClient) TrackingInfo(ctx context.Context, __arg TrackingInfoArg) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyTracking.trackingInfo", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyTracking.trackingInfo", []interface{}{__arg}, 0*time.Millisecond)
+	return
+}
+
+func (c NotifyTrackingClient) NotifyUserBlocked(ctx context.Context, b UserBlockedSummary) (err error) {
+	__arg := NotifyUserBlockedArg{B: b}
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyTracking.notifyUserBlocked", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }

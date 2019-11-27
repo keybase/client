@@ -6,9 +6,10 @@ import * as Flow from '../../util/flow'
 import QRImage from './qr-image'
 import QRScan from './qr-scan/container'
 import {isAndroid} from '../../constants/platform'
-
-const blueBackground = require('../../images/illustrations/bg-provisioning-blue.png')
-const greenBackground = require('../../images/illustrations/bg-provisioning-green.png')
+import Troubleshooting from '../troubleshooting'
+import * as Types from '../../constants/types/provision'
+import DeviceIcon from '../../devices/device-icon'
+import * as DeviceTypes from '../../constants/types/devices'
 
 export type DeviceType = 'mobile' | 'desktop'
 export type Tab = 'QR' | 'enterText' | 'viewText'
@@ -17,20 +18,22 @@ const currentDeviceType: DeviceType = Styles.isMobile ? 'mobile' : 'desktop'
 
 type Props = {
   error: string
+  currentDevice: DeviceTypes.Device
   currentDeviceAlreadyProvisioned: boolean
   currentDeviceName: string
-  otherDeviceName: string
-  otherDeviceType: DeviceType
+  otherDevice: Types.Device
   tabOverride?: Tab
   textCode: string
   onBack: () => void
   onClose: () => void
   onSubmitTextCode: (code: string) => void
+  waiting: boolean
 }
 
 type State = {
   code: string
   tab: Tab
+  troubleshooting: boolean
 }
 
 class CodePage2 extends React.Component<Props, State> {
@@ -45,6 +48,7 @@ class CodePage2 extends React.Component<Props, State> {
     this.state = {
       code: '',
       tab: (__STORYBOOK__ && this.props.tabOverride) || this._defaultTab(this.props),
+      troubleshooting: false,
     }
   }
 
@@ -57,7 +61,8 @@ class CodePage2 extends React.Component<Props, State> {
   }
 
   componentWillUnmount() {
-    this.props.onClose()
+    // Troubleshooting modal may send us back to the devices page; it already cancels in that case
+    !this.state.troubleshooting && this.props.onClose()
   }
 
   static _validTabs = (deviceType: DeviceType, otherDeviceType) => {
@@ -80,7 +85,7 @@ class CodePage2 extends React.Component<Props, State> {
     if (currentDeviceType === 'mobile') {
       return getTabOrOpposite('QR')
     } else if (currentDeviceType === 'desktop') {
-      return props.otherDeviceType === 'desktop' ? getTabOrOpposite('viewText') : getTabOrOpposite('QR')
+      return props.otherDevice.type === 'desktop' ? getTabOrOpposite('viewText') : getTabOrOpposite('QR')
     }
 
     throw new Error('Impossible defaultTab')
@@ -95,7 +100,6 @@ class CodePage2 extends React.Component<Props, State> {
   _header = () => {
     return Styles.isMobile
       ? {
-          hideBorder: true,
           leftButton: (
             <Kb.Text type="BodyBig" onClick={this.props.onBack} negative={true}>
               {this.props.currentDeviceAlreadyProvisioned ? 'Back' : 'Cancel'}
@@ -124,7 +128,6 @@ class CodePage2 extends React.Component<Props, State> {
       <Kb.Box2
         direction="vertical"
         fullWidth={true}
-        fullHeight={true}
         style={Styles.collapseStyles([styles.codePageContainer, {backgroundColor: this._tabBackground()}])}
       >
         <Kb.Box2
@@ -136,20 +139,27 @@ class CodePage2 extends React.Component<Props, State> {
               : styles.imageContainerOnRight
           }
         >
-          <Kb.RequireImage
-            src={this.state.tab === 'QR' ? blueBackground : greenBackground}
+          <Kb.Icon
+            type={
+              this.state.tab === 'QR'
+                ? 'illustration-bg-provisioning-blue'
+                : 'illustration-bg-provisioning-green'
+            }
             style={
               this.props.currentDeviceAlreadyProvisioned ? styles.backgroundOnLeft : styles.backgroundOnRight
             }
           />
         </Kb.Box2>
         {!this.props.currentDeviceAlreadyProvisioned && !Styles.isMobile && (
-          <Kb.BackButton
-            onClick={this.props.onBack}
-            iconColor={Styles.globalColors.white}
-            style={styles.backButton}
-            textStyle={styles.backButtonText}
-          />
+          <>
+            <Kb.BackButton
+              onClick={this.props.onBack}
+              iconColor={Styles.globalColors.white}
+              style={styles.backButton}
+              textStyle={styles.backButtonText}
+            />
+            <Kb.Divider />
+          </>
         )}
         {!!this.props.error && <Kb.Banner color="red">{this.props.error}</Kb.Banner>}
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.scrollContainer}>
@@ -157,20 +167,32 @@ class CodePage2 extends React.Component<Props, State> {
             <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} gap="tiny">
               <Instructions {...this.props} />
               {content}
+              <SwitchTab {...this.props} selected={this.state.tab} onSelect={tab => this.setState({tab})} />
               {!this._inModal() && this._footer().content}
             </Kb.Box2>
           </Kb.Box2>
         </Kb.Box2>
+        {!this._inModal() &&
+          currentDeviceType === 'desktop' &&
+          !this.props.currentDeviceAlreadyProvisioned &&
+          this._heyWaitBanner()}
+        {!this._inModal() && this.state.troubleshooting && (
+          <Kb.Overlay onHidden={() => this.setState({troubleshooting: false})} propagateOutsideClicks={true}>
+            {this._troubleshooting()}
+          </Kb.Overlay>
+        )}
       </Kb.Box2>
     )
   }
   _footer = () => {
+    const showHeyWaitInFooter = currentDeviceType === 'mobile' && !this.props.currentDeviceAlreadyProvisioned
     return {
       content: (
         <Kb.Box2
           alignItems="center"
           direction="vertical"
           gap={Styles.isMobile ? 'medium' : 'small'}
+          gapEnd={!showHeyWaitInFooter}
           fullWidth={true}
         >
           {this.state.tab === 'enterText' && (
@@ -179,7 +201,7 @@ class CodePage2 extends React.Component<Props, State> {
               backgroundColor={this._buttonBackground()}
               label="Continue"
               onClick={this._onSubmitTextCode}
-              disabled={!this.state.code}
+              disabled={!this.state.code || this.props.waiting}
               style={styles.enterTextButton}
               waitingKey={Constants.waitingKey}
             />
@@ -191,24 +213,58 @@ class CodePage2 extends React.Component<Props, State> {
               label="Close"
               onClick={this.props.onBack}
               onlyDisable={true}
+              style={styles.closeButton}
               waitingKey={Constants.waitingKey}
             />
           )}
-          <SwitchTab {...this.props} selected={this.state.tab} onSelect={tab => this.setState({tab})} />
+          {showHeyWaitInFooter && this._heyWaitBanner()}
         </Kb.Box2>
       ),
       hideBorder: !this._inModal() || currentDeviceType !== 'desktop',
-      style: {backgroundColor: this._tabBackground()},
+      style: {backgroundColor: this._tabBackground(), ...Styles.padding(Styles.globalMargins.xsmall, 0, 0)},
     }
   }
+
+  _heyWaitBanner = () => (
+    <Kb.ClickableBox onClick={() => this.setState({troubleshooting: true})}>
+      <Kb.Banner color="yellow">
+        <Kb.BannerParagraph
+          bannerColor="yellow"
+          content={[
+            `Are you on that ${this.props.otherDevice.type === 'mobile' ? 'phone' : 'computer'} now? `,
+            {onClick: () => this.setState({troubleshooting: true}), text: 'Resolve'},
+          ]}
+        />
+      </Kb.Banner>
+    </Kb.ClickableBox>
+  )
+
+  _troubleshooting = () => (
+    <Troubleshooting
+      mode={this.state.tab === 'QR' ? 'QR' : 'text'}
+      onCancel={() => this.setState({troubleshooting: false})}
+      otherDeviceType={this.props.otherDevice.type}
+    />
+  )
   // We're in a modal unless this is a desktop being newly provisioned.
   _inModal = () => currentDeviceType !== 'desktop' || this.props.currentDeviceAlreadyProvisioned
 
   render() {
+    // Workaround for no modals while logged out: display just the troubleshooting modal if we're on mobile and it's open;
+    // When we're on desktop being newly provisioned, it's in this._body()
+    if (Styles.isMobile && this.state.troubleshooting) {
+      return this._troubleshooting()
+    }
     const content = this._body()
     if (this._inModal()) {
       return (
-        <Kb.Modal header={this._header()} footer={this._footer()} onClose={this.props.onBack} mode="Wide">
+        <Kb.Modal
+          header={this._header()}
+          footer={this._footer()}
+          onClose={this.props.onBack}
+          mode="Wide"
+          mobileStyle={{backgroundColor: this._tabBackground()}}
+        >
           {content}
         </Kb.Modal>
       )
@@ -225,7 +281,7 @@ const SwitchTab = (
     onSelect: (tab: Tab) => void
   } & Props
 ) => {
-  if (currentDeviceType === 'desktop' && props.otherDeviceType === 'desktop') {
+  if (currentDeviceType === 'desktop' && props.otherDevice.type === 'desktop') {
     return null
   }
 
@@ -234,7 +290,7 @@ const SwitchTab = (
 
   if (props.selected === 'QR') {
     label = 'Type secret instead'
-    if (currentDeviceType === 'mobile' && props.otherDeviceType === 'mobile') {
+    if (currentDeviceType === 'mobile' && props.otherDevice.type === 'mobile') {
       tab = (props.currentDeviceAlreadyProvisioned
       ? Styles.isMobile
       : !Styles.isMobile)
@@ -287,7 +343,13 @@ const Qr = (props: Props) =>
 const EnterText = (props: Props & {code: string; setCode: (code: string) => void}) => {
   const {code, setCode} = props
   const {onSubmitTextCode} = props
-  const onSubmit = React.useCallback(() => onSubmitTextCode(code), [code, onSubmitTextCode])
+  const onSubmit = React.useCallback(
+    e => {
+      e.preventDefault()
+      code && onSubmitTextCode(code)
+    },
+    [code, onSubmitTextCode]
+  )
   return (
     <Kb.Box2 direction="vertical" style={styles.enterTextContainer} gap="small">
       <Kb.PlainInput
@@ -296,7 +358,7 @@ const EnterText = (props: Props & {code: string; setCode: (code: string) => void
         onChangeText={setCode}
         onEnterKeyDown={onSubmit}
         rowsMin={3}
-        placeholder={`Type the ${props.otherDeviceType === 'mobile' ? '9' : '8'}-word secret code`}
+        placeholder={`Type the ${props.otherDevice.type === 'mobile' ? '9' : '8'}-word secret code`}
         textType="Terminal"
         style={styles.enterTextInput}
         value={code}
@@ -316,26 +378,39 @@ const ViewText = (props: Props) => (
 const Instructions = (p: Props) => (
   <Kb.Box2 direction="vertical">
     {p.currentDeviceAlreadyProvisioned ? (
-      <>
+      <Kb.Box2 direction="horizontal" centerChildren={true}>
         <Kb.Text center={true} type={textType} style={styles.instructions}>
-          Ready to authorize using
+          Ready to authorize using{' '}
         </Kb.Text>
+        <DeviceIcon size={32} device={p.currentDevice} style={styles.deviceIcon} />
         <Kb.Text center={true} type={textType} style={styles.instructionsItalic}>
           {p.currentDeviceName}.
         </Kb.Text>
-      </>
+      </Kb.Box2>
     ) : (
       <>
-        <Kb.Text
-          center={true}
-          type={textType}
-          style={Styles.collapseStyles([styles.instructions, styles.instructionsUpper])}
-        >
-          In the Keybase app on{' '}
-          <Kb.Text center={true} type={textType} style={styles.instructionsItalic}>
-            {p.otherDeviceName}
-          </Kb.Text>{' '}
-          navigate to:
+        <Kb.Text type={textType} style={styles.instructionsContainer}>
+          <Kb.Text
+            type={textType}
+            style={Styles.collapseStyles([styles.instructions, styles.instructionsUpper])}
+          >
+            In the Keybase app on{' '}
+          </Kb.Text>
+          <DeviceIcon size={32} device={p.otherDevice} style={styles.deviceIcon} />
+          <Kb.Text
+            center={true}
+            type={textType}
+            style={Styles.collapseStyles([styles.instructionsItalic, styles.instructionsUpper])}
+          >
+            {p.otherDevice.name}
+          </Kb.Text>
+          <Kb.Text
+            type={textType}
+            style={Styles.collapseStyles([styles.instructions, styles.instructionsUpper])}
+          >
+            {', '}
+            navigate to:
+          </Kb.Text>
         </Kb.Text>
         <Kb.Box2
           direction="horizontal"
@@ -344,7 +419,7 @@ const Instructions = (p: Props) => (
           fullWidth={true}
           style={Styles.globalStyles.flexWrap}
         >
-          {p.otherDeviceType === 'mobile' && (
+          {p.otherDevice.type === 'mobile' && (
             <>
               <Kb.Icon
                 type="iconfont-nav-2-hamburger"
@@ -377,11 +452,12 @@ const styles = Styles.styleSheetCreate(
     ({
       backButton: Styles.platformStyles({
         isElectron: {
-          marginBottom: Styles.globalMargins.small,
-          marginLeft: Styles.globalMargins.xsmall,
+          alignSelf: 'flex-start',
           marginTop: 56, // we're under the header, need to shift down
-          // else the background can go above things, annoyingly
-          zIndex: 1,
+          paddingBottom: Styles.globalMargins.small,
+          paddingLeft: Styles.globalMargins.xsmall,
+          position: 'relative', // otherwise the absolutely positioned background makes this unclickable
+          zIndex: undefined, // annoyingly this is set inside Kb.BackButton
         },
         isMobile: {
           marginBottom: 0,
@@ -398,8 +474,13 @@ const styles = Styles.styleSheetCreate(
       backgroundOnRight: {
         marginRight: -230,
       },
+      closeButton: {
+        marginLeft: Styles.globalMargins.small,
+        marginRight: Styles.globalMargins.small,
+      },
       codePageContainer: Styles.platformStyles({
         common: {
+          flex: 1,
           overflow: 'hidden',
           position: 'relative',
         },
@@ -411,20 +492,24 @@ const styles = Styles.styleSheetCreate(
         isElectron: {
           height: '100%',
           padding: Styles.globalMargins.large,
-          // else the background can go above things, annoyingly
-          zIndex: 1,
         },
         isMobile: {
           flexGrow: 1,
           paddingBottom: Styles.globalMargins.small,
           paddingLeft: Styles.globalMargins.small,
           paddingRight: Styles.globalMargins.small,
-          paddingTop: 0, // increasing this makes it not visible all on one page in small iPhones, so let's leave it
+          paddingTop: Styles.globalMargins.small,
         },
       }),
+      deviceIcon: {
+        marginLeft: Styles.globalMargins.xtiny,
+        marginRight: Styles.globalMargins.xxtiny,
+      },
       enterTextButton: {
+        marginLeft: Styles.globalMargins.small,
+        marginRight: Styles.globalMargins.small,
         maxWidth: Styles.isMobile ? undefined : 460,
-        width: '100%',
+        width: '90%',
       },
       enterTextContainer: {
         alignItems: Styles.isMobile ? 'stretch' : 'center',
@@ -471,8 +556,7 @@ const styles = Styles.styleSheetCreate(
       },
       instructions: {color: Styles.globalColors.white},
       instructionsContainer: {
-        alignItems: 'center',
-        flexWrap: 'wrap',
+        padding: Styles.globalMargins.tiny,
       },
       instructionsItalic: {
         ...Styles.globalStyles.italic,
@@ -503,7 +587,7 @@ const styles = Styles.styleSheetCreate(
         paddingTop: 10,
       },
       qrOnlyContainer: {
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Styles.globalColors.whiteOrWhite,
         borderRadius: 8,
         padding: 20,
       },
@@ -512,7 +596,8 @@ const styles = Styles.styleSheetCreate(
         position: 'relative',
       },
       switchTab: {
-        marginBottom: 4,
+        marginBottom: Styles.globalMargins.xtiny,
+        marginTop: Styles.globalMargins.tiny,
       },
       switchTabContainer: {
         alignItems: 'center',

@@ -6,7 +6,8 @@ import * as Sb from '../../stories/storybook'
 import {isDarwin} from '../../constants/platform'
 import {isMobile, globalColors, globalMargins} from '../../styles'
 import Inbox from '.'
-import {RowItemSmall, RowItemBigHeader, RowItemBig, RowItemDivider} from './index'
+import {RowItemSmall, RowItemBigHeader, RowItemBig, RowItemDivider, RowItemTeamBuilder} from './index'
+import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 
 /*
  * Rows
@@ -14,15 +15,26 @@ import {RowItemSmall, RowItemBigHeader, RowItemBig, RowItemDivider} from './inde
 const makeRowItemSmall = (conversationIDKey: string = ''): RowItemSmall => ({
   type: 'small',
   conversationIDKey: Types.stringToConversationIDKey(conversationIDKey),
+  snippetDecoration: RPCChatTypes.SnippetDecoration.none,
+  teamname: 'mikem',
+  isTeam: false,
+  time: 1569718345,
 })
-const makeRowItemBigHeader = (teamname: string = ''): RowItemBigHeader => ({type: 'bigHeader', teamname})
+const makeRowItemBigHeader = (teamname: string = ''): RowItemBigHeader => ({
+  snippetDecoration: RPCChatTypes.SnippetDecoration.none,
+  type: 'bigHeader',
+  teamID: '',
+  teamname,
+})
 const makeRowItemBigChannel = (conversationIDKey, teamname, channelname): RowItemBig => ({
   type: 'big',
   teamname,
   channelname,
   conversationIDKey: Types.stringToConversationIDKey(conversationIDKey),
+  snippetDecoration: RPCChatTypes.SnippetDecoration.none,
 })
 const makeRowItemDivider = (showButton: boolean = false): RowItemDivider => ({type: 'divider', showButton})
+const makeRowItemTeamBuilder = (): RowItemTeamBuilder => ({type: 'teamBuilder'})
 
 /*
  * Component Prop Map
@@ -46,7 +58,7 @@ const commonSmallTeam = {
   rekeyInfo: null,
   showBold: false,
   snippet: 'snippet',
-  snippetDecoration: '',
+  snippetDecoration: RPCChatTypes.SnippetDecoration.none,
   subColor: globalColors.black_50,
   teamname: '',
   timestamp: '1:23 pm',
@@ -162,14 +174,14 @@ const mapPropProviderProps = {
     participants: ['nathunsmitty'],
     snippet: 'whoops',
     timestamp: '11:06 am',
-    snippetDecoration: '💣',
+    snippetDecoration: RPCChatTypes.SnippetDecoration.explodingMessage,
   },
   smallTeamH: {
     conversationIDKey: '8',
     participants: ['ayoubd'],
     snippet: 'lol',
     timestamp: '1:37 pm',
-    snippetDecoration: '💥',
+    snippetDecoration: RPCChatTypes.SnippetDecoration.explodedMessage,
   },
   smallTeamI: {
     ...commonSmallTeam,
@@ -177,7 +189,7 @@ const mapPropProviderProps = {
     participants: ['cnojima'],
     snippet: 'rip',
     timestamp: '12:08 am',
-    snippetDecoration: '',
+    snippetDecoration: RPCChatTypes.SnippetDecoration.none,
   },
   smallTeamJ: {
     ...commonSmallTeam,
@@ -185,7 +197,7 @@ const mapPropProviderProps = {
     participants: ['max'],
     snippet: 'foo bar',
     timestamp: '2:56 pm',
-    snippetDecoration: '',
+    snippetDecoration: RPCChatTypes.SnippetDecoration.none,
   },
   smallTeamK: {
     ...commonSmallTeam,
@@ -193,7 +205,7 @@ const mapPropProviderProps = {
     participants: ['nathunsmitty'],
     snippet: 'scoop die whoop',
     timestamp: '1:05 pm',
-    snippetDecoration: '',
+    snippetDecoration: RPCChatTypes.SnippetDecoration.none,
   },
   smallTeamL: {
     ...commonSmallTeam,
@@ -340,11 +352,11 @@ const getPropProviderProps = own => {
  */
 const propsInboxCommon = {
   allowShowFloatingButton: false,
+  hasBigTeams: false,
   isLoading: false,
   isSearching: false,
   navKey: 'nav',
   neverLoaded: false,
-  nowOverride: 0, // just for dumb rendering
   onNewChat: Sb.action('onNewChat'),
   onUntrustedInboxVisible: Sb.action('onUntrustedInboxVisible'),
   onSelectUp: Sb.action('onSelectUp'),
@@ -354,7 +366,9 @@ const propsInboxCommon = {
   selectedConversationIDKey: Types.stringToConversationIDKey('fake conversation id key'),
   smallTeamsExpanded: false,
   toggleSmallTeamsExpanded: Sb.action('toggleSmallTeamsExpanded'),
-  unreadIndices: I.List(),
+  unreadIndices: [],
+  setInboxNumSmallRows: Sb.action('setInboxNumSmallRows'),
+  inboxNumSmallRows: 5,
 }
 
 const propsInboxEmpty = {
@@ -380,6 +394,7 @@ const propsInboxSimple = {
 
 const propsInboxTeam = {
   ...propsInboxCommon,
+  hasBigTeams: true,
   rows: [
     makeRowItemBigHeader('bigTeamAHeader'),
     makeRowItemBigChannel('bigTeamAChannel1', 'Keybase', 'general'),
@@ -396,11 +411,14 @@ const propsInboxTeam = {
     ),
     makeRowItemBigChannel('bigTeamBChannel3', 'techtonica.long.team.name.with.ellipsis', 'random'),
     makeRowItemBigChannel('bigTeamBChannel4', 'techtonica.long.team.name.with.ellipsis', 'happy-hour'),
+
+    makeRowItemTeamBuilder(),
   ],
 }
 
 const propsInboxDivider = {
   ...propsInboxCommon,
+  hasBigTeams: true,
   smallTeamsExpanded: false,
   rows: [
     // Small
@@ -431,6 +449,8 @@ const propsInboxDivider = {
     ),
     makeRowItemBigChannel('bigTeamBChannel3', 'techtonica.long.team.name.with.ellipsis', 'random'),
     makeRowItemBigChannel('bigTeamBChannel4', 'techtonica.long.team.name.with.ellipsis', 'happy-hour'),
+
+    makeRowItemTeamBuilder(),
   ],
 }
 
@@ -456,14 +476,9 @@ const propsInboxExpanded = {
 /*
  * Prop Providers
  */
-const teamMemberCounts = {
-  Keybase: 30,
-  'techtonica.long.team.name.with.ellipsis': 30,
-  stripe: 1337,
-}
 
 const provider = Sb.createPropProviderWithCommon({
-  ...Sb.PropProviders.TeamDropdownMenu(undefined, teamMemberCounts),
+  ...Sb.PropProviders.TeamDropdownMenu(),
   ChatInboxHeaderContainer: p => {
     return {
       focusFilter: () => {},

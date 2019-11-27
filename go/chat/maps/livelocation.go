@@ -112,28 +112,11 @@ func (l *LiveLocationTracker) restoreLocked(ctx context.Context) {
 	}
 }
 
-type nullChatUI struct {
-	libkb.ChatUI
-}
-
-func (n nullChatUI) ChatWatchPosition(context.Context, chat1.ConversationID, chat1.UIWatchPositionPerm) (chat1.LocationWatchID, error) {
-	return chat1.LocationWatchID(0), errors.New("no chat UI")
-}
-
-func (n nullChatUI) ChatClearWatch(context.Context, chat1.LocationWatchID) error {
-	return nil
-}
-
-func (n nullChatUI) ChatCommandStatus(context.Context, chat1.ConversationID, string,
-	chat1.UICommandStatusDisplayTyp, []chat1.UICommandStatusActionTyp) error {
-	return nil
-}
-
 func (l *LiveLocationTracker) getChatUI(ctx context.Context) libkb.ChatUI {
 	ui, err := l.G().UIRouter.GetChatUI()
 	if err != nil || ui == nil {
 		l.Debug(ctx, "getChatUI: no chat UI found: err: %s", err)
-		return nullChatUI{}
+		return utils.NullChatUI{}
 	}
 	return ui
 }
@@ -271,6 +254,11 @@ func (l *LiveLocationTracker) tracker(t *locationTrack) error {
 	ctx := context.Background()
 	// check to see if we are being asked to start a tracker that is already expired
 	if t.endTime.Before(l.clock.Now()) {
+		l.Lock()
+		defer l.Unlock()
+		delete(l.trackers, t.Key())
+		l.saveLocked(ctx)
+		l.Debug(ctx, "tracker: old tracker, not running and clearing")
 		return errors.New("tracker from the past")
 	}
 

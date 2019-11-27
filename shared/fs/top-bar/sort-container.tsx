@@ -10,7 +10,7 @@ type OwnProps = {
 
 const mapStateToProps = (state: Container.TypedState, {path}: OwnProps) => ({
   _kbfsDaemonStatus: state.fs.kbfsDaemonStatus,
-  _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
+  _pathItem: Constants.getPathItem(state.fs.pathItems, path),
   _sortSetting: Constants.getPathUserSetting(state.fs.pathUserSettings, path).sort,
 })
 

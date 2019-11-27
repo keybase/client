@@ -262,8 +262,12 @@ func setupTLFJournalTest(
 		mdserver, defaultDiskLimitMaxDelay + time.Second,
 		mockPublisher,
 	}
-	mockPublisher.EXPECT().PublishChange(keybase1.SubscriptionTopic_FAVORITES).AnyTimes()
-	mockPublisher.EXPECT().PublishChange(keybase1.SubscriptionTopic_JOURNAL_STATUS).AnyTimes()
+	mockPublisher.EXPECT().PublishChange(
+		keybase1.SubscriptionTopic_FAVORITES).AnyTimes()
+	mockPublisher.EXPECT().PublishChange(
+		keybase1.SubscriptionTopic_JOURNAL_STATUS).AnyTimes()
+	mockPublisher.EXPECT().PublishChange(
+		keybase1.SubscriptionTopic_FILES_TAB_BADGE).AnyTimes()
 
 	ctx, cancel = context.WithTimeout(
 		context.Background(), individualTestTimeout)
@@ -769,7 +773,8 @@ func testTLFJournalBlockOpDiskLimitTimeout(t *testing.T, ver kbfsmd.MetadataVer)
 
 	data := []byte{1, 2, 3, 4}
 	id, bCtx, serverHalf := config.makeBlock(data)
-	err := tlfJournal.putBlockData(ctx, id, bCtx, data, serverHalf)
+	putCtx := context.Background() // rely on default disk limit timeout
+	err := tlfJournal.putBlockData(putCtx, id, bCtx, data, serverHalf)
 	timeoutErr, ok := errors.Cause(err).(*ErrDiskLimitTimeout)
 	require.True(t, ok)
 	require.Error(t, timeoutErr.err)

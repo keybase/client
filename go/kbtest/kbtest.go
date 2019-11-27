@@ -156,7 +156,7 @@ func DeleteAccount(tc libkb.TestContext, u *FakeUser) {
 // copied from engine/common_test.go
 func Logout(tc libkb.TestContext) {
 	mctx := libkb.NewMetaContextForTest(tc)
-	if err := mctx.Logout(); err != nil {
+	if err := mctx.LogoutKillSecrets(); err != nil {
 		tc.T.Fatalf("logout error: %s", err)
 	}
 }
@@ -177,10 +177,10 @@ func RotatePaper(tc libkb.TestContext, u *FakeUser) {
 	user, err := libkb.LoadUser(arg)
 	require.NoError(tc.T, err)
 
-	activeDevices := []*libkb.Device{}
+	activeDevices := make([]*libkb.Device, 0)
 	for _, device := range user.GetComputedKeyFamily().GetAllDevices() {
 		if device.Status != nil && *device.Status == libkb.DeviceStatusActive {
-			activeDevices = append(activeDevices, device)
+			activeDevices = append(activeDevices, device.Device)
 		}
 	}
 

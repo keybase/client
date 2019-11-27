@@ -1,12 +1,11 @@
 import * as React from 'react'
-import {appendPeopleBuilder} from '../../actions/typed-routes'
-import * as Container from '../../util/container'
 import ProfileSearch from '../search/bar'
 import * as Kb from '../../common-adapters'
 import * as Constants from '../../constants/tracker2'
 import * as Types from '../../constants/types/tracker2'
 import * as Styles from '../../styles'
-import {chunk, upperFirst} from 'lodash-es'
+import chunk from 'lodash/chunk'
+import upperFirst from 'lodash/upperFirst'
 import Bio from '../../tracker2/bio/container'
 import Assertion from '../../tracker2/assertion/container'
 import Actions from './actions/container'
@@ -22,29 +21,31 @@ import {SiteIcon} from '../generic/shared'
 export type BackgroundColorType = 'red' | 'green' | 'blue'
 
 export type Props = {
-  assertionKeys: Array<string> | null
+  assertionKeys?: Array<string>
   backgroundColorType: BackgroundColorType
+  blocked: boolean
   followThem: boolean
-  followers: Array<string> | null
+  followers?: Array<string>
   followersCount?: number
-  following: Array<string> | null
+  following?: Array<string>
   followingCount?: number
+  hidFromFollowers: boolean
   notAUser: boolean
-  onAddIdentity: (() => void) | null
+  onAddIdentity?: () => void
   onBack: () => void
   onReload: () => void
-  onEditAvatar: ((e?: React.BaseSyntheticEvent) => void) | null
+  onEditAvatar?: (e?: React.BaseSyntheticEvent) => void
   reason: string
   sbsAvatarUrl?: string
   showAirdropBanner: boolean
   state: Types.DetailsState
-  suggestionKeys: Array<string> | null
+  suggestionKeys?: Array<string>
   userIsYou: boolean
   username: string
   name: string // assertion value
   service: string // assertion key (if SBS)
-  serviceIcon: readonly Types.SiteIcon[] | null
-  fullName: string | null // full name from external profile
+  serviceIcon?: Array<Types.SiteIcon>
+  fullName?: string // full name from external profile
   title: string
 }
 
@@ -65,7 +66,7 @@ const colorTypeToStyle = (type: 'red' | 'green' | 'blue') => {
 const noopOnClick = () => {}
 
 type SbsTitleProps = {
-  serviceIcon: readonly Types.SiteIcon[] | null
+  serviceIcon?: Array<Types.SiteIcon>
   sbsUsername: string
 }
 const SbsTitle = (p: SbsTitleProps) => (
@@ -78,7 +79,9 @@ const BioLayout = (p: BioTeamProofsProps) => (
   <Kb.Box2 direction="vertical" style={styles.bio}>
     <Kb.ConnectedNameWithIcon
       onClick={p.title === p.username ? 'profile' : noopOnClick}
-      title={p.title !== p.username ? <SbsTitle sbsUsername={p.title} serviceIcon={p.serviceIcon} /> : null}
+      title={
+        p.title !== p.username ? <SbsTitle sbsUsername={p.title} serviceIcon={p.serviceIcon} /> : undefined
+      }
       username={p.username}
       underline={false}
       selectable={true}
@@ -89,6 +92,7 @@ const BioLayout = (p: BioTeamProofsProps) => (
       avatarSize={avatarSize}
       size="huge"
       avatarImageOverride={p.sbsAvatarUrl}
+      withProfileCardPopup={false}
     />
     <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
       <Bio inTracker={false} username={p.username} />
@@ -220,19 +224,19 @@ class FriendRow extends React.Component<FriendRowProps> {
 }
 
 export type BioTeamProofsProps = {
-  onAddIdentity: (() => void) | null
-  assertionKeys: Array<string> | null
+  onAddIdentity?: () => void
+  assertionKeys?: Array<string>
   backgroundColorType: BackgroundColorType
-  onEditAvatar: ((e?: React.BaseSyntheticEvent) => void) | null
+  onEditAvatar?: (e?: React.BaseSyntheticEvent) => void
   notAUser: boolean
-  suggestionKeys: Array<string> | null
+  suggestionKeys?: Array<string>
   username: string
   reason: string
   name: string
   sbsAvatarUrl?: string
   service: string
-  serviceIcon: readonly Types.SiteIcon[] | null
-  fullName: string | null
+  serviceIcon?: Array<Types.SiteIcon>
+  fullName?: string
   title: string
 }
 export class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
@@ -305,18 +309,11 @@ export class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
   }
 }
 
-const Header = ({onSearch}) => (
+const Header = () => (
   <Kb.Box2 direction="horizontal" fullWidth={true}>
-    <ProfileSearch whiteText={true} onSearch={onSearch} />
+    <ProfileSearch whiteText={true} />
   </Kb.Box2>
 )
-const ConnectedHeader = Container.connect(
-  () => ({}),
-  dispatch => ({
-    onSearch: () => dispatch(appendPeopleBuilder()),
-  }),
-  (s, d, o) => ({...o, ...s, ...d})
-)(Header)
 
 type State = {
   selectedFollowing: boolean
@@ -335,13 +332,14 @@ class User extends React.Component<Props, State> {
       borderStyle: 'solid',
     },
     headerTintColor: Styles.globalColors.white,
-    headerTitle: ConnectedHeader,
+    headerTitle: Header,
     headerTitleContainerStyle: {
       left: 60,
       right: 20,
     },
     headerTransparent: true,
     underNotch: true,
+    whatsNewIconColor: Styles.globalColors.white,
   })
 
   constructor(props: Props) {
@@ -540,7 +538,7 @@ export const styles = Styles.styleSheetCreate(() => ({
   followTab: Styles.platformStyles({
     common: {
       alignItems: 'center',
-      borderBottomColor: 'white',
+      borderBottomColor: Styles.globalColors.white,
       borderBottomWidth: 2,
       justifyContent: 'center',
     },

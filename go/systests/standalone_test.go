@@ -45,7 +45,7 @@ func makeUserStandalone(t *testing.T, pre string, opts standaloneUserArgs) *user
 	svc := service.NewService(tctx.G, false)
 	err = svc.SetupCriticalSubServices()
 	require.NoError(t, err)
-	err = svc.StartLoopbackServer()
+	err = svc.StartLoopbackServer(libkb.LoginAttemptOffline)
 	require.NoError(t, err)
 
 	g.StandaloneChatConnector = svc
@@ -65,9 +65,11 @@ func makeUserStandalone(t *testing.T, pre string, opts standaloneUserArgs) *user
 	}
 	t.Logf("signed up %s", userInfo.username)
 
-	u.username = userInfo.username
-	u.uid = libkb.UsernameToUID(u.username)
 	u.tc = tctx
+	u.userInfo = userInfo
+	u.username = userInfo.username
+	u.passphrase = userInfo.passphrase
+	u.uid = libkb.UsernameToUID(u.username)
 
 	cli, _, err := client.GetRPCClientWithContext(g)
 	require.NoError(t, err)

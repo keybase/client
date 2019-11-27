@@ -24,6 +24,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"syscall"
@@ -1064,13 +1065,17 @@ func FindPreferredKBFSMountDirs() (mountDirs []string) {
 }
 
 var kbfsPathInnerRegExp = func() *regexp.Regexp {
-	const socialAssertion = `[-_a-zA-Z0-9.]+@[a-zA-Z.]+`
+	// e.g. alice@twitter
+	const regularAssertion = `[-_a-zA-Z0-9.+]+@[a-zA-Z.]+`
+	// e.g. [bob@keybase.io]@email
+	const atContainingAssertion = `\[[-_a-zA-Z0-9.]+@[-_a-zA-Z0-9.]+\]@[a-zA-Z.]+`
+	const socialAssertion = `(?:` + regularAssertion + `)|(?:` + atContainingAssertion + `)`
 	const user = `(?:(?:` + kbun.UsernameRE + `)|(?:` + socialAssertion + `))`
 	const usernames = user + `(?:,` + user + `)*`
 	const teamName = kbun.UsernameRE + `(?:\.` + kbun.UsernameRE + `)*`
 	const tlfType = "/(?:private|public|team)$"
-	// TODO support name suffix e.g. conflict
-	const tlf = "/(?:(?:private|public)/" + usernames + "(?:#" + usernames + ")?|team/" + teamName + `)(?:/|$)`
+	const suffix = `(?: \([-_a-zA-Z0-9 #]+\))?`
+	const tlf = "/(?:(?:private|public)/" + usernames + "(?:#" + usernames + ")?|team/" + teamName + ")" + suffix + "(?:/|$)"
 	const specialFiles = "/(?:.kbfs_.+)"
 	return regexp.MustCompile(`^(?:(?:` + tlf + `)|(?:` + tlfType + `)|(?:` + specialFiles + `))`)
 }()
@@ -1123,6 +1128,7 @@ func GetKBFSPathInfo(standardPath string) (pathInfo keybase1.KBFSPathInfo, err e
 }
 
 func GetSafeFilename(filename string) (safeFilename string) {
+	filename = filepath.Base(filename)
 	if !utf8.ValidString(filename) {
 		return url.PathEscape(filename)
 	}
@@ -1139,4 +1145,25 @@ func GetSafeFilename(filename string) (safeFilename string) {
 func GetSafePath(path string) (safePath string) {
 	dir, file := filepath.Split(path)
 	return filepath.Join(dir, GetSafeFilename(file))
+}
+
+func FindFilePathWithNumberSuffix(parentDir string, basename string, useArbitraryName bool) (filePath string, err error) {
+	ext := filepath.Ext(basename)
+	if useArbitraryName {
+		return filepath.Join(parentDir, strconv.FormatInt(time.Now().UnixNano(), 16)+ext), nil
+	}
+	destPathBase := filepath.Join(parentDir, basename[:len(basename)-len(ext)])
+	destPath := destPathBase + ext
+	for suffix := 1; ; suffix++ {
+		_, err := os.Stat(destPath)
+		if os.IsNotExist(err) {
+			break
+		}
+		if err != nil {
+			return "", err
+		}
+		destPath = fmt.Sprintf("%s (%d)%s", destPathBase, suffix, ext)
+	}
+	// Could race but it should be rare enough so fine.
+	return destPath, nil
 }

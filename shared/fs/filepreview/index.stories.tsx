@@ -1,5 +1,4 @@
 import React from 'react'
-import * as I from 'immutable'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as RPCTypes from '../../constants/types/rpc-gen'
@@ -16,11 +15,12 @@ export const filepreviewProvider = {
     onSave: () => {},
     onShare: () => {},
     onShowInSystemFileManager: () => {},
-    pathItem: Constants.makeFile({
+    pathItem: {
+      ...Constants.emptyFile,
       lastWriter: 'foo',
       name: 'bar.jpg',
       size: 10240,
-    }),
+    },
     sfmiEnabled: false,
   }),
   FilePreviewHeader: ({path}: {path: Types.Path}) => ({
@@ -30,11 +30,12 @@ export const filepreviewProvider = {
     onBack: () => {},
     onShowInSystemFileManager: () => {},
     path,
-    pathItem: Constants.makeFile({
+    pathItem: {
+      ...Constants.emptyFile,
       lastWriter: 'foo',
       name: 'bar.jpg',
       size: 10240,
-    }),
+    },
   }),
 }
 
@@ -53,69 +54,80 @@ const fileCommon = {lastWriter: 'foo', writable: true}
 const storeCommon = Sb.createStoreWithCommon()
 const store = {
   ...storeCommon,
-  fs: storeCommon.fs
-    .set(
-      'fileContext',
-      I.Map([
-        [
-          '/keybase/private/foo/small.jpg',
-          Constants.makeFileContext({
-            contentType: 'image/jpeg',
-            url: 'https://keybase.io/images/icons/icon-keybase-logo-48@2x.png',
-            viewType: RPCTypes.GUIViewType.image,
-          }),
-        ],
-        [
-          '/keybase/private/foo/large.jpg',
-          Constants.makeFileContext({
-            contentType: 'image/jpeg',
-            url: 'https://keybase.io/images/blog/teams/teams-splash-announcement.png',
-            viewType: RPCTypes.GUIViewType.image,
-          }),
-        ],
-        [
-          '/keybase/private/foo/text.txt',
-          Constants.makeFileContext({
-            contentType: 'text/plain; charset=utf-8',
-            url: 'https://keybase.io/images/blog/teams/teams-splash-announcement.png',
-            viewType: RPCTypes.GUIViewType.image,
-          }),
-        ],
-        [
-          '/keybase/private/foo/video.mp4',
-          Constants.makeFileContext({
-            contentType: 'text/plain; charset=utf-8',
-            url:
-              'https://archive.org/download/youtube%2DA0FZIwabctw/Falcon%5FHeavy%5FStarman%2DA0FZIwabctw%2Emp4',
-            viewType: RPCTypes.GUIViewType.video,
-          }),
-        ],
-        [
-          '/keybase/private/foo/default-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name.default',
-          Constants.makeFileContext({
-            contentType: 'text/plain; charset=utf-8',
-            viewType: RPCTypes.GUIViewType.default,
-          }),
-        ],
-        [
-          '/keybase/private/foo/default.default',
-          Constants.makeFileContext({
-            contentType: 'text/plain; charset=utf-8',
-            viewType: RPCTypes.GUIViewType.default,
-          }),
-        ],
-      ])
-    )
-    .set(
-      'pathItems',
-      // @ts-ignore
-      I.Map([
-        ['/keybase/private/foo/loading', Constants.makeFile()],
-        ...filenames
-          .filter(n => n !== 'loading')
-          .map(name => [`/keybase/private/foo/${name}`, Constants.makeFile({...fileCommon, name})]),
-      ])
-    ),
+  fs: {
+    ...storeCommon.fs,
+    fileContext: new Map([
+      [
+        '/keybase/private/foo/small.jpg',
+        {
+          ...Constants.emptyFileContext,
+          contentType: 'image/jpeg',
+          url: 'https://keybase.io/images/icons/icon-keybase-logo-48@2x.png',
+          viewType: RPCTypes.GUIViewType.image,
+        },
+      ],
+      [
+        '/keybase/private/foo/large.jpg',
+        {
+          ...Constants.emptyFileContext,
+          contentType: 'image/jpeg',
+          url: 'https://keybase.io/images/blog/teams/teams-splash-announcement.png',
+          viewType: RPCTypes.GUIViewType.image,
+        },
+      ],
+      [
+        '/keybase/private/foo/text.txt',
+        {
+          ...Constants.emptyFileContext,
+          contentType: 'text/plain; charset=utf-8',
+          url: 'https://keybase.io/images/blog/teams/teams-splash-announcement.png',
+          viewType: RPCTypes.GUIViewType.image,
+        },
+      ],
+      [
+        '/keybase/private/foo/video.mp4',
+        {
+          ...Constants.emptyFileContext,
+          contentType: 'text/plain; charset=utf-8',
+          url:
+            'https://archive.org/download/youtube%2DA0FZIwabctw/Falcon%5FHeavy%5FStarman%2DA0FZIwabctw%2Emp4',
+          viewType: RPCTypes.GUIViewType.video,
+        },
+      ],
+      [
+        '/keybase/private/foo/default-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name.default',
+        {
+          ...Constants.emptyFileContext,
+          contentType: 'text/plain; charset=utf-8',
+          viewType: RPCTypes.GUIViewType.default,
+        },
+      ],
+      [
+        '/keybase/private/foo/default.default',
+        {
+          ...Constants.emptyFileContext,
+          contentType: 'text/plain; charset=utf-8',
+          viewType: RPCTypes.GUIViewType.default,
+        },
+      ],
+    ]),
+    pathItems: new Map<Types.Path, Types.PathItem>([
+      [Types.stringToPath('/keybase/private/foo/loading'), Constants.emptyFile],
+      ...filenames
+        .filter(n => n !== 'loading')
+        .map(
+          name =>
+            [
+              Types.stringToPath(`/keybase/private/foo/${name}`),
+              {
+                ...Constants.emptyFile,
+                ...fileCommon,
+                name,
+              },
+            ] as const
+        ),
+    ]),
+  },
 }
 
 // @ts-ignore
@@ -132,7 +144,7 @@ export default () => {
   filenames.forEach(fn =>
     s.add(fn, () => (
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
-        <NormalPreview path={Types.stringToPath(`/keybase/private/foo/${fn}`)} />
+        <NormalPreview path={Types.stringToPath(`/keybase/private/foo/${fn}`)} onUrlError={() => {}} />
       </Kb.Box2>
     ))
   )

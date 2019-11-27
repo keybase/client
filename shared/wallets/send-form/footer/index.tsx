@@ -27,7 +27,7 @@ const Footer = (props: Props) => {
         <Kb.Icon
           type="iconfont-stellar-send"
           style={Kb.iconCastPlatformStyles(styles.icon)}
-          color={Styles.globalColors.white}
+          color={Styles.globalColors.whiteOrWhite}
         />
       }
     />
@@ -78,7 +78,7 @@ const Footer = (props: Props) => {
                 <Kb.Icon
                   type="iconfont-stellar-request"
                   style={Kb.iconCastPlatformStyles(styles.icon)}
-                  color={Styles.globalColors.white}
+                  color={Styles.globalColors.whiteOrWhite}
                 />
               }
             />

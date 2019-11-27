@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/kbfs_git.avdl
 
 package keybase1
@@ -6,6 +6,7 @@ package keybase1
 import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type GcOptions struct {
@@ -111,19 +112,19 @@ type KBFSGitClient struct {
 // * createRepo creates a bare empty repo on KBFS under the given name in the given TLF.
 // * It returns the ID of the repo created.
 func (c KBFSGitClient) CreateRepo(ctx context.Context, __arg CreateRepoArg) (res RepoID, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.KBFSGit.createRepo", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.KBFSGit.createRepo", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // * deleteRepo deletes repo on KBFS under the given name in the given TLF.
 func (c KBFSGitClient) DeleteRepo(ctx context.Context, __arg DeleteRepoArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.KBFSGit.deleteRepo", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.KBFSGit.deleteRepo", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // * gc runs garbage collection on the given repo, using the given options to
 // * see whether anything needs to be done.
 func (c KBFSGitClient) Gc(ctx context.Context, __arg GcArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.KBFSGit.gc", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.KBFSGit.gc", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }

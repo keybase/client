@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
-	"strings"
+	"sort"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
@@ -30,25 +30,38 @@ func MakeConversationCommandGroups(cmds []chat1.UserBotCommandOutput) chat1.Conv
 	})
 }
 
+func SortCommandsForMatching(cmds []chat1.UserBotCommandOutput) {
+	// sort commands by reverse command length to prefer specificity (i.e. if
+	// there's a longer command that matches the prefix, we'll match that
+	// first.)
+	sort.SliceStable(cmds, func(i, j int) bool {
+		return len(cmds[i].Name) > len(cmds[j].Name)
+	})
+}
+
 func ApplyTeamBotSettings(ctx context.Context, g *globals.Context, botUID gregor1.UID,
 	botSettings keybase1.TeamBotSettings,
-	msg chat1.MessagePlaintext, conv *chat1.ConversationLocal,
+	msg chat1.MessagePlaintext, convID *chat1.ConversationID,
 	mentionMap map[string]struct{}, debug utils.DebugLabeler) (bool, error) {
-	// First make sure bot can receive on the given conversation
-	convAllowed := len(botSettings.Convs) == 0
-	for _, convIDStr := range botSettings.Convs {
-		convID, err := chat1.MakeConvID(convIDStr)
-		if err != nil {
-			debug.Debug(ctx, "unable to parse convID: %v", err)
-			continue
+
+	// First make sure bot can receive on the given conversation. This ID may
+	// be null if we are creating the conversation.
+	if convID != nil {
+		convAllowed := len(botSettings.Convs) == 0
+		for _, convIDStr := range botSettings.Convs {
+			cid, err := chat1.MakeConvID(convIDStr)
+			if err != nil {
+				debug.Debug(ctx, "unable to parse convID: %v", err)
+				continue
+			}
+			if cid.Eq(*convID) {
+				convAllowed = true
+				break
+			}
 		}
-		if convID.Eq(conv.GetConvID()) {
-			convAllowed = true
-			break
+		if !convAllowed {
+			return false, nil
 		}
-	}
-	if !convAllowed {
-		return false, nil
 	}
 
 	// If the sender is the bot, always match
@@ -80,7 +93,7 @@ func ApplyTeamBotSettings(ctx context.Context, g *globals.Context, botUID gregor
 	// See if any triggers match
 	matchText := msg.SearchableText()
 	for _, trigger := range botSettings.Triggers {
-		re, err := regexp.Compile(trigger)
+		re, err := regexp.Compile(fmt.Sprintf("(?i)%s", trigger))
 		if err != nil {
 			debug.Debug(ctx, "unable to compile trigger regex: %v", err)
 			continue
@@ -98,13 +111,23 @@ func ApplyTeamBotSettings(ctx context.Context, g *globals.Context, botUID gregor
 	if err != nil {
 		return false, err
 	}
-	cmds, err := g.BotCommandManager.ListCommands(ctx, conv.GetConvID())
-	if err != nil {
-		return false, nil
-	}
-	for _, cmd := range cmds {
-		if unn.String() == cmd.Username && strings.HasPrefix(matchText, fmt.Sprintf("!%s", cmd.Name)) {
-			return true, nil
+	if convID != nil {
+		completeCh, err := g.BotCommandManager.UpdateCommands(ctx, *convID, nil)
+		if err != nil {
+			return false, err
+		}
+		if err := <-completeCh; err != nil {
+			return false, err
+		}
+		cmds, _, err := g.BotCommandManager.ListCommands(ctx, *convID)
+		if err != nil {
+			return false, nil
+		}
+		SortCommandsForMatching(cmds)
+		for _, cmd := range cmds {
+			if unn.String() == cmd.Username && cmd.Matches(matchText) {
+				return true, nil
+			}
 		}
 	}
 	return false, nil

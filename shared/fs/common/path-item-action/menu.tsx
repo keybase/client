@@ -18,7 +18,7 @@ type Props = {
   copyPath?: (() => void) | null
   delete?: (() => void) | null
   download?: (() => void) | null
-  ignoreTlf?: (() => void) | null
+  ignoreTlf?: (() => void) | 'disabled' | null
   moveOrCopy?: (() => void) | null
   me: string
   newFolder?: (() => void) | null
@@ -138,12 +138,12 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => {
           {
             disabled: props.sendToOtherApp === 'in-progress',
             onClick: props.sendToOtherApp !== 'in-progress' ? props.sendToOtherApp : undefined,
-            title: 'Send to other app',
+            title: 'Send to another app',
             view:
               props.sendToOtherApp === 'in-progress' ? (
-                <InProgressMenuEntry text="Send to other app" />
+                <InProgressMenuEntry text="Send to another app" />
               ) : (
-                <ActionableMenuEntry text="Send to other app" />
+                <ActionableMenuEntry text="Send to another app" />
               ),
           },
         ]
@@ -160,7 +160,9 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => {
       ? [
           {
             danger: true,
-            onClick: hideMenuOnClick(props.ignoreTlf, hideMenu),
+            disabled: props.ignoreTlf === 'disabled',
+            onClick: props.ignoreTlf === 'disabled' ? undefined : hideMenuOnClick(props.ignoreTlf, hideMenu),
+            progressIndicator: props.ignoreTlf === 'disabled',
             subTitle: 'Will hide the folder from your list.',
             title: 'Ignore this folder',
           },

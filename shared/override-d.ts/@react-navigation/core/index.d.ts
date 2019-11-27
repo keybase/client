@@ -2,6 +2,7 @@ declare module '@react-navigation/core' {
   export {
     NavigationActions,
     NavigationContext,
+    NavigationEventCallback,
     NavigationEvents,
     NavigationInjectedProps,
     NavigationParams,

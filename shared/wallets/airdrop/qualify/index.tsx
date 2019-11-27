@@ -200,9 +200,10 @@ class Qualified extends React.PureComponent<Props, State> {
               growFadeInSmall: true,
             })}
           >
-            {rows.map((r, idx) => (
-              <Row key={r.title} {...r} first={idx === 0} loading={idx > this.state.rowIdxLoaded} />
-            ))}
+            {this.props.state !== 'rejected' &&
+              rows.map((r, idx) => (
+                <Row key={r.title} {...r} first={idx === 0} loading={idx > this.state.rowIdxLoaded} />
+              ))}
           </Kb.Box2>
           <Kb.Box2 direction="vertical" style={styles.grow} />
           {this.props.state === 'qualified' && (
@@ -294,8 +295,8 @@ const styles = Styles.styleSheetCreate(
           color: Styles.globalColors.white_75,
         },
         isElectron: {
-          height: 16,
-          width: 16,
+          height: 20,
+          width: 20,
         },
         isMobile: {
           height: 22,

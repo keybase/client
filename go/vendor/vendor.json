@@ -614,16 +614,16 @@
 			"revisionTime": "2019-08-28T18:24:35Z"
 		},
 		{
-			"checksumSHA1": "VQQgmxdf2WsS88F+ekXY2Kv4ZwA=",
+			"checksumSHA1": "Cit8zpNkNOl0SloDxTqtsMT9xtY=",
 			"path": "github.com/keybase/go-framed-msgpack-rpc/rpc",
-			"revision": "0589cb25877b52249841f86f0a8adf0eb3d36343",
-			"revisionTime": "2019-09-05T15:14:47Z"
+			"revision": "f40458c285046869bdb4892f1c74108e2d30b282",
+			"revisionTime": "2019-10-04T20:39:02Z"
 		},
 		{
 			"checksumSHA1": "RLs8GIV4e+D350pyzZh5RC3mgQg=",
 			"path": "github.com/keybase/go-framed-msgpack-rpc/rpc/resinit",
-			"revision": "c0c75d9fee37c191ce0b606ecd7d538ab8f20272",
-			"revisionTime": "2019-08-28T02:07:23Z"
+			"revision": "f40458c285046869bdb4892f1c74108e2d30b282",
+			"revisionTime": "2019-10-04T20:39:02Z"
 		},
 		{
 			"checksumSHA1": "Ji3qqxyGVXi6nsQwM1EdlL0lO8A=",
@@ -644,10 +644,10 @@
 			"revisionTime": "2019-08-28T02:09:56Z"
 		},
 		{
-			"checksumSHA1": "ILa8RyF3Ec4O6e7LyjslLcNhWNk=",
+			"checksumSHA1": "zgzyigxAOGm4vkwoY75Al9UyHAc=",
 			"path": "github.com/keybase/go-keychain/secretservice",
-			"revision": "aa639f275ae10d8ca90c49393c586d676e720098",
-			"revisionTime": "2019-08-28T02:09:56Z"
+			"revision": "1c06e666bc4606052d21d4b5701999d1d67a004e",
+			"revisionTime": "2019-10-22T21:41:33Z"
 		},
 		{
 			"checksumSHA1": "w0V3FTmunObVwElsp+UUASB06+c=",
@@ -776,10 +776,10 @@
 			"revisionTime": "2019-08-28T02:09:36Z"
 		},
 		{
-			"checksumSHA1": "O2pMKCLN0cVTYoSQumA11Xh6rEQ=",
+			"checksumSHA1": "f8oLbOSuAeeqqIVW8TrYYxj6rTw=",
 			"path": "github.com/keybase/stellarnet",
-			"revision": "a10a61194d3cba1622c1061f1a214ed6b6504d84",
-			"revisionTime": "2019-08-12T19:14:27Z"
+			"revision": "5d2b2e13831d7d81f3a70357611483c00f36ca19",
+			"revisionTime": "2019-10-11T15:21:56Z"
 		},
 		{
 			"checksumSHA1": "B/Qlhpd96i6Sx0DdhSzbHUdG47U=",
@@ -924,6 +924,12 @@
 			"path": "github.com/shirou/gopsutil/mem",
 			"revision": "db425313bfa86d78ce81b07d8898e0f9723e0ecd",
 			"revisionTime": "2018-12-31T15:08:26Z"
+		},
+		{
+			"checksumSHA1": "iQKxa7KhhJQ+gjQOWYaTxSjtZw8=",
+			"path": "github.com/shopspring/decimal",
+			"revision": "f1972eb1d1f519e2e5f4b51f2dea765e8c93a130",
+			"revisionTime": "2019-10-09T02:57:16Z"
 		},
 		{
 			"checksumSHA1": "8QeSG127zQqbA+YfkO1WkKx/iUI=",

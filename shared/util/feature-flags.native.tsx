@@ -8,22 +8,21 @@ const featureOn = (key: keyof FeatureFlags) => features.includes(key)
 const ff: FeatureFlags = {
   admin: __DEV__,
   airdrop: true,
+  audioAttachments: true,
   chatIndexProfilingEnabled: false,
-  conflictResolution: false,
-  darkMode: true,
+  conflictResolution: true,
   dbCleanEnabled: false,
-  fastAccountSwitch: false,
+  fastAccountSwitch: true,
   foldersInProfileTab: false,
-  kbfsOfflineMode: false,
+  kbfsOfflineMode: true,
   lagRadar: false,
   moveOrCopy: false,
   newTeamBuildingForChatAllowMakeTeam: false,
   outOfDateBanner: false,
   plansEnabled: false,
   proofProviders: true,
-  resetPipeline: false,
   stellarExternalPartners: true,
-  wonderland: false,
+  userBlocking: true,
 }
 
 // load overrides

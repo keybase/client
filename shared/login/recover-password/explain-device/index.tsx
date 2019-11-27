@@ -37,7 +37,7 @@ const ExplainDevice = (props: Props) => {
           </Kb.Text>
           <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny">
             {explainingMobile ? (
-              <Kb.Icon type="iconfont-nav-more" color={globalColors.black} />
+              <Kb.Icon type="iconfont-nav-2-hamburger" color={globalColors.black} />
             ) : (
               <Kb.Text type="Body">Settings</Kb.Text>
             )}

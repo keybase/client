@@ -49,6 +49,7 @@ const (
 	methodUnpin               = "unpin"
 	methodGetResetConvMembers = "getresetconvmembers"
 	methodAddResetConvMember  = "addresetconvmember"
+	methodGetDeviceInfo       = "getdeviceinfo"
 )
 
 // ChatAPIHandler can handle all of the chat json api methods.
@@ -81,6 +82,7 @@ type ChatAPIHandler interface {
 	UnpinV1(context.Context, Call, io.Writer) error
 	GetResetConvMembersV1(context.Context, Call, io.Writer) error
 	AddResetConvMemberV1(context.Context, Call, io.Writer) error
+	GetDeviceInfoV1(context.Context, Call, io.Writer) error
 }
 
 // ChatAPI implements ChatAPIHandler and contains a ChatServiceHandler
@@ -140,11 +142,10 @@ func (c ChatMessage) Valid() bool {
 }
 
 type listOptionsV1 struct {
-	UnreadOnly  bool              `json:"unread_only,omitempty"`
-	TopicType   string            `json:"topic_type,omitempty"`
-	ShowErrors  bool              `json:"show_errors,omitempty"`
-	FailOffline bool              `json:"fail_offline,omitempty"`
-	Pagination  *chat1.Pagination `json:"pagination,omitempty"`
+	UnreadOnly  bool   `json:"unread_only,omitempty"`
+	TopicType   string `json:"topic_type,omitempty"`
+	ShowErrors  bool   `json:"show_errors,omitempty"`
+	FailOffline bool   `json:"fail_offline,omitempty"`
 }
 
 func (l listOptionsV1) Check() error {
@@ -541,6 +542,17 @@ func (o setUnfurlSettingsOptionsV1) Check() error {
 			method:  methodSetUnfurlSettings,
 			err:     errors.New("invalid unfurl mode"),
 		}
+	}
+	return nil
+}
+
+type getDeviceInfoOptionsV1 struct {
+	Username string `json:"username"`
+}
+
+func (o getDeviceInfoOptionsV1) Check() error {
+	if len(o.Username) == 0 {
+		return errors.New("username required")
 	}
 	return nil
 }
@@ -1018,6 +1030,20 @@ func (a *ChatAPI) AddResetConvMemberV1(ctx context.Context, c Call, w io.Writer)
 		return err
 	}
 	return a.encodeReply(c, a.svcHandler.AddResetConvMemberV1(ctx, opts), w)
+}
+
+func (a *ChatAPI) GetDeviceInfoV1(ctx context.Context, c Call, w io.Writer) error {
+	if len(c.Params.Options) == 0 {
+		return ErrInvalidOptions{version: 1, method: methodGetDeviceInfo, err: errors.New("empty options")}
+	}
+	var opts getDeviceInfoOptionsV1
+	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
+		return err
+	}
+	if err := opts.Check(); err != nil {
+		return err
+	}
+	return a.encodeReply(c, a.svcHandler.GetDeviceInfoV1(ctx, opts), w)
 }
 
 func (a *ChatAPI) encodeReply(call Call, reply Reply, w io.Writer) error {

@@ -1,8 +1,9 @@
-import {colors, darkColors} from './colors'
+import {themed, colors, darkColors} from './colors'
 import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
 import path from 'path'
 import * as Shared from './shared'
-import {isEmpty} from 'lodash-es'
+import {isDarkMode} from './dark-mode'
+import isEmpty from 'lodash/isEmpty'
 import styleSheeCreateProxy from './style-sheet-proxy'
 import * as CSS from './css'
 
@@ -70,7 +71,9 @@ export const globalStyles = {
 
 export const mobileStyles = {}
 export const desktopStyles = {
-  boxShadow: {boxShadow: `0 2px 5px 0 ${colors.black_20OrBlack}`},
+  get boxShadow() {
+    return {boxShadow: `0 2px 5px 0 ${themed.black_20OrBlack}`}
+  },
   clickable: {cursor: 'pointer'},
   editable: {cursor: 'text'},
   fadeOpacity: {transition: 'opacity .25s ease-in-out'},
@@ -101,15 +104,38 @@ export const backgroundURL = (...to: Array<string>) => {
     const last = goodPath[goodPath.length - 1]
     const ext = path.extname(last)
     goodPath[goodPath.length - 1] = path.basename(last, ext)
+    const guiModePath = `${isDarkMode() ? 'dark-' : ''}${goodPath}`
 
     const images = [1, 2, 3].map(
-      mult => `url('${resolveImageAsURL(...goodPath)}${mult === 1 ? '' : `@${mult}x`}${ext}') ${mult}x`
+      mult => `url('${resolveImageAsURL(guiModePath)}${mult === 1 ? '' : `@${mult}x`}${ext}') ${mult}x`
     )
 
     return `-webkit-image-set(${images.join(', ')})`
   }
 
   return ''
+}
+
+const fixScrollbars = () => {
+  // https://www.filamentgroup.com/lab/scrollbars/
+  var parent = document.createElement('div')
+  parent.setAttribute('style', 'width:30px;height:30px;')
+  parent.classList.add('scrollbar-test')
+
+  var child = document.createElement('div')
+  child.setAttribute('style', 'width:100%;height:40px')
+  parent.appendChild(child)
+  document.body.appendChild(parent)
+
+  // Measure the child element, if it is not
+  // 30px wide the scrollbars are obtrusive.
+  // @ts-ignore
+  var scrollbarWidth = 30 - parent.firstChild.clientWidth
+  if (scrollbarWidth) {
+    document.body.classList.add('layout-scrollbar-obtrusive')
+  }
+
+  document.body.removeChild(parent)
 }
 
 export const initDesktopStyles = () => {
@@ -143,6 +169,7 @@ export const initDesktopStyles = () => {
   }, '')
   style.appendChild(document.createTextNode(css))
   head.appendChild(style)
+  fixScrollbars()
 }
 
 export const hairlineWidth = 1

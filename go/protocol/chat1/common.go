@@ -1,10 +1,11 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/chat1/common.avdl
 
 package chat1
 
 import (
 	"errors"
+	"fmt"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -169,7 +170,7 @@ func (e ConversationExistence) String() string {
 	if v, ok := ConversationExistenceRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type ConversationMembersType int
@@ -201,7 +202,7 @@ func (e ConversationMembersType) String() string {
 	if v, ok := ConversationMembersTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type SyncInboxResType int
@@ -230,7 +231,7 @@ func (e SyncInboxResType) String() string {
 	if v, ok := SyncInboxResTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type MessageType int
@@ -354,7 +355,7 @@ func (e TeamType) String() string {
 	if v, ok := TeamTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type NotificationKind int
@@ -408,7 +409,7 @@ func (e GlobalAppNotificationSetting) String() string {
 	if v, ok := GlobalAppNotificationSettingRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type GlobalAppNotificationSettings struct {
@@ -467,7 +468,7 @@ func (e ConversationStatus) String() string {
 	if v, ok := ConversationStatusRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type ConversationMember struct {
@@ -579,7 +580,7 @@ func (e ConversationMemberStatus) String() string {
 	if v, ok := ConversationMemberStatusRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type Pagination struct {
@@ -645,6 +646,7 @@ type GetInboxQuery struct {
 	ComputeActiveList bool                       `codec:"computeActiveList" json:"computeActiveList"`
 	SummarizeMaxMsgs  bool                       `codec:"summarizeMaxMsgs" json:"summarizeMaxMsgs"`
 	SkipBgLoads       bool                       `codec:"skipBgLoads" json:"skipBgLoads"`
+	AllowUnseenQuery  bool                       `codec:"allowUnseenQuery" json:"allowUnseenQuery"`
 }
 
 func (o GetInboxQuery) DeepCopy() GetInboxQuery {
@@ -765,6 +767,7 @@ func (o GetInboxQuery) DeepCopy() GetInboxQuery {
 		ComputeActiveList: o.ComputeActiveList,
 		SummarizeMaxMsgs:  o.SummarizeMaxMsgs,
 		SkipBgLoads:       o.SkipBgLoads,
+		AllowUnseenQuery:  o.AllowUnseenQuery,
 	}
 }
 
@@ -1632,7 +1635,7 @@ func (e InboxResType) String() string {
 	if v, ok := InboxResTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type InboxViewFull struct {
@@ -1749,7 +1752,7 @@ func (e RetentionPolicyType) String() string {
 	if v, ok := RetentionPolicyTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type RetentionPolicy struct {
@@ -1972,7 +1975,7 @@ func (e GetThreadReason) String() string {
 	if v, ok := GetThreadReasonRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type ReIndexingMode int
@@ -2001,7 +2004,7 @@ func (e ReIndexingMode) String() string {
 	if v, ok := ReIndexingModeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type SearchOpts struct {
@@ -2202,21 +2205,34 @@ func (o ChatSearchIndexStatus) DeepCopy() ChatSearchIndexStatus {
 }
 
 type AssetMetadataImage struct {
-	Width  int `codec:"width" json:"width"`
-	Height int `codec:"height" json:"height"`
+	Width     int       `codec:"width" json:"width"`
+	Height    int       `codec:"height" json:"height"`
+	AudioAmps []float64 `codec:"audioAmps" json:"audioAmps"`
 }
 
 func (o AssetMetadataImage) DeepCopy() AssetMetadataImage {
 	return AssetMetadataImage{
 		Width:  o.Width,
 		Height: o.Height,
+		AudioAmps: (func(x []float64) []float64 {
+			if x == nil {
+				return nil
+			}
+			ret := make([]float64, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.AudioAmps),
 	}
 }
 
 type AssetMetadataVideo struct {
-	Width      int `codec:"width" json:"width"`
-	Height     int `codec:"height" json:"height"`
-	DurationMs int `codec:"durationMs" json:"durationMs"`
+	Width      int  `codec:"width" json:"width"`
+	Height     int  `codec:"height" json:"height"`
+	DurationMs int  `codec:"durationMs" json:"durationMs"`
+	IsAudio    bool `codec:"isAudio" json:"isAudio"`
 }
 
 func (o AssetMetadataVideo) DeepCopy() AssetMetadataVideo {
@@ -2224,16 +2240,7 @@ func (o AssetMetadataVideo) DeepCopy() AssetMetadataVideo {
 		Width:      o.Width,
 		Height:     o.Height,
 		DurationMs: o.DurationMs,
-	}
-}
-
-type AssetMetadataAudio struct {
-	DurationMs int `codec:"durationMs" json:"durationMs"`
-}
-
-func (o AssetMetadataAudio) DeepCopy() AssetMetadataAudio {
-	return AssetMetadataAudio{
-		DurationMs: o.DurationMs,
+		IsAudio:    o.IsAudio,
 	}
 }
 
@@ -2243,7 +2250,6 @@ const (
 	AssetMetadataType_NONE  AssetMetadataType = 0
 	AssetMetadataType_IMAGE AssetMetadataType = 1
 	AssetMetadataType_VIDEO AssetMetadataType = 2
-	AssetMetadataType_AUDIO AssetMetadataType = 3
 )
 
 func (o AssetMetadataType) DeepCopy() AssetMetadataType { return o }
@@ -2252,21 +2258,18 @@ var AssetMetadataTypeMap = map[string]AssetMetadataType{
 	"NONE":  0,
 	"IMAGE": 1,
 	"VIDEO": 2,
-	"AUDIO": 3,
 }
 
 var AssetMetadataTypeRevMap = map[AssetMetadataType]string{
 	0: "NONE",
 	1: "IMAGE",
 	2: "VIDEO",
-	3: "AUDIO",
 }
 
 type AssetMetadata struct {
 	AssetType__ AssetMetadataType   `codec:"assetType" json:"assetType"`
 	Image__     *AssetMetadataImage `codec:"image,omitempty" json:"image,omitempty"`
 	Video__     *AssetMetadataVideo `codec:"video,omitempty" json:"video,omitempty"`
-	Audio__     *AssetMetadataAudio `codec:"audio,omitempty" json:"audio,omitempty"`
 }
 
 func (o *AssetMetadata) AssetType() (ret AssetMetadataType, err error) {
@@ -2279,11 +2282,6 @@ func (o *AssetMetadata) AssetType() (ret AssetMetadataType, err error) {
 	case AssetMetadataType_VIDEO:
 		if o.Video__ == nil {
 			err = errors.New("unexpected nil value for Video__")
-			return ret, err
-		}
-	case AssetMetadataType_AUDIO:
-		if o.Audio__ == nil {
-			err = errors.New("unexpected nil value for Audio__")
 			return ret, err
 		}
 	}
@@ -2310,16 +2308,6 @@ func (o AssetMetadata) Video() (res AssetMetadataVideo) {
 	return *o.Video__
 }
 
-func (o AssetMetadata) Audio() (res AssetMetadataAudio) {
-	if o.AssetType__ != AssetMetadataType_AUDIO {
-		panic("wrong case accessed")
-	}
-	if o.Audio__ == nil {
-		return
-	}
-	return *o.Audio__
-}
-
 func NewAssetMetadataWithImage(v AssetMetadataImage) AssetMetadata {
 	return AssetMetadata{
 		AssetType__: AssetMetadataType_IMAGE,
@@ -2331,13 +2319,6 @@ func NewAssetMetadataWithVideo(v AssetMetadataVideo) AssetMetadata {
 	return AssetMetadata{
 		AssetType__: AssetMetadataType_VIDEO,
 		Video__:     &v,
-	}
-}
-
-func NewAssetMetadataWithAudio(v AssetMetadataAudio) AssetMetadata {
-	return AssetMetadata{
-		AssetType__: AssetMetadataType_AUDIO,
-		Audio__:     &v,
 	}
 }
 
@@ -2358,13 +2339,6 @@ func (o AssetMetadata) DeepCopy() AssetMetadata {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Video__),
-		Audio__: (func(x *AssetMetadataAudio) *AssetMetadataAudio {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.Audio__),
 	}
 }
 
@@ -2461,7 +2435,7 @@ func (e BotCommandsAdvertisementTyp) String() string {
 	if v, ok := BotCommandsAdvertisementTypRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type TeamMember struct {

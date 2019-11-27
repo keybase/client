@@ -39,7 +39,11 @@ module.exports = ({config, mode}) => {
       __dirname + '/../util/__mocks__/typed-connect.tsx'
     ),
     new webpack.NormalModuleReplacementPlugin(/^electron$/, __dirname + '/../__mocks__/electron.tsx'),
-    new webpack.NormalModuleReplacementPlugin(/dark-mode/, __dirname + '/../styles/__mocks__/dark-mode.tsx'),
+    new webpack.NormalModuleReplacementPlugin(
+      // Don't match files that are named `dark-mode.png` accidentally
+      /dark-mode.tsx/,
+      __dirname + '/../styles/__mocks__/dark-mode.tsx'
+    ),
     new webpack.NormalModuleReplacementPlugin(/engine/, __dirname + '/../__mocks__/engine.tsx'),
     new webpack.NormalModuleReplacementPlugin(/util\/saga/, __dirname + '/../__mocks__/saga.tsx'),
     new webpack.NormalModuleReplacementPlugin(/feature-flags/, __dirname + '/../__mocks__/feature-flags.tsx'),
@@ -75,6 +79,11 @@ module.exports = ({config, mode}) => {
     {
       include: path.resolve(__dirname, '../images/install'),
       test: [/.*\.(gif|png)$/],
+      use: [fileLoaderRule],
+    },
+    {
+      include: path.resolve(__dirname, '../images/releases'),
+      test: [/.*\.png$/],
       use: [fileLoaderRule],
     },
     {

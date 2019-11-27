@@ -615,6 +615,13 @@
         {
           "type": [
             null,
+            "double"
+          ],
+          "name": "f"
+        },
+        {
+          "type": [
+            null,
             "string"
           ],
           "name": "s"
@@ -1091,6 +1098,10 @@
         }
       ],
       "response": null
+    },
+    "generateWebAuthToken": {
+      "request": [],
+      "response": "string"
     }
   },
   "namespace": "keybase.1"

@@ -48,6 +48,7 @@ type ChatServiceHandler interface {
 	UnpinV1(context.Context, unpinOptionsV1) Reply
 	GetResetConvMembersV1(context.Context) Reply
 	AddResetConvMemberV1(context.Context, addResetConvMemberOptionsV1) Reply
+	GetDeviceInfoV1(context.Context, getDeviceInfoOptionsV1) Reply
 }
 
 // chatServiceHandler implements ChatServiceHandler.
@@ -96,7 +97,6 @@ func (c *chatServiceHandler) exportUIConv(ctx context.Context, uiconv chat1.Inbo
 func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Reply {
 	var cl chat1.ChatList
 	var rlimits []chat1.RateLimit
-	var pagination *chat1.Pagination
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
 		return c.errReply(err)
@@ -112,13 +112,11 @@ func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Rep
 			UnreadOnly:        opts.UnreadOnly,
 			OneChatTypePerTLF: new(bool),
 		},
-		Pagination:       opts.Pagination,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	})
 	if err != nil {
 		return c.errReply(err)
 	}
-	pagination = res.Pagination
 	rlimits = utils.AggRateLimits(res.RateLimits)
 	if opts.FailOffline && res.Offline {
 		return c.errReply(chat.OfflineError{})
@@ -130,7 +128,6 @@ func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Rep
 	for _, conv := range res.Conversations {
 		cl.Conversations = append(cl.Conversations, c.exportUIConv(ctx, conv))
 	}
-	cl.Pagination = pagination
 	cl.RateLimits = c.aggRateLimits(rlimits)
 	return Reply{Result: cl}
 }
@@ -279,6 +276,38 @@ func (c *chatServiceHandler) SetUnfurlSettingsV1(ctx context.Context, opts setUn
 		return c.errReply(err)
 	}
 	return Reply{Result: true}
+}
+
+func (c *chatServiceHandler) GetDeviceInfoV1(ctx context.Context, opts getDeviceInfoOptionsV1) Reply {
+	client, err := GetUserClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	user, err := client.LoadUserByName(ctx, keybase1.LoadUserByNameArg{Username: opts.Username})
+	if err != nil {
+		return c.errReply(err)
+	}
+	arg := keybase1.LoadUserPlusKeysV2Arg{
+		Uid: user.Uid,
+	}
+	them, err := client.LoadUserPlusKeysV2(ctx, arg)
+	if err != nil {
+		return c.errReply(err)
+	}
+	var res chat1.GetDeviceInfoRes
+	for _, m := range them.Current.DeviceKeys {
+		dev := chat1.DeviceInfo{
+			DeviceID:          string(m.DeviceID),
+			DeviceDescription: m.DeviceDescription,
+			DeviceType:        m.DeviceType,
+			DeviceCtime:       m.Base.CTime.UnixSeconds(),
+		}
+		if string(m.DeviceID) != "" && m.Base.Revocation == nil {
+			res.Devices = append(res.Devices, dev)
+		}
+	}
+
+	return Reply{Result: res}
 }
 
 func (c *chatServiceHandler) getAdvertTyp(typ string) (chat1.BotCommandsAdvertisementTyp, error) {
@@ -523,7 +552,10 @@ func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat
 		}
 		if mv.ClientHeader.BotUID != nil {
 			botUID := mv.ClientHeader.BotUID.String()
-			msg.BotUID = &botUID
+			msg.BotInfo = &chat1.MsgBotInfo{
+				BotUID:      botUID,
+				BotUsername: mv.BotUsername,
+			}
 		}
 		if mv.Reactions.Reactions != nil {
 			msg.Reactions = &mv.Reactions
@@ -900,11 +932,11 @@ func (c *chatServiceHandler) downloadV1NoStream(ctx context.Context, opts downlo
 	}
 
 	arg := chat1.DownloadFileAttachmentLocalArg{
-		SessionID:      getSessionID(chatUI),
-		ConversationID: convID,
-		MessageID:      opts.MessageID,
-		Preview:        opts.Preview,
-		Filename:       opts.Output,
+		SessionID:       getSessionID(chatUI),
+		ConversationID:  convID,
+		MessageID:       opts.MessageID,
+		Preview:         opts.Preview,
+		DownloadToCache: false,
 	}
 
 	dres, err := client.DownloadFileAttachmentLocal(ctx, arg)
@@ -970,7 +1002,7 @@ func (c *chatServiceHandler) MarkV1(ctx context.Context, opts markOptionsV1) Rep
 
 	arg := chat1.MarkAsReadLocalArg{
 		ConversationID: convID,
-		MsgID:          opts.MessageID,
+		MsgID:          &opts.MessageID,
 	}
 
 	res, err := client.MarkAsReadLocal(ctx, arg)

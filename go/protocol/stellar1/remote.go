@@ -1,13 +1,15 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/stellar1/remote.avdl
 
 package stellar1
 
 import (
 	"errors"
+	"fmt"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type ChatConversationID string
@@ -265,7 +267,7 @@ func (e PaymentSummaryType) String() string {
 	if v, ok := PaymentSummaryTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type PaymentSummary struct {
@@ -1033,6 +1035,10 @@ type DetailsPlusPaymentsArg struct {
 	IncludeAdvanced bool                 `codec:"includeAdvanced" json:"includeAdvanced"`
 }
 
+type AllDetailsPlusPaymentsArg struct {
+	Caller keybase1.UserVersion `codec:"caller" json:"caller"`
+}
+
 type AssetSearchArg struct {
 	AssetCode       string `codec:"assetCode" json:"assetCode"`
 	IssuerAccountID string `codec:"issuerAccountID" json:"issuerAccountID"`
@@ -1086,6 +1092,7 @@ type RemoteInterface interface {
 	Ping(context.Context) (string, error)
 	NetworkOptions(context.Context, keybase1.UserVersion) (NetworkOptions, error)
 	DetailsPlusPayments(context.Context, DetailsPlusPaymentsArg) (DetailsPlusPayments, error)
+	AllDetailsPlusPayments(context.Context, keybase1.UserVersion) ([]DetailsPlusPayments, error)
 	AssetSearch(context.Context, AssetSearchArg) ([]Asset, error)
 	FuzzyAssetSearch(context.Context, FuzzyAssetSearchArg) ([]Asset, error)
 	ListPopularAssets(context.Context, keybase1.UserVersion) (AssetListResult, error)
@@ -1438,6 +1445,21 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 					return
 				},
 			},
+			"allDetailsPlusPayments": {
+				MakeArg: func() interface{} {
+					var ret [1]AllDetailsPlusPaymentsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]AllDetailsPlusPaymentsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]AllDetailsPlusPaymentsArg)(nil), args)
+						return
+					}
+					ret, err = i.AllDetailsPlusPayments(ctx, typedArgs[0].Caller)
+					return
+				},
+			},
 			"assetSearch": {
 				MakeArg: func() interface{} {
 					var ret [1]AssetSearchArg
@@ -1537,150 +1559,156 @@ type RemoteClient struct {
 }
 
 func (c RemoteClient) Balances(ctx context.Context, __arg BalancesArg) (res []Balance, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.balances", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.remote.balances", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) Details(ctx context.Context, __arg DetailsArg) (res AccountDetails, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.details", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.remote.details", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) RecentPayments(ctx context.Context, __arg RecentPaymentsArg) (res PaymentsPage, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.recentPayments", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.remote.recentPayments", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) PendingPayments(ctx context.Context, __arg PendingPaymentsArg) (res []PaymentSummary, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.pendingPayments", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.remote.pendingPayments", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) MarkAsRead(ctx context.Context, __arg MarkAsReadArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.markAsRead", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "stellar.1.remote.markAsRead", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) PaymentDetails(ctx context.Context, __arg PaymentDetailsArg) (res PaymentDetails, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.paymentDetails", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.remote.paymentDetails", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) AccountSeqno(ctx context.Context, __arg AccountSeqnoArg) (res string, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.accountSeqno", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.remote.accountSeqno", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) SubmitPayment(ctx context.Context, __arg SubmitPaymentArg) (res PaymentResult, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.submitPayment", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.remote.submitPayment", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) SubmitRelayPayment(ctx context.Context, __arg SubmitRelayPaymentArg) (res PaymentResult, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.submitRelayPayment", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.remote.submitRelayPayment", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) SubmitRelayClaim(ctx context.Context, __arg SubmitRelayClaimArg) (res RelayClaimResult, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.submitRelayClaim", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.remote.submitRelayClaim", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) SubmitPathPayment(ctx context.Context, __arg SubmitPathPaymentArg) (res PaymentResult, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.submitPathPayment", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.remote.submitPathPayment", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) SubmitMultiPayment(ctx context.Context, __arg SubmitMultiPaymentArg) (res SubmitMultiRes, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.submitMultiPayment", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.remote.submitMultiPayment", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) AcquireAutoClaimLock(ctx context.Context, caller keybase1.UserVersion) (res string, err error) {
 	__arg := AcquireAutoClaimLockArg{Caller: caller}
-	err = c.Cli.Call(ctx, "stellar.1.remote.acquireAutoClaimLock", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.remote.acquireAutoClaimLock", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) ReleaseAutoClaimLock(ctx context.Context, __arg ReleaseAutoClaimLockArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.releaseAutoClaimLock", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "stellar.1.remote.releaseAutoClaimLock", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) NextAutoClaim(ctx context.Context, caller keybase1.UserVersion) (res *AutoClaim, err error) {
 	__arg := NextAutoClaimArg{Caller: caller}
-	err = c.Cli.Call(ctx, "stellar.1.remote.nextAutoClaim", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.remote.nextAutoClaim", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) IsMasterKeyActive(ctx context.Context, __arg IsMasterKeyActiveArg) (res bool, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.isMasterKeyActive", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.remote.isMasterKeyActive", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) SubmitRequest(ctx context.Context, __arg SubmitRequestArg) (res KeybaseRequestID, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.submitRequest", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.remote.submitRequest", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) RequestDetails(ctx context.Context, __arg RequestDetailsArg) (res RequestDetails, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.requestDetails", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.remote.requestDetails", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) CancelRequest(ctx context.Context, __arg CancelRequestArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.cancelRequest", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "stellar.1.remote.cancelRequest", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) SetInflationDestination(ctx context.Context, __arg SetInflationDestinationArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.setInflationDestination", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "stellar.1.remote.setInflationDestination", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) Ping(ctx context.Context) (res string, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.ping", []interface{}{PingArg{}}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.remote.ping", []interface{}{PingArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) NetworkOptions(ctx context.Context, caller keybase1.UserVersion) (res NetworkOptions, err error) {
 	__arg := NetworkOptionsArg{Caller: caller}
-	err = c.Cli.Call(ctx, "stellar.1.remote.networkOptions", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.remote.networkOptions", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) DetailsPlusPayments(ctx context.Context, __arg DetailsPlusPaymentsArg) (res DetailsPlusPayments, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.detailsPlusPayments", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.remote.detailsPlusPayments", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c RemoteClient) AllDetailsPlusPayments(ctx context.Context, caller keybase1.UserVersion) (res []DetailsPlusPayments, err error) {
+	__arg := AllDetailsPlusPaymentsArg{Caller: caller}
+	err = c.Cli.Call(ctx, "stellar.1.remote.allDetailsPlusPayments", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) AssetSearch(ctx context.Context, __arg AssetSearchArg) (res []Asset, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.assetSearch", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.remote.assetSearch", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) FuzzyAssetSearch(ctx context.Context, __arg FuzzyAssetSearchArg) (res []Asset, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.fuzzyAssetSearch", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.remote.fuzzyAssetSearch", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) ListPopularAssets(ctx context.Context, caller keybase1.UserVersion) (res AssetListResult, err error) {
 	__arg := ListPopularAssetsArg{Caller: caller}
-	err = c.Cli.Call(ctx, "stellar.1.remote.listPopularAssets", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.remote.listPopularAssets", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) ChangeTrustline(ctx context.Context, __arg ChangeTrustlineArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.changeTrustline", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "stellar.1.remote.changeTrustline", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) FindPaymentPath(ctx context.Context, __arg FindPaymentPathArg) (res PaymentPath, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.findPaymentPath", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.remote.findPaymentPath", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) PostAnyTransaction(ctx context.Context, __arg PostAnyTransactionArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.remote.postAnyTransaction", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "stellar.1.remote.postAnyTransaction", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }

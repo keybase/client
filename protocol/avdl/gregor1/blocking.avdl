@@ -1,0 +1,6 @@
+@namespace("gregor.1")
+
+// calls into gregor about user blocking
+protocol blocking {
+  void blockConversations(UID uid, array<string> tlfIDs);
+}

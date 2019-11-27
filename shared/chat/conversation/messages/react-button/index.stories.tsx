@@ -49,6 +49,20 @@ const examples = [
     emoji: ':face_with_cowboy_hat:',
     onClick: Sb.action('onClick'),
   },
+  {
+    ...common,
+    active: false,
+    count: 2,
+    emoji: ':+1:',
+    onClick: Sb.action('onClick'),
+  },
+  {
+    ...common,
+    active: true,
+    count: 2,
+    emoji: ':+1:',
+    onClick: Sb.action('onClick'),
+  },
 ]
 
 const load = () => {
@@ -57,7 +71,9 @@ const load = () => {
       {story()}
     </Box>
   ))
-  examples.forEach(ex => story.add(`${ex.emoji}${ex.active ? ' active' : ''}`, () => <ReactButton {...ex} />))
+  examples.forEach((ex, index) =>
+    story.add(`${ex.emoji}${ex.active ? ' active' : ''} ${index}`, () => <ReactButton {...ex} />)
+  )
   story.add('New reaction', () => (
     <NewReactionButton
       onAddReaction={Sb.action('onAddReaction')}

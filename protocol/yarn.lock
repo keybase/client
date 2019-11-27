@@ -17,10 +17,10 @@ amdefine@>=0.0.4:
   resolved "https://registry.yarnpkg.com/amdefine/-/amdefine-1.0.1.tgz#4a5282ac164729e93619bcfd3ad151f817ce91f5"
   integrity sha1-SlKCrBZHKek2Gbz9OtFR+BfOkfU=
 
-avdl-compiler@1.4.2:
-  version "1.4.2"
-  resolved "https://registry.yarnpkg.com/avdl-compiler/-/avdl-compiler-1.4.2.tgz#3d3dfd10547891ed4795e7c374160d8cb8d44a80"
-  integrity sha512-a/WNiBb/qyjqYSCWiSgq6GgoUPmIsONrF0R9RmeMTUv3ok3RwwrE9Jce3gTPf7lsCLBAeysnXuGjKdKHdjuKrA==
+avdl-compiler@1.4.6:
+  version "1.4.6"
+  resolved "https://registry.yarnpkg.com/avdl-compiler/-/avdl-compiler-1.4.6.tgz#3bf90f980b4292780f93202b128aabd9413e03de"
+  integrity sha512-KG32hL3RBqVa4cwKAuxIXC9gaNOSDj6tKux2fhaPYEpwwmZyfhCuZeSYDL0NytIh8a9T6s6gf7DT1R0UG/wLvA==
   dependencies:
     avdl2json "^2.2.4"
     iced-error "0.0.9"
@@ -226,10 +226,10 @@ nomnom@1.5.2, "nomnom@>= 1.5.x":
     colors "0.5.x"
     underscore "1.1.x"
 
-prettier@1.9.2:
-  version "1.9.2"
-  resolved "https://registry.yarnpkg.com/prettier/-/prettier-1.9.2.tgz#96bc2132f7a32338e6078aeb29727178c6335827"
-  integrity sha512-piXx9N2WT8hWb7PBbX1glAuJVIkEyUV9F5fMXFINpZ0x3otVOFKKeGmeuiclFJlP/UrgTckyV606VjH2rNK4bw==
+prettier@1.19.1:
+  version "1.19.1"
+  resolved "https://registry.yarnpkg.com/prettier/-/prettier-1.19.1.tgz#f7d7f5ff8a9cd872a7be4ca142095956a60797cb"
+  integrity sha512-s7PoyDv/II1ObgQunCbB9PdLmUcBZcnWOcxDh7O0N/UwDEsHyqkW+Qh28jW+mVuCdx7gLB0BotYI1Y6uI9iyew==
 
 source-map@~0.1.33:
   version "0.1.43"

@@ -2,13 +2,12 @@
 // It listens for avatar related actions and bookkeeps them to send them back over the wire
 import * as React from 'react'
 import * as Container from '../../util/container'
-import {isEqual} from 'lodash-es'
+import isEqual from 'lodash/isEqual'
 import {intersect} from '../../util/set'
 import {memoize} from '../../util/memoize'
 
 type OwnProps = {
   usernames: Set<string>
-  setUsernames: (usernames: Set<string>) => void
   windowComponent: string
   windowParam: string
 }
@@ -18,7 +17,6 @@ type Props = {
   following: Set<string>
   httpSrvAddress: string
   httpSrvToken: string
-  setUsernames: (arg0: Set<string>) => void
   usernames: Set<string>
   windowComponent: string
   windowParam: string
@@ -55,22 +53,28 @@ export const deserialize = (state: any = initialState, props: any) => {
   }
 }
 
+// Prevent <Connected /> from re-rendering on new Sets when usernames
+const getUsernamesSet = memoize(
+  (usernames: Array<string>) => {
+    return new Set<string>(usernames)
+  },
+  ([oldUsernames], [newUsername]) => isEqual(oldUsernames, newUsername)
+)
+
 function SyncAvatarProps(ComposedComponent: any) {
-  class RemoteAvatarConnected extends React.PureComponent<Props> {
-    render() {
-      const {setUsernames, usernames, ...rest} = this.props
-      return <ComposedComponent {...rest} />
+  const RemoteAvatarConnected = (props: Props) => <ComposedComponent {...props} />
+
+  const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
+    const {usernames} = ownProps
+    return {
+      ...immutableCached(
+        getRemoteFollowers(state.config.followers, usernames),
+        getRemoteFollowing(state.config.following, usernames)
+      ),
+      httpSrvAddress: state.config.httpSrvAddress,
+      httpSrvToken: state.config.httpSrvToken,
     }
   }
-
-  const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => ({
-    ...immutableCached(
-      getRemoteFollowers(state.config.followers, ownProps.usernames),
-      getRemoteFollowing(state.config.following, ownProps.usernames)
-    ),
-    httpSrvAddress: state.config.httpSrvAddress,
-    httpSrvToken: state.config.httpSrvToken,
-  })
 
   const getRemoteFollowers = memoize((followers: Set<string>, usernames: Set<string>) =>
     intersect(followers, usernames)
@@ -93,16 +97,20 @@ function SyncAvatarProps(ComposedComponent: any) {
   )(RemoteAvatarConnected)
 
   type WrapperProps = {
+    usernames: Array<string>
     windowComponent: string
     windowParam: string
   }
 
-  class Wrapper extends React.PureComponent<WrapperProps, {usernames: Set<string>}> {
-    state = {usernames: new Set<string>()}
-    setUsernames = (usernames: Set<string>) => this.setState({usernames})
-    render() {
-      return <Connected {...this.props} usernames={this.state.usernames} setUsernames={this.setUsernames} />
-    }
+  const Wrapper = (props: WrapperProps) => {
+    /*
+     * Usernames is the the subset of the following/follower usernames to select before serializing and sending to the remote window.
+     * For users with lots of followers/followees, we don't want to serialize and send lists with thousands of names over.
+     *
+     * In the case of the menubar widget, we only care about a subset of the uernames that have updated files.
+     */
+    const usernamesSet = getUsernamesSet(props.usernames)
+    return <Connected {...props} usernames={usernamesSet} />
   }
 
   return Wrapper

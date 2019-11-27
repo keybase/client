@@ -54,16 +54,14 @@ type _CleanupUsernamePayload = void
 type _ClearPlatformGenericPayload = void
 type _EditAvatarPayload = void
 type _EditProfilePayload = {readonly bio: string; readonly fullname: string; readonly location: string}
-type _FinishBlockUserPayload = void
-type _FinishBlockUserPayloadError = {readonly error: string}
+type _FinishBlockUserPayload = {readonly error?: string}
 type _FinishRevokingPayload = void
 type _FinishedWithKeyGenPayload = {readonly shouldStoreKeyOnServer: boolean}
 type _GeneratePgpPayload = void
-type _OnClickAvatarPayload = {readonly username: string; readonly openWebsite?: boolean | null}
+type _OnClickAvatarPayload = {readonly username: string; readonly openWebsite?: boolean}
 type _ProofParamsReceivedPayload = {readonly params: Types.ProveGenericParams}
 type _RecheckProofPayload = {readonly sigID: string}
-type _RevokeFinishPayload = void
-type _RevokeFinishPayloadError = {readonly error: string}
+type _RevokeFinishPayload = {readonly error?: string}
 type _ShowUserProfilePayload = {readonly username: string}
 type _SubmitBTCAddressPayload = void
 type _SubmitBlockUserPayload = {readonly username: string}
@@ -71,7 +69,7 @@ type _SubmitRevokeProofPayload = {readonly proofId: string}
 type _SubmitUnblockUserPayload = {readonly username: string; readonly guiID: string}
 type _SubmitUsernamePayload = void
 type _SubmitZcashAddressPayload = void
-type _UpdateErrorTextPayload = {readonly errorText: string; readonly errorCode: number | null}
+type _UpdateErrorTextPayload = {readonly errorText: string; readonly errorCode?: number}
 type _UpdatePgpInfoPayload = {
   readonly pgpEmail1?: string
   readonly pgpEmail2?: string
@@ -86,7 +84,7 @@ type _UpdatePlatformPayload = {readonly platform: More.PlatformsExpandedType}
 type _UpdatePromptShouldStoreKeyOnServerPayload = {readonly promptShouldStoreKeyOnServer: boolean}
 type _UpdateProofStatusPayload = {readonly found: boolean; readonly status: RPCTypes.ProofStatus}
 type _UpdateProofTextPayload = {readonly proof: string}
-type _UpdateSigIDPayload = {readonly sigID: RPCTypes.SigID | null}
+type _UpdateSigIDPayload = {readonly sigID?: RPCTypes.SigID}
 type _UpdateUsernamePayload = {readonly username: string}
 type _UploadAvatarPayload = {readonly filename: string; readonly crop?: RPCTypes.ImageCropRect}
 
@@ -129,13 +127,9 @@ export const createEditProfile = (payload: _EditProfilePayload): EditProfilePayl
   payload,
   type: editProfile,
 })
-export const createFinishBlockUser = (payload: _FinishBlockUserPayload): FinishBlockUserPayload => ({
-  payload,
-  type: finishBlockUser,
-})
-export const createFinishBlockUserError = (
-  payload: _FinishBlockUserPayloadError
-): FinishBlockUserPayloadError => ({error: true, payload, type: finishBlockUser})
+export const createFinishBlockUser = (
+  payload: _FinishBlockUserPayload = Object.freeze({})
+): FinishBlockUserPayload => ({payload, type: finishBlockUser})
 export const createFinishRevoking = (payload: _FinishRevokingPayload): FinishRevokingPayload => ({
   payload,
   type: finishRevoking,
@@ -159,15 +153,9 @@ export const createRecheckProof = (payload: _RecheckProofPayload): RecheckProofP
   payload,
   type: recheckProof,
 })
-export const createRevokeFinish = (payload: _RevokeFinishPayload): RevokeFinishPayload => ({
-  payload,
-  type: revokeFinish,
-})
-export const createRevokeFinishError = (payload: _RevokeFinishPayloadError): RevokeFinishPayloadError => ({
-  error: true,
-  payload,
-  type: revokeFinish,
-})
+export const createRevokeFinish = (
+  payload: _RevokeFinishPayload = Object.freeze({})
+): RevokeFinishPayload => ({payload, type: revokeFinish})
 export const createShowUserProfile = (payload: _ShowUserProfilePayload): ShowUserProfilePayload => ({
   payload,
   type: showUserProfile,
@@ -225,7 +213,7 @@ export const createUpdateProofText = (payload: _UpdateProofTextPayload): UpdateP
   payload,
   type: updateProofText,
 })
-export const createUpdateSigID = (payload: _UpdateSigIDPayload): UpdateSigIDPayload => ({
+export const createUpdateSigID = (payload: _UpdateSigIDPayload = Object.freeze({})): UpdateSigIDPayload => ({
   payload,
   type: updateSigID,
 })
@@ -264,11 +252,6 @@ export type FinishBlockUserPayload = {
   readonly payload: _FinishBlockUserPayload
   readonly type: typeof finishBlockUser
 }
-export type FinishBlockUserPayloadError = {
-  readonly error: true
-  readonly payload: _FinishBlockUserPayloadError
-  readonly type: typeof finishBlockUser
-}
 export type FinishRevokingPayload = {
   readonly payload: _FinishRevokingPayload
   readonly type: typeof finishRevoking
@@ -288,11 +271,6 @@ export type ProofParamsReceivedPayload = {
 }
 export type RecheckProofPayload = {readonly payload: _RecheckProofPayload; readonly type: typeof recheckProof}
 export type RevokeFinishPayload = {readonly payload: _RevokeFinishPayload; readonly type: typeof revokeFinish}
-export type RevokeFinishPayloadError = {
-  readonly error: true
-  readonly payload: _RevokeFinishPayloadError
-  readonly type: typeof revokeFinish
-}
 export type ShowUserProfilePayload = {
   readonly payload: _ShowUserProfilePayload
   readonly type: typeof showUserProfile
@@ -377,7 +355,6 @@ export type Actions =
   | EditAvatarPayload
   | EditProfilePayload
   | FinishBlockUserPayload
-  | FinishBlockUserPayloadError
   | FinishRevokingPayload
   | FinishedWithKeyGenPayload
   | GeneratePgpPayload
@@ -385,7 +362,6 @@ export type Actions =
   | ProofParamsReceivedPayload
   | RecheckProofPayload
   | RevokeFinishPayload
-  | RevokeFinishPayloadError
   | ShowUserProfilePayload
   | SubmitBTCAddressPayload
   | SubmitBlockUserPayload

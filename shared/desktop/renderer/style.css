@@ -226,6 +226,65 @@ body {
   overflow: hidden;
 }
 
+:root {
+  --scrollbar-size: 0.375rem;
+  --scrollbar-minlength: 0.5rem;
+  --scrollbar-ff-width: thin;
+  --scrollbar-track-color: transparent;
+  --scrollbar-color: rgba(0, 0, 0, 0.2);
+  --scrollbar-color-dark: rgba(255, 255, 255, 0.2);
+  --scrollbar-color-hover: rgba(0, 0, 0, 0.3);
+  --scrollbar-color-hover-dark: rgba(255, 255, 255, 0.3);
+  --scrollbar-color-active: rgb(0, 0, 0);
+  --scrollbar-color-active-dark: rgb(255, 255, 255, 0.5);
+}
+
+/* Used to customize scrollbars and enable testing the auto hide behavior on os x */
+body {
+  scrollbar-color: var(--scrollbar-color) var(--scrollbar-track-color);
+}
+.layout-scrollbar-obtrusive ::-webkit-scrollbar {
+  height: var(--scrollbar-size);
+  width: var(--scrollbar-size);
+}
+.scrollbar-test {
+  overscroll-behavior: contain;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  -ms-overflow-style: -ms-autohiding-scrollbar;
+  scrollbar-width: var(--scrollbar-ff-width);
+}
+
+::-webkit-scrollbar-track {
+  background-color: var(--scrollbar-track-color);
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-color);
+  border-radius: 3px;
+}
+.darkMode ::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-color-dark);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-color-hover);
+}
+.darkMode ::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-color-hover-dark);
+}
+::-webkit-scrollbar-thumb:active {
+  background-color: var(--scrollbar-color-active);
+}
+.darkMode ::-webkit-scrollbar-thumb:active {
+  background-color: var(--scrollbar-color-active-dark);
+}
+::-webkit-scrollbar-thumb:vertical {
+  min-height: var(--scrollbar-minlength);
+}
+::-webkit-scrollbar-thumb:horizontal {
+  min-width: var(--scrollbar-minlength);
+}
+
 .darkMode input {
   background-color: #191919;
 }
@@ -339,6 +398,9 @@ body {
   opacity: 1;
 }
 
+.lightMode {
+  background-color: #ffffff;
+}
 .darkMode {
   background-color: #191919;
 }
@@ -349,20 +411,20 @@ body {
 }
 .darkMode .emoji-mart {
   color: rgba(255, 255, 255, 0.85);
-  border: 1px solid #101010;
+  border: 1px solid rgba(0, 0, 0, 0.85);
   background: #191919;
 }
 .darkMode .emoji-mart-search input {
-  background-color: #191919;
-  border: 1px solid #101010;
+  background-color: #000;
+  border: 1px solid #000;
   color: rgba(255, 255, 255, 0.85);
 }
 .darkMode .emoji-mart-category-label span {
   background: #191919;
 }
 .darkMode .emoji-mart-category .emoji-mart-emoji:hover:before {
-  background-color: rgba(255, 255, 255, 0.25);
+  background-color: rgba(255, 255, 255, 0.15);
 }
 .darkMode .emoji-mart-bar {
-  border-color: #101010;
+  border-color: rgba(0, 0, 0, 0.85);
 }

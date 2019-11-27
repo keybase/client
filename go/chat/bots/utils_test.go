@@ -19,8 +19,8 @@ var mockCmdOutput []chat1.UserBotCommandOutput
 
 type MockBotCommandManager struct{ types.DummyBotCommandManager }
 
-func (m MockBotCommandManager) ListCommands(context.Context, chat1.ConversationID) ([]chat1.UserBotCommandOutput, error) {
-	return mockCmdOutput, nil
+func (m MockBotCommandManager) ListCommands(context.Context, chat1.ConversationID) ([]chat1.UserBotCommandOutput, map[string]string, error) {
+	return mockCmdOutput, make(map[string]string), nil
 }
 
 type mockUPAKLoader struct {
@@ -43,15 +43,10 @@ func TestApplyTeamBotSettings(t *testing.T) {
 	botUID := gregor1.UID([]byte("botua"))
 	botSettings := keybase1.TeamBotSettings{}
 	msg := chat1.MessagePlaintext{}
-	conv := chat1.ConversationLocal{
-		Info: chat1.ConversationInfoLocal{
-			Id: convID,
-		},
-	}
 	mentionMap := make(map[string]struct{})
 
 	assertMatch := func(expected bool) {
-		isMatch, err := ApplyTeamBotSettings(ctx, g, botUID, botSettings, msg, &conv,
+		isMatch, err := ApplyTeamBotSettings(ctx, g, botUID, botSettings, msg, &convID,
 			mentionMap, debugLabeler)
 		require.NoError(t, err)
 		require.Equal(t, expected, isMatch)
@@ -130,18 +125,32 @@ func TestApplyTeamBotSettings(t *testing.T) {
 	g.BotCommandManager = &MockBotCommandManager{}
 	mockCmdOutput = []chat1.UserBotCommandOutput{
 		{
-			Name:     "status",
+			Name:     "remind me",
 			Username: "botua",
 		},
 	}
 	msg.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{
-		Body: "!status",
+		Body: "!remind me ",
 	})
 	assertMatch(false)
 	botSettings.Cmds = true
 	assertMatch(true)
+
+	// make sure we only match if the given bot username also matches
+	mockCmdOutput = []chat1.UserBotCommandOutput{
+		{
+			Name:     "remind me",
+			Username: "notbotua",
+		},
+	}
 	msg.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{
-		Body: "!help",
+		Body: "!remind me ",
+	})
+	assertMatch(false)
+
+	// make sure we don't match an erroneous command
+	msg.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: "!help ",
 	})
 	assertMatch(false)
 }

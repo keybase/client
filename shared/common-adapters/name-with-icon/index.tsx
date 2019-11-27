@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Styles from '../../styles'
 import Avatar, {AvatarSize} from '../avatar'
-import Box from '../box'
+import {Box} from '../box'
 import ClickableBox from '../clickable-box'
 import Icon, {castPlatformStyles, IconType} from '../icon'
 import Text, {TextType, StylesTextCrossPlatform} from '../text'
@@ -14,6 +14,7 @@ export type NameWithIconProps = {
   avatarImageOverride?: string
   avatarSize?: AvatarSize
   avatarStyle?: Styles.StylesCrossPlatform
+  botAlias?: string | React.ReactNode
   colorBroken?: boolean
   colorFollowing?: boolean
   notFollowingColorOverride?: string
@@ -41,6 +42,7 @@ export type NameWithIconProps = {
   titleStyle?: StylesTextCrossPlatform
   underline?: boolean
   username?: string
+  withProfileCardPopup?: boolean
 }
 
 // If lineclamping isn't working, try adding a static width in containerStyle
@@ -119,9 +121,9 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
         colorYou={this.props.notFollowingColorOverride || true}
         notFollowingColorOverride={this.props.notFollowingColorOverride}
         style={this.props.size === 'smaller' ? {} : styles.fullWidthText}
+        withProfileCardPopup={this.props.withProfileCardPopup}
       />
     )
-
     const metaOne = (
       <TextOrComponent
         textType={this.props.horizontal ? 'BodySmall' : adapterProps.metaOneType}
@@ -133,6 +135,13 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
       <TextOrComponent
         textType="BodySmall"
         val={this.props.metaTwo || null}
+        style={this.props.horizontal ? undefined : styles.fullWidthText}
+      />
+    )
+    const botAlias = (
+      <TextOrComponent
+        textType="BodySmall"
+        val={this.props.botAlias || null}
         style={this.props.horizontal ? undefined : styles.fullWidthText}
       />
     )
@@ -176,6 +185,7 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
         >
           {usernameOrTitle}
           {metas}
+          {botAlias}
         </Box>
       </BoxComponent>
     )

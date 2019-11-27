@@ -6,10 +6,11 @@ import * as SignupGen from '../../actions/signup-gen'
 import * as RecoverPasswordGen from '../../actions/recover-password-gen'
 import HiddenString from '../../util/hidden-string'
 import Login from '.'
-import {sortBy} from 'lodash-es'
+import sortBy from 'lodash/sortBy'
 import * as Container from '../../util/container'
-import flags from '../../util/feature-flags'
 import * as ConfigTypes from '../../constants/types/config'
+
+const needPasswordError = 'passphrase cannot be empty'
 
 type OwnProps = {}
 
@@ -17,7 +18,7 @@ type Props = {
   error: string
   loggedInMap: Map<string, boolean>
   onFeedback: () => void
-  onForgotPassword: () => void
+  onForgotPassword: (username: string) => void
   onLogin: (user: string, password: string) => void
   onSignup: () => void
   onSomeoneElse: () => void
@@ -33,6 +34,8 @@ const LoginWrapper = (props: Props) => {
   const prevPassword = Container.usePrevious(password)
   const prevError = Container.usePrevious(props.error)
 
+  const [gotNeedPasswordError, setGotNeedPasswordError] = React.useState(false)
+
   const dispatch = Container.useDispatch()
 
   const {onLogin, loggedInMap} = props
@@ -43,7 +46,7 @@ const LoginWrapper = (props: Props) => {
 
   const selectedUserChange = React.useCallback(
     user => {
-      dispatch(LoginGen.createLoginError({error: null}))
+      dispatch(LoginGen.createLoginError({}))
       setPassword('')
       setSelectedUser(user)
       if (loggedInMap.get(user)) {
@@ -64,15 +67,21 @@ const LoginWrapper = (props: Props) => {
   }, [props.selectedUser, setSelectedUser])
   React.useEffect(() => {
     if (!prevPassword && !!password) {
-      dispatch(LoginGen.createLoginError({error: null}))
+      dispatch(LoginGen.createLoginError({}))
     }
   }, [password, prevPassword, dispatch])
+  React.useEffect(() => {
+    if (props.error === needPasswordError) {
+      setGotNeedPasswordError(true)
+    }
+  }, [props.error, setGotNeedPasswordError])
 
   return (
     <Login
       error={props.error}
+      needPassword={!loggedInMap.get(selectedUser) || gotNeedPasswordError}
       onFeedback={props.onFeedback}
-      onForgotPassword={props.onForgotPassword}
+      onForgotPassword={() => props.onForgotPassword(selectedUser)}
       onLogin={onLogin}
       onSignup={props.onSignup}
       onSomeoneElse={props.onSomeoneElse}
@@ -89,16 +98,14 @@ const LoginWrapper = (props: Props) => {
 }
 
 export default Container.connect(
-  state => ({
+  (state: Container.TypedState) => ({
     _users: state.config.configuredAccounts,
     error: state.login.error,
     selectedUser: state.config.defaultUsername,
   }),
   dispatch => ({
     _onForgotPassword: (username: string) =>
-      flags.resetPipeline
-        ? dispatch(RecoverPasswordGen.createStartRecoverPassword({username}))
-        : dispatch(LoginGen.createLaunchForgotPasswordWebPage()),
+      dispatch(RecoverPasswordGen.createStartRecoverPassword({username})),
     onFeedback: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['feedback']})),
     onLogin: (username: string, password: string) =>
       dispatch(LoginGen.createLogin({password: new HiddenString(password), username})),
@@ -111,7 +118,7 @@ export default Container.connect(
       stateProps._users.map(account => [account.username, account.hasStoredSecret])
     ),
     onFeedback: dispatchProps.onFeedback,
-    onForgotPassword: () => dispatchProps._onForgotPassword(stateProps.selectedUser),
+    onForgotPassword: dispatchProps._onForgotPassword,
     onLogin: dispatchProps.onLogin,
     onSignup: dispatchProps.onSignup,
     onSomeoneElse: dispatchProps.onSomeoneElse,

@@ -151,7 +151,7 @@
         }
       ],
       "response": null,
-      "doc": "resetAccount resets the user's account; it's meant only for devel and tests.\n   passphrase is optional and will be prompted for if not supplied."
+      "doc": "resetAccount resets the user's account. It is used in the CLI.\n   passphrase is optional and will be prompted for if not supplied."
     },
     "getLockdownMode": {
       "request": [
@@ -210,10 +210,18 @@
         {
           "name": "usernameOrEmail",
           "type": "string"
+        },
+        {
+          "name": "passphrase",
+          "type": "string"
+        },
+        {
+          "name": "interactive",
+          "type": "boolean"
         }
       ],
       "response": null,
-      "doc": "Start reset process for the user based on their username or email.  If\n    neither are known the user will be prompted for their passphrase to start\n    the process."
+      "doc": "Start reset process for the user based on their username or email.  If\n    neither are known the user will be prompted for their passphrase to start\n    the process.\n    TODO: change this to just username"
     },
     "cancelReset": {
       "request": [
@@ -230,6 +238,10 @@
         {
           "name": "sessionID",
           "type": "int"
+        },
+        {
+          "name": "username",
+          "type": "string"
         },
         {
           "name": "duration",

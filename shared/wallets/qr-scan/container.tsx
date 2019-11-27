@@ -13,7 +13,7 @@ const mapDispatchToProps = dispatch => ({
       dispatch(WalletsGen.createSetBuildingRecipientType({recipientType: 'stellarPublicKey'}))
       dispatch(WalletsGen.createSetBuildingTo({to}))
     } else {
-      logger.error('QrScan.onSubmitCode: No `to` field for QRScan')
+      logger.warn('QrScan.onSubmitCode: No `to` field for QRScan')
     }
     dispatch(RouteTreeGen.createNavigateUp())
   },

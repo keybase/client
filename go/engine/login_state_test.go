@@ -70,9 +70,9 @@ func TestLoginAfterServiceRestart(t *testing.T) {
 	defer tc.Cleanup()
 
 	// Logs the user in.
-	_ = SignupFakeUserStoreSecret(tc, "li")
+	fu := SignupFakeUserStoreSecret(tc, "li")
 
-	tc.SimulateServiceRestart()
+	simulateServiceRestart(t, tc, fu)
 	ok, _ := isLoggedIn(NewMetaContextForTest(tc))
 	require.True(t, ok, "we are logged in after a service restart")
 }
@@ -101,6 +101,8 @@ type GetUsernameMock struct {
 	LastErr  error
 }
 
+var _ libkb.LoginUI = (*GetUsernameMock)(nil)
+
 func (m *GetUsernameMock) GetEmailOrUsername(context.Context, int) (string, error) {
 	if m.Called {
 		m.LastErr = errors.New("GetEmailOrUsername unexpectedly called more than once")
@@ -122,8 +124,9 @@ func (m *GetUsernameMock) DisplayPrimaryPaperKey(_ context.Context, arg keybase1
 	return nil
 }
 
-func (m *GetUsernameMock) PromptResetAccount(_ context.Context, arg keybase1.PromptResetAccountArg) (bool, error) {
-	return false, nil
+func (m *GetUsernameMock) PromptResetAccount(_ context.Context,
+	arg keybase1.PromptResetAccountArg) (keybase1.ResetPromptResponse, error) {
+	return keybase1.ResetPromptResponse_NOTHING, nil
 }
 
 func (m *GetUsernameMock) DisplayResetProgress(_ context.Context, arg keybase1.DisplayResetProgressArg) error {
@@ -142,6 +145,14 @@ func (m *GetUsernameMock) ExplainDeviceRecovery(_ context.Context, arg keybase1.
 
 func (m *GetUsernameMock) PromptPassphraseRecovery(_ context.Context, arg keybase1.PromptPassphraseRecoveryArg) (bool, error) {
 	return false, nil
+}
+
+func (m *GetUsernameMock) ChooseDeviceToRecoverWith(_ context.Context, arg keybase1.ChooseDeviceToRecoverWithArg) (keybase1.DeviceID, error) {
+	return "", nil
+}
+
+func (m *GetUsernameMock) DisplayResetMessage(_ context.Context, arg keybase1.DisplayResetMessageArg) error {
+	return nil
 }
 
 // Test that the login falls back to a passphrase login if pubkey
@@ -325,7 +336,7 @@ func TestLoginWithPassphraseNoStore(t *testing.T) {
 
 // Signup followed by logout clears the stored secret
 func TestSignupWithStoreThenLogout(t *testing.T) {
-	tc := SetupEngineTest(t, "signup with store then login")
+	tc := SetupEngineTest(t, "signup with store then logout")
 	defer tc.Cleanup()
 
 	fu := NewFakeUserOrBust(tc.T, "lssl")
@@ -337,6 +348,52 @@ func TestSignupWithStoreThenLogout(t *testing.T) {
 	arg := MakeTestSignupEngineRunArg(fu)
 	arg.StoreSecret = true
 	_ = SignupFakeUserWithArg(tc, fu, arg)
+
+	Logout(tc)
+
+	if userHasStoredSecret(&tc, fu.Username) {
+		t.Errorf("User %s unexpectedly has a stored secret", fu.Username)
+	}
+}
+
+type timeoutAPI struct {
+	*libkb.APIArgRecorder
+}
+
+func (r *timeoutAPI) GetDecode(mctx libkb.MetaContext, arg libkb.APIArg, w libkb.APIResponseWrapper) error {
+	return libkb.APINetError{}
+}
+func (r *timeoutAPI) PostDecode(mctx libkb.MetaContext, arg libkb.APIArg, w libkb.APIResponseWrapper) error {
+	return libkb.APINetError{}
+}
+
+func (r *timeoutAPI) Get(mctx libkb.MetaContext, arg libkb.APIArg) (*libkb.APIRes, error) {
+	return nil, libkb.APINetError{}
+}
+
+// Signup followed by logout clears the stored secret
+func TestSignupWithStoreThenOfflineLogout(t *testing.T) {
+	tc := SetupEngineTest(t, "signup with store then offline logout")
+	defer tc.Cleanup()
+
+	fu := NewFakeUserOrBust(tc.T, "lssol")
+
+	if userHasStoredSecret(&tc, fu.Username) {
+		t.Errorf("User %s unexpectedly has a stored secret", fu.Username)
+	}
+
+	arg := MakeTestSignupEngineRunArg(fu)
+	arg.StoreSecret = true
+	_ = SignupFakeUserWithArg(tc, fu, arg)
+
+	// Hack: log out and back in so passphrase state is stored. With a real user, this would happen
+	// when the passphrase is set, but the passphrase is set by signup instead of manually in test.
+	Logout(tc)
+	err := fu.Login(tc.G)
+	require.NoError(t, err)
+
+	// Go offline
+	tc.G.API = &timeoutAPI{}
 
 	Logout(tc)
 

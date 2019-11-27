@@ -69,7 +69,7 @@ func newAnchorInteractor(accountID stellar1.AccountID, secretKey *stellar1.Secre
 
 // Deposit runs the deposit action for accountID on the transfer server for asset.
 func (a *anchorInteractor) Deposit(mctx libkb.MetaContext) (stellar1.AssetActionResultLocal, error) {
-	if err := a.checkAsset(mctx); err != nil {
+	if err := a.checkAssetForDeposit(mctx); err != nil {
 		return stellar1.AssetActionResultLocal{}, err
 	}
 	u, err := a.checkURL(mctx, "deposit")
@@ -88,7 +88,7 @@ func (a *anchorInteractor) Deposit(mctx libkb.MetaContext) (stellar1.AssetAction
 
 // Withdraw runs the withdraw action for accountID on the transfer server for asset.
 func (a *anchorInteractor) Withdraw(mctx libkb.MetaContext) (stellar1.AssetActionResultLocal, error) {
-	if err := a.checkAsset(mctx); err != nil {
+	if err := a.checkAssetForWithdraw(mctx); err != nil {
 		return stellar1.AssetActionResultLocal{}, err
 	}
 	u, err := a.checkURL(mctx, "withdraw")
@@ -111,9 +111,49 @@ func (a *anchorInteractor) Withdraw(mctx libkb.MetaContext) (stellar1.AssetActio
 	return a.get(mctx, u, &okResponse)
 }
 
-// checkAsset sanity-checks the asset to make sure it is verified and looks like
-// the transfer server actions are supported.
-func (a *anchorInteractor) checkAsset(mctx libkb.MetaContext) error {
+// checkAssetForDeposit sanity-checks the asset to make sure it is verified
+// and looks like the transfer server actions are supported.
+func (a *anchorInteractor) checkAssetForDeposit(mctx libkb.MetaContext) error {
+	if err := a.checkAssetCommon(mctx); err != nil {
+		return err
+	}
+	if a.asset.DepositReqAuth {
+		if a.asset.AuthEndpoint == "" {
+			return errors.New("deposit requires auth, but no auth endpoint")
+		}
+
+		// asset requires sep10 authentication token
+		if err := a.getAuthToken(mctx); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// checkAssetForWithdraw sanity-checks the asset to make sure it is verified
+// and looks like the transfer server actions are supported.
+func (a *anchorInteractor) checkAssetForWithdraw(mctx libkb.MetaContext) error {
+	if err := a.checkAssetCommon(mctx); err != nil {
+		return err
+	}
+	if a.asset.WithdrawReqAuth {
+		if a.asset.AuthEndpoint == "" {
+			return errors.New("withdraw requires auth, but no auth endpoint")
+		}
+
+		// asset requires sep10 authentication token
+		if err := a.getAuthToken(mctx); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// checkAssetCommon sanity-checks the asset to make sure it is verified
+// and has a transfer server.
+func (a *anchorInteractor) checkAssetCommon(mctx libkb.MetaContext) error {
 	if a.asset.VerifiedDomain == "" {
 		return errors.New("asset is unverified")
 	}
@@ -121,13 +161,6 @@ func (a *anchorInteractor) checkAsset(mctx libkb.MetaContext) error {
 		return errors.New("asset has no transfer server")
 	}
 
-	if a.asset.AuthEndpoint != "" {
-		// asset requires sep10 authentication token
-		if err := a.getAuthToken(mctx); err != nil {
-			return err
-		}
-
-	}
 	return nil
 }
 

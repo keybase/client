@@ -109,14 +109,12 @@
       "accountID": "Types.AccountID",
       "showOnCreation?": "boolean",
       "setBuildingTo?": "boolean",
-      "canError": {
-        "name": "string",
-        "error": "string"
-      }
+      "name?": "string",
+      "error?": "string"
     },
     "externalPartnersReceived": {
       "_description": "Update our list of external tools and partners",
-      "externalPartners": "I.List<Types.PartnerUrl>"
+      "externalPartners": "Array<Types.PartnerUrl>"
     },
     "exitFailedPayment": {
       "_description": "Close the send form and show the user their transactions so they can review."
@@ -135,23 +133,6 @@
     },
     "loadExternalPartners": {
       "_description": "Refresh our list of external tools and partner links"
-    },
-    "loadInflationDestination": {
-      "_description": "Refresh inflation destination and options",
-      "accountID": "Types.AccountID"
-    },
-    "setInflationDestination": {
-      "_description": "Set our inflation destination",
-      "accountID": "Types.AccountID",
-      "destination": "Types.AccountID",
-      "name": "string"
-    },
-    "inflationDestinationReceived": {
-      "_description": "Got inflation destination",
-      "accountID": "Types.AccountID",
-      "selected": "Types.AccountInflationDestination",
-      "options?": "Array<Types.InflationDestination>",
-      "canError": {"error": "string"}
     },
     "loadMorePayments": {
       "_description": "Scrolled down the list of payments for a given account",
@@ -201,12 +182,9 @@
     },
     "changedAccountName": {
       "_description": "A response from the service after an account's name is changed",
-      "account": "Types.Account",
-      "canError": {
-        "name": "string",
-        "account": "Types.Account",
-        "error": "string"
-      }
+      "name?": "string",
+      "account?": "Types.Account",
+      "error?": "string"
     },
     "setAccountAsDefault": {
       "_description": "Change the default account",
@@ -408,11 +386,9 @@
       "accountID": "Types.AccountID",
       "showOnCreation?": "boolean",
       "setBuildingTo?": "boolean",
-      "canError": {
-        "name": "string",
-        "secretKey": "HiddenString",
-        "error": "string"
-      }
+      "name?": "string",
+      "secretKey?": "HiddenString",
+      "error?": "string"
     },
     "rejectDisclaimer": {
       "_description": "Reject (temporarily) the Stellar account disclaimer"
@@ -424,10 +400,7 @@
     "validatedAccountName": {
       "_description": "The service responded with an error or that the account name is valid.",
       "name": "string",
-      "canError": {
-        "name": "string",
-        "error": "string"
-      }
+      "error?": "string"
     },
     "validateSecretKey": {
       "_description": "Ask the service to validate an account secret key.",
@@ -436,10 +409,7 @@
     "validatedSecretKey": {
       "_description": "The service responded with an error or that the secret key is valid.",
       "secretKey": "HiddenString",
-      "canError": {
-        "secretKey": "HiddenString",
-        "error": "string"
-      }
+      "error?": "string"
     },
     "validateSEP7Link": {
       "_description": "Validate and handle a SEP7 Stellar URL link sent to the app.",
@@ -447,6 +417,10 @@
     },
     "validateSEP7LinkError": {
       "_description": "Set the error field for a SEP7 validation.",
+      "error": "string"
+    },
+    "setSEP7SendError": {
+      "_description": "Set the error field for SEP7 accepted tx attempt",
       "error": "string"
     },
     "loadMobileOnlyMode": {
@@ -496,19 +470,17 @@
       "assetID": "Types.AssetID"
     },
     "changedTrustline": {
-      "canError": {
-        "error": "string"
-      }
+      "error?": "string"
     },
     "setTrustlineAcceptedAssets": {
       "accountID": "Types.AccountID",
       "assets": "Array<Types.AssetDescription>",
-      "limits": "I.Map<Types.AssetID, number>"
+      "limits": "Map<Types.AssetID, number>"
     },
     "setTrustlineAcceptedAssetsByUsername": {
       "username": "string",
       "assets": "Array<Types.AssetDescription>",
-      "limits": "I.Map<Types.AssetID, number>"
+      "limits": "Map<Types.AssetID, number>"
     },
     "setTrustlinePopularAssets": {
       "assets": "Array<Types.AssetDescription>",

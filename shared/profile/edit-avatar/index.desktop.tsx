@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as fs from 'fs'
-import {clamp} from 'lodash-es'
+import clamp from 'lodash/clamp'
 import HOCTimers, {PropsWithTimer} from '../../common-adapters/hoc-timers'
 import {EDIT_AVATAR_ZINDEX} from '../../constants/profile'
 import {Props} from '.'
@@ -348,7 +348,7 @@ class EditAvatar extends React.Component<_Props, State> {
             }}
           >
             <input
-              accept="image/*"
+              accept="image/gif,image/jpeg,image/png"
               multiple={false}
               onChange={this._pickFile}
               ref={this._filePickerSetRef}

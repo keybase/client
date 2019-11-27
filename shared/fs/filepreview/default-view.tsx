@@ -4,7 +4,7 @@ import * as Constants from '../../constants/fs'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
-import {PathItemAction, LastModifiedLine, PathItemIcon} from '../common'
+import {PathItemAction, LastModifiedLine, ItemIcon} from '../common'
 import {fileUIName, isMobile, isIOS} from '../../constants/platform'
 import {hasShare} from '../common/path-item-action/layout'
 
@@ -17,8 +17,8 @@ type DefaultViewProps = {
 }
 
 const DefaultView = (props: DefaultViewProps) => {
-  const fileContext = Container.useSelector(state =>
-    state.fs.fileContext.get(props.path, Constants.emptyFileContext)
+  const fileContext = Container.useSelector(
+    state => state.fs.fileContext.get(props.path) || Constants.emptyFileContext
   )
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
@@ -29,7 +29,7 @@ const DefaultView = (props: DefaultViewProps) => {
         centerChildren={true}
         style={styles.innerContainer}
       >
-        <PathItemIcon path={props.path} size={96} />
+        <ItemIcon path={props.path} size={96} />
         <Kb.Text type="BodyBig" style={styles.filename}>
           {props.pathItem.name}
         </Kb.Text>

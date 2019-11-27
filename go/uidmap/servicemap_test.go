@@ -19,14 +19,13 @@ const tAlice = keybase1.UID("295a7eea607af32040647123732bc819")
 const strictNetworkBudget = 2 * time.Nanosecond
 
 func TestServiceMapLookupKnown(t *testing.T) {
-	t.Skip()
 	tc := libkb.SetupTest(t, "TestLookup", 1)
 	defer tc.Cleanup()
 
 	fakeClock := clockwork.NewFakeClockAt(time.Now())
 	tc.G.SetClock(fakeClock)
 
-	now := keybase1.ToTime(time.Now())
+	now := keybase1.ToTime(fakeClock.Now())
 
 	serviceMapper := NewServiceSummaryMap(10)
 	uids := []keybase1.UID{tKB, tAlice, tTracy}

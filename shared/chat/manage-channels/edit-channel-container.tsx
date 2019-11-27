@@ -5,7 +5,7 @@ import * as Types from '../../constants/types/chat2'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import EditChannel from './edit-channel'
 import * as Container from '../../util/container'
-import {upperFirst} from 'lodash-es'
+import upperFirst from 'lodash/upperFirst'
 import {anyWaiting} from '../../constants/waiting'
 
 type OwnProps = Container.RouteProps<{conversationIDKey: Types.ConversationIDKey; teamname: string}>
@@ -85,10 +85,7 @@ const ConnectedEditChannel = Container.connect(
       errorText: upperFirst(stateProps.errorText),
       loadChannelInfo: () => dispatchProps._loadChannelInfo(teamname, conversationIDKey),
       onCancel: dispatchProps._navigateUp,
-      onConfirmedDelete: () => {
-        dispatchProps._onConfirmedDelete(teamname, conversationIDKey)
-        dispatchProps._navigateUp()
-      },
+      onConfirmedDelete: () => dispatchProps._onConfirmedDelete(teamname, conversationIDKey),
       onSave: (newChannelName: string, newTopic: string) => {
         if (!deleteRenameDisabled && newChannelName !== channelName) {
           dispatchProps._onSetChannelCreationError('')

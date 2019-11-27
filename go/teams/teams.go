@@ -1949,10 +1949,16 @@ func createTeambotKeys(g *libkb.GlobalContext, teamID keybase1.TeamID, bots []ke
 
 		ekLib := mctx.G().GetEKLib()
 		keyer := mctx.G().GetTeambotMemberKeyer()
-		appKey, err := team.ChatKey(mctx.Ctx())
+		makeChatKey, makeKVStoreKey := true, true
+		chatKey, err := team.ChatKey(mctx.Ctx())
+		if err != nil {
+			mctx.Debug("unable to get teamApplication key %v, aborting TeambotKey appkey creation", err)
+			makeChatKey = false
+		}
+		kvStoreKey, err := team.ApplicationKey(mctx.Ctx(), keybase1.TeamApplication_KVSTORE)
 		if err != nil {
 			mctx.Debug("unable to get teamApplication key %v, aborting TeambotKey creation", err)
-			keyer = nil
+			makeKVStoreKey = false
 		}
 
 		for _, uid := range bots {
@@ -1965,10 +1971,23 @@ func createTeambotKeys(g *libkb.GlobalContext, teamID keybase1.TeamID, bots []ke
 				}
 			}
 			if keyer != nil {
-				if teambotKey, created, err := keyer.GetOrCreateTeambotKey(mctx, teamID, guid, appKey); err != nil {
-					mctx.Debug("unable to GetOrCreateTeambotKey for %v, %v", guid, err)
-				} else {
-					mctx.Debug("published TeambotKey generation %d for %v, newly created: %v", teambotKey.Generation(), uid, created)
+				if makeChatKey {
+					if teambotKey, created, err := keyer.GetOrCreateTeambotKey(mctx, teamID, guid, chatKey); err != nil {
+						mctx.Debug("unable to GetOrCreateTeambotKey application %v, uid: %v, %v",
+							keybase1.TeamApplication_CHAT, guid, err)
+					} else {
+						mctx.Debug("published TeambotKey app: %v generation %d for %v, newly created: %v",
+							keybase1.TeamApplication_CHAT, teambotKey.Generation(), uid, created)
+					}
+				}
+				if makeKVStoreKey {
+					if teambotKey, created, err := keyer.GetOrCreateTeambotKey(mctx, teamID, guid, kvStoreKey); err != nil {
+						mctx.Debug("unable to GetOrCreateTeambotKey application %v, uid: %v, %v",
+							keybase1.TeamApplication_KVSTORE, guid, err)
+					} else {
+						mctx.Debug("published TeambotKey app: %v generation %d for %v, newly created: %v",
+							keybase1.TeamApplication_KVSTORE, teambotKey.Generation(), uid, created)
+					}
 				}
 			}
 		}
@@ -2282,12 +2301,16 @@ func RetryIfPossible(ctx context.Context, g *libkb.GlobalContext, post func(ctx 
 			mctx.Debug("| retrying due to SigOldSeqnoError %d", i)
 		case isStaleBoxError(err):
 			mctx.Debug("| retrying due to StaleBoxError %d", i)
+		case isTeamBadGenerationError(err):
+			mctx.Debug("| retrying due to Bad Generation Error (%s) %d", err, i)
 		case isSigBadTotalOrder(err):
 			mctx.Debug("| retrying since update would violate total ordering for team %d", i)
 		case isSigMissingRatchet(err):
 			mctx.Debug("| retrying since the server wanted a ratchet and we didn't provide one %d", i)
 		case isHiddenAppendPrecheckError(err):
 			mctx.Debug("| retrying since we hit a hidden append precheck error")
+		case libkb.IsEphemeralRetryableError(err):
+			mctx.Debug("| retrying since we hit a retryable ephemeral error %v, attempt %d", err, i)
 		default:
 			return err
 		}
@@ -2320,6 +2343,10 @@ func isSigBadTotalOrder(err error) bool {
 
 func isSigMissingRatchet(err error) bool {
 	return libkb.IsAppStatusCode(err, keybase1.StatusCode_SCSigMissingRatchet)
+}
+
+func isTeamBadGenerationError(err error) bool {
+	return libkb.IsAppStatusCode(err, keybase1.StatusCode_SCTeamBadGeneration)
 }
 
 func (t *Team) marshal(incoming interface{}) ([]byte, error) {
@@ -2506,7 +2533,7 @@ func (t *Team) notify(ctx context.Context, changes keybase1.TeamChangeSet, lates
 	if latestSeqno > 0 {
 		err = HintLatestSeqno(m, t.ID, latestSeqno)
 	}
-	t.G().NotifyRouter.HandleTeamChangedByBothKeys(ctx, t.ID, t.Name().String(), t.NextSeqno(), t.IsImplicit(), changes, keybase1.Seqno(0))
+	t.G().NotifyRouter.HandleTeamChangedByBothKeys(ctx, t.ID, t.Name().String(), t.NextSeqno(), t.IsImplicit(), changes, keybase1.Seqno(0), keybase1.Seqno(0))
 	return err
 }
 
@@ -2624,6 +2651,10 @@ func TeamInviteTypeFromString(mctx libkb.MetaContext, inviteTypeStr string) (key
 }
 
 func FreezeTeam(mctx libkb.MetaContext, teamID keybase1.TeamID) error {
+	err3 := mctx.G().GetHiddenTeamChainManager().Freeze(mctx, teamID)
+	if err3 != nil {
+		mctx.Debug("error freezing in hidden team chain manager: %v", err3)
+	}
 	err1 := mctx.G().GetTeamLoader().Freeze(mctx.Ctx(), teamID)
 	if err1 != nil {
 		mctx.Debug("error freezing in team cache: %v", err1)
@@ -2632,25 +2663,30 @@ func FreezeTeam(mctx libkb.MetaContext, teamID keybase1.TeamID) error {
 	if err2 != nil {
 		mctx.Debug("error freezing in fast team cache: %v", err2)
 	}
-	err3 := mctx.G().GetHiddenTeamChainManager().Freeze(mctx, teamID)
-	if err3 != nil {
-		mctx.Debug("error freezing in hidden team chain manager: %v", err3)
-	}
 	return libkb.CombineErrors(err1, err2, err3)
 }
 
 func TombstoneTeam(mctx libkb.MetaContext, teamID keybase1.TeamID) error {
+	err3 := mctx.G().GetHiddenTeamChainManager().Tombstone(mctx, teamID)
+	if err3 != nil {
+		mctx.Debug("error tombstoning in hidden team chain manager: %v", err3)
+		if _, ok := err3.(hidden.TombstonedError); ok {
+			err3 = nil
+		}
+	}
 	err1 := mctx.G().GetTeamLoader().Tombstone(mctx.Ctx(), teamID)
 	if err1 != nil {
 		mctx.Debug("error tombstoning in team cache: %v", err1)
+		if _, ok := err1.(TeamTombstonedError); ok {
+			err1 = nil
+		}
 	}
 	err2 := mctx.G().GetFastTeamLoader().Tombstone(mctx, teamID)
 	if err2 != nil {
 		mctx.Debug("error tombstoning in fast team cache: %v", err2)
-	}
-	err3 := mctx.G().GetHiddenTeamChainManager().Tombstone(mctx, teamID)
-	if err3 != nil {
-		mctx.Debug("error tombstoning in hidden team chain manager: %v", err3)
+		if _, ok := err2.(TeamTombstonedError); ok {
+			err2 = nil
+		}
 	}
 	return libkb.CombineErrors(err1, err2, err3)
 }

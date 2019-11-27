@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {isEqual} from 'lodash-es'
+import isEqual from 'lodash/isEqual'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/wallets'
@@ -180,7 +180,7 @@ export const AssetPathIntermediate = (props: AssetPathIntermediateProps) => {
       ? state.wallets.sep7ConfirmPath.fullPath.path
       : state.wallets.builtPaymentAdvanced.fullPath.path
   )
-  if (!path.size) {
+  if (!path.length) {
     return <Kb.Divider />
   }
   return (
@@ -245,36 +245,33 @@ export const AssetPathIntermediate = (props: AssetPathIntermediateProps) => {
           fullWidth={true}
           style={styles.intermediateExpandedContainer}
         >
-          {path
-            .toArray()
-            .reverse()
-            .map(asset => (
+          {path.reverse().map(asset => (
+            <Kb.Box2
+              key={Types.assetDescriptionToAssetID(asset)}
+              alignSelf="flex-end"
+              direction="horizontal"
+              style={styles.intermediateAssetPathItem}
+            >
+              <Kb.Text type="BodyTinyExtrabold">{asset === 'native' ? 'XLM' : `${asset.code}`}</Kb.Text>
+              <Kb.Box style={styles.intermediateAssetPathItemDomainContainer}>
+                <Kb.Text type="BodyTiny" lineClamp={1} ellipsizeMode="middle">
+                  {asset === 'native'
+                    ? '/Stellar Lumens'
+                    : `/${asset.issuerVerifiedDomain || Constants.shortenAccountID(asset.issuerAccountID)}`}
+                </Kb.Text>
+              </Kb.Box>
               <Kb.Box2
-                key={Types.assetDescriptionToAssetID(asset)}
-                alignSelf="flex-end"
                 direction="horizontal"
-                style={styles.intermediateAssetPathItem}
+                centerChildren={true}
+                fullHeight={true}
+                style={styles.intermediateAssetPathItemCircleContainerOuter}
               >
-                <Kb.Text type="BodyTinyExtrabold">{asset === 'native' ? 'XLM' : `${asset.code}`}</Kb.Text>
-                <Kb.Box style={styles.intermediateAssetPathItemDomainContainer}>
-                  <Kb.Text type="BodyTiny" lineClamp={1} ellipsizeMode="middle">
-                    {asset === 'native'
-                      ? '/Stellar Lumens'
-                      : `/${asset.issuerVerifiedDomain || Constants.shortenAccountID(asset.issuerAccountID)}`}
-                  </Kb.Text>
+                <Kb.Box style={styles.intermediateAssetPathItemCircleContainerInner}>
+                  <PaymentPathCircle />
                 </Kb.Box>
-                <Kb.Box2
-                  direction="horizontal"
-                  centerChildren={true}
-                  fullHeight={true}
-                  style={styles.intermediateAssetPathItemCircleContainerOuter}
-                >
-                  <Kb.Box style={styles.intermediateAssetPathItemCircleContainerInner}>
-                    <PaymentPathCircle />
-                  </Kb.Box>
-                </Kb.Box2>
               </Kb.Box2>
-            ))}
+            </Kb.Box2>
+          ))}
         </Kb.Box2>
       )}
     </Kb.Box>

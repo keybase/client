@@ -7,7 +7,7 @@ import * as Styles from '../../../styles'
 import {imgMaxWidthRaw} from '../messages/attachment/image/image-render'
 import {formatTimeForMessages} from '../../../util/timestamp'
 import MessagePopup from '../messages/message-popup'
-import {chunk} from 'lodash-es'
+import chunk from 'lodash/chunk'
 import {OverlayParentProps} from '../../../common-adapters/overlay/parent-hoc'
 import {Section} from '.'
 
@@ -126,7 +126,7 @@ const createLoadMoreSection = (
           />
         )
       } else if (status === 'loading') {
-        return <Kb.ProgressIndicator style={styles.loadMoreProgress} />
+        return <Kb.ProgressIndicator type="Small" style={styles.loadMoreProgress} />
       } else if (status === 'error') {
         return (
           <Kb.Button
@@ -205,7 +205,10 @@ export class MediaView {
   }
 
   _formRows = (thumbs: Array<Thumb>): Array<Array<ThumbSizing>> => {
-    return chunk(thumbs.map(thumb => ({sizing: this._resize(thumb), thumb})), rowSize)
+    return chunk(
+      thumbs.map(thumb => ({sizing: this._resize(thumb), thumb})),
+      rowSize
+    )
   }
 
   _monthToSection = (month: Month): Section => {
@@ -538,9 +541,7 @@ const styles = Styles.styleSheetCreate(
       },
       loadMoreProgress: {
         alignSelf: 'center',
-        height: 16,
         marginTop: Styles.globalMargins.tiny,
-        width: 16,
       },
       loading: {
         bottom: '50%',

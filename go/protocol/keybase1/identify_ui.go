@@ -1,11 +1,13 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/identify_ui.avdl
 
 package keybase1
 
 import (
+	"fmt"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type ProofResult struct {
@@ -234,7 +236,7 @@ func (e CheckResultFreshness) String() string {
 	if v, ok := CheckResultFreshnessRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type CheckResult struct {
@@ -342,6 +344,7 @@ type UserCard struct {
 	FullName             string             `codec:"fullName" json:"fullName"`
 	Location             string             `codec:"location" json:"location"`
 	Bio                  string             `codec:"bio" json:"bio"`
+	BioDecorated         string             `codec:"bioDecorated" json:"bioDecorated"`
 	Website              string             `codec:"website" json:"website"`
 	Twitter              string             `codec:"twitter" json:"twitter"`
 	YouFollowThem        bool               `codec:"youFollowThem" json:"youFollowThem"`
@@ -349,6 +352,7 @@ type UserCard struct {
 	TeamShowcase         []UserTeamShowcase `codec:"teamShowcase" json:"teamShowcase"`
 	RegisteredForAirdrop bool               `codec:"registeredForAirdrop" json:"registeredForAirdrop"`
 	Blocked              bool               `codec:"blocked" json:"blocked"`
+	HidFromFollowers     bool               `codec:"hidFromFollowers" json:"hidFromFollowers"`
 }
 
 func (o UserCard) DeepCopy() UserCard {
@@ -359,6 +363,7 @@ func (o UserCard) DeepCopy() UserCard {
 		FullName:      o.FullName,
 		Location:      o.Location,
 		Bio:           o.Bio,
+		BioDecorated:  o.BioDecorated,
 		Website:       o.Website,
 		Twitter:       o.Twitter,
 		YouFollowThem: o.YouFollowThem,
@@ -376,6 +381,7 @@ func (o UserCard) DeepCopy() UserCard {
 		})(o.TeamShowcase),
 		RegisteredForAirdrop: o.RegisteredForAirdrop,
 		Blocked:              o.Blocked,
+		HidFromFollowers:     o.HidFromFollowers,
 	}
 }
 
@@ -418,7 +424,7 @@ func (e DismissReasonType) String() string {
 	if v, ok := DismissReasonTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type DismissReason struct {
@@ -810,88 +816,88 @@ type IdentifyUiClient struct {
 }
 
 func (c IdentifyUiClient) DisplayTLFCreateWithInvite(ctx context.Context, __arg DisplayTLFCreateWithInviteArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.identifyUi.displayTLFCreateWithInvite", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.displayTLFCreateWithInvite", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c IdentifyUiClient) DelegateIdentifyUI(ctx context.Context) (res int, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.identifyUi.delegateIdentifyUI", []interface{}{DelegateIdentifyUIArg{}}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.delegateIdentifyUI", []interface{}{DelegateIdentifyUIArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c IdentifyUiClient) Start(ctx context.Context, __arg StartArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.identifyUi.start", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.start", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c IdentifyUiClient) DisplayKey(ctx context.Context, __arg DisplayKeyArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.identifyUi.displayKey", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.displayKey", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c IdentifyUiClient) ReportLastTrack(ctx context.Context, __arg ReportLastTrackArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.identifyUi.reportLastTrack", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.reportLastTrack", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c IdentifyUiClient) LaunchNetworkChecks(ctx context.Context, __arg LaunchNetworkChecksArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.identifyUi.launchNetworkChecks", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.launchNetworkChecks", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c IdentifyUiClient) DisplayTrackStatement(ctx context.Context, __arg DisplayTrackStatementArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.identifyUi.displayTrackStatement", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.displayTrackStatement", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c IdentifyUiClient) FinishWebProofCheck(ctx context.Context, __arg FinishWebProofCheckArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.identifyUi.finishWebProofCheck", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.finishWebProofCheck", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c IdentifyUiClient) FinishSocialProofCheck(ctx context.Context, __arg FinishSocialProofCheckArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.identifyUi.finishSocialProofCheck", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.finishSocialProofCheck", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c IdentifyUiClient) DisplayCryptocurrency(ctx context.Context, __arg DisplayCryptocurrencyArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.identifyUi.displayCryptocurrency", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.displayCryptocurrency", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c IdentifyUiClient) DisplayStellarAccount(ctx context.Context, __arg DisplayStellarAccountArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.identifyUi.displayStellarAccount", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.displayStellarAccount", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c IdentifyUiClient) ReportTrackToken(ctx context.Context, __arg ReportTrackTokenArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.identifyUi.reportTrackToken", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.reportTrackToken", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c IdentifyUiClient) DisplayUserCard(ctx context.Context, __arg DisplayUserCardArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.identifyUi.displayUserCard", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.displayUserCard", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c IdentifyUiClient) Confirm(ctx context.Context, __arg ConfirmArg) (res ConfirmResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.identifyUi.confirm", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.confirm", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c IdentifyUiClient) Cancel(ctx context.Context, sessionID int) (err error) {
 	__arg := CancelArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.identifyUi.cancel", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.cancel", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c IdentifyUiClient) Finish(ctx context.Context, sessionID int) (err error) {
 	__arg := FinishArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.identifyUi.finish", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.finish", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c IdentifyUiClient) Dismiss(ctx context.Context, __arg DismissArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.identifyUi.dismiss", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.dismiss", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }

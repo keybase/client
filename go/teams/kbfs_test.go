@@ -142,7 +142,7 @@ func TestTLFPinLoop(t *testing.T) {
 type logoutTimer struct{}
 
 func (t *logoutTimer) StartupWait(m libkb.MetaContext) (err error) {
-	return m.Logout()
+	return m.LogoutKillSecrets()
 }
 
 func (t *logoutTimer) LoopWait(m libkb.MetaContext, _ error) (err error) {

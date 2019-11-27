@@ -3,7 +3,7 @@ import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import * as Sb from '../../../../stories/storybook'
 import {propProvider as ReactButton} from '../react-button/index.stories'
-import {upperFirst} from 'lodash-es'
+import upperFirst from 'lodash/upperFirst'
 import ReactionTooltip, {Props} from '.'
 import {OwnProps} from './container'
 

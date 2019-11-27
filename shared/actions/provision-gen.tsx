@@ -8,9 +8,11 @@ import {RPCError} from '../util/errors'
 export const resetStore = 'common:resetStore' // not a part of provision but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'provision:'
 export const addNewDevice = 'provision:addNewDevice'
+export const backToDeviceList = 'provision:backToDeviceList'
 export const cancelProvision = 'provision:cancelProvision'
 export const forgotUsername = 'provision:forgotUsername'
 export const forgotUsernameResult = 'provision:forgotUsernameResult'
+export const provisionDone = 'provision:provisionDone'
 export const provisionError = 'provision:provisionError'
 export const showCodePage = 'provision:showCodePage'
 export const showDeviceListPage = 'provision:showDeviceListPage'
@@ -33,9 +35,11 @@ export const switchToGPGSignOnly = 'provision:switchToGPGSignOnly'
 
 // Payload Types
 type _AddNewDevicePayload = {readonly otherDeviceType: 'desktop' | 'mobile'}
+type _BackToDeviceListPayload = {readonly username: string}
 type _CancelProvisionPayload = void
 type _ForgotUsernamePayload = {readonly email: string; readonly phone: string}
 type _ForgotUsernameResultPayload = {readonly result: string}
+type _ProvisionDonePayload = void
 type _ProvisionErrorPayload = {readonly error: HiddenString | null}
 type _ShowCodePagePayload = {readonly code: HiddenString; readonly error: HiddenString | null}
 type _ShowDeviceListPagePayload = {readonly devices: Array<Types.Device>}
@@ -48,7 +52,7 @@ type _ShowNewDeviceNamePagePayload = {
 }
 type _ShowPaperkeyPagePayload = {readonly error: HiddenString | null}
 type _ShowPasswordPagePayload = {readonly error: HiddenString | null}
-type _StartProvisionPayload = {readonly initUsername?: string}
+type _StartProvisionPayload = {readonly fromReset?: boolean; readonly initUsername?: string}
 type _SubmitDeviceNamePayload = {readonly name: string}
 type _SubmitDeviceSelectPayload = {readonly name: string}
 type _SubmitGPGMethodPayload = {readonly exportKey: boolean}
@@ -73,9 +77,20 @@ export const createShowDeviceListPage = (payload: _ShowDeviceListPagePayload): S
   payload,
   type: showDeviceListPage,
 })
+/**
+ * We're no longer holding an open provisioning session; it is safe to start another.
+ */
+export const createProvisionDone = (payload: _ProvisionDonePayload): ProvisionDonePayload => ({
+  payload,
+  type: provisionDone,
+})
 export const createAddNewDevice = (payload: _AddNewDevicePayload): AddNewDevicePayload => ({
   payload,
   type: addNewDevice,
+})
+export const createBackToDeviceList = (payload: _BackToDeviceListPayload): BackToDeviceListPayload => ({
+  payload,
+  type: backToDeviceList,
 })
 export const createCancelProvision = (payload: _CancelProvisionPayload): CancelProvisionPayload => ({
   payload,
@@ -157,6 +172,10 @@ export const createSwitchToGPGSignOnly = (
 
 // Action Payloads
 export type AddNewDevicePayload = {readonly payload: _AddNewDevicePayload; readonly type: typeof addNewDevice}
+export type BackToDeviceListPayload = {
+  readonly payload: _BackToDeviceListPayload
+  readonly type: typeof backToDeviceList
+}
 export type CancelProvisionPayload = {
   readonly payload: _CancelProvisionPayload
   readonly type: typeof cancelProvision
@@ -168,6 +187,10 @@ export type ForgotUsernamePayload = {
 export type ForgotUsernameResultPayload = {
   readonly payload: _ForgotUsernameResultPayload
   readonly type: typeof forgotUsernameResult
+}
+export type ProvisionDonePayload = {
+  readonly payload: _ProvisionDonePayload
+  readonly type: typeof provisionDone
 }
 export type ProvisionErrorPayload = {
   readonly payload: _ProvisionErrorPayload
@@ -244,9 +267,11 @@ export type SwitchToGPGSignOnlyPayload = {
 // prettier-ignore
 export type Actions =
   | AddNewDevicePayload
+  | BackToDeviceListPayload
   | CancelProvisionPayload
   | ForgotUsernamePayload
   | ForgotUsernameResultPayload
+  | ProvisionDonePayload
   | ProvisionErrorPayload
   | ShowCodePagePayload
   | ShowDeviceListPagePayload

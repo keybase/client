@@ -25,7 +25,7 @@ const ForgotUsername = (props: Props) => {
     } else if (emailSelected) {
       onSubmit(email, '')
     }
-  }, [onSubmit, email, phoneNumber])
+  }, [onSubmit, email, phoneNumber, emailSelected])
 
   const error = props.forgotUsernameResult !== 'success' ? props.forgotUsernameResult : ''
   const disabled = (!emailSelected && phoneNumber === null) || (emailSelected && !email)
@@ -37,10 +37,7 @@ const ForgotUsername = (props: Props) => {
         ...(props.forgotUsernameResult === 'success'
           ? [
               <Kb.Banner key="successBanner" color="blue">
-                <Kb.BannerParagraph
-                  bannerColor="blue"
-                  content="A message with your username has been sent."
-                />
+                <Kb.BannerParagraph bannerColor="green" content="We just sent you your username." />
               </Kb.Banner>,
             ]
           : []),

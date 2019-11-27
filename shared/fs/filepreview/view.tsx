@@ -13,13 +13,14 @@ import * as Kb from '../../common-adapters'
 type Props = {
   path: Types.Path
   onLoadingStateChange: (isLoading: boolean) => void
+  onUrlError: (err: string) => void
 }
 
 const textViewUpperLimit = 10 * 1024 * 1024 // 10MB
 
-const FilePreviewView = ({path, onLoadingStateChange}: Props) => {
+const FilePreviewView = ({path, onLoadingStateChange, onUrlError}: Props) => {
   const pathItem = Container.useSelector(state => {
-    return state.fs.pathItems.get(path, Constants.unknownPathItem)
+    return Constants.getPathItem(state.fs.pathItems, path)
   })
   const [loadedLastModifiedTimestamp, setLoadedLastModifiedTimestamp] = React.useState(
     pathItem.lastModifiedTimestamp
@@ -27,8 +28,8 @@ const FilePreviewView = ({path, onLoadingStateChange}: Props) => {
   const reload = () => setLoadedLastModifiedTimestamp(pathItem.lastModifiedTimestamp)
   const tooLargeForText = pathItem.type === Types.PathType.File && pathItem.size > textViewUpperLimit
 
-  const fileContext = Container.useSelector(state =>
-    state.fs.fileContext.get(path, Constants.emptyFileContext)
+  const fileContext = Container.useSelector(
+    state => state.fs.fileContext.get(path) || Constants.emptyFileContext
   )
 
   if (pathItem.type === Types.PathType.Symlink) {
@@ -74,14 +75,14 @@ const FilePreviewView = ({path, onLoadingStateChange}: Props) => {
       ) : (
         <>
           {reloadBanner}
-          <TextView url={url} onLoadingStateChange={onLoadingStateChange} />
+          <TextView url={url} onLoadingStateChange={onLoadingStateChange} onUrlError={onUrlError} />
         </>
       )
     case RPCTypes.GUIViewType.image:
       return (
         <>
           {reloadBanner}
-          <ImageView url={url} onLoadingStateChange={onLoadingStateChange} />
+          <ImageView url={url} onLoadingStateChange={onLoadingStateChange} onUrlError={onUrlError} />
         </>
       )
     case RPCTypes.GUIViewType.audio:
@@ -89,7 +90,7 @@ const FilePreviewView = ({path, onLoadingStateChange}: Props) => {
       return (
         <>
           {reloadBanner}
-          <AVView url={url} onLoadingStateChange={onLoadingStateChange} />
+          <AVView url={url} onLoadingStateChange={onLoadingStateChange} onUrlError={onUrlError} />
         </>
       )
     case RPCTypes.GUIViewType.pdf:

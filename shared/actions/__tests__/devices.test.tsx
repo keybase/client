@@ -77,6 +77,7 @@ const details = [
     device: {
       cTime: 1234,
       deviceID: '123',
+      deviceNumberOfType: 0,
       encryptKey: 0,
       lastUsedTime: 4567,
       mTime: 2345,
@@ -92,6 +93,7 @@ const details = [
     device: {
       cTime: 1234,
       deviceID: '456',
+      deviceNumberOfType: 0,
       encryptKey: 0,
       lastUsedTime: 4567,
       mTime: 2345,
@@ -107,6 +109,7 @@ const details = [
     device: {
       cTime: 1234,
       deviceID: '789',
+      deviceNumberOfType: 0,
       encryptKey: 0,
       lastUsedTime: 4567,
       mTime: 2345,
@@ -122,6 +125,17 @@ const details = [
 const startOnDevicesTab = dispatch => {
   dispatch(RouteTreeGen.createSwitchLoggedIn({loggedIn: true}))
   dispatch(RouteTreeGen.createNavigateAppend({path: [Tabs.devicesTab]}))
+}
+
+const expectNavWithDeviceID = (deviceID: string) => {
+  const navAppend = jest.spyOn(RouteTreeGen, 'createNavigateAppend')
+  const assertNavHasDeviceID = () =>
+    expect(navAppend).toHaveBeenCalledWith(
+      expect.objectContaining({
+        path: expect.arrayContaining([expect.objectContaining({props: expect.objectContaining({deviceID})})]),
+      })
+    )
+  return {assertNavHasDeviceID}
 }
 
 const startReduxSaga = Testing.makeStartReduxSaga(devicesSaga, initialStore, startOnDevicesTab)
@@ -282,11 +296,11 @@ describe('shows revoke page correctly', () => {
   })
 
   it('shows revoke page', () => {
-    const {dispatch, getState} = init
+    const {dispatch} = init
     const deviceID = Types.stringToDeviceID('456')
+    const {assertNavHasDeviceID} = expectNavWithDeviceID(deviceID)
     dispatch(DevicesGen.createShowRevokePage({deviceID}))
-    // expect(getRoute(getState)).toEqual(I.List([Tabs.devicesTab, 'devicePage', 'deviceRevoke']))
-    expect(getState().devices.selectedDeviceID).toEqual(deviceID)
+    assertNavHasDeviceID()
   })
 
   it('requests endangered', () => {
@@ -331,11 +345,11 @@ describe('shows device page correctly', () => {
   afterEach(() => {})
 
   it('shows device page', () => {
-    const {dispatch, getState} = init
+    const {dispatch} = init
     const deviceID = Types.stringToDeviceID('789')
+    const {assertNavHasDeviceID} = expectNavWithDeviceID(deviceID)
     dispatch(DevicesGen.createShowDevicePage({deviceID}))
-    // expect(getRoute(getState)).toEqual(I.List([Tabs.devicesTab, 'devicePage']))
-    expect(getState().devices.selectedDeviceID).toEqual(deviceID)
+    assertNavHasDeviceID()
   })
 })
 
@@ -351,8 +365,9 @@ describe('shows paperkey page correctly', () => {
 
   it('shows paperkey page', () => {
     const {dispatch} = init
+    const navAppend = jest.spyOn(RouteTreeGen, 'createNavigateAppend')
     dispatch(DevicesGen.createShowPaperKeyPage())
-    // expect(getRoute(getState)).toEqual(I.List([Tabs.devicesTab, 'devicePaperKey']))
+    expect(navAppend).toHaveBeenCalled()
   })
 
   it('creates a paperkey', () => {

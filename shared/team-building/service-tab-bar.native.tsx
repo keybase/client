@@ -1,17 +1,8 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters/mobile.native'
 import * as Styles from '../styles'
-import {
-  serviceIdToIconFont,
-  serviceIdToAccentColor,
-  serviceIdToLongLabel,
-  serviceIdToWonderland,
-} from './shared'
+import {serviceIdToIconFont, serviceIdToAccentColor, serviceIdToLongLabel, serviceIdToBadge} from './shared'
 import {Props, IconProps} from './service-tab-bar'
-
-const mapRange = (v: number, fromMin: number, fromMax: number, toMin: number, toMax: number) => {
-  return ((v - fromMin) / (fromMax - fromMin)) * (toMax - toMin) + toMin
-}
 
 export const labelHeight = 34
 
@@ -29,35 +20,42 @@ const serviceMinWidthWhenSmall = (containerWidth: number) => {
   return containerWidth / n
 }
 
-const ServiceIcon = (props: IconProps) => {
-  const smallWidth = serviceMinWidthWhenSmall(Styles.dimensionWidth)
-  const bigWidth = Math.max(smallWidth, 92)
+const smallWidth = serviceMinWidthWhenSmall(Styles.dimensionWidth)
+const bigWidth = Math.max(smallWidth, 92)
+const AnimatedBox2 = Kb.ReAnimated.createAnimatedComponent(Kb.Box2)
+
+const ServiceIcon = React.memo((props: IconProps) => {
   const color = props.isActive ? serviceIdToAccentColor(props.service) : Styles.globalColors.black
+
+  const opacity = Kb.ReAnimated.interpolate(props.offset, {
+    inputRange: [-9999, 0, 40, 9999],
+    outputRange: [1, 1, 0, 0],
+  })
+  const width = Kb.ReAnimated.interpolate(props.offset, {
+    inputRange: [-9999, -100, 0, 100, 9999],
+    outputRange: [bigWidth + 5, bigWidth + 5, bigWidth, smallWidth, smallWidth],
+  })
+  const translateY = Kb.ReAnimated.interpolate(props.offset, {
+    inputRange: [-100, 0, 100, 9999],
+    outputRange: [0, 0, -8, -8],
+  })
+
   return (
-    <Kb.ClickableBox onClick={props.onClick}>
-      <Kb.Box2
-        direction="vertical"
-        centerChildren={true}
-        style={Styles.collapseStyles([
-          styles.serviceIconContainer,
-          {width: mapRange(props.labelPresence, 0, 1, smallWidth, bigWidth)},
-        ])}
-      >
+    <Kb.ClickableBox onClick={() => props.onClick(props.service)} style={{position: 'relative'}}>
+      <AnimatedBox2 direction="vertical" style={[styles.serviceIconContainer, {width}]}>
         <Kb.Box2 direction="vertical" style={{position: 'relative'}}>
-          {serviceIdToWonderland(props.service) && (
+          {serviceIdToBadge(props.service) && (
             <Kb.Badge
               border={true}
               height={9}
               containerStyle={styles.badgeContainerStyle}
               badgeStyle={styles.badgeStyle}
+              leftRightPadding={0}
             />
           )}
           <Kb.Icon fontSize={18} type={serviceIdToIconFont(props.service)} color={color} />
         </Kb.Box2>
-        <Kb.Box2
-          direction="vertical"
-          style={Styles.collapseStyles([styles.labelContainer, {height: labelHeight * props.labelPresence}])}
-        >
+        <AnimatedBox2 direction="vertical" style={[styles.labelContainer, {opacity}]}>
           <Kb.Box2 direction="vertical" style={{height: labelHeight, width: 74}}>
             <Kb.Box2 direction="vertical">
               {props.label.map((label, i) => (
@@ -73,101 +71,117 @@ const ServiceIcon = (props: IconProps) => {
               ))}
             </Kb.Box2>
           </Kb.Box2>
-        </Kb.Box2>
+        </AnimatedBox2>
         {!!props.showCount && props.count === null && (
-          <Kb.Icon
-            type="icon-progress-grey-animated"
-            color={Styles.globalColors.greyDark}
-            style={styles.pendingIcon}
-          />
+          <Kb.Animation animationType="spinner" style={styles.pendingAnimation} />
         )}
         {!!props.showCount && props.count !== null && (
           <Kb.Text type="BodyTinySemibold">{props.count && props.count === 11 ? '10+' : props.count}</Kb.Text>
         )}
-      </Kb.Box2>
-      <Kb.Box2
+      </AnimatedBox2>
+      <AnimatedBox2
         direction="horizontal"
         fullWidth={true}
         style={Styles.collapseStyles([
           props.isActive ? styles.activeTabBar : styles.inactiveTabBar,
           props.isActive && {backgroundColor: serviceIdToAccentColor(props.service)},
+          {transform: [{translateY}]},
         ])}
       />
     </Kb.ClickableBox>
   )
-}
+})
 
 const undefToNull = (n: number | undefined | null): number | null => (n === undefined ? null : n)
 
-export const ServiceTabBar = (props: Props) => {
-  const {onChangeService} = props
-  const [showLabels, setShowLabels] = React.useState(true)
-  const [locked, setLocked] = React.useState(false)
-  const onClose = React.useCallback(() => {
-    setShowLabels(false)
-  }, [setShowLabels])
-  const deferClose = Kb.useTimeout(onClose, 2000)
-  const deferUnlock = Kb.useTimeout(() => setLocked(false), 250)
-  const onScroll = React.useCallback(() => {
-    deferClose()
-    if (locked) {
-      // On android the animation of narrowing while hiding labels caused scroll events
-      // which caused the labels to re-open. To work around that issue the state is 'locked'
-      // for a trice after animation completes.
-      return
-    }
-    setShowLabels(true)
-  }, [deferClose, locked, setShowLabels])
-  const onIconClick = React.useCallback(
-    service => {
-      onClose()
-      onChangeService(service)
-    },
-    [onChangeService, onClose]
-  )
+const delay = (after: Kb.ReAnimated.Adaptable<number>) => {
+  const {greaterOrEq, Clock, Value, startClock, stopClock, cond, set, defined, block, add} = Kb.ReAnimated
+  const clock = new Clock()
+  const time = new Value(400)
+  const when = new Value(0)
+  return block([
+    startClock(clock),
+    cond(defined(when), 0, [set(when, add(clock, time))]),
+    cond(greaterOrEq(clock, when), block([stopClock(clock), after]), 0),
+  ])
+}
 
-  React.useEffect(deferClose, [])
-  return (
-    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.barPlaceholder}>
-      <Kb.Animated
-        onStart={() => setLocked(true)}
-        onRest={deferUnlock}
-        to={{presence: showLabels ? 1 : 0}}
-        config={{clamp: true, tension: 400}}
-      >
-        {({presence}) => (
-          <Kb.Box2
-            direction="vertical"
-            fullWidth={true}
-            style={Styles.collapseStyles([
-              styles.tabBarContainer,
-              {height: 48 + labelHeight * presence, shadowOpacity: presence * 0.1},
-            ])}
-          >
-            <Kb.ScrollView
-              horizontal={true}
-              showsHorizontalScrollIndicator={false}
-              onScroll={onScroll}
-              scrollEventThrottle={1000}
-            >
-              {props.services.map(service => (
-                <ServiceIcon
-                  key={service}
-                  service={service}
-                  label={serviceIdToLongLabel(service)}
-                  labelPresence={presence}
-                  onClick={() => onIconClick(service)}
-                  count={undefToNull(props.serviceResultCount[service])}
-                  showCount={props.showServiceResultCount}
-                  isActive={props.selectedService === service}
-                />
-              ))}
-            </Kb.ScrollView>
-          </Kb.Box2>
-        )}
-      </Kb.Animated>
-    </Kb.Box2>
+const initialBounce = () => {
+  const {Clock, Value, startClock, stopClock, cond, spring, block, SpringUtils} = Kb.ReAnimated
+  const clock = new Clock()
+
+  const state = {
+    finished: new Value(0),
+    position: new Value(0),
+    time: new Value(0),
+    velocity: new Value(800),
+  }
+
+  const config = {
+    ...SpringUtils.makeDefaultConfig(),
+    toValue: new Value(0),
+  }
+
+  return delay(
+    block([
+      startClock(clock),
+      spring(clock, state, config),
+      cond(state.finished, stopClock(clock)),
+      state.position,
+    ])
   )
+}
+
+export class ServiceTabBar extends React.PureComponent<Props> {
+  private onClick = service => {
+    this.props.onChangeService(service)
+  }
+
+  private bounce = initialBounce()
+
+  render() {
+    const props = this.props
+
+    const height = Kb.ReAnimated.interpolate(props.offset, {
+      inputRange: [-9999, 0, 100, 9999],
+      outputRange: [72, 72, 48, 48],
+    })
+    const translateY = Kb.ReAnimated.interpolate(props.offset, {
+      inputRange: [-9999, 0, 100, 9999],
+      outputRange: [0, 0, 8, 8],
+    })
+
+    return (
+      <Kb.ReAnimated.ScrollView
+        horizontal={true}
+        showsHorizontalScrollIndicator={false}
+        scrollEventThrottle={1000}
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{height: '100%'}}
+        style={{
+          flexGrow: 0,
+          flexShrink: 0,
+          height,
+          transform: [{translateX: this.bounce, translateY}] as any,
+          width: '100%',
+        }}
+      >
+        {props.services.map(service => (
+          <ServiceIcon
+            key={service}
+            offset={props.offset}
+            service={service}
+            label={serviceIdToLongLabel(service)}
+            onClick={this.onClick}
+            count={undefToNull(props.serviceResultCount[service])}
+            showCount={props.showServiceResultCount}
+            isActive={props.selectedService === service}
+          />
+        ))}
+      </Kb.ReAnimated.ScrollView>
+    )
+  }
 }
 
 const styles = Styles.styleSheetCreate(
@@ -175,7 +189,10 @@ const styles = Styles.styleSheetCreate(
     ({
       activeTabBar: {
         backgroundColor: Styles.globalColors.blue,
+        bottom: 0,
         height: 2,
+        position: 'absolute',
+        width: '100%',
       },
       badgeContainerStyle: {
         position: 'absolute',
@@ -184,32 +201,28 @@ const styles = Styles.styleSheetCreate(
         zIndex: 1, // above the service icon
       },
       badgeStyle: {backgroundColor: Styles.globalColors.blue},
-      barPlaceholder: {
-        height: 48,
-        position: 'relative',
-      },
       inactiveTabBar: {
         borderBottomWidth: 1,
         borderColor: Styles.globalColors.black_10,
+        bottom: 0,
         height: 2,
+        position: 'absolute',
       },
       labelContainer: {
         marginTop: Styles.globalMargins.xtiny,
         overflow: 'hidden',
       },
-      pendingIcon: {height: 17, width: 17},
+      pendingAnimation: {height: 17, width: 17},
       serviceIconContainer: {
-        flex: 1,
-        paddingBottom: Styles.globalMargins.tiny,
-        paddingTop: Styles.globalMargins.tiny - 1,
+        alignSelf: 'center',
+        height: '100%',
+        paddingTop: Styles.globalMargins.tiny,
         position: 'relative',
       },
       tabBarContainer: {
         backgroundColor: Styles.globalColors.white,
-        position: 'absolute',
         shadowOffset: {height: 3, width: 0},
         shadowRadius: 2,
-        top: 0,
       },
     } as const)
 )

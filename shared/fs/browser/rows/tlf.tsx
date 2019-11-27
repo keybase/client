@@ -8,7 +8,6 @@ import * as Kb from '../../../common-adapters'
 import {useFsPathMetadata, TlfInfoLine, Filename} from '../../common'
 
 type TlfProps = StillCommonProps & {
-  isNew: boolean
   loadPathMetadata?: boolean
   // We don't use this at the moment. In the future this will be used for
   // showing ignored folders when we allow user to show ignored folders in GUI.
@@ -48,12 +47,11 @@ const FsPathMetadataLoader = ({path}: {path: Types.Path}) => {
 
 const Tlf = (props: TlfProps) => (
   <StillCommon
-    name={props.name}
     path={props.path}
     onOpen={props.onOpen}
     inDestinationPicker={props.inDestinationPicker}
-    badge={props.isNew ? Types.PathItemBadgeType.New : null}
-    showTlfTypeIcon={!!props.mixedMode}
+    mixedMode={props.mixedMode}
+    writingToJournal={false}
   >
     {!!props.loadPathMetadata && <FsPathMetadataLoader path={props.path} />}
     <Kb.Box style={rowStyles.itemBox}>

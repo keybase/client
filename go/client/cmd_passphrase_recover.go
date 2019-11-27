@@ -64,12 +64,9 @@ func (c *CmdPassphraseRecover) Run() error {
 		return c.errNoPaperKeys()
 	case libkb.InputCanceledError, libkb.RetryExhaustedError:
 		return c.errLockedKeys()
-	}
-	if err != nil {
+	default:
 		return err
 	}
-
-	return nil
 }
 
 func (c *CmdPassphraseRecover) ParseArgv(ctx *cli.Context) error {

@@ -2,21 +2,23 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Types from '../../../constants/types/tracker2'
 import * as Styles from '../../../styles'
+import {TeamID} from '../../../constants/types/teams'
 import OpenMeta from './openmeta'
 import TeamInfo from './teaminfo'
 
-type Props = {
+export type Props = {
   // lint totally confused
   // eslint-disable-next-line no-use-before-define
-  teamShowcase: ReadonlyArray<Types._TeamShowcase>
+  teamShowcase: ReadonlyArray<Types.TeamShowcase>
   teamMeta: {
     [K in string]: {
       inTeam: boolean
+      teamID: TeamID
     }
   }
-  onJoinTeam: (arg0: string) => void
-  onViewTeam: (arg0: string) => void
-  onEdit: (() => void) | null
+  onJoinTeam: (teamname: string) => void
+  onViewTeam: (teamID: TeamID) => void
+  onEdit?: () => void
 }
 
 const _TeamShowcase = p => (
@@ -66,7 +68,7 @@ const Teams = (p: Props) =>
           key={t.name}
           {...t}
           onJoinTeam={p.onJoinTeam}
-          onViewTeam={p.onViewTeam}
+          onViewTeam={() => p.onViewTeam(p.teamMeta[t.name].teamID)}
           inTeam={p.teamMeta[t.name].inTeam}
         />
       ))}

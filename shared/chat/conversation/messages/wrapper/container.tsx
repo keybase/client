@@ -35,6 +35,15 @@ const getUsernameToShow = (
     authorIsCollapsible(message) &&
     authorIsCollapsible(previous)
 
+  const sequentialBotKeyed =
+    previous &&
+    previous.author === message.author &&
+    previous.type === 'text' &&
+    message.type === 'text' &&
+    previous.botUsername === message.botUsername &&
+    authorIsCollapsible(message) &&
+    authorIsCollapsible(previous)
+
   const enoughTimeBetween = MessageConstants.enoughTimeBetweenMessages(message, previous)
   const timestamp = orangeLineAbove || !previous || enoughTimeBetween ? message.timestamp : null
   switch (message.type) {
@@ -42,13 +51,14 @@ const getUsernameToShow = (
     case 'requestPayment':
     case 'sendPayment':
     case 'text':
+      return !sequentialBotKeyed || !previous || !sequentialUserMessages || !!timestamp ? message.author : ''
     case 'setChannelname':
-      return !previous || !sequentialUserMessages || !!timestamp ? message.author : ''
+      // suppress this message for the #general channel, it is redundant.
+      return (!previous || !sequentialUserMessages || !!timestamp) && message.newChannelname !== 'general'
+        ? message.author
+        : ''
     case 'systemAddedToTeam':
-      return message.addee === you ? '' : message.addee
-    case 'systemLeft':
-    case 'systemJoined':
-      return ''
+      return message.adder
     case 'systemInviteAccepted':
       return message.invitee === you ? '' : message.invitee
     case 'setDescription':
@@ -57,8 +67,10 @@ const getUsernameToShow = (
       return message.author
     case 'systemUsersAddedToConversation':
       return message.usernames.includes(you) ? '' : message.author
+    case 'systemJoined':
+      return message.joiners.length > 1 ? '' : message.author
   }
-  return ''
+  return message.author
 }
 
 const getFailureDescriptionAllowCancel = (message, you) => {
@@ -78,9 +90,13 @@ const getFailureDescriptionAllowCancel = (message, you) => {
       if (resolveByEdit) {
         failureDescription += `, ${message.errorReason}`
       }
-      if (!!message.outboxID && !!you && message.errorTyp === RPCChatTypes.OutboxErrorType.restrictedbot) {
-        failureDescription = `Unable to send, ${message.errorReason}`
-        allowRetry = false
+      if (!!message.outboxID && !!you) {
+        switch (message.errorTyp) {
+          case RPCChatTypes.OutboxErrorType.minwriter:
+          case RPCChatTypes.OutboxErrorType.restrictedbot:
+            failureDescription = `Unable to send, ${message.errorReason}`
+            allowRetry = false
+        }
       }
     }
   }
@@ -127,22 +143,24 @@ export default Container.namedConnect(
     const authorIsOwner = teamname
       ? TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'owner')
       : false
+    const ordinals = [...Constants.getMessageOrdinals(state, ownProps.conversationIDKey)]
+    const botAlias = meta.botAliases[message.author] ?? ''
     return {
       _you: state.config.username,
       authorIsAdmin,
       authorIsOwner,
+      botAlias,
       centeredOrdinal,
       conversationIDKey: ownProps.conversationIDKey,
       hasUnfurlPrompts,
-      isLastInThread:
-        Constants.getMessageOrdinals(state, ownProps.conversationIDKey).last() === ownProps.ordinal,
+      isLastInThread: ordinals[ordinals.length - 1] === ownProps.ordinal,
       isPendingPayment: Constants.isPendingPaymentMessage(state, message),
       message,
       orangeLineAbove,
       previous,
       shouldShowPopup: Constants.shouldShowPopup(state, message),
       showCoinsIcon: Constants.hasSuccessfulInlinePayments(state, message),
-      showCrowns: message.type !== 'systemAddedToTeam' && message.type !== 'systemInviteAccepted',
+      showCrowns: true,
     }
   },
   (dispatch: Container.TypedDispatch) => ({
@@ -161,16 +179,17 @@ export default Container.namedConnect(
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     const {previous, message, _you} = stateProps
-    let showUsername = getUsernameToShow(message, previous, _you, stateProps.orangeLineAbove)
+    const showUsername = getUsernameToShow(message, previous, _you, stateProps.orangeLineAbove)
     // TODO type guard
     const outboxID: Types.OutboxID | null = (message as any).outboxID || null
-    let {allowCancel, allowRetry, resolveByEdit, failureDescription} = getFailureDescriptionAllowCancel(
+    const {allowCancel, allowRetry, resolveByEdit, failureDescription} = getFailureDescriptionAllowCancel(
       message,
       _you
     )
 
     // show send only if its possible we sent while you're looking at it
-    const showSendIndicator = _you === message.author && message.ordinal !== message.id
+    const youAreAuthor = _you === message.author
+    const showSendIndicator = youAreAuthor && message.ordinal !== message.id
     const decorate = getDecorate(message)
     const onCancel = allowCancel
       ? () => dispatchProps._onCancel(message.conversationIDKey, message.ordinal)
@@ -186,6 +205,7 @@ export default Container.namedConnect(
     return {
       authorIsAdmin: stateProps.authorIsAdmin,
       authorIsOwner: stateProps.authorIsOwner,
+      botAlias: stateProps.botAlias,
       centeredOrdinal: stateProps.centeredOrdinal,
       conversationIDKey: stateProps.conversationIDKey,
       decorate,
@@ -213,6 +233,7 @@ export default Container.namedConnect(
       showCrowns: stateProps.showCrowns,
       showSendIndicator,
       showUsername,
+      youAreAuthor,
     }
   },
   'WrapperMessage'

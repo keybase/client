@@ -19,20 +19,21 @@
     "pollJournalStatus": {},
     "getOnlineStatus": {},
     "folderListLoad": {
+      "recursive": "boolean",
       "path": "Types.Path"
     },
     "folderListLoaded": {
       "path": "Types.Path",
-      "pathItems": "I.Map<Types.Path, Types.PathItem>"
+      "pathItems": "Map<Types.Path, Types.PathItem>"
     },
     "favoritesLoad": {},
     "favoritesLoaded": {
-      "private": "I.Map<string, Types.Tlf>",
-      "public": "I.Map<string, Types.Tlf>",
-      "team": "I.Map<string, Types.Tlf>"
+      "private": "Types.TlfList",
+      "public": "Types.TlfList",
+      "team": "Types.TlfList"
     },
     "setFolderViewFilter": {
-      "filter": "string"
+      "filter": "string|null"
     },
     "tlfSyncConfigLoaded": {
       "tlfType": "Types.TlfType",
@@ -177,7 +178,6 @@
       "localPath": "Types.LocalPath"
     },
     "showIncomingShare": {"initialDestinationParentPath": "Types.Path"},
-    "closeDestinationPicker": {},
     "move": {"destinationParentPath": "Types.Path"},
     "copy": {"destinationParentPath": "Types.Path"},
 
@@ -231,15 +231,15 @@
     "placeholderAction": {},
     "refreshMountDirsAfter10s": {},
     "setDirectMountDir": {"directMountDir": "string"},
-    "setPreferredMountDirs": {"preferredMountDirs": "I.List<string>"},
+    "setPreferredMountDirs": {"preferredMountDirs": "Array<string>"},
     "loadPathInfo": {"path": "Types.Path"},
     "loadedPathInfo": {"path": "Types.Path", "pathInfo": "Types.PathInfo"},
     "download": {"path": "Types.Path"},
     "loadDownloadStatus": {},
     "loadDownloadInfo": {"downloadID": "string"},
     "loadedDownloadStatus": {
-      "regularDownloads": "I.List<string>",
-      "state": "I.Map<string, Types.DownloadState>"
+      "regularDownloads": "Array<string>",
+      "state": "Map<string, Types.DownloadState>"
     },
     "loadedDownloadInfo": {"downloadID": "string", "info": "Types.DownloadInfo"},
     "cancelDownload": {"downloadID": "string"},
@@ -263,6 +263,17 @@
     "loadedFileContext": {
       "path": "Types.Path",
       "fileContext": "Types.FileContext"
+    },
+    "loadAdditionalTlf": {
+      "tlfPath": "Types.Path"
+    },
+    "loadedAdditionalTlf": {
+      "tlf": "Types.Tlf",
+      "tlfPath": "Types.Path"
+    },
+    "loadFilesTabBadge": {},
+    "loadedFilesTabBadge": {
+      "badge": "RPCTypes.FilesTabBadge"
     },
 
     "setDebugLevel": {

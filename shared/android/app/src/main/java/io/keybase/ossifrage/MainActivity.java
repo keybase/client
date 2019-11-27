@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -42,9 +43,9 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.util.UUID;
 
+import io.keybase.ossifrage.modules.AppearanceModule;
 import io.keybase.ossifrage.modules.KeybaseEngine;
 import io.keybase.ossifrage.modules.NativeLogger;
-import io.keybase.ossifrage.util.ContactsPermissionsWrapper;
 import io.keybase.ossifrage.util.DNSNSFetcher;
 import io.keybase.ossifrage.util.VideoHelper;
 import keybase.Keybase;
@@ -54,6 +55,12 @@ import static keybase.Keybase.initOnce;
 public class MainActivity extends ReactFragmentActivity {
   private static final String TAG = MainActivity.class.getName();
   private PermissionListener listener;
+  static boolean createdReact = false;
+
+  @Override
+  public void invokeDefaultOnBackPressed() {
+    moveTaskToBack(true);
+  }
 
   private static void createDummyFile(Context context) {
     final File dummyFile = new File(context.getFilesDir(), "dummy.txt");
@@ -107,20 +114,42 @@ public class MainActivity extends ReactFragmentActivity {
 
   }
 
+  private static final int ANDROID_TEN = 29;
+
+  private String colorSchemeForCurrentConfiguration() {
+    // TODO: (hramos) T52929922: Switch to Build.VERSION_CODES.ANDROID_TEN or equivalent
+    if (Build.VERSION.SDK_INT >= ANDROID_TEN) {
+      int currentNightMode =
+        this.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+      switch (currentNightMode) {
+        case Configuration.UI_MODE_NIGHT_NO:
+          return "light";
+        case Configuration.UI_MODE_NIGHT_YES:
+          return "dark";
+      }
+    }
+
+    return "light";
+  }
+
+
   @Override
   @TargetApi(Build.VERSION_CODES.KITKAT)
   protected void onCreate(Bundle savedInstanceState) {
+    ReactInstanceManager instanceManager = this.getReactInstanceManager();
+    if (!this.createdReact) {
+      this.createdReact = true;
+      instanceManager.createReactContextInBackground();
+    }
+
     setupKBRuntime(this, true);
     super.onCreate(null);
 
 
-    // Hide splash screen background after 300ms.
-    // This prevents the image from being visible behind the app, such as during a
-    // keyboard show animation.
-    final Window mainWindow = this.getWindow();
     new android.os.Handler().postDelayed(new Runnable() {
       public void run() {
-        mainWindow.setBackgroundDrawableResource(R.color.white);
+        // TODO, read this pref from go
+        setBackgroundColor(DarkModePreference.System);
       }
     }, 300);
 
@@ -154,10 +183,6 @@ public class MainActivity extends ReactFragmentActivity {
   public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
     if (listener != null) {
       listener.onRequestPermissionsResult(requestCode, permissions, grantResults);
-    }
-    if (permissions.length > 0 && permissions[0].equals("android.permission.READ_CONTACTS")) {
-      // Call callback wrapper with results
-      ContactsPermissionsWrapper.callbackWrapper(requestCode, permissions, grantResults);
     }
     super.onRequestPermissionsResult(requestCode, permissions, grantResults);
   }
@@ -358,5 +383,38 @@ public class MainActivity extends ReactFragmentActivity {
   @Override
   protected String getMainComponentName() {
     return "Keybase";
+  }
+
+  @Override
+  public void onConfigurationChanged(Configuration newConfig) {
+    super.onConfigurationChanged(newConfig);
+    ReactInstanceManager instanceManager = getReactInstanceManager();
+
+    if (instanceManager != null) {
+      //instanceManager.onConfigurationChanged(newConfig);
+      ReactContext currentContext = instanceManager.getCurrentReactContext();
+      if (currentContext != null) {
+        currentContext.getNativeModule(AppearanceModule.class).onConfigurationChanged();
+      }
+    }
+
+    setBackgroundColor(DarkModePreference.System);
+  }
+
+  public void setBackgroundColor(DarkModePreference pref) {
+    final int bgColor;
+    if (pref == DarkModePreference.System) {
+      bgColor = this.colorSchemeForCurrentConfiguration().equals("light") ? R.color.white : R.color.black;
+    } else if (pref == DarkModePreference.AlwaysDark) {
+      bgColor = R.color.black;
+    } else {
+      bgColor = R.color.white;
+    }
+    final Window mainWindow = this.getWindow();
+    Handler handler = new Handler(Looper.getMainLooper());
+    // Run this on the main thread.
+    handler.post(() -> {
+      mainWindow.setBackgroundDrawableResource(bgColor);
+    });
   }
 }

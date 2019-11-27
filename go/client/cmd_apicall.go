@@ -45,6 +45,7 @@ type CmdAPICall struct {
 	JSONPayload  []keybase1.StringKVPair
 
 	parsedHost string
+	text       bool
 
 	libkb.Contextified
 }
@@ -87,6 +88,10 @@ func NewCmdAPICall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 			cli.BoolFlag{
 				Name:  "url",
 				Usage: "Pass full keybase.io URL with query parameters instead of an endpoint.",
+			},
+			cli.BoolFlag{
+				Name:  "text",
+				Usage: "endpoint is text instead of json.",
 			},
 		},
 	}
@@ -148,6 +153,7 @@ func (c *CmdAPICall) formGetArg() (res keybase1.GetWithSessionArg) {
 	res.Args = c.args
 	res.HttpStatus = c.httpStatuses
 	res.AppStatusCode = c.appStatuses
+	res.UseText = &c.text
 	return
 }
 
@@ -255,6 +261,8 @@ func (c *CmdAPICall) ParseArgv(ctx *cli.Context) error {
 			return err
 		}
 	}
+
+	c.text = ctx.Bool("text")
 
 	if ctx.Bool("url") {
 		if len(args) != 0 {

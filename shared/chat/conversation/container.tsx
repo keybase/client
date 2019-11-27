@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Constants from '../../constants/chat2'
 import * as Chat2Gen from '../../actions/chat2-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Types from '../../constants/types/chat2'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
@@ -17,6 +18,7 @@ type SwitchProps = {
   isFocused?: boolean
   selectConversation: () => void
   deselectConversation: () => void
+  onBack: () => void
   type: 'error' | 'noConvo' | 'rekey' | 'youAreReset' | 'normal' | 'rekey'
 }
 
@@ -62,11 +64,11 @@ class Conversation extends React.PureComponent<SwitchProps> {
           </>
         )
       case 'youAreReset':
-        return <YouAreReset />
+        return <YouAreReset onBack={this.props.onBack} />
       case 'rekey':
         return <Rekey conversationIDKey={this.props.conversationIDKey} />
       default:
-        return <NoConversation />
+        return <NoConversation onBack={this.props.onBack} />
     }
   }
 }
@@ -90,6 +92,7 @@ export default Container.connect(
       dispatch(Chat2Gen.createDeselectConversation({ifConversationIDKey})),
     _selectConversation: conversationIDKey =>
       dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'focused'})),
+    onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   }),
   (stateProps, dispatchProps, _: OwnProps) => {
     let type
@@ -115,6 +118,7 @@ export default Container.connect(
         stateProps._storeConvoIDKey !== stateProps.conversationIDKey
           ? () => {}
           : () => dispatchProps._deselectConversation(stateProps.conversationIDKey),
+      onBack: dispatchProps.onBack,
       selectConversation:
         stateProps._storeConvoIDKey === stateProps.conversationIDKey
           ? () => {} // ignore if already selected or pending

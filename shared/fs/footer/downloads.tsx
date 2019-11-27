@@ -9,7 +9,7 @@ import {downloadFolder} from '../../util/file'
 
 const Mobile = () => {
   Kbfs.useFsDownloadStatus()
-  const downloadIDs = Container.useSelector(state => state.fs.downloads.regularDownloads).toArray()
+  const downloadIDs = Container.useSelector(state => state.fs.downloads.regularDownloads)
   return downloadIDs.length ? (
     <>
       <Kb.Divider />
@@ -33,7 +33,7 @@ const Mobile = () => {
 
 const Desktop = () => {
   Kbfs.useFsDownloadStatus()
-  const downloadIDs = Container.useSelector(state => state.fs.downloads.regularDownloads).toArray()
+  const downloadIDs = Container.useSelector(state => state.fs.downloads.regularDownloads)
   const dispatch = Kbfs.useDispatchWhenKbfsIsConnected()
   const openDownloadFolder = () =>
     dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: downloadFolder}))
@@ -99,4 +99,4 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export default (Styles.isMobile ? Mobile : Desktop)
+export default Styles.isMobile ? Mobile : Desktop

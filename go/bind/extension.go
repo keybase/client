@@ -159,6 +159,7 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 
 	// 10k uid -> FullName cache entries allowed
 	kbCtx.SetUIDMapper(uidmap.NewUIDMap(10000))
+	kbCtx.SetServiceSummaryMapper(uidmap.NewOfflineServiceSummaryMap())
 	usage := libkb.Usage{
 		Config:    true,
 		API:       true,
@@ -204,7 +205,7 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 	}
 
 	svc := service.NewService(kbCtx, false)
-	if err = svc.StartLoopbackServer(); err != nil {
+	if err = svc.StartLoopbackServer(libkb.LoginAttemptOnline); err != nil {
 		return err
 	}
 	kbCtx.SetService()
@@ -255,8 +256,7 @@ func presentInboxItem(item storage.SharedInboxItem, username string) storage.Sha
 	if item.Name == username || strings.Contains(item.Name, "#") {
 		return item
 	}
-	item.Name = strings.Replace(item.Name, fmt.Sprintf(",%s", username), "", -1)
-	item.Name = strings.Replace(item.Name, fmt.Sprintf("%s,", username), "", -1)
+	item.Name = utils.StripUsernameFromConvName(item.Name, username)
 	return item
 }
 
@@ -683,7 +683,7 @@ func savedConvFile() *encrypteddb.EncryptedFile {
 	path := filepath.Join(kbCtx.GetEnv().GetDataDir(), "saveconv.mpack")
 	return encrypteddb.NewFile(kbCtx, path,
 		func(ctx context.Context) ([32]byte, error) {
-			return storage.GetSecretBoxKey(ctx, kbCtx, storage.DefaultSecretUI)
+			return storage.GetSecretBoxKey(ctx, kbCtx)
 		})
 }
 

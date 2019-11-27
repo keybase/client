@@ -1,7 +1,7 @@
 import React, {Component} from 'react'
 import logger from '../../logger'
-import {Box, Text, Icon, HOCTimers, PropsWithTimer} from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins, platformStyles, transition} from '../../styles'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 import {ignoreDisconnectOverlay} from '../../local-debug.desktop'
 import {RPCError} from '../../util/errors'
 
@@ -15,7 +15,7 @@ type State = {
   cachedDetails?: string
 }
 
-type Props = PropsWithTimer<_Props>
+type Props = Kb.PropsWithTimer<_Props>
 
 class GlobalError extends Component<Props, State> {
   state: State
@@ -107,16 +107,16 @@ class GlobalError extends Component<Props, State> {
       (this.props.daemonError && this.props.daemonError.message) ||
       'Keybase is currently unreachable. Trying to reconnect you…'
     return (
-      <Box style={containerOverlayStyle}>
-        <Box style={overlayRowStyle}>
-          <Text center={true} type="BodySmallSemibold" style={{color: globalColors.white}}>
+      <Kb.Box style={styles.containerOverlay}>
+        <Kb.Box style={styles.overlayRow}>
+          <Kb.Text center={true} type="BodySmallSemibold" style={styles.message}>
             {message}
-          </Text>
-        </Box>
-        <Box style={overlayFillStyle}>
-          <Icon type="icon-loader-connecting-266" />
-        </Box>
-      </Box>
+          </Kb.Text>
+        </Kb.Box>
+        <Kb.Box style={styles.overlayFill}>
+          <Kb.Animation animationType="disconnected" height={175} width={600} />
+        </Kb.Box>
+      </Kb.Box>
     )
   }
 
@@ -127,25 +127,35 @@ class GlobalError extends Component<Props, State> {
     const maxHeight = GlobalError.maxHeightForSize(this.state.size)
 
     return (
-      <Box style={{...containerStyle, ...containerErrorStyle, maxHeight}} onClick={this._onExpandClick}>
-        <Box style={{...summaryRowStyle, ...summaryRowErrorStyle}}>
-          <Text center={true} type="BodyBig" style={{color: globalColors.white, flex: 1}}>
+      <Kb.Box
+        style={Styles.collapseStyles([styles.container, styles.containerError, {maxHeight}])}
+        onClick={this._onExpandClick}
+      >
+        <Kb.Box style={Styles.collapseStyles([styles.summaryRow, styles.summaryRowError])}>
+          <Kb.Text center={true} type="BodyBig" style={styles.summary}>
             {summary}
-          </Text>
+          </Kb.Text>
+          <Kb.Button
+            label="Please tell us"
+            onClick={this.props.onFeedback}
+            small={true}
+            type="Dim"
+            style={styles.feedbackButton}
+          />
           {summary && (
-            <Icon
-              color={globalColors.white_75}
-              hoverColor={globalColors.white}
+            <Kb.Icon
+              color={Styles.globalColors.white_75}
+              hoverColor={Styles.globalColors.white}
               onClick={onDismiss}
-              style={closeIconStyle}
+              style={styles.closeIcon}
               type="iconfont-close"
             />
           )}
-        </Box>
-        <Text center={true} type="BodyBig" selectable={true} style={detailStyle}>
+        </Kb.Box>
+        <Kb.Text center={true} type="BodyBig" selectable={true} style={styles.details}>
           {details}
-        </Text>
-      </Box>
+        </Kb.Text>
+      </Kb.Box>
     )
   }
 
@@ -157,74 +167,81 @@ class GlobalError extends Component<Props, State> {
   }
 }
 
-const containerStyle = {
-  ...globalStyles.flexBoxColumn,
-  left: 0,
-  overflow: 'hidden',
-  position: 'absolute',
-  right: 0,
-  top: 0,
-  zIndex: 1000,
-}
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      closeIcon: Styles.platformStyles({
+        isElectron: {
+          position: 'absolute',
+          right: Styles.globalMargins.xsmall,
+          top: 10,
+        },
+      }),
+      container: {
+        ...Styles.globalStyles.flexBoxColumn,
+        left: 0,
+        overflow: 'hidden',
+        position: 'absolute',
+        right: 0,
+        top: 0,
+        zIndex: 1000,
+      },
+      containerError: {
+        ...Styles.transition('max-height'),
+      },
+      containerOverlay: {
+        ...Styles.globalStyles.flexBoxColumn,
+        bottom: 0,
+        left: 0,
+        position: 'absolute',
+        right: 0,
+        top: 0,
+        zIndex: 1000,
+      },
+      details: {
+        backgroundColor: Styles.globalColors.black,
+        color: Styles.globalColors.white_75,
+        padding: 8,
+        paddingLeft: Styles.globalMargins.xlarge,
+        paddingRight: Styles.globalMargins.xlarge,
+      },
+      feedbackButton: {
+        marginRight: Styles.globalMargins.large,
+      },
+      message: {
+        color: Styles.globalColors.white,
+      },
+      overlayFill: {
+        ...Styles.globalStyles.flexBoxColumn,
+        alignItems: 'center',
+        backgroundColor: Styles.globalColors.white,
+        flex: 1,
+        justifyContent: 'center',
+      },
+      overlayRow: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+        backgroundColor: Styles.globalColors.blue,
+        justifyContent: 'center',
+        padding: 8,
+      },
+      summary: {
+        color: Styles.globalColors.white,
+        flex: 1,
+      },
+      summaryRow: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+        flex: 1,
+        justifyContent: 'center',
+        padding: Styles.globalMargins.xtiny,
+        position: 'relative',
+      },
+      summaryRowError: {
+        backgroundColor: Styles.globalColors.black,
+        minHeight: GlobalError.maxHeightForSize('Small'),
+      },
+    } as const)
+)
 
-const containerErrorStyle = {
-  ...transition('max-height'),
-}
-
-const summaryRowStyle = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  flex: 1,
-  justifyContent: 'center',
-  padding: 8,
-  position: 'relative',
-}
-
-const summaryRowErrorStyle = {
-  backgroundColor: globalColors.black,
-  minHeight: GlobalError.maxHeightForSize('Small'),
-}
-
-const detailStyle = {
-  backgroundColor: globalColors.black,
-  color: globalColors.white_75,
-  padding: 8,
-  paddingLeft: globalMargins.xlarge,
-  paddingRight: globalMargins.xlarge,
-}
-
-const containerOverlayStyle = {
-  ...globalStyles.flexBoxColumn,
-  bottom: 0,
-  left: 0,
-  position: 'absolute',
-  right: 0,
-  top: 0,
-  zIndex: 1000,
-}
-
-const overlayRowStyle = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  backgroundColor: globalColors.blue,
-  justifyContent: 'center',
-  padding: 8,
-}
-
-const overlayFillStyle = {
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  backgroundColor: globalColors.white,
-  flex: 1,
-  justifyContent: 'center',
-}
-
-const closeIconStyle = platformStyles({
-  isElectron: {
-    position: 'absolute',
-    right: globalMargins.xsmall,
-    top: globalMargins.xsmall,
-  },
-})
-
-export default HOCTimers(GlobalError)
+export default Kb.HOCTimers(GlobalError)

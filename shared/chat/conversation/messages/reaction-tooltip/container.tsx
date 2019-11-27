@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as I from 'immutable'
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
+import * as UsersTypes from '../../../../constants/types/users'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import ReactionTooltip from '.'
 
@@ -24,82 +25,75 @@ export type OwnProps = {
 }
 
 const emptyStateProps = {
-  _reactions: I.Map(),
-  _usersInfo: I.Map(),
+  _reactions: I.Map<string, I.Set<Types.Reaction>>(),
+  _usersInfo: new Map<string, UsersTypes.UserInfo>(),
 }
 
-const mapStateToProps = (state, ownProps: OwnProps) => {
-  const message = Constants.getMessage(state, ownProps.conversationIDKey, ownProps.ordinal)
-  if (!message || !Constants.isDecoratedMessage(message)) {
-    return emptyStateProps
-  }
-  const _reactions = message.reactions
-  const _usersInfo = state.users.infoMap
-  return {_reactions, _usersInfo}
-}
-
-const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
-  onAddReaction: () => {
-    ownProps.onHidden()
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {conversationIDKey: ownProps.conversationIDKey, ordinal: ownProps.ordinal},
-            selected: 'chatChooseEmoji',
-          },
-        ],
-      })
-    )
+export default namedConnect(
+  (state, ownProps: OwnProps) => {
+    const message = Constants.getMessage(state, ownProps.conversationIDKey, ownProps.ordinal)
+    if (!message || !Constants.isDecoratedMessage(message)) {
+      return emptyStateProps
+    }
+    const _reactions = message.reactions
+    const _usersInfo = state.users.infoMap
+    return {_reactions, _usersInfo}
   },
-})
-
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
-  let reactions = stateProps._reactions
-    .keySeq()
-    .toArray()
-    .map(emoji => ({
-      emoji,
-      users: stateProps._reactions
-        .get(emoji, I.Set())
-        // Earliest users go at the top
-        .sort((a, b) => a.timestamp - b.timestamp)
-        .map(r => ({
-          fullName: stateProps._usersInfo.get(r.username, {fullname: ''}).fullname,
-          timestamp: r.timestamp,
-          username: r.username,
-        }))
-        .toArray(),
-    }))
-    .sort(
-      // earliest reactions go at the top
-      (a, b) => ((a.users[0] && a.users[0].timestamp) || 0) - ((b.users[0] && b.users[0].timestamp) || 0)
-    )
-    // strip timestamp
-    .map(e => ({
-      emoji: e.emoji,
-      users: e.users.map(u => ({
-        fullName: u.fullName,
-        username: u.username,
-      })),
-    }))
-  if (!isMobile && ownProps.emoji) {
-    // Filter down to selected emoji
-    reactions = reactions.filter(r => r.emoji === ownProps.emoji)
-  }
-  return {
-    attachmentRef: ownProps.attachmentRef,
-    conversationIDKey: ownProps.conversationIDKey,
-    onAddReaction: dispatchProps.onAddReaction,
-    onHidden: ownProps.onHidden,
-    onMouseLeave: ownProps.onMouseLeave,
-    onMouseOver: ownProps.onMouseOver,
-    ordinal: ownProps.ordinal,
-    reactions,
-    visible: ownProps.visible,
-  }
-}
-
-export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ReactionTooltip')(
-  ReactionTooltip
-)
+  (dispatch, ownProps: OwnProps) => ({
+    onAddReaction: () => {
+      ownProps.onHidden()
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [
+            {
+              props: {conversationIDKey: ownProps.conversationIDKey, ordinal: ownProps.ordinal},
+              selected: 'chatChooseEmoji',
+            },
+          ],
+        })
+      )
+    },
+  }),
+  (stateProps, dispatchProps, ownProps: OwnProps) => {
+    let reactions = [...stateProps._reactions.keys()]
+      .map(emoji => ({
+        emoji,
+        users: [...(stateProps._reactions.get(emoji) || new Set())]
+          // Earliest users go at the top
+          .sort((a, b) => a.timestamp - b.timestamp)
+          .map(r => ({
+            fullName: (stateProps._usersInfo.get(r.username) || {fullname: ''}).fullname || '',
+            timestamp: r.timestamp,
+            username: r.username,
+          })),
+      }))
+      .sort(
+        // earliest reactions go at the top
+        (a, b) => ((a.users[0] && a.users[0].timestamp) || 0) - ((b.users[0] && b.users[0].timestamp) || 0)
+      )
+      // strip timestamp
+      .map(e => ({
+        emoji: e.emoji,
+        users: e.users.map(u => ({
+          fullName: u.fullName,
+          username: u.username,
+        })),
+      }))
+    if (!isMobile && ownProps.emoji) {
+      // Filter down to selected emoji
+      reactions = reactions.filter(r => r.emoji === ownProps.emoji)
+    }
+    return {
+      attachmentRef: ownProps.attachmentRef,
+      conversationIDKey: ownProps.conversationIDKey,
+      onAddReaction: dispatchProps.onAddReaction,
+      onHidden: ownProps.onHidden,
+      onMouseLeave: ownProps.onMouseLeave,
+      onMouseOver: ownProps.onMouseOver,
+      ordinal: ownProps.ordinal,
+      reactions,
+      visible: ownProps.visible,
+    }
+  },
+  'ReactionTooltip'
+)(ReactionTooltip)

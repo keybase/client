@@ -143,6 +143,10 @@ type settingsDBGetter interface {
 	GetSettingsDB() *SettingsDB
 }
 
+type subscriptionManagerPublisherGetter interface {
+	SubscriptionManagerPublisher() SubscriptionManagerPublisher
+}
+
 // NodeID is a unique but transient ID for a Node. That is, two Node
 // objects in memory at the same time represent the same file or
 // directory if and only if their NodeIDs are equal (by pointer).
@@ -244,6 +248,12 @@ type Node interface {
 	ChildName(name string) data.PathPartString
 }
 
+// SyncedTlfMD contains the node metadata and handle for a given synced TLF.
+type SyncedTlfMD struct {
+	MD     NodeMetadata
+	Handle *tlfhandle.Handle
+}
+
 // KBFSOps handles all file system operations.  Expands all indirect
 // pointers.  Operations that modify the server data change all the
 // block IDs along the path, and so must return a path with the new
@@ -287,10 +297,17 @@ type KBFSOps interface {
 	// top-level folders.  This is a remote-access operation when the cache
 	// is empty or expired.
 	GetFavorites(ctx context.Context) ([]favorites.Folder, error)
+	// GetFolderWithFavFlags returns a keybase1.FolderWithFavFlags for given
+	// handle.
+	GetFolderWithFavFlags(ctx context.Context,
+		handle *tlfhandle.Handle) (keybase1.FolderWithFavFlags, error)
 	// GetFavoritesAll returns the logged-in user's lists of favorite, ignored,
 	// and new top-level folders.  This is a remote-access operation when the
 	// cache is empty or expired.
 	GetFavoritesAll(ctx context.Context) (keybase1.FavoritesResult, error)
+	// GetBadge returns the overall KBFS badge state for this device.
+	// It's cheaper than the other favorites methods.
+	GetBadge(ctx context.Context) (keybase1.FilesTabBadge, error)
 	// RefreshCachedFavorites tells the instances to forget any cached
 	// favorites list and fetch a new list from the server.  The
 	// effects are asychronous; if there's an error refreshing the
@@ -491,9 +508,12 @@ type KBFSOps interface {
 	// suitable for encoding directly into JSON.  This is an expensive
 	// operation, and should only be used for ocassional debugging.
 	// Note that the history does not include any unmerged changes or
-	// outstanding writes from the local device.
-	GetUpdateHistory(ctx context.Context, folderBranch data.FolderBranch) (
-		history TLFUpdateHistory, err error)
+	// outstanding writes from the local device.  To get all the
+	// revisions after `start`, use `kbfsmd.RevisionUninitialized` for
+	// the `end` parameter.
+	GetUpdateHistory(
+		ctx context.Context, folderBranch data.FolderBranch,
+		start, end kbfsmd.Revision) (history TLFUpdateHistory, err error)
 	// GetEditHistory returns the edit history of the TLF, clustered
 	// by writer.
 	GetEditHistory(ctx context.Context, folderBranch data.FolderBranch) (
@@ -585,6 +605,10 @@ type KBFSOps interface {
 	SetSyncConfig(
 		ctx context.Context, tlfID tlf.ID, config keybase1.FolderSyncConfig) (
 		<-chan error, error)
+	// GetAllSyncedTlfMDs returns the synced TLF metadata (and
+	// handle), only for those synced TLFs to which the current
+	// logged-in user has access.
+	GetAllSyncedTlfMDs(ctx context.Context) map[tlf.ID]SyncedTlfMD
 
 	// AddRootNodeWrapper adds a new root node wrapper for every
 	// existing TLF.  Any Nodes that have already been returned by
@@ -823,6 +847,10 @@ type KBPKI interface {
 
 	// NotifyPathUpdated sends a path updated notification.
 	NotifyPathUpdated(ctx context.Context, path string) error
+
+	// InvalidateTeamCacheForID instructs KBPKI to discard any cached
+	// information about the given team ID.
+	InvalidateTeamCacheForID(tid keybase1.TeamID)
 }
 
 // KeyMetadataWithRootDirEntry is like KeyMetadata, but can also

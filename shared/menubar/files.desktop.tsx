@@ -118,6 +118,7 @@ const UserTlfUpdateRow = (props: UserTlfUpdateRowProps) => (
           underline={true}
           colorFollowing={true}
           colorBroken={true}
+          withProfileCardPopup={false /* part of store is not plumbed; also no space in widget*/}
         />
         <Kb.Text type="BodyTiny" style={styles.tlfTime}>
           {props.timestamp}

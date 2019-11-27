@@ -1,69 +1,72 @@
-// Used in the chat reducer
-import * as I from 'immutable'
+import * as Container from '../util/container'
+import {mapGetEnsureValue} from '../util/map'
 import * as Constants from '../constants/team-building'
 import * as Types from '../constants/types/team-building'
 import * as TeamBuildingGen from '../actions/team-building-gen'
-import {trim} from 'lodash-es'
+import {ActionHandler} from '../util/make-reducer'
+import trim from 'lodash/trim'
 
-export default function(
+const initialState = Constants.makeSubState()
+
+export const editTeambuildingDraft = (
   namespace: string,
-  state: Types.TeamBuildingSubState,
-  action: TeamBuildingGen.Actions
-): Types.TeamBuildingSubState {
-  if (action.type === TeamBuildingGen.resetStore) {
+  state: Container.Draft<Types.TeamBuildingSubState>,
+  _action: TeamBuildingGen.Actions
+) => {
+  if (_action.type === TeamBuildingGen.resetStore || _action.type === TeamBuildingGen.tbResetStore) {
     return Constants.makeSubState()
   }
 
-  if (action.payload.namespace !== namespace) {
-    return state
+  if (_action.payload.namespace !== namespace) {
+    return
   }
 
-  switch (action.type) {
-    case TeamBuildingGen.cancelTeamBuilding:
-      return Constants.makeSubState()
-    case TeamBuildingGen.selectRole:
-      return state.set('teamBuildingSelectedRole', action.payload.role)
-    case TeamBuildingGen.changeSendNotification:
-      return state.set('teamBuildingSendNotification', action.payload.sendNotification)
-    case TeamBuildingGen.addUsersToTeamSoFar:
-      return state.update('teamBuildingTeamSoFar', teamSoFar => teamSoFar.merge(action.payload.users))
-    case TeamBuildingGen.removeUsersFromTeamSoFar: {
-      const setToRemove = I.Set(action.payload.users)
-      return state.update('teamBuildingTeamSoFar', teamSoFar => teamSoFar.filter(u => !setToRemove.has(u.id)))
-    }
-    case TeamBuildingGen.searchResultsLoaded: {
+  const reducer: ActionHandler<TeamBuildingGen.Actions, Types.TeamBuildingSubState> = {
+    [TeamBuildingGen.cancelTeamBuilding]: () => Constants.makeSubState(),
+    [TeamBuildingGen.selectRole]: (draftState, action) => {
+      draftState.selectedRole = action.payload.role
+    },
+    [TeamBuildingGen.changeSendNotification]: (draftState, action) => {
+      draftState.sendNotification = action.payload.sendNotification
+    },
+    [TeamBuildingGen.addUsersToTeamSoFar]: (draftState, action) => {
+      draftState.teamSoFar = new Set([...draftState.teamSoFar, ...action.payload.users])
+    },
+    [TeamBuildingGen.removeUsersFromTeamSoFar]: (draftState, action) => {
+      const setToRemove = new Set(action.payload.users)
+      draftState.teamSoFar = new Set([...draftState.teamSoFar].filter(u => !setToRemove.has(u.id)))
+    },
+    [TeamBuildingGen.searchResultsLoaded]: (draftState, action) => {
       const {query, service, users} = action.payload
-      // @ts-ignore tricky when we traverse into map types
-      return state.mergeIn(['teamBuildingSearchResults', query], {[service]: users})
-    }
-    case TeamBuildingGen.finishedTeamBuilding: {
-      const initialState = Constants.makeSubState()
-      return state.merge({
-        teamBuildingFinishedSelectedRole: state.teamBuildingSelectedRole,
-        teamBuildingFinishedSendNotification: state.teamBuildingSendNotification,
-        teamBuildingFinishedTeam: state.teamBuildingTeamSoFar,
-        teamBuildingSelectedRole: initialState.teamBuildingSelectedRole,
-        teamBuildingSendNotification: initialState.teamBuildingSendNotification,
-        teamBuildingTeamSoFar: initialState.teamBuildingTeamSoFar,
-      })
-    }
-    case TeamBuildingGen.fetchedUserRecs:
-      return state.merge({
-        teamBuildingUserRecs: action.payload.users,
-      })
-
-    case TeamBuildingGen.search: {
-      const {query, service, limit = state.teamBuildingSearchLimit} = action.payload
-      return state.merge({
-        teamBuildingSearchLimit: limit,
-        teamBuildingSearchQuery: trim(query),
-        teamBuildingSelectedService: service,
-      })
-    }
-    case TeamBuildingGen.fetchUserRecs:
-      return state
-
-    default:
-      return state
+      const results = mapGetEnsureValue(draftState.searchResults, query, new Map())
+      const old = mapGetEnsureValue(results, service, [])
+      old.push(...users)
+    },
+    [TeamBuildingGen.finishedTeamBuilding]: draftState => {
+      return {
+        ...Constants.makeSubState(),
+        finishedSelectedRole: draftState.selectedRole,
+        finishedSendNotification: draftState.sendNotification,
+        finishedTeam: draftState.teamSoFar,
+        selectedRole: initialState.selectedRole,
+        sendNotification: initialState.sendNotification,
+        teamSoFar: initialState.teamSoFar,
+      }
+    },
+    [TeamBuildingGen.fetchedUserRecs]: (draftState, action) => {
+      draftState.userRecs = action.payload.users
+    },
+    [TeamBuildingGen.search]: (draftState, action) => {
+      const {query, service, limit = draftState.searchLimit} = action.payload
+      draftState.searchLimit = limit
+      draftState.searchQuery = trim(query)
+      draftState.selectedService = service
+    },
   }
+
+  const call = reducer[_action.type]
+  if (call) {
+    // @ts-ignore
+    return call(state, _action)
+  } else return
 }

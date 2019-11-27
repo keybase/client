@@ -40,7 +40,7 @@ const IconClickable = props => (
   <Kb.WithTooltip tooltip="More actions">
     <Kb.Icon
       type="iconfont-ellipsis"
-      color={props.actionIconWhite ? Styles.globalColors.white : Styles.globalColors.black_50}
+      color={props.actionIconWhite ? Styles.globalColors.whiteOrBlueDark : Styles.globalColors.black_50}
       hoverColor={props.actionIconWhite ? null : Styles.globalColors.black}
       padding="tiny"
       sizeType={props.sizeType || 'Default'}
@@ -60,7 +60,7 @@ const PathItemAction = Kb.OverlayParentHOC((props: Props & Kb.OverlayParentProps
   const onClick = React.useCallback(() => {
     dispatch(FsGen.createSetPathItemActionMenuView({view: initView}))
     setShowingMenu(true)
-  }, [initView, dispatch])
+  }, [initView, dispatch, setShowingMenu])
   const hide = React.useCallback(() => {
     setShowingMenu(false)
     dispatch(FsGen.createSetPathItemActionMenuDownload({downloadID: null, intent: null}))

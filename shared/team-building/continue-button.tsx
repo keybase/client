@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
-import Flags from '../util/feature-flags'
 
 export type Props = {
   label: string
@@ -14,11 +13,6 @@ const ContinueButton = (props: Props) => (
     <Kb.Text type="BodyBig" style={styles.continueText}>
       {props.label}
     </Kb.Text>
-    {Flags.wonderland && (
-      <Kb.Text type="BodyBig" style={styles.rabbitEmoji}>
-        <Kb.Emoji size={16} emojiName=":rabbit2:" />
-      </Kb.Text>
-    )}
   </Kb.Button>
 )
 

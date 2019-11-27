@@ -25,6 +25,9 @@ If you're on the nth page and want to go back, set the previous field instead.
 Send a message:
     {"method": "send", "params": {"options": {"channel": {"name": "you,them"}, "message": {"body": "is it cold today?"}}}}
 
+Send a reply:
+   {"method": "send", "params": {"options": {"channel": {"name": "you,them"}, "message": {"body": "is it cold today?"}, "reply_to": 314}}}
+
 Delete a message:
     {"method": "delete", "params": {"options": {"channel": {"name": "you,them"}, "message_id": 314}}}
 
@@ -111,4 +114,13 @@ Pin a message to a chat:
 
 Unpin the message of chat:
    {"method": "unpin", "params": {"options": {"channel": {"name": "treehouse", "members_type": "team", "topic_name": "random"}}}}
+
+Get a user's device info from their username:
+   {"method": "getdeviceinfo", "params": {"options": {"username": "cjb"}}}
+
+Get all reset members of conversations in your inbox:
+   {"method": "getresetconvmembers"}
+
+Readd a reset user back to a conversation:
+   {"method": "addresetconvmember", "params": {"options": {"username": "joshblum", "conversation_id": "..."}}}
 `

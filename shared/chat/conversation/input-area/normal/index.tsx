@@ -7,7 +7,8 @@ import {emojiIndex} from 'emoji-mart'
 import PlatformInput from './platform-input'
 import {standardTransformer} from '../suggestors'
 import {InputProps} from './types'
-import {debounce, throttle} from 'lodash-es'
+import debounce from 'lodash/debounce'
+import throttle from 'lodash/throttle'
 import {memoize} from '../../../../util/memoize'
 import CommandMarkdown from '../../command-markdown/container'
 import CommandStatus from '../../command-status/container'
@@ -18,77 +19,82 @@ import ReplyPreview from '../../reply-preview/container'
 const throttled = throttle((f, param) => f(param), 2000)
 const debounced = debounce((f, param) => f(param), 500)
 
-const searchUsersAndTeamsAndTeamChannels = memoize((users, teams, allChannels, filter) => {
-  if (!filter) {
-    return users.concat(teams).toArray()
-  }
-  const fil = filter.toLowerCase()
-  let match = fil.match(/^([a-zA-Z0-9_.]+)#(\S*)$/) // team name followed by #
-  if (match) {
-    let teamname = match[1]
-    const channelfil = match[2]
-    if (!channelfil) {
-      // All the team's channels
-      return allChannels.filter(v => v.teamname === teamname).toArray()
+const searchUsersAndTeamsAndTeamChannels = memoize(
+  (
+    users: InputProps['suggestUsers'],
+    teams: InputProps['suggestTeams'],
+    allChannels: InputProps['suggestAllChannels'],
+    filter: string
+  ) => {
+    if (!filter) {
+      return [...users, ...teams]
     }
-    return allChannels
-      .filter(v => v.teamname === teamname)
-      .map(v => {
+    const fil = filter.toLowerCase()
+    const match = fil.match(/^([a-zA-Z0-9_.]+)#(\S*)$/) // team name followed by #
+    if (match) {
+      const teamname = match[1]
+      const channelfil = match[2]
+      if (!channelfil) {
+        // All the team's channels
+        return allChannels.filter(v => v.teamname === teamname)
+      }
+      return allChannels
+        .filter(v => v.teamname === teamname)
+        .map(v => {
+          let score = 0
+          const channelname = v.channelname.toLowerCase()
+          if (channelname.includes(channelfil)) {
+            score++
+          }
+          if (channelname.startsWith(channelfil)) {
+            score += 2
+          }
+          return {score, v}
+        })
+        .filter(withScore => !!withScore.score)
+        .sort((a, b) => b.score - a.score)
+        .map(({v}) => v)
+    }
+    const sortedUsers = users
+      .map(u => {
         let score = 0
-        const channelname = v.channelname.toLowerCase()
-        if (channelname.includes(channelfil)) {
+        const username = u.username.toLowerCase()
+        const fullName = u.fullName.toLowerCase()
+        if (username.includes(fil) || fullName.includes(fil)) {
+          // 1 point for included somewhere
           score++
         }
-        if (channelname.startsWith(channelfil)) {
+        if (fullName.startsWith(fil)) {
+          // 1 point for start of fullname
+          score++
+        }
+        if (username.startsWith(fil)) {
+          // 2 points for start of username
           score += 2
         }
-        return {score, v}
+        return {score, user: u}
       })
       .filter(withScore => !!withScore.score)
       .sort((a, b) => b.score - a.score)
-      .map(({v}) => v)
-      .toArray()
-  }
-  const sortedUsers = users
-    .map(u => {
-      let score = 0
-      const username = u.username.toLowerCase()
-      const fullName = u.fullName.toLowerCase()
-      if (username.includes(fil) || fullName.includes(fil)) {
-        // 1 point for included somewhere
-        score++
-      }
-      if (fullName.startsWith(fil)) {
-        // 1 point for start of fullname
-        score++
-      }
-      if (username.startsWith(fil)) {
-        // 2 points for start of username
-        score += 2
-      }
-      return {score, user: u}
+      .map(userWithScore => userWithScore.user)
+    const sortedTeams = teams.filter(t => {
+      return t.teamname.includes(fil)
     })
-    .filter(withScore => !!withScore.score)
-    .sort((a, b) => b.score - a.score)
-    .map(userWithScore => userWithScore.user)
-    .toArray()
-  const sortedTeams = teams.filter(t => {
-    return t.teamname.includes(fil)
-  })
-  let usersAndTeams = sortedUsers.concat(sortedTeams)
-  if (usersAndTeams.length === 1 && usersAndTeams[0].teamname) {
-    // The only user+team result is a single team. Present its channels as well.
-    return usersAndTeams.concat(allChannels.filter(v => v.teamname === usersAndTeams[0].teamname).toArray())
+    const usersAndTeams = [...sortedUsers, ...sortedTeams]
+    if (usersAndTeams.length === 1 && usersAndTeams[0].teamname) {
+      // The only user+team result is a single team. Present its channels as well.
+      return [...usersAndTeams, ...allChannels.filter(v => v.teamname === usersAndTeams[0].teamname)]
+    }
+    return usersAndTeams
   }
-  return usersAndTeams
-})
+)
 
 const suggestorToMarker = {
   channels: '#',
   commands: /(!|\/)/,
   emoji: ':',
   // 'users' is for @user, @team, and @team#channel
-  users: /^((\+\d+(\.\d+)?[a-zA-Z]{3,12}@)|@)/, // match normal mentions and ones in a stellar send
+  users: /((\+\d+(\.\d+)?[a-zA-Z]{3,12}@)|@)/, // match normal mentions and ones in a stellar send
 }
 
 const suggestorKeyExtractors = {
@@ -109,7 +115,10 @@ const suggestorKeyExtractors = {
 
 // 2+ valid emoji chars and no ending colon
 const emojiPrepass = /[a-z0-9_]{2,}(?!.*:)/i
-const emojiDatasource = (filter: string) => (emojiPrepass.test(filter) ? emojiIndex.search(filter) : [])
+const emojiDatasource = (filter: string) => ({
+  data: emojiPrepass.test(filter) ? emojiIndex.search(filter) : [],
+  useSpaces: false,
+})
 const emojiRenderer = (item, selected: boolean) => (
   <Kb.Box2
     direction="horizontal"
@@ -176,11 +185,13 @@ class Input extends React.Component<InputProps, InputState> {
       users: this._transformUserSuggestion,
     }
 
-    // + 1 for '/'
-    this._maxCmdLength =
-      this.props.suggestCommands
-        .concat(this.props.suggestBotCommands)
-        .reduce((max, cmd) => (cmd.name.length > max ? cmd.name.length : max), 0) + 1
+    if (this.props.suggestCommands) {
+      // + 1 for '/'
+      this._maxCmdLength =
+        this.props.suggestCommands
+          .concat(this.props.suggestBotCommands || [])
+          .reduce((max, cmd) => (cmd.name.length > max ? cmd.name.length : max), 0) + 1
+    }
   }
 
   _inputSetRef = (input: null | Kb.PlainInput) => {
@@ -320,6 +331,20 @@ class Input extends React.Component<InputProps, InputState> {
       return
     }
 
+    if (
+      prevProps.suggestBotCommands != this.props.suggestBotCommands ||
+      prevProps.suggestCommands != this.props.suggestCommands
+    ) {
+      if (this.props.suggestCommands) {
+        // different commands so we need to recalculate max command length
+        // + 1 for '/'
+        this._maxCmdLength =
+          this.props.suggestCommands
+            .concat(this.props.suggestBotCommands || [])
+            .reduce((max, cmd) => (cmd.name.length > max ? cmd.name.length : max), 0) + 1
+      }
+    }
+
     // Otherwise, inject unsent text. This must come after quote
     // handling, so as to handle the 'Reply Privately' case.
     if (prevProps.conversationIDKey !== this.props.conversationIDKey) {
@@ -329,28 +354,24 @@ class Input extends React.Component<InputProps, InputState> {
       if (!this.props.isSearching) {
         this._inputFocus()
       }
-
-      // potentially different commands so we need to recalculate max command length
-      // + 1 for '/'
-      this._maxCmdLength =
-        this.props.suggestCommands
-          .concat(this.props.suggestBotCommands)
-          .reduce((max, cmd) => (cmd.name.length > max ? cmd.name.length : max), 0) + 1
     }
   }
 
-  _getUserSuggestions = filter =>
-    searchUsersAndTeamsAndTeamChannels(
+  _getUserSuggestions = filter => ({
+    data: searchUsersAndTeamsAndTeamChannels(
       this.props.suggestUsers,
       this.props.suggestTeams,
       this.props.suggestAllChannels,
       filter
-    )
+    ),
+    useSpaces: false,
+  })
 
   _getCommandSuggestions = filter => {
     if (this.props.showCommandMarkdown || this.props.showGiphySearch) {
-      return []
+      return {data: [], useSpaces: true}
     }
+
     const sel = this._input && this._input.getSelection()
     if (sel && this._lastText) {
       // a little messy. Check if the message starts with '/' and that the cursor is
@@ -361,14 +382,15 @@ class Input extends React.Component<InputProps, InputState> {
         (sel.start || 0) > this._maxCmdLength
       ) {
         // not at beginning of message
-        return []
+        return {data: [], useSpaces: true}
       }
     }
     const fil = filter.toLowerCase()
-    return (this._lastText && this._lastText.startsWith('!')
+    const data = (this._lastText && this._lastText.startsWith('!')
       ? this.props.suggestBotCommands
       : this.props.suggestCommands
     ).filter(c => c.name.includes(fil))
+    return {data, useSpaces: true}
   }
 
   _renderTeamSuggestion = (teamname, channelname, selected) => (
@@ -433,6 +455,7 @@ class Input extends React.Component<InputProps, InputState> {
           colorFollowing={true}
           usernames={[username]}
           style={styles.boldStyle}
+          withProfileCardPopup={false}
         />
         <Kb.Text type="BodySmall">{fullName}</Kb.Text>
       </Kb.Box2>
@@ -465,10 +488,10 @@ class Input extends React.Component<InputProps, InputState> {
 
   _getChannelSuggestions = filter => {
     const fil = filter.toLowerCase()
-    return this.props.suggestChannels
-      .filter(ch => ch.toLowerCase().includes(fil))
-      .sort()
-      .toArray()
+    return {
+      data: this.props.suggestChannels.filter(ch => ch.toLowerCase().includes(fil)).sort(),
+      useSpaces: false,
+    }
   }
 
   _renderChannelSuggestion = (channelname: string, selected) => (

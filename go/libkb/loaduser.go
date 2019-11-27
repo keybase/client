@@ -46,10 +46,10 @@ type LoadUserArg struct {
 	publicKeyOptional        bool
 	noCacheResult            bool // currently ignore
 	self                     bool
-	forceReload              bool
-	forcePoll                bool // for cached user load, force a repoll
+	forceReload              bool // ignore the cache entirely, don't even bother polling if it is out of date; just fetch new data.
+	forcePoll                bool // for cached user load, force a repoll. If this and StaleOK are both set, we try a network call and if it fails return the cached data.
 	staleOK                  bool // if stale cached versions are OK (for immutable fields)
-	cachedOnly               bool // only return cached data (StaleOK should be true as well)
+	cachedOnly               bool // only return cached data (staleOK should be true and forcePoll must be false)
 	uider                    UIDer
 	abortIfSigchainUnchanged bool
 	resolveBody              *jsonw.Wrapper // some load paths plumb this through
@@ -423,14 +423,10 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 			return ret, err
 		}
 
+		cacheUserServiceSummary(m, ret)
 	} else if !arg.publicKeyOptional {
 		m.Debug("No active key for user: %s", ret.GetUID())
-
-		var emsg string
-		if arg.self {
-			emsg = "You don't have a public key; try `keybase pgp select` or `keybase pgp import` if you have a key; or `keybase pgp gen` if you don't"
-		}
-		err = NoKeyError{emsg}
+		return ret, NoKeyError{}
 	}
 
 	return ret, err
@@ -656,7 +652,7 @@ func IsUserByUsernameOffline(m MetaContext, un NormalizedUsername) bool {
 
 	// We already took care of the bad username casing in the harcoded exception list above,
 	// so it's ok to treat the NormalizedUsername as a cased string.
-	uid := UsernameToUIDPreserveCase(un.String())
+	uid := usernameToUIDPreserveCase(un.String())
 
 	// use the UPAKLoader with StaleOK, CachedOnly in order to get cached upak
 	arg := NewLoadUserArgWithMetaContext(m).WithUID(uid).WithPublicKeyOptional().WithStaleOK(true).WithCachedOnly()
@@ -671,4 +667,21 @@ func IsUserByUsernameOffline(m MetaContext, un NormalizedUsername) bool {
 	}
 
 	return false
+}
+
+func cacheUserServiceSummary(mctx MetaContext, user *User) {
+	serviceMapper := mctx.G().ServiceMapper
+	if serviceMapper == nil {
+		// no service summary mapper in current context - e.g. in tests.
+		return
+	}
+
+	remoteProofs := user.idTable.remoteProofLinks
+	if remoteProofs != nil {
+		summary := remoteProofs.toServiceSummary()
+		err := serviceMapper.InformOfServiceSummary(mctx.Ctx(), mctx.G(), user.id, summary)
+		if err != nil {
+			mctx.Debug("cacheUserServiceSummary for %q uid: %q: error: %s", user.name, user.id, err)
+		}
+	}
 }

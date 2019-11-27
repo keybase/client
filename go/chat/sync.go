@@ -173,64 +173,28 @@ func (s *Syncer) IsConnected(ctx context.Context) bool {
 func (s *Syncer) Connected(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID,
 	syncRes *chat1.SyncChatRes) (err error) {
 	ctx = globals.CtxAddLogTags(ctx, s.G())
-	s.Lock()
-	defer s.Unlock()
 	defer s.Trace(ctx, func() error { return err }, "Connected")()
-
+	s.Lock()
 	s.isConnected = true
-
 	// Let the Offlinables know that we are back online
 	for _, o := range s.offlinables {
 		o.Connected(ctx)
 	}
+	s.Unlock()
 
 	// Run sync against the server
-	return s.sync(ctx, cli, uid, syncRes)
+	return s.Sync(ctx, cli, uid, syncRes)
 }
 
 func (s *Syncer) Disconnected(ctx context.Context) {
-	s.Lock()
-	defer s.Unlock()
 	defer s.Trace(ctx, func() error { return nil }, "Disconnected")()
-
+	s.Lock()
 	s.isConnected = false
-
 	// Let the Offlinables know of connection state change
 	for _, o := range s.offlinables {
 		o.Disconnected(ctx)
 	}
-}
-
-func (s *Syncer) Sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID,
-	syncRes *chat1.SyncChatRes) (err error) {
-	s.Lock()
-	defer s.Unlock()
-	defer s.Trace(ctx, func() error { return err }, "Sync")()
-	return s.sync(ctx, cli, uid, syncRes)
-}
-
-func (s *Syncer) shouldDoFullReloadFromIncremental(ctx context.Context, syncRes storage.InboxSyncRes,
-	convs []chat1.Conversation) bool {
-	if syncRes.TeamTypeChanged {
-		s.Debug(ctx, "shouldDoFullReloadFromIncremental: team type changed")
-		return true
-	}
-	for _, conv := range convs {
-		switch conv.Metadata.Existence {
-		case chat1.ConversationExistence_ACTIVE:
-		default:
-			s.Debug(ctx, "shouldDoFullReloadFromIncremental: deleted conversation: %s", conv.GetConvID())
-			return true
-		}
-		switch conv.ReaderInfo.Status {
-		case chat1.ConversationMemberStatus_LEFT,
-			chat1.ConversationMemberStatus_REMOVED,
-			chat1.ConversationMemberStatus_NEVER_JOINED:
-			s.Debug(ctx, "shouldDoFullReloadFromIncremental: join or leave conv")
-			return true
-		}
-	}
-	return false
+	s.Unlock()
 }
 
 func (s *Syncer) handleMembersTypeChanged(ctx context.Context, uid gregor1.UID,
@@ -323,7 +287,6 @@ func (s *Syncer) notifyIncrementalSync(ctx context.Context, uid gregor1.UID,
 		return
 	}
 	itemsByTopicType := make(map[chat1.TopicType][]chat1.ChatSyncIncrementalConv)
-	removalsByTopicType := make(map[chat1.TopicType][]string)
 	for _, c := range allConvs {
 		var md *types.RemoteConversationMetadata
 		rc, err := utils.GetUnverifiedConv(ctx, s.G(), uid, c.GetConvID(),
@@ -331,18 +294,13 @@ func (s *Syncer) notifyIncrementalSync(ctx context.Context, uid gregor1.UID,
 		if err == nil {
 			md = rc.LocalMetadata
 		}
-		if convDisappearsFromUI(c) {
-			s.Debug(ctx, "notifyIncrementalSync: removing conv %v", c.GetConvID().DbShortFormString())
-			removalsByTopicType[c.GetTopicType()] = append(removalsByTopicType[c.GetTopicType()], c.GetConvID().String())
-		} else {
-			itemsByTopicType[c.GetTopicType()] = append(itemsByTopicType[c.GetTopicType()], chat1.ChatSyncIncrementalConv{
-				Conv: utils.PresentRemoteConversation(ctx, s.G(), types.RemoteConversation{
-					Conv:          c,
-					LocalMetadata: md,
-				}),
+		rc = utils.RemoteConv(c)
+		rc.LocalMetadata = md
+		itemsByTopicType[c.GetTopicType()] = append(itemsByTopicType[c.GetTopicType()],
+			chat1.ChatSyncIncrementalConv{
+				Conv:        utils.PresentRemoteConversation(ctx, s.G(), rc),
 				ShouldUnbox: shouldUnboxMap[c.GetConvID().String()],
 			})
-		}
 	}
 	for _, topicType := range chat1.TopicTypeMap {
 		if topicType == chat1.TopicType_NONE {
@@ -350,33 +308,22 @@ func (s *Syncer) notifyIncrementalSync(ctx context.Context, uid gregor1.UID,
 		}
 		s.G().ActivityNotifier.InboxSynced(ctx, uid, topicType,
 			chat1.NewChatSyncResultWithIncremental(chat1.ChatSyncIncrementalInfo{
-				Items:    itemsByTopicType[topicType],
-				Removals: removalsByTopicType[topicType],
+				Items: itemsByTopicType[topicType],
 			}))
 	}
 }
 
-func convDisappearsFromUI(conv chat1.Conversation) bool {
-	switch conv.Metadata.Status {
-	case chat1.ConversationStatus_IGNORED, chat1.ConversationStatus_BLOCKED, chat1.ConversationStatus_REPORTED:
-		return true
-	}
-	if conv.ReaderInfo != nil {
-		switch conv.ReaderInfo.Status {
-		case chat1.ConversationMemberStatus_REMOVED, chat1.ConversationMemberStatus_LEFT,
-			chat1.ConversationMemberStatus_RESET, chat1.ConversationMemberStatus_NEVER_JOINED:
-			return true
-		}
-	}
-	return false
-}
-
-func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID,
+func (s *Syncer) Sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID,
 	syncRes *chat1.SyncChatRes) (err error) {
+	defer s.Trace(ctx, func() error { return err }, "Sync")()
+	s.Lock()
 	if !s.isConnected {
+		defer s.Unlock()
 		s.Debug(ctx, "Sync: aborting because currently offline")
 		return OfflineError{}
 	}
+	s.Unlock()
+
 	// Grab current on disk version
 	ibox := storage.NewInbox(s.G())
 	vers, err := ibox.Version(ctx, uid)
@@ -437,9 +384,9 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 		s.Debug(ctx, "Sync: version out of date, but can incrementally sync: old vers: %v vers: %v convs: %d",
 			vers, incr.Vers, len(incr.Convs))
 
-		var iboxSyncRes storage.InboxSyncRes
+		var iboxSyncRes types.InboxSyncRes
 		expunges := make(map[string]chat1.Expunge)
-		if iboxSyncRes, err = ibox.Sync(ctx, uid, incr.Vers, incr.Convs); err != nil {
+		if iboxSyncRes, err = s.G().InboxSource.Sync(ctx, uid, incr.Vers, incr.Convs); err != nil {
 			s.Debug(ctx, "Sync: failed to sync conversations to inbox: %s", err.Error())
 
 			// Send notifications for a full clear
@@ -451,16 +398,9 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 			for _, expunge := range iboxSyncRes.Expunges {
 				expunges[expunge.ConvID.String()] = expunge.Expunge
 			}
-			if s.shouldDoFullReloadFromIncremental(ctx, iboxSyncRes, incr.Convs) {
-				// If we get word we should full clear the inbox (like if the user left a conversation),
-				// then just reload everything
-				s.G().ActivityNotifier.InboxSynced(ctx, uid, chat1.TopicType_NONE,
-					chat1.NewChatSyncResultWithClear())
-			} else {
-				// Send notifications for a successful partial sync
-				shouldUnboxMap := s.getShouldUnboxSyncConvMap(ctx, incr.Convs, iboxSyncRes.TopicNameChanged)
-				s.notifyIncrementalSync(ctx, uid, incr.Convs, shouldUnboxMap)
-			}
+			// Send notifications for a successful partial sync
+			shouldUnboxMap := s.getShouldUnboxSyncConvMap(ctx, incr.Convs, iboxSyncRes.TopicNameChanged)
+			s.notifyIncrementalSync(ctx, uid, incr.Convs, shouldUnboxMap)
 		}
 
 		// The idea here is to limit the amount of work we do with the background conversation loader

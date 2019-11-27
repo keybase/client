@@ -5,6 +5,7 @@ package service
 
 import (
 	"encoding/json"
+	"io/ioutil"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -92,6 +93,22 @@ func (a *APIServerHandler) doGet(mctx libkb.MetaContext, arg GenericArg, session
 	kbarg := a.setupArg(arg)
 	if !sessionRequired {
 		kbarg.SessionType = libkb.APISessionTypeNONE
+	}
+	if getWithSessionArg, ok := arg.(keybase1.GetWithSessionArg); ok && getWithSessionArg.UseText != nil && *getWithSessionArg.UseText {
+		kbarg.UseText = true
+		resp, finisher, err := mctx.G().API.GetResp(mctx, kbarg)
+		defer finisher()
+		if err != nil {
+			return res, err
+		}
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return res, err
+		}
+		return keybase1.APIRes{
+			Body:       string(body),
+			HttpStatus: resp.StatusCode,
+		}, nil
 	}
 	var ires *libkb.APIRes
 	ires, err = mctx.G().API.Get(mctx, kbarg)

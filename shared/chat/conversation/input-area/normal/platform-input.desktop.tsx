@@ -13,6 +13,7 @@ import {PlatformInputPropsInternal} from './platform-input'
 import Typing from './typing/container'
 import AddSuggestors from '../suggestors'
 import {BotCommandUpdateStatus} from './shared'
+import {indefiniteArticle} from '../../../../util/string'
 
 type State = {
   emojiPickerOpen: boolean
@@ -175,7 +176,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
     } else if (this.props.isEditing) {
       hintText = 'Edit your message'
     } else if (this.props.cannotWrite) {
-      hintText = `You must be at least ${'aeiou'.includes(this.props.minWriterRole[0]) ? 'an' : 'a'} ${
+      hintText = `You must be at least ${indefiniteArticle(this.props.minWriterRole)} ${
         this.props.minWriterRole
       } to post.`
     }
@@ -367,7 +368,7 @@ const styles = Styles.styleSheetCreate(
         common: {
           ...Styles.globalStyles.flexBoxColumn,
           alignSelf: 'stretch',
-          backgroundColor: Styles.globalColors.blackOrWhite,
+          backgroundColor: Styles.globalColors.blackOrBlack,
           borderRadius: 2,
           justifyContent: 'center',
           margin: 2,
@@ -380,7 +381,7 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       cancelEditingText: {
-        color: Styles.globalColors.whiteOrBlack,
+        color: Styles.globalColors.whiteOrWhite,
       },
       container: {
         ...Styles.globalStyles.flexBoxColumn,
@@ -445,12 +446,12 @@ const styles = Styles.styleSheetCreate(
       },
       input: {
         backgroundColor: Styles.globalColors.transparent,
-        height: 21,
+        height: 22,
         // Line height change is so that emojis (unicode characters inside
         // textarea) are not clipped at the top. This change is accompanied by
         // a change in padding to offset the increased line height
         lineHeight: '22px',
-        minHeight: 21,
+        minHeight: 22,
       },
       inputBox: {
         flex: 1,

@@ -4,9 +4,9 @@ import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as FsGen from '../../actions/fs-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as Kb from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
-import uuidv1 from 'uuid/v1'
-import flags from '../../util/feature-flags'
+import logger from '../../logger'
 
 const isPathItem = (path: Types.Path) => Types.getPathLevel(path) > 2 || Constants.hasSpecialFileElement(path)
 const noop = () => {}
@@ -19,17 +19,6 @@ export const useDispatchWhenConnected = () => {
   return kbfsDaemonConnected ? dispatch : noop
 }
 
-const useDispatchWhenConnectedAndOnline = flags.kbfsOfflineMode
-  ? () => {
-      const kbfsDaemonStatus = Container.useSelector(state => state.fs.kbfsDaemonStatus)
-      const dispatch = Container.useDispatch()
-      return kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected &&
-        kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Online
-        ? dispatch
-        : noop
-    }
-  : useDispatchWhenConnected
-
 const useFsPathSubscriptionEffect = (path: Types.Path, topic: RPCTypes.PathSubscriptionTopic) => {
   const dispatch = useDispatchWhenConnected()
   React.useEffect(() => {
@@ -37,7 +26,7 @@ const useFsPathSubscriptionEffect = (path: Types.Path, topic: RPCTypes.PathSubsc
       return () => {}
     }
 
-    const subscriptionID = uuidv1()
+    const subscriptionID = Constants.makeUUID()
     dispatch(FsGen.createSubscribePath({path, subscriptionID, topic}))
     return () => dispatch(FsGen.createUnsubscribe({subscriptionID}))
   }, [dispatch, path, topic])
@@ -46,7 +35,7 @@ const useFsPathSubscriptionEffect = (path: Types.Path, topic: RPCTypes.PathSubsc
 const useFsNonPathSubscriptionEffect = (topic: RPCTypes.SubscriptionTopic) => {
   const dispatch = useDispatchWhenConnected()
   React.useEffect(() => {
-    const subscriptionID = uuidv1()
+    const subscriptionID = Constants.makeUUID()
     dispatch(FsGen.createSubscribeNonPath({subscriptionID, topic}))
     return () => dispatch(FsGen.createUnsubscribe({subscriptionID}))
   }, [dispatch, topic])
@@ -54,18 +43,18 @@ const useFsNonPathSubscriptionEffect = (topic: RPCTypes.SubscriptionTopic) => {
 
 export const useFsPathMetadata = (path: Types.Path) => {
   useFsPathSubscriptionEffect(path, RPCTypes.PathSubscriptionTopic.stat)
-  const dispatch = useDispatchWhenConnectedAndOnline()
+  const dispatch = useDispatchWhenConnected()
   React.useEffect(() => {
     isPathItem(path) && dispatch(FsGen.createLoadPathMetadata({path}))
   }, [dispatch, path])
 }
 
-export const useFsChildren = (path: Types.Path) => {
+export const useFsChildren = (path: Types.Path, initialLoadRecursive?: boolean) => {
   useFsPathSubscriptionEffect(path, RPCTypes.PathSubscriptionTopic.children)
-  const dispatch = useDispatchWhenConnectedAndOnline()
+  const dispatch = useDispatchWhenConnected()
   React.useEffect(() => {
-    isPathItem(path) && dispatch(FsGen.createFolderListLoad({path}))
-  }, [dispatch, path])
+    isPathItem(path) && dispatch(FsGen.createFolderListLoad({path, recursive: initialLoadRecursive || false}))
+  }, [dispatch, path, initialLoadRecursive])
 }
 
 export const useFsTlfs = () => {
@@ -74,6 +63,31 @@ export const useFsTlfs = () => {
   React.useEffect(() => {
     dispatch(FsGen.createFavoritesLoad())
   }, [dispatch])
+}
+
+export const useFsTlf = (path: Types.Path) => {
+  const tlfPath = Constants.getTlfPath(path)
+  const tlfs = Container.useSelector(state => state.fs.tlfs)
+  const dispatch = useDispatchWhenConnected()
+  const active =
+    // If we don't have a TLF path, we are not inside a TLF yet. So no need
+    // to load.
+    !!tlfPath &&
+    // If favorites are not loaded, don't load anything yet -- what we need
+    // might be available from favorites.
+    tlfs.loaded &&
+    // If TLF is part of favorites list, we already have notifications to
+    // cover the refresh, so no need to load here. (To be clear,
+    // notifications don't cover syncConfig, but we already load when user
+    // toggles change.)
+    Constants.getTlfFromPathInFavoritesOnly(tlfs, tlfPath) === Constants.unknownTlf
+  // We need to load TLFs. We don't have notifications for this rpc yet, so
+  // just poll on a 10s interval.
+  Kb.useInterval(() => dispatch(FsGen.createLoadAdditionalTlf({tlfPath})), active ? 10000 : undefined)
+  // useInterval doesn't trigger at beginning, so call in an effect here.
+  React.useEffect(() => {
+    active && dispatch(FsGen.createLoadAdditionalTlf({tlfPath}))
+  }, [active, dispatch, tlfPath])
 }
 
 export const useFsJournalStatus = () => {
@@ -93,7 +107,7 @@ export const useFsOnlineStatus = () => {
 }
 
 export const useFsPathInfo = (path: Types.Path, knownPathInfo: Types.PathInfo): Types.PathInfo => {
-  const pathInfo = Container.useSelector(state => state.fs.pathInfos.get(path, Constants.emptyPathInfo))
+  const pathInfo = Container.useSelector(state => state.fs.pathInfos.get(path) || Constants.emptyPathInfo)
   const dispatch = useDispatchWhenConnected()
   const alreadyKnown = knownPathInfo !== Constants.emptyPathInfo
   React.useEffect(() => {
@@ -114,8 +128,8 @@ export const useFsSoftError = (path: Types.Path): Types.SoftError | null => {
 }
 
 export const useFsDownloadInfo = (downloadID: string): Types.DownloadInfo => {
-  const info = Container.useSelector(state =>
-    state.fs.downloads.info.get(downloadID, Constants.emptyDownloadInfo)
+  const info = Container.useSelector(
+    state => state.fs.downloads.info.get(downloadID) || Constants.emptyDownloadInfo
   )
   const dispatch = useDispatchWhenConnected()
   React.useEffect(() => {
@@ -135,8 +149,10 @@ export const useFsDownloadStatus = () => {
 
 export const useFsFileContext = (path: Types.Path) => {
   const dispatch = useDispatchWhenConnected()
-  const pathItem = Container.useSelector(state => state.fs.pathItems.get(path, Constants.unknownPathItem))
+  const pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, path))
+  const [urlError, setUrlError] = React.useState<string>('')
   React.useEffect(() => {
+    urlError && logger.info(`urlError: ${urlError}`)
     pathItem.type === Types.PathType.File && dispatch(FsGen.createLoadFileContext({path}))
   }, [
     dispatch,
@@ -144,20 +160,24 @@ export const useFsFileContext = (path: Types.Path) => {
     // Intentionally depend on pathItem instead of only pathItem.type so we
     // load when timestamp changes.
     pathItem,
+    // When url error happens it's possible that the URL of the item has
+    // changed due to HTTP server restarting. So reload in case of that.
+    urlError,
   ])
+  return setUrlError
 }
 
 export const useFsWatchDownloadForMobile = isMobile
   ? (downloadID: string, downloadIntent: Types.DownloadIntent | null) => {
-      const dlState = Container.useSelector(state =>
-        state.fs.downloads.state.get(downloadID, Constants.emptyDownloadState)
+      const dlState = Container.useSelector(
+        state => state.fs.downloads.state.get(downloadID) || Constants.emptyDownloadState
       )
       const finished = dlState !== Constants.emptyDownloadState && !Constants.downloadIsOngoing(dlState)
 
       const dlInfo = useFsDownloadInfo(downloadID)
       useFsFileContext(dlInfo.path)
-      const mimeType = Container.useSelector(state =>
-        state.fs.fileContext.get(dlInfo.path, Constants.emptyFileContext)
+      const mimeType = Container.useSelector(
+        state => state.fs.fileContext.get(dlInfo.path) || Constants.emptyFileContext
       ).contentType
 
       const dispatch = useDispatchWhenConnected()
@@ -171,3 +191,12 @@ export const useFsWatchDownloadForMobile = isMobile
       }, [finished, mimeType, downloadID, downloadIntent, dispatch])
     }
   : () => {}
+
+export const useFsBadge = (): RPCTypes.FilesTabBadge => {
+  useFsNonPathSubscriptionEffect(RPCTypes.SubscriptionTopic.filesTabBadge)
+  const dispatch = useDispatchWhenConnected()
+  React.useEffect(() => {
+    dispatch(FsGen.createLoadFilesTabBadge())
+  }, [dispatch])
+  return Container.useSelector(state => state.fs.badge)
+}

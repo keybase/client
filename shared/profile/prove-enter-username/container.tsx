@@ -46,8 +46,4 @@ const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   username: stateProps.username,
 })
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
-)(ProveEnterUsername)
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(ProveEnterUsername)

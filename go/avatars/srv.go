@@ -22,10 +22,10 @@ type Srv struct {
 	libkb.Contextified
 
 	httpSrv *manager.Srv
-	source  Source
+	source  libkb.AvatarLoaderSource
 }
 
-func NewSrv(g *libkb.GlobalContext, httpSrv *manager.Srv, source Source) *Srv {
+func NewSrv(g *libkb.GlobalContext, httpSrv *manager.Srv, source libkb.AvatarLoaderSource) *Srv {
 	s := &Srv{
 		Contextified: libkb.NewContextified(g),
 		httpSrv:      httpSrv,
@@ -95,6 +95,7 @@ func (s *Srv) serve(w http.ResponseWriter, req *http.Request) {
 	typ := req.URL.Query().Get("typ")
 	name := req.URL.Query().Get("name")
 	format := keybase1.AvatarFormat(req.URL.Query().Get("format"))
+	mode := req.URL.Query().Get("mode")
 	mctx := libkb.NewMetaContextBackground(s.G())
 
 	var loadFn func(libkb.MetaContext, []string, []keybase1.AvatarFormat) (keybase1.LoadAvatarsRes, error)
@@ -103,9 +104,15 @@ func (s *Srv) serve(w http.ResponseWriter, req *http.Request) {
 	case "user":
 		loadFn = s.source.LoadUsers
 		placeholderMap = userPlaceholders
+		if mode == "dark" {
+			placeholderMap = userPlaceholdersDark
+		}
 	case "team":
 		loadFn = s.source.LoadTeams
 		placeholderMap = teamPlaceholders
+		if mode == "dark" {
+			placeholderMap = teamPlaceholdersDark
+		}
 	default:
 		s.makeError(w, http.StatusBadRequest, "unknown avatar type: %s", typ)
 		return

@@ -79,7 +79,7 @@ func (c *CmdChatBotMemberSettings) Run() (err error) {
 			return err
 		}
 	}
-	if err := renderBotSettings(c.G(), c.username, botSettings); err != nil {
+	if err := renderBotSettings(c.G(), c.username, &conversationInfo.Id, botSettings); err != nil {
 		return err
 	}
 

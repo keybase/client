@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {noop} from 'lodash-es'
+import noop from 'lodash/noop'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
@@ -94,6 +94,7 @@ const styles = Styles.styleSheetCreate(() => ({
       ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall),
     },
     isMobile: {
+      justifyContent: 'flex-start',
       zIndex: -1, // behind ServiceTabBar
     },
   }),

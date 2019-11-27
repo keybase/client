@@ -68,20 +68,41 @@ const AccountPayment = (props: Props) => {
         ])}
       >
         <Kb.Box2 direction="horizontal" gap="xtiny" gapEnd={true} style={styles.alignItemsCenter}>
-          {!!props.icon && <Kb.Icon type={props.icon} color={Styles.globalColors.purple} fontSize={12} />}
+          {!!props.icon && (
+            <Kb.Icon
+              type={props.icon}
+              color={props.pending ? Styles.globalColors.purpleOrWhite : Styles.globalColors.purple}
+              fontSize={12}
+            />
+          )}
           <Kb.Text
             type="BodySmall"
-            style={Styles.collapseStyles([styles.purple, props.canceled && styles.lineThrough])}
+            style={Styles.collapseStyles([
+              styles.purple,
+              props.pending && styles.purpleOrWhite,
+              props.canceled && styles.lineThrough,
+            ])}
           >
             {props.action}{' '}
-            <Kb.Text type="BodySmallExtrabold" selectable={true} style={styles.purple}>
+            <Kb.Text
+              type="BodySmallExtrabold"
+              selectable={true}
+              style={Styles.collapseStyles([styles.purple, props.pending && styles.purpleOrWhite])}
+            >
               {props.amount}
             </Kb.Text>
             {props.approxWorth && (
-              <Kb.Text type="BodySmall" style={styles.purple}>
+              <Kb.Text
+                type="BodySmall"
+                style={Styles.collapseStyles([styles.purple, props.pending && styles.purpleOrWhite])}
+              >
                 {' '}
                 (approximately{' '}
-                <Kb.Text type="BodySmallExtrabold" selectable={true} style={styles.purple}>
+                <Kb.Text
+                  type="BodySmallExtrabold"
+                  selectable={true}
+                  style={Styles.collapseStyles([styles.purple, props.pending && styles.purpleOrWhite])}
+                >
                   {props.approxWorth}
                 </Kb.Text>
                 )
@@ -172,6 +193,7 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       purple: {color: Styles.globalColors.purpleDark},
+      purpleOrWhite: {color: Styles.globalColors.purpleDarkOrWhite},
       tooltipText: Styles.platformStyles({
         isElectron: {wordBreak: 'normal'},
       }),

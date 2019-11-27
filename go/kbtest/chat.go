@@ -13,6 +13,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/badges"
 	"github.com/keybase/client/go/chat/pager"
 
 	"github.com/keybase/client/go/chat/globals"
@@ -105,6 +106,7 @@ func NewChatMockWorld(t *testing.T, name string, numUsers int) (world *ChatMockW
 			TestContext: kbTc,
 			ChatG:       &globals.ChatContext{},
 		}
+		tc.ChatG.Badger = badges.NewBadger(kbTc.G)
 		tc.G.SetClock(world.Fc)
 		u, err := CreateAndSignupFakeUser("chat", tc.G)
 		if err != nil {
@@ -1017,6 +1019,7 @@ type ChatUI struct {
 	GiphyWindow           chan bool
 	CoinFlipUpdates       chan []chat1.UICoinFlipStatus
 	CommandMarkdown       chan *chat1.UICommandMarkdown
+	InboxLayoutCb         chan chat1.UIInboxLayout
 }
 
 func NewChatUI() *ChatUI {
@@ -1038,6 +1041,7 @@ func NewChatUI() *ChatUI {
 		GiphyWindow:           make(chan bool, 10),
 		CoinFlipUpdates:       make(chan []chat1.UICoinFlipStatus, 100),
 		CommandMarkdown:       make(chan *chat1.UICommandMarkdown, 10),
+		InboxLayoutCb:         make(chan chat1.UIInboxLayout, 200),
 	}
 }
 
@@ -1064,6 +1068,15 @@ func (c *ChatUI) ChatInboxConversation(ctx context.Context, arg chat1.ChatInboxC
 			ConvID:  inboxItem.GetConvID(),
 		}
 	}
+	return nil
+}
+
+func (c *ChatUI) ChatInboxLayout(ctx context.Context, layout string) error {
+	var uilayout chat1.UIInboxLayout
+	if err := json.Unmarshal([]byte(layout), &uilayout); err != nil {
+		return err
+	}
+	c.InboxLayoutCb <- uilayout
 	return nil
 }
 
@@ -1408,6 +1421,18 @@ func (m *MockChatHelper) GetMessage(ctx context.Context, uid gregor1.UID, convID
 
 func (m *MockChatHelper) UserReacjis(ctx context.Context, uid gregor1.UID) keybase1.UserReacjis {
 	return keybase1.UserReacjis{}
+}
+
+func (m *MockChatHelper) JourneycardTimeTravel(ctx context.Context, uid gregor1.UID, duration time.Duration) error {
+	return fmt.Errorf("JourneycardTimeTravel not implemented on mock")
+}
+
+func (m *MockChatHelper) JourneycardResetAllConvs(ctx context.Context, uid gregor1.UID) error {
+	return fmt.Errorf("JourneycardResetAllConvs not implemented on mock")
+}
+
+func (m *MockChatHelper) JourneycardDebugState(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (string, error) {
+	return "", fmt.Errorf("JourneycardDebugState not implemented on mock")
 }
 
 func (m *MockChatHelper) NewConversation(ctx context.Context, uid gregor1.UID, tlfName string,

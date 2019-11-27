@@ -398,6 +398,10 @@ func addNewAssertion(oldAssertion, newAssertion string) optionOp {
 		for _, u := range o.users {
 			err := o.engine.AddNewAssertion(u, oldAssertion, newAssertion)
 			o.expectSuccess("addNewAssertion", err)
+			// Sync the TLF to wait for the TLF handle change
+			// notifications to be processed. Ignore the error since
+			// the user might not even have access to that TLF.
+			_ = o.engine.SyncFromServer(u, o.tlfName, o.tlfType)
 		}
 	}
 }
@@ -1057,7 +1061,8 @@ type expectedEdit struct {
 	deletedFiles []string
 }
 
-func checkUserEditHistory(expectedEdits []expectedEdit) fileOp {
+func checkUserEditHistoryWithSort(
+	expectedEdits []expectedEdit, doSort bool) fileOp {
 	return fileOp{func(c *ctx) error {
 		history, err := c.engine.UserEditHistory(c.user)
 		if err != nil {
@@ -1077,9 +1082,17 @@ func checkUserEditHistory(expectedEdits []expectedEdit) fileOp {
 			for _, we := range h.History[0].Edits {
 				hEdits[i].files = append(hEdits[i].files, we.Filename)
 			}
+			if doSort {
+				sort.Strings(hEdits[i].files)
+				sort.Strings(expectedEdits[i].files)
+			}
 			for _, we := range h.History[0].Deletes {
 				hEdits[i].deletedFiles = append(
 					hEdits[i].deletedFiles, we.Filename)
+			}
+			if doSort {
+				sort.Strings(hEdits[i].deletedFiles)
+				sort.Strings(expectedEdits[i].deletedFiles)
 			}
 		}
 
@@ -1089,6 +1102,10 @@ func checkUserEditHistory(expectedEdits []expectedEdit) fileOp {
 		}
 		return nil
 	}, Defaults, "checkUserEditHistory()"}
+}
+
+func checkUserEditHistory(expectedEdits []expectedEdit) fileOp {
+	return checkUserEditHistoryWithSort(expectedEdits, false)
 }
 
 func checkDirtyPaths(expectedPaths []string) fileOp {

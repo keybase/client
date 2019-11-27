@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import {invert} from 'lodash-es'
+import invert from 'lodash/invert'
 import SuggestionList from './suggestion-list'
 
 type TransformerData = {
@@ -42,7 +42,7 @@ const matchesMarker = (
 }
 
 type AddSuggestorsProps = {
-  dataSources: {[K in string]: (filter: string) => Array<any>}
+  dataSources: {[K in string]: (filter: string) => {data: Array<any>; useSpaces: boolean}}
   keyExtractors?: {[K in string]: (item: any) => string}
   renderers: {[K in string]: (item: any, selected: boolean) => React.ElementType}
   suggestionListStyle?: Styles.StylesCrossPlatform
@@ -124,6 +124,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
 
     _getWordAtCursor = () => {
       if (this._inputRef.current) {
+        const {useSpaces} = this._getResults()
         const input = this._inputRef.current
         const selection = input.getSelection()
         const text = this._lastText
@@ -131,7 +132,20 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
           return null
         }
         const upToCursor = text.substring(0, selection.start)
-        const words = upToCursor.split(/ |\n/)
+
+        let wordRegex: string | RegExp
+
+        // If the datasource has data which contains spaces, we can't just split by a space character.
+        // So if we need to, we instead split on the next space which precedes another special marker
+        if (useSpaces) {
+          const markers = Object.values(this.props.suggestorToMarker).map(p =>
+            p instanceof RegExp ? p.source : p
+          )
+          wordRegex = new RegExp(` (?=${markers.join('|')})`, 'g')
+        } else {
+          wordRegex = / |\n/
+        }
+        const words = upToCursor.split(wordRegex)
         const word = words[words.length - 1]
         const position = {end: selection.start, start: selection.start - word.length}
         return {position, word}
@@ -140,8 +154,8 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
     }
 
     _stabilizeSelection = () => {
-      const results = this._getResults()
-      if (this.state.selected > results.length - 1) {
+      const {data} = this._getResults()
+      if (this.state.selected > data.length - 1) {
         this.setState({selected: 0})
       }
     }
@@ -203,7 +217,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
           if (!s.active) {
             return null
           }
-          const length = this._getResults().length
+          const length = this._getResults().data.length
           const selected = (((up ? s.selected - 1 : s.selected + 1) % length) + length) % length
           return selected === s.selected ? null : {selected}
         },
@@ -222,7 +236,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
         this._checkTrigger()
       }
 
-      if (!this.state.active || this._getResults().length === 0) {
+      if (!this.state.active || this._getResults().data.length === 0) {
         // not showing list, bail
         this.props.onKeyDown && this.props.onKeyDown(evt, ici)
         return
@@ -241,7 +255,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
         shouldCallParentCallback = false
       } else if (evt.key === 'Enter') {
         evt.preventDefault()
-        this._triggerTransform(this._getResults()[this.state.selected])
+        this._triggerTransform(this._getResults().data[this.state.selected])
         shouldCallParentCallback = false
       } else if (evt.key === 'Tab') {
         evt.preventDefault()
@@ -316,12 +330,12 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
         </Kb.ClickableBox>
       )
 
-    _getResults = () => {
+    _getResults = (): {data: any[]; useSpaces: boolean} => {
       const {active} = this.state
-      return active ? this.props.dataSources[active](this.state.filter) : []
+      return active ? this.props.dataSources[active](this.state.filter) : {data: [], useSpaces: false}
     }
 
-    _getSelected = () => (this.state.active ? this._getResults()[this.state.selected] : null)
+    _getSelected = () => (this.state.active ? this._getResults().data[this.state.selected] : null)
 
     render() {
       let overlay: React.ReactNode = null
@@ -329,7 +343,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
         this._validateProps()
       }
       let suggestionsVisible = false
-      const results = this._getResults()
+      const results = this._getResults().data
       if (results.length) {
         suggestionsVisible = true
         const active = this.state.active
@@ -384,7 +398,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
         <>
           {overlay}
           <WrappedComponent
-            {...wrappedOP as WrappedOwnProps}
+            {...(wrappedOP as WrappedOwnProps)}
             suggestionsVisible={suggestionsVisible}
             ref={this._setAttachmentRef}
             inputRef={this._inputRef}

@@ -20,7 +20,12 @@ type userEKBoxCacheItem struct {
 
 func newUserEKBoxCacheItem(userEKBoxed keybase1.UserEkBoxed, err error) userEKBoxCacheItem {
 	var ekErr *EphemeralKeyError
-	if e, ok := err.(EphemeralKeyError); ok {
+	e, ok := err.(EphemeralKeyError)
+	if !ok && err != nil {
+		e = newEphemeralKeyError(err.Error(), DefaultHumanErrMsg,
+			EphemeralKeyErrorKind_UNKNOWN, UserEKKind)
+	}
+	if err != nil {
 		ekErr = &e
 	}
 	return userEKBoxCacheItem{
@@ -109,10 +114,13 @@ func (s *UserEKBoxStorage) Get(mctx libkb.MetaContext, generation keybase1.EkGen
 		return userEK, cacheItem.Error()
 	}
 	userEK, err = s.unbox(mctx, generation, cacheItem.UserEKBoxed, contentCtime)
-	if err != nil { // if we can no longer unbox this, store the error
+	switch err.(type) {
+	case EphemeralKeyError: // if we can no longer unbox this, store the error
 		if perr := s.putLocked(mctx, generation, keybase1.UserEkBoxed{}, err); perr != nil {
 			mctx.Debug("unable to store unboxing error %v", perr)
 		}
+	default:
+		// don't store
 	}
 	return userEK, err
 }
@@ -198,7 +206,8 @@ func (s *UserEKBoxStorage) fetchAndStore(mctx libkb.MetaContext, generation keyb
 	keypair := seed.DeriveDHKey()
 
 	if !keypair.GetKID().Equal(userEKMetadata.Kid) {
-		return userEK, fmt.Errorf("Failed to verify server given seed against signed KID %s", userEKMetadata.Kid)
+		return userEK, fmt.Errorf("Failed to verify server given seed [%s] against signed KID [%s]. Box %+v",
+			userEKMetadata.Kid, keypair.GetKID(), userEKBoxed)
 	}
 
 	// Store the boxed version, return the unboxed

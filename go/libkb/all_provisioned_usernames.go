@@ -3,6 +3,7 @@ package libkb
 import (
 	"time"
 
+	"github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -11,10 +12,10 @@ type deviceForUsersRet struct {
 	UserConfigs []deviceForUser `json:"user_configs"`
 }
 type deviceForUser struct {
-	UID      keybase1.UID       `json:"uid"`
-	DeviceID keybase1.DeviceID  `json:"device_id"`
-	OK       bool               `json:"ok"`
-	Username NormalizedUsername `json:"username"`
+	UID      keybase1.UID      `json:"uid"`
+	DeviceID keybase1.DeviceID `json:"device_id"`
+	OK       bool              `json:"ok"`
+	Username string            `json:"username"`
 }
 
 // GetAllProvisionedUsernames looks into the current config.json file, and
@@ -54,15 +55,26 @@ func GetAllProvisionedUsernames(mctx MetaContext) (current NormalizedUsername, a
 
 	resp := deviceForUsersRet{}
 	err = mctx.G().API.PostDecode(mctx, arg, &resp)
-	if err != nil {
+	var configsForReturn []deviceForUser
+	if _, ok := err.(APINetError); ok {
+		// We got a network error but we can still return offline results.
+		mctx.Info("Failed to check server for revoked in GAPU: %+v", err)
+		// Put together a fake response from the offline data:
+		for _, uc := range allUCs {
+			configsForReturn = append(configsForReturn, deviceForUser{Username: string(uc.Name), OK: true})
+		}
+	} else if err != nil {
 		return "", nil, err
+	} else {
+		configsForReturn = resp.UserConfigs
 	}
 
-	for _, userConfig := range resp.UserConfigs {
+	for _, userConfig := range configsForReturn {
 		if userConfig.OK {
-			all = append(all, userConfig.Username)
-			if currentUC != nil && userConfig.Username == currentUC.GetUsername() {
-				current = userConfig.Username
+			nu := kbun.NewNormalizedUsername(userConfig.Username)
+			all = append(all, nu)
+			if currentUC != nil && nu == currentUC.GetUsername() {
+				current = nu
 			}
 		}
 	}

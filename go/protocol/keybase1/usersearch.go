@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/usersearch.avdl
 
 package keybase1
@@ -6,6 +6,7 @@ package keybase1
 import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type APIUserServiceID string
@@ -180,6 +181,7 @@ type NonUserDetails struct {
 	Service        *APIUserServiceResult `codec:"service,omitempty" json:"service,omitempty"`
 	SiteIcon       []SizedImage          `codec:"siteIcon" json:"siteIcon"`
 	SiteIconFull   []SizedImage          `codec:"siteIconFull" json:"siteIconFull"`
+	SiteIconWhite  []SizedImage          `codec:"siteIconWhite" json:"siteIconWhite"`
 }
 
 func (o NonUserDetails) DeepCopy() NonUserDetails {
@@ -224,6 +226,17 @@ func (o NonUserDetails) DeepCopy() NonUserDetails {
 			}
 			return ret
 		})(o.SiteIconFull),
+		SiteIconWhite: (func(x []SizedImage) []SizedImage {
+			if x == nil {
+				return nil
+			}
+			ret := make([]SizedImage, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.SiteIconWhite),
 	}
 }
 
@@ -288,11 +301,11 @@ type UserSearchClient struct {
 }
 
 func (c UserSearchClient) GetNonUserDetails(ctx context.Context, __arg GetNonUserDetailsArg) (res NonUserDetails, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.userSearch.getNonUserDetails", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.userSearch.getNonUserDetails", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c UserSearchClient) UserSearch(ctx context.Context, __arg UserSearchArg) (res []APIUserSearchResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.userSearch.userSearch", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.userSearch.userSearch", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

@@ -347,7 +347,7 @@ func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversat
 
 	defer idx.Trace(ctx, func() error { return err },
 		fmt.Sprintf("Indexer.reindex: conv: %v, minID: %v, maxID: %v, numMissing: %v",
-			rconv.GetName(), minIdxID, maxIdxID, len(missingIDs)))()
+			utils.GetRemoteConvDisplayName(rconv), minIdxID, maxIdxID, len(missingIDs)))()
 
 	reason := chat1.GetThreadReason_INDEXED_SEARCH
 	if len(missingIDs) < idx.pageSize {
@@ -404,7 +404,7 @@ func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversat
 					idx.Debug(ctx, "unable to update ui %v", err)
 				} else {
 					idx.Debug(ctx, "%v is %d%% indexed, inbox is %d%% indexed",
-						rconv.GetName(), md.PercentIndexed(conv), percentIndexed)
+						utils.GetRemoteConvDisplayName(rconv), md.PercentIndexed(conv), percentIndexed)
 				}
 			}
 		}
@@ -425,7 +425,6 @@ func (idx *Indexer) SearchableConvs(ctx context.Context, uid gregor1.UID, convID
 
 func (idx *Indexer) allConvs(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID) (map[string]types.RemoteConversation, error) {
 	// Find all conversations in our inbox
-	pagination := &chat1.Pagination{Num: idx.pageSize}
 	topicType := chat1.TopicType_CHAT
 	inboxQuery := &chat1.GetInboxQuery{
 		ConvID:            convID,
@@ -444,28 +443,29 @@ func (idx *Indexer) allConvs(ctx context.Context, uid gregor1.UID, convID *chat1
 	}
 	// convID -> remoteConv
 	convMap := map[string]types.RemoteConversation{}
-	for !pagination.Last {
-		select {
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		default:
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	default:
+	}
+	inbox, err := idx.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll,
+		inboxQuery)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, conv := range inbox.ConvsUnverified {
+		if conv.Conv.GetFinalizeInfo() != nil {
+			continue
 		}
-		inbox, err := idx.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll,
-			inboxQuery, pagination)
-		if err != nil {
-			return nil, err
+		// Don't index any conversation if we are a RESTRICTEDBOT member,
+		// we won't have full access to the messages. We use
+		// UntrustedTeamRole here since the server could just deny serving
+		// us instead of lying about the role.
+		if conv.Conv.ReaderInfo != nil && conv.Conv.ReaderInfo.UntrustedTeamRole == keybase1.TeamRole_RESTRICTEDBOT {
+			continue
 		}
-		if inbox.Pagination != nil {
-			pagination = inbox.Pagination
-			pagination.Num = idx.pageSize
-			pagination.Previous = nil
-		}
-		for _, conv := range inbox.ConvsUnverified {
-			if conv.Conv.GetFinalizeInfo() == nil {
-				convID := conv.GetConvID()
-				convMap[convID.String()] = conv
-			}
-		}
+		convMap[conv.ConvIDStr] = conv
 	}
 	return convMap, nil
 }
@@ -485,11 +485,11 @@ func (idx *Indexer) convsByMTime(ctx context.Context, uid gregor1.UID,
 	}
 	sortMap := make(map[string]gregor1.Time)
 	for _, conv := range ib {
-		sortMap[conv.GetConvID().String()] = utils.GetConvMtime(conv.Conv)
+		sortMap[conv.ConvIDStr] = utils.GetConvMtime(conv)
 	}
 	sort.Slice(res, func(i, j int) bool {
-		imtime := sortMap[res[i].GetConvID().String()]
-		jmtime := sortMap[res[j].GetConvID().String()]
+		imtime := sortMap[res[i].ConvIDStr]
+		jmtime := sortMap[res[j].ConvIDStr]
 		return imtime.After(jmtime)
 	})
 	return res
@@ -594,12 +594,14 @@ func (idx *Indexer) IndexInbox(ctx context.Context, uid gregor1.UID) (res map[st
 	// convID -> stats
 	res = map[string]chat1.ProfileSearchConvStats{}
 	for convIDStr, conv := range convMap {
-		idx.G().Log.CDebugf(ctx, "Indexing conv: %v", conv.GetName())
+		idx.G().Log.CDebugf(ctx, "Indexing conv: %v", utils.GetRemoteConvDisplayName(conv))
 		convStats, err := idx.indexConvWithProfile(ctx, conv, uid)
 		if err != nil {
-			idx.G().Log.CDebugf(ctx, "Indexing errored for conv: %v, %v", conv.GetName(), err)
+			idx.G().Log.CDebugf(ctx, "Indexing errored for conv: %v, %v",
+				utils.GetRemoteConvDisplayName(conv), err)
 		} else {
-			idx.G().Log.CDebugf(ctx, "Indexing completed for conv: %v, stats: %+v", conv.GetName(), convStats)
+			idx.G().Log.CDebugf(ctx, "Indexing completed for conv: %v, stats: %+v",
+				utils.GetRemoteConvDisplayName(conv), convStats)
 		}
 		res[convIDStr] = convStats
 	}
@@ -614,7 +616,7 @@ func (idx *Indexer) indexConvWithProfile(ctx context.Context, conv types.RemoteC
 		return res, err
 	}
 	defer func() {
-		res.ConvName = conv.GetName()
+		res.ConvName = utils.GetRemoteConvDisplayName(conv)
 		if md != nil {
 			min, max := MinMaxIDs(conv.Conv)
 			res.MinConvID = min

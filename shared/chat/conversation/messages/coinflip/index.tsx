@@ -10,6 +10,7 @@ import CoinFlipResult from './results'
 export type Props = {
   commitmentVis: string
   isSendError: boolean
+  measure?: () => void
   onFlipAgain: () => void
   revealVis: string
   resultText: string
@@ -86,6 +87,12 @@ class CoinFlip extends React.Component<Props, State> {
         )}
       </Kb.Box2>
     )
+
+  componentDidUpdate(prevProps: Props) {
+    if (this.props.phase != prevProps.phase) {
+      this.props.measure && this.props.measure()
+    }
+  }
   render() {
     const commitSrc = `data:image/png;base64, ${this.props.commitmentVis}`
     const revealSrc = `data:image/png;base64, ${this.props.revealVis}`

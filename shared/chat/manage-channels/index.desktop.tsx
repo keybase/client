@@ -93,8 +93,8 @@ const _rowBox = {
 
 const ManageChannels = (props: Props) => {
   let channelDisplay
-  if (props.channels.length === 0 || props.waitingForGet) {
-    channelDisplay = <Kb.ProgressIndicator style={{width: 48}} />
+  if (!props.isFiltered && (props.channels.length === 0 || props.waitingForGet)) {
+    channelDisplay = <Kb.ProgressIndicator type="Large" style={styles.progressIndicator} />
   } else {
     channelDisplay = (
       <Kb.Text
@@ -127,6 +127,17 @@ const ManageChannels = (props: Props) => {
           {props.teamname}
         </Kb.Text>
         {channelDisplay}
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.searchBox}>
+          <Kb.SearchFilter
+            size="full-width"
+            icon="iconfont-search"
+            placeholderText={`Search channels in ${props.teamname}`}
+            placeholderCentered={true}
+            mobileCancelButton={true}
+            hotkey="f"
+            onChange={props.onChangeSearch}
+          />
+        </Kb.Box2>
         <Kb.ScrollView style={{flex: 1, width: '100%'}}>
           {props.channels.map(c => (
             <Row
@@ -165,6 +176,7 @@ const styles = Styles.styleSheetCreate(() => ({
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',
     flex: 1,
+    height: '100%',
     paddingBottom: Styles.globalMargins.medium,
     paddingLeft: Styles.globalMargins.large,
     paddingRight: Styles.globalMargins.large,
@@ -176,7 +188,7 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   cover: {
     alignItems: 'center',
-    backgroundColor: Styles.globalColors.black_50OrWhite_75,
+    backgroundColor: Styles.globalColors.black_50OrBlack_60,
     justifyContent: 'center',
   },
   create: {
@@ -190,6 +202,15 @@ const styles = Styles.styleSheetCreate(() => ({
     common: {marginRight: Styles.globalMargins.xtiny},
     isElectron: {display: 'block'},
   }),
+  progressIndicator: {
+    margin: Styles.globalMargins.xtiny,
+    width: 48,
+  },
+  searchBox: {
+    paddingBottom: Styles.globalMargins.tiny,
+    paddingLeft: Styles.globalMargins.medium,
+    paddingRight: Styles.globalMargins.medium,
+  },
 }))
 
 export default ManageChannels

@@ -1,12 +1,13 @@
-import * as UsersGen from '../actions/users-gen'
+import * as ConfigGen from '../actions/config-gen'
+import * as Constants from '../constants/users'
+import * as Container from '../util/container'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as Tracker2Gen from '../actions/tracker2-gen'
-import * as Constants from '../constants/users'
 import * as Types from '../constants/types/users'
-import * as ConfigGen from '../actions/config-gen'
+import * as UsersGen from '../actions/users-gen'
+import * as EngineGen from '../actions/engine-gen-gen'
 
 const initialState: Types.State = Constants.makeState()
-const blankUserInfo = Constants.makeUserInfo()
 
 type Actions =
   | UsersGen.Actions
@@ -14,77 +15,89 @@ type Actions =
   | Tracker2Gen.UpdatedDetailsPayload
   | ConfigGen.SetAccountsPayload
   | TeamBuildingGen.SearchResultsLoadedPayload
+  | EngineGen.Keybase1NotifyTrackingNotifyUserBlockedPayload
 
-const reducer = (state: Types.State = initialState, action: Actions): Types.State => {
-  switch (action.type) {
-    case UsersGen.resetStore:
-      return initialState
-    case UsersGen.updateFullnames: {
-      return state.update('infoMap', map =>
-        map.withMutations(m => {
-          Object.keys(action.payload.usernameToFullname).forEach(username => {
-            m.update(username, info =>
-              (info || blankUserInfo).set('fullname', action.payload.usernameToFullname[username])
-            )
-          })
-        })
-      )
-    }
-    case UsersGen.updateBrokenState: {
-      const {newlyBroken, newlyFixed} = action.payload
+const updateInfo = (map: Map<string, Types.UserInfo>, username: string, info: Partial<Types.UserInfo>) => {
+  const next = {
+    ...(map.get(username) || null),
+    ...info,
+  }
 
-      return state.update('infoMap', map =>
-        map.withMutations(m => {
-          newlyFixed.forEach(user => {
-            // only make it if one exists already
-            m.update(user, info => (info ? info.set('broken', false) : info))
-          })
-          newlyBroken.forEach(user => {
-            m.update(user, info => (info || blankUserInfo).set('broken', true))
-          })
-        })
-      )
-    }
-    case Tracker2Gen.updatedDetails:
-      return state.updateIn(['infoMap', action.payload.username], (userInfo = blankUserInfo) =>
-        userInfo.set('fullname', action.payload.fullname)
-      )
-    case Tracker2Gen.updateFollowers: {
-      return state.update('infoMap', map =>
-        map.withMutations(m => {
-          const all = [...action.payload.followers, ...action.payload.following]
-          all.forEach(({username, fullname}) => {
-            m.update(username, old => (old || blankUserInfo).merge({fullname}))
-          })
-        })
-      )
-    }
-    case ConfigGen.setAccounts:
-      return state.update('infoMap', map =>
-        map.withMutations(m => {
-          action.payload.configuredAccounts.forEach(({username, fullname}) => {
-            m.update(username, old => (old || blankUserInfo).merge({fullname}))
-          })
-        })
-      )
-    case TeamBuildingGen.searchResultsLoaded:
-      return state.update('infoMap', map =>
-        map.withMutations(m => {
-          action.payload.users.forEach(({serviceMap, prettyName}) => {
-            const kbName = serviceMap.keybase
-            if (kbName) {
-              // only if unknown
-              if (!m.getIn([kbName, 'fullname'])) {
-                m.update(kbName, old => (old || blankUserInfo).merge({fullname: prettyName}))
-              }
-            }
-          })
-        })
-      )
-    // Saga only actions
-    default:
-      return state
+  // cleanup data structure so its not full of empty items
+  !next.fullname && delete next.fullname
+  !next.broken && delete next.broken
+  !next.bio && delete next.bio
+
+  if (Object.keys(next).length) {
+    map.set(username, next)
+  } else {
+    map.delete(username)
   }
 }
 
-export default reducer
+export default Container.makeReducer<Actions, Types.State>(initialState, {
+  [UsersGen.resetStore]: () => initialState,
+  [UsersGen.updateFullnames]: (draftState, action) => {
+    const {infoMap} = draftState
+    const {usernameToFullname} = action.payload
+    for (const [username, fullname] of Object.entries(usernameToFullname)) {
+      updateInfo(infoMap, username, {fullname})
+    }
+  },
+  [UsersGen.updateBrokenState]: (draftState, action) => {
+    const {newlyBroken, newlyFixed} = action.payload
+    const {infoMap} = draftState
+    newlyFixed.forEach(username => updateInfo(infoMap, username, {broken: false}))
+    newlyBroken.forEach(username => updateInfo(infoMap, username, {broken: true}))
+  },
+  [UsersGen.updateBio]: (draftState, action) => {
+    const {username, userCard} = action.payload
+    const {bioDecorated} = userCard // using bioDecorated to make links clickable and shruggies whole
+    const {infoMap} = draftState
+    updateInfo(infoMap, username, {bio: bioDecorated})
+  },
+  [Tracker2Gen.updatedDetails]: (draftState, action) => {
+    const {username, fullname} = action.payload
+    const {infoMap} = draftState
+    updateInfo(infoMap, username, {fullname})
+  },
+  [Tracker2Gen.updateFollowers]: (draftState, action) => {
+    const {followers, following} = action.payload
+    const all = [...followers, ...following]
+    const {infoMap} = draftState
+    all.forEach(({username, fullname}) => updateInfo(infoMap, username, {fullname}))
+  },
+  [ConfigGen.setAccounts]: (draftState, action) => {
+    const {configuredAccounts} = action.payload
+    const {infoMap} = draftState
+    configuredAccounts.forEach(({username, fullname}) => updateInfo(infoMap, username, {fullname}))
+  },
+  [TeamBuildingGen.searchResultsLoaded]: (draftState, action) => {
+    const {users} = action.payload
+    const {infoMap} = draftState
+    users.forEach(({serviceMap, prettyName}) => {
+      const {keybase} = serviceMap
+      if (!keybase) return
+      const old = infoMap.get(keybase)
+      // only update if unknown
+      if (!old || !old.fullname) {
+        updateInfo(infoMap, keybase, {fullname: prettyName})
+      }
+    })
+  },
+  [UsersGen.updateBlockState]: (draftState, action) => {
+    const {blocks} = action.payload
+    blocks.forEach(({username, chatBlocked, followBlocked}) => {
+      // Make blockMap keys normalized usernames.
+      draftState.blockMap.set(username.toLowerCase(), {chatBlocked, followBlocked})
+    })
+  },
+  [EngineGen.keybase1NotifyTrackingNotifyUserBlocked]: (draftState, action) => {
+    const {blocked} = action.payload.params.b
+    const {infoMap} = draftState
+    const toProcess = blocked ?? []
+    toProcess.forEach(e => {
+      updateInfo(infoMap, e, {blocked: true})
+    })
+  },
+})

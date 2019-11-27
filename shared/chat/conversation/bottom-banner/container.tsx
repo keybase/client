@@ -6,7 +6,7 @@ import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import {InviteBanner} from '.'
 import openSMS from '../../../util/sms'
-import {showShareActionSheetFromURL} from '../../../actions/platform-specific'
+import {showShareActionSheet} from '../../../actions/platform-specific'
 
 const installMessage = `I sent you encrypted messages on Keybase. You can install it here: https://keybase.io/phone-app`
 
@@ -22,7 +22,7 @@ type Props = {
   openShareSheet: () => void
   openSMS: (email: string) => void
   onDismiss: () => void
-  usernameToContactName: {[username: string]: string}
+  usernameToContactName: Map<string, string>
 }
 
 const BannerContainer = (props: Props) => {
@@ -48,7 +48,7 @@ const mapStateToProps = (state: Container.TypedState, {conversationIDKey}: OwnPr
   const _following = state.config.following
   const _meta = Constants.getMeta(state, conversationIDKey)
   const _users = state.users
-  const _dismissed = state.chat2.dismissedInviteBannersMap.get(conversationIDKey, false)
+  const _dismissed = state.chat2.dismissedInviteBannersMap.get(conversationIDKey) || false
   return {
     _dismissed,
     _following,
@@ -73,16 +73,16 @@ export default Container.connect(
       type = 'none'
     } else {
       const broken = stateProps._meta.participants.filter(
-        p => stateProps._users.infoMap.getIn([p, 'broken'], false) && stateProps._following.has(p)
+        p => (stateProps._users.infoMap.get(p) || {broken: false}).broken && stateProps._following.has(p)
       )
-      if (!broken.isEmpty()) {
+      if (broken.length > 0) {
         type = 'broken'
-        users = broken.toArray()
+        users = broken
       } else {
         const toInvite = stateProps._meta.participants.filter(p => p.includes('@'))
-        if (!toInvite.isEmpty()) {
+        if (toInvite.length > 0) {
           type = 'invite'
-          users = toInvite.toArray()
+          users = toInvite
         } else {
           type = 'none'
         }
@@ -95,12 +95,12 @@ export default Container.connect(
       onDismiss: dispatchProps.onDismiss,
       openSMS: (phoneNumber: string) => openSMS(['+' + phoneNumber], installMessage),
       openShareSheet: () =>
-        showShareActionSheetFromURL({
+        showShareActionSheet({
           message: installMessage,
           mimeType: 'text/plain',
         }),
       type,
-      usernameToContactName: stateProps._meta.participantToContactName.toObject(),
+      usernameToContactName: stateProps._meta.participantToContactName,
       users,
     }
   }

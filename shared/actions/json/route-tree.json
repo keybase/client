@@ -24,7 +24,7 @@
     },
     "resetStack": {
       "_description": "Reset a specific stack. actions is route tree actions TODO better typing",
-      "tab": "Tabs.AppTab",
+      "tab": ["Tabs.AppTab", "'loggedOut'"],
       "actions": "Array<any>",
       "index": "number"
     }

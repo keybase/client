@@ -74,6 +74,17 @@ const _rowBox = {
 
 const ManageChannels = (props: Props) => (
   <Kb.Box style={styles.box}>
+    <Kb.Box2 direction="horizontal" fullWidth={true}>
+      <Kb.SearchFilter
+        size="full-width"
+        icon="iconfont-search"
+        placeholderText={`Search channels in ${props.teamname}`}
+        placeholderCentered={true}
+        mobileCancelButton={true}
+        hotkey="f"
+        onChange={props.onChangeSearch}
+      />
+    </Kb.Box2>
     <Kb.ScrollView style={{alignSelf: 'flex-start', width: '100%'}}>
       {props.canCreateChannels && (
         <Kb.Box style={styles.create}>

@@ -52,6 +52,17 @@ const mapDispatchToProps = dispatch => ({
       })
     )
   },
+  _onAllMedia: (conversationIDKey: Types.ConversationIDKey) =>
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {conversationIDKey, tab: 'attachments'},
+            selected: 'chatInfoPanel',
+          },
+        ],
+      })
+    ),
   _onDelete: (message: Types.Message) => {
     dispatch(
       Chat2Gen.createMessageDelete({
@@ -121,6 +132,7 @@ export default Container.connect(
       deviceType: message.deviceType,
       isDeleteable,
       onAddReaction: isMobile ? () => dispatchProps._onAddReaction(message) : undefined,
+      onAllMedia: () => dispatchProps._onAllMedia(message.conversationIDKey),
       onDelete: isDeleteable ? () => dispatchProps._onDelete(message) : undefined,
       onDownload: !isMobile && !message.downloadPath ? () => dispatchProps._onDownload(message) : undefined,
       // We only show the share/save options for video if we have the file stored locally from a download

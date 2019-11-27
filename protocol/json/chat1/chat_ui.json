@@ -54,6 +54,176 @@
     },
     {
       "type": "record",
+      "name": "UIInboxSmallTeamRow",
+      "fields": [
+        {
+          "type": "string",
+          "name": "convID"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "time"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "snippet"
+        },
+        {
+          "type": "SnippetDecoration",
+          "name": "snippetDecoration"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "draft"
+        },
+        {
+          "type": "boolean",
+          "name": "isMuted"
+        },
+        {
+          "type": "boolean",
+          "name": "isTeam"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "UIInboxBigTeamRowTyp",
+      "symbols": [
+        "LABEL_1",
+        "CHANNEL_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UIInboxBigTeamChannelRow",
+      "fields": [
+        {
+          "type": "string",
+          "name": "convID"
+        },
+        {
+          "type": "string",
+          "name": "teamname"
+        },
+        {
+          "type": "string",
+          "name": "channelname"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "draft"
+        },
+        {
+          "type": "boolean",
+          "name": "isMuted"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UIInboxBigTeamLabelRow",
+      "fields": [
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "string",
+          "name": "id"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "UIInboxBigTeamRow",
+      "switch": {
+        "type": "UIInboxBigTeamRowTyp",
+        "name": "state"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "LABEL",
+            "def": false
+          },
+          "body": "UIInboxBigTeamLabelRow"
+        },
+        {
+          "label": {
+            "name": "CHANNEL",
+            "def": false
+          },
+          "body": "UIInboxBigTeamChannelRow"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UIInboxReselectInfo",
+      "fields": [
+        {
+          "type": "string",
+          "name": "oldConvID"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "newConvID"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UIInboxLayout",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "UIInboxSmallTeamRow"
+          },
+          "name": "smallTeams"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UIInboxBigTeamRow"
+          },
+          "name": "bigTeams"
+        },
+        {
+          "type": [
+            null,
+            "UIInboxReselectInfo"
+          ],
+          "name": "reselectInfo"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UIInboxSmallTeamRow"
+          },
+          "name": "widgetList"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UnverifiedInboxUIItemMetadata",
       "fields": [
         {
@@ -73,7 +243,7 @@
           "name": "snippet"
         },
         {
-          "type": "string",
+          "type": "SnippetDecoration",
           "name": "snippetDecoration"
         },
         {
@@ -99,6 +269,10 @@
         {
           "type": "string",
           "name": "convID"
+        },
+        {
+          "type": "string",
+          "name": "tlfID"
         },
         {
           "type": "TopicType",
@@ -230,13 +404,6 @@
           "name": "items"
         },
         {
-          "type": [
-            null,
-            "UIPagination"
-          ],
-          "name": "pagination"
-        },
-        {
           "type": "boolean",
           "name": "offline"
         }
@@ -263,6 +430,10 @@
         {
           "type": "string",
           "name": "assertion"
+        },
+        {
+          "type": "boolean",
+          "name": "inConvName"
         },
         {
           "type": [
@@ -303,6 +474,10 @@
           "name": "convID"
         },
         {
+          "type": "string",
+          "name": "tlfID"
+        },
+        {
           "type": "TopicType",
           "name": "topicType"
         },
@@ -323,7 +498,7 @@
           "name": "snippet"
         },
         {
-          "type": "string",
+          "type": "SnippetDecoration",
           "name": "snippetDecoration"
         },
         {
@@ -468,6 +643,14 @@
           "name": "botCommands"
         },
         {
+          "type": {
+            "type": "map",
+            "values": "string",
+            "keys": "string"
+          },
+          "name": "botAliases"
+        },
+        {
           "type": [
             null,
             "UIPinnedMessage"
@@ -515,13 +698,6 @@
             "items": "InboxUIItem"
           },
           "name": "items"
-        },
-        {
-          "type": [
-            null,
-            "UIPagination"
-          ],
-          "name": "pagination"
         },
         {
           "type": "boolean",
@@ -879,11 +1055,8 @@
           "name": "pinnedMessageID"
         },
         {
-          "type": [
-            null,
-            "gregor1.UID"
-          ],
-          "name": "botUID"
+          "type": "string",
+          "name": "botUsername"
         }
       ]
     },
@@ -958,13 +1131,32 @@
       ]
     },
     {
+      "type": "record",
+      "name": "UIMessageJourneycard",
+      "fields": [
+        {
+          "type": "double",
+          "name": "ordinal"
+        },
+        {
+          "type": "JourneycardType",
+          "name": "cardType"
+        },
+        {
+          "type": "MessageID",
+          "name": "highlightMsgID"
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "MessageUnboxedState",
       "symbols": [
         "VALID_1",
         "ERROR_2",
         "OUTBOX_3",
-        "PLACEHOLDER_4"
+        "PLACEHOLDER_4",
+        "JOURNEYCARD_5"
       ]
     },
     {
@@ -1002,6 +1194,13 @@
             "def": false
           },
           "body": "MessageUnboxedPlaceholder"
+        },
+        {
+          "label": {
+            "name": "JOURNEYCARD",
+            "def": false
+          },
+          "body": "UIMessageJourneycard"
         }
       ]
     },
@@ -1101,6 +1300,10 @@
         {
           "type": "string",
           "name": "url"
+        },
+        {
+          "type": "string",
+          "name": "punycode"
         }
       ]
     },
@@ -1759,6 +1962,19 @@
         {
           "name": "sessionID",
           "type": "int"
+        }
+      ],
+      "response": null
+    },
+    "chatInboxLayout": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "layout",
+          "type": "string"
         }
       ],
       "response": null

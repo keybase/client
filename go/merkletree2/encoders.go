@@ -4,105 +4,96 @@ import (
 	"crypto/hmac"
 	cryptorand "crypto/rand"
 	"crypto/sha512"
-	"fmt"
 
-	"github.com/keybase/client/go/msgpack"
+	"github.com/keybase/go-codec/codec"
 )
 
 type EncodingType uint8
 
 const (
-	// For KeyValuePairs, the hash of the pair (k, v) is p(p(k, s), (k,v) ))
-	// where p = HMAC-SHA512-256 and s is a secret unique per Merkle seqno. For
-	// generic data structures, use SHA512-256 to hash the msgpack canonical
-	// encoding.
+	// For KeyValuePairs, the hash of the pair (k, v) is p(p(k, s), v )) where p
+	// = HMAC-SHA512-256 and s is a secret unique per Merkle seqno. Note that
+	// users learn k, v and p(k,s) but not s itself, so the hash is a commitment
+	// to the value only and not the key. However, the key is written and hashed
+	// as part of the merkle tree leaf node, so keybase cannot equivocate that.
+	// For generic data structures, this encoder uses SHA512-256 to hash the
+	// msgpack canonical encoding.
 	EncodingTypeBlindedSHA512_256v1 EncodingType = 1
 
-	// Simple messagepack encoding and SHA256_512 hashing. Used for testing.
-	EncodingTypeSHA512_256ForTesting EncodingType = 127
+	// Generic testing encoding.
+	EncodingTypeForTesting EncodingType = 127
 )
 
 func (e EncodingType) GetEncoder() Encoder {
 	switch e {
 	case EncodingTypeBlindedSHA512_256v1:
-		return BlindedSHA512_256v1Encoder{}
-	case EncodingTypeSHA512_256ForTesting:
-		return SHA512_256Encoder{}
+		return NewBlindedSHA512_256v1Encoder()
 	default:
 		panic("Invalid EncodingType")
 	}
 }
 
-type BlindedSHA512_256v1Encoder struct{}
+type BlindedSHA512_256v1Encoder struct {
+	mh codec.MsgpackHandle
+}
 
-var _ Encoder = BlindedSHA512_256v1Encoder{}
+var _ Encoder = &BlindedSHA512_256v1Encoder{}
 
-func (e BlindedSHA512_256v1Encoder) EncodeAndHashGeneric(o interface{}) (Hash, error) {
-	enc, err := msgpack.EncodeCanonical(o)
+func NewBlindedSHA512_256v1Encoder() *BlindedSHA512_256v1Encoder {
+	var mh codec.MsgpackHandle
+	mh.WriteExt = true
+	mh.Canonical = true
+
+	return &BlindedSHA512_256v1Encoder{mh: mh}
+}
+
+func (e *BlindedSHA512_256v1Encoder) Encode(o interface{}) (out []byte, err error) {
+	return out, codec.NewEncoderBytes(&out, &e.mh).Encode(o)
+}
+
+func (e *BlindedSHA512_256v1Encoder) Decode(dest interface{}, src []byte) error {
+	return codec.NewDecoderBytes(src, &e.mh).Decode(dest)
+}
+
+func (e *BlindedSHA512_256v1Encoder) EncodeAndHashGeneric(o interface{}) ([]byte, Hash, error) {
+	enc, err := e.Encode(o)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	hasher := sha512.New512_256()
-	_, err = hasher.Write(enc)
-	if err != nil {
-		return nil, err
-	}
-	return hasher.Sum(nil), nil
+	// hasher.Write never errors.
+	_, _ = hasher.Write(enc)
+	return enc, hasher.Sum(nil), nil
 }
 
-func (e BlindedSHA512_256v1Encoder) HashKeyValuePairWithKeySpecificSecret(kvp KeyValuePair, kss KeySpecificSecret) (Hash, error) {
-	enc, err := msgpack.EncodeCanonical(kvp)
+func (e *BlindedSHA512_256v1Encoder) HashKeyValuePairWithKeySpecificSecret(kvp KeyValuePair, kss KeySpecificSecret) (Hash, error) {
+	encVal, err := e.Encode(kvp.Value)
 	if err != nil {
 		return nil, err
 	}
+	return e.HashKeyEncodedValuePairWithKeySpecificSecret(KeyEncodedValuePair{Key: kvp.Key, Value: encVal}, kss)
+}
+
+func (e *BlindedSHA512_256v1Encoder) HashKeyEncodedValuePairWithKeySpecificSecret(kevp KeyEncodedValuePair, kss KeySpecificSecret) (Hash, error) {
 	hasher := hmac.New(sha512.New512_256, kss)
-	_, err = hasher.Write(enc)
-	if err != nil {
-		return nil, err
-	}
+	// hasher.Write never errors.
+	_, _ = hasher.Write(kevp.Value)
 	return hasher.Sum(nil), nil
 }
 
-func (e BlindedSHA512_256v1Encoder) GenerateMasterSecret(Seqno) (MasterSecret, error) {
+func (e *BlindedSHA512_256v1Encoder) GenerateMasterSecret(Seqno) (MasterSecret, error) {
 	secret := make([]byte, 32)
 	_, err := cryptorand.Read(secret)
 	return MasterSecret(secret), err
 }
 
-func (e BlindedSHA512_256v1Encoder) ComputeKeySpecificSecret(ms MasterSecret, k Key) KeySpecificSecret {
+func (e *BlindedSHA512_256v1Encoder) ComputeKeySpecificSecret(ms MasterSecret, k Key) KeySpecificSecret {
 	hasher := hmac.New(sha512.New512_256, ms)
-	_, err := hasher.Write(k)
-	if err != nil {
-		panic("Error hashing")
-	}
+	// hasher.Write never errors.
+	_, _ = hasher.Write(k)
 	return hasher.Sum(nil)
 }
 
-type SHA512_256Encoder struct{}
-
-var _ Encoder = SHA512_256Encoder{}
-
-func (e SHA512_256Encoder) EncodeAndHashGeneric(o interface{}) (Hash, error) {
-	enc, err := msgpack.EncodeCanonical(o)
-	if err != nil {
-		return nil, err
-	}
-	hasher := sha512.New512_256()
-	_, err = hasher.Write(enc)
-	if err != nil {
-		return nil, err
-	}
-	return hasher.Sum(nil), nil
-}
-
-func (e SHA512_256Encoder) HashKeyValuePairWithKeySpecificSecret(kvp KeyValuePair, _ KeySpecificSecret) (Hash, error) {
-	return e.EncodeAndHashGeneric(kvp)
-}
-
-func (e SHA512_256Encoder) GenerateMasterSecret(_ Seqno) (MasterSecret, error) {
-	return nil, fmt.Errorf("This encoder does not support blinding")
-}
-
-func (e SHA512_256Encoder) ComputeKeySpecificSecret(_ MasterSecret, _ Key) KeySpecificSecret {
-	return nil
+func (e *BlindedSHA512_256v1Encoder) GetEncodingType() EncodingType {
+	return EncodingTypeBlindedSHA512_256v1
 }

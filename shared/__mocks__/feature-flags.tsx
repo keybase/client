@@ -7,9 +7,9 @@ if (!__STORYBOOK__) {
 const ff: FeatureFlags = {
   admin: false,
   airdrop: true,
+  audioAttachments: true,
   chatIndexProfilingEnabled: false,
   conflictResolution: false,
-  darkMode: false,
   dbCleanEnabled: false,
   fastAccountSwitch: true,
   foldersInProfileTab: true,
@@ -20,9 +20,8 @@ const ff: FeatureFlags = {
   outOfDateBanner: true,
   plansEnabled: false,
   proofProviders: true,
-  resetPipeline: true,
   stellarExternalPartners: false,
-  wonderland: true,
+  userBlocking: true,
 }
 
 console.warn('feature flag mock in effect')

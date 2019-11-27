@@ -62,6 +62,7 @@ const load = () => {
       <Kb.Reloadable
         {...props}
         onBack={Sb.action('onBack')}
+        // @ts-ignore TS is correct its not a prop in the regular connect
         needsReload={true}
         reason={longReason}
         title="Title"

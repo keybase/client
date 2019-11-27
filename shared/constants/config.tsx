@@ -1,8 +1,12 @@
 import * as Types from './types/config'
 import * as ChatConstants from './chat2'
-import {uniq, sortBy} from 'lodash-es'
+import uniq from 'lodash/uniq'
+import sortBy from 'lodash/sortBy'
 import {defaultUseNativeFrame, runMode} from './platform'
 import {isDarkMode as _isDarkMode} from '../styles/dark-mode'
+
+export const loginAsOtherUserWaitingKey = 'config:loginAsOther'
+export const createOtherAccountWaitingKey = 'config:createOther'
 
 export const maxHandshakeTries = 3
 export const defaultKBFSPath = runMode === 'prod' ? '/keybase' : `/keybase.${runMode}`
@@ -21,10 +25,10 @@ export const prepareAccountRows = <T extends {username: string; hasStoredSecret:
   accountRows: Array<T>,
   myUsername: string
 ): Array<T> =>
-  sortBy(accountRows.filter(account => account.username !== myUsername), [
-    a => !a.hasStoredSecret,
-    'username',
-  ])
+  sortBy(
+    accountRows.filter(account => account.username !== myUsername),
+    [a => !a.hasStoredSecret, 'username']
+  )
 
 type Url = {
   protocol: string
@@ -127,7 +131,9 @@ export const initialState: Types.State = {
   uid: '',
   useNativeFrame: defaultUseNativeFrame,
   userActive: true,
+  userSwitching: false,
   username: '',
+  whatsNewLastSeenVersion: '',
   windowState: {
     dockHidden: false,
     height: 800,

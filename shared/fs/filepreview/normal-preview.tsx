@@ -8,6 +8,7 @@ import View from './view'
 
 type NormalPreviewProps = {
   path: Types.Path
+  onUrlError: (err: string) => void
 }
 
 type State = {
@@ -25,8 +26,18 @@ export default class NormalPreview extends React.PureComponent<NormalPreviewProp
     return (
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
         <Kbfs.Errs />
-        <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.greyContainer}>
-          <View path={this.props.path} onLoadingStateChange={this._onLoadingStateChange} />
+        <Kb.Box2
+          direction="vertical"
+          centerChildren={true}
+          fullWidth={true}
+          fullHeight={true}
+          style={styles.greyContainer}
+        >
+          <View
+            path={this.props.path}
+            onLoadingStateChange={this._onLoadingStateChange}
+            onUrlError={this.props.onUrlError}
+          />
           {this.state.loading && <Kb.ProgressIndicator style={styles.loading} />}
         </Kb.Box2>
         <Footer path={this.props.path} />

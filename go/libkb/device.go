@@ -41,6 +41,11 @@ type Device struct {
 	MTime       keybase1.Time     `json:"mtime"`
 }
 
+type DeviceWithDeviceNumber struct {
+	*Device
+	DeviceNumberOfType int
+}
+
 // NewPaperDevice creates a new paper backup key device
 func NewPaperDevice(passphrasePrefix string) (*Device, error) {
 	did, err := NewDeviceID()
@@ -123,6 +128,26 @@ func (d *Device) ProtExport() *keybase1.Device {
 		DeviceID: d.ID,
 		CTime:    d.CTime,
 		MTime:    d.MTime,
+	}
+	if d.Description != nil {
+		ex.Name = *d.Description
+	}
+	if d.Status != nil {
+		ex.Status = *d.Status
+	}
+	if d.Kid.Exists() {
+		ex.VerifyKey = d.Kid
+	}
+	return ex
+}
+
+func (d DeviceWithDeviceNumber) ProtExportWithDeviceNum() *keybase1.Device {
+	ex := &keybase1.Device{
+		Type:               d.Type,
+		DeviceID:           d.ID,
+		CTime:              d.CTime,
+		MTime:              d.MTime,
+		DeviceNumberOfType: d.DeviceNumberOfType,
 	}
 	if d.Description != nil {
 		ex.Name = *d.Description

@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -187,6 +188,34 @@ func TestStatNonExistent(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.False(t, de.Writable)
+}
+
+func TestSymlink(t *testing.T) {
+	ctx := context.Background()
+	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
+	sfs := newSimpleFS(env.EmptyAppStateUpdater{}, config)
+
+	t.Logf("Make a file and then symlink it")
+	p := keybase1.NewPathWithKbfsPath(`/private/jdoe`)
+	target := pathAppend(p, `test1.txt`)
+	writeRemoteFile(ctx, t, sfs, target, []byte(`foo`))
+	link := pathAppend(p, `link`)
+	err := sfs.SimpleFSSymlink(ctx, keybase1.SimpleFSSymlinkArg{
+		Target: path.Base(target.String()),
+		Link:   link,
+	})
+	require.NoError(t, err)
+	require.Equal(t, "foo",
+		string(readRemoteFile(ctx, t, sfs, link)))
+
+	// Regression for HOTPOT-1276
+	t.Log("Make sure a link called . will fail")
+	badLink := pathAppend(p, `.`)
+	err = sfs.SimpleFSSymlink(ctx, keybase1.SimpleFSSymlinkArg{
+		Target: path.Base(target.String()),
+		Link:   badLink,
+	})
+	require.Error(t, err)
 }
 
 func TestList(t *testing.T) {
@@ -654,7 +683,9 @@ func readRemoteFile(ctx context.Context, t *testing.T, sfs *SimpleFS, path keyba
 		Size:   de.Size * 2, // Check that reading past the end works.
 	})
 	require.NoError(t, err)
-	require.Len(t, data.Data, de.Size)
+	if de.DirentType != keybase1.DirentType_SYM {
+		require.Len(t, data.Data, de.Size)
+	}
 
 	// Starting the read past the end shouldn't matter either.
 	dataPastEnd, err := sfs.SimpleFSRead(ctx, keybase1.SimpleFSReadArg{
@@ -1428,6 +1459,11 @@ func TestFavoriteConflicts(t *testing.T) {
 	require.Equal(t, 1, stuck)
 	require.Equal(t, 1, notStuck)
 
+	t.Log("Check for stuck badge state")
+	badge, err := sfs.SimpleFSGetFilesTabBadge(ctx)
+	require.NoError(t, err)
+	require.Equal(t, keybase1.FilesTabBadge_UPLOADING_STUCK, badge)
+
 	t.Log("Resolve the conflict")
 	err = sfs.SimpleFSClearConflictState(ctx, pathPub)
 	require.NoError(t, err)
@@ -1488,6 +1524,12 @@ func TestFavoriteConflicts(t *testing.T) {
 	for _, f := range favs.FavoriteFolders {
 		require.Nil(t, f.ConflictState)
 	}
+
+	t.Log("Try stat'ing the old local view, should get an error")
+	_, err = sfs.SimpleFSStat(ctx, keybase1.SimpleFSStatArg{
+		Path: pathLocalView,
+	})
+	require.Error(t, err)
 }
 
 func TestSyncConfigFavorites(t *testing.T) {
@@ -1598,4 +1640,74 @@ func TestRemoveFavorite(t *testing.T) {
 	require.Len(t, favs.FavoriteFolders, 2)
 	found = find()
 	require.False(t, found)
+}
+
+func TestBadgeState(t *testing.T) {
+	ctx := context.Background()
+	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_for_simplefs_badge")
+	defer os.RemoveAll(tempdir)
+	require.NoError(t, err)
+	sfs := newSimpleFS(
+		env.EmptyAppStateUpdater{}, libkbfs.MakeTestConfigOrBust(t, "jdoe"))
+	defer closeSimpleFS(ctx, t, sfs)
+	config := sfs.config.(*libkbfs.ConfigLocal)
+
+	t.Log("Enable journaling")
+	err = config.EnableDiskLimiter(tempdir)
+	require.NoError(t, err)
+	err = config.EnableJournaling(
+		ctx, tempdir, libkbfs.TLFJournalBackgroundWorkEnabled)
+	require.NoError(t, err)
+	jManager, err := libkbfs.GetJournalManager(config)
+	require.NoError(t, err)
+	err = jManager.EnableAuto(ctx)
+	require.NoError(t, err)
+
+	t.Log("No badge yet")
+	badge, err := sfs.SimpleFSGetFilesTabBadge(ctx)
+	require.NoError(t, err)
+	require.Equal(t, keybase1.FilesTabBadge_NONE, badge)
+
+	pathPriv := keybase1.NewPathWithKbfsPath(`/private/jdoe`)
+	pathPub := keybase1.NewPathWithKbfsPath(`/public/jdoe`)
+
+	t.Log("Add one private file.")
+	writeRemoteFile(
+		ctx, t, sfs, pathAppend(pathPriv, `test.txt`), []byte(`foo`))
+	syncFS(ctx, t, sfs, "/private/jdoe")
+	_, tlfIDs := jManager.Status(ctx)
+	require.Len(t, tlfIDs, 1)
+	tlfID := tlfIDs[0]
+	err = jManager.Wait(ctx, tlfID)
+	require.NoError(t, err)
+
+	t.Log("Still no badge yet")
+	badge, err = sfs.SimpleFSGetFilesTabBadge(ctx)
+	require.NoError(t, err)
+	require.Equal(t, keybase1.FilesTabBadge_NONE, badge)
+
+	t.Log("Pause the journal and add another file")
+	jManager.PauseBackgroundWork(ctx, tlfID)
+	writeRemoteFile(
+		ctx, t, sfs, pathAppend(pathPriv, `test2.txt`), []byte(`foo2`))
+	syncFS(ctx, t, sfs, "/private/jdoe")
+	// Wait shouldn't do anything unless there's a bug with pausing,
+	// so do it just in case.
+	err = jManager.Wait(ctx, tlfID)
+	require.NoError(t, err)
+	badge, err = sfs.SimpleFSGetFilesTabBadge(ctx)
+	require.NoError(t, err)
+	require.Equal(t, keybase1.FilesTabBadge_UPLOADING, badge)
+
+	t.Log("Get a different TLF stuck, badge state should update")
+	writeRemoteFile(
+		ctx, t, sfs, pathAppend(pathPub, `test3.txt`), []byte(`foo3`))
+	syncFS(ctx, t, sfs, "/public/jdoe")
+	err = sfs.SimpleFSForceStuckConflict(ctx, pathPub)
+	require.NoError(t, err)
+	badge, err = sfs.SimpleFSGetFilesTabBadge(ctx)
+	require.NoError(t, err)
+	require.Equal(t, keybase1.FilesTabBadge_UPLOADING_STUCK, badge)
+
+	jManager.ResumeBackgroundWork(ctx, tlfID)
 }

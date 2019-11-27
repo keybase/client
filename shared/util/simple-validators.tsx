@@ -1,4 +1,4 @@
-import {trim} from 'lodash-es'
+import trim from 'lodash/trim'
 
 function isBlank(s: string): boolean {
   return trim(s).length === 0

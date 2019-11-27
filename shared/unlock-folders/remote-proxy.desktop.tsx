@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as Styles from '../styles'
 import * as Constants from '../constants/config'
 import SyncProps from '../desktop/remote/sync-props.desktop'
 import SyncBrowserWindow from '../desktop/remote/sync-browser-window.desktop'
@@ -15,6 +16,7 @@ const UnlockFolder = compose(
     state => {
       const {devices, phase, paperkeyError, waiting} = state.unlockFolders
       return {
+        darkMode: Styles.isDarkMode(),
         devices,
         paperkeyError,
         phase,
@@ -28,7 +30,8 @@ const UnlockFolder = compose(
     },
     () => ({}),
     (stateProps, _, __) => ({
-      devices: stateProps.devices.toJS(), // Never send immutable over the wire
+      darkMode: stateProps.darkMode,
+      devices: stateProps.devices,
       paperkeyError: stateProps.paperkeyError,
       phase: stateProps.phase,
       remoteWindowNeedsProps: stateProps.remoteWindowNeedsProps,
@@ -48,11 +51,7 @@ type Props = {
   show: boolean
 }
 
-class UnlockFolders extends React.PureComponent<Props> {
-  render() {
-    return this.props.show ? <UnlockFolder /> : null
-  }
-}
+const UnlockFolders = (props: Props) => (props.show ? <UnlockFolder /> : null)
 
 export default connect(
   state => ({show: state.unlockFolders.popupOpen}),

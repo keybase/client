@@ -100,7 +100,12 @@ const WithTooltip = (props: Props) => {
               style={Styles.collapseStyles([Styles.globalStyles.flexBoxRow, {top}])}
             >
               <Kb.NativeView
-                style={Styles.collapseStyles([animatedStyle, styles.container, {left}])}
+                style={Styles.collapseStyles([
+                  animatedStyle,
+                  styles.container,
+                  {left},
+                  props.backgroundColor && {backgroundColor: props.backgroundColor},
+                ])}
                 ref={tooltipRef}
               >
                 <Kb.Text
@@ -124,7 +129,7 @@ export default WithTooltip
 
 const styles = Styles.styleSheetCreate(() => ({
   container: {
-    backgroundColor: Styles.globalColors.black_60,
+    backgroundColor: Styles.globalColors.black,
     borderRadius: Styles.borderRadius,
     maxWidth: 280,
     padding: Styles.globalMargins.xtiny,

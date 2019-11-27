@@ -1,11 +1,13 @@
 import * as React from 'react'
 import * as TabConstants from '../../constants/tabs'
 import * as Constants from '../../constants/settings'
+import {keybaseFM} from '../../constants/whats-new'
 import {globalStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
 import {NativeSectionList, Text} from '../../common-adapters/mobile.native'
 import {isAndroid} from '../../constants/platform'
 import SettingsItem from './settings-item'
 import flags from '../../util/feature-flags'
+import WhatsNewIcon from '../../whats-new/icon/container'
 import {Props} from './index'
 
 const renderItem = ({item}) => {
@@ -47,6 +49,12 @@ function SettingsNav(props: Props) {
               onClick: () => props.onTabChange(Constants.walletsTab),
               text: 'Wallet',
             },
+            {
+              iconComponent: WhatsNewIcon,
+              onClick: () => props.onTabChange(Constants.whatsNewTab),
+              subText: `What's new?`,
+              text: keybaseFM,
+            },
           ],
           title: '',
         },
@@ -77,6 +85,10 @@ function SettingsNav(props: Props) {
               badgeNumber: props.badgeNotifications ? 1 : 0,
               onClick: () => props.onTabChange(Constants.notificationsTab),
               text: 'Notifications',
+            },
+            {
+              onClick: () => props.onTabChange(Constants.displayTab),
+              text: 'Display',
             },
             ...(isAndroid
               ? [
