@@ -327,7 +327,9 @@ const SEP7ConfirmWrapper = (props: Omit<Props, 'onChangeAmount' | 'readyToSend' 
       {...props}
       onChangeAmount={onChangeAmount}
       userAmount={userAmount}
-      readyToSend={assetCode ? !!path.exchangeRate : !!amount || !!userAmount}
+      readyToSend={
+        props.operation === 'tx' ? true : assetCode ? !!path.exchangeRate : !!amount || !!userAmount
+      }
     />
   )
 }
