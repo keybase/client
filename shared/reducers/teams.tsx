@@ -94,13 +94,7 @@ export default (
         )
         return
       case TeamsGen.setTeamCanPerform: {
-        draftState.teamNameToCanPerform = draftState.teamNameToCanPerform.set(
-          action.payload.teamname,
-          action.payload.teamOperation
-        )
-        const canPerform = new Map(draftState.canPerform)
-        canPerform.set(action.payload.teamID, action.payload.teamOperation)
-        draftState.canPerform = canPerform
+        draftState.canPerform.set(action.payload.teamID, action.payload.teamOperation)
         return
       }
       case TeamsGen.setTeamPublicitySettings:

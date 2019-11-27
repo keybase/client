@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as Types from '../../../../constants/types/teams'
 import * as FsTypes from '../../../../constants/types/fs'
 import * as Constants from '../../../../constants/teams'
@@ -17,7 +16,6 @@ export default Container.connect(
     return {
       _isMember: isMember,
       _newTeamRequests: state.teams.newTeamRequests,
-      _teamNameToIsOpen: state.teams.teamNameToIsOpen || I.Map(),
       isOpen,
       members: Constants.getTeamMemberCount(state, teamname),
       teamname,

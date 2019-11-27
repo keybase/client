@@ -184,7 +184,6 @@ const emptyState: Types.State = {
   teamJoinSuccess: false,
   teamJoinSuccessTeamName: '',
   teamNameToAllowPromote: I.Map(),
-  teamNameToCanPerform: I.Map(),
   teamNameToChannelInfos: I.Map(),
   teamNameToID: I.Map(),
   teamNameToIsOpen: I.Map(),
