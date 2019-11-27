@@ -496,5 +496,4 @@ const styles = Styles.styleSheetCreate(
 export type RowItem = T.RowItem
 export type RowItemSmall = T.RowItemSmall
 export type RowItemBig = T.RowItemBig
-export type RouteState = T.RouteState
 export default Inbox

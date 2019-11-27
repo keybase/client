@@ -1,16 +1,15 @@
 import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
 import * as Sb from '../../../../stories/storybook'
-import I from 'immutable'
 import * as React from 'react'
 import Text from '.'
 import {Box2} from '../../../../common-adapters'
 
 const props = {
   isEditing: false,
-  mentionsAt: I.Set(),
+  mentionsAt: new Set(),
   mentionsChannel: 'none',
-  mentionsChannelName: I.Map({}),
+  mentionsChannelName: new Map(),
   message: Constants.makeMessageText(),
   text: 'hello',
   type: 'sent',
@@ -21,7 +20,7 @@ const provider = Sb.createPropProviderWithCommon({
   Mention: p => ({username: p.username}),
 })
 
-const Wrapped = props => (
+const Wrapped = (props: any) => (
   <Box2 direction="vertical">
     <Text {...props} />
   </Box2>
@@ -38,13 +37,13 @@ const load = () => {
         <Wrapped
           {...props}
           text="contains a /keybase/private/alice,bob#charlie,david thing"
-          mentionsAt={I.Set(['mention'])}
+          mentionsAt={new Set(['mention'])}
         />
-        <Wrapped {...props} text="contains a @mention thing" mentionsAt={I.Set(['mention'])} />
+        <Wrapped {...props} text="contains a @mention thing" mentionsAt={new Set(['mention'])} />
         <Wrapped
           {...props}
           text="contains a #random thing"
-          mentionsChannelName={I.Map({random: Types.stringToConversationIDKey('123')})}
+          mentionsChannelName={new Map([['random', Types.stringToConversationIDKey('123')]])}
         />
       </>
     ))

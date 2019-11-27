@@ -5,7 +5,6 @@ import * as EngineGen from '../engine-gen-gen'
 import * as TeamBuildingGen from '../team-building-gen'
 import * as Constants from '../../constants/chat2'
 import * as GregorGen from '../gregor-gen'
-import * as I from 'immutable'
 import * as FsConstants from '../../constants/fs'
 import * as Flow from '../../util/flow'
 import * as NotificationsGen from '../notifications-gen'
@@ -112,15 +111,20 @@ const untrustedConversationIDKeys = (state: TypedState, ids: Array<Types.Convers
   ids.filter(id => (state.chat2.metaMap.get(id) ?? {trustedState: 'untrusted'}).trustedState === 'untrusted')
 
 // We keep a set of conversations to unbox
-let metaQueue = I.OrderedSet()
+let metaQueue = new Set<Types.ConversationIDKey>()
 const queueMetaToRequest = (
   state: TypedState,
   action: Chat2Gen.MetaNeedsUpdatingPayload,
   logger: Saga.SagaLogger
 ) => {
-  const old = metaQueue
-  metaQueue = metaQueue.concat(untrustedConversationIDKeys(state, action.payload.conversationIDKeys))
-  if (old !== metaQueue) {
+  let added = false
+  untrustedConversationIDKeys(state, action.payload.conversationIDKeys).forEach(k => {
+    if (!metaQueue.has(k)) {
+      added = true
+      metaQueue.add(k)
+    }
+  })
+  if (added) {
     // only unboxMore if something changed
     return Chat2Gen.createMetaHandleQueue()
   } else {
@@ -132,10 +136,11 @@ const queueMetaToRequest = (
 // Watch the meta queue and take up to 10 items. Choose the last items first since they're likely still visible
 function* requestMeta(state: TypedState, _: Chat2Gen.MetaHandleQueuePayload) {
   const maxToUnboxAtATime = 10
-  const maybeUnbox = metaQueue.takeLast(maxToUnboxAtATime)
-  metaQueue = metaQueue.skipLast(maxToUnboxAtATime)
+  const ar = [...metaQueue]
+  const maybeUnbox = ar.slice(0, maxToUnboxAtATime)
+  metaQueue = new Set(ar.slice(maxToUnboxAtATime))
 
-  const conversationIDKeys = untrustedConversationIDKeys(state, maybeUnbox.toArray())
+  const conversationIDKeys = untrustedConversationIDKeys(state, maybeUnbox)
   const toUnboxActions = conversationIDKeys.length
     ? [Saga.put(Chat2Gen.createMetaRequestTrusted({conversationIDKeys, reason: 'scroll'}))]
     : []
@@ -2686,9 +2691,7 @@ function* createConversation(
     {
       identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
       membersType: RPCChatTypes.ConversationMembersType.impteamnative,
-      tlfName: I.Set([username])
-        .concat(action.payload.participants)
-        .join(','),
+      tlfName: [...new Set([username, ...action.payload.participants])].join(','),
       tlfVisibility: RPCTypes.TLFVisibility.private,
       topicType: RPCChatTypes.TopicType.chat,
     },
@@ -2727,7 +2730,7 @@ const messageReplyPrivately = async (
     {
       identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
       membersType: RPCChatTypes.ConversationMembersType.impteamnative,
-      tlfName: I.Set([username, message.author]).join(','),
+      tlfName: [...new Set([username, message.author])].join(','),
       tlfVisibility: RPCTypes.TLFVisibility.private,
       topicType: RPCChatTypes.TopicType.chat,
     },
