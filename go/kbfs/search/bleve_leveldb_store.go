@@ -7,6 +7,7 @@ package search
 import (
 	"github.com/blevesearch/bleve/index/store"
 	"github.com/keybase/client/go/kbfs/libfs"
+	"github.com/pkg/errors"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/iterator"
 	"github.com/syndtr/goleveldb/leveldb/util"
@@ -108,6 +109,32 @@ func (bldbr *bleveLevelDBReader) Close() error {
 	return nil
 }
 
+type bleveLevelDBBatch struct {
+	b *leveldb.Batch
+}
+
+var _ store.KVBatch = (*bleveLevelDBBatch)(nil)
+
+func (bldbb *bleveLevelDBBatch) Set(key, val []byte) {
+	bldbb.b.Put(key, val)
+}
+
+func (bldbb *bleveLevelDBBatch) Delete(key []byte) {
+	bldbb.b.Delete(key)
+}
+
+func (bldbb *bleveLevelDBBatch) Merge(key, val []byte) {
+	panic("Merge called")
+}
+
+func (bldbb *bleveLevelDBBatch) Reset() {
+	bldbb.b.Reset()
+}
+
+func (bldbb *bleveLevelDBBatch) Close() error {
+	return nil
+}
+
 type bleveLevelDBWriter struct {
 	db *leveldb.DB
 }
@@ -116,22 +143,28 @@ var _ store.KVWriter = (*bleveLevelDBWriter)(nil)
 
 // NewBatch implements the store.KVReader interface for bleveLevelDBWriter.
 func (bldbw *bleveLevelDBWriter) NewBatch() store.KVBatch {
-	return nil
+	return &bleveLevelDBBatch{b: leveldb.MakeBatch(0)}
 }
 
 // NewBatchEx implements the store.KVReader interface for bleveLevelDBWriter.
-func (bldbw *bleveLevelDBWriter) NewBatchEx(store.KVBatchOptions) (
+func (bldbw *bleveLevelDBWriter) NewBatchEx(opts store.KVBatchOptions) (
 	[]byte, store.KVBatch, error) {
-	return nil, nil, nil
+	b := &bleveLevelDBBatch{b: leveldb.MakeBatch(opts.TotalBytes)}
+	return b.b.Dump(), b, nil
 }
 
 // ExecuteBatch implements the store.KVReader interface for bleveLevelDBWriter.
 func (bldbw *bleveLevelDBWriter) ExecuteBatch(batch store.KVBatch) error {
-	return nil
+	b, ok := batch.(*bleveLevelDBBatch)
+	if !ok {
+		return errors.Errorf("Unexpected batch type: %T", batch)
+	}
+	return bldbw.db.Write(b.b, nil)
 }
 
 // Close implements the store.KVReader interface for bleveLevelDBWriter.
 func (bldbw *bleveLevelDBWriter) Close() error {
+	// Does this need to close outstanding batches allocated by this writer?
 	return nil
 }
 
@@ -156,7 +189,7 @@ func newBleveLevelDBStore(bfs billy.Filesystem, readOnly bool) (
 
 // Writer implements the store.KVStore interface for bleveLevelDBStore.
 func (bldbs *bleveLevelDBStore) Writer() (store.KVWriter, error) {
-	return nil, nil
+	return &bleveLevelDBWriter{db: bldbs.db}, nil
 }
 
 // Writer implements the store.KVStore interface for bleveLevelDBStore.
@@ -170,5 +203,5 @@ func (bldbs *bleveLevelDBStore) Reader() (store.KVReader, error) {
 
 // close implements the store.KVStore interface for bleveLevelDBStore.
 func (bldbs *bleveLevelDBStore) Close() error {
-	return nil
+	return bldbs.db.Close()
 }
