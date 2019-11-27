@@ -126,12 +126,17 @@ func (l *LoaderPackage) checkPrev(mctx libkb.MetaContext, first sig3.Generic) (e
 	return nil
 }
 
-// checkExpectedHighSeqno enforces that the links we got down from the server (links) are at or surpass
-// the sequence number ther server promised through the ratchet sets. We look at both the loaded and the
-// received downloaded ratchets for this check.
-func (l *LoaderPackage) checkExpectedHighSeqno(mctx libkb.MetaContext, links []sig3.Generic) (err error) {
+// checkExpectedHighSeqno enforces that the links we got down from the server
+// (links) are at or surpass the sequence number ther server promised through
+// the ratchet sets and the maxUncommittedSeqnoPromised obtained through the
+// merkle/path api call. We look at both the loaded and the received downloaded
+// ratchets for this check.
+func (l *LoaderPackage) checkExpectedHighSeqno(mctx libkb.MetaContext, links []sig3.Generic, maxUncommittedSeqnoPromised keybase1.Seqno) (err error) {
 	last := l.LastSeqno()
 	max := l.MaxRatchet()
+	if max < maxUncommittedSeqnoPromised {
+		max = maxUncommittedSeqnoPromised
+	}
 	if max <= last {
 		return nil
 	}
@@ -205,12 +210,12 @@ func (l *LoaderPackage) UpdateTeamMetadata(encKID keybase1.KID, encKIDGen keybas
 
 // Update combines the preloaded data with any downloaded updates from the server, and stores
 // the result local to this object.
-func (l *LoaderPackage) Update(mctx libkb.MetaContext, update []sig3.ExportJSON) (err error) {
+func (l *LoaderPackage) Update(mctx libkb.MetaContext, update []sig3.ExportJSON, maxUncommittedSeqnoPromised keybase1.Seqno) (err error) {
 	defer mctx.Trace(fmt.Sprintf("LoaderPackage#Update(%s, %d)", l.id, len(update)), func() error { return err })()
 	mctx.Debug("LoaderPackage#Update pre: %s", l.data.LinkAndKeySummary())
 
 	var data *keybase1.HiddenTeamChain
-	data, err = l.updatePrecheck(mctx, update)
+	data, err = l.updatePrecheck(mctx, update, maxUncommittedSeqnoPromised)
 	if err != nil {
 		return err
 	}
@@ -288,7 +293,7 @@ func (l *LoaderPackage) VerifyOldChainLinksAreCommitted(mctx libkb.MetaContext, 
 // updatePrecheck runs a series of cryptographic validations on the update sent down from the server, to ensure that
 // it can be accepted and used during the team loading process. It also converts the raw export Sig3 links into a
 // HiddenTeamChain, which can be eventually merged with the existing hidden chain state for this team.
-func (l *LoaderPackage) updatePrecheck(mctx libkb.MetaContext, update []sig3.ExportJSON) (ret *keybase1.HiddenTeamChain, err error) {
+func (l *LoaderPackage) updatePrecheck(mctx libkb.MetaContext, update []sig3.ExportJSON, maxUncommittedSeqnoPromised keybase1.Seqno) (ret *keybase1.HiddenTeamChain, err error) {
 	var links []sig3.Generic
 	links, err = importChain(mctx, update)
 	if err != nil {
@@ -300,7 +305,7 @@ func (l *LoaderPackage) updatePrecheck(mctx libkb.MetaContext, update []sig3.Exp
 		return nil, err
 	}
 
-	err = l.checkExpectedHighSeqno(mctx, links)
+	err = l.checkExpectedHighSeqno(mctx, links, maxUncommittedSeqnoPromised)
 	if err != nil {
 		return nil, err
 	}
@@ -508,20 +513,6 @@ func (l *LoaderPackage) SetLastCommittedSeqno(mctx libkb.MetaContext, lcs keybas
 		return nil
 	}
 	return fmt.Errorf("Tries to set a LastCommittedSeqno %v smaller than the one we know about: %v", lcs, last)
-}
-
-func (l *LoaderPackage) CheckChainHasMinLength(mctx libkb.MetaContext, minSeqno keybase1.Seqno) error {
-	if minSeqno == keybase1.Seqno(0) {
-		return nil
-	}
-	if l.data == nil {
-		return fmt.Errorf("Data is nil and so the chain deos not have seqno %v", minSeqno)
-	}
-
-	if !l.data.HasSeqno(minSeqno) {
-		return fmt.Errorf("Seqno %v is not part of this chain (last is %v)", minSeqno, l.data.Last)
-	}
-	return nil
 }
 
 func (l *LoaderPackage) CheckHiddenMerklePathResponseAndAddRatchets(mctx libkb.MetaContext, hiddenResp *libkb.MerkleHiddenResponse) (hiddenIsFresh bool, err error) {

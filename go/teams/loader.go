@@ -501,6 +501,29 @@ func (l *TeamLoader) load2InnerLocked(ctx context.Context, arg load2ArgT) (res *
 	return res, err
 }
 
+func (l *TeamLoader) checkHiddenResponse(mctx libkb.MetaContext, hiddenPackage *hidden.LoaderPackage, hiddenResp *libkb.MerkleHiddenResponse) (hiddenIsFresh bool, err error) {
+	if hiddenResp.CommittedHiddenTail != nil {
+		mctx.Debug("hiddenResp: %+v UncommittedSeqno %+v CommittedSeqno %v", hiddenResp, hiddenResp.UncommittedSeqno, hiddenResp.CommittedHiddenTail.Seqno)
+	} else {
+		mctx.Debug("hiddenResp: %+v UncommittedSeqno %+v", hiddenResp, hiddenResp.UncommittedSeqno)
+	}
+
+	switch hiddenResp.RespType {
+	case libkb.MerkleHiddenResponseTypeNONE:
+		hiddenIsFresh = true
+		mctx.Debug("Skipping CheckHiddenMerklePathResponseAndAddRatchets as no hidden data was received. If the server had to show us the hidden chain and didn't, we will error out later (once we can establish our role in the team).")
+	case libkb.MerkleHiddenResponseTypeFLAGOFF:
+		hiddenIsFresh = true
+		mctx.Debug("Skipping CheckHiddenMerklePathResponseAndAddRatchets as the hidden flag is off.")
+	default:
+		hiddenIsFresh, err = hiddenPackage.CheckHiddenMerklePathResponseAndAddRatchets(mctx, hiddenResp)
+		if err != nil {
+			return false, err
+		}
+	}
+	return hiddenIsFresh, nil
+}
+
 func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (*load2ResT, error) {
 	ctx, tbs := l.G().CTimeBuckets(ctx)
 	mctx := libkb.NewMetaContext(ctx, l.G())
@@ -588,24 +611,11 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		if err != nil {
 			return nil, err
 		}
+		mctx.Debug("received lastSeqno %v, lastLinkID %v", lastSeqno, lastLinkID)
 
-		if hiddenResp.CommittedHiddenTail != nil {
-			mctx.Debug("lastSeqno %v, lastLinkID %v, hiddenResp: %+v uncS %+v cS %v err %v", lastSeqno, lastLinkID, hiddenResp, hiddenResp.UncommittedSeqno, hiddenResp.CommittedHiddenTail.Seqno, err)
-
-		} else {
-			mctx.Debug("lastSeqno %v, lastLinkID %v, hiddenResp: %+v uncS %+v err %v", lastSeqno, lastLinkID, hiddenResp, hiddenResp.UncommittedSeqno, err)
-		}
-
-		switch hiddenResp.RespType {
-		case libkb.MerkleHiddenResponseTypeNONE:
-			mctx.Debug("Skipping CheckHiddenMerklePathResponseAndAddRatchets as no hidden data was received. If the server had to show us the hidden chain and didn't, we will error out later (once we can establish our role in the team).")
-		case libkb.MerkleHiddenResponseTypeFLAGOFF:
-			mctx.Debug("Skipping CheckHiddenMerklePathResponseAndAddRatchets as the hidden flag is off.")
-		default:
-			hiddenIsFresh, err = hiddenPackage.CheckHiddenMerklePathResponseAndAddRatchets(mctx, hiddenResp)
-			if err != nil {
-				return nil, err
-			}
+		hiddenIsFresh, err = l.checkHiddenResponse(mctx, hiddenPackage, hiddenResp)
+		if err != nil {
+			return nil, err
 		}
 
 		didRepoll = true
@@ -769,9 +779,9 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 
 	// Be sure to update the hidden chain after the main chain, since the latter can "ratchet" the former
 	if teamUpdate != nil {
-		err = hiddenPackage.Update(mctx, teamUpdate.GetHiddenChain())
+		err = hiddenPackage.Update(mctx, teamUpdate.GetHiddenChain(), hiddenResp.UncommittedSeqno)
 	} else {
-		err = hiddenPackage.Update(mctx, []sig3.ExportJSON{})
+		err = hiddenPackage.Update(mctx, []sig3.ExportJSON{}, hiddenResp.UncommittedSeqno)
 	}
 
 	if err != nil {
@@ -783,15 +793,6 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	})
 	if err != nil {
 		return nil, err
-	}
-
-	// Ensure that the state of the hidden chain is consistent with
-	// what we got from the merkle/path endpoint.
-	if hiddenResp != nil && hiddenResp.RespType != libkb.MerkleHiddenResponseTypeFLAGOFF && hiddenResp.RespType != libkb.MerkleHiddenResponseTypeNONE {
-		err = hiddenPackage.CheckChainHasMinLength(mctx, hiddenResp.UncommittedSeqno)
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	// The hidden team has pointers from the hidden chain up to the visible chain; check that they

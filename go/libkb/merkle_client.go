@@ -358,17 +358,18 @@ type MerkleRootPayloadUnpacked struct {
 				Version *keybase1.Seqno       `json:"version"`
 			} `json:"privateteam"`
 		} `json:"kbfs"`
-		LegacyUIDRoot     NodeHashShort  `json:"legacy_uid_root"`
-		Prev              NodeHashLong   `json:"prev"`
-		Root              NodeHashLong   `json:"root"`
-		Seqno             keybase1.Seqno `json:"seqno"`
-		Skips             SkipTable      `json:"skips"`
-		Txid              string         `json:"txid"`
-		Type              string         `json:"type"`
-		Version           int            `json:"version"`
-		PvlHash           string         `json:"pvl_hash"`
-		ProofServicesHash string         `json:"proof_services_hash"`
-		ExternalURLHash   string         `json:"external_urls_hash"`
+		LegacyUIDRoot       NodeHashShort  `json:"legacy_uid_root"`
+		Prev                NodeHashLong   `json:"prev"`
+		Root                NodeHashLong   `json:"root"`
+		Seqno               keybase1.Seqno `json:"seqno"`
+		Skips               SkipTable      `json:"skips"`
+		Txid                string         `json:"txid"`
+		Type                string         `json:"type"`
+		Version             int            `json:"version"`
+		PvlHash             string         `json:"pvl_hash"`
+		ProofServicesHash   string         `json:"proof_services_hash"`
+		ExternalURLHash     string         `json:"external_urls_hash"`
+		BlindMerkleRootHash string         `json:"blind_merkle_root_hash"`
 	} `json:"body"`
 	Ctime int64  `json:"ctime"`
 	Tag   string `json:"tag"`
@@ -1794,10 +1795,9 @@ func (mc *MerkleClient) lookupLeafHistorical(m MetaContext, leafID keybase1.User
 	return leaf, path.root, nil
 }
 
-func (mc *MerkleClient) LookupTeamWithHidden(m MetaContext, teamID keybase1.TeamID,
-	processHiddenResponseFunc func(m MetaContext, teamID keybase1.TeamID, apiRes *APIRes, blindRootHash []byte) (*MerkleHiddenResponse, error)) (leaf *MerkleTeamLeaf, hiddenResp *MerkleHiddenResponse, err error) {
+func (mc *MerkleClient) LookupTeamWithHidden(m MetaContext, teamID keybase1.TeamID, processHiddenRespFunc ProcessHiddenRespFunc) (leaf *MerkleTeamLeaf, hiddenResp *MerkleHiddenResponse, err error) {
 	// Copied from LookupUser. These methods should be kept relatively in sync.
-	return mc.lookupTeam(m, teamID, processHiddenResponseFunc)
+	return mc.lookupTeam(m, teamID, processHiddenRespFunc)
 }
 
 func (mc *MerkleClient) LookupTeam(m MetaContext, teamID keybase1.TeamID) (leaf *MerkleTeamLeaf, err error) {
@@ -1827,7 +1827,9 @@ type MerkleHiddenResponse struct {
 	UncommittedSeqno    keybase1.Seqno           `json:"uncommitted_seqno"`
 }
 
-func (mc *MerkleClient) lookupTeam(m MetaContext, teamID keybase1.TeamID, processHiddenResponseFunc func(m MetaContext, teamID keybase1.TeamID, apiRes *APIRes, blindRootHash []byte) (*MerkleHiddenResponse, error)) (leaf *MerkleTeamLeaf, hiddenResp *MerkleHiddenResponse, err error) {
+type ProcessHiddenRespFunc func(m MetaContext, teamID keybase1.TeamID, apiRes *APIRes, blindRootHash string) (*MerkleHiddenResponse, error)
+
+func (mc *MerkleClient) lookupTeam(m MetaContext, teamID keybase1.TeamID, processHiddenResponseFunc ProcessHiddenRespFunc) (leaf *MerkleTeamLeaf, hiddenResp *MerkleHiddenResponse, err error) {
 
 	m.VLogf(VLog0, "+ MerkleClient.LookupTeam(%v)", teamID)
 
@@ -1863,7 +1865,7 @@ func (mc *MerkleClient) lookupTeam(m MetaContext, teamID keybase1.TeamID, proces
 	}
 
 	if processHiddenResponseFunc != nil {
-		hiddenResp, err = processHiddenResponseFunc(m, teamID, apiRes, []byte{})
+		hiddenResp, err = processHiddenResponseFunc(m, teamID, apiRes, path.root.BlindMerkleRootHash())
 		if err != nil {
 			return nil, nil, err
 		}
@@ -1982,6 +1984,13 @@ func (mr *MerkleRoot) ExternalURLHash() string {
 	return mr.payload.externalURLHash()
 }
 
+func (mr *MerkleRoot) BlindMerkleRootHash() string {
+	if mr == nil {
+		return ""
+	}
+	return mr.payload.blindMerkleRootHash()
+}
+
 func (mr *MerkleRoot) SkipToSeqno(s keybase1.Seqno) NodeHash {
 	if mr == nil {
 		return nil
@@ -2037,7 +2046,10 @@ func (mrp MerkleRootPayload) legacyUIDRootHash() NodeHash { return mrp.unpacked.
 func (mrp MerkleRootPayload) pvlHash() string             { return mrp.unpacked.Body.PvlHash }
 func (mrp MerkleRootPayload) proofServicesHash() string   { return mrp.unpacked.Body.ProofServicesHash }
 func (mrp MerkleRootPayload) externalURLHash() string     { return mrp.unpacked.Body.ExternalURLHash }
-func (mrp MerkleRootPayload) ctime() int64                { return mrp.unpacked.Ctime }
+func (mrp MerkleRootPayload) blindMerkleRootHash() string {
+	return mrp.unpacked.Body.BlindMerkleRootHash
+}
+func (mrp MerkleRootPayload) ctime() int64 { return mrp.unpacked.Ctime }
 func (mrp MerkleRootPayload) kbfsPrivate() (keybase1.KBFSRootHash, *keybase1.Seqno) {
 	return mrp.unpacked.Body.Kbfs.Private.Root, mrp.unpacked.Body.Kbfs.Private.Version
 }

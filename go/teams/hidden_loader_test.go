@@ -240,7 +240,7 @@ func TestHiddenLoadFailsIfServerDoesNotReturnPromisedLinks(t *testing.T) {
 		ForceRepoll: true,
 	})
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "Seqno 6 is not part of this chain (last is 1)")
+	require.Contains(t, err.Error(), "Server promised a hidden chain up to 6, but never received")
 }
 
 func TestHiddenLoadFailsIfHiddenTailIsTamperedAfterFirstLoad(t *testing.T) {
@@ -364,6 +364,7 @@ func TestHiddenLoadFailsIfHiddenTailIsTamperedAfterFirstLoad(t *testing.T) {
 		merkleCorruptorFunc: func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, error) {
 			if hiddenResp != nil {
 				hiddenResp.RespType = libkb.MerkleHiddenResponseTypeABSENCEPROOF
+				hiddenResp.CommittedHiddenTail = nil
 			}
 			return r1, r2, hiddenResp, err
 		},
@@ -766,7 +767,7 @@ func TestFTLFailsIfServerDoesNotReturnPromisedLinks(t *testing.T) {
 		KeyGenerationsNeeded: []keybase1.PerTeamKeyGeneration{keybase1.PerTeamKeyGeneration(3)},
 	})
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "Seqno 7 is not part of this chain (last is 2)")
+	require.Contains(t, err.Error(), "Server promised a hidden chain up to 7, but never received")
 }
 
 func TestFTLFailsIfHiddenTailIsTamperedAfterFirstLoad(t *testing.T) {
@@ -926,14 +927,15 @@ func TestFTLFailsIfHiddenTailIsTamperedAfterFirstLoad(t *testing.T) {
 		KeyGenerationsNeeded: []keybase1.PerTeamKeyGeneration{keybase1.PerTeamKeyGeneration(2)},
 	})
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "hidden team ratchet error: Ratchet failed to match a currently accepted chainlink")
+	require.Contains(t, err.Error(), "hidden team ratchet error: bad ratchet, clashes existing pin")
 
-	// now load the team again, but this time we change the response of the server and change the hidden tail hash
+	// now load the team again, but this time we change the response type of the server
 	ftl.world = CorruptingMockLoaderContext{
 		LoaderContext: world,
 		merkleCorruptorFunc: func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, error) {
 			if hiddenResp != nil {
 				hiddenResp.RespType = libkb.MerkleHiddenResponseTypeABSENCEPROOF
+				hiddenResp.CommittedHiddenTail = nil
 			}
 			return r1, r2, hiddenResp, err
 		},

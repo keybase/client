@@ -785,12 +785,7 @@ func (f *FastTeamChainLoader) loadFromServerOnce(m libkb.MetaContext, arg fastLo
 	if err != nil {
 		return nil, err
 	}
-	if hiddenResp.CommittedHiddenTail != nil {
-		err = hp.SetLastCommittedSeqno(m, hiddenResp.CommittedHiddenTail.Seqno)
-		if err != nil {
-			return nil, err
-		}
-	}
+
 	if !arg.HiddenChainIsOptional && hiddenResp.RespType == libkb.MerkleHiddenResponseTypeNONE {
 		return nil, libkb.NewHiddenChainDataMissingError("the server did not return the necessary hidden chain data")
 	}
@@ -1332,7 +1327,7 @@ func (f *FastTeamChainLoader) processHidden(m libkb.MetaContext, arg fastLoadArg
 		return err
 	}
 
-	err = hp.Update(m, groceries.newHiddenLinks)
+	err = hp.Update(m, groceries.newHiddenLinks, groceries.expMaxHiddenSeqno)
 	if err != nil {
 		return err
 	}
@@ -1350,10 +1345,7 @@ func (f *FastTeamChainLoader) processHidden(m libkb.MetaContext, arg fastLoadArg
 	if err != nil {
 		return err
 	}
-	err = hp.CheckChainHasMinLength(m, groceries.expMaxHiddenSeqno)
-	if err != nil {
-		return err
-	}
+
 	err = hp.Commit(m)
 	if err != nil {
 		return err
@@ -1376,6 +1368,19 @@ func (f *FastTeamChainLoader) refresh(m libkb.MetaContext, arg fastLoadArg, stat
 
 	if groceries == nil {
 		m.Debug("FastTeamChainLoader#refresh: our state was fresh according to the Merkle tree")
+
+		// Even if the state is fresh (no new chain links are necessary), we
+		// might still have learned about old hidden links being committed to
+		// the blind tree. This information needs to be persisted.
+		err = hp.Update(m, []sig3.ExportJSON{}, 0)
+		if err != nil {
+			return nil, err
+		}
+		err = hp.Commit(m)
+		if err != nil {
+			return nil, err
+		}
+
 		return nil, nil
 	}
 
