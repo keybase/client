@@ -25,27 +25,40 @@ import {TypedState, TypedActions, isMobile} from '../util/container'
 import {mapGetEnsureValue} from '../util/map'
 
 async function createNewTeam(_: TypedState, action: TeamsGen.CreateNewTeamPayload) {
-  const {joinSubteam, teamname} = action.payload
+  const {fromChat, joinSubteam, teamname, thenAddMembers} = action.payload
   try {
-    const res = await RPCTypes.teamsTeamCreateRpcPromise(
+    const {teamID} = await RPCTypes.teamsTeamCreateRpcPromise(
       {joinSubteam, name: teamname},
       Constants.teamCreationWaitingKey
     )
 
-    return [
-      RouteTreeGen.createClearModals(),
-      RouteTreeGen.createNavigateAppend({path: [{props: {teamID: res.teamID}, selected: 'team'}]}),
-      ...(isMobile
-        ? []
-        : [
-            RouteTreeGen.createNavigateAppend({
-              path: [{props: {createdTeam: true, teamname}, selected: 'teamEditTeamAvatar'}],
-            }),
-          ]),
-    ]
+    const addMembers = thenAddMembers ? [TeamsGen.createAddToTeam({...thenAddMembers, teamID})] : []
+    return [TeamsGen.createTeamCreated({fromChat: !!fromChat, teamID, teamname}), ...addMembers]
   } catch (error) {
     return TeamsGen.createSetTeamCreationError({error: error.desc})
   }
+}
+
+const showTeamAfterCreation = (_: TypedState, action: TeamsGen.TeamCreatedPayload) => {
+  const {teamID, teamname} = action.payload
+  if (action.payload.fromChat) {
+    return [
+      RouteTreeGen.createClearModals(),
+      Chat2Gen.createNavigateToInbox(),
+      Chat2Gen.createPreviewConversation({channelname: 'general', reason: 'convertAdHoc', teamname}),
+    ]
+  }
+  return [
+    RouteTreeGen.createClearModals(),
+    RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]}),
+    ...(isMobile
+      ? []
+      : [
+          RouteTreeGen.createNavigateAppend({
+            path: [{props: {createdTeam: true, teamname}, selected: 'teamEditTeamAvatar'}],
+          }),
+        ]),
+  ]
 }
 
 function* joinTeam(_: TypedState, action: TeamsGen.JoinTeamPayload) {
@@ -287,11 +300,12 @@ const addToTeam = async (_: TypedState, action: TeamsGen.AddToTeamPayload) => {
           role: RPCTypes.TeamRole[role],
         })),
       },
-      Constants.addMemberWaitingKey(teamID, users.map(({assertion}) => assertion).join(',')) // TODO fix uses of this
+      Constants.addMemberWaitingKey(teamID, users.map(({assertion}) => assertion).join(',')) // DANNYTODO fix uses of this
     )
     return false
   } catch (e) {
-    // TODO plumb to modal
+    // DANNYTODO plumb to modal
+    // TODO this should not error on member already in team
     // return addReAddErrorHandler(username, e)
     return false
   }
@@ -464,47 +478,26 @@ const ignoreRequest = async (_: TypedState, action: TeamsGen.IgnoreRequestPayloa
   }
 }
 
-function* createNewTeamFromConversation(
+async function createNewTeamFromConversation(
   state: TypedState,
   action: TeamsGen.CreateNewTeamFromConversationPayload
 ) {
   const {conversationIDKey, teamname} = action.payload
   const me = state.config.username
-  let participants: Array<string> = []
 
   const meta = ChatConstants.getMeta(state, conversationIDKey)
-  participants = meta.participants
+  const participants = meta.participants.filter(p => p !== me) // we will already be in as 'owner'
+  const users = participants.map(assertion => ({
+    assertion,
+    role: assertion === me ? ('admin' as const) : ('writer' as const),
+  }))
 
-  if (participants) {
-    try {
-      const createRes: Saga.RPCPromiseType<typeof RPCTypes.teamsTeamCreateRpcPromise> = yield RPCTypes.teamsTeamCreateRpcPromise(
-        {joinSubteam: false, name: teamname},
-        Constants.teamCreationWaitingKey
-      )
-      for (const username of participants) {
-        if (!createRes.creatorAdded || username !== me) {
-          // TODO call existing action
-          yield RPCTypes.teamsTeamAddMemberRpcPromise(
-            {
-              email: '',
-              role: username === me ? RPCTypes.TeamRole.admin : RPCTypes.TeamRole.writer,
-              sendChatNotification: true,
-              teamID: createRes.teamID,
-              username,
-            },
-            Constants.teamCreationWaitingKey
-          )
-        }
-      }
-      yield Saga.put(RouteTreeGen.createClearModals())
-      yield Saga.put(Chat2Gen.createNavigateToInbox())
-      yield Saga.put(
-        Chat2Gen.createPreviewConversation({channelname: 'general', reason: 'convertAdHoc', teamname})
-      )
-    } catch (error) {
-      yield Saga.put(TeamsGen.createSetTeamCreationError({error: error.desc}))
-    }
-  }
+  return TeamsGen.createCreateNewTeam({
+    fromChat: true,
+    joinSubteam: false,
+    teamname,
+    thenAddMembers: {sendChatNotification: true, users},
+  })
 }
 
 function* getDetails(_: TypedState, action: TeamsGen.GetDetailsPayload, logger: Saga.SagaLogger) {
@@ -1407,6 +1400,7 @@ const teamsSaga = function*() {
   yield* Saga.chainAction2(TeamsGen.getTeamProfileAddList, getTeamProfileAddList, 'getTeamProfileAddList')
   yield* Saga.chainAction2(TeamsGen.leftTeam, leftTeam, 'leftTeam')
   yield* Saga.chainAction2(TeamsGen.createNewTeam, createNewTeam, 'createNewTeam')
+  yield* Saga.chainAction2(TeamsGen.teamCreated, showTeamAfterCreation, 'showTeamAfterCreation')
   yield* Saga.chainGenerator<TeamsGen.JoinTeamPayload>(TeamsGen.joinTeam, joinTeam, 'joinTeam')
   yield* Saga.chainGenerator<TeamsGen.GetDetailsPayload>(TeamsGen.getDetails, getDetails, 'getDetails')
   yield* Saga.chainAction2(TeamsGen.getMembers, getMembers, 'getMembers')
@@ -1415,7 +1409,7 @@ const teamsSaga = function*() {
     getTeamPublicity,
     'getTeamPublicity'
   )
-  yield* Saga.chainGenerator<TeamsGen.CreateNewTeamFromConversationPayload>(
+  yield* Saga.chainAction2(
     TeamsGen.createNewTeamFromConversation,
     createNewTeamFromConversation,
     'createNewTeamFromConversation'

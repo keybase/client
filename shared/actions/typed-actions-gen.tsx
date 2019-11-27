@@ -825,6 +825,7 @@ export type TypedActionsMap = {
   'teams:clearNavBadges': teams.ClearNavBadgesPayload
   'teams:createNewTeam': teams.CreateNewTeamPayload
   'teams:createNewTeamFromConversation': teams.CreateNewTeamFromConversationPayload
+  'teams:teamCreated': teams.TeamCreatedPayload
   'teams:createChannel': teams.CreateChannelPayload
   'teams:clearAddUserToTeamsResults': teams.ClearAddUserToTeamsResultsPayload
   'teams:setAddUserToTeamsResults': teams.SetAddUserToTeamsResultsPayload

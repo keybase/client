@@ -276,6 +276,7 @@ export default (
       case TeamsGen.saveTeamRetentionPolicy:
       case TeamsGen.updateChannelName:
       case TeamsGen.updateTopic:
+      case TeamsGen.teamCreated:
         return state
       default:
         ifTSCComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

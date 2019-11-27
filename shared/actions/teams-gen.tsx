@@ -70,6 +70,7 @@ export const setTeamSawSubteamsBanner = 'teams:setTeamSawSubteamsBanner'
 export const setTeamsWithChosenChannels = 'teams:setTeamsWithChosenChannels'
 export const setUpdatedChannelName = 'teams:setUpdatedChannelName'
 export const setUpdatedTopic = 'teams:setUpdatedTopic'
+export const teamCreated = 'teams:teamCreated'
 export const unsubscribeTeamList = 'teams:unsubscribeTeamList'
 export const updateChannelName = 'teams:updateChannelName'
 export const updateTopic = 'teams:updateTopic'
@@ -103,7 +104,12 @@ type _CreateNewTeamFromConversationPayload = {
   readonly conversationIDKey: ChatTypes.ConversationIDKey
   readonly teamname: string
 }
-type _CreateNewTeamPayload = {readonly joinSubteam: boolean; readonly teamname: string}
+type _CreateNewTeamPayload = {
+  readonly fromChat?: boolean
+  readonly joinSubteam: boolean
+  readonly teamname: string
+  readonly thenAddMembers?: Omit<_AddToTeamPayload, 'teamID'>
+}
 type _DeleteChannelConfirmedPayload = {
   readonly teamname: Types.Teamname
   readonly conversationIDKey: ChatTypes.ConversationIDKey
@@ -241,6 +247,11 @@ type _SetUpdatedTopicPayload = {
   readonly teamname: Types.Teamname
   readonly conversationIDKey: ChatTypes.ConversationIDKey
   readonly newTopic: string
+}
+type _TeamCreatedPayload = {
+  readonly fromChat: boolean
+  readonly teamID: Types.TeamID
+  readonly teamname: string
 }
 type _UnsubscribeTeamListPayload = void
 type _UpdateChannelNamePayload = {
@@ -501,6 +512,10 @@ export const createSetUpdatedTopic = (payload: _SetUpdatedTopicPayload): SetUpda
   payload,
   type: setUpdatedTopic,
 })
+export const createTeamCreated = (payload: _TeamCreatedPayload): TeamCreatedPayload => ({
+  payload,
+  type: teamCreated,
+})
 export const createUpdateChannelName = (payload: _UpdateChannelNamePayload): UpdateChannelNamePayload => ({
   payload,
   type: updateChannelName,
@@ -725,6 +740,7 @@ export type SetUpdatedTopicPayload = {
   readonly payload: _SetUpdatedTopicPayload
   readonly type: typeof setUpdatedTopic
 }
+export type TeamCreatedPayload = {readonly payload: _TeamCreatedPayload; readonly type: typeof teamCreated}
 export type UnsubscribeTeamListPayload = {
   readonly payload: _UnsubscribeTeamListPayload
   readonly type: typeof unsubscribeTeamList
@@ -805,6 +821,7 @@ export type Actions =
   | SetTeamsWithChosenChannelsPayload
   | SetUpdatedChannelNamePayload
   | SetUpdatedTopicPayload
+  | TeamCreatedPayload
   | UnsubscribeTeamListPayload
   | UpdateChannelNamePayload
   | UpdateTopicPayload

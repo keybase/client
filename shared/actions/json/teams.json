@@ -12,11 +12,18 @@
     },
     "clearNavBadges": {},
     "createNewTeam": {
+      "fromChat?": "boolean",
       "joinSubteam": "boolean",
-      "teamname": "string"
+      "teamname": "string",
+      "thenAddMembers?": "Omit<_AddToTeamPayload, 'teamID'>"
     },
     "createNewTeamFromConversation": {
       "conversationIDKey": "ChatTypes.ConversationIDKey",
+      "teamname": "string"
+    },
+    "teamCreated": {
+      "fromChat": "boolean",
+      "teamID": "Types.TeamID",
       "teamname": "string"
     },
     "createChannel": {
