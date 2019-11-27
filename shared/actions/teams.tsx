@@ -16,7 +16,6 @@ import * as NotificationsGen from './notifications-gen'
 import * as ConfigGen from './config-gen'
 import * as Chat2Gen from './chat2-gen'
 import * as GregorGen from './gregor-gen'
-import * as Tracker2Gen from './tracker2-gen'
 import * as Router2Constants from '../constants/router2'
 import commonTeamBuildingSaga, {filterForNs} from './team-building'
 import {uploadAvatarWaitingKey} from '../constants/profile'
@@ -276,7 +275,7 @@ const addReAddErrorHandler = (username, e) => {
   return undefined
 }
 
-const addToTeam = async (state: TypedState, action: TeamsGen.AddToTeamPayload) => {
+const addToTeam = async (_: TypedState, action: TeamsGen.AddToTeamPayload) => {
   const {teamID, users, sendChatNotification} = action.payload
   try {
     await RPCTypes.teamsTeamAddMembersMultiRoleRpcPromise(
@@ -484,6 +483,7 @@ function* createNewTeamFromConversation(
       )
       for (const username of participants) {
         if (!createRes.creatorAdded || username !== me) {
+          // TODO call existing action
           yield RPCTypes.teamsTeamAddMemberRpcPromise(
             {
               email: '',

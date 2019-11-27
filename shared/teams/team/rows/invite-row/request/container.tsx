@@ -25,18 +25,17 @@ const mapStateToProps = (state, {username, teamID}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {username}) => ({
-  _letIn: (teamname: string, sendNotification: boolean, role: Types.TeamRoleType) => {
+const mapDispatchToProps = (dispatch, {username, teamID}) => ({
+  _onIgnoreRequest: (teamname: string) => dispatch(TeamsGen.createIgnoreRequest({teamname, username})),
+  letIn: (sendNotification: boolean, role: Types.TeamRoleType) => {
     dispatch(
       TeamsGen.createAddToTeam({
-        role,
         sendChatNotification: sendNotification,
-        teamname,
-        username,
+        teamID,
+        users: [{assertion: username, role}],
       })
     )
   },
-  _onIgnoreRequest: (teamname: string) => dispatch(TeamsGen.createIgnoreRequest({teamname, username})),
   onChat: () => {
     username && dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'teamInvite'}))
   },
@@ -47,8 +46,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   return {
     _notifLabel: stateProps._notifLabel,
     disabledReasonsForRolePicker: stateProps.disabledReasonsForRolePicker,
-    letIn: (sendNotification: boolean, role: Types.TeamRoleType) =>
-      dispatchProps._letIn(stateProps.teamname, sendNotification, role),
+    letIn: dispatchProps.letIn,
     onChat: dispatchProps.onChat,
     onIgnoreRequest: () => dispatchProps._onIgnoreRequest(stateProps.teamname),
     onOpenProfile: dispatchProps.onOpenProfile,
