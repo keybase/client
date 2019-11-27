@@ -11,7 +11,7 @@ type OwnProps = {
   measure: (() => void) | null
 }
 
-export default Container.connectDEBUG(
+export default Container.connect(
   (state, ownProps: OwnProps) => {
     const meta = getMeta(state, ownProps.conversationIDKey)
     let canChange = true
