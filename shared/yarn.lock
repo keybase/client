@@ -2269,13 +2269,6 @@
   resolved "https://registry.yarnpkg.com/@types/url-parse/-/url-parse-1.4.3.tgz#fba49d90f834951cb000a674efee3d6f20968329"
   integrity sha512-4kHAkbV/OfW2kb5BLVUuUMoumB3CP8rHqlw48aHvFy5tf9ER0AfOonBlX29l/DD68G70DmyhRlSYfQPSYpC5Vw==
 
-"@types/uuid@3.4.5":
-  version "3.4.5"
-  resolved "https://registry.yarnpkg.com/@types/uuid/-/uuid-3.4.5.tgz#d4dc10785b497a1474eae0ba7f0cb09c0ddfd6eb"
-  integrity sha512-MNL15wC3EKyw1VLF+RoVO4hJJdk9t/Hlv3rt1OL65Qvuadm4BYo6g9ZJQqoq7X8NBFSsQXgAujWciovh2lpVjA==
-  dependencies:
-    "@types/node" "*"
-
 "@types/webpack-env@1.14.0":
   version "1.14.0"
   resolved "https://registry.yarnpkg.com/@types/webpack-env/-/webpack-env-1.14.0.tgz#8edfc5f8e6eae20eeed3ca0d02974ed4ee5e4efc"
@@ -11035,9 +11028,10 @@ react-lifecycles-compat@^3.0.2, react-lifecycles-compat@^3.0.4:
   resolved "https://registry.yarnpkg.com/react-lifecycles-compat/-/react-lifecycles-compat-3.0.4.tgz#4f1a273afdfc8f3488a8c516bfda78f872352362"
   integrity sha512-fBASbA6LnOU9dOU2eW7aQ8xmYBSXUIWr+UmF9b1efZBazGNO+rcXT/icdKnYm2pTwcRylVUYwW7H1PHfLekVzA==
 
-"react-list@git://github.com/keybase/react-list#nojima/keybase-fixes-off-0811":
-  version "0.8.11"
-  resolved "git://github.com/keybase/react-list#e46714a85be1d5c9ec5d74b86dd7009acafba25c"
+react-list@0.8.13:
+  version "0.8.13"
+  resolved "https://registry.yarnpkg.com/react-list/-/react-list-0.8.13.tgz#6947d41cccbcca5a8399d5f7822e2a9796f85b70"
+  integrity sha512-6iY1JdlfHNF7tTuDZMcDf1cQZv5IuLkYJraiEY11CbTi/zASUxmVA8ClCNjuY1gA2l6+g6CNel031BhuXCN0uA==
   dependencies:
     prop-types "15"
 
