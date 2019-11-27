@@ -65,7 +65,7 @@
     },
     "setMembers": {
       "teamname": "string",
-      "members": "I.Map<string, Types.MemberInfo>"
+      "members": "Map<string, Types.MemberInfo>"
     },
     "getTeamProfileAddList": {
       "username": "string"

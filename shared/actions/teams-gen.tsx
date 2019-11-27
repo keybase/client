@@ -188,7 +188,7 @@ type _SetAddUserToTeamsResultsPayload = {readonly error: boolean; readonly resul
 type _SetChannelCreationErrorPayload = {readonly error: string}
 type _SetEmailInviteErrorPayload = {readonly message: string; readonly malformed: Array<string>}
 type _SetMemberPublicityPayload = {readonly teamname: string; readonly showcase: boolean}
-type _SetMembersPayload = {readonly teamname: string; readonly members: I.Map<string, Types.MemberInfo>}
+type _SetMembersPayload = {readonly teamname: string; readonly members: Map<string, Types.MemberInfo>}
 type _SetNewTeamInfoPayload = {
   readonly deletedTeams: Array<RPCTypes.DeletedTeamInfo>
   readonly newTeams: Set<Types.TeamID>

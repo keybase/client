@@ -54,7 +54,7 @@ export const initialChannelInfo = Object.freeze<Types.ChannelInfo>({
   numParticipants: 0,
 })
 
-export const makeMemberInfo = I.Record<Types._MemberInfo>({
+export const initialMemberInfo = Object.freeze<Types.MemberInfo>({
   fullName: '',
   status: 'active',
   type: 'reader',
@@ -63,7 +63,7 @@ export const makeMemberInfo = I.Record<Types._MemberInfo>({
 
 export const rpcDetailsToMemberInfos = (
   allRoleMembers: RPCTypes.TeamMembersDetails
-): I.Map<string, Types.MemberInfo> => {
+): Map<string, Types.MemberInfo> => {
   const infos: Array<[string, Types.MemberInfo]> = []
   const types: Types.TeamRoleType[] = ['reader', 'writer', 'admin', 'owner', 'bot', 'restrictedbot']
   const typeToKey: Types.TypeMap = {
@@ -81,16 +81,16 @@ export const rpcDetailsToMemberInfos = (
     members.forEach(({fullName, status, username}) => {
       infos.push([
         username,
-        makeMemberInfo({
+        {
           fullName,
           status: rpcMemberStatusToStatus[status],
           type,
           username,
-        }),
+        },
       ])
     })
   })
-  return I.Map(infos)
+  return new Map(infos)
 }
 
 export const emptyInviteInfo = Object.freeze<Types.InviteInfo>({
@@ -186,7 +186,7 @@ const emptyState: Types.State = {
   teamNameToChannelInfos: new Map(),
   teamNameToID: new Map(),
   teamNameToLoadingInvites: new Map(),
-  teamNameToMembers: I.Map(),
+  teamNameToMembers: new Map(),
   teamNameToPublicitySettings: I.Map(),
   teamNameToResetUsers: I.Map(),
   teamNameToRetentionPolicy: I.Map(),
@@ -274,7 +274,7 @@ export const retentionPolicies = {
 }
 
 export const userIsRoleInTeamWithInfo = (
-  memberInfo: I.Map<string, Types.MemberInfo>,
+  memberInfo: Map<string, Types.MemberInfo>,
   username: string,
   role: Types.TeamRoleType
 ): boolean => {
@@ -292,7 +292,7 @@ export const userIsRoleInTeam = (
   role: Types.TeamRoleType
 ): boolean => {
   return userIsRoleInTeamWithInfo(
-    state.teams.teamNameToMembers.get(teamname) || I.Map<string, Types.MemberInfo>(),
+    state.teams.teamNameToMembers.get(teamname) || new Map<string, Types.MemberInfo>(),
     username,
     role
   )
@@ -391,8 +391,8 @@ export const getDisabledReasonsForRolePicker = (
 
 const isMultiOwnerTeam = (state: TypedState, teamname: Types.Teamname): boolean => {
   let countOfOwners = 0
-  const allTeamMembers = state.teams.teamNameToMembers.get(teamname, I.Map<string, Types.MemberInfo>())
-  const moreThanOneOwner = allTeamMembers.some(tm => {
+  const allTeamMembers = state.teams.teamNameToMembers.get(teamname) || new Map<string, Types.MemberInfo>()
+  const moreThanOneOwner = [...allTeamMembers.values()].some(tm => {
     if (isOwner(tm.type)) {
       countOfOwners++
     }
@@ -446,11 +446,8 @@ export const getTeamType = (state: TypedState, teamname: Types.Teamname): 'big' 
 export const isBigTeam = (state: TypedState, teamname: Types.Teamname): boolean =>
   getTeamType(state, teamname) === 'big'
 
-export const getTeamMembers = (
-  state: TypedState,
-  teamname: Types.Teamname
-): I.Map<string, Types.MemberInfo> =>
-  state.teams.teamNameToMembers.get(teamname) || I.Map<string, Types.MemberInfo>()
+export const getTeamMembers = (state: TypedState, teamname: Types.Teamname): Map<string, Types.MemberInfo> =>
+  state.teams.teamNameToMembers.get(teamname) || new Map<string, Types.MemberInfo>()
 
 export const getTeamPublicitySettings = (
   state: TypedState,

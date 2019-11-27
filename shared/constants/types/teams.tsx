@@ -52,13 +52,12 @@ export type ChannelInfo = {
 }
 
 export type MemberStatus = 'active' | 'deleted' | 'reset'
-export type _MemberInfo = {
+export type MemberInfo = {
   fullName: string
   status: MemberStatus
   type: TeamRoleType
   username: string
 }
-export type MemberInfo = I.RecordOf<_MemberInfo>
 
 export type InviteInfo = {
   email: string
@@ -111,7 +110,7 @@ export type TeamDetails = {
   showcasing: boolean
   teamname: string
 
-  members?: Map<string, _MemberInfo>
+  members?: Map<string, MemberInfo>
   settings?: TeamSettings
   invites?: Set<InviteInfo>
   subteams?: Set<TeamID>
@@ -151,7 +150,7 @@ export type State = Readonly<{
   teamNameToChannelInfos: Map<Teamname, Map<ConversationIDKey, ChannelInfo>>
   teamNameToID: Map<Teamname, string>
   teamNameToLoadingInvites: Map<Teamname, Map<string, boolean>>
-  teamNameToMembers: I.Map<Teamname, I.Map<string, MemberInfo>> // TODO remove
+  teamNameToMembers: Map<Teamname, Map<string, MemberInfo>> // TODO remove
   teamNameToResetUsers: I.Map<Teamname, I.Set<ResetUser>>
   teamNameToRetentionPolicy: I.Map<Teamname, RetentionPolicy>
   teamNameToPublicitySettings: I.Map<Teamname, _PublicitySettings>

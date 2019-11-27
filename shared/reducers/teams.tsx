@@ -71,9 +71,7 @@ export default (
         const details =
           draftState.teamDetails.get(action.payload.teamID) ||
           Constants.makeTeamDetails({teamname: action.payload.teamname})
-        details.members = new Map(
-          [...members.entries()].map(([username, memberInfo]) => [username, memberInfo.toObject()])
-        )
+        details.members = members
         details.settings = action.payload.settings
         details.invites = new Set(action.payload.invites)
         details.subteams = new Set(action.payload.subteamIDs)
