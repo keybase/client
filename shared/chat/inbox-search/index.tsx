@@ -129,7 +129,7 @@ class InboxSearch extends React.Component<Props, State> {
       </Kb.Box2>
     )
   }
-  private renderSectionHeader = ({section}: unknown) => {
+  private renderSectionHeader = ({section}: any) => {
     return section.renderHeader(section)
   }
   private keyExtractor = (_: unknown, index: number) => index
