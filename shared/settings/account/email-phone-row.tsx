@@ -67,12 +67,14 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
   if (!props.verified) {
     menuItems.push({
       decoration: props.verified ? undefined : badge(Styles.globalColors.orange, true),
+      icon: 'iconfont-lock',
       onClick: props.onVerify,
       title: 'Verify',
     })
   }
   if (props.type === 'email' && !props.primary) {
     menuItems.push({
+      icon: 'iconfont-star',
       onClick: props.onMakePrimary,
       subTitle: 'Use this email for important notifications.',
       title: 'Make primary',
@@ -82,6 +84,7 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
     const copyType = props.type === 'email' ? 'email' : 'number'
     menuItems.push({
       decoration: props.searchable ? undefined : badge(Styles.globalColors.blue, true),
+      icon: props.searchable ? 'iconfont-hide' : 'iconfont-unhide',
       onClick: props.onToggleSearchable,
       subTitle: props.searchable
         ? `Don't let friends find you by this ${copyType}.`
@@ -97,12 +100,13 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
   const deleteItem = isUndeletableEmail
     ? {
         disabled: true,
+        icon: 'iconfont-trash',
         onClick: null,
         subTitle:
           'You need to delete your other emails, or make another one primary, before you can delete this email.',
         title: 'Delete',
       }
-    : {danger: true, onClick: props.onDelete, title: 'Delete'}
+    : {danger: true, icon: 'iconfont-trash', onClick: props.onDelete, title: 'Delete'}
   menuItems.push(deleteItem)
 
   let gearIconBadge: React.ReactNode | null = null

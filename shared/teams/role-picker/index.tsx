@@ -407,12 +407,14 @@ export const sendNotificationFooter = (
 ) => (
   <Kb.Box2
     direction="horizontal"
-    fullWidth={!Styles.isMobile}
-    style={{
-      paddingBottom: Styles.globalMargins.tiny,
-      paddingLeft: Styles.globalMargins.small,
-      paddingTop: Styles.globalMargins.tiny,
-    }}
+    fullWidth={true}
+    style={Styles.collapseStyles([
+      !Styles.isMobile && {
+        paddingBottom: Styles.globalMargins.tiny,
+        paddingLeft: Styles.globalMargins.small,
+        paddingTop: Styles.globalMargins.tiny,
+      },
+    ])}
   >
     <Kb.Checkbox checked={checked} onCheck={onCheck} label={label} />
   </Kb.Box2>

@@ -28,12 +28,7 @@ export const WalletSwitcher = (props: Props) => {
   if (flags.airdrop && props.airdropIsLive) {
     items.push({
       icon: 'icon-airdrop-logo-32',
-      iconStyle: {
-        height: 20,
-        position: 'relative',
-        right: 2,
-        width: 20,
-      },
+      iconStyle: styles.icon,
       onClick: props.onJoinAirdrop,
       title: props.inAirdrop ? 'Airdrop' : 'Join the airdrop',
     })
@@ -72,6 +67,12 @@ export const WalletSwitcher = (props: Props) => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
+  icon: {
+    height: 20,
+    position: 'relative',
+    right: 2,
+    width: 20,
+  },
   infoText: {
     color: Styles.globalColors.black_50,
     paddingLeft: Styles.globalMargins.tiny,

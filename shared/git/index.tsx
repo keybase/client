@@ -17,11 +17,14 @@ export type Props = {
 
 class Git extends React.Component<Props & Kb.OverlayParentProps, {}> {
   private menuItems = [
-    {icon: 'iconfont-person', onClick: () => this.props.onNewPersonalRepo(), title: 'New personal repository'},
+    {
+      icon: 'iconfont-person',
+      onClick: () => this.props.onNewPersonalRepo(),
+      title: 'New personal repository',
+    },
     {
       icon: 'iconfont-people',
       onClick: () => this.props.onNewTeamRepo(),
-      // style: Styles.isMobile ? {paddingLeft: 0, paddingRight: 0} : {},
       title: 'New team repository',
     },
   ]
