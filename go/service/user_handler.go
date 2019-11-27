@@ -97,11 +97,16 @@ func (r *userHandler) userBlocked(m libkb.MetaContext, cli gregor1.IncomingInter
 	}
 	m.Debug("Got user.blocked item: %+v", msg)
 	badUIDs := make(map[keybase1.UID]bool)
+
 	for _, r := range msg.Blocks {
 		if (r.Chat != nil && *r.Chat) || (r.Follow != nil && *r.Follow) {
 			badUIDs[r.Uid] = true
 		}
 	}
+
+	// Ignore the error if we fail to block properly
+	_ = libkb.NewTracker2Syncer(m.G(), msg.Uid, true /* reverse */).Block(m, badUIDs)
+
 	m.Debug("Got user.blocked blocked UIDs %+v", badUIDs)
 	for _, h := range r.userBlockedHandlers {
 		tmp := h.UserBlocked(m, badUIDs)
