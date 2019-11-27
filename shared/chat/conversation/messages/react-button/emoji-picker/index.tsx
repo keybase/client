@@ -8,9 +8,9 @@ import {memoize} from '../../../../../util/memoize'
 
 // defer loading this until we need to, very expensive
 const _getData = memoize(() => {
-  const categories: typeof Data.categories = require('./data')
-  const emojiIndex: typeof Data.emojiIndex = require('./data')
-  const emojiNameMap: typeof Data.emojiNameMap = require('./data')
+  const categories: typeof Data.categories = require('./data').categories
+  const emojiIndex: typeof Data.emojiIndex = require('./data').emojiIndex
+  const emojiNameMap: typeof Data.emojiNameMap = require('./data').emojiNameMap
   return {categories, emojiIndex, emojiNameMap}
 })
 
