@@ -184,7 +184,7 @@ const emptyState: Types.State = {
   teamJoinSuccess: false,
   teamJoinSuccessTeamName: '',
   teamNameToChannelInfos: new Map(),
-  teamNameToID: I.Map(),
+  teamNameToID: new Map(),
   teamNameToLoadingInvites: I.Map(),
   teamNameToMembers: I.Map(),
   teamNameToPublicitySettings: I.Map(),
@@ -402,10 +402,10 @@ const isMultiOwnerTeam = (state: TypedState, teamname: Types.Teamname): boolean 
 }
 
 export const getTeamID = (state: TypedState, teamname: Types.Teamname): string =>
-  state.teams.teamNameToID.get(teamname, '')
+  state.teams.teamNameToID.get(teamname) || Types.noTeamID
 
 export const getTeamNameFromID = (state: TypedState, teamID: string): Types.Teamname | null =>
-  state.teams.teamNameToID.findKey(value => value === teamID) || null
+  state.teams.teamDetails.get(teamID)?.teamname ?? null
 
 export const getTeamRetentionPolicy = (state: TypedState, teamname: Types.Teamname): RetentionPolicy | null =>
   state.teams.teamNameToRetentionPolicy.get(teamname, null)

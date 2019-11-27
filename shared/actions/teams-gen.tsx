@@ -224,7 +224,7 @@ type _SetTeamDetailsPayload = {
 }
 type _SetTeamInfoPayload = {
   readonly teamnames: Set<Types.Teamname>
-  readonly teamNameToID: I.Map<Types.Teamname, string>
+  readonly teamNameToID: Map<Types.Teamname, string>
   readonly teamDetails: Map<Types.TeamID, Types.TeamDetails>
 }
 type _SetTeamInviteErrorPayload = {readonly error: string}

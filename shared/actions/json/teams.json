@@ -223,7 +223,7 @@
     },
     "setTeamInfo": {
       "teamnames": "Set<Types.Teamname>",
-      "teamNameToID": "I.Map<Types.Teamname, string>",
+      "teamNameToID": "Map<Types.Teamname, string>",
       "teamDetails": "Map<Types.TeamID, Types.TeamDetails>"
     },
     "setTeamProfileAddList": {

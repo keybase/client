@@ -302,7 +302,7 @@ const addToTeam = async (_: TypedState, action: TeamsGen.AddToTeamPayload) => {
 
 const reAddToTeam = async (state: TypedState, action: TeamsGen.ReAddToTeamPayload) => {
   const {teamname, username} = action.payload
-  const id = state.teams.teamNameToID.get(teamname, '')
+  const id = state.teams.teamNameToID.get(teamname) || ''
   if (!id) {
     throw new Error(`team ID not on file for team '${teamname}'`)
   }
@@ -769,10 +769,10 @@ function* getTeams(
 
     const teams: Array<RPCTypes.AnnotatedMemberInfo> = results.teams || []
     const teamnames: Array<string> = []
-    const teamNameToID: {[key: string]: string} = {}
+    const teamNameToID = new Map<string, Types.TeamID>()
     teams.forEach(team => {
       teamnames.push(team.fqName)
-      teamNameToID[team.fqName] = team.teamID
+      teamNameToID.set(team.fqName, team.teamID)
     })
 
     // Dismiss any stale badges for teams we're no longer in
@@ -800,7 +800,7 @@ function* getTeams(
     yield Saga.put(
       TeamsGen.createSetTeamInfo({
         teamDetails: Constants.teamListToDetails(teams),
-        teamNameToID: I.Map(teamNameToID),
+        teamNameToID,
         teamnames: teamNameSet,
       })
     )
