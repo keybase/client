@@ -189,7 +189,7 @@ const emptyState: Types.State = {
   teamNameToMembers: new Map(),
   teamNameToPublicitySettings: I.Map(),
   teamNameToResetUsers: new Map(),
-  teamNameToRetentionPolicy: I.Map(),
+  teamNameToRetentionPolicy: new Map(),
   teamProfileAddList: [],
   teamRoleMap: {latestKnownVersion: -1, loadedVersion: -1, roles: new Map()},
   teamnames: new Set(),
@@ -408,7 +408,7 @@ export const getTeamNameFromID = (state: TypedState, teamID: string): Types.Team
   state.teams.teamDetails.get(teamID)?.teamname ?? null
 
 export const getTeamRetentionPolicy = (state: TypedState, teamname: Types.Teamname): RetentionPolicy | null =>
-  state.teams.teamNameToRetentionPolicy.get(teamname, null)
+  state.teams.teamNameToRetentionPolicy.get(teamname) ?? null
 
 export const getSelectedTeams = (): Types.TeamID[] => {
   const path = getFullRoute()

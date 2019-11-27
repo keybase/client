@@ -151,7 +151,7 @@ export type State = Readonly<{
   teamNameToLoadingInvites: Map<Teamname, Map<string, boolean>>
   teamNameToMembers: Map<Teamname, Map<string, MemberInfo>> // TODO remove
   teamNameToResetUsers: Map<Teamname, Set<ResetUser>>
-  teamNameToRetentionPolicy: I.Map<Teamname, RetentionPolicy>
+  teamNameToRetentionPolicy: Map<Teamname, RetentionPolicy>
   teamNameToPublicitySettings: I.Map<Teamname, _PublicitySettings>
   teamnames: Set<Teamname> // TODO remove
   teamProfileAddList: Array<TeamProfileAddList>

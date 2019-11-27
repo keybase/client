@@ -48,10 +48,7 @@ export default (
         draftState.teamJoinSuccessTeamName = action.payload.teamname
         return
       case TeamsGen.setTeamRetentionPolicy:
-        draftState.teamNameToRetentionPolicy = draftState.teamNameToRetentionPolicy.set(
-          action.payload.teamname,
-          action.payload.retentionPolicy
-        )
+        draftState.teamNameToRetentionPolicy.set(action.payload.teamname, action.payload.retentionPolicy)
         return
       case TeamsGen.setTeamLoadingInvites: {
         const {teamname, loadingKey, isLoading} = action.payload
