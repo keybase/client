@@ -14,7 +14,6 @@ export const headerProvider = {
     hasSoftError: false,
   }),
   MainBanner: (p: any) => ({
-    // Auto generated from flowToTs. Please clean me!
     bannerType: (p.storyProps && p.storyProps.bannerType) || Types.MainBannerType.None,
     onRetry: Sb.action('onRetry'),
   }),

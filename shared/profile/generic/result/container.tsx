@@ -5,16 +5,8 @@ import Success from '.'
 
 const mapStateToProps = state => ({
   errorText: state.profile.errorCode !== null ? state.profile.errorText || 'Failed to verify proof' : '',
-  proofUsername:
-    state.profile.username + // Auto generated from flowToTs. Please clean me!
-    ((state.profile.platformGenericParams === null || state.profile.platformGenericParams === undefined
-      ? undefined
-      : state.profile.platformGenericParams.suffix) || '@unknown'),
-  // Auto generated from flowToTs. Please clean me!
-  serviceIcon:
-    (state.profile.platformGenericParams === null || state.profile.platformGenericParams === undefined
-      ? undefined
-      : state.profile.platformGenericParams.logoFull) || [],
+  proofUsername: state.profile.username + state.profile.platformGenericParams?.suffic ?? '@unknown',
+  serviceIcon: state.profile.platformGenericParams?.logoFull ?? [],
 })
 
 const mapDispatchToProps = dispatch => ({
