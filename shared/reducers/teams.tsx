@@ -60,7 +60,7 @@ export default (
       }
       case TeamsGen.setTeamDetails: {
         const members = Constants.rpcDetailsToMemberInfos(action.payload.members)
-        draftState.teamNameToMembers = draftState.teamNameToMembers.set(
+        draftState.teamNameToMembers.set(
           action.payload.teamname,
           Constants.rpcDetailsToMemberInfos(action.payload.members)
         )
@@ -80,10 +80,7 @@ export default (
         return
       }
       case TeamsGen.setMembers:
-        draftState.teamNameToMembers = draftState.teamNameToMembers.set(
-          action.payload.teamname,
-          action.payload.members
-        )
+        draftState.teamNameToMembers.set(action.payload.teamname, action.payload.members)
         return
       case TeamsGen.setTeamCanPerform: {
         draftState.canPerform.set(action.payload.teamID, action.payload.teamOperation)
@@ -101,10 +98,7 @@ export default (
         return
       }
       case TeamsGen.setTeamChannels:
-        draftState.teamNameToChannelInfos = draftState.teamNameToChannelInfos.set(
-          action.payload.teamname,
-          action.payload.channelInfos
-        )
+        draftState.teamNameToChannelInfos.set(action.payload.teamname, action.payload.channelInfos)
         return
       case TeamsGen.setEmailInviteError:
         if (!action.payload.malformed.length && !action.payload.message) {
