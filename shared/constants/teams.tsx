@@ -190,7 +190,6 @@ const emptyState: Types.State = {
   teamNameToPublicitySettings: I.Map(),
   teamNameToResetUsers: I.Map(),
   teamNameToRetentionPolicy: I.Map(),
-  teamNameToRole: I.Map(),
   teamProfileAddList: [],
   teamRoleMap: {latestKnownVersion: -1, loadedVersion: -1, roles: new Map()},
   teammembercounts: I.Map(),
@@ -321,8 +320,11 @@ export const getChannelInfoFromConvID = (
   conversationIDKey: ChatTypes.ConversationIDKey
 ): Types.ChannelInfo | null => getTeamChannelInfos(state, teamname).get(conversationIDKey) || null
 
-export const getRole = (state: TypedState, teamname: Types.Teamname): Types.MaybeTeamRoleType =>
-  state.teams.teamNameToRole.get(teamname, 'none')
+export const getRole = (state: TypedState, teamID: Types.TeamID): Types.MaybeTeamRoleType =>
+  state.teams.teamRoleMap.roles.get(teamID)?.role || 'none'
+
+export const getRoleByName = (state: TypedState, teamname: string): Types.MaybeTeamRoleType =>
+  getRole(state, getTeamID(state, teamname))
 
 export const hasChannelInfos = (state: TypedState, teamname: Types.Teamname): boolean =>
   state.teams.teamNameToChannelInfos.has(teamname)
@@ -331,7 +333,7 @@ export const getTeamMemberCount = (state: TypedState, teamname: Types.Teamname):
   state.teams.teammembercounts.get(teamname, 0)
 
 export const isLastOwner = (state: TypedState, teamname: Types.Teamname): boolean =>
-  isOwner(getRole(state, teamname)) && !isMultiOwnerTeam(state, teamname)
+  isOwner(getRoleByName(state, teamname)) && !isMultiOwnerTeam(state, teamname)
 
 export const getDisabledReasonsForRolePicker = (
   state: TypedState,
@@ -470,10 +472,10 @@ export const getTeamPublicitySettings = (
 // since that may contain subteams you're not a member of.
 
 export const isInTeam = (state: TypedState, teamname: Types.Teamname): boolean =>
-  getRole(state, teamname) !== 'none'
+  getRoleByName(state, teamname) !== 'none'
 
 export const isInSomeTeam = (state: TypedState): boolean =>
-  !!state.teams.teamNameToRole.find(role => role !== 'none')
+  [...state.teams.teamRoleMap.roles.values()].some(rd => rd.role !== 'none')
 
 export const isAccessRequestPending = (state: TypedState, teamname: Types.Teamname): boolean =>
   state.teams.teamAccessRequestsPending.has(teamname)
@@ -504,6 +506,9 @@ export const getSortedTeamnames = (state: TypedState): Types.Teamname[] =>
 export const sortTeamsByName = memoize((teamDetails: Map<Types.TeamID, Types.TeamDetails>) =>
   [...teamDetails.values()].sort((a, b) => sortTeamnames(a.teamname, b.teamname))
 )
+
+// sorted by name
+export const getSortedTeams = (state: TypedState) => sortTeamsByName(state.teams.teamDetails)
 
 export const isAdmin = (type: Types.MaybeTeamRoleType) => type === 'admin'
 export const isOwner = (type: Types.MaybeTeamRoleType) => type === 'owner'

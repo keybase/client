@@ -28,7 +28,7 @@ export default Container.connect(
       description: Constants.getTeamPublicitySettings(state, teamname).description,
       memberCount: Constants.getTeamMemberCount(state, teamname),
       openTeam: isOpen,
-      role: Constants.getRole(state, teamname),
+      role: Constants.getRole(state, teamID),
       teamname,
     }
   },
