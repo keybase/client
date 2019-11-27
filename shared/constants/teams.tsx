@@ -196,7 +196,6 @@ const emptyState: Types.State = {
   teamNameToRetentionPolicy: I.Map(),
   teamNameToRole: I.Map(),
   teamNameToSettings: I.Map(),
-  teamNameToSubteams: I.Map(),
   teamProfileAddList: [],
   teamRoleMap: {latestKnownVersion: -1, loadedVersion: -1, roles: new Map()},
   teammembercounts: I.Map(),
@@ -483,9 +482,6 @@ export const isInSomeTeam = (state: TypedState): boolean =>
 
 export const isAccessRequestPending = (state: TypedState, teamname: Types.Teamname): boolean =>
   state.teams.teamAccessRequestsPending.has(teamname)
-
-export const getTeamSubteams = (state: TypedState, teamname: Types.Teamname): I.Set<Types.Teamname> =>
-  state.teams.teamNameToSubteams.get(teamname, I.Set())
 
 export const getTeamSettings = (state: TypedState, teamname: Types.Teamname): Types.TeamSettings =>
   state.teams.teamNameToSettings.get(teamname) || makeTeamSettings()

@@ -70,10 +70,6 @@ export default (
           action.payload.teamname,
           Constants.makeTeamSettings(action.payload.settings)
         )
-        draftState.teamNameToSubteams = draftState.teamNameToSubteams.set(
-          action.payload.teamname,
-          I.Set(action.payload.subteams)
-        )
 
         const details =
           draftState.teamDetails.get(action.payload.teamID) ||
