@@ -2,7 +2,6 @@ import * as TeamsGen from '../actions/teams-gen'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as Constants from '../constants/teams'
-import * as I from 'immutable'
 import * as Types from '../constants/types/teams'
 import * as ChatTypes from '../constants/types/chat2'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
@@ -54,13 +53,14 @@ export default (
           action.payload.retentionPolicy
         )
         return
-      case TeamsGen.setTeamLoadingInvites:
-        draftState.teamNameToLoadingInvites = draftState.teamNameToLoadingInvites.update(
-          action.payload.teamname,
-          (inviteToLoading = I.Map<string, boolean>()) =>
-            inviteToLoading.set(action.payload.loadingKey, action.payload.isLoading)
-        )
+      case TeamsGen.setTeamLoadingInvites: {
+        const {teamname, loadingKey, isLoading} = action.payload
+        const oldLoadingInvites =
+          draftState.teamNameToLoadingInvites.get(teamname) || new Map<string, boolean>()
+        oldLoadingInvites.set(loadingKey, isLoading)
+        draftState.teamNameToLoadingInvites.set(teamname, oldLoadingInvites)
         return
+      }
       case TeamsGen.setTeamDetails: {
         const members = Constants.rpcDetailsToMemberInfos(action.payload.members)
         draftState.teamNameToMembers = draftState.teamNameToMembers.set(

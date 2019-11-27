@@ -185,7 +185,7 @@ const emptyState: Types.State = {
   teamJoinSuccessTeamName: '',
   teamNameToChannelInfos: new Map(),
   teamNameToID: new Map(),
-  teamNameToLoadingInvites: I.Map(),
+  teamNameToLoadingInvites: new Map(),
   teamNameToMembers: I.Map(),
   teamNameToPublicitySettings: I.Map(),
   teamNameToResetUsers: I.Map(),
@@ -479,8 +479,8 @@ export const isAccessRequestPending = (state: TypedState, teamname: Types.Teamna
 export const getTeamResetUsers = (state: TypedState, teamname: Types.Teamname): I.Set<Types.ResetUser> =>
   state.teams.teamNameToResetUsers.get(teamname, I.Set())
 
-export const getTeamLoadingInvites = (state: TypedState, teamname: Types.Teamname): I.Map<string, boolean> =>
-  state.teams.teamNameToLoadingInvites.get(teamname) || I.Map<string, boolean>()
+export const getTeamLoadingInvites = (state: TypedState, teamname: Types.Teamname): Map<string, boolean> =>
+  state.teams.teamNameToLoadingInvites.get(teamname) || new Map<string, boolean>()
 
 // Sorts teamnames canonically.
 function sortTeamnames(a: string, b: string) {
