@@ -141,7 +141,6 @@ export default (
       case TeamsGen.setTeamInfo:
         draftState.teamNameToAllowPromote = action.payload.teamNameToAllowPromote
         draftState.teamNameToID = action.payload.teamNameToID
-        draftState.teamNameToIsOpen = action.payload.teamNameToIsOpen
         draftState.teamNameToIsShowcasing = action.payload.teamNameToIsShowcasing
         draftState.teamNameToRole = action.payload.teamNameToRole
         draftState.teammembercounts = action.payload.teammembercounts

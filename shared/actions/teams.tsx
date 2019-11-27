@@ -771,7 +771,6 @@ function* getTeams(
     const teamnames: Array<string> = []
     const teammembercounts: {[key: string]: number} = {}
     const teamNameToRole: {[K in Types.Teamname]: Types.MaybeTeamRoleType} = {}
-    const teamNameToIsOpen: {[key: string]: boolean} = {}
     const teamNameToAllowPromote: {[key: string]: boolean} = {}
     const teamNameToIsShowcasing: {[key: string]: boolean} = {}
     const teamNameToID: {[key: string]: string} = {}
@@ -779,7 +778,6 @@ function* getTeams(
       teamnames.push(team.fqName)
       teammembercounts[team.fqName] = team.memberCount
       teamNameToRole[team.fqName] = Constants.teamRoleByEnum[team.role] || 'none'
-      teamNameToIsOpen[team.fqName] = team.isOpenTeam
       teamNameToAllowPromote[team.fqName] = team.allowProfilePromote
       teamNameToIsShowcasing[team.fqName] = team.isMemberShowcased
       teamNameToID[team.fqName] = team.teamID
@@ -812,7 +810,6 @@ function* getTeams(
         teamDetails: Constants.teamListToDetails(teams),
         teamNameToAllowPromote: I.Map(teamNameToAllowPromote),
         teamNameToID: I.Map(teamNameToID),
-        teamNameToIsOpen: I.Map(teamNameToIsOpen),
         teamNameToIsShowcasing: I.Map(teamNameToIsShowcasing),
         teamNameToRole: I.Map(teamNameToRole),
         teammembercounts: I.Map(teammembercounts),

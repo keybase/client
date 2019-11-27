@@ -225,7 +225,6 @@ type _SetTeamDetailsPayload = {
 type _SetTeamInfoPayload = {
   readonly teamnames: Set<Types.Teamname>
   readonly teammembercounts: I.Map<Types.Teamname, number>
-  readonly teamNameToIsOpen: I.Map<Types.Teamname, boolean>
   readonly teamNameToRole: I.Map<Types.Teamname, Types.MaybeTeamRoleType>
   readonly teamNameToAllowPromote: I.Map<Types.Teamname, boolean>
   readonly teamNameToIsShowcasing: I.Map<Types.Teamname, boolean>

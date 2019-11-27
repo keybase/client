@@ -152,7 +152,6 @@ export type State = Readonly<{
   teamDetailsMetaSubscribeCount: number // if >0 we are eagerly reloading team list
   teamNameToChannelInfos: I.Map<Teamname, I.Map<ConversationIDKey, ChannelInfo>>
   teamNameToID: I.Map<Teamname, string>
-  teamNameToIsOpen: I.Map<Teamname, boolean> // TODO remove
   teamNameToLoadingInvites: I.Map<Teamname, I.Map<string, boolean>>
   teamNameToMembers: I.Map<Teamname, I.Map<string, MemberInfo>> // TODO remove
   teamNameToResetUsers: I.Map<Teamname, I.Set<ResetUser>>
