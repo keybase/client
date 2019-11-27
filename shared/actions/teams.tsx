@@ -771,13 +771,11 @@ function* getTeams(
     const teamnames: Array<string> = []
     const teammembercounts: {[key: string]: number} = {}
     const teamNameToRole: {[K in Types.Teamname]: Types.MaybeTeamRoleType} = {}
-    const teamNameToIsShowcasing: {[key: string]: boolean} = {}
     const teamNameToID: {[key: string]: string} = {}
     teams.forEach(team => {
       teamnames.push(team.fqName)
       teammembercounts[team.fqName] = team.memberCount
       teamNameToRole[team.fqName] = Constants.teamRoleByEnum[team.role] || 'none'
-      teamNameToIsShowcasing[team.fqName] = team.isMemberShowcased
       teamNameToID[team.fqName] = team.teamID
     })
 
@@ -807,7 +805,6 @@ function* getTeams(
       TeamsGen.createSetTeamInfo({
         teamDetails: Constants.teamListToDetails(teams),
         teamNameToID: I.Map(teamNameToID),
-        teamNameToIsShowcasing: I.Map(teamNameToIsShowcasing),
         teamNameToRole: I.Map(teamNameToRole),
         teammembercounts: I.Map(teammembercounts),
         teamnames: teamNameSet,

@@ -140,7 +140,6 @@ export default (
         return
       case TeamsGen.setTeamInfo:
         draftState.teamNameToID = action.payload.teamNameToID
-        draftState.teamNameToIsShowcasing = action.payload.teamNameToIsShowcasing
         draftState.teamNameToRole = action.payload.teamNameToRole
         draftState.teammembercounts = action.payload.teammembercounts
         draftState.teamnames = action.payload.teamnames

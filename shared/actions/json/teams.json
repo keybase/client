@@ -225,7 +225,6 @@
       "teamnames": "Set<Types.Teamname>",
       "teammembercounts": "I.Map<Types.Teamname, number>",
       "teamNameToRole": "I.Map<Types.Teamname, Types.MaybeTeamRoleType>",
-      "teamNameToIsShowcasing": "I.Map<Types.Teamname, boolean>",
       "teamNameToID": "I.Map<Types.Teamname, string>",
       "teamDetails": "Map<Types.TeamID, Types.TeamDetails>"
     },

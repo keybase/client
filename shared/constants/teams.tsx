@@ -185,7 +185,6 @@ const emptyState: Types.State = {
   teamJoinSuccessTeamName: '',
   teamNameToChannelInfos: I.Map(),
   teamNameToID: I.Map(),
-  teamNameToIsShowcasing: I.Map(),
   teamNameToLoadingInvites: I.Map(),
   teamNameToMembers: I.Map(),
   teamNameToPublicitySettings: I.Map(),
