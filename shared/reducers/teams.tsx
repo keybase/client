@@ -139,7 +139,6 @@ export default (
         }
         return
       case TeamsGen.setTeamInfo:
-        draftState.teamNameToAllowPromote = action.payload.teamNameToAllowPromote
         draftState.teamNameToID = action.payload.teamNameToID
         draftState.teamNameToIsShowcasing = action.payload.teamNameToIsShowcasing
         draftState.teamNameToRole = action.payload.teamNameToRole

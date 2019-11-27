@@ -159,7 +159,6 @@ export type State = Readonly<{
   teamNameToRole: I.Map<Teamname, MaybeTeamRoleType> // TODO remove
   teamNameToSettings: I.Map<Teamname, TeamSettings>
   teamNameToPublicitySettings: I.Map<Teamname, _PublicitySettings>
-  teamNameToAllowPromote: I.Map<Teamname, boolean> // TODO remove
   teamNameToIsShowcasing: I.Map<Teamname, boolean> // TODO remove
   teamnames: Set<Teamname> // TODO remove
   teammembercounts: I.Map<Teamname, number> // TODO remove
