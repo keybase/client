@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as RPCTypes from './rpc-gen'
 import {ConversationIDKey} from './chat2'
 import {RetentionPolicy} from './retention-policy'
@@ -69,17 +68,6 @@ export type InviteInfo = {
 }
 
 export type TabKey = 'members' | 'invites' | 'subteams' | 'settings'
-
-export type _SubteamInfo = {
-  key: string
-  members: number
-  onCreateSubteam: ((e: React.SyntheticEvent) => void) | null
-  onHideSubteamsBanner: () => void
-  onReadMore: () => void
-  teamname: string
-  type: 'addSubteam' | 'intro' | 'noSubteams' | 'subteam'
-}
-export type SubteamInfo = I.RecordOf<_SubteamInfo>
 
 export type TypeMap = {[K in TeamRoleType]: string}
 
@@ -152,7 +140,7 @@ export type State = Readonly<{
   teamNameToMembers: Map<Teamname, Map<string, MemberInfo>> // TODO remove
   teamNameToResetUsers: Map<Teamname, Set<ResetUser>>
   teamNameToRetentionPolicy: Map<Teamname, RetentionPolicy>
-  teamNameToPublicitySettings: I.Map<Teamname, _PublicitySettings>
+  teamNameToPublicitySettings: Map<Teamname, _PublicitySettings>
   teamnames: Set<Teamname> // TODO remove
   teamProfileAddList: Array<TeamProfileAddList>
   teamRoleMap: TeamRoleMap

@@ -90,10 +90,7 @@ export default (
         return
       }
       case TeamsGen.setTeamPublicitySettings:
-        draftState.teamNameToPublicitySettings = draftState.teamNameToPublicitySettings.set(
-          action.payload.teamname,
-          action.payload.publicity
-        )
+        draftState.teamNameToPublicitySettings.set(action.payload.teamname, action.payload.publicity)
         return
       case TeamsGen.setTeamChannelInfo: {
         const {conversationIDKey, channelInfo, teamname} = action.payload
