@@ -170,6 +170,5 @@ export type State = Readonly<{
   teamRoleMap: TeamRoleMap
   newTeams: Set<TeamID>
   newTeamRequests: Map<TeamID, number>
-  newTeamRequestsByName: Map<string, number> // TODO remove
   teamBuilding: TeamBuildingSubState
 }>

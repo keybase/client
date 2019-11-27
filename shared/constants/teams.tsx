@@ -170,7 +170,6 @@ const emptyState: Types.State = {
   deletedTeams: [],
   emailInviteError: emptyEmailInviteError,
   newTeamRequests: new Map(),
-  newTeamRequestsByName: new Map(),
   newTeams: new Set(),
   sawChatBanner: false,
   sawSubteamsBanner: false,
