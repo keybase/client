@@ -188,7 +188,7 @@ const emptyState: Types.State = {
   teamNameToLoadingInvites: new Map(),
   teamNameToMembers: new Map(),
   teamNameToPublicitySettings: I.Map(),
-  teamNameToResetUsers: I.Map(),
+  teamNameToResetUsers: new Map(),
   teamNameToRetentionPolicy: I.Map(),
   teamProfileAddList: [],
   teamRoleMap: {latestKnownVersion: -1, loadedVersion: -1, roles: new Map()},
@@ -473,8 +473,8 @@ export const isInSomeTeam = (state: TypedState): boolean =>
 export const isAccessRequestPending = (state: TypedState, teamname: Types.Teamname): boolean =>
   state.teams.teamAccessRequestsPending.has(teamname)
 
-export const getTeamResetUsers = (state: TypedState, teamname: Types.Teamname): I.Set<Types.ResetUser> =>
-  state.teams.teamNameToResetUsers.get(teamname, I.Set())
+export const getTeamResetUsers = (state: TypedState, teamname: Types.Teamname): Set<Types.ResetUser> =>
+  state.teams.teamNameToResetUsers.get(teamname) || new Set()
 
 export const getTeamLoadingInvites = (state: TypedState, teamname: Types.Teamname): Map<string, boolean> =>
   state.teams.teamNameToLoadingInvites.get(teamname) || new Map<string, boolean>()
@@ -587,11 +587,6 @@ export const resetUserBadgeIDToKey = (id: Types.ResetUserBadgeID): Types.ResetUs
   id.toString('hex')
 export const keyToResetUserBadgeID = (key: Types.ResetUserBadgeIDKey): Types.ResetUserBadgeID =>
   Buffer.from(key, 'hex')
-
-export const makeResetUser = I.Record<Types._ResetUser>({
-  badgeIDKey: '',
-  username: '',
-})
 
 export const chosenChannelsGregorKey = 'chosenChannelsForTeam'
 

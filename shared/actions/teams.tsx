@@ -776,17 +776,14 @@ function* getTeams(
     })
 
     // Dismiss any stale badges for teams we're no longer in
-    const teamResetUsers = state.teams.teamNameToResetUsers || I.Map()
+    const teamResetUsers = state.teams.teamNameToResetUsers || new Map<string, Set<Types.ResetUser>>()
     const teamNameSet = new Set<string>(teamnames)
-    const dismissIDs = teamResetUsers.reduce<Array<string>>(
-      (ids, value: I.Set<Types.ResetUser>, key: string) => {
-        if (!teamNameSet.has(key)) {
-          ids.push(...value.toArray().map(ru => ru.badgeIDKey))
-        }
-        return ids
-      },
-      []
-    )
+    const dismissIDs = [...teamResetUsers.entries()].reduce<Array<string>>((ids, [key, value]) => {
+      if (!teamNameSet.has(key)) {
+        ids.push(...[...value].map(ru => ru.badgeIDKey))
+      }
+      return ids
+    }, [])
     yield Saga.all(
       dismissIDs.map(id =>
         Saga.callUntyped(
@@ -1280,20 +1277,16 @@ const badgeAppForTeams = (state: TypedState, action: NotificationsGen.ReceivedBa
   const newTeams = new Set<string>(badgeState.newTeams || [])
   const newTeamRequests = badgeState.newTeamAccessRequests || []
 
-  // TODO ts-migration remove any
-  const teamsWithResetUsers: I.List<any> = I.List(badgeState.teamsWithResetUsers || [])
-  const teamsWithResetUsersMap = teamsWithResetUsers.reduce((res, entry) => {
-    if (!res[entry.teamname]) {
-      res[entry.teamname] = I.Set()
+  const teamsWithResetUsers: Array<RPCTypes.TeamMemberOutReset> = badgeState.teamsWithResetUsers || []
+  const teamsWithResetUsersMap = new Map<string, Set<Types.ResetUser>>()
+  teamsWithResetUsers.forEach(entry => {
+    let existing = teamsWithResetUsersMap.get(entry.teamname)
+    if (!existing) {
+      existing = new Set<Types.ResetUser>()
     }
-    res[entry.teamname] = res[entry.teamname].add(
-      Constants.makeResetUser({
-        badgeIDKey: Constants.resetUserBadgeIDToKey(entry.id),
-        username: entry.username,
-      })
-    )
-    return res
-  }, {})
+    existing.add({badgeIDKey: Constants.resetUserBadgeIDToKey(entry.id), username: entry.username})
+    teamsWithResetUsersMap.set(entry.teamname, existing)
+  })
 
   /* TODO team notifications should handle what the following block did */
   // if (_wasOnTeamsTab() && (newTeams.size > 0 || newTeamRequests.size > 0 || deletedTeams.length > 0)) {
@@ -1325,7 +1318,7 @@ const badgeAppForTeams = (state: TypedState, action: NotificationsGen.ReceivedBa
       deletedTeams,
       newTeamRequests,
       newTeams,
-      teamNameToResetUsers: I.Map(teamsWithResetUsersMap),
+      teamNameToResetUsers: teamsWithResetUsersMap,
     })
   )
   return actions

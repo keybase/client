@@ -87,11 +87,10 @@ export type BoolTypeMap = {[K in TeamRoleType]: boolean}
 
 export type ResetUserBadgeID = Buffer
 export type ResetUserBadgeIDKey = string
-export type _ResetUser = {
+export type ResetUser = {
   username: string
   badgeIDKey: ResetUserBadgeIDKey
 }
-export type ResetUser = I.RecordOf<_ResetUser>
 
 export type EmailInviteError = {
   malformed: Set<string>
@@ -151,7 +150,7 @@ export type State = Readonly<{
   teamNameToID: Map<Teamname, string>
   teamNameToLoadingInvites: Map<Teamname, Map<string, boolean>>
   teamNameToMembers: Map<Teamname, Map<string, MemberInfo>> // TODO remove
-  teamNameToResetUsers: I.Map<Teamname, I.Set<ResetUser>>
+  teamNameToResetUsers: Map<Teamname, Set<ResetUser>>
   teamNameToRetentionPolicy: I.Map<Teamname, RetentionPolicy>
   teamNameToPublicitySettings: I.Map<Teamname, _PublicitySettings>
   teamnames: Set<Teamname> // TODO remove
