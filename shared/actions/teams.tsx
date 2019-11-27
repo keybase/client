@@ -270,34 +270,31 @@ const addToTeamWaitingKeys = (teamname, username) => [
 const addReAddErrorHandler = (username, e) => {
   // identify error
   if (e.code === RPCTypes.StatusCode.scidentifysummaryerror) {
-    if (isMobile) {
-      // show profile card on mobile
-      return ProfileGen.createShowUserProfile({username})
-    } else {
-      // otherwise show tracker popup
-      return Tracker2Gen.createShowUser({asTracker: true, username})
-    }
+    // show profile card
+    return ProfileGen.createShowUserProfile({username})
   }
   return undefined
 }
 
 const addToTeam = async (state: TypedState, action: TeamsGen.AddToTeamPayload) => {
-  const {teamname, username, role, sendChatNotification} = action.payload
-  const teamID = Constants.getTeamID(state, teamname) // TODO get this from action
+  const {teamID, users, sendChatNotification} = action.payload
   try {
-    await RPCTypes.teamsTeamAddMemberRpcPromise(
+    await RPCTypes.teamsTeamAddMembersMultiRoleRpcPromise(
       {
-        email: '',
-        role: role ? RPCTypes.TeamRole[role] : RPCTypes.TeamRole.none,
         sendChatNotification,
         teamID,
-        username,
+        users: users.map(({assertion, role}) => ({
+          assertionOrEmail: assertion,
+          role: RPCTypes.TeamRole[role],
+        })),
       },
-      addToTeamWaitingKeys(teamname, username)
+      Constants.addMemberWaitingKey(teamID, users.map(({assertion}) => assertion).join(',')) // TODO fix uses of this
     )
     return false
   } catch (e) {
-    return addReAddErrorHandler(username, e)
+    // TODO plumb to modal
+    // return addReAddErrorHandler(username, e)
+    return false
   }
 }
 
@@ -1387,14 +1384,12 @@ function addThemToTeamFromTeamBuilder(
   const role = state.teams.teamBuilding.finishedSelectedRole
   const sendChatNotification = state.teams.teamBuilding.finishedSendNotification
 
-  return [...state.teams.teamBuilding.finishedTeam].map(user =>
-    TeamsGen.createAddToTeam({
-      role,
-      sendChatNotification,
-      teamname,
-      username: user.id,
-    })
-  )
+  const users = [...state.teams.teamBuilding.finishedTeam].map(user => ({assertion: user.id, role}))
+  return TeamsGen.createAddToTeam({
+    sendChatNotification,
+    teamID,
+    users,
+  })
 }
 
 function* teamBuildingSaga() {

@@ -113,9 +113,8 @@
       "context": "'teams' | 'chat'"
     },
     "addToTeam": {
-      "teamname": "string",
-      "username": "string",
-      "role": "Types.TeamRoleType",
+      "teamID": "Types.TeamID",
+      "users": "Array<{assertion: string, role: Types.TeamRoleType}>",
       "sendChatNotification": "boolean"
     },
     "reAddToTeam": {

@@ -82,9 +82,8 @@ type _AddParticipantPayload = {
 }
 type _AddTeamWithChosenChannelsPayload = {readonly teamname: string}
 type _AddToTeamPayload = {
-  readonly teamname: string
-  readonly username: string
-  readonly role: Types.TeamRoleType
+  readonly teamID: Types.TeamID
+  readonly users: Array<{assertion: string; role: Types.TeamRoleType}>
   readonly sendChatNotification: boolean
 }
 type _AddUserToTeamsPayload = {
