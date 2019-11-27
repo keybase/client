@@ -35,28 +35,26 @@ func makeTlfID() chat1.TLFID {
 }
 
 func makeConvo(mtime gregor1.Time, rmsg chat1.MessageID, mmsg chat1.MessageID) types.RemoteConversation {
-	c := types.RemoteConversation{
-		Conv: chat1.Conversation{
-			Metadata: chat1.ConversationMetadata{
-				ConversationID: randBytes(8),
-				IdTriple: chat1.ConversationIDTriple{
-					Tlfid:     makeTlfID(),
-					TopicType: chat1.TopicType_CHAT,
-					TopicID:   randBytes(8),
-				},
-				Visibility: keybase1.TLFVisibility_PRIVATE,
-				Status:     chat1.ConversationStatus_UNFILED,
+	conv := chat1.Conversation{
+		Metadata: chat1.ConversationMetadata{
+			ConversationID: randBytes(8),
+			IdTriple: chat1.ConversationIDTriple{
+				Tlfid:     makeTlfID(),
+				TopicType: chat1.TopicType_CHAT,
+				TopicID:   randBytes(8),
 			},
-			ReaderInfo: &chat1.ConversationReaderInfo{
-				Mtime:     mtime,
-				ReadMsgid: rmsg,
-				MaxMsgid:  mmsg,
-			},
-			// Make it look like there's a visible message in here too
-			MaxMsgSummaries: []chat1.MessageSummary{{MessageType: chat1.MessageType_TEXT, MsgID: 1}},
+			Visibility: keybase1.TLFVisibility_PRIVATE,
+			Status:     chat1.ConversationStatus_UNFILED,
 		},
+		ReaderInfo: &chat1.ConversationReaderInfo{
+			Mtime:     mtime,
+			ReadMsgid: rmsg,
+			MaxMsgid:  mmsg,
+		},
+		// Make it look like there's a visible message in here too
+		MaxMsgSummaries: []chat1.MessageSummary{{MessageType: chat1.MessageType_TEXT, MsgID: 1}},
 	}
-	return c
+	return utils.RemoteConv(conv)
 }
 
 func makeInboxMsg(id chat1.MessageID, typ chat1.MessageType) chat1.MessageBoxed {
@@ -977,6 +975,9 @@ func TestUpdateLocalMtime(t *testing.T) {
 	diskIbox, err := inbox.readDiskInbox(context.TODO(), uid, true)
 	require.NoError(t, err)
 
+	sort.Slice(diskIbox.Conversations, func(i, j int) bool {
+		return diskIbox.Conversations[i].GetMtime() > diskIbox.Conversations[j].GetMtime()
+	})
 	require.Equal(t, mtime1, diskIbox.Conversations[0].GetMtime())
 	require.Equal(t, mtime2, diskIbox.Conversations[1].GetMtime())
 }

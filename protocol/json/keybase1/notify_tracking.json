@@ -49,6 +49,16 @@
       ],
       "response": null,
       "oneway": true
+    },
+    "notifyUserBlocked": {
+      "request": [
+        {
+          "name": "b",
+          "type": "UserBlockedSummary"
+        }
+      ],
+      "response": null,
+      "oneway": true
     }
   },
   "namespace": "keybase.1"

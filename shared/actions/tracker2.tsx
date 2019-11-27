@@ -83,6 +83,7 @@ const updateUserCard = (
     followsYou: card.theyFollowYou,
     fullname: card.fullName,
     guiID,
+    hidFromFollowers: card.hidFromFollowers,
     location: card.location,
     registeredForAirdrop: card.registeredForAirdrop,
     teamShowcase: (card.teamShowcase || []).map(t => ({

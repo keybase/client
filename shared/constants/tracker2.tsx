@@ -15,6 +15,7 @@ export const noDetails = Object.freeze<Types.Details>({
   assertions: emptyMap,
   blocked: false,
   guiID: '',
+  hidFromFollowers: false,
   reason: '',
   registeredForAirdrop: false,
   showTracker: false,

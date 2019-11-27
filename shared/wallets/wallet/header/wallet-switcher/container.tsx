@@ -7,43 +7,45 @@ import * as Types from '../../../../constants/types/wallets'
 import {WalletSwitcher} from '.'
 
 type OwnProps = {
-  getAttachmentRef?: (() => React.Component<any>) | null
+  getAttachmentRef?: () => React.Component<any> | null
   showingMenu: boolean
   hideMenu: () => void
 }
 
-const mapStateToProps = (state: Container.TypedState) => ({
-  accounts: Constants.getAccountIDs(state),
-  airdropIsLive: state.wallets.airdropDetails.isPromoted,
-  inAirdrop: state.wallets.airdropState === 'accepted',
-})
-
-const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
-  onAddNew: () => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {backButton: Container.isMobile, showOnCreation: true}, selected: 'createNewAccount'}],
-      })
-    )
-  },
-  onJoinAirdrop: () => {
-    dispatch(
-      WalletsGen.createSelectAccount({accountID: Types.airdropAccountID, reason: 'user-selected', show: true})
-    )
-  },
-  onLinkExisting: () => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({path: [{props: {showOnCreation: true}, selected: 'linkExisting'}]})
-    )
-  },
-  onWhatIsStellar: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['whatIsStellarModal']})),
-})
-
 export default Container.connect(
-  mapStateToProps,
-  mapDispatchToProps,
+  state => ({
+    accounts: Constants.getAccountIDs(state),
+    airdropIsLive: state.wallets.airdropDetails.isPromoted,
+    inAirdrop: state.wallets.airdropState === 'accepted',
+  }),
+  dispatch => ({
+    onAddNew: () => {
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [
+            {props: {backButton: Container.isMobile, showOnCreation: true}, selected: 'createNewAccount'},
+          ],
+        })
+      )
+    },
+    onJoinAirdrop: () => {
+      dispatch(
+        WalletsGen.createSelectAccount({
+          accountID: Types.airdropAccountID,
+          reason: 'user-selected',
+          show: true,
+        })
+      )
+    },
+    onLinkExisting: () => {
+      dispatch(
+        RouteTreeGen.createNavigateAppend({path: [{props: {showOnCreation: true}, selected: 'linkExisting'}]})
+      )
+    },
+    onWhatIsStellar: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['whatIsStellarModal']})),
+  }),
   (stateProps, dispatchProps, ownProps: OwnProps) => ({
-    accountIDs: stateProps.accounts.toArray(),
+    accountIDs: stateProps.accounts,
     airdropIsLive: stateProps.airdropIsLive,
     inAirdrop: stateProps.inAirdrop,
     onAddNew: dispatchProps.onAddNew,
@@ -52,5 +54,4 @@ export default Container.connect(
     onWhatIsStellar: dispatchProps.onWhatIsStellar,
     ...ownProps,
   })
-  // TODO fix
-)(WalletSwitcher) as any
+)(WalletSwitcher)

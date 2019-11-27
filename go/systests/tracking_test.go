@@ -101,6 +101,10 @@ func (h *trackingNotifyHandler) TrackingInfo(context.Context, keybase1.TrackingI
 	return nil
 }
 
+func (h *trackingNotifyHandler) NotifyUserBlocked(context.Context, keybase1.UserBlockedSummary) error {
+	return nil
+}
+
 func TestTrackingNotifications(t *testing.T) {
 	tc := setupTest(t, "signup")
 	defer tc.Cleanup()

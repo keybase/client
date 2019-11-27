@@ -355,8 +355,15 @@ function* maybeDoneWithLogoutHandshake(state: Container.TypedState) {
   }
 }
 
-let routeToInitialScreenOnce = false
+let lastTab: Tabs.Tab | undefined
+const stashLastRoute = (_state: Container.TypedState, action: ConfigGen.PersistRoutePayload) => {
+  const {path} = action.payload
+  if (path?.[1]?.routeName === 'Main') {
+    lastTab = path?.[2].routeName
+  }
+}
 
+let routeToInitialScreenOnce = false
 const routeToInitialScreen2 = (state: Container.TypedState) => {
   // bail if we don't have a navigator and loaded
   if (!Router2._getNavigator()) {
@@ -372,7 +379,16 @@ const routeToInitialScreen2 = (state: Container.TypedState) => {
 // We figure out where to go (push, link, saved state, etc) once ever in a session
 const routeToInitialScreen = (state: Container.TypedState) => {
   if (routeToInitialScreenOnce) {
-    return
+    if (state.config.loggedIn) {
+      // don't jump to a screen, just ensure you're logged in / out state is correct
+      return [
+        RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
+        RouteTreeGen.createSwitchTab({tab: (lastTab as any) || Tabs.peopleTab}),
+      ]
+    } else {
+      // Show a login screen
+      return [RouteTreeGen.createSwitchLoggedIn({loggedIn: false})]
+    }
   }
   routeToInitialScreenOnce = true
 
@@ -690,6 +706,7 @@ function* configSaga() {
   yield* Saga.chainAction2(ConfigGen.setNavigator, setNavigator)
   // Go to the correct starting screen
   yield* Saga.chainAction2([ConfigGen.daemonHandshakeDone, ConfigGen.setNavigator], routeToInitialScreen2)
+  yield* Saga.chainAction2(ConfigGen.persistRoute, stashLastRoute)
 
   yield* Saga.chainAction2(ConfigGen.daemonHandshakeDone, emitStartupFirstIdle)
 

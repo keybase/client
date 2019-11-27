@@ -4639,6 +4639,14 @@ const iconMeta_ = {
       return require('../images/icons/icon-illustration-teams-216.png')
     },
   },
+  'icon-illustration-teams-80': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-illustration-teams-80.png')
+    },
+  },
   'icon-illustration-welcome-96': {
     extension: 'png',
     imagesDir: 'icons',
@@ -8125,6 +8133,11 @@ const iconMeta_ = {
   },
   'iconfont-hide': {
     charCode: 0xe98a,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-hourglass': {
+    charCode: 0xe9a6,
     gridSize: 16,
     isFont: true,
   },

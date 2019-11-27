@@ -31,11 +31,17 @@ const makeBigRows = (
           channelname: t.channel.channelname,
           conversationIDKey: Types.stringToConversationIDKey(t.channel.convID),
           isMuted: t.channel.isMuted,
+          snippetDecoration: RPCChatTypes.SnippetDecoration.none,
           teamname: t.channel.teamname,
           type: 'big',
         }
       case RPCChatTypes.UIInboxBigTeamRowTyp.label:
-        return {teamID: t.label.id, teamname: t.label.name, type: 'bigHeader'}
+        return {
+          snippetDecoration: RPCChatTypes.SnippetDecoration.none,
+          teamID: t.label.id,
+          teamname: t.label.name,
+          type: 'bigHeader',
+        }
       default:
         throw new Error('unknown row typ')
     }
@@ -48,7 +54,7 @@ const makeSmallRows = (smallTeams: Array<RPCChatTypes.UIInboxSmallTeamRow>): Arr
       conversationIDKey: Types.stringToConversationIDKey(t.convID),
       isTeam: t.isTeam,
       snippet: t.snippet || undefined,
-      snippetDecoration: t.snippetDecoration || undefined,
+      snippetDecoration: t.snippetDecoration,
       teamname: t.name,
       time: t.time,
       type: 'small',

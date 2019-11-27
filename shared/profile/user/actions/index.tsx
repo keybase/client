@@ -5,11 +5,13 @@ import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/tracker2'
 import FollowButton from './follow-button'
 import ChatButton from '../../../chat/chat-button'
+import flags from '../../../util/feature-flags'
 
 type Props = {
   followThem: boolean
   followsYou: boolean
   blocked: boolean
+  hidFromFollowers: boolean
   onAccept: () => void
   onAddToTeam: () => void
   onBrowsePublicFolder: () => void
@@ -23,6 +25,7 @@ type Props = {
   onUnfollow: () => void
   onBlock: () => void
   onUnblock: () => void
+  onManageBlocking: () => void
   state: Types.DetailsState
   username: string
 }
@@ -34,12 +37,24 @@ type DropdownProps = Pick<
   | 'onBrowsePublicFolder'
   | 'onSendLumens'
   | 'onRequestLumens'
-  | 'onBlock'
-  | 'onUnblock'
-  | 'blocked'
+  | 'onManageBlocking'
 > & {onUnfollow?: () => void}
 
 const Actions = (p: Props) => {
+  if (p.blocked) {
+    return (
+      <Kb.Box2 gap="tiny" centerChildren={true} direction="horizontal" fullWidth={true}>
+        <Kb.Button
+          key="Manage blocking"
+          mode="Secondary"
+          type="Danger"
+          label="Manage blocking"
+          onClick={p.onManageBlocking}
+        />
+      </Kb.Box2>
+    )
+  }
+
   let buttons: Array<React.ReactNode> = []
 
   const dropdown = (
@@ -51,9 +66,7 @@ const Actions = (p: Props) => {
       onSendLumens={p.onSendLumens}
       onRequestLumens={p.onRequestLumens}
       onUnfollow={p.followThem && p.state !== 'valid' ? p.onUnfollow : undefined}
-      onBlock={p.onBlock}
-      onUnblock={p.onUnblock}
-      blocked={p.blocked}
+      onManageBlocking={p.onManageBlocking}
     />
   )
 
@@ -141,9 +154,7 @@ const DropdownButton = Kb.OverlayParentHOC((p: Kb.PropsWithOverlay<DropdownProps
     {icon: 'iconfont-folder-private', onClick: p.onOpenPrivateFolder, title: 'Open private folder'},
     {icon: 'iconfont-folder-public', onClick: p.onBrowsePublicFolder, title: 'Browse public folder'},
     p.onUnfollow && {icon: 'iconfont-wave', onClick: p.onUnfollow && p.onUnfollow, title: 'Unfollow'},
-    p.blocked
-      ? {danger: true, icon: 'iconfont-add', onClick: p.onUnblock, title: 'Unblock'}
-      : {danger: true, icon: 'iconfont-remove', onClick: p.onBlock, title: 'Block'},
+    flags.userBlocking && {danger: true, onClick: p.onManageBlocking, title: 'Manage blocking'},
   ].reduce<Kb.MenuItems>((arr, i) => {
     i && arr.push(i)
     return arr

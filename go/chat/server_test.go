@@ -1010,9 +1010,9 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 					if conv.ConvID == firstConv.Id.String() {
 						continue
 					}
-					require.Equal(t, fmt.Sprintf("%d", numconvs-index-1), conv.LocalMetadata.ChannelName)
+					require.Equal(t, fmt.Sprintf("%d", numconvs-index), conv.LocalMetadata.ChannelName)
 					require.Equal(t,
-						fmt.Sprintf("%s: %d", users[numconvs-index-1].Username, numconvs-index-1),
+						fmt.Sprintf("%s: %d", users[numconvs-index].Username, numconvs-index),
 						conv.LocalMetadata.Snippet)
 					require.Zero(t, len(conv.LocalMetadata.WriterNames))
 				default:

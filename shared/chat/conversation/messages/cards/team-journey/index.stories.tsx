@@ -25,7 +25,7 @@ const load = () => {
         image={null}
         teamname="foo"
         text={`You are in *#somechan*.
-Some popular channels in this team:`}
+Some other channels in this team:`}
       />
     ))
     .add('Popular long channels', () => (
@@ -38,7 +38,16 @@ Some popular channels in this team:`}
         image={null}
         teamname="foo"
         text={`You are in *#somechan*.
-Some popular channels in this team:`}
+Some other channels in this team:`}
+      />
+    ))
+    .add('Popular no channels', () => (
+      <TeamJourney
+        actions={[]}
+        image={null}
+        teamname="foo"
+        text={`You are in *#somechan*.
+And you're in all the other channels, nice.`}
       />
     ))
     .add('Add people', () => (
