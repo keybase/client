@@ -151,10 +151,15 @@ const DropdownButton = Kb.OverlayParentHOC((p: Kb.PropsWithOverlay<DropdownProps
     {icon: 'iconfont-people', onClick: p.onAddToTeam, title: 'Add to team...'},
     {icon: 'iconfont-stellar-send', onClick: p.onSendLumens, title: 'Send Lumens (XLM)'},
     {icon: 'iconfont-stellar-request', onClick: p.onRequestLumens, title: 'Request Lumens (XLM)'},
-    {icon: 'iconfont-folder-private', onClick: p.onOpenPrivateFolder, title: 'Open private folder'},
+    {icon: 'iconfont-folder-open', onClick: p.onOpenPrivateFolder, title: 'Open private folder'},
     {icon: 'iconfont-folder-public', onClick: p.onBrowsePublicFolder, title: 'Browse public folder'},
     p.onUnfollow && {icon: 'iconfont-wave', onClick: p.onUnfollow && p.onUnfollow, title: 'Unfollow'},
-    flags.userBlocking && {danger: true, onClick: p.onManageBlocking, title: 'Manage blocking'},
+    flags.userBlocking && {
+      danger: true,
+      icon: 'iconfont-remove',
+      onClick: p.onManageBlocking,
+      title: 'Manage blocking',
+    },
   ].reduce<Kb.MenuItems>((arr, i) => {
     i && arr.push(i)
     return arr

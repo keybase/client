@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Styles from '../../../styles'
 import {NativeTouchableOpacity, NativeSafeAreaView} from '../../native-wrappers.native'
+import Badge from '../../badge'
 import Box, {Box2} from '../../box'
 import Icon from '../../icon'
 import Text from '../../text'
@@ -49,11 +50,15 @@ const MenuRow = (props: MenuRowProps) => (
             (props.inProgress ? (
               <ProgressIndicator />
             ) : (
-              <Icon
-                color={props.danger ? Styles.globalColors.redDark : Styles.globalColors.black_40}
-                fontSize={16}
-                type={props.icon}
-              />
+              <>
+                <Icon
+                  color={props.danger ? Styles.globalColors.redDark : Styles.globalColors.black_40}
+                  fontSize={16}
+                  style={props.iconStyle}
+                  type={props.icon}
+                />
+                {props.isBadged && <Badge badgeStyle={styles.iconBadge} />}
+              </>
             ))}
         </Box2>
         <Box2 direction="horizontal">
@@ -179,6 +184,16 @@ const styles = Styles.styleSheetCreate(
       },
       flexOne: {
         flex: 1,
+      },
+      iconBadge: {
+        backgroundColor: Styles.globalColors.blue,
+        height: Styles.globalMargins.tiny,
+        minWidth: 0,
+        paddingLeft: 0,
+        paddingRight: 0,
+        position: 'relative',
+        right: Styles.globalMargins.xtiny,
+        width: Styles.globalMargins.tiny,
       },
       iconContainer: {
         paddingRight: Styles.globalMargins.small,

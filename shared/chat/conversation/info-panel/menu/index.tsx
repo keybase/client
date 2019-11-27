@@ -97,33 +97,30 @@ class InfoPanelMenu extends React.Component<Props> {
     const props = this.props
     const addPeopleItems = [
       {
+        icon: 'iconfont-mention',
         onClick: props.onAddPeople,
         style: {borderTopWidth: 0},
         subTitle: 'Keybase, Twitter, etc.',
         title: 'Add someone by username',
       },
       {
+        icon: 'iconfont-contact-book',
         onClick: props.onInvite,
         title: Styles.isMobile ? 'Add someone from address book' : 'Add someone by email',
       },
     ]
     const channelItem = props.isSmallTeam
       ? {
+          icon: 'iconfont-hash',
           onClick: props.onManageChannels,
           subTitle: props.manageChannelsSubtitle,
           title: props.manageChannelsTitle,
         }
       : {
+          icon: 'iconfont-hash',
+          isBadged: props.badgeSubscribe,
           onClick: props.onManageChannels,
           title: props.manageChannelsTitle,
-          view: (
-            <Kb.Box style={Styles.globalStyles.flexBoxRow}>
-              <Kb.Text style={styles.text} type={Styles.isMobile ? 'BodyBig' : 'Body'}>
-                {props.manageChannelsTitle}
-              </Kb.Text>
-              {props.badgeSubscribe && <Kb.Box style={styles.badge} />}
-            </Kb.Box>
-          ),
         }
 
     const isAdhoc = !!(props.convProps && props.convProps.teamType === 'adhoc')
@@ -131,11 +128,16 @@ class InfoPanelMenu extends React.Component<Props> {
       ? [this.hideItem(), this.muteItem()]
       : [
           ...(props.canAddPeople ? addPeopleItems : []),
-          {onClick: props.onViewTeam, style: {borderTopWidth: 0}, title: 'View team'},
+          {
+            icon: 'iconfont-people',
+            onClick: props.onViewTeam,
+            style: {borderTopWidth: 0},
+            title: 'View team',
+          },
           this.hideItem(),
           this.muteItem(),
           channelItem,
-          {danger: true, onClick: props.onLeaveTeam, title: 'Leave team'},
+          {danger: true, icon: 'iconfont-leave', onClick: props.onLeaveTeam, title: 'Leave team'},
         ].filter(item => item !== null)
 
     const header = {

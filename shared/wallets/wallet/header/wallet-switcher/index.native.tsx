@@ -24,30 +24,32 @@ export const WalletSwitcher = (props: Props) => {
       </Kb.ClickableBox>
     ),
   }
-  let items: Array<Kb.MenuItem> = []
+  let items: Kb.MenuItems = []
   if (flags.airdrop && props.airdropIsLive) {
     items.push({
+      icon: 'icon-airdrop-logo-32',
+      iconStyle: {
+        height: 20,
+        position: 'relative',
+        right: 2,
+        width: 20,
+      },
       onClick: props.onJoinAirdrop,
       title: props.inAirdrop ? 'Airdrop' : 'Join the airdrop',
-      view: (
-        <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny">
-          <Kb.Icon type="icon-airdrop-logo-32" />
-          <Kb.Text center={true} type="BodyBig" style={{color: Styles.globalColors.blueDark}}>
-            {props.inAirdrop ? 'Airdrop' : 'Join the airdrop'}
-          </Kb.Text>
-        </Kb.Box2>
-      ),
     })
   }
   items.push(
     {
+      icon: 'iconfont-new',
       onClick: props.onAddNew,
       title: 'Create a new account',
     },
     {
+      icon: 'iconfont-identity-stellar',
       onClick: props.onLinkExisting,
       title: 'Link an existing Stellar account',
-    }
+    },
+    'Divider'
   )
   props.accountIDs.forEach(accountID => {
     items.push({

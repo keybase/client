@@ -16,18 +16,18 @@ const styles = Styles.styleSheetCreate(
     ({
       amount: {
         color: Styles.globalColors.black_50,
+        marginLeft: Styles.globalMargins.mediumLarge,
       },
-      avatar: {marginRight: Styles.globalMargins.xtiny},
+      avatar: {marginRight: Styles.globalMargins.small},
       containerBox: {
-        alignItems: 'center',
+        alignItems: 'flex-start',
         backgroundColor: Styles.globalColors.white,
         flexDirection: 'row',
         height: 48,
-        justifyContent: 'space-between',
         width: '100%',
       },
       firstRowContainer: {
-        alignItems: 'center',
+        alignSelf: 'flex-start',
       },
       icon: {
         height: 32,
@@ -49,7 +49,6 @@ const styles = Styles.styleSheetCreate(
 )
 
 const WalletRow = (props: Props) => {
-  const emptyIcon = <Kb.Box2 direction="horizontal" style={styles.icon} />
   const rightIcon = (
     <Kb.Box2 direction="horizontal" style={styles.icon}>
       {props.isSelected ? (
@@ -61,15 +60,16 @@ const WalletRow = (props: Props) => {
   )
   return (
     <Kb.ClickableBox onClick={props.onSelect} style={styles.containerBox}>
-      {/* Just needed for proper centering */ emptyIcon}
       <Kb.Box2 direction="vertical" style={styles.rowContainer}>
         <Kb.Box2 direction="horizontal" style={styles.firstRowContainer}>
-          {!!props.keybaseUser && (
+          {!!props.keybaseUser ? (
             <Kb.Avatar
               size={16}
               style={Kb.avatarCastPlatformStyles(styles.avatar)}
               username={props.keybaseUser}
             />
+          ) : (
+            <Kb.Icon style={styles.avatar} type="icon-placeholder-secret-user-16" />
           )}
           <Kb.Text type="BodyBig" style={props.isSelected ? styles.titleSelected : styles.title}>
             {props.name}
