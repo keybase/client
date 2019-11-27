@@ -105,8 +105,17 @@ func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Rep
 	if err != nil {
 		return c.errReply(err)
 	}
+	var convIDs []chat1.ConversationID
+	if opts.ConversationID != "" {
+		convID, err := chat1.MakeConvID(opts.ConversationID)
+		if err != nil {
+			return c.errReply(err)
+		}
+		convIDs = append(convIDs, convID)
+	}
 	res, err := client.GetInboxAndUnboxUILocal(ctx, chat1.GetInboxAndUnboxUILocalArg{
 		Query: &chat1.GetInboxLocalQuery{
+			ConvIDs:           convIDs,
 			Status:            utils.VisibleChatConversationStatuses(),
 			TopicType:         &topicType,
 			UnreadOnly:        opts.UnreadOnly,
