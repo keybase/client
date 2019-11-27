@@ -45,7 +45,7 @@ export const deleteTeamWaitingKey = (teamID: Types.TeamID) => `teamDelete:${team
 export const leaveTeamWaitingKey = (teamname: Types.Teamname) => `teamLeave:${teamname}`
 export const teamRenameWaitingKey = 'teams:rename'
 
-export const makeChannelInfo = I.Record<Types._ChannelInfo>({
+export const initialChannelInfo = Object.freeze<Types.ChannelInfo>({
   channelname: '',
   description: '',
   hasAllMembers: null,
@@ -183,7 +183,7 @@ const emptyState: Types.State = {
   teamJoinError: '',
   teamJoinSuccess: false,
   teamJoinSuccessTeamName: '',
-  teamNameToChannelInfos: I.Map(),
+  teamNameToChannelInfos: new Map(),
   teamNameToID: I.Map(),
   teamNameToLoadingInvites: I.Map(),
   teamNameToMembers: I.Map(),
@@ -306,10 +306,10 @@ export const isTeamWithChosenChannels = (state: TypedState, teamname: string): b
 export const getTeamChannelInfos = (
   state: TypedState,
   teamname: Types.Teamname
-): I.Map<ChatTypes.ConversationIDKey, Types.ChannelInfo> => {
+): Map<ChatTypes.ConversationIDKey, Types.ChannelInfo> => {
   return (
     state.teams.teamNameToChannelInfos.get(teamname) ||
-    I.Map<ChatTypes.ConversationIDKey, Types.ChannelInfo>()
+    new Map<ChatTypes.ConversationIDKey, Types.ChannelInfo>()
   )
 }
 
@@ -326,7 +326,7 @@ export const getRoleByName = (state: TypedState, teamname: string): Types.MaybeT
   getRole(state, getTeamID(state, teamname))
 
 export const hasChannelInfos = (state: TypedState, teamname: Types.Teamname): boolean =>
-  state.teams.teamNameToChannelInfos.has(teamname)
+  [...state.teams.teamNameToChannelInfos.keys()].includes(teamname)
 
 export const isLastOwner = (state: TypedState, teamname: Types.Teamname): boolean =>
   isOwner(getRoleByName(state, teamname)) && !isMultiOwnerTeam(state, teamname)

@@ -42,7 +42,7 @@ export type TeamSettings = {} & RPCTypes.TeamSettings
 
 export type ChannelMembershipState = {[K in ConversationIDKey]: boolean}
 
-export type _ChannelInfo = {
+export type ChannelInfo = {
   channelname: string
   description: string
   hasAllMembers?: boolean | null
@@ -50,7 +50,6 @@ export type _ChannelInfo = {
   mtime: number
   numParticipants: number
 }
-export type ChannelInfo = I.RecordOf<_ChannelInfo>
 
 export type MemberStatus = 'active' | 'deleted' | 'reset'
 export type _MemberInfo = {
@@ -149,7 +148,7 @@ export type State = Readonly<{
   teamDetails: Map<TeamID, TeamDetails>
   teamDetailsMetaStale: boolean // if we've received an update since we last loaded team list
   teamDetailsMetaSubscribeCount: number // if >0 we are eagerly reloading team list
-  teamNameToChannelInfos: I.Map<Teamname, I.Map<ConversationIDKey, ChannelInfo>>
+  teamNameToChannelInfos: Map<Teamname, Map<ConversationIDKey, ChannelInfo>>
   teamNameToID: I.Map<Teamname, string>
   teamNameToLoadingInvites: I.Map<Teamname, I.Map<string, boolean>>
   teamNameToMembers: I.Map<Teamname, I.Map<string, MemberInfo>> // TODO remove

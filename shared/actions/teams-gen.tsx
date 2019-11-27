@@ -209,7 +209,7 @@ type _SetTeamChannelInfoPayload = {
 }
 type _SetTeamChannelsPayload = {
   readonly teamname: string
-  readonly channelInfos: I.Map<ChatTypes.ConversationIDKey, Types.ChannelInfo>
+  readonly channelInfos: Map<ChatTypes.ConversationIDKey, Types.ChannelInfo>
 }
 type _SetTeamCreationErrorPayload = {readonly error: string}
 type _SetTeamDetailsPayload = {

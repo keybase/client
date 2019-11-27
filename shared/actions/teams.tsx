@@ -705,14 +705,14 @@ const getChannelInfo = async (
     return false
   }
 
-  const channelInfo = Constants.makeChannelInfo({
+  const channelInfo = {
     channelname: meta.channelname,
     description: meta.description,
     hasAllMembers: null,
     memberStatus: convs[0].memberStatus,
     mtime: meta.timestamp,
     numParticipants: meta.participants.length,
-  })
+  }
 
   return TeamsGen.createSetTeamChannelInfo({channelInfo, conversationIDKey, teamname})
 }
@@ -728,10 +728,10 @@ const getChannels = async (_: TypedState, action: TeamsGen.GetChannelsPayload) =
     Constants.getChannelsWaitingKey(teamname)
   )
   const convs = results.convs || []
-  const channelInfos: {[K in ChatTypes.ConversationIDKey]: Types.ChannelInfo} = {}
+  const channelInfos: Map<ChatTypes.ConversationIDKey, Types.ChannelInfo> = new Map()
   convs.forEach(conv => {
     const convID = ChatTypes.stringToConversationIDKey(conv.convID)
-    channelInfos[convID] = Constants.makeChannelInfo({
+    channelInfos.set(convID, {
       channelname: conv.channel,
       description: conv.headline,
       hasAllMembers: null,
@@ -741,7 +741,7 @@ const getChannels = async (_: TypedState, action: TeamsGen.GetChannelsPayload) =
     })
   })
 
-  return TeamsGen.createSetTeamChannels({channelInfos: I.Map(channelInfos), teamname})
+  return TeamsGen.createSetTeamChannels({channelInfos, teamname})
 }
 
 function* getTeams(

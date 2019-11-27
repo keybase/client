@@ -219,7 +219,7 @@
     },
     "setTeamChannels": {
       "teamname": "string",
-      "channelInfos": "I.Map<ChatTypes.ConversationIDKey, Types.ChannelInfo>"
+      "channelInfos": "Map<ChatTypes.ConversationIDKey, Types.ChannelInfo>"
     },
     "setTeamInfo": {
       "teamnames": "Set<Types.Teamname>",
