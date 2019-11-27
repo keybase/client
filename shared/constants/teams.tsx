@@ -508,6 +508,10 @@ const _memoizedSorted = memoize((names: Set<Types.Teamname>) => [...names].sort(
 export const getSortedTeamnames = (state: TypedState): Types.Teamname[] =>
   _memoizedSorted(state.teams.teamnames)
 
+export const sortTeamsByName = memoize((teamDetails: Map<Types.TeamID, Types.TeamDetails>) =>
+  [...teamDetails.values()].sort((a, b) => sortTeamnames(a.teamname, b.teamname))
+)
+
 export const isAdmin = (type: Types.MaybeTeamRoleType) => type === 'admin'
 export const isOwner = (type: Types.MaybeTeamRoleType) => type === 'owner'
 
