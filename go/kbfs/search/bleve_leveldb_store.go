@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/iterator"
+	"github.com/syndtr/goleveldb/leveldb/storage"
 	"github.com/syndtr/goleveldb/leveldb/util"
 	billy "gopkg.in/src-d/go-billy.v4"
 )
@@ -169,6 +170,7 @@ func (bldbw *bleveLevelDBWriter) Close() error {
 }
 
 type bleveLevelDBStore struct {
+	s  storage.Storage
 	db *leveldb.DB
 }
 
@@ -184,7 +186,7 @@ func newBleveLevelDBStore(bfs billy.Filesystem, readOnly bool) (
 	if err != nil {
 		return nil, err
 	}
-	return &bleveLevelDBStore{db: db}, nil
+	return &bleveLevelDBStore{s: s, db: db}, nil
 }
 
 // Writer implements the store.KVStore interface for bleveLevelDBStore.
@@ -203,5 +205,9 @@ func (bldbs *bleveLevelDBStore) Reader() (store.KVReader, error) {
 
 // close implements the store.KVStore interface for bleveLevelDBStore.
 func (bldbs *bleveLevelDBStore) Close() error {
-	return bldbs.db.Close()
+	err := bldbs.db.Close()
+	if err != nil {
+		return err
+	}
+	return bldbs.s.Close()
 }
