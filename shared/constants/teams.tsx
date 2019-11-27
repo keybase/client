@@ -192,7 +192,6 @@ const emptyState: Types.State = {
   teamNameToRetentionPolicy: I.Map(),
   teamProfileAddList: [],
   teamRoleMap: {latestKnownVersion: -1, loadedVersion: -1, roles: new Map()},
-  teammembercounts: I.Map(),
   teamnames: new Set(),
   teamsWithChosenChannels: new Set(),
 }
@@ -328,9 +327,6 @@ export const getRoleByName = (state: TypedState, teamname: string): Types.MaybeT
 
 export const hasChannelInfos = (state: TypedState, teamname: Types.Teamname): boolean =>
   state.teams.teamNameToChannelInfos.has(teamname)
-
-export const getTeamMemberCount = (state: TypedState, teamname: Types.Teamname): number =>
-  state.teams.teammembercounts.get(teamname, 0)
 
 export const isLastOwner = (state: TypedState, teamname: Types.Teamname): boolean =>
   isOwner(getRoleByName(state, teamname)) && !isMultiOwnerTeam(state, teamname)

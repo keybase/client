@@ -769,11 +769,9 @@ function* getTeams(
 
     const teams: Array<RPCTypes.AnnotatedMemberInfo> = results.teams || []
     const teamnames: Array<string> = []
-    const teammembercounts: {[key: string]: number} = {}
     const teamNameToID: {[key: string]: string} = {}
     teams.forEach(team => {
       teamnames.push(team.fqName)
-      teammembercounts[team.fqName] = team.memberCount
       teamNameToID[team.fqName] = team.teamID
     })
 
@@ -803,7 +801,6 @@ function* getTeams(
       TeamsGen.createSetTeamInfo({
         teamDetails: Constants.teamListToDetails(teams),
         teamNameToID: I.Map(teamNameToID),
-        teammembercounts: I.Map(teammembercounts),
         teamnames: teamNameSet,
       })
     )

@@ -157,7 +157,6 @@ export type State = Readonly<{
   teamNameToRetentionPolicy: I.Map<Teamname, RetentionPolicy>
   teamNameToPublicitySettings: I.Map<Teamname, _PublicitySettings>
   teamnames: Set<Teamname> // TODO remove
-  teammembercounts: I.Map<Teamname, number> // TODO remove
   teamProfileAddList: Array<TeamProfileAddList>
   teamRoleMap: TeamRoleMap
   newTeams: Set<TeamID>
