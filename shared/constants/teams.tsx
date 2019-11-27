@@ -150,7 +150,7 @@ export const typeToLabel: Types.TypeMap = {
   writer: 'Writer',
 }
 
-export const makeTeamSettings = I.Record<Types._TeamSettings>({
+export const initialTeamSettings = Object.freeze({
   joinAs: RPCTypes.TeamRole.reader,
   open: false,
 })
@@ -191,7 +191,6 @@ const emptyState: Types.State = {
   teamNameToResetUsers: I.Map(),
   teamNameToRetentionPolicy: I.Map(),
   teamNameToRole: I.Map(),
-  teamNameToSettings: I.Map(),
   teamProfileAddList: [],
   teamRoleMap: {latestKnownVersion: -1, loadedVersion: -1, roles: new Map()},
   teammembercounts: I.Map(),
@@ -478,9 +477,6 @@ export const isInSomeTeam = (state: TypedState): boolean =>
 
 export const isAccessRequestPending = (state: TypedState, teamname: Types.Teamname): boolean =>
   state.teams.teamAccessRequestsPending.has(teamname)
-
-export const getTeamSettings = (state: TypedState, teamname: Types.Teamname): Types.TeamSettings =>
-  state.teams.teamNameToSettings.get(teamname) || makeTeamSettings()
 
 export const getTeamResetUsers = (state: TypedState, teamname: Types.Teamname): I.Set<Types.ResetUser> =>
   state.teams.teamNameToResetUsers.get(teamname, I.Set())

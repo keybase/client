@@ -964,17 +964,17 @@ const setMemberPublicity = async (_: TypedState, action: TeamsGen.SetMemberPubli
   }
 }
 
-function* setPublicity(state: TypedState, action: TeamsGen.SetPublicityPayload) {
+function* setPublicity(state: TypedState, action: TeamsGen.SetPublicityPayload, logger: Saga.SagaLogger) {
   const {teamname, settings} = action.payload
   const waitingKey = Constants.settingsWaitingKey(teamname)
 
-  const teamSettings = state.teams.teamNameToSettings.get(
-    teamname,
-    Constants.makeTeamSettings({
-      joinAs: RPCTypes.TeamRole['reader'],
-      open: false,
-    })
-  )
+  const teamID = Constants.getTeamID(state, teamname)
+  if (teamID === Types.noTeamID) {
+    // TODO Y2K-1084 teamID should come in the action
+    logger.error(`no team ID for ${teamname}`)
+    return
+  }
+  const teamSettings = state.teams.teamDetails.get(teamID)?.settings || Constants.initialTeamSettings
 
   const teamPublicitySettings = Constants.getTeamPublicitySettings(state, teamname)
 

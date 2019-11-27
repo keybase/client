@@ -38,8 +38,7 @@ export type _PublicitySettings = {
   team: boolean
 }
 
-export type _TeamSettings = {} & RPCTypes.TeamSettings
-export type TeamSettings = I.RecordOf<_TeamSettings> // TODO remove
+export type TeamSettings = {} & RPCTypes.TeamSettings
 
 export type ChannelMembershipState = {[K in ConversationIDKey]: boolean}
 
@@ -114,7 +113,7 @@ export type TeamDetails = {
   teamname: string
 
   members?: Map<string, _MemberInfo>
-  settings?: _TeamSettings
+  settings?: TeamSettings
   invites?: Set<InviteInfo>
   subteams?: Set<TeamID>
   requests?: Set<string>
@@ -157,7 +156,6 @@ export type State = Readonly<{
   teamNameToResetUsers: I.Map<Teamname, I.Set<ResetUser>>
   teamNameToRetentionPolicy: I.Map<Teamname, RetentionPolicy>
   teamNameToRole: I.Map<Teamname, MaybeTeamRoleType> // TODO remove
-  teamNameToSettings: I.Map<Teamname, TeamSettings>
   teamNameToPublicitySettings: I.Map<Teamname, _PublicitySettings>
   teamnames: Set<Teamname> // TODO remove
   teammembercounts: I.Map<Teamname, number> // TODO remove

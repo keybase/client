@@ -66,10 +66,6 @@ export default (
           action.payload.teamname,
           Constants.rpcDetailsToMemberInfos(action.payload.members)
         )
-        draftState.teamNameToSettings = draftState.teamNameToSettings.set(
-          action.payload.teamname,
-          Constants.makeTeamSettings(action.payload.settings)
-        )
 
         const details =
           draftState.teamDetails.get(action.payload.teamID) ||
