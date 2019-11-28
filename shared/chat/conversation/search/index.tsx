@@ -137,7 +137,7 @@ type SearchProps = {
 
 class ThreadSearchDesktop extends React.Component<SearchProps & Props> {
   _inputRef = React.createRef<Kb.PlainInput>()
-  _onKeydown = e => {
+  _onKeyDown = (e: React.KeyboardEvent) => {
     switch (e.key) {
       case 'Escape':
         this.props.selfHide()
@@ -165,7 +165,7 @@ class ThreadSearchDesktop extends React.Component<SearchProps & Props> {
     }
   }
 
-  _renderHit = (index, item) => {
+  _renderHit = (index: number, item: SearchHit) => {
     return (
       <Kb.ClickableBox key={index} onClick={() => this.props.selectResult(index)} style={styles.hitRow}>
         <Kb.Avatar username={item.author} size={24} />
@@ -199,7 +199,7 @@ class ThreadSearchDesktop extends React.Component<SearchProps & Props> {
                 flexable={true}
                 onChangeText={this.props.onChangedText}
                 onEnterKeyDown={this.props.onEnter}
-                onKeyDown={this._onKeydown}
+                onKeyDown={this._onKeyDown}
                 placeholder="Search..."
                 ref={this._inputRef}
                 value={this.props.text}
