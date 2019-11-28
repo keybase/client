@@ -29,15 +29,7 @@ const getPolicySummary = props => {
       return 'be retained indefinitely'
     case RPCChatTypes.RetentionPolicyType.expire:
       {
-        const expireDuration = moment
-          .duration(
-            // Auto generated from flowToTs. Please clean me!
-            props.policy.expire === null || props.policy.expire === undefined
-              ? undefined
-              : props.policy.expire.age,
-            'seconds'
-          )
-          .humanize()
+        const expireDuration = moment.duration(props.policy.expire?.age, 'seconds').humanize()
         if (expireDuration !== '') {
           return `expire after ${expireDuration}`
         }
@@ -45,15 +37,7 @@ const getPolicySummary = props => {
       break
     case RPCChatTypes.RetentionPolicyType.ephemeral:
       {
-        const ephemeralDuration = moment
-          .duration(
-            // Auto generated from flowToTs. Please clean me!
-            props.policy.ephemeral === null || props.policy.ephemeral === undefined
-              ? undefined
-              : props.policy.ephemeral.age,
-            'seconds'
-          )
-          .humanize()
+        const ephemeralDuration = moment.duration(props.policy.ephemeral?.age, 'seconds').humanize()
         if (ephemeralDuration !== '') {
           return `explode after ${ephemeralDuration} by default`
         }
