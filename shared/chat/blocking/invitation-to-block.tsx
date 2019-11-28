@@ -7,15 +7,15 @@ import * as ProfileGen from '../../actions/profile-gen'
 type Props = {conversationID: string}
 
 const BlockButtons = (props: Props) => {
+  const dispatch = Container.useDispatch()
+  const nav = Container.useSafeNavigation()
+
   const conversationMeta = Container.useSelector(state => state.chat2.metaMap.get(props.conversationID))
   const blockButtonsMap = Container.useSelector(state => state.chat2.blockButtonsMap)
   const currentUser = Container.useSelector(state => state.config.username)
   if (!conversationMeta) {
     return null
   }
-
-  const dispatch = Container.useDispatch()
-  const nav = Container.useSafeNavigation()
 
   const teamID = conversationMeta.teamID
   const blockButtonInfo = blockButtonsMap.get(teamID)
