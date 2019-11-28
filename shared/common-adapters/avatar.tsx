@@ -5,6 +5,7 @@ import {iconTypeToImgSet, urlsToImgSet, IconType, IconStyle} from './icon'
 import * as Container from '../util/container'
 import * as Styles from '../styles'
 import * as ProfileGen from '../actions/profile-gen'
+import * as Tracker2Constants from '../constants/tracker2'
 import './avatar.css'
 
 export type AvatarSize = 128 | 96 | 64 | 48 | 32 | 24 | 16
@@ -101,6 +102,8 @@ const ConnectedAvatar = Container.connect(
     _followsYou: ownProps.showFollowingStatus ? state.config.followers.has(ownProps.username || '') : false,
     _httpSrvAddress: state.config.httpSrvAddress,
     _httpSrvToken: state.config.httpSrvToken,
+    blocked:
+      Tracker2Constants.getDetails(state, ownProps.username || ownProps.teamname || '').blocked || false,
   }),
   dispatch => ({
     _goToProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
@@ -139,6 +142,7 @@ const ConnectedAvatar = Container.connect(
         )
     const iconInfo = followIconHelper(ownProps.size, stateProps._followsYou, stateProps._following)
     return {
+      blocked: stateProps.blocked,
       borderColor: ownProps.borderColor,
       children: ownProps.children,
       editable: ownProps.editable,
