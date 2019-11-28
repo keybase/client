@@ -39,10 +39,21 @@ const Avatar = (props: Props) => {
         {!props.skipBackground && (
           <Kb.Box style={[styles.background, {backgroundColor: Styles.globalColors.white, borderRadius}]} />
         )}
+        {!!props.blocked && (
+          <Kb.Box style={[styles[`image:${props.size}`], {borderRadius}]}>
+            <Icon type="icon-poop-96" style={[styles[`icon:${props.size}`], styles.poop]} />
+          </Kb.Box>
+        )}
         {!!props.url && (
           <Kb.NativeImage
             source={props.url}
-            style={[styles[`image:${props.size}`], {borderRadius, opacity: props.opacity}]}
+            style={[
+              styles[`image:${props.size}`],
+              {
+                borderRadius,
+                opacity: props.opacity ? props.opacity : props.blocked && 0.1,
+              },
+            ]}
           />
         )}
         {(!!props.borderColor || props.isTeam) && (
