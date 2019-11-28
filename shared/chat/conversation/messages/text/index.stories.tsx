@@ -21,7 +21,7 @@ const provider = Sb.createPropProviderWithCommon({
   Mention: p => ({username: p.username}),
 })
 
-const Wrapped = props => (
+const Wrapped = (props: any) => (
   <Box2 direction="vertical">
     <Text {...props} />
   </Box2>

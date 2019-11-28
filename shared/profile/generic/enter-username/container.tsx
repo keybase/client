@@ -6,43 +6,23 @@ import EnterUsername from '.'
 
 type OwnProps = Container.RouteProps
 
-const mapStateToProps = state => ({
-  _platformURL: state.profile.platformGenericURL,
-  error: state.profile.errorText,
-  // Auto generated from flowToTs. Please clean me!
-  serviceIcon:
-    (state.profile.platformGenericParams === null || state.profile.platformGenericParams === undefined
-      ? undefined
-      : state.profile.platformGenericParams.logoBlack) || [],
-  // Auto generated from flowToTs. Please clean me!
-  serviceIconFull:
-    (state.profile.platformGenericParams === null || state.profile.platformGenericParams === undefined
-      ? undefined
-      : state.profile.platformGenericParams.logoFull) || [],
-  // Auto generated from flowToTs. Please clean me!
-  serviceName:
-    (state.profile.platformGenericParams === null || state.profile.platformGenericParams === undefined
-      ? undefined
-      : state.profile.platformGenericParams.title) || '',
-  // Auto generated from flowToTs. Please clean me!
-  serviceSub:
-    (state.profile.platformGenericParams === null || state.profile.platformGenericParams === undefined
-      ? undefined
-      : state.profile.platformGenericParams.subtext) || '',
-  // Auto generated from flowToTs. Please clean me!
-  serviceSuffix:
-    (state.profile.platformGenericParams === null || state.profile.platformGenericParams === undefined
-      ? undefined
-      : state.profile.platformGenericParams.suffix) || '',
-  // Auto generated from flowToTs. Please clean me!
-  submitButtonLabel:
-    (state.profile.platformGenericParams === null || state.profile.platformGenericParams === undefined
-      ? undefined
-      : state.profile.platformGenericParams.buttonLabel) || 'Submit',
-  unreachable: !!state.profile.platformGenericURL,
-  username: state.profile.username,
-  waiting: state.profile.platformGenericChecking,
-})
+const mapStateToProps = state => {
+  const {profile} = state
+  const {username, platformGenericParams, platformGenericURL, errorText, platformGenericChecking} = profile
+  return {
+    _platformURL: platformGenericURL,
+    error: errorText,
+    serviceIcon: platformGenericParams?.logoBlack ?? [],
+    serviceIconFull: platformGenericParams?.logoFull ?? [],
+    serviceName: platformGenericParams?.title ?? '',
+    serviceSub: platformGenericParams?.subtext ?? '',
+    serviceSuffix: platformGenericParams?.suffix ?? '',
+    submitButtonLabel: platformGenericParams?.buttonLabel ?? 'Submit',
+    unreachable: !!platformGenericURL,
+    username: username,
+    waiting: platformGenericChecking,
+  }
+}
 
 const mapDispatchToProps = dispatch => ({
   onBack: () => {
