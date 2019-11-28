@@ -74,7 +74,7 @@ class TopMessage extends React.PureComponent<Props> {
           )}
         {this.props.showTeamOffer && (
           <Kb.Box style={styles.more}>
-            <CreateTeamNotice />
+            <CreateTeamNotice conversationIDKey={this.props.conversationIDKey} />
           </Kb.Box>
         )}
         {this.props.loadMoreType === 'moreToLoad' && (

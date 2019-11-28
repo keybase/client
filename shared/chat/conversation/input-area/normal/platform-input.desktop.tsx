@@ -251,12 +251,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
             <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputBox}>
               <Kb.PlainInput
                 className="mousetrap"
-                disabled={
-                  // Auto generated from flowToTs. Please clean me!
-                  this.props.cannotWrite !== null && this.props.cannotWrite !== undefined
-                    ? this.props.cannotWrite
-                    : false
-                }
+                disabled={this.props.cannotWrite ?? false}
                 autoFocus={false}
                 ref={this._inputSetRef}
                 placeholder={hintText}

@@ -32,7 +32,7 @@ class Picker extends React.Component<Props> {
         autoFocus={true}
         emoji="star-struck"
         title="reacjibase"
-        onClick={data => this.props.onClick({colons: data.colons})}
+        onClick={data => data.colons && this.props.onClick({colons: data.colons})}
         backgroundImageFn={this.props.backgroundImageFn}
       />
     )
