@@ -14,7 +14,14 @@ const Avatar = (props: Props) => {
       {!props.skipBackground && (
         <div className={Styles.classNames('avatar-background', avatarSizeClasName)} />
       )}
-      {!!props.blocked && <div /> /* TODO */}
+      {!!props.blocked && (
+        <div
+          className={Styles.classNames('avatar-user-image', avatarSizeClasName)}
+          style={styles.poopContainer}
+        >
+          <Icon type="icon-poop-96" style={styles.poop} />
+        </div>
+      )}
       {!!props.url && (
         <div
           className={Styles.classNames('avatar-user-image', avatarSizeClasName)}
@@ -71,6 +78,18 @@ const styles = Styles.styleSheetCreate(
         position: 'absolute',
         right: -18,
       },
+      poop: Styles.platformStyles({
+        isElectron: {
+          backgroundOrigin: 'content-box',
+          position: 'relative',
+          width: '100%',
+        },
+      }),
+      poopContainer: Styles.platformStyles({
+        isElectron: {
+          padding: '10%',
+        },
+      }),
     } as const)
 )
 
