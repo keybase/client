@@ -1,5 +1,4 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/wallets'
 import * as ChatTypes from '../constants/types/chat2'
@@ -189,7 +188,7 @@ type _CreateNewAccountPayload = {
   readonly setBuildingTo?: boolean
 }
 type _CreatedNewAccountPayload = {
-  readonly accountID?: Types.AccountID
+  readonly accountID: Types.AccountID
   readonly showOnCreation?: boolean
   readonly setBuildingTo?: boolean
   readonly name?: string
@@ -207,7 +206,7 @@ type _DisplayCurrencyReceivedPayload = {
 }
 type _ExitFailedPaymentPayload = void
 type _ExportSecretKeyPayload = {readonly accountID: Types.AccountID}
-type _ExternalPartnersReceivedPayload = {readonly externalPartners: I.List<Types.PartnerUrl>}
+type _ExternalPartnersReceivedPayload = {readonly externalPartners: Array<Types.PartnerUrl>}
 type _HideAirdropBannerPayload = void
 type _LinkExistingAccountPayload = {
   readonly name: string
@@ -216,7 +215,7 @@ type _LinkExistingAccountPayload = {
   readonly setBuildingTo?: boolean
 }
 type _LinkedExistingAccountPayload = {
-  readonly accountID?: Types.AccountID
+  readonly accountID: Types.AccountID
   readonly showOnCreation?: boolean
   readonly setBuildingTo?: boolean
   readonly name?: string
@@ -337,12 +336,12 @@ type _SetSEP7TxPayload = {readonly confirmURI: string; readonly tx: Types.SEP7Co
 type _SetTrustlineAcceptedAssetsByUsernamePayload = {
   readonly username: string
   readonly assets: Array<Types.AssetDescription>
-  readonly limits: I.Map<Types.AssetID, number>
+  readonly limits: Map<Types.AssetID, number>
 }
 type _SetTrustlineAcceptedAssetsPayload = {
   readonly accountID: Types.AccountID
   readonly assets: Array<Types.AssetDescription>
-  readonly limits: I.Map<Types.AssetID, number>
+  readonly limits: Map<Types.AssetID, number>
 }
 type _SetTrustlineExpandedPayload = {readonly expanded: boolean; readonly assetID: Types.AssetID}
 type _SetTrustlinePopularAssetsPayload = {
@@ -860,14 +859,15 @@ export const createValidatedAccountName = (
 /**
  * The service responded with an error or that the create new account operation succeeded
  */
-export const createCreatedNewAccount = (
-  payload: _CreatedNewAccountPayload = Object.freeze({})
-): CreatedNewAccountPayload => ({payload, type: createdNewAccount})
+export const createCreatedNewAccount = (payload: _CreatedNewAccountPayload): CreatedNewAccountPayload => ({
+  payload,
+  type: createdNewAccount,
+})
 /**
  * The service responded with an error or that the link existing operation succeeded
  */
 export const createLinkedExistingAccount = (
-  payload: _LinkedExistingAccountPayload = Object.freeze({})
+  payload: _LinkedExistingAccountPayload
 ): LinkedExistingAccountPayload => ({payload, type: linkedExistingAccount})
 /**
  * The service responded with an error or that the secret key is valid.

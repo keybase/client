@@ -25,6 +25,19 @@
       ],
       "response": null
     },
+    "heapProfile": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "profileFile",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
     "logProcessorProfile": {
       "request": [
         {

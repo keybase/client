@@ -341,7 +341,7 @@ const styles = Styles.styleSheetCreate(
         alignSelf: 'flex-end',
         height: 50,
         position: 'relative',
-        width: 106,
+        width: 70,
       },
       actionIconsContainer: {
         marginBottom: Styles.globalMargins.xsmall,

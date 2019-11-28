@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as I from 'immutable'
 import * as Types from '../../../constants/types/fs'
 import * as Constants from '../../../constants/fs'
 import {namedConnect} from '../../../util/container'
@@ -33,7 +32,7 @@ const mergeProps = (stateProps, _, {tlfType, name, mixedMode, destinationPickerI
     name,
     path,
     // Only include the user if they're the only one
-    usernames: usernames.isEmpty() ? I.List([stateProps._username]) : usernames,
+    usernames: !usernames.length ? [stateProps._username] : usernames,
   }
 }
 

@@ -12,8 +12,6 @@ import reducer from '../../reducers/signup'
 
 const testLogger = new SagaLogger('TESTING' as any, 'TESTINGFCN')
 
-jest.unmock('immutable')
-
 const makeTypedState = (signupState: Types.State): TypedState => ({signup: signupState} as any)
 
 describe('goBackAndClearErrors', () => {

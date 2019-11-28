@@ -38,9 +38,9 @@ const empty = {
 const isMyOwn = (parsedPath: Types.ParsedPathGroupTlf, me: string) =>
   !me
     ? false
-    : (!parsedPath.readers || !parsedPath.readers.size) &&
-      parsedPath.writers.size === 1 &&
-      parsedPath.writers.get(0) === me
+    : (!parsedPath.readers || !parsedPath.readers.length) &&
+      parsedPath.writers.length === 1 &&
+      parsedPath.writers[0] === me
 
 const getRawLayout = (
   mode: 'row' | 'screen',

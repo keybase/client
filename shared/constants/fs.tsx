@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as Types from './types/fs'
 import * as RPCTypes from './types/rpc-gen'
 import * as ChatConstants from './chat2'
@@ -26,7 +25,7 @@ export const ExitCodeFuseKextPermissionError = 5
 // See Installer.m: KBExitAuthCanceledError
 export const ExitCodeAuthCanceledError = 6
 
-export const emptyNewFolder: Readonly<Types.NewFolder> = {
+export const emptyNewFolder: Types.NewFolder = {
   hint: 'New Folder',
   name: 'New Folder',
   parentPath: Types.stringToPath('/keybase'),
@@ -34,15 +33,15 @@ export const emptyNewFolder: Readonly<Types.NewFolder> = {
   type: Types.EditType.NewFolder,
 }
 
-export const prefetchNotStarted: Readonly<Types.PrefetchNotStarted> = {
+export const prefetchNotStarted: Types.PrefetchNotStarted = {
   state: Types.PrefetchState.NotStarted,
 }
 
-export const prefetchComplete: Readonly<Types.PrefetchComplete> = {
+export const prefetchComplete: Types.PrefetchComplete = {
   state: Types.PrefetchState.Complete,
 }
 
-export const emptyPrefetchInProgress: Readonly<Types.PrefetchInProgress> = {
+export const emptyPrefetchInProgress: Types.PrefetchInProgress = {
   bytesFetched: 0,
   bytesTotal: 0,
   endEstimate: 0,
@@ -59,40 +58,38 @@ const pathItemMetadataDefault = {
   writable: false,
 }
 
-export const emptyFolder: Readonly<Types.FolderPathItem> = {
+export const emptyFolder: Types.FolderPathItem = {
   ...pathItemMetadataDefault,
   children: new Set(),
   progress: Types.ProgressType.Pending,
   type: Types.PathType.Folder,
 }
 
-export const emptyFile: Readonly<Types.FilePathItem> = {
+export const emptyFile: Types.FilePathItem = {
   ...pathItemMetadataDefault,
   type: Types.PathType.File,
 }
 
-export const emptySymlink: Readonly<Types.SymlinkPathItem> = {
+export const emptySymlink: Types.SymlinkPathItem = {
   ...pathItemMetadataDefault,
   linkTarget: '',
   type: Types.PathType.Symlink,
 }
 
-export const unknownPathItem: Readonly<Types.UnknownPathItem> = {
+export const unknownPathItem: Types.UnknownPathItem = {
   ...pathItemMetadataDefault,
   type: Types.PathType.Unknown,
 }
 
-export const tlfSyncEnabled: Readonly<Types.TlfSyncEnabled> = {
+export const tlfSyncEnabled: Types.TlfSyncEnabled = {
   mode: Types.TlfSyncMode.Enabled,
 }
 
-export const tlfSyncDisabled: Readonly<Types.TlfSyncDisabled> = {
+export const tlfSyncDisabled: Types.TlfSyncDisabled = {
   mode: Types.TlfSyncMode.Disabled,
 }
 
-export const makeTlfSyncPartial = ({
-  enabledPaths,
-}: Partial<Types.TlfSyncPartial>): Readonly<Types.TlfSyncPartial> => ({
+export const makeTlfSyncPartial = ({enabledPaths}: Partial<Types.TlfSyncPartial>): Types.TlfSyncPartial => ({
   enabledPaths: [...(enabledPaths || [])],
   mode: Types.TlfSyncMode.Partial,
 })
@@ -101,7 +98,7 @@ export const makeConflictStateNormalView = ({
   localViewTlfPaths,
   resolvingConflict,
   stuckInConflict,
-}: Partial<Types.ConflictStateNormalView>): Readonly<Types.ConflictStateNormalView> => ({
+}: Partial<Types.ConflictStateNormalView>): Types.ConflictStateNormalView => ({
   localViewTlfPaths: [...(localViewTlfPaths || [])],
   resolvingConflict: resolvingConflict || false,
   stuckInConflict: stuckInConflict || false,
@@ -112,9 +109,7 @@ export const tlfNormalViewWithNoConflict = makeConflictStateNormalView({})
 
 export const makeConflictStateManualResolvingLocalView = ({
   normalViewTlfPath,
-}: Partial<
-  Types.ConflictStateManualResolvingLocalView
->): Readonly<Types.ConflictStateManualResolvingLocalView> => ({
+}: Partial<Types.ConflictStateManualResolvingLocalView>): Types.ConflictStateManualResolvingLocalView => ({
   normalViewTlfPath: normalViewTlfPath || defaultPath,
   type: Types.ConflictStateType.ManualResolvingLocalView,
 })
@@ -129,7 +124,7 @@ export const makeTlf = ({
   syncConfig,
   teamId,
   tlfMtime,
-}: Partial<Types.Tlf>): Readonly<Types.Tlf> => ({
+}: Partial<Types.Tlf>): Types.Tlf => ({
   conflictState: conflictState || tlfNormalViewWithNoConflict,
   isFavorite: isFavorite || false,
   isIgnored: isIgnored || false,
@@ -146,28 +141,28 @@ export const makeTlf = ({
   */
 })
 
-export const emptySyncingFoldersProgress: Readonly<Types.SyncingFoldersProgress> = {
+export const emptySyncingFoldersProgress: Types.SyncingFoldersProgress = {
   bytesFetched: 0,
   bytesTotal: 0,
   endEstimate: 0,
   start: 0,
 }
 
-export const emptyOverallSyncStatus: Readonly<Types.OverallSyncStatus> = {
+export const emptyOverallSyncStatus: Types.OverallSyncStatus = {
   diskSpaceStatus: Types.DiskSpaceStatus.Ok,
   showingBanner: false,
   syncingFoldersProgress: emptySyncingFoldersProgress,
 }
 
-export const defaultPathUserSetting: Readonly<Types.PathUserSetting> = {
+export const defaultPathUserSetting: Types.PathUserSetting = {
   sort: Types.SortSetting.NameAsc,
 }
 
-export const defaultTlfListPathUserSetting: Readonly<Types.PathUserSetting> = {
+export const defaultTlfListPathUserSetting: Types.PathUserSetting = {
   sort: Types.SortSetting.TimeAsc,
 }
 
-export const emptyDownloadState: Readonly<Types.DownloadState> = {
+export const emptyDownloadState: Types.DownloadState = {
   canceled: false,
   done: false,
   endEstimate: 0,
@@ -176,7 +171,7 @@ export const emptyDownloadState: Readonly<Types.DownloadState> = {
   progress: 0,
 }
 
-export const emptyDownloadInfo: Readonly<Types.DownloadInfo> = {
+export const emptyDownloadInfo: Types.DownloadInfo = {
   filename: '',
   isRegularDownload: false,
   path: defaultPath,
@@ -191,7 +186,7 @@ type _MakeErrorArgs = {
   erroredAction: FsGen.Actions | EngineGen.Actions
   retriableAction?: FsGen.Actions | EngineGen.Actions
 }
-export const makeError = (args?: _MakeErrorArgs): Readonly<Types.FsError> => {
+export const makeError = (args?: _MakeErrorArgs): Types.FsError => {
   // TS Issue: https://github.com/microsoft/TypeScript/issues/26235
   const {time, error, erroredAction, retriableAction} = (args || {}) as Partial<NonNullable<_MakeErrorArgs>>
   return {
@@ -203,7 +198,7 @@ export const makeError = (args?: _MakeErrorArgs): Readonly<Types.FsError> => {
 }
 export const emptyError = makeError()
 
-export const emptySendAttachmentToChat: Readonly<Types.SendAttachmentToChat> = {
+export const emptySendAttachmentToChat: Types.SendAttachmentToChat = {
   convID: ChatConstants.noConversationIDKey,
   filter: '',
   path: Types.stringToPath('/keybase'),
@@ -211,18 +206,18 @@ export const emptySendAttachmentToChat: Readonly<Types.SendAttachmentToChat> = {
   title: '',
 }
 
-export const emptyPathItemActionMenu: Readonly<Types.PathItemActionMenu> = {
+export const emptyPathItemActionMenu: Types.PathItemActionMenu = {
   downloadID: null,
   downloadIntent: null,
   previousView: Types.PathItemActionMenuView.Root,
   view: Types.PathItemActionMenuView.Root,
 }
 
-export const driverStatusUnknown: Readonly<Types.DriverStatusUnknown> = {
+export const driverStatusUnknown: Types.DriverStatusUnknown = {
   type: Types.DriverStatusType.Unknown,
 } as const
 
-export const emptyDriverStatusEnabled: Readonly<Types.DriverStatusEnabled> = {
+export const emptyDriverStatusEnabled: Types.DriverStatusEnabled = {
   dokanOutdated: false,
   dokanUninstallExecPath: null,
   isDisabling: false,
@@ -230,33 +225,33 @@ export const emptyDriverStatusEnabled: Readonly<Types.DriverStatusEnabled> = {
   type: Types.DriverStatusType.Enabled,
 } as const
 
-export const emptyDriverStatusDisabled: Readonly<Types.DriverStatusDisabled> = {
+export const emptyDriverStatusDisabled: Types.DriverStatusDisabled = {
   isDismissed: false,
   isEnabling: false,
   kextPermissionError: false,
   type: Types.DriverStatusType.Disabled,
 } as const
 
-export const defaultDriverStatus: Readonly<Types.DriverStatus> = isLinux
+export const defaultDriverStatus: Types.DriverStatus = isLinux
   ? emptyDriverStatusEnabled
   : driverStatusUnknown
 
-export const unknownKbfsDaemonStatus: Readonly<Types.KbfsDaemonStatus> = {
+export const unknownKbfsDaemonStatus: Types.KbfsDaemonStatus = {
   onlineStatus: Types.KbfsDaemonOnlineStatus.Unknown,
   rpcStatus: Types.KbfsDaemonRpcStatus.Unknown,
 }
 
-export const emptySettings: Readonly<Types.Settings> = {
+export const emptySettings: Types.Settings = {
   isLoading: false,
   spaceAvailableNotificationThreshold: 0,
 }
 
-export const emptyPathInfo: Readonly<Types.PathInfo> = {
+export const emptyPathInfo: Types.PathInfo = {
   deeplinkPath: '',
   platformAfterMountPath: '',
 }
 
-export const emptyFileContext: Readonly<Types.FileContext> = {
+export const emptyFileContext: Types.FileContext = {
   contentType: '',
   url: '',
   viewType: RPCTypes.GUIViewType.default,
@@ -363,14 +358,14 @@ export const getDownloadIntent = (
   return Types.DownloadIntent.None
 }
 
-export const emptyTlfUpdate: Readonly<Types.TlfUpdate> = {
+export const emptyTlfUpdate: Types.TlfUpdate = {
   history: [],
   path: Types.stringToPath(''),
   serverTime: 0,
   writer: '',
 }
 
-export const emptyTlfEdit: Readonly<Types.TlfEdit> = {
+export const emptyTlfEdit: Types.TlfEdit = {
   editType: Types.FileEditType.Unknown,
   filename: '',
   serverTime: 0,
@@ -565,9 +560,9 @@ export const usernameInPath = (username: string, path: Types.Path) => {
   return elems.length >= 3 && elems[2].split(',').includes(username)
 }
 
-export const getUsernamesFromTlfName = (tlfName: string): I.List<string> => {
+export const getUsernamesFromTlfName = (tlfName: string): Array<string> => {
   const split = splitTlfIntoReadersAndWriters(tlfName)
-  return split.writers.concat(split.readers || I.List([]))
+  return split.writers.concat(split.readers || [])
 }
 
 export const isOfflineUnsynced = (
@@ -607,63 +602,33 @@ export const escapePath = (path: Types.Path): string =>
     '/'
   )
 
-const makeParsedPathRoot = I.Record<Types._ParsedPathRoot>({kind: Types.PathKind.Root})
-export const parsedPathRoot: Types.ParsedPathRoot = makeParsedPathRoot()
+export const parsedPathRoot: Types.ParsedPathRoot = {kind: Types.PathKind.Root}
 
-const makeParsedPathTlfList = I.Record<Types._ParsedPathTlfList>({
+export const parsedPathPrivateList: Types.ParsedPathTlfList = {
   kind: Types.PathKind.TlfList,
   tlfType: Types.TlfType.Private,
-})
-export const parsedPathPrivateList: Types.ParsedPathTlfList = makeParsedPathTlfList()
-export const parsedPathPublicList: Types.ParsedPathTlfList = makeParsedPathTlfList({
+}
+
+export const parsedPathPublicList: Types.ParsedPathTlfList = {
+  kind: Types.PathKind.TlfList,
   tlfType: Types.TlfType.Public,
-})
-export const parsedPathTeamList: Types.ParsedPathTlfList = makeParsedPathTlfList({
+}
+
+export const parsedPathTeamList: Types.ParsedPathTlfList = {
+  kind: Types.PathKind.TlfList,
   tlfType: Types.TlfType.Team,
-})
-
-const makeParsedPathGroupTlf = I.Record<Types._ParsedPathGroupTlf>({
-  kind: Types.PathKind.GroupTlf,
-  readers: null,
-  tlfName: '',
-  tlfType: Types.TlfType.Private,
-  writers: I.List(),
-})
-
-const makeParsedPathTeamTlf = I.Record<Types._ParsedPathTeamTlf>({
-  kind: Types.PathKind.TeamTlf,
-  team: '',
-  tlfName: '',
-  tlfType: Types.TlfType.Team,
-})
-
-const makeParsedPathInGroupTlf = I.Record<Types._ParsedPathInGroupTlf>({
-  kind: Types.PathKind.InGroupTlf,
-  readers: null,
-  rest: I.List(),
-  tlfName: '',
-  tlfType: Types.TlfType.Private,
-  writers: I.List(),
-})
-
-const makeParsedPathInTeamTlf = I.Record<Types._ParsedPathInTeamTlf>({
-  kind: Types.PathKind.InTeamTlf,
-  rest: I.List(),
-  team: '',
-  tlfName: '',
-  tlfType: Types.TlfType.Team,
-})
+}
 
 const splitTlfIntoReadersAndWriters = (
   tlf: string
 ): {
-  readers: I.List<string> | null
-  writers: I.List<string>
+  readers?: Array<string>
+  writers: Array<string>
 } => {
   const [w, r] = tlf.split('#')
   return {
-    readers: r ? I.List(r.split(',').filter(i => !!i)) : null,
-    writers: I.List(w.split(',').filter(i => !!i)),
+    readers: r ? r.split(',').filter(i => !!i) : undefined,
+    writers: w.split(',').filter(i => !!i),
   }
 }
 
@@ -679,54 +644,60 @@ export const parsePath = (path: Types.Path): Types.ParsedPath => {
         case 2:
           return parsedPathPrivateList
         case 3:
-          return makeParsedPathGroupTlf({
-            ...splitTlfIntoReadersAndWriters(elems[2]),
+          return {
+            kind: Types.PathKind.GroupTlf,
             tlfName: elems[2],
             tlfType: Types.TlfType.Private,
-          })
+            ...splitTlfIntoReadersAndWriters(elems[2]),
+          }
         default:
-          return makeParsedPathInGroupTlf({
-            ...splitTlfIntoReadersAndWriters(elems[2]),
-            rest: I.List(elems.slice(3)),
+          return {
+            kind: Types.PathKind.InGroupTlf,
+            rest: elems.slice(3),
             tlfName: elems[2],
             tlfType: Types.TlfType.Private,
-          })
+            ...splitTlfIntoReadersAndWriters(elems[2]),
+          }
       }
     case 'public':
       switch (elems.length) {
         case 2:
           return parsedPathPublicList
         case 3:
-          return makeParsedPathGroupTlf({
-            ...splitTlfIntoReadersAndWriters(elems[2]),
+          return {
+            kind: Types.PathKind.GroupTlf,
             tlfName: elems[2],
             tlfType: Types.TlfType.Public,
-          })
+            ...splitTlfIntoReadersAndWriters(elems[2]),
+          }
         default:
-          return makeParsedPathInGroupTlf({
-            ...splitTlfIntoReadersAndWriters(elems[2]),
-            rest: I.List(elems.slice(3)),
+          return {
+            kind: Types.PathKind.InGroupTlf,
+            rest: elems.slice(3),
             tlfName: elems[2],
             tlfType: Types.TlfType.Public,
-          })
+            ...splitTlfIntoReadersAndWriters(elems[2]),
+          }
       }
     case 'team':
       switch (elems.length) {
         case 2:
           return parsedPathTeamList
         case 3:
-          return makeParsedPathTeamTlf({
+          return {
+            kind: Types.PathKind.TeamTlf,
             team: elems[2],
             tlfName: elems[2],
             tlfType: Types.TlfType.Team,
-          })
+          }
         default:
-          return makeParsedPathInTeamTlf({
-            rest: I.List(elems.slice(3)),
+          return {
+            kind: Types.PathKind.InTeamTlf,
+            rest: elems.slice(3),
             team: elems[2],
             tlfName: elems[2],
             tlfType: Types.TlfType.Team,
-          })
+          }
       }
     default:
       return parsedPathRoot
@@ -770,13 +741,13 @@ export const getChatTarget = (path: Types.Path, me: string): string => {
     return 'team conversation'
   }
   if (parsedPath.kind === Types.PathKind.GroupTlf || parsedPath.kind === Types.PathKind.InGroupTlf) {
-    if (parsedPath.writers.size === 1 && !parsedPath.readers && parsedPath.writers.first() === me) {
+    if (parsedPath.writers.length === 1 && !parsedPath.readers && parsedPath.writers[0] === me) {
       return 'yourself'
     }
-    if (parsedPath.writers.size + (parsedPath.readers ? parsedPath.readers.size : 0) === 2) {
+    if (parsedPath.writers.length + (parsedPath.readers ? parsedPath.readers.length : 0) === 2) {
       const notMe = parsedPath.writers.concat(parsedPath.readers || []).filter(u => u !== me)
-      if (notMe.size === 1) {
-        return notMe.first() as string
+      if (notMe.length === 1) {
+        return notMe[0] as string
       }
     }
     return 'group conversation'

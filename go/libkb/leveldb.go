@@ -382,7 +382,7 @@ func (l *LevelDb) OpenTransaction() (LocalDbTransaction, error) {
 }
 
 func (l *LevelDb) KeysWithPrefixes(prefixes ...[]byte) (DBKeySet, error) {
-	m := make(map[DbKey]bool)
+	m := make(map[DbKey]struct{})
 
 	l.Lock()
 	defer l.Unlock()
@@ -396,7 +396,7 @@ func (l *LevelDb) KeysWithPrefixes(prefixes ...[]byte) (DBKeySet, error) {
 				iter.Release()
 				return m, err
 			}
-			m[dbKey] = true
+			m[dbKey] = struct{}{}
 		}
 		iter.Release()
 		err := iter.Error()

@@ -5,6 +5,7 @@ import {SmallTeam} from '.'
 import * as Container from '../../../../util/container'
 import {AllowedColors} from '../../../../common-adapters/text'
 import {formatTimeForConversationList} from '../../../../util/timestamp'
+import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
@@ -12,7 +13,7 @@ type OwnProps = {
   navKey: string
   name: string
   snippet?: string
-  snippetDecoration?: string
+  snippetDecoration: RPCChatTypes.SnippetDecoration
   time: number
 }
 
@@ -23,7 +24,7 @@ export default Container.namedConnect(
     const youAreReset = _meta.membershipType === 'youAreReset'
     const typers = state.chat2.typingMap.get(_conversationIDKey)
     let snippet = state.chat2.metaMap.get(_conversationIDKey) ? _meta.snippet : ownProps.snippet || ''
-    const snippetDecoration = _meta.snippetDecoration || ownProps.snippetDecoration || ''
+    const snippetDecoration = _meta.snippetDecoration ?? ownProps.snippetDecoration
     let isTypingSnippet = false
     if (typers && typers.size > 0) {
       isTypingSnippet = true

@@ -1,6 +1,7 @@
 import logger from '../logger'
 import {LogFn} from '../logger/types'
 import * as RS from 'redux-saga'
+import * as Types from '@redux-saga/types'
 import * as Effects from 'redux-saga/effects'
 import {convertToError} from './errors'
 import * as ConfigGen from '../actions/config-gen'
@@ -74,12 +75,12 @@ interface ChainAction2 {
 }
 
 function* chainAction2Impl<Actions extends {readonly type: string}>(
-  pattern: RS.Pattern,
+  pattern: Types.Pattern<any>,
   f: (state: TypedState, action: Actions, logger: SagaLogger) => ChainActionReturn,
   loggerTag?: string
 ) {
   // @ts-ignore
-  return yield Effects.takeEvery<TypedActions>(pattern as RS.Pattern, function* chainActionHelper(
+  return yield Effects.takeEvery<TypedActions>(pattern as Types.Pattern<any>, function* chainActionHelper(
     action: TypedActions
   ) {
     const sl = new SagaLogger(action.type as ActionType, loggerTag || 'unknown')
@@ -124,7 +125,7 @@ function* chainGenerator<
     readonly type: string
   }
 >(
-  pattern: RS.Pattern,
+  pattern: Types.Pattern<any>,
   f: (state: TypedState, action: Actions, logger: SagaLogger) => Generator<any, any, any>,
   // tag for logger
   fcnTag?: string
@@ -169,15 +170,16 @@ export type RPCPromiseType<F extends (...rest: any[]) => any, RF = ReturnType<F>
   ? U
   : RF
 
-export type Effect = RS.Effect
+export type Effect<T> = Types.Effect<T>
 export type PutEffect = Effects.PutEffect<TypedActions>
 export type Channel<T> = RS.Channel<T>
-export {buffers, channel, delay, eventChannel} from 'redux-saga'
+export {buffers, channel, eventChannel} from 'redux-saga'
 export {
   all,
   call as callUntyped,
   cancel,
   cancelled,
+  delay,
   fork as _fork, // fork is pretty unsafe so lets mark it unusually
   join,
   race,

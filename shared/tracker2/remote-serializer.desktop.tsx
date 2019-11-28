@@ -39,7 +39,7 @@ const initialState = {
   assertions: new Map(),
   config: {following: new Set()},
   teams: {teamNameToID: I.Map()},
-  users: {infoMap: I.Map()},
+  users: {infoMap: new Map()},
   waiting: {counts: new Map()},
 }
 

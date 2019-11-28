@@ -1,7 +1,7 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as ChatTypes from '../constants/types/chat2'
+import * as I from 'immutable'
 import * as Types from '../constants/types/teams'
 import {RetentionPolicy} from '../constants/types/retention-policy'
 
@@ -159,7 +159,11 @@ type _InviteToTeamByPhonePayload = {
   readonly loadingKey?: string
 }
 type _JoinTeamPayload = {readonly teamname: string}
-type _LeaveTeamPayload = {readonly teamname: string; readonly context: 'teams' | 'chat'}
+type _LeaveTeamPayload = {
+  readonly teamname: string
+  readonly permanent: boolean
+  readonly context: 'teams' | 'chat'
+}
 type _LeftTeamPayload = {readonly teamname: string; readonly context: 'teams' | 'chat'}
 type _ReAddToTeamPayload = {readonly teamname: string; readonly username: string}
 type _RemoveMemberOrPendingInvitePayload = {

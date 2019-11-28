@@ -562,7 +562,7 @@ func (s *BlockingSender) getParticipantsForMentions(ctx context.Context, uid gre
 				},
 				TopicName: &globals.DefaultTeamTopic,
 				TopicType: &topicType,
-			}, nil)
+			})
 		if err != nil {
 			return nil, err
 		}
@@ -1094,7 +1094,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 
 	// If this message was sent from the Outbox, then we can remove it now
 	if boxed.ClientHeader.OutboxID != nil {
-		if err = storage.NewOutbox(s.G(), sender).RemoveMessage(ctx, *boxed.ClientHeader.OutboxID); err != nil {
+		if _, err = storage.NewOutbox(s.G(), sender).RemoveMessage(ctx, *boxed.ClientHeader.OutboxID); err != nil {
 			s.Debug(ctx, "unable to remove outbox message: %v", err)
 		}
 	}
@@ -1227,6 +1227,14 @@ func (s *Deliverer) setTestingNameInfoSource(ni types.NameInfoSource) {
 	s.testingNameInfoSource = ni
 }
 
+func (s *Deliverer) presentUIItem(ctx context.Context, uid gregor1.UID, conv *chat1.ConversationLocal) (res *chat1.InboxUIItem) {
+	if conv != nil {
+		pc := utils.PresentConversationLocal(ctx, s.G(), uid, *conv)
+		res = &pc
+	}
+	return res
+}
+
 func (s *Deliverer) Start(ctx context.Context, uid gregor1.UID) {
 	s.Lock()
 	defer s.Unlock()
@@ -1344,7 +1352,11 @@ func (s *Deliverer) Queue(ctx context.Context, convID chat1.ConversationID, msg 
 
 	// Alert the deliver loop it should wake up
 	s.msgSentCh <- struct{}{}
-
+	update := []chat1.LocalMtimeUpdate{{ConvID: convID, Mtime: obr.Ctime}}
+	if err := s.G().InboxSource.UpdateLocalMtime(ctx, s.outbox.GetUID(), update); err != nil {
+		s.Debug(ctx, "Queue: unable to update local mtime", obr.Ctime)
+	}
+	s.G().InboxSource.NotifyUpdate(ctx, s.outbox.GetUID(), convID)
 	return obr, nil
 }
 
@@ -1421,10 +1433,12 @@ func (s *Deliverer) doNotRetryFailure(ctx context.Context, obr chat1.OutboxRecor
 func (s *Deliverer) failMessage(ctx context.Context, obr chat1.OutboxRecord,
 	oserr chat1.OutboxStateError) (err error) {
 	var marked []chat1.OutboxRecord
+	uid := s.outbox.GetUID()
+	convID := obr.ConvID
 	switch oserr.Typ {
 	case chat1.OutboxErrorType_TOOMANYATTEMPTS:
 		s.Debug(ctx, "failMessage: too many attempts failure, marking conv as failed")
-		if marked, err = s.outbox.MarkConvAsError(ctx, obr.ConvID, oserr); err != nil {
+		if marked, err = s.outbox.MarkConvAsError(ctx, convID, oserr); err != nil {
 			s.Debug(ctx, "failMessage: unable to mark conv as error on outbox: uid: %s convID: %v, err: %v",
 				s.outbox.GetUID(), obr.ConvID, err)
 			return err
@@ -1432,7 +1446,7 @@ func (s *Deliverer) failMessage(ctx context.Context, obr chat1.OutboxRecord,
 	case chat1.OutboxErrorType_DUPLICATE, chat1.OutboxErrorType_ALREADY_DELETED:
 		// Here we don't send a notification to the frontend, we just want
 		// these to go away
-		if err = s.outbox.RemoveMessage(ctx, obr.OutboxID); err != nil {
+		if _, err = s.outbox.RemoveMessage(ctx, obr.OutboxID); err != nil {
 			s.Debug(ctx, "deliverLoop: failed to remove duplicate delete msg: %v", err)
 			return err
 		}
@@ -1446,10 +1460,15 @@ func (s *Deliverer) failMessage(ctx context.Context, obr chat1.OutboxRecord,
 	}
 
 	if len(marked) > 0 {
+		convLocal, err := s.G().InboxSource.IncrementLocalConvVersion(ctx, uid, convID)
+		if err != nil {
+			s.Debug(ctx, "failMessage: failed to get IncrementLocalConvVersion")
+		}
 		act := chat1.NewChatActivityWithFailedMessage(chat1.FailedMessageInfo{
 			OutboxRecords: marked,
+			Conv:          s.presentUIItem(ctx, uid, convLocal),
 		})
-		s.G().ActivityNotifier.Activity(context.Background(), s.outbox.GetUID(), chat1.TopicType_NONE, &act,
+		s.G().ActivityNotifier.Activity(context.Background(), uid, chat1.TopicType_NONE, &act,
 			chat1.ChatActivitySource_LOCAL)
 		s.alertFailureChannels(marked)
 		if err := s.G().Badger.Send(context.Background()); err != nil {
@@ -1653,7 +1672,7 @@ func (s *Deliverer) cancelPendingDuplicateReactions(ctx context.Context, obr cha
 		// Since we're just toggling the reaction on/off, we should abort here
 		// and remove ourselves from the outbox since our message wouldn't
 		// change the reaction state.
-		err = s.outbox.RemoveMessage(ctx, obr.OutboxID)
+		_, err = s.outbox.RemoveMessage(ctx, obr.OutboxID)
 		return true, err
 	}
 	return false, nil
@@ -1794,7 +1813,7 @@ func (s *Deliverer) deliverForConv(ctx context.Context, obrs []chat1.OutboxRecor
 		} else {
 			// BlockingSender actually does this too, so this will likely fail, but to maintain
 			// the types.Sender abstraction we will do it here too and likely fail.
-			if err = s.outbox.RemoveMessage(bctx, obr.OutboxID); err != nil {
+			if _, err = s.outbox.RemoveMessage(bctx, obr.OutboxID); err != nil {
 				s.Debug(ctx, "deliverLoop: failed to remove successful message send: %v", err)
 			}
 		}

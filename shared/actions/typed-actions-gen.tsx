@@ -439,6 +439,7 @@ export type TypedActionsMap = {
   'engine-gen:keybase1NotifyTeambotTeambotKeyNeeded': enginegen.Keybase1NotifyTeambotTeambotKeyNeededPayload
   'engine-gen:keybase1NotifyTrackingTrackingChanged': enginegen.Keybase1NotifyTrackingTrackingChangedPayload
   'engine-gen:keybase1NotifyTrackingTrackingInfo': enginegen.Keybase1NotifyTrackingTrackingInfoPayload
+  'engine-gen:keybase1NotifyTrackingNotifyUserBlocked': enginegen.Keybase1NotifyTrackingNotifyUserBlockedPayload
   'engine-gen:keybase1NotifyUsersUserChanged': enginegen.Keybase1NotifyUsersUserChangedPayload
   'engine-gen:keybase1NotifyUsersPasswordChanged': enginegen.Keybase1NotifyUsersPasswordChangedPayload
   'engine-gen:keybase1NotifyUsersIdentifyUpdate': enginegen.Keybase1NotifyUsersIdentifyUpdatePayload
@@ -591,7 +592,6 @@ export type TypedActionsMap = {
   'fs:setDebugLevel': fs.SetDebugLevelPayload
   'git:loadGit': git.LoadGitPayload
   'git:loaded': git.LoadedPayload
-  'git:navToGit': git.NavToGitPayload
   'git:createTeamRepo': git.CreateTeamRepoPayload
   'git:createPersonalRepo': git.CreatePersonalRepoPayload
   'git:repoDeleted': git.RepoDeletedPayload
@@ -909,11 +909,14 @@ export type TypedActionsMap = {
   'unlock-folders:newRekeyPopup': unlockfolders.NewRekeyPopupPayload
   'unlock-folders:onBackFromPaperKey': unlockfolders.OnBackFromPaperKeyPayload
   'unlock-folders:toPaperKeyInput': unlockfolders.ToPaperKeyInputPayload
-  'users:blockUser': users.BlockUserPayload
   'users:getBio': users.GetBioPayload
   'users:updateBrokenState': users.UpdateBrokenStatePayload
   'users:updateFullnames': users.UpdateFullnamesPayload
   'users:updateBio': users.UpdateBioPayload
+  'users:setUserBlocks': users.SetUserBlocksPayload
+  'users:getBlockState': users.GetBlockStatePayload
+  'users:updateBlockState': users.UpdateBlockStatePayload
+  'users:reportUser': users.ReportUserPayload
   'waiting:incrementWaiting': waiting.IncrementWaitingPayload
   'waiting:decrementWaiting': waiting.DecrementWaitingPayload
   'waiting:batchChangeWaiting': waiting.BatchChangeWaitingPayload

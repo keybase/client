@@ -1,6 +1,5 @@
 import {namedConnect, isMobile} from '../../../../util/container'
 import * as React from 'react'
-import * as I from 'immutable'
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import * as UsersTypes from '../../../../constants/types/users'
@@ -25,7 +24,7 @@ export type OwnProps = {
 }
 
 const emptyStateProps = {
-  _reactions: I.Map<string, I.Set<Types.Reaction>>(),
+  _reactions: new Map<string, Set<Types.Reaction>>(),
   _usersInfo: new Map<string, UsersTypes.UserInfo>(),
 }
 
