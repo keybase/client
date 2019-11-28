@@ -525,7 +525,7 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     draftState.sep6Error = action.payload.error
     draftState.sep6Message = action.payload.message
   },
-  ...teamBuilderReducerCreator<Actions, Types.State>(
+  ...teamBuilderReducerCreator<Types.State>(
     (draftState: Container.Draft<Types.State>, action: TeamBuildingGen.Actions) => {
       const val = editTeambuildingDraft('wallets', draftState.teamBuilding, action)
       if (val !== undefined) {
