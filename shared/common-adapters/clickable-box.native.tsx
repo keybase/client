@@ -19,12 +19,7 @@ class ClickableBox extends React.Component<Props> {
             onPressOut={props.onPressOut}
             onLongPress={props.onLongPress}
             style={clickStyle}
-            activeOpacity={
-              // Auto generated from flowToTs. Please clean me!
-              this.props.activeOpacity !== null && this.props.activeOpacity !== undefined
-                ? this.props.activeOpacity
-                : 0.7
-            }
+            activeOpacity={this.props.activeOpacity ?? 0.7}
           >
             {props.children}
           </NativeTouchableOpacity>

@@ -10,39 +10,15 @@ type OwnProps = {}
 
 const mapStateToProps = state => {
   const pinfo = state.chat2.paymentConfirmInfo
-  const payments = // Auto generated from flowToTs. Please clean me!
-    ((pinfo === null || pinfo === undefined ? undefined : pinfo.summary) === null ||
-    (pinfo === null || pinfo === undefined ? undefined : pinfo.summary) === undefined
-      ? undefined
-      : (pinfo === null || pinfo === undefined ? undefined : pinfo.summary).payments) || []
-  const errorIsNoWallet = // Auto generated from flowToTs. Please clean me!
-    ((pinfo === null || pinfo === undefined ? undefined : pinfo.error) === null ||
-    (pinfo === null || pinfo === undefined ? undefined : pinfo.error) === undefined
-      ? undefined
-      : (pinfo === null || pinfo === undefined ? undefined : pinfo.error).code) ===
-    RPCTypes.StatusCode.scstellarmissingbundle
+  const payments = pinfo?.summary?.payments ?? []
+  const errorIsNoWallet = pinfo?.error?.code === RPCTypes.StatusCode.scstellarmissingbundle
   return {
-    // Auto generated from flowToTs. Please clean me!
-    displayTotal:
-      (pinfo === null || pinfo === undefined ? undefined : pinfo.summary) === null ||
-      (pinfo === null || pinfo === undefined ? undefined : pinfo.summary) === undefined
-        ? undefined
-        : (pinfo === null || pinfo === undefined ? undefined : pinfo.summary).displayTotal,
-    error: errorIsNoWallet
-      ? 'Wallet needed to send money in chat.' // Auto generated from flowToTs. Please clean me!
-      : (pinfo === null || pinfo === undefined ? undefined : pinfo.error) === null ||
-        (pinfo === null || pinfo === undefined ? undefined : pinfo.error) === undefined
-      ? undefined
-      : (pinfo === null || pinfo === undefined ? undefined : pinfo.error).desc,
+    displayTotal: pinfo?.summary?.displayTotal,
+    error: errorIsNoWallet ? 'Wallet needed to send money in chat.' : pinfo?.error?.desc,
     errorIsNoWallet,
     loading: !pinfo,
     payments,
-    // Auto generated from flowToTs. Please clean me!
-    xlmTotal:
-      (pinfo === null || pinfo === undefined ? undefined : pinfo.summary) === null ||
-      (pinfo === null || pinfo === undefined ? undefined : pinfo.summary) === undefined
-        ? undefined
-        : (pinfo === null || pinfo === undefined ? undefined : pinfo.summary).xlmTotal,
+    xlmTotal: pinfo?.summary?.xlmTotal,
   }
 }
 

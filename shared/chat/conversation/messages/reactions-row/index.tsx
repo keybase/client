@@ -44,9 +44,11 @@ class ReactionsRow extends React.Component<Props, State> {
   _setShowMobileTooltip = (showMobileTooltip: boolean) =>
     this.setState(s => (s.showMobileTooltip === showMobileTooltip ? null : {showMobileTooltip}))
 
-  _newAttachmentRef: any = null
+  _newAttachmentRef: typeof ReactButton | null = null
   _getNewAttachmentRef = () => this._newAttachmentRef
-  _setNewAttachmentRef = r => (this._newAttachmentRef = r)
+  _setNewAttachmentRef = (r: typeof ReactButton) => {
+    this._newAttachmentRef = r
+  }
 
   render() {
     return this.props.emojis.length === 0 ? null : (
@@ -79,8 +81,8 @@ class ReactionsRow extends React.Component<Props, State> {
         {isMobile ? (
           <ReactButton
             conversationIDKey={this.props.conversationIDKey}
-            ref={this._setNewAttachmentRef}
-            getAttachmentRef={this._getNewAttachmentRef}
+            ref={this._setNewAttachmentRef as any}
+            getAttachmentRef={this._getNewAttachmentRef as any}
             onLongPress={() => this._setShowMobileTooltip(true)}
             ordinal={this.props.ordinal}
             showBorder={true}
