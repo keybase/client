@@ -1,5 +1,4 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/people'
 
@@ -18,9 +17,9 @@ type _DismissAnnouncementPayload = {readonly id: RPCTypes.HomeScreenAnnouncement
 type _GetPeopleDataPayload = {readonly markViewed: boolean; readonly numFollowSuggestionsWanted: number}
 type _MarkViewedPayload = void
 type _PeopleDataProcessedPayload = {
-  readonly oldItems: I.List<Types.PeopleScreenItem>
-  readonly newItems: I.List<Types.PeopleScreenItem>
-  readonly followSuggestions: I.List<Types.FollowSuggestion>
+  readonly oldItems: Array<Types.PeopleScreenItem>
+  readonly newItems: Array<Types.PeopleScreenItem>
+  readonly followSuggestions: Array<Types.FollowSuggestion>
   readonly lastViewed: Date
   readonly version: number
 }

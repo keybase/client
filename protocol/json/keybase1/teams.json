@@ -1675,6 +1675,11 @@
           "jsonkey": "latest_hidden_seqno"
         },
         {
+          "type": "Seqno",
+          "name": "latestOffchainSeqno",
+          "jsonkey": "latest_offchain_seqno"
+        },
+        {
           "type": "boolean",
           "name": "implicitTeam",
           "jsonkey": "implicit_team"
@@ -2442,6 +2447,10 @@
         {
           "type": "TeamName",
           "name": "name"
+        },
+        {
+          "type": "TeamID",
+          "name": "teamID"
         },
         {
           "type": "int",
@@ -3557,8 +3566,8 @@
           "type": "int"
         },
         {
-          "name": "name",
-          "type": "string"
+          "name": "teamID",
+          "type": "TeamID"
         }
       ],
       "response": null

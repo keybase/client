@@ -37,7 +37,7 @@ const DesktopHeaders = (props: Props) => (
       <Kb.Text type="Header" style={{flexShrink: 0}}>
         Move or Copy “
       </Kb.Text>
-      <FsCommon.PathItemIcon size={16} path={Types.pathConcat(props.parentPath, props.targetName)} />
+      <FsCommon.ItemIcon size={16} path={Types.pathConcat(props.parentPath, props.targetName)} />
       <FsCommon.Filename type="Header" filename={props.targetName} />
       <Kb.Text type="Header" style={{flexShrink: 0}}>
         ”
@@ -126,7 +126,7 @@ const HighOrderDestinationPickerMobile = withProps(
         </Kb.ClickableBox>
         <Kb.Box2 direction="vertical" centerChildren={true} style={styles.mobileHeaderContent}>
           <Kb.Box2 direction="horizontal" centerChildren={true} gap="xtiny">
-            <FsCommon.PathItemIcon size={12} path={Types.pathConcat(props.parentPath, props.targetName)} />
+            <FsCommon.ItemIcon size={16} path={Types.pathConcat(props.parentPath, props.targetName)} />
             <FsCommon.Filename type="BodySmallSemibold" filename={props.targetName} />
           </Kb.Box2>
           <Kb.Text type="Header" lineClamp={1}>
@@ -140,7 +140,7 @@ const HighOrderDestinationPickerMobile = withProps(
   })
 )(Kb.HeaderHoc(DestinationPicker))
 
-export default (Styles.isMobile ? HighOrderDestinationPickerMobile : HighOrderDestinationPickerDesktop)
+export default Styles.isMobile ? HighOrderDestinationPickerMobile : HighOrderDestinationPickerDesktop
 
 const styles = Styles.styleSheetCreate(
   () =>

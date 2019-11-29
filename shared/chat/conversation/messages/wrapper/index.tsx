@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Styles from '../../../../styles'
 import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
+import SystemCreateTeam from '../system-create-team/container'
 import SystemAddedToTeam from '../system-added-to-team/container'
 import SystemChangeRetention from '../system-change-retention/container'
 import SystemGitPush from '../system-git-push/container'
@@ -43,6 +44,7 @@ import {formatTimeForChat} from '../../../../util/timestamp'
 export type Props = {
   authorIsAdmin?: boolean
   authorIsOwner?: boolean
+  botAlias: string
   centeredOrdinal: Types.CenterOrdinalHighlightMode
   conversationIDKey: Types.ConversationIDKey
   decorate: boolean
@@ -148,6 +150,19 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
 
   _authorAndContent = children => {
     let result
+    const username = (
+      <Kb.ConnectedUsernames
+        colorBroken={true}
+        colorFollowing={true}
+        colorYou={true}
+        onUsernameClicked={this._onAuthorClick}
+        style={Styles.collapseStyles([
+          this._showCenteredHighlight() && this.props.youAreAuthor && styles.usernameHighlighted,
+        ])}
+        type="BodySmallBold"
+        usernames={[this.props.showUsername]}
+      />
+    )
     if (this.props.showUsername) {
       result = (
         <React.Fragment key="authorAndContent">
@@ -160,17 +175,19 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               style={styles.avatar}
             />
             <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.usernameCrown}>
-              <Kb.ConnectedUsernames
-                colorBroken={true}
-                colorFollowing={true}
-                colorYou={true}
-                onUsernameClicked={this._onAuthorClick}
-                style={Styles.collapseStyles([
-                  this._showCenteredHighlight() && this.props.youAreAuthor && styles.usernameHighlighted,
-                ])}
-                type="BodySmallBold"
-                usernames={[this.props.showUsername]}
-              />
+              {this.props.botAlias ? (
+                <Kb.Box2 direction="horizontal">
+                  <Kb.Text type="BodySmallBold" style={{color: Styles.globalColors.black}}>
+                    {this.props.botAlias} [
+                  </Kb.Text>
+                  {username}
+                  <Kb.Text type="BodySmallBold" style={{color: Styles.globalColors.black}}>
+                    ]
+                  </Kb.Text>
+                </Kb.Box2>
+              ) : (
+                username
+              )}
               {this.props.showCrowns && (this.props.authorIsOwner || this.props.authorIsAdmin) && (
                 <Kb.WithTooltip tooltip={this.props.authorIsOwner ? 'Owner' : 'Admin'}>
                   <Kb.Icon
@@ -191,6 +208,11 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               >
                 {formatTimeForChat(this.props.message.timestamp)}
               </Kb.Text>
+              {this._getKeyedBot() && (
+                <Kb.WithTooltip tooltip={`Encrypted for @${this._getKeyedBot()}`}>
+                  <Kb.Icon fontSize={14} color={Styles.globalColors.black} type="iconfont-nav-2-robot" />
+                </Kb.WithTooltip>
+              )}
             </Kb.Box2>
           </Kb.Box2>
           <Kb.Box2
@@ -214,9 +236,15 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
   }
 
   _isEdited = () =>
-    // @ts-ignore
     this.props.message.hasBeenEdited && (
-      <Kb.Text key="isEdited" type="BodyTiny" style={styles.edited}>
+      <Kb.Text
+        key="isEdited"
+        type="BodyTiny"
+        style={Styles.collapseStyles([
+          styles.edited,
+          this._showCenteredHighlight() && styles.editedHighlighted,
+        ])}
+      >
         EDITED
       </Kb.Text>
     )
@@ -258,10 +286,9 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     )
 
   _unfurlList = () =>
-    // @ts-ignore
+    this.props.message.type === 'text' &&
     this.props.message.unfurls &&
-    // @ts-ignore
-    !this.props.message.unfurls.isEmpty() && (
+    !!this.props.message.unfurls.size && (
       <UnfurlList
         key="UnfurlList"
         conversationIDKey={this.props.conversationIDKey}
@@ -288,8 +315,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
   }
 
   _hasReactions = () =>
-    // @ts-ignore
-    (this.props.message.reactions && !this.props.message.reactions.isEmpty()) || this.props.isPendingPayment
+    (!!this.props.message.reactions && !!this.props.message.reactions.size) || this.props.isPendingPayment
 
   _reactionsRow = () =>
     this._hasReactions() && (
@@ -301,6 +327,8 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         ordinal={this.props.message.ordinal}
       />
     )
+
+  _getKeyedBot = () => this.props.message.type === 'text' && this.props.message.botUsername
 
   _popup = () =>
     (this.props.message.type === 'text' ||
@@ -336,10 +364,9 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       const props = {
         style: Styles.collapseStyles([
           styles.container,
-          !this.props.showUsername && styles.containerNoUsername,
           !this._isExploding() && styles.containerNoExploding, // extra right padding to line up with infopane / input icons
-          this.props.isJoinLeave && styles.containerJoinLeave,
           this._showCenteredHighlight() && styles.centeredOrdinal,
+          !this.props.showUsername && styles.containerNoUsername,
         ]),
       }
       return this.props.decorate
@@ -369,7 +396,6 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         onMouseOver: this._onMouseOver,
         // attach popups to the message itself
         ref: this.props.setAttachmentRef,
-        style: Styles.collapseStyles([this.props.isJoinLeave && styles.containerJoinLeave]),
       }
     }
   }
@@ -462,6 +488,9 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       case 'systemGitPush':
         child = <SystemGitPush key="systemGitPush" message={message} />
         break
+      case 'systemCreateTeam':
+        child = <SystemCreateTeam key="systemCreateTeam" message={message} />
+        break
       case 'systemAddedToTeam':
         child = <SystemAddedToTeam key="systemAddedToTeam" message={message} />
         break
@@ -532,9 +561,8 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
             )}
             {this.props.isRevoked && (
               <Kb.Icon
-                type="iconfont-exclamation"
-                color={Styles.globalColors.blue}
-                fontSize={14}
+                type="iconfont-rip"
+                color={Styles.globalColors.black_20}
                 style={styles.marginLeftTiny}
               />
             )}
@@ -602,7 +630,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     return (
       <>
         <LongPressable
-          {...this.props.message.type !== 'journeycard' && this._containerProps()}
+          {...(this.props.message.type !== 'journeycard' && this._containerProps())}
           children={[
             this.props.message.type === 'journeycard' ? (
               <TeamJourney message={this.props.message} />
@@ -651,11 +679,6 @@ const styles = Styles.styleSheetCreate(
         backgroundColor: Styles.globalColors.yellowOrYellowAlt,
       },
       container: Styles.platformStyles({isMobile: {overflow: 'hidden'}}),
-      containerJoinLeave: Styles.platformStyles({
-        isMobile: {
-          paddingLeft: Styles.globalMargins.tiny,
-        },
-      }),
       containerNoExploding: Styles.platformStyles({isMobile: {paddingRight: Styles.globalMargins.tiny}}),
       containerNoUsername: Styles.platformStyles({
         isMobile: {
@@ -690,6 +713,7 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       edited: {color: Styles.globalColors.black_20},
+      editedHighlighted: {color: Styles.globalColors.black_20OrBlack},
       ellipsis: {marginLeft: Styles.globalMargins.tiny},
       emojiRow: Styles.platformStyles({
         isElectron: {

@@ -19,11 +19,11 @@ type StillProps = StillCommonProps & {
 const getDownloadingText = (intent: Types.DownloadIntent) => {
   switch (intent) {
     case Types.DownloadIntent.None:
-      return 'Downloading ...'
+      return 'Downloading...'
     case Types.DownloadIntent.CameraRoll:
-      return 'Saving ...'
+      return 'Saving...'
     case Types.DownloadIntent.Share:
-      return 'Preparing to send to other app ...'
+      return 'Preparing...'
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(intent)
       return ''
@@ -36,7 +36,6 @@ const Still = (props: StillProps) => (
     onOpen={props.onOpen}
     inDestinationPicker={props.inDestinationPicker}
     writingToJournal={props.writingToJournal}
-    badge={props.intentIfDownloading ? Types.NonUploadPathItemBadgeType.Download : undefined}
   >
     <Kb.Box style={Styles.collapseStyles([rowStyles.itemBox, props.writingToJournal && rowStyles.opacity30])}>
       <Kb.Box2 direction="horizontal" fullWidth={true}>

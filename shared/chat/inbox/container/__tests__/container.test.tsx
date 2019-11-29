@@ -1,8 +1,6 @@
 /* eslint-env jest */
 import {_testing} from '../filtered'
 
-jest.unmock('immutable')
-
 describe('inbox container tests', () => {
   it('searching for yourself only', () => {
     expect(_testing.score('myname', 'myname', ['myname'])).toBe(100000)

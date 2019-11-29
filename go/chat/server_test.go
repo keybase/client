@@ -437,6 +437,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	g.TeamChannelSource = NewTeamChannelSource(g)
 	g.AttachmentURLSrv = types.DummyAttachmentHTTPSrv{}
 	g.ActivityNotifier = NewNotifyRouterActivityRouter(g)
+	g.AttachmentUploader = types.DummyAttachmentUploader{}
 	g.Unfurler = types.DummyUnfurler{}
 	g.StellarLoader = types.DummyStellarLoader{}
 	g.StellarSender = types.DummyStellarSender{}
@@ -1009,9 +1010,9 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 					if conv.ConvID == firstConv.Id.String() {
 						continue
 					}
-					require.Equal(t, fmt.Sprintf("%d", numconvs-index-1), conv.LocalMetadata.ChannelName)
+					require.Equal(t, fmt.Sprintf("%d", numconvs-index), conv.LocalMetadata.ChannelName)
 					require.Equal(t,
-						fmt.Sprintf("%s: %d", users[numconvs-index-1].Username, numconvs-index-1),
+						fmt.Sprintf("%s: %d", users[numconvs-index].Username, numconvs-index),
 						conv.LocalMetadata.Snippet)
 					require.Zero(t, len(conv.LocalMetadata.WriterNames))
 				default:
@@ -1792,15 +1793,16 @@ func TestChatSrvGetInboxSummaryForCLILocal(t *testing.T) {
 			t.Fatalf("unexpected response from GetInboxSummaryForCLILocal . expected 2 items, got %d\n", len(res.Conversations))
 		}
 
-		res, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxSummaryForCLILocal(ctx, chat1.GetInboxSummaryForCLILocalQuery{
-			UnreadFirst: true,
-			UnreadFirstLimit: chat1.UnreadFirstNumLimit{
-				AtLeast: 0,
-				AtMost:  1000,
-				NumRead: 1,
-			},
-			TopicType: chat1.TopicType_CHAT,
-		})
+		res, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxSummaryForCLILocal(ctx,
+			chat1.GetInboxSummaryForCLILocalQuery{
+				UnreadFirst: true,
+				UnreadFirstLimit: chat1.UnreadFirstNumLimit{
+					AtLeast: 0,
+					AtMost:  1000,
+					NumRead: 1,
+				},
+				TopicType: chat1.TopicType_CHAT,
+			})
 		if err != nil {
 			t.Fatalf("GetInboxSummaryForCLILocal error: %v", err)
 		}
@@ -3992,11 +3994,9 @@ func TestChatSrvGetInboxNonblockError(t *testing.T) {
 		query := &chat1.GetInboxLocalQuery{
 			TopicType: &ttype,
 		}
-		p := &chat1.Pagination{Num: 10}
 		_, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxNonblockLocal(ctx,
 			chat1.GetInboxNonblockLocalArg{
 				Query:            query,
-				Pagination:       p,
 				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 			})
 		require.Error(t, err)
@@ -4012,7 +4012,7 @@ func TestChatSrvGetInboxNonblockError(t *testing.T) {
 
 		rquery, _, err := g.InboxSource.GetInboxQueryLocalToRemote(context.TODO(), query)
 		require.NoError(t, err)
-		_, lconvs, _, err := storage.NewInbox(g).Read(context.TODO(), uid, rquery, p)
+		_, lconvs, err := storage.NewInbox(g).Read(context.TODO(), uid, rquery)
 		require.NoError(t, err)
 		require.Equal(t, 1, len(lconvs))
 		require.Equal(t, lconvs[0].GetConvID(), conv.Id)
@@ -5851,9 +5851,9 @@ func TestChatSrvDeleteConversation(t *testing.T) {
 
 		uid := users[0].User.GetUID().ToBytes()
 		g := ctc.world.Tcs[users[0].Username].Context()
-		_, lconvs, _, err := storage.NewInbox(g).Read(context.TODO(), uid, &chat1.GetInboxQuery{
+		_, lconvs, err := storage.NewInbox(g).Read(context.TODO(), uid, &chat1.GetInboxQuery{
 			ConvID: &channelConvID,
-		}, nil)
+		})
 		require.NoError(t, err)
 		require.Equal(t, 1, len(lconvs))
 		require.Equal(t, lconvs[0].GetConvID(), channelConvID)
@@ -5900,11 +5900,11 @@ func TestChatSrvDeleteConversation(t *testing.T) {
 		require.Equal(t, channelConvID, updates[0].ConvID, "wrong cid")
 		require.Equal(t, chat1.StaleUpdateType_CLEAR, updates[0].UpdateType)
 
-		_, lconvs, _, err = storage.NewInbox(g).Read(context.TODO(), uid, &chat1.GetInboxQuery{
+		_, lconvs, err = storage.NewInbox(g).Read(context.TODO(), uid, &chat1.GetInboxQuery{
 			ConvID:       &channelConvID,
 			MemberStatus: []chat1.ConversationMemberStatus{chat1.ConversationMemberStatus_LEFT},
-			Existences:   []chat1.ConversationExistence{chat1.ConversationExistence_ARCHIVED},
-		}, nil)
+			Existences:   []chat1.ConversationExistence{chat1.ConversationExistence_DELETED},
+		})
 		require.NoError(t, err)
 		require.Equal(t, 1, len(lconvs))
 		require.Equal(t, lconvs[0].GetConvID(), channelConvID)

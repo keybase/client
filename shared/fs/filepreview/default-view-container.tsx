@@ -30,6 +30,9 @@ const mergeProps = (stateProps, dispatchProps, {path}: OwnProps) => {
   }
 }
 
-export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'FilePreviewDefaultView')(
-  DefaultView
-)
+export default namedConnect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'FilePreviewDefaultView'
+)(DefaultView)

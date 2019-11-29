@@ -29,7 +29,7 @@ const _provider = {
 
 const storeCommon = Sb.createStoreWithCommon()
 const storeShowingSfmi = produce(storeCommon, draftStoreCommon => {
-  draftStoreCommon.fs.sfmi = draftStoreCommon.fs.sfmi.set('showingBanner', true)
+  draftStoreCommon.fs.sfmi.showingBanner = true
 })
 
 const provider = Sb.createPropProviderWithCommon(_provider)

@@ -4,6 +4,7 @@ import * as Types from '../../../../constants/types/chat2'
 import * as Sb from '../../../../stories/storybook'
 import Git from '.'
 import * as Constants from '../../../../constants/chat2/message'
+import {produce} from '../../../../util/container'
 
 const commit = {
   authorEmail: 'email@email.com',
@@ -34,42 +35,48 @@ const message = Constants.makeMessageSystemGitPush({
   ],
 })
 
-const noCommits = message.set('refs', [{...message.refs[0], commits: []}])
+const noCommits = {...message, refs: [{...message.refs[0], commits: []}]}
 
-const lotsCommits = message.set('refs', [
-  {
-    ...message.refs[0],
-    commits: new Array(50).fill(null).map((_, idx) => ({
-      ...commit,
-      commitHash: `hash${idx}`,
-      message: new Array((idx % 20) + 1).fill('a word').join(' '),
-    })),
-  },
-])
+const lotsCommits = {
+  ...message,
+  refs: [
+    {
+      ...message.refs[0],
+      commits: new Array(50).fill(null).map((_, idx) => ({
+        ...commit,
+        commitHash: `hash${idx}`,
+        message: new Array((idx % 20) + 1).fill('a word').join(' '),
+      })),
+    },
+  ],
+}
 
-const longMessage = message
-  .setIn(
-    ['refs', '0', 'commits', '0', 'message'],
+const longMessage = produce(message, draftState => {
+  draftState.refs[0]!.commits![0].message =
     'this is a very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long  very long very long message.'
-  )
-  .setIn(['refs', '0', 'commits', '1'], {
-    ...commit,
-    message:
-      'this is a very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long  very long very long message.',
-  })
-  .setIn(['refs', '0', 'commits', '2'], {
-    ...commit,
-    message: 'kinda short',
-  })
-  .setIn(['refs', '0', 'commits', '3'], {
-    ...commit,
-    message:
-      'this is a very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long  very long very long message.',
-  })
 
-const multiRefMessage = message
-  .setIn(['refs', '1'], {...message.refs[0], refName: 'ref2'})
-  .setIn(['refs', '2'], {...message.refs[0], refName: 'ref3'})
+  draftState.refs[0].commits![1] = {
+    ...draftState.refs[0].commits![0],
+    message:
+      'this is a very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long  very long very long message.',
+  }
+
+  draftState.refs[0].commits![2] = {
+    ...draftState.refs[0].commits![0],
+    message: 'kinda short',
+  }
+
+  draftState.refs[0].commits![3] = {
+    ...draftState.refs[0].commits![0],
+    message:
+      'this is a very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long very long  very long very long message.',
+  }
+})
+
+const multiRefMessage = produce(message, draftState => {
+  draftState.refs[1] = {...message.refs[0], refName: 'ref2'}
+  draftState.refs[2] = {...message.refs[0], refName: 'ref3'}
+})
 
 const messageCreate = Constants.makeMessageSystemGitPush({
   ...messageShared,

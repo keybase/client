@@ -246,7 +246,10 @@ function* deletePushToken(state: Container.TypedState, action: ConfigGen.LogoutH
     }
 
     yield RPCTypes.apiserverDeleteRpcPromise({
-      args: [{key: 'device_id', value: deviceID}, {key: 'token_type', value: Constants.tokenType}],
+      args: [
+        {key: 'device_id', value: deviceID},
+        {key: 'token_type', value: Constants.tokenType},
+      ],
       endpoint: 'device/push_token',
     })
     logger.info('[PushToken] deleted from server')
@@ -322,10 +325,10 @@ function* initialPermissionsCheck() {
         return false
       }
     })
-    const [shownNativePushPrompt, shownMonsterPushPrompt] = yield Saga.join(
+    const [shownNativePushPrompt, shownMonsterPushPrompt] = yield Saga.join([
       shownNativePushPromptTask,
-      shownMonsterPushPromptTask
-    )
+      shownMonsterPushPromptTask,
+    ])
     logger.info(
       '[PushInitialCheck] shownNativePushPrompt:',
       shownNativePushPrompt,

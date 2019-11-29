@@ -4,6 +4,7 @@ import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'
 import * as UsersGen from './users-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
+import * as Constants from '../constants/users'
 import {TypedState} from '../util/container'
 import logger from '../logger'
 import {RPCError} from 'util/errors'
@@ -44,9 +45,31 @@ const getBio = async (state: TypedState, action: UsersGen.GetBioPayload) => {
   }
 }
 
+const setUserBlocks = async (_: TypedState, action: UsersGen.SetUserBlocksPayload) => {
+  const {blocks} = action.payload
+  await RPCTypes.userSetUserBlocksRpcPromise({blocks}, Constants.setUserBlocksWaitingKey)
+}
+
+const getBlockState = async (_: TypedState, action: UsersGen.GetBlockStatePayload) => {
+  const {usernames} = action.payload
+
+  const blocks = await RPCTypes.userGetUserBlocksRpcPromise({usernames}, Constants.getUserBlocksWaitingKey)
+  if (blocks && blocks.length) {
+    return UsersGen.createUpdateBlockState({blocks})
+  }
+  return
+}
+
+const reportUser = async (_: TypedState, action: UsersGen.ReportUserPayload) => {
+  await RPCTypes.userReportUserRpcPromise(action.payload)
+}
+
 function* usersSaga() {
   yield* Saga.chainAction2(EngineGen.keybase1NotifyUsersIdentifyUpdate, onIdentifyUpdate, 'onIdentifyUpdate')
   yield* Saga.chainAction2(UsersGen.getBio, getBio)
+  yield* Saga.chainAction2(UsersGen.setUserBlocks, setUserBlocks)
+  yield* Saga.chainAction2(UsersGen.getBlockState, getBlockState)
+  yield* Saga.chainAction2(UsersGen.reportUser, reportUser)
 }
 
 export default usersSaga

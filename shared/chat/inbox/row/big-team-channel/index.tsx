@@ -15,18 +15,7 @@ type Props = {
   onSelectConversation: () => void
 }
 
-type State = {
-  isHovered: boolean
-}
-
-class BigTeamChannel extends PureComponent<Props, State> {
-  state = {
-    isHovered: false,
-  }
-
-  _onMouseLeave = () => this.setState({isHovered: false})
-  _onMouseOver = () => this.setState({isHovered: true})
-
+class BigTeamChannel extends PureComponent<Props> {
   render() {
     return (
       <Kb.ClickableBox onClick={this.props.onSelectConversation} style={styles.container}>
@@ -39,8 +28,6 @@ class BigTeamChannel extends PureComponent<Props, State> {
               styles.channelBackground,
               this.props.isSelected && styles.selectedChannelBackground,
             ])}
-            onMouseLeave={this._onMouseLeave}
-            onMouseOver={this._onMouseOver}
           >
             <Kb.Text
               lineClamp={1}
@@ -69,9 +56,7 @@ class BigTeamChannel extends PureComponent<Props, State> {
                 {this.props.channelname}
               </Kb.Text>
             </Kb.Text>
-            {this.props.isMuted && (
-              <MutedIcon isHovered={this.state.isHovered} isSelected={this.props.isSelected} />
-            )}
+            {this.props.isMuted && <MutedIcon isSelected={this.props.isSelected} />}
             {this.props.hasDraft && <DraftIcon isSelected={this.props.isSelected} />}
             {this.props.hasBadge && <UnreadIcon />}
           </Kb.Box2>
@@ -81,26 +66,13 @@ class BigTeamChannel extends PureComponent<Props, State> {
   }
 }
 
-const MutedIcon = ({isHovered, isSelected}) => (
+const MutedIcon = ({isSelected}) => (
   <Kb.Icon
-    type={
-      Styles.isMobile
-        ? isSelected
-          ? 'icon-shh-active-26-21'
-          : 'icon-shh-26-21'
-        : isSelected
-        ? 'icon-shh-active-19-16'
-        : isHovered
-        ? 'icon-shh-hover-19-16'
-        : 'icon-shh-19-16'
-    }
-    style={mutedStyle}
+    color={isSelected ? Styles.globalColors.white : Styles.globalColors.black_20}
+    style={styles.muted}
+    type={Styles.isMobile ? (isSelected ? 'icon-shh-active-26-21' : 'icon-shh-26-21') : 'iconfont-shh'}
   />
 )
-
-const mutedStyle = {
-  marginLeft: Styles.globalMargins.xtiny,
-}
 
 const UnreadIcon = () => (
   <Kb.Box style={styles.unreadContainer}>
@@ -144,6 +116,9 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   container: {flexShrink: 0, height: RowSizes.bigRowHeight},
+  muted: {
+    marginLeft: Styles.globalMargins.xtiny,
+  },
   rowContainer: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxRow,

@@ -6,6 +6,7 @@ import {globalStyles} from '../../../styles'
 import {Settings} from '.'
 
 const commonProps = {
+  canShowcase: true,
   ignoreAccessRequests: true,
   isBigTeam: true,
   openTeam: true,

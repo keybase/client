@@ -14,7 +14,7 @@ const GetRowsFromTlfUpdate = (t: Types.TlfUpdate, uploads: Types.Uploads): Remot
   timestamp: t.serverTime,
   tlf: t.path,
 
-  updates: t.history.toArray().map(u => {
+  updates: t.history.map(u => {
     const path = Types.stringToPath(u.filename)
     return {
       path,

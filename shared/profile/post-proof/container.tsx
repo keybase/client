@@ -79,8 +79,4 @@ const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   url: stateProps.url,
 })
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
-)(PostProof)
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(PostProof)

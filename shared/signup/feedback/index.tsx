@@ -8,7 +8,7 @@ type Props = {
   onBack: () => void
   onSendFeedback: (feedback: string, sendLogs: boolean, sendMaxBytes: boolean) => void
   sending: boolean
-  sendError: Error | null
+  sendError?: Error
 }
 
 const SendFeedback = (props: Props) => {

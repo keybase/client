@@ -361,12 +361,18 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, uid gregor1.UID
 func (s *BlockingSender) getMessage(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, msgID chat1.MessageID, resolveSupersedes bool) (mvalid chat1.MessageUnboxedValid, err error) {
 	reason := chat1.GetThreadReason_PREPARE
-	messages, err := GetMessages(ctx, s.G(), uid, convID, []chat1.MessageID{msgID}, resolveSupersedes, &reason)
+	messages, err := GetMessages(ctx, s.G(), uid, convID, []chat1.MessageID{msgID}, resolveSupersedes,
+		&reason)
 	if err != nil {
 		return mvalid, err
 	}
-	if len(messages) != 1 || !messages[0].IsValid() {
-		return mvalid, fmt.Errorf("getMessage returned multiple messages or an invalid result for msgID: %v, numMsgs: %v", msgID, len(messages))
+	if len(messages) == 0 {
+		return mvalid, errors.New("getMessage: message not found")
+	}
+	if !messages[0].IsValid() {
+		st, err := messages[0].State()
+		return mvalid, fmt.Errorf("getMessage returned invalid message: msgID: %v st: %v: err %v",
+			msgID, st, err)
 	}
 	return messages[0].Valid(), nil
 }
@@ -562,7 +568,7 @@ func (s *BlockingSender) getParticipantsForMentions(ctx context.Context, uid gre
 				},
 				TopicName: &globals.DefaultTeamTopic,
 				TopicType: &topicType,
-			}, nil)
+			})
 		if err != nil {
 			return nil, err
 		}
@@ -808,7 +814,7 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 		id := conv.GetConvID()
 		convID = &id
 	}
-	botUIDs, err := s.applyTeamBotSettings(ctx, uid, msg, convID, membersType, atMentions, opts)
+	botUIDs, err := s.applyTeamBotSettings(ctx, uid, &msg, convID, membersType, atMentions, opts)
 	if err != nil {
 		return res, err
 	}
@@ -816,6 +822,7 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 		// TODO HOTPOT-330 Add support for "hidden" messages for multiple bots
 		msg.ClientHeader.BotUID = &botUIDs[0]
 	}
+	s.Debug(ctx, "applyTeamBotSettings: matched %d bots, applied %v", len(botUIDs), msg.ClientHeader.BotUID)
 
 	encInfo, err := s.boxer.GetEncryptionInfo(ctx, &msg, membersType, skp)
 	if err != nil {
@@ -836,7 +843,7 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 }
 
 func (s *BlockingSender) applyTeamBotSettings(ctx context.Context, uid gregor1.UID,
-	msg chat1.MessagePlaintext, convID *chat1.ConversationID, membersType chat1.ConversationMembersType,
+	msg *chat1.MessagePlaintext, convID *chat1.ConversationID, membersType chat1.ConversationMembersType,
 	atMentions []gregor1.UID, opts chat1.SenderPrepareOptions) ([]gregor1.UID, error) {
 	// no bots in KBFS convs
 	if membersType == chat1.ConversationMembersType_KBFS {
@@ -845,7 +852,24 @@ func (s *BlockingSender) applyTeamBotSettings(ctx context.Context, uid gregor1.U
 
 	// Skip checks if botUID already set
 	if msg.ClientHeader.BotUID != nil {
-		return nil, nil
+		s.Debug(ctx, "applyTeamBotSettings: found existing botUID %v", msg.ClientHeader.BotUID)
+		// verify this value is actually a restricted bot of the team.
+		teamBotSettings, err := CreateNameInfoSource(ctx, s.G(), membersType).TeamBotSettings(ctx,
+			msg.ClientHeader.TlfName, msg.ClientHeader.Conv.Tlfid, membersType, msg.ClientHeader.TlfPublic)
+		if err != nil {
+			return nil, err
+		}
+		for uv := range teamBotSettings {
+			botUID := gregor1.UID(uv.Uid.ToBytes())
+			if botUID.Eq(*msg.ClientHeader.BotUID) {
+				s.Debug(ctx, "applyTeamBotSettings: existing botUID matches, short circuiting.")
+				return nil, nil
+			}
+		}
+		s.Debug(ctx, "applyTeamBotSettings: existing botUID %v does not match any bot, clearing")
+		// Caller was mistaken, this uid is not actually a bot so we unset the
+		// value.
+		msg.ClientHeader.BotUID = nil
 	}
 
 	// Check if we are superseding a bot message. If so, just take what the
@@ -879,12 +903,12 @@ func (s *BlockingSender) applyTeamBotSettings(ctx context.Context, uid gregor1.U
 	var botUIDs []gregor1.UID
 	for uv, botSettings := range teamBotSettings {
 		botUID := gregor1.UID(uv.Uid.ToBytes())
-		isMatch, err := bots.ApplyTeamBotSettings(ctx, s.G(), botUID, botSettings, msg,
+		isMatch, err := bots.ApplyTeamBotSettings(ctx, s.G(), botUID, botSettings, *msg,
 			convID, mentionMap, s.DebugLabeler)
 		if err != nil {
 			return nil, err
 		}
-		s.Debug(ctx, "applying botSettings: %+v for botuid: %v, senderUID: %v, isMatch: %v",
+		s.Debug(ctx, "applyTeamBotSettings: applied settings for %+v for botuid: %v, senderUID: %v, isMatch: %v",
 			botSettings, uv.Uid, msg.ClientHeader.Sender, isMatch)
 		// If the bot is the sender encrypt only for them.
 		if msg.ClientHeader.Sender.Eq(botUID) {
@@ -1076,7 +1100,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 
 	// If this message was sent from the Outbox, then we can remove it now
 	if boxed.ClientHeader.OutboxID != nil {
-		if err = storage.NewOutbox(s.G(), sender).RemoveMessage(ctx, *boxed.ClientHeader.OutboxID); err != nil {
+		if _, err = storage.NewOutbox(s.G(), sender).RemoveMessage(ctx, *boxed.ClientHeader.OutboxID); err != nil {
 			s.Debug(ctx, "unable to remove outbox message: %v", err)
 		}
 	}
@@ -1209,6 +1233,14 @@ func (s *Deliverer) setTestingNameInfoSource(ni types.NameInfoSource) {
 	s.testingNameInfoSource = ni
 }
 
+func (s *Deliverer) presentUIItem(ctx context.Context, uid gregor1.UID, conv *chat1.ConversationLocal) (res *chat1.InboxUIItem) {
+	if conv != nil {
+		pc := utils.PresentConversationLocal(ctx, s.G(), uid, *conv)
+		res = &pc
+	}
+	return res
+}
+
 func (s *Deliverer) Start(ctx context.Context, uid gregor1.UID) {
 	s.Lock()
 	defer s.Unlock()
@@ -1326,7 +1358,11 @@ func (s *Deliverer) Queue(ctx context.Context, convID chat1.ConversationID, msg 
 
 	// Alert the deliver loop it should wake up
 	s.msgSentCh <- struct{}{}
-
+	update := []chat1.LocalMtimeUpdate{{ConvID: convID, Mtime: obr.Ctime}}
+	if err := s.G().InboxSource.UpdateLocalMtime(ctx, s.outbox.GetUID(), update); err != nil {
+		s.Debug(ctx, "Queue: unable to update local mtime", obr.Ctime)
+	}
+	s.G().InboxSource.NotifyUpdate(ctx, s.outbox.GetUID(), convID)
 	return obr, nil
 }
 
@@ -1403,10 +1439,12 @@ func (s *Deliverer) doNotRetryFailure(ctx context.Context, obr chat1.OutboxRecor
 func (s *Deliverer) failMessage(ctx context.Context, obr chat1.OutboxRecord,
 	oserr chat1.OutboxStateError) (err error) {
 	var marked []chat1.OutboxRecord
+	uid := s.outbox.GetUID()
+	convID := obr.ConvID
 	switch oserr.Typ {
 	case chat1.OutboxErrorType_TOOMANYATTEMPTS:
 		s.Debug(ctx, "failMessage: too many attempts failure, marking conv as failed")
-		if marked, err = s.outbox.MarkConvAsError(ctx, obr.ConvID, oserr); err != nil {
+		if marked, err = s.outbox.MarkConvAsError(ctx, convID, oserr); err != nil {
 			s.Debug(ctx, "failMessage: unable to mark conv as error on outbox: uid: %s convID: %v, err: %v",
 				s.outbox.GetUID(), obr.ConvID, err)
 			return err
@@ -1414,7 +1452,7 @@ func (s *Deliverer) failMessage(ctx context.Context, obr chat1.OutboxRecord,
 	case chat1.OutboxErrorType_DUPLICATE, chat1.OutboxErrorType_ALREADY_DELETED:
 		// Here we don't send a notification to the frontend, we just want
 		// these to go away
-		if err = s.outbox.RemoveMessage(ctx, obr.OutboxID); err != nil {
+		if _, err = s.outbox.RemoveMessage(ctx, obr.OutboxID); err != nil {
 			s.Debug(ctx, "deliverLoop: failed to remove duplicate delete msg: %v", err)
 			return err
 		}
@@ -1428,10 +1466,15 @@ func (s *Deliverer) failMessage(ctx context.Context, obr chat1.OutboxRecord,
 	}
 
 	if len(marked) > 0 {
+		convLocal, err := s.G().InboxSource.IncrementLocalConvVersion(ctx, uid, convID)
+		if err != nil {
+			s.Debug(ctx, "failMessage: failed to get IncrementLocalConvVersion")
+		}
 		act := chat1.NewChatActivityWithFailedMessage(chat1.FailedMessageInfo{
 			OutboxRecords: marked,
+			Conv:          s.presentUIItem(ctx, uid, convLocal),
 		})
-		s.G().ActivityNotifier.Activity(context.Background(), s.outbox.GetUID(), chat1.TopicType_NONE, &act,
+		s.G().ActivityNotifier.Activity(context.Background(), uid, chat1.TopicType_NONE, &act,
 			chat1.ChatActivitySource_LOCAL)
 		s.alertFailureChannels(marked)
 		if err := s.G().Badger.Send(context.Background()); err != nil {
@@ -1635,7 +1678,7 @@ func (s *Deliverer) cancelPendingDuplicateReactions(ctx context.Context, obr cha
 		// Since we're just toggling the reaction on/off, we should abort here
 		// and remove ourselves from the outbox since our message wouldn't
 		// change the reaction state.
-		err = s.outbox.RemoveMessage(ctx, obr.OutboxID)
+		_, err = s.outbox.RemoveMessage(ctx, obr.OutboxID)
 		return true, err
 	}
 	return false, nil
@@ -1776,7 +1819,7 @@ func (s *Deliverer) deliverForConv(ctx context.Context, obrs []chat1.OutboxRecor
 		} else {
 			// BlockingSender actually does this too, so this will likely fail, but to maintain
 			// the types.Sender abstraction we will do it here too and likely fail.
-			if err = s.outbox.RemoveMessage(bctx, obr.OutboxID); err != nil {
+			if _, err = s.outbox.RemoveMessage(bctx, obr.OutboxID); err != nil {
 				s.Debug(ctx, "deliverLoop: failed to remove successful message send: %v", err)
 			}
 		}

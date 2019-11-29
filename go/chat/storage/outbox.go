@@ -466,6 +466,7 @@ func (o *Outbox) CancelMessagesWithPredicate(ctx context.Context, shouldCancel f
 	numCancelled := 0
 	for _, obr := range obox.Records {
 		if shouldCancel(obr) {
+			o.cleanupOutboxItem(ctx, obr)
 			numCancelled++
 		} else {
 			recs = append(recs, obr)
@@ -480,27 +481,30 @@ func (o *Outbox) CancelMessagesWithPredicate(ctx context.Context, shouldCancel f
 	return numCancelled, nil
 }
 
-func (o *Outbox) RemoveMessage(ctx context.Context, obid chat1.OutboxID) (err error) {
+func (o *Outbox) RemoveMessage(ctx context.Context, obid chat1.OutboxID) (res chat1.OutboxRecord, err error) {
 	locks.Outbox.Lock()
 	defer locks.Outbox.Unlock()
 
 	// Read outbox for the user
 	obox, err := o.readStorage(ctx)
 	if err != nil {
-		return err
+		return res, err
 	}
 
 	// Scan to find the message and don't include it
 	var recs []chat1.OutboxRecord
 	for _, obr := range obox.Records {
-		if !obr.OutboxID.Eq(&obid) {
-			recs = append(recs, obr)
+		if obr.OutboxID.Eq(&obid) {
+			res = obr
+			o.cleanupOutboxItem(ctx, obr)
+			continue
 		}
+		recs = append(recs, obr)
 	}
 	obox.Records = recs
 
 	// Write out box
-	return o.writeStorage(ctx, obox)
+	return res, o.writeStorage(ctx, obox)
 }
 
 func (o *Outbox) AppendToThread(ctx context.Context, convID chat1.ConversationID,
@@ -573,7 +577,7 @@ func (o *Outbox) OutboxPurge(ctx context.Context) (ephemeralPurged []chat1.Outbo
 	// Read outbox for the user
 	obox, err := o.readStorage(ctx)
 	if err != nil {
-		return ephemeralPurged, err
+		return nil, err
 	}
 
 	var recs []chat1.OutboxRecord
@@ -581,12 +585,14 @@ func (o *Outbox) OutboxPurge(ctx context.Context) (ephemeralPurged []chat1.Outbo
 		st, err := obr.State.State()
 		if err != nil {
 			o.Debug(ctx, "purging message from outbox with error getting state: %v", err)
+			o.cleanupOutboxItem(ctx, obr)
 			continue
 		}
 		if st == chat1.OutboxStateType_ERROR {
 			if obr.Msg.IsEphemeral() && obr.Ctime.Time().Add(ephemeralPurgeCutoff).Before(o.clock.Now()) {
 				o.Debug(ctx, "purging ephemeral message from outbox with error state that was older than %v: %s",
 					ephemeralPurgeCutoff, obr.OutboxID)
+				o.cleanupOutboxItem(ctx, obr)
 				ephemeralPurged = append(ephemeralPurged, obr)
 				continue
 			}
@@ -594,6 +600,7 @@ func (o *Outbox) OutboxPurge(ctx context.Context) (ephemeralPurged []chat1.Outbo
 			if !obr.Msg.IsEphemeral() && obr.Ctime.Time().Add(errorPurgeCutoff).Before(o.clock.Now()) {
 				o.Debug(ctx, "purging message from outbox with error state that was older than %v: %s",
 					errorPurgeCutoff, obr.OutboxID)
+				o.cleanupOutboxItem(ctx, obr)
 				continue
 			}
 		}
@@ -604,7 +611,36 @@ func (o *Outbox) OutboxPurge(ctx context.Context) (ephemeralPurged []chat1.Outbo
 
 	// Write out diskbox
 	if err := o.writeStorage(ctx, obox); err != nil {
-		return ephemeralPurged, err
+		return nil, err
 	}
 	return ephemeralPurged, nil
+}
+
+// cleanupOutboxItem clears any external stores when an outbox item is deleted.
+// Currently this includes:
+//   - upload tasks/temp files/pending previews
+//   - unfurls
+func (o *Outbox) cleanupOutboxItem(ctx context.Context, obr chat1.OutboxRecord) {
+	o.G().AttachmentUploader.Complete(ctx, obr.OutboxID)
+	o.G().Unfurler.Complete(ctx, obr.OutboxID)
+}
+
+func (o *Outbox) PullForConversation(ctx context.Context, convID chat1.ConversationID) ([]chat1.OutboxRecord, error) {
+	locks.Outbox.Lock()
+	defer locks.Outbox.Unlock()
+
+	// Read outbox for the user
+	obox, err := o.readStorage(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var recs []chat1.OutboxRecord
+	for _, obr := range obox.Records {
+		if !obr.ConvID.Eq(convID) {
+			continue
+		}
+		recs = append(recs, obr)
+	}
+	return recs, nil
 }

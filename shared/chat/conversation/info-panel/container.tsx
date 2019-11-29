@@ -57,7 +57,7 @@ const ConnectedInfoPanel = Container.connect(
       canEditChannel = yourOperations.editTeamDescription
       canSetMinWriterRole = yourOperations.setMinWriterRole
       canSetRetention = yourOperations.setRetentionPolicy
-      canDeleteHistory = yourOperations.deleteChatHistory
+      canDeleteHistory = yourOperations.deleteChatHistory && !meta.cannotWrite
     } else {
       canDeleteHistory = true
     }
@@ -71,6 +71,7 @@ const ConnectedInfoPanel = Container.connect(
       state.teams.teamNameToMembers.get(meta.teamname) || I.Map<string, TeamTypes.MemberInfo>()
     return {
       _attachmentInfo: attachmentInfo,
+      _botAliases: meta.botAliases,
       _fromMsgID: getFromMsgID(attachmentInfo),
       _infoMap: state.users.infoMap,
       _participantToContactName: meta.participantToContactName,
@@ -236,7 +237,7 @@ const ConnectedInfoPanel = Container.connect(
                     snippet: (m.decoratedText && m.decoratedText.stringValue()) || '',
                   })
                 } else {
-                  m.unfurls.toList().forEach(u => {
+                  ;[...m.unfurls.values()].forEach(u => {
                     if (u.unfurl.unfurlType === RPCChatTypes.UnfurlType.generic && u.unfurl.generic) {
                       l.push({
                         author: m.author,
@@ -290,6 +291,7 @@ const ConnectedInfoPanel = Container.connect(
       onUnhideConv: dispatchProps.onUnhideConv,
       participants: participants
         .map(p => ({
+          botAlias: stateProps._botAliases[p] || '',
           fullname:
             (stateProps._infoMap.get(p) || {fullname: ''}).fullname ||
             stateProps._participantToContactName.get(p) ||

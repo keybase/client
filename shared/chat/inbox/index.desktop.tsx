@@ -8,28 +8,57 @@ import BigTeamsDivider from './row/big-teams-divider/container'
 import BuildTeam from './row/build-team/container'
 import TeamsDivider from './row/teams-divider/container'
 import UnreadShortcut from './unread-shortcut'
-import {ErrorBoundary} from '../../common-adapters'
+import * as Kb from '../../common-adapters'
 import {VariableSizeList} from 'react-window'
 import debounce from 'lodash/debounce'
 import throttle from 'lodash/throttle'
-import {inboxWidth, getRowHeight} from './row/sizes'
+import {inboxWidth, getRowHeight, smallRowHeight, dividerHeight} from './row/sizes'
 import {makeRow} from './row'
 import {virtualListMarks} from '../../local-debug'
 import shallowEqual from 'shallowequal'
 
 type State = {
+  dragY: number
   showFloating: boolean
   showUnread: boolean
 }
 
+const widths = [10, 80, 2, 66]
+const stableWidth = (idx: number) => 160 + -widths[idx % widths.length]
+
+const FakeRow = ({idx}) => (
+  <Kb.Box2 direction="horizontal" style={styles.fakeRow}>
+    <Kb.Box2 direction="vertical" style={styles.fakeAvatar} />
+    <Kb.Box2 direction="vertical" style={styles.fakeText}>
+      <Kb.Box2
+        direction="vertical"
+        style={Styles.collapseStyles([styles.fakeTextTop, {width: stableWidth(idx) / 4}])}
+        alignSelf="flex-start"
+      />
+      <Kb.Box2
+        direction="vertical"
+        style={Styles.collapseStyles([styles.fakeTextBottom, {width: stableWidth(idx)}])}
+        alignSelf="flex-start"
+      />
+    </Kb.Box2>
+  </Kb.Box2>
+)
+
+const FakeRemovingRow = () => <Kb.Box2 direction="horizontal" style={styles.fakeRemovingRow} />
+
+const dragKey = '__keybase_inbox'
+
 class Inbox extends React.Component<T.Props, State> {
   state = {
+    dragY: -1,
     showFloating: false,
     showUnread: false,
   }
 
   private mounted: boolean = false
   private list: VariableSizeList | null = null
+
+  private dragList = React.createRef<HTMLDivElement>()
 
   // stuff for UnreadShortcut
   private firstOffscreenIdx: number = -1
@@ -82,6 +111,10 @@ class Inbox extends React.Component<T.Props, State> {
     return getRowHeight(row.type, row.type === 'divider' && row.showButton)
   }
 
+  private onDragStart = ev => {
+    ev.dataTransfer.setData(dragKey, dragKey)
+  }
+
   private itemRenderer = (index, style) => {
     const row = this.props.rows[index]
     if (!row) {
@@ -90,14 +123,69 @@ class Inbox extends React.Component<T.Props, State> {
     }
     const divStyle = Styles.collapseStyles([style, virtualListMarks && styles.divider])
     if (row.type === 'divider') {
+      const newSmallRows = this.deltaNewSmallRows()
+      let expandingRows: Array<string> = []
+      let removingRows: Array<string> = []
+      if (newSmallRows === 0) {
+      } else if (newSmallRows > 0) {
+        expandingRows = new Array(newSmallRows).fill('')
+      } else {
+        removingRows = new Array(-newSmallRows).fill('')
+      }
       return (
-        <div style={divStyle}>
+        <div style={{...divStyle, position: 'relative'}}>
+          {row.showButton && (
+            <>
+              <Kb.Box
+                className="grabLinesContainer"
+                draggable={row.showButton}
+                onDragStart={this.onDragStart}
+                style={styles.grabber}
+              >
+                <Kb.Box2 className="grabLines" direction="vertical" style={styles.grabberLineContainer}>
+                  <Kb.Box2 direction="horizontal" style={styles.grabberLine} />
+                  <Kb.Box2 direction="horizontal" style={styles.grabberLine} />
+                  <Kb.Box2 direction="horizontal" style={styles.grabberLine} />
+                </Kb.Box2>
+              </Kb.Box>
+              <Kb.Box style={styles.spacer} />
+            </>
+          )}
+          {this.state.dragY !== -1 && (
+            <Kb.Box2
+              direction="vertical"
+              style={Styles.collapseStyles([
+                styles.fakeRowContainer,
+                {
+                  bottom: expandingRows.length ? undefined : dividerHeight(row.showButton),
+                  height:
+                    (expandingRows.length ? expandingRows.length : removingRows.length) * smallRowHeight,
+                  top: expandingRows.length ? 0 : undefined,
+                },
+              ])}
+            >
+              {expandingRows.map((_, idx) => (
+                <FakeRow idx={idx} key={idx} />
+              ))}
+              {removingRows.map((_, idx) => (
+                <FakeRemovingRow key={idx} />
+              ))}
+            </Kb.Box2>
+          )}
           <TeamsDivider
+            hiddenCountDelta={newSmallRows !== 0 ? -newSmallRows : 0}
             key="divider"
             toggle={this.props.toggleSmallTeamsExpanded}
             showButton={row.showButton}
             rows={this.props.rows}
           />
+        </div>
+      )
+    }
+    if (row.type === 'teamBuilder') {
+      return (
+        <div style={divStyle}>
+          <BuildTeam />
         </div>
       )
     }
@@ -115,6 +203,7 @@ class Inbox extends React.Component<T.Props, State> {
           navKey: this.props.navKey,
           snippet: row.snippet,
           snippetDecoration: row.snippetDecoration,
+          teamID: (row.type === 'bigHeader' && row.teamID) || '',
           teamname,
           time: row.time || undefined,
           type: row.type,
@@ -204,14 +293,44 @@ class Inbox extends React.Component<T.Props, State> {
 
   private listChild = ({index, style}) => this.itemRenderer(index, style)
 
+  private onDragOver = e => {
+    if (this.scrollDiv.current && e.dataTransfer.types.length > 0 && e.dataTransfer.types[0] === dragKey) {
+      this.setState({
+        dragY:
+          e.clientY - this.scrollDiv.current.getBoundingClientRect().top + this.scrollDiv.current.scrollTop,
+      })
+    }
+  }
+
+  private deltaNewSmallRows = () => {
+    if (this.state.dragY === -1) {
+      return 0
+    }
+    return Math.max(0, Math.floor(this.state.dragY / smallRowHeight)) - this.props.inboxNumSmallRows
+  }
+
+  private onDrop = () => {
+    const delta = this.deltaNewSmallRows()
+    if (delta !== 0) {
+      this.props.setInboxNumSmallRows(this.props.inboxNumSmallRows + delta)
+    }
+    this.setState({dragY: -1})
+  }
+
   render() {
     const floatingDivider = this.state.showFloating && this.props.allowShowFloatingButton && (
       <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
     )
     return (
-      <ErrorBoundary>
-        <div style={styles.container}>
-          <div style={styles.list}>
+      <Kb.ErrorBoundary>
+        <InboxHoverContainer style={styles.container}>
+          <div
+            style={styles.list}
+            onDragEnd={this.onDrop}
+            onDragOver={this.onDragOver}
+            onDrop={this.onDrop}
+            ref={this.dragList}
+          >
             <AutoSizer>
               {({height, width}) => (
                 <VariableSizeList
@@ -223,45 +342,158 @@ class Inbox extends React.Component<T.Props, State> {
                   itemCount={this.props.rows.length}
                   itemSize={this.itemSizeGetter}
                   estimatedItemSize={56}
-                  itemData={this.props.rows}
+                  itemData={this.state.dragY === -1 ? this.props.rows : this.state.dragY}
                 >
                   {this.listChild}
                 </VariableSizeList>
               )}
             </AutoSizer>
           </div>
-          {floatingDivider || <BuildTeam />}
+          {floatingDivider || ((this.props.rows.length === 0 || !this.props.hasBigTeams) && <BuildTeam />)}
           {this.state.showUnread && !this.state.showFloating && (
             <UnreadShortcut onClick={this.scrollToUnread} />
           )}
-        </div>
-      </ErrorBoundary>
+        </InboxHoverContainer>
+      </Kb.ErrorBoundary>
     )
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: Styles.platformStyles({
-    isElectron: {
-      ...Styles.globalStyles.flexBoxColumn,
-      backgroundColor: Styles.globalColors.blueGrey,
-      contain: 'strict',
-      height: '100%',
-      maxWidth: inboxWidth,
-      minWidth: inboxWidth,
-      position: 'relative',
-    },
-  }),
-  divider: {
-    backgroundColor: 'purple',
-    overflow: 'hidden',
+const InboxHoverContainer = Styles.styled(Kb.Box)({
+  '.grabLines': {
+    opacity: 0,
+    transition: 'opacity 0.25s ease-in-out',
   },
-  hover: {backgroundColor: Styles.globalColors.blueGreyDark},
-  list: {flex: 1},
-}))
+  '.grabLinesContainer': {
+    opacity: 0.5,
+    transition: 'opacity 0.25s ease-in-out',
+  },
+  ':hover .grabLines': {opacity: 1},
+  ':hover .grabLinesContainer': {opacity: 1},
+})
+
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: Styles.platformStyles({
+        isElectron: {
+          ...Styles.globalStyles.flexBoxColumn,
+          backgroundColor: Styles.globalColors.blueGreyLight,
+          contain: 'strict',
+          height: '100%',
+          maxWidth: inboxWidth,
+          minWidth: inboxWidth,
+          position: 'relative',
+        },
+      }),
+      divider: {
+        backgroundColor: 'purple',
+        overflow: 'hidden',
+      },
+      fakeAvatar: Styles.platformStyles({
+        isElectron: {
+          backgroundColor: Styles.globalColors.black_10,
+          borderRadius: '50%',
+          height: 48,
+          marginLeft: 8,
+          width: 48,
+        },
+      }),
+      fakeRemovingRow: Styles.platformStyles({
+        isElectron: {
+          height: 56,
+          position: 'relative',
+          width: '100%',
+        },
+      }),
+      fakeRemovingRowDivider: {
+        position: 'absolute',
+        top: 0,
+        width: '100%',
+      },
+      fakeRow: Styles.platformStyles({
+        isElectron: {
+          backgroundColor: Styles.globalColors.blueGrey,
+          height: 56,
+          position: 'relative',
+          width: '100%',
+        },
+      }),
+      fakeRowContainer: {
+        backgroundColor: Styles.globalColors.blueGrey,
+        left: 0,
+        position: 'absolute',
+        right: 0,
+        zIndex: 9999,
+      },
+      fakeRowDivider: {
+        bottom: 0,
+        position: 'absolute',
+        width: '100%',
+      },
+      fakeText: {
+        flexGrow: 1,
+        height: '100%',
+        justifyContent: 'space-around',
+        padding: 8,
+        paddingLeft: 16,
+      },
+      fakeTextBottom: Styles.platformStyles({
+        isElectron: {
+          backgroundColor: Styles.globalColors.black_10,
+          borderRadius: 8,
+          height: 10,
+          width: '75%',
+        },
+      }),
+      fakeTextTop: Styles.platformStyles({
+        isElectron: {
+          backgroundColor: Styles.globalColors.black_10,
+          borderRadius: 8,
+          height: 10,
+          width: '25%',
+        },
+      }),
+      grabber: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.flexBoxRow,
+          backgroundColor: Styles.globalColors.black_05,
+          bottom: 8,
+          height: Styles.globalMargins.tiny,
+          justifyContent: 'center',
+          position: 'absolute',
+          width: '100%',
+        },
+        isElectron: {
+          cursor: 'row-resize',
+        },
+      }),
+      grabberLine: {
+        backgroundColor: Styles.globalColors.black_35,
+        height: 1,
+        marginBottom: 1,
+        width: '100%',
+      },
+      grabberLineContainer: {
+        paddingTop: 1,
+        width: Styles.globalMargins.small,
+      },
+      hover: {backgroundColor: Styles.globalColors.blueGreyDark},
+      list: {flex: 1},
+      rowWithDragger: {
+        height: 68,
+      },
+      spacer: {
+        backgroundColor: Styles.globalColors.blueGreyLight,
+        bottom: 0,
+        height: 8,
+        position: 'absolute',
+        width: '100%',
+      },
+    } as const)
+)
 
 export type RowItem = T.RowItem
 export type RowItemSmall = T.RowItemSmall
 export type RowItemBig = T.RowItemBig
-export type RouteState = T.RouteState
 export default Inbox

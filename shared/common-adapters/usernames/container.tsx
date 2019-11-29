@@ -1,5 +1,4 @@
 import {namedConnect} from '../../util/container'
-import * as I from 'immutable'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
 import * as UsersConstants from '../../constants/users'
@@ -7,7 +6,7 @@ import {UserInfo} from '../../constants/types/users'
 import {Usernames, BaseUsernamesProps, Props, UserList} from '.'
 
 export type StateProps = {
-  _following: I.Set<string> | Set<string>
+  _following: Set<string>
   _userInfo: Map<string, UserInfo>
   _you: string
 }
@@ -86,8 +85,11 @@ const mapDispatchToProps = dispatch => ({
 const mergeProps = (stateProps, dispatchProps, ownProps: ConnectedProps) =>
   connectedPropsToProps(stateProps, dispatchProps, ownProps, userDataFromState)
 
-const ConnectedUsernames = namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Usernames')(
-  Usernames
-)
+const ConnectedUsernames = namedConnect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'Usernames'
+)(Usernames)
 
 export default ConnectedUsernames

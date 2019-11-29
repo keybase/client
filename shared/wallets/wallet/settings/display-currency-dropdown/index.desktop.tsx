@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as I from 'immutable'
 import * as Kb from '../../../../common-adapters'
 import * as Types from '../../../../constants/types/wallets'
 import * as Styles from '../../../../styles'
@@ -7,7 +6,7 @@ import {Props} from '.'
 
 const headerKey = '_header'
 
-const makeDropdownItems = (currencies: I.List<Types.Currency>, currency: Types.Currency) => {
+const makeDropdownItems = (currencies: Array<Types.Currency>, currency: Types.Currency) => {
   const items = [
     <Kb.Box2 centerChildren={true} direction="vertical" key={headerKey}>
       <Kb.Text center={true} type="BodySmall" style={styles.dropdownHeader}>

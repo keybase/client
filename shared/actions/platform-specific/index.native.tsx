@@ -25,6 +25,7 @@ import {
   ActionSheetIOS,
   PermissionsAndroid,
   Clipboard,
+  Vibration,
 } from 'react-native'
 import CameraRoll from '@react-native-community/cameraroll'
 import NetInfo from '@react-native-community/netinfo'
@@ -58,24 +59,27 @@ const requestPermissionsToWrite = async () => {
 }
 
 export const requestAudioPermission = async () => {
-  if (isIOS) {
-    const {Permissions} = require('react-native-unimodules')
-    const {status} = await Permissions.getAsync(Permissions.AUDIO_RECORDING)
-    if (status === Permissions.PermissionStatus.DENIED) {
-      throw new Error('Please allow Keybase to access the microphone in the phone settings.')
+  let chargeForward = true
+  const {Permissions} = require('react-native-unimodules')
+  let {status} = await Permissions.getAsync(Permissions.AUDIO_RECORDING)
+  if (status === Permissions.PermissionStatus.UNDETERMINED) {
+    if (isIOS) {
+      const askRes = await Permissions.askAsync(Permissions.AUDIO_RECORDING)
+      status = askRes.status
+    } else {
+      const askRes = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.RECORD_AUDIO)
+      switch (askRes) {
+        case 'never_ask_again':
+        case 'denied':
+          status = Permissions.PermissionStatus.DENIED
+      }
     }
+    chargeForward = false
   }
-  if (isAndroid) {
-    const permissionStatus = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.RECORD_AUDIO, {
-      buttonNegative: 'Cancel',
-      buttonPositive: 'OK',
-      message: 'Keybase needs access to your microphone to send an audio attachment',
-      title: 'Keybase Record Audio Permission',
-    })
-    if (permissionStatus !== 'granted') {
-      throw new Error('Unable to acquire record audio permissions')
-    }
+  if (status === Permissions.PermissionStatus.DENIED) {
+    throw new Error('Please allow Keybase to access the microphone in the phone settings.')
   }
+  return chargeForward
 }
 
 export const requestLocationPermission = async (mode: RPCChatTypes.UIWatchPositionPerm) => {
@@ -325,7 +329,7 @@ function* loadStartupDetails() {
   })
   const linkTask = yield Saga._fork(Linking.getInitialURL)
   const initialPush = yield Saga._fork(getStartupDetailsFromInitialPush)
-  const [routeState, link, push] = yield Saga.join(routeStateTask, linkTask, initialPush)
+  const [routeState, link, push] = yield Saga.join([routeStateTask, linkTask, initialPush])
 
   // Clear last value to be extra safe bad things don't hose us forever
   yield Saga._fork(async () => {
@@ -490,7 +494,9 @@ function* requestContactPermissions(
   yield Saga.put(WaitingGen.createIncrementWaiting({key: SettingsConstants.importContactsWaitingKey}))
   const result: Saga.RPCPromiseType<typeof askForContactPermissions> = yield askForContactPermissions()
   if (result === 'granted' && thenToggleImportOn) {
-    yield Saga.put(SettingsGen.createEditContactImportEnabled({enable: true}))
+    yield Saga.put(
+      SettingsGen.createEditContactImportEnabled({enable: true, fromSettings: action.payload.fromSettings})
+    )
   }
   yield Saga.sequentially([
     Saga.put(SettingsGen.createLoadedContactPermissions({status: result})),
@@ -505,7 +511,7 @@ const manageContactsCache = async (
 ) => {
   if (state.settings.contacts.importEnabled === false) {
     await RPCTypes.contactsSaveContactListRpcPromise({contacts: []})
-    return SettingsGen.createSetContactImportedCount({count: null})
+    return SettingsGen.createSetContactImportedCount({})
   }
 
   // get permissions if we haven't loaded them for some reason
@@ -534,7 +540,7 @@ const manageContactsCache = async (
     })
   } catch (e) {
     logger.error(`error loading contacts: ${e.message}`)
-    return SettingsGen.createSetContactImportedCount({count: null, error: e.message})
+    return SettingsGen.createSetContactImportedCount({error: e.message})
   }
   let defaultCountryCode: string = ''
   try {
@@ -552,7 +558,7 @@ const manageContactsCache = async (
   logger.info(`Importing ${mapped.length} contacts.`)
   const actions: Array<Container.TypedActions> = []
   try {
-    const newlyResolved = await RPCTypes.contactsSaveContactListRpcPromise({contacts: mapped})
+    const {newlyResolved, resolved} = await RPCTypes.contactsSaveContactListRpcPromise({contacts: mapped})
     logger.info(`Success`)
     actions.push(
       SettingsGen.createSetContactImportedCount({count: mapped.length}),
@@ -563,12 +569,23 @@ const manageContactsCache = async (
         message: PushConstants.makeContactsResolvedMessage(newlyResolved),
       })
     }
+    if (state.settings.contacts.waitingToShowJoinedModal && resolved) {
+      actions.push(SettingsGen.createShowContactsJoinedModal({resolved}))
+    }
   } catch (e) {
     logger.error('Error saving contacts list: ', e.message)
-    actions.push(SettingsGen.createSetContactImportedCount({count: null, error: e.message}))
+    actions.push(SettingsGen.createSetContactImportedCount({error: e.message}))
   }
   return actions
 }
+
+const showContactsJoinedModal = (
+  _: Container.TypedState,
+  action: SettingsGen.ShowContactsJoinedModalPayload
+) =>
+  action.payload.resolved.length
+    ? [RouteTreeGen.createNavigateAppend({path: ['settingsContactsJoined']})]
+    : []
 
 function* setupDarkMode() {
   const NativeAppearance = NativeModules.Appearance
@@ -620,7 +637,7 @@ function* setupLocationUpdateLoop() {
   }
 }
 
-const setLocationDeniedCommandStatus = (conversationIDKey: Types.ConversationIDKey, text: string) =>
+const setPermissionDeniedCommandStatus = (conversationIDKey: Types.ConversationIDKey, text: string) =>
   Chat2Gen.createSetCommandStatusInfo({
     conversationIDKey,
     info: {
@@ -640,7 +657,7 @@ const onChatWatchPosition = async (
     await requestLocationPermission(action.payload.params.perm)
   } catch (err) {
     logger.info('failed to get location perms: ' + err)
-    return setLocationDeniedCommandStatus(
+    return setPermissionDeniedCommandStatus(
       Types.conversationIDToKey(action.payload.params.convID),
       `Failed to access location. ${err.message}`
     )
@@ -659,7 +676,7 @@ const onChatWatchPosition = async (
       logger.warn(err.message)
       if (err.code && err.code === 1 && locationEmitter) {
         locationEmitter(
-          setLocationDeniedCommandStatus(
+          setPermissionDeniedCommandStatus(
             Types.conversationIDToKey(action.payload.params.convID),
             `Failed to access location. ${err.message}`
           )
@@ -767,6 +784,30 @@ const stopAudioRecording = async (
   return Chat2Gen.createSendAudioRecording({conversationIDKey, fromStaged: false, info: audio})
 }
 
+const onAttemptAudioRecording = async (
+  _: Container.TypedState,
+  action: Chat2Gen.AttemptAudioRecordingPayload,
+  logger: Saga.SagaLogger
+) => {
+  let chargeForward = true
+  try {
+    chargeForward = await requestAudioPermission()
+  } catch (err) {
+    logger.info('failed to get audio perms: ' + err)
+    return setPermissionDeniedCommandStatus(
+      action.payload.conversationIDKey,
+      `Failed to access audio. ${err.message}`
+    )
+  }
+  if (!chargeForward) {
+    return false
+  }
+  return Chat2Gen.createEnableAudioRecording({
+    conversationIDKey: action.payload.conversationIDKey,
+    meteringCb: action.payload.meteringCb,
+  })
+}
+
 const onEnableAudioRecording = async (
   state: Container.TypedState,
   action: Chat2Gen.EnableAudioRecordingPayload,
@@ -779,9 +820,12 @@ const onEnableAudioRecording = async (
     return false
   }
 
-  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+  if (isIOS) {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+  } else {
+    Vibration.vibrate(50)
+  }
   const outboxID = ChatConstants.generateOutboxID()
-  await requestAudioPermission()
   const audioPath = await RPCChatTypes.localGetUploadTempFileRpcPromise({filename: 'audio.m4a', outboxID})
   AudioRecorder.prepareRecordingAtPath(audioPath, {
     AudioEncoding: 'aac',
@@ -804,7 +848,11 @@ const onEnableAudioRecording = async (
 
 const onSendAudioRecording = (_: Container.TypedState, action: Chat2Gen.SendAudioRecordingPayload) => {
   if (!action.payload.fromStaged) {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+    if (isIOS) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+    } else {
+      Vibration.vibrate(50)
+    }
   }
 }
 
@@ -835,6 +883,8 @@ export function* platformConfigSaga() {
   yield* Saga.chainAction2(ProfileGen.editAvatar, editAvatar)
   yield* Saga.chainAction2(ConfigGen.loggedIn, initOsNetworkStatus)
   yield* Saga.chainAction2(ConfigGen.osNetworkStatusChanged, updateMobileNetState)
+
+  // Contacts
   yield* Saga.chainAction2(
     [SettingsGen.loadedContactImportEnabled, ConfigGen.mobileAppState],
     loadContactPermissions,
@@ -849,6 +899,11 @@ export function* platformConfigSaga() {
     [SettingsGen.loadedContactImportEnabled, EngineGen.chat1ChatUiTriggerContactSync],
     manageContactsCache,
     'manageContactsCache'
+  )
+  yield* Saga.chainAction2(
+    SettingsGen.showContactsJoinedModal,
+    showContactsJoinedModal,
+    'showContactsJoinedModal'
   )
 
   // Location
@@ -865,6 +920,7 @@ export function* platformConfigSaga() {
 
   // Audio
   yield* Saga.chainAction2(Chat2Gen.stopAudioRecording, stopAudioRecording, 'stopAudioRecording')
+  yield* Saga.chainAction2(Chat2Gen.attemptAudioRecording, onAttemptAudioRecording, 'onAttemptAudioRecording')
   yield* Saga.chainAction2(Chat2Gen.enableAudioRecording, onEnableAudioRecording, 'onEnableAudioRecording')
   yield* Saga.chainAction2(Chat2Gen.sendAudioRecording, onSendAudioRecording, 'onSendAudioRecording')
   yield* Saga.chainAction2(

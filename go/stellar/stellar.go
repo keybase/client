@@ -1718,14 +1718,14 @@ func chatSendPaymentMessageSoft(mctx libkb.MetaContext, to string, txID stellar1
 	if to == "" {
 		return
 	}
-	err := chatSendPaymentMessage(mctx, to, txID)
+	err := chatSendPaymentMessage(mctx, to, txID, false)
 	if err != nil {
 		// if the chat message fails to send, just log the error
 		mctx.Debug("failed to send chat %v mesage: %s", logLabel, err)
 	}
 }
 
-func chatSendPaymentMessage(m libkb.MetaContext, to string, txID stellar1.TransactionID) error {
+func chatSendPaymentMessage(m libkb.MetaContext, to string, txID stellar1.TransactionID, blocking bool) error {
 	m.G().StartStandaloneChat()
 	if m.G().ChatHelper == nil {
 		return errors.New("cannot send SendPayment message:  chat helper is nil")
@@ -1740,9 +1740,16 @@ func chatSendPaymentMessage(m libkb.MetaContext, to string, txID stellar1.Transa
 	body := chat1.NewMessageBodyWithSendpayment(msg)
 
 	// identify already performed, so skip here
-	_, err := m.G().ChatHelper.SendMsgByNameNonblock(m.Ctx(), name, nil,
-		chat1.ConversationMembersType_IMPTEAMNATIVE, keybase1.TLFIdentifyBehavior_CHAT_SKIP, body,
-		chat1.MessageType_SENDPAYMENT, nil)
+	var err error
+	if blocking {
+		err = m.G().ChatHelper.SendMsgByName(m.Ctx(), name, nil,
+			chat1.ConversationMembersType_IMPTEAMNATIVE, keybase1.TLFIdentifyBehavior_CHAT_SKIP, body,
+			chat1.MessageType_SENDPAYMENT)
+	} else {
+		_, err = m.G().ChatHelper.SendMsgByNameNonblock(m.Ctx(), name, nil,
+			chat1.ConversationMembersType_IMPTEAMNATIVE, keybase1.TLFIdentifyBehavior_CHAT_SKIP, body,
+			chat1.MessageType_SENDPAYMENT, nil)
+	}
 	return err
 }
 

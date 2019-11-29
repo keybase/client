@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import React from 'react'
 import * as Sb from '../../../stories/storybook'
 import * as Types from '../../../constants/types/fs'
@@ -139,7 +138,6 @@ export const rowsProvider = {
     ],
   }),
   ConnectedTlfTypeRow: ({destinationPickerIndex, name}) => ({
-    badgeCount: 0,
     destinationPickerIndex,
     name,
     path: Types.stringToPath(`/keybase/${name}`),
@@ -331,44 +329,33 @@ const load = () =>
           />
         </WrapRow>
         <WrapRow key="17">
-          <TlfTypeRow
-            path={Types.stringToPath('/keybase/private')}
-            badgeCount={0}
-            onOpen={Sb.action('onOpen')}
-          />
+          <TlfTypeRow path={Types.stringToPath('/keybase/private')} onOpen={Sb.action('onOpen')} />
         </WrapRow>
         <WrapRow key="18">
-          <TlfTypeRow
-            path={Types.stringToPath('/keybase/private')}
-            badgeCount={3}
-            onOpen={Sb.action('onOpen')}
-          />
+          <TlfTypeRow path={Types.stringToPath('/keybase/private')} onOpen={Sb.action('onOpen')} />
         </WrapRow>
         <WrapRow key="19">
           <TlfRow
             path={Types.stringToPath('/keybase/private/alice,bob,charlie')}
             isIgnored={false}
-            isNew={true}
             onOpen={Sb.action('onOpen')}
-            usernames={I.List(['bob', 'charlie'])}
+            usernames={['bob', 'charlie']}
           />
         </WrapRow>
         <WrapRow key="20">
           <TlfRow
             path={Types.stringToPath('/keybase/private/alice,bob,charlie')}
             isIgnored={false}
-            isNew={true}
             onOpen={Sb.action('onOpen')}
-            usernames={I.List(['bob', 'charlie'])}
+            usernames={['bob', 'charlie']}
           />
         </WrapRow>
         <WrapRow key="21">
           <TlfRow
             path={Types.stringToPath('/keybase/private/alice,bob,charlie,david,eve,felicity,george')}
             isIgnored={false}
-            isNew={true}
             onOpen={Sb.action('onOpen')}
-            usernames={I.List(['bob', 'charlie', 'david', 'eve', 'felicity', 'george'])}
+            usernames={['bob', 'charlie', 'david', 'eve', 'felicity', 'george']}
           />
         </WrapRow>
       </Box>

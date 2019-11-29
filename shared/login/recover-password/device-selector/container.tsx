@@ -6,7 +6,7 @@ type OwnProps = {}
 
 const ConnectedDeviceSelector = Container.connect(
   state => ({
-    devices: state.recoverPassword.devices.toArray(),
+    devices: state.recoverPassword.devices,
   }),
   dispatch => ({
     _onSelect: (id: string) => dispatch(RecoverPasswordGen.createSubmitDeviceSelect({id})),

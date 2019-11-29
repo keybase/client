@@ -17,7 +17,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>4.8.0</string>
+	<string>5.1.0</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleURLTypes</key>
@@ -42,14 +42,14 @@
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
-    <key>NSExceptionDomains</key>
-    <dict>
-      <key>localhost</key>
-      <dict>
-        <key>NSExceptionAllowsInsecureHTTPLoads</key>
-        <true/>
-      </dict>
-    </dict>
+		<key>NSExceptionDomains</key>
+		<dict>
+			<key>localhost</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+			</dict>
+		</dict>
 	</dict>
 	<key>NSCalendarsUsageDescription</key>
 	<string>Keybase does not use this data! Please send feedback if you see this message.</string>
@@ -64,7 +64,7 @@
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Used for sharing your location with others on Keybase.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Recording audio when taking a video</string>
+	<string>Recording audio for audio and video chat attachments</string>
 	<key>NSMotionUsageDescription</key>
 	<string>Keybase does not use this data! Please send feedback if you see this message.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>

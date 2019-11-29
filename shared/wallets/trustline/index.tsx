@@ -132,11 +132,7 @@ const Body = (props: BodyProps) => {
             <Kb.Banner color="red">
               <Kb.BannerParagraph
                 bannerColor="red"
-                content={`Stellar holds ${
-                  Constants.trustlineHoldingBalance
-                } XLM per trustline, and your available Lumens balance is ${
-                  props.balanceAvailableToSend
-                } XLM.`}
+                content={`Stellar holds ${Constants.trustlineHoldingBalance} XLM per trustline, and your available Lumens balance is ${props.balanceAvailableToSend} XLM.`}
               />
             </Kb.Banner>
           )}

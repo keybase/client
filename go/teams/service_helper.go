@@ -1046,10 +1046,10 @@ func Leave(ctx context.Context, g *libkb.GlobalContext, teamname string, permane
 	return leave(ctx, g, teamGetter, permanent)
 }
 
-func Delete(ctx context.Context, g *libkb.GlobalContext, ui keybase1.TeamsUiInterface, teamname string) error {
+func Delete(ctx context.Context, g *libkb.GlobalContext, ui keybase1.TeamsUiInterface, teamID keybase1.TeamID) error {
 	// This retry can cause multiple confirmation popups for the user
 	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
-		t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
+		t, err := GetForTeamManagementByTeamID(ctx, g, teamID, true)
 		if err != nil {
 			return err
 		}

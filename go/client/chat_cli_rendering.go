@@ -167,11 +167,12 @@ func (v conversationListView) without(g *libkb.GlobalContext, slice []string, el
 }
 
 func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, showDeviceName bool) (err error) {
+	ui := g.UI.GetTerminalUI()
 	if len(v) == 0 {
+		ui.Printf("no conversations\n")
 		return nil
 	}
 
-	ui := g.UI.GetTerminalUI()
 	w, _ := ui.TerminalSize()
 
 	table := &flexibletable.Table{}

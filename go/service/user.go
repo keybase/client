@@ -4,6 +4,7 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -264,11 +265,21 @@ func (h *UserHandler) InterestingPeople(ctx context.Context, maxUsers int) (res 
 		return res, nil
 	}
 
+	fallbackFn := func(uid keybase1.UID) (uids []keybase1.UID, err error) {
+		uids = []keybase1.UID{
+			libkb.GetUIDByNormalizedUsername(h.G(), "hellobot"),
+			h.G().GetEnv().GetUID(),
+		}
+
+		return uids, nil
+	}
+
 	ip := newInterestingPeople(h.G())
 
 	// Add sources of interesting people
-	ip.AddSource(chatFn, 0.9)
-	ip.AddSource(followerFn, 0.1)
+	ip.AddSource(chatFn, 0.7)
+	ip.AddSource(followerFn, 0.2)
+	ip.AddSource(fallbackFn, 0.1)
 
 	uids, err := ip.Get(ctx, maxUsers)
 	if err != nil {
@@ -713,6 +724,23 @@ func (h *UserHandler) GetUserBlocks(ctx context.Context, arg keybase1.GetUserBlo
 	}
 
 	return res, nil
+}
+
+func (h *UserHandler) ReportUser(ctx context.Context, arg keybase1.ReportUserArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	convIDStr := "nil"
+	if arg.ConvID != nil {
+		convIDStr = *arg.ConvID
+	}
+	defer mctx.TraceTimed(fmt.Sprintf(
+		"UserHandler#ReportUser(username=%q,transcript=%t,convId=%s)",
+		arg.Username, arg.IncludeTranscript, convIDStr),
+		func() error { return err })()
+
+	if arg.IncludeTranscript && arg.ConvID == nil {
+		return errors.New("invalid arguments: IncludeTranscript is true but ConvID == nil")
+	}
+	return errors.New("Not implemented")
 }
 
 // Legacy RPC and API:

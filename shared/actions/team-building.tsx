@@ -45,13 +45,15 @@ const apiSearchOne = async (
   query: string,
   service: TeamBuildingTypes.ServiceIdWithContact
 ): Promise<TeamBuildingTypes.User | undefined> =>
-  (await apiSearch(
-    query,
-    service,
-    1 /* maxResults */,
-    true /* serviceSummaries */,
-    false /* includeContacts */
-  ))[0]
+  (
+    await apiSearch(
+      query,
+      service,
+      1 /* maxResults */,
+      true /* serviceSummaries */,
+      false /* includeContacts */
+    )
+  )[0]
 
 // If the query is a well-formatted phone number or email, do additional search
 // and if the result is not already in the list, insert at the beginning.
@@ -73,32 +75,30 @@ async function specialContactSearch(users: TeamBuildingTypes.User[], query: stri
 }
 
 const search = async (state: TypedState, {payload: {namespace, includeContacts}}: SearchOrRecAction) => {
-  const {teamBuildingSearchQuery, teamBuildingSelectedService, teamBuildingSearchLimit} = state[
-    namespace
-  ].teamBuilding
+  const {searchQuery, selectedService, searchLimit} = state[namespace].teamBuilding
   // We can only ask the api for at most 100 results
-  if (teamBuildingSearchLimit > 100) {
+  if (searchLimit > 100) {
     logger.info('ignoring search request with a limit over 100')
     return false
   }
 
   // Do the main search for selected service and query.
   let users = await apiSearch(
-    teamBuildingSearchQuery,
-    teamBuildingSelectedService,
-    teamBuildingSearchLimit,
+    searchQuery,
+    selectedService,
+    searchLimit,
     true /* includeServicesSummary */,
     includeContacts
   )
-  if (teamBuildingSelectedService === 'keybase') {
+  if (selectedService === 'keybase') {
     // If we are on Keybase tab, do additional search if query is phone/email.
     const userRegion = state.settings.contacts.userCountryCode
-    users = await specialContactSearch(users, teamBuildingSearchQuery, userRegion)
+    users = await specialContactSearch(users, searchQuery, userRegion ?? null)
   }
   return TeamBuildingGen.createSearchResultsLoaded({
     namespace,
-    query: teamBuildingSearchQuery,
-    service: teamBuildingSelectedService,
+    query: searchQuery,
+    service: selectedService,
     users,
   })
 }
@@ -133,7 +133,7 @@ export function filterForNs<S, A, L, R>(
   namespace: TeamBuildingTypes.AllowedNamespace,
   fn: (s: S, a: A & NSAction, l: L) => R
 ) {
-  return (s, a, l) => {
+  return (s: S, a: A & NSAction, l: L) => {
     if (a && a.payload && a.payload.namespace === namespace) {
       return fn(s, a, l)
     }
@@ -141,7 +141,11 @@ export function filterForNs<S, A, L, R>(
   }
 }
 
+const makeCustomResetStore = () =>
+  TeamBuildingTypes.allowedNamespace.map(namespace => TeamBuildingGen.createTbResetStore({namespace}))
+
 export default function* commonSagas(namespace: TeamBuildingTypes.AllowedNamespace) {
+  yield* Saga.chainAction2(TeamBuildingGen.resetStore, makeCustomResetStore)
   yield* Saga.chainAction2(TeamBuildingGen.search, filterForNs(namespace, search))
   yield* Saga.chainAction2(TeamBuildingGen.fetchUserRecs, filterForNs(namespace, fetchUserRecs))
   // Navigation, before creating

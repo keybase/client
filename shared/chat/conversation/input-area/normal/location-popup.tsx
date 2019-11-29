@@ -58,9 +58,7 @@ const LocationPopup = (props: Props) => {
   const width = Math.ceil(Styles.dimensionWidth)
   const height = Math.ceil(Styles.dimensionHeight - 320)
   const mapSrc = location
-    ? `http://${httpSrvAddress}/map?lat=${location.lat}&lon=${
-        location.lon
-      }&width=${width}&height=${height}&username=${username}&token=${httpSrvToken}`
+    ? `http://${httpSrvAddress}/map?lat=${location.lat}&lon=${location.lon}&width=${width}&height=${height}&username=${username}&token=${httpSrvToken}`
     : ''
   return (
     <Kb.Modal

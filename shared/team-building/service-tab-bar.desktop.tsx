@@ -11,7 +11,7 @@ const ServiceIcon = (props: IconProps) => {
   const color = props.isActive || hover ? serviceIdToAccentColor(props.service) : Styles.globalColors.black
   return (
     <Kb.ClickableBox
-      onClick={props.onClick}
+      onClick={() => props.onClick(props.service)}
       onMouseOver={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       style={styles.serviceIconFlex}
@@ -166,7 +166,7 @@ export const ServiceTabBar = (props: Props) => {
           key={service}
           service={service}
           label={serviceIdToLongLabel(service)}
-          onClick={() => onChangeService(service)}
+          onClick={onChangeService}
           count={undefToNull(props.serviceResultCount[service])}
           showCount={props.showServiceResultCount}
           isActive={props.selectedService === service}

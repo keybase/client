@@ -69,6 +69,7 @@ class Conversation extends React.PureComponent<Props> {
             )}
             {this.props.showLoader && <Kb.LoadingLine />}
           </Kb.Box2>
+          {/* TODO: put the block buttons in here */}
           <Banner conversationIDKey={this.props.conversationIDKey} />
           <InputArea
             focusInputCounter={this.props.focusInputCounter}

@@ -51,7 +51,7 @@ export const serialize: any = {
   fileRows: (v: FileRows, o: FileRows) =>
     o && v._tlfUpdates === o._tlfUpdates && v._uploads === o._uploads
       ? null
-      : v._tlfUpdates.map(t => GetRowsFromTlfUpdate(t, v._uploads)).toArray(),
+      : v._tlfUpdates.map(t => GetRowsFromTlfUpdate(t, v._uploads)),
   files: (v: number) => v,
   kbfsDaemonStatus: (v: FSTypes.KbfsDaemonStatus) => v,
   kbfsEnabled: (v: boolean) => v,
@@ -66,6 +66,7 @@ export const serialize: any = {
     return shallowEqual(toSend, old) ? undefined : toSend
   },
   username: (v: string) => v,
+  usernames: (v: Array<string>) => v,
   widgetBadge: (v: NotificationTypes.BadgeType) => v,
   windowComponent: (v: string) => v,
   windowOpts: (v: Object) => v,
@@ -113,5 +114,6 @@ export const deserialize = (state: any = initialState, props: any) => {
     fileRows: props.fileRows || state.fileRows,
     userInfo,
   }
+
   return Avatar.deserialize(newState, props)
 }
