@@ -82,7 +82,7 @@ func (c *ConversationRetry) fixInboxFetch(ctx context.Context, uid gregor1.UID) 
 		types.InboxSourceDataSourceAll, nil,
 		&chat1.GetInboxLocalQuery{
 			ConvIDs: []chat1.ConversationID{c.convID},
-		}, nil)
+		})
 	if err != nil {
 		c.Debug(ctx, "fixInboxFetch: failed to read inbox: msg: %s", err.Error())
 		return err
@@ -124,18 +124,16 @@ type FullInboxRetry struct {
 	globals.Contextified
 	utils.DebugLabeler
 
-	query      *chat1.GetInboxLocalQuery
-	pagination *chat1.Pagination
+	query *chat1.GetInboxLocalQuery
 }
 
 var _ types.RetryDescription = (*FullInboxRetry)(nil)
 
-func NewFullInboxRetry(g *globals.Context, query *chat1.GetInboxLocalQuery, p *chat1.Pagination) FullInboxRetry {
+func NewFullInboxRetry(g *globals.Context, query *chat1.GetInboxLocalQuery) FullInboxRetry {
 	return FullInboxRetry{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "FullInboxRetry", false),
 		query:        query,
-		pagination:   p,
 	}
 }
 
@@ -152,9 +150,6 @@ func (f FullInboxRetry) String() string {
 		qstr = hex.EncodeToString(data)
 	}
 	pstr := "<empty>"
-	if f.pagination != nil {
-		pstr = fmt.Sprintf("%d:%x:%x", f.pagination.Num, f.pagination.Previous, f.pagination.Next)
-	}
 	return qstr + pstr
 }
 
@@ -172,7 +167,7 @@ func (f FullInboxRetry) Fix(ctx context.Context, uid gregor1.UID) error {
 		f.Debug(ctx, "Fix: failed to convert query: %s", err.Error())
 		return err
 	}
-	_, err = f.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll, query, f.pagination)
+	_, err = f.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll, query)
 	if err != nil {
 		f.Debug(ctx, "Fix: failed to load again: %d", err.Error())
 	}

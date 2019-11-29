@@ -21,7 +21,7 @@ protocol chatUi {
     string name;
     gregor1.Time time;
     union { null, string } snippet;
-    union { null, string } snippetDecoration;
+    SnippetDecoration snippetDecoration;
     union { null, string } draft;
     boolean isMuted;
     boolean isTeam;
@@ -40,8 +40,13 @@ protocol chatUi {
     boolean isMuted;
   }
 
+  record UIInboxBigTeamLabelRow {
+    string name;
+    string id;
+  }
+
   variant UIInboxBigTeamRow switch (UIInboxBigTeamRowTyp state) {
-    case LABEL: string;
+    case LABEL: UIInboxBigTeamLabelRow;
     case CHANNEL: UIInboxBigTeamChannelRow;
   }
 
@@ -63,7 +68,7 @@ protocol chatUi {
     string headline;
     string headlineDecorated;
     string snippet;
-    string snippetDecoration; // One of: "", "💣" (bomb), "💥" (exploded)
+    SnippetDecoration snippetDecoration;
     array<string> writerNames;
     array<string> resetParticipants;
   }
@@ -100,7 +105,6 @@ protocol chatUi {
 
   record UnverifiedInboxUIItems {
     array<UnverifiedInboxUIItem> items;
-    union { null, UIPagination } pagination;
     boolean offline;
   }
 
@@ -132,7 +136,7 @@ protocol chatUi {
     boolean isEmpty;
     string name;
     string snippet;
-    string snippetDecoration; // One of: "", "💣" (bomb), "💥" (exploded)
+    SnippetDecoration snippetDecoration;
     string channel;
     string headline;
     string headlineDecorated;
@@ -164,6 +168,7 @@ protocol chatUi {
     // Command support
     ConversationCommandGroups commands;
     ConversationCommandGroups botCommands;
+    map<string, string> botAliases;
 
     // Pinned message
     union { null, UIPinnedMessage} pinnedMsg;
@@ -180,7 +185,6 @@ protocol chatUi {
 
   record InboxUIItems {
     array<InboxUIItem> items;
-    union { null, UIPagination } pagination;
     boolean offline;
   }
 

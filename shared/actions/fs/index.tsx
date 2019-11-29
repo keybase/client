@@ -217,9 +217,10 @@ const loadSettings = async () => {
   try {
     const settings = await RPCTypes.SimpleFSSimpleFSSettingsRpcPromise()
     return FsGen.createSettingsLoaded({
-      settings: Constants.makeSettings({
+      settings: {
+        ...Constants.emptySettings,
         spaceAvailableNotificationThreshold: settings.spaceAvailableNotificationThreshold,
-      }),
+      },
     })
   } catch (_) {
     return FsGen.createSettingsLoaded({})
@@ -316,9 +317,9 @@ function* folderList(_: TypedState, action: FsGen.FolderListLoadPayload) {
 
     yield RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID}, Constants.folderListWaitingKey)
 
-    const result: Saga.RPCPromiseType<
-      typeof RPCTypes.SimpleFSSimpleFSReadListRpcPromise
-    > = yield RPCTypes.SimpleFSSimpleFSReadListRpcPromise({opID})
+    const result: Saga.RPCPromiseType<typeof RPCTypes.SimpleFSSimpleFSReadListRpcPromise> = yield RPCTypes.SimpleFSSimpleFSReadListRpcPromise(
+      {opID}
+    )
     const entries = result.entries || []
     const childMap = entries.reduce((m, d) => {
       const [parent, child] = d.name.split('/')
@@ -348,8 +349,13 @@ function* folderList(_: TypedState, action: FsGen.FolderListLoadPayload) {
       if (entry.type === Types.PathType.Folder && isRecursive && d.name.indexOf('/') < 0) {
         // Since we are loading with a depth of 2, first level directories are
         // considered "loaded".
-        entry.progress = Types.ProgressType.Loaded
-        return [path, entry]
+        return [
+          path,
+          {
+            ...entry,
+            progress: Types.ProgressType.Loaded,
+          },
+        ]
       }
       return [path, entry]
     }
@@ -445,11 +451,11 @@ function* pollJournalFlushStatusUntilDone() {
         syncingPaths,
         totalSyncingBytes,
         endEstimate,
-      }: Saga.RPCPromiseType<
-        typeof RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise
-      > = yield RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise({
-        filter: RPCTypes.ListFilter.filterSystemHidden,
-      })
+      }: Saga.RPCPromiseType<typeof RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise> = yield RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise(
+        {
+          filter: RPCTypes.ListFilter.filterSystemHidden,
+        }
+      )
       yield Saga.sequentially([
         Saga.put(
           FsGen.createJournalUpdate({
@@ -834,10 +840,10 @@ const loadPathInfo = async (_: TypedState, action: FsGen.LoadPathInfoPayload) =>
   })
   return FsGen.createLoadedPathInfo({
     path: action.payload.path,
-    pathInfo: Constants.makePathInfo({
+    pathInfo: {
       deeplinkPath: pathInfo.deeplinkPath,
       platformAfterMountPath: pathInfo.platformAfterMountPath,
-    }),
+    },
   })
 }
 
@@ -895,8 +901,14 @@ const loadFileContext = async (_: TypedState, action: FsGen.LoadFileContextPaylo
 }
 
 const loadFilesTabBadge = async () => {
-  const badge = await RPCTypes.SimpleFSSimpleFSGetFilesTabBadgeRpcPromise()
-  return FsGen.createLoadedFilesTabBadge({badge})
+  try {
+    const badge = await RPCTypes.SimpleFSSimpleFSGetFilesTabBadgeRpcPromise()
+    return FsGen.createLoadedFilesTabBadge({badge})
+  } catch {
+    // retry once HOTPOT-1226
+    const badge = await RPCTypes.SimpleFSSimpleFSGetFilesTabBadgeRpcPromise()
+    return FsGen.createLoadedFilesTabBadge({badge})
+  }
 }
 
 function* fsSaga() {

@@ -2,12 +2,7 @@ import * as TeamsGen from '../../../../actions/teams-gen'
 import * as Flow from '../../../../util/flow'
 import {createSetConvRetentionPolicy} from '../../../../actions/chat2-gen'
 import {namedConnect, compose, lifecycle, withHandlers} from '../../../../util/container'
-import {
-  getTeamRetentionPolicy,
-  retentionPolicies,
-  getCanPerform,
-  hasCanPerform,
-} from '../../../../constants/teams'
+import {getTeamRetentionPolicy, retentionPolicies, getCanPerform} from '../../../../constants/teams'
 import {getConversationRetentionPolicy} from '../../../../constants/chat2/meta'
 import {RetentionPolicy} from '../../../../constants/types/retention-policy'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
@@ -35,7 +30,6 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   let entityType = ownProps.entityType
   let canSetPolicy = true
   let yourOperations
-  let _permissionsLoaded = true
   switch (entityType) {
     case 'adhoc':
       if (ownProps.conversationIDKey) {
@@ -53,7 +47,6 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         teamPolicy = getTeamRetentionPolicy(state, teamname)
         loading = !teamPolicy
         yourOperations = getCanPerform(state, teamname)
-        _permissionsLoaded = hasCanPerform(state, teamname)
         canSetPolicy = yourOperations.setRetentionPolicy
         showInheritOption = true
         showOverrideNotice = false
@@ -66,10 +59,9 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
       if (ownProps.teamname) {
         const teamname = ownProps.teamname
         yourOperations = getCanPerform(state, teamname)
-        _permissionsLoaded = hasCanPerform(state, teamname)
         canSetPolicy = yourOperations.setRetentionPolicy
         const tempPolicy = getTeamRetentionPolicy(state, teamname)
-        loading = !(tempPolicy && _permissionsLoaded)
+        loading = !tempPolicy
         if (tempPolicy) {
           policy = tempPolicy
         }
@@ -82,10 +74,9 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
       if (ownProps.teamname) {
         const teamname = ownProps.teamname
         yourOperations = getCanPerform(state, teamname)
-        _permissionsLoaded = hasCanPerform(state, teamname)
         canSetPolicy = yourOperations.setRetentionPolicy
         const tempPolicy = getTeamRetentionPolicy(state, teamname)
-        loading = !(tempPolicy && _permissionsLoaded)
+        loading = !tempPolicy
         if (tempPolicy) {
           policy = tempPolicy
         }
@@ -107,7 +98,6 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   const policyIsExploding =
     policy.type === 'explode' || (policy.type === 'inherit' && teamPolicy && teamPolicy.type === 'explode')
   return {
-    _permissionsLoaded,
     canSetPolicy,
     entityType, // used only to display policy to non-admins
     loading,
@@ -120,7 +110,6 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch, {conversationIDKey, entityType, teamname}: OwnProps) => ({
-  _loadTeamOperations: () => teamname && dispatch(TeamsGen.createGetTeamOperations({teamname})),
   _loadTeamPolicy: () => teamname && dispatch(TeamsGen.createGetTeamRetentionPolicy({teamname})),
   _onShowWarning: (policy: RetentionPolicy, onConfirm: () => void, onCancel: () => void) => {
     dispatch(
@@ -152,7 +141,6 @@ export default compose(
   lifecycle({
     componentDidMount() {
       this.props._loadTeamPolicy()
-      !this.props._permissionsLoaded && this.props._loadTeamOperations()
     },
   } as any),
   withHandlers({

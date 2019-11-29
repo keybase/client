@@ -22,7 +22,7 @@
       <activity
         android:name=".MainActivity"
         android:screenOrientation="portrait"
-        android:launchMode="singleTop"
+        android:launchMode="singleTask"
         android:label="@string/app_name"
         android:configChanges="keyboard|keyboardHidden|orientation|screenSize|uiMode"
         android:windowSoftInputMode="adjustResize"

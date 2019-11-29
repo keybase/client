@@ -1807,6 +1807,14 @@ const iconMeta_ = {
       return require('../images/icons/icon-dark-fancy-revoked-computer-mobile-226-96.png')
     },
   },
+  'icon-dark-fancy-revoked-phone-desktop-150-72': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-fancy-revoked-phone-desktop-150-72.png')
+    },
+  },
   'icon-dark-fancy-revoked-phone-mobile-226-96': {
     extension: 'png',
     imagesDir: 'icons',
@@ -3787,8 +3795,12 @@ const iconMeta_ = {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
+    nameDark: 'icon-dark-fancy-revoked-phone-desktop-150-72',
     get require() {
       return require('../images/icons/icon-fancy-revoked-phone-desktop-150-72.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-fancy-revoked-phone-desktop-150-72.png')
     },
   },
   'icon-fancy-revoked-phone-mobile-226-96': {
@@ -4517,6 +4529,7 @@ const iconMeta_ = {
   },
   'icon-illustration-attention-64': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-illustration-attention-64.png')
@@ -4540,6 +4553,7 @@ const iconMeta_ = {
   },
   'icon-illustration-friends-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-illustration-friends-96.png')
@@ -4547,6 +4561,7 @@ const iconMeta_ = {
   },
   'icon-illustration-happy-chat-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-illustration-happy-chat-96.png')
@@ -4554,6 +4569,7 @@ const iconMeta_ = {
   },
   'icon-illustration-long-time-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-illustration-long-time-96.png')
@@ -4585,6 +4601,7 @@ const iconMeta_ = {
   },
   'icon-illustration-sleepy-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-illustration-sleepy-96.png')
@@ -4622,8 +4639,17 @@ const iconMeta_ = {
       return require('../images/icons/icon-illustration-teams-216.png')
     },
   },
+  'icon-illustration-teams-80': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-illustration-teams-80.png')
+    },
+  },
   'icon-illustration-welcome-96': {
     extension: 'png',
+    imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-illustration-welcome-96.png')
@@ -8010,6 +8036,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-film': {
+    charCode: 0xe9a9,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-filter': {
     charCode: 0xe986,
     gridSize: 16,
@@ -8092,6 +8123,11 @@ const iconMeta_ = {
   },
   'iconfont-hide': {
     charCode: 0xe98a,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-hourglass': {
+    charCode: 0xe9a6,
     gridSize: 16,
     isFont: true,
   },
@@ -8345,6 +8381,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-pin': {
+    charCode: 0xe9a8,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-play': {
     charCode: 0xe99e,
     gridSize: 16,
@@ -8432,6 +8473,11 @@ const iconMeta_ = {
   },
   'iconfont-return': {
     charCode: 0xe96a,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-rip': {
+    charCode: 0xe9a5,
     gridSize: 16,
     isFont: true,
   },
@@ -8637,6 +8683,22 @@ const iconMeta_ = {
     isFont: false,
     get require() {
       return require('../images/releases/release-4.7.0-pinned-messages.png')
+    },
+  },
+  'release-4.8.0-audio-messages': {
+    extension: 'png',
+    imagesDir: 'releases',
+    isFont: false,
+    get require() {
+      return require('../images/releases/release-4.8.0-audio-messages.png')
+    },
+  },
+  'release-4.8.0-file-sync': {
+    extension: 'png',
+    imagesDir: 'releases',
+    isFont: false,
+    get require() {
+      return require('../images/releases/release-4.8.0-file-sync.png')
     },
   } /* eslint-enable */,
 }

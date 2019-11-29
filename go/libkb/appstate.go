@@ -171,7 +171,15 @@ type DesktopAppState struct {
 }
 
 func NewDesktopAppState(g *GlobalContext) *DesktopAppState {
-	return &DesktopAppState{Contextified: NewContextified(g)}
+	d := &DesktopAppState{Contextified: NewContextified(g)}
+	g.PushShutdownHook(func(mctx MetaContext) error {
+		d.Lock()
+		defer d.Unlock()
+		// reset power state on shutdown
+		d.resetLocked()
+		return nil
+	})
+	return d
 }
 
 func (a *DesktopAppState) NextSuspendUpdate(lastState *bool) chan bool {
@@ -220,8 +228,7 @@ func (a *DesktopAppState) Disconnected(provider rpc.Transporter) {
 		a.provider = nil
 		// The connection to electron has been severed. We won't get any more power
 		// status updates from it. So act as though the machine is on in the default state.
-		a.suspended = false
-		a.locked = false
+		a.resetLocked()
 	}
 }
 
@@ -229,4 +236,9 @@ func (a *DesktopAppState) AwakeAndUnlocked(mctx MetaContext) bool {
 	a.Lock()
 	defer a.Unlock()
 	return !a.suspended && !a.locked
+}
+
+func (a *DesktopAppState) resetLocked() {
+	a.suspended = false
+	a.locked = false
 }

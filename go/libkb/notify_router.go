@@ -73,6 +73,7 @@ type NotifyListener interface {
 	TeamChangedByName(teamName string, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet, latestHiddenSeqno keybase1.Seqno)
 	TeamDeleted(teamID keybase1.TeamID)
 	TeamRoleMapChanged(version keybase1.UserTeamVersion)
+	UserBlocked(b keybase1.UserBlockedBody)
 	TeamExit(teamID keybase1.TeamID)
 	NewlyAddedToTeam(teamID keybase1.TeamID)
 	NewTeamEK(teamID keybase1.TeamID, generation keybase1.EkGeneration)
@@ -227,7 +228,8 @@ func (n *NoopNotifyListener) RuntimeStatsUpdate(*keybase1.RuntimeStats) {}
 func (n *NoopNotifyListener) HTTPSrvInfoUpdate(keybase1.HttpSrvInfo)    {}
 func (n *NoopNotifyListener) IdentifyUpdate(okUsernames []string, brokenUsernames []string) {
 }
-func (n *NoopNotifyListener) Reachability(keybase1.Reachability) {}
+func (n *NoopNotifyListener) Reachability(keybase1.Reachability)   {}
+func (n *NoopNotifyListener) UserBlocked(keybase1.UserBlockedBody) {}
 
 type NotifyListenerID string
 
@@ -1833,26 +1835,27 @@ func (n *NotifyRouter) HandleReachability(r keybase1.Reachability) {
 // teamID and teamName are not necessarily the same team
 func (n *NotifyRouter) HandleTeamChangedByBothKeys(ctx context.Context,
 	teamID keybase1.TeamID, teamName string, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet,
-	latestHiddenSeqno keybase1.Seqno) {
+	latestHiddenSeqno keybase1.Seqno, latestOffchainSeqno keybase1.Seqno) {
 
-	n.HandleTeamChangedByID(ctx, teamID, latestSeqno, implicitTeam, changes, latestHiddenSeqno)
-	n.HandleTeamChangedByName(ctx, teamName, latestSeqno, implicitTeam, changes, latestHiddenSeqno)
+	n.HandleTeamChangedByID(ctx, teamID, latestSeqno, implicitTeam, changes, latestHiddenSeqno, latestOffchainSeqno)
+	n.HandleTeamChangedByName(ctx, teamName, latestSeqno, implicitTeam, changes, latestHiddenSeqno, latestOffchainSeqno)
 }
 
 func (n *NotifyRouter) HandleTeamChangedByID(ctx context.Context,
 	teamID keybase1.TeamID, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet,
-	latestHiddenSeqno keybase1.Seqno) {
+	latestHiddenSeqno keybase1.Seqno, latestOffchainSeqno keybase1.Seqno) {
 
 	if n == nil {
 		return
 	}
 
 	arg := keybase1.TeamChangedByIDArg{
-		TeamID:            teamID,
-		LatestSeqno:       latestSeqno,
-		ImplicitTeam:      implicitTeam,
-		Changes:           changes,
-		LatestHiddenSeqno: latestHiddenSeqno,
+		TeamID:              teamID,
+		LatestSeqno:         latestSeqno,
+		ImplicitTeam:        implicitTeam,
+		Changes:             changes,
+		LatestHiddenSeqno:   latestHiddenSeqno,
+		LatestOffchainSeqno: latestOffchainSeqno,
 	}
 
 	var wg sync.WaitGroup
@@ -1880,18 +1883,19 @@ func (n *NotifyRouter) HandleTeamChangedByID(ctx context.Context,
 
 func (n *NotifyRouter) HandleTeamChangedByName(ctx context.Context,
 	teamName string, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet,
-	latestHiddenSeqno keybase1.Seqno) {
+	latestHiddenSeqno keybase1.Seqno, latestOffchainSeqno keybase1.Seqno) {
 
 	if n == nil {
 		return
 	}
 
 	arg := keybase1.TeamChangedByNameArg{
-		TeamName:          teamName,
-		LatestSeqno:       latestSeqno,
-		ImplicitTeam:      implicitTeam,
-		Changes:           changes,
-		LatestHiddenSeqno: latestHiddenSeqno,
+		TeamName:            teamName,
+		LatestSeqno:         latestSeqno,
+		ImplicitTeam:        implicitTeam,
+		Changes:             changes,
+		LatestHiddenSeqno:   latestHiddenSeqno,
+		LatestOffchainSeqno: latestOffchainSeqno,
 	}
 
 	var wg sync.WaitGroup
@@ -2055,6 +2059,35 @@ func (n *NotifyRouter) HandleTeamRoleMapChanged(ctx context.Context, version key
 		listener.TeamRoleMapChanged(version)
 	})
 	n.G().Log.CDebugf(ctx, "- Sent TeamRoleMapChanged notification (version %d)", version)
+}
+
+func (n *NotifyRouter) HandleUserBlocked(ctx context.Context, b keybase1.UserBlockedBody) {
+	if n == nil {
+		return
+	}
+
+	summary := b.Summarize()
+
+	var wg sync.WaitGroup
+	n.G().Log.CDebugf(ctx, "+ Sending UserBlocked notification: %+v", b)
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Tracking {
+			wg.Add(1)
+			go func() {
+				_ = (keybase1.NotifyTrackingClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).NotifyUserBlocked(context.Background(), summary)
+				wg.Done()
+			}()
+		}
+		return true
+	})
+	wg.Wait()
+
+	n.runListeners(func(listener NotifyListener) {
+		listener.UserBlocked(b)
+	})
+	n.G().Log.CDebugf(ctx, "- Sent UserBlocked notification")
 }
 
 func (n *NotifyRouter) HandleTeamAbandoned(ctx context.Context, teamID keybase1.TeamID) {

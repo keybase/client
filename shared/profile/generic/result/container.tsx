@@ -27,6 +27,9 @@ const mapDispatchToProps = dispatch => ({
 
 const mergeProps = (stateProps, dispatchProps) => ({...stateProps, ...dispatchProps})
 
-export default Container.namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'GenericProofSuccess')(
-  Success
-)
+export default Container.namedConnect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'GenericProofSuccess'
+)(Success)

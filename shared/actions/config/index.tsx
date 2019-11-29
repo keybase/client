@@ -74,8 +74,14 @@ const onHTTPSrvInfoUpdated = (
     token: action.payload.params.info.token,
   })
 
-const getFollowerInfo = (state: Container.TypedState) => {
+const getFollowerInfo = (
+  state: Container.TypedState,
+  action: ConfigGen.LoggedInPayload | ConfigGen.StartupFirstIdlePayload
+) => {
   const {uid} = state.config
+  if (action.type === ConfigGen.loggedIn && action.payload.causedByStartup) {
+    return
+  }
   if (uid) {
     // request follower info in the background
     RPCTypes.configRequestFollowerInfoRpcPromise({uid: state.config.uid})
@@ -102,9 +108,7 @@ function* loadDaemonBootstrapStatus(
   }
 
   function* makeCall() {
-    const s: Saga.RPCPromiseType<
-      typeof RPCTypes.configGetBootstrapStatusRpcPromise
-    > = yield RPCTypes.configGetBootstrapStatusRpcPromise()
+    const s: Saga.RPCPromiseType<typeof RPCTypes.configGetBootstrapStatusRpcPromise> = yield RPCTypes.configGetBootstrapStatusRpcPromise()
     const loadedAction = ConfigGen.createBootstrapStatusLoaded({
       deviceID: s.deviceID,
       deviceName: s.deviceName,
@@ -251,9 +255,7 @@ function* loadDaemonAccounts(
       )
     }
 
-    const configuredAccounts: Array<
-      RPCTypes.ConfiguredAccount
-    > = yield RPCTypes.loginGetConfiguredAccountsRpcPromise()
+    const configuredAccounts: Array<RPCTypes.ConfiguredAccount> = yield RPCTypes.loginGetConfiguredAccountsRpcPromise()
     const loadedAction = ConfigGen.createSetAccounts({configuredAccounts})
     yield Saga.put(loadedAction)
 
@@ -354,8 +356,15 @@ function* maybeDoneWithLogoutHandshake(state: Container.TypedState) {
   }
 }
 
-let routeToInitialScreenOnce = false
+let lastTab: Tabs.Tab | undefined
+const stashLastRoute = (_state: Container.TypedState, action: ConfigGen.PersistRoutePayload) => {
+  const {path} = action.payload
+  if (path?.[1]?.routeName === 'Main') {
+    lastTab = path?.[2].routeName
+  }
+}
 
+let routeToInitialScreenOnce = false
 const routeToInitialScreen2 = (state: Container.TypedState) => {
   // bail if we don't have a navigator and loaded
   if (!Router2._getNavigator()) {
@@ -371,7 +380,16 @@ const routeToInitialScreen2 = (state: Container.TypedState) => {
 // We figure out where to go (push, link, saved state, etc) once ever in a session
 const routeToInitialScreen = (state: Container.TypedState) => {
   if (routeToInitialScreenOnce) {
-    return
+    if (state.config.loggedIn) {
+      // don't jump to a screen, just ensure you're logged in / out state is correct
+      return [
+        RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
+        RouteTreeGen.createSwitchTab({tab: (lastTab as any) || Tabs.peopleTab}),
+      ]
+    } else {
+      // Show a login screen
+      return [RouteTreeGen.createSwitchLoggedIn({loggedIn: false})]
+    }
   }
   routeToInitialScreenOnce = true
 
@@ -542,9 +560,9 @@ function* criticalOutOfDateCheck() {
   // check every hour
   while (true) {
     try {
-      const s: Saga.RPCPromiseType<
-        typeof RPCTypes.configGetUpdateInfo2RpcPromise
-      > = yield RPCTypes.configGetUpdateInfo2RpcPromise({})
+      const s: Saga.RPCPromiseType<typeof RPCTypes.configGetUpdateInfo2RpcPromise> = yield RPCTypes.configGetUpdateInfo2RpcPromise(
+        {}
+      )
       let status: ConfigGen.UpdateCriticalCheckStatusPayload['payload']['status'] = 'ok'
       let message: string | null = null
       switch (s.status) {
@@ -628,6 +646,12 @@ const gregorPushState = (_: Container.TypedState, action: GregorGen.PushStatePay
         lastSeenVersion,
       })
     )
+  } else {
+    actions.push(
+      ConfigGen.createSetWhatsNewLastSeenVersion({
+        lastSeenVersion: noVersion,
+      })
+    )
   }
   return actions
 }
@@ -680,6 +704,7 @@ function* configSaga() {
   yield* Saga.chainAction2(ConfigGen.setNavigator, setNavigator)
   // Go to the correct starting screen
   yield* Saga.chainAction2([ConfigGen.daemonHandshakeDone, ConfigGen.setNavigator], routeToInitialScreen2)
+  yield* Saga.chainAction2(ConfigGen.persistRoute, stashLastRoute)
 
   yield* Saga.chainAction2(ConfigGen.daemonHandshakeDone, emitStartupFirstIdle)
 
@@ -735,7 +760,7 @@ function* configSaga() {
     )
   }
 
-  yield* Saga.chainAction2(ConfigGen.startupFirstIdle, getFollowerInfo)
+  yield* Saga.chainAction2([ConfigGen.loggedIn, ConfigGen.startupFirstIdle], getFollowerInfo)
 
   // Kick off platform specific stuff
   yield Saga.spawn(PlatformSpecific.platformConfigSaga)

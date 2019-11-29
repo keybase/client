@@ -38,7 +38,7 @@ const ChooseComponent = (props: ChooseComponentProps) => {
   }, [isConnected, waitForKbfsDaemon])
 
   Kbfs.useFsPathMetadata(props.path)
-  Kbfs.useFsFileContext(props.path)
+  const onUrlError = Kbfs.useFsFileContext(props.path)
   Kbfs.useFsTlfs()
   Kbfs.useFsOnlineStatus()
   Kbfs.useFsTlf(props.path)
@@ -65,7 +65,7 @@ const ChooseComponent = (props: ChooseComponentProps) => {
         // doesn't matter here as we do a navigateAppend for bare views
         <SimpleScreens.Loading />
       ) : (
-        <NormalPreview path={props.path} />
+        <NormalPreview path={props.path} onUrlError={onUrlError} />
       )
   }
 }
@@ -106,8 +106,9 @@ const Connected = Container.namedConnect(
       kbfsDaemonStatus: state.fs.kbfsDaemonStatus,
     }
   },
-  dispatch => ({
-    _emitBarePreview: (path: Types.Path) => {
+  (dispatch, ownProps) => ({
+    emitBarePreview: () => {
+      const path = Container.getRouteProps(ownProps, 'path', Constants.defaultPath)
       dispatch(RouteTreeGen.createNavigateUp())
       dispatch(
         RouteTreeGen.createNavigateAppend({
@@ -122,7 +123,7 @@ const Connected = Container.namedConnect(
     const isDefinitelyFolder =
       Types.getPathElements(path).length <= 3 && !Constants.hasSpecialFileElement(path)
     return {
-      emitBarePreview: () => dispatchProps._emitBarePreview(path),
+      emitBarePreview: dispatchProps.emitBarePreview,
       kbfsDaemonStatus: stateProps.kbfsDaemonStatus,
       path,
       pathType: isDefinitelyFolder ? Types.PathType.Folder : stateProps._pathItem.type,

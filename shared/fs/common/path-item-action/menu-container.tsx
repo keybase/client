@@ -199,6 +199,9 @@ const mergeProps = (
   }
 }
 
-export default Container.namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'PathItemActionMenu')(
-  Menu
-)
+export default Container.namedConnect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'PathItemActionMenu'
+)(Menu)

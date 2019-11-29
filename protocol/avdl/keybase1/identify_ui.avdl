@@ -124,6 +124,7 @@ protocol identifyUi {
     array<UserTeamShowcase> teamShowcase;
     boolean registeredForAirdrop;
     boolean blocked;
+    boolean hidFromFollowers;
   }
 
   record ConfirmResult {

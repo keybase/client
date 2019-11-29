@@ -1,10 +1,8 @@
 import moment from 'moment'
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
 import UserNotice from '../user-notice'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
-import SystemMessageTimestamp from '../system-message-timestamp'
 
 type Props = {
   canManage: boolean
@@ -64,19 +62,7 @@ const getPolicySummary = props => {
 }
 
 const ChangeRetention = (props: Props) => {
-  const changedBy =
-    props.you === props.user ? (
-      'You'
-    ) : (
-      <Kb.ConnectedUsernames
-        colorFollowing={true}
-        inline={true}
-        onUsernameClicked="profile"
-        type="BodySmallSemibold"
-        underline={true}
-        usernames={[props.user]}
-      />
-    )
+  const changedBy = props.you === props.user ? 'You ' : ''
   let convType = 'conversation'
   switch (props.membersType) {
     case RPCChatTypes.ConversationMembersType.team:
@@ -84,34 +70,20 @@ const ChangeRetention = (props: Props) => {
   }
   const inheritDescription = props.isInherit ? ' to inherit from the team policy' : ''
   const policySummary = getPolicySummary(props)
-  const manageText = props.canManage ? 'Manage this' : ''
+  const manageText = props.canManage ? 'Team retention settings' : ''
   return (
-    <UserNotice
-      style={styles.userNotice}
-      username={props.user}
-      bgColor={Styles.globalColors.blueLighter2}
-      onClickAvatar={() => props.onClickUserAvatar()}
-    >
-      <SystemMessageTimestamp timestamp={props.timestamp} />
-      <Kb.Box2 direction="vertical" centerChildren={true}>
-        <Kb.Text type="BodySmallSemibold" center={true} negative={true} style={styles.text} selectable={true}>
-          {changedBy} changed the {convType} retention policy{inheritDescription}. Messages will{' '}
-          {policySummary}.
-        </Kb.Text>
-        <Kb.Text onClick={props.onManageRetention} type="BodySmallSemiboldPrimaryLink">
-          {manageText}
-        </Kb.Text>
-      </Kb.Box2>
+    <UserNotice>
+      <Kb.Text type="BodySmall" selectable={true}>
+        {changedBy}changed the {convType} retention policy{inheritDescription}. Messages will {policySummary}.
+        {` `}
+        {manageText ? (
+          <Kb.Text onClick={props.onManageRetention} type="BodySmallSemiboldPrimaryLink">
+            {manageText}
+          </Kb.Text>
+        ) : null}
+      </Kb.Text>
     </UserNotice>
   )
 }
-
-const styles = Styles.styleSheetCreate(
-  () =>
-    ({
-      text: {color: Styles.globalColors.black_50},
-      userNotice: {marginTop: Styles.globalMargins.small},
-    } as const)
-)
 
 export default ChangeRetention

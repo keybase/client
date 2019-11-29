@@ -48,7 +48,6 @@ class _SimpleTopLine extends React.Component<Props> {
               this.props.onForceHideMenu()
             }}
             isSmallTeam={true}
-            teamname={(this.props.participants.length && this.props.participants[0]) || ''}
             conversationIDKey={this.props.conversationIDKey}
           />
         )}
@@ -103,7 +102,6 @@ class _SimpleTopLine extends React.Component<Props> {
             ref={this.props.setAttachmentRef}
             color={this.props.subColor}
             hoverColor={this.props.iconHoverColor}
-            fontSize={14}
             style={styles.icon}
           />
         )}

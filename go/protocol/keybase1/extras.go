@@ -644,6 +644,13 @@ func (s SigID) Equal(t SigID) bool {
 	return s == t
 }
 
+func (s SigID) EqualIgnoreLastByte(t SigID) bool {
+	if len(s) != len(t) || len(s) < 2 {
+		return false
+	}
+	return s[:len(s)-2] == t[:len(t)-2]
+}
+
 func (s SigID) Match(q string, exact bool) bool {
 	if s.IsNil() {
 		return false
@@ -3485,4 +3492,16 @@ func (b BadgeConversationInfo) IsEmpty() bool {
 
 func (s *TeamBotSettings) Eq(o *TeamBotSettings) bool {
 	return reflect.DeepEqual(s, o)
+}
+
+func (b UserBlockedBody) Summarize() UserBlockedSummary {
+	ret := UserBlockedSummary{
+		Blocker: b.Username,
+	}
+	for _, block := range b.Blocks {
+		if (block.Chat != nil && *block.Chat) || (block.Follow != nil && *block.Follow) {
+			ret.Blocked = append(ret.Blocked, block.Username)
+		}
+	}
+	return ret
 }

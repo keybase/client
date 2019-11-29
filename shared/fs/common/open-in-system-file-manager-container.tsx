@@ -24,4 +24,4 @@ const connected = namedConnect(
   'ConnectedOpenInSystemFileManager'
 )(OpenInSystemFileManager)
 
-export default (isMobile ? () => null : connected)
+export default isMobile ? () => null : connected

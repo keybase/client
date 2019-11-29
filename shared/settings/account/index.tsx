@@ -3,15 +3,14 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/settings'
 import EmailPhoneRow from './email-phone-row'
-import * as I from 'immutable'
 import {Props as HeaderHocProps} from '../../common-adapters/header-hoc/types'
 import * as SettingsGen from '../../actions/settings-gen'
 import * as Container from '../../util/container'
 
 export type Props = {
-  addedEmail: string | null
+  addedEmail?: string
   addedPhone: boolean
-  contactKeys: I.List<string>
+  contactKeys: Array<string>
   hasPassword: boolean
   onClearSupersededPhoneNumber: () => void
   onAddEmail: () => void
@@ -75,7 +74,7 @@ const EmailPhone = (props: Props) => (
         </Kb.Text>
       </Kb.Text>
     </Kb.Box2>
-    {!!props.contactKeys.size && (
+    {!!props.contactKeys.length && (
       <Kb.Box2 direction="vertical" style={styles.contactRows} fullWidth={true}>
         {props.contactKeys.map(ck => (
           <EmailPhoneRow contactKey={ck} key={ck} />
@@ -100,9 +99,7 @@ const Password = (props: Props) => {
     <SettingsSection>
       <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
         <Kb.Text type="Header">Password</Kb.Text>
-        <Kb.Text type="BodySmall">
-          Allows you to log out and log back in, and use the keybase.io website.
-        </Kb.Text>
+        <Kb.Text type="BodySmall">Allows you to sign out and sign back in.</Kb.Text>
       </Kb.Box2>
       <Kb.Box2 direction="vertical" alignItems="flex-start" fullWidth={true}>
         {props.hasPassword && (
@@ -178,9 +175,7 @@ const AccountSettings = (props: Props) => (
         <Kb.Banner color="yellow" onClose={props.onClearSupersededPhoneNumber}>
           <Kb.BannerParagraph
             bannerColor="yellow"
-            content={`Your phone number ${
-              props.supersededPhoneNumber
-            } is now associated with another Keybase user.`}
+            content={`Your phone number ${props.supersededPhoneNumber} is now associated with another Keybase user.`}
           />
           <Kb.Button
             onClick={props.onAddPhone}

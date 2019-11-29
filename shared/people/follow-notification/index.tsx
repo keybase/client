@@ -18,7 +18,7 @@ const connectedUsernamesProps = {
 
 export type NewFollow = Types.FollowedNotification
 
-export type Props = Types._FollowedNotificationItem & {
+export type Props = Types.FollowedNotificationItem & {
   onClickUser: (username: string) => void
 }
 

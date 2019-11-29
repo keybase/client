@@ -76,10 +76,7 @@
           "name": "snippet"
         },
         {
-          "type": [
-            null,
-            "string"
-          ],
+          "type": "SnippetDecoration",
           "name": "snippetDecoration"
         },
         {
@@ -137,6 +134,20 @@
       ]
     },
     {
+      "type": "record",
+      "name": "UIInboxBigTeamLabelRow",
+      "fields": [
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "string",
+          "name": "id"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "UIInboxBigTeamRow",
       "switch": {
@@ -149,7 +160,7 @@
             "name": "LABEL",
             "def": false
           },
-          "body": "string"
+          "body": "UIInboxBigTeamLabelRow"
         },
         {
           "label": {
@@ -232,7 +243,7 @@
           "name": "snippet"
         },
         {
-          "type": "string",
+          "type": "SnippetDecoration",
           "name": "snippetDecoration"
         },
         {
@@ -393,13 +404,6 @@
           "name": "items"
         },
         {
-          "type": [
-            null,
-            "UIPagination"
-          ],
-          "name": "pagination"
-        },
-        {
           "type": "boolean",
           "name": "offline"
         }
@@ -494,7 +498,7 @@
           "name": "snippet"
         },
         {
-          "type": "string",
+          "type": "SnippetDecoration",
           "name": "snippetDecoration"
         },
         {
@@ -639,6 +643,14 @@
           "name": "botCommands"
         },
         {
+          "type": {
+            "type": "map",
+            "values": "string",
+            "keys": "string"
+          },
+          "name": "botAliases"
+        },
+        {
           "type": [
             null,
             "UIPinnedMessage"
@@ -686,13 +698,6 @@
             "items": "InboxUIItem"
           },
           "name": "items"
-        },
-        {
-          "type": [
-            null,
-            "UIPagination"
-          ],
-          "name": "pagination"
         },
         {
           "type": "boolean",

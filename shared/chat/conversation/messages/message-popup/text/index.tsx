@@ -8,6 +8,7 @@ import {StylesCrossPlatform} from '../../../../../styles/css'
 type Props = {
   attachTo?: () => React.Component<any> | null
   author: string
+  botUsername?: string
   deviceName: string
   deviceRevokedAt?: number
   deviceType: DeviceType
@@ -22,6 +23,7 @@ type Props = {
   onReplyPrivately?: () => void
   onViewProfile?: () => void
   onViewMap?: () => void
+  isLocation?: boolean
   position: Position
   showDivider: boolean
   style?: StylesCrossPlatform
@@ -71,11 +73,12 @@ const TextPopupMenu = (props: Props) => {
     view: (
       <MessagePopupHeader
         author={props.author}
+        botUsername={props.botUsername}
         deviceName={props.deviceName}
         deviceRevokedAt={props.deviceRevokedAt}
         deviceType={props.deviceType}
         isLast={!items.length}
-        isLocation={!!props.onViewMap}
+        isLocation={!!props.isLocation}
         timestamp={props.timestamp}
         yourMessage={props.yourMessage}
       />

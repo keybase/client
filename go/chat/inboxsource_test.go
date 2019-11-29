@@ -16,6 +16,7 @@ import (
 
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/stretchr/testify/require"
@@ -45,7 +46,7 @@ func TestInboxSourceUpdateRace(t *testing.T) {
 	require.NoError(t, err)
 
 	ib, _, err := tc.ChatG.InboxSource.Read(ctx, u.User.GetUID().ToBytes(),
-		types.ConversationLocalizerBlocking, types.InboxSourceDataSourceAll, nil, nil, nil)
+		types.ConversationLocalizerBlocking, types.InboxSourceDataSourceAll, nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, chat1.InboxVers(0), ib.Version, "wrong version")
 
@@ -71,7 +72,7 @@ func TestInboxSourceUpdateRace(t *testing.T) {
 	wg.Wait()
 
 	ib, _, err = tc.ChatG.InboxSource.Read(ctx, u.User.GetUID().ToBytes(),
-		types.ConversationLocalizerBlocking, types.InboxSourceDataSourceAll, nil, nil, nil)
+		types.ConversationLocalizerBlocking, types.InboxSourceDataSourceAll, nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, chat1.InboxVers(1), ib.Version, "wrong version")
 }
@@ -91,7 +92,7 @@ func TestInboxSourceSkipAhead(t *testing.T) {
 
 	assertInboxVersion := func(v int) {
 		ib, _, err := tc.ChatG.InboxSource.Read(ctx, u.User.GetUID().ToBytes(),
-			types.ConversationLocalizerBlocking, types.InboxSourceDataSourceAll, nil, nil, nil)
+			types.ConversationLocalizerBlocking, types.InboxSourceDataSourceAll, nil, nil)
 		require.Equal(t, chat1.InboxVers(v), ib.Version, "wrong version")
 		require.NoError(t, err)
 	}
@@ -115,9 +116,7 @@ func TestInboxSourceSkipAhead(t *testing.T) {
 
 	t.Logf("add message but drop oobm")
 
-	rc := types.RemoteConversation{
-		Conv: conv,
-	}
+	rc := utils.RemoteConv(conv)
 	localConvs, _, err := tc.Context().InboxSource.Localize(ctx, uid, []types.RemoteConversation{rc},
 		types.ConversationLocalizerBlocking)
 	require.NoError(t, err)
@@ -190,7 +189,7 @@ func TestInboxSourceFlushLoop(t *testing.T) {
 		t.Skip()
 	}
 	newBlankConv(ctx, t, tc, uid, ri, sender, u.Username)
-	_, err := hbs.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll, nil, nil)
+	_, err := hbs.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll, nil)
 	require.NoError(t, err)
 	inbox := hbs.createInbox()
 	flushCh := make(chan struct{}, 10)
@@ -256,7 +255,7 @@ func TestInboxSourceLocalOnly(t *testing.T) {
 		ib, err := tc.Context().InboxSource.ReadUnverified(ctx, uid, mode,
 			&chat1.GetInboxQuery{
 				ConvID: &conv.Id,
-			}, nil)
+			})
 		if success {
 			require.NoError(t, err)
 			require.Equal(t, 1, len(ib.ConvsUnverified))

@@ -67,6 +67,7 @@ export const util = ({flexCommon}: {flexCommon?: Object | null}) => ({
   fullHeight: {height: '100%'},
   fullWidth: {width: '100%'},
   opacity0: {opacity: 0},
+  positionRelative: {position: 'relative'},
   rounded: {borderRadius: 3},
 })
 

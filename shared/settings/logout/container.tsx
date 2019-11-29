@@ -17,7 +17,7 @@ export default Container.connect(
   dispatch => ({
     onBootstrap: () => dispatch(SettingsGen.createLoadHasRandomPw()),
     onCancel: () => {
-      dispatch(SettingsGen.createLoadedCheckPassword({checkPasswordIsCorrect: null}))
+      dispatch(SettingsGen.createLoadedCheckPassword({}))
       dispatch(RouteTreeGen.createNavigateUp())
     },
     onCheckPassword: (password: string) => {
@@ -27,7 +27,7 @@ export default Container.connect(
     },
     onLogout: () => {
       dispatch(ConfigGen.createLogout())
-      dispatch(SettingsGen.createLoadedCheckPassword({checkPasswordIsCorrect: null}))
+      dispatch(SettingsGen.createLoadedCheckPassword({}))
     },
     onSavePassword: (password: string) => {
       dispatch(SettingsGen.createOnChangeNewPassword({password: new HiddenString(password)}))

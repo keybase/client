@@ -1,9 +1,9 @@
 import * as React from 'react'
 // eslint-disable-next-line
 import {Draft as _Draft} from 'immer'
-import {TypedActions} from '../actions/typed-actions-gen'
+import {TypedActions as _TypedActions} from '../actions/typed-actions-gen'
 import {ActionHandler as _ActionHandler} from './make-reducer'
-import {TypedState} from '../constants/reducer'
+import {TypedState as _TypedState} from '../constants/reducer'
 import {RouteProps as _RouteProps, GetRouteType} from '../route-tree/render-route'
 import {PropsWithSafeNavigation as _PropsWithSafeNavigation} from './safe-navigation'
 import {StatusCode} from '../constants/types/rpc-gen'
@@ -34,7 +34,9 @@ export function getRouteProps<O extends _RouteProps<any>, R extends GetRouteType
   return val === undefined ? notSetVal : val
 }
 
-export type TypedDispatch = (action: TypedActions) => void
+export type RemoteWindowSerializeProps<P> = {[K in keyof P]-?: (val: P[K], old?: P[K]) => any}
+
+export type TypedDispatch = (action: _TypedActions) => void
 export type Dispatch = TypedDispatch
 
 export const useAnyWaiting = (...waitingKeys: string[]) =>
@@ -77,8 +79,8 @@ export {anyWaiting, anyErrors} from '../constants/waiting'
 export {safeSubmit, safeSubmitPerMount} from './safe-submit'
 export {default as withSafeNavigation, useSafeNavigation} from './safe-navigation'
 export type RouteProps<P = {}> = _RouteProps<P>
-export type TypedActions = TypedActions
-export type TypedState = TypedState
+export type TypedActions = _TypedActions
+export type TypedState = _TypedState
 export type PropsWithSafeNavigation<P = {}> = _PropsWithSafeNavigation<P>
 export {useSelector, useDispatch} from 'react-redux'
 export const compose = flowRight

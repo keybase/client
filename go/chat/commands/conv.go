@@ -16,7 +16,7 @@ func getConvByID(ctx context.Context, g *globals.Context, uid gregor1.UID, convI
 	ib, err := g.InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll,
 		&chat1.GetInboxQuery{
 			ConvID: &convID,
-		}, nil)
+		})
 	if err != nil {
 		return res, err
 	}

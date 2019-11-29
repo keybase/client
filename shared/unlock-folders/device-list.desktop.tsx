@@ -1,14 +1,14 @@
 import * as React from 'react'
 import * as Styles from '../styles'
 import * as Kb from '../common-adapters'
-import {_Device} from '../constants/types/unlock-folders'
+import {Device} from '../constants/types/unlock-folders'
 
 export type Props = {
-  devices: Array<_Device> | null
+  devices: Array<Device> | null
   toPaperKeyInput: () => void
 }
 
-const DeviceRow = ({device}: {device: _Device}) => {
+const DeviceRow = ({device}: {device: Device}) => {
   const icon = ({
     backup: 'icon-paper-key-32',
     desktop: 'icon-computer-32',

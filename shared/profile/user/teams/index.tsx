@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Types from '../../../constants/types/tracker2'
 import * as Styles from '../../../styles'
+import {TeamID} from '../../../constants/types/teams'
 import OpenMeta from './openmeta'
 import TeamInfo from './teaminfo'
 
@@ -12,10 +13,11 @@ export type Props = {
   teamMeta: {
     [K in string]: {
       inTeam: boolean
+      teamID: TeamID
     }
   }
-  onJoinTeam: (arg0: string) => void
-  onViewTeam: (arg0: string) => void
+  onJoinTeam: (teamname: string) => void
+  onViewTeam: (teamID: TeamID) => void
   onEdit?: () => void
 }
 
@@ -66,7 +68,7 @@ const Teams = (p: Props) =>
           key={t.name}
           {...t}
           onJoinTeam={p.onJoinTeam}
-          onViewTeam={p.onViewTeam}
+          onViewTeam={() => p.onViewTeam(p.teamMeta[t.name].teamID)}
           inTeam={p.teamMeta[t.name].inTeam}
         />
       ))}

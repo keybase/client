@@ -367,7 +367,7 @@ func Reset() error {
 	if conn != nil {
 		conn.Close()
 	}
-	if !isInited() {
+	if kbCtx == nil || kbCtx.LoopbackListener == nil {
 		return nil
 	}
 

@@ -1,5 +1,4 @@
 import React from 'react'
-import * as I from 'immutable'
 import * as Sb from '../../stories/storybook'
 import * as Constants from '../../constants/fs'
 import Downloads from './downloads'
@@ -61,7 +60,7 @@ const store = {
           },
         ],
       ]),
-      regularDownloads: I.List(['id3', 'id2', 'id1', 'id0']),
+      regularDownloads: ['id3', 'id2', 'id1', 'id0'],
       state: new Map([
         [
           'id0',

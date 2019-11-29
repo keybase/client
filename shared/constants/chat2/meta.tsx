@@ -95,10 +95,13 @@ export const unverifiedInboxUIItemToConversationMeta = (
     resetParticipants,
     retentionPolicy,
     snippet: i.localMetadata ? i.localMetadata.snippet : '',
-    snippetDecoration: i.localMetadata ? i.localMetadata.snippetDecoration : '',
+    snippetDecoration: i.localMetadata
+      ? i.localMetadata.snippetDecoration
+      : RPCChatTypes.SnippetDecoration.none,
     status: i.status,
     supersededBy: supersededBy ? Types.stringToConversationIDKey(supersededBy) : noConversationIDKey,
     supersedes: supersedes ? Types.stringToConversationIDKey(supersedes) : noConversationIDKey,
+    teamID: i.tlfID,
     teamRetentionPolicy,
     teamType: getTeamType(i),
     teamname,
@@ -318,6 +321,7 @@ export const inboxUIItemToConversationMeta = (
   const participants = i.participants || []
   return {
     ...makeConversationMeta(),
+    botAliases: i.botAliases,
     botCommands: i.botCommands,
     cannotWrite,
     channelname: (isTeam && i.channel) || '',
@@ -363,6 +367,7 @@ export const inboxUIItemToConversationMeta = (
     status: i.status,
     supersededBy: supersededBy ? Types.stringToConversationIDKey(supersededBy) : noConversationIDKey,
     supersedes: supersedes ? Types.stringToConversationIDKey(supersedes) : noConversationIDKey,
+    teamID: i.tlfID,
     teamRetentionPolicy,
     teamType: getTeamType(i),
     teamname: (isTeam && i.name) || '',
@@ -374,6 +379,7 @@ export const inboxUIItemToConversationMeta = (
 }
 
 export const makeConversationMeta = (): Types.ConversationMeta => ({
+  botAliases: {},
   botCommands: {} as RPCChatTypes.ConversationCommandGroups,
   cannotWrite: false,
   channelname: '',
@@ -403,10 +409,11 @@ export const makeConversationMeta = (): Types.ConversationMeta => ({
   resetParticipants: new Set(),
   retentionPolicy: TeamConstants.makeRetentionPolicy(),
   snippet: '',
-  snippetDecoration: '',
+  snippetDecoration: RPCChatTypes.SnippetDecoration.none as RPCChatTypes.SnippetDecoration,
   status: RPCChatTypes.ConversationStatus.unfiled as RPCChatTypes.ConversationStatus,
   supersededBy: noConversationIDKey,
   supersedes: noConversationIDKey,
+  teamID: '',
   teamRetentionPolicy: TeamConstants.makeRetentionPolicy(),
   teamType: 'adhoc' as Types.TeamType,
   teamname: '',
@@ -482,11 +489,14 @@ export const getChannelForTeam = (state: TypedState, teamname: string, channelna
 
 const blankCommands: Array<RPCChatTypes.ConversationCommand> = []
 
-export const getCommands = (state: TypedState, id: Types.ConversationIDKey) => {
+export const getCommands = (
+  state: TypedState,
+  id: Types.ConversationIDKey
+): Array<RPCChatTypes.ConversationCommand> => {
   const {commands} = getMeta(state, id)
   if (commands.typ === RPCChatTypes.ConversationCommandGroupsTyp.builtin) {
     return state.chat2.staticConfig
-      ? state.chat2.staticConfig.builtinCommands[commands.builtin]
+      ? state.chat2.staticConfig.builtinCommands[commands.builtin] || blankCommands
       : blankCommands
   } else {
     return blankCommands
@@ -505,7 +515,7 @@ export const getBotCommands = (state: TypedState, id: Types.ConversationIDKey) =
 // show wallets icon for one-on-one conversations
 export const shouldShowWalletsIcon = (state: TypedState, id: Types.ConversationIDKey) => {
   const meta = getMeta(state, id)
-  const accountID = WalletConstants.getDefaultAccountID(state)
+  const accountID = WalletConstants.getDefaultAccountID(state.wallets)
   const sendDisabled = !isMobile && accountID && !!state.wallets.mobileOnlyMap.get(accountID)
 
   return (

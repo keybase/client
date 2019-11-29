@@ -51,9 +51,5 @@ const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   onFeedback: () => dispatchProps.onFeedback(stateProps._loggedIn),
 })
 
-const Connected = connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
-)(GlobalError)
+const Connected = connect(mapStateToProps, mapDispatchToProps, mergeProps)(GlobalError)
 export default Connected

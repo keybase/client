@@ -70,18 +70,21 @@ const styles = Styles.styleSheetCreate(
         borderBottomLeftRadius: pieHalfSize,
         borderTopLeftRadius: pieHalfSize,
         left: 0,
+        overflow: 'hidden', // need to set this so it's fully round on mobile
       },
       leftUnfilled: {
         ...stylePieHalf,
         borderBottomLeftRadius: pieHalfSize,
         borderTopLeftRadius: pieHalfSize,
         left: 0,
+        overflow: 'hidden',
       },
       rightFilled: {
         ...stylePieHalf,
         borderBottomRightRadius: pieHalfSize,
         borderTopRightRadius: pieHalfSize,
         left: pieHalfSize,
+        overflow: 'hidden',
       },
       rotateContainer: {
         ...stylePieWhole,
@@ -96,6 +99,7 @@ const styles = Styles.styleSheetCreate(
       wholeUnfilled: {
         ...stylePieWhole,
         borderRadius: pieHalfSize,
+        overflow: 'hidden',
       },
     } as const)
 )

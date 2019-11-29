@@ -21,8 +21,10 @@ import HiddenString from '../../util/hidden-string'
 export const defaultTopReacjis = [':+1:', ':-1:', ':tada:', ':joy:', ':sunglasses:']
 const defaultSkinTone = 1
 export const defaultUserReacjis = {skinTone: defaultSkinTone, topReacjis: defaultTopReacjis}
-const emptyArray = []
+const emptyArray: Array<unknown> = []
 const emptySet = new Set()
+
+export const blockButtonsGregorPrefix = 'blockButtons.'
 
 export const makeState = (): Types.State => ({
   accountsInfoMap: new Map(),
@@ -30,6 +32,7 @@ export const makeState = (): Types.State => ({
   attachmentViewMap: new Map(),
   audioRecording: new Map(),
   badgeMap: new Map(), // id to the badge count
+  blockButtonsMap: new Map(),
   botCommandsUpdateStatusMap: new Map(),
   channelSearchText: '',
   commandMarkdownMap: new Map(),
@@ -47,6 +50,7 @@ export const makeState = (): Types.State => ({
   giphyWindowMap: new Map(),
   inboxHasLoaded: false,
   inboxLayout: null,
+  inboxNumSmallRows: 5,
   inboxSearch: undefined,
   inboxShowNew: false,
   isWalletsNew: true,
@@ -82,7 +86,7 @@ export const makeState = (): Types.State => ({
 })
 
 export const makeThreadSearchInfo = (): Types.ThreadSearchInfo => ({
-  hits: emptyArray,
+  hits: emptyArray as Types.ThreadSearchInfo['hits'],
   status: 'initial',
   visible: false,
 })
@@ -108,8 +112,6 @@ export const makeAttachmentViewInfo = (): Types.AttachmentViewInfo => ({
   messages: [],
   status: 'loading',
 })
-
-export const initialAttachmentViewInfo = makeAttachmentViewInfo()
 
 export const makeAudioRecordingInfo = (): Types.AudioRecordingInfo => ({
   isLocked: false,

@@ -30,7 +30,7 @@ const makeWaitingResponse = (r, waitingKey) => {
 
   const response = {}
 
-  if (r.result) {
+  if (r.error) {
     // @ts-ignore codemode issue
     response.error = (...args) => {
       // Waiting on the server again
@@ -41,7 +41,7 @@ const makeWaitingResponse = (r, waitingKey) => {
     }
   }
 
-  if (r.error) {
+  if (r.result) {
     // @ts-ignore codemode issue
     response.result = (...args) => {
       // Waiting on the server again

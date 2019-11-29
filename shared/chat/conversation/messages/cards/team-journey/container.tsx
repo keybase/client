@@ -9,17 +9,15 @@ import * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
 import * as TeamConstants from '../../../../../constants/teams'
 import * as TeamsGen from '../../../../../actions/teams-gen'
 import {appendNewTeamBuilder} from '../../../../../actions/typed-routes'
-
-import * as I from 'immutable'
-import TeamJourney from './index'
+import TeamJourney from '.'
 
 type OwnProps = {
-  message: I.RecordOf<MessageTypes._MessageJourneycard>
+  message: MessageTypes.MessageJourneycard
 }
 
 type Props = {
   channelname: string
-  message: I.RecordOf<MessageTypes._MessageJourneycard>
+  message: MessageTypes.MessageJourneycard
   otherChannels: Array<string>
   onAddPeopleToTeam: () => void
   onBrowseChannels: () => void
@@ -40,7 +38,7 @@ const TeamJourneyContainer = (props: Props) => {
   let text = ''
   let image: Kb.IconType | null = null
   let actions: Array<Action> = []
-  let loadTeam: (() => void) | null = null
+  let loadTeam: (() => void) | undefined
 
   switch (props.message.cardType) {
     case RPCChatTypes.JourneycardType.welcome:
@@ -52,19 +50,25 @@ const TeamJourneyContainer = (props: Props) => {
       text = 'Welcome to the team! Say hi to everyone and introduce yourself.'
       break
     case RPCChatTypes.JourneycardType.popularChannels:
-      actions = props.otherChannels.map(chan => ({label: chan, onClick: () => props.onGoToChannel(chan)}))
+      actions = props.otherChannels.map(chan => ({
+        label: `#${chan}`,
+        onClick: () => props.onGoToChannel(chan),
+      }))
       loadTeam = props.onLoadTeam
-      text = `You are in ${props.channelname}. Some popular channels in this team:`
+      text = `You are in *#${props.channelname}*.\n`
+      text += props.otherChannels.length
+        ? `Some other channels in this team:`
+        : `And you're in all the other channels, nice.`
       break
     case RPCChatTypes.JourneycardType.addPeople:
       actions = [{label: 'Add people to the team', onClick: props.onAddPeopleToTeam}]
       image = 'icon-illustration-friends-96'
-      text = `Do you know people interested in joining? ${props.teamname} is open to anyone.`
+      text = `Do you know people interested in joining? *${props.teamname}* is open to anyone.`
       break
     case RPCChatTypes.JourneycardType.createChannels:
       actions = [{label: 'Create chat channels', onClick: props.onCreateChatChannels}]
       image = 'icon-illustration-happy-chat-96'
-      text = 'Go ahead and create #channels around topics you think are missing.'
+      text = 'Go ahead and create *#channels* around topics you think are missing.'
       break
     case RPCChatTypes.JourneycardType.msgAttention:
       // XXX: implement
@@ -82,7 +86,10 @@ const TeamJourneyContainer = (props: Props) => {
       text = 'Zzz… This channel hasn’t been very active…. Revive it?'
       break
     case RPCChatTypes.JourneycardType.msgNoAnswer:
-      actions = props.otherChannels.map(chan => ({label: chan, onClick: () => props.onGoToChannel(chan)}))
+      actions = props.otherChannels.map(chan => ({
+        label: `#${chan}`,
+        onClick: () => props.onGoToChannel(chan),
+      }))
       loadTeam = props.onLoadTeam
       text = 'People haven’t been talkative in a while. Perhaps post in another channel?'
       break
@@ -128,12 +135,20 @@ const TeamJourneyConnected = Container.connect(
   (stateProps, dispatchProps, ownProps) => {
     const {channelname, teamname} = stateProps
     // Take the top three channels with most recent activity.
+    const joinableStatuses = new Set([
+      // keep in sync with journey_card_manager.go
+      RPCChatTypes.ConversationMemberStatus.removed,
+      RPCChatTypes.ConversationMemberStatus.left,
+      RPCChatTypes.ConversationMemberStatus.reset,
+      RPCChatTypes.ConversationMemberStatus.neverJoined,
+    ])
     const otherChannels = stateProps._channelInfos
       .valueSeq()
       .toArray()
+      .filter(info => joinableStatuses.has(info.memberStatus))
       .sort((x, y) => y.mtime - x.mtime)
-      .map(info => info.channelname)
       .slice(0, Container.isMobile ? 2 : 3)
+      .map(info => info.channelname)
 
     return {
       channelname,

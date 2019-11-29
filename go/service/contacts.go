@@ -160,7 +160,7 @@ func (h *ContactsHandler) LookupContactList(ctx context.Context, arg keybase1.Lo
 	return contacts.ResolveContacts(mctx, h.contactsProvider, arg.Contacts)
 }
 
-func (h *ContactsHandler) SaveContactList(ctx context.Context, arg keybase1.SaveContactListArg) (res []keybase1.ProcessedContact, err error) {
+func (h *ContactsHandler) SaveContactList(ctx context.Context, arg keybase1.SaveContactListArg) (res keybase1.ContactListResolutionResult, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("SAVECON")
 	defer mctx.TraceTimed(fmt.Sprintf("ContactsHandler#SaveContactList(len=%d)", len(arg.Contacts)),
 		func() error { return err })()

@@ -5,8 +5,8 @@ import * as Constants from '../../constants/settings'
 import UpdatePassword from '../password'
 
 export type Props = {
-  checkPasswordIsCorrect: boolean | null
-  hasRandomPW: boolean | null
+  checkPasswordIsCorrect?: boolean
+  hasRandomPW?: boolean
   onBootstrap: () => void
   onCancel: () => void
   onCheckPassword: (password: string) => void

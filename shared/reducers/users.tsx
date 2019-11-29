@@ -5,6 +5,7 @@ import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as Tracker2Gen from '../actions/tracker2-gen'
 import * as Types from '../constants/types/users'
 import * as UsersGen from '../actions/users-gen'
+import * as EngineGen from '../actions/engine-gen-gen'
 
 const initialState: Types.State = Constants.makeState()
 
@@ -14,19 +15,18 @@ type Actions =
   | Tracker2Gen.UpdatedDetailsPayload
   | ConfigGen.SetAccountsPayload
   | TeamBuildingGen.SearchResultsLoadedPayload
+  | EngineGen.Keybase1NotifyTrackingNotifyUserBlockedPayload
 
 const updateInfo = (map: Map<string, Types.UserInfo>, username: string, info: Partial<Types.UserInfo>) => {
   const next = {
-      ...(map.get(username) || null),
-      ...info,
-    }
+    ...(map.get(username) || null),
+    ...info,
+  }
 
-    // cleanup data structure so its not full of empty items
-  ;['fullname', 'broken', 'bio'].forEach(key => {
-    if (!next[key]) {
-      delete next[key]
-    }
-  })
+  // cleanup data structure so its not full of empty items
+  !next.fullname && delete next.fullname
+  !next.broken && delete next.broken
+  !next.bio && delete next.bio
 
   if (Object.keys(next).length) {
     map.set(username, next)
@@ -83,6 +83,21 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       if (!old || !old.fullname) {
         updateInfo(infoMap, keybase, {fullname: prettyName})
       }
+    })
+  },
+  [UsersGen.updateBlockState]: (draftState, action) => {
+    const {blocks} = action.payload
+    blocks.forEach(({username, chatBlocked, followBlocked}) => {
+      // Make blockMap keys normalized usernames.
+      draftState.blockMap.set(username.toLowerCase(), {chatBlocked, followBlocked})
+    })
+  },
+  [EngineGen.keybase1NotifyTrackingNotifyUserBlocked]: (draftState, action) => {
+    const {blocked} = action.payload.params.b
+    const {infoMap} = draftState
+    const toProcess = blocked ?? []
+    toProcess.forEach(e => {
+      updateInfo(infoMap, e, {blocked: true})
     })
   },
 })

@@ -1719,7 +1719,7 @@ func (e *Env) GetStoredSecretAccessGroup() string {
 	return "99229SGT5K.group.keybase"
 }
 
-func (e *Env) GetStoredSecretServiceName() string {
+func (e *Env) GetStoredSecretServiceBaseName() string {
 	var serviceName string
 	switch e.GetRunMode() {
 	case DevelRunMode:
@@ -1734,7 +1734,17 @@ func (e *Env) GetStoredSecretServiceName() string {
 	if e.Test.Devel {
 		// Append DevelName so that tests won't clobber each
 		// other's keychain entries on shutdown.
-		serviceName += fmt.Sprintf("-test (%s)", e.Test.DevelName)
+		serviceName += "-test"
+	}
+	return serviceName
+}
+
+func (e *Env) GetStoredSecretServiceName() string {
+	serviceName := e.GetStoredSecretServiceBaseName()
+	if e.Test.Devel {
+		// Append DevelName so that tests won't clobber each
+		// other's keychain entries on shutdown.
+		serviceName += fmt.Sprintf("(%s)", e.Test.DevelName)
 	}
 	return serviceName
 }

@@ -9,6 +9,7 @@ type Props = {
   isTlfType?: boolean
   isFolder: boolean
   statusIcon?: Types.PathStatusIcon
+  showTooltipOnPressMobile?: boolean
 }
 
 function getIcon(status: Types.LocalConflictStatus | Types.NonUploadStaticSyncStatus): Kb.IconType {
@@ -73,7 +74,10 @@ function getTooltip(statusIcon: Types.PathStatusIcon, isFolder: boolean): string
 
 const PathStatusIcon = (props: Props) =>
   props.statusIcon ? (
-    <Kb.WithTooltip tooltip={getTooltip(props.statusIcon, props.isFolder)}>
+    <Kb.WithTooltip
+      tooltip={getTooltip(props.statusIcon, props.isFolder)}
+      showOnPressMobile={props.showTooltipOnPressMobile}
+    >
       {typeof props.statusIcon === 'number' ? (
         <Kb.Box2 direction="horizontal" style={{margin: Styles.globalMargins.xtiny}}>
           <PieSlice degrees={360 * props.statusIcon} animated={true} />
@@ -92,7 +96,7 @@ const PathStatusIcon = (props: Props) =>
       )}
     </Kb.WithTooltip>
   ) : props.isTlfType ? (
-    <Kb.Icon type="iconfont-root" sizeType="Small" padding="xtiny" />
+    <Kb.Icon type="iconfont-root" sizeType="Small" style={styles.iconFont} />
   ) : (
     <Kb.Box style={styles.placeholder} />
   )

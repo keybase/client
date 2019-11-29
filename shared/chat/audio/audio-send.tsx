@@ -36,6 +36,7 @@ const AudioSend = (props: Props) => {
     const duration = Constants.audioRecordingDuration(audioRecording)
     player = (
       <AudioPlayer
+        big={false}
         duration={duration}
         maxWidth={120}
         url={audioUrl}
@@ -63,7 +64,8 @@ const styles = Styles.styleSheetCreate(() => ({
     borderTopColor: Styles.globalColors.black_10,
     borderTopWidth: 1,
     justifyContent: 'space-between',
-    padding: Styles.globalMargins.tiny,
+    paddingLeft: Styles.globalMargins.tiny,
+    paddingRight: Styles.globalMargins.tiny,
   },
   icon: {
     alignItems: 'center',

@@ -140,7 +140,7 @@ func TestChatOutbox(t *testing.T) {
 		require.Equal(t, 0, res[1].State.Sending(), "wrong attempts")
 
 		// Remove 2
-		err = ob.RemoveMessage(context.TODO(), obrs[2].OutboxID)
+		_, err = ob.RemoveMessage(context.TODO(), obrs[2].OutboxID)
 		require.NoError(t, err)
 		res, err = ob.PullAllConversations(context.TODO(), true, false)
 		require.NoError(t, err)
