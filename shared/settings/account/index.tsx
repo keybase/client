@@ -33,7 +33,16 @@ export const SettingsSection = ({children}: {children: React.ReactNode}) => (
     {children}
   </Kb.Box2>
 )
-const AddButton = (props: {disabled: boolean; kind: 'phone number' | 'email'; onClick: () => void}) => {
+
+type AddButtonProps = {
+  disabled: boolean
+  kind: 'phone number' | 'email'
+  onClick: () => void
+  waitingKey?: string
+}
+const AddButton = (props: AddButtonProps) => {
+  const waiting = props.waitingKey ? Container.useAnyWaiting(props.waitingKey) : undefined
+
   const btn = (
     <Kb.Button
       mode="Secondary"
@@ -41,6 +50,7 @@ const AddButton = (props: {disabled: boolean; kind: 'phone number' | 'email'; on
       label={`Add ${props.kind}`}
       small={true}
       disabled={props.disabled}
+      waiting={waiting}
     />
   )
   return props.disabled ? (
@@ -83,7 +93,12 @@ const EmailPhone = (props: Props) => (
     )}
     <Kb.ButtonBar align="flex-start" style={styles.buttonBar}>
       <AddButton onClick={props.onAddEmail} kind="email" disabled={props.tooManyEmails} />
-      <AddButton onClick={props.onAddPhone} kind="phone number" disabled={props.tooManyPhones} />
+      <AddButton
+        onClick={props.onAddPhone}
+        kind="phone number"
+        disabled={props.tooManyPhones}
+        waitingKey={Constants.showPhoneNumberInputWaitingKey}
+      />
     </Kb.ButtonBar>
   </SettingsSection>
 )

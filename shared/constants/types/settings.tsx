@@ -120,7 +120,6 @@ export type ContactsState = {
 export type State = Readonly<{
   allowDeleteAccount: boolean
   contacts: ContactsState
-  defaultPhoneNumberCountry: string
   invites: InvitesState
   feedback: FeedbackState
   notifications: NotificationsState

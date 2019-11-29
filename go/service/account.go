@@ -267,8 +267,8 @@ func (h *AccountHandler) GuessCurrentLocation(ctx context.Context, arg keybase1.
 	res, err := mctx.G().API.Get(mctx, libkb.APIArg{
 		Endpoint:       "account/location_suggest",
 		SessionType:    libkb.APISessionTypeNONE,
-		InitialTimeout: 5 * time.Second,
-		RetryCount:     3,
+		InitialTimeout: 2500 * time.Millisecond,
+		RetryCount:     2,
 	})
 	if err != nil {
 		mctx.Warning("Unable to retrieve the current location: %v", err)

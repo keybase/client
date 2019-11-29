@@ -430,13 +430,16 @@ const editPhone = async (_: TypedState, action: SettingsGen.EditPhonePayload, lo
 }
 const openAddPhoneNumberModal = async (state: TypedState) => {
   // Skip the check if we have just signed up.
-  if (state.settings.defaultPhoneNumberCountry) {
+  if (state.settings.phoneNumbers.defaultCountry) {
     return RouteTreeGen.createNavigateAppend({path: ['settingsAddPhone']})
   }
 
-  const country = await RPCTypes.accountGuessCurrentLocationRpcPromise({
-    defaultCountry: 'US',
-  })
+  const country = await RPCTypes.accountGuessCurrentLocationRpcPromise(
+    {
+      defaultCountry: 'US',
+    },
+    Constants.showPhoneNumberInputWaitingKey
+  )
   return SettingsGen.createUpdateDefaultPhoneNumberCountry({
     country,
     openModal: true,
