@@ -150,14 +150,19 @@ const styles = Styles.styleSheetCreate(
       icon: {
         marginRight: Styles.globalMargins.xtiny,
       },
-      input: {
-        backgroundColor: Styles.globalColors.transparent,
-        marginTop: 8,
-        paddingBottom: 3,
-        paddingLeft: Styles.globalMargins.xsmall,
-        paddingRight: Styles.globalMargins.xsmall,
-        width: '100%',
-      },
+      input: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.transparent,
+          marginTop: 8,
+          paddingBottom: 3,
+          paddingLeft: Styles.globalMargins.xsmall,
+          paddingRight: Styles.globalMargins.xsmall,
+          width: '100%',
+        },
+        isElectron: {
+          zIndex: 0,
+        },
+      }),
       inputSmall: {
         paddingTop: 0,
       },
