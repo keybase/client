@@ -296,7 +296,9 @@ func (md *MDOpsStandard) checkMerkleTimes(ctx context.Context,
 	// A negative gap means that we expect the merkle roots to have
 	// happened second.
 	if allowedGapSinceMerkle < 0 {
-		if rootGap > 0 || kbfsGap > 0 {
+		// Special slack for keybase/client#21330
+		const slack = 24 * time.Hour
+		if rootGap > slack || kbfsGap > slack {
 			return errors.Errorf(
 				"Roots were unexpectedly made before event being checked, "+
 					"timeToCheck=%s, latestRootTime=%s, latestKbfsTime=%s",
