@@ -103,6 +103,7 @@ const ReflessLabeledInput = (props: Props & RefProps) => {
           props.style,
           {maxHeight: computedHeight},
           collapsed && styles.inputSmall,
+          multiline && styles.inputMultiline,
         ])}
       />
     </Box2>
@@ -153,7 +154,8 @@ const styles = Styles.styleSheetCreate(
       input: Styles.platformStyles({
         common: {
           backgroundColor: Styles.globalColors.transparent,
-          marginTop: 8,
+          flexGrow: 1,
+          marginTop: 10,
           paddingBottom: 3,
           paddingLeft: Styles.globalMargins.xsmall,
           paddingRight: Styles.globalMargins.xsmall,
@@ -161,6 +163,11 @@ const styles = Styles.styleSheetCreate(
         },
         isElectron: {
           zIndex: 0,
+        },
+      }),
+      inputMultiline: Styles.platformStyles({
+        isMobile: {
+          textAlignVertical: 'top',
         },
       }),
       inputSmall: {
