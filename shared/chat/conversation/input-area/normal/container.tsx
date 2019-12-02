@@ -51,7 +51,37 @@ const getTeams = memoize((layout: RPCChatTypes.UIInboxLayout | null) => {
     .map(teamname => ({fullName: '', teamname, username: ''}))
 })
 
-let _suggestChannels: undefined | Array<string>
+let _channelSuggestions: undefined | Array<string>
+const getChannelSuggestions = (state: Container.TypedState, teamname: string) => {
+  if (!teamname) {
+    return []
+  }
+  // First try channelinfos (all channels in a team), then try inbox (the
+  // partial list of channels that you have joined).
+  const convs = state.teams.teamNameToChannelInfos.get(teamname)
+  let suggestions: Array<string>
+  if (convs) {
+    suggestions = convs
+      .toIndexedSeq()
+      .toList()
+      .map(conv => conv.channelname)
+      .toArray()
+  } else {
+    suggestions = (state.chat2.inboxLayout?.bigTeams ?? []).reduce<Array<string>>((arr, t) => {
+      if (t.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel) {
+        if (t.channel.teamname === teamname) {
+          arr.push(t.channel.channelname)
+        }
+      }
+      return arr
+    }, [])
+  }
+
+  if (!shallowEqual(_channelSuggestions, suggestions)) {
+    _channelSuggestions = suggestions
+  }
+  return _channelSuggestions
+}
 
 export default Container.namedConnect(
   (state, {conversationIDKey}: OwnProps) => {
@@ -76,13 +106,6 @@ export default Container.namedConnect(
     const suggestBotCommandsUpdateStatus =
       state.chat2.botCommandsUpdateStatusMap.get(conversationIDKey) ||
       RPCChatTypes.UIBotCommandsUpdateStatus.blank
-
-    let suggestChannels = Constants.getChannelSuggestions(state, teamname)
-    if (_suggestChannels && shallowEqual(suggestChannels, _suggestChannels)) {
-      suggestChannels = _suggestChannels
-    } else {
-      _suggestChannels = suggestChannels
-    }
 
     return {
       _containsLatestMessage,
@@ -112,7 +135,7 @@ export default Container.namedConnect(
       showWalletsIcon: Constants.shouldShowWalletsIcon(state, conversationIDKey),
       suggestBotCommands: Constants.getBotCommands(state, conversationIDKey),
       suggestBotCommandsUpdateStatus,
-      suggestChannels,
+      suggestChannels: getChannelSuggestions(state, teamname),
       suggestCommands: Constants.getCommands(state, conversationIDKey),
       suggestTeams: getTeams(state.chat2.inboxLayout),
       suggestUsers: Constants.getParticipantSuggestions(state, conversationIDKey),

@@ -449,23 +449,6 @@ export const getParticipantSuggestions = (state: TypedState, id: Types.Conversat
   return _getParticipantSuggestionsMemoized(participants, teamType)
 }
 
-export const getChannelSuggestions = (state: TypedState, teamname: string) => {
-  if (!teamname) {
-    return []
-  }
-  // First try channelinfos (all channels in a team), then try inbox (the
-  // partial list of channels that you have joined).
-  const convs = state.teams.teamNameToChannelInfos.get(teamname)
-  if (convs) {
-    return convs
-      .toIndexedSeq()
-      .toList()
-      .map(conv => conv.channelname)
-      .toArray()
-  }
-  return [...state.chat2.metaMap.values()].filter(v => v.teamname === teamname).map(v => v.channelname)
-}
-
 export const getChannelForTeam = (state: TypedState, teamname: string, channelname: string) =>
   [...state.chat2.metaMap.values()].find(m => m.teamname === teamname && m.channelname === channelname) ||
   emptyMeta
