@@ -10,7 +10,7 @@ export type Props = {
   visible: boolean
 }
 
-const items = []
+const items: Kb.MenuItems = []
 
 const CoinFlipParticipants = (props: Props) => {
   const header = {

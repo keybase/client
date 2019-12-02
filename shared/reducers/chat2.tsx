@@ -1461,7 +1461,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   ...paymentActions,
   ...searchActions,
   ...attachmentActions,
-  ...teamBuilderReducerCreator<Actions, Types.State>(
+  ...teamBuilderReducerCreator<Types.State>(
     (draftState: Container.Draft<Types.State>, action: TeamBuildingGen.Actions) => {
       const val = editTeambuildingDraft('chat2', draftState.teamBuilding, action)
       if (val !== undefined) {
