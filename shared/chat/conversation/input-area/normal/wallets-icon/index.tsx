@@ -22,11 +22,13 @@ const WalletsIcon = (props: WalletsIconProps & Kb.OverlayParentProps) => (
       attachTo={props.getAttachmentRef}
       items={[
         {
+          icon: 'iconfont-stellar-send',
           newTag: props.isNew,
           onClick: props.onSend,
           title: 'Send Lumens (XLM)',
         },
         {
+          icon: 'iconfont-stellar-request',
           newTag: props.isNew,
           onClick: props.onRequest,
           title: 'Request Lumens (XLM)',

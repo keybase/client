@@ -7976,6 +7976,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-copy': {
+    charCode: 0xe9ae,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-crown-admin': {
     charCode: 0xe914,
     gridSize: 16,
@@ -8401,6 +8406,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-photo-library': {
+    charCode: 0xe9ac,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-pin': {
     charCode: 0xe9a8,
     gridSize: 16,
@@ -8628,6 +8638,11 @@ const iconMeta_ = {
   },
   'iconfont-usercard': {
     charCode: 0xe968,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-video-library': {
+    charCode: 0xe9ad,
     gridSize: 16,
     isFont: true,
   },

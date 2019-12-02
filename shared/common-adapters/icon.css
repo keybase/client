@@ -185,4 +185,7 @@
 .icon-gen-iconfont-film::before {content: "\e9a9";}
 .icon-gen-iconfont-share::before {content: "\e9aa";}
 .icon-gen-iconfont-hash::before {content: "\e9ab";}
+.icon-gen-iconfont-photo-library::before {content: "\e9ac";}
+.icon-gen-iconfont-video-library::before {content: "\e9ad";}
+.icon-gen-iconfont-copy::before {content: "\e9ae";}
 

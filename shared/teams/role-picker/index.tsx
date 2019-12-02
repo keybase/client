@@ -274,6 +274,9 @@ const styles = Styles.styleSheetCreate(
         },
         isMobile: {paddingTop: 4},
       }),
+      checkbox: {
+        ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
+      },
       checkIcon: {
         left: -24,
         paddingTop: 2,
@@ -405,17 +408,7 @@ export const sendNotificationFooter = (
   checked: boolean,
   onCheck: (nextVal: boolean) => void
 ) => (
-  <Kb.Box2
-    direction="horizontal"
-    fullWidth={true}
-    style={Styles.collapseStyles([
-      !Styles.isMobile && {
-        paddingBottom: Styles.globalMargins.tiny,
-        paddingLeft: Styles.globalMargins.small,
-        paddingTop: Styles.globalMargins.tiny,
-      },
-    ])}
-  >
+  <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.checkbox}>
     <Kb.Checkbox checked={checked} onCheck={onCheck} label={label} />
   </Kb.Box2>
 )

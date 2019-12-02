@@ -199,7 +199,11 @@ export default Container.connect(
       items.push({icon: 'iconfont-clipboard', onClick: dispatchProps._onCopy, title: 'Copy text'})
       items.push({icon: 'iconfont-reply', onClick: dispatchProps._onReply, title: 'Reply'})
       if (stateProps._canReplyPrivately) {
-        items.push({icon: 'iconfont-reply', onClick: dispatchProps._onReplyPrivately, title: 'Reply privately'})
+        items.push({
+          icon: 'iconfont-reply',
+          onClick: dispatchProps._onReplyPrivately,
+          title: 'Reply privately',
+        })
       }
       items.push({icon: 'iconfont-pin', onClick: dispatchProps._onPinMessage, title: 'Pin message'})
     }

@@ -13,14 +13,21 @@ type Props = {
 
 const AddPeopleHow = (props: Props) => {
   const items = [
-    {onClick: props.onAddPeople, subTitle: 'Keybase, Twitter, etc.', title: 'By username'},
     {
+      icon: 'iconfont-mention',
+      onClick: props.onAddPeople,
+      subTitle: 'Keybase, Twitter, etc.',
+      title: 'By username',
+    },
+    {
+      icon: 'iconfont-contact-card',
       onClick: props.onInvite,
       style: {borderTopWidth: 0},
       subTitle: 'friends@friendships.com',
       title: isMobile ? 'From address book' : 'By email',
     },
     {
+      icon: 'iconfont-hash',
       onClick: props.onSlackImport,
       style: {borderTopWidth: 0},
       subTitle: 'New! Migrate your team',

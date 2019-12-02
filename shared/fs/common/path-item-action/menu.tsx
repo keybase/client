@@ -157,6 +157,7 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => {
     ...(props.moveOrCopy
       ? [
           {
+            icon: 'iconfont-copy',
             onClick: hideMenuOnClick(props.moveOrCopy, hideMenu),
             title: 'Move or Copy',
           },

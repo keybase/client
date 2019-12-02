@@ -159,6 +159,7 @@ const PaymentPopup = (props: Props) => {
           ? [
               {
                 danger: true,
+                icon: 'iconfont-remove',
                 onClick: props.onCancel,
                 title: props.cancelButtonLabel,
               },
@@ -167,12 +168,15 @@ const PaymentPopup = (props: Props) => {
         ...(props.onSeeDetails
           ? [
               {
+                icon: 'iconfont-dollar-sign',
                 onClick: props.onSeeDetails,
                 title: 'See transaction details',
               },
             ]
           : []),
-        ...(props.onClaimLumens ? [{onClick: props.onClaimLumens, title: 'Claim lumens'}] : []),
+        ...(props.onClaimLumens
+          ? [{icon: 'iconfont-stellar-request', onClick: props.onClaimLumens, title: 'Claim lumens'}]
+          : []),
       ]
     : []
 

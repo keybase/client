@@ -52,7 +52,9 @@ const TextPopupMenu = (props: Props) => {
     ...((props.yourMessage && props.isDeleteable) || props.onDeleteMessageHistory
       ? (['Divider'] as const)
       : []),
-    ...(props.onViewMap ? [{icon: 'iconfont-location', onClick: props.onViewMap, title: 'View on Google Maps'}] : []),
+    ...(props.onViewMap
+      ? [{icon: 'iconfont-location', onClick: props.onViewMap, title: 'View on Google Maps'}]
+      : []),
     ...(props.onEdit && props.isEditable
       ? [
           {
@@ -62,12 +64,20 @@ const TextPopupMenu = (props: Props) => {
           },
         ]
       : []),
-    ...(props.onAddReaction ? [{icon: 'iconfont-reacji', onClick: props.onAddReaction, title: 'Add a reaction'}] : []),
+    ...(props.onAddReaction
+      ? [{icon: 'iconfont-reacji', onClick: props.onAddReaction, title: 'Add a reaction'}]
+      : []),
     ...(props.onCopy ? [{icon: 'iconfont-clipboard', onClick: props.onCopy, title: 'Copy text'}] : []),
     ...(props.onReply ? [{icon: 'iconfont-reply', onClick: props.onReply, title: 'Reply'}] : []),
-    ...(props.onReplyPrivately ? [{icon: 'iconfont-reply', onClick: props.onReplyPrivately, title: 'Reply privately'}] : []),
-    ...(props.onPinMessage ? [{icon: 'iconfont-pin', onClick: props.onPinMessage, title: 'Pin message'}] : []),
-    ...(props.onViewProfile ? [{icon: 'iconfont-person', onClick: props.onViewProfile, title: 'View profile'}] : []),
+    ...(props.onReplyPrivately
+      ? [{icon: 'iconfont-reply', onClick: props.onReplyPrivately, title: 'Reply privately'}]
+      : []),
+    ...(props.onPinMessage
+      ? [{icon: 'iconfont-pin', onClick: props.onPinMessage, title: 'Pin message'}]
+      : []),
+    ...(props.onViewProfile
+      ? [{icon: 'iconfont-person', onClick: props.onViewProfile, title: 'View profile'}]
+      : []),
   ]
 
   const header = {
