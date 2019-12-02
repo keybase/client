@@ -13,7 +13,7 @@ import logger from '../logger'
 import HiddenString from '../util/hidden-string'
 import partition from 'lodash/partition'
 import shallowEqual from 'shallowequal'
-import {mapGetEnsureValue} from '../util/map'
+import {mapGetEnsureValue, mapEqual} from '../util/map'
 
 type EngineActions =
   | EngineGen.Chat1NotifyChatChatTypingUpdatePayload
@@ -619,12 +619,24 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const unreadMap = new Map<Types.ConversationIDKey, number>()
     conversations.forEach(({convID, badgeCounts, unreadMessages}) => {
       const key = Types.conversationIDToKey(convID)
-      const count = badgeCounts[badgeKey] || 0
+      // if its big we treat the count as 1 or 0 so additional chats don't redraw us
+      const isBig = draftState.metaMap.get(key)?.teamType === 'big'
+      let count: number
+      if (isBig) {
+        count = badgeCounts[badgeKey] ? 1 : 0
+      } else {
+        count = badgeCounts[badgeKey] || 0
+      }
       badgeMap.set(key, count)
       unreadMap.set(key, unreadMessages)
     })
-    draftState.badgeMap = badgeMap
-    draftState.unreadMap = unreadMap
+
+    if (!mapEqual(draftState.badgeMap, badgeMap)) {
+      draftState.badgeMap = badgeMap
+    }
+    if (!mapEqual(draftState.unreadMap, unreadMap)) {
+      draftState.unreadMap = unreadMap
+    }
   },
   [Chat2Gen.messageSetEditing]: (draftState, action) => {
     const {conversationIDKey, editLastUser, ordinal} = action.payload
