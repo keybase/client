@@ -32,92 +32,91 @@ type State = {
   text: string
 }
 
-const ThreadSearch = ThreadSearcher => {
-  return class extends React.Component<Props, State> {
-    state = {selectedIndex: 0, text: ''}
-    _lastSearch: string = ''
+class ThreadSearch extends React.Component<Props, State> {
+  state = {selectedIndex: 0, text: ''}
+  _lastSearch: string = ''
 
-    _submitSearch = () => {
-      this._lastSearch = this.state.text
-      this.setState({selectedIndex: 0})
-      this.props.onSearch(this.state.text)
-    }
+  _submitSearch = () => {
+    this._lastSearch = this.state.text
+    this.setState({selectedIndex: 0})
+    this.props.onSearch(this.state.text)
+  }
 
-    _selectResult = (index: number) => {
-      this.props.loadSearchHit(index)
-      this.setState({selectedIndex: index})
-    }
+  _selectResult = (index: number) => {
+    this.props.loadSearchHit(index)
+    this.setState({selectedIndex: index})
+  }
 
-    _onEnter = () => {
-      if (this._lastSearch === this.state.text) {
-        this._onUp()
-      } else {
-        this._submitSearch()
-      }
+  _onEnter = () => {
+    if (this._lastSearch === this.state.text) {
+      this._onUp()
+    } else {
+      this._submitSearch()
     }
+  }
 
-    _onUp = () => {
-      if (this.state.selectedIndex >= this.props.hits.length - 1) {
-        this._selectResult(0)
-        return
-      }
-      this._selectResult(this.state.selectedIndex + 1)
+  _onUp = () => {
+    if (this.state.selectedIndex >= this.props.hits.length - 1) {
+      this._selectResult(0)
+      return
     }
+    this._selectResult(this.state.selectedIndex + 1)
+  }
 
-    _onDown = () => {
-      if (this.state.selectedIndex <= 0) {
-        this._selectResult(this.props.hits.length - 1)
-        return
-      }
-      this._selectResult(this.state.selectedIndex - 1)
+  _onDown = () => {
+    if (this.state.selectedIndex <= 0) {
+      this._selectResult(this.props.hits.length - 1)
+      return
     }
+    this._selectResult(this.state.selectedIndex - 1)
+  }
 
-    _onChangedText = (text: string) => {
-      this.setState({text})
-    }
+  _onChangedText = (text: string) => {
+    this.setState({text})
+  }
 
-    _inProgress = () => {
-      return this.props.status === 'inprogress'
-    }
+  _inProgress = () => {
+    return this.props.status === 'inprogress'
+  }
 
-    _hasResults = () => {
-      return this.props.status === 'done' || this.props.hits.length > 0
+  _hasResults = () => {
+    return this.props.status === 'done' || this.props.hits.length > 0
+  }
+  _maybeSetInitialText = () => {
+    if (this.props.initialText) {
+      this.props.clearInitialText()
+      this.setState({text: this.props.initialText})
     }
-    _maybeSetInitialText = () => {
-      if (this.props.initialText) {
-        this.props.clearInitialText()
-        this.setState({text: this.props.initialText})
-      }
-    }
+  }
 
-    componentDidMount() {
-      this._maybeSetInitialText()
-    }
+  componentDidMount() {
+    this._maybeSetInitialText()
+  }
 
-    componentDidUpdate(prevProps: Props) {
-      if (prevProps.hits.length === 0 && this.props.hits.length > 0) {
-        this._selectResult(0)
-      }
-      this._maybeSetInitialText()
+  componentDidUpdate(prevProps: Props) {
+    if (prevProps.hits.length === 0 && this.props.hits.length > 0) {
+      this._selectResult(0)
     }
+    this._maybeSetInitialText()
+  }
 
-    render() {
-      return (
-        <ThreadSearcher
-          {...this.props}
-          submitSearch={this._submitSearch}
-          selectResult={this._selectResult}
-          selectedIndex={this.state.selectedIndex}
-          onEnter={this._onEnter}
-          onUp={this._onUp}
-          onDown={this._onDown}
-          onChangedText={this._onChangedText}
-          inProgress={this._inProgress}
-          hasResults={this._hasResults}
-          text={this.state.text}
-        />
-      )
-    }
+  render() {
+    const Searcher = Styles.isMobile ? ThreadSearchMobile : ThreadSearchDesktop
+    return (
+      <Searcher
+        {...this.props}
+        submitSearch={this._submitSearch}
+        selectResult={this._selectResult}
+        selectedIndex={this.state.selectedIndex}
+        onEnter={this._onEnter}
+        onUp={this._onUp}
+        onDown={this._onDown}
+        onChangedText={this._onChangedText}
+        inProgress={this._inProgress}
+        hasResults={this._hasResults}
+        text={this.state.text}
+      />
+    )
   }
 }
 
@@ -138,7 +137,7 @@ type SearchProps = {
 
 class ThreadSearchDesktop extends React.Component<SearchProps & Props> {
   _inputRef = React.createRef<Kb.PlainInput>()
-  _onKeydown = e => {
+  _onKeyDown = (e: React.KeyboardEvent) => {
     switch (e.key) {
       case 'Escape':
         this.props.selfHide()
@@ -166,7 +165,7 @@ class ThreadSearchDesktop extends React.Component<SearchProps & Props> {
     }
   }
 
-  _renderHit = (index, item) => {
+  _renderHit = (index: number, item: SearchHit) => {
     return (
       <Kb.ClickableBox key={index} onClick={() => this.props.selectResult(index)} style={styles.hitRow}>
         <Kb.Avatar username={item.author} size={24} />
@@ -200,7 +199,7 @@ class ThreadSearchDesktop extends React.Component<SearchProps & Props> {
                 flexable={true}
                 onChangeText={this.props.onChangedText}
                 onEnterKeyDown={this.props.onEnter}
-                onKeyDown={this._onKeydown}
+                onKeyDown={this._onKeyDown}
                 placeholder="Search..."
                 ref={this._inputRef}
                 value={this.props.text}
@@ -246,60 +245,56 @@ class ThreadSearchDesktop extends React.Component<SearchProps & Props> {
   }
 }
 
-class ThreadSearchMobile extends React.Component<SearchProps & Props> {
-  render() {
-    return (
-      <Kb.Box2 direction="horizontal" style={this.props.style}>
-        <Kb.Box2 direction="horizontal" style={styles.outerContainer} gap="tiny">
-          <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.doneContainer}>
-            <Kb.Text type="BodySemibold" style={styles.done} onClick={this.props.onCancel}>
-              Cancel
-            </Kb.Text>
-          </Kb.Box2>
-          <Kb.Box2 direction="horizontal" style={styles.inputContainer}>
-            <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.queryContainer} centerChildren={true}>
-              <Kb.PlainInput
-                autoFocus={true}
-                flexable={true}
-                onChangeText={this.props.onChangedText}
-                onEnterKeyDown={this.props.onEnter}
-                placeholder="Search..."
-                returnKeyType="search"
-                value={this.props.text}
-              />
+const ThreadSearchMobile = (props: SearchProps & Props) => (
+  <Kb.Box2 direction="horizontal" style={props.style}>
+    <Kb.Box2 direction="horizontal" style={styles.outerContainer} gap="tiny">
+      <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.doneContainer}>
+        <Kb.Text type="BodySemibold" style={styles.done} onClick={props.onCancel}>
+          Cancel
+        </Kb.Text>
+      </Kb.Box2>
+      <Kb.Box2 direction="horizontal" style={styles.inputContainer}>
+        <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.queryContainer} centerChildren={true}>
+          <Kb.PlainInput
+            autoFocus={true}
+            flexable={true}
+            onChangeText={props.onChangedText}
+            onEnterKeyDown={props.onEnter}
+            placeholder="Search..."
+            returnKeyType="search"
+            value={props.text}
+          />
+        </Kb.Box2>
+        <Kb.Box2 direction="horizontal" gap="tiny" style={styles.resultsContainer}>
+          {props.inProgress() && <Kb.ProgressIndicator style={styles.progress} />}
+          {props.hasResults() && (
+            <Kb.Box2 direction="horizontal" gap="tiny">
+              <Kb.Text type="BodySmall" style={styles.results}>
+                {props.status === 'done' && props.hits.length === 0
+                  ? 'No results'
+                  : `${props.selectedIndex + 1} of ${props.hits.length}`}
+              </Kb.Text>
             </Kb.Box2>
-            <Kb.Box2 direction="horizontal" gap="tiny" style={styles.resultsContainer}>
-              {this.props.inProgress() && <Kb.ProgressIndicator style={styles.progress} />}
-              {this.props.hasResults() && (
-                <Kb.Box2 direction="horizontal" gap="tiny">
-                  <Kb.Text type="BodySmall" style={styles.results}>
-                    {this.props.status === 'done' && this.props.hits.length === 0
-                      ? 'No results'
-                      : `${this.props.selectedIndex + 1} of ${this.props.hits.length}`}
-                  </Kb.Text>
-                </Kb.Box2>
-              )}
-            </Kb.Box2>
-          </Kb.Box2>
-          <Kb.Box2 direction="horizontal" gap="tiny">
-            <Kb.Icon
-              color={this.props.hits.length > 0 ? Styles.globalColors.blue : Styles.globalColors.black_50}
-              onClick={this.props.onUp}
-              type="iconfont-arrow-up"
-            />
-            <Kb.Icon
-              color={this.props.hits.length > 0 ? Styles.globalColors.blue : Styles.globalColors.black_50}
-              onClick={this.props.onDown}
-              type="iconfont-arrow-down"
-            />
-          </Kb.Box2>
+          )}
         </Kb.Box2>
       </Kb.Box2>
-    )
-  }
-}
+      <Kb.Box2 direction="horizontal" gap="tiny">
+        <Kb.Icon
+          color={props.hits.length > 0 ? Styles.globalColors.blue : Styles.globalColors.black_50}
+          onClick={props.onUp}
+          type="iconfont-arrow-up"
+        />
+        <Kb.Icon
+          color={props.hits.length > 0 ? Styles.globalColors.blue : Styles.globalColors.black_50}
+          onClick={props.onDown}
+          type="iconfont-arrow-down"
+        />
+      </Kb.Box2>
+    </Kb.Box2>
+  </Kb.Box2>
+)
 
-export default ThreadSearch(Styles.isMobile ? ThreadSearchMobile : ThreadSearchDesktop)
+export default ThreadSearch
 
 const styles = Styles.styleSheetCreate(
   () =>
@@ -361,7 +356,7 @@ const styles = Styles.styleSheetCreate(
         padding: Styles.globalMargins.tiny,
       },
       progress: {
-        height: 14,
+        height: 16,
       },
       queryContainer: {
         flex: 1,

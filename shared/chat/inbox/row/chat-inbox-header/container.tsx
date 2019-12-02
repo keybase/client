@@ -1,6 +1,5 @@
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
-import * as Constants from '../../../../constants/chat2'
 import {namedConnect, isMobile} from '../../../../util/container'
 import ChatInboxHeader from '.'
 import HiddenString from '../../../../util/hidden-string'
@@ -10,7 +9,9 @@ export default namedConnect(
   state => {
     const hasLoadedEmptyInbox =
       state.chat2.inboxHasLoaded &&
-      !state.chat2.metaMap.some((_, id) => Constants.isValidConversationIDKey(id))
+      !!state.chat2.inboxLayout &&
+      (state.chat2.inboxLayout.smallTeams || []).length === 0 &&
+      (state.chat2.inboxLayout.bigTeams || []).length === 0
     const showEmptyInbox = !state.chat2.inboxSearch && hasLoadedEmptyInbox
     return {
       isSearching: !!state.chat2.inboxSearch,

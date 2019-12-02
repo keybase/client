@@ -47,7 +47,7 @@ const CaptionedDangerIcon = ({
   const color = noDanger ? undefined : Styles.globalColors.redDark
   let slot: React.ReactNode = null
   if (spinner) {
-    slot = <Kb.ProgressIndicator style={{marginRight: 10, width: Styles.globalMargins.medium}} />
+    slot = <Kb.ProgressIndicator type="Small" style={{marginRight: 10}} />
   } else if (icon) {
     slot = <Kb.Icon type={icon} style={{marginRight: Styles.globalMargins.tiny}} color={color} />
   } else {
@@ -66,7 +66,11 @@ const CaptionedDangerIcon = ({
       onClick={onClick}
     >
       {slot}
-      <Kb.Text type="BodySemibold" style={{color: color}} className="hover-underline">
+      <Kb.Text
+        type="BodySemibold"
+        style={{color: color ? color : Styles.globalColors.black}}
+        className="hover-underline"
+      >
         {caption}
       </Kb.Text>
       <Kb.Box style={{marginRight: 10, width: Styles.globalMargins.medium}} />

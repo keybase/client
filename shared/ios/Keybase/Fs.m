@@ -89,9 +89,14 @@
 }
 
 - (NSString*) setupAppHome:(NSString*)home sharedHome:(NSString*)sharedHome {
+  NSURL* tempUrl = [[NSFileManager defaultManager] temporaryDirectory];
+  // workaround a problem where iOS dyld3 loader crashes if accessing .closure files
+  // with complete data protection on
+  NSString* dyldDir = [NSString stringWithFormat:@"%@/com.apple.dyld", [tempUrl path]];
   // Setup all directories
   NSString* appKeybasePath = [@"~/Library/Application Support/Keybase" stringByExpandingTildeInPath];
   NSString* appEraseableKVPath = [@"~/Library/Application Support/Keybase/eraseablekvstore/device-eks" stringByExpandingTildeInPath];
+  [self createBackgroundReadableDirectory:dyldDir setAllFiles:YES];
   [self createBackgroundReadableDirectory:appKeybasePath setAllFiles:YES];
   [self createBackgroundReadableDirectory:appEraseableKVPath setAllFiles:YES];
   [self addSkipBackupAttributeToItemAtPath:appKeybasePath];

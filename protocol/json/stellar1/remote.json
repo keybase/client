@@ -1304,6 +1304,18 @@
       ],
       "response": "DetailsPlusPayments"
     },
+    "allDetailsPlusPayments": {
+      "request": [
+        {
+          "name": "caller",
+          "type": "keybase1.UserVersion"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "DetailsPlusPayments"
+      }
+    },
     "assetSearch": {
       "request": [
         {

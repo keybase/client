@@ -35,8 +35,9 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
         path: [{props: {path: Constants.rebasePathToDifferentTlf(ownProps.path, tlfPath)}, selected: 'main'}],
       })
     ),
-  onHelp: () => openUrl('https://keybase.io/docs/kbfs/understanding_kbfs#conflict_resolution'),
+  onHelp: () => openUrl('https://keybase.io/docs/kbfs/understanding_kbfs#conflict-resolution'),
   onStartResolving: () => dispatch(FsGen.createStartManualConflictResolution({tlfPath: ownProps.path})),
+  openInSystemFileManager: (path: Types.Path) => dispatch(FsGen.createOpenPathInSystemFileManager({path})),
 })
 
 const ConnectedBanner = Container.namedConnect(

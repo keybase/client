@@ -14,85 +14,11 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-func TestPassphraseRecoverLegacy(t *testing.T) {
-	tc := SetupEngineTest(t, "PassphraseRecoverLegacy")
-	defer tc.Cleanup()
-	u, paperkey := CreateAndSignupLPK(tc, "pprec")
-
-	// Changing the password is covered by systests, here we're only
-	// testing the typical recovery flow where user only has a paper key.
-	Logout(tc)
-
-	// Prepare some UIs to make all of this actually work
-	uis := libkb.UIs{
-		LogUI:    tc.G.UI.GetLogUI(),
-		LoginUI:  &libkb.TestLoginUI{},
-		SecretUI: u.NewSecretUI(),
-	}
-	m := NewMetaContextForTest(tc).WithUIs(uis)
-
-	// Now an invalid username should result in a NotProvisioned error
-	arg := keybase1.RecoverPassphraseArg{
-		Username: "doesntexist",
-	}
-	require.Equal(t, libkb.NotProvisionedError{},
-		NewPassphraseRecover(tc.G, arg).Run(m))
-
-	// This also applies to any account which was not provisioned on the device
-	tc2 := SetupEngineTest(t, "PassphraseRecoverLegacy2")
-	defer tc2.Cleanup()
-	u2 := CreateAndSignupFakeUser(tc2, "pprec")
-	arg.Username = u2.Username
-	require.Equal(t, libkb.NotProvisionedError{},
-		NewPassphraseRecover(tc.G, arg).Run(m))
-
-	// Both "" and u.Username should get the user into the LoginWithPaperKey
-	// flow. These tries should both fail with RetryExhausted, since we're not
-	// passing a paper key.
-
-	// First test out an empty string, so that it defaults to the currently
-	// configured user
-	arg.Username = ""
-	require.Equal(t, libkb.RetryExhaustedError{},
-		NewPassphraseRecover(tc.G, arg).Run(m))
-
-	// And the actual username
-	arg.Username = u.Username
-	require.Equal(t, libkb.RetryExhaustedError{},
-		NewPassphraseRecover(tc.G, arg).Run(m))
-
-	// Now we're getting into actual password changing, but we want to fail
-	// on new password input
-	uis.SecretUI = &TestSecretUIRecover{
-		T:        t,
-		PaperKey: paperkey,
-	}
-	m = m.WithUIs(uis)
-	require.IsType(t, libkb.PassphraseError{},
-		NewPassphraseRecover(tc.G, arg).Run(m))
-	// We should not be logged in even though paperKey login succeeded
-	AssertLoggedInLPK(&tc, false)
-	AssertDeviceKeysLock(&tc, false)
-
-	// And successfully change the password with a password that's long enough
-	uis.SecretUI = &TestSecretUIRecover{
-		T:        t,
-		PaperKey: paperkey,
-		Password: "test1234",
-	}
-	m = m.WithUIs(uis)
-	require.NoError(t, NewPassphraseRecover(tc.G, arg).Run(m))
-	require.NoError(t, AssertLoggedIn(tc))
-	require.NoError(t, AssertProvisioned(tc))
-}
-
 func TestPassphraseRecoverLoggedIn(t *testing.T) {
 	tc := SetupEngineTest(t, "PassphraseRecoverGuideAndReset")
 	defer tc.Cleanup()
-	libkb.AddEnvironmentFeatureForTest(tc, libkb.EnvironmentFeatureAutoresetPipeline)
 	u := CreateAndSignupFakeUser(tc, "pprec")
 
-	// Any input should result in a noop.
 	loginUI := &TestLoginUIRecover{}
 	uis := libkb.UIs{
 		LogUI:       tc.G.UI.GetLogUI(),
@@ -102,27 +28,27 @@ func TestPassphraseRecoverLoggedIn(t *testing.T) {
 	}
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 
-	// 1) Invalid username
-	arg := keybase1.RecoverPassphraseArg{
-		Username: "doesntexist",
+	args := []keybase1.RecoverPassphraseArg{
+		// 1) Invalid username
+		{Username: "doesntexist"},
+		// 2) No username (last configured device)
+		{},
+		// 3) Valid username
+		{Username: u.Username},
 	}
-	require.NoError(t, NewPassphraseRecover(tc.G, arg).Run(m))
 
-	// 2) No username (last configured device)
-	arg = keybase1.RecoverPassphraseArg{}
-	require.NoError(t, NewPassphraseRecover(tc.G, arg).Run(m))
-
-	// 3) Valid username
-	arg = keybase1.RecoverPassphraseArg{
-		Username: u.Username,
+	for _, arg := range args {
+		// The args don't matter - passphrase recover does not work when you
+		// are logged in.
+		err := NewPassphraseRecover(tc.G, arg).Run(m)
+		require.Error(t, err)
+		require.IsType(t, err, libkb.LoggedInError{})
 	}
-	require.NoError(t, NewPassphraseRecover(tc.G, arg).Run(m))
 }
 
 func TestPassphraseRecoverGuideAndReset(t *testing.T) {
 	tc := SetupEngineTest(t, "PassphraseRecoverGuideAndReset")
 	defer tc.Cleanup()
-	libkb.AddEnvironmentFeatureForTest(tc, libkb.EnvironmentFeatureAutoresetPipeline)
 	u := CreateAndSignupFakeUser(tc, "pprec")
 	Logout(tc)
 
@@ -151,6 +77,7 @@ func TestPassphraseRecoverGuideAndReset(t *testing.T) {
 
 	// Make sure that empty username shows the correct devices
 	arg.Username = ""
+	loginUI.chooseDevice = "desktop"
 	require.NoError(t, NewPassphraseRecover(tc.G, arg).Run(m))
 	require.Equal(t, keybase1.DeviceType_DESKTOP, loginUI.lastExplain.Kind)
 	require.Equal(t, defaultDeviceName, loginUI.lastExplain.Name)
@@ -174,8 +101,8 @@ func TestPassphraseRecoverGuideAndReset(t *testing.T) {
 	// accounts.
 	loginUI.Reset()
 	loginUI.PassphraseRecovery = true
-	loginUI.ResetAccount = true
-	uis.ProvisionUI = newTestProvisionUIChooseNoDevice()
+	loginUI.ResetAccount = keybase1.ResetPromptResponse_CONFIRM_RESET
+	loginUI.chooseDevice = "none"
 	m = NewMetaContextForTest(tc).WithUIs(uis)
 
 	arg.Username = u.Username
@@ -189,10 +116,9 @@ func TestPassphraseRecoverGuideAndReset(t *testing.T) {
 	require.Nil(t, assertAutoreset(tc, u2.UID(), libkb.AutoresetEventStart))
 }
 
-func TestPassphraseRecoverNoDevices(t *testing.T) {
-	tc := SetupEngineTest(t, "PassphraseRecoverNoDevices")
+func TestPassphraseRecoverPGPOnly(t *testing.T) {
+	tc := SetupEngineTest(t, "PassphraseRecoverPGPOnly")
 	defer tc.Cleanup()
-	libkb.AddEnvironmentFeatureForTest(tc, libkb.EnvironmentFeatureAutoresetPipeline)
 	u := createFakeUserWithPGPOnly(t, tc)
 
 	// If the only way to provision the account is to do it with a password,
@@ -200,7 +126,7 @@ func TestPassphraseRecoverNoDevices(t *testing.T) {
 	loginUI := &TestLoginUIRecover{
 		TestLoginUI: libkb.TestLoginUI{
 			PassphraseRecovery: true,
-			ResetAccount:       true,
+			ResetAccount:       keybase1.ResetPromptResponse_CONFIRM_RESET,
 		},
 	}
 	uis := libkb.UIs{
@@ -216,18 +142,50 @@ func TestPassphraseRecoverNoDevices(t *testing.T) {
 	}
 	require.NoError(t, NewPassphraseRecover(tc.G, arg).Run(m))
 	require.Nil(t, loginUI.lastExplain)
+
+	// Should be pending verification
 	require.Nil(t, assertAutoreset(tc, u.UID(), libkb.AutoresetEventStart))
+}
+
+func TestPassphraseRecoverNoDevices(t *testing.T) {
+	tc := SetupEngineTest(t, "PassphraseRecoverNoDevices")
+	defer tc.Cleanup()
+	username, passphrase := createFakeUserWithNoKeys(tc)
+
+	// If the only way to provision the account is to do it with a password,
+	// the flow should immediately go to autoreset.
+	loginUI := &TestLoginUIRecover{
+		TestLoginUI: libkb.TestLoginUI{
+			PassphraseRecovery: true,
+			ResetAccount:       keybase1.ResetPromptResponse_CONFIRM_RESET,
+		},
+	}
+	uis := libkb.UIs{
+		LogUI:       tc.G.UI.GetLogUI(),
+		LoginUI:     loginUI,
+		SecretUI:    &libkb.TestSecretUI{Passphrase: passphrase},
+		ProvisionUI: newTestProvisionUINoSecret(),
+	}
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+
+	arg := keybase1.RecoverPassphraseArg{
+		Username: username,
+	}
+	require.NoError(t, NewPassphraseRecover(tc.G, arg).Run(m))
+	require.Nil(t, loginUI.lastExplain)
+
+	// Should not be in the reset queue
+	require.Nil(t, assertAutoreset(tc, libkb.UsernameToUID(username), -1))
 }
 
 func TestPassphraseRecoverChangeWithPaper(t *testing.T) {
 	tc1 := SetupEngineTest(t, "PassphraseRecoverChangeWithPaper")
 	defer tc1.Cleanup()
-	libkb.AddEnvironmentFeatureForTest(tc1, libkb.EnvironmentFeatureAutoresetPipeline)
 
 	// Prepare two accounts on the same device
 	u1, paperkey1 := CreateAndSignupLPK(tc1, "pprec")
 	Logout(tc1)
-	_, paperkey2 := CreateAndSignupLPK(tc1, "pprec")
+	u2, paperkey2 := CreateAndSignupLPK(tc1, "pprec")
 	Logout(tc1)
 
 	// And a third one on another one
@@ -237,7 +195,6 @@ func TestPassphraseRecoverChangeWithPaper(t *testing.T) {
 	Logout(tc2)
 
 	loginUI := &TestLoginUIRecover{}
-	provisionUI := newTestProvisionUIPaper()
 	uis := libkb.UIs{
 		LogUI:   tc1.G.UI.GetLogUI(),
 		LoginUI: loginUI,
@@ -246,19 +203,21 @@ func TestPassphraseRecoverChangeWithPaper(t *testing.T) {
 			PaperKey: paperkey2,
 			Password: "test1234",
 		},
-		ProvisionUI: provisionUI,
+		ProvisionUI: newTestProvisionUI(),
 	}
 	m := NewMetaContextForTest(tc1).WithUIs(uis)
 	arg := keybase1.RecoverPassphraseArg{}
 
-	// (2) should work with no username passed on tc1
+	// should work with no username passed on tc1
 	arg.Username = ""
+	loginUI.chooseDevice = "backup"
+	loginUI.Username = u2.Username
 	require.NoError(t, NewPassphraseRecover(tc1.G, arg).Run(m))
 	require.NoError(t, AssertLoggedIn(tc1))
 	require.NoError(t, AssertProvisioned(tc1))
 	Logout(tc1)
 
-	// (1) should work the same way with a username passed
+	// should work the same way with a username passed
 	uis.SecretUI = &TestSecretUIRecover{
 		T:        t,
 		PaperKey: paperkey1,
@@ -266,6 +225,7 @@ func TestPassphraseRecoverChangeWithPaper(t *testing.T) {
 	}
 	m = m.WithUIs(uis)
 	arg.Username = u1.Username
+	loginUI.Username = ""
 	require.NoError(t, NewPassphraseRecover(tc1.G, arg).Run(m))
 	require.NoError(t, AssertLoggedIn(tc1))
 	require.NoError(t, AssertProvisioned(tc1))
@@ -277,14 +237,16 @@ func TestPassphraseRecoverChangeWithPaper(t *testing.T) {
 		PaperKey: paperkey3,
 		Password: "test1234",
 	}
-	provisionUI = newTestProvisionUIPaper()
-	uis.ProvisionUI = provisionUI
+	loginUI = &TestLoginUIRecover{
+		chooseDevice: "paper",
+	}
+	uis.LoginUI = loginUI
 	m = m.WithUIs(uis)
 	arg.Username = u3.Username
 
 	require.NoError(t, NewPassphraseRecover(tc1.G, arg).Run(m))
-	require.Equal(t, 1, provisionUI.calledChooseDevice)
-	for _, device := range provisionUI.lastDevices {
+	require.Equal(t, 1, loginUI.calledChooseDevice)
+	for _, device := range loginUI.lastDevices {
 		require.NotEqual(t, libkb.DeviceTypePaper, device.Type)
 	}
 	require.Error(t, AssertLoggedIn(tc1))
@@ -322,6 +284,10 @@ func (t *TestSecretUIRecover) GetPassphrase(p keybase1.GUIEntryArg, terminal *ke
 type TestLoginUIRecover struct {
 	libkb.TestLoginUI
 
+	calledChooseDevice int
+	chooseDevice       string
+	lastDevices        []keybase1.Device
+
 	lastExplain *keybase1.ExplainDeviceRecoveryArg
 }
 
@@ -332,4 +298,21 @@ func (t *TestLoginUIRecover) ExplainDeviceRecovery(_ context.Context, arg keybas
 
 func (t *TestLoginUIRecover) Reset() {
 	t.lastExplain = nil
+}
+
+func (t *TestLoginUIRecover) ChooseDeviceToRecoverWith(_ context.Context, arg keybase1.ChooseDeviceToRecoverWithArg) (keybase1.DeviceID, error) {
+	t.calledChooseDevice++
+	t.lastDevices = arg.Devices
+
+	if len(arg.Devices) == 0 || t.chooseDevice == "none" {
+		return "", nil
+	}
+	if len(t.chooseDevice) > 0 {
+		for _, d := range arg.Devices {
+			if d.Type == t.chooseDevice {
+				return d.DeviceID, nil
+			}
+		}
+	}
+	return "", nil
 }

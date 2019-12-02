@@ -163,6 +163,11 @@
           "type": "string",
           "name": "svgFull",
           "jsonkey": "svg_full"
+        },
+        {
+          "type": "string",
+          "name": "svgWhite",
+          "jsonkey": "svg_white"
         }
       ]
     },

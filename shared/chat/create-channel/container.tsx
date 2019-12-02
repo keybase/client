@@ -3,7 +3,7 @@ import * as TeamsGen from '../../actions/teams-gen'
 import CreateChannel from '.'
 import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import {upperFirst} from 'lodash-es'
+import upperFirst from 'lodash/upperFirst'
 
 type OwnProps = Container.RouteProps<{teamname: string}>
 

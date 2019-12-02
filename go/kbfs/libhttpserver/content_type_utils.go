@@ -5,20 +5,26 @@
 package libhttpserver
 
 import (
+	"errors"
 	"net/http"
+	"strconv"
 	"strings"
+
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 type contentTypeOverridingResponseWriter struct {
-	original http.ResponseWriter
+	original           http.ResponseWriter
+	viewTypeInvariance string
 }
 
 var _ http.ResponseWriter = (*contentTypeOverridingResponseWriter)(nil)
 
 func newContentTypeOverridingResponseWriter(
-	original http.ResponseWriter) *contentTypeOverridingResponseWriter {
+	original http.ResponseWriter, viewTypeInvariance string) *contentTypeOverridingResponseWriter {
 	return &contentTypeOverridingResponseWriter{
-		original: original,
+		original:           original,
+		viewTypeInvariance: viewTypeInvariance,
 	}
 }
 
@@ -50,6 +56,73 @@ func getDisposition(defaultInlineValue bool, mimeType string) string {
 // we'd guess content encoding based on content, but there might not be an easy
 // way to do that as even Go's DetectContentType just uses utf-8 by default.
 const textPlainUtf8 = "text/plain; charset=utf-8"
+
+func beforeSemicolon(str string) string {
+	semicolonIndex := strings.Index(str, ";")
+	if semicolonIndex > 0 {
+		str = str[:semicolonIndex]
+	}
+	return strings.ToLower(strings.TrimSpace(str))
+}
+
+var supportedImgMimeTypes = map[string]bool{
+	"image/png":  true,
+	"image/jpeg": true,
+	"image/gif":  true,
+	"image/webp": true,
+}
+
+func getGUIFileContext(contentTypeRaw, contentDispositionRaw string) (
+	viewType keybase1.GUIViewType, invariance string) {
+	contentTypeProcessed := beforeSemicolon(contentTypeRaw)
+	disposition := beforeSemicolon(contentDispositionRaw)
+
+	if disposition == "attachment" {
+		viewType = keybase1.GUIViewType_DEFAULT
+		return viewType, strconv.Itoa(int(viewType))
+	}
+
+	switch {
+	case strings.HasPrefix(contentTypeProcessed, "text/"):
+		viewType = keybase1.GUIViewType_TEXT
+	case supportedImgMimeTypes[contentTypeProcessed]:
+		viewType = keybase1.GUIViewType_IMAGE
+	case strings.HasPrefix(contentTypeProcessed, "audio/"):
+		viewType = keybase1.GUIViewType_AUDIO
+	case strings.HasPrefix(contentTypeProcessed, "video/"):
+		viewType = keybase1.GUIViewType_VIDEO
+	case contentTypeProcessed == "application/pdf":
+		viewType = keybase1.GUIViewType_PDF
+	default:
+		viewType = (keybase1.GUIViewType_DEFAULT)
+	}
+
+	return viewType, strconv.Itoa(int(viewType))
+}
+
+func getGUIInvarianceFromHTTPHeader(header http.Header) (invariance string) {
+	contentTypeRaw := header.Get("Content-Type")
+	contentDispositionRaw := (header.Get("Content-Disposition"))
+	_, invariance = getGUIFileContext(contentTypeRaw, contentDispositionRaw)
+	return invariance
+}
+
+// GetGUIFileContextFromContentType returns necessary data used by GUI for
+// displaying file previews.
+//
+// The invariance here is derived from viewType, and later added into the url
+// returned to GUI. When a file is requested from the the http server and an
+// invariance field is specified, we make sure the viewType of the file we
+// serve satisfies the invariance provided. This makes sure the viewType
+// doesn't change between when GUI learnt about it and when GUI requested it
+// over HTTP from the webview.
+func GetGUIFileContextFromContentType(contentTypeRaw string) (
+	viewType keybase1.GUIViewType, invariance string) {
+	contentTypeProcessed := beforeSemicolon(contentTypeRaw)
+	disposition := getDisposition(true, contentTypeProcessed)
+	viewType, invariance = getGUIFileContext(contentTypeRaw, disposition)
+	return viewType, invariance
+}
 
 func (w *contentTypeOverridingResponseWriter) calculateOverride(
 	mimeType string) (newMimeType, disposition string) {
@@ -88,17 +161,36 @@ func (w *contentTypeOverridingResponseWriter) override() {
 	w.original.Header().Set("X-Content-Type-Options", "nosniff")
 }
 
+func (w *contentTypeOverridingResponseWriter) checkViewTypeInvariance() error {
+	if len(w.viewTypeInvariance) == 0 {
+		return nil
+	}
+	if i := getGUIInvarianceFromHTTPHeader(w.original.Header()); i == w.viewTypeInvariance {
+		return nil
+	}
+	w.original.WriteHeader(http.StatusPreconditionFailed)
+	return errors.New("viewTypeInvariance doesn't match")
+}
+
 func (w *contentTypeOverridingResponseWriter) Header() http.Header {
 	return w.original.Header()
 }
 
 func (w *contentTypeOverridingResponseWriter) WriteHeader(statusCode int) {
 	w.override()
+	if statusCode == http.StatusOK {
+		if err := w.checkViewTypeInvariance(); err != nil {
+			return
+		}
+	}
 	w.original.WriteHeader(statusCode)
 }
 
 func (w *contentTypeOverridingResponseWriter) Write(data []byte) (int, error) {
 	w.override()
+	if err := w.checkViewTypeInvariance(); err != nil {
+		return 0, err
+	}
 	return w.original.Write(data)
 }
 

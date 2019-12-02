@@ -178,12 +178,62 @@ func NewCmdPprofCPURunner(g *libkb.GlobalContext) *CmdPprofCPU {
 	}
 }
 
+type CmdPprofHeap struct {
+	libkb.Contextified
+	profileFile string
+}
+
+func (c *CmdPprofHeap) ParseArgv(ctx *cli.Context) error {
+	args := ctx.Args()
+	if len(args) != 1 {
+		return errors.New("must specify a output file")
+	}
+	absPath, err := filepath.Abs(args.First())
+	if err != nil {
+		return err
+	}
+	c.profileFile = absPath
+	return nil
+}
+
+func (c *CmdPprofHeap) Run() error {
+	cli, err := GetPprofClient(c.G())
+	if err != nil {
+		return err
+	}
+	if err = RegisterProtocolsWithContext(nil, c.G()); err != nil {
+		return err
+	}
+	return cli.HeapProfile(context.TODO(), keybase1.HeapProfileArg{
+		SessionID:   0,
+		ProfileFile: c.profileFile,
+	})
+}
+
+func NewCmdPprofHeap(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	return cli.Command{
+		Name:         "heap",
+		ArgumentHelp: "[/path/to/heap.profile.out]",
+		Usage:        "Write out a heap profile.",
+		Action: func(c *cli.Context) {
+			cl.ChooseCommand(NewCmdPprofHeapRunner(g), "heap", c)
+		},
+	}
+}
+
+func NewCmdPprofHeapRunner(g *libkb.GlobalContext) *CmdPprofHeap {
+	return &CmdPprofHeap{
+		Contextified: libkb.NewContextified(g),
+	}
+}
+
 func NewCmdPprof(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name: "pprof",
 		Subcommands: []cli.Command{
 			NewCmdPprofTrace(cl, g),
 			NewCmdPprofCPU(cl, g),
+			NewCmdPprofHeap(cl, g),
 		},
 	}
 }
@@ -196,6 +246,13 @@ func (c *CmdPprofTrace) GetUsage() libkb.Usage {
 }
 
 func (c *CmdPprofCPU) GetUsage() libkb.Usage {
+	return libkb.Usage{
+		Config: true,
+		API:    true,
+	}
+}
+
+func (c *CmdPprofHeap) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config: true,
 		API:    true,

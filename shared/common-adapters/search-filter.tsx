@@ -1,4 +1,5 @@
 import * as React from 'react'
+import Animation from './animation'
 import Box, {Box2} from './box'
 import ClickableBox from './clickable-box'
 import NewInput from './new-input'
@@ -12,6 +13,7 @@ import * as Platforms from '../constants/platform'
 const KeyHandler = (Styles.isMobile ? c => c : require('../util/key-handler.desktop').default)(() => null)
 
 const Kb = {
+  Animation,
   Box,
   Box2,
   ClickableBox,
@@ -65,7 +67,11 @@ type State = {
 
 class SearchFilter extends React.PureComponent<Props, State> {
   state = {
-    focused: false,
+    // If we recieve the focusOnMount prop, then we can use autoFocus to immediately focus the input element.
+    // However we also need to make sure the state is initialized to be focused
+    // to prevent an additional render which appears to the user as the search
+    // icon and clear button appear/disappearing
+    focused: this.props.focusOnMount || false,
     hover: false,
     text: '',
   }
@@ -83,7 +89,10 @@ class SearchFilter extends React.PureComponent<Props, State> {
 
   private text = () => (this.props.valueControlled ? this.props.value : this.state.text)
   focus = () => {
-    if (this.state.focused) {
+    // When focusOnMount is true so is state.focused.
+    // This is to speed up the focus time when using focusOnMount
+    // So continue to focus() the input elemenet if both are true
+    if (this.state.focused && !this.props.focusOnMount) {
       return
     }
     this.inputRef.current && this.inputRef.current.focus()
@@ -98,8 +107,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
   }
   private cancel = (e?: any) => {
     this.blur()
-    this.clear()
-    this.props.onCancel && this.props.onCancel()
+    this.props.onCancel ? this.props.onCancel() : this.clear()
     e && e.stopPropagation()
   }
   private update = (text: string) => {
@@ -175,6 +183,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
         : ''
     return (
       <Kb.NewInput
+        autoFocus={this.props.focusOnMount}
         value={this.text()}
         placeholder={this.props.placeholderText + hotkeyText}
         dummyInput={this.props.dummyInput}
@@ -199,9 +208,9 @@ class SearchFilter extends React.PureComponent<Props, State> {
       (Styles.isMobile ? (
         <Kb.ProgressIndicator type="Small" style={styles.spinnerMobile} white={!!this.props.negative} />
       ) : (
-        <Kb.Icon
-          type={this.props.negative ? 'icon-progress-white-animated' : 'icon-progress-grey-animated'}
-          boxStyle={styles.icon}
+        <Kb.Animation
+          animationType={this.props.negative ? 'spinnerWhite' : 'spinner'}
+          containerStyle={styles.icon}
           style={this.props.size === 'full-width' ? styles.spinnerFullWidth : styles.spinnerSmall}
         />
       ))
@@ -378,20 +387,20 @@ const styles = Styles.styleSheetCreate(() => ({
     marginLeft: Styles.globalMargins.xsmall,
   },
   removeIconNonFullWidth: {
-    margin: Styles.globalMargins.tiny,
+    marginLeft: Styles.globalMargins.tiny,
   },
   spinnerFullWidth: {
-    height: 16,
+    height: 20,
     marginLeft: Styles.globalMargins.xsmall,
-    width: 16,
+    width: 20,
   },
   spinnerMobile: {
     marginLeft: Styles.globalMargins.tiny,
   },
   spinnerSmall: {
-    height: 12,
+    height: 16,
     marginLeft: Styles.globalMargins.tiny,
-    width: 12,
+    width: 16,
   },
   textNegative: {
     color: Styles.globalColors.white,

@@ -812,6 +812,14 @@ func (fbo *folderBranchOps) forceStuckConflictForTesting(
 		if err != nil {
 			return err
 		}
+		// Wait for the flush handler to finish, so we don't
+		// accidentally swap in the upcoming MD on the conflict branch
+		// over the "merged" one we just flushed, before the pointer
+		// archiving step happens.
+		err = fbo.mdFlushes.Wait(ctx)
+		if err != nil {
+			return err
+		}
 	}
 
 	// Roll back the local view to the original revision.
@@ -1188,6 +1196,11 @@ pathLoop:
 				fbo.vlog.CLogf(
 					ctx, libkb.VLog1, "Ignoring symlink path %s", p)
 				continue pathLoop
+			} else if currNode.EntryType() != data.Dir {
+				fbo.vlog.CLogf(
+					ctx, libkb.VLog1, "Ignoring non-dir path %s (%s)",
+					p, currNode.EntryType())
+				continue pathLoop
 			}
 
 			// Use `PrefetchTail` for directories, to make sure that
@@ -1212,6 +1225,15 @@ pathLoop:
 		case nil:
 		default:
 			return err
+		}
+
+		if elemNode == nil {
+			// This can happen if an old bug (HOTPOT-616) kept a
+			// deleted path in the history that has since been changed
+			// into a symlink.
+			fbo.vlog.CLogf(
+				ctx, libkb.VLog1, "Ignoring symlink path %s", p)
+			continue pathLoop
 		}
 
 		ptr, err := fbo.syncOneNode(
@@ -1670,9 +1692,18 @@ func (fbo *folderBranchOps) partialMarkAndSweepLoop(trigger <-chan struct{}) {
 func (fbo *folderBranchOps) kickOffRootBlockFetch(
 	ctx context.Context, rmd ImmutableRootMetadata) <-chan error {
 	ptr := rmd.Data().Dir.BlockPointer
+	action := fbo.config.Mode().DefaultBlockRequestAction().
+		AddStopPrefetchIfFull()
+	if !action.prefetch() && fbo.config.IsSyncedTlf(fbo.id()) {
+		// Explicitly add the prefetch action for synced folders when
+		// getting the root block, since in some modes (like
+		// constrained) the prefetch action isn't set by default.
+		action = action.AddPrefetch()
+	}
+
 	return fbo.config.BlockOps().BlockRetriever().Request(
 		ctx, defaultOnDemandRequestPriority-1, rmd, ptr, data.NewDirBlock(),
-		data.TransientEntry, fbo.config.Mode().DefaultBlockRequestAction())
+		data.TransientEntry, action)
 }
 
 func (fbo *folderBranchOps) logIfErr(
@@ -2271,6 +2302,9 @@ func (fbo *folderBranchOps) GetTLFHandle(ctx context.Context, _ Node) (
 	*tlfhandle.Handle, error) {
 	lState := makeFBOLockState()
 	md, _ := fbo.getHead(ctx, lState, mdNoCommit)
+	if md == (ImmutableRootMetadata{}) {
+		return nil, errors.New("No MD")
+	}
 	return md.GetTlfHandle(), nil
 }
 
@@ -3758,6 +3792,16 @@ func (fbo *folderBranchOps) makeEditNotifications(
 	// resolver, the final paths will not be set on the ops.  Use
 	// crChains to set them.
 	ops := pathSortedOps(rmd.data.Changes.Ops)
+	if fbo.config.Mode().IsTestMode() {
+		// Clear out the final paths to simulate in tests what happens
+		// when MDs are read fresh from the journal.
+		opsCopy := make(pathSortedOps, len(ops))
+		for i, op := range ops {
+			opsCopy[i] = op.deepCopy()
+			opsCopy[i].setFinalPath(data.Path{})
+		}
+		ops = opsCopy
+	}
 
 	isResolution := false
 	if len(ops) > 0 {
@@ -3785,7 +3829,7 @@ func (fbo *folderBranchOps) makeEditNotifications(
 		}
 		// Make sure the ops are in increasing order by path length,
 		// so e.g. file creates come before file modifies.
-		sort.Sort(ops)
+		sort.Stable(ops)
 
 		for _, op := range ops {
 			// Temporary debugging for the case where an op has an
@@ -3815,7 +3859,7 @@ func (fbo *folderBranchOps) makeEditNotifications(
 		if !op.getFinalPath().IsValid() {
 			fbo.log.CDebugf(
 				ctx, "HOTPOT-803: Op %s has no valid path; "+
-					"rev=%d, all ops=%v", rmd.Revision(), op, ops)
+					"rev=%d, all ops=%v", op, rmd.Revision(), ops)
 			if fbo.config.Mode().IsTestMode() {
 				panic("Op missing path")
 			}
@@ -4281,10 +4325,17 @@ func checkDisallowedPrefixes(
 					return nil
 				}
 			}
-			return DisallowedPrefixError{name, prefix}
+			return errors.WithStack(DisallowedPrefixError{name, prefix})
 		}
 	}
-	return nil
+
+	// Don't allow any empty or `.` names.
+	switch name.Plaintext() {
+	case "", ".", "..":
+		return errors.WithStack(DisallowedNameError{name.Plaintext()})
+	default:
+		return nil
+	}
 }
 
 // PathType returns path type
@@ -7578,18 +7629,16 @@ func (fbo *folderBranchOps) runUnlessShutdown(fn func(ctx context.Context) error
 }
 
 func (fbo *folderBranchOps) doFastForwardLocked(ctx context.Context,
-	lState *kbfssync.LockState, currHead ImmutableRootMetadata) error {
+	lState *kbfssync.LockState, currHead ImmutableRootMetadata) (err error) {
 	fbo.mdWriterLock.AssertLocked(lState)
 	fbo.headLock.AssertLocked(lState)
 
 	fbo.log.CDebugf(ctx, "Fast-forwarding from rev %d to rev %d",
 		fbo.latestMergedRevision, currHead.Revision())
-	changes, affectedNodeIDs, err := fbo.blocks.FastForwardAllNodes(
-		ctx, lState, currHead.ReadOnly())
-	if err != nil {
-		return err
-	}
 
+	// Fetch root block and set the head first, because if it fails we
+	// don't want to have to undo a bunch of pointer updates.  (That
+	// is, follow the same order as when usually updating the head.)
 	latestRootBlockFetch := fbo.kickOffRootBlockFetch(ctx, currHead)
 	err = fbo.waitForRootBlockFetch(ctx, currHead, latestRootBlockFetch)
 	if err != nil {
@@ -7597,6 +7646,27 @@ func (fbo *folderBranchOps) doFastForwardLocked(ctx context.Context,
 	}
 
 	err = fbo.setHeadSuccessorLocked(ctx, lState, currHead, true /*rebase*/)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err == nil {
+			return
+		}
+
+		// If updating the pointers failed, we need to revert the head
+		// as well.
+		fbo.log.CDebugf(ctx, "Fast-forward failed: %+v; reverting the head")
+		revertErr := fbo.setHeadLocked(
+			ctx, lState, currHead, headTrusted, mdToCommitType(currHead))
+		if revertErr != nil {
+			fbo.log.CDebugf(ctx, "Couldn't revert head: %+v", err)
+		}
+	}()
+
+	changes, affectedNodeIDs, err := fbo.blocks.FastForwardAllNodes(
+		ctx, lState, currHead.ReadOnly())
 	if err != nil {
 		return err
 	}
@@ -8542,19 +8612,22 @@ func (fbo *folderBranchOps) MigrateToImplicitTeam(
 }
 
 // GetUpdateHistory implements the KBFSOps interface for folderBranchOps
-func (fbo *folderBranchOps) GetUpdateHistory(ctx context.Context,
-	folderBranch data.FolderBranch) (history TLFUpdateHistory, err error) {
-	startTime, timer := fbo.startOp(ctx, "GetUpdateHistory")
+func (fbo *folderBranchOps) GetUpdateHistory(
+	ctx context.Context, folderBranch data.FolderBranch,
+	start, end kbfsmd.Revision) (history TLFUpdateHistory, err error) {
+	startTime, timer := fbo.startOp(ctx, "GetUpdateHistory(%d, %d)", start, end)
 	defer func() {
-		fbo.endOp(ctx, startTime, timer, "GetUpdateHistory done: %+v", err)
+		fbo.endOp(
+			ctx, startTime, timer, "GetUpdateHistory(%d, %d) done: %+v",
+			start, end, err)
 	}()
 
 	if folderBranch != fbo.folderBranch {
 		return TLFUpdateHistory{}, WrongOpsError{fbo.folderBranch, folderBranch}
 	}
 
-	rmds, err := getMergedMDUpdates(ctx, fbo.config, fbo.id(),
-		kbfsmd.RevisionInitial, nil)
+	rmds, err := getMergedMDUpdatesWithEnd(
+		ctx, fbo.config, fbo.id(), start, end, nil)
 	if err != nil {
 		return TLFUpdateHistory{}, err
 	}
@@ -8578,11 +8651,12 @@ func (fbo *folderBranchOps) GetUpdateHistory(ctx context.Context,
 			writerNames[rmd.LastModifyingWriter()] = writer
 		}
 		updateSummary := UpdateSummary{
-			Revision:  rmd.Revision(),
-			Date:      rmd.localTimestamp,
-			Writer:    writer,
-			LiveBytes: rmd.DiskUsage(),
-			Ops:       make([]OpSummary, 0, len(rmd.data.Changes.Ops)),
+			Revision:    rmd.Revision(),
+			Date:        rmd.localTimestamp,
+			Writer:      writer,
+			LiveBytes:   rmd.DiskUsage(),
+			Ops:         make([]OpSummary, 0, len(rmd.data.Changes.Ops)),
+			RootBlockID: rmd.data.Dir.ID.String(),
 		}
 		for _, op := range rmd.data.Changes.Ops {
 			opSummary := OpSummary{
@@ -8712,7 +8786,6 @@ func (fbo *folderBranchOps) ForceFastForward(ctx context.Context) {
 		// cleared.
 		return
 	}
-	fbo.hasBeenCleared = false
 
 	fbo.forcedFastForwards.Add(1)
 	fbo.goTracked(func() {
@@ -8768,6 +8841,17 @@ func (fbo *folderBranchOps) ForceFastForward(ctx context.Context) {
 		defer fbo.mdWriterLock.Unlock(lState)
 		fbo.headLock.Lock(lState)
 		defer fbo.headLock.Unlock(lState)
+
+		if !fbo.hasBeenCleared {
+			return
+		}
+
+		defer func() {
+			if fbo.head != (ImmutableRootMetadata{}) {
+				fbo.hasBeenCleared = false
+			}
+		}()
+
 		if fbo.head != (ImmutableRootMetadata{}) {
 			// We're already up to date.
 			fbo.log.CDebugf(ctx, "Already up-to-date: %v", err)
@@ -8815,15 +8899,21 @@ func (fbo *folderBranchOps) Reset(
 	ctx context.Context, handle *tlfhandle.Handle) error {
 	currHandle, err := fbo.GetTLFHandle(ctx, nil)
 	if err != nil {
-		return err
+		// If the MD is completely unreadable from the server, we
+		// might not have been able to initialize it at all, and we
+		// still want to allow resets in that case.
+		fbo.log.CDebugf(ctx, "Skipping handle check due to error: %+v", err)
+		currHandle = nil
 	}
-	equal, err := currHandle.Equals(fbo.config.Codec(), *handle)
-	if err != nil {
-		return err
-	}
-	if !equal {
-		return errors.Errorf("Can't reset %#v given bad handle %#v",
-			currHandle, handle)
+	if currHandle != nil {
+		equal, err := currHandle.Equals(fbo.config.Codec(), *handle)
+		if err != nil {
+			return err
+		}
+		if !equal {
+			return errors.Errorf("Can't reset %#v given bad handle %#v",
+				currHandle, handle)
+		}
 	}
 
 	oldHandle := handle.DeepCopy()
@@ -9081,6 +9171,7 @@ func (fbo *folderBranchOps) SetSyncConfig(
 
 	defer func() {
 		if err == nil {
+			fbo.config.SubscriptionManagerPublisher().PublishChange(keybase1.SubscriptionTopic_FAVORITES)
 			fbo.config.Reporter().NotifyFavoritesChanged(ctx)
 		}
 	}()
@@ -9381,6 +9472,13 @@ func (fbo *folderBranchOps) getEditMessages(
 			id, err)
 		return nil
 	}
+	if fbo.config.IsTestMode() {
+		// Extra debugging for HOTPOT-1096.
+		fbo.vlog.CLogf(
+			ctx, libkb.VLog1, "%p: Got messages in channel %s: %s",
+			fbo, channelName, messages)
+	}
+
 	_, err = fbo.editHistory.AddNotifications(channelName, messages)
 	if err != nil {
 		fbo.log.CWarningf(ctx, "Couldn't add messages for conv %s: %+v",
@@ -9433,6 +9531,14 @@ func (fbo *folderBranchOps) recomputeEditHistory(
 			}
 		}
 	}
+
+	if fbo.config.IsTestMode() {
+		// Extra debugging for HOTPOT-1096.
+		fbo.vlog.CLogf(
+			ctx, libkb.VLog1, "%p: Recomputing history for %s",
+			fbo, session.Name)
+	}
+
 	// Update the overall user history.  TODO: if the TLF name
 	// changed, we should clean up the old user history.
 	fbo.config.UserHistory().UpdateHistory(
@@ -9508,6 +9614,12 @@ func (fbo *folderBranchOps) handleEditActivity(
 	}
 	if a.message != "" {
 		fbo.vlog.CLogf(ctx, libkb.VLog1, "New edit message for %s", name)
+		if fbo.config.IsTestMode() {
+			// Extra debugging for HOTPOT-1096.
+			fbo.vlog.CLogf(
+				ctx, libkb.VLog1, "%p: Processing edit message %s",
+				fbo, a.message)
+		}
 		maxRev, err := fbo.editHistory.AddNotifications(
 			name, []string{a.message})
 		if err != nil {

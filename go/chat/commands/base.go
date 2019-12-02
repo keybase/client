@@ -12,15 +12,6 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
-type nullChatUI struct {
-	libkb.ChatUI
-}
-
-func (n nullChatUI) ChatCommandStatus(context.Context, chat1.ConversationID, string,
-	chat1.UICommandStatusDisplayTyp, []chat1.UICommandStatusActionTyp) error {
-	return nil
-}
-
 type baseCommand struct {
 	globals.Contextified
 	utils.DebugLabeler
@@ -66,7 +57,7 @@ func (b *baseCommand) getChatUI() libkb.ChatUI {
 	ui, err := b.G().UIRouter.GetChatUI()
 	if err != nil || ui == nil {
 		b.Debug(context.Background(), "getChatUI: no chat UI found: err: %s", err)
-		return nullChatUI{}
+		return utils.NullChatUI{}
 	}
 	return ui
 }

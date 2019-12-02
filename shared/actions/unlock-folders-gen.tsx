@@ -1,5 +1,4 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-
 import * as RPCTypes from '../constants/types/rpc-gen'
 
 // Constants
@@ -14,11 +13,9 @@ export const newRekeyPopup = 'unlock-folders:newRekeyPopup'
 export const onBackFromPaperKey = 'unlock-folders:onBackFromPaperKey'
 export const openPopup = 'unlock-folders:openPopup'
 export const toPaperKeyInput = 'unlock-folders:toPaperKeyInput'
-export const waiting = 'unlock-folders:waiting'
 
 // Payload Types
-type _CheckPaperKeyDonePayload = void
-type _CheckPaperKeyDonePayloadError = {readonly error: string}
+type _CheckPaperKeyDonePayload = {readonly error?: string}
 type _CheckPaperKeyPayload = {readonly paperKey: string}
 type _CloseDonePayload = void
 type _ClosePopupPayload = void
@@ -31,20 +28,15 @@ type _NewRekeyPopupPayload = {
 type _OnBackFromPaperKeyPayload = void
 type _OpenPopupPayload = void
 type _ToPaperKeyInputPayload = void
-type _WaitingPayload = {readonly waiting: boolean}
 
 // Action Creators
 export const createCheckPaperKey = (payload: _CheckPaperKeyPayload): CheckPaperKeyPayload => ({
   payload,
   type: checkPaperKey,
 })
-export const createCheckPaperKeyDone = (payload: _CheckPaperKeyDonePayload): CheckPaperKeyDonePayload => ({
-  payload,
-  type: checkPaperKeyDone,
-})
-export const createCheckPaperKeyDoneError = (
-  payload: _CheckPaperKeyDonePayloadError
-): CheckPaperKeyDonePayloadError => ({error: true, payload, type: checkPaperKeyDone})
+export const createCheckPaperKeyDone = (
+  payload: _CheckPaperKeyDonePayload = Object.freeze({})
+): CheckPaperKeyDonePayload => ({payload, type: checkPaperKeyDone})
 export const createCloseDone = (payload: _CloseDonePayload): CloseDonePayload => ({payload, type: closeDone})
 export const createClosePopup = (payload: _ClosePopupPayload): ClosePopupPayload => ({
   payload,
@@ -64,16 +56,10 @@ export const createToPaperKeyInput = (payload: _ToPaperKeyInputPayload): ToPaper
   payload,
   type: toPaperKeyInput,
 })
-export const createWaiting = (payload: _WaitingPayload): WaitingPayload => ({payload, type: waiting})
 
 // Action Payloads
 export type CheckPaperKeyDonePayload = {
   readonly payload: _CheckPaperKeyDonePayload
-  readonly type: typeof checkPaperKeyDone
-}
-export type CheckPaperKeyDonePayloadError = {
-  readonly error: true
-  readonly payload: _CheckPaperKeyDonePayloadError
   readonly type: typeof checkPaperKeyDone
 }
 export type CheckPaperKeyPayload = {
@@ -96,13 +82,11 @@ export type ToPaperKeyInputPayload = {
   readonly payload: _ToPaperKeyInputPayload
   readonly type: typeof toPaperKeyInput
 }
-export type WaitingPayload = {readonly payload: _WaitingPayload; readonly type: typeof waiting}
 
 // All Actions
 // prettier-ignore
 export type Actions =
   | CheckPaperKeyDonePayload
-  | CheckPaperKeyDonePayloadError
   | CheckPaperKeyPayload
   | CloseDonePayload
   | ClosePopupPayload
@@ -111,5 +95,4 @@ export type Actions =
   | OnBackFromPaperKeyPayload
   | OpenPopupPayload
   | ToPaperKeyInputPayload
-  | WaitingPayload
   | {type: 'common:resetStore', payload: {}}

@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/phone_numbers.avdl
 
 package keybase1
@@ -6,6 +6,7 @@ package keybase1
 import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 // Phone number support for TOFU chats.
@@ -253,42 +254,42 @@ type PhoneNumbersClient struct {
 }
 
 func (c PhoneNumbersClient) AddPhoneNumber(ctx context.Context, __arg AddPhoneNumberArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.addPhoneNumber", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.addPhoneNumber", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c PhoneNumbersClient) EditPhoneNumber(ctx context.Context, __arg EditPhoneNumberArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.editPhoneNumber", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.editPhoneNumber", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c PhoneNumbersClient) VerifyPhoneNumber(ctx context.Context, __arg VerifyPhoneNumberArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.verifyPhoneNumber", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.verifyPhoneNumber", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c PhoneNumbersClient) ResendVerificationForPhoneNumber(ctx context.Context, __arg ResendVerificationForPhoneNumberArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.resendVerificationForPhoneNumber", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.resendVerificationForPhoneNumber", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c PhoneNumbersClient) GetPhoneNumbers(ctx context.Context, sessionID int) (res []UserPhoneNumber, err error) {
 	__arg := GetPhoneNumbersArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.getPhoneNumbers", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.getPhoneNumbers", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c PhoneNumbersClient) DeletePhoneNumber(ctx context.Context, __arg DeletePhoneNumberArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.deletePhoneNumber", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.deletePhoneNumber", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c PhoneNumbersClient) SetVisibilityPhoneNumber(ctx context.Context, __arg SetVisibilityPhoneNumberArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.setVisibilityPhoneNumber", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.setVisibilityPhoneNumber", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c PhoneNumbersClient) SetVisibilityAllPhoneNumber(ctx context.Context, __arg SetVisibilityAllPhoneNumberArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.setVisibilityAllPhoneNumber", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.setVisibilityAllPhoneNumber", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }

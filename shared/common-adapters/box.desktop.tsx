@@ -3,7 +3,7 @@ import {intersperseFn} from '../util/arrays'
 import {Box2Props} from './box'
 import './box.css'
 
-class Box extends React.PureComponent<any> {
+export class Box extends React.PureComponent<any> {
   render() {
     const {forwardedRef, ...rest} = this.props
     return <div {...rest} ref={this.props.forwardedRef} />
@@ -25,7 +25,7 @@ const injectGaps = (component, _children, gap, gapStart, gapEnd) => {
   return children
 }
 
-const box2 = (props: Box2Props) => {
+const box2 = (props: Box2Props, ref: React.Ref<HTMLDivElement>) => {
   let horizontal = props.direction === 'horizontal' || props.direction === 'horizontalReverse'
 
   const className = [
@@ -51,10 +51,13 @@ const box2 = (props: Box2Props) => {
   // }
   return (
     <div
+      ref={ref}
       onDragLeave={props.onDragLeave}
       onDragOver={props.onDragOver}
       onDrop={props.onDrop}
+      onMouseDown={props.onMouseDown}
       onMouseLeave={props.onMouseLeave}
+      onMouseUp={props.onMouseUp}
       onMouseOver={props.onMouseOver}
       onCopyCapture={props.onCopyCapture}
       className={className}
@@ -65,14 +68,9 @@ const box2 = (props: Box2Props) => {
   )
 }
 
-class Box2 extends React.Component<Box2Props> {
-  render() {
-    return box2(this.props)
-  }
-}
+export const Box2 = React.forwardRef<HTMLDivElement, Box2Props>((props, ref) => box2(props, ref))
 
 const vBoxGap = (key, gap) => <div key={key} className={`box2_gap_vertical_${gap}`} />
 const hBoxGap = (key, gap) => <div key={key} className={`box2_gap_horizontal_${gap}`} />
 
 export default Box
-export {Box, Box2}

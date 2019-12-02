@@ -27,6 +27,6 @@ describe('teams reducer', () => {
     })
 
     const state1 = reducer(initialState, setAction)
-    expect(state1.getIn(['teamNameToChannelInfos', teamname, conversationIDKey])).toEqual(channelInfo)
+    expect(state1.teamNameToChannelInfos.getIn([teamname, conversationIDKey])).toEqual(channelInfo)
   })
 })

@@ -3,9 +3,9 @@ import * as FsTypes from '../../constants/types/fs'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Container from '../../util/container'
-import {Service} from '../../constants/types/search'
 import {privateFolderWithUsers} from '../../constants/config'
 import NonUserProfile from '.'
+import {ServiceId} from 'util/platforms'
 
 type OwnProps = Container.RouteProps<{
   username: string
@@ -13,7 +13,7 @@ type OwnProps = Container.RouteProps<{
   fullname: string
   fullUsername: string
   profileUrl: string
-  serviceName: Service
+  serviceId: ServiceId
 }>
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
@@ -21,11 +21,11 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const fullname = Container.getRouteProps(ownProps, 'fullname', '')
   const fullUsername = Container.getRouteProps(ownProps, 'fullUsername', '')
   const profileUrl = Container.getRouteProps(ownProps, 'profileUrl', '')
-  const serviceName = Container.getRouteProps(ownProps, 'serviceName', 'Keybase')
+  const serviceId = Container.getRouteProps(ownProps, 'serviceId', 'keybase')
   const username = Container.getRouteProps(ownProps, 'username', '')
   const myUsername = state.config.username
   const title = username
-  return {avatar, fullUsername, fullname, myUsername, profileUrl, serviceName, title, username}
+  return {avatar, fullUsername, fullname, myUsername, profileUrl, serviceId, title, username}
 }
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({

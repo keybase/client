@@ -1,8 +1,6 @@
-import * as I from 'immutable'
 import * as ConfigGen from '../config-gen'
 import * as FsGen from '../fs-gen'
 import * as Saga from '../../util/saga'
-import * as Config from '../../constants/config'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
@@ -86,17 +84,22 @@ function getPathType(openPath: string): Promise<pathType> {
 // folder. This function does not check if the file exists, or try to convert
 // KBFS paths. Caller should take care of those.
 const _openPathInSystemFileManagerPromise = (openPath: string, isFolder: boolean): Promise<void> =>
-  new Promise((resolve, reject) =>
-    isFolder
-      ? isWindows
-        ? SafeElectron.getShell().openItem(openPath)
-          ? resolve()
-          : reject(new Error('unable to open item'))
-        : openInDefaultDirectory(openPath).then(resolve, reject)
-      : SafeElectron.getShell().showItemInFolder(openPath)
-      ? resolve()
-      : reject(new Error('unable to open item in folder'))
-  )
+  new Promise((resolve, reject) => {
+    if (isFolder) {
+      if (isWindows) {
+        if (SafeElectron.getShell().openItem(openPath)) {
+          resolve()
+        } else {
+          reject(new Error('unable to open item'))
+        }
+      } else {
+        openInDefaultDirectory(openPath).then(resolve, reject)
+      }
+    } else {
+      SafeElectron.getShell().showItemInFolder(openPath)
+      resolve()
+    }
+  })
 
 const openLocalPathInSystemFileManager = async (
   _: TypedState,
@@ -124,9 +127,7 @@ const openPathInSystemFileManager = (state: TypedState, action: FsGen.OpenPathIn
         _rebaseKbfsPathToMountLocation(action.payload.path, state.fs.sfmi.directMountDir),
         ![Types.PathKind.InGroupTlf, Types.PathKind.InTeamTlf].includes(
           Constants.parsePath(action.payload.path).kind
-        ) ||
-          state.fs.pathItems.get(action.payload.path, Constants.unknownPathItem).type ===
-            Types.PathType.Folder
+        ) || Constants.getPathItem(state.fs.pathItems, action.payload.path).type === Types.PathType.Folder
       ).catch(makeRetriableErrorHandler(action, action.payload.path))
     : (new Promise((resolve, reject) => {
         if (state.fs.sfmi.driverStatus.type !== Types.DriverStatusType.Enabled) {
@@ -139,24 +140,6 @@ const openPathInSystemFileManager = (state: TypedState, action: FsGen.OpenPathIn
           resolve()
         }
       }) as Promise<void>)
-
-function waitForMount(attempt: number) {
-  return new Promise((resolve, reject) => {
-    // Read the KBFS path waiting for files to exist, which means it's mounted
-    // TODO: should handle current mount directory
-    fs.readdir(`${Config.defaultKBFSPath}${Config.defaultPrivatePrefix}`, (err, files) => {
-      if (!err && files.length > 0) {
-        resolve(true)
-      } else if (attempt > 15) {
-        reject(new Error(`${Config.defaultKBFSPath} is unavailable. Please try again.`))
-      } else {
-        setTimeout(() => {
-          waitForMount(attempt + 1).then(resolve, reject)
-        }, 1000)
-      }
-    })
-  })
-}
 
 const fuseStatusToUninstallExecPath = isWindows
   ? (status: RPCTypes.FuseStatus) => {
@@ -178,10 +161,11 @@ const fuseStatusToActions = (previousStatusType: Types.DriverStatusType) => (
   return status.kextStarted
     ? [
         FsGen.createSetDriverStatus({
-          driverStatus: Constants.makeDriverStatusEnabled({
+          driverStatus: {
+            ...Constants.emptyDriverStatusEnabled,
             dokanOutdated: status.installAction === RPCTypes.InstallAction.upgrade,
             dokanUninstallExecPath: fuseStatusToUninstallExecPath(status),
-          }),
+          },
         }),
         ...(previousStatusType === Types.DriverStatusType.Disabled ||
         status.installAction === RPCTypes.InstallAction.upgrade
@@ -192,7 +176,7 @@ const fuseStatusToActions = (previousStatusType: Types.DriverStatusType) => (
           : []), // open Finder/Explorer/etc for newly enabled
       ]
     : [
-        FsGen.createSetDriverStatus({driverStatus: Constants.makeDriverStatusDisabled()}),
+        FsGen.createSetDriverStatus({driverStatus: Constants.emptyDriverStatusDisabled}),
         ...(previousStatusType === Types.DriverStatusType.Enabled
           ? [FsGen.createHideSystemFileManagerIntegrationBanner()]
           : []), // hide banner for newly disabled
@@ -252,23 +236,22 @@ const driverEnableFuse = async (_: TypedState, action: FsGen.DriverEnablePayload
     ]
   } else {
     await RPCTypes.installInstallKBFSRpcPromise() // restarts kbfsfuse
-    await waitForMount(0)
+    await RPCTypes.kbfsMountWaitForMountsRpcPromise()
     return FsGen.createRefreshDriverStatus()
   }
 }
 
 const uninstallKBFSConfirm = async () => {
   const action = await new Promise<TypedActions | false>(resolve =>
-    SafeElectron.getDialog().showMessageBox(
-      {
+    SafeElectron.getDialog()
+      .showMessageBox({
         buttons: ['Remove & Restart', 'Cancel'],
         detail: `Are you sure you want to remove Keybase from ${fileUIName} and restart the app?`,
         message: `Remove Keybase from ${fileUIName}`,
         type: 'question',
-      },
+      })
       // resp is the index of the button that's clicked
-      resp => (resp === 0 ? resolve(FsGen.createDriverDisabling()) : resolve(false))
-    )
+      .then(({response}) => (response === 0 ? resolve(FsGen.createDriverDisabling()) : resolve(false)))
   )
   return action
 }
@@ -280,22 +263,22 @@ const uninstallKBFS = () =>
     SafeElectron.getApp().exit(0)
   })
 
+// @ts-ignore
 const uninstallDokanConfirm = async (state: TypedState) => {
   if (state.fs.sfmi.driverStatus.type !== Types.DriverStatusType.Enabled) {
     return false
   }
   if (!state.fs.sfmi.driverStatus.dokanUninstallExecPath) {
     const action = await new Promise<TypedActions>(resolve =>
-      SafeElectron.getDialog().showMessageBox(
-        {
+      SafeElectron.getDialog()
+        .showMessageBox({
           buttons: ['Got it'],
           detail:
             'We looked everywhere but did not find a Dokan uninstaller. Please remove it from the Control Panel.',
           message: 'Please uninstall Dokan from the Control Panel.',
           type: 'info',
-        },
-        () => resolve(FsGen.createRefreshDriverStatus())
-      )
+        })
+        .then(() => resolve(FsGen.createRefreshDriverStatus()))
     )
     return action
   }
@@ -394,7 +377,7 @@ const openFilesFromWidget = (_: TypedState, {payload: {path}}) => [
   ConfigGen.createShowMain(),
   ...(path
     ? [Constants.makeActionForOpenPathInFilesTab(path)]
-    : [RouteTreeGen.createNavigateAppend({path: [Tabs.fsTab]})]),
+    : ([RouteTreeGen.createNavigateAppend({path: [Tabs.fsTab]})] as any)),
 ]
 
 const changedFocus = (state: TypedState, action: ConfigGen.ChangedFocusPayload) =>
@@ -420,7 +403,7 @@ const refreshMountDirs = async (
   const preferredMountDirs = await RPCTypes.kbfsMountGetPreferredMountDirsRpcPromise()
   return [
     FsGen.createSetDirectMountDir({directMountDir}),
-    FsGen.createSetPreferredMountDirs({preferredMountDirs: I.List(preferredMountDirs || [])}),
+    FsGen.createSetPreferredMountDirs({preferredMountDirs: preferredMountDirs || []}),
     // Check again in 10s, as redirector comes up only after kbfs daemon is alive.
     ...(action.type !== FsGen.refreshMountDirsAfter10s ? [FsGen.createRefreshMountDirsAfter10s()] : []),
   ]
@@ -446,7 +429,7 @@ function* platformSpecificSaga() {
   yield* Saga.chainAction2(FsGen.openFilesFromWidget, openFilesFromWidget)
   if (isWindows) {
     yield* Saga.chainAction2(FsGen.driverEnable, installCachedDokan)
-    yield* Saga.chainAction2(FsGen.driverDisable, uninstallDokanConfirm)
+    yield* Saga.chainAction2(FsGen.driverDisable as any, uninstallDokanConfirm as any)
     yield* Saga.chainAction2(FsGen.driverDisabling, uninstallDokan)
   } else {
     yield* Saga.chainAction2(FsGen.driverEnable, driverEnableFuse)

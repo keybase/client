@@ -64,12 +64,15 @@ func TestLoginTwiceLogoutOnce(t *testing.T) {
 	t.Logf("Logged in u1")
 	err = u2.SwitchTo(tc.G, true)
 	require.NoError(t, err)
-	eng := NewLogout()
+	eng := NewLogout(libkb.LogoutOptions{})
 	mctx := NewMetaContextForTest(tc).WithUIs(libkb.UIs{
 		LoginUI:  &libkb.TestLoginUI{},
 		SecretUI: &nullSecretUI{},
 	})
 	err = RunEngine2(mctx, eng)
+	require.NoError(t, err)
+	// Log back into the first user, but shouldn't need a password
+	err = u1.SwitchTo(tc.G, true)
 	require.NoError(t, err)
 	require.True(t, tc.G.ActiveDevice.Valid())
 	require.Equal(t, tc.G.ActiveDevice.UID(), u1.UID())
@@ -590,13 +593,12 @@ func TestProvisionAutoreset(t *testing.T) {
 	// device Y (provisionee) context:
 	tcY := SetupEngineTest(t, "provision_y")
 	defer tcY.Cleanup()
-	libkb.AddEnvironmentFeatureForTest(tcY, libkb.EnvironmentFeatureAutoresetPipeline)
 
 	uis := libkb.UIs{
 		ProvisionUI: newTestProvisionUIChooseNoDevice(),
 		LoginUI: &libkb.TestLoginUI{
 			Username:     userX.Username,
-			ResetAccount: true,
+			ResetAccount: keybase1.ResetPromptResponse_CONFIRM_RESET,
 		},
 		LogUI:    tcY.G.UI.GetLogUI(),
 		SecretUI: &libkb.TestSecretUI{Passphrase: userX.Passphrase},
@@ -628,7 +630,7 @@ func TestProvisionAutoreset(t *testing.T) {
 		ProvisionUI: newTestProvisionUIChooseNoDevice(),
 		LoginUI: &libkb.TestLoginUI{
 			Username:     userX.Username,
-			ResetAccount: true,
+			ResetAccount: keybase1.ResetPromptResponse_CONFIRM_RESET,
 		},
 		LogUI:    tcY.G.UI.GetLogUI(),
 		SecretUI: &libkb.TestSecretUI{Passphrase: userX.Passphrase},
@@ -944,12 +946,8 @@ func TestProvisionSyncedPGPWithPUK(t *testing.T) {
 	eng2 := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 	m2 := NewMetaContextForTest(tc2).WithUIs(uis2)
 	err := RunEngine2(m2, eng2)
-	if err == nil {
-		t.Fatal("Provision w/ synced pgp key successful on device 2 w/ PUK enabled")
-	}
-	if _, ok := err.(libkb.ProvisionViaDeviceRequiredError); !ok {
-		t.Errorf("Provision error type: %T (%s), expected libkb.ProvisionViaDeviceRequiredError", err, err)
-	}
+	require.Error(t, err, "Provision w/ synced pgp key on device 2 w/ PUK enabled should fail")
+	require.IsType(t, err, libkb.ProvisionViaDeviceRequiredError{})
 }
 
 // Provision device using a private GPG key (not synced to keybase
@@ -1013,12 +1011,8 @@ func TestProvisionGPGWithPUK(t *testing.T) {
 	eng3 := NewLogin(tc3.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 	m3 := NewMetaContextForTest(tc3).WithUIs(uis3)
 	err := RunEngine2(m3, eng3)
-	if err == nil {
-		t.Fatal("Provision w/ gpg key successful on device 2 w/ PUK enabled")
-	}
-	if _, ok := err.(libkb.ProvisionViaDeviceRequiredError); !ok {
-		t.Errorf("Provision error type: %T (%s), expected libkb.ProvisionViaDeviceRequiredError", err, err)
-	}
+	require.Error(t, err, "Provision w/ gpg key on device 2 w/ PUK enabled should fail")
+	require.IsType(t, err, libkb.ProvisionViaDeviceRequiredError{})
 }
 
 // Test provisioning where we use one username, but suddenly we are
@@ -4117,6 +4111,8 @@ type paperLoginUI struct {
 	PaperPhrase string
 }
 
+var _ libkb.LoginUI = (*paperLoginUI)(nil)
+
 func (p *paperLoginUI) GetEmailOrUsername(_ context.Context, _ int) (string, error) {
 	return p.Username, nil
 }
@@ -4134,8 +4130,8 @@ func (p *paperLoginUI) DisplayPrimaryPaperKey(_ context.Context, arg keybase1.Di
 	return nil
 }
 
-func (p *paperLoginUI) PromptResetAccount(_ context.Context, arg keybase1.PromptResetAccountArg) (bool, error) {
-	return false, nil
+func (p *paperLoginUI) PromptResetAccount(_ context.Context, arg keybase1.PromptResetAccountArg) (keybase1.ResetPromptResponse, error) {
+	return keybase1.ResetPromptResponse_NOTHING, nil
 }
 
 func (p *paperLoginUI) DisplayResetProgress(_ context.Context, arg keybase1.DisplayResetProgressArg) error {
@@ -4148,6 +4144,14 @@ func (p *paperLoginUI) ExplainDeviceRecovery(_ context.Context, arg keybase1.Exp
 
 func (p *paperLoginUI) PromptPassphraseRecovery(_ context.Context, arg keybase1.PromptPassphraseRecoveryArg) (bool, error) {
 	return false, nil
+}
+
+func (p *paperLoginUI) ChooseDeviceToRecoverWith(_ context.Context, arg keybase1.ChooseDeviceToRecoverWithArg) (keybase1.DeviceID, error) {
+	return "", nil
+}
+
+func (p *paperLoginUI) DisplayResetMessage(_ context.Context, arg keybase1.DisplayResetMessageArg) error {
+	return nil
 }
 
 func signString(tc libkb.TestContext, input string, secUI libkb.SecretUI) error {

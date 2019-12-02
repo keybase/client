@@ -117,14 +117,14 @@ func (p CommandLine) GetDebug() (bool, bool) {
 	}
 	return p.GetBool("debug", true)
 }
+func (p CommandLine) GetDebugJourneycard() (bool, bool) {
+	return p.GetBool("debug-journeycard", true)
+}
 func (p CommandLine) GetDisplayRawUntrustedOutput() (bool, bool) {
 	return p.GetBool("display-raw-untrusted-output", true)
 }
 func (p CommandLine) GetVDebugSetting() string {
 	return p.GetGString("vdebug")
-}
-func (p CommandLine) GetUpgradePerUserKey() (bool, bool) {
-	return p.GetBool("upgrade-per-user-key", true)
 }
 func (p CommandLine) GetPGPFingerprint() *libkb.PGPFingerprint {
 	return libkb.PGPFingerprintFromHexNoError(p.GetGString("fingerprint"))
@@ -404,7 +404,7 @@ func (p CommandLine) GetMountDirDefault() string {
 	return p.GetGString("mountdirdefault")
 }
 
-func (p CommandLine) GetRememberPassphrase() (bool, bool) {
+func (p CommandLine) GetRememberPassphrase(libkb.NormalizedUsername) (bool, bool) {
 	return p.GetBool("remember-passphrase", true)
 }
 
@@ -737,10 +737,6 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 			Usage: "Specify a path to the GUI config file",
 		},
 		cli.BoolFlag{
-			Name:  "upgrade-per-user-key",
-			Usage: "Create new per-user-keys. Experimental, will break sigchain!",
-		},
-		cli.BoolFlag{
 			Name:  "use-default-log-file",
 			Usage: "Log to the default log file in $XDG_CACHE_HOME, or ~/.cache if unset.",
 		},
@@ -751,6 +747,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.StringFlag{
 			Name:  "vdebug",
 			Usage: "Verbose debugging; takes a comma-joined list of levels and tags",
+		},
+		cli.BoolFlag{
+			Name:  "debug-journeycard",
+			Usage: "Enable experimental journey cards",
 		},
 		cli.BoolFlag{
 			Name:  "disable-team-auditor",

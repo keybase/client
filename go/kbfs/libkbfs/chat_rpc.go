@@ -280,6 +280,9 @@ func (c *ChatRPC) SendTextMessage(
 		ConversationID: convID,
 		Msg: chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
+				Conv: chat1.ConversationIDTriple{
+					TopicType: chat1.TopicType_KBFSFILEEDIT,
+				},
 				TlfName:     string(tlfName),
 				TlfPublic:   tlfType == tlf.Public,
 				MessageType: chat1.MessageType_TEXT,
@@ -338,6 +341,9 @@ func (c *ChatRPC) SendTextMessage(
 		ConversationID: selfConvID,
 		Msg: chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
+				Conv: chat1.ConversationIDTriple{
+					TopicType: chat1.TopicType_KBFSFILEEDIT,
+				},
 				TlfName:     string(session.Name),
 				TlfPublic:   false,
 				MessageType: chat1.MessageType_TEXT,
@@ -899,5 +905,12 @@ func (c *ChatRPC) ChatRequestInfo(
 // ChatPromptUnfurl implements the chat1.NotifyChatInterface
 // for ChatRPC.
 func (c *ChatRPC) ChatPromptUnfurl(_ context.Context, _ chat1.ChatPromptUnfurlArg) error {
+	return nil
+}
+
+// ChatConvUpdate implements the chat1.NotifyChatInterface for
+// ChatRPC.
+func (c *ChatRPC) ChatConvUpdate(
+	_ context.Context, _ chat1.ChatConvUpdateArg) error {
 	return nil
 }

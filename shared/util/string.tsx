@@ -3,6 +3,10 @@ export function pluralize(str: string, count?: number): string {
   return count === 1 ? str : str.endsWith('s') ? str : `${str}s`
 }
 
+export function indefiniteArticle(str: string): string {
+  return str.length === 0 ? '' : 'aeiou'.includes(str[0].toLowerCase()) ? 'an' : 'a'
+}
+
 // Returns a RegExp that matches any string with the given filter
 // string (with special characters removed) as a subsequence.
 export function makeInsertMatcher(filter: string): RegExp {

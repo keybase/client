@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/notify_audit.avdl
 
 package keybase1
@@ -6,6 +6,7 @@ package keybase1
 import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type RootAuditErrorArg struct {
@@ -65,12 +66,12 @@ type NotifyAuditClient struct {
 
 func (c NotifyAuditClient) RootAuditError(ctx context.Context, message string) (err error) {
 	__arg := RootAuditErrorArg{Message: message}
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyAudit.rootAuditError", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyAudit.rootAuditError", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyAuditClient) BoxAuditError(ctx context.Context, message string) (err error) {
 	__arg := BoxAuditErrorArg{Message: message}
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyAudit.boxAuditError", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyAudit.boxAuditError", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }

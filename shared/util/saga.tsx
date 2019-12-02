@@ -1,13 +1,14 @@
 import logger from '../logger'
 import {LogFn} from '../logger/types'
 import * as RS from 'redux-saga'
+import * as Types from '@redux-saga/types'
 import * as Effects from 'redux-saga/effects'
 import {convertToError} from './errors'
 import * as ConfigGen from '../actions/config-gen'
 import {TypedState} from '../constants/reducer'
 import {TypedActions, TypedActionsMap} from '../actions/typed-actions-gen'
 import put from './typed-put'
-import {isArray} from 'lodash-es'
+import isArray from 'lodash/isArray'
 
 type ActionType = keyof TypedActionsMap
 
@@ -44,9 +45,13 @@ function* sequentially(effects: Array<any>): Generator<any, Array<any>, any> {
 export type MaybeAction = void | boolean | TypedActions | TypedActions[] | null
 
 type ActionTypes = keyof TypedActionsMap
-type ChainActionReturnInner = void | false | TypedActions | null
-type ChainActionReturnInPromise = ChainActionReturnInner | Array<ChainActionReturnInner>
-export type ChainActionReturn = ChainActionReturnInPromise | Promise<ChainActionReturnInPromise>
+export type ChainActionReturn =
+  | void
+  | TypedActions
+  | null
+  | boolean
+  | Array<ChainActionReturn>
+  | Promise<ChainActionReturn>
 //
 // Get the values of an Array. i.e. ValuesOf<["FOO", "BAR"]> => "FOO" | "BAR"
 type ValuesOf<T extends any[]> = T[number]
@@ -70,12 +75,12 @@ interface ChainAction2 {
 }
 
 function* chainAction2Impl<Actions extends {readonly type: string}>(
-  pattern: RS.Pattern,
+  pattern: Types.Pattern<any>,
   f: (state: TypedState, action: Actions, logger: SagaLogger) => ChainActionReturn,
   loggerTag?: string
 ) {
   // @ts-ignore
-  return yield Effects.takeEvery<TypedActions>(pattern as RS.Pattern, function* chainActionHelper(
+  return yield Effects.takeEvery<TypedActions>(pattern as Types.Pattern<any>, function* chainActionHelper(
     action: TypedActions
   ) {
     const sl = new SagaLogger(action.type as ActionType, loggerTag || 'unknown')
@@ -83,6 +88,9 @@ function* chainAction2Impl<Actions extends {readonly type: string}>(
       const state: TypedState = yield* selectState()
       // @ts-ignore
       let toPut = yield Effects.call(f, state, action, sl)
+      // release memory
+      // @ts-ignore
+      action = undefined
       if (toPut) {
         const outActions: Array<TypedActions> = isArray(toPut) ? toPut : [toPut]
         for (var out of outActions) {
@@ -117,7 +125,7 @@ function* chainGenerator<
     readonly type: string
   }
 >(
-  pattern: RS.Pattern,
+  pattern: Types.Pattern<any>,
   f: (state: TypedState, action: Actions, logger: SagaLogger) => Generator<any, any, any>,
   // tag for logger
   fcnTag?: string
@@ -162,15 +170,16 @@ export type RPCPromiseType<F extends (...rest: any[]) => any, RF = ReturnType<F>
   ? U
   : RF
 
-export type Effect = RS.Effect
+export type Effect<T> = Types.Effect<T>
 export type PutEffect = Effects.PutEffect<TypedActions>
 export type Channel<T> = RS.Channel<T>
-export {buffers, channel, delay, eventChannel} from 'redux-saga'
+export {buffers, channel, eventChannel} from 'redux-saga'
 export {
   all,
   call as callUntyped,
   cancel,
   cancelled,
+  delay,
   fork as _fork, // fork is pretty unsafe so lets mark it unusually
   join,
   race,

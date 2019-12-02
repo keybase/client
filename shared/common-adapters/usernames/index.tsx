@@ -3,7 +3,6 @@ import Text, {TextType, Background, StylesTextCrossPlatform} from '../text'
 import shallowEqual from 'shallowequal'
 import * as Styles from '../../styles'
 import {backgroundModeIsNegative} from '../text.shared'
-import {e164ToDisplay} from '../../util/phone-numbers'
 
 export type UserListItem = {
   username: string
@@ -37,6 +36,7 @@ export type BaseUsernamesProps = {
   title?: string
   type: TextType
   underline?: boolean
+  withProfileCardPopup?: boolean
 }
 
 export type Props = {
@@ -52,12 +52,21 @@ export type PlaintextProps = {
   title?: string
 }
 
+// Mobile handles spaces correctly so don't insert anything
+const space = Styles.isMobile ? ` ` : <>&nbsp;</>
+
+// common-adapters/profile-card.tsx already imports this, so have it assign
+// this here instead of importing directly to avoid an import cycle.
+let WithProfileCardPopup: React.ComponentType<any> | null
+export const _setWithProfileCardPopup = (Comp: React.ComponentType<any>) => (WithProfileCardPopup = Comp)
+
 function UsernameText(props: Props) {
   const derivedJoinerStyle = Styles.collapseStyles([
     props.joinerStyle,
     styles.joinerStyle,
     {color: props.commaColor},
   ])
+
   return (
     <>
       {props.users.map((u, i) => {
@@ -80,8 +89,8 @@ function UsernameText(props: Props) {
           isElectron: props.inline ? {display: 'inline'} : {},
         })
         userStyle = Styles.collapseStyles([
-          props.style,
           userStyle,
+          props.style,
           props.type.startsWith('Body') && styles.kerning,
         ])
 
@@ -90,7 +99,7 @@ function UsernameText(props: Props) {
         // on native. (See DESKTOP-3963.)
         const _onUsernameClicked = props.onUsernameClicked
         const isNegative = backgroundModeIsNegative(props.backgroundMode || null)
-        return (
+        const renderText = (onLongPress?: () => void) => (
           <Text type={props.type} key={u.username}>
             {i !== 0 && i === props.users.length - 1 && props.showAnd && (
               <Text type={props.type} negative={isNegative} style={derivedJoinerStyle}>
@@ -102,6 +111,7 @@ function UsernameText(props: Props) {
               negative={isNegative}
               className={Styles.classNames({'hover-underline': props.underline})}
               selectable={props.selectable}
+              onLongPress={onLongPress}
               onClick={
                 _onUsernameClicked
                   ? evt => {
@@ -120,8 +130,20 @@ function UsernameText(props: Props) {
                 ,
               </Text>
             )}
-            {i !== props.users.length - 1 && ' '}
+            {i !== props.users.length - 1 && (
+              <Text type={props.type} negative={isNegative} style={derivedJoinerStyle}>
+                {space}
+              </Text>
+            )}
           </Text>
+        )
+
+        return props.withProfileCardPopup && WithProfileCardPopup ? (
+          <WithProfileCardPopup key={u.username} username={u.username}>
+            {renderText}
+          </WithProfileCardPopup>
+        ) : (
+          renderText()
         )
       })}
     </>
@@ -133,6 +155,7 @@ UsernameText.defaultProps = {
   selectable: undefined,
   showAnd: false,
   underline: true,
+  withProfileCardPopup: true,
 }
 
 const inlineProps = Styles.isMobile ? {lineClamp: 1} : {}
@@ -234,6 +257,7 @@ export const assertionToDisplay = (assertion: string): string => {
     }
     // phone number
     try {
+      const {e164ToDisplay} = require('../../util/phone-numbers')
       return e164ToDisplay('+' + noSuffix)
     } catch (e) {
       return '+' + noSuffix

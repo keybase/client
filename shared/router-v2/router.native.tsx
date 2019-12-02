@@ -7,6 +7,8 @@ import * as Shim from './shim.native'
 import * as Stack from 'react-navigation-stack'
 import * as Styles from '../styles'
 import * as Tabs from '../constants/tabs'
+import * as FsConstants from '../constants/fs'
+import * as Kbfs from '../fs/common'
 import GlobalError from '../app/global-errors/container'
 import OutOfDate from '../app/out-of-date'
 import RuntimeStats from '../app/runtime-stats/container'
@@ -17,10 +19,12 @@ import {Props} from './router'
 import {connect} from '../util/container'
 import {createAppContainer} from '@react-navigation/native'
 import {createBottomTabNavigator} from 'react-navigation-tabs'
-import {createSwitchNavigator, StackActions} from '@react-navigation/core'
-import {debounce} from 'lodash-es'
+import {createSwitchNavigator} from '@react-navigation/core'
+import debounce from 'lodash/debounce'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {useScreens} from 'react-native-screens'
+import {getPersistenceFunctions} from './persist.native'
+import Loading from '../login/loading'
 
 const {createStackNavigator} = Stack
 
@@ -72,15 +76,21 @@ const icons: {[key: string]: IconType} = {
   [Tabs.walletsTab]: 'iconfont-nav-2-wallets',
 }
 
+const FilesTabBadge = () => {
+  const uploadIcon = FsConstants.getUploadIconForFilesTab(Kbfs.useFsBadge())
+  return uploadIcon ? <Kbfs.UploadIcon uploadIcon={uploadIcon} style={styles.fsBadgeIconUpload} /> : null
+}
+
 const TabBarIcon = ({badgeNumber, focused, routeName}) => (
   <Kb.NativeView style={tabStyles.container}>
     <Kb.Icon
       type={icons[routeName]}
       fontSize={32}
       style={tabStyles.tab}
-      color={focused ? Styles.globalColors.white : Styles.globalColors.blueDarker}
+      color={focused ? Styles.globalColors.whiteOrWhite : Styles.globalColors.blueDarkerOrBlack}
     />
     {!!badgeNumber && <Kb.Badge badgeNumber={badgeNumber} badgeStyle={tabStyles.badge} />}
+    {routeName === Tabs.fsTab && <FilesTabBadge />}
   </Kb.NativeView>
 )
 
@@ -113,44 +123,62 @@ const TabBarIconContainer = props => (
   </Kb.NativeTouchableWithoutFeedback>
 )
 
+// globalColors automatically respects dark mode pref
+const getBg = () => Styles.globalColors.white
+
+const BlankScreen = () => null
+
 const VanillaTabNavigator = createBottomTabNavigator(
-  tabs.reduce((map, tab) => {
-    map[tab] = createStackNavigator(Shim.shim(routes), {
-      defaultNavigationOptions,
-      headerMode,
-      initialRouteName: tabRoots[tab],
-      initialRouteParams: undefined,
-      transitionConfig: () => ({
-        transitionSpec: {
-          // the 'accurate' ios one is very slow to stop so going back leads to a missed taps
-          duration: 250,
-          easing: Kb.NativeEasing.bezier(0.2833, 0.99, 0.31833, 0.99),
-          timing: Kb.NativeAnimated.timing,
-        },
-      }),
-    })
-    return map
-  }, {}),
+  tabs.reduce(
+    (map, tab) => {
+      map[tab] = createStackNavigator(Shim.shim(routes), {
+        bgOnlyDuringTransition: Styles.isAndroid ? getBg : undefined,
+        cardStyle: Styles.isAndroid ? {backgroundColor: 'rgba(0,0,0,0)'} : undefined,
+        defaultNavigationOptions,
+        headerMode,
+        initialRouteName: tabRoots[tab],
+        initialRouteParams: undefined,
+        transitionConfig: () => ({
+          transitionSpec: {
+            // the 'accurate' ios one is very slow to stop so going back leads to a missed taps
+            duration: 250,
+            easing: Kb.NativeEasing.bezier(0.2833, 0.99, 0.31833, 0.99),
+            timing: Kb.NativeAnimated.timing,
+          },
+        }),
+      })
+      return map
+    },
+    // Start with a blank screen w/o a tab icon so we dont' render the people tab on start always
+    {blank: {screen: BlankScreen}}
+  ),
   {
-    defaultNavigationOptions: ({navigation}) => ({
-      tabBarButtonComponent: TabBarIconContainer,
-      tabBarIcon: ({focused}) => (
-        <ConnectedTabBarIcon focused={focused} routeName={navigation.state.routeName as Tabs.Tab} />
-      ),
-    }),
-    order: tabs,
+    backBehavior: 'none',
+    defaultNavigationOptions: ({navigation}) => {
+      const routeName = navigation.state.index && navigation.state.routes[navigation.state.index].routeName
+      const tabBarVisible = routeName !== 'chatConversation'
+
+      return {
+        tabBarButtonComponent: navigation.state.routeName === 'blank' ? BlankScreen : TabBarIconContainer,
+        tabBarIcon: ({focused}) => (
+          <ConnectedTabBarIcon focused={focused} routeName={navigation.state.routeName as Tabs.Tab} />
+        ),
+        tabBarVisible,
+      }
+    },
+    order: ['blank', ...tabs],
     tabBarOptions: {
       get activeBackgroundColor() {
-        return Styles.globalColors.blueDark
+        return Styles.globalColors.blueDarkOrGreyDarkest
       },
       get inactiveBackgroundColor() {
-        return Styles.globalColors.blueDark
+        return Styles.globalColors.blueDarkOrGreyDarkest
       },
       // else keyboard avoiding is racy on ios and won't work correctly
       keyboardHidesTabBar: Styles.isAndroid,
       showLabel: false,
       get style() {
-        return {backgroundColor: Styles.globalColors.blueDark}
+        return {backgroundColor: Styles.globalColors.blueDarkOrGreyDarkest}
       },
     },
   }
@@ -164,10 +192,14 @@ class UnconnectedTabNavigator extends React.PureComponent<any> {
   }
 }
 
-const TabNavigator = Container.connect(() => ({isDarkMode: Styles.isDarkMode()}), undefined, (s, _, o) => ({
-  ...s,
-  ...o,
-}))(UnconnectedTabNavigator)
+const TabNavigator = Container.connect(
+  () => ({isDarkMode: Styles.isDarkMode()}),
+  undefined,
+  (s, _, o: any) => ({
+    ...s,
+    ...o,
+  })
+)(UnconnectedTabNavigator)
 
 const tabStyles = Styles.styleSheetCreate(
   () =>
@@ -195,6 +227,8 @@ const LoggedInStackNavigator = createStackNavigator(
     ...Shim.shim(modalRoutes),
   },
   {
+    bgOnlyDuringTransition: Styles.isAndroid ? getBg : undefined,
+    cardStyle: Styles.isAndroid ? {backgroundColor: 'rgba(0,0,0,0)'} : undefined,
     headerMode: 'none',
     mode: 'modal',
   }
@@ -214,21 +248,34 @@ const LoggedOutStackNavigator = createStackNavigator(
   }
 )
 
+const SimpleLoading = () => (
+  <Kb.Box2
+    direction="vertical"
+    fullHeight={true}
+    fullWidth={true}
+    style={{backgroundColor: Styles.globalColors.white}}
+  >
+    <Loading allowFeedback={false} failed="" status="" onRetry={null} onFeedback={null} />
+  </Kb.Box2>
+)
+
 const RootStackNavigator = createSwitchNavigator(
   {
+    loading: {screen: SimpleLoading},
     loggedIn: LoggedInStackNavigator,
     loggedOut: LoggedOutStackNavigator,
   },
-  {initialRouteName: 'loggedOut'}
+  {initialRouteName: 'loading'}
 )
 
 const AppContainer = createAppContainer(RootStackNavigator)
 
 class RNApp extends React.PureComponent<Props> {
-  _nav: any = null
+  private nav: any = null
+
   // TODO remove this eventually, just so we can handle the old style actions
   dispatchOldAction = (old: any) => {
-    const nav = this._nav
+    const nav = this.nav
     if (!nav) {
       throw new Error('Missing nav?')
     }
@@ -242,7 +289,7 @@ class RNApp extends React.PureComponent<Props> {
   }
 
   dispatch = (a: any) => {
-    const nav = this._nav
+    const nav = this.nav
     if (!nav) {
       throw new Error('Missing nav?')
     }
@@ -250,48 +297,30 @@ class RNApp extends React.PureComponent<Props> {
   }
 
   // debounce this so we don't persist a route that can crash and then keep them in some crash loop
-  _persistRoute = debounce(() => {
+  private persistRoute = debounce(() => {
     this.props.persistRoute(Constants.getVisiblePath())
   }, 3000)
 
-  _handleAndroidBack = () => {
-    const nav = this._nav
-    if (!nav) {
-      return
-    }
-    const path = Constants.getVisiblePath()
-
-    // We determine if we're at the root if we're at the root of our navigation hierarchy, which is slightly different if you're logged in or out
-    if (path[0].routeName === 'loggedIn') {
-      if (path[1].routeName === 'Main') {
-        if (path.length === 3) {
-          return false
-        }
-      }
-    } else {
-      if (path.length === 2) {
-        return false
-      }
-    }
-    nav.dispatch(StackActions.pop({}))
-    return true
-  }
-
-  componentDidMount() {
-    if (Styles.isAndroid) {
-      Kb.NativeBackHandler.addEventListener('hardwareBackPress', this._handleAndroidBack)
-    }
-  }
-
-  componentWillUnmount() {
-    if (Styles.isAndroid) {
-      Kb.NativeBackHandler.removeEventListener('hardwareBackPress', this._handleAndroidBack)
-    }
-  }
-
   getNavState = () => {
-    const n = this._nav
+    const n = this.nav
     return (n && n.state && n.state.nav) || null
+  }
+
+  private setNav = (n: any) => {
+    this.nav = n
+  }
+
+  private onNavigationStateChange = () => {
+    this.persistRoute()
+  }
+
+  // hmr messes up startup, so only set this after its rendered once
+  private hmrProps = () => {
+    if (this.nav) {
+      return getPersistenceFunctions()
+    } else {
+      return {}
+    }
   }
 
   render() {
@@ -300,7 +329,11 @@ class RNApp extends React.PureComponent<Props> {
         <Kb.NativeStatusBar
           barStyle={Styles.isAndroid ? 'default' : this.props.isDarkMode ? 'light-content' : 'dark-content'}
         />
-        <AppContainer ref={nav => (this._nav = nav)} onNavigationStateChange={this._persistRoute} />
+        <AppContainer
+          ref={this.setNav}
+          onNavigationStateChange={this.onNavigationStateChange}
+          {...this.hmrProps()}
+        />
         <GlobalError />
         <OutOfDate />
         <RuntimeStats />
@@ -310,6 +343,13 @@ class RNApp extends React.PureComponent<Props> {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
+  fsBadgeIconUpload: {
+    bottom: Styles.globalMargins.tiny,
+    height: Styles.globalMargins.small,
+    position: 'absolute',
+    right: Styles.globalMargins.small,
+    width: Styles.globalMargins.small,
+  },
   headerTitle: {color: Styles.globalColors.black},
   keyboard: {
     flexGrow: 1,

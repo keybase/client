@@ -3,6 +3,7 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as SettingsConstants from '../../constants/settings'
 import * as PushConstants from '../../constants/push'
+import * as ChatConstants from '../../constants/chat2'
 import * as ConfigGen from '../config-gen'
 import * as Chat2Gen from '../chat2-gen'
 import * as ProfileGen from '../profile-gen'
@@ -22,20 +23,21 @@ import {
   NativeModules,
   NativeEventEmitter,
   ActionSheetIOS,
-  CameraRoll,
   PermissionsAndroid,
   Clipboard,
+  Vibration,
 } from 'react-native'
+import CameraRoll from '@react-native-community/cameraroll'
 import NetInfo from '@react-native-community/netinfo'
-import RNFetchBlob from 'rn-fetch-blob'
 import * as PushNotifications from 'react-native-push-notification'
-import {Permissions} from 'react-native-unimodules'
 import {isIOS, isAndroid} from '../../constants/platform'
 import pushSaga, {getStartupDetailsFromInitialPush} from './push.native'
 import * as Container from '../../util/container'
 import * as Contacts from 'expo-contacts'
 import {launchImageLibraryAsync} from '../../util/expo-image-picker'
 import Geolocation from '@react-native-community/geolocation'
+import {AudioRecorder} from 'react-native-audio'
+import * as Haptics from 'expo-haptics'
 
 const requestPermissionsToWrite = async () => {
   if (isAndroid) {
@@ -56,8 +58,33 @@ const requestPermissionsToWrite = async () => {
   return Promise.resolve()
 }
 
+export const requestAudioPermission = async () => {
+  let chargeForward = true
+  const {Permissions} = require('react-native-unimodules')
+  let {status} = await Permissions.getAsync(Permissions.AUDIO_RECORDING)
+  if (status === Permissions.PermissionStatus.UNDETERMINED) {
+    if (isIOS) {
+      const askRes = await Permissions.askAsync(Permissions.AUDIO_RECORDING)
+      status = askRes.status
+    } else {
+      const askRes = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.RECORD_AUDIO)
+      switch (askRes) {
+        case 'never_ask_again':
+        case 'denied':
+          status = Permissions.PermissionStatus.DENIED
+      }
+    }
+    chargeForward = false
+  }
+  if (status === Permissions.PermissionStatus.DENIED) {
+    throw new Error('Please allow Keybase to access the microphone in the phone settings.')
+  }
+  return chargeForward
+}
+
 export const requestLocationPermission = async (mode: RPCChatTypes.UIWatchPositionPerm) => {
   if (isIOS) {
+    const {Permissions} = require('react-native-unimodules')
     const {status, permissions} = await Permissions.getAsync(Permissions.LOCATION)
     switch (mode) {
       case RPCChatTypes.UIWatchPositionPerm.base:
@@ -117,21 +144,28 @@ export async function saveAttachmentToCameraRoll(filePath: string, mimeType: str
     logger.debug(logPrefix + 'failed to save: ' + e)
     throw e
   } finally {
-    RNFetchBlob.fs.unlink(filePath)
+    require('rn-fetch-blob').default.fs.unlink(filePath)
   }
 }
 
-export const showShareActionSheetFromURL = async (options: {
-  url?: any | null
+export const showShareActionSheet = async (options: {
+  filePath?: any | null
   message?: any | null
-  mimeType?: string | null
+  mimeType: string
 }) => {
   if (isIOS) {
     return new Promise((resolve, reject) =>
-      ActionSheetIOS.showShareActionSheetWithOptions(options, reject, resolve)
+      ActionSheetIOS.showShareActionSheetWithOptions(
+        {
+          message: options.message,
+          url: options.filePath,
+        },
+        reject,
+        resolve
+      )
     )
   } else {
-    if (!options.url && options.message) {
+    if (!options.filePath && options.message) {
       try {
         await NativeModules.ShareFiles.shareText(options.message, options.mimeType)
         return {completed: true, method: ''}
@@ -141,18 +175,12 @@ export const showShareActionSheetFromURL = async (options: {
     }
 
     try {
-      await NativeModules.ShareFiles.share(options.url, options.mimeType)
+      await NativeModules.ShareFiles.share(options.filePath, options.mimeType)
       return {completed: true, method: ''}
     } catch (_) {
       return {completed: false, method: ''}
     }
   }
-}
-
-// Shows the shareactionsheet for a file, and deletes the file afterwards
-export const showShareActionSheetFromFile = async (filePath: string) => {
-  await showShareActionSheetFromURL({url: 'file://' + filePath})
-  return RNFetchBlob.fs.unlink(filePath)
 }
 
 const openAppSettings = async () => {
@@ -165,50 +193,6 @@ const openAppSettings = async () => {
       Linking.openURL(settingsURL)
     } else {
       logger.warn('Unable to open app settings')
-    }
-  }
-}
-
-export const getContentTypeFromURL = async (
-  url: string,
-  cb: (arg0: {error?: any; statusCode?: number; contentType?: string; disposition?: string}) => void
-) => {
-  // For some reason HEAD doesn't work on Android. So just GET one byte.
-  // TODO: fix HEAD for Android and get rid of this hack.
-  if (isAndroid) {
-    try {
-      const response = await fetch(url, {headers: {Range: 'bytes=0-0'}, method: 'GET'}) // eslint-disable-line no-undef
-      let contentType = ''
-      let disposition = ''
-      let statusCode = response.status
-      if (
-        statusCode === 200 ||
-        statusCode === 206 ||
-        // 416 can happen if the file is empty.
-        statusCode === 416
-      ) {
-        contentType = response.headers.get('Content-Type') || ''
-        disposition = response.headers.get('Content-Disposition') || ''
-        statusCode = 200 // Treat 200, 206, and 416 as 200.
-      }
-      cb({contentType, disposition, statusCode})
-    } catch (error) {
-      console.log(error)
-      cb({error})
-    }
-  } else {
-    try {
-      const response = await fetch(url, {method: 'HEAD'}) // eslint-disable-line no-undef
-      let contentType = ''
-      let disposition = ''
-      if (response.status === 200) {
-        contentType = response.headers.get('Content-Type') || ''
-        disposition = response.headers.get('Content-Disposition') || ''
-      }
-      cb({contentType, disposition, statusCode: response.status})
-    } catch (error) {
-      console.log(error)
-      cb({error})
     }
   }
 }
@@ -242,33 +226,46 @@ const updateChangedFocus = (_: Container.TypedState, action: ConfigGen.MobileApp
 let _lastPersist = ''
 function* persistRoute(state: Container.TypedState, action: ConfigGen.PersistRoutePayload) {
   const path = action.payload.path
-  const tab = path[2] // real top is the root of the tab (aka chatRoot) and not the tab itself
-  if (!tab) return
+  const mainOrModal = path && path[1] && path[1].routeName
+
   let param = {}
   let routeName = ''
-  // top level tab?
-  if (tab.routeName === 'tabs.chatTab') {
-    const convo = path[path.length - 1]
-    // a specific convo?
-    if (convo.routeName === 'chatConversation') {
-      routeName = convo.routeName
-      param = {selectedConversationIDKey: state.chat2.selectedConversation}
-    } else {
-      // just the inbox
+  if (mainOrModal === 'Main') {
+    const tab = path && path[2] // real top is the root of the tab (aka chatRoot) and not the tab itself
+    if (!tab) return
+    // top level tab?
+    if (tab.routeName === 'tabs.chatTab') {
+      const convo = path && path[path.length - 1]
+      // a specific convo?
+      if (convo.routeName === 'chatConversation') {
+        routeName = convo.routeName
+        param = {selectedConversationIDKey: state.chat2.selectedConversation}
+      } else {
+        // just the inbox
+        routeName = tab.routeName
+      }
+    } else if (Tabs.isValidInitialTabString(tab.routeName)) {
       routeName = tab.routeName
-    }
-  } else if (Tabs.isValidInitialTabString(tab.routeName)) {
-    routeName = tab.routeName
-    if (routeName === _lastPersist) {
-      // skip rewriting this
-      return
+    } else {
+      return // don't write, keep the last
     }
   } else {
-    return // don't write, keep the last
+    // info panel
+    if (mainOrModal === 'chatInfoPanel') {
+      routeName = 'chatConversation'
+      param = {selectedConversationIDKey: path && path[1].params.conversationIDKey}
+    } else {
+      // no path or unknown, default to people
+      routeName = 'tabs.peopleTab'
+    }
   }
 
   const s = JSON.stringify({param, routeName})
-  _lastPersist = routeName
+  // don't keep rewriting
+  if (_lastPersist === s) {
+    return
+  }
+  _lastPersist = s
   yield Saga.spawn(() =>
     RPCTypes.configGuiSetValueRpcPromise({
       path: 'ui.routeState2',
@@ -277,15 +274,23 @@ function* persistRoute(state: Container.TypedState, action: ConfigGen.PersistRou
   )
 }
 
+// only send when different, we get called a bunch where this doesn't actually change
+let _lastNetworkType: ConfigGen.OsNetworkStatusChangedPayload['payload']['type'] | undefined
 const updateMobileNetState = async (
   _: Container.TypedState,
   action: ConfigGen.OsNetworkStatusChangedPayload
 ) => {
   try {
-    await RPCTypes.appStateUpdateMobileNetStateRpcPromise({state: action.payload.type})
+    const {type} = action.payload
+    if (type === _lastNetworkType) {
+      return false as const
+    }
+    _lastNetworkType = type
+    await RPCTypes.appStateUpdateMobileNetStateRpcPromise({state: type})
   } catch (err) {
     console.warn('Error sending mobileNetStateUpdate', err)
   }
+  return false as const
 }
 
 const initOsNetworkStatus = async () => {
@@ -324,7 +329,7 @@ function* loadStartupDetails() {
   })
   const linkTask = yield Saga._fork(Linking.getInitialURL)
   const initialPush = yield Saga._fork(getStartupDetailsFromInitialPush)
-  const [routeState, link, push] = yield Saga.join(routeStateTask, linkTask, initialPush)
+  const [routeState, link, push] = yield Saga.join([routeStateTask, linkTask, initialPush])
 
   // Clear last value to be extra safe bad things don't hose us forever
   yield Saga._fork(async () => {
@@ -421,15 +426,19 @@ const openAppStore = () =>
       : 'https://itunes.apple.com/us/app/keybase-crypto-for-everyone/id1044461770?mt=8'
   ).catch(() => {})
 
-const expoPermissionStatusMap = {
-  [Permissions.PermissionStatus.GRANTED]: 'granted' as const,
-  [Permissions.PermissionStatus.DENIED]: 'never_ask_again' as const,
-  [Permissions.PermissionStatus.UNDETERMINED]: 'undetermined' as const,
+const expoPermissionStatusMap = () => {
+  const {Permissions} = require('react-native-unimodules')
+  return {
+    [Permissions.PermissionStatus.GRANTED]: 'granted' as const,
+    [Permissions.PermissionStatus.DENIED]: 'never_ask_again' as const,
+    [Permissions.PermissionStatus.UNDETERMINED]: 'undetermined' as const,
+  }
 }
 
 const loadContactPermissionFromNative = async () => {
   if (isIOS) {
-    return expoPermissionStatusMap[(await Permissions.getAsync(Permissions.CONTACTS)).status]
+    const {Permissions} = require('react-native-unimodules')
+    return expoPermissionStatusMap()[(await Permissions.getAsync(Permissions.CONTACTS)).status]
   }
   return (await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.READ_CONTACTS))
     ? 'granted'
@@ -468,8 +477,9 @@ const askForContactPermissionsAndroid = async () => {
 }
 
 const askForContactPermissionsIOS = async () => {
+  const {Permissions} = require('react-native-unimodules')
   const {status} = await Permissions.askAsync(Permissions.CONTACTS)
-  return expoPermissionStatusMap[status]
+  return expoPermissionStatusMap()[status]
 }
 
 const askForContactPermissions = () => {
@@ -484,7 +494,9 @@ function* requestContactPermissions(
   yield Saga.put(WaitingGen.createIncrementWaiting({key: SettingsConstants.importContactsWaitingKey}))
   const result: Saga.RPCPromiseType<typeof askForContactPermissions> = yield askForContactPermissions()
   if (result === 'granted' && thenToggleImportOn) {
-    yield Saga.put(SettingsGen.createEditContactImportEnabled({enable: true}))
+    yield Saga.put(
+      SettingsGen.createEditContactImportEnabled({enable: true, fromSettings: action.payload.fromSettings})
+    )
   }
   yield Saga.sequentially([
     Saga.put(SettingsGen.createLoadedContactPermissions({status: result})),
@@ -499,7 +511,7 @@ const manageContactsCache = async (
 ) => {
   if (state.settings.contacts.importEnabled === false) {
     await RPCTypes.contactsSaveContactListRpcPromise({contacts: []})
-    return SettingsGen.createSetContactImportedCount({count: null})
+    return SettingsGen.createSetContactImportedCount({})
   }
 
   // get permissions if we haven't loaded them for some reason
@@ -528,7 +540,7 @@ const manageContactsCache = async (
     })
   } catch (e) {
     logger.error(`error loading contacts: ${e.message}`)
-    return SettingsGen.createSetContactImportedCount({count: null, error: e.message})
+    return SettingsGen.createSetContactImportedCount({error: e.message})
   }
   let defaultCountryCode: string = ''
   try {
@@ -546,7 +558,7 @@ const manageContactsCache = async (
   logger.info(`Importing ${mapped.length} contacts.`)
   const actions: Array<Container.TypedActions> = []
   try {
-    const newlyResolved = await RPCTypes.contactsSaveContactListRpcPromise({contacts: mapped})
+    const {newlyResolved, resolved} = await RPCTypes.contactsSaveContactListRpcPromise({contacts: mapped})
     logger.info(`Success`)
     actions.push(
       SettingsGen.createSetContactImportedCount({count: mapped.length}),
@@ -557,16 +569,33 @@ const manageContactsCache = async (
         message: PushConstants.makeContactsResolvedMessage(newlyResolved),
       })
     }
+    if (state.settings.contacts.waitingToShowJoinedModal && resolved) {
+      actions.push(SettingsGen.createShowContactsJoinedModal({resolved}))
+    }
   } catch (e) {
     logger.error('Error saving contacts list: ', e.message)
-    actions.push(SettingsGen.createSetContactImportedCount({count: null, error: e.message}))
+    actions.push(SettingsGen.createSetContactImportedCount({error: e.message}))
   }
   return actions
 }
 
+const showContactsJoinedModal = (
+  _: Container.TypedState,
+  action: SettingsGen.ShowContactsJoinedModalPayload
+) =>
+  action.payload.resolved.length
+    ? [RouteTreeGen.createNavigateAppend({path: ['settingsContactsJoined']})]
+    : []
+
 function* setupDarkMode() {
   const NativeAppearance = NativeModules.Appearance
   if (NativeAppearance) {
+    // eslint-disable-next-line no-inner-declarations
+    function* handleGotChangeEvent(action: any) {
+      yield Saga.delay(500)
+      yield Saga.put(action)
+    }
+
     const channel = Saga.eventChannel(emitter => {
       const nativeEventEmitter = new NativeEventEmitter(NativeAppearance)
       nativeEventEmitter.addListener('appearanceChanged', ({colorScheme}) => {
@@ -575,9 +604,18 @@ function* setupDarkMode() {
       return () => {}
     }, Saga.buffers.sliding(1))
 
+    let task: any
     while (true) {
       const mode = yield Saga.take(channel)
-      yield Saga.put(ConfigGen.createSetSystemDarkMode({dark: mode === 'dark'}))
+      // iOS takes snapshots of the app in light/dark mode and this causes us to get a light/dark call no matter what. so
+      // throttle a bit and ignore this
+      if (task) {
+        yield Saga.cancel(task)
+      }
+      task = yield Saga._fork(
+        handleGotChangeEvent,
+        ConfigGen.createSetSystemDarkMode({dark: mode === 'dark'})
+      )
     }
   }
 }
@@ -599,7 +637,7 @@ function* setupLocationUpdateLoop() {
   }
 }
 
-const setLocationDeniedCommandStatus = (conversationIDKey: Types.ConversationIDKey, text: string) =>
+const setPermissionDeniedCommandStatus = (conversationIDKey: Types.ConversationIDKey, text: string) =>
   Chat2Gen.createSetCommandStatusInfo({
     conversationIDKey,
     info: {
@@ -619,7 +657,7 @@ const onChatWatchPosition = async (
     await requestLocationPermission(action.payload.params.perm)
   } catch (err) {
     logger.info('failed to get location perms: ' + err)
-    return setLocationDeniedCommandStatus(
+    return setPermissionDeniedCommandStatus(
       Types.conversationIDToKey(action.payload.params.convID),
       `Failed to access location. ${err.message}`
     )
@@ -638,14 +676,14 @@ const onChatWatchPosition = async (
       logger.warn(err.message)
       if (err.code && err.code === 1 && locationEmitter) {
         locationEmitter(
-          setLocationDeniedCommandStatus(
+          setPermissionDeniedCommandStatus(
             Types.conversationIDToKey(action.payload.params.convID),
             `Failed to access location. ${err.message}`
           )
         )
       }
     },
-    {enableHighAccuracy: isIOS, maximumAge: isIOS ? 0 : undefined}
+    {distanceFilter: 65, enableHighAccuracy: isIOS, maximumAge: isIOS ? 0 : undefined}
   )
   response.result(watchID)
   return []
@@ -685,9 +723,150 @@ export const watchPositionForMap = async (errFn: () => void): Promise<number> =>
         errFn()
       }
     },
-    {enableHighAccuracy: isIOS, maximumAge: isIOS ? 0 : undefined}
+    {distanceFilter: 10, enableHighAccuracy: isIOS, maximumAge: isIOS ? 0 : undefined}
   )
   return watchID
+}
+
+const configureFileAttachmentDownloadForAndroid = () =>
+  RPCChatTypes.localConfigureFileAttachmentDownloadLocalRpcPromise({
+    // Android's cache dir is (when I tried) [app]/cache but Go side uses
+    // [app]/.cache by default, which can't be used for sharing to other apps.
+    cacheDirOverride: require('rn-fetch-blob').default.fs.dirs.CacheDir,
+    downloadDirOverride: require('rn-fetch-blob').default.fs.dirs.DownloadDir,
+  })
+
+const stopAudioRecording = async (
+  state: Container.TypedState,
+  action: Chat2Gen.StopAudioRecordingPayload,
+  logger: Saga.SagaLogger
+) => {
+  const conversationIDKey = action.payload.conversationIDKey
+  if (state.chat2.audioRecording) {
+    // don't do anything if we are recording and are in locked mode.
+    const audio = state.chat2.audioRecording.get(conversationIDKey)
+    if (audio && ChatConstants.showAudioRecording(audio) && audio.isLocked) {
+      return false
+    }
+  }
+  logger.info('stopAudioRecording: stopping recording')
+  try {
+    AudioRecorder.stopRecording()
+  } catch (e) {}
+  AudioRecorder.onProgress = null
+
+  if (!state.chat2.audioRecording) {
+    return false
+  }
+  const audio = state.chat2.audioRecording.get(conversationIDKey)
+  if (!audio) {
+    logger.info('stopAudioRecording: no audio record, not sending')
+    return false
+  }
+  if (
+    audio.status === Types.AudioRecordingStatus.CANCELLED ||
+    action.payload.stopType === Types.AudioStopType.CANCEL
+  ) {
+    logger.info('stopAudioRecording: recording cancelled, bailing out')
+    await RPCChatTypes.localCancelUploadTempFileRpcPromise({outboxID: audio.outboxID})
+    return false
+  }
+  if (ChatConstants.audioRecordingDuration(audio) < 500 || audio.path.length === 0) {
+    logger.info('stopAudioRecording: recording too short, skipping')
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
+    return Chat2Gen.createStopAudioRecording({conversationIDKey, stopType: Types.AudioStopType.CANCEL})
+  }
+
+  if (audio.status === Types.AudioRecordingStatus.STAGED) {
+    logger.info('stopAudioRecording: in staged mode, not sending')
+    return false
+  }
+  return Chat2Gen.createSendAudioRecording({conversationIDKey, fromStaged: false, info: audio})
+}
+
+const onAttemptAudioRecording = async (
+  _: Container.TypedState,
+  action: Chat2Gen.AttemptAudioRecordingPayload,
+  logger: Saga.SagaLogger
+) => {
+  let chargeForward = true
+  try {
+    chargeForward = await requestAudioPermission()
+  } catch (err) {
+    logger.info('failed to get audio perms: ' + err)
+    return setPermissionDeniedCommandStatus(
+      action.payload.conversationIDKey,
+      `Failed to access audio. ${err.message}`
+    )
+  }
+  if (!chargeForward) {
+    return false
+  }
+  return Chat2Gen.createEnableAudioRecording({
+    conversationIDKey: action.payload.conversationIDKey,
+    meteringCb: action.payload.meteringCb,
+  })
+}
+
+const onEnableAudioRecording = async (
+  state: Container.TypedState,
+  action: Chat2Gen.EnableAudioRecordingPayload,
+  logger: Saga.SagaLogger
+) => {
+  const conversationIDKey = action.payload.conversationIDKey
+  const audio = state.chat2.audioRecording.get(conversationIDKey)
+  if (!audio || ChatConstants.isCancelledAudioRecording(audio)) {
+    logger.info('enableAudioRecording: no recording info set, bailing')
+    return false
+  }
+
+  if (isIOS) {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+  } else {
+    Vibration.vibrate(50)
+  }
+  const outboxID = ChatConstants.generateOutboxID()
+  const audioPath = await RPCChatTypes.localGetUploadTempFileRpcPromise({filename: 'audio.m4a', outboxID})
+  AudioRecorder.prepareRecordingAtPath(audioPath, {
+    AudioEncoding: 'aac',
+    AudioEncodingBitRate: 32000,
+    AudioQuality: 'Low',
+    Channels: 1,
+    MeteringEnabled: true,
+    SampleRate: 22050,
+  })
+  AudioRecorder.onProgress = null
+  AudioRecorder.onFinished = () => {
+    logger.info('onEnableAudioRecording: recording finished')
+  }
+  AudioRecorder.onProgress = data => {
+    action.payload.meteringCb(data.currentMetering)
+  }
+  logger.info('onEnableAudioRecording: setting recording info')
+  return Chat2Gen.createSetAudioRecordingPostInfo({conversationIDKey, outboxID, path: audioPath})
+}
+
+const onSendAudioRecording = (_: Container.TypedState, action: Chat2Gen.SendAudioRecordingPayload) => {
+  if (!action.payload.fromStaged) {
+    if (isIOS) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+    } else {
+      Vibration.vibrate(50)
+    }
+  }
+}
+
+const onSetAudioRecordingPostInfo = async (
+  state: Container.TypedState,
+  action: Chat2Gen.SetAudioRecordingPostInfoPayload,
+  logger: Saga.SagaLogger
+) => {
+  const audio = state.chat2.audioRecording.get(action.payload.conversationIDKey)
+  if (!audio || audio.status !== Types.AudioRecordingStatus.RECORDING) {
+    logger.info('onSetAudioRecordingPostInfo: not in recording mode anymore, bailing')
+    return
+  }
+  await AudioRecorder.startRecording()
 }
 
 export function* platformConfigSaga() {
@@ -704,6 +883,8 @@ export function* platformConfigSaga() {
   yield* Saga.chainAction2(ProfileGen.editAvatar, editAvatar)
   yield* Saga.chainAction2(ConfigGen.loggedIn, initOsNetworkStatus)
   yield* Saga.chainAction2(ConfigGen.osNetworkStatusChanged, updateMobileNetState)
+
+  // Contacts
   yield* Saga.chainAction2(
     [SettingsGen.loadedContactImportEnabled, ConfigGen.mobileAppState],
     loadContactPermissions,
@@ -719,6 +900,11 @@ export function* platformConfigSaga() {
     manageContactsCache,
     'manageContactsCache'
   )
+  yield* Saga.chainAction2(
+    SettingsGen.showContactsJoinedModal,
+    showContactsJoinedModal,
+    'showContactsJoinedModal'
+  )
 
   // Location
   getEngine().registerCustomResponse('chat.1.chatUi.chatWatchPosition')
@@ -727,6 +913,20 @@ export function* platformConfigSaga() {
   yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(
     ConfigGen.daemonHandshake,
     setupLocationUpdateLoop
+  )
+  if (isAndroid) {
+    yield* Saga.chainAction2(ConfigGen.daemonHandshake, configureFileAttachmentDownloadForAndroid)
+  }
+
+  // Audio
+  yield* Saga.chainAction2(Chat2Gen.stopAudioRecording, stopAudioRecording, 'stopAudioRecording')
+  yield* Saga.chainAction2(Chat2Gen.attemptAudioRecording, onAttemptAudioRecording, 'onAttemptAudioRecording')
+  yield* Saga.chainAction2(Chat2Gen.enableAudioRecording, onEnableAudioRecording, 'onEnableAudioRecording')
+  yield* Saga.chainAction2(Chat2Gen.sendAudioRecording, onSendAudioRecording, 'onSendAudioRecording')
+  yield* Saga.chainAction2(
+    Chat2Gen.setAudioRecordingPostInfo,
+    onSetAudioRecordingPostInfo,
+    'onSetAudioRecordingPostInfo'
   )
 
   // Start this immediately instead of waiting so we can do more things in parallel

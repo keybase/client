@@ -32,6 +32,9 @@ func (f *fillerReplyMsgs) fill(ctx context.Context, uid gregor1.UID, conv types.
 	for msgID := range f.msgIDs {
 		msgIDs = append(msgIDs, msgID)
 	}
+	if len(msgIDs) == 0 {
+		return nil, nil
+	}
 	return f.fetcher(ctx, conv, uid, msgIDs, nil)
 }
 

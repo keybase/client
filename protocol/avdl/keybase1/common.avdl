@@ -29,6 +29,9 @@ protocol Common {
   @typedef("string")
   record UID {}
 
+  @typedef("string") @lint("ignore")
+  record VID {}
+
   @typedef("string")
   record DeviceID {}
 
@@ -175,6 +178,8 @@ protocol Common {
     string type;
     string name;
     DeviceID deviceID;
+    // For the GUI to display the correct icon for the device
+    int deviceNumberOfType;
     Time cTime;
     Time mTime;
     Time lastUsedTime;

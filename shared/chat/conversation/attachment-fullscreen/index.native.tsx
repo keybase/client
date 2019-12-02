@@ -41,22 +41,23 @@ class AutoMaxSizeImage extends React.Component<
   render() {
     return (
       <Kb.ZoomableBox
-        contentContainerStyle={{flex: 1, position: 'relative'}}
+        contentContainerStyle={styles.zoomableBoxContainer}
         maxZoom={10}
-        style={{height: '100%', overflow: 'hidden', position: 'relative', width: '100%'}}
+        style={styles.zoomableBox}
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={false}
       >
         <Kb.NativeFastImage
           {...this.props}
           resizeMode="contain"
-          style={{
-            alignSelf: 'center',
-            flex: 1,
-            height: Math.min(this.state.height, screenHeight),
-            opacity: this.props.opacity,
-            width: Math.min(this.state.width, screenWidth),
-          }}
+          style={Styles.collapseStyles([
+            styles.fastImage,
+            {
+              height: Math.min(this.state.height, screenHeight),
+              opacity: this.props.opacity,
+              width: Math.min(this.state.width, screenWidth),
+            },
+          ])}
         />
       </Kb.ZoomableBox>
     )
@@ -68,28 +69,25 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
   _setLoaded = () => this.setState({loaded: true})
   render() {
     return (
-      <Kb.SafeAreaViewTop
-        style={{
-          backgroundColor: Styles.globalColors.black,
-          ...Styles.globalStyles.flexBoxColumn,
-          ...Styles.globalStyles.fillAbsolute,
-        }}
+      <Kb.Box2
+        direction="vertical"
+        style={{backgroundColor: Styles.globalColors.blackOrBlack}}
+        fullWidth={true}
+        fullHeight={true}
       >
-        <Kb.Text
-          type="Body"
-          onClick={this.props.onClose}
-          style={{color: Styles.globalColors.white, padding: Styles.globalMargins.small}}
-        >
-          Close
-        </Kb.Text>
-        <Kb.Box style={{...Styles.globalStyles.flexBoxCenter, flex: 1}}>
+        <Kb.SafeAreaViewTop style={{backgroundColor: Styles.globalColors.blackOrBlack}} />
+        <Kb.NativeStatusBar hidden={true} />
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerWrapper}>
+          <Kb.Text type="Body" onClick={this.props.onClose} style={styles.close}>
+            Close
+          </Kb.Text>
+          <Kb.Text type="Body" onClick={this.props.onAllMedia} style={styles.allMedia}>
+            All media
+          </Kb.Text>
+        </Kb.Box2>
+        <Kb.Box2 direction="vertical" fullWidth={true} style={Styles.globalStyles.flexGrow}>
           {!!this.props.path && this.props.isVideo ? (
-            <Kb.Box2
-              direction="vertical"
-              fullWidth={true}
-              centerChildren={true}
-              style={{position: 'relative'}}
-            >
+            <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.videoWrapper}>
               <RNVideo
                 source={{uri: `${this.props.path}&contentforce=true`}}
                 onError={e => {
@@ -105,11 +103,23 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
                 resizeMode="contain"
               />
             </Kb.Box2>
-          ) : (
+          ) : Styles.isIOS ? (
             <AutoMaxSizeImage
               source={{uri: `${this.props.path}`}}
               onLoad={this._setLoaded}
               opacity={this.state.loaded ? 1 : 0}
+            />
+          ) : (
+            <Kb.ZoomableImage
+              uri={this.props.path}
+              onLoad={this._setLoaded}
+              style={{
+                height: '100%',
+                opacity: this.state.loaded ? 1 : 0,
+                overflow: 'hidden',
+                position: 'relative',
+                width: '100%',
+              }}
             />
           )}
           {!this.state.loaded && (
@@ -118,12 +128,12 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
               white={true}
             />
           )}
-        </Kb.Box>
+        </Kb.Box2>
         <Kb.Icon
           type="iconfont-ellipsis"
           // @ts-ignore TODO fix styles
           style={styles.headerFooter}
-          color={Styles.globalColors.white}
+          color={Styles.globalColors.blueDark}
           onClick={this.props.toggleShowingMenu}
         />
         <MessagePopup
@@ -133,7 +143,7 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
           position="bottom left"
           visible={this.props.showingMenu}
         />
-      </Kb.SafeAreaViewTop>
+      </Kb.Box2>
     )
   }
 }
@@ -142,12 +152,61 @@ const Fullscreen = Kb.OverlayParentHOC(_Fullscreen)
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      allMedia: {
+        backgroundColor: Styles.globalColors.blackOrBlack,
+        color: Styles.globalColors.blueDark,
+        marginLeft: 'auto',
+        padding: Styles.globalMargins.small,
+      },
+      assetWrapper: {
+        ...Styles.globalStyles.flexBoxCenter,
+        flex: 1,
+      },
+      close: {
+        backgroundColor: Styles.globalColors.blackOrBlack,
+        color: Styles.globalColors.blueDark,
+        padding: Styles.globalMargins.small,
+      },
+      fastImage: {
+        alignSelf: 'center',
+        flex: 1,
+      },
       headerFooter: {
         ...Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
+        bottom: 0,
         flexShrink: 0,
         height: 44,
-        paddingLeft: Styles.globalMargins.small,
+        left: Styles.globalMargins.small,
+        position: 'absolute',
+        zIndex: 3,
+      },
+      headerWrapper: {...Styles.globalStyles.flexGrow, backgroundColor: Styles.globalColors.blackOrBlack},
+      progressIndicator: {
+        alignSelf: 'center',
+        margin: 'auto',
+        position: 'absolute',
+        top: '50%',
+        width: 48,
+      },
+      safeAreaTop: {
+        ...Styles.globalStyles.flexBoxColumn,
+        ...Styles.globalStyles.fillAbsolute,
+        backgroundColor: Styles.globalColors.blackOrBlack,
+      },
+      videoWrapper: {
+        position: 'relative',
+      },
+      zoomableBox: {
+        backgroundColor: Styles.globalColors.blackOrBlack,
+        height: '100%',
+        overflow: 'hidden',
+        position: 'relative',
+        width: '100%',
+      },
+      zoomableBoxContainer: {
+        flex: 1,
+        position: 'relative',
       },
     } as const)
 )

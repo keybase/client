@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import Flags from '../../../util/feature-flags'
 
 type Props = {
   onBack: () => void
@@ -27,16 +26,7 @@ const StartNewChat = (props: Props) => {
   }
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true}>
-      <Kb.Button onClick={props.onNewChat} style={styles.button} small={true}>
-        <Kb.Text type="BodyBig" style={styles.startNewChatText}>
-          Start a new chat
-        </Kb.Text>
-        {Flags.wonderland && (
-          <Kb.Text type="BodyBig" style={styles.rabbitEmoji}>
-            <Kb.Emoji size={16} emojiName=":rabbit2:" />
-          </Kb.Text>
-        )}
-      </Kb.Button>
+      <Kb.Button label="Start a new chat" onClick={props.onNewChat} style={styles.button} small={true} />
     </Kb.Box2>
   )
 }

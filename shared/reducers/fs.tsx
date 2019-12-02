@@ -1,584 +1,511 @@
 import logger from '../logger'
-import * as I from 'immutable'
 import * as FsGen from '../actions/fs-gen'
 import * as Constants from '../constants/fs'
 import * as ChatConstants from '../constants/chat2'
 import * as Types from '../constants/types/fs'
-import * as Switch from '../util/switch'
+import * as Container from '../util/container'
+import * as RPCTypes from '../constants/types/rpc-gen'
+import {produce, Draft} from 'immer'
 
-const initialState = Constants.makeState()
+const initialState: Types.State = {
+  badge: RPCTypes.FilesTabBadge.none,
+  destinationPicker: {
+    destinationParentPath: [],
+    source: {
+      type: Types.DestinationPickerSource.None,
+    },
+  },
+  downloads: {
+    info: new Map(),
+    regularDownloads: [],
+    state: new Map(),
+  },
+  edits: new Map(),
+  errors: new Map(),
+  fileContext: new Map(),
+  folderViewFilter: null,
+  kbfsDaemonStatus: Constants.unknownKbfsDaemonStatus,
+  lastPublicBannerClosedTlf: '',
+  overallSyncStatus: Constants.emptyOverallSyncStatus,
+  pathInfos: new Map(),
+  pathItemActionMenu: Constants.emptyPathItemActionMenu,
+  pathItems: new Map(),
+  pathUserSettings: new Map(),
+  sendAttachmentToChat: Constants.emptySendAttachmentToChat,
+  settings: Constants.emptySettings,
+  sfmi: {
+    directMountDir: '',
+    driverStatus: Constants.defaultDriverStatus,
+    preferredMountDirs: [],
+    showingBanner: false,
+  },
+  softErrors: {
+    pathErrors: new Map(),
+    tlfErrors: new Map(),
+  },
+  tlfUpdates: [],
+  tlfs: {
+    additionalTlfs: new Map(),
+    loaded: false,
+    private: new Map(),
+    public: new Map(),
+    team: new Map(),
+  },
+  uploads: {
+    endEstimate: undefined,
+    errors: new Map(),
+    syncingPaths: new Set(),
+    totalSyncingBytes: 0,
+    writingToJournal: new Set(),
+  },
+}
+
+export const _initialStateForTest = initialState
 
 const updatePathItem = (
-  oldPathItem: Types.PathItem | null | undefined,
+  oldPathItem: Types.PathItem,
   newPathItemFromAction: Types.PathItem
 ): Types.PathItem => {
-  if (!oldPathItem || oldPathItem.type !== newPathItemFromAction.type) {
-    return newPathItemFromAction
+  if (
+    oldPathItem.type === Types.PathType.Folder &&
+    newPathItemFromAction.type === Types.PathType.Folder &&
+    oldPathItem.progress === Types.ProgressType.Loaded &&
+    newPathItemFromAction.progress === Types.ProgressType.Pending
+  ) {
+    // The new one doesn't have children, but the old one has. We don't
+    // want to override a loaded folder into pending. So first set the children
+    // in new one using what we already have, see if they are equal.
+    const newPathItemNoOverridingChildrenAndProgress = {
+      ...newPathItemFromAction,
+      children: oldPathItem.children,
+      progress: Types.ProgressType.Loaded,
+    }
+    return newPathItemNoOverridingChildrenAndProgress
   }
-  // Reuse prefetchStatus if they equal in value. Note that `update` and
-  // `merge` don't actually make a new record unless we do give it a new value.
-  // So re-using the old prefetchStatus reference here makes it possible to
-  // reuse the oldPathItem as long as other fields are identical. For
-  // prefetchComplete and prefetchNotStarted this may not matter, since we are
-  // using the same references anyway. But for PrefetchInProgress it's a
-  // different record everytime, and this becomes useful.
-  // @ts-ignore
-  const newPathItem = newPathItemFromAction.update('prefetchStatus', newPrefetchStatus =>
-    newPrefetchStatus.equals(oldPathItem.prefetchStatus) ? oldPathItem.prefetchStatus : newPrefetchStatus
-  )
-  switch (newPathItem.type) {
-    case Types.PathType.Unknown:
-      return newPathItem
-    case Types.PathType.Symlink: {
-      // @ts-ignore
-      const oldSymlinkPathItem: Types.SymlinkPathItem = oldPathItem
-      const newSymlinkPathItem: Types.SymlinkPathItem = newPathItem
-      // This returns oldPathItem if oldPathItem.equals(newPathItem), which is
-      // what we want here.
-      return oldSymlinkPathItem.merge(newSymlinkPathItem)
-    }
-    case Types.PathType.File: {
-      // @ts-ignore
-      const oldFilePathItem: Types.FilePathItem = oldPathItem
-      const newFilePathItem: Types.FilePathItem = newPathItem
-      // There are two complications in this case:
-      // 1) Most of the fields in FilePathItem are primitive types, and would
-      //    work with merge fine. The only exception is `mimeType: ?Mime` which
-      //    is a record, so we need to compare it separately.
-      // 2) Additionally, we don't always get a oldFilePathItem with the
-      //    mimeType set. The most performant way is to never over a known
-      //    mimeType into null, but if the file content changes, mimeType can
-      //    change too. So instead we compare other fields as well in this
-      //    case.
-      if (oldFilePathItem.mimeType && !newFilePathItem.mimeType) {
-        // The new one doesn't have mimeType but the old one has it. So compare
-        // other fields, and return the old one if they all match, or new one
-        // (i.e. unset known mimeType) if anything has changed.
-        return oldFilePathItem.set('mimeType', newFilePathItem.mimeType).equals(newFilePathItem)
-          ? oldFilePathItem
-          : newFilePathItem
-      }
-      if (oldFilePathItem.mimeType && newFilePathItem.mimeType) {
-        // The new one comes with mimeType, and we already know one. So compare
-        // the mimeType from both first. If they are equal in value, make sure
-        // they have the same reference before calling merge, so we can reuse
-        // the old oldFilePathItem when possible.
-        return oldFilePathItem.mimeType.equals(newFilePathItem.mimeType)
-          ? oldFilePathItem.merge(newFilePathItem.set('mimeType', oldFilePathItem.mimeType))
-          : newFilePathItem
-      }
-      // Now there are two possibilities:
-      // 1) We have mimeType in the new one but not the old one. In this case
-      //    we simply want to take it from the new one.
-      // 2) We don't have it in either of them. In this case we'll want to get
-      //    other fields from the new one if they change.
-      // Either way, this can be done with a simple merge.
-      return oldFilePathItem.merge(newFilePathItem)
-    }
-    case Types.PathType.Folder: {
-      // @ts-ignore
-      const oldFolderPathItem: Types.FolderPathItem = oldPathItem
-      const newFolderPathItem: Types.FolderPathItem = newPathItem
-      if (
-        oldFolderPathItem.progress === Types.ProgressType.Pending &&
-        newFolderPathItem.progress === Types.ProgressType.Loaded
-      ) {
-        // The new one has children loaded and the old one doesn't. There's no
-        // way to reuse the old one so just return newFolderPathItem.
-        return newFolderPathItem
-      }
-      if (
-        oldFolderPathItem.progress === Types.ProgressType.Loaded &&
-        newFolderPathItem.progress === Types.ProgressType.Pending
-      ) {
-        // The new one doesn't have children, but the old one has. We don't
-        // want to override a loaded folder into pending, because otherwise
-        // next time user goes into that folder we'd show placeholders.  So
-        // first set the children in new one using what we already have, then
-        // merge it into the old one. We'll end up reusing the
-        // oldFolderPathItem if nothing (not considering children of course)
-        // has changed.
-        return oldFolderPathItem.merge(
-          newFolderPathItem.withMutations(p =>
-            p.set('children', oldFolderPathItem.children).set('progress', Types.ProgressType.Loaded)
-          )
-        )
-      }
-      if (
-        oldFolderPathItem.progress === Types.ProgressType.Pending &&
-        newFolderPathItem.progress === Types.ProgressType.Pending
-      ) {
-        // Neither one has children, so just do a simple merge like simple
-        // cases above for symlink/unknown types.
-        return oldFolderPathItem.merge(newFolderPathItem)
-      }
-      // Both of them have children loaded. So merge the children field
-      // separately before merging the whole thing. This reuses
-      // oldFolderPathItem when possible as well.
-      return oldFolderPathItem.merge(
-        newFolderPathItem.update('children', newChildren =>
-          newChildren.equals(oldFolderPathItem.children) ? oldFolderPathItem.children : newChildren
-        )
-      )
-    }
-    default:
-      return newPathItem
-  }
+  return newPathItemFromAction
 }
 
-const haveSamePartialSyncConfig = (tlf1: Types.Tlf, tlf2: Types.Tlf) =>
-  tlf2.syncConfig &&
-  tlf1.syncConfig &&
-  tlf2.syncConfig.mode === Types.TlfSyncMode.Partial &&
-  tlf1.syncConfig.mode === Types.TlfSyncMode.Partial &&
-  tlf2.syncConfig.enabledPaths.equals(tlf1.syncConfig.enabledPaths)
-
-const updateTlf = (oldTlf: Types.Tlf | undefined, newTlf: Types.Tlf): Types.Tlf => {
-  if (!oldTlf) {
-    return newTlf
-  }
-  if (!I.is(newTlf.syncConfig, oldTlf.syncConfig) && !haveSamePartialSyncConfig(oldTlf, newTlf)) {
-    return newTlf
-  }
-  if (!newTlf.resetParticipants.equals(oldTlf.resetParticipants)) {
-    return newTlf
-  }
-  if (!newTlf.conflictState.equals(oldTlf.conflictState)) {
-    return newTlf
-  }
-  // syncConfig, resetParticipants, and conflict all stayed the same in value,
-  // so just reuse old reference.
-  return oldTlf.merge(
-    newTlf.withMutations(n =>
-      n
-        .set('syncConfig', oldTlf.syncConfig)
-        .set('resetParticipants', oldTlf.resetParticipants)
-        .set('conflictState', oldTlf.conflictState)
-    )
-  )
-}
-
-const updateTlfList = (oldTlfList: Types.TlfList, newTlfList: Types.TlfList): Types.TlfList =>
-  newTlfList.map((tlf, name) => updateTlf(oldTlfList.get(name), tlf))
-
-const withFsErrorBar = (state: Types.State, action: FsGen.FsErrorPayload): Types.State => {
+const withFsErrorBar = (draftState: Draft<Types.State>, action: FsGen.FsErrorPayload) => {
   const fsError = action.payload.error
   if (
-    state.kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Offline &&
+    draftState.kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Offline &&
     action.payload.expectedIfOffline
   ) {
-    return state
+    return
   }
   logger.error('error (fs)', fsError.erroredAction.type, fsError.errorMessage)
   // @ts-ignore TS is correct here. TODO fix we're passing buffers as strings
-  return state.update('errors', errors => errors.set(Constants.makeUUID(), fsError))
+  draftState.errors = new Map([...draftState.errors, [Constants.makeUUID(), fsError]])
 }
 
-const reduceFsError = (state: Types.State, action: FsGen.FsErrorPayload): Types.State => {
+const updateExistingEdit = (
+  draftState: Draft<Types.State>,
+  editID: Types.EditID,
+  change: (draftEdit: Draft<Types.Edit>) => void
+) => {
+  const existing = draftState.edits.get(editID)
+  if (existing) {
+    draftState.edits = new Map([...draftState.edits, [editID, produce(existing, change)]])
+  }
+}
+
+const reduceFsError = (draftState: Draft<Types.State>, action: FsGen.FsErrorPayload) => {
   const fsError = action.payload.error
   const {erroredAction} = fsError
   switch (erroredAction.type) {
     case FsGen.commitEdit:
-      return withFsErrorBar(state, action).update('edits', edits =>
-        edits.update(erroredAction.payload.editID, edit => edit.set('status', Types.EditStatusType.Failed))
+      withFsErrorBar(draftState, action)
+      updateExistingEdit(
+        draftState,
+        erroredAction.payload.editID,
+        draftEdit => (draftEdit.status = Types.EditStatusType.Failed)
       )
+      return
     case FsGen.upload:
       // Don't show error bar in this case, as the uploading row already shows
       // a "retry" button.
-      return state.update('uploads', uploads =>
-        uploads.update('errors', errors =>
-          errors.set(
-            Constants.getUploadedPath(erroredAction.payload.parentPath, erroredAction.payload.localPath),
+      draftState.uploads.errors = new Map([
+        ...draftState.uploads.errors,
+        [
+          Constants.getUploadedPath(erroredAction.payload.parentPath, erroredAction.payload.localPath),
 
-            fsError
-          )
-        )
-      )
+          fsError,
+        ],
+      ])
+      return
     case FsGen.saveMedia:
     case FsGen.shareNative:
     case FsGen.download:
     default:
-      return withFsErrorBar(state, action)
+      withFsErrorBar(draftState, action)
   }
 }
 
-export default function(state: Types.State = initialState, action: FsGen.Actions): Types.State {
-  switch (action.type) {
-    case FsGen.resetStore:
-      return initialState
-    case FsGen.pathItemLoaded:
-      return state
-        .update('pathItems', pathItems =>
-          pathItems.update(action.payload.path, original => updatePathItem(original, action.payload.pathItem))
+export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
+  [FsGen.resetStore]: () => {
+    return initialState
+  },
+  [FsGen.pathItemLoaded]: (draftState, action) => {
+    const oldPathItem = Constants.getPathItem(draftState.pathItems, action.payload.path)
+    draftState.pathItems.set(action.payload.path, updatePathItem(oldPathItem, action.payload.pathItem))
+    draftState.softErrors.pathErrors.delete(action.payload.path)
+    draftState.softErrors.tlfErrors.delete(action.payload.path)
+  },
+  [FsGen.folderListLoaded]: (draftState, action) => {
+    action.payload.pathItems.forEach((pathItemFromAction, path) => {
+      const oldPathItem = Constants.getPathItem(draftState.pathItems, path)
+      const newPathItem = updatePathItem(oldPathItem, pathItemFromAction)
+      oldPathItem.type === Types.PathType.Folder &&
+        oldPathItem.children.forEach(
+          name =>
+            (newPathItem.type !== Types.PathType.Folder || !newPathItem.children.has(name)) &&
+            draftState.pathItems.delete(Types.pathConcat(path, name))
         )
-        .update('softErrors', softErrors =>
-          softErrors
-            .removeIn(['pathErrors', action.payload.path])
-            .removeIn(['tlfErrors', Constants.getTlfPath(action.payload.path)])
-        )
-    case FsGen.folderListLoaded: {
-      const toRemove: Array<Types.Path> = []
-      const toMerge = action.payload.pathItems.map((newPathItem, path) => {
-        const oldPathItem = state.pathItems.get(path, Constants.unknownPathItem)
-        const toSet =
-          oldPathItem === Constants.unknownPathItem ? newPathItem : updatePathItem(oldPathItem, newPathItem)
-
-        oldPathItem.type === Types.PathType.Folder &&
-          oldPathItem.children.forEach(
-            name =>
-              (toSet.type !== Types.PathType.Folder || !toSet.children.includes(name)) &&
-              toRemove.push(Types.pathConcat(path, name))
-          )
-
-        return toSet
-      })
-      return state.set(
-        'pathItems',
-        state.pathItems.withMutations(pathItems => pathItems.deleteAll(toRemove).merge(toMerge))
-      )
+      draftState.pathItems.set(path, newPathItem)
+    })
+  },
+  [FsGen.favoritesLoaded]: (draftState, action) => {
+    draftState.tlfs.private = action.payload.private
+    draftState.tlfs.public = action.payload.public
+    draftState.tlfs.team = action.payload.team
+    draftState.tlfs.loaded = true
+  },
+  [FsGen.loadedAdditionalTlf]: (draftState, action) => {
+    draftState.tlfs.additionalTlfs.set(action.payload.tlfPath, action.payload.tlf)
+  },
+  [FsGen.setTlfsAsUnloaded]: draftState => {
+    draftState.tlfs.loaded = false
+  },
+  [FsGen.setFolderViewFilter]: (draftState, action) => {
+    draftState.folderViewFilter = action.payload.filter
+  },
+  [FsGen.tlfSyncConfigLoaded]: (draftState, action) => {
+    const oldTlfList = draftState.tlfs[action.payload.tlfType]
+    const oldTlfFromFavorites = oldTlfList.get(action.payload.tlfName) || Constants.unknownTlf
+    if (oldTlfFromFavorites !== Constants.unknownTlf) {
+      draftState.tlfs[action.payload.tlfType] = new Map([
+        ...oldTlfList,
+        [
+          action.payload.tlfName,
+          {
+            ...oldTlfFromFavorites,
+            syncConfig: action.payload.syncConfig,
+          },
+        ],
+      ])
+      return
     }
-    case FsGen.favoritesLoaded:
-      return state.update('tlfs', tlfs =>
-        tlfs.withMutations(tlfsMutable =>
-          tlfsMutable
-            .update('private', privateTlfs => updateTlfList(privateTlfs, action.payload.private))
-            .update('public', publicTlfs => updateTlfList(publicTlfs, action.payload.public))
-            .update('team', team => updateTlfList(team, action.payload.team))
-            .set('loaded', true)
-        )
-      )
-    case FsGen.setTlfsAsUnloaded:
-      return state.update('tlfs', tlfs => tlfs.set('loaded', false))
-    case FsGen.setFolderViewFilter:
-      return state.set('folderViewFilter', action.payload.filter)
-    case FsGen.tlfSyncConfigLoaded:
-      return state.update('tlfs', tlfs =>
-        tlfs.update(action.payload.tlfType, tlfList =>
-          tlfList.update(
-            action.payload.tlfName,
-            tlf => tlf && tlf.set('syncConfig', action.payload.syncConfig)
-          )
-        )
-      )
-    case FsGen.sortSetting:
-      return state.update('pathUserSettings', pathUserSettings =>
-        pathUserSettings.update(action.payload.path, setting =>
-          (setting || Constants.defaultPathUserSetting).set('sort', action.payload.sortSetting)
-        )
-      )
-    case FsGen.uploadStarted:
-      return state.updateIn(['uploads', 'writingToJournal'], writingToJournal =>
-        writingToJournal.add(action.payload.path)
-      )
-    case FsGen.uploadWritingSuccess: {
-      const {path} = action.payload
-      return state.withMutations(s =>
-        s
-          .removeIn(['uploads', 'errors', path])
-          .updateIn(['uploads', 'writingToJournal'], writingToJournal => writingToJournal.remove(path))
-      )
-    }
-    case FsGen.journalUpdate: {
-      const {syncingPaths, totalSyncingBytes, endEstimate} = action.payload
-      return state.withMutations(s => {
-        s.setIn(['uploads', 'syncingPaths'], I.Set(syncingPaths))
-        s.setIn(['uploads', 'totalSyncingBytes'], totalSyncingBytes)
-        if (endEstimate) {
-          s.setIn(['uploads', 'endEstimate'], endEstimate)
-        } else {
-          s.deleteIn(['uploads', 'endEstimate'])
-        }
-      })
-    }
-    case FsGen.localHTTPServerInfo:
-      return state.set('localHTTPServerInfo', Constants.makeLocalHTTPServer(action.payload))
-    case FsGen.favoriteIgnore: // fallthrough
-    case FsGen.favoriteIgnoreError: {
-      const elems = Types.getPathElements(action.payload.path)
-      const visibility = Types.getVisibilityFromElems(elems)
-      if (!visibility) {
-        return state
-      }
-      // @ts-ignore
-      return state.mergeIn(['tlfs', visibility, elems[2]], {
-        isIgnored: action.type === FsGen.favoriteIgnore,
-      })
-    }
-    case FsGen.newFolderRow: {
-      const {parentPath} = action.payload
-      const parentPathItem = state.pathItems.get(parentPath, Constants.unknownPathItem)
-      if (parentPathItem.type !== Types.PathType.Folder) {
-        console.warn(`bad parentPath: ${parentPathItem.type}`)
-        return state
-      }
 
-      const existingNewFolderNames = new Set(
-        state.edits
-          .filter(edit => edit.parentPath === parentPath)
-          .map(edit => edit.name)
-          .toSet()
-      )
-
-      let newFolderName = 'New Folder'
-      for (
-        let i = 2;
-        parentPathItem.children.has(newFolderName) || existingNewFolderNames.has(newFolderName);
-        ++i
-      ) {
-        newFolderName = `New Folder ${i}`
-      }
-
-      return state.mergeIn(
-        ['edits'],
-        I.Map({
-          [Constants.makeEditID()]: Constants.makeNewFolder({
-            hint: newFolderName,
-            name: newFolderName,
-            parentPath,
-          }),
-        })
-      )
+    const tlfPath = Types.pathConcat(
+      Types.pathConcat(Constants.defaultPath, action.payload.tlfType),
+      action.payload.tlfName
+    )
+    const oldTlfFromAdditional = draftState.tlfs.additionalTlfs.get(tlfPath) || Constants.unknownTlf
+    if (oldTlfFromAdditional !== Constants.unknownTlf) {
+      draftState.tlfs.additionalTlfs = new Map([
+        ...draftState.tlfs.additionalTlfs,
+        [
+          tlfPath,
+          {
+            ...oldTlfFromAdditional,
+            syncConfig: action.payload.syncConfig,
+          },
+        ],
+      ])
+      return
     }
-    case FsGen.newFolderName:
-      return state.update('edits', edits =>
-        edits.update(action.payload.editID, edit => edit && edit.set('name', action.payload.name))
-      )
-    case FsGen.commitEdit:
-      return state.update('edits', edits =>
-        edits.update(action.payload.editID, edit => edit.set('status', Types.EditStatusType.Saving))
-      )
-    case FsGen.discardEdit:
-      return state.update('edits', edits => edits.remove(action.payload.editID))
-    case FsGen.fsError:
-      return reduceFsError(state, action)
-    case FsGen.userFileEditsLoaded:
-      return state.set('tlfUpdates', action.payload.tlfUpdates)
-    case FsGen.dismissFsError:
-      return state.removeIn(['errors', action.payload.key])
-    case FsGen.showMoveOrCopy:
-      return state.update('destinationPicker', dp =>
-        dp
-          .set(
-            'source',
-            dp.source.type === Types.DestinationPickerSource.MoveOrCopy
-              ? dp.source
-              : Constants.makeMoveOrCopySource()
-          )
-          .set('destinationParentPath', I.List([action.payload.initialDestinationParentPath]))
-      )
-    case FsGen.setMoveOrCopySource:
-      return state.update('destinationPicker', dp =>
-        dp.set('source', Constants.makeMoveOrCopySource({path: action.payload.path}))
-      )
-    case FsGen.setDestinationPickerParentPath:
-      return state.update('destinationPicker', dp =>
-        dp.update('destinationParentPath', list => list.set(action.payload.index, action.payload.path))
-      )
-    case FsGen.showIncomingShare:
-      return state.update('destinationPicker', dp =>
-        dp
-          .set(
-            'source',
-            dp.source.type === Types.DestinationPickerSource.IncomingShare
-              ? dp.source
-              : Constants.makeIncomingShareSource()
-          )
-          .set('destinationParentPath', I.List([action.payload.initialDestinationParentPath]))
-      )
-    case FsGen.setIncomingShareLocalPath:
-      return state.update('destinationPicker', dp =>
-        dp.set('source', Constants.makeIncomingShareSource({localPath: action.payload.localPath}))
-      )
-    case FsGen.initSendAttachmentToChat:
-      return state.set(
-        'sendAttachmentToChat',
-        Constants.makeSendAttachmentToChat({
-          path: action.payload.path,
-          state: Types.SendAttachmentToChatState.PendingSelectConversation,
-          title: Types.getPathName(action.payload.path),
-        })
-      )
-    case FsGen.setSendAttachmentToChatConvID:
-      return state.update('sendAttachmentToChat', sendAttachmentToChat =>
-        sendAttachmentToChat
-          .set('convID', action.payload.convID)
-          .set(
-            'state',
-            ChatConstants.isValidConversationIDKey(action.payload.convID)
-              ? Types.SendAttachmentToChatState.ReadyToSend
-              : Types.SendAttachmentToChatState.PendingSelectConversation
-          )
-      )
-    case FsGen.setSendAttachmentToChatFilter:
-      return state.update('sendAttachmentToChat', sendAttachmentToChat =>
-        sendAttachmentToChat.set('filter', action.payload.filter)
-      )
-    case FsGen.setSendAttachmentToChatTitle:
-      return state.update('sendAttachmentToChat', sendAttachmentToChat =>
-        sendAttachmentToChat.set('title', action.payload.title)
-      )
-    case FsGen.sentAttachmentToChat:
-      return state.setIn(['sendAttachmentToChat', 'state'], Types.SendAttachmentToChatState.Sent)
-    case FsGen.setPathItemActionMenuView:
-      return state.update('pathItemActionMenu', pathItemActionMenu =>
-        pathItemActionMenu.set('previousView', pathItemActionMenu.view).set('view', action.payload.view)
-      )
-    case FsGen.setPathItemActionMenuDownload:
-      return state.update('pathItemActionMenu', pathItemActionMenu =>
-        pathItemActionMenu
-          .set('downloadID', action.payload.downloadID)
-          .set('downloadIntent', action.payload.intent)
-      )
-    case FsGen.waitForKbfsDaemon:
-      return state.update('kbfsDaemonStatus', kbfsDaemonStatus =>
-        kbfsDaemonStatus.set('rpcStatus', Types.KbfsDaemonRpcStatus.Waiting)
-      )
-    case FsGen.kbfsDaemonRpcStatusChanged:
-      return state.update('kbfsDaemonStatus', kbfsDaemonStatus =>
-        (action.payload.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected
-          ? kbfsDaemonStatus.set('onlineStatus', Types.KbfsDaemonOnlineStatus.Offline)
-          : kbfsDaemonStatus
-        ).set('rpcStatus', action.payload.rpcStatus)
-      )
-    case FsGen.kbfsDaemonOnlineStatusChanged:
-      return state.update('kbfsDaemonStatus', kbfsDaemonStatus =>
-        kbfsDaemonStatus.set(
-          'onlineStatus',
-          action.payload.online ? Types.KbfsDaemonOnlineStatus.Online : Types.KbfsDaemonOnlineStatus.Offline
-        )
-      )
-    case FsGen.overallSyncStatusChanged:
-      return state.update('overallSyncStatus', overallSyncStatus =>
-        overallSyncStatus
-          .set('syncingFoldersProgress', action.payload.progress)
-          .set('diskSpaceStatus', action.payload.diskSpaceStatus)
-      )
-    case FsGen.showHideDiskSpaceBanner:
-      return state.setIn(['overallSyncStatus', 'showingBanner'], action.payload.show)
-    case FsGen.setDriverStatus:
-      return state.update('sfmi', sfmi => sfmi.set('driverStatus', action.payload.driverStatus))
-    case FsGen.showSystemFileManagerIntegrationBanner:
-      return state.update('sfmi', sfmi => sfmi.set('showingBanner', true))
-    case FsGen.hideSystemFileManagerIntegrationBanner:
-      return state.update('sfmi', sfmi => sfmi.set('showingBanner', false))
-    case FsGen.driverEnable:
-      return state.update('sfmi', sfmi =>
-        sfmi.update('driverStatus', driverStatus =>
-          driverStatus.type === Types.DriverStatusType.Disabled
-            ? driverStatus.set('isEnabling', true)
-            : driverStatus
-        )
-      )
-    case FsGen.driverKextPermissionError:
-      return state.update('sfmi', sfmi =>
-        sfmi.update('driverStatus', driverStatus =>
-          driverStatus.type === Types.DriverStatusType.Disabled
-            ? driverStatus.set('kextPermissionError', true).set('isEnabling', false)
-            : driverStatus
-        )
-      )
-    case FsGen.driverDisabling:
-      return state.update('sfmi', sfmi =>
-        sfmi.update('driverStatus', driverStatus =>
-          driverStatus.type === Types.DriverStatusType.Enabled
-            ? driverStatus.set('isDisabling', true)
-            : driverStatus
-        )
-      )
-    case FsGen.setDirectMountDir:
-      return state.update('sfmi', sfmi => sfmi.set('directMountDir', action.payload.directMountDir))
-    case FsGen.setPreferredMountDirs:
-      return state.update('sfmi', sfmi => sfmi.set('preferredMountDirs', action.payload.preferredMountDirs))
-    case FsGen.setPathSoftError:
-      return state.update('softErrors', softErrors =>
-        softErrors.update('pathErrors', pathErrors =>
-          action.payload.softError
-            ? pathErrors.set(action.payload.path, action.payload.softError)
-            : pathErrors.remove(action.payload.path)
-        )
-      )
-    case FsGen.setTlfSoftError:
-      return state.update('softErrors', softErrors =>
-        softErrors.update('tlfErrors', tlfErrors =>
-          action.payload.softError
-            ? tlfErrors.set(action.payload.path, action.payload.softError)
-            : tlfErrors.remove(action.payload.path)
-        )
-      )
-    case FsGen.setLastPublicBannerClosedTlf:
-      return state.set('lastPublicBannerClosedTlf', action.payload.tlf)
-    case FsGen.settingsLoaded:
-      return action.payload.settings
-        ? state.set('settings', action.payload.settings)
-        : state.update('settings', s => s.set('isLoading', false))
-    case FsGen.loadSettings:
-      return state.update('settings', s => s.set('isLoading', true))
-    case FsGen.loadedPathInfo:
-      return state.update('pathInfos', pathInfos =>
-        pathInfos.set(action.payload.path, action.payload.pathInfo)
-      )
-    case FsGen.loadedDownloadStatus:
-      return state.update('downloads', downloads =>
-        downloads
-          .update('regularDownloads', regularDownloads =>
-            regularDownloads.equals(action.payload.regularDownloads)
-              ? regularDownloads
-              : action.payload.regularDownloads
-          )
-          .update('state', s => (s.equals(action.payload.state) ? s : action.payload.state))
-          .update('info', info => info.filter((_, downloadID) => action.payload.state.has(downloadID)))
-      )
-    case FsGen.loadedDownloadInfo:
-      return state.update('downloads', downloads =>
-        downloads.update('info', info => info.set(action.payload.downloadID, action.payload.info))
-      )
-    case FsGen.startManualConflictResolution:
-    case FsGen.finishManualConflictResolution:
-    case FsGen.driverDisable:
-    case FsGen.folderListLoad:
-    case FsGen.placeholderAction:
-    case FsGen.download:
-    case FsGen.favoritesLoad:
-    case FsGen.uninstallKBFSConfirm:
-    case FsGen.openSecurityPreferences:
-    case FsGen.refreshLocalHTTPServerInfo:
-    case FsGen.shareNative:
-    case FsGen.saveMedia:
-    case FsGen.openPathInSystemFileManager:
-    case FsGen.openLocalPathInSystemFileManager:
-    case FsGen.editSuccess:
-    case FsGen.letResetUserBackIn:
-    case FsGen.openAndUpload:
-    case FsGen.pickAndUpload:
-    case FsGen.upload:
-    case FsGen.openFilesFromWidget:
-    case FsGen.userFileEditsLoad:
-    case FsGen.deleteFile:
-    case FsGen.move:
-    case FsGen.copy:
-    case FsGen.closeDestinationPicker:
-    case FsGen.loadPathMetadata:
-    case FsGen.refreshDriverStatus:
-    case FsGen.loadTlfSyncConfig:
-    case FsGen.setTlfSyncConfig:
-    case FsGen.setSpaceAvailableNotificationThreshold:
-    case FsGen.subscribePath:
-    case FsGen.subscribeNonPath:
-    case FsGen.unsubscribe:
-    case FsGen.pollJournalStatus:
-    case FsGen.refreshMountDirsAfter10s:
-    case FsGen.loadPathInfo:
-    case FsGen.getOnlineStatus:
-    case FsGen.loadDownloadStatus:
-    case FsGen.loadDownloadInfo:
-    case FsGen.cancelDownload:
-    case FsGen.dismissDownload:
-    case FsGen.finishedRegularDownload:
-    case FsGen.finishedDownloadWithIntent:
-    case FsGen.setDebugLevel:
-      return state
-    default:
-      Switch.ifTSCComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
-      return state
-  }
-}
+  },
+  [FsGen.sortSetting]: (draftState, action) => {
+    const pathUserSetting =
+      draftState.pathUserSettings.get(action.payload.path) || Constants.defaultPathUserSetting
+    draftState.pathUserSettings.set(action.payload.path, {
+      ...pathUserSetting,
+      sort: action.payload.sortSetting,
+    })
+  },
+  [FsGen.uploadStarted]: (draftState, action) => {
+    draftState.uploads.writingToJournal = new Set([
+      ...draftState.uploads.writingToJournal,
+      action.payload.path,
+    ])
+  },
+  [FsGen.uploadWritingSuccess]: (draftState, action) => {
+    const {path} = action.payload
+    if (draftState.uploads.errors.has(path)) {
+      const errors = new Map(draftState.uploads.errors)
+      errors.delete(path)
+      draftState.uploads.errors = errors
+    }
+    if (draftState.uploads.writingToJournal.has(path)) {
+      const writingToJournal = new Set(draftState.uploads.writingToJournal)
+      writingToJournal.delete(path)
+      draftState.uploads.writingToJournal = writingToJournal
+    }
+  },
+  [FsGen.journalUpdate]: (draftState, action) => {
+    const {syncingPaths, totalSyncingBytes, endEstimate} = action.payload
+    draftState.uploads.syncingPaths = new Set(syncingPaths)
+    draftState.uploads.totalSyncingBytes = totalSyncingBytes
+    draftState.uploads.endEstimate = endEstimate || undefined
+  },
+  [FsGen.favoriteIgnore]: (draftState, action) => {
+    const elems = Types.getPathElements(action.payload.path)
+    const visibility = Types.getVisibilityFromElems(elems)
+    if (!visibility) {
+      return
+    }
+    draftState.tlfs[visibility] = new Map(draftState.tlfs[visibility])
+    draftState.tlfs[visibility].set(elems[2], {
+      ...(draftState.tlfs[visibility].get(elems[2]) || Constants.unknownTlf),
+      isIgnored: true,
+    })
+  },
+  [FsGen.favoriteIgnoreError]: (draftState, action) => {
+    const elems = Types.getPathElements(action.payload.path)
+    const visibility = Types.getVisibilityFromElems(elems)
+    if (!visibility) {
+      return
+    }
+    draftState.tlfs[visibility] = new Map(draftState.tlfs[visibility])
+    draftState.tlfs[visibility].set(elems[2], {
+      ...(draftState.tlfs[visibility].get(elems[2]) || Constants.unknownTlf),
+      isIgnored: false,
+    })
+  },
+  [FsGen.newFolderRow]: (draftState, action) => {
+    const {parentPath} = action.payload
+    const parentPathItem = Constants.getPathItem(draftState.pathItems, parentPath)
+    if (parentPathItem.type !== Types.PathType.Folder) {
+      console.warn(`bad parentPath: ${parentPathItem.type}`)
+      return
+    }
+
+    const existingNewFolderNames = new Set([...draftState.edits].map(([_, {name}]) => name))
+
+    let newFolderName = 'New Folder'
+    for (
+      let i = 2;
+      parentPathItem.children.has(newFolderName) || existingNewFolderNames.has(newFolderName);
+      ++i
+    ) {
+      newFolderName = `New Folder ${i}`
+    }
+
+    draftState.edits.set(Constants.makeEditID(), {
+      ...Constants.emptyNewFolder,
+      hint: newFolderName,
+      name: newFolderName,
+      parentPath,
+    })
+  },
+  [FsGen.newFolderName]: (draftState, action) => {
+    updateExistingEdit(draftState, action.payload.editID, draftEdit => {
+      draftEdit.name = action.payload.name
+    })
+  },
+  [FsGen.commitEdit]: (draftState, action) => {
+    updateExistingEdit(draftState, action.payload.editID, draftEdit => {
+      draftEdit.status = Types.EditStatusType.Saving
+    })
+  },
+  [FsGen.editSuccess]: (draftState, action) => {
+    if (draftState.edits.has(action.payload.editID)) {
+      const edits = new Map(draftState.edits)
+      edits.delete(action.payload.editID)
+      draftState.edits = edits
+    }
+  },
+  [FsGen.discardEdit]: (draftState, action) => {
+    if (draftState.edits.has(action.payload.editID)) {
+      const edits = new Map(draftState.edits)
+      edits.delete(action.payload.editID)
+      draftState.edits = edits
+    }
+  },
+  [FsGen.fsError]: (draftState, action) => {
+    reduceFsError(draftState, action)
+  },
+  [FsGen.userFileEditsLoaded]: (draftState, action) => {
+    draftState.tlfUpdates = action.payload.tlfUpdates
+  },
+  [FsGen.dismissFsError]: (draftState, action) => {
+    if (draftState.errors.has(action.payload.key)) {
+      const errors = new Map(draftState.errors)
+      errors.delete(action.payload.key)
+      draftState.errors = errors
+    }
+  },
+  [FsGen.showMoveOrCopy]: (draftState, action) => {
+    draftState.destinationPicker.source =
+      draftState.destinationPicker.source.type === Types.DestinationPickerSource.MoveOrCopy
+        ? draftState.destinationPicker.source
+        : ({
+            path: Constants.defaultPath,
+            type: Types.DestinationPickerSource.MoveOrCopy,
+          } as const)
+
+    draftState.destinationPicker.destinationParentPath = [action.payload.initialDestinationParentPath]
+  },
+  [FsGen.setMoveOrCopySource]: (draftState, action) => {
+    draftState.destinationPicker.source = {
+      path: action.payload.path,
+      type: Types.DestinationPickerSource.MoveOrCopy,
+    }
+  },
+  [FsGen.setDestinationPickerParentPath]: (draftState, action) => {
+    if (draftState.destinationPicker.destinationParentPath[action.payload.index] !== action.payload.path) {
+      draftState.destinationPicker.destinationParentPath[action.payload.index] = action.payload.path
+    }
+  },
+  [FsGen.showIncomingShare]: (draftState, action) => {
+    draftState.destinationPicker.source =
+      draftState.destinationPicker.source.type === Types.DestinationPickerSource.IncomingShare
+        ? draftState.destinationPicker.source
+        : ({
+            localPath: Types.stringToLocalPath(''),
+            type: Types.DestinationPickerSource.IncomingShare,
+          } as const)
+    draftState.destinationPicker.destinationParentPath = [action.payload.initialDestinationParentPath]
+  },
+  [FsGen.setIncomingShareLocalPath]: (draftState, action) => {
+    draftState.destinationPicker.source = {
+      localPath: action.payload.localPath,
+      type: Types.DestinationPickerSource.IncomingShare,
+    } as const
+  },
+  [FsGen.initSendAttachmentToChat]: (draftState, action) => {
+    draftState.sendAttachmentToChat = {
+      ...Constants.emptySendAttachmentToChat,
+      path: action.payload.path,
+      state: Types.SendAttachmentToChatState.PendingSelectConversation,
+      title: Types.getPathName(action.payload.path),
+    }
+  },
+  [FsGen.setSendAttachmentToChatConvID]: (draftState, action) => {
+    draftState.sendAttachmentToChat.convID = action.payload.convID
+    draftState.sendAttachmentToChat.state = ChatConstants.isValidConversationIDKey(action.payload.convID)
+      ? Types.SendAttachmentToChatState.ReadyToSend
+      : Types.SendAttachmentToChatState.PendingSelectConversation
+  },
+  [FsGen.setSendAttachmentToChatFilter]: (draftState, action) => {
+    draftState.sendAttachmentToChat.filter = action.payload.filter
+  },
+  [FsGen.setSendAttachmentToChatTitle]: (draftState, action) => {
+    draftState.sendAttachmentToChat.title = action.payload.title
+  },
+  [FsGen.sentAttachmentToChat]: draftState => {
+    draftState.sendAttachmentToChat.state = Types.SendAttachmentToChatState.Sent
+  },
+  [FsGen.setPathItemActionMenuView]: (draftState, action) => {
+    draftState.pathItemActionMenu.previousView = draftState.pathItemActionMenu.view
+    draftState.pathItemActionMenu.view = action.payload.view
+  },
+  [FsGen.setPathItemActionMenuDownload]: (draftState, action) => {
+    draftState.pathItemActionMenu.downloadID = action.payload.downloadID
+    draftState.pathItemActionMenu.downloadIntent = action.payload.intent
+  },
+  [FsGen.waitForKbfsDaemon]: draftState => {
+    draftState.kbfsDaemonStatus.rpcStatus = Types.KbfsDaemonRpcStatus.Waiting
+  },
+  [FsGen.kbfsDaemonRpcStatusChanged]: (draftState, action) => {
+    if (action.payload.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected) {
+      draftState.kbfsDaemonStatus.onlineStatus = Types.KbfsDaemonOnlineStatus.Offline
+    }
+    draftState.kbfsDaemonStatus.rpcStatus = action.payload.rpcStatus
+  },
+  [FsGen.kbfsDaemonOnlineStatusChanged]: (draftState, action) => {
+    draftState.kbfsDaemonStatus.onlineStatus = action.payload.online
+      ? Types.KbfsDaemonOnlineStatus.Online
+      : Types.KbfsDaemonOnlineStatus.Offline
+  },
+  [FsGen.overallSyncStatusChanged]: (draftState, action) => {
+    draftState.overallSyncStatus.syncingFoldersProgress = action.payload.progress
+    draftState.overallSyncStatus.diskSpaceStatus = action.payload.diskSpaceStatus
+  },
+  [FsGen.showHideDiskSpaceBanner]: (draftState, action) => {
+    draftState.overallSyncStatus.showingBanner = action.payload.show
+  },
+  [FsGen.setDriverStatus]: (draftState, action) => {
+    draftState.sfmi.driverStatus = action.payload.driverStatus
+  },
+  [FsGen.showSystemFileManagerIntegrationBanner]: draftState => {
+    draftState.sfmi.showingBanner = true
+  },
+  [FsGen.hideSystemFileManagerIntegrationBanner]: draftState => {
+    draftState.sfmi.showingBanner = false
+  },
+  [FsGen.driverEnable]: draftState => {
+    if (draftState.sfmi.driverStatus.type === Types.DriverStatusType.Disabled) {
+      draftState.sfmi.driverStatus.isEnabling = true
+    }
+  },
+  [FsGen.driverKextPermissionError]: draftState => {
+    if (draftState.sfmi.driverStatus.type === Types.DriverStatusType.Disabled) {
+      draftState.sfmi.driverStatus.kextPermissionError = true
+      draftState.sfmi.driverStatus.isEnabling = false
+    }
+  },
+  [FsGen.driverDisabling]: draftState => {
+    if (draftState.sfmi.driverStatus.type === Types.DriverStatusType.Enabled) {
+      draftState.sfmi.driverStatus.isDisabling = true
+    }
+  },
+  [FsGen.setDirectMountDir]: (draftState, action) => {
+    draftState.sfmi.directMountDir = action.payload.directMountDir
+  },
+  [FsGen.setPreferredMountDirs]: (draftState, action) => {
+    draftState.sfmi.preferredMountDirs = action.payload.preferredMountDirs
+  },
+  [FsGen.setPathSoftError]: (draftState, action) => {
+    if (action.payload.softError) {
+      draftState.softErrors.pathErrors.set(action.payload.path, action.payload.softError)
+    } else {
+      draftState.softErrors.pathErrors.delete(action.payload.path)
+    }
+  },
+  [FsGen.setTlfSoftError]: (draftState, action) => {
+    if (action.payload.softError) {
+      draftState.softErrors.tlfErrors.set(action.payload.path, action.payload.softError)
+    } else {
+      draftState.softErrors.tlfErrors.delete(action.payload.path)
+    }
+  },
+  [FsGen.setLastPublicBannerClosedTlf]: (draftState, action) => {
+    draftState.lastPublicBannerClosedTlf = action.payload.tlf
+  },
+  [FsGen.settingsLoaded]: (draftState, action) => {
+    if (action.payload.settings) {
+      draftState.settings = action.payload.settings
+    } else {
+      draftState.settings.isLoading = false
+    }
+  },
+  [FsGen.loadSettings]: draftState => {
+    draftState.settings.isLoading = true
+  },
+  [FsGen.loadedPathInfo]: (draftState, action) => {
+    draftState.pathInfos = draftState.pathInfos.set(action.payload.path, action.payload.pathInfo)
+  },
+  [FsGen.loadedDownloadStatus]: (draftState, action) => {
+    draftState.downloads.regularDownloads = action.payload.regularDownloads
+    draftState.downloads.state = action.payload.state
+
+    const toDelete = [...draftState.downloads.info.keys()].filter(
+      downloadID => !action.payload.state.has(downloadID)
+    )
+    if (toDelete.length) {
+      const info = new Map(draftState.downloads.info)
+      toDelete.forEach(downloadID => info.delete(downloadID))
+      draftState.downloads.info = info
+    }
+  },
+  [FsGen.loadedDownloadInfo]: (draftState, action) => {
+    draftState.downloads.info.set(action.payload.downloadID, action.payload.info)
+  },
+  [FsGen.loadedFileContext]: (draftState, action) => {
+    draftState.fileContext.set(action.payload.path, action.payload.fileContext)
+  },
+  [FsGen.loadedFilesTabBadge]: (draftState, action) => {
+    draftState.badge = action.payload.badge
+  },
+})

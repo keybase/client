@@ -247,6 +247,13 @@
             "items": "SizedImage"
           },
           "name": "siteIconFull"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SizedImage"
+          },
+          "name": "siteIconWhite"
         }
       ]
     }

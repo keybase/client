@@ -4,12 +4,13 @@ import * as Constants from '../../../../constants/chat2'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 
-type ReplyProps = {
+export type ReplyProps = {
   deleted: boolean
   edited: boolean
   imageHeight?: number
   imageURL?: string
   imageWidth?: number
+  isParentHighlighted?: boolean
   onClick: () => void
   text: string
   username: string
@@ -35,7 +36,13 @@ const Reply = (props: ReplyProps) => {
           <Kb.Box2 direction="horizontal" fullWidth={true}>
             <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
               <Kb.Avatar username={props.username} size={32} />
-              <Kb.Text type="BodySemibold" style={styles.replyUsername}>
+              <Kb.Text
+                type="BodySemibold"
+                style={Styles.collapseStyles([
+                  styles.replyUsername,
+                  props.isParentHighlighted && styles.replyUsernameHighlighted,
+                ])}
+              >
                 {props.username}
               </Kb.Text>
             </Kb.Box2>
@@ -55,10 +62,15 @@ const Reply = (props: ReplyProps) => {
             )}
             <Kb.Box2 direction="horizontal" style={styles.replyTextContainer}>
               {!props.deleted ? (
-                <Kb.Text type="BodySmall">{props.text}</Kb.Text>
+                <Kb.Text
+                  type="BodySmall"
+                  style={Styles.collapseStyles([props.isParentHighlighted && styles.textHighlighted])}
+                >
+                  {props.text}
+                </Kb.Text>
               ) : (
                 <Kb.Text type="BodyTiny" style={styles.replyEdited}>
-                  Original message deleted
+                  The original message was deleted.
                 </Kb.Text>
               )}
             </Kb.Box2>
@@ -96,6 +108,7 @@ const Claim = (props: ClaimProps) => {
 export type Props = {
   claim?: ClaimProps
   isEditing: boolean
+  isHighlighted?: boolean
   // eslint-disable-next-line
   message: Types.MessageText
   reply?: ReplyProps
@@ -103,12 +116,12 @@ export type Props = {
   type: 'error' | 'pending' | 'sent'
 }
 
-const MessageText = ({claim, isEditing, message, reply, text, type}: Props) => {
+const MessageText = ({claim, isEditing, isHighlighted, message, reply, text, type}: Props) => {
   const markdown = (
     <Kb.Markdown
-      style={getStyle(type, isEditing)}
+      style={getStyle(type, isEditing, isHighlighted)}
       meta={{message}}
-      styleOverride={Styles.isMobile ? {paragraph: getStyle(type, isEditing)} : undefined}
+      styleOverride={Styles.isMobile ? {paragraph: getStyle(type, isEditing, isHighlighted)} : undefined}
       allowFontScaling={true}
     >
       {text}
@@ -116,7 +129,7 @@ const MessageText = ({claim, isEditing, message, reply, text, type}: Props) => {
   )
   const content = (
     <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
-      {!!reply && <Reply {...reply} />}
+      {!!reply && <Reply {...reply} isParentHighlighted={isHighlighted} />}
       {markdown}
       {!!claim && <Claim {...claim} />}
     </Kb.Box2>
@@ -132,8 +145,10 @@ const MessageText = ({claim, isEditing, message, reply, text, type}: Props) => {
 }
 
 // Encoding all 4 states as static objects so we don't re-render
-const getStyle = (type, isEditing) => {
-  if (type === 'sent') {
+const getStyle = (type: Props['type'], isEditing: boolean, isHighlighted?: boolean) => {
+  if (isHighlighted) {
+    return Styles.collapseStyles([styles.sent, styles.highlighted])
+  } else if (type === 'sent') {
     return isEditing ? styles.sentEditing : styles.sent
   } else {
     return isEditing ? styles.pendingFailEditing : styles.pendingFail
@@ -143,7 +158,7 @@ const getStyle = (type, isEditing) => {
 const editing = {
   backgroundColor: Styles.globalColors.yellowLight,
   borderRadius: 2,
-  color: Styles.globalColors.blackOrWhite,
+  color: Styles.globalColors.blackOrBlack,
   paddingLeft: Styles.globalMargins.tiny,
   paddingRight: Styles.globalMargins.tiny,
 }
@@ -182,6 +197,9 @@ const styles = Styles.styleSheetCreate(
         color: Styles.globalColors.white,
       },
       editing,
+      highlighted: {
+        color: Styles.globalColors.blackOrBlack,
+      },
       pendingFail,
       pendingFailEditing,
       quoteContainer: {
@@ -196,7 +214,7 @@ const styles = Styles.styleSheetCreate(
         flex: 1,
       },
       replyEdited: {
-        color: Styles.globalColors.black_20,
+        color: Styles.globalColors.black_35,
       },
       replyImageContainer: {
         overflow: 'hidden',
@@ -221,8 +239,14 @@ const styles = Styles.styleSheetCreate(
       replyUsername: {
         alignSelf: 'center',
       },
+      replyUsernameHighlighted: {
+        color: Styles.globalColors.blackOrBlack,
+      },
       sent,
       sentEditing,
+      textHighlighted: {
+        color: Styles.globalColors.black_50OrBlack_50,
+      },
       wrapper: {alignSelf: 'flex-start', flex: 1},
     } as const)
 )

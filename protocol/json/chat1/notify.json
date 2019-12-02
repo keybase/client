@@ -165,6 +165,13 @@
         {
           "type": "boolean",
           "name": "isEphemeralPurge"
+        },
+        {
+          "type": [
+            null,
+            "InboxUIItem"
+          ],
+          "name": "conv"
         }
       ]
     },
@@ -445,8 +452,7 @@
       "name": "StaleUpdateType",
       "symbols": [
         "CLEAR_0",
-        "NEWACTIVITY_1",
-        "CONVUPDATE_2"
+        "NEWACTIVITY_1"
       ]
     },
     {
@@ -934,6 +940,28 @@
         {
           "name": "domain",
           "type": "string"
+        }
+      ],
+      "response": null,
+      "notify": "",
+      "lint": "ignore"
+    },
+    "ChatConvUpdate": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "keybase1.UID"
+        },
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "conv",
+          "type": [
+            null,
+            "InboxUIItem"
+          ]
         }
       ],
       "response": null,

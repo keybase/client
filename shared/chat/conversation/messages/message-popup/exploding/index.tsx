@@ -23,7 +23,7 @@ type Props = {
   attachTo?: () => React.Component<any> | null
   author: string
   deviceName: string
-  deviceRevokedAt: number | null
+  deviceRevokedAt?: number
   deviceType: DeviceType
   explodesAt: number
   hideTimer: boolean

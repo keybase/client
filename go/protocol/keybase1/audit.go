@@ -1,11 +1,13 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/audit.avdl
 
 package keybase1
 
 import (
+	"fmt"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type BoxAuditAttemptResult int
@@ -43,7 +45,7 @@ func (e BoxAuditAttemptResult) String() string {
 	if v, ok := BoxAuditAttemptResultRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type BoxAuditAttempt struct {
@@ -176,22 +178,22 @@ type AuditClient struct {
 }
 
 func (c AuditClient) IsInJail(ctx context.Context, __arg IsInJailArg) (res bool, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.audit.isInJail", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.audit.isInJail", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c AuditClient) BoxAuditTeam(ctx context.Context, __arg BoxAuditTeamArg) (res *BoxAuditAttempt, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.audit.boxAuditTeam", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.audit.boxAuditTeam", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c AuditClient) AttemptBoxAudit(ctx context.Context, __arg AttemptBoxAuditArg) (res BoxAuditAttempt, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.audit.attemptBoxAudit", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.audit.attemptBoxAudit", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c AuditClient) KnownTeamIDs(ctx context.Context, sessionID int) (res []TeamID, err error) {
 	__arg := KnownTeamIDsArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.audit.knownTeamIDs", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.audit.knownTeamIDs", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

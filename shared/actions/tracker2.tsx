@@ -6,7 +6,6 @@ import * as Container from '../util/container'
 import * as Constants from '../constants/tracker2'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import logger from '../logger'
-import {formatPhoneNumberInternational} from '../util/phone-numbers'
 
 const identify3Result = (
   _: Container.TypedState,
@@ -14,7 +13,6 @@ const identify3Result = (
 ) =>
   Tracker2Gen.createUpdateResult({
     guiID: action.payload.params.guiID,
-    reason: null,
     result: Constants.rpcResultToStatus(action.payload.params.result),
   })
 
@@ -85,6 +83,7 @@ const updateUserCard = (
     followsYou: card.theyFollowYou,
     fullname: card.fullName,
     guiID,
+    hidFromFollowers: card.hidFromFollowers,
     location: card.location,
     registeredForAirdrop: card.registeredForAirdrop,
     teamShowcase: (card.teamShowcase || []).map(t => ({
@@ -157,9 +156,7 @@ function* load(state: Container.TypedState, action: Tracker2Gen.LoadPayload) {
     })
   } catch (err) {
     if (err.code === RPCTypes.StatusCode.scresolutionfailed) {
-      yield Saga.put(
-        Tracker2Gen.createUpdateResult({guiID: action.payload.guiID, reason: null, result: 'notAUserYet'})
-      )
+      yield Saga.put(Tracker2Gen.createUpdateResult({guiID: action.payload.guiID, result: 'notAUserYet'}))
     }
     // hooked into reloadable
     logger.error(`Error loading profile: ${err.message}`)
@@ -260,6 +257,7 @@ const loadNonUserProfile = async (_: Container.TypedState, action: Tracker2Gen.L
         description: res.description,
         siteIcon: res.siteIcon || [],
         siteIconFull: res.siteIconFull || [],
+        siteIconWhite: res.siteIconWhite || [],
       }
       if (res.service) {
         return Tracker2Gen.createLoadedNonUserProfile({
@@ -267,6 +265,7 @@ const loadNonUserProfile = async (_: Container.TypedState, action: Tracker2Gen.L
           ...res.service,
         })
       } else {
+        const {formatPhoneNumberInternational} = require('../util/phone-numbers')
         const formattedName =
           res.assertionKey === 'phone' ? formatPhoneNumberInternational('+' + res.assertionValue) : undefined
         const fullName = res.contact ? res.contact.contactName : ''

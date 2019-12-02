@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Container from '../util/container'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as FsGen from '../actions/fs-gen'
+import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Constants from '../constants/fs'
 import * as Types from '../constants/types/fs'
 import Browser from './browser/container'
@@ -13,24 +14,18 @@ import {Actions, MainBanner, MobileHeader, mobileHeaderHeight, Title} from './na
 type ChooseComponentProps = {
   emitBarePreview: () => void
   kbfsDaemonStatus: Types.KbfsDaemonStatus
-  mimeType: Types.Mime | null
   path: Types.Path
   pathType: Types.PathType
   waitForKbfsDaemon: () => void
 }
 
-const useBare = Container.isMobile
-  ? (mimeType: Types.Mime | null) => {
-      return Constants.viewTypeFromMimeType(mimeType) === Types.FileViewType.Image
-    }
-  : () => {
-      return false
-    }
-
 const ChooseComponent = (props: ChooseComponentProps) => {
   const {emitBarePreview, waitForKbfsDaemon} = props
 
-  const bare = useBare(props.mimeType)
+  const fileContext = Container.useSelector(
+    state => state.fs.fileContext.get(props.path) || Constants.emptyFileContext
+  )
+  const bare = Container.isMobile && fileContext.viewType === RPCTypes.GUIViewType.image
   React.useEffect(() => {
     bare && emitBarePreview()
   }, [bare, emitBarePreview])
@@ -43,14 +38,16 @@ const ChooseComponent = (props: ChooseComponentProps) => {
   }, [isConnected, waitForKbfsDaemon])
 
   Kbfs.useFsPathMetadata(props.path)
+  const onUrlError = Kbfs.useFsFileContext(props.path)
   Kbfs.useFsTlfs()
   Kbfs.useFsOnlineStatus()
+  Kbfs.useFsTlf(props.path)
+  const softError = Kbfs.useFsSoftError(props.path)
 
   if (props.kbfsDaemonStatus.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected) {
     return <SimpleScreens.Loading />
   }
 
-  const softError = Kbfs.useFsSoftError(props.path)
   if (softError) {
     return <SimpleScreens.Oops path={props.path} reason={softError} />
   }
@@ -60,7 +57,7 @@ const ChooseComponent = (props: ChooseComponentProps) => {
     case Types.PathType.Unknown:
       return <SimpleScreens.Loading />
     default:
-      if (!props.mimeType) {
+      if (fileContext === Constants.emptyFileContext) {
         // We don't have it yet, so don't render.
         return <SimpleScreens.Loading />
       }
@@ -68,7 +65,7 @@ const ChooseComponent = (props: ChooseComponentProps) => {
         // doesn't matter here as we do a navigateAppend for bare views
         <SimpleScreens.Loading />
       ) : (
-        <NormalPreview path={props.path} />
+        <NormalPreview path={props.path} onUrlError={onUrlError} />
       )
   }
 }
@@ -105,12 +102,13 @@ const Connected = Container.namedConnect(
   (state, ownProps: OwnProps) => {
     const path = Container.getRouteProps(ownProps, 'path', Constants.defaultPath)
     return {
-      _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
+      _pathItem: Constants.getPathItem(state.fs.pathItems, path),
       kbfsDaemonStatus: state.fs.kbfsDaemonStatus,
     }
   },
-  dispatch => ({
-    _emitBarePreview: (path: Types.Path) => {
+  (dispatch, ownProps) => ({
+    emitBarePreview: () => {
+      const path = Container.getRouteProps(ownProps, 'path', Constants.defaultPath)
       dispatch(RouteTreeGen.createNavigateUp())
       dispatch(
         RouteTreeGen.createNavigateAppend({
@@ -125,12 +123,8 @@ const Connected = Container.namedConnect(
     const isDefinitelyFolder =
       Types.getPathElements(path).length <= 3 && !Constants.hasSpecialFileElement(path)
     return {
-      emitBarePreview: () => dispatchProps._emitBarePreview(path),
+      emitBarePreview: dispatchProps.emitBarePreview,
       kbfsDaemonStatus: stateProps.kbfsDaemonStatus,
-      mimeType:
-        !isDefinitelyFolder && stateProps._pathItem.type === Types.PathType.File
-          ? stateProps._pathItem.mimeType
-          : null,
       path,
       pathType: isDefinitelyFolder ? Types.PathType.Folder : stateProps._pathItem.type,
       waitForKbfsDaemon: dispatchProps.waitForKbfsDaemon,

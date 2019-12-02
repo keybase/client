@@ -68,7 +68,7 @@ const noEmoji = {
   emoji: '',
 }
 
-const mapStateToProps = (state, ownProps: OwnProps) => {
+const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const me = state.config.username
   const message = Constants.getMessage(state, ownProps.conversationIDKey, ownProps.ordinal)
   if (!message || !Constants.isDecoratedMessage(message)) {
@@ -78,7 +78,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   if (!reaction) {
     return noEmoji
   }
-  const active = reaction.some(r => r.username === me)
+  const active = [...reaction].some(r => r.username === me)
   return {
     active,
     count: reaction.size,
@@ -86,7 +86,10 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {conversationIDKey, emoji, ordinal}: OwnProps) => ({
+const mapDispatchToProps = (
+  dispatch: Container.TypedDispatch,
+  {conversationIDKey, emoji, ordinal}: OwnProps
+) => ({
   onAddReaction: (emoji: string) =>
     dispatch(Chat2Gen.createToggleMessageReaction({conversationIDKey, emoji, ordinal})),
   onClick: () =>
@@ -99,7 +102,11 @@ const mapDispatchToProps = (dispatch, {conversationIDKey, emoji, ordinal}: OwnPr
     ),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
+const mergeProps = (
+  stateProps: ReturnType<typeof mapStateToProps>,
+  dispatchProps: ReturnType<typeof mapDispatchToProps>,
+  ownProps: OwnProps
+) => ({
   active: stateProps.active,
   className: ownProps.className,
   conversationIDKey: ownProps.conversationIDKey,

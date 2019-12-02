@@ -161,8 +161,8 @@ func (l *TeamLoader) verifySignatureAndExtractKID(ctx context.Context, outer lib
 	return outer.Verify(l.G().Log)
 }
 
-// These sigchain links are not checked dynamically. We assert that they are good.
-var whitelistedTeamLinkSigs = []keybase1.SigID{
+// These exceptional sigchain links are not checked dynamically. We assert that they are good.
+var whitelistedTeamLinkSigsForKeyInUserSigchain = []keybase1.SigID{
 	// For the privacy of the users involved the issue is described only vaguely here.
 	// See CORE-8233 for more details.
 	// This team had a rotate_key link signed seconds before the revocation of the key that signed the link.
@@ -174,12 +174,36 @@ var whitelistedTeamLinkSigs = []keybase1.SigID{
 	// See https://github.com/keybase/client/issues/17573; a server bug allowed a rotate after a revoke, which
 	// has been fixed in CORE-10942.
 	"070e6d737607109ba17d1d43419d950cde6d206b66c555c837566913a31ca59122",
+
+	// See https://github.com/keybase/client/issues/20503; a server bug allowed a team leave to interleave
+	// with a downgrade lease acquisition for a key revoke on a slow connection. The acquisition should have
+	// been blocked until the merkle tree reflected the leave, but the acquistion actually happened before the
+	// team leave transation was committed to the DB. The fix on the server is to check for leases before and
+	// after the team change is commited (in the same transaction). We were previously only checking before.
+	// It has been fixed in Y2K-891.
+	"c641d1246493cf04ec2c6141acdb569a457c02d577b392d4eb1872118c563c2822",
+}
+
+// These exceptional sigchain links are not checked dynamically. We assert that they are good.
+var whitelistedTeamLinkSigsForAdminPermissionDemote = []keybase1.SigID{
+	// A server bug allowed a change_membership to be posted that demoted an adminship
+	// that had just been referenced by a rotate_key that was still settling.
+	// Timeline: Before the ':' are merkle seqnos minus a base offset.
+	// 5: referenced by rotate_key.
+	// 6: referenced by change_membership.
+	// 7: rotate_key first appeared in the merkle tree.
+	// 9: change_membership first appeared in the merkle tree.
+	// The problem is that change_membership did not reference a merkle tree that included rotate_key.
+	// So the client can't prove (in the way it does) that rotate_key occurred before change_membership.
+	// See PICNIC-654 for more details.
+	"69cea033758d152c9736596f0a7e544444ec1944843172692db01be1c6fb6ee622",
 }
 
 func (l *TeamLoader) addProofsForKeyInUserSigchain(ctx context.Context, teamID keybase1.TeamID, link *ChainLinkUnpacked, uid keybase1.UID, key *keybase1.PublicKeyV2NaCl, userLinkMap linkMapT, proofSet *proofSetT) {
-	for _, okSigID := range whitelistedTeamLinkSigs {
-		if link.SigID().Equal(okSigID) {
+	for _, okSigID := range whitelistedTeamLinkSigsForKeyInUserSigchain {
+		if link.SigID().EqualIgnoreLastByte(okSigID) {
 			// This proof is whitelisted, so don't check it.
+			l.G().Log.CDebugf(ctx, "addProofsForKeyInUserSigchain: skipping exceptional link: %v", link.SigID())
 			return
 		}
 	}
@@ -396,6 +420,13 @@ func (l *TeamLoader) addProofsForAdminPermission(ctx context.Context, teamID key
 	event3Demote := bookends.right
 	proofSet.AddNeededHappensBeforeProof(ctx, event1Promote, event2Link, "became admin before team link")
 	if event3Demote != nil {
+		for _, okSigID := range whitelistedTeamLinkSigsForAdminPermissionDemote {
+			if link.SigID().EqualIgnoreLastByte(okSigID) {
+				// This proof is whitelisted, so don't check it.
+				l.G().Log.CDebugf(ctx, "addProofsForAdminPermission: [demote] skipping exceptional link: %v", link.SigID())
+				return
+			}
+		}
 		proofSet.AddNeededHappensBeforeProof(ctx, event2Link, *event3Demote, "team link before adminship demotion")
 	}
 }
@@ -841,7 +872,8 @@ func (l *TeamLoader) checkReaderKeyMaskCoverage(mctx libkb.MetaContext,
 	state *keybase1.TeamData, gen keybase1.PerTeamKeyGeneration) error {
 
 	for _, app := range keybase1.TeamApplicationMap {
-		if app == keybase1.TeamApplication_STELLAR_RELAY {
+		switch app {
+		case keybase1.TeamApplication_STELLAR_RELAY, keybase1.TeamApplication_KVSTORE:
 			// TODO CORE-7718 Allow clients to be missing these RKMs for now.
 			//                Will need a team cache bust to repair.
 			continue

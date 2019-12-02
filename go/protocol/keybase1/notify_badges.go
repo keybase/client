@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/notify_badges.avdl
 
 package keybase1
@@ -7,6 +7,7 @@ import (
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type ChatConversationID []byte
@@ -86,9 +87,9 @@ type BadgeState struct {
 	RevokedDevices            []DeviceID              `codec:"revokedDevices" json:"revokedDevices"`
 	Conversations             []BadgeConversationInfo `codec:"conversations" json:"conversations"`
 	NewGitRepoGlobalUniqueIDs []string                `codec:"newGitRepoGlobalUniqueIDs" json:"newGitRepoGlobalUniqueIDs"`
-	NewTeamNames              []string                `codec:"newTeamNames" json:"newTeamNames"`
+	NewTeams                  []TeamID                `codec:"newTeams" json:"newTeams"`
 	DeletedTeams              []DeletedTeamInfo       `codec:"deletedTeams" json:"deletedTeams"`
-	NewTeamAccessRequests     []string                `codec:"newTeamAccessRequests" json:"newTeamAccessRequests"`
+	NewTeamAccessRequests     []TeamID                `codec:"newTeamAccessRequests" json:"newTeamAccessRequests"`
 	TeamsWithResetUsers       []TeamMemberOutReset    `codec:"teamsWithResetUsers" json:"teamsWithResetUsers"`
 	UnreadWalletAccounts      []WalletAccountInfo     `codec:"unreadWalletAccounts" json:"unreadWalletAccounts"`
 	ResetState                ResetState              `codec:"resetState" json:"resetState"`
@@ -147,17 +148,17 @@ func (o BadgeState) DeepCopy() BadgeState {
 			}
 			return ret
 		})(o.NewGitRepoGlobalUniqueIDs),
-		NewTeamNames: (func(x []string) []string {
+		NewTeams: (func(x []TeamID) []TeamID {
 			if x == nil {
 				return nil
 			}
-			ret := make([]string, len(x))
+			ret := make([]TeamID, len(x))
 			for i, v := range x {
-				vCopy := v
+				vCopy := v.DeepCopy()
 				ret[i] = vCopy
 			}
 			return ret
-		})(o.NewTeamNames),
+		})(o.NewTeams),
 		DeletedTeams: (func(x []DeletedTeamInfo) []DeletedTeamInfo {
 			if x == nil {
 				return nil
@@ -169,13 +170,13 @@ func (o BadgeState) DeepCopy() BadgeState {
 			}
 			return ret
 		})(o.DeletedTeams),
-		NewTeamAccessRequests: (func(x []string) []string {
+		NewTeamAccessRequests: (func(x []TeamID) []TeamID {
 			if x == nil {
 				return nil
 			}
-			ret := make([]string, len(x))
+			ret := make([]TeamID, len(x))
 			for i, v := range x {
-				vCopy := v
+				vCopy := v.DeepCopy()
 				ret[i] = vCopy
 			}
 			return ret
@@ -268,6 +269,6 @@ type NotifyBadgesClient struct {
 
 func (c NotifyBadgesClient) BadgeState(ctx context.Context, badgeState BadgeState) (err error) {
 	__arg := BadgeStateArg{BadgeState: badgeState}
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyBadges.badgeState", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyBadges.badgeState", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }

@@ -1,11 +1,13 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/block.avdl
 
 package keybase1
 
 import (
+	"fmt"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type BlockStatus int
@@ -34,7 +36,7 @@ func (e BlockStatus) String() string {
 	if v, ok := BlockStatusRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type GetBlockRes struct {
@@ -446,73 +448,73 @@ type BlockClient struct {
 }
 
 func (c BlockClient) GetSessionChallenge(ctx context.Context) (res ChallengeInfo, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.block.getSessionChallenge", []interface{}{GetSessionChallengeArg{}}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.block.getSessionChallenge", []interface{}{GetSessionChallengeArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c BlockClient) AuthenticateSession(ctx context.Context, signature string) (err error) {
 	__arg := AuthenticateSessionArg{Signature: signature}
-	err = c.Cli.Call(ctx, "keybase.1.block.authenticateSession", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.block.authenticateSession", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c BlockClient) PutBlock(ctx context.Context, __arg PutBlockArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.block.putBlock", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.block.putBlock", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c BlockClient) PutBlockAgain(ctx context.Context, __arg PutBlockAgainArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.block.putBlockAgain", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.block.putBlockAgain", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c BlockClient) GetBlock(ctx context.Context, __arg GetBlockArg) (res GetBlockRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.block.getBlock", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.block.getBlock", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c BlockClient) AddReference(ctx context.Context, __arg AddReferenceArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.block.addReference", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.block.addReference", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c BlockClient) DelReference(ctx context.Context, __arg DelReferenceArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.block.delReference", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.block.delReference", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c BlockClient) ArchiveReference(ctx context.Context, __arg ArchiveReferenceArg) (res []BlockReference, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.block.archiveReference", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.block.archiveReference", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c BlockClient) DelReferenceWithCount(ctx context.Context, __arg DelReferenceWithCountArg) (res DowngradeReferenceRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.block.delReferenceWithCount", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.block.delReferenceWithCount", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c BlockClient) ArchiveReferenceWithCount(ctx context.Context, __arg ArchiveReferenceWithCountArg) (res DowngradeReferenceRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.block.archiveReferenceWithCount", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.block.archiveReferenceWithCount", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c BlockClient) GetReferenceCount(ctx context.Context, __arg GetReferenceCountArg) (res ReferenceCountRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.block.getReferenceCount", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.block.getReferenceCount", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c BlockClient) GetUserQuotaInfo(ctx context.Context) (res []byte, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.block.getUserQuotaInfo", []interface{}{GetUserQuotaInfoArg{}}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.block.getUserQuotaInfo", []interface{}{GetUserQuotaInfoArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c BlockClient) GetTeamQuotaInfo(ctx context.Context, tid TeamID) (res []byte, err error) {
 	__arg := GetTeamQuotaInfoArg{Tid: tid}
-	err = c.Cli.Call(ctx, "keybase.1.block.getTeamQuotaInfo", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.block.getTeamQuotaInfo", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c BlockClient) BlockPing(ctx context.Context) (res BlockPingResponse, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.block.blockPing", []interface{}{BlockPingArg{}}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.block.blockPing", []interface{}{BlockPingArg{}}, &res, 0*time.Millisecond)
 	return
 }

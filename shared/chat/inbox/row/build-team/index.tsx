@@ -3,63 +3,43 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 
 type Props = {
-  onBuildTeam: () => void
-  showBuildATeam: boolean
+  onCreateTeam: () => void
+  onJoinTeam: () => void
+  isFloating: boolean
 }
 
-const DividerBox = Styles.styled(Kb.Box)(() => ({
-  ...Styles.globalStyles.flexBoxRow,
-  ...(Styles.isMobile
-    ? {backgroundColor: Styles.globalColors.fastBlank}
-    : {
-        ':hover': {
-          borderBottomColor: Styles.globalColors.greyLight,
-          borderTopColor: Styles.globalColors.greyLight,
-        },
-      }),
-  alignItems: 'center',
-  borderStyle: 'solid',
-  borderTopColor: Styles.globalColors.black_10,
-  borderTopWidth: 1,
-  height: '100%',
-  justifyContent: 'flex-start',
-  paddingLeft: Styles.globalMargins.tiny,
-  paddingRight: Styles.globalMargins.tiny,
-  position: 'relative',
-  width: '100%',
-}))
-
-const BuildTeam = ({showBuildATeam, onBuildTeam}: Props) =>
-  showBuildATeam ? (
-    <Kb.ClickableBox title="Make a new team" onClick={onBuildTeam} style={styles.container}>
-      <DividerBox>
-        <Kb.Box style={styles.text}>
-          <Kb.Text type="BodySmallSemibold">Build a team!</Kb.Text>
-        </Kb.Box>
-      </DividerBox>
-    </Kb.ClickableBox>
-  ) : null
+const BuildTeam = ({isFloating, onCreateTeam, onJoinTeam}: Props) => (
+  <Kb.Box2
+    direction="vertical"
+    gap={Styles.isMobile ? 'tiny' : 'xtiny'}
+    style={Styles.collapseStyles([styles.container, isFloating && styles.floatingContainer])}
+  >
+    <Kb.Button fullWidth={true} label="Create a team" mode="Secondary" onClick={onCreateTeam} />
+    <Kb.Button fullWidth={true} label="Join a team" mode="Secondary" onClick={onJoinTeam} />
+  </Kb.Box2>
+)
 
 const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({
     isElectron: {
-      ...Styles.globalStyles.fillAbsolute,
-      backgroundColor: Styles.globalColors.blueGrey,
+      backgroundColor: Styles.globalColors.blueGreyLight,
       flexShrink: 0,
-      height: 32,
-      top: undefined,
+      padding: Styles.globalMargins.small,
+      width: '100%',
     },
     isMobile: {
+      ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
       backgroundColor: Styles.globalColors.fastBlank,
       flexShrink: 0,
-      height: 48,
+      width: '100%',
     },
   }),
-  text: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    minHeight: 24,
-  },
+  floatingContainer: Styles.platformStyles({
+    isElectron: {
+      ...Styles.globalStyles.fillAbsolute,
+      top: undefined,
+    },
+  }),
 }))
 
 export default BuildTeam

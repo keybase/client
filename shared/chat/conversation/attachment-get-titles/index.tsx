@@ -3,13 +3,15 @@ import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as Kb from '../../../common-adapters/index'
 import * as Styles from '../../../styles'
 
+export type Info = {
+  type: 'image' | 'file'
+  title: string
+  filename: string
+  outboxID: RPCChatTypes.OutboxID | null
+}
+
 export type PathToInfo = {
-  [K in string]: {
-    type: 'image' | 'file'
-    title: string
-    filename: string
-    outboxID: RPCChatTypes.OutboxID
-  }
+  [K in string]: Info
 }
 
 type Props = {
@@ -79,7 +81,7 @@ class GetTitles extends React.Component<Props, State> {
     const paths = Object.keys(this.state.pathToInfo)
     const path = paths[this.state.index]
     const info = this.state.pathToInfo[path]
-    const titleHint = 'Caption (optional)'
+    const titleHint = 'Add a caption...'
     if (!info) return null
 
     return (
@@ -102,7 +104,7 @@ class GetTitles extends React.Component<Props, State> {
             {paths.length > 0 && !Styles.isMobile && (
               <Kb.Box2 direction="vertical" style={styles.filename}>
                 <Kb.Text type="BodySmallSemibold">Filename</Kb.Text>
-                <Kb.Text type="BodySmall">
+                <Kb.Text type="BodySmall" center={true}>
                   {info.filename} ({this.state.index + 1} of {paths.length})
                 </Kb.Text>
               </Kb.Box2>

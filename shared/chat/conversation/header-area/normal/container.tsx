@@ -14,7 +14,7 @@ type OwnProps = Container.PropsWithSafeNavigation<{
 
 const mapStateToProps = (state: Container.TypedState, {infoPanelOpen, conversationIDKey}: OwnProps) => {
   const meta = Constants.getMeta(state, conversationIDKey)
-  const _participants = meta.teamname ? null : meta.participants
+  const _participants = meta.teamname ? null : meta.nameParticipants
   const _contactNames = meta.participantToContactName
 
   return {
@@ -46,7 +46,6 @@ const mapDispatchToProps = (
 })
 
 const isPhoneOrEmail = (props: Props): boolean =>
-  props.participants.length === 2 &&
   props.participants.some(participant => participant.endsWith('@phone') || participant.endsWith('@email'))
 
 const HeaderBranch = (props: Props) => {
@@ -61,14 +60,14 @@ const HeaderBranch = (props: Props) => {
 
 export default Container.withSafeNavigation(
   Container.connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps) => ({
-    badgeNumber: stateProps._badgeMap.reduce(
-      (res, currentValue, currentConvID) =>
+    badgeNumber: [...stateProps._badgeMap.entries()].reduce(
+      (res, [currentConvID, currentValue]) =>
         // only show sum of badges that aren't for the current conversation
         currentConvID !== stateProps._conversationIDKey ? res + currentValue : res,
       0
     ),
     channelName: stateProps.channelName,
-    contactNames: stateProps._contactNames.toObject(),
+    contactNames: stateProps._contactNames,
     infoPanelOpen: stateProps.infoPanelOpen,
     muted: stateProps.muted,
     onBack: dispatchProps.onBack,
@@ -76,7 +75,7 @@ export default Container.withSafeNavigation(
     onShowProfile: dispatchProps.onShowProfile,
     onToggleInfoPanel: dispatchProps.onToggleInfoPanel,
     onToggleThreadSearch: dispatchProps.onToggleThreadSearch,
-    participants: (stateProps._participants && stateProps._participants.toArray()) || [],
+    participants: stateProps._participants || [],
     pendingWaiting: stateProps.pendingWaiting,
     smallTeam: stateProps.smallTeam,
     teamName: stateProps.teamName,

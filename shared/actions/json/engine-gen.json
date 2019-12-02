@@ -16,6 +16,9 @@
         "chat1ChatUiChatAttachmentDownloadDone": {
             "params": "chat1Types.MessageTypes['chat.1.chatUi.chatAttachmentDownloadDone']['inParam'] & {sessionID: number}, response: {error: chat1Types.IncomingErrorCallback, result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatAttachmentDownloadDone']['outParam']) => void}"
         },
+        "chat1ChatUiChatInboxLayout": {
+            "params": "chat1Types.MessageTypes['chat.1.chatUi.chatInboxLayout']['inParam'] & {sessionID: number}, response: {error: chat1Types.IncomingErrorCallback, result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatInboxLayout']['outParam']) => void}"
+        },
         "chat1ChatUiChatInboxUnverified": {
             "params": "chat1Types.MessageTypes['chat.1.chatUi.chatInboxUnverified']['inParam'] & {sessionID: number}, response: {error: chat1Types.IncomingErrorCallback, result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatInboxUnverified']['outParam']) => void}"
         },
@@ -172,6 +175,9 @@
         "chat1NotifyChatChatPromptUnfurl": {
             "params": "chat1Types.MessageTypes['chat.1.NotifyChat.ChatPromptUnfurl']['inParam'] & {sessionID: number}"
         },
+        "chat1NotifyChatChatConvUpdate": {
+            "params": "chat1Types.MessageTypes['chat.1.NotifyChat.ChatConvUpdate']['inParam'] & {sessionID: number}"
+        },
         "keybase1GpgUiWantToAddGPGKey": {
             "params": "keybase1Types.MessageTypes['keybase.1.gpgUi.wantToAddGPGKey']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.gpgUi.wantToAddGPGKey']['outParam']) => void}"
         },
@@ -298,6 +304,12 @@
         "keybase1LoginUiPromptPassphraseRecovery": {
             "params": "keybase1Types.MessageTypes['keybase.1.loginUi.promptPassphraseRecovery']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.loginUi.promptPassphraseRecovery']['outParam']) => void}"
         },
+        "keybase1LoginUiChooseDeviceToRecoverWith": {
+            "params": "keybase1Types.MessageTypes['keybase.1.loginUi.chooseDeviceToRecoverWith']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.loginUi.chooseDeviceToRecoverWith']['outParam']) => void}"
+        },
+        "keybase1LoginUiDisplayResetMessage": {
+            "params": "keybase1Types.MessageTypes['keybase.1.loginUi.displayResetMessage']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.loginUi.displayResetMessage']['outParam']) => void}"
+        },
         "keybase1LogsendPrepareLogsend": {
             "params": "keybase1Types.MessageTypes['keybase.1.logsend.prepareLogsend']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.logsend.prepareLogsend']['outParam']) => void}"
         },
@@ -415,8 +427,14 @@
         "keybase1NotifyTeamNewlyAddedToTeam": {
             "params": "keybase1Types.MessageTypes['keybase.1.NotifyTeam.newlyAddedToTeam']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyTeam.newlyAddedToTeam']['outParam']) => void}"
         },
+        "keybase1NotifyTeamTeamRoleMapChanged": {
+            "params": "keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamRoleMapChanged']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamRoleMapChanged']['outParam']) => void}"
+        },
         "keybase1NotifyTeamAvatarUpdated": {
             "params": "keybase1Types.MessageTypes['keybase.1.NotifyTeam.avatarUpdated']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyTeam.avatarUpdated']['outParam']) => void}"
+        },
+        "keybase1NotifyTeamTeamMetadataUpdate": {
+            "params": "keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamMetadataUpdate']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamMetadataUpdate']['outParam']) => void}"
         },
         "keybase1NotifyTeambotNewTeambotKey": {
             "params": "keybase1Types.MessageTypes['keybase.1.NotifyTeambot.newTeambotKey']['inParam'] & {sessionID: number}"
@@ -430,8 +448,8 @@
         "keybase1NotifyTrackingTrackingInfo": {
             "params": "keybase1Types.MessageTypes['keybase.1.NotifyTracking.trackingInfo']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyTracking.trackingInfo']['outParam']) => void}"
         },
-        "keybase1NotifyUnverifiedTeamListTeamListUnverifiedChanged": {
-            "params": "keybase1Types.MessageTypes['keybase.1.NotifyUnverifiedTeamList.teamListUnverifiedChanged']['inParam'] & {sessionID: number}"
+        "keybase1NotifyTrackingNotifyUserBlocked": {
+            "params": "keybase1Types.MessageTypes['keybase.1.NotifyTracking.notifyUserBlocked']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyTracking.notifyUserBlocked']['outParam']) => void}"
         },
         "keybase1NotifyUsersUserChanged": {
             "params": "keybase1Types.MessageTypes['keybase.1.NotifyUsers.userChanged']['inParam'] & {sessionID: number}"

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Sb from '../../../../stories/storybook'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
-import {List, Set} from 'immutable'
+import * as TeamTypes from '../../../../constants/types/teams'
 import {Box2} from '../../../../common-adapters/box'
 import {platformStyles} from '../../../../styles'
 import Input, {Props as InputProps} from '.'
@@ -37,7 +37,7 @@ const provider = Sb.createPropProviderWithCommon({
   }),
   Typing: ownProps => ({
     conversationIDKey: ownProps.conversationIDKey,
-    names: Set(),
+    names: new Set(),
   }),
   UserMentionHud: ownProps => {
     const users = [
@@ -65,7 +65,7 @@ type Props = {
   isEditing: boolean
   isExploding: boolean
   explodingModeSeconds: number
-  minWriterRole?: string
+  minWriterRole?: TeamTypes.TeamRoleType
   pendingWaiting: boolean
 }
 
@@ -99,7 +99,7 @@ const InputContainer = (props: Props) => {
     isEditing: props.isEditing,
     isExploding: props.isExploding,
     isSearching: false,
-    minWriterRole: props.minWriterRole || 'writer',
+    minWriterRole: props.minWriterRole || ('writer' as const),
     onAttach: (paths: Array<string>) => {
       // This will always be called with an empty array, since some
       // browsers don't have the path property set on File.
@@ -109,6 +109,7 @@ const InputContainer = (props: Props) => {
     onCancelReply: Sb.action('onCancelReply'),
     onEditLastMessage: Sb.action('onEditLastMessage'),
     onFilePickerError: Sb.action('onFilePickerError'),
+    onGiphyToggle: Sb.action('onGiphyToggle'),
     onRequestScrollDown: Sb.action('onRequestScrollDown'),
     onRequestScrollUp: Sb.action('onRequestScrollUp'),
     onSubmit: (text: string) => {
@@ -125,12 +126,12 @@ const InputContainer = (props: Props) => {
     showReplyPreview: false,
     showTypingStatus: false,
     showWalletsIcon: !props.isEditing,
-    suggestAllChannels: List([
+    suggestAllChannels: [
       {channelname: 'general', teamname: 'keybase'},
       {channelname: 'spooner', teamname: 'keybase'},
       {channelname: 'general', teamname: 'got'},
       {channelname: 'live', teamname: 'got'},
-    ]),
+    ],
     suggestBotCommands: [
       {
         description: 'Build the app',
@@ -149,7 +150,7 @@ const InputContainer = (props: Props) => {
       },
     ],
     suggestBotCommandsUpdateStatus: RPCChatTypes.UIBotCommandsUpdateStatus.updating,
-    suggestChannels: List(['general', 'random', 'spelunky', 'music', 'vidya-games']),
+    suggestChannels: ['general', 'random', 'spelunky', 'music', 'vidya-games'],
     suggestCommands: [
       {description: 'Hide current or given conv', hasHelpText: false, name: 'hide', usage: '[conversation]'},
       {description: 'Message a user', hasHelpText: false, name: 'msg', usage: '<conversation> <msg>'},
@@ -159,12 +160,12 @@ const InputContainer = (props: Props) => {
       {fullName: '', teamname: 'keybase', username: ''},
       {fullName: '', teamname: 'got', username: ''},
     ],
-    suggestUsers: List([
+    suggestUsers: [
       {fullName: 'Danny Ayoub', username: 'ayoubd'},
       {fullName: 'Chris Nojima', username: 'chrisnojima'},
       {fullName: 'Mike Maxim', username: 'mikem'},
       {fullName: 'Alex Gessner', username: 'xgess'},
-    ]),
+    ],
     unsentText: null,
     unsentTextChanged: Sb.action('unsentTextChanged'),
   }

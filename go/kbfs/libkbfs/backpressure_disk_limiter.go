@@ -78,8 +78,8 @@ func newBackpressureTracker(minThreshold, maxThreshold, limitFrac float64,
 		return nil, errors.Errorf("1.0 < maxThreshold=%f",
 			maxThreshold)
 	}
-	if limitFrac < 0.01 {
-		return nil, errors.Errorf("limitFrac=%f < 0.01", limitFrac)
+	if limitFrac <= 0 {
+		return nil, errors.Errorf("limitFrac=%f <= 0", limitFrac)
 	}
 	if limitFrac > 1.0 {
 		return nil, errors.Errorf("limitFrac=%f > 1.0", limitFrac)

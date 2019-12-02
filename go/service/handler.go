@@ -52,7 +52,8 @@ func (u *LoginUI) DisplayPrimaryPaperKey(ctx context.Context, arg keybase1.Displ
 	return u.cli.DisplayPrimaryPaperKey(ctx, arg)
 }
 
-func (u *LoginUI) PromptResetAccount(ctx context.Context, arg keybase1.PromptResetAccountArg) (bool, error) {
+func (u *LoginUI) PromptResetAccount(ctx context.Context,
+	arg keybase1.PromptResetAccountArg) (keybase1.ResetPromptResponse, error) {
 	arg.SessionID = u.sessionID
 	return u.cli.PromptResetAccount(ctx, arg)
 }
@@ -70,6 +71,16 @@ func (u *LoginUI) ExplainDeviceRecovery(ctx context.Context, arg keybase1.Explai
 func (u *LoginUI) PromptPassphraseRecovery(ctx context.Context, arg keybase1.PromptPassphraseRecoveryArg) (bool, error) {
 	arg.SessionID = u.sessionID
 	return u.cli.PromptPassphraseRecovery(ctx, arg)
+}
+
+func (u *LoginUI) ChooseDeviceToRecoverWith(ctx context.Context, arg keybase1.ChooseDeviceToRecoverWithArg) (keybase1.DeviceID, error) {
+	arg.SessionID = u.sessionID
+	return u.cli.ChooseDeviceToRecoverWith(ctx, arg)
+}
+
+func (u *LoginUI) DisplayResetMessage(ctx context.Context, arg keybase1.DisplayResetMessageArg) error {
+	arg.SessionID = u.sessionID
+	return u.cli.DisplayResetMessage(ctx, arg)
 }
 
 type SecretUI struct {

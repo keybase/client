@@ -1,6 +1,7 @@
 import path from 'path'
 
 const platform = process.platform
+export const isTestDevice = false
 export const isMobile = false
 export const isAndroid = false
 export const isIOS = false
@@ -113,3 +114,8 @@ export const {
 export const pprofDir = ''
 export const version = 'TODO'
 export {runMode}
+
+// Noop – Just for Android
+export const appColorSchemeChanged = () => {}
+
+export const isRemoteDebuggerAttached = false

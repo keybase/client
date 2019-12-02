@@ -69,6 +69,7 @@ type GlobalContext struct {
 	RPCCanceler      *RPCCanceler         // register live RPCs so they can be cancelleed en masse
 	IdentifyDispatch *IdentifyDispatch    // get notified of identify successes
 	Identify3State   *Identify3State      // keep track of Identify3 sessions
+	vidMu            *sync.Mutex          // protect VID
 
 	cacheMu                *sync.RWMutex   // protects all caches
 	ProofCache             *ProofCache     // where to cache proof results
@@ -79,6 +80,7 @@ type GlobalContext struct {
 	teamLoader             TeamLoader      // Play back teams for id/name properties
 	fastTeamLoader         FastTeamLoader  // Play back team in "fast" mode for keys and names only
 	hiddenTeamChainManager HiddenTeamChainManager
+	TeamRoleMapManager     TeamRoleMapManager
 	IDLocktab              *LockTable
 	loadUserLockTab        *LockTable
 	teamAuditor            TeamAuditor
@@ -99,6 +101,7 @@ type GlobalContext struct {
 	paramProofStore        MerkleStore        // a cache and fetcher for param proofs
 	externalURLStore       MerkleStore        // a cache and fetcher for external urls
 	PayloadCache           *PayloadCache      // cache of ChainLink payload json wrappers
+	kvRevisionCache        KVRevisionCacher   // cache of revisions for verifying key-value store results
 	Pegboard               *Pegboard
 
 	GpgClient        *GpgCLI        // A standard GPG-client (optional)
@@ -121,6 +124,7 @@ type GlobalContext struct {
 	UIRouter           UIRouter                  // How to route UIs
 	proofServices      ExternalServicesCollector // All known external services
 	UIDMapper          UIDMapper                 // maps from UID to Usernames
+	ServiceMapper      ServiceSummaryMapper      // handles and caches batch requests for service summaries
 	ExitCode           keybase1.ExitCode         // Value to return to OS on Exit()
 	RateLimits         *RateLimits               // tracks the last time certain actions were taken
 	clockMu            *sync.Mutex               // protects Clock
@@ -165,6 +169,8 @@ type GlobalContext struct {
 	SyncedContactList SyncedContactListProvider
 
 	GUIConfig *JSONFile
+
+	avatarLoader AvatarLoaderSource
 }
 
 type GlobalTestOptions struct {
@@ -187,6 +193,7 @@ func (g *GlobalContext) GetEKLib() EKLib                               { return 
 func (g *GlobalContext) GetTeambotBotKeyer() TeambotBotKeyer           { return g.teambotBotKeyer }
 func (g *GlobalContext) GetTeambotMemberKeyer() TeambotMemberKeyer     { return g.teambotMemberKeyer }
 func (g *GlobalContext) GetProofServices() ExternalServicesCollector   { return g.proofServices }
+func (g *GlobalContext) GetAvatarLoader() AvatarLoaderSource           { return g.avatarLoader }
 
 type LogGetter func() logger.Logger
 
@@ -198,6 +205,7 @@ func NewGlobalContext() *GlobalContext {
 		VDL:                NewVDebugLog(log),
 		SKBKeyringMu:       new(sync.Mutex),
 		perUserKeyringMu:   new(sync.Mutex),
+		vidMu:              new(sync.Mutex),
 		cacheMu:            new(sync.RWMutex),
 		socketWrapperMu:    new(sync.RWMutex),
 		shutdownOnce:       new(sync.Once),
@@ -252,6 +260,7 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.teamLoader = newNullTeamLoader(g)
 	g.fastTeamLoader = newNullFastTeamLoader()
 	g.hiddenTeamChainManager = newNullHiddenTeamChainManager()
+	g.TeamRoleMapManager = newNullTeamRoleMapManager()
 	g.teamAuditor = newNullTeamAuditor()
 	g.teamBoxAuditor = newNullTeamBoxAuditor()
 	g.stellar = newNullStellar(g)
@@ -285,6 +294,10 @@ func (g *GlobalContext) SetUIDMapper(u UIDMapper) {
 	g.UIDMapper = u
 }
 
+func (g *GlobalContext) SetServiceSummaryMapper(u ServiceSummaryMapper) {
+	g.ServiceMapper = u
+}
+
 func (g *GlobalContext) SetUIRouter(u UIRouter) {
 	g.UIRouter = u
 }
@@ -295,6 +308,10 @@ func (g *GlobalContext) SetDNSNameServerFetcher(d DNSNameServerFetcher) {
 
 func (g *GlobalContext) SetUPAKLoader(u UPAKLoader) {
 	g.upakLoader = u
+}
+
+func (g *GlobalContext) SetAvatarLoader(a AvatarLoaderSource) {
+	g.avatarLoader = a
 }
 
 // simulateServiceRestart simulates what happens when a service restarts for the
@@ -576,6 +593,7 @@ func (g *GlobalContext) FlushCaches() {
 	g.cacheMu.Lock()
 	defer g.cacheMu.Unlock()
 	g.configureMemCachesLocked(true)
+	g.TeamRoleMapManager.FlushCache()
 }
 
 func (g *GlobalContext) configureDiskCachesLocked() error {
@@ -618,6 +636,18 @@ func (g *GlobalContext) GetHiddenTeamChainManager() HiddenTeamChainManager {
 	g.cacheMu.RLock()
 	defer g.cacheMu.RUnlock()
 	return g.hiddenTeamChainManager
+}
+
+func (g *GlobalContext) GetTeamRoleMapManager() TeamRoleMapManager {
+	g.cacheMu.RLock()
+	defer g.cacheMu.RUnlock()
+	return g.TeamRoleMapManager
+}
+
+func (g *GlobalContext) SetTeamRoleMapManager(r TeamRoleMapManager) {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	g.TeamRoleMapManager = r
 }
 
 func (g *GlobalContext) SetHiddenTeamChainManager(h HiddenTeamChainManager) {
@@ -690,6 +720,18 @@ func (g *GlobalContext) SetImplicitTeamCacher(l MemLRUer) {
 	g.cacheMu.RLock()
 	defer g.cacheMu.RUnlock()
 	g.iteamCacher = l
+}
+
+func (g *GlobalContext) GetKVRevisionCache() KVRevisionCacher {
+	g.cacheMu.RLock()
+	defer g.cacheMu.RUnlock()
+	return g.kvRevisionCache
+}
+
+func (g *GlobalContext) SetKVRevisionCache(kvr KVRevisionCacher) {
+	g.cacheMu.RLock()
+	defer g.cacheMu.RUnlock()
+	g.kvRevisionCache = kvr
 }
 
 func (g *GlobalContext) GetFullSelfer() FullSelfer {
@@ -1054,6 +1096,7 @@ func (g *GlobalContext) GetLogf() logger.Loggerf {
 func (g *GlobalContext) AddLoginHook(hook LoginHook) {
 	g.hookMu.Lock()
 	defer g.hookMu.Unlock()
+	g.Log.Debug("AddLoginHook: %T", hook)
 	g.loginHooks = append(g.loginHooks, hook)
 }
 
@@ -1063,20 +1106,27 @@ func (g *GlobalContext) CallLoginHooks(mctx MetaContext) {
 	// Trigger the creation of a per-user-keyring
 	_, _ = g.GetPerUserKeyring(mctx.Ctx())
 
+	mctx.Debug("CallLoginHooks: running UPAK#LoginAs")
 	err := g.GetUPAKLoader().LoginAs(mctx.CurrentUID())
 	if err != nil {
 		mctx.Warning("LoginAs error: %+v", err)
 	}
 
 	// Do so outside the lock below
+	mctx.Debug("CallLoginHooks: running FullSelfer#OnLogin")
 	err = g.GetFullSelfer().OnLogin(mctx)
 	if err != nil {
 		mctx.Warning("OnLogin full self error: %+v", err)
 	}
 
+	mctx.Debug("CallLoginHooks: running registered login hooks")
 	g.hookMu.RLock()
 	defer g.hookMu.RUnlock()
 	for _, h := range g.loginHooks {
+		mctx.Debug("CallLoginHooks: will call login hook for %T", h)
+	}
+	for _, h := range g.loginHooks {
+		mctx.Debug("CallLoginHooks: calling login hook for %T", h)
 		if err := h.OnLogin(mctx); err != nil {
 			mctx.Warning("OnLogin hook error: %s", err)
 		}

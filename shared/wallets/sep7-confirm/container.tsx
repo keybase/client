@@ -9,6 +9,7 @@ const mapStateToProps = (state: Container.TypedState) => ({
   loading: !state.wallets.sep7ConfirmInfo,
   sep7ConfirmInfo: state.wallets.sep7ConfirmInfo,
   sep7ConfirmPath: state.wallets.sep7ConfirmPath,
+  sep7SendError: state.wallets.sep7SendError,
   waitingKey: Constants.sep7WaitingKey,
 })
 
@@ -42,6 +43,7 @@ export default Container.connect(mapStateToProps, mapDispatchToProps, (stateProp
       originDomain: '',
       path: stateProps.sep7ConfirmPath,
       recipient: null,
+      sendError: stateProps.sep7SendError,
       signed: null,
       summary: {
         fee: '',
@@ -67,6 +69,7 @@ export default Container.connect(mapStateToProps, mapDispatchToProps, (stateProp
     signed,
     summary,
   } = stateProps.sep7ConfirmInfo
+  const sendError = stateProps.sep7SendError
   const path = stateProps.sep7ConfirmPath
   const rawOp = stateProps.sep7ConfirmInfo.operation
   const operation = rawOp === 'pay' ? ('pay' as const) : rawOp === 'tx' ? ('tx' as const) : ('' as const)
@@ -94,6 +97,7 @@ export default Container.connect(mapStateToProps, mapDispatchToProps, (stateProp
     originDomain,
     path,
     recipient,
+    sendError,
     signed,
     summary,
     waitingKey: stateProps.waitingKey,

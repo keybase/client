@@ -108,7 +108,7 @@ func (u *uploaderTaskStorage) file(outboxID chat1.OutboxID, getPath func(chat1.O
 	}
 	return encrypteddb.NewFile(u.G().ExternalG(), getPath(outboxID),
 		func(ctx context.Context) ([32]byte, error) {
-			return storage.GetSecretBoxKey(ctx, u.G().ExternalG(), storage.DefaultSecretUI)
+			return storage.GetSecretBoxKey(ctx, u.G().ExternalG())
 		}), nil
 }
 
@@ -218,6 +218,10 @@ func (u *Uploader) Complete(ctx context.Context, outboxID chat1.OutboxID) {
 	u.taskStorage.completeTask(ctx, outboxID)
 	NewPendingPreviews(u.G()).Remove(ctx, outboxID)
 	// just always attempt to remove the upload temp dir for this outbox ID, even if it might not be there
+	u.clearTempDirFromOutboxID(outboxID)
+}
+
+func (u *Uploader) clearTempDirFromOutboxID(outboxID chat1.OutboxID) {
 	os.RemoveAll(u.getUploadTempDir(outboxID))
 }
 
@@ -628,6 +632,11 @@ func (u *Uploader) GetUploadTempFile(ctx context.Context, outboxID chat1.OutboxI
 		return "", err
 	}
 	return filepath.Join(dir, filepath.Base(filename)), nil
+}
+
+func (u *Uploader) CancelUploadTempFile(ctx context.Context, outboxID chat1.OutboxID) error {
+	u.clearTempDirFromOutboxID(outboxID)
+	return nil
 }
 
 func (u *Uploader) OnDbNuke(mctx libkb.MetaContext) error {

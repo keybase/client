@@ -1,5 +1,4 @@
 import React from 'react'
-import * as I from 'immutable'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as Sb from '../../stories/storybook'
@@ -50,7 +49,7 @@ export const bannerProvider = {
   SystemFileManagerIntegrationBanner: ({alwaysShow}: any) => ({
     alwaysShow,
     ...commonSystemFileManagerIntegrationBannerActions,
-    driverStatus: Constants.makeDriverStatusUnknown(),
+    driverStatus: Constants.driverStatusUnknown,
   }),
 }
 
@@ -72,56 +71,58 @@ export default () => {
     .add('SystemFileManagerIntegrationBanner - disabled', () => (
       <SystemFileManagerIntegrationBanner
         {...commonSystemFileManagerIntegrationBannerActions}
-        driverStatus={Constants.makeDriverStatusDisabled()}
+        driverStatus={Constants.emptyDriverStatusDisabled}
       />
     ))
     .add('SystemFileManagerIntegrationBanner - disabled, enabling', () => (
       <SystemFileManagerIntegrationBanner
         {...commonSystemFileManagerIntegrationBannerActions}
-        driverStatus={Constants.makeDriverStatusDisabled({isEnabling: true})}
+        driverStatus={{...Constants.emptyDriverStatusDisabled, isEnabling: true}}
       />
     ))
     .add('SystemFileManagerIntegrationBanner - enabled, new', () => (
       <SystemFileManagerIntegrationBanner
         {...commonSystemFileManagerIntegrationBannerActions}
-        driverStatus={Constants.makeDriverStatusEnabled({isNew: true})}
+        driverStatus={{...Constants.emptyDriverStatusEnabled, isNew: true}}
       />
     ))
     .add('SystemFileManagerIntegrationBanner - enabled, disabling', () => (
       <SystemFileManagerIntegrationBanner
         {...commonSystemFileManagerIntegrationBannerActions}
-        driverStatus={Constants.makeDriverStatusEnabled({isDisabling: true})}
+        driverStatus={{...Constants.emptyDriverStatusEnabled, isDisabling: true}}
       />
     ))
     .add('SystemFileManagerIntegrationBanner - enabled, dokanOutdated', () => (
       <SystemFileManagerIntegrationBanner
         {...commonSystemFileManagerIntegrationBannerActions}
-        driverStatus={Constants.makeDriverStatusEnabled({
+        driverStatus={{
+          ...Constants.emptyDriverStatusEnabled,
           dokanOutdated: true,
           dokanUninstallExecPath: 'c:\\blah',
-        })}
+        }}
       />
     ))
     .add('SystemFileManagerIntegrationBanner - enabled, dokanOutdated, diabling', () => (
       <SystemFileManagerIntegrationBanner
         {...commonSystemFileManagerIntegrationBannerActions}
-        driverStatus={Constants.makeDriverStatusEnabled({
+        driverStatus={{
+          ...Constants.emptyDriverStatusEnabled,
           dokanOutdated: true,
           dokanUninstallExecPath: 'c:\\blah',
           isDisabling: true,
-        })}
+        }}
       />
     ))
     .add('SystemFileManagerIntegrationBanner - kext permissiion popup', () => (
       <KextPermissionPopup
-        driverStatus={Constants.makeDriverStatusDisabled({isEnabling: false})}
+        driverStatus={{...Constants.emptyDriverStatusDisabled, isEnabling: false}}
         onCancel={Sb.action('onCancel')}
         openSecurityPrefs={Sb.action('openSecurityPrefs')}
       />
     ))
     .add('SystemFileManagerIntegrationBanner - kext permissiion popup - enabling', () => (
       <KextPermissionPopup
-        driverStatus={Constants.makeDriverStatusDisabled({isEnabling: true})}
+        driverStatus={{...Constants.emptyDriverStatusDisabled, isEnabling: true}}
         onCancel={Sb.action('onCancel')}
         openSecurityPrefs={Sb.action('openSecurityPrefs')}
       />
@@ -150,7 +151,7 @@ export default () => {
         path={Types.stringToPath('/keybase/team/keybasefriends')}
         {...Sb.propOverridesForStory({
           conflictState: Constants.makeConflictStateNormalView({
-            localViewTlfPaths: I.List([Types.stringToPath('/keybase/team/keybasefriends (conflict #1)')]),
+            localViewTlfPaths: [Types.stringToPath('/keybase/team/keybasefriends (conflict #1)')],
           }),
         })}
       />
@@ -160,7 +161,7 @@ export default () => {
         path={Types.stringToPath('/keybase/team/keybasefriends')}
         {...Sb.propOverridesForStory({
           conflictState: Constants.makeConflictStateNormalView({
-            localViewTlfPaths: I.List([Types.stringToPath('/keybase/team/keybasefriends (conflict #1)')]),
+            localViewTlfPaths: [Types.stringToPath('/keybase/team/keybasefriends (conflict #1)')],
             resolvingConflict: true,
             stuckInConflict: true,
           }),
@@ -172,11 +173,11 @@ export default () => {
         path={Types.stringToPath('/keybase/team/keybasefriends')}
         {...Sb.propOverridesForStory({
           conflictState: Constants.makeConflictStateNormalView({
-            localViewTlfPaths: I.List([
+            localViewTlfPaths: [
               Types.stringToPath('/keybase/team/keybasefriends (conflict #1)'),
               Types.stringToPath('/keybase/team/keybasefriends (conflict #2)'),
               Types.stringToPath('/keybase/team/keybasefriends (conflict #3)'),
-            ]),
+            ],
           }),
         })}
       />

@@ -403,28 +403,6 @@ protocol SimpleFS {
    */
   FSSyncStatus simpleFSSyncStatus(ListFilter filter);
 
-  @lint("ignore")
-  record SimpleFSGetHTTPAddressAndTokenResponse {
-    string address;
-    string token;
-  }
-
-  /**
-   This RPC generates a random token to be used by a client that needs to
-   access KBFS content through HTTP. It's fine to call this RPC more than once,
-   but it's probably best to call this once and keep using it. Clients should
-   be using HTTP GET methods, with requests in the form of:
-
-     http://<address>/<kbfs_path>?token=<token>
-
-   If the provided token is invalid, 403 Forbidden is returned, with a HTML
-   document that has title of "KBFS HTTP Token Invalid". When receiving such
-   response, client should call this RPC (again) to get a new token.
-
-   */
-  @lint("ignore")
-  SimpleFSGetHTTPAddressAndTokenResponse SimpleFSGetHTTPAddressAndToken();
-
   /**
    simpleFSUserEditHistory returns edit histories of TLFs that the logged-in
    user can access.  Each returned history is corresponds to a unique
@@ -517,6 +495,19 @@ protocol SimpleFS {
   // device.
   SyncConfigAndStatusRes simpleFSSyncConfigAndStatus(union{ null, TLFIdentifyBehavior } identifyBehavior);
 
+  // simpleFSGetFolder is used get TLF metadata for a specific path. It's more
+  // expensive than getting favorites,but works with both any tlf path -- it
+  // doesn't have to be canonical. This allows GUI to query on any TLF path
+  // without having to worrying about canonicalization, or whether a TLF is
+  // already in the favorites or not.
+  record FolderWithFavFlags {
+    Folder folder;
+    boolean isFavorite;
+    boolean isIgnored;
+    boolean isNew;
+  }
+  FolderWithFavFlags simpleFSGetFolder(KBFSPath path);
+
   boolean simpleFSAreWeConnectedToMDServer();
 
   // This is called when GUI learns about a OS level network status change, and
@@ -559,7 +550,9 @@ protocol SimpleFS {
     FAVORITES_0,
     JOURNAL_STATUS_1,
     ONLINE_STATUS_2,
-    DOWNLOAD_STATUS_3
+    DOWNLOAD_STATUS_3,
+    FILES_TAB_BADGE_4,
+    OVERALL_SYNC_STATUS_5
   }
   enum PathSubscriptionTopic {
     CHILDREN_0,
@@ -615,4 +608,36 @@ protocol SimpleFS {
   // and non-regular downloads.
   void simpleFSDismissDownload(string downloadID);
   void simpleFSConfigureDownload(string cacheDirOverride, string downloadDirOverride);
+
+  // FilesTabBadge is the badge we show on the Files tab, to indicate
+  // attention-seeking status across entire KBFS.
+  enum FilesTabBadge {
+    NONE_0, // No badge.
+    // We are stuck in conflict resolution in a TLF. This causes GUI to show a
+    // red upload icon on the Files tab. NOTE that this should have higher
+    // priority than other upload status.
+    UPLOADING_STUCK_1,
+    // We have stuff in the journal for a TLF, but we are currently offline.
+    // This causes GUI to show a gray uplaod icon on the Files tab.
+    AWAITING_UPLOAD_2,
+    // We have stuff in the journal for a TLF, and we're uploading. This causes
+    // GUI to show a blue upload icon on the Files tab.
+    UPLOADING_3
+  }
+  FilesTabBadge simpleFSGetFilesTabBadge();
+
+  enum GUIViewType {
+    DEFAULT_0,
+    TEXT_1,
+    IMAGE_2,
+    AUDIO_3,
+    VIDEO_4,
+    PDF_5
+  }
+  record GUIFileContext {
+    GUIViewType viewType;
+    string contentType;
+    string url;
+  }
+  GUIFileContext simpleFSGetGUIFileContext(KBFSPath path);
 }

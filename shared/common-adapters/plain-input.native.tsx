@@ -13,7 +13,7 @@ import {
 } from '../styles'
 import {isIOS} from '../constants/platform'
 import {checkTextInfo} from './input.shared'
-import {pick} from 'lodash-es'
+import pick from 'lodash/pick'
 import logger from '../logger'
 import ClickableBox from './clickable-box'
 import {Box2} from './box'
@@ -66,10 +66,20 @@ class PlainInput extends Component<InternalProps> {
       text: this._lastNativeText || '',
     }
     const newTextInfo = fn(currentTextInfo)
+    const newCheckedSelection = this._sanityCheckSelection(newTextInfo.selection, newTextInfo.text)
     checkTextInfo(newTextInfo)
-    this.setNativeProps({text: newTextInfo.text})
+    if (isIOS) {
+      this.setNativeProps({text: newTextInfo.text})
+      // hacky workaround to RN input crappiness, otherwise leaves the selection randomly inside
+      setTimeout(() => {
+        this.setNativeProps({selection: newCheckedSelection})
+      }, 1)
+    } else {
+      this.setNativeProps({text: newTextInfo.text})
+      this.setNativeProps({selection: newCheckedSelection})
+    }
     this._lastNativeText = newTextInfo.text
-    this._setSelection(newTextInfo.selection)
+    this._lastNativeSelection = newCheckedSelection
     if (reflectChange) {
       this._onChangeText(newTextInfo.text)
     }
@@ -87,14 +97,17 @@ class PlainInput extends Component<InternalProps> {
     this._setSelection(s)
   }
 
+  // Validate that this selection makes sense with current value
+  _sanityCheckSelection = (selection: Selection, nativeText: string): Selection => {
+    let {start, end} = selection
+    end = Math.max(0, Math.min(end || 0, nativeText.length))
+    start = Math.min(start || 0, end)
+    return {end, start}
+  }
+
   _setSelection = (selection: Selection) => {
     this._setTimeout(() => {
-      // Validate that this selection makes sense with current value
-      let {start, end} = selection
-      const text = this._lastNativeText || '' // TODO write a good internal getValue fcn for this
-      end = Math.max(0, Math.min(end || 0, text.length))
-      start = Math.min(start || 0, end)
-      const newSelection = {end, start}
+      const newSelection = this._sanityCheckSelection(selection, this._lastNativeText || '')
       this.setNativeProps({selection: newSelection})
       this._lastNativeSelection = selection
     }, 0)
@@ -196,6 +209,7 @@ class PlainInput extends Component<InternalProps> {
   _getProps = () => {
     const common = {
       ...pick(this.props, ['maxLength', 'value']), // Props we should only passthrough if supplied
+      allowFontScaling: this.props.allowFontScaling,
       autoCapitalize: this.props.autoCapitalize || 'none',
       autoCorrect: !!this.props.autoCorrect,
       autoFocus: this.props.autoFocus,
@@ -215,7 +229,7 @@ class PlainInput extends Component<InternalProps> {
       placeholderTextColor: this.props.placeholderColor || globalColors.black_50,
       ref: this._input,
       returnKeyType: this.props.returnKeyType,
-      secureTextEntry: this.props.type === 'password',
+      secureTextEntry: this.props.type === 'password' || this.props.secureTextEntry,
       style: this._getStyle(),
       textContentType: this.props.textContentType,
       underlineColorAndroid: 'transparent',

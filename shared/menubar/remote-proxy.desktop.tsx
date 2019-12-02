@@ -2,22 +2,26 @@
 import * as React from 'react'
 import SyncAvatarProps from '../desktop/remote/sync-avatar-props.desktop'
 import SyncProps from '../desktop/remote/sync-props.desktop'
+import * as Styles from '../styles'
 import * as Container from '../util/container'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {conversationsToSend} from '../chat/inbox/container/remote'
 import {serialize} from './remote-serializer.desktop'
 import {uploadsToUploadCountdownHOCProps} from '../fs/footer/upload-container'
 import * as Constants from '../constants/config'
+import {TlfUpdate} from '../constants/types/fs'
 import {BadgeType} from '../constants/types/notifications'
 import {isDarwin, isWindows} from '../constants/platform'
 import {resolveImage} from '../desktop/app/resolve-root.desktop'
 import {getMainWindow} from '../desktop/remote/util.desktop'
+import {isSystemDarkMode} from '../styles/dark-mode'
 
-const windowOpts = {}
+const _windowOpts = {}
 
 type Props = {
   desktopAppBadgeCount: number
   externalRemoteWindow: SafeElectron.BrowserWindowType
+  remoteWindowNeedsProps: number
   widgetBadge: BadgeType
   windowComponent: string
   windowOpts?: Object
@@ -25,8 +29,6 @@ type Props = {
   windowPositionBottomRight?: boolean
   windowTitle: string
 }
-
-const isDarkMode = () => isDarwin && SafeElectron.getSystemPreferences().isDarkMode()
 
 const getIcons = (iconType: BadgeType, isBadged: boolean) => {
   const devMode = __DEV__ ? '-dev' : ''
@@ -36,7 +38,7 @@ const getIcons = (iconType: BadgeType, isBadged: boolean) => {
   const badged = isBadged ? 'badged-' : ''
 
   if (isDarwin) {
-    color = isDarkMode() ? 'white' : 'black'
+    color = isSystemDarkMode() ? 'white' : 'black'
   } else if (isWindows) {
     color = 'black'
     platform = 'windows-'
@@ -45,7 +47,7 @@ const getIcons = (iconType: BadgeType, isBadged: boolean) => {
   const size = isWindows ? 16 : 22
   const icon = `icon-${platform}keybase-menubar-${badged}${iconType}-${color}-${size}${devMode}@2x.png`
   // Only used on Darwin
-  const iconSelected = `icon-${platform}keybase-menubar-${badged}${iconType}-${colorSelected}-${size}${devMode}@2x.png`
+  const iconSelected = `icon-${platform}keybase-menubar-${iconType}-${colorSelected}-${size}${devMode}@2x.png`
   return [icon, iconSelected]
 }
 
@@ -74,10 +76,11 @@ function RemoteMenubarWindow(ComposedComponent: any) {
       }
     }
 
-    componentDidUpdate(prevProps) {
+    componentDidUpdate(prevProps: Props) {
       if (
         this.props.widgetBadge !== prevProps.widgetBadge ||
-        this.props.desktopAppBadgeCount !== prevProps.desktopAppBadgeCount
+        this.props.desktopAppBadgeCount !== prevProps.desktopAppBadgeCount ||
+        this.props.remoteWindowNeedsProps !== prevProps.remoteWindowNeedsProps
       ) {
         this._updateBadges()
       }
@@ -119,14 +122,13 @@ function RemoteMenubarWindow(ComposedComponent: any) {
 
 const mapStateToProps = (state: Container.TypedState) => ({
   _badgeInfo: state.notifications.navBadges,
-  _edits: state.fs.edits,
   _externalRemoteWindowID: state.config.menubarWindowID,
-  // _following: state.config.following, // Not used?
   _pathItems: state.fs.pathItems,
   _tlfUpdates: state.fs.tlfUpdates,
   _uploads: state.fs.uploads,
   conversationsToSend: conversationsToSend(state),
   daemonHandshakeState: state.config.daemonHandshakeState,
+  darkMode: Styles.isDarkMode(),
   desktopAppBadgeCount: state.notifications.desktopAppBadgeCount,
   diskSpaceStatus: state.fs.overallSyncStatus.diskSpaceStatus,
   kbfsDaemonStatus: state.fs.kbfsDaemonStatus,
@@ -143,9 +145,12 @@ const mapStateToProps = (state: Container.TypedState) => ({
 let _lastUsername: string | undefined
 let _lastClearCacheTrigger = 0
 
+const getUsernamesFromTlfUpdate = (tlfUpdates: Array<TlfUpdate>): Array<string> =>
+  tlfUpdates.map(update => update.writer)
+
 // TODO better type
 const RenderExternalWindowBranch: any = (ComposedComponent: React.ComponentType<any>) =>
-  class extends React.PureComponent<{
+  class RemoteWindowComponent extends React.PureComponent<{
     externalRemoteWindow?: SafeElectron.BrowserWindowType
   }> {
     render() {
@@ -162,6 +167,13 @@ export default Container.namedConnect(
       _lastUsername = stateProps.username
       _lastClearCacheTrigger++
     }
+
+    // To show the following status of usernaems in the mebubar widget, we need to
+    // provide which users will appear in the menubar before rendering it.
+    // This is done for SyncAvatarProps which use the usernames to shorten the
+    // number of following/follwers that are sent to the remote window.
+    const usernamesForFollowingStatus = getUsernamesFromTlfUpdate(stateProps._tlfUpdates)
+
     return {
       badgeKeys: stateProps._badgeInfo,
       badgeMap: stateProps._badgeInfo,
@@ -169,7 +181,7 @@ export default Container.namedConnect(
       conversationIDs: stateProps.conversationsToSend,
       conversationMap: stateProps.conversationsToSend,
       daemonHandshakeState: stateProps.daemonHandshakeState,
-
+      darkMode: stateProps.darkMode,
       desktopAppBadgeCount: stateProps.desktopAppBadgeCount,
       diskSpaceStatus: stateProps.diskSpaceStatus,
       externalRemoteWindow: stateProps._externalRemoteWindowID
@@ -184,12 +196,13 @@ export default Container.namedConnect(
       showingDiskSpaceBanner: stateProps.showingDiskSpaceBanner,
       userInfo: stateProps.userInfo,
       username: stateProps.username,
+      usernames: usernamesForFollowingStatus,
       widgetBadge: stateProps.widgetBadge,
       windowComponent: 'menubar',
-      windowOpts,
+      windowOpts: _windowOpts,
       windowParam: '',
       windowTitle: '',
-      ...uploadsToUploadCountdownHOCProps(stateProps._edits, stateProps._pathItems, stateProps._uploads),
+      ...uploadsToUploadCountdownHOCProps(stateProps._pathItems, stateProps._uploads),
     }
   },
   'MenubarRemoteProxy'

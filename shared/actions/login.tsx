@@ -7,7 +7,6 @@ import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Container from '../util/container'
 import logger from '../logger'
-import openURL from '../util/open-url'
 import {isMobile} from '../constants/platform'
 import {RPCError, niceError} from '../util/errors'
 import flags from '../util/feature-flags'
@@ -88,29 +87,25 @@ function* login(_: Container.TypedState, action: LoginGen.LoginPayload) {
   }
 }
 
-const launchForgotPasswordWebPage = () => {
-  openURL('https://keybase.io/#password-reset')
-}
-const launchAccountResetWebPage = () => {
-  openURL('https://keybase.io/#account-reset')
-}
-
 const loadIsOnline = async () => {
   try {
-    const result = await RPCTypes.loginIsOnlineRpcPromise(undefined)
-    return LoginGen.createLoadedIsOnline({result: result})
+    const isOnline = await RPCTypes.loginIsOnlineRpcPromise(undefined)
+    return LoginGen.createLoadedIsOnline({isOnline})
   } catch (err) {
     logger.warn('Error in checking whether we are online', err)
     return false
   }
 }
 
+// On login error, turn off the user switching flag, so that the login screen is not
+// hidden and the user can see and respond to the error.
+const loginError = () => ConfigGen.createSetUserSwitching({userSwitching: false})
+
 function* loginSaga() {
   // Actually log in
   yield* Saga.chainGenerator<LoginGen.LoginPayload>(LoginGen.login, login)
-  yield* Saga.chainAction2(LoginGen.launchForgotPasswordWebPage, launchForgotPasswordWebPage)
-  yield* Saga.chainAction2(LoginGen.launchAccountResetWebPage, launchAccountResetWebPage)
   yield* Saga.chainAction2(LoginGen.loadIsOnline, loadIsOnline)
+  yield* Saga.chainAction2(LoginGen.loginError, loginError)
 }
 
 export default loginSaga

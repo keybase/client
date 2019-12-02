@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keybase/client/go/badges"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/teams"
 
@@ -17,6 +16,7 @@ import (
 
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/stretchr/testify/require"
@@ -46,7 +46,7 @@ func TestInboxSourceUpdateRace(t *testing.T) {
 	require.NoError(t, err)
 
 	ib, _, err := tc.ChatG.InboxSource.Read(ctx, u.User.GetUID().ToBytes(),
-		types.ConversationLocalizerBlocking, types.InboxSourceDataSourceAll, nil, nil, nil)
+		types.ConversationLocalizerBlocking, types.InboxSourceDataSourceAll, nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, chat1.InboxVers(0), ib.Version, "wrong version")
 
@@ -72,7 +72,7 @@ func TestInboxSourceUpdateRace(t *testing.T) {
 	wg.Wait()
 
 	ib, _, err = tc.ChatG.InboxSource.Read(ctx, u.User.GetUID().ToBytes(),
-		types.ConversationLocalizerBlocking, types.InboxSourceDataSourceAll, nil, nil, nil)
+		types.ConversationLocalizerBlocking, types.InboxSourceDataSourceAll, nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, chat1.InboxVers(1), ib.Version, "wrong version")
 }
@@ -92,7 +92,7 @@ func TestInboxSourceSkipAhead(t *testing.T) {
 
 	assertInboxVersion := func(v int) {
 		ib, _, err := tc.ChatG.InboxSource.Read(ctx, u.User.GetUID().ToBytes(),
-			types.ConversationLocalizerBlocking, types.InboxSourceDataSourceAll, nil, nil, nil)
+			types.ConversationLocalizerBlocking, types.InboxSourceDataSourceAll, nil, nil)
 		require.Equal(t, chat1.InboxVers(v), ib.Version, "wrong version")
 		require.NoError(t, err)
 	}
@@ -116,9 +116,7 @@ func TestInboxSourceSkipAhead(t *testing.T) {
 
 	t.Logf("add message but drop oobm")
 
-	rc := types.RemoteConversation{
-		Conv: conv,
-	}
+	rc := utils.RemoteConv(conv)
 	localConvs, _, err := tc.Context().InboxSource.Localize(ctx, uid, []types.RemoteConversation{rc},
 		types.ConversationLocalizerBlocking)
 	require.NoError(t, err)
@@ -191,7 +189,7 @@ func TestInboxSourceFlushLoop(t *testing.T) {
 		t.Skip()
 	}
 	newBlankConv(ctx, t, tc, uid, ri, sender, u.Username)
-	_, err := hbs.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll, nil, nil)
+	_, err := hbs.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll, nil)
 	require.NoError(t, err)
 	inbox := hbs.createInbox()
 	flushCh := make(chan struct{}, 10)
@@ -242,6 +240,7 @@ func TestInboxSourceLocalOnly(t *testing.T) {
 
 	listener := newServerChatListener()
 	ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener)
+	ctc.world.Tcs[users[0].Username].ChatG.UIInboxLoader = types.DummyUIInboxLoader{}
 	ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
 
 	ctx := ctc.as(t, users[0]).startCtx
@@ -256,7 +255,7 @@ func TestInboxSourceLocalOnly(t *testing.T) {
 		ib, err := tc.Context().InboxSource.ReadUnverified(ctx, uid, mode,
 			&chat1.GetInboxQuery{
 				ConvID: &conv.Id,
-			}, nil)
+			})
 		if success {
 			require.NoError(t, err)
 			require.Equal(t, 1, len(ib.ConvsUnverified))
@@ -293,10 +292,9 @@ func TestInboxSourceMarkAsRead(t *testing.T) {
 	tc1 := ctc.world.Tcs[users[1].Username]
 	inboxSource := tc1.Context().InboxSource.(*HybridInboxSource)
 	syncer := ctc.world.Tcs[users[1].Username].ChatG.Syncer.(*Syncer)
-	badger := badges.NewBadger(tc1.G)
+	badger := tc1.ChatG.Badger
 	badger.SetLocalChatState(inboxSource)
 	pusher := tc1.Context().PushHandler.(*PushHandler)
-	pusher.SetBadger(badger)
 	ctx1 := ctc.as(t, users[1]).startCtx
 	uid1 := users[1].User.GetUID().ToBytes()
 	syncer.RegisterOfflinable(inboxSource)
@@ -318,7 +316,8 @@ func TestInboxSourceMarkAsRead(t *testing.T) {
 	inboxSource.SetRemoteInterface(func() chat1.RemoteInterface {
 		return chat1.RemoteClient{Cli: OfflineClient{}}
 	})
-	require.NoError(t, inboxSource.MarkAsRead(ctx1, conv.Id, uid1, msg.GetMessageID()))
+	msgID := msg.GetMessageID()
+	require.NoError(t, inboxSource.MarkAsRead(ctx1, conv.Id, uid1, &msgID))
 	syncer.Disconnected(context.TODO())
 	pusher.testingIgnoreBroadcasts = true
 

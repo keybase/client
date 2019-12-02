@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {ReAnimated, ReAnimatedEasing} from './mobile.native'
+import ReAnimated, {Easing as ReAnimatedEasing} from 'react-native-reanimated'
 import * as Styles from '../styles'
 import {Props} from './loading-line'
 

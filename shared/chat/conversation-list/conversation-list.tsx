@@ -22,6 +22,7 @@ export type BigTeamChannelRowItem = {
 }
 
 type ToggleMoreRowItem = {
+  conversationIDKey: undefined
   type: 'more-less'
   onClick: () => void
   hiddenCount: number
@@ -43,13 +44,14 @@ type Props = {
   onSelectUp: () => void
 }
 
-const _itemRenderer = (_, row) => {
+const _itemRenderer = (_: number, row: RowItem) => {
   switch (row.type) {
     case 'small':
       return (
         <SelectableSmallTeam
           conversationIDKey={row.conversationIDKey}
           isSelected={row.isSelected}
+          name=""
           onSelectConversation={row.onSelectConversation}
         />
       )
@@ -58,6 +60,7 @@ const _itemRenderer = (_, row) => {
         <SelectableBigTeamChannel
           conversationIDKey={row.conversationIDKey}
           isSelected={row.isSelected}
+          name=""
           onSelectConversation={row.onSelectConversation}
         />
       )

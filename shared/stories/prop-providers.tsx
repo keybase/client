@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as _Avatar from '../common-adapters/avatar'
 import * as _Usernames from '../common-adapters/usernames'
 import {OwnProps as ReloadableOwnProps, Props as ReloadableProps} from '../common-adapters/reload'
@@ -12,6 +11,7 @@ import {createPropProvider, action} from './storybook.shared'
 import {isMobile} from '../constants/platform'
 import {isSpecialMention} from '../constants/chat2'
 import * as FsConstants from '../constants/fs'
+import * as Tracker2Constants from '../constants/tracker2'
 import rootReducer from '../reducers'
 
 /*
@@ -63,26 +63,26 @@ export const Avatar = (following: string[] = defaultFollowing, followers: string
   Avatar: (ownProps: _Avatar.OwnProps) => _Avatar.mockOwnToViewProps(ownProps, following, followers, action),
 })
 
-export const TeamDropdownMenu = (adminTeams?: string[], teamMemberCounts?: {[K in string]: number}) => ({
+export const TeamDropdownMenu = () => ({
   TeamDropdownMenu: (ownProps: TeamDropdownMenuOwnProps): TeamDropdownMenuProps => ({
     attachTo: ownProps.attachTo,
     badgeSubscribe: false,
-    canAddPeople: (adminTeams && adminTeams.includes(ownProps.teamname || 'noteam')) || true,
+    canAddPeople: true,
 
     convProps: {
       fullname: '',
       ignored: false,
       muted: false,
       participants: [],
+      teamID: '',
       teamType: ownProps.isSmallTeam ? 'small' : 'big',
+      teamname: '',
     },
 
-    hasCanPerform: true,
     isSmallTeam: ownProps.isSmallTeam,
-    loadOperations: action('_loadOperations'),
     manageChannelsSubtitle: ownProps.isSmallTeam ? 'Turns this into a big team' : '',
     manageChannelsTitle: ownProps.isSmallTeam ? 'Create chat channels...' : 'Manage chat channels',
-    memberCount: (teamMemberCounts && teamMemberCounts[ownProps.teamname || '']) || 100,
+    memberCount: 100,
     onAddPeople: action('onAddPeople'),
     onHidden: ownProps.onHidden,
     onHideConv: action('onHideConv'),
@@ -92,7 +92,7 @@ export const TeamDropdownMenu = (adminTeams?: string[], teamMemberCounts?: {[K i
     onMuteConv: action('onMuteConv'),
     onUnhideConv: action('onUnhideConv'),
     onViewTeam: action('onViewTeam'),
-    teamname: ownProps.teamname,
+    teamname: '',
     visible: ownProps.visible,
   }),
 })
@@ -145,6 +145,7 @@ export const Reloadable = () => ({
   Reloadable: (p: ReloadableOwnProps): ReloadableProps => ({
     children: p.children,
     needsReload: false,
+    onFeedback: action('feedback'),
     onReload: action('reload'),
     reason: '',
     reloadOnMount: false,
@@ -179,22 +180,79 @@ export const createStoreWithCommon = () => {
       following: new Set(['max', 'cnojima', 'cdixon', 'following', 'both']),
       username: 'ayoubd',
     },
-    fs: root.fs
-      .update('sfmi', sfmi =>
-        sfmi.merge({
-          directMountDir: '/Volumes/Keybase (meatball)',
-          driverStatus: FsConstants.makeDriverStatusEnabled(),
-          preferredMountDirs: I.List(['/Volumes/Keybase', '/Volumes/Keybase (meatball)']),
-        })
-      )
-      .update('pathInfos', pathInfos =>
-        pathInfos.set(
+    fs: {
+      ...root.fs,
+      pathInfos: new Map([
+        [
           '/keybase/private/meatball/folder/treat',
-          FsConstants.makePathInfo({
+          {
             deeplinkPath: 'keybase://private/meatball/folder/treat',
             platformAfterMountPath: '/private/meatball/folder/treat',
-          })
-        )
-      ),
+          },
+        ],
+      ]),
+      sfmi: {
+        directMountDir: '/Volumes/Keybase (meatball)',
+        driverStatus: FsConstants.emptyDriverStatusEnabled,
+        preferredMountDirs: ['/Volumes/Keybase', '/Volumes/Keybase (meatball)'],
+      },
+    },
+    tracker2: {
+      ...root.tracker2,
+      usernameToDetails: new Map([
+        ...root.tracker2.usernameToDetails,
+        [
+          't_alice',
+          {
+            ...Tracker2Constants.noDetails,
+            assertions: new Map([
+              [
+                'twitter:alice',
+                {
+                  ...Tracker2Constants.noAssertion,
+                  type: 'twitter',
+                  value: 'alice',
+                },
+              ],
+              [
+                'facebook:alice',
+                {
+                  ...Tracker2Constants.noAssertion,
+                  type: 'facebook',
+                  value: 'alice',
+                },
+              ],
+              [
+                'github:alice',
+                {
+                  ...Tracker2Constants.noAssertion,
+                  type: 'github',
+                  value: 'alice',
+                },
+              ],
+              [
+                'hackernews:alice',
+                {
+                  ...Tracker2Constants.noAssertion,
+                  type: 'hackernews',
+                  value: 'alice',
+                },
+              ],
+              [
+                'reddit:alice',
+                {
+                  ...Tracker2Constants.noAssertion,
+                  type: 'reddit',
+                  value: 'alice',
+                },
+              ],
+            ]),
+            bio: 'The Alice at Keybase since the beginning of time.',
+            state: 'valid',
+            username: 't_alice',
+          },
+        ],
+      ]),
+    },
   }
 }

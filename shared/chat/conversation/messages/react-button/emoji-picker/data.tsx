@@ -1,7 +1,7 @@
 import {emojiIndex} from 'emoji-mart'
 // @ts-ignore
 import emojidata from 'emoji-datasource'
-import {groupBy} from 'lodash-es'
+import groupBy from 'lodash/groupBy'
 
 export type EmojiData = {
   category: string
@@ -11,8 +11,8 @@ export type EmojiData = {
 }
 
 const categorized = groupBy(emojidata, 'category')
-const sorted = {}
-for (let cat in categorized) {
+const sorted: typeof categorized = {}
+for (const cat in categorized) {
   sorted[cat] = categorized[cat].sort((a, b) => a.sort_order - b.sort_order)
 }
 // @ts-ignore

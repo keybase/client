@@ -1,5 +1,6 @@
 import logger from '../logger'
 import * as Constants from '../constants/signup'
+import * as ConfigConstants from '../constants/config'
 import * as SignupGen from './signup-gen'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -59,16 +60,23 @@ const checkInviteCode = async (state: Container.TypedState) => {
     return SignupGen.createCheckedInviteCode({inviteCode: state.signup.inviteCode})
   } catch (e) {
     const err: RPCError = e
-    return SignupGen.createCheckedInviteCodeError({error: err.desc, inviteCode: state.signup.inviteCode})
+    return SignupGen.createCheckedInviteCode({error: err.desc, inviteCode: state.signup.inviteCode})
   }
 }
 
-const requestAutoInvite = async () => {
+const requestAutoInvite = async (state: Container.TypedState) => {
+  // If we're logged in, we're coming from the user switcher; log out first to prevent the service from getting out of sync with the GUI about our logged-in-ness
+  if (state.config.loggedIn) {
+    await RPCTypes.loginLogoutRpcPromise(
+      {force: false, keepSecrets: true},
+      ConfigConstants.createOtherAccountWaitingKey
+    )
+  }
   try {
     const inviteCode = await RPCTypes.signupGetInvitationCodeRpcPromise(undefined, Constants.waitingKey)
     return SignupGen.createRequestedAutoInvite({inviteCode})
   } catch (_) {
-    return SignupGen.createRequestedAutoInviteError()
+    return SignupGen.createRequestedAutoInvite({})
   }
 }
 
@@ -87,7 +95,7 @@ const requestInvite = async (state: Container.TypedState) => {
     })
   } catch (e) {
     const err: RPCError = e
-    return SignupGen.createRequestedInviteError({
+    return SignupGen.createRequestedInvite({
       email: state.signup.email,
       emailError: `Sorry can't get an invite: ${err.desc}`,
       name: state.signup.name,
@@ -139,7 +147,7 @@ const checkDevicename = async (state: Container.TypedState) => {
     return SignupGen.createCheckedDevicename({devicename: state.signup.devicename})
   } catch (e) {
     const err: RPCError = e
-    return SignupGen.createCheckedDevicenameError({
+    return SignupGen.createCheckedDevicename({
       devicename: state.signup.devicename,
       error: `Device name is invalid: ${err.desc}.`,
     })
@@ -173,6 +181,7 @@ function* reallySignupOnNoErrors(state: Container.TypedState) {
         'keybase.1.loginUi.displayPrimaryPaperKey': () => {},
       },
       params: {
+        botToken: '',
         deviceName: devicename,
         deviceType: isMobile ? RPCTypes.DeviceType.mobile : RPCTypes.DeviceType.desktop,
         email: '',
@@ -181,6 +190,7 @@ function* reallySignupOnNoErrors(state: Container.TypedState) {
         inviteCode,
         passphrase: '',
         randomPw: true,
+        skipGPG: true,
         skipMail: true,
         storeSecret: true,
         username,
@@ -190,7 +200,7 @@ function* reallySignupOnNoErrors(state: Container.TypedState) {
     })
     yield Saga.put(SignupGen.createSignedup())
   } catch (error) {
-    yield Saga.put(SignupGen.createSignedupError({error}))
+    yield Saga.put(SignupGen.createSignedup({error}))
   }
 }
 

@@ -120,7 +120,9 @@ const ConnectedAvatar = Container.connect(
     const urlMap = [960, 256, 192].reduce((m, size: number) => {
       m[size] = `http://${stateProps._httpSrvAddress}/av?typ=${
         isTeam ? 'team' : 'user'
-      }&name=${name}&format=square_${size}&token=${stateProps._httpSrvToken}&count=${stateProps._counter}`
+      }&name=${name}&format=square_${size}&mode=${Styles.isDarkMode() ? 'dark' : 'light'}&token=${
+        stateProps._httpSrvToken
+      }&count=${stateProps._counter}`
       return m
     }, {})
     const url = ownProps.imageOverrideUrl

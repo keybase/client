@@ -73,7 +73,8 @@ function genEmojiData() {
   emojiData.forEach(emoji => {
     if (emoji.skin_variations) {
       Object.keys(emoji.skin_variations).forEach((k, idx) =>
-        addEmojiLiteral(emoji.skin_variations[k].unified, emoji.short_name, idx + 1)
+        // + 2 because idx starts at 0, and skin-tone-1 is not a thing
+        addEmojiLiteral(emoji.skin_variations[k].unified, emoji.short_name, idx + 2)
       )
     }
     addEmojiLiteral(emoji.unified, emoji.short_name)

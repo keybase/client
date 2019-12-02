@@ -5,11 +5,13 @@ import {formatTimeForPopup, formatTimeForRevoked} from '../../../../util/timesta
 import {DeviceType} from '../../../../constants/types/devices'
 
 const iconNameForDeviceType = Styles.isMobile
-  ? (deviceType: string, isRevoked: boolean): Kb.IconType => {
+  ? (deviceType: string, isRevoked: boolean, isLocation: Boolean): Kb.IconType => {
       switch (deviceType) {
         case 'mobile':
           return isRevoked
             ? 'icon-fancy-revoked-phone-mobile-226-96'
+            : isLocation
+            ? 'icon-fancy-location-phone-mobile-226-96'
             : 'icon-fancy-encrypted-phone-mobile-226-96'
         default:
           return isRevoked
@@ -23,7 +25,7 @@ const iconNameForDeviceType = Styles.isMobile
           return isRevoked
             ? 'icon-fancy-revoked-phone-desktop-150-72'
             : isLocation
-            ? 'icon-fancy-encrypted-location-phone-desktop-150-72'
+            ? 'icon-fancy-location-phone-desktop-150-72'
             : 'icon-fancy-encrypted-phone-desktop-150-72'
         default:
           return isRevoked
@@ -36,6 +38,7 @@ const headerIconHeight = Styles.isMobile ? 96 : 72
 
 const MessagePopupHeader = (props: {
   author: string
+  botUsername?: string
   deviceName: string
   deviceRevokedAt?: number
   deviceType: DeviceType
@@ -44,7 +47,17 @@ const MessagePopupHeader = (props: {
   timestamp: number
   yourMessage: boolean
 }) => {
-  const {author, deviceName, deviceRevokedAt, deviceType, isLast, isLocation, timestamp, yourMessage} = props
+  const {
+    author,
+    botUsername,
+    deviceName,
+    deviceRevokedAt,
+    deviceType,
+    isLast,
+    isLocation,
+    timestamp,
+    yourMessage,
+  } = props
   const iconName = iconNameForDeviceType(deviceType, !!deviceRevokedAt, isLocation)
   const whoRevoked = yourMessage ? 'You' : author
   return (
@@ -86,6 +99,22 @@ const MessagePopupHeader = (props: {
           <Kb.Text type="BodySmallSemibold">{deviceName}</Kb.Text>
         </Kb.Text>
       </Kb.Box>
+      {botUsername && (
+        <Kb.Box2 direction="horizontal">
+          <Kb.Text type="BodySmall">also encrypted for</Kb.Text>
+          <Kb.Box2 direction="horizontal" gap="xtiny" gapStart={true} style={styles.alignItemsCenter}>
+            <Kb.Avatar username={botUsername} size={16} onClick="profile" />
+            <Kb.ConnectedUsernames
+              onUsernameClicked="profile"
+              colorFollowing={true}
+              colorYou={true}
+              usernames={[botUsername]}
+              underline={true}
+              type="BodySmallSemibold"
+            />
+          </Kb.Box2>
+        </Kb.Box2>
+      )}
       <Kb.Text center={true} type="BodySmall">
         {formatTimeForPopup(timestamp)}
       </Kb.Text>

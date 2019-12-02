@@ -8,6 +8,7 @@ import Toast from './toast'
 import {useTimeout} from './use-timers'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
+import logger from '../logger'
 
 type Props = {
   buttonType?: ButtonProps['type']
@@ -17,33 +18,76 @@ type Props = {
   hideOnCopy?: boolean
   onReveal?: () => void
   withReveal?: boolean
-  text: string
+  text?: string
+  placeholderText?: string
+  loadText?: () => void
 }
 
 const CopyText = (props: Props) => {
   const [revealed, setRevealed] = React.useState(!props.withReveal)
   const [showingToast, setShowingToast] = React.useState(false)
-
+  const [requestedCopy, setRequestedCopy] = React.useState(false)
   const setShowingToastFalseLater = useTimeout(() => setShowingToast(false), 1500)
   React.useEffect(() => {
     showingToast && setShowingToastFalseLater()
   }, [showingToast, setShowingToastFalseLater])
 
+  React.useEffect(() => {
+    if (!props.withReveal && !props.text) {
+      // only try to load text if withReveal is false
+      if (!props.loadText) {
+        logger.warn('no loadText method provided')
+        return
+      }
+      props.loadText()
+    }
+    //  only run this effect once, on first render
+    // eslint-disable-next-line
+  }, [])
+
   const attachmentRef = React.useRef<Box2>(null)
   const textRef = React.useRef<Text>(null)
 
   const dispatch = Container.useDispatch()
-  const copyToClipboard = (text: string) => dispatch(ConfigGen.createCopyToClipboard({text}))
-  const copy = () => {
-    setShowingToast(true)
-    textRef.current && textRef.current.highlightText()
-    copyToClipboard(props.text)
-    props.onCopy && props.onCopy()
-    if (props.hideOnCopy) {
-      setRevealed(false)
+  const {text, loadText, onCopy, hideOnCopy} = props
+
+  const copy = React.useCallback(() => {
+    if (!text) {
+      if (!loadText) {
+        logger.warn('no text to copy and no loadText method provided')
+        return
+      }
+      setRequestedCopy(true)
+    } else {
+      setShowingToast(true)
+      textRef.current && textRef.current.highlightText()
+      dispatch(ConfigGen.createCopyToClipboard({text}))
+      onCopy && onCopy()
+      if (hideOnCopy) {
+        setRevealed(false)
+      }
     }
-  }
+  }, [text, loadText, setRequestedCopy, setShowingToast, dispatch, onCopy, hideOnCopy])
+
+  React.useEffect(() => {
+    if (requestedCopy && loadText) {
+      // we're requesting a copy
+      if (!text) {
+        // no text has been loaded
+        loadText()
+      } else {
+        // we want to copy something + have something to copy
+        copy() // props.text exists so this will not cause a recursive loop
+        setRequestedCopy(false)
+      }
+    }
+  }, [requestedCopy, text, copy, loadText])
+
   const reveal = () => {
+    if (!props.text && props.loadText) {
+      // if we don't have text to copy we should load it
+      props.loadText()
+    }
     props.onReveal && props.onReveal()
     setRevealed(true)
   }
@@ -56,6 +100,7 @@ const CopyText = (props: Props) => {
     : isRevealed
     ? 1
     : null
+
   return (
     <Box2
       ref={attachmentRef}
@@ -63,7 +108,7 @@ const CopyText = (props: Props) => {
       style={Styles.collapseStyles([styles.container, props.containerStyle])}
     >
       <Toast position="top center" attachTo={() => attachmentRef.current} visible={showingToast}>
-        {Styles.isMobile && <Icon type="iconfont-clipboard" color="white" fontSize={22} />}
+        {Styles.isMobile && <Icon type="iconfont-clipboard" color="white" />}
         <Text type={Styles.isMobile ? 'BodySmallSemibold' : 'BodySmall'} style={styles.toastText}>
           Copied to clipboard
         </Text>
@@ -77,23 +122,23 @@ const CopyText = (props: Props) => {
         allowHighlightText={true}
         ref={textRef}
       >
-        {isRevealed ? props.text : '••••••••••••'}
+        {isRevealed && (props.text || props.placeholderText)
+          ? props.text || props.placeholderText
+          : '••••••••••••'}
       </Text>
       {!isRevealed && (
         <Text type="BodySmallPrimaryLink" style={styles.reveal} onClick={reveal}>
           Reveal
         </Text>
       )}
-      {isRevealed && (
-        <Button
-          type={props.buttonType || 'Default'}
-          style={styles.button}
-          onClick={copy}
-          labelContainerStyle={styles.buttonLabelContainer}
-        >
-          <Icon type="iconfont-clipboard" color={Styles.globalColors.white} sizeType="Small" />
-        </Button>
-      )}
+      <Button
+        type={props.buttonType || 'Default'}
+        style={styles.button}
+        onClick={copy}
+        labelContainerStyle={styles.buttonLabelContainer}
+      >
+        <Icon type="iconfont-clipboard" color={Styles.globalColors.white} sizeType="Small" />
+      </Button>
     </Box2>
   )
 }

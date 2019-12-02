@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teambot"
+	"github.com/keybase/client/go/teams"
 	"github.com/keybase/clockwork"
 )
 
@@ -30,6 +31,7 @@ type EKLib struct {
 	// after deriving the teamkey.
 	teambotEKMetadataCache *lru.Cache
 	sync.Mutex
+	stateMu sync.Mutex
 
 	// During testing we may want to stall background work to assert cache
 	// state.
@@ -65,8 +67,8 @@ func NewEKLib(mctx libkb.MetaContext) *EKLib {
 }
 
 func (e *EKLib) Shutdown(mctx libkb.MetaContext) error {
-	e.Lock()
-	defer e.Unlock()
+	e.stateMu.Lock()
+	defer e.stateMu.Unlock()
 	if e.stopCh != nil {
 		mctx.Debug("stopping background eklib loop")
 		close(e.stopCh)
@@ -134,15 +136,6 @@ func (e *EKLib) setBackgroundDeleteTestCh(ch chan bool) {
 	e.backgroundDeletionTestCh = ch
 }
 
-func (e *EKLib) checkLogin(mctx libkb.MetaContext) error {
-	if loggedIn, _, err := libkb.BootstrapActiveDeviceWithMetaContext(mctx); err != nil {
-		return err
-	} else if !loggedIn {
-		return fmt.Errorf("Aborting ephemeral key generation, user is not logged in!")
-	}
-	return nil
-}
-
 func (e *EKLib) KeygenIfNeeded(mctx libkb.MetaContext) (err error) {
 	e.Lock()
 	defer e.Unlock()
@@ -157,10 +150,6 @@ func (e *EKLib) KeygenIfNeeded(mctx libkb.MetaContext) (err error) {
 		}
 	}()
 
-	if err = e.checkLogin(mctx); err != nil {
-		return err
-	}
-
 	for tries := 0; tries < maxRetries; tries++ {
 		mctx.Debug("keygenIfNeeded attempt #%d: %v", tries, err)
 		merkleRootPtr, err := mctx.G().GetMerkleClient().FetchRootFromServer(mctx, libkb.EphemeralKeyMerkleFreshness)
@@ -171,10 +160,21 @@ func (e *EKLib) KeygenIfNeeded(mctx libkb.MetaContext) (err error) {
 		if err = e.keygenIfNeeded(mctx, *merkleRootPtr, true /* shouldCleanup */); err == nil {
 			return nil
 		}
+
+		if !libkb.IsEphemeralRetryableError(err) {
+			return err
+		}
+
+		switch err.(type) {
+		case libkb.LoginRequiredError:
+			return err
+		default:
+			// retry
+		}
+
 		select {
 		case <-mctx.Ctx().Done():
-			mctx.Debug("aborting KeygenIfNeeded, context cancelled")
-			return err
+			return mctx.Ctx().Err()
 		case <-time.After(20 * time.Millisecond):
 		}
 	}
@@ -504,9 +504,6 @@ func (e *EKLib) purgeCachesForTeamIDAndTypeByGeneration(mctx libkb.MetaContext, 
 func (e *EKLib) GetOrCreateLatestTeamEK(mctx libkb.MetaContext, teamID keybase1.TeamID) (
 	ek keybase1.TeamEphemeralKey, created bool, err error) {
 	mctx = mctx.WithLogTag("GOCTEK")
-	if err = e.checkLogin(mctx); err != nil {
-		return ek, false, err
-	}
 
 	err = teamEKRetryWrapper(mctx, func() error {
 		e.Lock()
@@ -635,10 +632,6 @@ func (e *EKLib) GetTeamEK(mctx libkb.MetaContext, teamID keybase1.TeamID, genera
 	mctx = mctx.WithLogTag("GLTEK")
 	defer mctx.TraceTimed("GetTeamEK", func() error { return err })()
 
-	if err = e.checkLogin(mctx); err != nil {
-		return ek, err
-	}
-
 	teamEKBoxStorage := mctx.G().GetTeamEKBoxStorage()
 	ek, err = teamEKBoxStorage.Get(mctx, teamID, generation, contentCtime)
 	if err != nil {
@@ -684,9 +677,6 @@ func (e *EKLib) GetTeamEK(mctx libkb.MetaContext, teamID keybase1.TeamID, genera
 func (e *EKLib) GetOrCreateLatestTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID, gBotUID gregor1.UID) (
 	ek keybase1.TeamEphemeralKey, created bool, err error) {
 	mctx = mctx.WithLogTag("GOCLTBEK")
-	if err = e.checkLogin(mctx); err != nil {
-		return ek, false, err
-	}
 	botUID, err := keybase1.UIDFromSlice(gBotUID.Bytes())
 	if err != nil {
 		return ek, false, err
@@ -798,9 +788,46 @@ func (e *EKLib) deriveAndMaybePublishTeambotEK(mctx libkb.MetaContext, teamID ke
 		return ek, false, err
 	}
 	merkleRoot := *merkleRootPtr
-	metadata, err := publishNewTeambotEK(mctx, teamID, botUID, teamEK.Team(), merkleRoot)
+
+	metadata := keybase1.TeambotEkMetadata{
+		Kid:        seed.DeriveDHKey().GetKID(),
+		Generation: teamEK.Team().Metadata.Generation,
+		Uid:        botUID,
+		HashMeta:   merkleRoot.HashMeta(),
+		// The ctime is derivable from the hash meta, by fetching the hashed
+		// root from the server, but including it saves readers a potential
+		// extra round trip.
+		Ctime: keybase1.TimeFromSeconds(merkleRoot.Ctime()),
+	}
+
+	team, err := teams.Load(mctx.Ctx(), mctx.G(), keybase1.LoadTeamArg{
+		ID: teamID,
+	})
 	if err != nil {
 		return ek, false, err
+	}
+
+	upak, _, err := mctx.G().GetUPAKLoader().LoadV2(
+		libkb.NewLoadUserArgWithMetaContext(mctx).WithUID(botUID))
+	if err != nil {
+		return ek, false, err
+	}
+	role, err := team.MemberRole(mctx.Ctx(), upak.ToUserVersion())
+	if err != nil {
+		return ek, false, err
+	}
+
+	// If the bot is not a restricted bot member don't try to publish the key
+	// for them. This can happen when decrypting past content after the bot is
+	// removed from the team.
+	if role.IsRestrictedBot() {
+		sig, box, err := prepareNewTeambotEK(mctx, team, botUID, seed, &metadata, merkleRoot)
+		if err != nil {
+			return ek, false, err
+		}
+		if err = postNewTeambotEK(mctx, team.ID, sig, box.Box); err != nil {
+			return ek, false, err
+		}
 	}
 
 	e.teambotEKMetadataCache.Add(cacheKey, metadata)
@@ -809,7 +836,7 @@ func (e *EKLib) deriveAndMaybePublishTeambotEK(mctx libkb.MetaContext, teamID ke
 		Metadata: metadata,
 	})
 
-	return ek, true, nil
+	return ek, role.IsRestrictedBot(), nil
 }
 
 func (e *EKLib) getLatestTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID,
@@ -887,9 +914,6 @@ func (e *EKLib) GetTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID, gBo
 	mctx = mctx.WithLogTag("GTBEK")
 	defer mctx.TraceTimed("GetTeambotEK", func() error { return err })()
 
-	if err = e.checkLogin(mctx); err != nil {
-		return ek, err
-	}
 	botUID, err := keybase1.UIDFromSlice(gBotUID.Bytes())
 	if err != nil {
 		return ek, err
@@ -899,14 +923,23 @@ func (e *EKLib) GetTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID, gBo
 		ek, err = mctx.G().GetTeambotEKBoxStorage().Get(mctx, teamID, generation, contentCtime)
 		if err != nil {
 			if _, ok := err.(EphemeralKeyError); ok {
-				// Ping team members to generate this key for us
-				if err2 := teambot.NotifyTeambotEKNeeded(mctx, teamID, generation); err2 != nil {
-					mctx.Debug("Unable to NotifyTeambotEKNeeded %v", err2)
+				// If we don't have access to the max generation, request
+				// access to this key. We may not have access to earlier keys
+				// and don't want to spam out requests for new ones.
+				maxGeneration, err2 := mctx.G().GetTeambotEKBoxStorage().MaxGeneration(mctx, teamID, true)
+				if err2 != nil {
+					mctx.Debug("Unable to get MaxGeneration: %v", err)
+					return ek, err
 				}
-				// NOTE we don't downgrade this errors to transient since a bot
-				// should have access to keys for decryption unless there is a
-				// bug, members check that the key is created before encrypting
-				// content.
+				if generation == maxGeneration {
+					// Ping team members to generate the latest key for us
+					if err2 = teambot.NotifyTeambotEKNeeded(mctx, teamID, 0); err2 != nil {
+						mctx.Debug("Unable to NotifyTeambotEKNeeded %v", err2)
+					}
+				}
+				// NOTE we don't downgrade this error to transient since the
+				// bot may have added a device after the EK was generated, and
+				// will never get access to it.
 			}
 			return ek, err
 		}
@@ -1073,8 +1106,6 @@ func (e *EKLib) PrepareNewTeamEK(mctx libkb.MetaContext, teamID keybase1.TeamID,
 
 func (e *EKLib) ClearCaches(mctx libkb.MetaContext) {
 	defer mctx.TraceTimed("EKLib.ClearCaches", func() error { return nil })()
-	e.Lock()
-	defer e.Unlock()
 	mctx.Debug("| EKLib.ClearCaches teamEKGenCache")
 	e.teamEKGenCache.Purge()
 	e.teambotEKMetadataCache.Purge()
@@ -1110,11 +1141,18 @@ func (e *EKLib) purgeDeviceEKsIfOneshot(mctx libkb.MetaContext) {
 }
 
 func (e *EKLib) OnLogin(mctx libkb.MetaContext) error {
-	go func() {
+	keygen := func() {
 		if err := e.KeygenIfNeeded(mctx); err != nil {
 			mctx.Debug("OnLogin error: %v", err)
 		}
-	}()
+	}
+	if mctx.G().Standalone {
+		// If we are in standalone run this synchronously to avoid racing if we
+		// are attempting logout.
+		keygen()
+	} else {
+		go keygen()
+	}
 	if deviceEKStorage := mctx.G().GetDeviceEKStorage(); deviceEKStorage != nil {
 		deviceEKStorage.SetLogPrefix(mctx)
 	}

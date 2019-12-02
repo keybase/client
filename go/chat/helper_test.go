@@ -58,7 +58,7 @@ func TestRecentConversationParticipants(t *testing.T) {
 
 	require.NoError(t, storage.NewInbox(tc.Context()).Clear(ctx, uid))
 	_, _, err := tc.Context().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
-		types.InboxSourceDataSourceAll, nil, nil, nil)
+		types.InboxSourceDataSourceAll, nil, nil)
 	require.NoError(t, err)
 
 	res, err := RecentConversationParticipants(ctx, tc.Context(), uid)
@@ -88,13 +88,13 @@ func TestSendTextByName(t *testing.T) {
 		require.NoError(t, helper.SendTextByName(ctx, name, nil,
 			mt, keybase1.TLFIdentifyBehavior_CHAT_CLI, "HI"))
 		inbox, _, err := tc.Context().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
-			types.InboxSourceDataSourceAll, nil, nil, nil)
+			types.InboxSourceDataSourceAll, nil, nil)
 		require.NoError(t, err)
 		require.Equal(t, 1, len(inbox.Convs))
 		require.NoError(t, helper.SendTextByName(ctx, name, nil,
 			mt, keybase1.TLFIdentifyBehavior_CHAT_CLI, "HI"))
 		inbox, _, err = tc.Context().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
-			types.InboxSourceDataSourceAll, nil, nil, nil)
+			types.InboxSourceDataSourceAll, nil, nil)
 		require.NoError(t, err)
 		require.Equal(t, 1, len(inbox.Convs))
 		tv, err := tc.Context().ConvSource.Pull(ctx, inbox.Convs[0].GetConvID(), uid,
@@ -111,7 +111,7 @@ func TestSendTextByName(t *testing.T) {
 			mt, keybase1.TLFIdentifyBehavior_CHAT_CLI, "HI")
 		require.NoError(t, err)
 		inbox, _, err = tc.Context().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
-			types.InboxSourceDataSourceAll, nil, nil, nil)
+			types.InboxSourceDataSourceAll, nil, nil)
 		require.NoError(t, err)
 		switch mt {
 		case chat1.ConversationMembersType_TEAM:
@@ -128,7 +128,7 @@ func TestTopicNameRace(t *testing.T) {
 		case chat1.ConversationMembersType_KBFS:
 			return
 		default:
-			// Nothing to do[ for other member types.
+			// Nothing to do for other member types.
 		}
 		ctc := makeChatTestContext(t, "TestTopicNameRace", 1)
 		defer ctc.cleanup()

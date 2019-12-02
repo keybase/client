@@ -122,7 +122,7 @@ func (tc *TestContext) Cleanup() {
 }
 
 func (tc *TestContext) Logout() error {
-	return NewMetaContextForTest(*tc).Logout()
+	return NewMetaContextForTest(*tc).LogoutKillSecrets()
 }
 
 func (tc TestContext) MoveGpgKeyringTo(dst TestContext) error {
@@ -477,9 +477,11 @@ type TestLoginUI struct {
 	Username                 string
 	RevokeBackup             bool
 	CalledGetEmailOrUsername int
-	ResetAccount             bool
+	ResetAccount             keybase1.ResetPromptResponse
 	PassphraseRecovery       bool
 }
+
+var _ LoginUI = (*TestLoginUI)(nil)
 
 func (t *TestLoginUI) GetEmailOrUsername(_ context.Context, _ int) (string, error) {
 	t.CalledGetEmailOrUsername++
@@ -498,7 +500,7 @@ func (t *TestLoginUI) DisplayPrimaryPaperKey(_ context.Context, arg keybase1.Dis
 	return nil
 }
 
-func (t *TestLoginUI) PromptResetAccount(_ context.Context, arg keybase1.PromptResetAccountArg) (bool, error) {
+func (t *TestLoginUI) PromptResetAccount(_ context.Context, arg keybase1.PromptResetAccountArg) (keybase1.ResetPromptResponse, error) {
 	return t.ResetAccount, nil
 }
 
@@ -512,6 +514,14 @@ func (t *TestLoginUI) ExplainDeviceRecovery(_ context.Context, arg keybase1.Expl
 
 func (t *TestLoginUI) PromptPassphraseRecovery(_ context.Context, arg keybase1.PromptPassphraseRecoveryArg) (bool, error) {
 	return t.PassphraseRecovery, nil
+}
+
+func (t *TestLoginUI) ChooseDeviceToRecoverWith(_ context.Context, arg keybase1.ChooseDeviceToRecoverWithArg) (keybase1.DeviceID, error) {
+	return "", nil
+}
+
+func (t *TestLoginUI) DisplayResetMessage(_ context.Context, arg keybase1.DisplayResetMessageArg) error {
+	return nil
 }
 
 type TestLoginCancelUI struct {

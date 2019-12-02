@@ -110,6 +110,8 @@ protocol local {
     string team;
     string adder;
     string addee;
+    keybase1.TeamRole role;
+    array<string> bulkAdds;
     array<string> owners;
     array<string> admins;
     array<string> writers;
@@ -124,6 +126,7 @@ protocol local {
     string invitee;
     string adder;
     keybase1.TeamInviteCategory inviteType;
+    keybase1.TeamRole role;
   }
 
   record MessageSystemComplexTeam {
@@ -262,6 +265,9 @@ protocol local {
     ERROR_1
   }
 
+
+  // NOTE When adding a type here consider if it should be included in
+  // chat1/extras.go#IsBadgableError
   enum OutboxErrorType {
     MISC_0,
     OFFLINE_1,
@@ -272,7 +278,8 @@ protocol local {
     TOOMANYATTEMPTS_6,
     ALREADY_DELETED_7,
     UPLOADFAILED_8,
-    RESTRICTEDBOT_9
+    RESTRICTEDBOT_9,
+    MINWRITER_10
   }
 
   record OutboxStateError {
@@ -475,6 +482,8 @@ protocol local {
 
     // The message this replied to (if any)
     union { null, MessageUnboxed } replyTo;
+    // Non-empty if this message is keyed for a bot
+    string botUsername;
   }
 
   enum MessageUnboxedErrorType {
@@ -504,6 +513,8 @@ protocol local {
     boolean isEphemeral;
     boolean isEphemeralExpired;
     gregor1.Time etime;
+    // Non-empty if this message is keyed for a bot
+    string botUsername;
   }
 
   record MessageUnboxedPlaceholder {
@@ -511,12 +522,33 @@ protocol local {
     boolean hidden;
   }
 
-  // If a new case is needed here, make sure to update UIMessage in chat_ui.avdl as well.
+  enum JourneycardType {
+    WELCOME_0,
+    POPULAR_CHANNELS_1,
+    ADD_PEOPLE_2,
+    CREATE_CHANNELS_3,
+    MSG_ATTENTION_4,
+    USER_AWAY_FOR_LONG_5,
+    CHANNEL_INACTIVE_6,
+    MSG_NO_ANSWER_7
+  }
+
+  record MessageUnboxedJourneycard {
+    MessageID prevID; // ID of the message after which this card appears.
+    int ordinal; // sub-position after prevID. Ought to be >=1. See computeOutboxOrdinal for some context.
+    JourneycardType cardType;
+    MessageID highlightMsgID; // Message ID to highlight for MSG_ATTENTION
+  }
+
+  // If a new case is needed here, make sure to update at least:
+  // - variant UIMessage in chat_ui.avdl
+  // - func PresentMessageUnboxed
   variant MessageUnboxed switch (MessageUnboxedState state) {
     case VALID: MessageUnboxedValid;
     case ERROR: MessageUnboxedError;
     case OUTBOX: OutboxRecord;
     case PLACEHOLDER: MessageUnboxedPlaceholder;
+    case JOURNEYCARD: MessageUnboxedJourneycard;
   }
 
   // This causes fetching to return N items, where N = IdeallyGetUnreadPlus +
@@ -538,6 +570,7 @@ protocol local {
 
   record ConversationLocalParticipant {
     string username;
+    boolean inConvName;
     union { null, string } fullname;
     union { null, string } contactName;
   }
@@ -644,6 +677,7 @@ protocol local {
     // Commands for auto complete and bot comm
     ConversationCommandGroups commands;
     ConversationCommandGroups botCommands;
+    map<string, string> botAliases;
   }
 
   record NonblockFetchRes {
@@ -719,8 +753,8 @@ protocol local {
     ConversationMembersType membersType;
   }
 
-  GetInboxAndUnboxLocalRes getInboxAndUnboxLocal(union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
-  GetInboxAndUnboxUILocalRes getInboxAndUnboxUILocal(union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
+  GetInboxAndUnboxLocalRes getInboxAndUnboxLocal(union { null, GetInboxLocalQuery} query, keybase1.TLFIdentifyBehavior identifyBehavior);
+  GetInboxAndUnboxUILocalRes getInboxAndUnboxUILocal(union { null, GetInboxLocalQuery} query, keybase1.TLFIdentifyBehavior identifyBehavior);
   record GetInboxLocalQuery {
     // Local analog of common:GetInboxQuery
 
@@ -745,7 +779,6 @@ protocol local {
   }
   record GetInboxAndUnboxLocalRes {
     array<ConversationLocal> conversations;
-    union { null, Pagination } pagination;
 
     boolean offline;
     array<RateLimit> rateLimits;
@@ -753,14 +786,19 @@ protocol local {
   }
    record GetInboxAndUnboxUILocalRes {
     array<InboxUIItem> conversations;
-    union { null, Pagination } pagination;
 
     boolean offline;
     array<RateLimit> rateLimits;
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-  NonblockFetchRes getInboxNonblockLocal(int sessionID, union { null, int } maxUnbox, boolean skipUnverified, union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
+  enum InboxLayoutReselectMode {
+    DEFAULT_0,
+    FORCE_1
+  }
+  void requestInboxLayout(InboxLayoutReselectMode reselectMode);
+  void requestInboxUnbox(array<ConversationID> convIDs);
+  NonblockFetchRes getInboxNonblockLocal(int sessionID, union { null, int } maxUnbox, boolean skipUnverified, union { null, GetInboxLocalQuery} query, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   PostLocalRes postLocal(int sessionID, ConversationID conversationID, MessagePlaintext msg, union { null, MessageID }  replyTo, keybase1.TLFIdentifyBehavior identifyBehavior);
   record PostLocalRes {
@@ -910,12 +948,15 @@ protocol local {
   // Download an attachment from a message into a local file.
   // Filename must be writable by the service.
   record DownloadFileAttachmentLocalRes {
-    string filename;
+    string filePath;
     array<RateLimit> rateLimits;
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
   @lint("ignore")
-  DownloadFileAttachmentLocalRes DownloadFileAttachmentLocal(int sessionID, ConversationID conversationID, MessageID messageID, string filename, boolean preview, keybase1.TLFIdentifyBehavior identifyBehavior);
+  DownloadFileAttachmentLocalRes DownloadFileAttachmentLocal(int sessionID, ConversationID conversationID, MessageID messageID, boolean downloadToCache, boolean preview, keybase1.TLFIdentifyBehavior identifyBehavior);
+
+  @lint("ignore")
+  void ConfigureFileAttachmentDownloadLocal(string cacheDirOverride, string downloadDirOverride);
 
   enum PreviewLocationTyp {
     URL_0,
@@ -937,8 +978,10 @@ protocol local {
     union {null, AssetMetadata} baseMetadata; // will exist if service is able to get base metadata
   }
   MakePreviewRes makePreview(int sessionID, string filename, OutboxID outboxID);
+  MakePreviewRes makeAudioPreview(array<double> amps, int duration);
   string getUploadTempFile(OutboxID outboxID, string filename);
   string makeUploadTempFile(OutboxID outboxID, string filename, bytes data);
+  void cancelUploadTempFile(OutboxID outboxID);
 
   @lint("ignore")
   void CancelPost(OutboxID outboxID);
@@ -949,7 +992,7 @@ protocol local {
      boolean offline;
      array<RateLimit> rateLimits;
   }
-  MarkAsReadLocalRes markAsReadLocal(int sessionID, ConversationID conversationID, MessageID msgID);
+  MarkAsReadLocalRes markAsReadLocal(int sessionID, ConversationID conversationID, union { null, MessageID } msgID);
 
   record FindConversationsLocalRes {
     array<ConversationLocal> conversations; // for the cli / json api
@@ -1171,6 +1214,7 @@ protocol local {
   record AdvertiseBotCommandsLocalRes {
     array<RateLimit> rateLimits;
   }
+
   AdvertiseBotCommandsLocalRes advertiseBotCommandsLocal(union { null, string } alias,
     array<AdvertiseCommandsParam> advertisements);
   record ListBotCommandsLocalRes {
@@ -1178,6 +1222,9 @@ protocol local {
     array<RateLimit> rateLimits;
   }
   ListBotCommandsLocalRes listBotCommandsLocal(ConversationID convID);
+
+  ListBotCommandsLocalRes listPublicBotCommandsLocal(string username);
+
   record ClearBotCommandsLocalRes {
     array<RateLimit> rateLimits;
   }
@@ -1196,4 +1243,26 @@ protocol local {
   void removeBotMember(string tlfName, string username, ConversationMembersType membersType, boolean tlfPublic);
   void setBotMemberSettings(string tlfName, string username, keybase1.TeamBotSettings botSettings, ConversationMembersType membersType, boolean tlfPublic);
   keybase1.TeamBotSettings getBotMemberSettings(string tlfName, string username, ConversationMembersType membersType, boolean tlfPublic);
+
+  keybase1.TeamID teamIDFromTLFName(string tlfName, ConversationMembersType membersType, boolean tlfPublic);
+
+  record LocalMtimeUpdate {
+    ConversationID convID;
+    gregor1.Time mtime;
+  }
+
+  enum SnippetDecoration {
+    NONE_0,
+    PENDING_MESSAGE_1,
+    FAILED_PENDING_MESSAGE_2,
+    EXPLODING_MESSAGE_3,
+    EXPLODED_MESSAGE_4,
+    AUDIO_ATTACHMENT_5,
+    VIDEO_ATTACHMENT_6,
+    PHOTO_ATTACHMENT_7,
+    FILE_ATTACHMENT_8,
+    STELLAR_RECEIVED_9,
+    STELLAR_SENT_10,
+    PINNED_MESSAGE_11
+  }
 }

@@ -1,7 +1,8 @@
 /* eslint-env browser */
 import * as ImagePicker from 'expo-image-picker'
+import * as Types from '../../../../constants/types/chat2'
 import React, {PureComponent} from 'react'
-import * as Kb from '../../../../common-adapters'
+import * as Kb from '../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import {isIOS, isLargeScreen} from '../../../../constants/platform'
@@ -18,32 +19,34 @@ import AddSuggestors, {standardTransformer} from '../suggestors'
 import {parseUri, launchCameraAsync, launchImageLibraryAsync} from '../../../../util/expo-image-picker'
 import {BotCommandUpdateStatus} from './shared'
 import {formatDurationShort} from '../../../../util/timestamp'
+import {indefiniteArticle} from '../../../../util/string'
+import AudioRecorder from '../../../audio/audio-recorder.native'
 
 type menuType = 'exploding' | 'filepickerpopup' | 'moremenu'
 
 type State = {hasText: boolean}
 
 class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
-  _input: null | Kb.PlainInput = null
-  _lastText?: string
-  _whichMenu?: menuType
+  private input: null | Kb.PlainInput = null
+  private lastText?: string
+  private whichMenu?: menuType
   state = {hasText: false}
 
-  _inputSetRef = (ref: null | Kb.PlainInput) => {
-    this._input = ref
+  private inputSetRef = (ref: null | Kb.PlainInput) => {
+    this.input = ref
     this.props.inputSetRef(ref)
     // @ts-ignore this is probably wrong: https://github.com/DefinitelyTyped/DefinitelyTyped/issues/31065
     this.props.inputRef.current = ref
   }
 
-  _openFilePicker = () => {
-    this._toggleShowingMenu('filepickerpopup')
+  private openFilePicker = () => {
+    this.toggleShowingMenu('filepickerpopup')
   }
-  _openMoreMenu = () => {
-    this._toggleShowingMenu('moremenu')
+  private openMoreMenu = () => {
+    this.toggleShowingMenu('moremenu')
   }
 
-  _launchNativeImagePicker = (mediaType: 'photo' | 'video' | 'mixed', location: string) => {
+  private launchNativeImagePicker = (mediaType: 'photo' | 'video' | 'mixed', location: string) => {
     const handleSelection = (result: ImagePicker.ImagePickerResult) => {
       if (result.cancelled === true || !this.props.conversationIDKey) {
         return
@@ -68,39 +71,39 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
     }
   }
 
-  _getText = () => {
-    return this._lastText || ''
+  private getText = () => {
+    return this.lastText || ''
   }
 
-  _onChangeText = (text: string) => {
+  private onChangeText = (text: string) => {
     this.setState({hasText: !!text})
-    this._lastText = text
+    this.lastText = text
     this.props.onChangeText(text)
   }
 
-  _onSubmit = () => {
-    const text = this._getText()
+  private onSubmit = () => {
+    const text = this.getText()
     if (text) {
       this.props.onSubmit(text)
     }
   }
 
-  _toggleShowingMenu = (menu: menuType) => {
+  private toggleShowingMenu = (menu: menuType) => {
     // Hide the keyboard on mobile when showing the menu.
     NativeKeyboard.dismiss()
-    this._whichMenu = menu
+    this.whichMenu = menu
     this.props.toggleShowingMenu()
   }
 
-  _onLayout = ({
+  private onLayout = ({
     nativeEvent: {
       layout: {height},
     },
   }) => this.props.setHeight(height)
 
-  _insertMentionMarker = () => {
-    if (this._input) {
-      const input = this._input
+  private insertMentionMarker = () => {
+    if (this.input) {
+      const input = this.input
       input.focus()
       input.transformText(
         ({selection: {end, start}, text}) => standardTransformer('@', {position: {end, start}, text}, true),
@@ -118,27 +121,27 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
     } else if (this.props.isEditing) {
       hintText = 'Edit your message'
     } else if (this.props.cannotWrite) {
-      hintText = `You must be at least ${'aeiou'.includes(this.props.minWriterRole[0]) ? 'an' : 'a'} ${
+      hintText = `You must be at least ${indefiniteArticle(this.props.minWriterRole)} ${
         this.props.minWriterRole
-      } to post`
+      } to post.`
     }
 
     return (
-      <Kb.Box onLayout={this._onLayout}>
+      <Kb.Box onLayout={this.onLayout}>
         {this.props.suggestBotCommandsUpdateStatus !== RPCChatTypes.UIBotCommandsUpdateStatus.blank &&
           (this.props.suggestionsVisible ||
             this.props.suggestBotCommandsUpdateStatus ===
               RPCChatTypes.UIBotCommandsUpdateStatus.updating) && (
             <BotCommandUpdateStatus status={this.props.suggestBotCommandsUpdateStatus} />
           )}
-        {this.props.showingMenu && this._whichMenu === 'filepickerpopup' ? (
+        {this.props.showingMenu && this.whichMenu === 'filepickerpopup' ? (
           <FilePickerPopup
             attachTo={this.props.getAttachmentRef}
             visible={this.props.showingMenu}
             onHidden={this.props.toggleShowingMenu}
-            onSelect={this._launchNativeImagePicker}
+            onSelect={this.launchNativeImagePicker}
           />
-        ) : this._whichMenu === 'moremenu' ? (
+        ) : this.whichMenu === 'moremenu' ? (
           <MoreMenuPopup
             conversationIDKey={this.props.conversationIDKey}
             onHidden={this.props.toggleShowingMenu}
@@ -164,31 +167,26 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
               </Kb.Text>
             </Kb.Box>
           )}
-          {!this.props.isEditing && (
+          {!this.props.isEditing && !this.props.cannotWrite && (
             <ExplodingIcon
               explodingModeSeconds={this.props.explodingModeSeconds}
               isExploding={this.props.isExploding}
-              openExplodingPicker={() => this._toggleShowingMenu('exploding')}
+              openExplodingPicker={() => this.toggleShowingMenu('exploding')}
             />
           )}
           <Kb.PlainInput
             autoCorrect={true}
             autoCapitalize="sentences"
-            disabled={
-              // Auto generated from flowToTs. Please clean me!
-              this.props.cannotWrite !== null && this.props.cannotWrite !== undefined
-                ? this.props.cannotWrite
-                : false
-            }
+            disabled={this.props.cannotWrite ?? false}
             placeholder={hintText}
             multiline={true}
             onBlur={this.props.onBlur}
             onFocus={this.props.onFocus}
             // TODO: Call onCancelQuoting on text change or selection
             // change to match desktop.
-            onChangeText={this._onChangeText}
+            onChangeText={this.onChangeText}
             onSelectionChange={this.props.onSelectionChange}
-            ref={this._inputSetRef}
+            ref={this.inputSetRef}
             style={styles.input}
             textType="Body"
             rowsMax={Styles.dimensionHeight < 600 ? 5 : 9}
@@ -196,12 +194,13 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
           />
           {!this.props.cannotWrite && (
             <Action
+              conversationIDKey={this.props.conversationIDKey}
               hasText={this.state.hasText}
-              onSubmit={this._onSubmit}
+              onSubmit={this.onSubmit}
               isEditing={this.props.isEditing}
-              openFilePicker={this._openFilePicker}
-              openMoreMenu={this._openMoreMenu}
-              insertMentionMarker={this._insertMentionMarker}
+              openFilePicker={this.openFilePicker}
+              openMoreMenu={this.openMoreMenu}
+              insertMentionMarker={this.insertMentionMarker}
             />
           )}
         </Kb.Box>
@@ -211,39 +210,91 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
 }
 const PlatformInput = AddSuggestors(_PlatformInput)
 
-const Action = ({hasText, insertMentionMarker, isEditing, onSubmit, openFilePicker, openMoreMenu}) =>
-  hasText ? (
-    <Kb.Button
-      type="Default"
-      small={true}
-      style={styles.send}
-      onClick={onSubmit}
-      label={isEditing ? 'Save' : 'Send'}
-    />
-  ) : (
-    <Kb.Box2 direction="horizontal" style={styles.actionIconsContainer}>
-      <Kb.Icon
-        onClick={insertMentionMarker}
-        type="iconfont-mention"
-        style={Kb.iconCastPlatformStyles(styles.actionButton)}
-        fontSize={22}
-      />
-      {smallGap}
-      <Kb.Icon
-        onClick={openFilePicker}
-        type="iconfont-camera"
-        style={Kb.iconCastPlatformStyles(styles.actionButton)}
-        fontSize={22}
-      />
-      {smallGap}
-      <Kb.Icon
-        onClick={openMoreMenu}
-        type="iconfont-add"
-        style={Kb.iconCastPlatformStyles(styles.actionButton)}
-        fontSize={22}
-      />
+type ActionProps = {
+  conversationIDKey: Types.ConversationIDKey
+  hasText: boolean
+  onSubmit: () => void
+  isEditing: boolean
+  openFilePicker: () => void
+  openMoreMenu: () => void
+  insertMentionMarker: () => void
+}
+
+const Action = React.memo((props: ActionProps) => {
+  const {
+    conversationIDKey,
+    hasText,
+    insertMentionMarker,
+    isEditing,
+    onSubmit,
+    openFilePicker,
+    openMoreMenu,
+  } = props
+  const hasValue = React.useRef(new Kb.NativeAnimated.Value(hasText ? 1 : 0)).current
+  React.useEffect(() => {
+    Kb.NativeAnimated.timing(hasValue, {
+      duration: 200,
+      toValue: hasText ? 1 : 0,
+      useNativeDriver: true,
+    }).start()
+  }, [hasText, hasValue])
+
+  return (
+    <Kb.Box2 direction="vertical" style={styles.actionContainer}>
+      <Kb.NativeAnimated.View
+        style={[
+          styles.animatedContainer,
+          {
+            opacity: hasValue,
+            transform: [{translateX: hasValue.interpolate({inputRange: [0, 1], outputRange: [200, 0]})}],
+          },
+        ]}
+      >
+        <Kb.Button
+          type="Default"
+          small={true}
+          style={styles.send}
+          onClick={onSubmit}
+          label={isEditing ? 'Save' : 'Send'}
+        />
+      </Kb.NativeAnimated.View>
+      <Kb.NativeAnimated.View
+        style={[
+          styles.animatedContainer,
+          {
+            opacity: hasValue.interpolate({
+              inputRange: [0, 1],
+              outputRange: [1, 0],
+            }),
+            transform: [{translateX: hasValue.interpolate({inputRange: [0, 1], outputRange: [0, 200]})}],
+          },
+        ]}
+      >
+        <Kb.Box2 direction="horizontal" style={styles.actionIconsContainer}>
+          <Kb.Icon
+            onClick={insertMentionMarker}
+            type="iconfont-mention"
+            style={Kb.iconCastPlatformStyles(styles.actionButton)}
+          />
+          {smallGap}
+          <Kb.Icon
+            onClick={openFilePicker}
+            type="iconfont-camera"
+            style={Kb.iconCastPlatformStyles(styles.actionButton)}
+          />
+          {smallGap}
+          <AudioRecorder conversationIDKey={conversationIDKey} iconStyle={styles.actionButton} />
+          {smallGap}
+          <Kb.Icon
+            onClick={openMoreMenu}
+            type="iconfont-add"
+            style={Kb.iconCastPlatformStyles(styles.actionButton)}
+          />
+        </Kb.Box2>
+      </Kb.NativeAnimated.View>
     </Kb.Box2>
   )
+})
 
 const ExplodingIcon = ({explodingModeSeconds, isExploding, openExplodingPicker}) => (
   <Kb.Box2 direction="horizontal" style={styles.explodingOuterContainer}>
@@ -268,7 +319,7 @@ const ExplodingIcon = ({explodingModeSeconds, isExploding, openExplodingPicker})
   </Kb.Box2>
 )
 
-const containerPadding = 8
+const containerPadding = Styles.globalMargins.xsmall
 const styles = Styles.styleSheetCreate(
   () =>
     ({
@@ -286,13 +337,24 @@ const styles = Styles.styleSheetCreate(
       actionButton: {
         alignSelf: isIOS ? 'flex-end' : 'center',
       },
+      actionContainer: {
+        alignSelf: 'flex-end',
+        height: 50,
+        position: 'relative',
+        width: 70,
+      },
       actionIconsContainer: {
-        paddingRight: Styles.globalMargins.small - containerPadding,
+        marginBottom: Styles.globalMargins.xsmall,
       },
       actionText: {
         alignSelf: 'flex-end',
         paddingBottom: Styles.globalMargins.xsmall,
         paddingRight: Styles.globalMargins.tiny,
+      },
+      animatedContainer: {
+        bottom: 0,
+        position: 'absolute',
+        right: 0,
       },
       container: {
         ...Styles.globalStyles.flexBoxRow,

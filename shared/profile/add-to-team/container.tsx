@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as React from 'react'
 import AddToTeam, {AddToTeamProps} from './index'
 import * as Container from '../../util/container'
@@ -13,9 +12,8 @@ import {TeamRoleType, MaybeTeamRoleType, Teamname} from '../../constants/types/t
 
 type OwnProps = Container.RouteProps<{username: string}>
 
-const getOwnerDisabledReason = memoize((selected: I.Set<Teamname>, teamNameToRole) => {
-  return selected
-    .toSeq()
+const getOwnerDisabledReason = memoize((selected: Set<Teamname>, teamNameToRole) => {
+  return [...selected]
     .map(teamName => {
       if (Constants.isSubteam(teamName)) {
         return `${teamName} is a subteam which cannot have owners.`
@@ -31,11 +29,10 @@ type ExtraProps = {
   clearAddUserToTeamsResults: () => void
   loadTeamList: () => void
   onAddToTeams: (role: TeamRoleType, teams: Array<string>) => void
-  _teamNameToRole: I.Map<Teamname, MaybeTeamRoleType>
+  _teamNameToRole: Map<Teamname, MaybeTeamRoleType>
 }
 
-type TeamName = string
-type SelectedTeamState = I.Set<TeamName>
+type SelectedTeamState = Set<Teamname>
 
 type State = {
   rolePickerOpen: boolean
@@ -44,11 +41,11 @@ type State = {
   selectedTeams: SelectedTeamState
 }
 
-class AddToTeamStateWrapper extends React.Component<{} & ExtraProps & AddToTeamProps, State> {
+class AddToTeamStateWrapper extends React.Component<ExtraProps & AddToTeamProps, State> {
   state = {
     rolePickerOpen: false,
-    selectedRole: 'writer' as 'writer',
-    selectedTeams: I.Set(),
+    selectedRole: 'writer' as const,
+    selectedTeams: new Set<Teamname>(),
     sendNotification: true,
   }
 
@@ -58,12 +55,17 @@ class AddToTeamStateWrapper extends React.Component<{} & ExtraProps & AddToTeamP
   }
 
   onSave = () => {
-    this.props.onAddToTeams(this.state.selectedRole, this.state.selectedTeams.toArray())
+    this.props.onAddToTeams(this.state.selectedRole, [...this.state.selectedTeams])
   }
 
   toggleTeamSelected = (teamName: string, selected: boolean) => {
     this.setState(({selectedTeams, selectedRole}) => {
-      const nextSelectedTeams = selected ? selectedTeams.add(teamName) : selectedTeams.remove(teamName)
+      const nextSelectedTeams = new Set(selectedTeams)
+      if (selected) {
+        nextSelectedTeams.add(teamName)
+      } else {
+        nextSelectedTeams.delete(teamName)
+      }
       const canNotBeOwner = !!getOwnerDisabledReason(nextSelectedTeams, this.props._teamNameToRole)
 
       return {
@@ -113,7 +115,7 @@ export default Container.connect(
     _them: Container.getRouteProps(ownProps, 'username', ''),
     addUserToTeamsResults: state.teams.addUserToTeamsResults,
     addUserToTeamsState: state.teams.addUserToTeamsState,
-    teamProfileAddList: state.teams.get('teamProfileAddList'),
+    teamProfileAddList: state.teams.teamProfileAddList,
     teamnames: Constants.getSortedTeamnames(state),
     waiting: WaitingConstants.anyWaiting(state, Constants.teamProfileAddListWaitingKey),
   }),
@@ -128,23 +130,25 @@ export default Container.connect(
       ),
     onBack: () => {
       dispatch(RouteTreeGen.createNavigateUp())
-      dispatch(TeamsGen.createSetTeamProfileAddList({teamlist: I.List([])}))
+      dispatch(TeamsGen.createSetTeamProfileAddList({teamlist: []}))
     },
   }),
   (stateProps, dispatchProps, _: OwnProps) => {
     const {teamProfileAddList, _them} = stateProps
     const title = `Add ${_them} to...`
-
     return {
-      _teamNameToRole: stateProps._teamNameToRole,
+      _teamNameToRole: new Map(stateProps._teamNameToRole.entries()),
       addUserToTeamsResults: stateProps.addUserToTeamsResults,
       addUserToTeamsState: stateProps.addUserToTeamsState,
       clearAddUserToTeamsResults: dispatchProps.clearAddUserToTeamsResults,
+      customComponent: undefined,
+      headerStyle: undefined,
       loadTeamList: dispatchProps.loadTeamList,
       onAddToTeams: (role: TeamRoleType, teams: Array<string>) =>
         dispatchProps._onAddToTeams(role, teams, stateProps._them),
       onBack: dispatchProps.onBack,
-      teamProfileAddList: teamProfileAddList.toArray(),
+      onCancel: undefined,
+      teamProfileAddList: teamProfileAddList,
       them: _them,
       title,
       waiting: stateProps.waiting,

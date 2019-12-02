@@ -1,7 +1,9 @@
 import logger from '../logger'
 import * as React from 'react'
 import * as Styles from '../styles'
-import {includes, throttle, without} from 'lodash-es'
+import throttle from 'lodash/throttle'
+import includes from 'lodash/includes'
+import without from 'lodash/without'
 import Box from './box'
 import ReactDOM from 'react-dom'
 import {EscapeHandler} from '../util/key-event-handler.desktop'
@@ -261,6 +263,7 @@ type ModalPositionRelativeProps<PP> = {
   matchDimension?: boolean
   onClosePopup: () => void
   propagateOutsideClicks?: boolean
+  remeasureHint?: number
   style?: Styles.StylesCrossPlatform
 } & PP
 
@@ -313,7 +316,10 @@ function ModalPositionRelative<PP>(
     }
 
     componentDidUpdate(prevProps: ModalPositionRelativeProps<PP>, _, snapshot) {
-      if (this.props.targetRect && this.props.targetRect !== prevProps.targetRect) {
+      if (
+        (this.props.targetRect && this.props.targetRect !== prevProps.targetRect) ||
+        this.props.remeasureHint !== prevProps.remeasureHint
+      ) {
         this._computeStyle(this.props.targetRect)
       }
 
@@ -372,10 +378,10 @@ function ModalPositionRelative<PP>(
           <Kb.Box style={this.state.style}>
             {this.props.onClosePopup && (
               <EscapeHandler onESC={this.props.onClosePopup}>
-                <WrappedComponent {...this.props as PP} />
+                <WrappedComponent {...(this.props as PP)} />
               </EscapeHandler>
             )}
-            {!this.props.onClosePopup && <WrappedComponent {...this.props as PP} />}
+            {!this.props.onClosePopup && <WrappedComponent {...(this.props as PP)} />}
           </Kb.Box>
         </Modal>
       )

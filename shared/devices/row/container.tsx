@@ -12,7 +12,7 @@ type OwnProps = {
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const device = Constants.getDevice(state, ownProps.deviceID)
   return {
-    iconNumber: Constants.getDeviceIconNumber(state, ownProps.deviceID),
+    device,
     isCurrentDevice: device.currentDevice,
     isNew: state.devices.isNew.has(device.deviceID),
     isRevoked: !!device.revokedByName,
@@ -30,8 +30,8 @@ export default Container.namedConnect(
   mapStateToProps,
   mapDispatchToProps,
   (stateProps, dispatchProps, ownProps: OwnProps) => ({
+    device: stateProps.device,
     firstItem: ownProps.firstItem,
-    iconNumber: stateProps.iconNumber,
     isCurrentDevice: stateProps.isCurrentDevice,
     isNew: stateProps.isNew,
     isRevoked: stateProps.isRevoked,

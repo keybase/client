@@ -7,22 +7,10 @@ import * as ConfigGen from '../actions/config-gen'
 import * as GregorGen from '../actions/gregor-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as WaitingGen from '../actions/waiting-gen'
-import * as EntitiesGen from '../actions/entities-gen'
 import {TypedState} from '../constants/reducer'
 
 // If you use nullTransform it'll not be logged at all
 const nullTransform = () => null
-
-const entityTransformer = (
-  action:
-    | EntitiesGen.DeleteEntityPayload
-    | EntitiesGen.MergeEntityPayload
-    | EntitiesGen.ReplaceEntityPayload
-    | EntitiesGen.SubtractEntityPayload
-) => ({
-  payload: {keyPath: action.payload.keyPath},
-  type: action.type,
-})
 
 const defaultTransformer = ({type}) => ({type})
 const fullOutput = a => a
@@ -38,11 +26,6 @@ const actionTransformMap = {
     },
     type: action.type,
   }),
-
-  [EntitiesGen.deleteEntity]: entityTransformer,
-  [EntitiesGen.mergeEntity]: entityTransformer,
-  [EntitiesGen.replaceEntity]: entityTransformer,
-  [EntitiesGen.subtractEntity]: entityTransformer,
 
   _loadAvatarHelper: nullTransform,
   [ConfigGen.daemonHandshakeWait]: fullOutput,

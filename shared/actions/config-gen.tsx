@@ -1,5 +1,4 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/config'
 import * as Tabs from '../constants/tabs'
@@ -24,9 +23,12 @@ export const filePickerError = 'config:filePickerError'
 export const followerInfoUpdated = 'config:followerInfoUpdated'
 export const globalError = 'config:globalError'
 export const installerRan = 'config:installerRan'
+export const loadNixOnLoginStartup = 'config:loadNixOnLoginStartup'
+export const loadedNixOnLoginStartup = 'config:loadedNixOnLoginStartup'
 export const loggedIn = 'config:loggedIn'
 export const loggedOut = 'config:loggedOut'
 export const logout = 'config:logout'
+export const logoutAndTryToLogInAs = 'config:logoutAndTryToLogInAs'
 export const logoutHandshake = 'config:logoutHandshake'
 export const logoutHandshakeWait = 'config:logoutHandshakeWait'
 export const mobileAppState = 'config:mobileAppState'
@@ -47,8 +49,11 @@ export const setOpenAtLogin = 'config:setOpenAtLogin'
 export const setStartupDetails = 'config:setStartupDetails'
 export const setSystemDarkMode = 'config:setSystemDarkMode'
 export const setUseNativeFrame = 'config:setUseNativeFrame'
+export const setUserSwitching = 'config:setUserSwitching'
+export const setWhatsNewLastSeenVersion = 'config:setWhatsNewLastSeenVersion'
 export const showMain = 'config:showMain'
 export const startHandshake = 'config:startHandshake'
+export const startupFirstIdle = 'config:startupFirstIdle'
 export const updateCriticalCheckStatus = 'config:updateCriticalCheckStatus'
 export const updateHTTPSrvInfo = 'config:updateHTTPSrvInfo'
 export const updateInfo = 'config:updateInfo'
@@ -90,8 +95,11 @@ type _FollowerInfoUpdatedPayload = {
 }
 type _GlobalErrorPayload = {readonly globalError?: Error | RPCError}
 type _InstallerRanPayload = void
+type _LoadNixOnLoginStartupPayload = void
+type _LoadedNixOnLoginStartupPayload = {readonly status: boolean | null}
 type _LoggedInPayload = {readonly causedBySignup: boolean; readonly causedByStartup: boolean}
 type _LoggedOutPayload = void
+type _LogoutAndTryToLogInAsPayload = {readonly username: string}
 type _LogoutHandshakePayload = {readonly version: number}
 type _LogoutHandshakeWaitPayload = {
   readonly name: string
@@ -107,7 +115,7 @@ type _OsNetworkStatusChangedPayload = {
   readonly type: Types.ConnectionType
   readonly isInit?: boolean
 }
-type _PersistRoutePayload = {readonly path: Array<any>}
+type _PersistRoutePayload = {readonly path?: Array<any>}
 type _PushLoadedPayload = {readonly pushLoaded: boolean}
 type _RemoteWindowWantsPropsPayload = {readonly component: string; readonly param: string}
 type _RestartHandshakePayload = void
@@ -130,8 +138,11 @@ type _SetStartupDetailsPayload = {
 }
 type _SetSystemDarkModePayload = {readonly dark: boolean}
 type _SetUseNativeFramePayload = {readonly useNativeFrame: boolean}
+type _SetUserSwitchingPayload = {readonly userSwitching: boolean}
+type _SetWhatsNewLastSeenVersionPayload = {readonly lastSeenVersion: string}
 type _ShowMainPayload = void
 type _StartHandshakePayload = void
+type _StartupFirstIdlePayload = void
 type _UpdateCriticalCheckStatusPayload = {
   readonly status: 'critical' | 'suggested' | 'ok'
   readonly message: string
@@ -147,6 +158,12 @@ type _UpdateNowPayload = void
 type _UpdateWindowStatePayload = {readonly windowState: Types.WindowState}
 
 // Action Creators
+/**
+ * Log out the current user, keeping secrets stored. Then prefill the username for provisioned another user to log in.
+ */
+export const createLogoutAndTryToLogInAs = (
+  payload: _LogoutAndTryToLogInAsPayload
+): LogoutAndTryToLogInAsPayload => ({payload, type: logoutAndTryToLogInAs})
 /**
  * Open a link to the app store
  */
@@ -168,6 +185,12 @@ export const createFilePickerError = (payload: _FilePickerErrorPayload): FilePic
   type: filePickerError,
 })
 /**
+ * Set the latest version number that a user has seen from Gregor. This is used to set the badged state of the 'What's New' radio icon
+ */
+export const createSetWhatsNewLastSeenVersion = (
+  payload: _SetWhatsNewLastSeenVersionPayload
+): SetWhatsNewLastSeenVersionPayload => ({payload, type: setWhatsNewLastSeenVersion})
+/**
  * Used internally to know we were logged in. if you want to react to being logged in likely you want bootstrapStatusLoaded
  */
 export const createLoggedIn = (payload: _LoggedInPayload): LoggedInPayload => ({payload, type: loggedIn})
@@ -177,6 +200,13 @@ export const createLoggedIn = (payload: _LoggedInPayload): LoggedInPayload => ({
 export const createInstallerRan = (payload: _InstallerRanPayload): InstallerRanPayload => ({
   payload,
   type: installerRan,
+})
+/**
+ * emitted when we have some idle time after loading. useful to load thing but not slow down startup
+ */
+export const createStartupFirstIdle = (payload: _StartupFirstIdlePayload): StartupFirstIdlePayload => ({
+  payload,
+  type: startupFirstIdle,
 })
 /**
  * internal to config. should restart the handshake process
@@ -279,6 +309,12 @@ export const createGlobalError = (payload: _GlobalErrorPayload = Object.freeze({
   payload,
   type: globalError,
 })
+export const createLoadNixOnLoginStartup = (
+  payload: _LoadNixOnLoginStartupPayload
+): LoadNixOnLoginStartupPayload => ({payload, type: loadNixOnLoginStartup})
+export const createLoadedNixOnLoginStartup = (
+  payload: _LoadedNixOnLoginStartupPayload
+): LoadedNixOnLoginStartupPayload => ({payload, type: loadedNixOnLoginStartup})
 export const createLoggedOut = (payload: _LoggedOutPayload): LoggedOutPayload => ({payload, type: loggedOut})
 export const createMobileAppState = (payload: _MobileAppStatePayload): MobileAppStatePayload => ({
   payload,
@@ -287,10 +323,9 @@ export const createMobileAppState = (payload: _MobileAppStatePayload): MobileApp
 export const createOsNetworkStatusChanged = (
   payload: _OsNetworkStatusChangedPayload
 ): OsNetworkStatusChangedPayload => ({payload, type: osNetworkStatusChanged})
-export const createPersistRoute = (payload: _PersistRoutePayload): PersistRoutePayload => ({
-  payload,
-  type: persistRoute,
-})
+export const createPersistRoute = (
+  payload: _PersistRoutePayload = Object.freeze({})
+): PersistRoutePayload => ({payload, type: persistRoute})
 export const createPushLoaded = (payload: _PushLoadedPayload): PushLoadedPayload => ({
   payload,
   type: pushLoaded,
@@ -333,6 +368,10 @@ export const createSetSystemDarkMode = (payload: _SetSystemDarkModePayload): Set
 export const createSetUseNativeFrame = (payload: _SetUseNativeFramePayload): SetUseNativeFramePayload => ({
   payload,
   type: setUseNativeFrame,
+})
+export const createSetUserSwitching = (payload: _SetUserSwitchingPayload): SetUserSwitchingPayload => ({
+  payload,
+  type: setUserSwitching,
 })
 export const createShowMain = (payload: _ShowMainPayload): ShowMainPayload => ({payload, type: showMain})
 export const createUpdateHTTPSrvInfo = (payload: _UpdateHTTPSrvInfoPayload): UpdateHTTPSrvInfoPayload => ({
@@ -390,8 +429,20 @@ export type FollowerInfoUpdatedPayload = {
 }
 export type GlobalErrorPayload = {readonly payload: _GlobalErrorPayload; readonly type: typeof globalError}
 export type InstallerRanPayload = {readonly payload: _InstallerRanPayload; readonly type: typeof installerRan}
+export type LoadNixOnLoginStartupPayload = {
+  readonly payload: _LoadNixOnLoginStartupPayload
+  readonly type: typeof loadNixOnLoginStartup
+}
+export type LoadedNixOnLoginStartupPayload = {
+  readonly payload: _LoadedNixOnLoginStartupPayload
+  readonly type: typeof loadedNixOnLoginStartup
+}
 export type LoggedInPayload = {readonly payload: _LoggedInPayload; readonly type: typeof loggedIn}
 export type LoggedOutPayload = {readonly payload: _LoggedOutPayload; readonly type: typeof loggedOut}
+export type LogoutAndTryToLogInAsPayload = {
+  readonly payload: _LogoutAndTryToLogInAsPayload
+  readonly type: typeof logoutAndTryToLogInAs
+}
 export type LogoutHandshakePayload = {
   readonly payload: _LogoutHandshakePayload
   readonly type: typeof logoutHandshake
@@ -458,10 +509,22 @@ export type SetUseNativeFramePayload = {
   readonly payload: _SetUseNativeFramePayload
   readonly type: typeof setUseNativeFrame
 }
+export type SetUserSwitchingPayload = {
+  readonly payload: _SetUserSwitchingPayload
+  readonly type: typeof setUserSwitching
+}
+export type SetWhatsNewLastSeenVersionPayload = {
+  readonly payload: _SetWhatsNewLastSeenVersionPayload
+  readonly type: typeof setWhatsNewLastSeenVersion
+}
 export type ShowMainPayload = {readonly payload: _ShowMainPayload; readonly type: typeof showMain}
 export type StartHandshakePayload = {
   readonly payload: _StartHandshakePayload
   readonly type: typeof startHandshake
+}
+export type StartupFirstIdlePayload = {
+  readonly payload: _StartupFirstIdlePayload
+  readonly type: typeof startupFirstIdle
 }
 export type UpdateCriticalCheckStatusPayload = {
   readonly payload: _UpdateCriticalCheckStatusPayload
@@ -499,8 +562,11 @@ export type Actions =
   | FollowerInfoUpdatedPayload
   | GlobalErrorPayload
   | InstallerRanPayload
+  | LoadNixOnLoginStartupPayload
+  | LoadedNixOnLoginStartupPayload
   | LoggedInPayload
   | LoggedOutPayload
+  | LogoutAndTryToLogInAsPayload
   | LogoutHandshakePayload
   | LogoutHandshakeWaitPayload
   | LogoutPayload
@@ -522,8 +588,11 @@ export type Actions =
   | SetStartupDetailsPayload
   | SetSystemDarkModePayload
   | SetUseNativeFramePayload
+  | SetUserSwitchingPayload
+  | SetWhatsNewLastSeenVersionPayload
   | ShowMainPayload
   | StartHandshakePayload
+  | StartupFirstIdlePayload
   | UpdateCriticalCheckStatusPayload
   | UpdateHTTPSrvInfoPayload
   | UpdateInfoPayload

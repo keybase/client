@@ -8,13 +8,14 @@ import {
   OverlayParentProps,
 } from '../../../common-adapters'
 import {globalStyles, globalMargins, isMobile, styleSheetCreate} from '../../../styles'
+import * as Types from '../../../constants/types/teams'
 import TeamMenu from '../menu-container'
 
 type Props = {
   onChat: () => void
   canChat: boolean
   loading: boolean
-  teamname: string
+  teamID: Types.TeamID
 }
 
 const fontSize = isMobile ? 20 : 16
@@ -40,7 +41,7 @@ const _CustomComponent = (props: Props & OverlayParentProps) => (
     <TeamMenu
       attachTo={props.getAttachmentRef}
       onHidden={props.toggleShowingMenu}
-      teamname={props.teamname}
+      teamID={props.teamID}
       visible={props.showingMenu}
     />
   </Box>

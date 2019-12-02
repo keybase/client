@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/identify.avdl
 
 package keybase1
@@ -6,6 +6,7 @@ package keybase1
 import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type IdentifyProofBreak struct {
@@ -327,34 +328,34 @@ type IdentifyClient struct {
 
 // Resolve an assertion to a (UID,username) or (TeamID,teamname). On failure, returns an error.
 func (c IdentifyClient) Resolve3(ctx context.Context, __arg Resolve3Arg) (res UserOrTeamLite, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.identify.Resolve3", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.identify.Resolve3", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c IdentifyClient) Identify2(ctx context.Context, __arg Identify2Arg) (res Identify2Res, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.identify.identify2", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.identify.identify2", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c IdentifyClient) IdentifyLite(ctx context.Context, __arg IdentifyLiteArg) (res IdentifyLiteRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.identify.identifyLite", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.identify.identifyLite", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c IdentifyClient) ResolveIdentifyImplicitTeam(ctx context.Context, __arg ResolveIdentifyImplicitTeamArg) (res ResolveIdentifyImplicitTeamRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.identify.resolveIdentifyImplicitTeam", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.identify.resolveIdentifyImplicitTeam", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // resolveImplicitTeam returns a TLF display name given a teamID. The publicness
 // of the team is inferred from the TeamID.
 func (c IdentifyClient) ResolveImplicitTeam(ctx context.Context, __arg ResolveImplicitTeamArg) (res Folder, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.identify.resolveImplicitTeam", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.identify.resolveImplicitTeam", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c IdentifyClient) NormalizeSocialAssertion(ctx context.Context, assertion string) (res SocialAssertion, err error) {
 	__arg := NormalizeSocialAssertionArg{Assertion: assertion}
-	err = c.Cli.Call(ctx, "keybase.1.identify.normalizeSocialAssertion", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.identify.normalizeSocialAssertion", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

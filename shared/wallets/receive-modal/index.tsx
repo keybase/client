@@ -161,6 +161,7 @@ const styles = Styles.styleSheetCreate(
         marginBottom: Styles.globalMargins.tiny,
       },
       qrContainer: {
+        backgroundColor: Styles.globalColors.whiteOrWhite,
         borderColor: Styles.globalColors.black_10,
         borderRadius: Styles.borderRadius,
         borderStyle: 'solid',

@@ -23,6 +23,7 @@ export class ImageRender extends React.Component<Props> {
     }
     this.videoRef.current.play()
     this.videoRef.current.setAttribute('controls', 'controls')
+    this.videoRef.current.setAttribute('disablepictureinpicture', 'disablepictureinpicture')
   }
 
   render() {
@@ -34,7 +35,7 @@ export class ImageRender extends React.Component<Props> {
         onLoadStart={this.props.onLoad}
         onLoadedMetadata={this.props.onLoadedVideo}
         controlsList="nodownload nofullscreen noremoteplayback"
-        style={collapseStyles([this.props.style, !this.props.loaded && {display: 'none'}])}
+        style={collapseStyles([this.props.style, !this.props.loaded && {opacity: 0}])}
       >
         <source src={this.props.videoSrc} />
       </video>
@@ -43,7 +44,7 @@ export class ImageRender extends React.Component<Props> {
         onLoad={this.props.onLoad}
         draggable={false}
         src={this.props.src}
-        style={collapseStyles([this.props.style, !this.props.loaded && {display: 'none'}])}
+        style={collapseStyles([this.props.style, !this.props.loaded && {opacity: 0}])}
       />
     )
   }

@@ -21,6 +21,9 @@ const (
 	DBTeamChain         = 0x10
 	DBUserPlusAllKeysV1 = 0x19
 
+	DBChatJourney                    = 0xae
+	DBTeamRoleMap                    = 0xaf
+	DBMisc                           = 0xb0
 	DBTeamMerkleCheck                = 0xb1
 	DBUidToServiceMap                = 0xb2
 	DBChatPinIgnore                  = 0xb3
@@ -42,7 +45,7 @@ const (
 	DBFTLStorage                     = 0xcd
 	DBTeamAuditor                    = 0xce
 	DBAttachmentUploader             = 0xcf
-	DBHasRandomPW                    = 0xd0
+	DBLegacyHasRandomPW              = 0xd0
 	DBDiskLRUEntries                 = 0xda
 	DBDiskLRUIndex                   = 0xdb
 	DBImplicitTeamConflictInfo       = 0xdc
@@ -115,14 +118,15 @@ func IsPermDbKey(typ ObjType) bool {
 		DBDiskLRUIndex,
 		DBOfflineRPC,
 		DBChatCollapses,
-		DBHasRandomPW,
+		DBLegacyHasRandomPW,
 		DBChatReacji,
 		DBStellarDisclaimer,
 		DBChatIndex,
 		DBBoxAuditorPermanent,
 		DBSavedContacts,
 		DBContactResolution,
-		DBTeambotKeyWrongKID:
+		DBTeambotKeyWrongKID,
+		DBMisc:
 		return true
 	default:
 		return false

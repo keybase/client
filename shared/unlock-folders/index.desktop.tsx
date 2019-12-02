@@ -1,14 +1,16 @@
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as Styles from '../styles'
+import {_setDarkModePreference} from '../styles/dark-mode'
 import DeviceList from './device-list.desktop'
 import PaperKeyInput from './paper-key-input.desktop'
 import Success from './success.desktop'
-import {State, _Device} from '../constants/types/unlock-folders'
+import {State, Device} from '../constants/types/unlock-folders'
 
 export type Props = {
+  darkMode: boolean
   phase: State['phase']
-  devices: Array<_Device>
+  devices: Array<Device>
   onClose: () => void
   toPaperKeyInput: () => void
   onBackFromPaperKey: () => void
@@ -19,6 +21,8 @@ export type Props = {
 }
 
 const UnlockFolders = (props: Props) => {
+  _setDarkModePreference(props.darkMode ? 'alwaysDark' : 'alwaysLight')
+
   let innerComponent: React.ReactNode
 
   switch (props.phase) {
@@ -42,7 +46,11 @@ const UnlockFolders = (props: Props) => {
   }
 
   return (
-    <div style={styles.container}>
+    <div
+      style={styles.container}
+      className={props.darkMode ? 'darkMode' : 'lightMode'}
+      key={props.darkMode ? 'darkMode' : 'light'}
+    >
       <div style={styles.header}>
         <Kb.Header icon={true} type="Default" title="" onClose={props.onClose} />
       </div>

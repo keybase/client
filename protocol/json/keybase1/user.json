@@ -229,6 +229,14 @@
         {
           "type": "string",
           "name": "fullname"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "string",
+            "keys": "string"
+          },
+          "name": "serviceMap"
         }
       ]
     },
@@ -273,6 +281,13 @@
           "name": "profileIcon"
         },
         {
+          "type": {
+            "type": "array",
+            "items": "SizedImage"
+          },
+          "name": "profileIconWhite"
+        },
+        {
           "type": "string",
           "name": "pickerText"
         },
@@ -310,6 +325,15 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "PassphraseState",
+      "symbols": [
+        "KNOWN_0",
+        "RANDOM_1"
+      ],
+      "doc": "PassphraseState values are used in .config.json, so should not be changed without a migration strategy"
+    },
+    {
       "type": "record",
       "name": "CanLogoutRes",
       "fields": [
@@ -322,8 +346,149 @@
           "name": "reason"
         },
         {
+          "type": "PassphraseState",
+          "name": "passphraseState"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserPassphraseStateMsg",
+      "fields": [
+        {
+          "type": "PassphraseState",
+          "name": "passphraseState",
+          "jsonkey": "state"
+        }
+      ],
+      "lint": "ignore"
+    },
+    {
+      "type": "record",
+      "name": "UserBlockedRow",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "uid",
+          "jsonkey": "block_uid"
+        },
+        {
+          "type": "string",
+          "name": "username",
+          "jsonkey": "block_username"
+        },
+        {
+          "type": [
+            null,
+            "boolean"
+          ],
+          "name": "chat",
+          "jsonkey": "chat"
+        },
+        {
+          "type": [
+            null,
+            "boolean"
+          ],
+          "name": "follow",
+          "jsonkey": "follow"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserBlockedBody",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "UserBlockedRow"
+          },
+          "name": "blocks",
+          "jsonkey": "blocks"
+        },
+        {
+          "type": "UID",
+          "name": "uid",
+          "jsonkey": "blocker_uid"
+        },
+        {
+          "type": "string",
+          "name": "username",
+          "jsonkey": "blocker_username"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserBlockedSummary",
+      "fields": [
+        {
+          "type": "string",
+          "name": "blocker"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "blocked"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserBlock",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
           "type": "boolean",
-          "name": "setPassphrase"
+          "name": "chatBlocked"
+        },
+        {
+          "type": "boolean",
+          "name": "followBlocked"
+        },
+        {
+          "type": [
+            null,
+            "Time"
+          ],
+          "name": "createTime"
+        },
+        {
+          "type": [
+            null,
+            "Time"
+          ],
+          "name": "modifyTime"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserBlockArg",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": [
+            null,
+            "boolean"
+          ],
+          "name": "setChatBlock"
+        },
+        {
+          "type": [
+            null,
+            "boolean"
+          ],
+          "name": "setFollowBlock"
         }
       ]
     }
@@ -664,23 +829,6 @@
       "response": "NextMerkleRootRes",
       "doc": "FindNextMerkleRootAfterReset finds the first Merkle root that contains the UID reset\n   at resetSeqno. You should pass it prev, which was the last known Merkle root at the time of\n   the reset. Usually, we'll just turn up the next Merkle root, but not always."
     },
-    "loadHasRandomPw": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "forceRepoll",
-          "type": "boolean"
-        },
-        {
-          "name": "noShortTimeout",
-          "type": "boolean"
-        }
-      ],
-      "response": "boolean"
-    },
     "canLogout": {
       "request": [
         {
@@ -689,6 +837,15 @@
         }
       ],
       "response": "CanLogoutRes"
+    },
+    "loadPassphraseState": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "PassphraseState"
     },
     "userCard": {
       "request": [
@@ -709,6 +866,73 @@
         null,
         "UserCard"
       ]
+    },
+    "setUserBlocks": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "blocks",
+          "type": {
+            "type": "array",
+            "items": "UserBlockArg"
+          }
+        }
+      ],
+      "response": null
+    },
+    "getUserBlocks": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "usernames",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "UserBlock"
+      }
+    },
+    "reportUser": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "reason",
+          "type": "string"
+        },
+        {
+          "name": "comment",
+          "type": "string"
+        },
+        {
+          "name": "includeTranscript",
+          "type": "boolean"
+        },
+        {
+          "name": "convID",
+          "type": [
+            null,
+            "string"
+          ]
+        }
+      ],
+      "response": null
     },
     "blockUser": {
       "request": [

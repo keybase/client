@@ -9,10 +9,17 @@ import {printOutstandingRPCs, isTesting} from '../local-debug'
 import {resetClient, createClient, rpcLog, createClientType} from './index.platform'
 import {createBatchChangeWaiting} from '../actions/waiting-gen'
 import engineSaga from './saga'
-import {throttle} from 'lodash-es'
+import throttle from 'lodash/throttle'
 import {CustomResponseIncomingCallMapType, IncomingCallMapType} from '.'
 import {SessionID, SessionIDKey, WaitingHandlerType, MethodKey} from './types'
 import {TypedState, Dispatch} from '../util/container'
+
+// delay incoming to stop react from queueing too many setState calls and stopping rendering
+// only while debugging for now
+const DEFER_INCOMING_DURING_DEBUG = __DEV__ && false
+if (DEFER_INCOMING_DURING_DEBUG) {
+  console.log(new Array(1000).fill('DEFER_INCOMING_DURING_DEBUG is On!!!!!!!!!!!!!!!!!!!!!').join('\n'))
+}
 
 type WaitingKey = string | Array<string>
 
@@ -64,7 +71,11 @@ class Engine {
 
   constructor(dispatch: Dispatch, getState: () => TypedState) {
     // setup some static vars
-    Engine._dispatch = dispatch
+    if (DEFER_INCOMING_DURING_DEBUG) {
+      Engine._dispatch = a => setTimeout(() => dispatch(a), 1)
+    } else {
+      Engine._dispatch = dispatch
+    }
     Engine._getState = getState
     this._rpcClient = createClient(
       payload => this._rpcIncoming(payload),
@@ -206,10 +217,7 @@ class Engine {
       incomingCallMap: p.incomingCallMap,
       waitingKey: p.waitingKey,
     })
-    // Don't make outgoing calls immediately since components can do this when they mount
-    setImmediate(() => {
-      session.start(p.method, p.params, p.callback)
-    })
+    session.start(p.method, p.params, p.callback)
     return session.getId()
   }
 

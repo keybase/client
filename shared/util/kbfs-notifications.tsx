@@ -1,4 +1,4 @@
-import {capitalize} from 'lodash-es'
+import capitalize from 'lodash/capitalize'
 import {FSErrorType, FSNotificationType, FSStatusCode, FSNotification} from '../constants/types/rpc-gen'
 import path from 'path'
 import {parseFolderNameToUsers} from './kbfs'
@@ -57,9 +57,7 @@ function decodeKBFSError(user: string, notification: FSNotification): DecodedKBF
 
     case FSErrorType.timeout:
       return {
-        body: `The ${
-          notification.params.mode
-        } operation took too long and failed. Please run 'keybase log send' so our admins can review.`,
+        body: `The ${notification.params.mode} operation took too long and failed. Please run 'keybase log send' so our admins can review.`,
         title: `Keybase: ${capitalize(notification.params.mode)} timeout in ${tlf}`,
       }
 

@@ -6,6 +6,7 @@ import Text from '../../text'
 import Meta from '../../meta'
 import Divider from '../../divider'
 import ScrollView from '../../scroll-view'
+import ProgressIndicator from '../../progress-indicator'
 import {isLargeScreen} from '../../../constants/platform'
 import {MenuItem, _InnerMenuItem, MenuLayoutProps} from '.'
 
@@ -50,71 +51,70 @@ const MenuRow = (props: MenuRowProps) => (
         )}
       </>
     )}
+    {!!props.progressIndicator && <ProgressIndicator style={styles.progressIndicator} />}
   </NativeTouchableOpacity>
 )
 
-class MenuLayout extends React.Component<MenuLayoutProps> {
-  render() {
-    const menuItemsNoDividers: MenuItem[] = this.props.items.filter(
-      (x): x is MenuItem => (x ? x !== 'Divider' : false)
-    )
-    const beginningDivider = this.props.items[0] === 'Divider'
+const MenuLayout = (props: MenuLayoutProps) => {
+  const menuItemsNoDividers: MenuItem[] = props.items.filter((x): x is MenuItem =>
+    x ? x !== 'Divider' : false
+  )
+  const beginningDivider = props.items[0] === 'Divider'
 
-    return (
-      <NativeSafeAreaView
+  return (
+    <NativeSafeAreaView
+      style={Styles.collapseStyles([
+        styles.safeArea,
+        props.backgroundColor && {backgroundColor: props.backgroundColor},
+      ])}
+    >
+      <Box
         style={Styles.collapseStyles([
-          styles.safeArea,
-          this.props.backgroundColor && {backgroundColor: this.props.backgroundColor},
+          styles.menuBox,
+          props.backgroundColor && {backgroundColor: props.backgroundColor},
         ])}
       >
-        <Box
+        {/* Display header if there is one */}
+        {props.header && props.header.view}
+        {beginningDivider && <Divider style={styles.divider} />}
+        <ScrollView
+          alwaysBounceVertical={false}
           style={Styles.collapseStyles([
-            styles.menuBox,
-            this.props.backgroundColor && {backgroundColor: this.props.backgroundColor},
+            styles.flexGrow,
+            // if we set it to numItems * 56 exactly, the scrollview
+            // shrinks by 2px for some reason, which undermines alwaysBounceVertical={false}
+            // Add 2px to compensate
+            {height: Math.min(menuItemsNoDividers.length * 56 + 2, isLargeScreen ? 500 : 350)},
           ])}
+          contentContainerStyle={styles.menuGroup}
         >
-          {/* Display header if there is one */}
-          {this.props.header && this.props.header.view}
-          {beginningDivider && <Divider style={styles.divider} />}
-          <ScrollView
-            alwaysBounceVertical={false}
-            style={Styles.collapseStyles([
-              styles.flexGrow,
-              // if we set it to numItems * 56 exactly, the scrollview
-              // shrinks by 2px for some reason, which undermines alwaysBounceVertical={false}
-              // Add 2px to compensate
-              {height: Math.min(menuItemsNoDividers.length * 56 + 2, isLargeScreen ? 500 : 350)},
-            ])}
-            contentContainerStyle={styles.menuGroup}
-          >
-            {menuItemsNoDividers.map((mi, idx) => (
-              <MenuRow
-                key={mi.title}
-                {...mi}
-                index={idx}
-                numItems={menuItemsNoDividers.length}
-                onHidden={this.props.closeOnClick ? this.props.onHidden : undefined}
-                textColor={this.props.textColor}
-                backgroundColor={this.props.backgroundColor}
-              />
-            ))}
-          </ScrollView>
-          <Divider style={styles.divider} />
-          <Box style={Styles.collapseStyles([styles.menuGroup, this.props.listStyle])}>
+          {menuItemsNoDividers.map((mi, idx) => (
             <MenuRow
-              title={this.props.closeText || 'Close'}
-              index={0}
-              numItems={1}
-              onClick={this.props.onHidden} // pass in nothing to onHidden so it doesn't trigger it twice
-              onHidden={() => {}}
-              textColor={this.props.textColor}
-              backgroundColor={this.props.backgroundColor}
+              key={mi.title}
+              {...mi}
+              index={idx}
+              numItems={menuItemsNoDividers.length}
+              onHidden={props.closeOnClick ? props.onHidden : undefined}
+              textColor={props.textColor}
+              backgroundColor={props.backgroundColor}
             />
-          </Box>
+          ))}
+        </ScrollView>
+        <Divider style={styles.divider} />
+        <Box style={Styles.collapseStyles([styles.menuGroup, props.listStyle])}>
+          <MenuRow
+            title={props.closeText || 'Close'}
+            index={0}
+            numItems={1}
+            onClick={props.onHidden} // pass in nothing to onHidden so it doesn't trigger it twice
+            onHidden={() => {}}
+            textColor={props.textColor}
+            backgroundColor={props.backgroundColor}
+          />
         </Box>
-      </NativeSafeAreaView>
-    )
-  }
+      </Box>
+    </NativeSafeAreaView>
+  )
 }
 
 const styleRowText = (props: {
@@ -155,6 +155,7 @@ const styles = Styles.styleSheetCreate(
         paddingLeft: Styles.globalMargins.medium,
         paddingRight: Styles.globalMargins.medium,
         paddingTop: Styles.globalMargins.tiny,
+        position: 'relative',
       },
       menuBox: {
         ...Styles.globalStyles.flexBoxColumn,
@@ -167,6 +168,13 @@ const styles = Styles.styleSheetCreate(
         ...Styles.globalStyles.flexBoxColumn,
         alignItems: 'stretch',
         justifyContent: 'flex-end',
+      },
+      progressIndicator: {
+        bottom: 0,
+        left: 0,
+        position: 'absolute',
+        right: 0,
+        top: 0,
       },
       safeArea: {
         backgroundColor: Styles.globalColors.white,

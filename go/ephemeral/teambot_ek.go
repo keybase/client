@@ -47,29 +47,6 @@ func (k *TeambotEphemeralKeyer) Type() keybase1.TeamEphemeralKeyType {
 	return keybase1.TeamEphemeralKeyType_TEAMBOT
 }
 
-func publishNewTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID, botUID keybase1.UID,
-	teamEK keybase1.TeamEk, merkleRoot libkb.MerkleRoot) (metadata keybase1.TeambotEkMetadata, err error) {
-	defer mctx.TraceTimed("publishNewTeambotEK", func() error { return err })()
-
-	team, err := teams.Load(mctx.Ctx(), mctx.G(), keybase1.LoadTeamArg{
-		ID: teamID,
-	})
-	if err != nil {
-		return metadata, err
-	}
-
-	sig, box, err := prepareNewTeambotEK(mctx, team, botUID, teamEK, merkleRoot)
-	if err != nil {
-		return metadata, err
-	}
-
-	if err = postNewTeambotEK(mctx, team.ID, sig, box.Box); err != nil {
-		return metadata, err
-	}
-
-	return box.Metadata, nil
-}
-
 func postNewTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID, sig, box string) (err error) {
 	defer mctx.TraceTimed("postNewTeambotEK", func() error { return err })()
 
@@ -89,7 +66,8 @@ func postNewTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID, sig, box s
 }
 
 func prepareNewTeambotEK(mctx libkb.MetaContext, team *teams.Team, botUID keybase1.UID,
-	teamEK keybase1.TeamEk, merkleRoot libkb.MerkleRoot) (sig string, box *keybase1.TeambotEkBoxed, err error) {
+	seed TeambotEKSeed, metadata *keybase1.TeambotEkMetadata,
+	merkleRoot libkb.MerkleRoot) (sig string, box *keybase1.TeambotEkBoxed, err error) {
 	defer mctx.TraceTimed("prepareNewTeambotEK", func() error { return err })()
 
 	statement, _, _, err := fetchUserEKStatement(mctx, botUID)
@@ -103,27 +81,14 @@ func prepareNewTeambotEK(mctx libkb.MetaContext, team *teams.Team, botUID keybas
 		return "", nil, fmt.Errorf("unable to make teambot key, bot has no active user EKs")
 	}
 	activeMetadata := activeMetadataMap[botUID]
+	metadata.UserEkGeneration = activeMetadata.Generation
 
+	// Encrypting with a nil sender means we'll generate a random sender
+	// private key.
 	recipientKey, err := libkb.ImportKeypairFromKID(activeMetadata.Kid)
 	if err != nil {
 		return "", nil, err
 	}
-
-	seed := deriveTeambotEKFromTeamEK(mctx, teamEK, botUID)
-	metadata := keybase1.TeambotEkMetadata{
-		Kid:              seed.DeriveDHKey().GetKID(),
-		Generation:       teamEK.Metadata.Generation,
-		Uid:              botUID,
-		UserEkGeneration: activeMetadata.Generation,
-		HashMeta:         merkleRoot.HashMeta(),
-		// The ctime is derivable from the hash meta, by fetching the hashed
-		// root from the server, but including it saves readers a potential
-		// extra round trip.
-		Ctime: keybase1.TimeFromSeconds(merkleRoot.Ctime()),
-	}
-
-	// Encrypting with a nil sender means we'll generate a random sender
-	// private key.
 	boxedSeed, err := recipientKey.EncryptToString(seed[:], nil)
 	if err != nil {
 		return "", nil, err
@@ -131,7 +96,7 @@ func prepareNewTeambotEK(mctx libkb.MetaContext, team *teams.Team, botUID keybas
 
 	boxed := keybase1.TeambotEkBoxed{
 		Box:      boxedSeed,
-		Metadata: metadata,
+		Metadata: *metadata,
 	}
 
 	metadataJSON, err := json.Marshal(metadata)
@@ -282,7 +247,8 @@ func (k *TeambotEphemeralKeyer) Unbox(mctx libkb.MetaContext, boxed keybase1.Tea
 
 	keypair := seed.DeriveDHKey()
 	if !keypair.GetKID().Equal(teambotEKBoxed.Metadata.Kid) {
-		return ek, fmt.Errorf("Failed to verify server given seed against signed KID %s", teambotEKBoxed.Metadata.Kid)
+		return ek, fmt.Errorf("Failed to verify server given seed [%s] against signed KID [%s]. Box: %+v",
+			teambotEKBoxed.Metadata.Kid, keypair.GetKID(), teambotEKBoxed)
 	}
 
 	return keybase1.NewTeamEphemeralKeyWithTeambot(keybase1.TeambotEk{

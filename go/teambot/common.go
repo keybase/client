@@ -135,28 +135,29 @@ func CurrentUserIsBot(mctx libkb.MetaContext, botUID *gregor1.UID) bool {
 }
 
 func DeleteTeambotKeyForTest(mctx libkb.MetaContext, teamID keybase1.TeamID,
-	generation keybase1.TeambotKeyGeneration) error {
-	if err := deleteTeambotKeyForTest(mctx, teamID, int(generation), false /* isEphemeral */); err != nil {
+	app keybase1.TeamApplication, generation keybase1.TeambotKeyGeneration) error {
+	if err := deleteTeambotKeyForTest(mctx, teamID, app, int(generation), false /* isEphemeral */); err != nil {
 		return err
 	}
-	return mctx.G().GetTeambotBotKeyer().DeleteTeambotKeyForTest(mctx, teamID, generation)
+	return mctx.G().GetTeambotBotKeyer().DeleteTeambotKeyForTest(mctx, teamID, app, generation)
 }
 
 func DeleteTeambotEKForTest(mctx libkb.MetaContext, teamID keybase1.TeamID,
 	generation keybase1.EkGeneration) error {
-	if err := deleteTeambotKeyForTest(mctx, teamID, int(generation), true /* isEphemeral */); err != nil {
+	if err := deleteTeambotKeyForTest(mctx, teamID, keybase1.TeamApplication_CHAT, int(generation), true /* isEphemeral */); err != nil {
 		return err
 	}
 	return mctx.G().GetTeambotEKBoxStorage().Delete(mctx, teamID, generation)
 }
 
-func deleteTeambotKeyForTest(mctx libkb.MetaContext, teamID keybase1.TeamID, generation int,
-	isEphemeral bool) error {
+func deleteTeambotKeyForTest(mctx libkb.MetaContext, teamID keybase1.TeamID,
+	app keybase1.TeamApplication, generation int, isEphemeral bool) error {
 	apiArg := libkb.APIArg{
 		Endpoint:    "teambot/delete_for_test",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
 			"team_id":      libkb.S{Val: string(teamID)},
+			"application":  libkb.I{Val: int(app)},
 			"generation":   libkb.U{Val: uint64(generation)},
 			"is_ephemeral": libkb.B{Val: isEphemeral},
 		},

@@ -400,6 +400,10 @@ func getInt(w *jsonw.Wrapper) (interface{}, error) {
 	return w.GetInt()
 }
 
+func getFloat(w *jsonw.Wrapper) (interface{}, error) {
+	return w.GetFloat()
+}
+
 func (f *JSONFile) GetFilename() string {
 	return f.filename
 }
@@ -440,6 +444,16 @@ func (f *JSONFile) GetIntAtPath(p string) (ret int, isSet bool) {
 	return ret, isSet
 }
 
+func (f *JSONFile) GetFloatAtPath(p string) (ret float64, isSet bool) {
+	f.setMutex.RLock()
+	defer f.setMutex.RUnlock()
+	v, isSet := f.getValueAtPath(p, getFloat)
+	if isSet {
+		ret = v.(float64)
+	}
+	return ret, isSet
+}
+
 func (f *JSONFile) GetNullAtPath(p string) (isSet bool) {
 	f.setMutex.RLock()
 	defer f.setMutex.RUnlock()
@@ -476,6 +490,12 @@ func (f *JSONFile) SetIntAtPath(p string, v int) error {
 	f.setMutex.Lock()
 	defer f.setMutex.Unlock()
 	return f.setValueAtPath(p, getInt, v)
+}
+
+func (f *JSONFile) SetFloatAtPath(p string, v float64) error {
+	f.setMutex.Lock()
+	defer f.setMutex.Unlock()
+	return f.setValueAtPath(p, getFloat, v)
 }
 
 func (f *JSONFile) SetInt64AtPath(p string, v int64) error {

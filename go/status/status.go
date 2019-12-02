@@ -107,7 +107,7 @@ func GetExtendedStatus(mctx libkb.MetaContext) (res keybase1.ExtendedStatus, err
 
 	res.PlatformInfo = getPlatformInfo()
 	res.DefaultDeviceID = g.Env.GetDeviceID()
-	res.RememberPassphrase = g.Env.RememberPassphrase()
+	res.RememberPassphrase = g.Env.GetRememberPassphrase(g.Env.GetUsername())
 	// DeviceEK status, can be nil if user is logged out
 	deviceEKStorage := g.GetDeviceEKStorage()
 	if deviceEKStorage != nil {

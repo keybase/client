@@ -53,14 +53,20 @@ const PinnedMessage = (props: Props) => {
             {props.text}
           </Kb.Markdown>
         </Kb.Box2>
-        {props.unpinning && <Kb.ProgressIndicator style={styles.progress} />}
-        <Kb.Icon
-          onClick={props.dismissUnpins ? () => setShowPopup(true) : props.onDismiss}
-          type="iconfont-close"
-          style={Kb.iconCastPlatformStyles(styles.close)}
-          boxStyle={styles.close}
-          ref={closeref}
-        />
+        {props.unpinning ? (
+          <Kb.Box2 direction="vertical" alignSelf="center">
+            <Kb.ProgressIndicator type="Small" />
+          </Kb.Box2>
+        ) : (
+          <Kb.Icon
+            onClick={props.dismissUnpins ? () => setShowPopup(true) : props.onDismiss}
+            type="iconfont-close"
+            sizeType="Small"
+            style={Kb.iconCastPlatformStyles(styles.close)}
+            boxStyle={styles.close}
+            ref={closeref}
+          />
+        )}
       </Kb.Box2>
     </Kb.ClickableBox>
   )
@@ -127,18 +133,25 @@ const styles = Styles.styleSheetCreate(
         backgroundColor: Styles.globalColors.blue,
         width: Styles.globalMargins.xtiny,
       },
-      close: {
-        alignSelf: 'center',
-      },
+      close: Styles.platformStyles({
+        common: {
+          alignSelf: 'flex-start',
+        },
+        isElectron: {
+          paddingBottom: Styles.globalMargins.xtiny,
+          paddingLeft: Styles.globalMargins.xtiny,
+          paddingTop: Styles.globalMargins.xtiny,
+        },
+        isMobile: {
+          padding: Styles.globalMargins.xtiny,
+        },
+      }),
       container: {
         ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.tiny),
         backgroundColor: Styles.globalColors.white,
         borderBottomWidth: 1,
         borderColor: Styles.globalColors.black_10,
         borderStyle: 'solid',
-        left: 0,
-        position: 'absolute',
-        top: 0,
         width: '100%',
       },
       imageContainer: {
@@ -156,13 +169,6 @@ const styles = Styles.styleSheetCreate(
         },
         isElectron: {
           maxWidth: 200,
-        },
-      }),
-      progress: Styles.platformStyles({
-        isElectron: {
-          alignSelf: 'center',
-          height: 17,
-          width: 17,
         },
       }),
       text: Styles.platformStyles({

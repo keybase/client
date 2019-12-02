@@ -153,7 +153,10 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 
 	// Reduce OS threads on mobile so we don't have too much contention with JS thread
 	oldProcs := runtime.GOMAXPROCS(0)
-	newProcs := oldProcs / 2
+	newProcs := oldProcs - 2
+	if newProcs <= 0 {
+		newProcs = 1
+	}
 	runtime.GOMAXPROCS(newProcs)
 	fmt.Printf("Go: setting GOMAXPROCS to: %d previous: %d\n", newProcs, oldProcs)
 
@@ -174,6 +177,7 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 
 	// 10k uid -> FullName cache entries allowed
 	kbCtx.SetUIDMapper(uidmap.NewUIDMap(10000))
+	kbCtx.SetServiceSummaryMapper(uidmap.NewServiceSummaryMap(1000))
 	usage := libkb.Usage{
 		Config:    true,
 		API:       true,
@@ -203,7 +207,7 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	}
 
 	kbSvc = service.NewService(kbCtx, false)
-	err = kbSvc.StartLoopbackServer()
+	err = kbSvc.StartLoopbackServer(libkb.LoginAttemptOffline)
 	if err != nil {
 		return err
 	}
@@ -362,6 +366,9 @@ func ReadB64() (res string, err error) {
 func Reset() error {
 	if conn != nil {
 		conn.Close()
+	}
+	if kbCtx == nil || kbCtx.LoopbackListener == nil {
+		return nil
 	}
 
 	var err error

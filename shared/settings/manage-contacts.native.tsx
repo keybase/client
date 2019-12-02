@@ -30,8 +30,8 @@ const ManageContacts = () => {
     () =>
       dispatch(
         status !== 'granted'
-          ? SettingsGen.createRequestContactPermissions({thenToggleImportOn: true})
-          : SettingsGen.createEditContactImportEnabled({enable: !contactsImported})
+          ? SettingsGen.createRequestContactPermissions({fromSettings: true, thenToggleImportOn: true})
+          : SettingsGen.createEditContactImportEnabled({enable: !contactsImported, fromSettings: true})
       ),
     [dispatch, contactsImported, status]
   )

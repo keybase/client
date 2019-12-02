@@ -14,9 +14,6 @@ func handleTLFSpecialFile(name string, folder *Folder) dokan.File {
 	// Common files (the equivalent of handleCommonSpecialFile
 	// from libfuse) are handled in fs.go.
 	switch name {
-	case libfs.UpdateHistoryFileName:
-		return NewUpdateHistoryFile(folder)
-
 	case libfs.EditHistoryName:
 		return NewTlfEditHistoryFile(folder)
 

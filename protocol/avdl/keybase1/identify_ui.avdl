@@ -116,6 +116,7 @@ protocol identifyUi {
     string fullName;
     string location;
     string bio;
+    string bioDecorated;
     string website;
     string twitter;
     boolean youFollowThem;
@@ -123,6 +124,7 @@ protocol identifyUi {
     array<UserTeamShowcase> teamShowcase;
     boolean registeredForAirdrop;
     boolean blocked;
+    boolean hidFromFollowers;
   }
 
   record ConfirmResult {

@@ -42,7 +42,7 @@
       "email": "string",
       "delete?": "boolean",
       "makePrimary?": "boolean",
-      "makeSearchable?": "boolean | null",
+      "makeSearchable?": "boolean",
       "verify?": "boolean"
     },
     "editPhone": {
@@ -51,6 +51,10 @@
       "setSearchable?": "boolean"
     },
     "sentVerificationEmail": {
+      "email": "string"
+    },
+    "emailVerified": {
+      "_description": "An email was just marked as verified",
       "email": "string"
     },
     "loadContactImportEnabled": {
@@ -63,18 +67,23 @@
       "status": ["'granted'", "'never_ask_again'", "'undetermined'"]
     },
     "requestContactPermissions": {
-      "thenToggleImportOn?": "boolean"
+      "thenToggleImportOn?": "boolean",
+      "fromSettings?": "boolean"
     },
     "editContactImportEnabled": {
-      "enable": "boolean"
+      "enable": "boolean",
+      "fromSettings?": "boolean"
+    },
+    "showContactsJoinedModal": {
+      "resolved": "Array<RPCTypes.ProcessedContact>"
     },
     "importContactsLater": {},
     "setContactImportedCount": {
-      "count": "number | null",
+      "count?": "number",
       "error?": "string"
     },
     "loadedUserCountryCode": {
-      "code": "string | null"
+      "code?": "string"
     },
     "addEmail": {
       "email": "string",
@@ -93,23 +102,16 @@
     "invitesReclaim": {
       "inviteId": "string"
     },
-    "invitesReclaimed": {
-      "canError": {
-        "errorText": "string"
-      }
-    },
     "invitesRefresh": {},
     "invitesRefreshed": {
-      "invites": "Types._InvitesState"
+      "invites": "Types.InvitesState"
     },
     "invitesSend": {
       "email": "string",
-      "message": "string | null"
+      "message?": "string"
     },
     "invitesSent": {
-      "canError": {
-        "error": "Error"
-      }
+      "error?": "Error"
     },
     "loadRememberPassword": {},
     "loadedRememberPassword": {
@@ -117,24 +119,24 @@
     },
     "loadSettings": {},
     "loadedSettings": {
-      "emails": "I.Map<string, Types.EmailRow> | null",
-      "phones": "I.Map<string, Types.PhoneRow> | null"
+      "emails?": "Map<string, Types.EmailRow>",
+      "phones?": "Map<string, Types.PhoneRow>"
     },
     "loadLockdownMode": {},
     "loadedLockdownMode": {
-      "status": "boolean | null"
+      "status?": "boolean"
     },
     "onChangeLockdownMode": {
       "enabled": "boolean"
     },
     "notificationsRefresh": {},
     "notificationsRefreshed": {
-      "notifications": "I.Map<string, Types.NotificationsGroupState>"
+      "notifications": "Map<string, Types.NotificationsGroupState>"
     },
     "notificationsSaved": {},
     "notificationsToggle": {
       "group": "string",
-      "name?": "string | null"
+      "name?": "string"
     },
     "onChangeNewEmail": {
       "email": "string"
@@ -163,9 +165,6 @@
     "onUpdatedPGPSettings": {
       "hasKeys": "boolean"
     },
-    "setAllowDeleteAccount": {
-      "allow": "boolean"
-    },
     "stop": {
       "exitCode": "RPCTypes.ExitCode"
     },
@@ -178,7 +177,7 @@
     "unfurlSettingsSaved": {
       "_description": "Update unfurl settings from settings screen",
       "mode": "RPCChatTypes.UnfurlMode",
-      "whitelist": "I.List<string>"
+      "whitelist": "Array<string>"
     },
     "unfurlSettingsRefresh": {
       "_description": "Refresh unfurl settings"
@@ -186,7 +185,7 @@
     "unfurlSettingsRefreshed": {
       "_description": "Refreshed unfurl settings available",
       "mode": "RPCChatTypes.UnfurlMode",
-      "whitelist": "I.List<string>"
+      "whitelist": "Array<string>"
     },
     "unfurlSettingsError": {
       "_description": "An error occurred on the unfurl settings screen",
@@ -200,7 +199,7 @@
       "password": "HiddenString"
     },
     "loadedCheckPassword": {
-      "checkPasswordIsCorrect": "boolean | null"
+      "checkPasswordIsCorrect?": "boolean"
     },
     "sendFeedback": {
       "feedback": "string",
@@ -209,7 +208,7 @@
     },
     "feedbackSent": {
       "_description": "An error occurred while trying to send feedback to Keybase",
-      "error": "Error | null"
+      "error?": "Error"
     },
     "loadProxyData": {},
     "loadedProxyData": {
@@ -219,8 +218,9 @@
       "proxyData": "RPCTypes.ProxyData"
     },
     "certificatePinningToggled": {
-      "toggled": "boolean | null"
+      "toggled?": "boolean"
     },
-    "toggleRuntimeStats": {}
+    "toggleRuntimeStats": {},
+    "loginBrowserViaWebAuthToken": {}
   }
 }

@@ -730,6 +730,10 @@
           "name": "uid"
         },
         {
+          "type": "keybase1.TeamRole",
+          "name": "untrustedTeamRole"
+        },
+        {
           "type": "ConversationID",
           "name": "convID"
         },
@@ -860,7 +864,8 @@
           ]
         }
       ],
-      "response": "GetInboxRemoteRes"
+      "response": "GetInboxRemoteRes",
+      "timeout_msec": 300000
     },
     "getThreadRemote": {
       "request": [

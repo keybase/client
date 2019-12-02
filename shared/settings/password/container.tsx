@@ -24,9 +24,9 @@ export default Container.connect(
   dispatch => ({
     onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
     onChangeShowPassword: () => dispatch(SettingsGen.createOnChangeShowPassword()),
-    onSave: (password: string, passwordConfirm: string) => {
+    onSave: (password: string) => {
       dispatch(SettingsGen.createOnChangeNewPassword({password: new HiddenString(password)}))
-      dispatch(SettingsGen.createOnChangeNewPasswordConfirm({password: new HiddenString(passwordConfirm)}))
+      dispatch(SettingsGen.createOnChangeNewPasswordConfirm({password: new HiddenString(password)}))
       dispatch(SettingsGen.createOnSubmitNewPassword({thenSignOut: false}))
     },
     onUpdatePGPSettings: () => dispatch(SettingsGen.createOnUpdatePGPSettings()),

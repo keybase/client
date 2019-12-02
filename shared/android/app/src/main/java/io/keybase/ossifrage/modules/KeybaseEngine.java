@@ -3,7 +3,6 @@ package io.keybase.ossifrage.modules;
 import android.app.KeyguardManager;
 import android.content.Context;
 
-import com.facebook.react.TurboReactPackage;
 import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -18,7 +17,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,13 +24,16 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import keybase.Keybase;
 import io.keybase.ossifrage.BuildConfig;
-import io.keybase.ossifrage.modules.NativeLogger;
+import io.keybase.ossifrage.DarkModePrefHelper;
+import io.keybase.ossifrage.DarkModePreference;
+import io.keybase.ossifrage.MainActivity;
+import keybase.Keybase;
 
+import static io.keybase.ossifrage.MainActivity.isTestDevice;
 import static keybase.Keybase.readB64;
-import static keybase.Keybase.writeB64;
 import static keybase.Keybase.version;
+import static keybase.Keybase.writeB64;
 
 @ReactModule(name = "KeybaseEngine")
 public class KeybaseEngine extends ReactContextBaseJavaModule implements KillableModule {
@@ -45,6 +46,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
     private Boolean started = false;
     private ReactApplicationContext reactContext;
     private WritableMap initialIntent;
+    private boolean misTestDevice;
 
     private static void relayReset(ReactApplicationContext reactContext) {
         if (!reactContext.hasActiveCatalystInstance()) {
@@ -91,6 +93,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
         super(reactContext);
         NativeLogger.info("KeybaseEngine constructed");
         this.reactContext = reactContext;
+        this.misTestDevice = isTestDevice(reactContext);
 
         reactContext.addLifecycleEventListener(new LifecycleEventListener() {
             @Override
@@ -122,7 +125,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
             relayReset(reactContext);
             // We often hit this timeout during app resume, e.g. hit the back
             // button to go to home screen and then tap Keybase app icon again.
-            if (!executor.awaitTermination(3, TimeUnit.SECONDS)) {
+            if (executor != null && !executor.awaitTermination(3, TimeUnit.SECONDS)) {
                 NativeLogger.warn(NAME + ": Executor pool didn't shut down cleanly");
             }
             executor = null;
@@ -163,6 +166,11 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
         return ret;
     }
 
+    private String readGuiConfig() {
+        File filePath = new File(reactContext.getFilesDir(), "/.config/keybase/gui_config.json");
+        return readFromFile(filePath.getAbsolutePath());
+    }
+
     @Override
     public Map<String, Object> getConstants() {
         String versionCode = String.valueOf(BuildConfig.VERSION_CODE);
@@ -189,8 +197,10 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
         constants.put("metaEventEngineReset", RPC_META_EVENT_ENGINE_RESET);
         constants.put("appVersionName", versionName);
         constants.put("appVersionCode", versionCode);
+        constants.put("guiConfig", readGuiConfig());
         constants.put("version", version());
         constants.put("isDeviceSecure", isDeviceSecure);
+        constants.put("isTestDevice", misTestDevice);
         constants.put("serverConfig", serverConfig);
         return constants;
     }
@@ -234,6 +244,16 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
     @ReactMethod
     public void getInitialIntent(Promise promise) {
         promise.resolve(initialIntent);
+    }
+
+    // Same type as DarkModePreference: 'system' | 'alwaysDark' | 'alwaysLight'
+    @ReactMethod
+    public void appColorSchemeChanged(String prefString) {
+        final DarkModePreference pref = DarkModePrefHelper.fromString(prefString);
+        final MainActivity activity = (MainActivity) reactContext.getCurrentActivity();
+        if (activity != null) {
+          activity.setBackgroundColor(pref);
+        }
     }
 
     public void setInitialIntent(WritableMap initialIntent) {

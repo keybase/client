@@ -13,9 +13,8 @@ type Feature string
 type FeatureFlags []Feature
 
 const (
-	EnvironmentFeatureAllowHighSkips    = Feature("env_allow_high_skips")
-	EnvironmentFeatureAutoresetPipeline = Feature("env_autoreset")
-	EnvironmentFeatureMerkleCheckpoint  = Feature("merkle_checkpoint")
+	EnvironmentFeatureAllowHighSkips   = Feature("env_allow_high_skips")
+	EnvironmentFeatureMerkleCheckpoint = Feature("merkle_checkpoint")
 )
 
 // StringToFeatureFlags returns a set of feature flags
@@ -74,6 +73,10 @@ const (
 	FeatureBoxAuditor                 = Feature("box_auditor2")
 	ExperimentalGenericProofs         = Feature("experimental_generic_proofs")
 	FeatureCheckForHiddenChainSupport = Feature("check_for_hidden_chain_support")
+
+	// Show journeycards. This flag is for development and admin testing.
+	// This flag is known to clients with old buggy journeycard code. For that reason, don't enable it for external users.
+	FeatureJourneycardPreview = Feature("journeycard_preview")
 )
 
 // NewFeatureFlagSet makes a new set of feature flags.

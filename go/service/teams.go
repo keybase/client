@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/offline"
+	"github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -128,14 +129,34 @@ func (h *TeamsHandler) TeamGet(ctx context.Context, arg keybase1.TeamGetArg) (re
 	if err != nil {
 		return res, err
 	}
+	return h.teamGet(ctx, res, arg.Name)
+}
 
-	if res.Settings.Open {
-		h.G().Log.CDebugf(ctx, "TeamGet: %q is an open team, filtering reset writers and readers", arg.Name)
-		res.Members.Writers = keybase1.FilterInactiveMembers(res.Members.Writers)
-		res.Members.Readers = keybase1.FilterInactiveMembers(res.Members.Readers)
+func (h *TeamsHandler) TeamGetByID(ctx context.Context, arg keybase1.TeamGetByIDArg) (res keybase1.TeamDetails, err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamGetByID(%s)", arg.Id), func() error { return err })()
+
+	res, err = teams.DetailsByID(ctx, h.G().ExternalG(), arg.Id)
+	if err != nil {
+		return res, err
 	}
+	return h.teamGet(ctx, res, arg.Id.String())
+}
 
-	return res, nil
+func (h *TeamsHandler) GetAnnotatedTeam(ctx context.Context, arg keybase1.TeamID) (res keybase1.AnnotatedTeam, err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("GetAnnotatedTeam(%s)", arg), func() error { return err })()
+
+	return teams.GetAnnotatedTeam(ctx, h.G().ExternalG(), arg)
+}
+
+func (h *TeamsHandler) teamGet(ctx context.Context, details keybase1.TeamDetails, teamDescriptor string) (keybase1.TeamDetails, error) {
+	if details.Settings.Open {
+		h.G().Log.CDebugf(ctx, "TeamGet: %q is an open team, filtering reset writers and readers", teamDescriptor)
+		details.Members.Writers = keybase1.FilterInactiveMembers(details.Members.Writers)
+		details.Members.Readers = keybase1.FilterInactiveMembers(details.Members.Readers)
+	}
+	return details, nil
 }
 
 func (h *TeamsHandler) TeamGetMembers(ctx context.Context, arg keybase1.TeamGetMembersArg) (res keybase1.TeamMembersDetails, err error) {
@@ -245,8 +266,8 @@ func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMe
 	result.ChatSending = true
 	go func() {
 		ctx := libkb.WithLogTag(context.Background(), "BG")
-		err := teams.SendTeamChatWelcomeMessage(ctx, h.G().ExternalG(), arg.Name,
-			result.User.Username)
+		err := teams.SendTeamChatWelcomeMessage(ctx, h.G().ExternalG(), "", arg.Name,
+			result.User.Username, chat1.ConversationMembersType_TEAM, arg.Role)
 		if err != nil {
 			h.G().Log.CDebugf(ctx, "send team welcome message: error: %v", err)
 		} else {
@@ -310,10 +331,11 @@ func (h *TeamsHandler) TeamAddMembersMultiRole(ctx context.Context, arg keybase1
 			h.G().Log.CDebugf(ctx, "sending team welcome messages")
 			ctx := libkb.WithLogTag(context.Background(), "BG")
 			for i, res := range res {
-				h.G().Log.CDebugf(ctx, "team welcome message for i:%v assertion:%v username:%v invite:%v",
-					i, arg.Users[i].AssertionOrEmail, res.Username, res.Invite)
+				h.G().Log.CDebugf(ctx, "team welcome message for i:%v assertion:%v username:%v invite:%v, role: %v",
+					i, arg.Users[i].AssertionOrEmail, res.Username, res.Invite, arg.Users[i].Role)
 				if !res.Invite && !res.Username.IsNil() {
-					err := teams.SendTeamChatWelcomeMessage(ctx, h.G().ExternalG(), arg.Name, res.Username.String())
+					err := teams.SendTeamChatWelcomeMessage(ctx, h.G().ExternalG(), "", arg.Name,
+						res.Username.String(), chat1.ConversationMembersType_TEAM, arg.Users[i].Role)
 					if err != nil {
 						h.G().Log.CDebugf(ctx, "send team welcome message [%v] err: %v", i, err)
 					} else {
@@ -331,8 +353,7 @@ func (h *TeamsHandler) TeamAddMembersMultiRole(ctx context.Context, arg keybase1
 
 func (h *TeamsHandler) TeamRemoveMember(ctx context.Context, arg keybase1.TeamRemoveMemberArg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamRemoveMember(%s, u:%q, e:%q, i:%q)", arg.Name, arg.Username, arg.Email, arg.InviteID),
-		func() error { return err })()
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamRemoveMember(%s, u:%q, e:%q, i:%q, a:%v)", arg.Name, arg.Username, arg.Email, arg.InviteID, arg.AllowInaction), func() error { return err })()
 
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return err
@@ -354,11 +375,12 @@ func (h *TeamsHandler) TeamRemoveMember(ctx context.Context, arg keybase1.TeamRe
 
 	if len(arg.Email) > 0 {
 		h.G().Log.CDebugf(ctx, "TeamRemoveMember: received email address, using CancelEmailInvite for %q in team %q", arg.Email, arg.Name)
-		return teams.CancelEmailInvite(ctx, h.G().ExternalG(), arg.Name, arg.Email)
+		return teams.CancelEmailInvite(ctx, h.G().ExternalG(), arg.Name, arg.Email, arg.AllowInaction)
 	} else if len(arg.InviteID) > 0 {
 		h.G().Log.CDebugf(ctx, "TeamRemoveMember: received inviteID, using CancelInviteByID for %q in team %q", arg.InviteID, arg.Name)
-		return teams.CancelInviteByID(ctx, h.G().ExternalG(), arg.Name, arg.InviteID)
+		return teams.CancelInviteByID(ctx, h.G().ExternalG(), arg.Name, arg.InviteID, arg.AllowInaction)
 	}
+	// Note: AllowInaction is not supported for non-invite removes.
 	h.G().Log.CDebugf(ctx, "TeamRemoveMember: using RemoveMember for %q in team %q", arg.Username, arg.Name)
 	return teams.RemoveMember(ctx, h.G().ExternalG(), arg.Name, arg.Username)
 }
@@ -482,12 +504,12 @@ func (h *TeamsHandler) TeamTree(ctx context.Context, arg keybase1.TeamTreeArg) (
 
 func (h *TeamsHandler) TeamDelete(ctx context.Context, arg keybase1.TeamDeleteArg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamDelete(%s)", arg.Name), func() error { return err })()
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamDelete(%s)", arg.TeamID), func() error { return err })()
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return err
 	}
 	ui := h.getTeamsUI(arg.SessionID)
-	return teams.Delete(ctx, h.G().ExternalG(), ui, arg.Name)
+	return teams.Delete(ctx, h.G().ExternalG(), ui, arg.TeamID)
 }
 
 func (h *TeamsHandler) TeamSetSettings(ctx context.Context, arg keybase1.TeamSetSettingsArg) (err error) {
@@ -727,4 +749,9 @@ func (h *TeamsHandler) GetTeamID(ctx context.Context, teamName string) (res keyb
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("GetTeamIDByName(%s)", teamName), func() error { return err })()
 	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
 	return teams.GetTeamIDByNameRPC(mctx, teamName)
+}
+
+func (h *TeamsHandler) GetTeamRoleMap(ctx context.Context) (res keybase1.TeamRoleMapAndVersion, err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
+	return mctx.G().GetTeamRoleMapManager().Get(mctx, true /* retry on fail */)
 }

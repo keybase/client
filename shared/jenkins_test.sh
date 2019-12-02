@@ -47,7 +47,7 @@ js_tests() {
     has_js_files
 
     echo 'yarn install'
-    yarn modules
+    yarn modules --ignore-engines
     check_rc $? 'yarn install fail' 1
 
     echo 'checking no mutated yarn.lock file'
@@ -60,8 +60,8 @@ js_tests() {
     git diff --exit-code actions
     check_rc $? 'unexpected generated actions changes, did you forget to run yarn build-actions?' 1
 
-    echo 'yarn tsc-slow'
-    yarn tsc-slow
+    echo 'yarn tsc'
+    yarn tsc
     check_rc $? 'tsc failed!' 1
 
     echo 'yarn lint'

@@ -10,23 +10,23 @@ const windowQuit = () => {
 export default function makeMenu(window: Electron.BrowserWindow) {
   const editMenu = new Electron.MenuItem({
     label: 'Edit',
-    submenu: [
-      {accelerator: 'CmdOrCtrl+Z', label: 'Undo', role: 'undo'},
-      {accelerator: 'Shift+CmdOrCtrl+Z', label: 'Redo', role: 'redo'},
-      {type: 'separator'},
-      {accelerator: 'CmdOrCtrl+X', label: 'Cut', role: 'cut'},
-      {accelerator: 'CmdOrCtrl+C', label: 'Copy', role: 'copy'},
-      {accelerator: 'CmdOrCtrl+V', label: 'Paste', role: 'paste'},
-      {accelerator: 'CmdOrCtrl+A', label: 'Select All', role: 'selectall'},
-    ],
+    submenu: Electron.Menu.buildFromTemplate([
+      new Electron.MenuItem({accelerator: 'CmdOrCtrl+Z', label: 'Undo', role: 'undo'}),
+      new Electron.MenuItem({accelerator: 'Shift+CmdOrCtrl+Z', label: 'Redo', role: 'redo'}),
+      new Electron.MenuItem({type: 'separator'}),
+      new Electron.MenuItem({accelerator: 'CmdOrCtrl+X', label: 'Cut', role: 'cut'}),
+      new Electron.MenuItem({accelerator: 'CmdOrCtrl+C', label: 'Copy', role: 'copy'}),
+      new Electron.MenuItem({accelerator: 'CmdOrCtrl+V', label: 'Paste', role: 'paste'}),
+      new Electron.MenuItem({accelerator: 'CmdOrCtrl+A', label: 'Select All', role: 'selectAll'}),
+    ]),
   })
 
   const windowMenu = new Electron.MenuItem({
     label: 'Window',
     submenu: Electron.Menu.buildFromTemplate([
-      new Electron.MenuItem({accelerator: 'CmdOrCtrl+=', label: 'Zoom In', role: 'zoomin'}),
-      new Electron.MenuItem({label: 'Zoom Out', role: 'zoomout'}),
-      new Electron.MenuItem({label: 'Reset zoom ', role: 'resetzoom'}),
+      new Electron.MenuItem({accelerator: 'CmdOrCtrl+=', label: 'Zoom In', role: 'zoomIn'}),
+      new Electron.MenuItem({label: 'Zoom Out', role: 'zoomOut'}),
+      new Electron.MenuItem({label: 'Reset zoom ', role: 'resetZoom'}),
       new Electron.MenuItem({label: 'Minimize', role: 'minimize'}),
       new Electron.MenuItem({accelerator: 'CmdOrCtrl+W', label: 'Close', role: 'close'}),
       new Electron.MenuItem({type: 'separator'}),
@@ -72,21 +72,21 @@ export default function makeMenu(window: Electron.BrowserWindow) {
     const template = [
       new Electron.MenuItem({
         label: 'Keybase',
-        submenu: [
-          {label: 'About Keybase', role: 'about'},
-          {type: 'separator'},
-          {accelerator: 'CmdOrCtrl+H', label: 'Hide Keybase', role: 'hide'},
-          {accelerator: 'CmdOrCtrl+Shift+H', label: 'Hide Others', role: 'hideothers'},
-          {label: 'Show All', role: 'unhide'},
-          {type: 'separator'},
-          {
+        submenu: Electron.Menu.buildFromTemplate([
+          new Electron.MenuItem({label: 'About Keybase', role: 'about'}),
+          new Electron.MenuItem({type: 'separator'}),
+          new Electron.MenuItem({accelerator: 'CmdOrCtrl+H', label: 'Hide Keybase', role: 'hide'}),
+          new Electron.MenuItem({accelerator: 'CmdOrCtrl+Shift+H', label: 'Hide Others', role: 'hideOthers'}),
+          new Electron.MenuItem({label: 'Show All', role: 'unhide'}),
+          new Electron.MenuItem({type: 'separator'}),
+          new Electron.MenuItem({
             accelerator: 'CmdOrCtrl+Q',
             click() {
               windowQuit()
             },
             label: 'Minimize to Tray',
-          },
-        ],
+          }),
+        ]),
       }),
       {...editMenu},
       {...windowMenu},
@@ -124,14 +124,14 @@ function setupContextMenu(window: Electron.BrowserWindow) {
   const selectionMenu = Electron.Menu.buildFromTemplate([{role: 'copy'}])
 
   const inputMenu = Electron.Menu.buildFromTemplate([
-    {role: 'undo'},
-    {role: 'redo'},
-    {type: 'separator'},
-    {role: 'cut'},
-    {role: 'copy'},
-    {role: 'paste'},
-    {type: 'separator'},
-    {role: 'selectall'},
+    new Electron.MenuItem({role: 'undo'}),
+    new Electron.MenuItem({role: 'redo'}),
+    new Electron.MenuItem({type: 'separator'}),
+    new Electron.MenuItem({role: 'cut'}),
+    new Electron.MenuItem({role: 'copy'}),
+    new Electron.MenuItem({role: 'paste'}),
+    new Electron.MenuItem({type: 'separator'}),
+    new Electron.MenuItem({role: 'selectAll'}),
   ])
 
   window.webContents.on('context-menu', (_: Electron.Event, props: Electron.ContextMenuParams) => {

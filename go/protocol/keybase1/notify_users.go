@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/notify_users.avdl
 
 package keybase1
@@ -6,6 +6,7 @@ package keybase1
 import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type UserChangedArg struct {
@@ -13,6 +14,7 @@ type UserChangedArg struct {
 }
 
 type PasswordChangedArg struct {
+	State PassphraseState `codec:"state" json:"state"`
 }
 
 type IdentifyUpdateArg struct {
@@ -22,7 +24,7 @@ type IdentifyUpdateArg struct {
 
 type NotifyUsersInterface interface {
 	UserChanged(context.Context, UID) error
-	PasswordChanged(context.Context) error
+	PasswordChanged(context.Context, PassphraseState) error
 	IdentifyUpdate(context.Context, IdentifyUpdateArg) error
 }
 
@@ -51,7 +53,12 @@ func NotifyUsersProtocol(i NotifyUsersInterface) rpc.Protocol {
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					err = i.PasswordChanged(ctx)
+					typedArgs, ok := args.(*[1]PasswordChangedArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]PasswordChangedArg)(nil), args)
+						return
+					}
+					err = i.PasswordChanged(ctx, typedArgs[0].State)
 					return
 				},
 			},
@@ -80,16 +87,17 @@ type NotifyUsersClient struct {
 
 func (c NotifyUsersClient) UserChanged(ctx context.Context, uid UID) (err error) {
 	__arg := UserChangedArg{Uid: uid}
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyUsers.userChanged", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyUsers.userChanged", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
-func (c NotifyUsersClient) PasswordChanged(ctx context.Context) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyUsers.passwordChanged", []interface{}{PasswordChangedArg{}})
+func (c NotifyUsersClient) PasswordChanged(ctx context.Context, state PassphraseState) (err error) {
+	__arg := PasswordChangedArg{State: state}
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyUsers.passwordChanged", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyUsersClient) IdentifyUpdate(ctx context.Context, __arg IdentifyUpdateArg) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyUsers.identifyUpdate", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyUsers.identifyUpdate", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }

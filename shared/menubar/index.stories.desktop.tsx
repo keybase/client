@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Storybook from '../stories/storybook'
 import * as Kb from '../common-adapters'
 import * as Types from '../constants/types/fs'
-import * as Constants from '../constants/fs'
 import Menubar from './index.desktop'
 import OutOfDate from './out-of-date'
 import {FileUpdate} from './files.desktop'
@@ -26,15 +25,16 @@ const props = {
     // TODO: fill in a few.
   ],
   daemonHandshakeState: 'done' as 'done',
+  darkMode: false,
 
   diskSpaceStatus: Types.DiskSpaceStatus.Ok,
   fileName: null,
   files: 0,
   folderProps: null,
-  kbfsDaemonStatus: Constants.makeKbfsDaemonStatus({
+  kbfsDaemonStatus: {
     onlineStatus: Types.KbfsDaemonOnlineStatus.Online,
     rpcStatus: Types.KbfsDaemonRpcStatus.Connected,
-  }),
+  },
   kbfsEnabled: true,
   logIn: Storybook.action('logIn'),
   loggedIn: true,

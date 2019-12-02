@@ -3,6 +3,7 @@ import {rowStyles} from './common'
 import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/fs'
 import * as Kb from '../../../common-adapters'
+import flags from '../../../util/feature-flags'
 
 type PlaceholderProps = {
   type: Types.PathType.Folder | Types.PathType.File
@@ -12,6 +13,7 @@ export default ({type}: PlaceholderProps) => (
   <Kb.ListItem2
     type="Small"
     firstItem={true /* we add divider in Rows */}
+    statusIcon={flags.kbfsOfflineMode ? <Kb.Box /> : undefined}
     icon={
       <Kb.Icon
         type={type === Types.PathType.Folder ? 'icon-folder-placeholder-32' : 'icon-file-placeholder-32'}

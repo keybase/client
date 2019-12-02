@@ -4,7 +4,9 @@ import ReactList from 'react-list'
 import {Box2} from './box'
 import ScrollView from './scroll-view'
 import {Props} from './section-list'
-import {debounce, throttle, once} from 'lodash-es'
+import debounce from 'lodash/debounce'
+import throttle from 'lodash/throttle'
+import once from 'lodash/once'
 import {memoize} from '../util/memoize'
 import {renderElementOrComponentOrNot} from '../util/util'
 
@@ -242,6 +244,7 @@ class SectionList extends React.Component<Props, State> {
             itemRenderer={this._itemRenderer as any}
             itemSizeEstimator={this.props.itemSizeEstimator}
             length={this._flat.length}
+            // @ts-ignore
             retrigger={this._flat}
             ref={this._listRef}
             type="variable"

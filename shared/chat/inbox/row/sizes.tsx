@@ -12,7 +12,7 @@ export const dividerHeight = (showingButton: boolean) => {
   if (isMobile) {
     return showingButton ? 68 : 44
   } else {
-    return showingButton ? 68 : 41
+    return showingButton ? 84 : 41
   }
 }
 

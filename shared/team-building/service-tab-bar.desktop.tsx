@@ -1,25 +1,20 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
-import {
-  serviceIdToIconFont,
-  serviceIdToAccentColor,
-  serviceIdToLongLabel,
-  serviceIdToWonderland,
-} from './shared'
+import {serviceIdToIconFont, serviceIdToAccentColor, serviceIdToLongLabel, serviceIdToBadge} from './shared'
 import {ServiceIdWithContact} from '../constants/types/team-building'
 import {Props, IconProps} from './service-tab-bar'
-import {difference} from 'lodash-es'
+import difference from 'lodash/difference'
 
 const ServiceIcon = (props: IconProps) => {
   const [hover, setHover] = React.useState(false)
   const color = props.isActive || hover ? serviceIdToAccentColor(props.service) : Styles.globalColors.black
   return (
     <Kb.ClickableBox
-      onClick={props.onClick}
+      onClick={() => props.onClick(props.service)}
       onMouseOver={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
-      style={{flex: 1}}
+      style={styles.serviceIconFlex}
     >
       <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.serviceIconContainer}>
         <Kb.Box2
@@ -29,7 +24,7 @@ const ServiceIcon = (props: IconProps) => {
           style={styles.serviceIconContainerInner}
         >
           <Kb.Box2 direction="vertical" style={{position: 'relative'}}>
-            {serviceIdToWonderland(props.service) && (
+            {serviceIdToBadge(props.service) && (
               <Kb.Badge
                 border={true}
                 height={9}
@@ -64,11 +59,7 @@ const ServiceIcon = (props: IconProps) => {
                 {props.count && props.count > 10 ? '10+' : props.count}
               </Kb.Text>
             ) : (
-              <Kb.Icon
-                type="icon-progress-grey-animated"
-                color={Styles.globalColors.greyDark}
-                style={styles.pendingIcon}
-              />
+              <Kb.Animation animationType="spinner" style={styles.pendingAnimation} />
             ))}
         </Kb.Box2>
       </Kb.Box2>
@@ -76,7 +67,9 @@ const ServiceIcon = (props: IconProps) => {
         direction="horizontal"
         fullWidth={true}
         style={Styles.collapseStyles([
-          props.isActive ? styles.activeTabBar : styles.inactiveTabBar,
+          props.isActive
+            ? styles.activeTabBar
+            : {...styles.inactiveTabBar, ...(props.minimalBorder ? {borderBottomWidth: 0} : undefined)},
           props.isActive && {backgroundColor: serviceIdToAccentColor(props.service)},
         ])}
       />
@@ -143,8 +136,7 @@ export const ServiceTabBar = (props: Props) => {
     lastSelectedUnlockedService,
     setLastSelectedUnlockedService,
   ] = React.useState<ServiceIdWithContact | null>(null)
-  const {services, onChangeService: propsOnChangeService} = props
-  const nLocked = 3 // Services always out front on the left. Add one to get the number out front.
+  const {services, onChangeService: propsOnChangeService, servicesShown: nLocked = 3} = props
   const onChangeService = React.useCallback(
     (service: ServiceIdWithContact) => {
       if (services.indexOf(service) >= nLocked && service !== lastSelectedUnlockedService) {
@@ -174,11 +166,11 @@ export const ServiceTabBar = (props: Props) => {
           key={service}
           service={service}
           label={serviceIdToLongLabel(service)}
-          labelPresence={1}
-          onClick={() => onChangeService(service)}
+          onClick={onChangeService}
           count={undefToNull(props.serviceResultCount[service])}
           showCount={props.showServiceResultCount}
           isActive={props.selectedService === service}
+          minimalBorder={props.minimalBorder}
         />
       ))}
       {moreServices.length > 0 && (
@@ -197,7 +189,7 @@ const styles = Styles.styleSheetCreate(
       },
       badgeContainerStyle: {
         position: 'absolute',
-        right: 0,
+        right: -4,
         top: 10,
       },
       badgeStyle: {backgroundColor: Styles.globalColors.blue},
@@ -248,7 +240,7 @@ const styles = Styles.styleSheetCreate(
       moreText: {
         color: Styles.globalColors.black_50,
       },
-      pendingIcon: {height: 10, width: 10},
+      pendingAnimation: {height: 10, width: 10},
       serviceIconBox: {
         marginTop: 14,
       },
@@ -263,12 +255,13 @@ const styles = Styles.styleSheetCreate(
       serviceIconContainerInner: {
         justifyContent: 'flex-start',
       },
+      serviceIconFlex: {
+        flex: 1,
+        maxWidth: 90,
+      },
       tabBarContainer: {
         flexShrink: 0,
         minHeight: 30,
-      },
-      wonderland: {
-        color: Styles.globalColors.white,
       },
     } as const)
 )

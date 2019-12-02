@@ -2,7 +2,7 @@ import * as React from 'react'
 import {Box} from '../../../../../../common-adapters/index'
 import * as Sb from '../../../../../../stories/storybook'
 import * as RPCChatTypes from '../../../../../../constants/types/rpc-chat-gen'
-import UnfurlList from '.'
+import UnfurlList, {UnfurlListItem} from '.'
 
 const provider = Sb.createPropProviderWithCommon({
   UnfurlGeneric: p => ({
@@ -19,7 +19,7 @@ const provider = Sb.createPropProviderWithCommon({
   }),
 })
 
-const unfurls = [
+const unfurls: Array<UnfurlListItem> = [
   {
     isCollapsed: false,
     onClose: Sb.action('onClose'),
@@ -34,12 +34,12 @@ const unfurls = [
           url: require('../../../../../../images/mock/wsj.jpg'),
           width: 20,
         },
-        image: {
+        media: {
           height: 400,
+          isVideo: false,
           url: require('../../../../../../images/mock/wsj_image.jpg'),
           width: 900,
         },
-        onClose: Sb.action('onClose'),
         publishTime: 1542241021655,
         siteName: 'WSJ',
         title: 'U.S. Stocks Jump as Tough Month Sets to Wrap',
@@ -62,8 +62,9 @@ const unfurls = [
           url: require('../../../../../../images/mock/github_fav.jpg'),
           width: 20,
         },
-        image: {
+        media: {
           height: 150,
+          isVideo: false,
           url: require('../../../../../../images/mock/github.jpg'),
           width: 150,
         },
@@ -78,6 +79,9 @@ const unfurls = [
 ]
 
 const props = {
+  conversationIDKey: '123',
+  isAuthor: true,
+  toggleMessagePopup: () => {},
   unfurls,
 }
 
@@ -85,7 +89,6 @@ const load = () => {
   Sb.storiesOf('Chat/Unfurl/Unfurl-List', module)
     .addDecorator(story => <Box style={{maxWidth: 600, padding: 5}}>{story()}</Box>)
     .addDecorator(provider)
-    // @ts-ignore codemod issue
     .add('Default', () => <UnfurlList {...props} />)
 }
 

@@ -182,7 +182,7 @@ helpers.rootLinuxNode(env, {
               sh "git add -A"
               // Generate protocols
               dir ('protocol') {
-                sh "npm i"
+                sh "yarn --frozen-lockfile"
                 sh "make clean"
                 sh "make"
               }
@@ -482,6 +482,7 @@ def testGo(prefix, packagesToTest) {
     println "Installing golangci-lint"
     dir("..") {
       retry(5) {
+        // This works with go1.12.12 but not go1.13.1 with an error containing "invalid pseudo-version"
         sh 'GO111MODULE=on go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.16.0'
       }
     }
@@ -512,7 +513,7 @@ def testGo(prefix, packagesToTest) {
       println("Running golangci-lint for dead code")
       timeout(activity: true, time: 360, unit: 'SECONDS') {
         def diffFileList = getDiffFileList()
-        def diffPackageList = sh(returnStdout: true, script: "bash -c \"set -o pipefail; echo '${diffFileList}' | { grep '^go\\/' || true; } | { grep -v 'go/revision' || true; } | sed 's/^go\\///' | sed 's/^\\(.*\\)\\/[^\\/]*\$/\\1/' | sort | uniq\"").trim().split()
+        def diffPackageList = sh(returnStdout: true, script: "bash -c \"set -o pipefail; echo '${diffFileList}' | { grep '^go\\/' || true; } | { grep -v 'go/revision' || true; } | { grep -v 'go/vendor' || true; } | { grep -v 'go/Makefile' || true; } | sed 's/^go\\///' | sed 's/^\\(.*\\)\\/[^\\/]*\$/\\1/' | sort | uniq\"").trim().split()
         diffPackageList.each { pkg ->
           dir(pkg) {
             // Ignore the exit code 5, which indicates that there were
@@ -524,8 +525,10 @@ def testGo(prefix, packagesToTest) {
       }
     }
 
-    if (isUnix()) {
-      // Windows `gofmt` pukes on CRLF, so only run on *nix.
+    if (prefix == "test_linux_go_") {
+      // Windows `gofmt` pukes on CRLF.
+      // Macos pukes on mockgen because ¯\_(ツ)_/¯.
+      // So, only run on Linux.
       println "Running mockgen"
       retry(5) {
         sh 'go get -u github.com/golang/mock/mockgen'

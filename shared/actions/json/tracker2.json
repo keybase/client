@@ -21,13 +21,14 @@
       "location": "string",
       "registeredForAirdrop": "boolean",
       "username": "string",
-      "teamShowcase": "Array<Types._TeamShowcase>",
-      "blocked": "boolean"
+      "teamShowcase": "Array<Types.TeamShowcase>",
+      "blocked": "boolean",
+      "hidFromFollowers": "boolean",
     },
     "updateResult": {
       "guiID": "string",
       "result": "Types.DetailsState",
-      "reason": "string | null"
+      "reason?": "string"
     },
     "closeTracker": {
       "guiID": "string"
@@ -68,7 +69,8 @@
       "location?": "string",
       "pictureUrl?": "string",
       "siteIcon": "Array<Types.SiteIcon>",
-      "siteIconFull": "Array<Types.SiteIcon>"
-    }
+      "siteIconFull": "Array<Types.SiteIcon>",
+      "siteIconWhite": "Array<Types.SiteIcon>"
+    },
   }
 }

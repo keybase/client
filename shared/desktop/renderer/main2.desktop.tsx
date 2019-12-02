@@ -15,10 +15,24 @@ import {disable as disableDragDrop} from '../../util/drag-drop'
 import flags from '../../util/feature-flags'
 import {dumpLogs} from '../../actions/platform-specific/index.desktop'
 import {initDesktopStyles} from '../../styles/index.desktop'
+import {_setDarkModePreference} from '../../styles/dark-mode'
 import {isDarwin} from '../../constants/platform'
 import {useSelector} from '../../util/container'
 import {isDarkMode} from '../../constants/config'
 import {TypedActions} from '../../actions/typed-actions-gen'
+
+// node side plumbs through initial pref so we avoid flashes
+const darkModeFromNode = window.location.search.match(/darkModePreference=(alwaysLight|alwaysDark|system)/)
+
+if (darkModeFromNode) {
+  const dm = darkModeFromNode[1]
+  switch (dm) {
+    case 'alwaysLight':
+    case 'alwaysDark':
+    case 'system':
+      _setDarkModePreference(dm)
+  }
+}
 
 // Top level HMR accept
 if (module.hot) {
@@ -54,22 +68,22 @@ const setupApp = (store, runSagas) => {
   SafeElectron.getApp().on('KBdispatchAction' as any, (_: string, action: TypedActions) => {
     // we MUST convert this else we'll run into issues with redux. See https://github.com/rackt/redux/issues/830
     // This is because this is touched due to the remote proxying. We get a __proto__ which causes the _.isPlainObject check to fail. We use
-    setImmediate(() => {
+    setTimeout(() => {
       try {
         store.dispatch({
           payload: action.payload,
           type: action.type,
         })
       } catch (_) {}
-    })
+    }, 0)
   })
 
   // See if we're connected, and try starting keybase if not
-  setImmediate(() => {
+  setTimeout(() => {
     if (!eng.hasEverConnected()) {
       SafeElectron.getApp().emit('KBkeybase', '', {type: 'requestStartService'})
     }
-  })
+  }, 0)
 
   // After a delay dump logs in case some startup stuff happened
   setTimeout(() => {
@@ -99,11 +113,17 @@ const FontLoader = () => (
 let store
 
 const DarkCSSInjector = () => {
-  const className = useSelector(state => isDarkMode(state.config)) ? 'darkMode' : ''
+  const isDark = useSelector(state => isDarkMode(state.config))
   React.useEffect(() => {
     // inject it in body so modals get darkMode also
-    document.body.className = className
-  }, [className])
+    if (isDark) {
+      document.body.classList.add('darkMode')
+      document.body.classList.remove('lightMode')
+    } else {
+      document.body.classList.remove('darkMode')
+      document.body.classList.add('lightMode')
+    }
+  }, [isDark])
   return null
 }
 
@@ -150,7 +170,7 @@ const setupDarkMode = () => {
       () => {
         store.dispatch(
           ConfigGen.createSetSystemDarkMode({
-            dark: isDarwin && SafeElectron.getSystemPreferences().isDarkMode(),
+            dark: SafeElectron.workingIsDarkMode(),
           })
         )
       }

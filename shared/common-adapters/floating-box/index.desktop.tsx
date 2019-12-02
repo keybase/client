@@ -24,7 +24,11 @@ class FloatingBox extends React.Component<Props, State> {
     let targetRect: ClientRect | null = null
     if (this.props.attachTo) {
       const attachTo = this.props.attachTo()
+      if (attachTo instanceof HTMLElement) {
+        return attachTo.getBoundingClientRect()
+      }
       if (attachTo) {
+        console.warn('Non html element passed to floating box, deprecate this soon', attachTo)
         let node
         try {
           // @ts-ignore this is fine
@@ -74,6 +78,7 @@ class FloatingBox extends React.Component<Props, State> {
         targetRect={this.state.targetRect}
         matchDimension={!!this.props.matchDimension}
         onClosePopup={this._onHidden}
+        remeasureHint={this.props.remeasureHint}
         propagateOutsideClicks={this.props.propagateOutsideClicks}
         style={this.props.containerStyle}
       >

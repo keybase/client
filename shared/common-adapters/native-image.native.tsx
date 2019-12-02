@@ -1,7 +1,7 @@
 import * as React from 'react'
 import {Image, ImageProps, ImageURISource} from 'react-native'
-import FastImageImpl from 'react-native-fast-image'
-import {isArray} from 'lodash-es'
+import RNFI from 'react-native-fast-image'
+import isArray from 'lodash/isArray'
 
 export class NativeImage extends React.Component<ImageProps> {
   static getSize = Image.getSize
@@ -10,7 +10,7 @@ export class NativeImage extends React.Component<ImageProps> {
   }
 }
 
-export class FastImage extends React.Component<ImageProps> {
+class FastImageImpl extends React.Component<ImageProps> {
   static getSize = Image.getSize
   render() {
     if (typeof this.props.source === 'number') {
@@ -27,6 +27,8 @@ export class FastImage extends React.Component<ImageProps> {
     if (!source || !source.uri) {
       return null
     }
-    return <FastImageImpl {...this.props} source={source} />
+    return <RNFI {...this.props} source={source} />
   }
 }
+
+export const FastImage = FastImageImpl

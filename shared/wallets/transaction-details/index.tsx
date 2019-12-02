@@ -4,7 +4,7 @@ import * as Constants from '../../constants/wallets'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as RPCTypes from '../../constants/types/rpc-stellar-gen'
-import {capitalize} from 'lodash-es'
+import capitalize from 'lodash/capitalize'
 import {Transaction, TimestampError, TimestampPending} from '../transaction'
 import {SmallAccountID} from '../common'
 import {formatTimeForStellarDetail, formatTimeForStellarTooltip} from '../../util/timestamp'
@@ -450,9 +450,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
             containerStyle={styles.statusBox}
             tooltip={
               props.status === 'claimable'
-                ? `${
-                    props.counterparty
-                  } hasn't generated a Stellar account yet. This payment will automatically complete when they create one.`
+                ? `${props.counterparty} hasn't generated a Stellar account yet. This payment will automatically complete when they create one.`
                 : ''
             }
             textStyle={styles.tooltipText}

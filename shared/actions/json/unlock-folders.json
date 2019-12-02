@@ -1,16 +1,10 @@
 {
   "prelude": [],
   "actions": {
-    "checkPaperKey": {
-      "paperKey": "string"
-    },
+    "checkPaperKey": { "paperKey": "string" },
     "openPopup": {},
     "closePopup": {},
-    "checkPaperKeyDone": {
-      "canError": {
-        "error": "string"
-      }
-    },
+    "checkPaperKeyDone": { "error?": "string" },
     "closeDone": {},
     "finish": {},
     "newRekeyPopup": {
@@ -19,9 +13,6 @@
       "problemSet": "RPCTypes.ProblemSet"
     },
     "onBackFromPaperKey": {},
-    "toPaperKeyInput": {},
-    "waiting": {
-      "waiting": "boolean"
-    }
+    "toPaperKeyInput": {}
   }
 }

@@ -67,6 +67,13 @@
     },
     {
       "type": "record",
+      "name": "VID",
+      "fields": [],
+      "typedef": "string",
+      "lint": "ignore"
+    },
+    {
+      "type": "record",
       "name": "DeviceID",
       "fields": [],
       "typedef": "string"
@@ -410,6 +417,10 @@
         {
           "type": "DeviceID",
           "name": "deviceID"
+        },
+        {
+          "type": "int",
+          "name": "deviceNumberOfType"
         },
         {
           "type": "Time",

@@ -22,10 +22,13 @@ func setupOutboxTest(t testing.TB, storageEngine, name string) (kbtest.ChatTestC
 	require.NoError(t, err)
 	uid := gregor1.UID(u.User.GetUID().ToBytes())
 	cl := clockwork.NewFakeClock()
+	tp := ctc.Context().Env.Test
 	ctc.G.Env = libkb.NewEnv(libkb.AppConfig{
 		HomeDir:             ctc.Context().GetEnv().GetHome(),
 		OutboxStorageEngine: storageEngine,
+		RunMode:             ctc.Context().GetRunMode(),
 	}, nil, ctc.Context().GetLog)
+	ctc.Context().Env.Test = tp
 	ob := NewOutbox(ctc.Context(), uid)
 	ob.SetClock(cl)
 	return ctc, ob, uid, cl
@@ -61,7 +64,7 @@ func TestChatOutbox(t *testing.T) {
 		var obrs []chat1.OutboxRecord
 		conv := makeConvo(gregor1.Time(5), 1, 1)
 
-		prevOrdinal := 1
+		prevOrdinal := outboxOrdinalStart
 		for i := 0; i < 5; i++ {
 			obr, err := ob.PushMessage(context.TODO(), conv.GetConvID(), makeMsgPlaintext("hi", uid),
 				nil, nil, nil, keybase1.TLFIdentifyBehavior_CHAT_CLI)
@@ -137,14 +140,15 @@ func TestChatOutbox(t *testing.T) {
 		require.Equal(t, 0, res[1].State.Sending(), "wrong attempts")
 
 		// Remove 2
-		require.NoError(t, ob.RemoveMessage(context.TODO(), obrs[2].OutboxID))
+		_, err = ob.RemoveMessage(context.TODO(), obrs[2].OutboxID)
+		require.NoError(t, err)
 		res, err = ob.PullAllConversations(context.TODO(), true, false)
 		require.NoError(t, err)
 		require.Equal(t, 1, len(res), "wrong len")
 		require.Equal(t, obrs[3].OutboxID, res[0].OutboxID, "wrong element")
 
 		var tv chat1.ThreadView
-		require.NoError(t, ob.SprinkleIntoThread(context.TODO(), conv.GetConvID(), &tv))
+		require.NoError(t, ob.AppendToThread(context.TODO(), conv.GetConvID(), &tv))
 		require.Equal(t, 1, len(tv.Messages))
 		newObr, err = ob.MarkAsError(context.TODO(), obrs[3], chat1.OutboxStateError{
 			Message: "failed",
@@ -156,7 +160,7 @@ func TestChatOutbox(t *testing.T) {
 		require.Equal(t, chat1.OutboxStateType_ERROR, st)
 		require.Equal(t, chat1.OutboxErrorType_DUPLICATE, newObr.State.Error().Typ)
 		tv.Messages = nil
-		require.NoError(t, ob.SprinkleIntoThread(context.TODO(), conv.GetConvID(), &tv))
+		require.NoError(t, ob.AppendToThread(context.TODO(), conv.GetConvID(), &tv))
 		require.Zero(t, len(tv.Messages))
 	})
 }
@@ -169,7 +173,7 @@ func TestChatOutboxPurge(t *testing.T) {
 		var obrs []chat1.OutboxRecord
 		conv := makeConvo(gregor1.Time(5), 1, 1)
 
-		prevOrdinal := 1
+		prevOrdinal := outboxOrdinalStart
 		ephemeralMetadata := &chat1.MsgEphemeralMetadata{Lifetime: 0}
 		for i := 0; i < 9; i++ {
 			// send some exploding and some non exploding msgs
@@ -235,15 +239,20 @@ func TestChatOutboxPurge(t *testing.T) {
 	})
 }
 
-func TestChatOutboxMarkAll(t *testing.T) {
+func TestChatOutboxMarkConv(t *testing.T) {
 	runOutboxTest(func(engine string) {
 		tc, ob, uid, cl := setupOutboxTest(t, engine, "outbox")
 		defer tc.Cleanup()
 
 		var obrs []chat1.OutboxRecord
 		conv := makeConvo(gregor1.Time(5), 1, 1)
+		conv2 := makeConvo(gregor1.Time(5), 1, 1)
 		for i := 0; i < 5; i++ {
-			obr, err := ob.PushMessage(context.TODO(), conv.GetConvID(),
+			convID := conv.GetConvID()
+			if i%2 == 0 {
+				convID = conv2.GetConvID()
+			}
+			obr, err := ob.PushMessage(context.TODO(), convID,
 				makeMsgPlaintext("hi", uid),
 				nil, nil, nil, keybase1.TLFIdentifyBehavior_CHAT_CLI)
 			require.NoError(t, err)
@@ -251,6 +260,7 @@ func TestChatOutboxMarkAll(t *testing.T) {
 			cl.Advance(time.Millisecond)
 		}
 
+		errConvID := obrs[0].ConvID
 		newObr, err := ob.MarkAsError(context.TODO(), obrs[0], chat1.OutboxStateError{
 			Message: "failed",
 			Typ:     chat1.OutboxErrorType_MISC,
@@ -261,17 +271,33 @@ func TestChatOutboxMarkAll(t *testing.T) {
 		require.Equal(t, chat1.OutboxStateType_ERROR, st)
 		require.Equal(t, chat1.OutboxErrorType_MISC, newObr.State.Error().Typ)
 
-		newObrs, err := ob.MarkAllAsError(context.TODO(), chat1.OutboxStateError{
+		newObrs, err := ob.MarkConvAsError(context.TODO(), errConvID, chat1.OutboxStateError{
 			Message: "failed",
 			Typ:     chat1.OutboxErrorType_MISC,
 		})
 		require.NoError(t, err)
-		require.Equal(t, 4, len(newObrs))
+		require.Equal(t, 2, len(newObrs))
 		for _, newObr := range newObrs {
 			st, err := newObr.State.State()
 			require.NoError(t, err)
+			require.True(t, newObr.ConvID.Eq(errConvID))
 			require.Equal(t, chat1.OutboxStateType_ERROR, st)
 			require.Equal(t, chat1.OutboxErrorType_MISC, newObr.State.Error().Typ)
+		}
+
+		obrs, err = ob.PullAllConversations(context.TODO(), true, false)
+		require.NoError(t, err)
+		require.Len(t, obrs, 5)
+		for _, obr := range obrs {
+			st, err := obr.State.State()
+			require.NoError(t, err)
+			if obr.ConvID.Eq(errConvID) {
+				require.Equal(t, chat1.OutboxStateType_ERROR, st)
+				require.Equal(t, chat1.OutboxErrorType_MISC, newObr.State.Error().Typ)
+			} else {
+				require.Equal(t, chat1.OutboxStateType_SENDING, st)
+				require.Equal(t, 0, obr.State.Sending())
+			}
 		}
 	})
 }

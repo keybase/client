@@ -12,7 +12,7 @@ const mapStateToProps = state => ({
 
 export default connect(
   mapStateToProps,
-  () => {},
+  () => ({}),
   (stateProps, _, ownProps: OwnProps) => ({
     message: ownProps.message,
     you: stateProps.you,

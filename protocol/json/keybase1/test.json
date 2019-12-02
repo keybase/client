@@ -12,6 +12,41 @@
         }
       ],
       "doc": "Result from calling test(..)."
+    },
+    {
+      "type": "record",
+      "name": "Generic",
+      "fields": [
+        {
+          "type": {
+            "type": "map",
+            "values": "Generic",
+            "keys": "string"
+          },
+          "name": "m"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Generic"
+          },
+          "name": "a"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "s"
+        },
+        {
+          "type": [
+            null,
+            "int"
+          ],
+          "name": "i"
+        }
+      ]
     }
   ],
   "messages": {
@@ -52,6 +87,20 @@
       ],
       "response": null,
       "doc": "For testing crashes."
+    },
+    "testAirdropReg": {
+      "request": [],
+      "response": null,
+      "doc": "For testing airdrop reg."
+    },
+    "echo": {
+      "request": [
+        {
+          "name": "arg",
+          "type": "Generic"
+        }
+      ],
+      "response": "Generic"
     }
   },
   "namespace": "keybase.1"

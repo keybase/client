@@ -149,6 +149,10 @@ func (api *BaseAPIEngine) getCli(cookied bool) (ret *Client, err error) {
 	return client, err
 }
 
+func HeaderVersion() string {
+	return GoClientID + " v" + VersionString() + " " + GetPlatformString()
+}
+
 func (api *BaseAPIEngine) PrepareGet(url1 url.URL, arg APIArg) (*http.Request, error) {
 	url1.RawQuery = arg.getHTTPArgs().Encode()
 	ruri := url1.String()
@@ -491,7 +495,7 @@ func (arg APIArg) flattenHTTPArgs(args url.Values) map[string]string {
 //============================================================================
 // InternalApiEngine
 
-func (a *InternalAPIEngine) getURL(arg APIArg) url.URL {
+func (a *InternalAPIEngine) getURL(arg APIArg, useText bool) url.URL {
 	u := *a.config.URL
 	var path string
 	if len(a.config.Prefix) > 0 {
@@ -499,7 +503,10 @@ func (a *InternalAPIEngine) getURL(arg APIArg) url.URL {
 	} else {
 		path = APIURIPathPrefix
 	}
-	u.Path = path + "/" + arg.Endpoint + ".json"
+	u.Path = path + "/" + arg.Endpoint
+	if !useText {
+		u.Path += ".json"
+	}
 	return u
 }
 
@@ -649,7 +656,7 @@ func (a *InternalAPIEngine) fixHeaders(m MetaContext, arg APIArg, req *http.Requ
 
 	if m.G().Env.GetTorMode().UseHeaders() {
 		req.Header.Set("User-Agent", UserAgent)
-		identifyAs := GoClientID + " v" + VersionString() + " " + GetPlatformString()
+		identifyAs := HeaderVersion()
 		req.Header.Set("X-Keybase-Client", identifyAs)
 		if tags := LogTagsToString(m.Ctx()); tags != "" {
 			req.Header.Set("X-Keybase-Log-Tags", tags)
@@ -709,7 +716,7 @@ func appStatusToTypedError(ast *AppStatus) error {
 }
 
 func (a *InternalAPIEngine) Get(m MetaContext, arg APIArg) (*APIRes, error) {
-	url1 := a.getURL(arg)
+	url1 := a.getURL(arg, false)
 	req, err := a.PrepareGet(url1, arg)
 	if err != nil {
 		return nil, err
@@ -722,7 +729,7 @@ func (a *InternalAPIEngine) Get(m MetaContext, arg APIArg) (*APIRes, error) {
 func (a *InternalAPIEngine) GetResp(m MetaContext, arg APIArg) (*http.Response, func(), error) {
 	m = m.EnsureCtx().WithLogTag("API")
 
-	url1 := a.getURL(arg)
+	url1 := a.getURL(arg, arg.UseText)
 	req, err := a.PrepareGet(url1, arg)
 	if err != nil {
 		return nil, noopFinisher, err
@@ -780,7 +787,7 @@ func (a *InternalAPIEngine) getDecode(m MetaContext, arg APIArg, v APIResponseWr
 }
 
 func (a *InternalAPIEngine) Post(m MetaContext, arg APIArg) (*APIRes, error) {
-	url1 := a.getURL(arg)
+	url1 := a.getURL(arg, false)
 	req, err := a.PrepareMethodWithBody("POST", url1, arg)
 	if err != nil {
 		return nil, err
@@ -798,7 +805,7 @@ func (a *InternalAPIEngine) PostJSON(m MetaContext, arg APIArg) (*APIRes, error)
 // The finisher() should be called after the response is no longer needed.
 func (a *InternalAPIEngine) postResp(m MetaContext, arg APIArg) (*http.Response, func(), error) {
 	m = m.EnsureCtx().WithLogTag("API")
-	url1 := a.getURL(arg)
+	url1 := a.getURL(arg, false)
 	req, err := a.PrepareMethodWithBody("POST", url1, arg)
 	if err != nil {
 		return nil, nil, err
@@ -837,7 +844,7 @@ func (a *InternalAPIEngine) postDecode(m MetaContext, arg APIArg, v APIResponseW
 }
 
 func (a *InternalAPIEngine) PostRaw(m MetaContext, arg APIArg, ctype string, r io.Reader) (*APIRes, error) {
-	url1 := a.getURL(arg)
+	url1 := a.getURL(arg, false)
 	req, err := http.NewRequest("POST", url1.String(), r)
 	if len(ctype) > 0 {
 		req.Header.Set("Content-Type", ctype)
@@ -849,7 +856,7 @@ func (a *InternalAPIEngine) PostRaw(m MetaContext, arg APIArg, ctype string, r i
 }
 
 func (a *InternalAPIEngine) Delete(m MetaContext, arg APIArg) (*APIRes, error) {
-	url1 := a.getURL(arg)
+	url1 := a.getURL(arg, false)
 	req, err := a.PrepareMethodWithBody("DELETE", url1, arg)
 	if err != nil {
 		return nil, err

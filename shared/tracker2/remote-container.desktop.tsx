@@ -1,5 +1,4 @@
-// Inside tracker we use an embedded Avatar which is connected. This assumes its connected and uses immutable stuff.
-// We convert the over-the-wire plain json to immutable in the remote-store helper
+// Inside tracker we use an embedded Avatar which is connected.
 import * as Constants from '../constants/tracker2'
 import * as ConfigGen from '../actions/config-gen'
 import * as Chat2Gen from '../actions/chat2-gen'
@@ -39,8 +38,9 @@ const mapDispatchToProps = dispatch => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
-  assertionKeys: stateProps.assertions ? stateProps.assertions.keySeq().toArray() : null,
+  assertionKeys: stateProps.assertions ? [...stateProps.assertions.keys()] : undefined,
   bio: stateProps.bio,
+  darkMode: stateProps.darkMode,
   followThem: stateProps.followThem,
   followersCount: stateProps.followersCount,
   followingCount: stateProps.followingCount,
@@ -56,7 +56,7 @@ const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   onReload: () => dispatchProps._onReload(stateProps.username),
   reason: stateProps.reason,
   state: stateProps.state,
-  teamShowcase: stateProps.teamShowcase ? stateProps.teamShowcase.map(t => t.toObject()).toArray() : null,
+  teamShowcase: stateProps.teamShowcase,
   username: stateProps.username,
 })
 

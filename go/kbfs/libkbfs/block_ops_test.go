@@ -90,8 +90,9 @@ type testBlockOpsConfig struct {
 	diskBlockCacheGetter
 	*testSyncedTlfGetterSetter
 	initModeGetter
-	clock    Clock
-	reporter Reporter
+	clock                       Clock
+	reporter                    Reporter
+	subsciptionManagerPublisher SubscriptionManagerPublisher
 }
 
 var _ blockOpsConfig = (*testBlockOpsConfig)(nil)
@@ -131,6 +132,9 @@ func (config testBlockOpsConfig) Reporter() Reporter {
 func (config testBlockOpsConfig) GetSettingsDB() *SettingsDB {
 	return nil
 }
+func (config testBlockOpsConfig) SubscriptionManagerPublisher() SubscriptionManagerPublisher {
+	return config.subsciptionManagerPublisher
+}
 
 func makeTestBlockOpsConfig(t *testing.T) testBlockOpsConfig {
 	lm := newTestLogMaker(t)
@@ -141,9 +145,11 @@ func makeTestBlockOpsConfig(t *testing.T) testBlockOpsConfig {
 	dbcg := newTestDiskBlockCacheGetter(t, nil)
 	stgs := newTestSyncedTlfGetterSetter()
 	clock := clocktest.NewTestClockNow()
+	mockPublisher := NewMockSubscriptionManagerPublisher(gomock.NewController(t))
+	mockPublisher.EXPECT().PublishChange(gomock.Any()).AnyTimes()
 	return testBlockOpsConfig{codecGetter, lm, bserver, crypto, cache, dbcg,
 		stgs, testInitModeGetter{InitDefault}, clock,
-		NewReporterSimple(clock, 1)}
+		NewReporterSimple(clock, 1), mockPublisher}
 }
 
 func testBlockOpsShutdown(

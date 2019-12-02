@@ -1,50 +1,42 @@
 import * as Types from './types/tracker2'
 import * as RPCTypes from './types/rpc-gen'
-import * as I from 'immutable'
 import {TypedState} from './reducer'
 
-export const makeState = I.Record<Types._State>({
-  proofSuggestions: I.List(),
-  usernameToDetails: I.Map(),
-  usernameToNonUserDetails: I.Map(),
+const emptyArray: any = []
+const emptyMap: any = new Map()
+
+export const makeState = (): Types.State => ({
+  proofSuggestions: emptyArray,
+  usernameToDetails: new Map(),
+  usernameToNonUserDetails: new Map(),
 })
 
-export const makeDetails = I.Record<Types._Details>({
-  assertions: I.Map(),
-  bio: null,
+export const noDetails = Object.freeze<Types.Details>({
+  assertions: emptyMap,
   blocked: false,
-  followers: null,
-  followersCount: null,
-  following: null,
-  followingCount: null,
-  fullname: null,
   guiID: '',
-  location: null,
+  hidFromFollowers: false,
   reason: '',
   registeredForAirdrop: false,
   showTracker: false,
   state: 'error',
-  teamShowcase: I.List(),
+  teamShowcase: emptyArray,
   username: '',
 })
 
-export const makeNonUserDetails = I.Record<Types._NonUserDetails>({
+export const noNonUserDetails = Object.freeze<Types.NonUserDetails>({
   assertionKey: '',
   assertionValue: '',
-  bio: null,
   description: '',
-  formattedName: null,
-  fullName: null,
-  location: null,
-  pictureUrl: null,
-  siteIcon: [],
-  siteIconFull: [],
+  siteIcon: emptyArray,
+  siteIconFull: emptyArray,
+  siteIconWhite: emptyArray,
   siteURL: '',
 })
 
 export const generateGUIID = () => Math.floor(Math.random() * 0xfffffffffffff).toString(16)
 
-export const makeAssertion = I.Record<Types._Assertion>({
+export const noAssertion = Object.freeze<Types.Assertion>({
   assertionKey: '',
   belowFold: false,
   color: 'gray',
@@ -58,24 +50,12 @@ export const makeAssertion = I.Record<Types._Assertion>({
   sigID: '',
   siteIcon: [],
   siteIconFull: [],
+  siteIconWhite: [],
   siteURL: '',
   state: 'error',
   timestamp: 0,
   type: '',
   value: '',
-})
-
-export const makeMeta = I.Record<Types._AssertionMeta>({
-  color: 'black',
-  label: '',
-})
-
-export const makeTeamShowcase = I.Record<Types._TeamShowcase>({
-  description: '',
-  isOpen: false,
-  membersCount: 0,
-  name: '',
-  publicAdmins: [],
 })
 
 export const rpcResultToStatus = (result: RPCTypes.Identify3ResultType) => {
@@ -88,11 +68,7 @@ export const rpcResultToStatus = (result: RPCTypes.Identify3ResultType) => {
       return 'needsUpgrade'
     case RPCTypes.Identify3ResultType.canceled:
       return 'error'
-    default:
-    // flow is confused by number enums
-    // Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(result)
   }
-  return 'error'
 }
 
 export const rpcRowColorToColor = (color: RPCTypes.Identify3RowColor): Types.AssertionColor => {
@@ -111,8 +87,6 @@ export const rpcRowColorToColor = (color: RPCTypes.Identify3RowColor): Types.Ass
       return 'yellow'
     case RPCTypes.Identify3RowColor.orange:
       return 'orange'
-    default:
-      throw new Error('Invalid identifyv3 row color ' + color)
   }
 }
 
@@ -128,47 +102,48 @@ export const rpcRowStateToAssertionState = (state: RPCTypes.Identify3RowState): 
       return 'warning'
     case RPCTypes.Identify3RowState.revoked:
       return 'revoked'
-    default:
-      throw new Error('Invalid identifyv3 row state ' + state)
   }
 }
 
-export const rpcAssertionToAssertion = (row: RPCTypes.Identify3Row): Types.Assertion =>
-  makeAssertion({
-    assertionKey: `${row.key}:${row.value}`,
-    color: rpcRowColorToColor(row.color),
-    kid: row.kid || ',',
-    metas: (row.metas || []).map(m => ({color: rpcRowColorToColor(m.color), label: m.label})).map(makeMeta),
-    priority: row.priority,
-    proofURL: row.proofURL,
-    sigID: row.sigID,
-    siteIcon: row.siteIcon || [],
-    siteIconFull: row.siteIconFull || [],
-    siteURL: row.siteURL,
-    state: rpcRowStateToAssertionState(row.state),
-    timestamp: row.ctime,
-    type: row.key,
-    value: row.value,
-  })
+export const rpcAssertionToAssertion = (row: RPCTypes.Identify3Row): Types.Assertion => ({
+  ...noAssertion,
+  assertionKey: `${row.key}:${row.value}`,
+  color: rpcRowColorToColor(row.color),
+  kid: row.kid || ',',
+  metas: (row.metas || []).map(m => ({color: rpcRowColorToColor(m.color), label: m.label})),
+  priority: row.priority,
+  proofURL: row.proofURL,
+  sigID: row.sigID,
+  siteIcon: row.siteIcon || [],
+  siteIconFull: row.siteIconFull || [],
+  siteIconWhite: row.siteIconWhite || [],
+  siteURL: row.siteURL,
+  state: rpcRowStateToAssertionState(row.state),
+  timestamp: row.ctime,
+  type: row.key,
+  value: row.value,
+})
 
 export const rpcSuggestionToAssertion = (s: RPCTypes.ProofSuggestion): Types.Assertion => {
   const ourKey = s.key === 'web' ? 'dnsOrGenericWebSite' : s.key
-  return makeAssertion({
+  return {
+    ...noAssertion,
     // we have a special case where we want to differentiate between a dns or web proof, so we have a special pseudo type we use
     assertionKey: ourKey,
     belowFold: s.belowFold,
     color: 'gray',
-    metas: (s.metas || []).map(m => ({color: rpcRowColorToColor(m.color), label: m.label})).map(makeMeta),
+    metas: (s.metas || []).map(m => ({color: rpcRowColorToColor(m.color), label: m.label})),
     pickerIcon: s.pickerIcon || [],
     pickerSubtext: s.pickerSubtext,
     pickerText: s.pickerText,
     proofURL: '',
     siteIcon: s.profileIcon || [],
+    siteIconWhite: s.profileIconWhite || [],
     siteURL: '',
     state: 'suggestion',
     type: ourKey,
     value: s.profileText,
-  })
+  }
 }
 
 const _scoreAssertionKey = (a: string) => {
@@ -217,9 +192,6 @@ export const sortAssertionKeys = (a: string, b: string) => {
   return scoreA - scoreB
 }
 
-export const noDetails = makeDetails({})
-export const noNonUserDetails = makeNonUserDetails({})
-export const noAssertion = makeAssertion({})
 export const waitingKey = 'tracker2:waitingKey'
 export const profileLoadWaitingKey = 'tracker2:profileLoad'
 export const nonUserProfileLoadWaitingKey = 'tracker2:nonUserProfileLoad'
@@ -227,11 +199,11 @@ export const nonUserProfileLoadWaitingKey = 'tracker2:nonUserProfileLoad'
 export const followThem = (state: TypedState, username: string) => state.config.following.has(username)
 export const followsYou = (state: TypedState, username: string) => state.config.followers.has(username)
 export const getDetails = (state: TypedState, username: string) =>
-  state.tracker2.usernameToDetails.get(username, noDetails)
+  state.tracker2.usernameToDetails.get(username) || noDetails
 export const getNonUserDetails = (state: TypedState, username: string) =>
-  state.tracker2.usernameToNonUserDetails.get(username, noNonUserDetails)
+  state.tracker2.usernameToNonUserDetails.get(username) || noNonUserDetails
 
 export const guiIDToUsername = (state: Types.State, guiID: string) => {
-  const d = state.usernameToDetails.find(d => d.guiID === guiID)
-  return d ? d.username : null
+  const det = [...state.usernameToDetails.values()].find(d => d.guiID === guiID)
+  return det ? det.username : null
 }

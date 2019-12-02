@@ -1,12 +1,18 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {map, capitalize} from 'lodash-es'
+import map from 'lodash/map'
+import capitalize from 'lodash/capitalize'
 import {Position} from '../../common-adapters/relative-popup-hoc.types'
-import {TeamRoleType as Role} from '../../constants/types/teams'
+import {TeamRoleType} from '../../constants/types/teams'
 import {StylesCrossPlatform} from '../../styles/css'
 // Controls the ordering of the role picker
 const orderedRoles = ['owner', 'admin', 'writer', 'reader'] as const
+
+// TODO include bot roles in here; this is short term to allow bots to show up in the gui
+type Role = Exclude<TeamRoleType, 'bot' | 'restrictedbot'>
+const filterRole = (r: TeamRoleType | null | undefined): Role | null =>
+  r === 'bot' || r === 'restrictedbot' || !r ? null : r
 
 type DisabledReason = string
 
@@ -18,8 +24,8 @@ export type Props = {
   confirmLabel?: string // Defaults to "Make ${selectedRole}"
   onSelectRole: (role: Role) => void
   footerComponent?: React.ReactNode
-  presetRole?: Role | null
-  selectedRole?: Role | null
+  presetRole?: TeamRoleType | null
+  selectedRole?: TeamRoleType | null
 }
 
 type RoleRowProps = {
@@ -68,9 +74,11 @@ const rolesMetaInfo = (infoForRole: Role): RolesMetaInfo => {
     case 'admin':
       return {
         cans: [
-          'Can manage team members roles',
-          'Can create subteams and channels',
-          'Can write and read in chats and folders',
+          `Can create chat channels`,
+          `Can create subteams`,
+          `Can add and remove members`,
+          `Can manage team members' roles`,
+          `Can write and read in chats and folders`,
         ],
         cants: [`Can't delete the team`],
         icon: (
@@ -85,10 +93,12 @@ const rolesMetaInfo = (infoForRole: Role): RolesMetaInfo => {
     case 'owner':
       return {
         cans: [
-          'Can manage team members roles',
-          'Can create subteams and channels',
-          'Can write and read in chats and folders',
-          'Can delete team',
+          `Can create chat channels`,
+          `Can create subteams`,
+          `Can add and remove members`,
+          `Can manage team members' roles`,
+          `Can write and read in chats and folders`,
+          `Can delete team`,
         ],
         cants: [],
         extra: ['A team can have multiple owners'],
@@ -105,7 +115,7 @@ const rolesMetaInfo = (infoForRole: Role): RolesMetaInfo => {
       return {
         cans: ['Can write in chats but read only in folders'],
         cants: [
-          `Can't create channels`,
+          `Can't create chat channels`,
           `Can't create subteams`,
           `Can't add and remove members`,
           `Can't manage team members' roles`,
@@ -115,7 +125,7 @@ const rolesMetaInfo = (infoForRole: Role): RolesMetaInfo => {
       }
     case 'writer':
       return {
-        cans: ['Can create channels', 'Can write and read in chats and folders'],
+        cans: ['Can write and read in chats and folders', 'Can create chat channels'],
         cants: [
           `Can't create subteams`,
           `Can't add and remove members`,
@@ -213,7 +223,7 @@ const confirmLabelHelper = (presetRole: Role | null, selectedRole: Role | null):
 }
 
 const RolePicker = (props: Props) => {
-  let selectedRole = props.selectedRole || props.presetRole
+  let selectedRole = filterRole(props.selectedRole || props.presetRole)
   return (
     <Kb.Box2 direction="vertical" alignItems="stretch" style={styles.container}>
       {headerTextHelper(props.headerText)}
@@ -245,7 +255,7 @@ const RolePicker = (props: Props) => {
           selectedRole && props.selectedRole !== props.presetRole
             ? () => selectedRole && props.onConfirm(selectedRole)
             : undefined,
-          props.confirmLabel || confirmLabelHelper(props.presetRole || null, selectedRole || null)
+          props.confirmLabel || confirmLabelHelper(filterRole(props.presetRole), selectedRole || null)
         )}
       </Kb.Box2>
     </Kb.Box2>
@@ -398,9 +408,9 @@ export const sendNotificationFooter = (
   <Kb.Box2
     direction="horizontal"
     fullWidth={!Styles.isMobile}
-    centerChildren={true}
     style={{
       paddingBottom: Styles.globalMargins.tiny,
+      paddingLeft: Styles.globalMargins.small,
       paddingTop: Styles.globalMargins.tiny,
     }}
   >

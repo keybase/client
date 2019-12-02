@@ -6,7 +6,7 @@ import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as Kb from '../../common-adapters'
 import PathItemAction from './path-item-action'
-import PathItemIcon, {Size} from './path-item-icon'
+import ItemIcon, {Size} from './item-icon'
 import LastModifiedLine from './last-modified-line'
 import KbfsPath from './kbfs-path'
 import PathInfo from './path-info'
@@ -14,10 +14,9 @@ import PathItemInfo from './path-item-info'
 import TlfInfoLine from './tlf-info-line'
 import Errs from './errs'
 import OpenInSystemFileManager from './open-in-system-file-manager'
-import {OwnProps as PathItemIconOwnProps} from './path-item-icon-container'
 import {OwnProps as LastModifiedLineOwnProps} from './last-modified-line-container'
 import {OwnProps as TlfInfoLineOwnProps} from './tlf-info-line-container'
-import SyncStatus from './sync-status'
+import PathStatusIcon from './path-status-icon'
 import PieSlice from './pie-slice'
 import ConfirmDelete from './path-item-action/confirm-delete'
 
@@ -63,12 +62,12 @@ export const commonProvider = {
   }),
   FolderViewFilter: (props: any) => ({
     onUpdate: Sb.action('onUpdate'),
-    pathItem: Constants.makeFolder(),
+    pathItem: Constants.emptyFolder,
     ...props,
   }),
   FolderViewFilterIcon: (props: any) => ({
     onUpdate: Sb.action('onUpdate'),
-    pathItem: Constants.makeFolder(),
+    pathItem: Constants.emptyFolder,
     ...props,
   }),
   LastModifiedLine: ({path, mode}: LastModifiedLineOwnProps) => ({
@@ -80,7 +79,7 @@ export const commonProvider = {
     loadPathMetadataWithRefreshTag: Sb.action('loadPathMetadataWithRefreshTag'),
     loadPathMetadataWithoutRefreshTag: Sb.action('loadPathMetadataWithoutRefreshTag'),
     path,
-    syncingFoldersProgress: Constants.makeSyncingFoldersProgress(),
+    syncingFoldersProgress: Constants.emptySyncingFoldersProgress,
   }),
   NewFolder: ({path}: {path: Types.Path}) => ({
     canCreateNewFolder: Types.getPathLevel(path) > 2,
@@ -96,20 +95,15 @@ export const commonProvider = {
   PathItemActionChooseView: pathItemActionChooseViewProps,
   PathItemActionMenu: PathItemActionMenuProps,
   PathItemActionMenuHeader: PathItemActionMenuHeaderProps,
-  PathItemIcon: (ownProps: PathItemIconOwnProps) => ({
-    ...ownProps,
-    type: Types.getPathElements(ownProps.path).length > 4 ? Types.PathType.File : Types.PathType.Folder,
-    username: 'songgao_test',
+  PathStatusIcon: () => ({
+    isFolder: false,
+    statusIcon: 'online-only',
   }),
   RefreshDriverStatusOnMount: () => ({
     refresh: Sb.action('refresh'),
   }),
   RefreshSettings: () => ({
     refresh: Sb.action('refresh'),
-  }),
-  SyncStatus: () => ({
-    folder: false,
-    status: 'online-only',
   }),
   SyncingFolders: () => ({
     progress: 0.67,
@@ -124,7 +118,7 @@ export const commonProvider = {
   }),
   TryEnableDriverOnFocus: () => ({
     appFocusedCount: 1,
-    driverStatus: Constants.makeDriverStatusEnabled(),
+    driverStatus: Constants.emptyDriverStatusEnabled,
     onEnabled: Sb.action('onEnabled'),
     refreshDriverStatus: Sb.action('refreshDriverStatus'),
   }),
@@ -140,7 +134,83 @@ export const commonProvider = {
   }),
 }
 
-export const provider = Sb.createPropProviderWithCommon(commonProvider)
+const storeCommon = Sb.createStoreWithCommon()
+const store = {
+  ...storeCommon,
+  fs: {
+    ...storeCommon.fs,
+    downloads: {
+      ...storeCommon.fs.downloads,
+      ...storeCommon.fs.downloads.info,
+      info: new Map<string, Types.DownloadInfo>([
+        ['1', {...Constants.emptyDownloadInfo, path: Types.stringToPath('/keybase/public/foo,bar/folder')}],
+        ['2', {...Constants.emptyDownloadInfo, path: Types.stringToPath('/keybase/public/foo,bar/file')}],
+        ['3', {...Constants.emptyDownloadInfo, path: Types.stringToPath('/keybase/team/kbkbfstest/folder')}],
+        ['4', {...Constants.emptyDownloadInfo, path: Types.stringToPath('/keybase/team/kbkbfstest/file')}],
+      ]),
+      state: new Map<string, Types.DownloadState>([
+        ...storeCommon.fs.downloads.state,
+        // need the spread to pass "ongoing" check
+        ['1', {...Constants.emptyDownloadState}],
+        ['2', {...Constants.emptyDownloadState}],
+        ['3', {...Constants.emptyDownloadState}],
+        ['4', {...Constants.emptyDownloadState}],
+      ]),
+    },
+    pathItems: new Map<Types.Path, Types.PathItem>([
+      ...storeCommon.fs.pathItems,
+      [
+        Types.stringToPath('/keybase/public/foo,bar/folder'),
+        {
+          ...Constants.emptyFolder,
+        },
+      ],
+      [
+        Types.stringToPath('/keybase/public/foo,bar/file'),
+        {
+          ...Constants.emptyFile,
+        },
+      ],
+      [
+        Types.stringToPath('/keybase/team/kbkbfstest/folder'),
+        {
+          ...Constants.emptyFolder,
+        },
+      ],
+      [
+        Types.stringToPath('/keybase/team/kbkbfstest/file'),
+        {
+          ...Constants.emptyFile,
+        },
+      ],
+    ]),
+    tlfs: {
+      ...storeCommon.fs.tlfs,
+      private: new Map<string, Types.Tlf>([
+        ...storeCommon.fs.tlfs.private,
+        ['1', Constants.makeTlf({isNew: true, name: '1'})],
+      ]),
+      public: new Map<string, Types.Tlf>([
+        ...storeCommon.fs.tlfs.public,
+        ...[...new Array(10).keys()].map(
+          i => [i.toString(), Constants.makeTlf({isNew: true, name: i.toString()})] as const
+        ),
+      ]),
+      team: new Map<string, Types.Tlf>([
+        ...storeCommon.fs.tlfs.team,
+        ...[...new Array(100).keys()].map(
+          i => [i.toString(), Constants.makeTlf({isNew: true, name: i.toString()})] as const
+        ),
+      ]),
+    },
+  },
+}
+
+// @ts-ignore
+export const provider = Sb.createPropProviderWithCommon({
+  ...commonProvider,
+  ...store,
+})
 
 const pathItemActionCommonProps = {
   clickable: {type: 'icon'} as const,
@@ -207,9 +277,7 @@ const load = () => {
       </Kb.Box>
     ))
     .add('PathInfo', () => <PathInfo path="/keybase/private/meatball/folder/treat" />)
-    .add('PathItemInfo', () => (
-      <PathItemInfo path="/keybase/private/meatball/folder/treat" showTooltipOnName={true} />
-    ))
+    .add('PathItemInfo', () => <PathItemInfo path="/keybase/private/meatball/folder/treat" />)
     .add('PathItemAction', () => (
       <Kb.Box2
         direction="vertical"
@@ -294,14 +362,49 @@ const load = () => {
     ))
     .add('TlfInfoLine', () => (
       <Kb.Box2 direction="vertical" gap="small" gapStart={true} fullWidth={true}>
+        <Kb.Text type="Body">mode=default reset=false isNew=true</Kb.Text>
+        <TlfInfoLine
+          isNew={false}
+          tlfMtime={1564784024580}
+          tlfType={Types.TlfType.Private}
+          mode="default"
+          reset={false}
+        />
         <Kb.Text type="Body">mode=default reset=false</Kb.Text>
-        <TlfInfoLine tlfMtime={1564784024580} tlfType={Types.TlfType.Private} mode="default" reset={false} />
+        <TlfInfoLine
+          isNew={true}
+          tlfMtime={1564784024580}
+          tlfType={Types.TlfType.Private}
+          mode="default"
+          reset={false}
+        />
+        <Kb.Text type="Body">mode=default reset=true isNew=true</Kb.Text>
+        <TlfInfoLine
+          isNew={true}
+          tlfMtime={1564784024580}
+          tlfType={Types.TlfType.Private}
+          mode="default"
+          reset={true}
+        />
         <Kb.Text type="Body">mode=default reset=true</Kb.Text>
-        <TlfInfoLine tlfMtime={1564784024580} tlfType={Types.TlfType.Private} mode="default" reset={true} />
+        <TlfInfoLine
+          isNew={false}
+          tlfMtime={1564784024580}
+          tlfType={Types.TlfType.Private}
+          mode="default"
+          reset={true}
+        />
         <Kb.Text type="Body">mode=row reset=Array(1)</Kb.Text>
-        <TlfInfoLine tlfMtime={1564784024580} tlfType={Types.TlfType.Private} mode="row" reset={['foo']} />
+        <TlfInfoLine
+          isNew={false}
+          tlfMtime={1564784024580}
+          tlfType={Types.TlfType.Private}
+          mode="row"
+          reset={['foo']}
+        />
         <Kb.Text type="Body">mode=default reset=Array(2)</Kb.Text>
         <TlfInfoLine
+          isNew={false}
           tlfMtime={1564784024580}
           tlfType={Types.TlfType.Private}
           mode="default"
@@ -309,6 +412,7 @@ const load = () => {
         />
         <Kb.Text type="Body">mode=row reset=Array(3)</Kb.Text>
         <TlfInfoLine
+          isNew={false}
           tlfMtime={1564784024580}
           tlfType={Types.TlfType.Private}
           mode="row"
@@ -316,6 +420,7 @@ const load = () => {
         />
         <Kb.Text type="Body">mode=row mixedMode=true reset=Array(3)</Kb.Text>
         <TlfInfoLine
+          isNew={false}
           mixedMode={true}
           tlfMtime={1564784024580}
           tlfType={Types.TlfType.Private}
@@ -324,6 +429,7 @@ const load = () => {
         />
         <Kb.Text type="Body">mode=row mixedMode=true reset=true</Kb.Text>
         <TlfInfoLine
+          isNew={false}
           mixedMode={true}
           tlfMtime={1564784024580}
           tlfType={Types.TlfType.Private}
@@ -332,6 +438,7 @@ const load = () => {
         />
         <Kb.Text type="Body">mode=row mixedMode=true reset=false</Kb.Text>
         <TlfInfoLine
+          isNew={false}
           mixedMode={true}
           tlfMtime={1564784024580}
           tlfType={Types.TlfType.Private}
@@ -368,13 +475,15 @@ const load = () => {
     ))
     .add('Sync Status', () => (
       <Kb.Box2 direction="vertical" gap="large" gapStart={true} fullWidth={false} alignItems="center">
-        <SyncStatus status={Types.SyncStatusStatic.AwaitingToSync} folder={false} />
-        <SyncStatus status={Types.SyncStatusStatic.AwaitingToUpload} folder={false} />
-        <SyncStatus status={Types.SyncStatusStatic.OnlineOnly} folder={false} />
-        <SyncStatus status={Types.SyncStatusStatic.Synced} folder={false} />
-        <SyncStatus status={Types.SyncStatusStatic.SyncError} folder={true} />
-        <SyncStatus status={Types.SyncStatusStatic.Uploading} folder={false} />
-        <SyncStatus status={0.3} folder={false} />
+        <PathStatusIcon statusIcon={Types.NonUploadStaticSyncStatus.AwaitingToSync} isFolder={false} />
+        <PathStatusIcon statusIcon={Types.UploadIcon.AwaitingToUpload} isFolder={false} />
+        <PathStatusIcon statusIcon={Types.NonUploadStaticSyncStatus.OnlineOnly} isFolder={false} />
+        <PathStatusIcon statusIcon={Types.NonUploadStaticSyncStatus.Synced} isFolder={false} />
+        <PathStatusIcon statusIcon={Types.NonUploadStaticSyncStatus.SyncError} isFolder={true} />
+        <PathStatusIcon statusIcon={Types.UploadIcon.Uploading} isFolder={false} />
+        <PathStatusIcon statusIcon={Types.UploadIcon.UploadingStuck} isFolder={false} />
+        <PathStatusIcon statusIcon={Types.LocalConflictStatus} isFolder={false} />
+        <PathStatusIcon statusIcon={0.3} isFolder={false} />
       </Kb.Box2>
     ))
     .add('Pie Loaders', () => (
@@ -398,229 +507,107 @@ const load = () => {
       />
     ))
 
-  Sb.storiesOf('Files/PathItemIcon', module)
+  Sb.storiesOf('Files/ItemIcon', module)
+    .addDecorator(provider)
     .add('tlf list', () => (
       <Kb.Box2 direction="vertical" gap="small" gapStart={true}>
         <Kb.Box2 direction="horizontal" gap="small" gapStart={true} centerChildren={true}>
           <Kb.Text type="Header">private</Kb.Text>
           {pathItemIconSizes.map(size => (
-            <PathItemIcon
-              key={size.toString()}
-              path={Types.stringToPath('/keybase/private')}
-              size={size}
-              type={Types.PathType.Folder}
-              username=""
-            />
+            <ItemIcon key={size.toString()} path={Types.stringToPath('/keybase/private')} size={size} />
           ))}
         </Kb.Box2>
         <Kb.Box2 direction="horizontal" gap="small" gapStart={true} centerChildren={true}>
           <Kb.Text type="Header">public</Kb.Text>
           {pathItemIconSizes.map(size => (
-            <PathItemIcon
-              key={size.toString()}
-              path={Types.stringToPath('/keybase/public')}
-              size={size}
-              type={Types.PathType.File}
-              username=""
-            />
+            <ItemIcon key={size.toString()} path={Types.stringToPath('/keybase/public')} size={size} />
           ))}
         </Kb.Box2>
         <Kb.Box2 direction="horizontal" gap="small" gapStart={true} centerChildren={true}>
           <Kb.Text type="Header">team</Kb.Text>
           {pathItemIconSizes.map(size => (
-            <PathItemIcon
-              key={size.toString()}
-              path={Types.stringToPath('/keybase/team')}
-              size={size}
-              type={Types.PathType.Folder}
-              username=""
-            />
+            <ItemIcon key={size.toString()} path={Types.stringToPath('/keybase/team')} size={size} />
           ))}
         </Kb.Box2>
       </Kb.Box2>
     ))
-    .add('team', () => (
+    .add('in-tlf', () => (
       <Kb.Box2 direction="vertical" gap="small" gapStart={true}>
         <Kb.Box2 direction="horizontal" gap="small" gapStart={true} centerChildren={true}>
           <Kb.Text type="Header">team tlf</Kb.Text>
           {pathItemIconSizes.map(size => (
-            <PathItemIcon
+            <ItemIcon
               key={size.toString()}
               path={Types.stringToPath('/keybase/team/kbkbfstest')}
               size={size}
-              type={Types.PathType.Folder}
-              username=""
             />
           ))}
         </Kb.Box2>
         <Kb.Box2 direction="horizontal" gap="small" gapStart={true} centerChildren={true}>
           <Kb.Text type="Header">team folder</Kb.Text>
           {pathItemIconSizes.map(size => (
-            <PathItemIcon
+            <ItemIcon
               key={size.toString()}
-              path={Types.stringToPath('/keybase/team/kbkbfstest/foo')}
+              path={Types.stringToPath('/keybase/team/kbkbfstest/folder')}
               size={size}
-              type={Types.PathType.Folder}
-              username=""
             />
           ))}
         </Kb.Box2>
         <Kb.Box2 direction="horizontal" gap="small" gapStart={true} centerChildren={true}>
           <Kb.Text type="Header">team file</Kb.Text>
           {pathItemIconSizes.map(size => (
-            <PathItemIcon
+            <ItemIcon
               key={size.toString()}
-              path={Types.stringToPath('/keybase/team/kbkbfstest/foo')}
+              path={Types.stringToPath('/keybase/team/kbkbfstest/file')}
               size={size}
-              type={Types.PathType.File}
-              username=""
             />
           ))}
         </Kb.Box2>
-      </Kb.Box2>
-    ))
-    .add('private', () => (
-      <Kb.Box2 direction="vertical" gap="small" gapStart={true}>
-        <Kb.Box2 direction="horizontal" gap="small" gapStart={true} centerChildren={true}>
-          <Kb.Text type="Header">private tlf</Kb.Text>
-          {pathItemIconSizes.map(size => (
-            <PathItemIcon
-              key={size.toString()}
-              path={Types.stringToPath('/keybase/private/foo,bar')}
-              size={size}
-              type={Types.PathType.Folder}
-              username=""
-            />
-          ))}
-        </Kb.Box2>
-        <Kb.Box2 direction="horizontal" gap="small" gapStart={true} centerChildren={true}>
-          <Kb.Text type="Header">private folder</Kb.Text>
-          {pathItemIconSizes.map(size => (
-            <PathItemIcon
-              key={size.toString()}
-              path={Types.stringToPath('/keybase/private/foo,bar/foo')}
-              size={size}
-              type={Types.PathType.Folder}
-              username=""
-            />
-          ))}
-        </Kb.Box2>
-        <Kb.Box2 direction="horizontal" gap="small" gapStart={true} centerChildren={true}>
-          <Kb.Text type="Header">private file</Kb.Text>
-          {pathItemIconSizes.map(size => (
-            <PathItemIcon
-              key={size.toString()}
-              path={Types.stringToPath('/keybase/private/foo,bar/foo')}
-              size={size}
-              type={Types.PathType.File}
-              username=""
-            />
-          ))}
-        </Kb.Box2>
-      </Kb.Box2>
-    ))
-    .add('public', () => (
-      <Kb.Box2 direction="vertical" gap="small" gapStart={true}>
         <Kb.Box2 direction="horizontal" gap="small" gapStart={true} centerChildren={true}>
           <Kb.Text type="Header">public tlf</Kb.Text>
           {pathItemIconSizes.map(size => (
-            <PathItemIcon
+            <ItemIcon
               key={size.toString()}
               path={Types.stringToPath('/keybase/public/foo,bar')}
               size={size}
-              type={Types.PathType.Folder}
-              username=""
             />
           ))}
         </Kb.Box2>
         <Kb.Box2 direction="horizontal" gap="small" gapStart={true} centerChildren={true}>
           <Kb.Text type="Header">public folder</Kb.Text>
           {pathItemIconSizes.map(size => (
-            <PathItemIcon
+            <ItemIcon
               key={size.toString()}
-              path={Types.stringToPath('/keybase/public/foo,bar/foo')}
+              path={Types.stringToPath('/keybase/public/foo,bar/folder')}
               size={size}
-              type={Types.PathType.Folder}
-              username=""
             />
           ))}
         </Kb.Box2>
         <Kb.Box2 direction="horizontal" gap="small" gapStart={true} centerChildren={true}>
           <Kb.Text type="Header">public file</Kb.Text>
           {pathItemIconSizes.map(size => (
-            <PathItemIcon
+            <ItemIcon
               key={size.toString()}
-              path={Types.stringToPath('/keybase/public/foo,bar/foo')}
+              path={Types.stringToPath('/keybase/public/foo,bar/file')}
               size={size}
-              type={Types.PathType.File}
-              username=""
+            />
+          ))}
+        </Kb.Box2>
+        <Kb.Box2 direction="horizontal" gap="small" gapStart={true} centerChildren={true}>
+          <Kb.Text type="Header">public file with badgeOverride</Kb.Text>
+          {pathItemIconSizes.map(size => (
+            <ItemIcon
+              badgeOverride="iconfont-attachment"
+              key={size.toString()}
+              path={Types.stringToPath('/keybase/public/foo,bar/file')}
+              size={size}
             />
           ))}
         </Kb.Box2>
       </Kb.Box2>
     ))
-  ;[32 as 32, 48 as 48].forEach(size =>
-    Sb.storiesOf('Files/PathItemIcon', module).add(`badged - ${size}`, () => (
-      <Kb.Box2 direction="vertical" gap="large" gapStart={true}>
-        {[Types.PathItemBadgeType.New, Types.PathItemBadgeType.Rekey].map(badge => (
-          <Kb.Box2 key={badge} direction="horizontal" gap="small" gapStart={true} centerChildren={true}>
-            <Kb.Text type="Header">{badge}</Kb.Text>
-            <PathItemIcon
-              path={Types.stringToPath('/keybase/private/foo,bar')}
-              size={size}
-              type={Types.PathType.Folder}
-              username=""
-              badge={badge}
-            />
-          </Kb.Box2>
-        ))}
-        {[Types.PathItemBadgeType.Upload, Types.PathItemBadgeType.Download].map(badge => (
-          <>
-            <Kb.Box2 key="file" direction="horizontal" gap="small" gapStart={true} centerChildren={true}>
-              <Kb.Text type="Header">{badge} - file</Kb.Text>
-              <PathItemIcon
-                path={Types.stringToPath('/keybase/team/kbkbfstest/foo')}
-                size={size}
-                type={Types.PathType.File}
-                username=""
-                badge={badge}
-              />
-            </Kb.Box2>
-            <Kb.Box2 key="folder" direction="horizontal" gap="small" gapStart={true} centerChildren={true}>
-              <Kb.Text type="Header">{badge} - folder</Kb.Text>
-              <PathItemIcon
-                path={Types.stringToPath('/keybase/team/kbkbfstest/foo')}
-                size={size}
-                type={Types.PathType.Folder}
-                username=""
-                badge={badge}
-              />
-            </Kb.Box2>
-          </>
-        ))}
-        {[1, 10, 100].map(badge => (
-          <Kb.Box2
-            key={badge.toString()}
-            direction="horizontal"
-            gap="small"
-            gapStart={true}
-            centerChildren={true}
-          >
-            <Kb.Text type="Header">{badge}</Kb.Text>
-            <PathItemIcon
-              path={Types.stringToPath('/keybase/private/foo,bar')}
-              size={size}
-              type={Types.PathType.Folder}
-              username=""
-              badge={badge}
-            />
-          </Kb.Box2>
-        ))}
-      </Kb.Box2>
-    ))
-  )
 }
 
-const pathItemIconSizes: Array<Size> = [12, 16, 32, 48, 64, 96]
+const pathItemIconSizes: Array<Size> = [16, 32, 48, 96]
 
 export default load

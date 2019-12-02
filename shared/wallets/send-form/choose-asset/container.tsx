@@ -14,7 +14,7 @@ const mapStateToProps = state => {
 
   return {
     accountID,
-    currencies: Constants.getDisplayCurrencies(state).toArray(),
+    currencies: Constants.getDisplayCurrencies(state),
     isRequest: state.wallets.building.isRequest,
     selected,
     to,
@@ -47,6 +47,9 @@ const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   selected: stateProps.selected,
 })
 
-export default Container.namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ChooseAsset')(
-  ChooseAsset
-)
+export default Container.namedConnect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'ChooseAsset'
+)(ChooseAsset)

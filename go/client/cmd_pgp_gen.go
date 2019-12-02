@@ -68,11 +68,11 @@ func (v *CmdPGPGen) Run() (err error) {
 		return err
 	}
 
-	hasRandomPw, err := user.LoadHasRandomPw(context.TODO(), keybase1.LoadHasRandomPwArg{})
+	passphraseState, err := user.LoadPassphraseState(context.TODO(), 0)
 	if err != nil {
 		return err
 	}
-	if !hasRandomPw {
+	if passphraseState == keybase1.PassphraseState_KNOWN {
 		v.arg.PushSecret, err = v.G().UI.GetTerminalUI().PromptYesNo(PromptDescriptorPGPGenPushSecret, "Push an encrypted copy of your new secret key to the Keybase.io server?", libkb.PromptDefaultYes)
 		if err != nil {
 			return err

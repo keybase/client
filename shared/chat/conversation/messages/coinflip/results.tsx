@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {partition} from 'lodash-es'
+import partition from 'lodash/partition'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
@@ -77,11 +77,11 @@ const cards = [
   {suit: 'hearts', value: 'Q'},
   {suit: 'hearts', value: 'K'},
   {suit: 'hearts', value: 'A'},
-]
+] as const
 
 const suits = {
   clubs: {
-    color: Styles.globalColors.black,
+    color: Styles.globalColors.blackOrBlack,
     icon: 'iconfont-club',
   },
   diamonds: {
@@ -93,10 +93,10 @@ const suits = {
     icon: 'iconfont-heart',
   },
   spades: {
-    color: Styles.globalColors.black,
+    color: Styles.globalColors.blackOrBlack,
     icon: 'iconfont-spade',
   },
-}
+} as const
 
 type CardType = {
   card: number
@@ -117,7 +117,7 @@ const Card = (props: CardType) => (
     <Kb.Box2 direction="horizontal">
       <Kb.Icon
         fontSize={Styles.isMobile ? 10 : 12}
-        type={suits[cards[props.card].suit].icon}
+        type={suits[cards[props.card]?.suit]?.icon}
         color={suits[cards[props.card].suit].color}
         style={styles.cardSuit}
       />
@@ -234,7 +234,7 @@ const CoinFlipResultShuffle = (props: ShuffleType) => (
   </Kb.Box2>
 )
 
-const CoinFlipResultShuffleItem = props => (
+const CoinFlipResultShuffleItem = (props: {index: number; item: string}) => (
   <Kb.Box2 direction="horizontal" alignSelf="flex-start" centerChildren={true}>
     <Kb.Box2 direction="vertical" centerChildren={true} alignItems="center" style={styles.listOrderContainer}>
       <Kb.Text
@@ -271,8 +271,8 @@ const styles = Styles.styleSheetCreate(
       }),
       card: Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.white,
-          borderColor: Styles.globalColors.black_10,
+          backgroundColor: Styles.globalColors.whiteOrWhite,
+          borderColor: Styles.globalColors.black_10OrBlack,
           borderRadius: Styles.borderRadius,
           borderStyle: 'solid',
           borderWidth: 1,

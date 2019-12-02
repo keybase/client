@@ -1,11 +1,13 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/identify3_ui.avdl
 
 package keybase1
 
 import (
+	"fmt"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type Identify3RowState int
@@ -40,7 +42,7 @@ func (e Identify3RowState) String() string {
 	if v, ok := Identify3RowStateRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type Identify3RowColor int
@@ -81,7 +83,7 @@ func (e Identify3RowColor) String() string {
 	if v, ok := Identify3RowColorRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type Identify3ResultType int
@@ -113,7 +115,7 @@ func (e Identify3ResultType) String() string {
 	if v, ok := Identify3ResultTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type Identify3RowMeta struct {
@@ -129,20 +131,21 @@ func (o Identify3RowMeta) DeepCopy() Identify3RowMeta {
 }
 
 type Identify3Row struct {
-	GuiID        Identify3GUIID     `codec:"guiID" json:"guiID"`
-	Key          string             `codec:"key" json:"key"`
-	Value        string             `codec:"value" json:"value"`
-	Priority     int                `codec:"priority" json:"priority"`
-	SiteURL      string             `codec:"siteURL" json:"siteURL"`
-	SiteIcon     []SizedImage       `codec:"siteIcon" json:"siteIcon"`
-	SiteIconFull []SizedImage       `codec:"siteIconFull" json:"siteIconFull"`
-	ProofURL     string             `codec:"proofURL" json:"proofURL"`
-	SigID        SigID              `codec:"sigID" json:"sigID"`
-	Ctime        Time               `codec:"ctime" json:"ctime"`
-	State        Identify3RowState  `codec:"state" json:"state"`
-	Metas        []Identify3RowMeta `codec:"metas" json:"metas"`
-	Color        Identify3RowColor  `codec:"color" json:"color"`
-	Kid          *KID               `codec:"kid,omitempty" json:"kid,omitempty"`
+	GuiID         Identify3GUIID     `codec:"guiID" json:"guiID"`
+	Key           string             `codec:"key" json:"key"`
+	Value         string             `codec:"value" json:"value"`
+	Priority      int                `codec:"priority" json:"priority"`
+	SiteURL       string             `codec:"siteURL" json:"siteURL"`
+	SiteIcon      []SizedImage       `codec:"siteIcon" json:"siteIcon"`
+	SiteIconFull  []SizedImage       `codec:"siteIconFull" json:"siteIconFull"`
+	SiteIconWhite []SizedImage       `codec:"siteIconWhite" json:"siteIconWhite"`
+	ProofURL      string             `codec:"proofURL" json:"proofURL"`
+	SigID         SigID              `codec:"sigID" json:"sigID"`
+	Ctime         Time               `codec:"ctime" json:"ctime"`
+	State         Identify3RowState  `codec:"state" json:"state"`
+	Metas         []Identify3RowMeta `codec:"metas" json:"metas"`
+	Color         Identify3RowColor  `codec:"color" json:"color"`
+	Kid           *KID               `codec:"kid,omitempty" json:"kid,omitempty"`
 }
 
 func (o Identify3Row) DeepCopy() Identify3Row {
@@ -174,6 +177,17 @@ func (o Identify3Row) DeepCopy() Identify3Row {
 			}
 			return ret
 		})(o.SiteIconFull),
+		SiteIconWhite: (func(x []SizedImage) []SizedImage {
+			if x == nil {
+				return nil
+			}
+			ret := make([]SizedImage, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.SiteIconWhite),
 		ProofURL: o.ProofURL,
 		SigID:    o.SigID.DeepCopy(),
 		Ctime:    o.Ctime.DeepCopy(),
@@ -341,34 +355,34 @@ type Identify3UiClient struct {
 }
 
 func (c Identify3UiClient) Identify3ShowTracker(ctx context.Context, __arg Identify3ShowTrackerArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.identify3Ui.identify3ShowTracker", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.identify3Ui.identify3ShowTracker", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c Identify3UiClient) Identify3UpdateRow(ctx context.Context, row Identify3Row) (err error) {
 	__arg := Identify3UpdateRowArg{Row: row}
-	err = c.Cli.Notify(ctx, "keybase.1.identify3Ui.identify3UpdateRow", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "keybase.1.identify3Ui.identify3UpdateRow", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c Identify3UiClient) Identify3UserReset(ctx context.Context, guiID Identify3GUIID) (err error) {
 	__arg := Identify3UserResetArg{GuiID: guiID}
-	err = c.Cli.Notify(ctx, "keybase.1.identify3Ui.identify3UserReset", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "keybase.1.identify3Ui.identify3UserReset", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c Identify3UiClient) Identify3UpdateUserCard(ctx context.Context, __arg Identify3UpdateUserCardArg) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.identify3Ui.identify3UpdateUserCard", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "keybase.1.identify3Ui.identify3UpdateUserCard", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c Identify3UiClient) Identify3TrackerTimedOut(ctx context.Context, guiID Identify3GUIID) (err error) {
 	__arg := Identify3TrackerTimedOutArg{GuiID: guiID}
-	err = c.Cli.Notify(ctx, "keybase.1.identify3Ui.identify3TrackerTimedOut", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "keybase.1.identify3Ui.identify3TrackerTimedOut", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c Identify3UiClient) Identify3Result(ctx context.Context, __arg Identify3ResultArg) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.identify3Ui.identify3Result", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "keybase.1.identify3Ui.identify3Result", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }

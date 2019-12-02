@@ -50,11 +50,7 @@ const PushPrompt = () => {
       }}
     >
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} gap="small" style={styles.container}>
-        <Kb.RequireImage
-          resizeMode="stretch"
-          style={styles.image}
-          src={require('../../images/illustrations/illustration-turn-on-notifications-460-x-252.png')}
-        />
+        <Kb.Icon type="illustration-turn-on-notifications" style={styles.image} />
         <Kb.Text center={true} type="BodySemibold" negative={true}>
           Notifications are very important.
         </Kb.Text>

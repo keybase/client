@@ -1,6 +1,5 @@
 import * as React from 'react'
-import {Box, Icon, Text} from '../common-adapters'
-import {globalMargins} from '../styles'
+import {Box, Text} from '../common-adapters'
 
 export default function FacebookDescription() {
   return (
@@ -8,11 +7,8 @@ export default function FacebookDescription() {
       <Box>
         <Text center={true} type="BodySemibold">
           Post your proof to Facebook. Make sure it’s <Text type="BodySemiboldItalic">public</Text>, or we
-          won’t be able to read it:
+          won’t be able to read it.
         </Text>
-      </Box>
-      <Box style={{alignItems: 'center', marginTop: globalMargins.small}}>
-        <Icon type="icon-facebook-visibility" />
       </Box>
     </Box>
   )

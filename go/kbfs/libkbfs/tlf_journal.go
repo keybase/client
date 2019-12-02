@@ -1095,7 +1095,10 @@ func (j *tlfJournal) removeFlushedBlockEntries(ctx context.Context,
 
 	// TODO: Check storedFiles also.
 
-	j.config.SubscriptionManagerPublisher().PublishChange(keybase1.SubscriptionTopic_JOURNAL_STATUS)
+	j.config.SubscriptionManagerPublisher().PublishChange(
+		keybase1.SubscriptionTopic_JOURNAL_STATUS)
+	j.config.SubscriptionManagerPublisher().PublishChange(
+		keybase1.SubscriptionTopic_FILES_TAB_BADGE)
 	flushedBytes, err := j.blockJournal.removeFlushedEntries(
 		ctx, entries, j.tlfID, j.config.Reporter())
 	if err != nil {
@@ -2100,12 +2103,25 @@ func (j *tlfJournal) putBlockData(
 	// the journal lock.
 
 	timeout := j.config.diskLimitTimeout()
+	// If there's a deadline set in the context, use 60% of that (if
+	// that ends up being longer than the default timeout).
+	// Otherwise, use the default disk limit timeout.
+	deadline, ok := ctx.Deadline()
+	if ok {
+		ctxScaledTimeout := time.Duration(.6 * float64(time.Until(deadline)))
+		if ctxScaledTimeout > timeout {
+			timeout = ctxScaledTimeout
+		}
+	}
+
 	acquireCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
 	bufLen := int64(len(buf))
-	availableBytes, availableFiles, err := j.diskLimiter.reserveWithBackpressure(
-		acquireCtx, journalLimitTrackerType, bufLen, filesPerBlockMax, j.chargedTo)
+	availableBytes, availableFiles, err :=
+		j.diskLimiter.reserveWithBackpressure(
+			acquireCtx, journalLimitTrackerType, bufLen, filesPerBlockMax,
+			j.chargedTo)
 	switch errors.Cause(err) {
 	case nil:
 		// Continue.
@@ -2181,7 +2197,10 @@ func (j *tlfJournal) putBlockData(
 		j.unsquashedBytes += uint64(bufLen)
 	}
 
-	j.config.SubscriptionManagerPublisher().PublishChange(keybase1.SubscriptionTopic_JOURNAL_STATUS)
+	j.config.SubscriptionManagerPublisher().PublishChange(
+		keybase1.SubscriptionTopic_JOURNAL_STATUS)
+	j.config.SubscriptionManagerPublisher().PublishChange(
+		keybase1.SubscriptionTopic_FILES_TAB_BADGE)
 	j.config.Reporter().NotifySyncStatus(ctx, &keybase1.FSPathSyncStatus{
 		FolderType: j.tlfID.Type().FolderType(),
 		// Path: TODO,

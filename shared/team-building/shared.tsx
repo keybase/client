@@ -1,7 +1,6 @@
 import * as Styles from '../styles'
 import {ServiceIdWithContact, ServiceMap} from '../constants/types/team-building'
 import {IconType} from '../common-adapters/icon.constants-gen'
-import Flags from '../util/feature-flags'
 import {allServices} from '../constants/team-building'
 
 const serviceColors: {[K in ServiceIdWithContact]: string} = {
@@ -12,7 +11,7 @@ const serviceColors: {[K in ServiceIdWithContact]: string} = {
     return Styles.isDarkMode ? '#3B5998' : '#3B5998'
   },
   get github() {
-    return Styles.isDarkMode ? '#333' : '#333'
+    return Styles.isDarkMode ? '#9f7be1' : '#333'
   },
   get hackernews() {
     return Styles.isDarkMode ? '#FF6600' : '#FF6600'
@@ -33,19 +32,20 @@ const serviceColors: {[K in ServiceIdWithContact]: string} = {
 
 const services: {
   [K in ServiceIdWithContact]: {
-    icon: IconType
+    avatarIcon?: IconType // icon to show as avatar for results, if different than `icon`
+    badge?: boolean
+    icon: IconType // icon to show in tab bar
     label: string
     longLabel: Array<string>
     searchPlaceholder: string
-    wonderland?: boolean
   }
 } = {
   email: {
+    badge: true,
     icon: 'iconfont-mention',
     label: 'Email', // TODO: rethink this for the empty state when we're actually using it
     longLabel: ['An email', 'address'],
     searchPlaceholder: 'email',
-    wonderland: true,
   },
   facebook: {
     icon: 'iconfont-identity-facebook',
@@ -66,17 +66,20 @@ const services: {
     searchPlaceholder: 'Hacker News',
   },
   keybase: {
+    avatarIcon: Styles.isMobile
+      ? 'icon-placeholder-avatar-circular-48'
+      : 'icon-placeholder-avatar-circular-32',
     icon: 'iconfont-contact-book',
     label: 'Keybase and contacts',
     longLabel: Styles.isMobile ? ['Keybase &', 'Contacts'] : ['A Keybase', 'user'],
     searchPlaceholder: Styles.isMobile ? 'Keybase & contacts' : 'Keybase',
   },
   phone: {
+    badge: true,
     icon: 'iconfont-number-pad',
     label: 'Phone',
     longLabel: ['A phone', 'number'],
     searchPlaceholder: 'phone',
-    wonderland: true,
   },
   reddit: {
     icon: 'iconfont-identity-reddit',
@@ -92,23 +95,16 @@ const services: {
   },
 }
 
-const serviceIdToAccentColor = (service: ServiceIdWithContact): string => serviceColors[service]
-const serviceIdToIconFont = (service: ServiceIdWithContact): IconType => services[service].icon
-const serviceIdToLabel = (service: ServiceIdWithContact): string => services[service].label
-const serviceIdToLongLabel = (service: ServiceIdWithContact): Array<string> => services[service].longLabel
-const serviceIdToSearchPlaceholder = (service: ServiceIdWithContact): string =>
+export const serviceIdToAccentColor = (service: ServiceIdWithContact): string => serviceColors[service]
+export const serviceIdToIconFont = (service: ServiceIdWithContact): IconType => services[service].icon
+export const serviceIdToAvatarIcon = (service: ServiceIdWithContact): IconType =>
+  services[service].avatarIcon || services[service].icon
+export const serviceIdToLabel = (service: ServiceIdWithContact): string => services[service].label
+export const serviceIdToLongLabel = (service: ServiceIdWithContact): Array<string> =>
+  services[service].longLabel
+export const serviceIdToSearchPlaceholder = (service: ServiceIdWithContact): string =>
   services[service].searchPlaceholder
-const serviceIdToWonderland = (service: ServiceIdWithContact): boolean =>
-  Flags.wonderland && services[service].wonderland === true
+export const serviceIdToBadge = (service: ServiceIdWithContact): boolean => services[service].badge === true
 
-const serviceMapToArray = (services: ServiceMap) => allServices.filter(x => x !== 'keybase' && x in services)
-
-export {
-  serviceIdToIconFont,
-  serviceIdToAccentColor,
-  serviceIdToLabel,
-  serviceIdToLongLabel,
-  serviceIdToSearchPlaceholder,
-  serviceIdToWonderland,
-  serviceMapToArray,
-}
+export const serviceMapToArray = (services: ServiceMap) =>
+  allServices.filter(x => x !== 'keybase' && x in services)

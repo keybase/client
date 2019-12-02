@@ -8,7 +8,7 @@ import {anyErrors, anyWaiting} from '../../constants/waiting'
 import {compose} from 'recompose'
 import Advanced from '.'
 import {connect, lifecycle, TypedState} from '../../util/container'
-import {DarkModePreference} from '../../styles/dark-mode'
+import {isLinux} from '../../constants/platform'
 
 type OwnProps = {}
 const mapStateToProps = (state: TypedState) => {
@@ -16,7 +16,6 @@ const mapStateToProps = (state: TypedState) => {
   const setLockdownModeError = anyErrors(state, Constants.setLockdownModeWaitingKey)
   return {
     allowTlsMitmToggle: state.settings.didToggleCertificatePinning,
-    darkModePreference: state.config.darkModePreference,
     hasRandomPW: !!state.settings.password.randomPW,
     lockdownModeEnabled: state.settings.lockdownModeEnabled,
     openAtLogin: state.config.openAtLogin,
@@ -32,6 +31,7 @@ const mapStateToProps = (state: TypedState) => {
 const mapDispatchToProps = dispatch => ({
   _loadHasRandomPW: () => dispatch(SettingsGen.createLoadHasRandomPw()),
   _loadLockdownMode: () => dispatch(SettingsGen.createLoadLockdownMode()),
+  _loadNixOnLoginStartup: () => isLinux && dispatch(ConfigGen.createLoadNixOnLoginStartup()),
   _loadRememberPassword: () => dispatch(SettingsGen.createLoadRememberPassword()),
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onChangeLockdownMode: (checked: boolean) =>
@@ -44,27 +44,22 @@ const mapDispatchToProps = dispatch => ({
   onDisableCertPinning: () =>
     dispatch(RouteTreeGen.createNavigateAppend({path: ['disableCertPinningModal']})),
   onEnableCertPinning: () => dispatch(SettingsGen.createCertificatePinningToggled({toggled: false})),
-  onExtraKBFSLogging: () => dispatch(FSGen.createSetDebugLevel({level: 'vlog1'})),
+  onExtraKBFSLogging: () => dispatch(FSGen.createSetDebugLevel({level: 'vlog2'})),
   onProcessorProfile: (durationSeconds: number) =>
     dispatch(SettingsGen.createProcessorProfile({durationSeconds})),
-  onSetDarkModePreference: (preference: DarkModePreference) =>
-    dispatch(ConfigGen.createSetDarkModePreference({preference})),
   onSetOpenAtLogin: (openAtLogin: boolean) => dispatch(ConfigGen.createSetOpenAtLogin({openAtLogin})),
   onToggleRuntimeStats: () => dispatch(SettingsGen.createToggleRuntimeStats()),
   onTrace: (durationSeconds: number) => dispatch(SettingsGen.createTrace({durationSeconds})),
 })
 
 export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    (s, d, o: OwnProps) => ({...o, ...s, ...d})
-  ),
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o: OwnProps) => ({...o, ...s, ...d})),
   lifecycle({
     componentDidMount() {
       this.props._loadLockdownMode()
       this.props._loadHasRandomPW()
       this.props._loadRememberPassword()
+      this.props._loadNixOnLoginStartup()
     },
   } as any),
   HeaderHoc

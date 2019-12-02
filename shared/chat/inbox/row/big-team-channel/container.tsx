@@ -16,7 +16,9 @@ export default namedConnect(
     return {
       _meta: Constants.getMeta(state, _conversationIDKey),
       hasBadge: Constants.getHasBadge(state, _conversationIDKey),
+      hasDraft: !!Constants.getDraft(state, _conversationIDKey),
       hasUnread: Constants.getHasUnread(state, _conversationIDKey),
+      isMuted: Constants.isMuted(state, _conversationIDKey),
       isSelected: !isMobile && Constants.getSelectedConversation(state) === _conversationIDKey,
     }
   },
@@ -25,12 +27,12 @@ export default namedConnect(
       dispatch(Chat2Gen.createSelectConversation({conversationIDKey, navKey, reason: 'inboxBig'})),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => ({
-    channelname: ownProps.channelname,
+    channelname: stateProps._meta.channelname || ownProps.channelname,
     hasBadge: stateProps.hasBadge,
-    hasDraft: !!stateProps._meta.draft && !stateProps.isSelected,
+    hasDraft: stateProps.hasDraft && !stateProps.isSelected,
     hasUnread: stateProps.hasUnread,
     isError: stateProps._meta.trustedState === 'error',
-    isMuted: stateProps._meta.isMuted,
+    isMuted: stateProps.isMuted,
     isSelected: stateProps.isSelected,
     onSelectConversation: dispatchProps.onSelectConversation,
     showBold: Constants.getRowStyles(false, false).showBold,

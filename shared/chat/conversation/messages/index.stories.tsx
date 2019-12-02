@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Sb from '../../../stories/storybook'
 import {Box2, Text} from '../../../common-adapters'
-import {globalColors} from '../../../styles'
 import chooseEmoji from './react-button/emoji-picker/index.stories'
 import emojiRow from './react-button/emoji-row/index.stories'
 import placeholder from './placeholder/index.stories'
@@ -15,6 +14,8 @@ import coinflip from './coinflip/index.stories'
 import gitPush from './system-git-push/index.stories'
 import cards from './cards/index.stories'
 import systemText from './system-text/index.stories'
+import sbsText from './system-sbs-resolve/index.stories'
+import teamJourney from './cards/team-journey/index.stories'
 
 const load = () => {
   ;[
@@ -30,6 +31,8 @@ const load = () => {
     wrapper,
     gitPush,
     systemText,
+    sbsText,
+    teamJourney,
   ].forEach(load => load())
   Sb.storiesOf('Chat', module)
     .addDecorator(story => (
@@ -38,17 +41,17 @@ const load = () => {
       </Box2>
     ))
     .add('UserNotice blank', () => (
-      <UserNotice bgColor={globalColors.blueLighter2}>
+      <UserNotice>
         <Text type="BodySmall">Some generic notice</Text>
       </UserNotice>
     ))
     .add('UserNotice blank team', () => (
-      <UserNotice bgColor={globalColors.blueLighter2} teamname="">
+      <UserNotice>
         <Text type="BodySmall">Some team notice</Text>
       </UserNotice>
     ))
     .add('UserNotice blank user', () => (
-      <UserNotice bgColor={globalColors.blueLighter2} username="">
+      <UserNotice>
         <Text type="BodySmall">Some user notice</Text>
       </UserNotice>
     ))

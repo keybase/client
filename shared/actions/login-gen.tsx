@@ -6,28 +6,18 @@ import {RPCError} from '../util/errors'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of login but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'login:'
-export const launchAccountResetWebPage = 'login:launchAccountResetWebPage'
-export const launchForgotPasswordWebPage = 'login:launchForgotPasswordWebPage'
 export const loadIsOnline = 'login:loadIsOnline'
 export const loadedIsOnline = 'login:loadedIsOnline'
 export const login = 'login:login'
 export const loginError = 'login:loginError'
 
 // Payload Types
-type _LaunchAccountResetWebPagePayload = void
-type _LaunchForgotPasswordWebPagePayload = void
 type _LoadIsOnlinePayload = void
-type _LoadedIsOnlinePayload = {readonly result: boolean}
-type _LoginErrorPayload = {readonly error: RPCError | null}
+type _LoadedIsOnlinePayload = {readonly isOnline: boolean}
+type _LoginErrorPayload = {readonly error?: RPCError}
 type _LoginPayload = {readonly username: string; readonly password: HiddenString}
 
 // Action Creators
-export const createLaunchAccountResetWebPage = (
-  payload: _LaunchAccountResetWebPagePayload
-): LaunchAccountResetWebPagePayload => ({payload, type: launchAccountResetWebPage})
-export const createLaunchForgotPasswordWebPage = (
-  payload: _LaunchForgotPasswordWebPagePayload
-): LaunchForgotPasswordWebPagePayload => ({payload, type: launchForgotPasswordWebPage})
 export const createLoadIsOnline = (payload: _LoadIsOnlinePayload): LoadIsOnlinePayload => ({
   payload,
   type: loadIsOnline,
@@ -37,20 +27,12 @@ export const createLoadedIsOnline = (payload: _LoadedIsOnlinePayload): LoadedIsO
   type: loadedIsOnline,
 })
 export const createLogin = (payload: _LoginPayload): LoginPayload => ({payload, type: login})
-export const createLoginError = (payload: _LoginErrorPayload): LoginErrorPayload => ({
+export const createLoginError = (payload: _LoginErrorPayload = Object.freeze({})): LoginErrorPayload => ({
   payload,
   type: loginError,
 })
 
 // Action Payloads
-export type LaunchAccountResetWebPagePayload = {
-  readonly payload: _LaunchAccountResetWebPagePayload
-  readonly type: typeof launchAccountResetWebPage
-}
-export type LaunchForgotPasswordWebPagePayload = {
-  readonly payload: _LaunchForgotPasswordWebPagePayload
-  readonly type: typeof launchForgotPasswordWebPage
-}
 export type LoadIsOnlinePayload = {readonly payload: _LoadIsOnlinePayload; readonly type: typeof loadIsOnline}
 export type LoadedIsOnlinePayload = {
   readonly payload: _LoadedIsOnlinePayload
@@ -62,8 +44,6 @@ export type LoginPayload = {readonly payload: _LoginPayload; readonly type: type
 // All Actions
 // prettier-ignore
 export type Actions =
-  | LaunchAccountResetWebPagePayload
-  | LaunchForgotPasswordWebPagePayload
   | LoadIsOnlinePayload
   | LoadedIsOnlinePayload
   | LoginErrorPayload

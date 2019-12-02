@@ -27,6 +27,7 @@ type SignupEngine struct {
 	arg            *SignupEngineRunArg
 	lks            *libkb.LKSec
 	perUserKeyring *libkb.PerUserKeyring // Created after provisioning. Sent to paperkey gen.
+	paperKey       *libkb.PaperKeyPhrase
 }
 
 var _ Engine2 = (*SignupEngine)(nil)
@@ -45,6 +46,10 @@ type SignupEngineRunArg struct {
 	SkipPaper                bool
 	GenPGPBatch              bool // if true, generate and push a pgp key to the server (no interaction)
 	VerifyEmail              bool
+
+	// Bot signups have random PWs, no device keys, an eldest paper key, and return a paper key via
+	// the main flow; you need to supply a bot token to signup with them.
+	BotToken keybase1.BotToken
 
 	// Used in tests for reproducible key generation
 	naclSigningKeyPair    libkb.NaclKeyPair
@@ -68,6 +73,9 @@ func (s *SignupEngine) RequiredUIs() []libkb.UIKind {
 func (s *SignupEngine) Prereqs() Prereqs { return Prereqs{} }
 
 func (s *SignupEngine) SubConsumers() []libkb.UIConsumer {
+	if s.arg.BotToken.Exists() {
+		return nil
+	}
 	return []libkb.UIConsumer{
 		&GPGImportKeyEngine{},
 		&DeviceWrap{},
@@ -79,21 +87,19 @@ func (s *SignupEngine) GetMe() *libkb.User {
 	return s.me
 }
 
+func (s *SignupEngine) PaperKey() *libkb.PaperKeyPhrase {
+	return s.paperKey
+}
+
 func (s *SignupEngine) Run(m libkb.MetaContext) (err error) {
 	defer m.Trace("SignupEngine#Run", func() error { return err })()
 
-	// Make sure we're starting with a clear login state. But check
-	// if it's fine to logout current user.
-	if clRes := libkb.CanLogout(m); !clRes.CanLogout {
-		return fmt.Errorf("Cannot signup because of currently logged in user: %s", clRes.Reason)
-	}
-
-	if err = m.Logout(); err != nil {
+	if err = m.LogoutKeepSecrets(); err != nil {
 		return err
 	}
 
 	// StoreSecret is required if we are doing NOPW
-	if !s.arg.StoreSecret && s.arg.GenerateRandomPassphrase {
+	if !s.arg.StoreSecret && s.arg.GenerateRandomPassphrase && s.arg.BotToken.IsNil() {
 		return fmt.Errorf("cannot SignUp with StoreSecret=false and GenerateRandomPassphrase=true")
 	}
 
@@ -123,7 +129,14 @@ func (s *SignupEngine) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	if err = s.join(m, s.arg.Username, s.arg.Email, s.arg.InviteCode, s.arg.SkipMail, s.arg.GenerateRandomPassphrase); err != nil {
+	if s.arg.BotToken.Exists() && s.arg.InviteCode == "" {
+		s.arg.InviteCode, err = libkb.GetInvitationCode(m)
+		if err != nil {
+			return err
+		}
+	}
+
+	if err = s.join(m, *s.arg); err != nil {
 		return err
 	}
 
@@ -132,11 +145,14 @@ func (s *SignupEngine) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	if err = s.registerDevice(m, s.arg.DeviceName, s.arg.GenerateRandomPassphrase); err != nil {
+	err = s.registerDevice(m, s.arg.DeviceName, s.arg.GenerateRandomPassphrase)
+	if err != nil {
 		return err
 	}
 
-	m.Info("Signed up and provisioned a device.")
+	if s.arg.BotToken.IsNil() {
+		m.Info("Signed up and provisioned a device.")
+	}
 
 	// After we are provisioned, do not fail the signup process. Everything
 	// else happening here is optional.
@@ -234,7 +250,7 @@ func (s *SignupEngine) genPassphraseStream(m libkb.MetaContext, passphrase strin
 	return nil
 }
 
-func (s *SignupEngine) join(m libkb.MetaContext, username, email, inviteCode string, skipMail bool, randomPW bool) error {
+func (s *SignupEngine) join(m libkb.MetaContext, arg SignupEngineRunArg) error {
 	m.Debug("SignupEngine#join")
 	joinEngine := NewSignupJoinEngine(m.G())
 
@@ -243,18 +259,19 @@ func (s *SignupEngine) join(m libkb.MetaContext, username, email, inviteCode str
 		return err
 	}
 
-	arg := SignupJoinEngineRunArg{
-		Username:    username,
-		Email:       email,
-		InviteCode:  inviteCode,
+	jarg := SignupJoinEngineRunArg{
+		Username:    arg.Username,
+		Email:       arg.Email,
+		InviteCode:  arg.InviteCode,
 		PWHash:      s.ppStream.PWHash(),
 		PWSalt:      s.pwsalt,
-		RandomPW:    randomPW,
-		SkipMail:    skipMail,
+		RandomPW:    arg.GenerateRandomPassphrase,
+		SkipMail:    arg.SkipMail,
 		PDPKA5KID:   pdpkda5kid,
-		VerifyEmail: s.arg != nil && s.arg.VerifyEmail,
+		VerifyEmail: arg.VerifyEmail,
+		BotToken:    arg.BotToken,
 	}
-	res := joinEngine.Run(m, arg)
+	res := joinEngine.Run(m, jarg)
 	if res.Err != nil {
 		return res
 	}
@@ -273,6 +290,32 @@ func (s *SignupEngine) join(m libkb.MetaContext, username, email, inviteCode str
 	return nil
 }
 
+func (s *SignupEngine) generateEldestPaperKey(m libkb.MetaContext, args *DeviceWrapArgs) (err error) {
+	tmp, err := libkb.MakePaperKeyPhrase(libkb.PaperKeyVersion)
+	if err != nil {
+		return err
+	}
+	s.paperKey = &tmp
+
+	kgarg := &PaperKeyGenArg{
+		Passphrase: tmp,
+		Me:         s.me,
+		SkipPush:   true,
+	}
+	eng := NewPaperKeyGen(m.G(), kgarg)
+	err = RunEngine2(m, eng)
+	if err != nil {
+		return err
+	}
+	args.naclSigningKeyPair = eng.SigKey().(libkb.NaclKeyPair)
+	args.naclEncryptionKeyPair = eng.EncKey()
+	args.DeviceName = s.paperKey.Prefix()
+	args.DeviceType = libkb.DeviceTypePaper
+	args.DeviceID = eng.DeviceID()
+
+	return nil
+}
+
 func (s *SignupEngine) registerDevice(m libkb.MetaContext, deviceName string, randomPw bool) error {
 	m.Debug("SignupEngine#registerDevice")
 	s.lks = libkb.NewLKSec(s.ppStream, s.uid)
@@ -285,18 +328,27 @@ func (s *SignupEngine) registerDevice(m libkb.MetaContext, deviceName string, ra
 		naclEncryptionKeyPair: s.arg.naclEncryptionKeyPair,
 	}
 
-	if !libkb.CheckDeviceName.F(s.arg.DeviceName) {
-		m.Debug("invalid device name supplied: %s", s.arg.DeviceName)
-		return libkb.DeviceBadNameError{}
-	}
-
 	switch s.arg.DeviceType {
 	case keybase1.DeviceType_DESKTOP:
 		args.DeviceType = libkb.DeviceTypeDesktop
 	case keybase1.DeviceType_MOBILE:
 		args.DeviceType = libkb.DeviceTypeMobile
 	default:
-		return fmt.Errorf("unknown device type: %v", s.arg.DeviceType)
+		if s.arg.BotToken.IsNil() {
+			return fmt.Errorf("unknown device type: %v", s.arg.DeviceType)
+		}
+	}
+
+	if s.arg.BotToken.Exists() {
+		err := s.generateEldestPaperKey(m, args)
+		if err != nil {
+			return err
+		}
+	}
+
+	if !libkb.CheckDeviceName.F(args.DeviceName) {
+		m.Debug("invalid device name supplied: %s", args.DeviceName)
+		return libkb.DeviceBadNameError{}
 	}
 
 	eng := NewDeviceWrap(m.G(), args)

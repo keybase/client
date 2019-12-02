@@ -5,7 +5,7 @@ import * as ConfigGen from '../../../../actions/config-gen'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import HiddenString from '../../../../util/hidden-string'
-import {namedConnect} from '../../../../util/container'
+import * as Container from '../../../../util/container'
 import {memoize} from '../../../../util/memoize'
 import Input from '.'
 
@@ -29,13 +29,28 @@ const setUnsentText = (conversationIDKey: Types.ConversationIDKey, text: string)
   unsentText[conversationIDKey] = text
 }
 
-const getTeams = memoize(metaMap =>
-  Constants.getTeams(metaMap)
-    .map(t => ({fullName: '', teamname: t, username: ''}))
-    .sort((a, b) => a.teamname.localeCompare(b.teamname))
-)
+const getTeams = memoize((layout: RPCChatTypes.UIInboxLayout | null) => {
+  const bigTeams = (layout && layout.bigTeams) || []
+  const smallTeams = (layout && layout.smallTeams) || []
+  const bigTeamNames = bigTeams.reduce<Array<string>>((arr, l) => {
+    if (l.state === RPCChatTypes.UIInboxBigTeamRowTyp.label) {
+      arr.push(l.label.name)
+    }
+    return arr
+  }, [])
+  const smallTeamNames = smallTeams.reduce<Array<string>>((arr, l) => {
+    if (l.isTeam) {
+      arr.push(l.name)
+    }
+    return arr
+  }, [])
+  return bigTeamNames
+    .concat(smallTeamNames)
+    .sort()
+    .map(teamname => ({fullName: '', teamname, username: ''}))
+})
 
-export default namedConnect(
+export default Container.namedConnect(
   (state, {conversationIDKey}: OwnProps) => {
     const editInfo = Constants.getEditInfo(state, conversationIDKey)
     const quoteInfo = Constants.getQuoteInfo(state, conversationIDKey)
@@ -50,20 +65,20 @@ export default namedConnect(
     const isExploding = explodingModeSeconds !== 0
     const unsentText = state.chat2.unsentTextMap.get(conversationIDKey)
     const prependText = state.chat2.prependTextMap.get(conversationIDKey)
-    const showCommandMarkdown = state.chat2.commandMarkdownMap.get(conversationIDKey, '') !== ''
-    const showCommandStatus = !!state.chat2.commandStatusMap.get(conversationIDKey, null)
-    const showGiphySearch = state.chat2.giphyWindowMap.get(conversationIDKey, false)
+    const showCommandMarkdown = (state.chat2.commandMarkdownMap.get(conversationIDKey) || '') !== ''
+    const showCommandStatus = !!state.chat2.commandStatusMap.get(conversationIDKey)
+    const showGiphySearch = state.chat2.giphyWindowMap.get(conversationIDKey) || false
     const _replyTo = Constants.getReplyToMessageID(state, conversationIDKey)
-    const _containsLatestMessage = state.chat2.containsLatestMessageMap.get(conversationIDKey, false)
-    const suggestBotCommandsUpdateStatus = state.chat2.botCommandsUpdateStatusMap.get(
-      conversationIDKey,
+    const _containsLatestMessage = state.chat2.containsLatestMessageMap.get(conversationIDKey) || false
+    const suggestBotCommandsUpdateStatus =
+      state.chat2.botCommandsUpdateStatusMap.get(conversationIDKey) ||
       RPCChatTypes.UIBotCommandsUpdateStatus.blank
-    )
+
     return {
       _containsLatestMessage,
+      _draft: Constants.getDraft(state, conversationIDKey),
       _editOrdinal: editInfo ? editInfo.ordinal : null,
       _isExplodingModeLocked: Constants.isExplodingModeLocked(state, conversationIDKey),
-      _metaMap: state.chat2.metaMap,
       _replyTo,
       _you,
       cannotWrite: meta.cannotWrite,
@@ -89,6 +104,7 @@ export default namedConnect(
       suggestBotCommandsUpdateStatus,
       suggestChannels: Constants.getChannelSuggestions(state, teamname),
       suggestCommands: Constants.getCommands(state, conversationIDKey),
+      suggestTeams: getTeams(state.chat2.inboxLayout),
       suggestUsers: Constants.getParticipantSuggestions(state, conversationIDKey),
       typing: Constants.getTyping(state, conversationIDKey),
       unsentText,
@@ -132,6 +148,8 @@ export default namedConnect(
           text: new HiddenString(body),
         })
       ),
+    _onGiphyToggle: (conversationIDKey: Types.ConversationIDKey) =>
+      dispatch(Chat2Gen.createToggleGiphyPrefill({conversationIDKey})),
     _onPostMessage: (
       conversationIDKey: Types.ConversationIDKey,
       text: string,
@@ -171,14 +189,13 @@ export default namedConnect(
       const ret = stateProps.prependText ? stateProps.prependText.stringValue() + unsentText : unsentText
       // If we have nothing still, check to see if the service told us about a draft and fill that in
       if (!ret) {
-        const meta = stateProps._metaMap.get(stateProps.conversationIDKey)
-        if (meta && meta.draft) {
-          return meta.draft
+        const draft = stateProps._draft
+        if (draft) {
+          return draft
         }
       }
       return ret
     },
-
     isActiveForFocus: stateProps.isActiveForFocus,
     isEditExploded: stateProps.isEditExploded,
     isEditing: !!stateProps._editOrdinal,
@@ -190,9 +207,9 @@ export default namedConnect(
     onCancelReply: () => dispatchProps._onCancelReply(stateProps.conversationIDKey),
     onEditLastMessage: () => dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
     onFilePickerError: dispatchProps.onFilePickerError,
+    onGiphyToggle: () => dispatchProps._onGiphyToggle(stateProps.conversationIDKey),
     onRequestScrollDown: ownProps.onRequestScrollDown,
     onRequestScrollUp: ownProps.onRequestScrollUp,
-
     onSubmit: (text: string) => {
       if (stateProps._editOrdinal) {
         dispatchProps._onEditMessage(stateProps.conversationIDKey, stateProps._editOrdinal, text)
@@ -248,13 +265,12 @@ export default namedConnect(
     suggestBotCommandsUpdateStatus: stateProps.suggestBotCommandsUpdateStatus,
     suggestChannels: stateProps.suggestChannels,
     suggestCommands: stateProps.suggestCommands,
-    suggestTeams: getTeams(stateProps._metaMap),
+    suggestTeams: stateProps.suggestTeams,
     suggestUsers: stateProps.suggestUsers,
     unsentText: stateProps.unsentText ? stateProps.unsentText.stringValue() : null,
     unsentTextChanged: (text: string) => {
       dispatchProps._unsentTextChanged(stateProps.conversationIDKey, text)
     },
   }),
-
   'Input'
 )(Input)

@@ -61,6 +61,8 @@ export declare const globalStyles: {
   }
   italic: _fakeFontDefSeeCommentsOnThisStyle
   loadingTextStyle: CSS._StylesCrossPlatform
+  opacity0: {opacity: 0}
+  positionRelative: {position: 'relative'}
   rounded: {
     borderRadius: 3
   }

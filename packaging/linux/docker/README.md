@@ -4,6 +4,8 @@
 
 - [the "standard" image](https://github.com/keybase/client/blob/master/packaging/linux/docker/standard/Dockerfile)
 - [the "slim" variant](https://github.com/keybase/client/blob/master/packaging/linux/docker/slim/Dockerfile)
+- [the "node" variant (standard image based on an LTS release of Node)](https://github.com/keybase/client/blob/master/packaging/linux/docker/node/Dockerfile)
+- [the "node-slim" variant (slim image based on an LTS release of Node)](https://github.com/keybase/client/blob/master/packaging/linux/docker/node-slim/Dockerfile)
 
 ## Quick reference
 
@@ -45,13 +47,13 @@ as locally from a filesystem mounted by the Keybase client.
 ### start a keybase service
 
 ```console
-$ docker run --name some-keybase -d keybase/client
+$ docker run --name some-keybase -d keybaseio/client
 ```
 
 ### run commands against a running keybase service
 
 ```console
-$ docker run --rm -it --volumes-from some-keybase keybase/client keybase login
+$ docker run --rm -it --volumes-from some-keybase keybaseio/client keybase login
 ```
 
 ### run a bash bot that sends a command to a user after startup
@@ -65,10 +67,11 @@ keybase chat send $CHAT_TARGET "$MSG"
 
 Dockerfile
 ```dockerfile
-FROM keybase/client
+FROM keybaseio/client
 ENV KEYBASE_SERVICE=1
 COPY bot.sh /bot.sh
 RUN chmod +x /bot.sh
+CMD /bot.sh
 ```
 
 Running the provisioning one-off container
@@ -81,15 +84,14 @@ $ docker run --rm \
     -e KEYBASE_USERNAME="botname" \
     -e KEYBASE_PAPERKEY="paper key" \
     -e KEYBASE_SERVICE="1" \
-    yournewimage \
-    /bot.sh
+    yournewimage
 ```
 
 ### automatically provision a new device
 
 First start a service
 ```console
-$ docker run --name some-keybase -d keybase/client
+$ docker run --name some-keybase -d keybaseio/client
 ```
 
 provision.sh
@@ -105,7 +107,7 @@ keybase --no-auto-fork \
 
 Dockerfile
 ```dockerfile
-FROM keybase/client
+FROM keybaseio/client
 COPY provision.sh /provision.sh
 RUN chmod +x /provision.sh
 CMD ["/provision.sh"]
@@ -123,21 +125,21 @@ $ docker run --rm \
 
 ## Image variants
 
-### `keybase/client:stable`, `keybase/client:<version>`
+### `keybaseio/client:stable`, `keybaseio/client:<version>`
 
 Contains all the functionality of the Keybase client. Supports KBFS through the
 CLI `keybase fs` tool.
 
-### `keybase/client:stable-slim`, `keybase/client:<version>-slim`
+### `keybaseio/client:stable-slim`, `keybaseio/client:<version>-slim`
 
 Only contains the `keybase` binary and an entryscript. Ideal for simple
 chat bots.
 
-### `keybase/client:nightly`, `keybase/client:<version>-<date>-<commit>`
+### `keybaseio/client:nightly`, `keybaseio/client:<version>-<date>-<commit>`
 
 A nightly build of the standard `stable` image. Supports KBFS.
 
-### `keybase/client:nightly-slim`, `keybase/client:<version>-<date>-<commit>-slim`
+### `keybaseio/client:nightly-slim`, `keybaseio/client:<version>-<date>-<commit>-slim`
 
 A nightly build of the `slim` image. Does not support KBFS. Ideal for simple
 chat bots.

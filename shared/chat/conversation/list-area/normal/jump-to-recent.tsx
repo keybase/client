@@ -9,22 +9,17 @@ type Props = {
 
 const JumpToRecent = (props: Props) => {
   return (
-    <Kb.ClickableBox
-      onClick={props.onClick}
-      style={Styles.collapseStyles([styles.outerContainer, props.style])}
-    >
-      <Kb.Box2 direction="horizontal" style={styles.container}>
-        <Kb.Text type="Body" style={styles.text}>
-          <Kb.Icon
-            type="iconfont-arrow-full-down"
-            boxStyle={styles.arrowBox}
-            fontSize={12}
-            style={Kb.iconCastPlatformStyles(styles.arrowText)}
-          />{' '}
-          Jump to recent messages
-        </Kb.Text>
-      </Kb.Box2>
-    </Kb.ClickableBox>
+    <Kb.Box2 direction="vertical" style={Styles.collapseStyles([styles.outerContainer, props.style])}>
+      <Kb.Button label="Jump to recent messages" onClick={props.onClick} small={true}>
+        <Kb.Icon
+          color={Styles.globalColors.whiteOrWhite}
+          type="iconfont-arrow-full-down"
+          boxStyle={styles.arrowBox}
+          sizeType="Small"
+          style={Kb.iconCastPlatformStyles(styles.arrowText)}
+        />
+      </Kb.Button>
+    </Kb.Box2>
   )
 }
 
@@ -37,22 +32,19 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       arrowText: {
-        color: Styles.globalColors.white,
+        paddingRight: Styles.globalMargins.tiny,
       },
-      container: {
-        ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
-        backgroundColor: Styles.globalColors.blue,
-        borderRadius: 28,
-      },
-      outerContainer: {
-        backgroundImage: `linear-gradient(transparent, ${Styles.globalColors.white} 75%)`,
-        paddingBottom: Styles.globalMargins.small,
-        paddingTop: Styles.globalMargins.small,
-        width: '100%',
-      },
-      text: {
-        color: Styles.globalColors.white,
-      },
+      outerContainer: Styles.platformStyles({
+        common: {
+          alignItems: 'center',
+          paddingBottom: Styles.globalMargins.small,
+          paddingTop: Styles.globalMargins.small,
+          width: '100%',
+        },
+        isElectron: {
+          backgroundImage: `linear-gradient(transparent, ${Styles.globalColors.white} 75%)`,
+        },
+      }),
     } as const)
 )
 

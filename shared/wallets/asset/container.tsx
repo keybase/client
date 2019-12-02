@@ -10,21 +10,17 @@ type OwnProps = {
   index: number
 }
 
-const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => ({
-  _asset: Constants.getAssets(state, ownProps.accountID).get(ownProps.index, Constants.makeAssets()),
-})
-
-const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
-  onDeposit: (accountID: string, code: string, issuerAccountID: string) =>
-    dispatch(WalletsGen.createAssetDeposit({accountID, code, issuerAccountID})),
-  onWithdraw: (accountID: string, code: string, issuerAccountID: string) =>
-    dispatch(WalletsGen.createAssetWithdraw({accountID, code, issuerAccountID})),
-})
-
 export default Container.connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  (stateProps, dispatchProps, ownProps) => {
+  (state, ownProps: OwnProps) => ({
+    _asset: Constants.getAssets(state, ownProps.accountID)[ownProps.index] ?? Constants.makeAssets(),
+  }),
+  dispatch => ({
+    onDeposit: (accountID: string, code: string, issuerAccountID: string) =>
+      dispatch(WalletsGen.createAssetDeposit({accountID, code, issuerAccountID})),
+    onWithdraw: (accountID: string, code: string, issuerAccountID: string) =>
+      dispatch(WalletsGen.createAssetWithdraw({accountID, code, issuerAccountID})),
+  }),
+  (stateProps, dispatchProps, ownProps: OwnProps) => {
     const asset = stateProps._asset
     return {
       availableToSend: asset.balanceAvailableToSend,
@@ -46,8 +42,8 @@ export default Container.connect(
         ? () => dispatchProps.onWithdraw(ownProps.accountID, asset.assetCode, asset.issuerAccountID)
         : undefined,
       openInfoURL: asset.infoUrl ? () => openURL(asset.infoUrl) : undefined,
-      openStellarURL: () => openURL('https://www.stellar.org/faq/#_Why_is_there_a_minimum_balance'),
-      reserves: asset.reserves.toArray(),
+      openStellarURL: () => openURL('https://www.stellar.org/community/faq#why-is-there-a-minimum-balance'),
+      reserves: asset.reserves,
       withdrawButtonText: asset.showWithdrawButton ? asset.withdrawButtonText : '',
       withdrawButtonWaitingKey: Constants.assetWithdrawWaitingKey(asset.issuerAccountID, asset.assetCode),
     }

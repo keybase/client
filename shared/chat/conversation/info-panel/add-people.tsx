@@ -64,23 +64,19 @@ type OwnProps = {
   teamname: string
 }
 
-const mapDispatchToProps = dispatch => {
-  return {
-    _onAddPeople: teamname => dispatch(appendNewTeamBuilder(teamname)),
-    _onAddToChannel: conversationIDKey => {
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {conversationIDKey}, selected: 'chatAddToChannel'}],
-        })
-      )
-    },
-  }
-}
-
 const AddPeople = compose(
   connect(
     () => ({}),
-    mapDispatchToProps,
+    dispatch => ({
+      _onAddPeople: (teamname: string) => dispatch(appendNewTeamBuilder(teamname)),
+      _onAddToChannel: (conversationIDKey: Types.ConversationIDKey) => {
+        dispatch(
+          RouteTreeGen.createNavigateAppend({
+            path: [{props: {conversationIDKey}, selected: 'chatAddToChannel'}],
+          })
+        )
+      },
+    }),
     (_, d, o: OwnProps) => ({
       isAdmin: o.isAdmin,
       isGeneralChannel: o.isGeneralChannel,

@@ -8,7 +8,9 @@
   "files": [],
   "include": [
     "globals.d.ts",
-    "constants/types/chat2/common.tsx",
+    "constants/types/chat2/*",
+    "constants/chat2/*",
+    "chat/*",
     "constants/types/rpc-*.tsx",
     "actions/*-gen.tsx",
     "common-adapters/icon.constants.tsx"

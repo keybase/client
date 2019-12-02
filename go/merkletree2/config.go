@@ -2,62 +2,52 @@ package merkletree2
 
 import "fmt"
 
-// ValueConstructor is an interface for constructing values, so that typed
-// values can be pulled out of the Merkle Tree. All Values must have the same
-// type, howerver multiple types can be encoded by having this type implement
-// the codec.Selfer interface.
-type ValueConstructor interface {
-	// Construct a new template empty value for the leaf, so that the
-	// Unmarshalling routine has the correct type template.
-	Construct() interface{}
-}
-
 // Config defines the shape of the MerkleTree.
 type Config struct {
 	// An encoder is used to compute hashes in this configuration, and also
-	// manages the blinding secrets (see useBlindedValueHashes).
-	encoder Encoder
+	// manages the blinding secrets (see UseBlindedValueHashes).
+	Encoder Encoder
 
-	// useBlindedValueHashes controls whether this tree blinds hashes of
+	// UseBlindedValueHashes controls whether this tree blinds hashes of
 	// KeyValuePairs with a per (Key,Seqno) specific secret (which is itself
 	// derived from a per Seqno specific secret which is stored together with
 	// the tree). This ensures values stored in the tree cannot are not leaked
 	// by the membership proofs (but keys can leak, as well as the rough tree
 	// size). If the tree is rebuilt at every Seqno, this also hides whether
 	// values are changing (but not when a value is first inserted).
-	useBlindedValueHashes bool
+	UseBlindedValueHashes bool
 
 	// The number of children per node. Must be a power of two. Some children
 	// can be empty.
-	childrenPerNode int
+	ChildrenPerNode int
 
 	// The maximum number of KeyValuePairs in a leaf node before we split
-	maxValuesPerLeaf int
+	MaxValuesPerLeaf int
 
 	// The number of bits necessary to represent a ChildIndex, i.e.
 	// log2(childrenPerNode)
-	bitsPerIndex uint8
+	BitsPerIndex uint8
 
 	// The length of all the keys which will be stored in the tree. For
 	// simplicity, we enforce that all the keys have the same length and that
 	// bitsPerIndex divides keyByteLength*8
-	keysByteLength int
+	KeysByteLength int
 
 	// The maximum depth of the tree. Should always equal keysByteLength*8/bitsPerIndex
-	maxDepth int
+	MaxDepth int
 
-	// valueConstructor is an interface to construct empty values to be used for
-	// deserialization.
-	valueConstructor ValueConstructor
+	// ConstructValueContainer constructs a new empty value for the value in a KeyValuePair, so that the
+	// decoding routine has the correct type template.
+	ConstructValueContainer func() interface{}
 }
 
 // NewConfig makes a new config object. It takes a a Hasher, logChildrenPerNode
 // which is the base 2 logarithm of the number of children per interior node,
 // maxValuesPerLeaf the maximum number of entries in a leaf before the leaf is
 // split into multiple nodes (at a lower level in the tree), keyByteLength the
-// length of the Keys which the tree will store, and a valueConstructor (so that
+// length of the Keys which the tree will store, and a ConstructValueContainer function (so that
 // typed values can be pulled out of the Merkle Tree).
-func NewConfig(h Encoder, useBlindedValueHashes bool, logChildrenPerNode uint8, maxValuesPerLeaf int, keysByteLength int) (Config, error) {
+func NewConfig(e Encoder, useBlindedValueHashes bool, logChildrenPerNode uint8, maxValuesPerLeaf int, keysByteLength int, constructValueFunc func() interface{}) (Config, error) {
 	childrenPerNode := 1 << logChildrenPerNode
 	if (keysByteLength*8)%int(logChildrenPerNode) != 0 {
 		return Config{}, NewInvalidConfigError("The key bit length does not divide logChildrenPerNode")
@@ -69,7 +59,7 @@ func NewConfig(h Encoder, useBlindedValueHashes bool, logChildrenPerNode uint8, 
 		return Config{}, NewInvalidConfigError(fmt.Sprintf("Need at least 2 children per node, but logChildrenPerNode = %v", logChildrenPerNode))
 	}
 	maxDepth := keysByteLength * 8 / int(logChildrenPerNode)
-	return Config{encoder: h, useBlindedValueHashes: useBlindedValueHashes, childrenPerNode: childrenPerNode, maxValuesPerLeaf: maxValuesPerLeaf, bitsPerIndex: logChildrenPerNode, keysByteLength: keysByteLength, maxDepth: maxDepth, valueConstructor: nil}, nil
+	return Config{Encoder: e, UseBlindedValueHashes: useBlindedValueHashes, ChildrenPerNode: childrenPerNode, MaxValuesPerLeaf: maxValuesPerLeaf, BitsPerIndex: logChildrenPerNode, KeysByteLength: keysByteLength, MaxDepth: maxDepth, ConstructValueContainer: constructValueFunc}, nil
 }
 
 // MasterSecret is a secret used to hide wether a leaf value has changed between
@@ -83,11 +73,19 @@ type MasterSecret []byte
 // per-Seqno MasterSecret as specified by the Encoder
 type KeySpecificSecret []byte
 
-// Encoder is an interface for hashing MerkleTree data structures into their
-// cryptographic hashes. It also manages blinding secrets.
+// Encoder is an interface for cryptographically hashing MerkleTree data
+// structures. It also manages blinding secrets.
 type Encoder interface {
-	EncodeAndHashGeneric(interface{}) (Hash, error)
-	HashKeyValuePairWithKeySpecificSecret(KeyValuePair, KeySpecificSecret) (Hash, error)
+	Decode(dest interface{}, src []byte) error
+	Encode(src interface{}) (dst []byte, err error)
+
+	EncodeAndHashGeneric(interface{}) (encoded []byte, hash Hash, err error)
+
 	GenerateMasterSecret(Seqno) (MasterSecret, error)
 	ComputeKeySpecificSecret(MasterSecret, Key) KeySpecificSecret
+
+	HashKeyValuePairWithKeySpecificSecret(KeyValuePair, KeySpecificSecret) (Hash, error)
+	HashKeyEncodedValuePairWithKeySpecificSecret(KeyEncodedValuePair, KeySpecificSecret) (Hash, error)
+
+	GetEncodingType() EncodingType
 }

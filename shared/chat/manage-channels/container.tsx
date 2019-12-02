@@ -9,8 +9,9 @@ import ManageChannels, {RowProps} from '.'
 import {ChannelMembershipState} from '../../constants/types/teams'
 import {anyWaiting} from '../../constants/waiting'
 import {formatTimeRelativeToNow} from '../../util/timestamp'
-import {getChannelsWaitingKey, getCanPerform, getTeamChannelInfos, hasCanPerform} from '../../constants/teams'
-import {isEqual} from 'lodash-es'
+import {getChannelsWaitingKey, getCanPerform, getTeamChannelInfos} from '../../constants/teams'
+import isEqual from 'lodash/isEqual'
+import {makeInsertMatcher} from '../../util/string'
 
 type OwnProps = Container.RouteProps<{teamname: string}>
 
@@ -20,9 +21,6 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const waitingForGet = anyWaiting(state, waitingKey)
   const channelInfos = getTeamChannelInfos(state, teamname)
   const yourOperations = getCanPerform(state, teamname)
-  // We can get here without loading team operations
-  // if we manage channels on mobile without loading the conversation first
-  const _hasOperations = hasCanPerform(state, teamname)
 
   const canEditChannels =
     yourOperations.editChannelDescription || yourOperations.renameChannel || yourOperations.deleteChannel
@@ -30,6 +28,9 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
 
   const generalCh = channelInfos.find(i => i.channelname === 'general')
   const teamSize = generalCh ? generalCh.numParticipants : 0
+
+  const searchText = state.chat2.channelSearchText
+  const isFiltered = !!searchText
 
   const channels = channelInfos
     .map((info, convID) => ({
@@ -41,6 +42,16 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
       numParticipants: info.numParticipants,
       selected: info.memberStatus === RPCChatTypes.ConversationMemberStatus.active,
     }))
+    .filter(conv => {
+      if (!searchText) {
+        return true // no search text means show all
+      }
+      return (
+        // match channel name for search as subsequence (like the identity modal)
+        // match channel desc by strict substring (less noise in results)
+        conv.name.match(makeInsertMatcher(searchText)) || conv.description.match(new RegExp(searchText, 'i'))
+      )
+    })
     .valueSeq()
     .toArray()
     .sort((a, b) => a.name.localeCompare(b.name))
@@ -48,10 +59,10 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const selectedChatID = state.chat2.selectedConversation
 
   return {
-    _hasOperations,
     canCreateChannels,
     canEditChannels,
     channels,
+    isFiltered,
     selectedChatID,
     teamname,
     waitingForGet,
@@ -63,7 +74,6 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
   const teamname = Container.getRouteProps(ownProps, 'teamname', '')
   return {
     _loadChannels: () => dispatch(TeamsGen.createGetChannels({teamname})),
-    _loadOperations: () => dispatch(TeamsGen.createGetTeamOperations({teamname})),
     _onView: (
       oldChannelState: ChannelMembershipState,
       nextChannelState: ChannelMembershipState,
@@ -92,17 +102,20 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
         })
       )
       if (selectedChatID in nextChannelState && !nextChannelState[selectedChatID]) {
-        dispatch(
-          Container.isMobile
-            ? RouteTreeGen.createNavigateUp()
-            : Chat2Gen.createNavigateToInbox({avoidConversationID: selectedChatID, findNewConversation: true})
-        )
+        dispatch(Container.isMobile ? RouteTreeGen.createNavigateUp() : Chat2Gen.createNavigateToInbox())
       } else {
         dispatch(RouteTreeGen.createNavigateUp())
       }
     },
-    onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-    onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
+    onBack: () => {
+      dispatch(RouteTreeGen.createNavigateUp())
+      dispatch(Chat2Gen.createSetChannelSearchText({text: ''}))
+    },
+    onChangeSearch: (text: string) => dispatch(Chat2Gen.createSetChannelSearchText({text})),
+    onClose: () => {
+      dispatch(RouteTreeGen.createNavigateUp())
+      dispatch(Chat2Gen.createSetChannelSearchText({text: ''}))
+    },
     onCreate: () =>
       dispatch(
         RouteTreeGen.createNavigateAppend({
@@ -121,9 +134,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
 type Props = {
   onBack?: () => void
   selectedChatID: ChatTypes.ConversationIDKey
-  _hasOperations: () => void
   _loadChannels: () => void
-  _loadOperations: () => void
   _onView: (
     oldChannelState: ChannelMembershipState,
     nextChannelState: ChannelMembershipState,
@@ -137,6 +148,8 @@ type Props = {
   canCreateChannels: boolean
   canEditChannels: boolean
   channels: Array<RowProps & {convID: ChatTypes.ConversationIDKey}>
+  isFiltered: boolean
+  onChangeSearch: (text: string) => void
   onClose: () => void
   onCreate: () => void
   onEdit: (convID: ChatTypes.ConversationIDKey) => void
@@ -146,16 +159,7 @@ type Props = {
 }
 
 const Wrapper = (p: Props) => {
-  const {
-    _hasOperations,
-    _loadOperations,
-    _loadChannels,
-    _onView,
-    _saveSubscriptions,
-    channels,
-    selectedChatID,
-    ...rest
-  } = p
+  const {_loadChannels, _onView, _saveSubscriptions, channels, selectedChatID, ...rest} = p
   const oldChannelState = React.useMemo(
     () =>
       channels.reduce<{[key: string]: boolean}>((acc, c) => {
@@ -192,7 +196,6 @@ const Wrapper = (p: Props) => {
 
   React.useEffect(() => {
     _loadChannels()
-    !_hasOperations && _loadOperations()
     // eslint-disable-next-line
   }, [])
 
@@ -215,9 +218,11 @@ const Wrapper = (p: Props) => {
       waitingForGet={rest.waitingForGet}
       teamname={rest.teamname}
       onEdit={rest.onEdit}
+      onChangeSearch={rest.onChangeSearch}
       onClose={rest.onClose}
       onCreate={rest.onCreate}
       canEditChannels={rest.canEditChannels}
+      isFiltered={rest.isFiltered}
       canCreateChannels={rest.canCreateChannels}
       channels={channels}
       nextChannelState={nextChannelState}

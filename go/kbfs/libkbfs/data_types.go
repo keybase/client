@@ -176,11 +176,12 @@ type OpSummary struct {
 
 // UpdateSummary describes the operations done by a single MD revision.
 type UpdateSummary struct {
-	Revision  kbfsmd.Revision
-	Date      time.Time
-	Writer    string
-	LiveBytes uint64 // the "DiskUsage" for the TLF as of this revision
-	Ops       []OpSummary
+	Revision    kbfsmd.Revision
+	Date        time.Time
+	Writer      string
+	LiveBytes   uint64 // the "DiskUsage" for the TLF as of this revision
+	Ops         []OpSummary
+	RootBlockID string
 }
 
 // TLFUpdateHistory gives all the summaries of all updates in a TLF's
@@ -447,6 +448,7 @@ const (
 	blockRequestPrefetch
 	blockRequestSync
 	blockRequestStopIfFull
+	blockRequestStopPrefetchIfFull
 	blockRequestDeepSync
 	blockRequestDelayCacheCheck
 
@@ -504,7 +506,9 @@ func (bra BlockRequestAction) String() string {
 		attrs = append(attrs, "sync")
 	}
 
-	if bra.StopIfFull() {
+	if bra.StopPrefetchIfFull() {
+		attrs = append(attrs, "stop-prefetch-if-full")
+	} else if bra.StopIfFull() {
 		attrs = append(attrs, "stop-if-full")
 	}
 
@@ -578,6 +582,12 @@ func (bra BlockRequestAction) ChildAction(block data.Block) BlockRequestAction {
 	if bra.DeepPrefetch() || (block.IsIndirect() && bra.Sync()) {
 		return bra
 	}
+	// If it's been configured for stop-prefetch-if-full, move to the
+	// stop-if-full action for the child actions.
+	if bra&blockRequestStopPrefetchIfFull > 0 {
+		bra &^= blockRequestStopPrefetchIfFull
+		bra |= blockRequestStopIfFull
+	}
 	return bra &^ (blockRequestPrefetch | blockRequestSync)
 }
 
@@ -601,6 +611,18 @@ func (bra BlockRequestAction) AddSync() BlockRequestAction {
 	return bra | blockRequestSync
 }
 
+// AddPrefetch returns a new action that adds prefetching in addition
+// to the original request.  For sync requests, it returns a
+// deep-sync request (unlike `Combine`, which just adds the regular
+// prefetch bit).
+func (bra BlockRequestAction) AddPrefetch() BlockRequestAction {
+	if bra.Sync() {
+		return BlockRequestWithDeepSync
+	}
+
+	return bra | blockRequestPrefetch | blockRequestTrackedInPrefetch
+}
+
 // CacheType returns the disk block cache type that should be used,
 // according to the type of action.
 func (bra BlockRequestAction) CacheType() DiskBlockCacheType {
@@ -614,6 +636,26 @@ func (bra BlockRequestAction) CacheType() DiskBlockCacheType {
 // not get rescheduled) when the corresponding disk cache is full.
 func (bra BlockRequestAction) StopIfFull() bool {
 	return bra&blockRequestStopIfFull > 0
+}
+
+// StopPrefetchIfFull returns true if prefetching _after this request_
+// should stop for good (i.e., not get rescheduled) when the
+// corresponding disk cache is full.  This request, however, will be
+// processed even when the cache is full.
+func (bra BlockRequestAction) StopPrefetchIfFull() bool {
+	return bra&blockRequestStopPrefetchIfFull > 0
+}
+
+// AddStopIfFull returns a new action that adds the "stop-if-full"
+// behavior in addition to the original request.
+func (bra BlockRequestAction) AddStopIfFull() BlockRequestAction {
+	return bra | blockRequestStopIfFull
+}
+
+// AddStopPrefetchIfFull returns a new action that adds the
+// "stop-prefetch-if-full" behavior in addition to the original request.
+func (bra BlockRequestAction) AddStopPrefetchIfFull() BlockRequestAction {
+	return bra | blockRequestStopPrefetchIfFull
 }
 
 // DelayedCacheCheckAction returns a new action that adds the
@@ -719,9 +761,16 @@ func (p *parsedPath) getRootNode(ctx context.Context, config Config) (Node, erro
 	if err != nil {
 		return nil, err
 	}
+	branch := data.MasterBranch
+	if tlfHandle.IsLocalConflict() {
+		b, ok := data.MakeConflictBranchName(tlfHandle)
+		if ok {
+			branch = b
+		}
+	}
 	// Get the root node first to initialize the TLF.
 	node, _, err := config.KBFSOps().GetRootNode(
-		ctx, tlfHandle, data.MasterBranch)
+		ctx, tlfHandle, branch)
 	if err != nil {
 		return nil, err
 	}

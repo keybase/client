@@ -87,7 +87,7 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
   }
   render() {
     const props = this.props
-    const afterLabel = `Opening your Wallet`.concat(
+    const afterLabel = `Opening wallet...`.concat(
       this.state.secondsLeftAfterAccept ? ` (${this.state.secondsLeftAfterAccept})` : ''
     )
     const beforeLabel = this.state.tryAgain
@@ -157,18 +157,10 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
           Styles.isMobile
             ? {
                 leftButton: (
-                  <Kb.Button
-                    key={0}
-                    type="Dim"
-                    mode="Primary"
-                    small={true}
-                    label="Close"
-                    onClick={props.onNotNow}
-                    style={styles.closeButton}
-                    labelStyle={styles.closeLabelStyle}
-                  />
+                  <Kb.Text style={styles.closeLabelStyle} type="BodyBigLink" onClick={props.onNotNow}>
+                    Close
+                  </Kb.Text>
                 ),
-                style: styles.background,
               }
             : undefined
         }
@@ -356,7 +348,6 @@ const styles = Styles.styleSheetCreate(
       }),
       buttonLabelStyle: {color: Styles.globalColors.purpleDark},
       buttonStyle: {backgroundColor: Styles.globalColors.white, width: '100%'},
-      closeButton: {backgroundColor: Styles.globalColors.transparent},
       closeLabelStyle: {color: Styles.globalColors.white},
       container: {
         backgroundColor: Styles.globalColors.purple,
@@ -368,9 +359,7 @@ const styles = Styles.styleSheetCreate(
       disclaimerContainer: {marginTop: Styles.globalMargins.small},
       gradient: Styles.platformStyles({
         isElectron: {
-          backgroundImage: `linear-gradient(to bottom, ${Styles.globalColors.purple_01}, ${
-            Styles.globalColors.purple
-          })`,
+          backgroundImage: `linear-gradient(to bottom, ${Styles.globalColors.purple_01}, ${Styles.globalColors.purple})`,
           bottom: 0,
           height: Styles.globalMargins.large,
           left: 0,

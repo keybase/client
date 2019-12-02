@@ -32,9 +32,10 @@ type Props = {
   onLookupPath: () => void
   operation: 'pay' | 'tx'
   originDomain: string
-  path: Types._BuiltPaymentAdvanced
+  path: Types.BuiltPaymentAdvanced
   readyToSend: boolean
   recipient: string | null
+  sendError: string
   signed: boolean | null
   summary: Summary
   userAmount: string | null
@@ -96,11 +97,19 @@ const InfoRow = (props: InfoRowProps) => (
 type HeaderProps = {
   requester: string | null
   isPayment: boolean
+  sendError: string
   signed: boolean | null
 }
 const Header = (props: HeaderProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.headerContent}>
+      {!!props.sendError && (
+        <Kb.Box2 direction="vertical" fullWidth={true}>
+          <Kb.Banner color="red">
+            <Kb.BannerParagraph bannerColor="red" content={props.sendError} />
+          </Kb.Banner>
+        </Kb.Box2>
+      )}
       {!props.signed && (
         <Kb.Box2 direction="vertical" fullWidth={true}>
           <Kb.Banner color="red">
@@ -251,6 +260,7 @@ const SEP7Confirm = (props: Props) => (
         <Header
           isPayment={props.operation === 'pay'}
           requester={props.signed ? props.originDomain : TrimString(props.recipient)}
+          sendError={props.sendError}
           signed={props.signed}
         />
         {!!props.callbackURL && <CallbackURLBanner callbackURL={props.callbackURL} />}
@@ -306,17 +316,20 @@ const SEP7Confirm = (props: Props) => (
 
 const SEP7ConfirmWrapper = (props: Omit<Props, 'onChangeAmount' | 'readyToSend' | 'userAmount'>) => {
   const [userAmount, onChangeAmount] = React.useState('')
+  const {assetCode, path, onLookupPath, amount, onBack} = props
   React.useEffect(() => {
-    props.assetCode && !props.path.exchangeRate && props.onLookupPath()
-  }, [props.assetCode, props.path.exchangeRate])
+    assetCode && !path.exchangeRate && onLookupPath()
+  }, [assetCode, path.exchangeRate, onLookupPath])
   return props.loading ? (
-    <Loading onBack={props.onBack} />
+    <Loading onBack={onBack} />
   ) : (
     <SEP7Confirm
       {...props}
       onChangeAmount={onChangeAmount}
       userAmount={userAmount}
-      readyToSend={props.assetCode ? !!props.path.exchangeRate : !!props.amount || !!userAmount}
+      readyToSend={
+        props.operation === 'tx' ? true : assetCode ? !!path.exchangeRate : !!amount || !!userAmount
+      }
     />
   )
 }

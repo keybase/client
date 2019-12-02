@@ -53,14 +53,14 @@ func (c *CmdPassphraseCheck) Run() error {
 		return err
 	}
 
-	randomPW, err := cliUser.LoadHasRandomPw(context.Background(), keybase1.LoadHasRandomPwArg{})
+	passphraseState, err := cliUser.LoadPassphraseState(context.Background(), 0)
 	if err != nil {
 		return err
 	}
 
-	if randomPW {
+	if passphraseState == keybase1.PassphraseState_RANDOM {
 		c.G().Log.Error("Your account does not have a passphrase, so there is nothing to check.")
-		c.G().Log.Info("You should set a passphrase using `keybase passphrase recover`.")
+		c.G().Log.Info("You should set a passphrase using `keybase passphrase set`.")
 		return nil
 	}
 

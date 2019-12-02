@@ -1,12 +1,14 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/favorite.avdl
 
 package keybase1
 
 import (
 	"errors"
+	"fmt"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type FolderType int
@@ -38,7 +40,7 @@ func (e FolderType) String() string {
 	if v, ok := FolderTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type FolderConflictType int
@@ -70,7 +72,7 @@ func (e FolderConflictType) String() string {
 	if v, ok := FolderConflictTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type ConflictStateType int
@@ -96,7 +98,7 @@ func (e ConflictStateType) String() string {
 	if v, ok := ConflictStateTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type FolderNormalView struct {
@@ -412,19 +414,19 @@ type FavoriteClient struct {
 
 // Adds a folder to a user's list of favorite folders.
 func (c FavoriteClient) FavoriteAdd(ctx context.Context, __arg FavoriteAddArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.favorite.favoriteAdd", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.favorite.favoriteAdd", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // Removes a folder from a user's list of favorite folders.
 func (c FavoriteClient) FavoriteIgnore(ctx context.Context, __arg FavoriteIgnoreArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.favorite.favoriteIgnore", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.favorite.favoriteIgnore", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // Returns all of a user's favorite folders.
 func (c FavoriteClient) GetFavorites(ctx context.Context, sessionID int) (res FavoritesResult, err error) {
 	__arg := GetFavoritesArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.favorite.getFavorites", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.favorite.getFavorites", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

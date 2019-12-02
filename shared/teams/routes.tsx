@@ -7,6 +7,7 @@ import TeamDeleteTeam from './delete-team/container'
 import TeamEditTeamAvatar from '../profile/edit-avatar/container'
 import TeamEditTeamDescription from './edit-team-description/container'
 import TeamInviteByEmail from './invite-by-email/container'
+import TeamInviteByContact from './invite-by-contact/container'
 import TeamJoinTeamDialog from './join-team/container'
 import TeamNewTeamDialog from './new-team/container'
 import TeamReallyLeaveTeam from './really-leave-team/container'
@@ -27,7 +28,6 @@ export const newModalRoutes = {
     getScreen: (): typeof RetentionWarning =>
       require('./team/settings-tab/retention/warning/container').default,
   },
-  // TODO connect broken
   teamDeleteTeam: {getScreen: (): typeof TeamDeleteTeam => require('./delete-team/container').default},
   teamEditTeamAvatar: {
     getScreen: (): typeof TeamEditTeamAvatar => require('../profile/edit-avatar/container').default,
@@ -37,6 +37,9 @@ export const newModalRoutes = {
     getScreen: (): typeof TeamEditTeamDescription =>
       MaybePopupHoc(false)(require('./edit-team-description/container').default),
   },
+  teamInviteByContact: {
+    getScreen: (): typeof TeamInviteByContact => require('./invite-by-contact/container').default,
+  },
   teamInviteByEmail: {
     getScreen: (): typeof TeamInviteByEmail => require('./invite-by-email/container').default,
   },
@@ -44,7 +47,6 @@ export const newModalRoutes = {
   teamJoinTeamDialog: {getScreen: (): typeof TeamJoinTeamDialog => require('./join-team/container').default},
   // TODO connect broken
   teamNewTeamDialog: {getScreen: (): typeof TeamNewTeamDialog => require('./new-team/container').default},
-  // TODO connect broken
   teamReallyLeaveTeam: {
     getScreen: (): typeof TeamReallyLeaveTeam => require('./really-leave-team/container').default,
   },

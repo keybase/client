@@ -70,7 +70,7 @@ function withSafeNavigationStorybook<P extends {}>(
   )
 }
 
-export const useSafeNavigation: () => PropsWithSafeNavigation = () => {
+const useSafeNavigationReal: () => PropsWithSafeNavigation = () => {
   const state = useNavigationState()
   const fromKey = getActiveKey(state)
   return React.useMemo(
@@ -84,4 +84,14 @@ export const useSafeNavigation: () => PropsWithSafeNavigation = () => {
   )
 }
 
-export default (__STORYBOOK__ ? withSafeNavigationStorybook : withSafeNavigation)
+const useSafeNavigationStorybook: () => PropsWithSafeNavigation = () => {
+  return {
+    navKey: '',
+    safeNavigateAppendPayload: ({path, replace}) => RouteTreeGen.createNavigateAppend({path, replace}),
+    safeNavigateUpPayload: () => RouteTreeGen.createNavigateUp({}),
+  }
+}
+
+export const useSafeNavigation = __STORYBOOK__ ? useSafeNavigationStorybook : useSafeNavigationReal
+
+export default __STORYBOOK__ ? withSafeNavigationStorybook : withSafeNavigation

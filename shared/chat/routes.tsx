@@ -18,6 +18,8 @@ import ChatShowBlockConversationDialog from './conversation/block-conversation-w
 import ChatShowNewTeamDialog from './new-team-dialog-container'
 import ChatLocationPopup from './conversation/input-area/normal/location-popup'
 import ChatUnfurlMapPopup from './conversation/messages/wrapper/unfurl/map/popup'
+import PunycodeLinkWarning from './punycode-link-warning'
+import BlockModal from './blocking/block-modal/container'
 
 export const newRoutes = {
   chatConversation: {getScreen: (): typeof ChatConversation => require('./conversation/container').default},
@@ -26,7 +28,9 @@ export const newRoutes = {
   },
   chatRoot: {
     getScreen: (): typeof ChatRoot =>
-      isMobile ? require('./inbox/container').default : require('./inbox-and-conversation-2.desktop').default,
+      isMobile
+        ? require('./inbox/container/defer-loading').default
+        : require('./inbox-and-conversation-2.desktop').default,
   },
 }
 
@@ -44,9 +48,15 @@ export const newModalRoutes = {
     getScreen: (): typeof ChatAttachmentGetTitles =>
       require('./conversation/attachment-get-titles/container').default,
   },
+  chatBlockingModal: {
+    getScreen: (): typeof BlockModal => require('./blocking/block-modal/container').default,
+  },
   chatChooseEmoji: {
     getScreen: (): typeof ChatChooseEmoji =>
       require('./conversation/messages/react-button/emoji-picker/container').default,
+  },
+  chatConfirmNavigateExternal: {
+    getScreen: (): typeof PunycodeLinkWarning => require('./punycode-link-warning').default,
   },
   chatCreateChannel: {
     getScreen: (): typeof ChatCreateChannel => require('./create-channel/container').default,

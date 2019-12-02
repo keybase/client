@@ -30,7 +30,8 @@ export type Props = {
   style?: Styles.StylesCrossPlatform
 }
 
-let bounceIn, bounceOut
+let bounceIn: any
+let bounceOut: any
 if (!Styles.isMobile) {
   bounceIn = Styles.styledKeyframes({
     from: {transform: 'translateX(-30px)'},
@@ -42,23 +43,24 @@ if (!Styles.isMobile) {
   })
 }
 
-// @ts-ignore
-const ButtonBox = Styles.styled(ClickableBox)((props: ClickableBoxProps & {border: 1 | 0}) =>
-  Styles.isMobile
-    ? {borderColor: Styles.globalColors.black_10}
-    : {
-        ...(props.border
-          ? {
-              ':hover': {
-                backgroundColor: Styles.globalColors.blueLighter2,
-                borderColor: Styles.globalColors.blue,
-              },
-            }
-          : {}),
-        '& .centered': {animation: `${bounceIn} 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards`},
-        '& .offscreen': {animation: `${bounceOut} 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards`},
-        borderColor: Styles.globalColors.black_10,
-      }
+const ButtonBox = Styles.styled(ClickableBox, {shouldForwardProp: prop => prop !== 'noEffect'})(
+  // @ts-ignore
+  (props: ClickableBoxProps & {border: 1 | 0; noEffect: boolean}) =>
+    Styles.isMobile || props.noEffect
+      ? {borderColor: Styles.globalColors.black_10}
+      : {
+          ...(props.border
+            ? {
+                ':hover': {
+                  backgroundColor: Styles.globalColors.blueLighter2,
+                  borderColor: Styles.globalColors.blue,
+                },
+              }
+            : {}),
+          '& .centered': {animation: `${bounceIn} 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards`},
+          '& .offscreen': {animation: `${bounceOut} 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards`},
+          borderColor: Styles.globalColors.black_10,
+        }
 )
 
 const ReactButton = (props: Props) => (
@@ -154,7 +156,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
   _nextIcon = () =>
     this.setState(s => ({applyClasses: true, iconIndex: (s.iconIndex + 1) % iconCycle.length}))
 
-  _getClass = iconIndex => {
+  _getClass = (iconIndex: number) => {
     if (!this.state.applyClasses) {
       return ''
     }

@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as I from 'immutable'
 import * as Types from '../../../../constants/types/chat2'
 
 export type Props = {
@@ -7,7 +6,7 @@ export type Props = {
   copyToClipboard: (arg0: string) => void
   containsLatestMessage: boolean
   conversationIDKey: Types.ConversationIDKey
-  messageOrdinals: I.List<Types.Ordinal>
+  messageOrdinals: Array<Types.Ordinal>
   onFocusInput: () => void
   onJumpToRecent: () => void
   loadNewerMessages: (ordinal?: Types.Ordinal | null) => void

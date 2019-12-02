@@ -11,6 +11,16 @@ import (
 	insecureTriplesec "github.com/keybase/go-triplesec-insecure"
 )
 
+type dummyContextFactory struct{}
+
+func (d dummyContextFactory) NewKeyFinder() types.KeyFinder {
+	return nil
+}
+
+func (d dummyContextFactory) NewUPAKFinder() types.UPAKFinder {
+	return nil
+}
+
 func setupCommonTest(t testing.TB, name string) kbtest.ChatTestContext {
 	tc := externalstest.SetupTest(t, name, 2)
 
@@ -25,8 +35,11 @@ func setupCommonTest(t testing.TB, name string) kbtest.ChatTestContext {
 	ctc := kbtest.ChatTestContext{
 		TestContext: tc,
 		ChatG: &globals.ChatContext{
-			EphemeralPurger: types.DummyEphemeralPurger{},
-			Indexer:         types.DummyIndexer{},
+			AttachmentUploader: types.DummyAttachmentUploader{},
+			Unfurler:           types.DummyUnfurler{},
+			EphemeralPurger:    types.DummyEphemeralPurger{},
+			Indexer:            types.DummyIndexer{},
+			CtxFactory:         dummyContextFactory{},
 		},
 	}
 	ctc.Context().ServerCacheVersions = NewServerVersions(ctc.Context())

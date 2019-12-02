@@ -91,10 +91,10 @@ func (v conversationListView) convNameTeam(g *libkb.GlobalContext, conv chat1.Co
 func (v conversationListView) convNameKBFS(g *libkb.GlobalContext, conv chat1.ConversationLocal, myUsername string) string {
 	var name string
 	if conv.Info.Visibility == keybase1.TLFVisibility_PUBLIC {
-		name = publicConvNamePrefix + strings.Join(conv.Names(), ",")
+		name = publicConvNamePrefix + strings.Join(conv.ConvNameNames(), ",")
 	} else {
-		name = strings.Join(v.without(g, conv.Names(), myUsername), ",")
-		if len(conv.Names()) == 1 && conv.Names()[0] == myUsername {
+		name = strings.Join(v.without(g, conv.ConvNameNames(), myUsername), ",")
+		if len(conv.ConvNameNames()) == 1 && conv.ConvNameNames()[0] == myUsername {
 			// The user is the only writer.
 			name = myUsername
 		}
@@ -167,11 +167,12 @@ func (v conversationListView) without(g *libkb.GlobalContext, slice []string, el
 }
 
 func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, showDeviceName bool) (err error) {
+	ui := g.UI.GetTerminalUI()
 	if len(v) == 0 {
+		ui.Printf("no conversations\n")
 		return nil
 	}
 
-	ui := g.UI.GetTerminalUI()
 	w, _ := ui.TerminalSize()
 
 	table := &flexibletable.Table{}
@@ -196,6 +197,10 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 				flexibletable.Cell{ // authorAndTime
 					Frame:     [2]string{"[", "]"},
 					Alignment: flexibletable.Right,
+					Content:   flexibletable.SingleCell{Item: "???"},
+				},
+				flexibletable.Cell{ // restrictedBotInfo
+					Alignment: flexibletable.Center,
 					Content:   flexibletable.SingleCell{Item: "???"},
 				},
 				flexibletable.Cell{ // ephemeralInfo
@@ -286,6 +291,10 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 			},
 			flexibletable.Cell{
 				Alignment: flexibletable.Center,
+				Content:   flexibletable.SingleCell{Item: mv.RestrictedBotInfo},
+			},
+			flexibletable.Cell{
+				Alignment: flexibletable.Center,
 				Content:   flexibletable.SingleCell{Item: mv.EphemeralInfo},
 			},
 			flexibletable.Cell{
@@ -312,6 +321,7 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 		1,                                     // unread
 		flexibletable.ColumnConstraint(w / 5), // convName
 		flexibletable.ColumnConstraint(w / 5), // authorAndTime
+		flexibletable.ColumnConstraint(w / 5), // RestrictedBotInfo
 		flexibletable.ColumnConstraint(w / 5), // ephemeralInfo
 		flexibletable.ColumnConstraint(w / 5), // reactionInfo
 		flexibletable.Expandable,              // body
@@ -389,6 +399,10 @@ func (v conversationView) show(g *libkb.GlobalContext, showDeviceName bool) erro
 			},
 			flexibletable.Cell{
 				Alignment: flexibletable.Center,
+				Content:   flexibletable.SingleCell{Item: mv.RestrictedBotInfo},
+			},
+			flexibletable.Cell{
+				Alignment: flexibletable.Center,
 				Content:   flexibletable.SingleCell{Item: mv.EphemeralInfo},
 			},
 			flexibletable.Cell{
@@ -408,6 +422,7 @@ func (v conversationView) show(g *libkb.GlobalContext, showDeviceName bool) erro
 		5,                                     // visualIndex
 		1,                                     // unread
 		flexibletable.ColumnConstraint(w / 5), // authorAndTime
+		flexibletable.ColumnConstraint(w / 5), // restrictedBotInfo
 		flexibletable.ColumnConstraint(w / 5), // ephemeralInfo
 		flexibletable.ColumnConstraint(w / 5), // reactionInfo
 		flexibletable.ExpandableWrappable,     // body
@@ -433,6 +448,7 @@ type messageView struct {
 	AuthorAndTimeWithDeviceName string
 	Body                        string
 	EphemeralInfo               string
+	RestrictedBotInfo           string
 	ReactionInfo                string
 	FromRevokedDevice           bool
 
@@ -579,7 +595,8 @@ func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.Conversati
 	case chat1.MessageType_TLFNAME:
 		mv.Renderable = false
 	case chat1.MessageType_HEADLINE:
-		mv.Renderable = false
+		mv.Renderable = true
+		mv.Body = fmt.Sprintf("[%s]", m.MessageBody.Headline())
 	case chat1.MessageType_ATTACHMENTUPLOADED:
 		mv.Renderable = false
 	case chat1.MessageType_JOIN:
@@ -625,6 +642,9 @@ func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.Conversati
 			remainingEphemeralLifetime := m.RemainingEphemeralLifetime(time.Now())
 			mv.EphemeralInfo = fmt.Sprintf("[expires in %s]", remainingEphemeralLifetime)
 		}
+	}
+	if m.BotUsername != "" {
+		mv.RestrictedBotInfo = fmt.Sprintf("[encrypted for bot @%s]", m.BotUsername)
 	}
 
 	// sort reactions so the ordering is stable when rendering

@@ -7,9 +7,9 @@ import AccountSwitcher, {Props} from './index'
 import * as Container from '../../util/container'
 import * as ConfigGen from '../../actions/config-gen'
 import * as ProvisionGen from '../../actions/provision-gen'
-import * as SignupGen from '../../actions/signup-gen'
 import * as Constants from '../../constants/config'
 import HiddenString from '../../util/hidden-string'
+import * as LoginConstants from '../../constants/login'
 
 type OwnProps = {}
 
@@ -19,17 +19,18 @@ export default Container.connect(
     accountRows: state.config.configuredAccounts,
     fullname: TrackerConstants.getDetails(state, state.config.username).fullname || '',
     username: state.config.username,
+    waiting: Container.anyWaiting(state, LoginConstants.waitingKey),
   }),
   dispatch => ({
     _onProfileClick: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
     onAddAccount: () => dispatch(ProvisionGen.createStartProvision()),
     onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
-    onCreateAccount: () => dispatch(SignupGen.createRequestAutoInvite()),
-    onSelectAccountLoggedIn: (username: string) =>
-      dispatch(LoginGen.createLogin({password: new HiddenString(''), username})),
+    onSelectAccountLoggedIn: (username: string) => {
+      dispatch(ConfigGen.createSetUserSwitching({userSwitching: true}))
+      dispatch(LoginGen.createLogin({password: new HiddenString(''), username}))
+    },
     onSelectAccountLoggedOut: (username: string) => {
-      dispatch(ConfigGen.createSetDefaultUsername({username}))
-      dispatch(RouteTreeGen.createSwitchLoggedIn({loggedIn: false}))
+      dispatch(ConfigGen.createLogoutAndTryToLogInAs({username}))
     },
     onSignOut: () => dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.logOutTab]})),
   }),
@@ -38,12 +39,11 @@ export default Container.connect(
     return {
       accountRows: accountRows.map(account => ({
         account: account,
-        fullName: stateProps._fullnames.get(account.username, {fullname: ''}).fullname,
+        fullName: (stateProps._fullnames.get(account.username) || {fullname: ''}).fullname || '',
       })),
       fullname: stateProps.fullname,
       onAddAccount: dispatchProps.onAddAccount,
       onCancel: dispatchProps.onCancel,
-      onCreateAccount: dispatchProps.onCreateAccount,
       onProfileClick: () => dispatchProps._onProfileClick(stateProps.username),
       onSelectAccount: (username: string) => {
         const rows = accountRows.filter(account => account.username === username)
@@ -62,6 +62,7 @@ export default Container.connect(
 
       title: ' ',
       username: stateProps.username,
+      waiting: stateProps.waiting,
     }
   }
 )(AccountSwitcher)

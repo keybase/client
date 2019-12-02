@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/eapache/channels"
+	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/libkey"
@@ -30,13 +31,16 @@ type testBlockRetrievalConfig struct {
 	*testDiskBlockCacheGetter
 	*testSyncedTlfGetterSetter
 	initModeGetter
-	clock    Clock
-	reporter Reporter
+	clock                       Clock
+	reporter                    Reporter
+	subsciptionManagerPublisher SubscriptionManagerPublisher
 }
 
 func newTestBlockRetrievalConfig(t *testing.T, bg blockGetter,
 	dbc DiskBlockCache) *testBlockRetrievalConfig {
 	clock := clocktest.NewTestClockNow()
+	mockPublisher := NewMockSubscriptionManagerPublisher(gomock.NewController(t))
+	mockPublisher.EXPECT().PublishChange(gomock.Any()).AnyTimes()
 	return &testBlockRetrievalConfig{
 		newTestCodecGetter(),
 		newTestLogMakerWithVDebug(t, libkb.VLog2String),
@@ -47,6 +51,7 @@ func newTestBlockRetrievalConfig(t *testing.T, bg blockGetter,
 		testInitModeGetter{InitDefault},
 		clock,
 		NewReporterSimple(clock, 1),
+		mockPublisher,
 	}
 }
 
@@ -72,6 +77,10 @@ func (c testBlockRetrievalConfig) blockGetter() blockGetter {
 
 func (c testBlockRetrievalConfig) GetSettingsDB() *SettingsDB {
 	return nil
+}
+
+func (c testBlockRetrievalConfig) SubscriptionManagerPublisher() SubscriptionManagerPublisher {
+	return c.subsciptionManagerPublisher
 }
 
 func makeRandomBlockPointer(t *testing.T) data.BlockPointer {

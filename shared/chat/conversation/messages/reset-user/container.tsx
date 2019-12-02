@@ -9,32 +9,33 @@ type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
 }
 
-const mapStateToProps = (state, {conversationIDKey}) => {
-  const meta = Constants.getMeta(state, conversationIDKey)
-  const username = meta.resetParticipants.first() || ''
-  const nonResetUsers = meta.participants.toSet().subtract(meta.resetParticipants)
-  const allowChatWithoutThem = nonResetUsers.size > 1
-  return {_conversationIDKey: conversationIDKey, allowChatWithoutThem, username}
-}
-
-const mapDispatchToProps = dispatch => ({
-  _chatWithoutThem: (conversationIDKey: Types.ConversationIDKey) =>
-    dispatch(Chat2Gen.createResetChatWithoutThem({conversationIDKey})),
-  _letThemIn: (username: string, conversationIDKey: Types.ConversationIDKey) =>
-    dispatch(Chat2Gen.createResetLetThemIn({conversationIDKey, username})),
-  _viewProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
-})
-
-const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
-  allowChatWithoutThem: stateProps.allowChatWithoutThem,
-  chatWithoutThem: () => dispatchProps._chatWithoutThem(stateProps._conversationIDKey),
-  letThemIn: () => dispatchProps._letThemIn(stateProps.username, stateProps._conversationIDKey),
-  username: stateProps.username,
-  viewProfile: () => dispatchProps._viewProfile(stateProps.username),
-})
-
 export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
+  (state, {conversationIDKey}: OwnProps) => {
+    const meta = Constants.getMeta(state, conversationIDKey)
+    const _participants = meta.participants
+    const _resetParticipants = meta.resetParticipants
+    return {_conversationIDKey: conversationIDKey, _participants, _resetParticipants}
+  },
+  dispatch => ({
+    _chatWithoutThem: (conversationIDKey: Types.ConversationIDKey) =>
+      dispatch(Chat2Gen.createResetChatWithoutThem({conversationIDKey})),
+    _letThemIn: (username: string, conversationIDKey: Types.ConversationIDKey) =>
+      dispatch(Chat2Gen.createResetLetThemIn({conversationIDKey, username})),
+    _viewProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
+  }),
+  (stateProps, dispatchProps, _: OwnProps) => {
+    const {_resetParticipants, _participants, _conversationIDKey} = stateProps
+    const {_chatWithoutThem, _letThemIn, _viewProfile} = dispatchProps
+    const username = (_resetParticipants && [..._resetParticipants][0]) || ''
+    const nonResetUsers = new Set(_participants)
+    _resetParticipants.forEach(r => nonResetUsers.delete(r))
+    const allowChatWithoutThem = nonResetUsers.size > 1
+    return {
+      allowChatWithoutThem,
+      chatWithoutThem: () => _chatWithoutThem(_conversationIDKey),
+      letThemIn: () => _letThemIn(username, _conversationIDKey),
+      username,
+      viewProfile: () => _viewProfile(username),
+    }
+  }
 )(ResetUser)

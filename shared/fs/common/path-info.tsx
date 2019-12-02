@@ -16,7 +16,7 @@ const useMountPointPath = (platformAfterMountPath: string) => {
   const sfmi = Container.useSelector(state => state.fs.sfmi)
   const mount =
     sfmi.driverStatus.type === Types.DriverStatusType.Enabled
-      ? sfmi.preferredMountDirs.get(0) || sfmi.directMountDir
+      ? sfmi.preferredMountDirs[0] || sfmi.directMountDir
       : ''
   return mount && platformAfterMountPath && `${mount}${platformAfterMountPath}`
 }
@@ -28,12 +28,16 @@ const PathInfo_ = (props: PathInfoProps) => {
   const mountPointPath = useMountPointPath(pathInfo.platformAfterMountPath)
   return (
     <Kb.Box2 direction="vertical" style={props.containerStyle} fullWidth={true}>
-      <Kb.Text type="BodySmallSemibold">Universal path:</Kb.Text>
-      <Kb.CopyText
-        containerStyle={styles.copyPath}
-        multiline={Styles.isMobile ? 3 : 4}
-        text={pathInfo.deeplinkPath}
-      />
+      {pathInfo.deeplinkPath ? (
+        <>
+          <Kb.Text type="BodySmallSemibold">Universal path:</Kb.Text>
+          <Kb.CopyText
+            containerStyle={styles.copyPath}
+            multiline={Styles.isMobile ? 3 : 4}
+            text={pathInfo.deeplinkPath}
+          />
+        </>
+      ) : null}
       {mountPointPath ? (
         <>
           <Kb.Text type="BodySmallSemibold" style={styles.localPath}>

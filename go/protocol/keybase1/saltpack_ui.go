@@ -1,11 +1,13 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/saltpack_ui.avdl
 
 package keybase1
 
 import (
+	"fmt"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type SaltpackSenderType int
@@ -49,7 +51,7 @@ func (e SaltpackSenderType) String() string {
 	if v, ok := SaltpackSenderTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type SaltpackSender struct {
@@ -149,16 +151,16 @@ type SaltpackUiClient struct {
 }
 
 func (c SaltpackUiClient) SaltpackPromptForDecrypt(ctx context.Context, __arg SaltpackPromptForDecryptArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.saltpackUi.saltpackPromptForDecrypt", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.saltpackUi.saltpackPromptForDecrypt", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c SaltpackUiClient) SaltpackVerifySuccess(ctx context.Context, __arg SaltpackVerifySuccessArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.saltpackUi.saltpackVerifySuccess", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.saltpackUi.saltpackVerifySuccess", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c SaltpackUiClient) SaltpackVerifyBadSender(ctx context.Context, __arg SaltpackVerifyBadSenderArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.saltpackUi.saltpackVerifyBadSender", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.saltpackUi.saltpackVerifyBadSender", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }

@@ -5,7 +5,7 @@ import React, {Component} from 'react'
 import shallowEqual from 'shallowequal'
 import {iconMeta} from './icon.constants-gen'
 import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
-import {invert} from 'lodash-es'
+import invert from 'lodash/invert'
 import {Props, IconType} from './icon'
 
 class Icon extends Component<Props, void> {
@@ -163,14 +163,22 @@ class Icon extends Component<Props, void> {
   }
 }
 
-const imgName = (name: string, ext: string, mult: number, prefix?: string, postfix?: string) =>
-  `${prefix || ''}${resolveImageAsURL('icons', name)}${mult > 1 ? `@${mult}x` : ''}.${ext}${postfix ||
+const imgName = (
+  name: string,
+  ext: string,
+  imagesDir: string,
+  mult: number,
+  prefix?: string,
+  postfix?: string
+) =>
+  `${prefix || ''}${resolveImageAsURL(imagesDir, name)}${mult > 1 ? `@${mult}x` : ''}.${ext}${postfix ||
     ''} ${mult}x`
 
 function iconTypeToSrcSet(type: IconType) {
   const ext = Shared.typeExtension(type)
   const name: string = (Styles.isDarkMode() && iconMeta[type].nameDark) || type
-  return [1, 2].map(mult => imgName(name, ext, mult)).join(', ')
+  const imagesDir = Shared.getImagesDir(type)
+  return [1, 2, 3].map(mult => imgName(name, ext, imagesDir, mult)).join(', ')
 }
 
 export function iconTypeToImgSet(imgMap: {[size: string]: string}, targetSize: number): any {
@@ -180,6 +188,7 @@ export function iconTypeToImgSet(imgMap: {[size: string]: string}, targetSize: n
       const img = imgMap[multsMap[mult]]
       if (!img) return null
       const url = resolveImageAsURL('icons', img)
+      if (Styles.isDarkMode()) url.replace('icon-', 'icon-dark-')
       return `url('${url}.png') ${mult}x`
     })
     .filter(Boolean)

@@ -16,12 +16,13 @@ import HiddenString from '../util/hidden-string'
 import _logger from '../logger'
 import * as Tabs from '../constants/tabs'
 import * as SettingsConstants from '../constants/settings'
-import * as I from 'immutable'
+import * as TeamBuildingGen from './team-building-gen'
+import commonTeamBuildingSaga, {filterForNs} from './team-building'
 import flags from '../util/feature-flags'
 import {RPCError} from '../util/errors'
 import openURL from '../util/open-url'
 import {isMobile} from '../constants/platform'
-import {actionHasError, TypedActions, TypedState} from '../util/container'
+import {TypedActions, TypedState} from '../util/container'
 import {Action} from 'redux'
 
 const stateToBuildRequestParams = (state: TypedState) => ({
@@ -110,7 +111,7 @@ const openSendRequestForm = (state: TypedState, _: WalletsGen.OpenSendRequestFor
   }
 
   // load accounts for default display currency
-  const accountsLoaded = Constants.getAccounts(state).size > 0
+  const accountsLoaded = Constants.getAccounts(state).length > 0
   return [
     !accountsLoaded && WalletsGen.createLoadAccounts({reason: 'open-send-req-form'}),
     RouteTreeGen.createNavigateAppend({path: [Constants.sendRequestFormRouteKey]}),
@@ -119,7 +120,9 @@ const openSendRequestForm = (state: TypedState, _: WalletsGen.OpenSendRequestFor
 
 const maybePopulateBuildingCurrency = (state: TypedState, _: WalletsGen.AccountsReceivedPayload) =>
   (state.wallets.building.bid || state.wallets.building.isRequest) && !state.wallets.building.currency // building a payment and haven't set currency yet
-    ? WalletsGen.createSetBuildingCurrency({currency: Constants.getDefaultDisplayCurrency(state).code})
+    ? WalletsGen.createSetBuildingCurrency({
+        currency: Constants.getDefaultDisplayCurrency(state.wallets).code,
+      })
     : null
 
 const createNewAccount = async (
@@ -141,7 +144,7 @@ const createNewAccount = async (
     })
   } catch (err) {
     logger.warn(`Error: ${err.desc}`)
-    return WalletsGen.createCreatedNewAccountError({error: err.desc, name})
+    return WalletsGen.createCreatedNewAccount({accountID: Types.noAccountID, error: err.desc, name})
   }
 }
 
@@ -149,6 +152,7 @@ const emptyAsset: RPCStellarTypes.Asset = {
   authEndpoint: '',
   code: '',
   depositButtonText: '',
+  depositReqAuth: false,
   desc: '',
   infoUrl: '',
   infoUrlText: '',
@@ -160,6 +164,7 @@ const emptyAsset: RPCStellarTypes.Asset = {
   type: 'native',
   verifiedDomain: '',
   withdrawButtonText: '',
+  withdrawReqAuth: false,
   withdrawType: '',
 }
 
@@ -223,9 +228,7 @@ function* requestPayment(state: TypedState, _: WalletsGen.RequestPaymentPayload,
   }
   if (!buildRes.readyToRequest) {
     logger.warn(
-      `invalid form submitted. amountErr: ${buildRes.amountErrMsg}; secretNoteErr: ${
-        buildRes.secretNoteErrMsg
-      }; toErrMsg: ${buildRes.toErrMsg}`
+      `invalid form submitted. amountErr: ${buildRes.amountErrMsg}; secretNoteErr: ${buildRes.secretNoteErrMsg}; toErrMsg: ${buildRes.toErrMsg}`
     )
     yield Saga.put(
       WalletsGen.createBuiltRequestReceived({
@@ -236,9 +239,7 @@ function* requestPayment(state: TypedState, _: WalletsGen.RequestPaymentPayload,
     return false
   }
 
-  const kbRqID: Saga.RPCPromiseType<
-    typeof RPCStellarTypes.localMakeRequestLocalRpcPromise
-  > = yield RPCStellarTypes.localMakeRequestLocalRpcPromise(
+  const kbRqID: Saga.RPCPromiseType<typeof RPCStellarTypes.localMakeRequestLocalRpcPromise> = yield RPCStellarTypes.localMakeRequestLocalRpcPromise(
     {
       amount: state.wallets.building.amount,
       // FIXME -- support other assets.
@@ -318,34 +319,48 @@ const validateSEP7Link = async (_: TypedState, action: WalletsGen.ValidateSEP7Li
 }
 
 const acceptSEP7Tx = async (_: TypedState, action: WalletsGen.AcceptSEP7TxPayload) => {
-  await RPCStellarTypes.localApproveTxURILocalRpcPromise(
-    {inputURI: action.payload.inputURI},
-    Constants.sep7WaitingKey
-  )
+  try {
+    await RPCStellarTypes.localApproveTxURILocalRpcPromise(
+      {inputURI: action.payload.inputURI},
+      Constants.sep7WaitingKey
+    )
+  } catch (error) {
+    return WalletsGen.createSetSEP7SendError({error: error.desc})
+  }
+
   return [RouteTreeGen.createClearModals(), RouteTreeGen.createSwitchTab({tab: Tabs.walletsTab})]
 }
 
 const acceptSEP7Path = async (state: TypedState, action: WalletsGen.AcceptSEP7PathPayload) => {
-  await RPCStellarTypes.localApprovePathURILocalRpcPromise(
-    {
-      fromCLI: false,
-      fullPath: paymentPathToRpcPaymentPath(state.wallets.sep7ConfirmPath.fullPath),
-      inputURI: action.payload.inputURI,
-    },
-    Constants.sep7WaitingKey
-  )
+  try {
+    await RPCStellarTypes.localApprovePathURILocalRpcPromise(
+      {
+        fromCLI: false,
+        fullPath: paymentPathToRpcPaymentPath(state.wallets.sep7ConfirmPath.fullPath),
+        inputURI: action.payload.inputURI,
+      },
+      Constants.sep7WaitingKey
+    )
+  } catch (error) {
+    return WalletsGen.createSetSEP7SendError({error: error.desc})
+  }
+
   return [RouteTreeGen.createClearModals(), RouteTreeGen.createSwitchTab({tab: Tabs.walletsTab})]
 }
 
 const acceptSEP7Pay = async (_: TypedState, action: WalletsGen.AcceptSEP7PayPayload) => {
-  await RPCStellarTypes.localApprovePayURILocalRpcPromise(
-    {
-      amount: action.payload.amount,
-      fromCLI: false,
-      inputURI: action.payload.inputURI,
-    },
-    Constants.sep7WaitingKey
-  )
+  try {
+    await RPCStellarTypes.localApprovePayURILocalRpcPromise(
+      {
+        amount: action.payload.amount,
+        fromCLI: false,
+        inputURI: action.payload.inputURI,
+      },
+      Constants.sep7WaitingKey
+    )
+  } catch (error) {
+    return WalletsGen.createSetSEP7SendError({error: error.desc})
+  }
   return [RouteTreeGen.createClearModals(), RouteTreeGen.createSwitchTab({tab: Tabs.walletsTab})]
 }
 
@@ -356,7 +371,21 @@ const clearBuilding = () => WalletsGen.createClearBuilding()
 
 const clearErrors = () => WalletsGen.createClearErrors()
 
-const loadWalletDisclaimer = async (state: TypedState) => {
+const loadWalletDisclaimer = async (
+  state: TypedState,
+  action:
+    | ConfigGen.LoggedInPayload
+    | ConfigGen.StartupFirstIdlePayload
+    | WalletsGen.LoadAccountsPayload
+    | WalletsGen.LoadWalletDisclaimerPayload
+) => {
+  // We want to load disclaimer status for the new user when you switch users,
+  // so we listen to loggedIn. But we don't want to slow down app startup: in
+  // that case, do nothing on initial login and wait for startupFirstIdle.
+  if (action.type === ConfigGen.loggedIn && action.payload.causedByStartup) {
+    return false
+  }
+
   if (!state.config.username) {
     return false
   }
@@ -384,7 +413,10 @@ const loadAccounts = async (
     logger.error('not logged in')
     return false
   }
-  if (actionHasError(action)) {
+  if (
+    (action.type === WalletsGen.linkedExistingAccount || action.type === WalletsGen.createdNewAccount) &&
+    (action.payload.error || !action.payload.accountID)
+  ) {
     return false
   }
   try {
@@ -435,14 +467,14 @@ type LoadAssetsActions =
   | WalletsGen.AccountUpdateReceivedPayload
   | WalletsGen.AccountsReceivedPayload
 const loadAssets = async (state: TypedState, action: LoadAssetsActions, logger: Saga.SagaLogger) => {
-  if (actionHasError(action)) {
+  if (action.type === WalletsGen.linkedExistingAccount && action.payload.error) {
     return false
   }
   if (!state.config.loggedIn) {
     logger.error('not logged in')
     return false
   }
-  let accountID: Types.AccountID
+  let accountID: Types.AccountID | undefined
   switch (action.type) {
     case WalletsGen.loadAssets:
     case WalletsGen.linkedExistingAccount:
@@ -460,6 +492,11 @@ const loadAssets = async (state: TypedState, action: LoadAssetsActions, logger: 
       break
     default:
       return Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
+  }
+
+  // should be impossible
+  if (!accountID) {
+    return
   }
 
   // check that we've loaded the account, don't load assets if we don't have the account
@@ -502,22 +539,24 @@ type LoadPaymentsActions =
   | WalletsGen.SelectAccountPayload
   | WalletsGen.LinkedExistingAccountPayload
 const loadPayments = async (state: TypedState, action: LoadPaymentsActions, logger: Saga.SagaLogger) => {
+  const {accountID} = action.payload
+
   if (!state.config.loggedIn) {
     logger.error('not logged in')
     return false
   }
-  if (actionHasError(action)) {
+  if ((action.type === WalletsGen.linkedExistingAccount && action.payload.error) || !accountID) {
     return false
   }
   if (
-    !!(action.type === WalletsGen.selectAccount && Types.isValidAccountID(action.payload.accountID)) ||
-    Types.isValidAccountID(Constants.getAccount(state, action.payload.accountID).accountID)
+    !!(action.type === WalletsGen.selectAccount && Types.isValidAccountID(accountID)) ||
+    Types.isValidAccountID(Constants.getAccount(state, accountID).accountID)
   ) {
     const [pending, payments] = await Promise.all([
-      RPCStellarTypes.localGetPendingPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
-      RPCStellarTypes.localGetPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
+      RPCStellarTypes.localGetPendingPaymentsLocalRpcPromise({accountID}),
+      RPCStellarTypes.localGetPaymentsLocalRpcPromise({accountID}),
     ])
-    return createPaymentsReceived(action.payload.accountID, payments, pending, true)
+    return createPaymentsReceived(accountID, payments, pending, true)
   }
   return false
 }
@@ -583,63 +622,9 @@ const loadDisplayCurrency = async (_: TypedState, action: WalletsGen.LoadDisplay
   })
 }
 
-const setInflationDestination = async (_, action: WalletsGen.SetInflationDestinationPayload) => {
-  const accountID = action.payload.accountID
-  if (!accountID || !Types.isValidAccountID(accountID)) {
-    return false
-  }
-  try {
-    await RPCStellarTypes.localSetInflationDestinationLocalRpcPromise(
-      {
-        accountID,
-        destination: action.payload.destination,
-      },
-      Constants.inflationDestinationWaitingKey
-    )
-    return WalletsGen.createInflationDestinationReceived({
-      accountID,
-      selected: Constants.makeAccountInflationDestination({
-        accountID: action.payload.destination,
-        name: action.payload.name,
-      }),
-    })
-  } catch (error) {
-    return WalletsGen.createInflationDestinationReceivedError({
-      error: error.message,
-    })
-  }
-}
-
-const loadInflationDestination = async (
-  _: TypedState,
-  action: WalletsGen.LoadInflationDestinationPayload
-) => {
-  const accountID = action.payload.accountID
-  if (!accountID || !Types.isValidAccountID(accountID)) {
-    return false
-  }
-  const [dest, predefs] = await Promise.all([
-    RPCStellarTypes.localGetInflationDestinationLocalRpcPromise({accountID}),
-    RPCStellarTypes.localGetPredefinedInflationDestinationsLocalRpcPromise(),
-  ])
-  const options = (predefs || []).map(p =>
-    Constants.makeInflationDestination({
-      address: Types.stringToAccountID(p.accountID),
-      link: p.url,
-      name: p.name,
-      recommended: p.recommended,
-    })
-  )
-  return WalletsGen.createInflationDestinationReceived({
-    accountID,
-    options,
-    selected: Constants.inflationDestResultToAccountInflationDest(dest),
-  })
-}
-
 const loadExternalPartners = async () => {
   const partners = await RPCStellarTypes.localGetPartnerUrlsLocalRpcPromise()
-  return WalletsGen.createExternalPartnersReceived({externalPartners: I.List(partners || [])})
+  return WalletsGen.createExternalPartnersReceived({externalPartners: partners ?? []})
 }
 
 const refreshAssets = (_: TypedState, action: WalletsGen.DisplayCurrencyReceivedPayload) =>
@@ -756,7 +741,12 @@ const linkExistingAccount = async (
     })
   } catch (err) {
     logger.warn(`Error: ${err.desc}`)
-    return WalletsGen.createLinkedExistingAccountError({error: err.desc, name, secretKey})
+    return WalletsGen.createLinkedExistingAccount({
+      accountID: Types.noAccountID,
+      error: err.desc,
+      name,
+      secretKey,
+    })
   }
 }
 
@@ -774,7 +764,7 @@ const validateAccountName = async (
     return WalletsGen.createValidatedAccountName({name})
   } catch (err) {
     logger.warn(`Error: ${err.desc}`)
-    return WalletsGen.createValidatedAccountNameError({error: err.desc, name})
+    return WalletsGen.createValidatedAccountName({error: err.desc, name})
   }
 }
 
@@ -792,14 +782,14 @@ const validateSecretKey = async (
     return WalletsGen.createValidatedSecretKey({secretKey})
   } catch (err) {
     logger.warn(`Error: ${err.desc}`)
-    return WalletsGen.createValidatedSecretKeyError({error: err.desc, secretKey})
+    return WalletsGen.createValidatedSecretKey({error: err.desc, secretKey})
   }
 }
 
 const deletedAccount = (state: TypedState) => {
-  const a = state.wallets.accountMap.find(account => account.isDefault)
+  const a = Constants.getDefaultAccount(state.wallets)
   return (
-    a &&
+    a !== Constants.unknownAccount &&
     WalletsGen.createSelectAccount({
       accountID: a.accountID,
       reason: 'auto-selected',
@@ -808,18 +798,15 @@ const deletedAccount = (state: TypedState) => {
   )
 }
 
-export const hasShowOnCreation = <F, T extends {}, G extends {showOnCreation: F}>(a: T | G): a is G =>
-  a && Object.prototype.hasOwnProperty.call(a, 'showOnCreation')
-
 const createdOrLinkedAccount = (
   _: TypedState,
   action: WalletsGen.CreatedNewAccountPayload | WalletsGen.LinkedExistingAccountPayload
 ) => {
-  if (actionHasError(action)) {
+  if (action.payload.error || !action.payload.accountID) {
     // Create new account failed, don't nav
     return false
   }
-  if (action.payload && hasShowOnCreation(action.payload)) {
+  if (action.payload.showOnCreation) {
     return WalletsGen.createSelectAccount({
       accountID: action.payload.accountID,
       reason: 'auto-selected',
@@ -836,7 +823,7 @@ const navigateUp = (
   _: TypedState,
   action: WalletsGen.DidSetAccountAsDefaultPayload | WalletsGen.ChangedAccountNamePayload
 ) => {
-  if (actionHasError(action)) {
+  if (action.type === WalletsGen.changedAccountName && action.payload.error) {
     // we don't want to nav on error
     return false
   }
@@ -892,8 +879,8 @@ const maybeSelectDefaultAccount = (
     return false
   }
   if (state.wallets.selectedAccount === Types.noAccountID) {
-    const maybeDefaultAccount = state.wallets.accountMap.find(account => account.isDefault)
-    if (maybeDefaultAccount) {
+    const maybeDefaultAccount = Constants.getDefaultAccount(state.wallets)
+    if (maybeDefaultAccount !== Constants.unknownAccount) {
       return WalletsGen.createSelectAccount({
         accountID: maybeDefaultAccount.accountID,
         reason: 'auto-selected',
@@ -1192,6 +1179,11 @@ const changeAirdrop = async (_: TypedState, action: WalletsGen.ChangeAirdropPayl
         // If you're already out of (inputerror) or in (duplicate) the airdrop,
         // ignore those errors and we'll fix it when we refresh status below.
         break
+      case RPCTypes.StatusCode.scairdropregisterfailedmisc:
+        return WalletsGen.createUpdatedAirdropState({
+          airdropQualifications: [],
+          airdropState: 'rejected',
+        })
       default:
         throw err
     }
@@ -1201,15 +1193,21 @@ const changeAirdrop = async (_: TypedState, action: WalletsGen.ChangeAirdropPayl
 
 const updateAirdropDetails = async (
   state: TypedState,
-  _:
+  action:
     | WalletsGen.UpdateAirdropDetailsPayload
-    | ConfigGen.DaemonHandshakeDonePayload
+    | ConfigGen.StartupFirstIdlePayload
     | ConfigGen.LoggedInPayload,
   logger: Saga.SagaLogger
 ) => {
   if (!state.config.loggedIn) {
     return false
   }
+
+  // ignore, we handle startup first idle instead
+  if (action.type === ConfigGen.loggedIn && action.payload.causedByStartup) {
+    return false
+  }
+
   try {
     const response = await RPCStellarTypes.localAirdropDetailsLocalRpcPromise(
       undefined,
@@ -1230,10 +1228,17 @@ const updateAirdropDetails = async (
 
 const updateAirdropState = async (
   state: TypedState,
-  _: WalletsGen.UpdateAirdropStatePayload | ConfigGen.DaemonHandshakeDonePayload | ConfigGen.LoggedInPayload,
+  action:
+    | WalletsGen.UpdateAirdropStatePayload
+    | ConfigGen.StartupFirstIdlePayload
+    | ConfigGen.LoggedInPayload,
   logger: Saga.SagaLogger
 ) => {
   if (!state.config.loggedIn) {
+    return false
+  }
+  // ignore startup since we already listen for first idle
+  if (action.type === ConfigGen.loggedIn && action.payload.causedByStartup) {
     return false
   }
   try {
@@ -1291,6 +1296,7 @@ const assetDescriptionOrNativeToRpcAsset = (
   authEndpoint: '',
   code: asset === 'native' ? '' : asset.code,
   depositButtonText: '',
+  depositReqAuth: false,
   desc: '',
   infoUrl: '',
   infoUrlText: '',
@@ -1302,6 +1308,7 @@ const assetDescriptionOrNativeToRpcAsset = (
   type: asset === 'native' ? 'native' : asset.code.length > 4 ? 'credit_alphanum12' : 'credit_alphanum4',
   verifiedDomain: asset === 'native' ? '' : asset.issuerVerifiedDomain,
   withdrawButtonText: '',
+  withdrawReqAuth: false,
   withdrawType: '',
 })
 
@@ -1326,21 +1333,22 @@ const balancesToAction = (
   accountID: Types.AccountID,
   username: string
 ) => {
-  const {assets, limitsMutable} = balances.reduce(
-    // @ts-ignore TODO fix reduce type here
-    ({assets, limitsMutable}, balance) => {
+  const {assets, limits} = balances.reduce<{
+    assets: Array<Types.AssetDescription>
+    limits: Map<Types.AssetID, number>
+  }>(
+    (al, balance) => {
       const assetDescriptionOrNative = rpcAssetToAssetDescriptionOrNative(balance.asset)
-      return assetDescriptionOrNative === 'native'
-        ? {assets, limitsMutable}
-        : {
-            assets: [...assets, assetDescriptionOrNative],
-            limitsMutable: limitsMutable.set(
-              Types.assetDescriptionToAssetID(assetDescriptionOrNative),
-              Number.parseFloat(balance.limit) || 0
-            ),
-          }
+      if (assetDescriptionOrNative !== 'native') {
+        al.assets.push(assetDescriptionOrNative)
+        al.limits.set(
+          Types.assetDescriptionToAssetID(assetDescriptionOrNative),
+          Number.parseFloat(balance.limit) || 0
+        )
+      }
+      return al
     },
-    {assets: [], limitsMutable: I.Map<Types.AssetID, number>().asMutable()}
+    {assets: [], limits: new Map<Types.AssetID, number>()}
   )
   return [
     ...(Types.isValidAccountID(accountID)
@@ -1348,7 +1356,7 @@ const balancesToAction = (
           WalletsGen.createSetTrustlineAcceptedAssets({
             accountID,
             assets,
-            limits: limitsMutable.asImmutable(),
+            limits,
           }),
         ]
       : []),
@@ -1356,7 +1364,7 @@ const balancesToAction = (
       ? [
           WalletsGen.createSetTrustlineAcceptedAssetsByUsername({
             assets,
-            limits: limitsMutable.asImmutable(),
+            limits,
             username,
           }),
         ]
@@ -1383,7 +1391,9 @@ const refreshTrustlineAcceptedAssetsByUsername = async (_: TypedState, {payload:
     {recipient: username},
     Constants.refreshTrustlineAcceptedAssetsWaitingKey(username)
   )
-  return balancesToAction(trustlines || [], Types.noAccountID, username)
+  return Constants.isFederatedAddress(username)
+    ? balancesToAction(trustlines || [], username, '')
+    : balancesToAction(trustlines || [], Types.noAccountID, username)
 }
 
 const refreshTrustlinePopularAssets = async () => {
@@ -1399,7 +1409,7 @@ const refreshTrustlinePopularAssets = async () => {
 }
 
 const addTrustline = async (state: TypedState, {payload: {accountID, assetID}}) => {
-  const asset = state.wallets.trustline.assetMap.get(assetID, Constants.emptyAssetDescription)
+  const asset = state.wallets.trustline.assetMap.get(assetID) ?? Constants.emptyAssetDescription
   const refresh = WalletsGen.createRefreshTrustlineAcceptedAssets({accountID})
   if (asset === Constants.emptyAssetDescription) {
     return false
@@ -1416,12 +1426,12 @@ const addTrustline = async (state: TypedState, {payload: {accountID, assetID}}) 
     return [WalletsGen.createChangedTrustline(), refresh]
   } catch (err) {
     _logger.warn(`Error: ${err.desc}`)
-    return [WalletsGen.createChangedTrustlineError({error: err.desc}), refresh]
+    return [WalletsGen.createChangedTrustline({error: err.desc}), refresh]
   }
 }
 
 const deleteTrustline = async (state: TypedState, {payload: {accountID, assetID}}) => {
-  const asset = state.wallets.trustline.assetMap.get(assetID, Constants.emptyAssetDescription)
+  const asset = state.wallets.trustline.assetMap.get(assetID) ?? Constants.emptyAssetDescription
   const refresh = WalletsGen.createRefreshTrustlineAcceptedAssets({accountID})
   if (asset === Constants.emptyAssetDescription) {
     return false
@@ -1437,7 +1447,7 @@ const deleteTrustline = async (state: TypedState, {payload: {accountID, assetID}
     return [WalletsGen.createChangedTrustline(), refresh]
   } catch (err) {
     _logger.warn(`Error: ${err.desc}`)
-    return [WalletsGen.createChangedTrustlineError({error: err.desc}), refresh]
+    return [WalletsGen.createChangedTrustline({error: err.desc}), refresh]
   }
 }
 
@@ -1466,7 +1476,7 @@ const searchTrustlineAssets = async (_: TypedState, {payload: {text}}) => {
 const paymentPathToRpcPaymentPath = (paymentPath: Types.PaymentPath): RPCStellarTypes.PaymentPath => ({
   destinationAmount: paymentPath.destinationAmount,
   destinationAsset: assetDescriptionOrNativeToRpcAsset(paymentPath.destinationAsset),
-  path: paymentPath.path.toArray().map(ad => assetDescriptionOrNativeToRpcAsset(ad)),
+  path: paymentPath.path.map(ad => assetDescriptionOrNativeToRpcAsset(ad)),
   sourceAmount: paymentPath.sourceAmount,
   sourceAmountMax: paymentPath.sourceAmountMax,
   sourceAsset: assetDescriptionOrNativeToRpcAsset(paymentPath.sourceAsset),
@@ -1477,11 +1487,9 @@ const rpcPaymentPathToPaymentPath = (rpcPaymentPath: RPCStellarTypes.PaymentPath
   Constants.makePaymentPath({
     destinationAmount: rpcPaymentPath.destinationAmount,
     destinationAsset: rpcAssetToAssetDescriptionOrNative(rpcPaymentPath.destinationAsset),
-    path: I.List(
-      rpcPaymentPath.path
-        ? rpcPaymentPath.path.map(rpcAsset => rpcAssetToAssetDescriptionOrNative(rpcAsset))
-        : []
-    ),
+    path: rpcPaymentPath.path
+      ? rpcPaymentPath.path.map(rpcAsset => rpcAssetToAssetDescriptionOrNative(rpcAsset))
+      : [],
     sourceAmount: rpcPaymentPath.sourceAmount,
     sourceAmountMax: rpcPaymentPath.sourceAmountMax,
     sourceAsset: rpcAssetToAssetDescriptionOrNative(rpcPaymentPath.sourceAsset),
@@ -1667,14 +1675,8 @@ function* loadStaticConfig(state: TypedState, action: ConfigGen.DaemonHandshakeP
   )
 
   try {
-    const res: Saga.RPCPromiseType<
-      typeof RPCStellarTypes.localGetStaticConfigLocalRpcPromise
-    > = yield RPCStellarTypes.localGetStaticConfigLocalRpcPromise()
-    yield Saga.put(
-      WalletsGen.createStaticConfigLoaded({
-        staticConfig: I.Record(res)(),
-      })
-    )
+    const res: Saga.RPCPromiseType<typeof RPCStellarTypes.localGetStaticConfigLocalRpcPromise> = yield RPCStellarTypes.localGetStaticConfigLocalRpcPromise()
+    yield Saga.put(WalletsGen.createStaticConfigLoaded({staticConfig: res}))
   } finally {
     yield Saga.put(
       ConfigGen.createDaemonHandshakeWait({
@@ -1685,6 +1687,23 @@ function* loadStaticConfig(state: TypedState, action: ConfigGen.DaemonHandshakeP
     )
   }
   return false
+}
+
+const onTeamBuildingAdded = (_: TypedState, action: TeamBuildingGen.AddUsersToTeamSoFarPayload) => {
+  const {users} = action.payload
+  const user = users[0]
+  if (!user) return false
+
+  const username = user.id
+  return [
+    TeamBuildingGen.createCancelTeamBuilding({namespace: 'wallets'}),
+    WalletsGen.createSetBuildingTo({to: username}),
+  ]
+}
+
+function* teamBuildingSaga() {
+  yield* commonTeamBuildingSaga('wallets')
+  yield* Saga.chainAction2(TeamBuildingGen.addUsersToTeamSoFar, filterForNs('wallets', onTeamBuildingAdded))
 }
 
 function* walletsSaga() {
@@ -1730,17 +1749,7 @@ function* walletsSaga() {
   )
   yield* Saga.chainAction2(WalletsGen.loadSendAssetChoices, loadSendAssetChoices, 'loadSendAssetChoices')
   yield* Saga.chainAction2(WalletsGen.loadDisplayCurrency, loadDisplayCurrency, 'loadDisplayCurrency')
-  yield* Saga.chainAction2(
-    WalletsGen.loadInflationDestination,
-    loadInflationDestination,
-    'loadInflationDestination'
-  )
   yield* Saga.chainAction2(WalletsGen.loadExternalPartners, loadExternalPartners, 'loadExternalPartners')
-  yield* Saga.chainAction2(
-    WalletsGen.setInflationDestination,
-    setInflationDestination,
-    'setInflationDestination'
-  )
   yield* Saga.chainAction2(WalletsGen.displayCurrencyReceived, refreshAssets, 'refreshAssets')
   yield* Saga.chainAction2(WalletsGen.changeDisplayCurrency, changeDisplayCurrency, 'changeDisplayCurrency')
   yield* Saga.chainAction2(WalletsGen.setAccountAsDefault, setAccountAsDefault, 'setAccountAsDefault')
@@ -1845,7 +1854,12 @@ function* walletsSaga() {
   yield* Saga.chainAction2(NotificationsGen.receivedBadgeState, receivedBadgeState, 'receivedBadgeState')
 
   yield* Saga.chainAction2(
-    [WalletsGen.loadAccounts, ConfigGen.bootstrapStatusLoaded, WalletsGen.loadWalletDisclaimer],
+    [
+      ConfigGen.loggedIn,
+      ConfigGen.startupFirstIdle,
+      WalletsGen.loadAccounts,
+      WalletsGen.loadWalletDisclaimer,
+    ],
     loadWalletDisclaimer,
     'loadWalletDisclaimer'
   )
@@ -1888,12 +1902,12 @@ function* walletsSaga() {
     yield* Saga.chainAction2(GregorGen.pushState, gregorPushState, 'gregorPushState')
     yield* Saga.chainAction2(WalletsGen.changeAirdrop, changeAirdrop, 'changeAirdrop')
     yield* Saga.chainAction2(
-      [WalletsGen.updateAirdropDetails, ConfigGen.daemonHandshakeDone, ConfigGen.loggedIn],
+      [WalletsGen.updateAirdropDetails, ConfigGen.startupFirstIdle, ConfigGen.loggedIn],
       updateAirdropDetails,
       'updateAirdropDetails'
     )
     yield* Saga.chainAction2(
-      [WalletsGen.updateAirdropState, ConfigGen.daemonHandshakeDone, ConfigGen.loggedIn],
+      [WalletsGen.updateAirdropState, ConfigGen.startupFirstIdle, ConfigGen.loggedIn],
       updateAirdropState,
       'updateAirdropState'
     )
@@ -1935,6 +1949,7 @@ function* walletsSaga() {
   )
   yield* Saga.chainAction2(WalletsGen.assetDeposit, assetDeposit, 'assetDeposit')
   yield* Saga.chainAction2(WalletsGen.assetWithdraw, assetWithdraw, 'assetWithdraw')
+  yield* teamBuildingSaga()
 }
 
 export default walletsSaga

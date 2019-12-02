@@ -3,11 +3,11 @@ import Devices, {Props, Item} from '.'
 import * as DevicesGen from '../actions/devices-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Constants from '../constants/devices'
-import * as I from 'immutable'
 import * as Kb from '../common-adapters'
 import * as Types from '../constants/types/devices'
 import * as Container from '../util/container'
-import {partition} from 'lodash-es'
+import {intersect} from '../util/set'
+import partition from 'lodash/partition'
 import {HeaderTitle, HeaderRightActions} from './nav-header/container'
 
 type OwnProps = Container.RouteProps
@@ -72,7 +72,7 @@ const NamedConnected = Container.namedConnect(
   (stateProps, dispatchProps, _: OwnProps) => {
     const [revoked, normal] = splitAndSortDevices(stateProps._deviceMap)
     const revokedItems = revoked.map(deviceToItem)
-    const newlyRevokedIds = I.Set(revokedItems.map(d => d.key)).intersect(stateProps._newlyChangedItemIds)
+    const newlyRevokedIds = intersect(new Set(revokedItems.map(d => d.key)), stateProps._newlyChangedItemIds)
     const showPaperKeyNudge =
       !!stateProps._deviceMap.size && ![...stateProps._deviceMap.values()].some(v => v.type === 'backup')
     return {
