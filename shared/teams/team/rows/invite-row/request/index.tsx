@@ -59,12 +59,7 @@ export const TeamRequestRow = (props: Props) => {
           open={props.isRolePickerOpen}
           disabledRoles={props.disabledReasonsForRolePicker}
         >
-          <Button
-            label="Let in as..."
-            onClick={onAccept}
-            small={true}
-            style={styles.letInButton}
-          />
+          <Button label="Let in as..." onClick={onAccept} small={true} style={styles.letInButton} />
         </FloatingRolePicker>
         <Button
           label="Ignore"
@@ -73,13 +68,7 @@ export const TeamRequestRow = (props: Props) => {
           style={styles.ignoreButton}
           type="Danger"
         />
-        {!Styles.isMobile && (
-          <Icon
-            onClick={onChat}
-            style={styles.icon}
-            type="iconfont-chat"
-          />
-        )}
+        {!Styles.isMobile && <Icon onClick={onChat} style={styles.icon} type="iconfont-chat" />}
       </Box>
     </Box>
   )
