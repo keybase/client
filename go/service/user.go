@@ -6,6 +6,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"sort"
 	"strings"
 	"time"
@@ -660,6 +661,39 @@ func (h *UserHandler) SetUserBlocks(ctx context.Context, arg keybase1.SetUserBlo
 	_, err = mctx.G().API.Post(mctx, apiArg)
 	return err
 
+}
+
+const blockButtonsGregorPrefix = "blockButtons."
+
+func (h *UserHandler) DismissBlockButtons(ctx context.Context, tlfID keybase1.TLFID) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed(
+		fmt.Sprintf("UserHandler#DismissBlockButtons(TLF=%s)", tlfID),
+		func() error { return err })()
+
+	// Find the gregor item for this TLF ID's block buttons
+	state, err := h.G().GregorState.State(ctx)
+	if err != nil {
+		return err
+	}
+	category, err := gregor1.ObjFactory{}.MakeCategory(fmt.Sprintf("%s%s", blockButtonsGregorPrefix, tlfID.String()))
+	if err != nil {
+		return err
+	}
+	gregorItems, err := state.ItemsInCategory(category)
+	if err != nil {
+		return err
+	}
+
+	// Dismiss it
+	for _, item := range gregorItems {
+		err = h.G().GregorState.DismissItem(ctx, nil, item.Metadata().MsgID())
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (h *UserHandler) GetUserBlocks(ctx context.Context, arg keybase1.GetUserBlocksArg) (res []keybase1.UserBlock, err error) {

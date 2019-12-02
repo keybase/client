@@ -1767,6 +1767,11 @@ function* messageSend(state: TypedState, action: Chat2Gen.MessageSendPayload, lo
     logger.info('error')
   }
 
+  // If there are block buttons on this conversation, clear them.
+  if (state.chat2.blockButtonsMap.has(meta.teamID)) {
+    yield Saga.put(Chat2Gen.createDismissBlockButtons({teamID: meta.teamID}))
+  }
+
   // Do some logging to track down the root cause of a bug causing
   // messages to not send. Do this after creating the objects above to
   // narrow down the places where the action can possibly stop.
@@ -1801,6 +1806,11 @@ const messageSendByUsernames = async (
       },
       action.payload.waitingKey
     )
+
+    // If there are block buttons on this conversation, clear them.
+    if (state.chat2.blockButtonsMap.has(result.conv.info.triple.tlfid.toString('hex'))) {
+      return Chat2Gen.createDismissBlockButtons({teamID: result.conv.info.triple.tlfid.toString('hex')})
+    }
   } catch (e) {
     logger.warn('Could not send in messageSendByUsernames', e)
   }
@@ -3189,9 +3199,12 @@ const gregorPushState = (state: TypedState, action: GregorGen.PushStatePayload, 
   const isSearchNew = !items.some(i => i.item.category === Constants.inboxSearchNewKey)
   actions.push(Chat2Gen.createSetInboxShowIsNew({isNew: isSearchNew}))
 
-  // TODO: clear the block buttons in case you've followed someone or chatted them?
   const blockButtons = items.some(i => i.item.category.startsWith(Constants.blockButtonsGregorPrefix))
-  if (blockButtons) {
+  if (blockButtons || state.chat2.blockButtonsMap.size > 0) {
+    const shouldKeepExistingBlockButtons = new Map<string, boolean>()
+    state.chat2.blockButtonsMap.forEach((_, teamID: string) =>
+      shouldKeepExistingBlockButtons.set(teamID, false)
+    )
     items
       .filter(i => i.item.category.startsWith(Constants.blockButtonsGregorPrefix))
       .forEach(i => {
@@ -3199,9 +3212,16 @@ const gregorPushState = (state: TypedState, action: GregorGen.PushStatePayload, 
         if (!state.chat2.blockButtonsMap.get(teamID)) {
           const body: {adder: string} = JSON.parse(i.item.body.toString())
           const adder = body.adder
-          actions.push(Chat2Gen.createUpdateBlockButtons({adder, teamID}))
+          actions.push(Chat2Gen.createUpdateBlockButtons({adder, show: true, teamID}))
+        } else {
+          shouldKeepExistingBlockButtons.set(teamID, true)
         }
       })
+    shouldKeepExistingBlockButtons.forEach((keep, teamID) => {
+      if (!keep) {
+        actions.push(Chat2Gen.createUpdateBlockButtons({show: false, teamID}))
+      }
+    })
   }
   return actions
 }
@@ -3273,6 +3293,14 @@ const addUsersToChannel = async (
 const onMarkInboxSearchOld = (state: TypedState) =>
   state.chat2.inboxShowNew &&
   GregorGen.createUpdateCategory({body: 'true', category: Constants.inboxSearchNewKey})
+
+const dismissBlockButtons = async (_: TypedState, action: Chat2Gen.DismissBlockButtonsPayload) => {
+  try {
+    await RPCTypes.userDismissBlockButtonsRpcPromise({tlfID: action.payload.teamID})
+  } catch (err) {
+    logger.error(`Couldn't dismiss block buttons: ${err.message}`)
+  }
+}
 
 const createConversationFromTeamBuilder = (
   state: TypedState,
@@ -3691,6 +3719,8 @@ function* chat2Saga() {
   yield* Saga.chainAction2(EngineGen.connected, onConnect, 'onConnect')
   yield* Saga.chainAction2(Chat2Gen.setInboxNumSmallRows, setInboxNumSmallRows)
   yield* Saga.chainAction2(ConfigGen.bootstrapStatusLoaded, getInboxNumSmallRows)
+
+  yield* Saga.chainAction2(Chat2Gen.dismissBlockButtons, dismissBlockButtons)
 
   yield* chatTeamBuildingSaga()
   yield* Saga.chainAction2(EngineGen.chat1NotifyChatChatConvUpdate, onChatConvUpdate, 'onChatConvUpdate')
