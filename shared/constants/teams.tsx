@@ -326,7 +326,7 @@ export const getRoleByName = (state: TypedState, teamname: string): Types.MaybeT
   getRole(state, getTeamID(state, teamname))
 
 export const hasChannelInfos = (state: TypedState, teamname: Types.Teamname): boolean =>
-  [...state.teams.teamNameToChannelInfos.keys()].includes(teamname)
+  state.teams.teamNameToChannelInfos.has(teamname)
 
 export const isLastOwner = (state: TypedState, teamname: Types.Teamname): boolean =>
   isOwner(getRoleByName(state, teamname)) && !isMultiOwnerTeam(state, teamname)
@@ -447,7 +447,7 @@ export const isBigTeam = (state: TypedState, teamname: Types.Teamname): boolean 
   getTeamType(state, teamname) === 'big'
 
 export const getTeamMembers = (state: TypedState, teamname: Types.Teamname): Map<string, Types.MemberInfo> =>
-  state.teams.teamNameToMembers.get(teamname) || new Map<string, Types.MemberInfo>()
+  state.teams.teamNameToMembers.get(teamname) || new Map()
 
 export const initialPublicitySettings = Object.freeze<Types._PublicitySettings>({
   anyMemberShowcase: false,
@@ -479,7 +479,7 @@ export const getTeamResetUsers = (state: TypedState, teamname: Types.Teamname): 
   state.teams.teamNameToResetUsers.get(teamname) || new Set()
 
 export const getTeamLoadingInvites = (state: TypedState, teamname: Types.Teamname): Map<string, boolean> =>
-  state.teams.teamNameToLoadingInvites.get(teamname) || new Map<string, boolean>()
+  state.teams.teamNameToLoadingInvites.get(teamname) || new Map()
 
 // Sorts teamnames canonically.
 function sortTeamnames(a: string, b: string) {
