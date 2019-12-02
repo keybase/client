@@ -328,7 +328,6 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 		chat1.JourneycardType_POPULAR_CHANNELS, // 2 on design
 		chat1.JourneycardType_ADD_PEOPLE,       // 3 on design
 		chat1.JourneycardType_CREATE_CHANNELS,  // 4 on design
-		chat1.JourneycardType_CREATE_CHANNELS,  // 4 on design
 		chat1.JourneycardType_MSG_ATTENTION,    // 5 on design
 	}
 
