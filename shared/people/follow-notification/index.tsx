@@ -80,7 +80,7 @@ const FollowNotification = (props: Props) => {
   )
 }
 
-export const MultiFollowNotification = (props: Props) => {
+export const MultiFollowNotification = React.memo((props: Props) => {
   if (props.newFollows.length <= 1) {
     throw new Error('Multi follow notification must have more than one user supplied')
   }
@@ -126,7 +126,7 @@ export const MultiFollowNotification = (props: Props) => {
       </Kb.ScrollView>
     </PeopleItem>
   )
-}
+})
 
 const styles = Styles.styleSheetCreate(
   () =>
