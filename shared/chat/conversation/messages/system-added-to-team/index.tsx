@@ -64,6 +64,8 @@ const youOrUsername = (props: {username: string; you: string; capitalize: boolea
 }
 
 const AddedToTeam = (props: Props) => {
+  const role =
+    props.role === 'bot' || props.role === 'restrictedbot' ? typeToLabel[props.role].toLowerCase() : null
   if (props.addee === props.you) {
     return <YouAddedToTeam {...props} />
   }
@@ -72,7 +74,8 @@ const AddedToTeam = (props: Props) => {
       <Kb.Text type="BodySmall">
         {youOrUsername({capitalize: true, username: props.adder, you: props.you})}added{' '}
         {getAddedUsernames(props.bulkAdds.length === 0 ? [props.addee] : props.bulkAdds)}
-        {props.isTeam && ' to the team'}. <ManageComponent {...props} />
+        {props.isTeam && ' to the team'}
+        {role && ` as ${indefiniteArticle(role)} ${role}`}. <ManageComponent {...props} />
       </Kb.Text>
     </UserNotice>
   )
