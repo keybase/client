@@ -1814,6 +1814,7 @@ const messageSendByUsernames = async (
   } catch (e) {
     logger.warn('Could not send in messageSendByUsernames', e)
   }
+  return []
 }
 
 type StellarConfirmWindowResponse = {result: (b: boolean) => void}
