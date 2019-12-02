@@ -51,10 +51,12 @@ const getTeams = memoize((layout: RPCChatTypes.UIInboxLayout | null) => {
     .map(teamname => ({fullName: '', teamname, username: ''}))
 })
 
-let _channelSuggestions: undefined | Array<string>
+const noChannel: Array<string> = []
+let _channelSuggestions: Array<string> = noChannel
+
 const getChannelSuggestions = (state: Container.TypedState, teamname: string) => {
   if (!teamname) {
-    return []
+    return noChannel
   }
   // First try channelinfos (all channels in a team), then try inbox (the
   // partial list of channels that you have joined).
