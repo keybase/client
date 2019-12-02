@@ -20,7 +20,9 @@ const propMapper = (props: OwnProps): WrapperProps => ({
   ...common,
   active: !!props.emoji && [':face_with_cowboy_hat:', ':honey_pot:'].includes(props.emoji),
   count:
-    {':+1:': 2, ':face_with_cowboy_hat:': 1, ':honey_pot:': 12, default: 1}[props.emoji || 'default'] || 1,
+    ({':+1:': 2, ':face_with_cowboy_hat:': 1, ':honey_pot:': 12, default: 1} as any)[
+      props.emoji || 'default'
+    ] || 1,
   emoji: props.emoji || '',
   onAddReaction: Sb.action('onAddReaction'),
   onClick: Sb.action('onReact'),

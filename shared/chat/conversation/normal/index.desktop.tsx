@@ -10,6 +10,7 @@ import '../conversation.css'
 import ThreadLoadStatus from '../load-status/container'
 import PinnedMessage from '../pinned-message/container'
 import ThreadSearch from '../search/container'
+import KeyHandler from '../../../util/key-handler.desktop'
 import InvitationToBlock from '../../blocking/invitation-to-block'
 
 const Offline = () => (
@@ -111,4 +112,4 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export default Conversation
+export default KeyHandler(Conversation)
