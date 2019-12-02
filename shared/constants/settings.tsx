@@ -1,7 +1,6 @@
 import * as Types from './types/settings'
 import HiddenString from '../util/hidden-string'
 import {TypedState} from './reducer'
-import * as I from 'immutable'
 import * as WaitingConstants from './waiting'
 import {getMeta} from './chat2/meta'
 import * as RPCTypes from './types/rpc-gen'
@@ -83,7 +82,7 @@ export const getExtraChatLogsForLogSend = (state: TypedState) => {
   const c = state.chat2.selectedConversation
   if (c) {
     const metaMap = getMeta(state, c)
-    return I.Map({
+    return {
       badgeMap: chat.badgeMap.get(c),
       editingMap: chat.editingMap.get(c),
       messageMap: [...(chat.messageMap.get(c) || new Map()).values()].map(m => ({
@@ -125,7 +124,7 @@ export const getExtraChatLogsForLogSend = (state: TypedState) => {
       pendingOutboxToOrdinal: chat.pendingOutboxToOrdinal.get(c),
       quote: chat.quote,
       unreadMap: chat.unreadMap.get(c),
-    }).toJS()
+    }
   }
   return {}
 }

@@ -218,8 +218,10 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
   [FsGen.sortSetting]: (draftState, action) => {
     const pathUserSetting =
       draftState.pathUserSettings.get(action.payload.path) || Constants.defaultPathUserSetting
-    pathUserSetting.sort = action.payload.sortSetting
-    draftState.pathUserSettings.set(action.payload.path, pathUserSetting)
+    draftState.pathUserSettings.set(action.payload.path, {
+      ...pathUserSetting,
+      sort: action.payload.sortSetting,
+    })
   },
   [FsGen.uploadStarted]: (draftState, action) => {
     draftState.uploads.writingToJournal = new Set([
