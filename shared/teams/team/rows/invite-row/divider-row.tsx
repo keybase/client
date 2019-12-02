@@ -1,22 +1,20 @@
 import * as React from 'react'
-import {Box, Text} from '../../../../common-adapters'
-import {globalColors, globalMargins, globalStyles} from '../../../../styles'
+import * as Kb from '../../../../common-adapters'
+import * as Styles from '../../../../styles'
 
 const Divider = ({label}: {label: string}) => (
-  <Box
-    style={{
-      ...globalStyles.flexBoxRow,
-      alignItems: 'center',
-      flexShrink: 0,
-      padding: globalMargins.tiny,
-      width: '100%',
-    }}
-  >
-    <Box style={{...globalStyles.flexBoxRow, flexGrow: 1}}>
-      <Text style={{color: globalColors.black_50}} type="BodySmall">
-        {label}
-      </Text>
-    </Box>
-  </Box>
+  <Kb.Box2 alignItems="flex-start" direction="horizontal" style={styles.container}>
+    <Kb.Text style={styles.text} type="BodySmall">
+      {label}
+    </Kb.Text>
+  </Kb.Box2>
 )
+
+const styles = Styles.styleSheetCreate({
+  container: {
+    ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small, 0),
+  },
+  text: {color: Styles.globalColors.black_50},
+})
+
 export default Divider
