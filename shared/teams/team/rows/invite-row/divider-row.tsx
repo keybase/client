@@ -10,11 +10,11 @@ const Divider = ({label}: {label: string}) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
     ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small, 0),
   },
   text: {color: Styles.globalColors.black_50},
-})
+}))
 
 export default Divider
