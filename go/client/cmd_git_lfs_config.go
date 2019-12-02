@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os/exec"
+	"runtime"
 	"strings"
 
 	"github.com/keybase/cli"
@@ -126,9 +127,15 @@ func (c *CmdGitLFSConfig) Run() error {
 	// matter, since git-remote-keybase doesn't use it for anything
 	// when in LFS mode.  It's only there because it's expected in the
 	// argument list.
+	quoteArgs := ""
+	if runtime.GOOS == "windows" || runtime.GOOS == "darwin" {
+		// Windows and macOS require quotes around the args, but linux
+		// does not.
+		quoteArgs = "\\\""
+	}
 	_, err = c.gitExec(
 		"config", "--add", "lfs.customtransfer.keybase-lfs.args",
-		fmt.Sprintf("lfs origin %s", repo))
+		fmt.Sprintf("%slfs origin %s%s", quoteArgs, repo, quoteArgs))
 	if err != nil {
 		return err
 	}

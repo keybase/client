@@ -3,7 +3,6 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/settings'
 import EmailPhoneRow from './email-phone-row'
-import * as I from 'immutable'
 import {Props as HeaderHocProps} from '../../common-adapters/header-hoc/types'
 import * as SettingsGen from '../../actions/settings-gen'
 import * as Container from '../../util/container'
@@ -11,7 +10,7 @@ import * as Container from '../../util/container'
 export type Props = {
   addedEmail?: string
   addedPhone: boolean
-  contactKeys: I.List<string>
+  contactKeys: Array<string>
   hasPassword: boolean
   onClearSupersededPhoneNumber: () => void
   onAddEmail: () => void
@@ -75,7 +74,7 @@ const EmailPhone = (props: Props) => (
         </Kb.Text>
       </Kb.Text>
     </Kb.Box2>
-    {!!props.contactKeys.size && (
+    {!!props.contactKeys.length && (
       <Kb.Box2 direction="vertical" style={styles.contactRows} fullWidth={true}>
         {props.contactKeys.map(ck => (
           <EmailPhoneRow contactKey={ck} key={ck} />

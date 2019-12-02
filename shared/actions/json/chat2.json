@@ -778,7 +778,7 @@
     "updateBlockButtons": {
       "_description": "Show or hide invitation to block for a given team ID",
       "teamID": "RPCTypes.TeamID",
-      "show": "boolean"
+      "adder": "string"
     },
     "setInboxNumSmallRows": {
       "ignoreWrite?": "boolean",

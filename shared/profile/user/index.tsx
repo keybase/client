@@ -23,11 +23,13 @@ export type BackgroundColorType = 'red' | 'green' | 'blue'
 export type Props = {
   assertionKeys?: Array<string>
   backgroundColorType: BackgroundColorType
+  blocked: boolean
   followThem: boolean
   followers?: Array<string>
   followersCount?: number
   following?: Array<string>
   followingCount?: number
+  hidFromFollowers: boolean
   notAUser: boolean
   onAddIdentity?: () => void
   onBack: () => void

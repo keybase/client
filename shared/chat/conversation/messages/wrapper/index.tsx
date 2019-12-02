@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Styles from '../../../../styles'
 import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
+import SystemCreateTeam from '../system-create-team/container'
 import SystemAddedToTeam from '../system-added-to-team/container'
 import SystemChangeRetention from '../system-change-retention/container'
 import SystemGitPush from '../system-git-push/container'
@@ -363,10 +364,9 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       const props = {
         style: Styles.collapseStyles([
           styles.container,
-          !this.props.showUsername && styles.containerNoUsername,
           !this._isExploding() && styles.containerNoExploding, // extra right padding to line up with infopane / input icons
-          this.props.isJoinLeave && styles.containerJoinLeave,
           this._showCenteredHighlight() && styles.centeredOrdinal,
+          !this.props.showUsername && styles.containerNoUsername,
         ]),
       }
       return this.props.decorate
@@ -396,7 +396,6 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         onMouseOver: this._onMouseOver,
         // attach popups to the message itself
         ref: this.props.setAttachmentRef,
-        style: Styles.collapseStyles([this.props.isJoinLeave && styles.containerJoinLeave]),
       }
     }
   }
@@ -488,6 +487,9 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         break
       case 'systemGitPush':
         child = <SystemGitPush key="systemGitPush" message={message} />
+        break
+      case 'systemCreateTeam':
+        child = <SystemCreateTeam key="systemCreateTeam" message={message} />
         break
       case 'systemAddedToTeam':
         child = <SystemAddedToTeam key="systemAddedToTeam" message={message} />
@@ -677,11 +679,6 @@ const styles = Styles.styleSheetCreate(
         backgroundColor: Styles.globalColors.yellowOrYellowAlt,
       },
       container: Styles.platformStyles({isMobile: {overflow: 'hidden'}}),
-      containerJoinLeave: Styles.platformStyles({
-        isMobile: {
-          paddingLeft: Styles.globalMargins.tiny,
-        },
-      }),
       containerNoExploding: Styles.platformStyles({isMobile: {paddingRight: Styles.globalMargins.tiny}}),
       containerNoUsername: Styles.platformStyles({
         isMobile: {

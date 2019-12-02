@@ -123,7 +123,7 @@ func (d *Service) GetStartChannel() <-chan struct{} {
 	return d.startCh
 }
 
-func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID libkb.ConnectionID, logReg *logRegister) (shutdowners []Shutdowner, err error) {
+func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID libkb.ConnectionID, logReg *logRegister) (err error) {
 	g := d.G()
 	cg := globals.NewContext(g, d.ChatG())
 	contactsProv := NewCachedContactsProvider(g)
@@ -188,7 +188,6 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 	}
 	appStateHandler := newAppStateHandler(xp, g)
 	protocols = append(protocols, keybase1.AppStateProtocol(appStateHandler))
-	shutdowners = append(shutdowners, appStateHandler)
 	walletHandler := newWalletHandler(xp, g, d.walletState)
 	protocols = append(protocols, CancelingProtocol(g, stellar1.LocalProtocol(walletHandler),
 		libkb.RPCCancelerReasonLogout))
@@ -197,15 +196,14 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 	protocols = append(protocols, keybase1.DebuggingProtocol(NewDebuggingHandler(xp, g, userHandler, walletHandler)))
 	for _, proto := range protocols {
 		if err = srv.Register(proto); err != nil {
-			return
+			return err
 		}
 	}
-	return
+	return nil
 }
 
 func (d *Service) Handle(c net.Conn) {
 	xp := rpc.NewTransport(c, libkb.NewRPCLogFactory(d.G()), libkb.MakeWrapError(d.G()), rpc.DefaultMaxFrameLength)
-
 	server := rpc.NewServer(xp, libkb.MakeWrapError(d.G()))
 
 	cl := make(chan error, 1)
@@ -219,27 +217,7 @@ func (d *Service) Handle(c net.Conn) {
 		logReg = newLogRegister(d.logForwarder, d.G().Log)
 		defer logReg.UnregisterLogger()
 	}
-	shutdowners, err := d.RegisterProtocols(server, xp, connID, logReg)
-
-	var shutdownOnce sync.Once
-	shutdown := func(mctx libkb.MetaContext) error {
-		shutdownOnce.Do(func() {
-			for _, shutdowner := range shutdowners {
-				shutdowner.Shutdown()
-			}
-		})
-		return nil
-	}
-
-	// Clean up handlers when the connection closes.
-	mctx := libkb.NewMetaContextTODO(d.G())
-	defer func() { _ = shutdown(mctx) }()
-
-	// Make sure shutdown is called when service shuts down but the connection
-	// isn't closed yet.
-	d.G().PushShutdownHook(shutdown)
-
-	if err != nil {
+	if err := d.RegisterProtocols(server, xp, connID, logReg); err != nil {
 		d.G().Log.Warning("RegisterProtocols error: %s", err)
 		return
 	}
@@ -247,7 +225,7 @@ func (d *Service) Handle(c net.Conn) {
 	// Run the server and wait for it to finish.
 	<-server.Run()
 	// err is always non-nil.
-	err = server.Err()
+	err := server.Err()
 	cl <- err
 	if err != io.EOF {
 		d.G().Log.Warning("Run error: %s", err)
@@ -661,7 +639,10 @@ func (d *Service) startupGregor() {
 		d.G().GregorListener = d.gregor
 
 		// Add default handlers
-		d.gregor.PushHandler(newUserHandler(d.G()))
+		userHandler := newUserHandler(d.G())
+		userHandler.PushUserBlockedHandler(d.home)
+
+		d.gregor.PushHandler(userHandler)
 		// TODO -- get rid of this?
 		d.gregor.PushHandler(newRekeyLogHandler(d.G()))
 

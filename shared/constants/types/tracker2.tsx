@@ -60,6 +60,7 @@ export type Details = {
   teamShowcase?: Array<TeamShowcase>
   username: string
   blocked: boolean
+  hidFromFollowers: boolean
 }
 
 // Details for SBS profiles

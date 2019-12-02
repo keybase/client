@@ -30,7 +30,7 @@ const mapStateToProps = (
     keybaseUser,
     name,
     selectedAccount,
-    unreadPayments: state.wallets.unreadPaymentsMap.get(ownProps.accountID, 0),
+    unreadPayments: state.wallets.unreadPaymentsMap.get(ownProps.accountID) ?? 0,
   }
 }
 

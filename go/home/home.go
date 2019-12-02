@@ -523,3 +523,53 @@ func (h *Home) pollOnce(m libkb.MetaContext) (d time.Duration, err error) {
 	}
 	return time.Duration(raw.NextPollSecs) * time.Second, nil
 }
+
+func findBadUserInUsers(m libkb.MetaContext, l []keybase1.HomeUserSummary, badUIDs map[keybase1.UID]bool) bool {
+	for _, s := range l {
+		if badUIDs[s.Uid] {
+			m.Debug("found blocked uid=%s", s.Uid)
+			return true
+		}
+	}
+	return false
+}
+
+func (h *Home) UserBlocked(m libkb.MetaContext, badUIDs map[keybase1.UID]bool) (err error) {
+	h.Lock()
+	defer h.Unlock()
+
+	if !h.peopleCache.hasBadUser(m, badUIDs) {
+		m.Debug("UserBlocked didn't result in any home user suggestions getting blocked, so no-op")
+		return nil
+	}
+
+	h.peopleCache = nil
+	m.Debug("UserBlocked forced home change, updating UI")
+	tmp := h.updateUI(m.Ctx())
+	if tmp != nil {
+		m.Debug("error updating home UI, but ignoring: %s", tmp)
+	}
+	return nil
+}
+
+func (p *peopleCache) hasBadUser(m libkb.MetaContext, badUIDs map[keybase1.UID]bool) bool {
+	if p == nil {
+		m.Debug("nothing to do, people cache is empty")
+		return false
+	}
+
+	if findBadUserInUsers(m, p.all, badUIDs) {
+		m.Debug("Found blocked user in people cache (all)")
+		return true
+	}
+
+	// @maxtaco 2019.11.25: As @jzila points out, there isn't a way for the blocked user to be
+	// in this list, but not the all list above. But let's play it safe and check anyways,
+	// to err on the side of forcing a refresh.
+	if findBadUserInUsers(m, p.lastShown, badUIDs) {
+		m.Debug("Found blocked user in people cache (lastShown)")
+		return true
+	}
+
+	return false
+}

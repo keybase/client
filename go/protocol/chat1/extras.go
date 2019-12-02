@@ -1068,6 +1068,22 @@ func (o *OutboxInfo) Eq(r *OutboxInfo) bool {
 	return (o == nil) && (r == nil)
 }
 
+func (o OutboxRecord) IsError() bool {
+	state, err := o.State.State()
+	if err != nil {
+		return false
+	}
+	return state == OutboxStateType_ERROR
+}
+
+func (o OutboxRecord) IsSending() bool {
+	state, err := o.State.State()
+	if err != nil {
+		return false
+	}
+	return state == OutboxStateType_SENDING
+}
+
 func (o OutboxRecord) IsAttachment() bool {
 	return o.Msg.ClientHeader.MessageType == MessageType_ATTACHMENT
 }
@@ -1304,6 +1320,13 @@ func (c ConversationLocal) ConvNameNames() (res []string) {
 func (c ConversationLocal) AllNames() (res []string) {
 	for _, p := range c.Info.Participants {
 		res = append(res, p.Username)
+	}
+	return res
+}
+
+func (c ConversationLocal) FullNamesForSearch() (res []*string) {
+	for _, p := range c.Info.Participants {
+		res = append(res, p.Fullname)
 	}
 	return res
 }
@@ -2683,4 +2706,33 @@ func (m AssetMetadata) IsType(typ AssetMetadataType) bool {
 		return false
 	}
 	return mtyp == typ
+}
+
+func (s SnippetDecoration) ToEmoji() string {
+	switch s {
+	case SnippetDecoration_PENDING_MESSAGE:
+		return "📤"
+	case SnippetDecoration_FAILED_PENDING_MESSAGE:
+		return "⚠️"
+	case SnippetDecoration_EXPLODING_MESSAGE:
+		return "💣"
+	case SnippetDecoration_EXPLODED_MESSAGE:
+		return "💥"
+	case SnippetDecoration_AUDIO_ATTACHMENT:
+		return "🔊"
+	case SnippetDecoration_VIDEO_ATTACHMENT:
+		return "🎞"
+	case SnippetDecoration_PHOTO_ATTACHMENT:
+		return "📷"
+	case SnippetDecoration_FILE_ATTACHMENT:
+		return "📁"
+	case SnippetDecoration_STELLAR_RECEIVED:
+		return "💰"
+	case SnippetDecoration_STELLAR_SENT:
+		return "🚀"
+	case SnippetDecoration_PINNED_MESSAGE:
+		return "📌"
+	default:
+		return ""
+	}
 }

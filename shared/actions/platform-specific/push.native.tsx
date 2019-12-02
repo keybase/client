@@ -325,10 +325,10 @@ function* initialPermissionsCheck() {
         return false
       }
     })
-    const [shownNativePushPrompt, shownMonsterPushPrompt] = yield Saga.join(
+    const [shownNativePushPrompt, shownMonsterPushPrompt] = yield Saga.join([
       shownNativePushPromptTask,
-      shownMonsterPushPromptTask
-    )
+      shownMonsterPushPromptTask,
+    ])
     logger.info(
       '[PushInitialCheck] shownNativePushPrompt:',
       shownNativePushPrompt,

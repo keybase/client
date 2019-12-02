@@ -57,7 +57,7 @@ const ConnectedInfoPanel = Container.connect(
       canEditChannel = yourOperations.editTeamDescription
       canSetMinWriterRole = yourOperations.setMinWriterRole
       canSetRetention = yourOperations.setRetentionPolicy
-      canDeleteHistory = yourOperations.deleteChatHistory
+      canDeleteHistory = yourOperations.deleteChatHistory && !meta.cannotWrite
     } else {
       canDeleteHistory = true
     }

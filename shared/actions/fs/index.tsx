@@ -349,8 +349,13 @@ function* folderList(_: TypedState, action: FsGen.FolderListLoadPayload) {
       if (entry.type === Types.PathType.Folder && isRecursive && d.name.indexOf('/') < 0) {
         // Since we are loading with a depth of 2, first level directories are
         // considered "loaded".
-        entry.progress = Types.ProgressType.Loaded
-        return [path, entry]
+        return [
+          path,
+          {
+            ...entry,
+            progress: Types.ProgressType.Loaded,
+          },
+        ]
       }
       return [path, entry]
     }
