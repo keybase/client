@@ -14,7 +14,6 @@ import Upload from '../fs/footer/upload'
 import UploadCountdownHOC from '../fs/footer/upload-countdown-hoc'
 import {Loading} from '../fs/simple-screens'
 import SpaceWarning from './space-warning'
-import flags from '../util/feature-flags'
 
 export type Props = {
   daemonHandshakeState: ConfigTypes.DaemonHandshakeState
@@ -360,10 +359,7 @@ class MenubarRender extends React.Component<Props, State> {
         <Kb.Box style={styles.footer}>
           <UploadWithCountdown
             endEstimate={this.props.endEstimate}
-            isOnline={
-              !flags.kbfsOfflineMode ||
-              this.props.kbfsDaemonStatus.onlineStatus !== FsTypes.KbfsDaemonOnlineStatus.Offline
-            }
+            isOnline={this.props.kbfsDaemonStatus.onlineStatus !== FsTypes.KbfsDaemonOnlineStatus.Offline}
             files={this.props.files}
             fileName={this.props.fileName}
             totalSyncingBytes={this.props.totalSyncingBytes}

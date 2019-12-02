@@ -121,7 +121,7 @@ func (ost *onlineStatusTracker) updateOnlineStatusIfCurrentIs(
 	currentStatus keybase1.KbfsOnlineStatus) (updated bool) {
 	ost.lock.Lock()
 	defer ost.lock.Unlock()
-	if ost.currentStatus == expected {
+	if ost.currentStatus == expected || ost.currentStatus == currentStatus {
 		ost.currentStatus = currentStatus
 		ost.onChange()
 		return true
@@ -136,48 +136,46 @@ func (ost *onlineStatusTracker) GetOnlineStatus() keybase1.KbfsOnlineStatus {
 	return ost.currentStatus
 }
 
-func (ost *onlineStatusTracker) myWatchBegins(ctx context.Context) {
-	go func() {
-		for ost.config.KBFSOps() == nil {
-			time.Sleep(100 * time.Millisecond)
-		}
+func (ost *onlineStatusTracker) watchStatus(ctx context.Context) {
+	for ost.config.KBFSOps() == nil {
+		time.Sleep(100 * time.Millisecond)
+	}
 
-		var serviceErrors map[string]error
-		invalidateChan := make(chan StatusUpdate)
-		close(invalidateChan)
+	var serviceErrors map[string]error
+	invalidateChan := make(chan StatusUpdate)
+	close(invalidateChan)
 
-		var t *time.Timer
-		for {
-			select {
-			case <-invalidateChan:
-				serviceErrors, invalidateChan = ost.config.KBFSOps().
-					StatusOfServices()
-				connected := serviceErrors[MDServiceName] == nil
-				if connected {
-					ost.updateOnlineStatus(keybase1.KbfsOnlineStatus_ONLINE)
+	var t *time.Timer
+	for {
+		select {
+		case <-invalidateChan:
+			serviceErrors, invalidateChan = ost.config.KBFSOps().
+				StatusOfServices()
+			connected := serviceErrors[MDServiceName] == nil
+			if connected {
+				ost.updateOnlineStatus(keybase1.KbfsOnlineStatus_ONLINE)
+				if t != nil {
+					t.Stop()
+				}
+			} else {
+				if ost.updateOnlineStatusIfCurrentIs(
+					keybase1.KbfsOnlineStatus_ONLINE,
+					keybase1.KbfsOnlineStatus_TRYING) {
 					if t != nil {
 						t.Stop()
 					}
-				} else {
-					if ost.updateOnlineStatusIfCurrentIs(
-						keybase1.KbfsOnlineStatus_ONLINE,
-						keybase1.KbfsOnlineStatus_TRYING) {
-						if t != nil {
-							t.Stop()
-						}
-						t = time.AfterFunc(
-							onlineStatusTryingStateTimeout, func() {
-								ost.updateOnlineStatusIfCurrentIs(
-									keybase1.KbfsOnlineStatus_TRYING,
-									keybase1.KbfsOnlineStatus_OFFLINE)
-							})
-					}
+					t = time.AfterFunc(
+						onlineStatusTryingStateTimeout, func() {
+							ost.updateOnlineStatusIfCurrentIs(
+								keybase1.KbfsOnlineStatus_TRYING,
+								keybase1.KbfsOnlineStatus_OFFLINE)
+						})
 				}
-			case <-ctx.Done():
-				return
 			}
+		case <-ctx.Done():
+			return
 		}
-	}()
+	}
 }
 
 func newOnlineStatusTracker(
@@ -189,7 +187,7 @@ func newOnlineStatusTracker(
 		onChange:      onChange,
 		currentStatus: keybase1.KbfsOnlineStatus_ONLINE,
 	}
-	ost.myWatchBegins(ctx)
+	go ost.watchStatus(ctx)
 	return ost
 }
 

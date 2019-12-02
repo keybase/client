@@ -8,7 +8,6 @@ import * as FsGen from '../../actions/fs-gen'
 import * as Container from '../../util/container'
 import Actions from './actions'
 import MainBanner from './main-banner/container'
-import flags from '../../util/feature-flags'
 
 /*
  *
@@ -75,7 +74,7 @@ const NavMobileHeader = (props: Props) => {
       )}
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.expandedTitleContainer}>
         <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start" gap="xxtiny" gapStart={true}>
-          {flags.kbfsOfflineMode && <Kbfs.PathStatusIcon path={props.path} showTooltipOnPressMobile={true} />}
+          <Kbfs.PathStatusIcon path={props.path} showTooltipOnPressMobile={true} />
           <Kbfs.Filename path={props.path} selectable={true} type="BodyBig" style={styles.filename} />
         </Kb.Box2>
         <MaybePublicTag path={props.path} />

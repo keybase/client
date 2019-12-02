@@ -6,7 +6,6 @@ import Upload, {UploadProps} from './upload'
 import UploadCountdownHOC, {UploadCountdownHOCProps} from './upload-countdown-hoc'
 import * as Constants from '../../constants/fs'
 import * as Kbfs from '../common'
-import flags from '../../util/feature-flags'
 
 const mapStateToProps = state => ({
   _kbfsDaemonStatus: state.fs.kbfsDaemonStatus,
@@ -67,8 +66,7 @@ const mergeProps = ({_kbfsDaemonStatus, _pathItems, _uploads}, {debugToggleShow}
   ({
     ...uploadsToUploadCountdownHOCProps(_pathItems, _uploads),
     debugToggleShow,
-    isOnline:
-      !flags.kbfsOfflineMode || _kbfsDaemonStatus.onlineStatus !== Types.KbfsDaemonOnlineStatus.Offline,
+    isOnline: _kbfsDaemonStatus.onlineStatus !== Types.KbfsDaemonOnlineStatus.Offline,
   } as UploadCountdownHOCProps)
 
 export default compose(
