@@ -3189,18 +3189,20 @@ const gregorPushState = (state: TypedState, action: GregorGen.PushStatePayload, 
   const isSearchNew = !items.some(i => i.item.category === Constants.inboxSearchNewKey)
   actions.push(Chat2Gen.createSetInboxShowIsNew({isNew: isSearchNew}))
 
+  // TODO: clear the block buttons in case you've followed someone or chatted them?
   const blockButtons = items.some(i => i.item.category.startsWith(Constants.blockButtonsGregorPrefix))
   if (blockButtons) {
-    const teamIDs = items
+    items
       .filter(i => i.item.category.startsWith(Constants.blockButtonsGregorPrefix))
-      .map(i => i.item.category.substr(Constants.blockButtonsGregorPrefix.length)) as Array<RPCTypes.TeamID>
-    teamIDs.forEach(teamID => {
-      if (!state.chat2.blockButtonsMap.get(teamID)) {
-        actions.push(Chat2Gen.createUpdateBlockButtons({show: true, teamID}))
-      }
-    })
+      .forEach(i => {
+        const teamID = i.item.category.substr(Constants.blockButtonsGregorPrefix.length)
+        if (!state.chat2.blockButtonsMap.get(teamID)) {
+          const body: {adder: string} = JSON.parse(i.item.body.toString())
+          const adder = body.adder
+          actions.push(Chat2Gen.createUpdateBlockButtons({adder, teamID}))
+        }
+      })
   }
-
   return actions
 }
 
