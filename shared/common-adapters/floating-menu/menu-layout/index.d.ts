@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {Color} from '../../../styles'
+import {Color, StylesCrossPlatform} from '../../../styles'
 import {IconType} from '../../icon'
 
 export type MenuItem = {
