@@ -292,6 +292,7 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 			}
 		}
 		ordinal := 1 // Won't conflict with outbox messages since they are all <= outboxOrdinalStart.
+		cc.Debug(ctx, "makeCard -> prevID:%v cardType:%v", pos.PrevID, cardType)
 		return &chat1.MessageUnboxedJourneycard{
 			PrevID:         pos.PrevID,
 			Ordinal:        ordinal,

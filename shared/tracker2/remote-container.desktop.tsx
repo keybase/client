@@ -1,5 +1,4 @@
-// Inside tracker we use an embedded Avatar which is connected. This assumes its connected and uses immutable stuff.
-// We convert the over-the-wire plain json to immutable in the remote-store helper
+// Inside tracker we use an embedded Avatar which is connected.
 import * as Constants from '../constants/tracker2'
 import * as ConfigGen from '../actions/config-gen'
 import * as Chat2Gen from '../actions/chat2-gen'

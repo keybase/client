@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as I from 'immutable'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import {InlineDropdown} from '../../common-adapters/dropdown'
@@ -30,7 +29,7 @@ type RolePickerProps = {
 
 // This state is handled by the state wrapper in the container
 export type ComponentState = {
-  selectedTeams: I.Set<string>
+  selectedTeams: Set<string>
   onSave: () => void
   onToggle: (teamName: string, selected: boolean) => void
 }

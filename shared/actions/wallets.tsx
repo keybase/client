@@ -16,7 +16,6 @@ import HiddenString from '../util/hidden-string'
 import _logger from '../logger'
 import * as Tabs from '../constants/tabs'
 import * as SettingsConstants from '../constants/settings'
-import * as I from 'immutable'
 import * as TeamBuildingGen from './team-building-gen'
 import commonTeamBuildingSaga, {filterForNs} from './team-building'
 import flags from '../util/feature-flags'
@@ -1334,21 +1333,22 @@ const balancesToAction = (
   accountID: Types.AccountID,
   username: string
 ) => {
-  const {assets, limitsMutable} = balances.reduce(
-    // @ts-ignore TODO fix reduce type here
-    ({assets, limitsMutable}, balance) => {
+  const {assets, limits} = balances.reduce<{
+    assets: Array<Types.AssetDescription>
+    limits: Map<Types.AssetID, number>
+  }>(
+    (al, balance) => {
       const assetDescriptionOrNative = rpcAssetToAssetDescriptionOrNative(balance.asset)
-      return assetDescriptionOrNative === 'native'
-        ? {assets, limitsMutable}
-        : {
-            assets: [...assets, assetDescriptionOrNative],
-            limitsMutable: limitsMutable.set(
-              Types.assetDescriptionToAssetID(assetDescriptionOrNative),
-              Number.parseFloat(balance.limit) || 0
-            ),
-          }
+      if (assetDescriptionOrNative !== 'native') {
+        al.assets.push(assetDescriptionOrNative)
+        al.limits.set(
+          Types.assetDescriptionToAssetID(assetDescriptionOrNative),
+          Number.parseFloat(balance.limit) || 0
+        )
+      }
+      return al
     },
-    {assets: [], limitsMutable: I.Map<Types.AssetID, number>().asMutable()}
+    {assets: [], limits: new Map<Types.AssetID, number>()}
   )
   return [
     ...(Types.isValidAccountID(accountID)
@@ -1356,7 +1356,7 @@ const balancesToAction = (
           WalletsGen.createSetTrustlineAcceptedAssets({
             accountID,
             assets,
-            limits: limitsMutable.asImmutable(),
+            limits,
           }),
         ]
       : []),
@@ -1364,7 +1364,7 @@ const balancesToAction = (
       ? [
           WalletsGen.createSetTrustlineAcceptedAssetsByUsername({
             assets,
-            limits: limitsMutable.asImmutable(),
+            limits,
             username,
           }),
         ]

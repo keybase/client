@@ -592,7 +592,6 @@ export type TypedActionsMap = {
   'fs:setDebugLevel': fs.SetDebugLevelPayload
   'git:loadGit': git.LoadGitPayload
   'git:loaded': git.LoadedPayload
-  'git:navToGit': git.NavToGitPayload
   'git:createTeamRepo': git.CreateTeamRepoPayload
   'git:createPersonalRepo': git.CreatePersonalRepoPayload
   'git:repoDeleted': git.RepoDeletedPayload
