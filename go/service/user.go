@@ -268,9 +268,7 @@ func (h *UserHandler) InterestingPeople(ctx context.Context, maxUsers int) (res 
 	fallbackFn := func(uid keybase1.UID) (uids []keybase1.UID, err error) {
 		uids = []keybase1.UID{
 			libkb.GetUIDByNormalizedUsername(h.G(), "hellobot"),
-			h.G().GetEnv().GetUID(),
 		}
-
 		return uids, nil
 	}
 
@@ -301,6 +299,13 @@ func (h *UserHandler) InterestingPeople(ctx context.Context, maxUsers int) (res 
 	const serviceMapFreshness = 24 * time.Hour
 	serviceMaps := h.G().ServiceMapper.MapUIDsToServiceSummaries(ctx, h.G(), uids,
 		serviceMapFreshness, uidmap.DisallowNetworkBudget)
+
+	// The most interesting person of all... you
+	you := keybase1.InterestingPerson{
+		Uid:      h.G().GetEnv().GetUID(),
+		Username: h.G().GetEnv().GetUsername().String(),
+	}
+	res = append(res, you)
 
 	for i, uid := range uids {
 		if packages[i].NormalizedUsername.IsNil() {
