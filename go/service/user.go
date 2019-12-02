@@ -741,7 +741,7 @@ func (h *UserHandler) ReportUser(ctx context.Context, arg keybase1.ReportUserArg
 		if arg.ConvID == nil {
 			return errors.New("invalid arguments: IncludeTranscript is true but ConvID == nil")
 		}
-		return errors.New("`IncludeTranscript` is not implemented")
+		mctx.Debug("Ignoring IncludeTranscript - not implemented")
 	}
 	postArgs := libkb.HTTPArgs{
 		"username": libkb.S{Val: arg.Username},
