@@ -3,7 +3,7 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 
 const Divider = ({label}: {label: string}) => (
-  <Kb.Box2 alignItems="flex-start" direction="horizontal" style={styles.container}>
+  <Kb.Box2 alignSelf="flex-start" direction="horizontal" style={styles.container}>
     <Kb.Text style={styles.text} type="BodySmall">
       {label}
     </Kb.Text>
