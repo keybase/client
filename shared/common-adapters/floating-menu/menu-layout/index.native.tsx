@@ -177,11 +177,6 @@ const styles = Styles.styleSheetCreate(
       divider: {
         marginBottom: Styles.globalMargins.tiny,
       },
-      scrollView: {
-        flexGrow: 1,
-        paddingBottom: Styles.globalMargins.tiny,
-        paddingTop: Styles.globalMargins.tiny,
-      },
       flexOne: {
         flex: 1,
       },
@@ -237,6 +232,11 @@ const styles = Styles.styleSheetCreate(
       },
       safeArea: {
         backgroundColor: Styles.globalColors.white,
+      },
+      scrollView: {
+        flexGrow: 1,
+        paddingBottom: Styles.globalMargins.tiny,
+        paddingTop: Styles.globalMargins.tiny,
       },
     } as const)
 )

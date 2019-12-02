@@ -62,7 +62,7 @@ const WalletRow = (props: Props) => {
     <Kb.ClickableBox onClick={props.onSelect} style={styles.containerBox}>
       <Kb.Box2 direction="vertical" style={styles.rowContainer}>
         <Kb.Box2 direction="horizontal" style={styles.firstRowContainer}>
-          {!!props.keybaseUser ? (
+          {props.keybaseUser ? (
             <Kb.Avatar
               size={16}
               style={Kb.avatarCastPlatformStyles(styles.avatar)}

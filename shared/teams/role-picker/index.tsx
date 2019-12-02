@@ -274,13 +274,13 @@ const styles = Styles.styleSheetCreate(
         },
         isMobile: {paddingTop: 4},
       }),
-      checkbox: {
-        ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
-      },
       checkIcon: {
         left: -24,
         paddingTop: 2,
         position: 'absolute',
+      },
+      checkbox: {
+        ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
       },
       container: Styles.platformStyles({
         common: {

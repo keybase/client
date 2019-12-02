@@ -80,9 +80,9 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => {
     ...(props.saveMedia
       ? [
           {
+            disabled: props.saveMedia === 'in-progress',
             icon: 'iconfont-download-2',
             inProgress: props.saveMedia === 'in-progress',
-            disabled: props.saveMedia === 'in-progress',
             onClick: props.saveMedia !== 'in-progress' ? props.saveMedia : undefined,
             title: 'Save',
           },
@@ -124,9 +124,9 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => {
     ...(props.sendToOtherApp
       ? [
           {
+            disabled: props.sendToOtherApp === 'in-progress',
             icon: 'iconfont-share',
             inProgress: props.saveMedia === 'in-progress',
-            disabled: props.sendToOtherApp === 'in-progress',
             onClick: props.sendToOtherApp !== 'in-progress' ? props.sendToOtherApp : undefined,
             title: 'Send to another app',
           },
@@ -166,8 +166,8 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => {
     ...(props.delete
       ? [
           {
-            icon: 'iconfont-trash',
             danger: true,
+            icon: 'iconfont-trash',
             onClick: hideMenuOnClick(props.delete, hideMenu),
             title: 'Delete',
           },
