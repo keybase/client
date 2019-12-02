@@ -19,6 +19,7 @@ const Connect = Container.connect(
     const teamname = Container.getRouteProps(ownProps, 'team', undefined)
     const waitingForLeave = teamname ? Container.anyWaiting(state, leaveTeamWaitingKey(teamname)) : false
     const waitingForBlocking = Container.anyWaiting(state, Constants.setUserBlocksWaitingKey)
+    const others = Container.getRouteProps(ownProps, 'others', undefined)
 
     return {
       _allKnownBlocks: state.users.blockMap,
@@ -27,7 +28,7 @@ const Connect = Container.connect(
       convID: Container.getRouteProps(ownProps, 'convID', undefined),
       finishWaiting: waitingForLeave || waitingForBlocking,
       loadingWaiting: Container.anyWaiting(state, Constants.getUserBlocksWaitingKey),
-      otherUsernames: Container.getRouteProps(ownProps, 'others', undefined),
+      otherUsernames: others && others.length > 0 ? others : undefined,
       teamname,
     }
   },
