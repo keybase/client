@@ -13,7 +13,6 @@ export const deletePersonalRepo = 'git:deletePersonalRepo'
 export const deleteTeamRepo = 'git:deleteTeamRepo'
 export const loadGit = 'git:loadGit'
 export const loaded = 'git:loaded'
-export const navToGit = 'git:navToGit'
 export const navigateToTeamRepo = 'git:navigateToTeamRepo'
 export const repoCreated = 'git:repoCreated'
 export const repoDeleted = 'git:repoDeleted'
@@ -29,7 +28,6 @@ type _DeletePersonalRepoPayload = {readonly name: string}
 type _DeleteTeamRepoPayload = {readonly name: string; readonly teamname: string; readonly notifyTeam: boolean}
 type _LoadGitPayload = void
 type _LoadedPayload = {readonly repos: Map<string, Types.GitInfo>}
-type _NavToGitPayload = {readonly switchTab: boolean; readonly routeState: {expandedSet: Set<string>} | null}
 type _NavigateToTeamRepoPayload = {readonly repoID: string; readonly teamname: string}
 type _RepoCreatedPayload = void
 type _RepoDeletedPayload = void
@@ -71,7 +69,6 @@ export const createDeleteTeamRepo = (payload: _DeleteTeamRepoPayload): DeleteTea
 })
 export const createLoadGit = (payload: _LoadGitPayload): LoadGitPayload => ({payload, type: loadGit})
 export const createLoaded = (payload: _LoadedPayload): LoadedPayload => ({payload, type: loaded})
-export const createNavToGit = (payload: _NavToGitPayload): NavToGitPayload => ({payload, type: navToGit})
 export const createNavigateToTeamRepo = (payload: _NavigateToTeamRepoPayload): NavigateToTeamRepoPayload => ({
   payload,
   type: navigateToTeamRepo,
@@ -116,7 +113,6 @@ export type DeleteTeamRepoPayload = {
 }
 export type LoadGitPayload = {readonly payload: _LoadGitPayload; readonly type: typeof loadGit}
 export type LoadedPayload = {readonly payload: _LoadedPayload; readonly type: typeof loaded}
-export type NavToGitPayload = {readonly payload: _NavToGitPayload; readonly type: typeof navToGit}
 export type NavigateToTeamRepoPayload = {
   readonly payload: _NavigateToTeamRepoPayload
   readonly type: typeof navigateToTeamRepo
@@ -140,7 +136,6 @@ export type Actions =
   | DeleteTeamRepoPayload
   | LoadGitPayload
   | LoadedPayload
-  | NavToGitPayload
   | NavigateToTeamRepoPayload
   | RepoCreatedPayload
   | RepoDeletedPayload

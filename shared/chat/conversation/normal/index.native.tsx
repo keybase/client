@@ -9,6 +9,7 @@ import {Props} from '.'
 import ThreadLoadStatus from '../load-status/container'
 import PinnedMessage from '../pinned-message/container'
 import {GatewayDest} from 'react-gateway'
+import InvitationToBlock from '../../blocking/invitation-to-block'
 
 const Offline = () => (
   <Box
@@ -50,6 +51,7 @@ class Conversation extends React.PureComponent<Props> {
             />
             {this.props.showLoader && <LoadingLine />}
           </Box2>
+          <InvitationToBlock conversationID={this.props.conversationIDKey} />
           <Banner conversationIDKey={this.props.conversationIDKey} />
           <InputArea
             focusInputCounter={this.props.focusInputCounter}

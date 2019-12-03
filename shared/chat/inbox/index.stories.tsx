@@ -1,6 +1,5 @@
 /* eslint-disable sort-keys */
 import * as React from 'react'
-import * as I from 'immutable'
 import * as Types from '../../constants/types/chat2'
 import * as Sb from '../../stories/storybook'
 import {isDarwin} from '../../constants/platform'
@@ -509,7 +508,7 @@ const provider = Sb.createPropProviderWithCommon({
     onCancel: Sb.action('onCancel'),
     onClick: Sb.action('onClick'),
     shouldShow: false,
-    users: I.OrderedSet(['']),
+    users: new Set(['']),
   }),
   TeamsDivider: p => ({
     badgeCount: 2,

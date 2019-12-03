@@ -58,7 +58,7 @@ class Bucket {
   private startTime: number
   private duration: number
   public v: number
-  constructor(startTime, duration, v) {
+  constructor(startTime: number, duration: number, v: number) {
     this.startTime = startTime
     this.duration = duration
     this.v = v
@@ -139,11 +139,11 @@ class BucketList {
     this.buckets = []
   }
 
-  addBucket = b => {
+  addBucket = (b: Bucket) => {
     this.buckets.push(b)
   }
 
-  rescaleToNewBucketList = dt => {
+  rescaleToNewBucketList = (dt: number) => {
     // return a new BucketList, where every bucket is dt
     // units long
     if (!this.buckets.length) {

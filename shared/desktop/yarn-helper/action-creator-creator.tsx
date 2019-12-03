@@ -34,13 +34,11 @@ const actionHasType = (actions, toFind) =>
   Object.keys(actions).some(key => payloadHasType(actions[key], toFind))
 
 function compile(ns: ActionNS, {prelude, actions}: FileDesc): string {
-  const immutableImport = actionHasType(actions, /(^|\W)I\./) ? "import * as I from 'immutable'" : ''
   const rpcGenImport = actionHasType(actions, /(^|\W)RPCTypes\./)
     ? "import * as RPCTypes from '../constants/types/rpc-gen'"
     : ''
 
   return `// NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-${immutableImport}
 ${rpcGenImport}
 ${prelude.join('\n')}
 

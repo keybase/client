@@ -1,4 +1,4 @@
-import Render from './index'
+import Render from '.'
 import * as Container from '../../util/container'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
@@ -9,35 +9,31 @@ import {HeaderOrPopup} from '../../common-adapters'
 
 type OwnProps = {}
 
-const mapStateToProps = (state: Container.TypedState) => ({
-  _waiting: state.waiting,
-  _you: state.config.username,
-  teamDetails: state.teams.teamDetails,
-})
-
-const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
-  onCancel: (you: string) => {
-    // sadly a little racy, doing this for now
-    setTimeout(() => {
-      dispatch(
-        Tracker2Gen.createLoad({
-          assertion: you,
-          guiID: Tracker2Constants.generateGUIID(),
-          ignoreCache: true,
-          inTracker: false,
-          reason: '',
-        })
-      )
-    }, 500)
-    dispatch(RouteTreeGen.createNavigateUp())
-  },
-  onPromote: (teamname: string, showcase: boolean) =>
-    dispatch(TeamsGen.createSetMemberPublicity({showcase, teamname})),
-})
-
 export default Container.connect(
-  mapStateToProps,
-  mapDispatchToProps,
+  (state: Container.TypedState) => ({
+    _waiting: state.waiting,
+    _you: state.config.username,
+    teamDetails: state.teams.teamDetails,
+  }),
+  (dispatch: Container.TypedDispatch) => ({
+    onCancel: (you: string) => {
+      // sadly a little racy, doing this for now
+      setTimeout(() => {
+        dispatch(
+          Tracker2Gen.createLoad({
+            assertion: you,
+            guiID: Tracker2Constants.generateGUIID(),
+            ignoreCache: true,
+            inTracker: false,
+            reason: '',
+          })
+        )
+      }, 500)
+      dispatch(RouteTreeGen.createNavigateUp())
+    },
+    onPromote: (teamname: string, showcase: boolean) =>
+      dispatch(TeamsGen.createSetMemberPublicity({showcase, teamname})),
+  }),
   (stateProps, dispatchProps, _: OwnProps) => {
     return {
       ...dispatchProps,

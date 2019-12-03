@@ -1,6 +1,7 @@
 {
   "prelude": [
     "import * as ChatTypes from '../constants/types/chat2'",
+    "import * as I from 'immutable'",
     "import * as Types from '../constants/types/teams'",
     "import {RetentionPolicy} from '../constants/types/retention-policy'"
   ],

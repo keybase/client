@@ -14,35 +14,29 @@ type OwnProps = {
 const emptyProps = {
   canSetMinWriterRole: false,
   minWriterRole: 'reader',
-}
-
-const mapStateToProps = (state, ownProps: OwnProps) => {
-  const meta = Constants.getMeta(state, ownProps.conversationIDKey)
-  if (!meta.teamname) {
-    return emptyProps
-  }
-  const canPerform = TeamConstants.getCanPerform(state, meta.teamname)
-  return {
-    canSetMinWriterRole: canPerform.setMinWriterRole,
-    minWriterRole: meta.minWriterRole,
-  }
-}
-
-const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
-  onSetNewRole: (role: TeamTypes.TeamRoleType) =>
-    dispatch(Chat2Gen.createSetMinWriterRole({conversationIDKey: ownProps.conversationIDKey, role})),
-})
-
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
-  canSetMinWriterRole: stateProps.canSetMinWriterRole,
-  isSmallTeam: ownProps.isSmallTeam,
-  minWriterRole: stateProps.minWriterRole,
-  onSetNewRole: dispatchProps.onSetNewRole,
-})
+} as const
 
 export default Container.namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
+  (state, ownProps: OwnProps) => {
+    const meta = Constants.getMeta(state, ownProps.conversationIDKey)
+    if (!meta.teamname) {
+      return emptyProps
+    }
+    const canPerform = TeamConstants.getCanPerform(state, meta.teamname)
+    return {
+      canSetMinWriterRole: canPerform.setMinWriterRole,
+      minWriterRole: meta.minWriterRole,
+    }
+  },
+  (dispatch, ownProps: OwnProps) => ({
+    onSetNewRole: (role: TeamTypes.TeamRoleType) =>
+      dispatch(Chat2Gen.createSetMinWriterRole({conversationIDKey: ownProps.conversationIDKey, role})),
+  }),
+  (stateProps, dispatchProps, ownProps: OwnProps) => ({
+    canSetMinWriterRole: stateProps.canSetMinWriterRole,
+    isSmallTeam: ownProps.isSmallTeam,
+    minWriterRole: stateProps.minWriterRole,
+    onSetNewRole: dispatchProps.onSetNewRole,
+  }),
   'MinWriterRole'
 )(MinWriterRole)

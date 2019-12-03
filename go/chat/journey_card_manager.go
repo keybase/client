@@ -292,6 +292,7 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 			}
 		}
 		ordinal := 1 // Won't conflict with outbox messages since they are all <= outboxOrdinalStart.
+		cc.Debug(ctx, "makeCard -> prevID:%v cardType:%v jcdCtime:%v", pos.PrevID, cardType, jcd.Ctime.Time())
 		return &chat1.MessageUnboxedJourneycard{
 			PrevID:         pos.PrevID,
 			Ordinal:        ordinal,
@@ -326,7 +327,6 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 		chat1.JourneycardType_WELCOME,          // 1 on design
 		chat1.JourneycardType_POPULAR_CHANNELS, // 2 on design
 		chat1.JourneycardType_ADD_PEOPLE,       // 3 on design
-		chat1.JourneycardType_CREATE_CHANNELS,  // 4 on design
 		chat1.JourneycardType_CREATE_CHANNELS,  // 4 on design
 		chat1.JourneycardType_MSG_ATTENTION,    // 5 on design
 	}
@@ -925,6 +925,8 @@ const journeycardDiskVersion int = 1
 type journeyCardConvData struct {
 	DiskVersion int                                            `codec:"v,omitempty" json:"v,omitempty"`
 	Positions   map[chat1.JourneycardType]*journeyCardPosition `codec:"p,omitempty" json:"p,omitempty"`
+	// When this data was first saved. For debugging unexpected data loss.
+	Ctime gregor1.Time `codec:"c,omitempty" json:"c,omitempty"`
 	// Whether the user has sent a message in this channel.
 	SentMessage bool `codec:"sm,omitempty" json:"sm,omitempty"`
 	// When the user joined the channel (that's the idea, really it's some time when they saw the conv)
@@ -935,6 +937,7 @@ func newJourneyCardConvData() journeyCardConvData {
 	return journeyCardConvData{
 		DiskVersion: journeycardDiskVersion,
 		Positions:   make(map[chat1.JourneycardType]*journeyCardPosition),
+		Ctime:       gregor1.ToTime(time.Now()),
 	}
 }
 

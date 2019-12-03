@@ -102,16 +102,17 @@ const ConnectedInfoPanel = Container.connect(
     {conversationIDKey, onBack, onCancel, onSelectAttachmentView}: OwnProps
   ) => ({
     _navToRootChat: () => dispatch(Chat2Gen.createNavigateToInbox()),
-    _onDocDownload: message => dispatch(Chat2Gen.createAttachmentDownload({message})),
+    _onDocDownload: (message: Types.Message) => dispatch(Chat2Gen.createAttachmentDownload({message})),
     _onEditChannel: (teamname: string) =>
       dispatch(
         RouteTreeGen.createNavigateAppend({
           path: [{props: {conversationIDKey, teamname}, selected: 'chatEditChannel'}],
         })
       ),
-    _onLoadMore: (viewType, fromMsgID) =>
+    _onLoadMore: (viewType: RPCChatTypes.GalleryItemTyp, fromMsgID?: Types.MessageID) =>
       dispatch(Chat2Gen.createLoadAttachmentView({conversationIDKey, fromMsgID, viewType})),
-    _onMediaClick: message => dispatch(Chat2Gen.createAttachmentPreviewSelect({message})),
+    _onMediaClick: (message: Types.MessageAttachment) =>
+      dispatch(Chat2Gen.createAttachmentPreviewSelect({message})),
     _onShowClearConversationDialog: () => {
       dispatch(Chat2Gen.createNavigateToThread())
       dispatch(
@@ -120,10 +121,10 @@ const ConnectedInfoPanel = Container.connect(
         })
       )
     },
-    _onShowInFinder: message =>
+    _onShowInFinder: (message: Types.MessageAttachment) =>
       message.downloadPath &&
       dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: message.downloadPath})),
-    onAttachmentViewChange: viewType => {
+    onAttachmentViewChange: (viewType: RPCChatTypes.GalleryItemTyp) => {
       dispatch(Chat2Gen.createLoadAttachmentView({conversationIDKey, viewType}))
       onSelectAttachmentView(viewType)
     },
@@ -210,7 +211,11 @@ const ConnectedInfoPanel = Container.connect(
                   progress: m.transferProgress,
                 })),
               onLoadMore: stateProps._fromMsgID
-                ? () => dispatchProps._onLoadMore(RPCChatTypes.GalleryItemTyp.doc, stateProps._fromMsgID)
+                ? () =>
+                    dispatchProps._onLoadMore(
+                      RPCChatTypes.GalleryItemTyp.doc,
+                      stateProps._fromMsgID ?? undefined
+                    )
                 : null,
               status: stateProps._attachmentInfo.status,
             }
@@ -248,7 +253,11 @@ const ConnectedInfoPanel = Container.connect(
                 return l
               }, []),
               onLoadMore: stateProps._fromMsgID
-                ? () => dispatchProps._onLoadMore(RPCChatTypes.GalleryItemTyp.link, stateProps._fromMsgID)
+                ? () =>
+                    dispatchProps._onLoadMore(
+                      RPCChatTypes.GalleryItemTyp.link,
+                      stateProps._fromMsgID ?? undefined
+                    )
                 : null,
               status: stateProps._attachmentInfo.status,
             }
@@ -258,7 +267,11 @@ const ConnectedInfoPanel = Container.connect(
         stateProps.selectedAttachmentView === RPCChatTypes.GalleryItemTyp.media
           ? {
               onLoadMore: stateProps._fromMsgID
-                ? () => dispatchProps._onLoadMore(RPCChatTypes.GalleryItemTyp.media, stateProps._fromMsgID)
+                ? () =>
+                    dispatchProps._onLoadMore(
+                      RPCChatTypes.GalleryItemTyp.media,
+                      stateProps._fromMsgID ?? undefined
+                    )
                 : null,
               status: stateProps._attachmentInfo.status,
               thumbs: (stateProps._attachmentInfo.messages as Array<Types.MessageAttachment>) // TODO dont use this cast

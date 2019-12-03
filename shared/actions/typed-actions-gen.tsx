@@ -216,6 +216,7 @@ export type TypedActionsMap = {
   'chat2:toggleGiphyPrefill': chat2.ToggleGiphyPrefillPayload
   'chat2:setChannelSearchText': chat2.SetChannelSearchTextPayload
   'chat2:updateBlockButtons': chat2.UpdateBlockButtonsPayload
+  'chat2:dismissBlockButtons': chat2.DismissBlockButtonsPayload
   'chat2:setInboxNumSmallRows': chat2.SetInboxNumSmallRowsPayload
   'chat2:enableAudioRecording': chat2.EnableAudioRecordingPayload
   'chat2:attemptAudioRecording': chat2.AttemptAudioRecordingPayload
@@ -592,7 +593,6 @@ export type TypedActionsMap = {
   'fs:setDebugLevel': fs.SetDebugLevelPayload
   'git:loadGit': git.LoadGitPayload
   'git:loaded': git.LoadedPayload
-  'git:navToGit': git.NavToGitPayload
   'git:createTeamRepo': git.CreateTeamRepoPayload
   'git:createPersonalRepo': git.CreatePersonalRepoPayload
   'git:repoDeleted': git.RepoDeletedPayload

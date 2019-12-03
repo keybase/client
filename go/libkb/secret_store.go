@@ -298,10 +298,31 @@ func (s *SecretStoreLocked) GetUsersWithStoredSecrets(m MetaContext) ([]string, 
 	}
 	s.Lock()
 	defer s.Unlock()
-	if s.disk == nil {
-		return s.mem.GetUsersWithStoredSecrets(m)
+	users := make(map[string]struct{})
+
+	memUsers, memErr := s.mem.GetUsersWithStoredSecrets(m)
+	if memErr == nil {
+		for _, memUser := range memUsers {
+			users[memUser] = struct{}{}
+		}
 	}
-	return s.disk.GetUsersWithStoredSecrets(m)
+	if s.disk == nil {
+		return memUsers, memErr
+	}
+	diskUsers, diskErr := s.disk.GetUsersWithStoredSecrets(m)
+	if diskErr == nil {
+		for _, diskUser := range diskUsers {
+			users[diskUser] = struct{}{}
+		}
+	}
+	if memErr != nil && diskErr != nil {
+		return nil, CombineErrors(memErr, diskErr)
+	}
+	var ret []string
+	for user := range users {
+		ret = append(ret, user)
+	}
+	return ret, nil
 }
 
 func (s *SecretStoreLocked) PrimeSecretStores(mctx MetaContext) (err error) {

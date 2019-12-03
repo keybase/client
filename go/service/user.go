@@ -6,6 +6,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"sort"
 	"strings"
 	"time"
@@ -268,9 +269,7 @@ func (h *UserHandler) InterestingPeople(ctx context.Context, maxUsers int) (res 
 	fallbackFn := func(uid keybase1.UID) (uids []keybase1.UID, err error) {
 		uids = []keybase1.UID{
 			libkb.GetUIDByNormalizedUsername(h.G(), "hellobot"),
-			h.G().GetEnv().GetUID(),
 		}
-
 		return uids, nil
 	}
 
@@ -301,6 +300,13 @@ func (h *UserHandler) InterestingPeople(ctx context.Context, maxUsers int) (res 
 	const serviceMapFreshness = 24 * time.Hour
 	serviceMaps := h.G().ServiceMapper.MapUIDsToServiceSummaries(ctx, h.G(), uids,
 		serviceMapFreshness, uidmap.DisallowNetworkBudget)
+
+	// The most interesting person of all... you
+	you := keybase1.InterestingPerson{
+		Uid:      h.G().GetEnv().GetUID(),
+		Username: h.G().GetEnv().GetUsername().String(),
+	}
+	res = append(res, you)
 
 	for i, uid := range uids {
 		if packages[i].NormalizedUsername.IsNil() {
@@ -660,6 +666,17 @@ func (h *UserHandler) SetUserBlocks(ctx context.Context, arg keybase1.SetUserBlo
 	_, err = mctx.G().API.Post(mctx, apiArg)
 	return err
 
+}
+
+const blockButtonsGregorPrefix = "blockButtons."
+
+func (h *UserHandler) DismissBlockButtons(ctx context.Context, tlfID keybase1.TLFID) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed(
+		fmt.Sprintf("UserHandler#DismissBlockButtons(TLF=%s)", tlfID),
+		func() error { return err })()
+
+	return h.service.gregor.DismissCategory(ctx, gregor1.Category(fmt.Sprintf("%s%s", blockButtonsGregorPrefix, tlfID.String())))
 }
 
 func (h *UserHandler) GetUserBlocks(ctx context.Context, arg keybase1.GetUserBlocksArg) (res []keybase1.UserBlock, err error) {

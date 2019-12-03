@@ -1,7 +1,7 @@
 import * as Container from '../util/container'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 
-export function teamBuilderReducerCreator<Actions, State>(
+export function teamBuilderReducerCreator<State>(
   callback: (draftState: Container.Draft<State>, action: TeamBuildingGen.Actions) => void
 ) {
   const allActions = [
@@ -18,11 +18,15 @@ export function teamBuilderReducerCreator<Actions, State>(
     TeamBuildingGen.searchResultsLoaded,
     TeamBuildingGen.selectRole,
     TeamBuildingGen.tbResetStore,
-  ]
-  const teamActions = allActions.reduce<Container.ActionHandler<Actions, State>>((arr, action) => {
-    arr[action] = callback
-    return arr
-  }, {})
+  ] as const
+
+  const teamActions = allActions.reduce<Container.ActionHandler<TeamBuildingGen.Actions, State>>(
+    (arr, action) => {
+      arr[action] = callback
+      return arr
+    },
+    {}
+  )
 
   return teamActions
 }

@@ -5,7 +5,6 @@ import * as EngineGen from '../engine-gen-gen'
 import * as TeamBuildingGen from '../team-building-gen'
 import * as Constants from '../../constants/chat2'
 import * as GregorGen from '../gregor-gen'
-import * as I from 'immutable'
 import * as FsConstants from '../../constants/fs'
 import * as Flow from '../../util/flow'
 import * as NotificationsGen from '../notifications-gen'
@@ -112,15 +111,20 @@ const untrustedConversationIDKeys = (state: TypedState, ids: Array<Types.Convers
   ids.filter(id => (state.chat2.metaMap.get(id) ?? {trustedState: 'untrusted'}).trustedState === 'untrusted')
 
 // We keep a set of conversations to unbox
-let metaQueue = I.OrderedSet()
+let metaQueue = new Set<Types.ConversationIDKey>()
 const queueMetaToRequest = (
   state: TypedState,
   action: Chat2Gen.MetaNeedsUpdatingPayload,
   logger: Saga.SagaLogger
 ) => {
-  const old = metaQueue
-  metaQueue = metaQueue.concat(untrustedConversationIDKeys(state, action.payload.conversationIDKeys))
-  if (old !== metaQueue) {
+  let added = false
+  untrustedConversationIDKeys(state, action.payload.conversationIDKeys).forEach(k => {
+    if (!metaQueue.has(k)) {
+      added = true
+      metaQueue.add(k)
+    }
+  })
+  if (added) {
     // only unboxMore if something changed
     return Chat2Gen.createMetaHandleQueue()
   } else {
@@ -132,10 +136,11 @@ const queueMetaToRequest = (
 // Watch the meta queue and take up to 10 items. Choose the last items first since they're likely still visible
 function* requestMeta(state: TypedState, _: Chat2Gen.MetaHandleQueuePayload) {
   const maxToUnboxAtATime = 10
-  const maybeUnbox = metaQueue.takeLast(maxToUnboxAtATime)
-  metaQueue = metaQueue.skipLast(maxToUnboxAtATime)
+  const ar = [...metaQueue]
+  const maybeUnbox = ar.slice(0, maxToUnboxAtATime)
+  metaQueue = new Set(ar.slice(maxToUnboxAtATime))
 
-  const conversationIDKeys = untrustedConversationIDKeys(state, maybeUnbox.toArray())
+  const conversationIDKeys = untrustedConversationIDKeys(state, maybeUnbox)
   const toUnboxActions = conversationIDKeys.length
     ? [Saga.put(Chat2Gen.createMetaRequestTrusted({conversationIDKeys, reason: 'scroll'}))]
     : []
@@ -1762,6 +1767,11 @@ function* messageSend(state: TypedState, action: Chat2Gen.MessageSendPayload, lo
     logger.info('error')
   }
 
+  // If there are block buttons on this conversation, clear them.
+  if (state.chat2.blockButtonsMap.has(meta.teamID)) {
+    yield Saga.put(Chat2Gen.createDismissBlockButtons({teamID: meta.teamID}))
+  }
+
   // Do some logging to track down the root cause of a bug causing
   // messages to not send. Do this after creating the objects above to
   // narrow down the places where the action can possibly stop.
@@ -1796,9 +1806,15 @@ const messageSendByUsernames = async (
       },
       action.payload.waitingKey
     )
+
+    // If there are block buttons on this conversation, clear them.
+    if (state.chat2.blockButtonsMap.has(result.conv.info.triple.tlfid.toString('hex'))) {
+      return Chat2Gen.createDismissBlockButtons({teamID: result.conv.info.triple.tlfid.toString('hex')})
+    }
   } catch (e) {
     logger.warn('Could not send in messageSendByUsernames', e)
   }
+  return []
 }
 
 type StellarConfirmWindowResponse = {result: (b: boolean) => void}
@@ -2686,9 +2702,7 @@ function* createConversation(
     {
       identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
       membersType: RPCChatTypes.ConversationMembersType.impteamnative,
-      tlfName: I.Set([username])
-        .concat(action.payload.participants)
-        .join(','),
+      tlfName: [...new Set([username, ...action.payload.participants])].join(','),
       tlfVisibility: RPCTypes.TLFVisibility.private,
       topicType: RPCChatTypes.TopicType.chat,
     },
@@ -2727,7 +2741,7 @@ const messageReplyPrivately = async (
     {
       identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
       membersType: RPCChatTypes.ConversationMembersType.impteamnative,
-      tlfName: I.Set([username, message.author]).join(','),
+      tlfName: [...new Set([username, message.author])].join(','),
       tlfVisibility: RPCTypes.TLFVisibility.private,
       topicType: RPCChatTypes.TopicType.chat,
     },
@@ -3187,17 +3201,29 @@ const gregorPushState = (state: TypedState, action: GregorGen.PushStatePayload, 
   actions.push(Chat2Gen.createSetInboxShowIsNew({isNew: isSearchNew}))
 
   const blockButtons = items.some(i => i.item.category.startsWith(Constants.blockButtonsGregorPrefix))
-  if (blockButtons) {
-    const teamIDs = items
+  if (blockButtons || state.chat2.blockButtonsMap.size > 0) {
+    const shouldKeepExistingBlockButtons = new Map<string, boolean>()
+    state.chat2.blockButtonsMap.forEach((_, teamID: string) =>
+      shouldKeepExistingBlockButtons.set(teamID, false)
+    )
+    items
       .filter(i => i.item.category.startsWith(Constants.blockButtonsGregorPrefix))
-      .map(i => i.item.category.substr(Constants.blockButtonsGregorPrefix.length)) as Array<RPCTypes.TeamID>
-    teamIDs.forEach(teamID => {
-      if (!state.chat2.blockButtonsMap.get(teamID)) {
-        actions.push(Chat2Gen.createUpdateBlockButtons({show: true, teamID}))
+      .forEach(i => {
+        const teamID = i.item.category.substr(Constants.blockButtonsGregorPrefix.length)
+        if (!state.chat2.blockButtonsMap.get(teamID)) {
+          const body: {adder: string} = JSON.parse(i.item.body.toString())
+          const adder = body.adder
+          actions.push(Chat2Gen.createUpdateBlockButtons({adder, show: true, teamID}))
+        } else {
+          shouldKeepExistingBlockButtons.set(teamID, true)
+        }
+      })
+    shouldKeepExistingBlockButtons.forEach((keep, teamID) => {
+      if (!keep) {
+        actions.push(Chat2Gen.createUpdateBlockButtons({show: false, teamID}))
       }
     })
   }
-
   return actions
 }
 
@@ -3268,6 +3294,14 @@ const addUsersToChannel = async (
 const onMarkInboxSearchOld = (state: TypedState) =>
   state.chat2.inboxShowNew &&
   GregorGen.createUpdateCategory({body: 'true', category: Constants.inboxSearchNewKey})
+
+const dismissBlockButtons = async (_: TypedState, action: Chat2Gen.DismissBlockButtonsPayload) => {
+  try {
+    await RPCTypes.userDismissBlockButtonsRpcPromise({tlfID: action.payload.teamID})
+  } catch (err) {
+    logger.error(`Couldn't dismiss block buttons: ${err.message}`)
+  }
+}
 
 const createConversationFromTeamBuilder = (
   state: TypedState,
@@ -3686,6 +3720,8 @@ function* chat2Saga() {
   yield* Saga.chainAction2(EngineGen.connected, onConnect, 'onConnect')
   yield* Saga.chainAction2(Chat2Gen.setInboxNumSmallRows, setInboxNumSmallRows)
   yield* Saga.chainAction2(ConfigGen.bootstrapStatusLoaded, getInboxNumSmallRows)
+
+  yield* Saga.chainAction2(Chat2Gen.dismissBlockButtons, dismissBlockButtons)
 
   yield* chatTeamBuildingSaga()
   yield* Saga.chainAction2(EngineGen.chat1NotifyChatChatConvUpdate, onChatConvUpdate, 'onChatConvUpdate')

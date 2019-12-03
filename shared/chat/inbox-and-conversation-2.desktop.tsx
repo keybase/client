@@ -5,44 +5,27 @@ import Inbox from './inbox/container'
 import InboxSearch from './inbox-search/container'
 import Conversation from './conversation/container'
 import Header from './header.desktop'
-import {namedConnect} from '../util/container'
+import * as Container from '../util/container'
 
 type Props = {
   navigation?: any
 }
 
-type InboxSwitchProps = Props & {
-  searchEnabled: boolean
+const InboxAndConversation = (props: Props) => {
+  const searchEnabled = Container.useSelector(s => !!s.chat2.inboxSearch)
+  return (
+    <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
+      {searchEnabled ? <InboxSearch /> : <Inbox />}
+      <Conversation navigation={props.navigation} />
+    </Kb.Box2>
+  )
 }
 
-const InboxSwitch = (props: InboxSwitchProps) => {
-  return props.searchEnabled ? <InboxSearch /> : <Inbox />
+InboxAndConversation.navigationOptions = {
+  header: undefined,
+  headerTitle: Header,
 }
 
-const mapStateToProps = state => ({
-  searchEnabled: !!state.chat2.inboxSearch,
-})
-
-const InboxSwitchConnected = namedConnect(
-  mapStateToProps,
-  () => ({}),
-  ({searchEnabled}) => ({searchEnabled}),
-  'InboxSwitchConnected'
-)(InboxSwitch)
-
-class InboxAndConversation extends React.PureComponent<Props> {
-  static navigationOptions = {
-    header: undefined,
-    headerTitle: Header,
-  }
-  render() {
-    return (
-      <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
-        <InboxSwitchConnected />
-        <Conversation navigation={this.props.navigation} />
-      </Kb.Box2>
-    )
-  }
-}
-
-export default InboxAndConversation
+const Memoed = React.memo(InboxAndConversation)
+Container.hoistNonReactStatic(Memoed, InboxAndConversation)
+export default Memoed

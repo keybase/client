@@ -27,7 +27,7 @@ const minWriterRoleProps = {
   minWriterRole: 'reader',
 }
 
-const retentionPickerPropSelector = props => ({
+const retentionPickerPropSelector = (props: any) => ({
   _loadTeamOperations: Sb.unexpected('_loadTeamOperations'),
   _loadTeamPolicy: Sb.action('_loadTeamPolicy'),
   _onShowDropdown: Sb.action('onShowDropdownRetentionPicker'),

@@ -68,8 +68,8 @@ const makeTimestampGen = (days: number = 7, threshold: number = 10) => {
   let currentTimestamp: number = 0
 
   let dayRange: number = 0
-  let start = moment(origin)
-  let end = moment(origin)
+  const start = moment(origin)
+  const end = moment(origin)
 
   return (): number => {
     // Initialize or reset because threshold was crossed
@@ -103,8 +103,8 @@ const makeTimestampGen = (days: number = 7, threshold: number = 10) => {
 
 const generateTimestamp = makeTimestampGen()
 
-const ordinalToMessageCache = {}
-const ordinalToMessage = o => {
+const ordinalToMessageCache: {[key: number]: Types.Message} = {}
+const ordinalToMessage = (o: Types.Ordinal) => {
   if (ordinalToMessageCache[o]) {
     return ordinalToMessageCache[o]
   }
@@ -231,7 +231,7 @@ class ThreadWrapper extends React.Component<Props, State> {
   _injectMessagesIntervalID?: NodeJS.Timer
   _loadMoreTimeoutID?: NodeJS.Timer
   _loadConvoTimeoutID?: NodeJS.Timer
-  constructor(props) {
+  constructor(props: Props) {
     super(props)
     this.state = {
       conversationIDKey: Types.stringToConversationIDKey('a'),
