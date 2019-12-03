@@ -89,16 +89,16 @@ const BlockButtons = (props: Props) => {
       direction="vertical"
       centerChildren={true}
       gap="tiny"
-      style={{marginBottom: Styles.globalMargins.xsmall}}
+      style={styles.dismissContainer}
       fullWidth={true}
     >
       <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} centerChildren={true}>
         <Kb.Text type="BodySmall">
           {team ? `${adder} added you to this team.` : `You don't seem to know ${adder}.`}
         </Kb.Text>
-        <Kb.Icon type="iconfont-remove" onClick={() => Chat2Gen.createDismissBlockButtons({teamID})} />
+        <Kb.Icon style={styles.dismissIcon} type="iconfont-close" onClick={() => Chat2Gen.createDismissBlockButtons({teamID})} />
       </Kb.Box2>
-      <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
+      <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.buttonContainer}>
         {buttonRow}
       </Kb.Box2>
     </Kb.Box2>
@@ -126,17 +126,22 @@ const styles = Styles.styleSheetCreate(
           ...Styles.padding(0, Styles.globalMargins.small),
         },
       }),
-      container: Styles.platformStyles({
-        common: {
-          alignItems: 'center',
-        },
-        isElectron: {
-          alignSelf: 'flex-start',
-          marginLeft: Styles.globalMargins.small + 1,
-        },
-        isMobile: {
-          marginBottom: Styles.globalMargins.tiny,
-        },
-      }),
+      buttonContainer: {maxWidth: 322},
+      container: {
+        alignItems: 'center',
+        alignSelf: 'flex-start',
+        marginLeft: Styles.globalMargins.small + 1,
+      },
+      dismissContainer: {
+        backgroundColor: Styles.globalColors.blueGrey,
+        paddingBottom: Styles.globalMargins.xsmall,
+        paddingTop: Styles.globalMargins.xsmall,
+        position: 'relative',
+      },
+      dismissIcon: {
+        position: 'absolute',
+        right: Styles.globalMargins.small,
+        top: -1,
+      },
     } as const)
 )
