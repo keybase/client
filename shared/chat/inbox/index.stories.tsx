@@ -25,7 +25,11 @@ const makeRowItemBigHeader = (teamname: string = ''): RowItemBigHeader => ({
   teamID: '',
   teamname,
 })
-const makeRowItemBigChannel = (conversationIDKey, teamname, channelname): RowItemBig => ({
+const makeRowItemBigChannel = (
+  conversationIDKey: Types.ConversationIDKey,
+  teamname: string,
+  channelname: string
+): RowItemBig => ({
   type: 'big',
   teamname,
   channelname,
@@ -333,7 +337,7 @@ const mapPropProviderProps = {
  * Called from the row component's PropProvider
  * Uses either conversationIDKey or teamname as a key in mapPropProviderProps
  */
-const getPropProviderProps = own => {
+const getPropProviderProps = (own: any) => {
   if (own.conversationIDKey && own.conversationIDKey !== 'EMPTY') {
     const props = mapPropProviderProps[own.conversationIDKey]
     return {
