@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
@@ -21,20 +20,9 @@ type convTranscript struct {
 	Messages []convTranscriptMsg `json:"messages"`
 }
 
-type convTranscriptMsgText struct {
-	Body string `json:"body"`
-}
-
 type convTranscriptMsg struct {
-	SenderUsername string                       `json:"senderUsername"`
-	MsgType        string                       `json:"msgType"`
-	Text           *convTranscriptMsgText       `json:"text,omitempty"`
-	Edit           *chat1.MessageEdit           `json:"edit,omitempty"`
-	Delete         *chat1.MessageDelete         `json:"delete,omitempty"`
-	Headline       *chat1.MessageHeadline       `json:"headline,omitempty"`
-	SendPayment    *chat1.MessageSendPayment    `json:"send_payment,omitempty"`
-	RequestPayment *chat1.MessageRequestPayment `json:"request_payment,omitempty"`
-	Unfurl         *chat1.MessageUnfurl         `json:"unfurl,omitempty"`
+	SenderUsername string            `json:"senderUsername"`
+	Body           chat1.MessageBody `json:"body"`
 }
 
 // When sending a transcript, send the following number of most recent chat
@@ -48,17 +36,8 @@ func pullTranscript(mctx libkb.MetaContext, chatG *globals.ChatContext, convIDSt
 	}
 	uidBytes := gregor1.UID(mctx.CurrentUID().ToBytes())
 	chatQuery := &chat1.GetThreadQuery{
-		MarkAsRead: false,
-		MessageTypes: []chat1.MessageType{
-			chat1.MessageType_TEXT,
-			chat1.MessageType_EDIT,
-			chat1.MessageType_DELETE,
-			chat1.MessageType_HEADLINE,
-			chat1.MessageType_SENDPAYMENT,
-			chat1.MessageType_REQUESTPAYMENT,
-			chat1.MessageType_HEADLINE,
-			chat1.MessageType_UNFURL,
-		},
+		MarkAsRead:   false,
+		MessageTypes: chat1.VisibleChatMessageTypes(),
 	}
 	pagination := &chat1.Pagination{
 		Num: transcriptMessageLimit,
@@ -74,23 +53,9 @@ func pullTranscript(mctx libkb.MetaContext, chatG *globals.ChatContext, convIDSt
 			continue
 		}
 		mv := msg.Valid()
-		mb := mv.MessageBody
-		var textMsg *convTranscriptMsgText
-		if mb.IsType(chat1.MessageType_TEXT) {
-			textMsg = &convTranscriptMsgText{
-				Body: mb.Text().Body,
-			}
-		}
 		tMsg := convTranscriptMsg{
 			SenderUsername: mv.SenderUsername,
-			MsgType:        strings.ToLower(chat1.MessageTypeRevMap[mb.MessageType__]),
-			Text:           textMsg,
-			Edit:           mb.Edit__,
-			Delete:         mb.Delete__,
-			SendPayment:    mb.Sendpayment__,
-			RequestPayment: mb.Requestpayment__,
-			Headline:       mb.Headline__,
-			Unfurl:         mb.Unfurl__,
+			Body:           mv.MessageBody,
 		}
 		transcript.Messages = append(transcript.Messages, tMsg)
 	}
