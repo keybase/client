@@ -160,7 +160,14 @@ class TabBar extends React.PureComponent<Props, State> {
   }
 }
 
-const Tab = React.memo(({tab, index, selectedTab, onTabClick, badge}) => (
+type TabProps = {
+  tab: Tabs.AppTab
+  index: number
+  selectedTab: Tabs.Tab
+  onTabClick: (t: Tabs.AppTab) => void
+  badge?: number
+}
+const Tab = React.memo(({tab, index, selectedTab, onTabClick, badge}: TabProps) => (
   <Kb.ClickableBox key={tab} onClick={() => onTabClick(tab)}>
     <Kb.WithTooltip
       tooltip={`${data[tab].label} (${Platforms.shortcutSymbol}${index + 1})`}
