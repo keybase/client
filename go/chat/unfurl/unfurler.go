@@ -338,6 +338,9 @@ func (u *Unfurler) detectPermError(err error) bool {
 	case *url.Error:
 		return !e.Temporary()
 	}
+	if err.Error() == "Not Found" {
+		return true
+	}
 	return false
 }
 

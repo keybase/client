@@ -4,6 +4,8 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"net"
+	"net/url"
 	"sync"
 	"time"
 
@@ -367,7 +369,7 @@ func (s *BlockingSender) getMessage(ctx context.Context, uid gregor1.UID,
 		return mvalid, err
 	}
 	if len(messages) == 0 {
-		return mvalid, errors.New("getMessage: message not found")
+		return mvalid, fmt.Errorf("getMessage: message not found")
 	}
 	if !messages[0].IsValid() {
 		st, err := messages[0].State()
@@ -1024,7 +1026,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	for i := 0; i < 5; i++ {
 		// Add a bunch of stuff to the message (like prev pointers, sender info, ...)
 		if prepareRes, err = s.Prepare(ctx, msg, conv.GetMembersType(), &conv, prepareOpts); err != nil {
-			s.Debug(ctx, "Send: error in Prepare: %s", err.Error())
+			s.Debug(ctx, "Send: error in Prepare: %s", err)
 			return nil, nil, err
 		}
 		boxed = &prepareRes.Boxed
@@ -1034,7 +1036,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 		if len(prepareRes.PendingAssetDeletes) > 0 {
 			err = s.deleteAssets(ctx, convID, prepareRes.PendingAssetDeletes)
 			if err != nil {
-				s.Debug(ctx, "Send: failure in deleteAssets (charging forward): %s", err.Error())
+				s.Debug(ctx, "Send: failure in deleteAssets (charging forward): %s", err)
 			}
 		}
 
@@ -1087,7 +1089,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 				}
 				continue
 			default:
-				s.Debug(ctx, "Send: failed to PostRemote, bailing: %s", err.Error())
+				s.Debug(ctx, "Send: failed to PostRemote, bailing: %s", err)
 				return nil, nil, err
 			}
 		}
@@ -1428,12 +1430,16 @@ func (s *Deliverer) doNotRetryFailure(ctx context.Context, obr chat1.OutboxRecor
 		}
 	}
 	// Check for any errors that should cause us to give up right away
-	if berr, ok := err.(DelivererInfoError); ok {
+	switch berr := err.(type) {
+	case DelivererInfoError:
 		if typ, ok := berr.IsImmediateFail(); ok {
 			return typ, err, true
 		}
+		return 0, err, false
+	case *url.Error, *net.DNSError:
+		return chat1.OutboxErrorType_OFFLINE, err, false
 	}
-	return 0, err, false
+	return 0, err, true
 }
 
 func (s *Deliverer) failMessage(ctx context.Context, obr chat1.OutboxRecord,
@@ -1489,8 +1495,14 @@ type delivererBackgroundTaskError struct {
 	Typ string
 }
 
+var _ (DelivererInfoError) = (*delivererBackgroundTaskError)(nil)
+
 func (e delivererBackgroundTaskError) Error() string {
 	return fmt.Sprintf("%s in progress", e.Typ)
+}
+
+func (e delivererBackgroundTaskError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
+	return chat1.OutboxErrorType_MISC, false
 }
 
 var errDelivererUploadInProgress = delivererBackgroundTaskError{Typ: "attachment upload"}
@@ -1543,17 +1555,31 @@ func (s *Deliverer) processAttachment(ctx context.Context, obr chat1.OutboxRecor
 	return obr, nil
 }
 
-type unfurlerPermError struct{}
-
-func (e unfurlerPermError) Error() string {
-	return "unfurler permanent error"
+type unfurlError struct {
+	status types.UnfurlerTaskStatus
 }
 
-func (e unfurlerPermError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
-	return chat1.OutboxErrorType_MISC, true
+func newUnfurlError(status types.UnfurlerTaskStatus) unfurlError {
+	return unfurlError{
+		status: status,
+	}
 }
 
-var _ (DelivererInfoError) = (*unfurlerPermError)(nil)
+func (e unfurlError) Error() string {
+	if e.status == types.UnfurlerTaskStatusPermFailed {
+		return "unfurler permanent error"
+	}
+	return "unfurler error"
+}
+
+func (e unfurlError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
+	if e.status == types.UnfurlerTaskStatusPermFailed {
+		return chat1.OutboxErrorType_MISC, true
+	}
+	return chat1.OutboxErrorType_MISC, false
+}
+
+var _ (DelivererInfoError) = (*unfurlError)(nil)
 
 func (s *Deliverer) processUnfurl(ctx context.Context, obr chat1.OutboxRecord) (chat1.OutboxRecord, error) {
 	if !obr.IsUnfurl() {
@@ -1581,9 +1607,9 @@ func (s *Deliverer) processUnfurl(ctx context.Context, obr chat1.OutboxRecord) (
 		return obr, errDelivererUnfurlInProgress
 	case types.UnfurlerTaskStatusFailed:
 		s.G().Unfurler.Retry(ctx, obr.OutboxID)
-		return obr, errors.New("failed to unfurl temporary")
+		return obr, newUnfurlError(status)
 	case types.UnfurlerTaskStatusPermFailed:
-		return obr, unfurlerPermError{}
+		return obr, newUnfurlError(status)
 	}
 	return obr, nil
 }
