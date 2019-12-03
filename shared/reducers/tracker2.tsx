@@ -112,10 +112,7 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     const {blocker, blocked} = action.payload.params.b
     const d = getDetails(draftState, blocker)
     const blockees = blocked ?? []
-    const toProcess = blockees.map<[string, Types.Details]>(username => [
-      username,
-      getDetails(draftState, username),
-    ])
+    const toProcess = blockees.map(username => [username, getDetails(draftState, username)] as const)
     toProcess.forEach(([username, det]) => {
       d.followers && d.followers.delete(username)
       det.blocked = true
