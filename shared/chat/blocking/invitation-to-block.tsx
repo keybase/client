@@ -96,7 +96,7 @@ const BlockButtons = (props: Props) => {
         <Kb.Text type="BodySmall">
           {team ? `${adder} added you to this team.` : `You don't seem to know ${adder}.`}
         </Kb.Text>
-        <Kb.Icon type="iconfont-remove" onClick={() => Chat2Gen.createDismissBlockButtons({teamID})} />
+        <Kb.Icon type="iconfont-remove" onClick={() => dispatch(Chat2Gen.createDismissBlockButtons({teamID}))} />
       </Kb.Box2>
       <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
         {buttonRow}
