@@ -645,6 +645,9 @@ func (h *UserHandler) SetUserBlocks(ctx context.Context, arg keybase1.SetUserBlo
 		Follow   *bool  `json:"follow,omitempty"`
 	}
 
+	for _, block := range arg.Blocks {
+		h.G().Log.CDebugf(ctx, "SetUserBlocks: adding block: %+v", block)
+	}
 	payloadBlocks := make([]setBlockArg, len(arg.Blocks))
 	for i, v := range arg.Blocks {
 		uid := libkb.GetUIDByUsername(h.G(), v.Username)
