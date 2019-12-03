@@ -85,8 +85,8 @@ const makePeopleResults = results =>
       followingState={result.followingState}
       highlight={result.highlight}
       inTeam={result.inTeam}
-      isYou={result.isYou}
       isPreExistingTeamMember={result.isPreExistingTeamMember}
+      isYou={result.isYou}
       onAdd={Sb.action('onAdd')}
       onRemove={Sb.action('onRemove')}
     />
@@ -176,8 +176,8 @@ const load = () => {
             displayLabel: 'Chris Coyne',
             followingState: 'Following' as const,
             inTeam: true,
-            isYou: false,
             isPreExistingTeamMember: false,
+            isYou: false,
             prettyName: 'Chris Coyne',
             services: {
               facebook: 'chriscoyne',
@@ -195,8 +195,8 @@ const load = () => {
             displayLabel: 'Chris Mikacle',
             followingState: 'NotFollowing' as const,
             inTeam: false,
-            isYou: false,
             isPreExistingTeamMember: false,
+            isYou: false,
             prettyName: 'Chris Mikacle',
             services: {
               github: 'chrismikacle',
@@ -213,8 +213,8 @@ const load = () => {
             displayLabel: 'Chris Nojima',
             followingState: 'Following' as const,
             inTeam: false,
-            isYou: false,
             isPreExistingTeamMember: false,
+            isYou: false,
             prettyName: 'Chris Nojima',
             services: {
               github: 'cnojima',
@@ -276,8 +276,8 @@ const load = () => {
             displayLabel: 'Chris Coyne',
             followingState: 'Following' as const,
             inTeam: true,
-            isYou: false,
             isPreExistingTeamMember: false,
+            isYou: false,
             prettyName: 'Chris Coyne',
             services: {
               facebook: 'chriscoyne',
@@ -295,8 +295,8 @@ const load = () => {
             displayLabel: 'Chris Mikacle',
             followingState: 'NotFollowing' as const,
             inTeam: false,
-            isYou: false,
             isPreExistingTeamMember: false,
+            isYou: false,
             prettyName: 'Chris Mikacle',
             services: {
               github: 'chrismikacle',
@@ -313,8 +313,8 @@ const load = () => {
             displayLabel: 'Chris Nojima',
             followingState: 'Following' as const,
             inTeam: false,
-            isYou: false,
             isPreExistingTeamMember: false,
+            isYou: false,
             prettyName: 'Chris Nojima',
             services: {
               github: 'cnojima',
