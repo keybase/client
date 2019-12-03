@@ -274,11 +274,6 @@ function* inviteByEmail(_: TypedState, action: TeamsGen.InviteToTeamByEmailPaylo
   }
 }
 
-const addToTeamWaitingKeys = (teamname, username) => [
-  Constants.teamWaitingKey(teamname),
-  Constants.addMemberWaitingKey(teamname, username),
-]
-
 const addReAddErrorHandler = (username, e) => {
   // identify error
   if (e.code === RPCTypes.StatusCode.scidentifysummaryerror) {
@@ -300,7 +295,7 @@ const addToTeam = async (_: TypedState, action: TeamsGen.AddToTeamPayload) => {
           role: RPCTypes.TeamRole[role],
         })),
       },
-      Constants.addMemberWaitingKey(teamID, users.map(({assertion}) => assertion).join(',')) // DANNYTODO fix uses of this
+      Constants.addMemberWaitingKey(teamID, ...users.map(({assertion}) => assertion))
     )
     return false
   } catch (e) {
@@ -312,18 +307,14 @@ const addToTeam = async (_: TypedState, action: TeamsGen.AddToTeamPayload) => {
 }
 
 const reAddToTeam = async (state: TypedState, action: TeamsGen.ReAddToTeamPayload) => {
-  const {teamname, username} = action.payload
-  const id = state.teams.teamNameToID.get(teamname) ?? ''
-  if (!id) {
-    throw new Error(`team ID not on file for team '${teamname}'`)
-  }
+  const {teamID, username} = action.payload
   try {
     await RPCTypes.teamsTeamReAddMemberAfterResetRpcPromise(
       {
-        id,
+        id: teamID,
         username,
       },
-      addToTeamWaitingKeys(teamname, username)
+      Constants.addMemberWaitingKey(teamID, username)
     )
     return false
   } catch (e) {

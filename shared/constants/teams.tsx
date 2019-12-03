@@ -32,7 +32,8 @@ export const getChannelsWaitingKey = (teamname: Types.Teamname) => `getChannels:
 export const createChannelWaitingKey = (teamname: Types.Teamname) => `createChannel:${teamname}`
 export const settingsWaitingKey = (teamname: Types.Teamname) => `teamSettings:${teamname}`
 export const retentionWaitingKey = (teamname: Types.Teamname) => `teamRetention:${teamname}`
-export const addMemberWaitingKey = (teamID: Types.TeamID, username: string) => `teamAdd:${teamID};${username}`
+export const addMemberWaitingKey = (teamID: Types.TeamID, ...usernames: Array<string>) =>
+  `teamAdd:${teamID};${usernames.join(',')}`
 export const addInviteWaitingKey = (teamname: Types.Teamname, value: string) =>
   `teamAddInvite:${teamname};${value}`
 // also for pending invites, hence id rather than username

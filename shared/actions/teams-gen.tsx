@@ -157,7 +157,7 @@ type _LeaveTeamPayload = {
   readonly context: 'teams' | 'chat'
 }
 type _LeftTeamPayload = {readonly teamname: string; readonly context: 'teams' | 'chat'}
-type _ReAddToTeamPayload = {readonly teamname: string; readonly username: string}
+type _ReAddToTeamPayload = {readonly teamID: Types.TeamID; readonly username: string}
 type _RemoveMemberOrPendingInvitePayload = {
   readonly email: string
   readonly teamname: string

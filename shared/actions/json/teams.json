@@ -125,7 +125,7 @@
       "sendChatNotification": "boolean"
     },
     "reAddToTeam": {
-      "teamname": "string",
+      "teamID": "Types.TeamID",
       "username": "string"
     },
     "editTeamDescription": {
