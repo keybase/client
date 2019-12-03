@@ -171,6 +171,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   return {
     ...contactProps,
     disabledRoles,
+    error: teamBuildingState.error,
     recommendations: deriveRecommendation(
       teamBuildingState.userRecs,
       teamBuildingState.teamSoFar,
@@ -637,6 +638,7 @@ const mergeProps = (
     ...headerHocProps,
     ...popupProps,
     ...contactProps,
+    error: stateProps.error,
     fetchUserRecs: dispatchProps.fetchUserRecs,
     filterServices: ownProps.filterServices,
     focusInputCounter: ownProps.focusInputCounter,

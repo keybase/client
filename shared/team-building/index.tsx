@@ -89,6 +89,7 @@ type ContactProps = {
 }
 
 export type Props = ContactProps & {
+  error?: string
   filterServices?: Array<ServiceIdWithContact>
   fetchUserRecs: () => void
   focusInputCounter: number
@@ -654,6 +655,7 @@ class TeamBuilding extends React.PureComponent<Props> {
           ) : (
             teamBox
           ))}
+        {!!props.error && <Kb.Banner color="red">{props.error}</Kb.Banner>}
         {!!props.teamSoFar.length && Flags.newTeamBuildingForChatAllowMakeTeam && (
           <Kb.Text type="BodySmall">
             Add up to 14 more people. Need more?
