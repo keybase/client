@@ -2,12 +2,12 @@ import * as TeamsGen from '../actions/teams-gen'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as Constants from '../constants/teams'
-import * as I from 'immutable'
 import * as Types from '../constants/types/teams'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as Container from '../util/container'
 import {editTeambuildingDraft} from './team-building'
 import {ifTSCComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch} from '../util/switch'
+import {mapGetEnsureValue} from '../util/map'
 
 const initialState: Types.State = Constants.makeState()
 
@@ -48,73 +48,56 @@ export default (
         draftState.teamJoinSuccessTeamName = action.payload.teamname
         return
       case TeamsGen.setTeamRetentionPolicy:
-        draftState.teamNameToRetentionPolicy = draftState.teamNameToRetentionPolicy.set(
-          action.payload.teamname,
-          action.payload.retentionPolicy
-        )
+        draftState.teamNameToRetentionPolicy.set(action.payload.teamname, action.payload.retentionPolicy)
         return
-      case TeamsGen.setTeamLoadingInvites:
-        draftState.teamNameToLoadingInvites = draftState.teamNameToLoadingInvites.update(
-          action.payload.teamname,
-          (inviteToLoading = I.Map<string, boolean>()) =>
-            inviteToLoading.set(action.payload.loadingKey, action.payload.isLoading)
-        )
+      case TeamsGen.setTeamLoadingInvites: {
+        const {teamname, loadingKey, isLoading} = action.payload
+        const oldLoadingInvites = mapGetEnsureValue(draftState.teamNameToLoadingInvites, teamname, new Map())
+        oldLoadingInvites.set(loadingKey, isLoading)
+        draftState.teamNameToLoadingInvites.set(teamname, oldLoadingInvites)
         return
+      }
       case TeamsGen.setTeamDetails: {
+        const {teamname, teamID} = action.payload
         const members = Constants.rpcDetailsToMemberInfos(action.payload.members)
-        draftState.teamNameToMembers = draftState.teamNameToMembers.set(
-          action.payload.teamname,
-          Constants.rpcDetailsToMemberInfos(action.payload.members)
-        )
+        draftState.teamNameToMembers.set(teamname, Constants.rpcDetailsToMemberInfos(action.payload.members))
 
-        const details =
-          draftState.teamDetails.get(action.payload.teamID) ||
-          Constants.makeTeamDetails({teamname: action.payload.teamname})
-        details.members = new Map(
-          [...members.entries()].map(([username, memberInfo]) => [username, memberInfo.toObject()])
+        const details = mapGetEnsureValue(
+          draftState.teamDetails,
+          teamID,
+          Constants.makeTeamDetails({teamname})
         )
+        details.members = members
         details.settings = action.payload.settings
         details.invites = new Set(action.payload.invites)
-        details.subteams = new Set(action.payload.subteamIDs)
-        details.requests = new Set(action.payload.requests.get(action.payload.teamname))
-        draftState.teamDetails = new Map(
-          draftState.teamDetails.set(action.payload.teamID, Constants.makeTeamDetails(details))
-        )
+        details.subteams = action.payload.subteamIDs
+        details.requests = new Set(action.payload.requests.get(teamname))
 
         return
       }
       case TeamsGen.setMembers:
-        draftState.teamNameToMembers = draftState.teamNameToMembers.set(
-          action.payload.teamname,
-          action.payload.members
-        )
+        draftState.teamNameToMembers.set(action.payload.teamname, action.payload.members)
         return
       case TeamsGen.setTeamCanPerform: {
         draftState.canPerform.set(action.payload.teamID, action.payload.teamOperation)
         return
       }
       case TeamsGen.setTeamPublicitySettings:
-        draftState.teamNameToPublicitySettings = draftState.teamNameToPublicitySettings.set(
-          action.payload.teamname,
-          action.payload.publicity
-        )
+        draftState.teamNameToPublicitySettings.set(action.payload.teamname, action.payload.publicity)
         return
       case TeamsGen.setTeamChannelInfo: {
-        const {conversationIDKey, channelInfo} = action.payload
-        draftState.teamNameToChannelInfos = draftState.teamNameToChannelInfos.update(
-          action.payload.teamname,
-          channelInfos =>
-            channelInfos
-              ? channelInfos.set(conversationIDKey, channelInfo)
-              : I.Map([[conversationIDKey, channelInfo]])
+        const {conversationIDKey, channelInfo, teamname} = action.payload
+        draftState.teamNameToChannelInfos.set(
+          teamname,
+          mapGetEnsureValue(draftState.teamNameToChannelInfos, teamname, new Map()).set(
+            conversationIDKey,
+            channelInfo
+          )
         )
         return
       }
       case TeamsGen.setTeamChannels:
-        draftState.teamNameToChannelInfos = draftState.teamNameToChannelInfos.set(
-          action.payload.teamname,
-          action.payload.channelInfos
-        )
+        draftState.teamNameToChannelInfos.set(action.payload.teamname, action.payload.channelInfos)
         return
       case TeamsGen.setEmailInviteError:
         if (!action.payload.malformed.length && !action.payload.message) {
@@ -173,42 +156,58 @@ export default (
       case TeamsGen.setTeamsWithChosenChannels:
         draftState.teamsWithChosenChannels = action.payload.teamsWithChosenChannels
         return
-      case TeamsGen.setUpdatedChannelName:
-        draftState.teamNameToChannelInfos = draftState.teamNameToChannelInfos.update(
-          action.payload.teamname,
-          map =>
-            map.update(action.payload.conversationIDKey, (channelInfo = Constants.makeChannelInfo()) =>
-              channelInfo.merge({channelname: action.payload.newChannelName})
-            )
+      case TeamsGen.setUpdatedChannelName: {
+        const {teamname, conversationIDKey, newChannelName} = action.payload
+        const oldChannelInfos = mapGetEnsureValue(draftState.teamNameToChannelInfos, teamname, new Map())
+        const oldChannelInfo = mapGetEnsureValue(
+          oldChannelInfos,
+          conversationIDKey,
+          Constants.initialChannelInfo
         )
+        oldChannelInfo.channelname = newChannelName
         return
-      case TeamsGen.setUpdatedTopic:
-        draftState.teamNameToChannelInfos = draftState.teamNameToChannelInfos.update(
-          action.payload.teamname,
-          map =>
-            map.update(action.payload.conversationIDKey, (channelInfo = Constants.makeChannelInfo()) =>
-              channelInfo.merge({description: action.payload.newTopic})
-            )
+      }
+      case TeamsGen.setUpdatedTopic: {
+        const {teamname, conversationIDKey, newTopic} = action.payload
+        const oldChannelInfos = mapGetEnsureValue(draftState.teamNameToChannelInfos, teamname, new Map())
+        const oldChannelInfo = mapGetEnsureValue(
+          oldChannelInfos,
+          conversationIDKey,
+          Constants.initialChannelInfo
         )
+        oldChannelInfo.description = newTopic
         return
-      case TeamsGen.deleteChannelInfo:
-        draftState.teamNameToChannelInfos = draftState.teamNameToChannelInfos.deleteIn([
-          action.payload.teamname,
-          action.payload.conversationIDKey,
-        ])
+      }
+      case TeamsGen.deleteChannelInfo: {
+        const {teamname, conversationIDKey} = action.payload
+        const oldChannelInfos = draftState.teamNameToChannelInfos.get(teamname)
+        if (oldChannelInfos) {
+          oldChannelInfos.delete(conversationIDKey)
+        }
         return
-      case TeamsGen.addParticipant:
-        draftState.teamNameToChannelInfos = draftState.teamNameToChannelInfos.updateIn(
-          [action.payload.teamname, action.payload.conversationIDKey, 'memberStatus'],
-          () => RPCChatTypes.ConversationMemberStatus.active
+      }
+      case TeamsGen.addParticipant: {
+        const {teamname, conversationIDKey} = action.payload
+        const oldChannelInfos = mapGetEnsureValue(draftState.teamNameToChannelInfos, teamname, new Map())
+        const oldChannelInfo = mapGetEnsureValue(
+          oldChannelInfos,
+          conversationIDKey,
+          Constants.initialChannelInfo
         )
+        oldChannelInfo.memberStatus = RPCChatTypes.ConversationMemberStatus.active
         return
-      case TeamsGen.removeParticipant:
-        draftState.teamNameToChannelInfos = draftState.teamNameToChannelInfos.updateIn(
-          [action.payload.teamname, action.payload.conversationIDKey, 'memberStatus'],
-          () => RPCChatTypes.ConversationMemberStatus.left
+      }
+      case TeamsGen.removeParticipant: {
+        const {teamname, conversationIDKey} = action.payload
+        const oldChannelInfos = mapGetEnsureValue(draftState.teamNameToChannelInfos, teamname, new Map())
+        const oldChannelInfo = mapGetEnsureValue(
+          oldChannelInfos,
+          conversationIDKey,
+          Constants.initialChannelInfo
         )
+        oldChannelInfo.memberStatus = RPCChatTypes.ConversationMemberStatus.left
         return
+      }
       case TeamsGen.setTeamRoleMapLatestKnownVersion: {
         draftState.teamRoleMap.latestKnownVersion = action.payload.version
         return

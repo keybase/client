@@ -188,12 +188,12 @@ type _SetAddUserToTeamsResultsPayload = {readonly error: boolean; readonly resul
 type _SetChannelCreationErrorPayload = {readonly error: string}
 type _SetEmailInviteErrorPayload = {readonly message: string; readonly malformed: Array<string>}
 type _SetMemberPublicityPayload = {readonly teamname: string; readonly showcase: boolean}
-type _SetMembersPayload = {readonly teamname: string; readonly members: I.Map<string, Types.MemberInfo>}
+type _SetMembersPayload = {readonly teamname: string; readonly members: Map<string, Types.MemberInfo>}
 type _SetNewTeamInfoPayload = {
   readonly deletedTeams: Array<RPCTypes.DeletedTeamInfo>
   readonly newTeams: Set<Types.TeamID>
   readonly newTeamRequests: Array<Types.TeamID>
-  readonly teamNameToResetUsers: I.Map<Types.Teamname, I.Set<Types.ResetUser>>
+  readonly teamNameToResetUsers: Map<Types.Teamname, Set<Types.ResetUser>>
 }
 type _SetPublicityPayload = {readonly teamname: string; readonly settings: Types.PublicitySettings}
 type _SetTeamAccessRequestsPendingPayload = {readonly accessRequestsPending: Set<Types.Teamname>}
@@ -209,7 +209,7 @@ type _SetTeamChannelInfoPayload = {
 }
 type _SetTeamChannelsPayload = {
   readonly teamname: string
-  readonly channelInfos: I.Map<ChatTypes.ConversationIDKey, Types.ChannelInfo>
+  readonly channelInfos: Map<ChatTypes.ConversationIDKey, Types.ChannelInfo>
 }
 type _SetTeamCreationErrorPayload = {readonly error: string}
 type _SetTeamDetailsPayload = {
@@ -224,7 +224,7 @@ type _SetTeamDetailsPayload = {
 }
 type _SetTeamInfoPayload = {
   readonly teamnames: Set<Types.Teamname>
-  readonly teamNameToID: I.Map<Types.Teamname, string>
+  readonly teamNameToID: Map<Types.Teamname, string>
   readonly teamDetails: Map<Types.TeamID, Types.TeamDetails>
 }
 type _SetTeamInviteErrorPayload = {readonly error: string}

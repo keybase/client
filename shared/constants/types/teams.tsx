@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as RPCTypes from './rpc-gen'
 import {ConversationIDKey} from './chat2'
 import {RetentionPolicy} from './retention-policy'
@@ -42,7 +41,7 @@ export type TeamSettings = {} & RPCTypes.TeamSettings
 
 export type ChannelMembershipState = {[K in ConversationIDKey]: boolean}
 
-export type _ChannelInfo = {
+export type ChannelInfo = {
   channelname: string
   description: string
   hasAllMembers?: boolean | null
@@ -50,16 +49,14 @@ export type _ChannelInfo = {
   mtime: number
   numParticipants: number
 }
-export type ChannelInfo = I.RecordOf<_ChannelInfo>
 
 export type MemberStatus = 'active' | 'deleted' | 'reset'
-export type _MemberInfo = {
+export type MemberInfo = {
   fullName: string
   status: MemberStatus
   type: TeamRoleType
   username: string
 }
-export type MemberInfo = I.RecordOf<_MemberInfo>
 
 export type InviteInfo = {
   email: string
@@ -72,28 +69,16 @@ export type InviteInfo = {
 
 export type TabKey = 'members' | 'invites' | 'subteams' | 'settings'
 
-export type _SubteamInfo = {
-  key: string
-  members: number
-  onCreateSubteam: ((e: React.SyntheticEvent) => void) | null
-  onHideSubteamsBanner: () => void
-  onReadMore: () => void
-  teamname: string
-  type: 'addSubteam' | 'intro' | 'noSubteams' | 'subteam'
-}
-export type SubteamInfo = I.RecordOf<_SubteamInfo>
-
 export type TypeMap = {[K in TeamRoleType]: string}
 
 export type BoolTypeMap = {[K in TeamRoleType]: boolean}
 
 export type ResetUserBadgeID = Buffer
 export type ResetUserBadgeIDKey = string
-export type _ResetUser = {
+export type ResetUser = {
   username: string
   badgeIDKey: ResetUserBadgeIDKey
 }
-export type ResetUser = I.RecordOf<_ResetUser>
 
 export type EmailInviteError = {
   malformed: Set<string>
@@ -112,7 +97,7 @@ export type TeamDetails = {
   showcasing: boolean
   teamname: string
 
-  members?: Map<string, _MemberInfo>
+  members?: Map<string, MemberInfo>
   settings?: TeamSettings
   invites?: Set<InviteInfo>
   subteams?: Set<TeamID>
@@ -149,13 +134,13 @@ export type State = Readonly<{
   teamDetails: Map<TeamID, TeamDetails>
   teamDetailsMetaStale: boolean // if we've received an update since we last loaded team list
   teamDetailsMetaSubscribeCount: number // if >0 we are eagerly reloading team list
-  teamNameToChannelInfos: I.Map<Teamname, I.Map<ConversationIDKey, ChannelInfo>>
-  teamNameToID: I.Map<Teamname, string>
-  teamNameToLoadingInvites: I.Map<Teamname, I.Map<string, boolean>>
-  teamNameToMembers: I.Map<Teamname, I.Map<string, MemberInfo>> // TODO remove
-  teamNameToResetUsers: I.Map<Teamname, I.Set<ResetUser>>
-  teamNameToRetentionPolicy: I.Map<Teamname, RetentionPolicy>
-  teamNameToPublicitySettings: I.Map<Teamname, _PublicitySettings>
+  teamNameToChannelInfos: Map<Teamname, Map<ConversationIDKey, ChannelInfo>>
+  teamNameToID: Map<Teamname, string>
+  teamNameToLoadingInvites: Map<Teamname, Map<string, boolean>>
+  teamNameToMembers: Map<Teamname, Map<string, MemberInfo>> // TODO remove
+  teamNameToResetUsers: Map<Teamname, Set<ResetUser>>
+  teamNameToRetentionPolicy: Map<Teamname, RetentionPolicy>
+  teamNameToPublicitySettings: Map<Teamname, _PublicitySettings>
   teamnames: Set<Teamname> // TODO remove
   teamProfileAddList: Array<TeamProfileAddList>
   teamRoleMap: TeamRoleMap

@@ -38,7 +38,7 @@ export const serialize = {
 const initialState = {
   assertions: new Map(),
   config: {following: new Set()},
-  teams: {teamNameToID: I.Map()},
+  teams: {teamNameToID: new Map()},
   users: {infoMap: I.Map()},
   waiting: {counts: new Map()},
 }

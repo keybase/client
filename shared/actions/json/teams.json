@@ -65,7 +65,7 @@
     },
     "setMembers": {
       "teamname": "string",
-      "members": "I.Map<string, Types.MemberInfo>"
+      "members": "Map<string, Types.MemberInfo>"
     },
     "getTeamProfileAddList": {
       "username": "string"
@@ -219,11 +219,11 @@
     },
     "setTeamChannels": {
       "teamname": "string",
-      "channelInfos": "I.Map<ChatTypes.ConversationIDKey, Types.ChannelInfo>"
+      "channelInfos": "Map<ChatTypes.ConversationIDKey, Types.ChannelInfo>"
     },
     "setTeamInfo": {
       "teamnames": "Set<Types.Teamname>",
-      "teamNameToID": "I.Map<Types.Teamname, string>",
+      "teamNameToID": "Map<Types.Teamname, string>",
       "teamDetails": "Map<Types.TeamID, Types.TeamDetails>"
     },
     "setTeamProfileAddList": {
@@ -236,7 +236,7 @@
       "deletedTeams": "Array<RPCTypes.DeletedTeamInfo>",
       "newTeams": "Set<Types.TeamID>",
       "newTeamRequests": "Array<Types.TeamID>",
-      "teamNameToResetUsers": "I.Map<Types.Teamname, I.Set<Types.ResetUser>>"
+      "teamNameToResetUsers": "Map<Types.Teamname, Set<Types.ResetUser>>"
     },
     "setTeamSawChatBanner": {},
     "setTeamSawSubteamsBanner": {},
