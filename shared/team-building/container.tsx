@@ -88,6 +88,7 @@ const expensiveDeriveResults = (
       followingState: Constants.followStateHelperWithId(myUsername, followingState, info.serviceMap.keybase),
       inTeam: [...teamSoFar].some(u => u.id === info.id),
       isPreExistingTeamMember: preExistingTeamMembers.has(info.id),
+      isYou: info.username === myUsername,
       key: [info.id, info.prettyName, info.label, String(!!info.contact)].join('&'),
       prettyName: formatAnyPhoneNumbers(info.prettyName),
       services: info.serviceMap,
