@@ -96,7 +96,11 @@ const BlockButtons = (props: Props) => {
         <Kb.Text type="BodySmall">
           {team ? `${adder} added you to this team.` : `You don't seem to know ${adder}.`}
         </Kb.Text>
-        <Kb.Icon style={styles.dismissIcon} type="iconfont-close" onClick={() => dispatch(Chat2Gen.createDismissBlockButtons({teamID}))} />
+        <Kb.Icon
+          style={styles.dismissIcon}
+          type="iconfont-close"
+          onClick={() => dispatch(Chat2Gen.createDismissBlockButtons({teamID}))}
+        />
       </Kb.Box2>
       <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.buttonContainer}>
         {buttonRow}
@@ -130,7 +134,7 @@ const styles = Styles.styleSheetCreate(
       container: {
         alignItems: 'center',
         alignSelf: 'flex-start',
-        marginLeft: Styles.globalMargins.small + 1,
+        marginLeft: 57,
       },
       dismissContainer: {
         backgroundColor: Styles.globalColors.blueGrey,
