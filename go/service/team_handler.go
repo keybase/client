@@ -310,7 +310,7 @@ func (r *teamHandler) openTeamSweepResetUsersRequest(ctx context.Context, cli gr
 func (r *teamHandler) memberShowcaseChange(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
 	r.G().Log.CDebugf(ctx, "teamHandler: team.member_showchase_change received")
 
-	if err := teams.HandleTeamMemberShowcaseChange(ctx, r.G(), msg); err != nil {
+	if err := teams.HandleTeamMemberShowcaseChange(ctx, r.G()); err != nil {
 		return err
 	}
 
