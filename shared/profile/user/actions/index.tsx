@@ -32,7 +32,6 @@ type Props = {
 
 type DropdownProps = Pick<
   Props,
-  | 'hidFromFollowers'
   | 'onAddToTeam'
   | 'onOpenPrivateFolder'
   | 'onBrowsePublicFolder'
@@ -63,7 +62,7 @@ const Actions = (p: Props) => {
 
   const dropdown = (
     <DropdownButton
-      blockedOrHidFromFollowers={p.blocked | p.hidFromFollowers}
+      blockedOrHidFromFollowers={p.blocked || p.hidFromFollowers}
       key="dropdown"
       onAddToTeam={p.onAddToTeam}
       onOpenPrivateFolder={p.onOpenPrivateFolder}
