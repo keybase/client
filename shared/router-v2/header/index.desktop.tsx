@@ -208,16 +208,14 @@ class Header extends React.PureComponent<Props> {
               </Kb.Box>
             )}
             <Kb.Box2 direction="horizontal" style={styles.topRightContainer}>
-              {flags.kbfsOfflineMode && (
-                <SyncingFolders
-                  negative={
-                    this.props.style &&
-                    this.props.style.backgroundColor &&
-                    this.props.style.backgroundColor !== Styles.globalColors.transparent &&
-                    this.props.style.backgroundColor !== Styles.globalColors.white
-                  }
-                />
-              )}
+              <SyncingFolders
+                negative={
+                  this.props.style &&
+                  this.props.style.backgroundColor &&
+                  this.props.style.backgroundColor !== Styles.globalColors.transparent &&
+                  this.props.style.backgroundColor !== Styles.globalColors.white
+                }
+              />
               {this.props.loggedIn && (
                 <WhatsNewIconWithPopup
                   color={opt.whatsNewIconColor}

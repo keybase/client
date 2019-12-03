@@ -508,7 +508,12 @@ protocol SimpleFS {
   }
   FolderWithFavFlags simpleFSGetFolder(KBFSPath path);
 
-  boolean simpleFSAreWeConnectedToMDServer();
+  enum KbfsOnlineStatus {
+    OFFLINE_0,
+    TRYING_1,
+    ONLINE_2
+  }
+  KbfsOnlineStatus simpleFSGetOnlineStatus();
 
   // This is called when GUI learns about a OS level network status change, and
   // causes mdserver_remote to check reachability with a Dial. Then it either

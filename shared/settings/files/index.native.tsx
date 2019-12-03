@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import flags from '../../util/feature-flags'
 import {Props} from '.'
 
 export const allowedNotificationThresholds = [100 * 1024 ** 2, 1024 ** 3, 3 * 1024 ** 3, 10 * 1024 ** 3]
@@ -67,26 +66,24 @@ const SyncNotificationSetting = (props: Props) => (
 const Files = (props: Props) => (
   <>
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
-      {flags.kbfsOfflineMode && (
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.syncContent}>
-          <Kb.Box>
-            <Kb.Box2 direction="horizontal" gap="tiny" style={styles.contentHeader}>
-              <Kb.Text type="BodySmallSemibold">Sync</Kb.Text>
-            </Kb.Box2>
-            <Kb.Checkbox
-              onCheck={
-                props.spaceAvailableNotificationThreshold === 0
-                  ? props.onEnableSyncNotifications
-                  : props.onDisableSyncNotifications
-              }
-              labelComponent={<SyncNotificationSetting {...props} />}
-              checked={props.spaceAvailableNotificationThreshold !== 0}
-              disabled={props.areSettingsLoading}
-              style={styles.syncNotificationCheckbox}
-            />
-          </Kb.Box>
-        </Kb.Box2>
-      )}
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.syncContent}>
+        <Kb.Box>
+          <Kb.Box2 direction="horizontal" gap="tiny" style={styles.contentHeader}>
+            <Kb.Text type="BodySmallSemibold">Sync</Kb.Text>
+          </Kb.Box2>
+          <Kb.Checkbox
+            onCheck={
+              props.spaceAvailableNotificationThreshold === 0
+                ? props.onEnableSyncNotifications
+                : props.onDisableSyncNotifications
+            }
+            labelComponent={<SyncNotificationSetting {...props} />}
+            checked={props.spaceAvailableNotificationThreshold !== 0}
+            disabled={props.areSettingsLoading}
+            style={styles.syncNotificationCheckbox}
+          />
+        </Kb.Box>
+      </Kb.Box2>
     </Kb.Box2>
   </>
 )
