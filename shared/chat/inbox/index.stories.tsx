@@ -102,7 +102,7 @@ const commonBigFilter = {
   isTeam: true,
 }
 
-const mapPropProviderProps = {
+const mapPropProviderProps: any = {
   // Small Teams
   smallTeamA: {
     ...commonSmallTeam,
@@ -337,9 +337,9 @@ const mapPropProviderProps = {
  * Called from the row component's PropProvider
  * Uses either conversationIDKey or teamname as a key in mapPropProviderProps
  */
-const getPropProviderProps = (own: any) => {
+const getPropProviderProps = (own: any): any => {
   if (own.conversationIDKey && own.conversationIDKey !== 'EMPTY') {
-    const props = mapPropProviderProps[own.conversationIDKey]
+    const props: any = mapPropProviderProps[own.conversationIDKey]
     return {
       ...props,
       conversationIDKey: own.conversationIDKey,
