@@ -433,6 +433,13 @@
             "items": "string"
           },
           "name": "blocked"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "unblocked"
         }
       ]
     },

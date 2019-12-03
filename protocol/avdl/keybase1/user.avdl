@@ -232,6 +232,7 @@ protocol user {
   record UserBlockedSummary {
     string blocker;
     array<string> blocked;
+    array<string> unblocked;
   }
 
   // User Blocking

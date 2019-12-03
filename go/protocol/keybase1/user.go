@@ -451,8 +451,9 @@ func (o UserBlockedBody) DeepCopy() UserBlockedBody {
 }
 
 type UserBlockedSummary struct {
-	Blocker string   `codec:"blocker" json:"blocker"`
-	Blocked []string `codec:"blocked" json:"blocked"`
+	Blocker   string   `codec:"blocker" json:"blocker"`
+	Blocked   []string `codec:"blocked" json:"blocked"`
+	Unblocked []string `codec:"unblocked" json:"unblocked"`
 }
 
 func (o UserBlockedSummary) DeepCopy() UserBlockedSummary {
@@ -469,6 +470,17 @@ func (o UserBlockedSummary) DeepCopy() UserBlockedSummary {
 			}
 			return ret
 		})(o.Blocked),
+		Unblocked: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Unblocked),
 	}
 }
 

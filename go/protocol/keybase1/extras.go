@@ -3502,6 +3502,9 @@ func (b UserBlockedBody) Summarize() UserBlockedSummary {
 		if (block.Chat != nil && *block.Chat) || (block.Follow != nil && *block.Follow) {
 			ret.Blocked = append(ret.Blocked, block.Username)
 		}
+		if (block.Chat != nil && !*block.Chat) || (block.Follow != nil && !*block.Follow) {
+			ret.Unblocked = append(ret.Unblocked, block.Username)
+		}
 	}
 	return ret
 }
