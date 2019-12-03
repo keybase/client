@@ -103,7 +103,7 @@ const BlockButtons = (props: Props) => {
       </Kb.Box2>
     </Kb.Box2>
   ) : (
-    <Kb.Box2 direction="horizontal" gap="tiny" gapEnd={true} style={styles.container} centerChildren={false}>
+    <Kb.Box2 direction="horizontal" gap="xsmall" style={styles.container} centerChildren={false}>
       <Kb.Text type="BodySmall">
         {team ? `${adder} added you to this team.` : `You don't seem to know ${adder}.`}
       </Kb.Text>
@@ -119,11 +119,11 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       button: Styles.platformStyles({
-        common: {
-          ...Styles.padding(0, Styles.globalMargins.small),
-        },
         isElectron: {
           width: '',
+        },
+        isMobile: {
+          ...Styles.padding(0, Styles.globalMargins.small),
         },
       }),
       container: Styles.platformStyles({
