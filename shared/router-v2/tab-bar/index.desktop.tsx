@@ -146,6 +146,7 @@ class TabBar extends React.PureComponent<Props, State> {
           </Kb.Box2>
           {tabs.map((t, i) => (
             <Tab
+              key={t}
               tab={t}
               index={i}
               selectedTab={p.selectedTab}
