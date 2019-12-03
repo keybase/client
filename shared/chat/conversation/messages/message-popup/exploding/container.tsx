@@ -44,6 +44,7 @@ export default Container.connect(
       _canExplodeNow,
       _canReplyPrivately,
       _mapUnfurl,
+      _participants: meta.participants,
       _teamname: meta.teamname,
       author: ownProps.message.author,
       deviceName: ownProps.message.deviceName,
@@ -155,6 +156,7 @@ export default Container.connect(
     },
   }),
   (stateProps, dispatchProps, ownProps) => {
+    const authorInConv = stateProps._participants.includes(ownProps.message.author)
     const items: MenuItems = []
     if (stateProps._canExplodeNow) {
       items.push({
@@ -163,7 +165,7 @@ export default Container.connect(
         title: 'Explode now',
       })
     }
-    if (stateProps._canDeleteHistory && stateProps._teamname && !stateProps.yourMessage) {
+    if (stateProps._canDeleteHistory && stateProps._teamname && !stateProps.yourMessage && authorInConv) {
       items.push({
         danger: true,
         onClick: () => dispatchProps._onKick(stateProps._teamname, stateProps.author),

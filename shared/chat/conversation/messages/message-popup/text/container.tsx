@@ -31,7 +31,6 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   if (_canPinMessage && meta.teamname) {
     _canPinMessage = yourOperations && yourOperations.pinMessage
   }
-  const _participantsCount = meta.participants.length
   // you can reply privately *if* text message, someone else's message, and not in a 1-on-1 chat
   const _canReplyPrivately =
     message.type === 'text' && (['small', 'big'].includes(meta.teamType) || _participantsCount > 2)
@@ -42,7 +41,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     _canReplyPrivately,
     _isDeleteable: message.isDeleteable,
     _isEditable: message.isEditable,
-    _participantsCount,
+    _participants: meta.participants,
     _teamname: meta.teamname,
     _you: state.config.username,
   }
@@ -129,6 +128,7 @@ export default Container.namedConnect(
     const isEditable = !!(stateProps._isEditable && yourMessage)
     const canReplyPrivately = stateProps._canReplyPrivately
     const mapUnfurl = Constants.getMapUnfurl(message)
+    const authorInConv = stateProps._participants.includes(message.author)
     const isLocation = !!mapUnfurl
     // don't pass onViewMap if we don't have a coordinate (e.g. when a location share ends)
     const onViewMap =
@@ -144,7 +144,7 @@ export default Container.namedConnect(
       deviceType: message.deviceType,
       isDeleteable,
       isEditable,
-      isKickable: isDeleteable && !!stateProps._teamname && !yourMessage,
+      isKickable: isDeleteable && !!stateProps._teamname && !yourMessage && authorInConv,
       isLocation,
       onAddReaction: Container.isMobile ? () => dispatchProps._onAddReaction(message) : undefined,
       onCopy: message.type === 'text' ? () => dispatchProps._onCopy(message) : undefined,

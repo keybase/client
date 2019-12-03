@@ -35,6 +35,7 @@ export default Container.connect(
       _canAdminDelete,
       _canDeleteHistory,
       _canPinMessage,
+      _participants: meta.participants,
       _teamname: meta.teamname,
       _you: state.config.username,
       pending: !!message.transferState,
@@ -126,6 +127,7 @@ export default Container.connect(
     const message = ownProps.message
     const yourMessage = message.author === stateProps._you
     const isDeleteable = yourMessage || stateProps._canAdminDelete
+    const authorInConv = stateProps._participants.includes(message.author)
     return {
       attachTo: ownProps.attachTo,
       author: message.author,
@@ -133,7 +135,7 @@ export default Container.connect(
       deviceRevokedAt: message.deviceRevokedAt || undefined,
       deviceType: message.deviceType,
       isDeleteable,
-      isKickable: isDeleteable && !!stateProps._teamname && !yourMessage,
+      isKickable: isDeleteable && !!stateProps._teamname && !yourMessage && authorInConv,
       onAddReaction: isMobile ? () => dispatchProps._onAddReaction(message) : undefined,
       onAllMedia: () => dispatchProps._onAllMedia(message.conversationIDKey),
       onDelete: isDeleteable ? () => dispatchProps._onDelete(message) : undefined,
