@@ -706,7 +706,7 @@ export enum JourneycardType {
   addPeople = 2,
   createChannels = 3,
   msgAttention = 4,
-  userAwayForLong = 5,
+  unused = 5,
   channelInactive = 6,
   msgNoAnswer = 7,
 }
