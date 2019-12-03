@@ -360,6 +360,7 @@ func (f *Folder) tlfHandleChangeInvalidate(ctx context.Context,
 		return oldName, f.hPreferredName
 	}()
 
+	f.fs.log.CDebugf(ctx, "Invalidating %s -> %s", oldName, newName)
 	if oldName != newName {
 		f.list.updateTlfName(ctx, string(oldName), string(newName))
 	}

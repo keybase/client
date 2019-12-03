@@ -313,6 +313,7 @@ func (fl *FolderList) updateTlfName(ctx context.Context, oldName string,
 		return true
 	}()
 	if !ok {
+		fl.fs.log.CDebugf(ctx, "No folder found for oldName=%s", oldName)
 		return
 	}
 
@@ -344,6 +345,7 @@ func (fl *FolderList) userChanged(ctx context.Context, _, newUser kbname.Normali
 	if newUser != kbname.NormalizedUsername("") {
 		fl.fs.config.KBFSOps().ForceFastForward(ctx)
 	}
+	fl.fs.fuse.InvalidateNodeData(fl)
 }
 
 func (fl *FolderList) openFileCount() (ret int64) {
