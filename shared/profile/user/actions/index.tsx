@@ -32,13 +32,17 @@ type Props = {
 
 type DropdownProps = Pick<
   Props,
+  | 'hidFromFollowers'
   | 'onAddToTeam'
   | 'onOpenPrivateFolder'
   | 'onBrowsePublicFolder'
   | 'onSendLumens'
   | 'onRequestLumens'
   | 'onManageBlocking'
-> & {onUnfollow?: () => void}
+> & {
+  blockedOrHidFromFollowers: boolean
+  onUnfollow?: () => void
+}
 
 const Actions = (p: Props) => {
   if (p.blocked) {
@@ -59,6 +63,7 @@ const Actions = (p: Props) => {
 
   const dropdown = (
     <DropdownButton
+      blockedOrHidFromFollowers={p.blocked | p.hidFromFollowers}
       key="dropdown"
       onAddToTeam={p.onAddToTeam}
       onOpenPrivateFolder={p.onOpenPrivateFolder}
@@ -154,7 +159,11 @@ const DropdownButton = Kb.OverlayParentHOC((p: Kb.PropsWithOverlay<DropdownProps
     {onClick: p.onOpenPrivateFolder, title: 'Open private folder'},
     {onClick: p.onBrowsePublicFolder, title: 'Browse public folder'},
     p.onUnfollow && {onClick: p.onUnfollow && p.onUnfollow, title: 'Unfollow'},
-    flags.userBlocking && {danger: true, onClick: p.onManageBlocking, title: 'Manage blocking'},
+    flags.userBlocking && {
+      danger: true,
+      onClick: p.onManageBlocking,
+      title: p.blockedOrHidFromFollowers ? 'Manage blocking' : 'Block',
+    },
   ].reduce<Kb.MenuItems>((arr, i) => {
     i && arr.push(i)
     return arr
