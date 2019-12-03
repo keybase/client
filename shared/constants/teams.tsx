@@ -329,11 +329,13 @@ export const isLastOwner = (state: TypedState, teamname: Types.Teamname): boolea
 
 export const getDisabledReasonsForRolePicker = (
   state: TypedState,
-  teamname: Types.Teamname,
+  teamID: Types.TeamID,
   memberToModify: string | null
 ): Types.DisabledReasonsForRolePicker => {
-  const canManageMembers = getCanPerform(state, teamname).manageMembers
-  const members = getTeamMembers(state, teamname)
+  const canManageMembers = getCanPerformByID(state, teamID).manageMembers
+  const teamDetails = getTeamDetails(state, teamID)
+  const members = teamDetails.members || new Map()
+  const teamname = teamDetails.teamname
   const member = memberToModify ? members.get(memberToModify) : null
   const theyAreOwner = member ? member.type === 'owner' : false
   const you = members.get(state.config.username)
@@ -441,9 +443,6 @@ export const getTeamType = (state: TypedState, teamname: Types.Teamname): 'big' 
  */
 export const isBigTeam = (state: TypedState, teamname: Types.Teamname): boolean =>
   getTeamType(state, teamname) === 'big'
-
-export const getTeamMembers = (state: TypedState, teamname: Types.Teamname): Map<string, Types.MemberInfo> =>
-  state.teams.teamNameToMembers.get(teamname) || new Map()
 
 export const initialPublicitySettings = Object.freeze<Types._PublicitySettings>({
   anyMemberShowcase: false,

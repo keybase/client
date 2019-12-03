@@ -20,7 +20,7 @@ const mapStateToProps = (state, {username, teamID}) => {
       Constants.getTeamType(state, teamname) === 'big'
         ? `Announce them in #general`
         : `Announce them in team chat`,
-    disabledReasonsForRolePicker: Constants.getDisabledReasonsForRolePicker(state, teamname, username),
+    disabledReasonsForRolePicker: Constants.getDisabledReasonsForRolePicker(state, teamID, username),
     teamname,
   }
 }

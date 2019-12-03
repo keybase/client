@@ -157,8 +157,8 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
 
   const maybeTeamDetails = ownProps.teamID ? getTeamDetails(state, ownProps.teamID) : undefined
   const preExistingTeamMembers: TeamTypes.TeamDetails['members'] = maybeTeamDetails?.members || new Map()
-  const disabledRoles = maybeTeamDetails
-    ? getDisabledReasonsForRolePicker(state, maybeTeamDetails.teamname, null)
+  const disabledRoles = ownProps.teamID
+    ? getDisabledReasonsForRolePicker(state, ownProps.teamID, null)
     : emptyObj
 
   const contactProps = {
