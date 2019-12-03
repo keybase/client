@@ -414,9 +414,14 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
     draftState.kbfsDaemonStatus.rpcStatus = action.payload.rpcStatus
   },
   [FsGen.kbfsDaemonOnlineStatusChanged]: (draftState, action) => {
-    draftState.kbfsDaemonStatus.onlineStatus = action.payload.online
-      ? Types.KbfsDaemonOnlineStatus.Online
-      : Types.KbfsDaemonOnlineStatus.Offline
+    draftState.kbfsDaemonStatus.onlineStatus =
+      action.payload.onlineStatus === RPCTypes.KbfsOnlineStatus.offline
+        ? Types.KbfsDaemonOnlineStatus.Offline
+        : action.payload.onlineStatus === RPCTypes.KbfsOnlineStatus.trying
+        ? Types.KbfsDaemonOnlineStatus.Trying
+        : action.payload.onlineStatus === RPCTypes.KbfsOnlineStatus.online
+        ? Types.KbfsDaemonOnlineStatus.Online
+        : Types.KbfsDaemonOnlineStatus.Unknown
   },
   [FsGen.overallSyncStatusChanged]: (draftState, action) => {
     draftState.overallSyncStatus.syncingFoldersProgress = action.payload.progress

@@ -9,7 +9,7 @@ import Browser from './browser/container'
 import {NormalPreview} from './filepreview'
 import * as Kbfs from './common'
 import * as SimpleScreens from './simple-screens'
-import {Actions, MainBanner, MobileHeader, mobileHeaderHeight, Title} from './nav-header'
+import {Actions, MainBanner, MobileHeader, useMobileHeaderHeight, Title} from './nav-header'
 
 type ChooseComponentProps = {
   emitBarePreview: () => void
@@ -73,20 +73,15 @@ const ChooseComponent = (props: ChooseComponentProps) => {
 ChooseComponent.navigationOptions = (ownProps: OwnProps) => {
   const path = Container.getRouteProps(ownProps, 'path', Constants.defaultPath)
   return Container.isMobile
-    ? path === Constants.defaultPath
-      ? {
-          header: undefined,
-          title: 'Files',
-        }
-      : {
-          header: (
-            <MobileHeader
-              path={path}
-              onBack={ownProps.navigation.isFirstRouteInParent() ? undefined : ownProps.navigation.pop}
-            />
-          ),
-          headerHeight: mobileHeaderHeight(path),
-        }
+    ? {
+        header: (
+          <MobileHeader
+            path={path}
+            onBack={ownProps.navigation.isFirstRouteInParent() ? undefined : ownProps.navigation.pop}
+          />
+        ),
+        useHeaderHeight: () => useMobileHeaderHeight(path),
+      }
     : {
         header: undefined,
         headerRightActions: () => <Actions path={path} onTriggerFilterMobile={() => {}} />,

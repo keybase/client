@@ -150,7 +150,7 @@ type _JournalUpdatePayload = {
   readonly totalSyncingBytes: number
   readonly endEstimate?: number | null
 }
-type _KbfsDaemonOnlineStatusChangedPayload = {readonly online: boolean}
+type _KbfsDaemonOnlineStatusChangedPayload = {readonly onlineStatus: RPCTypes.KbfsOnlineStatus}
 type _KbfsDaemonRpcStatusChangedPayload = {readonly rpcStatus: Types.KbfsDaemonRpcStatus}
 type _LetResetUserBackInPayload = {readonly id: RPCTypes.TeamID; readonly username: string}
 type _LoadAdditionalTlfPayload = {readonly tlfPath: Types.Path}

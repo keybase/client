@@ -4,7 +4,6 @@ import * as Constants from '../../../constants/fs'
 import {namedConnect} from '../../../util/container'
 import OpenHOC from '../../common/open-hoc'
 import Tlf from './tlf'
-import flags from '../../../util/feature-flags'
 
 export type OwnProps = {
   destinationPickerIndex?: number
@@ -25,9 +24,7 @@ const mergeProps = (stateProps, _, {tlfType, name, mixedMode, destinationPickerI
     destinationPickerIndex,
     isIgnored: stateProps._tlf.isIgnored,
     loadPathMetadata:
-      flags.kbfsOfflineMode &&
-      stateProps._tlf.syncConfig &&
-      stateProps._tlf.syncConfig.mode !== Types.TlfSyncMode.Disabled,
+      stateProps._tlf.syncConfig && stateProps._tlf.syncConfig.mode !== Types.TlfSyncMode.Disabled,
     mixedMode,
     name,
     path,

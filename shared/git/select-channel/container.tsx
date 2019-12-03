@@ -45,10 +45,7 @@ export default Container.connect(
     }
   },
   (stateProps, dispatchProps, _: OwnProps) => {
-    const channelNames = stateProps._channelInfos
-      .map(info => info.channelname)
-      .valueSeq()
-      .toArray()
+    const channelNames = [...stateProps._channelInfos.values()].map(info => info.channelname)
     return {
       ...dispatchProps,
       channelNames,

@@ -741,6 +741,15 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "KbfsOnlineStatus",
+      "symbols": [
+        "OFFLINE_0",
+        "TRYING_1",
+        "ONLINE_2"
+      ]
+    },
+    {
       "type": "record",
       "name": "FSSettings",
       "fields": [
@@ -1404,9 +1413,9 @@
       ],
       "response": "FolderWithFavFlags"
     },
-    "simpleFSAreWeConnectedToMDServer": {
+    "simpleFSGetOnlineStatus": {
       "request": [],
-      "response": "boolean"
+      "response": "KbfsOnlineStatus"
     },
     "simpleFSCheckReachability": {
       "request": [],
