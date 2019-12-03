@@ -154,7 +154,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const userResults: Array<Types.User> =
     teamBuildingState.searchResults.get(trim(ownProps.searchString))?.get(ownProps.selectedService) ?? []
 
-  const preExistingTeamMembers: Map<string, MemberInfo> =
+  const preExistingTeamMembers =
     (ownProps.teamname && state.teams.teamNameToMembers.get(ownProps.teamname)) ||
     new Map<string, MemberInfo>()
 

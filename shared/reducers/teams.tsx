@@ -67,15 +67,11 @@ export default (
           teamID,
           Constants.makeTeamDetails({teamname})
         )
-        draftState.teamDetails.get(teamID) || Constants.makeTeamDetails({teamname})
         details.members = members
         details.settings = action.payload.settings
         details.invites = new Set(action.payload.invites)
-        details.subteams = new Set(action.payload.subteamIDs)
+        details.subteams = action.payload.subteamIDs
         details.requests = new Set(action.payload.requests.get(teamname))
-        draftState.teamDetails = new Map(
-          draftState.teamDetails.set(teamID, Constants.makeTeamDetails(details))
-        )
 
         return
       }
@@ -169,8 +165,6 @@ export default (
           Constants.initialChannelInfo
         )
         oldChannelInfo.channelname = newChannelName
-        oldChannelInfos.set(conversationIDKey, oldChannelInfo)
-        draftState.teamNameToChannelInfos.set(teamname, oldChannelInfos)
         return
       }
       case TeamsGen.setUpdatedTopic: {
@@ -182,8 +176,6 @@ export default (
           Constants.initialChannelInfo
         )
         oldChannelInfo.description = newTopic
-        oldChannelInfos.set(conversationIDKey, oldChannelInfo)
-        draftState.teamNameToChannelInfos.set(teamname, oldChannelInfos)
         return
       }
       case TeamsGen.deleteChannelInfo: {
@@ -203,8 +195,6 @@ export default (
           Constants.initialChannelInfo
         )
         oldChannelInfo.memberStatus = RPCChatTypes.ConversationMemberStatus.active
-        oldChannelInfos.set(conversationIDKey, oldChannelInfo)
-        draftState.teamNameToChannelInfos.set(teamname, oldChannelInfos)
         return
       }
       case TeamsGen.removeParticipant: {
@@ -216,8 +206,6 @@ export default (
           Constants.initialChannelInfo
         )
         oldChannelInfo.memberStatus = RPCChatTypes.ConversationMemberStatus.left
-        oldChannelInfos.set(conversationIDKey, oldChannelInfo)
-        draftState.teamNameToChannelInfos.set(teamname, oldChannelInfos)
         return
       }
       case TeamsGen.setTeamRoleMapLatestKnownVersion: {

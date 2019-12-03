@@ -24,6 +24,7 @@ import {uploadAvatarWaitingKey} from '../constants/profile'
 import openSMS from '../util/sms'
 import {convertToError, logError} from '../util/errors'
 import {TypedState, TypedActions, isMobile} from '../util/container'
+import {mapGetEnsureValue} from '../util/map'
 
 async function createNewTeam(_: TypedState, action: TeamsGen.CreateNewTeamPayload) {
   const {joinSubteam, teamname} = action.payload
@@ -302,7 +303,7 @@ const addToTeam = async (_: TypedState, action: TeamsGen.AddToTeamPayload) => {
 
 const reAddToTeam = async (state: TypedState, action: TeamsGen.ReAddToTeamPayload) => {
   const {teamname, username} = action.payload
-  const id = state.teams.teamNameToID.get(teamname) || ''
+  const id = state.teams.teamNameToID.get(teamname) ?? ''
   if (!id) {
     throw new Error(`team ID not on file for team '${teamname}'`)
   }
@@ -1280,12 +1281,8 @@ const badgeAppForTeams = (state: TypedState, action: NotificationsGen.ReceivedBa
   const teamsWithResetUsers: Array<RPCTypes.TeamMemberOutReset> = badgeState.teamsWithResetUsers || []
   const teamsWithResetUsersMap = new Map<string, Set<Types.ResetUser>>()
   teamsWithResetUsers.forEach(entry => {
-    let existing = teamsWithResetUsersMap.get(entry.teamname)
-    if (!existing) {
-      existing = new Set<Types.ResetUser>()
-    }
+    const existing = mapGetEnsureValue(teamsWithResetUsersMap, entry.teamname, new Set())
     existing.add({badgeIDKey: Constants.resetUserBadgeIDToKey(entry.id), username: entry.username})
-    teamsWithResetUsersMap.set(entry.teamname, existing)
   })
 
   /* TODO team notifications should handle what the following block did */
