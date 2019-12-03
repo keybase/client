@@ -8,7 +8,6 @@ import toBuffer from 'typedarray-to-buffer'
 import {printRPCBytes} from '../local-debug'
 import {measureStart, measureStop} from '../util/user-timings'
 import {SendArg, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
-import {batch} from 'react-redux'
 
 const nativeBridge: NativeEventEmitter & {
   runWithData: (arg0: string) => void
@@ -84,10 +83,9 @@ function createClient(
     const buffer = toBuffer(toByteArray(payload))
     const measureName = `packetize${packetizeCount++}:${buffer.length}`
     measureStart(measureName)
-    batch(() => {
-      client.transport.packetize_data(buffer)
-    })
+    const ret = client.transport.packetize_data(buffer)
     measureStop(measureName)
+    return ret
   })
 
   RNEmitter.addListener(nativeBridge.metaEventName, (payload: string) => {

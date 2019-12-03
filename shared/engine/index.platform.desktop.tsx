@@ -4,7 +4,6 @@ import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
 import {isWindows, socketPath} from '../constants/platform.desktop'
 import {createClientType, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
 import {printRPCBytes} from '../local-debug'
-import {batch} from 'react-redux'
 
 class NativeTransport extends TransportShared {
   constructor(incomingRPCCallback, connectCallback, disconnectCallback) {
@@ -37,9 +36,7 @@ class NativeTransport extends TransportShared {
     if (printRPCBytes) {
       logger.debug('[RPC] Read', m.length, 'bytes:', m.toString('hex'))
     }
-    batch(() => {
-      super.packetize_data(m)
-    })
+    super.packetize_data(m)
   }
 }
 
