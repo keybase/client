@@ -1,7 +1,6 @@
 {
   "prelude": [
     "import * as ChatTypes from '../constants/types/chat2'",
-    "import * as I from 'immutable'",
     "import * as Types from '../constants/types/teams'",
     "import {RetentionPolicy} from '../constants/types/retention-policy'"
   ],
@@ -14,10 +13,7 @@
     "clearNavBadges": {},
     "createNewTeam": {
       "joinSubteam": "boolean",
-      "teamname": "string",
-      "rootPath?": "I.List<string>",
-      "sourceSubPath?": "I.List<string>",
-      "destSubPath?": "I.List<string>"
+      "teamname": "string"
     },
     "createNewTeamFromConversation": {
       "conversationIDKey": "ChatTypes.ConversationIDKey",
@@ -26,10 +22,7 @@
     "createChannel": {
       "teamname": "string",
       "channelname": "string",
-      "description": "string | null",
-      "rootPath?": "I.List<string>",
-      "sourceSubPath?": "I.List<string>",
-      "destSubPath?": "I.List<string>"
+      "description": "string | null"
     },
     "clearAddUserToTeamsResults": {},
     "setAddUserToTeamsResults": {
@@ -94,11 +87,8 @@
       "teamID": "Types.TeamID"
     },
     "inviteToTeamByEmail": {
-      "destSubPath?": "I.List<string>",
       "invitees": "string",
       "role": "Types.TeamRoleType",
-      "rootPath?": "I.List<string>",
-      "sourceSubPath?": "I.List<string>",
       "teamname": "string",
       "loadingKey?": "string"
     },

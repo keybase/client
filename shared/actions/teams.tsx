@@ -1,6 +1,5 @@
 /// TODO the relationships here are often inverted. we want to clear actions when a bunch of actions happen
 // not have every handler clear it themselves. this reduces the nubmer of actionChains
-import * as I from 'immutable'
 import * as EngineGen from './engine-gen-gen'
 import * as TeamBuildingGen from './team-building-gen'
 import * as TeamsGen from './teams-gen'
@@ -1196,7 +1195,7 @@ function* addTeamWithChosenChannels(
   }
   teams.push(teamname)
   // make sure there're no dupes
-  teams = I.Set(teams).toArray()
+  teams = [...new Set(teams)]
 
   const dtime = {
     offset: 0,

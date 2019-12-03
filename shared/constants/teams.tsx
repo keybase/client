@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as ChatTypes from './types/chat2'
 import * as Types from './types/teams'
 import * as RPCTypes from './types/rpc-gen'
@@ -101,8 +100,6 @@ export const emptyInviteInfo = Object.freeze<Types.InviteInfo>({
   role: 'writer',
   username: '',
 })
-
-export const makeInviteInfo = I.Record<Types.InviteInfo>(emptyInviteInfo)
 
 export const emptyEmailInviteError = Object.freeze<Types.EmailInviteError>({
   malformed: new Set<string>(),

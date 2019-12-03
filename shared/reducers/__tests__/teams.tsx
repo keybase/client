@@ -5,8 +5,6 @@ import * as Types from '../../constants/types/chat2'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import reducer from '../teams'
 
-jest.unmock('immutable')
-
 describe('teams reducer', () => {
   const teamname = 'keybaseteam'
   const conversationIDKey = Types.stringToConversationIDKey('0')
