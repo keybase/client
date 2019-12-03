@@ -35,6 +35,7 @@ export default Container.connect(
       _canAdminDelete,
       _canDeleteHistory,
       _canPinMessage,
+      _teamname: meta.teamname,
       _you: state.config.username,
       pending: !!message.transferState,
     }
@@ -80,6 +81,12 @@ export default Container.connect(
         })
       )
     },
+    _onKick: (teamname: string, username: string) =>
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {teamname, navToChat: true, username}, selected: 'teamReallyRemoveMember'}],
+        })
+      ),
     _onPinMessage: (message: Types.Message) => {
       dispatch(
         Chat2Gen.createPinMessage({
@@ -126,12 +133,14 @@ export default Container.connect(
       deviceRevokedAt: message.deviceRevokedAt || undefined,
       deviceType: message.deviceType,
       isDeleteable,
+      isKickable: isDeleteable,
       onAddReaction: isMobile ? () => dispatchProps._onAddReaction(message) : undefined,
       onAllMedia: () => dispatchProps._onAllMedia(message.conversationIDKey),
       onDelete: isDeleteable ? () => dispatchProps._onDelete(message) : undefined,
       onDownload: !isMobile && !message.downloadPath ? () => dispatchProps._onDownload(message) : undefined,
       // We only show the share/save options for video if we have the file stored locally from a download
       onHidden: () => ownProps.onHidden(),
+      onKick: () => dispatchProps._onKick(stateProps._teamname, message.author),
       onPinMessage: stateProps._canPinMessage ? () => dispatchProps._onPinMessage(message) : undefined,
       onReply: () => dispatchProps._onReply(message),
       onSaveAttachment:

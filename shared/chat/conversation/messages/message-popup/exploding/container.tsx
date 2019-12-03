@@ -44,6 +44,7 @@ export default Container.connect(
       _canExplodeNow,
       _canReplyPrivately,
       _mapUnfurl,
+      _teamname: meta.teamname,
       author: ownProps.message.author,
       deviceName: ownProps.message.deviceName,
       deviceRevokedAt: ownProps.message.deviceRevokedAt,
@@ -106,6 +107,12 @@ export default Container.connect(
           ordinal: ownProps.message.ordinal,
         })
       ),
+    _onKick: (teamname: string, username: string) =>
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {navToChat: true, teamname, username}, selected: 'teamReallyRemoveMember'}],
+        })
+      ),
     _onPinMessage: () => {
       dispatch(
         Chat2Gen.createPinMessage({
@@ -154,6 +161,13 @@ export default Container.connect(
         danger: true,
         onClick: dispatchProps._onExplodeNow,
         title: 'Explode now',
+      })
+    }
+    if (stateProps._canDeleteHistory) {
+      items.push({
+        danger: true,
+        onClick: () => dispatchProps._onKick(stateProps._teamname, stateProps.author),
+        title: 'Kick user',
       })
     }
     if (Container.isMobile) {

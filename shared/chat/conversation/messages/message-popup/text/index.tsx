@@ -57,7 +57,7 @@ const TextPopupMenu = (props: Props) => {
             disabled: !props.onKick,
             onClick: props.onKick,
             subTitle: 'Removes the user from the team',
-            title: 'Kick User',
+            title: 'Kick user',
           },
         ]
       : []),
