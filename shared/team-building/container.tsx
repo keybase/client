@@ -565,7 +565,7 @@ const mergeProps = (
     teamSoFar,
   })
 
-  const title = ownProps.title
+  const title = ownProps.namespace === 'teams' ? `Add to ${stateProps.teamname}` : ownProps.title
   const headerHocProps: HeaderHocProps = Container.isMobile
     ? {
         borderless: true,
