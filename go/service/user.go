@@ -6,10 +6,11 @@ package service
 import (
 	"errors"
 	"fmt"
-	"github.com/keybase/client/go/protocol/gregor1"
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/keybase/client/go/protocol/gregor1"
 
 	"github.com/keybase/client/go/uidmap"
 
@@ -781,13 +782,13 @@ func (h *UserHandler) ReportUser(ctx context.Context, arg keybase1.ReportUserArg
 
 func (h *UserHandler) BlockUser(ctx context.Context, username string) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.TraceTimed("UserHandler#BlockUser", func() error { return err })()
+	defer mctx.TraceTimed(fmt.Sprintf("UserHandler#BlockUser: %s", username), func() error { return err })()
 	return h.setUserBlock(mctx, username, true)
 }
 
 func (h *UserHandler) UnblockUser(ctx context.Context, username string) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.TraceTimed("UserHandler#UnblockUser", func() error { return err })()
+	defer mctx.TraceTimed(fmt.Sprintf("UserHandler#UnblockUser: %s", username), func() error { return err })()
 	return h.setUserBlock(mctx, username, false)
 }
 
