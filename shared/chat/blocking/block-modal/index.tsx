@@ -77,10 +77,7 @@ type ReportOptionsProps = {
 }
 const reasons = ["I don't know this person", 'Spam', 'Harassment', 'Obscene material', 'Other...']
 const ReportOptions = (props: ReportOptionsProps) => {
-  //const {showIncludeTranscript} = props
-  // TODO: Transcripts are disabled right now because they are not finished for
-  // the release. (Y2K-1089)
-  const showIncludeTranscript = false
+  const {showIncludeTranscript} = props
   return (
     <>
       {reasons.map(reason => (
