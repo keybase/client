@@ -144,7 +144,7 @@ export default Container.namedConnect(
       deviceType: message.deviceType,
       isDeleteable,
       isEditable,
-      isKickable: isDeleteable && !!stateProps._teamname,
+      isKickable: isDeleteable && !!stateProps._teamname && !yourMessage,
       isLocation,
       onAddReaction: Container.isMobile ? () => dispatchProps._onAddReaction(message) : undefined,
       onCopy: message.type === 'text' ? () => dispatchProps._onCopy(message) : undefined,

@@ -133,7 +133,7 @@ export default Container.connect(
       deviceRevokedAt: message.deviceRevokedAt || undefined,
       deviceType: message.deviceType,
       isDeleteable,
-      isKickable: isDeleteable && !!stateProps._teamname,
+      isKickable: isDeleteable && !!stateProps._teamname && !yourMessage,
       onAddReaction: isMobile ? () => dispatchProps._onAddReaction(message) : undefined,
       onAllMedia: () => dispatchProps._onAllMedia(message.conversationIDKey),
       onDelete: isDeleteable ? () => dispatchProps._onDelete(message) : undefined,
