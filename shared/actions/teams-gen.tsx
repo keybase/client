@@ -1,7 +1,6 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as ChatTypes from '../constants/types/chat2'
-import * as I from 'immutable'
 import * as Types from '../constants/types/teams'
 import {RetentionPolicy} from '../constants/types/retention-policy'
 
@@ -100,21 +99,12 @@ type _CreateChannelPayload = {
   readonly teamname: string
   readonly channelname: string
   readonly description: string | null
-  readonly rootPath?: I.List<string>
-  readonly sourceSubPath?: I.List<string>
-  readonly destSubPath?: I.List<string>
 }
 type _CreateNewTeamFromConversationPayload = {
   readonly conversationIDKey: ChatTypes.ConversationIDKey
   readonly teamname: string
 }
-type _CreateNewTeamPayload = {
-  readonly joinSubteam: boolean
-  readonly teamname: string
-  readonly rootPath?: I.List<string>
-  readonly sourceSubPath?: I.List<string>
-  readonly destSubPath?: I.List<string>
-}
+type _CreateNewTeamPayload = {readonly joinSubteam: boolean; readonly teamname: string}
 type _DeleteChannelConfirmedPayload = {
   readonly teamname: Types.Teamname
   readonly conversationIDKey: ChatTypes.ConversationIDKey
@@ -143,11 +133,8 @@ type _GetTeamRetentionPolicyPayload = {readonly teamname: string}
 type _GetTeamsPayload = {readonly _subscribe?: boolean; readonly forceReload?: boolean}
 type _IgnoreRequestPayload = {readonly teamname: string; readonly username: string}
 type _InviteToTeamByEmailPayload = {
-  readonly destSubPath?: I.List<string>
   readonly invitees: string
   readonly role: Types.TeamRoleType
-  readonly rootPath?: I.List<string>
-  readonly sourceSubPath?: I.List<string>
   readonly teamname: string
   readonly loadingKey?: string
 }
