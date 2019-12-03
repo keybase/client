@@ -310,6 +310,11 @@ func (fl *FolderList) updateTlfName(ctx context.Context, oldName string,
 			ctx, libkb.VLog1, "Folder name updated: %s -> %s", oldName, newName)
 		delete(fl.folders, oldName)
 		fl.folders[newName] = tlf
+		if err := fl.fs.fuse.InvalidateNodeAttr(tlf.dir); err != nil {
+			// TODO we have no mechanism to do anything about this
+			fl.fs.log.CErrorf(ctx, "FUSE invalidate error for oldName=%s: %v",
+				oldName, err)
+		}
 		return true
 	}()
 	if !ok {
@@ -346,6 +351,7 @@ func (fl *FolderList) userChanged(ctx context.Context, _, newUser kbname.Normali
 		fl.fs.config.KBFSOps().ForceFastForward(ctx)
 	}
 	fl.fs.fuse.InvalidateNodeData(fl)
+	fl.fs.fuse.InvalidateNodeAttr(fl)
 }
 
 func (fl *FolderList) openFileCount() (ret int64) {
