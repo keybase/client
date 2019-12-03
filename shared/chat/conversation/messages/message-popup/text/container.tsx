@@ -33,7 +33,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   }
   // you can reply privately *if* text message, someone else's message, and not in a 1-on-1 chat
   const _canReplyPrivately =
-    message.type === 'text' && (['small', 'big'].includes(meta.teamType) || _participantsCount > 2)
+    message.type === 'text' && (['small', 'big'].includes(meta.teamType) || meta.participants.length > 2)
   return {
     _canAdminDelete,
     _canDeleteHistory,
