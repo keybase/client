@@ -6,7 +6,16 @@
   "actions": {
     "fetchedUserRecs": {"namespace": "Types.AllowedNamespace", "users": "Array<Types.User>"},
     "fetchUserRecs": {"includeContacts": "boolean", "namespace": "Types.AllowedNamespace"},
-    "finishedTeamBuilding": {"namespace": "Types.AllowedNamespace", "teamID?": "TeamID"},
+    "finishTeamBuilding": {
+      "namespace": "Types.AllowedNamespace",
+      "_description": "If we want to keep the modal open until an RPC finishes, use this before dispatching finishedTeamBuilding.",
+      "teamID?": "TeamID"
+    },
+    "setError": {
+      "namespace": "Types.AllowedNamespace",
+      "error": "string"
+    },
+    "finishedTeamBuilding": {"namespace": "Types.AllowedNamespace"},
     "cancelTeamBuilding": {"namespace": "Types.AllowedNamespace"},
     "search": {
       "includeContacts": "boolean",

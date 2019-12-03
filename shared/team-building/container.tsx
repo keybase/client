@@ -243,7 +243,12 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {namespace, teamI
   onChangeSendNotification: (sendNotification: boolean) =>
     namespace === 'teams' &&
     dispatch(TeamBuildingGen.createChangeSendNotification({namespace, sendNotification})),
-  onFinishTeamBuilding: () => dispatch(TeamBuildingGen.createFinishedTeamBuilding({namespace, teamID})),
+  onFinishTeamBuilding: () =>
+    dispatch(
+      namespace === 'teams'
+        ? TeamBuildingGen.createFinishTeamBuilding({namespace, teamID})
+        : TeamBuildingGen.createFinishedTeamBuilding({namespace})
+    ),
   onLoadContactsSetting: () => dispatch(SettingsGen.createLoadContactImportEnabled()),
   onRemove: (userId: string) =>
     dispatch(TeamBuildingGen.createRemoveUsersFromTeamSoFar({namespace, users: [userId]})),
