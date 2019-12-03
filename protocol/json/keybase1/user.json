@@ -934,6 +934,15 @@
       ],
       "response": null
     },
+    "dismissBlockButtons": {
+      "request": [
+        {
+          "name": "tlfID",
+          "type": "TLFID"
+        }
+      ],
+      "response": null
+    },
     "blockUser": {
       "request": [
         {

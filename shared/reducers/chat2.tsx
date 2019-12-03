@@ -1041,7 +1041,11 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     }
   },
   [Chat2Gen.updateBlockButtons]: (draftState, action) => {
-    draftState.blockButtonsMap.set(action.payload.teamID, {adder: action.payload.adder})
+    if (action.payload.show) {
+      draftState.blockButtonsMap.set(action.payload.teamID, {adder: action.payload.adder || ''})
+    } else {
+      draftState.blockButtonsMap.delete(action.payload.teamID)
+    }
   },
   [Chat2Gen.updateReactions]: (draftState, action) => {
     const {conversationIDKey, updates} = action.payload

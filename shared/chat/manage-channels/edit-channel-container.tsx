@@ -43,7 +43,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
 
   const channelName = channelInfo ? channelInfo.channelname : ''
   const topic = channelInfo ? channelInfo.description : ''
-  const yourRole = Constants.getRole(state, teamname)
+  const yourRole = Constants.getRoleByName(state, teamname)
   const canDelete = Constants.isAdmin(yourRole) || Constants.isOwner(yourRole)
   const errorText = state.teams.channelCreationError
   const waitingOnSave = anyWaiting(state, Constants.teamWaitingKey(teamname))

@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as FsGen from '../../../actions/fs-gen'
 import * as Constants from '../../../constants/chat2'
@@ -68,7 +67,7 @@ const ConnectedInfoPanel = Container.connect(
     const attachmentInfo = (m && m.get(selectedAttachmentView)) || noAttachmentView
     const attachmentsLoading = selectedTab === 'attachments' && attachmentInfo.status === 'loading'
     const _teamMembers =
-      state.teams.teamNameToMembers.get(meta.teamname) || I.Map<string, TeamTypes.MemberInfo>()
+      state.teams.teamNameToMembers.get(meta.teamname) || new Map<string, TeamTypes.MemberInfo>()
     return {
       _attachmentInfo: attachmentInfo,
       _botAliases: meta.botAliases,
@@ -177,13 +176,10 @@ const ConnectedInfoPanel = Container.connect(
     const isGeneral = stateProps.channelname === 'general'
     const showAuditingBanner = isGeneral && !teamMembers
     if (teamMembers && isGeneral) {
-      participants = teamMembers
-        .valueSeq()
-        .toArray()
-        .reduce<Array<string>>((l, mi) => {
-          l.push(mi.username)
-          return l
-        }, [])
+      participants = [...teamMembers.values()].reduce<Array<string>>((l, mi) => {
+        l.push(mi.username)
+        return l
+      }, [])
     }
     return {
       admin: stateProps.admin,

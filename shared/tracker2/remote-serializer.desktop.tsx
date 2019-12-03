@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as Constants from '../constants/tracker2'
 import * as Types from '../constants/types/tracker2'
 import * as Avatar from '../desktop/remote/sync-avatar-props.desktop'
@@ -38,7 +37,7 @@ export const serialize = {
 const initialState = {
   assertions: new Map(),
   config: {following: new Set()},
-  teams: {teamNameToID: I.Map()},
+  teams: {teamNameToID: new Map()},
   users: {infoMap: new Map()},
   waiting: {counts: new Map()},
 }

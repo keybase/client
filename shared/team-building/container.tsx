@@ -1,5 +1,4 @@
 import logger from '../logger'
-import * as I from 'immutable'
 import * as React from 'react'
 import unidecode from 'unidecode'
 import debounce from 'lodash/debounce'
@@ -77,7 +76,7 @@ const expensiveDeriveResults = (
   teamSoFar: Set<Types.User>,
   myUsername: string,
   followingState: Set<string>,
-  preExistingTeamMembers: I.Map<string, MemberInfo>
+  preExistingTeamMembers: Map<string, MemberInfo>
 ) =>
   searchResults &&
   searchResults.map(info => {
@@ -88,6 +87,7 @@ const expensiveDeriveResults = (
       followingState: Constants.followStateHelperWithId(myUsername, followingState, info.serviceMap.keybase),
       inTeam: [...teamSoFar].some(u => u.id === info.id),
       isPreExistingTeamMember: preExistingTeamMembers.has(info.id),
+      isYou: info.username === myUsername,
       key: [info.id, info.prettyName, info.label, String(!!info.contact)].join('&'),
       prettyName: formatAnyPhoneNumbers(info.prettyName),
       services: info.serviceMap,
@@ -155,8 +155,9 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const userResults: Array<Types.User> =
     teamBuildingState.searchResults.get(trim(ownProps.searchString))?.get(ownProps.selectedService) ?? []
 
-  const preExistingTeamMembers: I.Map<string, MemberInfo> =
-    (ownProps.teamname && state.teams.teamNameToMembers.get(ownProps.teamname)) || I.Map<string, MemberInfo>()
+  const preExistingTeamMembers =
+    (ownProps.teamname && state.teams.teamNameToMembers.get(ownProps.teamname)) ||
+    new Map<string, MemberInfo>()
 
   const disabledRoles = ownProps.teamname
     ? getDisabledReasonsForRolePicker(state, ownProps.teamname, null)

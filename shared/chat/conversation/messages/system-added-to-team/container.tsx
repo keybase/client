@@ -17,7 +17,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     addee: ownProps.message.addee,
     adder: ownProps.message.adder,
     bulkAdds: ownProps.message.bulkAdds,
-    isAdmin: TeamConstants.isAdmin(TeamConstants.getRole(state, teamname)),
+    isAdmin: TeamConstants.isAdmin(TeamConstants.getRole(state, teamID)),
     role: ownProps.message.role,
     teamID,
     teamname,

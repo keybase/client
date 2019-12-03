@@ -34,8 +34,8 @@ const mobileOsVersion = Platform.Version
 class FeedbackContainer extends React.Component<Props, State> {
   static navigationOptions = {
     header: undefined,
-    headerHeight: 60,
     title: 'Feedback',
+    useHeaderHeight: () => 60,
   }
 
   mounted = false

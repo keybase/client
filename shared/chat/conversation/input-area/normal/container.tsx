@@ -63,11 +63,7 @@ const getChannelSuggestions = (state: Container.TypedState, teamname: string) =>
   const convs = state.teams.teamNameToChannelInfos.get(teamname)
   let suggestions: Array<string>
   if (convs) {
-    suggestions = convs
-      .toIndexedSeq()
-      .toList()
-      .map(conv => conv.channelname)
-      .toArray()
+    suggestions = [...convs.values()].map(conv => conv.channelname)
   } else {
     suggestions = (state.chat2.inboxLayout?.bigTeams ?? []).reduce<Array<string>>((arr, t) => {
       if (t.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel) {

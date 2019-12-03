@@ -692,6 +692,27 @@
         {
           "type": "keybase1.TeamRole",
           "name": "untrustedTeamRole"
+        },
+        {
+          "type": [
+            null,
+            "ConversationJourneycardInfo"
+          ],
+          "name": "journeycard",
+          "mpackkey": "jc",
+          "jsonkey": "jc"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ConversationJourneycardInfo",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "welcomeEligible",
+          "mpackkey": "w",
+          "jsonkey": "w"
         }
       ]
     },
