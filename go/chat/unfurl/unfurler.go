@@ -338,10 +338,7 @@ func (u *Unfurler) detectPermError(err error) bool {
 	case *url.Error:
 		return !e.Temporary()
 	}
-	if err.Error() == "Not Found" {
-		return true
-	}
-	return false
+	return true
 }
 
 func (u *Unfurler) testingSendUnfurl(unfurl *chat1.Unfurl) {

@@ -1515,7 +1515,7 @@ func (s *Deliverer) processAttachment(ctx context.Context, obr chat1.OutboxRecor
 	}
 	status, res, err := s.G().AttachmentUploader.Status(ctx, obr.OutboxID)
 	if err != nil {
-		return obr, err
+		return obr, NewAttachmentUploadError(err.Error(), false)
 	}
 	switch status {
 	case types.AttachmentUploaderTaskStatusSuccess:
