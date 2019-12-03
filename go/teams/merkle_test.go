@@ -3,7 +3,6 @@ package teams
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/kbtest"
@@ -45,7 +44,7 @@ func TestMerkleWithHidden(t *testing.T) {
 	tc := SetupTest(t, "team", 1)
 	defer tc.Cleanup()
 
-	u, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	_, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
 	require.NoError(t, err)
 
 	name := createTeam(tc)
@@ -97,49 +96,19 @@ func TestMerkleWithHidden(t *testing.T) {
 		require.Equal(t, team.HiddenChain().TailTriple().SeqType, committedHiddenTail.ChainType)
 	}
 
-	// ask blindarchitectd to build a new tree
-	_, err = tc.G.API.Get(tc.MetaContext(), libkb.APIArg{
-		Endpoint: "test/build_blind_tree",
-	})
+	requestNewBlindTreeFromArchitectAndWaitUntilDone(t, &tc)
+
+	leaf, hiddenResp, err = tc.G.MerkleClient.LookupTeamWithHidden(libkb.NewMetaContextForTest(tc), team.ID, hidden.ProcessHiddenResponseFunc)
 	require.NoError(t, err)
-
-	committed := false
-	for i := 0; i < 5; i++ {
-		// create a new user to force the main tree to create a new version as well
-		_, err = kbtest.CreateAndSignupFakeUser("team", tc.G)
-		require.NoError(t, err)
-		err = tc.Logout()
-		require.NoError(t, err)
-		err = u.Login(tc.G)
-		require.NoError(t, err)
-
-		leaf, hiddenResp, err = tc.G.MerkleClient.LookupTeamWithHidden(libkb.NewMetaContextForTest(tc), team.ID, hidden.ProcessHiddenResponseFunc)
-		require.NoError(t, err)
-		require.NotNil(t, leaf)
-		require.Equal(t, team.ID, leaf.TeamID, "team id")
-		require.Equal(t, team.chain().GetLatestSeqno(), leaf.Private.Seqno)
-		require.Equal(t, team.chain().GetLatestLinkID(), leaf.Private.LinkID.Export())
-		require.True(t, hiddenResp.RespType == libkb.MerkleHiddenResponseTypeABSENCEPROOF || hiddenResp.RespType == libkb.MerkleHiddenResponseTypeOK)
-		require.EqualValues(t, 1, hiddenResp.UncommittedSeqno)
-
-		if hiddenResp.RespType == libkb.MerkleHiddenResponseTypeABSENCEPROOF {
-			t.Logf("The hidden rotation was not committed yet...")
-			require.Nil(t, hiddenResp.CommittedHiddenTail)
-			time.Sleep(5 * time.Second)
-			continue
-		}
-
-		t.Logf("The hidden rotation was committed!")
-		require.NotNil(t, team.HiddenChain(), "NIL hidden chain")
-		committedHiddenTail := hiddenResp.CommittedHiddenTail
-		require.Equal(t, team.HiddenChain().TailTriple().Seqno, committedHiddenTail.Seqno)
-		require.EqualValues(t, team.HiddenChain().TailTriple().LinkID, committedHiddenTail.Hash.String())
-		require.Equal(t, team.HiddenChain().TailTriple().SeqType, committedHiddenTail.ChainType)
-		committed = true
-		break
-	}
-
-	if !committed {
-		t.Error("The hidden rotation was not committed to the blind tree")
-	}
+	require.NotNil(t, leaf)
+	require.Equal(t, team.ID, leaf.TeamID, "team id")
+	require.Equal(t, team.chain().GetLatestSeqno(), leaf.Private.Seqno)
+	require.Equal(t, team.chain().GetLatestLinkID(), leaf.Private.LinkID.Export())
+	require.True(t, hiddenResp.RespType == libkb.MerkleHiddenResponseTypeOK)
+	require.EqualValues(t, 1, hiddenResp.UncommittedSeqno)
+	require.NotNil(t, team.HiddenChain(), "NIL hidden chain")
+	committedHiddenTail := hiddenResp.CommittedHiddenTail
+	require.Equal(t, team.HiddenChain().TailTriple().Seqno, committedHiddenTail.Seqno)
+	require.EqualValues(t, team.HiddenChain().TailTriple().LinkID, committedHiddenTail.Hash.String())
+	require.Equal(t, team.HiddenChain().TailTriple().SeqType, committedHiddenTail.ChainType)
 }

@@ -996,6 +996,9 @@ protocol teams {
     // currently set to one hour.
     boolean forceRefresh;
 
+    // Specify this flag to avoid raising an error if the server omits the hidden chain data.
+    // For example, restricted bots can use the FTL to obtain a team name, but cannot see the 
+    // hidden chain for such team.
     boolean hiddenChainIsOptional;
   }
 

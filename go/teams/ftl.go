@@ -765,6 +765,23 @@ func (f *FastTeamChainLoader) makeHTTPRequest(m libkb.MetaContext, args libkb.HT
 	return t, nil
 }
 
+func (f *FastTeamChainLoader) checkHiddenResp(m libkb.MetaContext, arg fastLoadArg, hiddenResp *libkb.MerkleHiddenResponse, hp *hidden.LoaderPackage) (hiddenIsFresh bool, err error) {
+	if !arg.HiddenChainIsOptional && hiddenResp.RespType == libkb.MerkleHiddenResponseTypeNONE {
+		return hiddenIsFresh, libkb.NewHiddenChainDataMissingError("the server did not return the necessary hidden chain data")
+	}
+
+	if hiddenResp.RespType != libkb.MerkleHiddenResponseTypeFLAGOFF && hiddenResp.RespType != libkb.MerkleHiddenResponseTypeNONE {
+		hiddenIsFresh, err = hp.CheckHiddenMerklePathResponseAndAddRatchets(m, hiddenResp)
+		if err != nil {
+			return hiddenIsFresh, err
+		}
+	} else {
+		hiddenIsFresh = true
+	}
+
+	return hiddenIsFresh, nil
+}
+
 // loadFromServerOnce turns the giving "shoppingList" into requests for the server, and then makes
 // an HTTP GET to fetch the corresponding "groceries." Once retrieved, we unpack links, and
 // check for "green" links --- those that might have been added to the team after the merkle update
@@ -779,24 +796,15 @@ func (f *FastTeamChainLoader) loadFromServerOnce(m libkb.MetaContext, arg fastLo
 	var links []*ChainLinkUnpacked
 	var lastSecretGen keybase1.PerTeamKeyGeneration
 	var seeds []keybase1.PerTeamKeySeed
-	var hiddenIsFresh bool
 
 	lastSeqno, lastLinkID, hiddenResp, err := f.world.merkleLookupWithHidden(m.Ctx(), arg.ID, arg.Public)
 	if err != nil {
 		return nil, err
 	}
 
-	if !arg.HiddenChainIsOptional && hiddenResp.RespType == libkb.MerkleHiddenResponseTypeNONE {
-		return nil, libkb.NewHiddenChainDataMissingError("the server did not return the necessary hidden chain data")
-	}
-
-	if hiddenResp.RespType != libkb.MerkleHiddenResponseTypeFLAGOFF && hiddenResp.RespType != libkb.MerkleHiddenResponseTypeNONE {
-		hiddenIsFresh, err = hp.CheckHiddenMerklePathResponseAndAddRatchets(m, hiddenResp)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		hiddenIsFresh = true
+	hiddenIsFresh, err := f.checkHiddenResp(m, arg, hiddenResp, hp)
+	if err != nil {
+		return nil, err
 	}
 
 	if shoppingList.onlyNeedsRefresh() && state != nil && state.Chain.Last != nil && state.Chain.Last.Seqno == lastSeqno && hiddenIsFresh {

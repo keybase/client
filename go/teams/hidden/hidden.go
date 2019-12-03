@@ -5,8 +5,6 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"github.com/pkg/errors"
-
 	"github.com/keybase/client/go/blindtree"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/merkletree2"
@@ -348,11 +346,11 @@ func ParseAndVerifyCommittedHiddenLinkID(m libkb.MetaContext, teamID keybase1.Te
 	}
 	encValWithProofBytes, err := base64.StdEncoding.DecodeString(encValWithProofBase64)
 	if err != nil {
-		return nil, errors.Wrap(err, "error decoding encValWithProof from b64")
+		return nil, fmt.Errorf("error decoding encValWithProof from b64: %w", err)
 	}
 	var resp merkletree2.GetValueWithProofResponse
 	if err := msgpack.Decode(&resp, encValWithProofBytes); err != nil {
-		return nil, errors.Wrap(err, "error decoding encValWithProof")
+		return nil, fmt.Errorf("error decoding encValWithProof: %w", err)
 	}
 
 	lastHiddenSeqnoInt, err := apiRes.Body.AtKey("last_hidden_seqno").GetInt()
@@ -386,12 +384,21 @@ func ParseAndVerifyCommittedHiddenLinkID(m libkb.MetaContext, teamID keybase1.Te
 	if err := verif.VerifyInclusionProof(m, merkletree2.KeyValuePair{Key: key, Value: leaf}, &proof, blindHash); err != nil {
 		return nil, err
 	}
+	return makeHiddenRespFromTeamLeaf(m, leaf, lastHiddenSeqno)
+}
+
+func makeHiddenRespFromTeamLeaf(m libkb.MetaContext, leaf blindtree.BlindMerkleValue, lastHiddenSeqno keybase1.Seqno) (hiddenResp *libkb.MerkleHiddenResponse, err error) {
 	switch leaf.ValueType {
 	case blindtree.ValueTypeTeamV1:
 		leaf := leaf.InnerValue.(blindtree.TeamV1Value)
 		tail, found := leaf.Tails[keybase1.SeqType_TEAM_PRIVATE_HIDDEN]
 		if !found {
-			return nil, fmt.Errorf("The leaf contained in the apiRes does not contain a hidden chain tail: %+v", leaf)
+			return nil, libkb.NewHiddenMerkleError(libkb.HiddenMerkleErrorNoHiddenChainInLeaf,
+				"The leaf contained in the apiRes does not contain a hidden chain tail: %+v", leaf)
+		}
+		if tail.ChainType != keybase1.SeqType_TEAM_PRIVATE_HIDDEN {
+			return nil, libkb.NewHiddenMerkleError(libkb.HiddenMerkleErrorInconsistentLeaf,
+				"The tail type is inconsistent among different parts of the leaf: %+v", leaf)
 		}
 		return &libkb.MerkleHiddenResponse{
 			RespType:            libkb.MerkleHiddenResponseTypeOK,
@@ -406,6 +413,7 @@ func ParseAndVerifyCommittedHiddenLinkID(m libkb.MetaContext, teamID keybase1.Te
 			CommittedHiddenTail: nil,
 		}, nil
 	default:
-		return nil, fmt.Errorf("Invalid leaf type: %v", leaf)
+		return nil, libkb.NewHiddenMerkleError(libkb.HiddenMerkleErrorInvalidLeafType,
+			"Invalid leaf type: %+v", leaf)
 	}
 }
