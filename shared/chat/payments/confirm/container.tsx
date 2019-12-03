@@ -4,11 +4,11 @@ import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as WalletsTypes from '../../../constants/types/wallets'
 import PaymentsConfirm from '.'
-import {namedConnect} from '../../../util/container'
+import * as Container from '../../../util/container'
 
 type OwnProps = {}
 
-export default namedConnect(
+export default Container.namedConnect(
   state => {
     const pinfo = state.chat2.paymentConfirmInfo
     const payments = pinfo?.summary?.payments ?? []
