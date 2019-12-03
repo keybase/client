@@ -14,11 +14,12 @@ describe('teams reducer', () => {
   const initialState = Constants.makeState({})
 
   it('setTeamChannelInfo action', () => {
-    const channelInfo = Constants.makeChannelInfo({
+    const channelInfo = {
+      ...Constants.initialChannelInfo,
       channelname: 'somechannel',
       description: 'some topic',
       memberStatus: RPCChatTypes.ConversationMemberStatus.active,
-    })
+    }
 
     const setAction = TeamsGen.createSetTeamChannelInfo({
       channelInfo,
@@ -27,6 +28,6 @@ describe('teams reducer', () => {
     })
 
     const state1 = reducer(initialState, setAction)
-    expect(state1.teamNameToChannelInfos.getIn([teamname, conversationIDKey])).toEqual(channelInfo)
+    expect(state1.teamNameToChannelInfos.get(teamname)?.get(conversationIDKey)).toEqual(channelInfo)
   })
 })

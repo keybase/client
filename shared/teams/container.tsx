@@ -89,7 +89,7 @@ const _Connected = Container.connect(
     newTeamRequests: stateProps.newTeamRequests,
     newTeams: stateProps.newTeams,
     sawChatBanner: stateProps.sawChatBanner,
-    teamresetusers: stateProps._teamresetusers.toObject(),
+    teamresetusers: stateProps._teamresetusers,
     teams: orderTeams(stateProps._teams),
     ...dispatchProps,
   })

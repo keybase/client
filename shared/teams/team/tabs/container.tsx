@@ -22,7 +22,7 @@ export default Container.connect(
         Constants.teamTarsWaitingKey(teamDetails.teamname)
       ),
       memberCount: teamDetails.memberCount,
-      newTeamRequestsByName: state.teams.newTeamRequestsByName,
+      newTeamRequests: state.teams.newTeamRequests,
       numInvites: teamDetails.invites?.size ?? 0,
       numRequests: teamDetails.requests?.size ?? 0,
       numSubteams: teamDetails.subteams?.size ?? 0,
@@ -34,12 +34,12 @@ export default Container.connect(
     }
   },
   () => ({}),
-  (stateProps, _, __) => {
+  (stateProps, _, ownProps) => {
     return {
       admin: stateProps.admin,
       loading: stateProps.loading,
       memberCount: stateProps.memberCount,
-      newRequests: stateProps.newTeamRequestsByName.get(stateProps.teamname) || 0,
+      newRequests: stateProps.newTeamRequests.get(ownProps.teamID) || 0,
       numInvites: stateProps.numInvites,
       numRequests: stateProps.numRequests,
       numSubteams: stateProps.numSubteams,
