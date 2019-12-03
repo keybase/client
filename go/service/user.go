@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/keybase/client/go/protocol/gregor1"
+
 	"github.com/keybase/client/go/uidmap"
 
 	"github.com/keybase/client/go/avatars"
@@ -268,9 +270,7 @@ func (h *UserHandler) InterestingPeople(ctx context.Context, maxUsers int) (res 
 	fallbackFn := func(uid keybase1.UID) (uids []keybase1.UID, err error) {
 		uids = []keybase1.UID{
 			libkb.GetUIDByNormalizedUsername(h.G(), "hellobot"),
-			h.G().GetEnv().GetUID(),
 		}
-
 		return uids, nil
 	}
 
@@ -301,6 +301,13 @@ func (h *UserHandler) InterestingPeople(ctx context.Context, maxUsers int) (res 
 	const serviceMapFreshness = 24 * time.Hour
 	serviceMaps := h.G().ServiceMapper.MapUIDsToServiceSummaries(ctx, h.G(), uids,
 		serviceMapFreshness, uidmap.DisallowNetworkBudget)
+
+	// The most interesting person of all... you
+	you := keybase1.InterestingPerson{
+		Uid:      h.G().GetEnv().GetUID(),
+		Username: h.G().GetEnv().GetUsername().String(),
+	}
+	res = append(res, you)
 
 	for i, uid := range uids {
 		if packages[i].NormalizedUsername.IsNil() {
@@ -638,6 +645,9 @@ func (h *UserHandler) SetUserBlocks(ctx context.Context, arg keybase1.SetUserBlo
 		Follow   *bool  `json:"follow,omitempty"`
 	}
 
+	for _, block := range arg.Blocks {
+		h.G().Log.CDebugf(ctx, "SetUserBlocks: adding block: %+v", block)
+	}
 	payloadBlocks := make([]setBlockArg, len(arg.Blocks))
 	for i, v := range arg.Blocks {
 		uid := libkb.GetUIDByUsername(h.G(), v.Username)
@@ -660,6 +670,17 @@ func (h *UserHandler) SetUserBlocks(ctx context.Context, arg keybase1.SetUserBlo
 	_, err = mctx.G().API.Post(mctx, apiArg)
 	return err
 
+}
+
+const blockButtonsGregorPrefix = "blockButtons."
+
+func (h *UserHandler) DismissBlockButtons(ctx context.Context, tlfID keybase1.TLFID) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed(
+		fmt.Sprintf("UserHandler#DismissBlockButtons(TLF=%s)", tlfID),
+		func() error { return err })()
+
+	return h.service.gregor.DismissCategory(ctx, gregor1.Category(fmt.Sprintf("%s%s", blockButtonsGregorPrefix, tlfID.String())))
 }
 
 func (h *UserHandler) GetUserBlocks(ctx context.Context, arg keybase1.GetUserBlocksArg) (res []keybase1.UserBlock, err error) {
@@ -737,23 +758,40 @@ func (h *UserHandler) ReportUser(ctx context.Context, arg keybase1.ReportUserArg
 		arg.Username, arg.IncludeTranscript, convIDStr),
 		func() error { return err })()
 
-	if arg.IncludeTranscript && arg.ConvID == nil {
-		return errors.New("invalid arguments: IncludeTranscript is true but ConvID == nil")
+	if arg.IncludeTranscript {
+		if arg.ConvID == nil {
+			return errors.New("invalid arguments: IncludeTranscript is true but ConvID == nil")
+		}
+		mctx.Debug("Ignoring IncludeTranscript - not implemented")
 	}
-	return errors.New("Not implemented")
+	postArgs := libkb.HTTPArgs{
+		"username": libkb.S{Val: arg.Username},
+		"reason":   libkb.S{Val: arg.Reason},
+		"comment":  libkb.S{Val: arg.Comment},
+	}
+	if arg.ConvID != nil {
+		postArgs["conv_id"] = libkb.S{Val: *arg.ConvID}
+	}
+	apiArg := libkb.APIArg{
+		Endpoint:    "report/conversation",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args:        postArgs,
+	}
+	_, err = mctx.G().API.Post(mctx, apiArg)
+	return err
 }
 
 // Legacy RPC and API:
 
 func (h *UserHandler) BlockUser(ctx context.Context, username string) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.TraceTimed("UserHandler#BlockUser", func() error { return err })()
+	defer mctx.TraceTimed(fmt.Sprintf("UserHandler#BlockUser: %s", username), func() error { return err })()
 	return h.setUserBlock(mctx, username, true)
 }
 
 func (h *UserHandler) UnblockUser(ctx context.Context, username string) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.TraceTimed("UserHandler#UnblockUser", func() error { return err })()
+	defer mctx.TraceTimed(fmt.Sprintf("UserHandler#UnblockUser: %s", username), func() error { return err })()
 	return h.setUserBlock(mctx, username, false)
 }
 

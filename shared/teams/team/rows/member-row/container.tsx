@@ -14,7 +14,7 @@ type OwnProps = {
   username: string
 }
 
-const blankInfo = Constants.makeMemberInfo()
+const blankInfo = Constants.initialMemberInfo
 
 const mapStateToProps = (state, {teamID, username}: OwnProps) => {
   const teamDetails = Constants.getTeamDetails(state, teamID)

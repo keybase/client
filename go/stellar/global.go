@@ -324,7 +324,7 @@ func (s *Stellar) handlePaymentStatus(mctx libkb.MetaContext, obm gregor.OutOfBa
 	}
 
 	paymentID := stellar1.NewPaymentID(msg.TxID)
-	notifiedAccountID, err := s.refreshPaymentFromNotification(mctx, paymentID)
+	notifiedAccountID, err := s.refreshPaymentFromNotification(mctx, msg.AccountID, paymentID)
 	if err != nil {
 		mctx.Debug("refreshPaymentFromNotification error: %s", err)
 		return
@@ -342,7 +342,7 @@ func (s *Stellar) handlePaymentNotification(mctx libkb.MetaContext, obm gregor.O
 		return
 	}
 
-	notifiedAccountID, err := s.refreshPaymentFromNotification(mctx, msg.PaymentID)
+	notifiedAccountID, err := s.refreshPaymentFromNotification(mctx, msg.AccountID, msg.PaymentID)
 	if err != nil {
 		mctx.Debug("refreshPaymentFromNotification error: %s", err)
 		return
@@ -350,8 +350,24 @@ func (s *Stellar) handlePaymentNotification(mctx libkb.MetaContext, obm gregor.O
 	s.G().NotifyRouter.HandleWalletPaymentNotification(mctx.Ctx(), notifiedAccountID, msg.PaymentID)
 }
 
-func (s *Stellar) findAccountFromPayment(mctx libkb.MetaContext, payment *stellar1.PaymentLocal) (stellar1.AccountID, error) {
+func (s *Stellar) findAccountFromPayment(mctx libkb.MetaContext, accountID stellar1.AccountID, payment *stellar1.PaymentLocal) (stellar1.AccountID, error) {
 	var emptyAccountID stellar1.AccountID
+
+	// double-check that the accountID from the notification matches one of the accountIDs
+	// in the payment
+	if accountID == payment.FromAccountID || (payment.ToAccountID != nil && accountID == *payment.ToAccountID) {
+		ok, _, err := getGlobal(mctx.G()).OwnAccountCached(mctx, accountID)
+		if err != nil {
+			return emptyAccountID, err
+		}
+		if ok {
+			// the user owns the accountID in the notification
+			return accountID, nil
+		}
+	}
+
+	// check if the user owns either from or to accountID:
+
 	ok, _, err := getGlobal(mctx.G()).OwnAccountCached(mctx, payment.FromAccountID)
 	if err != nil {
 		return emptyAccountID, err
@@ -374,7 +390,7 @@ func (s *Stellar) findAccountFromPayment(mctx libkb.MetaContext, payment *stella
 	return emptyAccountID, ErrAccountNotFound
 }
 
-func (s *Stellar) refreshPaymentFromNotification(mctx libkb.MetaContext, paymentID stellar1.PaymentID) (notifiedAccountID stellar1.AccountID, err error) {
+func (s *Stellar) refreshPaymentFromNotification(mctx libkb.MetaContext, accountID stellar1.AccountID, paymentID stellar1.PaymentID) (notifiedAccountID stellar1.AccountID, err error) {
 	var emptyAccountID stellar1.AccountID
 
 	// load the payment
@@ -384,8 +400,9 @@ func (s *Stellar) refreshPaymentFromNotification(mctx libkb.MetaContext, payment
 	if !ok {
 		return emptyAccountID, fmt.Errorf("couldn't find the payment immediately after loading it %v", paymentID)
 	}
+
 	// find the accountID for the running user in the payment (could be sender, recipient, neither)
-	notifiedAccountID, err = s.findAccountFromPayment(mctx, payment)
+	notifiedAccountID, err = s.findAccountFromPayment(mctx, accountID, payment)
 	if err != nil {
 		return emptyAccountID, err
 	}

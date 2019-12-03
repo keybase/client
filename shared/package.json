@@ -146,7 +146,6 @@
     "hoist-non-react-statics": "3.3.0",
     "iced-runtime": "1.0.3",
     "immer": "5.0.0",
-    "immutable": "4.0.0-rc.12",
     "lag-radar": "git://github.com/mobz/lag-radar",
     "lodash": "4.17.15",
     "lottie-ios": "3.0.3",
