@@ -33,7 +33,7 @@ const BlockButtons = (props: Props) => {
         {team ? `${adder} added you to this team.` : `You don't seem to know ${adder}.`}
       </Kb.Text>
       {!team && <WaveButton usernames={[adder, ...(others || [])].join(',')} style={styles.button} />}
-      {!team && !others && (
+      {!team && others.length === 0 && (
         <Kb.Button
           label="View Profile"
           style={styles.button}

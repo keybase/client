@@ -6,6 +6,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"sort"
 	"strings"
 	"time"
@@ -660,6 +661,17 @@ func (h *UserHandler) SetUserBlocks(ctx context.Context, arg keybase1.SetUserBlo
 	_, err = mctx.G().API.Post(mctx, apiArg)
 	return err
 
+}
+
+const blockButtonsGregorPrefix = "blockButtons."
+
+func (h *UserHandler) DismissBlockButtons(ctx context.Context, tlfID keybase1.TLFID) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed(
+		fmt.Sprintf("UserHandler#DismissBlockButtons(TLF=%s)", tlfID),
+		func() error { return err })()
+
+	return h.service.gregor.DismissCategory(ctx, gregor1.Category(fmt.Sprintf("%s%s", blockButtonsGregorPrefix, tlfID.String())))
 }
 
 func (h *UserHandler) GetUserBlocks(ctx context.Context, arg keybase1.GetUserBlocksArg) (res []keybase1.UserBlock, err error) {
