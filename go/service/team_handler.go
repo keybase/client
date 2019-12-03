@@ -73,6 +73,8 @@ func (r *teamHandler) Create(ctx context.Context, cli gregor1.IncomingInterface,
 		return true, r.newlyAddedToTeam(ctx, cli, item)
 	case "team.user_team_version":
 		return true, r.userTeamVersion(ctx, cli, item)
+	case "team.member_showcase_change":
+		return true, r.memberShowcaseChange(ctx, cli, item)
 	default:
 		if strings.HasPrefix(category, "team.") {
 			return false, fmt.Errorf("unknown teamHandler category: %q", category)
@@ -302,6 +304,17 @@ func (r *teamHandler) openTeamSweepResetUsersRequest(ctx context.Context, cli gr
 	}
 
 	r.G().Log.CDebugf(ctx, "dismissing team.opensweep item since it succeeded")
+	return r.G().GregorState.DismissItem(ctx, cli, item.Metadata().MsgID())
+}
+
+func (r *teamHandler) memberShowcaseChange(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
+	r.G().Log.CDebugf(ctx, "teamHandler: team.member_showchase_change received")
+
+	if err := teams.HandleTeamMemberShowcaseChange(ctx, r.G(), msg); err != nil {
+		return err
+	}
+
+	r.G().Log.CDebugf(ctx, "dismissing team.member_showcase_change item since it succeeded")
 	return r.G().GregorState.DismissItem(ctx, cli, item.Metadata().MsgID())
 }
 
