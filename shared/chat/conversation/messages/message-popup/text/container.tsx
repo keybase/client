@@ -70,12 +70,6 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
     dispatch(
       Chat2Gen.createMessageDelete({conversationIDKey: message.conversationIDKey, ordinal: message.ordinal})
     ),
-  _onKick: (teamname: string, username: string) =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {teamname, navToChat: true, username}, selected: 'teamReallyRemoveMember'}],
-      })
-    ),
   _onDeleteMessageHistory: (message: Types.Message) => {
     dispatch(Chat2Gen.createNavigateToThread())
     dispatch(
@@ -92,6 +86,12 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
       })
     )
   },
+  _onKick: (teamname: string, username: string) =>
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {navToChat: true, teamname, username}, selected: 'teamReallyRemoveMember'}],
+      })
+    ),
   _onPinMessage: (message: Types.Message) => {
     dispatch(
       Chat2Gen.createPinMessage({
@@ -144,7 +144,7 @@ export default Container.namedConnect(
       deviceType: message.deviceType,
       isDeleteable,
       isEditable,
-      isKickable: isDeleteable,
+      isKickable: isDeleteable && stateProps._teamname,
       isLocation,
       onAddReaction: Container.isMobile ? () => dispatchProps._onAddReaction(message) : undefined,
       onCopy: message.type === 'text' ? () => dispatchProps._onCopy(message) : undefined,

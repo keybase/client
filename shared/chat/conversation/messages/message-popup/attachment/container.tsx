@@ -84,7 +84,7 @@ export default Container.connect(
     _onKick: (teamname: string, username: string) =>
       dispatch(
         RouteTreeGen.createNavigateAppend({
-          path: [{props: {teamname, navToChat: true, username}, selected: 'teamReallyRemoveMember'}],
+          path: [{props: {navToChat: true, teamname, username}, selected: 'teamReallyRemoveMember'}],
         })
       ),
     _onPinMessage: (message: Types.Message) => {
@@ -133,7 +133,7 @@ export default Container.connect(
       deviceRevokedAt: message.deviceRevokedAt || undefined,
       deviceType: message.deviceType,
       isDeleteable,
-      isKickable: isDeleteable,
+      isKickable: isDeleteable && stateProps._teamname,
       onAddReaction: isMobile ? () => dispatchProps._onAddReaction(message) : undefined,
       onAllMedia: () => dispatchProps._onAllMedia(message.conversationIDKey),
       onDelete: isDeleteable ? () => dispatchProps._onDelete(message) : undefined,

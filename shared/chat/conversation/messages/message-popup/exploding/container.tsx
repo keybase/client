@@ -163,7 +163,7 @@ export default Container.connect(
         title: 'Explode now',
       })
     }
-    if (stateProps._canDeleteHistory) {
+    if (stateProps._canDeleteHistory && stateProps._teamname) {
       items.push({
         danger: true,
         onClick: () => dispatchProps._onKick(stateProps._teamname, stateProps.author),
