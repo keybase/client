@@ -69,6 +69,10 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
     dispatch(
       Chat2Gen.createMessageDelete({conversationIDKey: message.conversationIDKey, ordinal: message.ordinal})
     ),
+  _onKick: (message: Types.Message) =>
+    dispatch(
+      Chat2Gen.createMessageDelete({conversationIDKey: message.conversationIDKey, ordinal: message.ordinal})
+    ),
   _onDeleteMessageHistory: (message: Types.Message) => {
     dispatch(Chat2Gen.createNavigateToThread())
     dispatch(
