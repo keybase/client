@@ -306,7 +306,7 @@ const addToTeam = async (_: TypedState, action: TeamsGen.AddToTeamPayload) => {
   }
 }
 
-const reAddToTeam = async (state: TypedState, action: TeamsGen.ReAddToTeamPayload) => {
+const reAddToTeam = async (_: TypedState, action: TeamsGen.ReAddToTeamPayload) => {
   const {teamID, username} = action.payload
   try {
     await RPCTypes.teamsTeamReAddMemberAfterResetRpcPromise(
