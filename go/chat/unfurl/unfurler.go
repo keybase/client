@@ -20,6 +20,20 @@ import (
 	"github.com/keybase/clockwork"
 )
 
+type unfurlPermanentError struct {
+	msg string
+}
+
+func newUnfurlPermanentError(msg string) *unfurlPermanentError {
+	return &unfurlPermanentError{
+		msg: msg,
+	}
+}
+
+func (e *unfurlPermanentError) Error() string {
+	return e.msg
+}
+
 type unfurlTask struct {
 	UID    gregor1.UID
 	ConvID chat1.ConversationID
@@ -337,8 +351,13 @@ func (u *Unfurler) detectPermError(err error) bool {
 		return !e.Temporary()
 	case *url.Error:
 		return !e.Temporary()
+	case *unfurlPermanentError:
+		return true
 	}
-	return true
+	if err.Error() == "Not Found" {
+		return true
+	}
+	return false
 }
 
 func (u *Unfurler) testingSendUnfurl(unfurl *chat1.Unfurl) {

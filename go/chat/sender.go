@@ -1171,6 +1171,26 @@ type DelivererInfoError interface {
 	IsImmediateFail() (chat1.OutboxErrorType, bool)
 }
 
+type senderError struct {
+	msg       string
+	permanent bool
+}
+
+func newSenderError(msg string, permanent bool) *senderError {
+	return &senderError{
+		msg:       msg,
+		permanent: permanent,
+	}
+}
+
+func (e *senderError) Error() string {
+	return fmt.Sprintf("senderError: %v, permanent: %v", e.msg, e.permanent)
+}
+
+func (e *senderError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
+	return chat1.OutboxErrorType_MISC, e.permanent
+}
+
 // delivererExpireError is used when a message fails because it has languished
 // in the outbox for too long.
 type delivererExpireError struct{}
@@ -1787,7 +1807,7 @@ func (s *Deliverer) deliverForConv(ctx context.Context, obrs []chat1.OutboxRecor
 			bctx = globals.CtxAddOverrideNameInfoSource(bctx, s.testingNameInfoSource)
 		}
 		if !s.connected {
-			err = errors.New("disconnected from chat server")
+			err = newSenderError("disconnected from chat server", false)
 		} else if s.clock.Now().Sub(obr.Ctime.Time()) > time.Hour {
 			// If we are re-trying a message after an hour, let's just give up. These times can
 			// get very long if the app is suspended on mobile.
