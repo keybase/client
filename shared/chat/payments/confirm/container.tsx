@@ -14,12 +14,12 @@ export default Container.namedConnect(
     const payments = pinfo?.summary?.payments ?? []
     const errorIsNoWallet = pinfo?.error?.code === RPCTypes.StatusCode.scstellarmissingbundle
     return {
-      displayTotal: pinfo?.summary?.displayTotal,
+      displayTotal: pinfo?.summary?.displayTotal ?? '',
       error: errorIsNoWallet ? 'Wallet needed to send money in chat.' : pinfo?.error?.desc,
       errorIsNoWallet,
       loading: !pinfo,
       payments,
-      xlmTotal: pinfo?.summary?.xlmTotal,
+      xlmTotal: pinfo?.summary?.xlmTotal ?? '',
     }
   },
   dispatch => ({
