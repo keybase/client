@@ -24,7 +24,7 @@ const _TeamHeader = (props: SmallProps) => {
   if (props.channelname && !props.isSmallTeam) {
     title += '#' + props.channelname
   }
-  const isGeneralChannel = props.channelname && props.channelname === 'general'
+  const isGeneralChannel = !!(props.channelname && props.channelname === 'general')
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
       <Kb.Box2 direction="horizontal" style={styles.smallContainer} fullWidth={true}>
@@ -71,7 +71,6 @@ const _TeamHeader = (props: SmallProps) => {
         <AddPeople
           isAdmin={props.admin}
           isGeneralChannel={isGeneralChannel}
-          teamname={props.teamname}
           conversationIDKey={props.conversationIDKey}
         />
       )}

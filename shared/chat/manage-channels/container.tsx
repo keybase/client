@@ -26,14 +26,14 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     yourOperations.editChannelDescription || yourOperations.renameChannel || yourOperations.deleteChannel
   const canCreateChannels = yourOperations.createChannel
 
-  const generalCh = channelInfos.find(i => i.channelname === 'general')
+  const generalCh = [...channelInfos.values()].find(i => i.channelname === 'general')
   const teamSize = generalCh ? generalCh.numParticipants : 0
 
   const searchText = state.chat2.channelSearchText
   const isFiltered = !!searchText
 
-  const channels = channelInfos
-    .map((info, convID) => ({
+  const channels = [...channelInfos.entries()]
+    .map(([convID, info]) => ({
       convID,
       description: info.description,
       hasAllMembers: info.numParticipants === teamSize,
@@ -52,8 +52,6 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
         conv.name.match(makeInsertMatcher(searchText)) || conv.description.match(new RegExp(searchText, 'i'))
       )
     })
-    .valueSeq()
-    .toArray()
     .sort((a, b) => a.name.localeCompare(b.name))
 
   const selectedChatID = state.chat2.selectedConversation

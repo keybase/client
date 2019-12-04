@@ -17,7 +17,7 @@ export type OwnProps = {
 export default Container.connect(
   (state, {teamID}: OwnProps) => {
     const yourOperations = Constants.getCanPerformByID(state, teamID)
-    const {teamname} = Constants.getTeamDetails(state, teamID)
+    const {teamname, isOpen, memberCount} = Constants.getTeamDetails(state, teamID)
     return {
       _canRenameTeam: yourOperations.renameTeam,
       _you: state.config.username,
@@ -26,18 +26,18 @@ export default Container.connect(
       canJoinTeam: yourOperations.joinTeam,
       canManageMembers: yourOperations.manageMembers,
       description: Constants.getTeamPublicitySettings(state, teamname).description,
-      memberCount: Constants.getTeamMemberCount(state, teamname),
-      openTeam: Constants.getTeamSettings(state, teamname).open,
-      role: Constants.getRole(state, teamname),
+      memberCount,
+      openTeam: isOpen,
+      role: Constants.getRole(state, teamID),
       teamname,
     }
   },
-  dispatch => ({
-    _onAddSelf: (you: string | null, teamname: string) => {
+  (dispatch, {teamID}: OwnProps) => ({
+    _onAddSelf: (you: string | null) => {
       if (!you) {
         return
       }
-      dispatch(appendNewTeamBuilder(teamname))
+      dispatch(appendNewTeamBuilder(teamID))
       dispatch(createAddUsersToTeamSoFar({namespace: 'teams', users: [selfToUser(you)]}))
     },
     _onChat: (teamname: string) =>
@@ -64,7 +64,7 @@ export default Container.connect(
     description: stateProps.description,
     loading: false,
     memberCount: stateProps.memberCount,
-    onAddSelf: () => dispatchProps._onAddSelf(stateProps._you, stateProps.teamname),
+    onAddSelf: () => dispatchProps._onAddSelf(stateProps._you),
     onChat: () => dispatchProps._onChat(stateProps.teamname),
     onEditDescription: () => dispatchProps._onEditDescription(stateProps.teamname),
     onEditIcon: (image?: ImagePicker.ImagePickerResult) =>

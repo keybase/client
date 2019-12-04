@@ -10,7 +10,6 @@ import {TypedState} from '../util/container'
 import {isLinux, isMobile} from './platform'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import {TypedActions} from '../actions/typed-actions-gen'
-import flags from '../util/feature-flags'
 
 export const syncToggleWaitingKey = 'fs:syncToggle'
 export const folderListWaitingKey = 'fs:folderList'
@@ -570,7 +569,6 @@ export const isOfflineUnsynced = (
   pathItem: Types.PathItem,
   path: Types.Path
 ) =>
-  flags.kbfsOfflineMode &&
   daemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Offline &&
   Types.getPathLevel(path) > 2 &&
   pathItem.prefetchStatus !== prefetchComplete
@@ -913,14 +911,17 @@ export const makeActionsForShowSendAttachmentToChat = (path: Types.Path): Array<
 export const getMainBannerType = (
   kbfsDaemonStatus: Types.KbfsDaemonStatus,
   overallSyncStatus: Types.OverallSyncStatus
-): Types.MainBannerType =>
-  kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Offline
-    ? flags.kbfsOfflineMode
-      ? Types.MainBannerType.Offline
-      : Types.MainBannerType.None
-    : overallSyncStatus.diskSpaceStatus === 'error'
-    ? Types.MainBannerType.OutOfSpace
-    : Types.MainBannerType.None
+): Types.MainBannerType => {
+  if (kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Offline) {
+    return Types.MainBannerType.Offline
+  } else if (kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Trying) {
+    return Types.MainBannerType.TryingToConnect
+  } else if (overallSyncStatus.diskSpaceStatus === 'error') {
+    return Types.MainBannerType.OutOfSpace
+  } else {
+    return Types.MainBannerType.None
+  }
+}
 
 export const isFolder = (path: Types.Path, pathItem: Types.PathItem) =>
   Types.getPathLevel(path) <= 3 || pathItem.type === Types.PathType.Folder

@@ -277,6 +277,13 @@
     MessageID maxMsgid; // The max message ID in the convo
     ConversationMemberStatus status; // The status of the membership to the convo
     keybase1.TeamRole untrustedTeamRole; // gregor's view of your role in the team. This value is purely server trust, use with caution.
+    @mpackkey("jc") @jsonkey("jc")
+    union { null, ConversationJourneycardInfo } journeycard;
+  }
+
+  record ConversationJourneycardInfo {
+    @mpackkey("w") @jsonkey("w")
+    boolean welcomeEligible; // whether showing a "welcome" card is allowed
   }
 
   record ConversationCreatorInfo {

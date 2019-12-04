@@ -14,7 +14,7 @@ type OwnProps = {
   username: string
 }
 
-const blankInfo = Constants.makeMemberInfo()
+const blankInfo = Constants.initialMemberInfo
 
 const mapStateToProps = (state, {teamID, username}: OwnProps) => {
   const teamDetails = Constants.getTeamDetails(state, teamID)
@@ -28,7 +28,7 @@ const mapStateToProps = (state, {teamID, username}: OwnProps) => {
     status: info.status,
     teamname,
     username: info.username,
-    waitingForAdd: anyWaiting(state, Constants.addMemberWaitingKey(teamname, username)),
+    waitingForAdd: anyWaiting(state, Constants.addMemberWaitingKey(teamID, username)),
     waitingForRemove: anyWaiting(state, Constants.removeMemberWaitingKey(teamname, username)),
     you: state.config.username,
     youCanManageMembers: Constants.getCanPerform(state, teamname).manageMembers,
@@ -44,10 +44,10 @@ type DispatchProps = {
 }
 
 const mapDispatchToProps = (dispatch, ownProps: OwnProps): DispatchProps => ({
-  _onReAddToTeam: (teamname: string, username: string) => {
+  _onReAddToTeam: (teamID: Types.TeamID, username: string) => {
     dispatch(
       TeamsGen.createReAddToTeam({
-        teamname,
+        teamID,
         username,
       })
     )
@@ -76,7 +76,7 @@ const mergeProps = (stateProps, dispatchProps: DispatchProps, ownProps: OwnProps
     fullName: stateProps.fullName,
     onChat: dispatchProps.onChat,
     onClick: dispatchProps.onClick,
-    onReAddToTeam: () => dispatchProps._onReAddToTeam(stateProps.teamname, ownProps.username),
+    onReAddToTeam: () => dispatchProps._onReAddToTeam(ownProps.teamID, ownProps.username),
     onRemoveFromTeam: () => dispatchProps._onRemoveFromTeam(stateProps.teamname, ownProps.username),
     onShowTracker: () => dispatchProps._onShowTracker(ownProps.username),
     roleType: stateProps.roleType,

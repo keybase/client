@@ -5,7 +5,6 @@ import * as Kb from '../../common-adapters'
 import * as Kbfs from '../common'
 import * as Styles from '../../styles'
 import {memoize} from '../../util/memoize'
-import flags from '../../util/feature-flags'
 
 type Props = {
   path: Types.Path
@@ -93,7 +92,7 @@ const MaybePublicTag = ({path}: {path: Types.Path}) =>
 
 const MainTitle = (props: Props) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="tiny">
-    {flags.kbfsOfflineMode && <Kbfs.PathStatusIcon path={props.path} />}
+    <Kbfs.PathStatusIcon path={props.path} />
     <Kbfs.Filename path={props.path} selectable={true} style={styles.mainTitleText} type="Header" />
     <MaybePublicTag path={props.path} />
   </Kb.Box2>

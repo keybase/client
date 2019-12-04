@@ -303,7 +303,7 @@ export class Settings extends React.Component<Props, State> {
           alignSelf: 'stretch',
           flexBasis: 0,
           flexGrow: 1,
-          padding: globalMargins.medium,
+          padding: globalMargins.small,
         }}
       >
         <SetMemberShowcase {...this.props} {...this.state} setBoolSettings={this.setBoolSettings} />

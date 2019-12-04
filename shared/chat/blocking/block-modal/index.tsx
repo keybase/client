@@ -77,6 +77,7 @@ type ReportOptionsProps = {
 }
 const reasons = ["I don't know this person", 'Spam', 'Harassment', 'Obscene material', 'Other...']
 const ReportOptions = (props: ReportOptionsProps) => {
+  const {showIncludeTranscript} = props
   return (
     <>
       {reasons.map(reason => (
@@ -91,7 +92,7 @@ const ReportOptions = (props: ReportOptionsProps) => {
       <Kb.Box
         style={Styles.collapseStyles([
           styles.feedback,
-          !props.showIncludeTranscript && styles.feedbackPaddingBottom,
+          !showIncludeTranscript && styles.feedbackPaddingBottom,
         ])}
       >
         <Kb.NewInput
@@ -101,7 +102,7 @@ const ReportOptions = (props: ReportOptionsProps) => {
           value={props.extraNotes}
         />
       </Kb.Box>
-      {props.showIncludeTranscript && (
+      {showIncludeTranscript && (
         <CheckboxRow
           text="Include the transcript of this chat"
           onCheck={props.setIncludeTranscript}

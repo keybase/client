@@ -12,12 +12,13 @@ type OwnProps = {
 }
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
-  const {teamID, teamname} = Constants.getMeta(state, ownProps.message.conversationIDKey)
+  const {teamID, teamname, teamType} = Constants.getMeta(state, ownProps.message.conversationIDKey)
   return {
     addee: ownProps.message.addee,
     adder: ownProps.message.adder,
     bulkAdds: ownProps.message.bulkAdds,
-    isAdmin: TeamConstants.isAdmin(TeamConstants.getRole(state, teamname)),
+    isAdmin: TeamConstants.isAdmin(TeamConstants.getRole(state, teamID)),
+    isTeam: teamType === 'big' || teamType === 'small',
     role: ownProps.message.role,
     teamID,
     teamname,
@@ -55,6 +56,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   adder: stateProps.adder,
   bulkAdds: stateProps.bulkAdds,
   isAdmin: stateProps.isAdmin,
+  isTeam: stateProps.isTeam,
   onManageChannels: () => dispatchProps._onManageChannels(stateProps.teamname),
   onManageNotifications: () => dispatchProps._onManageNotifications(ownProps.message.conversationIDKey),
   onViewTeam: () => dispatchProps._onViewTeam(stateProps.teamID, ownProps.message.conversationIDKey),

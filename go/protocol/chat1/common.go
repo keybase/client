@@ -952,11 +952,12 @@ func (o ConversationNotificationInfo) DeepCopy() ConversationNotificationInfo {
 }
 
 type ConversationReaderInfo struct {
-	Mtime             gregor1.Time             `codec:"mtime" json:"mtime"`
-	ReadMsgid         MessageID                `codec:"readMsgid" json:"readMsgid"`
-	MaxMsgid          MessageID                `codec:"maxMsgid" json:"maxMsgid"`
-	Status            ConversationMemberStatus `codec:"status" json:"status"`
-	UntrustedTeamRole keybase1.TeamRole        `codec:"untrustedTeamRole" json:"untrustedTeamRole"`
+	Mtime             gregor1.Time                 `codec:"mtime" json:"mtime"`
+	ReadMsgid         MessageID                    `codec:"readMsgid" json:"readMsgid"`
+	MaxMsgid          MessageID                    `codec:"maxMsgid" json:"maxMsgid"`
+	Status            ConversationMemberStatus     `codec:"status" json:"status"`
+	UntrustedTeamRole keybase1.TeamRole            `codec:"untrustedTeamRole" json:"untrustedTeamRole"`
+	Journeycard       *ConversationJourneycardInfo `codec:"jc,omitempty" json:"jc,omitempty"`
 }
 
 func (o ConversationReaderInfo) DeepCopy() ConversationReaderInfo {
@@ -966,6 +967,23 @@ func (o ConversationReaderInfo) DeepCopy() ConversationReaderInfo {
 		MaxMsgid:          o.MaxMsgid.DeepCopy(),
 		Status:            o.Status.DeepCopy(),
 		UntrustedTeamRole: o.UntrustedTeamRole.DeepCopy(),
+		Journeycard: (func(x *ConversationJourneycardInfo) *ConversationJourneycardInfo {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Journeycard),
+	}
+}
+
+type ConversationJourneycardInfo struct {
+	WelcomeEligible bool `codec:"w" json:"w"`
+}
+
+func (o ConversationJourneycardInfo) DeepCopy() ConversationJourneycardInfo {
+	return ConversationJourneycardInfo{
+		WelcomeEligible: o.WelcomeEligible,
 	}
 }
 

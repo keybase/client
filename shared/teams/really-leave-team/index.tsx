@@ -9,6 +9,7 @@ import {
   MaybePopup,
   ProgressIndicator,
 } from '../../common-adapters'
+import {useTeamsSubscribe} from '../../teams/subscriber'
 import {globalStyles, globalMargins} from '../../styles'
 
 export type Props = {
@@ -40,6 +41,7 @@ const Header = (props: Props) => (
 const _ReallyLeaveTeam = (props: Props) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   React.useEffect(() => () => props.clearErrors(), [])
+  useTeamsSubscribe()
   return (
     <ConfirmModal
       error={props.error}

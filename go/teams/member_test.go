@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func memberSetup(t *testing.T) (libkb.TestContext, *kbtest.FakeUser, string) {
+func memberSetupWithID(t *testing.T) (libkb.TestContext, *kbtest.FakeUser, string, keybase1.TeamID) {
 	tc := SetupTest(t, "team", 1)
 
 	u, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
@@ -24,10 +24,15 @@ func memberSetup(t *testing.T) (libkb.TestContext, *kbtest.FakeUser, string) {
 		t.Fatal(err)
 	}
 
-	name := createTeam(tc)
+	name, ID := createTeam2(tc)
 
 	t.Logf("User name is: %s", u.Username)
 	t.Logf("Team name is: %s", name)
+	return tc, u, name.String(), ID
+}
+
+func memberSetup(t *testing.T) (libkb.TestContext, *kbtest.FakeUser, string) {
+	tc, u, name, _ := memberSetupWithID(t)
 	return tc, u, name
 }
 
@@ -638,23 +643,23 @@ func TestMemberDetailsResetAndDeletedUser(t *testing.T) {
 }
 
 func TestMemberAddEmail(t *testing.T) {
-	tc, _, name := memberSetup(t)
+	tc, _, name, teamID := memberSetupWithID(t)
 	defer tc.Cleanup()
 
 	address := "noone@keybase.io"
 
-	if err := InviteEmailMember(context.TODO(), tc.G, name, address, keybase1.TeamRole_OWNER); err == nil {
+	if err := InviteEmailMember(context.TODO(), tc.G, teamID, address, keybase1.TeamRole_OWNER); err == nil {
 		t.Fatal("should not be able to invite an owner over email")
 	}
 
-	if err := InviteEmailMember(context.TODO(), tc.G, name, address, keybase1.TeamRole_READER); err != nil {
+	if err := InviteEmailMember(context.TODO(), tc.G, teamID, address, keybase1.TeamRole_READER); err != nil {
 		t.Fatal(err)
 	}
 
 	assertInvite(tc, name, address, "email", keybase1.TeamRole_READER)
 
 	// second InviteEmailMember should return err
-	if err := InviteEmailMember(context.TODO(), tc.G, name, address, keybase1.TeamRole_WRITER); err == nil {
+	if err := InviteEmailMember(context.TODO(), tc.G, teamID, address, keybase1.TeamRole_WRITER); err == nil {
 		t.Errorf("second InviteEmailMember succeeded, should have failed since user already invited")
 	}
 
@@ -1203,14 +1208,14 @@ func TestMemberCancelInviteSocial(t *testing.T) {
 }
 
 func TestMemberCancelInviteEmail(t *testing.T) {
-	tc, _, name := memberSetup(t)
+	tc, _, name, teamID := memberSetupWithID(t)
 	defer tc.Cleanup()
 
 	tc.G.SetProofServices(externals.NewProofServices(tc.G))
 
 	address := "noone@keybase.io"
 
-	if err := InviteEmailMember(context.TODO(), tc.G, name, address, keybase1.TeamRole_READER); err != nil {
+	if err := InviteEmailMember(context.TODO(), tc.G, teamID, address, keybase1.TeamRole_READER); err != nil {
 		t.Fatal(err)
 	}
 	assertInvite(tc, name, address, "email", keybase1.TeamRole_READER)
@@ -1467,7 +1472,8 @@ func TestFollowResetAdd(t *testing.T) {
 
 	alice, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
 	require.NoError(t, err)
-	team := createTeam(tc)
+	teamName, teamID := createTeam2(tc)
+	team := teamName.String()
 	t.Logf("Created team %q", team)
 	err = tc.Logout()
 	require.NoError(t, err)
@@ -1516,7 +1522,7 @@ func TestFollowResetAdd(t *testing.T) {
 	require.True(t, libkb.IsIdentifyProofError(err))
 
 	// AddMembers also fails
-	_, err = AddMembers(context.TODO(), tc.G, team, []keybase1.UserRolePair{{AssertionOrEmail: bob.Username, Role: keybase1.TeamRole_ADMIN}})
+	_, err = AddMembers(context.TODO(), tc.G, teamID, []keybase1.UserRolePair{{AssertionOrEmail: bob.Username, Role: keybase1.TeamRole_ADMIN}})
 	require.Error(t, err)
 	amerr, ok := err.(AddMembersError)
 	require.True(t, ok)
