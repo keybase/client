@@ -481,14 +481,14 @@ func BackgroundSync() {
 }
 
 // pushPendingMessageFailure sends at most one notification that a message
-// failed to send. We don't notify the user about background failures like
-// unfurling.
+// failed to send. We only notify the user about visible messages that have
+// failed.
 func pushPendingMessageFailure(obrs []chat1.OutboxRecord, pusher PushNotifier) {
 	for _, obr := range obrs {
-		if !obr.IsUnfurl() {
+		if topicType := obr.Msg.ClientHeader.Conv.TopicType; obr.Msg.IsBadgableType() && topicType == chat1.TopicType_CHAT {
 			kbCtx.Log.Debug("pushPendingMessageFailure: pushing convID: %s", obr.ConvID)
 			pusher.LocalNotification("failedpending",
-				"Heads up! One or more pending messages failed to send. Tap here to retry them.",
+				"Heads up! Your message hasn't sent yet, tap here to retry.",
 				-1, "default", obr.ConvID.String(), "chat.failedpending")
 			return
 		}
