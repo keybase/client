@@ -76,6 +76,7 @@ const ConnectedInfoPanel = Container.connect(
       _infoMap: state.users.infoMap,
       _participantToContactName: meta.participantToContactName,
       _participants: meta.participants,
+      _team: meta.teamname,
       _teamMembers,
       admin,
       attachmentsLoading,
@@ -114,6 +115,18 @@ const ConnectedInfoPanel = Container.connect(
       dispatch(Chat2Gen.createLoadAttachmentView({conversationIDKey, fromMsgID, viewType})),
     _onMediaClick: (message: Types.MessageAttachment) =>
       dispatch(Chat2Gen.createAttachmentPreviewSelect({message})),
+    _onShowBlockConversationDialog: (others: Array<string>, team: string) => {
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [
+            {
+              props: {blockByDefault: true, convID: conversationIDKey, others, team},
+              selected: 'chatBlockingModal',
+            },
+          ],
+        })
+      )
+    },
     _onShowClearConversationDialog: () => {
       dispatch(Chat2Gen.createNavigateToThread())
       dispatch(
@@ -144,18 +157,6 @@ const ConnectedInfoPanel = Container.connect(
     onHideConv: () => dispatch(Chat2Gen.createHideConversation({conversationIDKey})),
     onJoinChannel: () => dispatch(Chat2Gen.createJoinConversation({conversationIDKey})),
     onLeaveConversation: () => dispatch(Chat2Gen.createLeaveConversation({conversationIDKey})),
-    onShowBlockConversationDialog: () => {
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [
-            {
-              props: {conversationIDKey},
-              selected: 'chatShowBlockConversationDialog',
-            },
-          ],
-        })
-      )
-    },
     onShowNewTeamDialog: () => {
       dispatch(
         RouteTreeGen.createNavigateAppend({
@@ -297,7 +298,11 @@ const ConnectedInfoPanel = Container.connect(
       onJoinChannel: dispatchProps.onJoinChannel,
       onLeaveConversation: dispatchProps.onLeaveConversation,
       onSelectTab: ownProps.onSelectTab,
-      onShowBlockConversationDialog: dispatchProps.onShowBlockConversationDialog,
+      onShowBlockConversationDialog: () =>
+        dispatchProps._onShowBlockConversationDialog(
+          stateProps._teamMembers ?? stateProps._participants,
+          stateProps._team
+        ),
       onShowClearConversationDialog: () => dispatchProps._onShowClearConversationDialog(),
       onShowNewTeamDialog: dispatchProps.onShowNewTeamDialog,
       onShowProfile: dispatchProps.onShowProfile,

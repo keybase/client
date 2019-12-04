@@ -82,10 +82,6 @@ export const newModalRoutes = {
   chatPaymentsConfirm: {
     getScreen: (): typeof ChatPaymentsConfirm => require('./payments/confirm/container').default,
   },
-  chatShowBlockConversationDialog: {
-    getScreen: (): typeof ChatShowBlockConversationDialog =>
-      require('./conversation/block-conversation-warning/container').default,
-  },
   // TODO connect broken
   chatShowNewTeamDialog: {
     getScreen: (): typeof ChatShowNewTeamDialog => require('./new-team-dialog-container').default,
