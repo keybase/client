@@ -6,6 +6,8 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import lagRadar from 'lag-radar'
 import flags from '../../util/feature-flags'
 
+import * as CSS from '../../styles/css'
+
 type ProcessProps = {
   cpu: string
   cpuSeverity: RPCTypes.StatsSeverityLevel
@@ -275,10 +277,46 @@ const RuntimeStatsMobile = (props: Props) => {
 
 const RuntimeStats = Styles.isMobile ? RuntimeStatsMobile : RuntimeStatsDesktop
 
+// const TEMP = Styles.platformStyles({
+// common: {
+// backgroundColor: Styles.globalColors.blackOrBlack,
+// foo: 'bar',
+// } as const,
+// isElectron: {
+// overflow: 'auto',
+// padding: Styles.globalMargins.tiny,
+// position: 'relative',
+// } as const,
+// isMobile: {
+// bottom: isIPhoneX ? 15 : 0,
+// position: 'absolute',
+// right: isIPhoneX ? 10 : 0,
+// } as const,
+// })
+// export type OmitByValue<T, ValueType> = Pick<
+// T,
+// {[Key in keyof T]-?: T[Key] extends ValueType ? never : Key}[keyof T]
+// >
+
+// type CCC = typeof TEMP.backgroundColor
+// type AA = typeof TEMP
+// type BG = AA['backgroundColor']
+// type BGGOOD = CSS._StylesCrossPlatform['backgroundColor']
+// type AAA = OmitByValue<AA, never>
+// type BB = {
+// [k in keyof AAA]: k extends keyof CSS._StylesCrossPlatform
+// ? AAA[k] extends CSS._StylesCrossPlatform[k]
+// ? 'yes'
+// : 'no bad value'
+// : 'no bad key'
+// }
+// const s: CSS._StylesCrossPlatform = TEMP
+
 const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.blackOrBlack,
+      foo: 'bar',
     },
     isElectron: {
       overflow: 'auto',

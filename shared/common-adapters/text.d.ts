@@ -42,7 +42,7 @@ export type AllowedColors = Values<
   >
 >
 
-export type StylesTextCrossPlatform = StylesCrossPlatform & {color?: AllowedColors}
+export type StylesTextCrossPlatform = Omit<StylesCrossPlatform, 'color'> & {color?: AllowedColors}
 
 type Props = {
   allowFontScaling?: boolean

@@ -2,7 +2,7 @@
 import * as CSS from './css'
 export {default as globalColors} from './colors'
 
-export declare const transition: (...properties: Array<string>) => Object
+export declare const transition: (...properties: Array<string>) => any
 
 type _fakeFontDefSeeCommentsOnThisStyle = {
   fontFamily: 'Keybase'
@@ -86,9 +86,9 @@ export declare const borderRadius: number
 export declare const hairlineWidth: number
 export declare function backgroundURL(...path: Array<string>): string
 
-type NamedStyles<T> = {[P in keyof T]: CSS._StylesDesktop | CSS._StylesMobile}
+type NamedStyles = {[key: string]: CSS._StylesCrossPlatform}
 // order important!
-export declare function styleSheetCreate<T extends () => NamedStyles<T>>(styles: T): ReturnType<T>
+export declare function styleSheetCreate<O extends NamedStyles>(styles: () => O): O
 
 type _Elem = Object | null | false | void
 // CollapsibleStyle is a generic version of ?StylesMobile and family,
