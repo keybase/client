@@ -3499,8 +3499,11 @@ func (b UserBlockedBody) Summarize() UserBlockedSummary {
 		Blocker: b.Username,
 	}
 	for _, block := range b.Blocks {
-		if (block.Chat != nil && *block.Chat) || (block.Follow != nil && *block.Follow) {
-			ret.Blocked = append(ret.Blocked, block.Username)
+		if block.Chat != nil && *block.Chat {
+			ret.ChatBlocked = append(ret.ChatBlocked, block.Username)
+		}
+		if block.Follow != nil && *block.Follow {
+			ret.FollowBlocked = append(ret.FollowBlocked, block.Username)
 		}
 	}
 	return ret
