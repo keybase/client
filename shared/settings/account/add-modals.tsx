@@ -119,7 +119,7 @@ export const Phone = () => {
   const [searchable, onChangeSearchable] = React.useState(true)
   const disabled = !valid
 
-  const defaultCountry = Container.useSelector(state => state.settings.defaultPhoneNumberCountry)
+  const defaultCountry = Container.useSelector(state => state.settings.phoneNumbers.defaultCountry)
 
   const error = Container.useSelector(state => state.settings.phoneNumbers.error)
   const pendingVerification = Container.useSelector(state => state.settings.phoneNumbers.pendingVerification)

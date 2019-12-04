@@ -42,7 +42,7 @@ class WatchForGoToVerify extends React.Component<WatcherProps> {
 
 const ConnectedEnterPhoneNumber = Container.namedConnect(
   state => ({
-    defaultCountry: state.settings.defaultPhoneNumberCountry,
+    defaultCountry: state.settings.phoneNumbers.defaultCountry,
     error: state.settings.phoneNumbers.error,
     pendingVerification: state.settings.phoneNumbers.pendingVerification,
     waiting: anyWaiting(state, SettingsConstants.addPhoneNumberWaitingKey),
