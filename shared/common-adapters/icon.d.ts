@@ -10,7 +10,8 @@ export type DisallowedStyles = {
   hoverColor?: never
   fontSize?: never
 }
-export type IconStyle = StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>
+export type IconStyle = Omit<StylesCrossPlatform, 'color' | 'hoverColor' | 'fontSize'>
+//StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>
 
 export type Props = {
   type: IconType

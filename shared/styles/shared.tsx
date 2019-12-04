@@ -79,20 +79,46 @@ const unifyStyles = (s: any) => ({
     : {}),
 })
 
-export const platformStyles = (options: {
-  common?: _StylesCrossPlatform
-  isIOS?: _StylesMobile
-  isAndroid?: _StylesMobile
-  isMobile?: _StylesMobile
-  isElectron?: _StylesDesktop
-  // TODO any for now, but we need the types to be handled differently
-}): any => ({
-  ...(options.common ? unifyStyles(options.common) : {}),
-  ...(isMobile && options.isMobile ? options.isMobile : {}),
-  ...(isIOS && options.isIOS ? options.isIOS : {}),
-  ...(isAndroid && options.isAndroid ? options.isAndroid : {}),
-  ...(isElectron && options.isElectron ? unifyStyles(options.isElectron) : {}),
-})
+type FromStylesCrossPlatform<T> = {
+  [P in keyof T]: P extends keyof _StylesCrossPlatform ? Pick<_StylesCrossPlatform, P> : never
+}
+
+// export function platformStyles<
+// C extends _StylesCrossPlatform,
+// I extends _StylesMobile,
+// A extends _StylesMobile,
+// M extends _StylesMobile,
+// E extends _StylesDesktop
+// >(options: {
+// common?: C
+// isIOS?: I
+// isAndroid?: A
+// isMobile?: M
+// isElectron?: E
+// }): FromStylesCrossPlatform<C & I & A & M & E> {
+// return {
+// ...(options.common ? unifyStyles(options.common) : {}),
+// ...(isMobile && options.isMobile ? options.isMobile : {}),
+// ...(isIOS && options.isIOS ? options.isIOS : {}),
+// ...(isAndroid && options.isAndroid ? options.isAndroid : {}),
+// ...(isElectron && options.isElectron ? unifyStyles(options.isElectron) : {}),
+// }
+// }
+export function platformStyles<C, I, A, M, E>(options: {
+  common?: C
+  isIOS?: I
+  isAndroid?: A
+  isMobile?: M
+  isElectron?: E
+}): FromStylesCrossPlatform<C & I & A & M & E> {
+  return {
+    ...(options.common ? unifyStyles(options.common) : {}),
+    ...(isMobile && options.isMobile ? options.isMobile : {}),
+    ...(isIOS && options.isIOS ? options.isIOS : {}),
+    ...(isAndroid && options.isAndroid ? options.isAndroid : {}),
+    ...(isElectron && options.isElectron ? unifyStyles(options.isElectron) : {}),
+  }
+}
 
 /* eslint-disable sort-keys */
 export const padding = (top: number, right?: number, bottom?: number, left?: number) => ({
