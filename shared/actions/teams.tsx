@@ -746,9 +746,15 @@ const getChannels = async (_: TypedState, action: TeamsGen.GetChannelsPayload) =
 
 function* getTeams(
   state: TypedState,
-  action: ConfigGen.StartupFirstIdlePayload | TeamsGen.GetTeamsPayload | TeamsGen.LeftTeamPayload,
+  action: ConfigGen.LoggedInPayload | TeamsGen.GetTeamsPayload | TeamsGen.LeftTeamPayload,
   logger: Saga.SagaLogger
 ) {
+  if (action.type === ConfigGen.loggedIn) {
+    // Not critical to load this immediately, wait
+    yield Saga.delay(2000)
+    yield Saga.put(TeamsGen.createGetTeams())
+    return
+  }
   const username = state.config.username
   if (!username) {
     logger.warn('getTeams while logged out')
@@ -1420,9 +1426,11 @@ const teamsSaga = function*() {
   )
   yield* Saga.chainAction2(TeamsGen.getChannelInfo, getChannelInfo, 'getChannelInfo')
   yield* Saga.chainAction2(TeamsGen.getChannels, getChannels, 'getChannels')
-  yield* Saga.chainGenerator<
-    ConfigGen.StartupFirstIdlePayload | TeamsGen.GetTeamsPayload | TeamsGen.LeftTeamPayload
-  >([ConfigGen.startupFirstIdle, TeamsGen.getTeams, TeamsGen.leftTeam], getTeams, 'getTeams')
+  yield* Saga.chainGenerator<ConfigGen.LoggedInPayload | TeamsGen.GetTeamsPayload | TeamsGen.LeftTeamPayload>(
+    [ConfigGen.loggedIn, TeamsGen.getTeams, TeamsGen.leftTeam],
+    getTeams,
+    'getTeams'
+  )
   yield* Saga.chainGenerator<TeamsGen.SaveChannelMembershipPayload>(
     TeamsGen.saveChannelMembership,
     saveChannelMembership,
