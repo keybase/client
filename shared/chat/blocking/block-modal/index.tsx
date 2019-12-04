@@ -59,7 +59,9 @@ const CheckboxRow = (props: CheckboxRowProps) => {
         />
         <Kb.Box style={styles.iconBox} />
         {props.info && !infoShowing && (
-          <Kb.Icon type="iconfont-question-mark" color="grey" onClick={() => setInfoShowing(true)} />
+          <Kb.WithTooltip tooltip={props.info}>
+            <Kb.Icon type="iconfont-question-mark" color="grey" onClick={() => setInfoShowing(true)} />
+          </Kb.WithTooltip>
         )}
       </Kb.Box2>
     </>
