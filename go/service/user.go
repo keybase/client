@@ -4,7 +4,6 @@
 package service
 
 import (
-	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -745,40 +744,6 @@ func (h *UserHandler) GetUserBlocks(ctx context.Context, arg keybase1.GetUserBlo
 	}
 
 	return res, nil
-}
-
-func (h *UserHandler) ReportUser(ctx context.Context, arg keybase1.ReportUserArg) (err error) {
-	mctx := libkb.NewMetaContext(ctx, h.G())
-	convIDStr := "nil"
-	if arg.ConvID != nil {
-		convIDStr = *arg.ConvID
-	}
-	defer mctx.TraceTimed(fmt.Sprintf(
-		"UserHandler#ReportUser(username=%q,transcript=%t,convId=%s)",
-		arg.Username, arg.IncludeTranscript, convIDStr),
-		func() error { return err })()
-
-	if arg.IncludeTranscript {
-		if arg.ConvID == nil {
-			return errors.New("invalid arguments: IncludeTranscript is true but ConvID == nil")
-		}
-		mctx.Debug("Ignoring IncludeTranscript - not implemented")
-	}
-	postArgs := libkb.HTTPArgs{
-		"username": libkb.S{Val: arg.Username},
-		"reason":   libkb.S{Val: arg.Reason},
-		"comment":  libkb.S{Val: arg.Comment},
-	}
-	if arg.ConvID != nil {
-		postArgs["conv_id"] = libkb.S{Val: *arg.ConvID}
-	}
-	apiArg := libkb.APIArg{
-		Endpoint:    "report/conversation",
-		SessionType: libkb.APISessionTypeREQUIRED,
-		Args:        postArgs,
-	}
-	_, err = mctx.G().API.Post(mctx, apiArg)
-	return err
 }
 
 // Legacy RPC and API:
