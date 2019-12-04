@@ -80,7 +80,7 @@ const GitPushDefault = (props: PushDefaultProps) => {
                 </Kb.Text>
               </Kb.Box2>
               <Kb.Box2 direction="vertical" style={styles.grow}>
-                <Kb.Text type="BodySmall" selectable={true} style={styles.textLeft} lineClamp={1}>
+                <Kb.Text type="BodySmall" selectable={true} style={styles.commitMessage} lineClamp={1}>
                   {commit.message}
                 </Kb.Text>
               </Kb.Box2>
@@ -160,6 +160,17 @@ const styles = Styles.styleSheetCreate(
           lineHeight: 16,
         },
       }),
+      commitMessage: Styles.platformStyles({
+        common: {
+          textAlign: 'left',
+        },
+        isElectron: {
+          height: 17, // lineHeight for BodySmall on desktop
+        },
+        isMobile: {
+          height: 19, // lineHeight for BodySmall on mobile
+        },
+      }),
       dot: {
         backgroundColor: Styles.globalColors.blueLighter_20,
         borderRadius: 3,
@@ -181,7 +192,6 @@ const styles = Styles.styleSheetCreate(
         minWidth: 0,
       },
       repoText: {color: Styles.globalColors.black_50},
-      textLeft: {textAlign: 'left'},
     } as const)
 )
 
