@@ -4,7 +4,7 @@ import * as Types from '../../constants/types/chat2'
 import * as Constants from '../../constants/chat2'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {isMobile} from '../../constants/platform'
-import ConversationList, {SmallTeamRowItem, BigTeamChannelRowItem} from './conversation-list'
+import ConversationList, {SmallTeamRowItem, BigTeamChannelRowItem, RowItem} from './conversation-list'
 import getFilteredRowsAndMetadata from '../inbox/container/filtered'
 
 type OwnProps = {
@@ -34,7 +34,7 @@ const boolToNumber = (b: boolean): number => (b ? 1 : 0)
 const staleToNumber = (convTime: number, staleCutoff: number) => (convTime < staleCutoff ? 1 : 0)
 
 const getAWeekAgo = () => {
-  let t = new Date()
+  const t = new Date()
   return t.setDate(t.getDate() - 7) // works fine for cross-boundary; returns a number
 }
 
@@ -79,37 +79,35 @@ const getSortedConversationIDKeys = memoize(
   }
 )
 
-const getRows = (stateProps, ownProps: OwnProps) => {
+const getRows = (metaMap: Types.MetaMap, username: string, ownProps: OwnProps) => {
   let selectedIndex: number | null = null
   const rows = ownProps.filter
-    ? getFilteredRowsAndMetadata(stateProps._metaMap, ownProps.filter, stateProps._username).rows.map(
-        (row, index) => {
-          // This should never happen to have empty conversationIDKey, but
-          // provide default to make flow happy
-          const conversationIDKey = row.conversationIDKey || Constants.noConversationIDKey
-          const common = {
-            conversationIDKey,
-            isSelected: conversationIDKey === ownProps.selected,
-            onSelectConversation: () => {
-              ownProps.onSelect(conversationIDKey)
-              ownProps.onDone && ownProps.onDone()
-            },
-          }
-          if (common.isSelected) {
-            selectedIndex = index
-          }
-          return row.type === 'big'
-            ? ({
-                ...common,
-                type: 'big',
-              } as BigTeamChannelRowItem)
-            : ({
-                ...common,
-                type: 'small',
-              } as SmallTeamRowItem)
+    ? getFilteredRowsAndMetadata(metaMap, ownProps.filter, username).rows.map((row, index) => {
+        // This should never happen to have empty conversationIDKey, but
+        // provide default to make flow happy
+        const conversationIDKey = row.conversationIDKey || Constants.noConversationIDKey
+        const common = {
+          conversationIDKey,
+          isSelected: conversationIDKey === ownProps.selected,
+          onSelectConversation: () => {
+            ownProps.onSelect(conversationIDKey)
+            ownProps.onDone && ownProps.onDone()
+          },
         }
-      )
-    : getSortedConversationIDKeys(stateProps._metaMap).map(({conversationIDKey, type}, index) => {
+        if (common.isSelected) {
+          selectedIndex = index
+        }
+        return row.type === 'big'
+          ? ({
+              ...common,
+              type: 'big',
+            } as BigTeamChannelRowItem)
+          : ({
+              ...common,
+              type: 'small',
+            } as SmallTeamRowItem)
+      })
+    : getSortedConversationIDKeys(metaMap).map(({conversationIDKey, type}, index) => {
         const common = {
           conversationIDKey,
           isSelected: conversationIDKey === ownProps.selected,
@@ -134,16 +132,7 @@ const getRows = (stateProps, ownProps: OwnProps) => {
   return {rows, selectedIndex}
 }
 
-const mapStateToProps = state => ({
-  _metaMap: state.chat2.metaMap,
-  _username: state.config.username,
-})
-
-const mapDispatchToProps = dispatch => ({
-  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-})
-
-const selectNext = (rows, current, delta) => {
+const selectNext = (rows: Array<RowItem>, current: null | number, delta: 1 | -1) => {
   if (!rows.length) {
     return null
   }
@@ -158,10 +147,15 @@ const selectNext = (rows, current, delta) => {
 }
 
 export default namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
+  state => ({
+    _metaMap: state.chat2.metaMap,
+    _username: state.config.username,
+  }),
+  dispatch => ({
+    onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+  }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
-    const {selectedIndex, rows} = getRows(stateProps, ownProps)
+    const {selectedIndex, rows} = getRows(stateProps._metaMap, stateProps._username, ownProps)
     return {
       filter: ownProps.onSetFilter && {
         filter: ownProps.filter || '',

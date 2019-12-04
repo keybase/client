@@ -3,13 +3,15 @@ import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as Kb from '../../../common-adapters/index'
 import * as Styles from '../../../styles'
 
+export type Info = {
+  type: 'image' | 'file'
+  title: string
+  filename: string
+  outboxID: RPCChatTypes.OutboxID | null
+}
+
 export type PathToInfo = {
-  [K in string]: {
-    type: 'image' | 'file'
-    title: string
-    filename: string
-    outboxID: RPCChatTypes.OutboxID
-  }
+  [K in string]: Info
 }
 
 type Props = {

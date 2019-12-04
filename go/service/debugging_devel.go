@@ -283,6 +283,11 @@ func (t *DebuggingHandler) Script(ctx context.Context, arg keybase1.ScriptArg) (
 		}
 		err = teams.ReAddMemberAfterReset(ctx, m.G(), teamID, "ireset1")
 		return "", err
+	case "journeycard":
+		log("journeycard-fastforward [days]")
+		log("journeycard-resetall")
+		log("journeycard-state <conv-id>")
+		return "", nil
 	case "journeycard-fastforward":
 		uidGregor := gregor1.UID(m.G().ActiveDevice.UID().ToBytes())
 		advance := 24 * time.Hour

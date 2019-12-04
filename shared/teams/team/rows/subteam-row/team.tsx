@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as Types from '../../../../constants/types/teams'
 import * as FsTypes from '../../../../constants/types/fs'
 import * as Constants from '../../../../constants/teams'
@@ -13,15 +12,14 @@ type OwnProps = {
 
 export default Container.connect(
   (state, {teamID}: OwnProps) => {
-    const {isMember, isOpen, teamname} = Constants.getTeamDetails(state, teamID)
+    const {isMember, isOpen, memberCount, teamname} = Constants.getTeamDetails(state, teamID)
     return {
       _isMember: isMember,
       _newTeamRequests: state.teams.newTeamRequests,
-      _teamNameToIsOpen: state.teams.teamNameToIsOpen || I.Map(),
       isOpen,
-      members: Constants.getTeamMemberCount(state, teamname),
+      members: memberCount,
       teamname,
-      yourRole: Constants.getRole(state, teamname),
+      yourRole: Constants.getRole(state, teamID),
     }
   },
   dispatch => ({

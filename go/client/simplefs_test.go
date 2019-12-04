@@ -267,10 +267,10 @@ func (s SimpleFSMock) SimpleFSSyncConfigAndStatus(
 	return keybase1.SyncConfigAndStatusRes{}, nil
 }
 
-// SimpleFSAreWeConnectedToMDServer implements the SimpleFSInterface.
-func (s SimpleFSMock) SimpleFSAreWeConnectedToMDServer(
-	_ context.Context) (bool, error) {
-	return true, nil
+// SimpleFSGetOnlineStatus implements the SimpleFSInterface.
+func (s SimpleFSMock) SimpleFSGetOnlineStatus(
+	_ context.Context) (keybase1.KbfsOnlineStatus, error) {
+	return keybase1.KbfsOnlineStatus_ONLINE, nil
 }
 
 // SimpleFSCheckReachability implements the SimpleFSInterface.

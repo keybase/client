@@ -19,15 +19,17 @@ const Connect = Container.connect(
     const teamname = Container.getRouteProps(ownProps, 'team', undefined)
     const waitingForLeave = teamname ? Container.anyWaiting(state, leaveTeamWaitingKey(teamname)) : false
     const waitingForBlocking = Container.anyWaiting(state, Constants.setUserBlocksWaitingKey)
+    const waitingForReport = Container.anyWaiting(state, Constants.reportUserWaitingKey)
+    const others = Container.getRouteProps(ownProps, 'others', undefined)
 
     return {
       _allKnownBlocks: state.users.blockMap,
       adderUsername: Container.getRouteProps(ownProps, 'username', ''),
       blockByDefault: Container.getRouteProps(ownProps, 'blockByDefault', false),
       convID: Container.getRouteProps(ownProps, 'convID', undefined),
-      finishWaiting: waitingForLeave || waitingForBlocking,
+      finishWaiting: waitingForLeave || waitingForBlocking || waitingForReport,
       loadingWaiting: Container.anyWaiting(state, Constants.getUserBlocksWaitingKey),
-      otherUsernames: Container.getRouteProps(ownProps, 'others', undefined),
+      otherUsernames: others && others.length > 0 ? others : undefined,
       teamname,
     }
   },
@@ -46,7 +48,7 @@ const Connect = Container.connect(
       dispatch(
         UsersGen.createReportUser({
           comment: report.extraNotes,
-          convID: (report.includeTranscript && convID) || null,
+          convID: convID || null,
           includeTranscript: report.includeTranscript,
           reason: report.reason,
           username: username,

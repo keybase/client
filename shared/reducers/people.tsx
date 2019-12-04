@@ -35,7 +35,7 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [SettingsGen.emailVerified]: draftState => {
     draftState.resentEmail = ''
   },
-  ...teamBuilderReducerCreator<Actions, Types.State>(
+  ...teamBuilderReducerCreator<Types.State>(
     (draftState: Container.Draft<Types.State>, action: TeamBuildingGen.Actions) => {
       const val = editTeambuildingDraft('people', draftState.teamBuilding, action)
       if (val !== undefined) {

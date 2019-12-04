@@ -10,7 +10,7 @@ import ConversationList, {RowItem} from './conversation-list'
 const id = Types.stringToConversationIDKey
 const s = Types.conversationIDKeyToString
 
-const selectableSmalls = {
+const selectableSmalls: {[key: string]: any} = {
   small1: {
     isLocked: false,
     isMuted: false,
@@ -37,7 +37,7 @@ const selectableSmalls = {
   },
 }
 
-const selectableBigs = {
+const selectableBigs: {[key: string]: any} = {
   bigA1: {channelname: 'samoyed', teamname: 'we_rate_dogs'},
   bigA2: {channelname: 'golden', teamname: 'we_rate_dogs'},
   bigA3: {channelname: 'husky', teamname: 'we_rate_dogs_and_we_have_loooooong_name'},

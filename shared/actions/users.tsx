@@ -61,7 +61,7 @@ const getBlockState = async (_: TypedState, action: UsersGen.GetBlockStatePayloa
 }
 
 const reportUser = async (_: TypedState, action: UsersGen.ReportUserPayload) => {
-  await RPCTypes.userReportUserRpcPromise(action.payload)
+  await RPCTypes.userReportUserRpcPromise(action.payload, Constants.reportUserWaitingKey)
 }
 
 function* usersSaga() {

@@ -26,3 +26,5 @@ export const makeState = (): Types.State => ({
 
 export const getUserBlocksWaitingKey = 'users:getUserBlocks'
 export const setUserBlocksWaitingKey = 'users:setUserBlocks'
+
+export const reportUserWaitingKey = 'users:reportUser'

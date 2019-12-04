@@ -125,6 +125,8 @@ type SimpleFS struct {
 
 	subscriber libkbfs.Subscriber
 
+	onlineStatusTracker libkbfs.OnlineStatusTracker
+
 	downloadManager *downloadManager
 
 	httpClient *http.Client
@@ -191,15 +193,16 @@ func newSimpleFS(appStateUpdater env.AppStateUpdater, config libkbfs.Config) *Si
 	k := &SimpleFS{
 		config: config,
 
-		handles:         map[keybase1.OpID]*handle{},
-		inProgress:      map[keybase1.OpID]*inprogress{},
-		log:             log,
-		vlog:            config.MakeVLogger(log),
-		newFS:           defaultNewFS,
-		idd:             libkbfs.NewImpatientDebugDumperForForcedDumps(config),
-		localHTTPServer: localHTTPServer,
-		subscriber:      config.SubscriptionManager().Subscriber(subscriptionNotifier{config}),
-		httpClient:      &http.Client{},
+		handles:             map[keybase1.OpID]*handle{},
+		inProgress:          map[keybase1.OpID]*inprogress{},
+		log:                 log,
+		vlog:                config.MakeVLogger(log),
+		newFS:               defaultNewFS,
+		idd:                 libkbfs.NewImpatientDebugDumperForForcedDumps(config),
+		localHTTPServer:     localHTTPServer,
+		subscriber:          config.SubscriptionManager().Subscriber(subscriptionNotifier{config}),
+		onlineStatusTracker: config.SubscriptionManager().OnlineStatusTracker(),
+		httpClient:          &http.Client{},
 	}
 	k.downloadManager = newDownloadManager(k)
 	return k
@@ -2776,10 +2779,9 @@ func (k *SimpleFS) SimpleFSForceStuckConflict(
 	return k.config.KBFSOps().ForceStuckConflictForTesting(ctx, tlfID)
 }
 
-// SimpleFSAreWeConnectedToMDServer implements the SimpleFSInterface.
-func (k *SimpleFS) SimpleFSAreWeConnectedToMDServer(ctx context.Context) (bool, error) {
-	serviceErrors, _ := k.config.KBFSOps().StatusOfServices()
-	return serviceErrors[libkbfs.MDServiceName] == nil, nil
+// SimpleFSGetOnlineStatus implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSGetOnlineStatus(ctx context.Context) (keybase1.KbfsOnlineStatus, error) {
+	return k.onlineStatusTracker.GetOnlineStatus(), nil
 }
 
 // SimpleFSCheckReachability implements the SimpleFSInterface.

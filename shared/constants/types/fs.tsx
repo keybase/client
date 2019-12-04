@@ -2,9 +2,6 @@ import * as RPCTypes from './rpc-gen'
 import * as ChatTypes from './chat2'
 import * as Devices from './devices'
 import * as TeamsTypes from './teams'
-// TODO importing FsGen causes an import loop
-import * as FsGen from '../../actions/fs-gen'
-import * as EngineGen from '../../actions/engine-gen-gen'
 import {isWindows} from '../platform'
 import {memoize} from '../../util/memoize'
 // lets not create cycles in flow, lets discuss how to fix this
@@ -27,8 +24,8 @@ export enum ProgressType {
 export type FsError = Readonly<{
   time: number
   errorMessage: string
-  erroredAction: FsGen.Actions | EngineGen.Actions
-  retriableAction?: FsGen.Actions | EngineGen.Actions
+  erroredAction: any // FsGen.Actions | EngineGen.Actions // using this type in the actions itself causes an explosive loop
+  retriableAction?: any // FsGen.Actions | EngineGen.Actions
 }>
 
 export type Device = Readonly<{
@@ -515,6 +512,7 @@ export enum KbfsDaemonRpcStatus {
 export enum KbfsDaemonOnlineStatus {
   Unknown = 'unknown',
   Offline = 'offline',
+  Trying = 'trying',
   Online = 'online',
 }
 export type KbfsDaemonStatus = Readonly<{
@@ -789,5 +787,6 @@ export type ResetBannerType = ResetBannerNoOthersType | number
 export enum MainBannerType {
   None = 'none',
   Offline = 'offline',
+  TryingToConnect = 'trying-to-connect',
   OutOfSpace = 'out-of-space',
 }

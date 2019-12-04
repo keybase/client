@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
-import * as I from 'immutable'
 import * as Types from '../../constants/types/teams'
 import Header from './header'
 import Banner from './banner'
@@ -25,7 +24,7 @@ export type Props = {
   onReadMore: () => void
   onViewTeam: (teamID: Types.TeamID) => void
   sawChatBanner: boolean
-  teamresetusers: {[K in string]: I.Set<string> | null}
+  teamresetusers: Map<string, Set<Types.ResetUser>>
   newTeamRequests: Map<Types.TeamID, number>
   teams: Array<Types.TeamDetails>
 }
@@ -162,7 +161,7 @@ class Teams extends React.PureComponent<Props, State> {
       }
       case 'team': {
         const team = item.team
-        const reset = this.props.teamresetusers[team.teamname]
+        const reset = this.props.teamresetusers.get(team.teamname)
         const resetUserCount = (reset && reset.size) || 0
         return (
           <TeamRow
