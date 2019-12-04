@@ -66,7 +66,7 @@ const AttachmentPopupMenu = (props: Props) => {
     ...(props.onShareAttachment
       ? [{disabled: props.pending, onClick: props.onShareAttachment, title: 'Share'}]
       : []),
-    ...[{disabled: props.pending, onClick: props.onAllMedia, title: 'All media'}],
+    ...(props.onAllMedia ? [{onClick: props.onAllMedia, title: 'All media'}] : []),
     ...(props.onAddReaction ? [{onClick: props.onAddReaction, title: 'Add a reaction'}] : []),
     ...(props.onReply ? [{onClick: props.onReply, title: 'Reply'}] : []),
     ...(props.onPinMessage ? [{onClick: props.onPinMessage, title: 'Pin message'}] : []),
