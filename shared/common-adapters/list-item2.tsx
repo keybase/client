@@ -94,9 +94,9 @@ const ListItem = (props: Props) => (
 
 export const smallHeight = Styles.isMobile ? 56 : 48
 export const largeHeight = Styles.isMobile ? 64 : 56
-const smallIconWidth = Styles.isMobile ? 56 : 64
+const smallIconWidth = Styles.isMobile ? 64 : 64
 const largeIconWidth = Styles.isMobile ? 72 : 72
-const statusIconWidth = Styles.isMobile ? 44 : 44
+const statusIconWidth = Styles.isMobile ? 48 : 44
 const afterStatusIconItemLeftDistance = statusIconWidth - (Styles.isMobile ? 10 : 14)
 
 const styles = Styles.styleSheetCreate(() => {

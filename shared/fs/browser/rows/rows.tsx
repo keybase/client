@@ -155,7 +155,7 @@ const styles = Styles.styleSheetCreate(
     ({
       divider: {
         backgroundColor: Styles.globalColors.black_05,
-        marginLeft: 64,
+        marginLeft: 102,
       },
       emptyContainer: {
         ...Styles.globalStyles.flexGrow,
