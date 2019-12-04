@@ -115,11 +115,11 @@ function* deleteTeam(_: TypedState, action: TeamsGen.DeleteTeamPayload, logger: 
   }
 }
 const leaveTeam = async (_: TypedState, action: TeamsGen.LeaveTeamPayload, logger: Saga.SagaLogger) => {
-  const {context, teamname} = action.payload
+  const {context, teamname, permanent} = action.payload
   logger.info(`leaveTeam: Leaving ${teamname} from context ${context}`)
   try {
     await RPCTypes.teamsTeamLeaveRpcPromise(
-      {name: teamname, permanent: false},
+      {name: teamname, permanent},
       Constants.leaveTeamWaitingKey(teamname)
     )
     logger.info(`leaveTeam: left ${teamname} successfully`)
