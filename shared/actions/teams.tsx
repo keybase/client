@@ -23,6 +23,7 @@ import openSMS from '../util/sms'
 import {convertToError, logError} from '../util/errors'
 import {TypedState, TypedActions, isMobile} from '../util/container'
 import {mapGetEnsureValue} from '../util/map'
+import {RPCError} from '../util/errors'
 
 async function createNewTeam(_: TypedState, action: TeamsGen.CreateNewTeamPayload) {
   const {fromChat, joinSubteam, teamname, thenAddMembers} = action.payload
@@ -300,7 +301,7 @@ const addToTeam = async (_: TypedState, action: TeamsGen.AddToTeamPayload) => {
     return TeamsGen.createAddedToTeam({fromTeamBuilder})
   } catch (e) {
     // TODO this should not error on member already in team
-    return TeamsGen.createAddedToTeam({error: e.message, fromTeamBuilder})
+    return TeamsGen.createAddedToTeam({error: e.desc, fromTeamBuilder})
   }
 }
 
