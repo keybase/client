@@ -731,7 +731,7 @@ const MinEphemeralContentLifetime = time.Second * 30
 // NOTE: If you change this value you should change it in lib/constants.iced
 // and go/ekreaperd/reaper.go as well.
 // Devices are considered stale and not included in new keys after this interval
-const MaxEphemeralKeyStaleness = time.Hour * 24 * 30 * 3 // three months
+const MaxEphemeralKeyStaleness = time.Hour * 24 * 38 // 1.25 months
 // Everyday we want to generate a new key if possible
 const EphemeralKeyGenInterval = time.Hour * 24 // one day
 // Our keys must last at least this long.
