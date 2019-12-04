@@ -42,11 +42,11 @@ const LabelContainer = props =>
       {props.children}
     </Kb.WithTooltip>
   ) : (
-    <Kb.ClickableBox onClick={props.allowLabelClick ? props.onClick : undefined}>
-      <Kb.Box2 direction="vertical" style={styles.labelContainer}>
+    <Kb.Box2 direction="vertical" style={styles.labelContainer}>
+      <Kb.ClickableBox onClick={props.allowLabelClick ? props.onClick : undefined}>
         {props.children}
-      </Kb.Box2>
-    </Kb.ClickableBox>
+      </Kb.ClickableBox>
+    </Kb.Box2>
   )
 
 const getContent = (props, ref) => (
