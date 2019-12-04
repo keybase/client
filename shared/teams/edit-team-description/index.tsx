@@ -32,6 +32,7 @@ const EditTeamDescription = ({
       value={description}
       multiline={true}
       style={{alignSelf: 'stretch', flexGrow: 1}}
+      autoFocus={true}
     />
     <ButtonBar>
       <Button label="Cancel" onClick={onClose} type="Dim" />
