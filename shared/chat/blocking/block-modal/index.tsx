@@ -163,13 +163,13 @@ class BlockModal extends React.PureComponent<Props, State> {
     const current = newBlocks.get(username)
     if (current) {
       if (current.report === undefined && shouldReport) {
-        current.report = emptyReport
+        current.report = {...emptyReport}
       } else if (current.report && !shouldReport) {
         current.report = undefined
       }
       newBlocks.set(username, current)
     } else {
-      newBlocks.set(username, {report: emptyReport})
+      newBlocks.set(username, {report: {...emptyReport}})
     }
     // Need to make a new object so the component re-renders.
     this.setState({newBlocks: new Map(newBlocks)})

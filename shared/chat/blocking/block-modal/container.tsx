@@ -90,9 +90,7 @@ const Connect = Container.connect(
         if (teamname) {
           dispatchProps._leaveTeamAndBlock(teamname)
         } else if (stateProps.convID) {
-          const anyReported = [...newBlocks.keys()].some(
-            username => newBlocks.get(username)?.report !== undefined
-          )
+          const anyReported = [...newBlocks.values()].some(v => v?.report !== undefined)
           dispatchProps._setConversationStatus(stateProps.convID, anyReported)
         }
       }
