@@ -12,11 +12,18 @@
     },
     "clearNavBadges": {},
     "createNewTeam": {
+      "fromChat?": "boolean",
       "joinSubteam": "boolean",
-      "teamname": "string"
+      "teamname": "string",
+      "thenAddMembers?": "Omit<_AddToTeamPayload, 'teamID'>"
     },
     "createNewTeamFromConversation": {
       "conversationIDKey": "ChatTypes.ConversationIDKey",
+      "teamname": "string"
+    },
+    "teamCreated": {
+      "fromChat": "boolean",
+      "teamID": "Types.TeamID",
       "teamname": "string"
     },
     "createChannel": {
@@ -113,13 +120,17 @@
       "context": "'teams' | 'chat'"
     },
     "addToTeam": {
-      "teamname": "string",
-      "username": "string",
-      "role": "Types.TeamRoleType",
-      "sendChatNotification": "boolean"
+      "teamID": "Types.TeamID",
+      "users": "Array<{assertion: string, role: Types.TeamRoleType}>",
+      "sendChatNotification": "boolean",
+      "fromTeamBuilder?": "boolean"
+    },
+    "addedToTeam": {
+      "error?": "string",
+      "fromTeamBuilder?": "boolean"
     },
     "reAddToTeam": {
-      "teamname": "string",
+      "teamID": "Types.TeamID",
       "username": "string"
     },
     "editTeamDescription": {
