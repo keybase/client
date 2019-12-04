@@ -109,12 +109,12 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     })
   },
   [EngineGen.keybase1NotifyTrackingNotifyUserBlocked]: (draftState, action) => {
-    const {blocker, chatBlocked: _chatBlocked, followBlocked: _followBlocked} = action.payload.params.b
-    const chatBlocked = _chatBlocked ?? []
-    const followBlocked = _followBlocked ?? []
+    const {blocker, chatBlocked, followBlocked} = action.payload.params.b
     const d = getDetails(draftState, blocker)
-    const toProcessChat = chatBlocked.map(username => [username, getDetails(draftState, username)] as const)
-    const toProcessFollow = followBlocked.map(
+    const toProcessChat = (chatBlocked ?? []).map(
+      username => [username, getDetails(draftState, username)] as const
+    )
+    const toProcessFollow = (followBlocked ?? []).map(
       username => [username, getDetails(draftState, username)] as const
     )
     toProcessChat.forEach(([_, det]) => {
