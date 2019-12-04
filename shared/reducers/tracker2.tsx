@@ -109,13 +109,20 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     })
   },
   [EngineGen.keybase1NotifyTrackingNotifyUserBlocked]: (draftState, action) => {
-    const {blocker, blocked} = action.payload.params.b
+    const {blocker, chatBlocked: _chatBlocked, followBlocked: _followBlocked} = action.payload.params.b
+    const chatBlocked = _chatBlocked ?? []
+    const followBlocked = _followBlocked ?? []
     const d = getDetails(draftState, blocker)
-    const blockees = blocked ?? []
-    const toProcess = blockees.map(username => [username, getDetails(draftState, username)] as const)
-    toProcess.forEach(([username, det]) => {
-      d.followers && d.followers.delete(username)
+    const toProcessChat = chatBlocked.map(username => [username, getDetails(draftState, username)] as const)
+    const toProcessFollow = followBlocked.map(
+      username => [username, getDetails(draftState, username)] as const
+    )
+    toProcessChat.forEach(([_, det]) => {
       det.blocked = true
+    })
+    toProcessFollow.forEach(([username, det]) => {
+      det.hidFromFollowers = true
+      d.followers && d.followers.delete(username)
     })
     d.followersCount = d.followers?.size
   },
