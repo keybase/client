@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import {WaveButton} from '../../settings/contacts-joined/buttons'
 import * as Styles from '../../styles'
+import * as Constants from '../../constants/chat2'
 import * as Container from '../../util/container'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as Chat2Gen from '../../actions/chat2-gen'
@@ -25,7 +26,9 @@ const BlockButtons = (props: Props) => {
   }
 
   const adder = blockButtonInfo.adder
-  const others = conversationMeta.participants.filter(person => person !== currentUser && person !== adder)
+  const others = conversationMeta.participants.filter(
+    person => person !== currentUser && person !== adder && !Constants.isAssertion(person)
+  )
   const team = conversationMeta.teamname || undefined
 
   const buttonRow = (

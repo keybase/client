@@ -177,6 +177,10 @@ const ConnectedInfoPanel = Container.connect(
     const teamMembers = stateProps._teamMembers
     const isGeneral = stateProps.channelname === 'general'
     const showAuditingBanner = isGeneral && !teamMembers
+    const membersForBlock = (stateProps._teamMembers.size
+      ? [...stateProps._teamMembers.keys()]
+      : stateProps._participants
+    ).filter(username => username !== stateProps._username && !Constants.isAssertion(username))
     if (teamMembers && isGeneral) {
       participants = [...teamMembers.values()].reduce<Array<string>>((l, mi) => {
         l.push(mi.username)
@@ -295,14 +299,9 @@ const ConnectedInfoPanel = Container.connect(
       onJoinChannel: dispatchProps.onJoinChannel,
       onLeaveConversation: dispatchProps.onLeaveConversation,
       onSelectTab: ownProps.onSelectTab,
-      onShowBlockConversationDialog: () =>
-        dispatchProps._onShowBlockConversationDialog(
-          (stateProps._teamMembers.size
-            ? [...stateProps._teamMembers.keys()]
-            : stateProps._participants
-          ).filter(username => username !== stateProps._username),
-          stateProps._team
-        ),
+      onShowBlockConversationDialog: membersForBlock.length
+        ? () => dispatchProps._onShowBlockConversationDialog(membersForBlock, stateProps._team)
+        : dispatchProps.onHideConv,
       onShowClearConversationDialog: () => dispatchProps._onShowClearConversationDialog(),
       onShowNewTeamDialog: dispatchProps.onShowNewTeamDialog,
       onShowProfile: dispatchProps.onShowProfile,
