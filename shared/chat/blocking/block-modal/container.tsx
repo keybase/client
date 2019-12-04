@@ -21,11 +21,16 @@ const Connect = Container.connect(
     const waitingForLeave = teamname ? Container.anyWaiting(state, leaveTeamWaitingKey(teamname)) : false
     const waitingForBlocking = Container.anyWaiting(state, Constants.setUserBlocksWaitingKey)
     const waitingForReport = Container.anyWaiting(state, Constants.reportUserWaitingKey)
-    const others = Container.getRouteProps(ownProps, 'others', undefined)
+    let others = Container.getRouteProps(ownProps, 'others', undefined)
+    let adderUsername = Container.getRouteProps(ownProps, 'username', undefined)
+    if (others?.length === 1 && !adderUsername) {
+      adderUsername = others[0]
+      others = undefined
+    }
 
     return {
       _allKnownBlocks: state.users.blockMap,
-      adderUsername: Container.getRouteProps(ownProps, 'username', undefined),
+      adderUsername,
       blockByDefault: Container.getRouteProps(ownProps, 'blockByDefault', false),
       convID: Container.getRouteProps(ownProps, 'convID', undefined),
       finishWaiting: waitingForLeave || waitingForBlocking || waitingForReport,

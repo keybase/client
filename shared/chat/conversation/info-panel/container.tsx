@@ -77,6 +77,7 @@ const ConnectedInfoPanel = Container.connect(
       _participants: meta.participants,
       _team: meta.teamname,
       _teamMembers,
+      _username: state.config.username,
       admin,
       attachmentsLoading,
       canDeleteHistory,
@@ -296,7 +297,10 @@ const ConnectedInfoPanel = Container.connect(
       onSelectTab: ownProps.onSelectTab,
       onShowBlockConversationDialog: () =>
         dispatchProps._onShowBlockConversationDialog(
-          stateProps._teamMembers ?? stateProps._participants,
+          (stateProps._teamMembers.size
+            ? [...stateProps._teamMembers.keys()]
+            : stateProps._participants
+          ).filter(username => username !== stateProps._username),
           stateProps._team
         ),
       onShowClearConversationDialog: () => dispatchProps._onShowClearConversationDialog(),

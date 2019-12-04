@@ -18,7 +18,7 @@ type State = {
 }
 
 export type Props = {
-  adderUsername: string
+  adderUsername?: string
   blockByDefault?: boolean
   convID?: string
   finishWaiting: boolean
@@ -134,7 +134,7 @@ class BlockModal extends React.PureComponent<Props, State> {
 
     // Set default checkbox block values for adder user. We don't care if they
     // are already blocked, setting a block is idempotent.
-    if (this.props.blockByDefault) {
+    if (this.props.blockByDefault && this.props.adderUsername) {
       const map = this.state.newBlocks
       map.set(this.props.adderUsername, {chatBlocked: true, followBlocked: true})
       this.setState({newBlocks: new Map(map)})
