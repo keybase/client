@@ -1,6 +1,5 @@
 /// TODO the relationships here are often inverted. we want to clear actions when a bunch of actions happen
 // not have every handler clear it themselves. this reduces the nubmer of actionChains
-import * as I from 'immutable'
 import * as EngineGen from './engine-gen-gen'
 import * as TeamBuildingGen from './team-building-gen'
 import * as TeamsGen from './teams-gen'
@@ -24,6 +23,7 @@ import {uploadAvatarWaitingKey} from '../constants/profile'
 import openSMS from '../util/sms'
 import {convertToError, logError} from '../util/errors'
 import {TypedState, TypedActions, isMobile} from '../util/container'
+import {mapGetEnsureValue} from '../util/map'
 
 async function createNewTeam(_: TypedState, action: TeamsGen.CreateNewTeamPayload) {
   const {joinSubteam, teamname} = action.payload
@@ -115,11 +115,11 @@ function* deleteTeam(_: TypedState, action: TeamsGen.DeleteTeamPayload, logger: 
   }
 }
 const leaveTeam = async (_: TypedState, action: TeamsGen.LeaveTeamPayload, logger: Saga.SagaLogger) => {
-  const {context, teamname} = action.payload
+  const {context, teamname, permanent} = action.payload
   logger.info(`leaveTeam: Leaving ${teamname} from context ${context}`)
   try {
     await RPCTypes.teamsTeamLeaveRpcPromise(
-      {name: teamname, permanent: false},
+      {name: teamname, permanent},
       Constants.leaveTeamWaitingKey(teamname)
     )
     logger.info(`leaveTeam: left ${teamname} successfully`)
@@ -302,7 +302,7 @@ const addToTeam = async (_: TypedState, action: TeamsGen.AddToTeamPayload) => {
 
 const reAddToTeam = async (state: TypedState, action: TeamsGen.ReAddToTeamPayload) => {
   const {teamname, username} = action.payload
-  const id = state.teams.teamNameToID.get(teamname, '')
+  const id = state.teams.teamNameToID.get(teamname) ?? ''
   if (!id) {
     throw new Error(`team ID not on file for team '${teamname}'`)
   }
@@ -705,14 +705,14 @@ const getChannelInfo = async (
     return false
   }
 
-  const channelInfo = Constants.makeChannelInfo({
+  const channelInfo = {
     channelname: meta.channelname,
     description: meta.description,
     hasAllMembers: null,
     memberStatus: convs[0].memberStatus,
     mtime: meta.timestamp,
     numParticipants: meta.participants.length,
-  })
+  }
 
   return TeamsGen.createSetTeamChannelInfo({channelInfo, conversationIDKey, teamname})
 }
@@ -728,10 +728,10 @@ const getChannels = async (_: TypedState, action: TeamsGen.GetChannelsPayload) =
     Constants.getChannelsWaitingKey(teamname)
   )
   const convs = results.convs || []
-  const channelInfos: {[K in ChatTypes.ConversationIDKey]: Types.ChannelInfo} = {}
+  const channelInfos: Map<ChatTypes.ConversationIDKey, Types.ChannelInfo> = new Map()
   convs.forEach(conv => {
     const convID = ChatTypes.stringToConversationIDKey(conv.convID)
-    channelInfos[convID] = Constants.makeChannelInfo({
+    channelInfos.set(convID, {
       channelname: conv.channel,
       description: conv.headline,
       hasAllMembers: null,
@@ -741,7 +741,7 @@ const getChannels = async (_: TypedState, action: TeamsGen.GetChannelsPayload) =
     })
   })
 
-  return TeamsGen.createSetTeamChannels({channelInfos: I.Map(channelInfos), teamname})
+  return TeamsGen.createSetTeamChannels({channelInfos, teamname})
 }
 
 function* getTeams(
@@ -769,34 +769,21 @@ function* getTeams(
 
     const teams: Array<RPCTypes.AnnotatedMemberInfo> = results.teams || []
     const teamnames: Array<string> = []
-    const teammembercounts: {[key: string]: number} = {}
-    const teamNameToRole: {[K in Types.Teamname]: Types.MaybeTeamRoleType} = {}
-    const teamNameToIsOpen: {[key: string]: boolean} = {}
-    const teamNameToAllowPromote: {[key: string]: boolean} = {}
-    const teamNameToIsShowcasing: {[key: string]: boolean} = {}
-    const teamNameToID: {[key: string]: string} = {}
+    const teamNameToID = new Map<string, Types.TeamID>()
     teams.forEach(team => {
       teamnames.push(team.fqName)
-      teammembercounts[team.fqName] = team.memberCount
-      teamNameToRole[team.fqName] = Constants.teamRoleByEnum[team.role] || 'none'
-      teamNameToIsOpen[team.fqName] = team.isOpenTeam
-      teamNameToAllowPromote[team.fqName] = team.allowProfilePromote
-      teamNameToIsShowcasing[team.fqName] = team.isMemberShowcased
-      teamNameToID[team.fqName] = team.teamID
+      teamNameToID.set(team.fqName, team.teamID)
     })
 
     // Dismiss any stale badges for teams we're no longer in
-    const teamResetUsers = state.teams.teamNameToResetUsers || I.Map()
+    const teamResetUsers = state.teams.teamNameToResetUsers || new Map<string, Set<Types.ResetUser>>()
     const teamNameSet = new Set<string>(teamnames)
-    const dismissIDs = teamResetUsers.reduce<Array<string>>(
-      (ids, value: I.Set<Types.ResetUser>, key: string) => {
-        if (!teamNameSet.has(key)) {
-          ids.push(...value.toArray().map(ru => ru.badgeIDKey))
-        }
-        return ids
-      },
-      []
-    )
+    const dismissIDs = [...teamResetUsers.entries()].reduce<Array<string>>((ids, [key, value]) => {
+      if (!teamNameSet.has(key)) {
+        ids.push(...[...value].map(ru => ru.badgeIDKey))
+      }
+      return ids
+    }, [])
     yield Saga.all(
       dismissIDs.map(id =>
         Saga.callUntyped(
@@ -810,12 +797,7 @@ function* getTeams(
     yield Saga.put(
       TeamsGen.createSetTeamInfo({
         teamDetails: Constants.teamListToDetails(teams),
-        teamNameToAllowPromote: I.Map(teamNameToAllowPromote),
-        teamNameToID: I.Map(teamNameToID),
-        teamNameToIsOpen: I.Map(teamNameToIsOpen),
-        teamNameToIsShowcasing: I.Map(teamNameToIsShowcasing),
-        teamNameToRole: I.Map(teamNameToRole),
-        teammembercounts: I.Map(teammembercounts),
+        teamNameToID,
         teamnames: teamNameSet,
       })
     )
@@ -973,17 +955,17 @@ const setMemberPublicity = async (_: TypedState, action: TeamsGen.SetMemberPubli
   }
 }
 
-function* setPublicity(state: TypedState, action: TeamsGen.SetPublicityPayload) {
+function* setPublicity(state: TypedState, action: TeamsGen.SetPublicityPayload, logger: Saga.SagaLogger) {
   const {teamname, settings} = action.payload
   const waitingKey = Constants.settingsWaitingKey(teamname)
 
-  const teamSettings = state.teams.teamNameToSettings.get(
-    teamname,
-    Constants.makeTeamSettings({
-      joinAs: RPCTypes.TeamRole['reader'],
-      open: false,
-    })
-  )
+  const teamID = Constants.getTeamID(state, teamname)
+  if (teamID === Types.noTeamID) {
+    // TODO Y2K-1084 teamID should come in the action
+    logger.error(`no team ID for ${teamname}`)
+    return
+  }
+  const teamSettings = state.teams.teamDetails.get(teamID)?.settings || Constants.initialTeamSettings
 
   const teamPublicitySettings = Constants.getTeamPublicitySettings(state, teamname)
 
@@ -1213,7 +1195,7 @@ function* addTeamWithChosenChannels(
   }
   teams.push(teamname)
   // make sure there're no dupes
-  teams = I.Set(teams).toArray()
+  teams = [...new Set(teams)]
 
   const dtime = {
     offset: 0,
@@ -1295,20 +1277,12 @@ const badgeAppForTeams = (state: TypedState, action: NotificationsGen.ReceivedBa
   const newTeams = new Set<string>(badgeState.newTeams || [])
   const newTeamRequests = badgeState.newTeamAccessRequests || []
 
-  // TODO ts-migration remove any
-  const teamsWithResetUsers: I.List<any> = I.List(badgeState.teamsWithResetUsers || [])
-  const teamsWithResetUsersMap = teamsWithResetUsers.reduce((res, entry) => {
-    if (!res[entry.teamname]) {
-      res[entry.teamname] = I.Set()
-    }
-    res[entry.teamname] = res[entry.teamname].add(
-      Constants.makeResetUser({
-        badgeIDKey: Constants.resetUserBadgeIDToKey(entry.id),
-        username: entry.username,
-      })
-    )
-    return res
-  }, {})
+  const teamsWithResetUsers: Array<RPCTypes.TeamMemberOutReset> = badgeState.teamsWithResetUsers || []
+  const teamsWithResetUsersMap = new Map<string, Set<Types.ResetUser>>()
+  teamsWithResetUsers.forEach(entry => {
+    const existing = mapGetEnsureValue(teamsWithResetUsersMap, entry.teamname, new Set())
+    existing.add({badgeIDKey: Constants.resetUserBadgeIDToKey(entry.id), username: entry.username})
+  })
 
   /* TODO team notifications should handle what the following block did */
   // if (_wasOnTeamsTab() && (newTeams.size > 0 || newTeamRequests.size > 0 || deletedTeams.length > 0)) {
@@ -1340,7 +1314,7 @@ const badgeAppForTeams = (state: TypedState, action: NotificationsGen.ReceivedBa
       deletedTeams,
       newTeamRequests,
       newTeams,
-      teamNameToResetUsers: I.Map(teamsWithResetUsersMap),
+      teamNameToResetUsers: teamsWithResetUsersMap,
     })
   )
   return actions

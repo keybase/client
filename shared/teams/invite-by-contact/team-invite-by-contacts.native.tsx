@@ -125,7 +125,7 @@ const TeamInviteByContact = (props: TeamInviteByContactProps) => {
     // `loadingKey` is inviteID when invite already (so loading is canceling the
     // invite), or contact.value when loading is adding an invite.
     const loadingKey = inviteID || contact.value
-    const loading = loadingInvites.get(loadingKey, false)
+    const loading = loadingInvites.get(loadingKey) ?? false
 
     const onClick = inviteID ? () => onCancelInvite(inviteID) : () => onInviteContact(contact)
 

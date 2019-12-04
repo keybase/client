@@ -138,7 +138,6 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         direction="vertical"
         style={Styles.collapseStyles([
           styles.orangeLine,
-          !this._isExploding() && styles.orangeLineCompensationRight,
           !this.props.showUsername && styles.orangeLineCompensationLeft,
         ])}
       />
@@ -364,7 +363,6 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       const props = {
         style: Styles.collapseStyles([
           styles.container,
-          !this._isExploding() && styles.containerNoExploding, // extra right padding to line up with infopane / input icons
           this._showCenteredHighlight() && styles.centeredOrdinal,
           !this.props.showUsername && styles.containerNoUsername,
         ]),
@@ -423,8 +421,8 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
   _cachedMenuStyles = {}
   _menuAreaStyle = (exploded, exploding) => {
     const iconSizes = [
-      this.props.isRevoked ? 16 : 0, // revoked
-      this.props.showCoinsIcon ? 16 : 0, // coin stack
+      this.props.isRevoked ? 24 : 0, // revoked
+      this.props.showCoinsIcon ? 24 : 0, // coin stack
       exploded || Styles.isMobile ? 0 : 16, // ... menu
       exploding ? (Styles.isMobile ? 57 : 46) : 0, // exploding
     ].filter(Boolean)
@@ -562,12 +560,12 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
             {this.props.isRevoked && (
               <Kb.Icon
                 type="iconfont-rip"
+                style={styles.paddingLeftTiny}
                 color={Styles.globalColors.black_20}
-                style={styles.marginLeftTiny}
               />
             )}
             {this.props.showCoinsIcon && (
-              <Kb.Icon type="icon-stellar-coins-stacked-16" style={styles.marginLeftTiny} />
+              <Kb.Icon type="icon-stellar-coins-stacked-16" style={styles.paddingLeftTiny} />
             )}
             {showMenuButton ? (
               <Kb.Box className="WrapperMessage-buttons">
@@ -679,7 +677,6 @@ const styles = Styles.styleSheetCreate(
         backgroundColor: Styles.globalColors.yellowOrYellowAlt,
       },
       container: Styles.platformStyles({isMobile: {overflow: 'hidden'}}),
-      containerNoExploding: Styles.platformStyles({isMobile: {paddingRight: Styles.globalMargins.tiny}}),
       containerNoUsername: Styles.platformStyles({
         isMobile: {
           paddingBottom: 3,
@@ -751,7 +748,6 @@ const styles = Styles.styleSheetCreate(
       fail: {color: Styles.globalColors.redDark},
       failUnderline: {color: Styles.globalColors.redDark, textDecorationLine: 'underline'},
       fast,
-      marginLeftTiny: {marginLeft: Styles.globalMargins.tiny},
       menuButtons: Styles.platformStyles({
         common: {
           alignSelf: 'flex-start',
@@ -781,11 +777,7 @@ const styles = Styles.styleSheetCreate(
           left: -Styles.globalMargins.mediumLarge, // compensate for containerNoUsername's padding
         },
       }),
-      orangeLineCompensationRight: Styles.platformStyles({
-        isMobile: {
-          right: -Styles.globalMargins.tiny, // compensate for containerNoExploding's padding
-        },
-      }),
+      paddingLeftTiny: {paddingLeft: Styles.globalMargins.tiny},
       send: Styles.platformStyles({
         common: {
           position: 'absolute',

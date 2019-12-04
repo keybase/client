@@ -42,6 +42,7 @@ export type SearchResult = {
   services: {[K in ServiceIdWithContact]?: string}
   inTeam: boolean
   isPreExistingTeamMember: boolean
+  isYou: boolean
   followingState: FollowingState
 }
 
@@ -483,6 +484,7 @@ class TeamBuilding extends React.PureComponent<Props> {
                     services={result.services}
                     inTeam={result.inTeam}
                     isPreExistingTeamMember={result.isPreExistingTeamMember}
+                    isYou={result.isYou}
                     followingState={result.followingState}
                     highlight={
                       !Styles.isMobile &&
@@ -530,6 +532,7 @@ class TeamBuilding extends React.PureComponent<Props> {
               services={result.services}
               inTeam={result.inTeam}
               isPreExistingTeamMember={result.isPreExistingTeamMember}
+              isYou={result.isYou}
               followingState={result.followingState}
               highlight={!Styles.isMobile && index === this.props.highlightedIndex}
               onAdd={() => this.props.onAdd(result.userId)}
