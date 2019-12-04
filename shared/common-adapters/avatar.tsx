@@ -75,23 +75,22 @@ const teamPlaceHolders: {[key: string]: IconType} = {
   '960': 'icon-team-placeholder-avatar-960',
 }
 
-const followSizeToStyle = {
-  '128': {bottom: 0, left: 88, position: 'absolute'},
-  '48': {bottom: 0, left: 30, position: 'absolute'},
-  '64': {bottom: 0, left: 44, position: 'absolute'},
-  '96': {bottom: 0, left: 65, position: 'absolute'},
-}
+const followSizeToStyle = new Map<AvatarSize, IconStyle>([
+  [128, {bottom: 0, left: 88, position: 'absolute'}],
+  [48, {bottom: 0, left: 30, position: 'absolute'}],
+  [64, {bottom: 0, left: 44, position: 'absolute'}],
+  [96, {bottom: 0, left: 65, position: 'absolute'}],
+])
 
-const followIconHelper = (size: number, followsYou: boolean, following: boolean) => {
+const followIconHelper = (size: AvatarSize, followsYou: boolean, following: boolean) => {
   const iconSize = size === 128 ? 28 : 21
   const rel =
     followsYou === following ? (followsYou ? 'mutual-follow' : null) : followsYou ? 'follow-me' : 'following'
-  // @ts-ignore can't infer this string is a valid icon, but its ok. we'll
-  // catch it in snapshots if this is wrong
-  const iconType: IconType | undefined = rel ? `icon-${rel}-${iconSize}` : undefined
+  const iconType = rel ? (`icon-${rel}-${iconSize}` as IconType) : undefined
+  const iconStyle = followSizeToStyle.get(size)
   return {
     iconSize,
-    iconStyle: followSizeToStyle[size] as IconStyle,
+    iconStyle,
     iconType,
   }
 }
@@ -119,7 +118,8 @@ const ConnectedAvatar = Container.connect(
         : ownProps.onClick
     const onClick = ownProps.onEditAvatarClick || opClick
     const name = isTeam ? ownProps.teamname : username
-    const urlMap = [960, 256, 192].reduce((m, size: number) => {
+    const sizes = [960, 256, 192] as const
+    const urlMap = sizes.reduce<{[key: number]: string}>((m, size) => {
       m[size] = `http://${stateProps._httpSrvAddress}/av?typ=${
         isTeam ? 'team' : 'user'
       }&name=${name}&format=square_${size}&mode=${Styles.isDarkMode() ? 'dark' : 'light'}&token=${
