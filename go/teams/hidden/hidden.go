@@ -346,11 +346,11 @@ func ParseAndVerifyCommittedHiddenLinkID(m libkb.MetaContext, teamID keybase1.Te
 	}
 	encValWithProofBytes, err := base64.StdEncoding.DecodeString(encValWithProofBase64)
 	if err != nil {
-		return nil, fmt.Errorf("error decoding encValWithProof from b64: %w", err)
+		return nil, fmt.Errorf("error decoding encValWithProof from b64: %v", err.Error())
 	}
 	var resp merkletree2.GetValueWithProofResponse
 	if err := msgpack.Decode(&resp, encValWithProofBytes); err != nil {
-		return nil, fmt.Errorf("error decoding encValWithProof: %w", err)
+		return nil, fmt.Errorf("error decoding encValWithProof: %v", err.Error())
 	}
 
 	lastHiddenSeqnoInt, err := apiRes.Body.AtKey("last_hidden_seqno").GetInt()
