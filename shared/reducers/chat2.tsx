@@ -619,15 +619,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const unreadMap = new Map<Types.ConversationIDKey, number>()
     conversations.forEach(({convID, badgeCounts, unreadMessages}) => {
       const key = Types.conversationIDToKey(convID)
-      // if its big we treat the count as 1 or 0 so additional chats don't redraw us
-      const isBig = draftState.metaMap.get(key)?.teamType === 'big'
-      let count: number
-      if (isBig) {
-        count = badgeCounts[badgeKey] ? 1 : 0
-      } else {
-        count = badgeCounts[badgeKey] || 0
-      }
-      badgeMap.set(key, count)
+      badgeMap.set(key, badgeCounts[badgeKey] || 0)
       unreadMap.set(key, unreadMessages)
     })
 
