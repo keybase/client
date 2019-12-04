@@ -17,7 +17,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const teamID = Container.getRouteProps(ownProps, 'teamID', '')
   const teamDetails = Constants.getTeamDetails(state, teamID)
   const {teamname} = teamDetails
-  const disabledReasonsForRolePicker = Constants.getDisabledReasonsForRolePicker(state, teamname, username)
+  const disabledReasonsForRolePicker = Constants.getDisabledReasonsForRolePicker(state, teamID, username)
 
   return {
     _memberInfo: teamDetails.members,
