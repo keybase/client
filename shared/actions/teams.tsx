@@ -23,6 +23,7 @@ import openSMS from '../util/sms'
 import {convertToError, logError} from '../util/errors'
 import {TypedState, TypedActions, isMobile} from '../util/container'
 import {mapGetEnsureValue} from '../util/map'
+import {RPCError} from '../util/errors'
 
 async function createNewTeam(_: TypedState, action: TeamsGen.CreateNewTeamPayload) {
   const {fromChat, joinSubteam, teamname, thenAddMembers} = action.payload
@@ -284,7 +285,7 @@ const addReAddErrorHandler = (username, e) => {
 }
 
 const addToTeam = async (_: TypedState, action: TeamsGen.AddToTeamPayload) => {
-  const {teamID, users, sendChatNotification} = action.payload
+  const {fromTeamBuilder, teamID, users, sendChatNotification} = action.payload
   try {
     await RPCTypes.teamsTeamAddMembersMultiRoleRpcPromise(
       {
@@ -297,13 +298,21 @@ const addToTeam = async (_: TypedState, action: TeamsGen.AddToTeamPayload) => {
       },
       Constants.addMemberWaitingKey(teamID, ...users.map(({assertion}) => assertion))
     )
-    return false
+    return TeamsGen.createAddedToTeam({fromTeamBuilder})
   } catch (e) {
-    // DANNYTODO plumb to modal
     // TODO this should not error on member already in team
-    // return addReAddErrorHandler(username, e)
-    return false
+    return TeamsGen.createAddedToTeam({error: e.desc, fromTeamBuilder})
   }
+}
+
+const closeTeamBuilderOrSetError = (_: TypedState, action: TeamsGen.AddedToTeamPayload) => {
+  const {error, fromTeamBuilder} = action.payload
+  if (!fromTeamBuilder) {
+    return
+  }
+  return error
+    ? TeamBuildingGen.createSetError({error, namespace: 'teams'})
+    : TeamBuildingGen.createFinishedTeamBuilding({namespace: 'teams'})
 }
 
 const reAddToTeam = async (_: TypedState, action: TeamsGen.ReAddToTeamPayload) => {
@@ -1357,7 +1366,7 @@ const clearNavBadges = async () => {
 
 function addThemToTeamFromTeamBuilder(
   state: TypedState,
-  {payload: {teamID}}: TeamBuildingGen.FinishedTeamBuildingPayload,
+  {payload: {teamID}}: TeamBuildingGen.FinishTeamBuildingPayload,
   logger: Saga.SagaLogger
 ) {
   if (!teamID) {
@@ -1365,11 +1374,12 @@ function addThemToTeamFromTeamBuilder(
     return
   }
 
-  const role = state.teams.teamBuilding.finishedSelectedRole
-  const sendChatNotification = state.teams.teamBuilding.finishedSendNotification
+  const role = state.teams.teamBuilding.selectedRole
+  const sendChatNotification = state.teams.teamBuilding.sendNotification
 
-  const users = [...state.teams.teamBuilding.finishedTeam].map(user => ({assertion: user.id, role}))
+  const users = [...state.teams.teamBuilding.teamSoFar].map(user => ({assertion: user.id, role}))
   return TeamsGen.createAddToTeam({
+    fromTeamBuilder: true,
     sendChatNotification,
     teamID,
     users,
@@ -1380,9 +1390,10 @@ function* teamBuildingSaga() {
   yield* commonTeamBuildingSaga('teams')
 
   yield* Saga.chainAction2(
-    TeamBuildingGen.finishedTeamBuilding,
+    TeamBuildingGen.finishTeamBuilding,
     filterForNs('teams', addThemToTeamFromTeamBuilder)
   )
+  yield* Saga.chainAction2(TeamsGen.addedToTeam, closeTeamBuilderOrSetError)
 }
 
 const teamsSaga = function*() {

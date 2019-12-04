@@ -811,6 +811,8 @@ export type TypedActionsMap = {
   'signup:clearJustSignedUpEmail': signup.ClearJustSignedUpEmailPayload
   'team-building:fetchedUserRecs': teambuilding.FetchedUserRecsPayload
   'team-building:fetchUserRecs': teambuilding.FetchUserRecsPayload
+  'team-building:finishTeamBuilding': teambuilding.FinishTeamBuildingPayload
+  'team-building:setError': teambuilding.SetErrorPayload
   'team-building:finishedTeamBuilding': teambuilding.FinishedTeamBuildingPayload
   'team-building:cancelTeamBuilding': teambuilding.CancelTeamBuildingPayload
   'team-building:search': teambuilding.SearchPayload
@@ -850,6 +852,7 @@ export type TypedActionsMap = {
   'teams:leaveTeam': teams.LeaveTeamPayload
   'teams:leftTeam': teams.LeftTeamPayload
   'teams:addToTeam': teams.AddToTeamPayload
+  'teams:addedToTeam': teams.AddedToTeamPayload
   'teams:reAddToTeam': teams.ReAddToTeamPayload
   'teams:editTeamDescription': teams.EditTeamDescriptionPayload
   'teams:uploadTeamAvatar': teams.UploadTeamAvatarPayload

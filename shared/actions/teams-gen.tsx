@@ -11,6 +11,7 @@ export const addParticipant = 'teams:addParticipant'
 export const addTeamWithChosenChannels = 'teams:addTeamWithChosenChannels'
 export const addToTeam = 'teams:addToTeam'
 export const addUserToTeams = 'teams:addUserToTeams'
+export const addedToTeam = 'teams:addedToTeam'
 export const checkRequestedAccess = 'teams:checkRequestedAccess'
 export const clearAddUserToTeamsResults = 'teams:clearAddUserToTeamsResults'
 export const clearNavBadges = 'teams:clearNavBadges'
@@ -86,12 +87,14 @@ type _AddToTeamPayload = {
   readonly teamID: Types.TeamID
   readonly users: Array<{assertion: string; role: Types.TeamRoleType}>
   readonly sendChatNotification: boolean
+  readonly fromTeamBuilder?: boolean
 }
 type _AddUserToTeamsPayload = {
   readonly role: Types.TeamRoleType
   readonly teams: Array<string>
   readonly user: string
 }
+type _AddedToTeamPayload = {readonly error?: string; readonly fromTeamBuilder?: boolean}
 type _CheckRequestedAccessPayload = {readonly teamname: string}
 type _ClearAddUserToTeamsResultsPayload = void
 type _ClearNavBadgesPayload = void
@@ -334,6 +337,10 @@ export const createAddUserToTeams = (payload: _AddUserToTeamsPayload): AddUserTo
   payload,
   type: addUserToTeams,
 })
+export const createAddedToTeam = (payload: _AddedToTeamPayload = Object.freeze({})): AddedToTeamPayload => ({
+  payload,
+  type: addedToTeam,
+})
 export const createCheckRequestedAccess = (
   payload: _CheckRequestedAccessPayload
 ): CheckRequestedAccessPayload => ({payload, type: checkRequestedAccess})
@@ -543,6 +550,7 @@ export type AddUserToTeamsPayload = {
   readonly payload: _AddUserToTeamsPayload
   readonly type: typeof addUserToTeams
 }
+export type AddedToTeamPayload = {readonly payload: _AddedToTeamPayload; readonly type: typeof addedToTeam}
 export type CheckRequestedAccessPayload = {
   readonly payload: _CheckRequestedAccessPayload
   readonly type: typeof checkRequestedAccess
@@ -762,6 +770,7 @@ export type Actions =
   | AddTeamWithChosenChannelsPayload
   | AddToTeamPayload
   | AddUserToTeamsPayload
+  | AddedToTeamPayload
   | CheckRequestedAccessPayload
   | ClearAddUserToTeamsResultsPayload
   | ClearNavBadgesPayload

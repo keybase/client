@@ -235,7 +235,9 @@ export default (
       case TeamBuildingGen.search:
       case TeamBuildingGen.selectRole:
       case TeamBuildingGen.labelsSeen:
-      case TeamBuildingGen.changeSendNotification: {
+      case TeamBuildingGen.changeSendNotification:
+      case TeamBuildingGen.finishTeamBuilding:
+      case TeamBuildingGen.setError: {
         const val = editTeambuildingDraft('teams', draftState.teamBuilding, action)
         if (val !== undefined) {
           draftState.teamBuilding = val
@@ -277,6 +279,7 @@ export default (
       case TeamsGen.updateChannelName:
       case TeamsGen.updateTopic:
       case TeamsGen.teamCreated:
+      case TeamsGen.addedToTeam:
         return state
       default:
         ifTSCComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
