@@ -354,10 +354,7 @@ func (u *Unfurler) detectPermError(err error) bool {
 	case *unfurlPermanentError:
 		return true
 	}
-	if err.Error() == "Not Found" {
-		return true
-	}
-	return false
+	return err.Error() == "Not Found"
 }
 
 func (u *Unfurler) testingSendUnfurl(unfurl *chat1.Unfurl) {
