@@ -1456,8 +1456,10 @@ func (s *Deliverer) doNotRetryFailure(ctx context.Context, obr chat1.OutboxRecor
 			return typ, err, true
 		}
 		return 0, err, false
-	case *url.Error, *net.DNSError:
-		return chat1.OutboxErrorType_OFFLINE, err, false
+	case *url.Error:
+		return chat1.OutboxErrorType_OFFLINE, err, !berr.Temporary()
+	case *net.DNSError:
+		return chat1.OutboxErrorType_OFFLINE, err, !berr.Temporary()
 	}
 	return 0, err, true
 }
@@ -1593,10 +1595,7 @@ func (e unfurlError) Error() string {
 }
 
 func (e unfurlError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
-	if e.status == types.UnfurlerTaskStatusPermFailed {
-		return chat1.OutboxErrorType_MISC, true
-	}
-	return chat1.OutboxErrorType_MISC, false
+	return chat1.OutboxErrorType_MISC, e.status == types.UnfurlerTaskStatusPermFailed
 }
 
 var _ (DelivererInfoError) = (*unfurlError)(nil)
