@@ -31,24 +31,23 @@ type Props = {
   style?: Styles.StylesCrossPlatform | null
 }
 
-const LabelContainer = props => (
+const LabelContainer = props =>
   // We put the tooltip on the whole thing on desktop.
-  <Kb.ClickableBox onClick={props.allowLabelClick ? props.onClick : undefined}>
-    {Styles.isMobile && props.labelTooltip ? (
-      <Kb.WithTooltip
-        tooltip={props.labelTooltip}
-        containerStyle={Styles.collapseStyles([Styles.globalStyles.flexBoxColumn, styles.labelContainer])}
-        showOnPressMobile={true}
-      >
-        {props.children}
-      </Kb.WithTooltip>
-    ) : (
+  Styles.isMobile && props.labelTooltip ? (
+    <Kb.WithTooltip
+      tooltip={props.labelTooltip}
+      containerStyle={Styles.collapseStyles([Styles.globalStyles.flexBoxColumn, styles.labelContainer])}
+      showOnPressMobile={true}
+    >
+      {props.children}
+    </Kb.WithTooltip>
+  ) : (
+    <Kb.ClickableBox onClick={props.allowLabelClick ? props.onClick : undefined}>
       <Kb.Box2 direction="vertical" style={styles.labelContainer}>
         {props.children}
       </Kb.Box2>
-    )}
-  </Kb.ClickableBox>
-)
+    </Kb.ClickableBox>
+  )
 
 const getContent = (props, ref) => (
   <>
