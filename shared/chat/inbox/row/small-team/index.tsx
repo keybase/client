@@ -185,7 +185,7 @@ const styles = Styles.styleSheetCreate(() => ({
     isMobile: {
       paddingLeft: Styles.globalMargins.tiny,
       paddingRight: Styles.globalMargins.tiny,
-    }
+    },
   }),
   conversationRow: {
     ...Styles.globalStyles.flexBoxColumn,
