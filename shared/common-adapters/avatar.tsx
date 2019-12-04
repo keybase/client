@@ -7,7 +7,9 @@ import * as Styles from '../styles'
 import * as ProfileGen from '../actions/profile-gen'
 import './avatar.css'
 
-export type AvatarSize = 128 | 96 | 64 | 48 | 32 | 24 | 16
+export const avatarSizes = [128, 96, 64, 48, 32, 24, 16] as const
+export type AvatarSize = typeof avatarSizes[number]
+
 type URLType = string
 
 type DisallowedStyles = {
