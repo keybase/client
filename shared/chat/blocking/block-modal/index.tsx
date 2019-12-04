@@ -289,10 +289,12 @@ class BlockModal extends React.PureComponent<Props, State> {
     const {teamname, adderUsername} = this.props
 
     const header = {
-      leftButton: (
+      leftButton: Styles.isMobile ? (
         <Kb.Text onClick={this.props.onClose} type="BodyPrimaryLink">
           Cancel
         </Kb.Text>
+      ) : (
+        undefined
       ),
       title: <Kb.Icon type="iconfont-block-user" sizeType="Big" color="red" />,
     }
@@ -310,6 +312,7 @@ class BlockModal extends React.PureComponent<Props, State> {
     return (
       <Kb.Modal
         mode="Default"
+        onClose={this.props.onClose}
         header={header}
         footer={{
           content: (
