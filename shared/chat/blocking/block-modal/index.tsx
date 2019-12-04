@@ -43,30 +43,24 @@ type CheckboxRowProps = {
   onCheck: (boolean) => void
   text: React.ReactNode
 }
-const CheckboxRow = (props: CheckboxRowProps) => {
-  const [infoShowing, setInfoShowing] = React.useState(false)
-  return (
-    <>
-      <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.checkBoxRow}>
-        <Kb.Switch
-          color="red"
-          gapSize={Styles.globalMargins.tiny}
-          label={props.text}
-          labelSubtitle={infoShowing ? props.info : undefined}
-          on={props.checked}
-          onClick={() => props.onCheck(!props.checked)}
-          style={styles.shrink}
-        />
-        <Kb.Box style={styles.iconBox} />
-        {props.info && !infoShowing && (
-          <Kb.WithTooltip tooltip={props.info}>
-            <Kb.Icon type="iconfont-question-mark" color="grey" onClick={() => setInfoShowing(true)} />
-          </Kb.WithTooltip>
-        )}
-      </Kb.Box2>
-    </>
-  )
-}
+const CheckboxRow = (props: CheckboxRowProps) => (
+  <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.checkBoxRow}>
+    <Kb.Switch
+      color="red"
+      gapSize={Styles.globalMargins.tiny}
+      label={props.text}
+      on={props.checked}
+      onClick={() => props.onCheck(!props.checked)}
+      style={styles.shrink}
+    />
+    <Kb.Box style={styles.iconBox} />
+    {props.info && (
+      <Kb.WithTooltip tooltip={props.info}>
+        <Kb.Icon type="iconfont-question-mark" color="grey" />
+      </Kb.WithTooltip>
+    )}
+  </Kb.Box2>
+)
 
 type ReportOptionsProps = {
   extraNotes: string
