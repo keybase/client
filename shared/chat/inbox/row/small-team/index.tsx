@@ -177,7 +177,16 @@ class SmallTeam extends React.PureComponent<Props, State> {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  container: {flexShrink: 0, height: RowSizes.smallRowHeight},
+  container: Styles.platformStyles({
+    common: {
+      flexShrink: 0,
+      height: RowSizes.smallRowHeight,
+    },
+    isMobile: {
+      paddingLeft: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.tiny,
+    }
+  }),
   conversationRow: {
     ...Styles.globalStyles.flexBoxColumn,
     flexGrow: 1,
