@@ -9,6 +9,7 @@ import * as Container from '../util/container'
 import HiddenString from '../util/hidden-string'
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as ChatTypes from '../constants/types/chat2'
+import logger from '../logger'
 
 const Kb = {
   Box2,
@@ -18,47 +19,46 @@ const Kb = {
   Emoji,
 }
 
-type Recipient = { username: string } | { conversationIDKey: ChatTypes.ConversationIDKey }
-
 type Props = {
-  recipient: Recipient
+  // One of username xor conversationIDKey is expected.
+  username?: string
+  conversationIDKey?: ChatTypes.ConversationIDKey
   small?: boolean
   style?: Styles.StylesCrossPlatform
   toMany?: boolean
 }
 
-const getWaveWaitingKey = (recipient: Recipient) => {
-  if ('username' in recipient) {
-    return `settings:waveButton:username:${recipient.username}`
-  } else {
-    return `settings:waveButton:convID:${recipient.conversationIDKey}`
-  }
+const getWaveWaitingKey = (recipient: string) => {
+  return `settings:waveButton:${recipient}`
 }
 
 // A button that sends a wave emoji into a chat.
 export const WaveButton = (props: Props) => {
   const [waved, setWaved] = React.useState(false)
-  const waitingKey = getWaveWaitingKey(props.recipient)
+  const waitingKey = getWaveWaitingKey(props.username || props.conversationIDKey || 'missing')
   const waving = Container.useAnyWaiting(waitingKey)
   const dispatch = Container.useDispatch()
 
   const onWave = () => {
-    if ('username' in props.recipient) {
+    if (props.username) {
       dispatch(
         Chat2Gen.createMessageSendByUsernames({
           text: new HiddenString(':wave:'),
-          usernames: props.recipient.username,
+          usernames: props.username,
+          waitingKey,
+        })
+      )
+    } else if (props.conversationIDKey) {
+      dispatch(
+        Chat2Gen.createMessageSend({
+          conversationIDKey: props.conversationIDKey,
+          text: new HiddenString(':wave:'),
           waitingKey,
         })
       )
     } else {
-      dispatch(
-        Chat2Gen.createMessageSend({
-          conversationIDKey: props.recipient.conversationIDKey,
-          text: new HiddenString(':wave:'),
-          waitingKey,
-        })
-      )
+      logger.warn('WaveButton: need one of username xor conversationIDKey')
+      return
     }
     setWaved(true)
   }

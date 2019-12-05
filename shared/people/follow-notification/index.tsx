@@ -52,7 +52,7 @@ const FollowNotification = (props: Props) => {
           props.type == 'contact'
             ? [
                 <FollowButton username={username} small={true} key="follow" />,
-                <Kb.WaveButton recipient={{username}} small={true} key="wave" />,
+                <Kb.WaveButton username={username} small={true} key="wave" />,
               ]
             : undefined
         }
