@@ -148,9 +148,9 @@ func (h *KVStoreHandler) GetKVEntry(ctx context.Context, arg keybase1.GetKVEntry
 	}
 	var cleartext string
 	if apiRes.Ciphertext != "" /* deleted or non-existent */ {
-		cleartext, err = h.Boxer.Unbox(mctx, entryID, apiRes.Revision, apiRes.Ciphertext, apiRes.TeamKeyGen, apiRes.FormatVersion, apiRes.WriterUID, apiRes.WriterEldestSeqno, apiRes.WriterDeviceID) //, "", 0) //apiRes.BotUID, apiRes.BotEldestSeqno)
+		cleartext, err = h.Boxer.Unbox(mctx, entryID, apiRes.Revision, apiRes.Ciphertext, apiRes.TeamKeyGen, apiRes.FormatVersion, apiRes.WriterUID, apiRes.WriterEldestSeqno, apiRes.WriterDeviceID, *apiRes.BotUID, *apiRes.BotEldestSeqno)
 		if err != nil {
-			mctx.Debug("error unboxing %+v: %v", entryID, err)
+			mctx.Debug("error u/nboxing %+v: %v", entryID, err)
 			return res, err
 		}
 	}
@@ -215,64 +215,64 @@ func (h *KVStoreHandler) PutKVEntry(ctx context.Context, arg keybase1.PutKVEntry
 	var ciphertext string
 	var teamKeyGen keybase1.PerTeamKeyGeneration
 
-	//if arg.BotName == "" {
+	// if no botname AND not a restricted bot
+	if arg.BotName == "" {
+		ciphertext, teamKeyGen, ciphertextVersion, err := h.Boxer.Box(mctx, entryID, revision, arg.EntryValue)
 
-	//fmt.Printf(">>>>>> '''' arg botname = %+v", arg.BotName)
-	ciphertext, teamKeyGen, ciphertextVersion, err := h.Boxer.Box(mctx, entryID, revision, arg.EntryValue)
-	if err != nil {
-		mctx.Debug("error boxing %+v: %v", entryID, err)
-		return res, err
-	}
-	err = mctx.G().GetKVRevisionCache().CheckForUpdate(mctx, entryID, revision)
-	if err != nil {
-		mctx.Debug("error from cache for updating %+v: %s", entryID, err)
-		return res, err
-	}
-
-	apiArg = libkb.APIArg{
-		Endpoint:    "team/storage",
-		SessionType: libkb.APISessionTypeREQUIRED,
-		Args: libkb.HTTPArgs{
-			"team_id":            libkb.S{Val: entryID.TeamID.String()},
-			"team_key_gen":       libkb.I{Val: int(teamKeyGen)},
-			"namespace":          libkb.S{Val: entryID.Namespace},
-			"entry_key":          libkb.S{Val: entryID.EntryKey},
-			"ciphertext":         libkb.S{Val: ciphertext},
-			"ciphertext_version": libkb.I{Val: ciphertextVersion},
-			"revision":           libkb.I{Val: revision},
-		},
-	}
-	//} else {
-	/*
-			//ciphertext, teamKeyGen, ciphertextVersion, botUID, botEldestSeqNo, err := h.Boxer.Box(mctx, entryID, revision, arg.EntryValue, arg.BotName)
-			ciphertext, teamKeyGen, ciphertextVersion, err := h.Boxer.Box(mctx, entryID, revision, arg.EntryValue) /////, arg.BotName)
-			if err != nil {
-				mctx.Debug("error boxing %+v: %v", entryID, err)
-				return res, err
-			}
-			err = mctx.G().GetKVRevisionCache().CheckForUpdate(mctx, entryID, revision)
-			if err != nil {
-				mctx.Debug("error from cache for updating %+v: %s", entryID, err)
-				return res, err
-			}
-
-			apiArg = libkb.APIArg{
-				Endpoint:    "team/storage",
-				SessionType: libkb.APISessionTypeREQUIRED,
-				Args: libkb.HTTPArgs{
-					"team_id":      libkb.S{Val: entryID.TeamID.String()},
-					"team_key_gen": libkb.I{Val: int(teamKeyGen)},
-					//"bot_uid":            libkb.S{Val: botUID.String()},
-					//"bot_eldest_seqno":   libkb.I{Val: int(botEldestSeqNo)}, /////
-					"namespace":          libkb.S{Val: entryID.Namespace},
-					"entry_key":          libkb.S{Val: entryID.EntryKey},
-					"ciphertext":         libkb.S{Val: ciphertext},
-					"ciphertext_version": libkb.I{Val: ciphertextVersion},
-					"revision":           libkb.I{Val: revision},
-				},
-			}
+		if err != nil {
+			mctx.Debug("error boxing %+v: %v", entryID, err)
+			return res, err
 		}
-	*/
+		err = mctx.G().GetKVRevisionCache().CheckForUpdate(mctx, entryID, revision)
+		if err != nil {
+			mctx.Debug("error from cache for updating %+v: %s", entryID, err)
+			return res, err
+		}
+
+		apiArg = libkb.APIArg{
+			Endpoint:    "team/storage",
+			SessionType: libkb.APISessionTypeREQUIRED,
+			Args: libkb.HTTPArgs{
+				"team_id":            libkb.S{Val: entryID.TeamID.String()},
+				"team_key_gen":       libkb.I{Val: int(teamKeyGen)},
+				"namespace":          libkb.S{Val: entryID.Namespace},
+				"entry_key":          libkb.S{Val: entryID.EntryKey},
+				"ciphertext":         libkb.S{Val: ciphertext},
+				"ciphertext_version": libkb.I{Val: ciphertextVersion},
+				"revision":           libkb.I{Val: revision},
+			},
+		}
+	} else {
+		// if botname, or is a restricted bot
+		fmt.Printf(">>>>>> '''' arg botname = %+v", arg.BotName)
+		ciphertext, teamKeyGen, ciphertextVersion, botUID, botEldestSeqNo, err := h.Boxer.BoxForBot(mctx, entryID, revision, arg.EntryValue, arg.BotName)
+
+		if err != nil {
+			mctx.Debug("error boxing %+v: %v", entryID, err)
+			return res, err
+		}
+		err = mctx.G().GetKVRevisionCache().CheckForUpdate(mctx, entryID, revision)
+		if err != nil {
+			mctx.Debug("error from cache for updating %+v: %s", entryID, err)
+			return res, err
+		}
+
+		apiArg = libkb.APIArg{
+			Endpoint:    "team/storage",
+			SessionType: libkb.APISessionTypeREQUIRED,
+			Args: libkb.HTTPArgs{
+				"team_id":            libkb.S{Val: entryID.TeamID.String()},
+				"team_key_gen":       libkb.I{Val: int(teamKeyGen)},
+				"bot_uid":            libkb.S{Val: botUID.String()},
+				"bot_eldest_seqno":   libkb.I{Val: int(botEldestSeqNo)},
+				"namespace":          libkb.S{Val: entryID.Namespace},
+				"entry_key":          libkb.S{Val: entryID.EntryKey},
+				"ciphertext":         libkb.S{Val: ciphertext},
+				"ciphertext_version": libkb.I{Val: ciphertextVersion},
+				"revision":           libkb.I{Val: revision},
+			},
+		}
+	}
 
 	var apiRes putEntryAPIRes
 	err = mctx.G().API.PostDecode(mctx, apiArg, &apiRes)
