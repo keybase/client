@@ -45,6 +45,7 @@ const CheckboxRow = (props: CheckboxRowProps) => {
     <>
       <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.checkBoxRow}>
         <Kb.Switch
+          allowLabelClick={!props.disabled}
           color="red"
           disabled={props.disabled}
           gapSize={Styles.globalMargins.tiny}
@@ -297,7 +298,7 @@ class BlockModal extends React.PureComponent<Props, State> {
       ) : (
         undefined
       ),
-      title: <Kb.Icon type="iconfont-block-user" sizeType="Big" color="red" />,
+      title: <Kb.Icon type="iconfont-block-user" sizeType="Big" color={Styles.globalColors.red} />,
     }
 
     if (this.props.loadingWaiting) {
