@@ -199,14 +199,42 @@ func TestSymlink(t *testing.T) {
 	p := keybase1.NewPathWithKbfsPath(`/private/jdoe`)
 	target := pathAppend(p, `test1.txt`)
 	writeRemoteFile(ctx, t, sfs, target, []byte(`foo`))
-	link := pathAppend(p, `link`)
+	linkName := "link"
+	link := pathAppend(p, linkName)
+	targetName := path.Base(target.String())
 	err := sfs.SimpleFSSymlink(ctx, keybase1.SimpleFSSymlinkArg{
-		Target: path.Base(target.String()),
+		Target: targetName,
 		Link:   link,
 	})
 	require.NoError(t, err)
 	require.Equal(t, "foo",
 		string(readRemoteFile(ctx, t, sfs, link)))
+
+	t.Log("Make sure the symlink ls entry has a target")
+	opid, err := sfs.SimpleFSMakeOpid(ctx)
+	require.NoError(t, err)
+	err = sfs.SimpleFSList(ctx, keybase1.SimpleFSListArg{
+		OpID:   opid,
+		Path:   p,
+		Filter: keybase1.ListFilter_NO_FILTER,
+	})
+	require.NoError(t, err)
+	checkPendingOp(
+		ctx, t, sfs, opid, keybase1.AsyncOps_LIST, p, keybase1.Path{}, true)
+	err = sfs.SimpleFSWait(ctx, opid)
+	require.NoError(t, err)
+	listResult, err := sfs.SimpleFSReadList(ctx, opid)
+	require.NoError(t, err)
+	require.Len(t, listResult.Entries, 2)
+	found := false
+	for _, e := range listResult.Entries {
+		if e.Name != linkName {
+			continue
+		}
+		require.Equal(t, targetName, e.SymlinkTarget)
+		found = true
+	}
+	require.True(t, found)
 
 	// Regression for HOTPOT-1276
 	t.Log("Make sure a link called . will fail")

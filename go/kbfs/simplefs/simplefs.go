@@ -512,7 +512,8 @@ func (k *SimpleFS) favoriteList(ctx context.Context, path keybase1.Path, t tlf.T
 	return res, nil
 }
 
-func (k *SimpleFS) setStat(de *keybase1.Dirent, fi os.FileInfo) error {
+func (k *SimpleFS) setStat(
+	de *keybase1.Dirent, fi os.FileInfo, linkFS billy.Filesystem) error {
 	de.Time = keybase1.ToTime(fi.ModTime())
 	de.Size = int(fi.Size()) // TODO: FIX protocol
 
@@ -524,6 +525,12 @@ func (k *SimpleFS) setStat(de *keybase1.Dirent, fi os.FileInfo) error {
 		t = data.Exec
 	case fi.Mode()&os.ModeSymlink != 0:
 		t = data.Sym
+
+		link, err := linkFS.Readlink(fi.Name())
+		if err != nil {
+			return err
+		}
+		de.SymlinkTarget = link
 	}
 	de.DirentType = deTy2Ty(t)
 	de.Writable = (fi.Mode()&0222 != 0)
@@ -892,8 +899,13 @@ func (k *SimpleFS) SimpleFSList(ctx context.Context, arg keybase1.SimpleFSListAr
 					return err
 				}
 				var fis []os.FileInfo
+				linkFS := fs
 				if finalElemFI.IsDir() {
 					fis, err = fs.ReadDir(finalElem)
+					if err != nil {
+						return err
+					}
+					linkFS, err = fs.Chroot(finalElem)
 					if err != nil {
 						return err
 					}
@@ -907,7 +919,7 @@ func (k *SimpleFS) SimpleFSList(ctx context.Context, arg keybase1.SimpleFSListAr
 					}
 
 					var d keybase1.Dirent
-					err := k.setStat(&d, fi)
+					err := k.setStat(&d, fi, linkFS)
 					if err != nil {
 						return err
 					}
@@ -970,7 +982,7 @@ func (k *SimpleFS) listRecursiveToDepth(opID keybase1.OpID,
 		var des []keybase1.Dirent
 		if !fi.IsDir() {
 			var d keybase1.Dirent
-			err := k.setStat(&d, fi)
+			err := k.setStat(&d, fi, fs)
 			if err != nil {
 				return err
 			}
@@ -997,6 +1009,10 @@ func (k *SimpleFS) listRecursiveToDepth(opID keybase1.OpID,
 			if err != nil {
 				return err
 			}
+			linkFS, err := fs.Chroot(pathElem.path)
+			if err != nil {
+				return err
+			}
 			for _, fi := range fis {
 				// We can only get here if we're listing a
 				// directory, not a single file, so we should
@@ -1006,7 +1022,7 @@ func (k *SimpleFS) listRecursiveToDepth(opID keybase1.OpID,
 				}
 
 				var de keybase1.Dirent
-				err := k.setStat(&de, fi)
+				err := k.setStat(&de, fi, linkFS)
 				if err != nil {
 					return err
 				}
@@ -1861,29 +1877,30 @@ func (k *SimpleFS) SimpleFSStat(ctx context.Context, arg keybase1.SimpleFSStatAr
 		return keybase1.Dirent{}, err
 	}
 
-	err = k.setStat(&de, fi)
+	err = k.setStat(&de, fi, fs)
 	return de, err
 }
 
 func (k *SimpleFS) getRevisionsFromPath(
 	ctx context.Context, path keybase1.Path) (
-	os.FileInfo, data.PrevRevisions, error) {
+	billy.Filesystem, os.FileInfo, data.PrevRevisions, error) {
 	fs, finalElem, err := k.getFSIfExists(ctx, path)
 	if err != nil {
 		k.log.CDebugf(ctx, "Trouble getting fs for path: %+v", err)
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 	// Use LStat so we don't follow symlinks.
 	fi, err := fs.Lstat(finalElem)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	fipr, ok := fi.Sys().(libfs.PrevRevisionsGetter)
 	if !ok {
-		return nil, nil, simpleFSError{"Cannot get revisions for non-KBFS path"}
+		return nil, nil, nil,
+			simpleFSError{"Cannot get revisions for non-KBFS path"}
 	}
-	return fi, fipr.PrevRevisions(), nil
+	return fs, fi, fipr.PrevRevisions(), nil
 }
 
 func (k *SimpleFS) doGetRevisions(
@@ -1896,7 +1913,7 @@ func (k *SimpleFS) doGetRevisions(
 	// Both span types return up to 5 revisions.
 	k.setProgressTotals(opID, 0, 5)
 
-	fi, prs, err := k.getRevisionsFromPath(ctx, path)
+	fs, fi, prs, err := k.getRevisionsFromPath(ctx, path)
 	if err != nil {
 		return nil, err
 	}
@@ -1905,7 +1922,7 @@ func (k *SimpleFS) doGetRevisions(
 	}
 
 	var currRev keybase1.DirentWithRevision
-	err = k.setStat(&currRev.Entry, fi)
+	err = k.setStat(&currRev.Entry, fi, fs)
 	if err != nil {
 		return nil, err
 	}
@@ -1953,7 +1970,7 @@ func (k *SimpleFS) doGetRevisions(
 						ArchivedParam: keybase1.NewKBFSArchivedParamWithRevision(
 							keybase1.KBFSRevision(lastRevision - 1)),
 					})
-				_, prevPRs, err := k.getRevisionsFromPath(ctx, pathToPrev)
+				_, _, prevPRs, err := k.getRevisionsFromPath(ctx, pathToPrev)
 				if _, isGC := err.(libkbfs.RevGarbageCollectedError); isGC {
 					k.log.CDebugf(ctx, "Hit a GC'd revision: %d",
 						lastRevision-1)
@@ -2044,7 +2061,7 @@ func (k *SimpleFS) doGetRevisions(
 			return err
 		}
 		var rev keybase1.DirentWithRevision
-		err = k.setStat(&rev.Entry, fi)
+		err = k.setStat(&rev.Entry, fi, fs)
 		if err != nil {
 			return err
 		}
