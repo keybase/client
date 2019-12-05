@@ -10,7 +10,6 @@ import {isMobile} from '../../constants/platform'
 import Rows from './rows/rows-container'
 import {asRows as resetBannerAsRows} from '../banner/reset-banner/container'
 import ConflictBanner from '../banner/conflict-banner-container'
-import flags from '../../util/feature-flags'
 import OfflineFolder from './offline'
 import PublicReminder from '../banner/public-reminder'
 import Root from './root'
@@ -87,7 +86,7 @@ const BrowserContent = (props: Props) => {
   const addCommonStuff = (children: React.ReactNode) => (
     <>
       <PublicReminder path={props.path} />
-      {flags.conflictResolution && <ConflictBanner path={props.path} />}
+      <ConflictBanner path={props.path} />
       {children}
     </>
   )

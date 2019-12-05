@@ -1,8 +1,10 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
+import * as Constants from '../../../constants/chat2'
 import * as Styles from '../../../styles'
+import * as TeamTypes from '../../../constants/types/teams'
 import {Box2, Button, FloatingMenu, OverlayParentHOC, OverlayParentProps} from '../../../common-adapters'
-import {compose, connect} from '../../../util/container'
+import {connect} from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {appendNewTeamBuilder} from '../../../actions/typed-routes'
 
@@ -61,35 +63,32 @@ type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
   isAdmin: boolean
   isGeneralChannel: boolean
-  teamname: string
 }
 
-const mapDispatchToProps = dispatch => {
-  return {
-    _onAddPeople: teamname => dispatch(appendNewTeamBuilder(teamname)),
-    _onAddToChannel: conversationIDKey => {
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {conversationIDKey}, selected: 'chatAddToChannel'}],
-        })
-      )
-    },
-  }
-}
-
-const AddPeople = compose(
-  connect(
-    () => ({}),
-    mapDispatchToProps,
-    (_, d, o: OwnProps) => ({
-      isAdmin: o.isAdmin,
-      isGeneralChannel: o.isGeneralChannel,
-      onAddPeople: () => d._onAddPeople(o.teamname),
-      onAddToChannel: () => d._onAddToChannel(o.conversationIDKey),
-    })
-  ),
-  OverlayParentHOC
-)(_AddPeople) as any
+const AddPeople = connect(
+  (state, ownProps: OwnProps) => {
+    const meta = Constants.getMeta(state, ownProps.conversationIDKey)
+    return {teamID: meta.teamID}
+  },
+  dispatch => {
+    return {
+      _onAddPeople: (teamID: TeamTypes.TeamID) => dispatch(appendNewTeamBuilder(teamID)),
+      _onAddToChannel: (conversationIDKey: Types.ConversationIDKey) => {
+        dispatch(
+          RouteTreeGen.createNavigateAppend({
+            path: [{props: {conversationIDKey}, selected: 'chatAddToChannel'}],
+          })
+        )
+      },
+    }
+  },
+  (s, d, o: OwnProps) => ({
+    isAdmin: o.isAdmin,
+    isGeneralChannel: o.isGeneralChannel,
+    onAddPeople: () => d._onAddPeople(s.teamID),
+    onAddToChannel: () => d._onAddToChannel(o.conversationIDKey),
+  })
+)(OverlayParentHOC(_AddPeople))
 
 const styles = Styles.styleSheetCreate(
   () =>

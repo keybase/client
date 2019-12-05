@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Container from '../../../../../util/container'
 import * as Kb from '../../../../../common-adapters'
+import {LayoutEvent} from '../../../../../common-adapters/box'
 import * as Constants from '../../../../../constants/chat2'
 import * as Types from '../../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
@@ -24,7 +25,7 @@ type WrapperState = {
 class Wrapper extends React.Component<WrapperProps, WrapperState> {
   state = {filter: '', width: 0}
 
-  _onLayout = evt => {
+  _onLayout = (evt: LayoutEvent) => {
     if (evt.nativeEvent) {
       const width = evt.nativeEvent.layout.width
       this.setState(s => (s.width !== width ? {width} : null))

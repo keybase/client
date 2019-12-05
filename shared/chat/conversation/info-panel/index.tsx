@@ -20,7 +20,7 @@ export type ParticipantTyp = {
 export type EntityType = 'adhoc' | 'small team' | 'channel'
 export type Section = {
   data: Array<any>
-  renderItem: ({item: any, index: number}) => void
+  renderItem: (i: {item: any; index: number}) => void
   renderSectionHeader: (i: any) => void
 }
 
@@ -267,7 +267,7 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
     }
   }
 
-  private renderSectionHeader = ({section}) => {
+  private renderSectionHeader = ({section}: any) => {
     return section.renderSectionHeader({section})
   }
 
@@ -276,7 +276,7 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
     let sections: Array<unknown> = []
     const tabsSection = this.tabsSection()
     sections.push(this.headerSection())
-    let itemSizeEstimator
+    let itemSizeEstimator: (() => number) | undefined
     if (!this.props.selectedConversationIDKey) {
       // if we dont have a valid conversation ID, just render a spinner
       return (
@@ -354,7 +354,7 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
               return 80
             }
           }
-          let attachmentSections
+          let attachmentSections: unknown
           switch (this.props.selectedAttachmentView) {
             case RPCChatTypes.GalleryItemTyp.media:
               attachmentSections = new MediaView().getSections(

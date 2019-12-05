@@ -294,12 +294,11 @@ func (s *Syncer) notifyIncrementalSync(ctx context.Context, uid gregor1.UID,
 		if err == nil {
 			md = rc.LocalMetadata
 		}
+		rc = utils.RemoteConv(c)
+		rc.LocalMetadata = md
 		itemsByTopicType[c.GetTopicType()] = append(itemsByTopicType[c.GetTopicType()],
 			chat1.ChatSyncIncrementalConv{
-				Conv: utils.PresentRemoteConversation(ctx, s.G(), types.RemoteConversation{
-					Conv:          c,
-					LocalMetadata: md,
-				}),
+				Conv:        utils.PresentRemoteConversation(ctx, s.G(), rc),
 				ShouldUnbox: shouldUnboxMap[c.GetConvID().String()],
 			})
 	}

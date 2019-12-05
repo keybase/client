@@ -1,32 +1,31 @@
 import React from 'react'
-import {storiesOf, action} from '../../../../stories/storybook'
-import {Notifications} from './index'
+import * as Sb from '../../../../stories/storybook'
+import * as Container from '../../../../util/container'
+import * as Constants from '../../../../constants/chat2'
+import Notifications from '.'
 
-const defaultProps = {
-  channelWide: false,
-  desktop: 'onWhenAtMentioned' as 'onWhenAtMentioned',
-  mobile: 'never' as 'never',
-  muted: false,
-  saving: false,
-  toggleChannelWide: action('onToggleChannelwide'),
-  toggleMuted: action('toggleMuted'),
-  updateDesktop: action('updateDesktop'),
-  updateMobile: action('updateMobile'),
-}
+const store = Container.produce(Sb.createStoreWithCommon(), draftState => {
+  draftState.chat2.metaMap.set('normal', {
+    ...Constants.makeConversationMeta(),
+    isMuted: false,
+    notificationsDesktop: 'onWhenAtMentioned',
+    notificationsGlobalIgnoreMentions: false,
+    notificationsMobile: 'never',
+  })
+  draftState.chat2.metaMap.set('muted', {
+    ...Constants.makeConversationMeta(),
+    isMuted: true,
+    notificationsDesktop: 'onWhenAtMentioned',
+    notificationsGlobalIgnoreMentions: false,
+    notificationsMobile: 'never',
+  })
+})
 
 const load = () => {
-  storiesOf('Chat/Conversation/InfoPanelNotifications', module)
-    .add('Notifications', () => <Notifications {...defaultProps} />)
-    .add('Notifications (muted)', () => <Notifications {...defaultProps} muted={true} />)
-    .add('Notifications (saving)', () => (
-      <Notifications
-        {...defaultProps}
-        channelWide={true}
-        desktop="onAnyActivity"
-        mobile="onWhenAtMentioned"
-        saving={true}
-      />
-    ))
+  Sb.storiesOf('Chat/Conversation/InfoPanelNotifications', module)
+    .addDecorator(story => <Sb.MockStore store={store}>{story()}</Sb.MockStore>)
+    .add('Notifications', () => <Notifications conversationIDKey="normal" />)
+    .add('Notifications (muted)', () => <Notifications conversationIDKey="muted" />)
 }
 
 export default load

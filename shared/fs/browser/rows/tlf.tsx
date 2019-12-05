@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as React from 'react'
 import * as Styles from '../../../styles'
 import * as Constants from '../../../constants/fs'
@@ -13,7 +12,7 @@ type TlfProps = StillCommonProps & {
   // showing ignored folders when we allow user to show ignored folders in GUI.
   isIgnored: boolean
   mixedMode?: boolean
-  usernames: I.List<string>
+  usernames: Array<string>
 }
 
 const Content = (props: TlfProps) => (
@@ -33,9 +32,9 @@ const Content = (props: TlfProps) => (
 const Avatars = (props: TlfProps) => (
   <Kb.Box style={styles.avatarBox}>
     {Constants.isTeamPath(props.path) ? (
-      <Kb.Avatar size={32} isTeam={true} teamname={props.usernames.get(0)} />
+      <Kb.Avatar size={32} isTeam={true} teamname={props.usernames[0]} />
     ) : (
-      <Kb.AvatarLine maxShown={4} size={32} layout="horizontal" usernames={props.usernames.toArray()} />
+      <Kb.AvatarLine maxShown={4} size={32} layout="horizontal" usernames={props.usernames} />
     )}
   </Kb.Box>
 )

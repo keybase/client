@@ -1,5 +1,4 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/provision'
 import HiddenString from '../util/hidden-string'

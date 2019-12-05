@@ -19,7 +19,7 @@ import {Props} from './router'
 import {connect} from '../util/container'
 import {createAppContainer} from '@react-navigation/native'
 import {createBottomTabNavigator} from 'react-navigation-tabs'
-import {createSwitchNavigator, StackActions} from '@react-navigation/core'
+import {createSwitchNavigator} from '@react-navigation/core'
 import debounce from 'lodash/debounce'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {useScreens} from 'react-native-screens'
@@ -153,6 +153,7 @@ const VanillaTabNavigator = createBottomTabNavigator(
     {blank: {screen: BlankScreen}}
   ),
   {
+    backBehavior: 'none',
     defaultNavigationOptions: ({navigation}) => {
       const routeName = navigation.state.index && navigation.state.routes[navigation.state.index].routeName
       const tabBarVisible = routeName !== 'chatConversation'
@@ -299,41 +300,6 @@ class RNApp extends React.PureComponent<Props> {
   private persistRoute = debounce(() => {
     this.props.persistRoute(Constants.getVisiblePath())
   }, 3000)
-
-  private handleAndroidBack = () => {
-    const nav = this.nav
-    if (!nav) {
-      return
-    }
-    const path = Constants.getVisiblePath()
-
-    // We determine if we're at the root if we're at the root of our navigation hierarchy, which is slightly different if you're logged in or out
-    if (path[0].routeName === 'loggedIn') {
-      if (path[1].routeName === 'Main') {
-        if (path.length === 3) {
-          return false
-        }
-      }
-    } else {
-      if (path.length === 2) {
-        return false
-      }
-    }
-    nav.dispatch(StackActions.pop({}))
-    return true
-  }
-
-  componentDidMount() {
-    if (Styles.isAndroid) {
-      Kb.NativeBackHandler.addEventListener('hardwareBackPress', this.handleAndroidBack)
-    }
-  }
-
-  componentWillUnmount() {
-    if (Styles.isAndroid) {
-      Kb.NativeBackHandler.removeEventListener('hardwareBackPress', this.handleAndroidBack)
-    }
-  }
 
   getNavState = () => {
     const n = this.nav

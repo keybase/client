@@ -987,17 +987,13 @@ func GetRemoteConvDisplayName(rc types.RemoteConversation) string {
 	}
 }
 
-func GetConvSnippet(conv chat1.ConversationLocal, currentUsername string) (snippet, decoration string) {
+func GetConvSnippet(conv chat1.ConversationLocal, currentUsername string) (chat1.SnippetDecoration, string) {
 
 	if conv.Info.SnippetMsg == nil {
-		return "", ""
+		return chat1.SnippetDecoration_NONE, ""
 	}
 	msg := *conv.Info.SnippetMsg
 
-	// If a DELETEHISTORY is the latest message, there is no snippet
-	if msg.GetMessageType() == chat1.MessageType_DELETEHISTORY {
-		return "", ""
-	}
 	return GetMsgSnippet(msg, conv, currentUsername)
 }
 
@@ -1045,6 +1041,40 @@ func formatDuration(dur time.Duration) string {
 	return fmt.Sprintf("%02d:%02d", m, s)
 }
 
+func getMsgSnippetDecoration(msg chat1.MessageUnboxed) chat1.SnippetDecoration {
+	var msgBody chat1.MessageBody
+	if msg.IsValid() {
+		msgBody = msg.Valid().MessageBody
+	} else {
+		msgBody = msg.Outbox().Msg.MessageBody
+	}
+	switch msg.GetMessageType() {
+	case chat1.MessageType_ATTACHMENT:
+		obj := msgBody.Attachment().Object
+		atyp, err := obj.Metadata.AssetType()
+		if err != nil {
+			return chat1.SnippetDecoration_NONE
+		}
+		switch atyp {
+		case chat1.AssetMetadataType_IMAGE:
+			return chat1.SnippetDecoration_PHOTO_ATTACHMENT
+		case chat1.AssetMetadataType_VIDEO:
+			if obj.Metadata.Video().IsAudio {
+				return chat1.SnippetDecoration_AUDIO_ATTACHMENT
+			}
+			return chat1.SnippetDecoration_VIDEO_ATTACHMENT
+		}
+		return chat1.SnippetDecoration_FILE_ATTACHMENT
+	case chat1.MessageType_REQUESTPAYMENT:
+		return chat1.SnippetDecoration_STELLAR_RECEIVED
+	case chat1.MessageType_SENDPAYMENT:
+		return chat1.SnippetDecoration_STELLAR_SENT
+	case chat1.MessageType_PIN:
+		return chat1.SnippetDecoration_PINNED_MESSAGE
+	}
+	return chat1.SnippetDecoration_NONE
+}
+
 func GetMsgSnippetBody(msg chat1.MessageUnboxed) (snippet string) {
 	defer func() {
 		snippet = EscapeShrugs(context.TODO(), snippet)
@@ -1066,7 +1096,7 @@ func GetMsgSnippetBody(msg chat1.MessageUnboxed) (snippet string) {
 	case chat1.MessageType_FLIP:
 		return msgBody.Flip().Text
 	case chat1.MessageType_PIN:
-		return "📌 new pinned message"
+		return "Pinned message"
 	case chat1.MessageType_ATTACHMENT:
 		obj := msgBody.Attachment().Object
 		title := obj.Title
@@ -1077,34 +1107,38 @@ func GetMsgSnippetBody(msg chat1.MessageUnboxed) (snippet string) {
 			}
 			switch atyp {
 			case chat1.AssetMetadataType_IMAGE:
-				title = "📷 attachment"
+				title = "Image attachment"
 			case chat1.AssetMetadataType_VIDEO:
 				dur := formatDuration(time.Duration(obj.Metadata.Video().DurationMs) * time.Millisecond)
 				if obj.Metadata.Video().IsAudio {
-					title = fmt.Sprintf("🔊 attachment (%s)", dur)
+					title = fmt.Sprintf("Audio message (%s)", dur)
 				} else {
-					title = fmt.Sprintf("🎞 attachment (%s)", dur)
+					title = fmt.Sprintf("Video attachment (%s)", dur)
 				}
 			default:
-				title = obj.Filename
+				if obj.Filename == "" {
+					title = "File attachment"
+				} else {
+					title = obj.Filename
+				}
 			}
 		}
 		return title
 	case chat1.MessageType_SYSTEM:
 		return msgBody.System().String()
 	case chat1.MessageType_REQUESTPAYMENT:
-		return "🚀 payment request"
+		return "Payment requested"
 	case chat1.MessageType_SENDPAYMENT:
-		return "🚀 payment sent"
+		return "Payment sent"
 	case chat1.MessageType_HEADLINE:
 		return msgBody.Headline().String()
 	}
 	return ""
 }
 
-func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, currentUsername string) (snippet, decoration string) {
+func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, currentUsername string) (decoration chat1.SnippetDecoration, snippet string) {
 	if !(msg.IsValid() || msg.IsOutbox()) {
-		return "", ""
+		return chat1.SnippetDecoration_NONE, ""
 	}
 
 	var senderUsername string
@@ -1119,21 +1153,26 @@ func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, curre
 	// assigns a ctime.
 	if msg.IsValid() && !msg.IsValidFull() {
 		if msg.Valid().IsEphemeral() && msg.Valid().IsEphemeralExpired(time.Now()) {
-			return fmt.Sprintf("%s ----------------------------", senderPrefix), "💥"
+			return chat1.SnippetDecoration_EXPLODED_MESSAGE, fmt.Sprintf("%s ----------------------------", senderPrefix)
 		}
-		return "", ""
+		return chat1.SnippetDecoration_NONE, ""
 	}
 
 	if msg.IsOutbox() {
-		decoration = "📤"
+		decoration = chat1.SnippetDecoration_PENDING_MESSAGE
 		if msg.Outbox().IsError() {
-			decoration = "⚠️"
+			decoration = chat1.SnippetDecoration_FAILED_PENDING_MESSAGE
 		}
 	} else if msg.Valid().IsEphemeral() {
-		decoration = "💣"
+		decoration = chat1.SnippetDecoration_EXPLODING_MESSAGE
+	} else {
+		decoration = getMsgSnippetDecoration(msg)
 	}
-
-	return senderPrefix + GetMsgSnippetBody(msg), decoration
+	snippet = GetMsgSnippetBody(msg)
+	if snippet == "" {
+		decoration = chat1.SnippetDecoration_NONE
+	}
+	return decoration, senderPrefix + snippet
 }
 
 // We don't want to display the contents of an exploding message in notifications
@@ -1170,23 +1209,21 @@ func GetDesktopNotificationSnippet(conv *chat1.ConversationLocal, currentUsernam
 		return "New message"
 	}
 
-	var snippet string
 	switch msg.GetMessageType() {
 	case chat1.MessageType_REACTION:
 		reaction, err := GetReaction(msg)
 		if err != nil {
-			snippet = ""
-		} else {
-			var prefix string
-			if showSenderPrefix(*conv) {
-				prefix = mvalid.SenderUsername + " "
-			}
-			snippet = emoji.Sprintf("%sreacted to your message with %v", prefix, reaction)
+			return ""
 		}
+		var prefix string
+		if showSenderPrefix(*conv) {
+			prefix = mvalid.SenderUsername + " "
+		}
+		return emoji.Sprintf("%sreacted to your message with %v", prefix, reaction)
 	default:
-		snippet, _ = GetMsgSnippet(msg, *conv, currentUsername)
+		decoration, snippetBody := GetMsgSnippet(msg, *conv, currentUsername)
+		return fmt.Sprintf("%s %s", decoration.ToEmoji(), snippetBody)
 	}
-	return snippet
 }
 
 func StripUsernameFromConvName(name string, username string) (res string) {
@@ -1197,13 +1234,13 @@ func StripUsernameFromConvName(name string, username string) (res string) {
 
 func PresentRemoteConversationAsSmallTeamRow(ctx context.Context, rc types.RemoteConversation,
 	username string, useSnippet bool) (res chat1.UIInboxSmallTeamRow) {
-	res.ConvID = rc.GetConvID().String()
+	res.ConvID = rc.ConvIDStr
 	res.IsTeam = rc.GetTeamType() != chat1.TeamType_NONE
 	res.Name = StripUsernameFromConvName(GetRemoteConvDisplayName(rc), username)
 	res.Time = GetConvMtime(rc)
 	if useSnippet && rc.LocalMetadata != nil {
+		res.SnippetDecoration = rc.LocalMetadata.SnippetDecoration
 		res.Snippet = &rc.LocalMetadata.Snippet
-		res.SnippetDecoration = &rc.LocalMetadata.SnippetDecoration
 	}
 	res.Draft = rc.LocalDraft
 	res.IsMuted = rc.Conv.Metadata.Status == chat1.ConversationStatus_MUTED
@@ -1211,7 +1248,7 @@ func PresentRemoteConversationAsSmallTeamRow(ctx context.Context, rc types.Remot
 }
 
 func PresentRemoteConversationAsBigTeamChannelRow(ctx context.Context, rc types.RemoteConversation) (res chat1.UIInboxBigTeamChannelRow) {
-	res.ConvID = rc.GetConvID().String()
+	res.ConvID = rc.ConvIDStr
 	res.Channelname = rc.GetTopicName()
 	res.Teamname = GetRemoteConvTLFName(rc)
 	res.Draft = rc.LocalDraft
@@ -1228,7 +1265,7 @@ func PresentRemoteConversation(ctx context.Context, g *globals.Context, rc types
 	} else {
 		tlfName = latest.TlfName
 	}
-	res.ConvID = rawConv.GetConvID().String()
+	res.ConvID = rc.ConvIDStr
 	res.TlfID = rawConv.Metadata.IdTriple.Tlfid.String()
 	res.TopicType = rawConv.GetTopicType()
 	res.IsPublic = rawConv.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC
@@ -1288,7 +1325,7 @@ func SearchableRemoteConversationName(conv types.RemoteConversation, username st
 
 func PresentRemoteConversationAsSearchHit(conv types.RemoteConversation, username string) chat1.UIChatSearchConvHit {
 	return chat1.UIChatSearchConvHit{
-		ConvID:   conv.GetConvID().String(),
+		ConvID:   conv.ConvIDStr,
 		TeamType: conv.GetTeamType(),
 		Name:     SearchableRemoteConversationName(conv, username),
 		Mtime:    conv.GetMtime(),
@@ -1344,7 +1381,7 @@ func PresentConversationLocal(ctx context.Context, g *globals.Context, uid grego
 	res.TopicType = rawConv.GetTopicType()
 	res.IsPublic = rawConv.Info.Visibility == keybase1.TLFVisibility_PUBLIC
 	res.Name = rawConv.Info.TlfName
-	res.Snippet, res.SnippetDecoration = GetConvSnippet(rawConv, g.GetEnv().GetUsername().String())
+	res.SnippetDecoration, res.Snippet = GetConvSnippet(rawConv, g.GetEnv().GetUsername().String())
 	res.Channel = rawConv.Info.TopicName
 	res.Headline = rawConv.Info.Headline
 	res.HeadlineDecorated = DecorateWithLinks(ctx, EscapeForDecorate(ctx, rawConv.Info.Headline))
@@ -1909,6 +1946,14 @@ func (c RemoteConvByConvID) Less(i, j int) bool {
 	return c[i].GetConvID().Less(c[j].GetConvID())
 }
 
+type RemoteConvByMtime []types.RemoteConversation
+
+func (c RemoteConvByMtime) Len() int      { return len(c) }
+func (c RemoteConvByMtime) Swap(i, j int) { c[i], c[j] = c[j], c[i] }
+func (c RemoteConvByMtime) Less(i, j int) bool {
+	return GetConvMtime(c[i]) > GetConvMtime(c[j])
+}
+
 type ConvLocalByTopicName []chat1.ConversationLocal
 
 func (c ConvLocalByTopicName) Len() int      { return len(c) }
@@ -1979,7 +2024,8 @@ func DecodeBase64(enc []byte) ([]byte, error) {
 
 func RemoteConv(conv chat1.Conversation) types.RemoteConversation {
 	return types.RemoteConversation{
-		Conv: conv,
+		Conv:      conv,
+		ConvIDStr: conv.GetConvID().String(),
 	}
 }
 
@@ -2552,7 +2598,7 @@ func GetUnverifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	}
 	if !inbox.ConvsUnverified[0].GetConvID().Eq(convID) {
 		return res, fmt.Errorf("GetUnverifiedConv: convID mismatch: %s != %s",
-			inbox.ConvsUnverified[0].GetConvID(), convID)
+			inbox.ConvsUnverified[0].ConvIDStr, convID)
 	}
 	return inbox.ConvsUnverified[0], nil
 }

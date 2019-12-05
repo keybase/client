@@ -95,7 +95,9 @@ export const unverifiedInboxUIItemToConversationMeta = (
     resetParticipants,
     retentionPolicy,
     snippet: i.localMetadata ? i.localMetadata.snippet : '',
-    snippetDecoration: i.localMetadata ? i.localMetadata.snippetDecoration : '',
+    snippetDecoration: i.localMetadata
+      ? i.localMetadata.snippetDecoration
+      : RPCChatTypes.SnippetDecoration.none,
     status: i.status,
     supersededBy: supersededBy ? Types.stringToConversationIDKey(supersededBy) : noConversationIDKey,
     supersedes: supersedes ? Types.stringToConversationIDKey(supersedes) : noConversationIDKey,
@@ -407,7 +409,7 @@ export const makeConversationMeta = (): Types.ConversationMeta => ({
   resetParticipants: new Set(),
   retentionPolicy: TeamConstants.makeRetentionPolicy(),
   snippet: '',
-  snippetDecoration: '',
+  snippetDecoration: RPCChatTypes.SnippetDecoration.none as RPCChatTypes.SnippetDecoration,
   status: RPCChatTypes.ConversationStatus.unfiled as RPCChatTypes.ConversationStatus,
   supersededBy: noConversationIDKey,
   supersedes: noConversationIDKey,
@@ -455,11 +457,7 @@ export const getChannelSuggestions = (state: TypedState, teamname: string) => {
   // partial list of channels that you have joined).
   const convs = state.teams.teamNameToChannelInfos.get(teamname)
   if (convs) {
-    return convs
-      .toIndexedSeq()
-      .toList()
-      .map(conv => conv.channelname)
-      .toArray()
+    return [...convs.values()].map(conv => conv.channelname)
   }
   return [...state.chat2.metaMap.values()].filter(v => v.teamname === teamname).map(v => v.channelname)
 }
@@ -513,7 +511,7 @@ export const getBotCommands = (state: TypedState, id: Types.ConversationIDKey) =
 // show wallets icon for one-on-one conversations
 export const shouldShowWalletsIcon = (state: TypedState, id: Types.ConversationIDKey) => {
   const meta = getMeta(state, id)
-  const accountID = WalletConstants.getDefaultAccountID(state)
+  const accountID = WalletConstants.getDefaultAccountID(state.wallets)
   const sendDisabled = !isMobile && accountID && !!state.wallets.mobileOnlyMap.get(accountID)
 
   return (

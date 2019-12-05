@@ -16,6 +16,7 @@ import (
 
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/stretchr/testify/require"
@@ -115,9 +116,7 @@ func TestInboxSourceSkipAhead(t *testing.T) {
 
 	t.Logf("add message but drop oobm")
 
-	rc := types.RemoteConversation{
-		Conv: conv,
-	}
+	rc := utils.RemoteConv(conv)
 	localConvs, _, err := tc.Context().InboxSource.Localize(ctx, uid, []types.RemoteConversation{rc},
 		types.ConversationLocalizerBlocking)
 	require.NoError(t, err)

@@ -329,7 +329,7 @@ function* loadStartupDetails() {
   })
   const linkTask = yield Saga._fork(Linking.getInitialURL)
   const initialPush = yield Saga._fork(getStartupDetailsFromInitialPush)
-  const [routeState, link, push] = yield Saga.join(routeStateTask, linkTask, initialPush)
+  const [routeState, link, push] = yield Saga.join([routeStateTask, linkTask, initialPush])
 
   // Clear last value to be extra safe bad things don't hose us forever
   yield Saga._fork(async () => {

@@ -10,7 +10,6 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as SettingsGen from './settings-gen'
 import * as WaitingGen from './waiting-gen'
 import trim from 'lodash/trim'
-import {delay} from 'redux-saga'
 import {isAndroidNewerThanN, isTestDevice, pprofDir, version} from '../constants/platform'
 import {writeLogLinesToFile} from '../util/forward-logs'
 import {TypedState} from '../util/container'
@@ -221,7 +220,7 @@ const sendInvite = async (_: TypedState, action: SettingsGen.InvitesSendPayload)
 function* refreshNotifications() {
   // If the rpc is fast don't clear it out first
   const delayThenEmptyTask = yield Saga._fork(function*(): Iterable<any> {
-    yield Saga.callUntyped(delay, 500)
+    yield Saga.delay(500)
     yield Saga.put(SettingsGen.createNotificationsRefreshed({notifications: new Map()}))
   })
 

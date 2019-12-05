@@ -15,6 +15,7 @@ type Props = {
   maxShown: number
   size: AvatarSize
   layout: 'horizontal' | 'vertical'
+  alignSelf?: 'center' | 'flex-start' | 'flex-end' | 'stretch'
 }
 
 // TODO: consider making `diagonal` to replace MultiAvatar, but that's hard.
@@ -25,7 +26,7 @@ const AvatarLine = (props: Props) => {
   const reverse = {horizontal: 'horizontalReverse', vertical: 'verticalReverse'} as const
   const styles = styleMap[props.size][props.layout]
   return (
-    <Kb.Box2 direction={reverse[props.layout]} style={styles.container}>
+    <Kb.Box2 direction={reverse[props.layout]} style={styles.container} alignSelf={props.alignSelf}>
       {!!extra && (
         <Kb.Box2 direction={props.layout} alignItems="center" style={styles.overflowBox}>
           <Kb.Text type={getTextSize(props.size)} style={styles.text}>

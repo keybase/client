@@ -437,17 +437,9 @@ type AddMembersRes struct {
 // AddMembers adds a bunch of people to a team. Assertions can contain usernames or social assertions.
 // Adds them all in a transaction so it's all or nothing.
 // On success, returns a list where len(res)=len(assertions) and in corresponding order.
-func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamname string, users []keybase1.UserRolePair) (res []AddMembersRes, err error) {
+func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, users []keybase1.UserRolePair) (res []AddMembersRes, err error) {
 	tracer := g.CTimeTracer(ctx, "team.AddMembers", true)
 	defer tracer.Finish()
-	teamName, err := keybase1.TeamNameFromString(teamname)
-	if err != nil {
-		return nil, err
-	}
-	teamID, err := ResolveNameToID(ctx, g, teamName)
-	if err != nil {
-		return nil, err
-	}
 
 	err = RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
 		res = make([]AddMembersRes, len(users))
@@ -615,9 +607,9 @@ func reAddMemberAfterResetInner(ctx context.Context, g *libkb.GlobalContext, tea
 	})
 }
 
-func InviteEmailMember(ctx context.Context, g *libkb.GlobalContext, teamname, email string, role keybase1.TeamRole) error {
+func InviteEmailMember(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, email string, role keybase1.TeamRole) error {
 	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
-		t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
+		t, err := GetForTeamManagementByTeamID(ctx, g, teamID, true)
 		if err != nil {
 			return err
 		}

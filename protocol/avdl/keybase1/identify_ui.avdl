@@ -126,6 +126,7 @@ protocol identifyUi {
     boolean registeredForAirdrop;
     boolean stellarHidden;
     boolean blocked;
+    boolean hidFromFollowers;
   }
 
   record ConfirmResult {

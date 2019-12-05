@@ -18,7 +18,7 @@ const mapStateToProps = (state, {teamID}: OwnProps) => {
   const publicityAnyMember = publicitySettings.anyMemberShowcase
   const publicityMember = publicitySettings.member
   const publicityTeam = publicitySettings.team
-  const settings = Constants.getTeamSettings(state, teamname)
+  const settings = teamDetails.settings || Constants.initialTeamSettings
   const openTeamRole: Types.MaybeTeamRoleType = Constants.teamRoleByEnum[settings.joinAs] || 'none'
   return {
     canShowcase: teamDetails.allowPromote || teamDetails.role === 'admin' || teamDetails.role === 'owner',

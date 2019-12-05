@@ -66,7 +66,7 @@ func TestTeamList(t *testing.T) {
 
 	rootername := randomUser("arbitrary").username
 	_, err := teamCli.TeamAddMember(context.TODO(), keybase1.TeamAddMemberArg{
-		Name:     team.name,
+		TeamID:   team.ID,
 		Username: rootername + "@rooter",
 		Role:     keybase1.TeamRole_WRITER,
 	})

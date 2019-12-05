@@ -88,14 +88,14 @@ export default Container.connect(
     }
   },
   dispatch => ({
-    _deselectConversation: ifConversationIDKey =>
+    _deselectConversation: (ifConversationIDKey: Types.ConversationIDKey) =>
       dispatch(Chat2Gen.createDeselectConversation({ifConversationIDKey})),
-    _selectConversation: conversationIDKey =>
+    _selectConversation: (conversationIDKey: Types.ConversationIDKey) =>
       dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'focused'})),
     onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   }),
   (stateProps, dispatchProps, _: OwnProps) => {
-    let type
+    let type: SwitchProps['type']
     switch (stateProps.conversationIDKey) {
       case Constants.noConversationIDKey:
         type = 'noConvo'

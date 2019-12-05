@@ -39,6 +39,7 @@ export default Container.connect(
       dispatch(
         TeamsGen.createLeaveTeam({
           context: 'teams',
+          permanent: false,
           teamname,
         })
       )

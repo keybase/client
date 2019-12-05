@@ -7,6 +7,7 @@ import * as MessageTypes from '../../../../../constants/types/chat2/message'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
 import * as TeamConstants from '../../../../../constants/teams'
+import * as TeamTypes from '../../../../../constants/types/teams'
 import * as TeamsGen from '../../../../../actions/teams-gen'
 import {appendNewTeamBuilder} from '../../../../../actions/typed-routes'
 import TeamJourney from '.'
@@ -55,8 +56,10 @@ const TeamJourneyContainer = (props: Props) => {
         onClick: () => props.onGoToChannel(chan),
       }))
       loadTeam = props.onLoadTeam
-      text = `You are in *#${props.channelname}*.
-Some popular channels in this team:`
+      text = `You are in *#${props.channelname}*.\n`
+      text += props.otherChannels.length
+        ? `Some other channels in this team:`
+        : `And you're in all the other channels, nice.`
       break
     case RPCChatTypes.JourneycardType.addPeople:
       actions = [{label: 'Add people to the team', onClick: props.onAddPeopleToTeam}]
@@ -103,16 +106,17 @@ Some popular channels in this team:`
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const conv = Constants.getMeta(state, ownProps.message.conversationIDKey)
-  const {channelname, teamname} = conv
+  const {channelname, teamname, teamID} = conv
   return {
     _channelInfos: TeamConstants.getTeamChannelInfos(state, teamname),
+    _teamID: teamID,
     channelname,
     teamname,
   }
 }
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
-  _onAddPeopleToTeam: (teamname: string) => dispatch(appendNewTeamBuilder(teamname)),
+  _onAddPeopleToTeam: (teamID: TeamTypes.TeamID) => dispatch(appendNewTeamBuilder(teamID)),
   _onBrowseChannels: (teamname: string) =>
     dispatch(
       RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'chatManageChannels'}]})
@@ -133,18 +137,23 @@ const TeamJourneyConnected = Container.connect(
   (stateProps, dispatchProps, ownProps) => {
     const {channelname, teamname} = stateProps
     // Take the top three channels with most recent activity.
-    const otherChannels = stateProps._channelInfos
-      .valueSeq()
-      .toArray()
-      .filter(info => info.memberStatus !== RPCChatTypes.ConversationMemberStatus.active)
+    const joinableStatuses = new Set([
+      // keep in sync with journey_card_manager.go
+      RPCChatTypes.ConversationMemberStatus.removed,
+      RPCChatTypes.ConversationMemberStatus.left,
+      RPCChatTypes.ConversationMemberStatus.reset,
+      RPCChatTypes.ConversationMemberStatus.neverJoined,
+    ])
+    const otherChannels = [...stateProps._channelInfos.values()]
+      .filter(info => joinableStatuses.has(info.memberStatus))
       .sort((x, y) => y.mtime - x.mtime)
-      .map(info => info.channelname)
       .slice(0, Container.isMobile ? 2 : 3)
+      .map(info => info.channelname)
 
     return {
       channelname,
       message: ownProps.message,
-      onAddPeopleToTeam: () => dispatchProps._onAddPeopleToTeam(stateProps.teamname),
+      onAddPeopleToTeam: () => dispatchProps._onAddPeopleToTeam(stateProps._teamID),
       onBrowseChannels: () => dispatchProps._onBrowseChannels(stateProps.teamname),
       onCreateChatChannels: () => dispatchProps._onCreateChatChannels(stateProps.teamname),
       onGoToChannel: (channelName: string) => dispatchProps._onGoToChannel(channelName, stateProps.teamname),

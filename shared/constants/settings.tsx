@@ -1,12 +1,12 @@
 import * as Types from './types/settings'
 import HiddenString from '../util/hidden-string'
 import {TypedState} from './reducer'
-import * as I from 'immutable'
 import * as WaitingConstants from './waiting'
 import {getMeta} from './chat2/meta'
 import * as RPCTypes from './types/rpc-gen'
 import {RPCError} from 'util/errors'
 import {ContactResponse} from 'expo-contacts'
+import * as RPCChatTypes from './types/rpc-chat-gen'
 
 export const makeEmailRow = (): Types.EmailRow => ({
   email: '',
@@ -82,7 +82,7 @@ export const getExtraChatLogsForLogSend = (state: TypedState) => {
   const c = state.chat2.selectedConversation
   if (c) {
     const metaMap = getMeta(state, c)
-    return I.Map({
+    return {
       badgeMap: chat.badgeMap.get(c),
       editingMap: chat.editingMap.get(c),
       messageMap: [...(chat.messageMap.get(c) || new Map()).values()].map(m => ({
@@ -110,7 +110,7 @@ export const getExtraChatLogsForLogSend = (state: TypedState) => {
         resetParticipants: metaMap.resetParticipants && metaMap.resetParticipants.size,
         retentionPolicy: metaMap.retentionPolicy,
         snippet: 'x',
-        snippetDecoration: 'x',
+        snippetDecoration: RPCChatTypes.SnippetDecoration.none,
         supersededBy: metaMap.supersededBy,
         supersedes: metaMap.supersedes,
         teamRetentionPolicy: metaMap.teamRetentionPolicy,
@@ -124,7 +124,7 @@ export const getExtraChatLogsForLogSend = (state: TypedState) => {
       pendingOutboxToOrdinal: chat.pendingOutboxToOrdinal.get(c),
       quote: chat.quote,
       unreadMap: chat.unreadMap.get(c),
-    }).toJS()
+    }
   }
   return {}
 }

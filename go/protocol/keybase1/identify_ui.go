@@ -355,6 +355,7 @@ type UserCard struct {
 	RegisteredForAirdrop bool               `codec:"registeredForAirdrop" json:"registeredForAirdrop"`
 	StellarHidden        bool               `codec:"stellarHidden" json:"stellarHidden"`
 	Blocked              bool               `codec:"blocked" json:"blocked"`
+	HidFromFollowers     bool               `codec:"hidFromFollowers" json:"hidFromFollowers"`
 }
 
 func (o UserCard) DeepCopy() UserCard {
@@ -384,6 +385,7 @@ func (o UserCard) DeepCopy() UserCard {
 		RegisteredForAirdrop: o.RegisteredForAirdrop,
 		StellarHidden:        o.StellarHidden,
 		Blocked:              o.Blocked,
+		HidFromFollowers:     o.HidFromFollowers,
 	}
 }
 

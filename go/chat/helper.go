@@ -291,6 +291,30 @@ func (h *Helper) UserReacjis(ctx context.Context, uid gregor1.UID) keybase1.User
 	return storage.NewReacjiStore(h.G()).UserReacjis(ctx, uid)
 }
 
+func (h *Helper) JourneycardTimeTravel(ctx context.Context, uid gregor1.UID, duration time.Duration) error {
+	j, ok := h.G().JourneyCardManager.(*JourneyCardManager)
+	if !ok {
+		return fmt.Errorf("could not get JourneyCardManager")
+	}
+	return j.TimeTravel(ctx, uid, duration)
+}
+
+func (h *Helper) JourneycardResetAllConvs(ctx context.Context, uid gregor1.UID) error {
+	j, ok := h.G().JourneyCardManager.(*JourneyCardManager)
+	if !ok {
+		return fmt.Errorf("could not get JourneyCardManager")
+	}
+	return j.ResetAllConvs(ctx, uid)
+}
+
+func (h *Helper) JourneycardDebugState(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (string, error) {
+	j, ok := h.G().JourneyCardManager.(*JourneyCardManager)
+	if !ok {
+		return "", fmt.Errorf("could not get JourneyCardManager")
+	}
+	return j.DebugState(ctx, uid, convID)
+}
+
 func GetMessage(ctx context.Context, g *globals.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msgID chat1.MessageID, resolveSupersedes bool, reason *chat1.GetThreadReason) (chat1.MessageUnboxed, error) {
 	msgs, err := GetMessages(ctx, g, uid, convID, []chat1.MessageID{msgID}, resolveSupersedes, reason)
@@ -475,18 +499,23 @@ func RecentConversationParticipants(ctx context.Context, g *globals.Context, myU
 }
 
 func PresentConversationLocalWithFetchRetry(ctx context.Context, g *globals.Context,
-	uid gregor1.UID, conv chat1.ConversationLocal) (res *chat1.InboxUIItem) {
+	uid gregor1.UID, conv chat1.ConversationLocal) (pc *chat1.InboxUIItem) {
+	shouldPresent := true
 	if conv.Error != nil {
 		// If we get a transient failure, add this to the retrier queue
 		if conv.Error.Typ == chat1.ConversationErrorType_TRANSIENT {
 			g.FetchRetrier.Failure(ctx, uid,
 				NewConversationRetry(g, conv.GetConvID(), &conv.Info.Triple.Tlfid, InboxLoad))
+		} else {
+			// If this is a permanent error, then we don't send anything to the frontend yet.
+			shouldPresent = false
 		}
-	} else {
-		pc := utils.PresentConversationLocal(ctx, g, uid, conv)
-		res = &pc
 	}
-	return res
+	if shouldPresent {
+		pc = new(chat1.InboxUIItem)
+		*pc = utils.PresentConversationLocal(ctx, g, uid, conv)
+	}
+	return pc
 }
 
 func GetTopicNameState(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,

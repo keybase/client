@@ -56,10 +56,13 @@ func GetAllProvisionedUsernames(mctx MetaContext) (current NormalizedUsername, a
 	resp := deviceForUsersRet{}
 	err = mctx.G().API.PostDecode(mctx, arg, &resp)
 	var configsForReturn []deviceForUser
-	if _, ok := err.(*APINetError); ok {
+	if _, ok := err.(APINetError); ok {
 		// We got a network error but we can still return offline results.
 		mctx.Info("Failed to check server for revoked in GAPU: %+v", err)
-		configsForReturn = userConfigs
+		// Put together a fake response from the offline data:
+		for _, uc := range allUCs {
+			configsForReturn = append(configsForReturn, deviceForUser{Username: string(uc.Name), OK: true})
+		}
 	} else if err != nil {
 		return "", nil, err
 	} else {

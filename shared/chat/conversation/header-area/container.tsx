@@ -14,17 +14,13 @@ type Props = {
   infoPanelOpen: boolean
 } & OwnProps
 
-class HeaderArea extends React.PureComponent<Props> {
-  render() {
-    return (
-      <ConversationHeader
-        infoPanelOpen={this.props.infoPanelOpen}
-        onToggleInfoPanel={this.props.onToggleInfoPanel}
-        conversationIDKey={this.props.conversationIDKey}
-      />
-    )
-  }
-}
+const HeaderArea = React.memo((props: Props) => (
+  <ConversationHeader
+    infoPanelOpen={props.infoPanelOpen}
+    onToggleInfoPanel={props.onToggleInfoPanel}
+    conversationIDKey={props.conversationIDKey}
+  />
+))
 
 // for now this is just the info button always in the new routing scheme
 const mapStateToProps = () => ({

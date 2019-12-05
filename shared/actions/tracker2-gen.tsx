@@ -75,6 +75,7 @@ type _UpdatedDetailsPayload = {
   readonly username: string
   readonly teamShowcase: Array<Types.TeamShowcase>
   readonly blocked: boolean
+  readonly hidFromFollowers: boolean
 }
 
 // Action Creators

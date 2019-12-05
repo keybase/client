@@ -4,9 +4,8 @@ import Settings from '.'
 import popups from './popups/index.stories'
 import * as Types from '../../../constants/types/wallets'
 import * as Constants from '../../../constants/wallets'
-import * as I from 'immutable'
 
-const testCurrencies = I.List([
+const testCurrencies = [
   {
     code: 'USD',
     description: 'USD ($)',
@@ -37,7 +36,7 @@ const testCurrencies = I.List([
     name: 'British Pount',
     symbol: '£',
   },
-]).map(c => Constants.currencyResultToCurrency(c))
+].map(c => Constants.currencyResultToCurrency(c))
 
 const externalPartner = {
   adminOnly: false,
@@ -77,14 +76,14 @@ const sharedSettingsProps = {
 
 const defaultSettingsProps = {
   ...sharedSettingsProps,
-  currency: testCurrencies.get(1) as Types.Currency,
+  currency: testCurrencies[1] as Types.Currency,
   isDefault: true,
   name: 'awesome account',
 }
 
 const secondarySettingsProps = {
   ...sharedSettingsProps,
-  currency: testCurrencies.get(0) as Types.Currency,
+  currency: testCurrencies[0] as Types.Currency,
   isDefault: false,
   mobileOnlyMode: true,
   name: 'some other account',

@@ -23,7 +23,8 @@
       "stellarHidden": "boolean",
       "username": "string",
       "teamShowcase": "Array<Types.TeamShowcase>",
-      "blocked": "boolean"
+      "blocked": "boolean",
+      "hidFromFollowers": "boolean",
     },
     "updateResult": {
       "guiID": "string",
@@ -71,6 +72,6 @@
       "siteIcon": "Array<Types.SiteIcon>",
       "siteIconFull": "Array<Types.SiteIcon>",
       "siteIconWhite": "Array<Types.SiteIcon>"
-    }
+    },
   }
 }

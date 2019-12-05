@@ -361,12 +361,18 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, uid gregor1.UID
 func (s *BlockingSender) getMessage(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, msgID chat1.MessageID, resolveSupersedes bool) (mvalid chat1.MessageUnboxedValid, err error) {
 	reason := chat1.GetThreadReason_PREPARE
-	messages, err := GetMessages(ctx, s.G(), uid, convID, []chat1.MessageID{msgID}, resolveSupersedes, &reason)
+	messages, err := GetMessages(ctx, s.G(), uid, convID, []chat1.MessageID{msgID}, resolveSupersedes,
+		&reason)
 	if err != nil {
 		return mvalid, err
 	}
-	if len(messages) != 1 || !messages[0].IsValid() {
-		return mvalid, fmt.Errorf("getMessage returned multiple messages or an invalid result for msgID: %v, numMsgs: %v", msgID, len(messages))
+	if len(messages) == 0 {
+		return mvalid, errors.New("getMessage: message not found")
+	}
+	if !messages[0].IsValid() {
+		st, err := messages[0].State()
+		return mvalid, fmt.Errorf("getMessage returned invalid message: msgID: %v st: %v: err %v",
+			msgID, st, err)
 	}
 	return messages[0].Valid(), nil
 }
@@ -1352,6 +1358,10 @@ func (s *Deliverer) Queue(ctx context.Context, convID chat1.ConversationID, msg 
 
 	// Alert the deliver loop it should wake up
 	s.msgSentCh <- struct{}{}
+	update := []chat1.LocalMtimeUpdate{{ConvID: convID, Mtime: obr.Ctime}}
+	if err := s.G().InboxSource.UpdateLocalMtime(ctx, s.outbox.GetUID(), update); err != nil {
+		s.Debug(ctx, "Queue: unable to update local mtime", obr.Ctime)
+	}
 	s.G().InboxSource.NotifyUpdate(ctx, s.outbox.GetUID(), convID)
 	return obr, nil
 }

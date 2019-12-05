@@ -14,7 +14,6 @@ import platformSpecificSaga, {ensureDownloadPermissionPromise} from './platform-
 import * as RouteTreeGen from '../route-tree-gen'
 import {tlfToPreferredOrder} from '../../util/kbfs'
 import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
-import flags from '../../util/feature-flags'
 import {NotifyPopup} from '../../native/notifications'
 
 const rpcFolderTypeToTlfType = (rpcFolderType: RPCTypes.FolderType) => {
@@ -349,8 +348,13 @@ function* folderList(_: TypedState, action: FsGen.FolderListLoadPayload) {
       if (entry.type === Types.PathType.Folder && isRecursive && d.name.indexOf('/') < 0) {
         // Since we are loading with a depth of 2, first level directories are
         // considered "loaded".
-        entry.progress = Types.ProgressType.Loaded
-        return [path, entry]
+        return [
+          path,
+          {
+            ...entry,
+            progress: Types.ProgressType.Loaded,
+          },
+        ]
       }
       return [path, entry]
     }
@@ -662,8 +666,8 @@ const finishManualCR = async (_: TypedState, action) => {
 // and we deserve a black bar.
 const checkIfWeReConnectedToMDServerUpToNTimes = async (n: number) => {
   try {
-    const connectedToMDServer = await RPCTypes.SimpleFSSimpleFSAreWeConnectedToMDServerRpcPromise()
-    return FsGen.createKbfsDaemonOnlineStatusChanged({online: connectedToMDServer})
+    const onlineStatus = await RPCTypes.SimpleFSSimpleFSGetOnlineStatusRpcPromise()
+    return FsGen.createKbfsDaemonOnlineStatusChanged({onlineStatus})
   } catch (error) {
     if (n > 0) {
       logger.warn(`failed to check if we are connected to MDServer: ${error}; n=${n}`)
@@ -928,22 +932,18 @@ function* fsSaga() {
     [ConfigGen.installerRan, ConfigGen.loggedIn, FsGen.waitForKbfsDaemon],
     waitForKbfsDaemon
   )
-  if (flags.kbfsOfflineMode) {
-    yield* Saga.chainAction2(FsGen.setTlfSyncConfig, setTlfSyncConfig)
-    yield* Saga.chainAction2(FsGen.loadTlfSyncConfig, loadTlfSyncConfig)
-    yield* Saga.chainAction2([FsGen.getOnlineStatus], getOnlineStatus)
-    yield* Saga.chainAction2(ConfigGen.osNetworkStatusChanged, checkKbfsServerReachabilityIfNeeded)
-    yield* Saga.chainAction2(
-      EngineGen.keybase1NotifyFSFSOverallSyncStatusChanged,
-      onNotifyFSOverallSyncSyncStatusChanged
-    )
-    yield* Saga.chainAction2(FsGen.loadSettings, loadSettings)
-    yield* Saga.chainAction2(FsGen.setSpaceAvailableNotificationThreshold, setSpaceNotificationThreshold)
-  }
-  if (flags.conflictResolution) {
-    yield* Saga.chainAction2(FsGen.startManualConflictResolution, startManualCR)
-    yield* Saga.chainAction2(FsGen.finishManualConflictResolution, finishManualCR)
-  }
+  yield* Saga.chainAction2(FsGen.setTlfSyncConfig, setTlfSyncConfig)
+  yield* Saga.chainAction2(FsGen.loadTlfSyncConfig, loadTlfSyncConfig)
+  yield* Saga.chainAction2([FsGen.getOnlineStatus], getOnlineStatus)
+  yield* Saga.chainAction2(ConfigGen.osNetworkStatusChanged, checkKbfsServerReachabilityIfNeeded)
+  yield* Saga.chainAction2(
+    EngineGen.keybase1NotifyFSFSOverallSyncStatusChanged,
+    onNotifyFSOverallSyncSyncStatusChanged
+  )
+  yield* Saga.chainAction2(FsGen.loadSettings, loadSettings)
+  yield* Saga.chainAction2(FsGen.setSpaceAvailableNotificationThreshold, setSpaceNotificationThreshold)
+  yield* Saga.chainAction2(FsGen.startManualConflictResolution, startManualCR)
+  yield* Saga.chainAction2(FsGen.finishManualConflictResolution, finishManualCR)
   yield* Saga.chainAction2(FsGen.loadPathInfo, loadPathInfo)
   yield* Saga.chainAction2(FsGen.loadFileContext, loadFileContext)
   yield* Saga.chainAction2(FsGen.loadFilesTabBadge, loadFilesTabBadge)

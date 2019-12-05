@@ -32,7 +32,7 @@ type Props = {
   onLookupPath: () => void
   operation: 'pay' | 'tx'
   originDomain: string
-  path: Types._BuiltPaymentAdvanced
+  path: Types.BuiltPaymentAdvanced
   readyToSend: boolean
   recipient: string | null
   sendError: string
@@ -327,7 +327,9 @@ const SEP7ConfirmWrapper = (props: Omit<Props, 'onChangeAmount' | 'readyToSend' 
       {...props}
       onChangeAmount={onChangeAmount}
       userAmount={userAmount}
-      readyToSend={assetCode ? !!path.exchangeRate : !!amount || !!userAmount}
+      readyToSend={
+        props.operation === 'tx' ? true : assetCode ? !!path.exchangeRate : !!amount || !!userAmount
+      }
     />
   )
 }
