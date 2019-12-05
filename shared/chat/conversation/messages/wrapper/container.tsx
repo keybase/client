@@ -58,10 +58,7 @@ const getUsernameToShow = (
         ? message.author
         : ''
     case 'systemAddedToTeam':
-      return message.addee === you ? '' : message.addee
-    case 'systemLeft':
-    case 'systemJoined':
-      return ''
+      return message.adder
     case 'systemInviteAccepted':
       return message.invitee === you ? '' : message.invitee
     case 'setDescription':
@@ -70,8 +67,10 @@ const getUsernameToShow = (
       return message.author
     case 'systemUsersAddedToConversation':
       return message.usernames.includes(you) ? '' : message.author
+    case 'systemJoined':
+      return message.joiners.length > 1 ? '' : message.author
   }
-  return ''
+  return message.author
 }
 
 const getFailureDescriptionAllowCancel = (message, you) => {
@@ -145,10 +144,12 @@ export default Container.namedConnect(
       ? TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'owner')
       : false
     const ordinals = [...Constants.getMessageOrdinals(state, ownProps.conversationIDKey)]
+    const botAlias = meta.botAliases[message.author] ?? ''
     return {
       _you: state.config.username,
       authorIsAdmin,
       authorIsOwner,
+      botAlias,
       centeredOrdinal,
       conversationIDKey: ownProps.conversationIDKey,
       hasUnfurlPrompts,
@@ -159,7 +160,7 @@ export default Container.namedConnect(
       previous,
       shouldShowPopup: Constants.shouldShowPopup(state, message),
       showCoinsIcon: Constants.hasSuccessfulInlinePayments(state, message),
-      showCrowns: message.type !== 'systemAddedToTeam' && message.type !== 'systemInviteAccepted',
+      showCrowns: true,
     }
   },
   (dispatch: Container.TypedDispatch) => ({
@@ -204,6 +205,7 @@ export default Container.namedConnect(
     return {
       authorIsAdmin: stateProps.authorIsAdmin,
       authorIsOwner: stateProps.authorIsOwner,
+      botAlias: stateProps.botAlias,
       centeredOrdinal: stateProps.centeredOrdinal,
       conversationIDKey: stateProps.conversationIDKey,
       decorate,

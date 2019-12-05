@@ -10,6 +10,5 @@ load({
   child: <Pinentry />,
   deserialize,
   name: 'pinentry',
-  // Auto generated from flowToTs. Please clean me!
-  params: (sessionID === null || sessionID === undefined ? undefined : sessionID[1]) || '',
+  params: sessionID?.[1] ?? '',
 })

@@ -3,6 +3,8 @@ import * as Types from '../constants/types/tracker2'
 import * as ConfigGen from '../actions/config-gen'
 import * as Tracker2Gen from '../actions/tracker2-gen'
 import * as Container from '../util/container'
+import * as EngineGen from '../actions/engine-gen-gen'
+import {mapGetEnsureValue} from '../util/map'
 import logger from '../logger'
 
 const initialState: Types.State = Constants.makeState()
@@ -12,14 +14,13 @@ function actionToUsername<A extends {payload: {guiID: string}}>(state: Types.Sta
   return Constants.guiIDToUsername(state, guiID)
 }
 
-const getDetails = (state: Types.State, username: string) => {
-  const {usernameToDetails} = state
-  const d = usernameToDetails.get(username) || {...Constants.noDetails}
-  usernameToDetails.set(username, d)
-  return d
-}
+const getDetails = (state: Types.State, username: string) =>
+  mapGetEnsureValue(state.usernameToDetails, username, {...Constants.noDetails})
 
-type Actions = Tracker2Gen.Actions | ConfigGen.BootstrapStatusLoadedPayload
+type Actions =
+  | Tracker2Gen.Actions
+  | ConfigGen.BootstrapStatusLoadedPayload
+  | EngineGen.Keybase1NotifyTrackingNotifyUserBlockedPayload
 
 export default Container.makeReducer<Actions, Types.State>(initialState, {
   [Tracker2Gen.resetStore]: () => initialState,
@@ -44,17 +45,16 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [Tracker2Gen.updatedDetails]: (draftState, action) => {
     const username = actionToUsername(draftState, action)
     if (!username) return
-    const {bio, blocked, followersCount, followingCount, fullname} = action.payload
-    const {location, registeredForAirdrop, teamShowcase} = action.payload
     const d = getDetails(draftState, username)
-    d.bio = bio
-    d.blocked = blocked
-    d.followersCount = followersCount
-    d.followingCount = followingCount
-    d.fullname = fullname
-    d.location = location
-    d.registeredForAirdrop = registeredForAirdrop
-    d.teamShowcase = teamShowcase
+    d.bio = action.payload.bio
+    d.blocked = action.payload.blocked
+    d.followersCount = action.payload.followersCount
+    d.followingCount = action.payload.followingCount
+    d.fullname = action.payload.fullname
+    d.location = action.payload.location
+    d.registeredForAirdrop = action.payload.registeredForAirdrop
+    d.teamShowcase = action.payload.teamShowcase
+    d.hidFromFollowers = action.payload.hidFromFollowers
   },
   [Tracker2Gen.updateResult]: (draftState, action) => {
     const username = actionToUsername(draftState, action)
@@ -92,6 +92,8 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     const d = getDetails(draftState, username)
     d.followers = new Set(followers.map(f => f.username))
     d.following = new Set(following.map(f => f.username))
+    d.followersCount = d.followers.size
+    d.followingCount = d.following.size
   },
   [Tracker2Gen.proofSuggestionsUpdated]: (draftState, action) => {
     type ReadonlyProofSuggestions = Readonly<Types.State['proofSuggestions']>
@@ -105,5 +107,16 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       ...old,
       ...rest,
     })
+  },
+  [EngineGen.keybase1NotifyTrackingNotifyUserBlocked]: (draftState, action) => {
+    const {blocker, blocked} = action.payload.params.b
+    const d = getDetails(draftState, blocker)
+    const blockees = blocked ?? []
+    const toProcess = blockees.map(username => [username, getDetails(draftState, username)] as const)
+    toProcess.forEach(([username, det]) => {
+      d.followers && d.followers.delete(username)
+      det.blocked = true
+    })
+    d.followersCount = d.followers?.size
   },
 })

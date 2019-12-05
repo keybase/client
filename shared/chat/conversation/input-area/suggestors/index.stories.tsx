@@ -83,11 +83,11 @@ const users = ['mlsteele', 'mikem', 'ayoubd', 'max', 'chrisnojima', 'chris', 'ai
 
 const props = {
   dataSources: {
-    fruit: filter => fruit.filter(f => f.includes(filter)).sort(),
-    users: filter => users.filter(u => u.includes(filter)).sort(),
+    fruit: (filter: string) => fruit.filter(f => f.includes(filter)).sort(),
+    users: (filter: string) => users.filter(u => u.includes(filter)).sort(),
   },
   renderers: {
-    fruit: (fruitName: string, selected) => (
+    fruit: (fruitName: string, selected: boolean) => (
       <Kb.NameWithIcon
         icon="iconfont-reacji-sheep"
         horizontal={true}
@@ -98,7 +98,7 @@ const props = {
         }}
       />
     ),
-    users: (username: string, selected) => (
+    users: (username: string, selected: boolean) => (
       <Kb.NameWithIcon
         username={username}
         horizontal={true}
@@ -113,8 +113,10 @@ const props = {
   suggestionListStyle: Styles.isMobile ? {marginTop: 80} : {width: 200},
   suggestorToMarker: {fruit: '$', users: '@'},
   transformers: {
-    fruit: (fruit, _, tData, preview) => Suggestors.standardTransformer(`$${fruit}`, tData, preview),
-    users: (username, _, tData, preview) => Suggestors.standardTransformer(`@${username}`, tData, preview),
+    fruit: (fruit: string, _: unknown, tData: Suggestors.TransformerData, preview: boolean) =>
+      Suggestors.standardTransformer(`$${fruit}`, tData, preview),
+    users: (username: string, _: unknown, tData: Suggestors.TransformerData, preview: boolean) =>
+      Suggestors.standardTransformer(`@${username}`, tData, preview),
   },
 }
 

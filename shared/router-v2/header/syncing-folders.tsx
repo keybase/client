@@ -29,7 +29,7 @@ const SyncingFolders = (props: Props) =>
 
 const mapStateToProps = state => ({
   _syncingFoldersProgress: state.fs.overallSyncStatus.syncingFoldersProgress,
-  online: state.fs.kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Online,
+  online: state.fs.kbfsDaemonStatus.onlineStatus !== Types.KbfsDaemonOnlineStatus.Offline,
 })
 
 const mapDispatchToProps = () => ({})

@@ -6,14 +6,14 @@ import * as Container from '../util/container'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/chat2'
-import teamBuildingReducer from './team-building'
+import {editTeambuildingDraft} from './team-building'
 import {teamBuilderReducerCreator} from '../team-building/reducer-helper'
 import {isMobile} from '../constants/platform'
 import logger from '../logger'
 import HiddenString from '../util/hidden-string'
 import partition from 'lodash/partition'
 import shallowEqual from 'shallowequal'
-import {mapGetEnsureValue} from '../util/map'
+import {mapGetEnsureValue, mapEqual} from '../util/map'
 
 type EngineActions =
   | EngineGen.Chat1NotifyChatChatTypingUpdatePayload
@@ -34,7 +34,7 @@ const messageIDToOrdinal = (
   // A message we didn't send in this session?
   const map = messageMap.get(conversationIDKey)
   let m = map?.get(Types.numberToOrdinal(messageID))
-  if (m?.id === messageID) {
+  if (m?.id !== 0 && m?.id === messageID) {
     return m.ordinal
   }
   // Search through our sent messages
@@ -42,7 +42,7 @@ const messageIDToOrdinal = (
     ...(pendingOutboxToOrdinal.get(conversationIDKey) ?? new Map<Types.OutboxID, Types.Ordinal>()).values(),
   ].find(o => {
     m = map?.get(o)
-    if (m?.id === messageID) {
+    if (m?.id !== 0 && m?.id === messageID) {
       return true
     }
     return false
@@ -619,12 +619,16 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const unreadMap = new Map<Types.ConversationIDKey, number>()
     conversations.forEach(({convID, badgeCounts, unreadMessages}) => {
       const key = Types.conversationIDToKey(convID)
-      const count = badgeCounts[badgeKey] || 0
-      badgeMap.set(key, count)
+      badgeMap.set(key, badgeCounts[badgeKey] || 0)
       unreadMap.set(key, unreadMessages)
     })
-    draftState.badgeMap = badgeMap
-    draftState.unreadMap = unreadMap
+
+    if (!mapEqual(draftState.badgeMap, badgeMap)) {
+      draftState.badgeMap = badgeMap
+    }
+    if (!mapEqual(draftState.unreadMap, unreadMap)) {
+      draftState.unreadMap = unreadMap
+    }
   },
   [Chat2Gen.messageSetEditing]: (draftState, action) => {
     const {conversationIDKey, editLastUser, ordinal} = action.payload
@@ -1028,6 +1032,13 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       }
     }
   },
+  [Chat2Gen.updateBlockButtons]: (draftState, action) => {
+    if (action.payload.show) {
+      draftState.blockButtonsMap.set(action.payload.teamID, {adder: action.payload.adder || ''})
+    } else {
+      draftState.blockButtonsMap.delete(action.payload.teamID)
+    }
+  },
   [Chat2Gen.updateReactions]: (draftState, action) => {
     const {conversationIDKey, updates} = action.payload
     const {messageMap} = draftState
@@ -1308,14 +1319,14 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
           participants,
           rekeyers,
           snippet: error.message,
-          snippetDecoration: '',
+          snippetDecoration: RPCChatTypes.SnippetDecoration.none,
           trustedState: 'error' as const,
         })
       } else {
         const old = draftState.metaMap.get(conversationIDKey)
         if (old) {
           old.snippet = error.message
-          old.snippetDecoration = ''
+          old.snippetDecoration = RPCChatTypes.SnippetDecoration.none
           old.trustedState = 'error'
         }
       }
@@ -1458,13 +1469,12 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   ...paymentActions,
   ...searchActions,
   ...attachmentActions,
-  ...teamBuilderReducerCreator<Actions, Types.State>(
+  ...teamBuilderReducerCreator<Types.State>(
     (draftState: Container.Draft<Types.State>, action: TeamBuildingGen.Actions) => {
-      draftState.teamBuilding = teamBuildingReducer(
-        'chat2',
-        draftState.teamBuilding as Types.State['teamBuilding'],
-        action
-      )
+      const val = editTeambuildingDraft('chat2', draftState.teamBuilding, action)
+      if (val !== undefined) {
+        draftState.teamBuilding = val
+      }
     }
   ),
 })

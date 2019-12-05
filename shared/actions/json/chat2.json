@@ -775,9 +775,18 @@
       "_description": "Set filter for channel search",
       "text": "string"
     },
+    "updateBlockButtons": {
+      "_description": "Show or hide invitation to block for a given team ID",
+      "teamID": "RPCTypes.TeamID",
+      "adder?": "string",
+      "show": "boolean"
+    },
+    "dismissBlockButtons": {
+      "teamID": "RPCTypes.TeamID"
+    },
     "setInboxNumSmallRows": {
-        "ignoreWrite?": "boolean",
-        "rows": "number"
+      "ignoreWrite?": "boolean",
+      "rows": "number"
     },
     "enableAudioRecording": {
       "conversationIDKey": "Types.ConversationIDKey",

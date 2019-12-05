@@ -53,7 +53,7 @@ export default Container.connect(
   (stateProps, dispatchProps, _: OwnProps) => ({
     ...dispatchProps,
     allowEdit: stateProps.allowEdit,
-    groups: (stateProps._groups.toObject() as unknown) as Props['groups'],
+    groups: stateProps._groups,
     mobileHasPermissions: stateProps.mobileHasPermissions,
     showEmailSection: stateProps.showEmailSection,
     sound: stateProps.sound,

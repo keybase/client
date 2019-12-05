@@ -24,12 +24,15 @@ export const defaultUserReacjis = {skinTone: defaultSkinTone, topReacjis: defaul
 const emptyArray: Array<unknown> = []
 const emptySet = new Set()
 
+export const blockButtonsGregorPrefix = 'blockButtons.'
+
 export const makeState = (): Types.State => ({
   accountsInfoMap: new Map(),
   attachmentFullscreenSelection: undefined,
   attachmentViewMap: new Map(),
   audioRecording: new Map(),
   badgeMap: new Map(), // id to the badge count
+  blockButtonsMap: new Map(),
   botCommandsUpdateStatusMap: new Map(),
   channelSearchText: '',
   commandMarkdownMap: new Map(),
@@ -363,6 +366,8 @@ export const makeInboxQuery = (
   }
 }
 
+export const isAssertion = (username: string) => username.includes('@')
+
 export const threadRoute = isMobile ? [chatTab, 'chatConversation'] : [{props: {}, selected: chatTab}]
 export const newRouterThreadRoute = isMobile ? ['chatConversation'] : [chatTab]
 
@@ -412,10 +417,8 @@ export const zoomImage = (width: number, height: number, maxThumbSize: number) =
 }
 
 export {
-  getAllChannels,
   getBotCommands,
   getChannelForTeam,
-  getChannelSuggestions,
   getCommands,
   getConversationIDKeyMetasToLoad,
   getEffectiveRetentionPolicy,

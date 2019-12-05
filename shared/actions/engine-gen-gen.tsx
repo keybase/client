@@ -166,6 +166,7 @@ export const keybase1NotifyTeamTeamMetadataUpdate = 'engine-gen:keybase1NotifyTe
 export const keybase1NotifyTeamTeamRoleMapChanged = 'engine-gen:keybase1NotifyTeamTeamRoleMapChanged'
 export const keybase1NotifyTeambotNewTeambotKey = 'engine-gen:keybase1NotifyTeambotNewTeambotKey'
 export const keybase1NotifyTeambotTeambotKeyNeeded = 'engine-gen:keybase1NotifyTeambotTeambotKeyNeeded'
+export const keybase1NotifyTrackingNotifyUserBlocked = 'engine-gen:keybase1NotifyTrackingNotifyUserBlocked'
 export const keybase1NotifyTrackingTrackingChanged = 'engine-gen:keybase1NotifyTrackingTrackingChanged'
 export const keybase1NotifyTrackingTrackingInfo = 'engine-gen:keybase1NotifyTrackingTrackingInfo'
 export const keybase1NotifyUsersIdentifyUpdate = 'engine-gen:keybase1NotifyUsersIdentifyUpdate'
@@ -1415,6 +1416,17 @@ type _Keybase1NotifyTeambotTeambotKeyNeededPayload = {
     ) => void
   }
 }
+type _Keybase1NotifyTrackingNotifyUserBlockedPayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyTracking.notifyUserBlocked']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (
+      param: keybase1Types.MessageTypes['keybase.1.NotifyTracking.notifyUserBlocked']['outParam']
+    ) => void
+  }
+}
 type _Keybase1NotifyTrackingTrackingChangedPayload = {
   readonly params: keybase1Types.MessageTypes['keybase.1.NotifyTracking.trackingChanged']['inParam'] & {
     sessionID: number
@@ -2363,6 +2375,12 @@ export const createKeybase1NotifyTeambotNewTeambotKey = (
 export const createKeybase1NotifyTeambotTeambotKeyNeeded = (
   payload: _Keybase1NotifyTeambotTeambotKeyNeededPayload
 ): Keybase1NotifyTeambotTeambotKeyNeededPayload => ({payload, type: keybase1NotifyTeambotTeambotKeyNeeded})
+export const createKeybase1NotifyTrackingNotifyUserBlocked = (
+  payload: _Keybase1NotifyTrackingNotifyUserBlockedPayload
+): Keybase1NotifyTrackingNotifyUserBlockedPayload => ({
+  payload,
+  type: keybase1NotifyTrackingNotifyUserBlocked,
+})
 export const createKeybase1NotifyTrackingTrackingChanged = (
   payload: _Keybase1NotifyTrackingTrackingChangedPayload
 ): Keybase1NotifyTrackingTrackingChangedPayload => ({payload, type: keybase1NotifyTrackingTrackingChanged})
@@ -3133,6 +3151,10 @@ export type Keybase1NotifyTeambotTeambotKeyNeededPayload = {
   readonly payload: _Keybase1NotifyTeambotTeambotKeyNeededPayload
   readonly type: typeof keybase1NotifyTeambotTeambotKeyNeeded
 }
+export type Keybase1NotifyTrackingNotifyUserBlockedPayload = {
+  readonly payload: _Keybase1NotifyTrackingNotifyUserBlockedPayload
+  readonly type: typeof keybase1NotifyTrackingNotifyUserBlocked
+}
 export type Keybase1NotifyTrackingTrackingChangedPayload = {
   readonly payload: _Keybase1NotifyTrackingTrackingChangedPayload
   readonly type: typeof keybase1NotifyTrackingTrackingChanged
@@ -3492,6 +3514,7 @@ export type Actions =
   | Keybase1NotifyTeamTeamRoleMapChangedPayload
   | Keybase1NotifyTeambotNewTeambotKeyPayload
   | Keybase1NotifyTeambotTeambotKeyNeededPayload
+  | Keybase1NotifyTrackingNotifyUserBlockedPayload
   | Keybase1NotifyTrackingTrackingChangedPayload
   | Keybase1NotifyTrackingTrackingInfoPayload
   | Keybase1NotifyUsersIdentifyUpdatePayload

@@ -14,21 +14,28 @@ const load = () => {
         continueLabel="Continue"
         search={Sb.action('search')}
         namespace={namespace}
-        teamBuildingSearchResults={{
-          // @ts-ignore
-          ['max@keybase.io']: {
-            keybase: [
-              {
-                id: '[max@keybase.io]@email',
-                label: '',
-                prettyName: 'max@keybase.io',
-                serviceId: 'email',
-                serviceMap: {keybase: 'max'},
-                username: 'max@keybase.io',
-              },
+        teamBuildingSearchResults={
+          new Map([
+            [
+              'max@keybase.io',
+              new Map([
+                [
+                  'keybase',
+                  [
+                    {
+                      id: '[max@keybase.io]@email',
+                      label: '',
+                      prettyName: 'max@keybase.io',
+                      serviceId: 'email',
+                      serviceMap: {keybase: 'max'},
+                      username: 'max@keybase.io',
+                    },
+                  ],
+                ],
+              ]),
             ],
-          },
-        }}
+          ])
+        }
       />
     ))
 }

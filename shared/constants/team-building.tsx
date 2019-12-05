@@ -1,5 +1,4 @@
 import logger from '../logger'
-import * as I from 'immutable'
 import * as Types from './types/team-building'
 import * as RPCTypes from './types/rpc-gen'
 import {serviceIdFromString} from '../util/platforms'
@@ -52,22 +51,20 @@ export function followStateHelperWithId(
   return 'NoState'
 }
 
-const SubStateFactory = I.Record<Types._TeamBuildingSubState>({
-  teamBuildingFinishedSelectedRole: 'writer',
-  teamBuildingFinishedSendNotification: true,
-  teamBuildingFinishedTeam: I.OrderedSet(),
-  teamBuildingSearchLimit: 11,
-  teamBuildingSearchQuery: '',
-  teamBuildingSearchResults: I.Map(),
-  teamBuildingSelectedRole: 'writer',
-  teamBuildingSelectedService: 'keybase',
-  teamBuildingSendNotification: true,
-  teamBuildingServiceResultCount: I.Map(),
-  teamBuildingTeamSoFar: I.OrderedSet(),
-  teamBuildingUserRecs: null,
+export const makeSubState = (): Types.TeamBuildingSubState => ({
+  error: '',
+  finishedSelectedRole: 'writer',
+  finishedSendNotification: true,
+  finishedTeam: new Set(),
+  searchLimit: 11,
+  searchQuery: '',
+  searchResults: new Map(),
+  selectedRole: 'writer',
+  selectedService: 'keybase',
+  sendNotification: true,
+  serviceResultCount: new Map(),
+  teamSoFar: new Set(),
 })
-
-export const makeSubState = (): Types.TeamBuildingSubState => SubStateFactory()
 
 export const parseRawResultToUser = (
   result: RPCTypes.APIUserSearchResult,

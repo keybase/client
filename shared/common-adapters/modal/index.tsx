@@ -157,6 +157,19 @@ const Header = (props: HeaderProps) => {
   )
 }
 
+export const useModalHeaderTitleAndCancel = (title: string, onCancel: () => void): HeaderProps =>
+  React.useMemo(
+    () => ({
+      leftButton: (
+        <Kb.Text type="BodyBigLink" onClick={onCancel}>
+          Cancel
+        </Kb.Text>
+      ),
+      title,
+    }),
+    [title, onCancel]
+  )
+
 const Footer = (props: FooterProps & {fullscreen: boolean; wide: boolean}) => (
   <Kb.Box2
     centerChildren={true}

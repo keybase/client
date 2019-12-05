@@ -28,7 +28,7 @@ import {
   ServiceIdWithContact,
   FollowingState,
   SelectedUser,
-  User,
+  SearchResults,
 } from '../constants/types/team-building'
 
 export const numSectionLabel = '0-9'
@@ -42,6 +42,7 @@ export type SearchResult = {
   services: {[K in ServiceIdWithContact]?: string}
   inTeam: boolean
   isPreExistingTeamMember: boolean
+  isYou: boolean
   followingState: FollowingState
 }
 
@@ -77,17 +78,18 @@ export type RolePickerProps = {
 }
 
 type ContactProps = {
-  contactsImported: boolean | null
+  contactsImported: boolean | undefined
   contactsPermissionStatus: string
   isImportPromptDismissed: boolean
   numContactsImported: number
   onAskForContactsLater: () => void
-  onImportContacts: () => void
+  onImportContacts: (() => void) | undefined
   onLoadContactsSetting: () => void
   selectedService: ServiceIdWithContact
 }
 
 export type Props = ContactProps & {
+  error?: string
   filterServices?: Array<ServiceIdWithContact>
   fetchUserRecs: () => void
   focusInputCounter: number
@@ -109,15 +111,15 @@ export type Props = ContactProps & {
   onClose: () => void
   recommendations: Array<SearchRecSection> | null
   search: (query: string, service: ServiceIdWithContact) => void
-  searchResults: Array<SearchResult> | null
+  searchResults: Array<SearchResult> | undefined
   searchString: string
   serviceResultCount: {[K in ServiceIdWithContact]?: number | null}
   showRecs: boolean
   showResults: boolean
   showServiceResultCount: boolean
-  teamBuildingSearchResults: {[query: string]: {[service in ServiceIdWithContact]: Array<User>}}
+  teamBuildingSearchResults: SearchResults
   teamSoFar: Array<SelectedUser>
-  teamname: string
+  teamname: string | undefined
   waitingForCreate: boolean
   rolePickerProps?: RolePickerProps
   title: string
@@ -137,7 +139,7 @@ const ContactsBanner = (props: ContactProps & {onRedoSearch: () => void; onRedoR
   // Ensure that we know whether contacts are loaded, and if not, that we load
   // the current config setting.
   React.useEffect(() => {
-    if (props.contactsImported === null) {
+    if (props.contactsImported === undefined) {
       props.onLoadContactsSetting()
     }
   }, [props, props.contactsImported, props.onLoadContactsSetting])
@@ -145,11 +147,12 @@ const ContactsBanner = (props: ContactProps & {onRedoSearch: () => void; onRedoR
   // If we've imported contacts already, or the user has dismissed the message,
   // then there's nothing for us to do.
   if (
-    props.contactsImported === null ||
+    props.contactsImported === undefined ||
     props.selectedService !== 'keybase' ||
     props.contactsImported ||
     props.isImportPromptDismissed ||
-    props.contactsPermissionStatus === 'never_ask_again'
+    props.contactsPermissionStatus === 'never_ask_again' ||
+    !props.onImportContacts
   )
     return null
 
@@ -184,7 +187,7 @@ const ContactsBanner = (props: ContactProps & {onRedoSearch: () => void; onRedoR
 const ContactsImportButton = (props: ContactProps) => {
   // If we've imported contacts already, then there's nothing for us to do.
   if (
-    props.contactsImported === null ||
+    props.contactsImported === undefined ||
     props.contactsImported ||
     !props.isImportPromptDismissed ||
     props.contactsPermissionStatus === 'never_ask_again'
@@ -482,6 +485,7 @@ class TeamBuilding extends React.PureComponent<Props> {
                     services={result.services}
                     inTeam={result.inTeam}
                     isPreExistingTeamMember={result.isPreExistingTeamMember}
+                    isYou={result.isYou}
                     followingState={result.followingState}
                     highlight={
                       !Styles.isMobile &&
@@ -529,6 +533,7 @@ class TeamBuilding extends React.PureComponent<Props> {
               services={result.services}
               inTeam={result.inTeam}
               isPreExistingTeamMember={result.isPreExistingTeamMember}
+              isYou={result.isYou}
               followingState={result.followingState}
               highlight={!Styles.isMobile && index === this.props.highlightedIndex}
               onAdd={() => this.props.onAdd(result.userId)}
@@ -650,6 +655,7 @@ class TeamBuilding extends React.PureComponent<Props> {
           ) : (
             teamBox
           ))}
+        {!!props.error && <Kb.Banner color="red">{props.error}</Kb.Banner>}
         {!!props.teamSoFar.length && Flags.newTeamBuildingForChatAllowMakeTeam && (
           <Kb.Text type="BodySmall">
             Add up to 14 more people. Need more?

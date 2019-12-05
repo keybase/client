@@ -164,10 +164,9 @@ type InboxSource interface {
 
 	Clear(ctx context.Context, uid gregor1.UID) error
 	Read(ctx context.Context, uid gregor1.UID, localizeTyp ConversationLocalizerTyp,
-		dataSource InboxSourceDataSourceTyp, maxLocalize *int, query *chat1.GetInboxLocalQuery,
-		p *chat1.Pagination) (Inbox, chan AsyncInboxResult, error)
+		dataSource InboxSourceDataSourceTyp, maxLocalize *int, query *chat1.GetInboxLocalQuery) (Inbox, chan AsyncInboxResult, error)
 	ReadUnverified(ctx context.Context, uid gregor1.UID, dataSource InboxSourceDataSourceTyp,
-		query *chat1.GetInboxQuery, p *chat1.Pagination) (Inbox, error)
+		query *chat1.GetInboxQuery) (Inbox, error)
 	Localize(ctx context.Context, uid gregor1.UID, convs []RemoteConversation,
 		localizeTyp ConversationLocalizerTyp) ([]chat1.ConversationLocal, chan AsyncInboxResult, error)
 	RemoteSetConversationStatus(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
@@ -177,6 +176,7 @@ type InboxSource interface {
 		msgID *chat1.MessageID) error
 	Draft(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, text *string) error
 	NotifyUpdate(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID)
+	IncrementLocalConvVersion(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (*chat1.ConversationLocal, error)
 	MergeLocalMetadata(ctx context.Context, uid gregor1.UID, convs []chat1.ConversationLocal) error
 
 	Sync(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convs []chat1.Conversation) (InboxSyncRes, error)
@@ -546,7 +546,7 @@ type BotCommandManager interface {
 	Advertise(ctx context.Context, alias *string, ads []chat1.AdvertiseCommandsParam) error
 	Clear(ctx context.Context) error
 	PublicCommandsConv(ctx context.Context, username string) (chat1.ConversationID, error)
-	ListCommands(ctx context.Context, convID chat1.ConversationID) ([]chat1.UserBotCommandOutput, error)
+	ListCommands(ctx context.Context, convID chat1.ConversationID) ([]chat1.UserBotCommandOutput, map[string]string, error)
 	UpdateCommands(ctx context.Context, convID chat1.ConversationID, info *chat1.BotInfo) (chan error, error)
 }
 
@@ -566,8 +566,7 @@ type UIInboxLoader interface {
 	UpdateLayoutFromNewMessage(ctx context.Context, conv RemoteConversation)
 	UpdateLayoutFromSubteamRename(ctx context.Context, convs []RemoteConversation)
 	UpdateConvs(ctx context.Context, convIDs []chat1.ConversationID) error
-	LoadNonblock(ctx context.Context, query *chat1.GetInboxLocalQuery,
-		pagination *chat1.Pagination, maxUnbox *int, skipUnverified bool) error
+	LoadNonblock(ctx context.Context, query *chat1.GetInboxLocalQuery, maxUnbox *int, skipUnverified bool) error
 }
 
 type JourneyCardManager interface {

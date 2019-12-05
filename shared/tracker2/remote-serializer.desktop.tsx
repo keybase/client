@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as Constants from '../constants/tracker2'
 import * as Types from '../constants/types/tracker2'
 import * as Avatar from '../desktop/remote/sync-avatar-props.desktop'
@@ -25,6 +24,7 @@ export const serialize = {
   teamShowcase: (v?: Array<Types.TeamShowcase>, o?: Array<Types.TeamShowcase>) =>
     o && shallowEqual(v, o) ? undefined : v,
   username: (v: string) => v,
+  usernames: (v: Array<string>) => v,
   waiting: (v: boolean) => v,
   windowComponent: (v: string) => v,
   windowOpts: (v: Object) => v,
@@ -37,7 +37,8 @@ export const serialize = {
 const initialState = {
   assertions: new Map(),
   config: {following: new Set()},
-  users: {infoMap: I.Map()},
+  teams: {teamNameToID: new Map()},
+  users: {infoMap: new Map()},
   waiting: {counts: new Map()},
 }
 

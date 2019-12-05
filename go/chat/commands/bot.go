@@ -62,7 +62,7 @@ func (b *Bot) Preview(ctx context.Context, uid gregor1.UID, convID chat1.Convers
 		}(globals.BackgroundChatCtx(ctx, b.G()))
 	}
 
-	cmds, err := b.G().BotCommandManager.ListCommands(ctx, convID)
+	cmds, _, err := b.G().BotCommandManager.ListCommands(ctx, convID)
 	if err != nil {
 		b.Debug(ctx, "Preview: failed to list commands: %s", err)
 		return

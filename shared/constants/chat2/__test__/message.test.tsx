@@ -19,6 +19,7 @@ const cases = [
     out: [
       'systemAddedToTeam',
       'systemChangeRetention',
+      'systemCreateTeam',
       'systemGitPush',
       'systemInviteAccepted',
       'systemSBSResolved',

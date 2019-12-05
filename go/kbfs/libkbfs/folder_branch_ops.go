@@ -1692,7 +1692,8 @@ func (fbo *folderBranchOps) partialMarkAndSweepLoop(trigger <-chan struct{}) {
 func (fbo *folderBranchOps) kickOffRootBlockFetch(
 	ctx context.Context, rmd ImmutableRootMetadata) <-chan error {
 	ptr := rmd.Data().Dir.BlockPointer
-	action := fbo.config.Mode().DefaultBlockRequestAction().AddStopIfFull()
+	action := fbo.config.Mode().DefaultBlockRequestAction().
+		AddStopPrefetchIfFull()
 	if !action.prefetch() && fbo.config.IsSyncedTlf(fbo.id()) {
 		// Explicitly add the prefetch action for synced folders when
 		// getting the root block, since in some modes (like

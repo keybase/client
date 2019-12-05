@@ -420,8 +420,6 @@ func (c *Client) filterLocalDismissals(ctx context.Context, state gregor.State) 
 	for _, it := range items {
 		if !ldmap[it.Metadata().MsgID().String()] {
 			filteredItems = append(filteredItems, it)
-		} else {
-			c.Log.CDebugf(ctx, "filterLocalDismissals: filtered state item: %s", it.Metadata().MsgID())
 		}
 	}
 	filteredState, err := c.Sm.ObjFactory().MakeState(filteredItems)

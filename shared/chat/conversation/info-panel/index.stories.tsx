@@ -27,7 +27,7 @@ const minWriterRoleProps = {
   minWriterRole: 'reader',
 }
 
-const retentionPickerPropSelector = props => ({
+const retentionPickerPropSelector = (props: any) => ({
   _loadTeamOperations: Sb.unexpected('_loadTeamOperations'),
   _loadTeamPolicy: Sb.action('_loadTeamPolicy'),
   _onShowDropdown: Sb.action('onShowDropdownRetentionPicker'),
@@ -160,22 +160,39 @@ const commonProps = {
   onUnhideConv: Sb.action(`onUnhideConv`),
   participants: [
     {
+      botAlias: '',
       fullname: 'Fred Akalin',
       isAdmin: true,
       isOwner: true,
       username: 'akalin',
     },
     {
+      botAlias: '',
       fullname: 'Jeremy Stribling',
       isAdmin: true,
       isOwner: false,
       username: 'strib',
     },
     {
+      botAlias: '',
       fullname: 'Max Krohn',
       isAdmin: false,
       isOwner: false,
       username: 'max',
+    },
+    {
+      botAlias: 'ECS Deploy Bot',
+      fullname: 'Bot Person',
+      isAdmin: false,
+      isOwner: false,
+      username: 'ecsdeploybot',
+    },
+    {
+      botAlias: 'Google Meet',
+      fullname: '',
+      isAdmin: false,
+      isOwner: false,
+      username: 'meetbot',
     },
   ],
   selectedConversationIDKey: Constants.noConversationIDKey,
@@ -266,6 +283,7 @@ const bigTeamLotsaUsersCommonProps = {
   participants: new Array(100).fill(0).map(
     (_, i) =>
       ({
+        botAlias: '',
         fullname: `Agent ${i}`,
         isAdmin: false,
         isOwner: false,

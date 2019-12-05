@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import {TeamRoleType} from './teams'
 import {ServiceId as _ServiceId} from '../../util/platforms'
 
@@ -30,32 +29,30 @@ export type User = {
 }
 
 // Treating this as a tuple
-export type SearchKey = I.List<SearchString | ServiceIdWithContact>
+export type SearchKey = Array<SearchString | ServiceIdWithContact>
 
 // This is what should be kept in the reducer
 // Keyed so that we never get results that don't match the user's input (e.g. outdated results)
 type Query = string
 
-export type SearchResults = I.Map<Query, I.Map<ServiceIdWithContact, Array<User>>>
-export type ServiceResultCount = I.Map<SearchString, I.Map<ServiceIdWithContact, number>>
+export type SearchResults = Map<Query, Map<ServiceIdWithContact, Array<User>>>
+export type ServiceResultCount = Map<SearchString, Map<ServiceIdWithContact, number>>
 
-// TODO remove teamBuilding prefix
-export type _TeamBuildingSubState = {
-  teamBuildingTeamSoFar: I.OrderedSet<User>
-  teamBuildingSearchResults: SearchResults
-  teamBuildingServiceResultCount: ServiceResultCount
-  teamBuildingFinishedTeam: I.OrderedSet<User>
-  teamBuildingFinishedSelectedRole: TeamRoleType
-  teamBuildingFinishedSendNotification: boolean
-  teamBuildingSearchQuery: Query
-  teamBuildingSelectedService: ServiceIdWithContact
-  teamBuildingSearchLimit: number
-  teamBuildingUserRecs: Array<User> | null
-  teamBuildingSelectedRole: TeamRoleType
-  teamBuildingSendNotification: boolean
-}
-
-export type TeamBuildingSubState = I.RecordOf<_TeamBuildingSubState>
+export type TeamBuildingSubState = Readonly<{
+  error: string
+  teamSoFar: Set<User>
+  searchResults: SearchResults
+  serviceResultCount: ServiceResultCount
+  finishedTeam: Set<User>
+  finishedSelectedRole: TeamRoleType
+  finishedSendNotification: boolean
+  searchQuery: Query
+  selectedService: ServiceIdWithContact
+  searchLimit: number
+  userRecs?: Array<User>
+  selectedRole: TeamRoleType
+  sendNotification: boolean
+}>
 
 export type SelectedUser = {
   userId: string

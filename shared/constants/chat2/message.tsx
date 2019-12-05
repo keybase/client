@@ -92,6 +92,7 @@ export const serviceMessageTypeToMessageTypes = (t: RPCChatTypes.MessageType): A
       return [
         'systemAddedToTeam',
         'systemChangeRetention',
+        'systemCreateTeam',
         'systemGitPush',
         'systemInviteAccepted',
         'systemSBSResolved',
@@ -404,6 +405,17 @@ export const makeMessageSystemText = (
   ...m,
 })
 
+export const makeMessageSystemCreateTeam = (
+  m?: Partial<MessageTypes.MessageSystemCreateTeam>
+): MessageTypes.MessageSystemCreateTeam => ({
+  ...makeMessageCommonNoDeleteNoEdit,
+  creator: '',
+  reactions: new Map(),
+  team: '',
+  type: 'systemCreateTeam',
+  ...m,
+})
+
 export const makeMessageSystemGitPush = (
   m?: Partial<MessageTypes.MessageSystemGitPush>
 ): MessageTypes.MessageSystemGitPush => ({
@@ -598,6 +610,7 @@ export const uiMessageEditToMessage = (
 }
 
 const uiMessageToSystemMessage = (
+  state: TypedState,
   minimum: Minimum,
   body: RPCChatTypes.MessageSystem,
   reactions: Map<string, Set<MessageTypes.Reaction>>
@@ -682,9 +695,10 @@ const uiMessageToSystemMessage = (
     }
     case RPCChatTypes.MessageSystemType.createteam: {
       const {team = '???', creator = '????'} = body.createteam || {}
-      return makeMessageSystemText({
+      return makeMessageSystemCreateTeam({
+        creator,
         reactions,
-        text: new HiddenString(`${creator} created a new team ${team}.`),
+        team,
         ...minimum,
       })
     }
@@ -706,7 +720,7 @@ const uiMessageToSystemMessage = (
       const {user = '???'} = body.changeavatar || {}
       return makeMessageSystemText({
         reactions,
-        text: new HiddenString(`${user} changed the team's avatar.`),
+        text: new HiddenString(`${user === state.config.username ? 'You ' : ''}changed the team's avatar.`),
         ...minimum,
       })
     }
@@ -794,13 +808,13 @@ export const hasSuccessfulInlinePayments = (state: TypedState, message: Types.Me
 }
 
 export const getMapUnfurl = (message: Types.Message): RPCChatTypes.UnfurlGenericDisplay | null => {
-  const unfurls = message.type === 'text' && message.unfurls.size ? message.unfurls.values() : null
+  const unfurls = message.type === 'text' && message.unfurls.size ? [...message.unfurls.values()] : null
   const mapInfo = unfurls?.[0]?.unfurl
     ? unfurls[0].unfurl.unfurlType === RPCChatTypes.UnfurlType.generic &&
       unfurls[0].unfurl.generic?.mapInfo &&
       unfurls[0].unfurl.generic
     : null
-  return mapInfo
+  return mapInfo || null
 }
 
 const validUIMessagetoMessage = (
@@ -971,7 +985,7 @@ const validUIMessagetoMessage = (
       })
     case RPCChatTypes.MessageType.system:
       return m.messageBody.system
-        ? uiMessageToSystemMessage(common, m.messageBody.system, common.reactions)
+        ? uiMessageToSystemMessage(state, common, m.messageBody.system, common.reactions)
         : null
     case RPCChatTypes.MessageType.headline:
       return makeMessageSetDescription({
@@ -1323,7 +1337,9 @@ export const mergeMessage = (old: Types.Message | null, m: Types.Message): Types
         }
         break
       default:
+        // @ts-ignore key is just a string here so TS doesn't like it
         if (old[key] === m[key]) {
+          // @ts-ignore
           toRet[key] = old[key]
         }
     }

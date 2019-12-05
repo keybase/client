@@ -5,14 +5,15 @@ import * as Container from '../../util/container'
 import * as Constants from '../../constants/provision'
 
 const store = Container.produce(Sb.createStoreWithCommon(), draftState => {
-  draftState.provision = Constants.makeState({
-    codePageOtherDevice: Constants.makeDevice({
+  draftState.provision = {
+    ...Constants.makeState(),
+    codePageOtherDevice: {
       deviceNumberOfType: 3,
       id: '1',
       name: 'My laptop',
       type: 'desktop',
-    }),
-  })
+    },
+  }
 })
 
 const load = () => {

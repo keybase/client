@@ -26,10 +26,10 @@ const getWeights = (manageMembers: boolean) => {
 }
 
 export const getOrderedMemberArray = (
-  memberInfo: Map<string, Types._MemberInfo> | undefined,
+  memberInfo: Map<string, Types.MemberInfo> | undefined,
   you: string | null,
   yourOperations: Types.TeamOperations
-): Array<Types._MemberInfo> =>
+): Array<Types.MemberInfo> =>
   memberInfo
     ? [...memberInfo.values()].sort((a, b) => {
         // Get listFirst out of the way
@@ -47,5 +47,5 @@ export const getOrderedMemberArray = (
       })
     : []
 
-export const sortInvites = (a: Types._InviteInfo, b: Types._InviteInfo) =>
+export const sortInvites = (a: Types.InviteInfo, b: Types.InviteInfo) =>
   (a.email || a.username || a.name || a.id || '').localeCompare(b.email || b.username || b.name || b.id || '')

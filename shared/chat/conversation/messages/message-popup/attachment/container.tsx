@@ -20,110 +20,114 @@ type OwnProps = {
   visible: boolean
 }
 
-const mapStateToProps = (state, ownProps: OwnProps) => {
-  const message = ownProps.message
-  const meta = Constants.getMeta(state, message.conversationIDKey)
-  const yourOperations = getCanPerform(state, meta.teamname)
-  const _canDeleteHistory = yourOperations && yourOperations.deleteChatHistory
-  const _canAdminDelete = yourOperations && yourOperations.deleteOtherMessages
-  let _canPinMessage = true
-  if (meta.teamname) {
-    _canPinMessage = yourOperations && yourOperations.pinMessage
-  }
-  return {
-    _canAdminDelete,
-    _canDeleteHistory,
-    _canPinMessage,
-    _you: state.config.username,
-    pending: !!message.transferState,
-  }
-}
-
-const mapDispatchToProps = dispatch => ({
-  _onAddReaction: (message: Types.Message) => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
-            selected: 'chatChooseEmoji',
-          },
-        ],
-      })
-    )
-  },
-  _onAllMedia: (conversationIDKey: Types.ConversationIDKey) =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {conversationIDKey, tab: 'attachments'},
-            selected: 'chatInfoPanel',
-          },
-        ],
-      })
-    ),
-  _onDelete: (message: Types.Message) => {
-    dispatch(
-      Chat2Gen.createMessageDelete({
-        conversationIDKey: message.conversationIDKey,
-        ordinal: message.ordinal,
-      })
-    )
-    dispatch(Chat2Gen.createNavigateToThread())
-  },
-
-  _onDownload: (message: Types.MessageAttachment) => {
-    dispatch(
-      Chat2Gen.createAttachmentDownload({
-        message,
-      })
-    )
-  },
-  _onPinMessage: (message: Types.Message) => {
-    dispatch(
-      Chat2Gen.createPinMessage({
-        conversationIDKey: message.conversationIDKey,
-        messageID: message.id,
-      })
-    )
-  },
-  _onReply: (message: Types.Message) => {
-    dispatch(
-      Chat2Gen.createToggleReplyToMessage({
-        conversationIDKey: message.conversationIDKey,
-        ordinal: message.ordinal,
-      })
-    )
-  },
-  _onSaveAttachment: (message: Types.MessageAttachment) => {
-    dispatch(
-      Chat2Gen.createMessageAttachmentNativeSave({
-        message,
-      })
-    )
-  },
-  _onShareAttachment: (message: Types.MessageAttachment) => {
-    dispatch(
-      Chat2Gen.createMessageAttachmentNativeShare({
-        message,
-      })
-    )
-  },
-  _onShowInFinder: (message: Types.MessageAttachment) => {
-    message.downloadPath &&
-      dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: message.downloadPath}))
-  },
-})
-
 export default Container.connect(
-  mapStateToProps,
-  mapDispatchToProps,
+  (state, ownProps: OwnProps) => {
+    const message = ownProps.message
+    const meta = Constants.getMeta(state, message.conversationIDKey)
+    const yourOperations = getCanPerform(state, meta.teamname)
+    const _canDeleteHistory = yourOperations && yourOperations.deleteChatHistory
+    const _canAdminDelete = yourOperations && yourOperations.deleteOtherMessages
+    let _canPinMessage = true
+    if (meta.teamname) {
+      _canPinMessage = yourOperations && yourOperations.pinMessage
+    }
+    return {
+      _canAdminDelete,
+      _canDeleteHistory,
+      _canPinMessage,
+      _participants: meta.participants,
+      _teamname: meta.teamname,
+      _you: state.config.username,
+      pending: !!message.transferState,
+    }
+  },
+  dispatch => ({
+    _onAddReaction: (message: Types.Message) => {
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [
+            {
+              props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
+              selected: 'chatChooseEmoji',
+            },
+          ],
+        })
+      )
+    },
+    _onAllMedia: (conversationIDKey: Types.ConversationIDKey) =>
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [
+            {
+              props: {conversationIDKey, tab: 'attachments'},
+              selected: 'chatInfoPanel',
+            },
+          ],
+        })
+      ),
+    _onDelete: (message: Types.Message) => {
+      dispatch(
+        Chat2Gen.createMessageDelete({
+          conversationIDKey: message.conversationIDKey,
+          ordinal: message.ordinal,
+        })
+      )
+      dispatch(Chat2Gen.createNavigateToThread())
+    },
 
+    _onDownload: (message: Types.MessageAttachment) => {
+      dispatch(
+        Chat2Gen.createAttachmentDownload({
+          message,
+        })
+      )
+    },
+    _onKick: (teamname: string, username: string) =>
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {navToChat: true, teamname, username}, selected: 'teamReallyRemoveMember'}],
+        })
+      ),
+    _onPinMessage: (message: Types.Message) => {
+      dispatch(
+        Chat2Gen.createPinMessage({
+          conversationIDKey: message.conversationIDKey,
+          messageID: message.id,
+        })
+      )
+    },
+    _onReply: (message: Types.Message) => {
+      dispatch(
+        Chat2Gen.createToggleReplyToMessage({
+          conversationIDKey: message.conversationIDKey,
+          ordinal: message.ordinal,
+        })
+      )
+    },
+    _onSaveAttachment: (message: Types.MessageAttachment) => {
+      dispatch(
+        Chat2Gen.createMessageAttachmentNativeSave({
+          message,
+        })
+      )
+    },
+    _onShareAttachment: (message: Types.MessageAttachment) => {
+      dispatch(
+        Chat2Gen.createMessageAttachmentNativeShare({
+          message,
+        })
+      )
+    },
+    _onShowInFinder: (message: Types.MessageAttachment) => {
+      message.downloadPath &&
+        dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: message.downloadPath}))
+    },
+  }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     const message = ownProps.message
     const yourMessage = message.author === stateProps._you
     const isDeleteable = yourMessage || stateProps._canAdminDelete
+    const authorInConv = stateProps._participants.includes(message.author)
     return {
       attachTo: ownProps.attachTo,
       author: message.author,
@@ -131,12 +135,14 @@ export default Container.connect(
       deviceRevokedAt: message.deviceRevokedAt || undefined,
       deviceType: message.deviceType,
       isDeleteable,
+      isKickable: isDeleteable && !!stateProps._teamname && !yourMessage && authorInConv,
       onAddReaction: isMobile ? () => dispatchProps._onAddReaction(message) : undefined,
       onAllMedia: () => dispatchProps._onAllMedia(message.conversationIDKey),
       onDelete: isDeleteable ? () => dispatchProps._onDelete(message) : undefined,
       onDownload: !isMobile && !message.downloadPath ? () => dispatchProps._onDownload(message) : undefined,
       // We only show the share/save options for video if we have the file stored locally from a download
       onHidden: () => ownProps.onHidden(),
+      onKick: () => dispatchProps._onKick(stateProps._teamname, message.author),
       onPinMessage: stateProps._canPinMessage ? () => dispatchProps._onPinMessage(message) : undefined,
       onReply: () => dispatchProps._onReply(message),
       onSaveAttachment:

@@ -8,26 +8,25 @@ import HiddenString from '../../../util/hidden-string'
 
 type OwnProps = {}
 
-const mapStateToProps = state => ({
-  error: state.provision.error.stringValue(),
-  waiting: WaitingConstants.anyWaiting(state, Constants.waitingKey),
-})
-
-const mapDispatchToProps = dispatch => ({
-  onOpenSettings: () => dispatch(ConfigGen.createOpenAppSettings()),
-  onSubmitTextCode: (code: string) =>
-    dispatch(ProvisionGen.createSubmitTextCode({phrase: new HiddenString(code)})),
-})
-
-const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
-  error: stateProps.error,
-  onOpenSettings: dispatchProps.onOpenSettings,
-  onSubmitTextCode: dispatchProps.onSubmitTextCode,
-  waiting: stateProps.waiting,
-})
-
 export default compose(
-  namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'QRScan'),
+  namedConnect(
+    state => ({
+      error: state.provision.error.stringValue(),
+      waiting: WaitingConstants.anyWaiting(state, Constants.waitingKey),
+    }),
+    dispatch => ({
+      onOpenSettings: () => dispatch(ConfigGen.createOpenAppSettings()),
+      onSubmitTextCode: (code: string) =>
+        dispatch(ProvisionGen.createSubmitTextCode({phrase: new HiddenString(code)})),
+    }),
+    (stateProps, dispatchProps, _: OwnProps) => ({
+      error: stateProps.error,
+      onOpenSettings: dispatchProps.onOpenSettings,
+      onSubmitTextCode: dispatchProps.onSubmitTextCode,
+      waiting: stateProps.waiting,
+    }),
+    'QRScan'
+  ),
   safeSubmit(['onSubmitTextCode'], ['error']),
   withStateHandlers(
     {mountKey: '0'},

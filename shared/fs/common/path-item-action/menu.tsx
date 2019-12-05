@@ -138,12 +138,12 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => {
           {
             disabled: props.sendToOtherApp === 'in-progress',
             onClick: props.sendToOtherApp !== 'in-progress' ? props.sendToOtherApp : undefined,
-            title: 'Send to other app',
+            title: 'Send to another app',
             view:
               props.sendToOtherApp === 'in-progress' ? (
-                <InProgressMenuEntry text="Send to other app" />
+                <InProgressMenuEntry text="Send to another app" />
               ) : (
-                <ActionableMenuEntry text="Send to other app" />
+                <ActionableMenuEntry text="Send to another app" />
               ),
           },
         ]

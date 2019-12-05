@@ -14,7 +14,7 @@ const score = (lcFilter: string, lcYou: string, names: Array<string>, insertMatc
   const namesMinusYou = lcYou ? names.filter(n => n !== lcYou) : names
   // special case, comma search
   const filters = lcFilter.split(',').filter(Boolean)
-  let filter
+  let filter: string
   if (filters.length > 1) {
     const mustExist = filters.slice(0, -1)
     const partial = filters.slice(-1)
@@ -77,8 +77,8 @@ const score = (lcFilter: string, lcYou: string, names: Array<string>, insertMatc
   return rawScore > 0 ? Math.max(1, rawScore - inputLength) : 0
 }
 
-const makeSmallItem = (meta, filter, you, insertMatcher) => {
-  const s = score(filter, you, meta.teamname ? [meta.teamname] : meta.participants.toArray(), insertMatcher)
+const makeSmallItem = (meta: Types.ConversationMeta, filter: string, you: string, insertMatcher: RegExp) => {
+  const s = score(filter, you, meta.teamname ? [meta.teamname] : meta.participants, insertMatcher)
   return s > 0
     ? {
         data: {conversationIDKey: meta.conversationIDKey, type: 'small'} as RowItemSmall,
@@ -88,7 +88,7 @@ const makeSmallItem = (meta, filter, you, insertMatcher) => {
     : null
 }
 
-const makeBigItem = (meta, filter, insertMatcher) => {
+const makeBigItem = (meta: Types.ConversationMeta, filter: string, insertMatcher: RegExp) => {
   const s = score(filter, '', [meta.teamname, meta.channelname].filter(Boolean), insertMatcher)
   return s > 0
     ? {

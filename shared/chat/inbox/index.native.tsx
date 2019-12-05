@@ -124,12 +124,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
     }
     this._onScrollUnbox(data)
 
-    const lastVisibleIdx = // Auto generated from flowToTs. Please clean me!
-      data.viewableItems[data.viewableItems.length - 1] === null ||
-      data.viewableItems[data.viewableItems.length - 1] === undefined
-        ? undefined
-        : data.viewableItems[data.viewableItems.length - 1].index
-    this._lastVisibleIdx = lastVisibleIdx || -1
+    this._lastVisibleIdx = data.viewableItems[data.viewableItems.length - 1]?.index ?? -1
     this._updateShowUnread()
     this._updateShowFloating()
   }

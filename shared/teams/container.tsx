@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
-import * as I from 'immutable'
 import * as FsConstants from '../constants/fs'
 import * as FsTypes from '../constants/types/fs'
 import * as GregorGen from '../actions/gregor-gen'
@@ -22,7 +21,7 @@ const headerActions = (dispatch: Container.TypedDispatch, ownProps: OwnProps) =>
   onCreateTeam: () => {
     dispatch(
       ownProps.safeNavigateAppendPayload({
-        path: [{props: {}, selected: 'teamNewTeamDialog'}],
+        path: ['teamNewTeamDialog'],
       })
     )
   },
@@ -55,7 +54,7 @@ Reloadable.navigationOptions = {
 
 const _Connected = Container.connect(
   (state: Container.TypedState) => ({
-    _teamresetusers: state.teams.teamNameToResetUsers || I.Map(),
+    _teamresetusers: state.teams.teamNameToResetUsers || new Map(),
     _teams: state.teams.teamDetails,
     deletedTeams: state.teams.deletedTeams,
     loaded: !WaitingConstants.anyWaiting(state, Constants.teamsLoadedWaitingKey),
@@ -89,7 +88,7 @@ const _Connected = Container.connect(
     newTeamRequests: stateProps.newTeamRequests,
     newTeams: stateProps.newTeams,
     sawChatBanner: stateProps.sawChatBanner,
-    teamresetusers: stateProps._teamresetusers.toObject(),
+    teamresetusers: stateProps._teamresetusers,
     teams: orderTeams(stateProps._teams),
     ...dispatchProps,
   })

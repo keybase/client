@@ -18,9 +18,9 @@ type OwnProps = {
 const notAUserAssertion = {
   assertionKey: '',
   belowFold: false,
-  color: 'gray',
+  color: 'gray' as const,
   kid: '',
-  metas: [{color: 'gray', label: 'PENDING'}],
+  metas: [{color: 'gray' as const, label: 'PENDING'}],
   pickerIcon: [],
   pickerSubtext: '',
   pickerText: '',
@@ -31,9 +31,9 @@ const notAUserAssertion = {
   siteIconFull: null,
   siteIconWhite: null,
   siteURL: '',
-  state: 'checking',
+  state: 'checking' as const,
   timestamp: 0,
-} as const
+}
 
 export default Container.namedConnect(
   (state, ownProps: OwnProps) => {

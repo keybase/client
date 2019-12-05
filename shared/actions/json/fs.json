@@ -203,7 +203,7 @@
       "rpcStatus": "Types.KbfsDaemonRpcStatus"
     },
     "kbfsDaemonOnlineStatusChanged": {
-      "online": "boolean"
+      "onlineStatus": "RPCTypes.KbfsOnlineStatus"
     },
     "overallSyncStatusChanged": {
       "progress": "Types.SyncingFoldersProgress",

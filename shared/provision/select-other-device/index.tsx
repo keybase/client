@@ -7,7 +7,7 @@ import DeviceIcon from '../../devices/device-icon'
 
 type Props = {
   passwordRecovery?: boolean
-  devices: Array<Types.Device>
+  devices: ReadonlyArray<Types.Device>
   onBack: () => void
   onSelect: (name: string) => void
   onResetAccount: () => void
@@ -25,7 +25,7 @@ class SelectOtherDevice extends React.Component<Props> {
   _renderItem = (index, item: DeviceOrReset) => {
     if (item === resetSignal) {
       return (
-        <Kb.Box2 direction="vertical" fullWidth={true}>
+        <Kb.Box2 direction="vertical" fullWidth={true} key="reset">
           <Kb.Text type="BodySmall" style={styles.or}>
             or
           </Kb.Text>

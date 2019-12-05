@@ -2054,6 +2054,11 @@ type Subscriber interface {
 	Unsubscribe(context.Context, SubscriptionID)
 }
 
+// OnlineStatusTracker tracks the online status for the GUI.
+type OnlineStatusTracker interface {
+	GetOnlineStatus() keybase1.KbfsOnlineStatus
+}
+
 // SubscriptionManager manages subscriptions. Use the Subscriber interface to
 // subscribe and unsubscribe. Multiple subscribers can be used with the same
 // SubscriptionManager.
@@ -2061,6 +2066,9 @@ type SubscriptionManager interface {
 	// Subscriber returns a new subscriber. All subscriptions made on this
 	// subscriber causes notifications sent through the give notifier here.
 	Subscriber(SubscriptionNotifier) Subscriber
+	// OnlineStatusTracker returns the OnlineStatusTracker for getting the
+	// current online status for GUI.
+	OnlineStatusTracker() OnlineStatusTracker
 	// Shutdown shuts the subscription manager down.
 	Shutdown(ctx context.Context)
 }

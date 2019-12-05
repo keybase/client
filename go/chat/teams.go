@@ -338,7 +338,7 @@ func (t *TeamsNameInfoSource) LookupID(ctx context.Context, name string, public 
 	if err != nil {
 		return res, err
 	}
-	id, err := teams.ResolveNameToIDForceRefresh(ctx, t.G().ExternalG(), teamName)
+	id, err := teams.ResolveNameToID(ctx, t.G().ExternalG(), teamName)
 	if err != nil {
 		return res, err
 	}

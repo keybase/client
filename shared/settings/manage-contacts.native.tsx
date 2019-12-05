@@ -30,8 +30,8 @@ const ManageContacts = () => {
     () =>
       dispatch(
         status !== 'granted'
-          ? SettingsGen.createRequestContactPermissions({thenToggleImportOn: true})
-          : SettingsGen.createEditContactImportEnabled({enable: !contactsImported})
+          ? SettingsGen.createRequestContactPermissions({fromSettings: true, thenToggleImportOn: true})
+          : SettingsGen.createEditContactImportEnabled({enable: !contactsImported, fromSettings: true})
       ),
     [dispatch, contactsImported, status]
   )
@@ -88,7 +88,7 @@ const ManageContactsBanner = () => {
 
   return (
     <>
-      {importedCount !== null && (
+      {!!importedCount && (
         <Kb.Banner color="green">
           <Kb.BannerParagraph bannerColor="green" content={[`You imported ${importedCount} contacts.`]} />
           <Kb.BannerParagraph bannerColor="green" content={[{onClick: onStartChat, text: 'Start a chat'}]} />

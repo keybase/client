@@ -79,17 +79,19 @@ const (
 )
 
 type RemoteConversationMetadata struct {
-	Name              string   `codec:"n"`
-	TopicName         string   `codec:"t"`
-	Snippet           string   `codec:"s"`
-	SnippetDecoration string   `codec:"d"`
-	Headline          string   `codec:"h"`
-	WriterNames       []string `codec:"w"`
-	ResetParticipants []string `codec:"r"`
+	Name               string                  `codec:"n"`
+	TopicName          string                  `codec:"t"`
+	Snippet            string                  `codec:"s"`
+	SnippetDecoration  chat1.SnippetDecoration `codec:"d"`
+	Headline           string                  `codec:"h"`
+	WriterNames        []string                `codec:"w"`
+	FullNamesForSearch []*string               `codec:"f"`
+	ResetParticipants  []string                `codec:"r"`
 }
 
 type RemoteConversation struct {
 	Conv           chat1.Conversation          `codec:"c"`
+	ConvIDStr      string                      `codec:"i"`
 	LocalMetadata  *RemoteConversationMetadata `codec:"l"`
 	LocalReadMsgID chat1.MessageID             `codec:"r"`
 	LocalDraft     *string                     `codec:"d"`
@@ -160,7 +162,6 @@ type Inbox struct {
 	Version         chat1.InboxVers
 	ConvsUnverified []RemoteConversation
 	Convs           []chat1.ConversationLocal
-	Pagination      *chat1.Pagination
 }
 
 type InboxSyncRes struct {
@@ -592,8 +593,8 @@ func (d DummyBotCommandManager) PublicCommandsConv(ctx context.Context, username
 	return nil, nil
 }
 
-func (d DummyBotCommandManager) ListCommands(ctx context.Context, convID chat1.ConversationID) ([]chat1.UserBotCommandOutput, error) {
-	return nil, nil
+func (d DummyBotCommandManager) ListCommands(ctx context.Context, convID chat1.ConversationID) ([]chat1.UserBotCommandOutput, map[string]string, error) {
+	return nil, make(map[string]string), nil
 }
 
 func (d DummyBotCommandManager) UpdateCommands(ctx context.Context, convID chat1.ConversationID,
@@ -620,7 +621,7 @@ func (d DummyUIInboxLoader) Stop(ctx context.Context) chan struct{} {
 }
 
 func (d DummyUIInboxLoader) LoadNonblock(ctx context.Context, query *chat1.GetInboxLocalQuery,
-	pagination *chat1.Pagination, maxUnbox *int, skipUnverified bool) error {
+	maxUnbox *int, skipUnverified bool) error {
 	return nil
 }
 

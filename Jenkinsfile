@@ -525,8 +525,10 @@ def testGo(prefix, packagesToTest) {
       }
     }
 
-    if (isUnix()) {
-      // Windows `gofmt` pukes on CRLF, so only run on *nix.
+    if (prefix == "test_linux_go_") {
+      // Windows `gofmt` pukes on CRLF.
+      // Macos pukes on mockgen because ¯\_(ツ)_/¯.
+      // So, only run on Linux.
       println "Running mockgen"
       retry(5) {
         sh 'go get -u github.com/golang/mock/mockgen'
@@ -668,6 +670,10 @@ def testGo(prefix, packagesToTest) {
           timeout: '30s',
         ],
         'github.com/keybase/client/go/kbfs/libpages/config': [
+          flags: '-race',
+          timeout: '30s',
+        ],
+        'github.com/keybase/client/go/kbfs/search': [
           flags: '-race',
           timeout: '30s',
         ],

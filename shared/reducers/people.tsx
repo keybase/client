@@ -5,7 +5,7 @@ import * as PeopleGen from '../actions/people-gen'
 import * as Container from '../util/container'
 import * as SettingsGen from '../actions/settings-gen'
 import {teamBuilderReducerCreator} from '../team-building/reducer-helper'
-import teamBuildingReducer from './team-building'
+import {editTeambuildingDraft} from './team-building'
 
 const initialState: Types.State = {
   followSuggestions: [],
@@ -35,13 +35,12 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [SettingsGen.emailVerified]: draftState => {
     draftState.resentEmail = ''
   },
-  ...teamBuilderReducerCreator<Actions, Types.State>(
+  ...teamBuilderReducerCreator<Types.State>(
     (draftState: Container.Draft<Types.State>, action: TeamBuildingGen.Actions) => {
-      draftState.teamBuilding = teamBuildingReducer(
-        'people',
-        draftState.teamBuilding as Types.State['teamBuilding'],
-        action
-      )
+      const val = editTeambuildingDraft('people', draftState.teamBuilding, action)
+      if (val !== undefined) {
+        draftState.teamBuilding = val
+      }
     }
   ),
 })
