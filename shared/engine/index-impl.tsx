@@ -94,7 +94,7 @@ class Engine {
     if (typeof window !== 'undefined') {
       logger.info('DEV MODE ENGINE AVAILABLE AS window.DEBUGengine')
       // @ts-ignore codemode issue
-      window.DEBUGengine = this
+      window.DEBUGEngine = this
     }
 
     // Print out any alive sessions periodically

@@ -27,7 +27,7 @@ window.console._info = window.console.info
 // require('InteractionStallDebugger').install({thresholdMS: 100})
 
 // Set this to true if you want to turn off most console logging so you can profile easier
-const PERF = false
+const PERF = true
 
 let config = {
   allowMultipleInstances: false,
@@ -79,6 +79,7 @@ if (__DEV__) {
 if (PERF) {
   console.warn('\n\n\nlocal debug PERF is ONNNNNn!!!!!1!!!11!!!!\nAll console.logs disabled!\n\n\n')
 
+  console.disableYellowBox = true
   window.console.log = noop
   window.console.warn = noop
   window.console.error = noop
