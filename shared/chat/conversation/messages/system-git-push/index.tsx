@@ -79,7 +79,7 @@ const GitPushDefault = (props: PushDefaultProps) => {
                   {commit.commitHash.substr(0, 8)}
                 </Kb.Text>
               </Kb.Box2>
-              <Kb.Box2 direction="vertical" style={styles.grow}>
+              <Kb.Box2 direction="vertical" style={{}}>
                 <Kb.Text type="BodySmall" selectable={true} style={styles.commitMessage} lineClamp={1}>
                   {commit.message}
                 </Kb.Text>
@@ -160,21 +160,14 @@ const styles = Styles.styleSheetCreate(
           lineHeight: 16,
         },
       }),
-      commitMessage: Styles.platformStyles({
-        common: {
-          textAlign: 'left',
-        },
-        isElectron: {
-          height: 17, // lineHeight for BodySmall on desktop
-        },
-        isMobile: {
-          height: 19, // lineHeight for BodySmall on mobile
-        },
-      }),
+      commitMessage: {
+        textAlign: 'left',
+        height: '100%',
+      },
       dot: {
         backgroundColor: Styles.globalColors.blueLighter_20,
         borderRadius: 3,
-        height: 18,
+        height: '100%',
         marginBottom: 1,
         marginRight: Styles.globalMargins.xtiny,
         padding: 2,
@@ -183,8 +176,9 @@ const styles = Styles.styleSheetCreate(
         flex: 1,
       },
       hashAndMessage: {
-        paddingBottom: Styles.globalMargins.xtiny,
-        paddingTop: Styles.globalMargins.xtiny,
+        marginBottom: Styles.globalMargins.xtiny,
+        marginTop: Styles.globalMargins.xtiny,
+        height: 18,
       },
       marker: {
         marginRight: Styles.globalMargins.xtiny,
