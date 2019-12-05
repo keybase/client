@@ -252,6 +252,8 @@ func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMe
 		return keybase1.TeamAddMemberResult{Invited: true, EmailSent: true}, nil
 	}
 	result, err := teams.AddMemberByID(ctx, h.G().ExternalG(), arg.TeamID, arg.Username, arg.Role, arg.BotSettings)
+	// if err != nil and is of type ERRORABOUTCONTACTSETTINGS, return
+	// keybase1.TeamAddMemberResult{Failed: true}
 	if err != nil {
 		return keybase1.TeamAddMemberResult{}, err
 	}
@@ -311,7 +313,7 @@ func (h *TeamsHandler) TeamAddMembersMultiRole(ctx context.Context, arg keybase1
 		return err
 	}
 
-	res, err := teams.AddMembers(ctx, h.G().ExternalG(), arg.TeamID, arg.Users)
+	succeeded, failed, err := teams.AddMembers(ctx, h.G().ExternalG(), arg.TeamID, arg.Users)
 	switch err := err.(type) {
 	case nil:
 	case teams.AddMembersError:
@@ -326,11 +328,12 @@ func (h *TeamsHandler) TeamAddMembersMultiRole(ctx context.Context, arg keybase1
 	default:
 		return err
 	}
+
 	if arg.SendChatNotification {
 		go func() {
 			h.G().Log.CDebugf(ctx, "sending team welcome messages")
 			ctx := libkb.WithLogTag(context.Background(), "BG")
-			for i, res := range res {
+			for i, res := range succeeded {
 				h.G().Log.CDebugf(ctx, "team welcome message for i:%v assertion:%v username:%v invite:%v, role: %v",
 					i, arg.Users[i].AssertionOrEmail, res.Username, res.Invite, arg.Users[i].Role)
 				if !res.Invite && !res.Username.IsNil() {
@@ -345,6 +348,7 @@ func (h *TeamsHandler) TeamAddMembersMultiRole(ctx context.Context, arg keybase1
 					h.G().Log.CDebugf(ctx, "send team welcome message [%v] skipped", i)
 				}
 			}
+			// TODO: need to tell person who tried to add ppl to team about `failed`?
 			h.G().Log.CDebugf(ctx, "done sending team welcome messages")
 		}()
 	}

@@ -436,8 +436,10 @@ type AddMembersRes struct {
 
 // AddMembers adds a bunch of people to a team. Assertions can contain usernames or social assertions.
 // Adds them all in a transaction so it's all or nothing.
-// On success, returns a list where len(res)=len(assertions) and in corresponding order.
-func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, users []keybase1.UserRolePair) (res []AddMembersRes, err error) {
+// failed contains list of users unable to be added due to their contact
+// settings
+// On success, returns a list where len(succeeded) + len(failed)=len(assertions) and in corresponding order.
+func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, users []keybase1.UserRolePair) (succeeded []AddMembersRes, failed []libkb.NormalizedUsername, err error) {
 	tracer := g.CTimeTracer(ctx, "team.AddMembers", true)
 	defer tracer.Finish()
 
@@ -456,16 +458,24 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Tea
 		var sweep []sweepEntry
 		for i, user := range users {
 			username, uv, invite, err := tx.AddMemberByAssertionOrEmail(ctx, user.AssertionOrEmail, user.Role, user.BotSettings)
-			if err != nil {
-				if _, ok := err.(AttemptedInviteSocialOwnerError); ok {
-					return err
-				}
-				return NewAddMembersError(user.AssertionOrEmail, err)
-			}
+
 			var normalizedUsername libkb.NormalizedUsername
 			if !username.IsNil() {
 				normalizedUsername = username
 			}
+
+			switch err := err.(type) {
+			case nil:
+			case ERRORABOUTCONTACTSETTINGS:
+				// what kind of error should this be? should
+				// AddMemberByAssertionOrEmail return a new special error in this case?
+				// ...
+				failed = append(failed, normalizedUsername)
+			case AttemptedInviteSocialOwnerError:
+					return err
+		  default:		
+					return NewAddMembersError(user.AssertionOrEmail, err)
+
 			res[i] = AddMembersRes{
 				Invite:   invite,
 				Username: normalizedUsername,

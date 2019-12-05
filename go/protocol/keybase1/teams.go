@@ -6,9 +6,10 @@ package keybase1
 import (
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
-	"time"
 )
 
 type TeamRole int
@@ -2785,6 +2786,7 @@ func (o AnnotatedTeamList) DeepCopy() AnnotatedTeamList {
 }
 
 type TeamAddMemberResult struct {
+	Failed      bool  `codec:"failed" json:"failed"`
 	Invited     bool  `codec:"invited" json:"invited"`
 	User        *User `codec:"user,omitempty" json:"user,omitempty"`
 	EmailSent   bool  `codec:"emailSent" json:"emailSent"`
