@@ -41,7 +41,7 @@ const MultiUserJoinedNotice = (props: Props) => (
     <Kb.Box2 direction="horizontal" alignSelf="flex-start" style={styles.avatarLine}>
       <Kb.AvatarLine
         usernames={props.joiners}
-        maxShown={4}
+        maxShown={3}
         size={32}
         layout="horizontal"
         alignSelf="flex-start"
