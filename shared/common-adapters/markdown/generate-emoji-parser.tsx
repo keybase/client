@@ -6,7 +6,7 @@ import emojiData from 'emoji-datasource'
 // MUST be lodash for node to work simply
 // eslint-disable-next-line
 import {escapeRegExp} from 'lodash'
-import tlds from 'tlds'
+import prettier from 'prettier'
 
 const commonTlds = [
   'com',
@@ -102,16 +102,22 @@ function genEmojiData() {
 function buildEmojiFile() {
   const p = path.join(__dirname, 'emoji-gen.tsx')
   const {emojiLiterals, emojiIndexByName, emojiIndexByChar} = genEmojiData()
+  const regLiterals = emojiLiterals.map((s: string) => escapeRegExp(s).replace(/\\/g, '\\')).join('|')
+  const regIndex = Object.keys(emojiIndexByName)
+    .map((s: string) => escapeRegExp(s).replace(/\\/g, '\\\\'))
+    .join('|')
   const data = `/* eslint-disable */
-export const emojiRegex = /^(${emojiLiterals.join('|')}|${Object.keys(emojiIndexByName)
-    .map(escapeRegExp)
-    .join('|')})/
-export const emojiIndexByName = ${JSON.stringify(emojiIndexByName)}
-export const emojiIndexByChar = ${JSON.stringify(emojiIndexByChar)}
-export const tldExp = new RegExp(/.(${tlds.join('|')})\\b/)
+export const emojiRegex = new RegExp(\`^(${regLiterals}|${regIndex})\`)
+export const emojiIndexByName = JSON.parse(\`${JSON.stringify(emojiIndexByName, null, 2)}\`)
+export const emojiIndexByChar = JSON.parse(\`${JSON.stringify(emojiIndexByChar, null, 2)}\`)
 export const commonTlds = ${JSON.stringify(commonTlds)}
 `
-  fs.writeFileSync(p, data, {encoding: 'utf8'})
+
+  const formatted = prettier.format(data, {
+    ...prettier.resolveConfig.sync(p),
+    parser: 'typescript',
+  })
+  fs.writeFileSync(p, formatted, {encoding: 'utf8'})
 }
 
 buildEmojiFile()

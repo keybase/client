@@ -47,6 +47,7 @@ import io.keybase.ossifrage.modules.AppearanceModule;
 import io.keybase.ossifrage.modules.KeybaseEngine;
 import io.keybase.ossifrage.modules.NativeLogger;
 import io.keybase.ossifrage.util.DNSNSFetcher;
+import io.keybase.ossifrage.util.GuiConfig;
 import io.keybase.ossifrage.util.VideoHelper;
 import keybase.Keybase;
 
@@ -55,6 +56,12 @@ import static keybase.Keybase.initOnce;
 public class MainActivity extends ReactFragmentActivity {
   private static final String TAG = MainActivity.class.getName();
   private PermissionListener listener;
+  static boolean createdReact = false;
+
+  @Override
+  public void invokeDefaultOnBackPressed() {
+    moveTaskToBack(true);
+  }
 
   private static void createDummyFile(Context context) {
     final File dummyFile = new File(context.getFilesDir(), "dummy.txt");
@@ -108,11 +115,8 @@ public class MainActivity extends ReactFragmentActivity {
 
   }
 
-  private static final int ANDROID_TEN = 29;
-
   private String colorSchemeForCurrentConfiguration() {
-    // TODO: (hramos) T52929922: Switch to Build.VERSION_CODES.ANDROID_TEN or equivalent
-    if (Build.VERSION.SDK_INT >= ANDROID_TEN) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
       int currentNightMode =
         this.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
       switch (currentNightMode) {
@@ -131,18 +135,18 @@ public class MainActivity extends ReactFragmentActivity {
   @TargetApi(Build.VERSION_CODES.KITKAT)
   protected void onCreate(Bundle savedInstanceState) {
     ReactInstanceManager instanceManager = this.getReactInstanceManager();
-    if (!instanceManager.hasStartedCreatingInitialContext()) {
-      // Construct it in the background
+    if (!this.createdReact) {
+      this.createdReact = true;
       instanceManager.createReactContextInBackground();
     }
+
     setupKBRuntime(this, true);
     super.onCreate(null);
 
 
     new android.os.Handler().postDelayed(new Runnable() {
       public void run() {
-        // TODO, read this pref from go
-        setBackgroundColor(DarkModePreference.System);
+        setBackgroundColor(GuiConfig.getInstance(getFilesDir()).getDarkMode());
       }
     }, 300);
 
@@ -391,7 +395,7 @@ public class MainActivity extends ReactFragmentActivity {
       }
     }
 
-    setBackgroundColor(DarkModePreference.System);
+    setBackgroundColor(GuiConfig.getInstance(getFilesDir()).getDarkMode());
   }
 
   public void setBackgroundColor(DarkModePreference pref) {

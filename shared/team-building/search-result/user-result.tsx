@@ -2,8 +2,13 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import CommonResult, {ResultProps} from './common-result'
+import YouResult from './you-result'
 
 const UserResult = React.memo((props: ResultProps) => {
+  if (props.isYou) {
+    return <YouResult {...props} />
+  }
+
   return (
     <CommonResult
       {...props}

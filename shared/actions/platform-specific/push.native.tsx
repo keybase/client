@@ -1,10 +1,8 @@
 import * as Chat2Gen from '../chat2-gen'
 import * as ConfigGen from '../config-gen'
 import * as Constants from '../../constants/push'
-import * as FsGen from '../fs-gen'
 import * as ShareGen from '../share-gen'
 import * as Types from '../../constants/types/push'
-import * as FsTypes from '../../constants/types/fs'
 import * as NotificationsGen from '../notifications-gen'
 import * as ProfileGen from '../profile-gen'
 import * as PushGen from '../push-gen'
@@ -320,10 +318,10 @@ function* initialPermissionsCheck() {
         return false
       }
     })
-    const [shownNativePushPrompt, shownMonsterPushPrompt] = yield Saga.join(
+    const [shownNativePushPrompt, shownMonsterPushPrompt] = yield Saga.join([
       shownNativePushPromptTask,
-      shownMonsterPushPromptTask
-    )
+      shownMonsterPushPromptTask,
+    ])
     logger.info(
       '[PushInitialCheck] shownNativePushPrompt:',
       shownNativePushPrompt,

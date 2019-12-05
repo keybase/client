@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import UserNotice from '../user-notice'
-import SystemMessageTimestamp from '../system-message-timestamp'
 
 type YouAddedProps = {
   author: string
@@ -12,9 +11,8 @@ type YouAddedProps = {
 }
 
 const YouAdded = (props: YouAddedProps) => (
-  <UserNotice username={props.author} bgColor={Styles.globalColors.blueLighter2}>
-    <SystemMessageTimestamp timestamp={props.timestamp} />
-    <Kb.Text center={true} type="BodySmallSemibold">
+  <UserNotice>
+    <Kb.Text type="BodySmall">
       <Kb.ConnectedUsernames
         inline={true}
         type="BodySmallSemibold"
@@ -71,9 +69,11 @@ type OthersAddedProps = {
 }
 
 const OthersAdded = (props: OthersAddedProps) => (
-  <Kb.Text type="BodySmall" style={styles.text}>
-    added {getAddedUsernames(props.added)} to #{props.channelname}.
-  </Kb.Text>
+  <UserNotice>
+    <Kb.Text type="BodySmall" style={styles.text}>
+      added {getAddedUsernames(props.added)} to #{props.channelname}.
+    </Kb.Text>
+  </UserNotice>
 )
 
 const styles = Styles.styleSheetCreate(

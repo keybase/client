@@ -5,7 +5,7 @@ import * as React from 'react'
 
 export type Props = {
   backgroundImageFn: (set: string, sheetSize: number) => string
-  onClick: ({colons: string}) => void
+  onClick: (c: {colons: string}) => void
 }
 
 export declare class Picker extends React.Component<Props> {}

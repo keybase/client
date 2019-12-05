@@ -26,9 +26,13 @@ export const serialize: any = {
       return map
     }, {}),
   clearCacheTrigger: () => undefined,
-  conversationIDs: (v: ConvMap) => v.map(v => v.conversation.conversationIDKey),
-  conversationMap: (v: ConvMap, o: ConvMap) =>
-    v.reduce((map, toSend) => {
+  conversationIDs: (v: ConvMap, o?: ConvMap) => {
+    const newKeys = v.map(v => v.conversation.conversationIDKey)
+    const oldKeys = (o ?? []).map(v => v.conversation.conversationIDKey)
+    return shallowEqual(newKeys, oldKeys) ? undefined : newKeys
+  },
+  conversationMap: (v: ConvMap, o: ConvMap) => {
+    const obj = v.reduce((map, toSend) => {
       const oldConv =
         o &&
         o.find(oldElem => oldElem.conversation.conversationIDKey === toSend.conversation.conversationIDKey)
@@ -41,7 +45,12 @@ export const serialize: any = {
             ...map,
             [toSend.conversation.conversationIDKey]: conversationSerialize(toSend),
           }
-    }, {}),
+    }, {})
+    if (Object.keys(obj).length) {
+      return obj
+    }
+    return undefined
+  },
   daemonHandshakeState: (v: ConfigTypes.DaemonHandshakeState) => v,
   darkMode: (v: boolean) => v,
   diskSpaceStatus: (v: FSTypes.DiskSpaceStatus) => v,
@@ -50,7 +59,7 @@ export const serialize: any = {
   fileName: (v: FSTypes.Path) => v,
   fileRows: (v: FileRows, o: FileRows) =>
     o && v._tlfUpdates === o._tlfUpdates && v._uploads === o._uploads
-      ? null
+      ? undefined
       : v._tlfUpdates.map(t => GetRowsFromTlfUpdate(t, v._uploads)),
   files: (v: number) => v,
   kbfsDaemonStatus: (v: FSTypes.KbfsDaemonStatus) => v,

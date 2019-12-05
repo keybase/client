@@ -95,7 +95,9 @@ export const unverifiedInboxUIItemToConversationMeta = (
     resetParticipants,
     retentionPolicy,
     snippet: i.localMetadata ? i.localMetadata.snippet : '',
-    snippetDecoration: i.localMetadata ? i.localMetadata.snippetDecoration : '',
+    snippetDecoration: i.localMetadata
+      ? i.localMetadata.snippetDecoration
+      : RPCChatTypes.SnippetDecoration.none,
     status: i.status,
     supersededBy: supersededBy ? Types.stringToConversationIDKey(supersededBy) : noConversationIDKey,
     supersedes: supersedes ? Types.stringToConversationIDKey(supersedes) : noConversationIDKey,
@@ -407,7 +409,7 @@ export const makeConversationMeta = (): Types.ConversationMeta => ({
   resetParticipants: new Set(),
   retentionPolicy: TeamConstants.makeRetentionPolicy(),
   snippet: '',
-  snippetDecoration: '',
+  snippetDecoration: RPCChatTypes.SnippetDecoration.none as RPCChatTypes.SnippetDecoration,
   status: RPCChatTypes.ConversationStatus.unfiled as RPCChatTypes.ConversationStatus,
   supersededBy: noConversationIDKey,
   supersedes: noConversationIDKey,
@@ -447,40 +449,6 @@ export const getParticipantSuggestions = (state: TypedState, id: Types.Conversat
   return _getParticipantSuggestionsMemoized(participants, teamType)
 }
 
-export const getChannelSuggestions = (state: TypedState, teamname: string) => {
-  if (!teamname) {
-    return []
-  }
-  // First try channelinfos (all channels in a team), then try inbox (the
-  // partial list of channels that you have joined).
-  const convs = state.teams.teamNameToChannelInfos.get(teamname)
-  if (convs) {
-    return convs
-      .toIndexedSeq()
-      .toList()
-      .map(conv => conv.channelname)
-      .toArray()
-  }
-  return [...state.chat2.metaMap.values()].filter(v => v.teamname === teamname).map(v => v.channelname)
-}
-
-let _getAllChannelsRet: Array<{channelname: string; teamname: string}> = []
-// TODO why do this for all teams?
-const _getAllChannelsMemo = memoize((mm: TypedState['chat2']['metaMap']) =>
-  [...mm.values()]
-    .filter(v => v.teamname && v.channelname && v.teamType === 'big')
-    .map(({channelname, teamname}) => ({channelname, teamname}))
-)
-export const getAllChannels = (state: TypedState) => {
-  const ret = _getAllChannelsMemo(state.chat2.metaMap)
-
-  if (shallowEqual(ret, _getAllChannelsRet)) {
-    return _getAllChannelsRet
-  }
-  _getAllChannelsRet = ret
-  return _getAllChannelsRet
-}
-
 export const getChannelForTeam = (state: TypedState, teamname: string, channelname: string) =>
   [...state.chat2.metaMap.values()].find(m => m.teamname === teamname && m.channelname === channelname) ||
   emptyMeta
@@ -513,7 +481,7 @@ export const getBotCommands = (state: TypedState, id: Types.ConversationIDKey) =
 // show wallets icon for one-on-one conversations
 export const shouldShowWalletsIcon = (state: TypedState, id: Types.ConversationIDKey) => {
   const meta = getMeta(state, id)
-  const accountID = WalletConstants.getDefaultAccountID(state)
+  const accountID = WalletConstants.getDefaultAccountID(state.wallets)
   const sendDisabled = !isMobile && accountID && !!state.wallets.mobileOnlyMap.get(accountID)
 
   return (

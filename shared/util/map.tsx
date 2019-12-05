@@ -16,3 +16,16 @@ export function mapGetEnsureValue<M extends Map<any, any>>(
     return existing
   }
 }
+
+export function mapEqual<M extends Map<any, any>>(map1: M, map2: M): boolean {
+  if (map1 === map2) {
+    return true
+  }
+  const k1 = [...map1.keys()]
+  const k2 = [...map2.keys()]
+  if (k1.length !== k2.length) {
+    return false
+  }
+
+  return !k1.some(key => map1.get(key) !== map2.get(key))
+}

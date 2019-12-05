@@ -60,6 +60,7 @@ protocol NotifyChat {
   record FailedMessageInfo {
     array<OutboxRecord> outboxRecords;
     boolean isEphemeralPurge;
+    union { null, InboxUIItem } conv;
   }
 
   record MemberInfo {

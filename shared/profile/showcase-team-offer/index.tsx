@@ -22,12 +22,7 @@ export type Props = {
   headerStyle?: Object | null
   onCancel: () => void
   onPromote: (name: Types.Teamname, promote: boolean) => void
-  teammembercounts: {[K in string]: number}
-  teamnames: Array<Types.Teamname>
-  teamNameToIsOpen: {[K in string]: boolean}
-  teamNameToAllowPromote: {[K in string]: boolean}
-  teamNameToIsShowcasing: {[K in string]: boolean}
-  teamNameToRole: {[K in string]: 'reader' | 'writer' | 'admin' | 'owner' | 'none'}
+  teams: ReadonlyArray<Types.TeamDetails>
   waiting: {[K in string]: number}
 }
 
@@ -103,23 +98,19 @@ const ShowcaseTeamOffer = (props: Props) => {
       {!Styles.isMobile && <ShowcaseTeamOfferHeader />}
       <Kb.ScrollView>
         {Styles.isMobile && <ShowcaseTeamOfferHeader />}
-        {props.teamnames &&
-          props.teamnames.map(name => (
-            <TeamRow
-              canShowcase={
-                (props.teamNameToRole[name] !== 'none' && props.teamNameToAllowPromote[name]) ||
-                ['admin', 'owner'].indexOf(props.teamNameToRole[name]) !== -1
-              }
-              isExplicitMember={props.teamNameToRole[name] !== 'none'}
-              key={name}
-              name={name}
-              isOpen={props.teamNameToIsOpen[name]}
-              membercount={props.teammembercounts[name]}
-              onPromote={promoted => props.onPromote(name, promoted)}
-              showcased={props.teamNameToIsShowcasing[name]}
-              waiting={!!props.waiting[teamWaitingKey(name)]}
-            />
-          ))}
+        {props.teams.map(teamDetails => (
+          <TeamRow
+            key={teamDetails.id}
+            canShowcase={teamDetails.allowPromote}
+            isExplicitMember={teamDetails.isMember}
+            name={teamDetails.teamname}
+            isOpen={teamDetails.isOpen}
+            membercount={teamDetails.memberCount}
+            onPromote={promoted => props.onPromote(teamDetails.teamname, promoted)}
+            showcased={teamDetails.showcasing}
+            waiting={!!props.waiting[teamWaitingKey(teamDetails.teamname)]}
+          />
+        ))}
       </Kb.ScrollView>
     </Kb.Box2>
   )

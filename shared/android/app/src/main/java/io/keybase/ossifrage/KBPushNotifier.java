@@ -199,7 +199,7 @@ public class KBPushNotifier implements PushNotifier {
     bundle.putString("type", "follow");
     bundle.putString("username", username);
 
-    NotificationCompat.Builder builder = new NotificationCompat.Builder(this.context, KeybasePushNotificationListenerService.DEVICE_CHANNEL_ID)
+    NotificationCompat.Builder builder = new NotificationCompat.Builder(this.context, KeybasePushNotificationListenerService.FOLLOW_CHANNEL_ID)
       .setSmallIcon(R.drawable.ic_notif)
       .setContentTitle("Keybase - New Follower")
       .setContentText(notificationMsg)

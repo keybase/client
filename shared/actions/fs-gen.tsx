@@ -1,5 +1,4 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/fs'
 import * as ChatTypes from '../constants/types/chat2'
@@ -151,7 +150,7 @@ type _JournalUpdatePayload = {
   readonly totalSyncingBytes: number
   readonly endEstimate?: number | null
 }
-type _KbfsDaemonOnlineStatusChangedPayload = {readonly online: boolean}
+type _KbfsDaemonOnlineStatusChangedPayload = {readonly onlineStatus: RPCTypes.KbfsOnlineStatus}
 type _KbfsDaemonRpcStatusChangedPayload = {readonly rpcStatus: Types.KbfsDaemonRpcStatus}
 type _LetResetUserBackInPayload = {readonly id: RPCTypes.TeamID; readonly username: string}
 type _LoadAdditionalTlfPayload = {readonly tlfPath: Types.Path}

@@ -766,6 +766,20 @@ func (u *userPlusDevice) track(username string) {
 	require.NoError(u.tc.T, err)
 }
 
+func (u *userPlusDevice) block(username string, chat bool, follow bool) {
+	arg := keybase1.SetUserBlocksArg{
+		Blocks: []keybase1.UserBlockArg{
+			{
+				Username:       username,
+				SetChatBlock:   &chat,
+				SetFollowBlock: &follow,
+			},
+		},
+	}
+	err := u.device.userClient.SetUserBlocks(context.TODO(), arg)
+	require.NoError(u.tc.T, err)
+}
+
 func (u *userPlusDevice) untrack(username string) {
 	untrackCmd := client.NewCmdUntrackRunner(u.tc.G)
 	untrackCmd.SetUser(username)
@@ -1624,7 +1638,7 @@ func TestBatchAddMembersCLI(t *testing.T) {
 	restrictedBotua := tt.addUser("rbot")
 	john := tt.addPuklessUser("john")
 	tt.logUserNames()
-	teamID, teamName := alice.createTeam2()
+	teamID, _ := alice.createTeam2()
 
 	dodo.proveRooter()
 	users := []keybase1.UserRolePair{
@@ -1635,7 +1649,7 @@ func TestBatchAddMembersCLI(t *testing.T) {
 		{AssertionOrEmail: botua.username, Role: keybase1.TeamRole_BOT},
 		{AssertionOrEmail: restrictedBotua.username, Role: keybase1.TeamRole_RESTRICTEDBOT, BotSettings: &keybase1.TeamBotSettings{}},
 	}
-	_, err := teams.AddMembers(context.Background(), alice.tc.G, teamName.String(), users)
+	_, err := teams.AddMembers(context.Background(), alice.tc.G, teamID, users)
 	require.NoError(t, err)
 
 	team := alice.loadTeamByID(teamID, true /* admin */)
@@ -1668,7 +1682,7 @@ func TestBatchAddMembersCLI(t *testing.T) {
 	users = []keybase1.UserRolePair{
 		{AssertionOrEmail: "[job@gmail.com]@email+job33", Role: keybase1.TeamRole_READER},
 	}
-	_, err = teams.AddMembers(context.Background(), alice.tc.G, teamName.String(), users)
+	_, err = teams.AddMembers(context.Background(), alice.tc.G, teamID, users)
 	require.Error(t, err)
 	require.IsType(t, err, teams.AddMembersError{})
 	require.IsType(t, err.(teams.AddMembersError).Err, teams.MixedServerTrustAssertionError{})
@@ -1677,7 +1691,7 @@ func TestBatchAddMembersCLI(t *testing.T) {
 	users = []keybase1.UserRolePair{
 		{AssertionOrEmail: "xxffee22ee@twitter+jjjejiei3i@rooter", Role: keybase1.TeamRole_READER},
 	}
-	_, err = teams.AddMembers(context.Background(), alice.tc.G, teamName.String(), users)
+	_, err = teams.AddMembers(context.Background(), alice.tc.G, teamID, users)
 	require.Error(t, err)
 	require.IsType(t, err, teams.AddMembersError{})
 	require.IsType(t, err.(teams.AddMembersError).Err, teams.CompoundInviteError{})
@@ -1693,7 +1707,7 @@ func TestBatchAddMembers(t *testing.T) {
 	rob := tt.addPuklessUser("rob")
 	tt.logUserNames()
 
-	teamID, teamName := alice.createTeam2()
+	teamID, _ := alice.createTeam2()
 
 	assertions := []string{
 		bob.username,
@@ -1714,7 +1728,7 @@ func TestBatchAddMembers(t *testing.T) {
 		return ret
 	}
 
-	res, err := teams.AddMembers(context.Background(), alice.tc.G, teamName.String(), makeUserRolePairs(assertions, role))
+	res, err := teams.AddMembers(context.Background(), alice.tc.G, teamID, makeUserRolePairs(assertions, role))
 	require.Error(t, err, "can't invite assertions as owners")
 	require.IsType(t, teams.AttemptedInviteSocialOwnerError{}, err)
 	require.Nil(t, res)
@@ -1729,7 +1743,7 @@ func TestBatchAddMembers(t *testing.T) {
 	require.Len(t, members.RestrictedBots, 0)
 
 	role = keybase1.TeamRole_ADMIN
-	res, err = teams.AddMembers(context.Background(), alice.tc.G, teamName.String(), makeUserRolePairs(assertions, role))
+	res, err = teams.AddMembers(context.Background(), alice.tc.G, teamID, makeUserRolePairs(assertions, role))
 	require.NoError(t, err)
 	require.Len(t, res, len(assertions))
 	for i, r := range res {
@@ -1967,6 +1981,13 @@ func TestTeamMetadataUpdateNotifications(t *testing.T) {
 	err = teams.Delete(context.Background(), tt.users[0].tc.G, tui, newTeamID)
 	require.NoError(tt.users[0].tc.T, err)
 	tt.users[1].waitForMetadataUpdateGregor("team deleted")
+
+	err = tt.users[1].teamsClient.SetTeamMemberShowcase(context.Background(), keybase1.SetTeamMemberShowcaseArg{
+		Name:        parentName.String(),
+		IsShowcased: true,
+	})
+	require.NoError(tt.users[1].tc.T, err)
+	tt.users[1].waitForMetadataUpdateGregor("change member showcase")
 
 	tt.users[1].waitForNoMetadataUpdatesGregor()
 }

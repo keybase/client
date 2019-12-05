@@ -177,12 +177,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
           <Kb.PlainInput
             autoCorrect={true}
             autoCapitalize="sentences"
-            disabled={
-              // Auto generated from flowToTs. Please clean me!
-              this.props.cannotWrite !== null && this.props.cannotWrite !== undefined
-                ? this.props.cannotWrite
-                : false
-            }
+            disabled={this.props.cannotWrite ?? false}
             placeholder={hintText}
             multiline={true}
             onBlur={this.props.onBlur}
@@ -346,7 +341,7 @@ const styles = Styles.styleSheetCreate(
         alignSelf: 'flex-end',
         height: 50,
         position: 'relative',
-        width: 106,
+        width: 70,
       },
       actionIconsContainer: {
         marginBottom: Styles.globalMargins.xsmall,

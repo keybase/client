@@ -336,7 +336,7 @@ func TestLoginWithPassphraseNoStore(t *testing.T) {
 
 // Signup followed by logout clears the stored secret
 func TestSignupWithStoreThenLogout(t *testing.T) {
-	tc := SetupEngineTest(t, "signup with store then login")
+	tc := SetupEngineTest(t, "signup with store then logout")
 	defer tc.Cleanup()
 
 	fu := NewFakeUserOrBust(tc.T, "lssl")
@@ -348,6 +348,52 @@ func TestSignupWithStoreThenLogout(t *testing.T) {
 	arg := MakeTestSignupEngineRunArg(fu)
 	arg.StoreSecret = true
 	_ = SignupFakeUserWithArg(tc, fu, arg)
+
+	Logout(tc)
+
+	if userHasStoredSecret(&tc, fu.Username) {
+		t.Errorf("User %s unexpectedly has a stored secret", fu.Username)
+	}
+}
+
+type timeoutAPI struct {
+	*libkb.APIArgRecorder
+}
+
+func (r *timeoutAPI) GetDecode(mctx libkb.MetaContext, arg libkb.APIArg, w libkb.APIResponseWrapper) error {
+	return libkb.APINetError{}
+}
+func (r *timeoutAPI) PostDecode(mctx libkb.MetaContext, arg libkb.APIArg, w libkb.APIResponseWrapper) error {
+	return libkb.APINetError{}
+}
+
+func (r *timeoutAPI) Get(mctx libkb.MetaContext, arg libkb.APIArg) (*libkb.APIRes, error) {
+	return nil, libkb.APINetError{}
+}
+
+// Signup followed by logout clears the stored secret
+func TestSignupWithStoreThenOfflineLogout(t *testing.T) {
+	tc := SetupEngineTest(t, "signup with store then offline logout")
+	defer tc.Cleanup()
+
+	fu := NewFakeUserOrBust(tc.T, "lssol")
+
+	if userHasStoredSecret(&tc, fu.Username) {
+		t.Errorf("User %s unexpectedly has a stored secret", fu.Username)
+	}
+
+	arg := MakeTestSignupEngineRunArg(fu)
+	arg.StoreSecret = true
+	_ = SignupFakeUserWithArg(tc, fu, arg)
+
+	// Hack: log out and back in so passphrase state is stored. With a real user, this would happen
+	// when the passphrase is set, but the passphrase is set by signup instead of manually in test.
+	Logout(tc)
+	err := fu.Login(tc.G)
+	require.NoError(t, err)
+
+	// Go offline
+	tc.G.API = &timeoutAPI{}
 
 	Logout(tc)
 

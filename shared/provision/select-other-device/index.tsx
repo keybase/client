@@ -7,7 +7,7 @@ import DeviceIcon from '../../devices/device-icon'
 
 type Props = {
   passwordRecovery?: boolean
-  devices: Array<Types.Device>
+  devices: ReadonlyArray<Types.Device>
   onBack: () => void
   onSelect: (name: string) => void
   onResetAccount: () => void

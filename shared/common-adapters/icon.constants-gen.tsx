@@ -1807,6 +1807,14 @@ const iconMeta_ = {
       return require('../images/icons/icon-dark-fancy-revoked-computer-mobile-226-96.png')
     },
   },
+  'icon-dark-fancy-revoked-phone-desktop-150-72': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-fancy-revoked-phone-desktop-150-72.png')
+    },
+  },
   'icon-dark-fancy-revoked-phone-mobile-226-96': {
     extension: 'png',
     imagesDir: 'icons',
@@ -3787,8 +3795,12 @@ const iconMeta_ = {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
+    nameDark: 'icon-dark-fancy-revoked-phone-desktop-150-72',
     get require() {
       return require('../images/icons/icon-fancy-revoked-phone-desktop-150-72.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-fancy-revoked-phone-desktop-150-72.png')
     },
   },
   'icon-fancy-revoked-phone-mobile-226-96': {
@@ -4625,6 +4637,14 @@ const iconMeta_ = {
     isFont: false,
     get require() {
       return require('../images/icons/icon-illustration-teams-216.png')
+    },
+  },
+  'icon-illustration-teams-80': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-illustration-teams-80.png')
     },
   },
   'icon-illustration-welcome-96': {
@@ -8016,6 +8036,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-film': {
+    charCode: 0xe9a9,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-filter': {
     charCode: 0xe986,
     gridSize: 16,
@@ -8098,6 +8123,11 @@ const iconMeta_ = {
   },
   'iconfont-hide': {
     charCode: 0xe98a,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-hourglass': {
+    charCode: 0xe9a6,
     gridSize: 16,
     isFont: true,
   },
@@ -8348,6 +8378,11 @@ const iconMeta_ = {
   },
   'iconfont-phone-contact': {
     charCode: 0xe97b,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-pin': {
+    charCode: 0xe9a8,
     gridSize: 16,
     isFont: true,
   },

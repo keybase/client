@@ -1,9 +1,11 @@
 import * as ConfigGen from './config-gen'
 import * as Constants from '../constants/git'
+import * as RouteTreeGen from './route-tree-gen'
 import * as GitGen from './git-gen'
 import * as NotificationsGen from './notifications-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
+import * as Tabs from '../constants/tabs'
 import {TypedState} from '../util/container'
 import {logError} from '../util/errors'
 
@@ -111,7 +113,11 @@ function* navigateToTeamRepo(state: TypedState, action: GitGen.NavigateToTeamRep
   }
 
   if (id) {
-    yield Saga.put(GitGen.createNavToGit({routeState: {expandedSet: new Set([id])}, switchTab: true}))
+    yield Saga.put(
+      RouteTreeGen.createNavigateAppend({
+        path: [Tabs.gitTab, {props: {expandedSet: new Set([id])}, selected: 'gitRoot'}],
+      })
+    )
   }
 }
 

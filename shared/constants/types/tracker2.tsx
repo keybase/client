@@ -18,7 +18,7 @@ export type SiteIcon = {
   readonly path: string // https://keybase.io/_/icons/twitter.png,
   readonly width: number
 }
-export type SiteIconSet = ReadonlyArray<SiteIcon>
+export type SiteIconSet = Array<SiteIcon>
 export type Assertion = {
   assertionKey: string // twitter:bob,
   belowFold: boolean // suggestion in 'Other identities' dialog,
@@ -60,6 +60,7 @@ export type Details = {
   teamShowcase?: Array<TeamShowcase>
   username: string
   blocked: boolean
+  hidFromFollowers: boolean
 }
 
 // Details for SBS profiles

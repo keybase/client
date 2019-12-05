@@ -5,6 +5,7 @@ import * as Constants from '../constants/chat2'
 import {FilteredTopLine} from './top-line'
 import {BottomLine} from './inbox/row/small-team/bottom-line'
 import {Avatars, TeamAvatar} from './avatars'
+import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 
 type Props = {
   backgroundColor?: string
@@ -18,7 +19,7 @@ type Props = {
   showBadge: boolean
   showBold: boolean
   snippet: string | null
-  snippetDecoration: string | null
+  snippetDecoration: RPCChatTypes.SnippetDecoration
   teamname: string
   usernameColor: string
 }

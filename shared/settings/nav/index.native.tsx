@@ -6,7 +6,6 @@ import {globalStyles, globalColors, globalMargins, styleSheetCreate} from '../..
 import {NativeSectionList, Text} from '../../common-adapters/mobile.native'
 import {isAndroid} from '../../constants/platform'
 import SettingsItem from './settings-item'
-import flags from '../../util/feature-flags'
 import WhatsNewIcon from '../../whats-new/icon/container'
 import {Props} from './index'
 
@@ -73,14 +72,10 @@ function SettingsNav(props: Props) {
               onClick: () => props.onTabChange(Constants.contactsTab),
               text: props.contactsLabel,
             },
-            ...(flags.kbfsOfflineMode
-              ? [
-                  {
-                    onClick: () => props.onTabChange(Constants.fsTab),
-                    text: 'Files',
-                  },
-                ]
-              : []),
+            {
+              onClick: () => props.onTabChange(Constants.fsTab),
+              text: 'Files',
+            },
             {
               badgeNumber: props.badgeNotifications ? 1 : 0,
               onClick: () => props.onTabChange(Constants.notificationsTab),

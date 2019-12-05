@@ -15,15 +15,12 @@ import pinentrySaga from '../actions/pinentry'
 import profileSaga from '../actions/profile'
 import recoverPasswordSaga from '../actions/recover-password'
 import tracker2Saga from '../actions/tracker2'
-import sagaMonitor from './saga-monitor'
 import settingsSaga from '../actions/settings'
 import signupSaga from '../actions/signup'
 import teamsSaga from '../actions/teams'
 import unlockFoldersSaga from '../actions/unlock-folders'
 import usersSaga from '../actions/users'
 import walletsSaga from '../actions/wallets'
-import {reduxSagaLogger} from '../local-debug'
-import {sagaTimer} from '../util/user-timings'
 import * as Saga from '../util/saga'
 
 function* mainSaga() {
@@ -58,7 +55,6 @@ function create(crashHandler: (err: any) => void) {
   }
   middleWare = createSagaMiddleware({
     onError: crashHandler,
-    sagaMonitor: sagaTimer || (reduxSagaLogger ? sagaMonitor : undefined),
   })
   return middleWare
 }

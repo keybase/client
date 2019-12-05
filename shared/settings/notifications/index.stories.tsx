@@ -4,43 +4,49 @@ import Notifications from '.'
 
 const props = {
   allowEdit: true,
-  groups: {
-    app_push: {
-      settings: [
-        {
-          description: 'when someone follows me',
-          name: 'follow',
-          subscribed: true,
-        },
-      ],
-      unsubscribedFromAll: false,
-    },
-    email: {
-      settings: [
-        {
-          description: 'when someone follows me',
-          name: 'follow',
-          subscribed: true,
-        },
-        {
-          description: 'when someone I follow on Twitter joins',
-          name: 'twitter_friend_joined',
-          subscribed: true,
-        },
-        {
-          description: 'when the Keybase filesystem needs my attention',
-          name: 'filesystem_attention',
-          subscribed: true,
-        },
-        {
-          description: 'Keybase news, once in a great while',
-          name: 'newsletter',
-          subscribed: true,
-        },
-      ],
-      unsubscribedFromAll: false,
-    },
-  },
+  groups: new Map([
+    [
+      'app_push',
+      {
+        settings: [
+          {
+            description: 'when someone follows me',
+            name: 'follow',
+            subscribed: true,
+          },
+        ],
+        unsubscribedFromAll: false,
+      },
+    ],
+    [
+      'email',
+      {
+        settings: [
+          {
+            description: 'when someone follows me',
+            name: 'follow',
+            subscribed: true,
+          },
+          {
+            description: 'when someone I follow on Twitter joins',
+            name: 'twitter_friend_joined',
+            subscribed: true,
+          },
+          {
+            description: 'when the Keybase filesystem needs my attention',
+            name: 'filesystem_attention',
+            subscribed: true,
+          },
+          {
+            description: 'Keybase news, once in a great while',
+            name: 'newsletter',
+            subscribed: true,
+          },
+        ],
+        unsubscribedFromAll: false,
+      },
+    ],
+  ]),
   mobileHasPermissions: true,
   onClickYourAccount: Sb.action('yourAccount'),
   onRefresh: Sb.action('onRefresh'),
@@ -52,7 +58,7 @@ const props = {
 }
 
 const unsubProps = {...props}
-unsubProps.groups.email.unsubscribedFromAll = true
+unsubProps.groups.get('email')!.unsubscribedFromAll = true
 
 const load = () => {
   Sb.storiesOf('Settings/Notifications', module)

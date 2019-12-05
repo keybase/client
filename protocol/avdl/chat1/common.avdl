@@ -155,7 +155,7 @@
 
   enum ConversationMemberStatus {
     ACTIVE_0,      // in the channel
-    REMOVED_1,     // removed from channel forcibly
+    REMOVED_1,     // user was in the channel when they left the team
     LEFT_2,        // voluntarily left conversation
     PREVIEW_3,     // use is previewing the channel from an @mention
     RESET_4,       // status of having an account reset in an impteam
@@ -277,6 +277,13 @@
     MessageID maxMsgid; // The max message ID in the convo
     ConversationMemberStatus status; // The status of the membership to the convo
     keybase1.TeamRole untrustedTeamRole; // gregor's view of your role in the team. This value is purely server trust, use with caution.
+    @mpackkey("jc") @jsonkey("jc")
+    union { null, ConversationJourneycardInfo } journeycard;
+  }
+
+  record ConversationJourneycardInfo {
+    @mpackkey("w") @jsonkey("w")
+    boolean welcomeEligible; // whether showing a "welcome" card is allowed
   }
 
   record ConversationCreatorInfo {

@@ -780,7 +780,8 @@ func (s *HybridConversationSource) Clear(ctx context.Context, convID chat1.Conve
 
 func (s *HybridConversationSource) GetMessages(ctx context.Context, conv types.UnboxConversationInfo,
 	uid gregor1.UID, msgIDs []chat1.MessageID, threadReason *chat1.GetThreadReason) (res []chat1.MessageUnboxed, err error) {
-	defer s.Trace(ctx, func() error { return err }, "GetMessages")()
+	defer s.Trace(ctx, func() error { return err }, "GetMessages: convID: %s msgIDs: %d",
+		conv.GetConvID(), len(msgIDs))()
 	convID := conv.GetConvID()
 	if _, err := s.lockTab.Acquire(ctx, uid, convID); err != nil {
 		return nil, err

@@ -5,6 +5,12 @@ export type UserInfo = {
   fullname?: string
 }
 
+export type BlockState = {
+  chatBlocked: boolean
+  followBlocked: boolean
+}
+
 export type State = Readonly<{
   infoMap: Map<string, UserInfo>
+  blockMap: Map<string, BlockState>
 }>

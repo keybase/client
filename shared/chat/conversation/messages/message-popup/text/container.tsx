@@ -6,7 +6,7 @@ import * as Types from '../../../../../constants/types/chat2'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as Container from '../../../../../util/container'
 import {createShowUserProfile} from '../../../../../actions/profile-gen'
-import {getCanPerform} from '../../../../../constants/teams'
+import {getCanPerformByID} from '../../../../../constants/teams'
 import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 import {StylesCrossPlatform} from '../../../../../styles/css'
 import openURL from '../../../../../util/open-url'
@@ -24,17 +24,16 @@ type OwnProps = {
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const message = ownProps.message
   const meta = Constants.getMeta(state, message.conversationIDKey)
-  const yourOperations = getCanPerform(state, meta.teamname)
+  const yourOperations = getCanPerformByID(state, meta.teamID)
   const _canDeleteHistory = yourOperations && yourOperations.deleteChatHistory
   const _canAdminDelete = yourOperations && yourOperations.deleteOtherMessages
   let _canPinMessage = message.type === 'text'
   if (_canPinMessage && meta.teamname) {
     _canPinMessage = yourOperations && yourOperations.pinMessage
   }
-  const _participantsCount = meta.participants.length
   // you can reply privately *if* text message, someone else's message, and not in a 1-on-1 chat
   const _canReplyPrivately =
-    message.type === 'text' && (['small', 'big'].includes(meta.teamType) || _participantsCount > 2)
+    message.type === 'text' && (['small', 'big'].includes(meta.teamType) || meta.participants.length > 2)
   return {
     _canAdminDelete,
     _canDeleteHistory,
@@ -42,7 +41,8 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     _canReplyPrivately,
     _isDeleteable: message.isDeleteable,
     _isEditable: message.isEditable,
-    _participantsCount,
+    _participants: meta.participants,
+    _teamname: meta.teamname,
     _you: state.config.username,
   }
 }
@@ -85,6 +85,12 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
       })
     )
   },
+  _onKick: (teamname: string, username: string) =>
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {navToChat: true, teamname, username}, selected: 'teamReallyRemoveMember'}],
+      })
+    ),
   _onPinMessage: (message: Types.Message) => {
     dispatch(
       Chat2Gen.createPinMessage({
@@ -122,6 +128,7 @@ export default Container.namedConnect(
     const isEditable = !!(stateProps._isEditable && yourMessage)
     const canReplyPrivately = stateProps._canReplyPrivately
     const mapUnfurl = Constants.getMapUnfurl(message)
+    const authorInConv = stateProps._participants.includes(message.author)
     const isLocation = !!mapUnfurl
     // don't pass onViewMap if we don't have a coordinate (e.g. when a location share ends)
     const onViewMap =
@@ -137,6 +144,7 @@ export default Container.namedConnect(
       deviceType: message.deviceType,
       isDeleteable,
       isEditable,
+      isKickable: isDeleteable && !!stateProps._teamname && !yourMessage && authorInConv,
       isLocation,
       onAddReaction: Container.isMobile ? () => dispatchProps._onAddReaction(message) : undefined,
       onCopy: message.type === 'text' ? () => dispatchProps._onCopy(message) : undefined,
@@ -146,6 +154,7 @@ export default Container.namedConnect(
         : undefined,
       onEdit: yourMessage && message.type === 'text' ? () => dispatchProps._onEdit(message) : undefined,
       onHidden: () => ownProps.onHidden(),
+      onKick: () => dispatchProps._onKick(stateProps._teamname, message.author),
       onPinMessage: stateProps._canPinMessage ? () => dispatchProps._onPinMessage(message) : undefined,
       onReply: message.type === 'text' ? () => dispatchProps._onReply(message) : undefined,
       onReplyPrivately:

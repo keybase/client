@@ -7,7 +7,7 @@ import Header from '.'
 
 const otherUnreadPayments = memoize(
   (map: Container.TypedState['wallets']['unreadPaymentsMap'], accID: Types.AccountID) =>
-    !!map.delete(accID).some(Boolean)
+    [...map.entries()].some(([id, u]) => id !== accID && !!u)
 )
 
 type OwnProps = {

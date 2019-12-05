@@ -3,12 +3,10 @@ import * as Sb from '../../stories/storybook'
 import {Props as ContactRowProps, OwnProps as ContactRowOwnProps} from './email-phone-row'
 import AccountSettings from '.'
 import {ConfirmDeleteAddress} from './confirm-delete'
-import * as I from 'immutable'
 
 const props = {
-  addedEmail: null,
   addedPhone: false,
-  contactKeys: I.List(),
+  contactKeys: [],
   hasPassword: false,
   moreThanOneEmail: true,
   onAddEmail: Sb.action('onAddEmail'),
@@ -65,7 +63,7 @@ const load = () => {
     .add('With email/phone including superseded', () => (
       <AccountSettings
         {...props}
-        contactKeys={I.List(Object.keys(contacts))}
+        contactKeys={Object.keys(contacts)}
         supersededPhoneNumber={contacts.i.address}
       />
     ))

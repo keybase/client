@@ -10,6 +10,8 @@ import '../conversation.css'
 import ThreadLoadStatus from '../load-status/container'
 import PinnedMessage from '../pinned-message/container'
 import ThreadSearch from '../search/container'
+import KeyHandler from '../../../util/key-handler.desktop'
+import InvitationToBlock from '../../blocking/invitation-to-block'
 
 const Offline = () => (
   <Kb.Box style={styles.offline}>
@@ -69,7 +71,7 @@ class Conversation extends React.PureComponent<Props> {
             )}
             {this.props.showLoader && <Kb.LoadingLine />}
           </Kb.Box2>
-          {/* TODO: put the block buttons in here */}
+          <InvitationToBlock conversationID={this.props.conversationIDKey} />
           <Banner conversationIDKey={this.props.conversationIDKey} />
           <InputArea
             focusInputCounter={this.props.focusInputCounter}
@@ -110,4 +112,4 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export default Conversation
+export default KeyHandler(Conversation)

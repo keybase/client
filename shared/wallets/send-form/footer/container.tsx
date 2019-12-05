@@ -16,7 +16,7 @@ const mapStateToProps = (state: Container.TypedState) => {
   if (Types.isValidAccountID(accountID)) {
     thisDeviceIsLockedOut = Constants.getAccount(state, accountID).deviceReadOnly
   } else {
-    thisDeviceIsLockedOut = Constants.getDefaultAccount(state).deviceReadOnly
+    thisDeviceIsLockedOut = Constants.getDefaultAccount(state.wallets).deviceReadOnly
   }
   const {isRequest} = state.wallets.building
   const isReady = isRequest

@@ -6,8 +6,6 @@ import * as Types from '../../constants/types/chat2'
 import HiddenString from '../../util/hidden-string'
 import reducer from '../chat2'
 
-jest.unmock('immutable')
-
 describe('chat2 reducer', () => {
   const conversationIDKey = Types.stringToConversationIDKey('0')
   const author = 'chris'

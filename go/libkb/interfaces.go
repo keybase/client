@@ -135,7 +135,7 @@ type CommandLine interface {
 type Server interface {
 }
 
-type DBKeySet map[DbKey]bool
+type DBKeySet map[DbKey]struct{}
 
 type LocalDbOps interface {
 	Put(id DbKey, aliases []DbKey, value []byte) error
@@ -1069,6 +1069,9 @@ type ChatHelper interface {
 		msgID chat1.MessageID, resolveSupersedes bool, reason *chat1.GetThreadReason) (chat1.MessageUnboxed, error)
 	UpgradeKBFSToImpteam(ctx context.Context, tlfName string, tlfID chat1.TLFID, public bool) error
 	UserReacjis(ctx context.Context, uid gregor1.UID) keybase1.UserReacjis
+	JourneycardTimeTravel(context.Context, gregor1.UID, time.Duration) error
+	JourneycardResetAllConvs(context.Context, gregor1.UID) error
+	JourneycardDebugState(context.Context, gregor1.UID, chat1.ConversationID) (string, error)
 }
 
 // Resolver resolves human-readable usernames (joe) and user asssertions (joe+joe@github)

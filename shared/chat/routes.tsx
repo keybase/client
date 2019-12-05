@@ -14,12 +14,11 @@ import ChatInfoPanel from './conversation/info-panel/container'
 import ChatManageChannels from './manage-channels/container'
 import ChatNewChat from '../team-building/container'
 import ChatPaymentsConfirm from './payments/confirm/container'
-import ChatShowBlockConversationDialog from './conversation/block-conversation-warning/container'
 import ChatShowNewTeamDialog from './new-team-dialog-container'
 import ChatLocationPopup from './conversation/input-area/normal/location-popup'
 import ChatUnfurlMapPopup from './conversation/messages/wrapper/unfurl/map/popup'
 import PunycodeLinkWarning from './punycode-link-warning'
-import BlockModal from './blocking/block-modal'
+import BlockModal from './blocking/block-modal/container'
 
 export const newRoutes = {
   chatConversation: {getScreen: (): typeof ChatConversation => require('./conversation/container').default},
@@ -49,7 +48,7 @@ export const newModalRoutes = {
       require('./conversation/attachment-get-titles/container').default,
   },
   chatBlockingModal: {
-    getScreen: (): typeof BlockModal => require('./blocking/block-modal').default,
+    getScreen: (): typeof BlockModal => require('./blocking/block-modal/container').default,
   },
   chatChooseEmoji: {
     getScreen: (): typeof ChatChooseEmoji =>
@@ -81,10 +80,6 @@ export const newModalRoutes = {
   chatNewChat: {getScreen: (): typeof ChatNewChat => require('../team-building/container').default},
   chatPaymentsConfirm: {
     getScreen: (): typeof ChatPaymentsConfirm => require('./payments/confirm/container').default,
-  },
-  chatShowBlockConversationDialog: {
-    getScreen: (): typeof ChatShowBlockConversationDialog =>
-      require('./conversation/block-conversation-warning/container').default,
   },
   // TODO connect broken
   chatShowNewTeamDialog: {

@@ -398,6 +398,92 @@ func (o UserPassphraseStateMsg) DeepCopy() UserPassphraseStateMsg {
 	}
 }
 
+type UserBlockedRow struct {
+	Uid      UID    `codec:"uid" json:"block_uid"`
+	Username string `codec:"username" json:"block_username"`
+	Chat     *bool  `codec:"chat,omitempty" json:"chat,omitempty"`
+	Follow   *bool  `codec:"follow,omitempty" json:"follow,omitempty"`
+}
+
+func (o UserBlockedRow) DeepCopy() UserBlockedRow {
+	return UserBlockedRow{
+		Uid:      o.Uid.DeepCopy(),
+		Username: o.Username,
+		Chat: (func(x *bool) *bool {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Chat),
+		Follow: (func(x *bool) *bool {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Follow),
+	}
+}
+
+type UserBlockedBody struct {
+	Blocks   []UserBlockedRow `codec:"blocks" json:"blocks"`
+	Uid      UID              `codec:"uid" json:"blocker_uid"`
+	Username string           `codec:"username" json:"blocker_username"`
+}
+
+func (o UserBlockedBody) DeepCopy() UserBlockedBody {
+	return UserBlockedBody{
+		Blocks: (func(x []UserBlockedRow) []UserBlockedRow {
+			if x == nil {
+				return nil
+			}
+			ret := make([]UserBlockedRow, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Blocks),
+		Uid:      o.Uid.DeepCopy(),
+		Username: o.Username,
+	}
+}
+
+type UserBlockedSummary struct {
+	Blocker       string   `codec:"blocker" json:"blocker"`
+	ChatBlocked   []string `codec:"chatBlocked" json:"chatBlocked"`
+	FollowBlocked []string `codec:"followBlocked" json:"followBlocked"`
+}
+
+func (o UserBlockedSummary) DeepCopy() UserBlockedSummary {
+	return UserBlockedSummary{
+		Blocker: o.Blocker,
+		ChatBlocked: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.ChatBlocked),
+		FollowBlocked: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.FollowBlocked),
+	}
+}
+
 type UserBlock struct {
 	Username      string `codec:"username" json:"username"`
 	ChatBlocked   bool   `codec:"chatBlocked" json:"chatBlocked"`
@@ -428,23 +514,10 @@ func (o UserBlock) DeepCopy() UserBlock {
 	}
 }
 
-type RecordInfoArg struct {
-	ReportText     string `codec:"reportText" json:"reportText"`
-	AttachMessages bool   `codec:"attachMessages" json:"attachMessages"`
-}
-
-func (o RecordInfoArg) DeepCopy() RecordInfoArg {
-	return RecordInfoArg{
-		ReportText:     o.ReportText,
-		AttachMessages: o.AttachMessages,
-	}
-}
-
 type UserBlockArg struct {
-	Username       string         `codec:"username" json:"username"`
-	SetChatBlock   *bool          `codec:"setChatBlock,omitempty" json:"setChatBlock,omitempty"`
-	SetFollowBlock *bool          `codec:"setFollowBlock,omitempty" json:"setFollowBlock,omitempty"`
-	Report         *RecordInfoArg `codec:"report,omitempty" json:"report,omitempty"`
+	Username       string `codec:"username" json:"username"`
+	SetChatBlock   *bool  `codec:"setChatBlock,omitempty" json:"setChatBlock,omitempty"`
+	SetFollowBlock *bool  `codec:"setFollowBlock,omitempty" json:"setFollowBlock,omitempty"`
 }
 
 func (o UserBlockArg) DeepCopy() UserBlockArg {
@@ -464,13 +537,6 @@ func (o UserBlockArg) DeepCopy() UserBlockArg {
 			tmp := (*x)
 			return &tmp
 		})(o.SetFollowBlock),
-		Report: (func(x *RecordInfoArg) *RecordInfoArg {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.Report),
 	}
 }
 
@@ -609,6 +675,19 @@ type GetUserBlocksArg struct {
 	Usernames []string `codec:"usernames" json:"usernames"`
 }
 
+type ReportUserArg struct {
+	SessionID         int     `codec:"sessionID" json:"sessionID"`
+	Username          string  `codec:"username" json:"username"`
+	Reason            string  `codec:"reason" json:"reason"`
+	Comment           string  `codec:"comment" json:"comment"`
+	IncludeTranscript bool    `codec:"includeTranscript" json:"includeTranscript"`
+	ConvID            *string `codec:"convID,omitempty" json:"convID,omitempty"`
+}
+
+type DismissBlockButtonsArg struct {
+	TlfID TLFID `codec:"tlfID" json:"tlfID"`
+}
+
 type BlockUserArg struct {
 	Username string `codec:"username" json:"username"`
 }
@@ -666,6 +745,8 @@ type UserInterface interface {
 	UserCard(context.Context, UserCardArg) (*UserCard, error)
 	SetUserBlocks(context.Context, SetUserBlocksArg) error
 	GetUserBlocks(context.Context, GetUserBlocksArg) ([]UserBlock, error)
+	ReportUser(context.Context, ReportUserArg) error
+	DismissBlockButtons(context.Context, TLFID) error
 	BlockUser(context.Context, string) error
 	UnblockUser(context.Context, string) error
 }
@@ -1064,6 +1145,36 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 					return
 				},
 			},
+			"reportUser": {
+				MakeArg: func() interface{} {
+					var ret [1]ReportUserArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ReportUserArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ReportUserArg)(nil), args)
+						return
+					}
+					err = i.ReportUser(ctx, typedArgs[0])
+					return
+				},
+			},
+			"dismissBlockButtons": {
+				MakeArg: func() interface{} {
+					var ret [1]DismissBlockButtonsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]DismissBlockButtonsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]DismissBlockButtonsArg)(nil), args)
+						return
+					}
+					err = i.DismissBlockButtons(ctx, typedArgs[0].TlfID)
+					return
+				},
+			},
 			"blockUser": {
 				MakeArg: func() interface{} {
 					var ret [1]BlockUserArg
@@ -1259,6 +1370,17 @@ func (c UserClient) SetUserBlocks(ctx context.Context, __arg SetUserBlocksArg) (
 
 func (c UserClient) GetUserBlocks(ctx context.Context, __arg GetUserBlocksArg) (res []UserBlock, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.user.getUserBlocks", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c UserClient) ReportUser(ctx context.Context, __arg ReportUserArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.user.reportUser", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c UserClient) DismissBlockButtons(ctx context.Context, tlfID TLFID) (err error) {
+	__arg := DismissBlockButtonsArg{TlfID: tlfID}
+	err = c.Cli.Call(ctx, "keybase.1.user.dismissBlockButtons", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 

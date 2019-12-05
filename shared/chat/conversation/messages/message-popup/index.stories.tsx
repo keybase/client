@@ -23,6 +23,7 @@ const attachmentMessage = makeMessageAttachment({
 const defaultProps = {
   attachTo: () => null,
   isDeleteable: true,
+  isKickable: true,
   onAddReaction: Sb.action('onAddReaction'),
   onAllMedia: Sb.action('onAllMedia'),
   onCopy: Sb.action('onCopy'),
@@ -31,6 +32,7 @@ const defaultProps = {
   onDownload: Sb.action('onDownload'),
   onEdit: Sb.action('onEdit'),
   onHidden: Sb.action('onHidden'),
+  onKick: Sb.action('onKick'),
   onQuote: Sb.action('onQuote'),
   onReply: Sb.action('onReply'),
   onReplyPrivately: Sb.action('onReplyPrivately'),

@@ -3493,3 +3493,18 @@ func (b BadgeConversationInfo) IsEmpty() bool {
 func (s *TeamBotSettings) Eq(o *TeamBotSettings) bool {
 	return reflect.DeepEqual(s, o)
 }
+
+func (b UserBlockedBody) Summarize() UserBlockedSummary {
+	ret := UserBlockedSummary{
+		Blocker: b.Username,
+	}
+	for _, block := range b.Blocks {
+		if block.Chat != nil && *block.Chat {
+			ret.ChatBlocked = append(ret.ChatBlocked, block.Username)
+		}
+		if block.Follow != nil && *block.Follow {
+			ret.FollowBlocked = append(ret.FollowBlocked, block.Username)
+		}
+	}
+	return ret
+}

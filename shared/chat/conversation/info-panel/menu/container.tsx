@@ -96,6 +96,7 @@ export default Container.namedConnect(
       : 'Subscribe to channels...'
     const manageChannelsSubtitle = isSmallTeam ? 'Turns this into a big team' : ''
     return {
+      _teamID: convProps?.teamID ?? teamID,
       badgeSubscribe,
       canAddPeople: yourOperations.manageMembers,
       convProps,
@@ -107,7 +108,7 @@ export default Container.namedConnect(
     }
   },
   (dispatch, {conversationIDKey}: OwnProps) => ({
-    _onAddPeople: (teamname?: string) => teamname && dispatch(appendNewTeamBuilder(teamname)),
+    _onAddPeople: (teamID?: TeamTypes.TeamID) => teamID && dispatch(appendNewTeamBuilder(teamID)),
     _onInvite: (teamID?: TeamTypes.TeamID) => {
       const selected = Styles.isMobile ? 'teamInviteByContact' : 'teamInviteByEmail'
       if (!teamID) return
@@ -142,15 +143,15 @@ export default Container.namedConnect(
     manageChannelsSubtitle: s.manageChannelsSubtitle,
     manageChannelsTitle: s.manageChannelsTitle,
     memberCount: s.memberCount,
-    onAddPeople: () => d._onAddPeople(s.teamname),
+    onAddPeople: () => d._onAddPeople((s.convProps && s.convProps.teamID) || undefined),
     onHidden: o.onHidden,
     onHideConv: d.onHideConv,
-    onInvite: () => d._onInvite(s.convProps && s.convProps.teamID),
-    onLeaveTeam: () => d._onLeaveTeam(s.convProps && s.convProps.teamID),
+    onInvite: () => d._onInvite(s._teamID),
+    onLeaveTeam: () => d._onLeaveTeam(s._teamID),
     onManageChannels: () => d._onManageChannels(s.teamname),
     onMuteConv: d.onMuteConv,
     onUnhideConv: d.onUnhideConv,
-    onViewTeam: () => d._onViewTeam((s.convProps && s.convProps.teamID) || undefined),
+    onViewTeam: () => d._onViewTeam(s._teamID || undefined),
     teamname: s.teamname,
     visible: o.visible,
   }),
