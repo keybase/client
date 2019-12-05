@@ -3501,18 +3501,10 @@ func (b UserBlockedBody) Summarize() UserBlockedSummary {
 	}
 	for _, block := range b.Blocks {
 		if block.Chat != nil {
-			blockState := false
-			if *block.Chat {
-				blockState = true
-			}
-			ret.Blocks[block.Username] = append(ret.Blocks[block.Username], UserBlockState{UserBlockType_CHAT, blockState})
+			ret.Blocks[block.Username] = append(ret.Blocks[block.Username], UserBlockState{UserBlockType_CHAT, *block.Chat})
 		}
 		if block.Follow != nil {
-			blockState := false
-			if *block.Follow {
-				blockState = true
-			}
-			ret.Blocks[block.Username] = append(ret.Blocks[block.Username], UserBlockState{UserBlockType_FOLLOW, blockState})
+			ret.Blocks[block.Username] = append(ret.Blocks[block.Username], UserBlockState{UserBlockType_FOLLOW, *block.Follow})
 		}
 	}
 	return ret
