@@ -84,6 +84,9 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
   private onSubmit = () => {
     const text = this.getText()
     if (text) {
+      // allow final autocorrect suggestion to be accepted (issue #19574)
+      this.props.onChangeText(text)
+
       this.props.onSubmit(text)
     }
   }
