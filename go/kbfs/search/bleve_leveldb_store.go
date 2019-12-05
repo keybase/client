@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/pkg/errors"
 	"github.com/syndtr/goleveldb/leveldb"
+	ldberrors "github.com/syndtr/goleveldb/leveldb/errors"
 	"github.com/syndtr/goleveldb/leveldb/iterator"
 	"github.com/syndtr/goleveldb/leveldb/storage"
 	"github.com/syndtr/goleveldb/leveldb/util"
@@ -65,43 +66,40 @@ var _ store.KVReader = (*bleveLevelDBReader)(nil)
 
 // Get implements the store.KVReader interface for bleveLevelDBReader.
 func (bldbr *bleveLevelDBReader) Get(key []byte) ([]byte, error) {
-	return bldbr.snap.Get(key, nil)
+	v, err := bldbr.snap.Get(key, nil)
+	if err == ldberrors.ErrNotFound {
+		return nil, nil
+	}
+	return v, err
 }
 
 // MultiGet implements the store.KVReader interface for bleveLevelDBReader.
 func (bldbr *bleveLevelDBReader) MultiGet(keys [][]byte) (
 	values [][]byte, err error) {
-	// leveldb doesn't have a simple multi-get interface, so just do
-	// multiple fetches.  Snapshot is consistent so this is fine (if
-	// inefficient).
-	values = make([][]byte, len(keys))
-	for i, k := range keys {
-		v, err := bldbr.Get(k)
-		if err != nil {
-			return nil, err
-		}
-		values[i] = v
-	}
-	return values, nil
+	return store.MultiGet(bldbr, keys)
 }
 
 // PrefixIterator implements the store.KVReader interface for bleveLevelDBReader.
 func (bldbr *bleveLevelDBReader) PrefixIterator(prefix []byte) store.KVIterator {
 	r := util.BytesPrefix(prefix)
-	return &bleveLevelDBIterator{
+	i := &bleveLevelDBIterator{
 		iter: bldbr.snap.NewIterator(r, nil),
 	}
+	i.Next()
+	return i
 }
 
 // RangeIterator implements the store.KVReader interface for bleveLevelDBReader.
 func (bldbr *bleveLevelDBReader) RangeIterator(
 	start, end []byte) store.KVIterator {
-	return &bleveLevelDBIterator{
+	i := &bleveLevelDBIterator{
 		iter: bldbr.snap.NewIterator(&util.Range{
 			Start: start,
 			Limit: end,
 		}, nil),
 	}
+	i.Next()
+	return i
 }
 
 // Close implements the store.KVReader interface for bleveLevelDBReader.
@@ -112,6 +110,15 @@ func (bldbr *bleveLevelDBReader) Close() error {
 
 type bleveLevelDBBatch struct {
 	b *leveldb.Batch
+	m *store.EmulatedMerge
+}
+
+func newbleveLevelDBBatch(
+	totalBytes int, mo store.MergeOperator) *bleveLevelDBBatch {
+	return &bleveLevelDBBatch{
+		b: leveldb.MakeBatch(totalBytes),
+		m: store.NewEmulatedMerge(mo),
+	}
 }
 
 var _ store.KVBatch = (*bleveLevelDBBatch)(nil)
@@ -125,7 +132,12 @@ func (bldbb *bleveLevelDBBatch) Delete(key []byte) {
 }
 
 func (bldbb *bleveLevelDBBatch) Merge(key, val []byte) {
-	panic("Merge called")
+	// Adapted from github.com/blevesearch/bleve/index/store/batch.go.
+	ck := make([]byte, len(key))
+	copy(ck, key)
+	cv := make([]byte, len(val))
+	copy(cv, val)
+	bldbb.m.Merge(key, val)
 }
 
 func (bldbb *bleveLevelDBBatch) Reset() {
@@ -138,20 +150,21 @@ func (bldbb *bleveLevelDBBatch) Close() error {
 
 type bleveLevelDBWriter struct {
 	db *leveldb.DB
+	mo store.MergeOperator
 }
 
 var _ store.KVWriter = (*bleveLevelDBWriter)(nil)
 
 // NewBatch implements the store.KVReader interface for bleveLevelDBWriter.
 func (bldbw *bleveLevelDBWriter) NewBatch() store.KVBatch {
-	return &bleveLevelDBBatch{b: leveldb.MakeBatch(0)}
+	return newbleveLevelDBBatch(0, bldbw.mo)
 }
 
 // NewBatchEx implements the store.KVReader interface for bleveLevelDBWriter.
 func (bldbw *bleveLevelDBWriter) NewBatchEx(opts store.KVBatchOptions) (
 	[]byte, store.KVBatch, error) {
-	b := &bleveLevelDBBatch{b: leveldb.MakeBatch(opts.TotalBytes)}
-	return b.b.Dump(), b, nil
+	return make([]byte, opts.TotalBytes),
+		newbleveLevelDBBatch(opts.TotalBytes, bldbw.mo), nil
 }
 
 // ExecuteBatch implements the store.KVReader interface for bleveLevelDBWriter.
@@ -160,6 +173,24 @@ func (bldbw *bleveLevelDBWriter) ExecuteBatch(batch store.KVBatch) error {
 	if !ok {
 		return errors.Errorf("Unexpected batch type: %T", batch)
 	}
+
+	// Adapted from github.com/blevesearch/bleve/index/store/boltdb/writer.go.
+	for k, mergeOps := range b.m.Merges {
+		kb := []byte(k)
+		existingVal, err := bldbw.db.Get(kb, nil)
+		if err == ldberrors.ErrNotFound {
+			existingVal = nil
+		} else if err != nil {
+			return err
+		}
+
+		mergedVal, fullMergeOk := bldbw.mo.FullMerge(kb, existingVal, mergeOps)
+		if !fullMergeOk {
+			return errors.Errorf("merge operator returned failure")
+		}
+		b.Set(kb, mergedVal)
+	}
+
 	return bldbw.db.Write(b.b, nil)
 }
 
@@ -172,11 +203,13 @@ func (bldbw *bleveLevelDBWriter) Close() error {
 type bleveLevelDBStore struct {
 	s  storage.Storage
 	db *leveldb.DB
+	mo store.MergeOperator
 }
 
 var _ store.KVStore = (*bleveLevelDBStore)(nil)
 
-func newBleveLevelDBStore(bfs billy.Filesystem, readOnly bool) (
+func newBleveLevelDBStore(
+	bfs billy.Filesystem, readOnly bool, mo store.MergeOperator) (
 	*bleveLevelDBStore, error) {
 	s, err := libfs.OpenLevelDBStorage(bfs, readOnly)
 	if err != nil {
@@ -186,12 +219,12 @@ func newBleveLevelDBStore(bfs billy.Filesystem, readOnly bool) (
 	if err != nil {
 		return nil, err
 	}
-	return &bleveLevelDBStore{s: s, db: db}, nil
+	return &bleveLevelDBStore{s: s, db: db, mo: mo}, nil
 }
 
 // Writer implements the store.KVStore interface for bleveLevelDBStore.
 func (bldbs *bleveLevelDBStore) Writer() (store.KVWriter, error) {
-	return &bleveLevelDBWriter{db: bldbs.db}, nil
+	return &bleveLevelDBWriter{db: bldbs.db, mo: bldbs.mo}, nil
 }
 
 // Writer implements the store.KVStore interface for bleveLevelDBStore.
