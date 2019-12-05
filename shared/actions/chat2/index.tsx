@@ -1795,7 +1795,7 @@ const messageSendByUsernames = async (
       },
       action.payload.waitingKey
     )
-    const { text, waitingKey } = action.payload
+    const {text, waitingKey} = action.payload
     return Chat2Gen.createMessageSend({
       conversationIDKey: Types.conversationIDToKey(result.conv.info.id),
       text,
