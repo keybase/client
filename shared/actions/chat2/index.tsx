@@ -1796,11 +1796,11 @@ const messageSendByUsernames = async (
       action.payload.waitingKey
     )
     const { text, waitingKey } = action.payload
-    await Saga.put(Chat2Gen.createMessageSend({
+    return Chat2Gen.createMessageSend({
       conversationIDKey: Types.conversationIDToKey(result.conv.info.id),
       text,
       waitingKey,
-    }))
+    })
   } catch (e) {
     logger.warn('Could not send in messageSendByUsernames', e)
   }
