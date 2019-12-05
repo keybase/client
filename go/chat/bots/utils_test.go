@@ -2,6 +2,8 @@ package bots
 
 import (
 	"context"
+	"crypto/sha256"
+	"strconv"
 	"testing"
 
 	"github.com/keybase/client/go/chat/globals"
@@ -153,4 +155,32 @@ func TestApplyTeamBotSettings(t *testing.T) {
 		Body: "!help ",
 	})
 	assertMatch(false)
+}
+
+func TestBotInfoHash(t *testing.T) {
+	// Ensure that the latest ClientBotInfoHashVers case is handled if the
+	// version number is incremented.
+	hash := sha256.New()
+	hash.Write([]byte(strconv.FormatUint(uint64(chat1.ServerBotInfoHashVers), 10)))
+	nilHash := chat1.BotInfoHash(hash.Sum(nil))
+	botInfo := chat1.BotInfo{
+		ServerHashVers: chat1.ServerBotInfoHashVers,
+		ClientHashVers: chat1.ClientBotInfoHashVers,
+	}
+	require.NotEqual(t, nilHash, botInfo.Hash())
+
+	// bumping the server version changes the hash
+	botInfo2 := chat1.BotInfo{
+		ServerHashVers: chat1.ServerBotInfoHashVers + 1,
+		ClientHashVers: chat1.ClientBotInfoHashVers,
+	}
+	require.NotEqual(t, botInfo.Hash(), botInfo2.Hash())
+
+	// non-existent client version returns a nil hash with just the server
+	// version
+	botInfo = chat1.BotInfo{
+		ServerHashVers: chat1.ServerBotInfoHashVers,
+		ClientHashVers: chat1.ClientBotInfoHashVers + 1,
+	}
+	require.Equal(t, nilHash, botInfo.Hash())
 }
