@@ -432,7 +432,14 @@
             "type": "array",
             "items": "string"
           },
-          "name": "blocked"
+          "name": "chatBlocked"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "followBlocked"
         }
       ]
     },
