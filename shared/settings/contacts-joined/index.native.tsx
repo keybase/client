@@ -27,7 +27,7 @@ const Item = ({item}: {item: RPCTypes.ProcessedContact}) => {
         <Kb.Text type="BodySmall">{label}</Kb.Text>
         <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} style={styles.buttons}>
           <FollowButton username={username} small={true} />
-          <Kb.WaveButton usernames={username} small={true} />
+          <Kb.WaveButton recipient={{username}} small={true} />
         </Kb.Box2>
         <Kb.Divider style={styles.divider} />
       </Kb.Box2>

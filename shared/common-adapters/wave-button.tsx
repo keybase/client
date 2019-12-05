@@ -8,6 +8,7 @@ import * as Styles from '../styles'
 import * as Container from '../util/container'
 import HiddenString from '../util/hidden-string'
 import * as Chat2Gen from '../actions/chat2-gen'
+import * as ChatTypes from '../constants/types/chat2'
 
 const Kb = {
   Box2,
@@ -17,31 +18,52 @@ const Kb = {
   Emoji,
 }
 
+type Recipient = { username: string } | { conversationIDKey: ChatTypes.ConversationIDKey }
+
 type Props = {
-  usernames: string
+  recipient: Recipient
   small?: boolean
   style?: Styles.StylesCrossPlatform
+  toMany?: boolean
 }
-const getWaveWaitingKey = (userList: string) => `settings:waveButton:${userList}`
+
+const getWaveWaitingKey = (recipient: Recipient) => {
+  if ('username' in recipient) {
+    return `settings:waveButton:username:${recipient.username}`
+  } else {
+    return `settings:waveButton:convID:${recipient.conversationIDKey}`
+  }
+}
 
 // A button that sends a wave emoji into a chat.
 export const WaveButton = (props: Props) => {
   const [waved, setWaved] = React.useState(false)
-  const waving = Container.useAnyWaiting(getWaveWaitingKey(props.usernames))
+  const waitingKey = getWaveWaitingKey(props.recipient)
+  const waving = Container.useAnyWaiting(waitingKey)
   const dispatch = Container.useDispatch()
 
   const onWave = () => {
-    dispatch(
-      Chat2Gen.createMessageSendByUsernames({
-        text: new HiddenString(':wave:'),
-        usernames: props.usernames,
-        waitingKey: getWaveWaitingKey(props.usernames),
-      })
-    )
+    if ('username' in props.recipient) {
+      dispatch(
+        Chat2Gen.createMessageSendByUsernames({
+          text: new HiddenString(':wave:'),
+          usernames: props.recipient.username,
+          waitingKey,
+        })
+      )
+    } else {
+      dispatch(
+        Chat2Gen.createMessageSend({
+          conversationIDKey: props.recipient.conversationIDKey,
+          text: new HiddenString(':wave:'),
+          waitingKey,
+        })
+      )
+    }
     setWaved(true)
   }
 
-  const waveText = props.usernames.includes(',') ? 'Wave at everyone' : 'Wave'
+  const waveText = props.toMany ? 'Wave at everyone' : 'Wave'
   return waved && !waving ? (
     <Kb.Box2
       direction="horizontal"
@@ -62,7 +84,6 @@ export const WaveButton = (props: Props) => {
   )
 }
 
-
 const styles = Styles.styleSheetCreate(
   () =>
     ({
@@ -73,6 +94,5 @@ const styles = Styles.styleSheetCreate(
       },
     } as const)
 )
-
 
 export default WaveButton
