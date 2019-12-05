@@ -138,7 +138,7 @@
     "expo-barcode-scanner": "5.0.1",
     "expo-contacts": "5.0.2",
     "expo-haptics": "5.0.1",
-    "expo-image-picker": "git://github.com/keybase/keybase-image-picker",
+    "expo-image-picker": "git://github.com/keybase/keybase-image-picker#marco/withFilename",
     "expo-permissions": "5.0.1",
     "expo-sms": "5.0.1",
     "framed-msgpack-rpc": "git://github.com/keybase/node-framed-msgpack-rpc#nojima/HOTPOT-msgpack-js-impl",

@@ -5730,9 +5730,9 @@ expo-haptics@5.0.1:
   resolved "https://registry.yarnpkg.com/expo-haptics/-/expo-haptics-5.0.1.tgz#60b67bc613522ddd1ad5e4d701412771fe333c40"
   integrity sha512-+ULs5ZNJXT81PILX+Dpp1l9AvcfZZUazg9wX7Dho//ZIaWncPpd5kkiqZpgBlIJNmr7W0rjGcaD8SqVXgesnKg==
 
-"expo-image-picker@git://github.com/keybase/keybase-image-picker":
+"expo-image-picker@git://github.com/keybase/keybase-image-picker#marco/withFilename":
   version "5.0.2"
-  resolved "git://github.com/keybase/keybase-image-picker#b5d00e5032d85817023c24520eb67d79c83a2d6e"
+  resolved "git://github.com/keybase/keybase-image-picker#d4a49a049973c387aa1d9023bb5fd5cc7b387a4d"
 
 expo-permissions@5.0.1, expo-permissions@~5.0.0:
   version "5.0.1"
