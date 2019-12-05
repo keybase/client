@@ -231,7 +231,8 @@ protocol user {
 
   record UserBlockedSummary {
     string blocker;
-    array<string> blocked;
+    array<string> chatBlocked;
+    array<string> followBlocked;
   }
 
   // User Blocking

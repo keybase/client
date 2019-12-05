@@ -23,6 +23,7 @@ type convTranscript struct {
 type convTranscriptMsg struct {
 	SenderUsername string            `json:"senderUsername"`
 	Body           chat1.MessageBody `json:"body"`
+	Ctime          gregor1.Time      `json:"ctime_ms"`
 }
 
 // When sending a transcript, send the following number of most recent chat
@@ -56,6 +57,7 @@ func pullTranscript(mctx libkb.MetaContext, chatG *globals.ChatContext, convIDSt
 		tMsg := convTranscriptMsg{
 			SenderUsername: mv.SenderUsername,
 			Body:           mv.MessageBody,
+			Ctime:          mv.ServerHeader.Ctime,
 		}
 		transcript.Messages = append(transcript.Messages, tMsg)
 	}

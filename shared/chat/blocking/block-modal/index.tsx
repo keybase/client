@@ -39,29 +39,26 @@ type CheckboxRowProps = {
   onCheck: (boolean) => void
   text: React.ReactNode
 }
-const CheckboxRow = (props: CheckboxRowProps) => {
-  const [infoShowing, setInfoShowing] = React.useState(false)
-  return (
-    <>
-      <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.checkBoxRow}>
-        <Kb.Switch
-          color="red"
-          disabled={props.disabled}
-          gapSize={Styles.globalMargins.tiny}
-          label={props.text}
-          labelSubtitle={infoShowing ? props.info : undefined}
-          on={props.checked}
-          onClick={() => props.onCheck(!props.checked)}
-          style={styles.shrink}
-        />
-        <Kb.Box style={styles.iconBox} />
-        {props.info && !infoShowing && (
-          <Kb.Icon type="iconfont-question-mark" color="grey" onClick={() => setInfoShowing(true)} />
-        )}
-      </Kb.Box2>
-    </>
-  )
-}
+const CheckboxRow = (props: CheckboxRowProps) => (
+  <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.checkBoxRow}>
+    <Kb.Switch
+      allowLabelClick={!props.disabled}
+      color="red"
+      disabled={props.disabled}
+      gapSize={Styles.globalMargins.tiny}
+      label={props.text}
+      on={props.checked}
+      onClick={() => props.onCheck(!props.checked)}
+      style={styles.shrink}
+    />
+    <Kb.Box style={styles.iconBox} />
+    {props.info && (
+      <Kb.WithTooltip tooltip={props.info} showOnPressMobile={true}>
+        <Kb.Icon type="iconfont-question-mark" color="grey" />
+      </Kb.WithTooltip>
+    )}
+  </Kb.Box2>
+)
 
 type ReportOptionsProps = {
   extraNotes: string
@@ -297,7 +294,7 @@ class BlockModal extends React.PureComponent<Props, State> {
       ) : (
         undefined
       ),
-      title: <Kb.Icon type="iconfont-block-user" sizeType="Big" color="red" />,
+      title: <Kb.Icon type="iconfont-block-user" sizeType="Big" color={Styles.globalColors.red} />,
     }
 
     if (this.props.loadingWaiting) {
