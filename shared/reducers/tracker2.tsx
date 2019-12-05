@@ -121,9 +121,7 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
           det.blocked = blockState.blocked
         } else if (blockState.blockType === RpcTypes.UserBlockType.follow) {
           det.hidFromFollowers = blockState.blocked
-          blockState.blocked
-            ? d.followers && d.followers.delete(username)
-            : d.followers && d.followers.add(username)
+          blockState.blocked && d.followers && d.followers.delete(username)
         }
       })
     })
