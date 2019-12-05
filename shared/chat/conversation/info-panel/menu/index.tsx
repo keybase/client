@@ -27,6 +27,7 @@ export type Props = {
   teamname?: string
   visible: boolean
   onAddPeople: () => void
+  onBlockConv: () => void
   onHidden: () => void
   onInvite: () => void
   onLeaveTeam: () => void
@@ -128,7 +129,7 @@ class InfoPanelMenu extends React.Component<Props> {
 
     const isAdhoc = !!(props.convProps && props.convProps.teamType === 'adhoc')
     const items = isAdhoc
-      ? [this.hideItem(), this.muteItem()]
+      ? [this.hideItem(), this.muteItem(), {danger: true, onClick: props.onBlockConv, title: 'Block'}]
       : [
           ...(props.canAddPeople ? addPeopleItems : []),
           {onClick: props.onViewTeam, style: {borderTopWidth: 0}, title: 'View team'},
@@ -136,6 +137,7 @@ class InfoPanelMenu extends React.Component<Props> {
           this.muteItem(),
           channelItem,
           {danger: true, onClick: props.onLeaveTeam, title: 'Leave team'},
+          {danger: true, onClick: props.onBlockConv, title: 'Block team'},
         ].filter(item => item !== null)
 
     const header = {
