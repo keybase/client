@@ -47,6 +47,7 @@ import io.keybase.ossifrage.modules.AppearanceModule;
 import io.keybase.ossifrage.modules.KeybaseEngine;
 import io.keybase.ossifrage.modules.NativeLogger;
 import io.keybase.ossifrage.util.DNSNSFetcher;
+import io.keybase.ossifrage.util.GuiConfig;
 import io.keybase.ossifrage.util.VideoHelper;
 import keybase.Keybase;
 
@@ -114,11 +115,8 @@ public class MainActivity extends ReactFragmentActivity {
 
   }
 
-  private static final int ANDROID_TEN = 29;
-
   private String colorSchemeForCurrentConfiguration() {
-    // TODO: (hramos) T52929922: Switch to Build.VERSION_CODES.ANDROID_TEN or equivalent
-    if (Build.VERSION.SDK_INT >= ANDROID_TEN) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
       int currentNightMode =
         this.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
       switch (currentNightMode) {
@@ -148,8 +146,7 @@ public class MainActivity extends ReactFragmentActivity {
 
     new android.os.Handler().postDelayed(new Runnable() {
       public void run() {
-        // TODO, read this pref from go
-        setBackgroundColor(DarkModePreference.System);
+        setBackgroundColor(GuiConfig.getInstance(getFilesDir()).getDarkMode());
       }
     }, 300);
 
@@ -398,7 +395,7 @@ public class MainActivity extends ReactFragmentActivity {
       }
     }
 
-    setBackgroundColor(DarkModePreference.System);
+    setBackgroundColor(GuiConfig.getInstance(getFilesDir()).getDarkMode());
   }
 
   public void setBackgroundColor(DarkModePreference pref) {
