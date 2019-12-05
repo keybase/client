@@ -169,6 +169,7 @@ type PutKVEntryArg struct {
 	EntryKey   string `codec:"entryKey" json:"entryKey"`
 	Revision   int    `codec:"revision" json:"revision"`
 	EntryValue string `codec:"entryValue" json:"entryValue"`
+	BotName    string `codec:"botName" json:"botName"`
 }
 
 type ListKVNamespacesArg struct {

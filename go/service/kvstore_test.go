@@ -27,7 +27,7 @@ func kvTestSetup(t *testing.T) libkb.TestContext {
 	return tc
 }
 
-func TestKvStoreSelfTeamPutGet(t *testing.T) {
+func TestKVStoreSelfTeamPutGet(t *testing.T) {
 	tc := kvTestSetup(t)
 	defer tc.Cleanup()
 
@@ -116,7 +116,7 @@ func TestKvStoreSelfTeamPutGet(t *testing.T) {
 	require.EqualValues(t, []keybase1.KVListEntryKey{expectedKey}, listEntriesRes.EntryKeys)
 }
 
-func TestKvStoreMultiUserTeam(t *testing.T) {
+func TestKVStoreMultiUserTeam(t *testing.T) {
 	tcAlice := kvTestSetup(t)
 	defer tcAlice.Cleanup()
 	tcBob := kvTestSetup(t)
@@ -492,8 +492,19 @@ func (b *KVStoreTestBoxer) Box(mctx libkb.MetaContext, entryID keybase1.KVEntryI
 	return realBoxer.Box(mctx, entryID, revision, cleartextValue)
 }
 
+////
+func (b *KVStoreTestBoxer) BoxForBot(mctx libkb.MetaContext, entryID keybase1.KVEntryID, revision int, cleartextValue string, botName string) (ciphertext string,
+	teamKeyGen keybase1.PerTeamKeyGeneration, ciphertextVersion int, err error) {
+	realBoxer := kvstore.NewKVStoreBoxer(mctx.G())
+	if b.BoxMutateRevision != nil {
+		revision = b.BoxMutateRevision(revision)
+	}
+	return realBoxer.BoxForBot(mctx, entryID, revision, cleartextValue, botName)
+}
+
+////
 func (b *KVStoreTestBoxer) Unbox(mctx libkb.MetaContext, entryID keybase1.KVEntryID, revision int, ciphertext string, teamKeyGen keybase1.PerTeamKeyGeneration,
-	formatVersion int, senderUID keybase1.UID, senderEldestSeqno keybase1.Seqno, senderDeviceID keybase1.DeviceID) (cleartext string, err error) {
+	formatVersion int, senderUID keybase1.UID, senderEldestSeqno keybase1.Seqno, senderDeviceID keybase1.DeviceID, botUID keybase1.UID, botEldestSeqno keybase1.Seqno) (cleartext string, err error) {
 	realBoxer := kvstore.NewKVStoreBoxer(mctx.G())
 	if b.UnboxMutateTeamGen != nil {
 		teamKeyGen = b.UnboxMutateTeamGen(teamKeyGen)
@@ -501,7 +512,7 @@ func (b *KVStoreTestBoxer) Unbox(mctx libkb.MetaContext, entryID keybase1.KVEntr
 	if b.UnboxMutateCiphertext != nil {
 		ciphertext = b.UnboxMutateCiphertext(ciphertext)
 	}
-	return realBoxer.Unbox(mctx, entryID, revision, ciphertext, teamKeyGen, formatVersion, senderUID, senderEldestSeqno, senderDeviceID)
+	return realBoxer.Unbox(mctx, entryID, revision, ciphertext, teamKeyGen, formatVersion, senderUID, senderEldestSeqno, senderDeviceID, botUID, botEldestSeqno)
 }
 
 func TestKVEncryptionAndVerification(t *testing.T) {
@@ -808,3 +819,93 @@ func TestKVStoreLocalRace(t *testing.T) {
 	})
 	require.NoError(t, err)
 }
+
+/*
+func TestKVStoreRestrictedBotSelfTeamPutGet(t *testing.T) {
+	tc := kvTestSetup(t)
+	defer tc.Cleanup()
+
+	user, err := kbtest.CreateAndSignupFakeUser("kvs", tc.G)
+	require.NoError(t, err)
+	handler := NewKVStoreHandler(nil, tc.G)
+	ctx := context.Background()
+	teamName := fmt.Sprintf("%s,%s", user.Username, user.Username)
+	namespace := "ye-namespace"
+	entryKey := "lookmeup"
+
+	// fetch nonexistent
+	getArg := keybase1.GetKVEntryArg{
+		TeamName:  teamName,
+		Namespace: namespace,
+		EntryKey:  entryKey,
+	}
+	getRes, err := handler.GetKVEntry(ctx, getArg)
+	require.NoError(t, err)
+	require.Equal(t, "", getRes.EntryValue)
+	require.Equal(t, 0, getRes.Revision)
+	// and list
+	listNamespacesArg := keybase1.ListKVNamespacesArg{TeamName: teamName}
+	listNamespacesRes, err := handler.ListKVNamespaces(ctx, listNamespacesArg)
+	require.NoError(t, err)
+	require.EqualValues(t, listNamespacesRes.Namespaces, []string{})
+	listEntriesArg := keybase1.ListKVEntriesArg{TeamName: teamName, Namespace: namespace}
+	listEntriesRes, err := handler.ListKVEntries(ctx, listEntriesArg)
+	require.NoError(t, err)
+	require.EqualValues(t, []keybase1.KVListEntryKey{}, listEntriesRes.EntryKeys)
+
+	// put a secret
+	cleartextSecret := "lorem ipsum blah blah blah"
+	putArg := keybase1.PutKVEntryArg{
+		SessionID:  0,
+		TeamName:   teamName,
+		Namespace:  namespace,
+		EntryKey:   entryKey,
+		EntryValue: cleartextSecret,
+	}
+	putRes, err := handler.PutKVEntry(ctx, putArg)
+	require.NoError(t, err)
+	require.Equal(t, 1, putRes.Revision)
+
+	// fetch it and assert that it's now correct
+	getRes, err = handler.GetKVEntry(ctx, getArg)
+	require.NoError(t, err)
+	require.Equal(t, cleartextSecret, getRes.EntryValue)
+
+	updatedSecret := `Contrary to popular belief, Lorem Ipsum is not simply
+			random text. It has roots in a piece of classical Latin literature
+			from 45 BC, making it over 2000 years old.`
+	putArg = keybase1.PutKVEntryArg{
+		SessionID:  0,
+		TeamName:   teamName,
+		Namespace:  namespace,
+		EntryKey:   entryKey,
+		EntryValue: updatedSecret,
+	}
+	putRes, err = handler.PutKVEntry(ctx, putArg)
+	require.NoError(t, err)
+	require.Equal(t, 2, putRes.Revision)
+	getRes, err = handler.GetKVEntry(ctx, getArg)
+	require.NoError(t, err)
+	require.Equal(t, updatedSecret, getRes.EntryValue)
+
+	// another user cannot see or edit this entry
+	tcEve := kvTestSetup(t)
+	defer tcEve.Cleanup()
+	_, err = kbtest.CreateAndSignupFakeUser("kvs", tcEve.G)
+	require.NoError(t, err)
+	eveHandler := NewKVStoreHandler(nil, tcEve.G)
+	getRes, err = eveHandler.GetKVEntry(ctx, getArg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "You are not a member of this team")
+	putRes, err = handler.PutKVEntry(ctx, putArg)
+	require.NoError(t, err)
+
+	// it lists correctly
+	listNamespacesRes, err = handler.ListKVNamespaces(ctx, listNamespacesArg)
+	require.NoError(t, err)
+	require.EqualValues(t, listNamespacesRes.Namespaces, []string{namespace})
+	listEntriesRes, err = handler.ListKVEntries(ctx, listEntriesArg)
+	require.NoError(t, err)
+	expectedKey := keybase1.KVListEntryKey{EntryKey: entryKey, Revision: 3}
+	require.EqualValues(t, []keybase1.KVListEntryKey{expectedKey}, listEntriesRes.EntryKeys)
+}*/

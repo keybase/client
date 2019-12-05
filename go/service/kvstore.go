@@ -46,9 +46,12 @@ func (h *KVStoreHandler) assertLoggedIn(ctx context.Context) error {
 
 func (h *KVStoreHandler) resolveTeam(mctx libkb.MetaContext, userInputTeamName string) (teamID keybase1.TeamID, err error) {
 	if strings.Contains(userInputTeamName, ",") {
+		fmt.Printf("resolveTeam hello....: %+v", userInputTeamName)
 		// it's an implicit team that might not exist yet
 		team, _, _, err := teams.LookupOrCreateImplicitTeam(mctx.Ctx(), mctx.G(), userInputTeamName, false /*public*/)
 		if err != nil {
+
+			fmt.Printf("error loading implicit team %s: %v", userInputTeamName, err)
 			mctx.Debug("error loading implicit team %s: %v", userInputTeamName, err)
 			err = libkb.AppStatusError{
 				Code: libkb.SCTeamReadError,
@@ -56,9 +59,13 @@ func (h *KVStoreHandler) resolveTeam(mctx libkb.MetaContext, userInputTeamName s
 			}
 			return teamID, err
 		}
+
+		fmt.Printf(">>>>>>> getting team......ID = %+v", team.ID)
 		return team.ID, nil
 	}
+	fmt.Printf(">>>>>>> getting teamID = %+v", teamID)
 	teamID, err = teams.GetTeamIDByNameRPC(mctx, userInputTeamName)
+	fmt.Printf(">>>>>>> gotten teamID = %+v, userInputTeamName = %+v", teamID, userInputTeamName)
 	if err != nil {
 		mctx.Debug("error resolving team with name %s: %v", userInputTeamName, err)
 	}
@@ -77,6 +84,8 @@ type getEntryAPIRes struct {
 	WriterUID         keybase1.UID                  `json:"uid"`
 	WriterEldestSeqno keybase1.Seqno                `json:"eldest_seqno"`
 	WriterDeviceID    keybase1.DeviceID             `json:"device_id"`
+	BotUID            *keybase1.UID                 `json:"bot_uid,omitempty"`
+	BotEldestSeqno    *keybase1.Seqno               `json:"bot_eldest_seqno,omitempty"`
 }
 
 func (h *KVStoreHandler) serverFetch(mctx libkb.MetaContext, entryID keybase1.KVEntryID) (emptyRes getEntryAPIRes, err error) {
@@ -110,7 +119,7 @@ func (h *KVStoreHandler) serverFetch(mctx libkb.MetaContext, entryID keybase1.KV
 func (h *KVStoreHandler) GetKVEntry(ctx context.Context, arg keybase1.GetKVEntryArg) (res keybase1.KVGetResult, err error) {
 	ctx = libkb.WithLogTag(ctx, "KV")
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.TraceTimed(fmt.Sprintf("KVStoreHandler#PutKVEntry: t:%s, n:%s, k:%s", arg.TeamName, arg.Namespace, arg.EntryKey), func() error { return err })()
+	defer mctx.TraceTimed(fmt.Sprintf("KVStoreHandler#GetKVEntry: t:%s, n:%s, k:%s", arg.TeamName, arg.Namespace, arg.EntryKey), func() error { return err })()
 
 	if err := h.assertLoggedIn(ctx); err != nil {
 		mctx.Debug("not logged in err: %v", err)
@@ -139,7 +148,7 @@ func (h *KVStoreHandler) GetKVEntry(ctx context.Context, arg keybase1.GetKVEntry
 	}
 	var cleartext string
 	if apiRes.Ciphertext != "" /* deleted or non-existent */ {
-		cleartext, err = h.Boxer.Unbox(mctx, entryID, apiRes.Revision, apiRes.Ciphertext, apiRes.TeamKeyGen, apiRes.FormatVersion, apiRes.WriterUID, apiRes.WriterEldestSeqno, apiRes.WriterDeviceID)
+		cleartext, err = h.Boxer.Unbox(mctx, entryID, apiRes.Revision, apiRes.Ciphertext, apiRes.TeamKeyGen, apiRes.FormatVersion, apiRes.WriterUID, apiRes.WriterEldestSeqno, apiRes.WriterDeviceID) //, "", 0) //apiRes.BotUID, apiRes.BotEldestSeqno)
 		if err != nil {
 			mctx.Debug("error unboxing %+v: %v", entryID, err)
 			return res, err
@@ -201,6 +210,14 @@ func (h *KVStoreHandler) PutKVEntry(ctx context.Context, arg keybase1.PutKVEntry
 	}
 
 	mctx.Debug("updating %+v to revision %d", entryID, revision)
+
+	var apiArg libkb.APIArg
+	var ciphertext string
+	var teamKeyGen keybase1.PerTeamKeyGeneration
+
+	//if arg.BotName == "" {
+
+	//fmt.Printf(">>>>>> '''' arg botname = %+v", arg.BotName)
 	ciphertext, teamKeyGen, ciphertextVersion, err := h.Boxer.Box(mctx, entryID, revision, arg.EntryValue)
 	if err != nil {
 		mctx.Debug("error boxing %+v: %v", entryID, err)
@@ -212,7 +229,7 @@ func (h *KVStoreHandler) PutKVEntry(ctx context.Context, arg keybase1.PutKVEntry
 		return res, err
 	}
 
-	apiArg := libkb.APIArg{
+	apiArg = libkb.APIArg{
 		Endpoint:    "team/storage",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
@@ -225,6 +242,38 @@ func (h *KVStoreHandler) PutKVEntry(ctx context.Context, arg keybase1.PutKVEntry
 			"revision":           libkb.I{Val: revision},
 		},
 	}
+	//} else {
+	/*
+			//ciphertext, teamKeyGen, ciphertextVersion, botUID, botEldestSeqNo, err := h.Boxer.Box(mctx, entryID, revision, arg.EntryValue, arg.BotName)
+			ciphertext, teamKeyGen, ciphertextVersion, err := h.Boxer.Box(mctx, entryID, revision, arg.EntryValue) /////, arg.BotName)
+			if err != nil {
+				mctx.Debug("error boxing %+v: %v", entryID, err)
+				return res, err
+			}
+			err = mctx.G().GetKVRevisionCache().CheckForUpdate(mctx, entryID, revision)
+			if err != nil {
+				mctx.Debug("error from cache for updating %+v: %s", entryID, err)
+				return res, err
+			}
+
+			apiArg = libkb.APIArg{
+				Endpoint:    "team/storage",
+				SessionType: libkb.APISessionTypeREQUIRED,
+				Args: libkb.HTTPArgs{
+					"team_id":      libkb.S{Val: entryID.TeamID.String()},
+					"team_key_gen": libkb.I{Val: int(teamKeyGen)},
+					//"bot_uid":            libkb.S{Val: botUID.String()},
+					//"bot_eldest_seqno":   libkb.I{Val: int(botEldestSeqNo)}, /////
+					"namespace":          libkb.S{Val: entryID.Namespace},
+					"entry_key":          libkb.S{Val: entryID.EntryKey},
+					"ciphertext":         libkb.S{Val: ciphertext},
+					"ciphertext_version": libkb.I{Val: ciphertextVersion},
+					"revision":           libkb.I{Val: revision},
+				},
+			}
+		}
+	*/
+
 	var apiRes putEntryAPIRes
 	err = mctx.G().API.PostDecode(mctx, apiArg, &apiRes)
 	if err != nil {

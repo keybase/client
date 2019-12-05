@@ -757,6 +757,7 @@ func (a *InternalAPIEngine) GetDecodeCtx(ctx context.Context, arg APIArg, v APIR
 
 func (a *InternalAPIEngine) getDecode(m MetaContext, arg APIArg, v APIResponseWrapper) error {
 	resp, finisher, err := a.GetResp(m, arg)
+	fmt.Printf("\n....IN LIBKB API: %T trying; %+v\n", v, arg)
 	if err != nil {
 		m.Debug("| API GetDecode, GetResp error: %s", err)
 		return err
@@ -782,7 +783,7 @@ func (a *InternalAPIEngine) getDecode(m MetaContext, arg APIArg, v APIResponseWr
 		m.Debug("| API GetDecode, checkAppStatus error: %s", err)
 		return err
 	}
-
+	fmt.Printf(".................IN LIBKB API: %T, %+v\n", v, v)
 	return nil
 }
 

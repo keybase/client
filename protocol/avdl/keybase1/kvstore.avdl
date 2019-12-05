@@ -32,7 +32,8 @@ protocol kvstore {
   }
 
   KVGetResult getKVEntry(int sessionID, string teamName, string namespace, string entryKey);
-  KVPutResult putKVEntry(int sessionID, string teamName, string namespace, string entryKey, int revision, string entryValue);
+  KVPutResult putKVEntry(int sessionID, string teamName, string namespace,
+string entryKey, int revision, string entryValue, string botName);
 
   record KVListNamespaceResult {
     string teamName;

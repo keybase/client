@@ -213,6 +213,10 @@
         {
           "name": "entryValue",
           "type": "string"
+        },
+        {
+          "name": "botName",
+          "type": "string"
         }
       ],
       "response": "KVPutResult"
