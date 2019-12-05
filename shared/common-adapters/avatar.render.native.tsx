@@ -51,7 +51,7 @@ const Avatar = (props: Props) => {
               styles[`image:${props.size}`],
               {
                 borderRadius,
-                opacity: props.opacity ? props.opacity : props.blocked && 0.1,
+                opacity: props.opacity ? props.opacity : props.blocked ? 0.1 : 1,
               },
             ]}
           />
