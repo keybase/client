@@ -13,10 +13,10 @@ import logger from '../logger'
 
 const Kb = {
   Box2,
-  Icon,
-  Text,
   Button,
   Emoji,
+  Icon,
+  Text,
 }
 
 type Props = {
