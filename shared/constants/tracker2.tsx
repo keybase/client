@@ -17,6 +17,7 @@ export const noDetails = Object.freeze<Types.Details>({
   guiID: '',
   reason: '',
   registeredForAirdrop: false,
+  stellarHidden: false,
   showTracker: false,
   state: 'error',
   teamShowcase: emptyArray,

@@ -645,6 +645,7 @@ export type TypedActionsMap = {
   'profile:finishRevoking': profile.FinishRevokingPayload
   'profile:finishedWithKeyGen': profile.FinishedWithKeyGenPayload
   'profile:generatePgp': profile.GeneratePgpPayload
+  'profile:hideStellar': profile.HideStellarPayload
   'profile:onClickAvatar': profile.OnClickAvatarPayload
   'profile:showUserProfile': profile.ShowUserProfilePayload
   'profile:submitZcashAddress': profile.SubmitZcashAddressPayload

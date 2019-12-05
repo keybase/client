@@ -502,12 +502,16 @@ func (i *UIAdapter) plumbCryptocurrency(mctx libkb.MetaContext, crypto keybase1.
 }
 
 func (i *UIAdapter) plumbStellarAccount(mctx libkb.MetaContext, str keybase1.StellarAccount) {
+	color := i.getColorForValid(i.iFollowThem)
+	if str.Hidden {
+		color = keybase1.Identify3RowColor_GRAY
+	}
 	i.updateRow(mctx, keybase1.Identify3Row{
 		Key:           "stellar",
 		Value:         str.FederationAddress,
 		Priority:      i.priority("stellar"),
 		State:         keybase1.Identify3RowState_VALID,
-		Color:         i.getColorForValid(i.iFollowThem),
+		Color:         color,
 		SigID:         str.SigID,
 		Ctime:         0,
 		SiteURL:       i.makeSigchainViewURL(mctx, str.SigID),

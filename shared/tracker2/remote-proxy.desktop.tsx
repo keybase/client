@@ -46,6 +46,7 @@ const RemoteTracker2 = Container.compose(
           ownProps.username
         ),
         state: d.state,
+        stellarHidden: d.stellarHidden,
         teamShowcase: d.teamShowcase,
         waiting: Container.anyWaiting(state, Constants.waitingKey),
         youAreInAirdrop: false,

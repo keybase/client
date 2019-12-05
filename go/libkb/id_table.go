@@ -990,10 +990,24 @@ func (s *WalletStellarChainLink) VerifyReverseSig(_ ComputedKeyFamily) (err erro
 }
 
 func (s *WalletStellarChainLink) Display(m MetaContext, ui IdentifyUI) error {
+	// First get an up to date user card, since hiding the Stellar address affects it.
+	_ = m.G().CardCache().Delete(s.GetUID())
+	card, err := UserCard(m, s.GetUID(), true)
+	if err != nil {
+		return fmt.Errorf("Error getting usercard: %s", err)
+	}
+	selfUID := m.G().Env.GetUID()
+	if selfUID.IsNil() {
+		m.G().Log.Warning("Could not get self UID for api")
+	}
+	if card.StellarHidden && !selfUID.Equal(s.GetUID()) {
+		return nil
+	}
 	return ui.DisplayStellarAccount(m, keybase1.StellarAccount{
 		AccountID:         s.address,
 		FederationAddress: fmt.Sprintf("%s*keybase.io", s.GetUsername()),
 		SigID:             s.GetSigID(),
+		Hidden:            card.StellarHidden,
 	})
 }
 

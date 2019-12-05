@@ -45,7 +45,7 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     const username = actionToUsername(draftState, action)
     if (!username) return
     const {bio, blocked, followersCount, followingCount, fullname} = action.payload
-    const {location, registeredForAirdrop, teamShowcase} = action.payload
+    const {location, registeredForAirdrop, stellarHidden, teamShowcase} = action.payload
     const d = getDetails(draftState, username)
     d.bio = bio
     d.blocked = blocked
@@ -54,6 +54,7 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     d.fullname = fullname
     d.location = location
     d.registeredForAirdrop = registeredForAirdrop
+    d.stellarHidden = stellarHidden
     d.teamShowcase = teamShowcase
   },
   [Tracker2Gen.updateResult]: (draftState, action) => {

@@ -147,6 +147,19 @@ const submitUnblockUser = async (_: TypedState, action: ProfileGen.SubmitUnblock
   }
 }
 
+const hideStellar = async (_: TypedState, action: ProfileGen.HideStellarPayload) => {
+  try {
+    await RPCTypes.apiserverPostRpcPromise(
+      {
+        args: [{key: 'hidden', value: action.payload.hidden ? '1' : '0'}],
+        endpoint: 'stellar/hidden',
+      },
+      TrackerConstants.waitingKey
+    )
+  } catch (e) {
+    logger.warn('Error setting Stellar hidden:', e)
+  }
+}
 const editAvatar = () =>
   isMobile
     ? undefined // handled in platform specific
@@ -168,6 +181,7 @@ function* _profileSaga() {
   yield* Saga.chainAction2(ProfileGen.onClickAvatar, onClickAvatar)
   yield* Saga.chainAction2(ProfileGen.showUserProfile, showUserProfile)
   yield* Saga.chainAction2(ProfileGen.editAvatar, editAvatar)
+  yield* Saga.chainAction2(ProfileGen.hideStellar, hideStellar)
 }
 
 function* profileSaga() {

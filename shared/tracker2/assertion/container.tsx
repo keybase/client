@@ -39,12 +39,17 @@ export default Container.namedConnect(
   (state, ownProps: OwnProps) => {
     let a = Constants.noAssertion
     let notAUser = false
+    let stellarHidden = false
+    const isYours = ownProps.username === state.config.username
     if (ownProps.isSuggestion) {
       a =
         state.tracker2.proofSuggestions.find(s => s.assertionKey === ownProps.assertionKey) ||
         Constants.noAssertion
     } else {
       const d = Constants.getDetails(state, ownProps.username)
+      if (isYours && d.stellarHidden) {
+        stellarHidden = true
+      }
       notAUser = d.state === 'notAUserYet'
       if (notAUser) {
         const nonUserDetails = Constants.getNonUserDetails(state, ownProps.username)
@@ -65,7 +70,7 @@ export default Container.namedConnect(
       _metas: a.metas,
       _sigID: a.sigID,
       color: a.color,
-      isYours: ownProps.username === state.config.username,
+      isYours,
       notAUser,
       proofURL: a.proofURL,
       siteIcon: a.siteIcon,
@@ -73,6 +78,7 @@ export default Container.namedConnect(
       siteIconWhite: a.siteIconWhite,
       siteURL: a.siteURL,
       state: a.state,
+      stellarHidden,
       timestamp: a.timestamp,
       type: a.type,
       value: a.value,
@@ -82,6 +88,7 @@ export default Container.namedConnect(
     _onCopyAddress: (text: string) => dispatch(ConfigGen.createCopyToClipboard({text})),
     _onCreateProof: (type: string) =>
       dispatch(ProfileGen.createAddProof({platform: type, reason: 'profile'})),
+    _onHideStellar: (hidden: boolean) => dispatch(ProfileGen.createHideStellar({hidden})),
     _onRecheck: (sigID: string) => dispatch(ProfileGen.createRecheckProof({sigID})),
     _onRevokeProof: (type: string, value: string, id: string, icon: Types.SiteIconSet) =>
       dispatch(
@@ -115,6 +122,7 @@ export default Container.namedConnect(
         : ownProps.isSuggestion
         ? () => dispatchProps._onCreateProof(stateProps.type)
         : undefined,
+      onHideStellar: (hidden: boolean) => dispatchProps._onHideStellar(hidden),
       onRecheck: () => dispatchProps._onRecheck(stateProps._sigID),
       onRequestLumens: () =>
         dispatchProps._onSendOrRequestLumens(stateProps.value.split('*')[0], true, 'keybaseUser'),
@@ -139,6 +147,7 @@ export default Container.namedConnect(
       siteIconWhite: stateProps.siteIconWhite,
       siteURL: stateProps.siteURL,
       state: stateProps.state,
+      stellarHidden: stateProps.stellarHidden,
       timestamp: stateProps.timestamp,
       type: stateProps.type,
       value: stateProps.value,

@@ -20,6 +20,7 @@
       "fullname": "string",
       "location": "string",
       "registeredForAirdrop": "boolean",
+      "stellarHidden": "boolean",
       "username": "string",
       "teamShowcase": "Array<Types.TeamShowcase>",
       "blocked": "boolean"

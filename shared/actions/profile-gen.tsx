@@ -20,6 +20,7 @@ export const finishBlockUser = 'profile:finishBlockUser'
 export const finishRevoking = 'profile:finishRevoking'
 export const finishedWithKeyGen = 'profile:finishedWithKeyGen'
 export const generatePgp = 'profile:generatePgp'
+export const hideStellar = 'profile:hideStellar'
 export const onClickAvatar = 'profile:onClickAvatar'
 export const proofParamsReceived = 'profile:proofParamsReceived'
 export const recheckProof = 'profile:recheckProof'
@@ -58,6 +59,7 @@ type _FinishBlockUserPayload = {readonly error?: string}
 type _FinishRevokingPayload = void
 type _FinishedWithKeyGenPayload = {readonly shouldStoreKeyOnServer: boolean}
 type _GeneratePgpPayload = void
+type _HideStellarPayload = {readonly hidden: boolean}
 type _OnClickAvatarPayload = {readonly username: string; readonly openWebsite?: boolean}
 type _ProofParamsReceivedPayload = {readonly params: Types.ProveGenericParams}
 type _RecheckProofPayload = {readonly sigID: string}
@@ -141,6 +143,10 @@ export const createFinishedWithKeyGen = (payload: _FinishedWithKeyGenPayload): F
 export const createGeneratePgp = (payload: _GeneratePgpPayload): GeneratePgpPayload => ({
   payload,
   type: generatePgp,
+})
+export const createHideStellar = (payload: _HideStellarPayload): HideStellarPayload => ({
+  payload,
+  type: hideStellar,
 })
 export const createOnClickAvatar = (payload: _OnClickAvatarPayload): OnClickAvatarPayload => ({
   payload,
@@ -261,6 +267,7 @@ export type FinishedWithKeyGenPayload = {
   readonly type: typeof finishedWithKeyGen
 }
 export type GeneratePgpPayload = {readonly payload: _GeneratePgpPayload; readonly type: typeof generatePgp}
+export type HideStellarPayload = {readonly payload: _HideStellarPayload; readonly type: typeof hideStellar}
 export type OnClickAvatarPayload = {
   readonly payload: _OnClickAvatarPayload
   readonly type: typeof onClickAvatar
@@ -358,6 +365,7 @@ export type Actions =
   | FinishRevokingPayload
   | FinishedWithKeyGenPayload
   | GeneratePgpPayload
+  | HideStellarPayload
   | OnClickAvatarPayload
   | ProofParamsReceivedPayload
   | RecheckProofPayload
