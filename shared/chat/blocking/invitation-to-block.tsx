@@ -97,7 +97,7 @@ const BlockButtons = (props: Props) => {
     >
       <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} centerChildren={true}>
         <Kb.Text type="BodySmall">
-          {team ? `${adder} added you to this team.` : `You don't seem to know ${adder}.`}
+          {team ? `${adder} added you to this team.` : `You don't follow ${adder}.`}
         </Kb.Text>
         <Kb.Icon
           style={styles.dismissIcon}
