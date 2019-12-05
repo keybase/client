@@ -14,7 +14,6 @@ type ActionOrInProgress = (() => void) | 'in-progress'
 type Props = {
   floatingMenuProps: FloatingMenuProps
   path: Types.Path
-  shouldAutoHide: boolean
   copyPath?: (() => void) | null
   delete?: (() => void) | null
   download?: (() => void) | null
@@ -192,16 +191,18 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => {
 export default (props: Props) => {
   Kbfs.useFsFileContext(props.path)
   const {downloadID, downloadIntent} = Container.useSelector(state => state.fs.pathItemActionMenu)
-  Kbfs.useFsWatchDownloadForMobile(downloadID || '', downloadIntent)
+  const justDoneWithIntent = Kbfs.useFsWatchDownloadForMobileReturnTrueIfJustDoneWithIntent(
+    downloadID || '',
+    downloadIntent
+  )
 
   const {
     floatingMenuProps: {hide},
-    shouldAutoHide,
   } = props
 
   React.useEffect(() => {
-    shouldAutoHide && hide()
-  }, [shouldAutoHide, hide])
+    justDoneWithIntent && hide()
+  }, [justDoneWithIntent, hide])
 
   const dispatch = Kbfs.useDispatchWhenKbfsIsConnected()
   const userInitiatedHide = React.useCallback(() => {

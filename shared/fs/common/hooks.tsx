@@ -167,8 +167,8 @@ export const useFsFileContext = (path: Types.Path) => {
   return setUrlError
 }
 
-export const useFsWatchDownloadForMobile = isMobile
-  ? (downloadID: string, downloadIntent: Types.DownloadIntent | null) => {
+export const useFsWatchDownloadForMobileReturnTrueIfJustDoneWithIntent = isMobile
+  ? (downloadID: string, downloadIntent: Types.DownloadIntent | null): boolean => {
       const dlState = Container.useSelector(
         state => state.fs.downloads.state.get(downloadID) || Constants.emptyDownloadState
       )
@@ -180,17 +180,24 @@ export const useFsWatchDownloadForMobile = isMobile
         state => state.fs.fileContext.get(dlInfo.path) || Constants.emptyFileContext
       ).contentType
 
+      const [justDoneWithIntent, setJustDoneWithIntent] = React.useState(false)
+
       const dispatch = useDispatchWhenConnected()
       React.useEffect(() => {
         if (!downloadID || !downloadIntent || !finished || !mimeType) {
+          setJustDoneWithIntent(false)
           return
         }
-        downloadIntent === Types.DownloadIntent.None
-          ? dispatch(FsGen.createFinishedRegularDownload({downloadID, mimeType}))
-          : dispatch(FsGen.createFinishedDownloadWithIntent({downloadID, downloadIntent, mimeType}))
+        if (downloadIntent === Types.DownloadIntent.None) {
+          dispatch(FsGen.createFinishedRegularDownload({downloadID, mimeType}))
+          return
+        }
+        dispatch(FsGen.createFinishedDownloadWithIntent({downloadID, downloadIntent, mimeType}))
+        setJustDoneWithIntent(true)
       }, [finished, mimeType, downloadID, downloadIntent, dispatch])
+      return justDoneWithIntent
     }
-  : () => {}
+  : () => false
 
 export const useFsBadge = (): RPCTypes.FilesTabBadge => {
   useFsNonPathSubscriptionEffect(RPCTypes.SubscriptionTopic.filesTabBadge)

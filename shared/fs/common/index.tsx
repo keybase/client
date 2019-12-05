@@ -26,6 +26,6 @@ export {
   useFsSoftError,
   useFsTlf,
   useFsTlfs,
-  useFsWatchDownloadForMobile,
+  useFsWatchDownloadForMobileReturnTrueIfJustDoneWithIntent,
   useDispatchWhenConnected as useDispatchWhenKbfsIsConnected,
 } from './hooks'
