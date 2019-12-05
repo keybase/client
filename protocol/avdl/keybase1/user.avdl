@@ -218,6 +218,11 @@ protocol user {
     union { null, boolean } follow;
   }
 
+  enum UserBlockType {
+    CHAT_0,
+    FOLLOW_1
+  }
+
   // user.blocked gregor message body
   record UserBlockedBody {
     @jsonkey("blocks")
@@ -229,10 +234,14 @@ protocol user {
     string username;
   }
 
+  record UserBlockState {
+    UserBlockType blockType;
+    boolean blocked;
+  }
+
   record UserBlockedSummary {
     string blocker;
-    array<string> chatBlocked;
-    array<string> followBlocked;
+    map<string, array<UserBlockState>> blocks;
   }
 
   // User Blocking

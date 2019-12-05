@@ -2484,6 +2484,11 @@ export enum UpdateInfoStatus2 {
   critical = 2,
 }
 
+export enum UserBlockType {
+  chat = 0,
+  follow = 1,
+}
+
 export enum UserOrTeamResult {
   user = 1,
   team = 2,
@@ -2996,9 +3001,10 @@ export type UpdaterStatus = {readonly log: String}
 export type User = {readonly uid: UID; readonly username: String}
 export type UserBlock = {readonly username: String; readonly chatBlocked: Boolean; readonly followBlocked: Boolean; readonly createTime?: Time | null; readonly modifyTime?: Time | null}
 export type UserBlockArg = {readonly username: String; readonly setChatBlock?: Boolean | null; readonly setFollowBlock?: Boolean | null}
+export type UserBlockState = {readonly blockType: UserBlockType; readonly blocked: Boolean}
 export type UserBlockedBody = {readonly blocks?: Array<UserBlockedRow> | null; readonly uid: UID; readonly username: String}
 export type UserBlockedRow = {readonly uid: UID; readonly username: String; readonly chat?: Boolean | null; readonly follow?: Boolean | null}
-export type UserBlockedSummary = {readonly blocker: String; readonly chatBlocked?: Array<String> | null; readonly followBlocked?: Array<String> | null}
+export type UserBlockedSummary = {readonly blocker: String; readonly blocks: {[key: string]: Array<UserBlockState> | null}}
 export type UserCard = {readonly following: Int; readonly followers: Int; readonly uid: UID; readonly fullName: String; readonly location: String; readonly bio: String; readonly bioDecorated: String; readonly website: String; readonly twitter: String; readonly youFollowThem: Boolean; readonly theyFollowYou: Boolean; readonly teamShowcase?: Array<UserTeamShowcase> | null; readonly registeredForAirdrop: Boolean; readonly blocked: Boolean; readonly hidFromFollowers: Boolean}
 export type UserEk = {readonly seed: Bytes32; readonly metadata: UserEkMetadata}
 export type UserEkBoxMetadata = {readonly box: String; readonly recipientGeneration: EkGeneration; readonly recipientDeviceID: DeviceID}
