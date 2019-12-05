@@ -236,6 +236,7 @@ func (h *TeamsHandler) TeamChangeMembership(ctx context.Context, arg keybase1.Te
 	return teams.ChangeRoles(ctx, h.G().ExternalG(), arg.Name, arg.Req)
 }
 
+///////////////
 func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMemberArg) (res keybase1.TeamAddMemberResult, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamAddMember(%s,%s)", arg.TeamID, arg.Username),
@@ -251,6 +252,7 @@ func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMe
 		}
 		return keybase1.TeamAddMemberResult{Invited: true, EmailSent: true}, nil
 	}
+	///////////////://////////////////
 	result, err := teams.AddMemberByID(ctx, h.G().ExternalG(), arg.TeamID, arg.Username, arg.Role, arg.BotSettings)
 	// if err != nil and is of type ERRORABOUTCONTACTSETTINGS, return
 	// keybase1.TeamAddMemberResult{Failed: true}
@@ -279,6 +281,7 @@ func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMe
 	return result, nil
 }
 
+////////////
 func (h *TeamsHandler) TeamAddMembers(ctx context.Context, arg keybase1.TeamAddMembersArg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamAddMembers(%+v", arg), func() error { return err })()
@@ -295,6 +298,7 @@ func (h *TeamsHandler) TeamAddMembers(ctx context.Context, arg keybase1.TeamAddM
 	return h.TeamAddMembersMultiRole(ctx, arg2)
 }
 
+////////////////
 func (h *TeamsHandler) TeamAddMembersMultiRole(ctx context.Context, arg keybase1.TeamAddMembersMultiRoleArg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	debugString := "0"
@@ -604,6 +608,7 @@ func (h *TeamsHandler) LookupOrCreateImplicitTeam(ctx context.Context, arg keyba
 	return res, err
 }
 
+//////////////////////
 func (h *TeamsHandler) TeamReAddMemberAfterReset(ctx context.Context, arg keybase1.TeamReAddMemberAfterResetArg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamReAddMemberAfterReset(%s)", arg.Id), func() error { return err })()

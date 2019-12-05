@@ -368,6 +368,7 @@ func getUserProofsNoTracking(ctx context.Context, g *libkb.GlobalContext, userna
 	return eng.GetProofSet(), eng.GetIdentifyOutcome(), nil
 }
 
+///////////////////////////////////////////////////
 func AddMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, username string,
 	role keybase1.TeamRole, botSettings *keybase1.TeamBotSettings) (res keybase1.TeamAddMemberResult, err error) {
 

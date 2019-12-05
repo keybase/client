@@ -481,6 +481,7 @@ func resolveServerTrustAssertion(mctx libkb.MetaContext, assertion string) (upak
 	return upak, false, nil
 }
 
+/////////////////////////////////////////////
 // AddMemberByAssertionOrEmail adds an assertion to the team. It can handle
 // three major cases:
 //  1. joe OR joe+foo@reddit WHERE joe is already a keybase user, or the assertions map to a unique keybase user
@@ -526,6 +527,7 @@ func (tx *AddMemberTx) AddMemberByAssertionOrEmail(ctx context.Context, assertio
 		// We have a user and can add them to a team, no invite required.
 		username = libkb.NewNormalizedUsername(upak.Username)
 		uv = upak.ToUserVersion()
+		////////////////////////////////////////
 		invite, err = tx.addMemberByUPKV2(ctx, upak, role, botSettings)
 		m.Debug("Adding keybase member: %s (isInvite=%v)", username, invite)
 		return username, uv, invite, err
