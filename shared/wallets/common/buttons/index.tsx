@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
-import {MenuItems} from '../../../common-adapters/floating-menu/menu-layout'
 
 type SendProps = {
   disabled: boolean
@@ -12,7 +11,7 @@ type SendProps = {
 }
 
 const _SendButton = (props: Kb.PropsWithOverlay<SendProps>) => {
-  const menuItems: MenuItems = [
+  const menuItems: Kb.MenuItems = [
     {icon: 'iconfont-mention', onClick: props.onSendToKeybaseUser, title: 'To a Keybase user'},
     {icon: 'iconfont-identity-stellar', onClick: props.onSendToStellarAddress, title: 'To a Stellar address'},
     {

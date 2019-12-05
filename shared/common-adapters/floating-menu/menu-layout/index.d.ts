@@ -7,7 +7,7 @@ export type MenuItem = {
   danger?: boolean
   decoration?: React.ReactNode // on the right side. unused if `view` is given,
   disabled?: boolean
-  icon?: IconType
+  icon?: IconType | null
   iconStyle?: StylesCrossPlatform
   isBadged?: boolean
   inProgress?: boolean

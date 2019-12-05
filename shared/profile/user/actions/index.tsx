@@ -151,7 +151,7 @@ const Actions = (p: Props) => {
 }
 
 const DropdownButton = Kb.OverlayParentHOC((p: Kb.PropsWithOverlay<DropdownProps>) => {
-  const items = [
+  const items: Kb.MenuItems = [
     {icon: 'iconfont-people', onClick: p.onAddToTeam, title: 'Add to team...'},
     {icon: 'iconfont-stellar-send', onClick: p.onSendLumens, title: 'Send Lumens (XLM)'},
     {icon: 'iconfont-stellar-request', onClick: p.onRequestLumens, title: 'Request Lumens (XLM)'},
