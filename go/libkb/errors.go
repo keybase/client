@@ -1998,11 +1998,12 @@ func (e ChatUnknownTLFIDError) Error() string {
 //=============================================================================
 
 type ChatNotInConvError struct {
-	UID gregor.UID
+	UID    gregor.UID
+	ConvID chat1.ConversationID
 }
 
 func (e ChatNotInConvError) Error() string {
-	return fmt.Sprintf("user is not in conversation: uid: %s", e.UID.String())
+	return fmt.Sprintf("user is not in conversation: %s uid: %s", e.ConvID.String(), e.UID.String())
 }
 
 func (e ChatNotInConvError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
@@ -2012,11 +2013,12 @@ func (e ChatNotInConvError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
 //=============================================================================
 
 type ChatNotInTeamError struct {
-	UID gregor.UID
+	UID   gregor.UID
+	TlfID chat1.TLFID
 }
 
 func (e ChatNotInTeamError) Error() string {
-	return fmt.Sprintf("user is not in team: uid: %s", e.UID.String())
+	return fmt.Sprintf("user is not in team: %v uid: %s", e.TlfID, e.UID.String())
 }
 
 func (e ChatNotInTeamError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
