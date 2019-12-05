@@ -970,10 +970,10 @@ func remove(ctx context.Context, g *libkb.GlobalContext, teamGetter func() (*Tea
 	})
 }
 
-func CancelEmailInvite(ctx context.Context, g *libkb.GlobalContext, teamname, email string, allowInaction bool) (err error) {
+func CancelEmailInvite(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, email string, allowInaction bool) (err error) {
 	g.CTrace(ctx, "CancelEmailInvite", func() error { return err })
 	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
-		t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
+		t, err := GetForTeamManagementByTeamID(ctx, g, teamID, true)
 		if err != nil {
 			return err
 		}
@@ -986,10 +986,10 @@ func CancelEmailInvite(ctx context.Context, g *libkb.GlobalContext, teamname, em
 	})
 }
 
-func CancelInviteByID(ctx context.Context, g *libkb.GlobalContext, teamname string, inviteID keybase1.TeamInviteID, allowInaction bool) (err error) {
+func CancelInviteByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, inviteID keybase1.TeamInviteID, allowInaction bool) (err error) {
 	g.CTrace(ctx, "CancelInviteByID", func() error { return err })
 	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
-		t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
+		t, err := GetForTeamManagementByStringName(ctx, g, teamID, true)
 		if err != nil {
 			return err
 		}
