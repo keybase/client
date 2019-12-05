@@ -103,8 +103,13 @@ const ConnectedAvatar = Container.connect(
     _httpSrvAddress: state.config.httpSrvAddress,
     _httpSrvToken: state.config.httpSrvToken,
     blocked:
-      (Tracker2Constants.getDetails(state, ownProps.username || ownProps.teamname || '') || {blocked: false})
-        .blocked || false,
+      (
+        (state.tracker2 &&
+          state.tracker2.usernameToDetails &&
+          Tracker2Constants.getDetails(state, ownProps.username || ownProps.teamname || '')) || {
+          blocked: false,
+        }
+      ).blocked || false,
   }),
   dispatch => ({
     _goToProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
