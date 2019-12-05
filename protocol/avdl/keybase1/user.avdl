@@ -256,6 +256,8 @@ protocol user {
   void reportUser(int sessionID, string username, string reason, string comment,
     boolean includeTranscript, union { null, string } convID);
 
+  void dismissBlockButtons(TLFID tlfID);
+
   // Legacy user blocking:
   void blockUser(string username);
   void unblockUser(string username);

@@ -7,6 +7,7 @@ import * as MessageTypes from '../../../../../constants/types/chat2/message'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
 import * as TeamConstants from '../../../../../constants/teams'
+import * as TeamTypes from '../../../../../constants/types/teams'
 import * as TeamsGen from '../../../../../actions/teams-gen'
 import {appendNewTeamBuilder} from '../../../../../actions/typed-routes'
 import TeamJourney from '.'
@@ -105,16 +106,17 @@ const TeamJourneyContainer = (props: Props) => {
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const conv = Constants.getMeta(state, ownProps.message.conversationIDKey)
-  const {channelname, teamname} = conv
+  const {channelname, teamname, teamID} = conv
   return {
     _channelInfos: TeamConstants.getTeamChannelInfos(state, teamname),
+    _teamID: teamID,
     channelname,
     teamname,
   }
 }
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
-  _onAddPeopleToTeam: (teamname: string) => dispatch(appendNewTeamBuilder(teamname)),
+  _onAddPeopleToTeam: (teamID: TeamTypes.TeamID) => dispatch(appendNewTeamBuilder(teamID)),
   _onBrowseChannels: (teamname: string) =>
     dispatch(
       RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'chatManageChannels'}]})
@@ -142,9 +144,7 @@ const TeamJourneyConnected = Container.connect(
       RPCChatTypes.ConversationMemberStatus.reset,
       RPCChatTypes.ConversationMemberStatus.neverJoined,
     ])
-    const otherChannels = stateProps._channelInfos
-      .valueSeq()
-      .toArray()
+    const otherChannels = [...stateProps._channelInfos.values()]
       .filter(info => joinableStatuses.has(info.memberStatus))
       .sort((x, y) => y.mtime - x.mtime)
       .slice(0, Container.isMobile ? 2 : 3)
@@ -153,7 +153,7 @@ const TeamJourneyConnected = Container.connect(
     return {
       channelname,
       message: ownProps.message,
-      onAddPeopleToTeam: () => dispatchProps._onAddPeopleToTeam(stateProps.teamname),
+      onAddPeopleToTeam: () => dispatchProps._onAddPeopleToTeam(stateProps._teamID),
       onBrowseChannels: () => dispatchProps._onBrowseChannels(stateProps.teamname),
       onCreateChatChannels: () => dispatchProps._onCreateChatChannels(stateProps.teamname),
       onGoToChannel: (channelName: string) => dispatchProps._onGoToChannel(channelName, stateProps.teamname),

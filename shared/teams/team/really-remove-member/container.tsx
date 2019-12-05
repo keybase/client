@@ -7,6 +7,7 @@ type OwnProps = Container.RouteProps<{
   username: string
   teamname: string
   email: string
+  navToChat?: boolean
 }>
 
 export default Container.connect(
@@ -14,11 +15,13 @@ export default Container.connect(
     member:
       Container.getRouteProps(ownProps, 'username', '') || Container.getRouteProps(ownProps, 'email', ''),
     name: Container.getRouteProps(ownProps, 'teamname', ''),
+    navToChat: Container.getRouteProps(ownProps, 'navToChat', false),
   }),
   (dispatch, ownProps: OwnProps) => {
     const teamname = Container.getRouteProps(ownProps, 'teamname', '')
     const email = Container.getRouteProps(ownProps, 'email', '')
     const username = Container.getRouteProps(ownProps, 'username', '')
+    const navToChat = Container.getRouteProps(ownProps, 'navToChat', false)
     return {
       onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
       onRemove: () => {
@@ -30,8 +33,12 @@ export default Container.connect(
             username,
           })
         )
-        dispatch(RouteTreeGen.createNavUpToScreen({routeName: 'team'}))
-        dispatch(TeamsGen.createGetDetails({teamname}))
+        if (navToChat) {
+          dispatch(RouteTreeGen.createNavigateUp())
+        } else {
+          dispatch(RouteTreeGen.createNavUpToScreen({routeName: 'team'}))
+          dispatch(TeamsGen.createGetDetails({teamname}))
+        }
       },
     }
   },

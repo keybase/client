@@ -42,6 +42,12 @@ export const editTeambuildingDraft = (
       const old = mapGetEnsureValue(results, service, [])
       old.push(...users)
     },
+    [TeamBuildingGen.finishTeamBuilding]: draftState => {
+      draftState.error = ''
+    },
+    [TeamBuildingGen.setError]: (draftState, action) => {
+      draftState.error = action.payload.error
+    },
     [TeamBuildingGen.finishedTeamBuilding]: draftState => {
       return {
         ...Constants.makeSubState(),

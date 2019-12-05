@@ -13,6 +13,7 @@ import {
 export type ResultProps = {
   // They are already a member in the actual team, not this temporary set.
   isPreExistingTeamMember: boolean
+  isYou: boolean
   resultForService: Types.ServiceIdWithContact
   username: string
   prettyName: string
@@ -24,6 +25,7 @@ export type ResultProps = {
   onAdd: () => void
   onRemove: () => void
   rightButtons?: React.ReactNode
+  bottomRow?: React.ReactNode
 }
 
 export type CommonResultProps = ResultProps & {
@@ -80,16 +82,18 @@ const CommonResult = (props: CommonResultProps) => {
                 keybaseUsername={keybaseUsername}
                 username={serviceUsername || ''}
               />
-              <BottomRow
-                displayLabel={props.displayLabel}
-                followingState={props.followingState}
-                isKeybaseResult={isKeybaseResult}
-                isPreExistingTeamMember={props.isPreExistingTeamMember}
-                keybaseUsername={keybaseUsername}
-                prettyName={props.prettyName}
-                services={props.services}
-                username={serviceUsername || ''}
-              />
+              {props.bottomRow ?? (
+                <BottomRow
+                  displayLabel={props.displayLabel}
+                  followingState={props.followingState}
+                  isKeybaseResult={isKeybaseResult}
+                  isPreExistingTeamMember={props.isPreExistingTeamMember}
+                  keybaseUsername={keybaseUsername}
+                  prettyName={props.prettyName}
+                  services={props.services}
+                  username={serviceUsername || ''}
+                />
+              )}
             </>
           ) : (
             <>
@@ -112,7 +116,7 @@ const CommonResult = (props: CommonResultProps) => {
           style={props.highlight ? styles.actionButtonsHighlighted : undefined}
         >
           {/* Renders checkbox for new-chat and team-building, and chat buttons + dropdown for people search */}
-          {props.rightButtons ? props.rightButtons : null}
+          {props.rightButtons ?? null}
         </Kb.Box2>
       </Kb.Box2>
     </Kb.ClickableBox>

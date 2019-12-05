@@ -13,9 +13,10 @@ type OwnProps = {
 
 export default Container.connect(
   (state, ownProps: OwnProps) => {
-    const {teamID} = Constants.getMeta(state, ownProps.message.conversationIDKey)
+    const {teamID, teamname} = Constants.getMeta(state, ownProps.message.conversationIDKey)
     return {
-      isAdmin: TeamConstants.isAdmin(TeamConstants.getRole(state, ownProps.message.team)),
+      isAdmin: TeamConstants.isAdmin(TeamConstants.getRole(state, teamID)),
+      team: teamname,
       teamID,
       you: state.config.username,
     }
@@ -39,7 +40,7 @@ export default Container.connect(
     creator: ownProps.message.creator,
     isAdmin: stateProps.isAdmin,
     onViewTeam: () => dispatchProps._onViewTeam(stateProps.teamID, ownProps.message.conversationIDKey),
-    team: ownProps.message.team,
+    team: stateProps.team,
     you: stateProps.you,
   })
 )(SystemCreateTeam)

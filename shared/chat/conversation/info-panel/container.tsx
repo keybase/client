@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as FsGen from '../../../actions/fs-gen'
 import * as Constants from '../../../constants/chat2'
@@ -68,7 +67,7 @@ const ConnectedInfoPanel = Container.connect(
     const attachmentInfo = (m && m.get(selectedAttachmentView)) || noAttachmentView
     const attachmentsLoading = selectedTab === 'attachments' && attachmentInfo.status === 'loading'
     const _teamMembers =
-      state.teams.teamNameToMembers.get(meta.teamname) || I.Map<string, TeamTypes.MemberInfo>()
+      state.teams.teamNameToMembers.get(meta.teamname) || new Map<string, TeamTypes.MemberInfo>()
     return {
       _attachmentInfo: attachmentInfo,
       _botAliases: meta.botAliases,
@@ -76,7 +75,9 @@ const ConnectedInfoPanel = Container.connect(
       _infoMap: state.users.infoMap,
       _participantToContactName: meta.participantToContactName,
       _participants: meta.participants,
+      _team: meta.teamname,
       _teamMembers,
+      _username: state.config.username,
       admin,
       attachmentsLoading,
       canDeleteHistory,
@@ -114,6 +115,18 @@ const ConnectedInfoPanel = Container.connect(
       dispatch(Chat2Gen.createLoadAttachmentView({conversationIDKey, fromMsgID, viewType})),
     _onMediaClick: (message: Types.MessageAttachment) =>
       dispatch(Chat2Gen.createAttachmentPreviewSelect({message})),
+    _onShowBlockConversationDialog: (others: Array<string>, team: string) => {
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [
+            {
+              props: {blockByDefault: true, convID: conversationIDKey, others, team},
+              selected: 'chatBlockingModal',
+            },
+          ],
+        })
+      )
+    },
     _onShowClearConversationDialog: () => {
       dispatch(Chat2Gen.createNavigateToThread())
       dispatch(
@@ -144,18 +157,6 @@ const ConnectedInfoPanel = Container.connect(
     onHideConv: () => dispatch(Chat2Gen.createHideConversation({conversationIDKey})),
     onJoinChannel: () => dispatch(Chat2Gen.createJoinConversation({conversationIDKey})),
     onLeaveConversation: () => dispatch(Chat2Gen.createLeaveConversation({conversationIDKey})),
-    onShowBlockConversationDialog: () => {
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [
-            {
-              props: {conversationIDKey},
-              selected: 'chatShowBlockConversationDialog',
-            },
-          ],
-        })
-      )
-    },
     onShowNewTeamDialog: () => {
       dispatch(
         RouteTreeGen.createNavigateAppend({
@@ -176,14 +177,15 @@ const ConnectedInfoPanel = Container.connect(
     const teamMembers = stateProps._teamMembers
     const isGeneral = stateProps.channelname === 'general'
     const showAuditingBanner = isGeneral && !teamMembers
+    const membersForBlock = (stateProps._teamMembers.size
+      ? [...stateProps._teamMembers.keys()]
+      : stateProps._participants
+    ).filter(username => username !== stateProps._username && !Constants.isAssertion(username))
     if (teamMembers && isGeneral) {
-      participants = teamMembers
-        .valueSeq()
-        .toArray()
-        .reduce<Array<string>>((l, mi) => {
-          l.push(mi.username)
-          return l
-        }, [])
+      participants = [...teamMembers.values()].reduce<Array<string>>((l, mi) => {
+        l.push(mi.username)
+        return l
+      }, [])
     }
     return {
       admin: stateProps.admin,
@@ -297,7 +299,9 @@ const ConnectedInfoPanel = Container.connect(
       onJoinChannel: dispatchProps.onJoinChannel,
       onLeaveConversation: dispatchProps.onLeaveConversation,
       onSelectTab: ownProps.onSelectTab,
-      onShowBlockConversationDialog: dispatchProps.onShowBlockConversationDialog,
+      onShowBlockConversationDialog: membersForBlock.length
+        ? () => dispatchProps._onShowBlockConversationDialog(membersForBlock, stateProps._team)
+        : dispatchProps.onHideConv,
       onShowClearConversationDialog: () => dispatchProps._onShowClearConversationDialog(),
       onShowNewTeamDialog: dispatchProps.onShowNewTeamDialog,
       onShowProfile: dispatchProps.onShowProfile,

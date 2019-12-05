@@ -16,6 +16,7 @@ type Props = {
   onDelete?: () => void
   onDownload?: () => void
   onHidden: () => void
+  onKick: () => void
   onPinMessage?: () => void
   onReply: () => void
   onSaveAttachment?: () => void
@@ -28,6 +29,7 @@ type Props = {
   visible: boolean
   yourMessage: boolean
   isDeleteable: boolean
+  isKickable: boolean
 }
 
 const AttachmentPopupMenu = (props: Props) => {
@@ -45,7 +47,18 @@ const AttachmentPopupMenu = (props: Props) => {
           },
         ] as const)
       : []),
-
+    ...(props.isKickable
+      ? ([
+          {
+            danger: true,
+            disabled: !props.onKick,
+            icon: 'iconfont-leave',
+            onClick: props.onKick,
+            subTitle: 'Removes the user from the team',
+            title: 'Kick user',
+          },
+        ] as const)
+      : []),
     'Divider' as const,
     ...(props.onShowInFinder
       ? [{icon: 'iconfont-finder', onClick: props.onShowInFinder, title: `Show in ${fileUIName}`}]
@@ -66,7 +79,7 @@ const AttachmentPopupMenu = (props: Props) => {
     ...(props.onShareAttachment
       ? [{disabled: props.pending, icon: 'iconfont-share', onClick: props.onShareAttachment, title: 'Share'}]
       : []),
-    ...[{disabled: props.pending, icon: 'iconfont-camera', onClick: props.onAllMedia, title: 'All media'}],
+    ...(props.onAllMedia ? [{icon: 'iconfont-camera', onClick: props.onAllMedia, title: 'All media'}] : []),
     ...(props.onAddReaction
       ? [{icon: 'iconfont-reacji', onClick: props.onAddReaction, title: 'Add a reaction'}]
       : []),

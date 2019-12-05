@@ -3491,7 +3491,7 @@ type TeamChangeMembershipArg struct {
 
 type TeamAddMemberArg struct {
 	SessionID            int              `codec:"sessionID" json:"sessionID"`
-	Name                 string           `codec:"name" json:"name"`
+	TeamID               TeamID           `codec:"teamID" json:"teamID"`
 	Email                string           `codec:"email" json:"email"`
 	Username             string           `codec:"username" json:"username"`
 	Role                 TeamRole         `codec:"role" json:"role"`
@@ -3501,7 +3501,7 @@ type TeamAddMemberArg struct {
 
 type TeamAddMembersArg struct {
 	SessionID            int              `codec:"sessionID" json:"sessionID"`
-	Name                 string           `codec:"name" json:"name"`
+	TeamID               TeamID           `codec:"teamID" json:"teamID"`
 	Assertions           []string         `codec:"assertions" json:"assertions"`
 	Role                 TeamRole         `codec:"role" json:"role"`
 	BotSettings          *TeamBotSettings `codec:"botSettings,omitempty" json:"botSettings,omitempty"`
@@ -3510,7 +3510,7 @@ type TeamAddMembersArg struct {
 
 type TeamAddMembersMultiRoleArg struct {
 	SessionID            int            `codec:"sessionID" json:"sessionID"`
-	Name                 string         `codec:"name" json:"name"`
+	TeamID               TeamID         `codec:"teamID" json:"teamID"`
 	Users                []UserRolePair `codec:"users" json:"users"`
 	SendChatNotification bool           `codec:"sendChatNotification" json:"sendChatNotification"`
 }

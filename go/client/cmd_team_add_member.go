@@ -110,8 +110,13 @@ func (c *CmdTeamAddMember) Run() error {
 		return err
 	}
 
+	teamID, err := cli.GetTeamID(context.Background(), c.Team)
+	if err != nil {
+		return err
+	}
+
 	arg := keybase1.TeamAddMemberArg{
-		Name:                 c.Team,
+		TeamID:               teamID,
 		Email:                c.Email,
 		Username:             c.Username,
 		Role:                 c.Role,

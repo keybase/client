@@ -225,10 +225,10 @@ const styles = Styles.styleSheetCreate(() => ({
   innerContainerBottom: {...Styles.globalStyles.flexBoxRow, flexShrink: 1},
   innerContainerTop: {
     ...Styles.globalStyles.flexBoxRow,
+    ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.small),
     alignItems: 'center',
     flexShrink: 0,
     height: Styles.isMobile ? 56 : 48,
-    padding: Styles.globalMargins.tiny,
     width: '100%',
   },
   lockedOutOrDeleted: {

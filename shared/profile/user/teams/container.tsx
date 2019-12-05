@@ -2,7 +2,7 @@ import * as Container from '../../../util/container'
 import * as TeamsGen from '../../../actions/teams-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Constants from '../../../constants/tracker2'
-import {TeamID} from '../../../constants/types/teams'
+import {TeamID, noTeamID} from '../../../constants/types/teams'
 import Teams, {Props} from '.'
 
 type OwnProps = {
@@ -16,7 +16,7 @@ export default Container.namedConnect(
     const d = Constants.getDetails(state, ownProps.username)
     return {
       _isYou: state.config.username === ownProps.username,
-      _roles: state.teams.teamNameToRole,
+      _roles: state.teams.teamRoleMap.roles,
       _teamNameToID: state.teams.teamNameToID,
       _youAreInTeams: state.teams.teamnames.size > 0,
       teamShowcase: d.teamShowcase || noTeams,
@@ -35,9 +35,10 @@ export default Container.namedConnect(
     onJoinTeam: dispatchProps.onJoinTeam,
     onViewTeam: dispatchProps.onViewTeam,
     teamMeta: stateProps.teamShowcase.reduce<Props['teamMeta']>((map, t) => {
+      const teamID = stateProps._teamNameToID.get(t.name) || noTeamID
       map[t.name] = {
-        inTeam: !!stateProps._roles.get(t.name),
-        teamID: stateProps._teamNameToID.get(t.name) || '',
+        inTeam: !!((stateProps._roles.get(teamID)?.role || 'none') !== 'none'),
+        teamID,
       }
       return map
     }, {}),

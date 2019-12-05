@@ -4,8 +4,6 @@ import * as Styles from '../../styles'
 import {Box} from '../../common-adapters'
 import SettingsItem from './settings-item'
 import * as Tabs from '../../constants/tabs'
-import * as Platform from '../../constants/platform'
-import flags from '../../util/feature-flags'
 import {Props} from './index'
 
 const SettingsNav = (props: Props) => {
@@ -22,13 +20,11 @@ const SettingsNav = (props: Props) => {
         selected={props.selectedTab === Constants.chatTab}
         onClick={() => props.onTabChange(Constants.chatTab)}
       />
-      {(!Platform.isLinux || flags.kbfsOfflineMode) && (
-        <SettingsItem
-          text="Files"
-          selected={props.selectedTab === Constants.fsTab}
-          onClick={() => props.onTabChange(Constants.fsTab)}
-        />
-      )}
+      <SettingsItem
+        text="Files"
+        selected={props.selectedTab === Constants.fsTab}
+        onClick={() => props.onTabChange(Constants.fsTab)}
+      />
       <SettingsItem
         text="Notifications"
         selected={props.selectedTab === Constants.notificationsTab}

@@ -18,6 +18,7 @@ type Props = {
   onDeleteMessageHistory?: () => void
   onEdit?: () => void
   onHidden: () => void
+  onKick: () => void
   onPinMessage?: () => void
   onReply?: () => void
   onReplyPrivately?: () => void
@@ -32,6 +33,7 @@ type Props = {
   yourMessage: boolean
   isDeleteable: boolean
   isEditable: boolean
+  isKickable: boolean
 }
 
 const TextPopupMenu = (props: Props) => {
@@ -49,7 +51,18 @@ const TextPopupMenu = (props: Props) => {
           },
         ]
       : []),
-    ...((props.yourMessage && props.isDeleteable) || props.onDeleteMessageHistory
+    ...(props.isKickable
+      ? [
+          {
+            danger: true,
+            disabled: !props.onKick,
+            onClick: props.onKick,
+            subTitle: 'Removes the user from the team',
+            title: 'Kick user',
+          },
+        ]
+      : []),
+    ...((props.yourMessage && (props.isDeleteable || props.isKickable)) || props.onDeleteMessageHistory
       ? (['Divider'] as const)
       : []),
     ...(props.onViewMap

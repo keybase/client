@@ -213,10 +213,17 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 	var convInner convForJourneycardInner
 	var untrustedTeamRole keybase1.TeamRole
 	var tlfID chat1.TLFID
+	var welcomeEligible bool
 	if convLocalOptional != nil {
 		convInner = convLocalOptional
 		tlfID = convLocalOptional.Info.Triple.Tlfid
 		untrustedTeamRole = convLocalOptional.ReaderInfo.UntrustedTeamRole
+		if convLocalOptional.ReaderInfo.Journeycard != nil {
+			welcomeEligible = convLocalOptional.ReaderInfo.Journeycard.WelcomeEligible
+			if convInner.GetTopicName() == globals.DefaultTeamTopic {
+				debugDebug(ctx, "welcomeEligible: convLocalOptional has ReaderInfo.Journeycard: %v", welcomeEligible)
+			}
+		}
 	} else {
 		convFromCache, err := utils.GetUnverifiedConv(ctx, cc.G(), cc.uid, convID, types.InboxSourceDataSourceLocalOnly)
 		if err != nil {
@@ -230,6 +237,12 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 		tlfID = convFromCache.Conv.Metadata.IdTriple.Tlfid
 		if convFromCache.Conv.ReaderInfo != nil {
 			untrustedTeamRole = convFromCache.Conv.ReaderInfo.UntrustedTeamRole
+			if convFromCache.Conv.ReaderInfo.Journeycard != nil {
+				welcomeEligible = convFromCache.Conv.ReaderInfo.Journeycard.WelcomeEligible
+				if convInner.GetTopicName() == globals.DefaultTeamTopic {
+					debugDebug(ctx, "welcomeEligible: convFromCache has ReaderInfo.Journeycard: %v", welcomeEligible)
+				}
+			}
 		}
 	}
 
@@ -239,6 +252,7 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 		IsGeneralChannel:        convInner.GetTopicName() == globals.DefaultTeamTopic,
 		UntrustedTeamRole:       untrustedTeamRole,
 		TlfID:                   tlfID,
+		WelcomeEligible:         welcomeEligible,
 	}
 
 	if !(conv.GetTopicType() == chat1.TopicType_CHAT &&
@@ -292,7 +306,7 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 			}
 		}
 		ordinal := 1 // Won't conflict with outbox messages since they are all <= outboxOrdinalStart.
-		cc.Debug(ctx, "makeCard -> prevID:%v cardType:%v", pos.PrevID, cardType)
+		cc.Debug(ctx, "makeCard -> prevID:%v cardType:%v jcdCtime:%v", pos.PrevID, cardType, jcd.Ctime.Time())
 		return &chat1.MessageUnboxedJourneycard{
 			PrevID:         pos.PrevID,
 			Ordinal:        ordinal,
@@ -328,7 +342,6 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 		chat1.JourneycardType_POPULAR_CHANNELS, // 2 on design
 		chat1.JourneycardType_ADD_PEOPLE,       // 3 on design
 		chat1.JourneycardType_CREATE_CHANNELS,  // 4 on design
-		chat1.JourneycardType_CREATE_CHANNELS,  // 4 on design
 		chat1.JourneycardType_MSG_ATTENTION,    // 5 on design
 	}
 
@@ -341,7 +354,7 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 	type cardCondition func(context.Context) bool
 	cardConditionTODO := func(ctx context.Context) bool { return false }
 	cardConditions := map[chat1.JourneycardType]cardCondition{
-		chat1.JourneycardType_WELCOME:            func(ctx context.Context) bool { return cc.cardWelcome(ctx, convID, conv, jcd) },
+		chat1.JourneycardType_WELCOME:            func(ctx context.Context) bool { return cc.cardWelcome(ctx, convID, conv, jcd, debugDebug) },
 		chat1.JourneycardType_POPULAR_CHANNELS:   func(ctx context.Context) bool { return cc.cardPopularChannels(ctx, convID, conv, jcd, debugDebug) },
 		chat1.JourneycardType_ADD_PEOPLE:         func(ctx context.Context) bool { return cc.cardAddPeople(ctx, conv, jcd, debugDebug) },
 		chat1.JourneycardType_CREATE_CHANNELS:    func(ctx context.Context) bool { return cc.cardCreateChannels(ctx, convID, jcd) },
@@ -380,9 +393,8 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 			cc.Debug(ctx, "non-latest page maxvis:%v end1:%v end2:%v", conv.MaxVisibleMsgID(), end1, end2)
 		}
 	}
-	if latestPage != thread.Pagination.FirstPage() {
-		cc.Debug(ctx, "latestPage:%v != FirstPage:%v", latestPage, thread.Pagination.FirstPage())
-	}
+	// One might expect thread.Pagination.FirstPage() to be used instead of latestPage.
+	// But FirstPage seems to return false often when latestPage is true.
 
 	if latestPage {
 		// Prefer showing new "linear" cards. Do not show cards that are prior to one that has been shown.
@@ -428,10 +440,15 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 
 // Card type: WELCOME (1 on design)
 // Condition: Only in #general channel
-func (cc *JourneyCardManagerSingleUser) cardWelcome(ctx context.Context, convID chat1.ConversationID, conv convForJourneycard, jcd journeyCardConvData) bool {
+func (cc *JourneyCardManagerSingleUser) cardWelcome(ctx context.Context, convID chat1.ConversationID, conv convForJourneycard, jcd journeyCardConvData, debugDebug logFn) bool {
 	// TODO PICNIC-593 Welcome's interaction with existing system message
-	// TODO PICNIC-593 Welcome cards should not show for all pre-existing teams when a client upgrades. That would be a bad transition. May require server support.
-	return conv.IsGeneralChannel && false
+	// Welcome cards show not show for all pre-existing teams when a client upgrades to first support journey cards. That would be a bad transition.
+	// The server gates whether welcome cards are allowed for a conv. After MarkAsRead-ing a conv, welcome cards are banned.
+	if !conv.IsGeneralChannel {
+		return false
+	}
+	debugDebug(ctx, "cardWelcome: welcomeEligible: %v", conv.WelcomeEligible)
+	return conv.IsGeneralChannel && conv.WelcomeEligible
 }
 
 // Card type: POPULAR_CHANNELS (2 on design)
@@ -926,6 +943,8 @@ const journeycardDiskVersion int = 1
 type journeyCardConvData struct {
 	DiskVersion int                                            `codec:"v,omitempty" json:"v,omitempty"`
 	Positions   map[chat1.JourneycardType]*journeyCardPosition `codec:"p,omitempty" json:"p,omitempty"`
+	// When this data was first saved. For debugging unexpected data loss.
+	Ctime gregor1.Time `codec:"c,omitempty" json:"c,omitempty"`
 	// Whether the user has sent a message in this channel.
 	SentMessage bool `codec:"sm,omitempty" json:"sm,omitempty"`
 	// When the user joined the channel (that's the idea, really it's some time when they saw the conv)
@@ -936,6 +955,7 @@ func newJourneyCardConvData() journeyCardConvData {
 	return journeyCardConvData{
 		DiskVersion: journeycardDiskVersion,
 		Positions:   make(map[chat1.JourneycardType]*journeyCardPosition),
+		Ctime:       gregor1.ToTime(time.Now()),
 	}
 }
 
@@ -968,4 +988,5 @@ type convForJourneycard struct {
 	IsGeneralChannel  bool
 	UntrustedTeamRole keybase1.TeamRole
 	TlfID             chat1.TLFID
+	WelcomeEligible   bool
 }

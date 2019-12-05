@@ -672,6 +672,10 @@ type ReportUserArg struct {
 	ConvID            *string `codec:"convID,omitempty" json:"convID,omitempty"`
 }
 
+type DismissBlockButtonsArg struct {
+	TlfID TLFID `codec:"tlfID" json:"tlfID"`
+}
+
 type BlockUserArg struct {
 	Username string `codec:"username" json:"username"`
 }
@@ -730,6 +734,7 @@ type UserInterface interface {
 	SetUserBlocks(context.Context, SetUserBlocksArg) error
 	GetUserBlocks(context.Context, GetUserBlocksArg) ([]UserBlock, error)
 	ReportUser(context.Context, ReportUserArg) error
+	DismissBlockButtons(context.Context, TLFID) error
 	BlockUser(context.Context, string) error
 	UnblockUser(context.Context, string) error
 }
@@ -1143,6 +1148,21 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 					return
 				},
 			},
+			"dismissBlockButtons": {
+				MakeArg: func() interface{} {
+					var ret [1]DismissBlockButtonsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]DismissBlockButtonsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]DismissBlockButtonsArg)(nil), args)
+						return
+					}
+					err = i.DismissBlockButtons(ctx, typedArgs[0].TlfID)
+					return
+				},
+			},
 			"blockUser": {
 				MakeArg: func() interface{} {
 					var ret [1]BlockUserArg
@@ -1343,6 +1363,12 @@ func (c UserClient) GetUserBlocks(ctx context.Context, __arg GetUserBlocksArg) (
 
 func (c UserClient) ReportUser(ctx context.Context, __arg ReportUserArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.user.reportUser", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c UserClient) DismissBlockButtons(ctx context.Context, tlfID TLFID) (err error) {
+	__arg := DismissBlockButtonsArg{TlfID: tlfID}
+	err = c.Cli.Call(ctx, "keybase.1.user.dismissBlockButtons", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
