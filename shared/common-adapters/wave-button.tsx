@@ -20,13 +20,13 @@ const Kb = {
 }
 
 type Props = {
-  // One of username xor conversationIDKey is expected.
-  username?: string
-  conversationIDKey?: ChatTypes.ConversationIDKey
   small?: boolean
   style?: Styles.StylesCrossPlatform
   toMany?: boolean
-}
+} & (
+  | {conversationIDKey: ChatTypes.ConversationIDKey; username?: never}
+  | {conversationIDKey?: never; username: string}
+)
 
 const getWaveWaitingKey = (recipient: string) => {
   return `settings:waveButton:${recipient}`
