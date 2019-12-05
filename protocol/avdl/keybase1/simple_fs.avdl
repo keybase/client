@@ -645,4 +645,7 @@ protocol SimpleFS {
     string url;
   }
   GUIFileContext simpleFSGetGUIFileContext(KBFSPath path);
+
+  void simpleFSDoIndex(Path path);
+  array<string> simpleFSSearch(string query);
 }

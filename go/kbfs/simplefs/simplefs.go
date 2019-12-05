@@ -29,6 +29,7 @@ import (
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libhttpserver"
 	"github.com/keybase/client/go/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/search"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/libkb"
@@ -130,6 +131,8 @@ type SimpleFS struct {
 	downloadManager *downloadManager
 
 	httpClient *http.Client
+
+	indexer *search.Indexer
 }
 
 type inprogress struct {
@@ -190,9 +193,9 @@ func newSimpleFS(appStateUpdater env.AppStateUpdater, config libkbfs.Config) *Si
 			log.Fatalf("initializing localHTTPServer error: %v", err)
 		}
 	}
-	k := &SimpleFS{
-		config: config,
 
+	k := &SimpleFS{
+		config:              config,
 		handles:             map[keybase1.OpID]*handle{},
 		inProgress:          map[keybase1.OpID]*inprogress{},
 		log:                 log,
@@ -204,6 +207,7 @@ func newSimpleFS(appStateUpdater env.AppStateUpdater, config libkbfs.Config) *Si
 		onlineStatusTracker: config.SubscriptionManager().OnlineStatusTracker(),
 		httpClient:          &http.Client{},
 	}
+
 	k.downloadManager = newDownloadManager(k)
 	return k
 }
@@ -3120,4 +3124,63 @@ func (k *SimpleFS) SimpleFSGetGUIFileContext(ctx context.Context,
 func (k *SimpleFS) SimpleFSGetFilesTabBadge(ctx context.Context) (
 	keybase1.FilesTabBadge, error) {
 	return k.config.KBFSOps().GetBadge(ctx)
+}
+
+func (k *SimpleFS) SimpleFSDoIndex(
+	ctx context.Context, path keybase1.Path) error {
+	ctx, err := k.startOpWrapContext(k.makeContext(ctx))
+	if err != nil {
+		return err
+	}
+	defer func() { libcontext.CleanupCancellationDelayer(ctx) }()
+	t, tlfName, midPath, finalElem, err := remoteTlfAndPath(path)
+	if err != nil {
+		return err
+	}
+	tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
+		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, tlfName, t)
+	if err != nil {
+		return err
+	}
+	branch, err := k.branchNameFromPath(ctx, tlfHandle, path)
+	if err != nil {
+		return err
+	}
+	fs, err := k.newFS(
+		ctx, k.config, tlfHandle, branch, "", false)
+	if err != nil {
+		return err
+	}
+	asLibFS, ok := fs.(*libfs.FS)
+	if !ok {
+		return errors.Errorf("FS was not a KBFS file system: %T", fs)
+	}
+	asLibFS, err = asLibFS.ChrootAsLibFS(fs.Join(midPath, finalElem))
+	if err != nil {
+		return err
+	}
+
+	if k.indexer == nil {
+		k.log.CDebugf(ctx, "MAKING NEW INDEXER")
+		k.indexer, err = search.NewIndexer(context.Background(), k.config)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	return k.indexer.Index(asLibFS)
+}
+
+func (k *SimpleFS) SimpleFSSearch(
+	ctx context.Context, query string) (res []string, err error) {
+	if k.indexer == nil {
+		k.log.CDebugf(ctx, "MAKING NEW INDEXER")
+		k.indexer, err = search.NewIndexer(context.Background(), k.config)
+		if err != nil {
+			k.log.CDebugf(ctx, "ERROR: %+v", err)
+			time.Sleep(1 * time.Second)
+			panic(err)
+		}
+	}
+	return k.indexer.Search(query)
 }
