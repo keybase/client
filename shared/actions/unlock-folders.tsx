@@ -1,27 +1,20 @@
-// TODO use waiting key
 import logger from '../logger'
 import * as UnlockFoldersGen from './unlock-folders-gen'
 import * as EngineGen from './engine-gen-gen'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Container from '../util/container'
+import * as Constants from '../constants/unlock-folders'
 import {getEngine} from '../engine/require'
 
-function* checkPaperKey(_: Container.TypedState, action: UnlockFoldersGen.CheckPaperKeyPayload) {
+const checkPaperKey = async (_: Container.TypedState, action: UnlockFoldersGen.CheckPaperKeyPayload) => {
   const {paperKey} = action.payload
-  yield Saga.put(UnlockFoldersGen.createWaiting({waiting: true}))
-  try {
-    yield Saga.callUntyped(RPCTypes.loginPaperKeySubmitRpcPromise, {paperPhrase: paperKey})
-    yield Saga.put(UnlockFoldersGen.createCheckPaperKeyDone())
-  } catch (e) {
-    yield Saga.put(UnlockFoldersGen.createCheckPaperKeyDone({error: e.message}))
-  } finally {
-    yield Saga.put(UnlockFoldersGen.createWaiting({waiting: false}))
-  }
+  await RPCTypes.loginPaperKeySubmitRpcPromise({paperPhrase: paperKey}, Constants.waitingKey)
+  return UnlockFoldersGen.createCheckPaperKeyDone()
 }
 
-const openPopup = () => {
-  RPCTypes.rekeyShowPendingRekeyStatusRpcPromise()
+const openPopup = async () => {
+  await RPCTypes.rekeyShowPendingRekeyStatusRpcPromise()
 }
 
 const closePopup = () => {
@@ -34,7 +27,7 @@ const refresh = (_: Container.TypedState, action: EngineGen.Keybase1RekeyUIRefre
   const sessionID = action.payload.params.sessionID
   logger.info('Asked for rekey')
   return UnlockFoldersGen.createNewRekeyPopup({
-    devices: problemSetDevices.devices || [],
+    devices: problemSetDevices.devices ?? [],
     problemSet: problemSetDevices.problemSet,
     sessionID,
   })
@@ -68,15 +61,12 @@ const delegateRekeyUI = (
       'keybase.1.rekeyUI.rekeySendEvent': () => {}, // ignored debug call from daemon
     },
   })
-  const response = action.payload.response
+  const {response} = action.payload
   response && response.result(session.id)
 }
 
 function* unlockFoldersSaga() {
-  yield* Saga.chainGenerator<UnlockFoldersGen.CheckPaperKeyPayload>(
-    UnlockFoldersGen.checkPaperKey,
-    checkPaperKey
-  )
+  yield* Saga.chainAction2(UnlockFoldersGen.checkPaperKey, checkPaperKey)
   yield* Saga.chainAction2(UnlockFoldersGen.closePopup, closePopup)
   yield* Saga.chainAction2(UnlockFoldersGen.openPopup, openPopup)
   yield* Saga.chainAction2(EngineGen.keybase1RekeyUIRefresh, refresh)

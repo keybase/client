@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as Types from '../types/chat2'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as RPCTypes from '../types/rpc-gen'
@@ -22,14 +21,18 @@ import HiddenString from '../../util/hidden-string'
 export const defaultTopReacjis = [':+1:', ':-1:', ':tada:', ':joy:', ':sunglasses:']
 const defaultSkinTone = 1
 export const defaultUserReacjis = {skinTone: defaultSkinTone, topReacjis: defaultTopReacjis}
-const emptyArray = []
+const emptyArray: Array<unknown> = []
 const emptySet = new Set()
+
+export const blockButtonsGregorPrefix = 'blockButtons.'
 
 export const makeState = (): Types.State => ({
   accountsInfoMap: new Map(),
   attachmentFullscreenSelection: undefined,
   attachmentViewMap: new Map(),
+  audioRecording: new Map(),
   badgeMap: new Map(), // id to the badge count
+  blockButtonsMap: new Map(),
   botCommandsUpdateStatusMap: new Map(),
   channelSearchText: '',
   commandMarkdownMap: new Map(),
@@ -47,13 +50,14 @@ export const makeState = (): Types.State => ({
   giphyWindowMap: new Map(),
   inboxHasLoaded: false,
   inboxLayout: null,
+  inboxNumSmallRows: 5,
   inboxSearch: undefined,
   inboxShowNew: false,
   isWalletsNew: true,
   lastCoord: undefined,
   maybeMentionMap: new Map(),
   messageCenterOrdinals: new Map(), // ordinals to center threads on,
-  messageMap: I.Map(), // messages in a thread,
+  messageMap: new Map(), // messages in a thread,
   messageOrdinals: new Map(), // ordered ordinals in a thread,
   metaMap: new Map(), // metadata about a thread, There is a special node for the pending conversation,
   moreToLoadMap: new Map(), // if we have more data to load,
@@ -82,7 +86,7 @@ export const makeState = (): Types.State => ({
 })
 
 export const makeThreadSearchInfo = (): Types.ThreadSearchInfo => ({
-  hits: emptyArray,
+  hits: emptyArray as Types.ThreadSearchInfo['hits'],
   status: 'initial',
   visible: false,
 })
@@ -109,7 +113,39 @@ export const makeAttachmentViewInfo = (): Types.AttachmentViewInfo => ({
   status: 'loading',
 })
 
-export const initialAttachmentViewInfo = makeAttachmentViewInfo()
+export const makeAudioRecordingInfo = (): Types.AudioRecordingInfo => ({
+  isLocked: false,
+  outboxID: new Buffer('hex'),
+  path: '',
+  recordStart: Date.now(),
+  status: Types.AudioRecordingStatus.INITIAL,
+})
+
+export const showAudioRecording = (audioRecording: Types.AudioRecordingInfo | undefined) => {
+  return !(
+    !audioRecording ||
+    audioRecording.status === Types.AudioRecordingStatus.INITIAL ||
+    audioRecording.status === Types.AudioRecordingStatus.STOPPED ||
+    audioRecording.status === Types.AudioRecordingStatus.STAGED ||
+    audioRecording.status === Types.AudioRecordingStatus.CANCELLED
+  )
+}
+
+export const isStoppedAudioRecordingStatus = (status: Types.AudioRecordingStatus) => {
+  return (
+    status === Types.AudioRecordingStatus.STOPPED ||
+    status === Types.AudioRecordingStatus.STAGED ||
+    status === Types.AudioRecordingStatus.CANCELLED
+  )
+}
+
+export const audioRecordingDuration = (audioRecording: Types.AudioRecordingInfo) => {
+  return (audioRecording.recordEnd || audioRecording.recordStart) - audioRecording.recordStart
+}
+
+export const isCancelledAudioRecording = (audioRecording: Types.AudioRecordingInfo | undefined) => {
+  return audioRecording && audioRecording.status === Types.AudioRecordingStatus.CANCELLED
+}
 
 export const getInboxSearchSelected = (inboxSearch: Types.InboxSearchInfo) => {
   if (inboxSearch.selectedIndex < inboxSearch.nameResults.length) {
@@ -147,7 +183,10 @@ export const getMessage = (
   state: TypedState,
   id: Types.ConversationIDKey,
   ordinal: Types.Ordinal
-): Types.Message | null => state.chat2.messageMap.getIn([id, ordinal])
+): Types.Message | null => {
+  const map = state.chat2.messageMap.get(id)
+  return (map && map.get(ordinal)) || null
+}
 export const isDecoratedMessage = (message: Types.Message): message is Types.DecoratedMessage => {
   return !(
     message.type === 'placeholder' ||
@@ -327,6 +366,8 @@ export const makeInboxQuery = (
   }
 }
 
+export const isAssertion = (username: string) => username.includes('@')
+
 export const threadRoute = isMobile ? [chatTab, 'chatConversation'] : [{props: {}, selected: chatTab}]
 export const newRouterThreadRoute = isMobile ? ['chatConversation'] : [chatTab]
 
@@ -420,6 +461,7 @@ export {
   makePendingTextMessage,
   makeReaction,
   messageExplodeDescriptions,
+  messageAttachmentHasProgress,
   messageAttachmentTransferStateToProgressLabel,
   nextFractionalOrdinal,
   pathToAttachmentType,

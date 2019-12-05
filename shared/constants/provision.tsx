@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as DeviceTypes from './types/devices'
 import * as Types from './types/provision'
 import * as RPCTypes from './types/rpc-gen'
@@ -15,28 +14,24 @@ export const cancelOnCallback = (_: any, response: CommonResponseHandler) => {
   response.error({code: RPCTypes.StatusCode.scinputcanceled, desc: 'Input canceled'})
 }
 
-export const makeState = I.Record<Types._State>({
-  codePageIncomingTextCode: new HiddenString(''),
-  codePageOtherDeviceId: '',
-  codePageOtherDeviceName: '',
-  codePageOtherDeviceType: 'mobile',
-  codePageOutgoingTextCode: new HiddenString(''),
-  deviceName: '',
-  devices: I.List(),
-  error: new HiddenString(''),
-  existingDevices: I.List(),
-  finalError: null,
-  forgotUsernameResult: '',
-  gpgImportError: null,
-  initialUsername: '',
-  inlineError: null,
-  username: '',
-})
-
-const makeDevice = I.Record<Types._Device>({
+export const makeDevice = (): Types.Device => ({
+  deviceNumberOfType: 0,
   id: DeviceTypes.stringToDeviceID(''),
   name: '',
   type: 'mobile',
+})
+
+export const makeState = (): Types.State => ({
+  codePageIncomingTextCode: new HiddenString(''),
+  codePageOtherDevice: makeDevice(),
+  codePageOutgoingTextCode: new HiddenString(''),
+  deviceName: '',
+  devices: [],
+  error: new HiddenString(''),
+  existingDevices: [],
+  forgotUsernameResult: '',
+  initialUsername: '',
+  username: '',
 })
 
 export const rpcDeviceToDevice = (d: RPCTypes.Device) => {
@@ -45,11 +40,12 @@ export const rpcDeviceToDevice = (d: RPCTypes.Device) => {
     case 'mobile':
     case 'desktop':
     case 'backup':
-      return makeDevice({
+      return {
+        deviceNumberOfType: d.deviceNumberOfType,
         id: DeviceTypes.stringToDeviceID(d.deviceID),
         name: d.name,
         type: type,
-      })
+      }
     default:
       throw new Error('Invalid device type detected: ' + type)
   }

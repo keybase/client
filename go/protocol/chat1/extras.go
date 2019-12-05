@@ -326,6 +326,8 @@ func (m MessageUnboxed) GetMessageID() MessageID {
 			return m.Placeholder().MessageID
 		case MessageUnboxedState_OUTBOX:
 			return m.Outbox().Msg.ClientHeader.OutboxInfo.Prev
+		case MessageUnboxedState_JOURNEYCARD:
+			return m.Journeycard().PrevID
 		default:
 			return 0
 		}
@@ -345,6 +347,8 @@ func (m MessageUnboxed) GetOutboxID() *OutboxID {
 		case MessageUnboxedState_OUTBOX:
 			obid := m.Outbox().OutboxID
 			return &obid
+		case MessageUnboxedState_JOURNEYCARD:
+			return nil
 		default:
 			return nil
 		}
@@ -363,6 +367,8 @@ func (m MessageUnboxed) GetTopicType() TopicType {
 			return m.Outbox().Msg.ClientHeader.Conv.TopicType
 		case MessageUnboxedState_PLACEHOLDER:
 			return TopicType_NONE
+		case MessageUnboxedState_JOURNEYCARD:
+			return TopicType_NONE
 		}
 	}
 	return TopicType_NONE
@@ -380,6 +386,8 @@ func (m MessageUnboxed) GetMessageType() MessageType {
 		case MessageUnboxedState_PLACEHOLDER:
 			// All we know about a place holder is the ID, so just
 			// call it type NONE
+			return MessageType_NONE
+		case MessageUnboxedState_JOURNEYCARD:
 			return MessageType_NONE
 		}
 	}
@@ -632,6 +640,10 @@ func (m MessageUnboxedError) ParseableVersion() bool {
 		return false
 	}
 	return maxVersion >= version
+}
+
+func (m MessageUnboxedError) IsEphemeralError() bool {
+	return m.IsEphemeral && m.ErrType == MessageUnboxedErrorType_EPHEMERAL
 }
 
 func (m MessageUnboxedValid) AsDeleteHistory() (res MessageDeleteHistory, err error) {
@@ -1056,6 +1068,22 @@ func (o *OutboxInfo) Eq(r *OutboxInfo) bool {
 	return (o == nil) && (r == nil)
 }
 
+func (o OutboxRecord) IsError() bool {
+	state, err := o.State.State()
+	if err != nil {
+		return false
+	}
+	return state == OutboxStateType_ERROR
+}
+
+func (o OutboxRecord) IsSending() bool {
+	state, err := o.State.State()
+	if err != nil {
+		return false
+	}
+	return state == OutboxStateType_SENDING
+}
+
 func (o OutboxRecord) IsAttachment() bool {
 	return o.Msg.ClientHeader.MessageType == MessageType_ATTACHMENT
 }
@@ -1261,19 +1289,23 @@ func (c ConversationLocal) GetMaxDeletedUpTo() MessageID {
 	return maxDelHID
 }
 
-func (c ConversationLocal) MaxVisibleMsgID() MessageID {
+func maxVisibleMsgIDFromSummaries(maxMessages []MessageSummary) MessageID {
 	visibleTyps := VisibleChatMessageTypes()
 	visibleTypsMap := map[MessageType]bool{}
 	for _, typ := range visibleTyps {
 		visibleTypsMap[typ] = true
 	}
 	maxMsgID := MessageID(0)
-	for _, msg := range c.MaxMessages {
+	for _, msg := range maxMessages {
 		if _, ok := visibleTypsMap[msg.GetMessageType()]; ok && msg.GetMessageID() > maxMsgID {
 			maxMsgID = msg.GetMessageID()
 		}
 	}
 	return maxMsgID
+}
+
+func (c ConversationLocal) MaxVisibleMsgID() MessageID {
+	return maxVisibleMsgIDFromSummaries(c.MaxMessages)
 }
 
 func (c ConversationLocal) ConvNameNames() (res []string) {
@@ -1288,6 +1320,13 @@ func (c ConversationLocal) ConvNameNames() (res []string) {
 func (c ConversationLocal) AllNames() (res []string) {
 	for _, p := range c.Info.Participants {
 		res = append(res, p.Username)
+	}
+	return res
+}
+
+func (c ConversationLocal) FullNamesForSearch() (res []*string) {
+	for _, p := range c.Info.Participants {
+		res = append(res, p.Fullname)
 	}
 	return res
 }
@@ -1371,18 +1410,7 @@ func (c Conversation) IsSelfFinalized(username string) bool {
 }
 
 func (c Conversation) MaxVisibleMsgID() MessageID {
-	visibleTyps := VisibleChatMessageTypes()
-	visibleTypsMap := map[MessageType]bool{}
-	for _, typ := range visibleTyps {
-		visibleTypsMap[typ] = true
-	}
-	maxMsgID := MessageID(0)
-	for _, msg := range c.MaxMsgSummaries {
-		if _, ok := visibleTypsMap[msg.GetMessageType()]; ok && msg.GetMessageID() > maxMsgID {
-			maxMsgID = msg.GetMessageID()
-		}
-	}
-	return maxMsgID
+	return maxVisibleMsgIDFromSummaries(c.MaxMsgSummaries)
 }
 
 func (c Conversation) IsUnread() bool {
@@ -2599,6 +2627,7 @@ func (b BotInfo) Hash() BotInfoHash {
 	for _, cconv := range b.CommandConvs {
 		hash.Write(cconv.ConvID)
 		hash.Write(cconv.Uid)
+		hash.Write([]byte(strconv.FormatUint(uint64(cconv.UntrustedTeamRole), 10)))
 		hash.Write([]byte(strconv.FormatUint(uint64(cconv.Vers), 10)))
 	}
 	return BotInfoHash(hash.Sum(nil))
@@ -2669,4 +2698,41 @@ func (e OutboxErrorType) IsBadgableError() bool {
 
 func (c UserBotCommandOutput) Matches(text string) bool {
 	return strings.HasPrefix(text, fmt.Sprintf("!%s ", c.Name))
+}
+
+func (m AssetMetadata) IsType(typ AssetMetadataType) bool {
+	mtyp, err := m.AssetType()
+	if err != nil {
+		return false
+	}
+	return mtyp == typ
+}
+
+func (s SnippetDecoration) ToEmoji() string {
+	switch s {
+	case SnippetDecoration_PENDING_MESSAGE:
+		return "📤"
+	case SnippetDecoration_FAILED_PENDING_MESSAGE:
+		return "⚠️"
+	case SnippetDecoration_EXPLODING_MESSAGE:
+		return "💣"
+	case SnippetDecoration_EXPLODED_MESSAGE:
+		return "💥"
+	case SnippetDecoration_AUDIO_ATTACHMENT:
+		return "🔊"
+	case SnippetDecoration_VIDEO_ATTACHMENT:
+		return "🎞"
+	case SnippetDecoration_PHOTO_ATTACHMENT:
+		return "📷"
+	case SnippetDecoration_FILE_ATTACHMENT:
+		return "📁"
+	case SnippetDecoration_STELLAR_RECEIVED:
+		return "💰"
+	case SnippetDecoration_STELLAR_SENT:
+		return "🚀"
+	case SnippetDecoration_PINNED_MESSAGE:
+		return "📌"
+	default:
+		return ""
+	}
 }

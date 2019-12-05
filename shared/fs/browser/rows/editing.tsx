@@ -3,7 +3,6 @@ import * as Types from '../../../constants/types/fs'
 import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
 import {rowStyles} from './common'
-import PathItemIcon from '../../common/path-item-icon'
 
 type EditingProps = {
   name: string
@@ -22,14 +21,11 @@ const Editing = (props: EditingProps) => {
     <Kb.ListItem2
       type="Small"
       firstItem={true /* we add divider in Rows */}
+      statusIcon={<Kb.Icon type="iconfont-add" sizeType="Small" padding="xtiny" />}
       icon={
-        <PathItemIcon
-          path={props.projectedPath}
-          size={32}
-          type={Types.PathType.Folder}
-          username=""
-          style={rowStyles.pathItemIcon}
-        />
+        <Kb.Box style={rowStyles.pathItemIcon}>
+          <Kb.Icon type="icon-folder-32" />
+        </Kb.Box>
       }
       body={
         <Kb.Box key="main" style={rowStyles.itemBox}>

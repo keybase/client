@@ -2,12 +2,9 @@
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Constants from '../../constants/chat2'
 import * as ConstantsMessage from '../../constants/chat2/message'
-import * as I from 'immutable'
 import * as Types from '../../constants/types/chat2'
 import HiddenString from '../../util/hidden-string'
 import reducer from '../chat2'
-
-jest.unmock('immutable')
 
 describe('chat2 reducer', () => {
   const conversationIDKey = Types.stringToConversationIDKey('0')
@@ -19,10 +16,10 @@ describe('chat2 reducer', () => {
   // 4: someone else wrote text
   const initialState: Types.State = {
     ...Constants.makeState(),
-    messageMap: I.Map([
+    messageMap: new Map([
       [
         conversationIDKey,
-        I.Map([
+        new Map([
           [
             Types.numberToOrdinal(1),
             ConstantsMessage.makeMessageText({

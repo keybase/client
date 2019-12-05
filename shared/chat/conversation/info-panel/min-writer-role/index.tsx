@@ -4,6 +4,7 @@ import * as TeamTypes from '../../../../constants/types/teams'
 import * as TeamConstants from '../../../../constants/teams'
 import * as Style from '../../../../styles'
 import upperFirst from 'lodash/upperFirst'
+import {indefiniteArticle} from '../../../../util/string'
 
 type Props = {
   canSetMinWriterRole: boolean
@@ -20,8 +21,9 @@ type State = {
 class MinWriterRole extends React.Component<Props, State> {
   state = {saving: false, selected: this.props.minWriterRole}
   _setSaving = (saving: boolean) => this.setState(s => (s.saving === saving ? null : {saving}))
-  _setSelected = selected => this.setState(s => (s.selected === selected ? null : {selected}))
-  _selectRole = role => {
+  _setSelected = (selected: TeamTypes.TeamRoleType) =>
+    this.setState(s => (s.selected === selected ? null : {selected}))
+  _selectRole = (role: TeamTypes.TeamRoleType) => {
     if (role !== this.props.minWriterRole) {
       this._setSaving(true)
       this._setSelected(role)
@@ -42,7 +44,7 @@ class MinWriterRole extends React.Component<Props, State> {
   render() {
     // TODO: create these items somewhere else
     const items = TeamConstants.teamRoleTypes.map(role => ({
-      onClick: () => this._selectRole(role),
+      onClick: () => this._selectRole(role as any),
       title: upperFirst(role),
     }))
     return (
@@ -111,9 +113,9 @@ const _Dropdown = ({
 )
 const Dropdown = Kb.OverlayParentHOC(_Dropdown)
 
-const Display = ({minWriterRole}) => (
+const Display = ({minWriterRole}: {minWriterRole: TeamTypes.TeamRoleType}) => (
   <Kb.Text type="BodySmall">
-    You must be at least {'aeiou'.includes(minWriterRole[0]) ? 'an' : 'a'}{' '}
+    You must be at least {indefiniteArticle(minWriterRole)}{' '}
     <Kb.Text type="BodySmallSemibold">“{minWriterRole}”</Kb.Text> to post in this channel.
   </Kb.Text>
 )

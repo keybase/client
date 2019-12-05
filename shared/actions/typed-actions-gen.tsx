@@ -107,6 +107,7 @@ export type TypedActionsMap = {
   'chat2:loadMessagesCentered': chat2.LoadMessagesCenteredPayload
   'chat2:desktopNotification': chat2.DesktopNotificationPayload
   'chat2:messageSend': chat2.MessageSendPayload
+  'chat2:messageSendByUsernames': chat2.MessageSendByUsernamesPayload
   'chat2:toggleLocalReaction': chat2.ToggleLocalReactionPayload
   'chat2:toggleMessageReaction': chat2.ToggleMessageReactionPayload
   'chat2:updateReactions': chat2.UpdateReactionsPayload
@@ -214,6 +215,15 @@ export type TypedActionsMap = {
   'chat2:updateLastCoord': chat2.UpdateLastCoordPayload
   'chat2:toggleGiphyPrefill': chat2.ToggleGiphyPrefillPayload
   'chat2:setChannelSearchText': chat2.SetChannelSearchTextPayload
+  'chat2:updateBlockButtons': chat2.UpdateBlockButtonsPayload
+  'chat2:dismissBlockButtons': chat2.DismissBlockButtonsPayload
+  'chat2:setInboxNumSmallRows': chat2.SetInboxNumSmallRowsPayload
+  'chat2:enableAudioRecording': chat2.EnableAudioRecordingPayload
+  'chat2:attemptAudioRecording': chat2.AttemptAudioRecordingPayload
+  'chat2:stopAudioRecording': chat2.StopAudioRecordingPayload
+  'chat2:lockAudioRecording': chat2.LockAudioRecordingPayload
+  'chat2:sendAudioRecording': chat2.SendAudioRecordingPayload
+  'chat2:setAudioRecordingPostInfo': chat2.SetAudioRecordingPostInfoPayload
   'config:startHandshake': config.StartHandshakePayload
   'config:restartHandshake': config.RestartHandshakePayload
   'config:daemonHandshake': config.DaemonHandshakePayload
@@ -231,6 +241,7 @@ export type TypedActionsMap = {
   'config:changedActive': config.ChangedActivePayload
   'config:mobileAppState': config.MobileAppStatePayload
   'config:showMain': config.ShowMainPayload
+  'config:startupFirstIdle': config.StartupFirstIdlePayload
   'config:bootstrapStatusLoaded': config.BootstrapStatusLoadedPayload
   'config:followerInfoUpdated': config.FollowerInfoUpdatedPayload
   'config:daemonError': config.DaemonErrorPayload
@@ -422,12 +433,14 @@ export type TypedActionsMap = {
   'engine-gen:keybase1NotifyTeamTeamAbandoned': enginegen.Keybase1NotifyTeamTeamAbandonedPayload
   'engine-gen:keybase1NotifyTeamTeamExit': enginegen.Keybase1NotifyTeamTeamExitPayload
   'engine-gen:keybase1NotifyTeamNewlyAddedToTeam': enginegen.Keybase1NotifyTeamNewlyAddedToTeamPayload
+  'engine-gen:keybase1NotifyTeamTeamRoleMapChanged': enginegen.Keybase1NotifyTeamTeamRoleMapChangedPayload
   'engine-gen:keybase1NotifyTeamAvatarUpdated': enginegen.Keybase1NotifyTeamAvatarUpdatedPayload
+  'engine-gen:keybase1NotifyTeamTeamMetadataUpdate': enginegen.Keybase1NotifyTeamTeamMetadataUpdatePayload
   'engine-gen:keybase1NotifyTeambotNewTeambotKey': enginegen.Keybase1NotifyTeambotNewTeambotKeyPayload
   'engine-gen:keybase1NotifyTeambotTeambotKeyNeeded': enginegen.Keybase1NotifyTeambotTeambotKeyNeededPayload
   'engine-gen:keybase1NotifyTrackingTrackingChanged': enginegen.Keybase1NotifyTrackingTrackingChangedPayload
   'engine-gen:keybase1NotifyTrackingTrackingInfo': enginegen.Keybase1NotifyTrackingTrackingInfoPayload
-  'engine-gen:keybase1NotifyUnverifiedTeamListTeamListUnverifiedChanged': enginegen.Keybase1NotifyUnverifiedTeamListTeamListUnverifiedChangedPayload
+  'engine-gen:keybase1NotifyTrackingNotifyUserBlocked': enginegen.Keybase1NotifyTrackingNotifyUserBlockedPayload
   'engine-gen:keybase1NotifyUsersUserChanged': enginegen.Keybase1NotifyUsersUserChangedPayload
   'engine-gen:keybase1NotifyUsersPasswordChanged': enginegen.Keybase1NotifyUsersPasswordChangedPayload
   'engine-gen:keybase1NotifyUsersIdentifyUpdate': enginegen.Keybase1NotifyUsersIdentifyUpdatePayload
@@ -536,7 +549,6 @@ export type TypedActionsMap = {
   'fs:showMoveOrCopy': fs.ShowMoveOrCopyPayload
   'fs:setIncomingShareLocalPath': fs.SetIncomingShareLocalPathPayload
   'fs:showIncomingShare': fs.ShowIncomingSharePayload
-  'fs:closeDestinationPicker': fs.CloseDestinationPickerPayload
   'fs:move': fs.MovePayload
   'fs:copy': fs.CopyPayload
   'fs:initSendAttachmentToChat': fs.InitSendAttachmentToChatPayload
@@ -576,10 +588,11 @@ export type TypedActionsMap = {
   'fs:loadedFileContext': fs.LoadedFileContextPayload
   'fs:loadAdditionalTlf': fs.LoadAdditionalTlfPayload
   'fs:loadedAdditionalTlf': fs.LoadedAdditionalTlfPayload
+  'fs:loadFilesTabBadge': fs.LoadFilesTabBadgePayload
+  'fs:loadedFilesTabBadge': fs.LoadedFilesTabBadgePayload
   'fs:setDebugLevel': fs.SetDebugLevelPayload
   'git:loadGit': git.LoadGitPayload
   'git:loaded': git.LoadedPayload
-  'git:navToGit': git.NavToGitPayload
   'git:createTeamRepo': git.CreateTeamRepoPayload
   'git:createPersonalRepo': git.CreatePersonalRepoPayload
   'git:repoDeleted': git.RepoDeletedPayload
@@ -611,11 +624,8 @@ export type TypedActionsMap = {
   'people:markViewed': people.MarkViewedPayload
   'people:skipTodo': people.SkipTodoPayload
   'people:setResentEmail': people.SetResentEmailPayload
-  'pinentry:deleteEntity': pinentry.DeleteEntityPayload
-  'pinentry:mergeEntity': pinentry.MergeEntityPayload
-  'pinentry:replaceEntity': pinentry.ReplaceEntityPayload
-  'pinentry:subtractEntity': pinentry.SubtractEntityPayload
   'pinentry:newPinentry': pinentry.NewPinentryPayload
+  'pinentry:close': pinentry.ClosePayload
   'pinentry:onSubmit': pinentry.OnSubmitPayload
   'pinentry:onCancel': pinentry.OnCancelPayload
   'profile:addProof': profile.AddProofPayload
@@ -697,6 +707,10 @@ export type TypedActionsMap = {
   'recover-password:abortPaperKey': recoverpassword.AbortPaperKeyPayload
   'recover-password:setPasswordError': recoverpassword.SetPasswordErrorPayload
   'recover-password:submitPassword': recoverpassword.SubmitPasswordPayload
+  'recover-password:promptResetPassword': recoverpassword.PromptResetPasswordPayload
+  'recover-password:submitResetPassword': recoverpassword.SubmitResetPasswordPayload
+  'recover-password:completeResetPassword': recoverpassword.CompleteResetPasswordPayload
+  'recover-password:resetResetPasswordState': recoverpassword.ResetResetPasswordStatePayload
   'recover-password:displayError': recoverpassword.DisplayErrorPayload
   'route-tree:navigateAppend': routetree.NavigateAppendPayload
   'route-tree:navigateUp': routetree.NavigateUpPayload
@@ -723,6 +737,7 @@ export type TypedActionsMap = {
   'settings:loadedContactPermissions': settings.LoadedContactPermissionsPayload
   'settings:requestContactPermissions': settings.RequestContactPermissionsPayload
   'settings:editContactImportEnabled': settings.EditContactImportEnabledPayload
+  'settings:showContactsJoinedModal': settings.ShowContactsJoinedModalPayload
   'settings:importContactsLater': settings.ImportContactsLaterPayload
   'settings:setContactImportedCount': settings.SetContactImportedCountPayload
   'settings:loadedUserCountryCode': settings.LoadedUserCountryCodePayload
@@ -777,6 +792,7 @@ export type TypedActionsMap = {
   'settings:saveProxyData': settings.SaveProxyDataPayload
   'settings:certificatePinningToggled': settings.CertificatePinningToggledPayload
   'settings:toggleRuntimeStats': settings.ToggleRuntimeStatsPayload
+  'settings:loginBrowserViaWebAuthToken': settings.LoginBrowserViaWebAuthTokenPayload
   'signup:goBackAndClearErrors': signup.GoBackAndClearErrorsPayload
   'signup:requestAutoInvite': signup.RequestAutoInvitePayload
   'signup:requestedAutoInvite': signup.RequestedAutoInvitePayload
@@ -795,6 +811,8 @@ export type TypedActionsMap = {
   'signup:clearJustSignedUpEmail': signup.ClearJustSignedUpEmailPayload
   'team-building:fetchedUserRecs': teambuilding.FetchedUserRecsPayload
   'team-building:fetchUserRecs': teambuilding.FetchUserRecsPayload
+  'team-building:finishTeamBuilding': teambuilding.FinishTeamBuildingPayload
+  'team-building:setError': teambuilding.SetErrorPayload
   'team-building:finishedTeamBuilding': teambuilding.FinishedTeamBuildingPayload
   'team-building:cancelTeamBuilding': teambuilding.CancelTeamBuildingPayload
   'team-building:search': teambuilding.SearchPayload
@@ -804,10 +822,12 @@ export type TypedActionsMap = {
   'team-building:selectRole': teambuilding.SelectRolePayload
   'team-building:changeSendNotification': teambuilding.ChangeSendNotificationPayload
   'team-building:labelsSeen': teambuilding.LabelsSeenPayload
+  'team-building:tbResetStore': teambuilding.TbResetStorePayload
   'teams:addUserToTeams': teams.AddUserToTeamsPayload
   'teams:clearNavBadges': teams.ClearNavBadgesPayload
   'teams:createNewTeam': teams.CreateNewTeamPayload
   'teams:createNewTeamFromConversation': teams.CreateNewTeamFromConversationPayload
+  'teams:teamCreated': teams.TeamCreatedPayload
   'teams:createChannel': teams.CreateChannelPayload
   'teams:clearAddUserToTeamsResults': teams.ClearAddUserToTeamsResultsPayload
   'teams:setAddUserToTeamsResults': teams.SetAddUserToTeamsResultsPayload
@@ -815,11 +835,10 @@ export type TypedActionsMap = {
   'teams:getChannelInfo': teams.GetChannelInfoPayload
   'teams:getChannels': teams.GetChannelsPayload
   'teams:getTeams': teams.GetTeamsPayload
+  'teams:unsubscribeTeamList': teams.UnsubscribeTeamListPayload
   'teams:getDetails': teams.GetDetailsPayload
   'teams:getMembers': teams.GetMembersPayload
   'teams:setMembers': teams.SetMembersPayload
-  'teams:getDetailsForAllTeams': teams.GetDetailsForAllTeamsPayload
-  'teams:getTeamOperations': teams.GetTeamOperationsPayload
   'teams:getTeamProfileAddList': teams.GetTeamProfileAddListPayload
   'teams:getTeamPublicity': teams.GetTeamPublicityPayload
   'teams:addTeamWithChosenChannels': teams.AddTeamWithChosenChannelsPayload
@@ -833,6 +852,7 @@ export type TypedActionsMap = {
   'teams:leaveTeam': teams.LeaveTeamPayload
   'teams:leftTeam': teams.LeftTeamPayload
   'teams:addToTeam': teams.AddToTeamPayload
+  'teams:addedToTeam': teams.AddedToTeamPayload
   'teams:reAddToTeam': teams.ReAddToTeamPayload
   'teams:editTeamDescription': teams.EditTeamDescriptionPayload
   'teams:uploadTeamAvatar': teams.UploadTeamAvatarPayload
@@ -849,7 +869,6 @@ export type TypedActionsMap = {
   'teams:setTeamJoinSuccess': teams.SetTeamJoinSuccessPayload
   'teams:setTeamRetentionPolicy': teams.SetTeamRetentionPolicyPayload
   'teams:setTeamLoadingInvites': teams.SetTeamLoadingInvitesPayload
-  'teams:clearTeamRequests': teams.ClearTeamRequestsPayload
   'teams:setTeamDetails': teams.SetTeamDetailsPayload
   'teams:setTeamCanPerform': teams.SetTeamCanPerformPayload
   'teams:setTeamPublicitySettings': teams.SetTeamPublicitySettingsPayload
@@ -867,11 +886,12 @@ export type TypedActionsMap = {
   'teams:setUpdatedTopic': teams.SetUpdatedTopicPayload
   'teams:deleteChannelConfirmed': teams.DeleteChannelConfirmedPayload
   'teams:deleteChannelInfo': teams.DeleteChannelInfoPayload
-  'teams:badgeAppForTeams': teams.BadgeAppForTeamsPayload
   'teams:checkRequestedAccess': teams.CheckRequestedAccessPayload
   'teams:getTeamRetentionPolicy': teams.GetTeamRetentionPolicyPayload
   'teams:saveTeamRetentionPolicy': teams.SaveTeamRetentionPolicyPayload
   'teams:renameTeam': teams.RenameTeamPayload
+  'teams:setTeamRoleMapLatestKnownVersion': teams.SetTeamRoleMapLatestKnownVersionPayload
+  'teams:setTeamRoleMap': teams.SetTeamRoleMapPayload
   'tracker2:load': tracker2.LoadPayload
   'tracker2:updatedDetails': tracker2.UpdatedDetailsPayload
   'tracker2:updateResult': tracker2.UpdateResultPayload
@@ -894,12 +914,14 @@ export type TypedActionsMap = {
   'unlock-folders:newRekeyPopup': unlockfolders.NewRekeyPopupPayload
   'unlock-folders:onBackFromPaperKey': unlockfolders.OnBackFromPaperKeyPayload
   'unlock-folders:toPaperKeyInput': unlockfolders.ToPaperKeyInputPayload
-  'unlock-folders:waiting': unlockfolders.WaitingPayload
-  'users:blockUser': users.BlockUserPayload
   'users:getBio': users.GetBioPayload
   'users:updateBrokenState': users.UpdateBrokenStatePayload
   'users:updateFullnames': users.UpdateFullnamesPayload
   'users:updateBio': users.UpdateBioPayload
+  'users:setUserBlocks': users.SetUserBlocksPayload
+  'users:getBlockState': users.GetBlockStatePayload
+  'users:updateBlockState': users.UpdateBlockStatePayload
+  'users:reportUser': users.ReportUserPayload
   'waiting:incrementWaiting': waiting.IncrementWaitingPayload
   'waiting:decrementWaiting': waiting.DecrementWaitingPayload
   'waiting:batchChangeWaiting': waiting.BatchChangeWaitingPayload
@@ -934,9 +956,6 @@ export type TypedActionsMap = {
   'wallets:loadAssets': wallets.LoadAssetsPayload
   'wallets:loadAccounts': wallets.LoadAccountsPayload
   'wallets:loadExternalPartners': wallets.LoadExternalPartnersPayload
-  'wallets:loadInflationDestination': wallets.LoadInflationDestinationPayload
-  'wallets:setInflationDestination': wallets.SetInflationDestinationPayload
-  'wallets:inflationDestinationReceived': wallets.InflationDestinationReceivedPayload
   'wallets:loadMorePayments': wallets.LoadMorePaymentsPayload
   'wallets:loadPayments': wallets.LoadPaymentsPayload
   'wallets:loadPaymentDetail': wallets.LoadPaymentDetailPayload

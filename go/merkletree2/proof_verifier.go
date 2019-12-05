@@ -59,7 +59,7 @@ func (m *MerkleProofVerifier) verifyInclusionOrExclusionProof(ctx logger.Context
 
 	// Reconstruct the leaf node if necessary
 	var nodeHash Hash
-	if kvp.Value != nil || len(proof.OtherPairsInLeaf) > 0 {
+	if kvp.Value != nil || proof.OtherPairsInLeaf != nil {
 		valueToInsert := false
 		leafHashesLength := len(proof.OtherPairsInLeaf)
 		if kvp.Value != nil {
@@ -130,7 +130,7 @@ func (m *MerkleProofVerifier) verifyInclusionOrExclusionProof(ctx logger.Context
 
 	// Check the rootHash computed matches the expected value.
 	if !rootHash.Equal(expRootHash) {
-		return NewProofVerificationFailedError(fmt.Errorf("expected rootHash does not match the computed one: expected %X but got %X", expRootHash, rootHash))
+		return NewProofVerificationFailedError(fmt.Errorf("expected rootHash does not match the computed one (for key: %X, value: %v): expected %X but got %X", kvp.Key, kvp.Value, expRootHash, rootHash))
 	}
 
 	// Success!

@@ -34,9 +34,7 @@ export default namedConnect(
   (state, ownProps: OwnProps) => {
     const {error, paymentID, message, text} = ownProps
     const paymentInfo = paymentID ? state.chat2.paymentStatusMap.get(paymentID) || null : null
-    const status = error
-      ? 'error' // Auto generated from flowToTs. Please clean me!
-      : (paymentInfo === null || paymentInfo === undefined ? undefined : paymentInfo.status) || 'pending'
+    const status = error ? 'error' : paymentInfo?.status ?? 'pending'
     return {
       allowFontScaling: ownProps.allowFontScaling,
       allowPopup:
@@ -44,8 +42,7 @@ export default namedConnect(
         status === 'pending' ||
         status === 'claimable' ||
         message.author === state.config.username,
-      errorDetail:
-        error || (paymentInfo === null || paymentInfo === undefined ? undefined : paymentInfo.statusDetail), // Auto generated from flowToTs. Please clean me!
+      errorDetail: error || paymentInfo?.statusDetail,
       isSendError: !!error,
       message,
       paymentID,

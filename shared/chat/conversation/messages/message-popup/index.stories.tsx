@@ -10,7 +10,6 @@ import HiddenString from '../../../../util/hidden-string'
 const textMessage = makeMessageText({
   author: 'cjb',
   deviceName: 'myDevice',
-  deviceRevokedAt: null,
   text: new HiddenString('blah'),
   timestamp: 1525190235719,
 })
@@ -24,13 +23,16 @@ const attachmentMessage = makeMessageAttachment({
 const defaultProps = {
   attachTo: () => null,
   isDeleteable: true,
+  isKickable: true,
   onAddReaction: Sb.action('onAddReaction'),
+  onAllMedia: Sb.action('onAllMedia'),
   onCopy: Sb.action('onCopy'),
   onDelete: Sb.action('onDelete'),
   onDeleteMessageHistory: Sb.action('onDeleteMessageHistory'),
   onDownload: Sb.action('onDownload'),
   onEdit: Sb.action('onEdit'),
   onHidden: Sb.action('onHidden'),
+  onKick: Sb.action('onKick'),
   onQuote: Sb.action('onQuote'),
   onReply: Sb.action('onReply'),
   onReplyPrivately: Sb.action('onReplyPrivately'),
@@ -104,14 +106,14 @@ const provider = Sb.createPropProviderWithCommon({
 const load = () => {
   Sb.storiesOf('Chat/Conversation/Message popup', module)
     .addDecorator(provider)
-    .add('Text', () => <TextPopupMenu {...defaultProps} {...textMessage.toJS()} />)
+    .add('Text', () => <TextPopupMenu {...defaultProps} {...textMessage} />)
     .add('Text w/ revoked device at 0', () => (
-      <TextPopupMenu {...defaultProps} {...textMessage.toJS()} deviceRevokedAt={0} />
+      <TextPopupMenu {...defaultProps} {...textMessage} deviceRevokedAt={0} />
     ))
     .add('Text w/ revoked device', () => (
-      <TextPopupMenu {...defaultProps} {...textMessage.toJS()} deviceRevokedAt={5} />
+      <TextPopupMenu {...defaultProps} {...textMessage} deviceRevokedAt={5} />
     ))
-    .add('Attachment', () => <AttachmentPopupMenu {...defaultProps} {...attachmentMessage.toJS()} />)
+    .add('Attachment', () => <AttachmentPopupMenu {...defaultProps} {...attachmentMessage} />)
     .add('Exploding later', () => (
       <ExplodingPopupMenu {...commonExplodingProps} message={explodingLaterText()} />
     ))

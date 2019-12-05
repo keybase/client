@@ -185,7 +185,10 @@ func (e *loginProvision) deviceWithType(m libkb.MetaContext, provisionerType key
 	uid := e.arg.User.GetUID()
 
 	// Continue to generate legacy Kex2 secret types
-	kex2SecretTyp := libkb.Kex2SecretTypeV2
+	kex2SecretTyp := libkb.Kex2SecretTypeV1Desktop
+	if e.arg.DeviceType == libkb.DeviceTypeMobile || provisionerType == keybase1.DeviceType_MOBILE {
+		kex2SecretTyp = libkb.Kex2SecretTypeV1Mobile
+	}
 	m.Debug("Generating Kex2 secret for uid=%s, typ=%d", uid, kex2SecretTyp)
 	secret, err := libkb.NewKex2SecretFromTypeAndUID(kex2SecretTyp, uid)
 	if err != nil {
@@ -198,7 +201,7 @@ func (e *loginProvision) deviceWithType(m libkb.MetaContext, provisionerType key
 		m.Debug("Failed to get salt")
 		return err
 	}
-	provisionee := NewKex2Provisionee(m.G(), device, secret.Secret(), e.arg.User.GetUID(), salt)
+	provisionee := NewKex2Provisionee(m.G(), device, secret.Secret(), uid, salt)
 
 	var canceler func()
 
@@ -274,7 +277,7 @@ func (e *loginProvision) deviceWithType(m libkb.MetaContext, provisionerType key
 	}
 
 	// Load me again so that keys will be up to date.
-	loadArg := libkb.NewLoadUserArgWithMetaContext(m).WithSelf(true).WithUID(e.arg.User.GetUID())
+	loadArg := libkb.NewLoadUserArgWithMetaContext(m).WithSelf(true).WithUID(uid)
 	e.arg.User, err = libkb.LoadUser(loadArg)
 	if err != nil {
 		return err
@@ -295,7 +298,7 @@ func (e *loginProvision) deviceWithType(m libkb.MetaContext, provisionerType key
 }
 
 // paper attempts to provision the device via a paper key.
-func (e *loginProvision) paper(m libkb.MetaContext, device *libkb.Device, keys *libkb.DeviceWithKeys) (err error) {
+func (e *loginProvision) paper(m libkb.MetaContext, device *libkb.DeviceWithDeviceNumber, keys *libkb.DeviceWithKeys) (err error) {
 	defer m.Trace("loginProvision#paper", func() error { return err })()
 
 	// get the paper key from the user if we're in the interactive flow
@@ -748,6 +751,8 @@ func (e *loginProvision) chooseDevice(m libkb.MetaContext, pgp bool) (err error)
 	defer m.Trace("loginProvision#chooseDevice", func() error { return err })()
 
 	ckf := e.arg.User.GetComputedKeyFamily()
+	// TODO: switch this to getting all devices
+	// Then insert the number data and then filter out the incorrect devices
 	devices := partitionDeviceList(ckf.GetAllActiveDevices())
 	sort.Sort(devices)
 
@@ -757,9 +762,9 @@ func (e *loginProvision) chooseDevice(m libkb.MetaContext, pgp bool) (err error)
 	}
 
 	expDevices := make([]keybase1.Device, len(devices))
-	idMap := make(map[keybase1.DeviceID]*libkb.Device)
+	idMap := make(map[keybase1.DeviceID]libkb.DeviceWithDeviceNumber)
 	for i, d := range devices {
-		expDevices[i] = *d.ProtExport()
+		expDevices[i] = *d.ProtExportWithDeviceNum()
 		idMap[d.ID] = d
 	}
 
@@ -835,7 +840,7 @@ func (e *loginProvision) chooseDevice(m libkb.MetaContext, pgp bool) (err error)
 
 	switch selected.Type {
 	case libkb.DeviceTypePaper:
-		return e.paper(m, selected, nil)
+		return e.paper(m, &selected, nil)
 	case libkb.DeviceTypeDesktop:
 		return e.deviceWithType(m, keybase1.DeviceType_DESKTOP)
 	case libkb.DeviceTypeMobile:
@@ -845,7 +850,7 @@ func (e *loginProvision) chooseDevice(m libkb.MetaContext, pgp bool) (err error)
 	}
 }
 
-func (e *loginProvision) preloadedPaperKey(m libkb.MetaContext, devices []*libkb.Device, paperKey string) error {
+func (e *loginProvision) preloadedPaperKey(m libkb.MetaContext, devices []libkb.DeviceWithDeviceNumber, paperKey string) error {
 	// User has requested non-interactive provisioning - first parse their key
 	keys, prefix, err := getPaperKeyFromString(m, e.arg.PaperKey)
 	if err != nil {
@@ -853,7 +858,7 @@ func (e *loginProvision) preloadedPaperKey(m libkb.MetaContext, devices []*libkb
 	}
 
 	// ... then match it to the paper keys that can be used with this account
-	var matchedDevice *libkb.Device
+	var matchedDevice *libkb.DeviceWithDeviceNumber
 	for _, d := range devices {
 		if d.Type != libkb.DeviceTypePaper {
 			continue
@@ -862,7 +867,7 @@ func (e *loginProvision) preloadedPaperKey(m libkb.MetaContext, devices []*libkb
 			continue
 		}
 
-		matchedDevice = d
+		matchedDevice = &d
 		break
 	}
 
@@ -1218,7 +1223,7 @@ func (e *loginProvision) AccountReset() bool {
 
 var devtypeSortOrder = map[string]int{libkb.DeviceTypeMobile: 0, libkb.DeviceTypeDesktop: 1, libkb.DeviceTypePaper: 2}
 
-type partitionDeviceList []*libkb.Device
+type partitionDeviceList []libkb.DeviceWithDeviceNumber
 
 func (p partitionDeviceList) Len() int {
 	return len(p)

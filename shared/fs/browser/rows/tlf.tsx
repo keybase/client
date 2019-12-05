@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as React from 'react'
 import * as Styles from '../../../styles'
 import * as Constants from '../../../constants/fs'
@@ -8,13 +7,12 @@ import * as Kb from '../../../common-adapters'
 import {useFsPathMetadata, TlfInfoLine, Filename} from '../../common'
 
 type TlfProps = StillCommonProps & {
-  isNew: boolean
   loadPathMetadata?: boolean
   // We don't use this at the moment. In the future this will be used for
   // showing ignored folders when we allow user to show ignored folders in GUI.
   isIgnored: boolean
   mixedMode?: boolean
-  usernames: I.List<string>
+  usernames: Array<string>
 }
 
 const Content = (props: TlfProps) => (
@@ -34,9 +32,9 @@ const Content = (props: TlfProps) => (
 const Avatars = (props: TlfProps) => (
   <Kb.Box style={styles.avatarBox}>
     {Constants.isTeamPath(props.path) ? (
-      <Kb.Avatar size={32} isTeam={true} teamname={props.usernames.get(0)} />
+      <Kb.Avatar size={32} isTeam={true} teamname={props.usernames[0]} />
     ) : (
-      <Kb.AvatarLine maxShown={4} size={32} layout="horizontal" usernames={props.usernames.toArray()} />
+      <Kb.AvatarLine maxShown={4} size={32} layout="horizontal" usernames={props.usernames} />
     )}
   </Kb.Box>
 )
@@ -48,12 +46,11 @@ const FsPathMetadataLoader = ({path}: {path: Types.Path}) => {
 
 const Tlf = (props: TlfProps) => (
   <StillCommon
-    name={props.name}
     path={props.path}
     onOpen={props.onOpen}
     inDestinationPicker={props.inDestinationPicker}
-    badge={props.isNew ? Types.PathItemBadgeType.New : null}
-    showTlfTypeIcon={!!props.mixedMode}
+    mixedMode={props.mixedMode}
+    writingToJournal={false}
   >
     {!!props.loadPathMetadata && <FsPathMetadataLoader path={props.path} />}
     <Kb.Box style={rowStyles.itemBox}>

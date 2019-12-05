@@ -1,6 +1,5 @@
 import {namedConnect, isMobile} from '../../../../util/container'
 import * as React from 'react'
-import * as I from 'immutable'
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import * as UsersTypes from '../../../../constants/types/users'
@@ -25,7 +24,7 @@ export type OwnProps = {
 }
 
 const emptyStateProps = {
-  _reactions: I.Map<string, I.Set<Types.Reaction>>(),
+  _reactions: new Map<string, Set<Types.Reaction>>(),
   _usersInfo: new Map<string, UsersTypes.UserInfo>(),
 }
 
@@ -55,21 +54,17 @@ export default namedConnect(
     },
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
-    let reactions = stateProps._reactions
-      .keySeq()
-      .toArray()
+    let reactions = [...stateProps._reactions.keys()]
       .map(emoji => ({
         emoji,
-        users: stateProps._reactions
-          .get(emoji, I.Set())
+        users: [...(stateProps._reactions.get(emoji) || new Set())]
           // Earliest users go at the top
           .sort((a, b) => a.timestamp - b.timestamp)
           .map(r => ({
             fullName: (stateProps._usersInfo.get(r.username) || {fullname: ''}).fullname || '',
             timestamp: r.timestamp,
             username: r.username,
-          }))
-          .toArray(),
+          })),
       }))
       .sort(
         // earliest reactions go at the top

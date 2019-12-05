@@ -10,6 +10,7 @@ import {pluralize} from '../../../util/string'
 import RetentionPicker from './retention/container'
 
 type Props = {
+  canShowcase: boolean
   isBigTeam: boolean
   ignoreAccessRequests: boolean
   publicityAnyMember: boolean
@@ -60,19 +61,19 @@ const SetMemberShowcase = (props: SettingProps) => (
   <Box style={{...globalStyles.flexBoxColumn, alignItems: 'flex-start', paddingRight: globalMargins.small}}>
     <Checkbox
       checked={props.newPublicityMember}
-      disabled={!props.yourOperations.setMemberShowcase}
+      disabled={!props.canShowcase}
       labelComponent={
         <Box style={{...globalStyles.flexBoxColumn}}>
           <Text
             style={{
-              color: props.yourOperations.setMemberShowcase ? globalColors.black : globalColors.black_50,
+              color: props.canShowcase ? globalColors.black : globalColors.black_50,
             }}
             type="Body"
           >
             Publish team on your own profile
           </Text>
           <Text type="BodySmall">
-            {props.yourOperations.setMemberShowcase
+            {props.canShowcase
               ? 'Your profile will mention this team. Team description and number of members will be public.'
               : props.yourOperations.joinTeam
               ? 'You must join this team to publish it on your profile.'
@@ -302,7 +303,7 @@ export class Settings extends React.Component<Props, State> {
           alignSelf: 'stretch',
           flexBasis: 0,
           flexGrow: 1,
-          padding: globalMargins.medium,
+          padding: globalMargins.small,
         }}
       >
         <SetMemberShowcase {...this.props} {...this.state} setBoolSettings={this.setBoolSettings} />

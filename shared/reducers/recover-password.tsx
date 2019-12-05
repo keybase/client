@@ -1,49 +1,47 @@
-import * as I from 'immutable'
 import * as Constants from '../constants/recover-password'
 import * as Types from '../constants/types/recover-password'
 import * as RecoverPasswordGen from '../actions/recover-password-gen'
-import HiddenString from '../util/hidden-string'
+import * as Container from '../util/container'
 
-const emptyHiddenString = new HiddenString('')
+const emptyHiddenString = new Container.HiddenString('')
 const initialState = Constants.makeState()
 
 type Actions = RecoverPasswordGen.Actions
 
-export default function(state: Types.State = initialState, action: Actions): Types.State {
-  switch (action.type) {
-    case RecoverPasswordGen.startRecoverPassword:
-      return state.merge({
-        paperKeyError: new HiddenString(''),
-        username: action.payload.username,
-      })
-    case RecoverPasswordGen.displayDeviceSelect:
-      return state.merge({
-        devices: I.List(action.payload.devices),
-      })
-    case RecoverPasswordGen.showExplainDevice:
-      return state.merge({
-        explainedDevice: {
-          name: action.payload.name,
-          type: action.payload.type,
-        },
-      })
-    case RecoverPasswordGen.submitPaperKey:
-      return state.merge({paperKeyError: emptyHiddenString})
-    case RecoverPasswordGen.setPaperKeyError:
-      return state.merge({
-        paperKeyError: action.payload.error,
-      })
-    case RecoverPasswordGen.submitPassword:
-      return state.merge({passwordError: emptyHiddenString})
-    case RecoverPasswordGen.setPasswordError:
-      return state.merge({
-        passwordError: action.payload.error,
-      })
-    case RecoverPasswordGen.displayError:
-      return state.merge({
-        error: action.payload.error,
-      })
-    default:
-      return state
-  }
-}
+export default Container.makeReducer<Actions, Types.State>(initialState, {
+  [RecoverPasswordGen.resetStore]: () => initialState,
+  [RecoverPasswordGen.startRecoverPassword]: (draftState, action) => {
+    draftState.paperKeyError = emptyHiddenString
+    draftState.username = action.payload.username
+  },
+  [RecoverPasswordGen.displayDeviceSelect]: (draftState, action) => {
+    draftState.devices = action.payload.devices
+  },
+  [RecoverPasswordGen.showExplainDevice]: (draftState, action) => {
+    draftState.explainedDevice = {
+      name: action.payload.name,
+      type: action.payload.type,
+    }
+  },
+  [RecoverPasswordGen.submitPaperKey]: draftState => {
+    draftState.paperKeyError = emptyHiddenString
+  },
+  [RecoverPasswordGen.setPaperKeyError]: (draftState, action) => {
+    draftState.paperKeyError = action.payload.error
+  },
+  [RecoverPasswordGen.submitPassword]: draftState => {
+    draftState.passwordError = emptyHiddenString
+  },
+  [RecoverPasswordGen.setPasswordError]: (draftState, action) => {
+    draftState.passwordError = action.payload.error
+  },
+  [RecoverPasswordGen.displayError]: (draftState, action) => {
+    draftState.error = action.payload.error
+  },
+  [RecoverPasswordGen.completeResetPassword]: draftState => {
+    draftState.resetEmailSent = true
+  },
+  [RecoverPasswordGen.resetResetPasswordState]: draftState => {
+    draftState.resetEmailSent = false
+  },
+})

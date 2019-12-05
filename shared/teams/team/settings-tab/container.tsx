@@ -8,17 +8,20 @@ import {anyWaiting} from '../../../constants/waiting'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 
 export type OwnProps = {
-  teamname: string
+  teamID: Types.TeamID
 }
 
-const mapStateToProps = (state, {teamname}: OwnProps) => {
+const mapStateToProps = (state, {teamID}: OwnProps) => {
+  const teamDetails = Constants.getTeamDetails(state, teamID)
+  const {teamname} = teamDetails
   const publicitySettings = Constants.getTeamPublicitySettings(state, teamname)
   const publicityAnyMember = publicitySettings.anyMemberShowcase
   const publicityMember = publicitySettings.member
   const publicityTeam = publicitySettings.team
-  const settings = Constants.getTeamSettings(state, teamname)
+  const settings = teamDetails.settings || Constants.initialTeamSettings
   const openTeamRole: Types.MaybeTeamRoleType = Constants.teamRoleByEnum[settings.joinAs] || 'none'
   return {
+    canShowcase: teamDetails.allowPromote || teamDetails.role === 'admin' || teamDetails.role === 'owner',
     ignoreAccessRequests: publicitySettings.ignoreAccessRequests,
     isBigTeam: Constants.isBigTeam(state, teamname),
     openTeam: settings.open,
@@ -77,8 +80,4 @@ const mergeProps = (stateProps, dispatchProps) => {
   }
 }
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
-)(Settings)
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Settings)

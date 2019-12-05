@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Chat2Gen from '../../actions/chat2-gen'
+import * as Types from '../../constants/types/chat2'
 import * as Constants from '../../constants/chat2'
 import {namedConnect} from '../../util/container'
 import HiddenString from '../../util/hidden-string'
@@ -15,7 +16,11 @@ export default namedConnect(
   }),
   dispatch => ({
     onCancel: () => dispatch(Chat2Gen.createToggleInboxSearch({enabled: false})),
-    onSelectConversation: (conversationIDKey, selectedIndex, query) =>
+    onSelectConversation: (
+      conversationIDKey: Types.ConversationIDKey,
+      selectedIndex: number,
+      query: string
+    ) =>
       dispatch(
         Chat2Gen.createInboxSearchSelect({
           conversationIDKey,

@@ -151,7 +151,7 @@ func (b *baseInboxSource) GetInboxQueryLocalToRemote(ctx context.Context,
 func (b *baseInboxSource) IsMember(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (bool, error) {
 	ib, err := b.sub.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll, &chat1.GetInboxQuery{
 		ConvID: &convID,
-	}, nil)
+	})
 	if err != nil {
 		return false, err
 	}
@@ -188,7 +188,7 @@ func (b *baseInboxSource) notifyServerAboutReportedConv(mctx libkb.MetaContext, 
 	ib, _, err := b.sub.Read(ctx, uid, types.ConversationLocalizerBlocking, types.InboxSourceDataSourceAll,
 		nil, &chat1.GetInboxLocalQuery{
 			ConvIDs: []chat1.ConversationID{convID},
-		}, nil)
+		})
 	if err != nil {
 		b.Debug(ctx, "notifyServerAboutReportedConv: failed to fetch conversation: %s", err)
 	} else {
@@ -373,13 +373,13 @@ func (s *RemoteInboxSource) Clear(ctx context.Context, uid gregor1.UID) error {
 
 func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID,
 	localizerTyp types.ConversationLocalizerTyp, dataSource types.InboxSourceDataSourceTyp, maxLocalize *int,
-	query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (types.Inbox, chan types.AsyncInboxResult, error) {
+	query *chat1.GetInboxLocalQuery) (types.Inbox, chan types.AsyncInboxResult, error) {
 
 	rquery, tlfInfo, err := s.GetInboxQueryLocalToRemote(ctx, query)
 	if err != nil {
 		return types.Inbox{}, nil, err
 	}
-	inbox, err := s.ReadUnverified(ctx, uid, dataSource, rquery, p)
+	inbox, err := s.ReadUnverified(ctx, uid, dataSource, rquery)
 	if err != nil {
 		return types.Inbox{}, nil, err
 	}
@@ -402,18 +402,16 @@ func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID,
 		Version:         inbox.Version,
 		Convs:           res,
 		ConvsUnverified: inbox.ConvsUnverified,
-		Pagination:      inbox.Pagination,
 	}, localizeCb, nil
 }
 
 func (s *RemoteInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
-	dataSource types.InboxSourceDataSourceTyp, rquery *chat1.GetInboxQuery, p *chat1.Pagination) (types.Inbox, error) {
+	dataSource types.InboxSourceDataSourceTyp, rquery *chat1.GetInboxQuery) (types.Inbox, error) {
 	if s.IsOffline(ctx) {
 		return types.Inbox{}, OfflineError{}
 	}
 	ib, err := s.getChatInterface().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
-		Query:      rquery,
-		Pagination: p,
+		Query: rquery,
 	})
 	if err != nil {
 		return types.Inbox{}, err
@@ -421,7 +419,6 @@ func (s *RemoteInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 	return types.Inbox{
 		Version:         ib.Inbox.Full().Vers,
 		ConvsUnverified: utils.RemoteConvs(ib.Inbox.Full().Conversations),
-		Pagination:      ib.Inbox.Full().Pagination,
 	}, nil
 }
 
@@ -551,11 +548,20 @@ func (s *RemoteInboxSource) MergeLocalMetadata(ctx context.Context, uid gregor1.
 }
 
 func (s *RemoteInboxSource) NotifyUpdate(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) {
+}
 
+func (s *RemoteInboxSource) IncrementLocalConvVersion(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID) (conv *chat1.ConversationLocal, err error) {
+	return nil, nil
 }
 
 func (s *RemoteInboxSource) UpdateLocalMtime(ctx context.Context, uid gregor1.UID, updates []chat1.LocalMtimeUpdate) error {
 	return nil
+}
+
+func (s *RemoteInboxSource) TeamBotSettingsForConv(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (
+	map[keybase1.UID]keybase1.TeamBotSettings, error) {
+	return nil, nil
 }
 
 type HybridInboxSource struct {
@@ -741,9 +747,9 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 			convIDs = append(convIDs, chat1.ConversationID(info.ConvID.Bytes()))
 		}
 	}
-	_, convs, _, err := s.createInbox().Read(ctx, s.uid, &chat1.GetInboxQuery{
+	_, convs, err := s.createInbox().Read(ctx, s.uid, &chat1.GetInboxQuery{
 		ConvIDs: convIDs,
-	}, nil)
+	})
 	if err != nil {
 		s.Debug(ctx, "ApplyLocalChatState: failed to get convs: %v", err)
 	}
@@ -752,22 +758,24 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 	readConvMap := make(map[string]bool)
 	for _, conv := range convs {
 		if conv.IsLocallyRead() {
-			readConvMap[conv.GetConvID().String()] = true
+			readConvMap[conv.ConvIDStr] = true
 		}
 	}
 
 	outbox := storage.NewOutbox(s.G(), s.uid)
 	obrs, oerr := outbox.PullAllConversations(ctx, true /*includeErrors */, false /*remove*/)
 	if oerr != nil {
-		s.Debug(ctx, "ApplyLocalChatState: failed to get outbox: %v", err)
+		s.Debug(ctx, "ApplyLocalChatState: failed to get outbox: %v", oerr)
 	}
 
 	// convID -> unreadCount
 	failedOutboxMap := make(map[string]int)
 	// convID -> mtime
 	localUpdates := make(map[string]chat1.LocalMtimeUpdate)
+	s.Debug(ctx, "ApplyLocalChatState: looking through %d outbox items for badgable errors", len(obrs))
 	for _, obr := range obrs {
-		if !(obr.Msg.IsBadgableType() && obr.Msg.ClientHeader.Conv.TopicType == chat1.TopicType_CHAT) {
+		if topicType := obr.Msg.ClientHeader.Conv.TopicType; !(obr.Msg.IsBadgableType() && topicType == chat1.TopicType_CHAT) {
+			s.Debug(ctx, "ApplyLocalChatState: skipping msgTyp: %v, topicType: %v", obr.Msg.MessageType(), topicType)
 			continue
 		}
 		state, err := obr.State.State()
@@ -775,10 +783,14 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 			s.Debug(ctx, "ApplyLocalChatState: unknown state item: skipping: err: %v", err)
 			continue
 		}
-		if state == chat1.OutboxStateType_ERROR && obr.State.Error().Typ.IsBadgableError() {
-			s.Debug(ctx, "ApplyLocalChatState: found badgable outbox item ctime: %v, error: %v, messageType: %v",
-				obr.Ctime.Time(), obr.State.Error(), obr.Msg.MessageType())
+		if state == chat1.OutboxStateType_ERROR {
 			ctime := obr.Ctime
+			isBadgableError := obr.State.Error().Typ.IsBadgableError()
+			s.Debug(ctx, "ApplyLocalChatState: found errored outbox item ctime: %v, error: %v, messageType: %v, IsBadgableError: %v",
+				ctime.Time(), obr.State.Error(), obr.Msg.MessageType(), isBadgableError)
+			if !isBadgableError {
+				continue
+			}
 			if update, ok := localUpdates[obr.ConvID.String()]; ok {
 				if ctime.After(update.Mtime) {
 					localUpdates[obr.ConvID.String()] = update
@@ -872,6 +884,15 @@ func (s *HybridInboxSource) NotifyUpdate(ctx context.Context, uid gregor1.UID, c
 		topicType, inboxUIItem)
 }
 
+func (s *HybridInboxSource) IncrementLocalConvVersion(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID) (conv *chat1.ConversationLocal, err error) {
+	defer s.Trace(ctx, func() error { return err }, "IncrementLocalConvVersion")()
+	if err := s.createInbox().IncrementLocalConvVersion(ctx, uid, convID); err != nil {
+		s.Debug(ctx, "IncrementLocalConvVersion: unable to IncrementLocalConvVersion, err", err)
+	}
+	return s.getConvLocal(ctx, uid, convID)
+}
+
 func (s *HybridInboxSource) MarkAsRead(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msgID *chat1.MessageID) (err error) {
 	defer s.Trace(ctx, func() error { return err }, "MarkAsRead(%s,%d)", convID, msgID)()
@@ -933,7 +954,7 @@ func (s *HybridInboxSource) inboxFlushLoop(uid gregor1.UID, stopCh chan struct{}
 }
 
 func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UID,
-	query *chat1.GetInboxQuery, p *chat1.Pagination) (res types.Inbox, err error) {
+	query *chat1.GetInboxQuery) (res types.Inbox, err error) {
 	defer s.Trace(ctx, func() error { return err }, "fetchRemoteInbox")()
 
 	// Insta fail if we are offline
@@ -955,8 +976,7 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UI
 	rquery.SummarizeMaxMsgs = true // always summarize max msgs
 
 	ib, err := s.getChatInterface().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
-		Query:      &rquery,
-		Pagination: p,
+		Query: &rquery,
 	})
 	if err != nil {
 		return types.Inbox{}, err
@@ -1001,13 +1021,12 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UI
 	return types.Inbox{
 		Version:         ib.Inbox.Full().Vers,
 		ConvsUnverified: utils.RemoteConvs(ib.Inbox.Full().Conversations),
-		Pagination:      ib.Inbox.Full().Pagination,
 	}, nil
 }
 
 func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID,
 	localizerTyp types.ConversationLocalizerTyp, dataSource types.InboxSourceDataSourceTyp, maxLocalize *int,
-	query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (inbox types.Inbox, localizeCb chan types.AsyncInboxResult, err error) {
+	query *chat1.GetInboxLocalQuery) (inbox types.Inbox, localizeCb chan types.AsyncInboxResult, err error) {
 
 	defer s.Trace(ctx, func() error { return err }, "Read")()
 
@@ -1016,7 +1035,7 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID,
 	if err != nil {
 		return inbox, localizeCb, err
 	}
-	inbox, err = s.ReadUnverified(ctx, uid, dataSource, rquery, p)
+	inbox, err = s.ReadUnverified(ctx, uid, dataSource, rquery)
 	if err != nil {
 		return inbox, localizeCb, err
 	}
@@ -1048,7 +1067,7 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID,
 }
 
 func (s *HybridInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
-	dataSource types.InboxSourceDataSourceTyp, query *chat1.GetInboxQuery, p *chat1.Pagination) (res types.Inbox, err error) {
+	dataSource types.InboxSourceDataSourceTyp, query *chat1.GetInboxQuery) (res types.Inbox, err error) {
 	defer s.Trace(ctx, func() error { return err }, "ReadUnverified")()
 
 	var cerr storage.Error
@@ -1060,15 +1079,13 @@ func (s *HybridInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 	case types.InboxSourceDataSourceLocalOnly, types.InboxSourceDataSourceAll:
 		var vers chat1.InboxVers
 		var convs []types.RemoteConversation
-		var pagination *chat1.Pagination
 		mergeInboxStore = true
-		vers, convs, pagination, cerr = inboxStore.Read(ctx, uid, query, p)
+		vers, convs, cerr = inboxStore.Read(ctx, uid, query)
 		if cerr == nil {
 			s.Debug(ctx, "ReadUnverified: hit local storage: uid: %s convs: %d", uid, len(convs))
 			res = types.Inbox{
 				Version:         vers,
 				ConvsUnverified: convs,
-				Pagination:      pagination,
 			}
 		} else {
 			if dataSource == types.InboxSourceDataSourceLocalOnly {
@@ -1089,14 +1106,14 @@ func (s *HybridInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 		}
 
 		// Go to the remote on miss
-		res, err = s.fetchRemoteInbox(ctx, uid, query, p)
+		res, err = s.fetchRemoteInbox(ctx, uid, query)
 		if err != nil {
 			return res, err
 		}
 
 		// Write out to local storage only if we are using local data
 		if mergeInboxStore {
-			if cerr = inboxStore.Merge(ctx, uid, res.Version, utils.PluckConvs(res.ConvsUnverified), query, p); cerr != nil {
+			if cerr = inboxStore.Merge(ctx, uid, res.Version, utils.PluckConvs(res.ConvsUnverified), query); cerr != nil {
 				s.Debug(ctx, "ReadUnverified: failed to write inbox to local storage: %s", cerr.Error())
 			}
 		}
@@ -1120,6 +1137,7 @@ type convSearchHit struct {
 	conv      types.RemoteConversation
 	queryToks []string
 	convToks  []string
+	nameToks  []string
 	hits      []nameContainsQueryRes
 }
 
@@ -1141,6 +1159,8 @@ func (h convSearchHit) hitScore() (score int) {
 		}
 	}
 	if len(h.queryToks) == len(h.convToks) && len(h.hits) == len(h.convToks) && exacts == len(h.hits) {
+		return 1000000
+	} else if len(h.queryToks) == len(h.nameToks) && len(h.hits) == len(h.nameToks) && exacts == len(h.hits) {
 		return 1000000
 	}
 	return score
@@ -1170,6 +1190,31 @@ func (s *HybridInboxSource) getDeviceType() keybase1.DeviceType {
 	return keybase1.DeviceType_DESKTOP
 }
 
+func (s *HybridInboxSource) fullNamesForSearch(ctx context.Context, conv types.RemoteConversation,
+	convName, username string) (res []string) {
+	switch conv.GetMembersType() {
+	case chat1.ConversationMembersType_TEAM:
+		return nil
+	default:
+	}
+	if conv.LocalMetadata == nil {
+		return nil
+	}
+	for index, name := range conv.LocalMetadata.FullNamesForSearch {
+		if name == nil {
+			continue
+		}
+		if index >= len(conv.LocalMetadata.WriterNames) {
+			continue
+		}
+		if conv.LocalMetadata.WriterNames[index] == username && convName != username {
+			continue
+		}
+		res = append(res, strings.Split(strings.ToLower(*name), " ")...)
+	}
+	return res
+}
+
 func (s *HybridInboxSource) isConvSearchHit(ctx context.Context, conv types.RemoteConversation,
 	queryToks []string, username string) (res convSearchHit) {
 	var convToks []string
@@ -1185,14 +1230,16 @@ func (s *HybridInboxSource) isConvSearchHit(ctx context.Context, conv types.Remo
 		}
 		return res
 	}
-	searchable := utils.SearchableRemoteConversationName(conv, username)
+	convName := utils.SearchableRemoteConversationName(conv, username)
 	switch conv.GetMembersType() {
 	case chat1.ConversationMembersType_TEAM:
-		convToks = []string{searchable}
+		convToks = []string{convName}
 	default:
-		convToks = strings.Split(searchable, ",")
+		convToks = strings.Split(convName, ",")
 	}
 	res.convToks = convToks
+	res.nameToks = s.fullNamesForSearch(ctx, conv, convName, username)
+	convToks = append(convToks, res.nameToks...)
 	for _, queryTok := range queryToks {
 		curHit := nameContainsQueryNone
 		for _, convTok := range convToks {
@@ -1337,7 +1384,7 @@ func (s *HybridInboxSource) getConvsLocal(ctx context.Context, uid gregor1.UID,
 	ib, _, err := s.Read(ctx, uid, types.ConversationLocalizerBlocking, types.InboxSourceDataSourceAll, nil,
 		&chat1.GetInboxLocalQuery{
 			ConvIDs: convIDs,
-		}, nil)
+		})
 	return ib.Convs, err
 }
 
@@ -1509,7 +1556,7 @@ func (s *HybridInboxSource) MembershipUpdate(ctx context.Context, uid gregor1.UI
 			types.InboxSourceDataSourceRemoteOnly, nil,
 			&chat1.GetInboxLocalQuery{
 				ConvIDs: userJoined,
-			}, nil)
+			})
 		if err != nil {
 			s.Debug(ctx, "MembershipUpdate: failed to read joined convs: %s", err.Error())
 			return
@@ -1629,11 +1676,45 @@ func (s *HybridInboxSource) modConversation(ctx context.Context, debugLabel stri
 		return nil, err
 	}
 	if conv, err = s.getConvLocal(ctx, uid, convID); err != nil {
-		s.Debug(ctx, "%v: unable to load conversation: convID: %s err: %s",
-			debugLabel, convID, err.Error())
+		s.Debug(ctx, "%v: unable to load conversation: convID: %s err: %v",
+			debugLabel, convID, err)
 		return nil, nil
 	}
 	return conv, nil
+}
+
+func (s *HybridInboxSource) TeamBotSettingsForConv(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (
+	teambotSettings map[keybase1.UID]keybase1.TeamBotSettings, err error) {
+	defer s.Trace(ctx, func() error { return err }, "TeamBotSettingsForConv")()
+	rConv, err := s.createInbox().GetConversation(ctx, uid, convID)
+	if err != nil {
+		return nil, err
+	}
+
+	metadata := rConv.Conv.Metadata
+	public := metadata.Visibility == keybase1.TLFVisibility_PUBLIC
+	tlfID := metadata.IdTriple.Tlfid
+	infoSource := CreateNameInfoSource(ctx, s.G(), metadata.MembersType)
+	var tlfName string
+	if rConv.LocalMetadata == nil {
+		info, err := infoSource.LookupName(ctx, tlfID, public, "")
+		if err != nil {
+			return nil, err
+		}
+		tlfName = info.CanonicalName
+	} else {
+		tlfName = rConv.LocalMetadata.Name
+	}
+
+	teamBotSettings, err := infoSource.TeamBotSettings(ctx, tlfName, tlfID, metadata.MembersType, public)
+	if err != nil {
+		return nil, err
+	}
+	res := make(map[keybase1.UID]keybase1.TeamBotSettings)
+	for uv, botSettings := range teamBotSettings {
+		res[uv.Uid] = botSettings
+	}
+	return res, nil
 }
 
 func NewInboxSource(g *globals.Context, typ string, ri func() chat1.RemoteInterface) types.InboxSource {

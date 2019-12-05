@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as ConfigGen from '../config-gen'
 import * as FsGen from '../fs-gen'
 import * as Saga from '../../util/saga'
@@ -128,9 +127,7 @@ const openPathInSystemFileManager = (state: TypedState, action: FsGen.OpenPathIn
         _rebaseKbfsPathToMountLocation(action.payload.path, state.fs.sfmi.directMountDir),
         ![Types.PathKind.InGroupTlf, Types.PathKind.InTeamTlf].includes(
           Constants.parsePath(action.payload.path).kind
-        ) ||
-          state.fs.pathItems.get(action.payload.path, Constants.unknownPathItem).type ===
-            Types.PathType.Folder
+        ) || Constants.getPathItem(state.fs.pathItems, action.payload.path).type === Types.PathType.Folder
       ).catch(makeRetriableErrorHandler(action, action.payload.path))
     : (new Promise((resolve, reject) => {
         if (state.fs.sfmi.driverStatus.type !== Types.DriverStatusType.Enabled) {
@@ -164,10 +161,11 @@ const fuseStatusToActions = (previousStatusType: Types.DriverStatusType) => (
   return status.kextStarted
     ? [
         FsGen.createSetDriverStatus({
-          driverStatus: Constants.makeDriverStatusEnabled({
+          driverStatus: {
+            ...Constants.emptyDriverStatusEnabled,
             dokanOutdated: status.installAction === RPCTypes.InstallAction.upgrade,
             dokanUninstallExecPath: fuseStatusToUninstallExecPath(status),
-          }),
+          },
         }),
         ...(previousStatusType === Types.DriverStatusType.Disabled ||
         status.installAction === RPCTypes.InstallAction.upgrade
@@ -178,7 +176,7 @@ const fuseStatusToActions = (previousStatusType: Types.DriverStatusType) => (
           : []), // open Finder/Explorer/etc for newly enabled
       ]
     : [
-        FsGen.createSetDriverStatus({driverStatus: Constants.makeDriverStatusDisabled()}),
+        FsGen.createSetDriverStatus({driverStatus: Constants.emptyDriverStatusDisabled}),
         ...(previousStatusType === Types.DriverStatusType.Enabled
           ? [FsGen.createHideSystemFileManagerIntegrationBanner()]
           : []), // hide banner for newly disabled
@@ -405,7 +403,7 @@ const refreshMountDirs = async (
   const preferredMountDirs = await RPCTypes.kbfsMountGetPreferredMountDirsRpcPromise()
   return [
     FsGen.createSetDirectMountDir({directMountDir}),
-    FsGen.createSetPreferredMountDirs({preferredMountDirs: I.List(preferredMountDirs || [])}),
+    FsGen.createSetPreferredMountDirs({preferredMountDirs: preferredMountDirs || []}),
     // Check again in 10s, as redirector comes up only after kbfs daemon is alive.
     ...(action.type !== FsGen.refreshMountDirsAfter10s ? [FsGen.createRefreshMountDirsAfter10s()] : []),
   ]

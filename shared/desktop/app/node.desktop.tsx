@@ -6,6 +6,8 @@ import installer from './installer.desktop'
 import menuBar from './menu-bar.desktop'
 import menuHelper from './menu-helper.desktop'
 import os from 'os'
+import fs from 'fs'
+import path from 'path'
 import * as ConfigGen from '../../actions/config-gen'
 import * as DeeplinksGen from '../../actions/deeplinks-gen'
 import * as SafeElectron from '../../util/safe-electron.desktop'
@@ -17,7 +19,7 @@ import {quit} from './ctl.desktop'
 import logger from '../../logger'
 import {resolveRootAsURL} from './resolve-root.desktop'
 
-let mainWindow: (ReturnType<typeof MainWindow>) | null = null
+let mainWindow: ReturnType<typeof MainWindow> | null = null
 let appStartedUp = false
 let startupURL: string | null = null
 
@@ -169,6 +171,12 @@ let menubarWindowID = 0
 
 type Action =
   | {type: 'appStartedUp'}
+  | {
+      type: 'activeChanged'
+      payload: {
+        isUserActive: boolean
+      }
+    }
   | {type: 'requestStartService'}
   | {type: 'closeWindows'}
   | {
@@ -213,6 +221,19 @@ const findRemoteComponent = (windowComponent: string, windowParam: string) => {
 const plumbEvents = () => {
   Electron.app.on('KBkeybase' as any, (_: string, action: Action) => {
     switch (action.type) {
+      case 'activeChanged':
+        // the installer reads this file to understand the gui state to not interrupt
+        // TODO change how this works
+        try {
+          fs.writeFileSync(
+            path.join(SafeElectron.getApp().getPath('userData'), 'app-state.json'),
+            JSON.stringify({isUserActive: action.payload.isUserActive}),
+            {encoding: 'utf8'}
+          )
+        } catch (e) {
+          console.warn('update app state failed' + e)
+        }
+        break
       case 'appStartedUp':
         appStartedUp = true
         if (menubarWindowID) {

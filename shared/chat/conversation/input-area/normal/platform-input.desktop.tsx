@@ -13,6 +13,7 @@ import {PlatformInputPropsInternal} from './platform-input'
 import Typing from './typing/container'
 import AddSuggestors from '../suggestors'
 import {BotCommandUpdateStatus} from './shared'
+import {indefiniteArticle} from '../../../../util/string'
 
 type State = {
   emojiPickerOpen: boolean
@@ -175,7 +176,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
     } else if (this.props.isEditing) {
       hintText = 'Edit your message'
     } else if (this.props.cannotWrite) {
-      hintText = `You must be at least ${'aeiou'.includes(this.props.minWriterRole[0]) ? 'an' : 'a'} ${
+      hintText = `You must be at least ${indefiniteArticle(this.props.minWriterRole)} ${
         this.props.minWriterRole
       } to post.`
     }
@@ -250,12 +251,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
             <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputBox}>
               <Kb.PlainInput
                 className="mousetrap"
-                disabled={
-                  // Auto generated from flowToTs. Please clean me!
-                  this.props.cannotWrite !== null && this.props.cannotWrite !== undefined
-                    ? this.props.cannotWrite
-                    : false
-                }
+                disabled={this.props.cannotWrite ?? false}
                 autoFocus={false}
                 ref={this._inputSetRef}
                 placeholder={hintText}

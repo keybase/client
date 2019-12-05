@@ -1,19 +1,20 @@
 import * as Constants from '../../../constants/tracker2'
-import * as ChatConstants from '../../../constants/chat2'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/tracker2'
 import FollowButton from './follow-button'
+import ChatButton from '../../../chat/chat-button'
+import flags from '../../../util/feature-flags'
 
 type Props = {
   followThem: boolean
   followsYou: boolean
   blocked: boolean
+  hidFromFollowers: boolean
   onAccept: () => void
   onAddToTeam: () => void
   onBrowsePublicFolder: () => void
-  onChat: () => void
   onEditProfile?: () => void
   onFollow: () => void
   onIgnoreFor24Hours: () => void
@@ -24,7 +25,9 @@ type Props = {
   onUnfollow: () => void
   onBlock: () => void
   onUnblock: () => void
+  onManageBlocking: () => void
   state: Types.DetailsState
+  username: string
 }
 
 type DropdownProps = Pick<
@@ -34,16 +37,32 @@ type DropdownProps = Pick<
   | 'onBrowsePublicFolder'
   | 'onSendLumens'
   | 'onRequestLumens'
-  | 'onBlock'
-  | 'onUnblock'
-  | 'blocked'
-> & {onUnfollow?: () => void}
+  | 'onManageBlocking'
+> & {
+  blockedOrHidFromFollowers: boolean
+  onUnfollow?: () => void
+}
 
 const Actions = (p: Props) => {
+  if (p.blocked) {
+    return (
+      <Kb.Box2 gap="tiny" centerChildren={true} direction="horizontal" fullWidth={true}>
+        <Kb.Button
+          key="Manage blocking"
+          mode="Secondary"
+          type="Danger"
+          label="Manage blocking"
+          onClick={p.onManageBlocking}
+        />
+      </Kb.Box2>
+    )
+  }
+
   let buttons: Array<React.ReactNode> = []
 
   const dropdown = (
     <DropdownButton
+      blockedOrHidFromFollowers={p.blocked || p.hidFromFollowers}
       key="dropdown"
       onAddToTeam={p.onAddToTeam}
       onOpenPrivateFolder={p.onOpenPrivateFolder}
@@ -51,22 +70,11 @@ const Actions = (p: Props) => {
       onSendLumens={p.onSendLumens}
       onRequestLumens={p.onRequestLumens}
       onUnfollow={p.followThem && p.state !== 'valid' ? p.onUnfollow : undefined}
-      onBlock={p.onBlock}
-      onUnblock={p.onUnblock}
-      blocked={p.blocked}
+      onManageBlocking={p.onManageBlocking}
     />
   )
 
-  const chatButton = (
-    <Kb.WaitingButton
-      key="Chat"
-      label="Chat"
-      waitingKey={ChatConstants.waitingKeyCreating}
-      onClick={p.onChat}
-    >
-      <Kb.Icon type="iconfont-chat" color={Styles.globalColors.whiteOrWhite} style={styles.chatIcon} />
-    </Kb.WaitingButton>
-  )
+  const chatButton = <ChatButton key="Chat" username={p.username} />
 
   if (p.state === 'notAUserYet') {
     buttons = [
@@ -82,7 +90,7 @@ const Actions = (p: Props) => {
     if (p.state === 'valid') {
       buttons = [
         <FollowButton
-          key="unfollow"
+          key="Unfollow"
           following={true}
           onUnfollow={p.onUnfollow}
           waitingKey={Constants.waitingKey}
@@ -99,8 +107,8 @@ const Actions = (p: Props) => {
           onClick={p.onReload}
         />,
         <Kb.WaitingButton
-          type="Success"
           key="Accept"
+          type="Success"
           label="Accept"
           waitingKey={Constants.waitingKey}
           onClick={p.onAccept}
@@ -123,7 +131,7 @@ const Actions = (p: Props) => {
     } else {
       buttons = [
         <FollowButton
-          key="follow"
+          key="Follow"
           following={false}
           followsYou={p.followsYou}
           onFollow={p.onFollow}
@@ -150,9 +158,11 @@ const DropdownButton = Kb.OverlayParentHOC((p: Kb.PropsWithOverlay<DropdownProps
     {onClick: p.onOpenPrivateFolder, title: 'Open private folder'},
     {onClick: p.onBrowsePublicFolder, title: 'Browse public folder'},
     p.onUnfollow && {onClick: p.onUnfollow && p.onUnfollow, title: 'Unfollow'},
-    p.blocked
-      ? {danger: true, onClick: p.onUnblock, title: 'Unblock'}
-      : {danger: true, onClick: p.onBlock, title: 'Block'},
+    flags.userBlocking && {
+      danger: true,
+      onClick: p.onManageBlocking,
+      title: p.blockedOrHidFromFollowers ? 'Manage blocking' : 'Block',
+    },
   ].reduce<Kb.MenuItems>((arr, i) => {
     i && arr.push(i)
     return arr

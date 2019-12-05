@@ -5,7 +5,6 @@ import * as WalletConstants from '../wallets'
 import * as Types from '../types/chat2'
 import * as TeamConstants from '../teams'
 import * as Message from './message'
-import {produce} from 'immer'
 import {memoize} from '../../util/memoize'
 import {ConversationMeta, PinnedMessageInfo} from '../types/chat2/meta'
 import {TypedState} from '../reducer'
@@ -56,8 +55,9 @@ export const unverifiedInboxUIItemToConversationMeta = (
       : []
   )
 
-  const participants = i.localMetadata ? i.localMetadata.writerNames || [] : (i.name || '').split(',')
   const isTeam = i.membersType === RPCChatTypes.ConversationMembersType.team
+  const participants =
+    i.localMetadata && isTeam ? i.localMetadata.writerNames || [] : (i.name || '').split(',')
   const channelname = isTeam && i.localMetadata ? i.localMetadata.channelName : ''
 
   const supersededBy = conversationMetadataToMetaSupersedeInfo(i.supersededBy)
@@ -95,10 +95,13 @@ export const unverifiedInboxUIItemToConversationMeta = (
     resetParticipants,
     retentionPolicy,
     snippet: i.localMetadata ? i.localMetadata.snippet : '',
-    snippetDecoration: i.localMetadata ? i.localMetadata.snippetDecoration : '',
+    snippetDecoration: i.localMetadata
+      ? i.localMetadata.snippetDecoration
+      : RPCChatTypes.SnippetDecoration.none,
     status: i.status,
     supersededBy: supersededBy ? Types.stringToConversationIDKey(supersededBy) : noConversationIDKey,
     supersedes: supersedes ? Types.stringToConversationIDKey(supersedes) : noConversationIDKey,
+    teamID: i.tlfID,
     teamRetentionPolicy,
     teamType: getTeamType(i),
     teamname,
@@ -150,26 +153,26 @@ export const updateMeta = (
       (newMeta.trustedState === 'trusted' && oldMeta.trustedState !== 'trusted') ||
       newMeta.inboxLocalVersion > oldMeta.inboxLocalVersion
     ) {
-      return produce(newMeta, draft => {
-        if (shallowEqual(draft.participants, oldMeta.participants)) {
-          draft.participants = oldMeta.participants
-        }
-        if (shallowEqual(draft.nameParticipants, oldMeta.nameParticipants)) {
-          draft.nameParticipants = oldMeta.nameParticipants
-        }
-        if (shallowEqual(draft.rekeyers, oldMeta.rekeyers)) {
-          draft.rekeyers = oldMeta.rekeyers
-        }
-        if (shallowEqual(draft.resetParticipants, oldMeta.resetParticipants)) {
-          draft.resetParticipants = oldMeta.resetParticipants
-        }
-        if (shallowEqual(draft.retentionPolicy, oldMeta.retentionPolicy)) {
-          draft.retentionPolicy = oldMeta.retentionPolicy
-        }
-        if (shallowEqual(draft.teamRetentionPolicy, oldMeta.teamRetentionPolicy)) {
-          draft.teamRetentionPolicy = oldMeta.teamRetentionPolicy
-        }
-      })
+      const merged = {...newMeta}
+      if (shallowEqual(merged.participants, oldMeta.participants)) {
+        merged.participants = oldMeta.participants
+      }
+      if (shallowEqual(merged.nameParticipants, oldMeta.nameParticipants)) {
+        merged.nameParticipants = oldMeta.nameParticipants
+      }
+      if (shallowEqual([...merged.rekeyers], [...oldMeta.rekeyers])) {
+        merged.rekeyers = oldMeta.rekeyers
+      }
+      if (shallowEqual([...merged.resetParticipants], [...oldMeta.resetParticipants])) {
+        merged.resetParticipants = oldMeta.resetParticipants
+      }
+      if (shallowEqual(merged.retentionPolicy, oldMeta.retentionPolicy)) {
+        merged.retentionPolicy = oldMeta.retentionPolicy
+      }
+      if (shallowEqual(merged.teamRetentionPolicy, oldMeta.teamRetentionPolicy)) {
+        merged.teamRetentionPolicy = oldMeta.teamRetentionPolicy
+      }
+      return merged
     }
     return oldMeta
   }
@@ -318,6 +321,7 @@ export const inboxUIItemToConversationMeta = (
   const participants = i.participants || []
   return {
     ...makeConversationMeta(),
+    botAliases: i.botAliases,
     botCommands: i.botCommands,
     cannotWrite,
     channelname: (isTeam && i.channel) || '',
@@ -363,6 +367,7 @@ export const inboxUIItemToConversationMeta = (
     status: i.status,
     supersededBy: supersededBy ? Types.stringToConversationIDKey(supersededBy) : noConversationIDKey,
     supersedes: supersedes ? Types.stringToConversationIDKey(supersedes) : noConversationIDKey,
+    teamID: i.tlfID,
     teamRetentionPolicy,
     teamType: getTeamType(i),
     teamname: (isTeam && i.name) || '',
@@ -374,6 +379,7 @@ export const inboxUIItemToConversationMeta = (
 }
 
 export const makeConversationMeta = (): Types.ConversationMeta => ({
+  botAliases: {},
   botCommands: {} as RPCChatTypes.ConversationCommandGroups,
   cannotWrite: false,
   channelname: '',
@@ -403,10 +409,11 @@ export const makeConversationMeta = (): Types.ConversationMeta => ({
   resetParticipants: new Set(),
   retentionPolicy: TeamConstants.makeRetentionPolicy(),
   snippet: '',
-  snippetDecoration: '',
+  snippetDecoration: RPCChatTypes.SnippetDecoration.none as RPCChatTypes.SnippetDecoration,
   status: RPCChatTypes.ConversationStatus.unfiled as RPCChatTypes.ConversationStatus,
   supersededBy: noConversationIDKey,
   supersedes: noConversationIDKey,
+  teamID: '',
   teamRetentionPolicy: TeamConstants.makeRetentionPolicy(),
   teamType: 'adhoc' as Types.TeamType,
   teamname: '',
@@ -450,11 +457,7 @@ export const getChannelSuggestions = (state: TypedState, teamname: string) => {
   // partial list of channels that you have joined).
   const convs = state.teams.teamNameToChannelInfos.get(teamname)
   if (convs) {
-    return convs
-      .toIndexedSeq()
-      .toList()
-      .map(conv => conv.channelname)
-      .toArray()
+    return [...convs.values()].map(conv => conv.channelname)
   }
   return [...state.chat2.metaMap.values()].filter(v => v.teamname === teamname).map(v => v.channelname)
 }
@@ -482,11 +485,14 @@ export const getChannelForTeam = (state: TypedState, teamname: string, channelna
 
 const blankCommands: Array<RPCChatTypes.ConversationCommand> = []
 
-export const getCommands = (state: TypedState, id: Types.ConversationIDKey) => {
+export const getCommands = (
+  state: TypedState,
+  id: Types.ConversationIDKey
+): Array<RPCChatTypes.ConversationCommand> => {
   const {commands} = getMeta(state, id)
   if (commands.typ === RPCChatTypes.ConversationCommandGroupsTyp.builtin) {
     return state.chat2.staticConfig
-      ? state.chat2.staticConfig.builtinCommands[commands.builtin]
+      ? state.chat2.staticConfig.builtinCommands[commands.builtin] || blankCommands
       : blankCommands
   } else {
     return blankCommands
@@ -505,7 +511,7 @@ export const getBotCommands = (state: TypedState, id: Types.ConversationIDKey) =
 // show wallets icon for one-on-one conversations
 export const shouldShowWalletsIcon = (state: TypedState, id: Types.ConversationIDKey) => {
   const meta = getMeta(state, id)
-  const accountID = WalletConstants.getDefaultAccountID(state)
+  const accountID = WalletConstants.getDefaultAccountID(state.wallets)
   const sendDisabled = !isMobile && accountID && !!state.wallets.mobileOnlyMap.get(accountID)
 
   return (

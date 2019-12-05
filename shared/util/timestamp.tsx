@@ -37,9 +37,11 @@ export function formatTimeForConversationList(time: number, nowOverride?: number
     return m.format('h:mm A')
   } else if (m.isAfter(weekOld)) {
     return m.format('ddd')
+  } else if (m.isSame(today, 'year')) {
+    return m.format('MMM D')
   }
 
-  return m.format('MMM D')
+  return m.format('D MMM YY')
 }
 
 export function formatTimeForMessages(time: number, nowOverride?: number): string {
@@ -104,6 +106,12 @@ export const formatDuration = (duration: number): string => {
   const d = moment.duration(duration)
   return d.hours() ? `${d.hours()} hr` : d.minutes() ? `${d.minutes()} min` : `${d.seconds()} s`
 }
+
+export const formatAudioRecordDuration = (duration: number): string => {
+  const d = moment.duration(duration)
+  return moment.utc(d.as('milliseconds')).format('mm:ss')
+}
+
 export const formatDurationForAutoreset = (duration: number): string => {
   if (!duration) {
     return ''

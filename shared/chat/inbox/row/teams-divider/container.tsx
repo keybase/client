@@ -1,16 +1,17 @@
 import {TeamsDivider} from '.'
 import {namedConnect, TypedState} from '../../../../util/container'
-import {StylesCrossPlatform} from '../../../../styles'
+import * as Styles from '../../../../styles'
 import {RowItem} from '../..'
 import {memoize} from '../../../../util/memoize'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Types from '../../../../constants/types/chat2'
 
 type OwnProps = {
+  hiddenCountDelta: number
   rows: Array<RowItem>
   showButton: boolean
   toggle: () => void
-  style?: StylesCrossPlatform
+  style?: Styles.StylesCrossPlatform
 }
 
 const mapStateToProps = (state: TypedState) => ({
@@ -18,20 +19,22 @@ const mapStateToProps = (state: TypedState) => ({
   _inboxLayout: state.chat2.inboxLayout,
 })
 
-const getMetaCounts = memoize((badges, inboxLayout: RPCChatTypes.UIInboxLayout | null) => {
-  let badgeCount = 0
-  let hiddenCount = 0
-  const smallTeams = inboxLayout ? inboxLayout.smallTeams || [] : []
-  smallTeams.forEach((conv: RPCChatTypes.UIInboxSmallTeamRow) => {
-    const id = Types.stringToConversationIDKey(conv.convID)
-    badgeCount += badges.get(id, 0)
-    hiddenCount++
-  })
-  return {
-    badgeCount,
-    hiddenCount,
+const getMetaCounts = memoize(
+  (badges: Types.ConversationCountMap, inboxLayout: RPCChatTypes.UIInboxLayout | null) => {
+    let badgeCount = 0
+    let hiddenCount = 0
+    const smallTeams = inboxLayout ? inboxLayout.smallTeams || [] : []
+    smallTeams.forEach((conv: RPCChatTypes.UIInboxSmallTeamRow) => {
+      const id = Types.stringToConversationIDKey(conv.convID)
+      badgeCount += badges.get(id) || 0
+      hiddenCount++
+    })
+    return {
+      badgeCount,
+      hiddenCount,
+    }
   }
-})
+)
 
 const getRowCounts = memoize((badges, rows) => {
   let badgeCount = 0
@@ -61,6 +64,10 @@ export default namedConnect(
       const fromMeta = getMetaCounts(stateProps._badges, stateProps._inboxLayout)
       badgeCount += fromMeta.badgeCount
       hiddenCount += fromMeta.hiddenCount
+    }
+
+    if (!Styles.isMobile) {
+      hiddenCount += ownProps.hiddenCountDelta
     }
 
     return {

@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Sb from '../../../../stories/storybook'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as TeamTypes from '../../../../constants/types/teams'
-import {Set} from 'immutable'
 import {Box2} from '../../../../common-adapters/box'
 import {platformStyles} from '../../../../styles'
 import Input, {Props as InputProps} from '.'
@@ -38,7 +37,7 @@ const provider = Sb.createPropProviderWithCommon({
   }),
   Typing: ownProps => ({
     conversationIDKey: ownProps.conversationIDKey,
-    names: Set(),
+    names: new Set(),
   }),
   UserMentionHud: ownProps => {
     const users = [

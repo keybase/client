@@ -427,8 +427,14 @@
         "keybase1NotifyTeamNewlyAddedToTeam": {
             "params": "keybase1Types.MessageTypes['keybase.1.NotifyTeam.newlyAddedToTeam']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyTeam.newlyAddedToTeam']['outParam']) => void}"
         },
+        "keybase1NotifyTeamTeamRoleMapChanged": {
+            "params": "keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamRoleMapChanged']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamRoleMapChanged']['outParam']) => void}"
+        },
         "keybase1NotifyTeamAvatarUpdated": {
             "params": "keybase1Types.MessageTypes['keybase.1.NotifyTeam.avatarUpdated']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyTeam.avatarUpdated']['outParam']) => void}"
+        },
+        "keybase1NotifyTeamTeamMetadataUpdate": {
+            "params": "keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamMetadataUpdate']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyTeam.teamMetadataUpdate']['outParam']) => void}"
         },
         "keybase1NotifyTeambotNewTeambotKey": {
             "params": "keybase1Types.MessageTypes['keybase.1.NotifyTeambot.newTeambotKey']['inParam'] & {sessionID: number}"
@@ -442,8 +448,8 @@
         "keybase1NotifyTrackingTrackingInfo": {
             "params": "keybase1Types.MessageTypes['keybase.1.NotifyTracking.trackingInfo']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyTracking.trackingInfo']['outParam']) => void}"
         },
-        "keybase1NotifyUnverifiedTeamListTeamListUnverifiedChanged": {
-            "params": "keybase1Types.MessageTypes['keybase.1.NotifyUnverifiedTeamList.teamListUnverifiedChanged']['inParam'] & {sessionID: number}"
+        "keybase1NotifyTrackingNotifyUserBlocked": {
+            "params": "keybase1Types.MessageTypes['keybase.1.NotifyTracking.notifyUserBlocked']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyTracking.notifyUserBlocked']['outParam']) => void}"
         },
         "keybase1NotifyUsersUserChanged": {
             "params": "keybase1Types.MessageTypes['keybase.1.NotifyUsers.userChanged']['inParam'] & {sessionID: number}"

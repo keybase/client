@@ -260,7 +260,10 @@ const styles = Styles.styleSheetCreate(
       image: {
         ...Styles.globalStyles.rounded,
         backgroundColor: Styles.globalColors.fastBlank,
-        margin: 3,
+        marginBottom: 3,
+        marginLeft: 3,
+        marginRight: 3,
+        marginTop: 0,
         maxWidth: 320,
         position: 'relative',
       },

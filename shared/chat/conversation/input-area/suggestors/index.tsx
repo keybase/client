@@ -4,7 +4,7 @@ import * as Styles from '../../../../styles'
 import invert from 'lodash/invert'
 import SuggestionList from './suggestion-list'
 
-type TransformerData = {
+export type TransformerData = {
   text: string
   position: {
     start: number | null
@@ -225,7 +225,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
       )
     }
 
-    _onChangeText = text => {
+    _onChangeText = (text: string) => {
       this._lastText = text
       this.props.onChangeText && this.props.onChangeText(text)
       this._checkTrigger()
@@ -283,12 +283,12 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
       this._checkTrigger()
     }
 
-    _onSelectionChange = selection => {
+    _onSelectionChange = (selection: TransformerData['position']) => {
       this.props.onSelectionChange && this.props.onSelectionChange(selection)
       this._checkTrigger()
     }
 
-    _triggerTransform = (value, final = true) => {
+    _triggerTransform = (value: any, final = true) => {
       if (this._inputRef.current && this.state.active) {
         const input = this._inputRef.current
         const {active} = this.state
@@ -398,7 +398,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
         <>
           {overlay}
           <WrappedComponent
-            {...wrappedOP as WrappedOwnProps}
+            {...(wrappedOP as WrappedOwnProps)}
             suggestionsVisible={suggestionsVisible}
             ref={this._setAttachmentRef}
             inputRef={this._inputRef}

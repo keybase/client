@@ -68,10 +68,14 @@ export const colors = {
   },
   blueGrey: '#F2F4F7',
   blueGreyDark: '#E0E8F6',
+  blueGreyLight: '#F9F9FA',
   blueLight: '#73A6FF',
   blueLighter: '#A8CCFF',
   blueLighter2: '#EBF2FC',
   blueLighter3: '#F7F9FC',
+  get blueLighterOrBlueLight() {
+    return this.blueLighter
+  },
   get blueLighterOrWhite() {
     return this.blueLighter
   },
@@ -261,10 +265,14 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   },
   blueGrey: '#202020',
   blueGreyDark: 'rgba(24, 45, 110, .5)',
+  blueGreyLight: '#222',
   blueLight: '#73A6FF',
   blueLighter: '#4C8EFF',
   blueLighter2: 'rgba(24, 45, 110, .5)',
   blueLighter3: '#101010',
+  get blueLighterOrBlueLight() {
+    return colors.blueLight
+  },
   get blueLighterOrWhite() {
     return colors.white
   },
@@ -451,7 +459,7 @@ export const themed = names.reduce<Color>(
       get() {
         if (partyMode && isDarkMode()) {
           // sets all non-grayscale colors to magenta in dark mode when enabled
-          return partyFallbackColors[name] || '#FF00FF'
+          return (partyFallbackColors as any)[name] || '#FF00FF'
         }
 
         return isDarkMode() ? darkColors[name] : colors[name]

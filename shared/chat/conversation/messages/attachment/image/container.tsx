@@ -39,55 +39,59 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   },
 })
 
-export default Container.connect(() => ({}), mapDispatchToProps, (_, dispatchProps, ownProps: OwnProps) => {
-  const {message} = ownProps
-  const {height, width} = Constants.clampImageSize(
-    message.previewWidth,
-    message.previewHeight,
-    Math.min(imgMaxWidth(), 320)
-  )
-  // On mobile we use this icon to indicate we have the file stored locally, and it can be viewed. This is a
-  // similar meaning to desktop.
-  const arrowColor = !Container.isMobile
-    ? message.downloadPath
-      ? globalColors.green
-      : message.transferState === 'downloading'
-      ? globalColors.blue
+export default Container.connect(
+  () => ({}),
+  mapDispatchToProps,
+  (_, dispatchProps, ownProps: OwnProps) => {
+    const {message} = ownProps
+    const {height, width} = Constants.clampImageSize(
+      message.previewWidth,
+      message.previewHeight,
+      Math.min(imgMaxWidth(), 320)
+    )
+    // On mobile we use this icon to indicate we have the file stored locally, and it can be viewed. This is a
+    // similar meaning to desktop.
+    const arrowColor = !Container.isMobile
+      ? message.downloadPath
+        ? globalColors.green
+        : message.transferState === 'downloading'
+        ? globalColors.blue
+        : ''
       : ''
-    : ''
-  const buttonType = message.showPlayButton ? 'play' : null
-  const hasProgress =
-    !!message.transferState &&
-    message.transferState !== 'remoteUploading' &&
-    message.transferState !== 'mobileSaving'
+    const buttonType = message.showPlayButton ? 'play' : null
+    const hasProgress =
+      !!message.transferState &&
+      message.transferState !== 'remoteUploading' &&
+      message.transferState !== 'mobileSaving'
 
-  return {
-    arrowColor,
-    fileName: message.fileName,
-    fullPath: message.fileURL,
-    hasProgress,
-    height,
-    inlineVideoPlayable: message.inlineVideoPlayable,
-    isCollapsed: message.isCollapsed,
-    message,
-    onClick: () => dispatchProps._onClick(message),
-    onCollapse: () => dispatchProps._onCollapse(message),
-    onDoubleClick: () => dispatchProps._onDoubleClick(message),
-    onShowInFinder:
-      !Container.isMobile && message.downloadPath
-        ? (e: React.SyntheticEvent) => {
-            e.preventDefault()
-            e.stopPropagation()
-            dispatchProps._onShowInFinder(message)
-          }
-        : null,
-    path: message.previewURL,
-    progress: message.transferProgress,
-    showButton: buttonType,
-    title: message.title,
-    toggleMessageMenu: ownProps.toggleMessageMenu,
-    transferState: message.transferState,
-    videoDuration: message.videoDuration || '',
-    width,
+    return {
+      arrowColor,
+      fileName: message.fileName,
+      fullPath: message.fileURL,
+      hasProgress,
+      height,
+      inlineVideoPlayable: message.inlineVideoPlayable,
+      isCollapsed: message.isCollapsed,
+      message,
+      onClick: () => dispatchProps._onClick(message),
+      onCollapse: () => dispatchProps._onCollapse(message),
+      onDoubleClick: () => dispatchProps._onDoubleClick(message),
+      onShowInFinder:
+        !Container.isMobile && message.downloadPath
+          ? (e: React.SyntheticEvent) => {
+              e.preventDefault()
+              e.stopPropagation()
+              dispatchProps._onShowInFinder(message)
+            }
+          : null,
+      path: message.previewURL,
+      progress: message.transferProgress,
+      showButton: buttonType,
+      title: message.title,
+      toggleMessageMenu: ownProps.toggleMessageMenu,
+      transferState: message.transferState,
+      videoDuration: message.videoDuration || '',
+      width,
+    }
   }
-})(ImageAttachment) as any
+)(ImageAttachment) as any

@@ -15,6 +15,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
 	"regexp"
 	"sort"
 	"strconv"
@@ -641,6 +642,13 @@ func (s SigID) String() string { return string(s) }
 
 func (s SigID) Equal(t SigID) bool {
 	return s == t
+}
+
+func (s SigID) EqualIgnoreLastByte(t SigID) bool {
+	if len(s) != len(t) || len(s) < 2 {
+		return false
+	}
+	return s[:len(s)-2] == t[:len(t)-2]
 }
 
 func (s SigID) Match(q string, exact bool) bool {
@@ -3480,4 +3488,20 @@ func (b BadgeConversationInfo) IsEmpty() bool {
 	return (b.UnreadMessages == 0 &&
 		b.BadgeCounts[DeviceType_DESKTOP] == 0 &&
 		b.BadgeCounts[DeviceType_MOBILE] == 0)
+}
+
+func (s *TeamBotSettings) Eq(o *TeamBotSettings) bool {
+	return reflect.DeepEqual(s, o)
+}
+
+func (b UserBlockedBody) Summarize() UserBlockedSummary {
+	ret := UserBlockedSummary{
+		Blocker: b.Username,
+	}
+	for _, block := range b.Blocks {
+		if (block.Chat != nil && *block.Chat) || (block.Follow != nil && *block.Follow) {
+			ret.Blocked = append(ret.Blocked, block.Username)
+		}
+	}
+	return ret
 }

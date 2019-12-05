@@ -9,7 +9,7 @@ import Browser from './browser/container'
 import {NormalPreview} from './filepreview'
 import * as Kbfs from './common'
 import * as SimpleScreens from './simple-screens'
-import {Actions, MainBanner, MobileHeader, mobileHeaderHeight, Title} from './nav-header'
+import {Actions, MainBanner, MobileHeader, useMobileHeaderHeight, Title} from './nav-header'
 
 type ChooseComponentProps = {
   emitBarePreview: () => void
@@ -38,7 +38,7 @@ const ChooseComponent = (props: ChooseComponentProps) => {
   }, [isConnected, waitForKbfsDaemon])
 
   Kbfs.useFsPathMetadata(props.path)
-  Kbfs.useFsFileContext(props.path)
+  const onUrlError = Kbfs.useFsFileContext(props.path)
   Kbfs.useFsTlfs()
   Kbfs.useFsOnlineStatus()
   Kbfs.useFsTlf(props.path)
@@ -65,7 +65,7 @@ const ChooseComponent = (props: ChooseComponentProps) => {
         // doesn't matter here as we do a navigateAppend for bare views
         <SimpleScreens.Loading />
       ) : (
-        <NormalPreview path={props.path} />
+        <NormalPreview path={props.path} onUrlError={onUrlError} />
       )
   }
 }
@@ -73,20 +73,15 @@ const ChooseComponent = (props: ChooseComponentProps) => {
 ChooseComponent.navigationOptions = (ownProps: OwnProps) => {
   const path = Container.getRouteProps(ownProps, 'path', Constants.defaultPath)
   return Container.isMobile
-    ? path === Constants.defaultPath
-      ? {
-          header: undefined,
-          title: 'Files',
-        }
-      : {
-          header: (
-            <MobileHeader
-              path={path}
-              onBack={ownProps.navigation.isFirstRouteInParent() ? undefined : ownProps.navigation.pop}
-            />
-          ),
-          headerHeight: mobileHeaderHeight(path),
-        }
+    ? {
+        header: (
+          <MobileHeader
+            path={path}
+            onBack={ownProps.navigation.isFirstRouteInParent() ? undefined : ownProps.navigation.pop}
+          />
+        ),
+        useHeaderHeight: () => useMobileHeaderHeight(path),
+      }
     : {
         header: undefined,
         headerRightActions: () => <Actions path={path} onTriggerFilterMobile={() => {}} />,
@@ -102,12 +97,13 @@ const Connected = Container.namedConnect(
   (state, ownProps: OwnProps) => {
     const path = Container.getRouteProps(ownProps, 'path', Constants.defaultPath)
     return {
-      _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
+      _pathItem: Constants.getPathItem(state.fs.pathItems, path),
       kbfsDaemonStatus: state.fs.kbfsDaemonStatus,
     }
   },
-  dispatch => ({
-    _emitBarePreview: (path: Types.Path) => {
+  (dispatch, ownProps) => ({
+    emitBarePreview: () => {
+      const path = Container.getRouteProps(ownProps, 'path', Constants.defaultPath)
       dispatch(RouteTreeGen.createNavigateUp())
       dispatch(
         RouteTreeGen.createNavigateAppend({
@@ -122,7 +118,7 @@ const Connected = Container.namedConnect(
     const isDefinitelyFolder =
       Types.getPathElements(path).length <= 3 && !Constants.hasSpecialFileElement(path)
     return {
-      emitBarePreview: () => dispatchProps._emitBarePreview(path),
+      emitBarePreview: dispatchProps.emitBarePreview,
       kbfsDaemonStatus: stateProps.kbfsDaemonStatus,
       path,
       pathType: isDefinitelyFolder ? Types.PathType.Folder : stateProps._pathItem.type,

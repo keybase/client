@@ -5,7 +5,6 @@ import * as Kb from '../../common-adapters'
 import * as Kbfs from '../common'
 import * as Styles from '../../styles'
 import {memoize} from '../../util/memoize'
-import flags from '../../util/feature-flags'
 
 type Props = {
   path: Types.Path
@@ -51,7 +50,7 @@ const Breadcrumb = Kb.OverlayParentHOC(
                 title: Types.getPathName(path),
                 view: (
                   <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
-                    <Kbfs.PathItemIcon path={path} size={16} />
+                    <Kbfs.ItemIcon path={path} size={16} />
                     <Kb.Text type="Body" lineClamp={1}>
                       {Types.getPathName(path)}
                     </Kb.Text>
@@ -93,7 +92,7 @@ const MaybePublicTag = ({path}: {path: Types.Path}) =>
 
 const MainTitle = (props: Props) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="tiny">
-    {flags.kbfsOfflineMode && Types.getPathLevel(props.path) > 2 && <Kbfs.SyncStatus path={props.path} />}
+    <Kbfs.PathStatusIcon path={props.path} />
     <Kbfs.Filename path={props.path} selectable={true} style={styles.mainTitleText} type="Header" />
     <MaybePublicTag path={props.path} />
   </Kb.Box2>

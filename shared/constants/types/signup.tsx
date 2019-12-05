@@ -1,10 +1,9 @@
-import * as I from 'immutable'
 import HiddenString from '../../util/hidden-string'
 import {RPCError} from '../../util/errors'
 
 export type AutoInviteRequestState = 'NotRequested' | 'Requested' | 'Done'
 
-export type _State = {
+export type State = Readonly<{
   devicename: string
   devicenameError: string
   email: string
@@ -17,10 +16,8 @@ export type _State = {
   nameError: string
   password: HiddenString
   passwordError: HiddenString
-  signupError: RPCError | null
+  signupError?: RPCError
   username: string
   usernameError: string
   usernameTaken: string
-}
-
-export type State = I.RecordOf<_State>
+}>

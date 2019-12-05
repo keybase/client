@@ -16,7 +16,7 @@ here="$(dirname "${BASH_SOURCE[0]}")"
 client_dir="$(git -C "$here" rev-parse --show-toplevel)"
 
 if [ "${KEYBASE_DRY_RUN:-}" = 1 ] || [ "${KEYBASE_NIGHTLY:-}" = 1 ]  || [ "${KEYBASE_TEST:-}" = 1 ] ; then
-  default_bucket_name="jack-testing.keybase.io"
+  default_bucket_name="tests.keybase.io"
   echo
   echo
   echo "================================="

@@ -12,23 +12,24 @@
     },
     "clearNavBadges": {},
     "createNewTeam": {
+      "fromChat?": "boolean",
       "joinSubteam": "boolean",
       "teamname": "string",
-      "rootPath?": "I.List<string>",
-      "sourceSubPath?": "I.List<string>",
-      "destSubPath?": "I.List<string>"
+      "thenAddMembers?": "Omit<_AddToTeamPayload, 'teamID'>"
     },
     "createNewTeamFromConversation": {
       "conversationIDKey": "ChatTypes.ConversationIDKey",
       "teamname": "string"
     },
+    "teamCreated": {
+      "fromChat": "boolean",
+      "teamID": "Types.TeamID",
+      "teamname": "string"
+    },
     "createChannel": {
       "teamname": "string",
       "channelname": "string",
-      "description": "string | null",
-      "rootPath?": "I.List<string>",
-      "sourceSubPath?": "I.List<string>",
-      "destSubPath?": "I.List<string>"
+      "description": "string | null"
     },
     "clearAddUserToTeamsResults": {},
     "setAddUserToTeamsResults": {
@@ -48,7 +49,14 @@
       "_description": "Fetches the channel information for all channels in a team from the server. Should only be called for components that need the full list.",
       "teamname": "string"
     },
-    "getTeams": {},
+    "getTeams": {
+      "_description": "Load team list if we are stale. _subscribe is for use by teams/subscriber only.",
+      "_subscribe?": "boolean",
+      "forceReload?": "boolean"
+    },
+    "unsubscribeTeamList": {
+      "_description": "Don't eagerly reload team list anymore."
+    },
     "getDetails": {
       "teamname": "string",
       "clearInviteLoadingKey?": "string"
@@ -58,11 +66,7 @@
     },
     "setMembers": {
       "teamname": "string",
-      "members": "I.Map<string, Types.MemberInfo>"
-    },
-    "getDetailsForAllTeams": {},
-    "getTeamOperations": {
-      "teamname": "string"
+      "members": "Map<string, Types.MemberInfo>"
     },
     "getTeamProfileAddList": {
       "username": "string"
@@ -87,14 +91,11 @@
       "conversationIDKey": "ChatTypes.ConversationIDKey"
     },
     "deleteTeam": {
-      "teamname": "string"
+      "teamID": "Types.TeamID"
     },
     "inviteToTeamByEmail": {
-      "destSubPath?": "I.List<string>",
       "invitees": "string",
       "role": "Types.TeamRoleType",
-      "rootPath?": "I.List<string>",
-      "sourceSubPath?": "I.List<string>",
       "teamname": "string",
       "loadingKey?": "string"
     },
@@ -110,6 +111,7 @@
     },
     "leaveTeam": {
       "teamname": "string",
+      "permanent": "boolean",
       "context": "'teams' | 'chat'"
     },
     "leftTeam": {
@@ -118,13 +120,17 @@
       "context": "'teams' | 'chat'"
     },
     "addToTeam": {
-      "teamname": "string",
-      "username": "string",
-      "role": "Types.TeamRoleType",
-      "sendChatNotification": "boolean"
+      "teamID": "Types.TeamID",
+      "users": "Array<{assertion: string, role: Types.TeamRoleType}>",
+      "sendChatNotification": "boolean",
+      "fromTeamBuilder?": "boolean"
+    },
+    "addedToTeam": {
+      "error?": "string",
+      "fromTeamBuilder?": "boolean"
     },
     "reAddToTeam": {
-      "teamname": "string",
+      "teamID": "Types.TeamID",
       "username": "string"
     },
     "editTeamDescription": {
@@ -189,20 +195,19 @@
       "loadingKey": "string",
       "isLoading": "boolean"
     },
-    "clearTeamRequests": {
-      "teamname": "string"
-    },
     "setTeamDetails": {
       "teamID": "Types.TeamID",
       "teamname": "string",
       "members": "RPCTypes.TeamMembersDetails",
       "settings": "RPCTypes.TeamSettings",
-      "invites": "Array<Types._InviteInfo>",
+      "invites": "Array<Types.InviteInfo>",
       "subteams": "Array<Types.Teamname>",
-      "requests": "Map<string, Array<string>>"
+      "requests": "Map<string, Array<string>>",
+      "subteamIDs": "Set<Types.TeamID>"
     },
     "setTeamCanPerform": {
       "teamname": "string",
+      "teamID": "Types.TeamID",
       "teamOperation": "Types.TeamOperations"
     },
     "setTeamPublicitySettings": {
@@ -216,16 +221,11 @@
     },
     "setTeamChannels": {
       "teamname": "string",
-      "channelInfos": "I.Map<ChatTypes.ConversationIDKey, Types.ChannelInfo>"
+      "channelInfos": "Map<ChatTypes.ConversationIDKey, Types.ChannelInfo>"
     },
     "setTeamInfo": {
       "teamnames": "Set<Types.Teamname>",
-      "teammembercounts": "I.Map<Types.Teamname, number>",
-      "teamNameToIsOpen": "I.Map<Types.Teamname, boolean>",
-      "teamNameToRole": "I.Map<Types.Teamname, Types.MaybeTeamRoleType>",
-      "teamNameToAllowPromote": "I.Map<Types.Teamname, boolean>",
-      "teamNameToIsShowcasing": "I.Map<Types.Teamname, boolean>",
-      "teamNameToID": "I.Map<Types.Teamname, string>",
+      "teamNameToID": "Map<Types.Teamname, string>",
       "teamDetails": "Map<Types.TeamID, Types.TeamDetails>"
     },
     "setTeamProfileAddList": {
@@ -236,9 +236,9 @@
     },
     "setNewTeamInfo": {
       "deletedTeams": "Array<RPCTypes.DeletedTeamInfo>",
-      "newTeams": "Set<string>",
-      "newTeamRequests": "Array<string>",
-      "teamNameToResetUsers": "I.Map<Types.Teamname, I.Set<Types.ResetUser>>"
+      "newTeams": "Set<Types.TeamID>",
+      "newTeamRequests": "Array<Types.TeamID>",
+      "teamNameToResetUsers": "Map<Types.Teamname, Set<Types.ResetUser>>"
     },
     "setTeamSawChatBanner": {},
     "setTeamSawSubteamsBanner": {},
@@ -270,12 +270,6 @@
       "teamname": "Types.Teamname",
       "conversationIDKey": "ChatTypes.ConversationIDKey"
     },
-    "badgeAppForTeams": {
-      "deletedTeams": "Array<RPCTypes.DeletedTeamInfo>",
-      "newTeamNames": "Array<string>",
-      "newTeamAccessRequests": "Array<string>",
-      "teamsWithResetUsers": "ReadonlyArray<{id: Buffer, teamname: string, username: string, uid: string}>"
-    },
     "checkRequestedAccess": {
       "teamname": "string"
     },
@@ -292,6 +286,12 @@
       "_description": "Rename a subteam",
       "oldName": "string",
       "newName": "string"
+    },
+    "setTeamRoleMapLatestKnownVersion": {
+      "version": "number"
+    },
+    "setTeamRoleMap": {
+      "map": "Types.TeamRoleMap"
     }
   }
 }

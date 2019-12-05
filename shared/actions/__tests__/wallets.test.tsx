@@ -15,12 +15,13 @@ const blankStore = Testing.getInitialStore()
 const initialStore = {
   ...blankStore,
   config: {loggedIn: true, username: 'user'},
-  wallets: blankStore.wallets.merge({
-    accountMap: blankStore.wallets.accountMap.set(
-      Types.stringToAccountID('fake account ID'),
-      Constants.makeAccount()
-    ),
-  }),
+  wallets: {
+    ...blankStore.wallets,
+    accountMap: new Map([
+      ...blankStore.wallets.accountMap.entries(),
+      [Types.stringToAccountID('fake account ID'), Constants.makeAccount()],
+    ]),
+  },
 }
 
 const startOnWalletsTab = dispatch => {

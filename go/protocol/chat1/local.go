@@ -3559,6 +3559,7 @@ type ConversationLocal struct {
 	ConvSettings     *ConversationSettingsLocal    `codec:"convSettings,omitempty" json:"convSettings,omitempty"`
 	Commands         ConversationCommandGroups     `codec:"commands" json:"commands"`
 	BotCommands      ConversationCommandGroups     `codec:"botCommands" json:"botCommands"`
+	BotAliases       map[string]string             `codec:"botAliases" json:"botAliases"`
 }
 
 func (o ConversationLocal) DeepCopy() ConversationLocal {
@@ -3655,6 +3656,18 @@ func (o ConversationLocal) DeepCopy() ConversationLocal {
 		})(o.ConvSettings),
 		Commands:    o.Commands.DeepCopy(),
 		BotCommands: o.BotCommands.DeepCopy(),
+		BotAliases: (func(x map[string]string) map[string]string {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]string, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := v
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.BotAliases),
 	}
 }
 
@@ -4082,7 +4095,6 @@ func (o GetInboxLocalQuery) DeepCopy() GetInboxLocalQuery {
 
 type GetInboxAndUnboxLocalRes struct {
 	Conversations    []ConversationLocal           `codec:"conversations" json:"conversations"`
-	Pagination       *Pagination                   `codec:"pagination,omitempty" json:"pagination,omitempty"`
 	Offline          bool                          `codec:"offline" json:"offline"`
 	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
@@ -4101,13 +4113,6 @@ func (o GetInboxAndUnboxLocalRes) DeepCopy() GetInboxAndUnboxLocalRes {
 			}
 			return ret
 		})(o.Conversations),
-		Pagination: (func(x *Pagination) *Pagination {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.Pagination),
 		Offline: o.Offline,
 		RateLimits: (func(x []RateLimit) []RateLimit {
 			if x == nil {
@@ -4136,7 +4141,6 @@ func (o GetInboxAndUnboxLocalRes) DeepCopy() GetInboxAndUnboxLocalRes {
 
 type GetInboxAndUnboxUILocalRes struct {
 	Conversations    []InboxUIItem                 `codec:"conversations" json:"conversations"`
-	Pagination       *Pagination                   `codec:"pagination,omitempty" json:"pagination,omitempty"`
 	Offline          bool                          `codec:"offline" json:"offline"`
 	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
@@ -4155,13 +4159,6 @@ func (o GetInboxAndUnboxUILocalRes) DeepCopy() GetInboxAndUnboxUILocalRes {
 			}
 			return ret
 		})(o.Conversations),
-		Pagination: (func(x *Pagination) *Pagination {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.Pagination),
 		Offline: o.Offline,
 		RateLimits: (func(x []RateLimit) []RateLimit {
 			if x == nil {
@@ -5777,6 +5774,62 @@ func (o LocalMtimeUpdate) DeepCopy() LocalMtimeUpdate {
 	}
 }
 
+type SnippetDecoration int
+
+const (
+	SnippetDecoration_NONE                   SnippetDecoration = 0
+	SnippetDecoration_PENDING_MESSAGE        SnippetDecoration = 1
+	SnippetDecoration_FAILED_PENDING_MESSAGE SnippetDecoration = 2
+	SnippetDecoration_EXPLODING_MESSAGE      SnippetDecoration = 3
+	SnippetDecoration_EXPLODED_MESSAGE       SnippetDecoration = 4
+	SnippetDecoration_AUDIO_ATTACHMENT       SnippetDecoration = 5
+	SnippetDecoration_VIDEO_ATTACHMENT       SnippetDecoration = 6
+	SnippetDecoration_PHOTO_ATTACHMENT       SnippetDecoration = 7
+	SnippetDecoration_FILE_ATTACHMENT        SnippetDecoration = 8
+	SnippetDecoration_STELLAR_RECEIVED       SnippetDecoration = 9
+	SnippetDecoration_STELLAR_SENT           SnippetDecoration = 10
+	SnippetDecoration_PINNED_MESSAGE         SnippetDecoration = 11
+)
+
+func (o SnippetDecoration) DeepCopy() SnippetDecoration { return o }
+
+var SnippetDecorationMap = map[string]SnippetDecoration{
+	"NONE":                   0,
+	"PENDING_MESSAGE":        1,
+	"FAILED_PENDING_MESSAGE": 2,
+	"EXPLODING_MESSAGE":      3,
+	"EXPLODED_MESSAGE":       4,
+	"AUDIO_ATTACHMENT":       5,
+	"VIDEO_ATTACHMENT":       6,
+	"PHOTO_ATTACHMENT":       7,
+	"FILE_ATTACHMENT":        8,
+	"STELLAR_RECEIVED":       9,
+	"STELLAR_SENT":           10,
+	"PINNED_MESSAGE":         11,
+}
+
+var SnippetDecorationRevMap = map[SnippetDecoration]string{
+	0:  "NONE",
+	1:  "PENDING_MESSAGE",
+	2:  "FAILED_PENDING_MESSAGE",
+	3:  "EXPLODING_MESSAGE",
+	4:  "EXPLODED_MESSAGE",
+	5:  "AUDIO_ATTACHMENT",
+	6:  "VIDEO_ATTACHMENT",
+	7:  "PHOTO_ATTACHMENT",
+	8:  "FILE_ATTACHMENT",
+	9:  "STELLAR_RECEIVED",
+	10: "STELLAR_SENT",
+	11: "PINNED_MESSAGE",
+}
+
+func (e SnippetDecoration) String() string {
+	if v, ok := SnippetDecorationRevMap[e]; ok {
+		return v
+	}
+	return fmt.Sprintf("%v", int(e))
+}
+
 type GetThreadLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Reason           GetThreadReason              `codec:"reason" json:"reason"`
@@ -5812,13 +5865,11 @@ type GetUnreadlineArg struct {
 
 type GetInboxAndUnboxLocalArg struct {
 	Query            *GetInboxLocalQuery          `codec:"query,omitempty" json:"query,omitempty"`
-	Pagination       *Pagination                  `codec:"pagination,omitempty" json:"pagination,omitempty"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
 type GetInboxAndUnboxUILocalArg struct {
 	Query            *GetInboxLocalQuery          `codec:"query,omitempty" json:"query,omitempty"`
-	Pagination       *Pagination                  `codec:"pagination,omitempty" json:"pagination,omitempty"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
@@ -5835,7 +5886,6 @@ type GetInboxNonblockLocalArg struct {
 	MaxUnbox         *int                         `codec:"maxUnbox,omitempty" json:"maxUnbox,omitempty"`
 	SkipUnverified   bool                         `codec:"skipUnverified" json:"skipUnverified"`
 	Query            *GetInboxLocalQuery          `codec:"query,omitempty" json:"query,omitempty"`
-	Pagination       *Pagination                  `codec:"pagination,omitempty" json:"pagination,omitempty"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
@@ -6044,7 +6094,8 @@ type MakePreviewArg struct {
 }
 
 type MakeAudioPreviewArg struct {
-	Amps []float64 `codec:"amps" json:"amps"`
+	Amps     []float64 `codec:"amps" json:"amps"`
+	Duration int       `codec:"duration" json:"duration"`
 }
 
 type GetUploadTempFileArg struct {
@@ -6056,6 +6107,10 @@ type MakeUploadTempFileArg struct {
 	OutboxID OutboxID `codec:"outboxID" json:"outboxID"`
 	Filename string   `codec:"filename" json:"filename"`
 	Data     []byte   `codec:"data" json:"data"`
+}
+
+type CancelUploadTempFileArg struct {
+	OutboxID OutboxID `codec:"outboxID" json:"outboxID"`
 }
 
 type CancelPostArg struct {
@@ -6371,9 +6426,10 @@ type LocalInterface interface {
 	DownloadFileAttachmentLocal(context.Context, DownloadFileAttachmentLocalArg) (DownloadFileAttachmentLocalRes, error)
 	ConfigureFileAttachmentDownloadLocal(context.Context, ConfigureFileAttachmentDownloadLocalArg) error
 	MakePreview(context.Context, MakePreviewArg) (MakePreviewRes, error)
-	MakeAudioPreview(context.Context, []float64) (MakePreviewRes, error)
+	MakeAudioPreview(context.Context, MakeAudioPreviewArg) (MakePreviewRes, error)
 	GetUploadTempFile(context.Context, GetUploadTempFileArg) (string, error)
 	MakeUploadTempFile(context.Context, MakeUploadTempFileArg) (string, error)
+	CancelUploadTempFile(context.Context, OutboxID) error
 	CancelPost(context.Context, OutboxID) error
 	RetryPost(context.Context, RetryPostArg) error
 	MarkAsReadLocal(context.Context, MarkAsReadLocalArg) (MarkAsReadLocalRes, error)
@@ -6963,7 +7019,7 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]MakeAudioPreviewArg)(nil), args)
 						return
 					}
-					ret, err = i.MakeAudioPreview(ctx, typedArgs[0].Amps)
+					ret, err = i.MakeAudioPreview(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -6994,6 +7050,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.MakeUploadTempFile(ctx, typedArgs[0])
+					return
+				},
+			},
+			"cancelUploadTempFile": {
+				MakeArg: func() interface{} {
+					var ret [1]CancelUploadTempFileArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]CancelUploadTempFileArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]CancelUploadTempFileArg)(nil), args)
+						return
+					}
+					err = i.CancelUploadTempFile(ctx, typedArgs[0].OutboxID)
 					return
 				},
 			},
@@ -7929,8 +8000,7 @@ func (c LocalClient) MakePreview(ctx context.Context, __arg MakePreviewArg) (res
 	return
 }
 
-func (c LocalClient) MakeAudioPreview(ctx context.Context, amps []float64) (res MakePreviewRes, err error) {
-	__arg := MakeAudioPreviewArg{Amps: amps}
+func (c LocalClient) MakeAudioPreview(ctx context.Context, __arg MakeAudioPreviewArg) (res MakePreviewRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.makeAudioPreview", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
@@ -7942,6 +8012,12 @@ func (c LocalClient) GetUploadTempFile(ctx context.Context, __arg GetUploadTempF
 
 func (c LocalClient) MakeUploadTempFile(ctx context.Context, __arg MakeUploadTempFileArg) (res string, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.makeUploadTempFile", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) CancelUploadTempFile(ctx context.Context, outboxID OutboxID) (err error) {
+	__arg := CancelUploadTempFileArg{OutboxID: outboxID}
+	err = c.Cli.Call(ctx, "chat.1.local.cancelUploadTempFile", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 

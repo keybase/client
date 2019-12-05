@@ -24,7 +24,7 @@ const mapStateToProps = (state: Container.TypedState, {path}: OwnProps) => ({
   _downloads: state.fs.downloads,
   _fileContext: state.fs.fileContext.get(path) || Constants.emptyFileContext,
   _ignoreNeedsToWait: anyWaiting(state, Constants.folderListWaitingKey, Constants.statWaitingKey),
-  _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
+  _pathItem: Constants.getPathItem(state.fs.pathItems, path),
   _pathItemActionMenu: state.fs.pathItemActionMenu,
   _sfmiEnabled: state.fs.sfmi.driverStatus.type === Types.DriverStatusType.Enabled,
   _username: state.config.username,
@@ -199,6 +199,9 @@ const mergeProps = (
   }
 }
 
-export default Container.namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'PathItemActionMenu')(
-  Menu
-)
+export default Container.namedConnect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'PathItemActionMenu'
+)(Menu)

@@ -12,9 +12,11 @@ type Props = {
   deviceType: DeviceType
   deviceRevokedAt?: number
   onAddReaction?: () => void
+  onAllMedia: () => void
   onDelete?: () => void
   onDownload?: () => void
   onHidden: () => void
+  onKick: () => void
   onPinMessage?: () => void
   onReply: () => void
   onSaveAttachment?: () => void
@@ -27,6 +29,7 @@ type Props = {
   visible: boolean
   yourMessage: boolean
   isDeleteable: boolean
+  isKickable: boolean
 }
 
 const AttachmentPopupMenu = (props: Props) => {
@@ -43,16 +46,27 @@ const AttachmentPopupMenu = (props: Props) => {
           },
         ] as const)
       : []),
-
+    ...(props.isKickable
+      ? ([
+          {
+            danger: true,
+            disabled: !props.onKick,
+            onClick: props.onKick,
+            subTitle: 'Removes the user from the team',
+            title: 'Kick user',
+          },
+        ] as const)
+      : []),
     'Divider' as const,
     ...(props.onShowInFinder ? [{onClick: props.onShowInFinder, title: `Show in ${fileUIName}`}] : []),
     ...(props.onSaveAttachment
       ? [{disabled: props.pending, onClick: props.onSaveAttachment, title: 'Save'}]
       : []),
+    ...(props.onDownload ? [{disabled: props.pending, onClick: props.onDownload, title: 'Download'}] : []),
     ...(props.onShareAttachment
       ? [{disabled: props.pending, onClick: props.onShareAttachment, title: 'Share'}]
       : []),
-    ...(props.onDownload ? [{disabled: props.pending, onClick: props.onDownload, title: 'Download'}] : []),
+    ...(props.onAllMedia ? [{onClick: props.onAllMedia, title: 'All media'}] : []),
     ...(props.onAddReaction ? [{onClick: props.onAddReaction, title: 'Add a reaction'}] : []),
     ...(props.onReply ? [{onClick: props.onReply, title: 'Reply'}] : []),
     ...(props.onPinMessage ? [{onClick: props.onPinMessage, title: 'Pin message'}] : []),

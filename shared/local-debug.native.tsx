@@ -7,7 +7,7 @@ import noop from 'lodash/noop'
 const nativeBridge = NativeModules.KeybaseEngine || {test: 'fallback'}
 
 // Uncomment this to disable yellowboxes
-console.disableYellowBox = true
+console.disableYellowBox = false
 //
 // Ignore some yellowboxes on 3rd party libs we can't control
 YellowBox.ignoreWarnings([
@@ -33,13 +33,15 @@ let config = {
   allowMultipleInstances: false,
   enableActionLogging: true, // Log actions to the log
   enableStoreLogging: false, // Log full store changes
-  featureFlagsOverride: 'whatsNew', // Override feature flags
+  featureFlagsOverride: '', // Override feature flags
   filterActionLogs: null, // Filter actions in log
   forceImmediateLogging: false, // Don't wait for idle to log
   ignoreDisconnectOverlay: false,
   immediateStateLogging: false, // Don't wait for idle to log state
   isDevApplePushToken: false, // Use a dev push token
-  isTesting: nativeBridge.test === '1' || (NativeModules.Storybook && NativeModules.Storybook.isStorybook), // Is running a unit test
+  isTesting:
+    (__DEV__ && nativeBridge.test === '1') ||
+    (NativeModules.Storybook && NativeModules.Storybook.isStorybook), // Is running a unit test
   partyMode: false,
   printOutstandingRPCs: false, // Periodically print rpcs we're waiting for
   printOutstandingTimerListeners: false, // Periodically print listeners to the second clock
@@ -47,8 +49,6 @@ let config = {
   printRPCBytes: false, // Print raw b64-encoded bytes going over the wire
   printRPCStats: false, // print detailed info on stats
   printRPCWaitingSession: false,
-  reduxSagaLogger: false, // Print saga debug info
-  reduxSagaLoggerMasked: true, // Print saga debug info masked out
   showDevTools: false,
   skipAppFocusActions: false,
   skipSecondaryDevtools: false,
@@ -68,8 +68,8 @@ if (__DEV__) {
   config.printOutstandingTimerListeners = true
   config.printRPCWaitingSession = false
   config.printRPC = true
+  // TODO is this even used?
   config.printRPCStats = true
-  config.reduxSagaLoggerMasked = false
   config.userTimings = false
 
   // uncomment this to watch the RN bridge traffic: https://github.com/facebook/react-native/commit/77e48f17824870d30144a583be77ec5c9cf9f8c5
@@ -92,8 +92,6 @@ if (PERF) {
   config.printOutstandingRPCs = false
   config.printOutstandingTimerListeners = false
   config.printRPC = false
-  config.reduxSagaLogger = false
-  config.reduxSagaLoggerMasked = false
   config.userTimings = true
 }
 
@@ -132,8 +130,6 @@ export const {
   printRPC,
   printRPCBytes,
   printRPCStats,
-  reduxSagaLogger,
-  reduxSagaLoggerMasked,
   showDevTools,
   skipSecondaryDevtools,
   userTimings,

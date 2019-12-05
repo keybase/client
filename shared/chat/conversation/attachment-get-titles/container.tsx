@@ -11,7 +11,7 @@ type OwnProps = Container.RouteProps<{
   conversationIDKey: Types.ConversationIDKey
 }>
 
-const noOutboxIds = []
+const noOutboxIds: Array<Types.PathAndOutboxID> = []
 
 const mapStateToProps = (_: Container.TypedState, ownProps: OwnProps) => ({
   _conversationIDKey: Container.getRouteProps(ownProps, 'conversationIDKey', Constants.noConversationIDKey),
@@ -44,7 +44,7 @@ export default Container.connect(
   (stateProps, dispatchProps, _: OwnProps) => ({
     onCancel: dispatchProps.onCancel,
     onSubmit: (pathToInfo: PathToInfo) => dispatchProps._onSubmit(stateProps._conversationIDKey, pathToInfo),
-    pathToInfo: stateProps.pathAndOutboxIDs.reduce((map, {path, outboxID}) => {
+    pathToInfo: stateProps.pathAndOutboxIDs.reduce<PathToInfo>((map, {path, outboxID}) => {
       const filename = FsTypes.getLocalPathName(path)
       map[path] = {
         filename,

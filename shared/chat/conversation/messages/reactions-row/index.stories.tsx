@@ -1,5 +1,4 @@
 import {Rnd} from '../../../../stories/storybook'
-import * as I from 'immutable'
 import * as Types from '../../../../constants/types/chat2'
 import {emojiIndexByName} from '../../../../common-adapters/markdown/emoji-gen'
 import {OwnProps} from './container'
@@ -17,7 +16,7 @@ const ordinalToEmojis = (m: Types.Ordinal) => {
     for (let i = 0; i < numReactions; i++) {
       res.push(emojiNames[r.next() % numEmojis])
     }
-    return I.Set(res).toArray()
+    return [...new Set(res)]
   }
   return []
 }

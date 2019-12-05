@@ -6,12 +6,11 @@ import * as Container from './container'
 type OwnProps = Container.ConnectedProps
 
 // Connected username component
-const mapStateToProps = props => ({
-  _following: props.following,
-  _userInfo: props.userInfo,
-  _you: props.username,
+const mapStateToProps = state => ({
+  _following: state.following,
+  _userInfo: state.userInfo,
+  _you: state.username,
 })
-
 const mapDispatchToProps = dispatch => ({
   _onUsernameClicked: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
 })

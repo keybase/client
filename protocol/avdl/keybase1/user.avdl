@@ -200,13 +200,65 @@ protocol user {
 
   union { null, UserCard } userCard(int sessionID, string username, boolean useSession);
 
-  void blockUser(string username);
-  void unblockUser(string username);
-
   // user.passphrase_state gregor message body
   @lint("ignore")
   record UserPassphraseStateMsg {
     @jsonkey("state")
     PassphraseState passphraseState;
   }
+
+  record UserBlockedRow {
+    @jsonkey("block_uid")
+    UID uid;
+    @jsonkey("block_username")
+    string username;
+    @jsonkey("chat")
+    union { null, boolean } chat;
+    @jsonkey("follow")
+    union { null, boolean } follow;
+  }
+
+  // user.blocked gregor message body
+  record UserBlockedBody {
+    @jsonkey("blocks")
+    array<UserBlockedRow> blocks;
+    // The user who blocked (should be the currently logged-in user).
+    @jsonkey("blocker_uid")
+    UID uid;
+    @jsonkey("blocker_username")
+    string username;
+  }
+
+  record UserBlockedSummary {
+    string blocker;
+    array<string> blocked;
+  }
+
+  // User Blocking
+
+  record UserBlock {
+    string username;
+    boolean chatBlocked;
+    boolean followBlocked;
+    union { null, Time } createTime;
+    union { null, Time } modifyTime;
+  }
+
+  record UserBlockArg {
+    string username;
+    union { null, boolean } setChatBlock;
+    union { null, boolean } setFollowBlock;
+  }
+
+  void setUserBlocks(int sessionID, array<UserBlockArg> blocks);
+  array<UserBlock> getUserBlocks(int sessionID, array<string> usernames);
+
+  void reportUser(int sessionID, string username, string reason, string comment,
+    boolean includeTranscript, union { null, string } convID);
+
+  void dismissBlockButtons(TLFID tlfID);
+
+  // Legacy user blocking:
+  void blockUser(string username);
+  void unblockUser(string username);
 }

@@ -143,6 +143,10 @@ type settingsDBGetter interface {
 	GetSettingsDB() *SettingsDB
 }
 
+type subscriptionManagerPublisherGetter interface {
+	SubscriptionManagerPublisher() SubscriptionManagerPublisher
+}
+
 // NodeID is a unique but transient ID for a Node. That is, two Node
 // objects in memory at the same time represent the same file or
 // directory if and only if their NodeIDs are equal (by pointer).
@@ -301,6 +305,9 @@ type KBFSOps interface {
 	// and new top-level folders.  This is a remote-access operation when the
 	// cache is empty or expired.
 	GetFavoritesAll(ctx context.Context) (keybase1.FavoritesResult, error)
+	// GetBadge returns the overall KBFS badge state for this device.
+	// It's cheaper than the other favorites methods.
+	GetBadge(ctx context.Context) (keybase1.FilesTabBadge, error)
 	// RefreshCachedFavorites tells the instances to forget any cached
 	// favorites list and fetch a new list from the server.  The
 	// effects are asychronous; if there's an error refreshing the
@@ -2047,6 +2054,11 @@ type Subscriber interface {
 	Unsubscribe(context.Context, SubscriptionID)
 }
 
+// OnlineStatusTracker tracks the online status for the GUI.
+type OnlineStatusTracker interface {
+	GetOnlineStatus() keybase1.KbfsOnlineStatus
+}
+
 // SubscriptionManager manages subscriptions. Use the Subscriber interface to
 // subscribe and unsubscribe. Multiple subscribers can be used with the same
 // SubscriptionManager.
@@ -2054,6 +2066,9 @@ type SubscriptionManager interface {
 	// Subscriber returns a new subscriber. All subscriptions made on this
 	// subscriber causes notifications sent through the give notifier here.
 	Subscriber(SubscriptionNotifier) Subscriber
+	// OnlineStatusTracker returns the OnlineStatusTracker for getting the
+	// current online status for GUI.
+	OnlineStatusTracker() OnlineStatusTracker
 	// Shutdown shuts the subscription manager down.
 	Shutdown(ctx context.Context)
 }

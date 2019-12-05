@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
+import * as Types from '../constants/types/chat2'
 import * as Constants from '../constants/chat2'
 import * as TeamConstants from '../constants/teams'
 import * as Platforms from '../constants/platform'
@@ -76,25 +77,20 @@ const Header = (p: Props) => {
       : p.participants
 
   // if there is no description (and is not a 1-on-1), don't render the description box
-  const renderDescription = description || (withoutSelf && withoutSelf.length === 1)
+  const renderDescription = description || (p.fullName && withoutSelf && withoutSelf.length === 1)
 
   // trim() call makes sure that string is not just whitespace
   if (withoutSelf && withoutSelf.length === 1 && p.desc.trim()) {
     description = (
-      <>
-        <Kb.Text type="BodySmall" style={styles.desc}>
-          &nbsp;•&nbsp;
-        </Kb.Text>
-        <Kb.Markdown
-          smallStandaloneEmoji={true}
-          style={{...styles.desc, flex: 1}}
-          styleOverride={descStyleOverride}
-          lineClamp={1}
-          selectable={true}
-        >
-          {p.desc}
-        </Kb.Markdown>
-      </>
+      <Kb.Markdown
+        smallStandaloneEmoji={true}
+        style={{...styles.desc, flex: 1}}
+        styleOverride={descStyleOverride}
+        lineClamp={1}
+        selectable={true}
+      >
+        {p.desc}
+      </Kb.Markdown>
     )
   }
   return (
@@ -118,9 +114,9 @@ const Header = (p: Props) => {
               <Kb.Text selectable={true} type="Header" lineClamp={1}>
                 {p.channel}
               </Kb.Text>
-            ) : withoutSelf && withoutSelf.length === 1 ? (
+            ) : p.fullName ? (
               <Kb.Text type="Header" lineClamp={1}>
-                {p.fullName || withoutSelf[0]}
+                {p.fullName}
               </Kb.Text>
             ) : withoutSelf ? (
               <Kb.Box2 direction="horizontal" style={Styles.globalStyles.flexOne}>
@@ -154,7 +150,7 @@ const Header = (p: Props) => {
           </Kb.Box2>
           {renderDescription && (
             <Kb.Box2 direction="vertical" style={styles.descriptionContainer} fullWidth={true}>
-              {withoutSelf && withoutSelf.length === 1 ? (
+              {p.fullName && withoutSelf && withoutSelf.length === 1 ? (
                 <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
                   <Kb.ConnectedUsernames
                     colorFollowing={true}
@@ -165,6 +161,9 @@ const Header = (p: Props) => {
                     usernames={[withoutSelf[0]]}
                     onUsernameClicked="profile"
                   />
+                  <Kb.Text type="BodySmall" style={styles.desc}>
+                    &nbsp;•&nbsp;
+                  </Kb.Text>
                   {description}
                 </Kb.Box2>
               ) : (
@@ -268,12 +267,13 @@ const Connected = Container.connect(
     }
   },
   dispatch => ({
-    _onOpenFolder: conversationIDKey => dispatch(Chat2Gen.createOpenFolder({conversationIDKey})),
+    _onOpenFolder: (conversationIDKey: Types.ConversationIDKey) =>
+      dispatch(Chat2Gen.createOpenFolder({conversationIDKey})),
     onNewChat: () => dispatch(appendNewChatBuilder()),
     onToggleInfoPanel: () => dispatch(Chat2Gen.createToggleInfoPanel()),
-    onToggleThreadSearch: conversationIDKey =>
+    onToggleThreadSearch: (conversationIDKey: Types.ConversationIDKey) =>
       dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey})),
-    onUnMuteConversation: conversationIDKey =>
+    onUnMuteConversation: (conversationIDKey: Types.ConversationIDKey) =>
       dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted: false})),
   }),
   (stateProps, dispatchProps, _: OwnProps) => {

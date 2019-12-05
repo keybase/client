@@ -55,8 +55,13 @@ func (c *CmdTeamDelete) Run() error {
 		return err
 	}
 
+	teamID, err := cli.GetTeamID(context.Background(), c.Team.String())
+	if err != nil {
+		return err
+	}
+
 	arg := keybase1.TeamDeleteArg{
-		Name: c.Team.String(),
+		TeamID: teamID,
 	}
 
 	dui := c.G().UI.GetTerminalUI()

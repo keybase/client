@@ -1196,6 +1196,11 @@ pathLoop:
 				fbo.vlog.CLogf(
 					ctx, libkb.VLog1, "Ignoring symlink path %s", p)
 				continue pathLoop
+			} else if currNode.EntryType() != data.Dir {
+				fbo.vlog.CLogf(
+					ctx, libkb.VLog1, "Ignoring non-dir path %s (%s)",
+					p, currNode.EntryType())
+				continue pathLoop
 			}
 
 			// Use `PrefetchTail` for directories, to make sure that
@@ -1687,10 +1692,18 @@ func (fbo *folderBranchOps) partialMarkAndSweepLoop(trigger <-chan struct{}) {
 func (fbo *folderBranchOps) kickOffRootBlockFetch(
 	ctx context.Context, rmd ImmutableRootMetadata) <-chan error {
 	ptr := rmd.Data().Dir.BlockPointer
+	action := fbo.config.Mode().DefaultBlockRequestAction().
+		AddStopPrefetchIfFull()
+	if !action.prefetch() && fbo.config.IsSyncedTlf(fbo.id()) {
+		// Explicitly add the prefetch action for synced folders when
+		// getting the root block, since in some modes (like
+		// constrained) the prefetch action isn't set by default.
+		action = action.AddPrefetch()
+	}
+
 	return fbo.config.BlockOps().BlockRetriever().Request(
 		ctx, defaultOnDemandRequestPriority-1, rmd, ptr, data.NewDirBlock(),
-		data.TransientEntry,
-		fbo.config.Mode().DefaultBlockRequestAction().AddStopIfFull())
+		data.TransientEntry, action)
 }
 
 func (fbo *folderBranchOps) logIfErr(
@@ -4312,10 +4325,17 @@ func checkDisallowedPrefixes(
 					return nil
 				}
 			}
-			return DisallowedPrefixError{name, prefix}
+			return errors.WithStack(DisallowedPrefixError{name, prefix})
 		}
 	}
-	return nil
+
+	// Don't allow any empty or `.` names.
+	switch name.Plaintext() {
+	case "", ".", "..":
+		return errors.WithStack(DisallowedNameError{name.Plaintext()})
+	default:
+		return nil
+	}
 }
 
 // PathType returns path type
@@ -9151,6 +9171,7 @@ func (fbo *folderBranchOps) SetSyncConfig(
 
 	defer func() {
 		if err == nil {
+			fbo.config.SubscriptionManagerPublisher().PublishChange(keybase1.SubscriptionTopic_FAVORITES)
 			fbo.config.Reporter().NotifyFavoritesChanged(ctx)
 		}
 	}()
@@ -9451,6 +9472,13 @@ func (fbo *folderBranchOps) getEditMessages(
 			id, err)
 		return nil
 	}
+	if fbo.config.IsTestMode() {
+		// Extra debugging for HOTPOT-1096.
+		fbo.vlog.CLogf(
+			ctx, libkb.VLog1, "%p: Got messages in channel %s: %s",
+			fbo, channelName, messages)
+	}
+
 	_, err = fbo.editHistory.AddNotifications(channelName, messages)
 	if err != nil {
 		fbo.log.CWarningf(ctx, "Couldn't add messages for conv %s: %+v",
@@ -9503,6 +9531,14 @@ func (fbo *folderBranchOps) recomputeEditHistory(
 			}
 		}
 	}
+
+	if fbo.config.IsTestMode() {
+		// Extra debugging for HOTPOT-1096.
+		fbo.vlog.CLogf(
+			ctx, libkb.VLog1, "%p: Recomputing history for %s",
+			fbo, session.Name)
+	}
+
 	// Update the overall user history.  TODO: if the TLF name
 	// changed, we should clean up the old user history.
 	fbo.config.UserHistory().UpdateHistory(
@@ -9578,6 +9614,12 @@ func (fbo *folderBranchOps) handleEditActivity(
 	}
 	if a.message != "" {
 		fbo.vlog.CLogf(ctx, libkb.VLog1, "New edit message for %s", name)
+		if fbo.config.IsTestMode() {
+			// Extra debugging for HOTPOT-1096.
+			fbo.vlog.CLogf(
+				ctx, libkb.VLog1, "%p: Processing edit message %s",
+				fbo, a.message)
+		}
 		maxRev, err := fbo.editHistory.AddNotifications(
 			name, []string{a.message})
 		if err != nil {

@@ -30,39 +30,40 @@ const decodeInlineError = inlineRPCError => {
   return {inlineError, inlineSignUpLink}
 }
 
-const mapStateToProps = (state: Container.TypedState) => {
-  const error = state.provision.error.stringValue()
-  const {inlineError, inlineSignUpLink} = decodeInlineError(state.provision.inlineError)
-  return {
-    _resetBannerUser: state.autoreset.username,
-    error: error ? error : inlineError && !inlineSignUpLink ? inlineError : '',
-    initialUsername: state.provision.initialUsername,
-    inlineError,
-    inlineSignUpLink,
-    // So we can clear the error if the name is changed
-    submittedUsername: state.provision.username,
-    waiting: anyWaiting(state, Constants.waitingKey),
-  }
-}
-
-const dispatchToProps = (dispatch: Container.TypedDispatch) => ({
-  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-  onForgotUsername: () =>
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: 'forgotUsername'}]})),
-  onGoToSignup: () => dispatch(SignupGen.createRequestAutoInvite()),
-  onSubmit: (username: string) => dispatch(ProvisionGen.createSubmitUsername({username})),
-})
-
 export default Container.compose(
-  Container.connect(mapStateToProps, dispatchToProps, (s, d, o: OwnProps) => ({
-    ...d,
-    error: s.error,
-    initialUsername: s.initialUsername,
-    inlineError: s.inlineError,
-    inlineSignUpLink: s.inlineSignUpLink,
-    resetBannerUser: Container.getRouteProps(o, 'fromReset', false) ? s._resetBannerUser : null,
-    submittedUsername: s.submittedUsername,
-    waiting: s.waiting,
-  })),
+  Container.connect(
+    state => {
+      const error = state.provision.error.stringValue()
+      const {inlineError, inlineSignUpLink} = decodeInlineError(state.provision.inlineError)
+      return {
+        _resetBannerUser: state.autoreset.username,
+        error: error ? error : inlineError && !inlineSignUpLink ? inlineError : '',
+        initialUsername: state.provision.initialUsername,
+        inlineError,
+        inlineSignUpLink,
+        // So we can clear the error if the name is changed
+        submittedUsername: state.provision.username,
+        waiting: anyWaiting(state, Constants.waitingKey),
+      }
+    },
+    dispatch => ({
+      onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+      onForgotUsername: () =>
+        dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: 'forgotUsername'}]})),
+      onGoToSignup: () => dispatch(SignupGen.createRequestAutoInvite()),
+      onSubmit: (username: string) => dispatch(ProvisionGen.createSubmitUsername({username})),
+    }),
+    (s, d, o: OwnProps) => ({
+      ...d,
+      error: s.error,
+      initialUsername: s.initialUsername,
+      inlineError: s.inlineError,
+      inlineSignUpLink: s.inlineSignUpLink,
+      onSubmit: (username: string) => !s.waiting && d.onSubmit(username),
+      resetBannerUser: Container.getRouteProps(o, 'fromReset', false) ? s._resetBannerUser : null,
+      submittedUsername: s.submittedUsername,
+      waiting: s.waiting,
+    })
+  ),
   Container.safeSubmit(['onBack', 'onSubmit'], ['error', 'inlineError', 'inlineSignUpLink'])
 )(Username)

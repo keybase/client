@@ -461,6 +461,7 @@ func TestEphemeralResetMember(t *testing.T) {
 
 	ann := ctx.installKeybaseForUser("ann", 10)
 	ann.signup()
+	ann.registerForNotifications()
 	bob := ctx.installKeybaseForUser("bob", 10)
 	bob.signup()
 	joe := ctx.installKeybaseForUser("joe", 10)
@@ -515,6 +516,7 @@ func TestEphemeralResetMember(t *testing.T) {
 	// Also add joe who has a valid userEK
 	ann.addWriter(team, bob)
 	ann.addWriter(team, joe)
+	ann.waitForNewlyAddedToTeamByID(teamID)
 
 	// ann gets the new teamEk which joe can access but bob cannot after he reset.
 	ek2, created, err := annEkLib.GetOrCreateLatestTeamEK(annMctx, teamID)

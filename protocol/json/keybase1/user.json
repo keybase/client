@@ -362,6 +362,135 @@
         }
       ],
       "lint": "ignore"
+    },
+    {
+      "type": "record",
+      "name": "UserBlockedRow",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "uid",
+          "jsonkey": "block_uid"
+        },
+        {
+          "type": "string",
+          "name": "username",
+          "jsonkey": "block_username"
+        },
+        {
+          "type": [
+            null,
+            "boolean"
+          ],
+          "name": "chat",
+          "jsonkey": "chat"
+        },
+        {
+          "type": [
+            null,
+            "boolean"
+          ],
+          "name": "follow",
+          "jsonkey": "follow"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserBlockedBody",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "UserBlockedRow"
+          },
+          "name": "blocks",
+          "jsonkey": "blocks"
+        },
+        {
+          "type": "UID",
+          "name": "uid",
+          "jsonkey": "blocker_uid"
+        },
+        {
+          "type": "string",
+          "name": "username",
+          "jsonkey": "blocker_username"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserBlockedSummary",
+      "fields": [
+        {
+          "type": "string",
+          "name": "blocker"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "blocked"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserBlock",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "boolean",
+          "name": "chatBlocked"
+        },
+        {
+          "type": "boolean",
+          "name": "followBlocked"
+        },
+        {
+          "type": [
+            null,
+            "Time"
+          ],
+          "name": "createTime"
+        },
+        {
+          "type": [
+            null,
+            "Time"
+          ],
+          "name": "modifyTime"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserBlockArg",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": [
+            null,
+            "boolean"
+          ],
+          "name": "setChatBlock"
+        },
+        {
+          "type": [
+            null,
+            "boolean"
+          ],
+          "name": "setFollowBlock"
+        }
+      ]
     }
   ],
   "messages": {
@@ -737,6 +866,82 @@
         null,
         "UserCard"
       ]
+    },
+    "setUserBlocks": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "blocks",
+          "type": {
+            "type": "array",
+            "items": "UserBlockArg"
+          }
+        }
+      ],
+      "response": null
+    },
+    "getUserBlocks": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "usernames",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "UserBlock"
+      }
+    },
+    "reportUser": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "reason",
+          "type": "string"
+        },
+        {
+          "name": "comment",
+          "type": "string"
+        },
+        {
+          "name": "includeTranscript",
+          "type": "boolean"
+        },
+        {
+          "name": "convID",
+          "type": [
+            null,
+            "string"
+          ]
+        }
+      ],
+      "response": null
+    },
+    "dismissBlockButtons": {
+      "request": [
+        {
+          "name": "tlfID",
+          "type": "TLFID"
+        }
+      ],
+      "response": null
     },
     "blockUser": {
       "request": [

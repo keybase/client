@@ -31,13 +31,21 @@ const setUnsentText = (conversationIDKey: Types.ConversationIDKey, text: string)
 
 const getTeams = memoize((layout: RPCChatTypes.UIInboxLayout | null) => {
   const bigTeams = (layout && layout.bigTeams) || []
-  return bigTeams
-    .reduce<Array<string>>((arr, l) => {
-      if (l.state === RPCChatTypes.UIInboxBigTeamRowTyp.label) {
-        arr.push(l.label)
-      }
-      return arr
-    }, [])
+  const smallTeams = (layout && layout.smallTeams) || []
+  const bigTeamNames = bigTeams.reduce<Array<string>>((arr, l) => {
+    if (l.state === RPCChatTypes.UIInboxBigTeamRowTyp.label) {
+      arr.push(l.label.name)
+    }
+    return arr
+  }, [])
+  const smallTeamNames = smallTeams.reduce<Array<string>>((arr, l) => {
+    if (l.isTeam) {
+      arr.push(l.name)
+    }
+    return arr
+  }, [])
+  return bigTeamNames
+    .concat(smallTeamNames)
     .sort()
     .map(teamname => ({fullName: '', teamname, username: ''}))
 })
@@ -71,7 +79,6 @@ export default Container.namedConnect(
       _draft: Constants.getDraft(state, conversationIDKey),
       _editOrdinal: editInfo ? editInfo.ordinal : null,
       _isExplodingModeLocked: Constants.isExplodingModeLocked(state, conversationIDKey),
-      _metaMap: state.chat2.metaMap,
       _replyTo,
       _you,
       cannotWrite: meta.cannotWrite,
@@ -203,7 +210,6 @@ export default Container.namedConnect(
     onGiphyToggle: () => dispatchProps._onGiphyToggle(stateProps.conversationIDKey),
     onRequestScrollDown: ownProps.onRequestScrollDown,
     onRequestScrollUp: ownProps.onRequestScrollUp,
-
     onSubmit: (text: string) => {
       if (stateProps._editOrdinal) {
         dispatchProps._onEditMessage(stateProps.conversationIDKey, stateProps._editOrdinal, text)

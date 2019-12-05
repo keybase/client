@@ -31,6 +31,64 @@ func LoadTeamPlusApplicationKeys(ctx context.Context, g *libkb.GlobalContext, id
 	return team.ExportToTeamPlusApplicationKeys(ctx, keybase1.Time(0), application, includeKBFSKeys)
 }
 
+// GetAnnotatedTeam bundles up various data, both on and off chain, about a
+// specific team for consumption by the GUI. In particular, it supplies almost all of the information on a team's
+// subpage in the Teams tab
+func GetAnnotatedTeam(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) (res keybase1.AnnotatedTeam, err error) {
+	tracer := g.CTimeTracer(ctx, "TeamDetails", true)
+	defer tracer.Finish()
+
+	mctx := libkb.NewMetaContext(ctx, g)
+
+	tracer.Stage("load team")
+	t, err := GetMaybeAdminByID(ctx, g, id, id.IsPublic())
+	if err != nil {
+		return res, err
+	}
+	det, err := details(ctx, g, t, tracer)
+	if err != nil {
+		return res, err
+	}
+
+	transitiveSubteamsUnverified, err := ListSubteamsUnverified(mctx, t.Data.Name)
+	if err != nil {
+		return res, err
+	}
+
+	var members []keybase1.TeamMemberDetails
+	members = append(members, det.Members.Owners...)
+	members = append(members, det.Members.Admins...)
+	members = append(members, det.Members.Writers...)
+	members = append(members, det.Members.Readers...)
+	members = append(members, det.Members.Bots...)
+	members = append(members, det.Members.RestrictedBots...)
+
+	var invites []keybase1.AnnotatedTeamInvite
+	for _, invite := range det.AnnotatedActiveInvites {
+		invites = append(invites, invite)
+	}
+
+	name := t.Data.Name.String()
+	joinRequests, err := ListRequests(ctx, g, &name)
+	if err != nil {
+		return res, err
+	}
+
+	res = keybase1.AnnotatedTeam{
+		TeamID:                       id,
+		Name:                         t.Data.Name.String(),
+		TransitiveSubteamsUnverified: transitiveSubteamsUnverified,
+
+		Members:      members,
+		Invites:      invites,
+		JoinRequests: joinRequests,
+
+		Settings: det.Settings,
+		Showcase: det.Showcase,
+	}
+	return res, nil
+}
+
 // DetailsByID returns TeamDetails for team name. Keybase-type invites are
 // returned as members. It always repolls to ensure latest version of
 // a team, but member infos (username, full name, if they reset or not)
@@ -379,17 +437,9 @@ type AddMembersRes struct {
 // AddMembers adds a bunch of people to a team. Assertions can contain usernames or social assertions.
 // Adds them all in a transaction so it's all or nothing.
 // On success, returns a list where len(res)=len(assertions) and in corresponding order.
-func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamname string, users []keybase1.UserRolePair) (res []AddMembersRes, err error) {
+func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, users []keybase1.UserRolePair) (res []AddMembersRes, err error) {
 	tracer := g.CTimeTracer(ctx, "team.AddMembers", true)
 	defer tracer.Finish()
-	teamName, err := keybase1.TeamNameFromString(teamname)
-	if err != nil {
-		return nil, err
-	}
-	teamID, err := ResolveNameToID(ctx, g, teamName)
-	if err != nil {
-		return nil, err
-	}
 
 	err = RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
 		res = make([]AddMembersRes, len(users))
@@ -557,9 +607,9 @@ func reAddMemberAfterResetInner(ctx context.Context, g *libkb.GlobalContext, tea
 	})
 }
 
-func InviteEmailMember(ctx context.Context, g *libkb.GlobalContext, teamname, email string, role keybase1.TeamRole) error {
+func InviteEmailMember(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, email string, role keybase1.TeamRole) error {
 	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
-		t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
+		t, err := GetForTeamManagementByTeamID(ctx, g, teamID, true)
 		if err != nil {
 			return err
 		}
@@ -684,9 +734,21 @@ func editMember(ctx context.Context, g *libkb.GlobalContext, teamGetter func() (
 		if err != nil {
 			return err
 		}
+
 		if existingRole == role {
-			g.Log.CDebugf(ctx, "bailing out, role given is the same as current")
-			return nil
+			if !role.IsRestrictedBot() {
+				g.Log.CDebugf(ctx, "bailing out, role given is the same as current")
+				return nil
+			}
+			teamBotSettings, err := t.TeamBotSettings()
+			if err != nil {
+				return err
+			}
+			existingBotSettings := teamBotSettings[uv]
+			if botSettings.Eq(&existingBotSettings) {
+				g.Log.CDebugf(ctx, "bailing out, role given is the same as current, botSettings unchanged")
+				return nil
+			}
 		}
 
 		req, err := reqFromRole(uv, role, botSettings)
@@ -976,10 +1038,10 @@ func Leave(ctx context.Context, g *libkb.GlobalContext, teamname string, permane
 	return leave(ctx, g, teamGetter, permanent)
 }
 
-func Delete(ctx context.Context, g *libkb.GlobalContext, ui keybase1.TeamsUiInterface, teamname string) error {
+func Delete(ctx context.Context, g *libkb.GlobalContext, ui keybase1.TeamsUiInterface, teamID keybase1.TeamID) error {
 	// This retry can cause multiple confirmation popups for the user
 	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
-		t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
+		t, err := GetForTeamManagementByTeamID(ctx, g, teamID, true)
 		if err != nil {
 			return err
 		}

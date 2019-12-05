@@ -1,5 +1,4 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as ChatTypes from '../constants/types/chat2'
 import * as Types from '../constants/types/teams'
@@ -12,11 +11,10 @@ export const addParticipant = 'teams:addParticipant'
 export const addTeamWithChosenChannels = 'teams:addTeamWithChosenChannels'
 export const addToTeam = 'teams:addToTeam'
 export const addUserToTeams = 'teams:addUserToTeams'
-export const badgeAppForTeams = 'teams:badgeAppForTeams'
+export const addedToTeam = 'teams:addedToTeam'
 export const checkRequestedAccess = 'teams:checkRequestedAccess'
 export const clearAddUserToTeamsResults = 'teams:clearAddUserToTeamsResults'
 export const clearNavBadges = 'teams:clearNavBadges'
-export const clearTeamRequests = 'teams:clearTeamRequests'
 export const createChannel = 'teams:createChannel'
 export const createNewTeam = 'teams:createNewTeam'
 export const createNewTeamFromConversation = 'teams:createNewTeamFromConversation'
@@ -28,9 +26,7 @@ export const editTeamDescription = 'teams:editTeamDescription'
 export const getChannelInfo = 'teams:getChannelInfo'
 export const getChannels = 'teams:getChannels'
 export const getDetails = 'teams:getDetails'
-export const getDetailsForAllTeams = 'teams:getDetailsForAllTeams'
 export const getMembers = 'teams:getMembers'
-export const getTeamOperations = 'teams:getTeamOperations'
 export const getTeamProfileAddList = 'teams:getTeamProfileAddList'
 export const getTeamPublicity = 'teams:getTeamPublicity'
 export const getTeamRetentionPolicy = 'teams:getTeamRetentionPolicy'
@@ -68,11 +64,15 @@ export const setTeamLoadingInvites = 'teams:setTeamLoadingInvites'
 export const setTeamProfileAddList = 'teams:setTeamProfileAddList'
 export const setTeamPublicitySettings = 'teams:setTeamPublicitySettings'
 export const setTeamRetentionPolicy = 'teams:setTeamRetentionPolicy'
+export const setTeamRoleMap = 'teams:setTeamRoleMap'
+export const setTeamRoleMapLatestKnownVersion = 'teams:setTeamRoleMapLatestKnownVersion'
 export const setTeamSawChatBanner = 'teams:setTeamSawChatBanner'
 export const setTeamSawSubteamsBanner = 'teams:setTeamSawSubteamsBanner'
 export const setTeamsWithChosenChannels = 'teams:setTeamsWithChosenChannels'
 export const setUpdatedChannelName = 'teams:setUpdatedChannelName'
 export const setUpdatedTopic = 'teams:setUpdatedTopic'
+export const teamCreated = 'teams:teamCreated'
+export const unsubscribeTeamList = 'teams:unsubscribeTeamList'
 export const updateChannelName = 'teams:updateChannelName'
 export const updateTopic = 'teams:updateTopic'
 export const uploadTeamAvatar = 'teams:uploadTeamAvatar'
@@ -84,44 +84,34 @@ type _AddParticipantPayload = {
 }
 type _AddTeamWithChosenChannelsPayload = {readonly teamname: string}
 type _AddToTeamPayload = {
-  readonly teamname: string
-  readonly username: string
-  readonly role: Types.TeamRoleType
+  readonly teamID: Types.TeamID
+  readonly users: Array<{assertion: string; role: Types.TeamRoleType}>
   readonly sendChatNotification: boolean
+  readonly fromTeamBuilder?: boolean
 }
 type _AddUserToTeamsPayload = {
   readonly role: Types.TeamRoleType
   readonly teams: Array<string>
   readonly user: string
 }
-type _BadgeAppForTeamsPayload = {
-  readonly deletedTeams: Array<RPCTypes.DeletedTeamInfo>
-  readonly newTeamNames: Array<string>
-  readonly newTeamAccessRequests: Array<string>
-  readonly teamsWithResetUsers: ReadonlyArray<{id: Buffer; teamname: string; username: string; uid: string}>
-}
+type _AddedToTeamPayload = {readonly error?: string; readonly fromTeamBuilder?: boolean}
 type _CheckRequestedAccessPayload = {readonly teamname: string}
 type _ClearAddUserToTeamsResultsPayload = void
 type _ClearNavBadgesPayload = void
-type _ClearTeamRequestsPayload = {readonly teamname: string}
 type _CreateChannelPayload = {
   readonly teamname: string
   readonly channelname: string
   readonly description: string | null
-  readonly rootPath?: I.List<string>
-  readonly sourceSubPath?: I.List<string>
-  readonly destSubPath?: I.List<string>
 }
 type _CreateNewTeamFromConversationPayload = {
   readonly conversationIDKey: ChatTypes.ConversationIDKey
   readonly teamname: string
 }
 type _CreateNewTeamPayload = {
+  readonly fromChat?: boolean
   readonly joinSubteam: boolean
   readonly teamname: string
-  readonly rootPath?: I.List<string>
-  readonly sourceSubPath?: I.List<string>
-  readonly destSubPath?: I.List<string>
+  readonly thenAddMembers?: Omit<_AddToTeamPayload, 'teamID'>
 }
 type _DeleteChannelConfirmedPayload = {
   readonly teamname: Types.Teamname
@@ -131,7 +121,7 @@ type _DeleteChannelInfoPayload = {
   readonly teamname: Types.Teamname
   readonly conversationIDKey: ChatTypes.ConversationIDKey
 }
-type _DeleteTeamPayload = {readonly teamname: string}
+type _DeleteTeamPayload = {readonly teamID: Types.TeamID}
 type _EditMembershipPayload = {
   readonly teamname: string
   readonly username: string
@@ -143,21 +133,16 @@ type _GetChannelInfoPayload = {
   readonly teamname: string
 }
 type _GetChannelsPayload = {readonly teamname: string}
-type _GetDetailsForAllTeamsPayload = void
 type _GetDetailsPayload = {readonly teamname: string; readonly clearInviteLoadingKey?: string}
 type _GetMembersPayload = {readonly teamname: string}
-type _GetTeamOperationsPayload = {readonly teamname: string}
 type _GetTeamProfileAddListPayload = {readonly username: string}
 type _GetTeamPublicityPayload = {readonly teamname: string}
 type _GetTeamRetentionPolicyPayload = {readonly teamname: string}
-type _GetTeamsPayload = void
+type _GetTeamsPayload = {readonly _subscribe?: boolean; readonly forceReload?: boolean}
 type _IgnoreRequestPayload = {readonly teamname: string; readonly username: string}
 type _InviteToTeamByEmailPayload = {
-  readonly destSubPath?: I.List<string>
   readonly invitees: string
   readonly role: Types.TeamRoleType
-  readonly rootPath?: I.List<string>
-  readonly sourceSubPath?: I.List<string>
   readonly teamname: string
   readonly loadingKey?: string
 }
@@ -169,9 +154,13 @@ type _InviteToTeamByPhonePayload = {
   readonly loadingKey?: string
 }
 type _JoinTeamPayload = {readonly teamname: string}
-type _LeaveTeamPayload = {readonly teamname: string; readonly context: 'teams' | 'chat'}
+type _LeaveTeamPayload = {
+  readonly teamname: string
+  readonly permanent: boolean
+  readonly context: 'teams' | 'chat'
+}
 type _LeftTeamPayload = {readonly teamname: string; readonly context: 'teams' | 'chat'}
-type _ReAddToTeamPayload = {readonly teamname: string; readonly username: string}
+type _ReAddToTeamPayload = {readonly teamID: Types.TeamID; readonly username: string}
 type _RemoveMemberOrPendingInvitePayload = {
   readonly email: string
   readonly teamname: string
@@ -194,16 +183,20 @@ type _SetAddUserToTeamsResultsPayload = {readonly error: boolean; readonly resul
 type _SetChannelCreationErrorPayload = {readonly error: string}
 type _SetEmailInviteErrorPayload = {readonly message: string; readonly malformed: Array<string>}
 type _SetMemberPublicityPayload = {readonly teamname: string; readonly showcase: boolean}
-type _SetMembersPayload = {readonly teamname: string; readonly members: I.Map<string, Types.MemberInfo>}
+type _SetMembersPayload = {readonly teamname: string; readonly members: Map<string, Types.MemberInfo>}
 type _SetNewTeamInfoPayload = {
   readonly deletedTeams: Array<RPCTypes.DeletedTeamInfo>
-  readonly newTeams: Set<string>
-  readonly newTeamRequests: Array<string>
-  readonly teamNameToResetUsers: I.Map<Types.Teamname, I.Set<Types.ResetUser>>
+  readonly newTeams: Set<Types.TeamID>
+  readonly newTeamRequests: Array<Types.TeamID>
+  readonly teamNameToResetUsers: Map<Types.Teamname, Set<Types.ResetUser>>
 }
 type _SetPublicityPayload = {readonly teamname: string; readonly settings: Types.PublicitySettings}
 type _SetTeamAccessRequestsPendingPayload = {readonly accessRequestsPending: Set<Types.Teamname>}
-type _SetTeamCanPerformPayload = {readonly teamname: string; readonly teamOperation: Types.TeamOperations}
+type _SetTeamCanPerformPayload = {
+  readonly teamname: string
+  readonly teamID: Types.TeamID
+  readonly teamOperation: Types.TeamOperations
+}
 type _SetTeamChannelInfoPayload = {
   readonly teamname: string
   readonly conversationIDKey: ChatTypes.ConversationIDKey
@@ -211,7 +204,7 @@ type _SetTeamChannelInfoPayload = {
 }
 type _SetTeamChannelsPayload = {
   readonly teamname: string
-  readonly channelInfos: I.Map<ChatTypes.ConversationIDKey, Types.ChannelInfo>
+  readonly channelInfos: Map<ChatTypes.ConversationIDKey, Types.ChannelInfo>
 }
 type _SetTeamCreationErrorPayload = {readonly error: string}
 type _SetTeamDetailsPayload = {
@@ -219,18 +212,14 @@ type _SetTeamDetailsPayload = {
   readonly teamname: string
   readonly members: RPCTypes.TeamMembersDetails
   readonly settings: RPCTypes.TeamSettings
-  readonly invites: Array<Types._InviteInfo>
+  readonly invites: Array<Types.InviteInfo>
   readonly subteams: Array<Types.Teamname>
   readonly requests: Map<string, Array<string>>
+  readonly subteamIDs: Set<Types.TeamID>
 }
 type _SetTeamInfoPayload = {
   readonly teamnames: Set<Types.Teamname>
-  readonly teammembercounts: I.Map<Types.Teamname, number>
-  readonly teamNameToIsOpen: I.Map<Types.Teamname, boolean>
-  readonly teamNameToRole: I.Map<Types.Teamname, Types.MaybeTeamRoleType>
-  readonly teamNameToAllowPromote: I.Map<Types.Teamname, boolean>
-  readonly teamNameToIsShowcasing: I.Map<Types.Teamname, boolean>
-  readonly teamNameToID: I.Map<Types.Teamname, string>
+  readonly teamNameToID: Map<Types.Teamname, string>
   readonly teamDetails: Map<Types.TeamID, Types.TeamDetails>
 }
 type _SetTeamInviteErrorPayload = {readonly error: string}
@@ -247,6 +236,8 @@ type _SetTeamPublicitySettingsPayload = {
   readonly publicity: Types._PublicitySettings
 }
 type _SetTeamRetentionPolicyPayload = {readonly teamname: string; readonly retentionPolicy: RetentionPolicy}
+type _SetTeamRoleMapLatestKnownVersionPayload = {readonly version: number}
+type _SetTeamRoleMapPayload = {readonly map: Types.TeamRoleMap}
 type _SetTeamSawChatBannerPayload = void
 type _SetTeamSawSubteamsBannerPayload = void
 type _SetTeamsWithChosenChannelsPayload = {readonly teamsWithChosenChannels: Set<Types.Teamname>}
@@ -260,6 +251,12 @@ type _SetUpdatedTopicPayload = {
   readonly conversationIDKey: ChatTypes.ConversationIDKey
   readonly newTopic: string
 }
+type _TeamCreatedPayload = {
+  readonly fromChat: boolean
+  readonly teamID: Types.TeamID
+  readonly teamname: string
+}
+type _UnsubscribeTeamListPayload = void
 type _UpdateChannelNamePayload = {
   readonly teamname: Types.Teamname
   readonly conversationIDKey: ChatTypes.ConversationIDKey
@@ -278,6 +275,12 @@ type _UploadTeamAvatarPayload = {
 }
 
 // Action Creators
+/**
+ * Don't eagerly reload team list anymore.
+ */
+export const createUnsubscribeTeamList = (
+  payload: _UnsubscribeTeamListPayload
+): UnsubscribeTeamListPayload => ({payload, type: unsubscribeTeamList})
 /**
  * Fetches the channel information for a single channel in a team from the server.
  */
@@ -298,6 +301,13 @@ export const createGetChannels = (payload: _GetChannelsPayload): GetChannelsPayl
 export const createGetTeamRetentionPolicy = (
   payload: _GetTeamRetentionPolicyPayload
 ): GetTeamRetentionPolicyPayload => ({payload, type: getTeamRetentionPolicy})
+/**
+ * Load team list if we are stale. _subscribe is for use by teams/subscriber only.
+ */
+export const createGetTeams = (payload: _GetTeamsPayload = Object.freeze({})): GetTeamsPayload => ({
+  payload,
+  type: getTeams,
+})
 /**
  * Rename a subteam
  */
@@ -327,9 +337,9 @@ export const createAddUserToTeams = (payload: _AddUserToTeamsPayload): AddUserTo
   payload,
   type: addUserToTeams,
 })
-export const createBadgeAppForTeams = (payload: _BadgeAppForTeamsPayload): BadgeAppForTeamsPayload => ({
+export const createAddedToTeam = (payload: _AddedToTeamPayload = Object.freeze({})): AddedToTeamPayload => ({
   payload,
-  type: badgeAppForTeams,
+  type: addedToTeam,
 })
 export const createCheckRequestedAccess = (
   payload: _CheckRequestedAccessPayload
@@ -340,10 +350,6 @@ export const createClearAddUserToTeamsResults = (
 export const createClearNavBadges = (payload: _ClearNavBadgesPayload): ClearNavBadgesPayload => ({
   payload,
   type: clearNavBadges,
-})
-export const createClearTeamRequests = (payload: _ClearTeamRequestsPayload): ClearTeamRequestsPayload => ({
-  payload,
-  type: clearTeamRequests,
 })
 export const createCreateChannel = (payload: _CreateChannelPayload): CreateChannelPayload => ({
   payload,
@@ -378,16 +384,9 @@ export const createGetDetails = (payload: _GetDetailsPayload): GetDetailsPayload
   payload,
   type: getDetails,
 })
-export const createGetDetailsForAllTeams = (
-  payload: _GetDetailsForAllTeamsPayload
-): GetDetailsForAllTeamsPayload => ({payload, type: getDetailsForAllTeams})
 export const createGetMembers = (payload: _GetMembersPayload): GetMembersPayload => ({
   payload,
   type: getMembers,
-})
-export const createGetTeamOperations = (payload: _GetTeamOperationsPayload): GetTeamOperationsPayload => ({
-  payload,
-  type: getTeamOperations,
 })
 export const createGetTeamProfileAddList = (
   payload: _GetTeamProfileAddListPayload
@@ -396,7 +395,6 @@ export const createGetTeamPublicity = (payload: _GetTeamPublicityPayload): GetTe
   payload,
   type: getTeamPublicity,
 })
-export const createGetTeams = (payload: _GetTeamsPayload): GetTeamsPayload => ({payload, type: getTeams})
 export const createIgnoreRequest = (payload: _IgnoreRequestPayload): IgnoreRequestPayload => ({
   payload,
   type: ignoreRequest,
@@ -498,6 +496,13 @@ export const createSetTeamPublicitySettings = (
 export const createSetTeamRetentionPolicy = (
   payload: _SetTeamRetentionPolicyPayload
 ): SetTeamRetentionPolicyPayload => ({payload, type: setTeamRetentionPolicy})
+export const createSetTeamRoleMap = (payload: _SetTeamRoleMapPayload): SetTeamRoleMapPayload => ({
+  payload,
+  type: setTeamRoleMap,
+})
+export const createSetTeamRoleMapLatestKnownVersion = (
+  payload: _SetTeamRoleMapLatestKnownVersionPayload
+): SetTeamRoleMapLatestKnownVersionPayload => ({payload, type: setTeamRoleMapLatestKnownVersion})
 export const createSetTeamSawChatBanner = (
   payload: _SetTeamSawChatBannerPayload
 ): SetTeamSawChatBannerPayload => ({payload, type: setTeamSawChatBanner})
@@ -513,6 +518,10 @@ export const createSetUpdatedChannelName = (
 export const createSetUpdatedTopic = (payload: _SetUpdatedTopicPayload): SetUpdatedTopicPayload => ({
   payload,
   type: setUpdatedTopic,
+})
+export const createTeamCreated = (payload: _TeamCreatedPayload): TeamCreatedPayload => ({
+  payload,
+  type: teamCreated,
 })
 export const createUpdateChannelName = (payload: _UpdateChannelNamePayload): UpdateChannelNamePayload => ({
   payload,
@@ -541,10 +550,7 @@ export type AddUserToTeamsPayload = {
   readonly payload: _AddUserToTeamsPayload
   readonly type: typeof addUserToTeams
 }
-export type BadgeAppForTeamsPayload = {
-  readonly payload: _BadgeAppForTeamsPayload
-  readonly type: typeof badgeAppForTeams
-}
+export type AddedToTeamPayload = {readonly payload: _AddedToTeamPayload; readonly type: typeof addedToTeam}
 export type CheckRequestedAccessPayload = {
   readonly payload: _CheckRequestedAccessPayload
   readonly type: typeof checkRequestedAccess
@@ -556,10 +562,6 @@ export type ClearAddUserToTeamsResultsPayload = {
 export type ClearNavBadgesPayload = {
   readonly payload: _ClearNavBadgesPayload
   readonly type: typeof clearNavBadges
-}
-export type ClearTeamRequestsPayload = {
-  readonly payload: _ClearTeamRequestsPayload
-  readonly type: typeof clearTeamRequests
 }
 export type CreateChannelPayload = {
   readonly payload: _CreateChannelPayload
@@ -595,16 +597,8 @@ export type GetChannelInfoPayload = {
   readonly type: typeof getChannelInfo
 }
 export type GetChannelsPayload = {readonly payload: _GetChannelsPayload; readonly type: typeof getChannels}
-export type GetDetailsForAllTeamsPayload = {
-  readonly payload: _GetDetailsForAllTeamsPayload
-  readonly type: typeof getDetailsForAllTeams
-}
 export type GetDetailsPayload = {readonly payload: _GetDetailsPayload; readonly type: typeof getDetails}
 export type GetMembersPayload = {readonly payload: _GetMembersPayload; readonly type: typeof getMembers}
-export type GetTeamOperationsPayload = {
-  readonly payload: _GetTeamOperationsPayload
-  readonly type: typeof getTeamOperations
-}
 export type GetTeamProfileAddListPayload = {
   readonly payload: _GetTeamProfileAddListPayload
   readonly type: typeof getTeamProfileAddList
@@ -726,6 +720,14 @@ export type SetTeamRetentionPolicyPayload = {
   readonly payload: _SetTeamRetentionPolicyPayload
   readonly type: typeof setTeamRetentionPolicy
 }
+export type SetTeamRoleMapLatestKnownVersionPayload = {
+  readonly payload: _SetTeamRoleMapLatestKnownVersionPayload
+  readonly type: typeof setTeamRoleMapLatestKnownVersion
+}
+export type SetTeamRoleMapPayload = {
+  readonly payload: _SetTeamRoleMapPayload
+  readonly type: typeof setTeamRoleMap
+}
 export type SetTeamSawChatBannerPayload = {
   readonly payload: _SetTeamSawChatBannerPayload
   readonly type: typeof setTeamSawChatBanner
@@ -746,6 +748,11 @@ export type SetUpdatedTopicPayload = {
   readonly payload: _SetUpdatedTopicPayload
   readonly type: typeof setUpdatedTopic
 }
+export type TeamCreatedPayload = {readonly payload: _TeamCreatedPayload; readonly type: typeof teamCreated}
+export type UnsubscribeTeamListPayload = {
+  readonly payload: _UnsubscribeTeamListPayload
+  readonly type: typeof unsubscribeTeamList
+}
 export type UpdateChannelNamePayload = {
   readonly payload: _UpdateChannelNamePayload
   readonly type: typeof updateChannelName
@@ -763,11 +770,10 @@ export type Actions =
   | AddTeamWithChosenChannelsPayload
   | AddToTeamPayload
   | AddUserToTeamsPayload
-  | BadgeAppForTeamsPayload
+  | AddedToTeamPayload
   | CheckRequestedAccessPayload
   | ClearAddUserToTeamsResultsPayload
   | ClearNavBadgesPayload
-  | ClearTeamRequestsPayload
   | CreateChannelPayload
   | CreateNewTeamFromConversationPayload
   | CreateNewTeamPayload
@@ -778,10 +784,8 @@ export type Actions =
   | EditTeamDescriptionPayload
   | GetChannelInfoPayload
   | GetChannelsPayload
-  | GetDetailsForAllTeamsPayload
   | GetDetailsPayload
   | GetMembersPayload
-  | GetTeamOperationsPayload
   | GetTeamProfileAddListPayload
   | GetTeamPublicityPayload
   | GetTeamRetentionPolicyPayload
@@ -819,11 +823,15 @@ export type Actions =
   | SetTeamProfileAddListPayload
   | SetTeamPublicitySettingsPayload
   | SetTeamRetentionPolicyPayload
+  | SetTeamRoleMapLatestKnownVersionPayload
+  | SetTeamRoleMapPayload
   | SetTeamSawChatBannerPayload
   | SetTeamSawSubteamsBannerPayload
   | SetTeamsWithChosenChannelsPayload
   | SetUpdatedChannelNamePayload
   | SetUpdatedTopicPayload
+  | TeamCreatedPayload
+  | UnsubscribeTeamListPayload
   | UpdateChannelNamePayload
   | UpdateTopicPayload
   | UploadTeamAvatarPayload

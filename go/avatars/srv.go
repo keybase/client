@@ -22,10 +22,10 @@ type Srv struct {
 	libkb.Contextified
 
 	httpSrv *manager.Srv
-	source  Source
+	source  libkb.AvatarLoaderSource
 }
 
-func NewSrv(g *libkb.GlobalContext, httpSrv *manager.Srv, source Source) *Srv {
+func NewSrv(g *libkb.GlobalContext, httpSrv *manager.Srv, source libkb.AvatarLoaderSource) *Srv {
 	s := &Srv{
 		Contextified: libkb.NewContextified(g),
 		httpSrv:      httpSrv,

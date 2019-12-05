@@ -1,5 +1,4 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/config'
 import * as Tabs from '../constants/tabs'
@@ -54,6 +53,7 @@ export const setUserSwitching = 'config:setUserSwitching'
 export const setWhatsNewLastSeenVersion = 'config:setWhatsNewLastSeenVersion'
 export const showMain = 'config:showMain'
 export const startHandshake = 'config:startHandshake'
+export const startupFirstIdle = 'config:startupFirstIdle'
 export const updateCriticalCheckStatus = 'config:updateCriticalCheckStatus'
 export const updateHTTPSrvInfo = 'config:updateHTTPSrvInfo'
 export const updateInfo = 'config:updateInfo'
@@ -142,6 +142,7 @@ type _SetUserSwitchingPayload = {readonly userSwitching: boolean}
 type _SetWhatsNewLastSeenVersionPayload = {readonly lastSeenVersion: string}
 type _ShowMainPayload = void
 type _StartHandshakePayload = void
+type _StartupFirstIdlePayload = void
 type _UpdateCriticalCheckStatusPayload = {
   readonly status: 'critical' | 'suggested' | 'ok'
   readonly message: string
@@ -199,6 +200,13 @@ export const createLoggedIn = (payload: _LoggedInPayload): LoggedInPayload => ({
 export const createInstallerRan = (payload: _InstallerRanPayload): InstallerRanPayload => ({
   payload,
   type: installerRan,
+})
+/**
+ * emitted when we have some idle time after loading. useful to load thing but not slow down startup
+ */
+export const createStartupFirstIdle = (payload: _StartupFirstIdlePayload): StartupFirstIdlePayload => ({
+  payload,
+  type: startupFirstIdle,
 })
 /**
  * internal to config. should restart the handshake process
@@ -514,6 +522,10 @@ export type StartHandshakePayload = {
   readonly payload: _StartHandshakePayload
   readonly type: typeof startHandshake
 }
+export type StartupFirstIdlePayload = {
+  readonly payload: _StartupFirstIdlePayload
+  readonly type: typeof startupFirstIdle
+}
 export type UpdateCriticalCheckStatusPayload = {
   readonly payload: _UpdateCriticalCheckStatusPayload
   readonly type: typeof updateCriticalCheckStatus
@@ -580,6 +592,7 @@ export type Actions =
   | SetWhatsNewLastSeenVersionPayload
   | ShowMainPayload
   | StartHandshakePayload
+  | StartupFirstIdlePayload
   | UpdateCriticalCheckStatusPayload
   | UpdateHTTPSrvInfoPayload
   | UpdateInfoPayload

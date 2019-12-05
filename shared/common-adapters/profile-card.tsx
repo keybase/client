@@ -8,7 +8,6 @@ import * as Tracker2Types from '../constants/types/tracker2'
 import * as Tracker2Gen from '../actions/tracker2-gen'
 import capitalize from 'lodash/capitalize'
 import Box, {Box2} from './box'
-import Button from './button'
 import ClickableBox from './clickable-box'
 import ConnectedNameWithIcon from './name-with-icon/container'
 import {_setWithProfileCardPopup} from './usernames'
@@ -20,11 +19,11 @@ import Text from './text'
 import WithTooltip from './with-tooltip'
 import DelayedMounting from './delayed-mounting'
 import FollowButton from '../profile/user/actions/follow-button'
+import ChatButton from '../chat/chat-button'
 
 const Kb = {
   Box,
   Box2,
-  Button,
   ClickableBox,
   ConnectedNameWithIcon,
   FloatingMenu,
@@ -38,6 +37,8 @@ const Kb = {
 type Props = {
   clickToProfile?: true
   containerStyle?: Styles.StylesCrossPlatform
+  onGoToProfile?: () => void
+  onLayoutChange?: () => void
   showClose?: true
   username: string
 }
@@ -45,7 +46,7 @@ type Props = {
 const maxIcons = 4
 
 type ServiceIconsProps = {
-  userDetails: Tracker2Types.Details
+  userDetailsAssertions?: Map<string, Tracker2Types.Assertion>
 }
 
 const assertionTypeToServiceId = (assertionType): Platforms.ServiceId | null => {
@@ -62,10 +63,10 @@ const assertionTypeToServiceId = (assertionType): Platforms.ServiceId | null => 
   }
 }
 
-const ServiceIcons = ({userDetails}: ServiceIconsProps) => {
+const ServiceIcons = ({userDetailsAssertions}: ServiceIconsProps) => {
   const services = new Map(
-    userDetails.assertions
-      ? [...userDetails.assertions.values()].map(assertion => [assertion.type, assertion])
+    userDetailsAssertions
+      ? [...userDetailsAssertions.values()].map(assertion => [assertion.type, assertion])
       : []
   )
   const serviceIds = [...services]
@@ -121,7 +122,14 @@ const ServiceIcons = ({userDetails}: ServiceIconsProps) => {
   )
 }
 
-const ProfileCard = ({clickToProfile, showClose, containerStyle, username}: Props) => {
+const ProfileCard = ({
+  clickToProfile,
+  onGoToProfile,
+  showClose,
+  containerStyle,
+  onLayoutChange,
+  username,
+}: Props) => {
   const userDetails = Container.useSelector(state => Tracker2Constants.getDetails(state, username))
   const followThem = Container.useSelector(state => Tracker2Constants.followThem(state, username))
   const followsYou = Container.useSelector(state => Tracker2Constants.followsYou(state, username))
@@ -139,21 +147,37 @@ const ProfileCard = ({clickToProfile, showClose, containerStyle, username}: Prop
 
   const dispatch = Container.useDispatch()
 
-  const {state: userDetailsState} = userDetails
+  const {
+    state: userDetailsState,
+    assertions: userDetailsAssertions,
+    bio: userDetailsBio,
+    fullname: userDetailsFullname,
+  } = userDetails
   React.useEffect(() => {
-    ;['error', 'notAUserYet'].includes(userDetailsState) &&
+    userDetailsState === 'error' &&
       dispatch(Tracker2Gen.createShowUser({asTracker: false, skipNav: true, username}))
   }, [dispatch, username, userDetailsState])
+  // signal layout change when it happens, to prevent popup cutoff.
+  React.useEffect(() => {
+    onLayoutChange && onLayoutChange()
+  }, [
+    onLayoutChange,
+    userDetailsAssertions,
+    userDetailsBio,
+    userDetailsFullname,
+    userDetailsState,
+    showFollowButton,
+  ])
 
   const _changeFollow = React.useCallback(
     (follow: boolean) => dispatch(Tracker2Gen.createChangeFollow({follow, guiID: userDetails.guiID})),
     [dispatch, userDetails]
   )
 
-  const openProfile = React.useCallback(() => dispatch(ProfileGen.createShowUserProfile({username})), [
-    dispatch,
-    username,
-  ])
+  const openProfile = React.useCallback(() => {
+    dispatch(ProfileGen.createShowUserProfile({username}))
+    onGoToProfile && onGoToProfile()
+  }, [dispatch, onGoToProfile, username])
 
   return (
     <Kb.Box2
@@ -165,7 +189,7 @@ const ProfileCard = ({clickToProfile, showClose, containerStyle, username}: Prop
         <Kb.Icon type="iconfont-close" onClick={() => {}} boxStyle={styles.close} padding="tiny" />
       )}
       <Kb.ConnectedNameWithIcon
-        onClick={clickToProfile && 'profile'}
+        onClick={clickToProfile && openProfile}
         colorFollowing={true}
         username={username}
         metaStyle={styles.connectedNameWithIconMetaStyle}
@@ -176,7 +200,7 @@ const ProfileCard = ({clickToProfile, showClose, containerStyle, username}: Prop
         <Kb.ProgressIndicator type="Large" />
       ) : (
         <>
-          <ServiceIcons userDetails={userDetails} />
+          <ServiceIcons userDetailsAssertions={userDetailsAssertions} />
           {!!userDetails.bio && (
             <Kb.Text type="Body" center={true} lineClamp={4} ellipsizeMode="tail">
               {(userDetails.bio || '').replace(/\s/g, ' ')}
@@ -191,6 +215,7 @@ const ProfileCard = ({clickToProfile, showClose, containerStyle, username}: Prop
             following={true}
             onUnfollow={() => _changeFollow(false)}
             waitingKey={Tracker2Constants.waitingKey}
+            small={true}
             style={styles.button}
           />
         ) : (
@@ -200,18 +225,11 @@ const ProfileCard = ({clickToProfile, showClose, containerStyle, username}: Prop
             followsYou={followsYou}
             onFollow={() => _changeFollow(true)}
             waitingKey={Tracker2Constants.waitingKey}
+            small={true}
             style={styles.button}
           />
         ))}
-      {clickToProfile && (
-        <Kb.Button
-          style={styles.button}
-          type="Default"
-          mode="Secondary"
-          label="View profile"
-          onClick={openProfile}
-        />
-      )}
+      <ChatButton small={true} style={styles.button} username={username} />
     </Kb.Box2>
   )
 }
@@ -224,6 +242,8 @@ type WithProfileCardPopupProps = {
 export const WithProfileCardPopup = ({username, children}: WithProfileCardPopupProps) => {
   const ref = React.useRef(null)
   const [showing, setShowing] = React.useState(false)
+  const [remeasureHint, setRemeasureHint] = React.useState(0)
+  const onLayoutChange = React.useCallback(() => setRemeasureHint(Date.now()), [setRemeasureHint])
   const isSelf = Container.useSelector(state => state.config.username === username)
   if (isSelf) {
     return children()
@@ -237,11 +257,18 @@ export const WithProfileCardPopup = ({username, children}: WithProfileCardPopupP
         position="top center"
         positionFallbacks={['top center', 'bottom center']}
         propagateOutsideClicks={!Styles.isMobile}
+        remeasureHint={remeasureHint}
         visible={showing}
         header={{
           title: '',
           view: (
-            <ProfileCard containerStyle={styles.profileCardPopup} username={username} clickToProfile={true} />
+            <ProfileCard
+              containerStyle={styles.profileCardPopup}
+              username={username}
+              clickToProfile={true}
+              onLayoutChange={onLayoutChange}
+              onGoToProfile={() => setShowing(false)}
+            />
           ),
         }}
         items={[]}

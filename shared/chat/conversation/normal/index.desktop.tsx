@@ -10,6 +10,8 @@ import '../conversation.css'
 import ThreadLoadStatus from '../load-status/container'
 import PinnedMessage from '../pinned-message/container'
 import ThreadSearch from '../search/container'
+import KeyHandler from '../../../util/key-handler.desktop'
+import InvitationToBlock from '../../blocking/invitation-to-block'
 
 const Offline = () => (
   <Kb.Box style={styles.offline}>
@@ -41,7 +43,12 @@ class Conversation extends React.PureComponent<Props> {
   render() {
     return (
       <Kb.Box className="conversation" style={styles.container} onPaste={this._onPaste}>
-        <Kb.DragAndDrop onAttach={this.props.onAttach}>
+        <Kb.DragAndDrop
+          onAttach={this.props.onAttach}
+          fullHeight={true}
+          fullWidth={true}
+          rejectReason={this.props.dragAndDropRejectReason}
+        >
           {this.props.threadLoadedOffline && <Offline />}
           <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.innerContainer}>
             <ThreadLoadStatus conversationIDKey={this.props.conversationIDKey} />
@@ -64,6 +71,7 @@ class Conversation extends React.PureComponent<Props> {
             )}
             {this.props.showLoader && <Kb.LoadingLine />}
           </Kb.Box2>
+          <InvitationToBlock conversationID={this.props.conversationIDKey} />
           <Banner conversationIDKey={this.props.conversationIDKey} />
           <InputArea
             focusInputCounter={this.props.focusInputCounter}
@@ -104,4 +112,4 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export default Conversation
+export default KeyHandler(Conversation)

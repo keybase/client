@@ -5,13 +5,6 @@ import {displayTab} from '../constants/settings'
 import {keybaseFM} from '../constants/whats-new'
 import NewFeatureRow from './new-feature-row'
 
-/* Include images */
-/* const imageName = require('../images/release/MAJ.MIN.PATCH/name.png') */
-const fastUserSwitchingImage = require('../images/releases/4.7.0/fast-user-switching.png')
-const pinnedMessagesImage = require('../images/releases/4.7.0/pinned-messages.png')
-const darkModeImage = require('../images/releases/4.7.0/dark-mode.png')
-const keybaseFMImage = require('../images/releases/4.7.0/keybase-fm.png')
-
 export type VersionProps = {
   seen: boolean
   onNavigate: (props: {
@@ -42,12 +35,18 @@ export const VersionTitle = ({title}: {title: string}) => (
 export const Current = ({seen, onNavigate, onNavigateExternal}: VersionProps) => {
   return (
     <Version>
-      <NewFeatureRow noSeparator={true} seen={seen} image={fastUserSwitchingImage}>
+      <NewFeatureRow noSeparator={true} seen={seen} image={'release-4.7.0-fast-user-switching'}>
         You can now quickly switch between all your signed in accounts from the user menu.
+      </NewFeatureRow>
+      <NewFeatureRow seen={seen} image="release-4.8.0-file-sync">
+        Files: sync your favorite folders and have them available offline.
+      </NewFeatureRow>
+      <NewFeatureRow seen={seen} image="release-4.8.0-audio-messages">
+        Chat: you can now send audio messages on mobile. Long press the mic and follow the magic. 🎙️
       </NewFeatureRow>
       <NewFeatureRow
         seen={seen}
-        image={darkModeImage}
+        image="release-4.7.0-dark-mode"
         primaryButtonText="Open display settings"
         onPrimaryButtonClick={() => {
           onNavigate({path: [{props: {}, selected: displayTab}]})
@@ -72,12 +71,12 @@ export const Current = ({seen, onNavigate, onNavigateExternal}: VersionProps) =>
         {` `}
         <Kb.Emoji allowFontScaling={true} size={Styles.globalMargins.small} emojiName=":phone:" />
       </NewFeatureRow>
-      <NewFeatureRow seen={seen} image={pinnedMessagesImage}>
+      <NewFeatureRow seen={seen} image={'release-4.7.0-pinned-messages'}>
         Chat admins can now pin messages.
         {` `}
         <Kb.Emoji size={Styles.globalMargins.small} emojiName=":pushpin:" />
       </NewFeatureRow>
-      <NewFeatureRow seen={seen} image={keybaseFMImage}>
+      <NewFeatureRow seen={seen} image={'release-4.7.0-keybase-fm'}>
         Listen to
         {` `}
         <Kb.Icon

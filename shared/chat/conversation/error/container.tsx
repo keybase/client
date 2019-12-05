@@ -8,21 +8,15 @@ type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
 }
 
-const mapStateToProps = (state, {conversationIDKey}: OwnProps) => ({
-  text: Constants.getMeta(state, conversationIDKey).snippet,
-})
-
-const mapDispatchToProps = dispatch => ({
-  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-})
-
-const mergeProps = (stateProps, dispatchProps) => ({
-  onBack: dispatchProps.onBack,
-  text: stateProps.text,
-})
-
 export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
+  (state, {conversationIDKey}: OwnProps) => ({
+    text: Constants.getMeta(state, conversationIDKey).snippet,
+  }),
+  dispatch => ({
+    onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+  }),
+  (stateProps, dispatchProps) => ({
+    onBack: dispatchProps.onBack,
+    text: stateProps.text,
+  })
 )(Error)

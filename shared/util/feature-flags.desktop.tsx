@@ -12,12 +12,11 @@ const featureOn = (key: keyof FeatureFlags) => features.includes(key)
 const ff: FeatureFlags = {
   admin: false,
   airdrop: true,
+  audioAttachments: false,
   chatIndexProfilingEnabled: false,
-  conflictResolution: false,
   dbCleanEnabled: false,
   fastAccountSwitch: true,
   foldersInProfileTab: false,
-  kbfsOfflineMode: false,
   lagRadar: false,
   moveOrCopy: false,
   newTeamBuildingForChatAllowMakeTeam: false,
@@ -29,9 +28,9 @@ const ff: FeatureFlags = {
 }
 
 const inAdmin: {[K in keyof FeatureFlags]?: boolean} = {
+  audioAttachments: false,
   chatIndexProfilingEnabled: true,
   dbCleanEnabled: true,
-  kbfsOfflineMode: true,
   moveOrCopy: true,
   outOfDateBanner: true,
   proofProviders: true,

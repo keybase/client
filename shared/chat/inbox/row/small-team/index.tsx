@@ -8,6 +8,7 @@ import {Avatars, TeamAvatar} from '../../../avatars'
 import * as RowSizes from '../sizes'
 import * as ChatTypes from '../../../../constants/types/chat2'
 import SwipeConvActions from './swipe-conv-actions'
+import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 
 export type Props = {
   backgroundColor?: string
@@ -26,7 +27,7 @@ export type Props = {
   layoutIsTeam: boolean
   layoutName: string
   layoutSnippet?: string
-  layoutSnippetDecoration?: string
+  layoutSnippetDecoration: RPCChatTypes.SnippetDecoration
   onHideConversation: () => void
   onMuteConversation: () => void
   onSelectConversation: () => void
@@ -34,7 +35,7 @@ export type Props = {
   participants: Array<string>
   showBold: boolean
   snippet: string
-  snippetDecoration: string
+  snippetDecoration: RPCChatTypes.SnippetDecoration
   subColor: AllowedColors
   teamname: string
   conversationIDKey: ChatTypes.ConversationIDKey
@@ -156,7 +157,7 @@ class SmallTeam extends React.PureComponent<Props, State> {
                     youAreReset={props.youAreReset}
                     showBold={props.showBold}
                     snippet={props.snippet || props.layoutSnippet || ''}
-                    snippetDecoration={props.snippetDecoration || props.layoutSnippetDecoration || ''}
+                    snippetDecoration={props.snippetDecoration ?? props.layoutSnippetDecoration}
                     subColor={props.subColor}
                     hasResetUsers={props.hasResetUsers}
                     youNeedToRekey={props.youNeedToRekey}

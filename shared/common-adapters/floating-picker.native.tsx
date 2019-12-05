@@ -81,6 +81,7 @@ const styles = Styles.styleSheetCreate(
       },
       picker: Styles.platformStyles({
         isAndroid: {
+          color: Styles.globalColors.black,
           marginBottom: Styles.globalMargins.large,
           marginTop: Styles.globalMargins.medium,
         },

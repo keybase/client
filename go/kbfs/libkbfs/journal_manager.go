@@ -263,11 +263,11 @@ func (j *JournalManager) getConflictIDForHandle(
 	// handle's TLF ID to reflect that.
 	ci := h.ConflictInfo()
 	if ci == nil {
-		return tlf.ID{}, false
+		return tlf.NullID, false
 	}
 
 	if ci.Type != tlf.HandleExtensionLocalConflict {
-		return tlf.ID{}, false
+		return tlf.NullID, false
 	}
 
 	key := clearedConflictKey{
@@ -276,8 +276,8 @@ func (j *JournalManager) getConflictIDForHandle(
 		num:   ci.Number,
 	}
 	val, ok := j.clearedConflictTlfs[key]
-	if !ok {
-		return tlf.ID{}, false
+	if !ok || val.fakeTlfID == tlf.NullID {
+		return tlf.NullID, false
 	}
 
 	return val.fakeTlfID, true
@@ -1207,6 +1207,38 @@ func (j *JournalManager) GetJournalsInConflict(ctx context.Context) (
 	return j.getJournalsInConflictLocked(ctx)
 }
 
+// GetFoldersSummary returns the TLFs with journals in conflict, and
+// the number of TLFs that have unuploaded data.
+func (j *JournalManager) GetFoldersSummary() (
+	tlfsInConflict []tlf.ID, numUploadingTlfs int, err error) {
+	j.lock.RLock()
+	defer j.lock.RUnlock()
+
+	for _, tlfJournal := range j.tlfJournals {
+		if tlfJournal.overrideTlfID != tlf.NullID {
+			continue
+		}
+		isConflict, err := tlfJournal.isOnConflictBranch()
+		if err != nil {
+			return nil, 0, err
+		}
+		if isConflict {
+			tlfsInConflict = append(tlfsInConflict, tlfJournal.tlfID)
+		}
+
+		_, _, unflushedBytes, err := tlfJournal.getByteCounts()
+		if err != nil {
+			return nil, 0, err
+		}
+
+		if unflushedBytes > 0 {
+			numUploadingTlfs++
+		}
+	}
+
+	return tlfsInConflict, numUploadingTlfs, nil
+}
+
 // Status returns a JournalManagerStatus object suitable for
 // diagnostics.  It also returns a list of TLF IDs which have journals
 // enabled.
@@ -1315,6 +1347,10 @@ func (j *JournalManager) MoveAway(ctx context.Context, tlfID tlf.ID) error {
 		return err
 	}
 	j.insertConflictJournalLocked(ctx, tj, fakeTlfID, t)
+	j.config.SubscriptionManagerPublisher().PublishChange(
+		keybase1.SubscriptionTopic_FAVORITES)
+	j.config.SubscriptionManagerPublisher().PublishChange(
+		keybase1.SubscriptionTopic_FILES_TAB_BADGE)
 	return j.config.KeybaseService().NotifyFavoritesChanged(ctx)
 }
 

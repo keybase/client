@@ -124,14 +124,9 @@ func GetConfiguredAccountsFromProvisionedUsernames(m MetaContext, s SecretStoreA
 	}
 
 	// Get the full names
-
 	uids := make([]keybase1.UID, len(allUsernames))
 	for idx, username := range allUsernames {
-		uid := m.G().UIDMapper.MapHardcodedUsernameToUID(username)
-		if !uid.Exists() {
-			uid = UsernameToUIDPreserveCase(username.String())
-		}
-		uids[idx] = uid
+		uids[idx] = GetUIDByNormalizedUsername(m.G(), username)
 	}
 	usernamePackages, err := m.G().UIDMapper.MapUIDsToUsernamePackages(m.Ctx(), m.G(),
 		uids, time.Hour*24, time.Second*10, false)
@@ -303,10 +298,31 @@ func (s *SecretStoreLocked) GetUsersWithStoredSecrets(m MetaContext) ([]string, 
 	}
 	s.Lock()
 	defer s.Unlock()
-	if s.disk == nil {
-		return s.mem.GetUsersWithStoredSecrets(m)
+	users := make(map[string]struct{})
+
+	memUsers, memErr := s.mem.GetUsersWithStoredSecrets(m)
+	if memErr == nil {
+		for _, memUser := range memUsers {
+			users[memUser] = struct{}{}
+		}
 	}
-	return s.disk.GetUsersWithStoredSecrets(m)
+	if s.disk == nil {
+		return memUsers, memErr
+	}
+	diskUsers, diskErr := s.disk.GetUsersWithStoredSecrets(m)
+	if diskErr == nil {
+		for _, diskUser := range diskUsers {
+			users[diskUser] = struct{}{}
+		}
+	}
+	if memErr != nil && diskErr != nil {
+		return nil, CombineErrors(memErr, diskErr)
+	}
+	var ret []string
+	for user := range users {
+		ret = append(ret, user)
+	}
+	return ret, nil
 }
 
 func (s *SecretStoreLocked) PrimeSecretStores(mctx MetaContext) (err error) {

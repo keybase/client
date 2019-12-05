@@ -60,10 +60,8 @@ const Troubleshooting = (props: Props) => {
     setWaiting(true)
   }, [dispatch, username])
 
-  const deviceName = Container.useSelector(state => state.provision.codePageOtherDeviceName)
-  const deviceMap: Map<string, Types.Device> = Container.useSelector(state => state.devices.deviceMap)
-  const deviceId = Container.useSelector(state => state.provision.codePageOtherDeviceId)
-  const deviceIconNo = DevicesConstants.getDeviceIconNumberInner(deviceMap, deviceId)
+  const device = Container.useSelector(state => state.provision.codePageOtherDevice)
+  const deviceIconNo = (device.deviceNumberOfType % DevicesConstants.numBackgrounds) + 1
 
   // If we can't load the device icon, show the wrong one instead of erroring the whole page.
   const otherDeviceIcon = `icon-${props.otherDeviceType === 'mobile' ? 'phone' : 'computer'}-background-${
@@ -74,7 +72,7 @@ const Troubleshooting = (props: Props) => {
     <Kb.Modal
       onClose={onBack}
       header={{
-        hideBorder: true,
+        hideBorder: false,
         leftButton: Styles.isMobile ? (
           <Kb.Text type="BodySemiboldLink" onClick={onBack}>
             Back
@@ -94,8 +92,8 @@ const Troubleshooting = (props: Props) => {
       mode="Wide"
     >
       <Kb.Box2 direction="vertical" gap="small" alignItems="center">
-        <Kb.Box2 direction="vertical">
-          <Kb.Text type="Body" center={true} style={styles.bodyMargins}>
+        <Kb.Box2 direction="vertical" style={styles.bodyMargins}>
+          <Kb.Text type="Body" center={true}>
             This appears to be a new {Styles.isMobile ? 'phone' : 'computer'}. Perhaps you restored from a
             backup or uninstalled Keybase. Either way, Keybase keys aren’t backed up, so this is now a totally
             new device.
@@ -112,7 +110,7 @@ const Troubleshooting = (props: Props) => {
           <BigButton
             onClick={onBack}
             icon={otherDeviceIcon}
-            mainText={`I have my old "${deviceName}," let me use it to authorize.`}
+            mainText={`I have my old "${device.name}," let me use it to authorize.`}
             subText={`Back to ${props.mode} code`}
             waiting={false}
           />
@@ -154,6 +152,9 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   bodyMargins: Styles.platformStyles({
     isElectron: Styles.padding(Styles.globalMargins.medium, Styles.globalMargins.xlarge, 0),
+    isMobile: {
+      padding: Styles.globalMargins.medium,
+    },
   }),
   buttonBar: {
     marginLeft: Styles.globalMargins.medium,

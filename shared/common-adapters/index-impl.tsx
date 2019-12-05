@@ -349,6 +349,9 @@ module.exports = {
   get useInterval() {
     return require('./use-timers').useInterval
   },
+  get useModalHeaderTitleAndCancel() {
+    return require('./modal/index').useModalHeaderTitleAndCancel
+  },
   get useMounted() {
     return require('./use-mounted').default
   },

@@ -16,26 +16,17 @@ import {virtualListMarks} from '../../local-debug'
 import shallowEqual from 'shallowequal'
 
 const NoChats = (props: {onNewChat: () => void}) => (
-  <Kb.Box2
-    direction="vertical"
-    gap="small"
-    style={{
-      ...Styles.globalStyles.fillAbsolute,
-      alignItems: 'center',
-      flex: 1,
-      justifyContent: 'center',
-    }}
-  >
+  <Kb.Box2 direction="vertical" gap="small" style={styles.noChatsContainer}>
     <Kb.Icon type="icon-fancy-encrypted-phone-mobile-226-96" />
     <Kb.Box2 direction="vertical">
-      <Kb.Text type="BodySmall" style={{textAlign: 'center'}}>
+      <Kb.Text type="BodySmall" center={true}>
         All conversations are
       </Kb.Text>
-      <Kb.Text type="BodySmall" style={{textAlign: 'center'}}>
+      <Kb.Text type="BodySmall" center={true}>
         end-to-end encrypted.
       </Kb.Text>
     </Kb.Box2>
-    <Kb.Button onClick={props.onNewChat} mode="Primary" label="Start a new chat" />
+    <Kb.Button onClick={props.onNewChat} mode="Primary" label="Start a new chat" style={styles.button} />
   </Kb.Box2>
 )
 
@@ -78,6 +69,8 @@ class Inbox extends React.PureComponent<T.Props, State> {
           rows={this.props.rows}
         />
       )
+    } else if (row.type === 'teamBuilder') {
+      element = <BuildTeam />
     } else {
       element = makeRow({
         channelname: row.channelname,
@@ -86,6 +79,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
         navKey: this.props.navKey,
         snippet: row.snippet,
         snippetDecoration: row.snippetDecoration,
+        teamID: (row.type === 'bigHeader' && row.teamID) || '',
         teamname: row.teamname,
         time: row.time || undefined,
         type: row.type,
@@ -102,7 +96,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
   _keyExtractor = item => {
     const row = item
 
-    if (row.type === 'divider' || row.type === 'bigTeamsLabel') {
+    if (row.type === 'divider' || row.type === 'bigTeamsLabel' || row.type === 'teamBuilder') {
       return row.type
     }
 
@@ -130,12 +124,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
     }
     this._onScrollUnbox(data)
 
-    const lastVisibleIdx = // Auto generated from flowToTs. Please clean me!
-      data.viewableItems[data.viewableItems.length - 1] === null ||
-      data.viewableItems[data.viewableItems.length - 1] === undefined
-        ? undefined
-        : data.viewableItems[data.viewableItems.length - 1].index
-    this._lastVisibleIdx = lastVisibleIdx || -1
+    this._lastVisibleIdx = data.viewableItems[data.viewableItems.length - 1]?.index ?? -1
     this._updateShowUnread()
     this._updateShowFloating()
   }
@@ -271,7 +260,10 @@ class Inbox extends React.PureComponent<T.Props, State> {
             />
           )}
           {noChats}
-          {floatingDivider || (!this.props.isSearching && <BuildTeam />)}
+          {floatingDivider ||
+            ((this.props.rows.length === 0 || !this.props.hasBigTeams) &&
+              !this.props.isLoading &&
+              !this.props.neverLoaded && <BuildTeam />)}
           {this.state.showUnread && !this.props.isSearching && !this.state.showFloating && (
             <UnreadShortcut onClick={this._scrollToUnread} />
           )}
@@ -284,6 +276,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      button: {width: '100%'},
       container: {
         ...Styles.globalStyles.flexBoxColumn,
         backgroundColor: Styles.globalColors.fastBlank,
@@ -296,6 +289,14 @@ const styles = Styles.styleSheetCreate(
         right: 0,
         top: 0,
         zIndex: 1000,
+      },
+      noChatsContainer: {
+        ...Styles.globalStyles.fillAbsolute,
+        alignItems: 'center',
+        flex: 1,
+        justifyContent: 'center',
+        paddingLeft: Styles.globalMargins.small,
+        paddingRight: Styles.globalMargins.small,
       },
     } as const)
 )

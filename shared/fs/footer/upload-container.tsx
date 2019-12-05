@@ -4,9 +4,8 @@ import * as Types from '../../constants/types/fs'
 import {compose, namedConnect} from '../../util/container'
 import Upload, {UploadProps} from './upload'
 import UploadCountdownHOC, {UploadCountdownHOCProps} from './upload-countdown-hoc'
-import {unknownPathItem} from '../../constants/fs'
+import * as Constants from '../../constants/fs'
 import * as Kbfs from '../common'
-import flags from '../../util/feature-flags'
 
 const mapStateToProps = state => ({
   _kbfsDaemonStatus: state.fs.kbfsDaemonStatus,
@@ -46,7 +45,7 @@ export const uploadsToUploadCountdownHOCProps = (pathItems: Types.PathItems, upl
 
   // Filter out folder paths.
   const filePaths = [...uploads.syncingPaths].filter(
-    path => pathItems.get(path, unknownPathItem).type !== Types.PathType.Folder
+    path => Constants.getPathItem(pathItems, path).type !== Types.PathType.Folder
   )
 
   return {
@@ -67,8 +66,7 @@ const mergeProps = ({_kbfsDaemonStatus, _pathItems, _uploads}, {debugToggleShow}
   ({
     ...uploadsToUploadCountdownHOCProps(_pathItems, _uploads),
     debugToggleShow,
-    isOnline:
-      !flags.kbfsOfflineMode || _kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Online,
+    isOnline: _kbfsDaemonStatus.onlineStatus !== Types.KbfsDaemonOnlineStatus.Offline,
   } as UploadCountdownHOCProps)
 
 export default compose(

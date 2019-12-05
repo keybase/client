@@ -18,7 +18,7 @@ const Kb = {
 class TestWrapper extends React.PureComponent<
   {
     align: 'left' | 'right'
-    color: 'blue' | 'green'
+    color: 'blue' | 'green' | 'red'
     disabled?: boolean | null
     gapInBetween?: boolean | null
     initialEnabled: boolean
@@ -134,7 +134,7 @@ const load = () => {
           color="blue"
           initialEnabled={true}
         />
-        {(['blue', 'green'] as const).map(color =>
+        {(['blue', 'green', 'red'] as const).map(color =>
           [true, false, 'disabled'].map(i => {
             const initialEnabled = !!i
             const label = `${initialEnabled ? 'on' : 'off'}; ${color}${i === 'disabled' ? '; disabled' : ''}`

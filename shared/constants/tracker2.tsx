@@ -11,10 +11,11 @@ export const makeState = (): Types.State => ({
   usernameToNonUserDetails: new Map(),
 })
 
-export const noDetails: Readonly<Types.Details> = Object.freeze({
+export const noDetails = Object.freeze<Types.Details>({
   assertions: emptyMap,
   blocked: false,
   guiID: '',
+  hidFromFollowers: false,
   reason: '',
   registeredForAirdrop: false,
   showTracker: false,
@@ -23,7 +24,7 @@ export const noDetails: Readonly<Types.Details> = Object.freeze({
   username: '',
 })
 
-export const noNonUserDetails: Readonly<Types.NonUserDetails> = Object.freeze({
+export const noNonUserDetails = Object.freeze<Types.NonUserDetails>({
   assertionKey: '',
   assertionValue: '',
   description: '',
@@ -35,7 +36,7 @@ export const noNonUserDetails: Readonly<Types.NonUserDetails> = Object.freeze({
 
 export const generateGUIID = () => Math.floor(Math.random() * 0xfffffffffffff).toString(16)
 
-export const noAssertion: Readonly<Types.Assertion> = Object.freeze({
+export const noAssertion = Object.freeze<Types.Assertion>({
   assertionKey: '',
   belowFold: false,
   color: 'gray',

@@ -394,7 +394,28 @@ func (u *smuUser) registerForNotifications() {
 	}
 }
 
+func (u *smuUser) waitForNewlyAddedToTeamByID(teamID keybase1.TeamID) {
+	u.ctx.t.Logf("waiting for newly added to team %s", teamID)
+
+	// process 10 team rotations or 10s worth of time
+	for i := 0; i < 10; i++ {
+		select {
+		case tid := <-u.notifications.newlyAddedToTeam:
+			u.ctx.t.Logf("team newly added notification received: %v", tid)
+			if tid.Eq(teamID) {
+				u.ctx.t.Logf("notification matched!")
+				return
+			}
+			u.ctx.t.Logf("ignoring newly added message (expected teamID = %q)", teamID)
+		case <-time.After(1 * time.Second * libkb.CITimeMultiplier(u.getPrimaryGlobalContext())):
+		}
+	}
+	u.ctx.t.Fatalf("timed out waiting for team newly added %s", teamID)
+}
+
 func (u *smuUser) waitForTeamAbandoned(teamID keybase1.TeamID) {
+	u.ctx.t.Logf("waiting for team abandoned %s", teamID)
+
 	// process 10 team rotations or 10s worth of time
 	for i := 0; i < 10; i++ {
 		select {
@@ -486,7 +507,7 @@ func (u *smuUser) createTeam2(readers, writers, admins, owners []*smuUser) smuTe
 	for i, list := range lists {
 		for _, u2 := range list {
 			_, err = cli.TeamAddMember(context.TODO(), keybase1.TeamAddMemberArg{
-				Name:     name,
+				TeamID:   x.TeamID,
 				Username: u2.username,
 				Role:     roles[i],
 			})
@@ -524,7 +545,7 @@ func (u *smuUser) loadTeam(teamname string, admin bool) *teams.Team {
 func (u *smuUser) addTeamMember(team smuTeam, member *smuUser, role keybase1.TeamRole) {
 	cli := u.getTeamsClient()
 	_, err := cli.TeamAddMember(context.TODO(), keybase1.TeamAddMemberArg{
-		Name:     team.name,
+		TeamID:   team.ID,
 		Username: member.username,
 		Role:     role,
 	})

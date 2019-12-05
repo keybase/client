@@ -208,16 +208,14 @@ class Header extends React.PureComponent<Props> {
               </Kb.Box>
             )}
             <Kb.Box2 direction="horizontal" style={styles.topRightContainer}>
-              {flags.kbfsOfflineMode && (
-                <SyncingFolders
-                  negative={
-                    this.props.style &&
-                    this.props.style.backgroundColor &&
-                    this.props.style.backgroundColor !== Styles.globalColors.transparent &&
-                    this.props.style.backgroundColor !== Styles.globalColors.white
-                  }
-                />
-              )}
+              <SyncingFolders
+                negative={
+                  this.props.style &&
+                  this.props.style.backgroundColor &&
+                  this.props.style.backgroundColor !== Styles.globalColors.transparent &&
+                  this.props.style.backgroundColor !== Styles.globalColors.white
+                }
+              />
               {this.props.loggedIn && (
                 <WhatsNewIconWithPopup
                   color={opt.whatsNewIconColor}
@@ -347,7 +345,7 @@ const mapStateToProps = (state: Container.TypedState) => ({
 
 const mapDispatchToProps = () => ({})
 
-export default Container.connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({
+export default Container.connect(mapStateToProps, mapDispatchToProps, (s, d, o: any) => ({
   ...s,
   ...d,
   ...o,

@@ -4,7 +4,7 @@ import * as Constants from '../../../../constants/chat2'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 
-type ReplyProps = {
+export type ReplyProps = {
   deleted: boolean
   edited: boolean
   imageHeight?: number
@@ -145,7 +145,7 @@ const MessageText = ({claim, isEditing, isHighlighted, message, reply, text, typ
 }
 
 // Encoding all 4 states as static objects so we don't re-render
-const getStyle = (type, isEditing, isHighlighted) => {
+const getStyle = (type: Props['type'], isEditing: boolean, isHighlighted?: boolean) => {
   if (isHighlighted) {
     return Styles.collapseStyles([styles.sent, styles.highlighted])
   } else if (type === 'sent') {

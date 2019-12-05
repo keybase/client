@@ -78,7 +78,8 @@ type StorageEngineWithBlinding interface {
 // Transaction references a DB transaction.
 type Transaction interface{}
 
-type GetLatestValueWithProofResponse struct {
-	Value EncodedValue
-	Proof MerkleInclusionProof `codec:"r,omitempty"`
+type GetValueWithProofResponse struct {
+	_struct struct{}             `codec:",toarray"` //nolint
+	Value   EncodedValue         `codec:"v"`
+	Proof   MerkleInclusionProof `codec:"r,omitempty"`
 }

@@ -117,7 +117,7 @@ func getActiveDevicesAndKeys(tc *kbtest.ChatTestContext, u *kbtest.FakeUser) ([]
 	activeDevices := []*libkb.Device{}
 	for _, device := range user.GetComputedKeyFamily().GetAllDevices() {
 		if device.Status != nil && *device.Status == libkb.DeviceStatusActive {
-			activeDevices = append(activeDevices, device)
+			activeDevices = append(activeDevices, device.Device)
 		}
 	}
 	return activeDevices, append(sibkeys, subkeys...)
@@ -708,8 +708,7 @@ func TestChatMessageRevokedKeyThenSent(t *testing.T) {
 		require.NotNil(t, thisDevice, "thisDevice should be non-nil")
 
 		// Find the key
-		f := func() libkb.SecretUI { return u.NewSecretUI() }
-		signingKey, err := engine.GetMySecretKey(context.TODO(), tc.G, f, libkb.DeviceSigningKeyType, "some chat or something test")
+		signingKey, err := engine.GetMySecretKey(context.TODO(), tc.G, libkb.DeviceSigningKeyType, "some chat or something test")
 		require.NoError(t, err, "get device signing key")
 		signKP, ok := signingKey.(libkb.NaclSigningKeyPair)
 		require.Equal(t, true, ok, "signing key must be nacl")
@@ -786,8 +785,7 @@ func TestChatMessageSentThenRevokedSenderKey(t *testing.T) {
 		require.NotNil(t, thisDevice, "thisDevice should be non-nil")
 
 		// Find the key
-		f := func() libkb.SecretUI { return u.NewSecretUI() }
-		signingKey, err := engine.GetMySecretKey(context.TODO(), tc.G, f, libkb.DeviceSigningKeyType, "some chat or something test")
+		signingKey, err := engine.GetMySecretKey(context.TODO(), tc.G, libkb.DeviceSigningKeyType, "some chat or something test")
 		require.NoError(t, err, "get device signing key")
 		signKP, ok := signingKey.(libkb.NaclSigningKeyPair)
 		require.Equal(t, true, ok, "signing key must be nacl")

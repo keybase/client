@@ -8,6 +8,7 @@ import {StylesCrossPlatform} from '../../../../../styles/css'
 type Props = {
   attachTo?: () => React.Component<any> | null
   author: string
+  botUsername?: string
   deviceName: string
   deviceRevokedAt?: number
   deviceType: DeviceType
@@ -17,11 +18,13 @@ type Props = {
   onDeleteMessageHistory?: () => void
   onEdit?: () => void
   onHidden: () => void
+  onKick: () => void
   onPinMessage?: () => void
   onReply?: () => void
   onReplyPrivately?: () => void
   onViewProfile?: () => void
   onViewMap?: () => void
+  isLocation?: boolean
   position: Position
   showDivider: boolean
   style?: StylesCrossPlatform
@@ -30,6 +33,7 @@ type Props = {
   yourMessage: boolean
   isDeleteable: boolean
   isEditable: boolean
+  isKickable: boolean
 }
 
 const TextPopupMenu = (props: Props) => {
@@ -46,7 +50,18 @@ const TextPopupMenu = (props: Props) => {
           },
         ]
       : []),
-    ...((props.yourMessage && props.isDeleteable) || props.onDeleteMessageHistory
+    ...(props.isKickable
+      ? [
+          {
+            danger: true,
+            disabled: !props.onKick,
+            onClick: props.onKick,
+            subTitle: 'Removes the user from the team',
+            title: 'Kick user',
+          },
+        ]
+      : []),
+    ...((props.yourMessage && (props.isDeleteable || props.isKickable)) || props.onDeleteMessageHistory
       ? (['Divider'] as const)
       : []),
     ...(props.onViewMap ? [{onClick: props.onViewMap, title: 'View on Google Maps'}] : []),
@@ -71,11 +86,12 @@ const TextPopupMenu = (props: Props) => {
     view: (
       <MessagePopupHeader
         author={props.author}
+        botUsername={props.botUsername}
         deviceName={props.deviceName}
         deviceRevokedAt={props.deviceRevokedAt}
         deviceType={props.deviceType}
         isLast={!items.length}
-        isLocation={!!props.onViewMap}
+        isLocation={!!props.isLocation}
         timestamp={props.timestamp}
         yourMessage={props.yourMessage}
       />

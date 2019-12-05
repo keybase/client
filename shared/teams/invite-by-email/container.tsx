@@ -5,11 +5,12 @@ import * as Types from '../../constants/types/teams'
 import {InviteByEmailDesktop} from '.'
 import * as Container from '../../util/container'
 
-type OwnProps = Container.RouteProps<{teamname: string}>
+type OwnProps = Container.RouteProps<{teamID: string}>
 
 export default Container.connect(
   (state, ownProps: OwnProps) => {
-    const teamname = Container.getRouteProps(ownProps, 'teamname', '')
+    const teamID = Container.getRouteProps(ownProps, 'teamID', '')
+    const {teamname} = Constants.getTeamDetails(state, teamID)
     const inviteError = Constants.getEmailInviteError(state)
     return {
       errorMessage: inviteError.message,
@@ -18,14 +19,18 @@ export default Container.connect(
       waitingKey: Constants.addToTeamByEmailWaitingKey(teamname) || '',
     }
   },
-  (dispatch, ownProps) => ({
+  dispatch => ({
+    _onInvite: (teamname: string, invitees: string, role: Types.TeamRoleType) => {
+      dispatch(TeamsGen.createInviteToTeamByEmail({invitees, role, teamname}))
+    },
     onClearInviteError: () => dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''})), // should only be called on unmount
     onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
-    onInvite: (invitees: string, role: Types.TeamRoleType) => {
-      const teamname = Container.getRouteProps(ownProps, 'teamname', '')
-      dispatch(TeamsGen.createInviteToTeamByEmail({invitees, role, teamname}))
-      dispatch(TeamsGen.createGetTeams())
-    },
   }),
-  (s, d, o: OwnProps) => ({...o, ...s, ...d})
+  (s, d, o: OwnProps) => ({
+    ...o,
+    ...s,
+    onClearInviteError: d.onClearInviteError,
+    onClose: d.onClose,
+    onInvite: (invitees: string, role: Types.TeamRoleType) => d._onInvite(s.name, invitees, role),
+  })
 )(InviteByEmailDesktop)

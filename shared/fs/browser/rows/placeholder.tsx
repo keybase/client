@@ -12,6 +12,7 @@ export default ({type}: PlaceholderProps) => (
   <Kb.ListItem2
     type="Small"
     firstItem={true /* we add divider in Rows */}
+    statusIcon={<Kb.Box />}
     icon={
       <Kb.Icon
         type={type === Types.PathType.Folder ? 'icon-folder-placeholder-32' : 'icon-file-placeholder-32'}

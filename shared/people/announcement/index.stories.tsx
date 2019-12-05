@@ -71,6 +71,9 @@ const load = () => {
     .add('Go to web homepage', () => (
       <Announcement {...props} url="https://keybase.io" text="Go to web homepage" />
     ))
+    .add('Dismissable', () => (
+      <Announcement {...props} text="This is an announcement" confirmLabel="I see" dismissable={true} />
+    ))
 }
 
 export default load

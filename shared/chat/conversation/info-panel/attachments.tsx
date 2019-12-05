@@ -57,7 +57,7 @@ type Link = {
 
 type AttachmentItem = Thumb | Doc | Link
 
-const _renderEmptyItem = item => (
+const _renderEmptyItem = (item: string) => (
   <Kb.Box2 centerChildren={true} direction="horizontal" fullWidth={true}>
     <Kb.Text type="BodySmall">{`No ${item}`}</Kb.Text>
   </Kb.Box2>
@@ -205,7 +205,10 @@ export class MediaView {
   }
 
   _formRows = (thumbs: Array<Thumb>): Array<Array<ThumbSizing>> => {
-    return chunk(thumbs.map(thumb => ({sizing: this._resize(thumb), thumb})), rowSize)
+    return chunk(
+      thumbs.map(thumb => ({sizing: this._resize(thumb), thumb})),
+      rowSize
+    )
   }
 
   _monthToSection = (month: Month): Section => {
@@ -216,15 +219,15 @@ export class MediaView {
     }
   }
 
-  _renderSectionHeader = (_, month: string, year: number) => {
+  _renderSectionHeader = (_: unknown, month: string, year: number) => {
     const label = `${month} ${year}`
     return <Kb.SectionDivider label={label} />
   }
-  _renderRow = ({item, index}) => {
+  _renderRow = ({item, index}: {item: Array<MediaThumbProps>; index: number}) => {
     return (
       <Kb.Box2 key={index} direction="horizontal" fullWidth={true}>
-        {item.map((cell, index) => {
-          return <MediaThumb key={index} sizing={cell.sizing} thumb={cell.thumb} />
+        {item.map((cell, i) => {
+          return <MediaThumb key={i} sizing={cell.sizing} thumb={cell.thumb} />
         })}
       </Kb.Box2>
     )
@@ -303,7 +306,7 @@ class _DocViewRow extends React.Component<DocViewRowProps> {
 const DocViewRow = Kb.OverlayParentHOC(_DocViewRow)
 
 export class DocView {
-  _renderSectionHeader = (_, month: string, year: number) => {
+  _renderSectionHeader = (_: unknown, month: string, year: number) => {
     const label = `${month} ${year}`
     return <Kb.SectionDivider label={label} />
   }
@@ -314,7 +317,7 @@ export class DocView {
       renderSectionHeader: ({section}) => this._renderSectionHeader(section, month.month, month.year),
     }
   }
-  _renderItem = ({item}) => {
+  _renderItem = ({item}: {item: Doc}) => {
     return <DocViewRow item={item} />
   }
   getSections = (
@@ -340,7 +343,7 @@ export class DocView {
 }
 
 export class LinkView {
-  _renderSectionHeader = (_, month: string, year: number) => {
+  _renderSectionHeader = (_: unknown, month: string, year: number) => {
     const label = `${month} ${year}`
     return <Kb.SectionDivider label={label} />
   }
@@ -351,7 +354,7 @@ export class LinkView {
       renderSectionHeader: ({section}) => this._renderSectionHeader(section, month.month, month.year),
     }
   }
-  _renderItem = ({item}) => {
+  _renderItem = ({item}: {item: Link}) => {
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.linkContainer} gap="tiny">
         <Kb.Box2 direction="vertical" fullWidth={true} gap="xxtiny">
@@ -418,12 +421,12 @@ type SelectorProps = {
 }
 
 export class AttachmentTypeSelector extends React.Component<SelectorProps> {
-  _getBkgColor = typ => {
+  _getBkgColor = (typ: RPCChatTypes.GalleryItemTyp) => {
     return typ === this.props.selectedView
       ? {backgroundColor: Styles.globalColors.blue}
       : {backgroundColor: undefined}
   }
-  _getColor = typ => {
+  _getColor = (typ: RPCChatTypes.GalleryItemTyp) => {
     return typ === this.props.selectedView
       ? {color: Styles.globalColors.white}
       : {color: Styles.globalColors.blueDark}

@@ -71,6 +71,10 @@ func (r *teamHandler) Create(ctx context.Context, cli gregor1.IncomingInterface,
 		return true, r.abandonTeam(ctx, cli, item)
 	case "team.newly_added_to_team":
 		return true, r.newlyAddedToTeam(ctx, cli, item)
+	case "team.user_team_version":
+		return true, r.userTeamVersion(ctx, cli, item)
+	case "team.member_showcase_change":
+		return true, r.memberShowcaseChange(ctx, cli, item)
 	default:
 		if strings.HasPrefix(category, "team.") {
 			return false, fmt.Errorf("unknown teamHandler category: %q", category)
@@ -219,6 +223,20 @@ func (r *teamHandler) exitTeam(ctx context.Context, cli gregor1.IncomingInterfac
 	return r.G().GregorState.DismissItem(ctx, cli, item.Metadata().MsgID())
 }
 
+func (r *teamHandler) userTeamVersion(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) (err error) {
+	mctx := libkb.NewMetaContext(ctx, r.G())
+	nm := "team.user_team_version"
+	defer mctx.Trace("teamHandler#userTeamVersion", func() error { return err })()
+	var obj keybase1.UserTeamVersionUpdate
+	err = json.Unmarshal(item.Body().Bytes(), &obj)
+	if err != nil {
+		mctx.Debug("Error unmarshaling %s item: %s", nm, err)
+		return err
+	}
+	return r.G().GetTeamRoleMapManager().Update(mctx, obj.Version)
+
+}
+
 func (r *teamHandler) newlyAddedToTeam(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
 	nm := "team.newly_added_to_team"
 	r.G().Log.CDebugf(ctx, "teamHandler.newlyAddedToTeam: %s received", nm)
@@ -286,6 +304,17 @@ func (r *teamHandler) openTeamSweepResetUsersRequest(ctx context.Context, cli gr
 	}
 
 	r.G().Log.CDebugf(ctx, "dismissing team.opensweep item since it succeeded")
+	return r.G().GregorState.DismissItem(ctx, cli, item.Metadata().MsgID())
+}
+
+func (r *teamHandler) memberShowcaseChange(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
+	r.G().Log.CDebugf(ctx, "teamHandler: team.member_showchase_change received")
+
+	if err := teams.HandleTeamMemberShowcaseChange(ctx, r.G()); err != nil {
+		return err
+	}
+
+	r.G().Log.CDebugf(ctx, "dismissing team.member_showcase_change item since it succeeded")
 	return r.G().GregorState.DismissItem(ctx, cli, item.Metadata().MsgID())
 }
 

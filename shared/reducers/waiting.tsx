@@ -7,16 +7,14 @@ import {RPCError} from '../util/errors'
 const debugWaiting = false && __DEV__
 
 const changeHelper = (
-  draftState: Container.Draft<Types.State>,
+  counts: Map<string, number>,
+  errors: Map<string, RPCError | undefined>,
   keys: string | Array<string>,
   diff: 1 | -1,
   error?: RPCError
 ) => {
-  const counts = new Map(draftState.counts)
-  const errors = new Map(draftState.errors)
-
   getKeys(keys).forEach(k => {
-    const oldCount = draftState.counts.get(k) || 0
+    const oldCount = counts.get(k) || 0
     // going from 0 => 1, clear errors
     if (oldCount === 0 && diff === 1) {
       errors.delete(k)
@@ -33,9 +31,7 @@ const changeHelper = (
     }
   })
 
-  debugWaiting && console.log('DebugWaiting:', keys, draftState)
-  draftState.counts = counts
-  draftState.errors = errors
+  debugWaiting && console.log('DebugWaiting:', keys, new Map(counts), new Map(errors))
 }
 
 const initialState: Types.State = {
@@ -48,34 +44,29 @@ const getKeys = (k: string | Array<string>) => {
   return k
 }
 
-export default (state: Types.State = initialState, action: WaitingGen.Actions): Types.State =>
-  Container.produce(state, (draftState: Container.Draft<Types.State>) => {
-    switch (action.type) {
-      case WaitingGen.resetStore:
-        // Keep the old values else the keys will be all off and confusing
-        debugWaiting && console.log('DebugWaiting:', '*resetStore*', draftState)
-        return
-      case WaitingGen.decrementWaiting:
-        changeHelper(draftState, action.payload.key, -1, action.payload.error)
-        return
-      case WaitingGen.incrementWaiting:
-        changeHelper(draftState, action.payload.key, 1)
-        return
-      case WaitingGen.clearWaiting: {
-        const counts = new Map(draftState.counts)
-        const errors = new Map(draftState.errors)
-        getKeys(action.payload.key).forEach(key => {
-          counts.delete(key)
-          errors.delete(key)
-        })
-        draftState.counts = counts
-        draftState.errors = errors
-        return
-      }
-      case WaitingGen.batchChangeWaiting:
-        action.payload.changes.forEach(({key, increment, error}) => {
-          changeHelper(draftState, key, increment ? 1 : -1, error)
-        })
-        return
-    }
-  })
+export default Container.makeReducer<WaitingGen.Actions, Types.State>(initialState, {
+  [WaitingGen.resetStore]: draftState => {
+    // Keep the old values else the keys will be all off and confusing
+    debugWaiting && console.log('DebugWaiting:', '*resetStore*', draftState)
+  },
+  [WaitingGen.decrementWaiting]: (draftState, action) => {
+    changeHelper(draftState.counts, draftState.errors, action.payload.key, -1, action.payload.error)
+  },
+  [WaitingGen.incrementWaiting]: (draftState, action) => {
+    changeHelper(draftState.counts, draftState.errors, action.payload.key, 1)
+  },
+  [WaitingGen.clearWaiting]: (draftState, action) => {
+    const {counts, errors} = draftState
+    debugWaiting && console.log('DebugWaiting: clear', action.payload.key)
+    getKeys(action.payload.key).forEach(key => {
+      counts.delete(key)
+      errors.delete(key)
+    })
+  },
+  [WaitingGen.batchChangeWaiting]: (draftState, action) => {
+    debugWaiting && console.log('DebugWaiting: batch', action.payload.changes)
+    action.payload.changes.forEach(({key, increment, error}) => {
+      changeHelper(draftState.counts, draftState.errors, key, increment ? 1 : -1, error)
+    })
+  },
+})

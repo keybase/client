@@ -110,7 +110,10 @@ const TeamBox = (props: Props) => {
           (props.rolePickerProps ? (
             <FloatingRolePicker
               open={props.rolePickerProps.showRolePicker}
-              onConfirm={props.onFinishTeamBuilding}
+              onConfirm={() => {
+                props.rolePickerProps?.changeShowRolePicker(false)
+                props.onFinishTeamBuilding()
+              }}
               onSelectRole={props.rolePickerProps.onSelectRole}
               selectedRole={props.rolePickerProps.selectedRole}
               onCancel={() => props.rolePickerProps && props.rolePickerProps.changeShowRolePicker(false)}

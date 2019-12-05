@@ -5,44 +5,48 @@ import * as Container from '../../../util/container'
 import {anyWaiting} from '../../../constants/waiting'
 
 type OwnProps = {
-  teamname: string
+  teamID: Types.TeamID
   selectedTab: string
   setSelectedTab: (tab: Types.TabKey) => void
 }
 
 export default Container.connect(
-  (state, {teamname, selectedTab, setSelectedTab}: OwnProps) => {
-    const yourOperations = Constants.getCanPerform(state, teamname)
+  (state, {teamID, selectedTab, setSelectedTab}: OwnProps) => {
+    const teamDetails = Constants.getTeamDetails(state, teamID)
+    const yourOperations = Constants.getCanPerformByID(state, teamID)
     return {
-      _newTeamRequests: state.teams.newTeamRequests,
       admin: yourOperations.manageMembers,
-      loading: anyWaiting(state, Constants.teamWaitingKey(teamname), Constants.teamTarsWaitingKey(teamname)),
-      memberCount: Constants.getTeamMemberCount(state, teamname),
-      numInvites: Constants.getTeamInvites(state, teamname).size,
-      numRequests: Constants.getTeamRequests(state, teamname).size,
-      numSubteams: Constants.getTeamSubteams(state, teamname).size,
-      resetUserCount: Constants.getTeamResetUsers(state, teamname).size,
+      loading: anyWaiting(
+        state,
+        Constants.teamWaitingKey(teamDetails.teamname),
+        Constants.teamTarsWaitingKey(teamDetails.teamname)
+      ),
+      memberCount: teamDetails.memberCount,
+      newTeamRequests: state.teams.newTeamRequests,
+      numInvites: teamDetails.invites?.size ?? 0,
+      numRequests: teamDetails.requests?.size ?? 0,
+      numSubteams: teamDetails.subteams?.size ?? 0,
+      resetUserCount: Constants.getTeamResetUsers(state, teamDetails.teamname).size,
       selectedTab,
       setSelectedTab,
-      teamname,
-      yourOperations,
+      showSubteams: yourOperations.manageSubteams,
+      teamname: teamDetails.teamname,
     }
   },
   () => ({}),
-  (stateProps, _, __) => {
+  (stateProps, _, ownProps) => {
     return {
       admin: stateProps.admin,
       loading: stateProps.loading,
       memberCount: stateProps.memberCount,
-      newTeamRequests: stateProps._newTeamRequests,
+      newRequests: stateProps.newTeamRequests.get(ownProps.teamID) || 0,
       numInvites: stateProps.numInvites,
       numRequests: stateProps.numRequests,
       numSubteams: stateProps.numSubteams,
       resetUserCount: stateProps.resetUserCount,
       selectedTab: stateProps.selectedTab,
       setSelectedTab: stateProps.setSelectedTab,
-      teamname: stateProps.teamname,
-      yourOperations: stateProps.yourOperations,
+      showSubteams: stateProps.showSubteams,
     }
   }
 )(Tabs)

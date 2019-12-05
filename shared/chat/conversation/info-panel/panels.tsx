@@ -4,7 +4,7 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import RetentionPicker from '../../../teams/team/settings-tab/retention/container'
 import MinWriterRole from './min-writer-role/container'
-import Notifications from './notifications/container'
+import Notifications from './notifications'
 import {CaptionedDangerIcon} from './channel-utils'
 import {EntityType} from '.'
 

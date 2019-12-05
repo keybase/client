@@ -3,14 +3,18 @@ import * as Types from '../../constants/types/provision'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {SignupScreen} from '../../signup/common'
+import DeviceIcon from '../../devices/device-icon'
 
 type Props = {
-  devices: Array<Types.Device>
+  passwordRecovery?: boolean
+  devices: ReadonlyArray<Types.Device>
+  onBack: () => void
   onSelect: (name: string) => void
   onResetAccount: () => void
-  onBack: () => void
 }
 
+const resetSignal = 'reset'
+type DeviceOrReset = Types.Device | 'reset'
 class SelectOtherDevice extends React.Component<Props> {
   static navigationOptions = {
     header: null,
@@ -18,10 +22,10 @@ class SelectOtherDevice extends React.Component<Props> {
     headerLeft: null, // no back button
   }
 
-  _renderItem = (index, item) => {
-    if (item.__reset) {
+  _renderItem = (index, item: DeviceOrReset) => {
+    if (item === resetSignal) {
       return (
-        <Kb.Box2 direction="vertical" fullWidth={true}>
+        <Kb.Box2 direction="vertical" fullWidth={true} key="reset">
           <Kb.Text type="BodySmall" style={styles.or}>
             or
           </Kb.Text>
@@ -42,37 +46,23 @@ class SelectOtherDevice extends React.Component<Props> {
       )
     }
 
-    const {name, type} = item
-    let iconType: Kb.IconType
-    let description: string = ''
-    switch (type) {
-      case 'mobile':
-        iconType = 'icon-phone-32'
-        description = 'Phone'
-        break
-      case 'desktop':
-        iconType = 'icon-computer-32'
-        description = 'Computer'
-        break
-      case 'backup':
-        iconType = 'icon-paper-key-32'
-        description = 'Paper key'
-        break
-      default:
-        iconType = 'icon-paper-key-32'
+    const descriptions = {
+      backup: 'Paper key',
+      desktop: 'Computer',
+      mobile: 'Phone',
     }
-
+    const {name, type} = item
     return (
       <Kb.ListItem2
         type="Small"
         firstItem={index === 0}
         key={name}
         onClick={() => this.props.onSelect(name)}
-        icon={<Kb.Icon type={iconType} />}
+        icon={<DeviceIcon device={item} size={32} />}
         body={
           <Kb.Box2 direction="vertical" fullWidth={true}>
             <Kb.Text type="BodySemibold">{name}</Kb.Text>
-            <Kb.Text type="BodySmall">{description}</Kb.Text>
+            <Kb.Text type="BodySmall">{descriptions[type]}</Kb.Text>
           </Kb.Box2>
         }
       />
@@ -80,12 +70,16 @@ class SelectOtherDevice extends React.Component<Props> {
   }
 
   render() {
-    const items = [...this.props.devices, {__reset: true}]
+    const items: DeviceOrReset[] = [...this.props.devices, resetSignal]
     return (
       <SignupScreen
         noBackground={true}
         onBack={this.props.onBack}
-        title={`Authorize this ${Styles.isMobile ? 'phone' : 'computer'}`}
+        title={
+          this.props.passwordRecovery
+            ? 'Recover password'
+            : `Authorize this ${Styles.isMobile ? 'phone' : 'computer'}`
+        }
         contentContainerStyle={Styles.padding(0)}
       >
         <Kb.Box2
@@ -102,10 +96,12 @@ class SelectOtherDevice extends React.Component<Props> {
             keyProperty="name"
             ListHeaderComponent={
               <Kb.Box2 direction="vertical" style={styles.headerText}>
-                <Kb.Text center={true} type="Body">
-                  For security reasons, you need to authorize this {Styles.isMobile ? 'phone' : 'computer'}{' '}
-                  with another device or a paper key.
-                </Kb.Text>
+                {!this.props.passwordRecovery && (
+                  <Kb.Text center={true} type="Body">
+                    For security reasons, you need to authorize this {Styles.isMobile ? 'phone' : 'computer'}{' '}
+                    with another device or a paper key.
+                  </Kb.Text>
+                )}
                 <Kb.Text center={true} type="Body">
                   Which do you have handy?
                 </Kb.Text>

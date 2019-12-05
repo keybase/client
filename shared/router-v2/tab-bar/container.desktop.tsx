@@ -26,17 +26,17 @@ type OwnProps = {
 export default Container.connect(
   (state: Container.TypedState) => ({
     _badgeNumbers: state.notifications.navBadges,
+    _filesTabBadge: state.fs.badge,
     _fullnames: state.users.infoMap,
     _justSignedUpEmail: state.signup.justSignedUpEmail,
     _settingsEmailBanner: state.settings.email.addedEmail,
     fullname: TrackerConstants.getDetails(state, state.config.username).fullname || '',
     isWalletsNew: state.chat2.isWalletsNew,
-    uploading: state.fs.uploads.syncingPaths.size > 0 || state.fs.uploads.writingToJournal.size > 0,
     username: state.config.username,
   }),
   (dispatch, ownProps: OwnProps) => ({
     _onProfileClick: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
-    _onTabClick: (tab: Tabs.Tab, justSignedUpEmail: string, settingsEmailBanner: string | null) => {
+    _onTabClick: (tab: Tabs.Tab, justSignedUpEmail: string, settingsEmailBanner?: string) => {
       if (ownProps.selectedTab === Tabs.peopleTab && tab !== Tabs.peopleTab) {
         dispatch(PeopleGen.createMarkViewed())
       }
@@ -59,7 +59,6 @@ export default Container.connect(
       }
     },
     onAddAccount: () => dispatch(ProvisionGen.createStartProvision()),
-    onCreateAccount: () => dispatch(SignupGen.createRequestAutoInvite()), // TODO make this route
     onHelp: () => openURL('https://keybase.io/docs'),
     onQuit: () => {
       if (!__DEV__) {
@@ -85,7 +84,6 @@ export default Container.connect(
     fullname: stateProps.fullname,
     isWalletsNew: stateProps.isWalletsNew,
     onAddAccount: dispatchProps.onAddAccount,
-    onCreateAccount: dispatchProps.onCreateAccount,
     onHelp: dispatchProps.onHelp,
     onProfileClick: () => dispatchProps._onProfileClick(stateProps.username),
     onQuit: dispatchProps.onQuit,
@@ -94,7 +92,6 @@ export default Container.connect(
     onTabClick: (tab: Tabs.AppTab) =>
       dispatchProps._onTabClick(tab, stateProps._justSignedUpEmail, stateProps._settingsEmailBanner),
     selectedTab: ownProps.selectedTab,
-    uploading: stateProps.uploading,
     username: stateProps.username,
   })
 )(TabBar)

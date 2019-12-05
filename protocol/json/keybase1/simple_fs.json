@@ -741,6 +741,15 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "KbfsOnlineStatus",
+      "symbols": [
+        "OFFLINE_0",
+        "TRYING_1",
+        "ONLINE_2"
+      ]
+    },
+    {
       "type": "record",
       "name": "FSSettings",
       "fields": [
@@ -788,7 +797,9 @@
         "FAVORITES_0",
         "JOURNAL_STATUS_1",
         "ONLINE_STATUS_2",
-        "DOWNLOAD_STATUS_3"
+        "DOWNLOAD_STATUS_3",
+        "FILES_TAB_BADGE_4",
+        "OVERALL_SYNC_STATUS_5"
       ]
     },
     {
@@ -877,6 +888,16 @@
           },
           "name": "states"
         }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "FilesTabBadge",
+      "symbols": [
+        "NONE_0",
+        "UPLOADING_STUCK_1",
+        "AWAITING_UPLOAD_2",
+        "UPLOADING_3"
       ]
     },
     {
@@ -1392,9 +1413,9 @@
       ],
       "response": "FolderWithFavFlags"
     },
-    "simpleFSAreWeConnectedToMDServer": {
+    "simpleFSGetOnlineStatus": {
       "request": [],
-      "response": "boolean"
+      "response": "KbfsOnlineStatus"
     },
     "simpleFSCheckReachability": {
       "request": [],
@@ -1571,6 +1592,10 @@
         }
       ],
       "response": null
+    },
+    "simpleFSGetFilesTabBadge": {
+      "request": [],
+      "response": "FilesTabBadge"
     },
     "simpleFSGetGUIFileContext": {
       "request": [

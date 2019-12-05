@@ -77,7 +77,6 @@ type Service struct {
 	home            *home.Home
 	tlfUpgrader     *tlfupgrade.BackgroundTLFUpdater
 	teamUpgrader    *teams.Upgrader
-	avatarLoader    avatars.Source
 	walletState     *stellar.WalletState
 	offlineRPCCache *offline.RPCCache
 	trackerLoader   *libkb.TrackerLoader
@@ -114,7 +113,6 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		trackerLoader:    libkb.NewTrackerLoader(g),
 		runtimeStats:     runtimestats.NewRunner(allG),
 		teamUpgrader:     teams.NewUpgrader(),
-		avatarLoader:     avatars.CreateSourceFromEnvAndInstall(g),
 		walletState:      stellar.NewWalletState(g, remote.NewRemoteNet(g)),
 		offlineRPCCache:  offline.NewRPCCache(g),
 		httpSrv:          manager.NewSrv(g),
@@ -125,7 +123,7 @@ func (d *Service) GetStartChannel() <-chan struct{} {
 	return d.startCh
 }
 
-func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID libkb.ConnectionID, logReg *logRegister) (shutdowners []Shutdowner, err error) {
+func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID libkb.ConnectionID, logReg *logRegister) (err error) {
 	g := d.G()
 	cg := globals.NewContext(g, d.ChatG())
 	contactsProv := NewCachedContactsProvider(g)
@@ -179,7 +177,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.MerkleProtocol(newMerkleHandler(xp, g)),
 		keybase1.GitProtocol(NewGitHandler(xp, g)),
 		keybase1.HomeProtocol(NewHomeHandler(xp, g, d.home)),
-		keybase1.AvatarsProtocol(NewAvatarHandler(xp, g, d.avatarLoader)),
+		keybase1.AvatarsProtocol(NewAvatarHandler(xp, g, g.GetAvatarLoader())),
 		keybase1.PhoneNumbersProtocol(NewPhoneNumbersHandler(xp, g)),
 		keybase1.ContactsProtocol(NewContactsHandler(xp, g, contactsProv)),
 		keybase1.EmailsProtocol(NewEmailsHandler(xp, g)),
@@ -190,7 +188,6 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 	}
 	appStateHandler := newAppStateHandler(xp, g)
 	protocols = append(protocols, keybase1.AppStateProtocol(appStateHandler))
-	shutdowners = append(shutdowners, appStateHandler)
 	walletHandler := newWalletHandler(xp, g, d.walletState)
 	protocols = append(protocols, CancelingProtocol(g, stellar1.LocalProtocol(walletHandler),
 		libkb.RPCCancelerReasonLogout))
@@ -199,15 +196,14 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 	protocols = append(protocols, keybase1.DebuggingProtocol(NewDebuggingHandler(xp, g, userHandler, walletHandler)))
 	for _, proto := range protocols {
 		if err = srv.Register(proto); err != nil {
-			return
+			return err
 		}
 	}
-	return
+	return nil
 }
 
 func (d *Service) Handle(c net.Conn) {
 	xp := rpc.NewTransport(c, libkb.NewRPCLogFactory(d.G()), libkb.MakeWrapError(d.G()), rpc.DefaultMaxFrameLength)
-
 	server := rpc.NewServer(xp, libkb.MakeWrapError(d.G()))
 
 	cl := make(chan error, 1)
@@ -221,27 +217,7 @@ func (d *Service) Handle(c net.Conn) {
 		logReg = newLogRegister(d.logForwarder, d.G().Log)
 		defer logReg.UnregisterLogger()
 	}
-	shutdowners, err := d.RegisterProtocols(server, xp, connID, logReg)
-
-	var shutdownOnce sync.Once
-	shutdown := func(mctx libkb.MetaContext) error {
-		shutdownOnce.Do(func() {
-			for _, shutdowner := range shutdowners {
-				shutdowner.Shutdown()
-			}
-		})
-		return nil
-	}
-
-	// Clean up handlers when the connection closes.
-	mctx := libkb.NewMetaContextTODO(d.G())
-	defer func() { _ = shutdown(mctx) }()
-
-	// Make sure shutdown is called when service shuts down but the connection
-	// isn't closed yet.
-	d.G().PushShutdownHook(shutdown)
-
-	if err != nil {
+	if err := d.RegisterProtocols(server, xp, connID, logReg); err != nil {
 		d.G().Log.Warning("RegisterProtocols error: %s", err)
 		return
 	}
@@ -249,7 +225,7 @@ func (d *Service) Handle(c net.Conn) {
 	// Run the server and wait for it to finish.
 	<-server.Run()
 	// err is always non-nil.
-	err = server.Err()
+	err := server.Err()
 	cl <- err
 	if err != io.EOF {
 		d.G().Log.Warning("Run error: %s", err)
@@ -363,11 +339,12 @@ func (d *Service) SetupCriticalSubServices() error {
 	teams.ServiceInit(d.G())
 	stellar.ServiceInit(d.G(), d.walletState, d.badger)
 	pvl.NewPvlSourceAndInstall(d.G())
+	avatars.CreateSourceFromEnvAndInstall(d.G())
 	externals.NewParamProofStoreAndInstall(d.G())
 	externals.NewExternalURLStoreAndInstall(d.G())
 	ephemeral.ServiceInit(mctx)
 	teambot.ServiceInit(mctx)
-	d.avatarSrv = avatars.ServiceInit(d.G(), d.httpSrv, d.avatarLoader)
+	d.avatarSrv = avatars.ServiceInit(d.G(), d.httpSrv, d.G().GetAvatarLoader())
 	contacts.ServiceInit(d.G())
 	maps.ServiceInit(allG, d.httpSrv)
 	return nil
@@ -460,6 +437,7 @@ func (d *Service) stopChatModules(m libkb.MetaContext) error {
 	<-d.ChatG().LiveLocationTracker.Stop(m.Ctx())
 	<-d.ChatG().BotCommandManager.Stop(m.Ctx())
 	<-d.ChatG().UIInboxLoader.Stop(m.Ctx())
+	<-d.ChatG().JourneyCardManager.Stop(m.Ctx())
 	return nil
 }
 
@@ -530,6 +508,8 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 		ri)
 	g.CommandsSource = commands.NewSource(g)
 	g.CoinFlipManager = chat.NewFlipManager(g, ri)
+	g.JourneyCardManager = chat.NewJourneyCardManager(g)
+	g.AddDbNukeHook(g.JourneyCardManager, "JourneyCardManager")
 	g.TeamMentionLoader = chat.NewTeamMentionLoader(g)
 	g.ExternalAPIKeySource = chat.NewRemoteExternalAPIKeySource(g, ri)
 	g.LiveLocationTracker = maps.NewLiveLocationTracker(g)
@@ -659,7 +639,10 @@ func (d *Service) startupGregor() {
 		d.G().GregorListener = d.gregor
 
 		// Add default handlers
-		d.gregor.PushHandler(newUserHandler(d.G()))
+		userHandler := newUserHandler(d.G())
+		userHandler.PushUserBlockedHandler(d.home)
+
+		d.gregor.PushHandler(userHandler)
 		// TODO -- get rid of this?
 		d.gregor.PushHandler(newRekeyLogHandler(d.G()))
 
@@ -668,7 +651,7 @@ func (d *Service) startupGregor() {
 		d.gregor.PushHandler(d.home)
 		d.gregor.PushHandler(newEKHandler(d.G()))
 		d.gregor.PushHandler(newTeambotHandler(d.G()))
-		d.gregor.PushHandler(newAvatarGregorHandler(d.G(), d.avatarLoader))
+		d.gregor.PushHandler(newAvatarGregorHandler(d.G(), d.G().GetAvatarLoader()))
 		d.gregor.PushHandler(newPhoneNumbersGregorHandler(d.G()))
 		d.gregor.PushHandler(newEmailsGregorHandler(d.G()))
 		d.gregor.PushHandler(newKBFSFavoritesHandler(d.G()))

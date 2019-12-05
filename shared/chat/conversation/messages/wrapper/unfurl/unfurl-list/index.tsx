@@ -6,6 +6,7 @@ import {Box2} from '../../../../../../common-adapters/index'
 import UnfurlGeneric from '../generic/container'
 import UnfurlGiphy from '../giphy/container'
 import UnfurlMap from '../map'
+import UnfurlSharingEnded from '../map/ended'
 
 export type UnfurlListItem = {
   unfurl: RPCChatTypes.UnfurlDisplay
@@ -18,6 +19,7 @@ export type UnfurlListItem = {
 export type ListProps = {
   conversationIDKey: Types.ConversationIDKey
   isAuthor: boolean
+  author?: string
   toggleMessagePopup: () => void
   unfurls: Array<UnfurlListItem>
 }
@@ -25,6 +27,7 @@ export type ListProps = {
 export type UnfurlProps = {
   conversationIDKey: Types.ConversationIDKey
   isAuthor: boolean
+  author?: string
   isCollapsed: boolean
   onClose?: () => void
   onCollapse: () => void
@@ -38,19 +41,24 @@ class Unfurl extends React.PureComponent<UnfurlProps> {
       case RPCChatTypes.UnfurlType.generic:
         return this.props.unfurl.generic ? (
           this.props.unfurl.generic.mapInfo ? (
-            <UnfurlMap
-              conversationIDKey={this.props.conversationIDKey}
-              coord={this.props.unfurl.generic.mapInfo.coord}
-              imageHeight={this.props.unfurl.generic.media ? this.props.unfurl.generic.media.height : 0}
-              imageURL={this.props.unfurl.generic.media ? this.props.unfurl.generic.media.url : ''}
-              imageWidth={this.props.unfurl.generic.media ? this.props.unfurl.generic.media.width : 0}
-              isAuthor={this.props.isAuthor}
-              isLiveLocationDone={this.props.unfurl.generic.mapInfo.isLiveLocationDone}
-              liveLocationEndTime={this.props.unfurl.generic.mapInfo.liveLocationEndTime || undefined}
-              time={this.props.unfurl.generic.mapInfo.time}
-              toggleMessagePopup={this.props.toggleMessagePopup}
-              url={this.props.unfurl.generic.url}
-            />
+            this.props.unfurl.generic.mapInfo.isLiveLocationDone ? (
+              <UnfurlSharingEnded endTime={this.props.unfurl.generic.mapInfo.time} />
+            ) : (
+              <UnfurlMap
+                conversationIDKey={this.props.conversationIDKey}
+                coord={this.props.unfurl.generic.mapInfo.coord}
+                imageHeight={this.props.unfurl.generic.media ? this.props.unfurl.generic.media.height : 0}
+                imageURL={this.props.unfurl.generic.media ? this.props.unfurl.generic.media.url : ''}
+                imageWidth={this.props.unfurl.generic.media ? this.props.unfurl.generic.media.width : 0}
+                isAuthor={this.props.isAuthor}
+                author={this.props.author}
+                isLiveLocationDone={this.props.unfurl.generic.mapInfo.isLiveLocationDone}
+                liveLocationEndTime={this.props.unfurl.generic.mapInfo.liveLocationEndTime || undefined}
+                time={this.props.unfurl.generic.mapInfo.time}
+                toggleMessagePopup={this.props.toggleMessagePopup}
+                url={this.props.unfurl.generic.url}
+              />
+            )
           ) : (
             <UnfurlGeneric
               unfurl={this.props.unfurl.generic}
@@ -83,6 +91,7 @@ class UnfurlList extends React.PureComponent<ListProps> {
           <Unfurl
             conversationIDKey={this.props.conversationIDKey}
             isAuthor={this.props.isAuthor}
+            author={this.props.author}
             isCollapsed={u.isCollapsed}
             key={u.url}
             unfurl={u.unfurl}

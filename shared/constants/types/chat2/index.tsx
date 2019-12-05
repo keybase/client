@@ -1,12 +1,12 @@
 import * as RPCChatTypes from '../rpc-chat-gen'
 import * as RPCTypes from '../rpc-gen'
-import * as I from 'immutable'
 import * as Common from './common'
 import * as Meta from './meta'
 import * as Message from './message'
 import * as Wallet from '../wallets'
 import * as TeamBuildingTypes from '../team-building'
 import HiddenString from '../../../util/hidden-string'
+import {AmpTracker} from '../../../chat/audio/amptracker'
 
 export type QuoteInfo = {
   // Always positive and monotonically increasing.
@@ -111,6 +111,35 @@ export type Coordinate = {
   lon: number
 }
 
+export enum AudioRecordingStatus {
+  INITIAL = 0,
+  RECORDING,
+  STAGED,
+  STOPPED,
+  CANCELLED,
+}
+
+export enum AudioStopType {
+  CANCEL = 0,
+  RELEASE,
+  SEND,
+  STOPBUTTON,
+}
+
+export type AudioRecordingInfo = {
+  status: AudioRecordingStatus
+  outboxID: Buffer
+  path: string
+  recordEnd?: number
+  recordStart: number
+  isLocked: boolean
+  amps?: AmpTracker
+}
+
+export type BlockButtonsInfo = {
+  adder: string
+}
+
 export type State = Readonly<{
   accountsInfoMap: Map<
     Common.ConversationIDKey,
@@ -118,7 +147,9 @@ export type State = Readonly<{
   > // temp cache for requestPayment and sendPayment message data,
   attachmentFullscreenSelection?: AttachmentFullscreenSelection
   attachmentViewMap: Map<Common.ConversationIDKey, Map<RPCChatTypes.GalleryItemTyp, AttachmentViewInfo>>
+  audioRecording: Map<Common.ConversationIDKey, AudioRecordingInfo>
   badgeMap: ConversationCountMap // id to the badge count,
+  blockButtonsMap: Map<RPCTypes.TeamID, BlockButtonsInfo> // Should we show block buttons for this team ID?
   botCommandsUpdateStatusMap: Map<Common.ConversationIDKey, RPCChatTypes.UIBotCommandsUpdateStatus>
   channelSearchText: string
   commandMarkdownMap: Map<Common.ConversationIDKey, RPCChatTypes.UICommandMarkdown>
@@ -134,6 +165,7 @@ export type State = Readonly<{
   focus: Focus
   giphyResultMap: Map<Common.ConversationIDKey, RPCChatTypes.GiphySearchResults | undefined>
   giphyWindowMap: Map<Common.ConversationIDKey, boolean>
+  inboxNumSmallRows?: number
   inboxHasLoaded: boolean // if we've ever loaded,
   inboxLayout: RPCChatTypes.UIInboxLayout | null // layout of the inbox
   inboxSearch?: InboxSearchInfo
@@ -142,7 +174,7 @@ export type State = Readonly<{
   lastCoord?: Coordinate
   maybeMentionMap: Map<string, RPCChatTypes.UIMaybeMentionInfo>
   messageCenterOrdinals: Map<Common.ConversationIDKey, CenterOrdinal> // ordinals to center threads on,
-  messageMap: I.Map<Common.ConversationIDKey, I.Map<Message.Ordinal, Message.Message>> // messages in a thread,
+  messageMap: Map<Common.ConversationIDKey, Map<Message.Ordinal, Message.Message>> // messages in a thread,
   messageOrdinals: Map<Common.ConversationIDKey, Set<Message.Ordinal>> // ordered ordinals in a thread,
   metaMap: MetaMap // metadata about a thread, There is a special node for the pending conversation,
   moreToLoadMap: Map<Common.ConversationIDKey, boolean> // if we have more data to load,
@@ -193,8 +225,8 @@ export type TeamType = Meta.TeamType
 export type AttachmentType = Message.AttachmentType
 export type ChatPaymentInfo = Message.ChatPaymentInfo
 export type ChatRequestInfo = Message.ChatRequestInfo
-export type MessageWithReactionPopup = Message.MessageWithReactionPopup
 export type DecoratedMessage = Message.DecoratedMessage
+export type MessagesWithReactions = Message.MessagesWithReactions
 export type MentionsAt = Message.MentionsAt
 export type MentionsChannel = Message.MentionsChannel
 export type MentionsChannelName = Message.MentionsChannelName
@@ -209,6 +241,7 @@ export type MessageSetChannelname = Message.MessageSetChannelname
 export type MessageSetDescription = Message.MessageSetDescription
 export type MessagePin = Message.MessagePin
 export type MessageSystemAddedToTeam = Message.MessageSystemAddedToTeam
+export type MessageSystemCreateTeam = Message.MessageSystemCreateTeam
 export type MessageSystemChangeRetention = Message.MessageSystemChangeRetention
 export type MessageSystemGitPush = Message.MessageSystemGitPush
 export type MessageSystemInviteAccepted = Message.MessageSystemInviteAccepted

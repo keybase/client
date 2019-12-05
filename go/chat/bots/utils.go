@@ -119,7 +119,7 @@ func ApplyTeamBotSettings(ctx context.Context, g *globals.Context, botUID gregor
 		if err := <-completeCh; err != nil {
 			return false, err
 		}
-		cmds, err := g.BotCommandManager.ListCommands(ctx, *convID)
+		cmds, _, err := g.BotCommandManager.ListCommands(ctx, *convID)
 		if err != nil {
 			return false, nil
 		}

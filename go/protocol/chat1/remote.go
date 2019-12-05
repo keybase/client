@@ -1065,18 +1065,20 @@ func (o RemoteBotCommandsAdvertisement) DeepCopy() RemoteBotCommandsAdvertisemen
 }
 
 type BotCommandConv struct {
-	Uid    gregor1.UID     `codec:"uid" json:"uid"`
-	ConvID ConversationID  `codec:"convID" json:"convID"`
-	Vers   CommandConvVers `codec:"vers" json:"vers"`
-	Mtime  gregor1.Time    `codec:"mtime" json:"mtime"`
+	Uid               gregor1.UID       `codec:"uid" json:"uid"`
+	UntrustedTeamRole keybase1.TeamRole `codec:"untrustedTeamRole" json:"untrustedTeamRole"`
+	ConvID            ConversationID    `codec:"convID" json:"convID"`
+	Vers              CommandConvVers   `codec:"vers" json:"vers"`
+	Mtime             gregor1.Time      `codec:"mtime" json:"mtime"`
 }
 
 func (o BotCommandConv) DeepCopy() BotCommandConv {
 	return BotCommandConv{
-		Uid:    o.Uid.DeepCopy(),
-		ConvID: o.ConvID.DeepCopy(),
-		Vers:   o.Vers.DeepCopy(),
-		Mtime:  o.Mtime.DeepCopy(),
+		Uid:               o.Uid.DeepCopy(),
+		UntrustedTeamRole: o.UntrustedTeamRole.DeepCopy(),
+		ConvID:            o.ConvID.DeepCopy(),
+		Vers:              o.Vers.DeepCopy(),
+		Mtime:             o.Mtime.DeepCopy(),
 	}
 }
 
@@ -2176,7 +2178,7 @@ type RemoteClient struct {
 }
 
 func (c RemoteClient) GetInboxRemote(ctx context.Context, __arg GetInboxRemoteArg) (res GetInboxRemoteRes, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getInboxRemote", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getInboxRemote", []interface{}{__arg}, &res, rpc.CompressionGzip, 300000*time.Millisecond)
 	return
 }
 

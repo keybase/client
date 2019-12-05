@@ -2,7 +2,6 @@ import GlobalError from '.'
 import {connect} from '../../util/container'
 import * as ConfigGen from '../../actions/config-gen'
 import {settingsTab} from '../../constants/tabs'
-import {feedbackTab} from '../../constants/settings'
 import * as Platform from '../../constants/platform'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 
@@ -30,7 +29,7 @@ const mapDispatchToProps = dispatch => ({
             path: [
               {
                 props: {heading: 'Oh no, a bug!'},
-                selected: feedbackTab,
+                selected: require('../../constants/settings').feedbackTab,
               },
             ],
           })
@@ -52,9 +51,5 @@ const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   onFeedback: () => dispatchProps.onFeedback(stateProps._loggedIn),
 })
 
-const Connected = connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
-)(GlobalError)
+const Connected = connect(mapStateToProps, mapDispatchToProps, mergeProps)(GlobalError)
 export default Connected

@@ -8,7 +8,7 @@ import {
   Loggers,
   toISOTimestamp,
 } from './types'
-import {isMobile} from '../constants/platform'
+import {isMobile, isRemoteDebuggerAttached} from '../constants/platform'
 import ConsoleLogger from './console-logger'
 import TeeLogger from './tee-logger'
 import RingLogger from './ring-logger'
@@ -85,7 +85,11 @@ class AggregateLoggerImpl implements AggregateLogger {
 }
 
 const devLoggers = () => ({
-  action: new TeeLogger(new RingLogger(100), new ConsoleLogger('log', 'Dispatching Action')),
+  // We already pretty print the actions when we have an actual console.
+  action:
+    isMobile && !isRemoteDebuggerAttached
+      ? new TeeLogger(new RingLogger(100), new ConsoleLogger('log', 'Dispatching Action'))
+      : new NullLogger(),
   debug: new TeeLogger(
     isMobile
       ? new NativeLogger('d')

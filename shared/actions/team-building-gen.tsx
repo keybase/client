@@ -1,7 +1,7 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 
 import * as Types from '../constants/types/team-building'
-import {TeamRoleType} from '../constants/types/teams'
+import {TeamRoleType, TeamID} from '../constants/types/teams'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of team-building but is handled by every reducer. NEVER dispatch this
@@ -11,12 +11,15 @@ export const cancelTeamBuilding = 'team-building:cancelTeamBuilding'
 export const changeSendNotification = 'team-building:changeSendNotification'
 export const fetchUserRecs = 'team-building:fetchUserRecs'
 export const fetchedUserRecs = 'team-building:fetchedUserRecs'
+export const finishTeamBuilding = 'team-building:finishTeamBuilding'
 export const finishedTeamBuilding = 'team-building:finishedTeamBuilding'
 export const labelsSeen = 'team-building:labelsSeen'
 export const removeUsersFromTeamSoFar = 'team-building:removeUsersFromTeamSoFar'
 export const search = 'team-building:search'
 export const searchResultsLoaded = 'team-building:searchResultsLoaded'
 export const selectRole = 'team-building:selectRole'
+export const setError = 'team-building:setError'
+export const tbResetStore = 'team-building:tbResetStore'
 
 // Payload Types
 type _AddUsersToTeamSoFarPayload = {
@@ -27,7 +30,8 @@ type _CancelTeamBuildingPayload = {readonly namespace: Types.AllowedNamespace}
 type _ChangeSendNotificationPayload = {readonly namespace: 'teams'; readonly sendNotification: boolean}
 type _FetchUserRecsPayload = {readonly includeContacts: boolean; readonly namespace: Types.AllowedNamespace}
 type _FetchedUserRecsPayload = {readonly namespace: Types.AllowedNamespace; readonly users: Array<Types.User>}
-type _FinishedTeamBuildingPayload = {readonly namespace: Types.AllowedNamespace; readonly teamname?: string}
+type _FinishTeamBuildingPayload = {readonly namespace: Types.AllowedNamespace; readonly teamID?: TeamID}
+type _FinishedTeamBuildingPayload = {readonly namespace: Types.AllowedNamespace}
 type _LabelsSeenPayload = {readonly namespace: Types.AllowedNamespace}
 type _RemoveUsersFromTeamSoFarPayload = {
   readonly namespace: Types.AllowedNamespace
@@ -47,8 +51,24 @@ type _SearchResultsLoadedPayload = {
   readonly service: Types.ServiceIdWithContact
 }
 type _SelectRolePayload = {readonly namespace: 'teams'; readonly role: TeamRoleType}
+type _SetErrorPayload = {readonly namespace: Types.AllowedNamespace; readonly error: string}
+type _TbResetStorePayload = {readonly namespace: Types.AllowedNamespace}
 
 // Action Creators
+/**
+ * If we want to keep the modal open until an RPC finishes, use this before dispatching finishedTeamBuilding.
+ */
+export const createFinishTeamBuilding = (payload: _FinishTeamBuildingPayload): FinishTeamBuildingPayload => ({
+  payload,
+  type: finishTeamBuilding,
+})
+/**
+ * our own reset store so we don't have conflicts with parent reducers
+ */
+export const createTbResetStore = (payload: _TbResetStorePayload): TbResetStorePayload => ({
+  payload,
+  type: tbResetStore,
+})
 export const createAddUsersToTeamSoFar = (
   payload: _AddUsersToTeamSoFarPayload
 ): AddUsersToTeamSoFarPayload => ({payload, type: addUsersToTeamSoFar})
@@ -85,6 +105,7 @@ export const createSelectRole = (payload: _SelectRolePayload): SelectRolePayload
   payload,
   type: selectRole,
 })
+export const createSetError = (payload: _SetErrorPayload): SetErrorPayload => ({payload, type: setError})
 
 // Action Payloads
 export type AddUsersToTeamSoFarPayload = {
@@ -107,6 +128,10 @@ export type FetchedUserRecsPayload = {
   readonly payload: _FetchedUserRecsPayload
   readonly type: typeof fetchedUserRecs
 }
+export type FinishTeamBuildingPayload = {
+  readonly payload: _FinishTeamBuildingPayload
+  readonly type: typeof finishTeamBuilding
+}
 export type FinishedTeamBuildingPayload = {
   readonly payload: _FinishedTeamBuildingPayload
   readonly type: typeof finishedTeamBuilding
@@ -122,6 +147,8 @@ export type SearchResultsLoadedPayload = {
   readonly type: typeof searchResultsLoaded
 }
 export type SelectRolePayload = {readonly payload: _SelectRolePayload; readonly type: typeof selectRole}
+export type SetErrorPayload = {readonly payload: _SetErrorPayload; readonly type: typeof setError}
+export type TbResetStorePayload = {readonly payload: _TbResetStorePayload; readonly type: typeof tbResetStore}
 
 // All Actions
 // prettier-ignore
@@ -131,10 +158,13 @@ export type Actions =
   | ChangeSendNotificationPayload
   | FetchUserRecsPayload
   | FetchedUserRecsPayload
+  | FinishTeamBuildingPayload
   | FinishedTeamBuildingPayload
   | LabelsSeenPayload
   | RemoveUsersFromTeamSoFarPayload
   | SearchPayload
   | SearchResultsLoadedPayload
   | SelectRolePayload
+  | SetErrorPayload
+  | TbResetStorePayload
   | {type: 'common:resetStore', payload: {}}

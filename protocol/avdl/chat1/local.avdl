@@ -677,6 +677,7 @@ protocol local {
     // Commands for auto complete and bot comm
     ConversationCommandGroups commands;
     ConversationCommandGroups botCommands;
+    map<string, string> botAliases;
   }
 
   record NonblockFetchRes {
@@ -752,8 +753,8 @@ protocol local {
     ConversationMembersType membersType;
   }
 
-  GetInboxAndUnboxLocalRes getInboxAndUnboxLocal(union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
-  GetInboxAndUnboxUILocalRes getInboxAndUnboxUILocal(union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
+  GetInboxAndUnboxLocalRes getInboxAndUnboxLocal(union { null, GetInboxLocalQuery} query, keybase1.TLFIdentifyBehavior identifyBehavior);
+  GetInboxAndUnboxUILocalRes getInboxAndUnboxUILocal(union { null, GetInboxLocalQuery} query, keybase1.TLFIdentifyBehavior identifyBehavior);
   record GetInboxLocalQuery {
     // Local analog of common:GetInboxQuery
 
@@ -778,7 +779,6 @@ protocol local {
   }
   record GetInboxAndUnboxLocalRes {
     array<ConversationLocal> conversations;
-    union { null, Pagination } pagination;
 
     boolean offline;
     array<RateLimit> rateLimits;
@@ -786,7 +786,6 @@ protocol local {
   }
    record GetInboxAndUnboxUILocalRes {
     array<InboxUIItem> conversations;
-    union { null, Pagination } pagination;
 
     boolean offline;
     array<RateLimit> rateLimits;
@@ -799,7 +798,7 @@ protocol local {
   }
   void requestInboxLayout(InboxLayoutReselectMode reselectMode);
   void requestInboxUnbox(array<ConversationID> convIDs);
-  NonblockFetchRes getInboxNonblockLocal(int sessionID, union { null, int } maxUnbox, boolean skipUnverified, union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
+  NonblockFetchRes getInboxNonblockLocal(int sessionID, union { null, int } maxUnbox, boolean skipUnverified, union { null, GetInboxLocalQuery} query, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   PostLocalRes postLocal(int sessionID, ConversationID conversationID, MessagePlaintext msg, union { null, MessageID }  replyTo, keybase1.TLFIdentifyBehavior identifyBehavior);
   record PostLocalRes {
@@ -979,9 +978,10 @@ protocol local {
     union {null, AssetMetadata} baseMetadata; // will exist if service is able to get base metadata
   }
   MakePreviewRes makePreview(int sessionID, string filename, OutboxID outboxID);
-  MakePreviewRes makeAudioPreview(array<double> amps);
+  MakePreviewRes makeAudioPreview(array<double> amps, int duration);
   string getUploadTempFile(OutboxID outboxID, string filename);
   string makeUploadTempFile(OutboxID outboxID, string filename, bytes data);
+  void cancelUploadTempFile(OutboxID outboxID);
 
   @lint("ignore")
   void CancelPost(OutboxID outboxID);
@@ -1249,5 +1249,20 @@ protocol local {
   record LocalMtimeUpdate {
     ConversationID convID;
     gregor1.Time mtime;
+  }
+
+  enum SnippetDecoration {
+    NONE_0,
+    PENDING_MESSAGE_1,
+    FAILED_PENDING_MESSAGE_2,
+    EXPLODING_MESSAGE_3,
+    EXPLODED_MESSAGE_4,
+    AUDIO_ATTACHMENT_5,
+    VIDEO_ATTACHMENT_6,
+    PHOTO_ATTACHMENT_7,
+    FILE_ATTACHMENT_8,
+    STELLAR_RECEIVED_9,
+    STELLAR_SENT_10,
+    PINNED_MESSAGE_11
   }
 }

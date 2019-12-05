@@ -15,6 +15,7 @@ export declare function showShareActionSheet(options: {
 export declare function saveAttachmentDialog(filePath: string): Promise<NextURI>
 export declare function saveAttachmentToCameraRoll(fileURL: string, mimeType: string): Promise<void>
 export declare function requestLocationPermission(mode: RPCChatTypes.UIWatchPositionPerm): Promise<void>
+export declare function requestAudioPermission(): Promise<void>
 export declare function clearWatchPosition(watchID: number): void
 export declare function watchPositionForMap(errFn: () => void): Promise<number>
 
@@ -28,4 +29,4 @@ export declare function displayNewMessageNotification(
 
 export declare function clearAllNotifications(): void
 
-export declare function platformConfigSaga()
+export declare function platformConfigSaga(): void

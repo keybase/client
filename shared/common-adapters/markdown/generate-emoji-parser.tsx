@@ -6,7 +6,7 @@ import emojiData from 'emoji-datasource'
 // MUST be lodash for node to work simply
 // eslint-disable-next-line
 import {escapeRegExp} from 'lodash'
-import tlds from 'tlds'
+import prettier from 'prettier'
 
 const commonTlds = [
   'com',
@@ -43,7 +43,7 @@ const commonTlds = [
 function UTF162JSON(text) {
   let r: Array<string> = []
   for (let i = 0; i < text.length; i++) {
-    r.push('\\u' + ('000' + text.charCodeAt(i).toString(16)).slice(-4))
+    r.push('\\\\u' + ('000' + text.charCodeAt(i).toString(16)).slice(-4))
   }
   return r.join('')
 }
@@ -73,7 +73,8 @@ function genEmojiData() {
   emojiData.forEach(emoji => {
     if (emoji.skin_variations) {
       Object.keys(emoji.skin_variations).forEach((k, idx) =>
-        addEmojiLiteral(emoji.skin_variations[k].unified, emoji.short_name, idx + 1)
+        // + 2 because idx starts at 0, and skin-tone-1 is not a thing
+        addEmojiLiteral(emoji.skin_variations[k].unified, emoji.short_name, idx + 2)
       )
     }
     addEmojiLiteral(emoji.unified, emoji.short_name)
@@ -101,16 +102,22 @@ function genEmojiData() {
 function buildEmojiFile() {
   const p = path.join(__dirname, 'emoji-gen.tsx')
   const {emojiLiterals, emojiIndexByName, emojiIndexByChar} = genEmojiData()
-  const data = `/* eslint-disable */
-export const emojiRegex = /^(${emojiLiterals.join('|')}|${Object.keys(emojiIndexByName)
+  const regLiterals = emojiLiterals.join('|')
+  const regIndex = Object.keys(emojiIndexByName)
     .map(escapeRegExp)
-    .join('|')})/
-export const emojiIndexByName = ${JSON.stringify(emojiIndexByName)}
-export const emojiIndexByChar = ${JSON.stringify(emojiIndexByChar)}
-export const tldExp = new RegExp(/.(${tlds.join('|')})\\b/)
+    .join('|')
+  const data = `/* eslint-disable */
+export const emojiRegex = new RegExp(\`^(${regLiterals}|${regIndex})\`)
+export const emojiIndexByName = JSON.parse(\`${JSON.stringify(emojiIndexByName, null, 2)}\`)
+export const emojiIndexByChar = JSON.parse(\`${JSON.stringify(emojiIndexByChar, null, 2)}\`)
 export const commonTlds = ${JSON.stringify(commonTlds)}
 `
-  fs.writeFileSync(p, data, {encoding: 'utf8'})
+
+  const formatted = prettier.format(data, {
+    ...prettier.resolveConfig.sync(p),
+    parser: 'typescript',
+  })
+  fs.writeFileSync(p, formatted, {encoding: 'utf8'})
 }
 
 buildEmojiFile()

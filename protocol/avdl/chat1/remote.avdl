@@ -114,6 +114,7 @@ protocol remote {
     union { null, RateLimit } rateLimit;
   }
 
+  @timeout_msec(300000) // 5 minutes
   GetInboxRemoteRes getInboxRemote(InboxVers vers, union { null, GetInboxQuery } query, union { null, Pagination } pagination);
   GetThreadRemoteRes getThreadRemote(ConversationID conversationID, GetThreadReason reason, union { null, GetThreadQuery } query, union { null, Pagination } pagination);
 
@@ -354,6 +355,7 @@ protocol remote {
   }
   record BotCommandConv {
     gregor1.UID uid;
+    keybase1.TeamRole untrustedTeamRole;
     ConversationID convID;
     CommandConvVers vers;
     gregor1.Time mtime;

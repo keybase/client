@@ -1,11 +1,9 @@
 import * as React from 'react'
-import * as I from 'immutable'
 import * as Types from '../../../constants/types/fs'
 import * as Constants from '../../../constants/fs'
 import {namedConnect} from '../../../util/container'
 import OpenHOC from '../../common/open-hoc'
 import Tlf from './tlf'
-import flags from '../../../util/feature-flags'
 
 export type OwnProps = {
   destinationPickerIndex?: number
@@ -20,22 +18,18 @@ const mapStateToProps = (state, {tlfType, name}: OwnProps) => ({
 })
 
 const mergeProps = (stateProps, _, {tlfType, name, mixedMode, destinationPickerIndex}: OwnProps) => {
-  const shouldBadge = Constants.tlfIsBadged(stateProps._tlf)
   const path = Constants.tlfTypeAndNameToPath(tlfType, name)
   const usernames = Constants.getUsernamesFromTlfName(name).filter(name => name !== stateProps._username)
   return {
     destinationPickerIndex,
     isIgnored: stateProps._tlf.isIgnored,
-    isNew: shouldBadge && stateProps._tlf.isNew,
     loadPathMetadata:
-      flags.kbfsOfflineMode &&
-      stateProps._tlf.syncConfig &&
-      stateProps._tlf.syncConfig.mode !== Types.TlfSyncMode.Disabled,
+      stateProps._tlf.syncConfig && stateProps._tlf.syncConfig.mode !== Types.TlfSyncMode.Disabled,
     mixedMode,
     name,
     path,
     // Only include the user if they're the only one
-    usernames: usernames.isEmpty() ? I.List([stateProps._username]) : usernames,
+    usernames: !usernames.length ? [stateProps._username] : usernames,
   }
 }
 

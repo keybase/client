@@ -1,24 +1,23 @@
-import * as I from 'immutable'
 import * as Types from './types/signup'
-import {isAndroid, isIOS, isDarwin, isWindows, isLinux, isMobile} from './platform'
+import * as Platforms from '../constants/platform'
 import HiddenString from '../util/hidden-string'
 
 export const maxUsernameLength = 16
 export const usernameHint =
   'Usernames must be 2-16 characters, and can only contain letters, numbers, and underscores.'
-
-const devicename =
-  (isAndroid && 'My Android Device') ||
-  (isIOS && 'My iOS Device') ||
-  (isDarwin && 'My Mac Device') ||
-  (isWindows && 'My Windows Device') ||
-  (isLinux && 'My Linux Device') ||
-  (isMobile ? 'Mobile Device' : 'Home Computer')
-
 export const noEmail = 'NOEMAIL'
+export const waitingKey = 'signup:waiting'
 
-export const makeState = I.Record<Types._State>({
-  devicename,
+const defaultDevicename =
+  (Platforms.isAndroid && 'My Android Device') ||
+  (Platforms.isIOS && 'My iOS Device') ||
+  (Platforms.isDarwin && 'My Mac Device') ||
+  (Platforms.isWindows && 'My Windows Device') ||
+  (Platforms.isLinux && 'My Linux Device') ||
+  (Platforms.isMobile ? 'Mobile Device' : 'Home Computer')
+
+export const makeState = (): Types.State => ({
+  devicename: defaultDevicename,
   devicenameError: '',
   email: '',
   emailError: '',
@@ -30,10 +29,7 @@ export const makeState = I.Record<Types._State>({
   nameError: '',
   password: new HiddenString(''),
   passwordError: new HiddenString(''),
-  signupError: null,
   username: '',
   usernameError: '',
   usernameTaken: '',
 })
-
-export const waitingKey = 'signup:waiting'

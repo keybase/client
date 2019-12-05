@@ -2,7 +2,8 @@ import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import CodePage2 from '.'
 import {Box2, QRNotAuthorized} from '../../common-adapters'
-
+import * as Constants from '../../constants/provision'
+import * as DevicesConstants from '../../constants/devices'
 const textCodeShort = 'scrub disagree sheriff holiday cabin habit mushroom member'
 const textCodeLong = textCodeShort + ' four'
 // Not using the container on purpose since i want every variant
@@ -18,6 +19,7 @@ const derivedProps = (
       : 'oldMacMini'
     : ''
   return {
+    currentDevice: DevicesConstants.makeDevice({deviceNumberOfType: 3, type: currentDeviceType}),
     currentDeviceAlreadyProvisioned,
     currentDeviceName,
     currentDeviceType,
@@ -25,10 +27,10 @@ const derivedProps = (
     onBack: Sb.action('onBack'),
     onClose: Sb.action('onClose'),
     onSubmitTextCode: Sb.action('onSubmitTextCode'),
-    otherDeviceName,
-    otherDeviceType,
+    otherDevice: {...Constants.makeDevice(), name: otherDeviceName, type: otherDeviceType},
     setHeaderBackgroundColor: Sb.action('setHeaderBackgroundColor'),
     textCode: otherDeviceType === 'mobile' || currentDeviceType === 'mobile' ? textCodeLong : textCodeShort,
+    waiting: false,
   }
 }
 

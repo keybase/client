@@ -52,6 +52,9 @@ export type PlaintextProps = {
   title?: string
 }
 
+// Mobile handles spaces correctly so don't insert anything
+const space = Styles.isMobile ? ` ` : <>&nbsp;</>
+
 // common-adapters/profile-card.tsx already imports this, so have it assign
 // this here instead of importing directly to avoid an import cycle.
 let WithProfileCardPopup: React.ComponentType<any> | null
@@ -127,11 +130,18 @@ function UsernameText(props: Props) {
                 ,
               </Text>
             )}
-            {i !== props.users.length - 1 && ' '}
+            {i !== props.users.length - 1 && (
+              <Text type={props.type} negative={isNegative} style={derivedJoinerStyle}>
+                {space}
+              </Text>
+            )}
           </Text>
         )
+
         return props.withProfileCardPopup && WithProfileCardPopup ? (
-          <WithProfileCardPopup username={u.username}>{renderText}</WithProfileCardPopup>
+          <WithProfileCardPopup key={u.username} username={u.username}>
+            {renderText}
+          </WithProfileCardPopup>
         ) : (
           renderText()
         )
