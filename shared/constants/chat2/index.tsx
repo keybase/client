@@ -417,10 +417,8 @@ export const zoomImage = (width: number, height: number, maxThumbSize: number) =
 }
 
 export {
-  getAllChannels,
   getBotCommands,
   getChannelForTeam,
-  getChannelSuggestions,
   getCommands,
   getConversationIDKeyMetasToLoad,
   getEffectiveRetentionPolicy,
