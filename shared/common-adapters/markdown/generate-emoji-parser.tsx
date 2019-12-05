@@ -99,14 +99,12 @@ function genEmojiData() {
   return {emojiIndexByChar, emojiIndexByName, emojiLiterals}
 }
 
-const clean = (s: string) => escapeRegExp(s).replace(/\\/g, '\\\\')
-
 function buildEmojiFile() {
   const p = path.join(__dirname, 'emoji-gen.tsx')
   const {emojiLiterals, emojiIndexByName, emojiIndexByChar} = genEmojiData()
-  const regLiterals = emojiLiterals.map(clean).join('|')
+  const regLiterals = emojiLiterals.map((s: string) => escapeRegExp(s).replace(/\\/g, '\\')).join('|')
   const regIndex = Object.keys(emojiIndexByName)
-    .map(clean)
+    .map((s: string) => escapeRegExp(s).replace(/\\/g, '\\\\'))
     .join('|')
   const data = `/* eslint-disable */
 export const emojiRegex = new RegExp(\`^(${regLiterals}|${regIndex})\`)
