@@ -377,3 +377,34 @@ func FillInDiskSpaceStatus(
 	}
 	status.OutOfSyncSpace = !hasRoom
 }
+
+// KeybaseServicePassthrough is an implementation of
+// `KeybaseServiceCn` that just uses the existing services in a given,
+// existing Config object.
+type KeybaseServicePassthrough struct {
+	config Config
+}
+
+// NewKeybaseServicePassthrough returns a new service passthrough
+// using the given config.
+func NewKeybaseServicePassthrough(config Config) KeybaseServicePassthrough {
+	return KeybaseServicePassthrough{config: config}
+}
+
+var _ KeybaseServiceCn = KeybaseServicePassthrough{}
+
+func (ksp KeybaseServicePassthrough) NewKeybaseService(
+	_ Config, _ InitParams, _ Context, _ logger.Logger) (
+	KeybaseService, error) {
+	return ksp.config.KeybaseService(), nil
+}
+
+func (ksp KeybaseServicePassthrough) NewCrypto(
+	_ Config, _ InitParams, _ Context, _ logger.Logger) (Crypto, error) {
+	return ksp.config.Crypto(), nil
+}
+
+func (ksp KeybaseServicePassthrough) NewChat(
+	_ Config, _ InitParams, _ Context, _ logger.Logger) (Chat, error) {
+	return ksp.config.Chat(), nil
+}
