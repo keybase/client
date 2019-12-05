@@ -36,7 +36,7 @@ const styles = Styles.styleSheetCreate(
         minWidth: 32,
       },
       rowContainer: {
-        alignItems: 'center',
+        alignItems: 'flex-start',
       },
       title: {
         color: Styles.globalColors.blueDark,
