@@ -79,7 +79,7 @@ const GitPushDefault = (props: PushDefaultProps) => {
                   {commit.commitHash.substr(0, 8)}
                 </Kb.Text>
               </Kb.Box2>
-              <Kb.Box2 direction="vertical" style={{}}>
+              <Kb.Box2 direction="vertical">
                 <Kb.Text type="BodySmall" selectable={true} style={styles.commitMessage} lineClamp={1}>
                   {commit.message}
                 </Kb.Text>
@@ -171,9 +171,6 @@ const styles = Styles.styleSheetCreate(
         marginBottom: 1,
         marginRight: Styles.globalMargins.xtiny,
         padding: 2,
-      },
-      grow: {
-        flex: 1,
       },
       hashAndMessage: {
         marginBottom: Styles.globalMargins.xtiny,
