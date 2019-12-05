@@ -144,6 +144,11 @@ func (t *teamAPIHandler) addMembers(ctx context.Context, c Call, w io.Writer) er
 		return t.encodeErr(c, err, w)
 	}
 
+	teamID, err := t.cli.GetTeamID(ctx, opts.Team)
+	if err != nil {
+		return err
+	}
+
 	// currently service endpoint can only handle one at a time
 	// can improve this when CORE-6172 is complete
 	var args []keybase1.TeamAddMemberArg
@@ -153,9 +158,9 @@ func (t *teamAPIHandler) addMembers(ctx context.Context, c Call, w io.Writer) er
 			return t.encodeErr(c, err, w)
 		}
 		arg := keybase1.TeamAddMemberArg{
-			Name:  opts.Team,
-			Email: e.Email,
-			Role:  role,
+			TeamID: teamID,
+			Email:  e.Email,
+			Role:   role,
 		}
 		args = append(args, arg)
 	}
@@ -165,7 +170,7 @@ func (t *teamAPIHandler) addMembers(ctx context.Context, c Call, w io.Writer) er
 			return t.encodeErr(c, err, w)
 		}
 		arg := keybase1.TeamAddMemberArg{
-			Name:     opts.Team,
+			TeamID:   teamID,
 			Username: u.Username,
 			Role:     role,
 		}

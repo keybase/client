@@ -39,6 +39,7 @@ export type SearchResults = Map<Query, Map<ServiceIdWithContact, Array<User>>>
 export type ServiceResultCount = Map<SearchString, Map<ServiceIdWithContact, number>>
 
 export type TeamBuildingSubState = Readonly<{
+  error: string
   teamSoFar: Set<User>
   searchResults: SearchResults
   serviceResultCount: ServiceResultCount

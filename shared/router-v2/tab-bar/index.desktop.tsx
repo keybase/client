@@ -145,31 +145,14 @@ class TabBar extends React.PureComponent<Props, State> {
             />
           </Kb.Box2>
           {tabs.map((t, i) => (
-            <Kb.ClickableBox key={t} onClick={() => p.onTabClick(t)}>
-              <Kb.WithTooltip
-                tooltip={`${data[t].label} (${Platforms.shortcutSymbol}${i + 1})`}
-                toastClassName="tab-tooltip"
-              >
-                <Kb.Box2
-                  direction="horizontal"
-                  fullWidth={true}
-                  className={t === p.selectedTab ? 'tab-selected' : 'tab'}
-                  style={styles.tab}
-                >
-                  <Kb.Box2 className="tab-highlight" direction="vertical" fullHeight={true} />
-                  <Kb.Box2 style={styles.iconBox} direction="horizontal">
-                    <Kb.Icon className="tab-icon" type={data[t].icon} sizeType="Big" />
-                    {t === Tabs.fsTab && <FilesTabBadge />}
-                  </Kb.Box2>
-                  <Kb.Text className="tab-label" type="BodySmallSemibold">
-                    {data[t].label}
-                  </Kb.Text>
-                  {!!p.badgeNumbers.get(t) && (
-                    <Kb.Badge className="tab-badge" badgeNumber={p.badgeNumbers.get(t)} />
-                  )}
-                </Kb.Box2>
-              </Kb.WithTooltip>
-            </Kb.ClickableBox>
+            <Tab
+              key={t}
+              tab={t}
+              index={i}
+              selectedTab={p.selectedTab}
+              onTabClick={p.onTabClick}
+              badge={p.badgeNumbers.get(t)}
+            />
           ))}
           <RuntimeStats />
         </Kb.Box2>
@@ -177,6 +160,39 @@ class TabBar extends React.PureComponent<Props, State> {
     )
   }
 }
+
+type TabProps = {
+  tab: Tabs.AppTab
+  index: number
+  selectedTab: Tabs.Tab
+  onTabClick: (t: Tabs.AppTab) => void
+  badge?: number
+}
+const Tab = React.memo(({tab, index, selectedTab, onTabClick, badge}: TabProps) => (
+  <Kb.ClickableBox key={tab} onClick={() => onTabClick(tab)}>
+    <Kb.WithTooltip
+      tooltip={`${data[tab].label} (${Platforms.shortcutSymbol}${index + 1})`}
+      toastClassName="tab-tooltip"
+    >
+      <Kb.Box2
+        direction="horizontal"
+        fullWidth={true}
+        className={tab === selectedTab ? 'tab-selected' : 'tab'}
+        style={styles.tab}
+      >
+        <Kb.Box2 className="tab-highlight" direction="vertical" fullHeight={true} />
+        <Kb.Box2 style={styles.iconBox} direction="horizontal">
+          <Kb.Icon className="tab-icon" type={data[tab].icon} sizeType="Big" />
+          {tab === Tabs.fsTab && <FilesTabBadge />}
+        </Kb.Box2>
+        <Kb.Text className="tab-label" type="BodySmallSemibold">
+          {data[tab].label}
+        </Kb.Text>
+        {!!badge && <Kb.Badge className="tab-badge" badgeNumber={badge} />}
+      </Kb.Box2>
+    </Kb.WithTooltip>
+  </Kb.ClickableBox>
+))
 
 const styles = Styles.styleSheetCreate(
   () =>
@@ -235,12 +251,26 @@ const hotkeys = Object.keys(keysMap)
 
 const InsideHotKeyTabBar = KeyHandler(TabBar)
 
-class HotKeyTabBar extends React.Component<Props> {
-  _onHotkey = (cmd: string) => {
+class HotKeyTabBar extends React.PureComponent<Props> {
+  private onHotkey = (cmd: string) => {
     this.props.onTabClick(keysMap[cmd])
   }
+  private onProfileClick = () => {
+    this.props.onProfileClick()
+  }
+  private onTabClick = (t: Tabs.AppTab) => {
+    this.props.onTabClick(t)
+  }
   render() {
-    return <InsideHotKeyTabBar {...this.props} hotkeys={hotkeys} onHotkey={this._onHotkey} />
+    return (
+      <InsideHotKeyTabBar
+        {...this.props}
+        hotkeys={hotkeys}
+        onHotkey={this.onHotkey}
+        onProfileClick={this.onProfileClick}
+        onTabClick={this.onTabClick}
+      />
+    )
   }
 }
 

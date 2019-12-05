@@ -507,7 +507,7 @@ func (u *smuUser) createTeam2(readers, writers, admins, owners []*smuUser) smuTe
 	for i, list := range lists {
 		for _, u2 := range list {
 			_, err = cli.TeamAddMember(context.TODO(), keybase1.TeamAddMemberArg{
-				Name:     name,
+				TeamID:   x.TeamID,
 				Username: u2.username,
 				Role:     roles[i],
 			})
@@ -545,7 +545,7 @@ func (u *smuUser) loadTeam(teamname string, admin bool) *teams.Team {
 func (u *smuUser) addTeamMember(team smuTeam, member *smuUser, role keybase1.TeamRole) {
 	cli := u.getTeamsClient()
 	_, err := cli.TeamAddMember(context.TODO(), keybase1.TeamAddMemberArg{
-		Name:     team.name,
+		TeamID:   team.ID,
 		Username: member.username,
 		Role:     role,
 	})
