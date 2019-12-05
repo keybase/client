@@ -1827,6 +1827,13 @@ type MerkleHiddenResponse struct {
 	UncommittedSeqno    keybase1.Seqno           `json:"uncommitted_seqno"`
 }
 
+func (m *MerkleHiddenResponse) GetUncommittedSeqno() keybase1.Seqno {
+	if m == nil {
+		return 0
+	}
+	return m.UncommittedSeqno
+}
+
 type ProcessHiddenRespFunc func(m MetaContext, teamID keybase1.TeamID, apiRes *APIRes, blindRootHash string) (*MerkleHiddenResponse, error)
 
 func (mc *MerkleClient) lookupTeam(m MetaContext, teamID keybase1.TeamID, processHiddenResponseFunc ProcessHiddenRespFunc) (leaf *MerkleTeamLeaf, hiddenResp *MerkleHiddenResponse, err error) {
