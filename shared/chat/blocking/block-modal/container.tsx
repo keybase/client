@@ -69,12 +69,18 @@ const Connect = Container.connect(
       ),
     _setUserBlocks: (newBlocks: NewBlocksMap) => {
       // Convert our state block array to action payload.
-      const blocks = Array.from(newBlocks).map(([username, blocks]) => ({
-        setChatBlock: blocks.chatBlocked,
-        setFollowBlock: blocks.followBlocked,
-        username,
-      }))
-      dispatch(UsersGen.createSetUserBlocks({blocks}))
+      const blocks = Array.from(newBlocks)
+        .filter(
+          ([_, userBlocks]) => userBlocks.chatBlocked !== undefined || userBlocks.followBlocked !== undefined
+        )
+        .map(([username, userBlocks]) => ({
+          setChatBlock: userBlocks.chatBlocked,
+          setFollowBlock: userBlocks.followBlocked,
+          username,
+        }))
+      if (blocks && blocks.length) {
+        dispatch(UsersGen.createSetUserBlocks({blocks}))
+      }
     },
   }),
   (stateProps, dispatchProps, _: OwnProps) => ({
