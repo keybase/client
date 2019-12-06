@@ -2391,10 +2391,16 @@ const maybeLoadTeamFromMeta = (meta: Types.ConversationMeta) => {
   return teamname ? TeamsGen.createGetMembers({teamname}) : false
 }
 
-const ensureSelectedTeamLoaded = (state: TypedState, action: Chat2Gen.MetasReceivedPayload) => {
-  const {metas} = action.payload
-  const meta = metas.find(m => m.conversationIDKey === state.chat2.selectedConversation)
-  return meta ? maybeLoadTeamFromMeta(meta) : false
+const ensureSelectedTeamLoaded = (
+  state: TypedState,
+  action: Chat2Gen.SelectConversationPayload | Chat2Gen.MetasReceivedPayload
+) => {
+  const meta = state.chat2.metaMap.get(state.chat2.selectedConversation)
+  return meta
+    ? action.type === Chat2Gen.selectConversation || !state.teams.teamNameToMembers.get(meta.teamname)
+      ? maybeLoadTeamFromMeta(meta)
+      : false
+    : false
 }
 
 const ensureSelectedMeta = (state: TypedState) => {
@@ -2406,7 +2412,7 @@ const ensureSelectedMeta = (state: TypedState) => {
         noWaiting: true,
         reason: 'ensureSelectedMeta',
       })
-    : maybeLoadTeamFromMeta(meta)
+    : false
 }
 
 const ensureWidgetMetas = (state: TypedState) => {
@@ -3385,7 +3391,7 @@ function* chat2Saga() {
     inboxRefresh,
     'inboxRefresh'
   )
-  yield* Saga.chainAction2(Chat2Gen.metasReceived, ensureSelectedTeamLoaded)
+  yield* Saga.chainAction2([Chat2Gen.selectConversation, Chat2Gen.metasReceived], ensureSelectedTeamLoaded)
   // We've scrolled some new inbox rows into view, queue them up
   yield* Saga.chainAction2(Chat2Gen.metaNeedsUpdating, queueMetaToRequest, 'queueMetaToRequest')
   // We have some items in the queue to process

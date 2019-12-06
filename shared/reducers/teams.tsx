@@ -11,11 +11,109 @@ import {mapGetEnsureValue} from '../util/map'
 
 const initialState: Types.State = Constants.makeState()
 
+const validTeamAction = (
+  action: TeamsGen.Actions | TeamBuildingGen.Actions | EngineGen.Keybase1NotifyTeamTeamMetadataUpdatePayload
+) => {
+  switch (action.type) {
+    case TeamsGen.resetStore:
+    case TeamsGen.setChannelCreationError:
+    case TeamsGen.createNewTeam:
+    case TeamsGen.createNewTeamFromConversation:
+    case TeamsGen.setTeamCreationError:
+    case TeamsGen.clearAddUserToTeamsResults:
+    case TeamsGen.setAddUserToTeamsResults:
+    case TeamsGen.setTeamInviteError:
+    case TeamsGen.setTeamJoinError:
+    case TeamsGen.setTeamJoinSuccess:
+    case TeamsGen.setTeamRetentionPolicy:
+    case TeamsGen.setTeamLoadingInvites:
+    case TeamsGen.setTeamDetails:
+    case TeamsGen.setMembers:
+    case TeamsGen.setTeamCanPerform:
+    case TeamsGen.setTeamPublicitySettings:
+    case TeamsGen.setTeamChannelInfo:
+    case TeamsGen.setTeamChannels:
+    case TeamsGen.setEmailInviteError:
+    case TeamsGen.getTeams:
+    case TeamsGen.unsubscribeTeamList:
+    case TeamsGen.setTeamInfo:
+    case EngineGen.keybase1NotifyTeamTeamMetadataUpdate:
+    case TeamsGen.setTeamAccessRequestsPending:
+    case TeamsGen.setNewTeamInfo:
+    case TeamsGen.setTeamProfileAddList:
+    case TeamsGen.setTeamSawChatBanner:
+    case TeamsGen.setTeamSawSubteamsBanner:
+    case TeamsGen.setTeamsWithChosenChannels:
+    case TeamsGen.setUpdatedChannelName:
+    case TeamsGen.setUpdatedTopic:
+    case TeamsGen.deleteChannelInfo:
+    case TeamsGen.addParticipant:
+    case TeamsGen.removeParticipant:
+    case TeamsGen.setTeamRoleMapLatestKnownVersion:
+    case TeamsGen.setTeamRoleMap:
+    case TeamBuildingGen.tbResetStore:
+    case TeamBuildingGen.cancelTeamBuilding:
+    case TeamBuildingGen.addUsersToTeamSoFar:
+    case TeamBuildingGen.removeUsersFromTeamSoFar:
+    case TeamBuildingGen.searchResultsLoaded:
+    case TeamBuildingGen.finishedTeamBuilding:
+    case TeamBuildingGen.fetchedUserRecs:
+    case TeamBuildingGen.fetchUserRecs:
+    case TeamBuildingGen.search:
+    case TeamBuildingGen.selectRole:
+    case TeamBuildingGen.labelsSeen:
+    case TeamBuildingGen.changeSendNotification:
+    case TeamBuildingGen.finishTeamBuilding:
+    case TeamBuildingGen.setError:
+    case TeamsGen.addUserToTeams:
+    case TeamsGen.addToTeam:
+    case TeamsGen.reAddToTeam:
+    case TeamsGen.checkRequestedAccess:
+    case TeamsGen.clearNavBadges:
+    case TeamsGen.createChannel:
+    case TeamsGen.deleteChannelConfirmed:
+    case TeamsGen.deleteTeam:
+    case TeamsGen.editMembership:
+    case TeamsGen.editTeamDescription:
+    case TeamsGen.uploadTeamAvatar:
+    case TeamsGen.getChannelInfo:
+    case TeamsGen.getChannels:
+    case TeamsGen.getDetails:
+    case TeamsGen.getMembers:
+    case TeamsGen.getTeamProfileAddList:
+    case TeamsGen.getTeamPublicity:
+    case TeamsGen.getTeamRetentionPolicy:
+    case TeamsGen.addTeamWithChosenChannels:
+    case TeamsGen.ignoreRequest:
+    case TeamsGen.inviteToTeamByEmail:
+    case TeamsGen.inviteToTeamByPhone:
+    case TeamsGen.joinTeam:
+    case TeamsGen.leaveTeam:
+    case TeamsGen.leftTeam:
+    case TeamsGen.removeMemberOrPendingInvite:
+    case TeamsGen.renameTeam:
+    case TeamsGen.saveChannelMembership:
+    case TeamsGen.setMemberPublicity:
+    case TeamsGen.setPublicity:
+    case TeamsGen.saveTeamRetentionPolicy:
+    case TeamsGen.updateChannelName:
+    case TeamsGen.updateTopic:
+    case TeamsGen.teamCreated:
+    case TeamsGen.addedToTeam:
+      return true
+    default:
+      return false
+  }
+}
+
 export default (
   state: Types.State = initialState,
   action: TeamsGen.Actions | TeamBuildingGen.Actions | EngineGen.Keybase1NotifyTeamTeamMetadataUpdatePayload
-): Types.State =>
-  Container.produce(state, (draftState: Container.Draft<Types.State>) => {
+): Types.State => {
+  if (!validTeamAction(action)) {
+    return state
+  }
+  return Container.produce(state, (draftState: Container.Draft<Types.State>) => {
     switch (action.type) {
       case TeamsGen.resetStore:
         return initialState
@@ -286,3 +384,4 @@ export default (
         return state
     }
   })
+}
