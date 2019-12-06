@@ -76,13 +76,20 @@ const TeamJourneyContainer = (props: Props) => {
     case RPCChatTypes.JourneycardType.addPeople:
       actions = [{label: 'Add people to the team', onClick: props.onAddPeopleToTeam}]
       image = 'icon-illustration-friends-96'
-      textComponent = (
+      textComponent = props.message.openTeam ? (
         <Kb.Text type="BodySmall">
           Do you know people interested in joining?{' '}
           <Kb.Text onClick={props.onShowTeam} type="BodySmallBold">
             {props.teamname}
           </Kb.Text>{' '}
           is open to anyone.
+        </Kb.Text>
+      ) : (
+        <Kb.Text type="BodySmall">
+          Do you know people interested in joining{' '}
+          <Kb.Text onClick={props.onShowTeam} type="BodySmallBold">
+            {props.teamname}
+          </Kb.Text>?
         </Kb.Text>
       )
       break

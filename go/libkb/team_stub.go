@@ -71,6 +71,10 @@ func (n *nullTeamLoader) ForceRepollUntil(ctx context.Context, t gregor.TimeOrOf
 	return nil
 }
 
+func (n *nullTeamLoader) IsOpenCached(ctx context.Context, teamID keybase1.TeamID) (bool, error) {
+	return false, fmt.Errorf("null team loader")
+}
+
 func (n nullTeamLoader) ClearMem() {}
 
 type nullFastTeamLoader struct{}
