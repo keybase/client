@@ -1760,7 +1760,7 @@ function* messageSend(state: TypedState, action: Chat2Gen.MessageSendPayload, lo
         tlfName,
         tlfPublic: false,
       },
-      waitingKey: Constants.waitingKeyPost,
+      waitingKey: action.payload.waitingKey || Constants.waitingKeyPost,
     })
     logger.info('success')
   } catch (e) {
@@ -1777,6 +1777,7 @@ function* messageSend(state: TypedState, action: Chat2Gen.MessageSendPayload, lo
   // narrow down the places where the action can possibly stop.
   logger.info('non-empty text?', text.stringValue().length > 0)
 }
+
 const messageSendByUsernames = async (
   state: TypedState,
   action: Chat2Gen.MessageSendByUsernamesPayload,
@@ -1794,23 +1795,12 @@ const messageSendByUsernames = async (
       },
       action.payload.waitingKey
     )
-    await RPCChatTypes.localPostTextNonblockRpcPromise(
-      {
-        body: action.payload.text.stringValue(),
-        clientPrev: Constants.getClientPrev(state, Types.conversationIDToKey(result.conv.info.id)),
-        conversationID: result.conv.info.id,
-        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-        outboxID: null,
-        tlfName,
-        tlfPublic: false,
-      },
-      action.payload.waitingKey
-    )
-
-    // If there are block buttons on this conversation, clear them.
-    if (state.chat2.blockButtonsMap.has(result.conv.info.triple.tlfid.toString('hex'))) {
-      return Chat2Gen.createDismissBlockButtons({teamID: result.conv.info.triple.tlfid.toString('hex')})
-    }
+    const {text, waitingKey} = action.payload
+    return Chat2Gen.createMessageSend({
+      conversationIDKey: Types.conversationIDToKey(result.conv.info.id),
+      text,
+      waitingKey,
+    })
   } catch (e) {
     logger.warn('Could not send in messageSendByUsernames', e)
   }
