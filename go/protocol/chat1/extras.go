@@ -643,7 +643,7 @@ func (m MessageUnboxedError) ParseableVersion() bool {
 }
 
 func (m MessageUnboxedError) IsEphemeralError() bool {
-	return m.IsEphemeral && m.ErrType == MessageUnboxedErrorType_EPHEMERAL
+	return m.IsEphemeral && (m.ErrType == MessageUnboxedErrorType_EPHEMERAL || m.ErrType == MessageUnboxedErrorType_PAIRWISE_MISSING)
 }
 
 func (m MessageUnboxedValid) AsDeleteHistory() (res MessageDeleteHistory, err error) {
