@@ -88,9 +88,10 @@ protocol account {
 
   record ContactSettings {
     @jsonkey("version")
-    int version;
+    union { null, int } version;
+
     @jsonkey("allow_followee_degrees")
-    boolean allowFolloweeDegrees;
+    int allowFolloweeDegrees;
     @jsonkey("enabled")
     boolean enabled;
     @jsonkey("teams")

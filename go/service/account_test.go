@@ -74,3 +74,28 @@ func TestRecoverUsernameWithEmail(t *testing.T) {
 	})
 	require.NoError(t, err)
 }
+
+func TestContactSettingsAPI(t *testing.T) {
+	tc := libkb.SetupTest(t, "cset", 3)
+	defer tc.Cleanup()
+
+	_, err := kbtest.CreateAndSignupFakeUser("cset", tc.G)
+	require.NoError(t, err)
+
+	handler := NewAccountHandler(nil, tc.G)
+	ctx := context.Background()
+	res, err := handler.UserGetContactSettings(ctx)
+	require.NoError(t, err)
+
+	err = handler.UserSetContactSettings(ctx, keybase1.ContactSettings{
+		Enabled:              true,
+		AllowFolloweeDegrees: 2,
+	})
+	require.NoError(t, err)
+
+	res, err = handler.UserGetContactSettings(ctx)
+	require.NoError(t, err)
+	require.Equal(t, true, res.Enabled)
+	require.Equal(t, 2, res.AllowFolloweeDegrees)
+	require.Equal(t, 0, len(res.Teams))
+}

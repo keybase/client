@@ -90,12 +90,15 @@
       "name": "ContactSettings",
       "fields": [
         {
-          "type": "int",
+          "type": [
+            null,
+            "int"
+          ],
           "name": "version",
           "jsonkey": "version"
         },
         {
-          "type": "boolean",
+          "type": "int",
           "name": "allowFolloweeDegrees",
           "jsonkey": "allow_followee_degrees"
         },

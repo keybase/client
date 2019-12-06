@@ -261,16 +261,12 @@ func (h *AccountHandler) TimeTravelReset(ctx context.Context, arg keybase1.TimeT
 	return err
 }
 
-/////////////////////////
 type GetContactSettingsResponse struct {
-	libkb.AppStatusEmbed                                /// ?
-	Version              int                            `json:"version"`
-	AllowFolloweeDegrees bool                           `json:"allow_followee_degrees"`
-	Enabled              bool                           `json:"enabled"`
-	Teams                []keybase1.TeamContactSettings `json:"teams"`
+	libkb.AppStatusEmbed
+	Settings keybase1.ContactSettings `json:"settings"`
 }
 
-func (h *AccountHandler) GetContactSettings(ctx context.Context, sessionID int) (ret keybase1.ContactSettings, err error) {
+func (h *AccountHandler) UserGetContactSettings(ctx context.Context) (ret keybase1.ContactSettings, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.TraceTimed("GetContactSettings", func() error { return err })()
 	apiArg := libkb.APIArg{
@@ -284,25 +280,23 @@ func (h *AccountHandler) GetContactSettings(ctx context.Context, sessionID int) 
 	}
 
 	ret = keybase1.ContactSettings{
-		Version:              response.Version,
-		AllowFolloweeDegrees: response.AllowFolloweeDegrees,
-		Enabled:              response.Enabled,
-		Teams:                response.Teams,
+		Version:              response.Settings.Version,
+		AllowFolloweeDegrees: response.Settings.AllowFolloweeDegrees,
+		Enabled:              response.Settings.Enabled,
+		Teams:                response.Settings.Teams,
 	}
 	return ret, nil
 }
 
-func (h *AccountHandler) SetContactSettings(ctx context.Context, arg keybase1.UserSetContactSettingsArg) (err error) {
+func (h *AccountHandler) UserSetContactSettings(ctx context.Context, arg keybase1.ContactSettings) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.TraceTimed("SetContactSettings", func() error { return err })()
+	payload := make(libkb.JSONPayload)
+	payload["settings"] = arg
 	apiArg := libkb.APIArg{
 		Endpoint:    "account/contact_settings",
 		SessionType: libkb.APISessionTypeREQUIRED,
-		Args: libkb.HTTPArgs{
-			"allow_followee_degrees": libkb.B{Val: arg.Settings.AllowFolloweeDegrees},
-			"enabled":                libkb.B{Val: arg.Settings.Enabled},
-			//"teams": /// nested HTTP args???????
-		},
+		JSONPayload: payload,
 	}
 	_, err = mctx.G().API.Post(mctx, apiArg)
 	return err
