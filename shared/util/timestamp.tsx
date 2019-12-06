@@ -154,7 +154,7 @@ export const formatDurationFromNowTo = (timeInFuture?: number): string =>
 
 export function formatTimeForPopup(time: number): string {
   const m = moment(time)
-  return m.format('ddd MMM DD h:mm A') // Wed Jan 5 2016 4:34 PM
+  return m.format('ddd MMM DD h:mm:ss A') // Wed Jan 5 2016 4:34 PM
 }
 
 export function formatTimeForStellarDetail(timestamp: Date) {
