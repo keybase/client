@@ -26,3 +26,7 @@ repos:
     -   id: go-fmt
     -   id: go-vet
     -   id: go-lint
+-   repo: https://github.com/maltzj/google-style-precommit-hook
+    rev: 9d0e0fe8f89e40928b99ff2e1c9d35abbb743640
+    hooks:
+    -   id: google-style-java
