@@ -299,9 +299,9 @@ func (h *AccountHandler) SetContactSettings(ctx context.Context, arg keybase1.Us
 		Endpoint:    "account/contact_settings",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
-			"allow_followee_degrees": libkb.B{Val: arg.AllowFolloweeDegrees},
-			"enabled":                libkb.B{Val: arg.Enabled},
-			//"teams": /// ?????
+			"allow_followee_degrees": libkb.B{Val: arg.Settings.AllowFolloweeDegrees},
+			"enabled":                libkb.B{Val: arg.Settings.Enabled},
+			//"teams": /// nested HTTP args???????
 		},
 	}
 	_, err = mctx.G().API.Post(mctx, apiArg)
