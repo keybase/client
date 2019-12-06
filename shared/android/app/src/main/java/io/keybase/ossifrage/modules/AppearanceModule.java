@@ -4,7 +4,7 @@
  * <p>This source code is licensed under the MIT license found in the LICENSE file in the root
  * directory of this source tree.
  */
-//package com.facebook.react.modules.appearance;
+// package com.facebook.react.modules.appearance;
 package io.keybase.ossifrage.modules;
 
 import android.content.Context;
@@ -17,86 +17,85 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.module.annotations.ReactModule;
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter;
-
 import java.util.HashMap;
 import java.util.Map;
 
 /** Module that exposes the user's preferred color scheme. For API >= 29. */
 @ReactModule(name = AppearanceModule.NAME)
 public class AppearanceModule extends ReactContextBaseJavaModule {
-    public static final String NAME = "Appearance";
+  public static final String NAME = "Appearance";
 
-    private static final String APPEARANCE_CHANGED_EVENT_NAME = "appearanceChanged";
+  private static final String APPEARANCE_CHANGED_EVENT_NAME = "appearanceChanged";
 
-    private String mColorScheme = "light";
+  private String mColorScheme = "light";
 
-    public AppearanceModule(ReactApplicationContext reactContext) {
-        super(reactContext);
+  public AppearanceModule(ReactApplicationContext reactContext) {
+    super(reactContext);
 
-        mColorScheme = colorSchemeForCurrentConfiguration(reactContext);
+    mColorScheme = colorSchemeForCurrentConfiguration(reactContext);
+  }
+
+  private static String colorSchemeForCurrentConfiguration(Context context) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+      int currentNightMode =
+          context.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+      switch (currentNightMode) {
+        case Configuration.UI_MODE_NIGHT_NO:
+          return "light";
+        case Configuration.UI_MODE_NIGHT_YES:
+          return "dark";
+      }
     }
 
-    private static String colorSchemeForCurrentConfiguration(Context context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            int currentNightMode =
-                    context.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
-            switch (currentNightMode) {
-                case Configuration.UI_MODE_NIGHT_NO:
-                    return "light";
-                case Configuration.UI_MODE_NIGHT_YES:
-                    return "dark";
-            }
-        }
+    return "light";
+  }
 
-        return "light";
+  @Override
+  public String getName() {
+    return NAME;
+  }
+
+  @ReactMethod(isBlockingSynchronousMethod = true)
+  public String getColorScheme() {
+    mColorScheme = colorSchemeForCurrentConfiguration(getReactApplicationContext());
+    return mColorScheme;
+  }
+
+  /** Stub */
+  @ReactMethod
+  public void addListener(String eventName) {}
+
+  /** Stub */
+  @ReactMethod
+  public void removeListeners(double count) {}
+
+  /*
+   * Call this from your root activity whenever configuration changes. If the
+   * color scheme has changed, an event will emitted.
+   */
+  public void onConfigurationChanged() {
+    String newColorScheme = colorSchemeForCurrentConfiguration(getReactApplicationContext());
+    if (!mColorScheme.equals(newColorScheme)) {
+      mColorScheme = newColorScheme;
+      emitAppearanceChanged(mColorScheme);
     }
+  }
 
-    @Override
-    public String getName() {
-        return NAME;
-    }
+  /** Sends an event to the JS instance that the preferred color scheme has changed. */
+  public void emitAppearanceChanged(String colorScheme) {
+    WritableMap appearancePreferences = Arguments.createMap();
+    appearancePreferences.putString("colorScheme", colorScheme);
 
-    @ReactMethod(isBlockingSynchronousMethod = true)
-    public String getColorScheme() {
-        mColorScheme = colorSchemeForCurrentConfiguration(getReactApplicationContext());
-        return mColorScheme;
-    }
+    getReactApplicationContext()
+        .getJSModule(RCTDeviceEventEmitter.class)
+        .emit(APPEARANCE_CHANGED_EVENT_NAME, appearancePreferences);
+  }
 
-    /** Stub */
-    @ReactMethod
-    public void addListener(String eventName) {}
-
-    /** Stub */
-    @ReactMethod
-    public void removeListeners(double count) {}
-
-    /*
-     * Call this from your root activity whenever configuration changes. If the
-     * color scheme has changed, an event will emitted.
-     */
-    public void onConfigurationChanged() {
-        String newColorScheme = colorSchemeForCurrentConfiguration(getReactApplicationContext());
-        if (!mColorScheme.equals(newColorScheme)) {
-            mColorScheme = newColorScheme;
-            emitAppearanceChanged(mColorScheme);
-        }
-    }
-
-    /** Sends an event to the JS instance that the preferred color scheme has changed. */
-    public void emitAppearanceChanged(String colorScheme) {
-        WritableMap appearancePreferences = Arguments.createMap();
-        appearancePreferences.putString("colorScheme", colorScheme);
-
-        getReactApplicationContext()
-                .getJSModule(RCTDeviceEventEmitter.class)
-                .emit(APPEARANCE_CHANGED_EVENT_NAME, appearancePreferences);
-    }
-
-    @Override
-    public Map<String, Object> getConstants() {
-        final Map<String, Object> constants = new HashMap<>();
-        constants.put("initialColorScheme", this.getColorScheme());
-        constants.put("supported", Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ? "1" : "0");
-        return constants;
-    }
+  @Override
+  public Map<String, Object> getConstants() {
+    final Map<String, Object> constants = new HashMap<>();
+    constants.put("initialColorScheme", this.getColorScheme());
+    constants.put("supported", Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ? "1" : "0");
+    return constants;
+  }
 }

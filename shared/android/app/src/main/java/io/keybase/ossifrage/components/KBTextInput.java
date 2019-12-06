@@ -1,7 +1,6 @@
 package io.keybase.ossifrage.components;
 
 import android.content.Context;
-
 import com.facebook.react.views.textinput.ReactEditText;
 
 public class KBTextInput extends ReactEditText {
@@ -21,8 +20,7 @@ public class KBTextInput extends ReactEditText {
   public void onAttachedToWindow() {
     super.onAttachedToWindow();
     try {
-      if (!mEnabled)
-        return;
+      if (!mEnabled) return;
       super.setEnabled(false);
       super.setEnabled(mEnabled);
     } catch (Exception e) {

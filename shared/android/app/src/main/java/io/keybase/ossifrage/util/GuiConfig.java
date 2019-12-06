@@ -1,15 +1,12 @@
 package io.keybase.ossifrage.util;
 
-import androidx.annotation.Nullable;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import io.keybase.ossifrage.DarkModePrefHelper;
 import io.keybase.ossifrage.DarkModePreference;
 import io.keybase.ossifrage.modules.NativeLogger;
-
 import java.io.File;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class GuiConfig {
   private static GuiConfig singletonInstance = null;
@@ -26,7 +23,6 @@ public class GuiConfig {
     }
     return singletonInstance;
   }
-
 
   public String asString() {
     File filePath = new File(this.filesDir, "/.config/keybase/gui_config.json");

@@ -14,7 +14,6 @@ public class BasePackageList {
         new expo.modules.haptics.HapticsPackage(),
         new expo.modules.imagepicker.ImagePickerPackage(),
         new expo.modules.permissions.PermissionsPackage(),
-        new expo.modules.sms.SMSPackage()
-    );
+        new expo.modules.sms.SMSPackage());
   }
 }

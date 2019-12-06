@@ -12,7 +12,6 @@ import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
-
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationCompat.MessagingStyle;
@@ -20,13 +19,11 @@ import androidx.core.app.NotificationManagerCompat;
 import androidx.core.app.Person;
 import androidx.core.app.RemoteInput;
 import androidx.core.graphics.drawable.IconCompat;
-
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-
 import keybase.ChatNotification;
 import keybase.Message;
 import keybase.PushNotifier;
@@ -57,10 +54,11 @@ public class KBPushNotifier implements PushNotifier {
     this.convMsgCache = convMsgCache;
   }
 
-  // From: https://stackoverflow.com/questions/11932805/cropping-circular-area-from-bitmap-in-android
+  // From:
+  // https://stackoverflow.com/questions/11932805/cropping-circular-area-from-bitmap-in-android
   private static Bitmap getCroppedBitmap(Bitmap bitmap) {
-    Bitmap output = Bitmap.createBitmap(bitmap.getWidth(),
-      bitmap.getHeight(), Bitmap.Config.ARGB_8888);
+    Bitmap output =
+        Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
     Canvas canvas = new Canvas(output);
 
     final int color = 0xff424242;
@@ -70,8 +68,7 @@ public class KBPushNotifier implements PushNotifier {
     paint.setAntiAlias(true);
     canvas.drawARGB(0, 0, 0, 0);
     paint.setColor(color);
-    canvas.drawCircle(bitmap.getWidth() / 2, bitmap.getHeight() / 2,
-      bitmap.getWidth() / 2, paint);
+    canvas.drawCircle(bitmap.getWidth() / 2, bitmap.getHeight() / 2, bitmap.getWidth() / 2, paint);
     paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
     canvas.drawBitmap(bitmap, rect, rect, paint);
     return output;
@@ -84,8 +81,9 @@ public class KBPushNotifier implements PushNotifier {
     open_activity_intent.setPackage(context.getPackageName());
     open_activity_intent.putExtra("notification", bundle);
 
-    PendingIntent pending_intent = PendingIntent.getActivity(this.context, 0, open_activity_intent,
-      PendingIntent.FLAG_UPDATE_CURRENT);
+    PendingIntent pending_intent =
+        PendingIntent.getActivity(
+            this.context, 0, open_activity_intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
     return pending_intent;
   }
@@ -115,26 +113,24 @@ public class KBPushNotifier implements PushNotifier {
   }
 
   @RequiresApi(api = Build.VERSION_CODES.KITKAT_WATCH)
-  private NotificationCompat.Action newReplyAction(Context context, ConvData convData, PendingIntent openConv) {
+  private NotificationCompat.Action newReplyAction(
+      Context context, ConvData convData, PendingIntent openConv) {
     String replyLabel = "Reply";
-    RemoteInput remoteInput = new RemoteInput.Builder(ChatBroadcastReceiver.KEY_TEXT_REPLY)
-        .setLabel(replyLabel)
-        .build();
+    RemoteInput remoteInput =
+        new RemoteInput.Builder(ChatBroadcastReceiver.KEY_TEXT_REPLY).setLabel(replyLabel).build();
 
     Intent intent = convData.intoIntent(context);
     intent.putExtra("openConvPendingIntent", openConv);
 
     // Our pending intent which will be sent to the broadcast receiver
     PendingIntent replyPendingIntent =
-        PendingIntent.getBroadcast(context,
-                convData.convID.hashCode(),
-                intent,
-                PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent.getBroadcast(
+            context, convData.convID.hashCode(), intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
     NotificationCompat.Action action =
-      new NotificationCompat.Action.Builder(R.drawable.ic_notif, "Reply", replyPendingIntent)
-        .addRemoteInput(remoteInput)
-        .build();
+        new NotificationCompat.Action.Builder(R.drawable.ic_notif, "Reply", replyPendingIntent)
+            .addRemoteInput(remoteInput)
+            .build();
     return action;
   }
 
@@ -149,13 +145,18 @@ public class KBPushNotifier implements PushNotifier {
     bundle.putString("convID", chatNotification.getConvID());
     PendingIntent pending_intent = buildPendingIntent(bundle);
 
-    ConvData convData = new ConvData(chatNotification.getConvID(), chatNotification.getTlfName(), chatNotification.getMessage().getID());
+    ConvData convData =
+        new ConvData(
+            chatNotification.getConvID(),
+            chatNotification.getTlfName(),
+            chatNotification.getMessage().getID());
 
     NotificationCompat.Builder builder =
-      new NotificationCompat.Builder(this.context, KeybasePushNotificationListenerService.CHAT_CHANNEL_ID)
-        .setSmallIcon(R.drawable.ic_notif)
-        .setContentIntent(pending_intent)
-        .setAutoCancel(true);
+        new NotificationCompat.Builder(
+                this.context, KeybasePushNotificationListenerService.CHAT_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_notif)
+            .setContentIntent(pending_intent)
+            .setAutoCancel(true);
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT_WATCH) {
       builder.addAction(newReplyAction(this.context, convData, pending_intent));
@@ -163,9 +164,8 @@ public class KBPushNotifier implements PushNotifier {
 
     Message msg = chatNotification.getMessage();
     keybase.Person from = msg.getFrom();
-    Person.Builder personBuilder = new Person.Builder()
-      .setName(from.getKeybaseUsername())
-      .setBot(from.getIsBot());
+    Person.Builder personBuilder =
+        new Person.Builder().setName(from.getKeybaseUsername()).setBot(from.getIsBot());
 
     String avatarUri = chatNotification.getMessage().getFrom().getKeybaseAvatar();
     IconCompat icon = getKeybaseAvatar(avatarUri);
@@ -176,7 +176,8 @@ public class KBPushNotifier implements PushNotifier {
     Person fromPerson = personBuilder.build();
 
     if (this.convMsgCache != null) {
-      String msgText = chatNotification.getIsPlaintext() ? chatNotification.getMessage().getPlaintext() : "";
+      String msgText =
+          chatNotification.getIsPlaintext() ? chatNotification.getMessage().getPlaintext() : "";
       if (msgText.isEmpty()) {
         msgText = chatNotification.getMessage().getServerMessage();
       }
@@ -199,13 +200,15 @@ public class KBPushNotifier implements PushNotifier {
     bundle.putString("type", "follow");
     bundle.putString("username", username);
 
-    NotificationCompat.Builder builder = new NotificationCompat.Builder(this.context, KeybasePushNotificationListenerService.FOLLOW_CHANNEL_ID)
-      .setSmallIcon(R.drawable.ic_notif)
-      .setContentTitle("Keybase - New Follower")
-      .setContentText(notificationMsg)
-      // Set the intent that will fire when the user taps the notification
-      .setContentIntent(buildPendingIntent(bundle))
-      .setAutoCancel(true);
+    NotificationCompat.Builder builder =
+        new NotificationCompat.Builder(
+                this.context, KeybasePushNotificationListenerService.FOLLOW_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_notif)
+            .setContentTitle("Keybase - New Follower")
+            .setContentText(notificationMsg)
+            // Set the intent that will fire when the user taps the notification
+            .setContentIntent(buildPendingIntent(bundle))
+            .setAutoCancel(true);
 
     NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this.context);
     notificationManager.notify("follow:" + username, 0, builder.build());
@@ -213,21 +216,37 @@ public class KBPushNotifier implements PushNotifier {
 
   void deviceNotification() {
     Bundle bundle = (Bundle) this.bundle.clone();
-    genericNotification(bundle.getString("device_id") + bundle.getString("type"), bundle.getString("message"), "", bundle, KeybasePushNotificationListenerService.DEVICE_CHANNEL_ID);
+    genericNotification(
+        bundle.getString("device_id") + bundle.getString("type"),
+        bundle.getString("message"),
+        "",
+        bundle,
+        KeybasePushNotificationListenerService.DEVICE_CHANNEL_ID);
   }
 
   void generalNotification() {
     Bundle bundle = (Bundle) this.bundle.clone();
-    genericNotification(bundle.getString("device_id") + bundle.getString("type"), bundle.getString("title"), bundle.getString("message"), bundle, KeybasePushNotificationListenerService.GENERAL_CHANNEL_ID);
+    genericNotification(
+        bundle.getString("device_id") + bundle.getString("type"),
+        bundle.getString("title"),
+        bundle.getString("message"),
+        bundle,
+        KeybasePushNotificationListenerService.GENERAL_CHANNEL_ID);
   }
 
-  public void genericNotification(String uniqueTag, String notificationTitle, String notificationMsg, Bundle bundle, String channelID) {
+  public void genericNotification(
+      String uniqueTag,
+      String notificationTitle,
+      String notificationMsg,
+      Bundle bundle,
+      String channelID) {
     bundle.putBoolean("userInteraction", true);
-    NotificationCompat.Builder builder = new NotificationCompat.Builder(this.context, channelID)
-      .setSmallIcon(R.drawable.ic_notif)
-      // Set the intent that will fire when the user taps the notification
-      .setContentIntent(buildPendingIntent(bundle))
-      .setAutoCancel(true);
+    NotificationCompat.Builder builder =
+        new NotificationCompat.Builder(this.context, channelID)
+            .setSmallIcon(R.drawable.ic_notif)
+            // Set the intent that will fire when the user taps the notification
+            .setContentIntent(buildPendingIntent(bundle))
+            .setAutoCancel(true);
 
     if (!notificationMsg.isEmpty()) {
       builder.setContentText(notificationMsg);
@@ -238,12 +257,11 @@ public class KBPushNotifier implements PushNotifier {
 
     NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this.context);
     notificationManager.notify(uniqueTag, 0, builder.build());
-
   }
 
-  public void localNotification(String ident, String msg, long badgeCount, String soundName, String convID,
-                                String typ) {
-    genericNotification(ident, "", msg, this.bundle, KeybasePushNotificationListenerService.GENERAL_CHANNEL_ID);
+  public void localNotification(
+      String ident, String msg, long badgeCount, String soundName, String convID, String typ) {
+    genericNotification(
+        ident, "", msg, this.bundle, KeybasePushNotificationListenerService.GENERAL_CHANNEL_ID);
   }
-
 }

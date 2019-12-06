@@ -1,5 +1,7 @@
 package io.keybase.ossifrage;
 
+import static keybase.Keybase.initOnce;
+
 import android.annotation.TargetApi;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -19,20 +21,23 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Window;
 import android.webkit.MimeTypeMap;
-
 import com.facebook.react.ReactActivityDelegate;
 import com.facebook.react.ReactApplication;
+import com.facebook.react.ReactFragmentActivity;
 import com.facebook.react.ReactInstanceManager;
+import com.facebook.react.ReactRootView;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReactContext;
-import com.facebook.react.ReactFragmentActivity;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.facebook.react.modules.core.PermissionListener;
-
-import com.facebook.react.ReactRootView;
 import com.swmansion.gesturehandler.react.RNGestureHandlerEnabledRootView;
-
+import io.keybase.ossifrage.modules.AppearanceModule;
+import io.keybase.ossifrage.modules.KeybaseEngine;
+import io.keybase.ossifrage.modules.NativeLogger;
+import io.keybase.ossifrage.util.DNSNSFetcher;
+import io.keybase.ossifrage.util.GuiConfig;
+import io.keybase.ossifrage.util.VideoHelper;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -42,16 +47,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.util.UUID;
-
-import io.keybase.ossifrage.modules.AppearanceModule;
-import io.keybase.ossifrage.modules.KeybaseEngine;
-import io.keybase.ossifrage.modules.NativeLogger;
-import io.keybase.ossifrage.util.DNSNSFetcher;
-import io.keybase.ossifrage.util.GuiConfig;
-import io.keybase.ossifrage.util.VideoHelper;
 import keybase.Keybase;
-
-import static keybase.Keybase.initOnce;
 
 public class MainActivity extends ReactFragmentActivity {
   private static final String TAG = MainActivity.class.getName();
@@ -94,14 +90,15 @@ public class MainActivity extends ReactFragmentActivity {
 
   // Is this a robot controlled test device? (i.e. pre-launch report?)
   public static boolean isTestDevice(Context context) {
-    String testLabSetting = Settings.System.getString(context.getContentResolver(), "firebase.test.lab");
+    String testLabSetting =
+        Settings.System.getString(context.getContentResolver(), "firebase.test.lab");
     return "true".equals(testLabSetting);
   }
 
-
   public static void setupKBRuntime(Context context, boolean shouldCreateDummyFile) {
     try {
-      Keybase.setGlobalExternalKeyStore(new KeyStore(context, context.getSharedPreferences("KeyStore", MODE_PRIVATE)));
+      Keybase.setGlobalExternalKeyStore(
+          new KeyStore(context, context.getSharedPreferences("KeyStore", MODE_PRIVATE)));
     } catch (KeyStoreException | CertificateException | IOException | NoSuchAlgorithmException e) {
       NativeLogger.error("Exception in MainActivity.onCreate", e);
     }
@@ -110,15 +107,21 @@ public class MainActivity extends ReactFragmentActivity {
       createDummyFile(context);
     }
     String mobileOsVersion = Integer.toString(android.os.Build.VERSION.SDK_INT);
-    initOnce(context.getFilesDir().getPath(), "", context.getFileStreamPath("service.log").getAbsolutePath(), "prod", false,
-      new DNSNSFetcher(), new VideoHelper(), mobileOsVersion);
-
+    initOnce(
+        context.getFilesDir().getPath(),
+        "",
+        context.getFileStreamPath("service.log").getAbsolutePath(),
+        "prod",
+        false,
+        new DNSNSFetcher(),
+        new VideoHelper(),
+        mobileOsVersion);
   }
 
   private String colorSchemeForCurrentConfiguration() {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
       int currentNightMode =
-        this.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+          this.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
       switch (currentNightMode) {
         case Configuration.UI_MODE_NIGHT_NO:
           return "light";
@@ -129,7 +132,6 @@ public class MainActivity extends ReactFragmentActivity {
 
     return "light";
   }
-
 
   @Override
   @TargetApi(Build.VERSION_CODES.KITKAT)
@@ -143,12 +145,14 @@ public class MainActivity extends ReactFragmentActivity {
     setupKBRuntime(this, true);
     super.onCreate(null);
 
-
-    new android.os.Handler().postDelayed(new Runnable() {
-      public void run() {
-        setBackgroundColor(GuiConfig.getInstance(getFilesDir()).getDarkMode());
-      }
-    }, 300);
+    new android.os.Handler()
+        .postDelayed(
+            new Runnable() {
+              public void run() {
+                setBackgroundColor(GuiConfig.getInstance(getFilesDir()).getDarkMode());
+              }
+            },
+            300);
 
     KeybasePushNotificationListenerService.createNotificationChannel(this);
   }
@@ -177,7 +181,8 @@ public class MainActivity extends ReactFragmentActivity {
   }
 
   @Override
-  public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+  public void onRequestPermissionsResult(
+      int requestCode, String[] permissions, int[] grantResults) {
     if (listener != null) {
       listener.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
@@ -247,7 +252,6 @@ public class MainActivity extends ReactFragmentActivity {
       this.intent = intent;
     }
 
-
     public void emit() {
       // Here we are just reading from the notification bundle.
       // If other sources start the app, we can get their intent data the same way.
@@ -289,7 +293,8 @@ public class MainActivity extends ReactFragmentActivity {
           assert emitter != null;
           // If there are any other bundle sources we care about, emit them here
           if (bundleFromNotification != null) {
-            emitter.emit("initialIntentFromNotification", Arguments.fromBundle(bundleFromNotification));
+            emitter.emit(
+                "initialIntentFromNotification", Arguments.fromBundle(bundleFromNotification));
           }
 
           if (!finalFromShareText.isEmpty()) {
@@ -313,33 +318,37 @@ public class MainActivity extends ReactFragmentActivity {
       // Namely, DevServerHelper constructs a Handler() without a Looper, which triggers:
       // "Can't create handler inside thread that has not called Looper.prepare()"
       Handler handler = new Handler(Looper.getMainLooper());
-      handler.post(() -> {
-        // Construct and load our normal React JS code bundle
-        ReactInstanceManager reactInstanceManager = ((ReactApplication) getApplication()).getReactNativeHost().getReactInstanceManager();
-        ReactContext context = reactInstanceManager.getCurrentReactContext();
+      handler.post(
+          () -> {
+            // Construct and load our normal React JS code bundle
+            ReactInstanceManager reactInstanceManager =
+                ((ReactApplication) getApplication())
+                    .getReactNativeHost()
+                    .getReactInstanceManager();
+            ReactContext context = reactInstanceManager.getCurrentReactContext();
 
-        // If it's constructed, send a notification
-        if (context != null) {
-          DeviceEventManagerModule.RCTDeviceEventEmitter emitter = context
-            .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class);
+            // If it's constructed, send a notification
+            if (context != null) {
+              DeviceEventManagerModule.RCTDeviceEventEmitter emitter =
+                  context.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class);
 
-          (new Emit(emitter, context)).run();
+              (new Emit(emitter, context)).run();
 
-        } else {
-          // Otherwise wait for construction, then send the notification
-          reactInstanceManager.addReactInstanceEventListener(rctContext -> {
-            DeviceEventManagerModule.RCTDeviceEventEmitter emitter = rctContext
-              .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class);
-            (new Emit(emitter, rctContext)).run();
+            } else {
+              // Otherwise wait for construction, then send the notification
+              reactInstanceManager.addReactInstanceEventListener(
+                  rctContext -> {
+                    DeviceEventManagerModule.RCTDeviceEventEmitter emitter =
+                        rctContext.getJSModule(
+                            DeviceEventManagerModule.RCTDeviceEventEmitter.class);
+                    (new Emit(emitter, rctContext)).run();
+                  });
+              if (!reactInstanceManager.hasStartedCreatingInitialContext()) {
+                // Construct it in the background
+                reactInstanceManager.createReactContextInBackground();
+              }
+            }
           });
-          if (!reactInstanceManager.hasStartedCreatingInitialContext()) {
-            // Construct it in the background
-            reactInstanceManager.createReactContextInBackground();
-          }
-        }
-      });
-
-
     }
   }
 
@@ -374,8 +383,8 @@ public class MainActivity extends ReactFragmentActivity {
   }
 
   /**
-   * Returns the name of the main component registered from JavaScript. This is
-   * used to schedule rendering of the component.
+   * Returns the name of the main component registered from JavaScript. This is used to schedule
+   * rendering of the component.
    */
   @Override
   protected String getMainComponentName() {
@@ -388,7 +397,7 @@ public class MainActivity extends ReactFragmentActivity {
     ReactInstanceManager instanceManager = getReactInstanceManager();
 
     if (instanceManager != null) {
-      //instanceManager.onConfigurationChanged(newConfig);
+      // instanceManager.onConfigurationChanged(newConfig);
       ReactContext currentContext = instanceManager.getCurrentReactContext();
       if (currentContext != null) {
         currentContext.getNativeModule(AppearanceModule.class).onConfigurationChanged();
@@ -401,7 +410,8 @@ public class MainActivity extends ReactFragmentActivity {
   public void setBackgroundColor(DarkModePreference pref) {
     final int bgColor;
     if (pref == DarkModePreference.System) {
-      bgColor = this.colorSchemeForCurrentConfiguration().equals("light") ? R.color.white : R.color.black;
+      bgColor =
+          this.colorSchemeForCurrentConfiguration().equals("light") ? R.color.white : R.color.black;
     } else if (pref == DarkModePreference.AlwaysDark) {
       bgColor = R.color.black;
     } else {
@@ -410,8 +420,9 @@ public class MainActivity extends ReactFragmentActivity {
     final Window mainWindow = this.getWindow();
     Handler handler = new Handler(Looper.getMainLooper());
     // Run this on the main thread.
-    handler.post(() -> {
-      mainWindow.setBackgroundDrawableResource(bgColor);
-    });
+    handler.post(
+        () -> {
+          mainWindow.setBackgroundDrawableResource(bgColor);
+        });
   }
 }

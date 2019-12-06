@@ -7,12 +7,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
-
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
-
 import io.keybase.ossifrage.modules.NativeLogger;
 import keybase.Keybase;
 
@@ -23,10 +20,10 @@ public class ChatBroadcastReceiver extends BroadcastReceiver {
   private String getMessageText(Intent intent) {
     Bundle remoteInput = RemoteInput.getResultsFromIntent(intent);
     if (remoteInput != null) {
-        return remoteInput.getCharSequence(KEY_TEXT_REPLY).toString();
+      return remoteInput.getCharSequence(KEY_TEXT_REPLY).toString();
     }
     return null;
- }
+  }
 
   @RequiresApi(api = Build.VERSION_CODES.KITKAT_WATCH)
   @Override
@@ -34,17 +31,22 @@ public class ChatBroadcastReceiver extends BroadcastReceiver {
     MainActivity.setupKBRuntime(context, false);
     ConvData convData = new ConvData(intent);
     PendingIntent openConv = intent.getParcelableExtra("openConvPendingIntent");
-    NotificationCompat.Builder repliedNotification = new NotificationCompat.Builder(context, KeybasePushNotificationListenerService.CHAT_CHANNEL_ID)
-      .setContentIntent(openConv)
-      .setTimeoutAfter(1000)
-      .setSmallIcon(R.drawable.ic_notif);
+    NotificationCompat.Builder repliedNotification =
+        new NotificationCompat.Builder(
+                context, KeybasePushNotificationListenerService.CHAT_CHANNEL_ID)
+            .setContentIntent(openConv)
+            .setTimeoutAfter(1000)
+            .setSmallIcon(R.drawable.ic_notif);
     NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
 
     String messageBody = getMessageText(intent);
     if (messageBody != null) {
 
       try {
-        WithBackgroundActive withBackgroundActive = () -> Keybase.handlePostTextReply(convData.convID, convData.tlfName, convData.lastMsgId, messageBody);
+        WithBackgroundActive withBackgroundActive =
+            () ->
+                Keybase.handlePostTextReply(
+                    convData.convID, convData.tlfName, convData.lastMsgId, messageBody);
         withBackgroundActive.whileActive(context);
         repliedNotification.setContentText("Replied");
       } catch (Exception e) {
@@ -72,7 +74,7 @@ class ConvData {
     this.lastMsgId = lastMsgId;
   }
 
-  ConvData (Intent intent) {
+  ConvData(Intent intent) {
     Bundle data = intent.getBundleExtra("ConvData");
     this.convID = data.getString("convID");
     this.tlfName = data.getString("tlfName");
