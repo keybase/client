@@ -53,7 +53,13 @@ const updateAppBadge = (_: Container.TypedState, action: NotificationsGen.Receiv
 // At startup the flow above can be racy, since we may not have registered the
 // event listener before the event is emitted. In that case you can always use
 // `getInitialPushAndroid`.
-const listenForNativeAndroidIntentNotifications = (emitter: (action: Container.TypedActions) => void) => {
+const listenForNativeAndroidIntentNotifications = async (
+  emitter: (action: Container.TypedActions) => void
+) => {
+  const pushToken = await NativeModules.Utils.getRegistrationToken()
+  logger.debug('[PushToken] received new token: ', pushToken)
+  emitter(PushGen.createUpdatePushToken({token: pushToken}))
+
   const RNEmitter = new NativeEventEmitter(NativeModules.KeybaseEngine)
   RNEmitter.addListener('initialIntentFromNotification', evt => {
     const notification = evt && Constants.normalizePush(evt)
@@ -107,10 +113,11 @@ const listenForPushNotificationsFromJS = (emitter: (action: Container.TypedActio
 
 function* setupPushEventLoop() {
   const pushChannel = yield Saga.eventChannel(emitter => {
-    if (!isIOS) {
+    if (isAndroid) {
       listenForNativeAndroidIntentNotifications(emitter)
+    } else {
+      listenForPushNotificationsFromJS(emitter)
     }
-    listenForPushNotificationsFromJS(emitter)
 
     // we never unsubscribe
     return () => {}
