@@ -6,10 +6,8 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/teams"
 )
 
 type EphemeralKeyKind string
@@ -82,16 +80,14 @@ func newTransientEphemeralKeyError(err EphemeralKeyError) EphemeralKeyError {
 }
 
 const (
-	DefaultHumanErrMsg                          = "This exploding message is not available to you"
-	DefaultPluralHumanErrMsg                    = "%d exploding messages are not available to you"
-	DeviceProvisionedAfterContentCreationErrMsg = "this device was created after the message was sent"
-	MemberAddedAfterContentCreationErrMsg       = "you were added to the team after the message was sent"
-	DeviceCloneErrMsg                           = "cloned devices do not support exploding messages"
-	DeviceCloneWithOneshotErrMsg                = "to support exploding messages in `oneshot` mode, you need a separate paper key for each running instance"
-	DeviceAfterEKErrMsg                         = "this device was provisioned after the message was sent"
-	MemberAfterEKErrMsg                         = "you were added to the team after the message was sent"
-	DeviceStaleErrMsg                           = "this device wasn't online to generate an exploding key"
-	UserStaleErrMsg                             = "you weren't online to generate new exploding keys"
+	DefaultHumanErrMsg           = "This exploding message is not available to you"
+	DefaultPluralHumanErrMsg     = "%d exploding messages are not available to you"
+	DeviceCloneErrMsg            = "cloned devices do not support exploding messages"
+	DeviceCloneWithOneshotErrMsg = "to support exploding messages in `oneshot` mode, you need a separate paper key for each running instance"
+	DeviceAfterEKErrMsg          = "this device was provisioned after the message was sent"
+	MemberAfterEKErrMsg          = "you were added to the team after the message was sent"
+	DeviceStaleErrMsg            = "this device wasn't online to generate an exploding key"
+	UserStaleErrMsg              = "you weren't online to generate new exploding keys"
 )
 
 type IncorrectTeamEphemeralKeyTypeError struct {
@@ -109,37 +105,18 @@ func NewIncorrectTeamEphemeralKeyTypeError(expected, actual keybase1.TeamEphemer
 	}
 }
 
-func NewNotAuthenticatedForThisDeviceError(mctx libkb.MetaContext, tlfID chat1.TLFID, contentCtime gregor1.Time) EphemeralKeyError {
+func NewNotAuthenticatedForThisDeviceError(mctx libkb.MetaContext, memberCtime *keybase1.Time, contentCtime gregor1.Time) EphemeralKeyError {
 	var humanMsg string
-	memberCtime, err := memberCtime(mctx, tlfID)
-	if err != nil {
-		mctx.Debug("unable to get member ctime: %v", err)
+	if deviceProvisionedAfterContentCreation(mctx, &contentCtime) {
+		humanMsg = DeviceAfterEKErrMsg
 	} else if memberCtime != nil {
-		mctx.Debug("NotAuthenticatedForThisDeviceError: tlfID %v, memberCtime: %v, contentCtime: %v", tlfID, memberCtime.Time(), contentCtime.Time())
+		mctx.Debug("NotAuthenticatedForThisDeviceError: memberCtime: %v, contentCtime: %v", memberCtime.Time(), contentCtime.Time())
 		if contentCtime.Before(gregor1.Time(*memberCtime)) {
-			humanMsg = MemberAddedAfterContentCreationErrMsg
+			humanMsg = MemberAfterEKErrMsg
 		}
 	}
 	return newEphemeralKeyError("message not authenticated for device", humanMsg,
 		EphemeralKeyErrorKind_DEVICENOTAUTHENTICATED, DeviceEKKind)
-}
-
-func memberCtime(mctx libkb.MetaContext, tlfID chat1.TLFID) (*keybase1.Time, error) {
-	teamID, err := keybase1.TeamIDFromString(tlfID.String())
-	if err != nil {
-		return nil, err
-	}
-	team, err := teams.Load(mctx.Ctx(), mctx.G(), keybase1.LoadTeamArg{
-		ID: teamID,
-	})
-	if err != nil {
-		return nil, err
-	}
-	uv, err := mctx.G().GetMeUV(mctx.Ctx())
-	if err != nil {
-		return nil, err
-	}
-	return team.MemberCtime(mctx.Ctx(), uv), nil
 }
 
 func newEKUnboxErr(mctx libkb.MetaContext, ekKind EphemeralKeyKind, boxGeneration keybase1.EkGeneration,
@@ -147,7 +124,7 @@ func newEKUnboxErr(mctx libkb.MetaContext, ekKind EphemeralKeyKind, boxGeneratio
 	debugMsg := fmt.Sprintf("Error unboxing %s@generation:%v missing %s@generation:%v", ekKind, boxGeneration, missingKind, missingGeneration)
 	var humanMsg string
 	if deviceProvisionedAfterContentCreation(mctx, contentCtime) {
-		humanMsg = DeviceProvisionedAfterContentCreationErrMsg
+		humanMsg = DeviceAfterEKErrMsg
 	} else if deviceIsCloned(mctx) {
 		humanMsg = DeviceCloneErrMsg
 		if isOneshot, err := mctx.G().IsOneshot(mctx.Ctx()); err != nil {
