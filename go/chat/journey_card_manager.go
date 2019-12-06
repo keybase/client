@@ -555,6 +555,9 @@ func (cc *JourneyCardManagerSingleUser) cardMsgNoAnswer(ctx context.Context, con
 	if !otherChannelsExist {
 		return false
 	}
+	if conv.IsGeneralChannel {
+		return false
+	}
 	// If the latest message is eligible then show the card.
 	var eligibleMsg chat1.MessageID  // maximum eligible msg
 	var preventerMsg chat1.MessageID // maximum preventer msg
@@ -586,10 +589,11 @@ func (cc *JourneyCardManagerSingleUser) cardMsgNoAnswer(ctx context.Context, con
 				switch msg.GetMessageType() {
 				case chat1.MessageType_TEXT:
 					const howLongIsLong = 40
-					const howOldIsOld = time.Hour * 24
+					const howOldIsOld = time.Hour * 24 * 3
 					isLong := (len(msg.Valid().MessageBody.Text().Body) >= howLongIsLong)
 					isOld := (cc.G().GetClock().Since(msg.Valid().ServerHeader.Ctime.Time()) >= howOldIsOld)
-					answer := isLong && isOld
+					hasNoReactions := len(msg.Valid().Reactions.Reactions) == 0
+					answer := isLong && isOld && hasNoReactions
 					return answer
 				default:
 					return false
