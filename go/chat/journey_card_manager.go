@@ -176,20 +176,8 @@ func (cc *JourneyCardManagerSingleUser) checkFeature(ctx context.Context) bool {
 	if cc.G().GetEnv().GetDebugJourneycard() {
 		return true
 	}
-	ogCtx := ctx
-	// G.FeatureFlags seems like the kind of system that might hang on a bad network.
-	// PickCard is supposed to be lightning fast, so impose a timeout on FeatureFlags.
-	ctx, cancel := context.WithTimeout(ctx, 100*time.Millisecond)
-	defer cancel()
-	enabled, err := cc.G().FeatureFlags.EnabledWithError(cc.MetaContext(ctx), libkb.FeatureJourneycardPreview)
-	if err != nil {
-		// Send one out in a goroutine to get the goods for next time.
-		ctx, cancel2 := context.WithTimeout(globals.BackgroundChatCtx(ogCtx, cc.G()), 10*time.Second)
-		defer cancel2()
-		go cc.G().FeatureFlags.Enabled(cc.MetaContext(ctx), libkb.FeatureJourneycardPreview)
-		return false
-	}
-	return enabled
+	// Disable journey card feature flag checking for the release.
+	return false
 }
 
 // Choose a journey card to show in the conversation.
