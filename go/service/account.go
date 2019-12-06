@@ -278,13 +278,7 @@ func (h *AccountHandler) UserGetContactSettings(ctx context.Context) (ret keybas
 	if err != nil {
 		return ret, err
 	}
-
-	ret = keybase1.ContactSettings{
-		Version:              response.Settings.Version,
-		AllowFolloweeDegrees: response.Settings.AllowFolloweeDegrees,
-		Enabled:              response.Settings.Enabled,
-		Teams:                response.Settings.Teams,
-	}
+	ret = response.Settings
 	return ret, nil
 }
 

@@ -80,12 +80,8 @@ func TestContactSettingsAPI(t *testing.T) {
 	tc := libkb.SetupTest(t, "cset", 3)
 	defer tc.Cleanup()
 
+	// setup
 	user, err := kbtest.CreateAndSignupFakeUser("cset", tc.G)
-	require.NoError(t, err)
-
-	handler := NewAccountHandler(nil, tc.G)
-	ctx := context.Background()
-	res, err := handler.UserGetContactSettings(ctx)
 	require.NoError(t, err)
 
 	teamName := user.Username + "t"
@@ -93,6 +89,14 @@ func TestContactSettingsAPI(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, teamID)
 
+	handler := NewAccountHandler(nil, tc.G)
+	ctx := context.Background()
+
+	// get
+	res, err := handler.UserGetContactSettings(ctx)
+	require.NoError(t, err)
+
+	// set
 	err = handler.UserSetContactSettings(ctx, keybase1.ContactSettings{
 		Enabled:              true,
 		AllowFolloweeDegrees: 2,
@@ -105,6 +109,7 @@ func TestContactSettingsAPI(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	// get
 	res, err = handler.UserGetContactSettings(ctx)
 	require.NoError(t, err)
 	require.Equal(t, true, res.Enabled)
