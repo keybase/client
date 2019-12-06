@@ -105,7 +105,9 @@ func (r *userHandler) userBlocked(m libkb.MetaContext, cli gregor1.IncomingInter
 
 		// regardless of status, clear user card cache for any uid
 		// that changed
-		m.G().CardCache().Delete(r.Uid)
+		if err := m.G().CardCache().Delete(r.Uid); err != nil {
+			m.Debug("CardCache.Delete(%s) error: %s", r.Uid, err)
+		}
 	}
 
 	// Ignore the error if we fail to block properly
