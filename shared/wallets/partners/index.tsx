@@ -64,7 +64,7 @@ class Partners extends React.Component<Props> {
         header={{title: 'External partners'}}
         onClose={this.props.onDone}
       >
-        <Kb.Box2 direction="vertical" style={{marginBottom: 16, marginTop: 16}}>
+        <Kb.Box2 direction="vertical" style={styles.partnerContainer}>
           {this.props.externalPartners.map(partner => (
             <Kb.Box2
               key={partner.url}
@@ -103,6 +103,10 @@ const styles = Styles.styleSheetCreate(
           top: Styles.globalMargins.xtiny,
         },
       }),
+      partnerContainer: {
+        marginBottom: 16,
+        marginTop: 16,
+      },
       partnerDivider: {
         marginBottom: Styles.globalMargins.tiny,
         marginLeft: 64,
