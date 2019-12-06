@@ -98,9 +98,9 @@ func (r *userHandler) userBlocked(m libkb.MetaContext, cli gregor1.IncomingInter
 	m.Debug("Got user.blocked item: %+v", msg)
 	badUIDs := make(map[keybase1.UID]bool)
 
-	for _, r := range msg.Blocks {
-		if (r.Chat != nil && *r.Chat) || (r.Follow != nil && *r.Follow) {
-			badUIDs[r.Uid] = true
+	for _, b := range msg.Blocks {
+		if (b.Chat != nil && *b.Chat) || (b.Follow != nil && *b.Follow) {
+			badUIDs[b.Uid] = true
 		}
 	}
 
@@ -114,6 +114,7 @@ func (r *userHandler) userBlocked(m libkb.MetaContext, cli gregor1.IncomingInter
 			m.Warning("Error handling UserBlocked message: %s", tmp)
 		}
 	}
+	r.G().CardCache().Delete(msg.Uid)
 	r.G().NotifyRouter.HandleUserBlocked(m.Ctx(), msg)
 	return nil
 }
