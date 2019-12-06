@@ -102,6 +102,10 @@ func (r *userHandler) userBlocked(m libkb.MetaContext, cli gregor1.IncomingInter
 		if (r.Chat != nil && *r.Chat) || (r.Follow != nil && *r.Follow) {
 			badUIDs[r.Uid] = true
 		}
+
+		// regardless of status, clear user card cache for any uid
+		// that changed
+		m.G().CardCache().Delete(r.Uid)
 	}
 
 	// Ignore the error if we fail to block properly
@@ -114,6 +118,7 @@ func (r *userHandler) userBlocked(m libkb.MetaContext, cli gregor1.IncomingInter
 			m.Warning("Error handling UserBlocked message: %s", tmp)
 		}
 	}
+
 	r.G().NotifyRouter.HandleUserBlocked(m.Ctx(), msg)
 	return nil
 }
