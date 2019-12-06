@@ -191,10 +191,7 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => {
 export default (props: Props) => {
   Kbfs.useFsFileContext(props.path)
   const {downloadID, downloadIntent} = Container.useSelector(state => state.fs.pathItemActionMenu)
-  const justDoneWithIntent = Kbfs.useFsWatchDownloadForMobileReturnTrueIfJustDoneWithIntent(
-    downloadID || '',
-    downloadIntent
-  )
+  const justDoneWithIntent = Kbfs.useFsWatchDownloadForMobile(downloadID || '', downloadIntent)
 
   const {
     floatingMenuProps: {hide},

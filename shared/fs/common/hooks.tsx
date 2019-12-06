@@ -167,7 +167,7 @@ export const useFsFileContext = (path: Types.Path) => {
   return setUrlError
 }
 
-export const useFsWatchDownloadForMobileReturnTrueIfJustDoneWithIntent = isMobile
+export const useFsWatchDownloadForMobile = isMobile
   ? (downloadID: string, downloadIntent: Types.DownloadIntent | null): boolean => {
       const dlState = Container.useSelector(
         state => state.fs.downloads.state.get(downloadID) || Constants.emptyDownloadState
