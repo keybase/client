@@ -2637,6 +2637,10 @@ func (b BotInfo) Hash() BotInfoHash {
 	switch b.ClientHashVers {
 	case 0, 1:
 		b.hashV1(hash)
+	default:
+		// Every valid client version should be specifically handled, unit
+		// tests verify that we have a non-empty hash output.
+		hash.Reset()
 	}
 	return BotInfoHash(hash.Sum(nil))
 }
