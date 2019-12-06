@@ -58,12 +58,12 @@ export default Container.connect(
     refresh: () => dispatch(WalletsGen.createLoadExternalPartners()),
   }),
   (stateProps, dispatchProps, _: OwnProps) => ({
-    onDone: dispatchProps.onDone,
-    refresh: dispatchProps.refresh,
     externalPartners: prepareExternalPartners(
       stateProps.externalPartners,
       stateProps.accountID,
       stateProps.user
     ),
+    onDone: dispatchProps.onDone,
+    refresh: dispatchProps.refresh,
   })
 )(Partners)

@@ -53,7 +53,7 @@ class Partners extends React.Component<Props> {
     return (
       <Kb.Modal
         banners={[
-          <Kb.Banner color="yellow">
+          <Kb.Banner key="banner" color="yellow">
             <Kb.BannerParagraph
               bannerColor="yellow"
               content="Partners listed here are not affiliated with Keybase and are listed for convenience only. If you choose to visit a partner, that partner will see your Keybase username and Stellar address."
