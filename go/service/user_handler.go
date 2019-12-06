@@ -120,6 +120,14 @@ func (r *userHandler) userBlocked(m libkb.MetaContext, cli gregor1.IncomingInter
 	}
 
 	r.G().NotifyRouter.HandleUserBlocked(m.Ctx(), msg)
+
+	r.G().GetStellar().Refresh(m, "user.blocked message")
+
+	// dismiss this locally so it is only processed once per device
+	if err := r.G().GregorState.LocalDismissItem(m.Ctx(), item.Metadata().MsgID()); err != nil {
+		m.Warning("error in LocalDismissItem: %s", err)
+	}
+
 	return nil
 }
 
