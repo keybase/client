@@ -44,7 +44,7 @@ const Download = (props: Props) => {
     : () => {}
   const dismiss = () => dispatch(FsGen.createDismissDownload({downloadID: props.downloadID}))
   const cancel = () => dispatch(FsGen.createCancelDownload({downloadID: props.downloadID}))
-  Kbfs.useFsWatchDownloadForMobile(props.downloadID, Types.DownloadIntent.None)
+  Kbfs.useFsWatchDownloadForMobileReturnTrueIfJustDoneWithIntent(props.downloadID, Types.DownloadIntent.None)
   return (
     <DownloadWrapper dismiss={dismiss} isFirst={props.isFirst} done={dlState.done}>
       <Kb.Box2
