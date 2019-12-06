@@ -6,18 +6,25 @@ package search
 
 import (
 	"context"
+	"io/ioutil"
+	"mime"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/blevesearch/bleve"
 	"github.com/blevesearch/bleve/index/store"
+	"github.com/blevesearch/bleve/mapping"
 	"github.com/blevesearch/bleve/registry"
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/pkg/errors"
+)
+
+const (
+	textFileType = "kbfsTextFile"
 )
 
 type Indexer struct {
@@ -84,9 +91,13 @@ func NewIndexer(ctx context.Context, config libkbfs.Config) (*Indexer, error) {
 	switch {
 	case os.IsNotExist(errors.Cause(err)):
 		config.MakeLogger("").CDebugf(nil, "%s NOT EXIST", p)
-		mapping := bleve.NewIndexMapping()
+
+		// TODO: add an html/md document parser to get rid of tags.
+		indexMapping := bleve.NewIndexMapping()
+		m := mapping.NewDocumentMapping()
+		indexMapping.AddDocumentMapping(textFileType, m)
 		index, err = bleve.NewUsing(
-			p, mapping, "upside_down" /*"boltdb"*/, kvstoreName, nil)
+			p, indexMapping, "upside_down" /*"boltdb"*/, kvstoreName, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -101,11 +112,12 @@ func NewIndexer(ctx context.Context, config libkbfs.Config) (*Indexer, error) {
 	}
 
 	return &Indexer{
-		index: index,
+		config: indexConfig,
+		index:  index,
 	}, nil
 }
 
-type file struct {
+type fileName struct {
 	Name          string
 	TokenizedName string
 }
@@ -114,6 +126,18 @@ var filesToIgnore = map[string]bool{
 	".Trashes":   true,
 	".fseventsd": true,
 	".DS_Store":  true,
+}
+
+type textFile struct {
+	Name          string
+	TokenizedName string
+	Text          string
+}
+
+var _ mapping.Classifier = textFile{}
+
+func (tf textFile) Type() string {
+	return textFileType
 }
 
 func (i *Indexer) doIndexDir(fs *libfs.FS) error {
@@ -131,9 +155,36 @@ func (i *Indexer) doIndexDir(fs *libfs.FS) error {
 		tokenized := strings.ReplaceAll(name, "_", " ")
 		tokenized = strings.ReplaceAll(tokenized, "-", " ")
 		tokenized = strings.ReplaceAll(tokenized, ".", " ")
-		f := file{
+		var f interface{}
+		f = fileName{
 			Name:          name,
 			TokenizedName: tokenized,
+		}
+
+		if !fi.IsDir() {
+			// For now, just use the extension to get content type.
+			// Later use http too, like simplefs does.
+			ext := filepath.Ext(name)
+			contentType := mime.TypeByExtension(ext)
+			if strings.HasPrefix(contentType, "text") {
+				i.config.MakeLogger("").CDebugf(nil, "Indexing text file (type=%s): %s", contentType, name)
+				tf, err := fs.Open(name)
+				if err != nil {
+					return err
+				}
+
+				// TODO: don't load the entire file into memory if
+				// possible?
+				text, err := ioutil.ReadAll(tf)
+				if err != nil {
+					return err
+				}
+				f = textFile{
+					Name:          name,
+					TokenizedName: tokenized,
+					Text:          string(text),
+				}
+			}
 		}
 		id := fs.Join(fs.Root(), name)
 		err := i.index.Index(id, f)
