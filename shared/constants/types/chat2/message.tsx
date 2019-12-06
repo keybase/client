@@ -406,3 +406,4 @@ export type DecoratedMessage =
   | MessageAttachment
   | MessageRequestPayment
   | MessageSendPayment
+  | MessageJourneycard

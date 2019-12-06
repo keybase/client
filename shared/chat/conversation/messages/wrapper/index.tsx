@@ -344,6 +344,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       this.props.message.type === 'systemSimpleToComplex' ||
       this.props.message.type === 'systemSBSResolved' ||
       this.props.message.type === 'systemText' ||
+      this.props.message.type === 'journeycard' ||
       this.props.message.type === 'systemUsersAddedToConversation') &&
     this.props.shouldShowPopup &&
     this.props.showingMenu && (
@@ -628,7 +629,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     return (
       <>
         <LongPressable
-          {...(this.props.message.type !== 'journeycard' && this._containerProps())}
+          {...this._containerProps()}
           children={[
             this.props.message.type === 'journeycard' ? (
               <TeamJourney message={this.props.message} />
