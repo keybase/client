@@ -341,6 +341,7 @@ const (
 	SCTeamTarNotFound                           = int(keybase1.StatusCode_SCTeamTarNotFound)
 	SCTeamMemberExists                          = int(keybase1.StatusCode_SCTeamMemberExists)
 	SCTeamFTLOutdated                           = int(keybase1.StatusCode_SCTeamFTLOutdated)
+	SCTeamContactSettingsBlock                  = int(keybase1.StatusCode_SCTeamContactSettingsBlock)
 	SCLoginStateTimeout                         = int(keybase1.StatusCode_SCLoginStateTimeout)
 	SCRevokeCurrentDevice                       = int(keybase1.StatusCode_SCRevokeCurrentDevice)
 	SCRevokeLastDevice                          = int(keybase1.StatusCode_SCRevokeLastDevice)
