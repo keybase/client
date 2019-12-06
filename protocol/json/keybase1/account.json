@@ -70,15 +70,18 @@
       "fields": [
         {
           "type": "TeamID",
-          "name": "teamID"
+          "name": "teamID",
+          "jsonkey": "team_id"
         },
         {
           "type": "boolean",
-          "name": "allowFolloweesOfTeamMembers"
+          "name": "allowFolloweesOfTeamMembers",
+          "jsonkey": "allow_followees_of_team_members"
         },
         {
           "type": "boolean",
-          "name": "enabled"
+          "name": "enabled",
+          "jsonkey": "enabled"
         }
       ]
     },
@@ -88,22 +91,26 @@
       "fields": [
         {
           "type": "int",
-          "name": "version"
+          "name": "version",
+          "jsonkey": "version"
         },
         {
           "type": "boolean",
-          "name": "allowFolloweeDegrees"
+          "name": "allowFolloweeDegrees",
+          "jsonkey": "allow_followee_degrees"
         },
         {
           "type": "boolean",
-          "name": "enabled"
+          "name": "enabled",
+          "jsonkey": "enabled"
         },
         {
           "type": {
             "type": "array",
             "items": "TeamContactSettings"
           },
-          "name": "teams"
+          "name": "teams",
+          "jsonkey": "teams"
         }
       ]
     }
@@ -294,30 +301,14 @@
       "response": null
     },
     "userGetContactSettings": {
-      "request": [
-        {
-          "name": "uid",
-          "type": "UID"
-        }
-      ],
+      "request": [],
       "response": "ContactSettings"
     },
     "userSetContactSettings": {
       "request": [
         {
-          "name": "allowFolloweeDegrees",
-          "type": "boolean"
-        },
-        {
-          "name": "enabled",
-          "type": "boolean"
-        },
-        {
-          "name": "teams",
-          "type": {
-            "type": "array",
-            "items": "TeamContactSettings"
-          }
+          "name": "settings",
+          "type": "ContactSettings"
         }
       ],
       "response": null

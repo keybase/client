@@ -59,8 +59,8 @@ func (o GetLockdownResponse) DeepCopy() GetLockdownResponse {
 }
 
 type TeamContactSettings struct {
-	TeamID                      TeamID `codec:"teamID" json:"teamID"`
-	AllowFolloweesOfTeamMembers bool   `codec:"allowFolloweesOfTeamMembers" json:"allowFolloweesOfTeamMembers"`
+	TeamID                      TeamID `codec:"teamID" json:"team_id"`
+	AllowFolloweesOfTeamMembers bool   `codec:"allowFolloweesOfTeamMembers" json:"allow_followees_of_team_members"`
 	Enabled                     bool   `codec:"enabled" json:"enabled"`
 }
 
@@ -74,7 +74,7 @@ func (o TeamContactSettings) DeepCopy() TeamContactSettings {
 
 type ContactSettings struct {
 	Version              int                   `codec:"version" json:"version"`
-	AllowFolloweeDegrees bool                  `codec:"allowFolloweeDegrees" json:"allowFolloweeDegrees"`
+	AllowFolloweeDegrees bool                  `codec:"allowFolloweeDegrees" json:"allow_followee_degrees"`
 	Enabled              bool                  `codec:"enabled" json:"enabled"`
 	Teams                []TeamContactSettings `codec:"teams" json:"teams"`
 }
@@ -166,13 +166,10 @@ type TimeTravelResetArg struct {
 }
 
 type UserGetContactSettingsArg struct {
-	Uid UID `codec:"uid" json:"uid"`
 }
 
 type UserSetContactSettingsArg struct {
-	AllowFolloweeDegrees bool                  `codec:"allowFolloweeDegrees" json:"allowFolloweeDegrees"`
-	Enabled              bool                  `codec:"enabled" json:"enabled"`
-	Teams                []TeamContactSettings `codec:"teams" json:"teams"`
+	Settings ContactSettings `codec:"settings" json:"settings"`
 }
 
 type AccountInterface interface {
@@ -205,8 +202,8 @@ type AccountInterface interface {
 	// Aborts the reset process
 	CancelReset(context.Context, int) error
 	TimeTravelReset(context.Context, TimeTravelResetArg) error
-	UserGetContactSettings(context.Context, UID) (ContactSettings, error)
-	UserSetContactSettings(context.Context, UserSetContactSettingsArg) error
+	UserGetContactSettings(context.Context) (ContactSettings, error)
+	UserSetContactSettings(context.Context, ContactSettings) error
 }
 
 func AccountProtocol(i AccountInterface) rpc.Protocol {
@@ -414,12 +411,7 @@ func AccountProtocol(i AccountInterface) rpc.Protocol {
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]UserGetContactSettingsArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]UserGetContactSettingsArg)(nil), args)
-						return
-					}
-					ret, err = i.UserGetContactSettings(ctx, typedArgs[0].Uid)
+					ret, err = i.UserGetContactSettings(ctx)
 					return
 				},
 			},
@@ -434,7 +426,7 @@ func AccountProtocol(i AccountInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]UserSetContactSettingsArg)(nil), args)
 						return
 					}
-					err = i.UserSetContactSettings(ctx, typedArgs[0])
+					err = i.UserSetContactSettings(ctx, typedArgs[0].Settings)
 					return
 				},
 			},
@@ -530,13 +522,13 @@ func (c AccountClient) TimeTravelReset(ctx context.Context, __arg TimeTravelRese
 	return
 }
 
-func (c AccountClient) UserGetContactSettings(ctx context.Context, uid UID) (res ContactSettings, err error) {
-	__arg := UserGetContactSettingsArg{Uid: uid}
-	err = c.Cli.Call(ctx, "keybase.1.account.userGetContactSettings", []interface{}{__arg}, &res, 0*time.Millisecond)
+func (c AccountClient) UserGetContactSettings(ctx context.Context) (res ContactSettings, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.account.userGetContactSettings", []interface{}{UserGetContactSettingsArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
-func (c AccountClient) UserSetContactSettings(ctx context.Context, __arg UserSetContactSettingsArg) (err error) {
+func (c AccountClient) UserSetContactSettings(ctx context.Context, settings ContactSettings) (err error) {
+	__arg := UserSetContactSettingsArg{Settings: settings}
 	err = c.Cli.Call(ctx, "keybase.1.account.userSetContactSettings", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
