@@ -23,7 +23,6 @@ type Props = {
   onRequestLumens: () => void
   onSendLumens: () => void
   onUnfollow: () => void
-  onBlock: () => void
   onUnblock: () => void
   onManageBlocking: () => void
   state: Types.DetailsState

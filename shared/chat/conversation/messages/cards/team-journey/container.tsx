@@ -76,12 +76,6 @@ const TeamJourneyContainer = (props: Props) => {
       image = 'icon-illustration-attention-64'
       text = 'One of your messages is getting a lot of attention!'
       break
-    case RPCChatTypes.JourneycardType.userAwayForLong:
-      // XXX: implement
-      actions = [{label: 'Scroll back in time', onClick: props.onScrollBack}]
-      image = 'icon-illustration-long-time-96'
-      text = 'Long time no see! Look at all the things you missed.'
-      break
     case RPCChatTypes.JourneycardType.channelInactive:
       image = 'icon-illustration-sleepy-96'
       text = 'Zzz… This channel hasn’t been very active…. Revive it?'

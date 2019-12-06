@@ -2615,10 +2615,37 @@ func (c Coordinate) Eq(o Coordinate) bool {
 	return c.Lat == o.Lat && c.Lon == o.Lon
 }
 
+// Incremented if the client hash algorithm changes. If this value is changed
+// be sure to add a case in the BotInfo.Hash() function.
+const ClientBotInfoHashVers BotInfoHashVers = 1
+
+// Incremented if the server sends down bad data and needs to bust client
+// caches.
+const ServerBotInfoHashVers BotInfoHashVers = 1
+
 func (b BotInfo) Hash() BotInfoHash {
 	hash := sha256Pool.Get().(hash.Hash)
 	defer sha256Pool.Put(hash)
 	hash.Reset()
+
+	// Always hash in the server/client version.
+	hash.Write([]byte(strconv.FormatUint(uint64(b.ServerHashVers), 10)))
+	hash.Write([]byte(strconv.FormatUint(uint64(b.ClientHashVers), 10)))
+
+	// This should cover all cases from 0..DefaultBotInfoHashVers. If
+	// incrementing DefaultBotInfoHashVers be sure to add a case here.
+	switch b.ClientHashVers {
+	case 0, 1:
+		b.hashV1(hash)
+	default:
+		// Every valid client version should be specifically handled, unit
+		// tests verify that we have a non-empty hash output.
+		hash.Reset()
+	}
+	return BotInfoHash(hash.Sum(nil))
+}
+
+func (b BotInfo) hashV1(hash hash.Hash) {
 	sort.Slice(b.CommandConvs, func(i, j int) bool {
 		ikey := b.CommandConvs[i].Uid.String() + b.CommandConvs[i].ConvID.String()
 		jkey := b.CommandConvs[j].Uid.String() + b.CommandConvs[j].ConvID.String()
@@ -2630,7 +2657,6 @@ func (b BotInfo) Hash() BotInfoHash {
 		hash.Write([]byte(strconv.FormatUint(uint64(cconv.UntrustedTeamRole), 10)))
 		hash.Write([]byte(strconv.FormatUint(uint64(cconv.Vers), 10)))
 	}
-	return BotInfoHash(hash.Sum(nil))
 }
 
 func (b BotInfoHash) Eq(h BotInfoHash) bool {

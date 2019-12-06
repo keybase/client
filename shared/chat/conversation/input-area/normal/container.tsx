@@ -7,6 +7,7 @@ import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import HiddenString from '../../../../util/hidden-string'
 import * as Container from '../../../../util/container'
 import {memoize} from '../../../../util/memoize'
+import shallowEqual from 'shallowequal'
 import Input from '.'
 
 type OwnProps = {
@@ -50,6 +51,36 @@ const getTeams = memoize((layout: RPCChatTypes.UIInboxLayout | null) => {
     .map(teamname => ({fullName: '', teamname, username: ''}))
 })
 
+const noChannel: Array<string> = []
+let _channelSuggestions: Array<string> = noChannel
+
+const getChannelSuggestions = (state: Container.TypedState, teamname: string) => {
+  if (!teamname) {
+    return noChannel
+  }
+  // First try channelinfos (all channels in a team), then try inbox (the
+  // partial list of channels that you have joined).
+  const convs = state.teams.teamNameToChannelInfos.get(teamname)
+  let suggestions: Array<string>
+  if (convs) {
+    suggestions = [...convs.values()].map(conv => conv.channelname)
+  } else {
+    suggestions = (state.chat2.inboxLayout?.bigTeams ?? []).reduce<Array<string>>((arr, t) => {
+      if (t.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel) {
+        if (t.channel.teamname === teamname) {
+          arr.push(t.channel.channelname)
+        }
+      }
+      return arr
+    }, [])
+  }
+
+  if (!shallowEqual(_channelSuggestions, suggestions)) {
+    _channelSuggestions = suggestions
+  }
+  return _channelSuggestions
+}
+
 export default Container.namedConnect(
   (state, {conversationIDKey}: OwnProps) => {
     const editInfo = Constants.getEditInfo(state, conversationIDKey)
@@ -78,6 +109,7 @@ export default Container.namedConnect(
       _containsLatestMessage,
       _draft: Constants.getDraft(state, conversationIDKey),
       _editOrdinal: editInfo ? editInfo.ordinal : null,
+      _inboxLayout: state.chat2.inboxLayout,
       _isExplodingModeLocked: Constants.isExplodingModeLocked(state, conversationIDKey),
       _replyTo,
       _you,
@@ -99,10 +131,9 @@ export default Container.namedConnect(
       showTypingStatus:
         Constants.getTyping(state, conversationIDKey).size !== 0 && !showGiphySearch && !showCommandMarkdown,
       showWalletsIcon: Constants.shouldShowWalletsIcon(state, conversationIDKey),
-      suggestAllChannels: Constants.getAllChannels(state),
       suggestBotCommands: Constants.getBotCommands(state, conversationIDKey),
       suggestBotCommandsUpdateStatus,
-      suggestChannels: Constants.getChannelSuggestions(state, teamname),
+      suggestChannels: getChannelSuggestions(state, teamname),
       suggestCommands: Constants.getCommands(state, conversationIDKey),
       suggestTeams: getTeams(state.chat2.inboxLayout),
       suggestUsers: Constants.getParticipantSuggestions(state, conversationIDKey),
@@ -172,105 +203,114 @@ export default Container.namedConnect(
     onSetExplodingModeLock: (conversationIDKey: Types.ConversationIDKey, unset: boolean) =>
       dispatch(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset})),
   }),
-  (stateProps, dispatchProps, ownProps: OwnProps) => ({
-    cannotWrite: stateProps.cannotWrite,
-    clearInboxFilter: dispatchProps.clearInboxFilter,
-    conversationIDKey: stateProps.conversationIDKey,
-    editText: stateProps.editText,
-    explodingModeSeconds: stateProps.explodingModeSeconds,
-    focusInputCounter: ownProps.focusInputCounter,
-
-    getUnsentText: () => {
-      // if we have unsent text in the store, that wins, otherwise take what we have stored locally
-      const unsentText = stateProps.unsentText
-        ? stateProps.unsentText.stringValue()
-        : getUnsentText(stateProps.conversationIDKey)
-      // The store can also have text to prepend, so do that here
-      const ret = stateProps.prependText ? stateProps.prependText.stringValue() + unsentText : unsentText
-      // If we have nothing still, check to see if the service told us about a draft and fill that in
-      if (!ret) {
-        const draft = stateProps._draft
-        if (draft) {
-          return draft
+  (stateProps, dispatchProps, ownProps: OwnProps) => {
+    return {
+      cannotWrite: stateProps.cannotWrite,
+      clearInboxFilter: dispatchProps.clearInboxFilter,
+      conversationIDKey: stateProps.conversationIDKey,
+      editText: stateProps.editText,
+      explodingModeSeconds: stateProps.explodingModeSeconds,
+      focusInputCounter: ownProps.focusInputCounter,
+      getUnsentText: () => {
+        // if we have unsent text in the store, that wins, otherwise take what we have stored locally
+        const unsentText = stateProps.unsentText
+          ? stateProps.unsentText.stringValue()
+          : getUnsentText(stateProps.conversationIDKey)
+        // The store can also have text to prepend, so do that here
+        const ret = stateProps.prependText ? stateProps.prependText.stringValue() + unsentText : unsentText
+        // If we have nothing still, check to see if the service told us about a draft and fill that in
+        if (!ret) {
+          const draft = stateProps._draft
+          if (draft) {
+            return draft
+          }
         }
-      }
-      return ret
-    },
-    isActiveForFocus: stateProps.isActiveForFocus,
-    isEditExploded: stateProps.isEditExploded,
-    isEditing: !!stateProps._editOrdinal,
-    isExploding: stateProps.isExploding,
-    isSearching: stateProps.isSearching,
-    minWriterRole: stateProps.minWriterRole,
-    onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
-    onCancelEditing: () => dispatchProps._onCancelEditing(stateProps.conversationIDKey),
-    onCancelReply: () => dispatchProps._onCancelReply(stateProps.conversationIDKey),
-    onEditLastMessage: () => dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
-    onFilePickerError: dispatchProps.onFilePickerError,
-    onGiphyToggle: () => dispatchProps._onGiphyToggle(stateProps.conversationIDKey),
-    onRequestScrollDown: ownProps.onRequestScrollDown,
-    onRequestScrollUp: ownProps.onRequestScrollUp,
-    onSubmit: (text: string) => {
-      if (stateProps._editOrdinal) {
-        dispatchProps._onEditMessage(stateProps.conversationIDKey, stateProps._editOrdinal, text)
-      } else {
-        dispatchProps._onPostMessage(stateProps.conversationIDKey, text, stateProps._replyTo || null)
-      }
-      if (stateProps._containsLatestMessage) {
-        ownProps.onRequestScrollToBottom()
-      } else {
-        ownProps.jumpToRecent()
-      }
-    },
-    prependText: stateProps.prependText ? stateProps.prependText.stringValue() : null,
-
-    quoteCounter: stateProps.quoteCounter,
-    quoteText: stateProps.quoteText,
-
-    sendTyping: (typing: boolean) => {
-      dispatchProps._sendTyping(stateProps.conversationIDKey, typing)
-    },
-
-    setUnsentText: (text: string) => {
-      const unset = text.length <= 0
-      if (stateProps._isExplodingModeLocked ? unset : !unset) {
-        // if it's locked and we want to unset, unset it
-        // alternatively, if it's not locked and we want to set it, set it
-        dispatchProps.onSetExplodingModeLock(stateProps.conversationIDKey, unset)
-      }
-      // The store text only lasts until we change it, so blow it away now
-      if (stateProps.unsentText) {
-        dispatchProps._clearUnsentText(stateProps.conversationIDKey)
-      }
-      if (stateProps.prependText) {
-        if (text !== stateProps.prependText.stringValue()) {
-          dispatchProps._clearPrependText(stateProps.conversationIDKey)
+        return ret
+      },
+      isActiveForFocus: stateProps.isActiveForFocus,
+      isEditExploded: stateProps.isEditExploded,
+      isEditing: !!stateProps._editOrdinal,
+      isExploding: stateProps.isExploding,
+      isSearching: stateProps.isSearching,
+      minWriterRole: stateProps.minWriterRole,
+      onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
+      onCancelEditing: () => dispatchProps._onCancelEditing(stateProps.conversationIDKey),
+      onCancelReply: () => dispatchProps._onCancelReply(stateProps.conversationIDKey),
+      onEditLastMessage: () =>
+        dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
+      onFilePickerError: dispatchProps.onFilePickerError,
+      onGiphyToggle: () => dispatchProps._onGiphyToggle(stateProps.conversationIDKey),
+      onRequestScrollDown: ownProps.onRequestScrollDown,
+      onRequestScrollUp: ownProps.onRequestScrollUp,
+      onSubmit: (text: string) => {
+        if (stateProps._editOrdinal) {
+          dispatchProps._onEditMessage(stateProps.conversationIDKey, stateProps._editOrdinal, text)
         } else {
-          // don't set the uncontrolled text tracker to the prepend text by itself, since we want to be
-          // able to remove it if the person doesn't change it at all.
-          return
+          dispatchProps._onPostMessage(stateProps.conversationIDKey, text, stateProps._replyTo || null)
         }
-      }
-      setUnsentText(stateProps.conversationIDKey, text)
-    },
+        if (stateProps._containsLatestMessage) {
+          ownProps.onRequestScrollToBottom()
+        } else {
+          ownProps.jumpToRecent()
+        }
+      },
+      prependText: stateProps.prependText ? stateProps.prependText.stringValue() : null,
 
-    showCommandMarkdown: stateProps.showCommandMarkdown,
-    showCommandStatus: stateProps.showCommandStatus,
-    showGiphySearch: stateProps.showGiphySearch,
-    showReplyPreview: !!stateProps._replyTo,
-    showTypingStatus: stateProps.showTypingStatus,
-    showWalletsIcon: stateProps.showWalletsIcon,
-    suggestAllChannels: stateProps.suggestAllChannels,
-    suggestBotCommands: stateProps.suggestBotCommands,
-    suggestBotCommandsUpdateStatus: stateProps.suggestBotCommandsUpdateStatus,
-    suggestChannels: stateProps.suggestChannels,
-    suggestCommands: stateProps.suggestCommands,
-    suggestTeams: stateProps.suggestTeams,
-    suggestUsers: stateProps.suggestUsers,
-    unsentText: stateProps.unsentText ? stateProps.unsentText.stringValue() : null,
-    unsentTextChanged: (text: string) => {
-      dispatchProps._unsentTextChanged(stateProps.conversationIDKey, text)
-    },
-  }),
+      quoteCounter: stateProps.quoteCounter,
+      quoteText: stateProps.quoteText,
+
+      sendTyping: (typing: boolean) => {
+        dispatchProps._sendTyping(stateProps.conversationIDKey, typing)
+      },
+
+      setUnsentText: (text: string) => {
+        const unset = text.length <= 0
+        if (stateProps._isExplodingModeLocked ? unset : !unset) {
+          // if it's locked and we want to unset, unset it
+          // alternatively, if it's not locked and we want to set it, set it
+          dispatchProps.onSetExplodingModeLock(stateProps.conversationIDKey, unset)
+        }
+        // The store text only lasts until we change it, so blow it away now
+        if (stateProps.unsentText) {
+          dispatchProps._clearUnsentText(stateProps.conversationIDKey)
+        }
+        if (stateProps.prependText) {
+          if (text !== stateProps.prependText.stringValue()) {
+            dispatchProps._clearPrependText(stateProps.conversationIDKey)
+          } else {
+            // don't set the uncontrolled text tracker to the prepend text by itself, since we want to be
+            // able to remove it if the person doesn't change it at all.
+            return
+          }
+        }
+        setUnsentText(stateProps.conversationIDKey, text)
+      },
+
+      showCommandMarkdown: stateProps.showCommandMarkdown,
+      showCommandStatus: stateProps.showCommandStatus,
+      showGiphySearch: stateProps.showGiphySearch,
+      showReplyPreview: !!stateProps._replyTo,
+      showTypingStatus: stateProps.showTypingStatus,
+      showWalletsIcon: stateProps.showWalletsIcon,
+      suggestAllChannels: (stateProps._inboxLayout?.bigTeams ?? []).reduce<
+        Array<{teamname: string; channelname: string}>
+      >((arr, t) => {
+        if (t.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel) {
+          arr.push({channelname: t.channel.channelname, teamname: t.channel.teamname})
+        }
+        return arr
+      }, []),
+      suggestBotCommands: stateProps.suggestBotCommands,
+      suggestBotCommandsUpdateStatus: stateProps.suggestBotCommandsUpdateStatus,
+      suggestChannels: stateProps.suggestChannels,
+      suggestCommands: stateProps.suggestCommands,
+      suggestTeams: stateProps.suggestTeams,
+      suggestUsers: stateProps.suggestUsers,
+      unsentText: stateProps.unsentText ? stateProps.unsentText.stringValue() : null,
+      unsentTextChanged: (text: string) => {
+        dispatchProps._unsentTextChanged(stateProps.conversationIDKey, text)
+      },
+    }
+  },
   'Input'
 )(Input)

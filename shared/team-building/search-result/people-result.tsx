@@ -79,7 +79,7 @@ const PeopleResult = React.memo((props: ResultProps) => {
     keybaseUsername &&
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [{props: {username: keybaseUsername}, selected: 'profileBlockUser'}],
+        path: [{props: {username: keybaseUsername}, selected: 'chatBlockingModal'}],
       })
     )
   const onUnblock = React.useCallback(

@@ -6795,6 +6795,14 @@ const iconMeta_ = {
       return require('../images/icons/icon-play-64.png')
     },
   },
+  'icon-poop-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-poop-96.png')
+    },
+  },
   'icon-powered-by-giphy-120-26': {
     extension: 'png',
     imagesDir: 'icons',

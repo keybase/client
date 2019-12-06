@@ -25,11 +25,10 @@ type OwnProps = {
 
 export default Container.connect(
   (state: Container.TypedState) => ({
-    _badgeNumbers: state.notifications.navBadges,
     _filesTabBadge: state.fs.badge,
-    _fullnames: state.users.infoMap,
     _justSignedUpEmail: state.signup.justSignedUpEmail,
     _settingsEmailBanner: state.settings.email.addedEmail,
+    badgeNumbers: state.notifications.navBadges,
     fullname: TrackerConstants.getDetails(state, state.config.username).fullname || '',
     isWalletsNew: state.chat2.isWalletsNew,
     username: state.config.username,
@@ -80,7 +79,7 @@ export default Container.connect(
     onSignOut: () => dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.logOutTab]})),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => ({
-    badgeNumbers: stateProps._badgeNumbers,
+    badgeNumbers: stateProps.badgeNumbers,
     fullname: stateProps.fullname,
     isWalletsNew: stateProps.isWalletsNew,
     onAddAccount: dispatchProps.onAddAccount,
