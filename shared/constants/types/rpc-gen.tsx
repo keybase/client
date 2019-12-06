@@ -2550,6 +2550,7 @@ export type ConflictState = {conflictStateType: ConflictStateType.normalview; no
 export type Contact = {readonly name: String; readonly components?: Array<ContactComponent> | null}
 export type ContactComponent = {readonly label: String; readonly phoneNumber?: RawPhoneNumber | null; readonly email?: EmailAddress | null}
 export type ContactListResolutionResult = {readonly newlyResolved?: Array<ProcessedContact> | null; readonly resolved?: Array<ProcessedContact> | null}
+export type ContactSettings = {readonly version: Int; readonly allowFolloweeDegrees: Boolean; readonly enabled: Boolean; readonly teams?: Array<TeamContactSettings> | null}
 export type CopyArgs = {readonly opID: OpID; readonly src: Path; readonly dest: Path}
 export type CryptKey = {readonly KeyGeneration: Int; readonly Key: Bytes32}
 export type Cryptocurrency = {readonly rowId: Int; readonly pkhash: Bytes; readonly address: String; readonly sigID: SigID; readonly type: String; readonly family: String}
@@ -2914,6 +2915,7 @@ export type TeamCLKRResetUser = {readonly uid: UID; readonly userEldestSeqno: Se
 export type TeamChangeReq = {readonly owners?: Array<UserVersion> | null; readonly admins?: Array<UserVersion> | null; readonly writers?: Array<UserVersion> | null; readonly readers?: Array<UserVersion> | null; readonly bots?: Array<UserVersion> | null; readonly restrictedBots: {[key: string]: TeamBotSettings}; readonly none?: Array<UserVersion> | null; readonly completedInvites: {[key: string]: UserVersionPercentForm}}
 export type TeamChangeRow = {readonly id: TeamID; readonly name: String; readonly keyRotated: Boolean; readonly membershipChanged: Boolean; readonly latestSeqno: Seqno; readonly latestHiddenSeqno: Seqno; readonly latestOffchainSeqno: Seqno; readonly implicitTeam: Boolean; readonly misc: Boolean; readonly removedResetUsers: Boolean}
 export type TeamChangeSet = {readonly membershipChanged: Boolean; readonly keyRotated: Boolean; readonly renamed: Boolean; readonly misc: Boolean}
+export type TeamContactSettings = {readonly teamID: TeamID; readonly allowFolloweesOfTeamMembers: Boolean; readonly enabled: Boolean}
 export type TeamCreateResult = {readonly teamID: TeamID; readonly chatSent: Boolean; readonly creatorAdded: Boolean}
 export type TeamData = {readonly v: /* subversion */ Int; readonly frozen: Boolean; readonly tombstoned: Boolean; readonly secretless: Boolean; readonly name: TeamName; readonly chain: TeamSigChainState; readonly perTeamKeySeeds: /* perTeamKeySeedsUnverified */ {[key: string]: PerTeamKeySeedItem}; readonly readerKeyMasks: {[key: string]: {[key: string]: MaskB64}}; readonly latestSeqnoHint: Seqno; readonly cachedAt: Time; readonly tlfCryptKeys: {[key: string]: Array<CryptKey> | null}}
 export type TeamDebugRes = {readonly chain: TeamSigChainState}
@@ -3516,6 +3518,8 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // Not enabled calls. To enable add to enabled-calls.json:
 // 'keybase.1.account.passphrasePrompt'
 // 'keybase.1.account.timeTravelReset'
+// 'keybase.1.account.userGetContactSettings'
+// 'keybase.1.account.userSetContactSettings'
 // 'keybase.1.airdrop.reg1'
 // 'keybase.1.airdrop.reg2'
 // 'keybase.1.audit.isInJail'

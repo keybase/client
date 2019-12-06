@@ -58,6 +58,46 @@ func (o GetLockdownResponse) DeepCopy() GetLockdownResponse {
 	}
 }
 
+type TeamContactSettings struct {
+	TeamID                      TeamID `codec:"teamID" json:"teamID"`
+	AllowFolloweesOfTeamMembers bool   `codec:"allowFolloweesOfTeamMembers" json:"allowFolloweesOfTeamMembers"`
+	Enabled                     bool   `codec:"enabled" json:"enabled"`
+}
+
+func (o TeamContactSettings) DeepCopy() TeamContactSettings {
+	return TeamContactSettings{
+		TeamID:                      o.TeamID.DeepCopy(),
+		AllowFolloweesOfTeamMembers: o.AllowFolloweesOfTeamMembers,
+		Enabled:                     o.Enabled,
+	}
+}
+
+type ContactSettings struct {
+	Version              int                   `codec:"version" json:"version"`
+	AllowFolloweeDegrees bool                  `codec:"allowFolloweeDegrees" json:"allowFolloweeDegrees"`
+	Enabled              bool                  `codec:"enabled" json:"enabled"`
+	Teams                []TeamContactSettings `codec:"teams" json:"teams"`
+}
+
+func (o ContactSettings) DeepCopy() ContactSettings {
+	return ContactSettings{
+		Version:              o.Version,
+		AllowFolloweeDegrees: o.AllowFolloweeDegrees,
+		Enabled:              o.Enabled,
+		Teams: (func(x []TeamContactSettings) []TeamContactSettings {
+			if x == nil {
+				return nil
+			}
+			ret := make([]TeamContactSettings, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Teams),
+	}
+}
+
 type PassphraseChangeArg struct {
 	SessionID     int    `codec:"sessionID" json:"sessionID"`
 	OldPassphrase string `codec:"oldPassphrase" json:"oldPassphrase"`
@@ -125,6 +165,16 @@ type TimeTravelResetArg struct {
 	Duration  gregor1.DurationSec `codec:"duration" json:"duration"`
 }
 
+type UserGetContactSettingsArg struct {
+	Uid UID `codec:"uid" json:"uid"`
+}
+
+type UserSetContactSettingsArg struct {
+	AllowFolloweeDegrees bool                  `codec:"allowFolloweeDegrees" json:"allowFolloweeDegrees"`
+	Enabled              bool                  `codec:"enabled" json:"enabled"`
+	Teams                []TeamContactSettings `codec:"teams" json:"teams"`
+}
+
 type AccountInterface interface {
 	// Change the passphrase from old to new. If old isn't set, and force is false,
 	// then prompt at the UI for it. If old isn't set and force is true, then
@@ -155,6 +205,8 @@ type AccountInterface interface {
 	// Aborts the reset process
 	CancelReset(context.Context, int) error
 	TimeTravelReset(context.Context, TimeTravelResetArg) error
+	UserGetContactSettings(context.Context, UID) (ContactSettings, error)
+	UserSetContactSettings(context.Context, UserSetContactSettingsArg) error
 }
 
 func AccountProtocol(i AccountInterface) rpc.Protocol {
@@ -356,6 +408,36 @@ func AccountProtocol(i AccountInterface) rpc.Protocol {
 					return
 				},
 			},
+			"userGetContactSettings": {
+				MakeArg: func() interface{} {
+					var ret [1]UserGetContactSettingsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]UserGetContactSettingsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]UserGetContactSettingsArg)(nil), args)
+						return
+					}
+					ret, err = i.UserGetContactSettings(ctx, typedArgs[0].Uid)
+					return
+				},
+			},
+			"userSetContactSettings": {
+				MakeArg: func() interface{} {
+					var ret [1]UserSetContactSettingsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]UserSetContactSettingsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]UserSetContactSettingsArg)(nil), args)
+						return
+					}
+					err = i.UserSetContactSettings(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -445,5 +527,16 @@ func (c AccountClient) CancelReset(ctx context.Context, sessionID int) (err erro
 
 func (c AccountClient) TimeTravelReset(ctx context.Context, __arg TimeTravelResetArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.account.timeTravelReset", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c AccountClient) UserGetContactSettings(ctx context.Context, uid UID) (res ContactSettings, err error) {
+	__arg := UserGetContactSettingsArg{Uid: uid}
+	err = c.Cli.Call(ctx, "keybase.1.account.userGetContactSettings", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c AccountClient) UserSetContactSettings(ctx context.Context, __arg UserSetContactSettingsArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.account.userSetContactSettings", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }

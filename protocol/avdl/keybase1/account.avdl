@@ -76,4 +76,22 @@ protocol account {
    */
   void cancelReset(int sessionID);
   void timeTravelReset(int sessionID, string username, gregor1.DurationSec duration);
+
+  record TeamContactSettings {
+    TeamID teamID;
+    boolean allowFolloweesOfTeamMembers;
+    boolean enabled;
+  }
+
+  record ContactSettings {
+    int version;
+    boolean allowFolloweeDegrees;
+    boolean enabled;
+    array<TeamContactSettings> teams;
+  }
+  
+  ContactSettings userGetContactSettings(UID uid);
+
+  void userSetContactSettings(boolean allowFolloweeDegrees, boolean enabled, array<TeamContactSettings> teams);
+
 }
