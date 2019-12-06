@@ -78,8 +78,8 @@ export default Container.makeReducer<
   [TeamsGen.setMembers]: (draftState, action) => {
     draftState.teamNameToMembers.set(action.payload.teamname, action.payload.members)
   },
-  [TeamsGen.setTeamCanPerform]: () => {
-    TeamsGen.setTeamCanPerform
+  [TeamsGen.setTeamCanPerform]: (draftState, action) => {
+    draftState.canPerform.set(action.payload.teamID, action.payload.teamOperation)
   },
   [TeamsGen.setTeamPublicitySettings]: (draftState, action) => {
     draftState.teamNameToPublicitySettings.set(action.payload.teamname, action.payload.publicity)
