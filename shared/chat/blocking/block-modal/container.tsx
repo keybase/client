@@ -69,7 +69,7 @@ const Connect = Container.connect(
       ),
     _setUserBlocks: (newBlocks: NewBlocksMap) => {
       // Convert our state block array to action payload.
-      const blocks = Array.from(newBlocks)
+      const blocks = [...newBlocks.entries()]
         .filter(
           ([_, userBlocks]) => userBlocks.chatBlocked !== undefined || userBlocks.followBlocked !== undefined
         )
