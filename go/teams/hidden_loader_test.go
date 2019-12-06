@@ -2,7 +2,6 @@ package teams
 
 import (
 	"testing"
-	"time"
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/teams/hidden"
@@ -134,7 +133,7 @@ func retryTestNTimes(t *testing.T, n int, f func(t *testing.T) bool) {
 			return
 		}
 	}
-	t.Fail()
+	t.Errorf("Test did not succeed any of the %v times", n)
 }
 func TestHiddenLoadFailsIfServerDoesntCommitLinks(t *testing.T) {
 	retryTestNTimes(t, 5, testHiddenLoadFailsIfServerDoesntCommitLinks)
@@ -175,7 +174,7 @@ func testHiddenLoadFailsIfServerDoesntCommitLinks(t *testing.T) bool {
 	}
 
 	// now, move the clock forward and reload. The hidden loader should complain about seqno 2 not being committed
-	clock.Advance(3 * 24 * time.Hour)
+	clock.Advance(2 * hidden.MaxDelayInCommittingHiddenLinks)
 	tcs[1].G.SetClock(clock)
 	_, _, err = tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
 		ID:          teamID,
@@ -535,7 +534,7 @@ func testFTLFailsIfServerDoesntCommitLinks(t *testing.T) bool {
 	loadTeamFTLAndAssertMaxGeneration(t, tcs[1], teamID, teamName, 3)
 
 	// now, move the clock forward and reload. The hidden loader should complain about hidden seqno 2 not being committed
-	clock.Advance(3 * 24 * time.Hour)
+	clock.Advance(2 * hidden.MaxDelayInCommittingHiddenLinks)
 	tcs[1].G.SetClock(clock)
 	_, err = tcs[1].G.GetFastTeamLoader().Load(libkb.NewMetaContextForTest(*tcs[1]), keybase1.FastTeamLoadArg{
 		ID:                   teamID,
