@@ -161,8 +161,8 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       commitMessage: {
-        textAlign: 'left',
         height: '100%',
+        textAlign: 'left',
       },
       dot: {
         backgroundColor: Styles.globalColors.blueLighter_20,
@@ -173,9 +173,9 @@ const styles = Styles.styleSheetCreate(
         padding: 2,
       },
       hashAndMessage: {
+        height: 18,
         marginBottom: Styles.globalMargins.xtiny,
         marginTop: Styles.globalMargins.xtiny,
-        height: 18,
       },
       marker: {
         marginRight: Styles.globalMargins.xtiny,
