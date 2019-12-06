@@ -22,16 +22,16 @@ const (
 type EphemeralKeyErrorKind int
 
 const (
-	EphemeralKeyErrorKind_DEVICENOTAUTHENTICATED EphemeralKeyErrorKind = iota
-	EphemeralKeyErrorKind_UNBOX
-	EphemeralKeyErrorKind_MISSINGBOX
-	EphemeralKeyErrorKind_WRONGKID
-	EphemeralKeyErrorKind_CORRUPTEDGEN
-	EphemeralKeyErrorKind_DEVICEAFTEREK
-	EphemeralKeyErrorKind_MEMBERAFTEREK
-	EphemeralKeyErrorKind_DEVICESTALE
-	EphemeralKeyErrorKind_USERSTALE
-	EphemeralKeyErrorKind_UNKNOWN
+	EphemeralKeyErrorKindDEVICENOTAUTHENTICATED EphemeralKeyErrorKind = iota
+	EphemeralKeyErrorKindUNBOX
+	EphemeralKeyErrorKindMISSINGBOX
+	EphemeralKeyErrorKindWRONGKID
+	EphemeralKeyErrorKindCORRUPTEDGEN
+	EphemeralKeyErrorKindDEVICEAFTEREK
+	EphemeralKeyErrorKindMEMBERAFTEREK
+	EphemeralKeyErrorKindDEVICESTALE
+	EphemeralKeyErrorKindUSERSTALE
+	EphemeralKeyErrorKindUNKNOWN
 )
 
 type EphemeralKeyError struct {
@@ -59,7 +59,7 @@ func (e EphemeralKeyError) Error() string {
 // permanently failing.
 func (e EphemeralKeyError) AllowTransient() bool {
 	return (e.EKKind == TeambotEKKind &&
-		e.ErrKind == EphemeralKeyErrorKind_MISSINGBOX &&
+		e.ErrKind == EphemeralKeyErrorKindMISSINGBOX &&
 		time.Since(e.Ctime.Time()) < time.Hour*24)
 }
 
@@ -84,7 +84,7 @@ const (
 	DefaultPluralHumanErrMsg     = "%d exploding messages are not available to you"
 	DeviceCloneErrMsg            = "cloned devices do not support exploding messages"
 	DeviceCloneWithOneshotErrMsg = "to support exploding messages in `oneshot` mode, you need a separate paper key for each running instance"
-	DeviceAfterEKErrMsg          = "this device was provisioned after the message was sent"
+	DeviceAfterEKErrMsg          = "this device was created after the message was sent"
 	MemberAfterEKErrMsg          = "you were added to the team after the message was sent"
 	DeviceStaleErrMsg            = "this device wasn't online to generate an exploding key"
 	UserStaleErrMsg              = "you weren't online to generate new exploding keys"
@@ -116,7 +116,7 @@ func NewNotAuthenticatedForThisDeviceError(mctx libkb.MetaContext, memberCtime *
 		}
 	}
 	return newEphemeralKeyError("message not authenticated for device", humanMsg,
-		EphemeralKeyErrorKind_DEVICENOTAUTHENTICATED, DeviceEKKind)
+		EphemeralKeyErrorKindDEVICENOTAUTHENTICATED, DeviceEKKind)
 }
 
 func newEKUnboxErr(mctx libkb.MetaContext, ekKind EphemeralKeyKind, boxGeneration keybase1.EkGeneration,
@@ -134,23 +134,23 @@ func newEKUnboxErr(mctx libkb.MetaContext, ekKind EphemeralKeyKind, boxGeneratio
 		}
 	}
 	return newEphemeralKeyError(debugMsg, humanMsg,
-		EphemeralKeyErrorKind_UNBOX, missingKind)
+		EphemeralKeyErrorKindUNBOX, missingKind)
 }
 
 func newEKMissingBoxErr(mctx libkb.MetaContext, ekKind EphemeralKeyKind, boxGeneration keybase1.EkGeneration) EphemeralKeyError {
 	debugMsg := fmt.Sprintf("Missing box for %s@generation:%v", ekKind, boxGeneration)
-	return newEphemeralKeyError(debugMsg, "", EphemeralKeyErrorKind_MISSINGBOX, ekKind)
+	return newEphemeralKeyError(debugMsg, "", EphemeralKeyErrorKindMISSINGBOX, ekKind)
 }
 
 func newTeambotEKWrongKIDErr(mctx libkb.MetaContext, ctime, now keybase1.Time) EphemeralKeyError {
 	debugMsg := fmt.Sprintf("Wrong KID for %v, first seen at %v, now %v", TeambotEKKind, ctime.Time(), now.Time())
-	return newEphemeralKeyError(debugMsg, "", EphemeralKeyErrorKind_WRONGKID, TeambotEKKind)
+	return newEphemeralKeyError(debugMsg, "", EphemeralKeyErrorKindWRONGKID, TeambotEKKind)
 }
 
 func newEKCorruptedErr(mctx libkb.MetaContext, ekKind EphemeralKeyKind,
 	expectedGeneration, boxGeneration keybase1.EkGeneration) EphemeralKeyError {
 	debugMsg := fmt.Sprintf("Storage error for %s@generation:%v, got generation %v instead", ekKind, boxGeneration, expectedGeneration)
-	return newEphemeralKeyError(debugMsg, "", EphemeralKeyErrorKind_CORRUPTEDGEN, ekKind)
+	return newEphemeralKeyError(debugMsg, "", EphemeralKeyErrorKindCORRUPTEDGEN, ekKind)
 }
 
 func humanMsgWithPrefix(humanMsg string) string {
@@ -179,18 +179,18 @@ func newEphemeralKeyErrorFromStatus(e libkb.AppStatusError) EphemeralKeyError {
 	var humanMsg string
 	switch e.Code {
 	case libkb.SCEphemeralDeviceAfterEK:
-		errKind = EphemeralKeyErrorKind_DEVICEAFTEREK
+		errKind = EphemeralKeyErrorKindDEVICEAFTEREK
 		ekKind = DeviceEKKind
 		humanMsg = DeviceAfterEKErrMsg
 	case libkb.SCEphemeralMemberAfterEK:
 		ekKind = TeamEKKind
 		humanMsg = MemberAfterEKErrMsg
 	case libkb.SCEphemeralDeviceStale:
-		errKind = EphemeralKeyErrorKind_DEVICESTALE
+		errKind = EphemeralKeyErrorKindDEVICESTALE
 		ekKind = DeviceEKKind
 		humanMsg = DeviceStaleErrMsg
 	case libkb.SCEphemeralUserStale:
-		errKind = EphemeralKeyErrorKind_USERSTALE
+		errKind = EphemeralKeyErrorKindUSERSTALE
 		ekKind = UserEKKind
 		humanMsg = UserStaleErrMsg
 	}
