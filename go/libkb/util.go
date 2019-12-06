@@ -1168,6 +1168,8 @@ func FindFilePathWithNumberSuffix(parentDir string, basename string, useArbitrar
 	return destPath, nil
 }
 
+// parseUIDsFromString takes a comma-separate string of UIDs and returns an array of UIDs,
+// **ignoring any errors** since sometimes need to call this code on an error path.
 func parseUIDsFromString(s string) []keybase1.UID {
 	tmp := strings.Split(s, ",")
 	var res []keybase1.UID
@@ -1180,6 +1182,8 @@ func parseUIDsFromString(s string) []keybase1.UID {
 	return res
 }
 
+// parseUsernamesFromString takes a string that's a comma-separated list of usernames and then
+// returns a slice of NormalizedUsernames after splitting them. Does no error checking.
 func parseUsernamesFromString(s string) []NormalizedUsername {
 	tmp := strings.Split(s, ",")
 	var res []NormalizedUsername
