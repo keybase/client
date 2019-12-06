@@ -25,17 +25,18 @@ const prepareExternalPartners = (
   externalPartners: Array<Types.PartnerUrl>,
   accountID: string,
   username: string
-): Array<Types.PartnerUrl> =>
-  externalPartners.map((partner, index) =>
-    ({
+): Array<Types.PartnerUrl> | [] =>
+  externalPartners
+    .map(partner => ({
       adminOnly: partner.adminOnly,
+      canPurchase: partner.canPurchase,
       description: partner.description,
       extra: partner.extra,
       iconFilename: toIconType(partner.iconFilename),
       title: partner.title,
       url: transformUrl(accountID, partner.url, username),
-    }.filter(p => p.can_purchase))
-  )
+    }))
+    .filter(p => p.canPurchase)
 
 const mapStateToProps = (state: Container.TypedState) => {
   const accountID = Constants.getSelectedAccount(state)
