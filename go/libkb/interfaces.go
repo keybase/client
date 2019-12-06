@@ -819,6 +819,7 @@ type Stellar interface {
 	KnownCurrencyCodeInstant(ctx context.Context, code string) (known, ok bool)
 	InformBundle(MetaContext, stellar1.BundleRevision, []stellar1.BundleEntry)
 	InformDefaultCurrencyChange(MetaContext)
+	Refresh(mctx MetaContext, reason string)
 }
 
 type DeviceEKStorage interface {
