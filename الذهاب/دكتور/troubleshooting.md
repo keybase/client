@@ -33,7 +33,7 @@ These errors can be an interaction of several different things:
 - Interesting terminal gymnastics. Running in screen or tmux can confuse the
   curses versions of `pinentry`. Depending on where you first started tmux, you
   might also end up with an invalid `DISPLAY` environment variable.
-- Curious account permissions. If you log into your desktop as `userfoo`, and
+- Curious account permissions. Ifi you log into your desktop as `userfoo`, and
   you run something like `sudo -u userbar keybase login`, that might prevent
   `pinentry` from creating windows.
 
