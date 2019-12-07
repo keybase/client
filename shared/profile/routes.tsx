@@ -2,7 +2,6 @@ import {newRoutes as PGPRoutes} from './pgp/routes'
 import Profile from './user/container'
 import ProfileNonUser from './non-user-profile/container'
 import ProfileAddToTeam from './add-to-team/container'
-import ProfileBlockUser from './block/container'
 import ProfileConfirmOrPending from './confirm-or-pending/container'
 import ProfileEdit from './edit-profile/container'
 import ProfileEditAvatar from './edit-avatar/container'
@@ -22,7 +21,6 @@ export const newRoutes = {
 
 export const newModalRoutes = {
   profileAddToTeam: {getScreen: (): typeof ProfileAddToTeam => require('./add-to-team/container').default},
-  profileBlockUser: {getScreen: (): typeof ProfileBlockUser => require('./block/container').default},
   profileConfirmOrPending: {
     getScreen: (): typeof ProfileConfirmOrPending => require('./confirm-or-pending/container').default,
   },

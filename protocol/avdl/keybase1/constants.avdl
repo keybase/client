@@ -178,6 +178,7 @@ protocol constants {
     SCTeamStorageWrongRevision_2760,
     SCTeamStorageBadGeneration_2761,
     SCTeamStorageNotFound_2762,
+    SCTeamContactSettingsBlock_2763,
     SCEphemeralKeyBadGeneration_2900,
     SCEphemeralKeyUnexpectedBox_2901,
     SCEphemeralKeyMissingBox_2902,
