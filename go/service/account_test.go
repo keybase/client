@@ -84,13 +84,13 @@ func TestContactSettingsAPI(t *testing.T) {
 	user, err := kbtest.CreateAndSignupFakeUser("cset", tc.G)
 	require.NoError(t, err)
 
+	handler := NewAccountHandler(nil, tc.G)
+	ctx := context.Background()
+
 	teamName := user.Username + "t"
 	teamID, err := teams.CreateRootTeam(ctx, tc.G, teamName, keybase1.TeamSettings{})
 	require.NoError(t, err)
 	require.NotNil(t, teamID)
-
-	handler := NewAccountHandler(nil, tc.G)
-	ctx := context.Background()
 
 	// get
 	res, err := handler.UserGetContactSettings(ctx)
