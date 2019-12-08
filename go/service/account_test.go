@@ -100,12 +100,11 @@ func TestContactSettingsAPI(t *testing.T) {
 	err = handler.UserSetContactSettings(ctx, keybase1.ContactSettings{
 		Enabled:              true,
 		AllowFolloweeDegrees: 2,
-		Teams: []keybase1.TeamContactSettings{keybase1.TeamContactSettings{
-			TeamID:                      *teamID,
-			AllowFolloweesOfTeamMembers: false,
-			Enabled:                     true,
-		},
-		},
+		Teams: []keybase1.TeamContactSettings{
+			{TeamID: *teamID,
+				AllowFolloweesOfTeamMembers: false,
+				Enabled:                     true,
+			}},
 	})
 	require.NoError(t, err)
 
