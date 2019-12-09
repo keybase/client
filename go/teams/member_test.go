@@ -1235,15 +1235,6 @@ func TestMemberCancelInviteEmail(t *testing.T) {
 	if _, ok := err.(libkb.NotFoundError); !ok {
 		t.Errorf("expected libkb.NotFoundError, got %T", err)
 	}
-
-	// check error type for unknown team
-	err = CancelEmailInvite(context.TODO(), tc.G, "notateam", address, false)
-	if err == nil {
-		t.Fatal("expected error canceling email invite for unknown team")
-	}
-	if _, ok := err.(TeamDoesNotExistError); !ok {
-		t.Errorf("expected teams.TeamDoesNotExistError, got %T", err)
-	}
 }
 
 // Test two users racing to post chain links to the same team.
