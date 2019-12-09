@@ -68,14 +68,20 @@ export const WaveButton = (props: Props) => {
     <Kb.Box2
       direction="horizontal"
       centerChildren={true}
-      style={Styles.collapseStyles([props.style, styles.waved])}
+      style={Styles.collapseStyles([props.style, styles.waved, getWidthStyle(props)])}
       gap="xtiny"
     >
       <Kb.Icon type="iconfont-check" color={Styles.globalColors.black_50} sizeType="Tiny" />
       <Kb.Text type="BodySmall"> Waved</Kb.Text>
     </Kb.Box2>
   ) : (
-    <Kb.Button onClick={onWave} small={props.small} mode="Secondary" waiting={waving} style={props.style}>
+    <Kb.Button
+      onClick={onWave}
+      small={props.small}
+      mode="Secondary"
+      waiting={waving}
+      style={Styles.collapseStyles([props.style, getWidthStyle(props)])}
+    >
       <Kb.Text type="BodyBig" style={styles.blueText}>
         {waveText}
       </Kb.Text>
@@ -84,13 +90,25 @@ export const WaveButton = (props: Props) => {
   )
 }
 
+const getWidthStyle = (props: Props): Styles.StylesCrossPlatform =>
+  props.small
+    ? props.toMany
+      ? styles.waveSmallMany
+      : styles.waveSmallOne
+    : props.toMany
+    ? styles.waveBigMany
+    : styles.waveBigOne
+
 const styles = Styles.styleSheetCreate(
   () =>
     ({
       blueText: {color: Styles.globalColors.blueDark, paddingRight: Styles.globalMargins.xtiny},
+      waveBigMany: {minWidth: 192},
+      waveBigOne: {minWidth: 109},
+      waveSmallMany: {minWidth: 168},
+      waveSmallOne: {minWidth: 85},
       waved: {
         ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small, Styles.globalMargins.xtiny),
-        minWidth: 94,
       },
     } as const)
 )
