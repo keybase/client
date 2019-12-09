@@ -36,14 +36,12 @@ const BlockButtons = (props: Props) => {
       direction={Styles.isMobile ? 'column' : 'row'}
       style={styles.button}
     >
-      {!team && (
-        <Kb.WaveButton
-          small={true}
-          conversationIDKey={props.conversationID}
-          toMany={others.length > 0}
-          style={styles.button}
-        />
-      )}
+      <Kb.WaveButton
+        small={true}
+        conversationIDKey={props.conversationID}
+        toMany={others.length > 0 || !!team}
+        style={styles.button}
+      />
       {!team && others.length === 0 && (
         <Kb.Button
           label="View profile"
