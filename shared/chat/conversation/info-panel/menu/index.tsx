@@ -140,10 +140,11 @@ class InfoPanelMenu extends React.Component<Props> {
           channelItem,
           {danger: true, icon: 'iconfont-leave', onClick: props.onLeaveTeam, title: 'Leave team'},
           {danger: true, icon: 'iconfont-remove', onClick: props.onBlockConv, title: 'Block team'},
-        ]).reduce<Kb.MenuItems>((arr, i) => {
-          i && arr.push(i as Kb.MenuItem)
-          return arr
-        }, [])
+        ]
+    ).reduce<Kb.MenuItems>((arr, i) => {
+      i && arr.push(i as Kb.MenuItem)
+      return arr
+    }, [])
 
     const header = {
       title: 'header',
