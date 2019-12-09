@@ -1120,8 +1120,9 @@ func (g *GlobalContext) CallLoginHooks(mctx MetaContext) {
 	}
 
 	mctx.Debug("CallLoginHooks: recording login in secretstore")
-	if ss := g.SecretStore(); ss != nil {
-		ss.RecordLogin(mctx, g.Env.GetUsername())
+	err = RecordLoginTime(mctx, g.Env.GetUsername())
+	if err != nil {
+		mctx.Warning("OnLogin RecordLogin error: %+v", err)
 	}
 
 	mctx.Debug("CallLoginHooks: running registered login hooks")

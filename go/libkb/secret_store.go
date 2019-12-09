@@ -111,7 +111,7 @@ func NewSecretStore(g *GlobalContext, username NormalizedUsername) SecretStore {
 	return nil
 }
 
-func GetConfiguredAccountsFromProvisionedUsernames(m MetaContext, s *SecretStoreLocked, currentUsername NormalizedUsername, allUsernames []NormalizedUsername) ([]keybase1.ConfiguredAccount, error) {
+func GetConfiguredAccountsFromProvisionedUsernames(m MetaContext, s SecretStoreAll, currentUsername NormalizedUsername, allUsernames []NormalizedUsername) ([]keybase1.ConfiguredAccount, error) {
 	if !currentUsername.IsNil() {
 		allUsernames = append(allUsernames, currentUsername)
 	}
@@ -200,7 +200,7 @@ func GetConfiguredAccountsFromProvisionedUsernames(m MetaContext, s *SecretStore
 	return configuredAccounts, nil
 }
 
-func GetConfiguredAccounts(m MetaContext, s *SecretStoreLocked) ([]keybase1.ConfiguredAccount, error) {
+func GetConfiguredAccounts(m MetaContext, s SecretStoreAll) ([]keybase1.ConfiguredAccount, error) {
 	currentUsername, allUsernames, err := GetAllProvisionedUsernames(m)
 	if err != nil {
 		return nil, err
@@ -242,13 +242,6 @@ func (s *SecretStoreLocked) isNil() bool {
 
 func (s *SecretStoreLocked) ClearMem() {
 	s.mem = NewSecretStoreMem()
-}
-
-func (s *SecretStoreLocked) RecordLogin(m MetaContext, username NormalizedUsername) {
-	err := recordLoginTime(m, username)
-	if err != nil {
-		m.Warning("Failed to record login time: %s", err)
-	}
 }
 
 func (s *SecretStoreLocked) RetrieveSecret(m MetaContext, username NormalizedUsername) (LKSecFullSecret, error) {
@@ -492,7 +485,7 @@ type loginTimes map[NormalizedUsername]time.Time
 
 func loginTimesDbKey(mctx MetaContext) DbKey {
 	return DbKey{
-		// Should not be per-user
+		// Should not be per-user, so not using uid in the db key
 		Typ: DBLoginTimes,
 		Key: "",
 	}
@@ -509,9 +502,10 @@ func getLoginTimes(mctx MetaContext) (ret loginTimes, err error) {
 	return ret, nil
 }
 
-func recordLoginTime(mctx MetaContext, username NormalizedUsername) (err error) {
+func RecordLoginTime(mctx MetaContext, username NormalizedUsername) (err error) {
 	ret, err := getLoginTimes(mctx)
 	if err != nil {
+		mctx.Warning("failed to get login times from db; overwriting existing data: %s", err)
 		ret = make(loginTimes)
 	}
 	ret[username] = time.Now()
