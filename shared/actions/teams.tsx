@@ -376,7 +376,7 @@ const editMembership = async (_: TypedState, action: TeamsGen.EditMembershipPayl
 }
 
 function* removeMemberOrPendingInvite(
-  _: TypedState,
+  state: TypedState,
   action: TeamsGen.RemoveMemberOrPendingInvitePayload,
   logger: Saga.SagaLogger
 ) {
@@ -392,13 +392,15 @@ function* removeMemberOrPendingInvite(
     throw new Error(errMsg)
   }
 
+  const teamID = Constants.getTeamID(state, teamname) // TODO should be in action
+
   try {
     yield RPCTypes.teamsTeamRemoveMemberRpcPromise(
       {
         allowInaction: true,
         email,
         inviteID,
-        name: teamname,
+        teamID,
         username,
       },
       [
