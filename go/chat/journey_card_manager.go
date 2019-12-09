@@ -547,14 +547,10 @@ func (cc *JourneyCardManagerSingleUser) cardCreateChannels(ctx context.Context, 
 
 // Card type: MSG_NO_ANSWER (C)
 // Gist: "People haven't been talkative in a while. Perhaps post in another channel? <list of channels>"
-// Condition: The team has channels besides general.
-// Condition: The last visible message is old, was sent by the logged-in user, and was a long text message.
+// Condition: In a channel besides general.
+// Condition: The last visible message is old, was sent by the logged-in user, and was a long text message, and has not been reacted to.
 func (cc *JourneyCardManagerSingleUser) cardMsgNoAnswer(ctx context.Context, conv convForJourneycard,
 	jcd journeyCardConvData, thread *chat1.ThreadView, debugDebug logFn) bool {
-	otherChannelsExist := conv.GetTeamType() == chat1.TeamType_COMPLEX
-	if !otherChannelsExist {
-		return false
-	}
 	if conv.IsGeneralChannel {
 		return false
 	}
