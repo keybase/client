@@ -12,5 +12,5 @@ import (
 
 func previewVideo(ctx context.Context, log utils.DebugLabeler, src io.Reader,
 	basename string, nvh types.NativeVideoHelper, dimension Dimension) (*PreviewRes, error) {
-	return previewVideoBlank(ctx, log, src, basename, dimension)
+	return previewVideoBlank(ctx, log, src, basename)
 }

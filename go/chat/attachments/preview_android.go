@@ -21,9 +21,9 @@ func previewVideo(ctx context.Context, log utils.DebugLabeler, src io.Reader,
 	log.Debug(ctx, "previewVideo: size: %d duration: %d", len(dat), duration)
 	if len(dat) == 0 {
 		log.Debug(ctx, "failed to generate preview from native, using blank image")
-		return previewVideoBlank(ctx, log, src, basename, dimension)
+		return previewVideoBlank(ctx, log, src, basename)
 	}
-	imagePreview, err := previewImage(ctx, log, bytes.NewReader(dat), basename, "image/jpeg")
+	imagePreview, err := previewImage(ctx, log, bytes.NewReader(dat), basename, "image/jpeg", dimension)
 	if err != nil {
 		return res, err
 	}
