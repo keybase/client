@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/fs'
 import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
 import * as Kbfs from '../../common'
 import * as FsGen from '../../../actions/fs-gen'
@@ -40,7 +39,7 @@ const hideMenuOnClick = (onClick: (evt?: React.SyntheticEvent) => void, hideMenu
 }
 
 const makeMenuItems = (props: Props, hideMenu: () => void) => {
-  const items = [
+  const items: Kb.MenuItems = [
     ...(props.newFolder
       ? [
           {
@@ -173,7 +172,10 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => {
           },
         ]
       : []),
-  ]
+  ].reduce<Kb.MenuItems>((arr, i) => {
+    i && arr.push(i as Kb.MenuItem)
+    return arr
+  }, [])
   return items.length ? ['Divider' as const, ...items] : items
 }
 
@@ -214,24 +216,3 @@ export default (props: Props) => {
     />
   )
 }
-
-const styles = Styles.styleSheetCreate(
-  () =>
-    ({
-      menuRowText: {
-        color: Styles.globalColors.blueDark,
-      },
-      menuRowTextDisabled: {
-        color: Styles.globalColors.blueDark,
-        opacity: 0.6,
-      },
-      progressIndicator: {
-        bottom: 0,
-        left: 0,
-        marginRight: Styles.globalMargins.xtiny,
-        position: 'absolute',
-        right: 0,
-        top: 0,
-      },
-    } as const)
-)

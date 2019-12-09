@@ -169,7 +169,7 @@ const DropdownButton = Kb.OverlayParentHOC((p: Kb.PropsWithOverlay<DropdownProps
         ? {danger: true, icon: 'iconfont-add', onClick: p.onUnblock, title: 'Unblock'}
         : {danger: true, icon: 'iconfont-remove', onClick: p.onBlock, title: 'Block'}),
   ].reduce<Kb.MenuItems>((arr, i) => {
-    i && arr.push(i)
+    i && arr.push(i as Kb.MenuItem)
     return arr
   }, [])
 

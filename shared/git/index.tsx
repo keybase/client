@@ -16,7 +16,7 @@ export type Props = {
 }
 
 class Git extends React.Component<Props & Kb.OverlayParentProps, {}> {
-  private menuItems = [
+  private menuItems: Kb.MenuItems = [
     {
       icon: 'iconfont-person',
       onClick: () => this.props.onNewPersonalRepo(),

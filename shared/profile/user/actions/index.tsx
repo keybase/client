@@ -164,7 +164,7 @@ const DropdownButton = Kb.OverlayParentHOC((p: Kb.PropsWithOverlay<DropdownProps
       title: p.blockedOrHidFromFollowers ? 'Manage blocking' : 'Block',
     },
   ].reduce<Kb.MenuItems>((arr, i) => {
-    i && arr.push(i)
+    i && arr.push(i as Kb.MenuItem)
     return arr
   }, [])
 

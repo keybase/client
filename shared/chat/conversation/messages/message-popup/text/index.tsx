@@ -1,6 +1,6 @@
 import * as React from 'react'
 import MessagePopupHeader from '../header'
-import {FloatingMenu, MenuItems} from '../../../../../common-adapters'
+import * as Kb from '../../../../../common-adapters'
 import {DeviceType} from '../../../../../constants/types/devices'
 import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 import {StylesCrossPlatform} from '../../../../../styles/css'
@@ -37,7 +37,7 @@ type Props = {
 }
 
 const TextPopupMenu = (props: Props) => {
-  const items: MenuItems = [
+  const items: Kb.MenuItems = [
     ...(props.showDivider ? (['Divider'] as const) : []),
     ...(props.isDeleteable
       ? [
@@ -91,7 +91,10 @@ const TextPopupMenu = (props: Props) => {
     ...(props.onViewProfile
       ? [{icon: 'iconfont-person', onClick: props.onViewProfile, title: 'View profile'}]
       : []),
-  ]
+  ].reduce<Kb.MenuItems>((arr, i) => {
+    i && arr.push(i as Kb.MenuItem)
+    return arr
+  }, [])
 
   const header = {
     title: 'header',
@@ -110,7 +113,7 @@ const TextPopupMenu = (props: Props) => {
     ),
   }
   return (
-    <FloatingMenu
+    <Kb.FloatingMenu
       attachTo={props.attachTo}
       closeOnSelect={true}
       header={header}

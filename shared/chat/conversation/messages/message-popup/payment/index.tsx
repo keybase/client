@@ -12,6 +12,7 @@ import ConnectedUsernames from '../../../../../common-adapters/usernames/contain
 import ProgressIndicator from '../../../../../common-adapters/progress-indicator'
 import Divider from '../../../../../common-adapters/divider'
 import FloatingMenu from '../../../../../common-adapters/floating-menu'
+import {MenuItem, MenuItems} from '../../../../../common-adapters/floating-menu/menu-layout'
 
 // This is actually a dependency of common-adapters/markdown so we have to treat it like a common-adapter, no * import allowed
 // TODO could make this more dynamic to avoid this (aka register with markdown what custom stuff you want)
@@ -153,7 +154,7 @@ const Header = (props: HeaderProps) =>
   )
 
 const PaymentPopup = (props: Props) => {
-  const items = !props.loading
+  const items: MenuItems = !props.loading
     ? [
         ...(props.onCancel
           ? [
@@ -177,7 +178,10 @@ const PaymentPopup = (props: Props) => {
         ...(props.onClaimLumens
           ? [{icon: 'iconfont-stellar-request', onClick: props.onClaimLumens, title: 'Claim lumens'}]
           : []),
-      ]
+      ].reduce<MenuItems>((arr, i) => {
+        i && arr.push(i as MenuItem)
+        return arr
+      }, [])
     : []
 
   // separate out header props

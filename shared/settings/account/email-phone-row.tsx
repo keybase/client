@@ -97,11 +97,11 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
     menuItems.push('Divider')
   }
   const isUndeletableEmail = props.type === 'email' && props.moreThanOneEmail && props.primary
-  const deleteItem = isUndeletableEmail
+  const deleteItem: Kb.MenuItem = isUndeletableEmail
     ? {
         disabled: true,
         icon: 'iconfont-trash',
-        // onClick: null,
+        onClick: null,
         subTitle:
           'You need to delete your other emails, or make another one primary, before you can delete this email.',
         title: 'Delete',

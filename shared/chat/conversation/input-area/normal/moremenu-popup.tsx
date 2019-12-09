@@ -66,7 +66,7 @@ const MoreMenuPopup = (props: Props) => {
   const onInsertSlashCommand = () => onSlashPrefill('/')
 
   // render
-  const items = [
+  const items: Kb.MenuItems = [
     ...(onSendLumens
       ? [
           {
@@ -109,7 +109,10 @@ const MoreMenuPopup = (props: Props) => {
       subTitle: '/...',
       title: 'Other commands',
     },
-  ]
+  ].reduce<Kb.MenuItems>((arr, i) => {
+    i && arr.push(i as Kb.MenuItem)
+    return arr
+  }, [])
   return <Kb.FloatingMenu closeOnSelect={true} items={items} onHidden={onHidden} visible={visible} />
 }
 

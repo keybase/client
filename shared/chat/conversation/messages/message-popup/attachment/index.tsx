@@ -1,6 +1,6 @@
 import * as React from 'react'
 import MessagePopupHeader from '../header'
-import {FloatingMenu, MenuItems} from '../../../../../common-adapters'
+import {FloatingMenu, MenuItem, MenuItems} from '../../../../../common-adapters'
 import {fileUIName, StylesCrossPlatform} from '../../../../../styles'
 import {DeviceType} from '../../../../../constants/types/devices'
 import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
@@ -87,7 +87,10 @@ const AttachmentPopupMenu = (props: Props) => {
     ...(props.onPinMessage
       ? [{icon: 'iconfont-pin', onClick: props.onPinMessage, title: 'Pin message'}]
       : []),
-  ]
+  ].reduce<MenuItems>((arr, i) => {
+    i && arr.push(i as MenuItem)
+    return arr
+  }, [])
 
   const header = {
     title: 'header',

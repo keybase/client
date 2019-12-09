@@ -1,6 +1,6 @@
 import * as React from 'react'
-import {Color, StylesCrossPlatform} from '../../../styles'
-import {IconType} from '../../icon'
+import {Color} from '../../../styles'
+import {IconType, IconStyle} from '../../icon'
 
 export type MenuItem = {
   backgroundColor?: Color
@@ -8,7 +8,7 @@ export type MenuItem = {
   decoration?: React.ReactNode // on the right side. unused if `view` is given,
   disabled?: boolean
   icon?: IconType | null
-  iconStyle?: StylesCrossPlatform
+  iconStyle?: IconStyle
   isBadged?: boolean
   inProgress?: boolean
   newTag?: boolean | null

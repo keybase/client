@@ -125,7 +125,7 @@ class InfoPanelMenu extends React.Component<Props> {
         }
 
     const isAdhoc = !!(props.convProps && props.convProps.teamType === 'adhoc')
-    const items = isAdhoc
+    const items: Kb.MenuItems = (isAdhoc
       ? [this.hideItem(), this.muteItem(), {danger: true, onClick: props.onBlockConv, title: 'Block'}]
       : [
           ...(props.canAddPeople ? addPeopleItems : []),
@@ -140,7 +140,10 @@ class InfoPanelMenu extends React.Component<Props> {
           channelItem,
           {danger: true, icon: 'iconfont-leave', onClick: props.onLeaveTeam, title: 'Leave team'},
           {danger: true, icon: 'iconfont-remove', onClick: props.onBlockConv, title: 'Block team'},
-        ].filter(item => item !== null)
+        ]).reduce<Kb.MenuItems>((arr, i) => {
+          i && arr.push(i as Kb.MenuItem)
+          return arr
+        }, [])
 
     const header = {
       title: 'header',

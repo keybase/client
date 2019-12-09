@@ -3,7 +3,7 @@ import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
 import * as Styles from '../../../styles'
 import * as TeamTypes from '../../../constants/types/teams'
-import {Box2, Button, FloatingMenu, OverlayParentHOC, OverlayParentProps} from '../../../common-adapters'
+import * as Kb from '../../../common-adapters'
 import {connect} from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {appendNewTeamBuilder} from '../../../actions/typed-routes'
@@ -13,7 +13,7 @@ type Props = {
   isGeneralChannel: boolean
   onAddPeople: () => void
   onAddToChannel: () => void
-} & OverlayParentProps
+} & Kb.OverlayParentProps
 
 const _AddPeople = (props: Props) => {
   let menu: React.ReactNode = null
@@ -21,12 +21,12 @@ const _AddPeople = (props: Props) => {
   let directLabel: string | null = null
   if (!props.isGeneralChannel) {
     // general channel & small teams don't need a menu
-    const items = [
+    const items: Kb.MenuItems = [
       {icon: 'iconfont-people', onClick: props.onAddPeople, title: 'To team'},
       {icon: 'iconfont-hash', onClick: props.onAddToChannel, title: 'To channel'},
     ]
     menu = (
-      <FloatingMenu
+      <Kb.FloatingMenu
         attachTo={props.getAttachmentRef}
         visible={props.showingMenu}
         items={items}
@@ -44,9 +44,9 @@ const _AddPeople = (props: Props) => {
     directLabel = 'Add members to channel'
   }
   return (
-    <Box2 direction="vertical" fullWidth={true}>
+    <Kb.Box2 direction="vertical" fullWidth={true}>
       {menu}
-      <Button
+      <Kb.Button
         mode="Primary"
         type="Default"
         onClick={directAction || props.toggleShowingMenu}
@@ -54,7 +54,7 @@ const _AddPeople = (props: Props) => {
         ref={props.setAttachmentRef}
         style={styles.addButtonContainer}
       />
-    </Box2>
+    </Kb.Box2>
   )
 }
 _AddPeople.displayName = 'AddPeople'
@@ -88,7 +88,7 @@ const AddPeople = connect(
     onAddPeople: () => d._onAddPeople(s.teamID),
     onAddToChannel: () => d._onAddToChannel(o.conversationIDKey),
   })
-)(OverlayParentHOC(_AddPeople))
+)(Kb.OverlayParentHOC(_AddPeople))
 
 const styles = Styles.styleSheetCreate(
   () =>
