@@ -164,7 +164,7 @@ class InfoPanelMenu extends React.Component<Props> {
 
     return (
       <>
-        <TeamSubscriberMountOnly />
+        {props.visible && <TeamSubscriberMountOnly />}
         <Kb.FloatingMenu
           attachTo={props.attachTo}
           visible={props.visible}
