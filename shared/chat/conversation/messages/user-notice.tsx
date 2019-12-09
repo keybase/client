@@ -12,6 +12,7 @@ const UserNotice = ({children, noUsername}: Props) => (
   <Kb.Box2
     key="content"
     direction="vertical"
+    alignSelf="flex-start"
     fullWidth={true}
     style={noUsername ? styles.noUsernameShim : {}}
   >
