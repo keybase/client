@@ -1343,7 +1343,8 @@ func PresentConversationErrorLocal(ctx context.Context, g *globals.Context, rawC
 	res.Message = rawConv.Message
 	res.RekeyInfo = rawConv.RekeyInfo
 	res.RemoteConv = PresentRemoteConversation(ctx, g, types.RemoteConversation{
-		Conv: rawConv.RemoteConv,
+		Conv:      rawConv.RemoteConv,
+		ConvIDStr: rawConv.RemoteConv.GetConvID().String(),
 	})
 	res.Typ = rawConv.Typ
 	res.UnverifiedTLFName = rawConv.UnverifiedTLFName
