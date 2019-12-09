@@ -172,10 +172,9 @@ func (c *CmdBlocksListTeams) Run() (err error) {
 	tabw.Init(tui.OutputWriter(), 5, 0, 3, ' ', 0)
 	fmt.Fprintf(tabw, "Team name:\tBlocked at:\n")
 	for _, v := range blocks {
-		tui.Printf("%+v", v)
 		fmt.Fprintf(tabw, "%s\t%s\n",
 			v.TeamName,
-			keybase1.FromTime(v.CreateTime).Format("2006-01-01 15:04 MST"),
+			keybase1.FromTime(v.CreateTime).Format("2006-01-02 15:04 MST"),
 		)
 	}
 	tabw.Flush()
