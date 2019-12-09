@@ -32,10 +32,22 @@ export const VersionTitle = ({title}: {title: string}) => (
   </Kb.Box2>
 )
 
-export const Current = ({seen, onNavigate, onNavigateExternal}: VersionProps) => {
+export const Current = ({seen}: VersionProps) => {
   return (
     <Version>
-      <NewFeatureRow noSeparator={true} seen={seen} image={'release-4.7.0-fast-user-switching'}>
+      <NewFeatureRow noSeparator={true} seen={seen} image="release-5.1.0-blocking">
+        We heard you. You can now block and report spammers from the chat conversation or from people's
+        profiles.
+      </NewFeatureRow>
+    </Version>
+  )
+}
+
+export const Last = ({seen, onNavigate, onNavigateExternal}: VersionProps) => {
+  return (
+    <Version>
+      <VersionTitle title="Last release" />
+      <NewFeatureRow noSeparator={true} seen={seen} image="release-4.7.0-fast-user-switching">
         You can now quickly switch between all your signed in accounts from the user menu.
       </NewFeatureRow>
       <NewFeatureRow seen={seen} image="release-4.8.0-file-sync">
@@ -90,14 +102,6 @@ export const Current = ({seen, onNavigate, onNavigateExternal}: VersionProps) =>
         {` `}
         to get updates and new features.
       </NewFeatureRow>
-    </Version>
-  )
-}
-
-export const Last = (_: VersionProps) => {
-  return (
-    <Version>
-      <VersionTitle title="Last release" />
     </Version>
   )
 }
