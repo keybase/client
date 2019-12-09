@@ -75,7 +75,7 @@ import (
 )
 
 func previewVideo(ctx context.Context, log utils.DebugLabeler, src io.Reader,
-	basename string, nvh types.NativeVideoHelper) (res *PreviewRes, err error) {
+	basename string, nvh types.NativeVideoHelper, dimension Dimension) (res *PreviewRes, err error) {
 	defer log.Trace(ctx, func() error { return err }, "previewVideo")()
 	C.MakeVideoThumbnail(C.CString(basename))
 	duration := int(C.VideoDuration())
@@ -91,7 +91,7 @@ func previewVideo(ctx context.Context, log utils.DebugLabeler, src io.Reader,
 	}
 	localDat := make([]byte, C.ImageLength())
 	copy(localDat, (*[1 << 30]byte)(unsafe.Pointer(C.ImageData()))[0:C.ImageLength()])
-	imagePreview, err := previewImage(ctx, log, bytes.NewReader(localDat), basename, "image/jpeg")
+	imagePreview, err := previewImage(ctx, log, bytes.NewReader(localDat), basename, "image/jpeg", dimension)
 	if err != nil {
 		return res, err
 	}

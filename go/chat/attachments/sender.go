@@ -70,8 +70,8 @@ func (s *Sender) makeBaseAttachmentMessage(ctx context.Context, tlfName string, 
 
 	var assetMetadata chat1.AssetMetadata
 	if pre, err := s.preprocess(ctx, filename, callerPreview); err != nil {
-		// If we can't generate a preview here, let's not blow the whole thing up, we can try
-		// again when we are actually uploading the attachment
+		// If we can't generate a preview here, let's not blow the whole thing
+		// up, we can try again when we are actually uploading the attachment
 		s.Debug(ctx, "makeBaseAttachmentMessage: failed to process caller preview, skipping: %s", err)
 	} else {
 		if err := NewPendingPreviews(s.G()).Put(ctx, outboxID, pre); err != nil {

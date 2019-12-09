@@ -12,7 +12,7 @@ import (
 )
 
 func previewVideo(ctx context.Context, log utils.DebugLabeler, src io.Reader,
-	basename string, nvh types.NativeVideoHelper) (res *PreviewRes, err error) {
+	basename string, nvh types.NativeVideoHelper, dimension Dimension) (res *PreviewRes, err error) {
 	defer log.Trace(ctx, func() error { return err }, "previewVideo")()
 	dat, duration, err := nvh.ThumbnailAndDuration(ctx, basename)
 	if err != nil {
@@ -21,7 +21,7 @@ func previewVideo(ctx context.Context, log utils.DebugLabeler, src io.Reader,
 	log.Debug(ctx, "previewVideo: size: %d duration: %d", len(dat), duration)
 	if len(dat) == 0 {
 		log.Debug(ctx, "failed to generate preview from native, using blank image")
-		return previewVideoBlank(ctx, log, src, basename)
+		return previewVideoBlank(ctx, log, src, basename, dimension)
 	}
 	imagePreview, err := previewImage(ctx, log, bytes.NewReader(dat), basename, "image/jpeg")
 	if err != nil {
