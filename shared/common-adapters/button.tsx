@@ -187,7 +187,7 @@ const common = () =>
     isElectron: {
       display: 'inline-block',
       lineHeight: 'inherit',
-      minWidth: '100px',
+      minWidth: 100,
       paddingLeft: Styles.globalMargins.medium,
       paddingRight: Styles.globalMargins.medium,
     },
@@ -214,7 +214,7 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
   narrow: Styles.platformStyles({
     isElectron: {
-      minWidth: '50px',
+      minWidth: 50,
       paddingLeft: Styles.globalMargins.small,
       paddingRight: Styles.globalMargins.small,
     },
