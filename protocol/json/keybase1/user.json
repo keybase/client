@@ -517,6 +517,22 @@
           "name": "setFollowBlock"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "TeamBlock",
+      "fields": [
+        {
+          "type": "string",
+          "name": "teamName",
+          "jsonkey": "fq_name"
+        },
+        {
+          "type": "Time",
+          "name": "createTime",
+          "jsonkey": "ctime"
+        }
+      ]
     }
   ],
   "messages": {
@@ -986,6 +1002,18 @@
         }
       ],
       "response": null
+    },
+    "getTeamBlocks": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "TeamBlock"
+      }
     }
   },
   "namespace": "keybase.1"
