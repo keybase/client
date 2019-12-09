@@ -31,6 +31,7 @@ const Joined = (props: Props) => {
         <AuthorAndAvatar {...props} username={props.joiners[0]} />
         <Kb.Box2
           direction="vertical"
+          alignSelf="flex-start"
           style={Styles.collapseStyles([
             styles.contentUnderAuthorContainer,
             props.leavers.length > 0 && styles.joinerPadding,
@@ -46,7 +47,7 @@ const Joined = (props: Props) => {
     props.leavers.length == 1 ? (
       <>
         <AuthorAndAvatar {...props} username={props.leavers[0]} />
-        <Kb.Box2 direction="vertical" style={styles.contentUnderAuthorContainer}>
+        <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.contentUnderAuthorContainer}>
           <JoinedUserNotice {...props} joiners={[]} leavers={props.leavers} />
         </Kb.Box2>
       </>
@@ -55,15 +56,20 @@ const Joined = (props: Props) => {
     ) : null
 
   return (
-    <Kb.Box direction="vertical" style={{paddingTop: Styles.globalMargins.xtiny}}>
+    <Kb.Box2
+      direction="vertical"
+      style={{paddingTop: Styles.globalMargins.xtiny}}
+      fullWidth={true}
+      alignSelf="flex-start"
+    >
       {joinMsg}
       {leaveMsg}
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 
 const MultiUserJoinedNotice = (props: Props) => (
-  <Kb.Box2 direction="vertical">
+  <Kb.Box2 direction="vertical" fullWidth={true} alignSelf="flex-start">
     <UserNotice noUsername={true}>
       {!!props.timestamp && (
         <Kb.Text type="BodyTiny" style={styles.timestamp}>
@@ -135,17 +141,6 @@ const AuthorAndAvatar = (props: {
         type="BodySmallBold"
         usernames={[props.username]}
       />
-      {/* {this.props.showCrowns && (this.props.authorIsOwner || this.props.authorIsAdmin) && (
-        <Kb.WithTooltip tooltip={this.props.authorIsOwner ? 'Owner' : 'Admin'}>
-          <Kb.Icon
-            color={
-              this.props.authorIsOwner ? Styles.globalColors.yellowDark : Styles.globalColors.black_35
-            }
-            fontSize={10}
-            type="iconfont-crown-owner"
-          />
-        </Kb.WithTooltip>
-      )} */}
       <Kb.Text type="BodyTiny" style={styles.timestamp}>
         {formatTimeForChat(props.timestamp)}
       </Kb.Text>
