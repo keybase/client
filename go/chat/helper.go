@@ -478,6 +478,10 @@ func (r *recentConversationParticipants) get(ctx context.Context, myUID gregor1.
 			if uid.Eq(myUID) {
 				continue
 			}
+			if conv.Conv.Metadata.Status == chat1.ConversationStatus_BLOCKED ||
+				conv.Conv.Metadata.Status == chat1.ConversationStatus_REPORTED {
+				continue
+			}
 			m[uid.String()] += r.getActiveScore(ctx, conv.Conv)
 		}
 	}
