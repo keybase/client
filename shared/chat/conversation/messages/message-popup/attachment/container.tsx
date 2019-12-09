@@ -4,7 +4,7 @@ import * as FsGen from '../../../../../actions/fs-gen'
 import * as Constants from '../../../../../constants/chat2'
 import * as Types from '../../../../../constants/types/chat2'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
-import {getCanPerform} from '../../../../../constants/teams'
+import {getCanPerformByID} from '../../../../../constants/teams'
 import * as Container from '../../../../../util/container'
 import {isMobile, isIOS} from '../../../../../constants/platform'
 import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
@@ -24,7 +24,7 @@ export default Container.connect(
   (state, ownProps: OwnProps) => {
     const message = ownProps.message
     const meta = Constants.getMeta(state, message.conversationIDKey)
-    const yourOperations = getCanPerform(state, meta.teamname)
+    const yourOperations = getCanPerformByID(state, meta.teamID)
     const _canDeleteHistory = yourOperations && yourOperations.deleteChatHistory
     const _canAdminDelete = yourOperations && yourOperations.deleteOtherMessages
     let _canPinMessage = true

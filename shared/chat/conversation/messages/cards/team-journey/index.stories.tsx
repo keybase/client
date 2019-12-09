@@ -82,14 +82,6 @@ And you're in all the other channels, nice.`}
         text="Zzz… This channel hasn’t been very active…. Revive it?"
       />
     ))
-    .add('Stuff you missed', () => (
-      <TeamJourney
-        actions={[{label: 'Scroll back in time', onClick: Sb.action('onBackInTime')}]}
-        image="icon-illustration-long-time-96"
-        teamname="foo"
-        text="Long time no see… Look at all the things you missed."
-      />
-    ))
     .add('Message not answered', () => (
       <TeamJourney
         actions={[

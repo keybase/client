@@ -3497,10 +3497,14 @@ func (s *TeamBotSettings) Eq(o *TeamBotSettings) bool {
 func (b UserBlockedBody) Summarize() UserBlockedSummary {
 	ret := UserBlockedSummary{
 		Blocker: b.Username,
+		Blocks:  make(map[string][]UserBlockState),
 	}
 	for _, block := range b.Blocks {
-		if (block.Chat != nil && *block.Chat) || (block.Follow != nil && *block.Follow) {
-			ret.Blocked = append(ret.Blocked, block.Username)
+		if block.Chat != nil {
+			ret.Blocks[block.Username] = append(ret.Blocks[block.Username], UserBlockState{UserBlockType_CHAT, *block.Chat})
+		}
+		if block.Follow != nil {
+			ret.Blocks[block.Username] = append(ret.Blocks[block.Username], UserBlockState{UserBlockType_FOLLOW, *block.Follow})
 		}
 	}
 	return ret

@@ -1,3 +1,5 @@
+// Any additions to this file should also be added to ./index-impl.tsx
+
 export {OverlayParentProps, PropsWithOverlay} from './overlay/parent-hoc'
 export {MenuItem, MenuItems} from './floating-menu/menu-layout'
 export {PropsWithTimer} from './hoc-timers'
@@ -101,6 +103,7 @@ export {PlaintextUsernames, Usernames} from './usernames'
 export {default as UserCard} from './user-card'
 export {default as ConnectedUsernames} from './usernames/container'
 export {default as WaitingButton} from './waiting-button'
+export {default as WaveButton} from './wave-button'
 export {useTimeout, useInterval} from './use-timers'
 export {default as useMounted} from './use-mounted'
 export {default as HOCTimers} from './hoc-timers'

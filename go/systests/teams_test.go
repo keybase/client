@@ -1982,6 +1982,13 @@ func TestTeamMetadataUpdateNotifications(t *testing.T) {
 	require.NoError(tt.users[0].tc.T, err)
 	tt.users[1].waitForMetadataUpdateGregor("team deleted")
 
+	err = tt.users[1].teamsClient.SetTeamMemberShowcase(context.Background(), keybase1.SetTeamMemberShowcaseArg{
+		Name:        parentName.String(),
+		IsShowcased: true,
+	})
+	require.NoError(tt.users[1].tc.T, err)
+	tt.users[1].waitForMetadataUpdateGregor("change member showcase")
+
 	tt.users[1].waitForNoMetadataUpdatesGregor()
 }
 

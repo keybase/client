@@ -426,6 +426,32 @@ func (o UserBlockedRow) DeepCopy() UserBlockedRow {
 	}
 }
 
+type UserBlockType int
+
+const (
+	UserBlockType_CHAT   UserBlockType = 0
+	UserBlockType_FOLLOW UserBlockType = 1
+)
+
+func (o UserBlockType) DeepCopy() UserBlockType { return o }
+
+var UserBlockTypeMap = map[string]UserBlockType{
+	"CHAT":   0,
+	"FOLLOW": 1,
+}
+
+var UserBlockTypeRevMap = map[UserBlockType]string{
+	0: "CHAT",
+	1: "FOLLOW",
+}
+
+func (e UserBlockType) String() string {
+	if v, ok := UserBlockTypeRevMap[e]; ok {
+		return v
+	}
+	return fmt.Sprintf("%v", int(e))
+}
+
 type UserBlockedBody struct {
 	Blocks   []UserBlockedRow `codec:"blocks" json:"blocks"`
 	Uid      UID              `codec:"uid" json:"blocker_uid"`
@@ -450,25 +476,48 @@ func (o UserBlockedBody) DeepCopy() UserBlockedBody {
 	}
 }
 
+type UserBlockState struct {
+	BlockType UserBlockType `codec:"blockType" json:"blockType"`
+	Blocked   bool          `codec:"blocked" json:"blocked"`
+}
+
+func (o UserBlockState) DeepCopy() UserBlockState {
+	return UserBlockState{
+		BlockType: o.BlockType.DeepCopy(),
+		Blocked:   o.Blocked,
+	}
+}
+
 type UserBlockedSummary struct {
-	Blocker string   `codec:"blocker" json:"blocker"`
-	Blocked []string `codec:"blocked" json:"blocked"`
+	Blocker string                      `codec:"blocker" json:"blocker"`
+	Blocks  map[string][]UserBlockState `codec:"blocks" json:"blocks"`
 }
 
 func (o UserBlockedSummary) DeepCopy() UserBlockedSummary {
 	return UserBlockedSummary{
 		Blocker: o.Blocker,
-		Blocked: (func(x []string) []string {
+		Blocks: (func(x map[string][]UserBlockState) map[string][]UserBlockState {
 			if x == nil {
 				return nil
 			}
-			ret := make([]string, len(x))
-			for i, v := range x {
-				vCopy := v
-				ret[i] = vCopy
+			ret := make(map[string][]UserBlockState, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := (func(x []UserBlockState) []UserBlockState {
+					if x == nil {
+						return nil
+					}
+					ret := make([]UserBlockState, len(x))
+					for i, v := range x {
+						vCopy := v.DeepCopy()
+						ret[i] = vCopy
+					}
+					return ret
+				})(v)
+				ret[kCopy] = vCopy
 			}
 			return ret
-		})(o.Blocked),
+		})(o.Blocks),
 	}
 }
 
