@@ -11,6 +11,7 @@ type Props = {
   isDefaultWallet: boolean
   keybaseUser: string
   onBack: (() => void) | null
+  onBuy: () => void
   onReceive: () => void
   onSettings: () => void
   thisDeviceIsLockedOut: boolean
@@ -91,6 +92,15 @@ const Header = (props: Props) => {
               onClick={props.onReceive}
               label="Receive"
               disabled={!props.walletName}
+              narrow={Styles.isMobile}
+            />
+            <Kb.Button
+              type="Wallet"
+              mode="Secondary"
+              onClick={props.onBuy}
+              label="Buy"
+              disabled={!props.walletName}
+              narrow={Styles.isMobile}
             />
             <Kb.Button
               onClick={props.onSettings}
