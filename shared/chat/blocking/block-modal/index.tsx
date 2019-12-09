@@ -53,7 +53,12 @@ const CheckboxRow = (props: CheckboxRowProps) => (
     />
     <Kb.Box style={styles.iconBox} />
     {props.info && (
-      <Kb.WithTooltip tooltip={props.info} showOnPressMobile={true}>
+      <Kb.WithTooltip
+        tooltip={props.info}
+        showOnPressMobile={true}
+        position={Styles.isMobile ? 'bottom center' : 'top center'}
+        multiline={true}
+      >
         <Kb.Icon type="iconfont-question-mark" color="grey" />
       </Kb.WithTooltip>
     )}
@@ -375,6 +380,7 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   loadingAnimationBox: {
+    alignSelf: 'center',
     padding: Styles.globalMargins.medium,
   },
   radioButton: {marginLeft: Styles.globalMargins.large},

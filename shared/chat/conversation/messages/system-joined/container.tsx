@@ -1,8 +1,9 @@
 import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import * as ProfileGen from '../../../../actions/profile-gen'
 import Joined from '.'
-import {connect, isMobile} from '../../../../util/container'
+import * as Container from '../../../../util/container'
 
 type OwnProps = {
   message: Types.MessageSystemJoined
@@ -18,8 +19,9 @@ const mapStateToProps = (state, {message}) => ({
 })
 
 const mapDispatchToProps = dispatch => ({
+  _onAuthorClick: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
   _onManageChannels: (teamname: string) =>
-    isMobile
+    Container.isMobile
       ? dispatch(
           RouteTreeGen.createNavigateAppend({
             path: [{props: {teamname}, selected: 'chatManageChannels'}],
@@ -45,6 +47,7 @@ const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
     isBigTeam: _meta.teamType === 'big',
     joiners: stateProps.joiners,
     leavers: stateProps.leavers,
+    onAuthorClick: (username: string) => dispatchProps._onAuthorClick(username),
     onManageChannels: () => dispatchProps._onManageChannels(_meta.teamname),
     onManageNotifications: () => dispatchProps._onManageNotifications(_meta.conversationIDKey),
     teamname: _meta.teamname,
@@ -52,4 +55,4 @@ const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Joined)
+export default Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(Joined)

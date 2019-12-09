@@ -4,15 +4,16 @@ import * as Styles from '../../../styles'
 
 export type Props = {
   children?: React.ReactNode
-  hideAvatar?: boolean
+  noUsername?: boolean
+  showAvatar?: boolean
 }
 
-const UserNotice = ({children, hideAvatar}: Props) => (
+const UserNotice = ({children, noUsername}: Props) => (
   <Kb.Box2
     key="content"
     direction="vertical"
     fullWidth={true}
-    style={hideAvatar ? styles.noUsernameShim : {}}
+    style={noUsername ? styles.noUsernameShim : {}}
   >
     {children}
   </Kb.Box2>
@@ -24,7 +25,6 @@ const styles = Styles.styleSheetCreate(
       noUsernameShim: Styles.platformStyles({
         common: {
           paddingBottom: Styles.globalMargins.xtiny,
-          paddingTop: Styles.globalMargins.xtiny,
         },
         isElectron: {
           marginLeft: Styles.globalMargins.small,

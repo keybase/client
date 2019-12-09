@@ -270,7 +270,8 @@
     "messageSend": {
       "conversationIDKey": "Types.ConversationIDKey",
       "text": "HiddenString",
-      "replyTo?": "Types.MessageID"
+      "replyTo?": "Types.MessageID",
+      "waitingKey?": "string"
     },
     "messageSendByUsernames": {
       "usernames": "string",
