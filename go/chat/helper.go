@@ -499,7 +499,7 @@ func RecentConversationParticipants(ctx context.Context, g *globals.Context, myU
 }
 
 func PresentConversationLocalWithFetchRetry(ctx context.Context, g *globals.Context,
-	uid gregor1.UID, conv chat1.ConversationLocal) (pc *chat1.InboxUIItem) {
+	uid gregor1.UID, conv chat1.ConversationLocal, partMode utils.PresentParticipantsMode) (pc *chat1.InboxUIItem) {
 	shouldPresent := true
 	if conv.Error != nil {
 		// If we get a transient failure, add this to the retrier queue
@@ -513,7 +513,7 @@ func PresentConversationLocalWithFetchRetry(ctx context.Context, g *globals.Cont
 	}
 	if shouldPresent {
 		pc = new(chat1.InboxUIItem)
-		*pc = utils.PresentConversationLocal(ctx, g, uid, conv)
+		*pc = utils.PresentConversationLocal(ctx, g, uid, conv, partMode)
 	}
 	return pc
 }

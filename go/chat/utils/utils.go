@@ -1374,8 +1374,15 @@ func presentConversationParticipantsLocal(ctx context.Context, rawParticipants [
 	return participants
 }
 
+type PresentParticipantsMode int
+
+const (
+	PresentParticipantsModeInclude PresentParticipantsMode = iota
+	PresentParticipantsModeSkip
+)
+
 func PresentConversationLocal(ctx context.Context, g *globals.Context, uid gregor1.UID,
-	rawConv chat1.ConversationLocal) (res chat1.InboxUIItem) {
+	rawConv chat1.ConversationLocal, partMode PresentParticipantsMode) (res chat1.InboxUIItem) {
 	res.ConvID = rawConv.GetConvID().String()
 	res.TlfID = rawConv.Info.Triple.Tlfid.String()
 	res.TopicType = rawConv.GetTopicType()
@@ -1385,7 +1392,6 @@ func PresentConversationLocal(ctx context.Context, g *globals.Context, uid grego
 	res.Channel = rawConv.Info.TopicName
 	res.Headline = rawConv.Info.Headline
 	res.HeadlineDecorated = DecorateWithLinks(ctx, EscapeForDecorate(ctx, rawConv.Info.Headline))
-	res.Participants = presentConversationParticipantsLocal(ctx, rawConv.Info.Participants)
 	res.ResetParticipants = rawConv.Info.ResetNames
 	res.Status = rawConv.Info.Status
 	res.MembersType = rawConv.GetMembersType()
@@ -1417,13 +1423,17 @@ func PresentConversationLocal(ctx context.Context, g *globals.Context, uid grego
 			rawConv.GetConvID())
 		res.PinnedMsg.PinnerUsername = rawConv.Info.PinnedMsg.PinnerUsername
 	}
+	switch partMode {
+	case PresentParticipantsModeInclude:
+		res.Participants = presentConversationParticipantsLocal(ctx, rawConv.Info.Participants)
+	}
 	return res
 }
 
 func PresentConversationLocals(ctx context.Context, g *globals.Context, uid gregor1.UID,
-	convs []chat1.ConversationLocal) (res []chat1.InboxUIItem) {
+	convs []chat1.ConversationLocal, partMode PresentParticipantsMode) (res []chat1.InboxUIItem) {
 	for _, conv := range convs {
-		res = append(res, PresentConversationLocal(ctx, g, uid, conv))
+		res = append(res, PresentConversationLocal(ctx, g, uid, conv, partMode))
 	}
 	return res
 }
