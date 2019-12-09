@@ -1,5 +1,5 @@
 run:
-  skip-files: 
+  skip-files:
     prot.go
 
 linters-settings:
