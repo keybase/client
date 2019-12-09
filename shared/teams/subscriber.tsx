@@ -4,6 +4,9 @@ import * as TeamsGen from '../actions/teams-gen'
 import {NavigationEventCallback} from '@react-navigation/core'
 import {useNavigationEvents} from '../util/navigation-hooks'
 
+// NOTE: If you are in a floating box or otherwise outside the navigation
+// context, you must use `useTeamsSubscribeMountOnly`
+
 const useTeamsSubscribeMobile = () => {
   const dispatch = Container.useDispatch()
   const callback: NavigationEventCallback = e => {
@@ -28,6 +31,7 @@ const useTeamsSubscribeDesktop = () => {
   }, [])
 }
 export const useTeamsSubscribe = Container.isMobile ? useTeamsSubscribeMobile : useTeamsSubscribeDesktop
+export const useTeamsSubscribeMountOnly = useTeamsSubscribeDesktop
 
 // Dummy component to add to a view to trigger team meta subscription behavior
 export const TeamSubscriber = () => {

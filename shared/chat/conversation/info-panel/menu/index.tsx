@@ -4,6 +4,7 @@ import * as Styles from '../../../../styles'
 import * as ChatTypes from '../../../../constants/types/chat2'
 import * as TeamTypes from '../../../../constants/types/teams'
 import {Avatars, TeamAvatar} from '../../../avatars'
+import {useTeamsSubscribeMountOnly} from '../../../../teams/subscriber'
 
 export type ConvProps = {
   fullname: string
@@ -78,6 +79,7 @@ type TeamHeaderProps = {
   onViewTeam: () => void
 }
 const TeamHeader = (props: TeamHeaderProps) => {
+  useTeamsSubscribeMountOnly()
   return (
     <Kb.Box2 direction="vertical" gap="tiny" gapStart={false} gapEnd={true} style={styles.headerContainer}>
       <TeamAvatar teamname={props.teamname} isMuted={props.isMuted} isSelected={false} isHovered={false} />
