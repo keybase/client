@@ -1569,6 +1569,7 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.local.setBotMemberSettings'
 // 'chat.1.local.getBotMemberSettings'
 // 'chat.1.local.teamIDFromTLFName'
+// 'chat.1.local.dismissJourneycard'
 // 'chat.1.NotifyChat.NewChatActivity'
 // 'chat.1.NotifyChat.ChatIdentifyUpdate'
 // 'chat.1.NotifyChat.ChatTLFFinalize'
