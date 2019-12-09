@@ -375,10 +375,10 @@ func (h *TeamsHandler) TeamRemoveMember(ctx context.Context, arg keybase1.TeamRe
 
 	if len(arg.Email) > 0 {
 		h.G().Log.CDebugf(ctx, "TeamRemoveMember: received email address, using CancelEmailInvite for %q in team %q", arg.Email, arg.TeamID)
-		return teams.CancelEmailInvite(ctx, h.G().ExternalG(), arg.Name, arg.Email, arg.AllowInaction)
+		return teams.CancelEmailInvite(ctx, h.G().ExternalG(), arg.TeamID, arg.Email, arg.AllowInaction)
 	} else if len(arg.InviteID) > 0 {
 		h.G().Log.CDebugf(ctx, "TeamRemoveMember: received inviteID, using CancelInviteByID for %q in team %q", arg.InviteID, arg.TeamID)
-		return teams.CancelInviteByID(ctx, h.G().ExternalG(), arg.Name, arg.InviteID, arg.AllowInaction)
+		return teams.CancelInviteByID(ctx, h.G().ExternalG(), arg.TeamID, arg.InviteID, arg.AllowInaction)
 	}
 	// Note: AllowInaction is not supported for non-invite removes.
 	h.G().Log.CDebugf(ctx, "TeamRemoveMember: using RemoveMember for %q in team %q", arg.Username, arg.TeamID)

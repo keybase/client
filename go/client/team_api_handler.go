@@ -379,8 +379,13 @@ func (t *teamAPIHandler) removeMember(ctx context.Context, c Call, w io.Writer) 
 		return t.encodeErr(c, err, w)
 	}
 
+	teamID, err := t.cli.GetTeamID(ctx, opts.Team)
+	if err != nil {
+		return err
+	}
+
 	arg := keybase1.TeamRemoveMemberArg{
-		Name:     opts.Team,
+		TeamID:   teamID,
 		Username: opts.Username,
 	}
 	if err := t.cli.TeamRemoveMember(ctx, arg); err != nil {
