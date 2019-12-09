@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
-import {formatTimeForChat} from '../../../../util/timestamp'
+import UserNotice from '../user-notice'
 
 type Props = {
   channelname: string
@@ -11,16 +11,9 @@ type Props = {
 }
 
 export default (props: Props) => (
-  <Kb.Box2 direction="vertical" fullWidth={true}>
-    <Kb.Text type="BodyTiny">{formatTimeForChat(props.timestamp)}</Kb.Text>
-    <Kb.ConnectedUsernames
-      type="BodySmallSemibold"
-      suffixType="BodySmall"
-      onUsernameClicked="profile"
-      colorFollowing={true}
-      underline={true}
-      usernames={props.leavers}
-      suffix={` left ${props.isBigTeam ? `#${props.channelname}` : props.teamname}.`}
-    />
-  </Kb.Box2>
+  <UserNotice>
+    <Kb.Text type="BodySmall">{` left ${
+      props.isBigTeam ? `#${props.channelname}` : props.teamname
+    }.`}</Kb.Text>
+  </UserNotice>
 )
