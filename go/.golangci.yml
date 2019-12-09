@@ -1,12 +1,12 @@
 run:
-  skip-files: prot.go
+  skip-files:
+    prot.go
 
 linters-settings:
   gocritic:
     disabled-checks:
       - ifElseChain
       - elseif
-      - singleCaseSwitch
 
 linters:
   enable:

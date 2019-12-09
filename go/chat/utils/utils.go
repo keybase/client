@@ -1426,6 +1426,7 @@ func PresentConversationLocal(ctx context.Context, g *globals.Context, uid grego
 	switch partMode {
 	case PresentParticipantsModeInclude:
 		res.Participants = presentConversationParticipantsLocal(ctx, rawConv.Info.Participants)
+	default:
 	}
 	return res
 }
