@@ -7,7 +7,6 @@ linters-settings:
     disabled-checks:
       - ifElseChain
       - elseif
-      - singleCaseSwitch
 
 linters:
   enable:

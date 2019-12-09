@@ -511,6 +511,7 @@ func (t *UIThreadLoader) shouldIgnoreError(err error) bool {
 	switch err {
 	case context.Canceled:
 		return true
+	default:
 	}
 	return false
 }
