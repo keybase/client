@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {Box2} from './box'
+import {Box2, Box} from './box'
 import Icon from './icon'
 import Text from './text'
 import Button from './button'
@@ -12,6 +12,7 @@ import * as ChatTypes from '../constants/types/chat2'
 import logger from '../logger'
 
 const Kb = {
+  Box,
   Box2,
   Button,
   Emoji,
@@ -64,23 +65,29 @@ export const WaveButton = (props: Props) => {
   }
 
   const waveText = props.toMany ? 'Wave at everyone' : 'Wave'
-  return waved && !waving ? (
-    <Kb.Box2
-      direction="horizontal"
-      centerChildren={true}
-      style={Styles.collapseStyles([props.style, styles.waved])}
-      gap="xtiny"
-    >
-      <Kb.Icon type="iconfont-check" color={Styles.globalColors.black_50} sizeType="Tiny" />
-      <Kb.Text type="BodySmall"> Waved</Kb.Text>
-    </Kb.Box2>
-  ) : (
-    <Kb.Button onClick={onWave} small={props.small} mode="Secondary" waiting={waving} style={props.style}>
-      <Kb.Text type="BodyBig" style={styles.blueText}>
-        {waveText}
-      </Kb.Text>
-      <Kb.Emoji emojiName=":wave:" size={18} />
-    </Kb.Button>
+
+  const hideButton = waved && !waving
+  return (
+    <Kb.Box style={Styles.collapseStyles([props.style, styles.outer])}>
+      {hideButton && (
+        <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.waved} gap="xtiny">
+          <Kb.Icon type="iconfont-check" color={Styles.globalColors.black_50} sizeType="Tiny" />
+          <Kb.Text type="BodySmall"> Waved</Kb.Text>
+        </Kb.Box2>
+      )}
+      <Kb.Button
+        onClick={hideButton ? undefined : onWave}
+        small={props.small}
+        style={hideButton ? styles.hiddenButton : styles.button}
+        mode="Secondary"
+        waiting={waving}
+      >
+        <Kb.Text type="BodyBig" style={styles.blueText}>
+          {waveText}
+        </Kb.Text>
+        <Kb.Emoji emojiName=":wave:" size={18} />
+      </Kb.Button>
+    </Kb.Box>
   )
 }
 
@@ -88,9 +95,12 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       blueText: {color: Styles.globalColors.blueDark, paddingRight: Styles.globalMargins.xtiny},
+      button: {},
+      hiddenButton: {opacity: 0},
+      outer: {flexShrink: 0},
       waved: {
         ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small, Styles.globalMargins.xtiny),
-        minWidth: 94,
+        position: 'absolute',
       },
     } as const)
 )
