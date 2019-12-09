@@ -155,6 +155,15 @@
       "inviteID": "string",
       "loadingKey?": "string"
     },
+    "removeMember": {
+      "teamID": "Types.TeamID",
+      "username": "string"
+    },
+    "removePendingInvite": {
+      "teamID": "Types.TeamID",
+      "email?": "string",
+      "inviteID?": "string"
+    },
     "ignoreRequest": {
       "teamname": "string",
       "username": "string"
