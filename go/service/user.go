@@ -756,7 +756,7 @@ func (h *UserHandler) GetUserBlocks(ctx context.Context, arg keybase1.GetUserBlo
 func (h *UserHandler) GetTeamBlocks(ctx context.Context, _ int) (res []keybase1.TeamBlock, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
 
-	defer mctx.TraceTimed(fmt.Sprintf("UserHandler#GetTeamBlocks()"), func() error { return err })()
+	defer mctx.TraceTimed("UserHandler#GetTeamBlocks()", func() error { return err })()
 
 	apiArg := libkb.APIArg{
 		Endpoint:    "team/blocks",
