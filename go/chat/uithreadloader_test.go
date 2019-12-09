@@ -386,9 +386,13 @@ func TestUIThreadLoaderSingleFlight(t *testing.T) {
 	go func() {
 		cb <- uil.LoadNonblock(ctx, chatUI, uid, conv.Id, chat1.GetThreadReason_GENERAL,
 			chat1.GetThreadNonblockPgMode_DEFAULT, chat1.GetThreadNonblockCbMode_INCREMENTAL, nil, nil)
+	}()
+	go func() {
 		cb2 <- uil.LoadNonblock(ctx, chatUI, uid, conv.Id, chat1.GetThreadReason_GENERAL,
 			chat1.GetThreadNonblockPgMode_DEFAULT, chat1.GetThreadNonblockCbMode_INCREMENTAL, nil, nil)
 	}()
+	time.Sleep(time.Second)
+	errors := 0
 	select {
 	case res := <-chatUI.ThreadCb:
 		require.False(t, res.Full)
@@ -406,13 +410,17 @@ func TestUIThreadLoaderSingleFlight(t *testing.T) {
 	}
 	select {
 	case err := <-cb:
-		require.NoError(t, err)
+		if err != nil {
+			errors++
+		}
 	case <-time.After(timeout):
 		require.Fail(t, "no end")
 	}
 	select {
 	case err := <-cb2:
-		require.Error(t, err)
+		if err != nil {
+			errors++
+		}
 	case <-time.After(timeout):
 		require.Fail(t, "no end")
 	}
@@ -421,4 +429,5 @@ func TestUIThreadLoaderSingleFlight(t *testing.T) {
 		require.Fail(t, "no status cbs")
 	default:
 	}
+	require.Equal(t, 1, errors)
 }
