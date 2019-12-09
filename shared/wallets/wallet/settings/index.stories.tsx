@@ -40,6 +40,7 @@ const testCurrencies = [
 
 const externalPartner = {
   adminOnly: false,
+  canPurchase: false,
   description: 'Example description.',
   extra: 'Example extra.',
   iconFilename: 'iconfont-identity-stellar',
