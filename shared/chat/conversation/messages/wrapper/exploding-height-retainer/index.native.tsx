@@ -204,7 +204,7 @@ const AshTower = (props: {explodedBy?: string; numImages: number; showExploded: 
     children.push(
       <Kb.NativeImage
         key={i}
-        source={Styles.isDarkMode ? explodedIllustrationDarkURL : explodedIllustrationURL}
+        source={Styles.isDarkMode() ? explodedIllustrationDarkURL : explodedIllustrationURL}
         style={styles.ashes}
       />
     )
