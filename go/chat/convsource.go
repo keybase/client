@@ -409,7 +409,7 @@ func NewHybridConversationSource(g *globals.Context, b *Boxer, storage *storage.
 		baseConversationSource: newBaseConversationSource(g, ri, b),
 		storage:                storage,
 		lockTab:                utils.NewConversationLockTab(g),
-		numExpungeReload:       100,
+		numExpungeReload:       50,
 	}
 }
 

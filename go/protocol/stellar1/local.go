@@ -1220,6 +1220,7 @@ type PartnerUrl struct {
 	Description  string `codec:"description" json:"description"`
 	IconFilename string `codec:"iconFilename" json:"icon_filename"`
 	AdminOnly    bool   `codec:"adminOnly" json:"admin_only"`
+	CanPurchase  bool   `codec:"canPurchase" json:"can_purchase"`
 	Extra        string `codec:"extra" json:"extra"`
 }
 
@@ -1230,6 +1231,7 @@ func (o PartnerUrl) DeepCopy() PartnerUrl {
 		Description:  o.Description,
 		IconFilename: o.IconFilename,
 		AdminOnly:    o.AdminOnly,
+		CanPurchase:  o.CanPurchase,
 		Extra:        o.Extra,
 	}
 }

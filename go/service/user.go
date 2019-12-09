@@ -648,6 +648,7 @@ func (h *UserHandler) SetUserBlocks(ctx context.Context, arg keybase1.SetUserBlo
 		h.G().Log.CDebugf(ctx, "SetUserBlocks: adding block: %+v", block)
 	}
 	payloadBlocks := make([]setBlockArg, len(arg.Blocks))
+	uids := make([]keybase1.UID, len(arg.Blocks))
 	for i, v := range arg.Blocks {
 		uid := libkb.GetUIDByUsername(h.G(), v.Username)
 		payloadBlocks[i] = setBlockArg{
@@ -655,6 +656,7 @@ func (h *UserHandler) SetUserBlocks(ctx context.Context, arg keybase1.SetUserBlo
 			Chat:     v.SetChatBlock,
 			Follow:   v.SetFollowBlock,
 		}
+		uids[i] = uid
 	}
 
 	payload := make(libkb.JSONPayload)
@@ -667,6 +669,11 @@ func (h *UserHandler) SetUserBlocks(ctx context.Context, arg keybase1.SetUserBlo
 	}
 
 	_, err = mctx.G().API.Post(mctx, apiArg)
+
+	if err == nil {
+		h.cleanupAfterBlockChange(mctx, uids)
+	}
+
 	return err
 
 }
@@ -746,6 +753,31 @@ func (h *UserHandler) GetUserBlocks(ctx context.Context, arg keybase1.GetUserBlo
 	return res, nil
 }
 
+func (h *UserHandler) GetTeamBlocks(ctx context.Context, _ int) (res []keybase1.TeamBlock, err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+
+	defer mctx.TraceTimed("UserHandler#GetTeamBlocks()", func() error { return err })()
+
+	apiArg := libkb.APIArg{
+		Endpoint:    "team/blocks",
+		SessionType: libkb.APISessionTypeREQUIRED,
+	}
+
+	type getBlockResult struct {
+		libkb.AppStatusEmbed
+		TeamBlocks []keybase1.TeamBlock `json:"team_blocks"`
+	}
+
+	var apiRes getBlockResult
+
+	err = mctx.G().API.GetDecode(mctx, apiArg, &apiRes)
+	if err != nil {
+		return nil, err
+	}
+
+	return apiRes.TeamBlocks, nil
+}
+
 // Legacy RPC and API:
 
 func (h *UserHandler) BlockUser(ctx context.Context, username string) (err error) {
@@ -774,6 +806,22 @@ func (h *UserHandler) setUserBlock(mctx libkb.MetaContext, username string, bloc
 		},
 	}
 	_, err = mctx.G().API.Post(mctx, apiArg)
-	_ = mctx.G().CardCache().Delete(uid)
+
+	if err == nil {
+		h.cleanupAfterBlockChange(mctx, []keybase1.UID{uid})
+	}
+
 	return err
+}
+
+func (h *UserHandler) cleanupAfterBlockChange(mctx libkb.MetaContext, uids []keybase1.UID) {
+	mctx.Debug("clearing card cache after block change")
+	for _, uid := range uids {
+		if err := mctx.G().CardCache().Delete(uid); err != nil {
+			mctx.Debug("cleanupAfterBlockChange CardCache delete error for %s: %s", uid, err)
+		}
+	}
+
+	mctx.Debug("refreshing wallet state after block change")
+	mctx.G().GetStellar().Refresh(mctx, "user block change")
 }

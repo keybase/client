@@ -5,7 +5,6 @@ import * as React from 'react'
 import List from '.'
 
 const props = {
-  clearBadges: Sb.action('clearBadges'),
   expandedSet: new Set<string>(),
   loading: false,
   onNewPersonalRepo: Sb.action('onNewPersonalRepo'),

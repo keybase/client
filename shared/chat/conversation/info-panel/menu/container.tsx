@@ -112,7 +112,12 @@ export default Container.namedConnect(
     _onBlockConv: (team: string, others: Array<string>) =>
       dispatch(
         RouteTreeGen.createNavigateAppend({
-          path: [{props: {convID: conversationIDKey, others, team}, selected: 'chatBlockingModal'}],
+          path: [
+            {
+              props: {blockByDefault: others.length === 1, convID: conversationIDKey, others, team},
+              selected: 'chatBlockingModal',
+            },
+          ],
         })
       ),
     _onInvite: (teamID?: TeamTypes.TeamID) => {

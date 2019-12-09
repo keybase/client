@@ -154,10 +154,13 @@ export const updateMeta = (
       newMeta.inboxLocalVersion > oldMeta.inboxLocalVersion
     ) {
       const merged = {...newMeta}
-      if (shallowEqual(merged.participants, oldMeta.participants)) {
+      if (merged.participants.length === 0 || shallowEqual(merged.participants, oldMeta.participants)) {
         merged.participants = oldMeta.participants
       }
-      if (shallowEqual(merged.nameParticipants, oldMeta.nameParticipants)) {
+      if (
+        merged.nameParticipants.length === 0 ||
+        shallowEqual(merged.nameParticipants, oldMeta.nameParticipants)
+      ) {
         merged.nameParticipants = oldMeta.nameParticipants
       }
       if (shallowEqual([...merged.rekeyers], [...oldMeta.rekeyers])) {
@@ -177,6 +180,12 @@ export const updateMeta = (
     return oldMeta
   }
   // higher inbox version, use new
+
+  // if the meta doesn't contain participants, use the old ones
+  if (newMeta.participants.length === 0) {
+    newMeta.participants = oldMeta.participants
+    newMeta.nameParticipants = oldMeta.nameParticipants
+  }
   return newMeta
 }
 
