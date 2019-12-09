@@ -1119,6 +1119,11 @@ func (g *GlobalContext) CallLoginHooks(mctx MetaContext) {
 		mctx.Warning("OnLogin full self error: %+v", err)
 	}
 
+	mctx.Debug("CallLoginHooks: recording login in secretstore")
+	if ss := g.SecretStore(); ss != nil {
+		ss.RecordLogin(mctx, g.Env.GetUsername())
+	}
+
 	mctx.Debug("CallLoginHooks: running registered login hooks")
 	g.hookMu.RLock()
 	defer g.hookMu.RUnlock()

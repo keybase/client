@@ -24,11 +24,7 @@ export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPref
 export const prepareAccountRows = <T extends {username: string; hasStoredSecret: boolean}>(
   accountRows: Array<T>,
   myUsername: string
-): Array<T> =>
-  sortBy(
-    accountRows.filter(account => account.username !== myUsername),
-    [a => !a.hasStoredSecret, 'username']
-  )
+): Array<T> => accountRows.filter(account => account.username !== myUsername)
 
 type Url = {
   protocol: string

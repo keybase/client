@@ -6,6 +6,7 @@ package libkb
 import (
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -110,7 +111,7 @@ func NewSecretStore(g *GlobalContext, username NormalizedUsername) SecretStore {
 	return nil
 }
 
-func GetConfiguredAccountsFromProvisionedUsernames(m MetaContext, s SecretStoreAll, currentUsername NormalizedUsername, allUsernames []NormalizedUsername) ([]keybase1.ConfiguredAccount, error) {
+func GetConfiguredAccountsFromProvisionedUsernames(m MetaContext, s *SecretStoreLocked, currentUsername NormalizedUsername, allUsernames []NormalizedUsername) ([]keybase1.ConfiguredAccount, error) {
 	if !currentUsername.IsNil() {
 		allUsernames = append(allUsernames, currentUsername)
 	}
@@ -173,10 +174,33 @@ func GetConfiguredAccountsFromProvisionedUsernames(m MetaContext, s SecretStoreA
 		configuredAccounts = append(configuredAccounts, account)
 	}
 
+	logins, err := getLoginTimes(m)
+	if err != nil {
+		m.Warning("Failed to get login times: %s", err)
+		logins = make(loginTimes)
+	}
+
+	sort.Slice(configuredAccounts, func(i, j int) bool {
+		iUsername := configuredAccounts[i].Username
+		jUsername := configuredAccounts[j].Username
+		iTime, iOk := logins[NormalizedUsername(iUsername)]
+		jTime, jOk := logins[NormalizedUsername(jUsername)]
+		if !iOk && !jOk {
+			return strings.Compare(iUsername, jUsername) < 0
+		}
+		if !iOk {
+			return false
+		}
+		if !jOk {
+			return true
+		}
+		return iTime.After(jTime)
+	})
+
 	return configuredAccounts, nil
 }
 
-func GetConfiguredAccounts(m MetaContext, s SecretStoreAll) ([]keybase1.ConfiguredAccount, error) {
+func GetConfiguredAccounts(m MetaContext, s *SecretStoreLocked) ([]keybase1.ConfiguredAccount, error) {
 	currentUsername, allUsernames, err := GetAllProvisionedUsernames(m)
 	if err != nil {
 		return nil, err
@@ -218,6 +242,13 @@ func (s *SecretStoreLocked) isNil() bool {
 
 func (s *SecretStoreLocked) ClearMem() {
 	s.mem = NewSecretStoreMem()
+}
+
+func (s *SecretStoreLocked) RecordLogin(m MetaContext, username NormalizedUsername) {
+	err := recordLoginTime(m, username)
+	if err != nil {
+		m.Warning("Failed to record login time: %s", err)
+	}
 }
 
 func (s *SecretStoreLocked) RetrieveSecret(m MetaContext, username NormalizedUsername) (LKSecFullSecret, error) {
@@ -455,4 +486,34 @@ func reportPrimeSecretStoreFailure(mctx MetaContext, ss SecretStoreAll, reportEr
 	}
 	var apiRes AppStatusEmbed
 	err = mctx.G().API.PostDecode(mctx, apiArg, &apiRes)
+}
+
+type loginTimes map[NormalizedUsername]time.Time
+
+func loginTimesDbKey(mctx MetaContext) DbKey {
+	return DbKey{
+		// Should not be per-user
+		Typ: DBLoginTimes,
+		Key: "",
+	}
+}
+
+func getLoginTimes(mctx MetaContext) (ret loginTimes, err error) {
+	found, err := mctx.G().LocalDb.GetInto(&ret, loginTimesDbKey(mctx))
+	if err != nil {
+		return ret, err
+	}
+	if !found {
+		ret = make(loginTimes)
+	}
+	return ret, nil
+}
+
+func recordLoginTime(mctx MetaContext, username NormalizedUsername) (err error) {
+	ret, err := getLoginTimes(mctx)
+	if err != nil {
+		ret = make(loginTimes)
+	}
+	ret[username] = time.Now()
+	return mctx.G().LocalDb.PutObj(loginTimesDbKey(mctx), nil, ret)
 }
