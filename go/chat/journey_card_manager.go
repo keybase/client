@@ -185,6 +185,9 @@ func (cc *JourneyCardManagerSingleUser) checkFeature(ctx context.Context) bool {
 	if cc.G().GetEnv().GetDebugJourneycard() {
 		return true
 	}
+	if cc.G().Env.GetFeatureFlags().HasFeature(libkb.FeatureJourneycardPreview) {
+		return true
+	}
 	ogCtx := ctx
 	// G.FeatureFlags seems like the kind of system that might hang on a bad network.
 	// PickCard is supposed to be lightning fast, so impose a timeout on FeatureFlags.
@@ -447,6 +450,7 @@ func (cc *JourneyCardManagerSingleUser) cardWelcome(ctx context.Context, convID 
 	// Welcome cards show not show for all pre-existing teams when a client upgrades to first support journey cards. That would be a bad transition.
 	// The server gates whether welcome cards are allowed for a conv. After MarkAsRead-ing a conv, welcome cards are banned.
 	if !conv.IsGeneralChannel {
+		debugDebug(ctx, "cardWelcome: nope; xxx !IsGeneralChannel")
 		return false
 	}
 	debugDebug(ctx, "cardWelcome: welcomeEligible: %v", conv.WelcomeEligible)
