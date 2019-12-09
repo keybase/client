@@ -1,5 +1,6 @@
 run:
-  skip-files: prot.go
+  skip-files: 
+    prot.go
 
 linters-settings:
   gocritic:
