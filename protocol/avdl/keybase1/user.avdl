@@ -271,4 +271,14 @@ protocol user {
   // Legacy user blocking:
   void blockUser(string username);
   void unblockUser(string username);
+
+  // Team blocking
+  record TeamBlock {
+    @jsonkey("fq_name")
+    string teamName;
+    @jsonkey("ctime")
+    Time createTime;
+  }
+
+  array<TeamBlock> getTeamBlocks(int sessionID);
 }

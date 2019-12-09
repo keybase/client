@@ -25,7 +25,11 @@ const _InfoIcon = (props: Kb.PropsWithOverlay<InfoIconProps>) => (
       type="iconfont-question-mark"
       onClick={props.invisible ? undefined : props.toggleShowingMenu}
       ref={props.setAttachmentRef}
-      style={Styles.collapseStyles([props.invisible && styles.opacityNone, props.style])}
+      style={Styles.collapseStyles([
+        Styles.desktopStyles.windowDraggingClickable,
+        props.invisible && styles.opacityNone,
+        props.style,
+      ])}
     />
     <Kb.FloatingMenu
       items={[
@@ -320,21 +324,27 @@ const styles = Styles.styleSheetCreate(
       opacityNone: {
         opacity: 0,
       },
-      rightAction: {
-        alignItems: 'center',
-        alignSelf: 'flex-end',
-        bottom: 0,
-        justifyContent: 'center',
-        paddingRight: Styles.globalMargins.small,
-        position: 'absolute',
-        right: 0,
-        top: 0,
-      },
-      rightActionButton: {
-        position: 'absolute',
-        right: Styles.globalMargins.small,
-        top: 10,
-      },
+      rightAction: Styles.platformStyles({
+        common: {
+          alignItems: 'center',
+          alignSelf: 'flex-end',
+          bottom: 0,
+          justifyContent: 'center',
+          paddingRight: Styles.globalMargins.small,
+          position: 'absolute',
+          right: 0,
+          top: 0,
+        },
+        isElectron: Styles.desktopStyles.windowDraggingClickable,
+      }),
+      rightActionButton: Styles.platformStyles({
+        common: {
+          position: 'absolute',
+          right: Styles.globalMargins.small,
+          top: 10,
+        },
+        isElectron: Styles.desktopStyles.windowDraggingClickable,
+      }),
       titleContainer: {
         ...Styles.padding(Styles.globalMargins.xsmall, 0, Styles.globalMargins.small),
         position: 'relative',

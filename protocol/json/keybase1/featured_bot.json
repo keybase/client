@@ -1,0 +1,49 @@
+{
+  "protocol": "featuredbot",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "FeaturedBot",
+      "fields": [
+        {
+          "type": "string",
+          "name": "botAlias",
+          "jsonkey": "bot_alias"
+        },
+        {
+          "type": "string",
+          "name": "description"
+        },
+        {
+          "type": "string",
+          "name": "botUsername",
+          "jsonkey": "bot_username"
+        },
+        {
+          "type": [
+            null,
+            "TeamID"
+          ],
+          "name": "ownerTeamID",
+          "jsonkey": "owner_team_id"
+        },
+        {
+          "type": [
+            null,
+            "UID"
+          ],
+          "name": "ownerUID",
+          "jsonkey": "owner_uid"
+        }
+      ]
+    }
+  ],
+  "messages": {},
+  "namespace": "keybase.1"
+}
