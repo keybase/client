@@ -474,12 +474,12 @@ func (r *recentConversationParticipants) get(ctx context.Context, myUID gregor1.
 	r.Debug(ctx, "get: convs: %d", len(convs))
 	m := make(map[string]float64)
 	for _, conv := range convs {
+		if conv.Conv.Metadata.Status == chat1.ConversationStatus_BLOCKED ||
+			conv.Conv.Metadata.Status == chat1.ConversationStatus_REPORTED {
+			continue
+		}
 		for _, uid := range conv.Conv.Metadata.ActiveList {
 			if uid.Eq(myUID) {
-				continue
-			}
-			if conv.Conv.Metadata.Status == chat1.ConversationStatus_BLOCKED ||
-				conv.Conv.Metadata.Status == chat1.ConversationStatus_REPORTED {
 				continue
 			}
 			m[uid.String()] += r.getActiveScore(ctx, conv.Conv)
