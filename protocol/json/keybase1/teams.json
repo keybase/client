@@ -1631,6 +1631,11 @@
       "name": "TeamMemberOutFromReset",
       "fields": [
         {
+          "type": "TeamID",
+          "name": "teamID",
+          "jsonkey": "team_id"
+        },
+        {
           "type": "string",
           "name": "teamName",
           "jsonkey": "team_name"

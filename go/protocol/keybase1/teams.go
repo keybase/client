@@ -2009,12 +2009,14 @@ func (o TeamResetUser) DeepCopy() TeamResetUser {
 }
 
 type TeamMemberOutFromReset struct {
+	TeamID    TeamID        `codec:"teamID" json:"team_id"`
 	TeamName  string        `codec:"teamName" json:"team_name"`
 	ResetUser TeamResetUser `codec:"resetUser" json:"reset_user"`
 }
 
 func (o TeamMemberOutFromReset) DeepCopy() TeamMemberOutFromReset {
 	return TeamMemberOutFromReset{
+		TeamID:    o.TeamID.DeepCopy(),
 		TeamName:  o.TeamName,
 		ResetUser: o.ResetUser.DeepCopy(),
 	}
