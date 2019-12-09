@@ -4,5 +4,5 @@
 protocol blocking {
   import idl "../gregor1" as gregor1;
 
-  void blockConversations(gregor1.UID uid, array<TLFID> tlfIDs);
+  void blockConversations(gregor1.UID uid, array<TLFID> tlfIDsBlocked, array<TLFID> tlfIDsUnblocked);
 }

@@ -27,5 +27,5 @@ export function mapEqual<M extends Map<any, any>>(map1: M, map2: M): boolean {
     return false
   }
 
-  return !k1.sort().some(key => map1.get(key) !== map2.get(key))
+  return !k1.some(key => map1.get(key) !== map2.get(key))
 }

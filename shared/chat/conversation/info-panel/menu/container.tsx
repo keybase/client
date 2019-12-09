@@ -109,6 +109,12 @@ export default Container.namedConnect(
   },
   (dispatch, {conversationIDKey}: OwnProps) => ({
     _onAddPeople: (teamID?: TeamTypes.TeamID) => teamID && dispatch(appendNewTeamBuilder(teamID)),
+    _onBlockConv: (team: string, others: Array<string>) =>
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {convID: conversationIDKey, others, team}, selected: 'chatBlockingModal'}],
+        })
+      ),
     _onInvite: (teamID?: TeamTypes.TeamID) => {
       const selected = Styles.isMobile ? 'teamInviteByContact' : 'teamInviteByEmail'
       if (!teamID) return
@@ -143,7 +149,8 @@ export default Container.namedConnect(
     manageChannelsSubtitle: s.manageChannelsSubtitle,
     manageChannelsTitle: s.manageChannelsTitle,
     memberCount: s.memberCount,
-    onAddPeople: () => d._onAddPeople((s.convProps && s.convProps.teamID) || undefined),
+    onAddPeople: () => d._onAddPeople(s.convProps?.teamID || undefined),
+    onBlockConv: () => d._onBlockConv(s.teamname, s.convProps?.participants ?? []),
     onHidden: o.onHidden,
     onHideConv: d.onHideConv,
     onInvite: () => d._onInvite(s._teamID),
