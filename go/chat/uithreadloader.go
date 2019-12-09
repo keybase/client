@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/ephemeral"
@@ -28,6 +29,9 @@ type UIThreadLoader struct {
 	convPageStatus map[string]chat1.Pagination
 	validatedDelay time.Duration
 
+	activeConvLoadsMu sync.Mutex
+	activeConvLoads   map[string]context.CancelFunc
+
 	// testing
 	cachedThreadDelay  *time.Duration
 	remoteThreadDelay  *time.Duration
@@ -43,6 +47,7 @@ func NewUIThreadLoader(g *globals.Context) *UIThreadLoader {
 		clock:             clockwork.NewRealClock(),
 		validatedDelay:    100 * time.Millisecond,
 		cachedThreadDelay: &cacheDelay,
+		activeConvLoads:   make(map[string]context.CancelFunc),
 	}
 }
 
@@ -496,6 +501,32 @@ func (t *UIThreadLoader) setUIStatus(ctx context.Context, chatUI libkb.ChatUI,
 	return cancelStatusFn
 }
 
+func (t *UIThreadLoader) shouldIgnoreError(err error) bool {
+	switch terr := err.(type) {
+	case storage.AbortedError:
+		return true
+	case TransientUnboxingError:
+		return t.shouldIgnoreError(terr.Inner())
+	}
+	switch err {
+	case context.Canceled:
+		return true
+	}
+	return false
+}
+
+func (t *UIThreadLoader) singleFlightConv(ctx context.Context, convID chat1.ConversationID) (context.Context, context.CancelFunc) {
+	t.activeConvLoadsMu.Lock()
+	defer t.activeConvLoadsMu.Unlock()
+	convIDStr := convID.String()
+	if cancel, ok := t.activeConvLoads[convIDStr]; ok {
+		cancel()
+	}
+	ctx, cancel := context.WithCancel(ctx)
+	t.activeConvLoads[convIDStr] = cancel
+	return ctx, cancel
+}
+
 func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, uid gregor1.UID,
 	convID chat1.ConversationID, reason chat1.GetThreadReason, pgmode chat1.GetThreadNonblockPgMode,
 	cbmode chat1.GetThreadNonblockCbMode, query *chat1.GetThreadQuery, uipagination *chat1.UIPagination) (err error) {
@@ -506,9 +537,13 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 		// Detect any problem loading the thread, and queue it up in the retrier if there is a problem.
 		// Otherwise, send notice that we successfully loaded the conversation.
 		if fullErr != nil {
-			t.Debug(ctx, "LoadNonblock: queueing retry because of: %s", fullErr)
-			t.G().FetchRetrier.Failure(ctx, uid,
-				NewConversationRetry(t.G(), convID, nil, ThreadLoad))
+			if t.shouldIgnoreError(fullErr) {
+				t.Debug(ctx, "LoadNonblock: ignoring error: %v", fullErr)
+			} else {
+				t.Debug(ctx, "LoadNonblock: queueing retry because of: %s", fullErr)
+				t.G().FetchRetrier.Failure(ctx, uid,
+					NewConversationRetry(t.G(), convID, nil, ThreadLoad))
+			}
 		} else {
 			t.G().FetchRetrier.Success(ctx, uid,
 				NewConversationRetry(t.G(), convID, nil, ThreadLoad))
@@ -518,6 +553,10 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 	}()
 	// Set last select conversation on syncer
 	t.G().Syncer.SelectConversation(ctx, convID)
+
+	// single flight per conv since the UI blasts this
+	ctx, outerCancel := t.singleFlightConv(ctx, convID)
+	defer outerCancel()
 
 	// Lock conversation while this is running
 	if err := t.G().ConvSource.AcquireConversationLock(ctx, uid, convID); err != nil {
