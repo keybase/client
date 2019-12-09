@@ -2624,6 +2624,17 @@ func (r *GitRepoResult) GetIfOk() (res GitRepoInfo, err error) {
 	return res, fmt.Errorf("git repo unknown error")
 }
 
+func (r GitRepoInfo) FullName() string {
+	switch r.Folder.FolderType {
+	case FolderType_PRIVATE:
+		return string(r.LocalMetadata.RepoName)
+	case FolderType_TEAM:
+		return r.Folder.Name + "/" + string(r.LocalMetadata.RepoName)
+	default:
+		return "<repo type error>"
+	}
+}
+
 func (req *TeamChangeReq) AddUVWithRole(uv UserVersion, role TeamRole,
 	botSettings *TeamBotSettings) error {
 	if !role.IsRestrictedBot() && botSettings != nil {
