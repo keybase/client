@@ -5,7 +5,7 @@ import {NavigationEventCallback} from '@react-navigation/core'
 import {useNavigationEvents} from '../util/navigation-hooks'
 
 // NOTE: If you are in a floating box or otherwise outside the navigation
-// context, you must use `useTeamsSubscribeMountOnly`
+// context, you must use `*MountOnly` variants of these helpers
 
 const useTeamsSubscribeMobile = () => {
   const dispatch = Container.useDispatch()
@@ -36,5 +36,10 @@ export const useTeamsSubscribeMountOnly = useTeamsSubscribeDesktop
 // Dummy component to add to a view to trigger team meta subscription behavior
 export const TeamSubscriber = () => {
   useTeamsSubscribe()
+  return null
+}
+
+export const TeamSubscriberMountOnly = () => {
+  useTeamsSubscribeMountOnly()
   return null
 }

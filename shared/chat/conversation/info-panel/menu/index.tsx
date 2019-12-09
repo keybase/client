@@ -4,7 +4,7 @@ import * as Styles from '../../../../styles'
 import * as ChatTypes from '../../../../constants/types/chat2'
 import * as TeamTypes from '../../../../constants/types/teams'
 import {Avatars, TeamAvatar} from '../../../avatars'
-import {useTeamsSubscribeMountOnly} from '../../../../teams/subscriber'
+import {TeamSubscriberMountOnly} from '../../../../teams/subscriber'
 
 export type ConvProps = {
   fullname: string
@@ -79,7 +79,6 @@ type TeamHeaderProps = {
   onViewTeam: () => void
 }
 const TeamHeader = (props: TeamHeaderProps) => {
-  useTeamsSubscribeMountOnly()
   return (
     <Kb.Box2 direction="vertical" gap="tiny" gapStart={false} gapEnd={true} style={styles.headerContainer}>
       <TeamAvatar teamname={props.teamname} isMuted={props.isMuted} isSelected={false} isHovered={false} />
@@ -164,15 +163,18 @@ class InfoPanelMenu extends React.Component<Props> {
     }
 
     return (
-      <Kb.FloatingMenu
-        attachTo={props.attachTo}
-        visible={props.visible}
-        items={items}
-        header={header}
-        onHidden={props.onHidden}
-        position="bottom left"
-        closeOnSelect={true}
-      />
+      <>
+        <TeamSubscriberMountOnly />
+        <Kb.FloatingMenu
+          attachTo={props.attachTo}
+          visible={props.visible}
+          items={items}
+          header={header}
+          onHidden={props.onHidden}
+          position="bottom left"
+          closeOnSelect={true}
+        />
+      </>
     )
   }
 
