@@ -78,7 +78,7 @@ function* initializeInputMonitor(): Iterable<any> {
       yield Saga.put(ConfigGen.createChangedActive({userActive}))
       // let node thread save file
       SafeElectron.getApp().emit('KBkeybase', '', {
-        payload: {isUserActive: userActive, changedAtMs: Date.now()},
+        payload: {changedAtMs: Date.now(), isUserActive: userActive},
         type: 'activeChanged',
       })
     }
