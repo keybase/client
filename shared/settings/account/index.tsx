@@ -201,6 +201,7 @@ const AccountSettings = (props: Props) => (
         <EmailPhone {...props} />
         <Kb.Divider />
         <Password {...props} />
+        <Kb.Divider />
         <WebAuthTokenLogin {...props} />
         {!Styles.isMobile && (
           <>

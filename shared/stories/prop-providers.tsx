@@ -84,6 +84,7 @@ export const TeamDropdownMenu = () => ({
     manageChannelsTitle: ownProps.isSmallTeam ? 'Create chat channels...' : 'Manage chat channels',
     memberCount: 100,
     onAddPeople: action('onAddPeople'),
+    onBlockConv: action('onBlockConv'),
     onHidden: ownProps.onHidden,
     onHideConv: action('onHideConv'),
     onInvite: action('onInvite'),

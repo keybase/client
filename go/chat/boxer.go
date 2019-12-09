@@ -697,7 +697,21 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed,
 	}, nil
 }
 
-func (b *Boxer) validatePairwiseMAC(ctx context.Context, boxed chat1.MessageBoxed, headerHash chat1.Hash) (senderKey []byte, err error) {
+func (b *Boxer) memberCtime(mctx libkb.MetaContext, conv types.UnboxConversationInfo, tlfID chat1.TLFID, tlfName string) (*keybase1.Time, error) {
+	team, err := NewTeamLoader(b.G().ExternalG()).loadTeam(mctx.Ctx(), tlfID, tlfName,
+		conv.GetMembersType(), conv.IsPublic(), nil)
+	if err != nil {
+		return nil, err
+	}
+	uv, err := mctx.G().GetMeUV(mctx.Ctx())
+	if err != nil {
+		return nil, err
+	}
+	return team.MemberCtime(mctx.Ctx(), uv), nil
+}
+
+func (b *Boxer) validatePairwiseMAC(ctx context.Context, boxed chat1.MessageBoxed,
+	conv types.UnboxConversationInfo, headerHash chat1.Hash) (senderKey []byte, err error) {
 	defer b.Trace(ctx, func() error { return err }, "validatePairwiseMAC")()
 
 	// First, find a MAC that matches our receiving device encryption KID.
@@ -709,8 +723,13 @@ func (b *Boxer) validatePairwiseMAC(ctx context.Context, boxed chat1.MessageBoxe
 	if !found {
 		// This is an error users will actually see when they've just joined a
 		// team or added a new device.
-		return nil, NewNotAuthenticatedForThisDeviceError(b.G().MetaContext(ctx),
-			boxed.ClientHeader.Conv.Tlfid, boxed.ServerHeader.Ctime)
+		mctx := b.G().MetaContext(ctx)
+		memberCtime, err := b.memberCtime(mctx, conv, boxed.ClientHeader.Conv.Tlfid, boxed.ClientHeader.TlfName)
+		if err != nil {
+			b.Debug(ctx, "Unable to get member ctime: %v", err)
+		}
+		return nil, NewNotAuthenticatedForThisDeviceError(mctx,
+			memberCtime, boxed.ServerHeader.Ctime)
 	}
 
 	// Second, load the device encryption KID for the sender.
@@ -842,7 +861,7 @@ func (b *Boxer) unboxV2orV3orV4(ctx context.Context, boxed chat1.MessageBoxed,
 		if boxed.Version != chat1.MessageBoxedVersion_V3 && !bytes.Equal(boxed.VerifyKey, dummySigningKey().GetKID().ToBytes()) {
 			return nil, NewPermanentUnboxingError(fmt.Errorf("expected dummy signing key (%s), got %s", dummySigningKey().GetKID(), hex.EncodeToString(boxed.VerifyKey)))
 		}
-		senderKeyToValidate, err = b.validatePairwiseMAC(ctx, boxed, headerHash)
+		senderKeyToValidate, err = b.validatePairwiseMAC(ctx, boxed, conv, headerHash)
 		if err != nil {
 			// Return a transient error if possible
 			return nil, b.detectPermanentError(err, boxed.ClientHeader.TlfName)

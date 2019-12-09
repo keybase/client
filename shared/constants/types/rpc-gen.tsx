@@ -1244,11 +1244,11 @@ export type MessageTypes = {
     outParam: BulkRes
   }
   'keybase.1.teams.teamAddMember': {
-    inParam: {readonly name: String; readonly email: String; readonly username: String; readonly role: TeamRole; readonly botSettings?: TeamBotSettings | null; readonly sendChatNotification: Boolean}
+    inParam: {readonly teamID: TeamID; readonly email: String; readonly username: String; readonly role: TeamRole; readonly botSettings?: TeamBotSettings | null; readonly sendChatNotification: Boolean}
     outParam: TeamAddMemberResult
   }
-  'keybase.1.teams.teamAddMembers': {
-    inParam: {readonly name: String; readonly assertions?: Array<String> | null; readonly role: TeamRole; readonly botSettings?: TeamBotSettings | null; readonly sendChatNotification: Boolean}
+  'keybase.1.teams.teamAddMembersMultiRole': {
+    inParam: {readonly teamID: TeamID; readonly users?: Array<UserRolePair> | null; readonly sendChatNotification: Boolean}
     outParam: void
   }
   'keybase.1.teams.teamCreate': {
@@ -2285,6 +2285,7 @@ export enum StatusCode {
   scteamstoragewrongrevision = 2760,
   scteamstoragebadgeneration = 2761,
   scteamstoragenotfound = 2762,
+  scteamcontactsettingsblock = 2763,
   scephemeralkeybadgeneration = 2900,
   scephemeralkeyunexpectedbox = 2901,
   scephemeralkeymissingbox = 2902,
@@ -2482,6 +2483,11 @@ export enum UpdateInfoStatus2 {
   ok = 0,
   suggested = 1,
   critical = 2,
+}
+
+export enum UserBlockType {
+  chat = 0,
+  follow = 1,
 }
 
 export enum UserOrTeamResult {
@@ -2996,9 +3002,10 @@ export type UpdaterStatus = {readonly log: String}
 export type User = {readonly uid: UID; readonly username: String}
 export type UserBlock = {readonly username: String; readonly chatBlocked: Boolean; readonly followBlocked: Boolean; readonly createTime?: Time | null; readonly modifyTime?: Time | null}
 export type UserBlockArg = {readonly username: String; readonly setChatBlock?: Boolean | null; readonly setFollowBlock?: Boolean | null}
+export type UserBlockState = {readonly blockType: UserBlockType; readonly blocked: Boolean}
 export type UserBlockedBody = {readonly blocks?: Array<UserBlockedRow> | null; readonly uid: UID; readonly username: String}
 export type UserBlockedRow = {readonly uid: UID; readonly username: String; readonly chat?: Boolean | null; readonly follow?: Boolean | null}
-export type UserBlockedSummary = {readonly blocker: String; readonly blocked?: Array<String> | null}
+export type UserBlockedSummary = {readonly blocker: String; readonly blocks: {[key: string]: Array<UserBlockState> | null}}
 export type UserCard = {readonly following: Int; readonly followers: Int; readonly uid: UID; readonly fullName: String; readonly location: String; readonly bio: String; readonly bioDecorated: String; readonly website: String; readonly twitter: String; readonly youFollowThem: Boolean; readonly theyFollowYou: Boolean; readonly teamShowcase?: Array<UserTeamShowcase> | null; readonly registeredForAirdrop: Boolean; readonly blocked: Boolean; readonly hidFromFollowers: Boolean}
 export type UserEk = {readonly seed: Bytes32; readonly metadata: UserEkMetadata}
 export type UserEkBoxMetadata = {readonly box: String; readonly recipientGeneration: EkGeneration; readonly recipientDeviceID: DeviceID}
@@ -3465,7 +3472,7 @@ export const teamsSetTeamShowcaseRpcPromise = (params: MessageTypes['keybase.1.t
 export const teamsTeamAcceptInviteOrRequestAccessRpcPromise = (params: MessageTypes['keybase.1.teams.teamAcceptInviteOrRequestAccess']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamAcceptInviteOrRequestAccess']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamAcceptInviteOrRequestAccess', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamAddEmailsBulkRpcPromise = (params: MessageTypes['keybase.1.teams.teamAddEmailsBulk']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamAddEmailsBulk']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamAddEmailsBulk', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamAddMemberRpcPromise = (params: MessageTypes['keybase.1.teams.teamAddMember']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamAddMember']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamAddMember', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
-export const teamsTeamAddMembersRpcPromise = (params: MessageTypes['keybase.1.teams.teamAddMembers']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamAddMembers']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamAddMembers', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const teamsTeamAddMembersMultiRoleRpcPromise = (params: MessageTypes['keybase.1.teams.teamAddMembersMultiRole']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamAddMembersMultiRole']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamAddMembersMultiRole', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamCreateRpcPromise = (params: MessageTypes['keybase.1.teams.teamCreate']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamCreate']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamCreate', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamCreateSeitanTokenV2RpcPromise = (params: MessageTypes['keybase.1.teams.teamCreateSeitanTokenV2']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamCreateSeitanTokenV2']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamCreateSeitanTokenV2', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamDeleteRpcPromise = (params: MessageTypes['keybase.1.teams.teamDelete']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamDelete']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamDelete', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -3855,7 +3862,7 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.teams.teamListVerified'
 // 'keybase.1.teams.teamListSubteamsRecursive'
 // 'keybase.1.teams.teamChangeMembership'
-// 'keybase.1.teams.teamAddMembersMultiRole'
+// 'keybase.1.teams.teamAddMembers'
 // 'keybase.1.teams.teamGetBotSettings'
 // 'keybase.1.teams.teamSetBotSettings'
 // 'keybase.1.teams.teamAcceptInvite'

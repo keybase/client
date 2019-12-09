@@ -4,7 +4,7 @@ import * as FsGen from '../../../../../actions/fs-gen'
 import * as Constants from '../../../../../constants/chat2'
 import * as Types from '../../../../../constants/types/chat2'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
-import {getCanPerform} from '../../../../../constants/teams'
+import {getCanPerformByID} from '../../../../../constants/teams'
 import * as Container from '../../../../../util/container'
 import {isMobile, isIOS} from '../../../../../constants/platform'
 import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
@@ -24,7 +24,7 @@ export default Container.connect(
   (state, ownProps: OwnProps) => {
     const message = ownProps.message
     const meta = Constants.getMeta(state, message.conversationIDKey)
-    const yourOperations = getCanPerform(state, meta.teamname)
+    const yourOperations = getCanPerformByID(state, meta.teamID)
     const _canDeleteHistory = yourOperations && yourOperations.deleteChatHistory
     const _canAdminDelete = yourOperations && yourOperations.deleteOtherMessages
     let _canPinMessage = true
@@ -35,6 +35,8 @@ export default Container.connect(
       _canAdminDelete,
       _canDeleteHistory,
       _canPinMessage,
+      _participants: meta.participants,
+      _teamname: meta.teamname,
       _you: state.config.username,
       pending: !!message.transferState,
     }
@@ -80,6 +82,12 @@ export default Container.connect(
         })
       )
     },
+    _onKick: (teamname: string, username: string) =>
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {navToChat: true, teamname, username}, selected: 'teamReallyRemoveMember'}],
+        })
+      ),
     _onPinMessage: (message: Types.Message) => {
       dispatch(
         Chat2Gen.createPinMessage({
@@ -119,6 +127,7 @@ export default Container.connect(
     const message = ownProps.message
     const yourMessage = message.author === stateProps._you
     const isDeleteable = yourMessage || stateProps._canAdminDelete
+    const authorInConv = stateProps._participants.includes(message.author)
     return {
       attachTo: ownProps.attachTo,
       author: message.author,
@@ -126,12 +135,14 @@ export default Container.connect(
       deviceRevokedAt: message.deviceRevokedAt || undefined,
       deviceType: message.deviceType,
       isDeleteable,
+      isKickable: isDeleteable && !!stateProps._teamname && !yourMessage && authorInConv,
       onAddReaction: isMobile ? () => dispatchProps._onAddReaction(message) : undefined,
       onAllMedia: () => dispatchProps._onAllMedia(message.conversationIDKey),
       onDelete: isDeleteable ? () => dispatchProps._onDelete(message) : undefined,
       onDownload: !isMobile && !message.downloadPath ? () => dispatchProps._onDownload(message) : undefined,
       // We only show the share/save options for video if we have the file stored locally from a download
       onHidden: () => ownProps.onHidden(),
+      onKick: () => dispatchProps._onKick(stateProps._teamname, message.author),
       onPinMessage: stateProps._canPinMessage ? () => dispatchProps._onPinMessage(message) : undefined,
       onReply: () => dispatchProps._onReply(message),
       onSaveAttachment:

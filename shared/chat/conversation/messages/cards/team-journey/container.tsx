@@ -7,6 +7,7 @@ import * as MessageTypes from '../../../../../constants/types/chat2/message'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
 import * as TeamConstants from '../../../../../constants/teams'
+import * as TeamTypes from '../../../../../constants/types/teams'
 import * as TeamsGen from '../../../../../actions/teams-gen'
 import {appendNewTeamBuilder} from '../../../../../actions/typed-routes'
 import TeamJourney from '.'
@@ -75,12 +76,6 @@ const TeamJourneyContainer = (props: Props) => {
       image = 'icon-illustration-attention-64'
       text = 'One of your messages is getting a lot of attention!'
       break
-    case RPCChatTypes.JourneycardType.userAwayForLong:
-      // XXX: implement
-      actions = [{label: 'Scroll back in time', onClick: props.onScrollBack}]
-      image = 'icon-illustration-long-time-96'
-      text = 'Long time no see! Look at all the things you missed.'
-      break
     case RPCChatTypes.JourneycardType.channelInactive:
       image = 'icon-illustration-sleepy-96'
       text = 'Zzz… This channel hasn’t been very active…. Revive it?'
@@ -105,16 +100,17 @@ const TeamJourneyContainer = (props: Props) => {
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const conv = Constants.getMeta(state, ownProps.message.conversationIDKey)
-  const {channelname, teamname} = conv
+  const {channelname, teamname, teamID} = conv
   return {
     _channelInfos: TeamConstants.getTeamChannelInfos(state, teamname),
+    _teamID: teamID,
     channelname,
     teamname,
   }
 }
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
-  _onAddPeopleToTeam: (teamname: string) => dispatch(appendNewTeamBuilder(teamname)),
+  _onAddPeopleToTeam: (teamID: TeamTypes.TeamID) => dispatch(appendNewTeamBuilder(teamID)),
   _onBrowseChannels: (teamname: string) =>
     dispatch(
       RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'chatManageChannels'}]})
@@ -151,7 +147,7 @@ const TeamJourneyConnected = Container.connect(
     return {
       channelname,
       message: ownProps.message,
-      onAddPeopleToTeam: () => dispatchProps._onAddPeopleToTeam(stateProps.teamname),
+      onAddPeopleToTeam: () => dispatchProps._onAddPeopleToTeam(stateProps._teamID),
       onBrowseChannels: () => dispatchProps._onBrowseChannels(stateProps.teamname),
       onCreateChatChannels: () => dispatchProps._onCreateChatChannels(stateProps.teamname),
       onGoToChannel: (channelName: string) => dispatchProps._onGoToChannel(channelName, stateProps.teamname),

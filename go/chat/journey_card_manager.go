@@ -328,8 +328,6 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 			return makeCard(chat1.JourneycardType_CREATE_CHANNELS, 0, false)
 		case "kb_cards_4_kb":
 			return makeCard(chat1.JourneycardType_MSG_ATTENTION, 3, false)
-		case "kb_cards_5_kb":
-			return makeCard(chat1.JourneycardType_USER_AWAY_FOR_LONG, 0, false)
 		case "kb_cards_6_kb":
 			return makeCard(chat1.JourneycardType_CHANNEL_INACTIVE, 0, false)
 		case "kb_cards_7_kb":
@@ -346,22 +344,20 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 	}
 
 	looseCardOrder := []chat1.JourneycardType{
-		chat1.JourneycardType_USER_AWAY_FOR_LONG, // A on design
-		chat1.JourneycardType_CHANNEL_INACTIVE,   // B on design
-		chat1.JourneycardType_MSG_NO_ANSWER,      // C on design
+		chat1.JourneycardType_CHANNEL_INACTIVE, // B on design
+		chat1.JourneycardType_MSG_NO_ANSWER,    // C on design
 	}
 
 	type cardCondition func(context.Context) bool
 	cardConditionTODO := func(ctx context.Context) bool { return false }
 	cardConditions := map[chat1.JourneycardType]cardCondition{
-		chat1.JourneycardType_WELCOME:            func(ctx context.Context) bool { return cc.cardWelcome(ctx, convID, conv, jcd, debugDebug) },
-		chat1.JourneycardType_POPULAR_CHANNELS:   func(ctx context.Context) bool { return cc.cardPopularChannels(ctx, convID, conv, jcd, debugDebug) },
-		chat1.JourneycardType_ADD_PEOPLE:         func(ctx context.Context) bool { return cc.cardAddPeople(ctx, conv, jcd, debugDebug) },
-		chat1.JourneycardType_CREATE_CHANNELS:    func(ctx context.Context) bool { return cc.cardCreateChannels(ctx, convID, jcd) },
-		chat1.JourneycardType_MSG_ATTENTION:      cardConditionTODO,
-		chat1.JourneycardType_USER_AWAY_FOR_LONG: cardConditionTODO,
-		chat1.JourneycardType_CHANNEL_INACTIVE:   func(ctx context.Context) bool { return cc.cardChannelInactive(ctx, jcd, thread, debugDebug) },
-		chat1.JourneycardType_MSG_NO_ANSWER:      func(ctx context.Context) bool { return cc.cardMsgNoAnswer(ctx, conv, jcd, thread, debugDebug) },
+		chat1.JourneycardType_WELCOME:          func(ctx context.Context) bool { return cc.cardWelcome(ctx, convID, conv, jcd, debugDebug) },
+		chat1.JourneycardType_POPULAR_CHANNELS: func(ctx context.Context) bool { return cc.cardPopularChannels(ctx, convID, conv, jcd, debugDebug) },
+		chat1.JourneycardType_ADD_PEOPLE:       func(ctx context.Context) bool { return cc.cardAddPeople(ctx, conv, jcd, debugDebug) },
+		chat1.JourneycardType_CREATE_CHANNELS:  func(ctx context.Context) bool { return cc.cardCreateChannels(ctx, convID, jcd) },
+		chat1.JourneycardType_MSG_ATTENTION:    cardConditionTODO,
+		chat1.JourneycardType_CHANNEL_INACTIVE: func(ctx context.Context) bool { return cc.cardChannelInactive(ctx, jcd, thread, debugDebug) },
+		chat1.JourneycardType_MSG_NO_ANSWER:    func(ctx context.Context) bool { return cc.cardMsgNoAnswer(ctx, conv, jcd, thread, debugDebug) },
 	}
 
 	// Prefer showing cards later in the order.
@@ -411,9 +407,6 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 	// Gist: "One of your messages is getting a lot of attention! <pointer to message>"
 	// Condition: The logged-in user's message gets a lot of reacjis
 	// Condition: That message is above the fold.
-
-	// TODO card type: USER_AWAY_FOR_LONG (A on design)
-	// Gist: "Long time no see.... Look at all the things you missed."
 
 	// No new cards selected. Pick the already-shown card with the most recent prev message ID.
 	debugDebug(ctx, "no new cards selected")

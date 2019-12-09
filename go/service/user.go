@@ -4,7 +4,6 @@
 package service
 
 import (
-	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -649,6 +648,7 @@ func (h *UserHandler) SetUserBlocks(ctx context.Context, arg keybase1.SetUserBlo
 		h.G().Log.CDebugf(ctx, "SetUserBlocks: adding block: %+v", block)
 	}
 	payloadBlocks := make([]setBlockArg, len(arg.Blocks))
+	uids := make([]keybase1.UID, len(arg.Blocks))
 	for i, v := range arg.Blocks {
 		uid := libkb.GetUIDByUsername(h.G(), v.Username)
 		payloadBlocks[i] = setBlockArg{
@@ -656,6 +656,7 @@ func (h *UserHandler) SetUserBlocks(ctx context.Context, arg keybase1.SetUserBlo
 			Chat:     v.SetChatBlock,
 			Follow:   v.SetFollowBlock,
 		}
+		uids[i] = uid
 	}
 
 	payload := make(libkb.JSONPayload)
@@ -668,6 +669,11 @@ func (h *UserHandler) SetUserBlocks(ctx context.Context, arg keybase1.SetUserBlo
 	}
 
 	_, err = mctx.G().API.Post(mctx, apiArg)
+
+	if err == nil {
+		h.cleanupAfterBlockChange(mctx, uids)
+	}
+
 	return err
 
 }
@@ -747,40 +753,6 @@ func (h *UserHandler) GetUserBlocks(ctx context.Context, arg keybase1.GetUserBlo
 	return res, nil
 }
 
-func (h *UserHandler) ReportUser(ctx context.Context, arg keybase1.ReportUserArg) (err error) {
-	mctx := libkb.NewMetaContext(ctx, h.G())
-	convIDStr := "nil"
-	if arg.ConvID != nil {
-		convIDStr = *arg.ConvID
-	}
-	defer mctx.TraceTimed(fmt.Sprintf(
-		"UserHandler#ReportUser(username=%q,transcript=%t,convId=%s)",
-		arg.Username, arg.IncludeTranscript, convIDStr),
-		func() error { return err })()
-
-	if arg.IncludeTranscript {
-		if arg.ConvID == nil {
-			return errors.New("invalid arguments: IncludeTranscript is true but ConvID == nil")
-		}
-		mctx.Debug("Ignoring IncludeTranscript - not implemented")
-	}
-	postArgs := libkb.HTTPArgs{
-		"username": libkb.S{Val: arg.Username},
-		"reason":   libkb.S{Val: arg.Reason},
-		"comment":  libkb.S{Val: arg.Comment},
-	}
-	if arg.ConvID != nil {
-		postArgs["conv_id"] = libkb.S{Val: *arg.ConvID}
-	}
-	apiArg := libkb.APIArg{
-		Endpoint:    "report/conversation",
-		SessionType: libkb.APISessionTypeREQUIRED,
-		Args:        postArgs,
-	}
-	_, err = mctx.G().API.Post(mctx, apiArg)
-	return err
-}
-
 // Legacy RPC and API:
 
 func (h *UserHandler) BlockUser(ctx context.Context, username string) (err error) {
@@ -809,6 +781,22 @@ func (h *UserHandler) setUserBlock(mctx libkb.MetaContext, username string, bloc
 		},
 	}
 	_, err = mctx.G().API.Post(mctx, apiArg)
-	_ = mctx.G().CardCache().Delete(uid)
+
+	if err == nil {
+		h.cleanupAfterBlockChange(mctx, []keybase1.UID{uid})
+	}
+
 	return err
+}
+
+func (h *UserHandler) cleanupAfterBlockChange(mctx libkb.MetaContext, uids []keybase1.UID) {
+	mctx.Debug("clearing card cache after block change")
+	for _, uid := range uids {
+		if err := mctx.G().CardCache().Delete(uid); err != nil {
+			mctx.Debug("cleanupAfterBlockChange CardCache delete error for %s: %s", uid, err)
+		}
+	}
+
+	mctx.Debug("refreshing wallet state after block change")
+	mctx.G().GetStellar().Refresh(mctx, "user block change")
 }
