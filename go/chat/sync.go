@@ -246,7 +246,7 @@ func (s *Syncer) getShouldUnboxSyncConvMap(ctx context.Context, convs []chat1.Co
 		return utils.GetConvMtime(rconvs[i]).After(utils.GetConvMtime(rconvs[j]))
 	})
 	maxConvs := s.maxSyncUnboxConvs()
-	for index, conv := range rconvs {
+	for _, conv := range rconvs {
 		if len(m) >= maxConvs {
 			s.Debug(ctx, "getShouldUnboxSyncConvMap: max sync convs reached, not including any others")
 			break
