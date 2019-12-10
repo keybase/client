@@ -378,7 +378,6 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.runTeamUpgrader(ctx)
 	d.runHomePoller(ctx)
 	d.runMerkleAudit(ctx)
-	go d.identifySelf()
 }
 
 func (d *Service) purgeOldChatAttachmentData() {
@@ -537,50 +536,6 @@ func (d *Service) configureRekey(uir *UIRouter) {
 	// this unfortunate dependency injection
 	rkm.gregor = d.gregor
 	rkm.Start()
-}
-
-func (d *Service) identifySelf() {
-	uid := d.G().Env.GetUID()
-	if uid.IsNil() {
-		d.G().Log.Debug("identifySelf: no uid, skipping")
-		return
-	}
-	d.G().Log.Debug("identifySelf: running identify on uid %s", uid)
-	arg := keybase1.Identify2Arg{
-		Uid: uid,
-		Reason: keybase1.IdentifyReason{
-			Type: keybase1.IdentifyReasonType_BACKGROUND,
-		},
-		AlwaysBlock:      true,
-		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI,
-		NoSkipSelf:       true,
-		NeedProofSet:     true,
-	}
-	eng := engine.NewIdentify2WithUID(d.G(), &arg)
-	m := libkb.NewMetaContextBackground(d.G())
-	if err := engine.RunEngine2(m, eng); err != nil {
-		d.G().Log.Debug("identifySelf: identify error %s", err)
-	}
-	d.G().Log.Debug("identifySelf: identify success on uid %s", uid)
-
-	// identify2 did a load user for self, so find it and cache it in FullSelfer.
-	them := eng.FullThemUser()
-	me := eng.FullMeUser()
-	var self *libkb.User
-	if them != nil && them.GetUID().Equal(uid) {
-		d.G().Log.Debug("identifySelf: using them for full user")
-		self = them
-	} else if me != nil && me.GetUID().Equal(uid) {
-		d.G().Log.Debug("identifySelf: using me for full user")
-		self = me
-	}
-	if self != nil {
-		if err := d.G().GetFullSelfer().Update(context.Background(), self); err != nil {
-			d.G().Log.Debug("identifySelf: error updating full self cache: %s", err)
-		} else {
-			d.G().Log.Debug("identifySelf: updated full self cache for: %s", self.GetName())
-		}
-	}
 }
 
 func (d *Service) runTLFUpgrade() {
@@ -947,7 +902,6 @@ func (d *Service) OnLogin(mctx libkb.MetaContext) error {
 		d.G().PushShutdownHook(d.stopChatModules)
 		d.runTLFUpgrade()
 		d.runTrackerLoader(mctx.Ctx())
-		go d.identifySelf()
 	}
 	return nil
 }
