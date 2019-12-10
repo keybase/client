@@ -227,9 +227,9 @@ func (b *BackgroundConvLoader) Stop(ctx context.Context) chan struct{} {
 	b.cancelActiveLoadsLocked()
 	ch := make(chan struct{})
 	if b.started {
+		b.started = false
 		close(b.stopCh)
 		b.stopCh = make(chan struct{})
-		b.started = false
 		go func() {
 			_ = b.eg.Wait()
 			close(ch)
