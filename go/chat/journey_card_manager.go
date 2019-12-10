@@ -307,12 +307,19 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 		}
 		ordinal := 1 // Won't conflict with outbox messages since they are all <= outboxOrdinalStart.
 		cc.Debug(ctx, "makeCard -> prevID:%v cardType:%v jcdCtime:%v", pos.PrevID, cardType, jcd.Ctime.Time())
-		return &chat1.MessageUnboxedJourneycard{
+		res := chat1.MessageUnboxedJourneycard{
 			PrevID:         pos.PrevID,
 			Ordinal:        ordinal,
 			CardType:       cardType,
 			HighlightMsgID: highlightMsgID,
-		}, nil
+		}
+		if cardType == chat1.JourneycardType_ADD_PEOPLE {
+			res.OpenTeam, err = cc.isOpenTeam(ctx, conv)
+			if err != nil {
+				cc.Debug(ctx, "isOpenTeam error: %v", err)
+			}
+		}
+		return &res, nil
 	}
 
 	if debug {
@@ -835,6 +842,14 @@ func (cc *JourneyCardManagerSingleUser) saveJoinedTimeWithLockInner(ctx context.
 	if err != nil {
 		cc.Debug(ctx, "storage put error: %v", err)
 	}
+}
+
+func (cc *JourneyCardManagerSingleUser) isOpenTeam(ctx context.Context, conv convForJourneycard) (open bool, err error) {
+	teamID, err := keybase1.TeamIDFromString(conv.TlfID.String())
+	if err != nil {
+		return false, err
+	}
+	return cc.G().GetTeamLoader().IsOpenCached(ctx, teamID)
 }
 
 // TimeTravel simulates moving all known conversations forward in time.
