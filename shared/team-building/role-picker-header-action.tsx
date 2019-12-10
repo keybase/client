@@ -14,10 +14,14 @@ export default (props: Props) => {
   const [rolePickerOpen, setRolePickerOpen] = React.useState(
     (props.rolePickerProps && props.rolePickerProps.showRolePicker) || false
   )
+  const onConfirm = () => {
+    setRolePickerOpen(false)
+    props.onFinishTeamBuilding()
+  }
   return (
     <FloatingRolePicker
       open={rolePickerOpen}
-      onConfirm={props.onFinishTeamBuilding}
+      onConfirm={onConfirm}
       onSelectRole={props.rolePickerProps.onSelectRole}
       selectedRole={props.rolePickerProps.selectedRole}
       onCancel={() => setRolePickerOpen(false)}
