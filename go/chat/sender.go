@@ -973,7 +973,7 @@ func (s *BlockingSender) Sign(payload []byte) ([]byte, error) {
 
 func (s *BlockingSender) presentUIItem(ctx context.Context, uid gregor1.UID, conv *chat1.ConversationLocal) (res *chat1.InboxUIItem) {
 	if conv != nil {
-		pc := utils.PresentConversationLocal(ctx, s.G(), uid, *conv)
+		pc := utils.PresentConversationLocal(ctx, s.G(), uid, *conv, utils.PresentParticipantsModeSkip)
 		res = &pc
 	}
 	return res
@@ -1235,7 +1235,7 @@ func (s *Deliverer) setTestingNameInfoSource(ni types.NameInfoSource) {
 
 func (s *Deliverer) presentUIItem(ctx context.Context, uid gregor1.UID, conv *chat1.ConversationLocal) (res *chat1.InboxUIItem) {
 	if conv != nil {
-		pc := utils.PresentConversationLocal(ctx, s.G(), uid, *conv)
+		pc := utils.PresentConversationLocal(ctx, s.G(), uid, *conv, utils.PresentParticipantsModeSkip)
 		res = &pc
 	}
 	return res

@@ -32,7 +32,7 @@
       "_description": "Calls RPC to report user",
       "username": "string",
       "reason": "string",
-      "comment": "string", 
+      "comment": "string",
       "includeTranscript": "boolean",
       "convID": "string | null"
     }

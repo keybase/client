@@ -528,7 +528,7 @@ protocol local {
     ADD_PEOPLE_2,
     CREATE_CHANNELS_3,
     MSG_ATTENTION_4,
-    USER_AWAY_FOR_LONG_5,
+    UNUSED_5, // Was going to be USER_AWAY_FOR_LONG but never was. Can be re-purposed for something else.
     CHANNEL_INACTIVE_6,
     MSG_NO_ANSWER_7
   }

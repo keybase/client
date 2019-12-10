@@ -11,8 +11,9 @@ import (
 )
 
 type BlockConversationsArg struct {
-	Uid    gregor1.UID `codec:"uid" json:"uid"`
-	TlfIDs []TLFID     `codec:"tlfIDs" json:"tlfIDs"`
+	Uid             gregor1.UID `codec:"uid" json:"uid"`
+	TlfIDsBlocked   []TLFID     `codec:"tlfIDsBlocked" json:"tlfIDsBlocked"`
+	TlfIDsUnblocked []TLFID     `codec:"tlfIDsUnblocked" json:"tlfIDsUnblocked"`
 }
 
 type BlockingInterface interface {

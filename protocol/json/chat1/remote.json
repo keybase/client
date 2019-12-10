@@ -661,6 +661,13 @@
     },
     {
       "type": "record",
+      "name": "BotInfoHashVers",
+      "fields": [],
+      "typedef": "uint64",
+      "lint": "ignore"
+    },
+    {
+      "type": "record",
       "name": "CommandConvVers",
       "fields": [],
       "typedef": "uint64",
@@ -751,6 +758,14 @@
       "type": "record",
       "name": "BotInfo",
       "fields": [
+        {
+          "type": "BotInfoHashVers",
+          "name": "serverHashVers"
+        },
+        {
+          "type": "BotInfoHashVers",
+          "name": "clientHashVers"
+        },
         {
           "type": {
             "type": "array",
@@ -1519,6 +1534,10 @@
         {
           "name": "infoHash",
           "type": "BotInfoHash"
+        },
+        {
+          "name": "clientHashVers",
+          "type": "BotInfoHashVers"
         }
       ],
       "response": "GetBotInfoRes"

@@ -5,7 +5,6 @@ import Row from './row/container'
 
 export type Props = {
   expandedSet: Set<string>
-  clearBadges: () => void
   loading: boolean
   onShowDelete: (id: string) => void
   onNewPersonalRepo: () => void

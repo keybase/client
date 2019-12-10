@@ -4,6 +4,7 @@ import * as Styles from '../../../../styles'
 import * as ChatTypes from '../../../../constants/types/chat2'
 import * as TeamTypes from '../../../../constants/types/teams'
 import {Avatars, TeamAvatar} from '../../../avatars'
+import {TeamSubscriberMountOnly} from '../../../../teams/subscriber'
 
 export type ConvProps = {
   fullname: string
@@ -27,6 +28,7 @@ export type Props = {
   teamname?: string
   visible: boolean
   onAddPeople: () => void
+  onBlockConv: () => void
   onHidden: () => void
   onInvite: () => void
   onLeaveTeam: () => void
@@ -128,7 +130,7 @@ class InfoPanelMenu extends React.Component<Props> {
 
     const isAdhoc = !!(props.convProps && props.convProps.teamType === 'adhoc')
     const items = isAdhoc
-      ? [this.hideItem(), this.muteItem()]
+      ? [this.hideItem(), this.muteItem(), {danger: true, onClick: props.onBlockConv, title: 'Block'}]
       : [
           ...(props.canAddPeople ? addPeopleItems : []),
           {onClick: props.onViewTeam, style: {borderTopWidth: 0}, title: 'View team'},
@@ -136,6 +138,7 @@ class InfoPanelMenu extends React.Component<Props> {
           this.muteItem(),
           channelItem,
           {danger: true, onClick: props.onLeaveTeam, title: 'Leave team'},
+          {danger: true, onClick: props.onBlockConv, title: 'Block team'},
         ].filter(item => item !== null)
 
     const header = {
@@ -160,15 +163,18 @@ class InfoPanelMenu extends React.Component<Props> {
     }
 
     return (
-      <Kb.FloatingMenu
-        attachTo={props.attachTo}
-        visible={props.visible}
-        items={items}
-        header={header}
-        onHidden={props.onHidden}
-        position="bottom left"
-        closeOnSelect={true}
-      />
+      <>
+        {props.visible && <TeamSubscriberMountOnly />}
+        <Kb.FloatingMenu
+          attachTo={props.attachTo}
+          visible={props.visible}
+          items={items}
+          header={header}
+          onHidden={props.onHidden}
+          position="bottom left"
+          closeOnSelect={true}
+        />
+      </>
     )
   }
 
