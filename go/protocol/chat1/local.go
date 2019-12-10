@@ -3078,6 +3078,7 @@ type MessageUnboxedJourneycard struct {
 	Ordinal        int             `codec:"ordinal" json:"ordinal"`
 	CardType       JourneycardType `codec:"cardType" json:"cardType"`
 	HighlightMsgID MessageID       `codec:"highlightMsgID" json:"highlightMsgID"`
+	OpenTeam       bool            `codec:"openTeam" json:"openTeam"`
 }
 
 func (o MessageUnboxedJourneycard) DeepCopy() MessageUnboxedJourneycard {
@@ -3086,6 +3087,7 @@ func (o MessageUnboxedJourneycard) DeepCopy() MessageUnboxedJourneycard {
 		Ordinal:        o.Ordinal,
 		CardType:       o.CardType.DeepCopy(),
 		HighlightMsgID: o.HighlightMsgID.DeepCopy(),
+		OpenTeam:       o.OpenTeam,
 	}
 }
 

@@ -11,7 +11,8 @@ import * as TeamTypes from '../../../../../constants/types/teams'
 import * as TeamsGen from '../../../../../actions/teams-gen'
 import {teamsTab} from '../../../../../constants/tabs'
 import {appendNewTeamBuilder} from '../../../../../actions/typed-routes'
-import TeamJourney from '.'
+import * as ChatTypes from '../../../../../constants/types/chat2'
+import {TeamJourney, Action} from '.'
 
 type OwnProps = {
   message: MessageTypes.MessageJourneycard
@@ -19,6 +20,7 @@ type OwnProps = {
 
 type Props = {
   channelname: string
+  conversationIDKey: ChatTypes.ConversationIDKey
   message: MessageTypes.MessageJourneycard
   otherChannels: Array<string>
   onAddPeopleToTeam: () => void
@@ -30,11 +32,7 @@ type Props = {
   onScrollBack: () => void
   onShowTeam: () => void
   teamname: string
-}
-
-type Action = {
-  label: string
-  onClick: () => void
+  teamType: 'big' | 'small' | null
 }
 
 const TeamJourneyContainer = (props: Props) => {
@@ -45,10 +43,13 @@ const TeamJourneyContainer = (props: Props) => {
 
   switch (props.message.cardType) {
     case RPCChatTypes.JourneycardType.welcome:
-      actions = [
-        {label: 'Publish team on your own profile', onClick: props.onPublishTeam},
-        {label: 'Browse channels', onClick: props.onBrowseChannels},
-      ]
+      actions =
+        props.teamType === 'big'
+          ? [
+              {label: 'Publish team on your profile', onClick: props.onPublishTeam},
+              {label: 'Browse channels', onClick: props.onBrowseChannels},
+            ]
+          : ['wave', {label: 'Publish team on your profile', onClick: props.onPublishTeam}]
       image = 'icon-illustration-welcome-96'
       textComponent = (
         <Kb.Text type="BodySmall">Welcome to the team! Say hi to everyone and introduce yourself.</Kb.Text>
@@ -76,13 +77,21 @@ const TeamJourneyContainer = (props: Props) => {
     case RPCChatTypes.JourneycardType.addPeople:
       actions = [{label: 'Add people to the team', onClick: props.onAddPeopleToTeam}]
       image = 'icon-illustration-friends-96'
-      textComponent = (
+      textComponent = props.message.openTeam ? (
         <Kb.Text type="BodySmall">
           Do you know people interested in joining?{' '}
           <Kb.Text onClick={props.onShowTeam} type="BodySmallBold">
             {props.teamname}
           </Kb.Text>{' '}
           is open to anyone.
+        </Kb.Text>
+      ) : (
+        <Kb.Text type="BodySmall">
+          Do you know people interested in joining{' '}
+          <Kb.Text onClick={props.onShowTeam} type="BodySmallBold">
+            {props.teamname}
+          </Kb.Text>
+          ?
         </Kb.Text>
       )
       break
@@ -130,6 +139,7 @@ const TeamJourneyContainer = (props: Props) => {
       image={image}
       loadTeam={loadTeam}
       teamname={props.teamname}
+      conversationIDKey={props.conversationIDKey}
       textComponent={textComponent}
     />
   ) : null
@@ -137,11 +147,13 @@ const TeamJourneyContainer = (props: Props) => {
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const conv = Constants.getMeta(state, ownProps.message.conversationIDKey)
-  const {channelname, teamname, teamID} = conv
+  const {channelname, conversationIDKey, teamname, teamID} = conv
   return {
     _channelInfos: TeamConstants.getTeamChannelInfos(state, teamname),
     _teamID: teamID,
     channelname,
+    conversationIDKey,
+    teamType: TeamConstants.getTeamType(state, teamname),
     teamname,
   }
 }
@@ -168,7 +180,7 @@ const TeamJourneyConnected = Container.connect(
   mapStateToProps,
   mapDispatchToProps,
   (stateProps, dispatchProps, ownProps) => {
-    const {channelname, teamname} = stateProps
+    const {channelname, conversationIDKey, teamname, teamType} = stateProps
     // Take the top three channels with most recent activity.
     const joinableStatuses = new Set([
       // keep in sync with journey_card_manager.go
@@ -185,6 +197,7 @@ const TeamJourneyConnected = Container.connect(
 
     return {
       channelname,
+      conversationIDKey,
       message: ownProps.message,
       onAddPeopleToTeam: () => dispatchProps._onAddPeopleToTeam(stateProps._teamID),
       onBrowseChannels: () => dispatchProps._onBrowseChannels(stateProps.teamname),
@@ -195,6 +208,7 @@ const TeamJourneyConnected = Container.connect(
       onScrollBack: () => console.log('onScrollBack'),
       onShowTeam: () => dispatchProps._onShowTeam(stateProps._teamID),
       otherChannels,
+      teamType,
       teamname,
     }
   }
