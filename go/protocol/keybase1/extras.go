@@ -3551,3 +3551,28 @@ func (b UserBlockedBody) Summarize() UserBlockedSummary {
 	}
 	return ret
 }
+
+func FilterMembersDetails(membMap map[string]struct{}, details []TeamMemberDetails) (res []TeamMemberDetails) {
+	res = []TeamMemberDetails{}
+	for _, member := range details {
+		if _, ok := membMap[member.Username]; ok {
+			res = append(res, member)
+		}
+	}
+	return res
+}
+
+func FilterTeamDetailsForMembers(usernames []string, details TeamDetails) TeamDetails {
+	membMap := make(map[string]struct{})
+	for _, username := range usernames {
+		membMap[username] = struct{}{}
+	}
+	res := details.DeepCopy()
+	res.Members.Owners = FilterMembersDetails(membMap, res.Members.Owners)
+	res.Members.Admins = FilterMembersDetails(membMap, res.Members.Admins)
+	res.Members.Writers = FilterMembersDetails(membMap, res.Members.Writers)
+	res.Members.Readers = FilterMembersDetails(membMap, res.Members.Readers)
+	res.Members.Bots = FilterMembersDetails(membMap, res.Members.Bots)
+	res.Members.RestrictedBots = FilterMembersDetails(membMap, res.Members.RestrictedBots)
+	return res
+}
