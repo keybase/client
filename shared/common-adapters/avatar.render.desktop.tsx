@@ -82,12 +82,11 @@ const styles = Styles.styleSheetCreate(
         isElectron: {
           backgroundOrigin: 'content-box',
           position: 'relative',
-          width: '100%',
         },
       }),
       poopContainer: Styles.platformStyles({
         isElectron: {
-          padding: '10%',
+          padding: Styles.globalMargins.small,
         },
       }),
     } as const)
