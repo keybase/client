@@ -324,6 +324,12 @@ func (b *BackgroundConvLoader) isSuspended() bool {
 	return b.suspendCount > 0
 }
 
+func (b *BackgroundConvLoader) isRunning() bool {
+	b.Lock()
+	defer b.Unlock()
+	return b.started
+}
+
 func (b *BackgroundConvLoader) enqueue(ctx context.Context, task clTask) error {
 	b.Lock()
 	defer b.Unlock()
@@ -417,12 +423,16 @@ func (b *BackgroundConvLoader) loadLoop(uid gregor1.UID, stopCh chan struct{}) e
 	for {
 		select {
 		case task := <-b.loadCh:
-			if b.isSuspended() {
+			switch {
+			case !b.isRunning():
+				b.Debug(bgctx, "loadLoop: shutting down for %s", uid)
+				return nil
+			case b.isSuspended():
 				b.Debug(bgctx, "loadLoop: suspended, re-enqueueing task: %s", task.job)
 				if err := b.enqueue(bgctx, *task); err != nil {
 					b.Debug(bgctx, "enqueue error %s", err)
 				}
-			} else {
+			default:
 				b.Debug(bgctx, "loadLoop: running task: %s", task.job)
 				nextTask := b.load(bgctx, *task, uid)
 				if nextTask != nil {
