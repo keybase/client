@@ -148,15 +148,18 @@ const deriveUserFromUserIdFn = memoize(
 )
 
 const emptyObj = {}
+const emptyArr = []
+const emptyMap = new Map()
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const teamBuildingState = state[ownProps.namespace].teamBuilding
   const teamBuildingSearchResults = teamBuildingState.searchResults
   const userResults: Array<Types.User> =
-    teamBuildingState.searchResults.get(trim(ownProps.searchString))?.get(ownProps.selectedService) ?? []
+    teamBuildingState.searchResults.get(trim(ownProps.searchString))?.get(ownProps.selectedService) ??
+    emptyArr
 
   const maybeTeamDetails = ownProps.teamID ? getTeamDetails(state, ownProps.teamID) : undefined
-  const preExistingTeamMembers: TeamTypes.TeamDetails['members'] = maybeTeamDetails?.members || new Map()
+  const preExistingTeamMembers: TeamTypes.TeamDetails['members'] = maybeTeamDetails?.members ?? emptyMap
   const disabledRoles = ownProps.teamID
     ? getDisabledReasonsForRolePicker(state, ownProps.teamID, null)
     : emptyObj
