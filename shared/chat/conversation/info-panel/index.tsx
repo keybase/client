@@ -9,7 +9,7 @@ import {SettingsPanel} from './panels'
 import Participant from './participant'
 import {AttachmentTypeSelector, DocView, LinkView, MediaView} from './attachments'
 
-export type Panel = 'settings' | 'members' | 'attachments'
+export type Panel = 'settings' | 'members' | 'attachments' | 'bots'
 export type ParticipantTyp = {
   username: string
   fullname: string
@@ -76,6 +76,7 @@ export type InfoPanelProps = {
   loadDelay?: number
   selectedConversationIDKey: Types.ConversationIDKey
   participants: ReadonlyArray<ParticipantTyp>
+  bots: ReadonlyArray<ParticipantTyp>
   isPreview: boolean
   teamname?: string
   channelname?: string
@@ -133,6 +134,9 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
       if (this.props.selectedTab === 'attachments') {
         this.loadAttachments()
       }
+      if (this.props.selectedTab === 'bots') {
+        // TODO: load bots
+      }
     }, this.props.loadDelay || 0)
   }
   componentWillUnmount() {
@@ -171,6 +175,11 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
         <TabText selected={this.isSelected('attachments')} text="Attachments" />
       </Kb.Box2>
     )
+    res.push(
+      <Kb.Box2 key="bots" style={styles.tabTextContainer} direction="horizontal">
+        <TabText selected={this.isSelected('bots')} text={`Bots (${this.props.bots.length})`} />
+      </Kb.Box2>
+    )
     if (!this.props.isPreview) {
       res.push(
         <Kb.Box2 key="settings" style={styles.tabTextContainer} direction="horizontal">
@@ -187,6 +196,12 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
     if (tab.key === 'attachments') {
       this.loadAttachments()
     }
+
+    // @ts-ignore TODO avoid using key on a node
+    if (tab.key === 'bots') {
+      // TODO: load featured bots?
+    }
+
     // @ts-ignore TODO avoid using key on a node
     this.props.onSelectTab(tab.key)
   }
@@ -386,6 +401,32 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
           sections = sections.concat(attachmentSections)
         }
         break
+      case 'bots':
+        if (!Styles.isMobile) {
+          itemSizeEstimator = () => {
+            return 56
+          }
+        }
+
+        tabsSection.data = tabsSection.data.concat(this.props.bots)
+        tabsSection.renderItem = ({item}) => {
+          if (!item.username) {
+            return null
+          } else {
+            return (
+              <Participant
+                botAlias={item.botAlias}
+                fullname={item.fullname}
+                isAdmin={false}
+                isOwner={false}
+                username={item.username}
+                onShowProfile={this.props.onShowProfile}
+              />
+            )
+          }
+        }
+        sections.push(tabsSection)
+        break
     }
     return (
       <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
@@ -415,16 +456,28 @@ const styles = Styles.styleSheetCreate(
           borderLeft: `1px solid ${Styles.globalColors.black_10}`,
         },
       }),
-      tabContainerStyle: {
-        backgroundColor: Styles.globalColors.white,
-      },
+      tabContainerStyle: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.white,
+        },
+        // TODO: this is less than ideal
+        isElectron: {
+          overflowX: 'scroll',
+          overflowY: 'hidden',
+        },
+      }),
       tabStyle: {
         paddingLeft: Styles.globalMargins.xsmall,
         paddingRight: Styles.globalMargins.xsmall,
       },
-      tabTextContainer: {
-        justifyContent: 'center',
-      },
+      tabTextContainer: Styles.platformStyles({
+        common: {
+          justifyContent: 'center',
+        },
+        isElectron: {
+          whiteSpace: 'nowrap',
+        },
+      }),
       tabTextSelected: {color: Styles.globalColors.black},
     } as const)
 )
