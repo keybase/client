@@ -991,6 +991,8 @@ type UIDMapper interface {
 	// for use in tests*
 	SetTestingNoCachingMode(enabled bool)
 
+	ClearUIDFullName(context.Context, UIDMapperContext, keybase1.UID) error
+
 	// ClearUID is called to clear the given UID out of the cache, if the given eldest
 	// seqno doesn't match what's currently cached.
 	ClearUIDAtEldestSeqno(context.Context, UIDMapperContext, keybase1.UID, keybase1.Seqno) error
