@@ -135,38 +135,34 @@ const TeamJourneyContainer = (props: Props) => {
   ) : null
 }
 
-const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
-  const conv = Constants.getMeta(state, ownProps.message.conversationIDKey)
-  const {channelname, teamname, teamID} = conv
-  return {
-    _channelInfos: TeamConstants.getTeamChannelInfos(state, teamname),
-    _teamID: teamID,
-    channelname,
-    teamname,
-  }
-}
-
-const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
-  _onAddPeopleToTeam: (teamID: TeamTypes.TeamID) => dispatch(appendNewTeamBuilder(teamID)),
-  _onBrowseChannels: (teamname: string) =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'chatManageChannels'}]})
-    ),
-  _onCreateChatChannels: (teamname: string) =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'chatManageChannels'}]})
-    ),
-  _onGoToChannel: (channelname: string, teamname: string) =>
-    dispatch(Chat2Gen.createPreviewConversation({channelname, reason: 'journeyCardPopular', teamname})),
-  _onLoadTeam: (teamname: string) => dispatch(TeamsGen.createGetChannels({teamname})),
-  _onPublishTeam: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['profileShowcaseTeamOffer']})),
-  _onShowTeam: (teamID: TeamTypes.TeamID) =>
-    dispatch(RouteTreeGen.createNavigateAppend({path: [teamsTab, {props: {teamID}, selected: 'team'}]})),
-})
-
 const TeamJourneyConnected = Container.connect(
-  mapStateToProps,
-  mapDispatchToProps,
+  (state, ownProps: OwnProps) => {
+    const conv = Constants.getMeta(state, ownProps.message.conversationIDKey)
+    const {channelname, teamname, teamID} = conv
+    return {
+      _channelInfos: TeamConstants.getTeamChannelInfos(state, teamname),
+      _teamID: teamID,
+      channelname,
+      teamname,
+    }
+  },
+  dispatch => ({
+    _onAddPeopleToTeam: (teamID: TeamTypes.TeamID) => dispatch(appendNewTeamBuilder(teamID)),
+    _onBrowseChannels: (teamname: string) =>
+      dispatch(
+        RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'chatManageChannels'}]})
+      ),
+    _onCreateChatChannels: (teamname: string) =>
+      dispatch(
+        RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'chatManageChannels'}]})
+      ),
+    _onGoToChannel: (channelname: string, teamname: string) =>
+      dispatch(Chat2Gen.createPreviewConversation({channelname, reason: 'journeyCardPopular', teamname})),
+    _onLoadTeam: (teamname: string) => dispatch(TeamsGen.createGetChannels({teamname})),
+    _onPublishTeam: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['profileShowcaseTeamOffer']})),
+    _onShowTeam: (teamID: TeamTypes.TeamID) =>
+      dispatch(RouteTreeGen.createNavigateAppend({path: [teamsTab, {props: {teamID}, selected: 'team'}]})),
+  }),
   (stateProps, dispatchProps, ownProps) => {
     const {channelname, teamname} = stateProps
     // Take the top three channels with most recent activity.

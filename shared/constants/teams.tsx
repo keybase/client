@@ -300,15 +300,13 @@ export const getEmailInviteError = (state: TypedState) => state.teams.emailInvit
 export const isTeamWithChosenChannels = (state: TypedState, teamname: string): boolean =>
   state.teams.teamsWithChosenChannels.has(teamname)
 
+const noInfos = new Map<ChatTypes.ConversationIDKey, Types.ChannelInfo>()
+
 export const getTeamChannelInfos = (
   state: TypedState,
   teamname: Types.Teamname
-): Map<ChatTypes.ConversationIDKey, Types.ChannelInfo> => {
-  return (
-    state.teams.teamNameToChannelInfos.get(teamname) ||
-    new Map<ChatTypes.ConversationIDKey, Types.ChannelInfo>()
-  )
-}
+): Map<ChatTypes.ConversationIDKey, Types.ChannelInfo> =>
+  state.teams.teamNameToChannelInfos.get(teamname) ?? noInfos
 
 export const getChannelInfoFromConvID = (
   state: TypedState,
