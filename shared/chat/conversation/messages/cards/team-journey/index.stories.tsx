@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as Kb from '../../../../../common-adapters'
 import * as Sb from '../../../../../stories/storybook'
 import TeamJourney from './index'
 
@@ -12,7 +13,9 @@ const load = () => {
         ]}
         image="icon-illustration-welcome-96"
         teamname="foo"
-        text="Welcome to the team! Say hi to everyone and introduce yourself."
+        textComponent={
+          <Kb.Text type="BodySmall">Welcome to the team! Say hi to everyone and introduce yourself.</Kb.Text>
+        }
       />
     ))
     .add('Popular channels', () => (
@@ -24,8 +27,11 @@ const load = () => {
         ]}
         image={null}
         teamname="foo"
-        text={`You are in *#somechan*.
-Some other channels in this team:`}
+        textComponent={
+          <Kb.Text type="BodySmall">
+            You are in <Kb.Text type="BodySmallBold">#somechan</Kb.Text>. Some other channels in this team:
+          </Kb.Text>
+        }
       />
     ))
     .add('Popular long channels', () => (
@@ -37,8 +43,11 @@ Some other channels in this team:`}
         ]}
         image={null}
         teamname="foo"
-        text={`You are in *#somechan*.
-Some other channels in this team:`}
+        textComponent={
+          <Kb.Text type="BodySmall">
+            You are in <Kb.Text type="BodySmallBold">#somechan</Kb.Text>. Some other channels in this team:
+          </Kb.Text>
+        }
       />
     ))
     .add('Popular no channels', () => (
@@ -46,8 +55,12 @@ Some other channels in this team:`}
         actions={[]}
         image={null}
         teamname="foo"
-        text={`You are in *#somechan*.
-And you're in all the other channels, nice.`}
+        textComponent={
+          <Kb.Text type="BodySmall">
+            You are in <Kb.Text type="BodySmallBold">#somechan</Kb.Text>. And you're in all the other
+            channels, nice.
+          </Kb.Text>
+        }
       />
     ))
     .add('Add people', () => (
@@ -55,7 +68,9 @@ And you're in all the other channels, nice.`}
         actions={[{label: 'Add people to the team', onClick: Sb.action('onAddPeopleToTeam')}]}
         image="icon-illustration-friends-96"
         teamname="foo"
-        text="Do you know people interested in joining? Foo is open to anyone."
+        textComponent={
+          <Kb.Text type="BodySmall">Do you know people interested in joining? Foo is open to anyone.</Kb.Text>
+        }
       />
     ))
     .add('Create channels', () => (
@@ -63,7 +78,12 @@ And you're in all the other channels, nice.`}
         actions={[{label: 'Create chat channels', onClick: Sb.action('onCreateChatChannels')}]}
         image="icon-illustration-happy-chat-96"
         teamname="foo"
-        text="Go ahead and create *#channels* around topics you think are missing."
+        textComponent={
+          <Kb.Text type="BodySmall">
+            Go ahead and create <Kb.Text type="BodySmallBold">#channels</Kb.Text> around topics you think are
+            missing.
+          </Kb.Text>
+        }
       />
     ))
     .add('Lots of attention', () => (
@@ -71,7 +91,7 @@ And you're in all the other channels, nice.`}
         actions={[]}
         image="icon-illustration-attention-64"
         teamname="foo"
-        text="One of your messages is getting lots of attention!"
+        textComponent={<Kb.Text type="BodySmall">One of your messages is getting lots of attention!</Kb.Text>}
       />
     ))
     .add('Inactive channel', () => (
@@ -79,7 +99,9 @@ And you're in all the other channels, nice.`}
         actions={[]}
         image="icon-illustration-sleepy-96"
         teamname="foo"
-        text="Zzz… This channel hasn’t been very active…. Revive it?"
+        textComponent={
+          <Kb.Text type="BodySmall">Zzz… This channel hasn’t been very active…. Revive it?</Kb.Text>
+        }
       />
     ))
     .add('Message not answered', () => (
@@ -91,7 +113,11 @@ And you're in all the other channels, nice.`}
         ]}
         image={null}
         teamname="foo"
-        text="People haven't been talkative in a while. Perhaps post in another channel?"
+        textComponent={
+          <Kb.Text type="BodySmall">
+            People haven't been talkative in a while. Perhaps post in another channel?
+          </Kb.Text>
+        }
       />
     ))
 }

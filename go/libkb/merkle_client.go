@@ -18,6 +18,7 @@ import (
 
 	chat1 "github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/sig3"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -268,9 +269,6 @@ type MerkleTeamLeaf struct {
 	TeamID  keybase1.TeamID
 	Public  *MerkleTriple
 	Private *MerkleTriple
-	// If we passed through a linkID for the last known hidden chain link, here we pass back
-	// if it's the freshest.
-	HiddenIsFresh bool
 }
 
 type MerkleGenericLeaf struct {
@@ -360,17 +358,18 @@ type MerkleRootPayloadUnpacked struct {
 				Version *keybase1.Seqno       `json:"version"`
 			} `json:"privateteam"`
 		} `json:"kbfs"`
-		LegacyUIDRoot     NodeHashShort  `json:"legacy_uid_root"`
-		Prev              NodeHashLong   `json:"prev"`
-		Root              NodeHashLong   `json:"root"`
-		Seqno             keybase1.Seqno `json:"seqno"`
-		Skips             SkipTable      `json:"skips"`
-		Txid              string         `json:"txid"`
-		Type              string         `json:"type"`
-		Version           int            `json:"version"`
-		PvlHash           string         `json:"pvl_hash"`
-		ProofServicesHash string         `json:"proof_services_hash"`
-		ExternalURLHash   string         `json:"external_urls_hash"`
+		LegacyUIDRoot       NodeHashShort  `json:"legacy_uid_root"`
+		Prev                NodeHashLong   `json:"prev"`
+		Root                NodeHashLong   `json:"root"`
+		Seqno               keybase1.Seqno `json:"seqno"`
+		Skips               SkipTable      `json:"skips"`
+		Txid                string         `json:"txid"`
+		Type                string         `json:"type"`
+		Version             int            `json:"version"`
+		PvlHash             string         `json:"pvl_hash"`
+		ProofServicesHash   string         `json:"proof_services_hash"`
+		ExternalURLHash     string         `json:"external_urls_hash"`
+		BlindMerkleRootHash string         `json:"blind_merkle_root_hash"`
 	} `json:"body"`
 	Ctime int64  `json:"ctime"`
 	Tag   string `json:"tag"`
@@ -757,7 +756,7 @@ func (mc *MerkleClient) lookupPathAndSkipSequenceHelper(m MetaContext, q HTTPArg
 
 	apiRes, err = m.G().API.Get(m, APIArg{
 		Endpoint:        "merkle/path",
-		SessionType:     APISessionTypeNONE,
+		SessionType:     APISessionTypeOPTIONAL,
 		Args:            q,
 		AppStatusCodes:  []int{SCOk, SCNotFound, SCDeleted},
 		RetryCount:      3,
@@ -1796,23 +1795,48 @@ func (mc *MerkleClient) lookupLeafHistorical(m MetaContext, leafID keybase1.User
 	return leaf, path.root, nil
 }
 
-type LookupTeamHiddenArg struct {
-	LastKnownHidden  keybase1.LinkID
-	PTKEncryptionKID keybase1.KID
-	PTKGeneration    keybase1.PerTeamKeyGeneration
-}
-
-func (mc *MerkleClient) LookupTeamWithHidden(m MetaContext, teamID keybase1.TeamID, harg *LookupTeamHiddenArg) (leaf *MerkleTeamLeaf, err error) {
+func (mc *MerkleClient) LookupTeamWithHidden(m MetaContext, teamID keybase1.TeamID, processHiddenRespFunc ProcessHiddenRespFunc) (leaf *MerkleTeamLeaf, hiddenResp *MerkleHiddenResponse, err error) {
 	// Copied from LookupUser. These methods should be kept relatively in sync.
-	return mc.lookupTeam(m, teamID, harg)
+	return mc.lookupTeam(m, teamID, processHiddenRespFunc)
 }
 
 func (mc *MerkleClient) LookupTeam(m MetaContext, teamID keybase1.TeamID) (leaf *MerkleTeamLeaf, err error) {
 	// Copied from LookupUser. These methods should be kept relatively in sync.
-	return mc.lookupTeam(m, teamID, nil)
+	leaf, _, err = mc.lookupTeam(m, teamID, nil)
+	return leaf, err
 }
 
-func (mc *MerkleClient) lookupTeam(m MetaContext, teamID keybase1.TeamID, harg *LookupTeamHiddenArg) (leaf *MerkleTeamLeaf, err error) {
+type MerkleHiddenResponseType uint8
+
+const (
+	// the server did not include any hidden chain data
+	MerkleHiddenResponseTypeNONE MerkleHiddenResponseType = 1
+	// the server provided a proof of absence (or inclusion with an empty leaf) for
+	// the requested key
+	MerkleHiddenResponseTypeABSENCEPROOF MerkleHiddenResponseType = 2
+	// the server provided a valid inclusion proof for the returned leaf in the tree
+	MerkleHiddenResponseTypeOK MerkleHiddenResponseType = 3
+
+	// Type used to skip all hidden checks as feature flags is off
+	MerkleHiddenResponseTypeFLAGOFF MerkleHiddenResponseType = 127
+)
+
+type MerkleHiddenResponse struct {
+	RespType            MerkleHiddenResponseType `json:"resp_type"`
+	CommittedHiddenTail *sig3.Tail               `json:"committed_hidden_tail"`
+	UncommittedSeqno    keybase1.Seqno           `json:"uncommitted_seqno"`
+}
+
+func (m *MerkleHiddenResponse) GetUncommittedSeqno() keybase1.Seqno {
+	if m == nil {
+		return 0
+	}
+	return m.UncommittedSeqno
+}
+
+type ProcessHiddenRespFunc func(m MetaContext, teamID keybase1.TeamID, apiRes *APIRes, blindRootHash string) (*MerkleHiddenResponse, error)
+
+func (mc *MerkleClient) lookupTeam(m MetaContext, teamID keybase1.TeamID, processHiddenResponseFunc ProcessHiddenRespFunc) (leaf *MerkleTeamLeaf, hiddenResp *MerkleHiddenResponse, err error) {
 
 	m.VLogf(VLog0, "+ MerkleClient.LookupTeam(%v)", teamID)
 
@@ -1822,7 +1846,7 @@ func (mc *MerkleClient) lookupTeam(m MetaContext, teamID keybase1.TeamID, harg *
 	var opts MerkleOpts
 
 	if err = mc.init(m); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// Grab the cached seqno before the call to get the next one is made.
@@ -1834,51 +1858,28 @@ func (mc *MerkleClient) lookupTeam(m MetaContext, teamID keybase1.TeamID, harg *
 
 	q := NewHTTPArgs()
 	q.Add("leaf_id", S{Val: teamID.String()})
-	if harg != nil {
-		if !harg.LastKnownHidden.IsNil() {
-			q.Add("last_hidden_link_id", S{Val: harg.LastKnownHidden.String()})
-		}
-		if !harg.PTKEncryptionKID.IsNil() {
-			q.Add("chhtc_kid", S{Val: harg.PTKEncryptionKID.String()})
-			q.Add("chhtc_gen", I{Val: int(harg.PTKGeneration)})
-		}
-	}
 
 	if path, ss, apiRes, err = mc.lookupPathAndSkipSequenceTeam(m, q, rootBeforeCall, opts); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	if err = mc.verifySkipSequenceAndRoot(m, ss, path.root, rootBeforeCall, apiRes, opts); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	if leaf, err = path.verifyTeam(m, teamID); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	if harg != nil {
-		var tmp error
-		var b bool
-		if !harg.LastKnownHidden.IsNil() {
-			b, tmp = apiRes.Body.AtKey("is_last_hidden_link").GetBool()
-			if tmp != nil {
-				m.Debug("Bad is_last_hidden_link: %s", tmp.Error())
-			} else if b {
-				leaf.HiddenIsFresh = true
-			}
-		}
-		if !harg.PTKEncryptionKID.IsNil() {
-			b, tmp = apiRes.Body.AtKey("chhtc").GetBool()
-			if tmp != nil {
-				m.Debug("Bad chhtc: %s", tmp.Error())
-			} else if !b {
-				leaf.HiddenIsFresh = true
-			}
+	if processHiddenResponseFunc != nil {
+		hiddenResp, err = processHiddenResponseFunc(m, teamID, apiRes, path.root.BlindMerkleRootHash())
+		if err != nil {
+			return nil, nil, err
 		}
 	}
 
 	m.VLogf(VLog0, "- MerkleClient.LookupTeam(%v) -> OK", teamID)
-	return leaf, nil
+	return leaf, hiddenResp, err
 }
 
 func (mr *MerkleRoot) ToSigJSON() (ret *jsonw.Wrapper) {
@@ -1990,6 +1991,13 @@ func (mr *MerkleRoot) ExternalURLHash() string {
 	return mr.payload.externalURLHash()
 }
 
+func (mr *MerkleRoot) BlindMerkleRootHash() string {
+	if mr == nil {
+		return ""
+	}
+	return mr.payload.blindMerkleRootHash()
+}
+
 func (mr *MerkleRoot) SkipToSeqno(s keybase1.Seqno) NodeHash {
 	if mr == nil {
 		return nil
@@ -2045,7 +2053,10 @@ func (mrp MerkleRootPayload) legacyUIDRootHash() NodeHash { return mrp.unpacked.
 func (mrp MerkleRootPayload) pvlHash() string             { return mrp.unpacked.Body.PvlHash }
 func (mrp MerkleRootPayload) proofServicesHash() string   { return mrp.unpacked.Body.ProofServicesHash }
 func (mrp MerkleRootPayload) externalURLHash() string     { return mrp.unpacked.Body.ExternalURLHash }
-func (mrp MerkleRootPayload) ctime() int64                { return mrp.unpacked.Ctime }
+func (mrp MerkleRootPayload) blindMerkleRootHash() string {
+	return mrp.unpacked.Body.BlindMerkleRootHash
+}
+func (mrp MerkleRootPayload) ctime() int64 { return mrp.unpacked.Ctime }
 func (mrp MerkleRootPayload) kbfsPrivate() (keybase1.KBFSRootHash, *keybase1.Seqno) {
 	return mrp.unpacked.Body.Kbfs.Private.Root, mrp.unpacked.Body.Kbfs.Private.Version
 }
