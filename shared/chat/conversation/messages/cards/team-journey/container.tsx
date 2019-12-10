@@ -43,13 +43,13 @@ const TeamJourneyContainer = (props: Props) => {
 
   switch (props.message.cardType) {
     case RPCChatTypes.JourneycardType.welcome:
-      actions = props.teamType === 'big' ? [
-        {label: 'Publish team on your profile', onClick: props.onPublishTeam},
-        {label: 'Browse channels', onClick: props.onBrowseChannels},
-      ] : [
-        'wave',
-        {label: 'Publish team on your profile', onClick: props.onPublishTeam},
-      ]
+      actions =
+        props.teamType === 'big'
+          ? [
+              {label: 'Publish team on your profile', onClick: props.onPublishTeam},
+              {label: 'Browse channels', onClick: props.onBrowseChannels},
+            ]
+          : ['wave', {label: 'Publish team on your profile', onClick: props.onPublishTeam}]
       image = 'icon-illustration-welcome-96'
       textComponent = (
         <Kb.Text type="BodySmall">Welcome to the team! Say hi to everyone and introduce yourself.</Kb.Text>

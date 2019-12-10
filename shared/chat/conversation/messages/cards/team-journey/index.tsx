@@ -3,10 +3,12 @@ import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 import * as ChatTypes from '../../../../../constants/types/chat2'
 
-export type Action = {
-  label: string
-  onClick: () => void
-} | 'wave'
+export type Action =
+  | {
+      label: string
+      onClick: () => void
+    }
+  | 'wave'
 
 type Props = {
   actions: Array<Action>
@@ -34,16 +36,26 @@ export const TeamJourney = (props: Props) => {
           </Kb.Box2>
           {!!props.image && <Kb.Icon style={styles.image} type={props.image} />}
         </Kb.Box2>
-        <Kb.Box2 direction="horizontal" fullWidth={true} alignItems={'flex-start'} gap="tiny" style={styles.actionsBox}>
+        <Kb.Box2
+          direction="horizontal"
+          fullWidth={true}
+          alignItems={'flex-start'}
+          gap="tiny"
+          style={styles.actionsBox}
+        >
           {props.actions.map(action =>
-            action == 'wave' ? (<Kb.WaveButton conversationIDKey={conversationIDKey} small={true} />) : (<Kb.Button
-              key={action.label}
-              small={true}
-              type="Default"
-              mode="Secondary"
-              label={action.label}
-              onClick={action.onClick}
-            />)
+            action == 'wave' ? (
+              <Kb.WaveButton conversationIDKey={conversationIDKey} small={true} />
+            ) : (
+              <Kb.Button
+                key={action.label}
+                small={true}
+                type="Default"
+                mode="Secondary"
+                label={action.label}
+                onClick={action.onClick}
+              />
+            )
           )}
         </Kb.Box2>
       </Kb.Box2>

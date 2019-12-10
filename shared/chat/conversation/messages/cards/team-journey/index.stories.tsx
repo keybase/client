@@ -4,8 +4,8 @@ import * as Sb from '../../../../../stories/storybook'
 import TeamJourney from './index'
 
 const commonProps = {
-  teamname: "foo",
-  conversationIDKey: "dummyConversationIDKey",
+  teamname: 'foo',
+  conversationIDKey: 'dummyConversationIDKey',
 }
 
 const load = () => {
@@ -13,10 +13,7 @@ const load = () => {
     .add('Welcome (small team)', () => (
       <TeamJourney
         {...commonProps}
-        actions={[
-          'wave',
-          {label: 'Publish team on your profile', onClick: Sb.action('onPublishTeam')},
-        ]}
+        actions={['wave', {label: 'Publish team on your profile', onClick: Sb.action('onPublishTeam')}]}
         image="icon-illustration-welcome-96"
         textComponent={
           <Kb.Text type="BodySmall">Welcome to the team! Say hi to everyone and introduce yourself.</Kb.Text>
