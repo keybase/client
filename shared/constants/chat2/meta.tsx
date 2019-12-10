@@ -154,10 +154,13 @@ export const updateMeta = (
       newMeta.inboxLocalVersion > oldMeta.inboxLocalVersion
     ) {
       const merged = {...newMeta}
-      if (shallowEqual(merged.participants, oldMeta.participants)) {
+      if (merged.participants.length === 0 || shallowEqual(merged.participants, oldMeta.participants)) {
         merged.participants = oldMeta.participants
       }
-      if (shallowEqual(merged.nameParticipants, oldMeta.nameParticipants)) {
+      if (
+        merged.nameParticipants.length === 0 ||
+        shallowEqual(merged.nameParticipants, oldMeta.nameParticipants)
+      ) {
         merged.nameParticipants = oldMeta.nameParticipants
       }
       if (shallowEqual([...merged.rekeyers], [...oldMeta.rekeyers])) {
@@ -177,6 +180,12 @@ export const updateMeta = (
     return oldMeta
   }
   // higher inbox version, use new
+
+  // if the meta doesn't contain participants, use the old ones
+  if (newMeta.participants.length === 0) {
+    newMeta.participants = oldMeta.participants
+    newMeta.nameParticipants = oldMeta.nameParticipants
+  }
   return newMeta
 }
 
@@ -447,36 +456,6 @@ export const getParticipantSuggestions = (state: TypedState, id: Types.Conversat
   const {participants, teamType} = getMeta(state, id)
   _unmemoizedState = state
   return _getParticipantSuggestionsMemoized(participants, teamType)
-}
-
-export const getChannelSuggestions = (state: TypedState, teamname: string) => {
-  if (!teamname) {
-    return []
-  }
-  // First try channelinfos (all channels in a team), then try inbox (the
-  // partial list of channels that you have joined).
-  const convs = state.teams.teamNameToChannelInfos.get(teamname)
-  if (convs) {
-    return [...convs.values()].map(conv => conv.channelname)
-  }
-  return [...state.chat2.metaMap.values()].filter(v => v.teamname === teamname).map(v => v.channelname)
-}
-
-let _getAllChannelsRet: Array<{channelname: string; teamname: string}> = []
-// TODO why do this for all teams?
-const _getAllChannelsMemo = memoize((mm: TypedState['chat2']['metaMap']) =>
-  [...mm.values()]
-    .filter(v => v.teamname && v.channelname && v.teamType === 'big')
-    .map(({channelname, teamname}) => ({channelname, teamname}))
-)
-export const getAllChannels = (state: TypedState) => {
-  const ret = _getAllChannelsMemo(state.chat2.metaMap)
-
-  if (shallowEqual(ret, _getAllChannelsRet)) {
-    return _getAllChannelsRet
-  }
-  _getAllChannelsRet = ret
-  return _getAllChannelsRet
 }
 
 export const getChannelForTeam = (state: TypedState, teamname: string, channelname: string) =>

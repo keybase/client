@@ -28,6 +28,8 @@ import io.keybase.ossifrage.BuildConfig;
 import io.keybase.ossifrage.DarkModePrefHelper;
 import io.keybase.ossifrage.DarkModePreference;
 import io.keybase.ossifrage.MainActivity;
+import io.keybase.ossifrage.util.GuiConfig;
+import io.keybase.ossifrage.util.ReadFileAsString;
 import keybase.Keybase;
 
 import static io.keybase.ossifrage.MainActivity.isTestDevice;
@@ -138,37 +140,9 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
         return NAME;
     }
 
-    private String readFromFile(String path) {
-        String ret = "";
-
-        try {
-            FileInputStream inputStream = new FileInputStream(new File(path));
-
-            if ( inputStream != null ) {
-                InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-                BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-                String receiveString = "";
-                StringBuilder stringBuilder = new StringBuilder();
-
-                while ( (receiveString = bufferedReader.readLine()) != null ) {
-                    stringBuilder.append(receiveString);
-                }
-
-                inputStream.close();
-                ret = stringBuilder.toString();
-            }
-        } catch (FileNotFoundException e) {
-            // ignore
-        } catch (IOException e) {
-            // ignore
-        }
-
-        return ret;
-    }
 
     private String readGuiConfig() {
-        File filePath = new File(reactContext.getFilesDir(), "/.config/keybase/gui_config.json");
-        return readFromFile(filePath.getAbsolutePath());
+        return GuiConfig.getInstance(this.reactContext.getFilesDir()).asString();
     }
 
     @Override
@@ -186,7 +160,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
 
         String serverConfig = "";
         try {
-            serverConfig = this.readFromFile(this.reactContext.getCacheDir().getAbsolutePath() + "/Keybase/keybase.app.serverConfig");
+            serverConfig = ReadFileAsString.read(this.reactContext.getCacheDir().getAbsolutePath() + "/Keybase/keybase.app.serverConfig");
         } catch (Exception e) {
             NativeLogger.warn(NAME + ": Error reading server config", e);
         }

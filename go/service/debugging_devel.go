@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -18,8 +17,6 @@ import (
 	chatwallet "github.com/keybase/client/go/chat/wallet"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol/chat1"
-	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/teams"
@@ -29,10 +26,9 @@ import (
 	"golang.org/x/net/context"
 )
 
-func (t *DebuggingHandler) Script(ctx context.Context, arg keybase1.ScriptArg) (res string, err error) {
+func (t *DebuggingHandler) scriptExtras(ctx context.Context, arg keybase1.ScriptArg) (res string, err error) {
 	ctx = libkb.WithLogTag(ctx, "DG")
 	m := libkb.NewMetaContext(ctx, t.G())
-	defer m.TraceTimed(fmt.Sprintf("Script(%s)", arg.Script), func() error { return err })()
 	args := arg.Args
 	log := func(format string, args ...interface{}) {
 		t.G().Log.CInfof(ctx, format, args...)
@@ -283,46 +279,6 @@ func (t *DebuggingHandler) Script(ctx context.Context, arg keybase1.ScriptArg) (
 		}
 		err = teams.ReAddMemberAfterReset(ctx, m.G(), teamID, "ireset1")
 		return "", err
-	case "journeycard":
-		log("journeycard-fastforward [days]")
-		log("journeycard-resetall")
-		log("journeycard-state <conv-id>")
-		return "", nil
-	case "journeycard-fastforward":
-		uidGregor := gregor1.UID(m.G().ActiveDevice.UID().ToBytes())
-		advance := 24 * time.Hour
-		if len(args) >= 1 {
-			days, err := strconv.Atoi(args[0])
-			if err != nil {
-				return "", err
-			}
-			advance = time.Duration(days) * 24 * time.Hour
-		}
-		err = t.G().ChatHelper.JourneycardTimeTravel(m.Ctx(), uidGregor, advance)
-		if err != nil {
-			return "", err
-		}
-		log("time advanced by %v for all convs", advance)
-		return "", err
-	case "journeycard-resetall":
-		uidGregor := gregor1.UID(m.G().ActiveDevice.UID().ToBytes())
-		err = t.G().ChatHelper.JourneycardResetAllConvs(m.Ctx(), uidGregor)
-		if err != nil {
-			return "", err
-		}
-		log("journeycard state has been reset for all convs")
-		return "", nil
-	case "journeycard-state":
-		if len(args) != 1 {
-			return "", fmt.Errorf("usage: journeycard-state <conv-id> (like 000059aa7f324dad7524b56ed1beb3e3d620b3897d640951710f1417c6b7b85f)")
-		}
-		convID, err := chat1.MakeConvID(args[0])
-		if err != nil {
-			return "", err
-		}
-		uidGregor := gregor1.UID(m.G().ActiveDevice.UID().ToBytes())
-		summary, err := t.G().ChatHelper.JourneycardDebugState(m.Ctx(), uidGregor, convID)
-		return summary, err
 	case "":
 		return "", fmt.Errorf("empty script name")
 	default:

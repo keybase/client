@@ -1998,11 +1998,12 @@ func (e ChatUnknownTLFIDError) Error() string {
 //=============================================================================
 
 type ChatNotInConvError struct {
-	UID gregor.UID
+	UID    gregor.UID
+	ConvID chat1.ConversationID
 }
 
 func (e ChatNotInConvError) Error() string {
-	return fmt.Sprintf("user is not in conversation: uid: %s", e.UID.String())
+	return fmt.Sprintf("user is not in conversation: %s uid: %s", e.ConvID.String(), e.UID.String())
 }
 
 func (e ChatNotInConvError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
@@ -2012,11 +2013,12 @@ func (e ChatNotInConvError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
 //=============================================================================
 
 type ChatNotInTeamError struct {
-	UID gregor.UID
+	UID   gregor.UID
+	TlfID chat1.TLFID
 }
 
 func (e ChatNotInTeamError) Error() string {
-	return fmt.Sprintf("user is not in team: uid: %s", e.UID.String())
+	return fmt.Sprintf("user is not in team: %v uid: %s", e.TlfID, e.UID.String())
 }
 
 func (e ChatNotInTeamError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
@@ -2787,3 +2789,81 @@ func HumanError(err error) error {
 	}
 	return err
 }
+
+//============================================================================
+
+type TeamContactSettingsBlockError struct {
+	blockedUIDs      []keybase1.UID
+	blockedUsernames []NormalizedUsername
+}
+
+func (e TeamContactSettingsBlockError) BlockedUIDs() []keybase1.UID {
+	return e.blockedUIDs
+}
+
+func (e TeamContactSettingsBlockError) BlockedUsernames() []NormalizedUsername {
+	return e.blockedUsernames
+}
+
+func (e TeamContactSettingsBlockError) Error() string {
+	var tmp []string
+	for _, u := range e.blockedUsernames {
+		tmp = append(tmp, u.String())
+	}
+	return fmt.Sprintf("some users couldn't be contacted due to privacy settings (%s)", strings.Join(tmp, ","))
+}
+
+//=============================================================================
+
+type HiddenChainDataMissingError struct {
+	note string
+}
+
+func (e HiddenChainDataMissingError) Error() string {
+	return fmt.Sprintf("hidden chain data missing error: %s", e.note)
+}
+
+func NewHiddenChainDataMissingError(format string, args ...interface{}) HiddenChainDataMissingError {
+	return HiddenChainDataMissingError{fmt.Sprintf(format, args...)}
+}
+
+var _ error = HiddenChainDataMissingError{}
+
+type HiddenMerkleErrorType int
+
+const (
+	HiddenMerkleErrorNone HiddenMerkleErrorType = iota
+
+	HiddenMerkleErrorInconsistentLeaf
+	HiddenMerkleErrorInconsistentUncommittedSeqno
+	HiddenMerkleErrorInvalidHiddenResponseType
+	HiddenMerkleErrorInvalidLeafType
+	HiddenMerkleErrorNoHiddenChainInLeaf
+	HiddenMerkleErrorOldLinkNotYetCommitted
+	HiddenMerkleErrorRollbackCommittedSeqno
+	HiddenMerkleErrorRollbackUncommittedSeqno
+	HiddenMerkleErrorServerWitholdingLinks
+	HiddenMerkleErrorUnexpectedAbsenceProof
+)
+
+type HiddenMerkleError struct {
+	m string
+	t HiddenMerkleErrorType
+}
+
+func NewHiddenMerkleError(t HiddenMerkleErrorType, format string, args ...interface{}) HiddenMerkleError {
+	return HiddenMerkleError{
+		t: t,
+		m: fmt.Sprintf(format, args...),
+	}
+}
+
+func (e HiddenMerkleError) ErrorType() HiddenMerkleErrorType {
+	return e.t
+}
+
+func (e HiddenMerkleError) Error() string {
+	return fmt.Sprintf("hidden merkle client error (type %v): %s", e.t, e.m)
+}
+
+var _ error = HiddenMerkleError{}

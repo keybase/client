@@ -38,6 +38,9 @@ const load = () => {
         {...Sb.createNavigator({username: 'chris', others, blockByDefault: true, convID: fakeConvID})}
       />
     ))
+    .add('Implicit team from sidebar', () => (
+      <BlockModal {...Sb.createNavigator({others, blockByDefault: true, convID: fakeConvID})} />
+    ))
     .add('Team', () => (
       <BlockModal
         {...Sb.createNavigator({

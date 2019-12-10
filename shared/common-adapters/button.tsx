@@ -33,6 +33,7 @@ export type Props = {
   type?: ButtonType
   backgroundColor?: ButtonColor
   mode?: 'Primary' | 'Secondary'
+  narrow?: boolean
   disabled?: boolean
   waiting?: boolean
   small?: boolean
@@ -69,6 +70,10 @@ const Button = React.forwardRef<ClickableBox, Props>((props: Props, ref: React.R
 
   if (props.small) {
     containerStyle = Styles.collapseStyles([containerStyle, styles.small])
+  }
+
+  if (props.narrow) {
+    containerStyle = Styles.collapseStyles([containerStyle, styles.narrow])
   }
 
   const unclickable = props.disabled || props.waiting
@@ -182,7 +187,7 @@ const common = () =>
     isElectron: {
       display: 'inline-block',
       lineHeight: 'inherit',
-      minWidth: '100px',
+      minWidth: 100,
       paddingLeft: Styles.globalMargins.medium,
       paddingRight: Styles.globalMargins.medium,
     },
@@ -206,6 +211,18 @@ const styles = Styles.styleSheetCreate(() => ({
   labelContainer: Styles.platformStyles({
     common: {height: '100%', position: 'relative'},
     isElectron: {pointerEvents: 'none'}, // need hover etc. to go through to underlay
+  }),
+  narrow: Styles.platformStyles({
+    isElectron: {
+      minWidth: 50,
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+    },
+    isMobile: {
+      minWidth: 80,
+      paddingLeft: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.tiny,
+    },
   }),
   opacity0: {opacity: 0},
   opacity30: {opacity: 0.3},

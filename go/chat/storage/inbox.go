@@ -1829,8 +1829,12 @@ func (i *Inbox) UpdateLocalMtime(ctx context.Context, uid gregor1.UID,
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
-
-	defer i.layoutNotifier.UpdateLayout(ctx, chat1.InboxLayoutReselectMode_DEFAULT, "local conversations update")
+	var convs []types.RemoteConversation
+	defer func() {
+		for _, conv := range convs {
+			i.layoutNotifier.UpdateLayoutFromNewMessage(ctx, conv)
+		}
+	}()
 
 	i.Debug(ctx, "UpdateLocalMtime: updating %d convs", len(convUpdates))
 	ibox, err := i.readDiskInbox(ctx, uid, true)
@@ -1852,6 +1856,7 @@ func (i *Inbox) UpdateLocalMtime(ctx context.Context, uid gregor1.UID,
 			i.Debug(ctx, "UpdateLocalMtime: applying conv update: %v", update)
 			ibox.Conversations[idx].LocalMtime = update.Mtime
 			ibox.Conversations[idx].Conv.Metadata.LocalVersion++
+			convs = append(convs, ibox.Conversations[idx])
 		}
 	}
 	return i.writeDiskInbox(ctx, uid, ibox)

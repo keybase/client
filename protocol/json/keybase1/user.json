@@ -396,6 +396,14 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "UserBlockType",
+      "symbols": [
+        "CHAT_0",
+        "FOLLOW_1"
+      ]
+    },
+    {
       "type": "record",
       "name": "UserBlockedBody",
       "fields": [
@@ -421,6 +429,20 @@
     },
     {
       "type": "record",
+      "name": "UserBlockState",
+      "fields": [
+        {
+          "type": "UserBlockType",
+          "name": "blockType"
+        },
+        {
+          "type": "boolean",
+          "name": "blocked"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UserBlockedSummary",
       "fields": [
         {
@@ -429,10 +451,14 @@
         },
         {
           "type": {
-            "type": "array",
-            "items": "string"
+            "type": "map",
+            "values": {
+              "type": "array",
+              "items": "UserBlockState"
+            },
+            "keys": "string"
           },
-          "name": "blocked"
+          "name": "blocks"
         }
       ]
     },
@@ -489,6 +515,22 @@
             "boolean"
           ],
           "name": "setFollowBlock"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamBlock",
+      "fields": [
+        {
+          "type": "string",
+          "name": "teamName",
+          "jsonkey": "fq_name"
+        },
+        {
+          "type": "Time",
+          "name": "createTime",
+          "jsonkey": "ctime"
         }
       ]
     }
@@ -960,6 +1002,18 @@
         }
       ],
       "response": null
+    },
+    "getTeamBlocks": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "TeamBlock"
+      }
     }
   },
   "namespace": "keybase.1"

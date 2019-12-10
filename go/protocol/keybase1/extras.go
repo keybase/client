@@ -2624,6 +2624,17 @@ func (r *GitRepoResult) GetIfOk() (res GitRepoInfo, err error) {
 	return res, fmt.Errorf("git repo unknown error")
 }
 
+func (r GitRepoInfo) FullName() string {
+	switch r.Folder.FolderType {
+	case FolderType_PRIVATE:
+		return string(r.LocalMetadata.RepoName)
+	case FolderType_TEAM:
+		return r.Folder.Name + "/" + string(r.LocalMetadata.RepoName)
+	default:
+		return "<repo type error>"
+	}
+}
+
 func (req *TeamChangeReq) AddUVWithRole(uv UserVersion, role TeamRole,
 	botSettings *TeamBotSettings) error {
 	if !role.IsRestrictedBot() && botSettings != nil {
@@ -3144,6 +3155,11 @@ func (d *HiddenTeamChain) Merge(newData HiddenTeamChain) (updated bool, err erro
 		d.Last = newData.Last
 	}
 
+	if newData.LastCommittedSeqno > d.LastCommittedSeqno {
+		d.LastCommittedSeqno = newData.LastCommittedSeqno
+		updated = true
+	}
+
 	for k, v := range newData.LastPerTeamKeys {
 		existing, ok := d.LastPerTeamKeys[k]
 		if !ok || existing < v {
@@ -3165,6 +3181,25 @@ func (d *HiddenTeamChain) Merge(newData HiddenTeamChain) (updated bool, err erro
 
 	if d.RatchetSet.Merge(newData.RatchetSet) {
 		updated = true
+	}
+
+	for k := range d.LinkReceiptTimes {
+		if k <= newData.LastCommittedSeqno {
+			// This link has been committed to the blind tree, no need to keep
+			// track of it any more
+			delete(d.LinkReceiptTimes, k)
+			updated = true
+		}
+	}
+
+	for k, v := range newData.LinkReceiptTimes {
+		if _, found := d.LinkReceiptTimes[k]; !found {
+			if d.LinkReceiptTimes == nil {
+				d.LinkReceiptTimes = make(map[Seqno]Time)
+			}
+			d.LinkReceiptTimes[k] = v
+			updated = true
+		}
 	}
 
 	return updated, nil
@@ -3497,10 +3532,14 @@ func (s *TeamBotSettings) Eq(o *TeamBotSettings) bool {
 func (b UserBlockedBody) Summarize() UserBlockedSummary {
 	ret := UserBlockedSummary{
 		Blocker: b.Username,
+		Blocks:  make(map[string][]UserBlockState),
 	}
 	for _, block := range b.Blocks {
-		if (block.Chat != nil && *block.Chat) || (block.Follow != nil && *block.Follow) {
-			ret.Blocked = append(ret.Blocked, block.Username)
+		if block.Chat != nil {
+			ret.Blocks[block.Username] = append(ret.Blocks[block.Username], UserBlockState{UserBlockType_CHAT, *block.Chat})
+		}
+		if block.Follow != nil {
+			ret.Blocks[block.Username] = append(ret.Blocks[block.Username], UserBlockState{UserBlockType_FOLLOW, *block.Follow})
 		}
 	}
 	return ret

@@ -1244,11 +1244,11 @@ export type MessageTypes = {
     outParam: BulkRes
   }
   'keybase.1.teams.teamAddMember': {
-    inParam: {readonly name: String; readonly email: String; readonly username: String; readonly role: TeamRole; readonly botSettings?: TeamBotSettings | null; readonly sendChatNotification: Boolean}
+    inParam: {readonly teamID: TeamID; readonly email: String; readonly username: String; readonly role: TeamRole; readonly botSettings?: TeamBotSettings | null; readonly sendChatNotification: Boolean}
     outParam: TeamAddMemberResult
   }
-  'keybase.1.teams.teamAddMembers': {
-    inParam: {readonly name: String; readonly assertions?: Array<String> | null; readonly role: TeamRole; readonly botSettings?: TeamBotSettings | null; readonly sendChatNotification: Boolean}
+  'keybase.1.teams.teamAddMembersMultiRole': {
+    inParam: {readonly teamID: TeamID; readonly users?: Array<UserRolePair> | null; readonly sendChatNotification: Boolean}
     outParam: void
   }
   'keybase.1.teams.teamCreate': {
@@ -2000,6 +2000,7 @@ export enum RatchetType {
   main = 0,
   blinded = 1,
   self = 2,
+  uncommitted = 3,
 }
 
 export enum Reachable {
@@ -2285,6 +2286,7 @@ export enum StatusCode {
   scteamstoragewrongrevision = 2760,
   scteamstoragebadgeneration = 2761,
   scteamstoragenotfound = 2762,
+  scteamcontactsettingsblock = 2763,
   scephemeralkeybadgeneration = 2900,
   scephemeralkeyunexpectedbox = 2901,
   scephemeralkeymissingbox = 2902,
@@ -2484,6 +2486,11 @@ export enum UpdateInfoStatus2 {
   critical = 2,
 }
 
+export enum UserBlockType {
+  chat = 0,
+  follow = 1,
+}
+
 export enum UserOrTeamResult {
   user = 1,
   team = 2,
@@ -2596,11 +2603,12 @@ export type FSSettings = {readonly spaceAvailableNotificationThreshold: Int64}
 export type FSSyncStatus = {readonly totalSyncingBytes: Int64; readonly syncingPaths?: Array<String> | null; readonly endEstimate?: Time | null}
 export type FSSyncStatusRequest = {readonly requestID: Int}
 export type FastTeamData = {readonly frozen: Boolean; readonly subversion: Int; readonly tombstoned: Boolean; readonly name: TeamName; readonly chain: FastTeamSigChainState; readonly perTeamKeySeeds: /* perTeamKeySeedsUnverified */ {[key: string]: PerTeamKeySeed}; readonly maxContinuousPTKGeneration: PerTeamKeyGeneration; readonly seedChecks: {[key: string]: PerTeamSeedCheck}; readonly latestKeyGeneration: PerTeamKeyGeneration; readonly readerKeyMasks: {[key: string]: {[key: string]: MaskB64}}; readonly latestSeqnoHint: Seqno; readonly cachedAt: Time; readonly loadedLatest: Boolean}
-export type FastTeamLoadArg = {readonly ID: TeamID; readonly public: Boolean; readonly assertTeamName?: TeamName | null; readonly applications?: Array<TeamApplication> | null; readonly keyGenerationsNeeded?: Array<PerTeamKeyGeneration> | null; readonly needLatestKey: Boolean; readonly forceRefresh: Boolean}
+export type FastTeamLoadArg = {readonly ID: TeamID; readonly public: Boolean; readonly assertTeamName?: TeamName | null; readonly applications?: Array<TeamApplication> | null; readonly keyGenerationsNeeded?: Array<PerTeamKeyGeneration> | null; readonly needLatestKey: Boolean; readonly forceRefresh: Boolean; readonly hiddenChainIsOptional: Boolean}
 export type FastTeamLoadRes = {readonly name: TeamName; readonly applicationKeys?: Array<TeamApplicationKey> | null}
 export type FastTeamSigChainState = {readonly ID: TeamID; readonly public: Boolean; readonly rootAncestor: TeamName; readonly nameDepth: Int; readonly last?: LinkTriple | null; readonly perTeamKeys: {[key: string]: PerTeamKey}; readonly perTeamKeySeedsVerified: {[key: string]: PerTeamKeySeed}; readonly downPointers: {[key: string]: DownPointer}; readonly lastUpPointer?: UpPointer | null; readonly perTeamKeyCTime: UnixTime; readonly linkIDs: {[key: string]: LinkID}; readonly merkleInfo: {[key: string]: MerkleRootV2}}
 export type FavoritesResult = {readonly favoriteFolders?: Array<Folder> | null; readonly ignoredFolders?: Array<Folder> | null; readonly newFolders?: Array<Folder> | null}
 export type Feature = {readonly allow: Boolean; readonly defaultValue: Boolean; readonly readonly: Boolean; readonly label: String}
+export type FeaturedBot = {readonly botAlias: String; readonly description: String; readonly botUsername: String; readonly ownerTeamID?: TeamID | null; readonly ownerUID?: UID | null}
 export type File = {readonly path: String}
 export type FileContent = {readonly data: Bytes; readonly progress: Progress}
 export type FileDescriptor = {readonly name: String; readonly type: FileType}
@@ -2647,7 +2655,7 @@ export type HasServerKeysRes = {readonly hasServerKeys: Boolean}
 export type HashMeta = Bytes
 export type Hello2Res = {readonly encryptionKey: KID; readonly sigPayload: HelloRes; readonly deviceEkKID: KID}
 export type HelloRes = String
-export type HiddenTeamChain = {readonly id: TeamID; readonly subversion: Int; readonly public: Boolean; readonly frozen: Boolean; readonly tombstoned: Boolean; readonly last: Seqno; readonly lastFull: Seqno; readonly latestSeqnoHint: Seqno; readonly lastPerTeamKeys: {[key: string]: Seqno}; readonly outer: {[key: string]: LinkID}; readonly inner: {[key: string]: HiddenTeamChainLink}; readonly readerPerTeamKeys: {[key: string]: Seqno}; readonly ratchetSet: HiddenTeamChainRatchetSet; readonly cachedAt: Time; readonly needRotate: Boolean; readonly merkleRoots: {[key: string]: MerkleRootV2}}
+export type HiddenTeamChain = {readonly id: TeamID; readonly subversion: Int; readonly public: Boolean; readonly frozen: Boolean; readonly tombstoned: Boolean; readonly last: Seqno; readonly lastFull: Seqno; readonly latestSeqnoHint: Seqno; readonly lastCommittedSeqno: Seqno; readonly linkReceiptTimes: {[key: string]: Time}; readonly lastPerTeamKeys: {[key: string]: Seqno}; readonly outer: {[key: string]: LinkID}; readonly inner: {[key: string]: HiddenTeamChainLink}; readonly readerPerTeamKeys: {[key: string]: Seqno}; readonly ratchetSet: HiddenTeamChainRatchetSet; readonly cachedAt: Time; readonly needRotate: Boolean; readonly merkleRoots: {[key: string]: MerkleRootV2}}
 export type HiddenTeamChainLink = {readonly m: /* merkleRoot */ MerkleRootV2; readonly p: /* parentChain */ LinkTriple; readonly s: /* signer */ Signer; readonly k: /* ptk */ {[key: string]: PerTeamKeyAndCheck}}
 export type HiddenTeamChainRatchetSet = {readonly ratchets: {[key: string]: LinkTripleAndTime}}
 export type HomeScreen = {readonly lastViewed: Time; readonly version: Int; readonly visits: Int; readonly items?: Array<HomeScreenItem> | null; readonly followSuggestions?: Array<HomeUserSummary> | null; readonly announcementsVersion: Int}
@@ -2903,6 +2911,7 @@ export type TeamAccessRequest = {readonly uid: UID; readonly eldestSeqno: Seqno}
 export type TeamAddMemberResult = {readonly invited: Boolean; readonly user?: User | null; readonly emailSent: Boolean; readonly chatSending: Boolean}
 export type TeamAndMemberShowcase = {readonly teamShowcase: TeamShowcase; readonly isMemberShowcased: Boolean}
 export type TeamApplicationKey = {readonly application: TeamApplication; readonly keyGeneration: PerTeamKeyGeneration; readonly key: Bytes32}
+export type TeamBlock = {readonly teamName: String; readonly createTime: Time}
 export type TeamBotSettings = {readonly cmds: Boolean; readonly mentions: Boolean; readonly triggers?: Array<String> | null; readonly convs?: Array<String> | null}
 export type TeamCLKRMsg = {readonly teamID: TeamID; readonly generation: PerTeamKeyGeneration; readonly score: Int; readonly resetUsersUntrusted?: Array<TeamCLKRResetUser> | null}
 export type TeamCLKRResetUser = {readonly uid: UID; readonly userEldestSeqno: Seqno; readonly memberEldestSeqno: Seqno}
@@ -2939,8 +2948,8 @@ export type TeamLegacyTLFUpgradeChainInfo = {readonly keysetHash: TeamEncryptedK
 export type TeamList = {readonly teams?: Array<MemberInfo> | null}
 export type TeamMember = {readonly uid: UID; readonly role: TeamRole; readonly eldestSeqno: Seqno; readonly status: TeamMemberStatus}
 export type TeamMemberDetails = {readonly uv: UserVersion; readonly username: String; readonly fullName: FullName; readonly needsPUK: Boolean; readonly status: TeamMemberStatus}
-export type TeamMemberOutFromReset = {readonly teamName: String; readonly resetUser: TeamResetUser}
-export type TeamMemberOutReset = {readonly teamname: String; readonly username: String; readonly uid: UID; readonly id: Gregor1.MsgID}
+export type TeamMemberOutFromReset = {readonly teamID: TeamID; readonly teamName: String; readonly resetUser: TeamResetUser}
+export type TeamMemberOutReset = {readonly teamID: TeamID; readonly teamname: String; readonly username: String; readonly uid: UID; readonly id: Gregor1.MsgID}
 export type TeamMembers = {readonly owners?: Array<UserVersion> | null; readonly admins?: Array<UserVersion> | null; readonly writers?: Array<UserVersion> | null; readonly readers?: Array<UserVersion> | null; readonly bots?: Array<UserVersion> | null; readonly restrictedBots?: Array<UserVersion> | null}
 export type TeamMembersDetails = {readonly owners?: Array<TeamMemberDetails> | null; readonly admins?: Array<TeamMemberDetails> | null; readonly writers?: Array<TeamMemberDetails> | null; readonly readers?: Array<TeamMemberDetails> | null; readonly bots?: Array<TeamMemberDetails> | null; readonly restrictedBots?: Array<TeamMemberDetails> | null}
 export type TeamName = {readonly parts?: Array<TeamNamePart> | null}
@@ -2996,9 +3005,10 @@ export type UpdaterStatus = {readonly log: String}
 export type User = {readonly uid: UID; readonly username: String}
 export type UserBlock = {readonly username: String; readonly chatBlocked: Boolean; readonly followBlocked: Boolean; readonly createTime?: Time | null; readonly modifyTime?: Time | null}
 export type UserBlockArg = {readonly username: String; readonly setChatBlock?: Boolean | null; readonly setFollowBlock?: Boolean | null}
+export type UserBlockState = {readonly blockType: UserBlockType; readonly blocked: Boolean}
 export type UserBlockedBody = {readonly blocks?: Array<UserBlockedRow> | null; readonly uid: UID; readonly username: String}
 export type UserBlockedRow = {readonly uid: UID; readonly username: String; readonly chat?: Boolean | null; readonly follow?: Boolean | null}
-export type UserBlockedSummary = {readonly blocker: String; readonly blocked?: Array<String> | null}
+export type UserBlockedSummary = {readonly blocker: String; readonly blocks: {[key: string]: Array<UserBlockState> | null}}
 export type UserCard = {readonly following: Int; readonly followers: Int; readonly uid: UID; readonly fullName: String; readonly location: String; readonly bio: String; readonly bioDecorated: String; readonly website: String; readonly twitter: String; readonly youFollowThem: Boolean; readonly theyFollowYou: Boolean; readonly teamShowcase?: Array<UserTeamShowcase> | null; readonly registeredForAirdrop: Boolean; readonly blocked: Boolean; readonly hidFromFollowers: Boolean}
 export type UserEk = {readonly seed: Bytes32; readonly metadata: UserEkMetadata}
 export type UserEkBoxMetadata = {readonly box: String; readonly recipientGeneration: EkGeneration; readonly recipientDeviceID: DeviceID}
@@ -3465,7 +3475,7 @@ export const teamsSetTeamShowcaseRpcPromise = (params: MessageTypes['keybase.1.t
 export const teamsTeamAcceptInviteOrRequestAccessRpcPromise = (params: MessageTypes['keybase.1.teams.teamAcceptInviteOrRequestAccess']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamAcceptInviteOrRequestAccess']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamAcceptInviteOrRequestAccess', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamAddEmailsBulkRpcPromise = (params: MessageTypes['keybase.1.teams.teamAddEmailsBulk']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamAddEmailsBulk']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamAddEmailsBulk', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamAddMemberRpcPromise = (params: MessageTypes['keybase.1.teams.teamAddMember']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamAddMember']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamAddMember', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
-export const teamsTeamAddMembersRpcPromise = (params: MessageTypes['keybase.1.teams.teamAddMembers']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamAddMembers']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamAddMembers', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const teamsTeamAddMembersMultiRoleRpcPromise = (params: MessageTypes['keybase.1.teams.teamAddMembersMultiRole']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamAddMembersMultiRole']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamAddMembersMultiRole', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamCreateRpcPromise = (params: MessageTypes['keybase.1.teams.teamCreate']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamCreate']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamCreate', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamCreateSeitanTokenV2RpcPromise = (params: MessageTypes['keybase.1.teams.teamCreateSeitanTokenV2']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamCreateSeitanTokenV2']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamCreateSeitanTokenV2', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamDeleteRpcPromise = (params: MessageTypes['keybase.1.teams.teamDelete']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamDelete']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamDelete', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -3855,7 +3865,7 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.teams.teamListVerified'
 // 'keybase.1.teams.teamListSubteamsRecursive'
 // 'keybase.1.teams.teamChangeMembership'
-// 'keybase.1.teams.teamAddMembersMultiRole'
+// 'keybase.1.teams.teamAddMembers'
 // 'keybase.1.teams.teamGetBotSettings'
 // 'keybase.1.teams.teamSetBotSettings'
 // 'keybase.1.teams.teamAcceptInvite'
@@ -3906,3 +3916,4 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.user.getUPAKLite'
 // 'keybase.1.user.findNextMerkleRootAfterRevoke'
 // 'keybase.1.user.findNextMerkleRootAfterReset'
+// 'keybase.1.user.getTeamBlocks'

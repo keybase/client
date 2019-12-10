@@ -3,7 +3,7 @@ import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import {FollowButton, WaveButton} from './buttons'
+import {FollowButton} from './buttons'
 import * as Tracker2Constants from '../../constants/tracker2'
 type Props = {}
 
@@ -27,7 +27,7 @@ const Item = ({item}: {item: RPCTypes.ProcessedContact}) => {
         <Kb.Text type="BodySmall">{label}</Kb.Text>
         <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} style={styles.buttons}>
           <FollowButton username={username} small={true} />
-          <WaveButton usernames={username} small={true} />
+          <Kb.WaveButton username={username} small={true} />
         </Kb.Box2>
         <Kb.Divider style={styles.divider} />
       </Kb.Box2>

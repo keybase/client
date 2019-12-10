@@ -6795,6 +6795,14 @@ const iconMeta_ = {
       return require('../images/icons/icon-play-64.png')
     },
   },
+  'icon-poop-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-poop-96.png')
+    },
+  },
   'icon-powered-by-giphy-120-26': {
     extension: 'png',
     imagesDir: 'icons',
@@ -8699,6 +8707,14 @@ const iconMeta_ = {
     isFont: false,
     get require() {
       return require('../images/releases/release-4.8.0-file-sync.png')
+    },
+  },
+  'release-5.1.0-blocking': {
+    extension: 'png',
+    imagesDir: 'releases',
+    isFont: false,
+    get require() {
+      return require('../images/releases/release-5.1.0-blocking.png')
     },
   } /* eslint-enable */,
 }

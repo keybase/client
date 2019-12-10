@@ -930,6 +930,12 @@ func (o ExternalAPIKey) DeepCopy() ExternalAPIKey {
 	}
 }
 
+type BotInfoHashVers uint64
+
+func (o BotInfoHashVers) DeepCopy() BotInfoHashVers {
+	return o
+}
+
 type CommandConvVers uint64
 
 func (o CommandConvVers) DeepCopy() CommandConvVers {
@@ -1083,11 +1089,15 @@ func (o BotCommandConv) DeepCopy() BotCommandConv {
 }
 
 type BotInfo struct {
-	CommandConvs []BotCommandConv `codec:"commandConvs" json:"commandConvs"`
+	ServerHashVers BotInfoHashVers  `codec:"serverHashVers" json:"serverHashVers"`
+	ClientHashVers BotInfoHashVers  `codec:"clientHashVers" json:"clientHashVers"`
+	CommandConvs   []BotCommandConv `codec:"commandConvs" json:"commandConvs"`
 }
 
 func (o BotInfo) DeepCopy() BotInfo {
 	return BotInfo{
+		ServerHashVers: o.ServerHashVers.DeepCopy(),
+		ClientHashVers: o.ClientHashVers.DeepCopy(),
 		CommandConvs: (func(x []BotCommandConv) []BotCommandConv {
 			if x == nil {
 				return nil
@@ -1469,8 +1479,9 @@ type ClearBotCommandsArg struct {
 }
 
 type GetBotInfoArg struct {
-	ConvID   ConversationID `codec:"convID" json:"convID"`
-	InfoHash BotInfoHash    `codec:"infoHash" json:"infoHash"`
+	ConvID         ConversationID  `codec:"convID" json:"convID"`
+	InfoHash       BotInfoHash     `codec:"infoHash" json:"infoHash"`
+	ClientHashVers BotInfoHashVers `codec:"clientHashVers" json:"clientHashVers"`
 }
 
 type RemoteInterface interface {

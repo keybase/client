@@ -16,6 +16,7 @@ export type Props = {
   error: string
   clearErrors: () => void
   onBack: () => void
+  onDeleteTeam: () => void
   onLeave: () => void
   name: string
 }
