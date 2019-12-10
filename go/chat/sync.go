@@ -228,18 +228,34 @@ func (s *Syncer) handleFilteredConvs(ctx context.Context, uid gregor1.UID, syncC
 	}
 }
 
+func (s *Syncer) maxSyncUnboxConvs() int {
+	if s.G().IsMobileAppType() {
+		return 8
+	}
+	return 100
+}
+
 func (s *Syncer) getShouldUnboxSyncConvMap(ctx context.Context, convs []chat1.Conversation,
 	topicNameChanged []chat1.ConversationID) (m map[string]bool) {
 	m = make(map[string]bool)
 	for _, t := range topicNameChanged {
 		m[t.String()] = true
 	}
-	for _, conv := range convs {
-		if m[conv.GetConvID().String()] {
+	rconvs := utils.RemoteConvs(convs)
+	sort.Slice(rconvs, func(i, j int) bool {
+		return utils.GetConvMtime(rconvs[i]).After(utils.GetConvMtime(rconvs[j]))
+	})
+	maxConvs := s.maxSyncUnboxConvs()
+	for index, conv := range rconvs {
+		if index >= maxConvs {
+			s.Debug(ctx, "getShouldUnboxSyncConvMap: max sync convs reached, not including any others")
+			break
+		}
+		if m[conv.ConvIDStr] {
 			continue
 		}
-		if s.shouldUnboxSyncConv(conv) {
-			m[conv.GetConvID().String()] = true
+		if s.shouldUnboxSyncConv(conv.Conv) {
+			m[conv.ConvIDStr] = true
 		}
 	}
 	return m
