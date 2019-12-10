@@ -13,6 +13,12 @@ export default Container.connect(
   () => ({}),
   dispatch => ({
     _onDownload: (message: Types.MessageAttachment) => {
+      switch (message.transferState) {
+        case 'uploading':
+        case 'downloading':
+        case 'mobileSaving':
+          return
+      }
       dispatch(
         Chat2Gen.createAttachmentDownload({
           message,
