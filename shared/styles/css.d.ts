@@ -33,4 +33,4 @@ export type _StylesCrossPlatform = {
 
 export type StylesCrossPlatform = StyleProp<_StylesCrossPlatform>
 
-export type StylesCrossPlatformWithSomeDisallowed<D> = StyleProp<_StylesCrossPlatform & D>
+export type CustomStyles<K extends string, C> = StyleProp<Omit<_StylesCrossPlatform, K> & C>

@@ -1,17 +1,11 @@
 // This facade is needed because flow is getting confused about the connector. TODO clean up the connector typing
 import * as React from 'react'
-import {StylesCrossPlatform, StylesCrossPlatformWithSomeDisallowed} from '../styles'
-import {StyleProp} from 'react-native'
+import {StylesCrossPlatform, CustomStyles} from '../styles'
 import {_StylesCrossPlatform} from '../styles/css'
 
 export type AvatarSize = 128 | 96 | 64 | 48 | 32 | 24 | 16 | 12
 
-type DisallowedStyles = {
-  borderStyle?: never
-}
-
-export type _StylesAvatarCrossPlatform = Omit<_StylesCrossPlatform, 'borderStyle'>
-export type StylesAvatarCrossPlatform = StyleProp<_StylesAvatarCrossPlatform>
+export type StylesAvatarCrossPlatform = CustomStyles<'borderStyle', {}>
 
 export type Props = {
   borderColor?: string | null
@@ -40,5 +34,3 @@ export declare function mockOwnToViewProps(
   followers: string[],
   action: (arg0: string) => (...args: any[]) => void
 ): any
-
-export declare function castPlatformStyles(styles: StylesCrossPlatform): StylesAvatarCrossPlatform

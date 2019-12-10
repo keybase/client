@@ -1,7 +1,6 @@
 import * as React from 'react'
-import {StyleProp} from 'react-native'
 import {GestureResponderEvent} from 'react-native'
-import {_StylesCrossPlatform} from '../styles/css'
+import {CustomStyles} from '../styles/css'
 import {allTextTypes} from './text.shared'
 import * as CSS from '../styles/css'
 import colors from '../styles/colors'
@@ -43,8 +42,7 @@ export type AllowedColors = Values<
   >
 >
 
-export type _StylesTextCrossPlatform = Omit<_StylesCrossPlatform, 'color'> & {color?: AllowedColors}
-export type StylesTextCrossPlatform = StyleProp<_StylesTextCrossPlatform>
+export type StylesTextCrossPlatform = CustomStyles<'color', {color?: AllowedColors}>
 
 type Props = {
   allowFontScaling?: boolean
