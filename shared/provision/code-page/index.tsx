@@ -8,7 +8,6 @@ import QRScan from './qr-scan/container'
 import {isAndroid} from '../../constants/platform'
 import Troubleshooting from '../troubleshooting'
 import * as Types from '../../constants/types/provision'
-import DeviceIcon from '../../devices/device-icon'
 import * as DeviceTypes from '../../constants/types/devices'
 
 export type DeviceType = 'mobile' | 'desktop'
