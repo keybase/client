@@ -20,7 +20,7 @@ const compareAndComplain = (msp: any, try1: any, try2: any, loc: any) => {
 
 const connect: typeof RR.connect =
   __DEV__ && flags.connectThrashCheck
-    ? (msp: any, mdp, mp) => {
+    ? (msp: any, mdp, mp, opt) => {
         let checkingMSP: any
         const loc = new Error()?.stack?.split('\n')?.[4]?.match(/(\..*)/)?.[1] ?? 'unknown'
         if (msp.length === 2) {
@@ -50,7 +50,7 @@ const connect: typeof RR.connect =
             return msp(state)
           }
         }
-        return RR.connect(checkingMSP, mdp, mp)
+        return RR.connect(checkingMSP, mdp, mp, opt)
       }
     : RR.connect
 
