@@ -1964,7 +1964,7 @@ const onUpdateUserReacjis = (state: TypedState) => {
 const openFolder = (state: TypedState, action: Chat2Gen.OpenFolderPayload) => {
   const meta = Constants.getMeta(state, action.payload.conversationIDKey)
   const path = FsTypes.stringToPath(
-    meta.teamType !== 'adhoc' ? teamFolder(meta.teamname) : privateFolderWithUsers(meta.participants)
+    meta.teamType !== 'adhoc' ? teamFolder(meta.teamname) : privateFolderWithUsers(meta.nameParticipants)
   )
   return FsConstants.makeActionForOpenPathInFilesTab(path)
 }
