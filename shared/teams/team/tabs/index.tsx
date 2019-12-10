@@ -41,7 +41,10 @@ const TabText = ({selected, text}: {selected: boolean; text: string}) => (
 const TeamTabs = (props: TeamTabsProps) => {
   const tabs = [
     <Box key="members" style={styles.tabTextContainer}>
-      <TabText selected={props.selectedTab === 'members'} text={`Members (${props.memberCount})`} />
+      <TabText
+        selected={props.selectedTab === 'members'}
+        text={props.memberCount === -1 ? 'Members' : `Members (${props.memberCount})`}
+      />
       {!!props.resetUserCount && <Badge badgeNumber={props.resetUserCount} badgeStyle={styles.badge} />}
     </Box>,
   ]
