@@ -30,7 +30,7 @@ const Header = (props: Props) => (
       {props.children || (
         <Kb.Icon
           type={props.isRequest ? 'icon-stellar-coins-receiving-48' : 'icon-stellar-coins-sending-48'}
-          style={Kb.iconCastPlatformStyles(styles.icon)}
+          style={styles.icon}
         />
       )}
     </Kb.Box2>

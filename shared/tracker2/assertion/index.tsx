@@ -191,7 +191,7 @@ const Value = (p: Props) => {
     content = <StellarValue {...p} />
   } else {
     let str = p.value
-    let style = styles.username
+    let style: Styles.StylesCrossPlatform = styles.username
 
     if (!p.isSuggestion) {
       switch (p.type) {

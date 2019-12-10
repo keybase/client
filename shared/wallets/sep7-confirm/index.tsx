@@ -80,7 +80,7 @@ const InfoRow = (props: InfoRowProps) => (
       </Kb.Text>
       {props.showStellarIcon ? (
         <Kb.Box2 direction="horizontal" gap="xtiny" alignSelf="flex-start">
-          <Kb.Icon type="iconfont-identity-stellar" style={Kb.iconCastPlatformStyles(styles.stellarIcon)} />
+          <Kb.Icon type="iconfont-identity-stellar" style={styles.stellarIcon} />
           <Kb.Text lineClamp={2} selectable={true} type="Body" style={styles.bodyTextWithIcon}>
             {props.bodyText}
           </Kb.Text>
@@ -424,9 +424,7 @@ const styles = Styles.styleSheetCreate(
         paddingRight: Styles.globalMargins.small,
         paddingTop: Styles.globalMargins.tiny,
       },
-      purpleText: Styles.platformStyles({
-        common: {color: Styles.globalColors.purple},
-      }),
+      purpleText: {color: Styles.globalColors.purpleDark},
       scrollView: Styles.platformStyles({
         common: {
           backgroundColor: Styles.globalColors.purpleDark,

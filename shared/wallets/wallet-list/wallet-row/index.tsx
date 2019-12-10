@@ -95,7 +95,7 @@ const WalletRow = (props: Props) => {
         <Kb.Icon
           type={props.isSelected ? 'icon-wallet-open-32' : 'icon-wallet-32'}
           color={Styles.globalColors.black}
-          style={Kb.iconCastPlatformStyles(styles.icon)}
+          style={styles.icon}
         />
         <Kb.Box2 direction="vertical" style={styles.rightColumn}>
           <Kb.Box2 direction="horizontal" fullWidth={true}>

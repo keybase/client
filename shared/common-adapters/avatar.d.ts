@@ -1,12 +1,17 @@
 // This facade is needed because flow is getting confused about the connector. TODO clean up the connector typing
 import * as React from 'react'
 import {StylesCrossPlatform, StylesCrossPlatformWithSomeDisallowed} from '../styles'
+import {StyleProp} from 'react-native'
+import {_StylesCrossPlatform} from '../styles/css'
 
 export type AvatarSize = 128 | 96 | 64 | 48 | 32 | 24 | 16 | 12
 
 type DisallowedStyles = {
   borderStyle?: never
 }
+
+export type _StylesAvatarCrossPlatform = Omit<_StylesCrossPlatform, 'borderStyle'>
+export type StylesAvatarCrossPlatform = StyleProp<_StylesAvatarCrossPlatform>
 
 export type Props = {
   borderColor?: string | null
@@ -21,7 +26,7 @@ export type Props = {
   size: AvatarSize
   skipBackground?: boolean
   skipBackgroundAfterLoaded?: boolean // if we're on a white background we don't need a white back cover,,,
-  style?: StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>
+  style?: StylesAvatarCrossPlatform
   teamname?: string | null
   username?: string | null
   showFollowingStatus?: boolean // show the green dots or not
@@ -36,6 +41,4 @@ export declare function mockOwnToViewProps(
   action: (arg0: string) => (...args: any[]) => void
 ): any
 
-export declare function castPlatformStyles(
-  styles: StylesCrossPlatform
-): StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>
+export declare function castPlatformStyles(styles: StylesCrossPlatform): StylesAvatarCrossPlatform

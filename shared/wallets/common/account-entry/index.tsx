@@ -28,7 +28,7 @@ const AccountEntry = (props: AccountEntryProps) => (
       <Kb.Icon
         type={Styles.isMobile ? 'icon-wallet-32' : 'icon-wallet-64'}
         color={Styles.globalColors.black}
-        style={Kb.iconCastPlatformStyles(styles.icon)}
+        style={styles.icon}
       />
     )}
     <Kb.Box2 direction="vertical" style={styles.rightColumn}>

@@ -69,14 +69,14 @@ export declare const globalStyles: {
 }
 
 export declare const desktopStyles: {
-  boxShadow?: CSS._StylesDesktop
-  clickable?: CSS._StylesDesktop
-  editable?: CSS._StylesDesktop
-  fadeOpacity?: CSS._StylesDesktop
-  noSelect?: CSS._StylesDesktop
-  scrollable?: CSS._StylesDesktop
-  windowDragging?: CSS._StylesDesktop
-  windowDraggingClickable?: CSS._StylesDesktop
+  boxShadow: {boxShadow: ''}
+  clickable: {cursor: 'pointer'}
+  editable: {cursor: 'text'}
+  fadeOpacity: {transition: 'opacity .25s ease-in-out'}
+  noSelect: {userSelect: 'none'}
+  scrollable: {overflowY: 'auto'}
+  windowDragging: {WebkitAppRegion: 'drag'}
+  windowDraggingClickable: {WebkitAppRegion: 'no-drag'}
 }
 
 export declare const mobileStyles: {}

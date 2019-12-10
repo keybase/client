@@ -4,6 +4,7 @@ import {StyleProp, ViewStyle, TextStyle, ImageStyle} from 'react-native'
 export type Color = null | string
 type _StylesDesktopOverride = {
   wordBreak?: 'normal' | 'break-all' | 'keep-all' | 'inherit' | 'initial' | 'unset' | 'break-word'
+  WebkitAppRegion?: 'drag' | 'no-drag'
 }
 export type _StylesDesktop = CSSProperties & _StylesDesktopOverride
 export type StylesDesktop = StyleProp<_StylesDesktop>

@@ -62,7 +62,7 @@ export default class Asset extends React.Component<Props, State> {
               <Kb.Icon
                 type={this.state.expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
                 sizeType="Tiny"
-                style={Kb.iconCastPlatformStyles(styles.caret)}
+                style={styles.caret}
               />
               <Kb.Box2 direction="vertical">
                 <Kb.Text type="BodySemibold" lineClamp={1}>
