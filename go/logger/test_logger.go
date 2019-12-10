@@ -98,7 +98,7 @@ func (log *TestLogger) prefixCaller(extraDepth int, lvl logging.Level, fmts stri
 }
 
 func (log *TestLogger) Debug(fmts string, arg ...interface{}) {
-	log.common(context.TODO(), logging.INFO, false, fmts, arg...)
+	log.common(context.TODO(), logging.DEBUG, false, fmts, arg...)
 }
 
 func (log *TestLogger) CDebugf(ctx context.Context, fmts string,
