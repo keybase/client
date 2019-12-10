@@ -1,17 +1,24 @@
 @namespace("keybase.1")
 
-protocol featuredbot {
+protocol featuredBot {
   import idl "common.avdl";
 
   record FeaturedBot {
-    @jsonkey("bot_alias")
     string botAlias;
     string description;
-    @jsonkey("bot_username")
     string botUsername;
-    @jsonkey("owner_team_id")
     union { null, TeamID } ownerTeamID;
-    @jsonkey("owner_uid")
     union { null, UID } ownerUID;
   }
+
+    record FeaturedBotsRes {
+        array<FeaturedBot> bots;
+    }
+
+    record SearchRes {
+        array<FeaturedBot> bots;
+    }
+
+    FeaturedBotsRes featuredBots(int limit, int offset);
+    SearchRes search(string query, int limit, int offset);
 }

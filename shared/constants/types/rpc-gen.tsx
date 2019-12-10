@@ -2609,6 +2609,7 @@ export type FastTeamSigChainState = {readonly ID: TeamID; readonly public: Boole
 export type FavoritesResult = {readonly favoriteFolders?: Array<Folder> | null; readonly ignoredFolders?: Array<Folder> | null; readonly newFolders?: Array<Folder> | null}
 export type Feature = {readonly allow: Boolean; readonly defaultValue: Boolean; readonly readonly: Boolean; readonly label: String}
 export type FeaturedBot = {readonly botAlias: String; readonly description: String; readonly botUsername: String; readonly ownerTeamID?: TeamID | null; readonly ownerUID?: UID | null}
+export type FeaturedBotsRes = {readonly bots?: Array<FeaturedBot> | null}
 export type File = {readonly path: String}
 export type FileContent = {readonly data: Bytes; readonly progress: Progress}
 export type FileDescriptor = {readonly name: String; readonly type: FileType}
@@ -2853,6 +2854,7 @@ export type SaltpackEncryptedMessageInfo = {readonly devices?: Array<Device> | n
 export type SaltpackSender = {readonly uid: UID; readonly username: String; readonly senderType: SaltpackSenderType}
 export type SaltpackSignOptions = {readonly detached: Boolean; readonly binary: Boolean; readonly saltpackVersion: Int}
 export type SaltpackVerifyOptions = {readonly signedBy: String; readonly signature: Bytes}
+export type SearchRes = {readonly bots?: Array<FeaturedBot> | null}
 export type SecretEntryArg = {readonly desc: String; readonly prompt: String; readonly err: String; readonly cancel: String; readonly ok: String; readonly reason: String; readonly showTyping: Boolean}
 export type SecretEntryRes = {readonly text: String; readonly canceled: Boolean; readonly storeSecret: Boolean}
 export type SecretKeys = {readonly signing: NaclSigningKeyPrivate; readonly encryption: NaclDHKeyPrivate}
@@ -3580,6 +3582,8 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.emails.setVisibilityAllEmail'
 // 'keybase.1.emails.getEmails'
 // 'keybase.1.favorite.getFavorites'
+// 'keybase.1.featuredBot.featuredBots'
+// 'keybase.1.featuredBot.search'
 // 'keybase.1.fs.List'
 // 'keybase.1.git.putGitMetadata'
 // 'keybase.1.git.deleteGitMetadata'
