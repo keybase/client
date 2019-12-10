@@ -4,8 +4,8 @@ import * as Sb from '../../../../../stories/storybook'
 import TeamJourney from './index'
 
 const commonProps = {
-  teamname: 'foo',
   conversationIDKey: 'dummyConversationIDKey',
+  teamname: 'foo',
 }
 
 const load = () => {

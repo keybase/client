@@ -143,9 +143,9 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   return {
     _channelInfos: TeamConstants.getTeamChannelInfos(state, teamname),
     _teamID: teamID,
+    channelname,
     conversationIDKey,
     teamType: TeamConstants.getTeamType(state, teamname),
-    channelname,
     teamname,
   }
 }
@@ -200,8 +200,8 @@ const TeamJourneyConnected = Container.connect(
       onScrollBack: () => console.log('onScrollBack'),
       onShowTeam: () => dispatchProps._onShowTeam(stateProps._teamID),
       otherChannels,
-      teamname,
       teamType,
+      teamname,
     }
   }
 )(TeamJourneyContainer)
