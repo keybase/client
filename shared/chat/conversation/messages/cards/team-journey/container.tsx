@@ -89,7 +89,8 @@ const TeamJourneyContainer = (props: Props) => {
           Do you know people interested in joining{' '}
           <Kb.Text onClick={props.onShowTeam} type="BodySmallBold">
             {props.teamname}
-          </Kb.Text>?
+          </Kb.Text>
+          ?
         </Kb.Text>
       )
       break

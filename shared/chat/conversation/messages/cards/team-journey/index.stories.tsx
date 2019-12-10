@@ -68,12 +68,15 @@ const load = () => {
         actions={[{label: 'Add people to the team', onClick: Sb.action('onAddPeopleToTeam')}]}
         image="icon-illustration-friends-96"
         teamname="foo"
-        textComponent={<Kb.Text type="BodySmall">
+        textComponent={
+          <Kb.Text type="BodySmall">
             Do you know people interested in joining{' '}
             <Kb.Text onClick={Sb.action('onShowTeam')} type="BodySmallBold">
               foo
-            </Kb.Text>?
-          </Kb.Text>}
+            </Kb.Text>
+            ?
+          </Kb.Text>
+        }
       />
     ))
     .add('Add people (open team)', () => (
@@ -81,13 +84,15 @@ const load = () => {
         actions={[{label: 'Add people to the team', onClick: Sb.action('onAddPeopleToTeam')}]}
         image="icon-illustration-friends-96"
         teamname="foo"
-        textComponent={<Kb.Text type="BodySmall">
-          Do you know people interested in joining?{' '}
-          <Kb.Text onClick={Sb.action('onShowTeam')} type="BodySmallBold">
-            foo
-          </Kb.Text>{' '}
-          is open to anyone.
-        </Kb.Text>}
+        textComponent={
+          <Kb.Text type="BodySmall">
+            Do you know people interested in joining?{' '}
+            <Kb.Text onClick={Sb.action('onShowTeam')} type="BodySmallBold">
+              foo
+            </Kb.Text>{' '}
+            is open to anyone.
+          </Kb.Text>
+        }
       />
     ))
     .add('Create channels', () => (
