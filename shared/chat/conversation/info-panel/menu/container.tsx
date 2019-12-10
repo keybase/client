@@ -47,6 +47,8 @@ export default Container.namedConnect(
   (state, {conversationIDKey, isSmallTeam, teamID: _teamID, visible}: OwnProps) => {
     let convProps: ConvProps | undefined
     let teamDetails: TeamTypes.TeamDetails | undefined
+    let teamname: string = ''
+    let teamID: TeamTypes.TeamID = TeamTypes.noTeamID
     if (conversationIDKey && conversationIDKey !== ChatConstants.noConversationIDKey) {
       const meta = state.chat2.metaMap.get(conversationIDKey) || ChatConstants.makeConversationMeta()
       const participants = ChatConstants.getRowParticipants(meta, state.config.username)
@@ -57,6 +59,8 @@ export default Container.namedConnect(
         ''
       const isTeam = meta.teamType === 'big' || meta.teamType === 'small'
       teamDetails = isTeam ? TeamConstants.getTeamDetails(state, meta.teamID) : undefined
+      teamname = meta.teamname
+      teamID = meta.teamID
       convProps = {
         fullname,
         ignored: meta.status === RPCChatTypes.ConversationStatus.ignored,
@@ -64,8 +68,12 @@ export default Container.namedConnect(
         participants,
         teamID: meta.teamID,
         teamType: meta.teamType,
-        teamname: (teamDetails && teamDetails.teamname) || '',
+        teamname,
       }
+    } else if (_teamID) {
+      teamID = _teamID
+      teamDetails = TeamConstants.getTeamDetails(state, teamID)
+      teamname = teamDetails.teamname
     }
     // skip a bunch of stuff for menus that aren't visible
     if (!visible) {
@@ -80,12 +88,7 @@ export default Container.namedConnect(
         teamname: '',
       }
     }
-    const teamID = (teamDetails && teamDetails.id) || _teamID || ''
-    if (teamID) {
-      // teamID was in OwnProps
-      teamDetails = TeamConstants.getTeamDetails(state, teamID)
-    }
-    const teamname = (teamDetails && teamDetails.teamname) || ''
+
     const yourOperations = TeamConstants.getCanPerformByID(state, teamID)
     const badgeSubscribe = !TeamConstants.isTeamWithChosenChannels(state, teamname)
 
