@@ -211,11 +211,11 @@ const styles = Styles.styleSheetCreate(
       blockedBackgroundText: {
         backgroundColor: Styles.globalColors.red_20,
         borderRadius: Styles.borderRadius,
+        margin: Styles.globalMargins.small,
         paddingBottom: Styles.globalMargins.tiny,
         paddingLeft: Styles.globalMargins.small,
         paddingRight: Styles.globalMargins.small,
         paddingTop: Styles.globalMargins.tiny,
-        margin: Styles.globalMargins.small,
       },
       bold: {...Styles.globalStyles.fontBold},
       container: {backgroundColor: Styles.globalColors.white, flexShrink: 0},
