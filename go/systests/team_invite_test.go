@@ -872,7 +872,7 @@ func proveGubbleUniverse(tc *libkb.TestContext, serviceName, endpoint string, us
 		require.NoError(tc.T, err)
 		require.True(tc.T, len(proofs) >= 1)
 		for _, proof := range proofs {
-			if proof.KbUsername == username && sigID.Equal(proof.SigHash) {
+			if proof.KbUsername == username && sigID.Eq(proof.SigHash) {
 				return nil
 			}
 		}
