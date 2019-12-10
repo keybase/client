@@ -11,6 +11,7 @@ import {TypedState} from './reducer'
 import HiddenString from '../util/hidden-string'
 import flags from '../util/feature-flags'
 import * as TeamBuildingConstants from './team-building'
+import {memoize} from '../util/memoize'
 
 export const balanceDeltaToString = invert(RPCTypes.BalanceDelta) as {
   [K in RPCTypes.BalanceDelta]: keyof typeof RPCTypes.BalanceDelta
@@ -741,9 +742,11 @@ export const searchTrustlineAssetsWaitingKey = 'wallets:searchTrustlineAssets'
 export const calculateBuildingAdvancedWaitingKey = 'wallets:calculateBuildingAdvanced'
 export const sendPaymentAdvancedWaitingKey = 'wallets:sendPaymentAdvanced'
 
-export const getAccountIDs = (state: TypedState) => [...state.wallets.accountMap.keys()]
+const getAccountMapKeys = memoize((accountMap: Map<string, Types.Account>) => [...accountMap.keys()])
+export const getAccountIDs = (state: TypedState) => getAccountMapKeys(state.wallets.accountMap)
 
-export const getAccounts = (state: TypedState) => [...state.wallets.accountMap.values()]
+const getAccountMapValues = memoize((accountMap: Map<string, Types.Account>) => [...accountMap.values()])
+export const getAccounts = (state: TypedState) => getAccountMapValues(state.wallets.accountMap)
 
 export const getAirdropSelected = (state: TypedState) =>
   state.wallets.selectedAccount === Types.airdropAccountID
@@ -793,8 +796,9 @@ export const getDefaultAccount = (state: Types.State) => {
 
 export const getExternalPartners = (state: TypedState) => state.wallets.externalPartners
 
+const noAssets = []
 export const getAssets = (state: TypedState, accountID: Types.AccountID): Array<Types.Assets> =>
-  state.wallets.assetsMap.get(accountID) ?? []
+  state.wallets.assetsMap.get(accountID) ?? noAssets
 
 export const getFederatedAddress = (state: TypedState, accountID: Types.AccountID) => {
   const account = state.wallets.accountMap.get(accountID) ?? unknownAccount
