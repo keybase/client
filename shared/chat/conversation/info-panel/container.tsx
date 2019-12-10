@@ -68,6 +68,12 @@ const ConnectedInfoPanel = Container.connect(
     const attachmentsLoading = selectedTab === 'attachments' && attachmentInfo.status === 'loading'
     const _teamMembers =
       state.teams.teamNameToMembers.get(meta.teamname) || new Map<string, TeamTypes.MemberInfo>()
+    const _bots = meta.participants.filter(
+      p =>
+        TeamConstants.userIsRoleInTeamWithInfo(_teamMembers, p, 'restrictedbot') ||
+        TeamConstants.userIsRoleInTeamWithInfo(_teamMembers, p, 'bot')
+    )
+
     return {
       _attachmentInfo: attachmentInfo,
       _botAliases: meta.botAliases,
@@ -75,6 +81,7 @@ const ConnectedInfoPanel = Container.connect(
       _infoMap: state.users.infoMap,
       _participantToContactName: meta.participantToContactName,
       _participants: meta.participants,
+      _bots: _bots,
       _team: meta.teamname,
       _teamMembers,
       _username: state.config.username,
@@ -173,6 +180,7 @@ const ConnectedInfoPanel = Container.connect(
     onUnhideConv: () => dispatch(Chat2Gen.createUnhideConversation({conversationIDKey})),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
+    const bots = stateProps._bots
     let participants = stateProps._participants
     const teamMembers = stateProps._teamMembers
     const isGeneral = stateProps.channelname === 'general'
@@ -187,9 +195,19 @@ const ConnectedInfoPanel = Container.connect(
         return l
       }, [])
     }
+
+    participants = participants.filter(p => !bots.includes(p))
     return {
       admin: stateProps.admin,
       attachmentsLoading: stateProps.attachmentsLoading,
+      bots: bots.map(b => ({
+        botAlias: stateProps._botAliases[b] || '',
+        fullname:
+          (stateProps._infoMap.get(b) || {fullname: ''}).fullname ||
+          stateProps._participantToContactName.get(b) ||
+          '',
+        username: b,
+      })),
       canDeleteHistory: stateProps.canDeleteHistory,
       canEditChannel: stateProps.canEditChannel,
       canSetMinWriterRole: stateProps.canSetMinWriterRole,
