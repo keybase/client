@@ -6,6 +6,7 @@ protocol NotifyBadges {
   @typedef("bytes")  record ChatConversationID {}
 
   record TeamMemberOutReset {
+    TeamID teamID;
     string teamname;
     string username;
     UID uid;

@@ -43,7 +43,7 @@ const commonTlds = [
 function UTF162JSON(text) {
   let r: Array<string> = []
   for (let i = 0; i < text.length; i++) {
-    r.push('\\\\u' + ('000' + text.charCodeAt(i).toString(16)).slice(-4))
+    r.push('\\u' + ('000' + text.charCodeAt(i).toString(16)).slice(-4))
   }
   return r.join('')
 }
@@ -102,9 +102,9 @@ function genEmojiData() {
 function buildEmojiFile() {
   const p = path.join(__dirname, 'emoji-gen.tsx')
   const {emojiLiterals, emojiIndexByName, emojiIndexByChar} = genEmojiData()
-  const regLiterals = emojiLiterals.join('|')
+  const regLiterals = emojiLiterals.map((s: string) => escapeRegExp(s).replace(/\\/g, '\\')).join('|')
   const regIndex = Object.keys(emojiIndexByName)
-    .map(escapeRegExp)
+    .map((s: string) => escapeRegExp(s).replace(/\\/g, '\\\\'))
     .join('|')
   const data = `/* eslint-disable */
 export const emojiRegex = new RegExp(\`^(${regLiterals}|${regIndex})\`)

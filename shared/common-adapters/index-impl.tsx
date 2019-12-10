@@ -319,6 +319,9 @@ module.exports = {
   get WaitingButton() {
     return require('./waiting-button').default
   },
+  get WaveButton() {
+    return require('./wave-button').default
+  },
   get WebView() {
     return require('./web-view').default
   },

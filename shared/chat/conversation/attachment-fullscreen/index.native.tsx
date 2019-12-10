@@ -181,7 +181,7 @@ const styles = Styles.styleSheetCreate(
         position: 'absolute',
         zIndex: 3,
       },
-      headerWrapper: {...Styles.globalStyles.flexGrow, backgroundColor: Styles.globalColors.blackOrBlack},
+      headerWrapper: {backgroundColor: Styles.globalColors.blackOrBlack},
       progressIndicator: {
         alignSelf: 'center',
         margin: 'auto',

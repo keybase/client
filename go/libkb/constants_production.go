@@ -7,3 +7,5 @@ package libkb
 
 // Production run mode currently...enabled!
 const DefaultRunMode = ProductionRunMode
+
+const BuildTagProduction = true

@@ -52,6 +52,7 @@ export function followStateHelperWithId(
 }
 
 export const makeSubState = (): Types.TeamBuildingSubState => ({
+  error: '',
   finishedSelectedRole: 'writer',
   finishedSendNotification: true,
   finishedTeam: new Set(),

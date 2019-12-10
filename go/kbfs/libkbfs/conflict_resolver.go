@@ -250,6 +250,10 @@ func (cr *ConflictResolver) processInput(baseCtx context.Context,
 			case <-waitChan:
 			case <-ctx.Done():
 				cr.log.CDebugf(ctx, "Resolution canceled before starting")
+				// The next attempt will still need to wait on the old
+				// one, in case it hasn't finished yet.  So wait for
+				// it here, before we close our own `done` channel.
+				<-waitChan
 				return
 			}
 			cr.doResolve(ctx, ci)

@@ -574,6 +574,10 @@ func NewTestUIDMapper(ul UPAKLoader) TestUIDMapper {
 	}
 }
 
+func (t TestUIDMapper) ClearUIDFullName(_ context.Context, _ UIDMapperContext, _ keybase1.UID) error {
+	return nil
+}
+
 func (t TestUIDMapper) ClearUIDAtEldestSeqno(_ context.Context, _ UIDMapperContext, _ keybase1.UID, _ keybase1.Seqno) error {
 	return nil
 }

@@ -18,12 +18,12 @@ type OwnProps = {
 
 export default Container.connect(
   (state, {teamID}: OwnProps) => ({teamname: Constants.getTeamNameFromID(state, teamID) || ''}),
-  (dispatch, {teamID}: OwnProps) => {
+  (dispatch, {teamID}) => {
     return {
-      _onAddPeople: (teamname: string) => {
-        dispatch(appendNewTeamBuilder(teamname))
-      },
       _onSlackImport: (teamname: string) => openURL(`https://keybase.io/slack-importer/${teamname}`),
+      onAddPeople: () => {
+        dispatch(appendNewTeamBuilder(teamID))
+      },
       onInvite: () => {
         const selected = Styles.isMobile ? 'teamInviteByContact' : 'teamInviteByEmail'
         dispatch(
@@ -38,7 +38,7 @@ export default Container.connect(
   (s, d, o: OwnProps) => ({
     ...s,
     attachTo: o.attachTo,
-    onAddPeople: () => d._onAddPeople(s.teamname),
+    onAddPeople: d.onAddPeople,
     onHidden: o.onHidden,
     onInvite: d.onInvite,
     onSlackImport: () => d._onSlackImport(s.teamname),

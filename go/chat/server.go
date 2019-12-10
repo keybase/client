@@ -298,7 +298,8 @@ func (h *Server) GetInboxAndUnboxUILocal(ctx context.Context, arg chat1.GetInbox
 		}
 	}
 	return chat1.GetInboxAndUnboxUILocalRes{
-		Conversations:    utils.PresentConversationLocals(ctx, h.G(), uid, ib.Convs),
+		Conversations: utils.PresentConversationLocals(ctx, h.G(), uid, ib.Convs,
+			utils.PresentParticipantsModeInclude),
 		IdentifyFailures: identBreaks,
 	}, nil
 }
@@ -408,7 +409,7 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 	}
 
 	res.Conv = conv
-	res.UiConv = utils.PresentConversationLocal(ctx, h.G(), uid, conv)
+	res.UiConv = utils.PresentConversationLocal(ctx, h.G(), uid, conv, utils.PresentParticipantsModeInclude)
 	res.IdentifyFailures = identBreaks
 	return res, nil
 }
@@ -1247,9 +1248,10 @@ func (h *Server) downloadAttachmentLocal(ctx context.Context, uid gregor1.UID, a
 	}, nil
 }
 
-func (h *Server) presentUIItem(ctx context.Context, uid gregor1.UID, conv *chat1.ConversationLocal) (res *chat1.InboxUIItem) {
+func (h *Server) presentUIItem(ctx context.Context, uid gregor1.UID, conv *chat1.ConversationLocal,
+	partMode utils.PresentParticipantsMode) (res *chat1.InboxUIItem) {
 	if conv != nil {
-		pc := utils.PresentConversationLocal(ctx, h.G(), uid, *conv)
+		pc := utils.PresentConversationLocal(ctx, h.G(), uid, *conv, partMode)
 		res = &pc
 	}
 	return res
@@ -1277,7 +1279,7 @@ func (h *Server) CancelPost(ctx context.Context, outboxID chat1.OutboxID) (err e
 	}
 	act := chat1.NewChatActivityWithFailedMessage(chat1.FailedMessageInfo{
 		OutboxRecords: []chat1.OutboxRecord{obr},
-		Conv:          h.presentUIItem(ctx, uid, convLocal),
+		Conv:          h.presentUIItem(ctx, uid, convLocal, utils.PresentParticipantsModeSkip),
 	})
 	h.G().ActivityNotifier.Activity(context.Background(), uid, chat1.TopicType_NONE, &act,
 		chat1.ChatActivitySource_LOCAL)
@@ -1342,7 +1344,8 @@ func (h *Server) FindConversationsLocal(ctx context.Context,
 	if err != nil {
 		return res, err
 	}
-	res.UiConversations = utils.PresentConversationLocals(ctx, h.G(), uid, res.Conversations)
+	res.UiConversations = utils.PresentConversationLocals(ctx, h.G(), uid, res.Conversations,
+		utils.PresentParticipantsModeInclude)
 	return res, nil
 }
 
@@ -1499,7 +1502,7 @@ func (h *Server) PreviewConversationByIDLocal(ctx context.Context, convID chat1.
 	if err != nil {
 		return res, err
 	}
-	res.Conv = utils.PresentConversationLocal(ctx, h.G(), uid, conv)
+	res.Conv = utils.PresentConversationLocal(ctx, h.G(), uid, conv, utils.PresentParticipantsModeInclude)
 	res.Offline = h.G().InboxSource.IsOffline(ctx)
 	return res, nil
 }
@@ -1580,7 +1583,7 @@ func (h *Server) GetTLFConversationsLocal(ctx context.Context, arg chat1.GetTLFC
 	if err != nil {
 		return res, err
 	}
-	res.Convs = utils.PresentConversationLocals(ctx, h.G(), uid, convs)
+	res.Convs = utils.PresentConversationLocals(ctx, h.G(), uid, convs, utils.PresentParticipantsModeInclude)
 	res.Offline = h.G().InboxSource.IsOffline(ctx)
 	return res, nil
 }

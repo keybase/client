@@ -4,6 +4,7 @@ import * as ConfigGen from '../actions/config-gen'
 import * as Tracker2Gen from '../actions/tracker2-gen'
 import * as Container from '../util/container'
 import * as EngineGen from '../actions/engine-gen-gen'
+import * as RpcTypes from '../constants/types/rpc-gen'
 import {mapGetEnsureValue} from '../util/map'
 import logger from '../logger'
 
@@ -109,13 +110,20 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     })
   },
   [EngineGen.keybase1NotifyTrackingNotifyUserBlocked]: (draftState, action) => {
-    const {blocker, blocked} = action.payload.params.b
+    const {blocker, blocks} = action.payload.params.b
     const d = getDetails(draftState, blocker)
-    const blockees = blocked ?? []
-    const toProcess = blockees.map(username => [username, getDetails(draftState, username)] as const)
-    toProcess.forEach(([username, det]) => {
-      d.followers && d.followers.delete(username)
-      det.blocked = true
+    const toProcess = Object.entries(blocks ?? {}).map(
+      ([username, userBlocks]) => [username, getDetails(draftState, username), userBlocks || []] as const
+    )
+    toProcess.forEach(([username, det, userBlocks]) => {
+      userBlocks.forEach(blockState => {
+        if (blockState.blockType === RpcTypes.UserBlockType.chat) {
+          det.blocked = blockState.blocked
+        } else if (blockState.blockType === RpcTypes.UserBlockType.follow) {
+          det.hidFromFollowers = blockState.blocked
+          blockState.blocked && d.followers && d.followers.delete(username)
+        }
+      })
     })
     d.followersCount = d.followers?.size
   },

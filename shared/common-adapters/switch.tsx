@@ -18,6 +18,7 @@ const Kb = {
 
 type Props = {
   align?: 'left' | 'right' | null // default to 'left',
+  allowLabelClick?: boolean
   color?: 'blue' | 'green' | 'red' | null // default to 'blue',
   disabled?: boolean | null
   gapInBetween?: boolean | null // inserts flex:1 gap between toggle and text,
@@ -42,7 +43,9 @@ const LabelContainer = props =>
     </Kb.WithTooltip>
   ) : (
     <Kb.Box2 direction="vertical" style={styles.labelContainer}>
-      {props.children}
+      <Kb.ClickableBox onClick={props.allowLabelClick ? props.onClick : undefined}>
+        {props.children}
+      </Kb.ClickableBox>
     </Kb.Box2>
   )
 

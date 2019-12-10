@@ -1425,6 +1425,7 @@ export const shouldShowPopup = (state: TypedState, message: Types.Message) => {
     case 'systemSimpleToComplex':
     case 'systemText':
     case 'systemUsersAddedToConversation':
+    case 'journeycard':
       return true
     case 'sendPayment': {
       const paymentInfo = getPaymentMessageInfo(state, message)
