@@ -79,27 +79,29 @@ const unifyStyles = (s: any) => ({
     : {}),
 })
 
-type FromStylesCrossPlatform<T> = {
-  [P in keyof T]: P extends keyof _StylesCrossPlatform ? _StylesCrossPlatform[P] : never
+type AsStylesCrossPlatform<T> = {
+  [P in keyof T]: P extends keyof _StylesCrossPlatform
+    ? T[P] extends _StylesCrossPlatform[P]
+      ? T[P]
+      : _StylesCrossPlatform[P]
+    : never
 }
 
 export function platformStyles<
   Ret extends C & I & A & M & E,
-  Ret2 = FromStylesCrossPlatform<Ret>,
   C extends _StylesCrossPlatform = {},
   I extends _StylesMobile = {},
   A extends _StylesMobile = {},
   M extends _StylesMobile = {},
   E extends _StylesDesktop = {}
 >(options: {common?: C; isIOS?: I; isAndroid?: A; isMobile?: M; isElectron?: E}) {
-  return {
+  return ({
     ...(options.common ? unifyStyles(options.common) : {}),
     ...(isMobile && options.isMobile ? options.isMobile : {}),
     ...(isIOS && options.isIOS ? options.isIOS : {}),
     ...(isAndroid && options.isAndroid ? options.isAndroid : {}),
     ...(isElectron && options.isElectron ? unifyStyles(options.isElectron) : {}),
-  } as Ret2
-  // } as FromStylesCrossPlatform<C & I & A & M & E>
+  } as any) as AsStylesCrossPlatform<Ret>
 }
 
 /* eslint-disable sort-keys */
