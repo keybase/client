@@ -775,8 +775,8 @@ const styles = Styles.styleSheetCreate(
         marginBottom: Styles.globalMargins.tiny,
       },
       importContactsContainer: {
-        justifyContent: 'flex-start',
         height: 64,
+        justifyContent: 'flex-start',
       },
       list: Styles.platformStyles({
         common: {paddingBottom: Styles.globalMargins.small},
