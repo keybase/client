@@ -183,7 +183,7 @@ const Bio = (p: Props) => (
     {p.blocked ? (
       <Kb.Text type="BodySmallError" center={true} style={styles.blockedBackgroundText}>
         <Kb.Text type="BodySmallError" center={true} style={styles.text} selectable={true}>
-          You blocked them.
+          You blocked them.{' '}
         </Kb.Text>
         <Kb.Text type="BodySmallError" center={true} style={styles.text} selectable={true}>
           {p.username} won’t be able to chat with you or add you to teams.
@@ -211,7 +211,11 @@ const styles = Styles.styleSheetCreate(
       blockedBackgroundText: {
         backgroundColor: Styles.globalColors.red_20,
         borderRadius: Styles.borderRadius,
-        padding: Styles.globalMargins.tiny,
+        paddingBottom: Styles.globalMargins.tiny,
+        paddingLeft: Styles.globalMargins.small,
+        paddingRight: Styles.globalMargins.small,
+        paddingTop: Styles.globalMargins.tiny,
+        margin: Styles.globalMargins.small,
       },
       bold: {...Styles.globalStyles.fontBold},
       container: {backgroundColor: Styles.globalColors.white, flexShrink: 0},
@@ -240,9 +244,6 @@ const styles = Styles.styleSheetCreate(
         isElectron: {
           wordBreak: 'break-word',
         } as const,
-        isMobile: {
-          lineHeight: 21,
-        },
       }),
     } as const)
 )
