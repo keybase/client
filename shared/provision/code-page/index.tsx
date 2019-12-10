@@ -382,7 +382,6 @@ const Instructions = (p: Props) => (
         <Kb.Text center={true} type={textType} style={styles.instructions}>
           Ready to authorize using{' '}
         </Kb.Text>
-        <DeviceIcon size={32} device={p.currentDevice} style={styles.deviceIcon} />
         <Kb.Text center={true} type={textType} style={styles.instructionsItalic}>
           {p.currentDeviceName}.
         </Kb.Text>
@@ -396,7 +395,6 @@ const Instructions = (p: Props) => (
           >
             In the Keybase app on{' '}
           </Kb.Text>
-          <DeviceIcon size={32} device={p.otherDevice} style={styles.deviceIcon} />
           <Kb.Text
             center={true}
             type={textType}
