@@ -83,11 +83,12 @@ func (c *CmdChatFeaturedBots) GetUsage() libkb.Usage {
 func displayFeaturedBots(g *libkb.GlobalContext, bots []keybase1.FeaturedBot) error {
 	ui := g.UI.GetTerminalUI()
 	if len(bots) == 0 {
-		ui.Output("Not bots found\n")
-		return nil
+		return ui.Output("Not bots found\n")
 	}
 
-	ui.Output("To add a bot see `keybase chat add-bot-member --help`\n")
+	if err := ui.Output("To add a bot see `keybase chat add-bot-member --help`\n"); err != nil {
+		return err
+	}
 	table := &flexibletable.Table{}
 	for i, bot := range bots {
 		displayName := bot.BotUsername
