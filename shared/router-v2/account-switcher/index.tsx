@@ -75,22 +75,24 @@ const AccountRow = (props: AccountRowProps) => {
       }
   return (
     <Kb.ListItem2
-      type="Small"
-      icon={<Kb.Avatar size={32} username={props.entry.account.username} />}
+      type={Styles.isMobile ? 'Large' : 'Small'}
+      icon={<Kb.Avatar size={Styles.isMobile ? 48 : 32} username={props.entry.account.username} />}
       firstItem={true}
       body={
         <Kb.Box2 direction="vertical" fullWidth={true} style={props.waiting ? styles.waiting : undefined}>
           <Kb.Text type="BodySemibold">{props.entry.account.username}</Kb.Text>
-          <Kb.Box2 direction="horizontal" alignItems="flex-start" fullWidth={true}>
-            <Kb.Text type="BodySmall" lineClamp={1} style={styles.nameText}>
-              {props.entry.fullName}
-            </Kb.Text>
-            {!props.entry.account.hasStoredSecret && (
-              <Kb.Text type="BodySmall" style={styles.text2}>
-                {props.entry.fullName && ' · '}Signed out
+          {(props.entry.fullName || !props.entry.account.hasStoredSecret) && (
+            <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true}>
+              <Kb.Text type="BodySmall" lineClamp={1} style={styles.nameText}>
+                {props.entry.fullName}
               </Kb.Text>
-            )}
-          </Kb.Box2>
+              {!props.entry.account.hasStoredSecret && (
+                <Kb.Text type="BodySmall" style={styles.text2}>
+                  {props.entry.fullName && ' · '}Signed out
+                </Kb.Text>
+              )}
+            </Kb.Box2>
+          )}
           {clicked && <Kb.ProgressIndicator type="Large" style={styles.progressIndicator} />}
         </Kb.Box2>
       }
