@@ -23,7 +23,7 @@ func newUserEKBoxCacheItem(userEKBoxed keybase1.UserEkBoxed, err error) userEKBo
 	e, ok := err.(EphemeralKeyError)
 	if !ok && err != nil {
 		e = newEphemeralKeyError(err.Error(), DefaultHumanErrMsg,
-			EphemeralKeyErrorKind_UNKNOWN, UserEKKind)
+			EphemeralKeyErrorKindUNKNOWN, UserEKKind)
 	}
 	if err != nil {
 		ekErr = &e

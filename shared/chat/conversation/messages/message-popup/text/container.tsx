@@ -6,7 +6,7 @@ import * as Types from '../../../../../constants/types/chat2'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as Container from '../../../../../util/container'
 import {createShowUserProfile} from '../../../../../actions/profile-gen'
-import {getCanPerform} from '../../../../../constants/teams'
+import {getCanPerformByID} from '../../../../../constants/teams'
 import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 import {StylesCrossPlatform} from '../../../../../styles/css'
 import openURL from '../../../../../util/open-url'
@@ -24,7 +24,7 @@ type OwnProps = {
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const message = ownProps.message
   const meta = Constants.getMeta(state, message.conversationIDKey)
-  const yourOperations = getCanPerform(state, meta.teamname)
+  const yourOperations = getCanPerformByID(state, meta.teamID)
   const _canDeleteHistory = yourOperations && yourOperations.deleteChatHistory
   const _canAdminDelete = yourOperations && yourOperations.deleteOtherMessages
   let _canPinMessage = message.type === 'text'

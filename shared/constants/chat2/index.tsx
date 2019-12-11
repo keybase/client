@@ -366,6 +366,8 @@ export const makeInboxQuery = (
   }
 }
 
+export const isAssertion = (username: string) => username.includes('@')
+
 export const threadRoute = isMobile ? [chatTab, 'chatConversation'] : [{props: {}, selected: chatTab}]
 export const newRouterThreadRoute = isMobile ? ['chatConversation'] : [chatTab]
 
@@ -415,10 +417,8 @@ export const zoomImage = (width: number, height: number, maxThumbSize: number) =
 }
 
 export {
-  getAllChannels,
   getBotCommands,
   getChannelForTeam,
-  getChannelSuggestions,
   getCommands,
   getConversationIDKeyMetasToLoad,
   getEffectiveRetentionPolicy,

@@ -55,6 +55,7 @@ type HeaderRightActionsProps = {
   airdropSelected: boolean
   loading: boolean
   noDisclaimer: boolean
+  onBuy: () => void
   onReceive: () => void
   onSettings: () => void
 }
@@ -71,6 +72,7 @@ export const HeaderRightActions = (props: HeaderRightActionsProps) =>
         onClick={props.onReceive}
         disabled={props.loading}
       />
+      <Kb.Button type="Wallet" mode="Secondary" label="Buy" small={true} onClick={props.onBuy} />
       <Kb.Button
         onClick={props.onSettings}
         mode="Secondary"

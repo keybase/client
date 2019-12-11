@@ -150,15 +150,10 @@ class Chat extends React.Component<Props, State> {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  container: Styles.platformStyles({
-    isElectron: {
-      padding: Styles.globalMargins.small,
-      width: '100%',
-    },
-    isMobile: {
-      padding: 20,
-    },
-  }),
+  container: {
+    padding: Styles.globalMargins.small,
+    width: '100%',
+  },
   divider: {
     height: Styles.globalMargins.xxtiny,
   },
