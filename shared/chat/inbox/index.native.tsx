@@ -261,7 +261,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
           )}
           {noChats}
           {floatingDivider ||
-            ((this.props.rows.length === 0 || !this.props.hasBigTeams) &&
+            (this.props.rows.length === 0 &&
               !this.props.isLoading &&
               !this.props.neverLoaded && <BuildTeam />)}
           {this.state.showUnread && !this.props.isSearching && !this.state.showFloating && (
