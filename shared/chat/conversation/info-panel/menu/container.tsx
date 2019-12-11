@@ -19,6 +19,10 @@ export type OwnProps = {
   teamID?: TeamTypes.TeamID
   conversationIDKey: ChatTypes.ConversationIDKey
   visible: boolean
+  layoutMuted?: boolean
+  layoutTeamID?: TeamTypes.TeamID
+  layoutName?: string
+  layoutTeamType?: ChatTypes.TeamType
 }
 
 // can be expensive, don't run if not visible
