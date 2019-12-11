@@ -1,7 +1,7 @@
-v5.1.0
+v5.1.1
 • Bugfix release: user blocking was accidentally disabled from user profiles; turn it on.
 
-v5.0.0
+v5.1.0
 • New features for blocking and reporting bad people
 • Large File Storage in git
 • Various bug fixes around team management
