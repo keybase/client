@@ -1,5 +1,1 @@
-• New features for blocking and reporting bad people
-• Large File Storage in git
-• Various bug fixes around team management
-• Dark mode fixes
-• Smaller bug fixes and performance improvements
+• Bugfix release: user blocking was accidentally disabled from user profiles; turn it on.
