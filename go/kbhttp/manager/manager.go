@@ -94,6 +94,7 @@ func (r *Srv) startHTTPSrv() {
 	} else {
 		r.debug(ctx, "startHTTPSrv: start success: addr: %s", addr)
 	}
+	r.debug(ctx, "startHTTPSrv: addr: %s token: %s", addr, r.token)
 	r.G().NotifyRouter.HandleHTTPSrvInfoUpdate(ctx, keybase1.HttpSrvInfo{
 		Address: addr,
 		Token:   r.token,
@@ -111,7 +112,7 @@ func (r *Srv) monitorAppState() {
 	for {
 		state = <-r.G().MobileAppState.NextUpdate(&state)
 		switch state {
-		case keybase1.MobileAppState_FOREGROUND:
+		case keybase1.MobileAppState_FOREGROUND, keybase1.MobileAppState_BACKGROUNDACTIVE:
 			r.startHTTPSrv()
 		case keybase1.MobileAppState_BACKGROUND, keybase1.MobileAppState_INACTIVE:
 			r.httpSrv.Stop()
