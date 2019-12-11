@@ -3576,3 +3576,13 @@ func FilterTeamDetailsForMembers(usernames []string, details TeamDetails) TeamDe
 	res.Members.RestrictedBots = FilterMembersDetails(membMap, res.Members.RestrictedBots)
 	return res
 }
+
+func (b FeaturedBot) Owner() string {
+	if b.OwnerTeam != nil {
+		return *b.OwnerTeam
+	}
+	if b.OwnerUser != nil {
+		return *b.OwnerUser
+	}
+	return ""
+}

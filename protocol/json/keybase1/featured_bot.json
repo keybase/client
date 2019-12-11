@@ -26,16 +26,16 @@
         {
           "type": [
             null,
-            "TeamID"
+            "string"
           ],
-          "name": "ownerTeamID"
+          "name": "ownerTeam"
         },
         {
           "type": [
             null,
-            "UID"
+            "string"
           ],
-          "name": "ownerUID"
+          "name": "ownerUser"
         }
       ]
     },
