@@ -2990,6 +2990,29 @@ func (h *Server) DismissJourneycard(ctx context.Context, arg chat1.DismissJourne
 	if err != nil {
 		return err
 	}
-	h.G().JourneyCardManager.Dismiss(ctx, uid, arg.ConvID, arg.CardType)
-	return nil
+	inbox, err := h.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceLocalOnly,
+		&chat1.GetInboxQuery{
+			ConvID:           &arg.ConvID,
+			SkipBgLoads:      true,
+			AllowUnseenQuery: true,
+		})
+	if err != nil {
+		return err
+	}
+	switch len(inbox.ConvsUnverified) {
+	case 0:
+		return fmt.Errorf("could not find conversation")
+	case 1:
+		if inbox.ConvsUnverified[0].LocalMetadata == nil {
+			return fmt.Errorf("no local metadata")
+		}
+		teamID, err := keybase1.TeamIDFromString(inbox.ConvsUnverified[0].Conv.Metadata.IdTriple.Tlfid.String())
+		if err != nil {
+			return err
+		}
+		h.G().JourneyCardManager.Dismiss(ctx, uid, teamID, arg.ConvID, arg.CardType)
+		return nil
+	default:
+		return fmt.Errorf("got %v conversations but expected 1", len(inbox.ConvsUnverified))
+	}
 }

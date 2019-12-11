@@ -572,8 +572,8 @@ type UIInboxLoader interface {
 type JourneyCardManager interface {
 	Resumable
 	PickCard(context.Context, gregor1.UID, chat1.ConversationID, *chat1.ConversationLocal, *chat1.ThreadView) (*chat1.MessageUnboxedJourneycard, error)
-	SentMessage(context.Context, gregor1.UID, chat1.ConversationID) // Tell JourneyCardManager that the user has sent a message.
-	Dismiss(context.Context, gregor1.UID, chat1.ConversationID, chat1.JourneycardType)
+	SentMessage(context.Context, gregor1.UID, keybase1.TeamID, chat1.ConversationID) // Tell JourneyCardManager that the user has sent a message.
+	Dismiss(context.Context, gregor1.UID, keybase1.TeamID, chat1.ConversationID, chat1.JourneycardType)
 	OnDbNuke(libkb.MetaContext) error
 }
 
