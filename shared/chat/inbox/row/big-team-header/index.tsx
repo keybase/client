@@ -81,12 +81,16 @@ const styles = Styles.styleSheetCreate(
         borderStyle: `solid`,
         borderWidth: 1,
       },
-      showMenu: {
-        ...Styles.globalStyles.flexBoxRow,
-        padding: 6,
-        position: 'relative',
-        top: Styles.globalMargins.xxtiny,
-      },
+      showMenu: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.flexBoxRow,
+          padding: 6,
+        },
+        isElectron: {
+          position: 'relative',
+          top: Styles.globalMargins.xxtiny,
+        },
+      }),
       team: Styles.platformStyles({
         common: {
           color: Styles.globalColors.black_50,
@@ -102,10 +106,15 @@ const styles = Styles.styleSheetCreate(
           alignItems: 'center',
           flexShrink: 0,
           height: RowSizes.bigHeaderHeight,
-          paddingLeft: Styles.globalMargins.tiny,
           paddingRight: Styles.globalMargins.tiny,
         },
-        isElectron: Styles.desktopStyles.clickable,
+        isElectron: {
+          ...Styles.desktopStyles.clickable,
+          paddingLeft: Styles.globalMargins.tiny,
+        },
+        isMobile: {
+          paddingLeft: Styles.globalMargins.small,
+        },
       }),
       teamnameContainer: Styles.platformStyles({
         isMobile: {

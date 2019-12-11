@@ -64,9 +64,8 @@ const styles = Styles.styleSheetCreate(() => ({
     height: 112,
     width: 112,
   },
-  text: Styles.platformStyles({
-    common: {marginBottom: Styles.globalMargins.tiny},
-    isElectron: {marginLeft: Styles.globalMargins.small},
-    isMobile: {marginLeft: Styles.globalMargins.tiny},
-  }),
+  text: {
+    marginBottom: Styles.globalMargins.tiny,
+    marginLeft: Styles.globalMargins.small,
+  },
 }))

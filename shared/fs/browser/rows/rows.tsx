@@ -153,10 +153,17 @@ const RowsWithAutoLoad = (props: Props) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      divider: {
-        backgroundColor: Styles.globalColors.black_05,
-        marginLeft: 64,
-      },
+      divider: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.black_05,
+        },
+        isElectron: {
+          marginLeft: 94,
+        },
+        isMobile: {
+          marginLeft: 102,
+        },
+      }),
       emptyContainer: {
         ...Styles.globalStyles.flexGrow,
       },
