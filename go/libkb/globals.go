@@ -1317,7 +1317,7 @@ func (g *GlobalContext) LoadUserByUID(uid keybase1.UID) (*User, error) {
 
 func (g *GlobalContext) BustLocalUserCache(ctx context.Context, u keybase1.UID) {
 	g.GetUPAKLoader().Invalidate(ctx, u)
-	g.CardCache().Delete(u)
+	_ = g.CardCache().Delete(u)
 	_ = g.GetFullSelfer().HandleUserChanged(u)
 }
 
