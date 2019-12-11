@@ -96,9 +96,9 @@ const load = () => {
     ))
     .add('Add people (open team)', () => (
       <TeamJourney
+        {...commonProps}
         actions={[{label: 'Add people to the team', onClick: Sb.action('onAddPeopleToTeam')}]}
         image="icon-illustration-friends-96"
-        teamname="foo"
         textComponent={
           <Kb.Text type="BodySmall">
             Do you know people interested in joining?{' '}
