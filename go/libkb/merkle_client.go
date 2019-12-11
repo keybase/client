@@ -383,7 +383,7 @@ type PathStep struct {
 }
 
 func (mt MerkleTriple) Eq(mt2 MerkleTriple) bool {
-	return mt.Seqno == mt2.Seqno && mt.LinkID.Eq(mt2.LinkID) && mt.SigID.Equal(mt2.SigID)
+	return mt.Seqno == mt2.Seqno && mt.LinkID.Eq(mt2.LinkID) && mt.SigID.Eq(mt2.SigID)
 }
 
 func (mul MerkleUserLeaf) Public() *MerkleTriple {

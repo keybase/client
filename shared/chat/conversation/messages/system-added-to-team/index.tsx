@@ -13,7 +13,6 @@ type Props = {
   adder: string
   bulkAdds: Array<string>
   role: TeamTypes.TeamRoleType
-  onManageChannels: () => void
   onManageNotifications: () => void
   onViewTeam: () => void
   isTeam: boolean
@@ -33,11 +32,6 @@ const ManageComponent = (props: Props) => {
         <Kb.Text onClick={props.onManageNotifications} type={textType}>
           Manage phone and computer notifications
         </Kb.Text>
-        {!!props.teamname && (
-          <Kb.Text onClick={props.onManageChannels} type={textType}>
-            Browse other channels
-          </Kb.Text>
-        )}
       </Kb.Box>
     )
   } else if (props.isAdmin) {
@@ -99,15 +93,7 @@ const YouAddedToTeam = (props: Props) => {
           </Kb.Text>
         )}
         {typeToLabel[props.role] && ` as ${indefiniteArticle(props.role)} ${typeToLabel[role].toLowerCase()}`}
-        .{' '}
-        <Kb.Text type="BodySmall">
-          Say hi!{' '}
-          <Kb.EmojiIfExists
-            style={Styles.isMobile ? {display: 'inline-block'} : null}
-            emojiName=":wave:"
-            size={14}
-          />
-        </Kb.Text>
+        .
       </Kb.Text>
       <ManageComponent {...props} />
     </UserNotice>

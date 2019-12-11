@@ -185,6 +185,21 @@ func (l *TeamLoader) HintLatestSeqno(ctx context.Context, teamID keybase1.TeamID
 	return nil
 }
 
+// Get whether a team is open. Returns an arbitrarily stale answer.
+func (l *TeamLoader) IsOpenCached(ctx context.Context, teamID keybase1.TeamID) (bool, error) {
+	// Single-flight lock by team ID.
+	lock := l.locktab.AcquireOnName(ctx, l.G(), teamID.String())
+	defer lock.Release(ctx)
+	mctx := libkb.NewMetaContext(ctx, l.G())
+
+	// Load from the cache
+	td, frozen, tombstoned := l.storage.Get(mctx, teamID, teamID.IsPublic())
+	if frozen || tombstoned || td == nil {
+		return false, fmt.Errorf("team not available data:%v frozen:%v tombstoned:%v", td != nil, frozen, tombstoned)
+	}
+	return td.Chain.Open, nil
+}
+
 type nameLookupBurstCacheKey struct {
 	teamName keybase1.TeamName
 	public   bool

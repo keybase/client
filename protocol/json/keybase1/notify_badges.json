@@ -23,6 +23,10 @@
       "name": "TeamMemberOutReset",
       "fields": [
         {
+          "type": "TeamID",
+          "name": "teamID"
+        },
+        {
           "type": "string",
           "name": "teamname"
         },

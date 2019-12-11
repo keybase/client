@@ -122,7 +122,7 @@ func (b *Boxer) makeErrorMessage(ctx context.Context, msg chat1.MessageBoxed, er
 		msg.IsEphemeral(), msg.IsEphemeralExpired(b.clock.Now()), msg.Etime())
 }
 
-func (b *Boxer) detectPermanentError(err error, tlfName string) types.UnboxingError {
+func (b *Boxer) detectPermanentError(conv types.UnboxConversationInfo, err error, tlfName string) types.UnboxingError {
 	// Check for team not exist error that is in raw form
 	if aerr, ok := err.(libkb.AppStatusError); ok {
 		switch keybase1.StatusCode(aerr.Code) {
@@ -132,7 +132,12 @@ func (b *Boxer) detectPermanentError(err error, tlfName string) types.UnboxingEr
 			// Nothing to do.
 		}
 	}
-	// Check if we have a permanent or tranissent team read error. Transient
+
+	if _, ok := IsRekeyError(err); ok && conv.GetFinalizeInfo() != nil {
+		return NewPermanentUnboxingError(err)
+	}
+
+	// Check if we have a permanent or tranisent team read error. Transient
 	// errors, are converted to rekey errors later.
 	if teams.IsTeamReadError(err) {
 		switch err.Error() {
@@ -331,7 +336,7 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 			keyMembersType == chat1.ConversationMembersType_KBFS, boxed.ClientHeader.BotUID)
 		if err != nil {
 			// Post-process error from this
-			uberr = b.detectPermanentError(err, tlfName)
+			uberr = b.detectPermanentError(conv, err, tlfName)
 			if uberr.IsPermanent() {
 				return b.makeErrorMessage(ctx, boxed, uberr), nil
 			}
@@ -347,7 +352,7 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 				boxed.EphemeralMetadata().Generation, &boxed.ServerHeader.Ctime)
 			if err != nil {
 				b.Debug(ctx, "failed to get a key for ephemeral message: msgID: %d err: %v", boxed.ServerHeader.MessageID, err)
-				uberr = b.detectPermanentError(err, tlfName)
+				uberr = b.detectPermanentError(conv, err, tlfName)
 				if uberr.IsPermanent() {
 					return b.makeErrorMessage(ctx, boxed, uberr), nil
 				}
@@ -864,7 +869,7 @@ func (b *Boxer) unboxV2orV3orV4(ctx context.Context, boxed chat1.MessageBoxed,
 		senderKeyToValidate, err = b.validatePairwiseMAC(ctx, boxed, conv, headerHash)
 		if err != nil {
 			// Return a transient error if possible
-			return nil, b.detectPermanentError(err, boxed.ClientHeader.TlfName)
+			return nil, b.detectPermanentError(conv, err, boxed.ClientHeader.TlfName)
 		}
 	} else if bytes.Equal(boxed.VerifyKey, dummySigningKey().GetKID().ToBytes()) {
 		// Note that this can happen if the server is stripping MACs for some

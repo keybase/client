@@ -165,7 +165,7 @@ func FindNextMerkleRootAfterRevoke(m MetaContext, arg keybase1.FindNextMerkleRoo
 	if sigID.IsNil() {
 		return res, MerkleClientError{fmt.Sprintf("unknown seqno in sigchain: %d", arg.Loc.Seqno), merkleErrorBadSeqno}
 	}
-	if !sigID.Equal(leaf.Public.SigID) {
+	if !sigID.Eq(leaf.Public.SigID) {
 		return res, MerkleClientError{fmt.Sprintf("sigID sent down by server didn't match: %s != %s", sigID.String(), leaf.Public.SigID.String()), merkleErrorBadSigID}
 	}
 	res.Res = &keybase1.MerkleRootV2{
