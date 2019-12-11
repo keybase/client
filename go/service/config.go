@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -321,14 +322,21 @@ func (h ConfigHandler) GetBootstrapStatus(ctx context.Context, sessionID int) (k
 		return keybase1.BootstrapStatus{}, err
 	}
 	status := eng.Status()
-	addr, err := h.svc.httpSrv.Addr()
-	if err != nil {
-		h.G().Log.CDebugf(ctx, "GetBootstrapStatus: failed to get HTTP server address: %s", err)
-	} else {
-		status.HttpSrvInfo = &keybase1.HttpSrvInfo{
-			Address: addr,
-			Token:   h.svc.httpSrv.Token(),
+	h.G().Log.CDebugf(ctx, "GetBootstrapStatus: attempting to get HTTP server address")
+	for i := 0; i < 40; i++ { // wait at most 2 seconds
+		addr, err := h.svc.httpSrv.Addr()
+		if err != nil {
+			h.G().Log.CDebugf(ctx, "GetBootstrapStatus: failed to get HTTP server address: %s", err)
+		} else {
+			h.G().Log.CDebugf(ctx, "GetBootstrapStatus: http server: addr: %s token: %s", addr,
+				h.svc.httpSrv.Token())
+			status.HttpSrvInfo = &keybase1.HttpSrvInfo{
+				Address: addr,
+				Token:   h.svc.httpSrv.Token(),
+			}
+			break
 		}
+		time.Sleep(50 * time.Millisecond)
 	}
 	return status, nil
 }
