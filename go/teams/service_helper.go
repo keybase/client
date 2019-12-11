@@ -516,8 +516,8 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Tea
 		if isTeamContactSettingsBlock(err) {
 			// retry add
 			fields := err.(libkb.AppStatusError).Fields
-			uids := string(fields["uids"])
-			usernames := string(fields["usernames"])
+			uids := fields["uids"]
+			usernames := fields["usernames"]
 			mctx.Debug("| retrying with restricted users removed: %+v", usernames)
 			for _, uid := range strings.Split(uids, ",") {
 				restrictedUsers[keybase1.UID(uid)] = true
