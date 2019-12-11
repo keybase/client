@@ -285,10 +285,10 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 		return nil, err
 	}
 
-	makeCard := func(cardType chat1.JourneycardType, highlightMsgID chat1.MessageID, specialDebugMode bool) (*chat1.MessageUnboxedJourneycard, error) {
-		// specialDebugMode : If true, an attempt is made to show the card at the bottom of the conv and ignores dismissals.
+	makeCard := func(cardType chat1.JourneycardType, highlightMsgID chat1.MessageID, preferSavedPosition bool) (*chat1.MessageUnboxedJourneycard, error) {
+		// preferSavedPosition : If true, the card stays in the position it was previously seen. If false, the card goes at the bottom.
 		var pos *journeyCardPosition
-		if !specialDebugMode {
+		if preferSavedPosition {
 			pos = jcd.Positions[cardType]
 		}
 		if pos == nil {
@@ -338,19 +338,19 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 		// for testing, do special stuff based on channel name:
 		switch conv.GetTopicName() {
 		case "kb_cards_0_kb":
-			return makeCard(chat1.JourneycardType_WELCOME, 0, true)
+			return makeCard(chat1.JourneycardType_WELCOME, 0, false)
 		case "kb_cards_1_kb":
-			return makeCard(chat1.JourneycardType_POPULAR_CHANNELS, 0, true)
+			return makeCard(chat1.JourneycardType_POPULAR_CHANNELS, 0, false)
 		case "kb_cards_2_kb":
-			return makeCard(chat1.JourneycardType_ADD_PEOPLE, 0, true)
+			return makeCard(chat1.JourneycardType_ADD_PEOPLE, 0, false)
 		case "kb_cards_3_kb":
-			return makeCard(chat1.JourneycardType_CREATE_CHANNELS, 0, true)
+			return makeCard(chat1.JourneycardType_CREATE_CHANNELS, 0, false)
 		case "kb_cards_4_kb":
-			return makeCard(chat1.JourneycardType_MSG_ATTENTION, 3, true)
+			return makeCard(chat1.JourneycardType_MSG_ATTENTION, 3, false)
 		case "kb_cards_6_kb":
-			return makeCard(chat1.JourneycardType_CHANNEL_INACTIVE, 0, true)
+			return makeCard(chat1.JourneycardType_CHANNEL_INACTIVE, 0, false)
 		case "kb_cards_7_kb":
-			return makeCard(chat1.JourneycardType_MSG_NO_ANSWER, 0, true)
+			return makeCard(chat1.JourneycardType_MSG_NO_ANSWER, 0, false)
 		}
 	}
 
@@ -414,11 +414,11 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 	if latestPage {
 		// Prefer showing new "linear" cards. Do not show cards that are prior to one that has been shown.
 		if cardType := checkForNeverBeforeSeenCards(ctx, linearCardOrder, true); cardType != nil {
-			return makeCard(*cardType, 0, false)
+			return makeCard(*cardType, 0, true)
 		}
 		// Show any new loose cards. It's fine to show A even if C has already been seen.
 		if cardType := checkForNeverBeforeSeenCards(ctx, looseCardOrder, false); cardType != nil {
-			return makeCard(*cardType, 0, false)
+			return makeCard(*cardType, 0, true)
 		}
 	}
 
@@ -443,7 +443,7 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 	}
 	if mostRecentPrev != 0 {
 		debugDebug(ctx, "selected most recent saved card: %v", mostRecentCardType)
-		return makeCard(mostRecentCardType, 0, false)
+		return makeCard(mostRecentCardType, 0, true)
 	}
 
 	debugDebug(ctx, "no card at end of checks")
