@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
+	"github.com/keybase/client/go/kbfs/ldbutils"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/syndtr/goleveldb/leveldb"
@@ -464,7 +465,7 @@ func newKeybaseDaemonLocal(
 func NewKeybaseDaemonDisk(currentUID keybase1.UID, users []idutil.LocalUser,
 	teams []idutil.TeamInfo, favDBFile string, codec kbfscodec.Codec) (
 	*KeybaseDaemonLocal, error) {
-	favoriteDb, err := leveldb.OpenFile(favDBFile, leveldbOptions)
+	favoriteDb, err := leveldb.OpenFile(favDBFile, ldbutils.LeveldbOptions(nil))
 	if err != nil {
 		return nil, err
 	}

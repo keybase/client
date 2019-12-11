@@ -19,6 +19,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfshash"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/ldbutils"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -76,22 +77,22 @@ type DiskBlockCacheLocal struct {
 	numUnmarkedBlocksToCheck int
 
 	// Track the cache hit rate and eviction rate
-	hitMeter         *CountMeter
-	missMeter        *CountMeter
-	putMeter         *CountMeter
-	updateMeter      *CountMeter
-	evictCountMeter  *CountMeter
-	evictSizeMeter   *CountMeter
-	deleteCountMeter *CountMeter
-	deleteSizeMeter  *CountMeter
+	hitMeter         *ldbutils.CountMeter
+	missMeter        *ldbutils.CountMeter
+	putMeter         *ldbutils.CountMeter
+	updateMeter      *ldbutils.CountMeter
+	evictCountMeter  *ldbutils.CountMeter
+	evictSizeMeter   *ldbutils.CountMeter
+	deleteCountMeter *ldbutils.CountMeter
+	deleteSizeMeter  *ldbutils.CountMeter
 
 	// Protect the disk caches from being shutdown while they're being
 	// accessed, and mutable data.
 	lock        sync.RWMutex
-	blockDb     *LevelDb
-	metaDb      *LevelDb
-	tlfDb       *LevelDb
-	lastUnrefDb *LevelDb
+	blockDb     *ldbutils.LevelDb
+	metaDb      *ldbutils.LevelDb
+	tlfDb       *ldbutils.LevelDb
+	lastUnrefDb *ldbutils.LevelDb
 	cacheType   diskLimitTrackerType
 	// Track the number of blocks in the cache per TLF and overall.
 	tlfCounts map[tlf.ID]int
@@ -156,14 +157,14 @@ type DiskBlockCacheStatus struct {
 	BlockBytes      uint64
 	CurrByteLimit   uint64
 	LastUnrefCount  uint64
-	Hits            MeterStatus
-	Misses          MeterStatus
-	Puts            MeterStatus
-	MetadataUpdates MeterStatus
-	NumEvicted      MeterStatus
-	SizeEvicted     MeterStatus
-	NumDeleted      MeterStatus
-	SizeDeleted     MeterStatus
+	Hits            ldbutils.MeterStatus
+	Misses          ldbutils.MeterStatus
+	Puts            ldbutils.MeterStatus
+	MetadataUpdates ldbutils.MeterStatus
+	NumEvicted      ldbutils.MeterStatus
+	SizeEvicted     ldbutils.MeterStatus
+	NumDeleted      ldbutils.MeterStatus
+	SizeDeleted     ldbutils.MeterStatus
 
 	LocalDiskBytesAvailable uint64
 	LocalDiskBytesTotal     uint64
@@ -207,7 +208,7 @@ func newDiskBlockCacheLocalFromStorage(
 			closer()
 		}
 	}()
-	blockDbOptions := leveldbOptionsFromMode(mode)
+	blockDbOptions := ldbutils.LeveldbOptions(mode)
 	blockDbOptions.CompactionTableSize = defaultBlockCacheTableSize
 	blockDbOptions.BlockSize = defaultBlockCacheBlockSize
 	blockDbOptions.BlockCacheCapacity = defaultBlockCacheCapacity
@@ -215,25 +216,25 @@ func newDiskBlockCacheLocalFromStorage(
 	if blockDbOptions.WriteBuffer < minDiskBlockWriteBufferSize {
 		blockDbOptions.WriteBuffer = minDiskBlockWriteBufferSize
 	}
-	blockDb, err := openLevelDBWithOptions(blockStorage, blockDbOptions)
+	blockDb, err := ldbutils.OpenLevelDbWithOptions(blockStorage, blockDbOptions)
 	if err != nil {
 		return nil, err
 	}
 	closers = append(closers, blockDb)
 
-	metaDb, err := openLevelDB(metadataStorage, mode)
+	metaDb, err := ldbutils.OpenLevelDb(metadataStorage, mode)
 	if err != nil {
 		return nil, err
 	}
 	closers = append(closers, metaDb)
 
-	tlfDb, err := openLevelDB(tlfStorage, mode)
+	tlfDb, err := ldbutils.OpenLevelDb(tlfStorage, mode)
 	if err != nil {
 		return nil, err
 	}
 	closers = append(closers, tlfDb)
 
-	lastUnrefDb, err := openLevelDB(lastUnrefStorage, mode)
+	lastUnrefDb, err := ldbutils.OpenLevelDb(lastUnrefStorage, mode)
 	if err != nil {
 		return nil, err
 	}
@@ -253,14 +254,14 @@ func newDiskBlockCacheLocalFromStorage(
 		numBlocksToEvictOnClear:  defaultNumBlocksToEvictOnClear,
 		numUnmarkedBlocksToCheck: defaultNumUnmarkedBlocksToCheck,
 		cacheType:                cacheType,
-		hitMeter:                 NewCountMeter(),
-		missMeter:                NewCountMeter(),
-		putMeter:                 NewCountMeter(),
-		updateMeter:              NewCountMeter(),
-		evictCountMeter:          NewCountMeter(),
-		evictSizeMeter:           NewCountMeter(),
-		deleteCountMeter:         NewCountMeter(),
-		deleteSizeMeter:          NewCountMeter(),
+		hitMeter:                 ldbutils.NewCountMeter(),
+		missMeter:                ldbutils.NewCountMeter(),
+		putMeter:                 ldbutils.NewCountMeter(),
+		updateMeter:              ldbutils.NewCountMeter(),
+		evictCountMeter:          ldbutils.NewCountMeter(),
+		evictSizeMeter:           ldbutils.NewCountMeter(),
+		deleteCountMeter:         ldbutils.NewCountMeter(),
+		deleteSizeMeter:          ldbutils.NewCountMeter(),
 		homeDirs:                 map[tlf.ID]evictionPriority{},
 		log:                      log,
 		blockDb:                  blockDb,
@@ -318,8 +319,8 @@ func newDiskBlockCacheLocal(config diskBlockCacheConfig,
 			log.Error("Error initializing disk cache: %+v", err)
 		}
 	}()
-	versionPath, err := getVersionedPathForDiskCache(
-		log, dirPath, "block", currentDiskBlockCacheVersion)
+	versionPath, err := ldbutils.GetVersionedPathForDb(
+		log, dirPath, "disk block cache", currentDiskBlockCacheVersion)
 	if err != nil {
 		return nil, err
 	}
@@ -518,8 +519,8 @@ func (cache *DiskBlockCacheLocal) updateMetadataLocked(ctx context.Context,
 	if err != nil {
 		return err
 	}
-	var putMeter *CountMeter
-	if metered {
+	var putMeter *ldbutils.CountMeter
+	if ldbutils.Metered {
 		putMeter = cache.updateMeter
 	}
 	err = cache.metaDb.PutWithMeter(blockKey, encodedMetadata, putMeter)
@@ -535,8 +536,8 @@ func (cache *DiskBlockCacheLocal) updateMetadataLocked(ctx context.Context,
 func (cache *DiskBlockCacheLocal) getMetadataLocked(
 	blockID kbfsblock.ID, metered bool) (
 	metadata DiskBlockCacheMetadata, err error) {
-	var hitMeter, missMeter *CountMeter
-	if metered {
+	var hitMeter, missMeter *ldbutils.CountMeter
+	if ldbutils.Metered {
 		hitMeter = cache.hitMeter
 		missMeter = cache.missMeter
 	}
@@ -631,7 +632,7 @@ func (cache *DiskBlockCacheLocal) Get(
 	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, NoPrefetch, err
 	}
-	err = cache.updateMetadataLocked(ctx, blockKey, md, unmetered)
+	err = cache.updateMetadataLocked(ctx, blockKey, md, ldbutils.Unmetered)
 	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, NoPrefetch, err
 	}
@@ -766,7 +767,7 @@ func (cache *DiskBlockCacheLocal) Put(
 		md.BlockSize = uint32(encodedLen)
 		err = nil
 	}
-	return cache.updateMetadataLocked(ctx, blockKey, md, unmetered)
+	return cache.updateMetadataLocked(ctx, blockKey, md, ldbutils.Unmetered)
 }
 
 // GetMetadata implements the DiskBlockCache interface for
@@ -810,7 +811,7 @@ func (cache *DiskBlockCacheLocal) UpdateMetadata(ctx context.Context,
 		md.TriggeredPrefetch = true
 		md.FinishedPrefetch = true
 	}
-	return cache.updateMetadataLocked(ctx, blockID.Bytes(), md, metered)
+	return cache.updateMetadataLocked(ctx, blockID.Bytes(), md, ldbutils.Metered)
 }
 
 func (cache *DiskBlockCacheLocal) decCacheCountsLocked(
@@ -1394,14 +1395,14 @@ func (cache *DiskBlockCacheLocal) Status(
 			BlockBytes:              cache.getCurrBytes(),
 			CurrByteLimit:           maxLimit,
 			LastUnrefCount:          uint64(len(cache.tlfLastUnrefs)),
-			Hits:                    rateMeterToStatus(cache.hitMeter),
-			Misses:                  rateMeterToStatus(cache.missMeter),
-			Puts:                    rateMeterToStatus(cache.putMeter),
-			MetadataUpdates:         rateMeterToStatus(cache.updateMeter),
-			NumEvicted:              rateMeterToStatus(cache.evictCountMeter),
-			SizeEvicted:             rateMeterToStatus(cache.evictSizeMeter),
-			NumDeleted:              rateMeterToStatus(cache.deleteCountMeter),
-			SizeDeleted:             rateMeterToStatus(cache.deleteSizeMeter),
+			Hits:                    ldbutils.RateMeterToStatus(cache.hitMeter),
+			Misses:                  ldbutils.RateMeterToStatus(cache.missMeter),
+			Puts:                    ldbutils.RateMeterToStatus(cache.putMeter),
+			MetadataUpdates:         ldbutils.RateMeterToStatus(cache.updateMeter),
+			NumEvicted:              ldbutils.RateMeterToStatus(cache.evictCountMeter),
+			SizeEvicted:             ldbutils.RateMeterToStatus(cache.evictSizeMeter),
+			NumDeleted:              ldbutils.RateMeterToStatus(cache.deleteCountMeter),
+			SizeDeleted:             ldbutils.RateMeterToStatus(cache.deleteSizeMeter),
 			LocalDiskBytesAvailable: availableBytes,
 			LocalDiskBytesTotal:     totalBytes,
 			BlockDBStats:            blockStats,

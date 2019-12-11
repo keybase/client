@@ -17,6 +17,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsedits"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/ldbutils"
 	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
@@ -1994,10 +1995,8 @@ type InitMode interface {
 	// BackgroundWorkPeriod indicates how long to wait between
 	// non-critical background work tasks.
 	BackgroundWorkPeriod() time.Duration
-	// DiskCacheWriteBufferSize indicates how large the write buffer
-	// should be on disk caches -- this also controls how big the
-	// on-disk tables are before compaction.
-	DiskCacheWriteBufferSize() int
+
+	ldbutils.DbWriteBufferSizeGetter
 }
 
 type initModeGetter interface {
@@ -2160,7 +2159,7 @@ type Config interface {
 	SetDefaultBlockType(blockType keybase1.BlockType)
 	// GetConflictResolutionDB gets the levelDB in which conflict resolution
 	// status is stored.
-	GetConflictResolutionDB() (db *LevelDb)
+	GetConflictResolutionDB() (db *ldbutils.LevelDb)
 	RekeyQueue() RekeyQueue
 	SetRekeyQueue(RekeyQueue)
 	// ReqsBufSize indicates the number of read or write operations

@@ -22,6 +22,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/kbfssync"
+	"github.com/keybase/client/go/kbfs/ldbutils"
 	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
@@ -3283,7 +3284,7 @@ type conflictRecord struct {
 	codec.UnknownFieldSetHandler `json:"-"`
 }
 
-func getAndDeserializeConflicts(config Config, db *LevelDb,
+func getAndDeserializeConflicts(config Config, db *ldbutils.LevelDb,
 	key []byte) ([]conflictRecord, error) {
 	if db == nil {
 		return nil, errors.New("No conflict DB given")
@@ -3304,7 +3305,7 @@ func getAndDeserializeConflicts(config Config, db *LevelDb,
 	return conflictsSoFar, nil
 }
 
-func serializeAndPutConflicts(config Config, db *LevelDb,
+func serializeAndPutConflicts(config Config, db *ldbutils.LevelDb,
 	key []byte, conflicts []conflictRecord) error {
 	if db == nil {
 		return errors.New("No conflict DB given")
@@ -3327,8 +3328,8 @@ func isCRStuckFromRecords(conflictsSoFar []conflictRecord) bool {
 }
 
 func (cr *ConflictResolver) isStuckWithDbAndConflicts() (
-	db *LevelDb, key []byte, conflictsSoFar []conflictRecord, isStuck bool,
-	err error) {
+	db *ldbutils.LevelDb, key []byte, conflictsSoFar []conflictRecord,
+	isStuck bool, err error) {
 	db = cr.config.GetConflictResolutionDB()
 	if db == nil {
 		return nil, nil, nil, false, errNoCRDB
@@ -3807,9 +3808,9 @@ func (cr *ConflictResolver) clearConflictRecords(ctx context.Context) error {
 	return nil
 }
 
-func openCRDBInternal(config Config) (*LevelDb, error) {
+func openCRDBInternal(config Config) (*ldbutils.LevelDb, error) {
 	if config.IsTestMode() {
-		return openLevelDB(storage.NewMemStorage(), config.Mode())
+		return ldbutils.OpenLevelDb(storage.NewMemStorage(), config.Mode())
 	}
 	err := os.MkdirAll(sysPath.Join(config.StorageRoot(),
 		conflictResolverRecordsDir, conflictResolverRecordsVersionString),
@@ -3826,10 +3827,10 @@ func openCRDBInternal(config Config) (*LevelDb, error) {
 		return nil, err
 	}
 
-	return openLevelDB(stor, config.Mode())
+	return ldbutils.OpenLevelDb(stor, config.Mode())
 }
 
-func openCRDB(config Config) (db *LevelDb) {
+func openCRDB(config Config) (db *ldbutils.LevelDb) {
 	db, err := openCRDBInternal(config)
 	if err != nil {
 		config.MakeLogger("").CWarningf(context.Background(),

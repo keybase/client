@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/ldbutils"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/logger"
 	"github.com/pkg/errors"
@@ -51,13 +52,13 @@ type DiskMDCacheLocal struct {
 	log    logger.Logger
 
 	// Track the cache hit rate and eviction rate
-	hitMeter  *CountMeter
-	missMeter *CountMeter
-	putMeter  *CountMeter
+	hitMeter  *ldbutils.CountMeter
+	missMeter *ldbutils.CountMeter
+	putMeter  *ldbutils.CountMeter
 	// Protect the disk caches from being shutdown while they're being
 	// accessed, and mutable data.
 	lock       sync.RWMutex
-	headsDb    *LevelDb // tlfID -> metadata block
+	headsDb    *ldbutils.LevelDb // tlfID -> metadata block
 	tlfsCached map[tlf.ID]kbfsmd.Revision
 	tlfsStaged map[tlf.ID][]diskMDBlock
 
@@ -103,9 +104,9 @@ type DiskMDCacheStatus struct {
 	StartState DiskMDCacheStartState
 	NumMDs     uint64
 	NumStaged  uint64
-	Hits       MeterStatus
-	Misses     MeterStatus
-	Puts       MeterStatus
+	Hits       ldbutils.MeterStatus
+	Misses     ldbutils.MeterStatus
+	Puts       ldbutils.MeterStatus
 	DBStats    []string `json:",omitempty"`
 }
 
@@ -131,10 +132,10 @@ func newDiskMDCacheLocalFromStorage(
 			closer()
 		}
 	}()
-	mdDbOptions := leveldbOptionsFromMode(mode)
+	mdDbOptions := ldbutils.LeveldbOptions(mode)
 	mdDbOptions.CompactionTableSize = defaultMDCacheTableSize
 	mdDbOptions.Filter = filter.NewBloomFilter(16)
-	headsDb, err := openLevelDBWithOptions(headsStorage, mdDbOptions)
+	headsDb, err := ldbutils.OpenLevelDbWithOptions(headsStorage, mdDbOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -144,9 +145,9 @@ func newDiskMDCacheLocalFromStorage(
 	startErrCh := make(chan struct{})
 	cache = &DiskMDCacheLocal{
 		config:     config,
-		hitMeter:   NewCountMeter(),
-		missMeter:  NewCountMeter(),
-		putMeter:   NewCountMeter(),
+		hitMeter:   ldbutils.NewCountMeter(),
+		missMeter:  ldbutils.NewCountMeter(),
+		putMeter:   ldbutils.NewCountMeter(),
 		log:        log,
 		headsDb:    headsDb,
 		tlfsStaged: make(map[tlf.ID][]diskMDBlock),
@@ -185,8 +186,8 @@ func newDiskMDCacheLocal(
 		}
 	}()
 	cachePath := filepath.Join(dirPath, mdCacheFolderName)
-	versionPath, err := getVersionedPathForDiskCache(
-		log, cachePath, "md", currentDiskMDCacheVersion)
+	versionPath, err := ldbutils.GetVersionedPathForDb(
+		log, cachePath, "disk md cache", currentDiskMDCacheVersion)
 	if err != nil {
 		return nil, err
 	}
@@ -247,8 +248,8 @@ func (cache *DiskMDCacheLocal) syncMDCountsFromDb() error {
 // returns leveldb.ErrNotFound and a zero-valued metadata otherwise.
 func (cache *DiskMDCacheLocal) getMetadataLocked(
 	tlfID tlf.ID, metered bool) (metadata diskMDBlock, err error) {
-	var hitMeter, missMeter *CountMeter
-	if metered {
+	var hitMeter, missMeter *ldbutils.CountMeter
+	if ldbutils.Metered {
 		hitMeter = cache.hitMeter
 		missMeter = cache.missMeter
 	}
@@ -314,7 +315,7 @@ func (cache *DiskMDCacheLocal) Get(
 		return nil, -1, time.Time{}, errors.WithStack(ldberrors.ErrNotFound)
 	}
 
-	md, err := cache.getMetadataLocked(tlfID, metered)
+	md, err := cache.getMetadataLocked(tlfID, ldbutils.Metered)
 	if err != nil {
 		return nil, -1, time.Time{}, err
 	}
@@ -462,9 +463,9 @@ func (cache *DiskMDCacheLocal) Status(ctx context.Context) DiskMDCacheStatus {
 		StartState: DiskMDCacheStartStateStarted,
 		NumMDs:     uint64(len(cache.tlfsCached)),
 		NumStaged:  numStaged,
-		Hits:       rateMeterToStatus(cache.hitMeter),
-		Misses:     rateMeterToStatus(cache.missMeter),
-		Puts:       rateMeterToStatus(cache.putMeter),
+		Hits:       ldbutils.RateMeterToStatus(cache.hitMeter),
+		Misses:     ldbutils.RateMeterToStatus(cache.missMeter),
+		Puts:       ldbutils.RateMeterToStatus(cache.putMeter),
 		DBStats:    dbStats,
 	}
 }
