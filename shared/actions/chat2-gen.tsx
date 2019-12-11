@@ -351,6 +351,7 @@ type _MessageSendPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly text: HiddenString
   readonly replyTo?: Types.MessageID
+  readonly waitingKey?: string
 }
 type _MessageSetEditingPayload = {
   readonly conversationIDKey: Types.ConversationIDKey

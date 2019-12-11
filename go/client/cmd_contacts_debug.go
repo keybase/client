@@ -21,7 +21,7 @@ import (
 
 // Devel commands for testing contact syncing.
 
-func NwCmdContacts(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+func NewCmdContacts(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "contacts",
 		Usage:        "commands for testing contact sync on desktop",

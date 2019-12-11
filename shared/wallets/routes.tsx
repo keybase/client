@@ -18,6 +18,7 @@ import Airdrop from './airdrop/container'
 import Settings from './wallet/settings/container'
 import TransactionDetails from './transaction-details/container'
 import TeamBuilder from '../team-building/container'
+import Partners from './partners/container'
 
 export const sharedRoutes = {
   airdrop: {getScreen: (): typeof Airdrop => require('./airdrop/container').default},
@@ -47,6 +48,7 @@ export const newModalRoutes = {
   createNewAccount: {getScreen: (): typeof CreateNewAccount => require('./create-account/container').default},
   keybaseLinkError: {getScreen: (): typeof KeybaseLinkError => require('../deeplinks/error').default},
   linkExisting: {getScreen: (): typeof LinkExisting => require('./link-existing/container').default},
+  partners: {getScreen: (): typeof Partners => require('./partners/container').default},
   reallyRemoveAccount: {
     getScreen: (): typeof ReallyRemoveAccountPopup =>
       require('./wallet/settings/popups').ReallyRemoveAccountPopup,

@@ -55,7 +55,11 @@
                         "seq_type": 1
                     },
                     "debug_link_id": "c526cd7b7587610561c10ce018833cec3b887482aa4c84343f1d5489ab46a997",
-                    "hidden_is_fresh": true
+                    "hidden_response": {
+                        "resp_type": 2,
+                        "committed_hidden_tail": null,
+                        "uncommitted_seqno": 0
+                    }
                 },
                 {
                     "seqno": 2,
@@ -95,7 +99,11 @@
                         "seq_type": 1
                     },
                     "debug_link_id": "11b2344ba98422052e0905275bb23d79d71564960233194e49b932d95a4ad6ec",
-                    "hidden_is_fresh": true
+                    "hidden_response": {
+                        "resp_type": 2,
+                        "committed_hidden_tail": null,
+                        "uncommitted_seqno": 0
+                    }
                 },
                 {
                     "seqno": 3,
@@ -138,7 +146,11 @@
                         "seq_type": 1
                     },
                     "debug_link_id": "63144181b5c74c415a1a844dabc9b54553b9d4284fbba2d262cedc6eff54e730",
-                    "hidden_is_fresh": true
+                    "hidden_response": {
+                        "resp_type": 2,
+                        "committed_hidden_tail": null,
+                        "uncommitted_seqno": 0
+                    }
                 }
             ],
             "team_key_boxes": [
@@ -253,22 +265,38 @@
         "2123209b98b16083c69c91152b861724": {
             "seqno": 3,
             "link_id": "63144181b5c74c415a1a844dabc9b54553b9d4284fbba2d262cedc6eff54e730",
-            "hidden_is_fresh": true
+            "hidden_response": {
+                "resp_type": 2,
+                "committed_hidden_tail": null,
+                "uncommitted_seqno": 0
+            }
         },
         "2123209b98b16083c69c91152b861724-seqno:1": {
             "seqno": 1,
             "link_id": "c526cd7b7587610561c10ce018833cec3b887482aa4c84343f1d5489ab46a997",
-            "hidden_is_fresh": true
+            "hidden_response": {
+                "resp_type": 2,
+                "committed_hidden_tail": null,
+                "uncommitted_seqno": 0
+            }
         },
         "2123209b98b16083c69c91152b861724-seqno:2": {
             "seqno": 2,
             "link_id": "11b2344ba98422052e0905275bb23d79d71564960233194e49b932d95a4ad6ec",
-            "hidden_is_fresh": true
+            "hidden_response": {
+                "resp_type": 2,
+                "committed_hidden_tail": null,
+                "uncommitted_seqno": 0
+            }
         },
         "2123209b98b16083c69c91152b861724-seqno:3": {
             "seqno": 3,
             "link_id": "63144181b5c74c415a1a844dabc9b54553b9d4284fbba2d262cedc6eff54e730",
-            "hidden_is_fresh": true
+            "hidden_response": {
+                "resp_type": 2,
+                "committed_hidden_tail": null,
+                "uncommitted_seqno": 0
+            }
         }
     },
     "merkle_triples": {

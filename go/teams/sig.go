@@ -318,7 +318,7 @@ func AppendChainLinkSig3(ctx context.Context, g *libkb.GlobalContext,
 		Outer: sig.Outer,
 		Sig:   sig.Sig,
 	}
-	err = hp.Update(mctx, []sig3.ExportJSON{ex})
+	err = hp.Update(mctx, []sig3.ExportJSON{ex}, keybase1.Seqno(0))
 	if err != nil {
 		return err
 	}

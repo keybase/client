@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import {WaveButton} from '../../settings/contacts-joined/buttons'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/chat2'
 import * as Container from '../../util/container'
@@ -37,9 +36,12 @@ const BlockButtons = (props: Props) => {
       direction={Styles.isMobile ? 'column' : 'row'}
       style={styles.button}
     >
-      {!team && (
-        <WaveButton small={true} usernames={[adder, ...(others || [])].join(',')} style={styles.button} />
-      )}
+      <Kb.WaveButton
+        small={true}
+        conversationIDKey={props.conversationID}
+        toMany={others.length > 0 || !!team}
+        style={styles.button}
+      />
       {!team && others.length === 0 && (
         <Kb.Button
           label="View profile"
@@ -97,7 +99,7 @@ const BlockButtons = (props: Props) => {
     >
       <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} centerChildren={true}>
         <Kb.Text type="BodySmall">
-          {team ? `${adder} added you to this team.` : `You don't seem to know ${adder}.`}
+          {team ? `${adder} added you to this team.` : `You don't follow ${adder}.`}
         </Kb.Text>
         <Kb.Icon
           style={styles.dismissIcon}

@@ -1760,7 +1760,7 @@ function* messageSend(state: TypedState, action: Chat2Gen.MessageSendPayload, lo
         tlfName,
         tlfPublic: false,
       },
-      waitingKey: Constants.waitingKeyPost,
+      waitingKey: action.payload.waitingKey || Constants.waitingKeyPost,
     })
     logger.info('success')
   } catch (e) {
@@ -1777,6 +1777,7 @@ function* messageSend(state: TypedState, action: Chat2Gen.MessageSendPayload, lo
   // narrow down the places where the action can possibly stop.
   logger.info('non-empty text?', text.stringValue().length > 0)
 }
+
 const messageSendByUsernames = async (
   state: TypedState,
   action: Chat2Gen.MessageSendByUsernamesPayload,
@@ -1794,23 +1795,12 @@ const messageSendByUsernames = async (
       },
       action.payload.waitingKey
     )
-    await RPCChatTypes.localPostTextNonblockRpcPromise(
-      {
-        body: action.payload.text.stringValue(),
-        clientPrev: Constants.getClientPrev(state, Types.conversationIDToKey(result.conv.info.id)),
-        conversationID: result.conv.info.id,
-        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-        outboxID: null,
-        tlfName,
-        tlfPublic: false,
-      },
-      action.payload.waitingKey
-    )
-
-    // If there are block buttons on this conversation, clear them.
-    if (state.chat2.blockButtonsMap.has(result.conv.info.triple.tlfid.toString('hex'))) {
-      return Chat2Gen.createDismissBlockButtons({teamID: result.conv.info.triple.tlfid.toString('hex')})
-    }
+    const {text, waitingKey} = action.payload
+    return Chat2Gen.createMessageSend({
+      conversationIDKey: Types.conversationIDToKey(result.conv.info.id),
+      text,
+      waitingKey,
+    })
   } catch (e) {
     logger.warn('Could not send in messageSendByUsernames', e)
   }
@@ -1974,7 +1964,7 @@ const onUpdateUserReacjis = (state: TypedState) => {
 const openFolder = (state: TypedState, action: Chat2Gen.OpenFolderPayload) => {
   const meta = Constants.getMeta(state, action.payload.conversationIDKey)
   const path = FsTypes.stringToPath(
-    meta.teamType !== 'adhoc' ? teamFolder(meta.teamname) : privateFolderWithUsers(meta.participants)
+    meta.teamType !== 'adhoc' ? teamFolder(meta.teamname) : privateFolderWithUsers(meta.nameParticipants)
   )
   return FsConstants.makeActionForOpenPathInFilesTab(path)
 }
@@ -2345,7 +2335,7 @@ const navigateToInbox = (
   if (action.type === Chat2Gen.leaveConversation && action.payload.dontNavigateToInbox) {
     return
   }
-  return RouteTreeGen.createNavUpToScreen({routeName: Tabs.chatTab})
+  return RouteTreeGen.createNavUpToScreen({routeName: 'chatRoot'})
 }
 
 // Unchecked version of Chat2Gen.createNavigateToThread() --
@@ -2391,10 +2381,16 @@ const maybeLoadTeamFromMeta = (meta: Types.ConversationMeta) => {
   return teamname ? TeamsGen.createGetMembers({teamname}) : false
 }
 
-const ensureSelectedTeamLoaded = (state: TypedState, action: Chat2Gen.MetasReceivedPayload) => {
-  const {metas} = action.payload
-  const meta = metas.find(m => m.conversationIDKey === state.chat2.selectedConversation)
-  return meta ? maybeLoadTeamFromMeta(meta) : false
+const ensureSelectedTeamLoaded = (
+  state: TypedState,
+  action: Chat2Gen.SelectConversationPayload | Chat2Gen.MetasReceivedPayload
+) => {
+  const meta = state.chat2.metaMap.get(state.chat2.selectedConversation)
+  return meta
+    ? action.type === Chat2Gen.selectConversation || !state.teams.teamNameToMembers.get(meta.teamname)
+      ? maybeLoadTeamFromMeta(meta)
+      : false
+    : false
 }
 
 const ensureSelectedMeta = (state: TypedState) => {
@@ -2406,7 +2402,7 @@ const ensureSelectedMeta = (state: TypedState) => {
         noWaiting: true,
         reason: 'ensureSelectedMeta',
       })
-    : maybeLoadTeamFromMeta(meta)
+    : false
 }
 
 const ensureWidgetMetas = (state: TypedState) => {
@@ -3385,7 +3381,7 @@ function* chat2Saga() {
     inboxRefresh,
     'inboxRefresh'
   )
-  yield* Saga.chainAction2(Chat2Gen.metasReceived, ensureSelectedTeamLoaded)
+  yield* Saga.chainAction2([Chat2Gen.selectConversation, Chat2Gen.metasReceived], ensureSelectedTeamLoaded)
   // We've scrolled some new inbox rows into view, queue them up
   yield* Saga.chainAction2(Chat2Gen.metaNeedsUpdating, queueMetaToRequest, 'queueMetaToRequest')
   // We have some items in the queue to process

@@ -60,6 +60,7 @@ const RemoteTracker2 = Container.compose(
       return {
         assertions: stateProps.assertions,
         bio: stateProps.bio,
+        blocked: stateProps.blocked,
         darkMode: stateProps.darkMode,
         followThem: stateProps.followThem,
         followersCount: stateProps.followersCount,
@@ -67,6 +68,7 @@ const RemoteTracker2 = Container.compose(
         followsYou: stateProps.followsYou,
         fullname: stateProps.fullname,
         guiID: stateProps.guiID,
+        hidFromFollowers: stateProps.hidFromFollowers,
         isYou: stateProps.yourUsername === ownProps.username,
         location: stateProps.location,
         reason: stateProps.reason,

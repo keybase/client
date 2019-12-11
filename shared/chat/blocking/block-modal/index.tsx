@@ -53,7 +53,12 @@ const CheckboxRow = (props: CheckboxRowProps) => (
     />
     <Kb.Box style={styles.iconBox} />
     {props.info && (
-      <Kb.WithTooltip tooltip={props.info} showOnPressMobile={true}>
+      <Kb.WithTooltip
+        tooltip={props.info}
+        showOnPressMobile={true}
+        position={Styles.isMobile ? 'bottom center' : 'top center'}
+        multiline={true}
+      >
         <Kb.Icon type="iconfont-question-mark" color="grey" />
       </Kb.WithTooltip>
     )}
@@ -217,7 +222,7 @@ class BlockModal extends React.PureComponent<Props, State> {
   }
 
   onFinish = () => {
-    if (this.state.newBlocks.size === 0 && this.state.blockTeam) {
+    if (this.state.newBlocks.size === 0 && !this.state.blockTeam) {
       // Nothing to do, just close the modal.
       this.props.onClose()
       return
@@ -307,6 +312,8 @@ class BlockModal extends React.PureComponent<Props, State> {
       )
     }
 
+    const teamCheckboxDisabled = !!teamname && !this.props.otherUsernames?.length && !adderUsername
+
     return (
       <Kb.Modal
         mode="Default"
@@ -330,13 +337,13 @@ class BlockModal extends React.PureComponent<Props, State> {
               text={`Leave and block ${teamname || 'this conversation'}`}
               onCheck={this.setBlockTeam}
               checked={this.state.blockTeam}
-              disabled={!teamname}
+              disabled={teamCheckboxDisabled}
             />
             <Kb.Divider />
           </>
         )}
         {!!adderUsername && this.renderRowsForUsername(adderUsername, true)}
-        {!!this.props.otherUsernames && (
+        {!!this.props.otherUsernames?.length && (
           <>
             <Kb.Box2 direction="horizontal" style={styles.greyBox} fullWidth={true}>
               <Kb.Text type="BodySmall">Also block {adderUsername ? 'others' : 'individuals'}?</Kb.Text>
@@ -375,6 +382,7 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   loadingAnimationBox: {
+    alignSelf: 'center',
     padding: Styles.globalMargins.medium,
   },
   radioButton: {marginLeft: Styles.globalMargins.large},

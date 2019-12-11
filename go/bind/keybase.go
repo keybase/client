@@ -198,7 +198,7 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 		LocalRPCDebug:                  "",
 		VDebugSetting:                  "mobile", // use empty string for same logging as desktop default
 		SecurityAccessGroupOverride:    accessGroupOverride,
-		ChatInboxSourceLocalizeThreads: 5,
+		ChatInboxSourceLocalizeThreads: 2,
 		LinkCacheSize:                  1000,
 	}
 	err = kbCtx.Configure(config, usage)

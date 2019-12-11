@@ -49,6 +49,7 @@ const showTeamAfterCreation = (_: TypedState, action: TeamsGen.TeamCreatedPayloa
     ]
   }
   return [
+    TeamsGen.createGetDetails({teamname}),
     RouteTreeGen.createClearModals(),
     RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]}),
     ...(isMobile
