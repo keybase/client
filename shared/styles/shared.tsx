@@ -85,7 +85,7 @@ type AsStylesCrossPlatform<T> = Readonly<
       ? T[P] extends _StylesCrossPlatform[P]
         ? Readonly<T[P]>
         : Readonly<_StylesCrossPlatform[P]>
-      : never
+      : Readonly<T[P]>
   }
 >
 
