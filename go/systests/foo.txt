@@ -1,2 +1,0 @@
-PASS
-ok  	github.com/keybase/client/go/systests	15.616s
