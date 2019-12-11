@@ -148,11 +148,13 @@ const TeamJourneyContainer = (props: Props) => {
 const TeamJourneyConnected = Container.connect(
   (state, ownProps: OwnProps) => {
     const conv = Constants.getMeta(state, ownProps.message.conversationIDKey)
-    const {channelname, teamname, teamID} = conv
+    const {channelname, conversationIDKey, teamname, teamID} = conv
     return {
       _channelInfos: TeamConstants.getTeamChannelInfos(state, teamname),
       _teamID: teamID,
       channelname,
+      conversationIDKey,
+      teamType: TeamConstants.getTeamType(state, teamname),
       teamname,
     }
   },
