@@ -241,7 +241,6 @@ export type TypedActionsMap = {
   'config:changedActive': config.ChangedActivePayload
   'config:mobileAppState': config.MobileAppStatePayload
   'config:showMain': config.ShowMainPayload
-  'config:startupFirstIdle': config.StartupFirstIdlePayload
   'config:bootstrapStatusLoaded': config.BootstrapStatusLoadedPayload
   'config:followerInfoUpdated': config.FollowerInfoUpdatedPayload
   'config:daemonError': config.DaemonErrorPayload
@@ -275,6 +274,7 @@ export type TypedActionsMap = {
   'config:setWhatsNewLastSeenVersion': config.SetWhatsNewLastSeenVersionPayload
   'config:loadNixOnLoginStartup': config.LoadNixOnLoginStartupPayload
   'config:loadedNixOnLoginStartup': config.LoadedNixOnLoginStartupPayload
+  'config:loadOnStart': config.LoadOnStartPayload
   'deeplinks:handleKeybaseLink': deeplinks.HandleKeybaseLinkPayload
   'deeplinks:link': deeplinks.LinkPayload
   'deeplinks:setKeybaseLinkError': deeplinks.SetKeybaseLinkErrorPayload

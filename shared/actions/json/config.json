@@ -61,9 +61,6 @@
     "changedActive": {"userActive": "boolean"},
     "mobileAppState": {"nextAppState": ["'active'", "'background'", "'inactive'"]},
     "showMain": {},
-    "startupFirstIdle": {
-        "_description": "emitted when we have some idle time after loading. useful to load thing but not slow down startup"
-    },
     "bootstrapStatusLoaded": {
       "deviceID": "string",
       "deviceName": "string",
@@ -151,6 +148,11 @@
     "loadNixOnLoginStartup": {},
     "loadedNixOnLoginStartup": {
       "status": "boolean | null"
+    },
+    "loadOnStart": {
+        "_description": "This action is dispatched multiple times with various flags. if you want to do something as a result of startup or login listen to this",
+        "phase": "'initialStartupAsEarlyAsPossible' | 'connectedToDaemonForFirstTime' | 'reloggedIn' | 'startupOrReloginButNotInARush'"
+
     }
   }
 }

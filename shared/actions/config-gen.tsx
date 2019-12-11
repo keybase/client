@@ -24,6 +24,7 @@ export const followerInfoUpdated = 'config:followerInfoUpdated'
 export const globalError = 'config:globalError'
 export const installerRan = 'config:installerRan'
 export const loadNixOnLoginStartup = 'config:loadNixOnLoginStartup'
+export const loadOnStart = 'config:loadOnStart'
 export const loadedNixOnLoginStartup = 'config:loadedNixOnLoginStartup'
 export const loggedIn = 'config:loggedIn'
 export const loggedOut = 'config:loggedOut'
@@ -53,7 +54,6 @@ export const setUserSwitching = 'config:setUserSwitching'
 export const setWhatsNewLastSeenVersion = 'config:setWhatsNewLastSeenVersion'
 export const showMain = 'config:showMain'
 export const startHandshake = 'config:startHandshake'
-export const startupFirstIdle = 'config:startupFirstIdle'
 export const updateCriticalCheckStatus = 'config:updateCriticalCheckStatus'
 export const updateHTTPSrvInfo = 'config:updateHTTPSrvInfo'
 export const updateInfo = 'config:updateInfo'
@@ -96,6 +96,13 @@ type _FollowerInfoUpdatedPayload = {
 type _GlobalErrorPayload = {readonly globalError?: Error | RPCError}
 type _InstallerRanPayload = void
 type _LoadNixOnLoginStartupPayload = void
+type _LoadOnStartPayload = {
+  readonly phase:
+    | 'initialStartupAsEarlyAsPossible'
+    | 'connectedToDaemonForFirstTime'
+    | 'reloggedIn'
+    | 'startupOrReloginButNotInARush'
+}
 type _LoadedNixOnLoginStartupPayload = {readonly status: boolean | null}
 type _LoggedInPayload = {readonly causedBySignup: boolean; readonly causedByStartup: boolean}
 type _LoggedOutPayload = void
@@ -142,7 +149,6 @@ type _SetUserSwitchingPayload = {readonly userSwitching: boolean}
 type _SetWhatsNewLastSeenVersionPayload = {readonly lastSeenVersion: string}
 type _ShowMainPayload = void
 type _StartHandshakePayload = void
-type _StartupFirstIdlePayload = void
 type _UpdateCriticalCheckStatusPayload = {
   readonly status: 'critical' | 'suggested' | 'ok'
   readonly message: string
@@ -191,6 +197,13 @@ export const createSetWhatsNewLastSeenVersion = (
   payload: _SetWhatsNewLastSeenVersionPayload
 ): SetWhatsNewLastSeenVersionPayload => ({payload, type: setWhatsNewLastSeenVersion})
 /**
+ * This action is dispatched multiple times with various flags. if you want to do something as a result of startup or login listen to this
+ */
+export const createLoadOnStart = (payload: _LoadOnStartPayload): LoadOnStartPayload => ({
+  payload,
+  type: loadOnStart,
+})
+/**
  * Used internally to know we were logged in. if you want to react to being logged in likely you want bootstrapStatusLoaded
  */
 export const createLoggedIn = (payload: _LoggedInPayload): LoggedInPayload => ({payload, type: loggedIn})
@@ -200,13 +213,6 @@ export const createLoggedIn = (payload: _LoggedInPayload): LoggedInPayload => ({
 export const createInstallerRan = (payload: _InstallerRanPayload): InstallerRanPayload => ({
   payload,
   type: installerRan,
-})
-/**
- * emitted when we have some idle time after loading. useful to load thing but not slow down startup
- */
-export const createStartupFirstIdle = (payload: _StartupFirstIdlePayload): StartupFirstIdlePayload => ({
-  payload,
-  type: startupFirstIdle,
 })
 /**
  * internal to config. should restart the handshake process
@@ -433,6 +439,7 @@ export type LoadNixOnLoginStartupPayload = {
   readonly payload: _LoadNixOnLoginStartupPayload
   readonly type: typeof loadNixOnLoginStartup
 }
+export type LoadOnStartPayload = {readonly payload: _LoadOnStartPayload; readonly type: typeof loadOnStart}
 export type LoadedNixOnLoginStartupPayload = {
   readonly payload: _LoadedNixOnLoginStartupPayload
   readonly type: typeof loadedNixOnLoginStartup
@@ -522,10 +529,6 @@ export type StartHandshakePayload = {
   readonly payload: _StartHandshakePayload
   readonly type: typeof startHandshake
 }
-export type StartupFirstIdlePayload = {
-  readonly payload: _StartupFirstIdlePayload
-  readonly type: typeof startupFirstIdle
-}
 export type UpdateCriticalCheckStatusPayload = {
   readonly payload: _UpdateCriticalCheckStatusPayload
   readonly type: typeof updateCriticalCheckStatus
@@ -563,6 +566,7 @@ export type Actions =
   | GlobalErrorPayload
   | InstallerRanPayload
   | LoadNixOnLoginStartupPayload
+  | LoadOnStartPayload
   | LoadedNixOnLoginStartupPayload
   | LoggedInPayload
   | LoggedOutPayload
@@ -592,7 +596,6 @@ export type Actions =
   | SetWhatsNewLastSeenVersionPayload
   | ShowMainPayload
   | StartHandshakePayload
-  | StartupFirstIdlePayload
   | UpdateCriticalCheckStatusPayload
   | UpdateHTTPSrvInfoPayload
   | UpdateInfoPayload
