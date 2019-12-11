@@ -5,6 +5,7 @@ import * as Types from '../../../constants/types/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import {appendNewChatBuilder} from '../../../actions/typed-routes'
+import {getActiveKey} from '../../../constants/router2'
 import Inbox from '..'
 import {isMobile} from '../../../constants/platform'
 import {
@@ -19,7 +20,7 @@ import {
 import * as Kb from '../../../common-adapters'
 import {HeaderNewChatButton} from './new-chat-button'
 
-type OwnProps = Container.PropsWithSafeNavigation
+type OwnProps = {}
 
 const makeBigRows = (
   bigTeams: Array<RPCChatTypes.UIInboxBigTeamRow>
@@ -160,9 +161,9 @@ const Connected = Container.namedConnect(
     setInboxNumSmallRows: (rows: number) => dispatch(Chat2Gen.createSetInboxNumSmallRows({rows})),
     toggleSmallTeamsExpanded: () => dispatch(Chat2Gen.createToggleSmallTeamsExpanded()),
   }),
-  (stateProps, dispatchProps, ownProps: OwnProps) => {
+  (stateProps, dispatchProps, _: OwnProps) => {
     const bigTeams = stateProps._inboxLayout ? stateProps._inboxLayout.bigTeams || [] : []
-    const hasBigTeams = bigTeams.length
+    const hasBigTeams = !!bigTeams.length
     const showAllSmallRows = stateProps.smallTeamsExpanded || !bigTeams.length
     let smallTeams = stateProps._inboxLayout ? stateProps._inboxLayout.smallTeams || [] : []
     const smallTeamsBelowTheFold = !showAllSmallRows && smallTeams.length > stateProps.inboxNumSmallRows
@@ -204,19 +205,18 @@ const Connected = Container.namedConnect(
       inboxNumSmallRows: stateProps.inboxNumSmallRows,
       isLoading: stateProps.isLoading,
       isSearching: stateProps.isSearching,
-      navKey: ownProps.navKey,
+      navKey: getActiveKey(),
       neverLoaded: stateProps.neverLoaded,
       onNewChat: dispatchProps.onNewChat,
       onUntrustedInboxVisible: dispatchProps.onUntrustedInboxVisible,
       rows,
       setInboxNumSmallRows: dispatchProps.setInboxNumSmallRows,
       smallTeamsExpanded: stateProps.smallTeamsExpanded,
-      title: 'Chats',
       toggleSmallTeamsExpanded: dispatchProps.toggleSmallTeamsExpanded,
       unreadIndices,
     }
   },
-  'Inbox'
+  'Chats'
 )(InboxWrapper)
 
-export default Container.withSafeNavigation(Connected)
+export default Connected

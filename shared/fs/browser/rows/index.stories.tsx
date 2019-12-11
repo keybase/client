@@ -17,10 +17,6 @@ import {topBarProvider} from '../../top-bar/index.stories'
 import {asRows as topBarAsRow} from '../../top-bar'
 
 export const rowsProvider = {
-  ConnectedOpenHOC: (ownProps: any) => ({
-    ...ownProps,
-    onOpen: Sb.action('onOpen'),
-  }),
   ConnectedRows: (o: any) => ({
     destinationPickerIndex: o.destinationPickerIndex,
     emptyMode: 'not-empty',

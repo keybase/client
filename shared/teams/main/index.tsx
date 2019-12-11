@@ -12,13 +12,11 @@ type DeletedTeam = {
   deletedBy: string
 }
 
-export type Props = {
+export type OwnProps = {
   loaded: boolean
   deletedTeams: ReadonlyArray<DeletedTeam>
   newTeams: Set<Types.TeamID>
-  onCreateTeam: () => void
   onHideChatBanner: () => void
-  onJoinTeam: () => void
   onManageChat: (arg0: string) => void
   onOpenFolder: (arg0: string) => void
   onReadMore: () => void
@@ -27,6 +25,11 @@ export type Props = {
   teamresetusers: Map<string, Set<Types.ResetUser>>
   newTeamRequests: Map<Types.TeamID, number>
   teams: Array<Types.TeamDetails>
+}
+
+export type Props = OwnProps & {
+  onCreateTeam: () => void
+  onJoinTeam: () => void
 }
 
 type RowProps = {

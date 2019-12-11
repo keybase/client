@@ -11,6 +11,7 @@ import {
 import {assertionToDisplay} from '../../../../common-adapters/usernames'
 import * as Styles from '../../../../styles'
 import {Props} from '.'
+import * as Container from '../../../../util/container'
 
 const shhIconColor = Styles.globalColors.black_20
 const shhIconFontSize = 24
@@ -19,21 +20,26 @@ const Wrapper = (
   props: {
     children: React.ReactNode
   } & Props
-) => (
-  <HeaderHocHeader
-    badgeNumber={props.badgeNumber}
-    onLeftAction={props.onBack}
-    rightActions={
-      props.pendingWaiting
-        ? undefined
-        : [
-            {icon: 'iconfont-search', label: 'search', onPress: props.onToggleThreadSearch},
-            {icon: 'iconfont-info', label: 'Info', onPress: props.onToggleInfoPanel},
-          ]
-    }
-    titleComponent={props.children}
-  />
-)
+) => {
+  const dispatch = Container.useDispatch()
+  const nav = Container.useSafeNavigation()
+  const onBack = () => dispatch(nav.safeNavigateUpPayload())
+  return (
+    <HeaderHocHeader
+      badgeNumber={props.badgeNumber}
+      onLeftAction={onBack}
+      rightActions={
+        props.pendingWaiting
+          ? undefined
+          : [
+              {icon: 'iconfont-search', label: 'search', onPress: props.onToggleThreadSearch},
+              {icon: 'iconfont-info', label: 'Info', onPress: props.onToggleInfoPanel},
+            ]
+      }
+      titleComponent={props.children}
+    />
+  )
+}
 
 const ShhIcon = props => (
   <Icon

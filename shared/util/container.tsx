@@ -5,7 +5,6 @@ import {TypedActions as _TypedActions} from '../actions/typed-actions-gen'
 import {ActionHandler as _ActionHandler} from './make-reducer'
 import {TypedState as _TypedState} from '../constants/reducer'
 import {RouteProps as _RouteProps, GetRouteType} from '../route-tree/render-route'
-import {PropsWithSafeNavigation as _PropsWithSafeNavigation} from './safe-navigation'
 import {StatusCode} from '../constants/types/rpc-gen'
 import {anyWaiting, anyErrors} from '../constants/waiting'
 import {useSelector} from 'react-redux'
@@ -92,11 +91,10 @@ export {default as remoteConnect} from './typed-remote-connect'
 export {isMobile, isIOS, isAndroid} from '../constants/platform'
 export {anyWaiting, anyErrors} from '../constants/waiting'
 export {safeSubmit, safeSubmitPerMount} from './safe-submit'
-export {default as withSafeNavigation, useSafeNavigation} from './safe-navigation'
+export {useSafeNavigation} from './safe-navigation'
 export type RouteProps<P = {}> = _RouteProps<P>
 export type TypedActions = _TypedActions
 export type TypedState = _TypedState
-export type PropsWithSafeNavigation<P = {}> = _PropsWithSafeNavigation<P>
 export {useSelector, useDispatch} from 'react-redux'
 export const compose = flowRight
 export {default as hoistNonReactStatic} from 'hoist-non-react-statics'
