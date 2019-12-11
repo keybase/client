@@ -7,8 +7,8 @@ protocol featuredBot {
     string botAlias;
     string description;
     string botUsername;
-    union { null, TeamID } ownerTeamID;
-    union { null, UID } ownerUID;
+    union { null, string } ownerTeam;
+    union { null, string } ownerUser;
   }
 
     record FeaturedBotsRes {

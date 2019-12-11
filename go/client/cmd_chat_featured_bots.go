@@ -91,10 +91,6 @@ func displayFeaturedBots(g *libkb.GlobalContext, bots []keybase1.FeaturedBot) er
 	}
 	table := &flexibletable.Table{}
 	for i, bot := range bots {
-		displayName := bot.BotUsername
-		if bot.BotAlias != "" {
-			displayName = fmt.Sprintf("%s (%s)", bot.BotAlias, bot.BotUsername)
-		}
 		err := table.Insert(flexibletable.Row{
 			flexibletable.Cell{
 				Frame:     [2]string{"[", "]"},
@@ -103,7 +99,11 @@ func displayFeaturedBots(g *libkb.GlobalContext, bots []keybase1.FeaturedBot) er
 			},
 			flexibletable.Cell{
 				Alignment: flexibletable.Left,
-				Content:   flexibletable.SingleCell{Item: displayName},
+				Content:   flexibletable.SingleCell{Item: bot.DisplayName()},
+			},
+			flexibletable.Cell{
+				Alignment: flexibletable.Left,
+				Content:   flexibletable.SingleCell{Item: fmt.Sprintf("by @%s", bot.Owner())},
 			},
 			flexibletable.Cell{
 				Alignment: flexibletable.Left,
@@ -118,6 +118,7 @@ func displayFeaturedBots(g *libkb.GlobalContext, bots []keybase1.FeaturedBot) er
 	if err := table.Render(ui.OutputWriter(), " ", w, []flexibletable.ColumnConstraint{
 		5,                                 // visualIndex
 		64,                                // displayName
+		64,                                // ownerName
 		flexibletable.ExpandableWrappable, // description
 	}); err != nil {
 		return fmt.Errorf("rendering conversation info list view error: %v\n", err)
