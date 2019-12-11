@@ -155,11 +155,19 @@ const styles = Styles.styleSheetCreate(
           whiteSpace: 'nowrap',
         },
       }),
-      filteredRow: {
-        height: rowHeight,
-        paddingLeft: Styles.globalMargins.xtiny,
-        paddingRight: Styles.globalMargins.xtiny,
-      },
+      filteredRow: Styles.platformStyles({
+        common: {
+          height: rowHeight,
+        },
+        isElectron: {
+          paddingLeft: Styles.globalMargins.xtiny,
+          paddingRight: Styles.globalMargins.xtiny,
+        },
+        isMobile: {
+          paddingLeft: Styles.globalMargins.tiny,
+          paddingRight: Styles.globalMargins.tiny,
+        },
+      }),
       selectedText: {
         color: Styles.globalColors.white,
       },

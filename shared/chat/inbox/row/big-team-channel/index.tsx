@@ -92,16 +92,17 @@ const styles = Styles.styleSheetCreate(() => ({
       ...Styles.globalStyles.flexBoxRow,
       alignItems: 'center',
       marginLeft: Styles.globalMargins.large,
-      paddingLeft: Styles.globalMargins.tiny,
       paddingRight: Styles.globalMargins.tiny,
     },
     isElectron: {
       borderBottomLeftRadius: 3,
       borderTopLeftRadius: 3,
+      paddingLeft: Styles.globalMargins.tiny,
     },
     isMobile: {
       ...Styles.globalStyles.fillAbsolute,
       flex: 1,
+      paddingLeft: Styles.globalMargins.small,
     },
   }),
   channelHash: {
