@@ -371,6 +371,7 @@ export type State = Readonly<{
   externalPartners: Array<PartnerUrl>
   lastSentXLM: boolean
   linkExistingAccountError: string
+  loadPaymentsError: string
   mobileOnlyMap: Map<AccountID, boolean>
   paymentCursorMap: Map<AccountID, StellarRPCTypes.PageCursor | null>
   paymentLoadingMoreMap: Map<AccountID, boolean>

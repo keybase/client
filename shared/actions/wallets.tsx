@@ -518,10 +518,11 @@ const loadAssets = async (state: TypedState, action: LoadAssetsActions, logger: 
   }
 }
 
-const createPaymentsReceived = (accountID, payments, pending, allowClearOldestUnread) =>
+const createPaymentsReceived = (accountID, payments, pending, allowClearOldestUnread, error) =>
   WalletsGen.createPaymentsReceived({
     accountID,
     allowClearOldestUnread,
+    error,
     oldestUnread: payments.oldestUnread
       ? Types.rpcPaymentIDToPaymentID(payments.oldestUnread)
       : Types.noPaymentID,
@@ -552,11 +553,16 @@ const loadPayments = async (state: TypedState, action: LoadPaymentsActions, logg
     !!(action.type === WalletsGen.selectAccount && Types.isValidAccountID(accountID)) ||
     Types.isValidAccountID(Constants.getAccount(state, accountID).accountID)
   ) {
-    const [pending, payments] = await Promise.all([
-      RPCStellarTypes.localGetPendingPaymentsLocalRpcPromise({accountID}),
-      RPCStellarTypes.localGetPaymentsLocalRpcPromise({accountID}),
-    ])
-    return createPaymentsReceived(accountID, payments, pending, true)
+    try {
+      const [pending, payments] = await Promise.all([
+        RPCStellarTypes.localGetPendingPaymentsLocalRpcPromise({accountID}),
+        RPCStellarTypes.localGetPaymentsLocalRpcPromise({accountID}),
+      ])
+      return createPaymentsReceived(accountID, payments, pending, true, '')
+    } catch (err) {
+      const error = `There was an error loading your payment history, please try again: ${err.desc}`
+      return createPaymentsReceived(accountID, [], [], true, error)
+    }
   }
   return false
 }
@@ -578,7 +584,7 @@ const loadMorePayments = async (
     accountID: action.payload.accountID,
     cursor,
   })
-  return createPaymentsReceived(action.payload.accountID, payments, [], false)
+  return createPaymentsReceived(action.payload.accountID, payments, [], false, '')
 }
 
 // We only need to load these once per session

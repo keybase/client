@@ -295,6 +295,7 @@ export const makeState = (): Types.State => ({
   externalPartners: [],
   lastSentXLM: false,
   linkExistingAccountError: '',
+  loadPaymentsError: '',
   mobileOnlyMap: new Map(),
   paymentCursorMap: new Map(),
   paymentLoadingMoreMap: new Map(),

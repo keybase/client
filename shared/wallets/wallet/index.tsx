@@ -14,6 +14,7 @@ export type Props = {
   acceptedDisclaimer: boolean
   accountID: Types.AccountID
   airdropSelected: boolean
+  loadError: string
   loadingMore: boolean
   onBack: () => void
   onLoadMore: () => void
@@ -148,14 +149,17 @@ class Wallet extends React.Component<Props> {
         {this.props.airdropSelected ? (
           <Airdrop />
         ) : (
-          <Kb.SectionList
-            sections={this.props.sections}
-            renderItem={this._renderItem}
-            renderSectionHeader={this._renderSectionHeader}
-            stickySectionHeadersEnabled={false}
-            keyExtractor={this._keyExtractor}
-            onEndReached={this._onEndReached}
-          />
+          <>
+            {this.props.loadError && <Kb.Banner color="yellow">{this.props.loadError}</Kb.Banner>}
+            <Kb.SectionList
+              sections={this.props.sections}
+              renderItem={this._renderItem}
+              renderSectionHeader={this._renderSectionHeader}
+              stickySectionHeadersEnabled={false}
+              keyExtractor={this._keyExtractor}
+              onEndReached={this._onEndReached}
+            />
+          </>
         )}
         {this.props.loadingMore && <Kb.ProgressIndicator style={styles.loadingMore} />}
       </Kb.Box2>
