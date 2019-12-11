@@ -14,25 +14,22 @@ export type Props = {
   unreadPayments: number
 }
 
-const rightColumnStyle = () =>
-  Styles.platformStyles({
-    isElectron: {
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap',
-    },
-  })
+const rightColumnStyle = {
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+} as const
 
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      amount: {
-        ...rightColumnStyle(),
-      },
-      amountSelected: {
-        ...rightColumnStyle(),
-        color: Styles.globalColors.white,
-      },
+      amount: Styles.platformStyles({
+        isElectron: {...rightColumnStyle},
+      }),
+      amountSelected: Styles.platformStyles({
+        common: {color: Styles.globalColors.white},
+        isElectron: {...rightColumnStyle},
+      }),
       avatar: {marginRight: Styles.globalMargins.xtiny},
       badge: {
         marginLeft: 6,
@@ -46,18 +43,20 @@ const styles = Styles.styleSheetCreate(
         marginLeft: Styles.globalMargins.tiny,
         marginRight: Styles.globalMargins.tiny,
       },
-
-      rightColumn: rightColumnStyle(),
-
-      title: {
-        ...rightColumnStyle(),
-        color: Styles.globalColors.black,
-      },
-      titleSelected: {
-        ...Styles.globalStyles.fontSemibold,
-        ...rightColumnStyle(),
-        color: Styles.globalColors.white,
-      },
+      rightColumn: Styles.platformStyles({
+        isElectron: {...rightColumnStyle},
+      }),
+      title: Styles.platformStyles({
+        common: {color: Styles.globalColors.black},
+        isElectron: {...rightColumnStyle},
+      }),
+      titleSelected: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.fontSemibold,
+          color: Styles.globalColors.white,
+        },
+        isElectron: {...rightColumnStyle},
+      }),
       unread: {
         backgroundColor: Styles.globalColors.orange,
         borderRadius: 6,

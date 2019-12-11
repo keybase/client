@@ -93,6 +93,7 @@ type StyleKeys =
   | 'textDecorationLine'
   | 'textDecorationStyle'
   | 'textTransform'
+  | 'textOverflow'
   | 'top'
   | 'transform'
   | 'transition'

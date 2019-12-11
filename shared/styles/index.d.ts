@@ -134,6 +134,8 @@ export {
   Color,
   CustomStyles,
   _StylesCrossPlatform,
+  _StylesDesktop,
+  _StylesMobile,
 } from './css'
 export {default as classNames} from 'classnames'
 export {default as styled} from '@emotion/styled'
