@@ -1,4 +1,5 @@
 import * as Kb from '../common-adapters'
+import * as Constants from '../constants/router2'
 import * as Tabs from '../constants/tabs'
 import * as Styles from '../styles'
 import * as React from 'react'
@@ -21,6 +22,7 @@ import Header from './header/index.desktop'
 import * as Shim from './shim.desktop'
 import GlobalError from '../app/global-errors/container'
 import OutOfDate from '../app/out-of-date'
+import debounce from 'lodash/debounce'
 
 /**
  * How this works:
@@ -261,6 +263,18 @@ const createElectronApp = Component => {
       })
     }
 
+    // debounce this so we don't persist a route that can crash and then keep them in some crash loop
+    private persistRoute = debounce(() => {
+      this.props.persistRoute(Constants.getVisiblePath())
+    }, 1000)
+    _onNavigationStateChange(_prevNav: any, _nav: any, _action: any) {
+      // maybe plumb this through later but for now just persist
+      // if (typeof this.props.onNavigationStateChange === 'function') {
+      // this.props.onNavigationStateChange(prevNav, nav, action)
+      // }
+      this.persistRoute()
+    }
+
     dispatch = (action: any) => {
       // navState will have the most up-to-date value, because setState sometimes behaves asyncronously
       this.navState = this.navState || this.state.nav
@@ -290,6 +304,7 @@ const createElectronApp = Component => {
         // Cache updates to state.nav during the tick to ensure that subsequent calls will not discard this change
         this.navState = navState
         this.setState({nav: navState}, () => {
+          this._onNavigationStateChange(lastNavState, navState, action)
           dispatchActionEvents()
         })
         return true
