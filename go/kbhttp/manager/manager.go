@@ -112,7 +112,7 @@ func (r *Srv) monitorAppState() {
 	for {
 		state = <-r.G().MobileAppState.NextUpdate(&state)
 		switch state {
-		case keybase1.MobileAppState_FOREGROUND, keybase1.MobileAppState_BACKGROUNDACTIVE:
+		case keybase1.MobileAppState_FOREGROUND:
 			r.startHTTPSrv()
 		case keybase1.MobileAppState_BACKGROUND, keybase1.MobileAppState_INACTIVE:
 			r.httpSrv.Stop()
@@ -126,6 +126,8 @@ func (r *Srv) HandleFunc(endpoint string, tokenMode SrvTokenMode,
 		switch tokenMode {
 		case SrvTokenModeDefault:
 			if !hmac.Equal([]byte(req.URL.Query().Get("token")), []byte(r.token)) {
+				r.debug(context.Background(), "HandleFunc: token failed: %s != %s",
+					req.URL.Query().Get("token"), r.token)
 				w.WriteHeader(http.StatusForbidden)
 				return
 			}
