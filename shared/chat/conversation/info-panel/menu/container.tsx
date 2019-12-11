@@ -43,9 +43,18 @@ const moreThanOneSubscribedChannel = (
   })
 }
 
+// TODO convProps was being made all the time and thrashing
+// how this works should change. i just normalized this so it doesn't thrash
 export default Container.namedConnect(
   (state, {conversationIDKey, isSmallTeam, teamID: _teamID, visible}: OwnProps) => {
-    let convProps: ConvProps | undefined
+    let _convPropsFullname: ConvProps['fullname'] | undefined
+    let _convPropsIgnored: ConvProps['ignored'] | undefined
+    let _convPropsMuted: ConvProps['muted'] | undefined
+    let _convPropsParticipants: ConvProps['participants'] | undefined
+    let _convPropsTeamID: ConvProps['teamID'] | undefined
+    let _convPropsTeamType: ConvProps['teamType'] | undefined
+    let _convPropsTeamname: ConvProps['teamname'] | undefined
+
     let teamDetails: TeamTypes.TeamDetails | undefined
     let teamname: string = ''
     let teamID: TeamTypes.TeamID = TeamTypes.noTeamID
@@ -61,15 +70,13 @@ export default Container.namedConnect(
       teamDetails = isTeam ? TeamConstants.getTeamDetails(state, meta.teamID) : undefined
       teamname = meta.teamname
       teamID = meta.teamID
-      convProps = {
-        fullname,
-        ignored: meta.status === RPCChatTypes.ConversationStatus.ignored,
-        muted: meta.isMuted,
-        participants,
-        teamID: meta.teamID,
-        teamType: meta.teamType,
-        teamname,
-      }
+      _convPropsFullname = fullname
+      _convPropsIgnored = meta.status === RPCChatTypes.ConversationStatus.ignored
+      _convPropsMuted = meta.isMuted
+      _convPropsParticipants = participants
+      _convPropsTeamID = meta.teamID
+      _convPropsTeamType = meta.teamType
+      _convPropsTeamname = teamname
     } else if (_teamID) {
       teamID = _teamID
       teamDetails = TeamConstants.getTeamDetails(state, teamID)
@@ -78,9 +85,15 @@ export default Container.namedConnect(
     // skip a bunch of stuff for menus that aren't visible
     if (!visible) {
       return {
+        _convPropsFullname,
+        _convPropsIgnored,
+        _convPropsMuted,
+        _convPropsParticipants,
+        _convPropsTeamID,
+        _convPropsTeamType,
+        _convPropsTeamname,
         badgeSubscribe: false,
         canAddPeople: false,
-        convProps,
         isSmallTeam: false,
         manageChannelsSubtitle: '',
         manageChannelsTitle: '',
@@ -99,10 +112,16 @@ export default Container.namedConnect(
       : 'Subscribe to channels...'
     const manageChannelsSubtitle = isSmallTeam ? 'Turns this into a big team' : ''
     return {
-      _teamID: convProps?.teamID ?? teamID,
+      _convPropsFullname,
+      _convPropsIgnored,
+      _convPropsMuted,
+      _convPropsParticipants,
+      _convPropsTeamID,
+      _convPropsTeamType,
+      _convPropsTeamname,
+      _teamID: _convPropsTeamID ?? teamID,
       badgeSubscribe,
       canAddPeople: yourOperations.manageMembers,
-      convProps,
       isSmallTeam,
       manageChannelsSubtitle,
       manageChannelsTitle,
@@ -148,27 +167,41 @@ export default Container.namedConnect(
     onMuteConv: (muted: boolean) => dispatch(ChatGen.createMuteConversation({conversationIDKey, muted})),
     onUnhideConv: () => dispatch(ChatGen.createUnhideConversation({conversationIDKey})),
   }),
-  (s, d, o) => ({
-    attachTo: o.attachTo,
-    badgeSubscribe: s.badgeSubscribe,
-    canAddPeople: s.canAddPeople,
-    convProps: s.convProps,
-    isSmallTeam: s.isSmallTeam,
-    manageChannelsSubtitle: s.manageChannelsSubtitle,
-    manageChannelsTitle: s.manageChannelsTitle,
-    memberCount: s.memberCount,
-    onAddPeople: () => d._onAddPeople(s.convProps?.teamID || undefined),
-    onBlockConv: () => d._onBlockConv(s.teamname, s.convProps?.participants ?? []),
-    onHidden: o.onHidden,
-    onHideConv: d.onHideConv,
-    onInvite: () => d._onInvite(s._teamID),
-    onLeaveTeam: () => d._onLeaveTeam(s._teamID),
-    onManageChannels: () => d._onManageChannels(s.teamname),
-    onMuteConv: d.onMuteConv,
-    onUnhideConv: d.onUnhideConv,
-    onViewTeam: () => d._onViewTeam(s._teamID || undefined),
-    teamname: s.teamname,
-    visible: o.visible,
-  }),
+  (s, d, o) => {
+    const convProps: ConvProps | undefined = s._convPropsFullname
+      ? {
+          fullname: s._convPropsFullname!,
+          ignored: s._convPropsIgnored!,
+          muted: s._convPropsMuted!,
+          participants: s._convPropsParticipants!,
+          teamID: s._convPropsTeamID!,
+          teamType: s._convPropsTeamType!,
+          teamname: s._convPropsTeamname!,
+        }
+      : undefined
+
+    return {
+      attachTo: o.attachTo,
+      badgeSubscribe: s.badgeSubscribe,
+      canAddPeople: s.canAddPeople,
+      convProps,
+      isSmallTeam: s.isSmallTeam,
+      manageChannelsSubtitle: s.manageChannelsSubtitle,
+      manageChannelsTitle: s.manageChannelsTitle,
+      memberCount: s.memberCount,
+      onAddPeople: () => d._onAddPeople(s._convPropsTeamID || undefined),
+      onBlockConv: () => d._onBlockConv(s.teamname, s._convPropsParticipants ?? []),
+      onHidden: o.onHidden,
+      onHideConv: d.onHideConv,
+      onInvite: () => d._onInvite(s._teamID),
+      onLeaveTeam: () => d._onLeaveTeam(s._teamID),
+      onManageChannels: () => d._onManageChannels(s.teamname),
+      onMuteConv: d.onMuteConv,
+      onUnhideConv: d.onUnhideConv,
+      onViewTeam: () => d._onViewTeam(s._teamID || undefined),
+      teamname: s.teamname,
+      visible: o.visible,
+    }
+  },
   'TeamDropdownMenu'
 )(InfoPanelMenu)

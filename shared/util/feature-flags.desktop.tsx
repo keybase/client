@@ -14,6 +14,7 @@ const ff: FeatureFlags = {
   airdrop: true,
   audioAttachments: false,
   chatIndexProfilingEnabled: false,
+  connectThrashCheck: false,
   dbCleanEnabled: false,
   fastAccountSwitch: true,
   foldersInProfileTab: false,
@@ -30,6 +31,7 @@ const ff: FeatureFlags = {
 const inAdmin: {[K in keyof FeatureFlags]?: boolean} = {
   audioAttachments: false,
   chatIndexProfilingEnabled: true,
+  connectThrashCheck: true,
   dbCleanEnabled: true,
   moveOrCopy: true,
   outOfDateBanner: true,
