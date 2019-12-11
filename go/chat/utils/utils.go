@@ -1898,6 +1898,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			Ordinal:        computeOrdinal(journeycard.PrevID, journeycard.Ordinal),
 			CardType:       journeycard.CardType,
 			HighlightMsgID: journeycard.HighlightMsgID,
+			OpenTeam:       journeycard.OpenTeam,
 		})
 	default:
 		g.MetaContext(ctx).Debug("PresentMessageUnboxed: unhandled MessageUnboxedState: %v", state)

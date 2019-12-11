@@ -87,7 +87,7 @@ class ConversationFilterInput extends React.PureComponent<Props> {
       <Kb.Box2
         direction="horizontal"
         centerChildren={true}
-        gap="tiny"
+        gap={Styles.isMobile ? 'small' : 'tiny'}
         style={Styles.collapseStyles([
           styles.containerNotFiltering,
           !Styles.isMobile && styles.whiteBg,

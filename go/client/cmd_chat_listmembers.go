@@ -31,7 +31,7 @@ func NewCmdChatListMembersRunner(g *libkb.GlobalContext) *CmdChatListMembers {
 func newCmdChatListMembers(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "list-members",
-		Usage:        "List members of a chat channel (must be a member of that channel)",
+		Usage:        "List members of a chat conversation",
 		ArgumentHelp: "[conversation [channel name]]",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdChatListMembersRunner(g), "list-members", c)
@@ -44,49 +44,17 @@ func newCmdChatListMembers(cl *libcmdline.CommandLine, g *libkb.GlobalContext) c
 	}
 }
 
-func (c *CmdChatListMembers) Run() error {
+func (c *CmdChatListMembers) Run() (err error) {
 	ctx := context.Background()
+	var convMembers []string
 	if c.topicName != "" && c.topicName != "general" {
 		// conversation membership is based on server trust
-		return c.getUntrustedConvMemberList(ctx)
+		convMembers, err = c.getUntrustedConvMemberList(ctx)
+		if err != nil {
+			return err
+		}
 	}
 
-	// determine membership via team load
-	return c.getTeamMemberList(ctx)
-}
-
-func (c *CmdChatListMembers) getUntrustedConvMemberList(ctx context.Context) error {
-	chatClient, err := GetChatLocalClient(c.G())
-	if err != nil {
-		return err
-	}
-	inboxRes, err := chatClient.FindConversationsLocal(ctx, chat1.FindConversationsLocalArg{
-		TlfName:          c.tlfName,
-		MembersType:      chat1.ConversationMembersType_TEAM,
-		TopicName:        c.topicName,
-		TopicType:        c.topicType,
-		Visibility:       keybase1.TLFVisibility_PRIVATE,
-		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-	})
-	if err != nil {
-		return err
-	}
-	if len(inboxRes.Conversations) == 0 {
-		return fmt.Errorf("failed to find any matching conversation")
-	}
-	if len(inboxRes.Conversations) > 1 {
-		return fmt.Errorf("ambiguous channel description, more than one conversation matches")
-	}
-
-	ui := c.G().UI.GetTerminalUI()
-	ui.Printf("Listing members in %s [#%s]:\n\n", c.tlfName, c.topicName)
-	for _, memb := range inboxRes.Conversations[0].AllNames() {
-		ui.Printf("%s\n", memb)
-	}
-	return nil
-}
-
-func (c *CmdChatListMembers) getTeamMemberList(ctx context.Context) error {
 	_, conversationInfo, err := resolveConversationForBotMember(c.G(), c.resolvingRequest, c.hasTTY)
 	if err != nil {
 		return err
@@ -113,8 +81,37 @@ func (c *CmdChatListMembers) getTeamMemberList(ctx context.Context) error {
 		return err
 	}
 
+	if len(convMembers) > 0 {
+		details = keybase1.FilterTeamDetailsForMembers(convMembers, details)
+	}
+
 	renderer := newTeamMembersRenderer(c.G(), c.json, false /*showInviteID*/)
 	return renderer.output(details, conversationInfo.TlfName, false /*verbose*/)
+}
+
+func (c *CmdChatListMembers) getUntrustedConvMemberList(ctx context.Context) ([]string, error) {
+	chatClient, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return nil, err
+	}
+	inboxRes, err := chatClient.FindConversationsLocal(ctx, chat1.FindConversationsLocalArg{
+		TlfName:          c.tlfName,
+		MembersType:      chat1.ConversationMembersType_TEAM,
+		TopicName:        c.topicName,
+		TopicType:        c.topicType,
+		Visibility:       keybase1.TLFVisibility_PRIVATE,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if len(inboxRes.Conversations) == 0 {
+		return nil, fmt.Errorf("failed to find any matching conversation")
+	}
+	if len(inboxRes.Conversations) > 1 {
+		return nil, fmt.Errorf("ambiguous channel description, more than one conversation matches")
+	}
+	return inboxRes.Conversations[0].AllNames(), nil
 }
 
 func (c *CmdChatListMembers) ParseArgv(ctx *cli.Context) (err error) {

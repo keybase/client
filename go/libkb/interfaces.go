@@ -200,7 +200,7 @@ type ConfigReader interface {
 	GetUIDForUsername(n NormalizedUsername) keybase1.UID
 	GetUsername() NormalizedUsername
 	GetAllUsernames() (current NormalizedUsername, others []NormalizedUsername, err error)
-	GetAllUserConfigs() (*UserConfig, []UserConfig, error)
+	GetAllUserConfigs() (current *UserConfig, others []UserConfig, err error)
 	GetUID() keybase1.UID
 	GetProxyCACerts() ([]string, error)
 	GetSecurityAccessGroupOverride() (bool, bool)
@@ -719,6 +719,7 @@ type TeamLoader interface {
 	HintLatestSeqno(ctx context.Context, id keybase1.TeamID, seqno keybase1.Seqno) error
 	ResolveNameToIDUntrusted(ctx context.Context, teamName keybase1.TeamName, public bool, allowCache bool) (id keybase1.TeamID, err error)
 	ForceRepollUntil(ctx context.Context, t gregor.TimeOrOffset) error
+	IsOpenCached(ctx context.Context, teamID keybase1.TeamID) (bool, error)
 	// Clear the in-memory cache. Does not affect the disk cache.
 	ClearMem()
 }

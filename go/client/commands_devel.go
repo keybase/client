@@ -45,6 +45,8 @@ func getBuildSpecificChatCommands(cl *libcmdline.CommandLine, g *libkb.GlobalCon
 		newCmdChatRemoveBotMember(cl, g),
 		newCmdChatEditBotMember(cl, g),
 		newCmdChatBotMemberSettings(cl, g),
+		newCmdChatFeaturedBots(cl, g),
+		newCmdChatSearchBots(cl, g),
 	}
 }
 

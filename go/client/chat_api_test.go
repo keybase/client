@@ -42,6 +42,7 @@ type handlerTracker struct {
 	pinV1               int
 	unpinV1             int
 	getDeviceInfoV1     int
+	listMembersV1       int
 }
 
 func (h *handlerTracker) ListV1(context.Context, Call, io.Writer) error {
@@ -187,6 +188,11 @@ func (h *handlerTracker) GetDeviceInfoV1(context.Context, Call, io.Writer) error
 	return nil
 }
 
+func (h *handlerTracker) ListMembersV1(context.Context, Call, io.Writer) error {
+	h.listMembersV1++
+	return nil
+}
+
 type echoResult struct {
 	Status string `json:"status"`
 }
@@ -312,6 +318,10 @@ func (c *chatEcho) GetDeviceInfoV1(context.Context, getDeviceInfoOptionsV1) Repl
 	return Reply{Result: echoOK}
 }
 
+func (c *chatEcho) ListMembersV1(context.Context, listMembersOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
 type topTest struct {
 	input             string
 	output            string
@@ -334,6 +344,7 @@ type topTest struct {
 	pinV1             int
 	unpinV1           int
 	getDeviceInfoV1   int
+	listMembersV1     int
 }
 
 var topTests = []topTest{
@@ -378,6 +389,7 @@ var topTests = []topTest{
 	{input: `{"id": 39, "method": "pin", "params":{"version": 1}}`, pinV1: 1},
 	{input: `{"id": 39, "method": "unpin", "params":{"version": 1}}`, unpinV1: 1},
 	{input: `{"id": 39, "method": "getdeviceinfo", "params":{"version": 1}}`, getDeviceInfoV1: 1},
+	{input: `{"id": 39, "method": "listmembers", "params":{"version": 1}}`, listMembersV1: 1},
 }
 
 // TestChatAPIVersionHandlerTop tests that the "top-level" of the chat json makes it to
@@ -455,6 +467,10 @@ func TestChatAPIVersionHandlerTop(t *testing.T) {
 		if h.getDeviceInfoV1 != test.getDeviceInfoV1 {
 			t.Errorf("test %d: input %s => getDeviceInfoV1 = %d, expected %d",
 				i, test.input, h.getDeviceInfoV1, test.getDeviceInfoV1)
+		}
+		if h.listMembersV1 != test.listMembersV1 {
+			t.Errorf("test %d: input %s => listMembersV1 = %d, expected %d",
+				i, test.input, h.listMembersV1, test.listMembersV1)
 		}
 		if strings.TrimSpace(buf.String()) != strings.TrimSpace(test.output) {
 			t.Errorf("test %d: input %s => output %s, expected %s", i, test.input, strings.TrimSpace(buf.String()), strings.TrimSpace(test.output))

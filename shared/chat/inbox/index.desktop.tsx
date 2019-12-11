@@ -317,9 +317,26 @@ class Inbox extends React.Component<T.Props, State> {
     this.setState({dragY: -1})
   }
 
+  private scrollToBigTeams = () => {
+    if (!this.scrollDiv.current) return
+
+    if (this.props.smallTeamsExpanded) {
+      this.props.toggleSmallTeamsExpanded()
+    }
+
+    // Should we scroll?
+    const top = this.props.inboxNumSmallRows * smallRowHeight
+    const boundingHeight = this.scrollDiv.current.getBoundingClientRect().height
+    const dragHeight = 76 // grabbed from inspector
+    const currentScrollTop = this.scrollDiv.current.scrollTop
+    if (boundingHeight + currentScrollTop < top + dragHeight) {
+      this.scrollDiv.current && this.scrollDiv.current.scrollBy({behavior: 'smooth', top})
+    }
+  }
+
   render() {
     const floatingDivider = this.state.showFloating && this.props.allowShowFloatingButton && (
-      <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
+      <BigTeamsDivider toggle={this.scrollToBigTeams} />
     )
     return (
       <Kb.ErrorBoundary>
