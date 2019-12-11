@@ -185,6 +185,9 @@ func (cc *JourneyCardManagerSingleUser) checkFeature(ctx context.Context) bool {
 	if cc.G().GetEnv().GetDebugJourneycard() {
 		return true
 	}
+	if cc.G().Env.GetFeatureFlags().HasFeature(libkb.FeatureJourneycardPreview) {
+		return true
+	}
 	ogCtx := ctx
 	// G.FeatureFlags seems like the kind of system that might hang on a bad network.
 	// PickCard is supposed to be lightning fast, so impose a timeout on FeatureFlags.
