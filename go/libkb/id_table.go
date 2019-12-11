@@ -991,7 +991,6 @@ func (s *WalletStellarChainLink) VerifyReverseSig(_ ComputedKeyFamily) (err erro
 
 func (s *WalletStellarChainLink) Display(m MetaContext, ui IdentifyUI) error {
 	// First get an up to date user card, since hiding the Stellar address affects it.
-	_ = m.G().CardCache().Delete(s.GetUID())
 	card, err := UserCard(m, s.GetUID(), true)
 	if err != nil {
 		return fmt.Errorf("Error getting usercard: %s", err)
