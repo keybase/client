@@ -338,6 +338,9 @@ func (h ConfigHandler) GetBootstrapStatus(ctx context.Context, sessionID int) (k
 		}
 		time.Sleep(50 * time.Millisecond)
 	}
+	if status.HttpSrvInfo == nil {
+		h.G().Log.CDebugf(ctx, "GetBootstrapStatus: failed to get HTTP srv info after max attempts")
+	}
 	return status, nil
 }
 
