@@ -127,6 +127,13 @@ export declare const dimensionWidth: number
 export declare const dimensionHeight: number
 
 export {platformStyles, globalMargins, backgroundModeToColor, backgroundModeToTextColor} from './shared'
-export {StylesDesktop, StylesMobile, StylesCrossPlatform, Color, CustomStyles} from './css'
+export {
+  StylesDesktop,
+  StylesMobile,
+  StylesCrossPlatform,
+  Color,
+  CustomStyles,
+  _StylesCrossPlatform,
+} from './css'
 export {default as classNames} from 'classnames'
 export {default as styled} from '@emotion/styled'

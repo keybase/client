@@ -117,7 +117,7 @@ const Unreachable = props => (
       type="iconfont-proof-broken"
       color={Styles.globalColors.red}
       boxStyle={styles.marginLeftAuto}
-      style={Kb.iconCastPlatformStyles(styles.inlineIcon)}
+      style={styles.inlineIcon}
     />
   </Kb.Box2>
 )

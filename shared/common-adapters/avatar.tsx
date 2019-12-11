@@ -13,10 +13,6 @@ export type AvatarSize = typeof avatarSizes[number]
 
 type URLType = string
 
-type DisallowedStyles = {
-  borderStyle?: never
-}
-
 export type OwnProps = {
   borderColor?: string
   children?: React.ReactNode
@@ -30,7 +26,7 @@ export type OwnProps = {
   opacity?: number
   size: AvatarSize
   skipBackground?: boolean
-  style?: Styles.StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>
+  style?: Styles.CustomStyles<'borderStyle', {}>
   teamname?: string
   username?: string
   showFollowingStatus?: boolean // show the green dots or not
@@ -52,7 +48,7 @@ type Props = {
   opacity?: number
   size: AvatarSize
   skipBackground?: boolean
-  style?: Styles.StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>
+  style?: Styles.CustomStyles<'borderStyle', {}>
   teamname?: string
   url: URLType
   username?: string

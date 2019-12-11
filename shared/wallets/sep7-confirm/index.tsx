@@ -456,11 +456,9 @@ const styles = Styles.styleSheetCreate(
         color: Styles.globalColors.white_75,
         paddingTop: Styles.globalMargins.tiny,
       },
-      verifiedIcon: Styles.platformStyles({
-        common: {
-          color: Styles.globalColors.green,
-        },
-      }),
+      verifiedIcon: {
+        color: Styles.globalColors.green,
+      },
       verifiedIconBox: {
         backgroundColor: Styles.globalColors.transparent,
         marginLeft: Styles.globalMargins.xtiny,

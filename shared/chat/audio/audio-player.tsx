@@ -118,7 +118,7 @@ const AudioPlayer = (props: Props) => {
         <Kb.Icon
           type={!paused ? 'iconfont-pause' : 'iconfont-play'}
           fontSize={32}
-          style={{color: props.url ? Styles.globalColors.blue : Styles.globalColors.grey}}
+          color={props.url ? Styles.globalColors.blue : Styles.globalColors.grey}
         />
       </Kb.ClickableBox>
       <Kb.Box2 direction="vertical" style={styles.visContainer} gap="xxtiny" fullHeight={true}>

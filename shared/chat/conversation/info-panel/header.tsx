@@ -47,7 +47,7 @@ const _TeamHeader = (props: SmallProps) => {
           type="iconfont-gear"
           onClick={props.toggleShowingMenu}
           ref={props.setAttachmentRef}
-          style={Kb.iconCastPlatformStyles(styles.gear)}
+          style={styles.gear}
           fontSize={gearIconSize}
         />
       </Kb.Box2>

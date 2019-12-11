@@ -1,14 +1,6 @@
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
-import {
-  Box2,
-  ClickableBox,
-  FloatingBox,
-  Icon,
-  iconCastPlatformStyles,
-  Text,
-  EmojiIfExists,
-} from '../../../../common-adapters'
+import {Box2, ClickableBox, FloatingBox, Icon, Text, EmojiIfExists} from '../../../../common-adapters'
 import {Props as ClickableBoxProps} from '../../../../common-adapters/clickable-box'
 import * as Styles from '../../../../styles'
 import {Picker} from './picker'
@@ -197,7 +189,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
               type="iconfont-reacji"
               color={Styles.globalColors.black_50}
               fontSize={16}
-              style={iconCastPlatformStyles(styles.emojiIconWrapper)}
+              style={styles.emojiIconWrapper}
             />
           ) : (
             iconCycle.map((iconName, iconIndex) => (
@@ -206,16 +198,14 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
                 type={iconName}
                 color={this.state.hovering ? Styles.globalColors.black_50 : Styles.globalColors.black_50}
                 fontSize={18}
-                style={iconCastPlatformStyles(
-                  Styles.collapseStyles([
-                    styles.emojiIconWrapper,
-                    !Styles.isMobile && (this.props.showBorder ? {top: 4} : {top: 1}),
-                    !this.state.applyClasses &&
-                      (iconIndex === this.state.iconIndex
-                        ? {transform: 'translateX(-8px)'}
-                        : {transform: 'translateX(22px)'}),
-                  ])
-                )}
+                style={Styles.collapseStyles([
+                  styles.emojiIconWrapper,
+                  !Styles.isMobile && (this.props.showBorder ? {top: 4} : {top: 1}),
+                  !this.state.applyClasses &&
+                    (iconIndex === this.state.iconIndex
+                      ? {transform: 'translateX(-8px)'}
+                      : {transform: 'translateX(22px)'}),
+                ])}
                 className={this._getClass(iconIndex)}
               />
             ))

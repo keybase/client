@@ -38,11 +38,7 @@ const AccountEntry = (props: AccountEntryProps) => (
         style={Styles.collapseStyles([styles.user, props.center && styles.userCenter])}
       >
         {props.keybaseUser && props.isDefault && (
-          <Kb.Avatar
-            size={16}
-            style={Kb.avatarCastPlatformStyles(styles.avatar)}
-            username={props.keybaseUser}
-          />
+          <Kb.Avatar size={16} style={styles.avatar} username={props.keybaseUser} />
         )}
         <Kb.Text type="BodySemibold" style={styles.title}>
           {props.name}

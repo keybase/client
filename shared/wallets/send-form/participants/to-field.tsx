@@ -45,7 +45,7 @@ const ToKeybaseUser = (props: ToKeybaseUserProps) => {
             />
             <Kb.Icon
               type="iconfont-remove"
-              boxStyle={Kb.iconCastPlatformStyles(styles.keybaseUserRemoveButton)}
+              boxStyle={styles.keybaseUserRemoveButton}
               fontSize={16}
               color={Styles.globalColors.black_20}
               onClick={props.onRemoveProfile}

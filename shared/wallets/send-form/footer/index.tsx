@@ -54,7 +54,7 @@ const Footer = (props: Props) => {
             color={Styles.globalColors.black_20}
             hoverColor={Styles.globalColors.black_50}
             fontSize={12}
-            style={Kb.iconCastPlatformStyles(styles.questionIcon)}
+            style={styles.questionIcon}
             onClick={() => {
               TODO
           }/> */}

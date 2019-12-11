@@ -79,13 +79,15 @@ const unifyStyles = (s: any) => ({
     : {}),
 })
 
-type AsStylesCrossPlatform<T> = {
-  [P in keyof T]: P extends keyof _StylesCrossPlatform
-    ? T[P] extends _StylesCrossPlatform[P]
-      ? T[P]
-      : _StylesCrossPlatform[P]
-    : never
-}
+type AsStylesCrossPlatform<T> = Readonly<
+  {
+    [P in keyof T]: P extends keyof _StylesCrossPlatform
+      ? T[P] extends _StylesCrossPlatform[P]
+        ? Readonly<T[P]>
+        : Readonly<_StylesCrossPlatform[P]>
+      : never
+  }
+>
 
 export function platformStyles<
   Ret extends C & I & A & M & E,

@@ -100,11 +100,7 @@ const WalletRow = (props: Props) => {
         <Kb.Box2 direction="vertical" style={styles.rightColumn}>
           <Kb.Box2 direction="horizontal" fullWidth={true}>
             {!!props.keybaseUser && (
-              <Kb.Avatar
-                size={16}
-                style={Kb.avatarCastPlatformStyles(styles.avatar)}
-                username={props.keybaseUser}
-              />
+              <Kb.Avatar size={16} style={styles.avatar} username={props.keybaseUser} />
             )}
             <Kb.Text type="BodySemibold" style={props.isSelected ? styles.titleSelected : styles.title}>
               {props.name}
