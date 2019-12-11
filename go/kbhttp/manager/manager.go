@@ -112,7 +112,7 @@ func (r *Srv) monitorAppState() {
 	for {
 		state = <-r.G().MobileAppState.NextUpdate(&state)
 		switch state {
-		case keybase1.MobileAppState_FOREGROUND:
+		case keybase1.MobileAppState_FOREGROUND, keybase1.MobileAppState_BACKGROUNDACTIVE:
 			r.startHTTPSrv()
 		case keybase1.MobileAppState_BACKGROUND, keybase1.MobileAppState_INACTIVE:
 			r.httpSrv.Stop()
