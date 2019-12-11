@@ -10,6 +10,7 @@ import (
 
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscodec"
+	"github.com/keybase/client/go/kbfs/ldbutils"
 	"github.com/keybase/client/go/logger"
 	"github.com/pkg/errors"
 	ldberrors "github.com/syndtr/goleveldb/leveldb/errors"
@@ -44,12 +45,12 @@ type diskBlockMetadataStore struct {
 	config diskBlockMetadataStoreConfig
 
 	// Track the hit rate and eviction rate. These are goroutine safe.
-	hitMeter  *CountMeter
-	missMeter *CountMeter
-	putMeter  *CountMeter
+	hitMeter  *ldbutils.CountMeter
+	missMeter *ldbutils.CountMeter
+	putMeter  *ldbutils.CountMeter
 
 	lock       sync.RWMutex
-	db         *LevelDb
+	db         *ldbutils.LevelDb
 	shutdownCh chan struct{}
 }
 
@@ -58,7 +59,7 @@ func newDiskBlockMetadataStore(
 	config diskBlockMetadataStoreConfig, mode InitMode) (
 	BlockMetadataStore, error) {
 	log := config.MakeLogger("BMS")
-	db, err := openVersionedLevelDB(
+	db, err := ldbutils.OpenVersionedLevelDb(
 		log, config.StorageRoot(), blockMetadataFolderName,
 		currentBlockMetadataStoreVersion, blockMetadataDbFilename, mode)
 	if err != nil {
@@ -67,9 +68,9 @@ func newDiskBlockMetadataStore(
 	return &diskBlockMetadataStore{
 		log:        log,
 		config:     config,
-		hitMeter:   NewCountMeter(),
-		missMeter:  NewCountMeter(),
-		putMeter:   NewCountMeter(),
+		hitMeter:   ldbutils.NewCountMeter(),
+		missMeter:  ldbutils.NewCountMeter(),
+		putMeter:   ldbutils.NewCountMeter(),
 		db:         db,
 		shutdownCh: make(chan struct{}),
 	}, err
@@ -178,9 +179,9 @@ type xattrStore struct {
 	store BlockMetadataStore
 
 	// Track the hit rate and eviction rate. These are goroutine safe.
-	hitMeter  *CountMeter
-	missMeter *CountMeter
-	putMeter  *CountMeter
+	hitMeter  *ldbutils.CountMeter
+	missMeter *ldbutils.CountMeter
+	putMeter  *ldbutils.CountMeter
 }
 
 // NewXattrStoreFromBlockMetadataStore returns a XattrStore which is a wrapper
@@ -188,9 +189,9 @@ type xattrStore struct {
 func NewXattrStoreFromBlockMetadataStore(store BlockMetadataStore) XattrStore {
 	return xattrStore{
 		store:     store,
-		hitMeter:  NewCountMeter(),
-		missMeter: NewCountMeter(),
-		putMeter:  NewCountMeter(),
+		hitMeter:  ldbutils.NewCountMeter(),
+		missMeter: ldbutils.NewCountMeter(),
+		putMeter:  ldbutils.NewCountMeter(),
 	}
 }
 

@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/keybase/client/go/kbfs/idutil"
+	"github.com/keybase/client/go/kbfs/ldbutils"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
 	"github.com/syndtr/goleveldb/leveldb/opt"
@@ -35,15 +36,15 @@ type currentSessionGetter interface {
 
 // SettingsDB stores KBFS user settings for a given device.
 type SettingsDB struct {
-	*LevelDb
+	*ldbutils.LevelDb
 	sessionGetter currentSessionGetter
 
 	cache map[string][]byte
 }
 
-func openSettingsDBInternal(config Config) (*LevelDb, error) {
+func openSettingsDBInternal(config Config) (*ldbutils.LevelDb, error) {
 	if config.IsTestMode() {
-		return openLevelDB(storage.NewMemStorage(), config.Mode())
+		return ldbutils.OpenLevelDb(storage.NewMemStorage(), config.Mode())
 	}
 	dbPath := path.Join(config.StorageRoot(), settingsDBDir,
 		settingsDBVersionString)
@@ -57,7 +58,7 @@ func openSettingsDBInternal(config Config) (*LevelDb, error) {
 		return nil, err
 	}
 
-	return openLevelDB(stor, config.Mode())
+	return ldbutils.OpenLevelDb(stor, config.Mode())
 }
 
 func openSettingsDB(config Config) *SettingsDB {

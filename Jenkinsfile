@@ -644,6 +644,10 @@ def testGo(prefix, packagesToTest) {
           flags: '-race',
           timeout: '30s',
         ],
+        'github.com/keybase/client/go/kbfs/ldbutils': [
+          flags: '-race',
+          timeout: '10m',
+        ],
         'github.com/keybase/client/go/kbfs/libcontext': [
           flags: '-race',
           timeout: '10m',
