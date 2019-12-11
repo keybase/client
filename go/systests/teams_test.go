@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
+	"github.com/keybase/client/go/service"
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/stretchr/testify/require"
@@ -1633,6 +1634,7 @@ func TestBatchAddMembersCLI(t *testing.T) {
 
 	alice := tt.addUser("alice")
 	bob := tt.addUser("bob")
+	ciara := tt.addUser("ciara")
 	dodo := tt.addUser("dodo")
 	botua := tt.addUser("botua")
 	restrictedBotua := tt.addUser("rbot")
@@ -1640,16 +1642,26 @@ func TestBatchAddMembersCLI(t *testing.T) {
 	tt.logUserNames()
 	teamID, _ := alice.createTeam2()
 
+	handler := service.NewAccountHandler(nil, ciara.tc.G)
+
+	// ciara doesn't allow alice to add them to team
+	err := handler.UserSetContactSettings(context.Background(), keybase1.ContactSettings{
+		Enabled:              true,
+		AllowFolloweeDegrees: 0,
+	})
+	require.NoError(t, err)
+
 	dodo.proveRooter()
 	users := []keybase1.UserRolePair{
 		{AssertionOrEmail: bob.username, Role: keybase1.TeamRole_ADMIN},
+		{AssertionOrEmail: ciara.username, Role: keybase1.TeamRole_WRITER},
 		{AssertionOrEmail: dodo.username + "+" + dodo.username + "@rooter", Role: keybase1.TeamRole_WRITER},
 		{AssertionOrEmail: john.username + "@rooter", Role: keybase1.TeamRole_ADMIN},
 		{AssertionOrEmail: "[rob@gmail.com]@email", Role: keybase1.TeamRole_READER},
 		{AssertionOrEmail: botua.username, Role: keybase1.TeamRole_BOT},
 		{AssertionOrEmail: restrictedBotua.username, Role: keybase1.TeamRole_RESTRICTEDBOT, BotSettings: &keybase1.TeamBotSettings{}},
 	}
-	_, err := teams.AddMembers(context.Background(), alice.tc.G, teamID, users)
+	_, err = teams.AddMembers(context.Background(), alice.tc.G, teamID, users)
 	require.NoError(t, err)
 
 	team := alice.loadTeamByID(teamID, true /* admin */)
@@ -1661,7 +1673,6 @@ func TestBatchAddMembersCLI(t *testing.T) {
 	require.Len(t, members.Readers, 0)
 	require.Equal(t, members.Bots, []keybase1.UserVersion{{Uid: botua.uid, EldestSeqno: 1}})
 	require.Equal(t, members.RestrictedBots, []keybase1.UserVersion{{Uid: restrictedBotua.uid, EldestSeqno: 1}})
-
 	invites := team.GetActiveAndObsoleteInvites()
 	t.Logf("invites: %s", spew.Sdump(invites))
 	for _, invite := range invites {
@@ -1686,7 +1697,6 @@ func TestBatchAddMembersCLI(t *testing.T) {
 	require.Error(t, err)
 	require.IsType(t, err, teams.AddMembersError{})
 	require.IsType(t, err.(teams.AddMembersError).Err, teams.MixedServerTrustAssertionError{})
-
 	// It should also fail to combine invites with other assertions
 	users = []keybase1.UserRolePair{
 		{AssertionOrEmail: "xxffee22ee@twitter+jjjejiei3i@rooter", Role: keybase1.TeamRole_READER},
@@ -1732,7 +1742,6 @@ func TestBatchAddMembers(t *testing.T) {
 	require.Error(t, err, "can't invite assertions as owners")
 	require.IsType(t, teams.AttemptedInviteSocialOwnerError{}, err)
 	require.Nil(t, res)
-
 	team := alice.loadTeamByID(teamID, true /* admin */)
 	members, err := team.Members()
 	require.NoError(t, err)

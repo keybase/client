@@ -386,7 +386,7 @@ func AddMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 		}
 
 		tx := CreateAddMemberTx(t)
-		resolvedUsername, uv, invite, err := tx.AddMemberByAssertionOrEmail(ctx, username, role, botSettings)
+		resolvedUsername, uv, invite, err := tx.AddOrInviteMemberByAssertionOrEmail(ctx, username, role, botSettings)
 		if err != nil {
 			return err
 		}
@@ -436,61 +436,98 @@ type AddMembersRes struct {
 
 // AddMembers adds a bunch of people to a team. Assertions can contain usernames or social assertions.
 // Adds them all in a transaction so it's all or nothing.
-// On success, returns a list where len(res)=len(assertions) and in corresponding order.
+// If the first transaction fails due to TeamContactSettingsBlock error, it
+// will remove restricted users returned by the error, and retry once.
+// On success, returns a list where len(res)<=len(assertions) and in
+// corresponding order, with restricted users removed.
 func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, users []keybase1.UserRolePair) (res []AddMembersRes, err error) {
+	mctx := libkb.NewMetaContext(ctx, g)
 	tracer := g.CTimeTracer(ctx, "team.AddMembers", true)
 	defer tracer.Finish()
 
-	err = RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
-		res = make([]AddMembersRes, len(users))
-		team, err := GetForTeamManagementByTeamID(ctx, g, teamID, true /*needAdmin*/)
-		if err != nil {
-			return err
-		}
-
-		tx := CreateAddMemberTx(team)
-		type sweepEntry struct {
-			Assertion string
-			UV        keybase1.UserVersion
-		}
-		var sweep []sweepEntry
-		for i, user := range users {
-			username, uv, invite, err := tx.AddMemberByAssertionOrEmail(ctx, user.AssertionOrEmail, user.Role, user.BotSettings)
+	retryableFunc := func(restrictedUsers map[keybase1.UID]bool) func(ctx context.Context, _ int) error {
+		return func(ctx context.Context, _ int) error {
+			res = make([]AddMembersRes, len(users))
+			team, err := GetForTeamManagementByTeamID(ctx, g, teamID, true /*needAdmin*/)
 			if err != nil {
-				if _, ok := err.(AttemptedInviteSocialOwnerError); ok {
-					return err
+				return err
+			}
+
+			tx := CreateAddMemberTx(team)
+			type sweepEntry struct {
+				Assertion string
+				UV        keybase1.UserVersion
+			}
+			var sweep []sweepEntry
+			for i, user := range users {
+				upak, single, doInvite, err := tx.ResolveUPKV2FromAssertionOrEmail(mctx, user.AssertionOrEmail)
+				if err != nil {
+					return NewAddMembersError(user.AssertionOrEmail, err)
 				}
-				return NewAddMembersError(user.AssertionOrEmail, err)
-			}
-			var normalizedUsername libkb.NormalizedUsername
-			if !username.IsNil() {
-				normalizedUsername = username
-			}
-			res[i] = AddMembersRes{
-				Invite:   invite,
-				Username: normalizedUsername,
-			}
-			if !uv.IsNil() {
-				sweep = append(sweep, sweepEntry{
-					Assertion: user.AssertionOrEmail,
-					UV:        uv,
-				})
-			}
-		}
 
-		// Try to mark completed any invites for the users' social assertions.
-		// This can be a time-intensive process since it involves checking proofs.
-		// It is limited to a few seconds and failure is non-fatal.
-		timeoutCtx, timeoutCancel := context.WithTimeout(ctx, 2*time.Second)
-		for _, x := range sweep {
-			if err := tx.CompleteSocialInvitesFor(timeoutCtx, x.UV, x.Assertion); err != nil {
-				g.Log.CWarningf(ctx, "Failed in CompleteSocialInvitesFor(%v, %v) -> %v", x.UV, x.Assertion, err)
-			}
-		}
-		timeoutCancel()
+				if _, ok := restrictedUsers[upak.Uid]; ok {
+					// skip users with contact setting restrictions
+					continue
+				}
 
-		return tx.Post(libkb.NewMetaContext(ctx, g))
-	})
+				username, uv, invite, err := tx.AddOrInviteMemberByUPKV2(ctx, upak, single, doInvite, user.AssertionOrEmail, user.Role, user.BotSettings)
+				if err != nil {
+					if _, ok := err.(AttemptedInviteSocialOwnerError); ok {
+						return err
+					}
+					return NewAddMembersError(user.AssertionOrEmail, err)
+				}
+				var normalizedUsername libkb.NormalizedUsername
+				if !username.IsNil() {
+					normalizedUsername = username
+				}
+
+				res[i] = AddMembersRes{
+					Invite:   invite,
+					Username: normalizedUsername,
+				}
+				if !uv.IsNil() {
+					sweep = append(sweep, sweepEntry{
+						Assertion: user.AssertionOrEmail,
+						UV:        uv,
+					})
+				}
+			}
+			// Try to mark completed any invites for the users' social assertions.
+			// This can be a time-intensive process since it involves checking proofs.
+			// It is limited to a few seconds and failure is non-fatal.
+			timeoutCtx, timeoutCancel := context.WithTimeout(ctx, 2*time.Second)
+			for _, x := range sweep {
+				if err := tx.CompleteSocialInvitesFor(timeoutCtx, x.UV, x.Assertion); err != nil {
+					g.Log.CWarningf(ctx, "Failed in CompleteSocialInvitesFor(%v, %v) -> %v", x.UV, x.Assertion, err)
+				}
+			}
+			timeoutCancel()
+
+			return tx.Post(libkb.NewMetaContext(ctx, g))
+		}
+	}
+
+	const nRetries = 2
+	restrictedUsers := make(map[keybase1.UID]bool)
+	for i := 0; i < nRetries; i++ {
+		mctx.Debug("| Retry AddMembers(%v)", i)
+		err = RetryIfPossible(ctx, g, retryableFunc(restrictedUsers))
+		if isTeamContactSettingsBlock(err) {
+			// retry add
+			fields := err.(libkb.AppStatusError).Fields
+			uids := string(fields["uids"])
+			usernames := string(fields["usernames"])
+			mctx.Debug("| retrying with restricted users removed: %+v", usernames)
+			for _, uid := range strings.Split(uids, ",") {
+				restrictedUsers[keybase1.UID(uid)] = true
+			}
+		} else {
+			// don't retry add
+			break
+		}
+	}
+
 	if err != nil {
 		return nil, err
 	}

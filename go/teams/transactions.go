@@ -481,50 +481,42 @@ func resolveServerTrustAssertion(mctx libkb.MetaContext, assertion string) (upak
 	return upak, false, nil
 }
 
-// AddMemberByAssertionOrEmail adds an assertion to the team. It can handle
-// three major cases:
-//  1. joe OR joe+foo@reddit WHERE joe is already a keybase user, or the assertions map to a unique keybase user
-//  2. joe@reddit WHERE joe isn't a keybase user, and this is a social invitations
-//  3. [bob@gmail.com]@email WHERE server-trust resolution is performed and either TOFU invite is created
-//     or resolved member is added. Same works with `@phone`.
-// **Does** attempt to resolve the assertion, to distinguish between case (1), case (2) and an error
-// The return values (uv, username) can both be zero-valued if the assertion is not a keybase user.
-func (tx *AddMemberTx) AddMemberByAssertionOrEmail(ctx context.Context, assertion string, role keybase1.TeamRole, botSettings *keybase1.TeamBotSettings) (
-	username libkb.NormalizedUsername, uv keybase1.UserVersion, invite bool, err error) {
-	team := tx.team
-	m := team.MetaContext(ctx)
-
-	defer m.Trace(fmt.Sprintf("AddMemberTx.AddMemberByAssertionOrEmail(%s,%v) to team %q", assertion, role, team.Name()), func() error { return err })()
-
+func (tx *AddMemberTx) ResolveUPKV2FromAssertionOrEmail(m libkb.MetaContext, assertion string) (upak keybase1.UserPlusKeysV2, single libkb.AssertionURL, doInvite bool, err error) {
 	isServerTrustInvite, single, err := preprocessAssertion(m, assertion)
 	if err != nil {
-		return "", uv, false, err
+		return upak, single, false, err
 	}
-
-	var doInvite bool
-	var upak keybase1.UserPlusKeysV2
 
 	if isServerTrustInvite {
 		// Server-trust assertions (`phone`/`email`): ask server if it resolves
 		// to a user.
 		upak, doInvite, err = resolveServerTrustAssertion(m, assertion)
 		if err != nil {
-			return "", uv, false, err
+			return upak, single, false, err
 		}
 	} else {
 		// Normal assertion: resolve and verify.
 		upak, err = engine.ResolveAndCheck(m, assertion, true /* useTracking */)
 		if err != nil {
 			if rErr, ok := err.(libkb.ResolutionError); !ok || (rErr.Kind != libkb.ResolutionErrorNotFound) {
-				return "", uv, false, err
+				return upak, single, false, err
 			}
 			doInvite = true
 		}
 	}
+	return upak, single, doInvite, nil
+}
+
+func (tx *AddMemberTx) AddOrInviteMemberByUPKV2(ctx context.Context, upak keybase1.UserPlusKeysV2, single libkb.AssertionURL, doInvite bool, assertion string, role keybase1.TeamRole, botSettings *keybase1.TeamBotSettings) (
+	username libkb.NormalizedUsername, uv keybase1.UserVersion, invite bool, err error) {
+	team := tx.team
+	m := team.MetaContext(ctx)
+
+	defer m.Trace(fmt.Sprintf("AddMemberTx.AddOrInviteMemberByUPKV2(%+v,%v) to team %q; doInvite=%v", upak, role, team.Name(), doInvite), func() error { return err })()
 
 	if !doInvite {
-		// We have a user and can add them to a team, no invite required.
 		username = libkb.NewNormalizedUsername(upak.Username)
+		// We have a user and can add them to a team, no invite required.
 		uv = upak.ToUserVersion()
 		invite, err = tx.addMemberByUPKV2(ctx, upak, role, botSettings)
 		m.Debug("Adding keybase member: %s (isInvite=%v)", username, invite)
@@ -549,6 +541,7 @@ func (tx *AddMemberTx) AddMemberByAssertionOrEmail(ctx context.Context, assertio
 	inviteName := keybase1.TeamInviteName(name)
 	// Can't invite if invite for same SBS assertion already exists in that
 	// team.
+
 	existing, err := tx.team.HasActiveInvite(m, inviteName, typ)
 	if err != nil {
 		return "", uv, false, err
@@ -562,6 +555,29 @@ func (tx *AddMemberTx) AddMemberByAssertionOrEmail(ctx context.Context, assertio
 		return "", uv, false, err
 	}
 	return "", uv, true, nil
+
+}
+
+// AddOrInviteMemberByAssertionOrEmail adds an assertion to the team. It can handle
+// three major cases:
+//  1. joe OR joe+foo@reddit WHERE joe is already a keybase user, or the assertions map to a unique keybase user
+//  2. joe@reddit WHERE joe isn't a keybase user, and this is a social invitations
+//  3. [bob@gmail.com]@email WHERE server-trust resolution is performed and either TOFU invite is created
+//     or resolved member is added. Same works with `@phone`.
+// **Does** attempt to resolve the assertion, to distinguish between case (1), case (2) and an error
+// The return values (uv, username) can both be zero-valued if the assertion is not a keybase user.
+func (tx *AddMemberTx) AddOrInviteMemberByAssertionOrEmail(ctx context.Context, assertion string, role keybase1.TeamRole, botSettings *keybase1.TeamBotSettings) (
+	username libkb.NormalizedUsername, uv keybase1.UserVersion, invite bool, err error) {
+	team := tx.team
+	m := team.MetaContext(ctx)
+
+	defer m.Trace(fmt.Sprintf("AddMemberTx.AddOrInviteMemberByAssertionOrEmail(%s,%v) to team %q", assertion, role, team.Name()), func() error { return err })()
+
+	upak, single, doInvite, err := tx.ResolveUPKV2FromAssertionOrEmail(m, assertion)
+	if err != nil {
+		return "", uv, doInvite, err
+	}
+	return tx.AddOrInviteMemberByUPKV2(ctx, upak, single, doInvite, assertion, role, botSettings)
 }
 
 func (tx *AddMemberTx) CompleteInviteByID(ctx context.Context, inviteID keybase1.TeamInviteID, uv keybase1.UserVersion) error {
@@ -696,7 +712,7 @@ func (tx *AddMemberTx) CancelInvite(id keybase1.TeamInviteID, forUID keybase1.UI
 	}
 }
 
-// AddMemberBySBS is very similar in what it does to addMemberByUPAKV2
+// AddMemberBySBS is very similar in what it does to addMemberByUPKV2
 // (or AddMemberBy* family of functions), but it has easier job
 // because it only adds cryptomembers and fails on PUKless users. It
 // also sets invite referenced by `invitee.InviteID` as Completed by
