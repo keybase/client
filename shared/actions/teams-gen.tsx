@@ -37,6 +37,7 @@ export const inviteToTeamByPhone = 'teams:inviteToTeamByPhone'
 export const joinTeam = 'teams:joinTeam'
 export const leaveTeam = 'teams:leaveTeam'
 export const leftTeam = 'teams:leftTeam'
+export const loadTeam = 'teams:loadTeam'
 export const reAddToTeam = 'teams:reAddToTeam'
 export const removeMemberOrPendingInvite = 'teams:removeMemberOrPendingInvite'
 export const removeParticipant = 'teams:removeParticipant'
@@ -72,6 +73,7 @@ export const setTeamsWithChosenChannels = 'teams:setTeamsWithChosenChannels'
 export const setUpdatedChannelName = 'teams:setUpdatedChannelName'
 export const setUpdatedTopic = 'teams:setUpdatedTopic'
 export const teamCreated = 'teams:teamCreated'
+export const teamLoaded = 'teams:teamLoaded'
 export const unsubscribeTeamList = 'teams:unsubscribeTeamList'
 export const updateChannelName = 'teams:updateChannelName'
 export const updateTopic = 'teams:updateTopic'
@@ -160,6 +162,7 @@ type _LeaveTeamPayload = {
   readonly context: 'teams' | 'chat'
 }
 type _LeftTeamPayload = {readonly teamname: string; readonly context: 'teams' | 'chat'}
+type _LoadTeamPayload = {readonly teamID: Types.TeamID}
 type _ReAddToTeamPayload = {readonly teamID: Types.TeamID; readonly username: string}
 type _RemoveMemberOrPendingInvitePayload = {
   readonly email: string
@@ -256,6 +259,7 @@ type _TeamCreatedPayload = {
   readonly teamID: Types.TeamID
   readonly teamname: string
 }
+type _TeamLoadedPayload = {readonly teamID: Types.TeamID; readonly details: Types.TeamDetails}
 type _UnsubscribeTeamListPayload = void
 type _UpdateChannelNamePayload = {
   readonly teamname: Types.Teamname
@@ -407,6 +411,7 @@ export const createInviteToTeamByPhone = (
 ): InviteToTeamByPhonePayload => ({payload, type: inviteToTeamByPhone})
 export const createJoinTeam = (payload: _JoinTeamPayload): JoinTeamPayload => ({payload, type: joinTeam})
 export const createLeaveTeam = (payload: _LeaveTeamPayload): LeaveTeamPayload => ({payload, type: leaveTeam})
+export const createLoadTeam = (payload: _LoadTeamPayload): LoadTeamPayload => ({payload, type: loadTeam})
 export const createReAddToTeam = (payload: _ReAddToTeamPayload): ReAddToTeamPayload => ({
   payload,
   type: reAddToTeam,
@@ -523,6 +528,10 @@ export const createTeamCreated = (payload: _TeamCreatedPayload): TeamCreatedPayl
   payload,
   type: teamCreated,
 })
+export const createTeamLoaded = (payload: _TeamLoadedPayload): TeamLoadedPayload => ({
+  payload,
+  type: teamLoaded,
+})
 export const createUpdateChannelName = (payload: _UpdateChannelNamePayload): UpdateChannelNamePayload => ({
   payload,
   type: updateChannelName,
@@ -627,6 +636,7 @@ export type InviteToTeamByPhonePayload = {
 export type JoinTeamPayload = {readonly payload: _JoinTeamPayload; readonly type: typeof joinTeam}
 export type LeaveTeamPayload = {readonly payload: _LeaveTeamPayload; readonly type: typeof leaveTeam}
 export type LeftTeamPayload = {readonly payload: _LeftTeamPayload; readonly type: typeof leftTeam}
+export type LoadTeamPayload = {readonly payload: _LoadTeamPayload; readonly type: typeof loadTeam}
 export type ReAddToTeamPayload = {readonly payload: _ReAddToTeamPayload; readonly type: typeof reAddToTeam}
 export type RemoveMemberOrPendingInvitePayload = {
   readonly payload: _RemoveMemberOrPendingInvitePayload
@@ -749,6 +759,7 @@ export type SetUpdatedTopicPayload = {
   readonly type: typeof setUpdatedTopic
 }
 export type TeamCreatedPayload = {readonly payload: _TeamCreatedPayload; readonly type: typeof teamCreated}
+export type TeamLoadedPayload = {readonly payload: _TeamLoadedPayload; readonly type: typeof teamLoaded}
 export type UnsubscribeTeamListPayload = {
   readonly payload: _UnsubscribeTeamListPayload
   readonly type: typeof unsubscribeTeamList
@@ -796,6 +807,7 @@ export type Actions =
   | JoinTeamPayload
   | LeaveTeamPayload
   | LeftTeamPayload
+  | LoadTeamPayload
   | ReAddToTeamPayload
   | RemoveMemberOrPendingInvitePayload
   | RemoveParticipantPayload
@@ -831,6 +843,7 @@ export type Actions =
   | SetUpdatedChannelNamePayload
   | SetUpdatedTopicPayload
   | TeamCreatedPayload
+  | TeamLoadedPayload
   | UnsubscribeTeamListPayload
   | UpdateChannelNamePayload
   | UpdateTopicPayload

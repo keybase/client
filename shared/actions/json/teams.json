@@ -57,6 +57,13 @@
     "unsubscribeTeamList": {
       "_description": "Don't eagerly reload team list anymore."
     },
+    "loadTeam": {
+      "teamID": "Types.TeamID"
+    },
+    "teamLoaded": {
+      "teamID": "Types.TeamID",
+      "details": "Types.TeamDetails"
+    },
     "getDetails": {
       "teamname": "string",
       "clearInviteLoadingKey?": "string"

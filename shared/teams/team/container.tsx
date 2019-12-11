@@ -37,8 +37,11 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
-  _loadTeam: (teamname: string) => dispatch(TeamsGen.createGetDetails({teamname})),
+const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
+  loadTeam: () => {
+    const teamID = Container.getRouteProps(ownProps, 'teamID', Types.noTeamID)
+    dispatch(TeamsGen.createGetDetails({teamID}))
+  },
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
@@ -59,7 +62,7 @@ const Connected = Container.compose(
     const customComponent = <CustomTitle teamID={stateProps.teamID} />
     return {
       customComponent,
-      load: () => dispatchProps._loadTeam(stateProps._teamnameTodoRemove),
+      load: dispatchProps.loadTeam,
       onBack: dispatchProps.onBack,
       rows,
       sections,

@@ -87,7 +87,7 @@ export type EmailInviteError = {
 
 export type AddUserToTeamsState = 'notStarted' | 'pending' | 'succeeded' | 'failed'
 
-export type TeamDetails = {
+export type TeamMeta = {
   allowPromote: boolean
   id: TeamID
   isMember: boolean
@@ -96,12 +96,22 @@ export type TeamDetails = {
   role: MaybeTeamRoleType
   showcasing: boolean
   teamname: string
+}
 
-  members?: Map<string, MemberInfo>
-  settings?: TeamSettings
-  invites?: Set<InviteInfo>
-  subteams?: Set<TeamID>
-  requests?: Set<string>
+export type TeamDetails = {
+  members: Map<string, MemberInfo>
+  settings: TeamSettings2
+  invites: Set<InviteInfo>
+  subteams: Set<TeamID>
+  requests: Set<string>
+  description: string
+}
+
+export type TeamSettings2 = {
+  open: boolean
+  openJoinAs: TeamRoleType
+  tarsDisabled: boolean
+  showcaseAllowed: boolean // if members others than admins can showcase
 }
 
 export type TeamRoleAndDetails = {
@@ -131,9 +141,10 @@ export type State = Readonly<{
   teamJoinSuccess: boolean
   teamJoinSuccessTeamName: string
   teamCreationError: string
+  teamMeta: Map<TeamID, TeamMeta>
+  teamMetaStale: boolean // if we've received an update since we last loaded team list
+  teamMetaSubscribeCount: number // if >0 we are eagerly reloading team list
   teamDetails: Map<TeamID, TeamDetails>
-  teamDetailsMetaStale: boolean // if we've received an update since we last loaded team list
-  teamDetailsMetaSubscribeCount: number // if >0 we are eagerly reloading team list
   teamNameToChannelInfos: Map<Teamname, Map<ConversationIDKey, ChannelInfo>>
   teamNameToID: Map<Teamname, string>
   teamNameToLoadingInvites: Map<Teamname, Map<string, boolean>>

@@ -648,7 +648,7 @@ export const teamListToDetails = (
 }
 
 export const annotatedInvitesToInviteInfo = (
-  invites: RPCTypes.TeamDetails['annotatedActiveInvites']
+  invites: Array<RPCTypes.AnnotatedTeamInvite>
 ): Array<Types.InviteInfo> =>
   Object.values(invites).reduce<Array<Types.InviteInfo>>((arr, invite) => {
     const role = teamRoleByEnum[invite.role]
@@ -676,6 +676,32 @@ export const annotatedInvitesToInviteInfo = (
 
 export const getTeamDetails = (state: TypedState, teamID: Types.TeamID) =>
   state.teams.teamDetails.get(teamID) || emptyTeamDetails
+
+export const annotatedTeamToDetails = (t: RPCTypes.AnnotatedTeam): Types.TeamDetails => {
+  const maybeOpenJoinAs = teamRoleByEnum[t.settings.joinAs] ?? 'reader'
+  const members = new Map<string, Types.MemberInfo>()
+  t.members?.forEach(({fullName, status, username}) => {
+    members.set(username, {
+      fullName,
+      status: rpcMemberStatusToStatus[status],
+      type: 'reader', // TODO
+      username,
+    })
+  })
+  return {
+    description: t.showcase.description ?? '',
+    invites: t.invites ? new Set(annotatedInvitesToInviteInfo(t.invites)) : new Set(),
+    members,
+    requests: new Set(t.joinRequests?.map(r => r.name || r.username) ?? []),
+    settings: {
+      open: !!t.settings.open,
+      openJoinAs: maybeOpenJoinAs === 'none' ? 'reader' : maybeOpenJoinAs,
+      showcaseAllowed: t.showcase.anyMemberShowcase,
+      tarsDisabled: t.tarsDisabled,
+    },
+    subteams: new Set(t.transitiveSubteamsUnverified?.entries?.map(e => e.teamID) ?? []),
+  }
+}
 
 const _canUserPerformCache: {[key: string]: Types.TeamOperations} = {}
 const _canUserPerformCacheKey = (t: Types.TeamRoleAndDetails) => t.role + t.implicitAdmin
