@@ -202,10 +202,8 @@ const ConnectedInfoPanel = Container.connect(
       attachmentsLoading: stateProps.attachmentsLoading,
       bots: bots.map(b => ({
         botAlias: stateProps._botAliases[b] || '',
-        fullname:
-          (stateProps._infoMap.get(b) || {fullname: ''}).fullname ||
-          stateProps._participantToContactName.get(b) ||
-          '',
+        description:
+          (stateProps._infoMap.get(b) || {bio: ''}).bio || stateProps._participantToContactName.get(b) || '',
         username: b,
       })),
       canDeleteHistory: stateProps.canDeleteHistory,
