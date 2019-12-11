@@ -100,6 +100,7 @@ export type MessageJourneycard = {
   type: 'journeycard'
   cardType: RPCChatTypes.JourneycardType
   highlightMsgID: MessageID
+  openTeam: boolean
 } & _MessageCommon
 
 // We keep deleted messages around so the bookkeeping is simpler

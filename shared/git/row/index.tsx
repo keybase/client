@@ -32,7 +32,7 @@ const channelNameToString = (channelName?: string) => (channelName ? `#${channel
 
 // TODO use ListItem2
 const Row = (props: Props) => (
-  <Kb.Box style={{width: '100%'}}>
+  <Kb.Box style={styles.container}>
     <Kb.Box
       style={{
         ...(props.expanded
@@ -74,7 +74,7 @@ const Row = (props: Props) => (
             username={props.teamname ? undefined : props.you}
             style={{marginRight: Styles.globalMargins.tiny}}
           />
-          <Kb.Text type="BodySemibold" style={{color: Styles.globalColors.black}}>
+          <Kb.Text lineClamp={1} type="BodySemibold" style={{color: Styles.globalColors.black}}>
             {props.teamname ? `${props.teamname}/${props.name}` : props.name}
           </Kb.Text>
           {props.isNew && (
@@ -219,6 +219,14 @@ const Row = (props: Props) => (
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      container: Styles.platformStyles({
+        common: {
+          width: '100%',
+        },
+        isMobile: {
+          ...Styles.padding(0, Styles.globalMargins.small),
+        },
+      }),
       copyTextContainer: {
         flexShrink: 1,
         marginLeft: Styles.globalMargins.xtiny,
@@ -277,12 +285,17 @@ const styles = Styles.styleSheetCreate(
         paddingLeft: 0,
         width: '100%',
       },
-      rowTop: {
-        ...Styles.globalStyles.flexBoxRow,
-        alignItems: 'center',
-        marginBottom: Styles.globalMargins.xtiny,
-        paddingLeft: Styles.globalMargins.tiny,
-      },
+      rowTop: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.flexBoxRow,
+          alignItems: 'center',
+          marginBottom: Styles.globalMargins.xtiny,
+          width: '100%',
+        },
+        isElectron: {
+          paddingLeft: Styles.globalMargins.tiny,
+        },
+      }),
     } as const)
 )
 

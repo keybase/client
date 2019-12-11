@@ -93,9 +93,11 @@ const LockdownCheckbox = (props: Props) => {
 const Advanced = (props: Props) => (
   <Kb.ScrollView style={styles.scrollview}>
     <Kb.Box style={styles.advancedContainer}>
-      <Kb.Box style={styles.progressContainer}>
-        {props.settingLockdownMode && <Kb.ProgressIndicator />}
-      </Kb.Box>
+      {props.settingLockdownMode && (
+        <Kb.Box style={styles.progressContainer}>
+          <Kb.ProgressIndicator />
+        </Kb.Box>
+      )}
       <Kb.Box style={styles.checkboxContainer}>
         <LockdownCheckbox {...props} />
       </Kb.Box>
@@ -267,9 +269,6 @@ const styles = Styles.styleSheetCreate(() => ({
   advancedContainer: {
     ...Styles.globalStyles.flexBoxColumn,
     flex: 1,
-    paddingBottom: Styles.globalMargins.medium,
-    paddingLeft: Styles.globalMargins.medium,
-    paddingRight: Styles.globalMargins.medium,
     width: '100%',
   },
   checkboxContainer: {
@@ -312,6 +311,7 @@ const styles = Styles.styleSheetCreate(() => ({
     width: '100%',
   },
   scrollview: {
+    ...Styles.padding(0, Styles.globalMargins.small),
     width: '100%',
   },
   text: Styles.platformStyles({

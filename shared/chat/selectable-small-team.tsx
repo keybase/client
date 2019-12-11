@@ -129,11 +129,15 @@ const styles = Styles.styleSheetCreate(() => ({
     height: rowHeight,
   },
   rowContainer: Styles.platformStyles({
-    common: {
+    isElectron: {
+      ...Styles.desktopStyles.clickable,
       paddingLeft: Styles.globalMargins.xtiny,
       paddingRight: Styles.globalMargins.xtiny,
     },
-    isElectron: Styles.desktopStyles.clickable,
+    isMobile: {
+      paddingLeft: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.tiny,
+    },
   }),
   spinner: {
     alignSelf: 'center',

@@ -255,11 +255,17 @@ const styles = Styles.styleSheetCreate(
         paddingLeft: Styles.globalMargins.medium,
         paddingRight: Styles.globalMargins.small,
       },
-      headerContainer: {
-        height: Styles.isMobile ? 56 : 48,
-        padding: Styles.globalMargins.tiny,
-        paddingRight: Styles.globalMargins.small,
-      },
+      headerContainer: Styles.platformStyles({
+        isElectron: {
+          height: 48,
+          padding: Styles.globalMargins.tiny,
+          paddingRight: Styles.globalMargins.small,
+        },
+        isMobile: {
+          ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
+          height: 56,
+        },
+      }),
       labelContainer: {
         flex: 1,
       },

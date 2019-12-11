@@ -1859,12 +1859,9 @@ func assertIsKeybaseInvite(mctx libkb.MetaContext, i SCTeamInvite) bool {
 
 // These signatures contain non-owners inviting owners.
 // They slipped in before that was banned. They are excepted from the rule.
-var hardcodedInviteRuleExceptionSigIDs = map[keybase1.SigID]bool{
-	"c06e8da2959d8c8054fb10e005910716f776b3c3df9ef2eb4c4b8584f45e187f22": true,
+var hardcodedInviteRuleExceptionSigIDs = map[keybase1.SigIDMapKey]bool{
 	"c06e8da2959d8c8054fb10e005910716f776b3c3df9ef2eb4c4b8584f45e187f0f": true,
-	"e800db474fa75f39503e9241990c3707121c7c414687a7b1f5ef579a625eaf8222": true,
 	"e800db474fa75f39503e9241990c3707121c7c414687a7b1f5ef579a625eaf820f": true,
-	"46d9f2700b8d4287a2dc46dae00974a794b5778149214cf91fa4b69229a6abbc22": true,
 	"46d9f2700b8d4287a2dc46dae00974a794b5778149214cf91fa4b69229a6abbc0f": true,
 }
 
@@ -1897,7 +1894,7 @@ func (t *teamSigchainPlayer) sanityCheckInvites(mctx libkb.MetaContext,
 				return nil, nil, fmt.Errorf("encountered invite of owner in non-root team")
 			}
 			if !signerIsExplicitOwner {
-				if !hardcodedInviteRuleExceptionSigIDs[sigID] {
+				if !hardcodedInviteRuleExceptionSigIDs[sigID.ToMapKey()] {
 					return nil, nil, fmt.Errorf("encountered invite of owner by non-owner")
 				}
 			}

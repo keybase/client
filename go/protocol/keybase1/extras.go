@@ -640,37 +640,6 @@ func (s SigID) Exists() bool {
 
 func (s SigID) String() string { return string(s) }
 
-func (s SigID) Equal(t SigID) bool {
-	return s == t
-}
-
-func (s SigID) EqualIgnoreLastByte(t SigID) bool {
-	if len(s) != len(t) || len(s) < 2 {
-		return false
-	}
-	return s[:len(s)-2] == t[:len(t)-2]
-}
-
-func (s SigID) Match(q string, exact bool) bool {
-	if s.IsNil() {
-		return false
-	}
-
-	if exact {
-		return strings.ToLower(s.ToString(true)) == strings.ToLower(q)
-	}
-
-	if strings.HasPrefix(s.ToString(true), strings.ToLower(q)) {
-		return true
-	}
-
-	return false
-}
-
-func (s SigID) NotEqual(t SigID) bool {
-	return !s.Equal(t)
-}
-
 func (s SigID) ToDisplayString(verbose bool) string {
 	if verbose {
 		return string(s)
@@ -686,6 +655,22 @@ func (s SigID) ToString(suffix bool) string {
 		return string(s)
 	}
 	return string(s[0 : len(s)-2])
+}
+
+func (s SigID) PrefixMatch(q string, exact bool) bool {
+	if s.IsNil() {
+		return false
+	}
+
+	if exact {
+		return strings.ToLower(s.ToString(true)) == strings.ToLower(q)
+	}
+
+	if strings.HasPrefix(s.ToString(true), strings.ToLower(q)) {
+		return true
+	}
+
+	return false
 }
 
 func SigIDFromString(s string, suffix bool) (SigID, error) {
@@ -722,6 +707,28 @@ func (s SigID) toBytes() []byte {
 		return nil
 	}
 	return b[0:SIG_ID_LEN]
+}
+
+func (s SigID) Eq(t SigID) bool {
+	b := s.toBytes()
+	c := t.toBytes()
+	if b == nil || c == nil {
+		return false
+	}
+	return hmac.Equal(b, c)
+}
+
+type SigIDMapKey string
+
+// ToMapKey returns the string representation (hex-encoded) of a SigID with the hardcoded 0x0f suffix
+// (for backward comptability with on-disk storage).
+func (s SigID) ToMapKey() SigIDMapKey {
+	tmp := s
+	hexLen := 2 * SIG_ID_LEN
+	if len(tmp) > hexLen {
+		tmp = tmp[0:hexLen]
+	}
+	return SigIDMapKey(fmt.Sprintf("%s%02x", tmp, SIG_ID_SUFFIX))
 }
 
 func (s SigID) ToMediumID() string {
@@ -3543,4 +3550,46 @@ func (b UserBlockedBody) Summarize() UserBlockedSummary {
 		}
 	}
 	return ret
+}
+
+func FilterMembersDetails(membMap map[string]struct{}, details []TeamMemberDetails) (res []TeamMemberDetails) {
+	res = []TeamMemberDetails{}
+	for _, member := range details {
+		if _, ok := membMap[member.Username]; ok {
+			res = append(res, member)
+		}
+	}
+	return res
+}
+
+func FilterTeamDetailsForMembers(usernames []string, details TeamDetails) TeamDetails {
+	membMap := make(map[string]struct{})
+	for _, username := range usernames {
+		membMap[username] = struct{}{}
+	}
+	res := details.DeepCopy()
+	res.Members.Owners = FilterMembersDetails(membMap, res.Members.Owners)
+	res.Members.Admins = FilterMembersDetails(membMap, res.Members.Admins)
+	res.Members.Writers = FilterMembersDetails(membMap, res.Members.Writers)
+	res.Members.Readers = FilterMembersDetails(membMap, res.Members.Readers)
+	res.Members.Bots = FilterMembersDetails(membMap, res.Members.Bots)
+	res.Members.RestrictedBots = FilterMembersDetails(membMap, res.Members.RestrictedBots)
+	return res
+}
+
+func (b FeaturedBot) DisplayName() string {
+	if b.BotAlias == "" {
+		return b.BotUsername
+	}
+	return fmt.Sprintf("%s (%s)", b.BotAlias, b.BotUsername)
+}
+
+func (b FeaturedBot) Owner() string {
+	if b.OwnerTeam != nil {
+		return *b.OwnerTeam
+	}
+	if b.OwnerUser != nil {
+		return *b.OwnerUser
+	}
+	return ""
 }
