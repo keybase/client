@@ -185,6 +185,9 @@ func TestChatSubteamRename(t *testing.T) {
 				nil)
 			require.NoError(t, err)
 			for _, msg := range tv.Messages {
+				if msg.IsJourneycard() {
+					continue
+				}
 				require.True(t, msg.IsValid())
 			}
 		}

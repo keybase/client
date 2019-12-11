@@ -659,6 +659,16 @@ func AddEnvironmentFeatureForTest(tc TestContext, feature Feature) {
 	tc.Tp.EnvironmentFeatureFlags = append(tc.Tp.EnvironmentFeatureFlags, feature)
 }
 
+func RemoveEnvironmentFeatureForTest(tp *TestParameters, feature Feature) {
+	var flags FeatureFlags
+	for _, flag := range tp.EnvironmentFeatureFlags {
+		if flag != feature {
+			flags = append(flags, flag)
+		}
+	}
+	tp.EnvironmentFeatureFlags = flags
+}
+
 // newSecretStoreLockedForTests is a simple function to create
 // SecretStoreLocked for the purposes of unit tests outside of libkb package
 // which need finer control over how secret store is configured.
