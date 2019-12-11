@@ -7,6 +7,7 @@ import {Props as HeaderHocProps} from '../../../common-adapters/header-hoc/types
 import {AdhocHeader, TeamHeader} from './header'
 import {SettingsPanel} from './panels'
 import Participant from './participant'
+import Bot from './bot'
 import {AttachmentTypeSelector, DocView, LinkView, MediaView} from './attachments'
 
 export type Panel = 'settings' | 'members' | 'attachments' | 'bots'
@@ -15,7 +16,13 @@ export type ParticipantTyp = {
   fullname: string
   isAdmin: boolean
   isOwner: boolean
+}
+export type BotTyp = {
+  username: string
   botAlias: string
+  description?: string
+  ownerTeam?: string
+  ownerUser?: string
 }
 export type EntityType = 'adhoc' | 'small team' | 'channel'
 export type Section = {
@@ -414,11 +421,9 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
             return null
           } else {
             return (
-              <Participant
+              <Bot
                 botAlias={item.botAlias}
-                fullname={item.fullname}
-                isAdmin={false}
-                isOwner={false}
+                description={item.description}
                 username={item.username}
                 onShowProfile={this.props.onShowProfile}
               />
