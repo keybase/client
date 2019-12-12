@@ -72,7 +72,7 @@ const ConfirmSend = (props: ConfirmSendProps) => {
                 <>
                   <Kb.Icon
                     type="iconfont-stellar-send"
-                    style={Kb.iconCastPlatformStyles(styles.buttonIcon)}
+                    style={styles.buttonIcon}
                     color={Styles.globalColors.whiteOrWhite}
                   />
                   <Kb.Text type="BodyBig" style={styles.buttonText}>

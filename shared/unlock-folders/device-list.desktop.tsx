@@ -47,40 +47,45 @@ const DeviceList = (props: Props) => (
   </div>
 )
 
-const styles = Styles.styleSheetCreate(() => ({
-  accessFolders: {marginRight: 0},
-  buttonsContainer: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignSelf: 'center',
-    marginRight: 30,
-    marginTop: Styles.globalMargins.small,
-  },
-  devicesContainer: {
-    alignSelf: 'center',
-    backgroundColor: Styles.globalColors.greyLight,
-    height: 162,
-    overflowY: 'scroll' as const,
-    paddingBottom: Styles.globalMargins.small,
-    paddingTop: Styles.globalMargins.small,
-    width: 440,
-  },
-  enterPaperKey: {
-    height: 32,
-    marginRight: 7,
-    width: 236,
-  },
-  iconWrapper: {
-    display: 'flex',
-    justifyContent: 'center',
-    marginLeft: 33,
-    width: 24,
-  },
-  infoText: {
-    marginBottom: 8,
-    marginTop: 5,
-    paddingLeft: 55,
-    paddingRight: 55,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      accessFolders: {marginRight: 0},
+      buttonsContainer: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignSelf: 'center',
+        marginRight: 30,
+        marginTop: Styles.globalMargins.small,
+      },
+      devicesContainer: Styles.platformStyles({
+        isElectron: {
+          alignSelf: 'center',
+          backgroundColor: Styles.globalColors.greyLight,
+          height: 162,
+          overflowY: 'scroll',
+          paddingBottom: Styles.globalMargins.small,
+          paddingTop: Styles.globalMargins.small,
+          width: 440,
+        },
+      }),
+      enterPaperKey: {
+        height: 32,
+        marginRight: 7,
+        width: 236,
+      },
+      iconWrapper: {
+        display: 'flex',
+        justifyContent: 'center',
+        marginLeft: 33,
+        width: 24,
+      },
+      infoText: {
+        marginBottom: 8,
+        marginTop: 5,
+        paddingLeft: 55,
+        paddingRight: 55,
+      },
+    } as const)
+)
 
 export default DeviceList

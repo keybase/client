@@ -3,7 +3,7 @@ import * as Styles from '../../../styles'
 import {Box2} from '../../../common-adapters/box'
 import Divider from '../../../common-adapters/divider'
 import Text from '../../../common-adapters/text'
-import FloatingMenu from '../../../common-adapters/floating-menu'
+import FloatingMenu, {MenuItems} from '../../../common-adapters/floating-menu'
 
 // This is actually a dependency of common-adapters/markdown so we have to treat it like a common-adapter, no * import allowed
 const Kb = {
@@ -20,7 +20,7 @@ type Props = {
   visible: boolean
 }
 
-const items = []
+const items: MenuItems = []
 
 const PaymentStatusError = (props: Props) => {
   const header = {

@@ -454,12 +454,6 @@ module.exports = {
   get ZoomableImage() {
     return require('./zoomable-image.native').default
   },
-  get avatarCastPlatformStyles() {
-    return Index.avatarCastPlatformStyles
-  },
-  get iconCastPlatformStyles() {
-    return Index.iconCastPlatformStyles
-  },
   get isValidIconType() {
     return Index.isValidIconType
   },

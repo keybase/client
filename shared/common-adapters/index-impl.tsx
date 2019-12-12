@@ -331,12 +331,6 @@ module.exports = {
   get animated() {
     return require('./animated').animated
   },
-  get avatarCastPlatformStyles() {
-    return require('./avatar').castPlatformStyles
-  },
-  get iconCastPlatformStyles() {
-    return require('./icon').castPlatformStyles
-  },
   get isValidIconType() {
     return require('./icon.shared').isValidIconType
   },

@@ -26,7 +26,7 @@ const DeviceRow = (props: Props) => {
           current={props.device.currentDevice}
           device={props.device}
           size={32}
-          style={Kb.iconCastPlatformStyles(props.isRevoked ? styles.icon : null)}
+          style={props.isRevoked ? styles.icon : null}
         />
       }
       body={

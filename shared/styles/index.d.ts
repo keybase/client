@@ -2,7 +2,7 @@
 import * as CSS from './css'
 export {default as globalColors} from './colors'
 
-export declare const transition: (...properties: Array<string>) => Object
+export declare const transition: (...properties: Array<string>) => any
 
 type _fakeFontDefSeeCommentsOnThisStyle = {
   fontFamily: 'Keybase'
@@ -69,14 +69,14 @@ export declare const globalStyles: {
 }
 
 export declare const desktopStyles: {
-  boxShadow?: CSS._StylesDesktop
-  clickable?: CSS._StylesDesktop
-  editable?: CSS._StylesDesktop
-  fadeOpacity?: CSS._StylesDesktop
-  noSelect?: CSS._StylesDesktop
-  scrollable?: CSS._StylesDesktop
-  windowDragging?: CSS._StylesDesktop
-  windowDraggingClickable?: CSS._StylesDesktop
+  boxShadow: {boxShadow: ''}
+  clickable: {cursor: 'pointer'}
+  editable: {cursor: 'text'}
+  fadeOpacity: {transition: 'opacity .25s ease-in-out'}
+  noSelect: {userSelect: 'none'}
+  scrollable: {overflowY: 'auto'}
+  windowDragging: {WebkitAppRegion: 'drag'}
+  windowDraggingClickable: {WebkitAppRegion: 'no-drag'}
 }
 
 export declare const mobileStyles: {}
@@ -86,9 +86,9 @@ export declare const borderRadius: number
 export declare const hairlineWidth: number
 export declare function backgroundURL(...path: Array<string>): string
 
-type NamedStyles<T> = {[P in keyof T]: CSS._StylesDesktop | CSS._StylesMobile}
+type NamedStyles = {[key: string]: CSS._StylesCrossPlatform}
 // order important!
-export declare function styleSheetCreate<T extends () => NamedStyles<T>>(styles: T): ReturnType<T>
+export declare function styleSheetCreate<O extends NamedStyles>(styles: () => O): O
 
 type _Elem = Object | null | false | void
 // CollapsibleStyle is a generic version of ?StylesMobile and family,
@@ -132,7 +132,10 @@ export {
   StylesMobile,
   StylesCrossPlatform,
   Color,
-  StylesCrossPlatformWithSomeDisallowed,
+  CustomStyles,
+  _StylesCrossPlatform,
+  _StylesDesktop,
+  _StylesMobile,
 } from './css'
 export {default as classNames} from 'classnames'
 export {default as styled} from '@emotion/styled'
