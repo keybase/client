@@ -1445,12 +1445,17 @@ protocol teams {
     UserTeamVersion version;
   }
 
+  record AnnotatedTeamMemberDetails {
+    TeamMemberDetails details;
+    TeamRole role;
+  }
+
   record AnnotatedTeam {
     TeamID teamID;
     string name;
     SubteamListResult transitiveSubteamsUnverified;
 
-    array<TeamMemberDetails> members;
+    array<AnnotatedTeamMemberDetails> members;
     array<AnnotatedTeamInvite> invites;
     array<TeamJoinRequest> joinRequests;
 
