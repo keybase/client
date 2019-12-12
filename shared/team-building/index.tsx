@@ -203,19 +203,23 @@ const ContactsImportButton = (props: ContactProps) => {
         gap="small"
         style={styles.importContactsContainer}
       >
-        <Kb.Icon type="iconfont-contact-book" color={Styles.globalColors.black} />
+        <Kb.Box2 direction="vertical" style={styles.iconContactBookContainer}>
+          <Kb.Icon type="iconfont-contact-book" color={Styles.globalColors.black} />
+        </Kb.Box2>
         <Kb.Text type="BodyBig" lineClamp={1}>
-          Import your phone contacts
+          Import phone contacts
         </Kb.Text>
-        <Kb.Icon type="iconfont-arrow-right" sizeType="Small" color={Styles.globalColors.black} />
+        <Kb.Icon type="iconfont-arrow-right" sizeType="Small" color={Styles.globalColors.black_20} />
       </Kb.Box2>
     </Kb.ClickableBox>
   )
 }
 
 const SearchHintText = () => (
-  <Kb.Box2 direction="vertical" style={{padding: Styles.globalMargins.small}}>
-    <Kb.Text type="BodySmall">Search anyone on Keybase by typing a username or a full name.</Kb.Text>
+  <Kb.Box2 direction="vertical" style={styles.searchHint}>
+    <Kb.Text type="BodySmall" style={{textAlign: 'center'}}>
+      Search anyone on Keybase by typing a username or a full name.
+    </Kb.Text>
   </Kb.Box2>
 )
 
@@ -762,12 +766,17 @@ const styles = Styles.styleSheetCreate(
           marginTop: Styles.globalMargins.small + 2,
         },
       }),
+      iconContactBookContainer: {
+        alignItems: 'center',
+        marginLeft: Styles.globalMargins.xsmall,
+        width: 48,
+      },
       importContactsButton: {
         marginBottom: Styles.globalMargins.tiny,
       },
       importContactsContainer: {
+        height: 64,
         justifyContent: 'flex-start',
-        padding: Styles.globalMargins.xsmall,
       },
       list: Styles.platformStyles({
         common: {paddingBottom: Styles.globalMargins.small},
@@ -807,6 +816,11 @@ const styles = Styles.styleSheetCreate(
           margin: Styles.globalMargins.xsmall,
         },
       }),
+      searchHint: {
+        paddingLeft: Styles.globalMargins.xlarge,
+        paddingRight: Styles.globalMargins.xlarge,
+        paddingTop: Styles.globalMargins.xlarge,
+      },
       shrinkingGap: {flexShrink: 1, height: Styles.globalMargins.xtiny},
       teamAvatar: Styles.platformStyles({
         isElectron: {
