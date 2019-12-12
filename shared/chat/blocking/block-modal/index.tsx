@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
+import {memoize} from '../../../util/memoize'
 
 export type BlockType = 'chatBlocked' | 'followBlocked'
 export type ReportSettings = {
@@ -333,39 +334,42 @@ class BlockModal extends React.PureComponent<Props, State> {
           ),
         }}
       >
-        <Kb.ScrollView>
-          {(!!teamname || !adderUsername) && (
-            <>
-              <CheckboxRow
-                text={`Leave and block ${teamname || 'this conversation'}`}
-                onCheck={this.setBlockTeam}
-                checked={this.state.blockTeam}
-                disabled={teamCheckboxDisabled}
-              />
-              <Kb.Divider />
-            </>
-          )}
-          {!!adderUsername && this.renderRowsForUsername(adderUsername, true)}
-          {!!this.props.otherUsernames?.length && (
-            <>
-              <Kb.Box2 direction="horizontal" style={styles.greyBox} fullWidth={true}>
-                <Kb.Text type="BodySmall">Also block {adderUsername ? 'others' : 'individuals'}?</Kb.Text>
-              </Kb.Box2>
-              <Kb.List
-                items={this.props.otherUsernames}
-                renderItem={(idx, other) =>
-                  this.renderRowsForUsername(other, idx + 1 === this.props.otherUsernames?.length)
-                }
-              />
-            </>
-          )}
-        </Kb.ScrollView>
+        {(!!teamname || !adderUsername) && (
+          <>
+            <CheckboxRow
+              text={`Leave and block ${teamname || 'this conversation'}`}
+              onCheck={this.setBlockTeam}
+              checked={this.state.blockTeam}
+              disabled={teamCheckboxDisabled}
+            />
+            <Kb.Divider />
+          </>
+        )}
+        {!!adderUsername && this.renderRowsForUsername(adderUsername, true)}
+        {!!this.props.otherUsernames?.length && (
+          <>
+            <Kb.Box2 direction="horizontal" style={styles.greyBox} fullWidth={true}>
+              <Kb.Text type="BodySmall">Also block {adderUsername ? 'others' : 'individuals'}?</Kb.Text>
+            </Kb.Box2>
+            <Kb.List
+              items={this.props.otherUsernames}
+              renderItem={(idx, other) =>
+                this.renderRowsForUsername(other, idx + 1 === this.props.otherUsernames?.length)
+              }
+              style={
+                Styles.isMobile ? styles.grow : getListHeightStyle(this.props.otherUsernames?.length ?? 0)
+              }
+            />
+          </>
+        )}
       </Kb.Modal>
     )
   }
 }
 
 export default BlockModal
+
+const getListHeightStyle = memoize((numOthers: number) => ({height: numOthers >= 3 ? 260 : numOthers * 120}))
 
 const styles = Styles.styleSheetCreate(() => ({
   checkBoxRow: Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
@@ -377,6 +381,7 @@ const styles = Styles.styleSheetCreate(() => ({
     width: '100%',
     ...Styles.padding(Styles.globalMargins.xsmall),
   },
+  grow: {flexGrow: 1},
   iconBox: {flex: 1, paddingLeft: Styles.globalMargins.tiny},
   loadingAnimation: Styles.platformStyles({
     isElectron: {
@@ -393,6 +398,6 @@ const styles = Styles.styleSheetCreate(() => ({
     padding: Styles.globalMargins.medium,
   },
   radioButton: {marginLeft: Styles.globalMargins.large},
-  scroll: {width: '100%'},
+  scroll: Styles.platformStyles({isMobile: {height: '100%'}}),
   shrink: {flexShrink: 1},
 }))
