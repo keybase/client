@@ -60,7 +60,7 @@ const load = () => {
         image={null}
         textComponent={
           <Kb.Text type="BodySmall">
-            You are in <Kb.Text type="BodySmallBold">#somechan</Kb.Text>. Some other channels in this team:
+            You are in <Kb.Text type="BodySmallBold">#somechan</Kb.Text>. Other channels in this team are:
           </Kb.Text>
         }
       />
