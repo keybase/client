@@ -150,7 +150,7 @@
     "lodash": "4.17.15",
     "lottie-ios": "3.0.3",
     "lottie-react-native": "3.1.0",
-    "lottie-react-web": "git://github.com/keybase/lottie-react-web#keybase-changes-off-214",
+    "lottie-react-web": "git://github.com/keybase/lottie-react-web#nojima/keybase-fixes-off-214",
     "memoize-one": "5.0.5",
     "menubar": "6.0.6",
     "moment": "2.24.0",
