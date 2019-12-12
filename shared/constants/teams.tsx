@@ -697,11 +697,12 @@ export const getTeamDetails = (state: TypedState, teamID: Types.TeamID) =>
 export const annotatedTeamToDetails = (t: RPCTypes.AnnotatedTeam): Types.TeamDetails => {
   const maybeOpenJoinAs = teamRoleByEnum[t.settings.joinAs] ?? 'reader'
   const members = new Map<string, Types.MemberInfo>()
-  t.members?.forEach(({fullName, status, username}) => {
+  t.members?.forEach(member => {
+    const {fullName, status, username} = member.details
     members.set(username, {
       fullName,
       status: rpcMemberStatusToStatus[status],
-      type: 'reader', // TODO
+      type: teamRoleByEnum[member.role] || 'none',
       username,
     })
   })
