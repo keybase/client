@@ -361,7 +361,7 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 		chat1.JourneycardType_WELCOME:          func(ctx context.Context) bool { return cc.cardWelcome(ctx, convID, conv, jcd, debugDebug) },
 		chat1.JourneycardType_POPULAR_CHANNELS: func(ctx context.Context) bool { return cc.cardPopularChannels(ctx, convID, conv, jcd, debugDebug) },
 		chat1.JourneycardType_ADD_PEOPLE:       func(ctx context.Context) bool { return cc.cardAddPeople(ctx, conv, jcd, debugDebug) },
-		chat1.JourneycardType_CREATE_CHANNELS:  func(ctx context.Context) bool { return cc.cardCreateChannels(ctx, convID, jcd) },
+		chat1.JourneycardType_CREATE_CHANNELS:  func(ctx context.Context) bool { return cc.cardCreateChannels(ctx, conv, jcd) },
 		chat1.JourneycardType_MSG_ATTENTION:    cardConditionTODO,
 		chat1.JourneycardType_CHANNEL_INACTIVE: func(ctx context.Context) bool { return cc.cardChannelInactive(ctx, jcd, thread, debugDebug) },
 		chat1.JourneycardType_MSG_NO_ANSWER:    func(ctx context.Context) bool { return cc.cardMsgNoAnswer(ctx, conv, jcd, thread, debugDebug) },
@@ -546,10 +546,14 @@ func (cc *JourneyCardManagerSingleUser) cardAddPeople(ctx context.Context, conv 
 
 // Card type: CREATE_CHANNELS (4 on design)
 // Gist: "Go ahead and create #channels around topics you think are missing."
+// Condition: User is at least a writer.
 // Condition: A few weeks have passed.
 // Condition: User has sent a message.
-func (cc *JourneyCardManagerSingleUser) cardCreateChannels(ctx context.Context, convID chat1.ConversationID, jcd journeyCardConvData) bool {
-	return jcd.SentMessage && cc.timeSinceJoined(ctx, convID, jcd, time.Hour*24*14)
+func (cc *JourneyCardManagerSingleUser) cardCreateChannels(ctx context.Context, conv convForJourneycard, jcd journeyCardConvData) bool {
+	if !conv.UntrustedTeamRole.IsWriterOrAbove() {
+		return false
+	}
+	return jcd.SentMessage && cc.timeSinceJoined(ctx, conv.ConvID, jcd, time.Hour*24*14)
 }
 
 // Card type: MSG_NO_ANSWER (C)
