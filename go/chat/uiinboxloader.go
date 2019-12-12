@@ -166,7 +166,8 @@ func (h *UIInboxLoader) flushConvBatch() (err error) {
 		}
 	}()
 	start := time.Now()
-	dat, err := json.Marshal(utils.PresentConversationLocals(ctx, h.G(), h.uid, convs))
+	dat, err := json.Marshal(utils.PresentConversationLocals(ctx, h.G(), h.uid, convs,
+		utils.PresentParticipantsModeInclude))
 	if err != nil {
 		return err
 	}

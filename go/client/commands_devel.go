@@ -29,8 +29,7 @@ func getBuildSpecificCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext
 		newCmdTeamGenerateSeitan(cl, g),
 		newCmdTeamRotateKey(cl, g),
 		newCmdTeamDebug(cl, g),
-		newCmdScript(cl, g),
-		NwCmdContacts(cl, g),
+		NewCmdContacts(cl, g),
 		NewCmdPeopleSearch(cl, g),
 		newCmdTestAirdropReg(cl, g),
 	}
@@ -46,6 +45,8 @@ func getBuildSpecificChatCommands(cl *libcmdline.CommandLine, g *libkb.GlobalCon
 		newCmdChatRemoveBotMember(cl, g),
 		newCmdChatEditBotMember(cl, g),
 		newCmdChatBotMemberSettings(cl, g),
+		newCmdChatFeaturedBots(cl, g),
+		newCmdChatSearchBots(cl, g),
 	}
 }
 

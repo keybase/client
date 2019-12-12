@@ -307,12 +307,19 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 		}
 		ordinal := 1 // Won't conflict with outbox messages since they are all <= outboxOrdinalStart.
 		cc.Debug(ctx, "makeCard -> prevID:%v cardType:%v jcdCtime:%v", pos.PrevID, cardType, jcd.Ctime.Time())
-		return &chat1.MessageUnboxedJourneycard{
+		res := chat1.MessageUnboxedJourneycard{
 			PrevID:         pos.PrevID,
 			Ordinal:        ordinal,
 			CardType:       cardType,
 			HighlightMsgID: highlightMsgID,
-		}, nil
+		}
+		if cardType == chat1.JourneycardType_ADD_PEOPLE {
+			res.OpenTeam, err = cc.isOpenTeam(ctx, conv)
+			if err != nil {
+				cc.Debug(ctx, "isOpenTeam error: %v", err)
+			}
+		}
+		return &res, nil
 	}
 
 	if debug {
@@ -547,12 +554,11 @@ func (cc *JourneyCardManagerSingleUser) cardCreateChannels(ctx context.Context, 
 
 // Card type: MSG_NO_ANSWER (C)
 // Gist: "People haven't been talkative in a while. Perhaps post in another channel? <list of channels>"
-// Condition: The team has channels besides general.
-// Condition: The last visible message is old, was sent by the logged-in user, and was a long text message.
+// Condition: In a channel besides general.
+// Condition: The last visible message is old, was sent by the logged-in user, and was a long text message, and has not been reacted to.
 func (cc *JourneyCardManagerSingleUser) cardMsgNoAnswer(ctx context.Context, conv convForJourneycard,
 	jcd journeyCardConvData, thread *chat1.ThreadView, debugDebug logFn) bool {
-	otherChannelsExist := conv.GetTeamType() == chat1.TeamType_COMPLEX
-	if !otherChannelsExist {
+	if conv.IsGeneralChannel {
 		return false
 	}
 	// If the latest message is eligible then show the card.
@@ -586,10 +592,11 @@ func (cc *JourneyCardManagerSingleUser) cardMsgNoAnswer(ctx context.Context, con
 				switch msg.GetMessageType() {
 				case chat1.MessageType_TEXT:
 					const howLongIsLong = 40
-					const howOldIsOld = time.Hour * 24
+					const howOldIsOld = time.Hour * 24 * 3
 					isLong := (len(msg.Valid().MessageBody.Text().Body) >= howLongIsLong)
 					isOld := (cc.G().GetClock().Since(msg.Valid().ServerHeader.Ctime.Time()) >= howOldIsOld)
-					answer := isLong && isOld
+					hasNoReactions := len(msg.Valid().Reactions.Reactions) == 0
+					answer := isLong && isOld && hasNoReactions
 					return answer
 				default:
 					return false
@@ -835,6 +842,14 @@ func (cc *JourneyCardManagerSingleUser) saveJoinedTimeWithLockInner(ctx context.
 	if err != nil {
 		cc.Debug(ctx, "storage put error: %v", err)
 	}
+}
+
+func (cc *JourneyCardManagerSingleUser) isOpenTeam(ctx context.Context, conv convForJourneycard) (open bool, err error) {
+	teamID, err := keybase1.TeamIDFromString(conv.TlfID.String())
+	if err != nil {
+		return false, err
+	}
+	return cc.G().GetTeamLoader().IsOpenCached(ctx, teamID)
 }
 
 // TimeTravel simulates moving all known conversations forward in time.

@@ -227,9 +227,9 @@ func (b *BackgroundConvLoader) Stop(ctx context.Context) chan struct{} {
 	b.cancelActiveLoadsLocked()
 	ch := make(chan struct{})
 	if b.started {
+		b.started = false
 		close(b.stopCh)
 		b.stopCh = make(chan struct{})
-		b.started = false
 		go func() {
 			_ = b.eg.Wait()
 			close(ch)
@@ -322,6 +322,12 @@ func (b *BackgroundConvLoader) isSuspended() bool {
 	b.Lock()
 	defer b.Unlock()
 	return b.suspendCount > 0
+}
+
+func (b *BackgroundConvLoader) isRunning() bool {
+	b.Lock()
+	defer b.Unlock()
+	return b.started
 }
 
 func (b *BackgroundConvLoader) enqueue(ctx context.Context, task clTask) error {
@@ -417,12 +423,16 @@ func (b *BackgroundConvLoader) loadLoop(uid gregor1.UID, stopCh chan struct{}) e
 	for {
 		select {
 		case task := <-b.loadCh:
-			if b.isSuspended() {
+			switch {
+			case !b.isRunning():
+				b.Debug(bgctx, "loadLoop: shutting down for %s", uid)
+				return nil
+			case b.isSuspended():
 				b.Debug(bgctx, "loadLoop: suspended, re-enqueueing task: %s", task.job)
 				if err := b.enqueue(bgctx, *task); err != nil {
 					b.Debug(bgctx, "enqueue error %s", err)
 				}
-			} else {
+			default:
 				b.Debug(bgctx, "loadLoop: running task: %s", task.job)
 				nextTask := b.load(bgctx, *task, uid)
 				if nextTask != nil {
@@ -465,7 +475,7 @@ func (b *BackgroundConvLoader) IsBackgroundActive() bool {
 }
 
 func (b *BackgroundConvLoader) load(ictx context.Context, task clTask, uid gregor1.UID) *clTask {
-	b.Debug(ictx, "load: loading conversation %s", task.job)
+	defer b.Trace(ictx, func() error { return nil }, "load: %s", task.job)()
 	b.Lock()
 	var al activeLoad
 	al.Ctx, al.CancelFn = context.WithCancel(

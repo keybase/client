@@ -428,10 +428,10 @@
 			"revisionTime": "2016-05-17T06:10:00Z"
 		},
 		{
-			"checksumSHA1": "QPqgeDww5ENR6diSPCwNthJKXKw=",
+			"checksumSHA1": "f8ZUxvpenk9eQXrFMpg8L6x68SM=",
 			"path": "github.com/keybase/cli",
-			"revision": "5f59dc7950a7cc1ef374962cc6f6ff7527558806",
-			"revisionTime": "2018-11-19T22:17:51Z"
+			"revision": "5520171b294b988b8f73b43e3da3a3df3e322985",
+			"revisionTime": "2019-12-09T22:25:22Z"
 		},
 		{
 			"checksumSHA1": "qtfSDF71FbCm7kTNKdraxOpU7wY=",
@@ -664,14 +664,14 @@
 		{
 			"checksumSHA1": "0g+4y2vw5URLtwp0YZLoRYDymkg=",
 			"path": "github.com/keybase/keybase-test-vectors/go",
-                        "revision": "71c4d8fbb90f46b0001f605dcec24e45c93dba97",
-                        "revisionTime": "2019-07-23T20:28:32Z"
+			"revision": "71c4d8fbb90f46b0001f605dcec24e45c93dba97",
+			"revisionTime": "2019-07-23T20:28:32Z"
 		},
 		{
-			"checksumSHA1": "3hrt5lKDdm93ORAOJGWhyMqSzDw=",
+			"checksumSHA1": "xbgwz0FAlOizDyRxDEil92l0XQk=",
 			"path": "github.com/keybase/keybase-test-vectors/teamchains",
-                        "revision": "71c4d8fbb90f46b0001f605dcec24e45c93dba97",
-                        "revisionTime": "2019-07-23T20:28:32Z"
+			"revision": "8aedd2a35c8130cb7252109883dc008933d1a3f4",
+			"revisionTime": "2019-12-06T08:11:17Z"
 		},
 		{
 			"checksumSHA1": "ZdePViRYZkdmfd90nl7tUu2JzsU=",
@@ -1421,7 +1421,7 @@
 			"revision": "ae63d5d566065c97ac339d045f06c2da5ebd66df",
 			"revisionTime": "2016-12-08T01:05:43Z"
 		},
-                {
+		{
 			"checksumSHA1": "YZYOu6/4YflDU86yjO6MAsCVimE=",
 			"path": "golang.org/x/mobile/bind",
 			"revision": "a42111704963f4f0d1266674e1e97489aa8dcca0",

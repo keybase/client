@@ -359,7 +359,6 @@ func TestInboxSourceMarkAsRead(t *testing.T) {
 }
 
 func TestInboxChatBlockingAlsoUserBlocks(t *testing.T) {
-	t.Skip()
 	ctc := makeChatTestContext(t, "TestInboxBlocking", 3)
 	defer ctc.cleanup()
 	users := ctc.users()
@@ -379,7 +378,7 @@ func TestInboxChatBlockingAlsoUserBlocks(t *testing.T) {
 		require.Error(t, err)
 		require.IsType(t, err, libkb.AppStatusError{})
 		aerr, _ := err.(libkb.AppStatusError)
-		if aerr.Code != libkb.SCDeviceBadStatus {
+		if aerr.Code != libkb.SCTeamContactSettingsBlock {
 			panic("unexpected error adding user to team")
 		}
 		return true
