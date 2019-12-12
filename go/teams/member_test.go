@@ -1589,8 +1589,6 @@ func TestAddMemberWithRestrictiveContactSettings(t *testing.T) {
 	_, err = kbtest.RunTrack(tc, charlie, alice.Username)
 	require.NoError(t, err)
 
-	err = tc.Logout()
-
 	// alice can add charlie
 	err = tc.Logout()
 	require.NoError(t, err)
