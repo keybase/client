@@ -1,4 +1,5 @@
 import * as AutoresetGen from './autoreset-gen'
+import * as LoginGen from './login-gen'
 import * as Constants from '../constants/autoreset'
 import * as Container from '../util/container'
 import * as NotificationsGen from './notifications-gen'
@@ -27,6 +28,15 @@ const cancelReset = async () => {
   try {
     await RPCGen.accountCancelResetRpcPromise(undefined, Constants.cancelResetWaitingKey)
   } catch (error) {
+    if (error.code === RPCGen.StatusCode.scnosession) {
+      return LoginGen.createLoginError({
+        error: Object.assign({}, error, {
+          message:
+            'Could not cancel reset. Either the reset has already completed, or your device was revoked.',
+        }),
+      })
+    }
+    logger.error('Error in CancelAutoreset', error)
     return AutoresetGen.createResetError({error})
   }
   return AutoresetGen.createResetCancelled()
