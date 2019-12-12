@@ -539,22 +539,29 @@ func TestReAddMemberWithSameUV(t *testing.T) {
 	jun := fus[2] // pukless user
 	hal := fus[3] // pukless user (eldest=0)
 
-	kbtest.ResetAccount(*tcs[3], fus[3]) // reset hal
+	tcAnn := tcs[0] // crypto user
+	tcBob := tcs[1] // crypto user
+	tcHal := tcs[3] // pukless user (eldest=0)
+
+	kbtest.ResetAccount(*tcHal, hal) // reset hal
 
 	impteamName := strings.Join([]string{ann.Username, bob.Username, jun.Username, hal.Username}, ",")
 	t.Logf("ann creates an implicit team: %v", impteamName)
-	teamObj, _, _, err := LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, impteamName, false /*isPublic*/)
+	teamObj, _, _, err := LookupOrCreateImplicitTeam(context.Background(), tcAnn.G, impteamName, false /*isPublic*/)
 	require.NoError(t, err)
 
 	t.Logf("created team id: %s", teamObj.ID)
 
-	err = reAddMemberAfterResetInner(context.Background(), tcs[0].G, teamObj.ID, bob.Username)
+	err = reAddMemberAfterResetInner(context.Background(), tcAnn.G, teamObj.ID, bob.Username)
 	require.IsType(t, UserHasNotResetError{}, err)
 
-	err = ReAddMemberAfterReset(context.Background(), tcs[0].G, teamObj.ID, jun.Username)
+	err = reAddMemberAfterResetInner(context.Background(), tcAnn.G, teamObj.ID, jun.Username)
+	require.IsType(t, UserHasNotResetError{}, err)
+
+	err = ReAddMemberAfterReset(context.Background(), tcAnn.G, teamObj.ID, jun.Username)
 	require.NoError(t, err) // error should be supressed
 
-	err = reAddMemberAfterResetInner(context.Background(), tcs[0].G, teamObj.ID, hal.Username)
+	err = reAddMemberAfterResetInner(context.Background(), tcAnn.G, teamObj.ID, hal.Username)
 	require.IsType(t, UserHasNotResetError{}, err)
 
 	// Now, the fun part (bug CORE-8099):
@@ -565,12 +572,12 @@ func TestReAddMemberWithSameUV(t *testing.T) {
 	// (it's an implicit team weirdness - "invite" link has no way of
 	// removing old membership).
 
-	kbtest.ResetAccount(*tcs[1], fus[1]) // reset bob
-	err = ReAddMemberAfterReset(context.Background(), tcs[0].G, teamObj.ID, bob.Username)
+	kbtest.ResetAccount(*tcBob, bob) // reset bob
+	err = reAddMemberAfterResetInner(context.Background(), tcAnn.G, teamObj.ID, bob.Username)
 	require.NoError(t, err)
 
 	// Subsequent calls should start UserHasNotResetErrorin again
-	err = reAddMemberAfterResetInner(context.Background(), tcs[0].G, teamObj.ID, bob.Username)
+	err = reAddMemberAfterResetInner(context.Background(), tcAnn.G, teamObj.ID, bob.Username)
 	require.IsType(t, UserHasNotResetError{}, err)
 }
 
@@ -776,59 +783,53 @@ func TestCaseSensitiveDisplayNames(t *testing.T) {
 }
 
 func TestReAddMemberAfterResetWithRestrictiveContactSettings(t *testing.T) {
-	fus, tcs, cleanup := setupNTestsWithPukless(t, 4, 2)
+	fus, tcs, cleanup := setupNTestsWithPukless(t, 3, 1)
 	defer cleanup()
 
 	ann := fus[0] // crypto user
 	bob := fus[1] // crypto user
 	jun := fus[2] // pukless user
-	hal := fus[3] // pukless user (eldest=0)
 
-	kbtest.ResetAccount(*tcs[3], fus[3]) // reset hal
+	tcAnn := tcs[0] // crypto user
+	tcBob := tcs[1] // crypto user
+	tcJun := tcs[2] // pukless user
 
-	impteamName := strings.Join([]string{ann.Username, bob.Username, jun.Username, hal.Username}, ",")
+	impteamName := strings.Join([]string{ann.Username, bob.Username, jun.Username}, ",")
 	t.Logf("ann creates an implicit team: %v", impteamName)
-	teamObj, _, _, err := LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, impteamName, false /*isPublic*/)
+	teamObj, _, _, err := LookupOrCreateImplicitTeam(context.Background(), tcAnn.G, impteamName, false /*isPublic*/)
 	require.NoError(t, err)
 
 	t.Logf("created team id: %s", teamObj.ID)
 
 	// bob resets
-	kbtest.ResetAccount(*tcs[1], bob)
+	kbtest.ResetAccount(*tcBob, bob)
 
 	// bob sets contact settings
-	err = bob.Login(tcs[1].G)
+	err = bob.Login(tcBob.G)
 	require.NoError(t, err)
-	kbtest.SetContactSettings(*tcs[1], bob, keybase1.ContactSettings{
+	kbtest.SetContactSettings(*tcBob, bob, keybase1.ContactSettings{
 		Enabled:              true,
 		AllowFolloweeDegrees: 0,
 	})
-	err = tcs[1].Logout()
+	err = tcBob.Logout()
 	require.NoError(t, err)
 
-	err = reAddMemberAfterResetInner(context.Background(), tcs[0].G, teamObj.ID, bob.Username)
-	require.IsType(t, libkb.AppStatusError{}, err) // should fail with TeamContactSettingsBlockError ...
+	err = reAddMemberAfterResetInner(context.Background(), tcAnn.G, teamObj.ID, bob.Username)
+	require.NoError(t, err) // changing contact settings doesn't affect existing teams
 
-	/*
-		err = ReAddMemberAfterReset(context.Background(), tcs[0].G, teamObj.ID, jun.Username)
-		require.NoError(t, err)
+	// jun resets
+	kbtest.ResetAccount(*tcJun, jun)
 
-		err = reAddMemberAfterResetInner(context.Background(), tcs[0].G, teamObj.ID, hal.Username)
-		require.IsType(t, UserHasNotResetError{}, err)
+	// jun sets contact settings
+	err = jun.Login(tcJun.G)
+	require.NoError(t, err)
+	kbtest.SetContactSettings(*tcJun, jun, keybase1.ContactSettings{
+		Enabled:              true,
+		AllowFolloweeDegrees: 0,
+	})
+	err = tcJun.Logout()
+	require.NoError(t, err)
 
-		// Now, the fun part (bug CORE-8099):
-
-		// Bob resets, ann re-adds bob by posting an "invite" link, so
-		// from chain point of view there are two active memberships for
-		// bob: cryptomember from before reset and invite from after reset
-		// (it's an implicit team weirdness - "invite" link has no way of
-		// removing old membership).
-
-		err = ReAddMemberAfterReset(context.Background(), tcs[0].G, teamObj.ID, bob.Username)
-		require.NoError(t, err)
-
-		// Subsequent calls should start UserHasNotResetErrorin again
-		err = reAddMemberAfterResetInner(context.Background(), tcs[0].G, teamObj.ID, bob.Username)
-		require.IsType(t, UserHasNotResetError{}, err)
-	*/
+	err = reAddMemberAfterResetInner(context.Background(), tcAnn.G, teamObj.ID, jun.Username)
+	require.NoError(t, err) // changing contact settings doesn't affect existing teams
 }
