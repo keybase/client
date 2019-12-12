@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"sort"
 	"strconv"
 	"strings"
@@ -930,6 +931,17 @@ func GetConvMtime(rc types.RemoteConversation) (res gregor1.Time) {
 		return res
 	}
 	return rc.LocalMtime
+}
+
+// GetConvPriorityScore weighs conversations that are fully read above ones
+// that are not, weighting more recently modified conversations higher.. Used
+// to order conversations when background loading.
+func GetConvPriorityScore(rc types.RemoteConversation) float64 {
+	readMsgID := rc.GetReadMsgID()
+	maxMsgID := rc.Conv.ReaderInfo.MaxMsgid
+	mtime := GetConvMtime(rc)
+	dur := math.Abs(float64(time.Since(mtime.Time())) / float64(time.Hour))
+	return 100 / math.Pow(dur+float64(maxMsgID-readMsgID), 0.5)
 }
 
 type MessageSummaryContainer interface {

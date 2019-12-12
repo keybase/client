@@ -455,7 +455,7 @@ func (s *searchSession) initRun(ctx context.Context) (shouldRun bool, err error)
 	if err != nil {
 		return false, err
 	}
-	s.convList = s.indexer.convsByMTime(ctx, s.uid, s.convMap)
+	s.convList = s.indexer.convsPrioritySorted(ctx, s.uid, s.convMap)
 	if len(s.convList) == 0 {
 		return false, nil
 	}
