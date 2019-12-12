@@ -69,7 +69,7 @@ const TeamJourneyContainer = (props: Props) => {
           </Kb.Text>
           <Kb.Text type="BodySmall">
             {props.otherChannelsForPopular.length
-              ? `Some other channels in this team:`
+              ? `Other channels in this team are:`
               : `And you're in all the other channels, nice.`}
           </Kb.Text>
         </Kb.Box2>
