@@ -689,6 +689,8 @@ const emptyTeamDetails = Object.freeze<Types.TeamDetails>({
   subteams: new Set(),
 } as Types.TeamDetails)
 
+export const emptyTeamSettings = Object.freeze(emptyTeamDetails.settings)
+
 export const getTeamDetails = (state: TypedState, teamID: Types.TeamID) =>
   state.teams.teamDetails.get(teamID) ?? emptyTeamDetails
 

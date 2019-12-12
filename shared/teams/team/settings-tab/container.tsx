@@ -13,20 +13,20 @@ export type OwnProps = {
 
 const mapStateToProps = (state, {teamID}: OwnProps) => {
   const teamMeta = Constants.getTeamMeta(state, teamID)
+  const teamDetails = Constants.getTeamDetails(state, teamID)
   const {teamname} = teamMeta
   const publicitySettings = Constants.getTeamPublicitySettings(state, teamname)
   const publicityAnyMember = publicitySettings.anyMemberShowcase
   const publicityMember = publicitySettings.member
   const publicityTeam = publicitySettings.team
-  const settings = teamDetails.settings || Constants.initialTeamSettings
-  const openTeamRole: Types.MaybeTeamRoleType = Constants.teamRoleByEnum[settings.joinAs] || 'none'
+  const settings = teamDetails.settings
   return {
     canShowcase: teamMeta.allowPromote || teamMeta.role === 'admin' || teamMeta.role === 'owner',
     ignoreAccessRequests: publicitySettings.ignoreAccessRequests,
     isBigTeam: Constants.isBigTeam(state, teamname),
     openTeam: settings.open,
     // Cast to TeamRoleType
-    openTeamRole: openTeamRole === 'none' ? 'reader' : openTeamRole,
+    openTeamRole: settings.openJoinAs,
     publicityAnyMember,
     publicityMember,
     publicityTeam,
