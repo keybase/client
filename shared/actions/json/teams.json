@@ -64,6 +64,10 @@
       "teamID": "Types.TeamID",
       "details": "Types.TeamDetails"
     },
+    "setTeamVersion": {
+      "teamID": "Types.TeamID",
+      "version": "Types.TeamVersion"
+    },
     "getDetails": {
       "teamname": "string",
       "clearInviteLoadingKey?": "string"

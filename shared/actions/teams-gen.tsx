@@ -69,6 +69,7 @@ export const setTeamRoleMap = 'teams:setTeamRoleMap'
 export const setTeamRoleMapLatestKnownVersion = 'teams:setTeamRoleMapLatestKnownVersion'
 export const setTeamSawChatBanner = 'teams:setTeamSawChatBanner'
 export const setTeamSawSubteamsBanner = 'teams:setTeamSawSubteamsBanner'
+export const setTeamVersion = 'teams:setTeamVersion'
 export const setTeamsWithChosenChannels = 'teams:setTeamsWithChosenChannels'
 export const setUpdatedChannelName = 'teams:setUpdatedChannelName'
 export const setUpdatedTopic = 'teams:setUpdatedTopic'
@@ -243,6 +244,7 @@ type _SetTeamRoleMapLatestKnownVersionPayload = {readonly version: number}
 type _SetTeamRoleMapPayload = {readonly map: Types.TeamRoleMap}
 type _SetTeamSawChatBannerPayload = void
 type _SetTeamSawSubteamsBannerPayload = void
+type _SetTeamVersionPayload = {readonly teamID: Types.TeamID; readonly version: Types.TeamVersion}
 type _SetTeamsWithChosenChannelsPayload = {readonly teamsWithChosenChannels: Set<Types.Teamname>}
 type _SetUpdatedChannelNamePayload = {
   readonly teamname: Types.Teamname
@@ -514,6 +516,10 @@ export const createSetTeamSawChatBanner = (
 export const createSetTeamSawSubteamsBanner = (
   payload: _SetTeamSawSubteamsBannerPayload
 ): SetTeamSawSubteamsBannerPayload => ({payload, type: setTeamSawSubteamsBanner})
+export const createSetTeamVersion = (payload: _SetTeamVersionPayload): SetTeamVersionPayload => ({
+  payload,
+  type: setTeamVersion,
+})
 export const createSetTeamsWithChosenChannels = (
   payload: _SetTeamsWithChosenChannelsPayload
 ): SetTeamsWithChosenChannelsPayload => ({payload, type: setTeamsWithChosenChannels})
@@ -746,6 +752,10 @@ export type SetTeamSawSubteamsBannerPayload = {
   readonly payload: _SetTeamSawSubteamsBannerPayload
   readonly type: typeof setTeamSawSubteamsBanner
 }
+export type SetTeamVersionPayload = {
+  readonly payload: _SetTeamVersionPayload
+  readonly type: typeof setTeamVersion
+}
 export type SetTeamsWithChosenChannelsPayload = {
   readonly payload: _SetTeamsWithChosenChannelsPayload
   readonly type: typeof setTeamsWithChosenChannels
@@ -839,6 +849,7 @@ export type Actions =
   | SetTeamRoleMapPayload
   | SetTeamSawChatBannerPayload
   | SetTeamSawSubteamsBannerPayload
+  | SetTeamVersionPayload
   | SetTeamsWithChosenChannelsPayload
   | SetUpdatedChannelNamePayload
   | SetUpdatedTopicPayload

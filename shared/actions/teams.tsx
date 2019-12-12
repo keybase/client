@@ -500,12 +500,16 @@ async function createNewTeamFromConversation(
   })
 }
 
+// We reload teams eagerly on updates if any of their versions increases and
+// we've previously loaded the team in this session.
+const interestedTeams: Set<Types.TeamID> = new Set()
 const loadTeam = async (_: TypedState, action: TeamsGen.LoadTeamPayload, logger: Saga.SagaLogger) => {
   const {teamID} = action.payload
   if (!teamID || teamID === Types.noTeamID) {
     logger.warn('bail on invalid team ID')
     return
   }
+  interestedTeams.add(teamID)
   const team = await RPCTypes.teamsGetAnnotatedTeamRpcPromise({teamID})
   return TeamsGen.createTeamLoaded({details: Constants.annotatedTeamToDetails(team), teamID})
 }
@@ -998,14 +1002,19 @@ function* setPublicity(state: TypedState, action: TeamsGen.SetPublicityPayload, 
 }
 
 const teamChangedByID = (state: TypedState, action: EngineGen.Keybase1NotifyTeamTeamChangedByIDPayload) => {
-  const {teamID} = action.payload.params
-  const selectedTeams = Constants.getSelectedTeams()
-  if (selectedTeams.includes(teamID) && _wasOnTeamsTab()) {
-    // only reload if that team is selected
-    const teamname = Constants.getTeamNameFromID(state, teamID)
-    return [!!teamname && TeamsGen.createGetDetails({teamname})]
+  const {teamID, latestHiddenSeqno, latestOffchainSeqno, latestSeqno} = action.payload.params
+  const version = state.teams.teamVersion.get(teamID)
+  let versionChanged = false
+  if (version) {
+    versionChanged =
+      latestHiddenSeqno > version.latestHiddenSeqno ||
+      latestOffchainSeqno > version.latestOffchainSeqno ||
+      latestSeqno > version.latestSeqno
   }
-  return getLoadCalls()
+  return [
+    TeamsGen.createSetTeamVersion({teamID, version: {latestHiddenSeqno, latestOffchainSeqno, latestSeqno}}),
+    versionChanged && interestedTeams.has(teamID) && TeamsGen.createLoadTeam({teamID}),
+  ]
 }
 
 const teamRoleMapChangedUpdateLatestKnownVersion = (
@@ -1246,8 +1255,6 @@ const badgeAppForTeams = (state: TypedState, action: NotificationsGen.ReceivedBa
   )
   return actions
 }
-
-const _wasOnTeamsTab = () => Constants.isOnTeamsTab()
 
 const gregorPushState = (_: TypedState, action: GregorGen.PushStatePayload) => {
   const actions: Array<TypedActions> = []

@@ -125,6 +125,12 @@ export type TeamRoleMap = {
   roles: Map<TeamID, TeamRoleAndDetails>
 }
 
+export type TeamVersion = {
+  latestSeqno: number
+  latestHiddenSeqno: number
+  latestOffchainSeqno: number
+}
+
 export type State = Readonly<{
   addUserToTeamsState: AddUserToTeamsState
   addUserToTeamsResults: string
@@ -152,6 +158,7 @@ export type State = Readonly<{
   teamNameToResetUsers: Map<Teamname, Set<ResetUser>>
   teamNameToRetentionPolicy: Map<Teamname, RetentionPolicy>
   teamNameToPublicitySettings: Map<Teamname, _PublicitySettings>
+  teamVersion: Map<TeamID, TeamVersion>
   teamnames: Set<Teamname> // TODO remove
   teamProfileAddList: Array<TeamProfileAddList>
   teamRoleMap: TeamRoleMap

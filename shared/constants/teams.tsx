@@ -190,6 +190,7 @@ const emptyState: Types.State = {
   teamNameToRetentionPolicy: new Map(),
   teamProfileAddList: [],
   teamRoleMap: {latestKnownVersion: -1, loadedVersion: -1, roles: new Map()},
+  teamVersion: new Map(),
   teamnames: new Set(),
   teamsWithChosenChannels: new Set(),
 }
