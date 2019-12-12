@@ -173,12 +173,12 @@ const Connected = Container.namedConnect(
     }
     let smallRows = makeSmallRows(smallTeams)
     let bigRows = makeBigRows(bigTeams)
-    const teamBuilder: Array<RowItemTeamBuilder> = [{type: 'teamBuilder'}]
+    const teamBuilder: RowItemTeamBuilder = {type: 'teamBuilder'}
     if (smallRows.length !== 0) {
       if (bigRows.length === 0) {
-        smallRows = [...smallRows, ...teamBuilder]
+        smallRows.push(teamBuilder)
       } else {
-        bigRows = [...bigRows, ...teamBuilder]
+        bigRows.push(teamBuilder)
       }
     }
     const divider: Array<RowItemDivider> =
