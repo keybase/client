@@ -2349,10 +2349,6 @@ func isTeamBadGenerationError(err error) bool {
 	return libkb.IsAppStatusCode(err, keybase1.StatusCode_SCTeamBadGeneration)
 }
 
-func isTeamContactSettingsBlock(err error) bool {
-	return libkb.IsAppStatusCode(err, keybase1.StatusCode_SCTeamContactSettingsBlock)
-}
-
 func (t *Team) marshal(incoming interface{}) ([]byte, error) {
 	var data []byte
 	mh := codec.MsgpackHandle{WriteExt: true}
