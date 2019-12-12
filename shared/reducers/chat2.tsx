@@ -1,5 +1,6 @@
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as TeamBuildingGen from '../actions/team-building-gen'
+import * as BotsGen from '../actions/bots-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as Constants from '../constants/chat2'
 import * as Container from '../util/container'
@@ -20,7 +21,7 @@ type EngineActions =
   | EngineGen.Chat1ChatUiChatBotCommandsUpdateStatusPayload
   | EngineGen.Chat1ChatUiChatInboxLayoutPayload
 
-type Actions = Chat2Gen.Actions | TeamBuildingGen.Actions | EngineActions
+type Actions = Chat2Gen.Actions | TeamBuildingGen.Actions | EngineActions | BotsGen.UpdateFeaturedBotsPayload
 
 const initialState: Types.State = Constants.makeState()
 
@@ -53,6 +54,13 @@ const messageIDToOrdinal = (
   }
 
   return null
+}
+
+const botActions: Container.ActionHandler<Actions, Types.State> = {
+  [BotsGen.updateFeaturedBots]: (draftState, action) => {
+    const {bots} = action.payload
+    draftState.featuredBots = bots
+  },
 }
 
 const audioActions: Container.ActionHandler<Actions, Types.State> = {
@@ -1465,6 +1473,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     }
   },
   ...audioActions,
+  ...botActions,
   ...giphyActions,
   ...paymentActions,
   ...searchActions,

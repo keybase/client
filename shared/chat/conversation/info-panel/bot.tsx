@@ -5,7 +5,7 @@ import * as Styles from '../../../styles'
 import {FeaturedBot} from 'constants/types/rpc-gen'
 
 type Props = {
-  username: string
+  botUsername: string
   botAlias: string
   description?: string
   ownerTeam?: string
@@ -13,27 +13,31 @@ type Props = {
   onShowProfile: (username: string) => void
 }
 
-const Bot = ({botAlias, description, username, ownerTeam, ownerUser, onShowProfile}: Props) => {
+const Bot = ({botAlias, description, botUsername, ownerTeam, ownerUser, onShowProfile}: Props) => {
   const lower = (
-    <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="xtiny">
-      {description !== '' && <Kb.Text type="BodySmall">{description}</Kb.Text>}
+    <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny" alignSelf="flex-start">
+      {description !== '' && (
+        <Kb.Text type="BodySmall" lineClamp={1}>
+          {description}
+        </Kb.Text>
+      )}
     </Kb.Box2>
   )
 
   const usernameDisplay = (
-    <Kb.Box2 direction="horizontal">
+    <Kb.Box2 direction="horizontal" alignSelf="flex-start">
       <Kb.Text type="BodySmallSemibold" style={{color: Styles.globalColors.black}}>
-        {botAlias ?? username}
+        {botAlias || botUsername}
       </Kb.Text>
-      <Kb.Text type="BodySmall">&nbsp;• by @{ownerTeam ?? ownerUser ?? username}</Kb.Text>
+      <Kb.Text type="BodySmall">&nbsp;• by @{ownerTeam ?? ownerUser ?? botUsername}</Kb.Text>
     </Kb.Box2>
   )
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
-      <Kb.ClickableBox key={username} onClick={() => onShowProfile(username)}>
+      <Kb.ClickableBox key={botUsername} onClick={() => onShowProfile(botUsername)}>
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.rowContainer}>
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.row}>
-            <Kb.Avatar size={Styles.isMobile ? 48 : 32} style={styles.avatarStyle} username={username} />
+            <Kb.Avatar size={Styles.isMobile ? 48 : 32} style={styles.avatarStyle} username={botUsername} />
             <Kb.Box2 direction="vertical">
               {usernameDisplay}
               {lower}

@@ -1,5 +1,6 @@
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as FsGen from '../../../actions/fs-gen'
+import * as BotsGen from '../../../actions/bots-gen'
 import * as Constants from '../../../constants/chat2'
 import * as TeamConstants from '../../../constants/teams'
 import * as React from 'react'
@@ -11,6 +12,7 @@ import * as Container from '../../../util/container'
 import {createShowUserProfile} from '../../../actions/profile-gen'
 import * as Kb from '../../../common-adapters'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
+import * as RPCTypes from '../../../constants/types/rpc-gen'
 import * as TeamTypes from '../../../constants/types/teams'
 
 // TODO this container does a ton of stuff for the various tabs. Really the tabs should be connected
@@ -68,25 +70,37 @@ const ConnectedInfoPanel = Container.connect(
     const attachmentsLoading = selectedTab === 'attachments' && attachmentInfo.status === 'loading'
     const _teamMembers =
       state.teams.teamNameToMembers.get(meta.teamname) || new Map<string, TeamTypes.MemberInfo>()
-    const _bots = meta.participants.filter(
+    const featuredBots: Array<RPCTypes.FeaturedBot> = state.chat2.featuredBots
+
+    const botUsernames = meta.participants.filter(
       p =>
         TeamConstants.userIsRoleInTeamWithInfo(_teamMembers, p, 'restrictedbot') ||
         TeamConstants.userIsRoleInTeamWithInfo(_teamMembers, p, 'bot')
     )
 
+    const _participants = meta.participants.filter(p => !botUsernames.includes(p))
+    console.warn('bots', botUsernames, 'people', _participants)
+    const bots: Array<RPCTypes.FeaturedBot> = botUsernames.map(
+      b =>
+        featuredBots?.find(bot => bot.botUsername === b) ?? {
+          botUsername: b,
+          description: '',
+          botAlias: meta.botAliases[b] ?? '',
+        }
+    )
+
     return {
       _attachmentInfo: attachmentInfo,
-      _botAliases: meta.botAliases,
       _fromMsgID: getFromMsgID(attachmentInfo),
       _infoMap: state.users.infoMap,
       _participantToContactName: meta.participantToContactName,
-      _participants: meta.participants,
-      _bots: _bots,
+      _participants: _participants,
       _team: meta.teamname,
       _teamMembers,
       _username: state.config.username,
       admin,
       attachmentsLoading,
+      bots,
       canDeleteHistory,
       canEditChannel,
       canSetMinWriterRole,
@@ -149,6 +163,7 @@ const ConnectedInfoPanel = Container.connect(
       dispatch(Chat2Gen.createLoadAttachmentView({conversationIDKey, viewType}))
       onSelectAttachmentView(viewType)
     },
+    onLoadFeaturedBots: () => dispatch(BotsGen.createGetFeaturedBots({limit: 10})),
     onBack: onBack
       ? () => {
           onBack()
@@ -180,7 +195,6 @@ const ConnectedInfoPanel = Container.connect(
     onUnhideConv: () => dispatch(Chat2Gen.createUnhideConversation({conversationIDKey})),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
-    const bots = stateProps._bots
     let participants = stateProps._participants
     const teamMembers = stateProps._teamMembers
     const isGeneral = stateProps.channelname === 'general'
@@ -195,17 +209,10 @@ const ConnectedInfoPanel = Container.connect(
         return l
       }, [])
     }
-
-    participants = participants.filter(p => !bots.includes(p))
     return {
       admin: stateProps.admin,
       attachmentsLoading: stateProps.attachmentsLoading,
-      bots: bots.map(b => ({
-        botAlias: stateProps._botAliases[b] || '',
-        description:
-          (stateProps._infoMap.get(b) || {bio: ''}).bio || stateProps._participantToContactName.get(b) || '',
-        username: b,
-      })),
+      bots: stateProps.bots,
       canDeleteHistory: stateProps.canDeleteHistory,
       canEditChannel: stateProps.canEditChannel,
       canSetMinWriterRole: stateProps.canSetMinWriterRole,
@@ -308,6 +315,7 @@ const ConnectedInfoPanel = Container.connect(
             }
           : noMedia,
       onAttachmentViewChange: dispatchProps.onAttachmentViewChange,
+      onLoadFeaturedBots: dispatchProps.onLoadFeaturedBots,
       onBack: dispatchProps.onBack,
       onCancel: dispatchProps.onCancel,
       onEditChannel: () => dispatchProps._onEditChannel(stateProps.teamname),
@@ -324,7 +332,6 @@ const ConnectedInfoPanel = Container.connect(
       onUnhideConv: dispatchProps.onUnhideConv,
       participants: participants
         .map(p => ({
-          botAlias: stateProps._botAliases[p] || '',
           fullname:
             (stateProps._infoMap.get(p) || {fullname: ''}).fullname ||
             stateProps._participantToContactName.get(p) ||
