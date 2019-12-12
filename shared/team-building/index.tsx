@@ -815,6 +815,7 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       noResults: {
+        flex: 1,
         ...Styles.padding(Styles.globalMargins.small),
       },
       shrinkingGap: {flexShrink: 1, height: Styles.globalMargins.xtiny},
