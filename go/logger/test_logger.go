@@ -9,7 +9,6 @@ import (
 	"runtime"
 	"strings"
 	"sync"
-	"testing"
 	"time"
 
 	logging "github.com/keybase/go-logging"
@@ -30,9 +29,6 @@ type TestLogBackend interface {
 	Failed() bool
 	Name() string
 }
-
-var _ (TestLogBackend) = (*testing.T)(nil)
-var _ (TestLogBackend) = (testing.TB)(nil)
 
 // TestLogger is a Logger that writes to a TestLogBackend.  All
 // messages except Fatal are printed using Logf, to avoid failing a
