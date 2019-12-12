@@ -53,23 +53,23 @@ type GlobalContext struct {
 	SKBKeyringMu     *sync.Mutex           // Protects all attempts to mutate the SKBKeyringFile
 	Keyrings         *Keyrings             // Gpg Keychains holding keys
 	perUserKeyringMu *sync.Mutex
-	perUserKeyring   *PerUserKeyring      // Keyring holding per user keys
-	API              API                  // How to make a REST call to the server
-	Resolver         Resolver             // cache of resolve results
-	LocalDb          *JSONLocalDb         // Local DB for cache
-	LocalChatDb      *JSONLocalDb         // Local DB for cache
-	MerkleClient     *MerkleClient        // client for querying server's merkle sig tree
-	XAPI             ExternalAPI          // for contacting Twitter, Github, etc.
-	Output           io.Writer            // where 'Stdout'-style output goes
-	DNSNSFetcher     DNSNameServerFetcher // The mobile apps potentially pass an implementor of this interface which is used to grab currently configured DNS name servers
-	MobileNetState   *MobileNetState      // The kind of network connection for the currently running instance of the app
-	MobileAppState   *MobileAppState      // The state of focus for the currently running instance of the app
-	DesktopAppState  *DesktopAppState     // The state of focus for the currently running instance of the app
-	ChatHelper       ChatHelper           // conveniently send chat messages
-	RPCCanceler      *RPCCanceler         // register live RPCs so they can be cancelleed en masse
-	IdentifyDispatch *IdentifyDispatch    // get notified of identify successes
-	Identify3State   *Identify3State      // keep track of Identify3 sessions
-	vidMu            *sync.Mutex          // protect VID
+	perUserKeyring   *PerUserKeyring       // Keyring holding per user keys
+	API              API                   // How to make a REST call to the server
+	Resolver         Resolver              // cache of resolve results
+	LocalDb          *JSONLocalDb          // Local DB for cache
+	LocalChatDb      *JSONLocalDb          // Local DB for cache
+	MerkleClient     MerkleClientInterface // client for querying server's merkle sig tree
+	XAPI             ExternalAPI           // for contacting Twitter, Github, etc.
+	Output           io.Writer             // where 'Stdout'-style output goes
+	DNSNSFetcher     DNSNameServerFetcher  // The mobile apps potentially pass an implementor of this interface which is used to grab currently configured DNS name servers
+	MobileNetState   *MobileNetState       // The kind of network connection for the currently running instance of the app
+	MobileAppState   *MobileAppState       // The state of focus for the currently running instance of the app
+	DesktopAppState  *DesktopAppState      // The state of focus for the currently running instance of the app
+	ChatHelper       ChatHelper            // conveniently send chat messages
+	RPCCanceler      *RPCCanceler          // register live RPCs so they can be cancelleed en masse
+	IdentifyDispatch *IdentifyDispatch     // get notified of identify successes
+	Identify3State   *Identify3State       // keep track of Identify3 sessions
+	vidMu            *sync.Mutex           // protect VID
 
 	cacheMu                *sync.RWMutex   // protects all caches
 	ProofCache             *ProofCache     // where to cache proof results
@@ -184,7 +184,6 @@ func (g *GlobalContext) GetVDebugLog() *VDebugLog                      { return 
 func (g *GlobalContext) GetAPI() API                                   { return g.API }
 func (g *GlobalContext) GetExternalAPI() ExternalAPI                   { return g.XAPI }
 func (g *GlobalContext) GetServerURI() (string, error)                 { return g.Env.GetServerURI() }
-func (g *GlobalContext) GetMerkleClient() *MerkleClient                { return g.MerkleClient }
 func (g *GlobalContext) GetEnv() *Env                                  { return g.Env }
 func (g *GlobalContext) GetDNSNameServerFetcher() DNSNameServerFetcher { return g.DNSNSFetcher }
 func (g *GlobalContext) GetKVStore() KVStorer                          { return g.LocalDb }
@@ -1260,6 +1259,18 @@ func (g *GlobalContext) SetTeamLoader(l TeamLoader) {
 	g.cacheMu.Lock()
 	defer g.cacheMu.Unlock()
 	g.teamLoader = l
+}
+
+func (g *GlobalContext) SetMerkleClient(m MerkleClientInterface) {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	g.MerkleClient = m
+}
+
+func (g *GlobalContext) GetMerkleClient() MerkleClientInterface {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	return g.MerkleClient
 }
 
 func (g *GlobalContext) SetFastTeamLoader(l FastTeamLoader) {

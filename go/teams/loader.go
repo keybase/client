@@ -610,6 +610,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	var lastSeqno keybase1.Seqno
 	var lastLinkID keybase1.LinkID
 	var hiddenIsFresh bool
+	var lastMerkleRoot *libkb.MerkleRoot
 
 	// hiddenResp will be nill iff we do not make the merkleLookupWithHidden
 	// call. If the server does not return any hidden data, we will encode that
@@ -620,7 +621,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		mctx.Debug("TeamLoader looking up merkle leaf (force:%v)", arg.forceRepoll)
 
 		// Reference the merkle tree to fetch the sigchain tail leaf for the team.
-		lastSeqno, lastLinkID, hiddenResp, err = l.world.merkleLookupWithHidden(ctx, arg.teamID, arg.public)
+		lastSeqno, lastLinkID, hiddenResp, lastMerkleRoot, err = l.world.merkleLookupWithHidden(ctx, arg.teamID, arg.public)
 		if err != nil {
 			return nil, err
 		}
@@ -969,10 +970,14 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	// while holding the single-flight lock reads or writes this field.
 	ret.LatestSeqnoHint = 0
 
-	tracer.Stage("audit")
-	err = l.audit(ctx, readSubteamID, &ret.Chain, arg.auditMode)
-	if err != nil {
-		return nil, err
+	if didRepoll {
+		tracer.Stage("audit")
+		err = l.audit(ctx, readSubteamID, &ret.Chain, lastMerkleRoot, arg.auditMode)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		mctx.Debug("Skipping audit in the TeamLoader as we did not repoll merkle")
 	}
 
 	// Cache the validated result if it was actually updated via the team/get endpoint. In many cases, we're not
@@ -1985,7 +1990,7 @@ func (l *TeamLoader) getHeadMerkleSeqno(mctx libkb.MetaContext, readSubteamID ke
 	return headMerkle.Seqno, nil
 }
 
-func (l *TeamLoader) audit(ctx context.Context, readSubteamID keybase1.TeamID, state *keybase1.TeamSigChainState, auditMode keybase1.AuditMode) (err error) {
+func (l *TeamLoader) audit(ctx context.Context, readSubteamID keybase1.TeamID, state *keybase1.TeamSigChainState, lastMerkleRoot *libkb.MerkleRoot, auditMode keybase1.AuditMode) (err error) {
 	mctx := libkb.NewMetaContext(ctx, l.G())
 
 	if l.G().Env.Test.TeamSkipAudit {
@@ -1998,7 +2003,7 @@ func (l *TeamLoader) audit(ctx context.Context, readSubteamID keybase1.TeamID, s
 		return err
 	}
 
-	err = mctx.G().GetTeamAuditor().AuditTeam(mctx, state.Id, state.Public, headMerklSeqno, state.LinkIDs, state.LastSeqno, auditMode)
+	err = mctx.G().GetTeamAuditor().AuditTeam(mctx, state.Id, state.Public, headMerklSeqno, state.LinkIDs, state.LastSeqno, lastMerkleRoot, auditMode)
 	return err
 }
 

@@ -211,6 +211,22 @@ func (h *NodeHashAny) MarshalJSON() ([]byte, error) {
 	return keybase1.Quote(s), nil
 }
 
+type MerkleClientInterface interface {
+	CanExamineHistoricalRoot(m MetaContext, q keybase1.Seqno) bool
+	FetchRootFromServerBySeqno(m MetaContext, lowerBound keybase1.Seqno) (mr *MerkleRoot, err error)
+	FetchRootFromServer(m MetaContext, freshness time.Duration) (mr *MerkleRoot, err error)
+	FirstExaminableHistoricalRoot(m MetaContext) *keybase1.Seqno
+	LastRoot(m MetaContext) *MerkleRoot
+	LastRootToSigJSON(m MetaContext) (ret *jsonw.Wrapper, err error)
+	LookupLeafAtHashMeta(m MetaContext, leafID keybase1.UserOrTeamID, hm keybase1.HashMeta) (leaf *MerkleGenericLeaf, err error)
+	LookupLeafAtSeqno(m MetaContext, leafID keybase1.UserOrTeamID, s keybase1.Seqno) (leaf *MerkleGenericLeaf, root *MerkleRoot, err error)
+	LookupLeafAtSeqnoForAudit(m MetaContext, leafID keybase1.UserOrTeamID, s keybase1.Seqno) (leaf *MerkleGenericLeaf, root *MerkleRoot, err error)
+	LookupRootAtSeqno(m MetaContext, s keybase1.Seqno) (root *MerkleRoot, err error)
+	LookupTeam(m MetaContext, teamID keybase1.TeamID) (leaf *MerkleTeamLeaf, err error)
+	LookupTeamWithHidden(m MetaContext, teamID keybase1.TeamID, processHiddenRespFunc ProcessHiddenRespFunc) (leaf *MerkleTeamLeaf, hiddenResp *MerkleHiddenResponse, lastMerkleRoot *MerkleRoot, err error)
+	LookupUser(m MetaContext, q HTTPArgs, sigHints *SigHints, opts MerkleOpts) (u *MerkleUserLeaf, err error)
+}
+
 type MerkleClient struct {
 	Contextified
 
@@ -232,6 +248,8 @@ type MerkleClient struct {
 	// and all missing.
 	freshLock sync.Mutex
 }
+
+var _ MerkleClientInterface = (*MerkleClient)(nil)
 
 type MerkleRoot struct {
 	sigs    *jsonw.Wrapper
@@ -1795,14 +1813,14 @@ func (mc *MerkleClient) lookupLeafHistorical(m MetaContext, leafID keybase1.User
 	return leaf, path.root, nil
 }
 
-func (mc *MerkleClient) LookupTeamWithHidden(m MetaContext, teamID keybase1.TeamID, processHiddenRespFunc ProcessHiddenRespFunc) (leaf *MerkleTeamLeaf, hiddenResp *MerkleHiddenResponse, err error) {
+func (mc *MerkleClient) LookupTeamWithHidden(m MetaContext, teamID keybase1.TeamID, processHiddenRespFunc ProcessHiddenRespFunc) (leaf *MerkleTeamLeaf, hiddenResp *MerkleHiddenResponse, lastMerkleRoot *MerkleRoot, err error) {
 	// Copied from LookupUser. These methods should be kept relatively in sync.
 	return mc.lookupTeam(m, teamID, processHiddenRespFunc)
 }
 
 func (mc *MerkleClient) LookupTeam(m MetaContext, teamID keybase1.TeamID) (leaf *MerkleTeamLeaf, err error) {
 	// Copied from LookupUser. These methods should be kept relatively in sync.
-	leaf, _, err = mc.lookupTeam(m, teamID, nil)
+	leaf, _, _, err = mc.lookupTeam(m, teamID, nil)
 	return leaf, err
 }
 
@@ -1817,7 +1835,7 @@ const (
 	// the server provided a valid inclusion proof for the returned leaf in the tree
 	MerkleHiddenResponseTypeOK MerkleHiddenResponseType = 3
 
-	// Type used to skip all hidden checks as feature flags is off
+	// All hidden checks should be skipped as the feature flag is off
 	MerkleHiddenResponseTypeFLAGOFF MerkleHiddenResponseType = 127
 )
 
@@ -1836,7 +1854,7 @@ func (m *MerkleHiddenResponse) GetUncommittedSeqno() keybase1.Seqno {
 
 type ProcessHiddenRespFunc func(m MetaContext, teamID keybase1.TeamID, apiRes *APIRes, blindRootHash string) (*MerkleHiddenResponse, error)
 
-func (mc *MerkleClient) lookupTeam(m MetaContext, teamID keybase1.TeamID, processHiddenResponseFunc ProcessHiddenRespFunc) (leaf *MerkleTeamLeaf, hiddenResp *MerkleHiddenResponse, err error) {
+func (mc *MerkleClient) lookupTeam(m MetaContext, teamID keybase1.TeamID, processHiddenResponseFunc ProcessHiddenRespFunc) (leaf *MerkleTeamLeaf, hiddenResp *MerkleHiddenResponse, lastMerkleRoot *MerkleRoot, err error) {
 
 	m.VLogf(VLog0, "+ MerkleClient.LookupTeam(%v)", teamID)
 
@@ -1846,7 +1864,7 @@ func (mc *MerkleClient) lookupTeam(m MetaContext, teamID keybase1.TeamID, proces
 	var opts MerkleOpts
 
 	if err = mc.init(m); err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	// Grab the cached seqno before the call to get the next one is made.
@@ -1860,26 +1878,26 @@ func (mc *MerkleClient) lookupTeam(m MetaContext, teamID keybase1.TeamID, proces
 	q.Add("leaf_id", S{Val: teamID.String()})
 
 	if path, ss, apiRes, err = mc.lookupPathAndSkipSequenceTeam(m, q, rootBeforeCall, opts); err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	if err = mc.verifySkipSequenceAndRoot(m, ss, path.root, rootBeforeCall, apiRes, opts); err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	if leaf, err = path.verifyTeam(m, teamID); err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	if processHiddenResponseFunc != nil {
 		hiddenResp, err = processHiddenResponseFunc(m, teamID, apiRes, path.root.BlindMerkleRootHash())
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, nil, err
 		}
 	}
 
 	m.VLogf(VLog0, "- MerkleClient.LookupTeam(%v) -> OK", teamID)
-	return leaf, hiddenResp, err
+	return leaf, hiddenResp, path.root, err
 }
 
 func (mr *MerkleRoot) ToSigJSON() (ret *jsonw.Wrapper) {
