@@ -44,6 +44,7 @@ export const makeState = (): Types.State => ({
   editingMap: new Map(),
   explodingModeLocks: new Map(), // locks set on exploding mode while user is inputting text,
   explodingModes: new Map(), // seconds to exploding message expiration,
+  featuredBotsMap: new Map(),
   flipStatusMap: new Map(),
   focus: null,
   giphyResultMap: new Map(),

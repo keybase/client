@@ -6,6 +6,12 @@
       "limit": "number",
       "offset?": "number"
     },
+    "searchFeaturedBots": {
+      "_description": "Gets featured bots by query",
+      "query": "string",
+      "limit?": "number",
+      "offset?": "number"
+    },
     "updateFeaturedBots": {
       "_description": "Updates featured bots in store",
       "bots": "Array<RPCTypes.FeaturedBot>"

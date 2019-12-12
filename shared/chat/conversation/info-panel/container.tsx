@@ -70,27 +70,27 @@ const ConnectedInfoPanel = Container.connect(
     const attachmentsLoading = selectedTab === 'attachments' && attachmentInfo.status === 'loading'
     const _teamMembers =
       state.teams.teamNameToMembers.get(meta.teamname) || new Map<string, TeamTypes.MemberInfo>()
-    const featuredBots: Array<RPCTypes.FeaturedBot> = state.chat2.featuredBots
+    const featuredBots = state.chat2.featuredBotsMap
 
-    const botUsernames = meta.participants.filter(
+    const _botUsernames = meta.participants.filter(
       p =>
         TeamConstants.userIsRoleInTeamWithInfo(_teamMembers, p, 'restrictedbot') ||
         TeamConstants.userIsRoleInTeamWithInfo(_teamMembers, p, 'bot')
     )
 
-    const _participants = meta.participants.filter(p => !botUsernames.includes(p))
-    console.warn('bots', botUsernames, 'people', _participants)
-    const bots: Array<RPCTypes.FeaturedBot> = botUsernames.map(
+    const _participants = meta.participants.filter(p => !_botUsernames.includes(p))
+    const bots: Array<RPCTypes.FeaturedBot> = _botUsernames.map(
       b =>
-        featuredBots?.find(bot => bot.botUsername === b) ?? {
+        featuredBots.get(b) ?? {
+          botAlias: meta.botAliases[b] ?? (state.users.infoMap.get(b) || {fullname: ''}).fullname,
           botUsername: b,
-          description: '',
-          botAlias: meta.botAliases[b] ?? '',
+          description: state.users.infoMap.get(b)?.bio ?? '',
         }
     )
 
     return {
       _attachmentInfo: attachmentInfo,
+      _botUsernames,
       _fromMsgID: getFromMsgID(attachmentInfo),
       _infoMap: state.users.infoMap,
       _participantToContactName: meta.participantToContactName,
@@ -163,7 +163,6 @@ const ConnectedInfoPanel = Container.connect(
       dispatch(Chat2Gen.createLoadAttachmentView({conversationIDKey, viewType}))
       onSelectAttachmentView(viewType)
     },
-    onLoadFeaturedBots: () => dispatch(BotsGen.createGetFeaturedBots({limit: 10})),
     onBack: onBack
       ? () => {
           onBack()
@@ -179,6 +178,7 @@ const ConnectedInfoPanel = Container.connect(
     onHideConv: () => dispatch(Chat2Gen.createHideConversation({conversationIDKey})),
     onJoinChannel: () => dispatch(Chat2Gen.createJoinConversation({conversationIDKey})),
     onLeaveConversation: () => dispatch(Chat2Gen.createLeaveConversation({conversationIDKey})),
+    onLoadFeaturedBots: () => dispatch(BotsGen.createGetFeaturedBots({limit: 10})),
     onShowNewTeamDialog: () => {
       dispatch(
         RouteTreeGen.createNavigateAppend({
@@ -196,6 +196,7 @@ const ConnectedInfoPanel = Container.connect(
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     let participants = stateProps._participants
+    const botUsernames = stateProps._botUsernames
     const teamMembers = stateProps._teamMembers
     const isGeneral = stateProps.channelname === 'general'
     const showAuditingBanner = isGeneral && !teamMembers
@@ -204,10 +205,12 @@ const ConnectedInfoPanel = Container.connect(
       : stateProps._participants
     ).filter(username => username !== stateProps._username && !Constants.isAssertion(username))
     if (teamMembers && isGeneral) {
-      participants = [...teamMembers.values()].reduce<Array<string>>((l, mi) => {
-        l.push(mi.username)
-        return l
-      }, [])
+      participants = [...teamMembers.values()]
+        .reduce<Array<string>>((l, mi) => {
+          l.push(mi.username)
+          return l
+        }, [])
+        .filter(p => !botUsernames.includes(p))
     }
     return {
       admin: stateProps.admin,
@@ -315,13 +318,13 @@ const ConnectedInfoPanel = Container.connect(
             }
           : noMedia,
       onAttachmentViewChange: dispatchProps.onAttachmentViewChange,
-      onLoadFeaturedBots: dispatchProps.onLoadFeaturedBots,
       onBack: dispatchProps.onBack,
       onCancel: dispatchProps.onCancel,
       onEditChannel: () => dispatchProps._onEditChannel(stateProps.teamname),
       onHideConv: dispatchProps.onHideConv,
       onJoinChannel: dispatchProps.onJoinChannel,
       onLeaveConversation: dispatchProps.onLeaveConversation,
+      onLoadFeaturedBots: dispatchProps.onLoadFeaturedBots,
       onSelectTab: ownProps.onSelectTab,
       onShowBlockConversationDialog: membersForBlock.length
         ? () => dispatchProps._onShowBlockConversationDialog(membersForBlock, stateProps._team)

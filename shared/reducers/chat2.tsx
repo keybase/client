@@ -59,7 +59,7 @@ const messageIDToOrdinal = (
 const botActions: Container.ActionHandler<Actions, Types.State> = {
   [BotsGen.updateFeaturedBots]: (draftState, action) => {
     const {bots} = action.payload
-    draftState.featuredBots = bots
+    bots.map(b => draftState.featuredBotsMap.set(b.botUsername, b))
   },
 }
 

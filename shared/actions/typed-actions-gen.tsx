@@ -74,6 +74,7 @@ export type TypedActionsMap = {
   'autoreset:submittedReset': autoreset.SubmittedResetPayload
   'autoreset:updateAutoresetState': autoreset.UpdateAutoresetStatePayload
   'bots:getFeaturedBots': bots.GetFeaturedBotsPayload
+  'bots:searchFeaturedBots': bots.SearchFeaturedBotsPayload
   'bots:updateFeaturedBots': bots.UpdateFeaturedBotsPayload
   'chat2:toggleSmallTeamsExpanded': chat2.ToggleSmallTeamsExpandedPayload
   'chat2:deselectConversation': chat2.DeselectConversationPayload
