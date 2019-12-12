@@ -123,7 +123,7 @@ export type InfoPanelProps = {
   onJoinChannel: () => void
 
   // Used for bots
-  onLoadFeaturedBots: () => void
+  onSearchFeaturedBots: (username: string) => void
 } & HeaderHocProps
 
 const TabText = ({selected, text}: {selected: boolean; text: string}) => (
@@ -203,7 +203,7 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
 
     // @ts-ignore TODO avoid using key on a node
     if (tab.key === 'bots') {
-      this.props.onLoadFeaturedBots()
+      this.props.bots.map(bot => this.props.onSearchFeaturedBots(bot.botUsername))
     }
 
     // @ts-ignore TODO avoid using key on a node
