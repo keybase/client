@@ -615,47 +615,6 @@ func (o OutOfDateInfo) DeepCopy() OutOfDateInfo {
 	}
 }
 
-type UpdateInfoStatus int
-
-const (
-	UpdateInfoStatus_UP_TO_DATE             UpdateInfoStatus = 0
-	UpdateInfoStatus_NEED_UPDATE            UpdateInfoStatus = 1
-	UpdateInfoStatus_CRITICALLY_OUT_OF_DATE UpdateInfoStatus = 2
-)
-
-func (o UpdateInfoStatus) DeepCopy() UpdateInfoStatus { return o }
-
-var UpdateInfoStatusMap = map[string]UpdateInfoStatus{
-	"UP_TO_DATE":             0,
-	"NEED_UPDATE":            1,
-	"CRITICALLY_OUT_OF_DATE": 2,
-}
-
-var UpdateInfoStatusRevMap = map[UpdateInfoStatus]string{
-	0: "UP_TO_DATE",
-	1: "NEED_UPDATE",
-	2: "CRITICALLY_OUT_OF_DATE",
-}
-
-func (e UpdateInfoStatus) String() string {
-	if v, ok := UpdateInfoStatusRevMap[e]; ok {
-		return v
-	}
-	return fmt.Sprintf("%v", int(e))
-}
-
-type UpdateInfo struct {
-	Status  UpdateInfoStatus `codec:"status" json:"status"`
-	Message string           `codec:"message" json:"message"`
-}
-
-func (o UpdateInfo) DeepCopy() UpdateInfo {
-	return UpdateInfo{
-		Status:  o.Status.DeepCopy(),
-		Message: o.Message,
-	}
-}
-
 type BootstrapStatus struct {
 	Registered  bool         `codec:"registered" json:"registered"`
 	LoggedIn    bool         `codec:"loggedIn" json:"loggedIn"`
