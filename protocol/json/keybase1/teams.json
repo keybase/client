@@ -1695,7 +1695,7 @@
         {
           "type": "Seqno",
           "name": "latestOffchainSeqno",
-          "jsonkey": "latest_offchain_seqno"
+          "jsonkey": "latest_offchain_version"
         },
         {
           "type": "boolean",

@@ -784,7 +784,7 @@ protocol teams {
     Seqno latestSeqno;
     @jsonkey("latest_hidden_seqno")
     Seqno latestHiddenSeqno;
-    @jsonkey("latest_offchain_seqno")
+    @jsonkey("latest_offchain_version")
     Seqno latestOffchainSeqno;
     @jsonkey("implicit_team")
     boolean implicitTeam;

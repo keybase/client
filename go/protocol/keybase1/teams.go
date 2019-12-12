@@ -2047,7 +2047,7 @@ type TeamChangeRow struct {
 	MembershipChanged   bool   `codec:"membershipChanged" json:"membership_changed"`
 	LatestSeqno         Seqno  `codec:"latestSeqno" json:"latest_seqno"`
 	LatestHiddenSeqno   Seqno  `codec:"latestHiddenSeqno" json:"latest_hidden_seqno"`
-	LatestOffchainSeqno Seqno  `codec:"latestOffchainSeqno" json:"latest_offchain_seqno"`
+	LatestOffchainSeqno Seqno  `codec:"latestOffchainSeqno" json:"latest_offchain_version"`
 	ImplicitTeam        bool   `codec:"implicitTeam" json:"implicit_team"`
 	Misc                bool   `codec:"misc" json:"misc"`
 	RemovedResetUsers   bool   `codec:"removedResetUsers" json:"removed_reset_users"`
