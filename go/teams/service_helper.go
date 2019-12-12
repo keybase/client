@@ -81,9 +81,19 @@ func GetAnnotatedTeam(ctx context.Context, g *libkb.GlobalContext, id keybase1.T
 	}
 
 	name := t.Data.Name.String()
-	joinRequests, err := ListRequests(ctx, g, &name)
+	var joinRequests []keybase1.TeamJoinRequest
+	myRole, err := t.myRole(ctx)
+	var isAdmin bool
 	if err != nil {
-		return res, err
+		g.Log.CDebugf(ctx, "Error getting role; skipping getting requests: %v", err)
+	} else {
+		isAdmin = myRole.IsOrAbove(keybase1.TeamRole_ADMIN)
+	}
+	if isAdmin {
+		joinRequests, err = ListRequests(ctx, g, &name)
+		if err != nil {
+			return res, err
+		}
 	}
 
 	res = keybase1.AnnotatedTeam{
