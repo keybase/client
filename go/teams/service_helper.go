@@ -81,7 +81,6 @@ func GetAnnotatedTeam(ctx context.Context, g *libkb.GlobalContext, id keybase1.T
 	}
 
 	name := t.Data.Name.String()
-	var joinRequests []keybase1.TeamJoinRequest
 	myRole, err := t.myRole(ctx)
 	var isAdmin bool
 	if err != nil {
@@ -89,8 +88,14 @@ func GetAnnotatedTeam(ctx context.Context, g *libkb.GlobalContext, id keybase1.T
 	} else {
 		isAdmin = myRole.IsOrAbove(keybase1.TeamRole_ADMIN)
 	}
+	var joinRequests []keybase1.TeamJoinRequest
+	var tarsDisabled bool
 	if isAdmin {
 		joinRequests, err = ListRequests(ctx, g, &name)
+		if err != nil {
+			return res, err
+		}
+		tarsDisabled, err = GetTarsDisabled(ctx, g, name)
 		if err != nil {
 			return res, err
 		}
@@ -105,8 +110,9 @@ func GetAnnotatedTeam(ctx context.Context, g *libkb.GlobalContext, id keybase1.T
 		Invites:      invites,
 		JoinRequests: joinRequests,
 
-		Settings: det.Settings,
-		Showcase: det.Showcase,
+		TarsDisabled: tarsDisabled,
+		Settings:     det.Settings,
+		Showcase:     det.Showcase,
 	}
 	return res, nil
 }

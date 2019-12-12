@@ -1459,7 +1459,6 @@ protocol teams {
     array<AnnotatedTeamInvite> invites;
     array<TeamJoinRequest> joinRequests;
 
-    boolean userIsShowcasing;
     boolean tarsDisabled;
     TeamSettings settings;
     TeamShowcase showcase;

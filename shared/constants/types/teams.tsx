@@ -88,13 +88,13 @@ export type EmailInviteError = {
 export type AddUserToTeamsState = 'notStarted' | 'pending' | 'succeeded' | 'failed'
 
 export type TeamMeta = {
-  allowPromote: boolean
+  allowPromote: boolean // if members other than admins can showcase
   id: TeamID
   isMember: boolean
   isOpen: boolean
   memberCount: number
   role: MaybeTeamRoleType
-  showcasing: boolean
+  showcasing: boolean // if this team is showcased on your profile
   teamname: string
 }
 
@@ -111,7 +111,7 @@ export type TeamSettings2 = {
   open: boolean
   openJoinAs: TeamRoleType
   tarsDisabled: boolean
-  showcaseAllowed: boolean // if members others than admins can showcase
+  teamShowcased: boolean // showcased on "popular teams"
 }
 
 export type TeamRoleAndDetails = {

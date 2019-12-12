@@ -3056,10 +3056,6 @@
         },
         {
           "type": "boolean",
-          "name": "userIsShowcasing"
-        },
-        {
-          "type": "boolean",
           "name": "tarsDisabled"
         },
         {

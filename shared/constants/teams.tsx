@@ -685,7 +685,7 @@ const emptyTeamDetails = Object.freeze<Types.TeamDetails>({
   invites: new Set(),
   members: new Map(),
   requests: new Set(),
-  settings: {open: false, openJoinAs: 'reader', showcaseAllowed: false, tarsDisabled: false},
+  settings: {open: false, openJoinAs: 'reader', tarsDisabled: false, teamShowcased: false},
   subteams: new Set(),
 } as Types.TeamDetails)
 
@@ -715,8 +715,8 @@ export const annotatedTeamToDetails = (t: RPCTypes.AnnotatedTeam): Types.TeamDet
     settings: {
       open: !!t.settings.open,
       openJoinAs: maybeOpenJoinAs === 'none' ? 'reader' : maybeOpenJoinAs,
-      showcaseAllowed: t.showcase.anyMemberShowcase,
       tarsDisabled: t.tarsDisabled,
+      teamShowcased: t.showcase.isShowcased,
     },
     subteams: new Set(t.transitiveSubteamsUnverified?.entries?.map(e => e.teamID) ?? []),
   }

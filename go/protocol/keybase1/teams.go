@@ -3410,7 +3410,6 @@ type AnnotatedTeam struct {
 	Members                      []AnnotatedTeamMemberDetails `codec:"members" json:"members"`
 	Invites                      []AnnotatedTeamInvite        `codec:"invites" json:"invites"`
 	JoinRequests                 []TeamJoinRequest            `codec:"joinRequests" json:"joinRequests"`
-	UserIsShowcasing             bool                         `codec:"userIsShowcasing" json:"userIsShowcasing"`
 	TarsDisabled                 bool                         `codec:"tarsDisabled" json:"tarsDisabled"`
 	Settings                     TeamSettings                 `codec:"settings" json:"settings"`
 	Showcase                     TeamShowcase                 `codec:"showcase" json:"showcase"`
@@ -3454,10 +3453,9 @@ func (o AnnotatedTeam) DeepCopy() AnnotatedTeam {
 			}
 			return ret
 		})(o.JoinRequests),
-		UserIsShowcasing: o.UserIsShowcasing,
-		TarsDisabled:     o.TarsDisabled,
-		Settings:         o.Settings.DeepCopy(),
-		Showcase:         o.Showcase.DeepCopy(),
+		TarsDisabled: o.TarsDisabled,
+		Settings:     o.Settings.DeepCopy(),
+		Showcase:     o.Showcase.DeepCopy(),
 	}
 }
 
