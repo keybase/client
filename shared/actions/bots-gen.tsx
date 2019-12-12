@@ -5,10 +5,12 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 export const resetStore = 'common:resetStore' // not a part of bots but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'bots:'
 export const getFeaturedBots = 'bots:getFeaturedBots'
+export const searchFeaturedBots = 'bots:searchFeaturedBots'
 export const updateFeaturedBots = 'bots:updateFeaturedBots'
 
 // Payload Types
 type _GetFeaturedBotsPayload = {readonly limit: number; readonly offset?: number}
+type _SearchFeaturedBotsPayload = {readonly query: string; readonly limit?: number; readonly offset?: number}
 type _UpdateFeaturedBotsPayload = {readonly bots: Array<RPCTypes.FeaturedBot>}
 
 // Action Creators
@@ -18,6 +20,13 @@ type _UpdateFeaturedBotsPayload = {readonly bots: Array<RPCTypes.FeaturedBot>}
 export const createGetFeaturedBots = (payload: _GetFeaturedBotsPayload): GetFeaturedBotsPayload => ({
   payload,
   type: getFeaturedBots,
+})
+/**
+ * Gets featured bots by query
+ */
+export const createSearchFeaturedBots = (payload: _SearchFeaturedBotsPayload): SearchFeaturedBotsPayload => ({
+  payload,
+  type: searchFeaturedBots,
 })
 /**
  * Updates featured bots in store
@@ -32,6 +41,10 @@ export type GetFeaturedBotsPayload = {
   readonly payload: _GetFeaturedBotsPayload
   readonly type: typeof getFeaturedBots
 }
+export type SearchFeaturedBotsPayload = {
+  readonly payload: _SearchFeaturedBotsPayload
+  readonly type: typeof searchFeaturedBots
+}
 export type UpdateFeaturedBotsPayload = {
   readonly payload: _UpdateFeaturedBotsPayload
   readonly type: typeof updateFeaturedBots
@@ -41,5 +54,6 @@ export type UpdateFeaturedBotsPayload = {
 // prettier-ignore
 export type Actions =
   | GetFeaturedBotsPayload
+  | SearchFeaturedBotsPayload
   | UpdateFeaturedBotsPayload
   | {type: 'common:resetStore', payload: {}}
