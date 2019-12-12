@@ -13,7 +13,6 @@ class GiphySearch extends React.Component<Props> {
         {this.props.previews ? (
           <Kb.NativeWebView
             allowsInlineMediaPlayback={true}
-            useWebKit={true}
             source={source}
             automaticallyAdjustContentInsets={false}
             mediaPlaybackRequiresUserAction={false}

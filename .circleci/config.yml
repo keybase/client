@@ -20,7 +20,7 @@ jobs:
         command: yarn install --pure-lockfile --ignore-engines --network-concurrency 1
     - run:
         working_directory: shared
-        command: yarn global add react-native-cli
+        command: yarn global add react-native-cli npm
     - run:
         working_directory: shared
         command: yarn run rn-gobuild-android

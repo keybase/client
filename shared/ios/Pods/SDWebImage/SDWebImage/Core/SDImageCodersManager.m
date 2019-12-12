@@ -10,6 +10,7 @@
 #import "SDImageIOCoder.h"
 #import "SDImageGIFCoder.h"
 #import "SDImageAPNGCoder.h"
+#import "SDImageHEICCoder.h"
 #import "SDInternalMacros.h"
 
 @interface SDImageCodersManager ()

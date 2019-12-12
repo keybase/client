@@ -1,13 +1,12 @@
 {
   "name": "rn-fetch-blob",
-  "version": "0.10.16",
-  "summary": "A project committed to make file acess and data transfer easier, effiecient for React Native developers.",
+  "version": "0.11.1",
+  "summary": "A module provides upload, download, and files access API. Supports file stream read/write for process large files.",
   "requires_arc": true,
   "license": "MIT",
   "homepage": "n/a",
   "source": {
-    "git": "https://github.com/joltup/rn-fetch-blob",
-    "tag": "v0.10.16"
+    "git": "https://github.com/joltup/rn-fetch-blob"
   },
   "authors": "Joltup",
   "source_files": "ios/**/*.{h,m}",
