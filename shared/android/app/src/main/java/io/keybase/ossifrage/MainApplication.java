@@ -60,7 +60,7 @@ public class MainApplication extends Application implements ReactApplication {
         NativeLogger.info("MainApplication created");
         super.onCreate();
         SoLoader.init(this, /* native exopackage */ false);
-        initializeFlipper(this); // Remove this line if you don't want Flipper enabled
+        // initializeFlipper(this); // Remove this line if you don't want Flipper enabled
         JobManager manager = JobManager.create(this);
         manager.addJobCreator(new BackgroundJobCreator());
 
