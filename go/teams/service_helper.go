@@ -438,16 +438,18 @@ type AddMembersRes struct {
 // Adds them all in a transaction so it's all or nothing.
 // If the first transaction fails due to TeamContactSettingsBlock error, it
 // will remove restricted users returned by the error, and retry once.
-// On success, returns a list where len(res)=len(assertions) and in
+// On success, returns a list where len(added) + len(noAdded) =len(assertions) and in
 // corresponding order, with restricted users having an empty AddMembersRes.
-func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, users []keybase1.UserRolePair) (res []AddMembersRes, err error) {
+func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, users []keybase1.UserRolePair) (added []AddMembersRes, notAdded []keybase1.User, err error) {
 	mctx := libkb.NewMetaContext(ctx, g)
 	tracer := g.CTimeTracer(ctx, "team.AddMembers", true)
 	defer tracer.Finish()
 
 	retryableFunc := func(restrictedUsers map[keybase1.UID]bool) func(ctx context.Context, _ int) error {
 		return func(ctx context.Context, _ int) error {
-			res = make([]AddMembersRes, len(users)) // reset
+			added = []AddMembersRes{}
+			notAdded = []keybase1.User{}
+
 			team, err := GetForTeamManagementByTeamID(ctx, g, teamID, true /*needAdmin*/)
 			if err != nil {
 				return err
@@ -459,8 +461,7 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Tea
 				UV        keybase1.UserVersion
 			}
 			var sweep []sweepEntry
-			for i, user := range users {
-				fmt.Printf(".....trying to resolve %+v\n", user.AssertionOrEmail)
+			for _, user := range users {
 				upak, single, doInvite, err := tx.ResolveUPKV2FromAssertionOrEmail(mctx, user.AssertionOrEmail)
 				if err != nil {
 					return NewAddMembersError(user.AssertionOrEmail, err)
@@ -468,6 +469,8 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Tea
 
 				if _, ok := restrictedUsers[upak.Uid]; ok {
 					// skip users with contact setting restrictions
+					user := keybase1.User{Uid: upak.Uid, Username: libkb.NewNormalizedUsername(upak.Username).String()}
+					notAdded = append(notAdded, user)
 					continue
 				}
 
@@ -483,10 +486,10 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Tea
 					normalizedUsername = username
 				}
 
-				res[i] = AddMembersRes{
+				added = append(added, AddMembersRes{
 					Invite:   invite,
 					Username: normalizedUsername,
-				}
+				})
 				if !uv.IsNil() {
 					sweep = append(sweep, sweepEntry{
 						Assertion: user.AssertionOrEmail,
@@ -526,9 +529,9 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Tea
 	}
 
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return res, nil
+	return added, notAdded, nil
 }
 
 func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID,

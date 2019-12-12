@@ -129,7 +129,8 @@ func (c *CmdTeamAddMembersBulk) Run() error {
 	}
 	c.arg.TeamID = teamID
 
-	err = cli.TeamAddMembersMultiRole(context.Background(), c.arg)
+	// currently ignoring res
+	_, err = cli.TeamAddMembersMultiRole(context.Background(), c.arg)
 	if err != nil {
 		return err
 	}

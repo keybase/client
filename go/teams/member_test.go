@@ -1525,11 +1525,13 @@ func TestFollowResetAdd(t *testing.T) {
 	require.True(t, libkb.IsIdentifyProofError(err))
 
 	// AddMembers also fails
-	_, err = AddMembers(context.TODO(), tc.G, teamID, []keybase1.UserRolePair{{AssertionOrEmail: bob.Username, Role: keybase1.TeamRole_ADMIN}})
+	added, notAdded, err := AddMembers(context.TODO(), tc.G, teamID, []keybase1.UserRolePair{{AssertionOrEmail: bob.Username, Role: keybase1.TeamRole_ADMIN}})
 	require.Error(t, err)
 	amerr, ok := err.(AddMembersError)
 	require.True(t, ok)
 	require.True(t, libkb.IsIdentifyProofError(amerr.Err))
+	require.Nil(t, added)
+	require.Nil(t, notAdded)
 
 	// alice succeeds in removing charlie from the team, since her broken tracking statement
 	// is ignored for a team removal.
@@ -1631,10 +1633,10 @@ func TestAddMembersWithRestrictiveContactSettings(t *testing.T) {
 	err = alice.Login(tc.G)
 	require.NoError(t, err)
 	users := []keybase1.UserRolePair{{AssertionOrEmail: bob.Username, Role: keybase1.TeamRole_WRITER}, {AssertionOrEmail: charlie.Username, Role: keybase1.TeamRole_WRITER}}
-	res, err := AddMembers(context.TODO(), tc.G, teamID, users)
-	fmt.Printf("...in test, res = %+v\n", res)
+	added, notAdded, err := AddMembers(context.TODO(), tc.G, teamID, users)
 	require.NoError(t, err)
-	require.Equal(t, 2, len(res))
-	require.Equal(t, libkb.NewNormalizedUsername(bob.Username), res[0].Username)
-	require.Equal(t, libkb.NewNormalizedUsername(""), res[1].Username)
+	require.Equal(t, 1, len(added))
+	require.Equal(t, libkb.NewNormalizedUsername(bob.Username), added[0].Username)
+	require.Equal(t, 1, len(notAdded))
+	require.Equal(t, libkb.NewNormalizedUsername(charlie.Username).String(), notAdded[0].Username)
 }

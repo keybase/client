@@ -278,7 +278,13 @@ func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMe
 	return result, nil
 }
 
-func (h *TeamsHandler) TeamAddMembers(ctx context.Context, arg keybase1.TeamAddMembersArg) (err error) {
+// TeamAddMembers returns err if adding members to team failed.
+// Adding members is "all-or-nothing", except in the case that the 1st attempt
+// fails due to some users having restrictive contact settings. In this
+// situation, we retry adding just the non-restricted members. If this 2nd attempt
+// succeeds, err=nil and TeamAddMembersResult contains a list of the users that
+// weren't added. If the 2nd attempt fails, then an err is returned as usual.
+func (h *TeamsHandler) TeamAddMembers(ctx context.Context, arg keybase1.TeamAddMembersArg) (res keybase1.TeamAddMembersResult, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamAddMembers(%+v", arg), func() error { return err })()
 
@@ -294,7 +300,7 @@ func (h *TeamsHandler) TeamAddMembers(ctx context.Context, arg keybase1.TeamAddM
 	return h.TeamAddMembersMultiRole(ctx, arg2)
 }
 
-func (h *TeamsHandler) TeamAddMembersMultiRole(ctx context.Context, arg keybase1.TeamAddMembersMultiRoleArg) (err error) {
+func (h *TeamsHandler) TeamAddMembersMultiRole(ctx context.Context, arg keybase1.TeamAddMembersMultiRoleArg) (res keybase1.TeamAddMembersResult, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	debugString := "0"
 	if len(arg.Users) > 0 {
@@ -306,15 +312,13 @@ func (h *TeamsHandler) TeamAddMembersMultiRole(ctx context.Context, arg keybase1
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamAddMembers(%s, %s)", arg.TeamID, debugString),
 		func() error { return err })()
 	if len(arg.Users) == 0 {
-		return fmt.Errorf("attempted to add 0 users to a team")
+		return res, fmt.Errorf("attempted to add 0 users to a team")
 	}
 	if err := h.assertLoggedIn(ctx); err != nil {
-		return err
+		return res, err
 	}
 
-	// TODO: should res contain a AddMembersRes for each restricted users who
-	// were not added?
-	res, err := teams.AddMembers(ctx, h.G().ExternalG(), arg.TeamID, arg.Users)
+	added, notAdded, err := teams.AddMembers(ctx, h.G().ExternalG(), arg.TeamID, arg.Users)
 	switch err := err.(type) {
 	case nil:
 	case teams.AddMembersError:
@@ -322,23 +326,23 @@ func (h *TeamsHandler) TeamAddMembersMultiRole(ctx context.Context, arg keybase1
 		case libkb.IdentifySummaryError:
 			// Return the IdentifySummaryError, which is exportable.
 			// Frontend presents this error specifically.
-			return e
+			return res, e
 		default:
-			return err
+			return res, err
 		}
 	default:
-		return err
+		return res, err
 	}
 
+	// AddMembers succeeded
 	if arg.SendChatNotification {
 		go func() {
 			h.G().Log.CDebugf(ctx, "sending team welcome messages")
 			ctx := libkb.WithLogTag(context.Background(), "BG")
-			for i, res := range res {
+			for i, res := range added {
 				h.G().Log.CDebugf(ctx, "team welcome message for i:%v assertion:%v username:%v invite:%v, role: %v",
 					i, arg.Users[i].AssertionOrEmail, res.Username, res.Invite, arg.Users[i].Role)
 				if !res.Invite && !res.Username.IsNil() {
-					// won't send message if username == ""
 					err := teams.SendTeamChatWelcomeMessage(ctx, h.G().ExternalG(), arg.TeamID, "",
 						res.Username.String(), chat1.ConversationMembersType_TEAM, arg.Users[i].Role)
 					if err != nil {
@@ -353,7 +357,9 @@ func (h *TeamsHandler) TeamAddMembersMultiRole(ctx context.Context, arg keybase1
 			h.G().Log.CDebugf(ctx, "done sending team welcome messages")
 		}()
 	}
-	return nil
+
+	res = keybase1.TeamAddMembersResult{NotAdded: notAdded}
+	return res, nil
 }
 
 func (h *TeamsHandler) TeamRemoveMember(ctx context.Context, arg keybase1.TeamRemoveMemberArg) (err error) {
