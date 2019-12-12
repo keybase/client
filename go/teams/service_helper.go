@@ -438,8 +438,8 @@ type AddMembersRes struct {
 // Adds them all in a transaction so it's all or nothing.
 // If the first transaction fails due to TeamContactSettingsBlock error, it
 // will remove restricted users returned by the error, and retry once.
-// On success, returns a list where len(res)<=len(assertions) and in
-// corresponding order, with restricted users removed.
+// On success, returns a list where len(res)=len(assertions) and in
+// corresponding order, with restricted users having an empty AddMembersRes.
 func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, users []keybase1.UserRolePair) (res []AddMembersRes, err error) {
 	mctx := libkb.NewMetaContext(ctx, g)
 	tracer := g.CTimeTracer(ctx, "team.AddMembers", true)
@@ -447,7 +447,7 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Tea
 
 	retryableFunc := func(restrictedUsers map[keybase1.UID]bool) func(ctx context.Context, _ int) error {
 		return func(ctx context.Context, _ int) error {
-			res = make([]AddMembersRes, len(users))
+			res = make([]AddMembersRes, len(users)) // reset
 			team, err := GetForTeamManagementByTeamID(ctx, g, teamID, true /*needAdmin*/)
 			if err != nil {
 				return err
@@ -460,6 +460,7 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Tea
 			}
 			var sweep []sweepEntry
 			for i, user := range users {
+				fmt.Printf(".....trying to resolve %+v\n", user.AssertionOrEmail)
 				upak, single, doInvite, err := tx.ResolveUPKV2FromAssertionOrEmail(mctx, user.AssertionOrEmail)
 				if err != nil {
 					return NewAddMembersError(user.AssertionOrEmail, err)
@@ -508,24 +509,20 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Tea
 		}
 	}
 
-	const nRetries = 2
+	// try to add
 	restrictedUsers := make(map[keybase1.UID]bool)
-	for i := 0; i < nRetries; i++ {
-		mctx.Debug("| Retry AddMembers(%v)", i)
-		err = RetryIfPossible(ctx, g, retryableFunc(restrictedUsers))
-		if isTeamContactSettingsBlock(err) {
-			// retry add
-			fields := err.(libkb.AppStatusError).Fields
-			uids := fields["uids"]
-			usernames := fields["usernames"]
-			mctx.Debug("| retrying with restricted users removed: %+v", usernames)
-			for _, uid := range strings.Split(uids, ",") {
-				restrictedUsers[keybase1.UID(uid)] = true
-			}
-		} else {
-			// don't retry add
-			break
+	err = RetryIfPossible(ctx, g, retryableFunc(restrictedUsers))
+	if isTeamContactSettingsBlock(err) {
+		// retry add
+		fields := err.(libkb.AppStatusError).Fields
+		uids := fields["uids"]
+		usernames := fields["usernames"]
+		for _, uid := range strings.Split(uids, ",") {
+			restrictedUsers[keybase1.UID(uid)] = true
 		}
+
+		mctx.Debug("| Retrying AddMembers with restricted users removed: %+v", usernames)
+		err = RetryIfPossible(ctx, g, retryableFunc(restrictedUsers))
 	}
 
 	if err != nil {

@@ -312,6 +312,8 @@ func (h *TeamsHandler) TeamAddMembersMultiRole(ctx context.Context, arg keybase1
 		return err
 	}
 
+	// TODO: should res contain a AddMembersRes for each restricted users who
+	// were not added?
 	res, err := teams.AddMembers(ctx, h.G().ExternalG(), arg.TeamID, arg.Users)
 	switch err := err.(type) {
 	case nil:
@@ -336,6 +338,7 @@ func (h *TeamsHandler) TeamAddMembersMultiRole(ctx context.Context, arg keybase1
 				h.G().Log.CDebugf(ctx, "team welcome message for i:%v assertion:%v username:%v invite:%v, role: %v",
 					i, arg.Users[i].AssertionOrEmail, res.Username, res.Invite, arg.Users[i].Role)
 				if !res.Invite && !res.Username.IsNil() {
+					// won't send message if username == ""
 					err := teams.SendTeamChatWelcomeMessage(ctx, h.G().ExternalG(), arg.TeamID, "",
 						res.Username.String(), chat1.ConversationMembersType_TEAM, arg.Users[i].Role)
 					if err != nil {

@@ -3,6 +3,7 @@ package teams
 import (
 	"fmt"
 	"sort"
+	"strings"
 	"testing"
 	"time"
 
@@ -1469,6 +1470,7 @@ func TestMemberInviteChangeRoleOwner(t *testing.T) {
 
 func TestFollowResetAdd(t *testing.T) {
 	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
 
 	alice, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
 	require.NoError(t, err)
@@ -1480,6 +1482,7 @@ func TestFollowResetAdd(t *testing.T) {
 
 	bob, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
 	require.NoError(t, err)
+
 	err = tc.Logout()
 	require.NoError(t, err)
 
@@ -1532,4 +1535,106 @@ func TestFollowResetAdd(t *testing.T) {
 	// is ignored for a team removal.
 	err = RemoveMember(context.TODO(), tc.G, team, charlie.Username)
 	require.NoError(t, err)
+}
+
+func TestAddMemberWithRestrictiveContactSettings(t *testing.T) {
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+
+	alice, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+	teamName, _ := createTeam2(tc)
+	team := teamName.String()
+	t.Logf("Created team %q", team)
+	err = tc.Logout()
+	require.NoError(t, err)
+
+	bob, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+	err = tc.Logout()
+	require.NoError(t, err)
+
+	charlie, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+
+	// charlie sets contact settings
+	kbtest.SetContactSettings(tc, charlie, keybase1.ContactSettings{
+		Enabled:              true,
+		AllowFolloweeDegrees: 1,
+	})
+
+	// alice can add bob
+	err = tc.Logout()
+	require.NoError(t, err)
+	err = alice.Login(tc.G)
+	require.NoError(t, err)
+	_, err = AddMember(context.TODO(), tc.G, team, bob.Username, keybase1.TeamRole_WRITER, nil)
+	require.NoError(t, err)
+
+	// alice can't add charlie
+	_, err = AddMember(context.TODO(), tc.G, team, charlie.Username, keybase1.TeamRole_WRITER, nil)
+	require.Error(t, err)
+	fields := err.(libkb.AppStatusError).Fields
+	usernames := strings.Split(fields["usernames"], ",")
+	require.Equal(t, usernames[0], charlie.Username)
+
+	// charlie tracks alice
+	err = tc.Logout()
+	require.NoError(t, err)
+	err = charlie.Login(tc.G)
+	require.NoError(t, err)
+
+	_, err = kbtest.RunTrack(tc, charlie, alice.Username)
+	require.NoError(t, err)
+
+	err = tc.Logout()
+
+	// alice can add charlie
+	err = tc.Logout()
+	require.NoError(t, err)
+	err = alice.Login(tc.G)
+	require.NoError(t, err)
+
+	_, err = AddMember(context.TODO(), tc.G, team, charlie.Username, keybase1.TeamRole_WRITER, nil)
+	require.NoError(t, err)
+}
+
+func TestAddMembersWithRestrictiveContactSettings(t *testing.T) {
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+
+	alice, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+	teamName, teamID := createTeam2(tc)
+	team := teamName.String()
+	t.Logf("Created team %q", team)
+	err = tc.Logout()
+	require.NoError(t, err)
+
+	bob, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+	err = tc.Logout()
+	require.NoError(t, err)
+
+	charlie, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+
+	// charlie sets contact settings
+	kbtest.SetContactSettings(tc, charlie, keybase1.ContactSettings{
+		Enabled:              true,
+		AllowFolloweeDegrees: 1,
+	})
+
+	// alice can add bob but not charlie
+	err = tc.Logout()
+	require.NoError(t, err)
+	err = alice.Login(tc.G)
+	require.NoError(t, err)
+	users := []keybase1.UserRolePair{{AssertionOrEmail: bob.Username, Role: keybase1.TeamRole_WRITER}, {AssertionOrEmail: charlie.Username, Role: keybase1.TeamRole_WRITER}}
+	res, err := AddMembers(context.TODO(), tc.G, teamID, users)
+	fmt.Printf("...in test, res = %+v\n", res)
+	require.NoError(t, err)
+	require.Equal(t, 2, len(res))
+	require.Equal(t, libkb.NewNormalizedUsername(bob.Username), res[0].Username)
+	require.Equal(t, libkb.NewNormalizedUsername(""), res[1].Username)
 }
