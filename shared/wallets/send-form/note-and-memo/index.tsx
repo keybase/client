@@ -137,7 +137,7 @@ class SecretNote extends React.Component<SecretNoteProps, SecretNoteState> {
               <Kb.Icon
                 boxStyle={styles.emojiIcon}
                 onClick={this._emojiPickerToggle}
-                style={Kb.iconCastPlatformStyles(styles.emojiIcon)}
+                style={styles.emojiIcon}
                 type="iconfont-emoji"
                 ref={this._emojiIcon}
               />

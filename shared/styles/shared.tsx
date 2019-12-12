@@ -79,20 +79,32 @@ const unifyStyles = (s: any) => ({
     : {}),
 })
 
-export const platformStyles = (options: {
-  common?: _StylesCrossPlatform
-  isIOS?: _StylesMobile
-  isAndroid?: _StylesMobile
-  isMobile?: _StylesMobile
-  isElectron?: _StylesDesktop
-  // TODO any for now, but we need the types to be handled differently
-}): any => ({
-  ...(options.common ? unifyStyles(options.common) : {}),
-  ...(isMobile && options.isMobile ? options.isMobile : {}),
-  ...(isIOS && options.isIOS ? options.isIOS : {}),
-  ...(isAndroid && options.isAndroid ? options.isAndroid : {}),
-  ...(isElectron && options.isElectron ? unifyStyles(options.isElectron) : {}),
-})
+type AsStylesCrossPlatform<T> = Readonly<
+  {
+    [P in keyof T]: P extends keyof _StylesCrossPlatform
+      ? T[P] extends _StylesCrossPlatform[P]
+        ? Readonly<T[P]>
+        : Readonly<_StylesCrossPlatform[P]>
+      : Readonly<T[P]>
+  }
+>
+
+export function platformStyles<
+  Ret extends C & I & A & M & E,
+  C extends _StylesCrossPlatform = {},
+  I extends _StylesMobile = {},
+  A extends _StylesMobile = {},
+  M extends _StylesMobile = {},
+  E extends _StylesDesktop = {}
+>(options: {common?: C; isIOS?: I; isAndroid?: A; isMobile?: M; isElectron?: E}) {
+  return ({
+    ...(options.common ? unifyStyles(options.common) : {}),
+    ...(isMobile && options.isMobile ? options.isMobile : {}),
+    ...(isIOS && options.isIOS ? options.isIOS : {}),
+    ...(isAndroid && options.isAndroid ? options.isAndroid : {}),
+    ...(isElectron && options.isElectron ? unifyStyles(options.isElectron) : {}),
+  } as any) as AsStylesCrossPlatform<Ret>
+}
 
 /* eslint-disable sort-keys */
 export const padding = (top: number, right?: number, bottom?: number, left?: number) => ({

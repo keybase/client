@@ -78,7 +78,7 @@ const styles = Styles.styleSheetCreate(
         justifyContent: 'center',
         margin: Styles.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.large,
         maxWidth: 512,
-        ...(Styles.isMobile ? {} : {textAlign: 'center'}),
+        textAlign: Styles.isMobile ? undefined : 'center',
       },
       descriptionText: {marginTop: Styles.globalMargins.medium},
       errorBanner: {

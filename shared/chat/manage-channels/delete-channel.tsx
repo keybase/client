@@ -40,11 +40,7 @@ class _DeleteChannel extends React.Component<Props, State> {
 
     return (
       <Kb.Box style={Styles.collapseStyles([styles.container, disabled && {opacity: 0.5}])}>
-        <Kb.Icon
-          type="iconfont-trash"
-          style={Kb.iconCastPlatformStyles(styles.trashIcon)}
-          color={Styles.globalColors.red}
-        />
+        <Kb.Icon type="iconfont-trash" style={styles.trashIcon} color={Styles.globalColors.red} />
         <Kb.FloatingMenu
           closeOnSelect={true}
           header={header}

@@ -59,9 +59,11 @@ const ScrollView = React.forwardRef((props: Props, ref) => {
 })
 
 const styles = Styles.styleSheetCreate(() => ({
-  overflowAuto: {
-    overflow: 'auto',
-  },
+  overflowAuto: Styles.platformStyles({
+    isElectron: {
+      overflow: 'auto',
+    },
+  }),
 }))
 
 export default ScrollView

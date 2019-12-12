@@ -26,7 +26,7 @@ const FileAttachment = React.memo((props: Props) => {
       <Kb.ClickableBox onClick={props.onDownload} style={styles.fullWidth}>
         <Kb.Box style={styles.containerStyle}>
           <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" centerChildren={true}>
-            <Kb.Icon type={iconType} style={Kb.iconCastPlatformStyles(styles.iconStyle)} />
+            <Kb.Icon type={iconType} style={styles.iconStyle} />
             <Kb.Box2 direction="vertical" fullWidth={true} style={styles.titleStyle}>
               <Kb.Text type="BodySemibold">{props.title}</Kb.Text>
               {props.fileName !== props.title && <Kb.Text type="BodyTiny">{props.fileName}</Kb.Text>}
@@ -34,11 +34,7 @@ const FileAttachment = React.memo((props: Props) => {
           </Kb.Box2>
           {!!props.arrowColor && (
             <Kb.Box style={styles.downloadedIconWrapperStyle}>
-              <Kb.Icon
-                type="iconfont-download"
-                style={Kb.iconCastPlatformStyles(styles.downloadedIcon)}
-                color={props.arrowColor}
-              />
+              <Kb.Icon type="iconfont-download" style={styles.downloadedIcon} color={props.arrowColor} />
             </Kb.Box>
           )}
           {!!progressLabel && (
