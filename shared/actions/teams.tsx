@@ -510,90 +510,6 @@ const loadTeam = async (_: TypedState, action: TeamsGen.LoadTeamPayload, logger:
   return TeamsGen.createTeamLoaded({details: Constants.annotatedTeamToDetails(team), teamID})
 }
 
-function* getDetails(_: TypedState, action: TeamsGen.GetDetailsPayload, logger: Saga.SagaLogger) {
-  const {teamname} = action.payload
-  return
-  // yield Saga.put(TeamsGen.createGetTeamPublicity({teamname}))
-
-  // const waitingKeys = [Constants.teamWaitingKey(teamname), Constants.teamGetWaitingKey(teamname)]
-
-  // try {
-  //   const unsafeDetails: Saga.RPCPromiseType<typeof RPCTypes.teamsTeamGetRpcPromise> = yield RPCTypes.teamsTeamGetRpcPromise(
-  //     {name: teamname},
-  //     waitingKeys
-  //   )
-
-  //   // Don't allow the none default
-  //   const details: RPCTypes.TeamDetails = {
-  //     ...unsafeDetails,
-  //     settings: {
-  //       ...unsafeDetails.settings,
-  //       joinAs:
-  //         unsafeDetails.settings.joinAs === RPCTypes.TeamRole.none
-  //           ? RPCTypes.TeamRole.reader
-  //           : unsafeDetails.settings.joinAs,
-  //     },
-  //   }
-
-  //   // Get requests to join
-  //   let requests: Saga.RPCPromiseType<typeof RPCTypes.teamsTeamListRequestsRpcPromise> | undefined
-  //   const state: TypedState = yield* Saga.selectState()
-  //   if (Constants.getCanPerform(state, teamname).manageMembers) {
-  //     // TODO (DESKTOP-6478) move this somewhere else
-  //     requests = yield RPCTypes.teamsTeamListRequestsRpcPromise({teamName: teamname}, waitingKeys)
-  //   }
-
-  //   if (!requests) {
-  //     requests = []
-  //   }
-  //   requests.sort((a, b) => a.username.localeCompare(b.username))
-
-  //   const requestMap = new Map<string, Array<string>>()
-  //   requests.forEach(request => {
-  //     let arr = requestMap.get(request.name)
-  //     if (!arr) {
-  //       arr = []
-  //       requestMap.set(request.name, arr)
-  //     }
-  //     arr.push(request.username)
-  //   })
-
-  //   const invites = Constants.annotatedInvitesToInviteInfo(details.annotatedActiveInvites)
-
-  //   // Get the subteam map for this team.
-  //   const subTeam: Saga.RPCPromiseType<typeof RPCTypes.teamsTeamGetSubteamsRpcPromise> = yield RPCTypes.teamsTeamGetSubteamsRpcPromise(
-  //     {name: {parts: teamname.split('.')}},
-  //     waitingKeys
-  //   )
-  //   const {entries} = subTeam
-  //   const subteamIDs = new Set<Types.TeamID>()
-  //   const subteams = (entries || []).reduce<Array<string>>((arr, {name, teamID}) => {
-  //     name.parts && arr.push(name.parts.join('.'))
-  //     subteamIDs.add(teamID)
-  //     return arr
-  //   }, [])
-  //   yield Saga.put(
-  //     TeamsGen.createSetTeamDetails({
-  //       invites: invites,
-  //       members: details.members,
-  //       requests: requestMap,
-  //       settings: details.settings,
-  //       subteamIDs,
-  //       subteams: subteams,
-  //       teamID: Constants.getTeamID(state, teamname),
-  //       teamname,
-  //     })
-  //   )
-  // } catch (e) {
-  //   logger.error(e)
-  // } finally {
-  //   const loadingKey = action.payload.clearInviteLoadingKey
-  //   if (loadingKey) {
-  //     yield Saga.put(TeamsGen.createSetTeamLoadingInvites({isLoading: false, loadingKey, teamname}))
-  //   }
-  // }
-}
-
 function* addUserToTeams(state: TypedState, action: TeamsGen.AddUserToTeamsPayload, logger: Saga.SagaLogger) {
   const {role, teams, user} = action.payload
   const teamsAddedTo: Array<string> = []
@@ -1418,8 +1334,7 @@ const teamsSaga = function*() {
   yield* Saga.chainAction2(TeamsGen.createNewTeam, createNewTeam, 'createNewTeam')
   yield* Saga.chainAction2(TeamsGen.teamCreated, showTeamAfterCreation, 'showTeamAfterCreation')
   yield* Saga.chainGenerator<TeamsGen.JoinTeamPayload>(TeamsGen.joinTeam, joinTeam, 'joinTeam')
-  yield Saga.chainAction2(TeamsGen.loadTeam, loadTeam, 'loadTeam')
-  yield* Saga.chainGenerator<TeamsGen.GetDetailsPayload>(TeamsGen.getDetails, getDetails, 'getDetails')
+  yield* Saga.chainAction2(TeamsGen.loadTeam, loadTeam, 'loadTeam')
   yield* Saga.chainAction2(TeamsGen.getMembers, getMembers, 'getMembers')
   yield* Saga.chainGenerator<TeamsGen.GetTeamPublicityPayload>(
     TeamsGen.getTeamPublicity,

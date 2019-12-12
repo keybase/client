@@ -24,7 +24,7 @@ const mapStateToProps = (state: Container.TypedState, {teamID}: OwnProps) => {
     canManageChat: yourOperations.renameChannel,
     canViewFolder: !yourOperations.joinTeam,
     isBigTeam,
-    teamname: teamDetails.teamname,
+    teamname: Constants.getTeamMeta(state, teamID).teamname,
   }
 }
 

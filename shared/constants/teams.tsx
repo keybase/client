@@ -364,9 +364,10 @@ export const getDisabledReasonsForRolePicker = (
   memberToModify: string | null
 ): Types.DisabledReasonsForRolePicker => {
   const canManageMembers = getCanPerformByID(state, teamID).manageMembers
+  const teamMeta = getTeamMeta(state, teamID)
   const teamDetails = getTeamDetails(state, teamID)
   const members = teamDetails.members || new Map()
-  const teamname = teamDetails.teamname
+  const teamname = teamMeta.teamname
   const member = memberToModify ? members.get(memberToModify) : null
   const theyAreOwner = member ? member.type === 'owner' : false
   const you = members.get(state.config.username)
@@ -685,7 +686,7 @@ const emptyTeamDetails = Object.freeze<Types.TeamDetails>({
   requests: new Set(),
   settings: {open: false, openJoinAs: 'reader', showcaseAllowed: false, tarsDisabled: false},
   subteams: new Set(),
-})
+} as Types.TeamDetails)
 
 export const getTeamDetails = (state: TypedState, teamID: Types.TeamID) =>
   state.teams.teamDetails.get(teamID) ?? emptyTeamDetails

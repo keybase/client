@@ -16,7 +16,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const username = Container.getRouteProps(ownProps, 'username', '')
   const teamID = Container.getRouteProps(ownProps, 'teamID', '')
   const teamDetails = Constants.getTeamDetails(state, teamID)
-  const {teamname} = teamDetails
+  const {teamname} = Constants.getTeamMeta(state, teamID)
   const disabledReasonsForRolePicker = Constants.getDisabledReasonsForRolePicker(state, teamID, username)
 
   return {
@@ -113,7 +113,7 @@ export default Container.connect(
     }
     // If they're an owner, you need to be an owner to edit them
     // otherwise you just need to be an admin
-    let admin = user.type === 'owner' ? you.type === 'owner' : stateProps.yourOperations.manageMembers
+    const admin = user.type === 'owner' ? you.type === 'owner' : stateProps.yourOperations.manageMembers
 
     return {
       admin,

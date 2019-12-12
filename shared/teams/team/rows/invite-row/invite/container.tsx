@@ -11,10 +11,11 @@ type OwnProps = {
 
 export default connect(
   (state, {teamID}: OwnProps) => {
+    const teamMeta = Constants.getTeamMeta(state, teamID)
     const teamDetails = Constants.getTeamDetails(state, teamID)
     return {
       _invites: teamDetails.invites,
-      teamname: teamDetails.teamname,
+      teamname: teamMeta.teamname,
     }
   },
   dispatch => ({

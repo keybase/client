@@ -19,6 +19,7 @@ type LoadingRow = {key: string; type: 'loading'}
 export type Row = HeaderRow | TabsRow | MemberRow | InviteRow | SubteamRow | SettingsRow | LoadingRow
 
 const makeRows = (
+  meta: Types.TeamMeta,
   details: Types.TeamDetails,
   selectedTab: Types.TabKey,
   yourUsername: string,
@@ -34,7 +35,7 @@ const makeRows = (
           username: user.username,
         }))
       )
-      if (details.memberCount > 0 && !details.members) {
+      if (meta.memberCount > 0 && !details.members.size) {
         // loading
         rows.push({key: 'loading', type: 'loading'})
       }

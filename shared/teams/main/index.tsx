@@ -26,7 +26,7 @@ export type Props = {
   sawChatBanner: boolean
   teamresetusers: Map<string, Set<Types.ResetUser>>
   newTeamRequests: Map<Types.TeamID, number>
-  teams: Array<Types.TeamDetails>
+  teams: Array<Types.TeamMeta>
 }
 
 type RowProps = {
@@ -110,7 +110,7 @@ type Row =
     }
   | {
       key: string
-      team: Types.TeamDetails
+      team: Types.TeamMeta
       type: 'team'
     }
   | {

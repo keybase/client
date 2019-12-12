@@ -28,7 +28,7 @@ const RenderLastOwner = (p: Props & {_leaving: boolean; lastOwner: boolean}) => 
 export default Container.connect(
   (state, ownProps: OwnProps) => {
     const teamID = Container.getRouteProps(ownProps, 'teamID', Types.noTeamID)
-    const {teamname} = Constants.getTeamDetails(state, teamID)
+    const {teamname} = Constants.getTeamMeta(state, teamID)
     const lastOwner = Constants.isLastOwner(state, teamname)
     return {
       _leaving: anyWaiting(state, Constants.leaveTeamWaitingKey(teamname)),

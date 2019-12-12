@@ -17,9 +17,11 @@ type OwnProps = {
 const blankInfo = Constants.initialMemberInfo
 
 const mapStateToProps = (state, {teamID, username}: OwnProps) => {
+  const teamMeta = Constants.getTeamMeta(state, teamID)
   const teamDetails = Constants.getTeamDetails(state, teamID)
-  const {members: map = new Map(), teamname} = teamDetails
-  const info = map.get(username) || blankInfo
+  const {teamname} = teamMeta
+  const {members} = teamDetails
+  const info = members.get(username) || blankInfo
 
   return {
     following: state.config.following.has(username),

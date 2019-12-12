@@ -17,7 +17,7 @@ export type OwnProps = {
 export default Container.connect(
   (state, {teamID}: OwnProps) => {
     const yourOperations = Constants.getCanPerformByID(state, teamID)
-    const {teamname, isOpen, memberCount} = Constants.getTeamDetails(state, teamID)
+    const {teamname, isOpen, memberCount} = Constants.getTeamMeta(state, teamID)
     return {
       _canRenameTeam: yourOperations.renameTeam,
       _you: state.config.username,

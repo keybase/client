@@ -55,7 +55,7 @@ export default Container.namedConnect(
     let _convPropsTeamType: ConvProps['teamType'] | undefined
     let _convPropsTeamname: ConvProps['teamname'] | undefined
 
-    let teamDetails: TeamTypes.TeamDetails | undefined
+    let teamMeta: TeamTypes.TeamMeta | undefined
     let teamname: string = ''
     let teamID: TeamTypes.TeamID = TeamTypes.noTeamID
     if (conversationIDKey && conversationIDKey !== ChatConstants.noConversationIDKey) {
@@ -67,7 +67,7 @@ export default Container.namedConnect(
           (state.users.infoMap.get(participants[0]) || {fullname: ''}).fullname) ||
         ''
       const isTeam = meta.teamType === 'big' || meta.teamType === 'small'
-      teamDetails = isTeam ? TeamConstants.getTeamDetails(state, meta.teamID) : undefined
+      teamMeta = isTeam ? TeamConstants.getTeamMeta(state, meta.teamID) : undefined
       teamname = meta.teamname
       teamID = meta.teamID
       _convPropsFullname = fullname
@@ -79,8 +79,8 @@ export default Container.namedConnect(
       _convPropsTeamname = teamname
     } else if (_teamID) {
       teamID = _teamID
-      teamDetails = TeamConstants.getTeamDetails(state, teamID)
-      teamname = teamDetails.teamname
+      teamMeta = TeamConstants.getTeamMeta(state, teamID)
+      teamname = teamMeta.teamname
     }
     // skip a bunch of stuff for menus that aren't visible
     if (!visible) {
@@ -125,7 +125,7 @@ export default Container.namedConnect(
       isSmallTeam,
       manageChannelsSubtitle,
       manageChannelsTitle,
-      memberCount: teamDetails ? teamDetails.memberCount : 0,
+      memberCount: teamMeta ? teamMeta.memberCount : 0,
       teamname,
     }
   },

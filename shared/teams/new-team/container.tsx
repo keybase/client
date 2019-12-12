@@ -11,7 +11,7 @@ type OwnProps = Container.RouteProps<{subteamOf?: Types.TeamID}>
 export default Container.connect(
   (state, ownProps: OwnProps) => {
     const subteamOf = Container.getRouteProps(ownProps, 'subteamOf', undefined) || Types.noTeamID
-    const baseTeam = Constants.getTeamDetails(state, subteamOf).teamname
+    const baseTeam = Constants.getTeamMeta(state, subteamOf).teamname
     return {
       baseTeam,
       errorText: upperFirst(state.teams.teamCreationError),

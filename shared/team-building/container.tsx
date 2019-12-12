@@ -23,7 +23,7 @@ import * as TeamTypes from '../constants/types/teams'
 import {requestIdleCallback} from '../util/idle-callback'
 import {HeaderHoc, PopupDialogHoc, Button} from '../common-adapters'
 import {memoizeShallow, memoize} from '../util/memoize'
-import {getDisabledReasonsForRolePicker, getTeamDetails} from '../constants/teams'
+import {getDisabledReasonsForRolePicker, getTeamDetails, getTeamMeta} from '../constants/teams'
 import {nextRoleDown, nextRoleUp} from '../teams/role-picker'
 import {Props as HeaderHocProps} from '../common-adapters/header-hoc/types'
 import {HocExtractProps as PopupHocProps} from '../common-adapters/popup-dialog-hoc'
@@ -157,6 +157,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     .get(trim(ownProps.searchString))
     ?.get(ownProps.selectedService)
 
+  const maybeTeamMeta = ownProps.teamID ? getTeamMeta(state, ownProps.teamID) : undefined
   const maybeTeamDetails = ownProps.teamID ? getTeamDetails(state, ownProps.teamID) : undefined
   const preExistingTeamMembers: TeamTypes.TeamDetails['members'] = maybeTeamDetails?.members ?? emptyMap
   const disabledRoles = ownProps.teamID
@@ -195,7 +196,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     showServiceResultCount: !isMobile && deriveShowResults(ownProps.searchString),
     teamBuildingSearchResults,
     teamSoFar: deriveTeamSoFar(teamBuildingState.teamSoFar),
-    teamname: maybeTeamDetails?.teamname,
+    teamname: maybeTeamMeta?.teamname,
     userFromUserId: deriveUserFromUserIdFn(userResults, teamBuildingState.userRecs),
     waitingForCreate: WaitingConstants.anyWaiting(state, ChatConstants.waitingKeyCreating),
   }

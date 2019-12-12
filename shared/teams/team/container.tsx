@@ -28,10 +28,11 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const selectedTab = ownProps.selectedTab || 'members'
 
   return {
-    _teamnameTodoRemove: Constants.getTeamDetails(state, teamID).teamname,
+    _teamnameTodoRemove: Constants.getTeamMeta(state, teamID).teamname,
     selectedTab,
     teamDetails: Constants.getTeamDetails(state, teamID),
     teamID,
+    teamMeta: Constants.getTeamMeta(state, teamID),
     yourOperations: Constants.getCanPerformByID(state, teamID),
     yourUsername: state.config.username,
   }
@@ -40,7 +41,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
 const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
   loadTeam: () => {
     const teamID = Container.getRouteProps(ownProps, 'teamID', Types.noTeamID)
-    dispatch(TeamsGen.createGetDetails({teamID}))
+    dispatch(TeamsGen.createLoadTeam({teamID}))
   },
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
@@ -48,6 +49,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
 const Connected = Container.compose(
   Container.connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps, ownProps: OwnProps) => {
     const rows = makeRows(
+      stateProps.teamMeta,
       stateProps.teamDetails,
       stateProps.selectedTab,
       stateProps.yourUsername,

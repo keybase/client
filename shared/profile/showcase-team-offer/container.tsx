@@ -13,7 +13,7 @@ export default Container.connect(
   (state: Container.TypedState) => ({
     _waiting: state.waiting,
     _you: state.config.username,
-    teamDetails: state.teams.teamDetails,
+    teamMeta: state.teams.teamMeta,
   }),
   (dispatch: Container.TypedDispatch) => ({
     onCancel: (you: string) => {
@@ -39,7 +39,7 @@ export default Container.connect(
       ...dispatchProps,
       customCancelText: 'Close',
       onCancel: () => dispatchProps.onCancel(stateProps._you),
-      teams: Constants.sortTeamsByName(stateProps.teamDetails),
+      teams: Constants.sortTeamsByName(stateProps.teamMeta),
       title: 'Feature your teams',
       waiting: stateProps._waiting,
     }
