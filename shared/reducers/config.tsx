@@ -276,10 +276,14 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
     draftState.appOutOfDateStatus = action.payload.status
   },
   [EngineGen.keybase1NotifyRuntimeStatsRuntimeStatsUpdate]: (draftState, action) => {
-    draftState.runtimeStats = {
-      ...draftState.runtimeStats,
-      ...action.payload.params.stats,
-    } as Types.State['runtimeStats']
+    if (!action.payload.params.stats) {
+      draftState.runtimeStats = undefined
+    } else {
+      draftState.runtimeStats = {
+        ...draftState.runtimeStats,
+        ...action.payload.params.stats,
+      } as Types.State['runtimeStats']
+    }
   },
   [ConfigGen.updateHTTPSrvInfo]: (draftState, action) => {
     logger.info(

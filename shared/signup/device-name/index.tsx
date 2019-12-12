@@ -12,9 +12,23 @@ type Props = {
   waiting: boolean
 }
 
+// Copied from go/libkb/checkers.go
+const deviceRE = /^[a-zA-Z0-9][ _'a-zA-Z0-9+‘’—–-]*$/
+// eslint-disable-next-line
+const badDeviceRE = /  |[ '_-]$|['_-][ ]?['_-]/
+const normalizeDeviceRE = /[^a-zA-Z0-9]/
+
 const EnterDevicename = (props: Props) => {
   const [devicename, onChangeDevicename] = React.useState(props.initialDevicename || '')
-  const disabled = !devicename
+  const disabled = React.useMemo(() => {
+    const normalized = devicename.replace(normalizeDeviceRE, '')
+    return (
+      normalized.length < 3 ||
+      normalized.length > 64 ||
+      !deviceRE.test(devicename) ||
+      badDeviceRE.test(devicename)
+    )
+  }, [devicename])
   const onContinue = () => (disabled ? {} : props.onContinue(devicename))
   return (
     <SignupScreen

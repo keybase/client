@@ -272,6 +272,7 @@ export type TypedActionsMap = {
   'config:updateWindowState': config.UpdateWindowStatePayload
   'config:setUseNativeFrame': config.SetUseNativeFramePayload
   'config:setWhatsNewLastSeenVersion': config.SetWhatsNewLastSeenVersionPayload
+  'config:toggleRuntimeStats': config.ToggleRuntimeStatsPayload
   'config:loadNixOnLoginStartup': config.LoadNixOnLoginStartupPayload
   'config:loadedNixOnLoginStartup': config.LoadedNixOnLoginStartupPayload
   'config:loadOnStart': config.LoadOnStartPayload
@@ -791,7 +792,6 @@ export type TypedActionsMap = {
   'settings:loadedProxyData': settings.LoadedProxyDataPayload
   'settings:saveProxyData': settings.SaveProxyDataPayload
   'settings:certificatePinningToggled': settings.CertificatePinningToggledPayload
-  'settings:toggleRuntimeStats': settings.ToggleRuntimeStatsPayload
   'settings:loginBrowserViaWebAuthToken': settings.LoginBrowserViaWebAuthTokenPayload
   'signup:goBackAndClearErrors': signup.GoBackAndClearErrorsPayload
   'signup:requestAutoInvite': signup.RequestAutoInvitePayload

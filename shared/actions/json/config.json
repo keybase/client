@@ -145,6 +145,7 @@
       "_description": "Set the latest version number that a user has seen from Gregor. This is used to set the badged state of the 'What's New' radio icon",
       "lastSeenVersion": "string"
     },
+    "toggleRuntimeStats": {},
     "loadNixOnLoginStartup": {},
     "loadedNixOnLoginStartup": {
       "status": "boolean | null"

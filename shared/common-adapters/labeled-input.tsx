@@ -155,7 +155,7 @@ const styles = Styles.styleSheetCreate(
         common: {
           backgroundColor: Styles.globalColors.transparent,
           flexGrow: 1,
-          marginTop: 10,
+          marginTop: 14,
           paddingBottom: 3,
           paddingLeft: Styles.globalMargins.xsmall,
           paddingRight: Styles.globalMargins.xsmall,

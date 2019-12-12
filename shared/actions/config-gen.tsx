@@ -54,6 +54,7 @@ export const setUserSwitching = 'config:setUserSwitching'
 export const setWhatsNewLastSeenVersion = 'config:setWhatsNewLastSeenVersion'
 export const showMain = 'config:showMain'
 export const startHandshake = 'config:startHandshake'
+export const toggleRuntimeStats = 'config:toggleRuntimeStats'
 export const updateCriticalCheckStatus = 'config:updateCriticalCheckStatus'
 export const updateHTTPSrvInfo = 'config:updateHTTPSrvInfo'
 export const updateInfo = 'config:updateInfo'
@@ -149,6 +150,7 @@ type _SetUserSwitchingPayload = {readonly userSwitching: boolean}
 type _SetWhatsNewLastSeenVersionPayload = {readonly lastSeenVersion: string}
 type _ShowMainPayload = void
 type _StartHandshakePayload = void
+type _ToggleRuntimeStatsPayload = void
 type _UpdateCriticalCheckStatusPayload = {
   readonly status: 'critical' | 'suggested' | 'ok'
   readonly message: string
@@ -380,6 +382,10 @@ export const createSetUserSwitching = (payload: _SetUserSwitchingPayload): SetUs
   type: setUserSwitching,
 })
 export const createShowMain = (payload: _ShowMainPayload): ShowMainPayload => ({payload, type: showMain})
+export const createToggleRuntimeStats = (payload: _ToggleRuntimeStatsPayload): ToggleRuntimeStatsPayload => ({
+  payload,
+  type: toggleRuntimeStats,
+})
 export const createUpdateHTTPSrvInfo = (payload: _UpdateHTTPSrvInfoPayload): UpdateHTTPSrvInfoPayload => ({
   payload,
   type: updateHTTPSrvInfo,
@@ -529,6 +535,10 @@ export type StartHandshakePayload = {
   readonly payload: _StartHandshakePayload
   readonly type: typeof startHandshake
 }
+export type ToggleRuntimeStatsPayload = {
+  readonly payload: _ToggleRuntimeStatsPayload
+  readonly type: typeof toggleRuntimeStats
+}
 export type UpdateCriticalCheckStatusPayload = {
   readonly payload: _UpdateCriticalCheckStatusPayload
   readonly type: typeof updateCriticalCheckStatus
@@ -596,6 +606,7 @@ export type Actions =
   | SetWhatsNewLastSeenVersionPayload
   | ShowMainPayload
   | StartHandshakePayload
+  | ToggleRuntimeStatsPayload
   | UpdateCriticalCheckStatusPayload
   | UpdateHTTPSrvInfoPayload
   | UpdateInfoPayload

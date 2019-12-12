@@ -138,7 +138,15 @@ class TeamInfo extends React.Component<Props, {requested: boolean}> {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      description: {textAlign: 'center'},
+      description: Styles.platformStyles({
+        common: {
+          textAlign: 'center',
+        },
+        isElectron: {
+          width: '100%',
+          wordWrap: 'break-word',
+        },
+      }),
       infoPopup: {
         maxWidth: 225,
         padding: Styles.globalMargins.small,

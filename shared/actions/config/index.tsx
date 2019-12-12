@@ -673,6 +673,13 @@ const loadNixOnLoginStartup = async () => {
   }
 }
 
+const toggleRuntimeStats = async () => {
+  try {
+    await RPCTypes.configToggleRuntimeStatsRpcPromise()
+  } catch (err) {
+    logger.warn('error toggling runtime stats', err)
+  }
+}
 const emitStartupOnLoadNotInARush = async () => {
   await Saga.delay(1000)
   return new Promise<ConfigGen.LoadOnStartPayload>(resolve => {
@@ -782,6 +789,8 @@ function* configSaga() {
   }
 
   yield* Saga.chainAction2(ConfigGen.loadOnStart, getFollowerInfo)
+
+  yield* Saga.chainAction2(ConfigGen.toggleRuntimeStats, toggleRuntimeStats)
 
   // Kick off platform specific stuff
   yield Saga.spawn(PlatformSpecific.platformConfigSaga)
