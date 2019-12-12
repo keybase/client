@@ -699,10 +699,11 @@ export const annotatedTeamToDetails = (t: RPCTypes.AnnotatedTeam): Types.TeamDet
   const members = new Map<string, Types.MemberInfo>()
   t.members?.forEach(member => {
     const {fullName, status, username} = member.details
+    const maybeRole = teamRoleByEnum[member.role]
     members.set(username, {
       fullName,
       status: rpcMemberStatusToStatus[status],
-      type: teamRoleByEnum[member.role] || 'none',
+      type: !maybeRole || maybeRole === 'none' ? 'reader' : maybeRole,
       username,
     })
   })
