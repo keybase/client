@@ -314,33 +314,6 @@ func (h ConfigHandler) CheckAPIServerOutOfDateWarning(_ context.Context) (keybas
 	return h.G().GetOutOfDateInfo(), nil
 }
 
-func (h ConfigHandler) GetUpdateInfo(ctx context.Context) (keybase1.UpdateInfo, error) {
-	outOfDateInfo := h.G().GetOutOfDateInfo()
-	if len(outOfDateInfo.UpgradeTo) != 0 {
-		// This is from the API server. Consider client critically out of date
-		// if we are asked to upgrade by the API server.
-		return keybase1.UpdateInfo{
-			Status:  keybase1.UpdateInfoStatus_CRITICALLY_OUT_OF_DATE,
-			Message: outOfDateInfo.CustomMessage,
-		}, nil
-	}
-	needUpdate, err := install.GetNeedUpdate() // This is from the updater.
-	if err != nil {
-		h.G().Log.Errorf("Error calling updater: %s", err)
-		return keybase1.UpdateInfo{
-			Status: keybase1.UpdateInfoStatus_UP_TO_DATE,
-		}, err
-	}
-	if needUpdate {
-		return keybase1.UpdateInfo{
-			Status: keybase1.UpdateInfoStatus_NEED_UPDATE,
-		}, nil
-	}
-	return keybase1.UpdateInfo{
-		Status: keybase1.UpdateInfoStatus_UP_TO_DATE,
-	}, nil
-}
-
 func (h ConfigHandler) StartUpdateIfNeeded(ctx context.Context) error {
 	return install.StartUpdateIfNeeded(ctx, h.G().Log)
 }
@@ -444,6 +417,8 @@ func (h ConfigHandler) GetUpdateInfo2(ctx context.Context, arg keybase1.GetUpdat
 
 	var version string
 	var platform string
+	var installId string
+	var slowReleaseBypass bool
 
 	if arg.Platform != nil {
 		platform = *arg.Platform
@@ -455,12 +430,20 @@ func (h ConfigHandler) GetUpdateInfo2(ctx context.Context, arg keybase1.GetUpdat
 	} else {
 		version = libkb.VersionString()
 	}
+	if i := m.G().Env.GetInstallID(); i.Exists() {
+		installId = i.String()
+	}
+	if arg.SlowReleaseBypass != nil {
+		slowReleaseBypass = *arg.SlowReleaseBypass
+	}
 
 	apiArg := libkb.APIArg{
 		Endpoint: "pkg/check",
 		Args: libkb.HTTPArgs{
-			"version":  libkb.S{Val: version},
-			"platform": libkb.S{Val: platform},
+			"version":    libkb.S{Val: version},
+			"platform":   libkb.S{Val: platform},
+			"install_id": libkb.S{Val: installId},
+			"test_bypass_slow_release": libkb.B{Val: slowReleaseBypass},
 		},
 		RetryCount: 3,
 	}

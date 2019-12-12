@@ -718,12 +718,14 @@ func (e UpdateInfoStatus2) String() string {
 }
 
 type UpdateDetails struct {
+	Min string `codec:"min" json:"min"`
 	Message string `codec:"message" json:"message"`
 }
 
 func (o UpdateDetails) DeepCopy() UpdateDetails {
 	return UpdateDetails{
 		Message: o.Message,
+		Min: o.Min,
 	}
 }
 
@@ -938,9 +940,6 @@ type GuiGetValueArg struct {
 type CheckAPIServerOutOfDateWarningArg struct {
 }
 
-type GetUpdateInfoArg struct {
-}
-
 type StartUpdateIfNeededArg struct {
 }
 
@@ -969,6 +968,7 @@ type SetRememberPassphraseArg struct {
 type GetUpdateInfo2Arg struct {
 	Platform *string `codec:"platform,omitempty" json:"platform,omitempty"`
 	Version  *string `codec:"version,omitempty" json:"version,omitempty"`
+	SlowReleaseBypass *bool `codec:"test_bypass_slow_release,omitempty" json:"test_bypass_slow_release:omitempty"`
 }
 
 type SetProxyDataArg struct {
@@ -1016,7 +1016,6 @@ type ConfigInterface interface {
 	GuiGetValue(context.Context, string) (ConfigValue, error)
 	// Check whether the API server has told us we're out of date.
 	CheckAPIServerOutOfDateWarning(context.Context) (OutOfDateInfo, error)
-	GetUpdateInfo(context.Context) (UpdateInfo, error)
 	StartUpdateIfNeeded(context.Context) error
 	// Wait for client type to connect to service.
 	WaitForClient(context.Context, WaitForClientArg) (bool, error)
@@ -1024,8 +1023,10 @@ type ConfigInterface interface {
 	RequestFollowingAndUnverifiedFollowers(context.Context, int) error
 	GetRememberPassphrase(context.Context, int) (bool, error)
 	SetRememberPassphrase(context.Context, SetRememberPassphraseArg) error
-	// getUpdateInfo2 is to drive the redbar on mobile and desktop apps. The redbar tells you if
-	// you are critically out of date.
+	// getUpdateInfo2 is drives three parts of the GUI
+	// 1. Widget "update available" yellow bar
+	// 2. Keybase FM "update available" green radio icon
+	// 3. Red bar in GUI for crtiically out of date clients
 	GetUpdateInfo2(context.Context, GetUpdateInfo2Arg) (UpdateInfo2, error)
 	SetProxyData(context.Context, ProxyData) error
 	GetProxyData(context.Context) (ProxyData, error)
@@ -1316,16 +1317,6 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					ret, err = i.CheckAPIServerOutOfDateWarning(ctx)
-					return
-				},
-			},
-			"getUpdateInfo": {
-				MakeArg: func() interface{} {
-					var ret [1]GetUpdateInfoArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					ret, err = i.GetUpdateInfo(ctx)
 					return
 				},
 			},
@@ -1623,11 +1614,6 @@ func (c ConfigClient) CheckAPIServerOutOfDateWarning(ctx context.Context) (res O
 	return
 }
 
-func (c ConfigClient) GetUpdateInfo(ctx context.Context) (res UpdateInfo, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.config.getUpdateInfo", []interface{}{GetUpdateInfoArg{}}, &res, 0*time.Millisecond)
-	return
-}
-
 func (c ConfigClient) StartUpdateIfNeeded(ctx context.Context) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.config.startUpdateIfNeeded", []interface{}{StartUpdateIfNeededArg{}}, nil, 0*time.Millisecond)
 	return
@@ -1662,8 +1648,10 @@ func (c ConfigClient) SetRememberPassphrase(ctx context.Context, __arg SetRememb
 	return
 }
 
-// getUpdateInfo2 is to drive the redbar on mobile and desktop apps. The redbar tells you if
-// you are critically out of date.
+	// getUpdateInfo2 is drives three parts of the GUI
+	// 1. Widget "update available" yellow bar
+	// 2. Keybase FM "update available" green radio icon
+	// 3. Red bar in GUI for crtiically out of date clients
 func (c ConfigClient) GetUpdateInfo2(ctx context.Context, __arg GetUpdateInfo2Arg) (res UpdateInfo2, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.config.getUpdateInfo2", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return

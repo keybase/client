@@ -394,14 +394,42 @@ func testConfig(t *testing.T, g *libkb.GlobalContext) {
 func testGetUpdateInfo2(t *testing.T, g *libkb.GlobalContext) {
 	cli, err := client.GetConfigClient(g)
 	require.NoError(t, err)
-	res, err := cli.GetUpdateInfo2(context.TODO(), keybase1.GetUpdateInfo2Arg{})
+	var platform string
+	var version string
+	slowReleaseBypass := true
+
+	// (Desktop) OK
+	// Uses current platform and version
+	res, err := cli.GetUpdateInfo2(context.TODO(), keybase1.GetUpdateInfo2Arg{SlowReleaseBypass: &slowReleaseBypass})
 	require.NoError(t, err)
 	status, err := res.Status()
 	require.NoError(t, err)
 	require.Equal(t, keybase1.UpdateInfoStatus2_OK, status)
-	platform := "ios"
-	version := "0.0.1"
-	res, err = cli.GetUpdateInfo2(context.TODO(), keybase1.GetUpdateInfo2Arg{Platform: &platform, Version: &version})
+
+	// (Desktop) CRITICAL
+	version = "1.4.2"
+	res, err = cli.GetUpdateInfo2(context.TODO(), keybase1.GetUpdateInfo2Arg{Version: &version, SlowReleaseBypass: &slowReleaseBypass})
+	require.NoError(t, err)
+	status, err = res.Status()
+	require.NoError(t, err)
+	require.Equal(t, keybase1.UpdateInfoStatus2_CRITICAL, status)
+	require.IsType(t, "foo", res.Critical().Message)
+	require.True(t, len(res.Critical().Message) > 10)
+
+	// (Desktop) SUGGESTED
+	version = "4.8.1"
+	res, err = cli.GetUpdateInfo2(context.TODO(), keybase1.GetUpdateInfo2Arg{Version: &version, SlowReleaseBypass: &slowReleaseBypass})
+	require.NoError(t, err)
+	status, err = res.Status()
+	require.NoError(t, err)
+	require.Equal(t, keybase1.UpdateInfoStatus2_SUGGESTED, status)
+	require.IsType(t, "foo", res.Suggested().Message)
+	require.True(t, len(res.Suggested().Message) > 10)
+
+	// (Mobile) CRITICAL
+	platform = "ios"
+	version = "0.0.1"
+	res, err = cli.GetUpdateInfo2(context.TODO(), keybase1.GetUpdateInfo2Arg{Platform: &platform, Version: &version,SlowReleaseBypass: &slowReleaseBypass })
 	require.NoError(t, err)
 	status, err = res.Status()
 	require.NoError(t, err)
