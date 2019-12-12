@@ -178,7 +178,7 @@ const ConnectedInfoPanel = Container.connect(
     onHideConv: () => dispatch(Chat2Gen.createHideConversation({conversationIDKey})),
     onJoinChannel: () => dispatch(Chat2Gen.createJoinConversation({conversationIDKey})),
     onLeaveConversation: () => dispatch(Chat2Gen.createLeaveConversation({conversationIDKey})),
-    onLoadFeaturedBots: () => dispatch(BotsGen.createGetFeaturedBots({limit: 10})),
+    onSearchFeaturedBots: (query: string) => dispatch(BotsGen.createSearchFeaturedBots({query})),
     onShowNewTeamDialog: () => {
       dispatch(
         RouteTreeGen.createNavigateAppend({
@@ -324,7 +324,7 @@ const ConnectedInfoPanel = Container.connect(
       onHideConv: dispatchProps.onHideConv,
       onJoinChannel: dispatchProps.onJoinChannel,
       onLeaveConversation: dispatchProps.onLeaveConversation,
-      onLoadFeaturedBots: dispatchProps.onLoadFeaturedBots,
+      onSearchFeaturedBots: dispatchProps.onSearchFeaturedBots,
       onSelectTab: ownProps.onSelectTab,
       onShowBlockConversationDialog: membersForBlock.length
         ? () => dispatchProps._onShowBlockConversationDialog(membersForBlock, stateProps._team)
