@@ -2102,7 +2102,7 @@ const sendAudioRecording = async (
 ) => {
   // sit here for 400ms for animations
   if (!action.payload.fromStaged) {
-    await Saga.delay(400)
+    await Container.timeoutPromise(400)
   }
   const {conversationIDKey, info} = action.payload
   const audioRecording = info

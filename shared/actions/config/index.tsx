@@ -681,7 +681,22 @@ const toggleRuntimeStats = async () => {
   }
 }
 const emitStartupOnLoadNotInARush = async () => {
-  await Saga.delay(1000)
+  await Container.timeoutPromise(1000)
+  return new Promise<ConfigGen.LoadOnStartPayload>(resolve => {
+    requestAnimationFrame(() => {
+      resolve(ConfigGen.createLoadOnStart({phase: 'startupOrReloginButNotInARush'}))
+    })
+  })
+}
+
+const emitStartupOnLoadNotInARushLoggedIn = async (
+  _: Container.TypedState,
+  action: ConfigGen.LoggedInPayload
+) => {
+  if (action.payload.causedByStartup) {
+    return false
+  }
+  await Container.timeoutPromise(1000)
   return new Promise<ConfigGen.LoadOnStartPayload>(resolve => {
     requestAnimationFrame(() => {
       resolve(ConfigGen.createLoadOnStart({phase: 'startupOrReloginButNotInARush'}))
@@ -735,6 +750,7 @@ function* configSaga() {
   yield* Saga.chainAction2(ConfigGen.daemonHandshakeDone, emitStartupOnLoadNotInARush)
   yield* Saga.chainAction2(ConfigGen.daemonHandshakeDone, emitStartupOnLoadDaemonConnectedOnce)
   yield* Saga.chainAction2(ConfigGen.loggedIn, emitStartupOnLoadLoggedIn)
+  yield* Saga.chainAction2(ConfigGen.loggedIn, emitStartupOnLoadNotInARushLoggedIn)
 
   yield* Saga.chainAction2(ConfigGen.logoutAndTryToLogInAs, logoutAndTryToLogInAs, 'logoutAndTryToLogInAs')
 
