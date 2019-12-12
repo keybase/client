@@ -677,14 +677,14 @@ func (e UpdateInfoStatus2) String() string {
 }
 
 type UpdateDetails struct {
-	Min string `codec:"min" json:"min"`
 	Message string `codec:"message" json:"message"`
+	Min     string `codec:"min" json:"min"`
 }
 
 func (o UpdateDetails) DeepCopy() UpdateDetails {
 	return UpdateDetails{
 		Message: o.Message,
-		Min: o.Min,
+		Min:     o.Min,
 	}
 }
 
@@ -927,7 +927,6 @@ type SetRememberPassphraseArg struct {
 type GetUpdateInfo2Arg struct {
 	Platform *string `codec:"platform,omitempty" json:"platform,omitempty"`
 	Version  *string `codec:"version,omitempty" json:"version,omitempty"`
-	SlowReleaseBypass *bool `codec:"test_bypass_slow_release,omitempty" json:"test_bypass_slow_release:omitempty"`
 }
 
 type SetProxyDataArg struct {
@@ -1607,10 +1606,10 @@ func (c ConfigClient) SetRememberPassphrase(ctx context.Context, __arg SetRememb
 	return
 }
 
-	// getUpdateInfo2 is drives three parts of the GUI
-	// 1. Widget "update available" yellow bar
-	// 2. Keybase FM "update available" green radio icon
-	// 3. Red bar in GUI for crtiically out of date clients
+// getUpdateInfo2 is drives three parts of the GUI
+// 1. Widget "update available" yellow bar
+// 2. Keybase FM "update available" green radio icon
+// 3. Red bar in GUI for crtiically out of date clients
 func (c ConfigClient) GetUpdateInfo2(ctx context.Context, __arg GetUpdateInfo2Arg) (res UpdateInfo2, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.config.getUpdateInfo2", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return

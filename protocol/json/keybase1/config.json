@@ -674,29 +674,6 @@
       ]
     },
     {
-      "type": "enum",
-      "name": "UpdateInfoStatus",
-      "symbols": [
-        "UP_TO_DATE_0",
-        "NEED_UPDATE_1",
-        "CRITICALLY_OUT_OF_DATE_2"
-      ]
-    },
-    {
-      "type": "record",
-      "name": "UpdateInfo",
-      "fields": [
-        {
-          "type": "UpdateInfoStatus",
-          "name": "status"
-        },
-        {
-          "type": "string",
-          "name": "message"
-        }
-      ]
-    },
-    {
       "type": "record",
       "name": "BootstrapStatus",
       "fields": [
@@ -757,6 +734,10 @@
         {
           "type": "string",
           "name": "message"
+        },
+        {
+          "type": "string",
+          "name": "min"
         }
       ]
     },
@@ -1041,10 +1022,6 @@
       "response": "OutOfDateInfo",
       "doc": "Check whether the API server has told us we're out of date."
     },
-    "getUpdateInfo": {
-      "request": [],
-      "response": "UpdateInfo"
-    },
     "startUpdateIfNeeded": {
       "request": [],
       "response": null
@@ -1121,7 +1098,7 @@
         }
       ],
       "response": "UpdateInfo2",
-      "doc": "getUpdateInfo2 is to drive the redbar on mobile and desktop apps. The redbar tells you if\n   you are critically out of date."
+      "doc": "getUpdateInfo2 is drives three parts of the GUI\n    1. Widget \"update available\" yellow bar\n    2. Keybase FM \"update available\" green radio icon\n    3. Red bar in GUI for crtiically out of date clients"
     },
     "setProxyData": {
       "request": [

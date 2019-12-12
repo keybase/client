@@ -244,20 +244,8 @@ protocol config {
     */
   OutOfDateInfo checkAPIServerOutOfDateWarning();
 
-  enum UpdateInfoStatus {
-    UP_TO_DATE_0,
-    NEED_UPDATE_1,
-    CRITICALLY_OUT_OF_DATE_2
-  }
-  record UpdateInfo {
-    UpdateInfoStatus status;
-    string message;
-  }
-  UpdateInfo getUpdateInfo();
-
   // Same as running `keybase update check` in CLI.
   void startUpdateIfNeeded();
-
 
   /**
     Wait for client type to connect to service.
@@ -290,6 +278,7 @@ protocol config {
 
   record UpdateDetails {
     string message;
+    string min;
   }
 
   variant UpdateInfo2 switch (UpdateInfoStatus2 status) {
@@ -299,8 +288,10 @@ protocol config {
   }
 
   /**
-   getUpdateInfo2 is to drive the redbar on mobile and desktop apps. The redbar tells you if
-   you are critically out of date.
+  getUpdateInfo2 is drives three parts of the GUI
+    1. Widget "update available" yellow bar
+    2. Keybase FM "update available" green radio icon
+    3. Red bar in GUI for crtiically out of date clients
    */
   UpdateInfo2 getUpdateInfo2(union { null, string } platform, union { null, string } version);
 
