@@ -2813,6 +2813,44 @@ func (e TeamContactSettingsBlockError) Error() string {
 	return fmt.Sprintf("some users couldn't be contacted due to privacy settings (%s)", strings.Join(tmp, ","))
 }
 
+func NewTeamContactSettingsError(s *AppStatus) TeamContactSettingsBlockError {
+	e := TeamContactSettingsBlockError{}
+	for k, v := range s.Fields {
+		switch k {
+		case "uids":
+			e.blockedUIDs = parseUIDsFromString(v)
+		case "usernames":
+			e.blockedUsernames = parseUsernamesFromString(v)
+		}
+	}
+	return e
+}
+
+// parseUIDsFromString takes a comma-separate string of UIDs and returns an array of UIDs,
+// **ignoring any errors** since sometimes need to call this code on an error path.
+func parseUIDsFromString(s string) []keybase1.UID {
+	tmp := strings.Split(s, ",")
+	var res []keybase1.UID
+	for _, elem := range tmp {
+		u, err := keybase1.UIDFromString(elem)
+		if err == nil {
+			res = append(res, u)
+		}
+	}
+	return res
+}
+
+// parseUsernamesFromString takes a string that's a comma-separated list of usernames and then
+// returns a slice of NormalizedUsernames after splitting them. Does no error checking.
+func parseUsernamesFromString(s string) []NormalizedUsername {
+	tmp := strings.Split(s, ",")
+	var res []NormalizedUsername
+	for _, elem := range tmp {
+		res = append(res, NewNormalizedUsername(elem))
+	}
+	return res
+}
+
 //=============================================================================
 
 type HiddenChainDataMissingError struct {

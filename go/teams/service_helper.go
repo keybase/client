@@ -515,16 +515,13 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Tea
 	// try to add
 	restrictedUsers := make(map[keybase1.UID]bool)
 	err = RetryIfPossible(ctx, g, retryableFunc(restrictedUsers))
-	if isTeamContactSettingsBlock(err) {
+	if blockError, ok := err.(libkb.TeamContactSettingsBlockError); ok {
 		// retry add
-		fields := err.(libkb.AppStatusError).Fields
-		uids := fields["uids"]
-		usernames := fields["usernames"]
-		for _, uid := range strings.Split(uids, ",") {
-			restrictedUsers[keybase1.UID(uid)] = true
+		for _, uid := range blockError.BlockedUIDs() {
+			restrictedUsers[uid] = true
 		}
 
-		mctx.Debug("| Retrying AddMembers with restricted users removed: %+v", usernames)
+		mctx.Debug("| Retrying AddMembers with restricted users removed: %+v", blockError.BlockedUsernames())
 		err = RetryIfPossible(ctx, g, retryableFunc(restrictedUsers))
 	}
 

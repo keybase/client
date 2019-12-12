@@ -710,6 +710,8 @@ func appStatusToTypedError(ast *AppStatus) error {
 			}
 		}
 		return NewFeatureFlagError(ast.Desc, feature)
+	case SCTeamContactSettingsBlock:
+		return NewTeamContactSettingsError(ast)
 	default:
 		return NewAppStatusError(ast)
 	}
