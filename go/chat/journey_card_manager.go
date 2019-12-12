@@ -109,6 +109,15 @@ func (j *JourneyCardManager) SentMessage(ctx context.Context, uid gregor1.UID, c
 	js.SentMessage(ctx, convID)
 }
 
+func (j *JourneyCardManager) Dismiss(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, jcType chat1.JourneycardType) {
+	js, err := j.get(ctx, uid)
+	if err != nil {
+		j.Debug(ctx, "SentMessage error: %v", err)
+		return
+	}
+	js.Dismiss(ctx, convID, jcType)
+}
+
 func (j *JourneyCardManager) OnDbNuke(mctx libkb.MetaContext) error {
 	return j.clear(mctx.Ctx())
 }
@@ -174,6 +183,9 @@ func NewJourneyCardManagerSingleUser(g *globals.Context, uid gregor1.UID) *Journ
 
 func (cc *JourneyCardManagerSingleUser) checkFeature(ctx context.Context) bool {
 	if cc.G().GetEnv().GetDebugJourneycard() {
+		return true
+	}
+	if cc.G().Env.GetFeatureFlags().HasFeature(libkb.FeatureJourneycardPreview) {
 		return true
 	}
 	ogCtx := ctx
@@ -371,7 +383,7 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 	checkForNeverBeforeSeenCards := func(ctx context.Context, types []chat1.JourneycardType, breakOnShown bool) *chat1.JourneycardType {
 		for i := len(types) - 1; i >= 0; i-- {
 			cardType := types[i]
-			if jcd.HasShownCard(cardType) {
+			if jcd.hasShownOrDismissed(cardType) {
 				if breakOnShown {
 					break
 				} else {
@@ -404,7 +416,7 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 		if cardType := checkForNeverBeforeSeenCards(ctx, linearCardOrder, true); cardType != nil {
 			return makeCard(*cardType, 0, true)
 		}
-		// Show any new loose cards. It's fine to show A even in C has already been seen.
+		// Show any new loose cards. It's fine to show A even if C has already been seen.
 		if cardType := checkForNeverBeforeSeenCards(ctx, looseCardOrder, false); cardType != nil {
 			return makeCard(*cardType, 0, true)
 		}
@@ -420,7 +432,7 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 	var mostRecentCardType chat1.JourneycardType
 	var mostRecentPrev chat1.MessageID
 	for cardType, savedPos := range jcd.Positions {
-		if savedPos == nil {
+		if savedPos == nil || jcd.hasDismissed(cardType) {
 			continue
 		}
 		// Break ties in PrevID using cardType's arbitrary enum value.
@@ -723,6 +735,35 @@ func (cc *JourneyCardManagerSingleUser) SentMessage(ctx context.Context, convID 
 	}
 }
 
+func (cc *JourneyCardManagerSingleUser) Dismiss(ctx context.Context, convID chat1.ConversationID, cardType chat1.JourneycardType) {
+	err := libkb.AcquireWithContextAndTimeout(ctx, &cc.storageLock, 10*time.Second)
+	if err != nil {
+		cc.Debug(ctx, "SentMessage storageLock error: %v", err)
+		return
+	}
+	defer cc.storageLock.Unlock()
+	if convID.IsNil() {
+		return
+	}
+	jcd, err := cc.getConvDataWithLock(ctx, convID)
+	if err != nil {
+		cc.Debug(ctx, "storage get error: %v", err)
+		return
+	}
+	if jcd.Dismissals[cardType] {
+		return
+	}
+	if jcd.Dismissals == nil {
+		jcd.Dismissals = make(map[chat1.JourneycardType]bool)
+	}
+	jcd.Dismissals[cardType] = true
+	cc.lru.Add(convID.String(), jcd)
+	err = cc.encryptedDB.Put(ctx, cc.dbKey(convID), jcd)
+	if err != nil {
+		cc.Debug(ctx, "storage put error: %v", err)
+	}
+}
+
 func (cc *JourneyCardManagerSingleUser) dbKey(convID chat1.ConversationID) libkb.DbKey {
 	return libkb.DbKey{
 		Typ: libkb.DBChatJourney,
@@ -951,6 +992,7 @@ const journeycardDiskVersion int = 1
 type journeyCardConvData struct {
 	DiskVersion int                                            `codec:"v,omitempty" json:"v,omitempty"`
 	Positions   map[chat1.JourneycardType]*journeyCardPosition `codec:"p,omitempty" json:"p,omitempty"`
+	Dismissals  map[chat1.JourneycardType]bool                 `codec:"d,omitempty" json:"d,omitempty"`
 	// When this data was first saved. For debugging unexpected data loss.
 	Ctime gregor1.Time `codec:"c,omitempty" json:"c,omitempty"`
 	// Whether the user has sent a message in this channel.
@@ -963,6 +1005,7 @@ func newJourneyCardConvData() journeyCardConvData {
 	return journeyCardConvData{
 		DiskVersion: journeycardDiskVersion,
 		Positions:   make(map[chat1.JourneycardType]*journeyCardPosition),
+		Dismissals:  make(map[chat1.JourneycardType]bool),
 		Ctime:       gregor1.ToTime(time.Now()),
 	}
 }
@@ -971,15 +1014,24 @@ func newJourneyCardConvData() journeyCardConvData {
 func (j journeyCardConvData) CloneSemi() journeyCardConvData {
 	ret := j
 	ret.Positions = make(map[chat1.JourneycardType]*journeyCardPosition)
+	ret.Dismissals = make(map[chat1.JourneycardType]bool)
 	for k, v := range j.Positions {
 		ret.Positions[k] = v
+	}
+	for k, v := range j.Dismissals {
+		ret.Dismissals[k] = v
 	}
 	return ret
 }
 
-// Whether this card type has already been shown.
-func (j *journeyCardConvData) HasShownCard(cardType chat1.JourneycardType) bool {
-	return j.Positions[cardType] != nil
+// Whether this card type has already been shown or dismissed.
+func (j *journeyCardConvData) hasShownOrDismissed(cardType chat1.JourneycardType) bool {
+	return j.Positions[cardType] != nil || j.Dismissals[cardType]
+}
+
+// Whether this card type has been dismissed.
+func (j *journeyCardConvData) hasDismissed(cardType chat1.JourneycardType) bool {
+	return j.Dismissals[cardType]
 }
 
 type convForJourneycardInner interface {
