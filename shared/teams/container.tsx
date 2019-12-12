@@ -30,7 +30,7 @@ const headerActions = (dispatch: Container.TypedDispatch, ownProps: OwnProps) =>
   },
 })
 
-const orderTeams = memoize((teams: Types.State['teamDetails']) =>
+const orderTeams = memoize((teams: Types.State['teamMeta']) =>
   [...teams.values()].sort((a, b) => a.teamname.localeCompare(b.teamname))
 )
 
@@ -55,7 +55,7 @@ Reloadable.navigationOptions = {
 const _Connected = Container.connect(
   (state: Container.TypedState) => ({
     _teamresetusers: state.teams.teamNameToResetUsers || new Map(),
-    _teams: state.teams.teamDetails,
+    _teams: state.teams.teamMeta,
     deletedTeams: state.teams.deletedTeams,
     loaded: !WaitingConstants.anyWaiting(state, Constants.teamsLoadedWaitingKey),
     newTeamRequests: state.teams.newTeamRequests,

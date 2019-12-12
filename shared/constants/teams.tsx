@@ -628,6 +628,9 @@ export const emptyTeamMeta = Object.freeze<Types.TeamMeta>({
 export const makeTeamMeta = (td: Partial<Types.TeamMeta>): Types.TeamMeta =>
   td ? Object.assign({...emptyTeamMeta}, td) : emptyTeamMeta
 
+export const getTeamMeta = (state: TypedState, teamID: Types.TeamID) =>
+  state.teams.teamMeta.get(teamID) ?? emptyTeamMeta
+
 export const teamListToMeta = (
   list: Array<RPCTypes.AnnotatedMemberInfo>
 ): Map<Types.TeamID, Types.TeamMeta> => {
@@ -675,8 +678,17 @@ export const annotatedInvitesToInviteInfo = (
     return arr
   }, [])
 
+const emptyTeamDetails = Object.freeze<Types.TeamDetails>({
+  description: '',
+  invites: new Set(),
+  members: new Map(),
+  requests: new Set(),
+  settings: {open: false, openJoinAs: 'reader', showcaseAllowed: false, tarsDisabled: false},
+  subteams: new Set(),
+})
+
 export const getTeamDetails = (state: TypedState, teamID: Types.TeamID) =>
-  state.teams.teamDetails.get(teamID) || emptyTeamDetails
+  state.teams.teamDetails.get(teamID) ?? emptyTeamDetails
 
 export const annotatedTeamToDetails = (t: RPCTypes.AnnotatedTeam): Types.TeamDetails => {
   const maybeOpenJoinAs = teamRoleByEnum[t.settings.joinAs] ?? 'reader'

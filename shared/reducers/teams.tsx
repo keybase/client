@@ -66,21 +66,9 @@ export default Container.makeReducer<
     oldLoadingInvites.set(loadingKey, isLoading)
     draftState.teamNameToLoadingInvites.set(teamname, oldLoadingInvites)
   },
-  [TeamsGen.setTeamDetails]: (draftState, action) => {
-    // TODO loadedTeam
-    // const {teamname, teamID} = action.payload
-    // const members = Constants.rpcDetailsToMemberInfos(action.payload.members)
-    // draftState.teamNameToMembers.set(teamname, Constants.rpcDetailsToMemberInfos(action.payload.members))
-    // const details = mapGetEnsureValue(
-    //   draftState.teamDetails,
-    //   teamID,
-    //   Constants.makeTeamMeta({id: teamID, teamname})
-    // )
-    // details.members = members
-    // details.settings = action.payload.settings
-    // details.invites = new Set(action.payload.invites)
-    // details.subteams = action.payload.subteamIDs
-    // details.requests = new Set(action.payload.requests.get(teamname))
+  [TeamsGen.teamLoaded]: (draftState, action) => {
+    const {teamID, details} = action.payload
+    draftState.teamDetails.set(teamID, details)
   },
   [TeamsGen.setMembers]: (draftState, action) => {
     draftState.teamNameToMembers.set(action.payload.teamname, action.payload.members)
