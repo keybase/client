@@ -106,6 +106,14 @@ func (rc RemoteConversation) GetMtime() gregor1.Time {
 	return rc.LocalMtime
 }
 
+func (rc RemoteConversation) GetReadMsgID() chat1.MessageID {
+	res := rc.Conv.ReaderInfo.ReadMsgid
+	if res > rc.LocalReadMsgID {
+		return res
+	}
+	return rc.LocalReadMsgID
+}
+
 func (rc RemoteConversation) GetConvID() chat1.ConversationID {
 	return rc.Conv.GetConvID()
 }

@@ -422,6 +422,13 @@ func (m MessageUnboxed) IsPlaceholder() bool {
 	return false
 }
 
+func (m MessageUnboxed) IsJourneycard() bool {
+	if state, err := m.State(); err == nil {
+		return state == MessageUnboxedState_JOURNEYCARD
+	}
+	return false
+}
+
 // IsValidFull returns whether the message is both:
 // 1. Valid
 // 2. Has a non-deleted body with a type matching the header
@@ -566,6 +573,9 @@ func (m *MessageUnboxed) DebugString() string {
 		}
 		return fmt.Sprintf("[%v obid:%v prev:%v ostate:%v %v]",
 			state, obr.OutboxID, obr.Msg.ClientHeader.OutboxInfo.Prev, ostateStr, obr.Msg.ClientHeader.MessageType)
+	case MessageUnboxedState_JOURNEYCARD:
+		jc := m.Journeycard()
+		return fmt.Sprintf("[JOURNEYCARD %v]", jc.CardType)
 	default:
 		return fmt.Sprintf("[state:%v %v]", state, m.GetMessageID())
 	}

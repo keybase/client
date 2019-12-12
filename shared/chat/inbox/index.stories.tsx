@@ -25,7 +25,11 @@ const makeRowItemBigHeader = (teamname: string = ''): RowItemBigHeader => ({
   teamID: '',
   teamname,
 })
-const makeRowItemBigChannel = (conversationIDKey, teamname, channelname): RowItemBig => ({
+const makeRowItemBigChannel = (
+  conversationIDKey: Types.ConversationIDKey,
+  teamname: string,
+  channelname: string
+): RowItemBig => ({
   type: 'big',
   teamname,
   channelname,
@@ -98,7 +102,7 @@ const commonBigFilter = {
   isTeam: true,
 }
 
-const mapPropProviderProps = {
+const mapPropProviderProps: any = {
   // Small Teams
   smallTeamA: {
     ...commonSmallTeam,
@@ -333,9 +337,9 @@ const mapPropProviderProps = {
  * Called from the row component's PropProvider
  * Uses either conversationIDKey or teamname as a key in mapPropProviderProps
  */
-const getPropProviderProps = own => {
+const getPropProviderProps = (own: any): any => {
   if (own.conversationIDKey && own.conversationIDKey !== 'EMPTY') {
-    const props = mapPropProviderProps[own.conversationIDKey]
+    const props: any = mapPropProviderProps[own.conversationIDKey]
     return {
       ...props,
       conversationIDKey: own.conversationIDKey,

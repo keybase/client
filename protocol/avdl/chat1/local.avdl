@@ -1247,6 +1247,8 @@ protocol local {
 
   keybase1.TeamID teamIDFromTLFName(string tlfName, ConversationMembersType membersType, boolean tlfPublic);
 
+  void dismissJourneycard(ConversationID convID, JourneycardType cardType);
+
   record LocalMtimeUpdate {
     ConversationID convID;
     gregor1.Time mtime;

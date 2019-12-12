@@ -185,7 +185,7 @@ class Flame extends React.Component<{}, {color: string; timer: number; width: nu
   }
 }
 
-const explodedIllustrationUrl = () =>
+const explodedIllustrationUrl = (): string =>
   Styles.isDarkMode()
     ? urlsToImgSet({'68': resolveRootAsURL('../images/icons/dark-pattern-ashes-desktop-400-68.png')}, 68)
     : urlsToImgSet({'68': resolveRootAsURL('../images/icons/pattern-ashes-desktop-400-68.png')}, 68)
@@ -193,19 +193,21 @@ const explodedIllustrationUrl = () =>
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      ashBox: {
-        backgroundColor: Styles.globalColors.white, // exploded messages don't have hover effects and we need to cover the message
-        backgroundImage: explodedIllustrationUrl(),
-        backgroundRepeat: 'repeat',
-        backgroundSize: '400px 68px',
-        bottom: 0,
-        left: 0,
-        overflow: 'hidden',
-        position: 'absolute',
-        top: 0,
-        transition: `width 0s`,
-        width: 0,
-      },
+      ashBox: Styles.platformStyles({
+        isElectron: {
+          backgroundColor: Styles.globalColors.white, // exploded messages don't have hover effects and we need to cover the message
+          backgroundImage: explodedIllustrationUrl(),
+          backgroundRepeat: 'repeat',
+          backgroundSize: '400px 68px',
+          bottom: 0,
+          left: 0,
+          overflow: 'hidden',
+          position: 'absolute',
+          top: 0,
+          transition: `width 0s`,
+          width: 0,
+        },
+      }),
       container: {...Styles.globalStyles.flexBoxColumn, flex: 1},
       exploded: Styles.platformStyles({
         isElectron: {

@@ -37,9 +37,7 @@ export class Video extends React.Component<Props, State> {
             },
           ])}
         >
-          {!this.state.playingVideo && (
-            <Kb.Icon type="icon-play-64" style={Kb.iconCastPlatformStyles(styles.playButton)} />
-          )}
+          {!this.state.playingVideo && <Kb.Icon type="icon-play-64" style={styles.playButton} />}
         </Kb.Box>
         <video
           ref={this._videoRef}

@@ -236,7 +236,10 @@ const load = () => {
     ))
 }
 
-const toPlatformStyle = styleOpts => ({...styleOpts.common, ...styleOpts[isMobile ? 'mobile' : 'desktop']})
+const toPlatformStyle = (styleOpts: any) => ({
+  ...styleOpts.common,
+  ...styleOpts[isMobile ? 'mobile' : 'desktop'],
+})
 
 const editChannelStyle = {
   common: {},

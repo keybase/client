@@ -3411,17 +3411,29 @@ func (o UserTeamVersionUpdate) DeepCopy() UserTeamVersionUpdate {
 	}
 }
 
+type AnnotatedTeamMemberDetails struct {
+	Details TeamMemberDetails `codec:"details" json:"details"`
+	Role    TeamRole          `codec:"role" json:"role"`
+}
+
+func (o AnnotatedTeamMemberDetails) DeepCopy() AnnotatedTeamMemberDetails {
+	return AnnotatedTeamMemberDetails{
+		Details: o.Details.DeepCopy(),
+		Role:    o.Role.DeepCopy(),
+	}
+}
+
 type AnnotatedTeam struct {
-	TeamID                       TeamID                `codec:"teamID" json:"teamID"`
-	Name                         string                `codec:"name" json:"name"`
-	TransitiveSubteamsUnverified SubteamListResult     `codec:"transitiveSubteamsUnverified" json:"transitiveSubteamsUnverified"`
-	Members                      []TeamMemberDetails   `codec:"members" json:"members"`
-	Invites                      []AnnotatedTeamInvite `codec:"invites" json:"invites"`
-	JoinRequests                 []TeamJoinRequest     `codec:"joinRequests" json:"joinRequests"`
-	UserIsShowcasing             bool                  `codec:"userIsShowcasing" json:"userIsShowcasing"`
-	TarsDisabled                 bool                  `codec:"tarsDisabled" json:"tarsDisabled"`
-	Settings                     TeamSettings          `codec:"settings" json:"settings"`
-	Showcase                     TeamShowcase          `codec:"showcase" json:"showcase"`
+	TeamID                       TeamID                       `codec:"teamID" json:"teamID"`
+	Name                         string                       `codec:"name" json:"name"`
+	TransitiveSubteamsUnverified SubteamListResult            `codec:"transitiveSubteamsUnverified" json:"transitiveSubteamsUnverified"`
+	Members                      []AnnotatedTeamMemberDetails `codec:"members" json:"members"`
+	Invites                      []AnnotatedTeamInvite        `codec:"invites" json:"invites"`
+	JoinRequests                 []TeamJoinRequest            `codec:"joinRequests" json:"joinRequests"`
+	UserIsShowcasing             bool                         `codec:"userIsShowcasing" json:"userIsShowcasing"`
+	TarsDisabled                 bool                         `codec:"tarsDisabled" json:"tarsDisabled"`
+	Settings                     TeamSettings                 `codec:"settings" json:"settings"`
+	Showcase                     TeamShowcase                 `codec:"showcase" json:"showcase"`
 }
 
 func (o AnnotatedTeam) DeepCopy() AnnotatedTeam {
@@ -3429,11 +3441,11 @@ func (o AnnotatedTeam) DeepCopy() AnnotatedTeam {
 		TeamID:                       o.TeamID.DeepCopy(),
 		Name:                         o.Name,
 		TransitiveSubteamsUnverified: o.TransitiveSubteamsUnverified.DeepCopy(),
-		Members: (func(x []TeamMemberDetails) []TeamMemberDetails {
+		Members: (func(x []AnnotatedTeamMemberDetails) []AnnotatedTeamMemberDetails {
 			if x == nil {
 				return nil
 			}
-			ret := make([]TeamMemberDetails, len(x))
+			ret := make([]AnnotatedTeamMemberDetails, len(x))
 			for i, v := range x {
 				vCopy := v.DeepCopy()
 				ret[i] = vCopy

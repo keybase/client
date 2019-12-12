@@ -122,9 +122,12 @@ function* loadDaemonBootstrapStatus(
     yield Saga.put(loadedAction)
     // set HTTP srv info
     if (s.httpSrvInfo) {
+      logger.info(`[Bootstrap] http server: addr: ${s.httpSrvInfo.address} token: ${s.httpSrvInfo.token}`)
       yield Saga.put(
         ConfigGen.createUpdateHTTPSrvInfo({address: s.httpSrvInfo.address, token: s.httpSrvInfo.token})
       )
+    } else {
+      logger.info(`[Bootstrap] http server: no info given`)
     }
 
     // if we're logged in act like getAccounts is done already
@@ -669,6 +672,14 @@ const loadNixOnLoginStartup = async () => {
   }
 }
 
+const toggleRuntimeStats = async () => {
+  try {
+    await RPCTypes.configToggleRuntimeStatsRpcPromise()
+  } catch (err) {
+    logger.warn('error toggling runtime stats', err)
+  }
+}
+
 const emitStartupFirstIdle = async () => {
   await Saga.delay(1000)
   return new Promise<ConfigGen.StartupFirstIdlePayload>(resolve => {
@@ -763,6 +774,8 @@ function* configSaga() {
   }
 
   yield* Saga.chainAction2([ConfigGen.loggedIn, ConfigGen.startupFirstIdle], getFollowerInfo)
+
+  yield* Saga.chainAction2(ConfigGen.toggleRuntimeStats, toggleRuntimeStats)
 
   // Kick off platform specific stuff
   yield Saga.spawn(PlatformSpecific.platformConfigSaga)

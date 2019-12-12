@@ -4,6 +4,7 @@ import * as Types from './types/devices'
 import * as WaitingConstants from './waiting'
 import * as RPCTypes from './types/rpc-gen'
 import * as Container from '../util/container'
+import {memoize} from '../util/memoize'
 
 export const rpcDeviceToDevice = (d: RPCTypes.DeviceDetail): Types.Device =>
   makeDevice({
@@ -75,7 +76,7 @@ export const getDeviceIconNumberInner = (
   deviceID: Types.DeviceID
 ): number => ((devices.get(deviceID) || {deviceNumberOfType: 0}).deviceNumberOfType % numBackgrounds) + 1
 
-const getNextDeviceIconNumberInner = (devices: Map<Types.DeviceID, Types.Device>) => {
+const getNextDeviceIconNumberInner = memoize((devices: Map<Types.DeviceID, Types.Device>) => {
   // Find the max device number and add one (+ one more since these are 1-indexed)
   const result = {backup: 1, desktop: 1, mobile: 1}
   devices.forEach(device => {
@@ -84,7 +85,7 @@ const getNextDeviceIconNumberInner = (devices: Map<Types.DeviceID, Types.Device>
     }
   })
   return {desktop: (result.desktop % numBackgrounds) + 1, mobile: (result.mobile % numBackgrounds) + 1}
-}
+})
 
 export const getDeviceIconNumber = (state: Container.TypedState, deviceID: Types.DeviceID) =>
   getDeviceIconNumberInner(state.devices.deviceMap, deviceID)

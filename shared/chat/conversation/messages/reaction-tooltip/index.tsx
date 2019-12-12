@@ -73,7 +73,7 @@ const ReactionTooltip = (props: Props) => {
               <Kb.Icon
                 type="iconfont-reacji"
                 color={Styles.globalColors.blue}
-                style={Kb.iconCastPlatformStyles(styles.addReactionButtonIcon)}
+                style={styles.addReactionButtonIcon}
               />
             </Kb.Button>
           </Kb.ButtonBar>

@@ -3018,6 +3018,20 @@
     },
     {
       "type": "record",
+      "name": "AnnotatedTeamMemberDetails",
+      "fields": [
+        {
+          "type": "TeamMemberDetails",
+          "name": "details"
+        },
+        {
+          "type": "TeamRole",
+          "name": "role"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "AnnotatedTeam",
       "fields": [
         {
@@ -3035,7 +3049,7 @@
         {
           "type": {
             "type": "array",
-            "items": "TeamMemberDetails"
+            "items": "AnnotatedTeamMemberDetails"
           },
           "name": "members"
         },

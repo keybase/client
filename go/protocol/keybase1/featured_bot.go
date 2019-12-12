@@ -13,8 +13,8 @@ type FeaturedBot struct {
 	BotAlias    string  `codec:"botAlias" json:"botAlias"`
 	Description string  `codec:"description" json:"description"`
 	BotUsername string  `codec:"botUsername" json:"botUsername"`
-	OwnerTeamID *TeamID `codec:"ownerTeamID,omitempty" json:"ownerTeamID,omitempty"`
-	OwnerUID    *UID    `codec:"ownerUID,omitempty" json:"ownerUID,omitempty"`
+	OwnerTeam   *string `codec:"ownerTeam,omitempty" json:"ownerTeam,omitempty"`
+	OwnerUser   *string `codec:"ownerUser,omitempty" json:"ownerUser,omitempty"`
 }
 
 func (o FeaturedBot) DeepCopy() FeaturedBot {
@@ -22,20 +22,20 @@ func (o FeaturedBot) DeepCopy() FeaturedBot {
 		BotAlias:    o.BotAlias,
 		Description: o.Description,
 		BotUsername: o.BotUsername,
-		OwnerTeamID: (func(x *TeamID) *TeamID {
+		OwnerTeam: (func(x *string) *string {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := (*x)
 			return &tmp
-		})(o.OwnerTeamID),
-		OwnerUID: (func(x *UID) *UID {
+		})(o.OwnerTeam),
+		OwnerUser: (func(x *string) *string {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := (*x)
 			return &tmp
-		})(o.OwnerUID),
+		})(o.OwnerUser),
 	}
 }
 

@@ -36,7 +36,7 @@ type CheckboxRowProps = {
   disabled?: boolean
   info?: string
   more?: React.ReactNode
-  onCheck: (boolean) => void
+  onCheck: (c: boolean) => void
   text: React.ReactNode
 }
 const CheckboxRow = (props: CheckboxRowProps) => (
