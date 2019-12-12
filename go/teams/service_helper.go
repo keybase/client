@@ -101,6 +101,11 @@ func GetAnnotatedTeam(ctx context.Context, g *libkb.GlobalContext, id keybase1.T
 		}
 	}
 
+	showcase, err := GetTeamShowcaseByID(ctx, g, id)
+	if err != nil {
+		return res, err
+	}
+
 	res = keybase1.AnnotatedTeam{
 		TeamID:                       id,
 		Name:                         t.Data.Name.String(),
@@ -112,7 +117,7 @@ func GetAnnotatedTeam(ctx context.Context, g *libkb.GlobalContext, id keybase1.T
 
 		TarsDisabled: tarsDisabled,
 		Settings:     det.Settings,
-		Showcase:     det.Showcase,
+		Showcase:     showcase,
 	}
 	return res, nil
 }

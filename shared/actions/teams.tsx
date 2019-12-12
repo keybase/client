@@ -49,7 +49,6 @@ const showTeamAfterCreation = (_: TypedState, action: TeamsGen.TeamCreatedPayloa
     ]
   }
   return [
-    TeamsGen.createGetDetails({teamname}),
     RouteTreeGen.createClearModals(),
     RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]}),
     ...(isMobile
@@ -265,7 +264,6 @@ function* inviteByEmail(_: TypedState, action: TeamsGen.InviteToTeamByEmailPaylo
         yield Saga.put(RouteTreeGen.createClearModals())
       }
     }
-    yield Saga.put(TeamsGen.createGetDetails({clearInviteLoadingKey: loadingKey, teamname}))
   } catch (err) {
     // other error. display messages and leave all emails in input box
     yield Saga.put(TeamsGen.createSetEmailInviteError({malformed: [], message: err.desc}))
@@ -1004,7 +1002,7 @@ function* setPublicity(state: TypedState, action: TeamsGen.SetPublicityPayload, 
 const teamChangedByID = (state: TypedState, action: EngineGen.Keybase1NotifyTeamTeamChangedByIDPayload) => {
   const {teamID, latestHiddenSeqno, latestOffchainSeqno, latestSeqno} = action.payload.params
   const version = state.teams.teamVersion.get(teamID)
-  let versionChanged = false
+  let versionChanged = true // if we don't have an old version, assume it's increased
   if (version) {
     versionChanged =
       latestHiddenSeqno > version.latestHiddenSeqno ||

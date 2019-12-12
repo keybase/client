@@ -37,7 +37,6 @@ export default Container.connect(
           dispatch(RouteTreeGen.createNavigateUp())
         } else {
           dispatch(RouteTreeGen.createNavUpToScreen({routeName: 'team'}))
-          dispatch(TeamsGen.createGetDetails({teamname}))
         }
       },
     }

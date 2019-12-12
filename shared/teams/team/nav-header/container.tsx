@@ -44,13 +44,13 @@ export const HeaderRightActions = Container.connect(
 
 export const HeaderTitle = Container.connect(
   (state, {teamID}: OwnProps) => {
-    const details = Constants.getTeamMeta(state, teamID)
-    const {role, memberCount, teamname} = details
+    const meta = Constants.getTeamMeta(state, teamID)
+    const {role, memberCount, teamname} = meta
     const yourOperations = Constants.getCanPerformByID(state, teamID)
     return {
       _canEditDescAvatar: yourOperations.editTeamDescription,
       _canRenameTeam: yourOperations.renameTeam,
-      description: Constants.getTeamPublicitySettings(state, teamname).description,
+      description: Constants.getTeamDetails(state, teamID).description,
       members: memberCount,
       role,
       teamname,
