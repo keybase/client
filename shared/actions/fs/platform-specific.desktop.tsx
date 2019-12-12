@@ -342,21 +342,16 @@ const installCachedDokan = (_: TypedState, action: FsGen.DriverEnablePayload) =>
     .catch(makeUnretriableErrorHandler(action, null))
 
 const openAndUploadToPromise = (_: TypedState, action: FsGen.OpenAndUploadPayload): Promise<Array<string>> =>
-  new Promise(resolve =>
-    SafeElectron.getDialog().showOpenDialog(
-      SafeElectron.getCurrentWindowFromRemote(),
-      {
-        // @ts-ignore codemod-issue
-        properties: [
-          'multiSelections',
-          ...(['file', 'both'].includes(action.payload.type) ? ['openFile'] : []),
-          ...(['directory', 'both'].includes(action.payload.type) ? ['openDirectory'] : []),
-        ],
-        title: 'Select a file or folder to upload',
-      },
-      (filePaths: Array<string>) => resolve(filePaths || [])
-    )
-  )
+  SafeElectron.getDialog()
+    .showOpenDialog(SafeElectron.getCurrentWindowFromRemote(), {
+      properties: [
+        'multiSelections' as const,
+        ...(['file', 'both'].includes(action.payload.type) ? (['openFile'] as const) : []),
+        ...(['directory', 'both'].includes(action.payload.type) ? (['openDirectory'] as const) : []),
+      ],
+      title: 'Select a file or folder to upload',
+    })
+    .then(res => res.filePaths)
 
 const openAndUpload = async (state: TypedState, action: FsGen.OpenAndUploadPayload) => {
   const localPaths = await openAndUploadToPromise(state, action)
