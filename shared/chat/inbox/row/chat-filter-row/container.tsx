@@ -15,7 +15,7 @@ type OwnProps = {
 }
 
 function KeyHandler<T>(t: T): T {
-  return isMobile ? t : require('../../../../util/key-handler.desktop').default
+  return require('../../../../util/key-handler.desktop').default(t)
 }
 
 const Component = isMobile ? ConversationFilterInput : KeyHandler(ConversationFilterInput)
