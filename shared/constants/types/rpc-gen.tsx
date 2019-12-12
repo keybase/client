@@ -635,6 +635,10 @@ export type MessageTypes = {
     inParam: {readonly folder: FolderHandle}
     outParam: void
   }
+  'keybase.1.featuredBot.featuredBots': {
+    inParam: {readonly limit: Int; readonly offset: Int}
+    outParam: FeaturedBotsRes
+  }
   'keybase.1.git.createPersonalRepo': {
     inParam: {readonly repoName: GitRepoName}
     outParam: RepoID
@@ -3408,6 +3412,7 @@ export const emailsSetPrimaryEmailRpcPromise = (params: MessageTypes['keybase.1.
 export const emailsSetVisibilityEmailRpcPromise = (params: MessageTypes['keybase.1.emails.setVisibilityEmail']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.emails.setVisibilityEmail']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.emails.setVisibilityEmail', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const favoriteFavoriteAddRpcPromise = (params: MessageTypes['keybase.1.favorite.favoriteAdd']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.favorite.favoriteAdd']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.favorite.favoriteAdd', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const favoriteFavoriteIgnoreRpcPromise = (params: MessageTypes['keybase.1.favorite.favoriteIgnore']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.favorite.favoriteIgnore']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.favorite.favoriteIgnore', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const featuredBotFeaturedBotsRpcPromise = (params: MessageTypes['keybase.1.featuredBot.featuredBots']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.featuredBot.featuredBots']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.featuredBot.featuredBots', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const gitCreatePersonalRepoRpcPromise = (params: MessageTypes['keybase.1.git.createPersonalRepo']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.git.createPersonalRepo']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.git.createPersonalRepo', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const gitCreateTeamRepoRpcPromise = (params: MessageTypes['keybase.1.git.createTeamRepo']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.git.createTeamRepo']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.git.createTeamRepo', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const gitDeletePersonalRepoRpcPromise = (params: MessageTypes['keybase.1.git.deletePersonalRepo']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.git.deletePersonalRepo']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.git.deletePersonalRepo', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -3587,7 +3592,6 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.emails.setVisibilityAllEmail'
 // 'keybase.1.emails.getEmails'
 // 'keybase.1.favorite.getFavorites'
-// 'keybase.1.featuredBot.featuredBots'
 // 'keybase.1.featuredBot.search'
 // 'keybase.1.fs.List'
 // 'keybase.1.git.putGitMetadata'

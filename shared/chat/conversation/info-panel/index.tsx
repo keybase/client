@@ -3,6 +3,7 @@ import * as Types from '../../../constants/types/chat2'
 import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
+import * as RPCTypes from '../../../constants/types/rpc-gen'
 import {Props as HeaderHocProps} from '../../../common-adapters/header-hoc/types'
 import {AdhocHeader, TeamHeader} from './header'
 import {SettingsPanel} from './panels'
@@ -17,13 +18,7 @@ export type ParticipantTyp = {
   isAdmin: boolean
   isOwner: boolean
 }
-export type BotTyp = {
-  username: string
-  botAlias: string
-  description?: string
-  ownerTeam?: string
-  ownerUser?: string
-}
+
 export type EntityType = 'adhoc' | 'small team' | 'channel'
 export type Section = {
   data: Array<any>
@@ -83,7 +78,7 @@ export type InfoPanelProps = {
   loadDelay?: number
   selectedConversationIDKey: Types.ConversationIDKey
   participants: ReadonlyArray<ParticipantTyp>
-  bots: ReadonlyArray<ParticipantTyp>
+  bots: ReadonlyArray<RPCTypes.FeaturedBot>
   isPreview: boolean
   teamname?: string
   channelname?: string
@@ -126,6 +121,9 @@ export type InfoPanelProps = {
   onEditChannel: () => void
   onLeaveConversation: () => void
   onJoinChannel: () => void
+
+  // Used for bots
+  onLoadFeaturedBots: () => void
 } & HeaderHocProps
 
 const TabText = ({selected, text}: {selected: boolean; text: string}) => (
@@ -142,7 +140,6 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
         this.loadAttachments()
       }
       if (this.props.selectedTab === 'bots') {
-        // TODO: load bots
       }
     }, this.props.loadDelay || 0)
   }
@@ -206,7 +203,7 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
 
     // @ts-ignore TODO avoid using key on a node
     if (tab.key === 'bots') {
-      // TODO: load featured bots?
+      this.props.onLoadFeaturedBots()
     }
 
     // @ts-ignore TODO avoid using key on a node
@@ -417,17 +414,10 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
 
         tabsSection.data = tabsSection.data.concat(this.props.bots)
         tabsSection.renderItem = ({item}) => {
-          if (!item.username) {
+          if (!item.botUsername) {
             return null
           } else {
-            return (
-              <Bot
-                botAlias={item.botAlias}
-                description={item.description}
-                username={item.username}
-                onShowProfile={this.props.onShowProfile}
-              />
-            )
+            return <Bot {...item} onShowProfile={this.props.onShowProfile} />
           }
         }
         sections.push(tabsSection)

@@ -1,0 +1,14 @@
+{
+  "prelude": [],
+  "actions": {
+    "getFeaturedBots": {
+      "_description": "Gets featured bots",
+      "limit": "number",
+      "offset?": "number"
+    },
+    "updateFeaturedBots": {
+      "_description": "Updates featured bots in store",
+      "bots": "Array<RPCTypes.FeaturedBot>"
+    }
+  }
+}
