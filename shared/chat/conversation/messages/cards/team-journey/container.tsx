@@ -22,7 +22,8 @@ type Props = {
   channelname: string
   conversationIDKey: ChatTypes.ConversationIDKey
   message: MessageTypes.MessageJourneycard
-  otherChannels: Array<string>
+  otherChannelsForPopular: Array<string>
+  otherChannelsForNoAnswer: Array<string>
   onAddPeopleToTeam: () => void
   onBrowseChannels: () => void
   onCreateChatChannels: () => void
@@ -56,7 +57,7 @@ const TeamJourneyContainer = (props: Props) => {
       )
       break
     case RPCChatTypes.JourneycardType.popularChannels:
-      actions = props.otherChannels.map(chan => ({
+      actions = props.otherChannelsForPopular.map(chan => ({
         label: `#${chan}`,
         onClick: () => props.onGoToChannel(chan),
       }))
@@ -67,7 +68,7 @@ const TeamJourneyContainer = (props: Props) => {
             You are in <Kb.Text type="BodySmallBold">#{props.channelname}</Kb.Text>.
           </Kb.Text>
           <Kb.Text type="BodySmall">
-            {props.otherChannels.length
+            {props.otherChannelsForPopular.length
               ? `Some other channels in this team:`
               : `And you're in all the other channels, nice.`}
           </Kb.Text>
@@ -117,7 +118,7 @@ const TeamJourneyContainer = (props: Props) => {
       )
       break
     case RPCChatTypes.JourneycardType.msgNoAnswer:
-      actions = props.otherChannels.map(chan => ({
+      actions = props.otherChannelsForNoAnswer.map(chan => ({
         label: `#${chan}`,
         onClick: () => props.onGoToChannel(chan),
       }))
@@ -145,40 +146,36 @@ const TeamJourneyContainer = (props: Props) => {
   ) : null
 }
 
-const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
-  const conv = Constants.getMeta(state, ownProps.message.conversationIDKey)
-  const {channelname, conversationIDKey, teamname, teamID} = conv
-  return {
-    _channelInfos: TeamConstants.getTeamChannelInfos(state, teamname),
-    _teamID: teamID,
-    channelname,
-    conversationIDKey,
-    teamType: TeamConstants.getTeamType(state, teamname),
-    teamname,
-  }
-}
-
-const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
-  _onAddPeopleToTeam: (teamID: TeamTypes.TeamID) => dispatch(appendNewTeamBuilder(teamID)),
-  _onBrowseChannels: (teamname: string) =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'chatManageChannels'}]})
-    ),
-  _onCreateChatChannels: (teamname: string) =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'chatManageChannels'}]})
-    ),
-  _onGoToChannel: (channelname: string, teamname: string) =>
-    dispatch(Chat2Gen.createPreviewConversation({channelname, reason: 'journeyCardPopular', teamname})),
-  _onLoadTeam: (teamname: string) => dispatch(TeamsGen.createGetChannels({teamname})),
-  _onPublishTeam: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['profileShowcaseTeamOffer']})),
-  _onShowTeam: (teamID: TeamTypes.TeamID) =>
-    dispatch(RouteTreeGen.createNavigateAppend({path: [teamsTab, {props: {teamID}, selected: 'team'}]})),
-})
-
 const TeamJourneyConnected = Container.connect(
-  mapStateToProps,
-  mapDispatchToProps,
+  (state, ownProps: OwnProps) => {
+    const conv = Constants.getMeta(state, ownProps.message.conversationIDKey)
+    const {channelname, conversationIDKey, teamname, teamID} = conv
+    return {
+      _channelInfos: TeamConstants.getTeamChannelInfos(state, teamname),
+      _teamID: teamID,
+      channelname,
+      conversationIDKey,
+      teamType: TeamConstants.getTeamType(state, teamname),
+      teamname,
+    }
+  },
+  dispatch => ({
+    _onAddPeopleToTeam: (teamID: TeamTypes.TeamID) => dispatch(appendNewTeamBuilder(teamID)),
+    _onBrowseChannels: (teamname: string) =>
+      dispatch(
+        RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'chatManageChannels'}]})
+      ),
+    _onCreateChatChannels: (teamname: string) =>
+      dispatch(
+        RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'chatManageChannels'}]})
+      ),
+    _onGoToChannel: (channelname: string, teamname: string) =>
+      dispatch(Chat2Gen.createPreviewConversation({channelname, reason: 'journeyCardPopular', teamname})),
+    _onLoadTeam: (teamname: string) => dispatch(TeamsGen.createGetChannels({teamname})),
+    _onPublishTeam: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['profileShowcaseTeamOffer']})),
+    _onShowTeam: (teamID: TeamTypes.TeamID) =>
+      dispatch(RouteTreeGen.createNavigateAppend({path: [teamsTab, {props: {teamID}, selected: 'team'}]})),
+  }),
   (stateProps, dispatchProps, ownProps) => {
     const {channelname, conversationIDKey, teamname, teamType} = stateProps
     // Take the top three channels with most recent activity.
@@ -189,9 +186,14 @@ const TeamJourneyConnected = Container.connect(
       RPCChatTypes.ConversationMemberStatus.reset,
       RPCChatTypes.ConversationMemberStatus.neverJoined,
     ])
-    const otherChannels = [...stateProps._channelInfos.values()]
-      .filter(info => joinableStatuses.has(info.memberStatus))
+    const otherChannelsBase = [...stateProps._channelInfos.values()]
+      .filter(info => info.channelname !== channelname)
       .sort((x, y) => y.mtime - x.mtime)
+    const otherChannelsForPopular = otherChannelsBase
+      .filter(info => joinableStatuses.has(info.memberStatus))
+      .slice(0, Container.isMobile ? 2 : 3)
+      .map(info => info.channelname)
+    const otherChannelsForNoAnswer = otherChannelsBase
       .slice(0, Container.isMobile ? 2 : 3)
       .map(info => info.channelname)
 
@@ -207,7 +209,8 @@ const TeamJourneyConnected = Container.connect(
       onPublishTeam: () => dispatchProps._onPublishTeam(),
       onScrollBack: () => console.log('onScrollBack'),
       onShowTeam: () => dispatchProps._onShowTeam(stateProps._teamID),
-      otherChannels,
+      otherChannelsForNoAnswer,
+      otherChannelsForPopular,
       teamType,
       teamname,
     }
