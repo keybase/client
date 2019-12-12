@@ -15,17 +15,15 @@ const mapStateToProps = (state, {teamID}: OwnProps) => {
   const teamMeta = Constants.getTeamMeta(state, teamID)
   const teamDetails = Constants.getTeamDetails(state, teamID)
   const {teamname} = teamMeta
-  const publicitySettings = Constants.getTeamPublicitySettings(state, teamname)
-  const publicityAnyMember = publicitySettings.anyMemberShowcase
-  const publicityMember = publicitySettings.member
-  const publicityTeam = publicitySettings.team
   const settings = teamDetails.settings
+  const publicityAnyMember = teamMeta.allowPromote
+  const publicityMember = teamMeta.showcasing
+  const publicityTeam = settings.teamShowcased
   return {
     canShowcase: teamMeta.allowPromote || teamMeta.role === 'admin' || teamMeta.role === 'owner',
-    ignoreAccessRequests: publicitySettings.ignoreAccessRequests,
+    ignoreAccessRequests: settings.tarsDisabled,
     isBigTeam: Constants.isBigTeam(state, teamname),
     openTeam: settings.open,
-    // Cast to TeamRoleType
     openTeamRole: settings.openJoinAs,
     publicityAnyMember,
     publicityMember,
