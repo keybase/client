@@ -770,3 +770,13 @@ export const getCanPerform = (state: TypedState, teamname: Types.Teamname): Type
 
 export const getCanPerformByID = (state: TypedState, teamID: Types.TeamID): Types.TeamOperations =>
   deriveCanPerform(state.teams.teamRoleMap.roles.get(teamID))
+
+// Don't allow version to roll back
+export const ratchetTeamVersion = (newVersion: Types.TeamVersion, oldVersion?: Types.TeamVersion) =>
+  oldVersion
+    ? {
+        latestHiddenSeqno: Math.max(newVersion.latestHiddenSeqno, oldVersion.latestHiddenSeqno),
+        latestOffchainSeqno: Math.max(newVersion.latestOffchainSeqno, oldVersion.latestOffchainSeqno),
+        latestSeqno: Math.max(newVersion.latestSeqno, oldVersion.latestSeqno),
+      }
+    : newVersion

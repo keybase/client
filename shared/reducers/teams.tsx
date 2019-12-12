@@ -72,7 +72,10 @@ export default Container.makeReducer<
   },
   [TeamsGen.setTeamVersion]: (draftState, action) => {
     const {teamID, version} = action.payload
-    draftState.teamVersion.set(teamID, version)
+    draftState.teamVersion.set(
+      teamID,
+      Constants.ratchetTeamVersion(version, draftState.teamVersion.get(teamID))
+    )
   },
   [TeamsGen.setMembers]: (draftState, action) => {
     draftState.teamNameToMembers.set(action.payload.teamname, action.payload.members)
