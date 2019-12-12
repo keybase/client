@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import {memoize} from '../../../util/memoize'
 
 export type BlockType = 'chatBlocked' | 'followBlocked'
 export type ReportSettings = {
@@ -369,7 +368,7 @@ class BlockModal extends React.PureComponent<Props, State> {
 
 export default BlockModal
 
-const getListHeightStyle = memoize((numOthers: number) => ({height: numOthers >= 3 ? 260 : numOthers * 120}))
+const getListHeightStyle = (numOthers: number) => ({height: numOthers >= 3 ? 260 : numOthers * 120})
 
 const styles = Styles.styleSheetCreate(() => ({
   checkBoxRow: Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
