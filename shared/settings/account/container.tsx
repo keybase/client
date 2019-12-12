@@ -1,6 +1,5 @@
 import * as Constants from '../../constants/settings'
 import * as Tabs from '../../constants/tabs'
-import * as I from 'immutable'
 import * as SettingsGen from '../../actions/settings-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Container from '../../util/container'
@@ -55,10 +54,10 @@ export default Container.connect(
       ...dispatchProps,
       addedEmail: stateProps.addedEmail,
       addedPhone: stateProps.addedPhone,
-      contactKeys: I.List([
+      contactKeys: [
         ...(stateProps._emails ? stateProps._emails.keys() : []),
         ...(stateProps._phones ? stateProps._phones.keys() : []),
-      ]),
+      ],
       hasPassword: stateProps.hasPassword,
       moreThanOneEmail: stateProps._emails ? stateProps._emails.size > 1 : false,
       onClearSupersededPhoneNumber: () =>

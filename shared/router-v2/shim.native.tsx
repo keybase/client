@@ -6,6 +6,25 @@ import * as Container from '../util/container'
 
 export const shim = (routes: any) => Shared.shim(routes, shimNewRoute)
 
+const KeyboardAvoidingViewWithHeaderHeight = ({useHeaderHeight, children}) => {
+  const headerHeight = useHeaderHeight()
+  return (
+    <Kb.KeyboardAvoidingView
+      style={styles.keyboard}
+      behavior={Styles.isIOS ? 'padding' : undefined}
+      keyboardVerticalOffset={headerHeight}
+    >
+      {children}
+    </Kb.KeyboardAvoidingView>
+  )
+}
+
+const KeyboardAvoidingViewWithoutHeaderHeight = ({children}) => (
+  <Kb.KeyboardAvoidingView style={styles.keyboard} behavior={Styles.isIOS ? 'padding' : undefined}>
+    {children}
+  </Kb.KeyboardAvoidingView>
+)
+
 const shimNewRoute = (Original: any) => {
   // Wrap everything in a keyboard avoiding view (maybe this is opt in/out?)
   // Also light/dark aware
@@ -17,15 +36,14 @@ const shimNewRoute = (Original: any) => {
           ? Original.navigationOptions({navigation: this.props.navigation})
           : Original.navigationOptions
       const body = <Original {...this.props} key={this.props.isDarkMode ? 'dark' : 'light'} />
-      const keyboardBody = (
-        <Kb.KeyboardAvoidingView
-          style={styles.keyboard}
-          behavior={Styles.isIOS ? 'padding' : undefined}
-          keyboardVerticalOffset={(navigationOptions && navigationOptions.headerHeight) || undefined}
-        >
-          {body}
-        </Kb.KeyboardAvoidingView>
-      )
+      const keyboardBody =
+        navigationOptions && navigationOptions.useHeaderHeight ? (
+          <KeyboardAvoidingViewWithHeaderHeight useHeaderHeight={navigationOptions.useHeaderHeight}>
+            {body}
+          </KeyboardAvoidingViewWithHeaderHeight>
+        ) : (
+          <KeyboardAvoidingViewWithoutHeaderHeight>{body}</KeyboardAvoidingViewWithoutHeaderHeight>
+        )
 
       // don't make safe areas
       if (navigationOptions && navigationOptions.underNotch) {

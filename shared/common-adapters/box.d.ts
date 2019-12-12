@@ -2,6 +2,17 @@ import * as React from 'react'
 import {StylesCrossPlatform, globalMargins} from '../styles'
 export type Props = any
 
+export type LayoutEvent = {
+  nativeEvent: {
+    layout: {
+      x: number
+      y: number
+      width: number
+      height: number
+    }
+  }
+}
+
 export type Box2Props = {
   alignItems?: 'center' | 'flex-start' | 'flex-end' | 'stretch'
   alignSelf?: null | 'center' | 'flex-start' | 'flex-end' | 'stretch'
@@ -16,16 +27,7 @@ export type Box2Props = {
   onDragOver?: (syntheticDragEvent: React.DragEvent<Element>) => void // desktop only
   onDrop?: (syntheticDragEvent: React.DragEvent<Element>) => void // desktop
   // only
-  onLayout?: (evt: {
-    nativeEvent: {
-      layout: {
-        x: number
-        y: number
-        width: number
-        height: number
-      }
-    }
-  }) => void // mobile only
+  onLayout?: (evt: LayoutEvent) => void // mobile only
   onMouseDown?: (syntheticEvent: React.SyntheticEvent) => void // desktop only
   onMouseLeave?: (syntheticEvent: React.SyntheticEvent) => void // desktop only
   onMouseUp?: (syntheticEvent: React.SyntheticEvent) => void // desktop only

@@ -44,23 +44,19 @@ type State = {
 class InboxSearch extends React.Component<Props, State> {
   state = {nameCollapsed: false, textCollapsed: false}
 
-  _renderHit = ({item, section, index}) => {
+  private renderHit = (h: {
+    item: TextResult
+    section: {indexOffset: number; onSelect: any}
+    index: number
+  }) => {
+    const {item, section, index} = h
     const realIndex = index + section.indexOffset
     return item.type === 'big' ? (
       <SelectableBigTeamChannel
         conversationIDKey={item.conversationIDKey}
         isSelected={!Styles.isMobile && this.props.selectedIndex === realIndex}
         name={item.name}
-        numSearchHits={
-          // Auto generated from flowToTs. Please clean me!
-          // Auto generated from flowToTs. Please clean me!
-          (item === null || item === undefined ? undefined : item.numHits) !== null && // Auto generated from flowToTs. Please clean me!
-          (item === null || item === undefined ? undefined : item.numHits) !== undefined // Auto generated from flowToTs. Please clean me!
-            ? item === null || item === undefined
-              ? undefined
-              : item.numHits
-            : undefined
-        }
+        numSearchHits={item?.numHits}
         maxSearchHits={Constants.inboxSearchMaxTextMessages}
         onSelectConversation={() => section.onSelect(item, realIndex)}
       />
@@ -69,35 +65,26 @@ class InboxSearch extends React.Component<Props, State> {
         conversationIDKey={item.conversationIDKey}
         isSelected={!Styles.isMobile && this.props.selectedIndex === realIndex}
         name={item.name}
-        numSearchHits={
-          // Auto generated from flowToTs. Please clean me!
-          // Auto generated from flowToTs. Please clean me!
-          (item === null || item === undefined ? undefined : item.numHits) !== null && // Auto generated from flowToTs. Please clean me!
-          (item === null || item === undefined ? undefined : item.numHits) !== undefined // Auto generated from flowToTs. Please clean me!
-            ? item === null || item === undefined
-              ? undefined
-              : item.numHits
-            : undefined
-        }
+        numSearchHits={item?.numHits}
         maxSearchHits={Constants.inboxSearchMaxTextMessages}
         onSelectConversation={() => section.onSelect(item, realIndex)}
       />
     )
   }
-  _toggleCollapseName = () => {
+  private toggleCollapseName = () => {
     this.setState(s => ({nameCollapsed: !s.nameCollapsed}))
   }
-  _toggleCollapseText = () => {
+  private toggleCollapseText = () => {
     this.setState(s => ({textCollapsed: !s.textCollapsed}))
   }
-  _selectName = (item, index) => {
+  private selectName = (item: NameResult, index: number) => {
     this.props.onSelectConversation(item.conversationIDKey, index, '')
     this.props.onCancel()
   }
-  _selectText = (item, index) => {
+  private selectText = (item: TextResult, index: number) => {
     this.props.onSelectConversation(item.conversationIDKey, index, item.query)
   }
-  _renderNameHeader = section => {
+  private renderNameHeader = (section: any) => {
     return (
       <Kb.SectionDivider
         collapsed={section.isCollapsed}
@@ -107,7 +94,7 @@ class InboxSearch extends React.Component<Props, State> {
       />
     )
   }
-  _renderTextHeader = section => {
+  private renderTextHeader = (section: any) => {
     const ratio = this.props.indexPercent / 100.0
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.textHeader}>
@@ -142,57 +129,57 @@ class InboxSearch extends React.Component<Props, State> {
       </Kb.Box2>
     )
   }
-  _renderSectionHeader = ({section}) => {
+  private renderSectionHeader = ({section}: any) => {
     return section.renderHeader(section)
   }
-  _keyExtractor = (_, index) => index
-  _nameResults = () => {
+  private keyExtractor = (_: unknown, index: number) => index
+  private nameResults = () => {
     return this.state.nameCollapsed ? [] : this.props.nameResults
   }
-  _textResults = () => {
+  private textResults = () => {
     return this.state.textCollapsed ? [] : this.props.textResults
-  }
-  _isStatusDone = status => {
-    return status === 'success' || status === 'error'
   }
 
   render() {
-    const textResults = this._textResults()
-    const nameResults = this._nameResults()
+    const textResults = this.textResults()
+    const nameResults = this.nameResults()
     const sections = [
       {
         data: nameResults,
         indexOffset: 0,
         isCollapsed: this.state.nameCollapsed,
-        onCollapse: this._toggleCollapseName,
-        onSelect: this._selectName,
-        renderHeader: this._renderNameHeader,
-        renderItem: this._renderHit,
+        onCollapse: this.toggleCollapseName,
+        onSelect: this.selectName,
+        renderHeader: this.renderNameHeader,
+        renderItem: this.renderHit,
         status: this.props.nameStatus,
         title: this.props.nameResultsUnread ? 'Unread' : 'Chats',
       },
+      ...(!this.props.nameResultsUnread
+        ? [
+            {
+              data: textResults,
+              indexOffset: nameResults.length,
+              isCollapsed: this.state.textCollapsed,
+              onCollapse: this.toggleCollapseText,
+              onSelect: this.selectText,
+              renderHeader: this.renderTextHeader,
+              renderItem: this.renderHit,
+              status: this.props.textStatus,
+              title: 'Messages',
+            },
+          ]
+        : []),
     ]
-    if (!this.props.nameResultsUnread) {
-      sections.push({
-        data: textResults,
-        indexOffset: nameResults.length,
-        isCollapsed: this.state.textCollapsed,
-        onCollapse: this._toggleCollapseText,
-        onSelect: this._selectText,
-        renderHeader: this._renderTextHeader,
-        renderItem: this._renderHit,
-        status: this.props.textStatus,
-        title: 'Messages',
-      })
-    }
+
     return (
       <Kb.Box2 style={styles.container} direction="vertical" fullWidth={true}>
         <Rover />
         <Kb.SectionList
           ListHeaderComponent={this.props.header}
           stickySectionHeadersEnabled={true}
-          renderSectionHeader={this._renderSectionHeader}
-          keyExtractor={this._keyExtractor}
+          renderSectionHeader={this.renderSectionHeader}
+          keyExtractor={this.keyExtractor}
           keyboardShouldPersistTaps="handled"
           sections={sections}
         />
@@ -222,9 +209,15 @@ const styles = Styles.styleSheetCreate(
       errorText: {
         color: Styles.globalColors.redDark,
       },
-      percentContainer: {
-        padding: Styles.globalMargins.tiny,
-      },
+      percentContainer: Styles.platformStyles({
+        common: {
+          padding: Styles.globalMargins.tiny,
+        },
+        isMobile: {
+          paddingLeft: Styles.globalMargins.small,
+          paddingRight: Styles.globalMargins.small,
+        },
+      }),
       progressBar: {
         alignSelf: 'center',
         flex: 1,

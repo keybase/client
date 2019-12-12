@@ -49,6 +49,7 @@ type ChatServiceHandler interface {
 	GetResetConvMembersV1(context.Context) Reply
 	AddResetConvMemberV1(context.Context, addResetConvMemberOptionsV1) Reply
 	GetDeviceInfoV1(context.Context, getDeviceInfoOptionsV1) Reply
+	ListMembersV1(context.Context, listMembersOptionsV1) Reply
 }
 
 // chatServiceHandler implements ChatServiceHandler.
@@ -105,8 +106,17 @@ func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Rep
 	if err != nil {
 		return c.errReply(err)
 	}
+	var convIDs []chat1.ConversationID
+	if opts.ConversationID != "" {
+		convID, err := chat1.MakeConvID(opts.ConversationID)
+		if err != nil {
+			return c.errReply(err)
+		}
+		convIDs = append(convIDs, convID)
+	}
 	res, err := client.GetInboxAndUnboxUILocal(ctx, chat1.GetInboxAndUnboxUILocalArg{
 		Query: &chat1.GetInboxLocalQuery{
+			ConvIDs:           convIDs,
 			Status:            utils.VisibleChatConversationStatuses(),
 			TopicType:         &topicType,
 			UnreadOnly:        opts.UnreadOnly,
@@ -1269,6 +1279,43 @@ func (c *chatServiceHandler) sendV1(ctx context.Context, arg sendArgV1, chatUI c
 	}
 
 	return Reply{Result: res}
+}
+
+// ListMembersV1 implements ChatServiceHandler.ListMembersV1.
+func (c *chatServiceHandler) ListMembersV1(ctx context.Context, opts listMembersOptionsV1) Reply {
+	conv, _, err := c.findConversation(ctx, opts.ConversationID, opts.Channel)
+	if err != nil {
+		return c.errReply(err)
+	}
+
+	chatClient, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	teamID, err := chatClient.TeamIDFromTLFName(ctx, chat1.TeamIDFromTLFNameArg{
+		TlfName:     conv.Info.TlfName,
+		MembersType: conv.Info.MembersType,
+		TlfPublic:   conv.Info.Visibility == keybase1.TLFVisibility_PUBLIC,
+	})
+	if err != nil {
+		return c.errReply(err)
+	}
+
+	cli, err := GetTeamsClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	details, err := cli.TeamGetByID(context.Background(), keybase1.TeamGetByIDArg{Id: teamID})
+	if err != nil {
+		return c.errReply(err)
+	}
+
+	// filter the member list down to the specific conversation members based on the server-trust list
+	if conv.Info.TopicName != "" && opts.Channel.TopicName != "general" {
+		details = keybase1.FilterTeamDetailsForMembers(conv.AllNames(), details)
+	}
+
+	return Reply{Result: details}
 }
 
 type postHeader struct {

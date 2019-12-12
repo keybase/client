@@ -13,9 +13,9 @@ type Props = {
   adder: string
   bulkAdds: Array<string>
   role: TeamTypes.TeamRoleType
-  onManageChannels: () => void
   onManageNotifications: () => void
   onViewTeam: () => void
+  isTeam: boolean
   teamname: string
   timestamp: number
   you: string
@@ -23,17 +23,15 @@ type Props = {
 
 const ManageComponent = (props: Props) => {
   const textType = 'BodySmallSemiboldPrimaryLink'
+  if (!props.isTeam) {
+    return null
+  }
   if (props.addee === props.you) {
     return (
       <Kb.Box style={{...Styles.globalStyles.flexBoxColumn}}>
         <Kb.Text onClick={props.onManageNotifications} type={textType}>
           Manage phone and computer notifications
         </Kb.Text>
-        {!!props.teamname && (
-          <Kb.Text onClick={props.onManageChannels} type={textType}>
-            Browse other channels
-          </Kb.Text>
-        )}
       </Kb.Box>
     )
   } else if (props.isAdmin) {
@@ -60,6 +58,8 @@ const youOrUsername = (props: {username: string; you: string; capitalize: boolea
 }
 
 const AddedToTeam = (props: Props) => {
+  const role =
+    props.role === 'bot' || props.role === 'restrictedbot' ? typeToLabel[props.role].toLowerCase() : null
   if (props.addee === props.you) {
     return <YouAddedToTeam {...props} />
   }
@@ -67,8 +67,9 @@ const AddedToTeam = (props: Props) => {
     <UserNotice>
       <Kb.Text type="BodySmall">
         {youOrUsername({capitalize: true, username: props.adder, you: props.you})}added{' '}
-        {getAddedUsernames(props.bulkAdds.length === 0 ? [props.addee] : props.bulkAdds)} to the team.{' '}
-        <ManageComponent {...props} />
+        {getAddedUsernames(props.bulkAdds.length === 0 ? [props.addee] : props.bulkAdds)}
+        {props.isTeam && ' to the team'}
+        {role && ` as ${indefiniteArticle(role)} ${role}`}. <ManageComponent {...props} />
       </Kb.Text>
     </UserNotice>
   )
@@ -92,15 +93,7 @@ const YouAddedToTeam = (props: Props) => {
           </Kb.Text>
         )}
         {typeToLabel[props.role] && ` as ${indefiniteArticle(props.role)} ${typeToLabel[role].toLowerCase()}`}
-        .{' '}
-        <Kb.Text type="BodySmall">
-          Say hi!{' '}
-          <Kb.EmojiIfExists
-            style={Styles.isMobile ? {display: 'inline-block'} : null}
-            emojiName=":wave:"
-            size={14}
-          />
-        </Kb.Text>
+        .
       </Kb.Text>
       <ManageComponent {...props} />
     </UserNotice>

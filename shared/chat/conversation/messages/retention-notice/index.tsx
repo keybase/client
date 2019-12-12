@@ -1,22 +1,32 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
+import * as Container from '../../../../util/container'
 import * as Styles from '../../../../styles'
+import {RetentionPolicy} from '../../../../constants/types/retention-policy'
 
 export type Props = {
   canChange: boolean
+  explanation?: string
+  measure?: () => void
   onChange: () => void
-  explanation: string
+  policy: RetentionPolicy
+  teamPolicy: RetentionPolicy
 }
 
 const iconType = Styles.isMobile ? 'icon-message-retention-48' : 'icon-message-retention-32'
 
 export default (props: Props) => {
+  Container.useDepChangeEffect(() => {
+    props.measure && props.measure()
+  }, [props.canChange, props.policy, props.teamPolicy])
   return (
     <Kb.Box style={styles.container}>
       <Kb.Icon type={iconType} style={styles.icon} />
-      <Kb.Text center={true} type="BodySmallSemibold">
-        {props.explanation}
-      </Kb.Text>
+      {!!props.explanation && (
+        <Kb.Text center={true} type="BodySmallSemibold">
+          {props.explanation}
+        </Kb.Text>
+      )}
       {props.canChange && (
         <Kb.Text
           type="BodySmallSemibold"

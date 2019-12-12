@@ -377,6 +377,10 @@ func (b *CachingBotCommandManager) getBotInfo(ctx context.Context, job *commandU
 	res, err := b.ri().GetBotInfo(ctx, chat1.GetBotInfoArg{
 		ConvID:   convID,
 		InfoHash: infoHash,
+		// Send up the latest client version we known about. The server
+		// will apply the client version when hashing so we can cache even if
+		// new clients are using a different hash function.
+		ClientHashVers: chat1.ClientBotInfoHashVers,
 	})
 	if err != nil {
 		return botInfo, false, err

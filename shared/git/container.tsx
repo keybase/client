@@ -11,7 +11,9 @@ import sortBy from 'lodash/sortBy'
 import {memoize} from '../util/memoize'
 import {HeaderTitle, HeaderRightActions} from './nav-header'
 
-type OwnProps = {}
+type TabsStateOwnProps = Container.RouteProps<{expandedSet: Set<string>}>
+
+type OwnProps = TabsStateOwnProps & {}
 
 const getRepos = memoize((git: Map<string, Types.GitInfo>) =>
   sortBy([...git.values()], ['teamname', 'name']).reduce<{personals: Array<string>; teams: Array<string>}>(
@@ -33,9 +35,9 @@ type ExtraProps = {
 // keep track in the module
 let moduleExpandedSet = new Set<string>()
 
-const GitReloadable = (p: Omit<GitProps & ExtraProps, 'expandedSet' | 'onToggleExpand'>) => {
-  const {clearBadges} = p
-  const [expandedSet, setExpandedSet] = React.useState(moduleExpandedSet)
+const GitReloadable = (p: Omit<GitProps & ExtraProps, 'onToggleExpand'>) => {
+  const {clearBadges, expandedSet: initialExpandedSet, _loadGit, ...rest} = p
+  const [expandedSet, setExpandedSet] = React.useState(new Set<string>(initialExpandedSet))
 
   React.useEffect(() => {
     moduleExpandedSet = expandedSet
@@ -46,8 +48,6 @@ const GitReloadable = (p: Omit<GitProps & ExtraProps, 'expandedSet' | 'onToggleE
     moduleExpandedSet.has(id) ? moduleExpandedSet.delete(id) : moduleExpandedSet.add(id)
     setExpandedSet(new Set(moduleExpandedSet))
   }
-
-  const {_loadGit, ...rest} = p
   return (
     <Kb.Reloadable
       waitingKeys={Constants.loadingWaitingKey}
@@ -68,8 +68,10 @@ GitReloadable.navigationOptions = Container.isMobile
       title: 'Git',
     }
 
+const emptySet = new Set<string>()
 export default Container.connect(
-  (state: Container.TypedState) => ({
+  (state: Container.TypedState, ownProps: OwnProps) => ({
+    expandedSet: Container.getRouteProps(ownProps, 'expandedSet', emptySet),
     loading: anyWaiting(state, Constants.loadingWaitingKey),
     ...getRepos(Constants.getIdToGit(state)),
   }),

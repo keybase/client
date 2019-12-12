@@ -689,7 +689,8 @@
       "symbols": [
         "MAIN_0",
         "BLINDED_1",
-        "SELF_2"
+        "SELF_2",
+        "UNCOMMITTED_3"
       ]
     },
     {
@@ -741,6 +742,18 @@
         {
           "type": "Seqno",
           "name": "latestSeqnoHint"
+        },
+        {
+          "type": "Seqno",
+          "name": "lastCommittedSeqno"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "Time",
+            "keys": "Seqno"
+          },
+          "name": "linkReceiptTimes"
         },
         {
           "type": {
@@ -1631,6 +1644,11 @@
       "name": "TeamMemberOutFromReset",
       "fields": [
         {
+          "type": "TeamID",
+          "name": "teamID",
+          "jsonkey": "team_id"
+        },
+        {
           "type": "string",
           "name": "teamName",
           "jsonkey": "team_name"
@@ -2164,6 +2182,10 @@
         {
           "type": "boolean",
           "name": "forceRefresh"
+        },
+        {
+          "type": "boolean",
+          "name": "hiddenChainIsOptional"
         }
       ]
     },
@@ -3222,8 +3244,8 @@
           "type": "int"
         },
         {
-          "name": "name",
-          "type": "string"
+          "name": "teamID",
+          "type": "TeamID"
         },
         {
           "name": "email",
@@ -3258,8 +3280,8 @@
           "type": "int"
         },
         {
-          "name": "name",
-          "type": "string"
+          "name": "teamID",
+          "type": "TeamID"
         },
         {
           "name": "assertions",
@@ -3293,8 +3315,8 @@
           "type": "int"
         },
         {
-          "name": "name",
-          "type": "string"
+          "name": "teamID",
+          "type": "TeamID"
         },
         {
           "name": "users",

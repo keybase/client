@@ -70,6 +70,8 @@ type levelDBStorage struct {
 	// Opened file counter; if open < 0 means closed.
 	open int
 	day  int
+
+	syncLock sync.RWMutex // sync takes write lock, modifiers take read lock
 }
 
 var _ storage.Storage = (*levelDBStorage)(nil)
@@ -121,7 +123,7 @@ func OpenLevelDBStorage(bfs billy.Filesystem, readOnly bool) (
 	return fs, nil
 }
 
-func (fs *levelDBStorage) writeFileSynced(
+func (fs *levelDBStorage) writeFileSyncedRLocked(
 	filename string, data []byte, perm os.FileMode) error {
 	f, err := fs.fs.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, perm)
 	if err != nil {
@@ -137,7 +139,7 @@ func (fs *levelDBStorage) writeFileSynced(
 	if err != nil {
 		return err
 	}
-	return fs.sync()
+	return fs.syncRLocked()
 }
 
 func (fs *levelDBStorage) Lock() (storage.Locker, error) {
@@ -181,7 +183,7 @@ func (fs *levelDBStorage) printDay(t time.Time) {
 	_, _ = fs.logw.Write([]byte("=============== " + t.Format("Jan 2, 2006 (MST)") + " ===============\n"))
 }
 
-func (fs *levelDBStorage) doLog(t time.Time, str string) {
+func (fs *levelDBStorage) doLogRLocked(t time.Time, str string) {
 	if fs.logSize > logSizeThreshold {
 		// Rotate log file.
 		fs.logw.Close()
@@ -228,17 +230,27 @@ func (fs *levelDBStorage) Log(str string) {
 		if fs.open < 0 {
 			return
 		}
-		fs.doLog(t, str)
+		fs.syncLock.RLock()
+		defer fs.syncLock.RUnlock()
+		fs.doLogRLocked(t, str)
+	}
+}
+
+func (fs *levelDBStorage) logRLocked(str string) {
+	if !fs.readOnly {
+		fs.doLogRLocked(time.Now(), str)
 	}
 }
 
 func (fs *levelDBStorage) log(str string) {
 	if !fs.readOnly {
-		fs.doLog(time.Now(), str)
+		fs.syncLock.RLock()
+		defer fs.syncLock.RUnlock()
+		fs.doLogRLocked(time.Now(), str)
 	}
 }
 
-func (fs *levelDBStorage) sync() (err error) {
+func (fs *levelDBStorage) syncLocked() (err error) {
 	// Force a sync with a lock/unlock cycle, since the billy
 	// interface doesn't have an explicit sync call.
 	const syncLockName = "sync.lock"
@@ -255,7 +267,19 @@ func (fs *levelDBStorage) sync() (err error) {
 	return f.Lock()
 }
 
-func (fs *levelDBStorage) setMeta(fd storage.FileDesc) error {
+func (fs *levelDBStorage) sync() (err error) {
+	fs.syncLock.Lock()
+	defer fs.syncLock.Unlock()
+	return fs.syncLocked()
+}
+
+func (fs *levelDBStorage) syncRLocked() (err error) {
+	fs.syncLock.RUnlock()
+	defer fs.syncLock.RLock()
+	return fs.sync()
+}
+
+func (fs *levelDBStorage) setMetaRLocked(fd storage.FileDesc) error {
 	content := fsGenName(fd) + "\n"
 	// Check and backup old CURRENT file.
 	currentPath := "CURRENT"
@@ -267,34 +291,45 @@ func (fs *levelDBStorage) setMeta(fd storage.FileDesc) error {
 		defer f.Close()
 		b, err := ioutil.ReadAll(f)
 		if err != nil {
-			fs.log(fmt.Sprintf("backup CURRENT: %v", err))
+			fs.logRLocked(fmt.Sprintf("backup CURRENT: %v", err))
 			return err
 		}
 		if string(b) == content {
 			// Content not changed, do nothing.
 			return nil
 		}
-		if err := fs.writeFileSynced(currentPath+".bak", b, 0644); err != nil {
-			fs.log(fmt.Sprintf("backup CURRENT: %v", err))
+		if err := fs.writeFileSyncedRLocked(
+			currentPath+".bak", b, 0644); err != nil {
+			fs.logRLocked(fmt.Sprintf("backup CURRENT: %v", err))
 			return err
 		}
 	} else if !os.IsNotExist(err) {
 		return err
 	}
 	path := fmt.Sprintf("CURRENT.%d", fd.Num)
-	if err := fs.writeFileSynced(path, []byte(content), 0644); err != nil {
-		fs.log(fmt.Sprintf("create CURRENT.%d: %v", fd.Num, err))
+	if err := fs.writeFileSyncedRLocked(
+		path, []byte(content), 0644); err != nil {
+		fs.logRLocked(fmt.Sprintf("create CURRENT.%d: %v", fd.Num, err))
 		return err
 	}
 	// Replace CURRENT file.
 	if err := fs.fs.Rename(path, currentPath); err != nil {
-		fs.log(fmt.Sprintf("rename CURRENT.%d: %v", fd.Num, err))
+		fs.logRLocked(fmt.Sprintf("rename CURRENT.%d: %v", fd.Num, err))
 		return err
 	}
-	return fs.sync()
+	return fs.syncRLocked()
+}
+
+func (fs *levelDBStorage) setMeta(fd storage.FileDesc) error {
+	fs.syncLock.RLock()
+	defer fs.syncLock.RUnlock()
+	return fs.setMetaRLocked(fd)
 }
 
 func (fs *levelDBStorage) SetMeta(fd storage.FileDesc) error {
+	fs.syncLock.RLock()
+	defer fs.syncLock.RUnlock()
+
 	if !storage.FileDescOk(fd) {
 		return storage.ErrInvalidFile
 	}
@@ -307,7 +342,7 @@ func (fs *levelDBStorage) SetMeta(fd storage.FileDesc) error {
 	if fs.open < 0 {
 		return storage.ErrClosed
 	}
-	return fs.setMeta(fd)
+	return fs.setMetaRLocked(fd)
 }
 
 func isCorrupted(err error) bool {
@@ -354,7 +389,7 @@ func (fs *levelDBStorage) GetMeta() (storage.FileDesc, error) {
 		}
 		var fd storage.FileDesc
 		if len(b) < 1 || b[len(b)-1] != '\n' || !fsParseNamePtr(string(b[:len(b)-1]), &fd) {
-			fs.log(fmt.Sprintf("%s: corrupted content: %q", name, b))
+			fs.logRLocked(fmt.Sprintf("%s: corrupted content: %q", name, b))
 			err := &storage.ErrCorrupted{
 				Err: fmt.Errorf("leveldb/storage: corrupted or incomplete CURRENT file %s %q", name, b),
 			}
@@ -362,7 +397,8 @@ func (fs *levelDBStorage) GetMeta() (storage.FileDesc, error) {
 		}
 		if _, err := fs.fs.Stat(fsGenName(fd)); err != nil {
 			if os.IsNotExist(err) {
-				fs.log(fmt.Sprintf("%s: missing target file: %s", name, fd))
+				fs.logRLocked(
+					fmt.Sprintf("%s: missing target file: %s", name, fd))
 				err = os.ErrNotExist
 			}
 			return nil, err
@@ -448,7 +484,7 @@ func (fs *levelDBStorage) GetMeta() (storage.FileDesc, error) {
 				// Remove 'pending rename' files.
 				for _, name := range pendNames {
 					if err := fs.fs.Remove(name); err != nil {
-						fs.log(fmt.Sprintf("remove %s: %v", name, err))
+						fs.logRLocked(fmt.Sprintf("remove %s: %v", name, err))
 					}
 				}
 			}
@@ -509,6 +545,9 @@ ok:
 }
 
 func (fs *levelDBStorage) Create(fd storage.FileDesc) (storage.Writer, error) {
+	fs.syncLock.RLock()
+	defer fs.syncLock.RUnlock()
+
 	if !storage.FileDescOk(fd) {
 		return nil, storage.ErrInvalidFile
 	}
@@ -530,6 +569,9 @@ func (fs *levelDBStorage) Create(fd storage.FileDesc) (storage.Writer, error) {
 }
 
 func (fs *levelDBStorage) Remove(fd storage.FileDesc) error {
+	fs.syncLock.RLock()
+	defer fs.syncLock.RUnlock()
+
 	if !storage.FileDescOk(fd) {
 		return storage.ErrInvalidFile
 	}
@@ -546,17 +588,20 @@ func (fs *levelDBStorage) Remove(fd storage.FileDesc) error {
 	if err != nil {
 		if fsHasOldName(fd) && os.IsNotExist(err) {
 			if e1 := fs.fs.Remove(fsGenOldName(fd)); !os.IsNotExist(e1) {
-				fs.log(fmt.Sprintf("remove %s: %v (old name)", fd, err))
+				fs.logRLocked(fmt.Sprintf("remove %s: %v (old name)", fd, err))
 				err = e1
 			}
 		} else {
-			fs.log(fmt.Sprintf("remove %s: %v", fd, err))
+			fs.logRLocked(fmt.Sprintf("remove %s: %v", fd, err))
 		}
 	}
 	return err
 }
 
 func (fs *levelDBStorage) Rename(oldfd, newfd storage.FileDesc) error {
+	fs.syncLock.RLock()
+	defer fs.syncLock.RUnlock()
+
 	if !storage.FileDescOk(oldfd) || !storage.FileDescOk(newfd) {
 		return storage.ErrInvalidFile
 	}
@@ -599,6 +644,12 @@ type fileWrap struct {
 	fs     *levelDBStorage
 	fd     storage.FileDesc
 	closed bool
+}
+
+func (fw *fileWrap) Write(p []byte) (n int, err error) {
+	fw.fs.syncLock.RLock()
+	defer fw.fs.syncLock.RUnlock()
+	return fw.File.Write(p)
 }
 
 func (fw *fileWrap) Sync() error {

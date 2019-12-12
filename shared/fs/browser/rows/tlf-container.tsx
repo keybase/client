@@ -1,11 +1,9 @@
 import * as React from 'react'
-import * as I from 'immutable'
 import * as Types from '../../../constants/types/fs'
 import * as Constants from '../../../constants/fs'
 import {namedConnect} from '../../../util/container'
 import OpenHOC from '../../common/open-hoc'
 import Tlf from './tlf'
-import flags from '../../../util/feature-flags'
 
 export type OwnProps = {
   destinationPickerIndex?: number
@@ -26,14 +24,12 @@ const mergeProps = (stateProps, _, {tlfType, name, mixedMode, destinationPickerI
     destinationPickerIndex,
     isIgnored: stateProps._tlf.isIgnored,
     loadPathMetadata:
-      flags.kbfsOfflineMode &&
-      stateProps._tlf.syncConfig &&
-      stateProps._tlf.syncConfig.mode !== Types.TlfSyncMode.Disabled,
+      stateProps._tlf.syncConfig && stateProps._tlf.syncConfig.mode !== Types.TlfSyncMode.Disabled,
     mixedMode,
     name,
     path,
     // Only include the user if they're the only one
-    usernames: usernames.isEmpty() ? I.List([stateProps._username]) : usernames,
+    usernames: !usernames.length ? [stateProps._username] : usernames,
   }
 }
 

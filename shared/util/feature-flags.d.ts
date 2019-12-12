@@ -3,11 +3,10 @@ export type FeatureFlags = {
   airdrop: boolean
   audioAttachments: boolean
   chatIndexProfilingEnabled: boolean
-  conflictResolution: boolean
+  connectThrashCheck: boolean
   dbCleanEnabled: boolean
   fastAccountSwitch: boolean
   foldersInProfileTab: boolean
-  kbfsOfflineMode: boolean
   moveOrCopy: boolean
   newTeamBuildingForChatAllowMakeTeam: boolean
   outOfDateBanner: boolean

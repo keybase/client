@@ -4,6 +4,8 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"net"
+	"net/url"
 	"sync"
 	"time"
 
@@ -361,12 +363,18 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, uid gregor1.UID
 func (s *BlockingSender) getMessage(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, msgID chat1.MessageID, resolveSupersedes bool) (mvalid chat1.MessageUnboxedValid, err error) {
 	reason := chat1.GetThreadReason_PREPARE
-	messages, err := GetMessages(ctx, s.G(), uid, convID, []chat1.MessageID{msgID}, resolveSupersedes, &reason)
+	messages, err := GetMessages(ctx, s.G(), uid, convID, []chat1.MessageID{msgID}, resolveSupersedes,
+		&reason)
 	if err != nil {
 		return mvalid, err
 	}
-	if len(messages) != 1 || !messages[0].IsValid() {
-		return mvalid, fmt.Errorf("getMessage returned multiple messages or an invalid result for msgID: %v, numMsgs: %v", msgID, len(messages))
+	if len(messages) == 0 {
+		return mvalid, fmt.Errorf("getMessage: message not found")
+	}
+	if !messages[0].IsValid() {
+		st, err := messages[0].State()
+		return mvalid, fmt.Errorf("getMessage returned invalid message: msgID: %v st: %v: err %v",
+			msgID, st, err)
 	}
 	return messages[0].Valid(), nil
 }
@@ -967,7 +975,7 @@ func (s *BlockingSender) Sign(payload []byte) ([]byte, error) {
 
 func (s *BlockingSender) presentUIItem(ctx context.Context, uid gregor1.UID, conv *chat1.ConversationLocal) (res *chat1.InboxUIItem) {
 	if conv != nil {
-		pc := utils.PresentConversationLocal(ctx, s.G(), uid, *conv)
+		pc := utils.PresentConversationLocal(ctx, s.G(), uid, *conv, utils.PresentParticipantsModeSkip)
 		res = &pc
 	}
 	return res
@@ -1018,7 +1026,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	for i := 0; i < 5; i++ {
 		// Add a bunch of stuff to the message (like prev pointers, sender info, ...)
 		if prepareRes, err = s.Prepare(ctx, msg, conv.GetMembersType(), &conv, prepareOpts); err != nil {
-			s.Debug(ctx, "Send: error in Prepare: %s", err.Error())
+			s.Debug(ctx, "Send: error in Prepare: %s", err)
 			return nil, nil, err
 		}
 		boxed = &prepareRes.Boxed
@@ -1028,7 +1036,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 		if len(prepareRes.PendingAssetDeletes) > 0 {
 			err = s.deleteAssets(ctx, convID, prepareRes.PendingAssetDeletes)
 			if err != nil {
-				s.Debug(ctx, "Send: failure in deleteAssets (charging forward): %s", err.Error())
+				s.Debug(ctx, "Send: failure in deleteAssets (charging forward): %s", err)
 			}
 		}
 
@@ -1081,7 +1089,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 				}
 				continue
 			default:
-				s.Debug(ctx, "Send: failed to PostRemote, bailing: %s", err.Error())
+				s.Debug(ctx, "Send: failed to PostRemote, bailing: %s", err)
 				return nil, nil, err
 			}
 		}
@@ -1163,6 +1171,26 @@ type DelivererInfoError interface {
 	IsImmediateFail() (chat1.OutboxErrorType, bool)
 }
 
+type senderError struct {
+	msg       string
+	permanent bool
+}
+
+func newSenderError(msg string, permanent bool) *senderError {
+	return &senderError{
+		msg:       msg,
+		permanent: permanent,
+	}
+}
+
+func (e *senderError) Error() string {
+	return fmt.Sprintf("senderError: %v, permanent: %v", e.msg, e.permanent)
+}
+
+func (e *senderError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
+	return chat1.OutboxErrorType_MISC, e.permanent
+}
+
 // delivererExpireError is used when a message fails because it has languished
 // in the outbox for too long.
 type delivererExpireError struct{}
@@ -1229,7 +1257,7 @@ func (s *Deliverer) setTestingNameInfoSource(ni types.NameInfoSource) {
 
 func (s *Deliverer) presentUIItem(ctx context.Context, uid gregor1.UID, conv *chat1.ConversationLocal) (res *chat1.InboxUIItem) {
 	if conv != nil {
-		pc := utils.PresentConversationLocal(ctx, s.G(), uid, *conv)
+		pc := utils.PresentConversationLocal(ctx, s.G(), uid, *conv, utils.PresentParticipantsModeSkip)
 		res = &pc
 	}
 	return res
@@ -1422,12 +1450,18 @@ func (s *Deliverer) doNotRetryFailure(ctx context.Context, obr chat1.OutboxRecor
 		}
 	}
 	// Check for any errors that should cause us to give up right away
-	if berr, ok := err.(DelivererInfoError); ok {
+	switch berr := err.(type) {
+	case DelivererInfoError:
 		if typ, ok := berr.IsImmediateFail(); ok {
 			return typ, err, true
 		}
+		return 0, err, false
+	case *url.Error:
+		return chat1.OutboxErrorType_OFFLINE, err, !berr.Temporary()
+	case *net.DNSError:
+		return chat1.OutboxErrorType_OFFLINE, err, !berr.Temporary()
 	}
-	return 0, err, false
+	return 0, err, true
 }
 
 func (s *Deliverer) failMessage(ctx context.Context, obr chat1.OutboxRecord,
@@ -1483,8 +1517,14 @@ type delivererBackgroundTaskError struct {
 	Typ string
 }
 
+var _ (DelivererInfoError) = (*delivererBackgroundTaskError)(nil)
+
 func (e delivererBackgroundTaskError) Error() string {
 	return fmt.Sprintf("%s in progress", e.Typ)
+}
+
+func (e delivererBackgroundTaskError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
+	return chat1.OutboxErrorType_MISC, false
 }
 
 var errDelivererUploadInProgress = delivererBackgroundTaskError{Typ: "attachment upload"}
@@ -1497,7 +1537,7 @@ func (s *Deliverer) processAttachment(ctx context.Context, obr chat1.OutboxRecor
 	}
 	status, res, err := s.G().AttachmentUploader.Status(ctx, obr.OutboxID)
 	if err != nil {
-		return obr, err
+		return obr, NewAttachmentUploadError(err.Error(), false)
 	}
 	switch status {
 	case types.AttachmentUploaderTaskStatusSuccess:
@@ -1537,17 +1577,28 @@ func (s *Deliverer) processAttachment(ctx context.Context, obr chat1.OutboxRecor
 	return obr, nil
 }
 
-type unfurlerPermError struct{}
-
-func (e unfurlerPermError) Error() string {
-	return "unfurler permanent error"
+type unfurlError struct {
+	status types.UnfurlerTaskStatus
 }
 
-func (e unfurlerPermError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
-	return chat1.OutboxErrorType_MISC, true
+func newUnfurlError(status types.UnfurlerTaskStatus) unfurlError {
+	return unfurlError{
+		status: status,
+	}
 }
 
-var _ (DelivererInfoError) = (*unfurlerPermError)(nil)
+func (e unfurlError) Error() string {
+	if e.status == types.UnfurlerTaskStatusPermFailed {
+		return "unfurler permanent error"
+	}
+	return "unfurler error"
+}
+
+func (e unfurlError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
+	return chat1.OutboxErrorType_MISC, e.status == types.UnfurlerTaskStatusPermFailed
+}
+
+var _ (DelivererInfoError) = (*unfurlError)(nil)
 
 func (s *Deliverer) processUnfurl(ctx context.Context, obr chat1.OutboxRecord) (chat1.OutboxRecord, error) {
 	if !obr.IsUnfurl() {
@@ -1575,9 +1626,9 @@ func (s *Deliverer) processUnfurl(ctx context.Context, obr chat1.OutboxRecord) (
 		return obr, errDelivererUnfurlInProgress
 	case types.UnfurlerTaskStatusFailed:
 		s.G().Unfurler.Retry(ctx, obr.OutboxID)
-		return obr, errors.New("failed to unfurl temporary")
+		return obr, newUnfurlError(status)
 	case types.UnfurlerTaskStatusPermFailed:
-		return obr, unfurlerPermError{}
+		return obr, newUnfurlError(status)
 	}
 	return obr, nil
 }
@@ -1755,7 +1806,7 @@ func (s *Deliverer) deliverForConv(ctx context.Context, obrs []chat1.OutboxRecor
 			bctx = globals.CtxAddOverrideNameInfoSource(bctx, s.testingNameInfoSource)
 		}
 		if !s.connected {
-			err = errors.New("disconnected from chat server")
+			err = newSenderError("disconnected from chat server", false)
 		} else if s.clock.Now().Sub(obr.Ctime.Time()) > time.Hour {
 			// If we are re-trying a message after an hour, let's just give up. These times can
 			// get very long if the app is suspended on mobile.

@@ -1,0 +1,8 @@
+@namespace("chat.1")
+
+// calls into gregor about user blocking
+protocol blocking {
+  import idl "../gregor1" as gregor1;
+
+  void blockConversations(gregor1.UID uid, array<TLFID> tlfIDsBlocked, array<TLFID> tlfIDsUnblocked);
+}

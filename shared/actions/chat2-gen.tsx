@@ -1,5 +1,4 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as Types from '../constants/types/chat2'
@@ -39,6 +38,7 @@ export const conversationErrored = 'chat2:conversationErrored'
 export const createConversation = 'chat2:createConversation'
 export const deselectConversation = 'chat2:deselectConversation'
 export const desktopNotification = 'chat2:desktopNotification'
+export const dismissBlockButtons = 'chat2:dismissBlockButtons'
 export const dismissBottomBanner = 'chat2:dismissBottomBanner'
 export const enableAudioRecording = 'chat2:enableAudioRecording'
 export const giphyGotSearchResult = 'chat2:giphyGotSearchResult'
@@ -240,6 +240,7 @@ type _DesktopNotificationPayload = {
   readonly author: string
   readonly body: string
 }
+type _DismissBlockButtonsPayload = {readonly teamID: RPCTypes.TeamID}
 type _DismissBottomBannerPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _EnableAudioRecordingPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
@@ -350,6 +351,7 @@ type _MessageSendPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly text: HiddenString
   readonly replyTo?: Types.MessageID
+  readonly waitingKey?: string
 }
 type _MessageSetEditingPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
@@ -676,7 +678,11 @@ type _UnsentTextChangedPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly text: HiddenString
 }
-type _UpdateBlockButtonsPayload = {readonly teamID: RPCTypes.TeamID; readonly show: boolean}
+type _UpdateBlockButtonsPayload = {
+  readonly teamID: RPCTypes.TeamID
+  readonly adder?: string
+  readonly show: boolean
+}
 type _UpdateCoinFlipStatusPayload = {readonly statuses: Array<RPCChatTypes.UICoinFlipStatus>}
 type _UpdateConvExplodingModesPayload = {
   readonly modes: Array<{conversationIDKey: Types.ConversationIDKey; seconds: number}>
@@ -1256,6 +1262,9 @@ export const createDeselectConversation = (
 export const createDesktopNotification = (
   payload: _DesktopNotificationPayload
 ): DesktopNotificationPayload => ({payload, type: desktopNotification})
+export const createDismissBlockButtons = (
+  payload: _DismissBlockButtonsPayload
+): DismissBlockButtonsPayload => ({payload, type: dismissBlockButtons})
 export const createEnableAudioRecording = (
   payload: _EnableAudioRecordingPayload
 ): EnableAudioRecordingPayload => ({payload, type: enableAudioRecording})
@@ -1567,6 +1576,10 @@ export type DeselectConversationPayload = {
 export type DesktopNotificationPayload = {
   readonly payload: _DesktopNotificationPayload
   readonly type: typeof desktopNotification
+}
+export type DismissBlockButtonsPayload = {
+  readonly payload: _DismissBlockButtonsPayload
+  readonly type: typeof dismissBlockButtons
 }
 export type DismissBottomBannerPayload = {
   readonly payload: _DismissBottomBannerPayload
@@ -2045,6 +2058,7 @@ export type Actions =
   | CreateConversationPayload
   | DeselectConversationPayload
   | DesktopNotificationPayload
+  | DismissBlockButtonsPayload
   | DismissBottomBannerPayload
   | EnableAudioRecordingPayload
   | GiphyGotSearchResultPayload

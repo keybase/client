@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as Constants from '../constants/tracker2'
 import * as Types from '../constants/types/tracker2'
 import * as Avatar from '../desktop/remote/sync-avatar-props.desktop'
@@ -10,6 +9,7 @@ export const serialize = {
   airdropIsLive: (v: boolean) => v,
   assertions: (v?: Map<string, Types.Assertion>) => (v ? [...v.entries()] : v),
   bio: (v?: string) => v,
+  blocked: (v: boolean) => v,
   darkMode: (v: boolean) => v,
   followThem: (v: boolean) => v,
   followersCount: (v?: number) => v,
@@ -17,6 +17,7 @@ export const serialize = {
   followsYou: (v: boolean) => v,
   fullname: (v?: string) => v,
   guiID: (v: string) => v,
+  hidFromFollowers: (v: boolean) => v,
   isYou: (v: boolean) => v,
   location: (v?: string) => v,
   reason: (v: string) => v,
@@ -38,8 +39,8 @@ export const serialize = {
 const initialState = {
   assertions: new Map(),
   config: {following: new Set()},
-  teams: {teamNameToID: I.Map()},
-  users: {infoMap: I.Map()},
+  teams: {teamNameToID: new Map()},
+  users: {infoMap: new Map()},
   waiting: {counts: new Map()},
 }
 
@@ -48,6 +49,7 @@ type Props = Partial<{
   airdropIsLive: boolean
   assertions: Map<string, Types.Assertion>
   bio: string
+  blocked: boolean
   darkMode: boolean
   followThem: boolean
   followersCount: number
@@ -55,6 +57,7 @@ type Props = Partial<{
   followsYou: boolean
   fullname: string
   guiID: string
+  hidFromFollowers: boolean
   isYou: boolean
   location: string
   reason: string

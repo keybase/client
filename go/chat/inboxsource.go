@@ -877,7 +877,8 @@ func (s *HybridInboxSource) NotifyUpdate(ctx context.Context, uid gregor1.UID, c
 	var inboxUIItem *chat1.InboxUIItem
 	topicType := chat1.TopicType_NONE
 	if conv != nil {
-		inboxUIItem = PresentConversationLocalWithFetchRetry(ctx, s.G(), uid, *conv)
+		inboxUIItem = PresentConversationLocalWithFetchRetry(ctx, s.G(), uid, *conv,
+			utils.PresentParticipantsModeSkip)
 		topicType = conv.GetTopicType()
 	}
 	s.G().ActivityNotifier.ConvUpdate(ctx, uid, convID,
@@ -1200,11 +1201,17 @@ func (s *HybridInboxSource) fullNamesForSearch(ctx context.Context, conv types.R
 	if conv.LocalMetadata == nil {
 		return nil
 	}
-	for _, name := range conv.LocalMetadata.FullNamesForSearch {
-		if name == username && convName != username {
+	for index, name := range conv.LocalMetadata.FullNamesForSearch {
+		if name == nil {
 			continue
 		}
-		res = append(res, strings.Split(strings.ToLower(name), " ")...)
+		if index >= len(conv.LocalMetadata.WriterNames) {
+			continue
+		}
+		if conv.LocalMetadata.WriterNames[index] == username && convName != username {
+			continue
+		}
+		res = append(res, strings.Split(strings.ToLower(*name), " ")...)
 	}
 	return res
 }

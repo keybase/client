@@ -74,7 +74,13 @@ function* initializeInputMonitor(): Iterable<any> {
     if (skipAppFocusActions) {
       console.log('Skipping app focus actions!')
     } else {
-      yield Saga.put(ConfigGen.createChangedActive({userActive: type === 'active'}))
+      const userActive = type === 'active'
+      yield Saga.put(ConfigGen.createChangedActive({userActive}))
+      // let node thread save file
+      SafeElectron.getApp().emit('KBkeybase', '', {
+        payload: {changedAtMs: Date.now(), isUserActive: userActive},
+        type: 'activeChanged',
+      })
     }
   }
 }

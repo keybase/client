@@ -3,7 +3,6 @@ import * as Types from '../../../constants/types/fs'
 import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
 import {rowStyles} from './common'
-import flags from '../../../util/feature-flags'
 
 type EditingProps = {
   name: string
@@ -22,9 +21,7 @@ const Editing = (props: EditingProps) => {
     <Kb.ListItem2
       type="Small"
       firstItem={true /* we add divider in Rows */}
-      statusIcon={
-        flags.kbfsOfflineMode ? <Kb.Icon type="iconfont-add" sizeType="Small" padding="xtiny" /> : undefined
-      }
+      statusIcon={<Kb.Icon type="iconfont-add" sizeType="Small" padding="xtiny" />}
       icon={
         <Kb.Box style={rowStyles.pathItemIcon}>
           <Kb.Icon type="icon-folder-32" />

@@ -42,6 +42,7 @@ export type SearchResult = {
   services: {[K in ServiceIdWithContact]?: string}
   inTeam: boolean
   isPreExistingTeamMember: boolean
+  isYou: boolean
   followingState: FollowingState
 }
 
@@ -88,6 +89,7 @@ type ContactProps = {
 }
 
 export type Props = ContactProps & {
+  error?: string
   filterServices?: Array<ServiceIdWithContact>
   fetchUserRecs: () => void
   focusInputCounter: number
@@ -483,6 +485,7 @@ class TeamBuilding extends React.PureComponent<Props> {
                     services={result.services}
                     inTeam={result.inTeam}
                     isPreExistingTeamMember={result.isPreExistingTeamMember}
+                    isYou={result.isYou}
                     followingState={result.followingState}
                     highlight={
                       !Styles.isMobile &&
@@ -530,6 +533,7 @@ class TeamBuilding extends React.PureComponent<Props> {
               services={result.services}
               inTeam={result.inTeam}
               isPreExistingTeamMember={result.isPreExistingTeamMember}
+              isYou={result.isYou}
               followingState={result.followingState}
               highlight={!Styles.isMobile && index === this.props.highlightedIndex}
               onAdd={() => this.props.onAdd(result.userId)}
@@ -651,6 +655,7 @@ class TeamBuilding extends React.PureComponent<Props> {
           ) : (
             teamBox
           ))}
+        {!!props.error && <Kb.Banner color="red">{props.error}</Kb.Banner>}
         {!!props.teamSoFar.length && Flags.newTeamBuildingForChatAllowMakeTeam && (
           <Kb.Text type="BodySmall">
             Add up to 14 more people. Need more?

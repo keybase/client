@@ -49,6 +49,21 @@ export function usePrevious<T>(value: T) {
   })
   return ref.current
 }
+/**
+      like useEffect but doesn't call on initial mount, only when deps change
+ */
+export function useDepChangeEffect(f: () => void, deps: Array<unknown>) {
+  const mounted = React.useRef(false)
+
+  React.useEffect(() => {
+    if (mounted.current) {
+      f()
+    } else {
+      mounted.current = true
+    }
+    // eslint-disable-next-line
+  }, deps)
+}
 
 export type Route = {
   getScreen: () => React.ComponentType<any>

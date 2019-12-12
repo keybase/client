@@ -2,6 +2,7 @@ import React from 'react'
 import Text from '../../../common-adapters/text'
 import Button from '../../../common-adapters/button'
 import {Box2} from '../../../common-adapters/box'
+import {MenuItems} from '../../../common-adapters/floating-menu/menu-layout'
 import FloatingMenu from '../../../common-adapters/floating-menu'
 import * as Styles from '../../../styles'
 
@@ -15,7 +16,7 @@ type PopupProps = {
   visible: boolean
 }
 
-const items = []
+const items: MenuItems = []
 
 const UnknownMentionPopup = (props: PopupProps) => {
   const header = {

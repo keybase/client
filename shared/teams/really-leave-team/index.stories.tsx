@@ -6,6 +6,7 @@ import LastOwnerDialog from './last-owner'
 const commonProps = {
   name: 'keybase',
   onBack: Sb.action('onBack'),
+  onDeleteTeam: Sb.action('onDeleteTeam'),
   onLeave: Sb.action('onLeave'),
 }
 const reallyLeaveProps = {

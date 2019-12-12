@@ -3032,27 +3032,27 @@ func (o MessageUnboxedPlaceholder) DeepCopy() MessageUnboxedPlaceholder {
 type JourneycardType int
 
 const (
-	JourneycardType_WELCOME            JourneycardType = 0
-	JourneycardType_POPULAR_CHANNELS   JourneycardType = 1
-	JourneycardType_ADD_PEOPLE         JourneycardType = 2
-	JourneycardType_CREATE_CHANNELS    JourneycardType = 3
-	JourneycardType_MSG_ATTENTION      JourneycardType = 4
-	JourneycardType_USER_AWAY_FOR_LONG JourneycardType = 5
-	JourneycardType_CHANNEL_INACTIVE   JourneycardType = 6
-	JourneycardType_MSG_NO_ANSWER      JourneycardType = 7
+	JourneycardType_WELCOME          JourneycardType = 0
+	JourneycardType_POPULAR_CHANNELS JourneycardType = 1
+	JourneycardType_ADD_PEOPLE       JourneycardType = 2
+	JourneycardType_CREATE_CHANNELS  JourneycardType = 3
+	JourneycardType_MSG_ATTENTION    JourneycardType = 4
+	JourneycardType_UNUSED           JourneycardType = 5
+	JourneycardType_CHANNEL_INACTIVE JourneycardType = 6
+	JourneycardType_MSG_NO_ANSWER    JourneycardType = 7
 )
 
 func (o JourneycardType) DeepCopy() JourneycardType { return o }
 
 var JourneycardTypeMap = map[string]JourneycardType{
-	"WELCOME":            0,
-	"POPULAR_CHANNELS":   1,
-	"ADD_PEOPLE":         2,
-	"CREATE_CHANNELS":    3,
-	"MSG_ATTENTION":      4,
-	"USER_AWAY_FOR_LONG": 5,
-	"CHANNEL_INACTIVE":   6,
-	"MSG_NO_ANSWER":      7,
+	"WELCOME":          0,
+	"POPULAR_CHANNELS": 1,
+	"ADD_PEOPLE":       2,
+	"CREATE_CHANNELS":  3,
+	"MSG_ATTENTION":    4,
+	"UNUSED":           5,
+	"CHANNEL_INACTIVE": 6,
+	"MSG_NO_ANSWER":    7,
 }
 
 var JourneycardTypeRevMap = map[JourneycardType]string{
@@ -3061,7 +3061,7 @@ var JourneycardTypeRevMap = map[JourneycardType]string{
 	2: "ADD_PEOPLE",
 	3: "CREATE_CHANNELS",
 	4: "MSG_ATTENTION",
-	5: "USER_AWAY_FOR_LONG",
+	5: "UNUSED",
 	6: "CHANNEL_INACTIVE",
 	7: "MSG_NO_ANSWER",
 }
@@ -3078,6 +3078,7 @@ type MessageUnboxedJourneycard struct {
 	Ordinal        int             `codec:"ordinal" json:"ordinal"`
 	CardType       JourneycardType `codec:"cardType" json:"cardType"`
 	HighlightMsgID MessageID       `codec:"highlightMsgID" json:"highlightMsgID"`
+	OpenTeam       bool            `codec:"openTeam" json:"openTeam"`
 }
 
 func (o MessageUnboxedJourneycard) DeepCopy() MessageUnboxedJourneycard {
@@ -3086,6 +3087,7 @@ func (o MessageUnboxedJourneycard) DeepCopy() MessageUnboxedJourneycard {
 		Ordinal:        o.Ordinal,
 		CardType:       o.CardType.DeepCopy(),
 		HighlightMsgID: o.HighlightMsgID.DeepCopy(),
+		OpenTeam:       o.OpenTeam,
 	}
 }
 

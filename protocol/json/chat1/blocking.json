@@ -1,0 +1,37 @@
+{
+  "protocol": "blocking",
+  "imports": [
+    {
+      "path": "../gregor1",
+      "type": "idl",
+      "import_as": "gregor1"
+    }
+  ],
+  "types": [],
+  "messages": {
+    "blockConversations": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "gregor1.UID"
+        },
+        {
+          "name": "tlfIDsBlocked",
+          "type": {
+            "type": "array",
+            "items": "TLFID"
+          }
+        },
+        {
+          "name": "tlfIDsUnblocked",
+          "type": {
+            "type": "array",
+            "items": "TLFID"
+          }
+        }
+      ],
+      "response": null
+    }
+  },
+  "namespace": "chat.1"
+}

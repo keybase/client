@@ -270,7 +270,8 @@
     "messageSend": {
       "conversationIDKey": "Types.ConversationIDKey",
       "text": "HiddenString",
-      "replyTo?": "Types.MessageID"
+      "replyTo?": "Types.MessageID",
+      "waitingKey?": "string"
     },
     "messageSendByUsernames": {
       "usernames": "string",
@@ -778,7 +779,11 @@
     "updateBlockButtons": {
       "_description": "Show or hide invitation to block for a given team ID",
       "teamID": "RPCTypes.TeamID",
+      "adder?": "string",
       "show": "boolean"
+    },
+    "dismissBlockButtons": {
+      "teamID": "RPCTypes.TeamID"
     },
     "setInboxNumSmallRows": {
       "ignoreWrite?": "boolean",

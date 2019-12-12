@@ -1255,6 +1255,35 @@ func (o FolderWithFavFlags) DeepCopy() FolderWithFavFlags {
 	}
 }
 
+type KbfsOnlineStatus int
+
+const (
+	KbfsOnlineStatus_OFFLINE KbfsOnlineStatus = 0
+	KbfsOnlineStatus_TRYING  KbfsOnlineStatus = 1
+	KbfsOnlineStatus_ONLINE  KbfsOnlineStatus = 2
+)
+
+func (o KbfsOnlineStatus) DeepCopy() KbfsOnlineStatus { return o }
+
+var KbfsOnlineStatusMap = map[string]KbfsOnlineStatus{
+	"OFFLINE": 0,
+	"TRYING":  1,
+	"ONLINE":  2,
+}
+
+var KbfsOnlineStatusRevMap = map[KbfsOnlineStatus]string{
+	0: "OFFLINE",
+	1: "TRYING",
+	2: "ONLINE",
+}
+
+func (e KbfsOnlineStatus) String() string {
+	if v, ok := KbfsOnlineStatusRevMap[e]; ok {
+		return v
+	}
+	return fmt.Sprintf("%v", int(e))
+}
+
 type FSSettings struct {
 	SpaceAvailableNotificationThreshold int64 `codec:"spaceAvailableNotificationThreshold" json:"spaceAvailableNotificationThreshold"`
 }
@@ -1709,7 +1738,7 @@ type SimpleFSGetFolderArg struct {
 	Path KBFSPath `codec:"path" json:"path"`
 }
 
-type SimpleFSAreWeConnectedToMDServerArg struct {
+type SimpleFSGetOnlineStatusArg struct {
 }
 
 type SimpleFSCheckReachabilityArg struct {
@@ -1890,7 +1919,7 @@ type SimpleFSInterface interface {
 	SimpleFSSetFolderSyncConfig(context.Context, SimpleFSSetFolderSyncConfigArg) error
 	SimpleFSSyncConfigAndStatus(context.Context, *TLFIdentifyBehavior) (SyncConfigAndStatusRes, error)
 	SimpleFSGetFolder(context.Context, KBFSPath) (FolderWithFavFlags, error)
-	SimpleFSAreWeConnectedToMDServer(context.Context) (bool, error)
+	SimpleFSGetOnlineStatus(context.Context) (KbfsOnlineStatus, error)
 	SimpleFSCheckReachability(context.Context) error
 	SimpleFSSetDebugLevel(context.Context, string) error
 	SimpleFSSettings(context.Context) (FSSettings, error)
@@ -2455,13 +2484,13 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return
 				},
 			},
-			"simpleFSAreWeConnectedToMDServer": {
+			"simpleFSGetOnlineStatus": {
 				MakeArg: func() interface{} {
-					var ret [1]SimpleFSAreWeConnectedToMDServerArg
+					var ret [1]SimpleFSGetOnlineStatusArg
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					ret, err = i.SimpleFSAreWeConnectedToMDServer(ctx)
+					ret, err = i.SimpleFSGetOnlineStatus(ctx)
 					return
 				},
 			},
@@ -2985,8 +3014,8 @@ func (c SimpleFSClient) SimpleFSGetFolder(ctx context.Context, path KBFSPath) (r
 	return
 }
 
-func (c SimpleFSClient) SimpleFSAreWeConnectedToMDServer(ctx context.Context) (res bool, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSAreWeConnectedToMDServer", []interface{}{SimpleFSAreWeConnectedToMDServerArg{}}, &res, 0*time.Millisecond)
+func (c SimpleFSClient) SimpleFSGetOnlineStatus(ctx context.Context) (res KbfsOnlineStatus, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetOnlineStatus", []interface{}{SimpleFSGetOnlineStatusArg{}}, &res, 0*time.Millisecond)
 	return
 }
 

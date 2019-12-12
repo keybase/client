@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
+import * as Types from '../constants/types/chat2'
 import * as Constants from '../constants/chat2'
 import * as TeamConstants from '../constants/teams'
 import * as Platforms from '../constants/platform'
@@ -160,10 +161,14 @@ const Header = (p: Props) => {
                     usernames={[withoutSelf[0]]}
                     onUsernameClicked="profile"
                   />
-                  <Kb.Text type="BodySmall" style={styles.desc}>
-                    &nbsp;•&nbsp;
-                  </Kb.Text>
-                  {description}
+                  {description && (
+                    <>
+                      <Kb.Text type="BodySmall" style={styles.desc}>
+                        &nbsp;•&nbsp;
+                      </Kb.Text>
+                      {description}
+                    </>
+                  )}
                 </Kb.Box2>
               ) : (
                 description
@@ -266,12 +271,13 @@ const Connected = Container.connect(
     }
   },
   dispatch => ({
-    _onOpenFolder: conversationIDKey => dispatch(Chat2Gen.createOpenFolder({conversationIDKey})),
+    _onOpenFolder: (conversationIDKey: Types.ConversationIDKey) =>
+      dispatch(Chat2Gen.createOpenFolder({conversationIDKey})),
     onNewChat: () => dispatch(appendNewChatBuilder()),
     onToggleInfoPanel: () => dispatch(Chat2Gen.createToggleInfoPanel()),
-    onToggleThreadSearch: conversationIDKey =>
+    onToggleThreadSearch: (conversationIDKey: Types.ConversationIDKey) =>
       dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey})),
-    onUnMuteConversation: conversationIDKey =>
+    onUnMuteConversation: (conversationIDKey: Types.ConversationIDKey) =>
       dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted: false})),
   }),
   (stateProps, dispatchProps, _: OwnProps) => {

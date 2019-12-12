@@ -51,7 +51,6 @@
     "rn-storybook": "cross-env-shell node_modules/@storybook/react-native-server/bin/index.js -p 7007",
     "tsc": "node --max-old-space-size=4096 ./node_modules/.bin/tsc --project ./tsconfig.json ",
     "tsc-strict": "node --max-old-space-size=4096 ./node_modules/.bin/tsc --project ./tsconfig.strict.json ",
-    "tsc-slow": "node --max-old-space-size=4096 ./node_modules/.bin/tsc --project ./tsconfig.slow.json ",
     "build-storybook": "build-storybook",
     "modules": "yarn install --pure-lockfile --ignore-optional",
     "log-to-trace": "yarn _node desktop/yarn-helper/log-to-trace"
@@ -147,7 +146,6 @@
     "hoist-non-react-statics": "3.3.0",
     "iced-runtime": "1.0.3",
     "immer": "5.0.0",
-    "immutable": "4.0.0-rc.12",
     "lag-radar": "git://github.com/mobz/lag-radar",
     "lodash": "4.17.15",
     "lottie-ios": "3.0.3",
@@ -193,7 +191,6 @@
     "semver": "6.2.0",
     "shallowequal": "1.1.0",
     "simple-markdown": "0.5.2",
-    "tlds": "1.203.1",
     "typedarray-to-buffer": "3.1.5",
     "unidecode": "0.1.8",
     "url-parse": "1.4.7",

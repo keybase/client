@@ -47,7 +47,9 @@ const getBio = async (state: TypedState, action: UsersGen.GetBioPayload) => {
 
 const setUserBlocks = async (_: TypedState, action: UsersGen.SetUserBlocksPayload) => {
   const {blocks} = action.payload
-  await RPCTypes.userSetUserBlocksRpcPromise({blocks}, Constants.setUserBlocksWaitingKey)
+  if (blocks && blocks.length) {
+    await RPCTypes.userSetUserBlocksRpcPromise({blocks}, Constants.setUserBlocksWaitingKey)
+  }
 }
 
 const getBlockState = async (_: TypedState, action: UsersGen.GetBlockStatePayload) => {
@@ -61,7 +63,7 @@ const getBlockState = async (_: TypedState, action: UsersGen.GetBlockStatePayloa
 }
 
 const reportUser = async (_: TypedState, action: UsersGen.ReportUserPayload) => {
-  await RPCTypes.userReportUserRpcPromise(action.payload)
+  await RPCTypes.userReportUserRpcPromise(action.payload, Constants.reportUserWaitingKey)
 }
 
 function* usersSaga() {
