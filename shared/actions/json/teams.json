@@ -233,7 +233,7 @@
     "setTeamInfo": {
       "teamnames": "Set<Types.Teamname>",
       "teamNameToID": "Map<Types.Teamname, string>",
-      "teamDetails": "Map<Types.TeamID, Types.TeamDetails>"
+      "teamMeta": "Map<Types.TeamID, Types.TeamMeta>"
     },
     "setTeamProfileAddList": {
       "teamlist": "Array<Types.TeamProfileAddList>"

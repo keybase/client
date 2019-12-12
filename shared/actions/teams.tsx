@@ -807,7 +807,7 @@ function* getTeams(
 
     yield Saga.put(
       TeamsGen.createSetTeamInfo({
-        teamDetails: Constants.teamListToDetails(teams),
+        teamMeta: Constants.teamListToMeta(teams),
         teamNameToID,
         teamnames: teamNameSet,
       })

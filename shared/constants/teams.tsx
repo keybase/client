@@ -174,12 +174,13 @@ const emptyState: Types.State = {
   teamBuilding: TeamBuildingConstants.makeSubState(),
   teamCreationError: '',
   teamDetails: new Map(),
-  teamDetailsMetaStale: true, // start out true, we have not loaded
-  teamDetailsMetaSubscribeCount: 0,
   teamInviteError: '',
   teamJoinError: '',
   teamJoinSuccess: false,
   teamJoinSuccessTeamName: '',
+  teamMeta: new Map(),
+  teamMetaStale: true, // start out true, we have not loaded
+  teamMetaSubscribeCount: 0,
   teamNameToChannelInfos: new Map(),
   teamNameToID: new Map(),
   teamNameToLoadingInvites: new Map(),
@@ -415,7 +416,7 @@ export const getTeamID = (state: TypedState, teamname: Types.Teamname): string =
   state.teams.teamNameToID.get(teamname) || Types.noTeamID
 
 export const getTeamNameFromID = (state: TypedState, teamID: string): Types.Teamname | null =>
-  state.teams.teamDetails.get(teamID)?.teamname ?? null
+  state.teams.teamMeta.get(teamID)?.teamname ?? null
 
 export const getTeamRetentionPolicy = (state: TypedState, teamname: Types.Teamname): RetentionPolicy | null =>
   state.teams.teamNameToRetentionPolicy.get(teamname) ?? null
@@ -505,12 +506,12 @@ const _memoizedSorted = memoize((names: Set<Types.Teamname>) => [...names].sort(
 export const getSortedTeamnames = (state: TypedState): Types.Teamname[] =>
   _memoizedSorted(state.teams.teamnames)
 
-export const sortTeamsByName = memoize((teamDetails: Map<Types.TeamID, Types.TeamDetails>) =>
+export const sortTeamsByName = memoize((teamDetails: Map<Types.TeamID, Types.TeamMeta>) =>
   [...teamDetails.values()].sort((a, b) => sortTeamnames(a.teamname, b.teamname))
 )
 
 // sorted by name
-export const getSortedTeams = (state: TypedState) => sortTeamsByName(state.teams.teamDetails)
+export const getSortedTeams = (state: TypedState) => sortTeamsByName(state.teams.teamMeta)
 
 export const isAdmin = (type: Types.MaybeTeamRoleType) => type === 'admin'
 export const isOwner = (type: Types.MaybeTeamRoleType) => type === 'owner'
@@ -605,15 +606,15 @@ export const isOnTeamsTab = () => {
 }
 
 // Merge new teamDetails objs into old ones, removing any old teams that are not in the new map
-export const mergeTeamDetails = (oldMap: Types.State['teamDetails'], newMap: Types.State['teamDetails']) => {
+export const mergeTeamMeta = (oldMap: Types.State['teamMeta'], newMap: Types.State['teamMeta']) => {
   const ret = new Map(newMap)
-  for (const [teamID, teamDetails] of newMap.entries()) {
-    ret.set(teamID, {...oldMap.get(teamID), ...teamDetails})
+  for (const [teamID, teamMeta] of newMap.entries()) {
+    ret.set(teamID, {...oldMap.get(teamID), ...teamMeta})
   }
   return ret
 }
 
-export const emptyTeamDetails = Object.freeze<Types.TeamDetails>({
+export const emptyTeamMeta = Object.freeze<Types.TeamMeta>({
   allowPromote: false,
   id: Types.noTeamID,
   isMember: false,
@@ -624,12 +625,12 @@ export const emptyTeamDetails = Object.freeze<Types.TeamDetails>({
   teamname: '',
 })
 
-export const makeTeamDetails = (td: Partial<Types.TeamDetails>): Types.TeamDetails =>
-  td ? Object.assign({...emptyTeamDetails}, td) : emptyTeamDetails
+export const makeTeamMeta = (td: Partial<Types.TeamMeta>): Types.TeamMeta =>
+  td ? Object.assign({...emptyTeamMeta}, td) : emptyTeamMeta
 
-export const teamListToDetails = (
+export const teamListToMeta = (
   list: Array<RPCTypes.AnnotatedMemberInfo>
-): Map<Types.TeamID, Types.TeamDetails> => {
+): Map<Types.TeamID, Types.TeamMeta> => {
   return new Map(
     list.map(t => [
       t.teamID,

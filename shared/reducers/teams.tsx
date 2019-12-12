@@ -67,20 +67,20 @@ export default Container.makeReducer<
     draftState.teamNameToLoadingInvites.set(teamname, oldLoadingInvites)
   },
   [TeamsGen.setTeamDetails]: (draftState, action) => {
-    const {teamname, teamID} = action.payload
-    const members = Constants.rpcDetailsToMemberInfos(action.payload.members)
-    draftState.teamNameToMembers.set(teamname, Constants.rpcDetailsToMemberInfos(action.payload.members))
-
-    const details = mapGetEnsureValue(
-      draftState.teamDetails,
-      teamID,
-      Constants.makeTeamDetails({id: teamID, teamname})
-    )
-    details.members = members
-    details.settings = action.payload.settings
-    details.invites = new Set(action.payload.invites)
-    details.subteams = action.payload.subteamIDs
-    details.requests = new Set(action.payload.requests.get(teamname))
+    // TODO loadedTeam
+    // const {teamname, teamID} = action.payload
+    // const members = Constants.rpcDetailsToMemberInfos(action.payload.members)
+    // draftState.teamNameToMembers.set(teamname, Constants.rpcDetailsToMemberInfos(action.payload.members))
+    // const details = mapGetEnsureValue(
+    //   draftState.teamDetails,
+    //   teamID,
+    //   Constants.makeTeamMeta({id: teamID, teamname})
+    // )
+    // details.members = members
+    // details.settings = action.payload.settings
+    // details.invites = new Set(action.payload.invites)
+    // details.subteams = action.payload.subteamIDs
+    // details.requests = new Set(action.payload.requests.get(teamname))
   },
   [TeamsGen.setMembers]: (draftState, action) => {
     draftState.teamNameToMembers.set(action.payload.teamname, action.payload.members)
@@ -114,22 +114,22 @@ export default Container.makeReducer<
   },
   [TeamsGen.getTeams]: (draftState, action) => {
     if (action.payload._subscribe) {
-      draftState.teamDetailsMetaSubscribeCount++
+      draftState.teamMetaSubscribeCount++
     }
   },
   [TeamsGen.unsubscribeTeamList]: draftState => {
-    if (draftState.teamDetailsMetaSubscribeCount > 0) {
-      draftState.teamDetailsMetaSubscribeCount--
+    if (draftState.teamMetaSubscribeCount > 0) {
+      draftState.teamMetaSubscribeCount--
     }
   },
   [TeamsGen.setTeamInfo]: (draftState, action) => {
     draftState.teamNameToID = action.payload.teamNameToID
     draftState.teamnames = action.payload.teamnames
-    draftState.teamDetails = Constants.mergeTeamDetails(draftState.teamDetails, action.payload.teamDetails)
-    draftState.teamDetailsMetaStale = false
+    draftState.teamMeta = Constants.mergeTeamMeta(draftState.teamMeta, action.payload.teamMeta)
+    draftState.teamMetaStale = false
   },
   [EngineGen.keybase1NotifyTeamTeamMetadataUpdate]: draftState => {
-    draftState.teamDetailsMetaStale = true
+    draftState.teamMetaStale = true
   },
   [TeamsGen.setTeamAccessRequestsPending]: (draftState, action) => {
     draftState.teamAccessRequestsPending = action.payload.accessRequestsPending
