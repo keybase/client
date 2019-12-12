@@ -501,14 +501,6 @@ const saveProxyData = async (_: TypedState, proxyDataPayload: SettingsGen.SavePr
   }
 }
 
-const toggleRuntimeStats = async () => {
-  try {
-    await RPCTypes.configToggleRuntimeStatsRpcPromise()
-  } catch (err) {
-    logger.warn('error toggling runtime stats', err)
-  }
-}
-
 const setLockdownMode = async (state: TypedState, action: SettingsGen.OnChangeLockdownModePayload) => {
   if (!state.config.loggedIn) {
     return false
@@ -802,9 +794,6 @@ function* settingsSaga() {
 
   yield* Saga.chainAction2(SettingsGen.loadProxyData, loadProxyData)
   yield* Saga.chainAction2(SettingsGen.saveProxyData, saveProxyData)
-
-  // Runtime Stats
-  yield* Saga.chainAction2(SettingsGen.toggleRuntimeStats, toggleRuntimeStats)
 
   // Phone numbers
   yield* Saga.chainAction2(SettingsGen.editPhone, editPhone, 'editPhone')
