@@ -18,9 +18,7 @@ const BuildTeam = (_: {}) => {
     dispatch(nav.safeNavigateAppendPayload({path: ['teamJoinTeamDialog']}))
   }
 
-  const isFloating = Container.useSelector(
-    state => ((state.chat2.inboxLayout && state.chat2.inboxLayout.bigTeams) || []).length === 0
-  )
+  const isFloating = Container.useSelector(state => !state.chat2.inboxLayout?.bigTeams?.length)
 
   return (
     <Kb.Box2
