@@ -12,14 +12,20 @@ const YouResult = React.memo((props: ResultProps) => {
     dispatch(TeamBuildingGen.createCancelTeamBuilding({namespace: 'chat2'}))
     dispatch(Chat2Gen.createPreviewConversation({participants: [props.username], reason: 'search'}))
   }
-  return (
-    <CommonResult
-      {...props}
-      onAdd={onSelfChat}
-      rowStyle={styles.rowContainer}
-      bottomRow={<Kb.Text type="BodySmall">Write secure notes to yourself</Kb.Text>}
-    />
-  )
+
+  let bottomRow: React.ReactNode = null
+
+  if (props.namespace === 'teams') {
+    bottomRow = (
+      <Kb.Text type="BodySmall">
+        {props.isPreExistingTeamMember ? 'Already in team' : 'Add yourself to the team'}
+      </Kb.Text>
+    )
+  } else {
+    bottomRow = <Kb.Text type="BodySmall">Write secure notes to yourself</Kb.Text>
+  }
+
+  return <CommonResult {...props} onAdd={onSelfChat} rowStyle={styles.rowContainer} bottomRow={bottomRow} />
 })
 
 const styles = Styles.styleSheetCreate(() => ({

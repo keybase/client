@@ -40,6 +40,7 @@ const defaultUserResult = {
   followingState: 'Following' as const,
   highlight: false,
   inTeam: false,
+  namespace: 'people',
   isPreExistingTeamMember: false,
   prettyName: 'Max Krohn',
   resultForService: 'keybase',
@@ -64,6 +65,7 @@ const makeUserResults = results =>
       resultForService={result.resultForService}
       services={result.services}
       followingState={result.followingState}
+      namespace="people"
       highlight={result.highlight}
       isYou={result.isYou}
       inTeam={result.inTeam}
@@ -81,6 +83,7 @@ const makePeopleResults = results =>
       prettyName={result.prettyName}
       displayLabel={result.displayLabel}
       resultForService={result.resultForService}
+      namespace="people"
       services={result.services}
       followingState={result.followingState}
       highlight={result.highlight}
