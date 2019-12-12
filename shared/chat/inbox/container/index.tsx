@@ -48,7 +48,9 @@ const makeBigRows = (
   })
 }
 
-const makeSmallRows = (smallTeams: Array<RPCChatTypes.UIInboxSmallTeamRow>): Array<RowItemSmall | RowItemTeamBuilder> => {
+const makeSmallRows = (
+  smallTeams: Array<RPCChatTypes.UIInboxSmallTeamRow>
+): Array<RowItemSmall | RowItemTeamBuilder> => {
   return smallTeams.map(t => {
     return {
       conversationIDKey: Types.stringToConversationIDKey(t.convID),
