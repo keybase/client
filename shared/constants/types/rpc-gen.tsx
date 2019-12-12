@@ -1372,7 +1372,7 @@ export type MessageTypes = {
     outParam: Array<UserBlock> | null
   }
   'keybase.1.user.interestingPeople': {
-    inParam: {readonly maxUsers: Int}
+    inParam: {readonly maxUsers: Int; readonly namespace: String}
     outParam: Array<InterestingPerson> | null
   }
   'keybase.1.user.listTrackers2': {

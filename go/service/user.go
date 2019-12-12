@@ -231,7 +231,7 @@ func (h *UserHandler) ProfileEdit(nctx context.Context, arg keybase1.ProfileEdit
 	return engine.RunEngine2(m, eng)
 }
 
-func (h *UserHandler) InterestingPeople(ctx context.Context, maxUsers int) (res []keybase1.InterestingPerson, err error) {
+func (h *UserHandler) InterestingPeople(ctx context.Context, args keybase1.InterestingPeopleArg) (res []keybase1.InterestingPerson, err error) {
 	// In case someone comes from "GetInterestingPeople" command in standalone
 	// mode:
 	h.G().StartStandaloneChat()
@@ -278,9 +278,21 @@ func (h *UserHandler) InterestingPeople(ctx context.Context, maxUsers int) (res 
 	// Add sources of interesting people
 	ip.AddSource(chatFn, 0.7)
 	ip.AddSource(followerFn, 0.2)
-	ip.AddSource(fallbackFn, 0.1)
 
-	uids, err := ip.Get(ctx, maxUsers)
+	// We filter out the fallback recommendations when actually building a team
+	if args.Namespace != "teams" {
+		// The most interesting person of all... you
+		you := keybase1.InterestingPerson{
+			Uid:      h.G().GetEnv().GetUID(),
+			Username: h.G().GetEnv().GetUsername().String(),
+		}
+		res = append(res, you)
+
+		// add hellobot as a fallback recommendation if you don't have many others
+		ip.AddSource(fallbackFn, 0.1)
+	}
+
+	uids, err := ip.Get(ctx, args.MaxUsers)
 	if err != nil {
 		h.G().Log.Debug("InterestingPeople: failed to get list: %s", err.Error())
 		return nil, err
@@ -300,13 +312,6 @@ func (h *UserHandler) InterestingPeople(ctx context.Context, maxUsers int) (res 
 	const serviceMapFreshness = 24 * time.Hour
 	serviceMaps := h.G().ServiceMapper.MapUIDsToServiceSummaries(ctx, h.G(), uids,
 		serviceMapFreshness, uidmap.DisallowNetworkBudget)
-
-	// The most interesting person of all... you
-	you := keybase1.InterestingPerson{
-		Uid:      h.G().GetEnv().GetUID(),
-		Username: h.G().GetEnv().GetUsername().String(),
-	}
-	res = append(res, you)
 
 	for i, uid := range uids {
 		if packages[i].NormalizedUsername.IsNil() {

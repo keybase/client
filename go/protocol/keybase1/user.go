@@ -5,9 +5,10 @@ package keybase1
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
-	"time"
 )
 
 type TrackProof struct {
@@ -662,7 +663,8 @@ type ProfileEditArg struct {
 }
 
 type InterestingPeopleArg struct {
-	MaxUsers int `codec:"maxUsers" json:"maxUsers"`
+	MaxUsers  int    `codec:"maxUsers" json:"maxUsers"`
+	Namespace string `codec:"namespace" json:"namespace"`
 }
 
 type MeUserVersionArg struct {
@@ -777,7 +779,7 @@ type UserInterface interface {
 	LoadAllPublicKeysUnverified(context.Context, LoadAllPublicKeysUnverifiedArg) ([]PublicKey, error)
 	ListTrackers2(context.Context, ListTrackers2Arg) (UserSummary2Set, error)
 	ProfileEdit(context.Context, ProfileEditArg) error
-	InterestingPeople(context.Context, int) ([]InterestingPerson, error)
+	InterestingPeople(context.Context, InterestingPeopleArg) ([]InterestingPerson, error)
 	MeUserVersion(context.Context, MeUserVersionArg) (UserVersion, error)
 	// getUPAK returns a UPAK. Used mainly for debugging.
 	GetUPAK(context.Context, UID) (UPAKVersioned, error)
@@ -1015,7 +1017,7 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]InterestingPeopleArg)(nil), args)
 						return
 					}
-					ret, err = i.InterestingPeople(ctx, typedArgs[0].MaxUsers)
+					ret, err = i.InterestingPeople(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -1363,8 +1365,7 @@ func (c UserClient) ProfileEdit(ctx context.Context, __arg ProfileEditArg) (err 
 	return
 }
 
-func (c UserClient) InterestingPeople(ctx context.Context, maxUsers int) (res []InterestingPerson, err error) {
-	__arg := InterestingPeopleArg{MaxUsers: maxUsers}
+func (c UserClient) InterestingPeople(ctx context.Context, __arg InterestingPeopleArg) (res []InterestingPerson, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.user.interestingPeople", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
