@@ -3,6 +3,7 @@ package service
 import (
 	"testing"
 
+	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -117,4 +118,80 @@ func TestContactSettingsAPI(t *testing.T) {
 	require.Equal(t, *teamID, res.Teams[0].TeamID)
 	require.Equal(t, false, res.Teams[0].AllowFolloweesOfTeamMembers)
 	require.Equal(t, true, res.Teams[0].Enabled)
+}
+
+func TestCancelReset(t *testing.T) {
+	tc := libkb.SetupTest(t, "arst", 3)
+	defer tc.Cleanup()
+
+	user, err := kbtest.CreateAndSignupFakeUser("arst", tc.G)
+	require.NoError(t, err)
+
+	handler := NewAccountHandler(nil, tc.G)
+
+	// Can't reset if we are not in autoreset, but it shouldn't log us out or
+	// anything like that.
+	err = handler.CancelReset(context.Background(), 0)
+	require.Error(t, err)
+	_, isLoggedOutErr := err.(UserWasLoggedOutError)
+	require.False(t, isLoggedOutErr)
+	require.True(t, tc.G.ActiveDevice.UID().Exists())
+
+	{
+		// Make special tc to start resetting our user, because we can't
+		// enroll to reset from a logged-in device.
+		tc2 := libkb.SetupTest(t, "arst", 3)
+		defer tc2.Cleanup()
+
+		uis := libkb.UIs{
+			SecretUI: &libkb.TestSecretUI{},
+			LogUI:    tc.G.UI.GetLogUI(),
+			LoginUI:  &libkb.TestLoginUI{},
+		}
+		eng := engine.NewAccountReset(tc2.G, user.Username)
+		eng.SetPassphrase(user.Passphrase)
+		err = engine.RunEngine2(libkb.NewMetaContextForTest(tc2).WithUIs(uis), eng)
+		require.NoError(t, err)
+	}
+
+	err = handler.CancelReset(context.Background(), 0)
+	require.NoError(t, err)
+}
+
+func TestCancelAutoresetWhenRevoked(t *testing.T) {
+	// `CancelReset` RPC is special in a way that it calls
+	// `LogoutAndDeprovisionIfRevoked` to log out if user is revoked (because
+	// the reset has already been completed for example). This is needed
+	// because GUI can be stuck in "Autoreset modal" mode, and `CancelReset` is
+	// the only RPC that user can trigger from that state.
+
+	tc1 := libkb.SetupTest(t, "arst", 3)
+	defer tc1.Cleanup()
+
+	user, err := kbtest.CreateAndSignupFakeUser("arst", tc1.G)
+	require.NoError(t, err)
+
+	tc2 := libkb.SetupTest(t, "lockdown_second", 3)
+	defer tc2.Cleanup()
+	kbtest.ProvisionNewDeviceKex(&tc1, &tc2, user, libkb.DeviceTypeDesktop)
+
+	// Reset account using tc1.
+	kbtest.ResetAccount(tc1, user)
+
+	// tc2 does not know that account has been reset (no service tasks / gregor
+	// notifications in this test). Assume user clicks "Cancel reset" in the
+	// modal window.
+
+	handler := NewAccountHandler(nil, tc2.G)
+	ctx := context.Background()
+
+	// We should be logged in now.
+	require.True(t, tc2.G.ActiveDevice.UID().Exists())
+
+	err = handler.CancelReset(ctx, 0)
+	require.Error(t, err)
+	require.IsType(t, UserWasLoggedOutError{}, err)
+
+	// `CancelReset` should have logged us out.
+	require.True(t, tc2.G.ActiveDevice.UID().IsNil())
 }
