@@ -29,7 +29,7 @@ import {
 } from 'react-native'
 import CameraRoll from '@react-native-community/cameraroll'
 import NetInfo from '@react-native-community/netinfo'
-import * as PushNotifications from 'react-native-push-notification'
+import PushNotificationsIOS from '@@react-native-community/push-notification-ios'
 import {isIOS, isAndroid} from '../../constants/platform'
 import pushSaga, {getStartupDetailsFromInitialPush} from './push.native'
 import * as Container from '../../util/container'
@@ -38,6 +38,14 @@ import {launchImageLibraryAsync} from '../../util/expo-image-picker'
 import Geolocation from '@react-native-community/geolocation'
 import {AudioRecorder} from 'react-native-audio'
 import * as Haptics from 'expo-haptics'
+
+const localNotification = (message: string) => {
+  if (isIOS) {
+    PushNotificationIOS.localNotification({message})
+  } else {
+    // TODO PUSH
+  }
+}
 
 const requestPermissionsToWrite = async () => {
   if (isAndroid) {
@@ -138,9 +146,7 @@ export async function saveAttachmentToCameraRoll(filePath: string, mimeType: str
   } catch (e) {
     // This can fail if the user backgrounds too quickly, so throw up a local notification
     // just in case to get their attention.
-    PushNotifications.localNotification({
-      message: `Failed to save ${saveType} to camera roll`,
-    })
+    localNotification(`Failed to save ${saveType} to camera roll`)
     logger.debug(logPrefix + 'failed to save: ' + e)
     throw e
   } finally {
@@ -565,9 +571,7 @@ const manageContactsCache = async (
       SettingsGen.createLoadedUserCountryCode({code: defaultCountryCode})
     )
     if (newlyResolved && newlyResolved.length) {
-      PushNotifications.localNotification({
-        message: PushConstants.makeContactsResolvedMessage(newlyResolved),
-      })
+      localNotification(PushConstants.makeContactsResolvedMessage(newlyResolved))
     }
     if (state.settings.contacts.waitingToShowJoinedModal && resolved) {
       actions.push(SettingsGen.createShowContactsJoinedModal({resolved}))

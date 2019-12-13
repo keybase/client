@@ -13,18 +13,18 @@ import * as Saga from '../../util/saga'
 import * as WaitingGen from '../waiting-gen'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Tabs from '../../constants/tabs'
-import PushNotificationIOS from "@react-native-community/push-notification-ios"
+import PushNotificationIOS from '@react-native-community/push-notification-ios'
 import logger from '../../logger'
-import {NativeModules, NativeEventEmitter} from 'react-native'
+import {NativeModules, NativeEventEmitter, AppState} from 'react-native'
 import {isIOS, isAndroid} from '../../constants/platform'
 import * as Container from '../../util/container'
 
 const clearLocalNotifications = () => {
-    if (isIOS) {
-        PushNotificationIOS.cancelAllLocalNotifications()
-    } else {
-        // TODO PUSH
-    }
+  if (isIOS) {
+    PushNotificationIOS.cancelAllLocalNotifications()
+  } else {
+    // TODO PUSH
+  }
 }
 
 let lastCount = -1
@@ -37,11 +37,11 @@ const updateAppBadge = (_: Container.TypedState, action: NotificationsGen.Receiv
   if (isIOS) {
     PushNotificationIOS.setApplicationIconBadgeNumber(count)
   } else {
-      // TODO PUSH
+    // TODO PUSH
   }
   // Only do this native call if the count actually changed, not over and over if its zero
   if (count === 0 && lastCount !== 0) {
-      clearLocalNotifications()
+    clearLocalNotifications()
   }
   lastCount = count
 }
@@ -74,7 +74,7 @@ const listenForNativeAndroidIntentNotifications = async (
 
   const RNEmitter = new NativeEventEmitter(NativeModules.KeybaseEngine)
   RNEmitter.addListener('initialIntentFromNotification', evt => {
-    const notification = evt && Constants.normalizePush(evt)
+    const notification = evt && Constants.normalizePush(evt, true)
     notification && emitter(PushGen.createNotification({notification}))
   })
 
@@ -94,33 +94,22 @@ const listenForNativeAndroidIntentNotifications = async (
 }
 
 const listenForPushNotificationsIOS = (emitter: (action: Container.TypedActions) => void) => {
-  const onRegister = (token: {token: string}) => {
+  PushNotificationIOS.addEventListener('register', (token: {token: string}) => {
     logger.debug('[PushToken] received new token: ', token)
     emitter(PushGen.createUpdatePushToken({token: token.token}))
-  }
+  })
 
   const onNotification = (n: Object) => {
     logger.debug('[onNotification]: ', n)
-    const notification = Constants.normalizePush(n)
-    if (!notification) {
-      return
-    }
+    const isBackground = AppState.currentState === 'background'
+    const notification = Constants.normalizePush(n, isBackground)
     emitter(PushGen.createNotification({notification}))
   }
-
-  const onError = (error: Error) => {
-    logger.error('push error:', error)
-  }
-
-  PushNotificationIOS.configure({
-    onError,
-    onNotification,
-    onRegister,
-    popInitialNotification: false,
-    // Don't request permissions for ios, we'll ask later, after showing UI
-    requestPermissions: false,
-    senderID: Constants.androidSenderID,
-  })
+  PushNotificationIOS.addEventListener('notification', onNotification)
+  PushNotificationIOS.addEventListener('localNotification', onNotification)
+  PushNotificationIOS.addEventListener('registrationError', ({message, code, details}) =>
+    logger.debug('[Push error]', message, code, details)
+  )
 }
 
 function* setupPushEventLoop() {
@@ -141,13 +130,13 @@ function* setupPushEventLoop() {
   }
 }
 
-function* handleLoudMessage(notification: Types.PushNotification) {
+const handleLoudMessage = async (notification: Types.PushNotification) => {
   if (notification.type !== 'chat.newmessage') {
-    return
+    return false
   }
   // We only care if the user clicked while in session
   if (!notification.userInteraction) {
-    return
+    return false
   }
 
   const {conversationIDKey, unboxPayload, membersType} = notification
@@ -156,27 +145,29 @@ function* handleLoudMessage(notification: Types.PushNotification) {
   const actions = [
     RouteTreeGen.createNavigateAppend({path: [{props: {conversationIDKey}, selected: 'chatConversation'}]}),
   ]
-  yield Saga.put(RouteTreeGen.createClearModals())
-  yield Saga.put(RouteTreeGen.createResetStack({actions, index: 1, tab: 'tabs.chatTab'}))
-  yield Saga.put(RouteTreeGen.createSwitchTab({tab: 'tabs.chatTab'}))
-  yield Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'push'}))
+
   if (unboxPayload && membersType && !isIOS) {
     logger.info('[Push] unboxing message')
-    try {
-      yield RPCChatTypes.localUnboxMobilePushNotificationRpcPromise({
-        convID: conversationIDKey,
-        membersType,
-        payload: unboxPayload,
-        shouldAck: false,
-      })
-    } catch (e) {
+    RPCChatTypes.localUnboxMobilePushNotificationRpcPromise({
+      convID: conversationIDKey,
+      membersType,
+      payload: unboxPayload,
+      shouldAck: false,
+    }).catch(e => {
       logger.info('[Push] failed to unbox message form payload')
-    }
+    })
   }
+
+  return [
+    RouteTreeGen.createClearModals(),
+    RouteTreeGen.createResetStack({actions, index: 1, tab: 'tabs.chatTab'}),
+    RouteTreeGen.createSwitchTab({tab: 'tabs.chatTab'}),
+    Chat2Gen.createSelectConversation({conversationIDKey, reason: 'push'}),
+  ]
 }
 
 // on iOS the go side handles a lot of push details
-function* handlePush(state: Container.TypedState, action: PushGen.NotificationPayload) {
+const handlePush = async (state: Container.TypedState, action: PushGen.NotificationPayload) => {
   try {
     const notification = action.payload.notification
     logger.info('[Push]: ' + notification.type || 'unknown')
@@ -192,26 +183,25 @@ function* handlePush(state: Container.TypedState, action: PushGen.NotificationPa
         // entirely handled by go on ios and in onNotification on Android
         break
       case 'chat.newmessage':
-        yield* handleLoudMessage(notification)
-        break
+        return await handleLoudMessage(notification)
       case 'follow':
         // We only care if the user clicked while in session
         if (notification.userInteraction) {
           const {username} = notification
           logger.info('[Push] follower: ', username)
-          yield Saga.put(ProfileGen.createShowUserProfile({username}))
+          return ProfileGen.createShowUserProfile({username})
         }
         break
-      case 'chat.extension':
-        {
-          const {conversationIDKey} = notification
-          yield Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'extension'}))
-        }
-        break
+      case 'chat.extension': {
+        const {conversationIDKey} = notification
+        return Chat2Gen.createSelectConversation({conversationIDKey, reason: 'extension'})
+      }
       case 'settings.contacts':
         if (state.config.loggedIn) {
-          yield Saga.put(RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}))
-          yield Saga.put(RouteTreeGen.createNavUpToScreen({routeName: 'peopleRoot'}))
+          return [
+            RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}),
+            RouteTreeGen.createNavUpToScreen({routeName: 'peopleRoot'}),
+          ]
         }
         break
     }
@@ -289,7 +279,8 @@ const requestPermissionsFromNative = () =>
   isIOS ? PushNotificationIOS.requestPermissions() : Promise.resolve()
 const askNativeIfSystemPushPromptHasBeenShown = () =>
   isIOS ? NativeModules.PushPrompt.getHasShownPushPrompt() : Promise.resolve(false)
-const checkPermissionsFromNative = () => isIOS ? new Promise(resolve => PushNotificationIOS.checkPermissions(resolve)) : Promise.resolve() // TODO PUSH
+const checkPermissionsFromNative = () =>
+  isIOS ? new Promise(resolve => PushNotificationIOS.checkPermissions(resolve)) : Promise.resolve() // TODO PUSH
 const monsterStorageKey = 'shownMonsterPushPrompt'
 
 const neverShowMonsterAgain = async (state: Container.TypedState) => {
@@ -393,7 +384,7 @@ function* _checkPermissions(action: ConfigGen.MobileAppStatePayload | null) {
 
 function* getStartupDetailsFromInitialPush() {
   const {push, pushTimeout}: {push: PushGen.NotificationPayload; pushTimeout: boolean} = yield Saga.race({
-    push: isAndroid ? getInitialPushAndroid() : getInitialPushiOS(),
+    push: getInitialPush(),
     pushTimeout: Saga.delay(10),
   })
   if (pushTimeout || !push) {
@@ -414,22 +405,16 @@ function* getStartupDetailsFromInitialPush() {
   return null
 }
 
-const getInitialPushAndroid = async () => {
-  const n = await NativeModules.KeybaseEngine.getInitialIntent()
-  const notification = n && Constants.normalizePush(n)
+const getInitialPush = async () => {
+  let n: any
+  if (isAndroid) {
+    n = await NativeModules.KeybaseEngine.getInitialIntent()
+  } else {
+    n = await PushNotificationIOS.getInitialNotification()
+  }
+  const notification = n && Constants.normalizePush(n, true)
   return notification && PushGen.createNotification({notification})
 }
-
-const getInitialPushiOS = () =>
-  new Promise(resolve =>
-    PushNotificationIOS.popInitialNotification(n => {
-      const notification = Constants.normalizePush(n)
-      if (notification) {
-        resolve(PushGen.createNotification({notification}))
-      }
-      resolve(null)
-    })
-  )
 
 function* pushSaga() {
   // Permissions
@@ -445,7 +430,7 @@ function* pushSaga() {
   yield* Saga.chainGenerator<ConfigGen.LogoutHandshakePayload>(ConfigGen.logoutHandshake, deletePushToken)
 
   yield* Saga.chainAction2(NotificationsGen.receivedBadgeState, updateAppBadge)
-  yield* Saga.chainGenerator<PushGen.NotificationPayload>(PushGen.notification, handlePush)
+  yield* Saga.chainAction2(PushGen.notification, handlePush)
   yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(ConfigGen.daemonHandshake, setupPushEventLoop)
   yield Saga.spawn(initialPermissionsCheck)
 }

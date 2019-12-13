@@ -27,15 +27,17 @@ const anyToConversationMembersType = (a: any): RPCChatTypes.ConversationMembersT
   }
 }
 
-export const normalizePush = (n: any): Types.PushNotification | undefined => {
+export const normalizePush = (n: any, userInteraction: boolean): Types.PushNotification | undefined => {
   try {
     if (!n) {
       return undefined
     }
 
-    const userInteraction = !!n.userInteraction
     const data = isIOS ? n.data || n._data : n
     const message = n.message
+
+    // TODO remove
+    console.log('aaaa push normalize', n, userInteraction)
 
     if (!data) {
       return undefined
