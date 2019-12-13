@@ -104,7 +104,6 @@ const OutboxIcon = ({isSelected, snippetDecoration}) => {
           color={isSelected ? Styles.globalColors.white : Styles.globalColors.black_20}
         />
       )
-      break
     case RPCChatTypes.SnippetDecoration.failedPendingMessage:
       return (
         <Kb.Icon
@@ -113,7 +112,6 @@ const OutboxIcon = ({isSelected, snippetDecoration}) => {
           color={isSelected ? Styles.globalColors.white : Styles.globalColors.red}
         />
       )
-      break
     default:
       return null
   }
