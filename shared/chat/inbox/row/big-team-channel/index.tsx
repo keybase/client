@@ -95,21 +95,28 @@ const DraftIcon = ({isSelected}) => (
 )
 
 const OutboxIcon = ({isSelected, snippetDecoration}) => {
-  let icon: Kb.IconType
-  let color: string
   switch (snippetDecoration) {
     case RPCChatTypes.SnippetDecoration.pendingMessage:
-      color = isSelected ? Styles.globalColors.white : Styles.globalColors.black_20
-      icon = 'iconfont-hourglass'
+      return (
+        <Kb.Icon
+          style={styles.icon}
+          type={'iconfont-hourglass'}
+          color={isSelected ? Styles.globalColors.white : Styles.globalColors.black_20}
+        />
+      )
       break
     case RPCChatTypes.SnippetDecoration.failedPendingMessage:
-      color = isSelected ? Styles.globalColors.white : Styles.globalColors.red
-      icon = 'iconfont-exclamation'
+      return (
+        <Kb.Icon
+          style={styles.icon}
+          type={'iconfont-exclamation'}
+          color={isSelected ? Styles.globalColors.white : Styles.globalColors.red}
+        />
+      )
       break
     default:
       return null
   }
-  return <Kb.Icon style={styles.icon} type={icon} color={color} />
 }
 
 const styles = Styles.styleSheetCreate(() => ({
