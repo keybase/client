@@ -840,7 +840,6 @@ export type TypedActionsMap = {
   'teams:loadTeam': teams.LoadTeamPayload
   'teams:teamLoaded': teams.TeamLoadedPayload
   'teams:setTeamVersion': teams.SetTeamVersionPayload
-  'teams:getDetails': teams.GetDetailsPayload
   'teams:getMembers': teams.GetMembersPayload
   'teams:setMembers': teams.SetMembersPayload
   'teams:getTeamProfileAddList': teams.GetTeamProfileAddListPayload

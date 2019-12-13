@@ -336,10 +336,8 @@ const editDescription = async (_: TypedState, action: TeamsGen.EditTeamDescripti
       {description, name: teamname},
       Constants.teamWaitingKey(teamname)
     )
-    return TeamsGen.createGetDetails({teamname})
   } catch (__) {
-    // TODO We don't get a team changed notification for this. Delete this call when CORE-7125 is finished.
-    return TeamsGen.createGetDetails({teamname})
+    // TODO Y2K-1168
   }
 }
 
@@ -407,7 +405,7 @@ function* removeMemberOrPendingInvite(
       ]
     )
     if (loadingKey) {
-      yield Saga.put(TeamsGen.createGetDetails({clearInviteLoadingKey: loadingKey, teamname}))
+      yield Saga.put(TeamsGen.createSetTeamLoadingInvites({isLoading: false, loadingKey, teamname}))
     }
   } catch (err) {
     logger.error('Failed to remove member or pending invite', err)
@@ -451,7 +449,10 @@ function* inviteToTeamByPhone(
     /* Open SMS */
     const bodyText = generateSMSBody(teamname, seitan)
     yield openSMS([phoneNumber], bodyText)
-    return TeamsGen.createGetDetails({clearInviteLoadingKey: loadingKey, teamname})
+    if (loadingKey) {
+      return TeamsGen.createSetTeamLoadingInvites({isLoading: false, loadingKey, teamname})
+    }
+    return false
   } catch (err) {
     logger.info('Error sending SMS', err)
     if (loadingKey) {
@@ -468,11 +469,8 @@ const ignoreRequest = async (_: TypedState, action: TeamsGen.IgnoreRequestPayloa
       {name: teamname, username},
       Constants.teamWaitingKey(teamname)
     )
-    return TeamsGen.createGetDetails({teamname})
   } catch (_) {
-    // TODO handle error, but for now make sure loading is unset
-    // TODO get rid of this once core sends us a notification for this (CORE-7125)
-    return TeamsGen.createGetDetails({teamname}) // getDetails will unset loading
+    // TODO handle error
   }
 }
 
@@ -870,14 +868,14 @@ const setMemberPublicity = async (_: TypedState, action: TeamsGen.SetMemberPubli
       Constants.teamWaitingKey(teamname)
     )
     return [
-      TeamsGen.createGetDetails({teamname}),
+      // TeamsGen.createGetDetails({teamname}),
       // The profile showcasing page gets this data from teamList rather than teamGet, so trigger one of those too.
       // TeamsGen.createGetTeams(), // TODO Y2K-974 probably broken
     ]
   } catch (_) {
     // TODO handle error, but for now make sure loading is unset
     return [
-      TeamsGen.createGetDetails({teamname}),
+      // TeamsGen.createGetDetails({teamname}),
       // The profile showcasing page gets this data from teamList rather than teamGet, so trigger one of those too.
       // TeamsGen.createGetTeams(), // TODO Y2K-974 probably broken
     ]
@@ -990,7 +988,7 @@ function* setPublicity(state: TypedState, action: TeamsGen.SetPublicityPayload, 
 
   const results = yield Saga.all(calls)
   // TODO delete this getDetails call when CORE-7125 is finished
-  yield Saga.put(TeamsGen.createGetDetails({teamname}))
+  // yield Saga.put(TeamsGen.createGetDetails({teamname}))
 
   // Display any errors from the rpcs
   const errs = results
@@ -1002,7 +1000,7 @@ function* setPublicity(state: TypedState, action: TeamsGen.SetPublicityPayload, 
 const teamChangedByID = (state: TypedState, action: EngineGen.Keybase1NotifyTeamTeamChangedByIDPayload) => {
   const {teamID, latestHiddenSeqno, latestOffchainSeqno, latestSeqno} = action.payload.params
   const version = state.teams.teamVersion.get(teamID)
-  let versionChanged = true // if we don't have an old version, assume it's increased
+  let versionChanged = true // err on the side of reloading if we don't have a version
   if (version) {
     versionChanged =
       latestHiddenSeqno > version.latestHiddenSeqno ||
@@ -1052,12 +1050,10 @@ const teamDeletedOrExit = (
   const {teamID} = action.payload.params
   const selectedTeams = Constants.getSelectedTeams()
   if (selectedTeams.includes(teamID)) {
-    return [RouteTreeGen.createNavUpToScreen({routeName: 'teamsRoot'}), ...getLoadCalls()]
+    return RouteTreeGen.createNavUpToScreen({routeName: 'teamsRoot'})
   }
-  return getLoadCalls()
+  return false
 }
-
-const getLoadCalls = (teamname?: string) => (teamname ? [TeamsGen.createGetDetails({teamname})] : [])
 
 const reloadTeamListIfSubscribed = (state: TypedState, _, logger: Saga.SagaLogger) => {
   if (state.teams.teamMetaSubscribeCount > 0) {
@@ -1217,30 +1213,6 @@ const badgeAppForTeams = (state: TypedState, action: NotificationsGen.ReceivedBa
     const existing = mapGetEnsureValue(teamsWithResetUsersMap, entry.teamname, new Set())
     existing.add({badgeIDKey: Constants.resetUserBadgeIDToKey(entry.id), username: entry.username})
   })
-
-  /* TODO team notifications should handle what the following block did */
-  // if (_wasOnTeamsTab() && (newTeams.size > 0 || newTeamRequests.size > 0 || deletedTeams.length > 0)) {
-  //   // Call getTeams if new teams come in.
-  //   // Covers the case when we're staring at the teams page so
-  //   // we don't miss a notification we clear when we tab away
-  //   const existingNewTeams = state.teams.newTeams || I.Set()
-  //   const existingNewTeamRequests = state.teams.newTeamRequests || I.List()
-  //   if (!newTeams.equals(existingNewTeams) && newTeams.size > 0) {
-  //     // We have been added to a new team & we need to refresh the list
-  //     actions.push(TeamsGen.createGetTeams())
-  //   }
-
-  //   // getDetails for teams that have new access requests
-  //   // Covers case where we have a badge appear on the requests
-  //   // tab with no rows showing up
-  //   const newTeamRequestsSet = I.Set(newTeamRequests)
-  //   // TODO ts-migration remove any
-  //   const existingNewTeamRequestsSet = I.Set(existingNewTeamRequests)
-  //   // TODO ts-migration remove any
-  //   const toLoad: I.Set<any> = newTeamRequestsSet.subtract(existingNewTeamRequestsSet)
-  //   const loadingCalls = toLoad.map(teamname => TeamsGen.createGetDetails({teamname})).toArray()
-  //   actions = actions.concat(loadingCalls)
-  // }
 
   // if the user wasn't on the teams tab, loads will be triggered by navigation around the app
   actions.push(

@@ -711,7 +711,7 @@ export const annotatedTeamToDetails = (t: RPCTypes.AnnotatedTeam): Types.TeamDet
     description: t.showcase.description ?? '',
     invites: t.invites ? new Set(annotatedInvitesToInviteInfo(t.invites)) : new Set(),
     members,
-    requests: new Set(t.joinRequests?.map(r => r.name || r.username) ?? []),
+    requests: new Set(t.joinRequests?.map(r => r.username) ?? []),
     settings: {
       open: !!t.settings.open,
       openJoinAs: maybeOpenJoinAs === 'none' ? 'reader' : maybeOpenJoinAs,

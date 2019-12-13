@@ -25,7 +25,6 @@ export const editMembership = 'teams:editMembership'
 export const editTeamDescription = 'teams:editTeamDescription'
 export const getChannelInfo = 'teams:getChannelInfo'
 export const getChannels = 'teams:getChannels'
-export const getDetails = 'teams:getDetails'
 export const getMembers = 'teams:getMembers'
 export const getTeamProfileAddList = 'teams:getTeamProfileAddList'
 export const getTeamPublicity = 'teams:getTeamPublicity'
@@ -136,7 +135,6 @@ type _GetChannelInfoPayload = {
   readonly teamname: string
 }
 type _GetChannelsPayload = {readonly teamname: string}
-type _GetDetailsPayload = {readonly teamname: string; readonly clearInviteLoadingKey?: string}
 type _GetMembersPayload = {readonly teamname: string}
 type _GetTeamProfileAddListPayload = {readonly username: string}
 type _GetTeamPublicityPayload = {readonly teamname: string}
@@ -386,10 +384,6 @@ export const createEditMembership = (payload: _EditMembershipPayload): EditMembe
 export const createEditTeamDescription = (
   payload: _EditTeamDescriptionPayload
 ): EditTeamDescriptionPayload => ({payload, type: editTeamDescription})
-export const createGetDetails = (payload: _GetDetailsPayload): GetDetailsPayload => ({
-  payload,
-  type: getDetails,
-})
 export const createGetMembers = (payload: _GetMembersPayload): GetMembersPayload => ({
   payload,
   type: getMembers,
@@ -612,7 +606,6 @@ export type GetChannelInfoPayload = {
   readonly type: typeof getChannelInfo
 }
 export type GetChannelsPayload = {readonly payload: _GetChannelsPayload; readonly type: typeof getChannels}
-export type GetDetailsPayload = {readonly payload: _GetDetailsPayload; readonly type: typeof getDetails}
 export type GetMembersPayload = {readonly payload: _GetMembersPayload; readonly type: typeof getMembers}
 export type GetTeamProfileAddListPayload = {
   readonly payload: _GetTeamProfileAddListPayload
@@ -805,7 +798,6 @@ export type Actions =
   | EditTeamDescriptionPayload
   | GetChannelInfoPayload
   | GetChannelsPayload
-  | GetDetailsPayload
   | GetMembersPayload
   | GetTeamProfileAddListPayload
   | GetTeamPublicityPayload
