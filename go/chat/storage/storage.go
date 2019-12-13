@@ -1064,6 +1064,10 @@ func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID
 
 	// Run seek looking for each message
 	for _, msgID := range msgIDs {
+		if msgID == 0 {
+			res = append(res, nil)
+			continue
+		}
 		msg, err := s.getMessage(ctx, convID, uid, msgID)
 		if err != nil {
 			return nil, s.maybeNukeLocked(ctx, false, err, convID, uid)
