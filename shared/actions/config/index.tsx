@@ -67,12 +67,9 @@ const onHTTPSrvInfoUpdated = (action: EngineGen.Keybase1NotifyServiceHTTPSrvInfo
     token: action.payload.params.info.token,
   })
 
-const getFollowerInfo = (
-  state: Container.TypedState,
-  action: ConfigGen.LoggedInPayload | ConfigGen.StartupFirstIdlePayload
-) => {
+const getFollowerInfo = (state: Container.TypedState, action: ConfigGen.LoadOnStartPayload) => {
   const {uid} = state.config
-  if (action.type === ConfigGen.loggedIn && action.payload.causedByStartup) {
+  if (action.type === ConfigGen.loadOnStart && action.payload.phase !== 'startupOrReloginButNotInARush') {
     return
   }
   if (uid) {
@@ -505,7 +502,10 @@ function* allowLogoutWaiters(_: Container.TypedState, action: ConfigGen.LogoutHa
   )
 }
 
-const updateServerConfig = async (state: Container.TypedState) => {
+const updateServerConfig = async (state: Container.TypedState, action: ConfigGen.LoadOnStartPayload) => {
+  if (action.payload.phase !== 'startupOrReloginButNotInARush') {
+    return false
+  }
   try {
     const str = await RPCTypes.apiserverGetWithSessionRpcPromise({
       endpoint: 'user/features',
@@ -533,6 +533,7 @@ const updateServerConfig = async (state: Container.TypedState) => {
   } catch (e) {
     logger.info('updateServerConfig fail', e)
   }
+  return false
 }
 const setNavigator = (action: ConfigGen.SetNavigatorPayload) => {
   const navigator = action.payload.navigator
@@ -672,14 +673,41 @@ const toggleRuntimeStats = async () => {
     logger.warn('error toggling runtime stats', err)
   }
 }
-
-const emitStartupFirstIdle = async () => {
-  await Saga.delay(1000)
-  return new Promise<ConfigGen.StartupFirstIdlePayload>(resolve => {
+const emitStartupOnLoadNotInARush = async () => {
+  await Container.timeoutPromise(1000)
+  return new Promise<ConfigGen.LoadOnStartPayload>(resolve => {
     requestAnimationFrame(() => {
-      resolve(ConfigGen.createStartupFirstIdle())
+      resolve(ConfigGen.createLoadOnStart({phase: 'startupOrReloginButNotInARush'}))
     })
   })
+}
+
+const emitStartupOnLoadNotInARushLoggedIn = async (
+  _: Container.TypedState,
+  action: ConfigGen.LoggedInPayload
+) => {
+  if (action.payload.causedByStartup) {
+    return false
+  }
+  await Container.timeoutPromise(1000)
+  return new Promise<ConfigGen.LoadOnStartPayload>(resolve => {
+    requestAnimationFrame(() => {
+      resolve(ConfigGen.createLoadOnStart({phase: 'startupOrReloginButNotInARush'}))
+    })
+  })
+}
+
+let _emitStartupOnLoadDaemonConnectedOnce = false
+const emitStartupOnLoadDaemonConnectedOnce = () => {
+  if (!_emitStartupOnLoadDaemonConnectedOnce) {
+    _emitStartupOnLoadDaemonConnectedOnce = true
+    return ConfigGen.createLoadOnStart({phase: 'connectedToDaemonForFirstTime'})
+  }
+  return false
+}
+
+const emitStartupOnLoadLoggedIn = (_: Container.TypedState, action: ConfigGen.LoggedInPayload) => {
+  return !action.payload.causedByStartup ? ConfigGen.createLoadOnStart({phase: 'reloggedIn'}) : false
 }
 
 function* configSaga() {
@@ -712,7 +740,10 @@ function* configSaga() {
   yield* Saga.chainAction2([ConfigGen.daemonHandshakeDone, ConfigGen.setNavigator], routeToInitialScreen2)
   yield* Saga.chainAction2(ConfigGen.persistRoute, stashLastRoute)
 
-  yield* Saga.chainAction2(ConfigGen.daemonHandshakeDone, emitStartupFirstIdle)
+  yield* Saga.chainAction2(ConfigGen.daemonHandshakeDone, emitStartupOnLoadNotInARush)
+  yield* Saga.chainAction2(ConfigGen.daemonHandshakeDone, emitStartupOnLoadDaemonConnectedOnce)
+  yield* Saga.chainAction2(ConfigGen.loggedIn, emitStartupOnLoadLoggedIn)
+  yield* Saga.chainAction2(ConfigGen.loggedIn, emitStartupOnLoadNotInARushLoggedIn)
 
   yield* Saga.chainAction2(ConfigGen.logoutAndTryToLogInAs, logoutAndTryToLogInAs)
 
@@ -742,7 +773,7 @@ function* configSaga() {
   // When we're all done lets clean up
   yield* Saga.chainAction2(ConfigGen.loggedOut, resetGlobalStore)
   // Store per user server config info
-  yield* Saga.chainAction2(ConfigGen.startupFirstIdle, updateServerConfig)
+  yield* Saga.chainAction2(ConfigGen.loadOnStart, updateServerConfig)
 
   yield* Saga.chainAction2(ConfigGen.setDeletedSelf, showDeletedSelfRootPage)
 
@@ -766,7 +797,7 @@ function* configSaga() {
     )
   }
 
-  yield* Saga.chainAction2([ConfigGen.loggedIn, ConfigGen.startupFirstIdle], getFollowerInfo)
+  yield* Saga.chainAction2(ConfigGen.loadOnStart, getFollowerInfo)
 
   yield* Saga.chainAction2(ConfigGen.toggleRuntimeStats, toggleRuntimeStats)
 

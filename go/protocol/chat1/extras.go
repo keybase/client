@@ -1341,6 +1341,17 @@ func (c ConversationLocal) FullNamesForSearch() (res []*string) {
 	return res
 }
 
+func (c ConversationLocal) CannotWrite() bool {
+	if c.ConvSettings == nil {
+		return false
+	}
+	if c.ConvSettings.MinWriterRoleInfo == nil {
+		return false
+	}
+
+	return c.ConvSettings.MinWriterRoleInfo.CannotWrite
+}
+
 func (c Conversation) GetMtime() gregor1.Time {
 	return c.ReaderInfo.Mtime
 }

@@ -148,15 +148,14 @@ const deriveUserFromUserIdFn = memoize(
 )
 
 const emptyObj = {}
-const emptyArr = []
 const emptyMap = new Map()
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const teamBuildingState = state[ownProps.namespace].teamBuilding
   const teamBuildingSearchResults = teamBuildingState.searchResults
-  const userResults: Array<Types.User> =
-    teamBuildingState.searchResults.get(trim(ownProps.searchString))?.get(ownProps.selectedService) ??
-    emptyArr
+  const userResults: Array<Types.User> | undefined = teamBuildingState.searchResults
+    .get(trim(ownProps.searchString))
+    ?.get(ownProps.selectedService)
 
   const maybeTeamDetails = ownProps.teamID ? getTeamDetails(state, ownProps.teamID) : undefined
   const preExistingTeamMembers: TeamTypes.TeamDetails['members'] = maybeTeamDetails?.members ?? emptyMap
@@ -612,12 +611,7 @@ const mergeProps = (
   const popupProps: PopupHocProps | null = Container.isMobile
     ? null
     : {
-        closeStyleOverrides:
-          ownProps.namespace === 'people'
-            ? {
-                display: 'none',
-              }
-            : null,
+        closeStyleOverrides: ownProps.namespace === 'people' ? {display: 'none'} : null,
         containerStyleOverrides:
           ownProps.namespace === 'people'
             ? {

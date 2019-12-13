@@ -517,34 +517,41 @@ class TeamBuilding extends React.PureComponent<Props> {
 
     return (
       <>
-        <Kb.List
-          reAnimated={true}
-          items={this.props.searchResults || []}
-          onScroll={this.onScroll}
-          selectedIndex={this.props.highlightedIndex || 0}
-          style={styles.list}
-          contentContainerStyle={styles.listContentContainer}
-          keyboardShouldPersistTaps="handled"
-          keyProperty="key"
-          onEndReached={this._onEndReached}
-          onEndReachedThreshold={0.1}
-          renderItem={(index, result) => (
-            <ResultRow
-              resultForService={this.props.selectedService}
-              username={result.username}
-              prettyName={result.prettyName}
-              displayLabel={result.displayLabel}
-              services={result.services}
-              inTeam={result.inTeam}
-              isPreExistingTeamMember={result.isPreExistingTeamMember}
-              isYou={result.isYou}
-              followingState={result.followingState}
-              highlight={!Styles.isMobile && index === this.props.highlightedIndex}
-              onAdd={() => this.props.onAdd(result.userId)}
-              onRemove={() => this.props.onRemove(result.userId)}
-            />
-          )}
-        />
+        {this.props.searchResults === undefined || this.props.searchResults?.length ? (
+          <Kb.List
+            reAnimated={true}
+            items={this.props.searchResults || []}
+            onScroll={this.onScroll}
+            selectedIndex={this.props.highlightedIndex || 0}
+            style={styles.list}
+            contentContainerStyle={styles.listContentContainer}
+            keyboardShouldPersistTaps="handled"
+            keyProperty="key"
+            onEndReached={this._onEndReached}
+            onEndReachedThreshold={0.1}
+            renderItem={(index, result) => (
+              <ResultRow
+                key={result.username}
+                resultForService={this.props.selectedService}
+                username={result.username}
+                prettyName={result.prettyName}
+                displayLabel={result.displayLabel}
+                services={result.services}
+                inTeam={result.inTeam}
+                isPreExistingTeamMember={result.isPreExistingTeamMember}
+                isYou={result.isYou}
+                followingState={result.followingState}
+                highlight={!Styles.isMobile && index === this.props.highlightedIndex}
+                onAdd={() => this.props.onAdd(result.userId)}
+                onRemove={() => this.props.onRemove(result.userId)}
+              />
+            )}
+          />
+        ) : (
+          <Kb.Text type="BodySmall" style={styles.noResults}>
+            No results were found
+          </Kb.Text>
+        )}
       </>
     )
   }
@@ -816,6 +823,10 @@ const styles = Styles.styleSheetCreate(
           margin: Styles.globalMargins.xsmall,
         },
       }),
+      noResults: {
+        flex: 1,
+        ...Styles.padding(Styles.globalMargins.small),
+      },
       searchHint: {
         paddingLeft: Styles.globalMargins.xlarge,
         paddingRight: Styles.globalMargins.xlarge,

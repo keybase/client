@@ -664,7 +664,7 @@ const checkIfWeReConnectedToMDServerUpToNTimes = async (n: number) => {
   } catch (error) {
     if (n > 0) {
       logger.warn(`failed to check if we are connected to MDServer: ${error}; n=${n}`)
-      await Saga.delay(2000)
+      await Container.timeoutPromise(2000)
       return checkIfWeReConnectedToMDServerUpToNTimes(n - 1)
     } else {
       logger.warn(`failed to check if we are connected to MDServer : ${error}; n=${n}, throwing`)
