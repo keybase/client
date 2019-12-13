@@ -73,6 +73,8 @@ type LinkProps = {
 }
 
 const auditingBannerItem = 'auditing banner'
+const inThisChannelItem = 'bots: in this channel'
+const addBotButton = 'bots: add bot'
 
 export type InfoPanelProps = {
   loadDelay?: number
@@ -412,8 +414,30 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
           }
         }
 
+        tabsSection.data.push(addBotButton)
+        if (this.props.bots.length > 0) {
+          tabsSection.data.push(inThisChannelItem)
+        }
         tabsSection.data = tabsSection.data.concat(this.props.bots)
         tabsSection.renderItem = ({item}) => {
+          if (item === addBotButton) {
+            return (
+              <Kb.Button
+                mode="Primary"
+                type="Default"
+                label="Add a bot"
+                style={styles.addBot}
+                onClick={() => null}
+              />
+            )
+          }
+          if (item === inThisChannelItem) {
+            return (
+              <Kb.Text type="Header" style={styles.botHeaders}>
+                In this channel
+              </Kb.Text>
+            )
+          }
           if (!item.botUsername) {
             return null
           } else {
@@ -440,9 +464,20 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      addBot: {
+        marginBottom: Styles.globalMargins.xtiny,
+        marginLeft: Styles.globalMargins.small,
+        marginRight: Styles.globalMargins.small,
+        marginTop: Styles.globalMargins.small,
+      },
       attachmentsLoading: {
         height: Styles.globalMargins.small,
         width: Styles.globalMargins.small,
+      },
+      botHeaders: {
+        marginLeft: Styles.globalMargins.small,
+        marginRight: Styles.globalMargins.small,
+        marginTop: Styles.globalMargins.tiny,
       },
       container: Styles.platformStyles({
         common: {alignItems: 'stretch', flex: 1, paddingBottom: Styles.globalMargins.tiny},
