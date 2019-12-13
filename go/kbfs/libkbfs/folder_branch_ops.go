@@ -1784,6 +1784,8 @@ func (fbo *folderBranchOps) commitFlushedMD(
 				"Error getting wait channel for prefetch: %+v", err)
 			return
 		}
+		fbo.syncedTlfObservers.fullSyncStarted(
+			ctx, fbo.id(), rmd.Revision(), waitCh)
 
 		select {
 		case <-waitCh:
@@ -9326,11 +9328,14 @@ func (fbo *folderBranchOps) SetSyncConfig(
 	}
 
 	// Issue notifications to client when sync mode changes (or is partial).
-	if oldConfig.Mode != config.Mode || config.Mode == keybase1.FolderSyncMode_PARTIAL {
+	modeChanged := oldConfig.Mode != config.Mode
+	if modeChanged || config.Mode == keybase1.FolderSyncMode_PARTIAL {
 		fbo.config.Reporter().Notify(ctx, syncConfigChangeNotification(
 			md.GetTlfHandle(), config))
 	}
-
+	if modeChanged {
+		fbo.syncedTlfObservers.syncModeChanged(ctx, fbo.id(), config.Mode)
+	}
 	return ch, nil
 }
 
