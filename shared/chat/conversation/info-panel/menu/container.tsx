@@ -168,17 +168,18 @@ export default Container.namedConnect(
     onUnhideConv: () => dispatch(ChatGen.createUnhideConversation({conversationIDKey})),
   }),
   (s, d, o) => {
-    const convProps: ConvProps | undefined = s._convPropsFullname
-      ? {
-          fullname: s._convPropsFullname!,
-          ignored: s._convPropsIgnored!,
-          muted: s._convPropsMuted!,
-          participants: s._convPropsParticipants!,
-          teamID: s._convPropsTeamID!,
-          teamType: s._convPropsTeamType!,
-          teamname: s._convPropsTeamname!,
-        }
-      : undefined
+    const convProps: ConvProps | undefined =
+      s._convPropsFullname != null
+        ? {
+            fullname: s._convPropsFullname!,
+            ignored: s._convPropsIgnored!,
+            muted: s._convPropsMuted!,
+            participants: s._convPropsParticipants!,
+            teamID: s._convPropsTeamID!,
+            teamType: s._convPropsTeamType!,
+            teamname: s._convPropsTeamname!,
+          }
+        : undefined
 
     return {
       attachTo: o.attachTo,
