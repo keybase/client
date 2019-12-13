@@ -52,6 +52,8 @@ type KBFSOpsStandard struct {
 
 	favs *Favorites
 
+	syncedTlfObservers *syncedTlfObserverList
+
 	editActivity kbfssync.RepeatedWaitGroup
 	editLock     sync.Mutex
 	editShutdown bool
@@ -95,6 +97,7 @@ func NewKBFSOpsStandard(
 		reIdentifyControlChan: make(chan chan<- struct{}),
 		initDoneCh:            initDoneCh,
 		favs:                  NewFavorites(config),
+		syncedTlfObservers:    newSyncedTlfObserverList(),
 		quotaUsage: NewEventuallyConsistentQuotaUsage(
 			config, quLog, config.MakeVLogger(quLog)),
 		longOperationDebugDumper: NewImpatientDebugDumper(
@@ -753,7 +756,7 @@ func (fs *KBFSOpsStandard) getOpsNoAdd(
 		}
 		ops = newFolderBranchOps(
 			ctx, fs.appStateUpdater, fs.config, fb, bType, quotaUsage,
-			fs.currentStatus, fs.favs)
+			fs.currentStatus, fs.favs, fs.syncedTlfObservers)
 		fs.ops[fb] = ops
 	}
 	return ops

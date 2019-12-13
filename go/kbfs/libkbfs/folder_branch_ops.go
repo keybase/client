@@ -255,13 +255,14 @@ type editChannelActivity struct {
 // blocks, so we can't just reuse the blocks that were modified during
 // the sync.)
 type folderBranchOps struct {
-	config        Config
-	folderBranch  data.FolderBranch
-	unmergedBID   kbfsmd.BranchID // protected by mdWriterLock
-	bType         branchType
-	observers     *observerList
-	serviceStatus *kbfsCurrentStatus
-	favs          *Favorites
+	config             Config
+	folderBranch       data.FolderBranch
+	unmergedBID        kbfsmd.BranchID // protected by mdWriterLock
+	bType              branchType
+	observers          *observerList
+	syncedTlfObservers *syncedTlfObserverList
+	serviceStatus      *kbfsCurrentStatus
+	favs               *Favorites
 
 	// The leveled locks below, when locked concurrently by the same
 	// goroutine, should only be taken in the following order to avoid
@@ -404,7 +405,8 @@ func newFolderBranchOps(
 	config Config, fb data.FolderBranch,
 	bType branchType,
 	quotaUsage *EventuallyConsistentQuotaUsage,
-	serviceStatus *kbfsCurrentStatus, favs *Favorites) *folderBranchOps {
+	serviceStatus *kbfsCurrentStatus, favs *Favorites,
+	syncedTlfObservers *syncedTlfObserverList) *folderBranchOps {
 	var nodeCache NodeCache
 	if config.Mode().NodeCacheEnabled() {
 		nodeCache = newNodeCacheStandard(fb)
@@ -452,13 +454,14 @@ func newFolderBranchOps(
 	forceSyncChan := make(chan struct{})
 
 	fbo := &folderBranchOps{
-		config:        config,
-		folderBranch:  fb,
-		unmergedBID:   kbfsmd.BranchID{},
-		bType:         bType,
-		observers:     observers,
-		serviceStatus: serviceStatus,
-		favs:          favs,
+		config:             config,
+		folderBranch:       fb,
+		unmergedBID:        kbfsmd.BranchID{},
+		bType:              bType,
+		observers:          observers,
+		syncedTlfObservers: syncedTlfObservers,
+		serviceStatus:      serviceStatus,
+		favs:               favs,
 		status: newFolderBranchStatusKeeper(
 			config, nodeCache, quotaUsage, fb.Tlf.Bytes()),
 		mdWriterLock: mdWriterLock,
