@@ -366,7 +366,7 @@ class Inbox extends React.Component<T.Props, State> {
               )}
             </AutoSizer>
           </div>
-          {floatingDivider || ((this.props.rows.length === 0 || !this.props.hasBigTeams) && <BuildTeam />)}
+          {floatingDivider || (this.props.rows.length === 0 && <BuildTeam />)}
           {this.state.showUnread && !this.state.showFloating && (
             <UnreadShortcut onClick={this.scrollToUnread} />
           )}

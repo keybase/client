@@ -64,13 +64,7 @@ const WalletRow = (props: Props) => {
       {/* Just needed for proper centering */ emptyIcon}
       <Kb.Box2 direction="vertical" style={styles.rowContainer}>
         <Kb.Box2 direction="horizontal" style={styles.firstRowContainer}>
-          {!!props.keybaseUser && (
-            <Kb.Avatar
-              size={16}
-              style={Kb.avatarCastPlatformStyles(styles.avatar)}
-              username={props.keybaseUser}
-            />
-          )}
+          {!!props.keybaseUser && <Kb.Avatar size={16} style={styles.avatar} username={props.keybaseUser} />}
           <Kb.Text type="BodyBig" style={props.isSelected ? styles.titleSelected : styles.title}>
             {props.name}
           </Kb.Text>

@@ -67,7 +67,7 @@ const ConnectedEditChannel = Container.connect(
     _navigateUp: () => dispatch(RouteTreeGen.createNavigateUp()),
     _onConfirmedDelete: (teamname: string, conversationIDKey: Types.ConversationIDKey) =>
       dispatch(TeamsGen.createDeleteChannelConfirmed({conversationIDKey, teamname})),
-    _onSetChannelCreationError: error => dispatch(TeamsGen.createSetChannelCreationError({error})),
+    _onSetChannelCreationError: (error: string) => dispatch(TeamsGen.createSetChannelCreationError({error})),
     _updateChannelName: (
       teamname: string,
       conversationIDKey: Types.ConversationIDKey,

@@ -3,7 +3,7 @@ import * as Styles from '../../styles'
 import Avatar, {AvatarSize} from '../avatar'
 import {Box} from '../box'
 import ClickableBox from '../clickable-box'
-import Icon, {castPlatformStyles, IconType} from '../icon'
+import Icon, {IconType} from '../icon'
 import Text, {TextType, StylesTextCrossPlatform} from '../text'
 import ConnectedUsernames from '../usernames/container'
 
@@ -89,7 +89,7 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
           type={this.props.icon}
           style={
             this.props.horizontal
-              ? castPlatformStyles(styles.hIconStyle)
+              ? styles.hIconStyle
               : {height: adapterProps.iconSize, width: adapterProps.iconSize}
           }
           fontSize={this.props.horizontal ? (Styles.isMobile ? 48 : 32) : adapterProps.iconSize}

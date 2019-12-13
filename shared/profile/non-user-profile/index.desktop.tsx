@@ -115,12 +115,14 @@ const styles = Styles.styleSheetCreate(() => ({
   username: {
     marginLeft: Styles.globalMargins.xtiny,
   },
-  usernameRow: {
-    ...Styles.globalStyles.flexBoxRow,
-    ...Styles.desktopStyles.clickable,
-    alignItems: 'center',
-    marginTop: Styles.globalMargins.tiny,
-  },
+  usernameRow: Styles.platformStyles({
+    isElectron: {
+      ...Styles.globalStyles.flexBoxRow,
+      ...Styles.desktopStyles.clickable,
+      alignItems: 'center',
+      marginTop: Styles.globalMargins.tiny,
+    },
+  }),
 }))
 
 export default NonUserRender

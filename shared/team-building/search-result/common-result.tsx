@@ -181,11 +181,8 @@ const ServicesIcons = (props: {
       {serviceIds.map((serviceName, index) => {
         const iconStyle =
           firstIconNoMargin && index === 0
-            ? Styles.collapseStyles([
-                Kb.iconCastPlatformStyles(styles.serviceIcon),
-                Kb.iconCastPlatformStyles({marginLeft: 0}),
-              ])
-            : Kb.iconCastPlatformStyles(styles.serviceIcon)
+            ? Styles.collapseStyles([styles.serviceIcon, {marginLeft: 0}])
+            : styles.serviceIcon
         return (
           <Kb.WithTooltip
             key={serviceName}

@@ -374,15 +374,11 @@ const clearErrors = () => WalletsGen.createClearErrors()
 const loadWalletDisclaimer = async (
   state: TypedState,
   action:
-    | ConfigGen.LoggedInPayload
-    | ConfigGen.StartupFirstIdlePayload
+    | ConfigGen.LoadOnStartPayload
     | WalletsGen.LoadAccountsPayload
     | WalletsGen.LoadWalletDisclaimerPayload
 ) => {
-  // We want to load disclaimer status for the new user when you switch users,
-  // so we listen to loggedIn. But we don't want to slow down app startup: in
-  // that case, do nothing on initial login and wait for startupFirstIdle.
-  if (action.type === ConfigGen.loggedIn && action.payload.causedByStartup) {
+  if (action.type === ConfigGen.loadOnStart && action.payload.phase !== 'startupOrReloginButNotInARush') {
     return false
   }
 
@@ -1193,18 +1189,14 @@ const changeAirdrop = async (_: TypedState, action: WalletsGen.ChangeAirdropPayl
 
 const updateAirdropDetails = async (
   state: TypedState,
-  action:
-    | WalletsGen.UpdateAirdropDetailsPayload
-    | ConfigGen.StartupFirstIdlePayload
-    | ConfigGen.LoggedInPayload,
+  action: WalletsGen.UpdateAirdropDetailsPayload | ConfigGen.LoadOnStartPayload,
   logger: Saga.SagaLogger
 ) => {
   if (!state.config.loggedIn) {
     return false
   }
 
-  // ignore, we handle startup first idle instead
-  if (action.type === ConfigGen.loggedIn && action.payload.causedByStartup) {
+  if (action.type === ConfigGen.loadOnStart && action.payload.phase !== 'startupOrReloginButNotInARush') {
     return false
   }
 
@@ -1228,17 +1220,13 @@ const updateAirdropDetails = async (
 
 const updateAirdropState = async (
   state: TypedState,
-  action:
-    | WalletsGen.UpdateAirdropStatePayload
-    | ConfigGen.StartupFirstIdlePayload
-    | ConfigGen.LoggedInPayload,
+  action: WalletsGen.UpdateAirdropStatePayload | ConfigGen.LoadOnStartPayload,
   logger: Saga.SagaLogger
 ) => {
   if (!state.config.loggedIn) {
     return false
   }
-  // ignore startup since we already listen for first idle
-  if (action.type === ConfigGen.loggedIn && action.payload.causedByStartup) {
+  if (action.type === ConfigGen.loadOnStart && action.payload.phase !== 'startupOrReloginButNotInARush') {
     return false
   }
   try {
@@ -1854,12 +1842,7 @@ function* walletsSaga() {
   yield* Saga.chainAction2(NotificationsGen.receivedBadgeState, receivedBadgeState, 'receivedBadgeState')
 
   yield* Saga.chainAction2(
-    [
-      ConfigGen.loggedIn,
-      ConfigGen.startupFirstIdle,
-      WalletsGen.loadAccounts,
-      WalletsGen.loadWalletDisclaimer,
-    ],
+    [ConfigGen.loadOnStart, WalletsGen.loadAccounts, WalletsGen.loadWalletDisclaimer],
     loadWalletDisclaimer,
     'loadWalletDisclaimer'
   )
@@ -1902,12 +1885,12 @@ function* walletsSaga() {
     yield* Saga.chainAction2(GregorGen.pushState, gregorPushState, 'gregorPushState')
     yield* Saga.chainAction2(WalletsGen.changeAirdrop, changeAirdrop, 'changeAirdrop')
     yield* Saga.chainAction2(
-      [WalletsGen.updateAirdropDetails, ConfigGen.startupFirstIdle, ConfigGen.loggedIn],
+      [WalletsGen.updateAirdropDetails, ConfigGen.loadOnStart],
       updateAirdropDetails,
       'updateAirdropDetails'
     )
     yield* Saga.chainAction2(
-      [WalletsGen.updateAirdropState, ConfigGen.startupFirstIdle, ConfigGen.loggedIn],
+      [WalletsGen.updateAirdropState, ConfigGen.loadOnStart],
       updateAirdropState,
       'updateAirdropState'
     )

@@ -130,11 +130,7 @@ const DisplayChoice = (props: DisplayChoiceProps) => (
         </Kb.Box2>
       </Kb.BoxGrow>
       {props.selected && (
-        <Kb.Icon
-          type="iconfont-check"
-          color={Styles.globalColors.blue}
-          boxStyle={Kb.iconCastPlatformStyles(styles.checkIcon)}
-        />
+        <Kb.Icon type="iconfont-check" color={Styles.globalColors.blue} boxStyle={styles.checkIcon} />
       )}
     </Kb.Box2>
   </Kb.ClickableBox>

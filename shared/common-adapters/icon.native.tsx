@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Shared from './icon.shared'
 import * as Styles from '../styles'
 import logger from '../logger'
-import {IconType, Props, DisallowedStyles, SizeType} from './icon'
+import {IconType, Props, SizeType} from './icon'
 import {NativeImage, NativeText, NativeTouchableOpacity} from './native-wrappers.native'
 import {iconMeta} from './icon.constants-gen'
 
@@ -19,12 +19,12 @@ type TextProps = {
   onClick?: ((event: React.BaseSyntheticEvent) => void) | null
   opacity?: boolean
   sizeType: SizeType
-  style?: Styles.StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>
+  style?: Props['style']
   type: IconType
 }
-
+type Writeable<T> = {-readonly [P in keyof T]: T[P]}
 const Text = React.forwardRef<NativeText, TextProps>((p, ref) => {
-  const style: Styles.StylesCrossPlatform = {}
+  const style: Writeable<Styles.StylesCrossPlatform> = {}
 
   // we really should disallow reaching into style like this but this is what the old code does.
   // TODO change this
@@ -85,7 +85,7 @@ const Text = React.forwardRef<NativeText, TextProps>((p, ref) => {
 Text.displayName = 'IconText'
 
 type ImageProps = {
-  style?: Styles.StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>
+  style?: Props['style']
   source: any
 }
 

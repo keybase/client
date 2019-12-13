@@ -2,6 +2,7 @@ import React, {PureComponent} from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as RowSizes from '../sizes'
+import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 
 type Props = {
   isSelected: boolean
@@ -12,6 +13,7 @@ type Props = {
   hasUnread: boolean
   hasBadge: boolean
   hasDraft: boolean
+  snippetDecoration: RPCChatTypes.SnippetDecoration
   onSelectConversation: () => void
 }
 
@@ -57,8 +59,16 @@ class BigTeamChannel extends PureComponent<Props> {
               </Kb.Text>
             </Kb.Text>
             {this.props.isMuted && <MutedIcon isSelected={this.props.isSelected} />}
-            {this.props.hasDraft && <DraftIcon isSelected={this.props.isSelected} />}
-            {this.props.hasBadge && <UnreadIcon />}
+            <Kb.Box style={styles.iconContainer}>
+              {this.props.hasDraft && <DraftIcon isSelected={this.props.isSelected} />}
+              {
+                <OutboxIcon
+                  isSelected={this.props.isSelected}
+                  snippetDecoration={this.props.snippetDecoration}
+                />
+              }
+              {this.props.hasBadge && <UnreadIcon />}
+            </Kb.Box>
           </Kb.Box2>
         </Kb.Box>
       </Kb.ClickableBox>
@@ -74,17 +84,38 @@ const MutedIcon = ({isSelected}) => (
   />
 )
 
-const UnreadIcon = () => (
-  <Kb.Box style={styles.unreadContainer}>
-    <Kb.Box style={styles.unread} />
-  </Kb.Box>
-)
+const UnreadIcon = () => <Kb.Box style={styles.unread} />
 
 const DraftIcon = ({isSelected}) => (
-  <Kb.Box style={styles.unreadContainer}>
-    <Kb.Icon type="iconfont-edit" color={isSelected ? Styles.globalColors.white : undefined} />
-  </Kb.Box>
+  <Kb.Icon
+    type="iconfont-edit"
+    style={styles.icon}
+    color={isSelected ? Styles.globalColors.white : undefined}
+  />
 )
+
+const OutboxIcon = ({isSelected, snippetDecoration}) => {
+  switch (snippetDecoration) {
+    case RPCChatTypes.SnippetDecoration.pendingMessage:
+      return (
+        <Kb.Icon
+          style={styles.icon}
+          type={'iconfont-hourglass'}
+          color={isSelected ? Styles.globalColors.white : Styles.globalColors.black_20}
+        />
+      )
+    case RPCChatTypes.SnippetDecoration.failedPendingMessage:
+      return (
+        <Kb.Icon
+          style={styles.icon}
+          type={'iconfont-exclamation'}
+          color={isSelected ? Styles.globalColors.white : Styles.globalColors.red}
+        />
+      )
+    default:
+      return null
+  }
+}
 
 const styles = Styles.styleSheetCreate(() => ({
   channelBackground: Styles.platformStyles({
@@ -117,6 +148,14 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   container: {flexShrink: 0, height: RowSizes.bigRowHeight},
+  icon: {margin: 3},
+  iconContainer: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+    alignSelf: 'stretch',
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
   muted: {
     marginLeft: Styles.globalMargins.xtiny,
   },
@@ -160,13 +199,6 @@ const styles = Styles.styleSheetCreate(() => ({
     flexShrink: 0,
     height: 8,
     width: 8,
-  },
-  unreadContainer: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    alignSelf: 'stretch',
-    flex: 1,
-    justifyContent: 'flex-end',
   },
 }))
 
