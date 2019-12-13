@@ -337,34 +337,8 @@ func (a *Auditor) doPostProbes(m libkb.MetaContext, history *keybase1.AuditHisto
 				return 0, keybase1.Seqno(0), NewAuditError("team chain linkID mismatch at %d: wanted %s but got %s via merkle seqno %d", tuple.team, expectedLinkID, tuple.linkID, tuple.merkle)
 			}
 		}
-		if auditMode != keybase1.AuditMode_STANDARD_NO_HIDDEN {
-			switch tuple.hiddenResp.RespType {
-			case libkb.MerkleHiddenResponseTypeFLAGOFF:
-				// pass
-			case libkb.MerkleHiddenResponseTypeNONE:
-				if tuple.merkle >= firstRootWithHidden {
-					return 0, 0, NewAuditError("the server did not return any hidden chain data at seqno %v (first root with hidden data: %v)", tuple.merkle, firstRootWithHidden)
-				}
-			case libkb.MerkleHiddenResponseTypeABSENCEPROOF:
-				if prev != nil && prev.hiddenResp != nil && prev.hiddenResp.RespType != libkb.MerkleHiddenResponseTypeABSENCEPROOF {
-					return 0, 0, NewAuditError("the server returned an absence proof at seqno %v, but the previous probe was not %+v", tuple.merkle, prev.hiddenResp)
-				}
-			case libkb.MerkleHiddenResponseTypeOK:
-				expHiddenLinkID, ok := hiddenChain[tuple.hiddenResp.CommittedHiddenTail.Seqno]
-				if !ok {
-					return 0, keybase1.Seqno(0), NewAuditError("team hidden chain rollback: merkle seqno %v referred to hidden team chain seqno %v which is not part of our chain (which at merkle seqno %v ends at %v)", tuple.merkle, tuple.hiddenResp.GetCommittedSeqno(), latestMerkleSeqno, maxHiddenSeqno)
-				}
-				if !expHiddenLinkID.Eq(tuple.hiddenResp.CommittedHiddenTail.Hash.Export()) {
-					return 0, keybase1.Seqno(0), NewAuditError("hidden team chain linkID mismatch at %d: wanted %s but got %s via merkle seqno %d",
-						tuple.hiddenResp.CommittedHiddenTail.Seqno, expHiddenLinkID, tuple.hiddenResp.CommittedHiddenTail.Hash.Export(), tuple.merkle)
-				}
-
-				if prev != nil && prev.hiddenResp != nil && prev.hiddenResp.RespType == libkb.MerkleHiddenResponseTypeOK && tuple.hiddenResp.CommittedHiddenTail.Seqno < prev.hiddenResp.CommittedHiddenTail.Seqno {
-					return 0, keybase1.Seqno(0), NewAuditError("team hidden chain unexpected jump: %d > %d via merkle seqno %d", prev.hiddenResp.CommittedHiddenTail.Seqno, tuple.hiddenResp.CommittedHiddenTail.Seqno, tuple.merkle)
-				}
-			default:
-				return 0, keybase1.Seqno(0), NewAuditError("Unrecognized hidden response type %+v", tuple.hiddenResp)
-			}
+		if err = checkProbeHidden(m, firstRootWithHidden, hiddenChain, &tuple, prev, latestMerkleSeqno, maxHiddenSeqno, auditMode); err != nil {
+			return 0, keybase1.Seqno(0), err
 		}
 
 		ret++
@@ -381,6 +355,39 @@ func (a *Auditor) doPostProbes(m libkb.MetaContext, history *keybase1.AuditHisto
 		prev = &tuple
 	}
 	return ret, maxMerkleProbe, nil
+}
+
+func checkProbeHidden(m libkb.MetaContext, firstRootWithHidden keybase1.Seqno, hiddenChain map[keybase1.Seqno]keybase1.LinkID, tuple *probeTuple, prev *probeTuple, latestMerkleSeqno keybase1.Seqno, maxHiddenSeqno keybase1.Seqno, auditMode keybase1.AuditMode) error {
+	if auditMode == keybase1.AuditMode_STANDARD_NO_HIDDEN {
+		return nil
+	}
+	switch tuple.hiddenResp.RespType {
+	case libkb.MerkleHiddenResponseTypeFLAGOFF:
+		// pass
+	case libkb.MerkleHiddenResponseTypeNONE:
+		if tuple.merkle >= firstRootWithHidden {
+			return NewAuditError("the server did not return any hidden chain data at seqno %v (first root with hidden data: %v)", tuple.merkle, firstRootWithHidden)
+		}
+	case libkb.MerkleHiddenResponseTypeABSENCEPROOF:
+		if prev != nil && prev.hiddenResp != nil && prev.hiddenResp.RespType != libkb.MerkleHiddenResponseTypeABSENCEPROOF {
+			return NewAuditError("the server returned an absence proof at seqno %v, but the previous probe was not %+v", tuple.merkle, prev.hiddenResp)
+		}
+	case libkb.MerkleHiddenResponseTypeOK:
+		expHiddenLinkID, ok := hiddenChain[tuple.hiddenResp.CommittedHiddenTail.Seqno]
+		if !ok {
+			return NewAuditError("team hidden chain rollback: merkle seqno %v referred to hidden team chain seqno %v which is not part of our chain (which at merkle seqno %v ends at %v)", tuple.merkle, tuple.hiddenResp.GetCommittedSeqno(), latestMerkleSeqno, maxHiddenSeqno)
+		}
+		if !expHiddenLinkID.Eq(tuple.hiddenResp.CommittedHiddenTail.Hash.Export()) {
+			return NewAuditError("hidden team chain linkID mismatch at %d: wanted %s but got %s via merkle seqno %d",
+				tuple.hiddenResp.CommittedHiddenTail.Seqno, expHiddenLinkID, tuple.hiddenResp.CommittedHiddenTail.Hash.Export(), tuple.merkle)
+		}
+		if prev != nil && prev.hiddenResp != nil && prev.hiddenResp.RespType == libkb.MerkleHiddenResponseTypeOK && tuple.hiddenResp.CommittedHiddenTail.Seqno < prev.hiddenResp.CommittedHiddenTail.Seqno {
+			return NewAuditError("team hidden chain unexpected jump: %d > %d via merkle seqno %d", prev.hiddenResp.CommittedHiddenTail.Seqno, tuple.hiddenResp.CommittedHiddenTail.Seqno, tuple.merkle)
+		}
+	default:
+		return NewAuditError("Unrecognized hidden response type %+v", tuple.hiddenResp)
+	}
+	return nil
 }
 
 // doPreProbes probabilistically checks that no team occupied the slot before the team
