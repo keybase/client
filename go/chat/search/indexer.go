@@ -16,6 +16,11 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
+// If a conversation doesn't meet the minimum requirements, don't update the
+// index realtime. The priority score emphasizes how much of the conversation
+// is read, a prerequisite for searching.
+const minPriorityScore = 10
+
 type Indexer struct {
 	globals.Contextified
 	utils.DebugLabeler
@@ -297,30 +302,63 @@ func (idx *Indexer) consumeResultsForTest(convID chat1.ConversationID, err error
 	}
 }
 
+func (idx *Indexer) hasPriority(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) bool {
+	conv, err := utils.GetUnverifiedConv(ctx, idx.G(), uid, convID, types.InboxSourceDataSourceLocalOnly)
+	if err != nil {
+		idx.Debug(ctx, "unable to fetch GetUnverifiedConv, continuing: %v", err)
+		return true
+	} else if score := utils.GetConvPriorityScore(conv); score < minPriorityScore {
+		idx.Debug(ctx, "%s does not meet minPriorityScore (%.2f < %d), aborting.",
+			utils.GetRemoteConvDisplayName(conv), score, minPriorityScore)
+		return false
+	}
+	return true
+}
+
 func (idx *Indexer) Add(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 	msgs []chat1.MessageUnboxed) (err error) {
+	return idx.add(ctx, convID, uid, msgs, false)
+}
+
+func (idx *Indexer) add(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+	msgs []chat1.MessageUnboxed, force bool) (err error) {
 	if idx.G().GetEnv().GetDisableSearchIndexer() {
 		return nil
 	}
 	if !idx.validBatch(msgs) {
 		return nil
 	}
+	if !force && !idx.hasPriority(ctx, uid, convID) {
+		return nil
+	}
+
 	defer idx.Trace(ctx, func() error { return err },
-		fmt.Sprintf("Indexer.Add convID: %v, msgs: %d", convID.String(), len(msgs)))()
+		fmt.Sprintf("Indexer.Add conv: %v, msgs: %d, force: %v",
+			convID, len(msgs), force))()
 	defer idx.consumeResultsForTest(convID, err)
 	return idx.store.Add(ctx, uid, convID, msgs)
 }
 
 func (idx *Indexer) Remove(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 	msgs []chat1.MessageUnboxed) (err error) {
+	return idx.remove(ctx, convID, uid, msgs, false)
+}
+
+func (idx *Indexer) remove(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+	msgs []chat1.MessageUnboxed, force bool) (err error) {
 	if idx.G().GetEnv().GetDisableSearchIndexer() {
 		return nil
 	}
 	if !idx.validBatch(msgs) {
 		return nil
 	}
+	if !force && !idx.hasPriority(ctx, uid, convID) {
+		return nil
+	}
+
 	defer idx.Trace(ctx, func() error { return err },
-		fmt.Sprintf("Indexer.Remove convID: %v, msgs: %d", convID.String(), len(msgs)))()
+		fmt.Sprintf("Indexer.Remove conv: %v, msgs: %d, force: %v",
+			convID, len(msgs), force))()
 	defer idx.consumeResultsForTest(convID, err)
 	return idx.store.Remove(ctx, uid, convID, msgs)
 }
@@ -357,7 +395,7 @@ func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversat
 			}
 			return 0, nil
 		}
-		if err := idx.Add(ctx, convID, uid, msgs); err != nil {
+		if err := idx.add(ctx, convID, uid, msgs, true); err != nil {
 			return 0, err
 		}
 		completedJobs++
@@ -384,7 +422,7 @@ func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversat
 				}
 				continue
 			}
-			if err := idx.Add(ctx, convID, uid, tv.Messages); err != nil {
+			if err := idx.add(ctx, convID, uid, tv.Messages, true); err != nil {
 				return 0, err
 			}
 			completedJobs++
