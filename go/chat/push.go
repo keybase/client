@@ -534,7 +534,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			g.typingMonitor.Update(ctx, chat1.TyperInfo{
 				Uid:      keybase1.UID(nm.Message.ClientHeader.Sender.String()),
 				DeviceID: keybase1.DeviceID(nm.Message.ClientHeader.SenderDevice.String()),
-			}, convID, false)
+			}, convID, chat1.TeamType_NONE, false)
 
 			// Check for a leave message from ourselves and just bail out if it is
 			if nm.Message.GetMessageType() == chat1.MessageType_LEAVE &&
@@ -869,7 +869,12 @@ func (g *PushHandler) Typing(ctx context.Context, m gregor.OutOfBandMessage) (er
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
 		g.identNotifier)
-	defer g.Trace(ctx, func() error { return err }, "Typing")()
+	// Dont' do a full trace here, keep log spam down
+	defer func() {
+		if err != nil {
+			g.Debug(ctx, "Typing: unable to complete %v", err)
+		}
+	}()
 	if m.Body() == nil {
 		return errors.New("gregor handler for typing: nil message body")
 	}
@@ -897,7 +902,7 @@ func (g *PushHandler) Typing(ctx context.Context, m gregor.OutOfBandMessage) (er
 		Username:   user.String(),
 		DeviceName: device,
 		DeviceType: dtype,
-	}, update.ConvID, update.Typing)
+	}, update.ConvID, update.TeamType, update.Typing)
 	return nil
 }
 

@@ -1158,7 +1158,6 @@ func (n *NotifyRouter) HandleChatTypingUpdate(ctx context.Context, updates []cha
 		return
 	}
 	var wg sync.WaitGroup
-	n.G().Log.CDebugf(ctx, "+ Sending ChatTypingUpdate notification")
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		if n.shouldSendChatNotification(id, chat1.TopicType_CHAT) {
 			wg.Add(1)
@@ -1176,7 +1175,6 @@ func (n *NotifyRouter) HandleChatTypingUpdate(ctx context.Context, updates []cha
 	n.runListeners(func(listener NotifyListener) {
 		listener.ChatTypingUpdate(updates)
 	})
-	n.G().Log.CDebugf(ctx, "- Sent ChatTypingUpdate notification")
 }
 
 func (n *NotifyRouter) HandleChatJoinedConversation(ctx context.Context, uid keybase1.UID,

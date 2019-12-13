@@ -115,6 +115,8 @@ protocol gregor {
         gregor1.DeviceID deviceID;
         ConversationID convID;
         boolean typing;
+        @mpackkey("t")
+        TeamType teamType;
     }
 
     record TeamMemberRoleUpdate {
