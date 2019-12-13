@@ -2025,6 +2025,17 @@ func (fs *KBFSOpsStandard) UnregisterFromChanges(
 	return nil
 }
 
+// RegisterForSyncedTlfs implements the Notifer interface for KBFSOpsStandard
+func (fs *KBFSOpsStandard) RegisterForSyncedTlfs(obs SyncedTlfObserver) error {
+	return nil
+}
+
+// UnregisterFromChanges implements the Notifer interface for KBFSOpsStandard
+func (fs *KBFSOpsStandard) UnregisterFromSyncedTlfs(
+	obs SyncedTlfObserver) error {
+	return nil
+}
+
 func (fs *KBFSOpsStandard) onTLFBranchChange(tlfID tlf.ID, newBID kbfsmd.BranchID) {
 	ops := fs.getOps(context.Background(),
 		data.FolderBranch{Tlf: tlfID, Branch: data.MasterBranch}, FavoritesOpNoChange)
