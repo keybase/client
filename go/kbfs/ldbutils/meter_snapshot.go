@@ -31,7 +31,7 @@
 // are those of the authors and should not be interpreted as representing
 // official policies, either expressed or implied, of Richard Crowley.
 
-package libkbfs
+package ldbutils
 
 import metrics "github.com/rcrowley/go-metrics"
 

@@ -20,6 +20,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsedits"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/ldbutils"
 	"github.com/keybase/client/go/kbfs/libkey"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/libkb"
@@ -150,7 +151,7 @@ type ConfigLocal struct {
 	blockCryptVersion kbfscrypto.EncryptionVer
 
 	// conflictResolutionDB stores information about failed CRs
-	conflictResolutionDB *LevelDb
+	conflictResolutionDB *ldbutils.LevelDb
 
 	// settingsDB stores information about local KBFS settings
 	settingsDB *SettingsDB
@@ -1456,13 +1457,14 @@ func (c *ConfigLocal) MakeBlockMetadataStoreIfNotExists() (err error) {
 	return nil
 }
 
-func (c *ConfigLocal) openConfigLevelDB(configName string) (*LevelDb, error) {
+func (c *ConfigLocal) openConfigLevelDB(configName string) (
+	*ldbutils.LevelDb, error) {
 	dbPath := filepath.Join(c.storageRoot, configName)
 	stor, err := storage.OpenFile(dbPath, false)
 	if err != nil {
 		return nil, err
 	}
-	return openLevelDB(stor, c.mode)
+	return ldbutils.OpenLevelDb(stor, c.mode)
 }
 
 func (c *ConfigLocal) loadSyncedTlfsLocked() (err error) {
@@ -1692,7 +1694,7 @@ func (c *ConfigLocal) GetRekeyFSMLimiter() *OngoingWorkLimiter {
 }
 
 // GetConflictResolutionDB implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) GetConflictResolutionDB() (db *LevelDb) {
+func (c *ConfigLocal) GetConflictResolutionDB() (db *ldbutils.LevelDb) {
 	return c.conflictResolutionDB
 }
 

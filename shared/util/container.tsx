@@ -72,6 +72,11 @@ export type RouteMap = {[K in string]: Route}
 
 export const assertNever = (_: never) => undefined
 
+export const timeoutPromise = (timeMs: number) =>
+  new Promise(resolve => {
+    setTimeout(() => resolve(), timeMs)
+  })
+
 export {
   branch,
   defaultProps,

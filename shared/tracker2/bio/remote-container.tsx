@@ -18,6 +18,7 @@ const mergeProps = (stateProps, _, ownProps: OwnProps) => ({
   location: stateProps.location,
   registeredForAirdrop: stateProps.registeredForAirdrop,
   sbsDescription: undefined,
+  stellarHidden: stateProps.stellarHidden,
   username: ownProps.username,
   youAreInAirdrop: stateProps.youAreInAirdrop,
 })

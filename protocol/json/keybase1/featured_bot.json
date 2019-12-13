@@ -1,5 +1,5 @@
 {
-  "protocol": "featuredbot",
+  "protocol": "featuredBot",
   "imports": [
     {
       "path": "common.avdl",
@@ -13,8 +13,7 @@
       "fields": [
         {
           "type": "string",
-          "name": "botAlias",
-          "jsonkey": "bot_alias"
+          "name": "botAlias"
         },
         {
           "type": "string",
@@ -22,28 +21,82 @@
         },
         {
           "type": "string",
-          "name": "botUsername",
-          "jsonkey": "bot_username"
+          "name": "botUsername"
         },
         {
           "type": [
             null,
-            "TeamID"
+            "string"
           ],
-          "name": "ownerTeamID",
-          "jsonkey": "owner_team_id"
+          "name": "ownerTeam"
         },
         {
           "type": [
             null,
-            "UID"
+            "string"
           ],
-          "name": "ownerUID",
-          "jsonkey": "owner_uid"
+          "name": "ownerUser"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FeaturedBotsRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "FeaturedBot"
+          },
+          "name": "bots"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SearchRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "FeaturedBot"
+          },
+          "name": "bots"
         }
       ]
     }
   ],
-  "messages": {},
+  "messages": {
+    "featuredBots": {
+      "request": [
+        {
+          "name": "limit",
+          "type": "int"
+        },
+        {
+          "name": "offset",
+          "type": "int"
+        }
+      ],
+      "response": "FeaturedBotsRes"
+    },
+    "search": {
+      "request": [
+        {
+          "name": "query",
+          "type": "string"
+        },
+        {
+          "name": "limit",
+          "type": "int"
+        },
+        {
+          "name": "offset",
+          "type": "int"
+        }
+      ],
+      "response": "SearchRes"
+    }
+  },
   "namespace": "keybase.1"
 }

@@ -26,7 +26,7 @@ const _AddWallet = (props: AddProps & Kb.OverlayParentProps) => {
         fullWidth={true}
         className="hover_background_color_blueGreyDark"
       >
-        <Kb.Icon type="icon-wallet-placeholder-add-32" style={Kb.iconCastPlatformStyles(styles.icon)} />
+        <Kb.Icon type="icon-wallet-placeholder-add-32" style={styles.icon} />
         <Kb.Text type="BodySemibold">Add an account</Kb.Text>
       </Kb.Box2>
       <Kb.FloatingMenu
@@ -54,7 +54,7 @@ const JoinAirdrop = (p: {onJoinAirdrop: (() => void) | null; inAirdrop: boolean;
       fullWidth={true}
       className="hover_background_color_blueGreyDark"
     >
-      <Kb.Icon type="icon-airdrop-logo-32" style={Kb.iconCastPlatformStyles(styles.icon)} />
+      <Kb.Icon type="icon-airdrop-logo-32" style={styles.icon} />
       <Kb.Text negative={p.selected} type="BodySemibold">
         {p.inAirdrop ? 'Airdrop' : 'Join the airdrop'}
       </Kb.Text>

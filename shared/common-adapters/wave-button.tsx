@@ -82,7 +82,7 @@ export const WaveButton = (props: Props) => {
         mode="Secondary"
         waiting={waving}
       >
-        <Kb.Text type="BodyBig" style={styles.blueText}>
+        <Kb.Text type="BodySemibold" style={styles.blueText}>
           {waveText}
         </Kb.Text>
         <Kb.Emoji emojiName=":wave:" size={18} />

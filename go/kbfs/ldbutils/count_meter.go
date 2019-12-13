@@ -1,4 +1,4 @@
-package libkbfs
+package ldbutils
 
 import (
 	"sync"
@@ -15,7 +15,8 @@ type MeterStatus struct {
 	Count     int64
 }
 
-func rateMeterToStatus(m metrics.Meter) MeterStatus {
+// RateMeterToStatus returns the status for a meter.
+func RateMeterToStatus(m metrics.Meter) MeterStatus {
 	s := m.Snapshot()
 	return MeterStatus{
 		s.Rate1(),

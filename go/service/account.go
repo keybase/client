@@ -260,3 +260,38 @@ func (h *AccountHandler) TimeTravelReset(ctx context.Context, arg keybase1.TimeT
 
 	return err
 }
+
+type GetContactSettingsResponse struct {
+	libkb.AppStatusEmbed
+	Settings keybase1.ContactSettings `json:"settings"`
+}
+
+func (h *AccountHandler) UserGetContactSettings(ctx context.Context) (ret keybase1.ContactSettings, err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed("GetContactSettings", func() error { return err })()
+	apiArg := libkb.APIArg{
+		Endpoint:    "account/contact_settings",
+		SessionType: libkb.APISessionTypeREQUIRED,
+	}
+	var response GetContactSettingsResponse
+	err = mctx.G().API.GetDecode(mctx, apiArg, &response)
+	if err != nil {
+		return ret, err
+	}
+	ret = response.Settings
+	return ret, nil
+}
+
+func (h *AccountHandler) UserSetContactSettings(ctx context.Context, arg keybase1.ContactSettings) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed("SetContactSettings", func() error { return err })()
+	payload := make(libkb.JSONPayload)
+	payload["settings"] = arg
+	apiArg := libkb.APIArg{
+		Endpoint:    "account/contact_settings",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		JSONPayload: payload,
+	}
+	_, err = mctx.G().API.Post(mctx, apiArg)
+	return err
+}

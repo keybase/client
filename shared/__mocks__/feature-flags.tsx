@@ -9,6 +9,7 @@ const ff: FeatureFlags = {
   airdrop: true,
   audioAttachments: true,
   chatIndexProfilingEnabled: false,
+  connectThrashCheck: true,
   dbCleanEnabled: false,
   fastAccountSwitch: true,
   foldersInProfileTab: true,

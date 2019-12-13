@@ -13,9 +13,12 @@ export default (props: Props) => {
   const desc = props.message.newDescription.stringValue()
   return desc ? (
     <Kb.Text type="BodySmall" style={styles.text} selectable={true}>
-      changed the channel description to {lquote}
-      <Kb.Text type="BodySmallItalic">{desc}</Kb.Text>
-      {rquote}
+      changed the channel description to{' '}
+      <Kb.Text type="BodySmallItalic">
+        {lquote}
+        {desc}
+        {rquote}
+      </Kb.Text>
     </Kb.Text>
   ) : (
     <Kb.Text type="BodySmall" style={styles.text}>

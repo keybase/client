@@ -25,6 +25,7 @@ export const serialize: any = {
       }
       return map
     }, {}),
+  blocked: (v: boolean) => v,
   clearCacheTrigger: () => undefined,
   conversationIDs: (v: ConvMap, o?: ConvMap) => {
     const newKeys = v.map(v => v.conversation.conversationIDKey)
@@ -62,6 +63,7 @@ export const serialize: any = {
       ? undefined
       : v._tlfUpdates.map(t => GetRowsFromTlfUpdate(t, v._uploads)),
   files: (v: number) => v,
+  hidFromFollowers: (v: boolean) => v,
   kbfsDaemonStatus: (v: FSTypes.KbfsDaemonStatus) => v,
   kbfsEnabled: (v: boolean) => v,
   loggedIn: (v: boolean) => v,

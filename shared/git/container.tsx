@@ -68,9 +68,10 @@ GitReloadable.navigationOptions = Container.isMobile
       title: 'Git',
     }
 
+const emptySet = new Set<string>()
 export default Container.connect(
   (state: Container.TypedState, ownProps: OwnProps) => ({
-    expandedSet: Container.getRouteProps(ownProps, 'expandedSet', new Set<string>()),
+    expandedSet: Container.getRouteProps(ownProps, 'expandedSet', emptySet),
     loading: anyWaiting(state, Constants.loadingWaitingKey),
     ...getRepos(Constants.getIdToGit(state)),
   }),

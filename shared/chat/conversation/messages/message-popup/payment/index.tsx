@@ -6,7 +6,7 @@ import * as Styles from '../../../../../styles'
 import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 import {Box2} from '../../../../../common-adapters/box'
 import Text, {AllowedColors} from '../../../../../common-adapters/text'
-import Icon, {castPlatformStyles as iconCastPlatformStyles} from '../../../../../common-adapters/icon'
+import Icon from '../../../../../common-adapters/icon'
 import Avatar from '../../../../../common-adapters/avatar'
 import ConnectedUsernames from '../../../../../common-adapters/usernames/container'
 import ProgressIndicator from '../../../../../common-adapters/progress-indicator'
@@ -24,7 +24,6 @@ const Kb = {
   Icon,
   ProgressIndicator,
   Text,
-  iconCastPlatformStyles,
 }
 
 const sendIcon = Styles.isMobile
@@ -72,13 +71,10 @@ const headerIcon = (props: HeaderProps) =>
       type="iconfont-time"
       color={Styles.globalColors.black_50}
       fontSize={pendingIconSize}
-      style={Kb.iconCastPlatformStyles(styles.pendingHeaderIcon)}
+      style={styles.pendingHeaderIcon}
     />
   ) : (
-    <Kb.Icon
-      type={props.icon === 'sending' ? sendIcon : receiveIcon}
-      style={Kb.iconCastPlatformStyles(styles.headerIcon)}
-    />
+    <Kb.Icon type={props.icon === 'sending' ? sendIcon : receiveIcon} style={styles.headerIcon} />
   )
 
 const Header = (props: HeaderProps) =>

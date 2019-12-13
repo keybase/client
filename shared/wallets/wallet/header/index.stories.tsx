@@ -37,6 +37,7 @@ const common = {
   accountID: Types.stringToAccountID('GDP25ACNJ6CDEJLILV5UZZIQS66SHHWQ3554EMBF4VPXXKKYXXXMTAGZ'),
   airdropSelected: false,
   onBack: Sb.action('onBack'),
+  onBuy: Sb.action('onBuy'),
   onReceive: Sb.action('onReceive'),
   onSettings: Sb.action('onSettings'),
   thisDeviceIsLockedOut: false,

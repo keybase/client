@@ -47,6 +47,7 @@ const mergeProps = (stateProps, dispatchProps, __: OwnProps) => ({
   siteIconFull: stateProps.siteIconFull,
   siteURL: stateProps.siteURL,
   state: stateProps.state,
+  stellarHidden: false,
   timestamp: stateProps.timestamp,
   type: stateProps.type,
   value: stateProps.value,

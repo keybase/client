@@ -32,6 +32,7 @@ const prepareExternalPartners = (
 ): Array<Types.PartnerUrl & {showDivider: boolean}> =>
   externalPartners.map((partner, index) => ({
     adminOnly: partner.adminOnly,
+    canPurchase: partner.canPurchase,
     description: partner.description,
     extra: partner.extra,
     iconFilename: toIconType(partner.iconFilename),

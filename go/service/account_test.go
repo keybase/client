@@ -6,6 +6,7 @@ import (
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
@@ -73,4 +74,47 @@ func TestRecoverUsernameWithEmail(t *testing.T) {
 		Email: "bad+" + fu.Email,
 	})
 	require.NoError(t, err)
+}
+
+func TestContactSettingsAPI(t *testing.T) {
+	tc := libkb.SetupTest(t, "cset", 3)
+	defer tc.Cleanup()
+
+	// setup
+	user, err := kbtest.CreateAndSignupFakeUser("cset", tc.G)
+	require.NoError(t, err)
+
+	handler := NewAccountHandler(nil, tc.G)
+	ctx := context.Background()
+
+	teamName := user.Username + "t"
+	teamID, err := teams.CreateRootTeam(ctx, tc.G, teamName, keybase1.TeamSettings{})
+	require.NoError(t, err)
+	require.NotNil(t, teamID)
+
+	// get
+	res, err := handler.UserGetContactSettings(ctx)
+	require.NoError(t, err)
+
+	// set
+	err = handler.UserSetContactSettings(ctx, keybase1.ContactSettings{
+		Enabled:              true,
+		AllowFolloweeDegrees: 2,
+		Teams: []keybase1.TeamContactSettings{
+			{TeamID: *teamID,
+				AllowFolloweesOfTeamMembers: false,
+				Enabled:                     true,
+			}},
+	})
+	require.NoError(t, err)
+
+	// get
+	res, err = handler.UserGetContactSettings(ctx)
+	require.NoError(t, err)
+	require.Equal(t, true, res.Enabled)
+	require.Equal(t, 2, res.AllowFolloweeDegrees)
+	require.Equal(t, 1, len(res.Teams))
+	require.Equal(t, *teamID, res.Teams[0].TeamID)
+	require.Equal(t, false, res.Teams[0].AllowFolloweesOfTeamMembers)
+	require.Equal(t, true, res.Teams[0].Enabled)
 }

@@ -68,7 +68,7 @@ type ComputedKeyInfo struct {
 	Subkey keybase1.KID
 
 	// Map of SigID -> KID
-	Delegations map[keybase1.SigID]keybase1.KID
+	Delegations map[keybase1.SigIDMapKey]keybase1.KID
 
 	// List of the same delegations as above, in a way that preserves ordering.
 	// NOTE: This is not populated in older cached CKI's.
@@ -118,7 +118,7 @@ type ComputedKeyInfos struct {
 
 	// Map of a SigID (in binary) to the ComputedKeyInfo describing when the key was
 	// delegated.
-	Sigs map[keybase1.SigID]*ComputedKeyInfo
+	Sigs map[keybase1.SigIDMapKey]*ComputedKeyInfo
 
 	// Map of DeviceID to the most current device object
 	Devices map[keybase1.DeviceID]*Device
@@ -245,7 +245,7 @@ func (cki ComputedKeyInfos) ShallowCopy() *ComputedKeyInfos {
 		dirty:         cki.dirty,
 		Version:       cki.Version,
 		Infos:         make(map[keybase1.KID]*ComputedKeyInfo, len(cki.Infos)),
-		Sigs:          make(map[keybase1.SigID]*ComputedKeyInfo, len(cki.Sigs)),
+		Sigs:          make(map[keybase1.SigIDMapKey]*ComputedKeyInfo, len(cki.Sigs)),
 		Devices:       make(map[keybase1.DeviceID]*Device, len(cki.Devices)),
 		KIDToDeviceID: make(map[keybase1.KID]keybase1.DeviceID, len(cki.KIDToDeviceID)),
 		PerUserKeys:   make(map[keybase1.PerUserKeyGeneration]keybase1.PerUserKey),
@@ -324,7 +324,7 @@ func NewComputedKeyInfos(g *GlobalContext) *ComputedKeyInfos {
 		Contextified:  NewContextified(g),
 		Version:       ComputedKeyInfosVersionCurrent,
 		Infos:         make(map[keybase1.KID]*ComputedKeyInfo),
-		Sigs:          make(map[keybase1.SigID]*ComputedKeyInfo),
+		Sigs:          make(map[keybase1.SigIDMapKey]*ComputedKeyInfo),
 		Devices:       make(map[keybase1.DeviceID]*Device),
 		KIDToDeviceID: make(map[keybase1.KID]keybase1.DeviceID),
 		PerUserKeys:   make(map[keybase1.PerUserKeyGeneration]keybase1.PerUserKey),
@@ -339,7 +339,7 @@ func NewComputedKeyInfo(kid keybase1.KID, eldest, sibkey bool, status KeyStatus,
 		Status:        status,
 		CTime:         ctime,
 		ETime:         etime,
-		Delegations:   make(map[keybase1.SigID]keybase1.KID),
+		Delegations:   make(map[keybase1.SigIDMapKey]keybase1.KID),
 		ActivePGPHash: activePGPHash,
 	}
 }
@@ -657,14 +657,14 @@ func (cki *ComputedKeyInfos) Delegate(kid keybase1.KID, tm *KeybaseTime, sigid k
 		info.CTime = ctime.Unix()
 		info.ETime = etimeUnix
 	}
-	info.Delegations[sigid] = signingKid
+	info.Delegations[sigid.ToMapKey()] = signingKid
 	info.DelegationsList = append(info.DelegationsList, Delegation{signingKid, sigid})
 	info.Sibkey = isSibkey
 	info.DelegatedAtHashMeta = merkleHashMeta.DeepCopy()
 	info.DelegatedAtSigChainLocation = dascl.DeepCopy()
 	info.FirstAppearedUnverified = fau
 
-	cki.Sigs[sigid] = info
+	cki.Sigs[sigid.ToMapKey()] = info
 
 	// If it's a subkey, make a pointer from it to its parent,
 	// and also from its parent to it.
@@ -770,9 +770,9 @@ func (ckf *ComputedKeyFamily) revokeKids(kids []keybase1.KID, tcl TypedChainLink
 }
 
 func (ckf *ComputedKeyFamily) RevokeSig(sig keybase1.SigID, tcl TypedChainLink) (err error) {
-	if info, found := ckf.cki.Sigs[sig]; !found {
+	if info, found := ckf.cki.Sigs[sig.ToMapKey()]; !found {
 		// silently no-op if the signature doesn't exist
-	} else if _, found := info.Delegations[sig]; found {
+	} else if _, found := info.Delegations[sig.ToMapKey()]; found {
 		// Tricky legacy detail: For some eldest links that implicitly delegate
 		// keys, the info.Delegations map will not contain the delegation, and
 		// we will skip this branch. We rely on this behavior to avoid revoking

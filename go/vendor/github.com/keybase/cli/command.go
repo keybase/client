@@ -16,6 +16,8 @@ type Command struct {
 	Aliases []string
 	// A short description of the usage of this command
 	Usage string
+	// Boolean to hide from command and subcommand lists.
+	Unlisted bool
 	// A longer explanation of how the command works
 	Description string
 	// Example usage

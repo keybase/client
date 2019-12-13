@@ -115,32 +115,6 @@ func Init(ctx context.Context, gitKBFSParams libkbfs.InitParams,
 	return ctx, config, nil
 }
 
-// KeybaseServiceCn defines methods needed to construct KeybaseService
-// and Crypto implementations.
-type keybaseServicePassthrough struct {
-	config libkbfs.Config
-}
-
-func (ksp keybaseServicePassthrough) NewKeybaseService(
-	_ libkbfs.Config, _ libkbfs.InitParams, _ libkbfs.Context,
-	_ logger.Logger) (libkbfs.KeybaseService, error) {
-	return ksp.config.KeybaseService(), nil
-}
-
-func (ksp keybaseServicePassthrough) NewCrypto(
-	_ libkbfs.Config, _ libkbfs.InitParams, _ libkbfs.Context,
-	_ logger.Logger) (libkbfs.Crypto, error) {
-	return ksp.config.Crypto(), nil
-}
-
-func (ksp keybaseServicePassthrough) NewChat(
-	_ libkbfs.Config, _ libkbfs.InitParams, _ libkbfs.Context,
-	_ logger.Logger) (libkbfs.Chat, error) {
-	return ksp.config.Chat(), nil
-}
-
-var _ libkbfs.KeybaseServiceCn = keybaseServicePassthrough{}
-
 func getNewConfig(
 	ctx context.Context, config libkbfs.Config, kbCtx libkbfs.Context,
 	kbfsInitParams *libkbfs.InitParams, log logger.Logger) (
@@ -167,7 +141,7 @@ func getNewConfig(
 	params.LogFileConfig.Path = ""
 
 	newCtx, gitConfig, err = Init(
-		ctx, params, kbCtx, keybaseServicePassthrough{config}, "",
+		ctx, params, kbCtx, libkbfs.NewKeybaseServicePassthrough(config), "",
 		config.VLogLevel())
 	if err != nil {
 		return nil, nil, "", err

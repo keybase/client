@@ -35,6 +35,7 @@ const props = {
   acceptedDisclaimer: true,
   accountID: stringToAccountID('fakeAccountID'),
   airdropSelected: false,
+  loadError: '',
   loadingMore: false,
   navigateAppend: Sb.action('navigateAppend'),
   onBack: Sb.action('onBack'),
@@ -54,6 +55,7 @@ const load = () => {
     .addDecorator(provider)
     .addDecorator(Container)
     .add('Default', () => <Wallet {...props} />)
+    .add('Load error', () => <Wallet {...props} loadError="horizon error" />)
 }
 
 export default load

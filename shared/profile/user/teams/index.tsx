@@ -47,8 +47,8 @@ const ShowcaseTeamsOffer = p => (
     <Kb.ClickableBox onClick={p.onEdit}>
       <Kb.Box2 direction="horizontal" gap="tiny">
         <Kb.Icon type="icon-team-placeholder-avatar-32" style={styles.placeholderTeam} />
-        <Kb.Text style={styles.youPublishTeam} type="BodyPrimaryLink">
-          Publish the teams you're in
+        <Kb.Text style={styles.youFeatureTeam} type="BodyPrimaryLink">
+          Feature the teams you're in
         </Kb.Text>
       </Kb.Box2>
     </Kb.ClickableBox>
@@ -87,7 +87,7 @@ const styles = Styles.styleSheetCreate(
         paddingBottom: Styles.globalMargins.small,
         paddingLeft: Styles.globalMargins.tiny,
       },
-      youPublishTeam: {
+      youFeatureTeam: {
         alignSelf: 'center',
         color: Styles.globalColors.black_50,
       },

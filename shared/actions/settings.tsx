@@ -501,14 +501,6 @@ const saveProxyData = async (_: TypedState, proxyDataPayload: SettingsGen.SavePr
   }
 }
 
-const toggleRuntimeStats = async () => {
-  try {
-    await RPCTypes.configToggleRuntimeStatsRpcPromise()
-  } catch (err) {
-    logger.warn('error toggling runtime stats', err)
-  }
-}
-
 const setLockdownMode = async (state: TypedState, action: SettingsGen.OnChangeLockdownModePayload) => {
   if (!state.config.loggedIn) {
     return false
@@ -687,10 +679,13 @@ const verifyPhoneNumber = async (
 
 const loadContactImportEnabled = async (
   state: TypedState,
-  action: SettingsGen.LoadContactImportEnabledPayload | ConfigGen.StartupFirstIdlePayload,
+  action: SettingsGen.LoadContactImportEnabledPayload | ConfigGen.LoadOnStartPayload,
   logger: Saga.SagaLogger
 ) => {
-  if (action.type === ConfigGen.startupFirstIdle && !state.config.loggedIn) {
+  if (!state.config.loggedIn) {
+    return
+  }
+  if (action.type === ConfigGen.loadOnStart && action.payload.phase !== 'startupOrReloginButNotInARush') {
     return
   }
   if (!state.config.username) {
@@ -803,9 +798,6 @@ function* settingsSaga() {
   yield* Saga.chainAction2(SettingsGen.loadProxyData, loadProxyData)
   yield* Saga.chainAction2(SettingsGen.saveProxyData, saveProxyData)
 
-  // Runtime Stats
-  yield* Saga.chainAction2(SettingsGen.toggleRuntimeStats, toggleRuntimeStats)
-
   // Phone numbers
   yield* Saga.chainAction2(SettingsGen.editPhone, editPhone, 'editPhone')
   yield* Saga.chainAction2(SettingsGen.addPhoneNumber, addPhoneNumber, 'addPhoneNumber')
@@ -818,7 +810,7 @@ function* settingsSaga() {
 
   // Contacts
   yield* Saga.chainAction2(
-    [SettingsGen.loadContactImportEnabled, ConfigGen.startupFirstIdle],
+    [SettingsGen.loadContactImportEnabled, ConfigGen.loadOnStart],
     loadContactImportEnabled,
     'loadContactImportEnabled'
   )

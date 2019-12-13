@@ -94,19 +94,8 @@ func (c *CmdChatSearchInbox) Run() (err error) {
 		if err = annotateResolvingRequest(c.G(), &c.resolvingRequest); err != nil {
 			return err
 		}
-
-		// TODO: Right now this command cannot be run in standalone at
-		// all, even though team chats should work, but there is a bug
-		// in finding existing conversations.
-		if c.G().Standalone {
-			switch c.resolvingRequest.MembersType {
-			case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAMNATIVE,
-				chat1.ConversationMembersType_IMPTEAMUPGRADE:
-				c.G().StartStandaloneChat()
-			default:
-				err = CantRunInStandaloneError{}
-				return err
-			}
+		if err := CheckAndStartStandaloneChat(c.G(), c.resolvingRequest.MembersType); err != nil {
+			return err
 		}
 
 		conversation, _, err := resolver.Resolve(ctx, c.resolvingRequest, chatConversationResolvingBehavior{

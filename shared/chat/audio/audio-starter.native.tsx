@@ -10,7 +10,7 @@ type AudioStarterProps = {
   dragY: Kb.NativeAnimated.Value
   locked: boolean
   recording: boolean
-  iconStyle?: Styles.StylesCrossPlatform
+  iconStyle?: Kb.IconStyle
   lockRecording: () => void
   enableRecording: () => void
   stopRecording: (st: Types.AudioStopType) => void
@@ -177,7 +177,7 @@ const AudioStarter = (props: AudioStarterProps) => {
           simultaneousHandlers={tapRef}
         >
           <Kb.NativeView>
-            <Kb.Icon type="iconfont-mic" style={Kb.iconCastPlatformStyles(props.iconStyle)} />
+            <Kb.Icon type="iconfont-mic" style={props.iconStyle} />
           </Kb.NativeView>
         </Kb.PanGestureHandler>
       </Kb.TapGestureHandler>

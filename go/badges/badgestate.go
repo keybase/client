@@ -356,6 +356,7 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 
 			msgID := item.Metadata().MsgID().(gregor1.MsgID)
 			m := keybase1.TeamMemberOutReset{
+				TeamID:   body.TeamID,
 				Teamname: body.TeamName,
 				Uid:      body.ResetUser.Uid,
 				Username: body.ResetUser.Username,

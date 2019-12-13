@@ -1119,6 +1119,12 @@ func (g *GlobalContext) CallLoginHooks(mctx MetaContext) {
 		mctx.Warning("OnLogin full self error: %+v", err)
 	}
 
+	mctx.Debug("CallLoginHooks: recording login in secretstore")
+	err = RecordLoginTime(mctx, g.Env.GetUsername())
+	if err != nil {
+		mctx.Warning("OnLogin RecordLogin error: %+v", err)
+	}
+
 	mctx.Debug("CallLoginHooks: running registered login hooks")
 	g.hookMu.RLock()
 	defer g.hookMu.RUnlock()
@@ -1311,6 +1317,7 @@ func (g *GlobalContext) LoadUserByUID(uid keybase1.UID) (*User, error) {
 
 func (g *GlobalContext) BustLocalUserCache(ctx context.Context, u keybase1.UID) {
 	g.GetUPAKLoader().Invalidate(ctx, u)
+	_ = g.CardCache().Delete(u)
 	_ = g.GetFullSelfer().HandleUserChanged(u)
 }
 

@@ -55,13 +55,25 @@ func GetAnnotatedTeam(ctx context.Context, g *libkb.GlobalContext, id keybase1.T
 		return res, err
 	}
 
-	var members []keybase1.TeamMemberDetails
-	members = append(members, det.Members.Owners...)
-	members = append(members, det.Members.Admins...)
-	members = append(members, det.Members.Writers...)
-	members = append(members, det.Members.Readers...)
-	members = append(members, det.Members.Bots...)
-	members = append(members, det.Members.RestrictedBots...)
+	var members []keybase1.AnnotatedTeamMemberDetails
+	for _, details := range det.Members.Owners {
+		members = append(members, keybase1.AnnotatedTeamMemberDetails{Details: details, Role: keybase1.TeamRole_OWNER})
+	}
+	for _, details := range det.Members.Admins {
+		members = append(members, keybase1.AnnotatedTeamMemberDetails{Details: details, Role: keybase1.TeamRole_ADMIN})
+	}
+	for _, details := range det.Members.Writers {
+		members = append(members, keybase1.AnnotatedTeamMemberDetails{Details: details, Role: keybase1.TeamRole_WRITER})
+	}
+	for _, details := range det.Members.Readers {
+		members = append(members, keybase1.AnnotatedTeamMemberDetails{Details: details, Role: keybase1.TeamRole_READER})
+	}
+	for _, details := range det.Members.Bots {
+		members = append(members, keybase1.AnnotatedTeamMemberDetails{Details: details, Role: keybase1.TeamRole_BOT})
+	}
+	for _, details := range det.Members.RestrictedBots {
+		members = append(members, keybase1.AnnotatedTeamMemberDetails{Details: details, Role: keybase1.TeamRole_RESTRICTEDBOT})
+	}
 
 	var invites []keybase1.AnnotatedTeamInvite
 	for _, invite := range det.AnnotatedActiveInvites {

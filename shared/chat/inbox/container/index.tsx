@@ -24,7 +24,7 @@ type OwnProps = {}
 
 const makeBigRows = (
   bigTeams: Array<RPCChatTypes.UIInboxBigTeamRow>
-): Array<RowItemBig | RowItemBigHeader> => {
+): Array<RowItemBig | RowItemBigHeader | RowItemTeamBuilder> => {
   return bigTeams.map(t => {
     switch (t.state) {
       case RPCChatTypes.UIInboxBigTeamRowTyp.channel:
@@ -49,7 +49,9 @@ const makeBigRows = (
   })
 }
 
-const makeSmallRows = (smallTeams: Array<RPCChatTypes.UIInboxSmallTeamRow>): Array<RowItemSmall> => {
+const makeSmallRows = (
+  smallTeams: Array<RPCChatTypes.UIInboxSmallTeamRow>
+): Array<RowItemSmall | RowItemTeamBuilder> => {
   return smallTeams.map(t => {
     return {
       conversationIDKey: Types.stringToConversationIDKey(t.convID),
@@ -170,12 +172,19 @@ const Connected = Container.namedConnect(
     if (!showAllSmallRows) {
       smallTeams = smallTeams.slice(0, stateProps.inboxNumSmallRows)
     }
-    const smallRows = makeSmallRows(smallTeams)
-    const bigRows = makeBigRows(bigTeams)
+    let smallRows = makeSmallRows(smallTeams)
+    let bigRows = makeBigRows(bigTeams)
+    const teamBuilder: RowItemTeamBuilder = {type: 'teamBuilder'}
+    if (smallRows.length !== 0) {
+      if (bigRows.length === 0) {
+        smallRows.push(teamBuilder)
+      } else {
+        bigRows.push(teamBuilder)
+      }
+    }
     const divider: Array<RowItemDivider> =
       bigRows.length !== 0 ? [{showButton: smallTeamsBelowTheFold, type: 'divider'}] : []
-    const teamBuilder: Array<RowItemTeamBuilder> = bigRows.length !== 0 ? [{type: 'teamBuilder'}] : []
-    const rows: Array<RowItem> = [...smallRows, ...divider, ...bigRows, ...teamBuilder]
+    const rows: Array<RowItem> = [...smallRows, ...divider, ...bigRows]
 
     const unreadIndices: Array<number> = []
     for (let i = rows.length - 1; i >= 0; i--) {
@@ -216,7 +225,7 @@ const Connected = Container.namedConnect(
       unreadIndices,
     }
   },
-  'Chats'
+  'Inbox'
 )(InboxWrapper)
 
 export default Connected

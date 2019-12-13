@@ -2,7 +2,6 @@ package unfurl
 
 import (
 	"context"
-	"errors"
 	"io"
 	"strings"
 	"time"
@@ -176,7 +175,7 @@ func (s *Scraper) isValidGenericScrape(generic chat1.UnfurlGenericRaw) bool {
 func (s *Scraper) exportGenericResult(generic *scoredGenericRaw) (res chat1.UnfurlRaw, err error) {
 	// Check to make sure we have a legit unfurl that is useful
 	if !s.isValidGenericScrape(generic.UnfurlGenericRaw) {
-		return res, errors.New("not enough information to display")
+		return res, newUnfurlPermanentError("not enough information to display")
 	}
 	return chat1.NewUnfurlRawWithGeneric(generic.UnfurlGenericRaw), nil
 }

@@ -538,10 +538,11 @@ export const getConversationIDKeyMetasToLoad = (
     return arr
   }, [])
 
-export const getRowParticipants = (meta: Types.ConversationMeta, username: string) =>
+export const getRowParticipants = memoize((meta: Types.ConversationMeta, username: string) =>
   meta.nameParticipants
     // Filter out ourselves unless it's our 1:1 conversation
     .filter((participant, _, list) => (list.length === 1 ? true : participant !== username))
+)
 
 export const timestampToString = (meta: Types.ConversationMeta) =>
   formatTimeForConversationList(meta.timestamp)

@@ -1,7 +1,6 @@
 import * as Types from './types/config'
 import * as ChatConstants from './chat2'
 import uniq from 'lodash/uniq'
-import sortBy from 'lodash/sortBy'
 import {defaultUseNativeFrame, runMode} from './platform'
 import {isDarkMode as _isDarkMode} from '../styles/dark-mode'
 
@@ -24,11 +23,7 @@ export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPref
 export const prepareAccountRows = <T extends {username: string; hasStoredSecret: boolean}>(
   accountRows: Array<T>,
   myUsername: string
-): Array<T> =>
-  sortBy(
-    accountRows.filter(account => account.username !== myUsername),
-    [a => !a.hasStoredSecret, 'username']
-  )
+): Array<T> => accountRows.filter(account => account.username !== myUsername)
 
 type Url = {
   protocol: string
