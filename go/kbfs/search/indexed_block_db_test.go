@@ -23,9 +23,9 @@ import (
 func newIndexedBlockDbForTestWithStorage(
 	t *testing.T, blockS, tlfS storage.Storage) *IndexedBlockDb {
 	config := libkbfs.MakeTestConfigOrBust(t, "user1")
-	cache, err := newIndexedBlockDbFromStorage(config, blockS, tlfS)
+	db, err := newIndexedBlockDbFromStorage(config, blockS, tlfS)
 	require.NoError(t, err)
-	return cache
+	return db
 }
 
 func newIndexedBlockDbForTest(t *testing.T) (
@@ -39,12 +39,12 @@ func newIndexedBlockDbForTest(t *testing.T) (
 	tlfS, err := storage.OpenFile(filepath.Join(tempdir, "tlf"), false)
 	require.NoError(t, err)
 
-	cache := newIndexedBlockDbForTestWithStorage(t, blockS, tlfS)
-	return cache, tempdir
+	db := newIndexedBlockDbForTestWithStorage(t, blockS, tlfS)
+	return db, tempdir
 }
 
-func shutdownIndexedBlockDbTest(cache *IndexedBlockDb, tempdir string) {
-	cache.Shutdown(context.Background())
+func shutdownIndexedBlockDbTest(db *IndexedBlockDb, tempdir string) {
+	db.Shutdown(context.Background())
 	os.RemoveAll(tempdir)
 }
 
@@ -52,17 +52,17 @@ func TestINdexedBlockDbCreate(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "user1")
 	tempdir, err := ioutil.TempDir(os.TempDir(), "indexed_blocks_db")
 	require.NoError(t, err)
-	cache, err := newIndexedBlockDb(config, tempdir)
+	db, err := newIndexedBlockDb(config, tempdir)
 	require.NoError(t, err)
-	shutdownIndexedBlockDbTest(cache, tempdir)
+	shutdownIndexedBlockDbTest(db, tempdir)
 }
 
 func TestIndexedBlockDb(t *testing.T) {
 	t.Parallel()
 	t.Log("Test that indexed block db Put and Get operations work.")
-	cache, tempdir := newIndexedBlockDbForTest(t)
+	db, tempdir := newIndexedBlockDbForTest(t)
 	defer func() {
-		shutdownIndexedBlockDbTest(cache, tempdir)
+		shutdownIndexedBlockDbTest(db, tempdir)
 	}()
 
 	ctx := context.Background()
@@ -78,14 +78,14 @@ func TestIndexedBlockDb(t *testing.T) {
 	ver1 := uint(1)
 	docID1 := "1"
 
-	t.Log("Put block MD into the cache.")
-	_, _, err = cache.Get(ctx, ptr1)
-	require.Error(t, err) // not cached yet
-	err = cache.Put(ctx, tlfID, ptr1, ver1, docID1)
+	t.Log("Put block MD into the db.")
+	_, _, err = db.Get(ctx, ptr1)
+	require.Error(t, err) // not dbd yet
+	err = db.Put(ctx, tlfID, ptr1, ver1, docID1)
 	require.NoError(t, err)
 
-	t.Log("Get block MD from the cache.")
-	getVer1, getDocID1, err := cache.Get(ctx, ptr1)
+	t.Log("Get block MD from the db.")
+	getVer1, getDocID1, err := db.Get(ctx, ptr1)
 	require.NoError(t, err)
 	checkWrite := func(expectedVer, ver uint, expectedDocID, docID string) {
 		require.Equal(t, expectedVer, ver)
@@ -104,17 +104,17 @@ func TestIndexedBlockDb(t *testing.T) {
 	ver2 := uint(1)
 	docID2 := "2"
 
-	err = cache.Put(ctx, tlfID, ptr2, ver2, docID2)
+	err = db.Put(ctx, tlfID, ptr2, ver2, docID2)
 	require.NoError(t, err)
-	getVer2, getDocID2, err := cache.Get(ctx, ptr2)
+	getVer2, getDocID2, err := db.Get(ctx, ptr2)
 	require.NoError(t, err)
 	checkWrite(ver2, getVer2, docID2, getDocID2)
 
 	t.Log("Override the first block with new version.")
 	ver1 = 2
-	err = cache.Put(ctx, tlfID, ptr1, ver1, docID1)
+	err = db.Put(ctx, tlfID, ptr1, ver1, docID1)
 	require.NoError(t, err)
-	getVer1, getDocID1, err = cache.Get(ctx, ptr1)
+	getVer1, getDocID1, err = db.Get(ctx, ptr1)
 	require.NoError(t, err)
 	checkWrite(ver1, getVer1, docID1, getDocID1)
 
@@ -131,29 +131,29 @@ func TestIndexedBlockDb(t *testing.T) {
 	}
 	ver3 := uint(1)
 	docID3 := "3"
-	err = cache.Put(ctx, tlfID, ptr3, ver3, docID3)
+	err = db.Put(ctx, tlfID, ptr3, ver3, docID3)
 	require.NoError(t, err)
-	getVer3, getDocID3, err := cache.Get(ctx, ptr3)
+	getVer3, getDocID3, err := db.Get(ctx, ptr3)
 	require.NoError(t, err)
 	checkWrite(ver3, getVer3, docID3, getDocID3)
-	getVer2, getDocID2, err = cache.Get(ctx, ptr2)
+	getVer2, getDocID2, err = db.Get(ctx, ptr2)
 	require.NoError(t, err)
 	checkWrite(ver2, getVer2, docID2, getDocID2)
 
-	t.Log("Restart the cache and check the MD")
-	cache.Shutdown(ctx)
+	t.Log("Restart the db and check the MD")
+	db.Shutdown(ctx)
 	blockS, err := storage.OpenFile(filepath.Join(tempdir, "blocks"), false)
 	require.NoError(t, err)
 	tlfS, err := storage.OpenFile(filepath.Join(tempdir, "tlfs"), false)
 	require.NoError(t, err)
-	cache = newIndexedBlockDbForTestWithStorage(t, blockS, tlfS)
-	getVer1, getDocID1, err = cache.Get(ctx, ptr1)
+	db = newIndexedBlockDbForTestWithStorage(t, blockS, tlfS)
+	getVer1, getDocID1, err = db.Get(ctx, ptr1)
 	require.NoError(t, err)
 	checkWrite(ver1, getVer1, docID1, getDocID1)
-	getVer2, getDocID2, err = cache.Get(ctx, ptr2)
+	getVer2, getDocID2, err = db.Get(ctx, ptr2)
 	require.NoError(t, err)
 	checkWrite(ver2, getVer2, docID2, getDocID2)
-	getVer3, getDocID3, err = cache.Get(ctx, ptr3)
+	getVer3, getDocID3, err = db.Get(ctx, ptr3)
 	require.NoError(t, err)
 	checkWrite(ver3, getVer3, docID3, getDocID3)
 }
