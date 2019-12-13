@@ -1,0 +1,22 @@
+{
+  "name": "RNCPushNotificationIOS",
+  "version": "1.0.3",
+  "summary": "React Native Push Notification API for iOS",
+  "description": "React Native Push Notification API for iOS",
+  "license": "MIT",
+  "authors": "Rafael Lincoln <rafaellincolnpereira@gmail.com>",
+  "homepage": "https://github.com/react-native-community/react-native-push-notification-ios#readme",
+  "source": {
+    "git": "https://github.com/react-native-community/react-native-push-notification-ios",
+    "tag": "v1.0.3"
+  },
+  "source_files": "ios/*.{h,m}",
+  "platforms": {
+    "ios": "9.0"
+  },
+  "dependencies": {
+    "React": [
+
+    ]
+  }
+}

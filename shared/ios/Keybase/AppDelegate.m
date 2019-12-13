@@ -7,7 +7,7 @@
 //
 #import "AppDelegate.h"
 #import <AVFoundation/AVFoundation.h>
-#import <React/RCTPushNotificationManager.h>
+#import <RNCPushNotificationIOS.h>
 #import <React/RCTBundleURLProvider.h>
 #import "AppearanceRootView.h"
 #import "Engine.h"
@@ -121,18 +121,18 @@
 // Required to register for notifications
 - (void)application:(UIApplication *)application didRegisterUserNotificationSettings:(UIUserNotificationSettings *)notificationSettings
 {
-  [RCTPushNotificationManager didRegisterUserNotificationSettings:notificationSettings];
+  [RNCPushNotificationIOS didRegisterUserNotificationSettings:notificationSettings];
 }
 // Required for the register event.
 - (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken
 {
-  [RCTPushNotificationManager didRegisterForRemoteNotificationsWithDeviceToken:deviceToken];
+  [RNCPushNotificationIOS didRegisterForRemoteNotificationsWithDeviceToken:deviceToken];
 }
 
 // Required for the notification event.
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)notification
 {
-  [RCTPushNotificationManager didReceiveRemoteNotification:notification];
+  [RNCPushNotificationIOS didReceiveRemoteNotification:notification];
 }
 
 // Require for handling silent notifications
@@ -175,22 +175,22 @@
       completionHandler(UIBackgroundFetchResultNewData);
       NSLog(@"Remote notification handle finished...");
     });
-    [RCTPushNotificationManager didReceiveRemoteNotification:notification];
+    [RNCPushNotificationIOS didReceiveRemoteNotification:notification];
     completionHandler(UIBackgroundFetchResultNewData);
   } else {
-    [RCTPushNotificationManager didReceiveRemoteNotification:notification];
+    [RNCPushNotificationIOS didReceiveRemoteNotification:notification];
     completionHandler(UIBackgroundFetchResultNewData);
   }
 }
 // Required for the registrationError event.
 - (void)application:(UIApplication *)application didFailToRegisterForRemoteNotificationsWithError:(NSError *)error
 {
-  [RCTPushNotificationManager didFailToRegisterForRemoteNotificationsWithError:error];
+  [RNCPushNotificationIOS didFailToRegisterForRemoteNotificationsWithError:error];
 }
 // Required for the localNotification event.
 - (void)application:(UIApplication *)application didReceiveLocalNotification:(UILocalNotification *)notification
 {
-  [RCTPushNotificationManager didReceiveLocalNotification:notification];
+  [RNCPushNotificationIOS didReceiveLocalNotification:notification];
 }
 - (void)applicationWillTerminate:(UIApplication *)application {
   self.window.rootViewController.view.hidden = YES;

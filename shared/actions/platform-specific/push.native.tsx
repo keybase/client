@@ -7,17 +7,25 @@ import * as FsTypes from '../../constants/types/fs'
 import * as NotificationsGen from '../notifications-gen'
 import * as ProfileGen from '../profile-gen'
 import * as PushGen from '../push-gen'
-import * as PushNotifications from 'react-native-push-notification'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
 import * as WaitingGen from '../waiting-gen'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Tabs from '../../constants/tabs'
+import PushNotificationIOS from "@react-native-community/push-notification-ios"
 import logger from '../../logger'
 import {NativeModules, NativeEventEmitter} from 'react-native'
 import {isIOS, isAndroid} from '../../constants/platform'
 import * as Container from '../../util/container'
+
+const clearLocalNotifications = () => {
+    if (isIOS) {
+        PushNotificationIOS.cancelAllLocalNotifications()
+    } else {
+        // TODO PUSH
+    }
+}
 
 let lastCount = -1
 const updateAppBadge = (_: Container.TypedState, action: NotificationsGen.ReceivedBadgeStatePayload) => {
@@ -26,10 +34,14 @@ const updateAppBadge = (_: Container.TypedState, action: NotificationsGen.Receiv
     0
   )
 
-  PushNotifications.setApplicationIconBadgeNumber(count)
+  if (isIOS) {
+    PushNotificationIOS.setApplicationIconBadgeNumber(count)
+  } else {
+      // TODO PUSH
+  }
   // Only do this native call if the count actually changed, not over and over if its zero
   if (count === 0 && lastCount !== 0) {
-    PushNotifications.cancelAllLocalNotifications()
+      clearLocalNotifications()
   }
   lastCount = count
 }
@@ -81,7 +93,7 @@ const listenForNativeAndroidIntentNotifications = async (
   })
 }
 
-const listenForPushNotificationsFromJS = (emitter: (action: Container.TypedActions) => void) => {
+const listenForPushNotificationsIOS = (emitter: (action: Container.TypedActions) => void) => {
   const onRegister = (token: {token: string}) => {
     logger.debug('[PushToken] received new token: ', token)
     emitter(PushGen.createUpdatePushToken({token: token.token}))
@@ -100,13 +112,13 @@ const listenForPushNotificationsFromJS = (emitter: (action: Container.TypedActio
     logger.error('push error:', error)
   }
 
-  PushNotifications.configure({
+  PushNotificationIOS.configure({
     onError,
     onNotification,
     onRegister,
     popInitialNotification: false,
     // Don't request permissions for ios, we'll ask later, after showing UI
-    requestPermissions: !isIOS,
+    requestPermissions: false,
     senderID: Constants.androidSenderID,
   })
 }
@@ -116,7 +128,7 @@ function* setupPushEventLoop() {
     if (isAndroid) {
       listenForNativeAndroidIntentNotifications(emitter)
     } else {
-      listenForPushNotificationsFromJS(emitter)
+      listenForPushNotificationsIOS(emitter)
     }
 
     // we never unsubscribe
@@ -173,7 +185,7 @@ function* handlePush(state: Container.TypedState, action: PushGen.NotificationPa
       case 'chat.readmessage':
         logger.info('[Push] read message')
         if (notification.badges === 0) {
-          PushNotifications.cancelAllLocalNotifications()
+          clearLocalNotifications()
         }
         break
       case 'chat.newmessageSilent_2':
@@ -274,10 +286,10 @@ function* deletePushToken(state: Container.TypedState, action: ConfigGen.LogoutH
 }
 
 const requestPermissionsFromNative = () =>
-  isIOS ? PushNotifications.requestPermissions() : Promise.resolve()
+  isIOS ? PushNotificationIOS.requestPermissions() : Promise.resolve()
 const askNativeIfSystemPushPromptHasBeenShown = () =>
   isIOS ? NativeModules.PushPrompt.getHasShownPushPrompt() : Promise.resolve(false)
-const checkPermissionsFromNative = () => new Promise(resolve => PushNotifications.checkPermissions(resolve))
+const checkPermissionsFromNative = () => isIOS ? new Promise(resolve => PushNotificationIOS.checkPermissions(resolve)) : Promise.resolve() // TODO PUSH
 const monsterStorageKey = 'shownMonsterPushPrompt'
 
 const neverShowMonsterAgain = async (state: Container.TypedState) => {
@@ -410,7 +422,7 @@ const getInitialPushAndroid = async () => {
 
 const getInitialPushiOS = () =>
   new Promise(resolve =>
-    PushNotifications.popInitialNotification(n => {
+    PushNotificationIOS.popInitialNotification(n => {
       const notification = Constants.normalizePush(n)
       if (notification) {
         resolve(PushGen.createNotification({notification}))
