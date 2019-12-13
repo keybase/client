@@ -3120,6 +3120,20 @@ func (r MerkleRootV2) Eq(s MerkleRootV2) bool {
 	return r.Seqno == s.Seqno && r.HashMeta.Eq(s.HashMeta)
 }
 
+func (d *HiddenTeamChain) GetLastCommittedSeqno() Seqno {
+	if d == nil {
+		return 0
+	}
+	return d.LastCommittedSeqno
+}
+
+func (d *HiddenTeamChain) GetOuter() map[Seqno]LinkID {
+	if d == nil {
+		return nil
+	}
+	return d.Outer
+}
+
 func (d *HiddenTeamChain) PopulateLastFull() {
 	if d == nil {
 		return

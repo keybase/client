@@ -660,7 +660,7 @@ const (
 // Not a DeriveReason because it is not used in the same way.
 const DeriveReasonPUKStellarNoteShared string = "Keybase-Derived-Stellar-Note-PUK-Sbox-NaCl-DH-1"
 
-// FirstPRodMerkleSeqnoWithSkips is the first merkle root on production that
+// FirstProdMerkleSeqnoWithSkips is the first merkle root on production that
 // has skip pointers indicating log(n) previous merkle roots.
 var FirstProdMerkleSeqnoWithSkips = keybase1.Seqno(835903)
 
@@ -671,6 +671,10 @@ var FirstProdMerkleSeqnoWithSigs = keybase1.Seqno(796)
 // on, we have the modern shape. It's possible to tweak our clients to handle both
 // shapes, but it's not really worth it at this time.
 var FirstProdMerkleTreeWithModernShape = keybase1.Seqno(531408)
+
+// FirstProdMerkleSeqnoWithHiddenRootHash is the first merkle root on production that
+// contains the hash of a blind merkle tree root.
+var FirstProdMerkleSeqnoWithHiddenRootHash = keybase1.Seqno(200000000)
 
 type AppType string
 
