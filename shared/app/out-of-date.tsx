@@ -3,14 +3,14 @@ import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as ConfigGen from '../actions/config-gen'
 import * as Container from '../util/container'
-import * as Types from '../constants/types/config'
+import * as ConfigTypes from '../constants/types/config'
 
 type OwnProps = {}
 
 type Props = {
   message: string
   onOpenAppStore: () => void
-  status: Types.AppOutOfDateStatus
+  status: ConfigTypes.UpdateInfoStatus
 }
 
 const OutOfDate = (p: Props) =>
@@ -41,16 +41,13 @@ const styles = Styles.styleSheetCreate(() => ({
   },
 }))
 
-const mapStateToProps = (state: Container.TypedState) => ({
-  message: state.config.appOutOfDateMessage,
-  status: state.config.appOutOfDateStatus,
-})
-const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
-  onOpenAppStore: () => dispatch(ConfigGen.createOpenAppStore()),
-})
-
-export default Container.connect(
-  mapStateToProps,
-  mapDispatchToProps,
+export default Container.connectDEBUG(
+  (state: Container.TypedState) => ({
+    message: state.config.updateInfo.status === 'critical' ? state.config.updateInfo?.critical?.message : '',
+    status: state.config.updateInfo.status,
+  }),
+  (dispatch: Container.TypedDispatch) => ({
+    onOpenAppStore: () => dispatch(ConfigGen.createOpenAppStore()),
+  }),
   (stateProps, dispatchProps, _: OwnProps) => ({...stateProps, ...dispatchProps})
 )(OutOfDate)
