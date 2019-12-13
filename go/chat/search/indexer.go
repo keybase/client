@@ -302,6 +302,19 @@ func (idx *Indexer) consumeResultsForTest(convID chat1.ConversationID, err error
 	}
 }
 
+func (idx *Indexer) hasPriority(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) bool {
+	conv, err := utils.GetUnverifiedConv(ctx, idx.G(), uid, convID, types.InboxSourceDataSourceLocalOnly)
+	if err != nil {
+		idx.Debug(ctx, "unable to fetch GetUnverifiedConv, continuing: %v", err)
+		return true
+	} else if score := utils.GetConvPriorityScore(conv); score < minPriorityScore {
+		idx.Debug(ctx, "%s does not meet minPriorityScore (%.2f < %d), aborting.",
+			utils.GetRemoteConvDisplayName(conv), score, minPriorityScore)
+		return false
+	}
+	return true
+}
+
 func (idx *Indexer) Add(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 	msgs []chat1.MessageUnboxed) (err error) {
 	return idx.add(ctx, convID, uid, msgs, false)
@@ -315,21 +328,13 @@ func (idx *Indexer) add(ctx context.Context, convID chat1.ConversationID, uid gr
 	if !idx.validBatch(msgs) {
 		return nil
 	}
-	var score float64
-	if !force {
-		conv, err := utils.GetUnverifiedConv(ctx, idx.G(), uid, convID, types.InboxSourceDataSourceLocalOnly)
-		if err != nil {
-			idx.Debug(ctx, "unable to fetch GetUnverifiedConv, continuing: %v", err)
-		} else if score = utils.GetConvPriorityScore(conv); score < minPriorityScore {
-			idx.Debug(ctx, "Indexer.Add: %s does not meet minPriorityScore (%.2f < %d), aborting.",
-				utils.GetRemoteConvDisplayName(conv), score, minPriorityScore)
-			return nil
-		}
+	if !force && !idx.hasPriority(ctx, uid, convID) {
+		return nil
 	}
 
 	defer idx.Trace(ctx, func() error { return err },
-		fmt.Sprintf("Indexer.Add conv: %v, msgs: %d, priorityScore: %.2f, force: %v",
-			convID, len(msgs), score, force))()
+		fmt.Sprintf("Indexer.Add conv: %v, msgs: %d, force: %v",
+			convID, len(msgs), force))()
 	defer idx.consumeResultsForTest(convID, err)
 	return idx.store.Add(ctx, uid, convID, msgs)
 }
@@ -347,21 +352,13 @@ func (idx *Indexer) remove(ctx context.Context, convID chat1.ConversationID, uid
 	if !idx.validBatch(msgs) {
 		return nil
 	}
-	var score float64
-	if !force {
-		conv, err := utils.GetUnverifiedConv(ctx, idx.G(), uid, convID, types.InboxSourceDataSourceLocalOnly)
-		if err != nil {
-			idx.Debug(ctx, "unable to fetch GetUnverifiedConv, continuing: %v", err)
-		} else if score = utils.GetConvPriorityScore(conv); score < minPriorityScore {
-			idx.Debug(ctx, "Indexer.Remove: %s does not meet minPriorityScore (%.2f < %d), aborting.",
-				utils.GetRemoteConvDisplayName(conv), score, minPriorityScore)
-			return nil
-		}
+	if !force && !idx.hasPriority(ctx, uid, convID) {
+		return nil
 	}
 
 	defer idx.Trace(ctx, func() error { return err },
-		fmt.Sprintf("Indexer.Remove conv: %v, msgs: %d, priorityScore: %.2f, force: %v",
-			convID, len(msgs), score, force))()
+		fmt.Sprintf("Indexer.Remove conv: %v, msgs: %d, force: %v",
+			convID, len(msgs), force))()
 	defer idx.consumeResultsForTest(convID, err)
 	return idx.store.Remove(ctx, uid, convID, msgs)
 }
