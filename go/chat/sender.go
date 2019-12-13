@@ -1464,6 +1464,11 @@ func (s *Deliverer) doNotRetryFailure(ctx context.Context, obr chat1.OutboxRecor
 		return chat1.OutboxErrorType_OFFLINE, err, !berr.Temporary()
 	case *net.DNSError:
 		return chat1.OutboxErrorType_OFFLINE, err, !berr.Temporary()
+
+	}
+	switch err {
+	case ErrChatServerTimeout, ErrDuplicateConnection, ErrKeyServerTimeout:
+		return 0, err, false
 	}
 	return 0, err, true
 }
