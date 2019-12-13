@@ -6,14 +6,41 @@ import * as React from 'react'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as TeamsGen from '../../actions/teams-gen'
 import ManageChannels, {RowProps} from '.'
-import {ChannelMembershipState} from '../../constants/types/teams'
+import * as Types from '../../constants/types/teams'
 import {anyWaiting} from '../../constants/waiting'
 import {formatTimeRelativeToNow} from '../../util/timestamp'
 import {getChannelsWaitingKey, getCanPerform, getTeamChannelInfos} from '../../constants/teams'
 import isEqual from 'lodash/isEqual'
 import {makeInsertMatcher} from '../../util/string'
+import {memoize} from '../../util/memoize'
 
 type OwnProps = Container.RouteProps<{teamname: string}>
+
+const getChannels = memoize(
+  (channelInfos: Map<string, Types.ChannelInfo>, searchText: string, teamSize: number) =>
+    [...channelInfos.entries()]
+      .map(([convID, info]) => ({
+        convID,
+        description: info.description,
+        hasAllMembers: info.numParticipants === teamSize,
+        mtimeHuman: formatTimeRelativeToNow(info.mtime),
+        name: info.channelname,
+        numParticipants: info.numParticipants,
+        selected: info.memberStatus === RPCChatTypes.ConversationMemberStatus.active,
+      }))
+      .filter(conv => {
+        if (!searchText) {
+          return true // no search text means show all
+        }
+        return (
+          // match channel name for search as subsequence (like the identity modal)
+          // match channel desc by strict substring (less noise in results)
+          conv.name.match(makeInsertMatcher(searchText)) ||
+          conv.description.match(new RegExp(searchText, 'i'))
+        )
+      })
+      .sort((a, b) => a.name.localeCompare(b.name))
+)
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const teamname = Container.getRouteProps(ownProps, 'teamname', '')
@@ -32,34 +59,12 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const searchText = state.chat2.channelSearchText
   const isFiltered = !!searchText
 
-  const channels = [...channelInfos.entries()]
-    .map(([convID, info]) => ({
-      convID,
-      description: info.description,
-      hasAllMembers: info.numParticipants === teamSize,
-      mtimeHuman: formatTimeRelativeToNow(info.mtime),
-      name: info.channelname,
-      numParticipants: info.numParticipants,
-      selected: info.memberStatus === RPCChatTypes.ConversationMemberStatus.active,
-    }))
-    .filter(conv => {
-      if (!searchText) {
-        return true // no search text means show all
-      }
-      return (
-        // match channel name for search as subsequence (like the identity modal)
-        // match channel desc by strict substring (less noise in results)
-        conv.name.match(makeInsertMatcher(searchText)) || conv.description.match(new RegExp(searchText, 'i'))
-      )
-    })
-    .sort((a, b) => a.name.localeCompare(b.name))
-
   const selectedChatID = state.chat2.selectedConversation
 
   return {
     canCreateChannels,
     canEditChannels,
-    channels,
+    channels: getChannels(channelInfos, searchText, teamSize),
     isFiltered,
     selectedChatID,
     teamname,
@@ -73,8 +78,8 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
   return {
     _loadChannels: () => dispatch(TeamsGen.createGetChannels({teamname})),
     _onView: (
-      oldChannelState: ChannelMembershipState,
-      nextChannelState: ChannelMembershipState,
+      oldChannelState: Types.ChannelMembershipState,
+      nextChannelState: Types.ChannelMembershipState,
       channelname: string
     ) => {
       dispatch(
@@ -88,8 +93,8 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
       dispatch(Chat2Gen.createPreviewConversation({channelname, reason: 'manageView', teamname}))
     },
     _saveSubscriptions: (
-      oldChannelState: ChannelMembershipState,
-      nextChannelState: ChannelMembershipState,
+      oldChannelState: Types.ChannelMembershipState,
+      nextChannelState: Types.ChannelMembershipState,
       selectedChatID: ChatTypes.ConversationIDKey
     ) => {
       dispatch(
@@ -134,13 +139,13 @@ type Props = {
   selectedChatID: ChatTypes.ConversationIDKey
   _loadChannels: () => void
   _onView: (
-    oldChannelState: ChannelMembershipState,
-    nextChannelState: ChannelMembershipState,
+    oldChannelState: Types.ChannelMembershipState,
+    nextChannelState: Types.ChannelMembershipState,
     channelname: string
   ) => void
   _saveSubscriptions: (
-    oldChannelState: ChannelMembershipState,
-    nextChannelState: ChannelMembershipState,
+    oldChannelState: Types.ChannelMembershipState,
+    nextChannelState: Types.ChannelMembershipState,
     selectedChatID: ChatTypes.ConversationIDKey
   ) => void
   canCreateChannels: boolean
@@ -167,7 +172,9 @@ const Wrapper = (p: Props) => {
     [channels]
   )
 
-  const [nextChannelState, setNextChannelState] = React.useState<ChannelMembershipState>(oldChannelState)
+  const [nextChannelState, setNextChannelState] = React.useState<Types.ChannelMembershipState>(
+    oldChannelState
+  )
 
   const onClickChannel = React.useCallback(
     (channelname: string) => {
