@@ -2030,12 +2030,14 @@ func (fs *KBFSOpsStandard) UnregisterFromChanges(
 
 // RegisterForSyncedTlfs implements the Notifer interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) RegisterForSyncedTlfs(obs SyncedTlfObserver) error {
+	fs.syncedTlfObservers.add(obs)
 	return nil
 }
 
-// UnregisterFromChanges implements the Notifer interface for KBFSOpsStandard
+// UnregisterFromSyncedTlfs implements the Notifer interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) UnregisterFromSyncedTlfs(
 	obs SyncedTlfObserver) error {
+	fs.syncedTlfObservers.remove(obs)
 	return nil
 }
 

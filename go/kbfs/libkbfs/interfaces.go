@@ -1863,7 +1863,9 @@ type SyncedTlfObserver interface {
 	// FullSyncStarted announces that a new full sync has begun for
 	// the given tlf ID, and it will be completed (or canceled) once
 	// `waitCh` is closed.
-	FullSyncStarted(ctx context.Context, tlfID tlf.ID, waitCh <-chan struct{})
+	FullSyncStarted(
+		ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision,
+		waitCh <-chan struct{})
 	// SyncModeChanged announces that the sync mode has changed for
 	// the given tlf ID.
 	SyncModeChanged(

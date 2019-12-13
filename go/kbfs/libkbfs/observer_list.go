@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"sync"
 
+	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -98,12 +99,13 @@ func (stol *syncedTlfObserverList) remove(o SyncedTlfObserver) {
 	}
 }
 
-func (stol *syncedTlfObserverList) fullSyncedStarted(
-	ctx context.Context, tlfID tlf.ID, waitCh <-chan struct{}) {
+func (stol *syncedTlfObserverList) fullSyncStarted(
+	ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision,
+	waitCh <-chan struct{}) {
 	stol.lock.RLock()
 	defer stol.lock.RUnlock()
 	for _, o := range stol.observers {
-		o.FullSyncStarted(ctx, tlfID, waitCh)
+		o.FullSyncStarted(ctx, tlfID, rev, waitCh)
 	}
 }
 
