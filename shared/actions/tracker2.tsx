@@ -86,6 +86,7 @@ const updateUserCard = (
     hidFromFollowers: card.hidFromFollowers,
     location: card.location,
     registeredForAirdrop: card.registeredForAirdrop,
+    stellarHidden: card.stellarHidden,
     teamShowcase: (card.teamShowcase || []).map(t => ({
       description: t.description,
       isOpen: t.open,

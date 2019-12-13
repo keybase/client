@@ -127,6 +127,10 @@
         {
           "type": "SigID",
           "name": "sigID"
+        },
+        {
+          "type": "boolean",
+          "name": "hidden"
         }
       ]
     },
@@ -408,6 +412,10 @@
         {
           "type": "boolean",
           "name": "registeredForAirdrop"
+        },
+        {
+          "type": "boolean",
+          "name": "stellarHidden"
         },
         {
           "type": "boolean",

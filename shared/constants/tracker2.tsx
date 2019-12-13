@@ -20,6 +20,7 @@ export const noDetails = Object.freeze<Types.Details>({
   registeredForAirdrop: false,
   showTracker: false,
   state: 'error',
+  stellarHidden: false,
   teamShowcase: emptyArray,
   username: '',
 })
