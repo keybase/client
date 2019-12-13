@@ -68,7 +68,7 @@ const PinnedMessage = (props: Props) => {
             onClick={props.dismissUnpins ? () => setShowPopup(true) : props.onDismiss}
             type="iconfont-close"
             sizeType="Small"
-            style={Kb.iconCastPlatformStyles(styles.close)}
+            style={styles.close}
             boxStyle={styles.close}
             ref={closeref}
           />

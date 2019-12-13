@@ -404,9 +404,9 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	g.RegexpSearcher = searcher
 	indexer := search.NewIndexer(g)
 	ictx := globals.CtxAddIdentifyMode(context.Background(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil)
-	indexer.Start(ictx, uid)
 	indexer.SetPageSize(2)
 	indexer.SetStartSyncDelay(0)
+	indexer.Start(ictx, uid)
 	g.Indexer = indexer
 
 	h.setTestRemoteClient(ri)
@@ -1279,6 +1279,8 @@ func TestChatSrvPostLocalAtMention(t *testing.T) {
 		ctc := makeChatTestContext(t, "PostLocal", 2)
 		defer ctc.cleanup()
 		users := ctc.users()
+		libkb.RemoveEnvironmentFeatureForTest(ctc.as(t, users[0]).m.G().GetEnv().Test, libkb.FeatureJourneycardPreview)
+		libkb.RemoveEnvironmentFeatureForTest(ctc.as(t, users[1]).m.G().GetEnv().Test, libkb.FeatureJourneycardPreview)
 
 		switch mt {
 		case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAMNATIVE,
@@ -4933,6 +4935,9 @@ func TestChatSrvRetentionSweepTeam(t *testing.T) {
 				require.NoError(t, err)
 				var nText int
 				for _, msg := range tvres.Thread.Messages {
+					if msg.IsJourneycard() {
+						continue
+					}
 					require.True(t, msg.IsValidFull())
 					require.Equal(t, chat1.MessageID(0), msg.Valid().ServerHeader.SupersededBy)
 					if msg.GetMessageType() == chat1.MessageType_TEXT {
@@ -5175,6 +5180,8 @@ func TestChatSrvSetConvMinWriterRole(t *testing.T) {
 
 		tc1 := ctc.as(t, users[0])
 		tc2 := ctc.as(t, users[1])
+		libkb.RemoveEnvironmentFeatureForTest(tc1.m.G().GetEnv().Test, libkb.FeatureJourneycardPreview)
+		libkb.RemoveEnvironmentFeatureForTest(tc2.m.G().GetEnv().Test, libkb.FeatureJourneycardPreview)
 
 		listener1 := newServerChatListener()
 		tc1.h.G().NotifyRouter.AddListener(listener1)
@@ -5272,6 +5279,9 @@ func TestChatSrvSetConvMinWriterRole(t *testing.T) {
 				},
 			})
 			require.NoError(t, err)
+			if len(tvres.Thread.Messages) != 2 {
+				t.Logf("messages: %v", chat1.MessageUnboxedDebugList(tvres.Thread.Messages))
+			}
 			require.Len(t, tvres.Thread.Messages, 2, "messages are accessible")
 		}
 

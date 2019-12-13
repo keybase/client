@@ -5,15 +5,10 @@ import * as Styles from '../../../../styles'
 type Props = {
   onCreateTeam: () => void
   onJoinTeam: () => void
-  isFloating: boolean
 }
 
-const BuildTeam = ({isFloating, onCreateTeam, onJoinTeam}: Props) => (
-  <Kb.Box2
-    direction="vertical"
-    gap={Styles.isMobile ? 'tiny' : 'xtiny'}
-    style={Styles.collapseStyles([styles.container, isFloating && styles.floatingContainer])}
-  >
+const BuildTeam = ({onCreateTeam, onJoinTeam}: Props) => (
+  <Kb.Box2 direction="vertical" gap={Styles.isMobile ? 'tiny' : 'xtiny'} style={styles.container}>
     <Kb.Button fullWidth={true} label="Create a team" mode="Secondary" onClick={onCreateTeam} />
     <Kb.Button fullWidth={true} label="Join a team" mode="Secondary" onClick={onJoinTeam} />
   </Kb.Box2>
@@ -32,12 +27,6 @@ const styles = Styles.styleSheetCreate(() => ({
       backgroundColor: Styles.globalColors.fastBlank,
       flexShrink: 0,
       width: '100%',
-    },
-  }),
-  floatingContainer: Styles.platformStyles({
-    isElectron: {
-      ...Styles.globalStyles.fillAbsolute,
-      top: undefined,
     },
   }),
 }))

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import Avatar, {AvatarSize} from './avatar'
+import Avatar, {AvatarSize, avatarSizes} from './avatar'
 import {Box2} from './box'
 import Text from './text'
 import * as Styles from '../styles/index'
@@ -24,7 +24,7 @@ const AvatarLine = (props: Props) => {
   const usernamesToShow = props.usernames.slice(0, props.maxShown)
   const extra = props.usernames.length - usernamesToShow.length
   const reverse = {horizontal: 'horizontalReverse', vertical: 'verticalReverse'} as const
-  const styles = styleMap[props.size][props.layout]
+  const styles = styleMap.get(props.size)![props.layout] ?? {}
   return (
     <Kb.Box2 direction={reverse[props.layout]} style={styles.container} alignSelf={props.alignSelf}>
       {!!extra && (
@@ -49,59 +49,53 @@ const AvatarLine = (props: Props) => {
   )
 }
 
-const getTextSize = size => (size >= 48 ? 'BodySmallBold' : 'BodyTinyBold')
+const getTextSize = (size: AvatarSize) => (size >= 48 ? 'BodySmallBold' : 'BodyTinyBold')
 
-const avatarSizes: Array<AvatarSize> = [128, 96, 64, 48, 32, 24, 16]
-
-const styleMap = avatarSizes.reduce(
-  (styles, size) => ({
-    ...styles,
-    [size]: {
-      horizontal: Styles.styleSheetCreate(() => ({
-        avatar: {
-          marginRight: -size / 3,
-        },
-        container: {
-          marginLeft: 2,
-          marginRight: size / 3 + 2,
-        },
-        overflowBox: {
-          backgroundColor: Styles.globalColors.grey,
-          borderBottomRightRadius: size,
-          borderTopRightRadius: size,
-          height: size,
-          justifyContent: 'flex-end',
-          paddingLeft: size / 2,
-        },
-        text: {
-          color: Styles.globalColors.black_50,
-          paddingRight: size / 5,
-        },
-      })),
-      vertical: Styles.styleSheetCreate(() => ({
-        avatar: {
-          marginBottom: -size / 3,
-        },
-        container: {
-          marginBottom: size / 3 + 2,
-          marginTop: 2,
-        },
-        overflowBox: {
-          backgroundColor: Styles.globalColors.grey,
-          borderBottomLeftRadius: size,
-          borderBottomRightRadius: size,
-          justifyContent: 'flex-end',
-          paddingTop: size / 2,
-          width: size,
-        },
-        text: {
-          color: Styles.globalColors.black_50,
-          paddingBottom: size / 5,
-        },
-      })),
+const getSizeStyle = (size: AvatarSize) => ({
+  horizontal: Styles.styleSheetCreate(() => ({
+    avatar: {
+      marginRight: -size / 3,
     },
-  }),
-  {}
-)
+    container: {
+      marginLeft: 2,
+      marginRight: size / 3 + 2,
+    },
+    overflowBox: {
+      backgroundColor: Styles.globalColors.grey,
+      borderBottomRightRadius: size,
+      borderTopRightRadius: size,
+      height: size,
+      justifyContent: 'flex-end',
+      paddingLeft: size / 2,
+    },
+    text: {
+      color: Styles.globalColors.black_50,
+      paddingRight: size / 5,
+    },
+  })),
+  vertical: Styles.styleSheetCreate(() => ({
+    avatar: {
+      marginBottom: -size / 3,
+    },
+    container: {
+      marginBottom: size / 3 + 2,
+      marginTop: 2,
+    },
+    overflowBox: {
+      backgroundColor: Styles.globalColors.grey,
+      borderBottomLeftRadius: size,
+      borderBottomRightRadius: size,
+      justifyContent: 'flex-end',
+      paddingTop: size / 2,
+      width: size,
+    },
+    text: {
+      color: Styles.globalColors.black_50,
+      paddingBottom: size / 5,
+    },
+  })),
+})
+
+const styleMap = new Map(avatarSizes.map(s => [s, getSizeStyle(s)]))
 
 export default AvatarLine

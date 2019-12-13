@@ -111,11 +111,7 @@ class AccountSettings extends React.Component<SettingsProps> {
                 <Kb.Text type="BodySmallSemibold">Account name</Kb.Text>
                 <Kb.Box2 direction="horizontal" fullWidth={true}>
                   <HoverText type="BodySemibold">{props.name}</HoverText>
-                  <Kb.Icon
-                    style={Kb.iconCastPlatformStyles(styles.icon)}
-                    type="iconfont-edit"
-                    fontSize={Styles.isMobile ? 22 : 16}
-                  />
+                  <Kb.Icon style={styles.icon} type="iconfont-edit" fontSize={Styles.isMobile ? 22 : 16} />
                 </Kb.Box2>
               </Kb.Box2>
             </Kb.ClickableBox>

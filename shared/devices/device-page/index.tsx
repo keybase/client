@@ -88,8 +88,7 @@ const DevicePage = (props: Props) => {
   const device = Container.useSelector(state => Constants.getDevice(state, props.id))
   const canRevoke = Container.useSelector(state => {
     const {numActive} = Constants.getDeviceCounts(state)
-    const hasRandomPW = state.settings.password.randomPW
-    return numActive > 1 || !hasRandomPW
+    return numActive > 1
   })
   const dispatch = Container.useDispatch()
   const showRevokeDevicePage = React.useCallback(

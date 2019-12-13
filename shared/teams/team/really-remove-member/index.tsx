@@ -62,11 +62,13 @@ const styles = Styles.styleSheetCreate(() => ({
   container: {
     height: '100%',
   },
-  cover: {
-    alignItems: 'stretch',
-    backgroundColor: Styles.globalColors.black,
-    justifyContent: 'stretch',
-  },
+  cover: Styles.platformStyles({
+    isElectron: {
+      alignItems: 'stretch',
+      backgroundColor: Styles.globalColors.black,
+      justifyContent: 'stretch',
+    },
+  }),
 }))
 
 export default ReallyRemoveMember

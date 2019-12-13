@@ -62,7 +62,7 @@ const MessagePopupHeader = (props: {
   const whoRevoked = yourMessage ? 'You' : author
   return (
     <Kb.Box style={styles.headerContainer}>
-      <Kb.Icon type={iconName} style={Kb.iconCastPlatformStyles(styles.headerIcon)} />
+      <Kb.Icon type={iconName} style={styles.headerIcon} />
       <Kb.Box style={Styles.globalStyles.flexBoxRow}>
         <Kb.Text
           type="BodySmall"

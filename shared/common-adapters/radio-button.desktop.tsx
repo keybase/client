@@ -10,9 +10,7 @@ const Kb = {
 export const RADIOBUTTON_SIZE = 14
 export const RADIOBUTTON_MARGIN = 8
 
-// @ts-ignore this type is wrong
-const StyledRadio = Styles.styled.div(
-  // @ts-ignore
+const StyledRadio: any = Styles.styled.div(
   () => ({
     ...Styles.transition('background'),
     borderRadius: '100%',
@@ -21,6 +19,7 @@ const StyledRadio = Styles.styled.div(
     position: 'relative',
     width: RADIOBUTTON_SIZE,
   }),
+  // @ts-ignore
   ({disabled, selected}) => ({
     '&:hover': {border: (selected || !disabled) && `solid 1px ${Styles.globalColors.blue}`},
     backgroundColor: selected ? Styles.globalColors.blue : 'inherit',
@@ -36,10 +35,7 @@ const RadioButton = ({disabled, label, onSelect, selected, style}: Props) => (
     onClick={disabled ? undefined : () => onSelect(!selected)}
   >
     <StyledRadio disabled={disabled} selected={selected}>
-      <div
-        // @ts-ignore clash between StylesCrossPlatform and React.CSSProperties
-        style={styles.radio}
-      />
+      <div style={styles.radio as any} />
     </StyledRadio>
     <Kb.Text type="Body" style={{color: Styles.globalColors.black}}>
       {label}

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import PlainInput, {PropsWithInput} from './plain-input'
 import Box, {Box2} from './box'
-import Icon, {IconType, castPlatformStyles} from './icon'
+import Icon, {IconType} from './icon'
 import {getStyle as getTextStyle} from './text'
 import * as Styles from '../styles'
 import './input.css'
@@ -64,7 +64,7 @@ class ReflessNewInput extends React.Component<Props & RefProps, State> {
               color={Styles.globalColors.black_20} // not sure how to make this dynamic
               type={this.props.icon}
               fontSize={textStyle.fontSize}
-              style={castPlatformStyles(styles.displayFlex)}
+              style={styles.displayFlex}
             />
           </Box>
         )}

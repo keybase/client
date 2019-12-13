@@ -51,7 +51,7 @@ const CommandStatus = (props: Props) => {
         <Kb.Icon
           onClick={props.onCancel}
           type="iconfont-remove"
-          style={Kb.iconCastPlatformStyles(styles.close)}
+          style={styles.close}
           color={textColor(props.displayType)}
           boxStyle={styles.close}
         />

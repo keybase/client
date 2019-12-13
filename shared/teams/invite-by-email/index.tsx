@@ -172,13 +172,17 @@ class InviteByEmailDesktop extends React.Component<Props, State> {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  container: {
-    ...Styles.desktopStyles.boxShadow,
-    ...Styles.globalStyles.flexBoxColumn,
-    alignSelf: 'center',
-    backgroundColor: Styles.globalColors.white,
-    borderRadius: 5,
-  },
+  container: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxColumn,
+      alignSelf: 'center',
+      backgroundColor: Styles.globalColors.white,
+      borderRadius: 5,
+    },
+    isElectron: {
+      ...Styles.desktopStyles.boxShadow,
+    },
+  }),
   cover: {
     alignItems: 'center',
     backgroundColor: Styles.globalColors.black,
