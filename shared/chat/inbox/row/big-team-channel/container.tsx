@@ -30,6 +30,7 @@ export default namedConnect(
     channelname: stateProps._meta.channelname || ownProps.channelname,
     hasBadge: stateProps.hasBadge,
     hasDraft: stateProps.hasDraft && !stateProps.isSelected,
+    snippetDecoration: stateProps._meta.snippetDecoration,
     hasUnread: stateProps.hasUnread,
     isError: stateProps._meta.trustedState === 'error',
     isMuted: stateProps.isMuted,
