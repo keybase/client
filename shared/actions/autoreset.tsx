@@ -31,12 +31,9 @@ const cancelReset = async () => {
     logger.error('Error in CancelAutoreset', error)
     switch (error.code ?? 0) {
       case RPCGen.StatusCode.scnosession:
-        return LoginGen.createLoginError({
-          error: Object.assign({}, error, {
-            message:
-              'Could not cancel reset. Either the reset has already completed, or your device was revoked.',
-          }),
-        })
+        // We got logged out because we were revoked (which might have been
+        // becase the reset was completed and this device wasn't notified).
+        return undefined
       case RPCGen.StatusCode.scnotfound:
         // "User not in autoreset queue."
         // do nothing, fall out of the catch block to cancel reset modal.

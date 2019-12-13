@@ -241,7 +241,6 @@ func (h *AccountHandler) CancelReset(ctx context.Context, sessionID int) (err er
 		mctx.Debug("CancelResetPipeline failed with: %s", err)
 		mctx.Debug("Checking if we are not revoked")
 		err2 := mctx.LogoutAndDeprovisionIfRevoked()
-		//err2 := mctx.LogoutWithOptions(libkb.LogoutOptions{KeepSecrets: false, Force: true})
 		if err2 != nil {
 			mctx.Error("LogoutAndDeprovisionIfRevoked failed in CancelReset check: %s", err2)
 			return libkb.CombineErrors(err, err2)
