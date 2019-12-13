@@ -572,38 +572,6 @@ function* addUserToTeams(state: TypedState, action: TeamsGen.AddUserToTeamsPaylo
   )
 }
 
-function* getTeamPublicity(_: TypedState, action: TeamsGen.GetTeamPublicityPayload, logger: Saga.SagaLogger) {
-  try {
-    const teamname = action.payload.teamname
-    // Get publicity settings for this team.
-    const publicity: Saga.RPCPromiseType<typeof RPCTypes.teamsGetTeamAndMemberShowcaseRpcPromise> = yield RPCTypes.teamsGetTeamAndMemberShowcaseRpcPromise(
-      {name: teamname},
-      Constants.teamWaitingKey(teamname)
-    )
-
-    let tarsDisabled: Saga.RPCPromiseType<typeof RPCTypes.teamsGetTarsDisabledRpcPromise> = false
-    // can throw if you're not an admin
-    try {
-      tarsDisabled = yield RPCTypes.teamsGetTarsDisabledRpcPromise(
-        {name: teamname},
-        Constants.teamTarsWaitingKey(teamname)
-      )
-    } catch (_) {}
-
-    const publicityMap = {
-      anyMemberShowcase: publicity.teamShowcase.anyMemberShowcase,
-      description: publicity.teamShowcase.description || '',
-      ignoreAccessRequests: tarsDisabled,
-      member: publicity.isMemberShowcased,
-      team: publicity.teamShowcase.isShowcased,
-    }
-
-    yield Saga.put(TeamsGen.createSetTeamPublicitySettings({publicity: publicityMap, teamname}))
-  } catch (e) {
-    logger.error(e.message)
-  }
-}
-
 const getChannelInfo = async (
   state: TypedState,
   action: TeamsGen.GetChannelInfoPayload,
@@ -1312,11 +1280,6 @@ const teamsSaga = function*() {
   yield* Saga.chainGenerator<TeamsGen.JoinTeamPayload>(TeamsGen.joinTeam, joinTeam, 'joinTeam')
   yield* Saga.chainAction2(TeamsGen.loadTeam, loadTeam, 'loadTeam')
   yield* Saga.chainAction2(TeamsGen.getMembers, getMembers, 'getMembers')
-  yield* Saga.chainGenerator<TeamsGen.GetTeamPublicityPayload>(
-    TeamsGen.getTeamPublicity,
-    getTeamPublicity,
-    'getTeamPublicity'
-  )
   yield* Saga.chainAction2(
     TeamsGen.createNewTeamFromConversation,
     createNewTeamFromConversation,

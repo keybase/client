@@ -78,9 +78,6 @@
     "getTeamProfileAddList": {
       "username": "string"
     },
-    "getTeamPublicity": {
-      "teamname": "string"
-    },
     "addTeamWithChosenChannels": {
       "teamname": "string"
     },
@@ -216,10 +213,6 @@
       "teamname": "string",
       "teamID": "Types.TeamID",
       "teamOperation": "Types.TeamOperations"
-    },
-    "setTeamPublicitySettings": {
-      "teamname": "string",
-      "publicity": "Types._PublicitySettings"
     },
     "setTeamChannelInfo": {
       "teamname": "string",

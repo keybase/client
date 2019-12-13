@@ -185,7 +185,6 @@ const emptyState: Types.State = {
   teamNameToID: new Map(),
   teamNameToLoadingInvites: new Map(),
   teamNameToMembers: new Map(),
-  teamNameToPublicitySettings: new Map(),
   teamNameToResetUsers: new Map(),
   teamNameToRetentionPolicy: new Map(),
   teamProfileAddList: [],
@@ -466,12 +465,6 @@ export const initialPublicitySettings = Object.freeze<Types._PublicitySettings>(
   member: false,
   team: false,
 })
-
-export const getTeamPublicitySettings = (
-  state: TypedState,
-  teamname: Types.Teamname
-): Types._PublicitySettings =>
-  state.teams.teamNameToPublicitySettings.get(teamname) || initialPublicitySettings
 
 // Note that for isInTeam and isInSomeTeam, we don't use 'teamnames',
 // since that may contain subteams you're not a member of.

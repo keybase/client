@@ -83,9 +83,6 @@ export default Container.makeReducer<
   [TeamsGen.setTeamCanPerform]: (draftState, action) => {
     draftState.canPerform.set(action.payload.teamID, action.payload.teamOperation)
   },
-  [TeamsGen.setTeamPublicitySettings]: (draftState, action) => {
-    draftState.teamNameToPublicitySettings.set(action.payload.teamname, action.payload.publicity)
-  },
   [TeamsGen.setTeamChannelInfo]: (draftState, action) => {
     const {conversationIDKey, channelInfo, teamname} = action.payload
     draftState.teamNameToChannelInfos.set(
