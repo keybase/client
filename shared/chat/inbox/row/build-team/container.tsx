@@ -7,9 +7,7 @@ type OwnProps = Container.PropsWithSafeNavigation<{}>
 
 export default Container.withSafeNavigation(
   Container.namedConnect(
-    state => ({
-      isFloating: ((state.chat2.inboxLayout && state.chat2.inboxLayout.bigTeams) || []).length === 0,
-    }),
+    _ => ({}),
     (dispatch, {safeNavigateAppendPayload}: OwnProps) => ({
       // Route to the teams tab and open the NewTeamDialog component
       _onCreateTeam: () => {
@@ -22,8 +20,7 @@ export default Container.withSafeNavigation(
         dispatch(safeNavigateAppendPayload({path: ['teamJoinTeamDialog']}))
       },
     }),
-    (stateProps, dispatchProps, _: OwnProps) => ({
-      isFloating: stateProps.isFloating,
+    (_, dispatchProps, __: OwnProps) => ({
       onCreateTeam: dispatchProps._onCreateTeam,
       onJoinTeam: dispatchProps._onJoinTeam,
     }),
