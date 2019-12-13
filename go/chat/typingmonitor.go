@@ -92,15 +92,19 @@ func (t *TypingMonitor) notifyConvUpdateLocked(ctx context.Context, convID chat1
 }
 
 func (t *TypingMonitor) Update(ctx context.Context, typer chat1.TyperInfo, convID chat1.ConversationID,
-	typing bool) {
+	teamType chat1.TeamType, typing bool) {
 
-	t.Debug(ctx, "Update: %s in convID: %s updated typing to: %v", typer, convID, typing)
 	key := t.key(typer, convID)
 
 	// If this is about ourselves, then don't bother
 	cuid := t.G().Env.GetUID()
 	cdid := t.G().Env.GetDeviceID()
 	if cuid.Equal(typer.Uid) && cdid.Eq(typer.DeviceID) {
+		return
+	}
+
+	// If the update is for a big team we are not currently viewing, don't bother sending it
+	if !convID.Eq(t.G().Syncer.GetSelectedConversation()) && teamType == chat1.TeamType_COMPLEX {
 		return
 	}
 
@@ -124,16 +128,14 @@ func (t *TypingMonitor) Update(ctx context.Context, typer chat1.TyperInfo, convI
 			t.insertIntoTypers(ctx, key, chans, convID)
 			t.waitOnTyper(ctx, chans, convID)
 		}
-	} else {
-		if alreadyTyping {
-			// If they are typing, then stop it
-			select {
-			case chans.stopCh <- struct{}{}:
-			default:
-				// This should never happen, but be safe
-				t.Debug(ctx, "Update: overflowed stop channel, dropping update: %s convID: %s", typer,
-					convID)
-			}
+	} else if alreadyTyping {
+		// If they are typing, then stop it
+		select {
+		case chans.stopCh <- struct{}{}:
+		default:
+			// This should never happen, but be safe
+			t.Debug(ctx, "Update: overflowed stop channel, dropping update: %s convID: %s", typer,
+				convID)
 		}
 	}
 }

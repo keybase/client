@@ -115,6 +115,7 @@ protocol gregor {
         gregor1.DeviceID deviceID;
         ConversationID convID;
         boolean typing;
+        TeamType teamType;
     }
 
     record TeamMemberRoleUpdate {

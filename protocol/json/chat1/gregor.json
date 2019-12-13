@@ -381,6 +381,10 @@
         {
           "type": "boolean",
           "name": "typing"
+        },
+        {
+          "type": "TeamType",
+          "name": "teamType"
         }
       ]
     },
