@@ -437,7 +437,12 @@ func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox,
 	btcollector := newBigTeamCollector()
 	selectedInLayout := false
 	selectedConv := h.G().Syncer.GetSelectedConversation()
+	username := h.G().Env.GetUsername().String()
 	for _, conv := range inbox.ConvsUnverified {
+		if conv.Conv.IsSelfFinalized(username) {
+			h.Debug(ctx, "buildLayout: skipping self finalized conv: %s", conv.ConvIDStr)
+			continue
+		}
 		if conv.GetConvID().Eq(selectedConv) {
 			selectedInLayout = true
 		}
