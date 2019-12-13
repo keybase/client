@@ -4,7 +4,6 @@ import * as PinentryGen from './pinentry-gen'
 import * as Constants from '../constants/login'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as Container from '../util/container'
 import {getEngine} from '../engine/require'
 
 // stash response while we show the pinentry. The old code kept a map of this but this likely never worked. it seems like
@@ -21,7 +20,7 @@ const onConnect = async () => {
   }
 }
 
-const onGetPassword = (_: Container.TypedState, action: EngineGen.Keybase1SecretUiGetPassphrasePayload) => {
+const onGetPassword = (action: EngineGen.Keybase1SecretUiGetPassphrasePayload) => {
   logger.info('Asked for password')
   const {response, params} = action.payload
   const {pinentry} = params
@@ -45,7 +44,7 @@ const onGetPassword = (_: Container.TypedState, action: EngineGen.Keybase1Secret
   })
 }
 
-const onSubmit = (_: Container.TypedState, action: PinentryGen.OnSubmitPayload) => {
+const onSubmit = (action: PinentryGen.OnSubmitPayload) => {
   const {password} = action.payload
   if (_response) {
     _response.result({passphrase: password, storeSecret: false})
@@ -55,7 +54,7 @@ const onSubmit = (_: Container.TypedState, action: PinentryGen.OnSubmitPayload) 
   return PinentryGen.createClose()
 }
 
-const onCancel = (_: Container.TypedState) => {
+const onCancel = () => {
   if (_response) {
     _response.error({code: RPCTypes.StatusCode.scinputcanceled, desc: 'Input canceled'})
     _response = null
@@ -64,10 +63,10 @@ const onCancel = (_: Container.TypedState) => {
 }
 
 function* pinentrySaga() {
-  yield* Saga.chainAction2(PinentryGen.onSubmit, onSubmit)
+  yield* Saga.chainAction(PinentryGen.onSubmit, onSubmit)
   yield* Saga.chainAction2(PinentryGen.onCancel, onCancel)
   getEngine().registerCustomResponse('keybase.1.secretUi.getPassphrase')
-  yield* Saga.chainAction2(EngineGen.keybase1SecretUiGetPassphrase, onGetPassword)
+  yield* Saga.chainAction(EngineGen.keybase1SecretUiGetPassphrase, onGetPassword)
   yield* Saga.chainAction2(EngineGen.connected, onConnect)
 }
 

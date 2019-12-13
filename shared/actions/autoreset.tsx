@@ -76,7 +76,7 @@ const displayProgressEngine = (
     })
   )
 
-const displayProgress = (_: Container.TypedState, action: AutoresetGen.DisplayProgressPayload) =>
+const displayProgress = (action: AutoresetGen.DisplayProgressPayload) =>
   RouteTreeGen.createNavigateAppend({
     path: [{props: {pipelineStarted: !action.payload.needVerify}, selected: 'resetWaiting'}],
     replace: true,
@@ -104,16 +104,16 @@ function* resetAccount(state: Container.TypedState, action: AutoresetGen.ResetAc
     yield Saga.put(AutoresetGen.createResetError({error: error}))
   }
 }
-const showFinalResetScreen = (_: Container.TypedState, __: AutoresetGen.ShowFinalResetScreenPayload) =>
+const showFinalResetScreen = (__: AutoresetGen.ShowFinalResetScreenPayload) =>
   RouteTreeGen.createNavigateAppend({path: ['resetConfirm'], replace: true})
 
 function* autoresetSaga() {
-  yield* Saga.chainAction2(AutoresetGen.cancelReset, cancelReset, 'cancelReset')
-  yield* Saga.chainAction2(AutoresetGen.displayProgress, displayProgress, 'displayProgress')
+  yield* Saga.chainAction2(AutoresetGen.cancelReset, cancelReset)
+  yield* Saga.chainAction(AutoresetGen.displayProgress, displayProgress)
   yield* Saga.chainAction2(AutoresetGen.finishedReset, finishedReset)
-  yield* Saga.chainAction2(AutoresetGen.showFinalResetScreen, showFinalResetScreen)
+  yield* Saga.chainAction(AutoresetGen.showFinalResetScreen, showFinalResetScreen)
   yield* Saga.chainAction2(AutoresetGen.startAccountReset, startAccountReset)
-  yield* Saga.chainAction2(NotificationsGen.receivedBadgeState, receivedBadgeState, 'receivedBadgeState')
+  yield* Saga.chainAction2(NotificationsGen.receivedBadgeState, receivedBadgeState)
   yield* Saga.chainGenerator(AutoresetGen.resetAccount, resetAccount)
 }
 

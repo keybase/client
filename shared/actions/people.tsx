@@ -134,7 +134,7 @@ const getPeopleData = async (state: Container.TypedState, action: PeopleGen.GetP
   }
 }
 
-const dismissAnnouncement = async (_: Container.TypedState, action: PeopleGen.DismissAnnouncementPayload) => {
+const dismissAnnouncement = async (action: PeopleGen.DismissAnnouncementPayload) => {
   await RPCTypes.homeHomeDismissAnnouncementRpcPromise({
     i: action.payload.id,
   })
@@ -153,7 +153,7 @@ const markViewed = async () => {
   }
 }
 
-const skipTodo = async (_: Container.TypedState, action: PeopleGen.SkipTodoPayload) => {
+const skipTodo = async (action: PeopleGen.SkipTodoPayload) => {
   await RPCTypes.homeHomeSkipTodoTypeRpcPromise({
     t: RPCTypes.HomeScreenTodoType[action.payload.type],
   })
@@ -200,8 +200,8 @@ function* peopleTeamBuildingSaga() {
 const peopleSaga = function*() {
   yield* Saga.chainAction2(PeopleGen.getPeopleData, getPeopleData)
   yield* Saga.chainAction2(PeopleGen.markViewed, markViewed)
-  yield* Saga.chainAction2(PeopleGen.skipTodo, skipTodo)
-  yield* Saga.chainAction2(PeopleGen.dismissAnnouncement, dismissAnnouncement)
+  yield* Saga.chainAction(PeopleGen.skipTodo, skipTodo)
+  yield* Saga.chainAction(PeopleGen.dismissAnnouncement, dismissAnnouncement)
   yield* Saga.chainAction2(EngineGen.keybase1HomeUIHomeUIRefresh, homeUIRefresh)
   yield* Saga.chainAction2(EngineGen.connected, connected)
   yield* peopleTeamBuildingSaga()

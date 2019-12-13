@@ -180,7 +180,7 @@ const onPgpgKeySecret = () =>
     console.warn('Error in sending pgpPgpStorageDismissRpc:', err)
   })
 
-const onShutdown = (_: Container.TypedState, action: EngineGen.Keybase1NotifyServiceShutdownPayload) => {
+const onShutdown = (action: EngineGen.Keybase1NotifyServiceShutdownPayload) => {
   const {code} = action.payload.params
   if (isWindows && code !== RPCTypes.ExitCode.restart) {
     console.log('Quitting due to service shutdown with code: ', code)
@@ -202,10 +202,7 @@ const onConnected = () => {
   }).catch(_ => {})
 }
 
-const onOutOfDate = (
-  _: Container.TypedState,
-  action: EngineGen.Keybase1NotifySessionClientOutOfDatePayload
-) => {
+const onOutOfDate = (action: EngineGen.Keybase1NotifySessionClientOutOfDatePayload) => {
   const {upgradeTo, upgradeURI, upgradeMsg} = action.payload.params
   const body = upgradeMsg || `Please update to ${upgradeTo} by going to ${upgradeURI}`
   NotifyPopup('Client out of date!', {body}, 60 * 60)
@@ -214,10 +211,7 @@ const onOutOfDate = (
   return ConfigGen.createUpdateInfo({critical: true, isOutOfDate: true, message: upgradeMsg})
 }
 
-const prepareLogSend = async (
-  _: Container.TypedState,
-  action: EngineGen.Keybase1LogsendPrepareLogsendPayload
-) => {
+const prepareLogSend = async (action: EngineGen.Keybase1LogsendPrepareLogsendPayload) => {
   const response = action.payload.response
   try {
     await dumpLogs()
@@ -226,7 +220,7 @@ const prepareLogSend = async (
   }
 }
 
-const copyToClipboard = (_: Container.TypedState, action: ConfigGen.CopyToClipboardPayload) => {
+const copyToClipboard = (action: ConfigGen.CopyToClipboardPayload) => {
   SafeElectron.getClipboard().writeText(action.payload.text)
 }
 
@@ -417,14 +411,14 @@ export function* platformConfigSaga() {
   yield* Saga.chainAction2(ConfigGen.showMain, showMainWindow)
   yield* Saga.chainAction2(ConfigGen.dumpLogs, dumpLogs)
   getEngine().registerCustomResponse('keybase.1.logsend.prepareLogsend')
-  yield* Saga.chainAction2(EngineGen.keybase1LogsendPrepareLogsend, prepareLogSend)
+  yield* Saga.chainAction(EngineGen.keybase1LogsendPrepareLogsend, prepareLogSend)
   yield* Saga.chainAction2(EngineGen.connected, onConnected)
   yield* Saga.chainAction2(EngineGen.keybase1NotifyAppExit, onExit)
   yield* Saga.chainAction2(EngineGen.keybase1NotifyFSFSActivity, onFSActivity)
   yield* Saga.chainAction2(EngineGen.keybase1NotifyPGPPgpKeyInSecretStoreFile, onPgpgKeySecret)
-  yield* Saga.chainAction2(EngineGen.keybase1NotifyServiceShutdown, onShutdown)
-  yield* Saga.chainAction2(EngineGen.keybase1NotifySessionClientOutOfDate, onOutOfDate)
-  yield* Saga.chainAction2(ConfigGen.copyToClipboard, copyToClipboard)
+  yield* Saga.chainAction(EngineGen.keybase1NotifyServiceShutdown, onShutdown)
+  yield* Saga.chainAction(EngineGen.keybase1NotifySessionClientOutOfDate, onOutOfDate)
+  yield* Saga.chainAction(ConfigGen.copyToClipboard, copyToClipboard)
   yield* Saga.chainAction2(ConfigGen.updateNow, updateNow)
   yield* Saga.chainAction2(ConfigGen.checkForUpdate, checkForUpdate)
   yield* Saga.chainAction2(ConfigGen.daemonHandshakeWait, sendKBServiceCheck)

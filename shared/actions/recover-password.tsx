@@ -189,10 +189,7 @@ function* startRecoverPassword(
   }
 }
 
-const displayDeviceSelect = (
-  _: Container.TypedState,
-  action: RecoverPasswordGen.DisplayDeviceSelectPayload
-) => {
+const displayDeviceSelect = (action: RecoverPasswordGen.DisplayDeviceSelectPayload) => {
   return RouteTreeGen.createNavigateAppend({
     path: ['recoverPasswordDeviceSelector'],
     replace: !!action.payload.replaceRoute,
@@ -226,13 +223,12 @@ const completeResetPassword = () => {
 function* recoverPasswordSaga() {
   yield* Saga.chainGenerator<RecoverPasswordGen.StartRecoverPasswordPayload>(
     RecoverPasswordGen.startRecoverPassword,
-    startRecoverPassword,
-    'startRecoverPassword'
+    startRecoverPassword
   )
-  yield* Saga.chainAction2(RecoverPasswordGen.displayDeviceSelect, displayDeviceSelect, 'displayDeviceSelect')
-  yield* Saga.chainAction2(RecoverPasswordGen.showExplainDevice, showExplainDevice, 'showExplainDevice')
-  yield* Saga.chainAction2(RecoverPasswordGen.displayError, displayError, 'displayError')
-  yield* Saga.chainAction2(RecoverPasswordGen.restartRecovery, restartRecovery, 'restartRecovery')
+  yield* Saga.chainAction(RecoverPasswordGen.displayDeviceSelect, displayDeviceSelect)
+  yield* Saga.chainAction2(RecoverPasswordGen.showExplainDevice, showExplainDevice)
+  yield* Saga.chainAction2(RecoverPasswordGen.displayError, displayError)
+  yield* Saga.chainAction2(RecoverPasswordGen.restartRecovery, restartRecovery)
   yield* Saga.chainAction2(RecoverPasswordGen.promptResetPassword, promptResetPassword)
   yield* Saga.chainAction2(RecoverPasswordGen.completeResetPassword, completeResetPassword)
 }

@@ -20,7 +20,7 @@ import {isIOS, isAndroid} from '../../constants/platform'
 import * as Container from '../../util/container'
 
 let lastCount = -1
-const updateAppBadge = (_: Container.TypedState, action: NotificationsGen.ReceivedBadgeStatePayload) => {
+const updateAppBadge = (action: NotificationsGen.ReceivedBadgeStatePayload) => {
   const count = (action.payload.badgeState.conversations || []).reduce(
     (total, c) => (c.badgeCounts ? total + c.badgeCounts[`${RPCTypes.DeviceType.mobile}`] : total),
     0
@@ -432,7 +432,7 @@ function* pushSaga() {
   yield* Saga.chainAction2([PushGen.updatePushToken, ConfigGen.bootstrapStatusLoaded], uploadPushToken)
   yield* Saga.chainGenerator<ConfigGen.LogoutHandshakePayload>(ConfigGen.logoutHandshake, deletePushToken)
 
-  yield* Saga.chainAction2(NotificationsGen.receivedBadgeState, updateAppBadge)
+  yield* Saga.chainAction(NotificationsGen.receivedBadgeState, updateAppBadge)
   yield* Saga.chainGenerator<PushGen.NotificationPayload>(PushGen.notification, handlePush)
   yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(ConfigGen.daemonHandshake, setupPushEventLoop)
   yield Saga.spawn(initialPermissionsCheck)

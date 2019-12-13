@@ -44,7 +44,7 @@ const onLoggedOut = (state: Container.TypedState) => {
   return undefined
 }
 
-const onLog = (_: Container.TypedState, action: EngineGen.Keybase1LogUiLogPayload) => {
+const onLog = (action: EngineGen.Keybase1LogUiLogPayload) => {
   log(action.payload.params)
 }
 
@@ -54,20 +54,14 @@ const onDisconnected = () => {
   return ConfigGen.createDaemonError({daemonError: new Error('Disconnected')})
 }
 
-const onTrackingInfo = (
-  _: Container.TypedState,
-  action: EngineGen.Keybase1NotifyTrackingTrackingInfoPayload
-) =>
+const onTrackingInfo = (action: EngineGen.Keybase1NotifyTrackingTrackingInfoPayload) =>
   ConfigGen.createFollowerInfoUpdated({
     followees: action.payload.params.followees || [],
     followers: action.payload.params.followers || [],
     uid: action.payload.params.uid,
   })
 
-const onHTTPSrvInfoUpdated = (
-  _: Container.TypedState,
-  action: EngineGen.Keybase1NotifyServiceHTTPSrvInfoUpdatePayload
-) =>
+const onHTTPSrvInfoUpdated = (action: EngineGen.Keybase1NotifyServiceHTTPSrvInfoUpdatePayload) =>
   ConfigGen.createUpdateHTTPSrvInfo({
     address: action.payload.params.info.address,
     token: action.payload.params.info.token,
@@ -540,13 +534,12 @@ const updateServerConfig = async (state: Container.TypedState) => {
     logger.info('updateServerConfig fail', e)
   }
 }
-const setNavigator = (_: Container.TypedState, action: ConfigGen.SetNavigatorPayload) => {
+const setNavigator = (action: ConfigGen.SetNavigatorPayload) => {
   const navigator = action.payload.navigator
   Router2._setNavigator(navigator)
 }
 
 const newNavigation = (
-  _: Container.TypedState,
   action:
     | RouteTreeGen.NavigateAppendPayload
     | RouteTreeGen.NavigateUpPayload
@@ -637,7 +630,7 @@ const logoutAndTryToLogInAs = async (
   return ConfigGen.createSetDefaultUsername({username: action.payload.username})
 }
 
-const gregorPushState = (_: Container.TypedState, action: GregorGen.PushStatePayload) => {
+const gregorPushState = (action: GregorGen.PushStatePayload) => {
   const actions: Array<Container.TypedActions> = []
   const items = action.payload.state
   const lastSeenItem = items.find(i => i.item && i.item.category === 'whatsNewLastSeenVersion')
@@ -714,16 +707,16 @@ function* configSaga() {
   // Switch between login or app routes
   yield* Saga.chainAction2([ConfigGen.loggedIn, ConfigGen.loggedOut], switchRouteDef)
   // MUST go above routeToInitialScreen2 so we set the nav correctly
-  yield* Saga.chainAction2(ConfigGen.setNavigator, setNavigator)
+  yield* Saga.chainAction(ConfigGen.setNavigator, setNavigator)
   // Go to the correct starting screen
   yield* Saga.chainAction2([ConfigGen.daemonHandshakeDone, ConfigGen.setNavigator], routeToInitialScreen2)
   yield* Saga.chainAction2(ConfigGen.persistRoute, stashLastRoute)
 
   yield* Saga.chainAction2(ConfigGen.daemonHandshakeDone, emitStartupFirstIdle)
 
-  yield* Saga.chainAction2(ConfigGen.logoutAndTryToLogInAs, logoutAndTryToLogInAs, 'logoutAndTryToLogInAs')
+  yield* Saga.chainAction2(ConfigGen.logoutAndTryToLogInAs, logoutAndTryToLogInAs)
 
-  yield* Saga.chainAction2(
+  yield* Saga.chainAction(
     [
       RouteTreeGen.navigateAppend,
       RouteTreeGen.navigateUp,
@@ -755,14 +748,14 @@ function* configSaga() {
 
   yield* Saga.chainAction2(EngineGen.keybase1NotifySessionLoggedIn, onLoggedIn)
   yield* Saga.chainAction2(EngineGen.keybase1NotifySessionLoggedOut, onLoggedOut)
-  yield* Saga.chainAction2(EngineGen.keybase1LogUiLog, onLog)
+  yield* Saga.chainAction(EngineGen.keybase1LogUiLog, onLog)
   yield* Saga.chainAction2(EngineGen.connected, onConnected)
   yield* Saga.chainAction2(EngineGen.disconnected, onDisconnected)
-  yield* Saga.chainAction2(EngineGen.keybase1NotifyTrackingTrackingInfo, onTrackingInfo)
-  yield* Saga.chainAction2(EngineGen.keybase1NotifyServiceHTTPSrvInfoUpdate, onHTTPSrvInfoUpdated)
+  yield* Saga.chainAction(EngineGen.keybase1NotifyTrackingTrackingInfo, onTrackingInfo)
+  yield* Saga.chainAction(EngineGen.keybase1NotifyServiceHTTPSrvInfoUpdate, onHTTPSrvInfoUpdated)
 
   // Listen for updates to `whatsNewLastSeenVersion`
-  yield* Saga.chainAction2(GregorGen.pushState, gregorPushState, 'gregorPushState')
+  yield* Saga.chainAction(GregorGen.pushState, gregorPushState)
 
   yield* Saga.chainAction2(SettingsGen.loadedSettings, maybeLoadAppLink)
 

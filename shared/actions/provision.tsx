@@ -279,7 +279,7 @@ class ProvisioningManager {
     ])
   }
 
-  submitGPGSignOK = (_: Container.TypedState, action: ProvisionGen.SubmitGPGSignOKPayload) => {
+  submitGPGSignOK = (action: ProvisionGen.SubmitGPGSignOKPayload) => {
     if (this.done) {
       logger.info('ProvisioningManager done, yet submitGPGSignOK called')
       return
@@ -522,8 +522,8 @@ const submitTextCode = (state: Container.TypedState) =>
   ProvisioningManager.getSingleton().submitTextCode(state)
 const submitGPGMethod = (state: Container.TypedState, action: ProvisionGen.SubmitGPGMethodPayload) =>
   ProvisioningManager.getSingleton().submitGPGMethod(state, action)
-const submitGPGSignOK = (state: Container.TypedState, action: ProvisionGen.SubmitGPGSignOKPayload) =>
-  ProvisioningManager.getSingleton().submitGPGSignOK(state, action)
+const submitGPGSignOK = (action: ProvisionGen.SubmitGPGSignOKPayload) =>
+  ProvisioningManager.getSingleton().submitGPGSignOK(action)
 const submitPasswordOrPaperkey = (
   state: Container.TypedState,
   action: ProvisionGen.SubmitPasswordPayload | ProvisionGen.SubmitPaperkeyPayload
@@ -558,7 +558,7 @@ const showPaperkeyPage = (state: Container.TypedState) =>
   !state.provision.error.stringValue() &&
   RouteTreeGen.createNavigateAppend({path: ['paperkey'], replace: true})
 
-const showFinalErrorPage = (_: Container.TypedState, action: ProvisionGen.ShowFinalErrorPagePayload) => {
+const showFinalErrorPage = (action: ProvisionGen.ShowFinalErrorPagePayload) => {
   const parentPath = action.payload.fromDeviceAdd ? devicesRoot : ['login']
   const replace = !action.payload.fromDeviceAdd
   const path = ['error']
@@ -584,7 +584,7 @@ const showUsernameEmailPage = async (
   })
 }
 
-const forgotUsername = async (_: Container.TypedState, action: ProvisionGen.ForgotUsernamePayload) => {
+const forgotUsername = async (action: ProvisionGen.ForgotUsernamePayload) => {
   if (action.payload.email) {
     try {
       await RPCTypes.accountRecoverUsernameWithEmailRpcPromise(
@@ -637,7 +637,7 @@ function* provisionSaga() {
   yield* Saga.chainAction2(ProvisionGen.submitDeviceName, submitDeviceName)
   yield* Saga.chainAction2(ProvisionGen.submitTextCode, submitTextCode)
   yield* Saga.chainAction2(ProvisionGen.submitGPGMethod, submitGPGMethod)
-  yield* Saga.chainAction2(ProvisionGen.submitGPGSignOK, submitGPGSignOK)
+  yield* Saga.chainAction(ProvisionGen.submitGPGSignOK, submitGPGSignOK)
   yield* Saga.chainAction2(
     [ProvisionGen.submitPassword, ProvisionGen.submitPaperkey],
     submitPasswordOrPaperkey
@@ -651,8 +651,8 @@ function* provisionSaga() {
   yield* Saga.chainAction2(ProvisionGen.showGPGPage, showGPGPage)
   yield* Saga.chainAction2(ProvisionGen.showPasswordPage, showPasswordPage)
   yield* Saga.chainAction2(ProvisionGen.showPaperkeyPage, showPaperkeyPage)
-  yield* Saga.chainAction2(ProvisionGen.showFinalErrorPage, showFinalErrorPage)
-  yield* Saga.chainAction2(ProvisionGen.forgotUsername, forgotUsername)
+  yield* Saga.chainAction(ProvisionGen.showFinalErrorPage, showFinalErrorPage)
+  yield* Saga.chainAction(ProvisionGen.forgotUsername, forgotUsername)
 
   yield* Saga.chainAction2(ProvisionGen.cancelProvision, maybeCancelProvision)
   yield* Saga.chainGenerator(ProvisionGen.backToDeviceList, backToDeviceList)

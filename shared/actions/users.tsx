@@ -9,10 +9,7 @@ import {TypedState} from '../util/container'
 import logger from '../logger'
 import {RPCError} from 'util/errors'
 
-const onIdentifyUpdate = (
-  _: Container.TypedState,
-  action: EngineGen.Keybase1NotifyUsersIdentifyUpdatePayload
-) =>
+const onIdentifyUpdate = (action: EngineGen.Keybase1NotifyUsersIdentifyUpdatePayload) =>
   UsersGen.createUpdateBrokenState({
     newlyBroken: action.payload.params.brokenUsernames || [],
     newlyFixed: action.payload.params.okUsernames || [],
@@ -45,14 +42,14 @@ const getBio = async (state: TypedState, action: UsersGen.GetBioPayload) => {
   }
 }
 
-const setUserBlocks = async (_: TypedState, action: UsersGen.SetUserBlocksPayload) => {
+const setUserBlocks = async (action: UsersGen.SetUserBlocksPayload) => {
   const {blocks} = action.payload
   if (blocks && blocks.length) {
     await RPCTypes.userSetUserBlocksRpcPromise({blocks}, Constants.setUserBlocksWaitingKey)
   }
 }
 
-const getBlockState = async (_: TypedState, action: UsersGen.GetBlockStatePayload) => {
+const getBlockState = async (action: UsersGen.GetBlockStatePayload) => {
   const {usernames} = action.payload
 
   const blocks = await RPCTypes.userGetUserBlocksRpcPromise({usernames}, Constants.getUserBlocksWaitingKey)
@@ -62,16 +59,16 @@ const getBlockState = async (_: TypedState, action: UsersGen.GetBlockStatePayloa
   return
 }
 
-const reportUser = async (_: TypedState, action: UsersGen.ReportUserPayload) => {
+const reportUser = async (action: UsersGen.ReportUserPayload) => {
   await RPCTypes.userReportUserRpcPromise(action.payload, Constants.reportUserWaitingKey)
 }
 
 function* usersSaga() {
-  yield* Saga.chainAction2(EngineGen.keybase1NotifyUsersIdentifyUpdate, onIdentifyUpdate, 'onIdentifyUpdate')
+  yield* Saga.chainAction(EngineGen.keybase1NotifyUsersIdentifyUpdate, onIdentifyUpdate)
   yield* Saga.chainAction2(UsersGen.getBio, getBio)
-  yield* Saga.chainAction2(UsersGen.setUserBlocks, setUserBlocks)
-  yield* Saga.chainAction2(UsersGen.getBlockState, getBlockState)
-  yield* Saga.chainAction2(UsersGen.reportUser, reportUser)
+  yield* Saga.chainAction(UsersGen.setUserBlocks, setUserBlocks)
+  yield* Saga.chainAction(UsersGen.getBlockState, getBlockState)
+  yield* Saga.chainAction(UsersGen.reportUser, reportUser)
 }
 
 export default usersSaga

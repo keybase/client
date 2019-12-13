@@ -24,7 +24,7 @@ const editProfile = async (state: TypedState, action: ProfileGen.EditProfilePayl
   return Tracker2Gen.createShowUser({asTracker: false, username: state.config.username})
 }
 
-const uploadAvatar = async (_: TypedState, action: ProfileGen.UploadAvatarPayload) => {
+const uploadAvatar = async (action: ProfileGen.UploadAvatarPayload) => {
   try {
     await RPCTypes.userUploadUserAvatarRpcPromise(
       {
@@ -52,7 +52,7 @@ const finishRevoking = (state: TypedState) => [
   ProfileGen.createRevokeFinish(),
 ]
 
-const showUserProfile = (_: TypedState, action: ProfileGen.ShowUserProfilePayload) => {
+const showUserProfile = (action: ProfileGen.ShowUserProfilePayload) => {
   const {username} = action.payload
   return [
     RouteTreeGen.createClearModals(),
@@ -60,7 +60,7 @@ const showUserProfile = (_: TypedState, action: ProfileGen.ShowUserProfilePayloa
   ]
 }
 
-const onClickAvatar = (_: TypedState, action: ProfileGen.OnClickAvatarPayload) => {
+const onClickAvatar = (action: ProfileGen.OnClickAvatarPayload) => {
   if (!action.payload.username) {
     return
   }
@@ -103,7 +103,7 @@ const submitRevokeProof = async (state: TypedState, action: ProfileGen.SubmitRev
   }
 }
 
-const submitBlockUser = async (_: TypedState, action: ProfileGen.SubmitBlockUserPayload) => {
+const submitBlockUser = async (action: ProfileGen.SubmitBlockUserPayload) => {
   try {
     await RPCTypes.userBlockUserRpcPromise({username: action.payload.username}, Constants.blockUserWaitingKey)
     return [
@@ -124,7 +124,7 @@ const submitBlockUser = async (_: TypedState, action: ProfileGen.SubmitBlockUser
   }
 }
 
-const submitUnblockUser = async (_: TypedState, action: ProfileGen.SubmitUnblockUserPayload) => {
+const submitUnblockUser = async (action: ProfileGen.SubmitUnblockUserPayload) => {
   try {
     await RPCTypes.userUnblockUserRpcPromise(
       {username: action.payload.username},
@@ -159,14 +159,14 @@ const backToProfile = (state: TypedState) => [
 
 function* _profileSaga() {
   yield* Saga.chainAction2(ProfileGen.submitRevokeProof, submitRevokeProof)
-  yield* Saga.chainAction2(ProfileGen.submitBlockUser, submitBlockUser)
-  yield* Saga.chainAction2(ProfileGen.submitUnblockUser, submitUnblockUser)
+  yield* Saga.chainAction(ProfileGen.submitBlockUser, submitBlockUser)
+  yield* Saga.chainAction(ProfileGen.submitUnblockUser, submitUnblockUser)
   yield* Saga.chainAction2(ProfileGen.backToProfile, backToProfile)
   yield* Saga.chainAction2(ProfileGen.editProfile, editProfile)
-  yield* Saga.chainAction2(ProfileGen.uploadAvatar, uploadAvatar)
+  yield* Saga.chainAction(ProfileGen.uploadAvatar, uploadAvatar)
   yield* Saga.chainAction2(ProfileGen.finishRevoking, finishRevoking)
-  yield* Saga.chainAction2(ProfileGen.onClickAvatar, onClickAvatar)
-  yield* Saga.chainAction2(ProfileGen.showUserProfile, showUserProfile)
+  yield* Saga.chainAction(ProfileGen.onClickAvatar, onClickAvatar)
+  yield* Saga.chainAction(ProfileGen.showUserProfile, showUserProfile)
   yield* Saga.chainAction2(ProfileGen.editAvatar, editAvatar)
 }
 

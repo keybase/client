@@ -59,8 +59,7 @@ type ValuesOf<T extends any[]> = T[number]
 interface ChainAction2 {
   <AT extends ActionTypes>(
     actions: AT,
-    handler: (state: TypedState, action: TypedActionsMap[AT], logger: SagaLogger) => ChainActionReturn,
-    loggerTag?: string
+    handler: (state: TypedState, action: TypedActionsMap[AT], logger: SagaLogger) => ChainActionReturn
   ): Generator<void, void, void>
 
   <AT extends ActionTypes[]>(
@@ -69,28 +68,39 @@ interface ChainAction2 {
       state: TypedState,
       action: TypedActionsMap[ValuesOf<AT>],
       logger: SagaLogger
-    ) => ChainActionReturn,
-    loggerTag?: string
+    ) => ChainActionReturn
+  ): Generator<void, void, void>
+}
+interface ChainAction {
+  <AT extends ActionTypes>(
+    actions: AT,
+    handler: (action: TypedActionsMap[AT], logger: SagaLogger) => ChainActionReturn
+  ): Generator<void, void, void>
+
+  <AT extends ActionTypes[]>(
+    actions: AT,
+    handler: (action: TypedActionsMap[ValuesOf<AT>], logger: SagaLogger) => ChainActionReturn
   ): Generator<void, void, void>
 }
 
 function* chainAction2Impl<Actions extends {readonly type: string}>(
   pattern: Types.Pattern<any>,
-  f: (state: TypedState, action: Actions, logger: SagaLogger) => ChainActionReturn,
-  loggerTag?: string
+  f: (state: TypedState, action: Actions, logger: SagaLogger) => ChainActionReturn
 ) {
   // @ts-ignore
-  return yield Effects.takeEvery<TypedActions>(pattern as Types.Pattern<any>, function* chainActionHelper(
+  return yield Effects.takeEvery<TypedActions>(pattern as Types.Pattern<any>, function* chainAction2Helper(
     action: TypedActions
   ) {
-    const sl = new SagaLogger(action.type as ActionType, loggerTag || 'unknown')
+    const sl = new SagaLogger(action.type as ActionType, f.name ?? 'unknown')
     try {
-      const state: TypedState = yield* selectState()
+      let state: TypedState = yield* selectState()
       // @ts-ignore
-      let toPut = yield Effects.call(f, state, action, sl)
+      const toPut = yield Effects.call(f, state, action, sl)
       // release memory
       // @ts-ignore
       action = undefined
+      // @ts-ignore
+      state = undefined
       if (toPut) {
         const outActions: Array<TypedActions> = isArray(toPut) ? toPut : [toPut]
         for (var out of outActions) {
@@ -120,19 +130,60 @@ function* chainAction2Impl<Actions extends {readonly type: string}>(
 
 export const chainAction2: ChainAction2 = (chainAction2Impl as unknown) as any
 
+function* chainActionImpl<Actions extends {readonly type: string}>(
+  pattern: Types.Pattern<any>,
+  f: (action: Actions, logger: SagaLogger) => ChainActionReturn
+) {
+  // @ts-ignore
+  return yield Effects.takeEvery<TypedActions>(pattern as Types.Pattern<any>, function* chainActionHelper(
+    action: TypedActions
+  ) {
+    const sl = new SagaLogger(action.type as ActionType, f.name ?? 'unknown')
+    try {
+      // @ts-ignore
+      const toPut = yield Effects.call(f, action, sl)
+      // release memory
+      // @ts-ignore
+      action = undefined
+      if (toPut) {
+        const outActions: Array<TypedActions> = isArray(toPut) ? toPut : [toPut]
+        for (var out of outActions) {
+          if (out) {
+            yield Effects.put(out)
+          }
+        }
+      }
+      if (sl.isTagged) {
+        sl.info('-> ok')
+      }
+    } catch (error) {
+      sl.warn(error.message)
+      // Convert to global error so we don't kill the takeEvery loop
+      yield Effects.put(
+        ConfigGen.createGlobalError({
+          globalError: convertToError(error),
+        })
+      )
+    } finally {
+      if (yield Effects.cancelled()) {
+        sl.info('chainAction cancelled')
+      }
+    }
+  })
+}
+export const chainAction: ChainAction = (chainActionImpl as unknown) as any
+
 function* chainGenerator<
   Actions extends {
     readonly type: string
   }
 >(
   pattern: Types.Pattern<any>,
-  f: (state: TypedState, action: Actions, logger: SagaLogger) => Generator<any, any, any>,
-  // tag for logger
-  fcnTag?: string
+  f: (state: TypedState, action: Actions, logger: SagaLogger) => Generator<any, any, any>
 ): Generator<any, void, any> {
   // @ts-ignore TODO fix
   return yield Effects.takeEvery<Actions>(pattern, function* chainGeneratorHelper(action: Actions) {
-    const sl = new SagaLogger(action.type as ActionType, fcnTag || 'unknown')
+    const sl = new SagaLogger(action.type as ActionType, f.name ?? 'unknown')
     try {
       const state: TypedState = yield* selectState()
       yield* f(state, action, sl)
