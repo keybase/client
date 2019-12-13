@@ -3,7 +3,6 @@ package teams
 import (
 	"fmt"
 	"sort"
-	"strings"
 	"testing"
 	"time"
 
@@ -1576,9 +1575,8 @@ func TestAddMemberWithRestrictiveContactSettings(t *testing.T) {
 	// alice can't add charlie
 	_, err = AddMember(context.TODO(), tc.G, team, charlie.Username, keybase1.TeamRole_WRITER, nil)
 	require.Error(t, err)
-	fields := err.(libkb.AppStatusError).Fields
-	usernames := strings.Split(fields["usernames"], ",")
-	require.Equal(t, usernames[0], charlie.Username)
+	usernames := err.(libkb.TeamContactSettingsBlockError).BlockedUsernames()
+	require.Equal(t, usernames[0].String(), charlie.Username)
 
 	// charlie tracks alice
 	err = tc.Logout()
