@@ -8,7 +8,7 @@ import * as ConfigTypes from '../constants/types/config'
 type OwnProps = {}
 
 type Props = {
-  message: string
+  message?: string
   onOpenAppStore: () => void
   status: ConfigTypes.UpdateInfoStatus
 }
