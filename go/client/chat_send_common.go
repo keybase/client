@@ -50,7 +50,6 @@ func chatSend(ctx context.Context, g *libkb.GlobalContext, c ChatSendArg) error 
 	})
 	switch err.(type) {
 	case nil:
-		break
 	case libkb.ResolutionError:
 		return fmt.Errorf("could not resolve `%s` into Keybase user(s) or a team", c.resolvingRequest.TlfName)
 	default:

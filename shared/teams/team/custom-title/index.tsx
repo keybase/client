@@ -1,12 +1,5 @@
 import * as React from 'react'
-import {
-  iconCastPlatformStyles,
-  Box,
-  Icon,
-  ProgressIndicator,
-  OverlayParentHOC,
-  OverlayParentProps,
-} from '../../../common-adapters'
+import {Box, Icon, ProgressIndicator, OverlayParentHOC, OverlayParentProps} from '../../../common-adapters'
 import {globalStyles, globalMargins, isMobile, styleSheetCreate} from '../../../styles'
 import * as Types from '../../../constants/types/teams'
 import TeamMenu from '../menu-container'
@@ -24,19 +17,14 @@ const _CustomComponent = (props: Props & OverlayParentProps) => (
   <Box style={styles.container}>
     {isMobile && props.loading && <ProgressIndicator style={styles.progressIndicator} />}
     {props.canChat && (
-      <Icon
-        onClick={props.onChat}
-        fontSize={fontSize}
-        style={iconCastPlatformStyles(styles.icon)}
-        type="iconfont-chat"
-      />
+      <Icon onClick={props.onChat} fontSize={fontSize} style={styles.icon} type="iconfont-chat" />
     )}
     <Icon
       ref={props.setAttachmentRef}
       onClick={props.toggleShowingMenu}
       type="iconfont-ellipsis"
       fontSize={fontSize}
-      style={iconCastPlatformStyles(styles.icon)}
+      style={styles.icon}
     />
     <TeamMenu
       attachTo={props.getAttachmentRef}

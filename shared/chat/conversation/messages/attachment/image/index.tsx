@@ -147,7 +147,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                           {!!this.props.showButton && (
                             <Kb.Icon
                               type={this.props.showButton === 'play' ? 'icon-play-64' : 'icon-film-64'}
-                              style={Kb.iconCastPlatformStyles(styles.playButton)}
+                              style={styles.playButton}
                             />
                           )}
                           {this.props.videoDuration.length > 0 && this.state.loaded && (
@@ -161,7 +161,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                             <Kb.Box style={styles.downloadedIconWrapper}>
                               <Kb.Icon
                                 type="iconfont-download"
-                                style={Kb.iconCastPlatformStyles(styles.downloadIcon)}
+                                style={styles.downloadIcon}
                                 color={this.props.arrowColor}
                               />
                             </Kb.Box>

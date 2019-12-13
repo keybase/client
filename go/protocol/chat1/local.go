@@ -6392,6 +6392,11 @@ type TeamIDFromTLFNameArg struct {
 	TlfPublic   bool                    `codec:"tlfPublic" json:"tlfPublic"`
 }
 
+type DismissJourneycardArg struct {
+	ConvID   ConversationID  `codec:"convID" json:"convID"`
+	CardType JourneycardType `codec:"cardType" json:"cardType"`
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetCachedThread(context.Context, GetCachedThreadArg) (GetThreadLocalRes, error)
@@ -6484,6 +6489,7 @@ type LocalInterface interface {
 	SetBotMemberSettings(context.Context, SetBotMemberSettingsArg) error
 	GetBotMemberSettings(context.Context, GetBotMemberSettingsArg) (keybase1.TeamBotSettings, error)
 	TeamIDFromTLFName(context.Context, TeamIDFromTLFNameArg) (keybase1.TeamID, error)
+	DismissJourneycard(context.Context, DismissJourneycardArg) error
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -7815,6 +7821,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"dismissJourneycard": {
+				MakeArg: func() interface{} {
+					var ret [1]DismissJourneycardArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]DismissJourneycardArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]DismissJourneycardArg)(nil), args)
+						return
+					}
+					err = i.DismissJourneycard(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -8295,5 +8316,10 @@ func (c LocalClient) GetBotMemberSettings(ctx context.Context, __arg GetBotMembe
 
 func (c LocalClient) TeamIDFromTLFName(ctx context.Context, __arg TeamIDFromTLFNameArg) (res keybase1.TeamID, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.teamIDFromTLFName", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) DismissJourneycard(ctx context.Context, __arg DismissJourneycardArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.dismissJourneycard", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }

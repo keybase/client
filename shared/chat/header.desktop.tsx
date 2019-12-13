@@ -161,10 +161,14 @@ const Header = (p: Props) => {
                     usernames={[withoutSelf[0]]}
                     onUsernameClicked="profile"
                   />
-                  <Kb.Text type="BodySmall" style={styles.desc}>
-                    &nbsp;•&nbsp;
-                  </Kb.Text>
-                  {description}
+                  {description && (
+                    <>
+                      <Kb.Text type="BodySmall" style={styles.desc}>
+                        &nbsp;•&nbsp;
+                      </Kb.Text>
+                      {description}
+                    </>
+                  )}
                 </Kb.Box2>
               ) : (
                 description

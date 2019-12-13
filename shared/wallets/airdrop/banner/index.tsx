@@ -79,7 +79,7 @@ const markdownOverride = {
 
 const styles = Styles.styleSheetCreate(() => ({
   button: Styles.platformStyles({
-    isElectron: Styles.desktopStyles.windowDraggingClickable,
+    isElectron: {...Styles.desktopStyles.windowDraggingClickable},
   }),
   buttonContainer: Styles.platformStyles({
     common: {
@@ -97,7 +97,7 @@ const styles = Styles.styleSheetCreate(() => ({
       backgroundColor: Styles.globalColors.purple,
       padding: Styles.globalMargins.tiny,
     },
-    isElectron: Styles.desktopStyles.windowDragging,
+    isElectron: {...Styles.desktopStyles.windowDragging},
   }),
   grow: {flexGrow: 1, flexShrink: 1},
   markdown: Styles.platformStyles({

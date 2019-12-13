@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/globals"
-	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
@@ -420,7 +419,7 @@ func (idx *Indexer) SearchableConvs(ctx context.Context, uid gregor1.UID, convID
 	if err != nil {
 		return res, err
 	}
-	return idx.convsByMTime(ctx, uid, convMap), nil
+	return idx.convsPrioritySorted(ctx, uid, convMap), nil
 }
 
 func (idx *Indexer) allConvs(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID) (map[string]types.RemoteConversation, error) {
@@ -470,7 +469,7 @@ func (idx *Indexer) allConvs(ctx context.Context, uid gregor1.UID, convID *chat1
 	return convMap, nil
 }
 
-func (idx *Indexer) convsByMTime(ctx context.Context, uid gregor1.UID,
+func (idx *Indexer) convsPrioritySorted(ctx context.Context, uid gregor1.UID,
 	convMap map[string]types.RemoteConversation) (res []types.RemoteConversation) {
 	res = make([]types.RemoteConversation, len(convMap))
 	index := 0
@@ -478,19 +477,8 @@ func (idx *Indexer) convsByMTime(ctx context.Context, uid gregor1.UID,
 		res[index] = conv
 		index++
 	}
-	_, ib, err := storage.NewInbox(idx.G()).ReadAll(ctx, uid, true)
-	if err != nil {
-		idx.Debug(ctx, "convsByMTime: failed to read inbox: %s", err)
-		return res
-	}
-	sortMap := make(map[string]gregor1.Time)
-	for _, conv := range ib {
-		sortMap[conv.ConvIDStr] = utils.GetConvMtime(conv)
-	}
 	sort.Slice(res, func(i, j int) bool {
-		imtime := sortMap[res[i].ConvIDStr]
-		jmtime := sortMap[res[j].ConvIDStr]
-		return imtime.After(jmtime)
+		return utils.GetConvPriorityScore(convMap[res[i].ConvIDStr]) >= utils.GetConvPriorityScore(convMap[res[j].ConvIDStr])
 	})
 	return res
 }
@@ -546,8 +534,8 @@ func (idx *Indexer) SelectiveSync(ctx context.Context, uid gregor1.UID) (err err
 		return err
 	}
 
-	// make sure the most recently modified convs are fully indexed
-	convs := idx.convsByMTime(ctx, uid, convMap)
+	// make sure the most recently read convs are fully indexed
+	convs := idx.convsPrioritySorted(ctx, uid, convMap)
 	// number of batches of messages to fetch in total
 	numJobs := idx.maxSyncConvs
 	for _, conv := range convs {

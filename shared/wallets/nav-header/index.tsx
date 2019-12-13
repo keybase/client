@@ -89,7 +89,7 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       accountID: Styles.platformStyles({
-        isElectron: Styles.desktopStyles.windowDraggingClickable,
+        isElectron: {...Styles.desktopStyles.windowDraggingClickable},
       }),
       accountInfo: {
         paddingBottom: Styles.globalMargins.xtiny,
@@ -114,7 +114,7 @@ const styles = Styles.styleSheetCreate(
           paddingLeft: Styles.globalMargins.xsmall,
           paddingRight: Styles.globalMargins.xsmall,
         },
-        isElectron: Styles.desktopStyles.windowDraggingClickable,
+        isElectron: {...Styles.desktopStyles.windowDraggingClickable},
       }),
       loading: {
         height: 16,
@@ -126,7 +126,7 @@ const styles = Styles.styleSheetCreate(
           paddingBottom: 6,
           paddingRight: Styles.globalMargins.xsmall,
         },
-        isElectron: Styles.desktopStyles.windowDraggingClickable,
+        isElectron: {...Styles.desktopStyles.windowDraggingClickable},
       }),
     } as const)
 )

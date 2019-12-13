@@ -2976,3 +2976,14 @@ func (h *Server) TeamIDFromTLFName(ctx context.Context, arg chat1.TeamIDFromTLFN
 
 	return h.teamIDFromTLFName(ctx, arg.MembersType, arg.TlfName, arg.TlfPublic)
 }
+
+func (h *Server) DismissJourneycard(ctx context.Context, arg chat1.DismissJourneycardArg) (err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "DismissJourneycard")()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return err
+	}
+	h.G().JourneyCardManager.Dismiss(ctx, uid, arg.ConvID, arg.CardType)
+	return nil
+}

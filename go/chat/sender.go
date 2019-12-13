@@ -994,7 +994,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	sender := gregor1.UID(s.G().Env.GetUID().ToBytes())
 	conv, err = utils.GetVerifiedConv(ctx, s.G(), sender, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
-		s.Debug(ctx, "Send: error getting conversation metadata: %s", err.Error())
+		s.Debug(ctx, "Send: error getting conversation metadata: %v", err)
 		return nil, nil, err
 	}
 	s.Debug(ctx, "Send: uid: %s in conversation %s (tlfName: %s) with status: %v", sender,
@@ -1004,8 +1004,12 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	switch conv.ReaderInfo.Status {
 	case chat1.ConversationMemberStatus_PREVIEW, chat1.ConversationMemberStatus_NEVER_JOINED:
 		switch msg.ClientHeader.MessageType {
-		case chat1.MessageType_JOIN, chat1.MessageType_LEAVE:
-			// pass so we don't loop between Send and Join/Leave.
+		case chat1.MessageType_JOIN,
+			chat1.MessageType_LEAVE,
+			chat1.MessageType_HEADLINE,
+			chat1.MessageType_METADATA:
+			// pass so we don't loop between Send and Join/Leave or join when
+			// updating the metadata/headline.
 		default:
 			s.Debug(ctx, "Send: user is in mode: %v, joining conversation", conv.ReaderInfo.Status)
 			if err = JoinConversation(ctx, s.G(), s.DebugLabeler, s.getRi, sender, convID); err != nil {
