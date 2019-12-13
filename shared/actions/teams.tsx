@@ -892,16 +892,17 @@ function* setPublicity(state: TypedState, action: TeamsGen.SetPublicityPayload, 
     logger.error(`no team ID for ${teamname}`)
     return
   }
-  const teamSettings = state.teams.teamDetails.get(teamID)?.settings ?? Constants.emptyTeamSettings
+  const teamMeta = Constants.getTeamMeta(state, teamID)
+  const teamSettings = Constants.getTeamDetails(state, teamID).settings
 
   const teamPublicitySettings = Constants.getTeamPublicitySettings(state, teamname)
 
   const ignoreAccessRequests = teamPublicitySettings.ignoreAccessRequests
   const openTeam = teamSettings.open
   const openTeamRole = teamSettings.openJoinAs
-  const publicityAnyMember = teamPublicitySettings.anyMemberShowcase
-  const publicityMember = teamPublicitySettings.member
-  const publicityTeam = teamPublicitySettings.team
+  const publicityAnyMember = teamMeta.allowPromote
+  const publicityMember = teamMeta.showcasing
+  const publicityTeam = teamSettings.teamShowcased
 
   const calls: Array<any> = []
   if (openTeam !== settings.openTeam || (settings.openTeam && openTeamRole !== settings.openTeamRole)) {
