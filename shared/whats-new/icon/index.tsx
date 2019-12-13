@@ -6,11 +6,13 @@ import {keybaseFM} from '../../constants/whats-new'
 import Popup from '../popup.desktop'
 
 type Props = {
+  newRelease: boolean
+  updateMessage: string
+  isUpdateAvailable: boolean
   color?: string
   badgeColor?: string
-  style?: IconStyle
   className?: string
-  newRelease: boolean
+  style?: IconStyle
   onClick?: () => void
 }
 
