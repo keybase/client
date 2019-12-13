@@ -94,8 +94,6 @@ func (t *TypingMonitor) notifyConvUpdateLocked(ctx context.Context, convID chat1
 func (t *TypingMonitor) Update(ctx context.Context, typer chat1.TyperInfo, convID chat1.ConversationID,
 	teamType chat1.TeamType, typing bool) {
 
-	key := t.key(typer, convID)
-
 	// If this is about ourselves, then don't bother
 	cuid := t.G().Env.GetUID()
 	cdid := t.G().Env.GetDeviceID()
@@ -104,12 +102,13 @@ func (t *TypingMonitor) Update(ctx context.Context, typer chat1.TyperInfo, convI
 	}
 
 	// If the update is for a big team we are not currently viewing, don't bother sending it
-	if !convID.Eq(t.G().Syncer.GetSelectedConversation()) && teamType == chat1.TeamType_COMPLEX {
+	if teamType == chat1.TeamType_COMPLEX && !convID.Eq(t.G().Syncer.GetSelectedConversation()) {
 		return
 	}
 
 	// Process the update
 	t.Lock()
+	key := t.key(typer, convID)
 	chans, alreadyTyping := t.typers[key]
 	t.Unlock()
 	if typing {

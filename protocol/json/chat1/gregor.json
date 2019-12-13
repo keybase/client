@@ -384,7 +384,8 @@
         },
         {
           "type": "TeamType",
-          "name": "teamType"
+          "name": "teamType",
+          "mpackkey": "t"
         }
       ]
     },

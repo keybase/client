@@ -309,7 +309,7 @@ type RemoteUserTypingUpdate struct {
 	DeviceID gregor1.DeviceID `codec:"deviceID" json:"deviceID"`
 	ConvID   ConversationID   `codec:"convID" json:"convID"`
 	Typing   bool             `codec:"typing" json:"typing"`
-	TeamType TeamType         `codec:"teamType" json:"teamType"`
+	TeamType TeamType         `codec:"t" json:"teamType"`
 }
 
 func (o RemoteUserTypingUpdate) DeepCopy() RemoteUserTypingUpdate {
