@@ -73,9 +73,12 @@ const ConnectedInfoPanel = Container.connect(
     const featuredBots = state.chat2.featuredBotsMap
 
     const _botUsernames = meta.participants.filter(
+      // If we're in an adhoc team, get bots by finding participants not in nameParticipants
       p =>
-        TeamConstants.userIsRoleInTeamWithInfo(_teamMembers, p, 'restrictedbot') ||
-        TeamConstants.userIsRoleInTeamWithInfo(_teamMembers, p, 'bot')
+        meta.teamType == 'adhoc'
+          ? !meta.nameParticipants.includes(p)
+          : TeamConstants.userIsRoleInTeamWithInfo(_teamMembers, p, 'restrictedbot') ||
+            TeamConstants.userIsRoleInTeamWithInfo(_teamMembers, p, 'bot')
     )
 
     const _participants = meta.participants.filter(p => !_botUsernames.includes(p))
