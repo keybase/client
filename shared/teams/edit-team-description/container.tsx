@@ -3,27 +3,30 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import EditTeamDescription from '.'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
+import * as Types from '../../constants/types/teams'
 
-type OwnProps = Container.RouteProps<{teamname: string}>
+type OwnProps = Container.RouteProps<{teamID: Types.TeamID}>
 
 const mapStateToProps = (state, ownProps) => {
-  const teamname = Container.getRouteProps(ownProps, 'teamname', '')
-  if (!teamname) {
+  const teamID = Container.getRouteProps(ownProps, 'teamID', Types.noTeamID)
+  if (!teamID || teamID === Types.noTeamID) {
     throw new Error('There was a problem loading the description page, please report this error.')
   }
-  const origDescription = Constants.getTeamPublicitySettings(state, teamname).description
+  const origDescription = Constants.getTeamDetails(state, teamID).description
+  const {teamname} = Constants.getTeamMeta(state, teamID)
   return {
     origDescription,
     teamname,
+    waitingKey: Constants.teamWaitingKey(teamname),
   }
 }
 
-const mapDispatchToProps = (dispatch, ownProps) => ({
-  _onSetDescription: (description: string) => {
+const mapDispatchToProps = dispatch => ({
+  _onSetDescription: (description: string, teamname) => {
     dispatch(
       TeamsGen.createEditTeamDescription({
         description,
-        teamname: Container.getRouteProps(ownProps, 'teamname', ''),
+        teamname,
       })
     )
     dispatch(RouteTreeGen.createNavigateUp())
@@ -42,11 +45,9 @@ const ConnectedEditTeamDescription = Container.compose(
     onChangeDescription: () => description => ({description}),
   }),
   Container.withHandlers({
-    onSetDescription: ({description, _onSetDescription}) => () => _onSetDescription(description),
-  } as any),
-  Container.withProps(({teamname}: any) => ({
-    waitingKey: Constants.teamWaitingKey(teamname),
-  }))
+    onSetDescription: ({description, teamname, _onSetDescription}) => () =>
+      _onSetDescription(description, teamname),
+  } as any)
 )(EditTeamDescription as any)
 
 export default ConnectedEditTeamDescription

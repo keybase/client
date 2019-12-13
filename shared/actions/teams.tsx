@@ -895,9 +895,7 @@ function* setPublicity(state: TypedState, action: TeamsGen.SetPublicityPayload, 
   const teamMeta = Constants.getTeamMeta(state, teamID)
   const teamSettings = Constants.getTeamDetails(state, teamID).settings
 
-  const teamPublicitySettings = Constants.getTeamPublicitySettings(state, teamname)
-
-  const ignoreAccessRequests = teamPublicitySettings.ignoreAccessRequests
+  const ignoreAccessRequests = teamSettings.tarsDisabled
   const openTeam = teamSettings.open
   const openTeamRole = teamSettings.openJoinAs
   const publicityAnyMember = teamMeta.allowPromote

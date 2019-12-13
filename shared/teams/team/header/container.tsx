@@ -25,7 +25,7 @@ export default Container.connect(
       canEditDescription: yourOperations.editTeamDescription,
       canJoinTeam: yourOperations.joinTeam,
       canManageMembers: yourOperations.manageMembers,
-      description: Constants.getTeamPublicitySettings(state, teamname).description,
+      description: Constants.getTeamDetails(state, teamID).description,
       memberCount,
       openTeam: isOpen,
       role: Constants.getRole(state, teamID),
@@ -42,10 +42,6 @@ export default Container.connect(
     },
     _onChat: (teamname: string) =>
       dispatch(Chat2Gen.createPreviewConversation({reason: 'teamHeader', teamname})),
-    _onEditDescription: (teamname: string) =>
-      dispatch(
-        RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamEditTeamDescription'}]})
-      ),
     _onEditIcon: (teamname: string, image?: ImagePicker.ImagePickerResult) =>
       dispatch(
         RouteTreeGen.createNavigateAppend({
@@ -54,6 +50,10 @@ export default Container.connect(
       ),
     _onRename: (teamname: string) =>
       dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamRename'}]})),
+    onEditDescription: () =>
+      dispatch(
+        RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'teamEditTeamDescription'}]})
+      ),
     onFilePickerError: (error: Error) => dispatch(ConfigGen.createFilePickerError({error})),
   }),
   (stateProps, dispatchProps, ownProps) => ({
@@ -66,7 +66,7 @@ export default Container.connect(
     memberCount: stateProps.memberCount,
     onAddSelf: () => dispatchProps._onAddSelf(stateProps._you),
     onChat: () => dispatchProps._onChat(stateProps.teamname),
-    onEditDescription: () => dispatchProps._onEditDescription(stateProps.teamname),
+    onEditDescription: dispatchProps.onEditDescription,
     onEditIcon: (image?: ImagePicker.ImagePickerResult) =>
       dispatchProps._onEditIcon(stateProps.teamname, image),
     onFilePickerError: dispatchProps.onFilePickerError,
