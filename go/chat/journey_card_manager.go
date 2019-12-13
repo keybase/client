@@ -1173,3 +1173,14 @@ var journeycardTypeOncePerTeam = map[chat1.JourneycardType]bool{
 	chat1.JourneycardType_ADD_PEOPLE:       true,
 	chat1.JourneycardType_CREATE_CHANNELS:  true,
 }
+
+var journeycardShouldNotRunOnReason = map[chat1.GetThreadReason]bool{
+	chat1.GetThreadReason_BACKGROUNDCONVLOAD: true,
+	chat1.GetThreadReason_FIXRETRY:           true,
+	chat1.GetThreadReason_PREPARE:            true,
+	chat1.GetThreadReason_SEARCHER:           true,
+	chat1.GetThreadReason_INDEXED_SEARCH:     true,
+	chat1.GetThreadReason_KBFSFILEACTIVITY:   true,
+	chat1.GetThreadReason_COINFLIP:           true,
+	chat1.GetThreadReason_BOTCOMMANDS:        true,
+}

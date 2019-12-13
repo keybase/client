@@ -304,30 +304,6 @@ func (h *Server) GetInboxAndUnboxUILocal(ctx context.Context, arg chat1.GetInbox
 	}, nil
 }
 
-func (h *Server) GetCachedThread(ctx context.Context, arg chat1.GetCachedThreadArg) (res chat1.GetThreadLocalRes, err error) {
-	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = globals.ChatCtx(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, "GetCachedThread")()
-	defer func() { h.setResultRateLimit(ctx, &res) }()
-	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
-	uid, err := utils.AssertLoggedInUID(ctx, h.G())
-	if err != nil {
-		return res, err
-	}
-
-	// Get messages from local disk only
-	thread, err := h.G().ConvSource.PullLocalOnly(ctx, arg.ConversationID, uid,
-		arg.Query, arg.Pagination, 0)
-	if err != nil {
-		return res, err
-	}
-
-	return chat1.GetThreadLocalRes{
-		Thread:           thread,
-		IdentifyFailures: identBreaks,
-	}, nil
-}
-
 // GetThreadLocal implements keybase.chatLocal.getThreadLocal protocol.
 func (h *Server) GetThreadLocal(ctx context.Context, arg chat1.GetThreadLocalArg) (res chat1.GetThreadLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure

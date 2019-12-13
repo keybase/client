@@ -3679,33 +3679,6 @@
       ],
       "response": "GetThreadLocalRes"
     },
-    "getCachedThread": {
-      "request": [
-        {
-          "name": "conversationID",
-          "type": "ConversationID"
-        },
-        {
-          "name": "query",
-          "type": [
-            null,
-            "GetThreadQuery"
-          ]
-        },
-        {
-          "name": "pagination",
-          "type": [
-            null,
-            "Pagination"
-          ]
-        },
-        {
-          "name": "identifyBehavior",
-          "type": "keybase1.TLFIdentifyBehavior"
-        }
-      ],
-      "response": "GetThreadLocalRes"
-    },
     "getThreadNonblock": {
       "request": [
         {
