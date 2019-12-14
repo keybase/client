@@ -148,8 +148,8 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
         ...paymentResult,
       })
     })
+    draftState.loadPaymentsError = action.payload.error
     draftState.paymentsMap.set(action.payload.accountID, map)
-
     draftState.paymentCursorMap.set(action.payload.accountID, action.payload.paymentCursor)
     draftState.paymentLoadingMoreMap.set(action.payload.accountID, false)
     // allowClearOldestUnread dictates whether this action is allowed to delete the value of oldestUnread.

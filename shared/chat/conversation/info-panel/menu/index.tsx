@@ -128,7 +128,8 @@ class InfoPanelMenu extends React.Component<Props> {
           ),
         }
 
-    const isAdhoc = !!(props.convProps && props.convProps.teamType === 'adhoc')
+    const isAdhoc =
+      (props.isSmallTeam && !props.convProps) || !!(props.convProps && props.convProps.teamType === 'adhoc')
     const items = isAdhoc
       ? [this.hideItem(), this.muteItem(), {danger: true, onClick: props.onBlockConv, title: 'Block'}]
       : [

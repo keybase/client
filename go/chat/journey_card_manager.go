@@ -226,6 +226,7 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 	var untrustedTeamRole keybase1.TeamRole
 	var tlfID chat1.TLFID
 	var welcomeEligible bool
+	var cannotWrite bool
 	if convLocalOptional != nil {
 		convInner = convLocalOptional
 		tlfID = convLocalOptional.Info.Triple.Tlfid
@@ -236,6 +237,7 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 				debugDebug(ctx, "welcomeEligible: convLocalOptional has ReaderInfo.Journeycard: %v", welcomeEligible)
 			}
 		}
+		cannotWrite = convLocalOptional.CannotWrite()
 	} else {
 		convFromCache, err := utils.GetUnverifiedConv(ctx, cc.G(), cc.uid, convID, types.InboxSourceDataSourceLocalOnly)
 		if err != nil {
@@ -255,6 +257,9 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 					debugDebug(ctx, "welcomeEligible: convFromCache has ReaderInfo.Journeycard: %v", welcomeEligible)
 				}
 			}
+			if convFromCache.Conv.ConvSettings != nil && convFromCache.Conv.ConvSettings.MinWriterRoleInfo != nil {
+				cannotWrite = untrustedTeamRole.IsOrAbove(convFromCache.Conv.ConvSettings.MinWriterRoleInfo.Role)
+			}
 		}
 	}
 
@@ -265,6 +270,7 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 		UntrustedTeamRole:       untrustedTeamRole,
 		TlfID:                   tlfID,
 		WelcomeEligible:         welcomeEligible,
+		CannotWrite:             cannotWrite,
 	}
 
 	if !(conv.GetTopicType() == chat1.TopicType_CHAT &&
@@ -375,7 +381,7 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 		chat1.JourneycardType_ADD_PEOPLE:       func(ctx context.Context) bool { return cc.cardAddPeople(ctx, conv, jcd, debugDebug) },
 		chat1.JourneycardType_CREATE_CHANNELS:  func(ctx context.Context) bool { return cc.cardCreateChannels(ctx, conv, jcd) },
 		chat1.JourneycardType_MSG_ATTENTION:    cardConditionTODO,
-		chat1.JourneycardType_CHANNEL_INACTIVE: func(ctx context.Context) bool { return cc.cardChannelInactive(ctx, jcd, thread, debugDebug) },
+		chat1.JourneycardType_CHANNEL_INACTIVE: func(ctx context.Context) bool { return cc.cardChannelInactive(ctx, conv, jcd, thread, debugDebug) },
 		chat1.JourneycardType_MSG_NO_ANSWER:    func(ctx context.Context) bool { return cc.cardMsgNoAnswer(ctx, conv, jcd, thread, debugDebug) },
 	}
 
@@ -646,9 +652,14 @@ func (cc *JourneyCardManagerSingleUser) cardMsgNoAnswer(ctx context.Context, con
 
 // Card type: CHANNEL_INACTIVE (B on design)
 // Gist: "Zzz... This channel hasn't been very active... Revive it?"
+// Condition: User can write in the channel.
 // Condition: The last visible message is old.
 func (cc *JourneyCardManagerSingleUser) cardChannelInactive(ctx context.Context,
-	jcd journeyCardConvData, thread *chat1.ThreadView, debugDebug logFn) bool {
+	conv convForJourneycard, jcd journeyCardConvData, thread *chat1.ThreadView,
+	debugDebug logFn) bool {
+	if conv.CannotWrite {
+		return false
+	}
 	// If the latest message is eligible then show the card.
 	var eligibleMsg chat1.MessageID  // maximum eligible msg
 	var preventerMsg chat1.MessageID // maximum preventer msg
@@ -1053,4 +1064,5 @@ type convForJourneycard struct {
 	UntrustedTeamRole keybase1.TeamRole
 	TlfID             chat1.TLFID
 	WelcomeEligible   bool
+	CannotWrite       bool
 }

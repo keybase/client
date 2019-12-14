@@ -1124,6 +1124,9 @@ func (h *Server) DownloadAttachmentLocal(ctx context.Context, arg chat1.Download
 	if err != nil {
 		return res, err
 	}
+	if arg.MessageID == 0 {
+		return res, errors.New("invalid message ID provided")
+	}
 	darg := downloadAttachmentArg{
 		SessionID:        arg.SessionID,
 		ConversationID:   arg.ConversationID,
@@ -1159,6 +1162,9 @@ func (h *Server) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.Down
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
+	}
+	if arg.MessageID == 0 {
+		return res, errors.New("invalid message ID provided")
 	}
 	darg := downloadAttachmentArg{
 		SessionID:        arg.SessionID,

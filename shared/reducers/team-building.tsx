@@ -67,6 +67,7 @@ export const editTeambuildingDraft = (
       draftState.searchLimit = limit
       draftState.searchQuery = trim(query)
       draftState.selectedService = service
+      draftState.searchResults.get(query)?.delete(service)
     },
   }
 

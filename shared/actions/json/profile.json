@@ -39,6 +39,9 @@
       "shouldStoreKeyOnServer": "boolean"
     },
     "generatePgp": {},
+    "hideStellar": {
+      "hidden": "boolean"
+    },
     "onClickAvatar": {
       "username": "string",
       "openWebsite?": "boolean"

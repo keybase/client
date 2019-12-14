@@ -122,6 +122,7 @@ class Engine {
       // dispatch the action version
       Engine._dispatch({payload: undefined, type: 'engine-gen:connected'})
     }
+    Engine._dispatch({payload: {phase: 'initialStartupAsEarlyAsPossible'}, type: 'config:loadOnStart'})
   }
 
   // Called when we reconnect to the server

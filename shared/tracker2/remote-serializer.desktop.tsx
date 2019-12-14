@@ -63,6 +63,7 @@ type Props = Partial<{
   reason: string
   registeredForAirdrop: boolean
   state: Types.DetailsState
+  stellarHidden: boolean
   teamShowcase: Array<Types.TeamShowcase>
   o?: Array<Types.TeamShowcase>
   username: string

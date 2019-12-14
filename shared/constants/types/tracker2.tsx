@@ -55,6 +55,7 @@ export type Details = {
   location?: string
   reason: string
   registeredForAirdrop?: boolean
+  stellarHidden?: boolean
   showTracker: boolean
   state: DetailsState
   teamShowcase?: Array<TeamShowcase>
