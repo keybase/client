@@ -12,8 +12,8 @@ type SafeNavigationProps = {
 }
 
 export const useSafeNavigation: () => SafeNavigationProps = () => {
-  const state = useNavigationState()
-  const fromKey = __STORYBOOK__ ? 'mockKey' : getActiveKey(state)
+  const state = __STORYBOOK__ ? undefined : useNavigationState()
+  const fromKey = __STORYBOOK__ ? 'mockKey' : getActiveKey(state!)
   return React.useMemo(
     () => ({
       navKey: fromKey,
