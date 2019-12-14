@@ -450,14 +450,14 @@ type AddMembersRes struct {
 // Adds them all in a transaction so it's all or nothing.
 // If the first transaction fails due to TeamContactSettingsBlock error, it
 // will remove restricted users returned by the error, and retry once.
-// On success, returns a list where len(added) + len(noAdded) =len(assertions) and in
+// On success, returns a list where len(added) + len(noAdded) = len(assertions) and in
 // corresponding order, with restricted users having an empty AddMembersRes.
 func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, users []keybase1.UserRolePair) (added []AddMembersRes, notAdded []keybase1.User, err error) {
 	mctx := libkb.NewMetaContext(ctx, g)
 	tracer := g.CTimeTracer(ctx, "team.AddMembers", true)
 	defer tracer.Finish()
 
-	retryableFunc := func(restrictedUsers map[keybase1.UID]bool) func(ctx context.Context, _ int) error {
+	addNonRestrictedMembersFunc := func(restrictedUsers map[keybase1.UID]bool) func(ctx context.Context, _ int) error {
 		return func(ctx context.Context, _ int) error {
 			added = []AddMembersRes{}
 			notAdded = []keybase1.User{}
@@ -526,15 +526,19 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Tea
 
 	// try to add
 	restrictedUsers := make(map[keybase1.UID]bool)
-	err = RetryIfPossible(ctx, g, retryableFunc(restrictedUsers))
+	err = RetryIfPossible(ctx, g, addNonRestrictedMembersFunc(restrictedUsers))
 	if blockError, ok := err.(libkb.TeamContactSettingsBlockError); ok {
+		uids := blockError.BlockedUIDs()
+		if len(uids) == len(users) {
+			// if all users can't be added, quit
+			return nil, nil, err
+		}
 		// retry add
-		for _, uid := range blockError.BlockedUIDs() {
+		for _, uid := range uids {
 			restrictedUsers[uid] = true
 		}
-
-		mctx.Debug("| Retrying AddMembers with restricted users removed: %+v", blockError.BlockedUsernames())
-		err = RetryIfPossible(ctx, g, retryableFunc(restrictedUsers))
+		mctx.Debug("| Retrying AddMembers without restricted users: %+v", blockError.BlockedUsernames())
+		err = RetryIfPossible(ctx, g, addNonRestrictedMembersFunc(restrictedUsers))
 	}
 
 	if err != nil {

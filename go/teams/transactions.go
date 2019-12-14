@@ -515,8 +515,8 @@ func (tx *AddMemberTx) AddOrInviteMemberByUPKV2(ctx context.Context, upak keybas
 	defer m.Trace(fmt.Sprintf("AddMemberTx.AddOrInviteMemberByUPKV2(%+v,%v) to team %q; doInvite=%v", upak, role, team.Name(), doInvite), func() error { return err })()
 
 	if !doInvite {
-		username = libkb.NewNormalizedUsername(upak.Username)
 		// We have a user and can add them to a team, no invite required.
+		username = libkb.NewNormalizedUsername(upak.Username)
 		uv = upak.ToUserVersion()
 		invite, err = tx.addMemberByUPKV2(ctx, upak, role, botSettings)
 		m.Debug("Adding keybase member: %s (isInvite=%v)", username, invite)
@@ -541,7 +541,6 @@ func (tx *AddMemberTx) AddOrInviteMemberByUPKV2(ctx context.Context, upak keybas
 	inviteName := keybase1.TeamInviteName(name)
 	// Can't invite if invite for same SBS assertion already exists in that
 	// team.
-
 	existing, err := tx.team.HasActiveInvite(m, inviteName, typ)
 	if err != nil {
 		return "", uv, false, err
