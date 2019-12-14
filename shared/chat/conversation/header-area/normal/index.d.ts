@@ -4,7 +4,6 @@ export type Props = {
   channelName?: string
   contactNames: Map<string, string>
   muted: boolean
-  onBack: () => void
   onOpenFolder?: () => void
   onShowProfile: (user: string) => void
   onToggleInfoPanel: () => void
