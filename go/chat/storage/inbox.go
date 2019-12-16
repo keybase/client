@@ -611,12 +611,21 @@ func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, rcs 
 
 func (i *Inbox) queryConvIDsExist(ctx context.Context, ibox inboxDiskData,
 	convIDs []chat1.ConversationID) bool {
-	m := make(map[string]bool)
+	if len(convIDs) == 1 { // fast path for single convID case
+		for _, conv := range ibox.Conversations {
+			if conv.GetConvID().Eq(convIDs[0]) {
+				return true
+			}
+		}
+		return false
+	}
+
+	m := make(map[string]struct{}, len(ibox.Conversations))
 	for _, conv := range ibox.Conversations {
-		m[conv.ConvIDStr] = true
+		m[conv.ConvIDStr] = struct{}{}
 	}
 	for _, convID := range convIDs {
-		if !m[convID.String()] {
+		if _, ok := m[convID.String()]; !ok {
 			return false
 		}
 	}
@@ -1710,7 +1719,7 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 	}
 
 	// Update all lists with other people joining and leaving
-	convMap := make(map[string]*types.RemoteConversation)
+	convMap := make(map[string]*types.RemoteConversation, len(ibox.Conversations))
 	for index, c := range ibox.Conversations {
 		convMap[c.ConvIDStr] = &ibox.Conversations[index]
 	}
