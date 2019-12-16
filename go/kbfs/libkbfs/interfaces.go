@@ -2293,6 +2293,8 @@ type Config interface {
 	SubscriptionManagerPublisher() SubscriptionManagerPublisher
 	// KbEnv returns the *libkb.Env.
 	KbEnv() *libkb.Env
+	// KbContext returns the Keybase Context.
+	KbContext() Context
 }
 
 // NodeCache holds Nodes, and allows libkbfs to update them when
