@@ -40,8 +40,8 @@ const defaultUserResult = {
   followingState: 'Following' as const,
   highlight: false,
   inTeam: false,
-  namespace: 'people',
   isPreExistingTeamMember: false,
+  namespace: 'people',
   prettyName: 'Max Krohn',
   resultForService: 'keybase',
   services: {
