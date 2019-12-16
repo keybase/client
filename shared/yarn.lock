@@ -8603,7 +8603,7 @@ lottie-react-native@3.1.0:
 
 "lottie-react-web@git://github.com/keybase/lottie-react-web#nojima/keybase-fixes-off-214":
   version "2.1.4"
-  resolved "git://github.com/keybase/lottie-react-web#2d62a40ac1eefd83f78e92544ff6915f11bdd3e2"
+  resolved "git://github.com/keybase/lottie-react-web#46f2d088906cf1088dfc174582a63c734cc5d626"
   dependencies:
     babel-runtime "^6.26.0"
     lottie-api bodymovin/lottie-api#master
