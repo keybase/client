@@ -741,7 +741,7 @@ func makeBadgeConversationInfo(convID keybase1.ChatConversationID, count int) ke
 // ApplyLocalChatState marks items locally as read and badges conversations
 // that have failed outbox items.
 func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []keybase1.BadgeConversationInfo) (res []keybase1.BadgeConversationInfo) {
-	var convIDs []chat1.ConversationID
+	convIDs := make([]chat1.ConversationID, 0, len(infos))
 	for _, info := range infos {
 		if !info.IsEmpty() {
 			convIDs = append(convIDs, chat1.ConversationID(info.ConvID.Bytes()))
@@ -786,7 +786,7 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 		if state == chat1.OutboxStateType_ERROR {
 			ctime := obr.Ctime
 			isBadgableError := obr.State.Error().Typ.IsBadgableError()
-			s.Debug(ctx, "ApplyLocalChatState: found errored outbox item ctime: %v, error: %v, messageType: %v, IsBadgableError: %v",
+			s.Debug(ctx, "ApplyLocalChatState: found erred outbox item ctime: %v, error: %v, messageType: %v, IsBadgableError: %v",
 				ctime.Time(), obr.State.Error(), obr.Msg.MessageType(), isBadgableError)
 			if !isBadgableError {
 				continue
@@ -805,7 +805,7 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 		}
 	}
 
-	updates := []chat1.LocalMtimeUpdate{}
+	updates := make([]chat1.LocalMtimeUpdate, 0, len(localUpdates))
 	for _, update := range localUpdates {
 		updates = append(updates, update)
 	}
@@ -813,6 +813,7 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 		s.Debug(ctx, "ApplyLocalChatState: unable to apply UpdateLocalMtime: %v", err)
 	}
 
+	res = make([]keybase1.BadgeConversationInfo, 0, len(infos)+len(failedOutboxMap))
 	for _, info := range infos {
 		// mark this conv as read
 		if readConvMap[info.ConvID.String()] {
