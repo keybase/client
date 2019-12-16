@@ -31,21 +31,26 @@ export const getOrderedMemberArray = (
   yourOperations: Types.TeamOperations
 ): Array<Types.MemberInfo> =>
   memberInfo
-    ? [...memberInfo.values()].sort((a, b) => {
-        // Get listFirst out of the way
-        if (yourOperations.listFirst && a.username === you) {
-          return -1
-        } else if (yourOperations.listFirst && b.username === you) {
-          return 1
-        }
+    ? [...memberInfo.values()]
+        .sort((a, b) => {
+          // Get listFirst out of the way
+          if (yourOperations.listFirst && a.username === you) {
+            return -1
+          } else if (yourOperations.listFirst && b.username === you) {
+            return 1
+          }
 
-        const weights = getWeights(yourOperations.manageMembers)
-        // Diff the statuses then types. If they're both the same sort alphabetically
-        const diff1 = weights[a.status] - weights[b.status]
-        const diff2 = weights[a.type] - weights[b.type]
-        return diff1 || diff2 || a.username.localeCompare(b.username)
-      })
+          const weights = getWeights(yourOperations.manageMembers)
+          // Diff the statuses then types. If they're both the same sort alphabetically
+          const diff1 = weights[a.status] - weights[b.status]
+          const diff2 = weights[a.type] - weights[b.type]
+          return diff1 || diff2 || a.username.localeCompare(b.username)
+        })
+        .filter(m => m.type !== 'restrictedbot' && m.type !== 'bot')
     : []
+
+export const getOrderedBotsArray = (memberInfo: Map<string, Types.MemberInfo> | undefined) =>
+  memberInfo ? [...memberInfo.values()].filter(m => m.type === 'restrictedbot' || m.type === 'bot') : []
 
 export const sortInvites = (a: Types.InviteInfo, b: Types.InviteInfo) =>
   (a.email || a.username || a.name || a.id || '').localeCompare(b.email || b.username || b.name || b.id || '')
