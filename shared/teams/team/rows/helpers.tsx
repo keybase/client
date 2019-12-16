@@ -50,7 +50,11 @@ export const getOrderedMemberArray = (
     : []
 
 export const getOrderedBotsArray = (memberInfo: Map<string, Types.MemberInfo> | undefined) =>
-  memberInfo ? [...memberInfo.values()].filter(m => m.type === 'restrictedbot' || m.type === 'bot') : []
+  memberInfo
+    ? [...memberInfo.values()]
+        .sort((a, b) => a.username.localeCompare(b.username))
+        .filter(m => m.type === 'restrictedbot' || m.type === 'bot')
+    : []
 
 export const sortInvites = (a: Types.InviteInfo, b: Types.InviteInfo) =>
   (a.email || a.username || a.name || a.id || '').localeCompare(b.email || b.username || b.name || b.id || '')
