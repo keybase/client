@@ -243,6 +243,7 @@ dependencies {
     implementation "com.facebook.fresco:fresco:1.13.0"
     implementation "com.evernote:android-job:1.2.6"
     implementation 'org.msgpack:msgpack:0.6.12'
+    implementation "me.leolin:ShortcutBadger:1.1.22@aar" // for app badging
     implementation project(':keybaselib')
 
     addUnimodulesDependencies([modulesPaths: ['../../node_modules']])

@@ -12,6 +12,7 @@ import java.util.List;
 
 import io.keybase.ossifrage.components.KBTextInputManager;
 import io.keybase.ossifrage.modules.AppearanceModule;
+import io.keybase.ossifrage.modules.ApplicationBadgeHelper;
 import io.keybase.ossifrage.modules.KeybaseEngine;
 import io.keybase.ossifrage.modules.KillableModule;
 import io.keybase.ossifrage.modules.LogSend;
@@ -41,6 +42,7 @@ public class KBReactPackage implements com.facebook.react.ReactPackage {
         final ShareFiles shareFiles = new ShareFiles(reactApplicationContext);
         final Utils utils = new Utils(reactApplicationContext);
         final AppearanceModule appearance = new AppearanceModule(reactApplicationContext);
+        final ApplicationBadgeHelper applicationBadgeHelper = new ApplicationBadgeHelper(reactApplicationContext);
 
         killableModules.add(kbEngine);
 
@@ -53,6 +55,7 @@ public class KBReactPackage implements com.facebook.react.ReactPackage {
         modules.add(shareFiles);
         modules.add(utils);
         modules.add(appearance);
+        modules.add(applicationBadgeHelper);
 
         return modules;
     }

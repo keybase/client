@@ -12,7 +12,6 @@ import androidx.core.app.NotificationCompat.MessagingStyle;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.app.Person;
 
-import com.dieam.reactnativepushnotification.helpers.ApplicationBadgeHelper;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
@@ -29,6 +28,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+import io.keybase.ossifrage.modules.ApplicationBadgeHelper;
 import io.keybase.ossifrage.modules.NativeLogger;
 import io.keybase.ossifrage.util.DNSNSFetcher;
 import io.keybase.ossifrage.util.VideoHelper;
@@ -148,8 +148,8 @@ public class KeybasePushNotificationListenerService extends FirebaseMessagingSer
             }
 
             final int badge = data.optInt("badge", -1);
-            if (badge >= 0) {
-                ApplicationBadgeHelper.INSTANCE.setApplicationIconBadgeNumber(this, badge);
+            if (badge >= 0 && ApplicationBadgeHelper.INSTANCE != null) {
+                ApplicationBadgeHelper.INSTANCE.setApplicationIconBadgeNumber(badge);
             }
         }
 
