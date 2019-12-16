@@ -4,6 +4,7 @@ import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
+import flags from '../../../util/feature-flags'
 import {Props as HeaderHocProps} from '../../../common-adapters/header-hoc/types'
 import {AdhocHeader, TeamHeader} from './header'
 import {SettingsPanel} from './panels'
@@ -198,11 +199,13 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
         <TabText selected={this.isSelected('attachments')} text="Attachments" />
       </Kb.Box2>
     )
-    res.push(
-      <Kb.Box2 key="bots" style={styles.tabTextContainer} direction="horizontal">
-        <TabText selected={this.isSelected('bots')} text={`Bots (${this.props.bots.length})`} />
-      </Kb.Box2>
-    )
+    if (flags.botUI) {
+      res.push(
+        <Kb.Box2 key="bots" style={styles.tabTextContainer} direction="horizontal">
+          <TabText selected={this.isSelected('bots')} text={`Bots (${this.props.bots.length})`} />
+        </Kb.Box2>
+      )
+    }
     if (!this.props.isPreview) {
       res.push(
         <Kb.Box2 key="settings" style={styles.tabTextContainer} direction="horizontal">
