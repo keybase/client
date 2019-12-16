@@ -14,18 +14,23 @@ const YouResult = React.memo((props: ResultProps) => {
   }
 
   let bottomRow: React.ReactNode = null
+  const onAddOverride: {onAdd?: () => void} = {}
 
-  if (props.namespace === 'teams') {
-    bottomRow = (
-      <Kb.Text type="BodySmall">
-        {props.isPreExistingTeamMember ? 'Already in team' : 'Add yourself to the team'}
-      </Kb.Text>
-    )
-  } else {
-    bottomRow = <Kb.Text type="BodySmall">Write secure notes to yourself</Kb.Text>
+  switch (props.namespace) {
+    case 'teams':
+      bottomRow = (
+        <Kb.Text type="BodySmall">
+          {props.isPreExistingTeamMember ? 'Already in team' : 'Add yourself to the team'}
+        </Kb.Text>
+      )
+      break
+    case 'chat2':
+      bottomRow = <Kb.Text type="BodySmall">Write secure notes to yourself</Kb.Text>
+      onAddOverride.onAdd = onSelfChat
+      break
   }
 
-  return <CommonResult {...props} onAdd={onSelfChat} rowStyle={styles.rowContainer} bottomRow={bottomRow} />
+  return <CommonResult {...props} {...onAddOverride} rowStyle={styles.rowContainer} bottomRow={bottomRow} />
 })
 
 const styles = Styles.styleSheetCreate(() => ({
