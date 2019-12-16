@@ -150,7 +150,7 @@ class Wallet extends React.Component<Props> {
           <Airdrop />
         ) : (
           <>
-            {this.props.loadError && <Kb.Banner color="yellow">{this.props.loadError}</Kb.Banner>}
+            {!!this.props.loadError && <Kb.Banner color="yellow">{this.props.loadError}</Kb.Banner>}
             <Kb.SectionList
               sections={this.props.sections}
               renderItem={this._renderItem}
