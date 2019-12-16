@@ -1,11 +1,16 @@
 import * as React from 'react'
 import {Color} from '../../../styles'
+import {IconType, IconStyle} from '../../icon'
 
 export type MenuItem = {
   backgroundColor?: Color
   danger?: boolean
   decoration?: React.ReactNode // on the right side. unused if `view` is given,
   disabled?: boolean
+  icon?: IconType | null
+  iconStyle?: IconStyle
+  isBadged?: boolean
+  inProgress?: boolean
   newTag?: boolean | null
   onClick?: ((evt?: React.SyntheticEvent) => void) | null
   onPress?: void

@@ -99,48 +99,54 @@ class InfoPanelMenu extends React.Component<Props> {
     const props = this.props
     const addPeopleItems = [
       {
+        icon: 'iconfont-mention',
         onClick: props.onAddPeople,
         style: {borderTopWidth: 0},
         subTitle: 'Keybase, Twitter, etc.',
         title: 'Add someone by username',
       },
       {
+        icon: 'iconfont-contact-book',
         onClick: props.onInvite,
         title: Styles.isMobile ? 'Add someone from address book' : 'Add someone by email',
       },
     ]
     const channelItem = props.isSmallTeam
       ? {
+          icon: 'iconfont-hash',
           onClick: props.onManageChannels,
           subTitle: props.manageChannelsSubtitle,
           title: props.manageChannelsTitle,
         }
       : {
+          icon: 'iconfont-hash',
+          isBadged: props.badgeSubscribe,
           onClick: props.onManageChannels,
           title: props.manageChannelsTitle,
-          view: (
-            <Kb.Box style={Styles.globalStyles.flexBoxRow}>
-              <Kb.Text style={styles.text} type={Styles.isMobile ? 'BodyBig' : 'Body'}>
-                {props.manageChannelsTitle}
-              </Kb.Text>
-              {props.badgeSubscribe && <Kb.Box style={styles.badge} />}
-            </Kb.Box>
-          ),
         }
 
     const isAdhoc =
       (props.isSmallTeam && !props.convProps) || !!(props.convProps && props.convProps.teamType === 'adhoc')
-    const items = isAdhoc
+    const items: Kb.MenuItems = (isAdhoc
       ? [this.hideItem(), this.muteItem(), {danger: true, onClick: props.onBlockConv, title: 'Block'}]
       : [
           ...(props.canAddPeople ? addPeopleItems : []),
-          {onClick: props.onViewTeam, style: {borderTopWidth: 0}, title: 'View team'},
+          {
+            icon: 'iconfont-people',
+            onClick: props.onViewTeam,
+            style: {borderTopWidth: 0},
+            title: 'View team',
+          },
           this.hideItem(),
           this.muteItem(),
           channelItem,
-          {danger: true, onClick: props.onLeaveTeam, title: 'Leave team'},
-          {danger: true, onClick: props.onBlockConv, title: 'Block team'},
-        ].filter(item => item !== null)
+          {danger: true, icon: 'iconfont-leave', onClick: props.onLeaveTeam, title: 'Leave team'},
+          {danger: true, icon: 'iconfont-remove', onClick: props.onBlockConv, title: 'Block team'},
+        ]
+    ).reduce<Kb.MenuItems>((arr, i) => {
+      i && arr.push(i as Kb.MenuItem)
+      return arr
+    }, [])
 
     const header = {
       title: 'header',
@@ -186,9 +192,15 @@ class InfoPanelMenu extends React.Component<Props> {
     const convProps = this.props.convProps
     if (convProps.teamType === 'adhoc' || convProps.teamType === 'small') {
       if (convProps.ignored) {
-        return {onClick: this.props.onUnhideConv, style: {borderTopWidth: 0}, title: 'Unhide conversation'}
+        return {
+          icon: 'iconfont-unhide',
+          onClick: this.props.onUnhideConv,
+          style: {borderTopWidth: 0},
+          title: 'Unhide conversation',
+        }
       } else {
         return {
+          icon: 'iconfont-hide',
           onClick: this.props.onHideConv,
           style: {borderTopWidth: 0},
           subTitle: 'Until next message',
@@ -207,18 +219,9 @@ class InfoPanelMenu extends React.Component<Props> {
     const convProps = this.props.convProps
     const title = `${convProps.muted ? 'Unmute' : 'Mute all'} notifications`
     return {
+      icon: 'iconfont-shh',
       onClick: () => this.props.onMuteConv(!convProps.muted),
       title,
-      view: (
-        <Kb.Box style={styles.muteAction}>
-          <Kb.Text style={styles.text} type={Styles.isMobile ? 'BodyBig' : 'Body'}>
-            {title}
-          </Kb.Text>
-          {!convProps.muted && (
-            <Kb.Icon color={Styles.globalColors.black_20} style={styles.icon} type="iconfont-shh" />
-          )}
-        </Kb.Box>
-      ),
     }
   }
 }
@@ -263,9 +266,6 @@ const styles = Styles.styleSheetCreate(
         },
         isMobile: {paddingBottom: 24, paddingTop: 40},
       }),
-      icon: {
-        marginLeft: Styles.globalMargins.tiny,
-      },
       maybeLongText: Styles.platformStyles({
         common: {
           ...Styles.padding(0, Styles.globalMargins.tiny),

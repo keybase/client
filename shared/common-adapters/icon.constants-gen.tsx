@@ -7954,6 +7954,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-coin-flip': {
+    charCode: 0xe9a1,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-coin-stack': {
     charCode: 0xe972,
     gridSize: 16,
@@ -7976,6 +7981,11 @@ const iconMeta_ = {
   },
   'iconfont-contact-card': {
     charCode: 0xe96d,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-copy': {
+    charCode: 0xe9ae,
     gridSize: 16,
     isFont: true,
   },
@@ -8124,6 +8134,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-hash': {
+    charCode: 0xe9ab,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-heart': {
     charCode: 0xe978,
     gridSize: 16,
@@ -8216,6 +8231,11 @@ const iconMeta_ = {
   },
   'iconfont-link': {
     charCode: 0xe939,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-location': {
+    charCode: 0xe9a2,
     gridSize: 16,
     isFont: true,
   },
@@ -8384,8 +8404,18 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-person': {
+    charCode: 0xe9a7,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-phone-contact': {
     charCode: 0xe97b,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-photo-library': {
+    charCode: 0xe9ac,
     gridSize: 16,
     isFont: true,
   },
@@ -8496,6 +8526,11 @@ const iconMeta_ = {
   },
   'iconfont-search': {
     charCode: 0xe958,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-share': {
+    charCode: 0xe9aa,
     gridSize: 16,
     isFont: true,
   },
@@ -8611,6 +8646,11 @@ const iconMeta_ = {
   },
   'iconfont-usercard': {
     charCode: 0xe968,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-video-library': {
+    charCode: 0xe9ad,
     gridSize: 16,
     isFont: true,
   },

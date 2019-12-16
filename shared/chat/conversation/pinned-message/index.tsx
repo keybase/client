@@ -123,7 +123,7 @@ const UnpinPrompt = (props: UnpinProps) => {
         view: header,
       }}
       position="left center"
-      items={['Divider', {onClick: props.onUnpin, title: 'Yes, unpin'}]}
+      items={['Divider', {icon: 'iconfont-close', onClick: props.onUnpin, title: 'Yes, unpin'}]}
     />
   )
 }
