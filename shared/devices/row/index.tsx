@@ -3,6 +3,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/devices'
 import DeviceIcon from '../device-icon'
+import {formatTimeRelativeToNow} from '../../util/timestamp'
 
 export type Props = {
   device: Types.Device
@@ -31,10 +32,10 @@ const DeviceRow = (props: Props) => {
       }
       body={
         <Kb.Box2 direction="vertical" fullWidth={true} style={{justifyContent: 'center'}}>
-          <Kb.Text style={props.isRevoked ? styles.text : undefined} type="BodySemibold">
-            {props.name}
+          <Kb.Text lineClamp={1} style={props.isRevoked ? styles.text : undefined} type="BodySemibold">
+            {props.name} {props.isCurrentDevice && <Kb.Text type="BodySmall">(Current device)</Kb.Text>}
           </Kb.Text>
-          {props.isCurrentDevice && <Kb.Text type="BodySmall">Current device</Kb.Text>}
+          <Kb.Text type="BodySmall">{`Last used ${formatTimeRelativeToNow(props.device.lastUsed)}`}</Kb.Text>
           {props.isNew && !props.isCurrentDevice && (
             <Kb.Meta title="new" style={styles.meta} backgroundColor={Styles.globalColors.orange} />
           )}
