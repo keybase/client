@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import {FeaturedBot} from 'constants/types/rpc-gen'
-import TeamMention from '../maybe-mention/team-container'
 
 type Props = FeaturedBot & {
   description?: string
