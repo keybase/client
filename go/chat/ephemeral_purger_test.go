@@ -30,6 +30,7 @@ func TestBackgroundPurge(t *testing.T) {
 	purger := NewBackgroundEphemeralPurger(g, chatStorage)
 	purger.SetClock(world.Fc)
 	g.EphemeralPurger = purger
+	g.ConvSource.(*HybridConversationSource).storage = chatStorage
 	purger.Start(ctx, uid)
 
 	trip2 := newConvTriple(ctx, t, tc, u.Username)
@@ -89,10 +90,8 @@ func TestBackgroundPurge(t *testing.T) {
 	}
 
 	assertTrackerState := func(convID chat1.ConversationID, expectedPurgeInfo chat1.EphemeralPurgeInfo) {
-		allPurgeInfo, err := chatStorage.GetAllPurgeInfo(ctx, uid)
+		purgeInfo, err := chatStorage.GetPurgeInfo(ctx, uid, convID)
 		require.NoError(t, err)
-		purgeInfo, ok := allPurgeInfo[convID.String()]
-		require.True(t, ok)
 		require.Equal(t, expectedPurgeInfo, purgeInfo)
 	}
 

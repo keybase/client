@@ -8,9 +8,14 @@ import (
 	context "golang.org/x/net/context"
 )
 
-func (s *Storage) GetAllPurgeInfo(ctx context.Context, uid gregor1.UID) (allPurgeInfo map[string]chat1.EphemeralPurgeInfo, err error) {
+func (s *Storage) GetAllPurgeInfo(ctx context.Context, uid gregor1.UID) (allPurgeInfo []chat1.EphemeralPurgeInfo, err error) {
 	defer s.Trace(ctx, func() error { return err }, "GetAllPurgeInfo")()
 	return s.ephemeralTracker.getAllPurgeInfo(ctx, uid)
+}
+
+func (s *Storage) GetPurgeInfo(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (info chat1.EphemeralPurgeInfo, err error) {
+	defer s.Trace(ctx, func() error { return err }, "GetAllPurgeInfo")()
+	return s.ephemeralTracker.getPurgeInfo(ctx, uid, convID)
 }
 
 // For a given conversation, purge all ephemeral messages from
