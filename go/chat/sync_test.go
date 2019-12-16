@@ -888,7 +888,7 @@ func TestSyncerStorageClear(t *testing.T) {
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "no conv load on sync")
 	}
-	tv, err := tc.Context().ConvSource.PullLocalOnly(ctx, conv.GetConvID(), uid, nil, nil, 0)
+	tv, err := tc.Context().ConvSource.PullLocalOnly(ctx, conv.GetConvID(), uid, chat1.GetThreadReason_GENERAL, nil, nil, 0)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(tv.Messages))
 
@@ -903,7 +903,7 @@ func TestSyncerStorageClear(t *testing.T) {
 	doSync(t, syncer, ri, uid)
 	time.Sleep(400 * time.Millisecond)
 
-	_, err = tc.Context().ConvSource.PullLocalOnly(ctx, conv.GetConvID(), uid, nil, nil, 0)
+	_, err = tc.Context().ConvSource.PullLocalOnly(ctx, conv.GetConvID(), uid, chat1.GetThreadReason_GENERAL, nil, nil, 0)
 	require.Error(t, err)
 	require.IsType(t, storage.MissError{}, err)
 }

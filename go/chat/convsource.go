@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
 )
 
@@ -88,10 +89,14 @@ func (s *baseConversationSource) addPendingPreviews(ctx context.Context, thread 
 	}
 }
 
-func (s *baseConversationSource) addConversationCards(ctx context.Context, uid gregor1.UID,
+func (s *baseConversationSource) addConversationCards(ctx context.Context, uid gregor1.UID, reason chat1.GetThreadReason,
 	convID chat1.ConversationID, convOptional *chat1.ConversationLocal, thread *chat1.ThreadView) {
 	ctxShort, ctxShortCancel := context.WithTimeout(ctx, 2*time.Second)
 	defer ctxShortCancel()
+	if journeycardShouldNotRunOnReason[reason] {
+		s.Debug(ctx, "addConversationCards: skipping due to reason: %v", reason)
+		return
+	}
 	card, err := s.G().JourneyCardManager.PickCard(ctxShort, uid, convID, convOptional, thread)
 	ctxShortCancel()
 	if err != nil {
@@ -116,7 +121,7 @@ func (s *baseConversationSource) addConversationCards(ctx context.Context, uid g
 	thread.Messages[addLeftOf] = chat1.NewMessageUnboxedWithJourneycard(*card)
 }
 
-func (s *baseConversationSource) postProcessThread(ctx context.Context, uid gregor1.UID,
+func (s *baseConversationSource) postProcessThread(ctx context.Context, uid gregor1.UID, reason chat1.GetThreadReason,
 	conv types.UnboxConversationInfo, thread *chat1.ThreadView, q *chat1.GetThreadQuery,
 	superXform types.SupersedesTransform, replyFiller types.ReplyFiller, checkPrev bool,
 	patchPagination bool, verifiedConv *chat1.ConversationLocal) (err error) {
@@ -162,7 +167,7 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 	s.Debug(ctx, "postProcessThread: thread messages after explode filter: %d", len(thread.Messages))
 
 	// Add any conversation cards
-	s.addConversationCards(ctx, uid, conv.GetConvID(), verifiedConv, thread)
+	s.addConversationCards(ctx, uid, reason, conv.GetConvID(), verifiedConv, thread)
 
 	// Fetch outbox and tack onto the result
 	outbox := storage.NewOutbox(s.G(), uid)
@@ -328,7 +333,7 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	}
 
 	// Post process thread before returning
-	if err = s.postProcessThread(ctx, uid, conv, &thread, query, nil, nil, true, false, &conv); err != nil {
+	if err = s.postProcessThread(ctx, uid, reason, conv, &thread, query, nil, nil, true, false, &conv); err != nil {
 		return chat1.ThreadView{}, err
 	}
 
@@ -336,7 +341,7 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 }
 
 func (s *RemoteConversationSource) PullLocalOnly(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination, maxPlaceholders int) (chat1.ThreadView, error) {
+	uid gregor1.UID, reason chat1.GetThreadReason, query *chat1.GetThreadQuery, pagination *chat1.Pagination, maxPlaceholders int) (chat1.ThreadView, error) {
 	return chat1.ThreadView{}, storage.MissError{Msg: "PullLocalOnly is unimplemented for RemoteConversationSource"}
 }
 
@@ -495,8 +500,13 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 	if err = s.mergeMaybeNotify(ctx, convID, uid, []chat1.MessageUnboxed{decmsg}); err != nil {
 		return decmsg, continuousUpdate, err
 	}
-	if msg.ClientHeader.Sender.Eq(uid) {
-		go s.G().JourneyCardManager.SentMessage(globals.BackgroundChatCtx(ctx, s.G()), uid, convID)
+	if msg.ClientHeader.Sender.Eq(uid) && conv.GetMembersType() == chat1.ConversationMembersType_TEAM {
+		teamID, err := keybase1.TeamIDFromString(conv.Conv.Metadata.IdTriple.Tlfid.String())
+		if err != nil {
+			s.Debug(ctx, "Push: failed to get team ID: %v", err)
+		} else {
+			go s.G().JourneyCardManager.SentMessage(globals.BackgroundChatCtx(ctx, s.G()), uid, teamID, convID)
+		}
 	}
 	// Remove any pending previews from storage
 	s.completeAttachmentUpload(ctx, decmsg)
@@ -613,7 +623,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 			// Run post process stuff
 			vconv, err := utils.GetVerifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 			if err == nil {
-				if err = s.postProcessThread(ctx, uid, conv, &thread, query, nil, nil, true, true, &vconv); err != nil {
+				if err = s.postProcessThread(ctx, uid, reason, conv, &thread, query, nil, nil, true, true, &vconv); err != nil {
 					return thread, err
 				}
 			}
@@ -654,7 +664,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	}
 
 	// Run post process stuff
-	if err = s.postProcessThread(ctx, uid, unboxConv, &thread, query, nil, nil, true, true, nil); err != nil {
+	if err = s.postProcessThread(ctx, uid, reason, unboxConv, &thread, query, nil, nil, true, true, nil); err != nil {
 		return thread, err
 	}
 	return thread, nil
@@ -704,7 +714,7 @@ func newPullLocalResultCollector(baseRC storage.ResultCollector) *pullLocalResul
 }
 
 func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination, maxPlaceholders int) (tv chat1.ThreadView, err error) {
+	uid gregor1.UID, reason chat1.GetThreadReason, query *chat1.GetThreadQuery, pagination *chat1.Pagination, maxPlaceholders int) (tv chat1.ThreadView, err error) {
 	ctx = libkb.WithLogTag(ctx, "PUL")
 	defer s.Trace(ctx, func() error { return err }, "PullLocalOnly")()
 	if _, err = s.lockTab.Acquire(ctx, uid, convID); err != nil {
@@ -734,7 +744,7 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 			// Form a fake version of a conversation so we don't need to hit the network ever here
 			var conv chat1.Conversation
 			conv.Metadata.ConversationID = convID
-			err = s.postProcessThread(ctx, uid, conv, &tv, query, superXform, replyFiller, false, true, nil)
+			err = s.postProcessThread(ctx, uid, reason, conv, &tv, query, superXform, replyFiller, false, true, nil)
 		}
 	}()
 

@@ -74,7 +74,7 @@ type LogSendContext struct {
 var noncharacterRxx = regexp.MustCompile(`[^\w]`)
 
 const redactedReplacer = "[REDACTED]"
-const serialPaperKeyWordThreshold = 5
+const serialPaperKeyWordThreshold = 6
 
 func redactPotentialPaperKeys(s string) string {
 	doubleDelimited := noncharacterRxx.ReplaceAllFunc([]byte(s), func(x []byte) []byte {

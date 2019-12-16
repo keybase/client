@@ -174,10 +174,7 @@ const getSyncConfigFromRPC = (
   }
 }
 
-const loadTlfSyncConfig = async (
-  _: Container.TypedState,
-  action: FsGen.LoadTlfSyncConfigPayload | FsGen.LoadPathMetadataPayload
-) => {
+const loadTlfSyncConfig = async (action: FsGen.LoadTlfSyncConfigPayload | FsGen.LoadPathMetadataPayload) => {
   const tlfPath = action.type === FsGen.loadPathMetadata ? action.payload.path : action.payload.tlfPath
   const parsedPath = Constants.parsePath(tlfPath)
   if (parsedPath.kind !== Types.PathKind.GroupTlf && parsedPath.kind !== Types.PathKind.TeamTlf) {
@@ -197,7 +194,7 @@ const loadTlfSyncConfig = async (
   }
 }
 
-const setTlfSyncConfig = async (_: Container.TypedState, action: FsGen.SetTlfSyncConfigPayload) => {
+const setTlfSyncConfig = async (action: FsGen.SetTlfSyncConfigPayload) => {
   await RPCTypes.SimpleFSSimpleFSSetFolderSyncConfigRpcPromise(
     {
       config: {
@@ -226,10 +223,7 @@ const loadSettings = async () => {
   }
 }
 
-const setSpaceNotificationThreshold = async (
-  _: Container.TypedState,
-  action: FsGen.SetSpaceAvailableNotificationThresholdPayload
-) => {
+const setSpaceNotificationThreshold = async (action: FsGen.SetSpaceAvailableNotificationThresholdPayload) => {
   await RPCTypes.SimpleFSSimpleFSSetNotificationThresholdRpcPromise({
     threshold: action.payload.spaceAvailableNotificationThreshold,
   })
@@ -383,7 +377,6 @@ function* folderList(_: Container.TypedState, action: FsGen.FolderListLoadPayloa
 }
 
 const download = async (
-  _: Container.TypedState,
   action: FsGen.DownloadPayload | FsGen.ShareNativePayload | FsGen.SaveMediaPayload
 ) => {
   await ensureDownloadPermissionPromise()
@@ -399,10 +392,10 @@ const download = async (
       })
 }
 
-const cancelDownload = (_: Container.TypedState, action: FsGen.CancelDownloadPayload) =>
+const cancelDownload = (action: FsGen.CancelDownloadPayload) =>
   RPCTypes.SimpleFSSimpleFSCancelDownloadRpcPromise({downloadID: action.payload.downloadID})
 
-const dismissDownload = (_: Container.TypedState, action: FsGen.DismissDownloadPayload) =>
+const dismissDownload = (action: FsGen.DismissDownloadPayload) =>
   RPCTypes.SimpleFSSimpleFSDismissDownloadRpcPromise({downloadID: action.payload.downloadID})
 
 function* upload(_: Container.TypedState, action: FsGen.UploadPayload) {
@@ -553,7 +546,7 @@ function* loadPathMetadata(_: Container.TypedState, action: FsGen.LoadPathMetada
   }
 }
 
-const letResetUserBackIn = async (_: Container.TypedState, {payload: {id, username}}) => {
+const letResetUserBackIn = async ({payload: {id, username}}) => {
   await RPCTypes.teamsTeamReAddMemberAfterResetRpcPromise({id, username})
 }
 
@@ -563,7 +556,7 @@ const updateFsBadge = (state: Container.TypedState) => {
   return NotificationsGen.createSetBadgeCounts({counts})
 }
 
-const deleteFile = async (_: Container.TypedState, action: FsGen.DeleteFilePayload) => {
+const deleteFile = async (action: FsGen.DeleteFilePayload) => {
   const opID = Constants.makeUUID()
   try {
     await RPCTypes.SimpleFSSimpleFSRemoveRpcPromise({
@@ -645,14 +638,14 @@ const waitForKbfsDaemon = async () => {
   }
 }
 
-const startManualCR = async (_: Container.TypedState, action) => {
+const startManualCR = async action => {
   await RPCTypes.SimpleFSSimpleFSClearConflictStateRpcPromise({
     path: Constants.pathToRPCPath(action.payload.tlfPath),
   })
   return FsGen.createFavoritesLoad()
 }
 
-const finishManualCR = async (_: Container.TypedState, action) => {
+const finishManualCR = async action => {
   await RPCTypes.SimpleFSSimpleFSFinishResolvingConflictRpcPromise({
     path: Constants.pathToRPCPath(action.payload.localViewTlfPath),
   })
@@ -685,10 +678,7 @@ const checkIfWeReConnectedToMDServerUpToNTimes = async (n: number) => {
 // timer we have at process restart (which is there to avoid surging server
 // load around app releases). So only do that when OS network status changes
 // after we're up.
-const checkKbfsServerReachabilityIfNeeded = async (
-  _: Container.TypedState,
-  action: ConfigGen.OsNetworkStatusChangedPayload
-) => {
+const checkKbfsServerReachabilityIfNeeded = async (action: ConfigGen.OsNetworkStatusChangedPayload) => {
   if (!action.payload.isInit) {
     try {
       await RPCTypes.SimpleFSSimpleFSCheckReachabilityRpcPromise()
@@ -760,12 +750,12 @@ const setTlfsAsUnloadedWhenKbfsDaemonDisconnects = (state: Container.TypedState)
   state.fs.kbfsDaemonStatus.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected &&
   FsGen.createSetTlfsAsUnloaded()
 
-const setDebugLevel = (_: Container.TypedState, action: FsGen.SetDebugLevelPayload) =>
+const setDebugLevel = (action: FsGen.SetDebugLevelPayload) =>
   RPCTypes.SimpleFSSimpleFSSetDebugLevelRpcPromise({level: action.payload.level})
 
 const subscriptionDeduplicateIntervalSecond = 1
 
-const subscribePath = async (_: Container.TypedState, action: FsGen.SubscribePathPayload) => {
+const subscribePath = async (action: FsGen.SubscribePathPayload) => {
   try {
     await RPCTypes.SimpleFSSimpleFSSubscribePathRpcPromise({
       deduplicateIntervalSecond: subscriptionDeduplicateIntervalSecond,
@@ -780,7 +770,7 @@ const subscribePath = async (_: Container.TypedState, action: FsGen.SubscribePat
   }
 }
 
-const subscribeNonPath = async (_: Container.TypedState, action: FsGen.SubscribeNonPathPayload) => {
+const subscribeNonPath = async (action: FsGen.SubscribeNonPathPayload) => {
   try {
     await RPCTypes.SimpleFSSimpleFSSubscribeNonPathRpcPromise({
       deduplicateIntervalSecond: subscriptionDeduplicateIntervalSecond,
@@ -794,7 +784,7 @@ const subscribeNonPath = async (_: Container.TypedState, action: FsGen.Subscribe
   }
 }
 
-const unsubscribe = async (_: Container.TypedState, action: FsGen.UnsubscribePayload) => {
+const unsubscribe = async (action: FsGen.UnsubscribePayload) => {
   try {
     await RPCTypes.SimpleFSSimpleFSUnsubscribeRpcPromise({
       identifyBehavior: RPCTypes.TLFIdentifyBehavior.fsGui,
@@ -803,10 +793,7 @@ const unsubscribe = async (_: Container.TypedState, action: FsGen.UnsubscribePay
   } catch (_) {}
 }
 
-const onPathChange = (
-  _: Container.TypedState,
-  action: EngineGen.Keybase1NotifyFSFSSubscriptionNotifyPathPayload
-) => {
+const onPathChange = (action: EngineGen.Keybase1NotifyFSFSSubscriptionNotifyPathPayload) => {
   const {path, topic} = action.payload.params
   switch (topic) {
     case RPCTypes.PathSubscriptionTopic.children:
@@ -816,10 +803,7 @@ const onPathChange = (
   }
 }
 
-const onNonPathChange = (
-  _: Container.TypedState,
-  action: EngineGen.Keybase1NotifyFSFSSubscriptionNotifyPayload
-) => {
+const onNonPathChange = (action: EngineGen.Keybase1NotifyFSFSSubscriptionNotifyPayload) => {
   const {topic} = action.payload.params
   switch (topic) {
     case RPCTypes.SubscriptionTopic.favorites:
@@ -839,7 +823,7 @@ const onNonPathChange = (
 
 const getOnlineStatus = () => checkIfWeReConnectedToMDServerUpToNTimes(2)
 
-const loadPathInfo = async (_: Container.TypedState, action: FsGen.LoadPathInfoPayload) => {
+const loadPathInfo = async (action: FsGen.LoadPathInfoPayload) => {
   const pathInfo = await RPCTypes.kbfsMountGetKBFSPathInfoRpcPromise({
     standardPath: Types.pathToString(action.payload.path),
   })
@@ -852,7 +836,7 @@ const loadPathInfo = async (_: Container.TypedState, action: FsGen.LoadPathInfoP
   })
 }
 
-const loadDownloadInfo = async (_: Container.TypedState, action: FsGen.LoadDownloadInfoPayload) => {
+const loadDownloadInfo = async (action: FsGen.LoadDownloadInfoPayload) => {
   try {
     const res = await RPCTypes.SimpleFSSimpleFSGetDownloadInfoRpcPromise({
       downloadID: action.payload.downloadID,
@@ -891,7 +875,7 @@ const loadDownloadStatus = async () => {
   })
 }
 
-const loadFileContext = async (_: Container.TypedState, action: FsGen.LoadFileContextPayload) => {
+const loadFileContext = async (action: FsGen.LoadFileContextPayload) => {
   const res = await RPCTypes.SimpleFSSimpleFSGetGUIFileContextRpcPromise({
     path: Constants.pathToRPCPath(action.payload.path).kbfs,
   })
@@ -924,9 +908,9 @@ function* fsSaga() {
   yield* Saga.chainGenerator<FsGen.FavoriteIgnorePayload>(FsGen.favoriteIgnore, ignoreFavoriteSaga)
   yield* Saga.chainAction2(FsGen.favoritesLoaded, updateFsBadge)
   yield* Saga.chainAction2(FsGen.loadAdditionalTlf, loadAdditionalTlf)
-  yield* Saga.chainAction2(FsGen.letResetUserBackIn, letResetUserBackIn)
+  yield* Saga.chainAction(FsGen.letResetUserBackIn, letResetUserBackIn)
   yield* Saga.chainAction2(FsGen.commitEdit, commitEdit)
-  yield* Saga.chainAction2(FsGen.deleteFile, deleteFile)
+  yield* Saga.chainAction(FsGen.deleteFile, deleteFile)
   yield* Saga.chainGenerator<FsGen.LoadPathMetadataPayload>(FsGen.loadPathMetadata, loadPathMetadata)
   yield* Saga.chainGenerator<FsGen.PollJournalStatusPayload>(
     FsGen.pollJournalStatus,
@@ -938,35 +922,35 @@ function* fsSaga() {
     [ConfigGen.installerRan, ConfigGen.loggedIn, FsGen.waitForKbfsDaemon],
     waitForKbfsDaemon
   )
-  yield* Saga.chainAction2(FsGen.setTlfSyncConfig, setTlfSyncConfig)
-  yield* Saga.chainAction2(FsGen.loadTlfSyncConfig, loadTlfSyncConfig)
+  yield* Saga.chainAction(FsGen.setTlfSyncConfig, setTlfSyncConfig)
+  yield* Saga.chainAction(FsGen.loadTlfSyncConfig, loadTlfSyncConfig)
   yield* Saga.chainAction2([FsGen.getOnlineStatus], getOnlineStatus)
-  yield* Saga.chainAction2(ConfigGen.osNetworkStatusChanged, checkKbfsServerReachabilityIfNeeded)
+  yield* Saga.chainAction(ConfigGen.osNetworkStatusChanged, checkKbfsServerReachabilityIfNeeded)
   yield* Saga.chainAction2(
     EngineGen.keybase1NotifyFSFSOverallSyncStatusChanged,
     onNotifyFSOverallSyncSyncStatusChanged
   )
   yield* Saga.chainAction2(FsGen.loadSettings, loadSettings)
-  yield* Saga.chainAction2(FsGen.setSpaceAvailableNotificationThreshold, setSpaceNotificationThreshold)
+  yield* Saga.chainAction(FsGen.setSpaceAvailableNotificationThreshold, setSpaceNotificationThreshold)
   yield* Saga.chainAction2(FsGen.startManualConflictResolution, startManualCR)
   yield* Saga.chainAction2(FsGen.finishManualConflictResolution, finishManualCR)
-  yield* Saga.chainAction2(FsGen.loadPathInfo, loadPathInfo)
-  yield* Saga.chainAction2(FsGen.loadFileContext, loadFileContext)
+  yield* Saga.chainAction(FsGen.loadPathInfo, loadPathInfo)
+  yield* Saga.chainAction(FsGen.loadFileContext, loadFileContext)
   yield* Saga.chainAction2(FsGen.loadFilesTabBadge, loadFilesTabBadge)
 
-  yield* Saga.chainAction2([FsGen.download, FsGen.shareNative, FsGen.saveMedia], download)
-  yield* Saga.chainAction2(FsGen.cancelDownload, cancelDownload)
-  yield* Saga.chainAction2(FsGen.dismissDownload, dismissDownload)
+  yield* Saga.chainAction([FsGen.download, FsGen.shareNative, FsGen.saveMedia], download)
+  yield* Saga.chainAction(FsGen.cancelDownload, cancelDownload)
+  yield* Saga.chainAction(FsGen.dismissDownload, dismissDownload)
   yield* Saga.chainAction2(FsGen.loadDownloadStatus, loadDownloadStatus)
-  yield* Saga.chainAction2(FsGen.loadDownloadInfo, loadDownloadInfo)
+  yield* Saga.chainAction(FsGen.loadDownloadInfo, loadDownloadInfo)
 
-  yield* Saga.chainAction2(FsGen.subscribePath, subscribePath)
-  yield* Saga.chainAction2(FsGen.subscribeNonPath, subscribeNonPath)
-  yield* Saga.chainAction2(FsGen.unsubscribe, unsubscribe)
-  yield* Saga.chainAction2(EngineGen.keybase1NotifyFSFSSubscriptionNotifyPath, onPathChange)
-  yield* Saga.chainAction2(EngineGen.keybase1NotifyFSFSSubscriptionNotify, onNonPathChange)
+  yield* Saga.chainAction(FsGen.subscribePath, subscribePath)
+  yield* Saga.chainAction(FsGen.subscribeNonPath, subscribeNonPath)
+  yield* Saga.chainAction(FsGen.unsubscribe, unsubscribe)
+  yield* Saga.chainAction(EngineGen.keybase1NotifyFSFSSubscriptionNotifyPath, onPathChange)
+  yield* Saga.chainAction(EngineGen.keybase1NotifyFSFSSubscriptionNotify, onNonPathChange)
 
-  yield* Saga.chainAction2(FsGen.setDebugLevel, setDebugLevel)
+  yield* Saga.chainAction(FsGen.setDebugLevel, setDebugLevel)
 
   yield Saga.spawn(platformSpecificSaga)
 }
