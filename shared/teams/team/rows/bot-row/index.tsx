@@ -1,30 +1,21 @@
 import * as React from 'react'
-import {
-  Avatar,
-  Box,
-  Button,
-  ButtonBar,
-  ClickableBox,
-  Text,
-  Icon,
-  Usernames,
-} from '../../../../common-adapters'
+import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import {typeToLabel} from '../../../../constants/teams'
-import {isLargeScreen} from '../../../../constants/platform'
-import {BoolTypeMap, MemberStatus, TeamRoleType} from '../../../../constants/types/teams'
+import {MemberStatus, TeamRoleType} from '../../../../constants/types/teams'
 
 export type Props = {
-  onChat: () => void
+  botAlias: string
+  description: string
   onClick: () => void
   onReAddToTeam: () => void
   onRemoveFromTeam: () => void
   onShowTracker: () => void
+  ownerTeam?: string
+  ownerUser?: string
   roleType: TeamRoleType
   status: MemberStatus
   username: string
-  waitingForAdd: boolean
-  waitingForRemove: boolean
   youCanManageMembers: boolean
 }
 
@@ -33,129 +24,53 @@ export type Props = {
 // you're changing one remember to change the other.
 
 export const TeamBotRow = (props: Props) => {
-  let resetLabel
+  let descriptionLabel
   const active = props.status === 'active'
-  // if (props.fullName && active) {
-  //   fullNameLabel = (
-  //     <Text style={styles.fullNameLabel} type="BodySmall">
-  //       {props.fullName} •
-  //     </Text>
-  //   )
-  // }
-  if (!active) {
-    resetLabel = props.youCanManageMembers
-      ? 'Has reset their account'
-      : 'Has reset their account; admins can re-invite'
-    if (props.status === 'deleted') {
-      resetLabel = 'Has deleted their account'
-    }
+  if (props.description.length > 0) {
+    descriptionLabel = (
+      <Kb.Text style={styles.fullNameLabel} type="BodySmall" lineClamp={1}>
+        {props.description}
+      </Kb.Text>
+    )
   }
 
+  const usernameDisplay = (
+    <Kb.Box2 direction="horizontal" alignSelf="flex-start">
+      <Kb.Text type="BodySmallSemibold" style={{color: Styles.globalColors.black}}>
+        {props.botAlias || props.username}
+      </Kb.Text>
+      <Kb.Text type="BodySmall">
+        &nbsp;• by{' '}
+        {props.ownerTeam ? (
+          <Kb.Text type="BodySmall">@{props.ownerTeam}</Kb.Text>
+        ) : (
+          <Kb.ConnectedUsernames
+            prefix="@"
+            inline={true}
+            usernames={[props.ownerUser ?? props.username]}
+            type="BodySmall"
+            withProfileCardPopup={true}
+          />
+        )}
+      </Kb.Text>
+    </Kb.Box2>
+  )
+
   return (
-    <Box style={Styles.collapseStyles([styles.container, !active && styles.containerReset])}>
-      <Box style={styles.innerContainerTop}>
-        <ClickableBox
+    <Kb.Box style={Styles.collapseStyles([styles.container, !active && styles.containerReset])}>
+      <Kb.Box style={styles.innerContainerTop}>
+        <Kb.ClickableBox
           style={styles.clickable}
           onClick={active ? props.onClick : props.status === 'deleted' ? undefined : props.onShowTracker}
         >
-          <Avatar username={props.username} size={Styles.isMobile ? 48 : 32} />
-          <Box style={styles.nameContainer}>
-            <Box style={Styles.globalStyles.flexBoxRow}>
-              <Usernames type="BodySemibold" colorFollowing={true} users={[{username: props.username}]} />
-            </Box>
-            <Box style={styles.nameContainerInner}>
-              {/* {fullNameLabel} */}
-              {!active && (
-                <Text type="BodySmall" style={styles.lockedOutOrDeleted}>
-                  {props.status === 'reset' ? 'LOCKED OUT' : 'DELETED'}
-                </Text>
-              )}
-              <Text type="BodySmall">
-                {!!active && !!props.roleType && typeToLabel[props.roleType]}
-                {resetLabel}
-              </Text>
-            </Box>
-          </Box>
-        </ClickableBox>
-        {!active && !Styles.isMobile && props.youCanManageMembers && (
-          <Box style={styles.buttonBarContainer}>
-            <ButtonBar>
-              {props.status !== 'deleted' && (
-                <Button
-                  small={true}
-                  label="Re-Admit"
-                  onClick={props.onReAddToTeam}
-                  type="Success"
-                  waiting={props.waitingForAdd}
-                  disabled={props.waitingForRemove}
-                />
-              )}
-              <Button
-                small={true}
-                label="Remove"
-                onClick={props.onRemoveFromTeam}
-                type="Dim"
-                waiting={props.waitingForRemove}
-                disabled={props.waitingForAdd}
-              />
-            </ButtonBar>
-          </Box>
-        )}
-        <Box style={styles.chatIconContainer}>
-          {(active || isLargeScreen) && (
-            // Desktop & mobile large screen - display on the far right of the first row
-            // Also when user is active
-            <Icon
-              onClick={props.onChat}
-              style={
-                Styles.isMobile
-                  ? Styles.collapseStyles([styles.chatButtonMobile, styles.chatButtonMobileSmallTop])
-                  : styles.chatButtonDesktop
-              }
-              fontSize={Styles.isMobile ? 20 : 16}
-              type="iconfont-chat"
-            />
-          )}
-        </Box>
-      </Box>
-      {!active && Styles.isMobile && props.youCanManageMembers && (
-        <Box style={styles.innerContainerBottom}>
-          <ButtonBar direction="row">
-            {props.status !== 'deleted' && (
-              <Button
-                small={true}
-                label="Re-Admit"
-                onClick={props.onReAddToTeam}
-                type="Success"
-                waiting={props.waitingForAdd}
-                disabled={props.waitingForRemove}
-              />
-            )}
-            <Button
-              small={true}
-              label="Remove"
-              onClick={props.onRemoveFromTeam}
-              type="Dim"
-              waiting={props.waitingForRemove}
-              disabled={props.waitingForAdd}
-            />
-          </ButtonBar>
-          {!isLargeScreen && (
-            // Mobile small screens - for inactive user
-            // display next to reset / deleted controls
-            <Icon
-              onClick={props.onChat}
-              style={Styles.collapseStyles([
-                styles.chatButtonMobile,
-                active && styles.chatButtonMobileSmallTop,
-              ])}
-              fontSize={20}
-              type="iconfont-chat"
-            />
-          )}
-        </Box>
-      )}
-    </Box>
+          <Kb.Avatar username={props.username} size={Styles.isMobile ? 48 : 32} />
+          <Kb.Box style={styles.nameContainer}>
+            <Kb.Box style={Styles.globalStyles.flexBoxRow}>{usernameDisplay}</Kb.Box>
+            <Kb.Box style={styles.nameContainerInner}>{descriptionLabel}</Kb.Box>
+          </Kb.Box>
+        </Kb.ClickableBox>
+      </Kb.Box>
+    </Kb.Box>
   )
 }
 
