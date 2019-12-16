@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol/chat1"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -76,12 +75,12 @@ func (t *DebuggingHandler) Script(ctx context.Context, arg keybase1.ScriptArg) (
 		if len(args) != 1 {
 			return "", fmt.Errorf("usage: journeycard-state <conv-id> (like 000059aa7f324dad7524b56ed1beb3e3d620b3897d640951710f1417c6b7b85f)")
 		}
-		convID, err := chat1.MakeConvID(args[0])
+		teamID, err := keybase1.TeamIDFromString(args[0])
 		if err != nil {
 			return "", err
 		}
 		uidGregor := gregor1.UID(m.G().ActiveDevice.UID().ToBytes())
-		summary, err := t.G().ChatHelper.JourneycardDebugState(m.Ctx(), uidGregor, convID)
+		summary, err := t.G().ChatHelper.JourneycardDebugState(m.Ctx(), uidGregor, teamID)
 		return summary, err
 	case "":
 		return "", fmt.Errorf("empty script name")

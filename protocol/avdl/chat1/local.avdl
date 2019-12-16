@@ -726,8 +726,6 @@ protocol local {
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-  GetThreadLocalRes getCachedThread(ConversationID conversationID, union { null, GetThreadQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
-
   enum GetThreadNonblockCbMode {
     FULL_0,
     INCREMENTAL_1

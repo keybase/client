@@ -646,7 +646,7 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 				}
 			}
 			localThread, err = t.G().ConvSource.PullLocalOnly(ctx, convID,
-				uid, query, pagination, 10)
+				uid, reason, query, pagination, 10)
 			ch <- err
 		}()
 		select {

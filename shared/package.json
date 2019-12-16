@@ -90,6 +90,7 @@
       "constants/platform": "<rootDir>/__mocks__/platform.tsx",
       "local-debug": "<rootDir>/__mocks__/local-debug.tsx",
       "feature-flags": "<rootDir>/__mocks__/feature-flags.tsx",
+      "safe-navigation": "<rootDir>/__mocks__/safe-navigation.tsx",
       "engine/saga$": "<rootDir>/__mocks__/engine-saga.tsx",
       "@msgpack": "<rootDir>/node_modules/@msgpack/msgpack/dist.es5/msgpack.js"
     },
@@ -150,7 +151,7 @@
     "lodash": "4.17.15",
     "lottie-ios": "3.0.3",
     "lottie-react-native": "3.1.0",
-    "lottie-react-web": "git://github.com/keybase/lottie-react-web#keybase-changes-off-214",
+    "lottie-react-web": "git://github.com/keybase/lottie-react-web#nojima/keybase-fixes-off-214",
     "memoize-one": "5.0.5",
     "menubar": "6.0.6",
     "moment": "2.24.0",
