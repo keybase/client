@@ -765,7 +765,7 @@ func (cc *JourneyCardManagerSingleUser) SentMessage(ctx context.Context, teamID 
 func (cc *JourneyCardManagerSingleUser) Dismiss(ctx context.Context, teamID keybase1.TeamID, convID chat1.ConversationID, cardType chat1.JourneycardType) {
 	err := libkb.AcquireWithContextAndTimeout(ctx, &cc.storageLock, 10*time.Second)
 	if err != nil {
-		cc.Debug(ctx, "SentMessage storageLock error: %v", err)
+		cc.Debug(ctx, "Dismiss storageLock error: %v", err)
 		return
 	}
 	defer cc.storageLock.Unlock()
@@ -805,7 +805,7 @@ func (cc *JourneyCardManagerSingleUser) dbKey(teamID keybase1.TeamID) libkb.DbKe
 func (cc *JourneyCardManagerSingleUser) getTeamData(ctx context.Context, teamID keybase1.TeamID) (res journeycardData, err error) {
 	err = libkb.AcquireWithContextAndTimeout(ctx, &cc.storageLock, 10*time.Second)
 	if err != nil {
-		return res, fmt.Errorf("getConvData storageLock error: %v", err)
+		return res, fmt.Errorf("getTeamData storageLock error: %v", err)
 	}
 	defer cc.storageLock.Unlock()
 	return cc.getTeamDataWithLock(ctx, teamID)
