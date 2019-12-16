@@ -997,13 +997,13 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 		case ibox := <-ui.InboxCb:
 			require.NotNil(t, ibox.InboxRes, "nil inbox")
 			require.Equal(t, numconvs, len(ibox.InboxRes.Items))
+			sort.Slice(ibox.InboxRes.Items, func(i, j int) bool {
+				return ibox.InboxRes.Items[i].Time.After(ibox.InboxRes.Items[j].Time)
+			})
 			for index, conv := range ibox.InboxRes.Items {
 				t.Logf("metadata snippet: index: %d snippet: %s time: %v", index, conv.LocalMetadata.Snippet,
 					conv.Time)
 			}
-			sort.Slice(ibox.InboxRes.Items, func(i, j int) bool {
-				return ibox.InboxRes.Items[i].Time.After(ibox.InboxRes.Items[j].Time)
-			})
 			for index, conv := range ibox.InboxRes.Items {
 				require.NotNil(t, conv.LocalMetadata)
 				switch mt {
@@ -1011,9 +1011,9 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 					if conv.ConvID == firstConv.Id.String() {
 						continue
 					}
-					require.Equal(t, fmt.Sprintf("%d", numconvs-index), conv.LocalMetadata.ChannelName)
+					require.Equal(t, fmt.Sprintf("%d", numconvs-index-1), conv.LocalMetadata.ChannelName)
 					require.Equal(t,
-						fmt.Sprintf("%s: %d", users[numconvs-index].Username, numconvs-index),
+						fmt.Sprintf("%s: %d", users[numconvs-index-1].Username, numconvs-index-1),
 						conv.LocalMetadata.Snippet)
 					require.Zero(t, len(conv.LocalMetadata.WriterNames))
 				default:
