@@ -47,6 +47,10 @@ module.exports = ({config, mode}) => {
     new webpack.NormalModuleReplacementPlugin(/engine/, __dirname + '/../__mocks__/engine.tsx'),
     new webpack.NormalModuleReplacementPlugin(/util\/saga/, __dirname + '/../__mocks__/saga.tsx'),
     new webpack.NormalModuleReplacementPlugin(/feature-flags/, __dirname + '/../__mocks__/feature-flags.tsx'),
+    new webpack.NormalModuleReplacementPlugin(
+      /safe-navigation/,
+      __dirname + '/../__mocks__/safe-navigation.tsx'
+    ),
   ]
 
   // Override default ignoring node_modules

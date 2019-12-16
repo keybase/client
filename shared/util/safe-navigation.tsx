@@ -13,7 +13,7 @@ type SafeNavigationProps = {
 }
 type SafeNavHook = () => SafeNavigationProps
 
-const useSafeNavigationReal: SafeNavHook = () => {
+export const useSafeNavigation: SafeNavHook = () => {
   const state = useNavigationState()
   const fromKey = getActiveKey(state)
   return React.useMemo(
@@ -26,15 +26,3 @@ const useSafeNavigationReal: SafeNavHook = () => {
     [fromKey]
   )
 }
-
-const mockKey = 'mockKey'
-const useSafeNavigationStorybook: SafeNavHook = () => ({
-  navKey: mockKey,
-  safeNavigateAppendPayload: ({path, replace}: SafeNavigateAppendArg) =>
-    RouteTreeGen.createNavigateAppend({fromKey: mockKey, path, replace}),
-  safeNavigateUpPayload: () => RouteTreeGen.createNavigateUp({fromKey: mockKey}),
-})
-
-export const useSafeNavigation: SafeNavHook = __STORYBOOK__
-  ? useSafeNavigationStorybook
-  : useSafeNavigationReal
