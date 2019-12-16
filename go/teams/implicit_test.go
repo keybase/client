@@ -833,3 +833,60 @@ func TestReAddMemberAfterResetWithRestrictiveContactSettings(t *testing.T) {
 	err = reAddMemberAfterResetInner(context.Background(), tcAnn.G, teamObj.ID, jun.Username)
 	require.NoError(t, err) // changing contact settings doesn't affect existing teams
 }
+
+func TestLookupImplicitTeamWithRestrictiveContactSettings(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 3)
+	defer cleanup()
+
+	ann := fus[0]
+	bob := fus[1]
+	jun := fus[2]
+
+	tcAnn := tcs[0]
+	tcBob := tcs[1]
+	tcJun := tcs[2]
+
+	// jun sets contact settings
+	err := jun.Login(tcJun.G)
+	require.NoError(t, err)
+	kbtest.SetContactSettings(*tcJun, jun, keybase1.ContactSettings{
+		Enabled:              true,
+		AllowFolloweeDegrees: 1,
+	})
+
+	// can't create implicit team with a user with restrictive contact settings
+	impteamName := strings.Join([]string{ann.Username, bob.Username, jun.Username}, ",")
+	_, _, _, err = LookupOrCreateImplicitTeam(context.Background(), tcAnn.G, impteamName, false /*isPublic*/)
+	require.Error(t, err)
+	require.IsType(t, err, libkb.TeamContactSettingsBlockError{})
+	usernames := err.(libkb.TeamContactSettingsBlockError).BlockedUsernames()
+	require.Equal(t, 1, len(usernames))
+	require.Equal(t, libkb.NewNormalizedUsername(jun.Username), usernames[0])
+
+	// jun follows ann
+	_, err = kbtest.RunTrack(*tcJun, jun, ann.Username)
+	require.NoError(t, err)
+	err = tcJun.Logout()
+	require.NoError(t, err)
+
+	// try creating implicit team again; should succeed
+	teamObj, _, _, err := LookupOrCreateImplicitTeam(context.Background(), tcAnn.G, impteamName, false /*isPublic*/)
+	require.NoError(t, err)
+
+	t.Logf("created implicit team: %v; team id: %s", impteamName, teamObj.ID)
+
+	// bob sets contact settings
+	err = bob.Login(tcBob.G)
+	require.NoError(t, err)
+	kbtest.SetContactSettings(*tcBob, bob, keybase1.ContactSettings{
+		Enabled:              true,
+		AllowFolloweeDegrees: 0,
+	})
+	err = tcBob.Logout()
+	require.NoError(t, err)
+
+	// changing contact settings doesn't affect existing teams
+	teamObj2, _, _, err := LookupOrCreateImplicitTeam(context.Background(), tcAnn.G, impteamName, false /*isPublic*/)
+	require.NoError(t, err)
+	require.Equal(t, teamObj.ID, teamObj2.ID)
+}
