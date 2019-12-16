@@ -147,6 +147,7 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
         this.loadAttachments()
       }
       if (this.props.selectedTab === 'bots') {
+        this.loadBots()
       }
     }, this.props.loadDelay || 0)
   }
@@ -156,6 +157,17 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
 
   private loadAttachments = () => {
     this.props.onAttachmentViewChange(this.props.selectedAttachmentView)
+  }
+
+  private loadBots = () => {
+    const possibleBotsLength = this.props.bots.length + this.props.availableBots.length
+    if (this.props.bots.length > 0) {
+      this.props.bots.map(bot => this.props.onSearchFeaturedBots(bot.botUsername))
+    }
+
+    if (possibleBotsLength === 0 && !this.props.loadedAllBots) {
+      this.props.onLoadMoreBots()
+    }
   }
 
   private getEntityType = (): EntityType => {
@@ -210,7 +222,7 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
 
     // @ts-ignore TODO avoid using key on a node
     if (tab.key === 'bots') {
-      this.props.bots.map(bot => this.props.onSearchFeaturedBots(bot.botUsername))
+      this.loadBots()
     }
 
     // @ts-ignore TODO avoid using key on a node
