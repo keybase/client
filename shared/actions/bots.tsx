@@ -30,15 +30,14 @@ const getFeaturedBots = async (_: Container.TypedState, action: BotsGen.GetFeatu
   }
 }
 
-const searchFeaturedBots = async (state: Container.TypedState, action: BotsGen.SearchFeaturedBotsPayload) => {
+const searchFeaturedBots = async (_: Container.TypedState, action: BotsGen.SearchFeaturedBotsPayload) => {
   const {limit, offset, query} = action.payload
-
-  if (state.chat2.featuredBotsMap.has(query)) {
-    // don't refresh featured bot if it's in the store
-    return
-  }
   try {
-    const {bots} = await RPCTypes.featuredBotSearchRpcPromise({limit: limit ?? 1, offset: offset ?? 0, query})
+    const {bots} = await RPCTypes.featuredBotSearchRpcPromise({
+      limit: limit ?? 10,
+      offset: offset ?? 0,
+      query,
+    })
     if (!bots || bots.length == 0) {
       // don't do anything with a bad response from rpc
       return

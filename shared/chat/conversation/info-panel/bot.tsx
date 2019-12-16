@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import {FeaturedBot} from 'constants/types/rpc-gen'
+import TeamMention from '../maybe-mention/team-container'
 
 type Props = FeaturedBot & {
   description?: string
@@ -12,7 +13,7 @@ const Bot = ({botAlias, description, botUsername, ownerTeam, ownerUser, onShowPr
   const lower = (
     <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny" alignSelf="flex-start">
       {description !== '' && (
-        <Kb.Text type="BodySmall" lineClamp={1}>
+        <Kb.Text type="BodySmall" lineClamp={1} onClick={() => onShowProfile(botUsername)}>
           {description}
         </Kb.Text>
       )}
@@ -21,25 +22,45 @@ const Bot = ({botAlias, description, botUsername, ownerTeam, ownerUser, onShowPr
 
   const usernameDisplay = (
     <Kb.Box2 direction="horizontal" alignSelf="flex-start">
-      <Kb.Text type="BodySmallSemibold" style={{color: Styles.globalColors.black}}>
+      <Kb.Text
+        type="BodySmallSemibold"
+        style={{color: Styles.globalColors.black}}
+        onClick={() => onShowProfile(botUsername)}
+      >
         {botAlias || botUsername}
       </Kb.Text>
-      <Kb.Text type="BodySmall">&nbsp;• by @{ownerTeam ?? ownerUser ?? botUsername}</Kb.Text>
+      <Kb.Text type="BodySmall">
+        &nbsp;• by{' '}
+        {ownerTeam ? (
+          <Kb.Text type="BodySmall">@{ownerTeam}</Kb.Text>
+        ) : (
+          <Kb.ConnectedUsernames
+            prefix="@"
+            inline={true}
+            usernames={[ownerUser ?? botUsername]}
+            type="BodySmall"
+            withProfileCardPopup={true}
+          />
+        )}
+      </Kb.Text>
     </Kb.Box2>
   )
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
-      <Kb.ClickableBox key={botUsername} onClick={() => onShowProfile(botUsername)}>
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.rowContainer}>
-          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.row}>
-            <Kb.Avatar size={Styles.isMobile ? 48 : 32} style={styles.avatarStyle} username={botUsername} />
-            <Kb.Box2 direction="vertical">
-              {usernameDisplay}
-              {lower}
-            </Kb.Box2>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.rowContainer}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.row}>
+          <Kb.Avatar
+            size={Styles.isMobile ? 48 : 32}
+            style={styles.avatarStyle}
+            username={botUsername}
+            onClick={() => onShowProfile(botUsername)}
+          />
+          <Kb.Box2 direction="vertical">
+            {usernameDisplay}
+            {lower}
           </Kb.Box2>
         </Kb.Box2>
-      </Kb.ClickableBox>
+      </Kb.Box2>
     </Kb.Box2>
   )
 }
