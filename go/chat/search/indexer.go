@@ -53,7 +53,6 @@ func NewIndexer(g *globals.Context) *Indexer {
 	idx := &Indexer{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Search.Indexer", false),
-		store:        newStore(g),
 		pageSize:     defaultPageSize,
 		stopCh:       make(chan chan struct{}, 10),
 		suspendCh:    make(chan chan struct{}, 10),
@@ -109,6 +108,7 @@ func (idx *Indexer) Start(ctx context.Context, uid gregor1.UID) {
 	if idx.started {
 		return
 	}
+	idx.store = newStore(idx.G(), uid)
 	if !idx.G().IsMobileAppType() {
 		idx.started = true
 		go idx.SyncLoop(ctx, uid)
@@ -360,7 +360,7 @@ func (idx *Indexer) remove(ctx context.Context, convID chat1.ConversationID, uid
 		fmt.Sprintf("Indexer.Remove conv: %v, msgs: %d, force: %v",
 			convID, len(msgs), force))()
 	defer idx.consumeResultsForTest(convID, err)
-	return idx.store.Remove(ctx, uid, convID, msgs)
+	return idx.store.Remove(ctx, convID, msgs)
 }
 
 // reindexConv attempts to fill in any missing messages from the index.  For a
@@ -371,7 +371,7 @@ func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversat
 	numJobs int, inboxIndexStatus *inboxIndexStatus) (completedJobs int, err error) {
 	conv := rconv.Conv
 	convID := conv.GetConvID()
-	md, err := idx.store.GetMetadata(ctx, uid, convID)
+	md, err := idx.store.GetMetadata(ctx, convID)
 	if err != nil {
 		return 0, err
 	}
@@ -430,7 +430,7 @@ func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversat
 				break
 			}
 			if inboxIndexStatus != nil {
-				md, err := idx.store.GetMetadata(ctx, uid, conv.GetConvID())
+				md, err := idx.store.GetMetadata(ctx, conv.GetConvID())
 				if err != nil {
 					idx.Debug(ctx, "updateInboxIndex: unable to GetMetadata %v", err)
 					continue
@@ -583,7 +583,7 @@ func (idx *Indexer) SelectiveSync(ctx context.Context, uid gregor1.UID) (err err
 		default:
 		}
 		convID := conv.GetConvID()
-		md, err := idx.store.GetMetadata(ctx, uid, convID)
+		md, err := idx.store.GetMetadata(ctx, convID)
 		if err != nil {
 			idx.Debug(ctx, "SelectiveSync: Unable to get md for conv: %v, %v", convID, err)
 			continue
@@ -637,7 +637,7 @@ func (idx *Indexer) IndexInbox(ctx context.Context, uid gregor1.UID) (res map[st
 func (idx *Indexer) indexConvWithProfile(ctx context.Context, conv types.RemoteConversation,
 	uid gregor1.UID) (res chat1.ProfileSearchConvStats, err error) {
 	defer idx.Trace(ctx, func() error { return err }, "Indexer.indexConvWithProfile")()
-	md, err := idx.store.GetMetadata(ctx, uid, conv.GetConvID())
+	md, err := idx.store.GetMetadata(ctx, conv.GetConvID())
 	if err != nil {
 		return res, err
 	}
@@ -663,7 +663,7 @@ func (idx *Indexer) indexConvWithProfile(ctx context.Context, conv types.RemoteC
 		return res, err
 	}
 	res.DurationMsec = gregor1.ToDurationMsec(time.Since(startT))
-	dbKey := idx.store.metadataKey(uid, conv.GetConvID())
+	dbKey := metadataKey(uid, conv.GetConvID())
 	b, _, err := idx.G().LocalChatDb.GetRaw(dbKey)
 	if err != nil {
 		return res, err
@@ -679,7 +679,7 @@ func (idx *Indexer) FullyIndexed(ctx context.Context, convID chat1.ConversationI
 	if err != nil {
 		return false, err
 	}
-	md, err := idx.store.GetMetadata(ctx, uid, convID)
+	md, err := idx.store.GetMetadata(ctx, convID)
 	if err != nil {
 		return false, err
 	}
@@ -692,7 +692,7 @@ func (idx *Indexer) PercentIndexed(ctx context.Context, convID chat1.Conversatio
 	if err != nil {
 		return 0, err
 	}
-	md, err := idx.store.GetMetadata(ctx, uid, convID)
+	md, err := idx.store.GetMetadata(ctx, convID)
 	if err != nil {
 		return 0, err
 	}
@@ -706,5 +706,5 @@ func (idx *Indexer) OnDbNuke(mctx libkb.MetaContext) error {
 
 func (idx *Indexer) GetStoreHits(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	query string) (res map[chat1.MessageID]chat1.EmptyStruct, err error) {
-	return idx.store.GetHits(ctx, uid, convID, query)
+	return idx.store.GetHits(ctx, convID, query)
 }

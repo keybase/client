@@ -84,7 +84,7 @@ func (s *searchSession) searchConv(ctx context.Context, convID chat1.Conversatio
 	var allMsgIDs mapset.Set
 	for token := range s.tokens {
 		matchedIDs := mapset.NewThreadUnsafeSet()
-		idMap, err := s.indexer.store.GetHits(ctx, s.uid, convID, token)
+		idMap, err := s.indexer.store.GetHits(ctx, convID, token)
 		if err != nil {
 			return nil, err
 		}
@@ -241,7 +241,7 @@ func (s *searchSession) searchHitBatch(ctx context.Context, convID chat1.Convers
 }
 
 func (s *searchSession) convFullyIndexed(ctx context.Context, conv chat1.Conversation) (bool, error) {
-	md, err := s.indexer.store.GetMetadata(ctx, s.uid, conv.GetConvID())
+	md, err := s.indexer.store.GetMetadata(ctx, conv.GetConvID())
 	if err != nil {
 		return false, err
 	}
@@ -249,7 +249,7 @@ func (s *searchSession) convFullyIndexed(ctx context.Context, conv chat1.Convers
 }
 
 func (s *searchSession) updateInboxIndex(ctx context.Context, conv chat1.Conversation) {
-	md, err := s.indexer.store.GetMetadata(ctx, s.uid, conv.GetConvID())
+	md, err := s.indexer.store.GetMetadata(ctx, conv.GetConvID())
 	if err != nil {
 		s.indexer.Debug(ctx, "updateInboxIndex: unable to GetMetadata %v", err)
 		return

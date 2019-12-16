@@ -76,6 +76,8 @@ type diskStorage interface {
 		token string, te *tokenEntry) error
 	GetAliasEntry(ctx context.Context, alias string) (res *aliasEntry, err error)
 	PutAliasEntry(ctx context.Context, alias string, ae *aliasEntry) error
+	GetMetadata(ctx context.Context, convID chat1.ConversationID) (res *indexMetadata, err error)
+	PutMetadata(ctx context.Context, convID chat1.ConversationID, md *indexMetadata) error
 	Flush() error
 }
 
@@ -188,6 +190,32 @@ func (b *batchingStore) PutAliasEntry(ctx context.Context, alias string, ae *ali
 	return nil
 }
 
+func (b *batchingStore) GetMetadata(ctx context.Context, convID chat1.ConversationID) (res *indexMetadata, err error) {
+	b.Lock()
+	defer b.Unlock()
+	var ok bool
+	if res, ok = b.mdBatch[convID.String()]; ok {
+		return res, nil
+	}
+	key := metadataKey(b.uid, convID)
+	res = new(indexMetadata)
+	found, err := b.edb.Get(ctx, key, res)
+	if err != nil {
+		return nil, err
+	}
+	if !found {
+		return nil, nil
+	}
+	return res, nil
+}
+
+func (b *batchingStore) PutMetadata(ctx context.Context, convID chat1.ConversationID, md *indexMetadata) error {
+	b.Lock()
+	defer b.Unlock()
+	b.mdBatch[convID.String()] = md
+	return nil
+}
+
 func (b *batchingStore) Flush() error {
 	return nil
 }
@@ -229,11 +257,11 @@ func (s *store) flush(ctx context.Context) {
 
 }
 
-func (s *store) metadataKey(uid gregor1.UID, convID chat1.ConversationID) libkb.DbKey {
-	return s.metadataKeyWithVersion(uid, convID, mdDiskVersion)
+func metadataKey(uid gregor1.UID, convID chat1.ConversationID) libkb.DbKey {
+	return metadataKeyWithVersion(uid, convID, mdDiskVersion)
 }
 
-func (s *store) metadataKeyWithVersion(uid gregor1.UID, convID chat1.ConversationID, version int) libkb.DbKey {
+func metadataKeyWithVersion(uid gregor1.UID, convID chat1.ConversationID, version int) libkb.DbKey {
 	var key string
 	switch version {
 	case 1:
@@ -349,9 +377,9 @@ func (s *store) deleteOldVersions(ctx context.Context, keyFn func(int) (libkb.Db
 	}
 }
 
-func (s *store) deleteOldMetadataVersions(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) {
+func (s *store) deleteOldMetadataVersions(ctx context.Context, convID chat1.ConversationID) {
 	keyFn := func(version int) (libkb.DbKey, error) {
-		return s.metadataKeyWithVersion(uid, convID, version), nil
+		return metadataKeyWithVersion(s.uid, convID, version), nil
 	}
 	s.deleteOldVersions(ctx, keyFn, mdDiskVersion)
 }
@@ -365,7 +393,7 @@ func (s *store) deleteOldTokenVersions(ctx context.Context, convID chat1.Convers
 
 func (s *store) deleteOldAliasVersions(ctx context.Context, alias string) {
 	keyFn := func(version int) (libkb.DbKey, error) {
-		return s.aliasKeyWithVersion(ctx, alias, version)
+		return aliasKeyWithVersion(ctx, alias, version, s.keyFn)
 	}
 	s.deleteOldVersions(ctx, keyFn, aliasDiskVersion)
 }
@@ -427,7 +455,6 @@ func (s *store) getTokenEntry(ctx context.Context, convID chat1.ConversationID, 
 }
 
 func (s *store) getAliasEntry(ctx context.Context, alias string) (res *aliasEntry, err error) {
-	var ae aliasEntry
 	if dat, ok := s.aliasCache.Get(alias); ok {
 		return dat.(*aliasEntry), nil
 	}
@@ -468,7 +495,7 @@ func (s *store) putAliasEntry(ctx context.Context, alias string, ae *aliasEntry)
 	return s.diskStorage.PutAliasEntry(ctx, alias, ae)
 }
 
-func (s *store) deleteTokenEntry(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+func (s *store) deleteTokenEntry(ctx context.Context, convID chat1.ConversationID,
 	token string) {
 	key, err := tokenKey(ctx, s.uid, convID, token, s.keyFn)
 	if err != nil {
@@ -482,7 +509,7 @@ func (s *store) deleteTokenEntry(ctx context.Context, uid gregor1.UID, convID ch
 }
 
 func (s *store) deleteAliasEntry(ctx context.Context, alias string) {
-	key, err := s.aliasKey(ctx, alias)
+	key, err := aliasKey(ctx, alias, s.keyFn)
 	if err != nil {
 		s.Debug(ctx, "deleteAliasEntry: failed to get key: %s", err)
 		return
@@ -524,7 +551,7 @@ func (s *store) addMsg(ctx context.Context, convID chat1.ConversationID,
 	return s.addTokens(ctx, convID, tokens, msg.GetMessageID())
 }
 
-func (s *store) removeMsg(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+func (s *store) removeMsg(ctx context.Context, convID chat1.ConversationID,
 	msg chat1.MessageUnboxed) error {
 	// find the msgID that the index stores
 	var msgID chat1.MessageID
@@ -547,10 +574,10 @@ func (s *store) removeMsg(ctx context.Context, uid gregor1.UID, convID chat1.Con
 		}
 		delete(te.MsgIDs, msgID)
 		if len(te.MsgIDs) == 0 {
-			s.deleteTokenEntry(ctx, uid, convID, token)
+			s.deleteTokenEntry(ctx, convID, token)
 		} else {
 			// If there are still IDs, just write out the updated version
-			if err := s.putTokenEntry(ctx, uid, convID, token, te); err != nil {
+			if err := s.putTokenEntry(ctx, convID, token, te); err != nil {
 				return err
 			}
 		}
@@ -573,24 +600,17 @@ func (s *store) removeMsg(ctx context.Context, uid gregor1.UID, convID chat1.Con
 }
 
 func (s *store) GetMetadata(ctx context.Context, convID chat1.ConversationID) (res *indexMetadata, err error) {
-	var md indexMetadata
-	found, err := s.G().LocalChatDb.GetIntoMsgpack(&md, s.metadataKey(uid, convID))
-	if err != nil {
+	if res, err = s.diskStorage.GetMetadata(ctx, convID); err != nil {
 		return res, err
 	}
-	if !found {
-		s.deleteOldMetadataVersions(ctx, uid, convID)
+	if res == nil {
+		s.deleteOldMetadataVersions(ctx, convID)
 		return newIndexMetadata(), nil
 	}
-	if md.Version != refIndexMetadata.Version {
+	if res.Version != refIndexMetadata.Version {
 		return newIndexMetadata(), nil
 	}
-	return &md, nil
-}
-
-func (s *store) putMetadata(ctx context.Context, convID chat1.ConversationID,
-	md *indexMetadata) error {
-	return s.G().LocalChatDb.PutObjMsgpack(s.metadataKey(uid, convID), nil, md)
+	return res, nil
 }
 
 func (s *store) Add(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
@@ -616,11 +636,13 @@ func (s *store) Add(ctx context.Context, uid gregor1.UID, convID chat1.Conversat
 		return supersededMsgs
 	}
 
-	md, err := s.GetMetadata(ctx, uid, convID)
+	md, err := s.GetMetadata(ctx, convID)
 	if err != nil {
 		return err
 	}
-	batch.md = md
+	defer func() {
+		s.diskStorage.PutMetadata(ctx, convID, md)
+	}()
 	for _, msg := range msgs {
 		seenIDs := md.SeenIDs
 		// Don't add if we've seen
@@ -636,7 +658,7 @@ func (s *store) Add(ctx context.Context, uid gregor1.UID, convID chat1.Conversat
 			supersededMsgs := fetchSupersededMsgs(msg)
 			for _, sm := range supersededMsgs {
 				seenIDs[sm.GetMessageID()] = chat1.EmptyStruct{}
-				err := s.addMsg(ctx, batch, uid, convID, sm)
+				err := s.addMsg(ctx, convID, sm)
 				if err != nil {
 					return err
 				}
@@ -648,17 +670,17 @@ func (s *store) Add(ctx context.Context, uid gregor1.UID, convID chat1.Conversat
 			// contents (using the original id in the index)
 			for _, sm := range supersededMsgs {
 				seenIDs[sm.GetMessageID()] = chat1.EmptyStruct{}
-				err := s.removeMsg(ctx, uid, convID, sm)
+				err := s.removeMsg(ctx, convID, sm)
 				if err != nil {
 					return err
 				}
-				err = s.addTokens(ctx, batch, uid, convID, tokens, sm.GetMessageID())
+				err = s.addTokens(ctx, convID, tokens, sm.GetMessageID())
 				if err != nil {
 					return err
 				}
 			}
 		default:
-			err := s.addMsg(ctx, batch, uid, convID, msg)
+			err := s.addMsg(ctx, convID, msg)
 			if err != nil {
 				return err
 			}
@@ -668,13 +690,13 @@ func (s *store) Add(ctx context.Context, uid gregor1.UID, convID chat1.Conversat
 }
 
 // Remove tokenizes the message content and updates/removes index keys for each token.
-func (s *store) Remove(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+func (s *store) Remove(ctx context.Context, convID chat1.ConversationID,
 	msgs []chat1.MessageUnboxed) (err error) {
 	defer s.Trace(ctx, func() error { return err }, "Remove")()
 	s.Lock()
 	defer s.Unlock()
 
-	md, err := s.GetMetadata(ctx, uid, convID)
+	md, err := s.GetMetadata(ctx, convID)
 	if err != nil {
 		return err
 	}
@@ -686,12 +708,12 @@ func (s *store) Remove(ctx context.Context, uid gregor1.UID, convID chat1.Conver
 			continue
 		}
 		seenIDs[msg.GetMessageID()] = chat1.EmptyStruct{}
-		err := s.removeMsg(ctx, uid, convID, msg)
+		err := s.removeMsg(ctx, convID, msg)
 		if err != nil {
 			return err
 		}
 	}
-	err = s.putMetadata(ctx, uid, convID, md)
+	err = s.diskStorage.PutMetadata(ctx, convID, md)
 	return err
 }
 
