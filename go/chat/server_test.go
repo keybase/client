@@ -18,6 +18,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/chat/bots"
 	"github.com/keybase/client/go/kbhttp/manager"
 
@@ -4828,7 +4829,17 @@ func TestChatSrvRetentionSweepConv(t *testing.T) {
 
 			tvres, err := ctc.as(t, users[1]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{ConversationID: conv.Id})
 			require.NoError(t, err)
-			require.Len(t, tvres.Thread.Messages, 1, "the TEXTs should be deleted")
+			t.Logf("messages: %v", chat1.MessageUnboxedDebugList(tvres.Thread.Messages))
+			for _, msg := range tvres.Thread.Messages {
+				if msg.IsJourneycard() {
+					continue
+				}
+				switch msg.GetMessageType() {
+				case chat1.MessageType_METADATA, chat1.MessageType_TLFNAME:
+					continue
+				}
+				require.FailNowf(t, "the TEXTs should be deleted", "%v, %v", chat1.MessageUnboxedDebugList(tvres.Thread.Messages), spew.Sdump(msg))
+			}
 
 			// If we are using an ephemeral policy make sure messages with a lifetime exceeding
 			// the policy age are blocked.
