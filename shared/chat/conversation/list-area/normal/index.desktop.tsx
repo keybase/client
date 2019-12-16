@@ -150,11 +150,13 @@ class Thread extends React.PureComponent<Props, State> {
   }
 
   private scrollUp = () => {
+    this._lockedToBottom = false
     const list = this.listRef.current
     if (list) {
       this.logAll(list, 'scrollUp', () => {
         this.adjustScrollAndIgnoreOnScroll(() => {
           list.scrollTop -= list.clientHeight
+          this.checkForLoadMoreThrottled()
         })
       })
     }
