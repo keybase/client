@@ -82,6 +82,7 @@ const _AirdropPopup = (p: Kb.PropsWithOverlay<AirdropPopupProps>) => (
           ? [
               'Divider',
               {
+                icon: 'iconfont-open-browser',
                 onClick: p.onLearnMore,
                 title: 'Learn more',
               },

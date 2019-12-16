@@ -50,6 +50,7 @@ export default (props: Props) => (
         ? [
             {
               disabled: props.confirm === 'disabled',
+              icon: 'iconfont-check',
               onClick: props.confirm !== 'disabled' ? props.confirm : undefined,
               title: 'Yes, continue',
             },
