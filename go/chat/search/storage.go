@@ -93,6 +93,11 @@ func newTokenBatch(convID chat1.ConversationID) *tokenBatch {
 	}
 }
 
+type mdBatch struct {
+	convID chat1.ConversationID
+	md     *indexMetadata
+}
+
 type batchingStore struct {
 	utils.DebugLabeler
 	sync.Mutex
@@ -102,7 +107,7 @@ type batchingStore struct {
 	keyFn      func(ctx context.Context) ([32]byte, error)
 	aliasBatch map[string]*aliasEntry
 	tokenBatch map[string]*tokenBatch
-	mdBatch    map[string]*indexMetadata
+	mdBatch    map[string]*mdBatch
 }
 
 func newBatchingStore(log logger.Logger, uid gregor1.UID,
@@ -113,15 +118,16 @@ func newBatchingStore(log logger.Logger, uid gregor1.UID,
 		keyFn:        keyFn,
 		edb:          edb,
 	}
+	b.Lock()
+	b.resetLocked()
+	b.Unlock()
 	return b
 }
 
-func (b *batchingStore) reset() {
-	b.Lock()
-	defer b.Unlock()
+func (b *batchingStore) resetLocked() {
 	b.aliasBatch = make(map[string]*aliasEntry)
 	b.tokenBatch = make(map[string]*tokenBatch)
-	b.mdBatch = make(map[string]*indexMetadata)
+	b.mdBatch = make(map[string]*mdBatch)
 }
 
 func (b *batchingStore) GetTokenEntry(ctx context.Context, convID chat1.ConversationID,
@@ -193,9 +199,8 @@ func (b *batchingStore) PutAliasEntry(ctx context.Context, alias string, ae *ali
 func (b *batchingStore) GetMetadata(ctx context.Context, convID chat1.ConversationID) (res *indexMetadata, err error) {
 	b.Lock()
 	defer b.Unlock()
-	var ok bool
-	if res, ok = b.mdBatch[convID.String()]; ok {
-		return res, nil
+	if md, ok := b.mdBatch[convID.String()]; ok {
+		return md.md, nil
 	}
 	key := metadataKey(b.uid, convID)
 	res = new(indexMetadata)
@@ -212,11 +217,45 @@ func (b *batchingStore) GetMetadata(ctx context.Context, convID chat1.Conversati
 func (b *batchingStore) PutMetadata(ctx context.Context, convID chat1.ConversationID, md *indexMetadata) error {
 	b.Lock()
 	defer b.Unlock()
-	b.mdBatch[convID.String()] = md
+	b.mdBatch[convID.String()] = &mdBatch{
+		md:     md,
+		convID: convID,
+	}
 	return nil
 }
 
-func (b *batchingStore) Flush() error {
+func (b *batchingStore) Flush() (err error) {
+	ctx := context.Background()
+	defer b.Trace(context.Background(), func() error { return err }, "Flush")()
+	b.Lock()
+	defer b.Unlock()
+	defer b.resetLocked()
+
+	for _, tokenBatch := range b.tokenBatch {
+		for token, te := range tokenBatch.tokens {
+			key, err := tokenKey(ctx, b.uid, tokenBatch.convID, token, b.keyFn)
+			if err != nil {
+				return err
+			}
+			if err := b.edb.Put(ctx, key, te); err != nil {
+				return err
+			}
+		}
+	}
+	for alias, ae := range b.aliasBatch {
+		key, err := aliasKey(ctx, alias, b.keyFn)
+		if err != nil {
+			return err
+		}
+		if err := b.edb.Put(ctx, key, ae); err != nil {
+			return err
+		}
+	}
+	for _, mdBatch := range b.mdBatch {
+		if err := b.edb.Put(ctx, metadataKey(b.uid, mdBatch.convID), mdBatch.md); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -613,7 +652,7 @@ func (s *store) GetMetadata(ctx context.Context, convID chat1.ConversationID) (r
 	return res, nil
 }
 
-func (s *store) Add(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+func (s *store) Add(ctx context.Context, convID chat1.ConversationID,
 	msgs []chat1.MessageUnboxed) (err error) {
 	defer s.Trace(ctx, func() error { return err }, "Add")()
 	s.Lock()
@@ -626,7 +665,7 @@ func (s *store) Add(ctx context.Context, uid gregor1.UID, convID chat1.Conversat
 			return nil
 		}
 		reason := chat1.GetThreadReason_INDEXED_SEARCH
-		supersededMsgs, err := s.G().ChatHelper.GetMessages(ctx, uid, convID, superIDs,
+		supersededMsgs, err := s.G().ChatHelper.GetMessages(ctx, s.uid, convID, superIDs,
 			false /* resolveSupersedes*/, &reason)
 		if err != nil {
 			// Log but ignore error
@@ -638,6 +677,7 @@ func (s *store) Add(ctx context.Context, uid gregor1.UID, convID chat1.Conversat
 
 	md, err := s.GetMetadata(ctx, convID)
 	if err != nil {
+		s.Debug(ctx, "failed to get metadata: %s", err)
 		return err
 	}
 	defer func() {
@@ -720,4 +760,9 @@ func (s *store) Remove(ctx context.Context, convID chat1.ConversationID,
 func (s *store) ClearMemory() {
 	s.aliasCache.Purge()
 	s.tokenCache.Purge()
+	_ = s.diskStorage.Flush()
+}
+
+func (s *store) Flush() error {
+	return s.diskStorage.Flush()
 }

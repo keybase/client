@@ -263,7 +263,7 @@ func (s *searchSession) percentIndexed() int {
 
 func (s *searchSession) reindexConvWithUIUpdate(ctx context.Context, rconv types.RemoteConversation) error {
 	conv := rconv.Conv
-	if _, err := s.indexer.reindexConv(ctx, rconv, s.uid, 0, s.inboxIndexStatus); err != nil {
+	if _, err := s.indexer.reindexConv(ctx, rconv, 0, s.inboxIndexStatus); err != nil {
 		return err
 	}
 	s.updateInboxIndex(ctx, conv)
@@ -451,11 +451,11 @@ func (s *searchSession) initRun(ctx context.Context) (shouldRun bool, err error)
 		return false, err
 	}
 
-	s.convMap, err = s.indexer.allConvs(ctx, s.uid, s.opts.ConvID)
+	s.convMap, err = s.indexer.allConvs(ctx, s.opts.ConvID)
 	if err != nil {
 		return false, err
 	}
-	s.convList = s.indexer.convsPrioritySorted(ctx, s.uid, s.convMap)
+	s.convList = s.indexer.convsPrioritySorted(ctx, s.convMap)
 	if len(s.convList) == 0 {
 		return false, nil
 	}

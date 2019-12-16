@@ -134,18 +134,18 @@ type Indexer interface {
 	Suspendable
 	BackgroundRunnable
 
-	Search(ctx context.Context, uid gregor1.UID, query, origQuery string, opts chat1.SearchOpts,
+	Search(ctx context.Context, query, origQuery string, opts chat1.SearchOpts,
 		hitUICh chan chat1.ChatSearchInboxHit, indexUICh chan chat1.ChatSearchIndexStatus) (*chat1.ChatSearchInboxResults, error)
 	// Add/update the index with the given messages
-	Add(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msg []chat1.MessageUnboxed) error
+	Add(ctx context.Context, convID chat1.ConversationID, msg []chat1.MessageUnboxed) error
 	// Remove the given messages from the index
-	Remove(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msg []chat1.MessageUnboxed) error
-	FullyIndexed(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (bool, error)
-	PercentIndexed(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (int, error)
-	SearchableConvs(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID) ([]RemoteConversation, error)
+	Remove(ctx context.Context, convID chat1.ConversationID, msg []chat1.MessageUnboxed) error
+	FullyIndexed(ctx context.Context, convID chat1.ConversationID) (bool, error)
+	PercentIndexed(ctx context.Context, convID chat1.ConversationID) (int, error)
+	SearchableConvs(ctx context.Context, convID *chat1.ConversationID) ([]RemoteConversation, error)
 	OnDbNuke(mctx libkb.MetaContext) error
 	// For devel/testing
-	IndexInbox(ctx context.Context, uid gregor1.UID) (map[string]chat1.ProfileSearchConvStats, error)
+	IndexInbox(ctx context.Context) (map[string]chat1.ProfileSearchConvStats, error)
 }
 
 type Sender interface {
