@@ -16,7 +16,7 @@ export type State = {
   sending: boolean
   sendError: Error | null
 }
-export type Props = Kb.PropsWithTimer<{
+export type Props = {
   chat: Object
   feedback: string
   loggedOut: boolean
@@ -24,7 +24,7 @@ export type Props = Kb.PropsWithTimer<{
   onBack: () => void
   status: Object
   title: string
-}>
+}
 
 const nativeBridge = NativeModules.KeybaseEngine
 const appVersionName = nativeBridge.appVersionName || ''

@@ -84,7 +84,7 @@ const UploadCountdownHOC = (Upload: React.ComponentType<UploadProps>) =>
       if (this.tickerID) {
         return
       }
-      this.tickerID = this.props.setInterval(this.tick, tickInterval)
+      this.tickerID = setInterval(this.tick, tickInterval)
     }
 
     // Idempotently stop the ticker. If the ticker is not running, this is a

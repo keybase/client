@@ -2,7 +2,6 @@
 
 export {OverlayParentProps, PropsWithOverlay} from './overlay/parent-hoc'
 export {MenuItem, MenuItems} from './floating-menu/menu-layout'
-export {PropsWithTimer} from './hoc-timers'
 export {IconType} from './icon.constants-gen'
 export {WebViewProps, WebViewInjections} from './web-view'
 export {AnimationType} from './animation'

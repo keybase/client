@@ -4,7 +4,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {ignoreDisconnectOverlay} from '../../local-debug.desktop'
 import {RPCError} from '../../util/errors'
-import {Props as _Props} from './index'
+import {Props} from './index'
 
 type Size = 'Closed' | 'Small' | 'Big'
 
@@ -13,8 +13,6 @@ type State = {
   cachedSummary?: string
   cachedDetails?: string
 }
-
-type Props = Kb.PropsWithTimer<_Props>
 
 class GlobalError extends Component<Props, State> {
   state: State
@@ -58,7 +56,7 @@ class GlobalError extends Component<Props, State> {
     this.setState({size: newError ? 'Small' : 'Closed'})
 
     if (newError) {
-      this.timerID = this.props.setTimeout(() => {
+      this.timerID = setTimeout(() => {
         this.props.onDismiss()
       }, 10000)
     }
@@ -74,7 +72,7 @@ class GlobalError extends Component<Props, State> {
 
   componentDidUpdate(prevProps: Props) {
     if (prevProps.error !== this.props.error) {
-      this.props.setTimeout(
+      setTimeout(
         () => {
           if (this.mounted) {
             this.setState({
