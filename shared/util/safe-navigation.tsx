@@ -15,7 +15,7 @@ type SafeNavHook = () => SafeNavigationProps
 
 const useSafeNavigationReal: SafeNavHook = () => {
   const state = useNavigationState()
-  const fromKey = getActiveKey(state!)
+  const fromKey = getActiveKey(state)
   return React.useMemo(
     () => ({
       navKey: fromKey,
