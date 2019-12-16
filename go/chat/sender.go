@@ -1163,7 +1163,14 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 					gregor1.FromTime(unboxedMsg.Valid().MessageBody.Text().LiveLocation.EndTime))
 			}
 		}
-		go s.G().JourneyCardManager.SentMessage(globals.BackgroundChatCtx(ctx, s.G()), sender, convID)
+		if conv.GetMembersType() == chat1.ConversationMembersType_TEAM {
+			teamID, err := keybase1.TeamIDFromString(conv.Info.Triple.Tlfid.String())
+			if err != nil {
+				s.Debug(ctx, "Send: failed to get team ID: %v", err)
+			} else {
+				go s.G().JourneyCardManager.SentMessage(globals.BackgroundChatCtx(ctx, s.G()), sender, teamID, convID)
+			}
+		}
 	}
 	return nil, boxed, nil
 }
