@@ -1,7 +1,6 @@
 import * as Flow from '../../util/flow'
 import * as React from 'react'
 import {formatDuration} from '../../util/timestamp'
-import {HOCTimers, PropsWithTimer} from '../../common-adapters'
 import {UploadProps} from './upload'
 
 export type UploadCountdownHOCProps = {
@@ -13,10 +12,10 @@ export type UploadCountdownHOCProps = {
   debugToggleShow?: () => void
 }
 
-type Props = PropsWithTimer<UploadCountdownHOCProps>
+type Props = UploadCountdownHOCProps
 
 // Cosider this component as a state machine with following four states. 1Hz
-// Ticks (from _tick() calls by setInterval) and props changes (through
+// Ticks (from tick() calls by setInterval) and props changes (through
 // componentDidUpdate() calls) are two possible inputs.
 enum Mode {
   // The upload banner isn't shown.
@@ -47,16 +46,19 @@ const initState = {
 
 const UploadCountdownHOC = (Upload: React.ComponentType<UploadProps>) =>
   class extends React.PureComponent<Props, State> {
-    _tickerID?: NodeJS.Timeout
+    componentWillUnmount() {
+      this.stopTicker()
+    }
+    private tickerID?: NodeJS.Timeout
 
-    _tick = () =>
+    private tick = () =>
       this.setState(prevState => {
         const {mode, glueTTL, displayDuration} = prevState
         const newDisplayDuration = displayDuration > 1000 ? displayDuration - 1000 : 0
         const newGlueTTL = glueTTL > 1 ? glueTTL - 1 : 0
         switch (mode) {
           case Mode.Hidden:
-            this._stopTicker()
+            this.stopTicker()
             return null
           case Mode.CountDown:
             return {
@@ -78,31 +80,31 @@ const UploadCountdownHOC = (Upload: React.ComponentType<UploadProps>) =>
 
     // Idempotently start the ticker. If the ticker has already been started,
     // this is a no-op.
-    _startTicker = () => {
-      if (this._tickerID) {
+    private startTicker = () => {
+      if (this.tickerID) {
         return
       }
-      this._tickerID = this.props.setInterval(this._tick, tickInterval)
+      this.tickerID = this.props.setInterval(this.tick, tickInterval)
     }
 
     // Idempotently stop the ticker. If the ticker is not running, this is a
     // no-op.
-    _stopTicker = () => {
-      if (!this._tickerID) {
+    private stopTicker = () => {
+      if (!this.tickerID) {
         return
       }
-      this.props.clearInterval(this._tickerID)
-      this._tickerID = undefined
+      clearInterval(this.tickerID)
+      this.tickerID = undefined
     }
 
-    _updateState = (prevState: Readonly<State>, props: Readonly<Props>) => {
+    private updateState = (prevState: Readonly<State>, props: Readonly<Props>) => {
       const isUploading = props.isOnline && (!!props.files || !!props.totalSyncingBytes)
       const newDisplayDuration = props.endEstimate ? props.endEstimate - Date.now() : 0
       const {mode, glueTTL} = prevState
       switch (mode) {
         case Mode.Hidden:
           if (isUploading) {
-            this._startTicker()
+            this.startTicker()
             return {
               displayDuration: newDisplayDuration,
               glueTTL: initialGlueTTL,
@@ -141,7 +143,7 @@ const UploadCountdownHOC = (Upload: React.ComponentType<UploadProps>) =>
       }
     }
 
-    state = {...initState, ...this._updateState(initState, this.props)}
+    state = {...initState, ...this.updateState(initState, this.props)}
 
     componentDidUpdate(prevProps: Props) {
       if (
@@ -152,7 +154,7 @@ const UploadCountdownHOC = (Upload: React.ComponentType<UploadProps>) =>
       ) {
         return
       }
-      this.setState(this._updateState)
+      this.setState(this.updateState)
     }
 
     render() {
@@ -171,5 +173,4 @@ const UploadCountdownHOC = (Upload: React.ComponentType<UploadProps>) =>
     }
   }
 
-export default (ComposedComponent: React.ComponentType<any>) =>
-  HOCTimers(UploadCountdownHOC(ComposedComponent))
+export default (ComposedComponent: React.ComponentType<any>) => UploadCountdownHOC(ComposedComponent)

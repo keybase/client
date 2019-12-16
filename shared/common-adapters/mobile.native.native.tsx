@@ -112,9 +112,6 @@ module.exports = {
   get GestureState() {
     return require('react-native-gesture-handler').State
   },
-  get HOCTimers() {
-    return Index.HOCTimers
-  },
   get Header() {
     return Index.Header
   },

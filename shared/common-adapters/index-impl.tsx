@@ -112,9 +112,6 @@ module.exports = {
   get FormWithCheckbox() {
     return require('./form-with-checkbox').default
   },
-  get HOCTimers() {
-    return require('./hoc-timers').default
-  },
   get Header() {
     return require('./header').default
   },

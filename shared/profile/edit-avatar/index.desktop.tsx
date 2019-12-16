@@ -3,11 +3,8 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as fs from 'fs'
 import clamp from 'lodash/clamp'
-import HOCTimers, {PropsWithTimer} from '../../common-adapters/hoc-timers'
 import {EDIT_AVATAR_ZINDEX} from '../../constants/profile'
 import {Props} from '.'
-
-type _Props = PropsWithTimer<Props>
 
 type State = {
   dragStartX: number
@@ -36,10 +33,12 @@ const AVATAR_BORDER_SIZE = 4
 const AVATAR_SIZE = AVATAR_CONTAINER_SIZE - AVATAR_BORDER_SIZE * 2
 const VIEWPORT_CENTER = AVATAR_SIZE / 2
 
-class EditAvatar extends React.Component<_Props, State> {
-  _file: HTMLInputElement | null = null
-  _image = React.createRef()
-  constructor(props: _Props) {
+class EditAvatar extends React.Component<Props, State> {
+  private file: HTMLInputElement | null = null
+  private image = React.createRef()
+  private timerID?: NodeJS.Timer
+
+  constructor(props: Props) {
     super(props)
     this.state = {
       dragStartX: 0,
@@ -64,23 +63,27 @@ class EditAvatar extends React.Component<_Props, State> {
     }
   }
 
-  _filePickerFiles = () => (this._file && this._file.files) || []
-
-  _filePickerOpen = () => {
-    this._file && this._file.click()
+  componentWillUnmount() {
+    this.timerID && clearTimeout(this.timerID)
   }
 
-  _filePickerSetRef = (r: HTMLInputElement | null) => {
-    this._file = r
+  private filePickerFiles = () => (this.file && this.file.files) || []
+
+  private filePickerOpen = () => {
+    this.file && this.file.click()
   }
 
-  _filePickerSetValue = (value: string) => {
-    if (this._file) this._file.value = value
+  private filePickerSetRef = (r: HTMLInputElement | null) => {
+    this.file = r
   }
 
-  _pickFile = () => {
+  private filePickerSetValue = (value: string) => {
+    if (this.file) this.file.value = value
+  }
+
+  private pickFile = () => {
     this.setState({loading: true})
-    const fileList = this._filePickerFiles()
+    const fileList = this.filePickerFiles()
     const paths: Array<string> = fileList.length
       ? Array.prototype.map
           .call(fileList, (f: File) => {
@@ -92,18 +95,18 @@ class EditAvatar extends React.Component<_Props, State> {
       : ([] as any)
     if (paths) {
       const img = paths.pop()
-      img && this._paintImage(img)
+      img && this.paintImage(img)
     }
-    this._filePickerSetValue('')
+    this.filePickerSetValue('')
   }
 
-  _onDragLeave = () => {
+  private onDragLeave = () => {
     this.setState({dropping: false})
   }
 
-  _onDrop = (e: React.DragEvent<any>) => {
+  private onDrop = (e: React.DragEvent<any>) => {
     this.setState({dropping: false, loading: true})
-    if (!this._validDrag(e)) {
+    if (!this.validDrag(e)) {
       return
     }
     const fileList = e.dataTransfer.files
@@ -128,28 +131,28 @@ class EditAvatar extends React.Component<_Props, State> {
         }
       }
       const img = paths.pop()
-      img && this._paintImage(img)
+      img && this.paintImage(img)
     }
   }
 
-  _validDrag = (e: React.DragEvent<any>) => {
+  private validDrag = (e: React.DragEvent<any>) => {
     return Array.prototype.map.call(e.dataTransfer.types, t => t).includes('Files')
   }
 
-  _onDragOver = (e: React.DragEvent<any>) => {
+  private onDragOver = (e: React.DragEvent<any>) => {
     this.setState({dropping: true})
-    if (this._validDrag(e)) {
+    if (this.validDrag(e)) {
       e.dataTransfer.dropEffect = 'copy'
     } else {
       e.dataTransfer.dropEffect = 'none'
     }
   }
 
-  _paintImage = (path: string) => {
+  private paintImage = (path: string) => {
     this.setState({imageSource: path})
   }
 
-  _onImageLoad = (e: React.SyntheticEvent<any>) => {
+  private onImageLoad = (e: React.SyntheticEvent<any>) => {
     // TODO: Make RPC to check file size and warn them before they try submitting.
 
     let height = AVATAR_SIZE
@@ -172,7 +175,7 @@ class EditAvatar extends React.Component<_Props, State> {
       viewingCenterY: e.currentTarget.naturalHeight / 2,
     })
 
-    this.props.setTimeout(() => {
+    this.timerID = setTimeout(() => {
       this.setState({
         hasPreview: true,
         loading: false,
@@ -180,7 +183,7 @@ class EditAvatar extends React.Component<_Props, State> {
     }, 1500)
   }
 
-  _onRangeChange = (e: React.FormEvent<any>) => {
+  private onRangeChange = (e: React.FormEvent<any>) => {
     const scale = parseFloat(e.currentTarget.value)
     // likely unsafe to ref this.state but afraid to change this now
     // eslint-disable-next-line
@@ -211,13 +214,13 @@ class EditAvatar extends React.Component<_Props, State> {
     })
   }
 
-  _onMouseDown = (e: React.MouseEvent) => {
-    if (!this.state.hasPreview || !this._image) return
+  private onMouseDown = (e: React.MouseEvent) => {
+    if (!this.state.hasPreview || !this.image) return
 
     // Grab the values now. The event object will be nullified by the time setState is called.
     const {pageX, pageY} = e
 
-    const img = this._image.current
+    const img = this.image.current
 
     this.setState(s => ({
       dragStartX: pageX,
@@ -230,10 +233,10 @@ class EditAvatar extends React.Component<_Props, State> {
     }))
   }
 
-  _onMouseUp = () => {
-    if (!this.state.hasPreview || !this._image) return
+  private onMouseUp = () => {
+    if (!this.state.hasPreview || !this.image) return
 
-    const img = this._image.current
+    const img = this.image.current
 
     this.setState(s => ({
       // @ts-ignore codemode issue
@@ -244,7 +247,7 @@ class EditAvatar extends React.Component<_Props, State> {
     }))
   }
 
-  _onMouseMove = (e: React.MouseEvent) => {
+  private onMouseMove = (e: React.MouseEvent) => {
     if (!this.state.dragging || this.props.submitting) return
 
     // Grab the values now. The event object will be nullified by the time setState is called.
@@ -279,7 +282,7 @@ class EditAvatar extends React.Component<_Props, State> {
     })
   }
 
-  _onSave = () => {
+  private onSave = () => {
     const x = this.state.offsetLeft * -1
     const y = this.state.offsetTop * -1
     const ratio =
@@ -304,7 +307,7 @@ class EditAvatar extends React.Component<_Props, State> {
             cursor: this.state.dragging ? '-webkit-grabbing' : 'default',
           },
         ])}
-        onMouseMove={this._onMouseMove}
+        onMouseMove={this.onMouseMove}
       >
         {!!this.props.error && (
           <Kb.Banner color="red">
@@ -313,18 +316,18 @@ class EditAvatar extends React.Component<_Props, State> {
         )}
         <Kb.Box
           className={Styles.classNames({dropping: this.state.dropping})}
-          onDragLeave={this._onDragLeave}
-          onDragOver={this._onDragOver}
-          onDrop={this._onDrop}
+          onDragLeave={this.onDragLeave}
+          onDragOver={this.onDragOver}
+          onDrop={this.onDrop}
           style={Styles.collapseStyles([
             styles.container,
             {
               paddingTop: this.props.createdTeam ? 0 : Styles.globalMargins.xlarge,
             },
           ])}
-          onMouseUp={this._onMouseUp}
-          onMouseDown={this._onMouseDown}
-          onMouseMove={this._onMouseMove}
+          onMouseUp={this.onMouseUp}
+          onMouseDown={this.onMouseDown}
+          onMouseMove={this.onMouseMove}
         >
           {this.props.createdTeam && (
             <Kb.Box style={styles.createdBanner}>
@@ -335,14 +338,14 @@ class EditAvatar extends React.Component<_Props, State> {
           )}
           <Kb.Text center={true} type="Body" style={styles.instructions}>
             Drag and drop a {this.props.teamname ? 'team' : 'profile'} avatar or{' '}
-            <Kb.Text type="BodyPrimaryLink" className="hover-underline" onClick={this._filePickerOpen}>
+            <Kb.Text type="BodyPrimaryLink" className="hover-underline" onClick={this.filePickerOpen}>
               browse your computer for one
             </Kb.Text>
             .
           </Kb.Text>
           <HoverBox
             className={Styles.classNames({filled: this.state.hasPreview})}
-            onClick={this.state.hasPreview ? null : this._filePickerOpen}
+            onClick={this.state.hasPreview ? null : this.filePickerOpen}
             style={{
               borderRadius: this.props.teamname ? 32 : AVATAR_CONTAINER_SIZE,
             }}
@@ -350,8 +353,8 @@ class EditAvatar extends React.Component<_Props, State> {
             <input
               accept="image/gif,image/jpeg,image/png"
               multiple={false}
-              onChange={this._pickFile}
-              ref={this._filePickerSetRef}
+              onChange={this.pickFile}
+              ref={this.filePickerSetRef}
               style={styles.hidden}
               type="file"
             />
@@ -361,7 +364,7 @@ class EditAvatar extends React.Component<_Props, State> {
               </Kb.Box2>
             )}
             <Kb.OrientedImage
-              forwardedRef={this._image}
+              forwardedRef={this.image}
               src={this.state.imageSource}
               style={Styles.platformStyles({
                 isElectron: {
@@ -375,7 +378,7 @@ class EditAvatar extends React.Component<_Props, State> {
                 },
               } as const)}
               onDragStart={e => e.preventDefault()}
-              onLoad={this._onImageLoad}
+              onLoad={this.onImageLoad}
             />
             {!this.state.loading && !this.state.hasPreview && (
               <Kb.Icon
@@ -392,7 +395,7 @@ class EditAvatar extends React.Component<_Props, State> {
               disabled={!this.state.hasPreview || this.props.submitting}
               min={1}
               max={10}
-              onChange={this._onRangeChange}
+              onChange={this.onRangeChange}
               onMouseMove={e => e.stopPropagation()}
               step="any"
               type="range"
@@ -410,7 +413,7 @@ class EditAvatar extends React.Component<_Props, State> {
             <Kb.WaitingButton
               disabled={!this.state.hasPreview}
               label="Save"
-              onClick={this._onSave}
+              onClick={this.onSave}
               waitingKey={this.props.waitingKey}
             />
           </Kb.ButtonBar>
@@ -512,4 +515,4 @@ const styles = Styles.styleSheetCreate(() => ({
   },
 }))
 
-export default HOCTimers(EditAvatar)
+export default EditAvatar
