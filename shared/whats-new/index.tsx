@@ -2,9 +2,19 @@ import React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Types from '../constants/types/whats-new'
+import {isLinux} from '../constants/platform'
 import {VersionProps} from './versions'
 
 type Props = {
+  // Releases
+  Current?: React.ComponentType<VersionProps>
+  Last?: React.ComponentType<VersionProps>
+  LastLast?: React.ComponentType<VersionProps>
+  currentVersion: Types.CurrentVersion
+  lastVersion: Types.LastVersion
+  lastLastVersion: Types.LastLastVersion
+  noVersion: string
+  seenVersions: {[key: string]: boolean}
   onBack: () => void
   onNavigate: (props: {
     fromKey?: string
@@ -12,14 +22,57 @@ type Props = {
     replace?: boolean
   }) => void
   onNavigateExternal: (url: string) => void
-  seenVersions: {[key: string]: boolean}
-  currentVersion: Types.CurrentVersion
-  lastVersion: Types.LastVersion
-  lastLastVersion: Types.LastLastVersion
-  noVersion: string
-  Current?: React.ComponentType<VersionProps>
-  Last?: React.ComponentType<VersionProps>
-  LastLast?: React.ComponentType<VersionProps>
+  // Updating
+  updateAvailable: boolean
+  updateMessage?: string
+  onUpdateStart: () => void
+  onUpdateSnooze: () => void
+}
+
+type UpdateAvailableProps = {
+  message?: string
+  onUpdateStart: () => void
+  onUpdateSnooze: () => void
+}
+
+const UpdateAvailableBanner = (props: UpdateAvailableProps) => {
+  const skipButtonLabel = isLinux ? 'Never notify me again' : 'Skip this version'
+  const updateMessage = isLinux
+    ? props.message || 'Update Keybae via your local package manager'
+    : 'An update is available.'
+  return (
+    <Kb.Box2
+      direction="vertical"
+      fullWidth={true}
+      alignItems={'center'}
+      centerChildren={true}
+      style={styles.updateAvailableContainer}
+    >
+      <Kb.Text type="BodySmallSemibold" center={true} style={styles.updateAvailableMessage}>
+        {updateMessage}
+      </Kb.Text>
+      <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.updateAvailableButtonsContainer}>
+        {!isLinux && (
+          <Kb.Button
+            type="Default"
+            mode="Primary"
+            backgroundColor="green"
+            label="Install update"
+            small={true}
+            onClick={props.onUpdateStart}
+          />
+        )}
+        <Kb.Button
+          type="Default"
+          mode="Secondary"
+          backgroundColor="green"
+          label={skipButtonLabel}
+          small={true}
+          onClick={props.onUpdateSnooze}
+        />
+      </Kb.Box2>
+    </Kb.Box2>
+  )
 }
 
 // Need to switch the order of the scroll view on mobile and desktop so that contentBackground will fill the entire view
@@ -75,31 +128,44 @@ class WhatsNew extends React.PureComponent<Props> {
       seenVersions,
       onNavigate,
       onNavigateExternal,
+      onUpdateStart,
+      onUpdateSnooze,
+      updateAvailable,
+      updateMessage,
     } = this.props
     return (
-      <Wrapper>
-        {Current && (
-          <Current
-            seen={seenVersions[currentVersion]}
-            onNavigate={onNavigate}
-            onNavigateExternal={onNavigateExternal}
+      <Kb.Box2 direction="vertical">
+        {updateAvailable && (
+          <UpdateAvailableBanner
+            message={updateMessage}
+            onUpdateStart={onUpdateStart}
+            onUpdateSnooze={onUpdateSnooze}
           />
         )}
-        {lastVersion && lastVersion !== noVersion && Last && (
-          <Last
-            seen={seenVersions[lastVersion]}
-            onNavigate={onNavigate}
-            onNavigateExternal={onNavigateExternal}
-          />
-        )}
-        {lastLastVersion && lastLastVersion !== noVersion && LastLast && (
-          <LastLast
-            seen={seenVersions[lastLastVersion]}
-            onNavigate={onNavigate}
-            onNavigateExternal={onNavigateExternal}
-          />
-        )}
-      </Wrapper>
+        <Wrapper>
+          {Current && (
+            <Current
+              seen={seenVersions[currentVersion]}
+              onNavigate={onNavigate}
+              onNavigateExternal={onNavigateExternal}
+            />
+          )}
+          {lastVersion && lastVersion !== noVersion && Last && (
+            <Last
+              seen={seenVersions[lastVersion]}
+              onNavigate={onNavigate}
+              onNavigateExternal={onNavigateExternal}
+            />
+          )}
+          {lastLastVersion && lastLastVersion !== noVersion && LastLast && (
+            <LastLast
+              seen={seenVersions[lastLastVersion]}
+              onNavigate={onNavigate}
+              onNavigateExternal={onNavigateExternal}
+            />
+          )}
+        </Wrapper>
+      </Kb.Box2>
     )
   }
 }
@@ -141,6 +207,20 @@ const styles = Styles.styleSheetCreate(() => ({
       marginTop: Styles.globalMargins.small,
     },
   }),
+  updateAvailableContainer: {
+    backgroundColor: Styles.globalColors.green,
+    paddingBottom: Styles.globalMargins.tiny,
+    paddingLeft: Styles.globalMargins.medium,
+    paddingRight: Styles.globalMargins.medium,
+    paddingTop: Styles.globalMargins.tiny,
+  },
+  updateAvailableButtonsContainer: {
+    marginTop: Styles.globalMargins.xsmall,
+  },
+  updateAvailableMessage: {
+    color: Styles.globalColors.white,
+    paddingTop: Styles.globalMargins.tiny,
+  },
   versionTitle: {
     color: Styles.globalColors.black_50,
     marginBottom: Styles.globalMargins.tiny,

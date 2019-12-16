@@ -1,6 +1,7 @@
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Container from '../util/container'
 import * as GregorGen from '../actions/gregor-gen'
+import * as ConfigGen from '../actions/config-gen'
 import openURL from '../util/open-url'
 import {
   currentVersion,
@@ -11,6 +12,7 @@ import {
   anyVersionsUnseen,
   keybaseFM,
 } from '../constants/whats-new'
+import {isLinux} from '../constants/platform'
 import {Current, Last, LastLast} from './versions'
 import WhatsNew from '.'
 
@@ -18,77 +20,6 @@ type OwnProps = {
   // Desktop only: popup.desktop.tsx passes this function to close the popup
   // when navigating within the app
   onBack?: () => void
-}
-
-const mapStateToProps = (state: Container.TypedState) => ({
-  lastSeenVersion: state.config.whatsNewLastSeenVersion,
-})
-const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
-  // Navigate primary/secondary button click
-  _onNavigate: ({
-    fromKey,
-    path,
-    replace,
-  }: {
-    fromKey?: string
-    path: Array<{props?: {}; selected: string}>
-    replace?: boolean
-  }) => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        fromKey,
-        path,
-        replace,
-      })
-    )
-  },
-
-  _onNavigateExternal: (url: string) => openURL(url),
-
-  _onUpdateLastSeenVersion: (lastSeenVersion: string) => {
-    const action = GregorGen.createUpdateCategory({
-      body: lastSeenVersion,
-      category: 'whatsNewLastSeenVersion',
-    })
-    dispatch(action)
-  },
-})
-const mergeProps = (
-  stateProps: ReturnType<typeof mapStateToProps>,
-  dispatchProps: ReturnType<typeof mapDispatchToProps>,
-  ownProps: OwnProps
-) => {
-  const seenVersions = getSeenVersions(stateProps.lastSeenVersion)
-  const newRelease = anyVersionsUnseen(stateProps.lastSeenVersion)
-  const onBack = () => {
-    if (newRelease) {
-      dispatchProps._onUpdateLastSeenVersion(currentVersion)
-    }
-    if (ownProps.onBack) {
-      ownProps.onBack()
-    }
-  }
-  return {
-    Current,
-    Last,
-    LastLast,
-    currentVersion,
-    lastLastVersion,
-    lastVersion,
-    noVersion,
-    onBack,
-    // Navigate then handle setting seen state and closing the modal (desktop only)
-    onNavigate: (props: {
-      fromKey?: string
-      path: Array<{props?: {}; selected: string}>
-      replace?: boolean
-    }) => {
-      dispatchProps._onNavigate(props)
-      onBack()
-    },
-    onNavigateExternal: dispatchProps._onNavigateExternal,
-    seenVersions,
-  }
 }
 
 WhatsNew.navigationOptions = Container.isMobile
@@ -100,9 +31,95 @@ WhatsNew.navigationOptions = Container.isMobile
   : {}
 
 const WhatsNewContainer = Container.namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
+  (state: Container.TypedState) => ({
+    lastSeenVersion: state.config.whatsNewLastSeenVersion,
+    updateAvailable: state.config.updateInfo.status === 'suggested',
+    updateMessage:
+      isLinux && state.config.updateInfo.status === 'suggested'
+        ? state.config.updateInfo?.suggested?.message
+        : '',
+  }),
+  (dispatch: Container.TypedDispatch) => ({
+    // Navigate primary/secondary button click
+    _onNavigate: ({
+      fromKey,
+      path,
+      replace,
+    }: {
+      fromKey?: string
+      path: Array<{props?: {}; selected: string}>
+      replace?: boolean
+    }) => {
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          fromKey,
+          path,
+          replace,
+        })
+      )
+    },
+
+    _onNavigateExternal: (url: string) => openURL(url),
+
+    _onUpdateLastSeenVersion: (lastSeenVersion: string) => {
+      const action = GregorGen.createUpdateCategory({
+        body: lastSeenVersion,
+        category: 'whatsNewLastSeenVersion',
+      })
+      dispatch(action)
+    },
+
+    _onUpdateSnooze: () => {
+      // TODO @jacob PICNIC-684 - Add snoozing RPC
+      // TODO @jacob PICNIC-684 - Handle linux "never notify"
+    },
+    _onUpdateStart: () => {
+      // If we're hitting this for any reason, it's because of a frontend mistake
+      // Linux clients have never had an `updater` bundled with them (keybase/go-updater)
+      // Attempting to make this RPC without an updater will black bar the GUI
+      if (isLinux) return
+      dispatch(ConfigGen.createUpdateStart())
+    },
+  }),
+  (stateProps, dispatchProps, ownProps: OwnProps) => {
+    const {updateAvailable, updateMessage} = stateProps
+    const seenVersions = getSeenVersions(stateProps.lastSeenVersion)
+    const newRelease = anyVersionsUnseen(stateProps.lastSeenVersion)
+    const onBack = () => {
+      if (newRelease) {
+        dispatchProps._onUpdateLastSeenVersion(currentVersion)
+      }
+      if (ownProps.onBack) {
+        ownProps.onBack()
+      }
+    }
+    // Navigate then handle setting seen state and closing the modal (desktop only)
+    const onNavigate = (props: {
+      fromKey?: string
+      path: Array<{Props?: {}; selected: string}>
+      replace?: boolean
+    }) => {
+      dispatchProps._onNavigate(props)
+      onBack()
+    }
+    return {
+      Current,
+      Last,
+      LastLast,
+      currentVersion,
+      lastLastVersion,
+      lastVersion,
+      noVersion,
+      onBack,
+      onNavigate,
+      onNavigateExternal: dispatchProps._onNavigateExternal,
+      onUpdateSnooze: dispatchProps._onUpdateSnooze,
+      onUpdateStart: dispatchProps._onUpdateStart,
+      seenVersions,
+      updateAvailable,
+      updateMessage,
+    }
+  },
   'WhatsNewContainer'
 )(WhatsNew)
 

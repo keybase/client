@@ -96,25 +96,34 @@ const LastLast = (props: VersionProps) => (
 
 const noVersion = '0.0.1'
 
+const commonProps = {
+  currentVersion,
+  lastLastVersion,
+  lastVersion,
+  noVersion,
+  onBack: Sb.action('onBack'),
+  onNavigate: Sb.action('onNavigate'),
+  onNavigateExternal: Sb.action('onNavigateExternal'),
+  onUpdateSnooze: Sb.action('onUpdateSnooze'),
+  onUpdateStart: Sb.action('onUpdateStart'),
+  updateAvailable: false,
+}
+
 const load = () => {
   Sb.storiesOf("What's New/Icon", module)
     .addDecorator(Sb.scrollViewDecorator)
     .add('Nothing New', () => (
       <HeaderIconWrapper>
-        <HeaderIcon newRelease={false} onClick={Sb.action('onClick')} />
+        <HeaderIcon newRelease={false} isProfileHeader={false} onClick={Sb.action('onClick')} />
       </HeaderIconWrapper>
     ))
     .add('New Release', () => (
       <>
         <HeaderIconWrapper>
-          <HeaderIcon newRelease={true} onClick={Sb.action('onClick')} />
+          <HeaderIcon newRelease={true} isProfileHeader={false} onClick={Sb.action('onClick')} />
         </HeaderIconWrapper>
         <HeaderIconWrapper>
-          <HeaderIcon
-            newRelease={true}
-            badgeColor={Styles.globalColors.black}
-            onClick={Sb.action('onClick')}
-          />
+          <HeaderIcon newRelease={true} isProfileHeader={false} onClick={Sb.action('onClick')} />
         </HeaderIconWrapper>
       </>
     ))
@@ -123,6 +132,7 @@ const load = () => {
         <IconWithPopup
           newRelease={false}
           updateAvailable={true}
+          isProfileHeader={false}
           attachToRef={React.createRef<Kb.Box2>()}
           onClick={Sb.action('onClick')}
         />
@@ -164,26 +174,8 @@ const load = () => {
 
       return seen
     })
-    .add('Square Image', () => {
-      const squareImages = newFeatures.map((feature, index) => (
-        <NewFeatureWrapper key={index}>
-          <NewFeatureRow
-            noSeparator={true}
-            onPrimaryButtonClick={Sb.action('onPrimaryButtonClick')}
-            onSecondaryButtonClick={Sb.action('onSecondaryButtonClick')}
-            {...feature}
-            seen={true}
-            image="release-4.7.0-keybase-fm"
-          >
-            {feature.text}
-          </NewFeatureRow>
-        </NewFeatureWrapper>
-      ))
-
-      return squareImages
-    })
-    .add('Round Image', () => {
-      const squareImages = newFeatures.map((feature, index) => (
+    .add('Images', () => {
+      const images = newFeatures.map((feature, index) => (
         <NewFeatureWrapper key={index}>
           <NewFeatureRow
             noSeparator={true}
@@ -192,14 +184,13 @@ const load = () => {
             {...feature}
             seen={true}
             image="release-4.7.0-dark-mode"
-            imageStyle={styles.roundedImage}
           >
             {feature.text}
           </NewFeatureRow>
         </NewFeatureWrapper>
       ))
 
-      return squareImages
+      return images
     })
 
   Sb.storiesOf("What's New/Versions", module)
@@ -207,178 +198,160 @@ const load = () => {
     .add('One Version - Unseen', () => (
       <WhatsNewWrapper>
         <WhatsNew
-          currentVersion={currentVersion}
-          lastVersion={lastVersion}
-          lastLastVersion={lastLastVersion}
-          noVersion={noVersion}
+          {...commonProps}
+          Current={Current}
           seenVersions={{
             [currentVersion]: false,
           }}
-          Current={Current}
-          onBack={Sb.action('onBack')}
-          onNavigate={Sb.action('onNavigate')}
-          onNavigateExternal={Sb.action('onNavigateExternal')}
         />
       </WhatsNewWrapper>
     ))
     .add('One Version - Seen', () => (
       <WhatsNewWrapper>
         <WhatsNew
-          currentVersion={currentVersion}
-          lastVersion={lastVersion}
-          lastLastVersion={lastLastVersion}
-          noVersion={noVersion}
+          {...commonProps}
+          Current={Current}
           seenVersions={{
             [currentVersion]: true,
           }}
-          Current={Current}
-          onBack={Sb.action('onBack')}
-          onNavigate={Sb.action('onNavigate')}
-          onNavigateExternal={Sb.action('onNavigateExternal')}
         />
       </WhatsNewWrapper>
     ))
     .add('Two Versions - All Unseen', () => (
       <WhatsNewWrapper>
         <WhatsNew
-          currentVersion={currentVersion}
-          lastVersion={lastVersion}
-          lastLastVersion={lastLastVersion}
-          noVersion={noVersion}
+          {...commonProps}
+          Current={Current}
+          Last={Last}
           seenVersions={{
             [currentVersion]: false,
             [lastVersion]: false,
           }}
-          Current={Current}
-          Last={Last}
-          onBack={Sb.action('onBack')}
-          onNavigate={Sb.action('onNavigate')}
-          onNavigateExternal={Sb.action('onNavigateExternal')}
         />
       </WhatsNewWrapper>
     ))
     .add('Two Versions - Current Unseen', () => (
       <WhatsNewWrapper>
         <WhatsNew
-          currentVersion={currentVersion}
-          lastVersion={lastVersion}
-          lastLastVersion={lastLastVersion}
+          {...commonProps}
+          Current={Current}
+          Last={Last}
           seenVersions={{
             [currentVersion]: false,
             [lastVersion]: true,
           }}
-          Current={Current}
-          Last={Last}
-          noVersion={noVersion}
-          onBack={Sb.action('onBack')}
-          onNavigate={Sb.action('onNavigate')}
-          onNavigateExternal={Sb.action('onNavigateExternal')}
         />
       </WhatsNewWrapper>
     ))
     .add('Two Versions - All Seen', () => (
       <WhatsNewWrapper>
         <WhatsNew
-          currentVersion={currentVersion}
-          lastVersion={lastVersion}
-          lastLastVersion={lastLastVersion}
-          noVersion={noVersion}
+          {...commonProps}
+          Current={Current}
+          Last={Last}
           seenVersions={{
             [currentVersion]: true,
             [lastVersion]: true,
           }}
-          Current={Current}
-          Last={Last}
-          onBack={Sb.action('onBack')}
-          onNavigate={Sb.action('onNavigate')}
-          onNavigateExternal={Sb.action('onNavigateExternal')}
         />
       </WhatsNewWrapper>
     ))
     .add('Three Versions - All Unseen', () => (
       <WhatsNewWrapper>
         <WhatsNew
-          currentVersion={currentVersion}
-          lastVersion={lastVersion}
-          lastLastVersion={lastLastVersion}
-          noVersion={noVersion}
+          {...commonProps}
+          Current={Current}
+          Last={Last}
+          LastLast={LastLast}
           seenVersions={{
             [currentVersion]: false,
             [lastLastVersion]: false,
             [lastVersion]: false,
           }}
-          Current={Current}
-          Last={Last}
-          LastLast={LastLast}
-          onBack={Sb.action('onBack')}
-          onNavigate={Sb.action('onNavigate')}
-          onNavigateExternal={Sb.action('onNavigateExternal')}
         />
       </WhatsNewWrapper>
     ))
     .add('Three Versions - Current Unseen', () => (
       <WhatsNewWrapper>
         <WhatsNew
-          currentVersion={currentVersion}
-          lastVersion={lastVersion}
-          lastLastVersion={lastLastVersion}
+          {...commonProps}
+          Current={Current}
+          Last={Last}
+          LastLast={LastLast}
           seenVersions={{
             [currentVersion]: false,
             [lastLastVersion]: true,
             [lastVersion]: true,
           }}
-          Current={Current}
-          Last={Last}
-          LastLast={LastLast}
-          noVersion={noVersion}
-          onBack={Sb.action('onBack')}
-          onNavigate={Sb.action('onNavigate')}
-          onNavigateExternal={Sb.action('onNavigateExternal')}
         />
       </WhatsNewWrapper>
     ))
     .add('Three Versions - Current&Last Unseen', () => (
       <WhatsNewWrapper>
         <WhatsNew
-          currentVersion={currentVersion}
-          lastVersion={lastVersion}
-          lastLastVersion={lastLastVersion}
+          {...commonProps}
+          Current={Current}
+          Last={Last}
+          LastLast={LastLast}
           seenVersions={{
             [currentVersion]: false,
             [lastLastVersion]: true,
             [lastVersion]: false,
           }}
-          Current={Current}
-          Last={Last}
-          LastLast={LastLast}
-          noVersion={noVersion}
-          onBack={Sb.action('onBack')}
-          onNavigate={Sb.action('onNavigate')}
-          onNavigateExternal={Sb.action('onNavigateExternal')}
         />
       </WhatsNewWrapper>
     ))
     .add('Three Versions - All Seen', () => (
       <WhatsNewWrapper>
         <WhatsNew
-          currentVersion={currentVersion}
-          lastVersion={lastVersion}
-          lastLastVersion={lastLastVersion}
-          noVersion={noVersion}
+          {...commonProps}
+          Current={Current}
+          Last={Last}
+          LastLast={LastLast}
           seenVersions={{
             [currentVersion]: true,
             [lastLastVersion]: true,
             [lastVersion]: true,
           }}
-          Current={Current}
-          Last={Last}
-          LastLast={LastLast}
-          onBack={Sb.action('onBack')}
-          onNavigate={Sb.action('onNavigate')}
-          onNavigateExternal={Sb.action('onNavigateExternal')}
         />
       </WhatsNewWrapper>
     ))
+
+  Sb.storiesOf("What's New/Update Available", module)
+    .add('Update Available (Darwin/Windows)', () => (
+      <Kb.Box2 direction="horizontal" gap="small">
+        <WhatsNewWrapper>
+          <WhatsNew
+            {...commonProps}
+            updateAvailable={true}
+            Current={Current}
+            Last={Last}
+            LastLast={LastLast}
+            seenVersions={{
+              [currentVersion]: false,
+              [lastLastVersion]: false,
+              [lastVersion]: false,
+            }}
+          />
+        </WhatsNewWrapper>
+        <WhatsNewWrapper>
+          <WhatsNew
+            {...commonProps}
+            updateAvailable={true}
+            updateMessage="Update Keybase via your local package manager"
+            Current={Current}
+            Last={Last}
+            LastLast={LastLast}
+            seenVersions={{
+              [currentVersion]: true,
+              [lastLastVersion]: true,
+              [lastVersion]: true,
+            }}
+          />
+        </WhatsNewWrapper>
+      </Kb.Box2>
+    ))
+    .add('Update Available (Linux)', () => null)
 }
 
 const modalWidth = 284
@@ -406,17 +379,6 @@ const styles = Styles.styleSheetCreate(() => ({
     maxHeight: modalHeight,
     maxWidth: modalWidth,
   },
-  roundedImage: Styles.platformStyles({
-    common: {
-      borderColor: Styles.globalColors.grey,
-      borderWidth: Styles.globalMargins.xxtiny,
-    },
-    isElectron: {
-      // Pass borderRadius as a number to the image on mobile using collapseStyles
-      borderRadius: '100%',
-      borderStyle: 'solid',
-    },
-  }),
   whatsNewWrapper: {
     flexWrap: 'wrap',
     marginTop: Styles.globalMargins.small,

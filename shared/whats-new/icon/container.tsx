@@ -5,8 +5,7 @@ import {anyVersionsUnseen} from '../../constants/whats-new'
 import IconComponent, {IconWithPopup as IconWithPopupComponent} from './index'
 
 type OwnProps = {
-  color?: string
-  badgeColor?: string
+  isProfileHeader: boolean
   style?: IconStyle
 }
 
@@ -19,8 +18,6 @@ const IconContainer = Container.connect(
   (state: Container.TypedState) => ({lastSeenVersion: state.config.whatsNewLastSeenVersion}),
   () => ({}),
   (stateProps, _, ownProps: OwnProps) => ({
-    badgeColor: ownProps.badgeColor,
-    color: ownProps.color,
     newRelease: anyVersionsUnseen(stateProps.lastSeenVersion),
     style: ownProps.style,
   })
@@ -37,8 +34,7 @@ export const IconWithPopup = Container.connect(
     const newRelease = anyVersionsUnseen(stateProps.lastSeenVersion)
     return {
       attachToRef: ownProps.attachToRef,
-      badgeColor: ownProps.badgeColor,
-      color: ownProps.color,
+      isProfileHeader: ownProps.isProfileHeader,
       newRelease,
       style: ownProps.style,
       updateAvailable: stateProps.updateAvailable,
