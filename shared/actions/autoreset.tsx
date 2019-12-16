@@ -1,5 +1,4 @@
 import * as AutoresetGen from './autoreset-gen'
-import * as LoginGen from './login-gen'
 import * as Constants from '../constants/autoreset'
 import * as Container from '../util/container'
 import * as NotificationsGen from './notifications-gen'
