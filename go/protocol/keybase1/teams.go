@@ -3291,6 +3291,7 @@ func (o TeamDebugRes) DeepCopy() TeamDebugRes {
 }
 
 type TeamProfileAddEntry struct {
+	TeamID         TeamID   `codec:"teamID" json:"teamID"`
 	TeamName       TeamName `codec:"teamName" json:"teamName"`
 	Open           bool     `codec:"open" json:"open"`
 	DisabledReason string   `codec:"disabledReason" json:"disabledReason"`
@@ -3298,6 +3299,7 @@ type TeamProfileAddEntry struct {
 
 func (o TeamProfileAddEntry) DeepCopy() TeamProfileAddEntry {
 	return TeamProfileAddEntry{
+		TeamID:         o.TeamID.DeepCopy(),
 		TeamName:       o.TeamName.DeepCopy(),
 		Open:           o.Open,
 		DisabledReason: o.DisabledReason,

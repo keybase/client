@@ -1999,8 +1999,9 @@ type listProfileAddServerRes struct {
 }
 
 type listProfileAddResEntry struct {
-	FqName     string `json:"fq_name"`
-	IsOpenTeam bool   `json:"is_open_team"`
+	TeamID     keybase1.TeamID `json:"team_id"`
+	FqName     string          `json:"fq_name"`
+	IsOpenTeam bool            `json:"is_open_team"`
 	// Whether the caller has admin powers.
 	CallerAdmin bool `json:"caller_admin"`
 	// Whether the 'them' user is an explicit member.
@@ -2033,6 +2034,7 @@ func TeamProfileAddList(ctx context.Context, g *libkb.GlobalContext, username st
 			disabledReason = fmt.Sprintf("%v is already a member.", uname.String())
 		}
 		res = append(res, keybase1.TeamProfileAddEntry{
+			TeamID:         entry.TeamID,
 			TeamName:       teamName,
 			Open:           entry.IsOpenTeam,
 			DisabledReason: disabledReason,
