@@ -63,6 +63,59 @@
           "name": "status"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "TeamContactSettings",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "teamID",
+          "jsonkey": "team_id"
+        },
+        {
+          "type": "boolean",
+          "name": "allowFolloweesOfTeamMembers",
+          "jsonkey": "allow_followees_of_team_members"
+        },
+        {
+          "type": "boolean",
+          "name": "enabled",
+          "jsonkey": "enabled"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ContactSettings",
+      "fields": [
+        {
+          "type": [
+            null,
+            "int"
+          ],
+          "name": "version",
+          "jsonkey": "version"
+        },
+        {
+          "type": "int",
+          "name": "allowFolloweeDegrees",
+          "jsonkey": "allow_followee_degrees"
+        },
+        {
+          "type": "boolean",
+          "name": "enabled",
+          "jsonkey": "enabled"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamContactSettings"
+          },
+          "name": "teams",
+          "jsonkey": "teams"
+        }
+      ]
     }
   ],
   "messages": {
@@ -246,6 +299,19 @@
         {
           "name": "duration",
           "type": "gregor1.DurationSec"
+        }
+      ],
+      "response": null
+    },
+    "userGetContactSettings": {
+      "request": [],
+      "response": "ContactSettings"
+    },
+    "userSetContactSettings": {
+      "request": [
+        {
+          "name": "settings",
+          "type": "ContactSettings"
         }
       ],
       "response": null

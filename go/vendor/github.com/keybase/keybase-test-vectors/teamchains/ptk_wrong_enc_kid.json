@@ -56,7 +56,11 @@
                         "seq_type": 1
                     },
                     "debug_link_id": "d88e0a31732364eb71dd5a3fe16df5d4cf331461d042dbd48f1f4ec813570fff",
-                    "hidden_is_fresh": true
+                    "hidden_response": {
+                        "resp_type": 2,
+                        "committed_hidden_tail": null,
+                        "uncommitted_seqno": 0
+                    }
                 }
             ],
             "team_key_boxes": [
@@ -208,12 +212,20 @@
         "2123209b98b16083c69c91152b861724": {
             "seqno": 1,
             "link_id": "d88e0a31732364eb71dd5a3fe16df5d4cf331461d042dbd48f1f4ec813570fff",
-            "hidden_is_fresh": true
+            "hidden_response": {
+                "resp_type": 2,
+                "committed_hidden_tail": null,
+                "uncommitted_seqno": 0
+            }
         },
         "2123209b98b16083c69c91152b861724-seqno:1": {
             "seqno": 1,
             "link_id": "d88e0a31732364eb71dd5a3fe16df5d4cf331461d042dbd48f1f4ec813570fff",
-            "hidden_is_fresh": true
+            "hidden_response": {
+                "resp_type": 2,
+                "committed_hidden_tail": null,
+                "uncommitted_seqno": 0
+            }
         }
     },
     "merkle_triples": {

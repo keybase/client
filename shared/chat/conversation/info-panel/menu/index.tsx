@@ -4,6 +4,7 @@ import * as Styles from '../../../../styles'
 import * as ChatTypes from '../../../../constants/types/chat2'
 import * as TeamTypes from '../../../../constants/types/teams'
 import {Avatars, TeamAvatar} from '../../../avatars'
+import {TeamSubscriberMountOnly} from '../../../../teams/subscriber'
 
 export type ConvProps = {
   fullname: string
@@ -124,7 +125,8 @@ class InfoPanelMenu extends React.Component<Props> {
           title: props.manageChannelsTitle,
         }
 
-    const isAdhoc = !!(props.convProps && props.convProps.teamType === 'adhoc')
+    const isAdhoc =
+      (props.isSmallTeam && !props.convProps) || !!(props.convProps && props.convProps.teamType === 'adhoc')
     const items: Kb.MenuItems = (isAdhoc
       ? [this.hideItem(), this.muteItem(), {danger: true, onClick: props.onBlockConv, title: 'Block'}]
       : [
@@ -168,15 +170,18 @@ class InfoPanelMenu extends React.Component<Props> {
     }
 
     return (
-      <Kb.FloatingMenu
-        attachTo={props.attachTo}
-        visible={props.visible}
-        items={items}
-        header={header}
-        onHidden={props.onHidden}
-        position="bottom left"
-        closeOnSelect={true}
-      />
+      <>
+        {props.visible && <TeamSubscriberMountOnly />}
+        <Kb.FloatingMenu
+          attachTo={props.attachTo}
+          visible={props.visible}
+          items={items}
+          header={header}
+          onHidden={props.onHidden}
+          position="bottom left"
+          closeOnSelect={true}
+        />
+      </>
     )
   }
 

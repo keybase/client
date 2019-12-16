@@ -4,7 +4,6 @@ import {
   Box,
   Button,
   Icon,
-  iconCastPlatformStyles,
   Text,
   Overlay,
   OverlayParentHOC,
@@ -52,7 +51,7 @@ const FinderPopup = OverlayParentHOC((props: Props & OverlayParentProps) => (
       position="bottom right"
     >
       <Box style={styles.header}>
-        <Icon type="icon-fancy-finder-132-96" style={iconCastPlatformStyles(styles.fancyFinderIcon)} />
+        <Icon type="icon-fancy-finder-132-96" style={styles.fancyFinderIcon} />
         <Text type="BodyBig" style={styles.text}>
           Enable Keybase in {fileUIName}?
         </Text>

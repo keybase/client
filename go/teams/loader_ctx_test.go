@@ -251,20 +251,20 @@ func (l *MockLoaderContext) perUserEncryptionKey(ctx context.Context, userSeqno 
 	return key, err
 }
 
-func (l *MockLoaderContext) merkleLookupWithHidden(ctx context.Context, teamID keybase1.TeamID, public bool, harg *libkb.LookupTeamHiddenArg) (r1 keybase1.Seqno, r2 keybase1.LinkID, isFresh bool, err error) {
+func (l *MockLoaderContext) merkleLookupWithHidden(ctx context.Context, teamID keybase1.TeamID, public bool) (r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, err error) {
 	key := teamID.String()
 	if l.state.loadSpec.Upto > 0 {
 		key = fmt.Sprintf("%s-seqno:%d", teamID, int64(l.state.loadSpec.Upto))
 	}
 	x, ok := l.unit.TeamMerkle[key]
 	if !ok {
-		return r1, r2, true, NewMockBoundsError("MerkleLookup", "team id (+?seqno)", key)
+		return r1, r2, nil, NewMockBoundsError("MerkleLookup", "team id (+?seqno)", key)
 	}
-	return x.Seqno, x.LinkID, x.HiddenIsFresh, nil
+	return x.Seqno, x.LinkID, &x.HiddenResp, nil
 }
 
 func (l *MockLoaderContext) merkleLookup(ctx context.Context, teamID keybase1.TeamID, public bool) (r1 keybase1.Seqno, r2 keybase1.LinkID, err error) {
-	r1, r2, _, err = l.merkleLookupWithHidden(ctx, teamID, public, nil)
+	r1, r2, _, err = l.merkleLookupWithHidden(ctx, teamID, public)
 	return r1, r2, err
 }
 

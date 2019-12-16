@@ -8748,6 +8748,14 @@ const iconMeta_ = {
     get require() {
       return require('../images/releases/release-4.8.0-file-sync.png')
     },
+  },
+  'release-5.1.0-blocking': {
+    extension: 'png',
+    imagesDir: 'releases',
+    isFont: false,
+    get require() {
+      return require('../images/releases/release-5.1.0-blocking.png')
+    },
   } /* eslint-enable */,
 }
 

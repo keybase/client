@@ -47,12 +47,14 @@ const mapDispatchToPropsHeaderRightActions = dispatch => ({
         ],
       })
     ),
+  onBuy: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['partners']})),
   onSettings: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['settings']})),
 })
 const mergePropsHeaderRightActions = (s, d, _) => ({
   airdropSelected: s.airdropSelected,
   loading: s._accountID === Types.noAccountID,
   noDisclaimer: s.noDisclaimer,
+  onBuy: d.onBuy,
   onReceive: () => d._onReceive(s._accountID),
   onSettings: d.onSettings,
 })

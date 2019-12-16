@@ -374,15 +374,11 @@ const clearErrors = () => WalletsGen.createClearErrors()
 const loadWalletDisclaimer = async (
   state: TypedState,
   action:
-    | ConfigGen.LoggedInPayload
-    | ConfigGen.StartupFirstIdlePayload
+    | ConfigGen.LoadOnStartPayload
     | WalletsGen.LoadAccountsPayload
     | WalletsGen.LoadWalletDisclaimerPayload
 ) => {
-  // We want to load disclaimer status for the new user when you switch users,
-  // so we listen to loggedIn. But we don't want to slow down app startup: in
-  // that case, do nothing on initial login and wait for startupFirstIdle.
-  if (action.type === ConfigGen.loggedIn && action.payload.causedByStartup) {
+  if (action.type === ConfigGen.loadOnStart && action.payload.phase !== 'startupOrReloginButNotInARush') {
     return false
   }
 
@@ -518,10 +514,11 @@ const loadAssets = async (state: TypedState, action: LoadAssetsActions, logger: 
   }
 }
 
-const createPaymentsReceived = (accountID, payments, pending, allowClearOldestUnread) =>
+const createPaymentsReceived = (accountID, payments, pending, allowClearOldestUnread, error) =>
   WalletsGen.createPaymentsReceived({
     accountID,
     allowClearOldestUnread,
+    error,
     oldestUnread: payments.oldestUnread
       ? Types.rpcPaymentIDToPaymentID(payments.oldestUnread)
       : Types.noPaymentID,
@@ -552,11 +549,16 @@ const loadPayments = async (state: TypedState, action: LoadPaymentsActions, logg
     !!(action.type === WalletsGen.selectAccount && Types.isValidAccountID(accountID)) ||
     Types.isValidAccountID(Constants.getAccount(state, accountID).accountID)
   ) {
-    const [pending, payments] = await Promise.all([
-      RPCStellarTypes.localGetPendingPaymentsLocalRpcPromise({accountID}),
-      RPCStellarTypes.localGetPaymentsLocalRpcPromise({accountID}),
-    ])
-    return createPaymentsReceived(accountID, payments, pending, true)
+    try {
+      const [pending, payments] = await Promise.all([
+        RPCStellarTypes.localGetPendingPaymentsLocalRpcPromise({accountID}),
+        RPCStellarTypes.localGetPaymentsLocalRpcPromise({accountID}),
+      ])
+      return createPaymentsReceived(accountID, payments, pending, true, '')
+    } catch (err) {
+      const error = `There was an error loading your payment history, please try again: ${err.desc}`
+      return createPaymentsReceived(accountID, [], [], true, error)
+    }
   }
   return false
 }
@@ -578,7 +580,7 @@ const loadMorePayments = async (
     accountID: action.payload.accountID,
     cursor,
   })
-  return createPaymentsReceived(action.payload.accountID, payments, [], false)
+  return createPaymentsReceived(action.payload.accountID, payments, [], false, '')
 }
 
 // We only need to load these once per session
@@ -1193,18 +1195,14 @@ const changeAirdrop = async (_: TypedState, action: WalletsGen.ChangeAirdropPayl
 
 const updateAirdropDetails = async (
   state: TypedState,
-  action:
-    | WalletsGen.UpdateAirdropDetailsPayload
-    | ConfigGen.StartupFirstIdlePayload
-    | ConfigGen.LoggedInPayload,
+  action: WalletsGen.UpdateAirdropDetailsPayload | ConfigGen.LoadOnStartPayload,
   logger: Saga.SagaLogger
 ) => {
   if (!state.config.loggedIn) {
     return false
   }
 
-  // ignore, we handle startup first idle instead
-  if (action.type === ConfigGen.loggedIn && action.payload.causedByStartup) {
+  if (action.type === ConfigGen.loadOnStart && action.payload.phase !== 'startupOrReloginButNotInARush') {
     return false
   }
 
@@ -1228,17 +1226,13 @@ const updateAirdropDetails = async (
 
 const updateAirdropState = async (
   state: TypedState,
-  action:
-    | WalletsGen.UpdateAirdropStatePayload
-    | ConfigGen.StartupFirstIdlePayload
-    | ConfigGen.LoggedInPayload,
+  action: WalletsGen.UpdateAirdropStatePayload | ConfigGen.LoadOnStartPayload,
   logger: Saga.SagaLogger
 ) => {
   if (!state.config.loggedIn) {
     return false
   }
-  // ignore startup since we already listen for first idle
-  if (action.type === ConfigGen.loggedIn && action.payload.causedByStartup) {
+  if (action.type === ConfigGen.loadOnStart && action.payload.phase !== 'startupOrReloginButNotInARush') {
     return false
   }
   try {
@@ -1854,12 +1848,7 @@ function* walletsSaga() {
   yield* Saga.chainAction2(NotificationsGen.receivedBadgeState, receivedBadgeState, 'receivedBadgeState')
 
   yield* Saga.chainAction2(
-    [
-      ConfigGen.loggedIn,
-      ConfigGen.startupFirstIdle,
-      WalletsGen.loadAccounts,
-      WalletsGen.loadWalletDisclaimer,
-    ],
+    [ConfigGen.loadOnStart, WalletsGen.loadAccounts, WalletsGen.loadWalletDisclaimer],
     loadWalletDisclaimer,
     'loadWalletDisclaimer'
   )
@@ -1902,12 +1891,12 @@ function* walletsSaga() {
     yield* Saga.chainAction2(GregorGen.pushState, gregorPushState, 'gregorPushState')
     yield* Saga.chainAction2(WalletsGen.changeAirdrop, changeAirdrop, 'changeAirdrop')
     yield* Saga.chainAction2(
-      [WalletsGen.updateAirdropDetails, ConfigGen.startupFirstIdle, ConfigGen.loggedIn],
+      [WalletsGen.updateAirdropDetails, ConfigGen.loadOnStart],
       updateAirdropDetails,
       'updateAirdropDetails'
     )
     yield* Saga.chainAction2(
-      [WalletsGen.updateAirdropState, ConfigGen.startupFirstIdle, ConfigGen.loggedIn],
+      [WalletsGen.updateAirdropState, ConfigGen.loadOnStart],
       updateAirdropState,
       'updateAirdropState'
     )

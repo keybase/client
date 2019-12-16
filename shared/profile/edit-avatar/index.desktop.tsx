@@ -357,7 +357,7 @@ class EditAvatar extends React.Component<_Props, State> {
             />
             {this.state.loading && (
               <Kb.Box2 direction="vertical" fullHeight={true} style={styles.spinnerContainer}>
-                <Kb.ProgressIndicator type="Large" style={Kb.iconCastPlatformStyles(styles.spinner)} />
+                <Kb.ProgressIndicator type="Large" style={styles.spinner} />
               </Kb.Box2>
             )}
             <Kb.OrientedImage
@@ -382,7 +382,7 @@ class EditAvatar extends React.Component<_Props, State> {
                 className="icon"
                 color={Styles.globalColors.greyDark}
                 fontSize={48}
-                style={Kb.iconCastPlatformStyles(styles.icon)}
+                style={styles.icon}
                 type="iconfont-camera"
               />
             )}
@@ -428,30 +428,36 @@ const hoverStyles = Styles.styleSheetCreate(
         borderColor: Styles.globalColors.blue_60,
       },
       droppingIcon: {color: Styles.globalColors.blue_60},
-      filled: {
-        backgroundColor: Styles.globalColors.white,
-        borderColor: Styles.globalColors.grey,
-        borderStyle: 'solid',
-        cursor: '-webkit-grab',
-      },
+      filled: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.white,
+          borderColor: Styles.globalColors.grey,
+          borderStyle: 'solid',
+        },
+        isElectron: {cursor: '-webkit-grab'},
+      }),
       filledHover: {
         backgroundColor: Styles.globalColors.white,
         borderColor: Styles.globalColors.grey,
       },
       hover: {borderColor: Styles.globalColors.black_50},
-      hoverContainer: {
-        backgroundColor: Styles.globalColors.grey,
-        borderColor: Styles.globalColors.greyDark,
-        borderStyle: 'dotted',
-        borderWidth: AVATAR_BORDER_SIZE,
-        cursor: 'pointer',
-        height: AVATAR_CONTAINER_SIZE,
-        marginBottom: Styles.globalMargins.small,
-        marginTop: Styles.globalMargins.medium,
-        overflow: 'hidden',
-        position: 'relative',
-        width: AVATAR_CONTAINER_SIZE,
-      },
+      hoverContainer: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.grey,
+          borderColor: Styles.globalColors.greyDark,
+          borderStyle: 'dotted',
+          borderWidth: AVATAR_BORDER_SIZE,
+          height: AVATAR_CONTAINER_SIZE,
+          marginBottom: Styles.globalMargins.small,
+          marginTop: Styles.globalMargins.medium,
+          overflow: 'hidden',
+          position: 'relative',
+          width: AVATAR_CONTAINER_SIZE,
+        },
+        isElectron: {
+          cursor: 'pointer',
+        },
+      }),
       hoverIcon: {color: Styles.globalColors.black_50},
     } as const)
 )

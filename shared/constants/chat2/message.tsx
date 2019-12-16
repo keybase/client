@@ -199,6 +199,7 @@ export const makeMessageJourneycard = (
   ...makeMessageMinimum,
   cardType: RPCChatTypes.JourneycardType.welcome,
   highlightMsgID: Types.numberToMessageID(0),
+  openTeam: false,
   type: 'journeycard',
   ...m,
 })
@@ -1162,6 +1163,7 @@ const journeycardUIMessageToMessage = (
     cardType: m.cardType,
     conversationIDKey,
     highlightMsgID: m.highlightMsgID,
+    openTeam: m.openTeam,
     ordinal: Types.numberToOrdinal(m.ordinal),
   })
 }
@@ -1425,6 +1427,7 @@ export const shouldShowPopup = (state: TypedState, message: Types.Message) => {
     case 'systemSimpleToComplex':
     case 'systemText':
     case 'systemUsersAddedToConversation':
+    case 'journeycard':
       return true
     case 'sendPayment': {
       const paymentInfo = getPaymentMessageInfo(state, message)

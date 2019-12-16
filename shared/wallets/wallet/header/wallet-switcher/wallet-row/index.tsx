@@ -65,7 +65,7 @@ const WalletRow = (props: Props) => {
           {props.keybaseUser ? (
             <Kb.Avatar
               size={16}
-              style={Kb.avatarCastPlatformStyles(styles.avatar)}
+              style={styles.avatar}
               username={props.keybaseUser}
             />
           ) : (

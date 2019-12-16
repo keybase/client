@@ -25,7 +25,7 @@ func GetAllProvisionedUsernames(mctx MetaContext) (current NormalizedUsername, a
 	mctx = mctx.WithLogTag("GAPU")
 	defer mctx.Trace("GetAllProvisionedUsernames", func() error { return err })()
 
-	currentUC, allUCs, err := mctx.G().Env.GetConfig().GetAllUserConfigs()
+	currentUC, otherUCs, err := mctx.G().Env.GetConfig().GetAllUserConfigs()
 	if err != nil {
 		return current, nil, err
 	}
@@ -34,7 +34,7 @@ func GetAllProvisionedUsernames(mctx MetaContext) (current NormalizedUsername, a
 	if currentUC != nil {
 		userConfigs = append(userConfigs, deviceForUser{UID: currentUC.GetUID(), DeviceID: currentUC.GetDeviceID()})
 	}
-	for _, uc := range allUCs {
+	for _, uc := range otherUCs {
 		userConfigs = append(userConfigs, deviceForUser{UID: uc.GetUID(), DeviceID: uc.GetDeviceID()})
 	}
 
@@ -60,7 +60,10 @@ func GetAllProvisionedUsernames(mctx MetaContext) (current NormalizedUsername, a
 		// We got a network error but we can still return offline results.
 		mctx.Info("Failed to check server for revoked in GAPU: %+v", err)
 		// Put together a fake response from the offline data:
-		for _, uc := range allUCs {
+		if currentUC != nil {
+			configsForReturn = append(configsForReturn, deviceForUser{Username: string(currentUC.Name), OK: true})
+		}
+		for _, uc := range otherUCs {
 			configsForReturn = append(configsForReturn, deviceForUser{Username: string(uc.Name), OK: true})
 		}
 	} else if err != nil {

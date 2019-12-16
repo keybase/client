@@ -209,9 +209,15 @@ const styles = Styles.styleSheetCreate(
       errorText: {
         color: Styles.globalColors.redDark,
       },
-      percentContainer: {
-        padding: Styles.globalMargins.tiny,
-      },
+      percentContainer: Styles.platformStyles({
+        common: {
+          padding: Styles.globalMargins.tiny,
+        },
+        isMobile: {
+          paddingLeft: Styles.globalMargins.small,
+          paddingRight: Styles.globalMargins.small,
+        },
+      }),
       progressBar: {
         alignSelf: 'center',
         flex: 1,

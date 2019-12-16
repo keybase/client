@@ -33,6 +33,9 @@ export default Container.makeReducer<
   [TeamsGen.createNewTeamFromConversation]: draftState => {
     draftState.teamCreationError = ''
   },
+  [TeamsGen.teamCreated]: (draftState, action) => {
+    draftState.teamNameToID.set(action.payload.teamname, action.payload.teamID)
+  },
   [TeamsGen.setTeamCreationError]: (draftState, action) => {
     draftState.teamCreationError = action.payload.error
   },
@@ -68,7 +71,11 @@ export default Container.makeReducer<
     const members = Constants.rpcDetailsToMemberInfos(action.payload.members)
     draftState.teamNameToMembers.set(teamname, Constants.rpcDetailsToMemberInfos(action.payload.members))
 
-    const details = mapGetEnsureValue(draftState.teamDetails, teamID, Constants.makeTeamDetails({teamname}))
+    const details = mapGetEnsureValue(
+      draftState.teamDetails,
+      teamID,
+      Constants.makeTeamDetails({id: teamID, teamname})
+    )
     details.members = members
     details.settings = action.payload.settings
     details.invites = new Set(action.payload.invites)

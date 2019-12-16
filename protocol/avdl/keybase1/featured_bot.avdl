@@ -1,0 +1,24 @@
+@namespace("keybase.1")
+
+protocol featuredBot {
+  import idl "common.avdl";
+
+  record FeaturedBot {
+    string botAlias;
+    string description;
+    string botUsername;
+    union { null, string } ownerTeam;
+    union { null, string } ownerUser;
+  }
+
+    record FeaturedBotsRes {
+        array<FeaturedBot> bots;
+    }
+
+    record SearchRes {
+        array<FeaturedBot> bots;
+    }
+
+    FeaturedBotsRes featuredBots(int limit, int offset);
+    SearchRes search(string query, int limit, int offset);
+}

@@ -1,7 +1,7 @@
 import * as React from 'react'
-import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
-import * as Platforms from '../constants/platform'
+import * as Kb from '../../../../common-adapters'
+import * as Styles from '../../../../styles'
+import * as Platforms from '../../../../constants/platform'
 
 export type Props = {
   filter: string
@@ -87,7 +87,7 @@ class ConversationFilterInput extends React.PureComponent<Props> {
       <Kb.Box2
         direction="horizontal"
         centerChildren={true}
-        gap="tiny"
+        gap={Styles.isMobile ? 'small' : 'tiny'}
         style={Styles.collapseStyles([
           styles.containerNotFiltering,
           !Styles.isMobile && styles.whiteBg,

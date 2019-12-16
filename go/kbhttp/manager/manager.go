@@ -62,7 +62,7 @@ func (r *Srv) startHTTPSrv() {
 	r.startMu.Lock()
 	defer r.startMu.Unlock()
 	ctx := context.Background()
-	r.token, _ = libkb.RandHexString("", 32)
+	token, _ := libkb.RandHexString("", 32)
 	maxTries := 2
 	success := false
 	for i := 0; i < maxTries; i++ {
@@ -94,6 +94,8 @@ func (r *Srv) startHTTPSrv() {
 	} else {
 		r.debug(ctx, "startHTTPSrv: start success: addr: %s", addr)
 	}
+	r.token = token
+	r.debug(ctx, "startHTTPSrv: addr: %s token: %s", addr, r.token)
 	r.G().NotifyRouter.HandleHTTPSrvInfoUpdate(ctx, keybase1.HttpSrvInfo{
 		Address: addr,
 		Token:   r.token,
@@ -111,7 +113,7 @@ func (r *Srv) monitorAppState() {
 	for {
 		state = <-r.G().MobileAppState.NextUpdate(&state)
 		switch state {
-		case keybase1.MobileAppState_FOREGROUND:
+		case keybase1.MobileAppState_FOREGROUND, keybase1.MobileAppState_BACKGROUNDACTIVE:
 			r.startHTTPSrv()
 		case keybase1.MobileAppState_BACKGROUND, keybase1.MobileAppState_INACTIVE:
 			r.httpSrv.Stop()
@@ -125,6 +127,8 @@ func (r *Srv) HandleFunc(endpoint string, tokenMode SrvTokenMode,
 		switch tokenMode {
 		case SrvTokenModeDefault:
 			if !hmac.Equal([]byte(req.URL.Query().Get("token")), []byte(r.token)) {
+				r.debug(context.Background(), "HandleFunc: token failed: %s != %s",
+					req.URL.Query().Get("token"), r.token)
 				w.WriteHeader(http.StatusForbidden)
 				return
 			}

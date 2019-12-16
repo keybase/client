@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"sort"
 	"strconv"
 	"strings"
@@ -932,6 +933,17 @@ func GetConvMtime(rc types.RemoteConversation) (res gregor1.Time) {
 	return rc.LocalMtime
 }
 
+// GetConvPriorityScore weighs conversations that are fully read above ones
+// that are not, weighting more recently modified conversations higher.. Used
+// to order conversations when background loading.
+func GetConvPriorityScore(rc types.RemoteConversation) float64 {
+	readMsgID := rc.GetReadMsgID()
+	maxMsgID := rc.Conv.ReaderInfo.MaxMsgid
+	mtime := GetConvMtime(rc)
+	dur := math.Abs(float64(time.Since(mtime.Time())) / float64(time.Hour))
+	return 100 / math.Pow(dur+float64(maxMsgID-readMsgID), 0.5)
+}
+
 type MessageSummaryContainer interface {
 	GetMaxMessage(typ chat1.MessageType) (chat1.MessageSummary, error)
 }
@@ -1343,7 +1355,8 @@ func PresentConversationErrorLocal(ctx context.Context, g *globals.Context, rawC
 	res.Message = rawConv.Message
 	res.RekeyInfo = rawConv.RekeyInfo
 	res.RemoteConv = PresentRemoteConversation(ctx, g, types.RemoteConversation{
-		Conv: rawConv.RemoteConv,
+		Conv:      rawConv.RemoteConv,
+		ConvIDStr: rawConv.RemoteConv.GetConvID().String(),
 	})
 	res.Typ = rawConv.Typ
 	res.UnverifiedTLFName = rawConv.UnverifiedTLFName
@@ -1374,8 +1387,15 @@ func presentConversationParticipantsLocal(ctx context.Context, rawParticipants [
 	return participants
 }
 
+type PresentParticipantsMode int
+
+const (
+	PresentParticipantsModeInclude PresentParticipantsMode = iota
+	PresentParticipantsModeSkip
+)
+
 func PresentConversationLocal(ctx context.Context, g *globals.Context, uid gregor1.UID,
-	rawConv chat1.ConversationLocal) (res chat1.InboxUIItem) {
+	rawConv chat1.ConversationLocal, partMode PresentParticipantsMode) (res chat1.InboxUIItem) {
 	res.ConvID = rawConv.GetConvID().String()
 	res.TlfID = rawConv.Info.Triple.Tlfid.String()
 	res.TopicType = rawConv.GetTopicType()
@@ -1385,7 +1405,6 @@ func PresentConversationLocal(ctx context.Context, g *globals.Context, uid grego
 	res.Channel = rawConv.Info.TopicName
 	res.Headline = rawConv.Info.Headline
 	res.HeadlineDecorated = DecorateWithLinks(ctx, EscapeForDecorate(ctx, rawConv.Info.Headline))
-	res.Participants = presentConversationParticipantsLocal(ctx, rawConv.Info.Participants)
 	res.ResetParticipants = rawConv.Info.ResetNames
 	res.Status = rawConv.Info.Status
 	res.MembersType = rawConv.GetMembersType()
@@ -1417,13 +1436,18 @@ func PresentConversationLocal(ctx context.Context, g *globals.Context, uid grego
 			rawConv.GetConvID())
 		res.PinnedMsg.PinnerUsername = rawConv.Info.PinnedMsg.PinnerUsername
 	}
+	switch partMode {
+	case PresentParticipantsModeInclude:
+		res.Participants = presentConversationParticipantsLocal(ctx, rawConv.Info.Participants)
+	default:
+	}
 	return res
 }
 
 func PresentConversationLocals(ctx context.Context, g *globals.Context, uid gregor1.UID,
-	convs []chat1.ConversationLocal) (res []chat1.InboxUIItem) {
+	convs []chat1.ConversationLocal, partMode PresentParticipantsMode) (res []chat1.InboxUIItem) {
 	for _, conv := range convs {
-		res = append(res, PresentConversationLocal(ctx, g, uid, conv))
+		res = append(res, PresentConversationLocal(ctx, g, uid, conv, partMode))
 	}
 	return res
 }
@@ -1886,6 +1910,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			Ordinal:        computeOrdinal(journeycard.PrevID, journeycard.Ordinal),
 			CardType:       journeycard.CardType,
 			HighlightMsgID: journeycard.HighlightMsgID,
+			OpenTeam:       journeycard.OpenTeam,
 		})
 	default:
 		g.MetaContext(ctx).Debug("PresentMessageUnboxed: unhandled MessageUnboxedState: %v", state)
@@ -2582,13 +2607,8 @@ func GetUnverifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	convID chat1.ConversationID, dataSource types.InboxSourceDataSourceTyp) (res types.RemoteConversation, err error) {
 
 	inbox, err := g.InboxSource.ReadUnverified(ctx, uid, dataSource, &chat1.GetInboxQuery{
-		ConvIDs: []chat1.ConversationID{convID},
-		MemberStatus: []chat1.ConversationMemberStatus{
-			chat1.ConversationMemberStatus_ACTIVE,
-			chat1.ConversationMemberStatus_PREVIEW,
-			chat1.ConversationMemberStatus_RESET,
-			chat1.ConversationMemberStatus_NEVER_JOINED,
-		},
+		ConvIDs:      []chat1.ConversationID{convID},
+		MemberStatus: chat1.AllConversationMemberStatuses(),
 	})
 	if err != nil {
 		return res, err
@@ -2631,18 +2651,14 @@ func FormatConversationName(info chat1.ConversationInfoLocal, myUsername string)
 
 func GetVerifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	convID chat1.ConversationID, dataSource types.InboxSourceDataSourceTyp) (res chat1.ConversationLocal, err error) {
-	// in case we are being called from within some cancelable context, remove it for the purposes
-	// of this call, since whatever this is is likely a side effect we don't want to get stuck
+	// in case we are being called from within some cancelable context, remove
+	// it for the purposes of this call, since whatever this is is likely a
+	// side effect we don't want to get stuck
 	ctx = globals.CtxRemoveLocalizerCancelable(ctx)
 	inbox, _, err := g.InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, dataSource, nil,
 		&chat1.GetInboxLocalQuery{
-			ConvIDs: []chat1.ConversationID{convID},
-			MemberStatus: []chat1.ConversationMemberStatus{
-				chat1.ConversationMemberStatus_ACTIVE,
-				chat1.ConversationMemberStatus_PREVIEW,
-				chat1.ConversationMemberStatus_RESET,
-				chat1.ConversationMemberStatus_NEVER_JOINED,
-			},
+			ConvIDs:      []chat1.ConversationID{convID},
+			MemberStatus: chat1.AllConversationMemberStatuses(),
 		})
 	if err != nil {
 		return res, err

@@ -218,7 +218,7 @@ func (rc *GenericSocialProofChecker) CheckStatus(mctx libkb.MetaContext, _ libkb
 
 	var foundProof, foundUsername bool
 	for _, proof := range proofs {
-		if proof.KbUsername == rc.proof.GetUsername() && sigID.Equal(proof.SigHash) {
+		if proof.KbUsername == rc.proof.GetUsername() && sigID.Eq(proof.SigHash) {
 			foundProof = true
 			break
 		}

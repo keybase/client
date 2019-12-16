@@ -108,9 +108,9 @@ type EncryptionParameters struct {
 }
 
 type Tail struct {
-	Hash      LinkID    `codec:"h"` // hash of the outer link
-	Seqno     Seqno     `codec:"s"`
-	ChainType ChainType `codec:"t"`
+	Hash      LinkID    `codec:"h" json:"link_id"` // hash of the outer link
+	Seqno     Seqno     `codec:"s" json:"seqno"`
+	ChainType ChainType `codec:"t" json:"chain_type"`
 }
 
 type RotateKeyBody struct {

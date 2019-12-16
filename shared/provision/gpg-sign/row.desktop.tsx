@@ -47,25 +47,33 @@ const styles = Styles.styleSheetCreate(
       header: {
         color: Styles.globalColors.blueDark,
       },
-      icon: {
-        ...Styles.transition('transform'),
-        height: 'inherit',
-        textAlign: 'center',
-        width: 'inherit',
-        zIndex: 1,
-      },
-      iconBackground: {
-        ...Styles.transition('opacity'),
-        backgroundColor: Styles.globalColors.greyLight,
-        borderRadius: 40,
-        left: 0,
-        maxHeight: 80,
-        maxWidth: 80,
-        minHeight: 80,
-        minWidth: 80,
-        position: 'absolute',
-        top: 0,
-      },
+      icon: Styles.platformStyles({
+        common: {
+          height: 'inherit',
+          textAlign: 'center',
+          width: 'inherit',
+          zIndex: 1,
+        },
+        isElectron: {
+          ...Styles.transition('transform'),
+        },
+      }),
+      iconBackground: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.greyLight,
+          borderRadius: 40,
+          left: 0,
+          maxHeight: 80,
+          maxWidth: 80,
+          minHeight: 80,
+          minWidth: 80,
+          position: 'absolute',
+          top: 0,
+        },
+        isElectron: {
+          ...Styles.transition('opacity'),
+        },
+      }),
       iconContainer: {
         ...Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
@@ -77,14 +85,18 @@ const styles = Styles.styleSheetCreate(
         minWidth: 80,
         position: 'relative',
       },
-      rowContainer: {
-        ...Styles.globalStyles.flexBoxRow,
-        alignItems: 'center',
-        maxHeight: 100,
-        minHeight: 100,
-        padding: 20,
-        transition: 'background 0.1s ease-out',
-      },
+      rowContainer: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.flexBoxRow,
+          alignItems: 'center',
+          maxHeight: 100,
+          minHeight: 100,
+          padding: 20,
+        },
+        isElectron: {
+          transition: 'background 0.1s ease-out',
+        },
+      }),
     } as const)
 )
 

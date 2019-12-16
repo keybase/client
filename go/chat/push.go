@@ -278,7 +278,8 @@ func (g *PushHandler) TlfFinalize(ctx context.Context, m gregor.OutOfBandMessage
 				topicType = conv.GetTopicType()
 			}
 			g.G().ActivityNotifier.TLFFinalize(ctx, uid,
-				convID, topicType, update.FinalizeInfo, g.presentUIItem(ctx, conv, uid))
+				convID, topicType, update.FinalizeInfo, g.presentUIItem(ctx, conv, uid,
+					utils.PresentParticipantsModeInclude))
 		}
 	}(globals.BackgroundChatCtx(ctx, g.G()))
 
@@ -429,9 +430,10 @@ func (g *PushHandler) shouldDisplayDesktopNotification(ctx context.Context,
 	return false
 }
 
-func (g *PushHandler) presentUIItem(ctx context.Context, conv *chat1.ConversationLocal, uid gregor1.UID) (res *chat1.InboxUIItem) {
+func (g *PushHandler) presentUIItem(ctx context.Context, conv *chat1.ConversationLocal, uid gregor1.UID,
+	partMode utils.PresentParticipantsMode) (res *chat1.InboxUIItem) {
 	if conv != nil {
-		return PresentConversationLocalWithFetchRetry(ctx, g.G(), uid, *conv)
+		return PresentConversationLocalWithFetchRetry(ctx, g.G(), uid, *conv, partMode)
 	}
 	return res
 }
@@ -532,7 +534,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			g.typingMonitor.Update(ctx, chat1.TyperInfo{
 				Uid:      keybase1.UID(nm.Message.ClientHeader.Sender.String()),
 				DeviceID: keybase1.DeviceID(nm.Message.ClientHeader.SenderDevice.String()),
-			}, convID, false)
+			}, convID, chat1.TeamType_NONE, false)
 
 			// Check for a leave message from ourselves and just bail out if it is
 			if nm.Message.GetMessageType() == chat1.MessageType_LEAVE &&
@@ -582,10 +584,11 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				}
 				activity = new(chat1.ChatActivity)
 				*activity = chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
-					Message:                    utils.PresentMessageUnboxed(ctx, g.G(), decmsg, uid, nm.ConvID),
-					ModifiedMessage:            g.getSupersedesTarget(ctx, uid, conv, decmsg),
-					ConvID:                     nm.ConvID,
-					Conv:                       g.presentUIItem(ctx, conv, uid),
+					Message:         utils.PresentMessageUnboxed(ctx, g.G(), decmsg, uid, nm.ConvID),
+					ModifiedMessage: g.getSupersedesTarget(ctx, uid, conv, decmsg),
+					ConvID:          nm.ConvID,
+					Conv: g.presentUIItem(ctx, conv, uid,
+						utils.PresentParticipantsModeSkip),
 					DisplayDesktopNotification: desktopNotification,
 					DesktopNotificationSnippet: notificationSnippet,
 					Pagination:                 utils.PresentPagination(page),
@@ -626,7 +629,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			*activity = chat1.NewChatActivityWithReadMessage(chat1.ReadMessageInfo{
 				MsgID:  nm.MsgID,
 				ConvID: nm.ConvID,
-				Conv:   g.presentUIItem(ctx, conv, uid),
+				Conv:   g.presentUIItem(ctx, conv, uid, utils.PresentParticipantsModeSkip),
 			})
 		case types.ActionSetStatus:
 			var nm chat1.SetStatusPayload
@@ -644,7 +647,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			*activity = chat1.NewChatActivityWithSetStatus(chat1.SetStatusInfo{
 				ConvID: nm.ConvID,
 				Status: nm.Status,
-				Conv:   g.presentUIItem(ctx, conv, uid),
+				Conv:   g.presentUIItem(ctx, conv, uid, utils.PresentParticipantsModeSkip),
 			})
 		case types.ActionSetAppNotificationSettings:
 			var nm chat1.SetAppNotificationSettingsPayload
@@ -721,7 +724,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				}
 				activity = new(chat1.ChatActivity)
 				*activity = chat1.NewChatActivityWithNewConversation(chat1.NewConversationInfo{
-					Conv:   g.presentUIItem(ctx, conv, uid),
+					Conv:   g.presentUIItem(ctx, conv, uid, utils.PresentParticipantsModeInclude),
 					ConvID: updateConv.GetConvID(),
 				})
 			}
@@ -741,7 +744,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			*activity = chat1.NewChatActivityWithTeamtype(chat1.TeamTypeInfo{
 				ConvID:   nm.ConvID,
 				TeamType: nm.TeamType,
-				Conv:     g.presentUIItem(ctx, conv, uid),
+				Conv:     g.presentUIItem(ctx, conv, uid, utils.PresentParticipantsModeSkip),
 			})
 		case types.ActionExpunge:
 			var nm chat1.ExpungePayload
@@ -783,14 +786,14 @@ func (g *PushHandler) notifyConvUpdates(ctx context.Context, uid gregor1.UID,
 	convs []chat1.ConversationLocal) {
 	for _, conv := range convs {
 		g.G().ActivityNotifier.ConvUpdate(ctx, uid, conv.GetConvID(),
-			conv.GetTopicType(), g.presentUIItem(ctx, &conv, uid))
+			conv.GetTopicType(), g.presentUIItem(ctx, &conv, uid, utils.PresentParticipantsModeInclude))
 	}
 }
 
 func (g *PushHandler) notifyJoinChannel(ctx context.Context, uid gregor1.UID,
 	conv chat1.ConversationLocal) {
 	g.G().ActivityNotifier.JoinedConversation(ctx, uid, conv.GetConvID(),
-		conv.GetTopicType(), g.presentUIItem(ctx, &conv, uid))
+		conv.GetTopicType(), g.presentUIItem(ctx, &conv, uid, utils.PresentParticipantsModeInclude))
 }
 
 func (g *PushHandler) notifyLeftChannel(ctx context.Context, uid gregor1.UID,
@@ -866,7 +869,12 @@ func (g *PushHandler) Typing(ctx context.Context, m gregor.OutOfBandMessage) (er
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
 		g.identNotifier)
-	defer g.Trace(ctx, func() error { return err }, "Typing")()
+	// Dont' do a full trace here, keep log spam down
+	defer func() {
+		if err != nil {
+			g.Debug(ctx, "Typing: unable to complete %v", err)
+		}
+	}()
 	if m.Body() == nil {
 		return errors.New("gregor handler for typing: nil message body")
 	}
@@ -894,7 +902,7 @@ func (g *PushHandler) Typing(ctx context.Context, m gregor.OutOfBandMessage) (er
 		Username:   user.String(),
 		DeviceName: device,
 		DeviceType: dtype,
-	}, update.ConvID, update.Typing)
+	}, update.ConvID, update.TeamType, update.Typing)
 	return nil
 }
 
@@ -1084,7 +1092,8 @@ func (g *PushHandler) SetConvRetention(ctx context.Context, m gregor.OutOfBandMe
 		}
 		// Send notify for the conv
 		g.G().ActivityNotifier.SetConvRetention(ctx, uid,
-			conv.GetConvID(), conv.GetTopicType(), g.presentUIItem(ctx, conv, uid))
+			conv.GetConvID(), conv.GetTopicType(), g.presentUIItem(ctx, conv, uid,
+				utils.PresentParticipantsModeSkip))
 	}(globals.BackgroundChatCtx(ctx, g.G()))
 
 	return nil
@@ -1130,7 +1139,7 @@ func (g *PushHandler) SetTeamRetention(ctx context.Context, m gregor.OutOfBandMe
 		// Send notify for each conversation ID
 		convUIItems := make(map[chat1.TopicType][]chat1.InboxUIItem)
 		for _, conv := range convs {
-			uiItem := g.presentUIItem(ctx, &conv, uid)
+			uiItem := g.presentUIItem(ctx, &conv, uid, utils.PresentParticipantsModeSkip)
 			if uiItem != nil {
 				convUIItems[uiItem.TopicType] = append(convUIItems[uiItem.TopicType], *uiItem)
 			}
@@ -1181,7 +1190,8 @@ func (g *PushHandler) SetConvSettings(ctx context.Context, m gregor.OutOfBandMes
 		}
 		// Send notify for the conv
 		g.G().ActivityNotifier.SetConvSettings(ctx, uid,
-			conv.GetConvID(), conv.GetTopicType(), g.presentUIItem(ctx, conv, uid))
+			conv.GetConvID(), conv.GetTopicType(), g.presentUIItem(ctx, conv, uid,
+				utils.PresentParticipantsModeSkip))
 	}(globals.BackgroundChatCtx(ctx, g.G()))
 
 	return nil
@@ -1228,7 +1238,7 @@ func (g *PushHandler) SubteamRename(ctx context.Context, m gregor.OutOfBandMessa
 		tlfIDs := make(map[string]struct{})
 		for _, conv := range convs {
 			tlfIDs[conv.Info.Triple.Tlfid.String()] = struct{}{}
-			uiItem := g.presentUIItem(ctx, &conv, uid)
+			uiItem := g.presentUIItem(ctx, &conv, uid, utils.PresentParticipantsModeSkip)
 			if uiItem != nil {
 				convUIItems[uiItem.TopicType] = append(convUIItems[uiItem.TopicType], *uiItem)
 				convIDs[uiItem.TopicType] = append(convIDs[uiItem.TopicType], conv.GetConvID())

@@ -16,7 +16,14 @@
           "type": "gregor1.UID"
         },
         {
-          "name": "tlfIDs",
+          "name": "tlfIDsBlocked",
+          "type": {
+            "type": "array",
+            "items": "TLFID"
+          }
+        },
+        {
+          "name": "tlfIDsUnblocked",
           "type": {
             "type": "array",
             "items": "TLFID"

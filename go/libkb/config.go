@@ -265,7 +265,7 @@ func (f *JSONConfigFile) GetUserConfigForUID(u keybase1.UID) (*UserConfig, error
 	return nil, nil
 }
 
-func (f *JSONConfigFile) GetAllUserConfigs() (current *UserConfig, all []UserConfig, err error) {
+func (f *JSONConfigFile) GetAllUserConfigs() (current *UserConfig, others []UserConfig, err error) {
 
 	currentUsername, allUsernames, err := f.GetAllUsernames()
 	if err != nil {
@@ -279,11 +279,11 @@ func (f *JSONConfigFile) GetAllUserConfigs() (current *UserConfig, all []UserCon
 	for _, u := range allUsernames {
 		tmp, err := f.GetUserConfigForUsername(u)
 		if err == nil && tmp != nil {
-			all = append(all, *tmp)
+			others = append(others, *tmp)
 		}
 	}
 
-	return current, all, nil
+	return current, others, nil
 }
 
 func (f *JSONConfigFile) GetAllUsernames() (current NormalizedUsername, others []NormalizedUsername, err error) {

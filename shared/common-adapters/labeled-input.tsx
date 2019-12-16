@@ -155,7 +155,7 @@ const styles = Styles.styleSheetCreate(
         common: {
           backgroundColor: Styles.globalColors.transparent,
           flexGrow: 1,
-          marginTop: 10,
+          marginTop: 14,
           paddingBottom: 3,
           paddingLeft: Styles.globalMargins.xsmall,
           paddingRight: Styles.globalMargins.xsmall,
@@ -168,8 +168,8 @@ const styles = Styles.styleSheetCreate(
       inputMultiline: Styles.platformStyles({
         isMobile: {
           textAlignVertical: 'top',
-        },
-      }),
+        } as const,
+      }) as any, // not sure why this fails
       inputSmall: {
         paddingTop: 0,
       },

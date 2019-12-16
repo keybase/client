@@ -31,7 +31,7 @@ const NewCard = (_: Props) => (
             sizeType="Tiny"
             type="iconfont-arrow-right"
             className="hover_contained_color_white"
-            style={Kb.iconCastPlatformStyles(styles.icon)}
+            style={styles.icon}
           />
         </Kb.Box2>
       </Kb.ClickableBox>

@@ -123,4 +123,10 @@ Get all reset members of conversations in your inbox:
 
 Readd a reset user back to a conversation:
    {"method": "addresetconvmember", "params": {"options": {"username": "joshblum", "conversation_id": "..."}}}
+
+List members of a conversation from a topic name:
+   {"method": "listmembers", "params": {"options": {"channel": {"name": "treehouse", "members_type": "team", "topic_name": "random"}}}}
+
+List members of a conversation from a conversation id:
+   {"method": "listmembers", "params": {"options": {"conversation_id": "..."}}}
 `

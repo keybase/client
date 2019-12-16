@@ -5,7 +5,7 @@ import * as Styles from '../../styles'
 import * as T from './index.d'
 import * as Types from '../../constants/types/chat2'
 import BigTeamsDivider from './row/big-teams-divider/container'
-import BuildTeam from './row/build-team/container'
+import BuildTeam from './row/build-team'
 import ChatInboxHeader from './row/chat-inbox-header/container'
 import InboxSearch from '../inbox-search/container'
 import TeamsDivider from './row/teams-divider/container'
@@ -261,9 +261,9 @@ class Inbox extends React.PureComponent<T.Props, State> {
           )}
           {noChats}
           {floatingDivider ||
-            ((this.props.rows.length === 0 || !this.props.hasBigTeams) &&
-              !this.props.isLoading &&
-              !this.props.neverLoaded && <BuildTeam />)}
+            (this.props.rows.length === 0 && !this.props.isLoading && !this.props.neverLoaded && (
+              <BuildTeam />
+            ))}
           {this.state.showUnread && !this.props.isSearching && !this.state.showFloating && (
             <UnreadShortcut onClick={this._scrollToUnread} />
           )}

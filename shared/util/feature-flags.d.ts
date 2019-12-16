@@ -3,6 +3,7 @@ export type FeatureFlags = {
   airdrop: boolean
   audioAttachments: boolean
   chatIndexProfilingEnabled: boolean
+  connectThrashCheck: boolean
   dbCleanEnabled: boolean
   fastAccountSwitch: boolean
   foldersInProfileTab: boolean

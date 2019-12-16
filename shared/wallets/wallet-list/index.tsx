@@ -20,7 +20,7 @@ const _AddWallet = (props: AddProps & Kb.OverlayParentProps) => (
       fullWidth={true}
       className="hover_background_color_blueGreyDark"
     >
-      <Kb.Icon type="icon-wallet-placeholder-add-32" style={Kb.iconCastPlatformStyles(styles.icon)} />
+      <Kb.Icon type="icon-wallet-placeholder-add-32" style={styles.icon} />
       <Kb.Text type="BodySemibold">Add an account</Kb.Text>
     </Kb.Box2>
     <Kb.FloatingMenu
@@ -28,11 +28,7 @@ const _AddWallet = (props: AddProps & Kb.OverlayParentProps) => (
       closeOnSelect={true}
       items={[
         {icon: 'iconfont-new', onClick: () => props.onAddNew(), title: 'Create a new account'},
-        {
-          icon: 'iconfont-identity-stellar',
-          onClick: () => props.onLinkExisting(),
-          title: 'Link an existing Stellar account',
-        },
+        {icon: 'iconfont-identity-stellar', onClick: () => props.onLinkExisting(), title: 'Link an existing Stellar account'},
       ]}
       onHidden={props.toggleShowingMenu}
       visible={props.showingMenu}
@@ -54,7 +50,7 @@ const JoinAirdrop = (p: {onJoinAirdrop: (() => void) | null; inAirdrop: boolean;
       fullWidth={true}
       className="hover_background_color_blueGreyDark"
     >
-      <Kb.Icon type="icon-airdrop-logo-32" style={Kb.iconCastPlatformStyles(styles.icon)} />
+      <Kb.Icon type="icon-airdrop-logo-32" style={styles.icon} />
       <Kb.Text negative={p.selected} type="BodySemibold">
         {p.inAirdrop ? 'Airdrop' : 'Join the airdrop'}
       </Kb.Text>

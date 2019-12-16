@@ -29,6 +29,7 @@ const _SendButton = (props: Kb.PropsWithOverlay<SendProps>) => {
         type="Wallet"
         label="Send"
         disabled={props.disabled}
+        narrow={Styles.isMobile}
       />
       <Kb.FloatingMenu
         attachTo={props.getAttachmentRef}

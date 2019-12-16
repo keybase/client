@@ -36,7 +36,7 @@ type CheckboxRowProps = {
   disabled?: boolean
   info?: string
   more?: React.ReactNode
-  onCheck: (boolean) => void
+  onCheck: (c: boolean) => void
   text: React.ReactNode
 }
 const CheckboxRow = (props: CheckboxRowProps) => (
@@ -222,7 +222,7 @@ class BlockModal extends React.PureComponent<Props, State> {
   }
 
   onFinish = () => {
-    if (this.state.newBlocks.size === 0 && this.state.blockTeam) {
+    if (this.state.newBlocks.size === 0 && !this.state.blockTeam) {
       // Nothing to do, just close the modal.
       this.props.onClose()
       return
@@ -252,21 +252,22 @@ class BlockModal extends React.PureComponent<Props, State> {
         onCheck={checked => this.setBlockFor(username, 'chatBlocked', checked)}
         checked={this.getBlockFor(username, 'chatBlocked')}
         info={`${username} won't be able to start any new conversations with you, and they won't be able to add you to any teams.`}
+        key={`block-${username}`}
       />
-      {/* <Kb.Divider /> */}
       <CheckboxRow
         text={`Hide ${username} from your followers`}
         onCheck={checked => this.setBlockFor(username, 'followBlocked', checked)}
         checked={this.getBlockFor(username, 'followBlocked')}
         info={`If ${username} chooses to follow you on Keybase, they still won't show up in the list when someone views your profile.`}
+        key={`hide-${username}`}
       />
       {this.shouldShowReport(username) && (
         <>
-          {/* <Kb.Divider /> */}
           <CheckboxRow
             text={`Report ${username} to Keybase admins`}
             onCheck={shouldReport => this.setReportForUsername(username, shouldReport)}
             checked={this.getShouldReport(username)}
+            key={`report-${username}`}
           />
           {this.getShouldReport(username) && (
             <>
@@ -280,12 +281,13 @@ class BlockModal extends React.PureComponent<Props, State> {
                 }
                 setReason={(reason: string) => this.setReportReasonForUsername(username, reason)}
                 showIncludeTranscript={!!this.props.convID}
+                key={`reportoptions-${username}`}
               />
             </>
           )}
         </>
       )}
-      {!last && <Kb.Divider />}
+      {!last && <Kb.Divider key={`divider-${username}`} />}
     </>
   )
   render() {
@@ -312,6 +314,8 @@ class BlockModal extends React.PureComponent<Props, State> {
       )
     }
 
+    const teamCheckboxDisabled = !!teamname && !this.props.otherUsernames?.length && !adderUsername
+
     return (
       <Kb.Modal
         mode="Default"
@@ -335,20 +339,26 @@ class BlockModal extends React.PureComponent<Props, State> {
               text={`Leave and block ${teamname || 'this conversation'}`}
               onCheck={this.setBlockTeam}
               checked={this.state.blockTeam}
-              disabled={!teamname}
+              disabled={teamCheckboxDisabled}
             />
             <Kb.Divider />
           </>
         )}
         {!!adderUsername && this.renderRowsForUsername(adderUsername, true)}
-        {!!this.props.otherUsernames && (
+        {!!this.props.otherUsernames?.length && (
           <>
             <Kb.Box2 direction="horizontal" style={styles.greyBox} fullWidth={true}>
               <Kb.Text type="BodySmall">Also block {adderUsername ? 'others' : 'individuals'}?</Kb.Text>
             </Kb.Box2>
-            {this.props.otherUsernames.map((other, idx) =>
-              this.renderRowsForUsername(other, idx + 1 === this.props.otherUsernames?.length)
-            )}
+            <Kb.List
+              items={this.props.otherUsernames}
+              renderItem={(idx, other) =>
+                this.renderRowsForUsername(other, idx + 1 === this.props.otherUsernames?.length)
+              }
+              style={
+                Styles.isMobile ? styles.grow : getListHeightStyle(this.props.otherUsernames?.length ?? 0)
+              }
+            />
           </>
         )}
       </Kb.Modal>
@@ -357,6 +367,8 @@ class BlockModal extends React.PureComponent<Props, State> {
 }
 
 export default BlockModal
+
+const getListHeightStyle = (numOthers: number) => ({height: numOthers >= 3 ? 260 : numOthers * 120})
 
 const styles = Styles.styleSheetCreate(() => ({
   checkBoxRow: Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
@@ -368,6 +380,7 @@ const styles = Styles.styleSheetCreate(() => ({
     width: '100%',
     ...Styles.padding(Styles.globalMargins.xsmall),
   },
+  grow: {flexGrow: 1},
   iconBox: {flex: 1, paddingLeft: Styles.globalMargins.tiny},
   loadingAnimation: Styles.platformStyles({
     isElectron: {
@@ -384,6 +397,6 @@ const styles = Styles.styleSheetCreate(() => ({
     padding: Styles.globalMargins.medium,
   },
   radioButton: {marginLeft: Styles.globalMargins.large},
-  scroll: {width: '100%'},
+  scroll: Styles.platformStyles({isMobile: {height: '100%'}}),
   shrink: {flexShrink: 1},
 }))

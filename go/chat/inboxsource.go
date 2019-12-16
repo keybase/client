@@ -877,7 +877,8 @@ func (s *HybridInboxSource) NotifyUpdate(ctx context.Context, uid gregor1.UID, c
 	var inboxUIItem *chat1.InboxUIItem
 	topicType := chat1.TopicType_NONE
 	if conv != nil {
-		inboxUIItem = PresentConversationLocalWithFetchRetry(ctx, s.G(), uid, *conv)
+		inboxUIItem = PresentConversationLocalWithFetchRetry(ctx, s.G(), uid, *conv,
+			utils.PresentParticipantsModeSkip)
 		topicType = conv.GetTopicType()
 	}
 	s.G().ActivityNotifier.ConvUpdate(ctx, uid, convID,

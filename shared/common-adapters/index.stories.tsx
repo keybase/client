@@ -42,6 +42,7 @@ import text from './text.stories'
 import tooltip from './tooltip.stories'
 import video from './video.stories'
 import profileCard from './profile-card.stories'
+import waveButton from './wave-button.stories'
 
 const load = () => {
   ;[
@@ -89,6 +90,7 @@ const load = () => {
     text,
     tooltip,
     video,
+    waveButton,
   ].forEach(load => load())
 }
 

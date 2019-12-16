@@ -300,15 +300,13 @@ export const getEmailInviteError = (state: TypedState) => state.teams.emailInvit
 export const isTeamWithChosenChannels = (state: TypedState, teamname: string): boolean =>
   state.teams.teamsWithChosenChannels.has(teamname)
 
+const noInfos = new Map<ChatTypes.ConversationIDKey, Types.ChannelInfo>()
+
 export const getTeamChannelInfos = (
   state: TypedState,
   teamname: Types.Teamname
-): Map<ChatTypes.ConversationIDKey, Types.ChannelInfo> => {
-  return (
-    state.teams.teamNameToChannelInfos.get(teamname) ||
-    new Map<ChatTypes.ConversationIDKey, Types.ChannelInfo>()
-  )
-}
+): Map<ChatTypes.ConversationIDKey, Types.ChannelInfo> =>
+  state.teams.teamNameToChannelInfos.get(teamname) ?? noInfos
 
 export const getChannelInfoFromConvID = (
   state: TypedState,
@@ -328,6 +326,37 @@ export const hasChannelInfos = (state: TypedState, teamname: Types.Teamname): bo
 export const isLastOwner = (state: TypedState, teamname: Types.Teamname): boolean =>
   isOwner(getRoleByName(state, teamname)) && !isMultiOwnerTeam(state, teamname)
 
+const subteamsCannotHaveOwners = {owner: 'Subteams cannot have owners.'}
+const onlyOwnersCanTurnTeamMembersInfoOwners = {owner: 'Only owners can turn team members into owners.'}
+const roleChangeSub = {
+  admin: 'You must be at least an admin to make role changes.',
+  owner: 'Subteams cannot have owners',
+  reader: 'You must be at least an admin to make role changes.',
+  writer: 'You must be at least an admin to make role changes.',
+}
+const roleChangeNotSub = {
+  admin: 'You must be at least an admin to make role changes.',
+  owner: 'You must be at least an admin to make role changes.',
+  reader: 'You must be at least an admin to make role changes.',
+  writer: 'You must be at least an admin to make role changes.',
+}
+
+const anotherRoleChangeSub = {
+  admin: `Only owners can change another owner's role`,
+  owner: 'Subteams cannot have owners.',
+  reader: `Only owners can change another owner's role`,
+  writer: `Only owners can change another owner's role`,
+}
+const anotherRoleChangeNotSub = {
+  admin: `Only owners can change another owner's role`,
+  owner: `Only owners can change another owner's role`,
+  reader: `Only owners can change another owner's role`,
+  writer: `Only owners can change another owner's role`,
+}
+
+const notOwnerSub = {owner: 'Subteams cannot have owners.'}
+const notOwnerNotSub = {owner: `Only owners can turn members into owners`}
+
 export const getDisabledReasonsForRolePicker = (
   state: TypedState,
   teamID: Types.TeamID,
@@ -346,43 +375,25 @@ export const getDisabledReasonsForRolePicker = (
   if (canManageMembers) {
     // If you're an implicit admin, the tests below will fail for you, but you can still change roles.
     return isSubteam(teamname)
-      ? {owner: 'Subteams cannot have owners.'}
+      ? subteamsCannotHaveOwners
       : yourRole !== 'owner'
-      ? {owner: 'Only owners can turn team members into owners.'}
+      ? onlyOwnersCanTurnTeamMembersInfoOwners
       : {}
   }
 
   // We shouldn't get here, but in case we do this is correct.
   if (yourRole !== 'owner' && yourRole !== 'admin') {
-    return {
-      admin: 'You must be at least an admin to make role changes.',
-      owner: isSubteam(teamname)
-        ? 'Subteams cannot have owners'
-        : 'You must be at least an admin to make role changes.',
-      reader: 'You must be at least an admin to make role changes.',
-      writer: 'You must be at least an admin to make role changes.',
-    }
+    return isSubteam(teamname) ? roleChangeSub : roleChangeNotSub
   }
 
   // We shouldn't get here, but in case we do this is correct.
   if (theyAreOwner && yourRole !== 'owner') {
-    return {
-      admin: `Only owners can change another owner's role`,
-      owner: isSubteam(teamname)
-        ? 'Subteams cannot have owners.'
-        : `Only owners can change another owner's role`,
-      reader: `Only owners can change another owner's role`,
-      writer: `Only owners can change another owner's role`,
-    }
+    return isSubteam(teamname) ? anotherRoleChangeSub : anotherRoleChangeNotSub
   }
 
   // We shouldn't get here, but in case we do this is correct.
   if (yourRole !== 'owner') {
-    return {
-      owner: isSubteam(teamname)
-        ? 'Subteams cannot have owners.'
-        : `Only owners can turn members into owners`,
-    }
+    return isSubteam(teamname) ? notOwnerSub : notOwnerNotSub
   }
 
   return {}

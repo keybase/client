@@ -29,9 +29,9 @@ type State = {
 class _EditChannel extends React.Component<Props, State> {
   state = {newChannelName: this.props.channelName, newTopic: this.props.topic}
 
-  _onChangeChannelName = newChannelName => this.setState({newChannelName})
-  _onChangeTopic = newTopic => this.setState({newTopic})
-  _onSave = () => this.props.onSave(this.state.newChannelName, this.state.newTopic)
+  private onChangeChannelName = (newChannelName: string) => this.setState({newChannelName})
+  private onChangeTopic = (newTopic: string) => this.setState({newTopic})
+  private onSave = () => this.props.onSave(this.state.newChannelName, this.state.newTopic)
 
   componentDidMount() {
     if (this.props.waitingForGetInfo) {
@@ -42,10 +42,10 @@ class _EditChannel extends React.Component<Props, State> {
 
   componentDidUpdate(prevProps: Props) {
     if (prevProps.channelName !== this.props.channelName) {
-      this._onChangeChannelName(this.props.channelName)
+      this.onChangeChannelName(this.props.channelName)
     }
     if (prevProps.topic !== this.props.topic) {
-      this._onChangeTopic(this.props.topic)
+      this.onChangeTopic(this.props.topic)
     }
     if (prevProps.waitingOnSave && !this.props.waitingOnSave && !this.props.errorText) {
       this.props.onSaveSuccess()
@@ -83,7 +83,7 @@ class _EditChannel extends React.Component<Props, State> {
           <Kb.Box style={{position: 'relative'}}>
             <Kb.Input
               autoFocus={true}
-              onChangeText={this._onChangeChannelName}
+              onChangeText={this.onChangeChannelName}
               hintText={this.props.waitingForGetInfo ? 'Loading channel name...' : 'Channel name'}
               editable={!this.props.waitingForGetInfo && !this.props.deleteRenameDisabled}
               value={this.state.newChannelName}
@@ -105,7 +105,7 @@ class _EditChannel extends React.Component<Props, State> {
             )}
 
             <Kb.Input
-              onChangeText={this._onChangeTopic}
+              onChangeText={this.onChangeTopic}
               editable={!this.props.waitingForGetInfo}
               hintText={
                 this.props.waitingForGetInfo
@@ -139,7 +139,7 @@ class _EditChannel extends React.Component<Props, State> {
                   this.props.topic === this.state.newTopic
                 }
                 waiting={this.props.waitingOnSave}
-                onClick={this._onSave}
+                onClick={this.onSave}
                 style={{marginLeft: Styles.globalMargins.tiny}}
               />
             </Kb.ButtonBar>

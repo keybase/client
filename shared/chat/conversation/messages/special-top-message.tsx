@@ -149,7 +149,10 @@ export default Container.namedConnect(
       !(meta.retentionPolicy.type === 'inherit' && meta.teamRetentionPolicy.type === 'retain')
     const {createConversationError} = state.chat2
     const isHelloBotConversation =
-      hasLoadedEver && meta.teamType === 'adhoc' && meta.participants.includes('hellobot')
+      hasLoadedEver &&
+      meta.teamType === 'adhoc' &&
+      meta.participants.length === 2 &&
+      meta.participants.includes('hellobot')
     return {
       conversationIDKey: ownProps.conversationIDKey,
       createConversationError,

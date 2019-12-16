@@ -61,6 +61,7 @@ const DisplayCurrencyDropdown = (props: Props) => {
             <Kb.ProgressIndicator type="Small" style={styles.progressIndicator} />
           )
         }
+        style={styles.dropdown}
         toggleOpen={toggleShowingMenu}
       />
       <Kb.FloatingPicker
@@ -80,6 +81,7 @@ const DisplayCurrencyDropdown = (props: Props) => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
+  dropdown: {width: '100%'},
   progressIndicator: {
     height: 22,
     width: 22,
