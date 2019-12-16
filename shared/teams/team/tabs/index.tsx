@@ -1,14 +1,6 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/teams'
-import {
-  iconCastPlatformStyles,
-  Badge,
-  Box,
-  Icon,
-  ProgressIndicator,
-  Tabs,
-  Text,
-} from '../../../common-adapters'
+import {Badge, Box, Icon, ProgressIndicator, Tabs, Text} from '../../../common-adapters'
 import {
   globalColors,
   globalMargins,
@@ -78,7 +70,7 @@ const TeamTabs = (props: TeamTabsProps) => {
       <Icon
         key="settings"
         type="iconfont-nav-settings"
-        style={iconCastPlatformStyles(props.selectedTab === 'settings' ? styles.iconSelected : styles.icon)}
+        style={props.selectedTab === 'settings' ? styles.iconSelected : styles.icon}
       />
     ) : (
       <TabText key="settings" selected={props.selectedTab === 'settings'} text="Settings" />

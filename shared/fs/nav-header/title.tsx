@@ -5,10 +5,11 @@ import * as Kb from '../../common-adapters'
 import * as Kbfs from '../common'
 import * as Styles from '../../styles'
 import {memoize} from '../../util/memoize'
+import * as Container from '../../util/container'
 
 type Props = {
   path: Types.Path
-  onOpenPath: (path: Types.Path) => void
+  inDestinationPicker?: boolean
 }
 
 // /keybase/b/c => [/keybase, /keybase/b, /keybase/b/c]
@@ -22,12 +23,23 @@ const getAncestors = memoize(path =>
         ])
 )
 
-const withAncestors = f => ({path, ...rest}) => f({ancestors: getAncestors(path), ...rest})
+const _Breadcrumb = (props: Props & Kb.OverlayParentProps) => {
+  const ancestors = getAncestors(props.path || Constants.defaultPath)
 
-const Breadcrumb = Kb.OverlayParentHOC(
-  withAncestors(props => (
+  const dispatch = Container.useDispatch()
+  const nav = Container.useSafeNavigation()
+  const onOpenPath = (path: Types.Path) =>
+    props.inDestinationPicker
+      ? Constants.makeActionsForDestinationPickerOpen(
+          0,
+          path,
+          nav.safeNavigateAppendPayload
+        ).forEach(action => dispatch(action))
+      : dispatch(nav.safeNavigateAppendPayload({path: [{props: {path}, selected: 'main'}]}))
+
+  return (
     <Kb.Box2 direction="horizontal" fullWidth={true}>
-      {props.ancestors.length > 2 && (
+      {ancestors.length > 2 && (
         <React.Fragment key="dropdown">
           <Kb.Text
             key="dots"
@@ -42,11 +54,11 @@ const Breadcrumb = Kb.OverlayParentHOC(
             attachTo={props.getAttachmentRef}
             visible={props.showingMenu}
             onHidden={props.toggleShowingMenu}
-            items={props.ancestors
+            items={ancestors
               .slice(0, -2)
               .reverse()
               .map(path => ({
-                onClick: () => props.onOpenPath(path),
+                onClick: () => onOpenPath(path),
                 title: Types.getPathName(path),
                 view: (
                   <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
@@ -62,7 +74,7 @@ const Breadcrumb = Kb.OverlayParentHOC(
           />
         </React.Fragment>
       )}
-      {props.ancestors.slice(-2).map(path => (
+      {ancestors.slice(-2).map(path => (
         <React.Fragment key={`text-${path}`}>
           <Kb.Text key={`slash-${Types.pathToString(path)}`} type="BodyTiny" style={styles.slash}>
             /
@@ -70,7 +82,7 @@ const Breadcrumb = Kb.OverlayParentHOC(
           <Kb.Text
             key={`name-${Types.pathToString(path)}`}
             type="BodyTinyLink"
-            onClick={() => props.onOpenPath(path)}
+            onClick={() => onOpenPath(path)}
           >
             {Types.getPathName(path)}
           </Kb.Text>
@@ -80,8 +92,9 @@ const Breadcrumb = Kb.OverlayParentHOC(
         /
       </Kb.Text>
     </Kb.Box2>
-  ))
-)
+  )
+}
+const Breadcrumb = Kb.OverlayParentHOC(_Breadcrumb)
 
 const MaybePublicTag = ({path}: {path: Types.Path}) =>
   Constants.hasPublicTag(path) ? (

@@ -5,12 +5,6 @@ import {Box2} from '../../../common-adapters'
 import Header from '.'
 
 const provider = Sb.createPropProviderWithCommon({
-  WalletDropdownButton: props => ({
-    disabled: false,
-    onSettings: Sb.action('onSettings'),
-    onShowSecretKey: Sb.action('onShowSecretKey'),
-    small: props.small,
-  }),
   WalletSendButton: props => ({
     disabled: false,
     onSendToAnotherAccount: Sb.action('onSendToAnotherAccount'),

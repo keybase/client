@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"sort"
 	"strconv"
 	"strings"
@@ -930,6 +931,17 @@ func GetConvMtime(rc types.RemoteConversation) (res gregor1.Time) {
 		return res
 	}
 	return rc.LocalMtime
+}
+
+// GetConvPriorityScore weighs conversations that are fully read above ones
+// that are not, weighting more recently modified conversations higher.. Used
+// to order conversations when background loading.
+func GetConvPriorityScore(rc types.RemoteConversation) float64 {
+	readMsgID := rc.GetReadMsgID()
+	maxMsgID := rc.Conv.ReaderInfo.MaxMsgid
+	mtime := GetConvMtime(rc)
+	dur := math.Abs(float64(time.Since(mtime.Time())) / float64(time.Hour))
+	return 100 / math.Pow(dur+float64(maxMsgID-readMsgID), 0.5)
 }
 
 type MessageSummaryContainer interface {
@@ -2595,13 +2607,8 @@ func GetUnverifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	convID chat1.ConversationID, dataSource types.InboxSourceDataSourceTyp) (res types.RemoteConversation, err error) {
 
 	inbox, err := g.InboxSource.ReadUnverified(ctx, uid, dataSource, &chat1.GetInboxQuery{
-		ConvIDs: []chat1.ConversationID{convID},
-		MemberStatus: []chat1.ConversationMemberStatus{
-			chat1.ConversationMemberStatus_ACTIVE,
-			chat1.ConversationMemberStatus_PREVIEW,
-			chat1.ConversationMemberStatus_RESET,
-			chat1.ConversationMemberStatus_NEVER_JOINED,
-		},
+		ConvIDs:      []chat1.ConversationID{convID},
+		MemberStatus: chat1.AllConversationMemberStatuses(),
 	})
 	if err != nil {
 		return res, err
@@ -2644,18 +2651,14 @@ func FormatConversationName(info chat1.ConversationInfoLocal, myUsername string)
 
 func GetVerifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	convID chat1.ConversationID, dataSource types.InboxSourceDataSourceTyp) (res chat1.ConversationLocal, err error) {
-	// in case we are being called from within some cancelable context, remove it for the purposes
-	// of this call, since whatever this is is likely a side effect we don't want to get stuck
+	// in case we are being called from within some cancelable context, remove
+	// it for the purposes of this call, since whatever this is is likely a
+	// side effect we don't want to get stuck
 	ctx = globals.CtxRemoveLocalizerCancelable(ctx)
 	inbox, _, err := g.InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, dataSource, nil,
 		&chat1.GetInboxLocalQuery{
-			ConvIDs: []chat1.ConversationID{convID},
-			MemberStatus: []chat1.ConversationMemberStatus{
-				chat1.ConversationMemberStatus_ACTIVE,
-				chat1.ConversationMemberStatus_PREVIEW,
-				chat1.ConversationMemberStatus_RESET,
-				chat1.ConversationMemberStatus_NEVER_JOINED,
-			},
+			ConvIDs:      []chat1.ConversationID{convID},
+			MemberStatus: chat1.AllConversationMemberStatuses(),
 		})
 	if err != nil {
 		return res, err

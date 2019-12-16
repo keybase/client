@@ -12,34 +12,34 @@ type AddProps = {
 
 const rowHeight = 48
 
-const _AddWallet = (props: AddProps & Kb.OverlayParentProps) => {
-  const menuItems = [
-    {onClick: () => props.onAddNew(), title: 'Create a new account'},
-    {onClick: () => props.onLinkExisting(), title: 'Link an existing Stellar account'},
-  ]
-
-  return (
-    <Kb.ClickableBox onClick={props.toggleShowingMenu} ref={props.setAttachmentRef}>
-      <Kb.Box2
-        style={styles.addContainerBox}
-        direction="horizontal"
-        fullWidth={true}
-        className="hover_background_color_blueGreyDark"
-      >
-        <Kb.Icon type="icon-wallet-placeholder-add-32" style={Kb.iconCastPlatformStyles(styles.icon)} />
-        <Kb.Text type="BodySemibold">Add an account</Kb.Text>
-      </Kb.Box2>
-      <Kb.FloatingMenu
-        attachTo={props.getAttachmentRef}
-        closeOnSelect={true}
-        items={menuItems}
-        onHidden={props.toggleShowingMenu}
-        visible={props.showingMenu}
-        position="bottom center"
-      />
-    </Kb.ClickableBox>
-  )
-}
+const _AddWallet = (props: AddProps & Kb.OverlayParentProps) => (
+  <Kb.ClickableBox onClick={props.toggleShowingMenu} ref={props.setAttachmentRef}>
+    <Kb.Box2
+      style={styles.addContainerBox}
+      direction="horizontal"
+      fullWidth={true}
+      className="hover_background_color_blueGreyDark"
+    >
+      <Kb.Icon type="icon-wallet-placeholder-add-32" style={styles.icon} />
+      <Kb.Text type="BodySemibold">Add an account</Kb.Text>
+    </Kb.Box2>
+    <Kb.FloatingMenu
+      attachTo={props.getAttachmentRef}
+      closeOnSelect={true}
+      items={[
+        {icon: 'iconfont-new', onClick: () => props.onAddNew(), title: 'Create a new account'},
+        {
+          icon: 'iconfont-identity-stellar',
+          onClick: () => props.onLinkExisting(),
+          title: 'Link an existing Stellar account',
+        },
+      ]}
+      onHidden={props.toggleShowingMenu}
+      visible={props.showingMenu}
+      position="bottom center"
+    />
+  </Kb.ClickableBox>
+)
 
 const AddWallet = Kb.OverlayParentHOC(_AddWallet)
 
@@ -54,7 +54,7 @@ const JoinAirdrop = (p: {onJoinAirdrop: (() => void) | null; inAirdrop: boolean;
       fullWidth={true}
       className="hover_background_color_blueGreyDark"
     >
-      <Kb.Icon type="icon-airdrop-logo-32" style={Kb.iconCastPlatformStyles(styles.icon)} />
+      <Kb.Icon type="icon-airdrop-logo-32" style={styles.icon} />
       <Kb.Text negative={p.selected} type="BodySemibold">
         {p.inAirdrop ? 'Airdrop' : 'Join the airdrop'}
       </Kb.Text>

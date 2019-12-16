@@ -722,26 +722,30 @@ const realCSS = `
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      container: {
-        ...Styles.globalStyles.flexBoxColumn,
-        // containment hints so we can scroll faster
-        contain: 'strict' as const,
-        flex: 1,
-        position: 'relative' as const,
-      },
+      container: Styles.platformStyles({
+        isElectron: {
+          ...Styles.globalStyles.flexBoxColumn,
+          // containment hints so we can scroll faster
+          contain: 'strict',
+          flex: 1,
+          position: 'relative',
+        },
+      }),
       jumpToRecent: {
         bottom: 0,
-        position: 'absolute' as const,
+        position: 'absolute',
       },
-      list: {
-        ...Styles.globalStyles.fillAbsolute,
-        outline: 'none',
-        overflowX: 'hidden' as const,
-        overflowY: 'auto' as const,
-        paddingBottom: globalMargins.small,
-        // get our own layer so we can scroll faster
-        willChange: 'transform' as const,
-      },
+      list: Styles.platformStyles({
+        isElectron: {
+          ...Styles.globalStyles.fillAbsolute,
+          outline: 'none',
+          overflowX: 'hidden',
+          overflowY: 'auto',
+          paddingBottom: globalMargins.small,
+          // get our own layer so we can scroll faster
+          willChange: 'transform',
+        },
+      }),
       listContents: {
         width: '100%',
       },

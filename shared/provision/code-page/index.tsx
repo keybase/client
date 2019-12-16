@@ -608,7 +608,6 @@ const styles = Styles.styleSheetCreate(
         isElectron: {
           maxWidth: 330,
         },
-        isMobile: {},
       }),
       viewTextContainer: Styles.platformStyles({
         common: {

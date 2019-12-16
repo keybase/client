@@ -43,7 +43,7 @@ export type Props = {
   className?: string
 }
 
-const Progress = ({small, white}) => {
+const Progress = ({small, white}: {small?: boolean; white: boolean}) => {
   const Animation = require('./animation').default
   return (
     <Kb.Box style={styles.progressContainer}>

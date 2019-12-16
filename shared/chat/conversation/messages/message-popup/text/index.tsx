@@ -1,6 +1,6 @@
 import * as React from 'react'
 import MessagePopupHeader from '../header'
-import {FloatingMenu, MenuItems} from '../../../../../common-adapters'
+import * as Kb from '../../../../../common-adapters'
 import {DeviceType} from '../../../../../constants/types/devices'
 import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 import {StylesCrossPlatform} from '../../../../../styles/css'
@@ -37,13 +37,14 @@ type Props = {
 }
 
 const TextPopupMenu = (props: Props) => {
-  const items: MenuItems = [
+  const items: Kb.MenuItems = [
     ...(props.showDivider ? (['Divider'] as const) : []),
     ...(props.isDeleteable
       ? [
           {
             danger: true,
             disabled: !props.onDelete,
+            icon: 'iconfont-trash',
             onClick: props.onDelete,
             subTitle: 'Deletes this message for everyone',
             title: 'Delete',
@@ -64,22 +65,36 @@ const TextPopupMenu = (props: Props) => {
     ...((props.yourMessage && (props.isDeleteable || props.isKickable)) || props.onDeleteMessageHistory
       ? (['Divider'] as const)
       : []),
-    ...(props.onViewMap ? [{onClick: props.onViewMap, title: 'View on Google Maps'}] : []),
+    ...(props.onViewMap
+      ? [{icon: 'iconfont-location', onClick: props.onViewMap, title: 'View on Google Maps'}]
+      : []),
     ...(props.onEdit && props.isEditable
       ? [
           {
+            icon: 'iconfont-edit',
             onClick: props.onEdit,
             title: 'Edit',
           },
         ]
       : []),
-    ...(props.onAddReaction ? [{onClick: props.onAddReaction, title: 'Add a reaction'}] : []),
-    ...(props.onCopy ? [{onClick: props.onCopy, title: 'Copy text'}] : []),
-    ...(props.onReply ? [{onClick: props.onReply, title: 'Reply'}] : []),
-    ...(props.onReplyPrivately ? [{onClick: props.onReplyPrivately, title: 'Reply privately'}] : []),
-    ...(props.onPinMessage ? [{onClick: props.onPinMessage, title: 'Pin message'}] : []),
-    ...(props.onViewProfile ? [{onClick: props.onViewProfile, title: 'View profile'}] : []),
-  ]
+    ...(props.onAddReaction
+      ? [{icon: 'iconfont-reacji', onClick: props.onAddReaction, title: 'Add a reaction'}]
+      : []),
+    ...(props.onCopy ? [{icon: 'iconfont-clipboard', onClick: props.onCopy, title: 'Copy text'}] : []),
+    ...(props.onReply ? [{icon: 'iconfont-reply', onClick: props.onReply, title: 'Reply'}] : []),
+    ...(props.onReplyPrivately
+      ? [{icon: 'iconfont-reply', onClick: props.onReplyPrivately, title: 'Reply privately'}]
+      : []),
+    ...(props.onPinMessage
+      ? [{icon: 'iconfont-pin', onClick: props.onPinMessage, title: 'Pin message'}]
+      : []),
+    ...(props.onViewProfile
+      ? [{icon: 'iconfont-person', onClick: props.onViewProfile, title: 'View profile'}]
+      : []),
+  ].reduce<Kb.MenuItems>((arr, i) => {
+    i && arr.push(i as Kb.MenuItem)
+    return arr
+  }, [])
 
   const header = {
     title: 'header',
@@ -98,7 +113,7 @@ const TextPopupMenu = (props: Props) => {
     ),
   }
   return (
-    <FloatingMenu
+    <Kb.FloatingMenu
       attachTo={props.attachTo}
       closeOnSelect={true}
       header={header}

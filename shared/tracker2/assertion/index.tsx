@@ -12,6 +12,7 @@ type Props = {
   metas: ReadonlyArray<Types.AssertionMeta>
   notAUser: boolean
   onCopyAddress: () => void
+  onHideStellar: (hidden: boolean) => void
   onRequestLumens: () => void
   onRecheck?: () => void
   onRevoke?: () => void
@@ -26,6 +27,7 @@ type Props = {
   siteIconWhite?: Types.SiteIconSet
   siteURL: string
   state: Types.AssertionState
+  stellarHidden: boolean
   timestamp: number
   type: string
   value: string
@@ -191,7 +193,7 @@ const Value = (p: Props) => {
     content = <StellarValue {...p} />
   } else {
     let str = p.value
-    let style = styles.username
+    let style: Styles.StylesCrossPlatform = styles.username
 
     if (!p.isSuggestion) {
       switch (p.type) {
@@ -244,15 +246,21 @@ class Assertion extends React.PureComponent<Props, State> {
   _getRef = () => this._ref.current
   _getMenu = () => {
     const p = this.props
-    if (!p.isYours || p.isSuggestion || p.type === 'stellar') {
+    if (!p.isYours || p.isSuggestion) {
       return {}
     }
-
-    const onRevoke = {
-      danger: true,
-      onClick: p.onRevoke,
-      title: p.type === 'pgp' ? 'Drop' : 'Revoke',
-    }
+    const onRevoke =
+      p.type === 'stellar'
+        ? {
+            danger: true,
+            onClick: () => p.onHideStellar(!this.props.stellarHidden),
+            title: `${this.props.stellarHidden ? 'Show' : 'Hide'} Stellar address on profile`,
+          }
+        : {
+            danger: true,
+            onClick: p.onRevoke,
+            title: p.type === 'pgp' ? 'Drop' : 'Revoke',
+          }
 
     if (p.metas.find(m => m.label === 'unreachable')) {
       return {
