@@ -3143,6 +3143,14 @@ const iconMeta_ = {
       return require('../images/icons/icon-dark-placeholder-secret-user-64.png')
     },
   },
+  'icon-dark-poop-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-poop-96.png')
+    },
+  },
   'icon-dark-proof-pending': {
     extension: 'png',
     imagesDir: 'icons',
@@ -6755,12 +6763,40 @@ const iconMeta_ = {
       return require('../images/icons/icon-play-64.png')
     },
   },
-  'icon-poop-96': {
+  'icon-poop-32': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     get require() {
+      return require('../images/icons/icon-poop-32.png')
+    },
+  },
+  'icon-poop-48': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-poop-48.png')
+    },
+  },
+  'icon-poop-64': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-poop-64.png')
+    },
+  },
+  'icon-poop-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    nameDark: 'icon-dark-poop-96',
+    get require() {
       return require('../images/icons/icon-poop-96.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-poop-96.png')
     },
   },
   'icon-powered-by-giphy-120-26': {
