@@ -63,11 +63,7 @@ const WalletRow = (props: Props) => {
       <Kb.Box2 direction="vertical" style={styles.rowContainer}>
         <Kb.Box2 direction="horizontal" style={styles.firstRowContainer}>
           {props.keybaseUser ? (
-            <Kb.Avatar
-              size={16}
-              style={styles.avatar}
-              username={props.keybaseUser}
-            />
+            <Kb.Avatar size={16} style={styles.avatar} username={props.keybaseUser} />
           ) : (
             <Kb.Icon style={styles.avatar} type="icon-placeholder-secret-user-16" />
           )}
