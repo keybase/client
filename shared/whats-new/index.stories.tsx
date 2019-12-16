@@ -4,7 +4,7 @@ import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import {Version, VersionTitle, VersionProps} from './versions'
 import {currentVersion, lastVersion, lastLastVersion} from '../constants/whats-new'
-import HeaderIcon from './icon/'
+import HeaderIcon, {IconWithPopup} from './icon/'
 import NewFeatureRow from './new-feature-row'
 import WhatsNew from '.'
 
@@ -45,6 +45,20 @@ const HeaderIconWrapper = props => (
     direction="vertical"
     style={styles.iconContainer}
     className={Styles.classNames('hover_container', 'hover_background_color_black_10')}
+  >
+    {props.children}
+  </Kb.Box2>
+)
+
+const UpdateAvailableWrapper = props => (
+  <Kb.Box2
+    direction="vertical"
+    style={{
+      alignItems: 'center',
+      justifyContent: 'center',
+      position: 'relative',
+      width: 200,
+    }}
   >
     {props.children}
   </Kb.Box2>
@@ -103,6 +117,16 @@ const load = () => {
           />
         </HeaderIconWrapper>
       </>
+    ))
+    .add('Update Available', () => (
+      <UpdateAvailableWrapper>
+        <IconWithPopup
+          newRelease={false}
+          updateAvailable={true}
+          attachToRef={React.createRef<Kb.Box2>()}
+          onClick={Sb.action('onClick')}
+        />
+      </UpdateAvailableWrapper>
     ))
 
   Sb.storiesOf("What's New/New Feature Row", module)

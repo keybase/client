@@ -14,11 +14,9 @@ type PopupOwnProps = OwnProps & {
   attachToRef: React.RefObject<Kb.Box2>
 }
 
-const mapStateToProps = (state: Container.TypedState) => ({})
-
 // Just Whats New Icon connected for badge state
 const IconContainer = Container.connect(
-  mapStateToProps,
+  (state: Container.TypedState) => ({lastSeenVersion: state.config.whatsNewLastSeenVersion}),
   () => ({}),
   (stateProps, _, ownProps: OwnProps) => ({
     badgeColor: ownProps.badgeColor,
@@ -31,10 +29,8 @@ const IconContainer = Container.connect(
 // Whats New icon with popup which is connected to the badge state and marking release as seen.
 export const IconWithPopup = Container.connect(
   (state: Container.TypedState) => ({
-    isUpdateAvailable: state.config.updateInfo.status === 'suggested',
     lastSeenVersion: state.config.whatsNewLastSeenVersion,
-    updateMessage:
-      state.config.updateInfo.status === 'suggested' ? state.config.updateInfo?.suggested?.message : '',
+    updateAvailable: state.config.updateInfo.status === 'suggested',
   }),
   () => ({}),
   (stateProps, _, ownProps: PopupOwnProps) => {
@@ -43,10 +39,9 @@ export const IconWithPopup = Container.connect(
       attachToRef: ownProps.attachToRef,
       badgeColor: ownProps.badgeColor,
       color: ownProps.color,
-      isUpdateAvailable: stateProps.isUpdateAvailable,
       newRelease,
       style: ownProps.style,
-      updateMessage: stateProps.updateMessage,
+      updateAvailable: stateProps.updateAvailable,
     }
   }
 )(IconWithPopupComponent)
