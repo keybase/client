@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/encrypteddb"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 )
@@ -68,18 +69,142 @@ func (a *aliasEntry) remove(token string) bool {
 
 var refAliasEntry = newAliasEntry()
 
+type diskStorage interface {
+	GetTokenEntry(ctx context.Context, convID chat1.ConversationID,
+		token string) (res *tokenEntry, err error)
+	PutTokenEntry(ctx context.Context, convID chat1.ConversationID,
+		token string, te *tokenEntry) error
+	GetAliasEntry(ctx context.Context, alias string) (res *aliasEntry, err error)
+	PutAliasEntry(ctx context.Context, alias string, ae *aliasEntry) error
+	Flush() error
+}
+
+type tokenBatch struct {
+	convID chat1.ConversationID
+	tokens map[string]*tokenEntry
+}
+
+func newTokenBatch(convID chat1.ConversationID) *tokenBatch {
+	return &tokenBatch{
+		convID: convID,
+		tokens: make(map[string]*tokenEntry),
+	}
+}
+
+type batchingStore struct {
+	utils.DebugLabeler
+	sync.Mutex
+
+	uid        gregor1.UID
+	edb        *encrypteddb.EncryptedDB
+	keyFn      func(ctx context.Context) ([32]byte, error)
+	aliasBatch map[string]*aliasEntry
+	tokenBatch map[string]*tokenBatch
+	mdBatch    map[string]*indexMetadata
+}
+
+func newBatchingStore(log logger.Logger, uid gregor1.UID,
+	keyFn func(ctx context.Context) ([32]byte, error), edb *encrypteddb.EncryptedDB) *batchingStore {
+	b := &batchingStore{
+		DebugLabeler: utils.NewDebugLabeler(log, "batchingStore", false),
+		uid:          uid,
+		keyFn:        keyFn,
+		edb:          edb,
+	}
+	return b
+}
+
+func (b *batchingStore) reset() {
+	b.Lock()
+	defer b.Unlock()
+	b.aliasBatch = make(map[string]*aliasEntry)
+	b.tokenBatch = make(map[string]*tokenBatch)
+	b.mdBatch = make(map[string]*indexMetadata)
+}
+
+func (b *batchingStore) GetTokenEntry(ctx context.Context, convID chat1.ConversationID,
+	token string) (res *tokenEntry, err error) {
+	b.Lock()
+	defer b.Unlock()
+	batch, ok := b.tokenBatch[convID.String()]
+	if ok {
+		return batch.tokens[token], nil
+	}
+	key, err := tokenKey(ctx, b.uid, convID, token, b.keyFn)
+	if err != nil {
+		return nil, err
+	}
+	res = new(tokenEntry)
+	found, err := b.edb.Get(ctx, key, res)
+	if err != nil {
+		return nil, err
+	}
+	if !found {
+		return nil, nil
+	}
+	return res, nil
+}
+
+func (b *batchingStore) PutTokenEntry(ctx context.Context, convID chat1.ConversationID,
+	token string, te *tokenEntry) error {
+	b.Lock()
+	defer b.Unlock()
+	key := convID.String()
+	batch, ok := b.tokenBatch[key]
+	if !ok {
+		batch = newTokenBatch(convID)
+	}
+	batch.tokens[token] = te
+	b.tokenBatch[key] = batch
+	return nil
+}
+
+func (b *batchingStore) GetAliasEntry(ctx context.Context, alias string) (res *aliasEntry, err error) {
+	b.Lock()
+	defer b.Unlock()
+	var ok bool
+	if res, ok = b.aliasBatch[alias]; ok {
+		return res, nil
+	}
+	key, err := aliasKey(ctx, alias, b.keyFn)
+	if err != nil {
+		return res, err
+	}
+	res = new(aliasEntry)
+	found, err := b.edb.Get(ctx, key, res)
+	if err != nil {
+		return nil, err
+	}
+	if !found {
+		return nil, nil
+	}
+	return res, nil
+}
+
+func (b *batchingStore) PutAliasEntry(ctx context.Context, alias string, ae *aliasEntry) error {
+	b.Lock()
+	defer b.Unlock()
+	b.aliasBatch[alias] = ae
+	return nil
+}
+
+func (b *batchingStore) Flush() error {
+	return nil
+}
+
 type store struct {
 	globals.Contextified
 	utils.DebugLabeler
 	sync.RWMutex
 
-	keyFn      func(ctx context.Context) ([32]byte, error)
-	aliasCache *lru.Cache
-	tokenCache *lru.Cache
-	edb        *encrypteddb.EncryptedDB
+	uid         gregor1.UID
+	keyFn       func(ctx context.Context) ([32]byte, error)
+	aliasCache  *lru.Cache
+	tokenCache  *lru.Cache
+	diskStorage diskStorage
 }
 
-func newStore(g *globals.Context) *store {
+func newStore(g *globals.Context, uid gregor1.UID) *store {
 	ac, _ := lru.New(10000)
 	tc, _ := lru.New(3000)
 	keyFn := func(ctx context.Context) ([32]byte, error) {
@@ -91,11 +216,17 @@ func newStore(g *globals.Context) *store {
 	return &store{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Search.store", false),
+		uid:          uid,
 		keyFn:        keyFn,
 		aliasCache:   ac,
 		tokenCache:   tc,
-		edb:          encrypteddb.New(g.ExternalG(), dbFn, keyFn),
+		diskStorage:  newBatchingStore(g.GetLog(), uid, keyFn, encrypteddb.New(g.ExternalG(), dbFn, keyFn)),
 	}
+}
+
+func (s *store) flush(ctx context.Context) {
+	defer s.Trace(ctx, func() error { return nil }, "flush")()
+
 }
 
 func (s *store) metadataKey(uid gregor1.UID, convID chat1.ConversationID) libkb.DbKey {
@@ -128,16 +259,17 @@ func (s *store) metadataKeyWithVersion(uid gregor1.UID, convID chat1.Conversatio
 	}
 }
 
-func (s *store) tokenKey(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, dat string) (res libkb.DbKey, err error) {
-	return s.tokenKeyWithVersion(ctx, uid, convID, dat, tokenDiskVersion)
+func tokenKey(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, dat string,
+	keyFn func(ctx context.Context) ([32]byte, error)) (res libkb.DbKey, err error) {
+	return tokenKeyWithVersion(ctx, uid, convID, dat, tokenDiskVersion, keyFn)
 }
 
-func (s *store) tokenKeyWithVersion(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, dat string, version int) (res libkb.DbKey, err error) {
+func tokenKeyWithVersion(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, dat string, version int, keyFn func(ctx context.Context) ([32]byte, error)) (res libkb.DbKey, err error) {
 	var key string
 	switch version {
 	case 1:
-		material, err := s.keyFn(ctx)
+		material, err := keyFn(ctx)
 		if err != nil {
 			return res, err
 		}
@@ -160,7 +292,7 @@ func (s *store) tokenKeyWithVersion(ctx context.Context, uid gregor1.UID,
 		}
 		key = fmt.Sprintf("tm:%s:%s:%s", uid, convID, hasher.Sum(nil))
 	default:
-		s.Debug(ctx, "unexpected token version %d", version)
+		return res, fmt.Errorf("unexpected token version %d", version)
 	}
 	return libkb.DbKey{
 		Typ: libkb.DBChatIndex,
@@ -168,15 +300,17 @@ func (s *store) tokenKeyWithVersion(ctx context.Context, uid gregor1.UID,
 	}, nil
 }
 
-func (s *store) aliasKey(ctx context.Context, dat string) (res libkb.DbKey, err error) {
-	return s.aliasKeyWithVersion(ctx, dat, aliasDiskVersion)
+func aliasKey(ctx context.Context, dat string,
+	keyFn func(ctx context.Context) ([32]byte, error)) (res libkb.DbKey, err error) {
+	return aliasKeyWithVersion(ctx, dat, aliasDiskVersion, keyFn)
 }
 
-func (s *store) aliasKeyWithVersion(ctx context.Context, dat string, version int) (res libkb.DbKey, err error) {
+func aliasKeyWithVersion(ctx context.Context, dat string, version int,
+	keyFn func(ctx context.Context) ([32]byte, error)) (res libkb.DbKey, err error) {
 	var key string
 	switch version {
 	case 1:
-		material, err := s.keyFn(ctx)
+		material, err := keyFn(ctx)
 		if err != nil {
 			return res, err
 		}
@@ -191,7 +325,7 @@ func (s *store) aliasKeyWithVersion(ctx context.Context, dat string, version int
 		}
 		key = fmt.Sprintf("al:%s", hasher.Sum(nil))
 	default:
-		s.Debug(ctx, "unexpected token version %d", version)
+		return res, fmt.Errorf("unexpected token version %d", version)
 	}
 	return libkb.DbKey{
 		Typ: libkb.DBChatIndex,
@@ -222,9 +356,9 @@ func (s *store) deleteOldMetadataVersions(ctx context.Context, uid gregor1.UID, 
 	s.deleteOldVersions(ctx, keyFn, mdDiskVersion)
 }
 
-func (s *store) deleteOldTokenVersions(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, token string) {
+func (s *store) deleteOldTokenVersions(ctx context.Context, convID chat1.ConversationID, token string) {
 	keyFn := func(version int) (libkb.DbKey, error) {
-		return s.tokenKeyWithVersion(ctx, uid, convID, token, version)
+		return tokenKeyWithVersion(ctx, s.uid, convID, token, version, s.keyFn)
 	}
 	s.deleteOldVersions(ctx, keyFn, tokenDiskVersion)
 }
@@ -236,7 +370,7 @@ func (s *store) deleteOldAliasVersions(ctx context.Context, alias string) {
 	s.deleteOldVersions(ctx, keyFn, aliasDiskVersion)
 }
 
-func (s *store) GetHits(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, term string) (res map[chat1.MessageID]chat1.EmptyStruct, err error) {
+func (s *store) GetHits(ctx context.Context, convID chat1.ConversationID, term string) (res map[chat1.MessageID]chat1.EmptyStruct, err error) {
 	defer s.Trace(ctx, func() error { return err }, "GetHits")()
 	s.RLock()
 	defer s.RUnlock()
@@ -254,7 +388,7 @@ func (s *store) GetHits(ctx context.Context, uid gregor1.UID, convID chat1.Conve
 	}
 	// Find all the msg IDs
 	for term := range terms {
-		te, err := s.getTokenEntry(ctx, uid, convID, term)
+		te, err := s.getTokenEntry(ctx, convID, term)
 		if err != nil {
 			return nil, err
 		}
@@ -265,12 +399,12 @@ func (s *store) GetHits(ctx context.Context, uid gregor1.UID, convID chat1.Conve
 	return res, nil
 }
 
-func (s *store) tokenCacheKey(uid gregor1.UID, convID chat1.ConversationID, token string) string {
-	return fmt.Sprintf("%s:%s:%s", uid, convID, token)
+func (s *store) tokenCacheKey(convID chat1.ConversationID, token string) string {
+	return fmt.Sprintf("%s:%s", convID, token)
 }
 
-func (s *store) getTokenEntry(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, token string) (res *tokenEntry, err error) {
-	cacheKey := s.tokenCacheKey(uid, convID, token)
+func (s *store) getTokenEntry(ctx context.Context, convID chat1.ConversationID, token string) (res *tokenEntry, err error) {
+	cacheKey := s.tokenCacheKey(convID, token)
 	if te, ok := s.tokenCache.Get(cacheKey); ok {
 		return te.(*tokenEntry), nil
 	}
@@ -279,20 +413,13 @@ func (s *store) getTokenEntry(ctx context.Context, uid gregor1.UID, convID chat1
 			s.tokenCache.Add(cacheKey, res)
 		}
 	}()
-	var te tokenEntry
-	key, err := s.tokenKey(ctx, uid, convID, token)
-	if err != nil {
+	if res, err = s.diskStorage.GetTokenEntry(ctx, convID, token); err != nil {
 		return nil, err
 	}
-	found, err := s.edb.Get(ctx, key, &te)
-	if err != nil {
-		return nil, err
-	}
-	if !found {
-		s.deleteOldTokenVersions(ctx, uid, convID, token)
+	if res == nil {
+		s.deleteOldTokenVersions(ctx, convID, token)
 		return newTokenEntry(), nil
 	}
-	res = &te
 	if res.Version != refTokenEntry.Version {
 		return newTokenEntry(), nil
 	}
@@ -309,37 +436,27 @@ func (s *store) getAliasEntry(ctx context.Context, alias string) (res *aliasEntr
 			s.aliasCache.Add(alias, res)
 		}
 	}()
-	key, err := s.aliasKey(ctx, alias)
-	if err != nil {
-		return res, err
-	}
-	found, err := s.edb.Get(ctx, key, &ae)
-	if err != nil {
+	if res, err = s.diskStorage.GetAliasEntry(ctx, alias); err != nil {
 		return nil, err
 	}
-	if !found {
+	if res == nil {
 		s.deleteOldAliasVersions(ctx, alias)
 		return newAliasEntry(), nil
 	}
-	res = &ae
 	if res.Version != refAliasEntry.Version {
 		return newAliasEntry(), nil
 	}
 	return res, nil
 }
 
-func (s *store) putTokenEntry(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+func (s *store) putTokenEntry(ctx context.Context, convID chat1.ConversationID,
 	token string, te *tokenEntry) (err error) {
 	defer func() {
 		if err == nil {
-			s.tokenCache.Add(s.tokenCacheKey(uid, convID, token), te)
+			s.tokenCache.Add(s.tokenCacheKey(convID, token), te)
 		}
 	}()
-	key, err := s.tokenKey(ctx, uid, convID, token)
-	if err != nil {
-		return err
-	}
-	return s.edb.Put(ctx, key, te)
+	return s.diskStorage.PutTokenEntry(ctx, convID, token, te)
 }
 
 func (s *store) putAliasEntry(ctx context.Context, alias string, ae *aliasEntry) (err error) {
@@ -348,21 +465,17 @@ func (s *store) putAliasEntry(ctx context.Context, alias string, ae *aliasEntry)
 			s.aliasCache.Add(alias, ae)
 		}
 	}()
-	key, err := s.aliasKey(ctx, alias)
-	if err != nil {
-		return err
-	}
-	return s.edb.Put(ctx, key, ae)
+	return s.diskStorage.PutAliasEntry(ctx, alias, ae)
 }
 
 func (s *store) deleteTokenEntry(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	token string) {
-	key, err := s.tokenKey(ctx, uid, convID, token)
+	key, err := tokenKey(ctx, s.uid, convID, token, s.keyFn)
 	if err != nil {
 		s.Debug(ctx, "deleteTokenEntry: failed to get token key: %s", err)
 		return
 	}
-	s.tokenCache.Remove(s.tokenCacheKey(uid, convID, token))
+	s.tokenCache.Remove(s.tokenCacheKey(convID, token))
 	if err := s.G().LocalChatDb.Delete(key); err != nil {
 		s.Debug(ctx, "deleteTokenEntry: failed to delete key: %s", err)
 	}
@@ -380,69 +493,14 @@ func (s *store) deleteAliasEntry(ctx context.Context, alias string) {
 	}
 }
 
-type addTokenBatch struct {
-	md           *indexMetadata
-	tokenEntries map[string]*tokenEntry
-	aliasEntries map[string]*aliasEntry
-}
-
-func newAddTokenBatch() *addTokenBatch {
-	return &addTokenBatch{
-		tokenEntries: make(map[string]*tokenEntry),
-		aliasEntries: make(map[string]*aliasEntry),
-	}
-}
-
-func (s *store) commitAddTokenBatch(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	batch *addTokenBatch) (err error) {
-	defer s.Trace(ctx, func() error { return err }, "commitAddTokenBatch: toks: %d aliases: %d",
-		len(batch.tokenEntries), len(batch.aliasEntries))()
-	for token, te := range batch.tokenEntries {
-		if err := s.putTokenEntry(ctx, uid, convID, token, te); err != nil {
-			return err
-		}
-	}
-	for alias, ae := range batch.aliasEntries {
-		if err := s.putAliasEntry(ctx, alias, ae); err != nil {
-			return err
-		}
-	}
-	return s.putMetadata(ctx, uid, convID, batch.md)
-}
-
-func (s *store) getTokenEntryWithBatch(ctx context.Context, batch *addTokenBatch, uid gregor1.UID,
-	convID chat1.ConversationID, token string) (*tokenEntry, error) {
-	if te, ok := batch.tokenEntries[token]; ok {
-		return te, nil
-	}
-	te, err := s.getTokenEntry(ctx, uid, convID, token)
-	if err != nil {
-		return te, err
-	}
-	batch.tokenEntries[token] = te
-	return te, nil
-}
-
-func (s *store) getAliasEntryWithBatch(ctx context.Context, batch *addTokenBatch, alias string) (*aliasEntry, error) {
-	if ae, ok := batch.aliasEntries[alias]; ok {
-		return ae, nil
-	}
-	ae, err := s.getAliasEntry(ctx, alias)
-	if err != nil {
-		return ae, err
-	}
-	batch.aliasEntries[alias] = ae
-	return ae, nil
-}
-
 // addTokens add the given tokens to the index under the given message
 // id, when ingesting EDIT messages the msgID is of the superseded msg but the
 // tokens are from the EDIT itself.
-func (s *store) addTokens(ctx context.Context, batch *addTokenBatch, uid gregor1.UID,
+func (s *store) addTokens(ctx context.Context,
 	convID chat1.ConversationID, tokens tokenMap, msgID chat1.MessageID) error {
 	for token, aliases := range tokens {
 		// Update the token entry with the msg ID hit
-		te, err := s.getTokenEntryWithBatch(ctx, batch, uid, convID, token)
+		te, err := s.getTokenEntry(ctx, convID, token)
 		if err != nil {
 			return err
 		}
@@ -450,7 +508,7 @@ func (s *store) addTokens(ctx context.Context, batch *addTokenBatch, uid gregor1
 
 		// Update all the aliases to point at the token
 		for alias := range aliases {
-			aliasEntry, err := s.getAliasEntryWithBatch(ctx, batch, alias)
+			aliasEntry, err := s.getAliasEntry(ctx, alias)
 			if err != nil {
 				return err
 			}
@@ -460,10 +518,10 @@ func (s *store) addTokens(ctx context.Context, batch *addTokenBatch, uid gregor1
 	return nil
 }
 
-func (s *store) addMsg(ctx context.Context, batch *addTokenBatch, uid gregor1.UID, convID chat1.ConversationID,
+func (s *store) addMsg(ctx context.Context, convID chat1.ConversationID,
 	msg chat1.MessageUnboxed) error {
 	tokens := tokensFromMsg(msg)
-	return s.addTokens(ctx, batch, uid, convID, tokens, msg.GetMessageID())
+	return s.addTokens(ctx, convID, tokens, msg.GetMessageID())
 }
 
 func (s *store) removeMsg(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
@@ -483,7 +541,7 @@ func (s *store) removeMsg(ctx context.Context, uid gregor1.UID, convID chat1.Con
 
 	for token, aliases := range tokensFromMsg(msg) {
 		// handle token
-		te, err := s.getTokenEntry(ctx, uid, convID, token)
+		te, err := s.getTokenEntry(ctx, convID, token)
 		if err != nil {
 			return err
 		}
@@ -514,7 +572,7 @@ func (s *store) removeMsg(ctx context.Context, uid gregor1.UID, convID chat1.Con
 	return nil
 }
 
-func (s *store) GetMetadata(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (res *indexMetadata, err error) {
+func (s *store) GetMetadata(ctx context.Context, convID chat1.ConversationID) (res *indexMetadata, err error) {
 	var md indexMetadata
 	found, err := s.G().LocalChatDb.GetIntoMsgpack(&md, s.metadataKey(uid, convID))
 	if err != nil {
@@ -530,7 +588,7 @@ func (s *store) GetMetadata(ctx context.Context, uid gregor1.UID, convID chat1.C
 	return &md, nil
 }
 
-func (s *store) putMetadata(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+func (s *store) putMetadata(ctx context.Context, convID chat1.ConversationID,
 	md *indexMetadata) error {
 	return s.G().LocalChatDb.PutObjMsgpack(s.metadataKey(uid, convID), nil, md)
 }
@@ -541,15 +599,6 @@ func (s *store) Add(ctx context.Context, uid gregor1.UID, convID chat1.Conversat
 	s.Lock()
 	defer s.Unlock()
 
-	batch := newAddTokenBatch()
-	defer func() {
-		if err == nil {
-			commitErr := s.commitAddTokenBatch(ctx, uid, convID, batch)
-			if commitErr != nil {
-				s.Debug(ctx, "unable to commit batch: %+v", commitErr)
-			}
-		}
-	}()
 	fetchSupersededMsgs := func(msg chat1.MessageUnboxed) []chat1.MessageUnboxed {
 		superIDs, err := utils.GetSupersedes(msg)
 		if err != nil {

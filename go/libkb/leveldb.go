@@ -152,6 +152,7 @@ func (l *LevelDb) Opts() *opt.Options {
 		OpenFilesCacheCapacity: l.G().Env.GetLevelDBNumFiles(),
 		Filter:                 filter.NewBloomFilter(10),
 		CompactionTableSize:    10 * opt.MiB,
+		WriteBuffer:            12 * opt.MiB,
 	}
 }
 
