@@ -101,10 +101,7 @@ const _openPathInSystemFileManagerPromise = (openPath: string, isFolder: boolean
     }
   })
 
-const openLocalPathInSystemFileManager = async (
-  _: TypedState,
-  action: FsGen.OpenLocalPathInSystemFileManagerPayload
-) => {
+const openLocalPathInSystemFileManager = async (action: FsGen.OpenLocalPathInSystemFileManagerPayload) => {
   try {
     const pathType = await getPathType(action.payload.localPath)
     return _openPathInSystemFileManagerPromise(action.payload.localPath, pathType === 'directory')
@@ -227,7 +224,7 @@ const fuseInstallResultIsKextPermissionError = (result: RPCTypes.InstallResult):
     c => c.name === 'fuse' && c.exitCode === Constants.ExitCodeFuseKextPermissionError
   ) !== -1
 
-const driverEnableFuse = async (_: TypedState, action: FsGen.DriverEnablePayload) => {
+const driverEnableFuse = async (action: FsGen.DriverEnablePayload) => {
   const result = await RPCTypes.installInstallFuseRpcPromise()
   if (fuseInstallResultIsKextPermissionError(result)) {
     return [
@@ -311,7 +308,7 @@ const openSecurityPreferences = () => {
 // Invoking the cached installer package has to happen from the topmost process
 // or it won't be visible to the user. The service also does this to support command line
 // operations.
-const installCachedDokan = (_: TypedState, action: FsGen.DriverEnablePayload) =>
+const installCachedDokan = (action: FsGen.DriverEnablePayload) =>
   new Promise((resolve, reject) => {
     logger.info('Invoking dokan installer')
     const dokanPath = path.resolve(String(process.env.LOCALAPPDATA), 'Keybase', 'DokanSetup_redist.exe')
@@ -341,7 +338,7 @@ const installCachedDokan = (_: TypedState, action: FsGen.DriverEnablePayload) =>
     .then(() => FsGen.createRefreshDriverStatus())
     .catch(makeUnretriableErrorHandler(action, null))
 
-const openAndUploadToPromise = (_: TypedState, action: FsGen.OpenAndUploadPayload): Promise<Array<string>> =>
+const openAndUploadToPromise = (action: FsGen.OpenAndUploadPayload): Promise<Array<string>> =>
   new Promise(resolve =>
     SafeElectron.getDialog().showOpenDialog(
       SafeElectron.getCurrentWindowFromRemote(),
@@ -358,8 +355,8 @@ const openAndUploadToPromise = (_: TypedState, action: FsGen.OpenAndUploadPayloa
     )
   )
 
-const openAndUpload = async (state: TypedState, action: FsGen.OpenAndUploadPayload) => {
-  const localPaths = await openAndUploadToPromise(state, action)
+const openAndUpload = async (action: FsGen.OpenAndUploadPayload) => {
+  const localPaths = await openAndUploadToPromise(action)
   return localPaths.map(localPath => FsGen.createUpload({localPath, parentPath: action.payload.parentPath}))
 }
 
@@ -373,7 +370,7 @@ const loadUserFileEdits = async (state: TypedState) => {
   return false
 }
 
-const openFilesFromWidget = (_: TypedState, {payload: {path}}) => [
+const openFilesFromWidget = ({payload: {path}}) => [
   ConfigGen.createShowMain(),
   ...(path
     ? [Constants.makeActionForOpenPathInFilesTab(path)]
@@ -412,7 +409,7 @@ const refreshMountDirs = async (
 export const ensureDownloadPermissionPromise = () => Promise.resolve()
 
 function* platformSpecificSaga() {
-  yield* Saga.chainAction2(FsGen.openLocalPathInSystemFileManager, openLocalPathInSystemFileManager)
+  yield* Saga.chainAction(FsGen.openLocalPathInSystemFileManager, openLocalPathInSystemFileManager)
   yield* Saga.chainAction2(FsGen.openPathInSystemFileManager, openPathInSystemFileManager)
   if (!isLinux) {
     yield* Saga.chainAction2(
@@ -424,15 +421,15 @@ function* platformSpecificSaga() {
     [FsGen.kbfsDaemonRpcStatusChanged, FsGen.setDriverStatus, FsGen.refreshMountDirsAfter10s],
     refreshMountDirs
   )
-  yield* Saga.chainAction2(FsGen.openAndUpload, openAndUpload)
+  yield* Saga.chainAction(FsGen.openAndUpload, openAndUpload)
   yield* Saga.chainAction2([FsGen.userFileEditsLoad, FsGen.kbfsDaemonRpcStatusChanged], loadUserFileEdits)
-  yield* Saga.chainAction2(FsGen.openFilesFromWidget, openFilesFromWidget)
+  yield* Saga.chainAction(FsGen.openFilesFromWidget, openFilesFromWidget)
   if (isWindows) {
-    yield* Saga.chainAction2(FsGen.driverEnable, installCachedDokan)
+    yield* Saga.chainAction(FsGen.driverEnable, installCachedDokan)
     yield* Saga.chainAction2(FsGen.driverDisable as any, uninstallDokanConfirm as any)
     yield* Saga.chainAction2(FsGen.driverDisabling, uninstallDokan)
   } else {
-    yield* Saga.chainAction2(FsGen.driverEnable, driverEnableFuse)
+    yield* Saga.chainAction(FsGen.driverEnable, driverEnableFuse)
     yield* Saga.chainAction2(FsGen.driverDisable, uninstallKBFSConfirm)
     yield* Saga.chainAction2(FsGen.driverDisabling, uninstallKBFS)
   }
