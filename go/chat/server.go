@@ -304,30 +304,6 @@ func (h *Server) GetInboxAndUnboxUILocal(ctx context.Context, arg chat1.GetInbox
 	}, nil
 }
 
-func (h *Server) GetCachedThread(ctx context.Context, arg chat1.GetCachedThreadArg) (res chat1.GetThreadLocalRes, err error) {
-	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = globals.ChatCtx(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, "GetCachedThread")()
-	defer func() { h.setResultRateLimit(ctx, &res) }()
-	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
-	uid, err := utils.AssertLoggedInUID(ctx, h.G())
-	if err != nil {
-		return res, err
-	}
-
-	// Get messages from local disk only
-	thread, err := h.G().ConvSource.PullLocalOnly(ctx, arg.ConversationID, uid,
-		arg.Query, arg.Pagination, 0)
-	if err != nil {
-		return res, err
-	}
-
-	return chat1.GetThreadLocalRes{
-		Thread:           thread,
-		IdentifyFailures: identBreaks,
-	}, nil
-}
-
 // GetThreadLocal implements keybase.chatLocal.getThreadLocal protocol.
 func (h *Server) GetThreadLocal(ctx context.Context, arg chat1.GetThreadLocalArg) (res chat1.GetThreadLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
@@ -2990,6 +2966,29 @@ func (h *Server) DismissJourneycard(ctx context.Context, arg chat1.DismissJourne
 	if err != nil {
 		return err
 	}
-	h.G().JourneyCardManager.Dismiss(ctx, uid, arg.ConvID, arg.CardType)
-	return nil
+	inbox, err := h.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceLocalOnly,
+		&chat1.GetInboxQuery{
+			ConvID:           &arg.ConvID,
+			SkipBgLoads:      true,
+			AllowUnseenQuery: true,
+		})
+	if err != nil {
+		return err
+	}
+	switch len(inbox.ConvsUnverified) {
+	case 0:
+		return fmt.Errorf("could not find conversation")
+	case 1:
+		if inbox.ConvsUnverified[0].LocalMetadata == nil {
+			return fmt.Errorf("no local metadata")
+		}
+		teamID, err := keybase1.TeamIDFromString(inbox.ConvsUnverified[0].Conv.Metadata.IdTriple.Tlfid.String())
+		if err != nil {
+			return err
+		}
+		h.G().JourneyCardManager.Dismiss(ctx, uid, teamID, arg.ConvID, arg.CardType)
+		return nil
+	default:
+		return fmt.Errorf("got %v conversations but expected 1", len(inbox.ConvsUnverified))
+	}
 }

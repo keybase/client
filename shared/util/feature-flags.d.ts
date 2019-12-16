@@ -10,7 +10,6 @@ export type FeatureFlags = {
   moveOrCopy: boolean
   newTeamBuildingForChatAllowMakeTeam: boolean
   outOfDateBanner: boolean
-  plansEnabled: boolean
   proofProviders: boolean
   stellarExternalPartners: boolean
   lagRadar: boolean

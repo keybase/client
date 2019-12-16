@@ -307,12 +307,12 @@ func (h *Helper) JourneycardResetAllConvs(ctx context.Context, uid gregor1.UID) 
 	return j.ResetAllConvs(ctx, uid)
 }
 
-func (h *Helper) JourneycardDebugState(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (string, error) {
+func (h *Helper) JourneycardDebugState(ctx context.Context, uid gregor1.UID, teamID keybase1.TeamID) (string, error) {
 	j, ok := h.G().JourneyCardManager.(*JourneyCardManager)
 	if !ok {
 		return "", fmt.Errorf("could not get JourneyCardManager")
 	}
-	return j.DebugState(ctx, uid, convID)
+	return j.DebugState(ctx, uid, teamID)
 }
 
 func GetMessage(ctx context.Context, g *globals.Context, uid gregor1.UID, convID chat1.ConversationID,

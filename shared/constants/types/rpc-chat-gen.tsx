@@ -1541,7 +1541,6 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.chatUi.chatCommandStatus'
 // 'chat.1.chatUi.chatBotCommandsUpdateStatus'
 // 'chat.1.chatUi.triggerContactSync'
-// 'chat.1.local.getCachedThread'
 // 'chat.1.local.getInboxAndUnboxLocal'
 // 'chat.1.local.postLocal'
 // 'chat.1.local.generateOutboxID'

@@ -10,7 +10,7 @@ import * as WalletsGen from './wallets-gen'
 import URL from 'url-parse'
 import logger from '../logger'
 
-const handleKeybaseLink = (_: Container.TypedState, action: DeeplinksGen.HandleKeybaseLinkPayload) => {
+const handleKeybaseLink = (action: DeeplinksGen.HandleKeybaseLinkPayload) => {
   const error =
     "We couldn't read this link. The link might be bad, or your Keybase app might be out of date and need to be updated."
   const parts = action.payload.link.split('/')
@@ -107,7 +107,7 @@ const handleAppLink = (state: Container.TypedState, action: DeeplinksGen.LinkPay
 
 function* deeplinksSaga() {
   yield* Saga.chainAction2(DeeplinksGen.link, handleAppLink)
-  yield* Saga.chainAction2(DeeplinksGen.handleKeybaseLink, handleKeybaseLink)
+  yield* Saga.chainAction(DeeplinksGen.handleKeybaseLink, handleKeybaseLink)
 }
 
 export default deeplinksSaga
