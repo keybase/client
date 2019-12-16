@@ -1,15 +1,10 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
-import * as TeamConstants from '../../../constants/teams'
 import * as Styles from '../../../styles'
 import {FeaturedBot} from 'constants/types/rpc-gen'
 
-type Props = {
-  botUsername: string
-  botAlias: string
+type Props = FeaturedBot & {
   description?: string
-  ownerTeam?: string
-  ownerUser?: string
   onShowProfile: (username: string) => void
 }
 

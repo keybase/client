@@ -73,13 +73,16 @@ type LinkProps = {
 }
 
 const auditingBannerItem = 'auditing banner'
-const inThisChannelItem = 'bots: in this channel'
+const inThisChannelHeader = 'bots: in this channel'
+const featuredBotsHeader = 'bots: featured bots'
+const loadMoreBotsButton = 'bots: load more'
 const addBotButton = 'bots: add bot'
 
 export type InfoPanelProps = {
   loadDelay?: number
   selectedConversationIDKey: Types.ConversationIDKey
   participants: ReadonlyArray<ParticipantTyp>
+  availableBots: ReadonlyArray<RPCTypes.FeaturedBot>
   bots: ReadonlyArray<RPCTypes.FeaturedBot>
   isPreview: boolean
   teamname?: string
@@ -125,7 +128,9 @@ export type InfoPanelProps = {
   onJoinChannel: () => void
 
   // Used for bots
+  loadedAllBots: boolean
   onSearchFeaturedBots: (username: string) => void
+  onLoadMoreBots: () => void
 } & HeaderHocProps
 
 const TabText = ({selected, text}: {selected: boolean; text: string}) => (
@@ -416,9 +421,16 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
 
         tabsSection.data.push(addBotButton)
         if (this.props.bots.length > 0) {
-          tabsSection.data.push(inThisChannelItem)
+          tabsSection.data.push(inThisChannelHeader)
         }
         tabsSection.data = tabsSection.data.concat(this.props.bots)
+        if (this.props.availableBots.length > 0 || !this.props.loadedAllBots) {
+          tabsSection.data.push(featuredBotsHeader)
+          tabsSection.data = tabsSection.data.concat(this.props.availableBots)
+        }
+        if (!this.props.loadedAllBots) {
+          tabsSection.data.push(loadMoreBotsButton)
+        }
         tabsSection.renderItem = ({item}) => {
           if (item === addBotButton) {
             return (
@@ -431,11 +443,29 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
               />
             )
           }
-          if (item === inThisChannelItem) {
+          if (item === inThisChannelHeader) {
             return (
               <Kb.Text type="Header" style={styles.botHeaders}>
                 In this channel
               </Kb.Text>
+            )
+          }
+          if (item === featuredBotsHeader) {
+            return (
+              <Kb.Text type="Header" style={styles.botHeaders}>
+                Featured
+              </Kb.Text>
+            )
+          }
+          if (item === loadMoreBotsButton) {
+            return (
+              <Kb.Button
+                label="Load more"
+                mode="Secondary"
+                type="Default"
+                style={styles.addBot}
+                onClick={() => this.props.onLoadMoreBots()}
+              />
             )
           }
           if (!item.botUsername) {
