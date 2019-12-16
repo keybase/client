@@ -35,7 +35,6 @@ const searchFeaturedBots = async (state: Container.TypedState, action: BotsGen.S
 
   if (state.chat2.featuredBotsMap.has(query)) {
     // don't refresh featured bot if it's in the store
-    // TODO: smartly check?
     return
   }
   try {
