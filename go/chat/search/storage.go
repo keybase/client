@@ -74,8 +74,10 @@ type diskStorage interface {
 		token string) (res *tokenEntry, err error)
 	PutTokenEntry(ctx context.Context, convID chat1.ConversationID,
 		token string, te *tokenEntry) error
+	RemoveTokenEntry(ctx context.Context, convID chat1.ConversationID, token string)
 	GetAliasEntry(ctx context.Context, alias string) (res *aliasEntry, err error)
 	PutAliasEntry(ctx context.Context, alias string, ae *aliasEntry) error
+	RemoveAliasEntry(ctx context.Context, alias string)
 	GetMetadata(ctx context.Context, convID chat1.ConversationID) (res *indexMetadata, err error)
 	PutMetadata(ctx context.Context, convID chat1.ConversationID, md *indexMetadata) error
 	Flush() error
@@ -103,6 +105,7 @@ type batchingStore struct {
 	sync.Mutex
 
 	uid        gregor1.UID
+	mdb        *libkb.JSONLocalDb
 	edb        *encrypteddb.EncryptedDB
 	keyFn      func(ctx context.Context) ([32]byte, error)
 	aliasBatch map[string]*aliasEntry
@@ -111,12 +114,14 @@ type batchingStore struct {
 }
 
 func newBatchingStore(log logger.Logger, uid gregor1.UID,
-	keyFn func(ctx context.Context) ([32]byte, error), edb *encrypteddb.EncryptedDB) *batchingStore {
+	keyFn func(ctx context.Context) ([32]byte, error), edb *encrypteddb.EncryptedDB,
+	mdb *libkb.JSONLocalDb) *batchingStore {
 	b := &batchingStore{
-		DebugLabeler: utils.NewDebugLabeler(log, "batchingStore", false),
+		DebugLabeler: utils.NewDebugLabeler(log, "Search.batchingStore", false),
 		uid:          uid,
 		keyFn:        keyFn,
 		edb:          edb,
+		mdb:          mdb,
 	}
 	b.Lock()
 	b.resetLocked()
@@ -154,7 +159,7 @@ func (b *batchingStore) GetTokenEntry(ctx context.Context, convID chat1.Conversa
 }
 
 func (b *batchingStore) PutTokenEntry(ctx context.Context, convID chat1.ConversationID,
-	token string, te *tokenEntry) error {
+	token string, te *tokenEntry) (err error) {
 	b.Lock()
 	defer b.Unlock()
 	key := convID.String()
@@ -165,6 +170,24 @@ func (b *batchingStore) PutTokenEntry(ctx context.Context, convID chat1.Conversa
 	batch.tokens[token] = te
 	b.tokenBatch[key] = batch
 	return nil
+}
+
+func (b *batchingStore) RemoveTokenEntry(ctx context.Context, convID chat1.ConversationID,
+	token string) {
+	b.Lock()
+	defer b.Unlock()
+	batch, ok := b.tokenBatch[convID.String()]
+	if ok {
+		delete(batch.tokens, token)
+	}
+	key, err := tokenKey(ctx, b.uid, convID, token, b.keyFn)
+	if err != nil {
+		b.Debug(ctx, "RemoveTokenEntry: failed to get tokenkey: %s", err)
+		return
+	}
+	if err := b.mdb.Delete(key); err != nil {
+		b.Debug(ctx, "RemoveTokenEntry: failed to delete key: %s", err)
+	}
 }
 
 func (b *batchingStore) GetAliasEntry(ctx context.Context, alias string) (res *aliasEntry, err error) {
@@ -189,11 +212,25 @@ func (b *batchingStore) GetAliasEntry(ctx context.Context, alias string) (res *a
 	return res, nil
 }
 
-func (b *batchingStore) PutAliasEntry(ctx context.Context, alias string, ae *aliasEntry) error {
+func (b *batchingStore) PutAliasEntry(ctx context.Context, alias string, ae *aliasEntry) (err error) {
 	b.Lock()
 	defer b.Unlock()
 	b.aliasBatch[alias] = ae
 	return nil
+}
+
+func (b *batchingStore) RemoveAliasEntry(ctx context.Context, alias string) {
+	b.Lock()
+	defer b.Unlock()
+	delete(b.aliasBatch, alias)
+	key, err := aliasKey(ctx, alias, b.keyFn)
+	if err != nil {
+		b.Debug(ctx, "RemoveAliasEntry: failed to get key: %s", err)
+		return
+	}
+	if err := b.mdb.Delete(key); err != nil {
+		b.Debug(ctx, "RemoveAliasEntry: failed to delete key: %s", err)
+	}
 }
 
 func (b *batchingStore) GetMetadata(ctx context.Context, convID chat1.ConversationID) (res *indexMetadata, err error) {
@@ -204,7 +241,7 @@ func (b *batchingStore) GetMetadata(ctx context.Context, convID chat1.Conversati
 	}
 	key := metadataKey(b.uid, convID)
 	res = new(indexMetadata)
-	found, err := b.edb.Get(ctx, key, res)
+	found, err := b.mdb.GetIntoMsgpack(res, key)
 	if err != nil {
 		return nil, err
 	}
@@ -214,7 +251,7 @@ func (b *batchingStore) GetMetadata(ctx context.Context, convID chat1.Conversati
 	return res, nil
 }
 
-func (b *batchingStore) PutMetadata(ctx context.Context, convID chat1.ConversationID, md *indexMetadata) error {
+func (b *batchingStore) PutMetadata(ctx context.Context, convID chat1.ConversationID, md *indexMetadata) (err error) {
 	b.Lock()
 	defer b.Unlock()
 	b.mdBatch[convID.String()] = &mdBatch{
@@ -231,7 +268,9 @@ func (b *batchingStore) Flush() (err error) {
 	defer b.Unlock()
 	defer b.resetLocked()
 
+	b.Debug(ctx, "Flush: flushing tokens from %d convs", len(b.tokenBatch))
 	for _, tokenBatch := range b.tokenBatch {
+		b.Debug(ctx, "Flush: flushing %d tokens from %s", len(tokenBatch.tokens), tokenBatch.convID)
 		for token, te := range tokenBatch.tokens {
 			key, err := tokenKey(ctx, b.uid, tokenBatch.convID, token, b.keyFn)
 			if err != nil {
@@ -242,6 +281,7 @@ func (b *batchingStore) Flush() (err error) {
 			}
 		}
 	}
+	b.Debug(ctx, "Flush: flushing %d aliases", len(b.aliasBatch))
 	for alias, ae := range b.aliasBatch {
 		key, err := aliasKey(ctx, alias, b.keyFn)
 		if err != nil {
@@ -251,8 +291,9 @@ func (b *batchingStore) Flush() (err error) {
 			return err
 		}
 	}
+	b.Debug(ctx, "Flush: flushing %d conv metadata", len(b.mdBatch))
 	for _, mdBatch := range b.mdBatch {
-		if err := b.edb.Put(ctx, metadataKey(b.uid, mdBatch.convID), mdBatch.md); err != nil {
+		if err := b.mdb.PutObjMsgpack(metadataKey(b.uid, mdBatch.convID), nil, mdBatch.md); err != nil {
 			return err
 		}
 	}
@@ -287,7 +328,8 @@ func newStore(g *globals.Context, uid gregor1.UID) *store {
 		keyFn:        keyFn,
 		aliasCache:   ac,
 		tokenCache:   tc,
-		diskStorage:  newBatchingStore(g.GetLog(), uid, keyFn, encrypteddb.New(g.ExternalG(), dbFn, keyFn)),
+		diskStorage: newBatchingStore(g.GetLog(), uid, keyFn, encrypteddb.New(g.ExternalG(), dbFn, keyFn),
+			g.LocalChatDb),
 	}
 }
 
@@ -536,27 +578,13 @@ func (s *store) putAliasEntry(ctx context.Context, alias string, ae *aliasEntry)
 
 func (s *store) deleteTokenEntry(ctx context.Context, convID chat1.ConversationID,
 	token string) {
-	key, err := tokenKey(ctx, s.uid, convID, token, s.keyFn)
-	if err != nil {
-		s.Debug(ctx, "deleteTokenEntry: failed to get token key: %s", err)
-		return
-	}
 	s.tokenCache.Remove(s.tokenCacheKey(convID, token))
-	if err := s.G().LocalChatDb.Delete(key); err != nil {
-		s.Debug(ctx, "deleteTokenEntry: failed to delete key: %s", err)
-	}
+	s.diskStorage.RemoveTokenEntry(ctx, convID, token)
 }
 
 func (s *store) deleteAliasEntry(ctx context.Context, alias string) {
-	key, err := aliasKey(ctx, alias, s.keyFn)
-	if err != nil {
-		s.Debug(ctx, "deleteAliasEntry: failed to get key: %s", err)
-		return
-	}
-	s.aliasCache.Remove(key)
-	if err := s.G().LocalChatDb.Delete(key); err != nil {
-		s.Debug(ctx, "deleteAliasEntry: failed to delete key: %s", err)
-	}
+	s.aliasCache.Remove(alias)
+	s.diskStorage.RemoveAliasEntry(ctx, alias)
 }
 
 // addTokens add the given tokens to the index under the given message
@@ -579,6 +607,12 @@ func (s *store) addTokens(ctx context.Context,
 				return err
 			}
 			aliasEntry.add(token)
+			if err := s.putAliasEntry(ctx, alias, aliasEntry); err != nil {
+				return err
+			}
+		}
+		if err := s.putTokenEntry(ctx, convID, token, te); err != nil {
+			return err
 		}
 	}
 	return nil
@@ -753,8 +787,7 @@ func (s *store) Remove(ctx context.Context, convID chat1.ConversationID,
 			return err
 		}
 	}
-	err = s.diskStorage.PutMetadata(ctx, convID, md)
-	return err
+	return s.diskStorage.PutMetadata(ctx, convID, md)
 }
 
 func (s *store) ClearMemory() {
