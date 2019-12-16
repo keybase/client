@@ -2,6 +2,7 @@ export type FeatureFlags = {
   admin: boolean
   airdrop: boolean
   audioAttachments: boolean
+  botUI: boolean
   chatIndexProfilingEnabled: boolean
   connectThrashCheck: boolean
   dbCleanEnabled: boolean

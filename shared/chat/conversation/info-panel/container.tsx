@@ -14,6 +14,7 @@ import * as Kb from '../../../common-adapters'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 import * as TeamTypes from '../../../constants/types/teams'
+import flags from '../../../util/feature-flags'
 
 // TODO this container does a ton of stuff for the various tabs. Really the tabs should be connected
 // and this thing is just a holder of tabs
@@ -81,7 +82,9 @@ const ConnectedInfoPanel = Container.connect(
             TeamConstants.userIsRoleInTeamWithInfo(_teamMembers, p, 'bot')
     )
 
-    const _participants = meta.participants.filter(p => !_botUsernames.includes(p))
+    const _participants = flags.botUI
+      ? meta.participants.filter(p => !_botUsernames.includes(p))
+      : meta.participants
     const bots: Array<RPCTypes.FeaturedBot> = _botUsernames.map(
       b =>
         featuredBots.get(b) ?? {
@@ -215,12 +218,14 @@ const ConnectedInfoPanel = Container.connect(
       : stateProps._participants
     ).filter(username => username !== stateProps._username && !Constants.isAssertion(username))
     if (teamMembers && isGeneral) {
-      participants = [...teamMembers.values()]
-        .reduce<Array<string>>((l, mi) => {
-          l.push(mi.username)
-          return l
-        }, [])
-        .filter(p => !botUsernames.includes(p))
+      participants = [...teamMembers.values()].reduce<Array<string>>((l, mi) => {
+        l.push(mi.username)
+        return l
+      }, [])
+
+      if (flags.botUI) {
+        participants = participants.filter(p => !botUsernames.includes(p))
+      }
     }
     return {
       admin: stateProps.admin,
