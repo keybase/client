@@ -4,7 +4,7 @@
     "getFeaturedBots": {
       "_description": "Gets featured bots",
       "limit": "number",
-      "offset?": "number"
+      "page?": "number"
     },
     "searchFeaturedBots": {
       "_description": "Gets featured bots by query",
@@ -14,7 +14,12 @@
     },
     "updateFeaturedBots": {
       "_description": "Updates featured bots in store",
-      "bots": "Array<RPCTypes.FeaturedBot>"
+      "bots": "Array<RPCTypes.FeaturedBot>",
+      "page?": "number"
+    },
+    "setLoadedAllBots": {
+      "_description": "Sets a flag if all featured bots have been loaded",
+      "loaded": "boolean"
     }
   }
 }

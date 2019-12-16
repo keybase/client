@@ -91,6 +91,10 @@ const ConnectedInfoPanel = Container.connect(
         }
     )
 
+    const availableBots = Array.from(featuredBots.entries())
+      .filter(([k, _]) => !_botUsernames.includes(k))
+      .map(([_, v]) => v)
+
     return {
       _attachmentInfo: attachmentInfo,
       _botUsernames,
@@ -103,6 +107,7 @@ const ConnectedInfoPanel = Container.connect(
       _username: state.config.username,
       admin,
       attachmentsLoading,
+      availableBots,
       bots,
       canDeleteHistory,
       canEditChannel,
@@ -112,6 +117,7 @@ const ConnectedInfoPanel = Container.connect(
       description: meta.descriptionDecorated,
       ignored: meta.status === RPCChatTypes.ConversationStatus.ignored,
       isPreview,
+      loadedAllBots: state.chat2.featuredBotsLoaded,
       selectedAttachmentView,
       selectedConversationIDKey: conversationIDKey,
       selectedTab,
@@ -181,6 +187,7 @@ const ConnectedInfoPanel = Container.connect(
     onHideConv: () => dispatch(Chat2Gen.createHideConversation({conversationIDKey})),
     onJoinChannel: () => dispatch(Chat2Gen.createJoinConversation({conversationIDKey})),
     onLeaveConversation: () => dispatch(Chat2Gen.createLeaveConversation({conversationIDKey})),
+    onLoadMoreBots: () => dispatch(Chat2Gen.createLoadNextBotPage({pageSize: 6})),
     onSearchFeaturedBots: (query: string) => dispatch(BotsGen.createSearchFeaturedBots({query})),
     onShowNewTeamDialog: () => {
       dispatch(
@@ -218,6 +225,7 @@ const ConnectedInfoPanel = Container.connect(
     return {
       admin: stateProps.admin,
       attachmentsLoading: stateProps.attachmentsLoading,
+      availableBots: stateProps.availableBots,
       bots: stateProps.bots,
       canDeleteHistory: stateProps.canDeleteHistory,
       canEditChannel: stateProps.canEditChannel,
@@ -298,6 +306,7 @@ const ConnectedInfoPanel = Container.connect(
             }
           : noLinks,
       loadDelay: ownProps.loadDelay,
+      loadedAllBots: stateProps.loadedAllBots,
       media:
         stateProps.selectedAttachmentView === RPCChatTypes.GalleryItemTyp.media
           ? {
@@ -327,6 +336,7 @@ const ConnectedInfoPanel = Container.connect(
       onHideConv: dispatchProps.onHideConv,
       onJoinChannel: dispatchProps.onJoinChannel,
       onLeaveConversation: dispatchProps.onLeaveConversation,
+      onLoadMoreBots: dispatchProps.onLoadMoreBots,
       onSearchFeaturedBots: dispatchProps.onSearchFeaturedBots,
       onSelectTab: ownProps.onSelectTab,
       onShowBlockConversationDialog: membersForBlock.length

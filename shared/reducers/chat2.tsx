@@ -21,7 +21,12 @@ type EngineActions =
   | EngineGen.Chat1ChatUiChatBotCommandsUpdateStatusPayload
   | EngineGen.Chat1ChatUiChatInboxLayoutPayload
 
-type Actions = Chat2Gen.Actions | TeamBuildingGen.Actions | EngineActions | BotsGen.UpdateFeaturedBotsPayload
+type Actions =
+  | Chat2Gen.Actions
+  | TeamBuildingGen.Actions
+  | EngineActions
+  | BotsGen.UpdateFeaturedBotsPayload
+  | BotsGen.SetLoadedAllBotsPayload
 
 const initialState: Types.State = Constants.makeState()
 
@@ -58,8 +63,15 @@ const messageIDToOrdinal = (
 
 const botActions: Container.ActionHandler<Actions, Types.State> = {
   [BotsGen.updateFeaturedBots]: (draftState, action) => {
-    const {bots} = action.payload
+    const {bots, page} = action.payload
     bots.map(b => draftState.featuredBotsMap.set(b.botUsername, b))
+    if (page !== undefined) {
+      draftState.featuredBotsPage = page
+    }
+  },
+  [BotsGen.setLoadedAllBots]: (draftState, action) => {
+    const {loaded} = action.payload
+    draftState.featuredBotsLoaded = loaded
   },
 }
 
@@ -1471,6 +1483,10 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     if (rows > 0) {
       draftState.inboxNumSmallRows = rows
     }
+  },
+  [Chat2Gen.setLoadedBotPage]: (draftState, action) => {
+    const {page} = action.payload
+    draftState.featuredBotsPage = page
   },
   ...audioActions,
   ...botActions,

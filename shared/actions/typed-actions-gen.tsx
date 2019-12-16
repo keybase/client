@@ -76,6 +76,7 @@ export type TypedActionsMap = {
   'bots:getFeaturedBots': bots.GetFeaturedBotsPayload
   'bots:searchFeaturedBots': bots.SearchFeaturedBotsPayload
   'bots:updateFeaturedBots': bots.UpdateFeaturedBotsPayload
+  'bots:setLoadedAllBots': bots.SetLoadedAllBotsPayload
   'chat2:toggleSmallTeamsExpanded': chat2.ToggleSmallTeamsExpandedPayload
   'chat2:deselectConversation': chat2.DeselectConversationPayload
   'chat2:selectConversation': chat2.SelectConversationPayload
@@ -229,6 +230,8 @@ export type TypedActionsMap = {
   'chat2:lockAudioRecording': chat2.LockAudioRecordingPayload
   'chat2:sendAudioRecording': chat2.SendAudioRecordingPayload
   'chat2:setAudioRecordingPostInfo': chat2.SetAudioRecordingPostInfoPayload
+  'chat2:loadNextBotPage': chat2.LoadNextBotPagePayload
+  'chat2:setLoadedBotPage': chat2.SetLoadedBotPagePayload
   'config:startHandshake': config.StartHandshakePayload
   'config:restartHandshake': config.RestartHandshakePayload
   'config:daemonHandshake': config.DaemonHandshakePayload
