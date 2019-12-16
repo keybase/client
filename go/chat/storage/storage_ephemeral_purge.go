@@ -14,7 +14,7 @@ func (s *Storage) GetAllPurgeInfo(ctx context.Context, uid gregor1.UID) (allPurg
 }
 
 func (s *Storage) GetPurgeInfo(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (info chat1.EphemeralPurgeInfo, err error) {
-	defer s.Trace(ctx, func() error { return err }, "GetAllPurgeInfo")()
+	defer s.Trace(ctx, func() error { return err }, "AllPurgeInfo")()
 	return s.ephemeralTracker.getPurgeInfo(ctx, uid, convID)
 }
 
