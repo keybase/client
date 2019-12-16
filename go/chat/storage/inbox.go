@@ -347,10 +347,11 @@ func (i *Inbox) summarizeConvs(convs []types.RemoteConversation) {
 }
 
 func (i *Inbox) mergeConvs(l []types.RemoteConversation, r []types.RemoteConversation) (res []types.RemoteConversation) {
-	m := make(map[string]types.RemoteConversation)
+	m := make(map[string]types.RemoteConversation, len(l))
 	for _, conv := range l {
 		m[conv.ConvIDStr] = conv
 	}
+	res = make([]types.RemoteConversation, 0, len(l)+len(r))
 	for _, conv := range r {
 		key := conv.ConvIDStr
 		if m[key].GetVersion() <= conv.GetVersion() {
@@ -474,7 +475,6 @@ func (i *Inbox) Merge(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers
 	}
 	i.Debug(ctx, "Merge: query hash: %s", hquery)
 	qp := inboxDiskQuery{QueryHash: hquery}
-	var data inboxDiskData
 
 	// Set inbox version if the current inbox is empty. Otherwise, we just use whatever the current
 	// value is.
@@ -484,7 +484,7 @@ func (i *Inbox) Merge(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers
 		i.Debug(ctx, "Merge: using given version: %d", vers)
 	}
 	i.Debug(ctx, "Merge: merging inbox: vers: %d", vers)
-	data = inboxDiskData{
+	data := inboxDiskData{
 		Version:       inboxVersion,
 		InboxVersion:  vers,
 		Conversations: i.mergeConvs(utils.RemoteConvs(convs), ibox.Conversations),
