@@ -4,7 +4,7 @@ import {Box, Box2} from './box'
 import ClickableBox from './clickable-box'
 import Icon from './icon'
 import * as React from 'react'
-import Text from './text'
+import Text, {StylesTextCrossPlatform} from './text'
 import * as Styles from '../styles'
 import './button.css'
 
@@ -57,10 +57,10 @@ const Progress = ({small, white}: {small?: boolean; white: boolean}) => {
 
 const Button = React.forwardRef<ClickableBox, Props>((props: Props, ref: React.Ref<ClickableBox>) => {
   const {mode = 'Primary', type = 'Default'} = props
-  let containerStyle = props.backgroundColor
+  let containerStyle: Styles.StylesCrossPlatform = props.backgroundColor
     ? backgroundColorContainerStyles[mode]
     : containerStyles[mode + type]
-  let labelStyle = props.backgroundColor
+  let labelStyle: StylesTextCrossPlatform = props.backgroundColor
     ? backgroundColorLabelStyles[mode + (mode === 'Secondary' ? '' : props.backgroundColor)]
     : labelStyles[mode + type]
 

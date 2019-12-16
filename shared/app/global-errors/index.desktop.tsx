@@ -4,7 +4,6 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {ignoreDisconnectOverlay} from '../../local-debug.desktop'
 import {RPCError} from '../../util/errors'
-
 import {Props as _Props} from './index'
 
 type Size = 'Closed' | 'Small' | 'Big'
@@ -19,42 +18,43 @@ type Props = Kb.PropsWithTimer<_Props>
 
 class GlobalError extends Component<Props, State> {
   state: State
-  timerID?: NodeJS.Timeout
-  _mounted: boolean = false
+  private timerID?: NodeJS.Timeout
+  private mounted: boolean = false
 
   constructor(props: Props) {
     super(props)
 
     this.state = {
-      cachedDetails: this._detailsForError(props.error),
-      cachedSummary: this._summaryForError(props.error),
+      cachedDetails: this.detailsForError(props.error),
+      cachedSummary: this.summaryForError(props.error),
       size: 'Closed',
     }
   }
 
   componentWillUnmount() {
-    this._mounted = false
+    this.mounted = false
+    this.clearCountdown()
   }
 
   componentDidMount() {
-    this._mounted = true
-    this._resetError(!!this.props.error)
+    this.mounted = true
+    this.resetError(!!this.props.error)
   }
 
-  _onExpandClick = () => {
+  private onExpandClick = () => {
     this.setState({size: 'Big'})
-    this._clearCountdown()
+    this.clearCountdown()
   }
 
-  _clearCountdown() {
+  private clearCountdown() {
     if (this.timerID) {
-      this.props.clearTimeout(this.timerID)
+      clearTimeout(this.timerID)
     }
     this.timerID = undefined
   }
 
-  _resetError(newError: boolean) {
-    this._clearCountdown()
+  private resetError(newError: boolean) {
+    this.clearCountdown()
     this.setState({size: newError ? 'Small' : 'Closed'})
 
     if (newError) {
@@ -64,11 +64,11 @@ class GlobalError extends Component<Props, State> {
     }
   }
 
-  _summaryForError(err: null | Error | RPCError) {
+  private summaryForError(err: null | Error | RPCError) {
     return err ? err.message : undefined
   }
 
-  _detailsForError(err: null | Error | RPCError) {
+  private detailsForError(err: null | Error | RPCError) {
     return err ? err.stack : undefined
   }
 
@@ -76,16 +76,16 @@ class GlobalError extends Component<Props, State> {
     if (prevProps.error !== this.props.error) {
       this.props.setTimeout(
         () => {
-          if (this._mounted) {
+          if (this.mounted) {
             this.setState({
-              cachedDetails: this._detailsForError(this.props.error),
-              cachedSummary: this._summaryForError(this.props.error),
+              cachedDetails: this.detailsForError(this.props.error),
+              cachedSummary: this.summaryForError(this.props.error),
             })
           }
         },
         this.props.error ? 0 : 7000
       ) // if it's set, do it immediately, if it's cleared set it in a bit
-      this._resetError(!!this.props.error)
+      this.resetError(!!this.props.error)
     }
   }
 
@@ -97,7 +97,7 @@ class GlobalError extends Component<Props, State> {
     }[size]
   }
 
-  renderDaemonError() {
+  private renderDaemonError() {
     if (ignoreDisconnectOverlay) {
       logger.warn('Ignoring disconnect overlay')
       return null
@@ -120,7 +120,7 @@ class GlobalError extends Component<Props, State> {
     )
   }
 
-  renderError() {
+  private renderError() {
     const {onDismiss} = this.props
     const summary = this.state.cachedSummary
     const details = this.state.cachedDetails
@@ -129,7 +129,7 @@ class GlobalError extends Component<Props, State> {
     return (
       <Kb.Box
         style={Styles.collapseStyles([styles.container, styles.containerError, {maxHeight}])}
-        onClick={this._onExpandClick}
+        onClick={this.onExpandClick}
       >
         <Kb.Box style={Styles.collapseStyles([styles.summaryRow, styles.summaryRowError])}>
           <Kb.Text center={true} type="BodyBig" style={styles.summary}>
@@ -244,4 +244,4 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export default Kb.HOCTimers(GlobalError)
+export default GlobalError
