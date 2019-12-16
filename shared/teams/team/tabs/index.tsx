@@ -55,6 +55,12 @@ const TeamTabs = (props: TeamTabsProps) => {
     )
   }
 
+  tabs.push(
+    <Box key="bots" style={styles.tabTextContainer}>
+      <TabText selected={props.selectedTab === 'bots'} text={`Bots (BOT NUMBER)`} />
+    </Box>
+  )
+
   if (props.numSubteams > 0 || props.showSubteams) {
     tabs.push(
       <TabText
