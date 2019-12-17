@@ -89,11 +89,10 @@ export default Container.connect(
     },
     _onPaste: (conversationIDKey: Types.ConversationIDKey, data: Buffer) =>
       dispatch(Chat2Gen.createAttachmentPasted({conversationIDKey, data})),
+    _onToggleThreadSearch: (conversationIDKey: Types.ConversationIDKey) =>
+      dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey})),
     jumpToRecent: (conversationIDKey: Types.ConversationIDKey) =>
       dispatch(Chat2Gen.createJumpToRecent({conversationIDKey})),
-    _onToggleThreadSearch: (conversationIDKey: Types.ConversationIDKey) => {
-      dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey}))
-    },
     onShowTracker: (username: string) => dispatch(Tracker2Gen.createShowUser({asTracker: true, username})),
     onToggleInfoPanel: () => dispatch(Chat2Gen.createToggleInfoPanel()),
   }),
