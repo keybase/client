@@ -555,11 +555,8 @@ func TestReAddMemberWithSameUV(t *testing.T) {
 	err = reAddMemberAfterResetInner(context.Background(), tcAnn.G, teamObj.ID, bob.Username)
 	require.IsType(t, UserHasNotResetError{}, err)
 
-	err = reAddMemberAfterResetInner(context.Background(), tcAnn.G, teamObj.ID, jun.Username)
-	require.IsType(t, UserHasNotResetError{}, err)
-
 	err = ReAddMemberAfterReset(context.Background(), tcAnn.G, teamObj.ID, jun.Username)
-	require.NoError(t, err) // error should be supressed
+	require.NoError(t, err) // error should be suppressed
 
 	err = reAddMemberAfterResetInner(context.Background(), tcAnn.G, teamObj.ID, hal.Username)
 	require.IsType(t, UserHasNotResetError{}, err)
