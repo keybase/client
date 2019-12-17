@@ -144,11 +144,13 @@ func (b *batchingStore) GetTokenEntry(ctx context.Context, convID chat1.Conversa
 	batch, ok := b.tokenBatch[convID.String()]
 	if ok {
 		stored := batch.tokens[token]
-		res = new(tokenEntry)
-		res.Version = stored.Version
-		res.MsgIDs = make(map[chat1.MessageID]chat1.EmptyStruct, len(stored.MsgIDs))
-		for m := range stored.MsgIDs {
-			res.MsgIDs[m] = chat1.EmptyStruct{}
+		if stored != nil {
+			res = new(tokenEntry)
+			res.Version = stored.Version
+			res.MsgIDs = make(map[chat1.MessageID]chat1.EmptyStruct, len(stored.MsgIDs))
+			for m := range stored.MsgIDs {
+				res.MsgIDs[m] = chat1.EmptyStruct{}
+			}
 		}
 		return res, nil
 	}
