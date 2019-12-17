@@ -54,7 +54,7 @@ const ChangeRetention = (props: Props) => {
   }
   const inheritDescription = props.isInherit ? ' to inherit from the team policy' : ''
   const policySummary = getPolicySummary(props)
-  const manageText = props.canManage ? 'Team retention settings' : ''
+  const manageText = props.canManage ? 'Retention settings' : ''
   return (
     <UserNotice>
       <Kb.Text type="BodySmall" selectable={true}>
