@@ -4599,6 +4599,14 @@ const iconMeta_ = {
       return require('../images/icons/icon-illustration-mars-rover-foreground.png')
     },
   },
+  'icon-illustration-secure-116-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-illustration-secure-116-96.png')
+    },
+  },
   'icon-illustration-sleepy-96': {
     extension: 'png',
     imagesDir: 'icons',
