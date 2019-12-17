@@ -99,6 +99,22 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
       })
     )
   },
+  _onUserBlock: (teamname: string, message: Types.Message) => {
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {
+              blockByDefault: true,
+              convID: message.conversationIDKey,
+              username: message.author,
+            },
+            selected: 'chatBlockingModal',
+          },
+        ],
+      })
+    )
+  },
   _onReply: (message: Types.Message) => {
     dispatch(
       Chat2Gen.createToggleReplyToMessage({
@@ -168,6 +184,11 @@ export default Container.namedConnect(
       timestamp: message.timestamp,
       visible: ownProps.visible,
       yourMessage,
+      onUserBlock:
+        message.author && !yourMessage
+          ? () => dispatchProps._onUserBlock(stateProps._teamname, message)
+          : undefined,
+      isTeam: !!stateProps._teamname,
     }
   },
   'MessagePopupText'
