@@ -548,6 +548,25 @@ const sendFeedback = async (state: TypedState, action: SettingsGen.SendFeedbackP
   }
 }
 
+const contactSettingsRefresh = async (state: TypedState) => {
+  if (!state.config.loggedIn) {
+    return false
+  }
+  try {
+    const settings = await RPCTypes.accountUserGetContactSettingsRpcPromise(
+      undefined,
+      Constants.contactSettingsWaitingKey
+    )
+    return SettingsGen.createContactSettingsRefreshed({
+      settings,
+    })
+  } catch (_) {
+    return SettingsGen.createContactSettingsError({
+      error: 'Unable to load contact settings, please try again.',
+    })
+  }
+}
+
 const unfurlSettingsRefresh = async (state: TypedState) => {
   if (!state.config.loggedIn) {
     return false
@@ -773,6 +792,7 @@ function* settingsSaga() {
   yield* Saga.chainAction2(SettingsGen.loadLockdownMode, loadLockdownMode)
   yield* Saga.chainAction2(SettingsGen.onChangeLockdownMode, setLockdownMode)
   yield* Saga.chainAction2(SettingsGen.sendFeedback, sendFeedback)
+  yield* Saga.chainAction2(SettingsGen.contactSettingsRefresh, contactSettingsRefresh)
   yield* Saga.chainAction2(SettingsGen.unfurlSettingsRefresh, unfurlSettingsRefresh)
   yield* Saga.chainAction2(SettingsGen.unfurlSettingsSaved, unfurlSettingsSaved)
   yield* Saga.chainAction2(SettingsGen.loadHasRandomPw, loadHasRandomPW)

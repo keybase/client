@@ -415,6 +415,14 @@ export type MessageTypes = {
     inParam: {readonly enabled: Boolean}
     outParam: void
   }
+  'keybase.1.account.userGetContactSettings': {
+    inParam: void
+    outParam: ContactSettings
+  }
+  'keybase.1.account.userSetContactSettings': {
+    inParam: {readonly settings: ContactSettings}
+    outParam: void
+  }
   'keybase.1.apiserver.Delete': {
     inParam: {readonly endpoint: String; readonly args?: Array<StringKVPair> | null; readonly httpStatus?: Array<Int> | null; readonly appStatusCode?: Array<Int> | null}
     outParam: APIRes
@@ -3353,6 +3361,8 @@ export const accountRecoverUsernameWithEmailRpcPromise = (params: MessageTypes['
 export const accountRecoverUsernameWithPhoneRpcPromise = (params: MessageTypes['keybase.1.account.recoverUsernameWithPhone']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.account.recoverUsernameWithPhone']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.account.recoverUsernameWithPhone', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const accountResetAccountRpcPromise = (params: MessageTypes['keybase.1.account.resetAccount']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.account.resetAccount']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.account.resetAccount', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const accountSetLockdownModeRpcPromise = (params: MessageTypes['keybase.1.account.setLockdownMode']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.account.setLockdownMode']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.account.setLockdownMode', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const accountUserGetContactSettingsRpcPromise = (params: MessageTypes['keybase.1.account.userGetContactSettings']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.account.userGetContactSettings']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.account.userGetContactSettings', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const accountUserSetContactSettingsRpcPromise = (params: MessageTypes['keybase.1.account.userSetContactSettings']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.account.userSetContactSettings']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.account.userSetContactSettings', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const apiserverDeleteRpcPromise = (params: MessageTypes['keybase.1.apiserver.Delete']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.apiserver.Delete']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.apiserver.Delete', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const apiserverGetRpcPromise = (params: MessageTypes['keybase.1.apiserver.Get']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.apiserver.Get']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.apiserver.Get', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const apiserverGetWithSessionRpcPromise = (params: MessageTypes['keybase.1.apiserver.GetWithSession']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.apiserver.GetWithSession']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.apiserver.GetWithSession', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -3525,8 +3535,6 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // Not enabled calls. To enable add to enabled-calls.json:
 // 'keybase.1.account.passphrasePrompt'
 // 'keybase.1.account.timeTravelReset'
-// 'keybase.1.account.userGetContactSettings'
-// 'keybase.1.account.userSetContactSettings'
 // 'keybase.1.airdrop.reg1'
 // 'keybase.1.airdrop.reg2'
 // 'keybase.1.audit.isInJail'

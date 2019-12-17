@@ -191,6 +191,17 @@
       "_description": "An error occurred on the unfurl settings screen",
       "error": "string"
     },
+    "contactSettingsError": {
+      "_description": "An error occurred on the contact settings screen",
+      "error": "string"
+    },
+    "contactSettingsRefresh": {
+      "_description": "Refresh Chat contact settings"
+    },
+    "contactSettingsRefreshed": {
+      "_description": "Refreshed Chat contact settings available",
+      "settings": "RPCTypes.ContactSettings"
+    },
     "loadHasRandomPw": {},
     "loadedHasRandomPw": {
       "randomPW": "boolean"

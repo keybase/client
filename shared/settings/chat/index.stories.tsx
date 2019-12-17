@@ -12,6 +12,8 @@ const actions = {
 }
 
 const props = {
+  contactSettingsEnabled: true,
+  teams: [],
   unfurlMode: RPCChatTypes.UnfurlMode.whitelisted,
   unfurlWhitelist: [
     'amazon.com',
@@ -32,6 +34,7 @@ const errorProps = {
 }
 
 const loadErrorProps = {
+  teams: [],
   unfurlError: 'Unable to load link preview settings, please try again.',
   ...actions,
 }

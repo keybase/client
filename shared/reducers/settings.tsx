@@ -187,6 +187,15 @@ const passwordActions: Container.ActionHandler<Actions, Types.State> = {
 }
 
 const chatActions: Container.ActionHandler<Actions, Types.State> = {
+  [SettingsGen.contactSettingsRefreshed]: (draftState, action) => {
+    draftState.chat.contactSettings = {
+      error: '',
+      settings: action.payload.settings,
+    }
+  },
+  [SettingsGen.contactSettingsError]: (draftState, action) => {
+    draftState.chat.contactSettings.error = action.payload.error
+  },
   [SettingsGen.unfurlSettingsRefreshed]: (draftState, action) => {
     draftState.chat.unfurl = {
       unfurlError: undefined,

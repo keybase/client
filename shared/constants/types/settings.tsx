@@ -91,7 +91,13 @@ export type ChatUnfurlState = {
   unfurlError?: string
 }
 
+export type ContactSettingsState = {
+  error: string
+  settings?: RPCTypes.ContactSettings
+}
+
 export type ChatState = {
+  contactSettings: ContactSettingsState
   unfurl: ChatUnfurlState
 }
 
