@@ -195,7 +195,9 @@ func (i *Indexer) loadIndex(ctx context.Context) (err error) {
 		i.log.CDebugf(ctx, "Creating new index for user %s/%s",
 			session.Name, session.UID)
 
-		// TODO: add an html/md document parser to get rid of tags.
+		// Register a mapping for text files, so when we index text
+		// files we can mark them as such. TODO(HOTPOT-1488): add an
+		// html/md document parser to get rid of tags.
 		indexMapping := bleve.NewIndexMapping()
 		m := mapping.NewDocumentMapping()
 		indexMapping.AddDocumentMapping(textFileType, m)
@@ -272,6 +274,23 @@ func (i *Indexer) SyncModeChanged(
 
 var _ libkbfs.SyncedTlfObserver = (*Indexer)(nil)
 
+func (i *Indexer) fsForRev(
+	ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision) (*libfs.FS, error) {
+	if rev == kbfsmd.RevisionUninitialized {
+		return nil, errors.New("No revision provided")
+	}
+	branch := data.MakeRevBranchName(rev)
+
+	md, err := i.config.MDOps().GetForTLF(ctx, tlfID, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	h := md.GetTlfHandle()
+	return libfs.NewReadonlyFS(
+		ctx, i.config, h, branch, "", "", keybase1.MDPriorityNormal)
+}
+
 func (i *Indexer) loop(ctx context.Context) {
 	i.log.CDebugf(ctx, "Starting indexing loop")
 	defer i.log.CDebugf(ctx, "Ending index loop")
@@ -306,8 +325,26 @@ outerLoop:
 				i.log.CDebugf(ctx, "Resuming indexing while foregrounded")
 				continue
 			case m := <-i.tlfCh:
+				ctx := i.makeContext(ctx)
 				i.log.CDebugf(ctx, "Received TLF message for %s", m.tlfID)
-				// TODO(HOTPOT-1494, HOTPOT-1495): initiate processing pass.
+
+				// Figure out which revision to lock to, for this
+				// indexing scan.
+				var rev kbfsmd.Revision
+				if m.rev == kbfsmd.RevisionUninitialized {
+					// TODO(HOTPOT-1504) -- remove indexing if the
+					// mode is no longer synced.
+					continue
+				}
+
+				_, err := i.fsForRev(ctx, m.tlfID, rev)
+				if err != nil {
+					i.log.CDebugf(ctx, "Error making FS: %+v", err)
+					continue
+				}
+
+				// TODO(HOTPOT-1494, HOTPOT-1495): initiate processing
+				// pass, using the FS made above.
 			case <-ctx.Done():
 				return
 			}
