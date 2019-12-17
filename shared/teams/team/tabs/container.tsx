@@ -14,14 +14,19 @@ export default Container.connect(
   (state, {teamID, selectedTab, setSelectedTab}: OwnProps) => {
     const teamDetails = Constants.getTeamDetails(state, teamID)
     const yourOperations = Constants.getCanPerformByID(state, teamID)
+    const _bots = [...(teamDetails.members?.values() ?? [])].filter(
+      m => m.type === 'restrictedbot' || m.type === 'bot'
+    )
+    const _memberCount = teamDetails.memberCount - _bots.length
     return {
       admin: yourOperations.manageMembers,
+      botCount: _bots.length,
       loading: anyWaiting(
         state,
         Constants.teamWaitingKey(teamDetails.teamname),
         Constants.teamTarsWaitingKey(teamDetails.teamname)
       ),
-      memberCount: teamDetails.memberCount,
+      memberCount: _memberCount,
       newTeamRequests: state.teams.newTeamRequests,
       numInvites: teamDetails.invites?.size ?? 0,
       numRequests: teamDetails.requests?.size ?? 0,
@@ -37,6 +42,7 @@ export default Container.connect(
   (stateProps, _, ownProps) => {
     return {
       admin: stateProps.admin,
+      botCount: stateProps.botCount,
       loading: stateProps.loading,
       memberCount: stateProps.memberCount,
       newRequests: stateProps.newTeamRequests.get(ownProps.teamID) || 0,

@@ -13,6 +13,7 @@ import {
 type TeamTabsProps = {
   admin: boolean
   memberCount: number
+  botCount: number
   newRequests: number
   numInvites: number
   numRequests: number
@@ -57,7 +58,7 @@ const TeamTabs = (props: TeamTabsProps) => {
 
   tabs.push(
     <Box key="bots" style={styles.tabTextContainer}>
-      <TabText selected={props.selectedTab === 'bots'} text={`Bots (BOT NUMBER)`} />
+      <TabText selected={props.selectedTab === 'bots'} text={`Bots (${props.botCount})`} />
     </Box>
   )
 
