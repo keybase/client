@@ -96,6 +96,14 @@ const MenuLayout = (props: MenuLayoutProps) => {
     x ? x !== 'Divider' : false
   )
   const beginningDivider = props.items[0] === 'Divider'
+  // if we set it to numItems * itemContainerHeight exactly, the scrollview
+  // shrinks by 2px for some reason, which undermines alwaysBounceVertical={false}
+  // Add 2px to compensate unless there's a single item with a subTitle, then, we need 16px
+  const height = Math.min(
+    menuItemsNoDividers.length * 56 +
+      (menuItemsNoDividers.length === 1 && !!menuItemsNoDividers[0].subTitle ? 16 : 2),
+    isLargeScreen ? 500 : 350
+  )
 
   return (
     <NativeSafeAreaView
@@ -115,13 +123,7 @@ const MenuLayout = (props: MenuLayoutProps) => {
         {beginningDivider && <Divider />}
         <ScrollView
           alwaysBounceVertical={false}
-          style={Styles.collapseStyles([
-            styles.scrollView,
-            // if we set it to numItems * itemContainerHeight exactly, the scrollview
-            // shrinks by 2px for some reason, which undermines alwaysBounceVertical={false}
-            // Add 2px to compensate
-            {height: Math.min(menuItemsNoDividers.length * 56 + 2, isLargeScreen ? 500 : 350)},
-          ])}
+          style={Styles.collapseStyles([styles.scrollView, {height}])}
           contentContainerStyle={styles.menuGroup}
         >
           {menuItemsNoDividers.map((mi, idx) => (
