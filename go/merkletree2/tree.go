@@ -155,7 +155,12 @@ func (n *Node) CodecEncodeSelf(e *codec.Encoder) {
 	// This is so we can represent a tree with no values as a single (empty)
 	// leaf node.
 	e.MustEncode(NodeTypeLeaf)
-	e.MustEncode(n.LeafHashes)
+	// encode empty slices and nil slices equally
+	if len(n.LeafHashes) == 0 {
+		e.MustEncode([]KeyHashPair(nil))
+	} else {
+		e.MustEncode(n.LeafHashes)
+	}
 }
 
 func (n *Node) CodecDecodeSelf(d *codec.Decoder) {
