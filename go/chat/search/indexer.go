@@ -45,6 +45,7 @@ type Indexer struct {
 	startSyncDelay        time.Duration
 	selectiveSyncActiveMu sync.Mutex
 	selectiveSyncActive   bool
+	flushDelay            time.Duration
 
 	// for testing
 	consumeCh                            chan chat1.ConversationID
@@ -65,6 +66,7 @@ func NewIndexer(g *globals.Context) *Indexer {
 		cancelSyncCh: make(chan struct{}, 100),
 		pokeSyncCh:   make(chan struct{}, 100),
 		clock:        clockwork.NewRealClock(),
+		flushDelay:   15 * time.Second,
 	}
 	switch idx.G().GetAppType() {
 	case libkb.MobileAppType:
@@ -99,6 +101,25 @@ func (idx *Indexer) SetReindexCh(ch chan chat1.ConversationID) {
 
 func (idx *Indexer) SetSyncLoopCh(ch chan struct{}) {
 	idx.syncLoopCh = ch
+}
+
+func (idx *Indexer) SetUID(uid gregor1.UID) {
+	idx.uid = uid
+	idx.store = newStore(idx.G(), uid)
+}
+
+func (idx *Indexer) StartFlushLoop() {
+	idx.started = true
+	idx.eg.Go(func() error { return idx.flushLoop(idx.stopCh) })
+}
+
+func (idx *Indexer) StartSyncLoop() {
+	idx.started = true
+	idx.eg.Go(func() error { return idx.SyncLoop(idx.stopCh) })
+}
+
+func (idx *Indexer) SetFlushDelay(dur time.Duration) {
+	idx.flushDelay = dur
 }
 
 func (idx *Indexer) Start(ctx context.Context, uid gregor1.UID) {
@@ -312,12 +333,12 @@ func (idx *Indexer) flushLoop(stopCh chan struct{}) error {
 	ctx := context.Background()
 	for {
 		select {
-		case <-idx.clock.After(30 * time.Second):
+		case <-stopCh:
+			return nil
+		case <-idx.clock.After(idx.flushDelay):
 			if err := idx.store.Flush(); err != nil {
 				idx.Debug(ctx, "flushLoop: failed to flush: %s", err)
 			}
-		case <-stopCh:
-			return nil
 		}
 	}
 }
@@ -718,7 +739,8 @@ func (idx *Indexer) PercentIndexed(ctx context.Context, convID chat1.Conversatio
 	return md.PercentIndexed(conv.Conv), nil
 }
 
-func (idx *Indexer) OnDbNuke(mctx libkb.MetaContext) error {
+func (idx *Indexer) OnDbNuke(mctx libkb.MetaContext) (err error) {
+	defer idx.Trace(mctx.Ctx(), func() error { return err }, "Indexer.OnDbNuke")()
 	idx.store.ClearMemory()
 	return nil
 }

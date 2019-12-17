@@ -249,6 +249,9 @@ func (s *searchSession) convFullyIndexed(ctx context.Context, conv chat1.Convers
 }
 
 func (s *searchSession) updateInboxIndex(ctx context.Context, conv chat1.Conversation) {
+	if err := s.indexer.store.Flush(); err != nil {
+		s.indexer.Debug(ctx, "updateInboxIndex: failed to flush: %s", err)
+	}
 	md, err := s.indexer.store.GetMetadata(ctx, conv.GetConvID())
 	if err != nil {
 		s.indexer.Debug(ctx, "updateInboxIndex: unable to GetMetadata %v", err)

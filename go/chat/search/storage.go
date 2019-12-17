@@ -81,6 +81,7 @@ type diskStorage interface {
 	GetMetadata(ctx context.Context, convID chat1.ConversationID) (res *indexMetadata, err error)
 	PutMetadata(ctx context.Context, convID chat1.ConversationID, md *indexMetadata) error
 	Flush() error
+	Cancel()
 }
 
 type tokenBatch struct {
@@ -274,6 +275,9 @@ func (b *batchingStore) Flush() (err error) {
 
 	b.flushMu.Lock()
 	defer b.flushMu.Unlock()
+	if len(tokenBatch) == 0 && len(aliasBatch) == 0 && len(mdBatch) == 0 {
+		return nil
+	}
 	b.Debug(ctx, "Flush: flushing tokens from %d convs", len(tokenBatch))
 	for _, tokenBatch := range tokenBatch {
 		b.Debug(ctx, "Flush: flushing %d tokens from %s", len(tokenBatch.tokens), tokenBatch.convID)
@@ -299,11 +303,19 @@ func (b *batchingStore) Flush() (err error) {
 	}
 	b.Debug(ctx, "Flush: flushing %d conv metadata", len(mdBatch))
 	for _, mdBatch := range mdBatch {
+		b.Debug(ctx, "Flush: flushing md from %s", mdBatch.convID)
 		if err := b.mdb.PutObjMsgpack(metadataKey(b.uid, mdBatch.convID), nil, mdBatch.md); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+func (b *batchingStore) Cancel() {
+	defer b.Trace(context.Background(), func() error { return nil }, "Cancel")()
+	b.Lock()
+	defer b.Unlock()
+	b.resetLocked()
 }
 
 type store struct {
@@ -710,13 +722,16 @@ func (s *store) Add(ctx context.Context, convID chat1.ConversationID,
 		return supersededMsgs
 	}
 
+	modified := false
 	md, err := s.GetMetadata(ctx, convID)
 	if err != nil {
 		s.Debug(ctx, "failed to get metadata: %s", err)
 		return err
 	}
 	defer func() {
-		s.diskStorage.PutMetadata(ctx, convID, md)
+		if modified {
+			s.diskStorage.PutMetadata(ctx, convID, md)
+		}
 	}()
 	for _, msg := range msgs {
 		seenIDs := md.SeenIDs
@@ -724,6 +739,7 @@ func (s *store) Add(ctx context.Context, convID chat1.ConversationID,
 		if _, ok := seenIDs[msg.GetMessageID()]; ok {
 			continue
 		}
+		modified = true
 		seenIDs[msg.GetMessageID()] = chat1.EmptyStruct{}
 		// NOTE DELETE and DELETEHISTORY are handled through calls to `remove`,
 		// other messages will be added if there is any content that can be
@@ -776,25 +792,30 @@ func (s *store) Remove(ctx context.Context, convID chat1.ConversationID,
 		return err
 	}
 
+	modified := false
 	seenIDs := md.SeenIDs
 	for _, msg := range msgs {
 		// Don't remove if we haven't seen
 		if _, ok := seenIDs[msg.GetMessageID()]; !ok {
 			continue
 		}
+		modified = true
 		seenIDs[msg.GetMessageID()] = chat1.EmptyStruct{}
 		err := s.removeMsg(ctx, convID, msg)
 		if err != nil {
 			return err
 		}
 	}
-	return s.diskStorage.PutMetadata(ctx, convID, md)
+	if modified {
+		return s.diskStorage.PutMetadata(ctx, convID, md)
+	}
+	return nil
 }
 
 func (s *store) ClearMemory() {
 	s.aliasCache.Purge()
 	s.tokenCache.Purge()
-	_ = s.diskStorage.Flush()
+	s.diskStorage.Cancel()
 }
 
 func (s *store) Flush() error {
