@@ -1,8 +1,9 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import {typeToLabel} from '../../../../constants/teams'
+import {isLargeScreen} from '../../../../constants/platform'
 import {MemberStatus, TeamRoleType} from '../../../../constants/types/teams'
+import BotMenu from './bot-menu'
 
 export type Props = {
   botAlias: string
@@ -25,6 +26,12 @@ export type Props = {
 
 export const TeamBotRow = (props: Props) => {
   let descriptionLabel
+  let menuRef = React.useRef<Kb.Box>(null)
+  const [showMenu, setShowMenu] = React.useState(false)
+
+  const _getAttachmentRef = () => menuRef.current
+  const _onShowMenu = () => setShowMenu(true)
+  const _onHideMenu = () => setShowMenu(false)
   const active = props.status === 'active'
   if (props.description.length > 0) {
     descriptionLabel = (
@@ -59,16 +66,30 @@ export const TeamBotRow = (props: Props) => {
   return (
     <Kb.Box style={Styles.collapseStyles([styles.container, !active && styles.containerReset])}>
       <Kb.Box style={styles.innerContainerTop}>
-        <Kb.ClickableBox
-          style={styles.clickable}
-          onClick={active ? props.onClick : props.status === 'deleted' ? undefined : props.onShowTracker}
-        >
+        <Kb.Box style={styles.clickable}>
           <Kb.Avatar username={props.username} size={Styles.isMobile ? 48 : 32} />
           <Kb.Box style={styles.nameContainer}>
             <Kb.Box style={Styles.globalStyles.flexBoxRow}>{usernameDisplay}</Kb.Box>
             <Kb.Box style={styles.nameContainerInner}>{descriptionLabel}</Kb.Box>
           </Kb.Box>
-        </Kb.ClickableBox>
+        </Kb.Box>
+        <Kb.Box style={styles.menuIconContainer} ref={menuRef}>
+          {(active || isLargeScreen) && (
+            // Desktop & mobile large screen - display on the far right of the first row
+            // Also when user is active
+            <Kb.Icon
+              onClick={_onShowMenu}
+              style={
+                Styles.isMobile
+                  ? Styles.collapseStyles([styles.menuButtonMobile, styles.menuButtonMobileSmallTop])
+                  : styles.menuButtonDesktop
+              }
+              fontSize={Styles.isMobile ? 20 : 16}
+              type="iconfont-ellipsis"
+            />
+          )}
+          <BotMenu attachTo={_getAttachmentRef} visible={showMenu} onHidden={_onHideMenu} />
+        </Kb.Box>
       </Kb.Box>
     </Kb.Box>
   )
@@ -76,20 +97,20 @@ export const TeamBotRow = (props: Props) => {
 
 const styles = Styles.styleSheetCreate(() => ({
   buttonBarContainer: {...Styles.globalStyles.flexBoxRow, flexShrink: 1},
-  chatButtonDesktop: {
+  menuButtonDesktop: {
     marginLeft: Styles.globalMargins.small,
     marginRight: Styles.globalMargins.tiny,
     padding: Styles.globalMargins.tiny,
   },
-  chatButtonMobile: {
+  menuButtonMobile: {
     position: 'absolute',
     right: 16,
     top: 24,
   },
-  chatButtonMobileSmallTop: {
+  menuButtonMobileSmallTop: {
     top: 12,
   },
-  chatIconContainer: {
+  menuIconContainer: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
     flexShrink: 1,

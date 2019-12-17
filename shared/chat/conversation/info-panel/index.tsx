@@ -5,12 +5,12 @@ import * as Kb from '../../../common-adapters'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 import flags from '../../../util/feature-flags'
-import {Props as HeaderHocProps} from '../../../common-adapters/header-hoc/types'
-import {AdhocHeader, TeamHeader} from './header'
-import {SettingsPanel} from './panels'
+import { Props as HeaderHocProps } from '../../../common-adapters/header-hoc/types'
+import { AdhocHeader, TeamHeader } from './header'
+import { SettingsPanel } from './panels'
 import Participant from './participant'
 import Bot from './bot'
-import {AttachmentTypeSelector, DocView, LinkView, MediaView} from './attachments'
+import { AttachmentTypeSelector, DocView, LinkView, MediaView } from './attachments'
 
 export type Panel = 'settings' | 'members' | 'attachments' | 'bots'
 export type ParticipantTyp = {
@@ -23,7 +23,7 @@ export type ParticipantTyp = {
 export type EntityType = 'adhoc' | 'small team' | 'channel'
 export type Section = {
   data: Array<any>
-  renderItem: (i: {item: any; index: number}) => void
+  renderItem: (i: { item: any; index: number }) => void
   renderSectionHeader: (i: any) => void
 }
 
@@ -134,7 +134,7 @@ export type InfoPanelProps = {
   onLoadMoreBots: () => void
 } & HeaderHocProps
 
-const TabText = ({selected, text}: {selected: boolean; text: string}) => (
+const TabText = ({ selected, text }: { selected: boolean; text: string }) => (
   <Kb.Text type="BodySmallSemibold" style={selected ? styles.tabTextSelected : undefined}>
     {text}
   </Kb.Text>
@@ -187,10 +187,7 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
     if (entityType !== 'adhoc') {
       res.push(
         <Kb.Box2 key="members" style={styles.tabTextContainer} direction="horizontal">
-          <TabText
-            selected={this.isSelected('members')}
-            text={`Members (${this.props.participants.length})`}
-          />
+          <TabText selected={this.isSelected('members')} text="Members" />
         </Kb.Box2>
       )
     }
@@ -202,10 +199,7 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
     if (flags.botUI) {
       res.push(
         <Kb.Box2 key="bots" style={styles.tabTextContainer} direction="horizontal">
-          <TabText
-            selected={this.isSelected('bots')}
-            text={this.props.bots.length > 0 ? `Bots (${this.props.bots.length})` : 'Bots'}
-          />
+          <TabText selected={this.isSelected('bots')} text="Bots" />
         </Kb.Box2>
       )
     }
@@ -251,11 +245,11 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
             description={this.props.description}
           />
         ) : (
-          <AdhocHeader
-            onShowNewTeamDialog={this.props.onShowNewTeamDialog}
-            participants={this.props.participants}
-          />
-        )}
+            <AdhocHeader
+              onShowNewTeamDialog={this.props.onShowNewTeamDialog}
+              participants={this.props.participants}
+            />
+          )}
       </Kb.Box2>
     )
     return header
@@ -311,8 +305,8 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
     }
   }
 
-  private renderSectionHeader = ({section}: any) => {
-    return section.renderSectionHeader({section})
+  private renderSectionHeader = ({ section }: any) => {
+    return section.renderSectionHeader({ section })
   }
 
   render() {
@@ -326,7 +320,7 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
       return (
         <Kb.Box2
           direction="vertical"
-          style={Styles.collapseStyles([styles.container, {alignItems: 'center'}])}
+          style={Styles.collapseStyles([styles.container, { alignItems: 'center' }])}
           fullWidth={true}
           centerChildren={true}
         >
@@ -367,7 +361,7 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
           tabsSection.data.push(auditingBannerItem)
         }
         tabsSection.data = tabsSection.data.concat(this.props.participants)
-        tabsSection.renderItem = ({item}) => {
+        tabsSection.renderItem = ({ item }) => {
           if (item === auditingBannerItem) {
             return (
               <Kb.Banner color="grey" small={true}>
@@ -449,7 +443,7 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
         if (!this.props.loadedAllBots) {
           tabsSection.data.push(loadMoreBotsButton)
         }
-        tabsSection.renderItem = ({item}) => {
+        tabsSection.renderItem = ({ item }) => {
           if (item === addBotButton) {
             return (
               <Kb.Button
@@ -528,7 +522,7 @@ const styles = Styles.styleSheetCreate(
         marginTop: Styles.globalMargins.tiny,
       },
       container: Styles.platformStyles({
-        common: {alignItems: 'stretch', flex: 1, paddingBottom: Styles.globalMargins.tiny},
+        common: { alignItems: 'stretch', flex: 1, paddingBottom: Styles.globalMargins.tiny },
         isElectron: {
           backgroundColor: Styles.globalColors.white,
           borderLeft: `1px solid ${Styles.globalColors.black_10}`,
@@ -556,10 +550,10 @@ const styles = Styles.styleSheetCreate(
           whiteSpace: 'nowrap',
         },
       }),
-      tabTextSelected: {color: Styles.globalColors.black},
+      tabTextSelected: { color: Styles.globalColors.black },
     } as const)
 )
 
 const InfoPanel = Kb.HeaderOnMobile(_InfoPanel)
 
-export {InfoPanel}
+export { InfoPanel }

@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/teams'
 import {Badge, Box, Icon, ProgressIndicator, Tabs, Text} from '../../../common-adapters'
+import flags from '../../../util/feature-flags'
 import {
   globalColors,
   globalMargins,
@@ -12,8 +13,6 @@ import {
 
 type TeamTabsProps = {
   admin: boolean
-  memberCount: number
-  botCount: number
   newRequests: number
   numInvites: number
   numRequests: number
@@ -35,10 +34,7 @@ const TabText = ({selected, text}: {selected: boolean; text: string}) => (
 const TeamTabs = (props: TeamTabsProps) => {
   const tabs = [
     <Box key="members" style={styles.tabTextContainer}>
-      <TabText
-        selected={props.selectedTab === 'members'}
-        text={props.memberCount === -1 ? 'Members' : `Members (${props.memberCount})`}
-      />
+      <TabText selected={props.selectedTab === 'members'} text="Members" />
       {!!props.resetUserCount && <Badge badgeNumber={props.resetUserCount} badgeStyle={styles.badge} />}
     </Box>,
   ]
@@ -57,11 +53,13 @@ const TeamTabs = (props: TeamTabsProps) => {
     )
   }
 
-  tabs.push(
-    <Box key="bots" style={styles.tabTextContainer}>
-      <TabText selected={props.selectedTab === 'bots'} text={`Bots (${props.botCount})`} />
-    </Box>
-  )
+  if (flags.botUI) {
+    tabs.push(
+      <Box key="bots" style={styles.tabTextContainer}>
+        <TabText selected={props.selectedTab === 'bots'} text="Bots" />
+      </Box>
+    )
+  }
 
   if (props.numSubteams > 0 || props.showSubteams) {
     tabs.push(
