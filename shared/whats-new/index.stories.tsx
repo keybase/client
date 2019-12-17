@@ -317,41 +317,39 @@ const load = () => {
       </WhatsNewWrapper>
     ))
 
-  Sb.storiesOf("What's New/Update Available", module)
-    .add('Update Available (Darwin/Windows)', () => (
-      <Kb.Box2 direction="horizontal" gap="small">
-        <WhatsNewWrapper>
-          <WhatsNew
-            {...commonProps}
-            updateAvailable={true}
-            Current={Current}
-            Last={Last}
-            LastLast={LastLast}
-            seenVersions={{
-              [currentVersion]: false,
-              [lastLastVersion]: false,
-              [lastVersion]: false,
-            }}
-          />
-        </WhatsNewWrapper>
-        <WhatsNewWrapper>
-          <WhatsNew
-            {...commonProps}
-            updateAvailable={true}
-            updateMessage="Update Keybase via your local package manager"
-            Current={Current}
-            Last={Last}
-            LastLast={LastLast}
-            seenVersions={{
-              [currentVersion]: true,
-              [lastLastVersion]: true,
-              [lastVersion]: true,
-            }}
-          />
-        </WhatsNewWrapper>
-      </Kb.Box2>
-    ))
-    .add('Update Available (Linux)', () => null)
+  Sb.storiesOf("What's New/Update Available", module).add('Update Available', () => (
+    <Kb.Box2 direction="horizontal" gap="small">
+      <WhatsNewWrapper>
+        <WhatsNew
+          {...commonProps}
+          updateAvailable={true}
+          Current={Current}
+          Last={Last}
+          LastLast={LastLast}
+          seenVersions={{
+            [currentVersion]: false,
+            [lastLastVersion]: false,
+            [lastVersion]: false,
+          }}
+        />
+      </WhatsNewWrapper>
+      <WhatsNewWrapper>
+        <WhatsNew
+          {...commonProps}
+          updateAvailable={true}
+          updateMessage="Update Keybase via your local package manager"
+          Current={Current}
+          Last={Last}
+          LastLast={LastLast}
+          seenVersions={{
+            [currentVersion]: true,
+            [lastLastVersion]: true,
+            [lastVersion]: true,
+          }}
+        />
+      </WhatsNewWrapper>
+    </Kb.Box2>
+  ))
 }
 
 const modalWidth = 284

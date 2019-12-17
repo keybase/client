@@ -105,7 +105,6 @@ class ModalView extends React.PureComponent<NavigationViewProps<any>> {
     const appDescriptor = this.props.descriptors[appKey]
 
     // TODO we might want all the click handling / grey background stuff handled by the routing
-    console.log('JRY OutOfDate', OutOfDate)
     return (
       <>
         <SceneView

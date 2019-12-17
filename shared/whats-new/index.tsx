@@ -135,7 +135,7 @@ class WhatsNew extends React.PureComponent<Props> {
     } = this.props
     return (
       <Kb.Box2 direction="vertical">
-        {updateAvailable && (
+        {updateAvailable && !Styles.isMobile && (
           <UpdateAvailableBanner
             message={updateMessage}
             onUpdateStart={onUpdateStart}
