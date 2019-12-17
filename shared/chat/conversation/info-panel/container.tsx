@@ -1,5 +1,6 @@
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as FsGen from '../../../actions/fs-gen'
+import * as BotsGen from '../../../actions/bots-gen'
 import * as Constants from '../../../constants/chat2'
 import * as TeamConstants from '../../../constants/teams'
 import * as React from 'react'
@@ -11,7 +12,9 @@ import * as Container from '../../../util/container'
 import {createShowUserProfile} from '../../../actions/profile-gen'
 import * as Kb from '../../../common-adapters'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
+import * as RPCTypes from '../../../constants/types/rpc-gen'
 import * as TeamTypes from '../../../constants/types/teams'
+import flags from '../../../util/feature-flags'
 
 // TODO this container does a ton of stuff for the various tabs. Really the tabs should be connected
 // and this thing is just a holder of tabs
@@ -68,18 +71,47 @@ const ConnectedInfoPanel = Container.connect(
     const attachmentsLoading = selectedTab === 'attachments' && attachmentInfo.status === 'loading'
     const _teamMembers =
       state.teams.teamNameToMembers.get(meta.teamname) || new Map<string, TeamTypes.MemberInfo>()
+    const featuredBots = state.chat2.featuredBotsMap
+
+    const _botUsernames = meta.participants.filter(
+      // If we're in an adhoc team, get bots by finding participants not in nameParticipants
+      p =>
+        meta.teamType == 'adhoc'
+          ? !meta.nameParticipants.includes(p)
+          : TeamConstants.userIsRoleInTeamWithInfo(_teamMembers, p, 'restrictedbot') ||
+            TeamConstants.userIsRoleInTeamWithInfo(_teamMembers, p, 'bot')
+    )
+
+    const _participants = flags.botUI
+      ? meta.participants.filter(p => !_botUsernames.includes(p))
+      : meta.participants
+    const bots: Array<RPCTypes.FeaturedBot> = _botUsernames.map(
+      b =>
+        featuredBots.get(b) ?? {
+          botAlias: meta.botAliases[b] ?? (state.users.infoMap.get(b) || {fullname: ''}).fullname,
+          botUsername: b,
+          description: state.users.infoMap.get(b)?.bio ?? '',
+        }
+    )
+
+    const availableBots = Array.from(featuredBots.entries())
+      .filter(([k, _]) => !_botUsernames.includes(k))
+      .map(([_, v]) => v)
+
     return {
       _attachmentInfo: attachmentInfo,
-      _botAliases: meta.botAliases,
+      _botUsernames,
       _fromMsgID: getFromMsgID(attachmentInfo),
       _infoMap: state.users.infoMap,
       _participantToContactName: meta.participantToContactName,
-      _participants: meta.participants,
+      _participants: _participants,
       _team: meta.teamname,
       _teamMembers,
       _username: state.config.username,
       admin,
       attachmentsLoading,
+      availableBots,
+      bots,
       canDeleteHistory,
       canEditChannel,
       canSetMinWriterRole,
@@ -88,6 +120,7 @@ const ConnectedInfoPanel = Container.connect(
       description: meta.descriptionDecorated,
       ignored: meta.status === RPCChatTypes.ConversationStatus.ignored,
       isPreview,
+      loadedAllBots: state.chat2.featuredBotsLoaded,
       selectedAttachmentView,
       selectedConversationIDKey: conversationIDKey,
       selectedTab,
@@ -157,6 +190,8 @@ const ConnectedInfoPanel = Container.connect(
     onHideConv: () => dispatch(Chat2Gen.createHideConversation({conversationIDKey})),
     onJoinChannel: () => dispatch(Chat2Gen.createJoinConversation({conversationIDKey})),
     onLeaveConversation: () => dispatch(Chat2Gen.createLeaveConversation({conversationIDKey})),
+    onLoadMoreBots: () => dispatch(Chat2Gen.createLoadNextBotPage({pageSize: 6})),
+    onSearchFeaturedBots: (query: string) => dispatch(BotsGen.createSearchFeaturedBots({query})),
     onShowNewTeamDialog: () => {
       dispatch(
         RouteTreeGen.createNavigateAppend({
@@ -174,6 +209,7 @@ const ConnectedInfoPanel = Container.connect(
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     let participants = stateProps._participants
+    const botUsernames = stateProps._botUsernames
     const teamMembers = stateProps._teamMembers
     const isGeneral = stateProps.channelname === 'general'
     const showAuditingBanner = isGeneral && !teamMembers
@@ -186,10 +222,16 @@ const ConnectedInfoPanel = Container.connect(
         l.push(mi.username)
         return l
       }, [])
+
+      if (flags.botUI) {
+        participants = participants.filter(p => !botUsernames.includes(p))
+      }
     }
     return {
       admin: stateProps.admin,
       attachmentsLoading: stateProps.attachmentsLoading,
+      availableBots: stateProps.availableBots,
+      bots: stateProps.bots,
       canDeleteHistory: stateProps.canDeleteHistory,
       canEditChannel: stateProps.canEditChannel,
       canSetMinWriterRole: stateProps.canSetMinWriterRole,
@@ -269,6 +311,7 @@ const ConnectedInfoPanel = Container.connect(
             }
           : noLinks,
       loadDelay: ownProps.loadDelay,
+      loadedAllBots: stateProps.loadedAllBots,
       media:
         stateProps.selectedAttachmentView === RPCChatTypes.GalleryItemTyp.media
           ? {
@@ -298,6 +341,8 @@ const ConnectedInfoPanel = Container.connect(
       onHideConv: dispatchProps.onHideConv,
       onJoinChannel: dispatchProps.onJoinChannel,
       onLeaveConversation: dispatchProps.onLeaveConversation,
+      onLoadMoreBots: dispatchProps.onLoadMoreBots,
+      onSearchFeaturedBots: dispatchProps.onSearchFeaturedBots,
       onSelectTab: ownProps.onSelectTab,
       onShowBlockConversationDialog: membersForBlock.length
         ? () => dispatchProps._onShowBlockConversationDialog(membersForBlock, stateProps._team)
@@ -308,7 +353,6 @@ const ConnectedInfoPanel = Container.connect(
       onUnhideConv: dispatchProps.onUnhideConv,
       participants: participants
         .map(p => ({
-          botAlias: stateProps._botAliases[p] || '',
           fullname:
             (stateProps._infoMap.get(p) || {fullname: ''}).fullname ||
             stateProps._participantToContactName.get(p) ||

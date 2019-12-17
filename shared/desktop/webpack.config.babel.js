@@ -156,6 +156,9 @@ const config = (_, {mode}) => {
                       inline: 2,
                       warnings: false,
                     },
+                    keep_fnames: true,
+                    keep_classnames: true,
+                    mangle: false,
                     output: {
                       comments: false,
                     },

@@ -1163,7 +1163,14 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 					gregor1.FromTime(unboxedMsg.Valid().MessageBody.Text().LiveLocation.EndTime))
 			}
 		}
-		go s.G().JourneyCardManager.SentMessage(globals.BackgroundChatCtx(ctx, s.G()), sender, convID)
+		if conv.GetMembersType() == chat1.ConversationMembersType_TEAM {
+			teamID, err := keybase1.TeamIDFromString(conv.Info.Triple.Tlfid.String())
+			if err != nil {
+				s.Debug(ctx, "Send: failed to get team ID: %v", err)
+			} else {
+				go s.G().JourneyCardManager.SentMessage(globals.BackgroundChatCtx(ctx, s.G()), sender, teamID, convID)
+			}
+		}
 	}
 	return nil, boxed, nil
 }
@@ -1384,11 +1391,14 @@ func (s *Deliverer) Queue(ctx context.Context, convID chat1.ConversationID, msg 
 
 	// Alert the deliver loop it should wake up
 	s.msgSentCh <- struct{}{}
-	update := []chat1.LocalMtimeUpdate{{ConvID: convID, Mtime: obr.Ctime}}
-	if err := s.G().InboxSource.UpdateLocalMtime(ctx, s.outbox.GetUID(), update); err != nil {
-		s.Debug(ctx, "Queue: unable to update local mtime", obr.Ctime)
+	// Only update mtime badgable messages
+	if obr.Msg.IsBadgableType() {
+		update := []chat1.LocalMtimeUpdate{{ConvID: convID, Mtime: obr.Ctime}}
+		if err := s.G().InboxSource.UpdateLocalMtime(ctx, s.outbox.GetUID(), update); err != nil {
+			s.Debug(ctx, "Queue: unable to update local mtime", obr.Ctime)
+		}
+		s.G().InboxSource.NotifyUpdate(ctx, s.outbox.GetUID(), convID)
 	}
-	s.G().InboxSource.NotifyUpdate(ctx, s.outbox.GetUID(), convID)
 	return obr, nil
 }
 

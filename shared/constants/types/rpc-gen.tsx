@@ -635,6 +635,14 @@ export type MessageTypes = {
     inParam: {readonly folder: FolderHandle}
     outParam: void
   }
+  'keybase.1.featuredBot.featuredBots': {
+    inParam: {readonly limit: Int; readonly offset: Int}
+    outParam: FeaturedBotsRes
+  }
+  'keybase.1.featuredBot.search': {
+    inParam: {readonly query: String; readonly limit: Int; readonly offset: Int}
+    outParam: SearchRes
+  }
   'keybase.1.git.createPersonalRepo': {
     inParam: {readonly repoName: GitRepoName}
     outParam: RepoID
@@ -2571,7 +2579,7 @@ export type DeviceEkMetadata = {readonly kid: KID; readonly hashMeta: HashMeta; 
 export type DeviceEkStatement = {readonly currentDeviceEkMetadata: DeviceEkMetadata}
 export type DeviceID = String
 export type DirSizeInfo = {readonly numFiles: Int; readonly name: String; readonly humanSize: String}
-export type Dirent = {readonly time: Time; readonly size: Int; readonly name: String; readonly direntType: DirentType; readonly lastWriterUnverified: User; readonly writable: Boolean; readonly prefetchStatus: PrefetchStatus; readonly prefetchProgress: PrefetchProgress}
+export type Dirent = {readonly time: Time; readonly size: Int; readonly name: String; readonly direntType: DirentType; readonly lastWriterUnverified: User; readonly writable: Boolean; readonly prefetchStatus: PrefetchStatus; readonly prefetchProgress: PrefetchProgress; readonly symlinkTarget: String}
 export type DirentWithRevision = {readonly entry: Dirent; readonly revision: KBFSRevision}
 export type DismissReason = {readonly type: DismissReasonType; readonly reason: String; readonly resource: String}
 export type DownPointer = {readonly id: TeamID; readonly nameComponent: String; readonly isDeleted: Boolean}
@@ -2898,7 +2906,7 @@ export type SocialAssertionService = String
 export type StartProofResult = {readonly sigID: SigID}
 export type StartStatus = {readonly log: String}
 export type Status = {readonly code: Int; readonly name: String; readonly desc: String; readonly fields?: Array<StringKVPair> | null}
-export type StellarAccount = {readonly accountID: String; readonly federationAddress: String; readonly sigID: SigID}
+export type StellarAccount = {readonly accountID: String; readonly federationAddress: String; readonly sigID: SigID; readonly hidden: Boolean}
 export type Stream = {readonly fd: Int}
 export type StringKVPair = {readonly key: String; readonly value: String}
 export type SubteamListEntry = {readonly name: TeamName; readonly teamID: TeamID; readonly memberCount: Int}
@@ -3014,7 +3022,7 @@ export type UserBlockState = {readonly blockType: UserBlockType; readonly blocke
 export type UserBlockedBody = {readonly blocks?: Array<UserBlockedRow> | null; readonly uid: UID; readonly username: String}
 export type UserBlockedRow = {readonly uid: UID; readonly username: String; readonly chat?: Boolean | null; readonly follow?: Boolean | null}
 export type UserBlockedSummary = {readonly blocker: String; readonly blocks: {[key: string]: Array<UserBlockState> | null}}
-export type UserCard = {readonly following: Int; readonly followers: Int; readonly uid: UID; readonly fullName: String; readonly location: String; readonly bio: String; readonly bioDecorated: String; readonly website: String; readonly twitter: String; readonly youFollowThem: Boolean; readonly theyFollowYou: Boolean; readonly teamShowcase?: Array<UserTeamShowcase> | null; readonly registeredForAirdrop: Boolean; readonly blocked: Boolean; readonly hidFromFollowers: Boolean}
+export type UserCard = {readonly following: Int; readonly followers: Int; readonly uid: UID; readonly fullName: String; readonly location: String; readonly bio: String; readonly bioDecorated: String; readonly website: String; readonly twitter: String; readonly youFollowThem: Boolean; readonly theyFollowYou: Boolean; readonly teamShowcase?: Array<UserTeamShowcase> | null; readonly registeredForAirdrop: Boolean; readonly stellarHidden: Boolean; readonly blocked: Boolean; readonly hidFromFollowers: Boolean}
 export type UserEk = {readonly seed: Bytes32; readonly metadata: UserEkMetadata}
 export type UserEkBoxMetadata = {readonly box: String; readonly recipientGeneration: EkGeneration; readonly recipientDeviceID: DeviceID}
 export type UserEkBoxed = {readonly box: String; readonly deviceEkGeneration: EkGeneration; readonly metadata: UserEkMetadata}
@@ -3408,6 +3416,8 @@ export const emailsSetPrimaryEmailRpcPromise = (params: MessageTypes['keybase.1.
 export const emailsSetVisibilityEmailRpcPromise = (params: MessageTypes['keybase.1.emails.setVisibilityEmail']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.emails.setVisibilityEmail']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.emails.setVisibilityEmail', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const favoriteFavoriteAddRpcPromise = (params: MessageTypes['keybase.1.favorite.favoriteAdd']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.favorite.favoriteAdd']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.favorite.favoriteAdd', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const favoriteFavoriteIgnoreRpcPromise = (params: MessageTypes['keybase.1.favorite.favoriteIgnore']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.favorite.favoriteIgnore']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.favorite.favoriteIgnore', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const featuredBotFeaturedBotsRpcPromise = (params: MessageTypes['keybase.1.featuredBot.featuredBots']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.featuredBot.featuredBots']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.featuredBot.featuredBots', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const featuredBotSearchRpcPromise = (params: MessageTypes['keybase.1.featuredBot.search']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.featuredBot.search']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.featuredBot.search', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const gitCreatePersonalRepoRpcPromise = (params: MessageTypes['keybase.1.git.createPersonalRepo']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.git.createPersonalRepo']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.git.createPersonalRepo', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const gitCreateTeamRepoRpcPromise = (params: MessageTypes['keybase.1.git.createTeamRepo']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.git.createTeamRepo']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.git.createTeamRepo', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const gitDeletePersonalRepoRpcPromise = (params: MessageTypes['keybase.1.git.deletePersonalRepo']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.git.deletePersonalRepo']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.git.deletePersonalRepo', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -3587,8 +3597,6 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.emails.setVisibilityAllEmail'
 // 'keybase.1.emails.getEmails'
 // 'keybase.1.favorite.getFavorites'
-// 'keybase.1.featuredBot.featuredBots'
-// 'keybase.1.featuredBot.search'
 // 'keybase.1.fs.List'
 // 'keybase.1.git.putGitMetadata'
 // 'keybase.1.git.deleteGitMetadata'

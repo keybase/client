@@ -14,6 +14,7 @@ import (
 
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/ldbutils"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -60,13 +61,13 @@ var _ mdServerLocal = (*MDServerDisk)(nil)
 func newMDServerDisk(config mdServerLocalConfig, dirPath string,
 	shutdownFunc func(logger.Logger)) (*MDServerDisk, error) {
 	handlePath := filepath.Join(dirPath, "handles")
-	handleDb, err := leveldb.OpenFile(handlePath, leveldbOptions)
+	handleDb, err := leveldb.OpenFile(handlePath, ldbutils.LeveldbOptions(nil))
 	if err != nil {
 		return nil, err
 	}
 
 	branchPath := filepath.Join(dirPath, "branches")
-	branchDb, err := leveldb.OpenFile(branchPath, leveldbOptions)
+	branchDb, err := leveldb.OpenFile(branchPath, ldbutils.LeveldbOptions(nil))
 	if err != nil {
 		return nil, err
 	}

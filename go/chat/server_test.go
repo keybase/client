@@ -18,6 +18,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/chat/bots"
 	"github.com/keybase/client/go/kbhttp/manager"
 
@@ -996,13 +997,13 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 		case ibox := <-ui.InboxCb:
 			require.NotNil(t, ibox.InboxRes, "nil inbox")
 			require.Equal(t, numconvs, len(ibox.InboxRes.Items))
+			sort.Slice(ibox.InboxRes.Items, func(i, j int) bool {
+				return ibox.InboxRes.Items[i].Time.After(ibox.InboxRes.Items[j].Time)
+			})
 			for index, conv := range ibox.InboxRes.Items {
 				t.Logf("metadata snippet: index: %d snippet: %s time: %v", index, conv.LocalMetadata.Snippet,
 					conv.Time)
 			}
-			sort.Slice(ibox.InboxRes.Items, func(i, j int) bool {
-				return ibox.InboxRes.Items[i].Time.After(ibox.InboxRes.Items[j].Time)
-			})
 			for index, conv := range ibox.InboxRes.Items {
 				require.NotNil(t, conv.LocalMetadata)
 				switch mt {
@@ -1010,9 +1011,9 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 					if conv.ConvID == firstConv.Id.String() {
 						continue
 					}
-					require.Equal(t, fmt.Sprintf("%d", numconvs-index), conv.LocalMetadata.ChannelName)
+					require.Equal(t, fmt.Sprintf("%d", numconvs-index-1), conv.LocalMetadata.ChannelName)
 					require.Equal(t,
-						fmt.Sprintf("%s: %d", users[numconvs-index].Username, numconvs-index),
+						fmt.Sprintf("%s: %d", users[numconvs-index-1].Username, numconvs-index-1),
 						conv.LocalMetadata.Snippet)
 					require.Zero(t, len(conv.LocalMetadata.WriterNames))
 				default:
@@ -4828,7 +4829,17 @@ func TestChatSrvRetentionSweepConv(t *testing.T) {
 
 			tvres, err := ctc.as(t, users[1]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{ConversationID: conv.Id})
 			require.NoError(t, err)
-			require.Len(t, tvres.Thread.Messages, 1, "the TEXTs should be deleted")
+			t.Logf("messages: %v", chat1.MessageUnboxedDebugList(tvres.Thread.Messages))
+			for _, msg := range tvres.Thread.Messages {
+				if msg.IsJourneycard() {
+					continue
+				}
+				switch msg.GetMessageType() {
+				case chat1.MessageType_METADATA, chat1.MessageType_TLFNAME:
+					continue
+				}
+				require.FailNowf(t, "the TEXTs should be deleted", "%v, %v", chat1.MessageUnboxedDebugList(tvres.Thread.Messages), spew.Sdump(msg))
+			}
 
 			// If we are using an ephemeral policy make sure messages with a lifetime exceeding
 			// the policy age are blocked.

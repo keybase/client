@@ -279,6 +279,9 @@ const styles = Styles.styleSheetCreate(
         paddingTop: 2,
         position: 'absolute',
       },
+      checkbox: {
+        ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
+      },
       container: Styles.platformStyles({
         common: {
           backgroundColor: Styles.globalColors.white,
@@ -405,15 +408,7 @@ export const sendNotificationFooter = (
   checked: boolean,
   onCheck: (nextVal: boolean) => void
 ) => (
-  <Kb.Box2
-    direction="horizontal"
-    fullWidth={!Styles.isMobile}
-    style={{
-      paddingBottom: Styles.globalMargins.tiny,
-      paddingLeft: Styles.globalMargins.small,
-      paddingTop: Styles.globalMargins.tiny,
-    }}
-  >
+  <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.checkbox}>
     <Kb.Checkbox checked={checked} onCheck={onCheck} label={label} />
   </Kb.Box2>
 )

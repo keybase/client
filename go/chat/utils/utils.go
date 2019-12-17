@@ -2055,6 +2055,7 @@ func RemoteConv(conv chat1.Conversation) types.RemoteConversation {
 }
 
 func RemoteConvs(convs []chat1.Conversation) (res []types.RemoteConversation) {
+	res = make([]types.RemoteConversation, 0, len(convs))
 	for _, conv := range convs {
 		res = append(res, RemoteConv(conv))
 	}
@@ -2062,6 +2063,7 @@ func RemoteConvs(convs []chat1.Conversation) (res []types.RemoteConversation) {
 }
 
 func PluckConvs(rcs []types.RemoteConversation) (res []chat1.Conversation) {
+	res = make([]chat1.Conversation, 0, len(rcs))
 	for _, rc := range rcs {
 		res = append(res, rc.Conv)
 	}

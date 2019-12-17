@@ -2,6 +2,7 @@ export type FeatureFlags = {
   admin: boolean
   airdrop: boolean
   audioAttachments: boolean
+  botUI: boolean
   chatIndexProfilingEnabled: boolean
   connectThrashCheck: boolean
   dbCleanEnabled: boolean
@@ -10,7 +11,6 @@ export type FeatureFlags = {
   moveOrCopy: boolean
   newTeamBuildingForChatAllowMakeTeam: boolean
   outOfDateBanner: boolean
-  plansEnabled: boolean
   proofProviders: boolean
   stellarExternalPartners: boolean
   lagRadar: boolean
