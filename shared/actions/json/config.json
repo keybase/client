@@ -65,9 +65,6 @@
     "changedActive": {"userActive": "boolean"},
     "mobileAppState": {"nextAppState": ["'active'", "'background'", "'inactive'"]},
     "showMain": {},
-    "startupFirstIdle": {
-      "_description": "emitted when we have some idle time after loading. useful to load thing but not slow down startup"
-    },
     "bootstrapStatusLoaded": {
       "deviceID": "string",
       "deviceName": "string",
