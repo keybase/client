@@ -328,7 +328,7 @@ func (idx *Indexer) add(ctx context.Context, convID chat1.ConversationID, uid gr
 	if !idx.validBatch(msgs) {
 		return nil
 	}
-	if !force && !idx.hasPriority(ctx, uid, convID) {
+	if !(force || idx.hasPriority(ctx, uid, convID)) {
 		return nil
 	}
 
@@ -352,7 +352,7 @@ func (idx *Indexer) remove(ctx context.Context, convID chat1.ConversationID, uid
 	if !idx.validBatch(msgs) {
 		return nil
 	}
-	if !force && !idx.hasPriority(ctx, uid, convID) {
+	if !(force || idx.hasPriority(ctx, uid, convID)) {
 		return nil
 	}
 
@@ -478,8 +478,6 @@ func (idx *Indexer) allConvs(ctx context.Context, uid gregor1.UID, convID *chat1
 		},
 		SkipBgLoads: true,
 	}
-	// convID -> remoteConv
-	convMap := map[string]types.RemoteConversation{}
 	select {
 	case <-ctx.Done():
 		return nil, ctx.Err()
@@ -491,6 +489,8 @@ func (idx *Indexer) allConvs(ctx context.Context, uid gregor1.UID, convID *chat1
 		return nil, err
 	}
 
+	// convID -> remoteConv
+	convMap := make(map[string]types.RemoteConversation, len(inbox.ConvsUnverified))
 	for _, conv := range inbox.ConvsUnverified {
 		if conv.Conv.GetFinalizeInfo() != nil {
 			continue

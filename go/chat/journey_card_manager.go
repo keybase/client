@@ -455,8 +455,21 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 		}
 	}
 	if mostRecentPrev != 0 {
-		debugDebug(ctx, "selected most recent saved card: %v", mostRecentCardType)
-		return makeCard(mostRecentCardType, 0, true)
+		switch mostRecentCardType {
+		case chat1.JourneycardType_CHANNEL_INACTIVE, chat1.JourneycardType_MSG_NO_ANSWER:
+			// Special case for these card types. These cards are pointing out a lack of activity
+			// in a conv. Subsequent activity in the conv should dismiss them.
+			if cc.messageSince(ctx, mostRecentPrev, conv, thread, debugDebug) {
+				debugDebug(ctx, "dismissing most recent saved card: %v", mostRecentCardType)
+				go cc.Dismiss(globals.BackgroundChatCtx(ctx, cc.G()), teamID, convID, mostRecentCardType)
+			} else {
+				debugDebug(ctx, "selected most recent saved card: %v", mostRecentCardType)
+				return makeCard(mostRecentCardType, 0, true)
+			}
+		default:
+			debugDebug(ctx, "selected most recent saved card: %v", mostRecentCardType)
+			return makeCard(mostRecentCardType, 0, true)
+		}
 	}
 
 	debugDebug(ctx, "no card at end of checks")
@@ -729,6 +742,29 @@ func (cc *JourneyCardManagerSingleUser) timeSinceJoined(ctx context.Context, tea
 		return false
 	}
 	return cc.G().GetClock().Since(joinedTime.Time()) >= duration
+}
+
+func (cc *JourneyCardManagerSingleUser) messageSince(ctx context.Context, msgID chat1.MessageID,
+	conv convForJourneycard, thread *chat1.ThreadView, debugDebug logFn) bool {
+	for _, msg := range thread.Messages {
+		state, err := msg.State()
+		if err != nil {
+			continue
+		}
+		switch state {
+		case chat1.MessageUnboxedState_VALID, chat1.MessageUnboxedState_ERROR, chat1.MessageUnboxedState_PLACEHOLDER:
+			if msg.GetMessageID() > msgID {
+				return true
+			}
+		case chat1.MessageUnboxedState_OUTBOX:
+			return true
+		case chat1.MessageUnboxedState_JOURNEYCARD:
+		default:
+			debugDebug(ctx, "unrecognized message state: %v", state)
+			continue
+		}
+	}
+	return false
 }
 
 // The user has sent a message.
