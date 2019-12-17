@@ -40,6 +40,19 @@ func newTokenEntry() *tokenEntry {
 	}
 }
 
+func (t *tokenEntry) dup() (res *tokenEntry) {
+	if t == nil {
+		return nil
+	}
+	res = new(tokenEntry)
+	res.Version = t.Version
+	res.MsgIDs = make(map[chat1.MessageID]chat1.EmptyStruct, len(t.MsgIDs))
+	for m := range t.MsgIDs {
+		res.MsgIDs[m] = chat1.EmptyStruct{}
+	}
+	return res
+}
+
 var refTokenEntry = newTokenEntry()
 
 type aliasEntry struct {
@@ -52,6 +65,19 @@ func newAliasEntry() *aliasEntry {
 		Version: fmt.Sprintf("%d:%d", indexVersion, aliasEntryVersion),
 		Aliases: make(map[string]int),
 	}
+}
+
+func (a *aliasEntry) dup() (res *aliasEntry) {
+	if a == nil {
+		return nil
+	}
+	res = new(aliasEntry)
+	res.Version = a.Version
+	res.Aliases = make(map[string]int, len(a.Aliases))
+	for k, v := range a.Aliases {
+		res.Aliases[k] = v
+	}
+	return res
 }
 
 func (a *aliasEntry) add(token string) {
@@ -143,16 +169,7 @@ func (b *batchingStore) GetTokenEntry(ctx context.Context, convID chat1.Conversa
 	defer b.Unlock()
 	batch, ok := b.tokenBatch[convID.String()]
 	if ok {
-		stored := batch.tokens[token]
-		if stored != nil {
-			res = new(tokenEntry)
-			res.Version = stored.Version
-			res.MsgIDs = make(map[chat1.MessageID]chat1.EmptyStruct, len(stored.MsgIDs))
-			for m := range stored.MsgIDs {
-				res.MsgIDs[m] = chat1.EmptyStruct{}
-			}
-		}
-		return res, nil
+		return batch.tokens[token].dup(), nil
 	}
 	key, err := tokenKey(ctx, b.uid, convID, token, b.keyFn)
 	if err != nil {
@@ -206,7 +223,7 @@ func (b *batchingStore) GetAliasEntry(ctx context.Context, alias string) (res *a
 	defer b.Unlock()
 	var ok bool
 	if res, ok = b.aliasBatch[alias]; ok {
-		return res, nil
+		return res.dup(), nil
 	}
 	key, err := aliasKey(ctx, alias, b.keyFn)
 	if err != nil {
@@ -248,7 +265,7 @@ func (b *batchingStore) GetMetadata(ctx context.Context, convID chat1.Conversati
 	b.Lock()
 	defer b.Unlock()
 	if md, ok := b.mdBatch[convID.String()]; ok {
-		return md.md, nil
+		return md.md.dup(), nil
 	}
 	key := metadataKey(b.uid, convID)
 	res = new(indexMetadata)
