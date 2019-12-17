@@ -132,6 +132,7 @@ export type InfoPanelProps = {
   loadedAllBots: boolean
   onSearchFeaturedBots: (username: string) => void
   onLoadMoreBots: () => void
+  onBotSelect: (username: string) => void
 } & HeaderHocProps
 
 const TabText = ({selected, text}: {selected: boolean; text: string}) => (
@@ -489,7 +490,7 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
           if (!item.botUsername) {
             return null
           } else {
-            return <Bot {...item} onShowProfile={this.props.onShowProfile} />
+            return <Bot {...item} onClick={this.props.onBotSelect} />
           }
         }
         sections.push(tabsSection)

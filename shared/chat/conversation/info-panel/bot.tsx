@@ -5,14 +5,14 @@ import {FeaturedBot} from 'constants/types/rpc-gen'
 
 type Props = FeaturedBot & {
   description?: string
-  onShowProfile: (username: string) => void
+  onClick: (username: string) => void
 }
 
-const Bot = ({botAlias, description, botUsername, ownerTeam, ownerUser, onShowProfile}: Props) => {
+const Bot = ({botAlias, description, botUsername, onClick, ownerTeam, ownerUser}: Props) => {
   const lower = (
     <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny" alignSelf="flex-start">
       {description !== '' && (
-        <Kb.Text type="BodySmall" lineClamp={1} onClick={() => onShowProfile(botUsername)}>
+        <Kb.Text type="BodySmall" lineClamp={1} onClick={() => onClick(botUsername)}>
           {description}
         </Kb.Text>
       )}
@@ -24,7 +24,7 @@ const Bot = ({botAlias, description, botUsername, ownerTeam, ownerUser, onShowPr
       <Kb.Text
         type="BodySmallSemibold"
         style={{color: Styles.globalColors.black}}
-        onClick={() => onShowProfile(botUsername)}
+        onClick={() => onClick(botUsername)}
       >
         {botAlias || botUsername}
       </Kb.Text>
@@ -52,7 +52,7 @@ const Bot = ({botAlias, description, botUsername, ownerTeam, ownerUser, onShowPr
             size={Styles.isMobile ? 48 : 32}
             style={styles.avatarStyle}
             username={botUsername}
-            onClick={() => onShowProfile(botUsername)}
+            onClick={() => onClick(botUsername)}
           />
           <Kb.Box2 direction="vertical">
             {usernameDisplay}
