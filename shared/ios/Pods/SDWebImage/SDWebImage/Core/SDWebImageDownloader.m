@@ -24,9 +24,8 @@ static void * SDWebImageDownloaderContext = &SDWebImageDownloaderContext;
 @property (nonatomic, strong, nullable, readwrite) NSURL *url;
 @property (nonatomic, strong, nullable, readwrite) NSURLRequest *request;
 @property (nonatomic, strong, nullable, readwrite) NSURLResponse *response;
-@property (nonatomic, strong, nullable, readwrite) id downloadOperationCancelToken;
+@property (nonatomic, weak, nullable, readwrite) id downloadOperationCancelToken;
 @property (nonatomic, weak, nullable) NSOperation<SDWebImageDownloaderOperation> *downloadOperation;
-@property (nonatomic, weak, nullable) SDWebImageDownloader *downloader;
 @property (nonatomic, assign, getter=isCancelled) BOOL cancelled;
 
 - (nonnull instancetype)init NS_UNAVAILABLE;
@@ -38,7 +37,6 @@ static void * SDWebImageDownloaderContext = &SDWebImageDownloaderContext;
 @interface SDWebImageDownloader () <NSURLSessionTaskDelegate, NSURLSessionDataDelegate>
 
 @property (strong, nonatomic, nonnull) NSOperationQueue *downloadQueue;
-@property (weak, nonatomic, nullable) NSOperation *lastAddedOperation;
 @property (strong, nonatomic, nonnull) NSMutableDictionary<NSURL *, NSOperation<SDWebImageDownloaderOperation> *> *URLOperations;
 @property (strong, nonatomic, nullable) NSMutableDictionary<NSString *, NSString *> *HTTPHeaders;
 @property (strong, nonatomic, nonnull) dispatch_semaphore_t HTTPHeadersLock; // A lock to keep the access to `HTTPHeaders` thread-safe
@@ -254,7 +252,6 @@ static void * SDWebImageDownloaderContext = &SDWebImageDownloaderContext;
     token.url = url;
     token.request = operation.request;
     token.downloadOperationCancelToken = downloadOperationCancelToken;
-    token.downloader = self;
     
     return token;
 }
@@ -321,28 +318,15 @@ static void * SDWebImageDownloaderContext = &SDWebImageDownloaderContext;
     }
     
     if (self.config.executionOrder == SDWebImageDownloaderLIFOExecutionOrder) {
-        // Emulate LIFO execution order by systematically adding new operations as last operation's dependency
-        [self.lastAddedOperation addDependency:operation];
-        self.lastAddedOperation = operation;
+        // Emulate LIFO execution order by systematically, each previous adding operation can dependency the new operation
+        // This can gurantee the new operation to be execulated firstly, even if when some operations finished, meanwhile you appending new operations
+        // Just make last added operation dependents new operation can not solve this problem. See test case #test15DownloaderLIFOExecutionOrder
+        for (NSOperation *pendingOperation in self.downloadQueue.operations) {
+            [pendingOperation addDependency:operation];
+        }
     }
     
     return operation;
-}
-
-- (void)cancel:(nullable SDWebImageDownloadToken *)token {
-    NSURL *url = token.url;
-    if (!url) {
-        return;
-    }
-    SD_LOCK(self.operationsLock);
-    NSOperation<SDWebImageDownloaderOperation> *operation = [self.URLOperations objectForKey:url];
-    if (operation) {
-        BOOL canceled = [operation cancel:token.downloadOperationCancelToken];
-        if (canceled) {
-            [self.URLOperations removeObjectForKey:url];
-        }
-    }
-    SD_UNLOCK(self.operationsLock);
 }
 
 - (void)cancelAllDownloads {
@@ -504,13 +488,7 @@ didReceiveResponse:(NSURLResponse *)response
             return;
         }
         self.cancelled = YES;
-        if (self.downloader) {
-            // Downloader is alive, cancel token
-            [self.downloader cancel:self];
-        } else {
-            // Downloader is dealloced, only cancel download operation
-            [self.downloadOperation cancel:self.downloadOperationCancelToken];
-        }
+        [self.downloadOperation cancel:self.downloadOperationCancelToken];
         self.downloadOperationCancelToken = nil;
     }
 }
