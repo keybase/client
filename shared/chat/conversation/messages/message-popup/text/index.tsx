@@ -56,6 +56,7 @@ const TextPopupMenu = (props: Props) => {
           {
             danger: true,
             disabled: !props.onKick,
+            icon: 'iconfont-block-user',
             onClick: props.onKick,
             subTitle: 'Removes the user from the team',
             title: 'Kick user',
