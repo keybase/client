@@ -1,94 +1,60 @@
-import {namedConnect} from '../../util/container'
+import * as Container from '../../util/container'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
 import * as UsersConstants from '../../constants/users'
 import {UserInfo} from '../../constants/types/users'
 import {Usernames, BaseUsernamesProps, Props, UserList} from '.'
 
-export type StateProps = {
-  _following: Set<string>
-  _userInfo: Map<string, UserInfo>
-  _you: string
-}
-
-type ConnectedOnlyProps = {
+type OwnProps = {
   onUsernameClicked?: ((username: string) => void) | 'tracker' | 'profile'
   skipSelf?: boolean
   usernames: Array<string>
 }
 
-export type ConnectedProps = ConnectedOnlyProps & BaseUsernamesProps
+const ConnectedUsernames = Container.namedConnect(
+  state => {
+    const _following = state.config.following
+    const _userInfo = state.users.infoMap
+    const _you = state.config.username
+    return {
+      _following,
+      _userInfo,
+      _you,
+    }
+  },
+  dispatch => ({
+    _onOpenProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
+    _onOpenTracker: (username: string) => dispatch(Tracker2Gen.createShowUser({asTracker: true, username})),
+  }),
+  (stateProps, dispatchProps, ownProps: OwnProps) => {
+    const users = ownProps.usernames
+      .map(username => ({
+        broken: UsersConstants.getIsBroken(stateProps._userInfo, username) || false,
+        following: stateProps._following.has(username),
+        username,
+        you: stateProps._you === username,
+      }))
+      .filter(u => !ownProps.skipSelf || !u.you)
 
-type OwnProps = ConnectedProps
+    let onUsernameClicked: undefined | ((s: string) => void)
+    switch (ownProps.onUsernameClicked) {
+      case 'tracker':
+        onUsernameClicked = dispatchProps._onOpenTracker
+        break
+      case 'profile':
+        onUsernameClicked = dispatchProps._onOpenProfile
+        break
+      default:
+        if (typeof ownProps.onUsernameClicked === 'function') {
+          onUsernameClicked = ownProps.onUsernameClicked
+        }
+    }
 
-export type DispatchProps = {
-  onOpenProfile?: (username: string) => void
-  onOpenTracker?: (username: string) => void
-}
-
-export function connectedPropsToProps<T>(
-  stateProps: T,
-  dispatchProps: DispatchProps,
-  connectedProps: OwnProps,
-  userDataFromState: (t: T, array: Array<string>) => UserList
-): Props {
-  const userData = userDataFromState(stateProps, connectedProps.usernames).filter(
-    u => !connectedProps.skipSelf || !u.you
-  )
-  let onUsernameClickedNew: ((username: string) => void) | null = null
-  if (connectedProps.onUsernameClicked === 'tracker') {
-    onUsernameClickedNew = dispatchProps.onOpenTracker || null
-  } else if (connectedProps.onUsernameClicked === 'profile') {
-    onUsernameClickedNew = dispatchProps.onOpenProfile || null
-  } else if (typeof connectedProps.onUsernameClicked === 'function') {
-    onUsernameClickedNew = connectedProps.onUsernameClicked || null
-  }
-
-  // Remove onUsernameClicked
-  const {skipSelf, usernames, onUsernameClicked, ...props} = connectedProps
-
-  return {
-    ...props,
-    onUsernameClicked: onUsernameClickedNew
-      ? (onUsernameClickedNew as (username: string) => void)
-      : undefined,
-    users: userData,
-  } as Props
-}
-
-const userDataFromState = (stateProps, usernames) =>
-  usernames.map(username => ({
-    broken: UsersConstants.getIsBroken(stateProps._userInfo, username) || false,
-    following: stateProps._following.has(username),
-    username,
-    you: stateProps._you === username,
-  }))
-
-// Connected username component
-// instead of username objects supply array of username strings & this will fill in the rest
-const mapStateToProps = state => {
-  const _following = state.config.following
-  const _userInfo = state.users.infoMap
-  const _you = state.config.username
-  return {
-    _following,
-    _userInfo,
-    _you,
-  }
-}
-
-const mapDispatchToProps = dispatch => ({
-  onOpenProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
-  onOpenTracker: (username: string) => dispatch(Tracker2Gen.createShowUser({asTracker: true, username})),
-})
-
-const mergeProps = (stateProps, dispatchProps, ownProps: ConnectedProps) =>
-  connectedPropsToProps(stateProps, dispatchProps, ownProps, userDataFromState)
-
-const ConnectedUsernames = namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
+    return {
+      onUsernameClicked,
+      users,
+    }
+  },
   'Usernames'
 )(Usernames)
 
