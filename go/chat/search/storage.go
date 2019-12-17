@@ -756,7 +756,9 @@ func (s *store) Add(ctx context.Context, convID chat1.ConversationID,
 	}
 	defer func() {
 		if modified {
-			s.diskStorage.PutMetadata(ctx, convID, md)
+			if err := s.diskStorage.PutMetadata(ctx, convID, md); err != nil {
+				s.Debug(ctx, "failed to put metadata: %s", err)
+			}
 		}
 	}()
 	for _, msg := range msgs {
