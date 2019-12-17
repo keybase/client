@@ -2423,6 +2423,19 @@
     },
     {
       "type": "record",
+      "name": "TeamAddMembersResult",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "User"
+          },
+          "name": "notAdded"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "TeamJoinRequest",
       "fields": [
         {
@@ -3320,7 +3333,7 @@
           "type": "boolean"
         }
       ],
-      "response": null
+      "response": "TeamAddMembersResult"
     },
     "teamAddMembersMultiRole": {
       "request": [
@@ -3344,7 +3357,7 @@
           "type": "boolean"
         }
       ],
-      "response": null
+      "response": "TeamAddMembersResult"
     },
     "teamRemoveMember": {
       "request": [

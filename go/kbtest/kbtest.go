@@ -136,6 +136,21 @@ func createAndSignupFakeUser(prefix string, g *libkb.GlobalContext, skipPaper bo
 	return fu, nil
 }
 
+func GetContactSettings(tc libkb.TestContext, u *FakeUser) (ret keybase1.ContactSettings) {
+	m := libkb.NewMetaContextForTest(tc)
+	ret, err := libkb.GetContactSettings(m)
+	require.NoError(tc.T, err)
+	tc.T.Logf("Got contact settings for user %s", u.Username)
+	return ret
+}
+
+func SetContactSettings(tc libkb.TestContext, u *FakeUser, arg keybase1.ContactSettings) {
+	m := libkb.NewMetaContextForTest(tc)
+	err := libkb.SetContactSettings(m, arg)
+	require.NoError(tc.T, err)
+	tc.T.Logf("Set contact settings for user %s", u.Username)
+}
+
 // copied from engine/common_test.go
 func ResetAccount(tc libkb.TestContext, u *FakeUser) {
 	m := libkb.NewMetaContextForTest(tc)

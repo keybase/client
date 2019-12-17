@@ -376,11 +376,7 @@ func TestInboxChatBlockingAlsoUserBlocks(t *testing.T) {
 			return false
 		}
 		require.Error(t, err)
-		require.IsType(t, err, libkb.AppStatusError{})
-		aerr, _ := err.(libkb.AppStatusError)
-		if aerr.Code != libkb.SCTeamContactSettingsBlock {
-			panic("unexpected error adding user to team")
-		}
+		require.IsType(t, err, libkb.TeamContactSettingsBlockError{})
 		return true
 	}
 
