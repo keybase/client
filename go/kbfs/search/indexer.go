@@ -16,6 +16,7 @@ import (
 	"github.com/blevesearch/bleve/registry"
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/idutil"
+	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
@@ -45,6 +46,12 @@ const (
 	ctxIDKey ctxTagKey = iota
 )
 
+type tlfMessage struct {
+	tlfID tlf.ID
+	rev   kbfsmd.Revision
+	mode  keybase1.FolderSyncMode
+}
+
 // Indexer can index and search KBFS TLFs.
 type Indexer struct {
 	config       libkbfs.Config
@@ -53,6 +60,8 @@ type Indexer struct {
 	remoteStatus libfs.RemoteStatus
 
 	userChangedCh chan struct{}
+	tlfCh         chan tlfMessage
+	shutdownCh    chan struct{}
 
 	lock        sync.RWMutex
 	index       bleve.Index
@@ -66,11 +75,17 @@ func NewIndexer(config libkbfs.Config) (*Indexer, error) {
 		config:        config,
 		log:           log,
 		userChangedCh: make(chan struct{}, 1),
+		tlfCh:         make(chan tlfMessage, 1000),
+		shutdownCh:    make(chan struct{}),
 	}
 
 	ctx, cancel := context.WithCancel(i.makeContext(context.Background()))
 	i.cancelLoop = cancel
 	go i.loop(ctx)
+	err := config.Notifier().RegisterForSyncedTlfs(i)
+	if err != nil {
+		return nil, err
+	}
 	return i, nil
 }
 
@@ -218,6 +233,45 @@ func (i *Indexer) UserChanged(
 
 var _ libfs.RemoteStatusUpdater = (*Indexer)(nil)
 
+// FullSyncStarted implements the libkbfs.SyncedTlfObserver interface
+// for Indexer.
+func (i *Indexer) FullSyncStarted(
+	ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision,
+	waitCh <-chan struct{}) {
+	i.log.CDebugf(ctx, "Sync started for %s/%d", tlfID, rev)
+	go func() {
+		select {
+		case <-waitCh:
+		case <-i.shutdownCh:
+			return
+		}
+
+		m := tlfMessage{tlfID, rev, keybase1.FolderSyncMode_ENABLED}
+		select {
+		case i.tlfCh <- m:
+		default:
+			i.log.CDebugf(
+				context.Background(), "Couldn't send TLF message for %s/%d")
+		}
+	}()
+}
+
+// SyncModeChanged implements the libkbfs.SyncedTlfObserver interface
+// for Indexer.
+func (i *Indexer) SyncModeChanged(
+	ctx context.Context, tlfID tlf.ID, newMode keybase1.FolderSyncMode) {
+	i.log.CDebugf(ctx, "Sync mode changed for %s to %s", tlfID, newMode)
+	m := tlfMessage{tlfID, kbfsmd.RevisionUninitialized, newMode}
+	select {
+	case i.tlfCh <- m:
+	default:
+		i.log.CDebugf(
+			context.Background(), "Couldn't send TLF message for %s/%d")
+	}
+}
+
+var _ libkbfs.SyncedTlfObserver = (*Indexer)(nil)
+
 func (i *Indexer) loop(ctx context.Context) {
 	i.log.CDebugf(ctx, "Starting indexing loop")
 	defer i.log.CDebugf(ctx, "Ending index loop")
@@ -251,6 +305,9 @@ outerLoop:
 				}
 				i.log.CDebugf(ctx, "Resuming indexing while foregrounded")
 				continue
+			case m := <-i.tlfCh:
+				i.log.CDebugf(ctx, "Received TLF message for %s", m.tlfID)
+				// TODO(HOTPOT-1494, HOTPOT-1495): initiate processing pass.
 			case <-ctx.Done():
 				return
 			}
@@ -261,6 +318,7 @@ outerLoop:
 // Shutdown shuts down this indexer.
 func (i *Indexer) Shutdown(ctx context.Context) error {
 	i.cancelLoop()
+	close(i.shutdownCh)
 
 	i.lock.Lock()
 	defer i.lock.Unlock()
