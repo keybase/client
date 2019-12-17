@@ -15,9 +15,6 @@ const WalletsIcon = Container.namedConnect(
   state => {
     const meta = Constants.getMeta(state, Constants.getSelectedConversation(state))
     const otherParticipants = meta.participants.filter(u => u !== state.config.username)
-    if (otherParticipants.length !== 1) {
-      logger.warn('WalletsIcon: conversation has more than 1 other user. selecting first')
-    }
     const _to = otherParticipants[0]
     return {
       _to,
