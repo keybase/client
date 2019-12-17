@@ -21,6 +21,7 @@ import (
 	"github.com/keybase/client/go/kbfs/tlf"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
 )
 
@@ -223,19 +224,36 @@ func (i *Indexer) loop(ctx context.Context) {
 
 	i.remoteStatus.Init(ctx, i.log, i.config, i)
 
+outerLoop:
 	for {
 		err := i.loadIndex(ctx)
 		if err != nil {
 			i.log.CDebugf(ctx, "Couldn't load index: %+v", err)
 		}
 
-		select {
-		case <-i.userChangedCh:
-			// Re-load the index on each login/logout event.
-			i.log.CDebugf(ctx, "User changed")
-			continue
-		case <-ctx.Done():
-			return
+		state := keybase1.MobileAppState_FOREGROUND
+		kbCtx := i.config.KbContext()
+		for {
+			select {
+			case <-i.userChangedCh:
+				// Re-load the index on each login/logout event.
+				i.log.CDebugf(ctx, "User changed")
+				continue outerLoop
+			case state = <-kbCtx.NextAppStateUpdate(&state):
+				// TODO(HOTPOT-1494): once we are doing actual
+				// indexing in a separate goroutine, pause/unpause it
+				// via a channel send from here.
+				for state != keybase1.MobileAppState_FOREGROUND {
+					i.log.CDebugf(ctx,
+						"Pausing indexing while not foregrounded: state=%s",
+						state)
+					state = <-kbCtx.NextAppStateUpdate(&state)
+				}
+				i.log.CDebugf(ctx, "Resuming indexing while foregrounded")
+				continue
+			case <-ctx.Done():
+				return
+			}
 		}
 	}
 }
