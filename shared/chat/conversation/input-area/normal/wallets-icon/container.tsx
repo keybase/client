@@ -3,7 +3,6 @@ import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as WalletsGen from '../../../../../actions/wallets-gen'
 import * as Styles from '../../../../../styles'
 import * as Constants from '../../../../../constants/chat2'
-import logger from '../../../../../logger'
 import WalletsIconRender from '.'
 
 type OwnProps = {
