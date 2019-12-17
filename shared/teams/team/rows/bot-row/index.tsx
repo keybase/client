@@ -43,7 +43,11 @@ export const TeamBotRow = (props: Props) => {
 
   const usernameDisplay = (
     <Kb.Box2 direction="horizontal" alignSelf="flex-start">
-      <Kb.Text type="BodySmallSemibold" style={{color: Styles.globalColors.black}}>
+      <Kb.Text
+        type="BodySmallSemibold"
+        style={{color: Styles.globalColors.black}}
+        onClick={props.onShowTracker}
+      >
         {props.botAlias || props.username}
       </Kb.Text>
       <Kb.Text type="BodySmall">
@@ -67,7 +71,11 @@ export const TeamBotRow = (props: Props) => {
     <Kb.Box style={Styles.collapseStyles([styles.container, !active && styles.containerReset])}>
       <Kb.Box style={styles.innerContainerTop}>
         <Kb.Box style={styles.clickable}>
-          <Kb.Avatar username={props.username} size={Styles.isMobile ? 48 : 32} />
+          <Kb.Avatar
+            username={props.username}
+            size={Styles.isMobile ? 48 : 32}
+            onClick={props.onShowTracker}
+          />
           <Kb.Box style={styles.nameContainer}>
             <Kb.Box style={Styles.globalStyles.flexBoxRow}>{usernameDisplay}</Kb.Box>
             <Kb.Box style={styles.nameContainerInner}>{descriptionLabel}</Kb.Box>
