@@ -43,8 +43,16 @@ class _DeleteChannel extends React.Component<Props, State> {
     ]
 
     return (
-      <Kb.Box style={Styles.collapseStyles([styles.container, disabled && {opacity: 0.5}])}>
+      <Kb.Box2 alignItems="center" direction="horizontal" style={Styles.collapseStyles([styles.container, disabled && {opacity: 0.5}])}>
         <Kb.Icon type="iconfont-trash" style={styles.trashIcon} color={Styles.globalColors.red} />
+        <Kb.Text
+          type="BodyBigLink"
+          style={styles.colorRed}
+          onClick={this.props.toggleShowingMenu}
+          ref={this.props.setAttachmentRef}
+        >
+          Delete channel
+        </Kb.Text>
         <Kb.FloatingMenu
           closeOnSelect={true}
           header={header}
@@ -54,37 +62,16 @@ class _DeleteChannel extends React.Component<Props, State> {
           onHidden={this.props.toggleShowingMenu}
           containerStyle={styles.menuContainer}
         />
-        <Kb.Text
-          type="BodyBigLink"
-          style={styles.colorRed}
-          onClick={this.props.toggleShowingMenu}
-          ref={this.props.setAttachmentRef}
-        >
-          Delete channel
-        </Kb.Text>
-      </Kb.Box>
+      </Kb.Box2>
     )
   }
 }
 
 const styles = Styles.styleSheetCreate(() => ({
   colorRed: {color: Styles.globalColors.redDark},
-  container: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxRow,
-    },
-    isElectron: {
-      left: 12,
-      position: 'absolute',
-      top: 55,
-    },
-    isMobile: {
-      paddingBottom: Styles.globalMargins.medium,
-      paddingLeft: Styles.globalMargins.large,
-      paddingRight: Styles.globalMargins.large,
-      paddingTop: Styles.globalMargins.medium,
-    },
-  }),
+  container: {
+    marginTop: Styles.globalMargins.tiny,
+  },
   headerContainer: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxColumn,
