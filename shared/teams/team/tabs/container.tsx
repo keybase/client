@@ -1,3 +1,4 @@
+import * as BotsGen from '../../../actions/bots-gen'
 import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
 import Tabs from '.'
@@ -17,8 +18,11 @@ export default Container.connect(
     const _bots = [...(teamDetails.members?.values() ?? [])].filter(
       m => m.type === 'restrictedbot' || m.type === 'bot'
     )
+    const _featuredBotsMap = state.chat2.featuredBotsMap
     const _memberCount = teamDetails.memberCount - _bots.length
     return {
+      _bots,
+      _featuredBotsMap,
       admin: yourOperations.manageMembers,
       botCount: _bots.length,
       loading: anyWaiting(
@@ -38,11 +42,18 @@ export default Container.connect(
       teamname: teamDetails.teamname,
     }
   },
-  () => ({}),
-  (stateProps, _, ownProps) => {
+  dispatch => ({
+    _searchFeaturedBot: (query: string) => dispatch(BotsGen.createSearchFeaturedBots({query})),
+  }),
+  (stateProps, dispatchProps, ownProps) => {
     return {
       admin: stateProps.admin,
       botCount: stateProps.botCount,
+      loadBots: () =>
+        stateProps._bots.map(
+          bot =>
+            !stateProps._featuredBotsMap.has(bot.username) && dispatchProps._searchFeaturedBot(bot.username)
+        ),
       loading: stateProps.loading,
       memberCount: stateProps.memberCount,
       newRequests: stateProps.newTeamRequests.get(ownProps.teamID) || 0,

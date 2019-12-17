@@ -19,6 +19,7 @@ type TeamTabsProps = {
   numRequests: number
   numSubteams: number
   resetUserCount: number
+  loadBots: () => void
   loading: boolean
   selectedTab?: string
   setSelectedTab: (arg0: Types.TabKey) => void
@@ -92,6 +93,9 @@ const TeamTabs = (props: TeamTabsProps) => {
     const key = tab && tab.key
     if (key) {
       if (key !== 'loadingIndicator') {
+        if (key === 'bots') {
+          props.loadBots()
+        }
         props.setSelectedTab(key)
       } else {
         props.setSelectedTab('members')
