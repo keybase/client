@@ -252,9 +252,9 @@ func (idx *Indexer) Stop(ctx context.Context) chan struct{} {
 	defer idx.Trace(ctx, func() error { return nil }, "Stop")()
 	idx.Lock()
 	defer idx.Unlock()
-	idx.store.ClearMemory()
 	ch := make(chan struct{})
 	if idx.started {
+		idx.store.ClearMemory()
 		idx.started = false
 		close(idx.stopCh)
 		idx.stopCh = make(chan struct{})
