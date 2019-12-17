@@ -58,11 +58,11 @@ const Progress = ({small, white}: {small?: boolean; white: boolean}) => {
 const Button = React.forwardRef<ClickableBox, Props>((props: Props, ref: React.Ref<ClickableBox>) => {
   const {mode = 'Primary', type = 'Default'} = props
   let containerStyle: Styles.StylesCrossPlatform = props.backgroundColor
-    ? backgroundColorContainerStyles[mode]
-    : containerStyles[mode + type]
+    ? (backgroundColorContainerStyles[mode] as any)
+    : (containerStyles[mode + type] as any)
   let labelStyle: StylesTextCrossPlatform = props.backgroundColor
-    ? backgroundColorLabelStyles[mode + (mode === 'Secondary' ? '' : props.backgroundColor)]
-    : labelStyles[mode + type]
+    ? (backgroundColorLabelStyles[mode + (mode === 'Secondary' ? '' : props.backgroundColor)] as any)
+    : (labelStyles[mode + type] as any)
 
   if (props.fullWidth) {
     containerStyle = Styles.collapseStyles([containerStyle, styles.fullWidth])
