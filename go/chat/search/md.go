@@ -25,6 +25,19 @@ func newIndexMetadata() *indexMetadata {
 
 var refIndexMetadata = newIndexMetadata()
 
+func (m *indexMetadata) dup() (res *indexMetadata) {
+	if m == nil {
+		return nil
+	}
+	res = new(indexMetadata)
+	res.Version = m.Version
+	res.SeenIDs = make(map[chat1.MessageID]chat1.EmptyStruct, len(m.SeenIDs))
+	for m := range m.SeenIDs {
+		res.SeenIDs[m] = chat1.EmptyStruct{}
+	}
+	return res
+}
+
 func (m *indexMetadata) Size() int64 {
 	size := unsafe.Sizeof(m.Version)
 	size += uintptr(len(m.SeenIDs)) * unsafe.Sizeof(chat1.MessageID(0))

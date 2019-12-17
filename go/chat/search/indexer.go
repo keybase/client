@@ -14,6 +14,8 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/clockwork"
+	"golang.org/x/sync/errgroup"
 )
 
 // If a conversation doesn't meet the minimum requirements, don't update the
@@ -29,17 +31,21 @@ type Indexer struct {
 	// encrypted on-disk storage
 	store        *store
 	pageSize     int
-	stopCh       chan chan struct{}
+	stopCh       chan struct{}
 	suspendCh    chan chan struct{}
 	resumeCh     chan struct{}
 	suspendCount int
 	resumeWait   time.Duration
 	started      bool
+	clock        clockwork.Clock
+	eg           errgroup.Group
+	uid          gregor1.UID
 
 	maxSyncConvs          int
 	startSyncDelay        time.Duration
 	selectiveSyncActiveMu sync.Mutex
 	selectiveSyncActive   bool
+	flushDelay            time.Duration
 
 	// for testing
 	consumeCh                            chan chat1.ConversationID
@@ -53,13 +59,14 @@ func NewIndexer(g *globals.Context) *Indexer {
 	idx := &Indexer{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Search.Indexer", false),
-		store:        newStore(g),
 		pageSize:     defaultPageSize,
-		stopCh:       make(chan chan struct{}, 10),
+		stopCh:       make(chan struct{}),
 		suspendCh:    make(chan chan struct{}, 10),
 		resumeWait:   time.Second,
 		cancelSyncCh: make(chan struct{}, 100),
 		pokeSyncCh:   make(chan struct{}, 100),
+		clock:        clockwork.NewRealClock(),
+		flushDelay:   15 * time.Second,
 	}
 	switch idx.G().GetAppType() {
 	case libkb.MobileAppType:
@@ -96,23 +103,39 @@ func (idx *Indexer) SetSyncLoopCh(ch chan struct{}) {
 	idx.syncLoopCh = ch
 }
 
+func (idx *Indexer) SetUID(uid gregor1.UID) {
+	idx.uid = uid
+	idx.store = newStore(idx.G(), uid)
+}
+
+func (idx *Indexer) StartFlushLoop() {
+	idx.started = true
+	idx.eg.Go(func() error { return idx.flushLoop(idx.stopCh) })
+}
+
+func (idx *Indexer) StartSyncLoop() {
+	idx.started = true
+	idx.eg.Go(func() error { return idx.SyncLoop(idx.stopCh) })
+}
+
+func (idx *Indexer) SetFlushDelay(dur time.Duration) {
+	idx.flushDelay = dur
+}
+
 func (idx *Indexer) Start(ctx context.Context, uid gregor1.UID) {
 	defer idx.Trace(ctx, func() error { return nil }, "Start")()
 	idx.Lock()
 	defer idx.Unlock()
-
-	if idx.G().GetEnv().GetDisableSearchIndexer() {
-		idx.Debug(ctx, "Search indexer disabled, aborting Start")
-		return
-	}
-
 	if idx.started {
 		return
 	}
-	if !idx.G().IsMobileAppType() {
-		idx.started = true
-		go idx.SyncLoop(ctx, uid)
+	idx.uid = uid
+	idx.store = newStore(idx.G(), uid)
+	idx.started = true
+	if !idx.G().IsMobileAppType() && !idx.G().GetEnv().GetDisableSearchIndexer() {
+		idx.eg.Go(func() error { return idx.SyncLoop(idx.stopCh) })
 	}
+	idx.eg.Go(func() error { return idx.flushLoop(idx.stopCh) })
 }
 
 func (idx *Indexer) CancelSync(ctx context.Context) {
@@ -133,9 +156,9 @@ func (idx *Indexer) PokeSync(ctx context.Context) {
 	}
 }
 
-func (idx *Indexer) SyncLoop(ctx context.Context, uid gregor1.UID) {
+func (idx *Indexer) SyncLoop(stopCh chan struct{}) error {
+	ctx := globals.ChatCtx(context.Background(), idx.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
 	idx.Lock()
-	stopCh := idx.stopCh
 	suspendCh := idx.suspendCh
 	idx.Unlock()
 	idx.Debug(ctx, "starting SelectiveSync bg loop")
@@ -166,7 +189,7 @@ func (idx *Indexer) SyncLoop(ctx context.Context, uid gregor1.UID) {
 		ctx, cancelFn = context.WithCancel(ctx)
 		go func() {
 			idx.Debug(ctx, "running SelectiveSync")
-			if err := idx.SelectiveSync(ctx, uid); err != nil {
+			if err := idx.SelectiveSync(ctx); err != nil {
 				idx.Debug(ctx, "unable to complete SelectiveSync: %v", err)
 				if idx.syncLoopCh != nil {
 					idx.syncLoopCh <- struct{}{}
@@ -181,11 +204,10 @@ func (idx *Indexer) SyncLoop(ctx context.Context, uid gregor1.UID) {
 		}()
 	}
 
-	stopSync := func(ctx context.Context, ch chan struct{}) {
+	stopSync := func(ctx context.Context) {
 		idx.Debug(ctx, "stopping SelectiveSync bg loop")
 		cancelSync()
 		ticker.Stop()
-		close(ch)
 	}
 	for {
 		select {
@@ -215,13 +237,13 @@ func (idx *Indexer) SyncLoop(ctx context.Context, uid gregor1.UID) {
 			select {
 			case <-ch:
 				time.Sleep(idx.resumeWait)
-			case ch := <-idx.stopCh:
-				stopSync(ctx, ch)
-				return
+			case <-idx.stopCh:
+				stopSync(ctx)
+				return nil
 			}
-		case ch := <-stopCh:
-			stopSync(ctx, ch)
-			return
+		case <-stopCh:
+			stopSync(ctx)
+			return nil
 		}
 	}
 }
@@ -230,11 +252,16 @@ func (idx *Indexer) Stop(ctx context.Context) chan struct{} {
 	defer idx.Trace(ctx, func() error { return nil }, "Stop")()
 	idx.Lock()
 	defer idx.Unlock()
-	idx.store.ClearMemory()
 	ch := make(chan struct{})
 	if idx.started {
-		idx.stopCh <- ch
+		idx.store.ClearMemory()
 		idx.started = false
+		close(idx.stopCh)
+		idx.stopCh = make(chan struct{})
+		go func() {
+			_ = idx.eg.Wait()
+			close(ch)
+		}()
 	} else {
 		close(ch)
 	}
@@ -302,8 +329,22 @@ func (idx *Indexer) consumeResultsForTest(convID chat1.ConversationID, err error
 	}
 }
 
-func (idx *Indexer) hasPriority(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) bool {
-	conv, err := utils.GetUnverifiedConv(ctx, idx.G(), uid, convID, types.InboxSourceDataSourceLocalOnly)
+func (idx *Indexer) flushLoop(stopCh chan struct{}) error {
+	ctx := context.Background()
+	for {
+		select {
+		case <-stopCh:
+			return nil
+		case <-idx.clock.After(idx.flushDelay):
+			if err := idx.store.Flush(); err != nil {
+				idx.Debug(ctx, "flushLoop: failed to flush: %s", err)
+			}
+		}
+	}
+}
+
+func (idx *Indexer) hasPriority(ctx context.Context, convID chat1.ConversationID) bool {
+	conv, err := utils.GetUnverifiedConv(ctx, idx.G(), idx.uid, convID, types.InboxSourceDataSourceLocalOnly)
 	if err != nil {
 		idx.Debug(ctx, "unable to fetch GetUnverifiedConv, continuing: %v", err)
 		return true
@@ -315,12 +356,12 @@ func (idx *Indexer) hasPriority(ctx context.Context, uid gregor1.UID, convID cha
 	return true
 }
 
-func (idx *Indexer) Add(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+func (idx *Indexer) Add(ctx context.Context, convID chat1.ConversationID,
 	msgs []chat1.MessageUnboxed) (err error) {
-	return idx.add(ctx, convID, uid, msgs, false)
+	return idx.add(ctx, convID, msgs, false)
 }
 
-func (idx *Indexer) add(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+func (idx *Indexer) add(ctx context.Context, convID chat1.ConversationID,
 	msgs []chat1.MessageUnboxed, force bool) (err error) {
 	if idx.G().GetEnv().GetDisableSearchIndexer() {
 		return nil
@@ -328,7 +369,7 @@ func (idx *Indexer) add(ctx context.Context, convID chat1.ConversationID, uid gr
 	if !idx.validBatch(msgs) {
 		return nil
 	}
-	if !(force || idx.hasPriority(ctx, uid, convID)) {
+	if !(force || idx.hasPriority(ctx, convID)) {
 		return nil
 	}
 
@@ -336,15 +377,15 @@ func (idx *Indexer) add(ctx context.Context, convID chat1.ConversationID, uid gr
 		fmt.Sprintf("Indexer.Add conv: %v, msgs: %d, force: %v",
 			convID, len(msgs), force))()
 	defer idx.consumeResultsForTest(convID, err)
-	return idx.store.Add(ctx, uid, convID, msgs)
+	return idx.store.Add(ctx, convID, msgs)
 }
 
-func (idx *Indexer) Remove(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+func (idx *Indexer) Remove(ctx context.Context, convID chat1.ConversationID,
 	msgs []chat1.MessageUnboxed) (err error) {
-	return idx.remove(ctx, convID, uid, msgs, false)
+	return idx.remove(ctx, convID, msgs, false)
 }
 
-func (idx *Indexer) remove(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+func (idx *Indexer) remove(ctx context.Context, convID chat1.ConversationID,
 	msgs []chat1.MessageUnboxed, force bool) (err error) {
 	if idx.G().GetEnv().GetDisableSearchIndexer() {
 		return nil
@@ -352,7 +393,7 @@ func (idx *Indexer) remove(ctx context.Context, convID chat1.ConversationID, uid
 	if !idx.validBatch(msgs) {
 		return nil
 	}
-	if !(force || idx.hasPriority(ctx, uid, convID)) {
+	if !(force || idx.hasPriority(ctx, convID)) {
 		return nil
 	}
 
@@ -360,18 +401,18 @@ func (idx *Indexer) remove(ctx context.Context, convID chat1.ConversationID, uid
 		fmt.Sprintf("Indexer.Remove conv: %v, msgs: %d, force: %v",
 			convID, len(msgs), force))()
 	defer idx.consumeResultsForTest(convID, err)
-	return idx.store.Remove(ctx, uid, convID, msgs)
+	return idx.store.Remove(ctx, convID, msgs)
 }
 
 // reindexConv attempts to fill in any missing messages from the index.  For a
 // small number of messages we use the GetMessages api to fill in the holes. If
 // our index is missing many messages, we page through and add batches of
 // missing messages.
-func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversation, uid gregor1.UID,
+func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversation,
 	numJobs int, inboxIndexStatus *inboxIndexStatus) (completedJobs int, err error) {
 	conv := rconv.Conv
 	convID := conv.GetConvID()
-	md, err := idx.store.GetMetadata(ctx, uid, convID)
+	md, err := idx.store.GetMetadata(ctx, convID)
 	if err != nil {
 		return 0, err
 	}
@@ -388,14 +429,14 @@ func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversat
 
 	reason := chat1.GetThreadReason_INDEXED_SEARCH
 	if len(missingIDs) < idx.pageSize {
-		msgs, err := idx.G().ConvSource.GetMessages(ctx, conv, uid, missingIDs, &reason)
+		msgs, err := idx.G().ConvSource.GetMessages(ctx, conv, idx.uid, missingIDs, &reason)
 		if err != nil {
 			if utils.IsPermanentErr(err) {
 				return 0, err
 			}
 			return 0, nil
 		}
-		if err := idx.add(ctx, convID, uid, msgs, true); err != nil {
+		if err := idx.add(ctx, convID, msgs, true); err != nil {
 			return 0, err
 		}
 		completedJobs++
@@ -415,14 +456,14 @@ func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversat
 				Pivot: &i,
 				Mode:  chat1.MessageIDControlMode_NEWERMESSAGES,
 			}, nil)
-			tv, err := idx.G().ConvSource.Pull(ctx, convID, uid, reason, query, pagination)
+			tv, err := idx.G().ConvSource.Pull(ctx, convID, idx.uid, reason, query, pagination)
 			if err != nil {
 				if utils.IsPermanentErr(err) {
 					return 0, err
 				}
 				continue
 			}
-			if err := idx.add(ctx, convID, uid, tv.Messages, true); err != nil {
+			if err := idx.add(ctx, convID, tv.Messages, true); err != nil {
 				return 0, err
 			}
 			completedJobs++
@@ -430,7 +471,7 @@ func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversat
 				break
 			}
 			if inboxIndexStatus != nil {
-				md, err := idx.store.GetMetadata(ctx, uid, conv.GetConvID())
+				md, err := idx.store.GetMetadata(ctx, conv.GetConvID())
 				if err != nil {
 					idx.Debug(ctx, "updateInboxIndex: unable to GetMetadata %v", err)
 					continue
@@ -452,15 +493,15 @@ func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversat
 	return completedJobs, nil
 }
 
-func (idx *Indexer) SearchableConvs(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID) (res []types.RemoteConversation, err error) {
-	convMap, err := idx.allConvs(ctx, uid, convID)
+func (idx *Indexer) SearchableConvs(ctx context.Context, convID *chat1.ConversationID) (res []types.RemoteConversation, err error) {
+	convMap, err := idx.allConvs(ctx, convID)
 	if err != nil {
 		return res, err
 	}
-	return idx.convsPrioritySorted(ctx, uid, convMap), nil
+	return idx.convsPrioritySorted(ctx, convMap), nil
 }
 
-func (idx *Indexer) allConvs(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID) (map[string]types.RemoteConversation, error) {
+func (idx *Indexer) allConvs(ctx context.Context, convID *chat1.ConversationID) (map[string]types.RemoteConversation, error) {
 	// Find all conversations in our inbox
 	topicType := chat1.TopicType_CHAT
 	inboxQuery := &chat1.GetInboxQuery{
@@ -483,7 +524,7 @@ func (idx *Indexer) allConvs(ctx context.Context, uid gregor1.UID, convID *chat1
 		return nil, ctx.Err()
 	default:
 	}
-	inbox, err := idx.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll,
+	inbox, err := idx.G().InboxSource.ReadUnverified(ctx, idx.uid, types.InboxSourceDataSourceAll,
 		inboxQuery)
 	if err != nil {
 		return nil, err
@@ -507,7 +548,7 @@ func (idx *Indexer) allConvs(ctx context.Context, uid gregor1.UID, convID *chat1
 	return convMap, nil
 }
 
-func (idx *Indexer) convsPrioritySorted(ctx context.Context, uid gregor1.UID,
+func (idx *Indexer) convsPrioritySorted(ctx context.Context,
 	convMap map[string]types.RemoteConversation) (res []types.RemoteConversation) {
 	res = make([]types.RemoteConversation, len(convMap))
 	index := 0
@@ -523,7 +564,7 @@ func (idx *Indexer) convsPrioritySorted(ctx context.Context, uid gregor1.UID,
 
 // Search tokenizes the given query and finds the intersection of all matches
 // for each token, returning matches.
-func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query, origQuery string,
+func (idx *Indexer) Search(ctx context.Context, query, origQuery string,
 	opts chat1.SearchOpts, hitUICh chan chat1.ChatSearchInboxHit, indexUICh chan chat1.ChatSearchIndexStatus) (res *chat1.ChatSearchInboxResults, err error) {
 	defer idx.Trace(ctx, func() error { return err }, "Indexer.Search")()
 	defer func() {
@@ -543,7 +584,7 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query, origQuer
 	}
 
 	idx.CancelSync(ctx)
-	sess := newSearchSession(query, origQuery, uid, hitUICh, indexUICh, idx, opts)
+	sess := newSearchSession(query, origQuery, idx.uid, hitUICh, indexUICh, idx, opts)
 	return sess.run(ctx)
 }
 
@@ -562,18 +603,18 @@ func (idx *Indexer) setSelectiveSyncActive(val bool) {
 // SelectiveSync queues up a small number of jobs on the background loader
 // periodically so our index can cover all conversations. The number of jobs
 // varies between desktop and mobile so mobile can be more conservative.
-func (idx *Indexer) SelectiveSync(ctx context.Context, uid gregor1.UID) (err error) {
+func (idx *Indexer) SelectiveSync(ctx context.Context) (err error) {
 	defer idx.Trace(ctx, func() error { return err }, "SelectiveSync")()
 	idx.setSelectiveSyncActive(true)
 	defer func() { idx.setSelectiveSyncActive(false) }()
 
-	convMap, err := idx.allConvs(ctx, uid, nil)
+	convMap, err := idx.allConvs(ctx, nil)
 	if err != nil {
 		return err
 	}
 
 	// make sure the most recently read convs are fully indexed
-	convs := idx.convsPrioritySorted(ctx, uid, convMap)
+	convs := idx.convsPrioritySorted(ctx, convMap)
 	// number of batches of messages to fetch in total
 	numJobs := idx.maxSyncConvs
 	for _, conv := range convs {
@@ -583,7 +624,7 @@ func (idx *Indexer) SelectiveSync(ctx context.Context, uid gregor1.UID) (err err
 		default:
 		}
 		convID := conv.GetConvID()
-		md, err := idx.store.GetMetadata(ctx, uid, convID)
+		md, err := idx.store.GetMetadata(ctx, convID)
 		if err != nil {
 			idx.Debug(ctx, "SelectiveSync: Unable to get md for conv: %v, %v", convID, err)
 			continue
@@ -592,7 +633,7 @@ func (idx *Indexer) SelectiveSync(ctx context.Context, uid gregor1.UID) (err err
 			continue
 		}
 
-		completedJobs, err := idx.reindexConv(ctx, conv, uid, numJobs, nil)
+		completedJobs, err := idx.reindexConv(ctx, conv, numJobs, nil)
 		if err != nil {
 			idx.Debug(ctx, "Unable to reindex conv: %v, %v", convID, err)
 			continue
@@ -610,10 +651,10 @@ func (idx *Indexer) SelectiveSync(ctx context.Context, uid gregor1.UID) (err err
 
 // IndexInbox is only exposed in devel for debugging/profiling the indexing
 // process.
-func (idx *Indexer) IndexInbox(ctx context.Context, uid gregor1.UID) (res map[string]chat1.ProfileSearchConvStats, err error) {
+func (idx *Indexer) IndexInbox(ctx context.Context) (res map[string]chat1.ProfileSearchConvStats, err error) {
 	defer idx.Trace(ctx, func() error { return err }, "Indexer.IndexInbox")()
 
-	convMap, err := idx.allConvs(ctx, uid, nil)
+	convMap, err := idx.allConvs(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -621,7 +662,7 @@ func (idx *Indexer) IndexInbox(ctx context.Context, uid gregor1.UID) (res map[st
 	res = map[string]chat1.ProfileSearchConvStats{}
 	for convIDStr, conv := range convMap {
 		idx.G().Log.CDebugf(ctx, "Indexing conv: %v", utils.GetRemoteConvDisplayName(conv))
-		convStats, err := idx.indexConvWithProfile(ctx, conv, uid)
+		convStats, err := idx.indexConvWithProfile(ctx, conv)
 		if err != nil {
 			idx.G().Log.CDebugf(ctx, "Indexing errored for conv: %v, %v",
 				utils.GetRemoteConvDisplayName(conv), err)
@@ -634,10 +675,9 @@ func (idx *Indexer) IndexInbox(ctx context.Context, uid gregor1.UID) (res map[st
 	return res, nil
 }
 
-func (idx *Indexer) indexConvWithProfile(ctx context.Context, conv types.RemoteConversation,
-	uid gregor1.UID) (res chat1.ProfileSearchConvStats, err error) {
+func (idx *Indexer) indexConvWithProfile(ctx context.Context, conv types.RemoteConversation) (res chat1.ProfileSearchConvStats, err error) {
 	defer idx.Trace(ctx, func() error { return err }, "Indexer.indexConvWithProfile")()
-	md, err := idx.store.GetMetadata(ctx, uid, conv.GetConvID())
+	md, err := idx.store.GetMetadata(ctx, conv.GetConvID())
 	if err != nil {
 		return res, err
 	}
@@ -658,12 +698,12 @@ func (idx *Indexer) indexConvWithProfile(ctx context.Context, conv types.RemoteC
 	}()
 
 	startT := time.Now()
-	_, err = idx.reindexConv(ctx, conv, uid, 0, nil)
+	_, err = idx.reindexConv(ctx, conv, 0, nil)
 	if err != nil {
 		return res, err
 	}
 	res.DurationMsec = gregor1.ToDurationMsec(time.Since(startT))
-	dbKey := idx.store.metadataKey(uid, conv.GetConvID())
+	dbKey := metadataKey(idx.uid, conv.GetConvID())
 	b, _, err := idx.G().LocalChatDb.GetRaw(dbKey)
 	if err != nil {
 		return res, err
@@ -673,38 +713,39 @@ func (idx *Indexer) indexConvWithProfile(ctx context.Context, conv types.RemoteC
 	return res, nil
 }
 
-func (idx *Indexer) FullyIndexed(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (res bool, err error) {
+func (idx *Indexer) FullyIndexed(ctx context.Context, convID chat1.ConversationID) (res bool, err error) {
 	defer idx.Trace(ctx, func() error { return err }, "Indexer.FullyIndexed")()
-	conv, err := utils.GetUnverifiedConv(ctx, idx.G(), uid, convID, types.InboxSourceDataSourceAll)
+	conv, err := utils.GetUnverifiedConv(ctx, idx.G(), idx.uid, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		return false, err
 	}
-	md, err := idx.store.GetMetadata(ctx, uid, convID)
+	md, err := idx.store.GetMetadata(ctx, convID)
 	if err != nil {
 		return false, err
 	}
 	return md.FullyIndexed(conv.Conv), nil
 }
 
-func (idx *Indexer) PercentIndexed(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (res int, err error) {
+func (idx *Indexer) PercentIndexed(ctx context.Context, convID chat1.ConversationID) (res int, err error) {
 	defer idx.Trace(ctx, func() error { return err }, "Indexer.PercentIndexed")()
-	conv, err := utils.GetUnverifiedConv(ctx, idx.G(), uid, convID, types.InboxSourceDataSourceAll)
+	conv, err := utils.GetUnverifiedConv(ctx, idx.G(), idx.uid, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		return 0, err
 	}
-	md, err := idx.store.GetMetadata(ctx, uid, convID)
+	md, err := idx.store.GetMetadata(ctx, convID)
 	if err != nil {
 		return 0, err
 	}
 	return md.PercentIndexed(conv.Conv), nil
 }
 
-func (idx *Indexer) OnDbNuke(mctx libkb.MetaContext) error {
+func (idx *Indexer) OnDbNuke(mctx libkb.MetaContext) (err error) {
+	defer idx.Trace(mctx.Ctx(), func() error { return err }, "Indexer.OnDbNuke")()
 	idx.store.ClearMemory()
 	return nil
 }
 
 func (idx *Indexer) GetStoreHits(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	query string) (res map[chat1.MessageID]chat1.EmptyStruct, err error) {
-	return idx.store.GetHits(ctx, uid, convID, query)
+	return idx.store.GetHits(ctx, convID, query)
 }
