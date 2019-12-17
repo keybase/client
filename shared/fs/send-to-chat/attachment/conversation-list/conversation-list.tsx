@@ -1,11 +1,11 @@
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Types from '../../constants/types/chat2'
-import * as Styles from '../../styles'
-import SelectableSmallTeam from '../selectable-small-team-container'
-import SelectableBigTeamChannel from '../selectable-big-team-channel-container'
-import {rowHeight} from '../selectable-big-team-channel'
-import {rowHeight as shouldEqualToRowHeight} from '../selectable-small-team'
+import * as Kb from '../../../../common-adapters'
+import * as Types from '../../../../constants/types/chat2'
+import * as Styles from '../../../../styles'
+import SelectableSmallTeam from '../../../../chat/selectable-small-team-container'
+import SelectableBigTeamChannel from '../../../../chat/selectable-big-team-channel-container'
+import {rowHeight} from '../../../../chat/selectable-big-team-channel'
+import {rowHeight as shouldEqualToRowHeight} from '../../../../chat/selectable-small-team'
 
 /* This is used in Fs tab for sending attachments to chat. Please check to make
  * sure it doesn't break there if you make changes to this file. */

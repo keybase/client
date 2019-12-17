@@ -8,8 +8,8 @@ import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as ChatTypes from '../../../constants/types/chat2'
 import * as Container from '../../../util/container'
 import HiddenString from '../../../util/hidden-string'
-import ConversationList from '../../../chat/conversation-list/conversation-list-container'
-import ChooseConversation from '../../../chat/conversation-list/choose-conversation-container'
+import ConversationList from './conversation-list/conversation-list-container'
+import ChooseConversation from './conversation-list/choose-conversation-container'
 
 type Props = {
   onCancel: () => void

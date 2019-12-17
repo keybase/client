@@ -1,9 +1,9 @@
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Sb from '../../stories/storybook'
-import * as Styles from '../../styles'
-import * as Types from '../../constants/types/chat2'
-import * as Constants from '../../constants/chat2'
+import * as Kb from '../../../../common-adapters'
+import * as Sb from '../../../../stories/storybook'
+import * as Styles from '../../../../styles'
+import * as Types from '../../../../constants/types/chat2'
+import * as Constants from '../../../../constants/chat2'
 import ChooseConversation from './choose-conversation'
 import ConversationList, {RowItem} from './conversation-list'
 
@@ -130,7 +130,7 @@ export const provider = {
 }
 
 export default () =>
-  Sb.storiesOf('Chat/ConversationList', module)
+  Sb.storiesOf('Files/SendToChat/Attachment/ConversationList', module)
     .addDecorator(Sb.createPropProviderWithCommon(provider))
     .add('Collapsed - no filter', () => <ConversationList rows={getRows(8)} {...actions} />)
     .add('Collapsed', () => <ConversationList rows={getRows(8)} filter={filter} {...actions} />)
