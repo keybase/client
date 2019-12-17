@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package ldbutils
 
 import (
 	"context"
@@ -25,9 +25,20 @@ import (
 
 const (
 	diskCacheVersionFilename string = "version"
-	metered                         = true
-	unmetered                       = false
+	// Metered specified that this DB should be metered.
+	Metered = true
+	// Unmetered specified that this DB should not be metered.
+	Unmetered = false
 )
+
+// DbWriteBufferSizeGetter is an interface that contains a method for
+// getting the size of a leveldb write buffer.
+type DbWriteBufferSizeGetter interface {
+	// DbWriteBufferSize indicates how large the write buffer should
+	// be on local levelDbs -- this also controls how big the on-disk
+	// tables are before compaction.
+	DbWriteBufferSize() int
+}
 
 var leveldbOptions = &opt.Options{
 	Compression: opt.NoCompression,
@@ -39,9 +50,12 @@ var leveldbOptions = &opt.Options{
 	OpenFilesCacheCapacity: 10,
 }
 
-func leveldbOptionsFromMode(mode InitMode) *opt.Options {
+// LeveldbOptions returns leveldb options.
+func LeveldbOptions(sizeGetter DbWriteBufferSizeGetter) *opt.Options {
 	o := *leveldbOptions
-	o.WriteBuffer = mode.DiskCacheWriteBufferSize()
+	if sizeGetter != nil {
+		o.WriteBuffer = sizeGetter.DbWriteBufferSize()
+	}
 	return &o
 }
 
@@ -115,9 +129,10 @@ func (ldb *LevelDb) StatStrings() ([]string, error) {
 	return strings.Split(stats, "\n"), nil
 }
 
-// openLevelDB opens or recovers a leveldb.DB with a passed-in storage.Storage
-// as its underlying storage layer, and with the options specified.
-func openLevelDBWithOptions(stor storage.Storage, options *opt.Options) (
+// OpenLevelDbWithOptions opens or recovers a leveldb.DB with a
+// passed-in storage.Storage as its underlying storage layer, and with
+// the options specified.
+func OpenLevelDbWithOptions(stor storage.Storage, options *opt.Options) (
 	*LevelDb, error) {
 	db, err := leveldb.Open(stor, options)
 	if ldberrors.IsCorrupted(err) {
@@ -135,87 +150,92 @@ func openLevelDBWithOptions(stor storage.Storage, options *opt.Options) (
 	return &LevelDb{db, stor}, nil
 }
 
-// openLevelDB opens or recovers a leveldb.DB with a passed-in storage.Storage
-// as its underlying storage layer.
-func openLevelDB(stor storage.Storage, mode InitMode) (*LevelDb, error) {
-	options := leveldbOptionsFromMode(mode)
+// OpenLevelDb opens or recovers a leveldb.DB with a passed-in
+// storage.Storage as its underlying storage layer.
+func OpenLevelDb(
+	stor storage.Storage, sizeGetter DbWriteBufferSizeGetter) (
+	*LevelDb, error) {
+	options := LeveldbOptions(sizeGetter)
 	options.Filter = filter.NewBloomFilter(16)
-	return openLevelDBWithOptions(stor, options)
+	return OpenLevelDbWithOptions(stor, options)
 }
 
 func versionPathFromVersion(dirPath string, version uint64) string {
 	return filepath.Join(dirPath, fmt.Sprintf("v%d", version))
 }
 
-func getVersionedPathForDiskCache(
-	log logger.Logger, dirPath string, cacheName string,
-	currentDiskCacheVersion uint64) (versionedDirPath string, err error) {
+// GetVersionedPathForDb returns a path for the db that includes a
+// version number.
+func GetVersionedPathForDb(
+	log logger.Logger, dirPath string, dbName string,
+	currentDbVersion uint64) (versionedDirPath string, err error) {
 	// Read the version file
 	versionFilepath := filepath.Join(dirPath, diskCacheVersionFilename)
 	versionBytes, err := ioutil.ReadFile(versionFilepath)
 	// We expect the file to open successfully or not exist. Anything else is a
 	// problem.
-	version := currentDiskCacheVersion
+	version := currentDbVersion
 	switch {
 	case ioutil.IsNotExist(err):
 		// Do nothing, meaning that we will create the version file below.
 		log.CDebugf(
-			context.TODO(), "Creating new version file for the disk %s cache.",
-			cacheName)
+			context.TODO(), "Creating new version file for the %s DB.",
+			dbName)
 	case err != nil:
 		log.CDebugf(
 			context.TODO(),
-			"An error occurred while reading the disk %s cache "+
+			"An error occurred while reading the %s DB "+
 				"version file. Using %d as the version and creating a new "+
-				"file to record it.", cacheName, version)
-		// TODO: when we increase the version of the disk cache, we'll have
-		// to make sure we wipe all previous versions of the disk cache.
+				"file to record it.", dbName, version)
+		// TODO: when we increase the version of the DB, we'll have to
+		// make sure we wipe all previous versions of the DB.
 	default:
-		// We expect a successfully opened version file to parse a single
-		// unsigned integer representing the version. Anything else is a
-		// corrupted version file. However, this we can solve by deleting
-		// everything in the cache.  TODO: Eventually delete the whole disk
-		// cache if we have an out of date version.
+		// We expect a successfully opened version file to parse a
+		// single unsigned integer representing the version. Anything
+		// else is a corrupted version file. However, this we can
+		// solve by deleting everything in the cache.  TODO:
+		// Eventually delete the whole DB if we have an out of date
+		// version.
 		version, err = strconv.ParseUint(string(versionBytes), 10,
 			strconv.IntSize)
-		if err == nil && version == currentDiskCacheVersion {
+		if err == nil && version == currentDbVersion {
 			// Success case, no need to write the version file again.
 			log.CDebugf(
 				context.TODO(),
-				"Loaded the disk %s cache version file successfully."+
-					" Version: %d", cacheName, version)
+				"Loaded the %s DB version file successfully."+
+					" Version: %d", dbName, version)
 			return versionPathFromVersion(dirPath, version), nil
 		}
 		switch {
 		case err != nil:
 			log.CDebugf(
 				context.TODO(),
-				"An error occurred while parsing the disk %s cache "+
+				"An error occurred while parsing the %s DB "+
 					"version file. Using %d as the version.",
-				cacheName, currentDiskCacheVersion)
-			// TODO: when we increase the version of the disk cache, we'll have
-			// to make sure we wipe all previous versions of the disk cache.
-			version = currentDiskCacheVersion
-		case version < currentDiskCacheVersion:
+				dbName, currentDbVersion)
+			// TODO: when we increase the version of the DB, we'll have
+			// to make sure we wipe all previous versions of the DB.
+			version = currentDbVersion
+		case version < currentDbVersion:
 			log.CDebugf(
 				context.TODO(),
-				"The disk %s cache version file contained an old "+
+				"The %s DB version file contained an old "+
 					"version: %d. Updating to the new version: %d.",
-				cacheName, version, currentDiskCacheVersion)
-			// TODO: when we increase the version of the disk cache, we'll have
-			// to make sure we wipe all previous versions of the disk cache.
-			version = currentDiskCacheVersion
-		case version > currentDiskCacheVersion:
+				dbName, version, currentDbVersion)
+			// TODO: when we increase the version of the DB, we'll have
+			// to make sure we wipe all previous versions of the DB.
+			version = currentDbVersion
+		case version > currentDbVersion:
 			log.CDebugf(
 				context.TODO(),
-				"The disk %s cache version file contained a newer "+
+				"The %s DB version file contained a newer "+
 					"version (%d) than this client knows how to read. "+
 					"Switching to this client's newest known version: %d.",
-				cacheName, version, currentDiskCacheVersion)
-			version = currentDiskCacheVersion
+				dbName, version, currentDbVersion)
+			version = currentDbVersion
 		}
 	}
-	// Ensure the disk cache directory exists.
+	// Ensure the DB directory exists.
 	err = os.MkdirAll(dirPath, 0700)
 	if err != nil {
 		// This does actually need to be fatal.
@@ -230,17 +250,17 @@ func getVersionedPathForDiskCache(
 	return versionPathFromVersion(dirPath, version), nil
 }
 
-// openVersionedLevelDB opens a level DB under a versioned path on the local filesystem
-// under storageRoot. The path include dbFolderName and dbFilename. Note that
-// dbFilename is actually created as a folder; it's just where raw LevelDb
-// lives.
-func openVersionedLevelDB(
+// OpenVersionedLevelDb opens a level DB under a versioned path on the
+// local filesystem under storageRoot. The path include dbFolderName
+// and dbFilename. Note that dbFilename is actually created as a
+// folder; it's just where raw LevelDb lives.
+func OpenVersionedLevelDb(
 	log logger.Logger, storageRoot string, dbFolderName string,
-	currentDiskCacheVersion uint64, dbFilename string, mode InitMode) (
-	db *LevelDb, err error) {
+	currentDbVersion uint64, dbFilename string,
+	sizeGetter DbWriteBufferSizeGetter) (db *LevelDb, err error) {
 	dbPath := filepath.Join(storageRoot, dbFolderName)
-	versionPath, err := getVersionedPathForDiskCache(
-		log, dbPath, dbFolderName, currentDiskCacheVersion)
+	versionPath, err := GetVersionedPathForDb(
+		log, dbPath, dbFolderName, currentDbVersion)
 	if err != nil {
 		return nil, err
 	}
@@ -255,8 +275,8 @@ func openVersionedLevelDB(
 			storage.Close()
 		}
 	}()
-	options := leveldbOptionsFromMode(mode)
-	if db, err = openLevelDBWithOptions(storage, options); err != nil {
+	options := LeveldbOptions(sizeGetter)
+	if db, err = OpenLevelDbWithOptions(storage, options); err != nil {
 		return nil, err
 	}
 	return db, nil

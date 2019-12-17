@@ -19,10 +19,8 @@ const markdownStyles = Styles.styleSheetCreate(
   () =>
     ({
       bigTextBlockStyle: Styles.platformStyles({
-        common: {
-          ...wrapStyle,
-        },
         isElectron: {
+          ...wrapStyle,
           color: 'inherit',
           display: 'block',
           fontWeight: 'inherit',
@@ -31,19 +29,17 @@ const markdownStyles = Styles.styleSheetCreate(
           fontSize: 32,
           lineHeight: undefined,
         },
-      }),
+      } as const),
       boldStyle: Styles.platformStyles({
         common: {
           ...Styles.globalStyles.fontBold,
-          ...wrapStyle,
         },
-        isElectron: {color: 'inherit'},
+        isElectron: {color: 'inherit', ...wrapStyle},
         isMobile: {color: undefined},
       }),
       get codeSnippetBlockStyle() {
         return Styles.platformStyles({
           common: {
-            ...wrapStyle,
             ...this.codeSnippetStyle,
             backgroundColor: Styles.globalColors.redLighter,
             marginBottom: Styles.globalMargins.xtiny,
@@ -54,6 +50,7 @@ const markdownStyles = Styles.styleSheetCreate(
             paddingTop: Styles.globalMargins.xtiny,
           },
           isElectron: {
+            ...wrapStyle,
             color: Styles.globalColors.black,
             display: 'block',
           },
@@ -69,7 +66,6 @@ const markdownStyles = Styles.styleSheetCreate(
       }),
       codeSnippetStyle: Styles.platformStyles({
         common: {
-          ...wrapStyle,
           ...Styles.globalStyles.fontTerminal,
           ...Styles.globalStyles.rounded,
           backgroundColor: Styles.globalColors.redLighter,
@@ -78,6 +74,7 @@ const markdownStyles = Styles.styleSheetCreate(
           paddingRight: Styles.globalMargins.xtiny,
         },
         isElectron: {
+          ...wrapStyle,
           fontSize: 12,
         },
         isMobile: {
@@ -86,10 +83,9 @@ const markdownStyles = Styles.styleSheetCreate(
       }),
       italicStyle: Styles.platformStyles({
         common: {
-          ...wrapStyle,
           fontStyle: 'italic',
         },
-        isElectron: {color: 'inherit', fontWeight: 'inherit'},
+        isElectron: {color: 'inherit', fontWeight: 'inherit', ...wrapStyle},
         isMobile: {color: undefined, fontWeight: undefined},
       }),
       linkStyle: Styles.platformStyles({
@@ -120,23 +116,20 @@ const markdownStyles = Styles.styleSheetCreate(
         },
       }),
       strikeStyle: Styles.platformStyles({
-        common: {
-          ...wrapStyle,
-        },
         isElectron: {
+          ...wrapStyle,
           color: 'inherit',
           fontWeight: 'inherit',
           textDecoration: 'line-through',
-        },
+        } as const,
         isMobile: {
           fontWeight: undefined,
           textDecorationLine: 'line-through',
         },
       }),
       textBlockStyle: Styles.platformStyles({
-        common: {...wrapStyle},
-        isElectron: {color: 'inherit', display: 'block', fontWeight: 'inherit'},
-      }),
+        isElectron: {color: 'inherit', display: 'block', fontWeight: 'inherit', ...wrapStyle},
+      } as const),
       wrapStyle,
     } as const)
 )
@@ -378,7 +371,7 @@ const serviceOnlyOutput = SimpleMarkdown.reactFor(
             key={state.key}
             allowFontScaling={state.allowFontScaling}
             styleOverride={state.styleOverride}
-            styles={markdownStyles}
+            styles={markdownStyles as any}
           />
         )
       default:

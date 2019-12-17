@@ -102,6 +102,7 @@ protocol SimpleFS {
     boolean writable;
     PrefetchStatus prefetchStatus;
     PrefetchProgress prefetchProgress;
+    string symlinkTarget;
   }
 
   record DirentWithRevision {

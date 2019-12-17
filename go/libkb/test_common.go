@@ -355,6 +355,7 @@ func SetupTest(tb TestingTB, name string, depth int) (tc TestContext) {
 	}
 
 	AddEnvironmentFeatureForTest(tc, EnvironmentFeatureAllowHighSkips)
+	AddEnvironmentFeatureForTest(tc, FeatureJourneycardPreview)
 
 	return tc
 }
@@ -656,6 +657,16 @@ func ModifyFeatureForTest(m MetaContext, feature Feature, on bool, cacheSec int)
 
 func AddEnvironmentFeatureForTest(tc TestContext, feature Feature) {
 	tc.Tp.EnvironmentFeatureFlags = append(tc.Tp.EnvironmentFeatureFlags, feature)
+}
+
+func RemoveEnvironmentFeatureForTest(tp *TestParameters, feature Feature) {
+	var flags FeatureFlags
+	for _, flag := range tp.EnvironmentFeatureFlags {
+		if flag != feature {
+			flags = append(flags, flag)
+		}
+	}
+	tp.EnvironmentFeatureFlags = flags
 }
 
 // newSecretStoreLockedForTests is a simple function to create

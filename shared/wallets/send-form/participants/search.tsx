@@ -29,7 +29,7 @@ const Search = (props: SearchProps) => (
           color={Styles.globalColors.black_50}
           type="iconfont-qr-code"
           onClick={props.onScanQRCode}
-          style={Kb.iconCastPlatformStyles(styles.qrCode)}
+          style={styles.qrCode}
         />
       )}
     </Kb.Box2>

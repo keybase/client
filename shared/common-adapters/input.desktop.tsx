@@ -382,9 +382,9 @@ class Input extends React.PureComponent<Props, State> {
 }
 
 const _lineHeight = 20
-const _headerTextStyle: any = getTextStyle('Header')
-const _bodyTextStyle: any = getTextStyle('Body')
-const _bodySmallTextStyle: any = getTextStyle('BodySmall')
+const _headerTextStyle = getTextStyle('Header')
+const _bodyTextStyle = getTextStyle('Body')
+const _bodySmallTextStyle = getTextStyle('BodySmall')
 
 const styles = Styles.styleSheetCreate(() => ({
   commonInput: Styles.collapseStyles([

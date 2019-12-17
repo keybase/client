@@ -5,6 +5,7 @@ import * as Types from '../../../constants/types/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import {appendNewChatBuilder} from '../../../actions/typed-routes'
+import {getActiveKey} from '../../../constants/router2'
 import Inbox from '..'
 import {isMobile} from '../../../constants/platform'
 import {
@@ -19,11 +20,11 @@ import {
 import * as Kb from '../../../common-adapters'
 import {HeaderNewChatButton} from './new-chat-button'
 
-type OwnProps = Container.PropsWithSafeNavigation
+type OwnProps = {}
 
 const makeBigRows = (
   bigTeams: Array<RPCChatTypes.UIInboxBigTeamRow>
-): Array<RowItemBig | RowItemBigHeader> => {
+): Array<RowItemBig | RowItemBigHeader | RowItemTeamBuilder> => {
   return bigTeams.map(t => {
     switch (t.state) {
       case RPCChatTypes.UIInboxBigTeamRowTyp.channel:
@@ -48,7 +49,9 @@ const makeBigRows = (
   })
 }
 
-const makeSmallRows = (smallTeams: Array<RPCChatTypes.UIInboxSmallTeamRow>): Array<RowItemSmall> => {
+const makeSmallRows = (
+  smallTeams: Array<RPCChatTypes.UIInboxSmallTeamRow>
+): Array<RowItemSmall | RowItemTeamBuilder> => {
   return smallTeams.map(t => {
     return {
       conversationIDKey: Types.stringToConversationIDKey(t.convID),
@@ -160,21 +163,28 @@ const Connected = Container.namedConnect(
     setInboxNumSmallRows: (rows: number) => dispatch(Chat2Gen.createSetInboxNumSmallRows({rows})),
     toggleSmallTeamsExpanded: () => dispatch(Chat2Gen.createToggleSmallTeamsExpanded()),
   }),
-  (stateProps, dispatchProps, ownProps: OwnProps) => {
+  (stateProps, dispatchProps, _: OwnProps) => {
     const bigTeams = stateProps._inboxLayout ? stateProps._inboxLayout.bigTeams || [] : []
-    const hasBigTeams = bigTeams.length
+    const hasBigTeams = !!bigTeams.length
     const showAllSmallRows = stateProps.smallTeamsExpanded || !bigTeams.length
     let smallTeams = stateProps._inboxLayout ? stateProps._inboxLayout.smallTeams || [] : []
     const smallTeamsBelowTheFold = !showAllSmallRows && smallTeams.length > stateProps.inboxNumSmallRows
     if (!showAllSmallRows) {
       smallTeams = smallTeams.slice(0, stateProps.inboxNumSmallRows)
     }
-    const smallRows = makeSmallRows(smallTeams)
-    const bigRows = makeBigRows(bigTeams)
+    let smallRows = makeSmallRows(smallTeams)
+    let bigRows = makeBigRows(bigTeams)
+    const teamBuilder: RowItemTeamBuilder = {type: 'teamBuilder'}
+    if (smallRows.length !== 0) {
+      if (bigRows.length === 0) {
+        smallRows.push(teamBuilder)
+      } else {
+        bigRows.push(teamBuilder)
+      }
+    }
     const divider: Array<RowItemDivider> =
       bigRows.length !== 0 ? [{showButton: smallTeamsBelowTheFold, type: 'divider'}] : []
-    const teamBuilder: Array<RowItemTeamBuilder> = bigRows.length !== 0 ? [{type: 'teamBuilder'}] : []
-    const rows: Array<RowItem> = [...smallRows, ...divider, ...bigRows, ...teamBuilder]
+    const rows: Array<RowItem> = [...smallRows, ...divider, ...bigRows]
 
     const unreadIndices: Array<number> = []
     for (let i = rows.length - 1; i >= 0; i--) {
@@ -204,14 +214,13 @@ const Connected = Container.namedConnect(
       inboxNumSmallRows: stateProps.inboxNumSmallRows,
       isLoading: stateProps.isLoading,
       isSearching: stateProps.isSearching,
-      navKey: ownProps.navKey,
+      navKey: getActiveKey(),
       neverLoaded: stateProps.neverLoaded,
       onNewChat: dispatchProps.onNewChat,
       onUntrustedInboxVisible: dispatchProps.onUntrustedInboxVisible,
       rows,
       setInboxNumSmallRows: dispatchProps.setInboxNumSmallRows,
       smallTeamsExpanded: stateProps.smallTeamsExpanded,
-      title: 'Chats',
       toggleSmallTeamsExpanded: dispatchProps.toggleSmallTeamsExpanded,
       unreadIndices,
     }
@@ -219,4 +228,4 @@ const Connected = Container.namedConnect(
   'Inbox'
 )(InboxWrapper)
 
-export default Container.withSafeNavigation(Connected)
+export default Connected

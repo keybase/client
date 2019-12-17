@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/globals"
-	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
@@ -16,6 +15,11 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
+
+// If a conversation doesn't meet the minimum requirements, don't update the
+// index realtime. The priority score emphasizes how much of the conversation
+// is read, a prerequisite for searching.
+const minPriorityScore = 10
 
 type Indexer struct {
 	globals.Contextified
@@ -298,30 +302,63 @@ func (idx *Indexer) consumeResultsForTest(convID chat1.ConversationID, err error
 	}
 }
 
+func (idx *Indexer) hasPriority(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) bool {
+	conv, err := utils.GetUnverifiedConv(ctx, idx.G(), uid, convID, types.InboxSourceDataSourceLocalOnly)
+	if err != nil {
+		idx.Debug(ctx, "unable to fetch GetUnverifiedConv, continuing: %v", err)
+		return true
+	} else if score := utils.GetConvPriorityScore(conv); score < minPriorityScore {
+		idx.Debug(ctx, "%s does not meet minPriorityScore (%.2f < %d), aborting.",
+			utils.GetRemoteConvDisplayName(conv), score, minPriorityScore)
+		return false
+	}
+	return true
+}
+
 func (idx *Indexer) Add(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 	msgs []chat1.MessageUnboxed) (err error) {
+	return idx.add(ctx, convID, uid, msgs, false)
+}
+
+func (idx *Indexer) add(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+	msgs []chat1.MessageUnboxed, force bool) (err error) {
 	if idx.G().GetEnv().GetDisableSearchIndexer() {
 		return nil
 	}
 	if !idx.validBatch(msgs) {
 		return nil
 	}
+	if !force && !idx.hasPriority(ctx, uid, convID) {
+		return nil
+	}
+
 	defer idx.Trace(ctx, func() error { return err },
-		fmt.Sprintf("Indexer.Add convID: %v, msgs: %d", convID.String(), len(msgs)))()
+		fmt.Sprintf("Indexer.Add conv: %v, msgs: %d, force: %v",
+			convID, len(msgs), force))()
 	defer idx.consumeResultsForTest(convID, err)
 	return idx.store.Add(ctx, uid, convID, msgs)
 }
 
 func (idx *Indexer) Remove(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 	msgs []chat1.MessageUnboxed) (err error) {
+	return idx.remove(ctx, convID, uid, msgs, false)
+}
+
+func (idx *Indexer) remove(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+	msgs []chat1.MessageUnboxed, force bool) (err error) {
 	if idx.G().GetEnv().GetDisableSearchIndexer() {
 		return nil
 	}
 	if !idx.validBatch(msgs) {
 		return nil
 	}
+	if !force && !idx.hasPriority(ctx, uid, convID) {
+		return nil
+	}
+
 	defer idx.Trace(ctx, func() error { return err },
-		fmt.Sprintf("Indexer.Remove convID: %v, msgs: %d", convID.String(), len(msgs)))()
+		fmt.Sprintf("Indexer.Remove conv: %v, msgs: %d, force: %v",
+			convID, len(msgs), force))()
 	defer idx.consumeResultsForTest(convID, err)
 	return idx.store.Remove(ctx, uid, convID, msgs)
 }
@@ -358,7 +395,7 @@ func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversat
 			}
 			return 0, nil
 		}
-		if err := idx.Add(ctx, convID, uid, msgs); err != nil {
+		if err := idx.add(ctx, convID, uid, msgs, true); err != nil {
 			return 0, err
 		}
 		completedJobs++
@@ -385,7 +422,7 @@ func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversat
 				}
 				continue
 			}
-			if err := idx.Add(ctx, convID, uid, tv.Messages); err != nil {
+			if err := idx.add(ctx, convID, uid, tv.Messages, true); err != nil {
 				return 0, err
 			}
 			completedJobs++
@@ -420,7 +457,7 @@ func (idx *Indexer) SearchableConvs(ctx context.Context, uid gregor1.UID, convID
 	if err != nil {
 		return res, err
 	}
-	return idx.convsByMTime(ctx, uid, convMap), nil
+	return idx.convsPrioritySorted(ctx, uid, convMap), nil
 }
 
 func (idx *Indexer) allConvs(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID) (map[string]types.RemoteConversation, error) {
@@ -470,7 +507,7 @@ func (idx *Indexer) allConvs(ctx context.Context, uid gregor1.UID, convID *chat1
 	return convMap, nil
 }
 
-func (idx *Indexer) convsByMTime(ctx context.Context, uid gregor1.UID,
+func (idx *Indexer) convsPrioritySorted(ctx context.Context, uid gregor1.UID,
 	convMap map[string]types.RemoteConversation) (res []types.RemoteConversation) {
 	res = make([]types.RemoteConversation, len(convMap))
 	index := 0
@@ -478,19 +515,8 @@ func (idx *Indexer) convsByMTime(ctx context.Context, uid gregor1.UID,
 		res[index] = conv
 		index++
 	}
-	_, ib, err := storage.NewInbox(idx.G()).ReadAll(ctx, uid, true)
-	if err != nil {
-		idx.Debug(ctx, "convsByMTime: failed to read inbox: %s", err)
-		return res
-	}
-	sortMap := make(map[string]gregor1.Time)
-	for _, conv := range ib {
-		sortMap[conv.ConvIDStr] = utils.GetConvMtime(conv)
-	}
 	sort.Slice(res, func(i, j int) bool {
-		imtime := sortMap[res[i].ConvIDStr]
-		jmtime := sortMap[res[j].ConvIDStr]
-		return imtime.After(jmtime)
+		return utils.GetConvPriorityScore(convMap[res[i].ConvIDStr]) >= utils.GetConvPriorityScore(convMap[res[j].ConvIDStr])
 	})
 	return res
 }
@@ -546,8 +572,8 @@ func (idx *Indexer) SelectiveSync(ctx context.Context, uid gregor1.UID) (err err
 		return err
 	}
 
-	// make sure the most recently modified convs are fully indexed
-	convs := idx.convsByMTime(ctx, uid, convMap)
+	// make sure the most recently read convs are fully indexed
+	convs := idx.convsPrioritySorted(ctx, uid, convMap)
 	// number of batches of messages to fetch in total
 	numJobs := idx.maxSyncConvs
 	for _, conv := range convs {

@@ -39,7 +39,7 @@ const ReceiveModal = (props: Props) => {
       <Kb.Box2 centerChildren={true} direction="vertical" fullWidth={true} style={styles.sidePaddings}>
         <Kb.Icon
           type={Styles.isMobile ? 'icon-wallet-receive-64' : 'icon-wallet-receive-48'}
-          style={Kb.iconCastPlatformStyles(styles.icon)}
+          style={styles.icon}
         />
         {!Styles.isMobile && header}
         {props.isDefaultAccount && (
@@ -54,7 +54,7 @@ const ReceiveModal = (props: Props) => {
               type="iconfont-stellar-request"
               sizeType="Small"
               color={Styles.globalColors.white}
-              style={Kb.iconCastPlatformStyles(styles.requestIcon)}
+              style={styles.requestIcon}
             />
           </Kb.Button>
         )}

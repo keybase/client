@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {StylesCrossPlatform, globalMargins, StylesCrossPlatformWithSomeDisallowed} from '../styles'
+import {StylesCrossPlatform, globalMargins, CustomStyles} from '../styles'
 import {TextType} from './text'
 
 export type KeyboardType =
@@ -55,11 +55,7 @@ export type Selection = {
   end: number | null
 }
 
-export type DisallowedStyles = {
-  padding?: never
-}
-
-export type InputStyle = StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>
+export type InputStyle = CustomStyles<'padding', {}>
 
 export type Props = {
   autoFocus?: boolean

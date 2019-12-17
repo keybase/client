@@ -62,7 +62,7 @@ func (r *Srv) startHTTPSrv() {
 	r.startMu.Lock()
 	defer r.startMu.Unlock()
 	ctx := context.Background()
-	r.token, _ = libkb.RandHexString("", 32)
+	token, _ := libkb.RandHexString("", 32)
 	maxTries := 2
 	success := false
 	for i := 0; i < maxTries; i++ {
@@ -94,6 +94,7 @@ func (r *Srv) startHTTPSrv() {
 	} else {
 		r.debug(ctx, "startHTTPSrv: start success: addr: %s", addr)
 	}
+	r.token = token
 	r.debug(ctx, "startHTTPSrv: addr: %s token: %s", addr, r.token)
 	r.G().NotifyRouter.HandleHTTPSrvInfoUpdate(ctx, keybase1.HttpSrvInfo{
 		Address: addr,

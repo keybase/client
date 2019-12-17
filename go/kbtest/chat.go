@@ -1431,7 +1431,7 @@ func (m *MockChatHelper) JourneycardResetAllConvs(ctx context.Context, uid grego
 	return fmt.Errorf("JourneycardResetAllConvs not implemented on mock")
 }
 
-func (m *MockChatHelper) JourneycardDebugState(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (string, error) {
+func (m *MockChatHelper) JourneycardDebugState(ctx context.Context, uid gregor1.UID, teamID keybase1.TeamID) (string, error) {
 	return "", fmt.Errorf("JourneycardDebugState not implemented on mock")
 }
 

@@ -34,17 +34,17 @@ class _DeleteChannel extends React.Component<Props, State> {
 
     const items = [
       'Divider' as const,
-      {danger: true, onClick: this.props.onConfirmedDelete, title: 'Yes, delete channel'} as const,
-      {title: 'Cancel'} as const,
+      {
+        danger: true,
+        icon: 'iconfont-trash',
+        onClick: this.props.onConfirmedDelete,
+        title: 'Yes, delete channel',
+      } as const,
     ]
 
     return (
       <Kb.Box style={Styles.collapseStyles([styles.container, disabled && {opacity: 0.5}])}>
-        <Kb.Icon
-          type="iconfont-trash"
-          style={Kb.iconCastPlatformStyles(styles.trashIcon)}
-          color={Styles.globalColors.red}
-        />
+        <Kb.Icon type="iconfont-trash" style={styles.trashIcon} color={Styles.globalColors.red} />
         <Kb.FloatingMenu
           closeOnSelect={true}
           header={header}

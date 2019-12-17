@@ -77,12 +77,16 @@ const styles = Styles.styleSheetCreate(
         justifyContent: 'center',
         minHeight: 56,
       },
-      row: {
-        ...Styles.globalStyles.flexBoxRow,
-        ...Styles.desktopStyles.clickable,
-        alignItems: 'center',
-        minHeight: 56,
-      },
+      row: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.flexBoxRow,
+          alignItems: 'center',
+          minHeight: 56,
+        },
+        isElectron: {
+          ...Styles.desktopStyles.clickable,
+        },
+      }),
     } as const)
 )
 

@@ -24,6 +24,15 @@ module.exports = (async () => {
           inlineRequires: true,
         },
       }),
+      minifierConfig: {
+        mangle: {
+          keep_fnames: true,
+        },
+        compress: {
+          keep_fnames: true,
+          keep_classnames: true,
+        },
+      },
     },
   }
 })()

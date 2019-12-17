@@ -24,7 +24,7 @@ const load = async (state: TypedState) => {
   }
 }
 
-const createPersonalRepo = async (_: TypedState, action: GitGen.CreatePersonalRepoPayload) => {
+const createPersonalRepo = async (action: GitGen.CreatePersonalRepoPayload) => {
   try {
     await RPCTypes.gitCreatePersonalRepoRpcPromise(
       {repoName: action.payload.name},
@@ -36,7 +36,7 @@ const createPersonalRepo = async (_: TypedState, action: GitGen.CreatePersonalRe
   }
 }
 
-const createTeamRepo = async (_: TypedState, action: GitGen.CreateTeamRepoPayload) => {
+const createTeamRepo = async (action: GitGen.CreateTeamRepoPayload) => {
   try {
     await RPCTypes.gitCreateTeamRepoRpcPromise(
       {
@@ -52,7 +52,7 @@ const createTeamRepo = async (_: TypedState, action: GitGen.CreateTeamRepoPayloa
   }
 }
 
-const deletePersonalRepo = async (_: TypedState, action: GitGen.DeletePersonalRepoPayload) => {
+const deletePersonalRepo = async (action: GitGen.DeletePersonalRepoPayload) => {
   try {
     await RPCTypes.gitDeletePersonalRepoRpcPromise(
       {repoName: action.payload.name},
@@ -64,7 +64,7 @@ const deletePersonalRepo = async (_: TypedState, action: GitGen.DeletePersonalRe
   }
 }
 
-const deleteTeamRepo = async (_: TypedState, action: GitGen.DeleteTeamRepoPayload) => {
+const deleteTeamRepo = async (action: GitGen.DeleteTeamRepoPayload) => {
   try {
     await RPCTypes.gitDeleteTeamRepoRpcPromise(
       {
@@ -80,7 +80,7 @@ const deleteTeamRepo = async (_: TypedState, action: GitGen.DeleteTeamRepoPayloa
   }
 }
 
-const setTeamRepoSettings = async (_: TypedState, action: GitGen.SetTeamRepoSettingsPayload) => {
+const setTeamRepoSettings = async (action: GitGen.SetTeamRepoSettingsPayload) => {
   await RPCTypes.gitSetTeamRepoSettingsRpcPromise({
     channelName: action.payload.channelName,
     chatDisabled: action.payload.chatDisabled,
@@ -121,23 +121,23 @@ function* navigateToTeamRepo(state: TypedState, action: GitGen.NavigateToTeamRep
   }
 }
 
-const receivedBadgeState = (_: TypedState, action: NotificationsGen.ReceivedBadgeStatePayload) =>
+const receivedBadgeState = (action: NotificationsGen.ReceivedBadgeStatePayload) =>
   GitGen.createBadgeAppForGit({ids: new Set(action.payload.badgeState.newGitRepoGlobalUniqueIDs)})
 
 function* gitSaga() {
   // Create / Delete
-  yield* Saga.chainAction2(GitGen.createPersonalRepo, createPersonalRepo)
-  yield* Saga.chainAction2(GitGen.createTeamRepo, createTeamRepo)
-  yield* Saga.chainAction2(GitGen.deletePersonalRepo, deletePersonalRepo)
-  yield* Saga.chainAction2(GitGen.deleteTeamRepo, deleteTeamRepo)
+  yield* Saga.chainAction(GitGen.createPersonalRepo, createPersonalRepo)
+  yield* Saga.chainAction(GitGen.createTeamRepo, createTeamRepo)
+  yield* Saga.chainAction(GitGen.deletePersonalRepo, deletePersonalRepo)
+  yield* Saga.chainAction(GitGen.deleteTeamRepo, deleteTeamRepo)
   yield* Saga.chainAction2([GitGen.repoCreated, GitGen.repoDeleted, GitGen.loadGit], load)
 
   // Team Repos
-  yield* Saga.chainAction2(GitGen.setTeamRepoSettings, setTeamRepoSettings)
+  yield* Saga.chainAction(GitGen.setTeamRepoSettings, setTeamRepoSettings)
   yield* Saga.chainGenerator<GitGen.NavigateToTeamRepoPayload>(GitGen.navigateToTeamRepo, navigateToTeamRepo)
 
   // Badges
-  yield* Saga.chainAction2(NotificationsGen.receivedBadgeState, receivedBadgeState)
+  yield* Saga.chainAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
 
   // clear on load
   yield* Saga.chainAction2(GitGen.loadGit, clearNavBadges)

@@ -277,9 +277,7 @@ const RuntimeStats = Styles.isMobile ? RuntimeStatsMobile : RuntimeStatsDesktop
 
 const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.blackOrBlack,
-    },
+    common: {backgroundColor: Styles.globalColors.blackOrBlack},
     isElectron: {
       overflow: 'auto',
       padding: Styles.globalMargins.tiny,

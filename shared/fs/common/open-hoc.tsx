@@ -1,59 +1,51 @@
 import * as Constants from '../../constants/fs'
 import * as Types from '../../constants/types/fs'
 import * as Container from '../../util/container'
+import * as React from 'react'
 
-type OwnProps = Container.PropsWithSafeNavigation<{
+type Props = {
   path: Types.Path
   destinationPickerIndex?: number
-}>
+}
+type InjectedProps = {onOpen: (() => void) | null}
 
-const mapStateToProps = state => ({
-  _destinationPicker: state.fs.destinationPicker,
-  _pathItems: state.fs.pathItems,
-})
+function OpenHOC(Component: React.ComponentType<Props & InjectedProps>): React.ComponentType<Props> {
+  return (props: Props) => {
+    const destPicker = Container.useSelector(state => state.fs.destinationPicker)
+    const pathItems = Container.useSelector(state => state.fs.pathItems)
 
-const mapDispatchToProps = (
-  dispatch,
-  {path, destinationPickerIndex, safeNavigateAppendPayload}: OwnProps
-) => ({
-  _destinationPickerGoTo: () =>
-    Constants.makeActionsForDestinationPickerOpen(
-      (destinationPickerIndex || 0) + 1,
-      path,
-      safeNavigateAppendPayload
-    ).forEach(action => dispatch(action)),
-  _open: () => dispatch(safeNavigateAppendPayload({path: [{props: {path}, selected: 'main'}]})),
-})
+    const dispatch = Container.useDispatch()
+    const nav = Container.useSafeNavigation()
 
-const isFolder = (stateProps, ownProps: OwnProps) =>
-  Types.getPathLevel(ownProps.path) <= 3 ||
-  Constants.getPathItem(stateProps._pathItems, ownProps.path).type === Types.PathType.Folder
+    if (typeof props.destinationPickerIndex !== 'number') {
+      const onOpen = () =>
+        dispatch(nav.safeNavigateAppendPayload({path: [{props: {path: props.path}, selected: 'main'}]}))
+      return <Component {...props} onOpen={onOpen} />
+    }
 
-const canOpenInDestinationPicker = (stateProps, ownProps) =>
-  isFolder(stateProps, ownProps) &&
-  (stateProps._destinationPicker.source.type === Types.DestinationPickerSource.IncomingShare ||
-    (stateProps._destinationPicker.source.type === Types.DestinationPickerSource.MoveOrCopy &&
-      stateProps._destinationPicker.source.path !== ownProps.path))
+    const isFolder =
+      Types.getPathLevel(props.path) <= 3 ||
+      Constants.getPathItem(pathItems, props.path).type === Types.PathType.Folder
 
-type MergedProps = OwnProps & {
-  onOpen: (() => void) | null
+    const canOpenInDestinationPicker =
+      isFolder &&
+      (destPicker.source.type === Types.DestinationPickerSource.IncomingShare ||
+        (destPicker.source.type === Types.DestinationPickerSource.MoveOrCopy &&
+          destPicker.source.path !== props.path))
+
+    if (!canOpenInDestinationPicker) {
+      return <Component {...props} onOpen={null} />
+    }
+
+    const destinationPickerGoTo = () =>
+      Constants.makeActionsForDestinationPickerOpen(
+        (props.destinationPickerIndex || 0) + 1,
+        props.path,
+        nav.safeNavigateAppendPayload
+      ).forEach(action => dispatch(action))
+
+    return <Component {...props} onOpen={destinationPickerGoTo} />
+  }
 }
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): MergedProps => ({
-  onOpen:
-    typeof ownProps.destinationPickerIndex === 'number'
-      ? canOpenInDestinationPicker(stateProps, ownProps)
-        ? dispatchProps._destinationPickerGoTo
-        : null
-      : dispatchProps._open,
-
-  // We need the inexact spread here because this is a HOC. As such, it must
-  // pass down any OwnProps to composed components, even if the HOC typing
-  // itself doesn't know about them.
-  ...ownProps,
-})
-
-export default Container.compose(
-  Container.withSafeNavigation,
-  Container.namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedOpenHOC')
-)
+export default OpenHOC

@@ -4,8 +4,7 @@ import * as React from 'react'
 import openURL from '../util/open-url'
 import {fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.desktop'
 import shallowEqual from 'shallowequal'
-
-import {Props, TextType} from './text'
+import {Props, TextType, _StylesTextCrossPlatform} from './text'
 
 class Text extends React.Component<Props> {
   _spanRef = React.createRef<HTMLSpanElement>()
@@ -122,7 +121,7 @@ function externalGetStyle(
   lineClampNum?: number | null,
   clickable?: boolean | null,
   selectable?: boolean | null
-) {
+): _StylesTextCrossPlatform {
   const meta = metaData()[type]
   const sizeStyle = fontSizeToSizeStyle(meta.fontSize)
   // pipe positive color through because caller probably isn't using class
@@ -147,7 +146,7 @@ function externalGetStyle(
     ...selectableStyle,
     ...textDecoration,
     ...meta.styleOverride,
-  }
+  } as _StylesTextCrossPlatform
 }
 export {externalGetStyle as getStyle}
 

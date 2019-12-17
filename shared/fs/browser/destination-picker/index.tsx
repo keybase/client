@@ -9,7 +9,7 @@ import Rows from '../rows/rows-container'
 import Root from '../root'
 import * as FsCommon from '../../common'
 import * as RowCommon from '../rows/common'
-import NavHeaderTitle from '../../nav-header/title-container'
+import NavHeaderTitle from '../../nav-header/title'
 
 type Props = {
   index: number

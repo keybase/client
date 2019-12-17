@@ -40,7 +40,7 @@ export default Container.connect(
       customCancelText: 'Close',
       onCancel: () => dispatchProps.onCancel(stateProps._you),
       teams: Constants.sortTeamsByName(stateProps.teamDetails),
-      title: 'Publish your teams',
+      title: 'Feature your teams',
       waiting: stateProps._waiting,
     }
   }

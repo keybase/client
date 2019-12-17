@@ -2133,9 +2133,9 @@
   integrity sha512-4jUncNe2tj1nmrO/34PsRpZqYVnRV1svbU78cKhuQKkMntKB/AmdLyGgswcZKjFHEHGpiY8pVD8CuVI55nP54w==
 
 "@types/node@^12.0.12":
-  version "12.12.17"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-12.12.17.tgz#191b71e7f4c325ee0fb23bc4a996477d92b8c39b"
-  integrity sha512-Is+l3mcHvs47sKy+afn2O1rV4ldZFU7W8101cNlOd+MRbjM4Onida8jSZnJdTe/0Pcf25g9BNIUsuugmE6puHA==
+  version "12.12.18"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-12.12.18.tgz#8d16634797d63c2af5bc647ce879f8de20b56469"
+  integrity sha512-DBkZuIMFuAfjJHiunyRc+aNvmXYNwV1IPMgGKGlwCp6zh6MKrVtmvjSWK/axWcD25KJffkXgkfvFra8ndenXAw==
 
 "@types/normalize-package-data@^2.4.0":
   version "2.4.0"
@@ -8618,9 +8618,9 @@ lottie-react-native@3.1.1:
     prop-types "^15.5.10"
     react-native-safe-modules "^1.0.0"
 
-"lottie-react-web@git://github.com/keybase/lottie-react-web#keybase-changes-off-214":
+"lottie-react-web@git://github.com/keybase/lottie-react-web#nojima/keybase-fixes-off-214":
   version "2.1.4"
-  resolved "git://github.com/keybase/lottie-react-web#20fa6a4bd69bc3157fe340e9e91bbec1036a9a9d"
+  resolved "git://github.com/keybase/lottie-react-web#46f2d088906cf1088dfc174582a63c734cc5d626"
   dependencies:
     babel-runtime "^6.26.0"
     lottie-api bodymovin/lottie-api#master

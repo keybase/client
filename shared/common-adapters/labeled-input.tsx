@@ -168,8 +168,8 @@ const styles = Styles.styleSheetCreate(
       inputMultiline: Styles.platformStyles({
         isMobile: {
           textAlignVertical: 'top',
-        },
-      }),
+        } as const,
+      }) as any, // not sure why this fails
       inputSmall: {
         paddingTop: 0,
       },

@@ -56,14 +56,14 @@ export const HeaderRightActions = Kb.OverlayParentHOC((props: Kb.PropsWithOverla
         positionFallbacks={[]}
         items={[
           {
+            icon: 'iconfont-person',
             onClick: onAddPersonal,
             title: 'New personal repository',
           },
           {
-            disabled: Styles.isMobile,
-            onClick: Styles.isMobile ? undefined : onAddTeam,
-            style: Styles.isMobile ? {paddingLeft: 0, paddingRight: 0} : {},
-            title: `New team repository${Styles.isMobile ? ' (desktop only)' : ''}`,
+            icon: 'iconfont-people',
+            onClick: onAddTeam,
+            title: 'New team repository',
           },
         ]}
       />

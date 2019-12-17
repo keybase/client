@@ -154,7 +154,7 @@ const styles = Styles.styleSheetCreate(
     ({
       container: {...Styles.globalStyles.flexBoxColumn, height: '100%', width: '100%'},
       contentsFit: {...Styles.globalStyles.flexBoxRow, flex: 1, height: '100%', width: '100%'},
-      contentsZoom: {display: 'block', flex: 1, overflow: 'auto'},
+      contentsZoom: Styles.platformStyles({isElectron: {display: 'block', flex: 1, overflow: 'auto'}}),
       headerFooter: {
         ...Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
@@ -176,13 +176,15 @@ const styles = Styles.styleSheetCreate(
         isElectron: {cursor: 'zoom-out', display: 'block', minHeight: '100%', minWidth: '100%'},
       }),
       link: Styles.platformStyles({isElectron: {color: Styles.globalColors.black_50, cursor: 'pointer'}}),
-      videoFit: {
-        cursor: 'normal',
-        display: 'block',
-        height: '100%',
-        objectFit: 'scale-down' as const,
-        width: '100%',
-      },
+      videoFit: Styles.platformStyles({
+        isElectron: {
+          cursor: 'normal',
+          display: 'block',
+          height: '100%',
+          objectFit: 'scale-down' as const,
+          width: '100%',
+        },
+      }),
     } as const)
 )
 

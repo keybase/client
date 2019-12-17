@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/favorites"
 	"github.com/keybase/client/go/kbfs/kbfssync"
+	"github.com/keybase/client/go/kbfs/ldbutils"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -115,7 +116,7 @@ type Favorites struct {
 	ignoredCache    map[favorites.Folder]favorites.Data
 	cacheExpireTime time.Time
 
-	diskCache *LevelDb
+	diskCache *ldbutils.LevelDb
 
 	inFlightLock sync.Mutex
 	inFlightAdds map[favorites.Folder]*favReq
@@ -171,12 +172,12 @@ type favoritesCacheEncryptedForDisk struct {
 
 func (f *Favorites) readCacheFromDisk(ctx context.Context) error {
 	// Read the encrypted cache from disk
-	var db *LevelDb
+	var db *ldbutils.LevelDb
 	var err error
 	if f.config.IsTestMode() {
-		db, err = openLevelDB(storage.NewMemStorage(), f.config.Mode())
+		db, err = ldbutils.OpenLevelDb(storage.NewMemStorage(), f.config.Mode())
 	} else {
-		db, err = openVersionedLevelDB(f.log, f.config.StorageRoot(),
+		db, err = ldbutils.OpenVersionedLevelDb(f.log, f.config.StorageRoot(),
 			kbfsFavoritesCacheSubfolder, favoritesDiskCacheStorageVersion,
 			favoritesDiskCacheFilename, f.config.Mode())
 	}

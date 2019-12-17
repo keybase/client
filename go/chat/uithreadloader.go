@@ -554,9 +554,16 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 	}()
 	// Set last select conversation on syncer
 	t.G().Syncer.SelectConversation(ctx, convID)
+	// Decode presentation form pagination
+	if pagination, err = utils.DecodePagination(uipagination); err != nil {
+		return err
+	}
 
-	// single flight per conv since the UI blasts this
-	ctx, outerCancel := t.singleFlightConv(ctx, convID)
+	// single flight per conv since the UI blasts this (only for first page)
+	outerCancel := func() {}
+	if pagination.FirstPage() {
+		ctx, outerCancel = t.singleFlightConv(ctx, convID)
+	}
 	defer outerCancel()
 
 	// Lock conversation while this is running
@@ -577,11 +584,6 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 			t.G().Syncer.Disconnected(ctx)
 		}
 		t.G().MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
-	}
-
-	// Decode presentation form pagination
-	if pagination, err = utils.DecodePagination(uipagination); err != nil {
-		return err
 	}
 
 	// Enable delete placeholders for supersede transform
@@ -644,7 +646,7 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 				}
 			}
 			localThread, err = t.G().ConvSource.PullLocalOnly(ctx, convID,
-				uid, query, pagination, 10)
+				uid, reason, query, pagination, 10)
 			ch <- err
 		}()
 		select {

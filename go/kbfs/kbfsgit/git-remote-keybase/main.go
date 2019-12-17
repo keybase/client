@@ -125,11 +125,16 @@ func start() (startErr *libfs.Error) {
 	remote := flag.Arg(0)
 	var repo string
 	lfs := false
-	if len(flag.Args()) > 1 {
+	if len(flag.Args()) > 1 && remote != "lfs" {
 		repo = flag.Arg(1)
+	} else if remote == "lfs" && len(flag.Args()) == 3 {
+		lfs = true
+		remote = flag.Arg(1)
+		repo = flag.Arg(2)
 	} else {
-		// For LFS invocation, the arguments actually come together in
-		// a single quoted argument for some reason.
+		// For LFS invocation, on some systems/shells the arguments
+		// actually come together in a single quoted argument for some
+		// reason.
 		s := strings.Fields(remote)
 		if len(s) > 2 {
 			lfs = s[0] == "lfs"
@@ -138,7 +143,7 @@ func start() (startErr *libfs.Error) {
 		}
 	}
 
-	if len(flag.Args()) > 2 {
+	if !lfs && len(flag.Args()) > 2 {
 		fmt.Print(getUsageString(kbCtx))
 		return libfs.InitError("extra arguments specified (flags go before the first argument)")
 	}
