@@ -2813,7 +2813,7 @@ func (e TeamContactSettingsBlockError) Error() string {
 	return fmt.Sprintf("some users couldn't be contacted due to privacy settings (%s)", strings.Join(tmp, ","))
 }
 
-func NewTeamContactSettingsError(s *AppStatus) TeamContactSettingsBlockError {
+func NewTeamContactSettingsBlockError(s *AppStatus) TeamContactSettingsBlockError {
 	e := TeamContactSettingsBlockError{}
 	for k, v := range s.Fields {
 		switch k {

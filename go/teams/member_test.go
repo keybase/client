@@ -1628,7 +1628,10 @@ func TestAddMembersWithRestrictiveContactSettings(t *testing.T) {
 	require.NoError(t, err)
 	err = alice.Login(tc.G)
 	require.NoError(t, err)
-	users := []keybase1.UserRolePair{{AssertionOrEmail: bob.Username, Role: keybase1.TeamRole_WRITER}, {AssertionOrEmail: charlie.Username, Role: keybase1.TeamRole_WRITER}}
+	users := []keybase1.UserRolePair{
+		{AssertionOrEmail: bob.Username, Role: keybase1.TeamRole_WRITER},
+		{AssertionOrEmail: charlie.Username, Role: keybase1.TeamRole_WRITER},
+	}
 	added, notAdded, err := AddMembers(context.TODO(), tc.G, teamID, users)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(added))
@@ -1675,7 +1678,10 @@ func TestAddMembersWithRestrictiveContactSettingsFailIfNoneAdded(t *testing.T) {
 	// alice can't add bob or charlie
 	err = alice.Login(tc.G)
 	require.NoError(t, err)
-	users := []keybase1.UserRolePair{{AssertionOrEmail: bob.Username, Role: keybase1.TeamRole_WRITER}, {AssertionOrEmail: charlie.Username, Role: keybase1.TeamRole_WRITER}}
+	users := []keybase1.UserRolePair{
+		{AssertionOrEmail: bob.Username, Role: keybase1.TeamRole_WRITER},
+		{AssertionOrEmail: charlie.Username, Role: keybase1.TeamRole_WRITER},
+	}
 	added, notAdded, err := AddMembers(context.TODO(), tc.G, teamID, users)
 	require.Error(t, err)
 	require.IsType(t, err, libkb.TeamContactSettingsBlockError{})
