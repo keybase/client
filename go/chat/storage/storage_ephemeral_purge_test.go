@@ -90,19 +90,19 @@ func TestStorageEphemeralPurge(t *testing.T) {
 	}
 
 	verifyTrackerState := func(expectedPurgeInfo *chat1.EphemeralPurgeInfo) {
-		purgeInfo, err := storage.ephemeralTracker.getPurgeInfo(context.Background(), convID, uid)
+		purgeInfo, err := storage.ephemeralTracker.getPurgeInfo(context.Background(), uid, convID)
 		if expectedPurgeInfo == nil {
 			require.Error(t, err)
 			require.IsType(t, MissError{}, err, "wrong error type")
 		} else {
 			require.NoError(t, err)
 		}
-		require.Equal(t, expectedPurgeInfo, purgeInfo)
+		require.Equal(t, *expectedPurgeInfo, purgeInfo)
 	}
 
 	ephemeralPurgeAndVerify := func(expectedPurgeInfo *chat1.EphemeralPurgeInfo, msgIDs []chat1.MessageID) {
-		purgeInfo, _ := storage.ephemeralTracker.getPurgeInfo(context.Background(), convID, uid)
-		newPurgeInfo, purgedMsgs, err := storage.EphemeralPurge(context.Background(), convID, uid, purgeInfo)
+		purgeInfo, _ := storage.ephemeralTracker.getPurgeInfo(context.Background(), uid, convID)
+		newPurgeInfo, purgedMsgs, err := storage.EphemeralPurge(context.Background(), convID, uid, &purgeInfo)
 		require.NoError(t, err)
 		if msgIDs == nil {
 			require.Nil(t, purgedMsgs)
