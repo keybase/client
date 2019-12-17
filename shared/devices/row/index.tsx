@@ -63,7 +63,6 @@ const styles = Styles.styleSheetCreate(
       }),
       text: {
         color: Styles.globalColors.black_20,
-        flex: 0,
         textDecorationLine: 'line-through' as const,
         textDecorationStyle: 'solid' as const,
       },
