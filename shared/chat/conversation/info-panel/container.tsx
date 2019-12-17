@@ -75,8 +75,8 @@ const ConnectedInfoPanel = Container.connect(
     return {
       _attachmentInfo: attachmentInfo,
       _botAliases: meta.botAliases,
-      _fromMsgID: getFromMsgID(attachmentInfo),
       _featuredBots: state.chat2.featuredBotsMap,
+      _fromMsgID: getFromMsgID(attachmentInfo),
       _infoMap: state.users.infoMap,
       _nameParticipants: meta.nameParticipants,
       _participantToContactName: meta.participantToContactName,
