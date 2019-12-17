@@ -44,14 +44,6 @@ export type Props = {
   users: UserList
 } & BaseUsernamesProps
 
-export type PlaintextProps = {
-  type: TextType
-  users: UserList
-  backgroundMode?: Background
-  containerStyle?: Styles.StylesCrossPlatform
-  title?: string
-}
-
 // Mobile handles spaces correctly so don't insert anything
 const space = Styles.isMobile ? ` ` : <>&nbsp;</>
 
@@ -217,36 +209,6 @@ class Usernames extends React.Component<Props> {
   }
 }
 
-const divider = Styles.isMobile ? ', ' : ',\u200a'
-
-class PlaintextUsernames extends React.Component<PlaintextProps> {
-  shouldComponentUpdate(nextProps: PlaintextProps) {
-    return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
-      if (['containerStyle', 'users'].includes(key as string)) {
-        return shallowEqual(obj, oth)
-      }
-      return undefined
-    })
-  }
-
-  render() {
-    const containerStyle = styles.inlineStyle
-    const rwers = this.props.users.filter(u => !u.readOnly)
-
-    return (
-      <Text
-        type={this.props.type}
-        negative={backgroundModeIsNegative(this.props.backgroundMode || null)}
-        style={Styles.collapseStyles([containerStyle, this.props.containerStyle, styles.kerning])}
-        title={this.props.title}
-        {...inlineProps}
-      >
-        {rwers.map(u => assertionToDisplay(u.username)).join(divider)}
-      </Text>
-    )
-  }
-}
-
 // 15550123456@phone => +1 (555) 012-3456
 // [test@example.com]@email => test@example.com
 export const assertionToDisplay = (assertion: string): string => {
@@ -294,4 +256,4 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
 }))
 
-export {UsernameText, Usernames, PlaintextUsernames}
+export {UsernameText, Usernames}
