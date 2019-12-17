@@ -22,7 +22,7 @@ import (
 
 func filterConvLocals(convLocals []chat1.ConversationLocal, rquery *chat1.GetInboxQuery,
 	query *chat1.GetInboxLocalQuery, nameInfo types.NameInfo) (res []chat1.ConversationLocal, err error) {
-
+	res = make([]chat1.ConversationLocal, 0, len(convLocals))
 	for _, convLocal := range convLocals {
 		if rquery != nil && rquery.TlfID != nil {
 			// inbox query contained a TLF name, so check to make sure that
