@@ -815,19 +815,20 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 
 	res = make([]keybase1.BadgeConversationInfo, 0, len(infos)+len(failedOutboxMap))
 	for _, info := range infos {
+		convIDStr := info.ConvID.String()
 		// mark this conv as read
-		if readConvMap[info.ConvID.String()] {
+		if readConvMap[convIDStr] {
 			info = makeBadgeConversationInfo(info.ConvID, 0)
 			s.Debug(ctx, "ApplyLocalChatState, marking as read %+v", info)
 		}
 		// badge qualifying failed outbox items
-		if failedCount, ok := failedOutboxMap[info.ConvID.String()]; ok {
+		if failedCount, ok := failedOutboxMap[convIDStr]; ok {
 			newInfo := makeBadgeConversationInfo(info.ConvID, failedCount)
 			newInfo.BadgeCounts[keybase1.DeviceType_DESKTOP] += info.BadgeCounts[keybase1.DeviceType_DESKTOP]
 			newInfo.BadgeCounts[keybase1.DeviceType_MOBILE] += info.BadgeCounts[keybase1.DeviceType_MOBILE]
 			newInfo.UnreadMessages += info.UnreadMessages
 			info = newInfo
-			delete(failedOutboxMap, info.ConvID.String())
+			delete(failedOutboxMap, convIDStr)
 			s.Debug(ctx, "ApplyLocalChatState, applying failed to existing info %+v", info)
 		}
 		res = append(res, info)
