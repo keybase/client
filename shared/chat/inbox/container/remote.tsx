@@ -2,8 +2,6 @@ import * as Constants from '../../../constants/chat2'
 import * as Styles from '../../../styles'
 import * as ChatTypes from '../../../constants/types/chat2'
 import {TypedState} from '../../../constants/reducer'
-import {memoize} from '../../../util/memoize'
-import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 
 export type RemoteConvMeta = any
 /* Exclude<
@@ -15,38 +13,50 @@ export type RemoteConvMeta = any
   }
 > */
 
-// To cache the list
-const valuesCached = memoize(
-  (
-    inboxLayout: RPCChatTypes.UIInboxLayout | null,
-    badgeMap,
-    unreadMap,
-    metaMap
-  ): Array<{
-    hasBadge: boolean
-    hasUnread: boolean
-    conversation: ChatTypes.ConversationMeta
-  }> =>
-    ((inboxLayout && inboxLayout.widgetList) || []).map(v => ({
-      conversation: metaMap.get(v.convID) || {
+// A hack to store the username to avoid plumbing.
+let _username: string
+let _lastSent:
+  | Array<{
+      hasBadge: boolean
+      hasUnread: boolean
+      conversation: ChatTypes.ConversationMeta
+    }>
+  | undefined
+let _lastSentCompare: any
+
+const changed = (state: TypedState) => {
+  if (!_lastSent) {
+    return true
+  }
+  if (!_lastSentCompare) {
+    return true
+  }
+
+  const wl = state.chat2.inboxLayout?.widgetList
+  if (wl?.length !== _lastSent.length) {
+    return true
+  }
+
+  if (wl?.some((w, idx) => w.snippet !== _lastSent[idx]?.conversation?.snippet)) {
+    return true
+  }
+
+  return false
+}
+
+export const conversationsToSend = (state: TypedState) => {
+  _username = state.config.username
+  if (changed(state)) {
+    _lastSent = state.chat2.inboxLayout?.widgetList?.map(v => ({
+      conversation: state.chat2.metaMap.get(v.convID) || {
         ...Constants.makeConversationMeta(),
         conversationIDKey: v.convID,
       },
-      hasBadge: (badgeMap.get(v.convID) || 0) > 0,
-      hasUnread: (unreadMap.get(v.convID) || 0) > 0,
+      hasBadge: (state.chat2.badgeMap.get(v.convID) || 0) > 0,
+      hasUnread: (state.chat2.unreadMap.get(v.convID) || 0) > 0,
     }))
-)
-
-// A hack to store the username to avoid plumbing.
-let _username: string
-export const conversationsToSend = (state: TypedState) => {
-  _username = state.config.username
-  return valuesCached(
-    state.chat2.inboxLayout,
-    state.chat2.badgeMap,
-    state.chat2.unreadMap,
-    state.chat2.metaMap
-  )
+  }
+  return _lastSent
 }
 
 export const changeAffectsWidget = (
