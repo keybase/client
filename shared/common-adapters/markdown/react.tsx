@@ -1,4 +1,5 @@
 import * as React from 'react'
+// @ts-ignore TODO update to 0.7.x to get TS types
 import SimpleMarkdown from 'simple-markdown'
 import * as Styles from '../../styles'
 import Text from '../text'

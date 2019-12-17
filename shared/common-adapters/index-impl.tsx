@@ -175,9 +175,6 @@ module.exports = {
   get MaybePopup() {
     return require('./maybe-popup').MaybePopup
   },
-  get MaybePopupHoc() {
-    return require('./maybe-popup').MaybePopupHoc
-  },
   get Meta() {
     return require('./meta').default
   },

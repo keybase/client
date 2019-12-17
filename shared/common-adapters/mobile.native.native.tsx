@@ -178,9 +178,6 @@ module.exports = {
   get MaybePopup() {
     return Index.MaybePopup
   },
-  get MaybePopupHoc() {
-    return Index.MaybePopupHoc
-  },
   get Meta() {
     return Index.Meta
   },

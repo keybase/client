@@ -62,7 +62,7 @@ export {
   smallHeight as smallListItem2Height,
 } from './list-item2'
 export {default as Markdown} from './markdown'
-export {MaybePopup, MaybePopupHoc} from './maybe-popup'
+export {MaybePopup} from './maybe-popup'
 
 export {default as MultiAvatar} from './multi-avatar'
 export {default as Meta} from './meta'

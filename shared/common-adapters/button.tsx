@@ -58,11 +58,11 @@ const Progress = ({small, white}: {small?: boolean; white: boolean}) => {
 const Button = React.forwardRef<ClickableBox, Props>((props: Props, ref: React.Ref<ClickableBox>) => {
   const {mode = 'Primary', type = 'Default'} = props
   let containerStyle: Styles.StylesCrossPlatform = props.backgroundColor
-    ? (backgroundColorContainerStyles[mode] as any)
-    : (containerStyles[mode + type] as any)
+    ? backgroundColorContainerStyles[mode as any]
+    : containerStyles[(mode + type) as any]
   let labelStyle: StylesTextCrossPlatform = props.backgroundColor
     ? (backgroundColorLabelStyles[mode + (mode === 'Secondary' ? '' : props.backgroundColor)] as any)
-    : (labelStyles[mode + type] as any)
+    : labelStyles[mode + type]
 
   if (props.fullWidth) {
     containerStyle = Styles.collapseStyles([containerStyle, styles.fullWidth])
@@ -238,7 +238,7 @@ const styles = Styles.styleSheetCreate(() => ({
   },
 }))
 
-const containerStyles = Styles.styleSheetCreate(() => {
+const containerStyles: any = Styles.styleSheetCreate(() => {
   const commonSecondaryWhiteBg = Styles.platformStyles({
     common: common(),
     isElectron: {
@@ -277,7 +277,7 @@ const commonLabel = () =>
     isMobile: {lineHeight: undefined},
   })
 
-const labelStyles = Styles.styleSheetCreate(() => {
+const labelStyles: any = Styles.styleSheetCreate(() => {
   const primaryWhiteBgLabel = {
     ...commonLabel(),
     color: Styles.globalColors.whiteOrWhite,
@@ -297,7 +297,7 @@ const labelStyles = Styles.styleSheetCreate(() => {
 })
 
 // With backgroundColor styles
-const backgroundColorContainerStyles = Styles.styleSheetCreate(() => ({
+const backgroundColorContainerStyles: any = Styles.styleSheetCreate(() => ({
   Primary: {...common(), backgroundColor: Styles.globalColors.white},
   Secondary: Styles.platformStyles({
     common: {...common(), backgroundColor: Styles.globalColors.black_20},
@@ -305,7 +305,7 @@ const backgroundColorContainerStyles = Styles.styleSheetCreate(() => ({
   }),
 }))
 
-const backgroundColorLabelStyles = Styles.styleSheetCreate(() => ({
+const backgroundColorLabelStyles: any = Styles.styleSheetCreate(() => ({
   Primaryblue: {...commonLabel(), color: Styles.globalColors.blueDark},
   Primaryred: {...commonLabel(), color: Styles.globalColors.redDark},
   Primarygreen: {...commonLabel(), color: Styles.globalColors.greenDark},
