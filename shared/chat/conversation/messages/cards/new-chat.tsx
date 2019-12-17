@@ -3,15 +3,46 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import openUrl from '../../../../util/open-url'
 
-type Props = {}
+type Props = {
+  self: boolean
+  openPrivateFolder: () => void
+}
 
-const NewCard = (_: Props) => (
-  <Kb.Box2 direction="horizontal" style={styles.container} alignItems="flex-start">
+type InnerProps = {
+  action: () => void
+  icon: Kb.IconType
+  imageLower?: boolean
+  label: string
+  tall?: boolean
+  text: string
+}
+
+const NewCard = (props: Props) => {
+  const iconEncrypted: Kb.IconType = 'icon-illustration-encrypted-116-96'
+  const iconSecure: Kb.IconType = 'icon-illustration-secure-116-96'
+  const innerProps = props.self ? {
+    action: props.openPrivateFolder,
+    icon: iconSecure,
+    imageLower: true,
+    label: 'Open your private folder',
+    tall: true,
+    text: 'Use this chat to store secure notes such as credit card numbers, passwords, or secret keys.',
+  } : {
+    action: () => openUrl('https://keybase.io/docs/chat/crypto'),
+    icon: iconEncrypted,
+    label: 'Read more',
+    text: 'This conversation is end-to-end encrypted.',
+  }
+  return (<NewCardInner {...innerProps} />)
+}
+
+const NewCardInner = (props: InnerProps) => (
+  <Kb.Box2 direction="horizontal" style={Styles.collapseStyles([styles.container, props.tall ? styles.containerTall : null])} alignItems="flex-start">
     <Kb.Box2 direction="vertical" gap="xtiny" fullHeight={true} style={styles.textContainer}>
       <Kb.Text type="BodySmallSemibold" style={styles.header} negative={true}>
-        This conversation is end-to-end encrypted.
+        {props.text}
       </Kb.Text>
-      <Kb.ClickableBox onClick={() => openUrl('https://keybase.io/docs/chat/crypto')}>
+      <Kb.ClickableBox onClick={props.action}>
         <Kb.Box2
           direction="horizontal"
           alignItems="center"
@@ -24,7 +55,7 @@ const NewCard = (_: Props) => (
             style={styles.link}
             className="color_blueLighterOrWhite hover_contained_color_white"
           >
-            Read more
+            {props.label}
           </Kb.Text>
           <Kb.Icon
             color={Styles.globalColors.blueLighterOrWhite}
@@ -36,7 +67,7 @@ const NewCard = (_: Props) => (
         </Kb.Box2>
       </Kb.ClickableBox>
     </Kb.Box2>
-    <Kb.Icon type="icon-illustration-encrypted-116-96" style={styles.image} />
+    <Kb.Icon type={props.icon} style={Styles.collapseStyles([styles.image, props.imageLower ? styles.imageLower : null])} />
   </Kb.Box2>
 )
 
@@ -60,6 +91,11 @@ const styles = Styles.styleSheetCreate(
           width: 288,
         },
       }),
+      containerTall: Styles.platformStyles({
+        isElectron: {
+          height: 119,
+        },
+      }),
       header: {
         maxWidth: Styles.isMobile ? 126 : undefined,
       },
@@ -73,6 +109,9 @@ const styles = Styles.styleSheetCreate(
         alignSelf: Styles.isMobile ? 'center' : undefined,
         marginTop: Styles.isMobile ? Styles.globalMargins.tiny : -Styles.globalMargins.xsmall,
         paddingRight: Styles.globalMargins.medium,
+      },
+      imageLower: {
+        marginTop: Styles.isMobile ? Styles.globalMargins.tiny : 39,
       },
       link: {color: Styles.isMobile ? Styles.globalColors.blueLighter : undefined},
       textContainer: {padding: Styles.globalMargins.medium},
