@@ -814,6 +814,14 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "path": "string",
       "outboxID": "Buffer"
+    },
+    "loadNextBotPage": {
+      "_description": "loads next page of featured bots from backend",
+      "pageSize": "number"
+    },
+    "setLoadedBotPage": {
+      "_description": "set page # for a conversation",
+      "page": "number"
     }
   }
 }

@@ -1,3 +1,4 @@
+import * as BotsGen from '../bots-gen'
 import * as Chat2Gen from '../chat2-gen'
 import * as ConfigGen from '../config-gen'
 import * as DeeplinksGen from '../deeplinks-gen'
@@ -3346,6 +3347,12 @@ const getInboxNumSmallRows = async () => {
   return false
 }
 
+const loadNextBotPage = (state: Container.TypedState, action: Chat2Gen.LoadNextBotPagePayload) =>
+  BotsGen.createGetFeaturedBots({
+    limit: action.payload.pageSize,
+    page: state.chat2.featuredBotsPage + 1,
+  })
+
 function* chat2Saga() {
   // Platform specific actions
   if (Container.isMobile) {
@@ -3429,6 +3436,10 @@ function* chat2Saga() {
   yield* Saga.chainAction2(Chat2Gen.previewConversation, previewConversationTeam)
   yield* Saga.chainAction(Chat2Gen.previewConversation, previewConversationPersonMakesAConversation)
   yield* Saga.chainAction2(Chat2Gen.openFolder, openFolder)
+
+  // bots
+  yield* Saga.chainAction2(Chat2Gen.loadNextBotPage, loadNextBotPage)
+
   // On login lets load the untrusted inbox. This helps make some flows easier
   yield* Saga.chainAction2(ConfigGen.bootstrapStatusLoaded, startupInboxLoad)
 
