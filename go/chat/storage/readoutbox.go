@@ -58,13 +58,19 @@ func (o *ReadOutbox) clear(ctx context.Context) Error {
 }
 
 func (o *ReadOutbox) readStorage(ctx context.Context) (res diskReadOutbox) {
-	found, ierr := o.readDiskBox(ctx, o.dbKey(), &res)
-	if ierr != nil {
-		o.maybeNuke(NewInternalError(ctx, o.DebugLabeler, ierr.Error()), o.dbKey())
-		return diskReadOutbox{Version: readOutboxVersion}
-	}
-	if !found {
-		return diskReadOutbox{Version: readOutboxVersion}
+	if memobox := readOutboxMemCache.Get(o.uid); memobox != nil {
+		o.Debug(ctx, "hit in memory cache")
+		res = *memobox
+	} else {
+		found, ierr := o.readDiskBox(ctx, o.dbKey(), &res)
+		if ierr != nil {
+			o.maybeNuke(NewInternalError(ctx, o.DebugLabeler, ierr.Error()), o.dbKey())
+			return diskReadOutbox{Version: readOutboxVersion}
+		}
+		if !found {
+			return diskReadOutbox{Version: readOutboxVersion}
+		}
+		readOutboxMemCache.Put(o.uid, &res)
 	}
 	if res.Version != readOutboxVersion {
 		o.Debug(ctx, "on disk version not equal to program version, clearing: disk :%d program: %d",
@@ -77,10 +83,11 @@ func (o *ReadOutbox) readStorage(ctx context.Context) (res diskReadOutbox) {
 	return res
 }
 
-func (o *ReadOutbox) writeStorage(ctx context.Context, do diskReadOutbox) (err Error) {
-	if ierr := o.writeDiskBox(ctx, o.dbKey(), do); ierr != nil {
+func (o *ReadOutbox) writeStorage(ctx context.Context, obox diskReadOutbox) (err Error) {
+	if ierr := o.writeDiskBox(ctx, o.dbKey(), obox); ierr != nil {
 		return NewInternalError(ctx, o.DebugLabeler, "error writing outbox: err: %s", ierr)
 	}
+	readOutboxMemCache.Put(o.uid, &obox)
 	return nil
 }
 
