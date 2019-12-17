@@ -4,33 +4,36 @@ import * as Styles from '../styles'
 import * as ConfigTypes from '../constants/types/config'
 
 type Props = {
-  outOfDate?: ConfigTypes.OutOfDate
-  updateNow?: () => void
+  updateInfo?: ConfigTypes.UpdateInfo
+  updateStart?: () => void
 }
 
-const getOutOfDateText = (outOfDate: ConfigTypes.OutOfDate) =>
-  `Your Keybase app is ${outOfDate.critical ? 'critically ' : ''}out of date` +
-  (outOfDate.message ? `: ${outOfDate.message}` : '.')
+const getCriticallyOutOfDateText = (updateInfo: ConfigTypes.UpdateInfo) =>
+  updateInfo.status === 'critical'
+    ? `Your Keybase app is critically out of date${
+        updateInfo.critical ? ` ${updateInfo.critical.message}` : ''
+      }.`
+    : ''
 
-const OutOfDate = ({outOfDate, updateNow}: Props) => {
-  if (!outOfDate) return null
-  const bannerColor = outOfDate.critical ? 'red' : 'yellow'
-  return (
+const OutOfDate = ({updateInfo, updateStart}: Props) => {
+  if (!updateInfo) return null
+  const isCritical = updateInfo.status === 'critical'
+  const isSuggested = updateInfo.status === 'suggested'
+  const needUpdate = isCritical || isSuggested
+  const bannerColor = isCritical ? 'red' : 'yellow'
+  return needUpdate ? (
     <Kb.Banner color={bannerColor} style={styles.banner} textContainerStyle={styles.textContainerStyle}>
-      <Kb.BannerParagraph bannerColor={bannerColor} content={getOutOfDateText(outOfDate)} />
-      {outOfDate.updating ? (
+      <Kb.BannerParagraph bannerColor={bannerColor} content={getCriticallyOutOfDateText(updateInfo)} />
+      {updateInfo.updating ? (
         <Kb.BannerParagraph bannerColor={bannerColor} content="Updating…" />
       ) : (
-        <Kb.Text
-          type="BodySmallSemibold"
-          style={outOfDate.critical ? styles.textCritical : styles.textNonCritical}
-        >
+        <Kb.Text type="BodySmallSemibold" style={isCritical ? styles.textCritical : styles.textNonCritical}>
           Please{' '}
           <Kb.Text
             type="BodySmallSemibold"
-            underline={!!updateNow}
-            style={outOfDate.critical ? styles.textCritical : styles.textNonCritical}
-            onClick={updateNow}
+            underline={!!updateStart}
+            style={isCritical ? styles.textCritical : styles.textNonCritical}
+            onClick={updateStart}
           >
             update now
           </Kb.Text>
@@ -38,7 +41,7 @@ const OutOfDate = ({outOfDate, updateNow}: Props) => {
         </Kb.Text>
       )}
     </Kb.Banner>
-  )
+  ) : null
 }
 
 const styles = Styles.styleSheetCreate(() => ({

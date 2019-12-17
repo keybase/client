@@ -113,7 +113,7 @@ export default () => {
   const {desktopAppBadgeCount, navBadges, widgetBadge} = notifications
 
   const config = Container.useSelector(s => s.config)
-  const {daemonHandshakeState, loggedIn, outOfDate, username} = config
+  const {daemonHandshakeState, loggedIn, updateInfo, username} = config
   const {httpSrvAddress, httpSrvToken} = config
   const {avatarRefreshCounter: _arc, followers: _followers, following: _following} = config
 
@@ -183,9 +183,9 @@ export default () => {
     kbfsEnabled,
     loggedIn,
     navBadges,
-    outOfDate,
     remoteTlfUpdates,
     showingDiskSpaceBanner: showingBanner,
+    updateInfo,
     username,
     widgetBadge,
   }

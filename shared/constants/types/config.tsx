@@ -6,13 +6,19 @@ import {DarkModePreference} from '../../styles/dark-mode'
 import {RPCError} from '../../util/errors'
 import {Tab} from '../tabs'
 
-export type OutOfDate = {
-  critical: boolean
-  message?: string
+export type UpdateInfoStatus = 'ok' | 'suggested' | 'critical'
+
+export type UpdateInfoResponse = {
+  message: string
+}
+
+export type UpdateInfo = {
   updating: boolean
+  status?: UpdateInfoStatus
+  critical?: UpdateInfoResponse
+  suggested?: UpdateInfoResponse
 }
 export type DaemonHandshakeState = 'starting' | 'waitingForWaiters' | 'done'
-export type AppOutOfDateStatus = 'critical' | 'suggested' | 'ok' | 'checking'
 export type ConfiguredAccount = {
   hasStoredSecret: boolean
   username: string
@@ -42,22 +48,20 @@ export type State = {
       }
   appFocused: boolean
   appFocusedCount: number
-  appOutOfDateMessage: string
-  appOutOfDateStatus: AppOutOfDateStatus
   avatarRefreshCounter: Map<string, number>
   configuredAccounts: Array<ConfiguredAccount>
   daemonError?: Error
-  daemonHandshakeState: DaemonHandshakeState
   daemonHandshakeFailedReason: string
   daemonHandshakeRetriesLeft: number
-  daemonHandshakeWaiters: Map<string, number>
+  daemonHandshakeState: DaemonHandshakeState
   // if we ever restart handshake up this so we can ignore any waiters for old things
   daemonHandshakeVersion: number
+  daemonHandshakeWaiters: Map<string, number>
   darkModePreference: DarkModePreference
   debugDump: Array<string>
+  defaultUsername: string
   deviceID: RPCTypes.DeviceID
   deviceName?: string
-  defaultUsername: string
   followers: Set<string>
   following: Set<string>
   globalError?: Error | RPCError
@@ -65,31 +69,29 @@ export type State = {
   httpSrvToken: string
   justDeletedSelf: string
   loggedIn: boolean
-  logoutHandshakeWaiters: Map<string, number>
   logoutHandshakeVersion: number
+  logoutHandshakeWaiters: Map<string, number>
   menubarWindowID: number
   notifySound: boolean
   openAtLogin: boolean
   osNetworkOnline: boolean
-  outOfDate?: OutOfDate
   pushLoaded: boolean
   registered: boolean
   remoteWindowNeedsProps: Map<string, Map<string, number>>
   runtimeStats?: RPCTypes.RuntimeStats
-  startupDetailsLoaded: boolean
-  startupWasFromPush: boolean
   startupConversation: ConversationIDKey
-  startupPushPayload?: string
   startupFile: HiddenString
   startupFollowUser: string
   startupLink: string
+  startupPushPayload?: string
   startupTab?: Tab
   systemDarkMode: boolean
-  windowState: WindowState
   uid: string
-  userActive: boolean
-  username: string
-  userSwitching: boolean
+  updateInfo?: UpdateInfo
   useNativeFrame: boolean
+  userActive: boolean
+  userSwitching: boolean
+  username: string
   whatsNewLastSeenVersion: string
+  windowState: WindowState
 }

@@ -630,42 +630,6 @@ const newNavigation = (
   n && n.dispatchOldAction(action)
 }
 
-function* criticalOutOfDateCheck() {
-  yield Saga.delay(60 * 1000) // don't bother checking during startup
-  // check every hour
-  while (true) {
-    try {
-      const s: Saga.RPCPromiseType<typeof RPCTypes.configGetUpdateInfo2RpcPromise> = yield RPCTypes.configGetUpdateInfo2RpcPromise(
-        {}
-      )
-      let status: ConfigGen.UpdateCriticalCheckStatusPayload['payload']['status'] = 'ok'
-      let message: string | null = null
-      switch (s.status) {
-        case RPCTypes.UpdateInfoStatus2.ok:
-          break
-        case RPCTypes.UpdateInfoStatus2.suggested:
-          status = 'suggested'
-          message = s.suggested.message
-          break
-        case RPCTypes.UpdateInfoStatus2.critical:
-          status = 'critical'
-          message = s.critical.message
-          break
-        default:
-          Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(s)
-      }
-      yield Saga.put(ConfigGen.createUpdateCriticalCheckStatus({message: message || '', status}))
-    } catch (e) {
-      logger.warn("Can't call critical check", e)
-    }
-    // We just need this once on mobile. Long timers don't work there.
-    if (Platform.isMobile) {
-      return
-    }
-    yield Saga.delay(3600 * 1000) // 1 hr
-  }
-}
-
 const loadDarkPrefs = async () => {
   try {
     const v = await RPCTypes.configGuiGetValueRpcPromise({path: 'ui.darkMode'})
@@ -883,7 +847,6 @@ function* configSaga() {
 
   // Kick off platform specific stuff
   yield Saga.spawn(PlatformSpecific.platformConfigSaga)
-  yield Saga.spawn(criticalOutOfDateCheck)
 
   yield* Saga.chainAction2(ConfigGen.loadOnLoginStartup, loadOnLoginStartup)
 }

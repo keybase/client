@@ -8,7 +8,13 @@ import logger from '../../logger'
 import {NotifyPopup} from '../../native/notifications'
 import {execFile} from 'child_process'
 import {getEngine} from '../../engine'
-import {isLinux, isWindows, socketPath, defaultUseNativeFrame} from '../../constants/platform.desktop'
+import {
+  isLinux,
+  isWindows,
+  isMobile,
+  socketPath,
+  defaultUseNativeFrame,
+} from '../../constants/platform.desktop'
 import {kbfsNotification} from '../../util/kbfs-notifications'
 import {quit} from '../../desktop/app/ctl.desktop'
 import {writeLogLinesToFile} from '../../util/forward-logs'
@@ -205,13 +211,28 @@ const onConnected = () => {
   }).catch(_ => {})
 }
 
-const onOutOfDate = (action: EngineGen.Keybase1NotifySessionClientOutOfDatePayload) => {
+/*
+ * This out of date flow is old and driven by the API server as follows:
+ *
+ * 1. A client will make a request to the API server via the service
+ * 2. If the client is critically out of date (different than the `pkg/check`
+ * endpoint), the API server will set an out of date header on all API
+ * responses
+ * 3. The service will parse all incoming API responses and read the out of date header - if they exist
+ * 4. The service will use the notify_session protocol to push an action to the GUI
+ * 5. This action will be run
+ *
+ * This is always a critical update and should be handled by prompting the users directly
+ */
+const onOutOfDate = (
+  _: Container.TypedState,
+  action: EngineGen.Keybase1NotifySessionClientOutOfDatePayload
+) => {
   const {upgradeTo, upgradeURI, upgradeMsg} = action.payload.params
   const body = upgradeMsg || `Please update to ${upgradeTo} by going to ${upgradeURI}`
   NotifyPopup('Client out of date!', {body}, 60 * 60)
-  // This is from the API server. Consider notifications from API server
-  // always critical.
-  return ConfigGen.createUpdateInfo({critical: true, isOutOfDate: true, message: upgradeMsg})
+
+  return ConfigGen.createUpdateInfo({message: upgradeMsg, status: 'critical'})
 }
 
 const prepareLogSend = async (action: EngineGen.Keybase1LogsendPrepareLogsendPayload) => {
@@ -241,29 +262,60 @@ const sendWindowsKBServiceCheck = (
   }
 }
 
+/*
+ * Check if the client is out of date via the service -> api server
+ * There are three cases we care about from the frontend
+ * 1. OK
+ * 2. SUGGESTED
+ * 3. CRITICAL
+ */
+const startupCheckDelay = 2 * 60 * 1000 // 2 minutes
+const updateCheckInterval = 60 * 60 * 1000 // 1 hour
 function* startOutOfDateCheckLoop() {
-  while (1) {
-    try {
-      const toPut = yield checkForUpdate()
-      yield Saga.put(toPut)
-      yield Saga.delay(3600 * 1000) // 1 hr
-    } catch (err) {
-      logger.warn('error getting update info: ', err)
-      yield Saga.delay(3600 * 1000) // 1 hr
+  // don't bother checking during startup
+  yield Saga.delay(startupCheckDelay)
+
+  while (true) {
+    const action = yield checkForUpdate()
+    yield Saga.put(action)
+    // Only want to make a single check on mobile
+    if (isMobile) {
+      return
     }
+    yield Saga.delay(updateCheckInterval)
   }
 }
 
 const checkForUpdate = async () => {
-  const {status, message} = await RPCTypes.configGetUpdateInfoRpcPromise()
-  return ConfigGen.createUpdateInfo({
-    critical: status === RPCTypes.UpdateInfoStatus.criticallyOutOfDate,
-    isOutOfDate: status !== RPCTypes.UpdateInfoStatus.upToDate,
-    message,
-  })
+  const s: Saga.RPCPromiseType<typeof RPCTypes.configGetUpdateInfo2RpcPromise> = await RPCTypes.configGetUpdateInfo2RpcPromise(
+    {}
+  )
+  let status: ConfigGen.UpdateInfoPayload['payload']['status'] = 'ok'
+  let message: string = ''
+  try {
+    switch (s.status) {
+      case RPCTypes.UpdateInfoStatus2.ok:
+        break
+      case RPCTypes.UpdateInfoStatus2.suggested:
+        status = 'suggested'
+        message = s.suggested.message
+        break
+      case RPCTypes.UpdateInfoStatus2.critical:
+        status = 'critical'
+        message = s.critical.message
+        break
+      default:
+        logger.warn('Received an unsupported update status from the service', s)
+        break
+    }
+  } catch (err) {
+    logger.warn('error getting update info: ', err)
+    return
+  }
+  return ConfigGen.createUpdateInfo({message, status})
 }
 
-const updateNow = async () => {
+const updateStart = async () => {
   await RPCTypes.configStartUpdateIfNeededRpcPromise()
   // * If user choose to update:
   //   We'd get killed and it doesn't matter what happens here.
@@ -453,10 +505,10 @@ export function* platformConfigSaga() {
   yield* Saga.chainAction2(EngineGen.keybase1NotifyAppExit, onExit)
   yield* Saga.chainAction2(EngineGen.keybase1NotifyFSFSActivity, onFSActivity)
   yield* Saga.chainAction2(EngineGen.keybase1NotifyPGPPgpKeyInSecretStoreFile, onPgpgKeySecret)
-  yield* Saga.chainAction(EngineGen.keybase1NotifyServiceShutdown, onShutdown)
-  yield* Saga.chainAction(EngineGen.keybase1NotifySessionClientOutOfDate, onOutOfDate)
-  yield* Saga.chainAction(ConfigGen.copyToClipboard, copyToClipboard)
-  yield* Saga.chainAction2(ConfigGen.updateNow, updateNow)
+  yield* Saga.chainAction2(EngineGen.keybase1NotifyServiceShutdown, onShutdown)
+  yield* Saga.chainAction2(EngineGen.keybase1NotifySessionClientOutOfDate, onOutOfDate)
+  yield* Saga.chainAction2(ConfigGen.copyToClipboard, copyToClipboard)
+  yield* Saga.chainAction2(ConfigGen.updateStart, updateStart)
   yield* Saga.chainAction2(ConfigGen.checkForUpdate, checkForUpdate)
   yield* Saga.chainAction2(ConfigGen.daemonHandshakeWait, sendWindowsKBServiceCheck)
   yield* Saga.chainAction2(ConfigGen.setUseNativeFrame, saveUseNativeFrame)

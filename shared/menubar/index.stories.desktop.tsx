@@ -52,7 +52,7 @@ const props = {
   showUser: Storybook.action('showUser'),
   showingDiskSpaceBanner: true,
   totalSyncingBytes: 0,
-  updateNow: Storybook.action('updateNow'),
+  updateStart: Storybook.action('updateStart'),
   username: 'nathunsmitty',
   windowComponent: 'menubar',
   windowParam: '',
@@ -87,11 +87,27 @@ const load = () => {
     ))
     .add('Out of date banner', () => (
       <Kb.Box2 fullWidth={true} direction="vertical" gap="small">
-        <OutOfDate outOfDate={{critical: false, updating: false}} updateNow={Storybook.action('updateNow')} />
-        <OutOfDate outOfDate={{critical: true, updating: false}} updateNow={Storybook.action('updateNow')} />
         <OutOfDate
-          outOfDate={{critical: true, message: 'This is a critical message.', updating: false}}
-          updateNow={Storybook.action('updateNow')}
+          updateInfo={{status: 'ok', updating: false, critical: undefined, suggested: undefined}}
+          updateStart={Storybook.action('updateStart')}
+        />
+        <OutOfDate
+          updateInfo={{
+            critical: {message: 'Please run `keybase update check` to update your Keybase app'},
+            status: 'critical',
+            suggested: undefined,
+            updating: false,
+          }}
+          updateStart={Storybook.action('updateStart')}
+        />
+        <OutOfDate
+          updateInfo={{
+            critical: undefined,
+            status: 'critical',
+            suggested: undefined,
+            updating: false,
+          }}
+          updateStart={Storybook.action('updateStart')}
         />
       </Kb.Box2>
     ))

@@ -23,12 +23,12 @@ export type Props = {
   loggedIn: boolean
   kbfsDaemonStatus: FsTypes.KbfsDaemonStatus
   kbfsEnabled: boolean
-  updateNow?: () => void
+  updateStart: () => void
   onHideDiskSpaceBanner: () => void
   onRekey: (path: string) => void
   onRetrySync: () => void
-  openApp: (tab?: Tabs.AppTab) => void
-  outOfDate?: ConfigTypes.OutOfDate
+  openApp: (tab?: string) => void
+  updateInfo?: ConfigTypes.UpdateInfo
   showInFinder: () => void
   quit: () => void
   refreshUserFileEdits: () => void
@@ -108,7 +108,7 @@ class MenubarRender extends React.Component<Props, State> {
             onHidden={() => this.setState({showingMenu: false})}
           />
         </Kb.Box>
-        <OutOfDate outOfDate={this.props.outOfDate} updateNow={this.props.updateNow} />
+        <OutOfDate updateInfo={this.props.updateInfo} updateStart={this.props.updateStart} />
         <SpaceWarning
           diskSpaceStatus={this.props.diskSpaceStatus}
           onRetry={this.props.onRetrySync}
@@ -177,7 +177,7 @@ class MenubarRender extends React.Component<Props, State> {
             onHidden={() => this.setState({showingMenu: false})}
           />
         </Kb.Box>
-        <OutOfDate outOfDate={this.props.outOfDate} updateNow={this.props.updateNow} />
+        <OutOfDate updateInfo={this.props.updateInfo} updateStart={this.props.updateStart} />
         <Kb.Box
           style={{
             ...Styles.globalStyles.flexBoxColumn,
@@ -331,7 +331,7 @@ class MenubarRender extends React.Component<Props, State> {
             position="bottom right"
           />
         </Kb.Box>
-        <OutOfDate outOfDate={this.props.outOfDate} updateNow={this.props.updateNow} />
+        <OutOfDate updateInfo={this.props.updateInfo} updateStart={this.props.updateStart} />
         <Kb.ScrollView>
           <ChatContainer convLimit={5} />
           {this.props.kbfsDaemonStatus.rpcStatus === FsTypes.KbfsDaemonRpcStatus.Connected ? (

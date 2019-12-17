@@ -16,7 +16,7 @@ export type RemoteTlfUpdates = {
 type ConfigHoistedProps =
   | 'avatarRefreshCounter'
   | 'daemonHandshakeState'
-  | 'outOfDate'
+  | 'updateInfo'
   | 'followers'
   | 'following'
   | 'httpSrvAddress'
@@ -80,7 +80,7 @@ const initialState: DeserializeProps = {
     httpSrvAddress: '',
     httpSrvToken: '',
     loggedIn: false,
-    outOfDate: undefined,
+    updateInfo: undefined,
     username: '',
   },
   conversationsToSend: [],
@@ -130,7 +130,7 @@ export const deserialize = (
     infoMap,
     loggedIn,
     navBadges,
-    outOfDate,
+    updateInfo,
     username,
     ...rest
   } = props
@@ -149,7 +149,7 @@ export const deserialize = (
       httpSrvAddress: httpSrvAddress ?? state.config.httpSrvAddress,
       httpSrvToken: httpSrvToken ?? state.config.httpSrvToken,
       loggedIn: loggedIn ?? state.config.loggedIn,
-      outOfDate: outOfDate ?? state.config.outOfDate,
+      updateInfo: updateInfo ?? state.config.updateInfo,
       username: username ?? state.config.username,
     },
     navBadges: navBadges ? new Map(navBadges) : state.navBadges,

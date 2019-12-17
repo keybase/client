@@ -252,28 +252,20 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
     draftState.daemonHandshakeState = 'done'
     draftState.startupDetailsLoaded = isMobile ? draftState.startupDetailsLoaded : true
   },
-  [ConfigGen.updateNow]: draftState => {
-    if (draftState.outOfDate) {
-      draftState.outOfDate.updating = true
-    } else {
-      draftState.outOfDate = {
-        critical: false,
-        updating: true,
-      }
+  [ConfigGen.updateStart]: draftState => {
+    draftState.updateInfo = {
+      ...draftState.updateInfo,
+      updating: true,
     }
   },
   [ConfigGen.updateInfo]: (draftState, action) => {
-    draftState.outOfDate = action.payload.isOutOfDate
-      ? {
-          critical: action.payload.critical,
-          message: action.payload.message,
-          updating: false,
-        }
-      : undefined
-  },
-  [ConfigGen.updateCriticalCheckStatus]: (draftState, action) => {
-    draftState.appOutOfDateMessage = action.payload.message
-    draftState.appOutOfDateStatus = action.payload.status
+    const {status, message} = action.payload
+    draftState.updateInfo = {
+      critical: status === 'critical' ? {message} : undefined,
+      status,
+      suggested: status === 'suggested' ? {message} : undefined,
+      updating: false,
+    }
   },
   [EngineGen.keybase1NotifyRuntimeStatsRuntimeStatsUpdate]: (draftState, action) => {
     if (!action.payload.params.stats) {
