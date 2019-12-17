@@ -7,25 +7,30 @@ import * as Styles from '../../styles'
 
 export type Props = {
   contactSettingsEnabled?: boolean
+  contactSettingsDirectFollowees: boolean
+  contactSettingsIndirectFollowees: boolean
   unfurlMode?: RPCChatTypes.UnfurlMode
   unfurlWhitelist?: Array<string>
   unfurlError?: string
-  onUnfurlSave: (arg0: RPCChatTypes.UnfurlMode, array: Array<string>) => void
+  onContactSettingsSave: () => void
+  onUnfurlSave: (mode: RPCChatTypes.UnfurlMode, whitelist: Array<string>) => void
   onRefresh: () => void
   teams: Array<TeamDetails>
 }
 
 type State = {
+  contactSettingsDirectFollowees?: boolean | null
   contactSettingsEnabled?: boolean | null
-  contactSettingsTeamsEnabled?: boolean
+  contactSettingsIndirectFollowees?: boolean | null
   unfurlSelected?: RPCChatTypes.UnfurlMode
   unfurlWhitelistRemoved: {[K in string]: boolean}
 }
 
 class Chat extends React.Component<Props, State> {
   state = {
+    contactSettingsDirectFollowees: undefined,
     contactSettingsEnabled: undefined,
-    contactSettingsTeamsEnabled: undefined,
+    contactSettingsIndirectFollowees: undefined,
     unfurlSelected: undefined,
     unfurlWhitelistRemoved: {},
   }
@@ -80,6 +85,18 @@ class Chat extends React.Component<Props, State> {
     this.props.onRefresh()
   }
 
+  componentDidUpdate(prevProps: Props) {
+    if (this.props.contactSettingsEnabled !== prevProps.contactSettingsEnabled) {
+      this.setState({contactSettingsEnabled: this.props.contactSettingsEnabled})
+    }
+    if (this.props.contactSettingsDirectFollowees !== prevProps.contactSettingsDirectFollowees) {
+      this.setState({contactSettingsDirectFollowees: this.props.contactSettingsDirectFollowees})
+    }
+    if (this.props.contactSettingsIndirectFollowees !== prevProps.contactSettingsIndirectFollowees) {
+      this.setState({contactSettingsIndirectFollowees: this.props.contactSettingsIndirectFollowees})
+    }
+  }
+
   render() {
     console.warn('props', this.props)
     return (
@@ -89,8 +106,10 @@ class Chat extends React.Component<Props, State> {
         </Kb.Box2>
         <Kb.Box2 direction="vertical" fullWidth={true}>
           <Kb.Checkbox
-            label="Only let someone message me or add me to a team if..."
-            onCheck={() => this.setState({contactSettingsEnabled: !this.props.contactSettingsEnabled})}
+            label="Only let someone message me or add me to a team if:"
+            onCheck={() =>
+              this.setState(prevState => ({contactSettingsEnabled: !prevState.contactSettingsEnabled}))
+            }
             checked={!!this.state.contactSettingsEnabled}
             disabled={this.props.contactSettingsEnabled === undefined}
           />
@@ -98,41 +117,36 @@ class Chat extends React.Component<Props, State> {
             <>
               <Kb.Checkbox
                 label="I follow them, or..."
-                onCheck={() => this.setState({contactSettingsEnabled: !this.props.contactSettingsEnabled})}
-                checked={!!this.state.contactSettingsEnabled}
-                disabled={this.props.contactSettingsEnabled === undefined}
+                onCheck={checked => this.setState({contactSettingsDirectFollowees: checked})}
+                checked={!!this.state.contactSettingsDirectFollowees}
+                disabled={!!this.props.contactSettingsIndirectFollowees}
               />
               <Kb.Checkbox
                 label="I follow someone who follows them, or..."
-                onCheck={() => this.setState({contactSettingsEnabled: !this.props.contactSettingsEnabled})}
-                checked={!!this.state.contactSettingsEnabled}
-                disabled={this.props.contactSettingsEnabled === undefined}
+                onCheck={checked =>
+                  this.setState({
+                    contactSettingsDirectFollowees: true,
+                    contactSettingsIndirectFollowees: checked,
+                  })
+                }
+                checked={!!this.state.contactSettingsIndirectFollowees}
               />
               <Kb.Checkbox
                 label="They're in one of these teams with me:"
-                onCheck={() =>
-                  this.setState(prevState => ({
-                    contactSettingsTeamsEnabled: !prevState.contactSettingsTeamsEnabled,
-                  }))
-                }
-                checked={!!this.state.contactSettingsTeamsEnabled}
-                disabled={this.props.contactSettingsEnabled === undefined}
+                onCheck={() => {}}
+                checked={true}
+                disabled={false}
               />
-              {this.state.contactSettingsTeamsEnabled && (
-                <Kb.ScrollView style={styles.teamList}>
-                  {this.props.teams.map(teamDetails => (
-                    <TeamRow
-                      key={teamDetails.id}
-                      canShowcase={teamDetails.allowPromote}
-                      isExplicitMember={teamDetails.isMember}
-                      name={teamDetails.teamname}
-                      isOpen={teamDetails.isOpen}
-                      membercount={teamDetails.memberCount}
-                      showcased={teamDetails.showcasing}
-                    />
-                  ))}
-                </Kb.ScrollView>
-              )}
+              <Kb.ScrollView style={styles.teamList}>
+                {this.props.teams.map(teamDetails => (
+                  <TeamRow
+                    key={teamDetails.id}
+                    name={teamDetails.teamname}
+                    isOpen={teamDetails.isOpen}
+                    membercount={teamDetails.memberCount}
+                  />
+                ))}
+              </Kb.ScrollView>
             </>
           )}
           <Kb.Box2 direction="vertical" gap="tiny">
@@ -224,19 +238,10 @@ class Chat extends React.Component<Props, State> {
   }
 }
 
-const TeamRow = ({
-  canShowcase,
-  name,
-  isOpen,
-  membercount,
-  onPromote,
-  showcased,
-  waiting,
-  isExplicitMember,
-}: RowProps) => (
+const TeamRow = ({name, isOpen, membercount}) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamRowContainer}>
-      <Kb.Checkbox style={styles.teamCheckbox} checked={false} />
+      <Kb.Checkbox onCheck={() => {}} style={styles.teamCheckbox} checked={false} />
       <Kb.Avatar isTeam={true} size={Styles.isMobile ? 48 : 32} teamname={name} />
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.teamNameContainer}>
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamText}>

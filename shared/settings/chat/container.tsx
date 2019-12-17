@@ -12,10 +12,17 @@ const emptyList = []
 export default Container.namedConnect(
   state => {
     const contactSettingsEnabled = state.settings.chat.contactSettings.settings?.enabled
+    const contactSettingsDirectFollowees =
+      state.settings.chat.contactSettings.settings?.allowFolloweeDegrees === 1 ||
+      state.settings.chat.contactSettings.settings?.allowFolloweeDegrees === 2
+    const contactSettingsIndirectFollowees =
+      state.settings.chat.contactSettings.settings?.allowFolloweeDegrees === 2
     const whitelist = state.settings.chat.unfurl.unfurlWhitelist
     const unfurlWhitelist = whitelist ?? emptyList
     return {
+      contactSettingsDirectFollowees,
       contactSettingsEnabled,
+      contactSettingsIndirectFollowees,
       teamDetails: state.teams.teamDetails,
       title: 'Chat',
       unfurlError: state.settings.chat.unfurl.unfurlError,
@@ -25,6 +32,7 @@ export default Container.namedConnect(
   },
   dispatch => ({
     onBack: Container.isMobile ? () => dispatch(RouteTreeGen.createNavigateUp()) : undefined,
+    onContactSettingSave: () => {},
     onRefresh: () => {
       dispatch(SettingsGen.createContactSettingsRefresh())
       dispatch(SettingsGen.createUnfurlSettingsRefresh())
