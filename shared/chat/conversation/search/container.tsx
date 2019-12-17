@@ -11,13 +11,6 @@ type OwnProps = {
   style?: Styles.StylesCrossPlatform
 }
 
-let KeyHandler: <I>(i: I) => I = i => i
-if (!Container.isMobile) {
-  KeyHandler = require('../../../util/key-handler.desktop').default
-}
-
-const hotkeys = ['esc']
-
 export default Container.namedConnect(
   (state, {conversationIDKey}: OwnProps) => {
     const info = Constants.getThreadSearchInfo(state, conversationIDKey)
@@ -33,14 +26,9 @@ export default Container.namedConnect(
     clearInitialText: () =>
       dispatch(Chat2Gen.createSetThreadSearchQuery({conversationIDKey, query: new HiddenString('')})),
     onCancel: () => dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey})),
-    onHotkey: (cmd: string) => {
-      switch (cmd) {
-        case 'esc':
-          dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey}))
-      }
-    },
     onSearch: (query: string) =>
       dispatch(Chat2Gen.createThreadSearch({conversationIDKey, query: new HiddenString(query)})),
+    onToggleThreadSearch: () => dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey})),
     selfHide: () => dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey})),
   }),
   (stateProps, dispatchProps, {conversationIDKey, style}: OwnProps) => ({
@@ -51,7 +39,6 @@ export default Container.namedConnect(
       summary: h.bodySummary.stringValue(),
       timestamp: h.timestamp,
     })),
-    hotkeys,
     initialText: stateProps.initialText ? stateProps.initialText.stringValue() : undefined,
     loadSearchHit: (index: number) => {
       const message = stateProps._hits[index] || Constants.makeMessageText()
@@ -60,11 +47,11 @@ export default Container.namedConnect(
       }
     },
     onCancel: dispatchProps.onCancel,
-    onHotkey: dispatchProps.onHotkey,
     onSearch: dispatchProps.onSearch,
+    onToggleThreadSearch: dispatchProps.onToggleThreadSearch,
     selfHide: dispatchProps.selfHide,
     status: stateProps.status,
     style,
   }),
   'ThreadSearch'
-)(KeyHandler(ThreadSearch))
+)(ThreadSearch)
