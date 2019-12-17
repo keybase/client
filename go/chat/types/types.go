@@ -408,20 +408,20 @@ func (d DummyIndexer) Suspend(ctx context.Context) bool {
 func (d DummyIndexer) Resume(ctx context.Context) bool {
 	return false
 }
-func (d DummyIndexer) Search(ctx context.Context, uid gregor1.UID, query, origQuery string,
+func (d DummyIndexer) Search(ctx context.Context, query, origQuery string,
 	opts chat1.SearchOpts, hitUICh chan chat1.ChatSearchInboxHit, indexUICh chan chat1.ChatSearchIndexStatus) (*chat1.ChatSearchInboxResults, error) {
 	return nil, nil
 }
-func (d DummyIndexer) Add(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msg []chat1.MessageUnboxed) error {
+func (d DummyIndexer) Add(ctx context.Context, convID chat1.ConversationID, msg []chat1.MessageUnboxed) error {
 	return nil
 }
-func (d DummyIndexer) Remove(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msg []chat1.MessageUnboxed) error {
+func (d DummyIndexer) Remove(ctx context.Context, convID chat1.ConversationID, msg []chat1.MessageUnboxed) error {
 	return nil
 }
-func (d DummyIndexer) SearchableConvs(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID) ([]RemoteConversation, error) {
+func (d DummyIndexer) SearchableConvs(ctx context.Context, convID *chat1.ConversationID) ([]RemoteConversation, error) {
 	return nil, nil
 }
-func (d DummyIndexer) IndexInbox(ctx context.Context, uid gregor1.UID) (map[string]chat1.ProfileSearchConvStats, error) {
+func (d DummyIndexer) IndexInbox(ctx context.Context) (map[string]chat1.ProfileSearchConvStats, error) {
 	return nil, nil
 }
 func (d DummyIndexer) IsBackgroundActive() bool { return false }
@@ -432,10 +432,10 @@ func (d DummyIndexer) OnLogout(mctx libkb.MetaContext) error {
 func (d DummyIndexer) OnDbNuke(mctx libkb.MetaContext) error {
 	return nil
 }
-func (d DummyIndexer) FullyIndexed(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (bool, error) {
+func (d DummyIndexer) FullyIndexed(ctx context.Context, convID chat1.ConversationID) (bool, error) {
 	return false, nil
 }
-func (d DummyIndexer) PercentIndexed(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (int, error) {
+func (d DummyIndexer) PercentIndexed(ctx context.Context, convID chat1.ConversationID) (int, error) {
 	return 0, nil
 }
 
