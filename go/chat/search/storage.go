@@ -111,6 +111,7 @@ type batchingStore struct {
 	aliasBatch map[string]*aliasEntry
 	tokenBatch map[string]*tokenBatch
 	mdBatch    map[string]*mdBatch
+	flushMu    sync.Mutex
 }
 
 func newBatchingStore(log logger.Logger, uid gregor1.UID,
@@ -263,13 +264,18 @@ func (b *batchingStore) PutMetadata(ctx context.Context, convID chat1.Conversati
 
 func (b *batchingStore) Flush() (err error) {
 	ctx := context.Background()
-	defer b.Trace(context.Background(), func() error { return err }, "Flush")()
+	defer b.Trace(context.Background(), func() error { return err }, "flush")()
 	b.Lock()
-	defer b.Unlock()
-	defer b.resetLocked()
+	aliasBatch := b.aliasBatch
+	tokenBatch := b.tokenBatch
+	mdBatch := b.mdBatch
+	b.resetLocked()
+	b.Unlock()
 
-	b.Debug(ctx, "Flush: flushing tokens from %d convs", len(b.tokenBatch))
-	for _, tokenBatch := range b.tokenBatch {
+	b.flushMu.Lock()
+	defer b.flushMu.Unlock()
+	b.Debug(ctx, "Flush: flushing tokens from %d convs", len(tokenBatch))
+	for _, tokenBatch := range tokenBatch {
 		b.Debug(ctx, "Flush: flushing %d tokens from %s", len(tokenBatch.tokens), tokenBatch.convID)
 		for token, te := range tokenBatch.tokens {
 			key, err := tokenKey(ctx, b.uid, tokenBatch.convID, token, b.keyFn)
@@ -281,8 +287,8 @@ func (b *batchingStore) Flush() (err error) {
 			}
 		}
 	}
-	b.Debug(ctx, "Flush: flushing %d aliases", len(b.aliasBatch))
-	for alias, ae := range b.aliasBatch {
+	b.Debug(ctx, "Flush: flushing %d aliases", len(aliasBatch))
+	for alias, ae := range aliasBatch {
 		key, err := aliasKey(ctx, alias, b.keyFn)
 		if err != nil {
 			return err
@@ -291,8 +297,8 @@ func (b *batchingStore) Flush() (err error) {
 			return err
 		}
 	}
-	b.Debug(ctx, "Flush: flushing %d conv metadata", len(b.mdBatch))
-	for _, mdBatch := range b.mdBatch {
+	b.Debug(ctx, "Flush: flushing %d conv metadata", len(mdBatch))
+	for _, mdBatch := range mdBatch {
 		if err := b.mdb.PutObjMsgpack(metadataKey(b.uid, mdBatch.convID), nil, mdBatch.md); err != nil {
 			return err
 		}
@@ -331,11 +337,6 @@ func newStore(g *globals.Context, uid gregor1.UID) *store {
 		diskStorage: newBatchingStore(g.GetLog(), uid, keyFn, encrypteddb.New(g.ExternalG(), dbFn, keyFn),
 			g.LocalChatDb),
 	}
-}
-
-func (s *store) flush(ctx context.Context) {
-	defer s.Trace(ctx, func() error { return nil }, "flush")()
-
 }
 
 func metadataKey(uid gregor1.UID, convID chat1.ConversationID) libkb.DbKey {
