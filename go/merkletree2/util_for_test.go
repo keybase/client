@@ -124,12 +124,22 @@ func (i IdentityHasher) HashKeyEncodedValuePairWithKeySpecificSecret(kevp KeyEnc
 	return i.Encode(kevp)
 }
 
+func (i IdentityHasher) HashKeyEncodedValuePairWithKeySpecificSecretTo(kevp KeyEncodedValuePair, _ KeySpecificSecret, h *Hash) (err error) {
+	*h, err = i.Encode(kevp)
+	return err
+}
+
 func (i IdentityHasher) EncodeAndHashGeneric(o interface{}) ([]byte, Hash, error) {
 	enc, err := i.Encode(o)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Encoding error in IdentityHasher for %v: %v", o, err)
 	}
 	return enc, Hash(enc), nil
+}
+
+func (i IdentityHasher) HashGeneric(o interface{}, h *Hash) (err error) {
+	_, *h, err = i.EncodeAndHashGeneric(o)
+	return err
 }
 
 func (i IdentityHasher) HashKeyValuePairWithKeySpecificSecret(kvp KeyValuePair, kss KeySpecificSecret) (Hash, error) {
@@ -148,6 +158,9 @@ func (i IdentityHasher) ComputeKeySpecificSecret(ms MasterSecret, k Key) KeySpec
 	return nil
 }
 
+func (i IdentityHasher) ComputeKeySpecificSecretTo(ms MasterSecret, k Key, kss *KeySpecificSecret) {
+}
+
 // Useful to debug tests. Hash(b) == b, with extra blinding fields injected as appropriate
 type IdentityHasherBlinded struct{}
 
@@ -163,6 +176,11 @@ func (i IdentityHasherBlinded) EncodeAndHashGeneric(o interface{}) ([]byte, Hash
 		return nil, nil, fmt.Errorf("Msgpack error in IdentityHasher for %v: %v", o, err)
 	}
 	return enc, Hash(enc), nil
+}
+
+func (i IdentityHasherBlinded) HashGeneric(o interface{}, h *Hash) (err error) {
+	_, *h, err = i.EncodeAndHashGeneric(o)
+	return err
 }
 
 func (i IdentityHasherBlinded) Encode(o interface{}) ([]byte, error) {
@@ -192,6 +210,11 @@ func (i IdentityHasherBlinded) HashKeyEncodedValuePairWithKeySpecificSecret(kevp
 	return Hash(enc), nil
 }
 
+func (i IdentityHasherBlinded) HashKeyEncodedValuePairWithKeySpecificSecretTo(kevp KeyEncodedValuePair, kss KeySpecificSecret, h *Hash) (err error) {
+	*h, err = i.HashKeyEncodedValuePairWithKeySpecificSecret(kevp, kss)
+	return err
+}
+
 func (i IdentityHasherBlinded) GenerateMasterSecret(Seqno) (MasterSecret, error) {
 	ms := make([]byte, 1)
 	_, err := rand.Read(ms)
@@ -207,6 +230,17 @@ func (i IdentityHasherBlinded) ComputeKeySpecificSecret(ms MasterSecret, k Key) 
 		panic(err)
 	}
 	return KeySpecificSecret(kss)
+}
+
+func (i IdentityHasherBlinded) ComputeKeySpecificSecretTo(ms MasterSecret, k Key, kss *KeySpecificSecret) {
+	var err error
+	*kss, err = msgpack.EncodeCanonical(struct {
+		Ms MasterSecret
+		K  Key
+	}{Ms: ms, K: k})
+	if err != nil {
+		panic(err)
+	}
 }
 
 // returns two disjoint lists of sorted and unique keys of size numPairs1, numPairs2
@@ -303,6 +337,11 @@ func (e SHA512_256Encoder) EncodeAndHashGeneric(o interface{}) ([]byte, Hash, er
 	return enc, hasher.Sum(nil), nil
 }
 
+func (e SHA512_256Encoder) HashGeneric(o interface{}, h *Hash) (err error) {
+	_, *h, err = e.EncodeAndHashGeneric(o)
+	return err
+}
+
 func (e SHA512_256Encoder) HashKeyValuePairWithKeySpecificSecret(kvp KeyValuePair, kss KeySpecificSecret) (Hash, error) {
 	encVal, err := e.Encode(kvp.Value)
 	if err != nil {
@@ -328,10 +367,18 @@ func (e SHA512_256Encoder) HashKeyEncodedValuePairWithKeySpecificSecret(kevp Key
 	return hasher.Sum(nil), nil
 }
 
+func (e SHA512_256Encoder) HashKeyEncodedValuePairWithKeySpecificSecretTo(kevp KeyEncodedValuePair, kss KeySpecificSecret, h *Hash) (err error) {
+	*h, err = e.HashKeyEncodedValuePairWithKeySpecificSecret(kevp, kss)
+	return err
+}
+
 func (e SHA512_256Encoder) GenerateMasterSecret(_ Seqno) (MasterSecret, error) {
 	return nil, fmt.Errorf("This encoder does not support blinding")
 }
 
 func (e SHA512_256Encoder) ComputeKeySpecificSecret(_ MasterSecret, _ Key) KeySpecificSecret {
 	return nil
+}
+
+func (e SHA512_256Encoder) ComputeKeySpecificSecretTo(ms MasterSecret, k Key, kss *KeySpecificSecret) {
 }

@@ -80,12 +80,18 @@ type Encoder interface {
 	Encode(src interface{}) (dst []byte, err error)
 
 	EncodeAndHashGeneric(interface{}) (encoded []byte, hash Hash, err error)
+	// takes as input an hash pointer ret to avoid creating new objects
+	HashGeneric(o interface{}, ret *Hash) error
 
 	GenerateMasterSecret(Seqno) (MasterSecret, error)
 	ComputeKeySpecificSecret(MasterSecret, Key) KeySpecificSecret
+	// takes as input a KeySpecificSecret pointer to avoid creating new objects
+	ComputeKeySpecificSecretTo(MasterSecret, Key, *KeySpecificSecret)
 
 	HashKeyValuePairWithKeySpecificSecret(KeyValuePair, KeySpecificSecret) (Hash, error)
 	HashKeyEncodedValuePairWithKeySpecificSecret(KeyEncodedValuePair, KeySpecificSecret) (Hash, error)
+	// takes as input an hash pointer ret to avoid creating new objects
+	HashKeyEncodedValuePairWithKeySpecificSecretTo(KeyEncodedValuePair, KeySpecificSecret, *Hash) error
 
 	GetEncodingType() EncodingType
 }

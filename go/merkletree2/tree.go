@@ -29,6 +29,9 @@ type Tree struct {
 	// is unnecessary if the tree has random keys (as such a tree should be
 	// approximately balanced and have short-ish paths).
 	step int
+
+	bufKss  KeySpecificSecret
+	bufLeaf Node
 }
 
 // NewTree makes a new tree
@@ -339,7 +342,7 @@ func (t *Tree) hashTreeRecursive(ctx logger.ContextInterface, tr Transaction, s 
 	}
 
 	if len(sortedKEVPairs) <= t.cfg.MaxValuesPerLeaf {
-		ret, err = t.makeAndStoreLeaf(ctx, tr, s, ms, p, sortedKEVPairs)
+		err = t.makeAndStoreLeaf(ctx, tr, s, ms, p, sortedKEVPairs, &ret)
 		return ret, err
 	}
 
@@ -363,56 +366,52 @@ func (t *Tree) hashTreeRecursive(ctx logger.ContextInterface, tr Transaction, s 
 		if end > 0 {
 			pairsSelected := pairsNotYetSelected[0:end]
 			pairsNotYetSelected = pairsNotYetSelected[end:]
-			ret, err = t.hashTreeRecursive(ctx, tr, s, ms, child, pairsSelected)
+			node.INodes[i], err = t.hashTreeRecursive(ctx, tr, s, ms, child, pairsSelected)
 			if err != nil {
 				return nil, err
 			}
-			// Note that some internal nodes might have some null children with
-			// no hash. Each node will have at least one child (or one Key if it
-			// is a leaf).
-			node.INodes[i] = ret
 		}
 		child = nextChild
 	}
-	if _, ret, err = t.cfg.Encoder.EncodeAndHashGeneric(node); err != nil {
+	if err = t.cfg.Encoder.HashGeneric(node, &ret); err != nil {
 		return nil, err
 	}
 	err = t.eng.StoreNode(ctx, tr, s, p, ret)
 	return ret, err
-
 }
 
 // makeKeyHashPairsFromKeyValuePairs preserves ordering
-func (t *Tree) makeKeyHashPairsFromKeyValuePairs(ms MasterSecret, unhashed []KeyEncodedValuePair) (hashed []KeyHashPair, err error) {
-	hashed = make([]KeyHashPair, len(unhashed))
+func (t *Tree) makeKeyHashPairsFromKeyValuePairs(ms MasterSecret, unhashed []KeyEncodedValuePair, node *Node) (err error) {
+	if cap(node.LeafHashes) < len(unhashed) {
+		node.LeafHashes = make([]KeyHashPair, len(unhashed))
+	}
+	node.LeafHashes = node.LeafHashes[:len(unhashed)]
 
 	for i, kevp := range unhashed {
-		hash, err := t.cfg.Encoder.HashKeyEncodedValuePairWithKeySpecificSecret(kevp, t.cfg.Encoder.ComputeKeySpecificSecret(ms, kevp.Key))
+		t.cfg.Encoder.ComputeKeySpecificSecretTo(ms, kevp.Key, &t.bufKss)
+		err = t.cfg.Encoder.HashKeyEncodedValuePairWithKeySpecificSecretTo(kevp, t.bufKss, &node.LeafHashes[i].Hash)
 		if err != nil {
-			return nil, err
+			return err
 		}
-		hashed[i].Key = kevp.Key
-		hashed[i].Hash = hash
+		node.LeafHashes[i].Key = kevp.Key
 	}
-	return hashed, nil
+	return nil
 }
 
-func (t *Tree) makeAndStoreLeaf(ctx logger.ContextInterface, tr Transaction, s Seqno, ms MasterSecret, p *Position, sortedKEVPairs []KeyEncodedValuePair) (ret Hash, err error) {
+func (t *Tree) makeAndStoreLeaf(ctx logger.ContextInterface, tr Transaction, s Seqno, ms MasterSecret, p *Position, sortedKEVPairs []KeyEncodedValuePair, ret *Hash) (err error) {
 
-	khps, err := t.makeKeyHashPairsFromKeyValuePairs(ms, sortedKEVPairs)
+	err = t.makeKeyHashPairsFromKeyValuePairs(ms, sortedKEVPairs, &t.bufLeaf)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	leaf := Node{LeafHashes: khps}
-
-	if _, ret, err = t.cfg.Encoder.EncodeAndHashGeneric(leaf); err != nil {
-		return nil, err
+	if err = t.cfg.Encoder.HashGeneric(t.bufLeaf, ret); err != nil {
+		return err
 	}
-	if err = t.eng.StoreNode(ctx, tr, s, p, ret); err != nil {
-		return nil, err
+	if err = t.eng.StoreNode(ctx, tr, s, p, *ret); err != nil {
+		return err
 	}
-	return ret, err
+	return nil
 }
 
 // Retrieves a KeyValuePair from the tree. Note that if the root at Seqno s was
