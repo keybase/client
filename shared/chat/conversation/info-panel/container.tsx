@@ -71,47 +71,22 @@ const ConnectedInfoPanel = Container.connect(
     const attachmentsLoading = selectedTab === 'attachments' && attachmentInfo.status === 'loading'
     const _teamMembers =
       state.teams.teamNameToMembers.get(meta.teamname) || new Map<string, TeamTypes.MemberInfo>()
-    const featuredBots = state.chat2.featuredBotsMap
-
-    const _botUsernames = meta.participants.filter(
-      // If we're in an adhoc team, get bots by finding participants not in nameParticipants
-      p =>
-        meta.teamType == 'adhoc'
-          ? !meta.nameParticipants.includes(p)
-          : TeamConstants.userIsRoleInTeamWithInfo(_teamMembers, p, 'restrictedbot') ||
-            TeamConstants.userIsRoleInTeamWithInfo(_teamMembers, p, 'bot')
-    )
-
-    const _participants = flags.botUI
-      ? meta.participants.filter(p => !_botUsernames.includes(p))
-      : meta.participants
-    const bots: Array<RPCTypes.FeaturedBot> = _botUsernames.map(
-      b =>
-        featuredBots.get(b) ?? {
-          botAlias: meta.botAliases[b] ?? (state.users.infoMap.get(b) || {fullname: ''}).fullname,
-          botUsername: b,
-          description: state.users.infoMap.get(b)?.bio ?? '',
-        }
-    )
-
-    const availableBots = Array.from(featuredBots.entries())
-      .filter(([k, _]) => !_botUsernames.includes(k))
-      .map(([_, v]) => v)
 
     return {
       _attachmentInfo: attachmentInfo,
-      _botUsernames,
+      _botAliases: meta.botAliases,
       _fromMsgID: getFromMsgID(attachmentInfo),
+      _featuredBots: state.chat2.featuredBotsMap,
       _infoMap: state.users.infoMap,
+      _nameParticipants: meta.nameParticipants,
       _participantToContactName: meta.participantToContactName,
-      _participants: _participants,
+      _participants: meta.participants,
       _team: meta.teamname,
       _teamMembers,
       _username: state.config.username,
+      adhocTeam: meta.teamType === 'adhoc',
       admin,
       attachmentsLoading,
-      availableBots,
-      bots,
       canDeleteHistory,
       canEditChannel,
       canSetMinWriterRole,
@@ -209,7 +184,30 @@ const ConnectedInfoPanel = Container.connect(
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     let participants = stateProps._participants
-    const botUsernames = stateProps._botUsernames
+    const botUsernames = participants.filter(
+      // If we're in an adhoc team, get bots by finding participants not in nameParticipants
+      p =>
+        stateProps.adhocTeam
+          ? !stateProps._nameParticipants.includes(p)
+          : TeamConstants.userIsRoleInTeamWithInfo(stateProps._teamMembers, p, 'restrictedbot') ||
+            TeamConstants.userIsRoleInTeamWithInfo(stateProps._teamMembers, p, 'bot')
+    )
+
+    participants = flags.botUI ? participants.filter(p => !botUsernames.includes(p)) : participants
+
+    const bots: Array<RPCTypes.FeaturedBot> = botUsernames.map(
+      b =>
+        stateProps._featuredBots.get(b) ?? {
+          botAlias: stateProps._botAliases[b] ?? (stateProps._infoMap.get(b) || {fullname: ''}).fullname,
+          botUsername: b,
+          description: stateProps._infoMap.get(b)?.bio ?? '',
+        }
+    )
+
+    const availableBots = Array.from(stateProps._featuredBots.entries())
+      .filter(([k, _]) => !botUsernames.includes(k))
+      .map(([_, v]) => v)
+
     const teamMembers = stateProps._teamMembers
     const isGeneral = stateProps.channelname === 'general'
     const showAuditingBanner = isGeneral && !teamMembers
@@ -230,8 +228,8 @@ const ConnectedInfoPanel = Container.connect(
     return {
       admin: stateProps.admin,
       attachmentsLoading: stateProps.attachmentsLoading,
-      availableBots: stateProps.availableBots,
-      bots: stateProps.bots,
+      availableBots,
+      bots,
       canDeleteHistory: stateProps.canDeleteHistory,
       canEditChannel: stateProps.canEditChannel,
       canSetMinWriterRole: stateProps.canSetMinWriterRole,
