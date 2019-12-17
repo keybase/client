@@ -129,14 +129,14 @@ class NewRepo extends React.Component<Props, State> {
               items={this._makeDropdownItems()}
               selected={this._makeDropdownItem(this.state.selectedTeam)}
               onChanged={this._dropdownChanged}
-              style={{marginBottom: Styles.globalMargins.small}}
+              style={styles.dropdown}
             />
           )}
-          <Kb.Input
+          <Kb.LabeledInput
             value={this.state.name}
             autoFocus={true}
             onChangeText={name => this.setState({name})}
-            hintText="Name your repository"
+            placeholder="Name your repository"
             onEnterKeyDown={this._onSubmit}
           />
           {this.props.isTeam && (
@@ -144,16 +144,14 @@ class NewRepo extends React.Component<Props, State> {
               label="Notify the team"
               checked={this.state.notifyTeam}
               onCheck={notifyTeam => this.setState({notifyTeam})}
-              style={{marginBottom: Styles.globalMargins.small, marginTop: Styles.globalMargins.small}}
+              style={styles.checkbox}
             />
           )}
-          <Kb.Box style={{flex: 1}} />
-          <Kb.Box style={Styles.globalStyles.flexBoxRow}>
+          <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
             <Kb.WaitingButton
               type="Dim"
               onClick={this.props.onClose}
               label="Cancel"
-              style={{marginRight: Styles.globalMargins.tiny}}
               waitingKey={this.props.waitingKey}
               onlyDisable={true}
             />
@@ -163,7 +161,7 @@ class NewRepo extends React.Component<Props, State> {
               disabled={!this._canSubmit()}
               waitingKey={this.props.waitingKey}
             />
-          </Kb.Box>
+          </Kb.ButtonBar>
         </Kb.Box>
       </Kb.ScrollView>
     )
@@ -181,12 +179,24 @@ const styles = Styles.styleSheetCreate(() => ({
     paddingRight: Styles.globalMargins.small,
     width: '100%',
   },
-  container: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    flex: 1,
-    height: '100%',
-    padding: Styles.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.large,
+  buttonBar: {alignItems: 'center'},
+  checkbox: {
+    alignSelf: 'flex-start',
+    marginTop: Styles.globalMargins.small,
+  },
+  container: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxColumn,
+      alignItems: 'center',
+      flex: 1,
+      height: '100%',
+      padding: Styles.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.large,
+    },
+    isElectron: {maxWidth: 400},
+  }),
+  dropdown: {
+    marginBottom: Styles.globalMargins.small,
+    width: '100%',
   },
   error: {
     alignSelf: 'stretch',

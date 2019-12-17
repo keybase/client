@@ -130,7 +130,6 @@ class _EditChannel extends React.Component<Props, State> {
                 }
                 waiting={this.props.waitingOnSave}
                 onClick={this.onSave}
-                style={{marginLeft: Styles.globalMargins.tiny}}
               />
             </Kb.ButtonBar>
             {this.props.showDelete && !this.props.deleteRenameDisabled && (
