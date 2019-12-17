@@ -136,6 +136,28 @@ const makeLinks = (): any => {
 }
 
 const commonProps = {
+  availableBots: [
+    {
+      botAlias: 'Reminder Bot',
+      botUsername: 'reminderbot',
+      description: 'Never forget again',
+      ownerUser: 'jessk',
+    },
+  ],
+  bots: [
+    {
+      botAlias: 'ECS Deploy Bot',
+      botUsername: 'ecsdeploybot',
+      description: '',
+      ownerTeam: 'keybase',
+    },
+    {
+      botAlias: 'Google Meet',
+      botUsername: 'meetbot',
+      description: 'Use Google Meet to discuss over video',
+      ownerTeam: 'keybase',
+    },
+  ],
   canDeleteHistory: true,
   canSetMinWriterRole: false,
   docs: {
@@ -149,6 +171,7 @@ const commonProps = {
     onLoadMore: Sb.action('onLoadMore'),
     status: 'success',
   },
+  loadedAllBots: false,
   media: {
     onLoadMore: Sb.action('onLoadMore'),
     status: 'success',
@@ -156,45 +179,31 @@ const commonProps = {
   },
   onBack: Sb.unexpected('onBack'),
   onHideConv: Sb.action(`onHideConv`),
+  onLoadMoreBots: Sb.action(`onLoadMoreBots`),
+  onSearchFeaturedBots: (username: string) => Sb.action(`onSearchFeaturedBots(${username})`),
   onShowProfile: (username: string) => Sb.action(`onShowProfile(${username})`),
   onUnhideConv: Sb.action(`onUnhideConv`),
   participants: [
     {
-      botAlias: '',
       fullname: 'Fred Akalin',
       isAdmin: true,
       isOwner: true,
       username: 'akalin',
     },
     {
-      botAlias: '',
       fullname: 'Jeremy Stribling',
       isAdmin: true,
       isOwner: false,
       username: 'strib',
     },
     {
-      botAlias: '',
       fullname: 'Max Krohn',
       isAdmin: false,
       isOwner: false,
       username: 'max',
     },
-    {
-      botAlias: 'ECS Deploy Bot',
-      fullname: 'Bot Person',
-      isAdmin: false,
-      isOwner: false,
-      username: 'ecsdeploybot',
-    },
-    {
-      botAlias: 'Google Meet',
-      fullname: '',
-      isAdmin: false,
-      isOwner: false,
-      username: 'meetbot',
-    },
   ],
+
   selectedConversationIDKey: Constants.noConversationIDKey,
   spinnerForHide: false,
 } as const

@@ -3,20 +3,23 @@ import * as Types from '../../../constants/types/chat2'
 import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
+import * as RPCTypes from '../../../constants/types/rpc-gen'
+import flags from '../../../util/feature-flags'
 import {Props as HeaderHocProps} from '../../../common-adapters/header-hoc/types'
 import {AdhocHeader, TeamHeader} from './header'
 import {SettingsPanel} from './panels'
 import Participant from './participant'
+import Bot from './bot'
 import {AttachmentTypeSelector, DocView, LinkView, MediaView} from './attachments'
 
-export type Panel = 'settings' | 'members' | 'attachments'
+export type Panel = 'settings' | 'members' | 'attachments' | 'bots'
 export type ParticipantTyp = {
   username: string
   fullname: string
   isAdmin: boolean
   isOwner: boolean
-  botAlias: string
 }
+
 export type EntityType = 'adhoc' | 'small team' | 'channel'
 export type Section = {
   data: Array<any>
@@ -71,11 +74,17 @@ type LinkProps = {
 }
 
 const auditingBannerItem = 'auditing banner'
+const inThisChannelHeader = 'bots: in this channel'
+const featuredBotsHeader = 'bots: featured bots'
+const loadMoreBotsButton = 'bots: load more'
+const addBotButton = 'bots: add bot'
 
 export type InfoPanelProps = {
   loadDelay?: number
   selectedConversationIDKey: Types.ConversationIDKey
   participants: ReadonlyArray<ParticipantTyp>
+  availableBots: ReadonlyArray<RPCTypes.FeaturedBot>
+  bots: ReadonlyArray<RPCTypes.FeaturedBot>
   isPreview: boolean
   teamname?: string
   channelname?: string
@@ -118,6 +127,11 @@ export type InfoPanelProps = {
   onEditChannel: () => void
   onLeaveConversation: () => void
   onJoinChannel: () => void
+
+  // Used for bots
+  loadedAllBots: boolean
+  onSearchFeaturedBots: (username: string) => void
+  onLoadMoreBots: () => void
 } & HeaderHocProps
 
 const TabText = ({selected, text}: {selected: boolean; text: string}) => (
@@ -133,6 +147,9 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
       if (this.props.selectedTab === 'attachments') {
         this.loadAttachments()
       }
+      if (this.props.selectedTab === 'bots') {
+        this.loadBots()
+      }
     }, this.props.loadDelay || 0)
   }
   componentWillUnmount() {
@@ -141,6 +158,17 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
 
   private loadAttachments = () => {
     this.props.onAttachmentViewChange(this.props.selectedAttachmentView)
+  }
+
+  private loadBots = () => {
+    const possibleBotsLength = this.props.bots.length + this.props.availableBots.length
+    if (this.props.bots.length > 0) {
+      this.props.bots.map(bot => this.props.onSearchFeaturedBots(bot.botUsername))
+    }
+
+    if (possibleBotsLength === 0 && !this.props.loadedAllBots) {
+      this.props.onLoadMoreBots()
+    }
   }
 
   private getEntityType = (): EntityType => {
@@ -171,6 +199,13 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
         <TabText selected={this.isSelected('attachments')} text="Attachments" />
       </Kb.Box2>
     )
+    if (flags.botUI) {
+      res.push(
+        <Kb.Box2 key="bots" style={styles.tabTextContainer} direction="horizontal">
+          <TabText selected={this.isSelected('bots')} text={`Bots (${this.props.bots.length})`} />
+        </Kb.Box2>
+      )
+    }
     if (!this.props.isPreview) {
       res.push(
         <Kb.Box2 key="settings" style={styles.tabTextContainer} direction="horizontal">
@@ -187,6 +222,12 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
     if (tab.key === 'attachments') {
       this.loadAttachments()
     }
+
+    // @ts-ignore TODO avoid using key on a node
+    if (tab.key === 'bots') {
+      this.loadBots()
+    }
+
     // @ts-ignore TODO avoid using key on a node
     this.props.onSelectTab(tab.key)
   }
@@ -386,6 +427,70 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
           sections = sections.concat(attachmentSections)
         }
         break
+      case 'bots':
+        if (!Styles.isMobile) {
+          itemSizeEstimator = () => {
+            return 56
+          }
+        }
+
+        tabsSection.data.push(addBotButton)
+        if (this.props.bots.length > 0) {
+          tabsSection.data.push(inThisChannelHeader)
+        }
+        tabsSection.data = tabsSection.data.concat(this.props.bots)
+        if (this.props.availableBots.length > 0 || !this.props.loadedAllBots) {
+          tabsSection.data.push(featuredBotsHeader)
+          tabsSection.data = tabsSection.data.concat(this.props.availableBots)
+        }
+        if (!this.props.loadedAllBots) {
+          tabsSection.data.push(loadMoreBotsButton)
+        }
+        tabsSection.renderItem = ({item}) => {
+          if (item === addBotButton) {
+            return (
+              <Kb.Button
+                mode="Primary"
+                type="Default"
+                label="Add a bot"
+                style={styles.addBot}
+                onClick={() => null}
+              />
+            )
+          }
+          if (item === inThisChannelHeader) {
+            return (
+              <Kb.Text type="Header" style={styles.botHeaders}>
+                In this channel
+              </Kb.Text>
+            )
+          }
+          if (item === featuredBotsHeader) {
+            return (
+              <Kb.Text type="Header" style={styles.botHeaders}>
+                Featured
+              </Kb.Text>
+            )
+          }
+          if (item === loadMoreBotsButton) {
+            return (
+              <Kb.Button
+                label="Load more"
+                mode="Secondary"
+                type="Default"
+                style={styles.addBot}
+                onClick={() => this.props.onLoadMoreBots()}
+              />
+            )
+          }
+          if (!item.botUsername) {
+            return null
+          } else {
+            return <Bot {...item} onShowProfile={this.props.onShowProfile} />
+          }
+        }
+        sections.push(tabsSection)
+        break
     }
     return (
       <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
@@ -404,9 +509,20 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      addBot: {
+        marginBottom: Styles.globalMargins.xtiny,
+        marginLeft: Styles.globalMargins.small,
+        marginRight: Styles.globalMargins.small,
+        marginTop: Styles.globalMargins.small,
+      },
       attachmentsLoading: {
         height: Styles.globalMargins.small,
         width: Styles.globalMargins.small,
+      },
+      botHeaders: {
+        marginLeft: Styles.globalMargins.small,
+        marginRight: Styles.globalMargins.small,
+        marginTop: Styles.globalMargins.tiny,
       },
       container: Styles.platformStyles({
         common: {alignItems: 'stretch', flex: 1, paddingBottom: Styles.globalMargins.tiny},
@@ -415,16 +531,28 @@ const styles = Styles.styleSheetCreate(
           borderLeft: `1px solid ${Styles.globalColors.black_10}`,
         },
       }),
-      tabContainerStyle: {
-        backgroundColor: Styles.globalColors.white,
-      },
+      tabContainerStyle: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.white,
+        },
+        // TODO: this is less than ideal
+        isElectron: {
+          overflowX: 'scroll',
+          overflowY: 'hidden',
+        },
+      }),
       tabStyle: {
         paddingLeft: Styles.globalMargins.xsmall,
         paddingRight: Styles.globalMargins.xsmall,
       },
-      tabTextContainer: {
-        justifyContent: 'center',
-      },
+      tabTextContainer: Styles.platformStyles({
+        common: {
+          justifyContent: 'center',
+        },
+        isElectron: {
+          whiteSpace: 'nowrap',
+        },
+      }),
       tabTextSelected: {color: Styles.globalColors.black},
     } as const)
 )
