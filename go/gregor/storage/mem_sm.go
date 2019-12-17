@@ -230,8 +230,8 @@ func isBeforeOrSame(a, b time.Time) bool {
 }
 
 func (u *user) state(now time.Time, f gregor.ObjFactory, d gregor.DeviceID, t gregor.TimeOrOffset) (gregor.State, error) {
-	var items []gregor.Item
-	table := make(map[string]gregor.Item)
+	items := make([]gregor.Item, 0, len(u.items))
+	table := make(map[string]gregor.Item, len(u.items))
 	for _, i := range u.items {
 		md := i.item.Metadata()
 		did := md.DeviceID()
@@ -283,7 +283,8 @@ func (u *user) getInBandMessage(msgID gregor.MsgID) (gregor.InBandMessage, error
 }
 
 func (u *user) replayLog(now time.Time, d gregor.DeviceID, t time.Time) (msgs []gregor.InBandMessage, latestCTime *time.Time) {
-	allmsgs := make(map[string]gregor.InBandMessage)
+	msgs = make([]gregor.InBandMessage, 0, len(u.log))
+	allmsgs := make(map[string]gregor.InBandMessage, len(u.log))
 	for _, msg := range u.log {
 		if latestCTime == nil || msg.ctime.After(*latestCTime) {
 			latestCTime = &msg.ctime
