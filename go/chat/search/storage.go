@@ -291,19 +291,20 @@ func (b *batchingStore) PutMetadata(ctx context.Context, convID chat1.Conversati
 
 func (b *batchingStore) Flush() (err error) {
 	ctx := context.Background()
-	defer b.Trace(context.Background(), func() error { return err }, "flush")()
 	b.Lock()
+	if len(b.tokenBatch) == 0 && len(b.aliasBatch) == 0 && len(b.mdBatch) == 0 {
+		b.Unlock()
+		return nil
+	}
 	aliasBatch := b.aliasBatch
 	tokenBatch := b.tokenBatch
 	mdBatch := b.mdBatch
 	b.resetLocked()
 	b.Unlock()
 
+	defer b.Trace(context.Background(), func() error { return err }, "Flush")()
 	b.flushMu.Lock()
 	defer b.flushMu.Unlock()
-	if len(tokenBatch) == 0 && len(aliasBatch) == 0 && len(mdBatch) == 0 {
-		return nil
-	}
 	b.Debug(ctx, "Flush: flushing tokens from %d convs", len(tokenBatch))
 	for _, tokenBatch := range tokenBatch {
 		b.Debug(ctx, "Flush: flushing %d tokens from %s", len(tokenBatch.tokens), tokenBatch.convID)
