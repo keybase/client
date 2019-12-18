@@ -158,7 +158,6 @@ export default Container.namedConnect(
       meta.participants.length === 2 &&
       meta.participants.includes('hellobot')
     const isSelfConversation =
-      hasLoadedEver &&
       meta.teamType === 'adhoc' &&
       meta.participants.length === 1 &&
       meta.participants.includes(state.config.username)
