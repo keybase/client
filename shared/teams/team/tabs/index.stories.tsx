@@ -4,6 +4,7 @@ import TeamTabs from '.'
 
 const commonProps = {
   admin: false,
+  loadBots: action('loadBots'),
   loading: false,
   memberCount: 12,
   newRequests: 1,
