@@ -269,15 +269,10 @@ const UIItemToRetentionPolicies = (
 
 export const inboxUIItemToConversationMeta = (
   state: TypedState,
-  i: RPCChatTypes.InboxUIItem,
-  allowEmpty?: boolean
+  i: RPCChatTypes.InboxUIItem
 ): ConversationMeta | null => {
   // Private chats only
   if (i.visibility !== RPCTypes.TLFVisibility.private) {
-    return null
-  }
-  // Ignore empty unless we explicitly allow it (making new conversations)
-  if (i.isEmpty && !allowEmpty) {
     return null
   }
   // We don't support mixed reader/writers

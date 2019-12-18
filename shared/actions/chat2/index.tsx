@@ -403,43 +403,18 @@ const chatActivityToMetasAction = (
   state: Container.TypedState,
   payload: {
     readonly conv?: RPCChatTypes.InboxUIItem | null
-  },
-  ignoreDelete?: boolean
+  }
 ) => {
   const conv = payload ? payload.conv : null
   const meta = conv && Constants.inboxUIItemToConversationMeta(state, conv)
-  const conversationIDKey = meta
-    ? meta.conversationIDKey
-    : conv && Types.stringToConversationIDKey(conv.convID)
   const usernameToFullname = ((conv && conv.participants) || []).reduce((map, part) => {
     if (part.fullName) {
       map[part.assertion] = part.fullName
     }
     return map
   }, {})
-  // We ignore inbox rows that are blocked/reported or have no content
-  const isADelete =
-    !ignoreDelete &&
-    conv &&
-    ([
-      RPCChatTypes.ConversationStatus.blocked,
-      RPCChatTypes.ConversationStatus.reported,
-      RPCChatTypes.ConversationStatus.ignored,
-    ].includes(conv.status) ||
-      conv.isEmpty)
-
-  // We want to select a different convo if its cause we blocked/reported. Otherwise sometimes we get that a convo
-  // is empty which we don't want to select something else as sometimes we're in the middle of making it!
-  const selectSomethingElse = conv ? !conv.isEmpty : false
   return meta
-    ? [
-        isADelete
-          ? Chat2Gen.createMetaDelete({conversationIDKey: meta.conversationIDKey, selectSomethingElse})
-          : Chat2Gen.createMetasReceived({metas: [meta]}),
-        UsersGen.createUpdateFullnames({usernameToFullname}),
-      ]
-    : conversationIDKey && isADelete
-    ? [Chat2Gen.createMetaDelete({conversationIDKey, selectSomethingElse})]
+    ? [Chat2Gen.createMetasReceived({metas: [meta]}), UsersGen.createUpdateFullnames({usernameToFullname})]
     : []
 }
 
