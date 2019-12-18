@@ -20,6 +20,6 @@ protocol featuredBot {
         array<FeaturedBot> bots;
     }
 
-    FeaturedBotsRes featuredBots(int limit, int offset);
+    FeaturedBotsRes featuredBots(int limit, int offset, skipCache bool);
     SearchRes search(string query, int limit, int offset);
 }
