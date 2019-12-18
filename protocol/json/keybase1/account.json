@@ -75,11 +75,6 @@
         },
         {
           "type": "boolean",
-          "name": "allowFolloweesOfTeamMembers",
-          "jsonkey": "allow_followees_of_team_members"
-        },
-        {
-          "type": "boolean",
           "name": "enabled",
           "jsonkey": "enabled"
         }
