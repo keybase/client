@@ -35,12 +35,32 @@ const InstallBotPopup = (props: Props) => {
         <Kb.Avatar username={botUsername} size={64} />
         <Kb.Box2 direction="vertical">
           <Kb.Text type="BodyBigExtrabold">{featured.botAlias}</Kb.Text>
+          <Kb.ConnectedUsernames
+            colorFollowing={true}
+            type="BodySemibold"
+            usernames={[botUsername]}
+            withProfileCardPopup={false}
+          />
         </Kb.Box2>
       </Kb.Box2>
       <Kb.Text type="Body">{featured.description}</Kb.Text>
     </Kb.Box2>
   )
-  const usernameContent = null
+  const usernameContent = !featured && (
+    <Kb.Box2 direction="vertical" gap="small" style={styles.container} fullWidth={true}>
+      <Kb.Box2 direction="horizontal" gap="small" fullWidth={true}>
+        <Kb.Avatar username={botUsername} size={64} />
+        <Kb.Box2 direction="vertical">
+          <Kb.ConnectedUsernames
+            colorFollowing={true}
+            type="BodyBigExtrabold"
+            usernames={[botUsername]}
+            withProfileCardPopup={false}
+          />
+        </Kb.Box2>
+      </Kb.Box2>
+    </Kb.Box2>
+  )
   const content = featured ? featuredContent : usernameContent
   return (
     <Kb.Modal
