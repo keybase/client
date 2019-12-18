@@ -15,7 +15,6 @@ export default Container.connect(
     _joiners: message.joiners,
     author: message.author,
     authorIsYou: state.config.username === message.author,
-
     leavers: message.leavers,
     timestamp: message.timestamp,
   }),
