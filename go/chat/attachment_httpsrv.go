@@ -66,7 +66,8 @@ func NewAttachmentHTTPSrv(g *globals.Context, httpSrv *manager.Srv, fetcher type
 	if err != nil {
 		panic(err)
 	}
-	token, err := libkb.RandHexString("urlsrv", 32)
+
+	token, err := libkb.RandBytes(32)
 	if err != nil {
 		panic(err)
 	}
@@ -86,7 +87,7 @@ func NewAttachmentHTTPSrv(g *globals.Context, httpSrv *manager.Srv, fetcher type
 		httpSrv:            httpSrv,
 		hmacPool: sync.Pool{
 			New: func() interface{} {
-				return hmac.New(sha256.New, []byte(token))
+				return hmac.New(sha256.New, token)
 			},
 		},
 	}
