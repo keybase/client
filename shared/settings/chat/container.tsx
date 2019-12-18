@@ -3,6 +3,7 @@ import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as TeamConstants from '../../constants/teams'
+import * as TeamTypes from '../../constants/types/teams'
 import Chat from '.'
 
 type OwnProps = {}
@@ -17,9 +18,9 @@ const Connector = Container.namedConnect(
     const contactSettingsTeams = state.settings.chat.contactSettings.settings?.teams
     const whitelist = state.settings.chat.unfurl.unfurlWhitelist
     const unfurlWhitelist = whitelist ?? emptyList
-    console.warn('contactSettingsTeams is', contactSettingsTeams)
     return {
       contactSettingsEnabled,
+      contactSettingsError: state.settings.chat.contactSettings.error,
       contactSettingsIndirectFollowees,
       contactSettingsTeams,
       teamDetails: state.teams.teamDetails,
@@ -35,7 +36,7 @@ const Connector = Container.namedConnect(
       enabled: boolean,
       indirectFollowees: boolean,
       teamsEnabled: boolean,
-      teamsList: {[k in string]: boolean}
+      teamsList: {[k in TeamTypes.TeamID]: boolean}
     ) => {
       dispatch(SettingsGen.createContactSettingsSaved({enabled, indirectFollowees, teamsEnabled, teamsList}))
     },
@@ -52,14 +53,13 @@ const Connector = Container.namedConnect(
     const serverSelectedTeams = new Map(
       stateProps.contactSettingsTeams?.map(t => [t.teamID, {enabled: t.enabled}])
     )
-    const selectedTeams: {[K in string]: boolean} = {}
+    const selectedTeams: {[K in TeamTypes.TeamID]: boolean} = {}
     teamDetails.forEach(t => {
-      // Default to selected if the team is non-open.
-      // But if there's a server-provided choice, use that instead.
+      // If there's a server-provided previous choice, use that.
       if (serverSelectedTeams.has(t.id)) {
         selectedTeams[t.id] = !!serverSelectedTeams.get(t.id)?.enabled
       }
-      // Else, default to selected if the team is non-open.
+      // Else, default the team to being selected if the team is non-open.
       selectedTeams[t.id] = !t.isOpen
     })
     return {

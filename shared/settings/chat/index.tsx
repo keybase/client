@@ -1,14 +1,15 @@
 import * as React from 'react'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as Constants from '../../constants/settings'
-import {TeamDetails} from '../../constants/types/teams'
+import {TeamDetails, TeamID} from '../../constants/types/teams'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
 export type Props = {
   contactSettingsEnabled?: boolean
+  contactSettingsError: string
   contactSettingsIndirectFollowees: boolean
-  contactSettingsSelectedTeams: {[K in string]: boolean}
+  contactSettingsSelectedTeams: {[K in TeamID]: boolean}
   unfurlMode?: RPCChatTypes.UnfurlMode
   unfurlWhitelist?: Array<string>
   unfurlError?: string
@@ -16,7 +17,7 @@ export type Props = {
     enabled: boolean,
     indirectFollowees: boolean,
     teamsEnabled: boolean,
-    teamsList: {[k in string]: boolean}
+    teamsList: {[k in TeamID]: boolean}
   ) => void
   onUnfurlSave: (mode: RPCChatTypes.UnfurlMode, whitelist: Array<string>) => void
   onRefresh: () => void
@@ -26,7 +27,7 @@ export type Props = {
 type State = {
   contactSettingsEnabled?: boolean | null
   contactSettingsIndirectFollowees?: boolean | null
-  contactSettingsSelectedTeams: {[K in string]: boolean}
+  contactSettingsSelectedTeams: {[K in TeamID]: boolean}
   contactSettingsTeamsEnabled?: boolean | null
   unfurlSelected?: RPCChatTypes.UnfurlMode
   unfurlWhitelistRemoved: {[K in string]: boolean}
@@ -93,10 +94,11 @@ class Chat extends React.Component<Props, State> {
   }
 
   componentDidUpdate(prevProps: Props) {
-    if (this.props.contactSettingsEnabled !== prevProps.contactSettingsEnabled) {
+    console.warn('in cdu', this.props.contactSettingsEnabled, this.state.contactSettingsEnabled)
+    if (this.props.contactSettingsEnabled !== this.state.contactSettingsEnabled) {
       this.setState({contactSettingsEnabled: this.props.contactSettingsEnabled})
     }
-    if (this.props.contactSettingsIndirectFollowees !== prevProps.contactSettingsIndirectFollowees) {
+    if (this.props.contactSettingsIndirectFollowees !== this.state.contactSettingsIndirectFollowees) {
       this.setState({contactSettingsIndirectFollowees: this.props.contactSettingsIndirectFollowees})
     }
     // Create an initial copy of teams data into state, so it can be mutated there.
@@ -109,7 +111,6 @@ class Chat extends React.Component<Props, State> {
   }
 
   render() {
-    console.warn('props', this.props)
     return (
       <Kb.Box2 direction="vertical" fullHeight={true} gap="tiny" style={styles.container}>
         <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -179,6 +180,11 @@ class Chat extends React.Component<Props, State> {
               style={styles.save}
               waitingKey={Constants.contactSettingsWaitingKey}
             />
+            {this.props.contactSettingsError && (
+              <Kb.Text type="BodySmall" style={styles.error}>
+                {this.props.contactSettingsError}
+              </Kb.Text>
+            )}
           </Kb.Box2>
         </Kb.Box2>
 

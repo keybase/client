@@ -13,8 +13,8 @@ const actions = {
 }
 
 const props = {
-  contactSettingsDirectFollowees: true,
   contactSettingsEnabled: true,
+  contactSettingsError: '',
   contactSettingsIndirectFollowees: true,
   contactSettingsSelectedTeams: {},
   teamDetails: [],
@@ -34,12 +34,13 @@ const props = {
 
 const errorProps = {
   ...props,
+  contactSettingsError: 'Unable to save contact settings, please try again.',
   unfurlError: 'Unable to save link preview settings, please try again.',
 }
 
 const loadErrorProps = {
-  contactSettingsDirectFollowees: false,
   contactSettingsEnabled: false,
+  contactSettingsError: 'Unable to load contact settings, please try again.',
   contactSettingsIndirectFollowees: false,
   contactSettingsSelectedTeams: {},
   teamDetails: [],
