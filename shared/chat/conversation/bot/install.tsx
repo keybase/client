@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
+import * as Styles from '../../../styles'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as TeamTypes from '../../../constants/teams'
 
@@ -16,7 +17,8 @@ const InstallBotPopup = (props: Props) => {
   const origin = Container.getRouteProps(props, 'origin', undefined)
 
   // state
-  const {inOrigin} = Container.useSelector(state => ({
+  const {featured, inOrigin} = Container.useSelector(state => ({
+    featured: state.chat2.featuredBotsMap.get(botUsername),
     inOrigin: origin && (!origin.isTeam || TeamTypes.userInTeam(state, origin.name, botUsername)),
   }))
   // dispatch
@@ -25,33 +27,56 @@ const InstallBotPopup = (props: Props) => {
     dispatch(RouteTreeGen.createClearModals())
   }
   // merge
-  const showInstallButton = !origin || inOrigin
+  const showInstallButton = !origin || !inOrigin
 
+  const featuredContent = !!featured && (
+    <Kb.Box2 direction="vertical" gap="small" style={styles.container} fullWidth={true}>
+      <Kb.Box2 direction="horizontal" gap="small" fullWidth={true}>
+        <Kb.Avatar username={botUsername} size={64} />
+        <Kb.Box2 direction="vertical">
+          <Kb.Text type="BodyBigExtrabold">{featured.botAlias}</Kb.Text>
+        </Kb.Box2>
+      </Kb.Box2>
+      <Kb.Text type="Body">{featured.description}</Kb.Text>
+    </Kb.Box2>
+  )
+  const usernameContent = null
+  const content = featured ? featuredContent : usernameContent
   return (
     <Kb.Modal
       header={{
         leftButton: (
           <Kb.Text type="BodyBigLink" onClick={onClose}>
-            Cancel
+            {!showInstallButton ? 'Close' : 'Cancel'}
           </Kb.Text>
         ),
         title: '',
       }}
-      footer={{
-        content: showInstallButton ? (
-          <Kb.Button
-            fullWidth={true}
-            label="Install (free)"
-            onClick={() => {}}
-            mode="Primary"
-            type="Default"
-          />
-        ) : null,
-      }}
+      footer={
+        showInstallButton
+          ? {
+              content: (
+                <Kb.Button
+                  fullWidth={true}
+                  label="Install (free)"
+                  onClick={() => {}}
+                  mode="Primary"
+                  type="Default"
+                />
+              ),
+            }
+          : undefined
+      }
     >
-      <Kb.Text type="BodyBig">{botUsername}</Kb.Text>
+      {content}
     </Kb.Modal>
   )
 }
+
+const styles = Styles.styleSheetCreate(() => ({
+  container: {
+    ...Styles.padding(Styles.globalMargins.medium, Styles.globalMargins.small),
+  },
+}))
 
 export default InstallBotPopup

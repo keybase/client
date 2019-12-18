@@ -112,12 +112,19 @@ const ConnectedInfoPanel = Container.connect(
     {conversationIDKey, onBack, onCancel, onSelectAttachmentView}: OwnProps
   ) => ({
     _navToRootChat: () => dispatch(Chat2Gen.createNavigateToInbox()),
-    _onBotSelect: (username: string, name: string) => {
+    _onBotSelect: (username: string, name: string, isTeam: boolean) => {
       dispatch(
         RouteTreeGen.createNavigateAppend({
           path: [
             {
-              props: {botUsername: username, name, namespace: 'chat2'},
+              props: {
+                botUsername: username,
+                namespace: 'chat2',
+                origin: {
+                  name,
+                  isTeam,
+                },
+              },
               selected: 'chatInstallBot',
             },
           ],
@@ -346,7 +353,8 @@ const ConnectedInfoPanel = Container.connect(
           : noMedia,
       onAttachmentViewChange: dispatchProps.onAttachmentViewChange,
       onBack: dispatchProps.onBack,
-      onBotSelect: (username: string) => dispatchProps._onBotSelect(username, stateProps.teamname),
+      onBotSelect: (username: string) =>
+        dispatchProps._onBotSelect(username, stateProps.teamname, !stateProps.adhocTeam),
       onCancel: dispatchProps.onCancel,
       onEditChannel: () => dispatchProps._onEditChannel(stateProps.teamname),
       onHideConv: dispatchProps.onHideConv,
