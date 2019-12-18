@@ -20,27 +20,14 @@ const connectedUsernamesProps = {
 } as const
 
 const formatAssertion = (serviceUser: string, service: ServiceIdWithContact, isYou: boolean): string => {
-  if (isYou) {
-    return formatAssertionYou(serviceUser, service)
-  }
   switch (service) {
     case 'phone':
-      return `verified their phone number ${e164ToDisplay('+' + serviceUser)}`
+      return `verified ${isYou ? 'your' : 'their'} phone number ${e164ToDisplay('+' + serviceUser)}`
     case 'email':
-      return `verified their email address ${serviceUser}`
+      return `verified ${isYou ? 'your' : 'their'} email address ${serviceUser}`
     default:
-      return `proved they are ${serviceUser} on ${serviceIdToPrettyName(service) || service}`
-  }
-}
-
-const formatAssertionYou = (serviceUser: string, service: ServiceIdWithContact): string => {
-  switch (service) {
-    case 'phone':
-      return `verified your phone number ${e164ToDisplay('+' + serviceUser)}`
-    case 'email':
-      return `verified your email address ${serviceUser}`
-    default:
-      return `proved you are ${serviceUser} on ${serviceIdToPrettyName(service) || service}`
+      return `proved ${isYou ? 'you' : 'they'} are ${serviceUser} on ${serviceIdToPrettyName(service) ||
+        service}`
   }
 }
 
@@ -50,8 +37,7 @@ const SBSProvedNotice = (props: Props) => {
   return (
     <UserNotice>
       <Kb.Text type="BodySmall">
-        {isYou ? 'You' : <Kb.ConnectedUsernames {...connectedUsernamesProps} usernames={[prover]} />} can read
-        this chat now because {isYou ? 'you' : 'they'}{' '}
+        {isYou && 'You'} can read this chat now because {isYou ? 'you' : 'they'}{' '}
         {assertionService && formatAssertion(assertionUsername, assertionService, isYou)}.
       </Kb.Text>
     </UserNotice>

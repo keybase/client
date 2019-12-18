@@ -69,6 +69,8 @@ const getUsernameToShow = (
       return message.usernames.includes(you) ? '' : message.author
     case 'systemJoined':
       return message.joiners.length + message.leavers.length > 1 ? '' : message.author
+    case 'systemSBSResolved':
+      return message.prover
   }
   return message.author
 }
