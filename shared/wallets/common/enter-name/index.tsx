@@ -35,6 +35,7 @@ const EnterName = (props: EnterNameProps) => {
           onChangeText={props.onNameChange}
           autoFocus={true}
           maxLength={accountNameMaxLength}
+          error={!!props.error}
         />
         {!!props.error && (
           <Kb.Text type="BodySmall" style={styles.error}>

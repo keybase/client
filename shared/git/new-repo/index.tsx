@@ -182,7 +182,7 @@ const styles = Styles.styleSheetCreate(() => ({
   buttonBar: {alignItems: 'center'},
   checkbox: {
     alignSelf: 'flex-start',
-    marginTop: Styles.globalMargins.small,
+    marginTop: Styles.globalMargins.tiny,
   },
   container: Styles.platformStyles({
     common: {

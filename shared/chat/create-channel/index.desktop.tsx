@@ -28,7 +28,7 @@ const CreateChannel = (props: Props) => (
         <Kb.Icon style={styles.backIcon} type="iconfont-arrow-left" />
         <Kb.Text type="BodyPrimaryLink">Back</Kb.Text>
       </Kb.Box>
-      <Kb.Box2 direction="vertical" fullWidth={true} gap="small" gapEnd={true} gapStart={true}>
+      <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" gapEnd={true} gapStart={true}>
         <Kb.LabeledInput
           autoFocus={true}
           style={styles.input}
