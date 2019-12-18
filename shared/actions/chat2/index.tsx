@@ -186,7 +186,7 @@ const onGetInboxConvsUnboxed = (
   let added = false
   const usernameToFullname: {[username: string]: string} = {}
   inboxUIItems.forEach(inboxUIItem => {
-    const meta = Constants.inboxUIItemToConversationMeta(state, inboxUIItem, true)
+    const meta = Constants.inboxUIItemToConversationMeta(state, inboxUIItem)
     if (meta) {
       metas.push(meta)
     }
@@ -680,7 +680,7 @@ const onChatSetConvRetention = (
     logger.warn('onChatSetConvRetention: no conv given')
     return false
   }
-  const meta = Constants.inboxUIItemToConversationMeta(state, conv, true)
+  const meta = Constants.inboxUIItemToConversationMeta(state, conv)
   if (!meta) {
     logger.warn(`onChatSetConvRetention: no meta found for ${convID}`)
     return false
@@ -731,7 +731,7 @@ const onChatSetTeamRetention = (
 ) => {
   const {convs} = action.payload.params
   const metas = (convs ?? []).reduce<Array<Types.ConversationMeta>>((l, c) => {
-    const meta = Constants.inboxUIItemToConversationMeta(state, c, true)
+    const meta = Constants.inboxUIItemToConversationMeta(state, c)
     if (meta) {
       l.push(meta)
     }
@@ -837,7 +837,7 @@ const onNewChatActivity = (
       actions = chatActivityToMetasAction(state, activity.readMessage)
       break
     case RPCChatTypes.ChatActivityType.newConversation:
-      actions = chatActivityToMetasAction(state, activity.newConversation, true)
+      actions = chatActivityToMetasAction(state, activity.newConversation)
       break
     case RPCChatTypes.ChatActivityType.failedMessage: {
       const {failedMessage} = activity
@@ -2693,7 +2693,7 @@ function* createConversation(
   if (!conversationIDKey) {
     logger.warn("Couldn't make a new conversation?")
   } else {
-    const meta = Constants.inboxUIItemToConversationMeta(state, result.uiConv, true)
+    const meta = Constants.inboxUIItemToConversationMeta(state, result.uiConv)
     if (meta) {
       yield Saga.put(Chat2Gen.createMetasReceived({metas: [meta]}))
     }
@@ -2732,7 +2732,7 @@ const messageReplyPrivately = async (
     logger.warn("messageReplyPrivately: couldn't make a new conversation?")
     return
   }
-  const meta = Constants.inboxUIItemToConversationMeta(state, result.uiConv, true)
+  const meta = Constants.inboxUIItemToConversationMeta(state, result.uiConv)
   if (!meta) {
     logger.warn('messageReplyPrivately: unable to make meta')
     return
