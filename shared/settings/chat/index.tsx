@@ -94,11 +94,10 @@ class Chat extends React.Component<Props, State> {
   }
 
   componentDidUpdate(prevProps: Props) {
-    console.warn('in cdu', this.props.contactSettingsEnabled, this.state.contactSettingsEnabled)
-    if (this.props.contactSettingsEnabled !== this.state.contactSettingsEnabled) {
+    if (this.props.contactSettingsEnabled !== prevProps.contactSettingsEnabled) {
       this.setState({contactSettingsEnabled: this.props.contactSettingsEnabled})
     }
-    if (this.props.contactSettingsIndirectFollowees !== this.state.contactSettingsIndirectFollowees) {
+    if (this.props.contactSettingsIndirectFollowees !== prevProps.contactSettingsIndirectFollowees) {
       this.setState({contactSettingsIndirectFollowees: this.props.contactSettingsIndirectFollowees})
     }
     // Create an initial copy of teams data into state, so it can be mutated there.

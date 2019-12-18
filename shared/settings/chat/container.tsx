@@ -10,7 +10,7 @@ type OwnProps = {}
 
 const emptyList = []
 
-const Connector = Container.namedConnect(
+export default Container.namedConnect(
   state => {
     const contactSettingsEnabled = state.settings.chat.contactSettings.settings?.enabled
     const contactSettingsIndirectFollowees =
@@ -72,5 +72,3 @@ const Connector = Container.namedConnect(
   },
   'Chat'
 )(Chat)
-
-export default Connector
