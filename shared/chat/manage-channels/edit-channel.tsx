@@ -68,12 +68,7 @@ class _EditChannel extends React.Component<Props, State> {
           ) : (
             !Styles.isMobile && (
               <Kb.Box2 direction="horizontal" fullWidth={true}>
-                <Kb.Text
-                  center={true}
-                  lineClamp={1}
-                  type="Header"
-                  style={styles.title}
-                >
+                <Kb.Text center={true} lineClamp={1} type="Header" style={styles.title}>
                   {this.props.title}
                 </Kb.Text>
               </Kb.Box2>

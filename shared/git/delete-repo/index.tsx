@@ -78,7 +78,9 @@ class DeleteRepo extends React.Component<Props, State> {
               ? 'This will permanently delete your remote files and history, and all members of the team will be notified.  This action cannot be undone.'
               : 'This will permanently delete your remote files and history. This action cannot be undone.'}
           </Kb.Text>
-          <Kb.Text style={styles.confirm} type="BodySemibold">Enter the name of the repository to&nbsp;confirm:</Kb.Text>
+          <Kb.Text style={styles.confirm} type="BodySemibold">
+            Enter the name of the repository to&nbsp;confirm:
+          </Kb.Text>
           <Kb.LabeledInput
             autoFocus={true}
             value={this.state.name}
@@ -144,7 +146,7 @@ const styles = Styles.styleSheetCreate(() => ({
       maxHeight: 560,
       padding: Styles.globalMargins.large,
       paddingBottom: Styles.globalMargins.small,
-      width: 400
+      width: 400,
     },
     isMobile: {
       padding: Styles.globalMargins.small,

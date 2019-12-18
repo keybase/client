@@ -62,11 +62,7 @@ class Invites extends Component<Props, State> {
             padding: Styles.globalMargins.medium,
           }}
         >
-          <Kb.Box2
-            direction="vertical"
-            gap="small"
-            style={styles.container}
-          >
+          <Kb.Box2 direction="vertical" gap="small" style={styles.container}>
             <Kb.LabeledInput
               placeholder="Friend's email (optional)"
               value={this.state.inviteEmail}
