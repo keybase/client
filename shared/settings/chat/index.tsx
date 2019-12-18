@@ -179,7 +179,7 @@ class Chat extends React.Component<Props, State> {
               style={styles.save}
               waitingKey={Constants.contactSettingsWaitingKey}
             />
-            {this.props.contactSettingsError && (
+            {!!this.props.contactSettingsError && (
               <Kb.Text type="BodySmall" style={styles.error}>
                 {this.props.contactSettingsError}
               </Kb.Text>
@@ -267,7 +267,7 @@ class Chat extends React.Component<Props, State> {
 
 const TeamRow = ({checked, isOpen, membercount, name, onCheck}) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
-    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamRowContainer}>
+    <Kb.Box2 direction="horizontal" fullWidth={true} gap="small" style={styles.teamRowContainer}>
       <Kb.Checkbox checked={checked} onCheck={checked => onCheck(checked)} style={styles.teamCheckbox} />
       <Kb.Avatar isTeam={true} size={Styles.isMobile ? 48 : 32} teamname={name} />
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.teamNameContainer}>
